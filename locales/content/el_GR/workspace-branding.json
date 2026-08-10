@@ -412,11 +412,11 @@
     "source_hash": "42955289"
   },
   "web.branding.refresh_favicon": {
-    "text": "Ανανέωση εικονιδίου αγαπημένων από το domain",
+    "text": "Ανανέωση εικονιδίου αγαπημένων από τον τομέα",
     "source_hash": "7cc3d5dc"
   },
   "web.branding.refresh_favicon_hint": {
-    "text": "Ανακτήστε ξανά το εικονίδιο αγαπημένων από το domain σας. Το νέο εικονίδιο εμφανίζεται σύντομα.",
+    "text": "Ανακτήστε ξανά το εικονίδιο αγαπημένων από τον τομέα σας. Το νέο εικονίδιο εμφανίζεται σύντομα.",
     "source_hash": "ee007e44"
   },
   "web.branding.refresh_favicon_queued": {
@@ -444,11 +444,11 @@
     "source_hash": "dfa0bfcb"
   },
   "web.branding.favicon_preview_alt": {
-    "text": "Εικονίδιο αγαπημένων domain",
+    "text": "Εικονίδιο αγαπημένων τομέα",
     "source_hash": "db7dca40"
   },
   "web.branding.favicon_modal_title": {
-    "text": "Εικονίδιο αγαπημένων domain",
+    "text": "Εικονίδιο αγαπημένων τομέα",
     "source_hash": "db7dca40"
   },
   "web.branding.favicon_modal_hint": {

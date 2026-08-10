@@ -200,7 +200,7 @@
     "source_hash": "3bd51ab9"
   },
   "web.admin.domains.actions.remove.button": {
-    "text": "Αφαίρεση domain",
+    "text": "Αφαίρεση τομέα",
     "source_hash": "5ce43507"
   },
   "web.admin.domains.actions.remove.previewButton": {
@@ -216,23 +216,23 @@
     "source_hash": "5300e286"
   },
   "web.admin.domains.actions.remove.reassertsSurvivor": {
-    "text": "Μια άλλη εγγραφή διεκδικεί το ίδιο όνομα domain και θα αναλάβει το ευρετήριο αναζήτησης.",
+    "text": "Μια άλλη εγγραφή διεκδικεί το ίδιο όνομα τομέα και θα αναλάβει το ευρετήριο αναζήτησης.",
     "source_hash": "902838f4"
   },
   "web.admin.domains.actions.remove.confirmTitle": {
-    "text": "Αφαίρεση domain;",
+    "text": "Αφαίρεση τομέα;",
     "source_hash": "716dfac9"
   },
   "web.admin.domains.actions.remove.confirmDescription": {
-    "text": "Αυτό διαγράφει οριστικά το {domain} και τις εγγραφές branding, DNS και ρυθμίσεών του. Δεν μπορεί να αναιρεθεί. Επαναπληκτρολογήστε το δημόσιο αναγνωριστικό του domain για να συνεχίσετε.",
+    "text": "Αυτό διαγράφει οριστικά το {domain} και τις εγγραφές branding, DNS και ρυθμίσεών του. Δεν μπορεί να αναιρεθεί. Επαναπληκτρολογήστε το δημόσιο αναγνωριστικό του τομέα για να συνεχίσετε.",
     "source_hash": "d0b67b47"
   },
   "web.admin.domains.actions.remove.success": {
-    "text": "Το domain αφαιρέθηκε.",
+    "text": "Ο τομέας αφαιρέθηκε.",
     "source_hash": "2ccaa6d3"
   },
   "web.admin.domains.actions.remove.notApplied": {
-    "text": "Ο διακομιστής έκανε προεπισκόπηση της αφαίρεσης αντί να την εφαρμόσει — το domain ΔΕΝ αφαιρέθηκε. Δοκιμάστε ξανά και αναφέρετε το εάν επιμένει.",
+    "text": "Ο διακομιστής έκανε προεπισκόπηση της αφαίρεσης αντί να την εφαρμόσει — ο τομέας ΔΕΝ αφαιρέθηκε. Δοκιμάστε ξανά και αναφέρετε το εάν επιμένει.",
     "source_hash": "dc6d70ae"
   },
   "web.admin.domains.actions.repair.title": {
@@ -240,15 +240,15 @@
     "source_hash": "82b40352"
   },
   "web.admin.domains.actions.repair.description": {
-    "text": "Βρείτε και διορθώστε κατεστραμμένες συνδέσεις μεταξύ αυτού του domain και του οργανισμού του. Κάντε προεπισκόπηση πρώτα για να δείτε τι θα αλλάξει.",
+    "text": "Βρείτε και διορθώστε κατεστραμμένες συνδέσεις μεταξύ αυτού του τομέα και του οργανισμού του. Κάντε προεπισκόπηση πρώτα για να δείτε τι θα αλλάξει.",
     "source_hash": "531ed287"
   },
   "web.admin.domains.actions.repair.orgIdLabel": {
-    "text": "Αναγνωριστικό οργανισμού (μόνο για ορφανά domains)",
+    "text": "Αναγνωριστικό οργανισμού (μόνο για ορφανούς τομείς)",
     "source_hash": "0d3010eb"
   },
   "web.admin.domains.actions.repair.orgIdPlaceholder": {
-    "text": "Αφήστε κενό εκτός αν το domain δεν έχει ιδιοκτήτη",
+    "text": "Αφήστε κενό εκτός αν ο τομέας δεν έχει ιδιοκτήτη",
     "source_hash": "118b7132"
   },
   "web.admin.domains.actions.repair.statusLabel": {
@@ -268,7 +268,7 @@
     "source_hash": "ef0ffae5"
   },
   "web.admin.domains.actions.repair.confirmDescription": {
-    "text": "Αυτό αναγράφει εκ νέου τη σύνδεση οργανισμού για το {domain}. Επαναπληκτρολογήστε το δημόσιο αναγνωριστικό του domain για να συνεχίσετε.",
+    "text": "Αυτό αναγράφει εκ νέου τη σύνδεση οργανισμού για το {domain}. Επαναπληκτρολογήστε το δημόσιο αναγνωριστικό του τομέα για να συνεχίσετε.",
     "source_hash": "a9f2702f"
   },
   "web.admin.domains.actions.repair.success": {
@@ -280,7 +280,7 @@
     "source_hash": "1b0b0655"
   },
   "web.admin.domains.actions.transfer.description": {
-    "text": "Μετακινήστε αυτό το domain σε διαφορετικό οργανισμό. Κάντε προεπισκόπηση πρώτα για να επιβεβαιώσετε και τις δύο πλευρές της μετακίνησης.",
+    "text": "Μετακινήστε αυτόν τον τομέα σε διαφορετικό οργανισμό. Κάντε προεπισκόπηση πρώτα για να επιβεβαιώσετε και τις δύο πλευρές της μετακίνησης.",
     "source_hash": "457e852d"
   },
   "web.admin.domains.actions.transfer.toOrgLabel": {
@@ -312,19 +312,19 @@
     "source_hash": "fb546c5c"
   },
   "web.admin.domains.actions.transfer.confirmTitle": {
-    "text": "Μεταφορά domain;",
+    "text": "Μεταφορά τομέα;",
     "source_hash": "801eb986"
   },
   "web.admin.domains.actions.transfer.confirmDescription": {
-    "text": "Αυτό μετακινεί το {domain} στον οργανισμό {org}. Επαναπληκτρολογήστε το δημόσιο αναγνωριστικό του domain για να συνεχίσετε.",
+    "text": "Αυτό μετακινεί το {domain} στον οργανισμό {org}. Επαναπληκτρολογήστε το δημόσιο αναγνωριστικό του τομέα για να συνεχίσετε.",
     "source_hash": "52c8808d"
   },
   "web.admin.domains.actions.transfer.success": {
-    "text": "Το domain μεταφέρθηκε.",
+    "text": "Ο τομέας μεταφέρθηκε.",
     "source_hash": "91e681ae"
   },
   "web.admin.domains.columns.domain": {
-    "text": "Domain",
+    "text": "Τομέας",
     "source_hash": "79fa3361"
   },
   "web.admin.domains.columns.organization": {
@@ -348,15 +348,15 @@
     "source_hash": "ff8059dc"
   },
   "web.admin.domains.configs.title": {
-    "text": "Ρύθμιση domain",
+    "text": "Ρύθμιση τομέα",
     "source_hash": "d46aa480"
   },
   "web.admin.domains.configs.description": {
-    "text": "Εγγραφές ρυθμίσεων ανά domain που ελέγχουν τη σύνδεση, εγγραφή, μυστικά αρχικής σελίδας, πρόσβαση API, εισερχόμενα μυστικά, SSO πελάτη και αποστολή email. Μια απουσιάζουσα εγγραφή αποτυγχάνει κλειστά για τα πρώτα πέντε.",
+    "text": "Εγγραφές ρυθμίσεων ανά τομέα που ελέγχουν τη σύνδεση, εγγραφή, μυστικά αρχικής σελίδας, πρόσβαση API, εισερχόμενα μυστικά, SSO πελάτη και αποστολή email. Μια απουσιάζουσα εγγραφή αποτυγχάνει κλειστά για τα πρώτα πέντε.",
     "source_hash": "1df99789"
   },
   "web.admin.domains.configs.loadError": {
-    "text": "Δεν ήταν δυνατή η φόρτωση των εγγραφών ρύθμισης domain.",
+    "text": "Δεν ήταν δυνατή η φόρτωση των εγγραφών ρύθμισης τομέα.",
     "source_hash": "9417d718"
   },
   "web.admin.domains.configs.retry": {
@@ -368,7 +368,7 @@
     "source_hash": "b5d890c0"
   },
   "web.admin.domains.configs.notFoundNote": {
-    "text": "Αυτό το domain δεν υπάρχει πλέον, επομένως οι εγγραφές ρύθμισής του δεν μπορούν να φορτωθούν.",
+    "text": "Αυτός ο τομέας δεν υπάρχει πλέον, επομένως οι εγγραφές ρύθμισής του δεν μπορούν να φορτωθούν.",
     "source_hash": "2d88a392"
   },
   "web.admin.domains.configs.detailsToggle": {
@@ -376,7 +376,7 @@
     "source_hash": "45989de4"
   },
   "web.admin.domains.configs.notEditable": {
-    "text": "Διαχείριση στις ρυθμίσεις domain του χώρου εργασίας.",
+    "text": "Διαχείριση στις ρυθμίσεις τομέα του χώρου εργασίας.",
     "source_hash": "54fe891f"
   },
   "web.admin.domains.configs.delete.button": {
@@ -388,7 +388,7 @@
     "source_hash": "98e672db"
   },
   "web.admin.domains.configs.delete.confirmDescription": {
-    "text": "Αυτό διαγράφει οριστικά την εγγραφή ρύθμισης {kind} για το {domain}. Το domain επιστρέφει στη συμπεριφορά απουσιάζουσας εγγραφής. Επαναπληκτρολογήστε τον τύπο για να συνεχίσετε.",
+    "text": "Αυτό διαγράφει οριστικά την εγγραφή ρύθμισης {kind} για το {domain}. Ο τομέας επιστρέφει στη συμπεριφορά απουσιάζουσας εγγραφής. Επαναπληκτρολογήστε τον τύπο για να συνεχίσετε.",
     "source_hash": "8272c40c"
   },
   "web.admin.domains.configs.delete.success": {
@@ -420,7 +420,7 @@
     "source_hash": "4895f731"
   },
   "web.admin.domains.configs.edit.domainsHint": {
-    "text": "Ένα domain ανά γραμμή.",
+    "text": "Ένας τομέας ανά γραμμή.",
     "source_hash": "6c03f4f7"
   },
   "web.admin.domains.configs.ensure.button": {
@@ -484,7 +484,7 @@
     "source_hash": "a2e95531"
   },
   "web.admin.domains.configs.fields.allowed_signup_domains": {
-    "text": "Επιτρεπόμενα domains εγγραφής",
+    "text": "Επιτρεπόμενοι τομείς εγγραφής",
     "source_hash": "9b5bb5b1"
   },
   "web.admin.domains.configs.fields.secrets_mode": {
@@ -528,7 +528,7 @@
     "source_hash": "6ee1c9e6"
   },
   "web.admin.domains.configs.fields.allowed_domains": {
-    "text": "Επιτρεπόμενα domains",
+    "text": "Επιτρεπόμενοι τομείς",
     "source_hash": "bcd60db0"
   },
   "web.admin.domains.configs.fields.enforce_sso_only": {
@@ -612,11 +612,11 @@
     "source_hash": "6c07ba63"
   },
   "web.admin.domains.configs.missingNotes.signin": {
-    "text": "Χωρίς εγγραφή: η σύνδεση είναι απενεργοποιημένη σε αυτό το domain εκτός αν το SSO πελάτη είναι ενεργό.",
+    "text": "Χωρίς εγγραφή: η σύνδεση είναι απενεργοποιημένη σε αυτόν τον τομέα εκτός αν το SSO πελάτη είναι ενεργό.",
     "source_hash": "17dd6099"
   },
   "web.admin.domains.configs.missingNotes.signup": {
-    "text": "Χωρίς εγγραφή: η εγγραφή είναι απενεργοποιημένη σε αυτό το domain.",
+    "text": "Χωρίς εγγραφή: η εγγραφή είναι απενεργοποιημένη σε αυτόν τον τομέα.",
     "source_hash": "c3c98956"
   },
   "web.admin.domains.configs.missingNotes.homepage": {
@@ -660,19 +660,19 @@
     "source_hash": "a467911c"
   },
   "web.admin.domains.detail.backToList": {
-    "text": "Επιστροφή στα domains",
+    "text": "Επιστροφή στους τομείς",
     "source_hash": "22fd50fe"
   },
   "web.admin.domains.detail.notFound": {
-    "text": "Το domain δεν βρέθηκε",
+    "text": "Ο τομέας δεν βρέθηκε",
     "source_hash": "7b8fc0e6"
   },
   "web.admin.domains.detail.notFoundDescription": {
-    "text": "Αυτό το domain δεν υπάρχει ή έχει ήδη αφαιρεθεί.",
+    "text": "Αυτός ο τομέας δεν υπάρχει ή έχει ήδη αφαιρεθεί.",
     "source_hash": "e0f0b987"
   },
   "web.admin.domains.detail.loadError": {
-    "text": "Δεν ήταν δυνατή η φόρτωση αυτού του domain.",
+    "text": "Δεν ήταν δυνατή η φόρτωση αυτού του τομέα.",
     "source_hash": "39e9c657"
   },
   "web.admin.domains.detail.retry": {
@@ -700,7 +700,7 @@
     "source_hash": "54a43621"
   },
   "web.admin.domains.detail.organization.unknown": {
-    "text": "Ο οργανισμός ιδιοκτήτης δεν περιλαμβάνεται σε αυτή την απάντηση. Ανοίξτε αυτό το domain από τη λίστα domains για να το δείτε.",
+    "text": "Ο οργανισμός ιδιοκτήτης δεν περιλαμβάνεται σε αυτή την απάντηση. Ανοίξτε αυτόν τον τομέα από τη λίστα τομέων για να τον δείτε.",
     "source_hash": "bb5bdc9c"
   },
   "web.admin.domains.detail.sections.overview": {
@@ -744,15 +744,15 @@
     "source_hash": "d764d425"
   },
   "web.admin.domains.fields.baseDomain": {
-    "text": "Βασικό domain",
+    "text": "Βασικός τομέας",
     "source_hash": "33295d5b"
   },
   "web.admin.domains.fields.subdomain": {
-    "text": "Subdomain",
+    "text": "Υποτομέας",
     "source_hash": "ba4520ab"
   },
   "web.admin.domains.fields.apex": {
-    "text": "Apex domain",
+    "text": "Τομέας apex",
     "source_hash": "0a8a42fa"
   },
   "web.admin.domains.fields.status": {
@@ -780,7 +780,7 @@
     "source_hash": "5fa7aac5"
   },
   "web.admin.domains.list.searchPlaceholder": {
-    "text": "Αναζήτηση με όνομα domain ή αναγνωριστικό",
+    "text": "Αναζήτηση με όνομα τομέα ή αναγνωριστικό",
     "source_hash": "aecdd873"
   },
   "web.admin.domains.list.stateFilter": {
@@ -788,7 +788,7 @@
     "source_hash": "a3b50c47"
   },
   "web.admin.domains.list.emptyFilter": {
-    "text": "Κανένα domain δεν ταιριάζει με τα τρέχοντα φίλτρα.",
+    "text": "Κανένας τομέας δεν ταιριάζει με τα τρέχοντα φίλτρα.",
     "source_hash": "be4d64ec"
   },
   "web.admin.domains.probe.healthLabel": {

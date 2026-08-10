@@ -444,11 +444,11 @@
     "source_hash": "cbb5b92f"
   },
   "web.admin.organizations.addMember.roleHints.member": {
-    "text": "Καθημερινή πρόσβαση στα μυστικά και domains του οργανισμού.",
+    "text": "Καθημερινή πρόσβαση στα μυστικά και τους τομείς του οργανισμού.",
     "source_hash": "d0c7439e"
   },
   "web.admin.organizations.addMember.roleHints.admin": {
-    "text": "Μπορεί να διαχειριστεί μέλη, domains και ρυθμίσεις οργανισμού.",
+    "text": "Μπορεί να διαχειριστεί μέλη, τομείς και ρυθμίσεις οργανισμού.",
     "source_hash": "beaa50d7"
   },
   "web.admin.organizations.addMember.roleHints.owner": {
