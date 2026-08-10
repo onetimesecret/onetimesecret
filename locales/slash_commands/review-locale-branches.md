@@ -16,7 +16,7 @@ bash locales/scripts/review-locale-branches.sh validate
 For each branch it runs `python3 locales/scripts/i18n validate variables --json
 --locale <locale>`, writes the JSON to `/tmp/i18n-validate-{locale}.json` (pass a
 `RESULTS_DIR` argument to override), and prints one line per locale with a
-mismatch count > 0. It always exits 0 — it's a report, not a gate.
+blocking count > 0. It always exits 0 — it's a report, not a gate.
 
 Output is deterministic: a locale only appears if it has `N > 0` errors to fix.
 The count is the report's `blocking` field — placeholder and format defects in

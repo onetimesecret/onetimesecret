@@ -122,7 +122,7 @@ audit_locale() {
 }
 
 # Post-export check: placeholder parity in the content just written.
-# `validate variables` exits with the ISSUE COUNT, and exit 1 is ambiguous (it is
+# `validate variables` exits with its BLOCKING COUNT, and exit 1 is ambiguous (it is
 # also the "locale not found"/crash path, which prints no JSON). Decide on the
 # parsed report, treating an unparseable one as dirty — never as clean.
 #
@@ -149,7 +149,7 @@ validate_variables() {
     return 1
   fi
   if [[ "$count" -gt 0 ]]; then
-    echo "[$locale] $count variable mismatch(es) in exported content"
+    echo "[$locale] $count blocking validation finding(s) in exported content"
     return 1
   fi
   return 0

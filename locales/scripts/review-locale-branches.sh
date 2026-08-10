@@ -58,7 +58,7 @@ cmd_init() {
 # ---------------------------------------------------------------------------
 # validate [RESULTS_DIR]: Stage 1.
 # For each i18n/update-* branch, run variable validation with --json, write
-# the JSON to RESULTS_DIR, and print one line per locale whose total mismatch
+# the JSON to RESULTS_DIR, and print one line per locale whose blocking
 # count is > 0. Always exits 0 (this is a report, not a gate).
 # ---------------------------------------------------------------------------
 cmd_validate() {
@@ -68,7 +68,7 @@ cmd_validate() {
   # `validate` parses each report with jq; if jq is missing every parse fails and
   # the loop prints ERROR for every locale yet still exits 0 — a clean-looking but
   # empty report. Fail closed instead of failing open.
-  command -v jq >/dev/null 2>&1 || die "jq not found on PATH; the validate stage needs it to parse mismatch counts"
+  command -v jq >/dev/null 2>&1 || die "jq not found on PATH; the validate stage needs it to parse blocking counts"
 
   # Enumerate i18n/update-* refs, local AND remote (a fresh checkout commonly
   # has them only as origin/i18n/update-*). Keep each ref's full name so we can
@@ -113,7 +113,7 @@ cmd_validate() {
 
     # Distinguish three outcomes by parsing the report, not by the exit code
     # alone: a genuine failure (no parseable JSON — missing locale, crash, old
-    # CLI) must surface as an ERROR, not read as clean; "mismatches found"
+    # CLI) must surface as an ERROR, not read as clean; "blocking findings"
     # (valid JSON, rc!=0) reports the count; a clean run prints nothing.
     # Prefer the report's own `blocking` count (non-advisory findings only;
     # untranslated keys are coverage, not placeholder defects). Branches whose
@@ -126,7 +126,7 @@ cmd_validate() {
       continue
     fi
     if [ "$count" -gt 0 ]; then
-      echo "$locale: $count variable mismatches — $out"
+      echo "$locale: $count blocking validation findings — $out"
     fi
   done
 
