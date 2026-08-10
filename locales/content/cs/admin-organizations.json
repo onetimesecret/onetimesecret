@@ -348,7 +348,7 @@
     "source_hash": "f6340d35"
   },
   "web.admin.organizations.addMember.noResults": {
-    "text": "Žádný účet neodpovídá \"{term}\".",
+    "text": "Žádný účet neodpovídá „{term}“.",
     "source_hash": "199b662a"
   },
   "web.admin.organizations.addMember.noResultsHint": {
