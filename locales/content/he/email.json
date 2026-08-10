@@ -846,7 +846,7 @@
     "source_hash": "35bce6cc"
   },
   "email.sso_link_verification.request_notice": {
-    "text": "מישהו נכנס עם %{provider} באמצעות הדוא\"ל %{email_address}. כדי לסיים לחבר את %{provider} לחשבון %{product_name} שלך, אשר למטה.",
+    "text": "מישהו נכנס עם %{provider} באמצעות הדוא״ל %{email_address}. כדי לסיים לחבר את %{provider} לחשבון %{product_name} שלך, אשר למטה.",
     "source_hash": "baeb18c0"
   },
   "email.sso_link_verification.confirm_button": {
@@ -862,7 +862,7 @@
     "source_hash": "1a437f42"
   },
   "email.sso_link_verification.ignore_notice": {
-    "text": "אם לא ניסית להיכנס עם %{provider}, תוכל להתעלם מדוא\"ל זה בבטחה — שום דבר לא יחובר לחשבון שלך.",
+    "text": "אם לא ניסית להיכנס עם %{provider}, תוכל להתעלם מדוא״ל זה בבטחה — שום דבר לא יחובר לחשבון שלך.",
     "source_hash": "d7317d30"
   },
   "email.sso_link_verification.signature": {
@@ -870,7 +870,7 @@
     "source_hash": "dc75bf9f"
   },
   "email.sso_link_verification.postscript": {
-    "text": "נ.ב. דוא\"ל זה נשלח אל %{email_address}.",
+    "text": "נ.ב. דוא״ל זה נשלח אל %{email_address}.",
     "source_hash": "8ab1dbea"
   }
 }
