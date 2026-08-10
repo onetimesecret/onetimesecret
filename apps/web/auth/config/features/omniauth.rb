@@ -357,9 +357,13 @@ module Auth::Config::Features
         return
       end
 
-      client_id = defn[:required_vars].find { |var| var.end_with?('_CLIENT_ID') }
+      # '(none)' rather than a silent blank when a definition has no
+      # *_CLIENT_ID var (e.g. a future provider keyed on an API key), so a
+      # mis-keyed env var can't masquerade as a truncated credential.
+      client_id         = defn[:required_vars].find { |var| var.end_with?('_CLIENT_ID') }
         &.then { |var| ENV.fetch(var, '') }
-      OT.li "[OmniAuth] Configuring #{defn[:label]} provider '#{provider_name}' (#{display_name}), client_id: #{client_id.to_s[0..8]}..."
+      client_id_snippet = client_id ? "#{client_id[0..8]}..." : '(none)'
+      OT.li "[OmniAuth] Configuring #{defn[:label]} provider '#{provider_name}' (#{display_name}), client_id: #{client_id_snippet}"
 
       auth.omniauth_provider(defn[:strategy], name: provider_name, **defn[:strategy_options].call)
     end

@@ -818,7 +818,7 @@ module Auth::Config::Hooks
         # That's a choice, not a malfunction — route it to its own code so
         # the frontend can render calm "sign-in was cancelled" copy instead
         # of the alarming generic failure message.
-        error_type = (omniauth_error_type if respond_to?(:omniauth_error_type))
+        error_type = (omniauth_error_type if respond_to?(:omniauth_error_type)) || :unknown
         if error_type.to_s == 'access_denied'
           '/signin?auth_error=sso_cancelled'
         else
