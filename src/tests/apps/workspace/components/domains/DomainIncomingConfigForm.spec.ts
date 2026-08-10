@@ -78,9 +78,7 @@ function mountForm(opts: MountOptions = {}): VueWrapper {
 /** Find a button by its rendered text (case-insensitive substring match). */
 function findButtonByText(wrapper: VueWrapper, label: string): DOMWrapper<HTMLButtonElement> {
   const lower = label.toLowerCase();
-  const found = wrapper
-    .findAll('button')
-    .find((b) => b.text().toLowerCase().includes(lower));
+  const found = wrapper.findAll('button').find((b) => b.text().toLowerCase().includes(lower));
   if (!found) {
     throw new Error(`No button with text matching "${label}"; rendered: ${wrapper.text()}`);
   }
@@ -323,7 +321,9 @@ describe('DomainIncomingConfigForm (single-list, plaintext)', () => {
         formState: singleRecipientFormState,
         savedFormState: singleRecipientFormState,
       });
-      const deleteBtn = wrapper.findAll('button').find((b) => b.text().includes('web.domains.incoming.delete_all_recipients'));
+      const deleteBtn = wrapper
+        .findAll('button')
+        .find((b) => b.text().includes('web.domains.incoming.delete_all_recipients'));
       await deleteBtn!.trigger('click');
 
       expect(wrapper.text()).toContain('web.domains.incoming.remove_all_confirmation');
@@ -334,7 +334,9 @@ describe('DomainIncomingConfigForm (single-list, plaintext)', () => {
         formState: singleRecipientFormState,
         savedFormState: singleRecipientFormState,
       });
-      const deleteBtn = wrapper.findAll('button').find((b) => b.text().includes('web.domains.incoming.delete_all_recipients'));
+      const deleteBtn = wrapper
+        .findAll('button')
+        .find((b) => b.text().includes('web.domains.incoming.delete_all_recipients'));
       await deleteBtn!.trigger('click');
       const confirmBtn = wrapper
         .findAll('button')

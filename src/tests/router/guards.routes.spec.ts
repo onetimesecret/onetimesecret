@@ -27,9 +27,7 @@ import { isSsoOnlyMode } from '@/utils/features';
 type FeatureGuard = (to: RouteLocationNormalized) => RouteLocationRaw | true;
 
 /** Async guard that handles auth redirects and validation. */
-type AuthGuard = (
-  to: RouteLocationNormalized
-) => Promise<NavigationGuardReturn>;
+type AuthGuard = (to: RouteLocationNormalized) => Promise<NavigationGuardReturn>;
 
 const protectedRoute: RouteLocationNormalized = {
   meta: { requiresAuth: true },
@@ -82,7 +80,6 @@ vi.mock('@/shared/stores/organizationStore', () => ({
 describe('Router Guards', () => {
   let router: Router;
   let pinia: ReturnType<typeof createTestingPinia>;
-
 
   beforeEach(() => {
     pinia = createTestingPinia({
@@ -201,7 +198,10 @@ describe('Router Guards', () => {
 
     it('overrides layoutProps for public routes on custom domain', () => {
       const bootstrapStore = useBootstrapStore();
-      bootstrapStore.$patch({ domain_strategy: 'custom', domain_logo: 'https://example.com/logo.png' });
+      bootstrapStore.$patch({
+        domain_strategy: 'custom',
+        domain_logo: 'https://example.com/logo.png',
+      });
 
       const guard = getLayoutGuard();
       const to = {
@@ -265,7 +265,7 @@ describe('Router Guards', () => {
       hash: '',
       fullPath: '/auth',
       matched: [],
-      redirectedFrom: undefined
+      redirectedFrom: undefined,
     };
 
     const authStore = { isAuthenticated: true, isFullyAuthenticated: true };
@@ -338,7 +338,7 @@ describe('Router Guards', () => {
       fullPath: '/',
       matched: [],
       redirectedFrom: undefined,
-      meta: {}
+      meta: {},
     };
 
     const authStore = { isAuthenticated: true, isFullyAuthenticated: true };
@@ -931,7 +931,14 @@ describe('Router Guards', () => {
 
     describe('list page (/orgs, no org in path)', () => {
       it('allows when the user owns at least one org', async () => {
-        useStore(makeStore({ organizations: [{ extid: 'on1', current_user_role: 'member' }, { extid: 'on2', current_user_role: 'owner' }] }));
+        useStore(
+          makeStore({
+            organizations: [
+              { extid: 'on1', current_user_role: 'member' },
+              { extid: 'on2', current_user_role: 'owner' },
+            ],
+          })
+        );
         const result = await handleOrgRoleRequirement(
           makeRoute({ path: '/orgs', meta: { requiresOrgRole: 'owner' } })
         );
@@ -939,7 +946,14 @@ describe('Router Guards', () => {
       });
 
       it('redirects to /dashboard when the user owns no org', async () => {
-        useStore(makeStore({ organizations: [{ extid: 'on1', current_user_role: 'admin' }, { extid: 'on2', current_user_role: 'member' }] }));
+        useStore(
+          makeStore({
+            organizations: [
+              { extid: 'on1', current_user_role: 'admin' },
+              { extid: 'on2', current_user_role: 'member' },
+            ],
+          })
+        );
         const result = await handleOrgRoleRequirement(
           makeRoute({ path: '/orgs', meta: { requiresOrgRole: 'owner' } })
         );
@@ -977,7 +991,11 @@ describe('Router Guards', () => {
 
     describe('single-org route (:extid / :orgid in path)', () => {
       it('allows an admin when admin is required', async () => {
-        useStore(makeStore({ getOrganizationByExtid: () => ({ extid: 'on1', current_user_role: 'admin' }) }));
+        useStore(
+          makeStore({
+            getOrganizationByExtid: () => ({ extid: 'on1', current_user_role: 'admin' }),
+          })
+        );
         const result = await handleOrgRoleRequirement(
           makeRoute({ params: { extid: 'on1' }, meta: { requiresOrgRole: 'admin' } })
         );
@@ -985,7 +1003,11 @@ describe('Router Guards', () => {
       });
 
       it('redirects a member away from an admin-only route', async () => {
-        useStore(makeStore({ getOrganizationByExtid: () => ({ extid: 'on1', current_user_role: 'member' }) }));
+        useStore(
+          makeStore({
+            getOrganizationByExtid: () => ({ extid: 'on1', current_user_role: 'member' }),
+          })
+        );
         const result = await handleOrgRoleRequirement(
           makeRoute({ params: { extid: 'on1' }, meta: { requiresOrgRole: 'admin' } })
         );
@@ -993,7 +1015,11 @@ describe('Router Guards', () => {
       });
 
       it('redirects an admin away from an owner-only route', async () => {
-        useStore(makeStore({ getOrganizationByExtid: () => ({ extid: 'on1', current_user_role: 'admin' }) }));
+        useStore(
+          makeStore({
+            getOrganizationByExtid: () => ({ extid: 'on1', current_user_role: 'admin' }),
+          })
+        );
         const result = await handleOrgRoleRequirement(
           makeRoute({ params: { extid: 'on1' }, meta: { requiresOrgRole: 'owner' } })
         );

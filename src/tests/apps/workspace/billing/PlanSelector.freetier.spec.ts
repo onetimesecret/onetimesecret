@@ -41,7 +41,11 @@ vi.mock('vue-router', () => ({
 // --- Presentational stubs. PlanCard is deliberately NOT stubbed: its
 // data-testid, Current badge and disabled button are what we assert on.
 vi.mock('@/shared/components/icons/OIcon.vue', () => ({
-  default: { name: 'OIcon', template: '<span class="o-icon" />', props: ['collection', 'name', 'class'] },
+  default: {
+    name: 'OIcon',
+    template: '<span class="o-icon" />',
+    props: ['collection', 'name', 'class'],
+  },
 }));
 vi.mock('@/shared/components/layout/BillingLayout.vue', () => ({
   default: { name: 'BillingLayout', template: '<div class="billing-layout"><slot /></div>' },
@@ -50,7 +54,11 @@ vi.mock('@/shared/components/billing/PlanCardSkeleton.vue', () => ({
   default: { name: 'PlanCardSkeleton', template: '<div class="plan-card-skeleton" />' },
 }));
 vi.mock('@/shared/components/forms/BasicFormAlerts.vue', () => ({
-  default: { name: 'BasicFormAlerts', template: '<div class="form-alerts">{{ error }}</div>', props: ['error'] },
+  default: {
+    name: 'BasicFormAlerts',
+    template: '<div class="form-alerts">{{ error }}</div>',
+    props: ['error'],
+  },
 }));
 vi.mock('@/shared/components/ui/FeedbackToggle.vue', () => ({
   default: { name: 'FeedbackToggle', template: '<button class="feedback-toggle" />' },
@@ -103,7 +111,8 @@ vi.mock('@/services/billing.service', () => ({
 }));
 
 vi.mock('@/types/billing', () => ({
-  formatCurrency: (amount: number, currency = 'cad') => `${currency.toUpperCase()} ${(amount / 100).toFixed(2)}`,
+  formatCurrency: (amount: number, currency = 'cad') =>
+    `${currency.toUpperCase()} ${(amount / 100).toFixed(2)}`,
   isLegacyPlan: (planId: string) => planId === 'identity',
   getPlanLabel: (planId: string) => planId,
 }));
@@ -111,12 +120,15 @@ vi.mock('@/types/billing', () => ({
 // PlanCard imports the locale-aware wrapper (#4048); mock it the same way so
 // assertions stay locale-independent.
 vi.mock('@/utils/format/currency', () => ({
-  formatCurrency: (amount: number, currency = 'cad') => `${currency.toUpperCase()} ${(amount / 100).toFixed(2)}`,
+  formatCurrency: (amount: number, currency = 'cad') =>
+    `${currency.toUpperCase()} ${(amount / 100).toFixed(2)}`,
   activeIntlLocale: () => undefined,
 }));
 
 vi.mock('@/schemas/errors', () => ({
-  classifyError: (err: unknown) => ({ message: err instanceof Error ? err.message : 'Unknown error' }),
+  classifyError: (err: unknown) => ({
+    message: err instanceof Error ? err.message : 'Unknown error',
+  }),
 }));
 
 vi.mock('@/services/diagnostics.service', () => ({
@@ -209,10 +221,12 @@ describe('PlanSelector — free card in the authenticated grid', () => {
     wrapper?.unmount();
   });
 
-  const mountComponent = async (options: {
-    planid?: string;
-    subscription?: SubscriptionStatusResponse | null;
-  } = {}) => {
+  const mountComponent = async (
+    options: {
+      planid?: string;
+      subscription?: SubscriptionStatusResponse | null;
+    } = {}
+  ) => {
     mockFetchOrganization.mockResolvedValue(makeOrg(options.planid ?? 'identity_plus_v1'));
     if (options.subscription === null) {
       mockGetSubscriptionStatus.mockRejectedValue(new Error('no subscription'));

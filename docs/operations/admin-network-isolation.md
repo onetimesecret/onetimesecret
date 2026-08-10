@@ -6,10 +6,10 @@ application's own authentication and authorization.
 
 The two factors are independent and neither replaces the other:
 
-| Factor | Config / env | Default |
-|---|---|---|
-| Host | `site.admin.allowed_hosts` / `ADMIN_ALLOWED_HOSTS` | **active** — canonical anchor hosts (+ `www.`) |
-| Network | `site.admin.allowed_cidrs` / `ADMIN_ALLOWED_CIDRS` | inactive (opt-in) |
+| Factor  | Config / env                                       | Default                                        |
+| ------- | -------------------------------------------------- | ---------------------------------------------- |
+| Host    | `site.admin.allowed_hosts` / `ADMIN_ALLOWED_HOSTS` | **active** — canonical anchor hosts (+ `www.`) |
+| Network | `site.admin.allowed_cidrs` / `ADMIN_ALLOWED_CIDRS` | inactive (opt-in)                              |
 
 A request must pass every gate that is **active**. Failing either produces the
 same 404. When both are inactive the middleware is a strict no-op.
@@ -48,7 +48,7 @@ unaffected by it. It is also the only value that turns the gate off on purpose;
 nothing else does.
 
 The middleware also moved below `Rack::DetectHost` (which is below
-`StartupReadiness`), so a request to `/colonel` *while the app is still booting*
+`StartupReadiness`), so a request to `/colonel` _while the app is still booting_
 now returns 503 rather than 404.
 
 ## What it does
@@ -68,7 +68,7 @@ Both are already protected by **two app-layer auth layers** that always enforce:
 `site.admin.allowed_hosts` and `site.admin.allowed_cidrs` add a **host layer**
 and a **network layer** in front of those. A request that fails either receives
 a **404** — not a 403 — on both surfaces, so the admin console is
-*indistinguishable from absent* to an unauthorized host or network and does not
+_indistinguishable from absent_ to an unauthorized host or network and does not
 advertise its existence. Both are enforced by the `AdminNetworkIsolation` Rack
 middleware (`lib/onetime/middleware/admin_network_isolation.rb`), a sibling of
 the existing `IPBan` and `HealthAccessControl` middleware.
@@ -88,7 +88,7 @@ gets the full admin console on a hostname the tenant controls in DNS. The gate
 removes the surface rather than relying on those defaults holding.
 
 **Unset or empty (the default) is active, not off.** The allowlist falls back to
-the deployment's canonical *anchor* hosts — `features.domains.default` and
+the deployment's canonical _anchor_ hosts — `features.domains.default` and
 `site.host` — plus their `www.` siblings (an anchor configured as
 `www.example.com` also admits `example.com`). A stock canonical deployment sees
 no behavior change; custom domains and link-pool domains stop serving admin.
@@ -110,7 +110,7 @@ Details that matter:
 - Matching is case-insensitive, port-stripped and trailing-dot-stripped. ASCII
   A-labels only: give an internationalized domain in its `xn--` punycode form. A
   non-ASCII entry can never match, so it is dropped and named in a boot WARN —
-  and if it was the *only* entry, both admin surfaces 404.
+  and if it was the _only_ entry, both admin surfaces 404.
 - **Patterns are not supported.** `*.example.com` matches nothing: it is dropped
   and named in a boot WARN, and a list of nothing but patterns 404s both admin
   surfaces. List each hostname explicitly.
@@ -180,20 +180,20 @@ are already fail-closed for this config, so aborting the process would take the
 public site, the API and the health endpoints down over an admin-console-only
 typo — an `ADMIN_ALLOWED_HOSTS=10.0.0.0/8` mixup with the adjacent
 `ADMIN_ALLOWED_CIDRS` key would be a full outage. Contrast `LINK_DOMAINS`
-(#4063), which *does* fail the boot: it has no fail-closed runtime backstop, so
+(#4063), which _does_ fail the boot: it has no fail-closed runtime backstop, so
 there the process has to stop.
 
 Common triggers:
 
-| Value | Result |
-|---|---|
-| `ADMIN_ALLOWED_HOSTS=127.0.0.1` / `localhost` | boots with a WARN; both admin surfaces 404 — never detected as a host |
-| `ADMIN_ALLOWED_HOSTS=*.example.com` | boots with a WARN; both admin surfaces 404 — patterns are not supported |
-| `ADMIN_ALLOWED_HOSTS=ünïcode.example` | boots with a WARN; both admin surfaces 404 — supply the `xn--` form |
+| Value                                                 | Result                                                                     |
+| ----------------------------------------------------- | -------------------------------------------------------------------------- |
+| `ADMIN_ALLOWED_HOSTS=127.0.0.1` / `localhost`         | boots with a WARN; both admin surfaces 404 — never detected as a host      |
+| `ADMIN_ALLOWED_HOSTS=*.example.com`                   | boots with a WARN; both admin surfaces 404 — patterns are not supported    |
+| `ADMIN_ALLOWED_HOSTS=ünïcode.example`                 | boots with a WARN; both admin surfaces 404 — supply the `xn--` form        |
 | `ADMIN_ALLOWED_HOSTS=*.example.com,admin.example.com` | boots; the pattern is dropped with a WARN, `admin.example.com` is enforced |
-| `ADMIN_ALLOWED_HOSTS=*` | boots; host gate off, WARN |
-| `ADMIN_ALLOWED_HOSTS=*,admin.example.com` | boots; host gate **off** (the `*` wins), both entries named in a WARN |
-| unset / empty | boots; canonical anchors, or inert (above) |
+| `ADMIN_ALLOWED_HOSTS=*`                               | boots; host gate off, WARN                                                 |
+| `ADMIN_ALLOWED_HOSTS=*,admin.example.com`             | boots; host gate **off** (the `*` wins), both entries named in a WARN      |
+| unset / empty                                         | boots; canonical anchors, or inert (above)                                 |
 
 Partial failures change nothing: as long as **one** entry is enforceable, the
 rest are dropped with a WARN (`Ignoring unusable entries in
@@ -220,8 +220,8 @@ to the **private** ranges the surfaces should be reachable from:
 site:
   admin:
     allowed_cidrs:
-      - 100.64.0.0/10   # Tailscale / CGNAT VPN range
-      - 10.0.0.0/8      # internal RFC1918
+      - 100.64.0.0/10 # Tailscale / CGNAT VPN range
+      - 10.0.0.0/8 # internal RFC1918
 ```
 
 Or via environment variable (comma-separated):
@@ -283,7 +283,7 @@ site:
   network:
     trusted_proxy:
       enabled: true
-      mode: filter          # depth mode is broken, see #4024
+      mode: filter # depth mode is broken, see #4024
   admin:
     allowed_cidrs:
       - 100.64.0.0/10
@@ -324,7 +324,7 @@ the proxy's private address.
 
 The gate deliberately does **not** fall back to the `Host` header when it
 refuses a forwarded one. In the topology this defends (Approximated-style
-ingress with `trusted_proxy` unset) `Host` carries the *origin's* hostname —
+ingress with `trusted_proxy` unset) `Host` carries the _origin's_ hostname —
 typically the canonical one, which is on the allowlist — while the tenant
 domain rides in `Apx-Incoming-Host`. Falling back would admit exactly the
 requests this exists to refuse.
@@ -404,7 +404,7 @@ app-layer auth layers fully in force underneath.
 ## Recommended posture
 
 - **Serve admin on its own hostname** (`admin.example.com`) and have the edge
-  return 404 for `/colonel` and `/api/colonel` on every *other* vhost. Set
+  return 404 for `/colonel` and `/api/colonel` on every _other_ vhost. Set
   `ADMIN_ALLOWED_HOSTS` to that hostname so the app enforces the same thing.
 - Do not terminate the admin hostname on a wildcard vhost that also serves
   tenant custom domains.
@@ -417,7 +417,7 @@ app-layer auth layers fully in force underneath.
 ## Verifying
 
 - On a host **not** on the allowlist (e.g. a tenant custom domain): `GET
-  /colonel` and `GET /api/colonel` both return `404`, for an authenticated
+/colonel` and `GET /api/colonel` both return `404`, for an authenticated
   colonel and an anonymous request alike.
 - On an allowlisted host: the request reaches the auth layers, exactly as
   before.
@@ -481,17 +481,17 @@ means a genuinely different posture, not a second mount.
 
 Also emitted at boot, each only in its own case:
 
-| Message | Level | Means |
-|---|---|---|
-| ``Admin host allowlist DISABLED by `*` `` | WARN | `ADMIN_ALLOWED_HOSTS` contains `*` — host gate off |
-| ``Ignoring every other entry in site.admin.allowed_hosts: `*` disables the host gate`` | WARN | `*` was listed beside other entries; those entries do nothing |
-| `Ignoring unusable entries in site.admin.allowed_hosts` | WARN | some entries dropped; each named with its reason |
-| `Admin host allowlist INACTIVE: no routable hostname configured` | WARN | the unset/fallback case only — see [inert](#when-the-host-gate-goes-inert) |
-| `Admin host allowlist has no enforceable entry; denying both admin surfaces` | WARN | an explicit list where nothing survived — see [above](#when-the-allowlist-cannot-be-enforced) |
-| `Invalid CIDR in site.admin.allowed_cidrs, skipping: …` | WARN | an unparseable CIDR entry, with others still usable |
-| `Admin CIDR allowlist has no usable range; denying both admin surfaces` | ERROR | a configured `ADMIN_ALLOWED_CIDRS` where **no** entry parsed |
-| `Cannot read site.admin.allowed_hosts; denying both admin surfaces` | ERROR | the config could not be read at all (not the same as unset) |
-| `Cannot read site.admin.allowed_cidrs; denying both admin surfaces` | ERROR | ditto, for the CIDR list |
+| Message                                                                                | Level | Means                                                                                         |
+| -------------------------------------------------------------------------------------- | ----- | --------------------------------------------------------------------------------------------- |
+| ``Admin host allowlist DISABLED by `*` ``                                              | WARN  | `ADMIN_ALLOWED_HOSTS` contains `*` — host gate off                                            |
+| ``Ignoring every other entry in site.admin.allowed_hosts: `*` disables the host gate`` | WARN  | `*` was listed beside other entries; those entries do nothing                                 |
+| `Ignoring unusable entries in site.admin.allowed_hosts`                                | WARN  | some entries dropped; each named with its reason                                              |
+| `Admin host allowlist INACTIVE: no routable hostname configured`                       | WARN  | the unset/fallback case only — see [inert](#when-the-host-gate-goes-inert)                    |
+| `Admin host allowlist has no enforceable entry; denying both admin surfaces`           | WARN  | an explicit list where nothing survived — see [above](#when-the-allowlist-cannot-be-enforced) |
+| `Invalid CIDR in site.admin.allowed_cidrs, skipping: …`                                | WARN  | an unparseable CIDR entry, with others still usable                                           |
+| `Admin CIDR allowlist has no usable range; denying both admin surfaces`                | ERROR | a configured `ADMIN_ALLOWED_CIDRS` where **no** entry parsed                                  |
+| `Cannot read site.admin.allowed_hosts; denying both admin surfaces`                    | ERROR | the config could not be read at all (not the same as unset)                                   |
+| `Cannot read site.admin.allowed_cidrs; denying both admin surfaces`                    | ERROR | ditto, for the CIDR list                                                                      |
 
 `Onetime::Config` emits the operator-facing diagnostic for an unenforceable
 `ADMIN_ALLOWED_HOSTS` at boot too (the message quoted
@@ -502,12 +502,12 @@ Per-request denials log at WARN with the host or IP that was refused. Four
 distinct messages for four distinct refusals — the client cannot tell the
 denials apart, but the operator can:
 
-| Message | Means |
-|---|---|
-| `Admin surface access denied by host allowlist` | a host was detected and is not on the list |
+| Message                                                                   | Means                                                                                                                                                                     |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Admin surface access denied by host allowlist`                           | a host was detected and is not on the list                                                                                                                                |
 | `Admin surface access denied: no host could be detected for this request` | `Rack::DetectHost` emitted nothing — a bare-IP or `localhost` `Host:` header, or a malformed name. The allowlist was never consulted, so no entry in it could have helped |
-| `Admin surface access denied: forwarded host from an untrusted peer` | see [Forwarded hosts and the admin gate](#forwarded-hosts-and-the-admin-gate) |
-| `Admin surface access denied by network isolation` | the client IP is outside `allowed_cidrs` |
+| `Admin surface access denied: forwarded host from an untrusted peer`      | see [Forwarded hosts and the admin gate](#forwarded-hosts-and-the-admin-gate)                                                                                             |
+| `Admin surface access denied by network isolation`                        | the client IP is outside `allowed_cidrs`                                                                                                                                  |
 
 The second one is the line to look for if you set `ADMIN_ALLOWED_HOSTS` to an IP
 address: no hostname you write into the allowlist can match a request that has

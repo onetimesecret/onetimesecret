@@ -24,290 +24,290 @@
 -->
 
 <script setup lang="ts">
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import type { ScopeSwitcherItem } from '@/shared/components/navigation/scopeSwitcher';
-import ScopeSwitcher from '@/shared/components/navigation/ScopeSwitcher.vue';
-import { useDomainContext } from '@/shared/composables/useDomainContext';
-import { normalizeDomainHost } from '@/shared/utils/domain-host';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import { ENTITLEMENTS } from '@/types/organization';
-import type { ScopesAvailable } from '@/types/router';
-import { isOwnerOrAdminOf } from '@/utils/features';
-import { MenuItem } from '@headlessui/vue';
-import { computed, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRoute, useRouter } from 'vue-router';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import type { ScopeSwitcherItem } from '@/shared/components/navigation/scopeSwitcher';
+  import ScopeSwitcher from '@/shared/components/navigation/ScopeSwitcher.vue';
+  import { useDomainContext } from '@/shared/composables/useDomainContext';
+  import { normalizeDomainHost } from '@/shared/utils/domain-host';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { useOrganizationStore } from '@/shared/stores/organizationStore';
+  import { ENTITLEMENTS } from '@/types/organization';
+  import type { ScopesAvailable } from '@/types/router';
+  import { isOwnerOrAdminOf } from '@/utils/features';
+  import { MenuItem } from '@headlessui/vue';
+  import { computed, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRoute, useRouter } from 'vue-router';
 
-/**
- * Props for controlling switcher behavior from parent
- */
-interface Props {
-  /** When true, switcher shows current domain but dropdown is disabled */
-  locked?: boolean;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  locked: false,
-});
-
-const { t } = useI18n();
-const route = useRoute();
-const router = useRouter();
-const organizationStore = useOrganizationStore();
-const bootstrapStore = useBootstrapStore();
-
-// Get current organization extid for org-qualified routes
-const currentOrgExtid = computed(() => organizationStore.currentOrganization?.extid);
-
-/**
- * Get the onDomainSwitch navigation target from route meta
- */
-const onDomainSwitch = computed<string | undefined>(() => {
-  const scopesAvailable = route.meta?.scopesAvailable as ScopesAvailable | undefined;
-  return scopesAvailable?.onDomainSwitch;
-});
-
-const {
-  currentContext,
-  availableDomains,
-  isContextActive,
-  setContext,
-  getDomainDisplayName,
-  getExtidByDomain,
-  setContextByExtid,
-  initialized,
-} = useDomainContext();
-
-/**
- * Check if a domain is the currently selected context
- */
-const isCurrentContext = (domain: string): boolean => domain === currentContext.value.domain;
-
-/**
- * Check if a domain option should be disabled.
- * A domain with no extid (the canonical domain, or an operator link-pool
- * entry from LINK_DOMAINS) is disabled when onDomainSwitch requires
- * navigation, since there is no :extid to navigate with.
- */
-const isOptionDisabled = (domain: string): boolean => {
-  const extid = getExtidByDomain(domain);
-  if (!extid && onDomainSwitch.value) {
-    // Extid-less domains can't navigate when onDomainSwitch requires :extid
-    return onDomainSwitch.value === 'same' || onDomainSwitch.value.includes(':extid');
-  }
-  return false;
-};
-
-/**
- * Whether the current user can manage domains (owner or admin of current org).
- * Standalone (billing disabled): owner/admin role alone is sufficient.
- * Billing enabled: owner/admin + manage_org entitlement required.
- */
-const canManageDomains = computed(() => {
-  const org = organizationStore.currentOrganization;
-  if (!isOwnerOrAdminOf({ organization: org })) return false;
-
-  if (!bootstrapStore.billing_enabled) return true;
-
-  const ents = org?.entitlements;
-  if (!ents) return true;
-  return ents.includes(ENTITLEMENTS.MANAGE_ORG);
-});
-
-/**
- * The canonical link domain, for row copy only (never for identity).
- * Note it is NOT necessarily selectable: with LINK_DOMAINS (#4063) an operator
- * can keep the canonical host out of the picker entirely, and on a branded
- * host it is dropped from the pool outright.
- *
- * Normalized through the same helper useDomainContext applies to
- * `availableDomains`, so a port-bearing `site.host` still matches the row it
- * names (`localhost:3000` vs `localhost`).
- */
-const canonicalDomain = computed<string>(() =>
-  normalizeDomainHost(bootstrapStore.canonical_domain || bootstrapStore.site_host)
-);
-
-/**
- * Stable id for a domain row.
- *
- * Custom domains identify by extid. Every other row — the canonical domain and
- * each operator link-pool entry (LINK_DOMAINS, #4063) — has no extid, so it
- * identifies by its own hostname under a `link:` prefix. The prefix keeps the
- * two id spaces from ever colliding.
- *
- * This used to be a single `'canonical'` sentinel, which was safe only while
- * at most ONE row lacked an extid. A multi-entry link pool broke that: every
- * pool row collapsed onto the same id, so `domainForId` always resolved to the
- * first of them and selecting any later pool domain silently selected the
- * first (and `isCurrent` / the ScopeSwitcher `:key` went with it).
- */
-const idForDomain = (domain: string): string => getExtidByDomain(domain) ?? `link:${domain}`;
-
-/**
- * Resolve a row id back to its domain string.
- *
- * Deliberately inverts `idForDomain` by search rather than by parsing the
- * `link:` prefix, so the two directions can never disagree about which row an
- * id names — including for a pool domain that is ALSO a registered custom
- * domain, which appears once, in its custom slot, keyed by its extid.
- */
-const domainForId = (id: string): string | undefined =>
-  availableDomains.value.find((domain) => idForDomain(domain) === id);
-
-/**
- * Tooltip for a disabled (extid-less) row. Only the canonical domain gets the
- * "default domain" wording; an operator link-pool entry is not the default
- * domain and must not claim to be.
- */
-const disabledReasonForDomain = (domain: string): string =>
-  domain === canonicalDomain.value
-    ? t('web.domains.canonical_no_settings')
-    : t('web.domains.link_domain_no_settings');
-
-/**
- * The normalized rows handed to the engine. The engine never sees a raw domain.
- */
-const domainItems = computed<ScopeSwitcherItem[]>(() =>
-  availableDomains.value.map((domain) => ({
-    id: idForDomain(domain),
-    label: getDomainDisplayName(domain),
-    isCurrent: isCurrentContext(domain),
-    disabled: isOptionDisabled(domain),
-    disabledReason: disabledReasonForDomain(domain),
-    // Gear shows for owners/admins on custom domains (which carry an extid).
-    hasSettings: canManageDomains.value && !!getExtidByDomain(domain),
-  }))
-);
-
-/**
- * Number of custom domains in the current org context.
- * Custom domains always carry an extid; the canonical domain and operator
- * link-pool entries never do.
- */
-const customDomainCount = computed(
-  () => availableDomains.value.filter((domain) => getExtidByDomain(domain)).length
-);
-
-/**
- * Whether the current org context has at least one custom domain.
- *
- * Drives the add/manage call-to-action for owners and admins:
- * - No custom domains  → prominent "Add Domain" link (nothing to manage yet).
- * - Has custom domains → compact [+] icon in the dropdown header (add another),
- *   with the existing "Manage Domains" link retained below.
- */
-const hasCustomDomains = computed(() => customDomainCount.value > 0);
-
-/**
- * Should component be visible
- */
-const shouldShow = computed(() => isContextActive.value);
-
-// Sync domain context when route :extid param changes (e.g., navigating to a domain detail page)
-watch(
-  () => route.params.extid as string | undefined,
-  async (extid) => {
-    if (extid && shouldShow.value) {
-      await initialized;
-      setContextByExtid(extid);
-    }
-  },
-  { immediate: true }
-);
-
-/**
- * Handle domain selection with optional route-aware navigation.
- * The engine has already dismissed the dropdown before emitting `select`.
- */
-const onSelect = (id: string): void => {
-  const domain = domainForId(id);
-  if (!domain || isOptionDisabled(domain)) return;
-
-  setContext(domain);
-
-  // Handle route-aware navigation based on onDomainSwitch meta
-  const switchTarget = onDomainSwitch.value;
-  if (!switchTarget) {
-    // No navigation configured, just update store (current behavior)
-    return;
+  /**
+   * Props for controlling switcher behavior from parent
+   */
+  interface Props {
+    /** When true, switcher shows current domain but dropdown is disabled */
+    locked?: boolean;
   }
 
-  const extid = getExtidByDomain(domain);
+  const props = withDefaults(defineProps<Props>(), {
+    locked: false,
+  });
 
-  if (switchTarget === 'same') {
-    // Stay on current route pattern, replace :extid with new domain's extid
-    if (!extid) {
-      console.warn('[DomainContextSwitcher] Cannot navigate: domain missing extid', domain);
-      return;
+  const { t } = useI18n();
+  const route = useRoute();
+  const router = useRouter();
+  const organizationStore = useOrganizationStore();
+  const bootstrapStore = useBootstrapStore();
+
+  // Get current organization extid for org-qualified routes
+  const currentOrgExtid = computed(() => organizationStore.currentOrganization?.extid);
+
+  /**
+   * Get the onDomainSwitch navigation target from route meta
+   */
+  const onDomainSwitch = computed<string | undefined>(() => {
+    const scopesAvailable = route.meta?.scopesAvailable as ScopesAvailable | undefined;
+    return scopesAvailable?.onDomainSwitch;
+  });
+
+  const {
+    currentContext,
+    availableDomains,
+    isContextActive,
+    setContext,
+    getDomainDisplayName,
+    getExtidByDomain,
+    setContextByExtid,
+    initialized,
+  } = useDomainContext();
+
+  /**
+   * Check if a domain is the currently selected context
+   */
+  const isCurrentContext = (domain: string): boolean => domain === currentContext.value.domain;
+
+  /**
+   * Check if a domain option should be disabled.
+   * A domain with no extid (the canonical domain, or an operator link-pool
+   * entry from LINK_DOMAINS) is disabled when onDomainSwitch requires
+   * navigation, since there is no :extid to navigate with.
+   */
+  const isOptionDisabled = (domain: string): boolean => {
+    const extid = getExtidByDomain(domain);
+    if (!extid && onDomainSwitch.value) {
+      // Extid-less domains can't navigate when onDomainSwitch requires :extid
+      return onDomainSwitch.value === 'same' || onDomainSwitch.value.includes(':extid');
     }
-    const matchedRoute = route.matched[route.matched.length - 1];
-    if (matchedRoute?.path) {
-      // Replace :extid (domain param) with new domain's extid.
-      // Also replace :orgid (org param) with current org extid so the literal
-      // route pattern placeholder doesn't appear in the navigated URL.
-      // Use replaceAll so a route pattern that repeats a placeholder can't
-      // leave a stray ':extid'/':orgid' segment in the navigated URL.
-      let newPath = matchedRoute.path.replaceAll(':extid', extid);
-      if (currentOrgExtid.value) {
-        newPath = newPath.replaceAll(':orgid', currentOrgExtid.value);
+    return false;
+  };
+
+  /**
+   * Whether the current user can manage domains (owner or admin of current org).
+   * Standalone (billing disabled): owner/admin role alone is sufficient.
+   * Billing enabled: owner/admin + manage_org entitlement required.
+   */
+  const canManageDomains = computed(() => {
+    const org = organizationStore.currentOrganization;
+    if (!isOwnerOrAdminOf({ organization: org })) return false;
+
+    if (!bootstrapStore.billing_enabled) return true;
+
+    const ents = org?.entitlements;
+    if (!ents) return true;
+    return ents.includes(ENTITLEMENTS.MANAGE_ORG);
+  });
+
+  /**
+   * The canonical link domain, for row copy only (never for identity).
+   * Note it is NOT necessarily selectable: with LINK_DOMAINS (#4063) an operator
+   * can keep the canonical host out of the picker entirely, and on a branded
+   * host it is dropped from the pool outright.
+   *
+   * Normalized through the same helper useDomainContext applies to
+   * `availableDomains`, so a port-bearing `site.host` still matches the row it
+   * names (`localhost:3000` vs `localhost`).
+   */
+  const canonicalDomain = computed<string>(() =>
+    normalizeDomainHost(bootstrapStore.canonical_domain || bootstrapStore.site_host)
+  );
+
+  /**
+   * Stable id for a domain row.
+   *
+   * Custom domains identify by extid. Every other row — the canonical domain and
+   * each operator link-pool entry (LINK_DOMAINS, #4063) — has no extid, so it
+   * identifies by its own hostname under a `link:` prefix. The prefix keeps the
+   * two id spaces from ever colliding.
+   *
+   * This used to be a single `'canonical'` sentinel, which was safe only while
+   * at most ONE row lacked an extid. A multi-entry link pool broke that: every
+   * pool row collapsed onto the same id, so `domainForId` always resolved to the
+   * first of them and selecting any later pool domain silently selected the
+   * first (and `isCurrent` / the ScopeSwitcher `:key` went with it).
+   */
+  const idForDomain = (domain: string): string => getExtidByDomain(domain) ?? `link:${domain}`;
+
+  /**
+   * Resolve a row id back to its domain string.
+   *
+   * Deliberately inverts `idForDomain` by search rather than by parsing the
+   * `link:` prefix, so the two directions can never disagree about which row an
+   * id names — including for a pool domain that is ALSO a registered custom
+   * domain, which appears once, in its custom slot, keyed by its extid.
+   */
+  const domainForId = (id: string): string | undefined =>
+    availableDomains.value.find((domain) => idForDomain(domain) === id);
+
+  /**
+   * Tooltip for a disabled (extid-less) row. Only the canonical domain gets the
+   * "default domain" wording; an operator link-pool entry is not the default
+   * domain and must not claim to be.
+   */
+  const disabledReasonForDomain = (domain: string): string =>
+    domain === canonicalDomain.value
+      ? t('web.domains.canonical_no_settings')
+      : t('web.domains.link_domain_no_settings');
+
+  /**
+   * The normalized rows handed to the engine. The engine never sees a raw domain.
+   */
+  const domainItems = computed<ScopeSwitcherItem[]>(() =>
+    availableDomains.value.map((domain) => ({
+      id: idForDomain(domain),
+      label: getDomainDisplayName(domain),
+      isCurrent: isCurrentContext(domain),
+      disabled: isOptionDisabled(domain),
+      disabledReason: disabledReasonForDomain(domain),
+      // Gear shows for owners/admins on custom domains (which carry an extid).
+      hasSettings: canManageDomains.value && !!getExtidByDomain(domain),
+    }))
+  );
+
+  /**
+   * Number of custom domains in the current org context.
+   * Custom domains always carry an extid; the canonical domain and operator
+   * link-pool entries never do.
+   */
+  const customDomainCount = computed(
+    () => availableDomains.value.filter((domain) => getExtidByDomain(domain)).length
+  );
+
+  /**
+   * Whether the current org context has at least one custom domain.
+   *
+   * Drives the add/manage call-to-action for owners and admins:
+   * - No custom domains  → prominent "Add Domain" link (nothing to manage yet).
+   * - Has custom domains → compact [+] icon in the dropdown header (add another),
+   *   with the existing "Manage Domains" link retained below.
+   */
+  const hasCustomDomains = computed(() => customDomainCount.value > 0);
+
+  /**
+   * Should component be visible
+   */
+  const shouldShow = computed(() => isContextActive.value);
+
+  // Sync domain context when route :extid param changes (e.g., navigating to a domain detail page)
+  watch(
+    () => route.params.extid as string | undefined,
+    async (extid) => {
+      if (extid && shouldShow.value) {
+        await initialized;
+        setContextByExtid(extid);
       }
-      router.push(newPath);
-    }
-  } else if (switchTarget.includes(':extid')) {
-    // Path with :extid placeholder - replace and navigate
-    if (!extid) {
-      console.warn('[DomainContextSwitcher] Cannot navigate: domain missing extid', domain);
+    },
+    { immediate: true }
+  );
+
+  /**
+   * Handle domain selection with optional route-aware navigation.
+   * The engine has already dismissed the dropdown before emitting `select`.
+   */
+  const onSelect = (id: string): void => {
+    const domain = domainForId(id);
+    if (!domain || isOptionDisabled(domain)) return;
+
+    setContext(domain);
+
+    // Handle route-aware navigation based on onDomainSwitch meta
+    const switchTarget = onDomainSwitch.value;
+    if (!switchTarget) {
+      // No navigation configured, just update store (current behavior)
       return;
     }
-    const newPath = switchTarget.replaceAll(':extid', extid);
-    router.push(newPath);
-  } else {
-    // Path without :extid - navigate directly
-    router.push(switchTarget);
-  }
-};
 
-/**
- * Navigate to edit a specific domain (uses org-qualified routes).
- * The engine has already stopPropagation'd and dismissed the dropdown.
- */
-const onOpenSettings = (id: string): void => {
-  const domain = domainForId(id);
-  if (!domain) return;
-  const extid = getExtidByDomain(domain);
-  if (extid && currentOrgExtid.value) {
-    router.push(`/org/${currentOrgExtid.value}/domains/${extid}`);
-  }
-  // Extid-less rows (canonical domain, operator link-pool entries) have no
-  // settings page to open.
-};
+    const extid = getExtidByDomain(domain);
 
-/**
- * Navigate to domains management page (org-qualified)
- */
-const navigateToManageDomains = (close?: () => void): void => {
-  close?.();
-  if (currentOrgExtid.value) {
-    router.push(`/org/${currentOrgExtid.value}`);
-  } else {
-    router.push('/dashboard');
-  }
-};
+    if (switchTarget === 'same') {
+      // Stay on current route pattern, replace :extid with new domain's extid
+      if (!extid) {
+        console.warn('[DomainContextSwitcher] Cannot navigate: domain missing extid', domain);
+        return;
+      }
+      const matchedRoute = route.matched[route.matched.length - 1];
+      if (matchedRoute?.path) {
+        // Replace :extid (domain param) with new domain's extid.
+        // Also replace :orgid (org param) with current org extid so the literal
+        // route pattern placeholder doesn't appear in the navigated URL.
+        // Use replaceAll so a route pattern that repeats a placeholder can't
+        // leave a stray ':extid'/':orgid' segment in the navigated URL.
+        let newPath = matchedRoute.path.replaceAll(':extid', extid);
+        if (currentOrgExtid.value) {
+          newPath = newPath.replaceAll(':orgid', currentOrgExtid.value);
+        }
+        router.push(newPath);
+      }
+    } else if (switchTarget.includes(':extid')) {
+      // Path with :extid placeholder - replace and navigate
+      if (!extid) {
+        console.warn('[DomainContextSwitcher] Cannot navigate: domain missing extid', domain);
+        return;
+      }
+      const newPath = switchTarget.replaceAll(':extid', extid);
+      router.push(newPath);
+    } else {
+      // Path without :extid - navigate directly
+      router.push(switchTarget);
+    }
+  };
 
-/**
- * Navigate to the add-domain page (org-qualified).
- * Falls back to the /domains/add redirect when no org context is available.
- */
-const navigateToAddDomain = (close?: () => void): void => {
-  close?.();
-  if (currentOrgExtid.value) {
-    router.push(`/org/${currentOrgExtid.value}/domains/add`);
-  } else {
-    router.push('/domains/add');
-  }
-};
+  /**
+   * Navigate to edit a specific domain (uses org-qualified routes).
+   * The engine has already stopPropagation'd and dismissed the dropdown.
+   */
+  const onOpenSettings = (id: string): void => {
+    const domain = domainForId(id);
+    if (!domain) return;
+    const extid = getExtidByDomain(domain);
+    if (extid && currentOrgExtid.value) {
+      router.push(`/org/${currentOrgExtid.value}/domains/${extid}`);
+    }
+    // Extid-less rows (canonical domain, operator link-pool entries) have no
+    // settings page to open.
+  };
+
+  /**
+   * Navigate to domains management page (org-qualified)
+   */
+  const navigateToManageDomains = (close?: () => void): void => {
+    close?.();
+    if (currentOrgExtid.value) {
+      router.push(`/org/${currentOrgExtid.value}`);
+    } else {
+      router.push('/dashboard');
+    }
+  };
+
+  /**
+   * Navigate to the add-domain page (org-qualified).
+   * Falls back to the /domains/add redirect when no org context is available.
+   */
+  const navigateToAddDomain = (close?: () => void): void => {
+    close?.();
+    if (currentOrgExtid.value) {
+      router.push(`/org/${currentOrgExtid.value}/domains/add`);
+    } else {
+      router.push('/domains/add');
+    }
+  };
 </script>
 
 <template>
@@ -370,9 +370,7 @@ const navigateToAddDomain = (close?: () => void): void => {
         :name="item.isCurrent && currentContext.isCanonical ? 'home' : 'globe-alt'"
         class="size-4"
         :class="
-          item.disabled
-            ? 'text-gray-300 dark:text-gray-600'
-            : 'text-gray-400 dark:text-gray-500'
+          item.disabled ? 'text-gray-300 dark:text-gray-600' : 'text-gray-400 dark:text-gray-500'
         "
         aria-hidden="true" />
     </template>

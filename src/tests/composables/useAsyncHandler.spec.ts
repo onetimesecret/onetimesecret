@@ -487,7 +487,7 @@ describe('useAsyncHandler', () => {
       const { wrap } = useAsyncHandler(mockOptions);
       const mockApiCall = vi.fn().mockImplementation(() =>
         // This creates an invalid async operation
-         Promise.reject(createError('Invalid operation', 'technical'))
+        Promise.reject(createError('Invalid operation', 'technical'))
       );
 
       const result = await wrap(mockApiCall);
@@ -501,11 +501,14 @@ describe('useAsyncHandler', () => {
     it('handles cancellation of API calls gracefully', async () => {
       const { wrap } = useAsyncHandler(mockOptions);
       const abortController = new AbortController();
-      const mockApiCall = vi.fn().mockImplementation(() => new Promise((_, reject) => {
-          abortController.signal.addEventListener('abort', () => {
-            reject(new Error('Request aborted'));
-          });
-        }));
+      const mockApiCall = vi.fn().mockImplementation(
+        () =>
+          new Promise((_, reject) => {
+            abortController.signal.addEventListener('abort', () => {
+              reject(new Error('Request aborted'));
+            });
+          })
+      );
 
       const apiPromise = wrap(mockApiCall);
       abortController.abort();

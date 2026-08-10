@@ -1,29 +1,27 @@
 <!-- src/apps/workspace/billing/PendingMigrationBanner.vue -->
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { formatDisplayDate } from '@/utils/format';
-import { computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { formatDisplayDate } from '@/utils/format';
+  import { computed } from 'vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-const props = defineProps<{
-  targetPlanName: string;
-  targetCurrency: string;
-  effectiveDate: number;
-  isCompletingMigration?: boolean;
-}>();
+  const props = defineProps<{
+    targetPlanName: string;
+    targetCurrency: string;
+    effectiveDate: number;
+    isCompletingMigration?: boolean;
+  }>();
 
-const emit = defineEmits<{
-  (e: 'complete-migration'): void;
-}>();
+  const emit = defineEmits<{
+    (e: 'complete-migration'): void;
+  }>();
 
-const formattedDate = computed(() =>
-  formatDisplayDate(new Date(props.effectiveDate * 1000))
-);
+  const formattedDate = computed(() => formatDisplayDate(new Date(props.effectiveDate * 1000)));
 
-const currencyUpper = computed(() => props.targetCurrency.toUpperCase());
+  const currencyUpper = computed(() => props.targetCurrency.toUpperCase());
 </script>
 
 <template>
@@ -31,7 +29,8 @@ const currencyUpper = computed(() => props.targetCurrency.toUpperCase());
     class="rounded-lg border-2 border-blue-300 bg-blue-50 p-5 dark:border-blue-600 dark:bg-blue-900/30"
     role="status">
     <div class="flex items-start gap-4">
-      <div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-800">
+      <div
+        class="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-800">
         <OIcon
           collection="heroicons"
           name="clock"
@@ -43,11 +42,13 @@ const currencyUpper = computed(() => props.targetCurrency.toUpperCase());
           {{ t('web.billing.currency_migration.pending_title') }}
         </h3>
         <p class="mt-1 text-sm text-blue-700 dark:text-blue-300">
-          {{ t('web.billing.currency_migration.pending_description', {
-            date: formattedDate,
-            plan: targetPlanName,
-            currency: currencyUpper,
-          }) }}
+          {{
+            t('web.billing.currency_migration.pending_description', {
+              date: formattedDate,
+              plan: targetPlanName,
+              currency: currencyUpper,
+            })
+          }}
         </p>
         <div class="mt-3">
           <button
@@ -61,9 +62,10 @@ const currencyUpper = computed(() => props.targetCurrency.toUpperCase());
               name="arrow-path"
               class="mr-2 size-4 animate-spin motion-reduce:animate-none"
               aria-hidden="true" />
-            {{ isCompletingMigration
-              ? t('web.COMMON.processing')
-              : t('web.billing.currency_migration.complete_migration')
+            {{
+              isCompletingMigration
+                ? t('web.COMMON.processing')
+                : t('web.billing.currency_migration.complete_migration')
             }}
           </button>
         </div>

@@ -53,7 +53,7 @@ function invokeGuard(path: string): ReturnType<NavigationGuardWithThis<undefined
   return guard(
     {} as any, // to (unused by these guards)
     {} as any, // from (unused)
-    undefined as any, // next (unused, return-value form)
+    undefined as any // next (unused, return-value form)
   );
 }
 
@@ -83,7 +83,9 @@ describe('Account route guards', () => {
     });
 
     it('caution route uses checkOwnerOrAdminAccess', () => {
-      const route = accountRoutes.find((r: RouteRecordRaw) => r.path === '/account/settings/caution');
+      const route = accountRoutes.find(
+        (r: RouteRecordRaw) => r.path === '/account/settings/caution'
+      );
       expect(route?.beforeEnter).toBeDefined();
     });
 
@@ -101,7 +103,9 @@ describe('Account route guards', () => {
     });
 
     it('change email route has beforeEnter guard (checkOwnerWithPasswordAccess)', () => {
-      const route = accountRoutes.find((r: RouteRecordRaw) => r.path === '/account/settings/profile/email');
+      const route = accountRoutes.find(
+        (r: RouteRecordRaw) => r.path === '/account/settings/profile/email'
+      );
       expect(route?.beforeEnter).toBeDefined();
     });
 

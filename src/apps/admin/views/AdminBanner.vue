@@ -1,7 +1,6 @@
 <!-- src/apps/admin/views/AdminBanner.vue -->
 
 <script setup lang="ts">
-
   import { AdminConfirmDialog, StatCard } from '@/apps/admin/components/kit';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
@@ -87,8 +86,10 @@
 
   /** Human-readable TTL, mirroring the CLI's `humanize_seconds`. */
   function humanizeTtl(seconds: number): string {
-    if (seconds >= 86400) return `${Math.floor(seconds / 86400)}d ${Math.floor((seconds % 86400) / 3600)}h`;
-    if (seconds >= 3600) return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
+    if (seconds >= 86400)
+      return `${Math.floor(seconds / 86400)}d ${Math.floor((seconds % 86400) / 3600)}h`;
+    if (seconds >= 3600)
+      return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
     if (seconds >= 60) return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
     return `${seconds}s`;
   }
@@ -288,12 +289,15 @@
         <!-- Stored content, shown as ESCAPED text (never v-html). -->
         <div
           class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-          <h4 class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+          <h4
+            class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.banner.current.storedContent') }}
           </h4>
           <pre
             data-testid="banner-content"
-            class="max-h-48 overflow-auto rounded bg-gray-50 p-3 font-mono text-sm break-words whitespace-pre-wrap text-gray-900 dark:bg-gray-800 dark:text-gray-100">{{ currentContent }}</pre>
+            class="max-h-48 overflow-auto rounded bg-gray-50 p-3 font-mono text-sm break-words whitespace-pre-wrap text-gray-900 dark:bg-gray-800 dark:text-gray-100"
+            >{{ currentContent }}</pre
+          >
           <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
             {{ t('web.admin.banner.current.htmlNote') }}
           </p>
@@ -363,7 +367,11 @@
             </p>
             <span
               class="text-xs"
-              :class="contentTooLong ? 'text-red-600 dark:text-red-400' : 'text-gray-400 dark:text-gray-500'"
+              :class="
+                contentTooLong
+                  ? 'text-red-600 dark:text-red-400'
+                  : 'text-gray-400 dark:text-gray-500'
+              "
               data-testid="banner-charcount">
               {{ formContent.length }} / {{ MAX_CONTENT_LENGTH }}
             </span>
@@ -429,7 +437,11 @@
               collection="heroicons"
               name="bell"
               size="4" />
-            {{ isActive ? t('web.admin.banner.set.updateButton') : t('web.admin.banner.set.publishButton') }}
+            {{
+              isActive
+                ? t('web.admin.banner.set.updateButton')
+                : t('web.admin.banner.set.publishButton')
+            }}
           </button>
         </div>
       </div>

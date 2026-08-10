@@ -1,6 +1,7 @@
 ---
 labels: familia-v2, multi-tenant, custom-domains
 ---
+
 # CustomDomain Organization Ownership
 
 **Last Updated:** 2025-12-21
@@ -96,11 +97,11 @@ end
 
 ### Auto-Generated Methods
 
-| On Organization | On CustomDomain |
-|-----------------|-----------------|
-| `org.domains` (SortedSet) | `domain.organization_instances` (Array) |
-| `org.add_domains_instance(domain)` | `domain.add_to_organization_domains(org, score)` |
-| `org.remove_domains_instance(domain)` | `domain.remove_from_organization_domains(org)` |
+| On Organization                       | On CustomDomain                                  |
+| ------------------------------------- | ------------------------------------------------ |
+| `org.domains` (SortedSet)             | `domain.organization_instances` (Array)          |
+| `org.add_domains_instance(domain)`    | `domain.add_to_organization_domains(org, score)` |
+| `org.remove_domains_instance(domain)` | `domain.remove_from_organization_domains(org)`   |
 
 Wrapper methods `add_domain` and `remove_domain` provide enforcement logic and a cleaner API.
 
@@ -158,9 +159,9 @@ end
 
 ## Key Files
 
-| File | Description |
-|------|-------------|
-| `lib/onetime/models/custom_domain.rb` | CustomDomain model with participates_in |
-| `lib/onetime/models/organization.rb` | Organization with domain convenience methods |
-| `apps/api/domains/logic/domains/add_domain.rb` | API logic enforcing organization context |
-| `try/unit/models/custom_domain_familia_v2_try.rb` | Test suite for relationships |
+| File                                              | Description                                  |
+| ------------------------------------------------- | -------------------------------------------- |
+| `lib/onetime/models/custom_domain.rb`             | CustomDomain model with participates_in      |
+| `lib/onetime/models/organization.rb`              | Organization with domain convenience methods |
+| `apps/api/domains/logic/domains/add_domain.rb`    | API logic enforcing organization context     |
+| `try/unit/models/custom_domain_familia_v2_try.rb` | Test suite for relationships                 |

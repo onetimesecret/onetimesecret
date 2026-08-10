@@ -47,8 +47,8 @@ line.
 `etc/defaults/{config,auth,logging}.defaults.yaml` are the single source of
 truth. At boot, `Onetime::Utils::ConfigResolver` deep-merges an operator's
 `etc/config.yaml` / `etc/auth.yaml` on top of those defaults
-(`lib/onetime/config.rb`). So the generator only needs to emit the *keys the
-operator wants to change* — exactly what a careful operator would hand-write —
+(`lib/onetime/config.rb`). So the generator only needs to emit the _keys the
+operator wants to change_ — exactly what a careful operator would hand-write —
 and the existing merge behavior fills in everything else. Re-rendering the whole
 defaults file would duplicate 1,100+ lines of authoritative YAML and guarantee
 drift.
@@ -57,23 +57,23 @@ drift.
 
 ### This repo (JSON API)
 
-| Layer | File |
-|---|---|
-| Preset catalog + fragment builder (pure, stateless) | `lib/onetime/config_generator.rb` |
-| Public JSON controller | `apps/web/core/controllers/config_generator.rb` |
-| Routes (all `auth=noauth`) | `apps/web/core/routes.txt` |
-| Unit tests | `spec/unit/onetime/config_generator_spec.rb` |
-| Endpoint tests | `apps/web/core/spec/controllers/config_generator_spec.rb` |
+| Layer                                               | File                                                      |
+| --------------------------------------------------- | --------------------------------------------------------- |
+| Preset catalog + fragment builder (pure, stateless) | `lib/onetime/config_generator.rb`                         |
+| Public JSON controller                              | `apps/web/core/controllers/config_generator.rb`           |
+| Routes (all `auth=noauth`)                          | `apps/web/core/routes.txt`                                |
+| Unit tests                                          | `spec/unit/onetime/config_generator_spec.rb`              |
+| Endpoint tests                                      | `apps/web/core/spec/controllers/config_generator_spec.rb` |
 
 ### Docs site (UI)
 
-| Layer | File (docs repo) |
-|---|---|
-| Vendored config JSON schemas | `src/components/config-generator/schemas/*.schema.json` (+ `README.md`) |
-| Preset manifest (curation + env mapping) | `src/components/config-generator/presets.ts` |
-| Client-side generation logic | `src/components/config-generator/generate.ts` |
-| UI island (Vue) | `src/components/config-generator/ConfigGenerator.vue` |
-| Page | `src/pages/en/self-hosting/configuration-generator.astro` |
+| Layer                                    | File (docs repo)                                                        |
+| ---------------------------------------- | ----------------------------------------------------------------------- |
+| Vendored config JSON schemas             | `src/components/config-generator/schemas/*.schema.json` (+ `README.md`) |
+| Preset manifest (curation + env mapping) | `src/components/config-generator/presets.ts`                            |
+| Client-side generation logic             | `src/components/config-generator/generate.ts`                           |
+| UI island (Vue)                          | `src/components/config-generator/ConfigGenerator.vue`                   |
+| Page                                     | `src/pages/en/self-hosting/configuration-generator.astro`               |
 
 ### Endpoints
 

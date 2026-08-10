@@ -161,9 +161,9 @@ describe('SimpleBrandPanel', () => {
       global: { stubs: leafStubs },
     });
 
-    const button = wrapper.findAll('button').find((b) =>
-      b.text().includes('web.branding.refresh_favicon')
-    );
+    const button = wrapper
+      .findAll('button')
+      .find((b) => b.text().includes('web.branding.refresh_favicon'));
     expect(button?.exists()).toBe(true);
 
     await button!.trigger('click');
@@ -188,15 +188,13 @@ describe('SimpleBrandPanel', () => {
       encoded: 'QUJD',
       content_type: 'image/x-icon',
     } as ImageProps);
-    expect(
-      (findRefreshButton(previewOnly)!.element as HTMLButtonElement).disabled
-    ).toBe(false);
+    expect((findRefreshButton(previewOnly)!.element as HTMLButtonElement).disabled).toBe(false);
   });
 
   it('leaves the button enabled for an empty or auto-fetched icon', () => {
-    expect(
-      (findRefreshButton(mountPanel({}, null))!.element as HTMLButtonElement).disabled
-    ).toBe(false);
+    expect((findRefreshButton(mountPanel({}, null))!.element as HTMLButtonElement).disabled).toBe(
+      false
+    );
     expect(
       (findRefreshButton(mountPanel({}, 'auto_fetch'))!.element as HTMLButtonElement).disabled
     ).toBe(false);

@@ -66,7 +66,9 @@ describe('findPiiQueryKeys', () => {
   });
 
   it('ignores non-PII keys entirely', () => {
-    expect(findPiiQueryKeys({ product: 'identity', interval: 'month', redirect: '/x' })).toEqual([]);
+    expect(findPiiQueryKeys({ product: 'identity', interval: 'month', redirect: '/x' })).toEqual(
+      []
+    );
   });
 
   it('treats empty / null values as absent', () => {

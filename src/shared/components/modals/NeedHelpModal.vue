@@ -49,13 +49,12 @@
   interface Props {
     linkTextLabel?: string;
     linkIconName?: string;
-  };
+  }
 
   withDefaults(defineProps<Props>(), {
     linkTextLabel: 'web.LABELS.need_help',
     linkIconName: 'information-circle-20-solid',
   });
-
 </script>
 
 <template>
@@ -64,17 +63,18 @@
       ref="triggerRef"
       type="button"
       @click="showHelp = !showHelp"
-      class="flex items-center gap-2 rounded-md p-1
-        text-sm text-gray-500 hover:text-gray-700
-        focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
-        dark:text-gray-400 dark:hover:text-gray-300">
+      class="flex items-center gap-2 rounded-md p-1 text-sm text-gray-500 hover:text-gray-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none dark:text-gray-400 dark:hover:text-gray-300">
       <OIcon
         collection="heroicons"
         :name="linkIconName"
         class="size-5"
         aria-hidden="true" />
       <span v-if="linkTextLabel">{{ t(linkTextLabel) }}</span>
-      <span v-else class="sr-only">{{ t('web.LABELS.need_help') }}</span>
+      <span
+        v-else
+        class="sr-only"
+        >{{ t('web.LABELS.need_help') }}</span
+      >
     </button>
 
     <TransitionRoot
@@ -124,8 +124,7 @@
                   <button
                     type="button"
                     @click="showHelp = false"
-                    class="rounded-md p-1 text-gray-400 hover:text-gray-500
-                      focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    class="rounded-md p-1 text-gray-400 hover:text-gray-500 focus:ring-2 focus:ring-brand-500 focus:outline-none"
                     :aria-label="t('web.LABELS.close')">
                     <span class="sr-only">{{ t('web.LABELS.close') }}</span>
                     <OIcon
@@ -137,7 +136,9 @@
                 </div>
 
                 <!-- Content -->
-                <div id="modal-content" class="text-gray-700 dark:text-gray-300">
+                <div
+                  id="modal-content"
+                  class="text-gray-700 dark:text-gray-300">
                   <slot name="content">
                     {{ t('web.help.default_content', 'Please contact support for assistance') }}
                   </slot>

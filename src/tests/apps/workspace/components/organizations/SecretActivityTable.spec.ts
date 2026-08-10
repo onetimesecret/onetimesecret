@@ -674,10 +674,7 @@ describe('SecretActivityTable', () => {
   });
 
   describe('pagination', () => {
-    const twoEvents = () => [
-      buildEvent({ nonce: 'nonce-1' }),
-      buildEvent({ nonce: 'nonce-2' }),
-    ];
+    const twoEvents = () => [buildEvent({ nonce: 'nonce-1' }), buildEvent({ nonce: 'nonce-2' })];
 
     it('disables prev on the first page and enables next when more exist', async () => {
       respondWith(buildResponse({ records: twoEvents(), total: 120, offset: 0 }));
@@ -685,9 +682,7 @@ describe('SecretActivityTable', () => {
       wrapper = await mountComponent();
 
       expect(wrapper.find('[data-testid="org-audit-prev"]').attributes('disabled')).toBeDefined();
-      expect(
-        wrapper.find('[data-testid="org-audit-next"]').attributes('disabled')
-      ).toBeUndefined();
+      expect(wrapper.find('[data-testid="org-audit-next"]').attributes('disabled')).toBeUndefined();
     });
 
     it('disables next on the last page and enables prev', async () => {
@@ -697,9 +692,7 @@ describe('SecretActivityTable', () => {
       wrapper = await mountComponent();
 
       expect(wrapper.find('[data-testid="org-audit-next"]').attributes('disabled')).toBeDefined();
-      expect(
-        wrapper.find('[data-testid="org-audit-prev"]').attributes('disabled')
-      ).toBeUndefined();
+      expect(wrapper.find('[data-testid="org-audit-prev"]').attributes('disabled')).toBeUndefined();
     });
 
     it('disables both buttons when the only page is also the last', async () => {

@@ -54,8 +54,7 @@ export async function applyPreset(name, { env = process.env, importer } = {}) {
   validatePresetName(name);
 
   const load =
-    importer ||
-    ((n) => import(pathToFileURL(resolve(__dirname, 'presets', `${n}.mjs`)).href));
+    importer || ((n) => import(pathToFileURL(resolve(__dirname, 'presets', `${n}.mjs`)).href));
 
   let mod;
   try {
@@ -68,9 +67,7 @@ export async function applyPreset(name, { env = process.env, importer } = {}) {
 
   const preset = mod && mod.default;
   if (preset === null || typeof preset !== 'object' || Array.isArray(preset)) {
-    throw new Error(
-      `Preset '${name}' must default-export a plain object of MARK_* overrides.`
-    );
+    throw new Error(`Preset '${name}' must default-export a plain object of MARK_* overrides.`);
   }
 
   const applied = [];

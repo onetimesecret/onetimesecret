@@ -49,15 +49,12 @@
   // Computed property for instructions text
   const instructions = computed(() => {
     const isPostReveal = props.isRevealed === true;
-    const instructionsKey = isPostReveal
-      ? 'instructions_post_reveal'
-      : 'instructions_pre_reveal';
+    const instructionsKey = isPostReveal ? 'instructions_post_reveal' : 'instructions_pre_reveal';
     const defaultKey = isPostReveal
       ? 'web.shared.post_reveal_default'
       : 'web.shared.pre_reveal_default';
 
-    return props.domainBranding[instructionsKey]?.trim() ||
-           displayComposer.t(defaultKey);
+    return props.domainBranding[instructionsKey]?.trim() || displayComposer.t(defaultKey);
   });
 
   // Reusable computed properties
@@ -101,7 +98,7 @@
 </script>
 
 <template>
-  <div class="min-h-[35vh] w-full rounded-lg bg-white p-4 dark:bg-gray-800 sm:p-6">
+  <div class="min-h-[35vh] w-full rounded-lg bg-white p-4 sm:p-6 dark:bg-gray-800">
     <!-- Title and Instructions -->
     <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
       <slot name="logo"></slot>
@@ -110,8 +107,7 @@
         <div class="relative min-h-[5.5rem] sm:min-h-24">
           <h2
             :class="[cornerClass, headingClass]"
-            class="mb-2 text-base font-medium leading-normal
-              text-gray-900 dark:text-gray-200 sm:mb-3 sm:text-xl">
+            class="mb-2 text-base leading-normal font-medium text-gray-900 sm:mb-3 sm:text-xl dark:text-gray-200">
             <slot name="title">
               {{ defaultTitle }}
             </slot>
@@ -130,15 +126,15 @@
               v-if="isLongText"
               @click="toggleExpand"
               :class="[textClasses, cornerClass, fontClass]"
-              class="absolute bottom-0 left-1/2 -translate-x-1/2
-                border border-gray-200 bg-white px-3 py-1
-                text-xs text-gray-500 shadow-sm transition-all
-                duration-200 hover:text-gray-700 hover:shadow
-                dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:text-gray-300">
+              class="absolute bottom-0 left-1/2 -translate-x-1/2 border border-gray-200 bg-white px-3 py-1 text-xs text-gray-500 shadow-sm transition-all duration-200 hover:text-gray-700 hover:shadow dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:text-gray-300">
               <slot
                 name="expand-button"
                 :is-expanded="isExpanded">
-                {{ isExpanded ? displayComposer.t('web.LABELS.view_toggle.show_less') : displayComposer.t('web.LABELS.view_toggle.show_more') }}
+                {{
+                  isExpanded
+                    ? displayComposer.t('web.LABELS.view_toggle.show_less')
+                    : displayComposer.t('web.LABELS.view_toggle.show_more')
+                }}
               </slot>
             </button>
           </div>
@@ -150,8 +146,7 @@
     <div class="my-3 sm:my-4">
       <div
         :class="[cornerClass]"
-        class="flex min-h-32 w-full items-center justify-center
-          bg-gray-100 dark:bg-gray-700 sm:min-h-36">
+        class="flex min-h-32 w-full items-center justify-center bg-gray-100 sm:min-h-36 dark:bg-gray-700">
         <slot name="content"></slot>
       </div>
     </div>
@@ -162,7 +157,7 @@
     <!-- Footer -->
     <div class="mt-4 flex items-baseline justify-between p-3 sm:p-4">
       <slot name="footer">
-        <p class="flex items-center text-xs italic text-gray-400 dark:text-gray-500 sm:text-sm">
+        <p class="flex items-center text-xs text-gray-400 italic sm:text-sm dark:text-gray-500">
           <OIcon
             collection="mdi"
             name="information"

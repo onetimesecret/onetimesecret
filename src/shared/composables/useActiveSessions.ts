@@ -118,12 +118,9 @@ export function useActiveSessions() {
     isLoading.value = true;
 
     try {
-      const response = await $api.post<RemoveSessionResponse>(
-        '/auth/remove-all-active-sessions',
-        {
-          shrimp: csrfStore.shrimp,
-        }
-      );
+      const response = await $api.post<RemoveSessionResponse>('/auth/remove-all-active-sessions', {
+        shrimp: csrfStore.shrimp,
+      });
 
       const validated = removeSessionResponseSchema.parse(response.data);
 

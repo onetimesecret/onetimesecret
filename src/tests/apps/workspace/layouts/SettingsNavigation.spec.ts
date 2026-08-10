@@ -114,12 +114,12 @@ describe('SettingsNavigation', () => {
       const isParentActive = (item: NavigationItem): boolean => {
         if (isActiveRoute(item.to)) return true;
         if (item.children) {
-          return item.children.some(child => isActiveRoute(child.to));
+          return item.children.some((child) => isActiveRoute(child.to));
         }
         return false;
       };
 
-      const visibleSections = props.sections.filter(section =>
+      const visibleSections = props.sections.filter((section) =>
         section.visible ? section.visible() : true
       );
 
@@ -166,9 +166,8 @@ describe('SettingsNavigation', () => {
     `,
   };
 
-  const mountComponent = (
-    props: Partial<{ sections: NavigationItem[] }> = {}
-  ) => mount(SettingsNavigationStub, {
+  const mountComponent = (props: Partial<{ sections: NavigationItem[] }> = {}) =>
+    mount(SettingsNavigationStub, {
       props: {
         sections: mockSections,
         ...props,
@@ -177,7 +176,8 @@ describe('SettingsNavigation', () => {
         plugins: [i18n],
         stubs: {
           RouterLink: {
-            template: '<a :href="to" :class="$attrs.class" :data-active="$attrs[\'data-active\']"><slot /></a>',
+            template:
+              '<a :href="to" :class="$attrs.class" :data-active="$attrs[\'data-active\']"><slot /></a>',
             props: ['to'],
           },
         },
@@ -432,7 +432,7 @@ describe('SettingsNavigation', () => {
       const links = wrapper.findAll('a');
       expect(links.length).toBeGreaterThan(0);
 
-      links.forEach(link => {
+      links.forEach((link) => {
         expect(link.attributes('href')).toBeTruthy();
       });
     });

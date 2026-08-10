@@ -64,9 +64,7 @@
   // in the DOM BEFORE its content changes for assistive tech to announce it, so
   // inserting an already-populated region (v-if) is unreliable — only the text
   // swaps here.
-  const statusMessage = computed(() =>
-    isLoading.value ? t('web.COMMON.form_processing') : ''
-  );
+  const statusMessage = computed(() => (isLoading.value ? t('web.COMMON.form_processing') : ''));
 
   // Heading of the terminal panel. The panel replaces the consent CTA in place,
   // so whatever had focus (the Confirm button) is unmounted and focus falls back
@@ -213,7 +211,7 @@
           <button
             @click="goToSignIn"
             type="button"
-            class="w-full cursor-pointer rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+            class="w-full cursor-pointer rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none"
             data-testid="sso-link-confirm-unavailable-action">
             {{ t('web.sso_link_confirm.unavailable_action') }}
           </button>
@@ -248,7 +246,7 @@
             :disabled="isLoading"
             :aria-busy="isLoading ? 'true' : undefined"
             aria-describedby="sso-link-confirm-instructions"
-            class="w-full cursor-pointer rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            class="w-full cursor-pointer rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             data-testid="sso-link-confirm-submit">
             <span v-if="isLoading">{{ t('web.COMMON.processing') }}</span>
             <span v-else>{{ t('web.sso_link_confirm.submit') }}</span>
@@ -267,7 +265,7 @@
             @click="handleCancel"
             type="button"
             :disabled="isLoading"
-            class="cursor-pointer rounded-sm px-1 text-gray-500 underline-offset-2 transition-colors duration-200 hover:text-gray-700 focus:underline focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:text-gray-300"
+            class="cursor-pointer rounded-sm px-1 text-gray-500 underline-offset-2 transition-colors duration-200 hover:text-gray-700 focus:underline focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:text-gray-300"
             data-testid="sso-link-confirm-cancel">
             {{ t('web.sso_link_confirm.cancel') }}
           </button>

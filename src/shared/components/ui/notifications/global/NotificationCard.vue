@@ -7,59 +7,55 @@
 -->
 
 <script setup lang="ts">
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { getSeverityMeta, getStandardColors } from '../severityConfig';
-import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { getSeverityMeta, getStandardColors } from '../severityConfig';
+  import { computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
-interface Props {
-  message: string;
-  severity: string | null;
-  show?: boolean;
-  loading?: boolean;
-  position?: 'top' | 'bottom';
-  alignment?: 'left' | 'right';
-  dismissible?: boolean;
-  duration?: number;
-}
+  interface Props {
+    message: string;
+    severity: string | null;
+    show?: boolean;
+    loading?: boolean;
+    position?: 'top' | 'bottom';
+    alignment?: 'left' | 'right';
+    dismissible?: boolean;
+    duration?: number;
+  }
 
-const props = withDefaults(defineProps<Props>(), {
-  show: false,
-  loading: false,
-  position: 'top',
-  alignment: 'right',
-  dismissible: true,
-  duration: 5000,
-});
+  const props = withDefaults(defineProps<Props>(), {
+    show: false,
+    loading: false,
+    position: 'top',
+    alignment: 'right',
+    dismissible: true,
+    duration: 5000,
+  });
 
-const emit = defineEmits<{ dismiss: [] }>();
+  const emit = defineEmits<{ dismiss: [] }>();
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-const effectiveSeverity = computed(() => props.loading ? 'loading' : props.severity);
-const meta = computed(() => getSeverityMeta(effectiveSeverity.value));
-const colorConfig = computed(() => getStandardColors(effectiveSeverity.value));
+  const effectiveSeverity = computed(() => (props.loading ? 'loading' : props.severity));
+  const meta = computed(() => getSeverityMeta(effectiveSeverity.value));
+  const colorConfig = computed(() => getStandardColors(effectiveSeverity.value));
 
-const positionClasses = computed(() => {
-  const vertical = props.position === 'top' ? 'top-4' : 'bottom-4';
-  const horizontal = props.alignment === 'left' ? 'left-4' : 'right-4';
-  return `${vertical} ${horizontal}`;
-});
+  const positionClasses = computed(() => {
+    const vertical = props.position === 'top' ? 'top-4' : 'bottom-4';
+    const horizontal = props.alignment === 'left' ? 'left-4' : 'right-4';
+    return `${vertical} ${horizontal}`;
+  });
 
-const enterFromClasses = computed(() =>
-  props.alignment === 'left'
-    ? '-translate-x-full opacity-0'
-    : 'translate-x-full opacity-0'
-);
+  const enterFromClasses = computed(() =>
+    props.alignment === 'left' ? '-translate-x-full opacity-0' : 'translate-x-full opacity-0'
+  );
 
-const iconClasses = computed(() => {
-  const base = colorConfig.value.iconClasses;
-  return meta.value.spinIcon ? `${base} animate-spin motion-reduce:animate-none` : base;
-});
+  const iconClasses = computed(() => {
+    const base = colorConfig.value.iconClasses;
+    return meta.value.spinIcon ? `${base} animate-spin motion-reduce:animate-none` : base;
+  });
 
-const showProgressBar = computed(() =>
-  props.dismissible && !props.loading && props.severity
-);
+  const showProgressBar = computed(() => props.dismissible && !props.loading && props.severity);
 </script>
 
 <template>
@@ -106,26 +102,29 @@ const showProgressBar = computed(() =>
         v-if="showProgressBar"
         class="progress-shrink absolute bottom-0 left-0 h-0.5 rounded-full bg-current opacity-30"
         :class="colorConfig.textClasses"
-        :style="{ animationDuration: `${duration}ms` }">
-      </div>
+        :style="{ animationDuration: `${duration}ms` }"></div>
     </div>
   </Transition>
 </template>
 
 <style scoped>
-@keyframes shrink {
-  from { width: 100%; }
-  to { width: 0%; }
-}
-
-.progress-shrink {
-  animation: shrink linear forwards;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .progress-shrink {
-    animation: none;
-    width: 100%;
+  @keyframes shrink {
+    from {
+      width: 100%;
+    }
+    to {
+      width: 0%;
+    }
   }
-}
+
+  .progress-shrink {
+    animation: shrink linear forwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .progress-shrink {
+      animation: none;
+      width: 100%;
+    }
+  }
 </style>

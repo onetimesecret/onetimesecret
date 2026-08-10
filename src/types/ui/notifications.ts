@@ -6,7 +6,4 @@
  * Re-exports from schemas. Types are defined in schemas/ui/notifications.ts.
  */
 
-export type {
-  NotificationAlignment,
-  NotificationSeverity,
-} from '@/schemas/ui/notifications';
+export type { NotificationAlignment, NotificationSeverity } from '@/schemas/ui/notifications';

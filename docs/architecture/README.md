@@ -5,12 +5,14 @@
 Onetime Secret consists of two primary components working together:
 
 **Ruby Backend** (`lib/onetime/logic/`)
+
 - Consistent `success_data` methods for API responses
 - Logic classes inherit from Base with helpers
 - Validation in `raise_concerns` methods
 - Data transformation in `process` methods
 
 **Vue 3 Frontend** (`src/schemas/`, `src/types/api/`)
+
 - TypeScript with Zod for runtime validation
 - Layered architecture: Schemas → Services → Stores → Composables → Components
 - Type-safe API integration
@@ -18,7 +20,9 @@ Onetime Secret consists of two primary components working together:
 ## Architecture Principles
 
 ### Layered Frontend Design
+
 Each layer has a distinct responsibility:
+
 - **Schemas**: Data structures and validation
 - **Services**: API communication
 - **Stores**: State management
@@ -26,11 +30,13 @@ Each layer has a distinct responsibility:
 - **Components**: UI presentation
 
 ### Type Safety Strategy
+
 - Schemas define types that flow through all layers
 - Runtime validation at API boundaries
 - Compile-time checking throughout the stack
 
 ### Error Handling
+
 - Vue error boundaries for component errors
 - Explicit handling for async operations
 - Result types for expected failures

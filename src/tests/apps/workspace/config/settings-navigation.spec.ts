@@ -18,7 +18,14 @@ import {
   getSettingsNavigation,
   getSettingsNavigationSections,
 } from '@/apps/workspace/config/settings-navigation';
-import { isFullAuthMode, isSsoOnlyMode, isWebAuthnEnabled, isSsoEnabled, hasPassword, isOwnerOrAdmin } from '@/utils/features';
+import {
+  isFullAuthMode,
+  isSsoOnlyMode,
+  isWebAuthnEnabled,
+  isSsoEnabled,
+  hasPassword,
+  isOwnerOrAdmin,
+} from '@/utils/features';
 
 const mockedIsFullAuthMode = vi.mocked(isFullAuthMode);
 const mockedIsSsoOnlyMode = vi.mocked(isSsoOnlyMode);
@@ -46,9 +53,9 @@ function makeFeatures(overrides: Partial<NavigationFeatures> = {}): NavigationFe
 /** Helper: get visible section/item IDs using SettingsLayout filtering logic. */
 function getVisibleItemIds(features: NavigationFeatures): string[] {
   const sections = getSettingsNavigationSections(t, features);
-  return sections.flatMap((section) =>
-    section.items.filter((item) => (item.visible ? item.visible() : true))
-  ).map((i) => i.id);
+  return sections
+    .flatMap((section) => section.items.filter((item) => (item.visible ? item.visible() : true)))
+    .map((i) => i.id);
 }
 
 /** Helper: get visible child IDs for a given parent item. */
@@ -56,9 +63,7 @@ function getVisibleChildIds(features: NavigationFeatures, parentId: string): str
   const sections = getSettingsNavigationSections(t, features);
   const parent = sections.flatMap((s) => s.items).find((i) => i.id === parentId);
   if (!parent?.children) return [];
-  return parent.children
-    .filter((c) => (c.visible ? c.visible() : true))
-    .map((c) => c.id);
+  return parent.children.filter((c) => (c.visible ? c.visible() : true)).map((c) => c.id);
 }
 
 describe('settings-navigation config', () => {
@@ -87,7 +92,8 @@ describe('settings-navigation config', () => {
     it('security section is visible when auth mode is full', () => {
       const sections = getSettingsNavigationSections(t, makeFeatures({ isFullAuthMode: true }));
       const securityItem = sections
-        .find((s) => s.id === 'account')?.items.find((i) => i.id === 'security');
+        .find((s) => s.id === 'account')
+        ?.items.find((i) => i.id === 'security');
 
       expect(securityItem?.visible?.()).toBe(true);
     });
@@ -95,7 +101,8 @@ describe('settings-navigation config', () => {
     it('security section is hidden when auth mode is not full', () => {
       const sections = getSettingsNavigationSections(t, makeFeatures({ isFullAuthMode: false }));
       const securityItem = sections
-        .find((s) => s.id === 'account')?.items.find((i) => i.id === 'security');
+        .find((s) => s.id === 'account')
+        ?.items.find((i) => i.id === 'security');
 
       expect(securityItem?.visible?.()).toBe(false);
     });
@@ -104,13 +111,17 @@ describe('settings-navigation config', () => {
       // After role-based gating change, security visibility is only f.isFullAuthMode.
       // SSO-only mode no longer hides the section itself (password sub-tabs handle
       // their own visibility via hasPassword).
-      const sections = getSettingsNavigationSections(t, makeFeatures({
-        isFullAuthMode: true,
-        isSsoOnlyMode: true,
-        hasPassword: false,
-      }));
+      const sections = getSettingsNavigationSections(
+        t,
+        makeFeatures({
+          isFullAuthMode: true,
+          isSsoOnlyMode: true,
+          hasPassword: false,
+        })
+      );
       const securityItem = sections
-        .find((s) => s.id === 'account')?.items.find((i) => i.id === 'security');
+        .find((s) => s.id === 'account')
+        ?.items.find((i) => i.id === 'security');
 
       expect(securityItem?.visible?.()).toBe(true);
     });
@@ -181,28 +192,25 @@ describe('settings-navigation config', () => {
         getVisibleChildIds(makeFeatures({ isWebAuthnEnabled: false }), 'security')
       ).not.toContain('passkeys');
 
-      expect(
-        getVisibleChildIds(makeFeatures({ isWebAuthnEnabled: true }), 'security')
-      ).toContain('passkeys');
+      expect(getVisibleChildIds(makeFeatures({ isWebAuthnEnabled: true }), 'security')).toContain(
+        'passkeys'
+      );
     });
 
     it('connections child visible only when SSO is enabled', () => {
-      expect(
-        getVisibleChildIds(makeFeatures({ isSsoEnabled: false }), 'security')
-      ).not.toContain('connections');
+      expect(getVisibleChildIds(makeFeatures({ isSsoEnabled: false }), 'security')).not.toContain(
+        'connections'
+      );
 
-      expect(
-        getVisibleChildIds(makeFeatures({ isSsoEnabled: true }), 'security')
-      ).toContain('connections');
+      expect(getVisibleChildIds(makeFeatures({ isSsoEnabled: true }), 'security')).toContain(
+        'connections'
+      );
     });
 
     it('connections child is not password-dependent (visible for SSO-only accounts)', () => {
       // SSO-only account: no password, SSO enabled — connections must still show.
       expect(
-        getVisibleChildIds(
-          makeFeatures({ hasPassword: false, isSsoEnabled: true }),
-          'security'
-        )
+        getVisibleChildIds(makeFeatures({ hasPassword: false, isSsoEnabled: true }), 'security')
       ).toContain('connections');
     });
   });
@@ -213,7 +221,8 @@ describe('settings-navigation config', () => {
     it('region section is visible when user is owner or admin', () => {
       const sections = getSettingsNavigationSections(t, makeFeatures({ isOwnerOrAdmin: true }));
       const regionItem = sections
-        .find((s) => s.id === 'advanced')?.items.find((i) => i.id === 'region');
+        .find((s) => s.id === 'advanced')
+        ?.items.find((i) => i.id === 'region');
 
       expect(regionItem?.visible?.()).toBe(true);
     });
@@ -221,18 +230,23 @@ describe('settings-navigation config', () => {
     it('region section is hidden when user is a member', () => {
       const sections = getSettingsNavigationSections(t, makeFeatures({ isOwnerOrAdmin: false }));
       const regionItem = sections
-        .find((s) => s.id === 'advanced')?.items.find((i) => i.id === 'region');
+        .find((s) => s.id === 'advanced')
+        ?.items.find((i) => i.id === 'region');
 
       expect(regionItem?.visible?.()).toBe(false);
     });
 
     it('region section is hidden for members even with hasPassword', () => {
-      const sections = getSettingsNavigationSections(t, makeFeatures({
-        isOwnerOrAdmin: false,
-        hasPassword: true,
-      }));
+      const sections = getSettingsNavigationSections(
+        t,
+        makeFeatures({
+          isOwnerOrAdmin: false,
+          hasPassword: true,
+        })
+      );
       const regionItem = sections
-        .find((s) => s.id === 'advanced')?.items.find((i) => i.id === 'region');
+        .find((s) => s.id === 'advanced')
+        ?.items.find((i) => i.id === 'region');
 
       expect(regionItem?.visible?.()).toBe(false);
     });
@@ -242,7 +256,8 @@ describe('settings-navigation config', () => {
     it('caution section is visible when user is owner or admin', () => {
       const sections = getSettingsNavigationSections(t, makeFeatures({ isOwnerOrAdmin: true }));
       const cautionItem = sections
-        .find((s) => s.id === 'advanced')?.items.find((i) => i.id === 'caution');
+        .find((s) => s.id === 'advanced')
+        ?.items.find((i) => i.id === 'caution');
 
       expect(cautionItem?.visible?.()).toBe(true);
     });
@@ -250,18 +265,23 @@ describe('settings-navigation config', () => {
     it('caution section is hidden when user is a member', () => {
       const sections = getSettingsNavigationSections(t, makeFeatures({ isOwnerOrAdmin: false }));
       const cautionItem = sections
-        .find((s) => s.id === 'advanced')?.items.find((i) => i.id === 'caution');
+        .find((s) => s.id === 'advanced')
+        ?.items.find((i) => i.id === 'caution');
 
       expect(cautionItem?.visible?.()).toBe(false);
     });
 
     it('caution section is hidden for members even with hasPassword', () => {
-      const sections = getSettingsNavigationSections(t, makeFeatures({
-        isOwnerOrAdmin: false,
-        hasPassword: true,
-      }));
+      const sections = getSettingsNavigationSections(
+        t,
+        makeFeatures({
+          isOwnerOrAdmin: false,
+          hasPassword: true,
+        })
+      );
       const cautionItem = sections
-        .find((s) => s.id === 'advanced')?.items.find((i) => i.id === 'caution');
+        .find((s) => s.id === 'advanced')
+        ?.items.find((i) => i.id === 'caution');
 
       expect(cautionItem?.visible?.()).toBe(false);
     });
@@ -271,12 +291,15 @@ describe('settings-navigation config', () => {
 
   describe('Explicit features parameter', () => {
     it('uses provided features object instead of imported predicates', () => {
-      const sections = getSettingsNavigationSections(t, makeFeatures({
-        hasPassword: true,
-        isFullAuthMode: true,
-        isWebAuthnEnabled: true,
-        isOwnerOrAdmin: true,
-      }));
+      const sections = getSettingsNavigationSections(
+        t,
+        makeFeatures({
+          hasPassword: true,
+          isFullAuthMode: true,
+          isWebAuthnEnabled: true,
+          isOwnerOrAdmin: true,
+        })
+      );
       const accountSection = sections.find((s) => s.id === 'account');
       const securityItem = accountSection?.items.find((i) => i.id === 'security');
       const passkeysChild = securityItem?.children?.find((c) => c.id === 'passkeys');
@@ -286,15 +309,22 @@ describe('settings-navigation config', () => {
     });
 
     it('role-based gating hides Region/Caution for members with all other flags true', () => {
-      const sections = getSettingsNavigationSections(t, makeFeatures({
-        hasPassword: true,
-        isFullAuthMode: true,
-        isSsoOnlyMode: false,
-        isOwnerOrAdmin: false,
-        isWebAuthnEnabled: true,
-      }));
-      const region = sections.find((s) => s.id === 'advanced')?.items.find((i) => i.id === 'region');
-      const caution = sections.find((s) => s.id === 'advanced')?.items.find((i) => i.id === 'caution');
+      const sections = getSettingsNavigationSections(
+        t,
+        makeFeatures({
+          hasPassword: true,
+          isFullAuthMode: true,
+          isSsoOnlyMode: false,
+          isOwnerOrAdmin: false,
+          isWebAuthnEnabled: true,
+        })
+      );
+      const region = sections
+        .find((s) => s.id === 'advanced')
+        ?.items.find((i) => i.id === 'region');
+      const caution = sections
+        .find((s) => s.id === 'advanced')
+        ?.items.find((i) => i.id === 'caution');
 
       expect(region?.visible?.()).toBe(false);
       expect(caution?.visible?.()).toBe(false);
@@ -322,7 +352,9 @@ describe('settings-navigation config', () => {
       {
         label: 'Owner with password',
         features: makeFeatures({
-          hasPassword: true, isOwnerOrAdmin: true, isWebAuthnEnabled: true,
+          hasPassword: true,
+          isOwnerOrAdmin: true,
+          isWebAuthnEnabled: true,
         }),
         expectSecurity: true,
         expectPassword: true,
@@ -336,7 +368,9 @@ describe('settings-navigation config', () => {
       {
         label: 'Owner (SSO, no password)',
         features: makeFeatures({
-          hasPassword: false, isOwnerOrAdmin: true, isWebAuthnEnabled: true,
+          hasPassword: false,
+          isOwnerOrAdmin: true,
+          isWebAuthnEnabled: true,
         }),
         expectSecurity: true,
         expectPassword: false,
@@ -350,7 +384,9 @@ describe('settings-navigation config', () => {
       {
         label: 'Admin with password',
         features: makeFeatures({
-          hasPassword: true, isOwnerOrAdmin: true, isWebAuthnEnabled: true,
+          hasPassword: true,
+          isOwnerOrAdmin: true,
+          isWebAuthnEnabled: true,
         }),
         expectSecurity: true,
         expectPassword: true,
@@ -364,7 +400,9 @@ describe('settings-navigation config', () => {
       {
         label: 'Admin (SSO, no password)',
         features: makeFeatures({
-          hasPassword: false, isOwnerOrAdmin: true, isWebAuthnEnabled: true,
+          hasPassword: false,
+          isOwnerOrAdmin: true,
+          isWebAuthnEnabled: true,
         }),
         expectSecurity: true,
         expectPassword: false,
@@ -378,7 +416,9 @@ describe('settings-navigation config', () => {
       {
         label: 'Member with password (invited)',
         features: makeFeatures({
-          hasPassword: true, isOwnerOrAdmin: false, isWebAuthnEnabled: true,
+          hasPassword: true,
+          isOwnerOrAdmin: false,
+          isWebAuthnEnabled: true,
         }),
         expectSecurity: true,
         expectPassword: true,
@@ -392,7 +432,9 @@ describe('settings-navigation config', () => {
       {
         label: 'Member (SSO, no password)',
         features: makeFeatures({
-          hasPassword: false, isOwnerOrAdmin: false, isWebAuthnEnabled: true,
+          hasPassword: false,
+          isOwnerOrAdmin: false,
+          isWebAuthnEnabled: true,
         }),
         expectSecurity: true,
         expectPassword: false,

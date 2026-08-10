@@ -49,9 +49,7 @@ describe('EntitlementMatrix (org entitlement resolution matrix)', () => {
     const wrapper = mountMatrix();
 
     // plan ∪ grants ∪ revokes ∪ materialized, sorted.
-    const names = wrapper
-      .findAll('tbody tr')
-      .map((row) => row.find('th[scope="row"]').text());
+    const names = wrapper.findAll('tbody tr').map((row) => row.find('th[scope="row"]').text());
     expect(names).toEqual(['api_access', 'create_secrets', 'custom_domains']);
   });
 
@@ -92,9 +90,9 @@ describe('EntitlementMatrix (org entitlement resolution matrix)', () => {
       })
     );
 
-    expect(wrapper.find('[data-testid="entitlement-row-legacy_flag"]').attributes('data-state')).toBe(
-      'orphaned'
-    );
+    expect(
+      wrapper.find('[data-testid="entitlement-row-legacy_flag"]').attributes('data-state')
+    ).toBe('orphaned');
     expect(
       wrapper.find('[data-testid="entitlement-row-custom_domains"]').attributes('data-state')
     ).toBe('missing');

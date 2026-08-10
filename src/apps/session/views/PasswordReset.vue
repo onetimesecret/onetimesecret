@@ -2,36 +2,36 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-import AuthView from '@/apps/session/components/AuthView.vue';
-import { useAuth } from '@/shared/composables/useAuth';
-import { ref, computed } from 'vue';
+  import AuthView from '@/apps/session/components/AuthView.vue';
+  import { useAuth } from '@/shared/composables/useAuth';
+  import { ref, computed } from 'vue';
 
-export interface Props {
-  enabled?: boolean;
-  resetKey: string;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  enabled: true,
-  resetKey: '',
-});
-
-const { t } = useI18n();
-const { resetPassword, isLoading, error, fieldError, clearErrors } = useAuth();
-
-const newPassword = ref('');
-const confirmPassword = ref('');
-
-const hasValidResetKey = computed(() => props.resetKey && props.resetKey.trim() !== '');
-
-const handleSubmit = async () => {
-  if (!hasValidResetKey.value) {
-    return;
+  export interface Props {
+    enabled?: boolean;
+    resetKey: string;
   }
-  clearErrors();
-  await resetPassword(props.resetKey, newPassword.value, confirmPassword.value);
-  // Navigation to /signin handled by useAuth composable on success
-};
+
+  const props = withDefaults(defineProps<Props>(), {
+    enabled: true,
+    resetKey: '',
+  });
+
+  const { t } = useI18n();
+  const { resetPassword, isLoading, error, fieldError, clearErrors } = useAuth();
+
+  const newPassword = ref('');
+  const confirmPassword = ref('');
+
+  const hasValidResetKey = computed(() => props.resetKey && props.resetKey.trim() !== '');
+
+  const handleSubmit = async () => {
+    if (!hasValidResetKey.value) {
+      return;
+    }
+    clearErrors();
+    await resetPassword(props.resetKey, newPassword.value, confirmPassword.value);
+    // Navigation to /signin handled by useAuth composable on success
+  };
 </script>
 
 <template>
@@ -111,8 +111,17 @@ const handleSubmit = async () => {
             minlength="8"
             :disabled="isLoading"
             autocomplete="new-password"
-            :aria-invalid="!!(fieldError && (fieldError[0] === 'password' || fieldError[0] === 'password-confirm'))"
-            :aria-describedby="fieldError && (fieldError[0] === 'password' || fieldError[0] === 'password-confirm') ? 'password-error' : undefined"
+            :aria-invalid="
+              !!(
+                fieldError &&
+                (fieldError[0] === 'password' || fieldError[0] === 'password-confirm')
+              )
+            "
+            :aria-describedby="
+              fieldError && (fieldError[0] === 'password' || fieldError[0] === 'password-confirm')
+                ? 'password-error'
+                : undefined
+            "
             class="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-300"
             placeholder=""
             v-model="newPassword"
@@ -133,7 +142,9 @@ const handleSubmit = async () => {
             :disabled="isLoading"
             autocomplete="new-password"
             :aria-invalid="!!(fieldError && fieldError[0] === 'password-confirm')"
-            :aria-describedby="fieldError && fieldError[0] === 'password-confirm' ? 'password-error' : undefined"
+            :aria-describedby="
+              fieldError && fieldError[0] === 'password-confirm' ? 'password-error' : undefined
+            "
             class="focus:shadow-outline w-full appearance-none rounded border px-3 py-2 leading-tight text-gray-700 shadow focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-300"
             placeholder=""
             v-model="confirmPassword"
@@ -151,7 +162,6 @@ const handleSubmit = async () => {
         </div>
       </form>
     </template>
-    <template #footer>
-    </template>
+    <template #footer> </template>
   </AuthView>
 </template>

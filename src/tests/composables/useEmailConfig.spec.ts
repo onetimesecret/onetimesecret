@@ -97,7 +97,12 @@ const mockEmailConfigData: CustomDomainEmailConfig = {
   verification_status: 'verified',
   dns_records: [
     { type: 'TXT', name: '_dmarc.example.com', value: 'v=DMARC1; p=none', status: 'verified' },
-    { type: 'CNAME', name: 'em._domainkey.example.com', value: 'dkim.example.com', status: 'pending' },
+    {
+      type: 'CNAME',
+      name: 'em._domainkey.example.com',
+      value: 'dkim.example.com',
+      status: 'pending',
+    },
   ],
   last_validated_at: new Date('2025-01-15T10:00:00Z'),
   dns_check_completed_at: new Date('2025-01-15T10:00:00Z'),
@@ -319,11 +324,14 @@ describe('useEmailConfig', () => {
 
       await composable.saveConfig();
 
-      expect(mockPutEmailConfig).toHaveBeenCalledWith('dm-ext-123', expect.objectContaining({
-        from_name: 'Test Corp',
-        from_address: 'test@example.com',
-        enabled: true,
-      }));
+      expect(mockPutEmailConfig).toHaveBeenCalledWith(
+        'dm-ext-123',
+        expect.objectContaining({
+          from_name: 'Test Corp',
+          from_address: 'test@example.com',
+          enabled: true,
+        })
+      );
       expect(mockPatchEmailConfig).not.toHaveBeenCalled();
     });
 
@@ -340,9 +348,12 @@ describe('useEmailConfig', () => {
 
       await composable.saveConfig();
 
-      expect(mockPatchEmailConfig).toHaveBeenCalledWith('dm-ext-123', expect.objectContaining({
-        from_name: 'Updated Corp',
-      }));
+      expect(mockPatchEmailConfig).toHaveBeenCalledWith(
+        'dm-ext-123',
+        expect.objectContaining({
+          from_name: 'Updated Corp',
+        })
+      );
       expect(mockPutEmailConfig).not.toHaveBeenCalled();
     });
 
@@ -360,11 +371,14 @@ describe('useEmailConfig', () => {
 
       await composable.saveConfig();
 
-      expect(mockPutEmailConfig).toHaveBeenCalledWith('dm-ext-123', expect.objectContaining({
-        from_name: 'Test Corp',
-        from_address: 'test@example.com',
-        reply_to: 'reply@example.com',
-      }));
+      expect(mockPutEmailConfig).toHaveBeenCalledWith(
+        'dm-ext-123',
+        expect.objectContaining({
+          from_name: 'Test Corp',
+          from_address: 'test@example.com',
+          reply_to: 'reply@example.com',
+        })
+      );
     });
 
     it('always includes reply_to in PUT payload', async () => {
@@ -444,16 +458,19 @@ describe('useEmailConfig', () => {
       expect(mockNotificationsShow).toHaveBeenCalledWith(
         'Email configuration updated',
         'success',
-        'top',
+        'top'
       );
     });
 
     it('sets isSaving during operation', async () => {
       mockGetEmailConfig.mockResolvedValue(null);
       let resolvePut: (value: unknown) => void;
-      mockPutEmailConfig.mockImplementation(() => new Promise((resolve) => {
-        resolvePut = resolve;
-      }));
+      mockPutEmailConfig.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolvePut = resolve;
+          })
+      );
 
       const composable = useEmailConfig('dm-ext-123');
       await composable.initialize();
@@ -559,16 +576,19 @@ describe('useEmailConfig', () => {
       expect(mockNotificationsShow).toHaveBeenCalledWith(
         'Email configuration removed',
         'success',
-        'top',
+        'top'
       );
     });
 
     it('sets isDeleting during operation', async () => {
       mockGetEmailConfig.mockResolvedValue(mockEmailConfigData);
       let resolveDelete: (value: unknown) => void;
-      mockDeleteEmailConfig.mockImplementation(() => new Promise((resolve) => {
-        resolveDelete = resolve;
-      }));
+      mockDeleteEmailConfig.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveDelete = resolve;
+          })
+      );
 
       const composable = useEmailConfig('dm-ext-123');
       await composable.initialize();
@@ -881,11 +901,7 @@ describe('useEmailConfig', () => {
       await drainPolling();
       await promise;
 
-      expect(mockNotificationsShow).toHaveBeenCalledWith(
-        'Validation failed',
-        'error',
-        'top',
-      );
+      expect(mockNotificationsShow).toHaveBeenCalledWith('Validation failed', 'error', 'top');
     });
 
     it('sets isValidating during operation', async () => {
@@ -952,8 +968,8 @@ describe('useEmailConfig', () => {
       mockValidateEmailConfig.mockResolvedValue({ record: mockPendingConfig });
       // initialize returns pending, first poll returns pending, second returns verified
       mockGetEmailConfig
-        .mockResolvedValueOnce(mockPendingConfig)  // initialize
-        .mockResolvedValueOnce(mockPendingConfig)  // poll 1
+        .mockResolvedValueOnce(mockPendingConfig) // initialize
+        .mockResolvedValueOnce(mockPendingConfig) // poll 1
         .mockResolvedValueOnce(mockEmailConfigData); // poll 2 (verified)
 
       const composable = useEmailConfig('dm-ext-123');
@@ -980,8 +996,8 @@ describe('useEmailConfig', () => {
       };
       mockValidateEmailConfig.mockResolvedValue({ record: mockPendingConfig });
       mockGetEmailConfig
-        .mockResolvedValueOnce(mockPendingConfig)  // initialize
-        .mockResolvedValueOnce(failedConfig);       // poll 1
+        .mockResolvedValueOnce(mockPendingConfig) // initialize
+        .mockResolvedValueOnce(failedConfig); // poll 1
 
       const composable = useEmailConfig('dm-ext-123');
       await composable.initialize();
@@ -1017,8 +1033,8 @@ describe('useEmailConfig', () => {
     it('keeps isValidating true during polling and sets false after', async () => {
       mockValidateEmailConfig.mockResolvedValue({ record: mockPendingConfig });
       mockGetEmailConfig
-        .mockResolvedValueOnce(mockPendingConfig)    // initialize
-        .mockResolvedValueOnce(mockPendingConfig)    // poll 1
+        .mockResolvedValueOnce(mockPendingConfig) // initialize
+        .mockResolvedValueOnce(mockPendingConfig) // poll 1
         .mockResolvedValueOnce(mockEmailConfigData); // poll 2 (verified)
 
       const composable = useEmailConfig('dm-ext-123');
@@ -1039,8 +1055,8 @@ describe('useEmailConfig', () => {
     it('swallows network errors during polling', async () => {
       mockValidateEmailConfig.mockResolvedValue({ record: mockPendingConfig });
       mockGetEmailConfig
-        .mockResolvedValueOnce(mockPendingConfig)    // initialize
-        .mockRejectedValueOnce(new Error('Network'))  // poll 1 fails
+        .mockResolvedValueOnce(mockPendingConfig) // initialize
+        .mockRejectedValueOnce(new Error('Network')) // poll 1 fails
         .mockResolvedValueOnce(mockEmailConfigData); // poll 2 succeeds
 
       const composable = useEmailConfig('dm-ext-123');

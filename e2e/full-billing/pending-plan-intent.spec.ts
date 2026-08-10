@@ -165,7 +165,10 @@ test.describe('Signup Form Plan Intent Capture', () => {
 
     // Plan params should be included either in form action or as hidden fields
     const hasProductInAction = formAction?.includes('product=') ?? false;
-    const hasHiddenProduct = await page.locator('input[name="product"][type="hidden"]').isVisible().catch(() => false);
+    const hasHiddenProduct = await page
+      .locator('input[name="product"][type="hidden"]')
+      .isVisible()
+      .catch(() => false);
 
     // At least one method should preserve the params
     const paramsPreserved = hasProductInAction || hasHiddenProduct;
@@ -274,9 +277,10 @@ test.describe('Signup Submission with Plan Intent', () => {
 // redirect. Was `test.skip(() => true)` — an unconditional skip that could only
 // pass-or-skip. See e2e/QUARANTINE.md.
 test.describe.fixme('Post-Verification Redirect', () => {
-
   test.describe('when verification is disabled (test mode)', () => {
-    test('signup with plan params auto-redirects to checkout after verification', async ({ page }) => {
+    test('signup with plan params auto-redirects to checkout after verification', async ({
+      page,
+    }) => {
       // This test requires:
       // 1. verify_account feature disabled (RACK_ENV=test), OR
       // 2. Email interceptor (Mailhog) to capture verification link

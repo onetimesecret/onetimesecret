@@ -18,15 +18,10 @@ export function setup() {
   const billingEnabled = process.env.BILLING_ENABLED ?? 'false';
   console.log(`[Vitest] billing:${billingEnabled}`);
 
-  const generatedLocale = resolve(
-    process.cwd(),
-    'generated/locales/en.json'
-  );
+  const generatedLocale = resolve(process.cwd(), 'generated/locales/en.json');
 
   if (!existsSync(generatedLocale)) {
-    console.log(
-      '[globalSetup] Generating locale files for i18n tests...'
-    );
+    console.log('[globalSetup] Generating locale files for i18n tests...');
     execSync('pnpm run locales:sync', {
       cwd: process.cwd(),
       stdio: 'pipe',

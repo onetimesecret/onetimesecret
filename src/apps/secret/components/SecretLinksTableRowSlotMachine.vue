@@ -200,11 +200,7 @@
 
     switch (itemState.value) {
       case 'active':
-        return [
-          base,
-          'border border-gray-200 dark:border-gray-700',
-          'bg-white dark:bg-gray-900',
-        ];
+        return [base, 'border border-gray-200 dark:border-gray-700', 'bg-white dark:bg-gray-900'];
       case 'previewed':
         return [
           base,
@@ -240,9 +236,7 @@
   // Index number styling - large and bold in the gutter
   const indexClasses = computed(() => [
     'flex-shrink-0 text-2xl font-bold tabular-nums select-none w-10 text-center',
-    isActive.value
-      ? 'text-gray-400 dark:text-gray-500'
-      : 'text-gray-300 dark:text-gray-600',
+    isActive.value ? 'text-gray-400 dark:text-gray-500' : 'text-gray-300 dark:text-gray-600',
   ]);
 </script>
 
@@ -268,7 +262,7 @@
                   type="text"
                   maxlength="100"
                   :placeholder="t('web.LABELS.add_memo')"
-                  class="w-full max-w-sm rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500"
+                  class="w-full max-w-sm rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500"
                   @keydown="handleMemoKeydown"
                   @blur="saveMemo" />
               </template>
@@ -317,7 +311,7 @@
               <!-- Timestamp -->
               <router-link
                 :to="`/receipt/${record.extid}`"
-                class="whitespace-nowrap text-xs tabular-nums text-gray-400 transition-colors hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300">
+                class="text-xs whitespace-nowrap text-gray-400 tabular-nums transition-colors hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300">
                 <time :datetime="record.createdAt.toISOString()">
                   {{ formattedDate }}
                 </time>
@@ -363,7 +357,7 @@
                     leave-to-class="opacity-0 scale-95">
                     <div
                       v-if="isCopied"
-                      class="absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded bg-gray-800 px-2 py-1 text-xs font-medium text-white shadow-lg dark:bg-gray-700">
+                      class="absolute -top-8 left-1/2 z-10 -translate-x-1/2 rounded bg-gray-800 px-2 py-1 text-xs font-medium whitespace-nowrap text-white shadow-lg dark:bg-gray-700">
                       {{ t('web.STATUS.copied') }}
                     </div>
                   </Transition>
@@ -403,9 +397,7 @@
                   collection="heroicons"
                   name="key"
                   class="size-3" />
-                <span class="text-xs font-medium">{{
-                  t('web.LABELS.passphrase_protected')
-                }}</span>
+                <span class="text-xs font-medium">{{ t('web.LABELS.passphrase_protected') }}</span>
               </span>
             </template>
           </div>

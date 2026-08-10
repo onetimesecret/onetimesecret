@@ -5,9 +5,11 @@ title: ADR-006: Redis Lua Script Management Strategy
 ---
 
 ## Status
+
 Accepted
 
 ## Date
+
 2025-10-11
 
 ## Context
@@ -28,7 +30,7 @@ Redis Lua scripts can be managed in two ways:
 The manual approach seems appealing for maximum cleanup/version control, but introduces complexity:
 
 - **Connection Pool Challenges**: Each
- connection needs scripts loaded independently; server restarts clear all scripts
+  connection needs scripts loaded independently; server restarts clear all scripts
 - **Minimal Memory Savings**: Old SHA1s persist in Redis memory until SCRIPT FLUSH (which clears all scripts)
 
 The key insight: pre-computed SHA1s don't eliminate NOSCRIPT errors—they just move the problem. Server restarts, failovers, or new pool connections all require fallbacks to EVAL anyway.

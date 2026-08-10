@@ -7,66 +7,66 @@
 -->
 
 <script setup lang="ts">
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { getSeverityMeta, getInvertedColors } from '../severityConfig';
-import { computed } from 'vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { getSeverityMeta, getInvertedColors } from '../severityConfig';
+  import { computed } from 'vue';
 
-type RoundedSize = 'none' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  type RoundedSize = 'none' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
 
-interface Props {
-  message: string;
-  severity: string | null;
-  show?: boolean;
-  loading?: boolean;
-  position?: 'top' | 'bottom';
-  alignment?: 'left' | 'right';
-  showLabel?: boolean;
-  rounded?: RoundedSize;
-  duration?: number;
-}
+  interface Props {
+    message: string;
+    severity: string | null;
+    show?: boolean;
+    loading?: boolean;
+    position?: 'top' | 'bottom';
+    alignment?: 'left' | 'right';
+    showLabel?: boolean;
+    rounded?: RoundedSize;
+    duration?: number;
+  }
 
-const props = withDefaults(defineProps<Props>(), {
-  show: false,
-  loading: false,
-  position: 'top',
-  alignment: 'right',
-  showLabel: true,
-  rounded: 'md',
-  duration: 5000,
-});
+  const props = withDefaults(defineProps<Props>(), {
+    show: false,
+    loading: false,
+    position: 'top',
+    alignment: 'right',
+    showLabel: true,
+    rounded: 'md',
+    duration: 5000,
+  });
 
-const effectiveSeverity = computed(() => props.loading ? 'loading' : props.severity);
-const meta = computed(() => getSeverityMeta(effectiveSeverity.value));
-const colorConfig = computed(() => getInvertedColors(effectiveSeverity.value));
+  const effectiveSeverity = computed(() => (props.loading ? 'loading' : props.severity));
+  const meta = computed(() => getSeverityMeta(effectiveSeverity.value));
+  const colorConfig = computed(() => getInvertedColors(effectiveSeverity.value));
 
-const positionClasses = computed(() => {
-  const vertical = props.position === 'top' ? 'top-4' : 'bottom-4';
-  const horizontal = props.alignment === 'left' ? 'left-4' : 'right-4';
-  return `${vertical} ${horizontal}`;
-});
+  const positionClasses = computed(() => {
+    const vertical = props.position === 'top' ? 'top-4' : 'bottom-4';
+    const horizontal = props.alignment === 'left' ? 'left-4' : 'right-4';
+    return `${vertical} ${horizontal}`;
+  });
 
-const enterFromClasses = computed(() =>
-  props.alignment === 'left'
-    ? '-translate-x-2 opacity-0 scale-95'
-    : 'translate-x-2 opacity-0 scale-95'
-);
+  const enterFromClasses = computed(() =>
+    props.alignment === 'left'
+      ? '-translate-x-2 opacity-0 scale-95'
+      : 'translate-x-2 opacity-0 scale-95'
+  );
 
-const shouldPulse = computed(() => meta.value.pulse && !props.loading);
+  const shouldPulse = computed(() => meta.value.pulse && !props.loading);
 
-const ROUNDED_CLASSES: Record<RoundedSize, string> = {
-  none: 'rounded-none',
-  sm: 'rounded-sm',
-  md: 'rounded-md',
-  lg: 'rounded-lg',
-  xl: 'rounded-xl',
-  full: 'rounded-full',
-};
-const roundedClass = computed(() => ROUNDED_CLASSES[props.rounded]);
+  const ROUNDED_CLASSES: Record<RoundedSize, string> = {
+    none: 'rounded-none',
+    sm: 'rounded-sm',
+    md: 'rounded-md',
+    lg: 'rounded-lg',
+    xl: 'rounded-xl',
+    full: 'rounded-full',
+  };
+  const roundedClass = computed(() => ROUNDED_CLASSES[props.rounded]);
 
-const iconClasses = computed(() => {
-  const base = colorConfig.value.iconClasses;
-  return meta.value.spinIcon ? `${base} animate-spin motion-reduce:animate-none` : base;
-});
+  const iconClasses = computed(() => {
+    const base = colorConfig.value.iconClasses;
+    return meta.value.spinIcon ? `${base} animate-spin motion-reduce:animate-none` : base;
+  });
 </script>
 
 <template>
@@ -86,7 +86,7 @@ const iconClasses = computed(() => {
         colorConfig.ringClasses,
         roundedClass,
         { 'animate-subtle-pulse': shouldPulse },
-        { 'px-2': !showLabel }
+        { 'px-2': !showLabel },
       ]"
       role="status"
       aria-live="polite">
@@ -99,7 +99,7 @@ const iconClasses = computed(() => {
 
       <span
         v-if="showLabel && message"
-        class="max-w-sm break-words text-sm font-medium transition-all duration-200"
+        class="max-w-sm text-sm font-medium break-words transition-all duration-200"
         :class="colorConfig.textClasses">
         {{ message }}
       </span>
@@ -114,37 +114,37 @@ const iconClasses = computed(() => {
 </template>
 
 <style scoped>
-@keyframes subtle-pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgb(0 0 0 / 0);
+  @keyframes subtle-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgb(0 0 0 / 0);
+    }
+    50% {
+      box-shadow: 0 0 0 3px rgb(0 0 0 / 0.06);
+    }
   }
-  50% {
-    box-shadow: 0 0 0 3px rgb(0 0 0 / 0.06);
+
+  @keyframes subtle-pulse-dark {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgb(255 255 255 / 0);
+    }
+    50% {
+      box-shadow: 0 0 0 3px rgb(255 255 255 / 0.08);
+    }
   }
-}
 
-@keyframes subtle-pulse-dark {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgb(255 255 255 / 0);
-  }
-  50% {
-    box-shadow: 0 0 0 3px rgb(255 255 255 / 0.08);
-  }
-}
-
-.animate-subtle-pulse {
-  animation: subtle-pulse 1.5s ease-in-out 1;
-}
-
-:root.dark .animate-subtle-pulse {
-  animation-name: subtle-pulse-dark;
-}
-
-@media (prefers-reduced-motion: reduce) {
   .animate-subtle-pulse {
-    animation: none;
+    animation: subtle-pulse 1.5s ease-in-out 1;
   }
-}
+
+  :root.dark .animate-subtle-pulse {
+    animation-name: subtle-pulse-dark;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-subtle-pulse {
+      animation: none;
+    }
+  }
 </style>

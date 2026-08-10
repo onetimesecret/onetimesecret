@@ -44,19 +44,20 @@ invocation.
   (`recipient_confirm/colonel/cli`), policy matrix enforced HERE not in
   adapters:
 
-  | Entry reason | recipient confirm | colonel UI | CLI |
-  |---|---|---|---|
-  | unsubscribe | ✅ | ✅ | ✅ |
-  | soft_bounce | ✅ (implicit: TTL usually beats them to it) | ✅ | ✅ |
-  | hard_bounce | ❌ | ✅ typed-confirm | ✅ |
-  | complaint | ❌ | ❌ | ✅ `--allow-complaint` |
-  | manual | ❌ | ✅ typed-confirm | ✅ |
+  | Entry reason | recipient confirm                           | colonel UI       | CLI                    |
+  | ------------ | ------------------------------------------- | ---------------- | ---------------------- |
+  | unsubscribe  | ✅                                          | ✅               | ✅                     |
+  | soft_bounce  | ✅ (implicit: TTL usually beats them to it) | ✅               | ✅                     |
+  | hard_bounce  | ❌                                          | ✅ typed-confirm | ✅                     |
+  | complaint    | ❌                                          | ❌               | ✅ `--allow-complaint` |
+  | manual       | ❌                                          | ✅ typed-confirm | ✅                     |
 
   Stricter-than-CONTRACT-4 audit rule (the Slice-6 impersonation convention):
   `Release` records a `ColonelAuditEvent` (`email.suppression.release`) on
   EVERY invocation that reaches the policy check — including refusals
   (`result: :refused`) — because unsuppression is the abuse-sensitive verb in
   this system.
+
 - **Account-settings coherence**: a customer re-enabling `notify_on_reveal`
   while a `notification`-scope suppression exists on their address triggers
   the same confirm-email loop instead of silently flipping the flag (the

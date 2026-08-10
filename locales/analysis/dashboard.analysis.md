@@ -7,43 +7,45 @@
 
 The `dashboard.json` file contains a small set of keys (6 total) under `web.dashboard.*`. These keys fall into two categories:
 
-| Category | Keys | Count |
-|----------|------|-------|
-| Status Labels | `title_received`, `title_not_received` | 2 |
-| Empty State | `title_no_recent_secrets`, `get-started-by-creating-your-first-secret` | 2 |
-| Error Handling | `fetch_error_title`, `fetch_error_description` | 2 |
+| Category       | Keys                                                                   | Count |
+| -------------- | ---------------------------------------------------------------------- | ----- |
+| Status Labels  | `title_received`, `title_not_received`                                 | 2     |
+| Empty State    | `title_no_recent_secrets`, `get-started-by-creating-your-first-secret` | 2     |
+| Error Handling | `fetch_error_title`, `fetch_error_description`                         | 2     |
 
 ## Potentially Misplaced Keys
 
 ### 1. Status Labels (Recommend: `_common.json`)
 
-| Key | Current Location | Recommended Location | Rationale |
-|-----|------------------|---------------------|-----------|
-| `title_received` | `web.dashboard` | `web.STATUS` in `_common.json` | Status labels like "Received" are already defined in `_common.json` under `web.STATUS.received`. This creates duplication. |
-| `title_not_received` | `web.dashboard` | `web.STATUS` in `_common.json` | Same as above; `_common.json` already has `web.COMMON.not-received`. |
+| Key                  | Current Location | Recommended Location           | Rationale                                                                                                                  |
+| -------------------- | ---------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| `title_received`     | `web.dashboard`  | `web.STATUS` in `_common.json` | Status labels like "Received" are already defined in `_common.json` under `web.STATUS.received`. This creates duplication. |
+| `title_not_received` | `web.dashboard`  | `web.STATUS` in `_common.json` | Same as above; `_common.json` already has `web.COMMON.not-received`.                                                       |
 
 **Evidence of duplication**:
+
 - `_common.json` line 37: `"received": "Received"`
 - `_common.json` line 130: `"not-received": "NOT RECEIVED"`
 - `_common.json` line 223: `"received": "Received"` (under STATUS)
 
 ### 2. Error Messages (Recommend: `error-pages.json`)
 
-| Key | Current Location | Recommended Location | Rationale |
-|-----|------------------|---------------------|-----------|
-| `fetch_error_title` | `web.dashboard` | `web.errors` in `error-pages.json` | All error-related strings should be centralized in `error-pages.json` for consistency. |
-| `fetch_error_description` | `web.dashboard` | `web.errors` in `error-pages.json` | Same as above. Error handling patterns should be consistent across the app. |
+| Key                       | Current Location | Recommended Location               | Rationale                                                                              |
+| ------------------------- | ---------------- | ---------------------------------- | -------------------------------------------------------------------------------------- |
+| `fetch_error_title`       | `web.dashboard`  | `web.errors` in `error-pages.json` | All error-related strings should be centralized in `error-pages.json` for consistency. |
+| `fetch_error_description` | `web.dashboard`  | `web.errors` in `error-pages.json` | Same as above. Error handling patterns should be consistent across the app.            |
 
 ### 3. Empty State Strings (Recommend: Keep or Move to Feature)
 
-| Key | Current Location | Recommended Location | Rationale |
-|-----|------------------|---------------------|-----------|
-| `title_no_recent_secrets` | `web.dashboard` | `web.LABELS` in `_common.json` | Could be generalized as it relates to the "Recent Secrets" feature which has labels in `_common.json` (line 206). |
-| `get-started-by-creating-your-first-secret` | `web.dashboard` | `feature-secrets.json` or keep | This is onboarding copy; could stay if dashboard has more unique content. |
+| Key                                         | Current Location | Recommended Location           | Rationale                                                                                                         |
+| ------------------------------------------- | ---------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| `title_no_recent_secrets`                   | `web.dashboard`  | `web.LABELS` in `_common.json` | Could be generalized as it relates to the "Recent Secrets" feature which has labels in `_common.json` (line 206). |
+| `get-started-by-creating-your-first-secret` | `web.dashboard`  | `feature-secrets.json` or keep | This is onboarding copy; could stay if dashboard has more unique content.                                         |
 
 ## Hierarchy Improvements
 
 ### Current Structure
+
 ```json
 {
   "web": {
@@ -66,6 +68,7 @@ The `dashboard.json` file contains a small set of keys (6 total) under `web.dash
 Move keys to their appropriate homes:
 
 1. **`_common.json`** additions:
+
 ```json
 {
   "web": {
@@ -81,6 +84,7 @@ Move keys to their appropriate homes:
 ```
 
 2. **`error-pages.json`** additions:
+
 ```json
 {
   "web": {
@@ -93,6 +97,7 @@ Move keys to their appropriate homes:
 ```
 
 3. **`feature-secrets.json`** additions:
+
 ```json
 {
   "web": {
@@ -130,11 +135,11 @@ If the dashboard will grow with more unique content:
 
 ## Key Naming Inconsistencies
 
-| Issue | Examples | Recommendation |
-|-------|----------|----------------|
-| Mixed case conventions | `title_received` vs `title_no_recent_secrets` | Use consistent snake_case throughout |
-| Verbose kebab-case | `get-started-by-creating-your-first-secret` | Use shorter, semantic keys like `empty_state_cta` |
-| Title prefix redundancy | `title_received`, `title_not_received`, `title_no_recent_secrets` | Drop `title_` prefix if not serving a purpose |
+| Issue                   | Examples                                                          | Recommendation                                    |
+| ----------------------- | ----------------------------------------------------------------- | ------------------------------------------------- |
+| Mixed case conventions  | `title_received` vs `title_no_recent_secrets`                     | Use consistent snake_case throughout              |
+| Verbose kebab-case      | `get-started-by-creating-your-first-secret`                       | Use shorter, semantic keys like `empty_state_cta` |
+| Title prefix redundancy | `title_received`, `title_not_received`, `title_no_recent_secrets` | Drop `title_` prefix if not serving a purpose     |
 
 ## Recommendations Summary
 
@@ -157,6 +162,7 @@ If the dashboard will grow with more unique content:
 ## Cross-Reference Notes
 
 Related keys that already exist elsewhere:
+
 - `_common.json:206` - `"title_recent_secrets": "Recent Secrets"`
 - `_common.json:210` - `"caption_recent_secrets": "Secrets links created in this session"`
 - `_common.json:297` - `"dashboard": "Dashboard"` (under TITLES)

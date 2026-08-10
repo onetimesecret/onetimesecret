@@ -185,7 +185,9 @@ describe('membersStore', () => {
       const memberId = 'member-2';
 
       // @ts-expect-error - Testing invalid role
-      await expect(store.updateMemberRole(orgExtid, memberId, { role: 'superuser' })).rejects.toThrow();
+      await expect(
+        store.updateMemberRole(orgExtid, memberId, { role: 'superuser' })
+      ).rejects.toThrow();
     });
   });
 

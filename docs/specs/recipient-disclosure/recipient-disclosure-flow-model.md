@@ -7,8 +7,8 @@ formalism so the policy is **machine-checkable** rather than argued case by case
 
 The canonical artifact is the channel matrix in §4. Everything else — the
 philosophical principle, the disclosure matrix, the five invariants, the gaps
-F1–F11, and the client-side opportunities A1–A6 — is a statement *about that
-matrix*.
+F1–F11, and the client-side opportunities A1–A6 — is a statement _about that
+matrix_.
 
 ---
 
@@ -19,18 +19,18 @@ which conditions, without the distinction leaking) is the canonical object of
 **information-flow security**. The same structure was discovered independently in
 four fields; this is the cross-disciplinary "prior art" the model rests on.
 
-| Field | The structure | The "no oracle" condition |
-|---|---|---|
-| **Info-flow security / CS** | Goguen–Meseguer **noninterference** (1982); Denning's **lattice model of secure information flow** (1976); Bell–LaPadula (1973); Myers–Liskov **Decentralized Label Model** (per-principal reader sets, 1997); Landauer–Redmond **"A Lattice of Information"** (1993) — elements *are* partitions, ordered by refinement | the secret is constant on every cell of the low observer's view |
-| **Cryptology** | **indistinguishability** (IND-CPA games); simulation / ideal-functionality; the "decryption/padding oracle" | two worlds the adversary provably cannot separate |
-| **Epistemic logic / economics** | **Aumann information partitions** (1976); Kripke accessibility relations (Fagin–Halpern–Moses–Vardi, *Reasoning About Knowledge*, 1995) | the agent does not *know which* world holds (its cell is non-singleton) |
-| **Statistics** | **differential privacy** (Dwork 2006) & **membership inference** (Shokri et al. 2017) = the existence oracle; **k-anonymity / l-diversity / t-closeness** & statistical disclosure control — equivalence classes by generalization/suppression | the released view is ε-close whether or not a given record exists |
+| Field                           | The structure                                                                                                                                                                                                                                                                                                            | The "no oracle" condition                                               |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
+| **Info-flow security / CS**     | Goguen–Meseguer **noninterference** (1982); Denning's **lattice model of secure information flow** (1976); Bell–LaPadula (1973); Myers–Liskov **Decentralized Label Model** (per-principal reader sets, 1997); Landauer–Redmond **"A Lattice of Information"** (1993) — elements _are_ partitions, ordered by refinement | the secret is constant on every cell of the low observer's view         |
+| **Cryptology**                  | **indistinguishability** (IND-CPA games); simulation / ideal-functionality; the "decryption/padding oracle"                                                                                                                                                                                                              | two worlds the adversary provably cannot separate                       |
+| **Epistemic logic / economics** | **Aumann information partitions** (1976); Kripke accessibility relations (Fagin–Halpern–Moses–Vardi, _Reasoning About Knowledge_, 1995)                                                                                                                                                                                  | the agent does not _know which_ world holds (its cell is non-singleton) |
+| **Statistics**                  | **differential privacy** (Dwork 2006) & **membership inference** (Shokri et al. 2017) = the existence oracle; **k-anonymity / l-diversity / t-closeness** & statistical disclosure control — equivalence classes by generalization/suppression                                                                           | the released view is ε-close whether or not a given record exists       |
 
 The modern synthesis that unifies the qualitative (partition) and quantitative
 (how-many-bits) views is **Quantitative Information Flow (QIF)** — Clark–Hunt–
-Malacaria; Smith, *On the Foundations of QIF* (2009, min-entropy leakage); Alvim,
-Chatzikokolakis, McIver, Morgan, Palamidessi, Smith, *The Science of Quantitative
-Information Flow* (2020). Its data structure is a **channel matrix**
+Malacaria; Smith, _On the Foundations of QIF_ (2009, min-entropy leakage); Alvim,
+Chatzikokolakis, McIver, Morgan, Palamidessi, Smith, _The Science of Quantitative
+Information Flow_ (2020). Its data structure is a **channel matrix**
 `C : Secret → Δ(Observation)`, equipped with a **refinement order** on channels
 and **g-leakage** (gain functions) to weight different adversary goals. The
 boolean noninterference case is the special case where leakage is exactly 0.
@@ -42,13 +42,13 @@ one format.
 
 ## 2. The secret (high) variables
 
-- `X` — *which world obtains*, the metadata variable:
+- `X` — _which world obtains_, the metadata variable:
   `Ω = { V, a, b, c, d, e, f }`
   - `V` viewable → 200 (a secret is present to reveal)
   - `a` expired · `b` consumed/revealed (**success**) · `c` burned ·
     `d` never-existed/typo · `e` bricked internal state (valid, never-consumed,
     404'd) · `f` client schema rejection
-- `Σ` — *the secret's plaintext*, the payload variable. Distinct confidentiality
+- `Σ` — _the secret's plaintext_, the payload variable. Distinct confidentiality
   requirement; used only by F6–F8 and A3 below.
 
 The whole policy concerns leakage of `X` (and separately `Σ`) to each observer.
@@ -83,19 +83,19 @@ history/Referer/CDN logs), `C_client@rest` (DOM/clipboard/bfcache/localStorage).
 Two worlds sharing a **label** in a column means that observer **cannot
 distinguish** them. The policy is a predicate over this matrix (§5).
 
-| world `x` | `Π_anon` (HTTP) | `Π_net` (on-path) | `Π_recip` (+ private `S`) | `Π_owner` (authed) | `Π_op` (logs) |
-|---|---|---|---|---|---|
-| `V` viewable  | `R` | `R` | `R` | `V` | `V` |
-| `a` expired   | **`⊥`** | `⊥` | `⊥` | `a` | `a` |
-| `b` consumed ✓| **`⊥`** | `⊥` | **`✓`** *iff* `S`="I opened it" | `b` | `b` |
-| `c` burned    | **`⊥`** | `⊥` | `⊥` | `c` | `c` |
-| `d` never-existed | **`⊥`** | `⊥` | `⊥` | — | `d` |
-| `e` bricked   | **`⊥`** | `⊥` | `⊥` | `e` | **`e` (defect)** |
-| `f` schema-reject | **`⊥`** | `⊥` | `⊥` | `f` | **`f` (defect)** |
+| world `x`         | `Π_anon` (HTTP) | `Π_net` (on-path) | `Π_recip` (+ private `S`)       | `Π_owner` (authed) | `Π_op` (logs)    |
+| ----------------- | --------------- | ----------------- | ------------------------------- | ------------------ | ---------------- |
+| `V` viewable      | `R`             | `R`               | `R`                             | `V`                | `V`              |
+| `a` expired       | **`⊥`**         | `⊥`               | `⊥`                             | `a`                | `a`              |
+| `b` consumed ✓    | **`⊥`**         | `⊥`               | **`✓`** _iff_ `S`="I opened it" | `b`                | `b`              |
+| `c` burned        | **`⊥`**         | `⊥`               | `⊥`                             | `c`                | `c`              |
+| `d` never-existed | **`⊥`**         | `⊥`               | `⊥`                             | —                  | `d`              |
+| `e` bricked       | **`⊥`**         | `⊥`               | `⊥`                             | `e`                | **`e` (defect)** |
+| `f` schema-reject | **`⊥`**         | `⊥`               | `⊥`                             | `f`                | **`f` (defect)** |
 
 - `Π_anon`/`Π_net`: all six realities carry `⊥` → one protected cell. The single
   legitimate distinction is `R` (reveal) vs `⊥` (terminal). Note `b` and `d`
-  share `⊥` — that identity *is* the existence/surveillance oracle being closed.
+  share `⊥` — that identity _is_ the existence/surveillance oracle being closed.
 - `Π_owner`/`Π_op`: discrete → authorized full disclosure (a higher node in the
   lattice; not an oracle because it is reached only through auth / server-side).
 - `Π_recip`: equal to `⊥` **except** `b` may split to `✓` — see §6.
@@ -145,9 +145,9 @@ Equivalently in QIF terms: the min-entropy (or Shannon) leakage of `X` through
 `C_anon` and `C_net`, conditioned on `¬viewable`, is **0**. Quantitatively, score
 any residual divergence with **g-leakage** under two gain functions:
 
-- `g_exist` — adversary goal: *did this ID ever exist?* (collapses `{a,b,c,e,f}`
+- `g_exist` — adversary goal: _did this ID ever exist?_ (collapses `{a,b,c,e,f}`
   vs `{d}`)
-- `g_view`  — adversary goal: *was it viewed, and when?* (collapses `{b}` vs the
+- `g_view` — adversary goal: _was it viewed, and when?_ (collapses `{b}` vs the
   rest, and the temporal variant)
 
 A change is admissible iff `V_{g_exist}` and `V_{g_view}` (the adversary's
@@ -171,7 +171,7 @@ holds **iff** the safety rails keep `S` out of every adversary-readable channel.
 
 ### 6a. The combination oracle = the Lattice-of-Information **join**
 
-When `S` is made *server-verifiable*, it stops being private conditioning and
+When `S` is made _server-verifiable_, it stops being private conditioning and
 becomes a channel. The adversary's view is then the **join** (`∨`, the
 coarsest-common-refinement in the Lattice of Information):
 
@@ -182,7 +182,7 @@ coarsest-common-refinement in the Lattice of Information):
          (the intended-vs-actual-recipient oracle)
 ```
 
-"Oracle-safe in isolation, unsafe in combination" is *exactly* the statement that
+"Oracle-safe in isolation, unsafe in combination" is _exactly_ the statement that
 the LoI join of nodes can sit strictly above each component. The formalism
 **predicts** the empirical finding: evaluate any recipient feature as the join
 with `C_rcptHolder` (F9) and request-presence, never standalone.
@@ -197,7 +197,7 @@ L∞(Σ ; g)  ≈  H∞(Σ)            # offline guessing inverts g; salt is co-
 ```
 
 i.e. `g` is a **near-lossless channel for the payload** to a forensic/eDiscovery
-observer, *past the sender's TTL*. It violates a different invariant
+observer, _past the sender's TTL_. It violates a different invariant
 (`Σ`-confidentiality, not `X`-metadata), which is why it is categorically worse
 and **dropped unconditionally** rather than constrained.
 
@@ -205,19 +205,19 @@ and **dropped unconditionally** rather than constrained.
 
 ## 7. Gaps F1–F11 as assertion failures over `C_anon`
 
-| Gap | Breaks | Formal effect | Status |
-|---|---|---|---|
-| **F1** | `side_effect` | probing mutates `X` (`new→previewed`): the channel has **feedback/memory** → an adaptive 2-probe **strategy** refines `Π_anon` over time (Wittbold–Johnson *nondeducibility on strategies*, 1990) — not memoryless NI | **CLOSED** — #3633 (PR #3635, 2026-07-04): GET is lifecycle-safe; `side_effect: none` holds; the channel is memoryless again |
-| **F2** | `http_status` | `⊥` splits: `{a,b,c,d}` \| `f→422` \| `disabled→403` \| `lockout→429` | High |
-| **F3** | `timing_bucket` | splits `{exists + passphrase}` from `{d}`; a `429` lockout is reachable only from a real protected ID | High |
-| **F4** | `request_emitted` | the terminal screen requires a live XHR whose status carries F2; the "render-before-404" A1 variant toggles this coordinate | High |
-| **F5** | `branding` | brand resolved from host *before* viewability → branded chrome for any id confirms tenant-on-host | Med |
-| **F6** | channel `C_url` (leaks `Σ`) | the URL *is* the bearer secret; leaks via history / `Referer` / CDN logs | High |
-| **F7** | channel `C_client@rest` (leaks `Σ`) | bfcache / back-button re-renders plaintext after server destruction | High |
-| **F8** | channel `C_client@rest` (leaks `Σ`) | plaintext lingers in DOM / clipboard / password manager | Med-High |
-| **F9** | channel `C_rcptHolder` | `POST /guest/receipts` returns `is_revealed` etc. to a receipt-id holder → a near-discrete partition; an existence/surveillance channel if the id is guessable or link-derivable | High |
-| **F10** | `third_party_fanout` | Sentry/analytics/branded-asset fetches fire on one branch but not the other → a network observer separates the cell by *which* requests fire | Med |
-| **F11** | `side_effect` (cross-boundary) | link-preview / AV bots fetch in transit and spend the one view → F1 escalated across the email boundary | **PARTIAL** — passive fetch spends nothing since #3633; the reveal is still `GET…continue=true`, not a human-gated POST (A4) |
+| Gap     | Breaks                              | Formal effect                                                                                                                                                                                                         | Status                                                                                                                       |
+| ------- | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **F1**  | `side_effect`                       | probing mutates `X` (`new→previewed`): the channel has **feedback/memory** → an adaptive 2-probe **strategy** refines `Π_anon` over time (Wittbold–Johnson _nondeducibility on strategies_, 1990) — not memoryless NI | **CLOSED** — #3633 (PR #3635, 2026-07-04): GET is lifecycle-safe; `side_effect: none` holds; the channel is memoryless again |
+| **F2**  | `http_status`                       | `⊥` splits: `{a,b,c,d}` \| `f→422` \| `disabled→403` \| `lockout→429`                                                                                                                                                 | High                                                                                                                         |
+| **F3**  | `timing_bucket`                     | splits `{exists + passphrase}` from `{d}`; a `429` lockout is reachable only from a real protected ID                                                                                                                 | High                                                                                                                         |
+| **F4**  | `request_emitted`                   | the terminal screen requires a live XHR whose status carries F2; the "render-before-404" A1 variant toggles this coordinate                                                                                           | High                                                                                                                         |
+| **F5**  | `branding`                          | brand resolved from host _before_ viewability → branded chrome for any id confirms tenant-on-host                                                                                                                     | Med                                                                                                                          |
+| **F6**  | channel `C_url` (leaks `Σ`)         | the URL _is_ the bearer secret; leaks via history / `Referer` / CDN logs                                                                                                                                              | High                                                                                                                         |
+| **F7**  | channel `C_client@rest` (leaks `Σ`) | bfcache / back-button re-renders plaintext after server destruction                                                                                                                                                   | High                                                                                                                         |
+| **F8**  | channel `C_client@rest` (leaks `Σ`) | plaintext lingers in DOM / clipboard / password manager                                                                                                                                                               | Med-High                                                                                                                     |
+| **F9**  | channel `C_rcptHolder`              | `POST /guest/receipts` returns `is_revealed` etc. to a receipt-id holder → a near-discrete partition; an existence/surveillance channel if the id is guessable or link-derivable                                      | High                                                                                                                         |
+| **F10** | `third_party_fanout`                | Sentry/analytics/branded-asset fetches fire on one branch but not the other → a network observer separates the cell by _which_ requests fire                                                                          | Med                                                                                                                          |
+| **F11** | `side_effect` (cross-boundary)      | link-preview / AV bots fetch in transit and spend the one view → F1 escalated across the email boundary                                                                                                               | **PARTIAL** — passive fetch spends nothing since #3633; the reveal is still `GET…continue=true`, not a human-gated POST (A4) |
 
 (All other rows re-verified open against `main`, 2026-07-04. Sev unchanged:
 F2–F4, F6, F7, F9, F11 High; F5, F8, F10 Med.)
@@ -240,7 +240,7 @@ The non-obvious constraint is on the **authorized** channel: the policy requires
 `Π_op` to stay **discrete** (§4 — the operator is entitled to full disclosure,
 including the defect worlds `e`, `f`). A fix that flattens `C_anon` rows without
 adding an operator-side channel also flattens `Π_op` — driving
-`I(X ; C_op | ¬viewable) → 0` for the one observer where leakage is *required*.
+`I(X ; C_op | ¬viewable) → 0` for the one observer where leakage is _required_.
 That is a policy violation in the opposite direction, and operationally it makes
 defect-world MTTD unbounded. Hence the coupling rule:
 
@@ -283,12 +283,12 @@ entering `C_anon`, `C_net`, or `C_rcptHolder`:
 
 ## References
 
-- D. Denning, *A Lattice Model of Secure Information Flow*, CACM 1976.
-- Goguen & Meseguer, *Security Policies and Security Models*, IEEE S&P 1982.
-- Landauer & Redmond, *A Lattice of Information*, CSFW 1993.
-- Wittbold & Johnson, *Information Flow in Nondeterministic Systems*, 1990 (nondeducibility on strategies).
-- Myers & Liskov, *A Decentralized Model for Information Flow Control*, SOSP 1997.
-- Aumann, *Agreeing to Disagree*, Ann. Statist. 1976; Fagin, Halpern, Moses, Vardi, *Reasoning About Knowledge*, 1995.
-- G. Smith, *On the Foundations of Quantitative Information Flow*, FoSSaCS 2009; Alvim et al., *The Science of Quantitative Information Flow*, Springer 2020.
-- Dwork, *Differential Privacy*, ICALP 2006; Shokri et al., *Membership Inference Attacks*, IEEE S&P 2017; Sweeney, *k-anonymity*, 2002.
+- D. Denning, _A Lattice Model of Secure Information Flow_, CACM 1976.
+- Goguen & Meseguer, _Security Policies and Security Models_, IEEE S&P 1982.
+- Landauer & Redmond, _A Lattice of Information_, CSFW 1993.
+- Wittbold & Johnson, _Information Flow in Nondeterministic Systems_, 1990 (nondeducibility on strategies).
+- Myers & Liskov, _A Decentralized Model for Information Flow Control_, SOSP 1997.
+- Aumann, _Agreeing to Disagree_, Ann. Statist. 1976; Fagin, Halpern, Moses, Vardi, _Reasoning About Knowledge_, 1995.
+- G. Smith, _On the Foundations of Quantitative Information Flow_, FoSSaCS 2009; Alvim et al., _The Science of Quantitative Information Flow_, Springer 2020.
+- Dwork, _Differential Privacy_, ICALP 2006; Shokri et al., _Membership Inference Attacks_, IEEE S&P 2017; Sweeney, _k-anonymity_, 2002.
 - Companions: `unviewable-state-root-cause.md`, `terminal-screen-ux-analysis.md`, `recipient-disclosure-matrix.html`.

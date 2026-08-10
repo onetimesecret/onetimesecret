@@ -74,7 +74,7 @@ end
 
 #### Pattern 2: ENV capture/restore (integration tests)
 
-Integration tests that boot the full application capture AUTH_* env vars
+Integration tests that boot the full application capture AUTH\_\* env vars
 before loading `Auth::Config` and restore them in `after(:all)`, preventing
 feature-flag leakage between spec files:
 

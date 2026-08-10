@@ -42,9 +42,9 @@ export const mockPreviewedReceiptRecordRaw = {
   is_expired: false,
   is_orphaned: false,
   burned: null,
-  previewed: 1735142814,     // Unix epoch seconds (V3)
+  previewed: 1735142814, // Unix epoch seconds (V3)
   revealed: null,
-  viewed: 1735142814,        // Unix epoch seconds (V3)
+  viewed: 1735142814, // Unix epoch seconds (V3)
   received: null,
   created: 1735142814,
   updated: 1735204014,
@@ -83,10 +83,10 @@ export const mockRevealedReceiptRecordRaw = {
   is_expired: false,
   is_orphaned: false,
   burned: null,
-  previewed: 1735131600,     // Unix epoch seconds (V3)
-  revealed: 1735142814,      // Unix epoch seconds (V3)
-  viewed: 1735131600,        // Unix epoch seconds (V3)
-  received: 1735142814,      // Unix epoch seconds (V3)
+  previewed: 1735131600, // Unix epoch seconds (V3)
+  revealed: 1735142814, // Unix epoch seconds (V3)
+  viewed: 1735131600, // Unix epoch seconds (V3)
+  received: 1735142814, // Unix epoch seconds (V3)
   created: 1735142814,
   updated: 1735204014,
   secret_ttl: 3600,
@@ -157,10 +157,10 @@ export const mockReceiptRecordRaw = {
   receipt_url: 'https://example.com/receipt/abc123',
   burn_url: 'https://example.com/burn/abc123',
   identifier: 'test-identifier',
-  is_viewed: false,      // @deprecated V2 — use is_previewed
-  is_received: false,    // @deprecated V2 — use is_revealed
-  is_previewed: false,   // V3 canonical
-  is_revealed: false,    // V3 canonical
+  is_viewed: false, // @deprecated V2 — use is_previewed
+  is_received: false, // @deprecated V2 — use is_revealed
+  is_previewed: false, // V3 canonical
+  is_revealed: false, // V3 canonical
   is_burned: false,
   is_destroyed: false,
   is_expired: false,
@@ -197,16 +197,16 @@ export const mockReceiptRecord: Receipt = {
   receipt_url: 'https://example.com/receipt/abc123',
   burn_url: 'https://example.com/burn/abc123',
   identifier: 'test-identifier',
-  is_previewed: false,   // V3 canonical (replaces is_viewed)
-  is_revealed: false,    // V3 canonical (replaces is_received)
+  is_previewed: false, // V3 canonical (replaces is_viewed)
+  is_revealed: false, // V3 canonical (replaces is_received)
   is_burned: false,
   is_destroyed: false,
   is_expired: false,
   is_orphaned: false,
   has_passphrase: false,
   shared: null,
-  previewed: null,       // V3 canonical (replaces viewed)
-  revealed: null,        // V3 canonical (replaces received)
+  previewed: null, // V3 canonical (replaces viewed)
+  revealed: null, // V3 canonical (replaces received)
   burned: null,
   created: new Date(1735142814 * 1000),
   updated: new Date(1735204014 * 1000),
@@ -256,7 +256,7 @@ export const mockBurnedReceiptRecordRaw = {
   key: 'burnedkey',
   shortid: 'b123',
   state: ReceiptState.BURNED,
-  burned: 1735142814,   // Unix epoch seconds (V3 uses numbers, not ISO strings)
+  burned: 1735142814, // Unix epoch seconds (V3 uses numbers, not ISO strings)
   secret_identifier: 'secret-burned-key-123',
   secret_shortid: 'secret-burned-abc123',
   is_burned: true,
@@ -381,7 +381,7 @@ export const mockReceiptRecentRecords = [
 export const mockReceiptRecentDetails = {
   type: 'list',
   since: 1735142814,
-  now: 1735204014,        // V3: Unix epoch number, not ISO string
+  now: 1735204014, // V3: Unix epoch number, not ISO string
   has_items: true,
   revealed_receipts: [
     {
@@ -472,15 +472,15 @@ export const mockSecretRecordRaw = {
   shortid: 'abc123',
   state: 'new',
   identifier: 'testkey123',
-  created: 1735142814,       // Unix epoch seconds (2024-12-25T16:06:54Z)
-  updated: 1735204014,       // Unix epoch seconds (2024-12-26T09:06:54Z)
+  created: 1735142814, // Unix epoch seconds (2024-12-25T16:06:54Z)
+  updated: 1735204014, // Unix epoch seconds (2024-12-26T09:06:54Z)
   has_passphrase: false,
   verification: true,
   secret_value: 'test-secret',
   secret_ttl: 86400,
   lifespan: 86400,
-  is_previewed: false,       // V3 canonical boolean (replaces deprecated is_viewed)
-  is_revealed: false,        // V3 canonical boolean (replaces deprecated is_received)
+  is_previewed: false, // V3 canonical boolean (replaces deprecated is_viewed)
+  is_revealed: false, // V3 canonical boolean (replaces deprecated is_received)
 };
 
 // Transformed format (after Zod V3 parse) — used for assertions
@@ -489,8 +489,8 @@ export const mockSecretRecord: Secret = {
   shortid: 'abc123',
   state: SecretState.NEW,
   identifier: 'testkey123',
-  created: new Date(1735142814 * 1000),  // 2024-12-25T16:06:54Z
-  updated: new Date(1735204014 * 1000),  // 2024-12-26T09:06:54Z
+  created: new Date(1735142814 * 1000), // 2024-12-25T16:06:54Z
+  updated: new Date(1735204014 * 1000), // 2024-12-26T09:06:54Z
   has_passphrase: false,
   verification: true,
   secret_value: 'test-secret',

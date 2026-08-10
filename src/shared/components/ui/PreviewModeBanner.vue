@@ -1,36 +1,36 @@
 <!-- src/shared/components/ui/PreviewModeBanner.vue -->
 
 <script setup lang="ts">
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { usePreviewPlanMode } from '@/shared/composables/usePreviewPlanMode';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { createApi } from '@/api';
-import { ref } from 'vue';
-import { useI18n } from 'vue-i18n';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { usePreviewPlanMode } from '@/shared/composables/usePreviewPlanMode';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { createApi } from '@/api';
+  import { ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
-const bootstrapStore = useBootstrapStore();
-const $api = createApi();
+  const { t } = useI18n();
+  const bootstrapStore = useBootstrapStore();
+  const $api = createApi();
 
-// Test plan mode composable
-const { previewPlanName } = usePreviewPlanMode();
+  // Test plan mode composable
+  const { previewPlanName } = usePreviewPlanMode();
 
-const isResetting = ref(false);
+  const isResetting = ref(false);
 
-const handleReset = async () => {
-  isResetting.value = true;
+  const handleReset = async () => {
+    isResetting.value = true;
 
-  try {
-    await $api.post('/api/colonel/entitlement-preview', { planid: null });
+    try {
+      await $api.post('/api/colonel/entitlement-preview', { planid: null });
 
-    // Refresh bootstrap state to clear test mode (no page reload needed)
-    await bootstrapStore.refresh();
-  } catch (err: unknown) {
-    console.error('Failed to reset test mode:', err);
-  } finally {
-    isResetting.value = false;
-  }
-};
+      // Refresh bootstrap state to clear test mode (no page reload needed)
+      await bootstrapStore.refresh();
+    } catch (err: unknown) {
+      console.error('Failed to reset test mode:', err);
+    } finally {
+      isResetting.value = false;
+    }
+  };
 </script>
 
 <template>

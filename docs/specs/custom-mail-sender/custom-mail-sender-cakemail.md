@@ -25,16 +25,16 @@ with one sub-account per customer. No Ruby SDK exists; we'd build our own.
 
 ## 1. Platform and API overview
 
-| | Value |
-|---|---|
-| Base URL | `https://api.cakemail.dev` |
-| Auth | OAuth2 password grant: `POST /token` (`grant_type=password&username&password`) → `access_token` (expires_in 432000 = 5 days) + `refresh_token`; then `Authorization: Bearer` |
-| Spec | OpenAPI at `https://api.cakemail.dev/openapi.json` (indexed on Context7) |
-| Scopes | `senders:read/write`, `dkim:read/write/delete`, `domains:read/write`, `emailapi:send`, `suppressions:*`, ... |
-| Official SDKs | TypeScript (`cakemail-sdk`), CLI, MCP servers (`exec.mcp.cakemail.com`); PHP client archived; **no Ruby** |
-| Multi-tenant | `account_id` query param on every endpoint (Partner API delegation); sub-accounts via Partner API |
-| SMTP alternative | `smtp.cakemail.dev:465` (SMTPS, username/password), `x-email-api-enabled: true` header routing |
-| Send docs | dev.cakemail.com — Email API guides (REST + SMTP) |
+|                  | Value                                                                                                                                                                        |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Base URL         | `https://api.cakemail.dev`                                                                                                                                                   |
+| Auth             | OAuth2 password grant: `POST /token` (`grant_type=password&username&password`) → `access_token` (expires_in 432000 = 5 days) + `refresh_token`; then `Authorization: Bearer` |
+| Spec             | OpenAPI at `https://api.cakemail.dev/openapi.json` (indexed on Context7)                                                                                                     |
+| Scopes           | `senders:read/write`, `dkim:read/write/delete`, `domains:read/write`, `emailapi:send`, `suppressions:*`, ...                                                                 |
+| Official SDKs    | TypeScript (`cakemail-sdk`), CLI, MCP servers (`exec.mcp.cakemail.com`); PHP client archived; **no Ruby**                                                                    |
+| Multi-tenant     | `account_id` query param on every endpoint (Partner API delegation); sub-accounts via Partner API                                                                            |
+| SMTP alternative | `smtp.cakemail.dev:465` (SMTPS, username/password), `x-email-api-enabled: true` header routing                                                                               |
+| Send docs        | dev.cakemail.com — Email API guides (REST + SMTP)                                                                                                                            |
 
 Two product generations coexist: the "Cakemail API" (campaigns/lists/contacts)
 and the "Email API" (`/v2/emails`) for individual transactional/marketing
@@ -50,7 +50,8 @@ sends. We would use the Email API for delivery and the brand-level
   "content": {
     "type": "transactional",
     "subject": "…",
-    "html": "…", "text": "…",
+    "html": "…",
+    "text": "…",
     "encoding": "utf-8"
   },
   "additional_headers": [{ "name": "X-...", "value": "..." }],
@@ -77,7 +78,7 @@ Notable constraints, all different from SES/Lettermint/MailChannels:
   bounce/spam/unsubscribe — polling-based feedback (webhooks exist in the
   platform; whether they cover `/v2/emails` events is an open question).
 - Errors are FastAPI-shaped: `{"detail": [{"loc": [...], "msg": "...",
-  "type": "..."}]}` on 400/422/500 — a third error-parsing dialect for the gem.
+"type": "..."}]}` on 400/422/500 — a third error-parsing dialect for the gem.
 
 ## 2. Sender identity and DNS model
 
@@ -169,33 +170,33 @@ call for Partner mode. Same gemspec/tooling/CI as mailchannels-ruby.
 
 ## 4. Strategy mapping (if pursued)
 
-| Interface method | Cakemail calls |
-|---|---|
-| `provision_dns_records` | ensure sub-account (Partner mode) → `senders.create(from_address)` (triggers confirmation email) → `dkim.create(domain, selector)` → optionally `domains.patch(bounce: "bounce.<domain>")` → compose records: DKIM TXT + bounce/tracking entries from `domains.validate` (+ advisory DMARC). Store sender_id and dkim key id as `identity_id`/`provider_data`. |
-| `check_provider_verification_status` | `senders.list` → confirmed? + `dkim.activate(id)` attempt (or key status) + `domains.validate` per-entry `valid`. Verified = sender confirmed AND dkim active AND bounce entries valid. New substate: `sender_pending_confirmation`. |
-| `delete_sender_identity` | `dkim.delete(id)` + sender deletion (+ sub-account teardown in Partner mode). Idempotent on 404s. |
-| Delivery backend | `POST /v2/emails` with cached sender_id; classify errors (422/400 fatal, 401 → token refresh once, 429/5xx transient); single-recipient loop for multi-recipient templates. |
+| Interface method                     | Cakemail calls                                                                                                                                                                                                                                                                                                                                                 |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `provision_dns_records`              | ensure sub-account (Partner mode) → `senders.create(from_address)` (triggers confirmation email) → `dkim.create(domain, selector)` → optionally `domains.patch(bounce: "bounce.<domain>")` → compose records: DKIM TXT + bounce/tracking entries from `domains.validate` (+ advisory DMARC). Store sender_id and dkim key id as `identity_id`/`provider_data`. |
+| `check_provider_verification_status` | `senders.list` → confirmed? + `dkim.activate(id)` attempt (or key status) + `domains.validate` per-entry `valid`. Verified = sender confirmed AND dkim active AND bounce entries valid. New substate: `sender_pending_confirmation`.                                                                                                                           |
+| `delete_sender_identity`             | `dkim.delete(id)` + sender deletion (+ sub-account teardown in Partner mode). Idempotent on 404s.                                                                                                                                                                                                                                                              |
+| Delivery backend                     | `POST /v2/emails` with cached sender_id; classify errors (422/400 fatal, 401 → token refresh once, 429/5xx transient); single-recipient loop for multi-recipient templates.                                                                                                                                                                                    |
 
 DNS-validation strategy: all records come back from the provider
 (`public_key`, `validate` entries) — store verbatim, standard `Array<Hash>`
-normalization, no apex-SPF merge semantics needed *unless* the validate
+normalization, no apex-SPF merge semantics needed _unless_ the validate
 entries turn out to be root-domain SPF includes (see open questions; if so,
 the [apex plan](./custom-mail-sender-apex-plan.md) machinery covers it).
 
 ## 5. Provider comparison (Canada lens)
 
-| | MailChannels | Cakemail |
-|---|---|---|
-| HQ | Vancouver, BC | Montreal, QC |
-| Residency claim | Canadian-owned; **no published regional processing guarantee** | Canadian servers, CASL-native, EU adequacy documented in privacy policy — strongest claim of the set |
-| Auth | static `X-Api-Key` | OAuth2 password grant, 5-day tokens + refresh |
-| Sender identity | DNS-only (Domain Lockdown TXT) | **per-address email confirmation** + DNS |
-| DKIM | managed keys, TXT, rotate API | managed keys, TXT, activate-with-DNS-check, DELETE |
-| SPF alignment | apex include (merge) or envelope_from subdomain | custom bounce domain — possibly **account-scoped** (Partner API per customer) |
-| Provider verify | `POST /check-domain` (one call, all verdicts) | assemble from senders.list + dkim activate + domains.validate |
-| Send API | personalizations, batch, 30 MB | single recipient, attachment-type whitelist |
-| Feedback | webhooks (signed) | status polling on `/v2/emails/:id` + logs; webhook coverage TBD |
-| Fit with current architecture | drop-in after apex work | needs confirmation-substate + likely Partner API |
+|                               | MailChannels                                                   | Cakemail                                                                                             |
+| ----------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| HQ                            | Vancouver, BC                                                  | Montreal, QC                                                                                         |
+| Residency claim               | Canadian-owned; **no published regional processing guarantee** | Canadian servers, CASL-native, EU adequacy documented in privacy policy — strongest claim of the set |
+| Auth                          | static `X-Api-Key`                                             | OAuth2 password grant, 5-day tokens + refresh                                                        |
+| Sender identity               | DNS-only (Domain Lockdown TXT)                                 | **per-address email confirmation** + DNS                                                             |
+| DKIM                          | managed keys, TXT, rotate API                                  | managed keys, TXT, activate-with-DNS-check, DELETE                                                   |
+| SPF alignment                 | apex include (merge) or envelope_from subdomain                | custom bounce domain — possibly **account-scoped** (Partner API per customer)                        |
+| Provider verify               | `POST /check-domain` (one call, all verdicts)                  | assemble from senders.list + dkim activate + domains.validate                                        |
+| Send API                      | personalizations, batch, 30 MB                                 | single recipient, attachment-type whitelist                                                          |
+| Feedback                      | webhooks (signed)                                              | status polling on `/v2/emails/:id` + logs; webhook coverage TBD                                      |
+| Fit with current architecture | drop-in after apex work                                        | needs confirmation-substate + likely Partner API                                                     |
 
 ## 6. Open questions before committing
 

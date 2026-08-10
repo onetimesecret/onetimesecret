@@ -1,54 +1,54 @@
 <!-- src/apps/workspace/billing/FederationNotification.vue -->
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { createApi } from '@/api';
-import { ref, computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { createApi } from '@/api';
+  import { ref, computed } from 'vue';
 
-const { t } = useI18n();
-const $api = createApi();
+  const { t } = useI18n();
+  const $api = createApi();
 
-interface FederationNotificationData {
-  show: boolean;
-  source_region?: string;
-}
-
-const props = defineProps<{
-  /** Organization external ID for the dismissal API call */
-  orgExtid: string;
-  /** Federation notification data from the billing API */
-  notification: FederationNotificationData;
-}>();
-
-const emit = defineEmits<{
-  /** Emitted after successful dismissal */
-  dismissed: [];
-}>();
-
-const isDismissing = ref(false);
-const isDismissed = ref(false);
-
-const shouldShow = computed(() => props.notification.show && !isDismissed.value);
-
-const handleDismiss = async () => {
-  if (isDismissing.value) return;
-
-  isDismissing.value = true;
-
-  try {
-    await $api.post(`/billing/api/org/${props.orgExtid}/dismiss-federation-notification`);
-    isDismissed.value = true;
-    emit('dismissed');
-  } catch (err: unknown) {
-    console.error('[FederationNotification] Failed to dismiss notification:', err);
-    // Still hide the notification locally even if the API call fails
-    // The user can always refresh to see it again if needed
-    isDismissed.value = true;
-  } finally {
-    isDismissing.value = false;
+  interface FederationNotificationData {
+    show: boolean;
+    source_region?: string;
   }
-};
+
+  const props = defineProps<{
+    /** Organization external ID for the dismissal API call */
+    orgExtid: string;
+    /** Federation notification data from the billing API */
+    notification: FederationNotificationData;
+  }>();
+
+  const emit = defineEmits<{
+    /** Emitted after successful dismissal */
+    dismissed: [];
+  }>();
+
+  const isDismissing = ref(false);
+  const isDismissed = ref(false);
+
+  const shouldShow = computed(() => props.notification.show && !isDismissed.value);
+
+  const handleDismiss = async () => {
+    if (isDismissing.value) return;
+
+    isDismissing.value = true;
+
+    try {
+      await $api.post(`/billing/api/org/${props.orgExtid}/dismiss-federation-notification`);
+      isDismissed.value = true;
+      emit('dismissed');
+    } catch (err: unknown) {
+      console.error('[FederationNotification] Failed to dismiss notification:', err);
+      // Still hide the notification locally even if the API call fails
+      // The user can always refresh to see it again if needed
+      isDismissed.value = true;
+    } finally {
+      isDismissing.value = false;
+    }
+  };
 </script>
 
 <template>
@@ -95,7 +95,8 @@ const handleDismiss = async () => {
         <span
           v-if="isDismissing"
           class="sr-only"
-          >{{ t('web.COMMON.loading') }}</span>
+          >{{ t('web.COMMON.loading') }}</span
+        >
       </button>
     </div>
   </div>

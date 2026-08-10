@@ -142,13 +142,13 @@ describe('useAdminCustomerSessions', () => {
 
     await store.fetchForCustomer('ur/weird id');
 
-    expect(mockApi.get).toHaveBeenCalledWith(
-      '/api/colonel/users/ur%2Fweird%20id/sessions'
-    );
+    expect(mockApi.get).toHaveBeenCalledWith('/api/colonel/users/ur%2Fweird%20id/sessions');
   });
 
   it('degrades to empty and sets validationError on a schema mismatch', async () => {
-    mockApi.get.mockResolvedValue({ data: { shrimp: '', record: {}, details: { sessions: 'nope' } } });
+    mockApi.get.mockResolvedValue({
+      data: { shrimp: '', record: {}, details: { sessions: 'nope' } },
+    });
     const store = useAdminCustomerSessions();
 
     const result = await store.fetchForCustomer(USER_ID);
@@ -176,9 +176,7 @@ describe('useAdminCustomerSessions', () => {
 
     await store.revoke(USER_ID, 'sid_1');
 
-    expect(mockApi.delete).toHaveBeenCalledWith(
-      '/api/colonel/users/ur_abc123/sessions/sid_1'
-    );
+    expect(mockApi.delete).toHaveBeenCalledWith('/api/colonel/users/ur_abc123/sessions/sid_1');
     expect(store.sessions).toHaveLength(1);
     expect(store.sessions.map((s) => s.session_id)).toEqual(['sid_2']);
   });
@@ -203,9 +201,7 @@ describe('useAdminCustomerSessions', () => {
     const record = await store.revokeAll(USER_ID);
 
     // Wrong path 404s in prod but passes a naive mock — assert it. POST, not DELETE.
-    expect(mockApi.post).toHaveBeenCalledWith(
-      '/api/colonel/users/ur_abc123/sessions/revoke-all'
-    );
+    expect(mockApi.post).toHaveBeenCalledWith('/api/colonel/users/ur_abc123/sessions/revoke-all');
     expect(store.sessions).toEqual([]);
     expect(record.blobs_deleted).toBe(3);
     expect(record.untracked_deleted).toBe(1);
@@ -213,7 +209,9 @@ describe('useAdminCustomerSessions', () => {
 
   it('revokeAll still clears the list on ack drift (schema-mismatch fallback)', async () => {
     mockApi.get.mockResolvedValue({ data: sessionsPayload() });
-    mockApi.post.mockResolvedValue({ data: { shrimp: '', record: { revoked: 'yes' }, details: {} } });
+    mockApi.post.mockResolvedValue({
+      data: { shrimp: '', record: { revoked: 'yes' }, details: {} },
+    });
     const store = useAdminCustomerSessions();
     await store.fetchForCustomer(USER_ID);
 

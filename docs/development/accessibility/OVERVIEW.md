@@ -9,6 +9,7 @@ The service is available in two forms. First, there's the free and open-source p
 Some organizations choose to use the paid service, which allows them to add their own branding and custom web addresses for sharing secrets. For example, a company's IT help desk might send password reset links that come from secretlink.company.com instead of onetimesecret.com. This helps recipients trust that the links are legitimate since they come from their organization's own domain.
 
 Whether you're using the open-source version or a branded instance, the core experience remains straightforward:
+
 - Click the secret link to view the content
 - Enter the passphrase if one was set by the sender
 - View the secret, which is then permanently deleted
@@ -26,11 +27,13 @@ We'll start with the recipient experience. All users benefit from a positive exp
 The secret viewing interface incorporates accessibility features to ensure that receiving and viewing secrets is straightforward for all users. Here's how we've enhanced the experience:
 
 #### Semantic HTML Structure
+
 - **Landmarks:** Added `main`, `nav`, and `footer` landmarks to define the structure of the page
 - **Heading Levels:** Utilized appropriate heading hierarchies (H1-H6) for clear content organization
 - **Role Attributes:** Incorporated necessary `role` attributes to improve document semantics and assistive technology navigation
 
 #### Focus and Keyboard Navigation
+
 - **Descriptive Labels:** Implemented descriptive `aria-label` attributes for interactive elements to provide clear context
 - **Live Regions:** Employed `aria-live` regions to announce dynamic content updates to screen readers
 - **Toggle States:** Added `aria-pressed` states for toggle buttons to indicate their current status
@@ -40,10 +43,12 @@ The secret viewing interface incorporates accessibility features to ensure that 
 - **Focus Rings:** Added focus rings with adequate contrast to assist keyboard navigation
 
 #### Screen Reader Support
+
 - **Form Field Labeling and Descriptive Text:** Improved labeling and descriptions for all interactive elements
 - **Status Announcements and Dynamic Updates:** Implemented `aria-live` regions to keep users informed of changes and actions
 
 #### Visual Accessibility
+
 - **Dark Mode:** Enhanced text contrast in dark mode to improve readability
 - **Alert Messages:** Increased contrast for alert messages to ensure they stand out
 - **Brand Colors:** Adjusted brand colors to achieve better visibility and accessibility
@@ -52,6 +57,7 @@ The secret viewing interface incorporates accessibility features to ensure that 
 ### Secret Creation and Management Experience
 
 We've implemented fundamental accessibility features and continue to improve the experience:
+
 - Basic keyboard navigation through all form controls
 - Clear error messages that work with screen readers
 - Light and dark mode support
@@ -68,7 +74,7 @@ every pull request, with two enforcement tiers:
   `@axe-core/playwright`, as part of the blocking `e2e/all/` CI gate. Run
   locally, credential-free, with `pnpm test:a11y`.
 - **Page-level, public — interactive states (blocking)** —
-  `e2e/all/accessibility-interactive.spec.ts` drives the app *into*
+  `e2e/all/accessibility-interactive.spec.ts` drives the app _into_
   post-interaction DOM (open split-button dropdown, sign-in error banner, open
   feedback modal) in both themes and scans each. axe only sees the DOM present
   at scan time, so these states are invisible to the at-rest scan above. Same
@@ -115,6 +121,7 @@ The point-in-time findings and remediation are recorded in
 [`architecture/public-surfaces-accessibility-audit.md`](../../architecture/public-surfaces-accessibility-audit.md).
 
 #### Reporting Accessibility Issues
+
 To report accessibility issues or suggest improvements, you can:
 
 1. Open an issue on our GitHub repository

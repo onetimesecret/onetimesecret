@@ -32,7 +32,7 @@ full:
     password_requirements: true
     active_sessions: true
     remember_me: true
-    verify_account: false  # Disabled in test mode
+    verify_account: false # Disabled in test mode
     mfa: false
     email_auth: false
     webauthn: false

@@ -4,17 +4,17 @@
 
 The `auth-full.json` file contains keys under `web.auth.*` organized into the following categories:
 
-| Category | Key Path | Purpose |
-|----------|----------|---------|
-| MFA Page Headers | `web.auth.mfa_required`, `mfa_verification_required`, `complete_mfa_verification` | Top-level page content for MFA verification screens |
-| Security Messages | `web.auth.security.*` | OWASP-compliant error messages with extensive metadata |
-| Auth Methods | `web.auth.methods.*` | Authentication method labels (password, magicLink, webauthn) |
-| Magic Link | `web.auth.magicLink.*` | Passwordless email authentication flow |
-| WebAuthn | `web.auth.webauthn.*` | Biometric/passkey authentication |
-| Account Lockout | `web.auth.lockout.*` | Brute-force protection messages |
-| Sessions | `web.auth.sessions.*` | Active session management UI |
-| MFA Setup | `web.auth.mfa.*` | Two-factor authentication setup/management |
-| Recovery Codes | `web.auth.recovery-codes.*` | MFA recovery code management |
+| Category          | Key Path                                                                          | Purpose                                                      |
+| ----------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| MFA Page Headers  | `web.auth.mfa_required`, `mfa_verification_required`, `complete_mfa_verification` | Top-level page content for MFA verification screens          |
+| Security Messages | `web.auth.security.*`                                                             | OWASP-compliant error messages with extensive metadata       |
+| Auth Methods      | `web.auth.methods.*`                                                              | Authentication method labels (password, magicLink, webauthn) |
+| Magic Link        | `web.auth.magicLink.*`                                                            | Passwordless email authentication flow                       |
+| WebAuthn          | `web.auth.webauthn.*`                                                             | Biometric/passkey authentication                             |
+| Account Lockout   | `web.auth.lockout.*`                                                              | Brute-force protection messages                              |
+| Sessions          | `web.auth.sessions.*`                                                             | Active session management UI                                 |
+| MFA Setup         | `web.auth.mfa.*`                                                                  | Two-factor authentication setup/management                   |
+| Recovery Codes    | `web.auth.recovery-codes.*`                                                       | MFA recovery code management                                 |
 
 ---
 
@@ -29,6 +29,7 @@ The `auth-full.json` file contains keys under `web.auth.*` organized into the fo
 **Recommended destination:** `account.json` under `web.settings.sessions` (note: `account.json` already has a stub at `web.settings.sessions` with 3 keys)
 
 **Keys to move:**
+
 - `sessions.title`
 - `sessions.current`
 - `sessions.other`
@@ -53,12 +54,14 @@ The `auth-full.json` file contains keys under `web.auth.*` organized into the fo
 **Current location:** `auth-full.json` under `web.auth.mfa` and `web.auth.recovery-codes`
 
 **Issue:** This file conflates two distinct contexts:
+
 1. **MFA Verification** (during login) - belongs in auth flow
 2. **MFA Setup/Management** (in account settings) - belongs in account/settings
 
 **Recommended split:**
 
 #### Keys that belong in auth (login-time verification):
+
 - `mfa.title` (when used as login page title)
 - `mfa.verify-code`
 - `mfa.enter-code`
@@ -79,6 +82,7 @@ The `auth-full.json` file contains keys under `web.auth.*` organized into the fo
 - `mfa.digit-of-count`
 
 #### Keys that belong in `account.json` (settings-time management):
+
 - `mfa.enabled`
 - `mfa.disabled`
 - `mfa.enable`
@@ -128,6 +132,7 @@ The `auth-full.json` file contains keys under `web.auth.*` organized into the fo
 ### 1. Flatten Top-Level MFA Keys
 
 **Current:**
+
 ```json
 "web.auth.mfa_required": "...",
 "web.auth.mfa_verification_required": "...",
@@ -135,6 +140,7 @@ The `auth-full.json` file contains keys under `web.auth.*` organized into the fo
 ```
 
 **Suggested:** Move under a proper namespace:
+
 ```json
 "web.auth.mfa.page_title": "...",
 "web.auth.mfa.page_subtitle": "...",
@@ -152,11 +158,13 @@ This maintains consistency with the nested structure used elsewhere.
 **Issue:** These `_meta`, `_translation_guidelines`, and `_safe_information` keys are documentation, not translations. They add ~40 lines of non-translatable content.
 
 **Suggested:**
+
 1. Extract security documentation to `src/locales/SECURITY-TRANSLATION-GUIDE.md` (which already exists and is referenced)
 2. Keep only actual message keys in the JSON
 3. Use `_context_*` prefix pattern for brief translator hints (already used elsewhere in file)
 
 **Simplified structure:**
+
 ```json
 "security": {
   "_README": "See SECURITY-TRANSLATION-GUIDE.md",
@@ -176,10 +184,10 @@ This maintains consistency with the nested structure used elsewhere.
 
 **Issue:** Mixed naming conventions within the file:
 
-| Pattern | Examples |
-|---------|----------|
-| snake_case | `mfa_required`, `mfa_verification_required` |
-| camelCase | `magicLink`, `webauthn` |
+| Pattern    | Examples                                             |
+| ---------- | ---------------------------------------------------- |
+| snake_case | `mfa_required`, `mfa_verification_required`          |
+| camelCase  | `magicLink`, `webauthn`                              |
 | kebab-case | `attempts-remaining`, `account-locked`, `ip-address` |
 
 **Recommended:** Standardize on kebab-case to match the majority of the codebase's locale files.
@@ -195,6 +203,7 @@ If the security-critical messages with their extensive metadata must stay togeth
 **Path:** `src/locales/en/auth-security.json`
 
 **Contents:**
+
 - `web.auth.security.*` (all security messages)
 - Associated `_meta` documentation (if retained)
 
@@ -207,10 +216,12 @@ If the security-critical messages with their extensive metadata must stay togeth
 After extracting sessions and MFA management to `account.json`, consider merging the remaining login-flow keys from `auth-full.json` into `auth.json`.
 
 **Current state:**
+
 - `auth.json` has: login, signup, verify, change-password, close-account, passwordReset, account info
 - `auth-full.json` has: MFA verification, security messages, auth methods, magic link, webauthn, lockout
 
 **Proposed structure in merged `auth.json`:**
+
 ```
 web.login.*           (existing)
 web.signup.*          (existing)
@@ -227,16 +238,16 @@ web.auth.mfa.*        (login-time MFA verification only)
 
 ## Summary of Recommended Actions
 
-| Priority | Action | Source | Destination |
-|----------|--------|--------|-------------|
-| High | Move sessions management keys | `auth-full.json` | `account.json` |
-| High | Move MFA setup/management keys | `auth-full.json` | `account.json` |
-| Medium | Move recovery-codes keys | `auth-full.json` | `account.json` |
-| Medium | Flatten top-level MFA keys | `auth-full.json` | Restructure in place |
-| Low | Standardize key naming to kebab-case | `auth-full.json` | In place |
-| Low | Extract security metadata to docs | `auth-full.json` | `SECURITY-TRANSLATION-GUIDE.md` |
-| Optional | Create `auth-security.json` | `auth-full.json` | New file |
-| Optional | Merge with `auth.json` | `auth-full.json` | `auth.json` |
+| Priority | Action                               | Source           | Destination                     |
+| -------- | ------------------------------------ | ---------------- | ------------------------------- |
+| High     | Move sessions management keys        | `auth-full.json` | `account.json`                  |
+| High     | Move MFA setup/management keys       | `auth-full.json` | `account.json`                  |
+| Medium   | Move recovery-codes keys             | `auth-full.json` | `account.json`                  |
+| Medium   | Flatten top-level MFA keys           | `auth-full.json` | Restructure in place            |
+| Low      | Standardize key naming to kebab-case | `auth-full.json` | In place                        |
+| Low      | Extract security metadata to docs    | `auth-full.json` | `SECURITY-TRANSLATION-GUIDE.md` |
+| Optional | Create `auth-security.json`          | `auth-full.json` | New file                        |
+| Optional | Merge with `auth.json`               | `auth-full.json` | `auth.json`                     |
 
 ---
 

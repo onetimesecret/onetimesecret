@@ -4,15 +4,15 @@
 // Derives from contracts, adding V3-specific timestamp transforms (number → Date).
 
 import {
-    ReceiptState,
-    isValidReceiptState,
-    receiptBaseCanonical,
-    receiptCanonical,
-    receiptDetailsCanonical,
-    receiptListCanonical,
-    receiptListDetailsCanonical,
-    receiptStateSchema,
-    receiptStateValues,
+  ReceiptState,
+  isValidReceiptState,
+  receiptBaseCanonical,
+  receiptCanonical,
+  receiptDetailsCanonical,
+  receiptListCanonical,
+  receiptListDetailsCanonical,
+  receiptStateSchema,
+  receiptStateValues,
 } from '@/schemas/contracts';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
@@ -87,7 +87,10 @@ const v3Recipients = z
  */
 const v3ReceiptOverrides = {
   ...v3TimestampOverrides,
-  has_passphrase: z.boolean().nullish().transform((v) => v ?? false),
+  has_passphrase: z
+    .boolean()
+    .nullish()
+    .transform((v) => v ?? false),
   recipients: v3Recipients,
 };
 
@@ -123,8 +126,14 @@ export const receiptSchema = receiptCanonical.omit(v3DroppedFields).extend({
  * Adds null → false transforms for nullable boolean fields.
  */
 export const receiptDetailsSchema = receiptDetailsCanonical.extend({
-  has_passphrase: z.boolean().nullable().transform((v) => v ?? false),
-  can_decrypt: z.boolean().nullable().transform((v) => v ?? false),
+  has_passphrase: z
+    .boolean()
+    .nullable()
+    .transform((v) => v ?? false),
+  can_decrypt: z
+    .boolean()
+    .nullable()
+    .transform((v) => v ?? false),
 });
 
 /**

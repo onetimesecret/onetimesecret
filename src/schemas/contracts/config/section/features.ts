@@ -79,9 +79,7 @@ const featuresDomainsSchema = z.object({
   enabled: z.boolean().optional(),
   require_verified: z.boolean().optional(),
   default: nullableString,
-  validation_strategy: z
-    .enum(['passthrough', 'approximated', 'caddy_on_demand'])
-    .optional(),
+  validation_strategy: z.enum(['passthrough', 'approximated', 'caddy_on_demand']).optional(),
 });
 
 /**
@@ -93,9 +91,4 @@ const featuresSchema = z.object({
   domains: featuresDomainsSchema.optional(),
 });
 
-export {
-  featuresSchema,
-  featuresRegionsSchema,
-  featuresIncomingSchema,
-  featuresDomainsSchema,
-};
+export { featuresSchema, featuresRegionsSchema, featuresIncomingSchema, featuresDomainsSchema };

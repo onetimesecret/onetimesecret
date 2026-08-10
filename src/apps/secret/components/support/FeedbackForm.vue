@@ -25,8 +25,7 @@
   });
 
   const REASON_I18N_KEYS: Record<string, string> = {
-    email_change_unauthorized:
-      'web.feedback.reason_email_change_unauthorized',
+    email_change_unauthorized: 'web.feedback.reason_email_change_unauthorized',
   };
 
   const reasonMessage = computed(() => {
@@ -44,7 +43,9 @@
   const CHAR_WARNING_THRESHOLD = Math.floor(MAX_MSG_LENGTH * 0.9);
 
   const charactersRemaining = computed(() => MAX_MSG_LENGTH - feedbackMessage.value.length);
-  const showCharacterCounter = computed(() => feedbackMessage.value.length >= CHAR_WARNING_THRESHOLD);
+  const showCharacterCounter = computed(
+    () => feedbackMessage.value.length >= CHAR_WARNING_THRESHOLD
+  );
   const atCharacterLimit = computed(() => feedbackMessage.value.length >= MAX_MSG_LENGTH);
 
   // Reset in form reset function
@@ -108,12 +109,9 @@
           <!-- Reason-specific context banner -->
           <div
             v-if="reasonMessage"
-            class="rounded-lg border border-amber-200 bg-amber-50
-              p-4 dark:border-amber-800 dark:bg-amber-900/20"
+            class="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20"
             role="status">
-            <p
-              class="text-sm text-amber-800
-                dark:text-amber-300">
+            <p class="text-sm text-amber-800 dark:text-amber-300">
               {{ reasonMessage }}
             </p>
           </div>
@@ -122,7 +120,9 @@
             <div class="grow">
               <label
                 for="feedback-message"
-                class="sr-only">{{ t('web.feedback.your_feedback') }}</label>
+                class="sr-only"
+                >{{ t('web.feedback.your_feedback') }}</label
+              >
               <textarea
                 id="feedback-message"
                 v-model="feedbackMessage"
@@ -130,19 +130,23 @@
                 rows="7"
                 required
                 :maxlength="MAX_MSG_LENGTH"
-                class="w-full resize-y rounded-md border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
+                class="w-full resize-y rounded-md border border-gray-300 px-4 py-2 focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
                 :placeholder="t('web.COMMON.feedback_text')"></textarea>
               <div
                 v-if="showCharacterCounter"
                 class="mt-1 text-right text-xs"
-                :class="atCharacterLimit
-                  ? 'text-red-600 dark:text-red-400'
-                  : 'text-amber-600 dark:text-amber-400'"
+                :class="
+                  atCharacterLimit
+                    ? 'text-red-600 dark:text-red-400'
+                    : 'text-amber-600 dark:text-amber-400'
+                "
                 role="status"
                 aria-live="polite">
-                {{ atCharacterLimit
-                  ? t('web.feedback.character_limit_reached')
-                  : t('web.feedback.characters_remaining', { count: charactersRemaining }) }}
+                {{
+                  atCharacterLimit
+                    ? t('web.feedback.character_limit_reached')
+                    : t('web.feedback.characters_remaining', { count: charactersRemaining })
+                }}
               </div>
               <input
                 type="hidden"
@@ -157,9 +161,7 @@
             <!-- Reply-availability notice: heads-up for anonymous submitters -->
             <div
               v-if="!cust?.objid"
-              class="rounded-md border border-blue-200 bg-blue-50
-                p-3 text-sm text-blue-800
-                dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
+              class="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
               role="note">
               {{ t('web.feedback.anonymous_no_reply') }}
             </div>

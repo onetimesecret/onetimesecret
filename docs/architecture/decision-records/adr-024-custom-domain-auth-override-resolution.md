@@ -1,7 +1,7 @@
 ---
-id: "024"
+id: '024'
 status: accepted
-title: "ADR-024: Custom-Domain Auth Override Resolution and Single-Control Settings UI"
+title: 'ADR-024: Custom-Domain Auth Override Resolution and Single-Control Settings UI'
 ---
 
 ## Status
@@ -17,7 +17,7 @@ Accepted
 Per-domain sign-in and sign-up behavior is stored in `CustomDomain::SigninConfig` and `CustomDomain::SignupConfig`, each carrying **two independent boolean flags**:
 
 - `enabled` — whether this per-domain config is consulted at all. When `false`, runtime resolution ignores every other field and falls back to the install-level (global) configuration.
-- `signin_enabled` / `signup_enabled` — the override value, combined with the global capability under **AND semantics**: an enabled config can only *narrow* availability, never re-enable a feature the operator disabled globally (`AUTH_ENABLED` / `AUTH_SIGNIN` / `AUTH_SIGNUP`).
+- `signin_enabled` / `signup_enabled` — the override value, combined with the global capability under **AND semantics**: an enabled config can only _narrow_ availability, never re-enable a feature the operator disabled globally (`AUTH_ENABLED` / `AUTH_SIGNIN` / `AUTH_SIGNUP`).
 
 Runtime resolution is centralized in class-level resolvers on the models (`SigninConfig.resolve_signin_enabled`, `SignupConfig.resolve_signup_enabled`):
 
@@ -35,10 +35,10 @@ Both the display gate (`Core::Views::ConfigSerializer#resolve_signin` → bootst
 The workspace settings surface was not:
 
 1. The settings API (`GET /api/domains/:extid/signin-config`) returned only the raw flag pair; the resolved effective value and the global inputs were absent. The settings UI could not display runtime truth and did not try.
-2. The settings pages rendered **both flags as co-equal user-facing controls** — a header "Enabled/Disabled" toggle bound to `enabled`, and a mode switch / select bound to `signin_enabled`/`signup_enabled` — with no reconciliation. An untouched domain showed a header reading "Disabled" above an active-looking "Any available method" mode: enabled and disabled at the same time, while the runtime truth (inherit global, usually *on*) matched neither.
+2. The settings pages rendered **both flags as co-equal user-facing controls** — a header "Enabled/Disabled" toggle bound to `enabled`, and a mode switch / select bound to `signin_enabled`/`signup_enabled` — with no reconciliation. An untouched domain showed a header reading "Disabled" above an active-looking "Any available method" mode: enabled and disabled at the same time, while the runtime truth (inherit global, usually _on_) matched neither.
 3. Latent write bug: mode selections and availability toggles patched `signin_enabled`/`restrict_to`/`email_auth_enabled` but never set `enabled: true`. On an unconfigured domain, choosing "Sign-in disabled" created a record with `enabled=false` — which the resolver ignores entirely. The user's explicit choice silently did nothing.
 
-A product requirement shapes the fix: **the distinction between "never configured" and "explicitly configured" must survive** in storage. When a customer takes an explicit configuration action, their domain must keep operating the same way if the install-level *default* for unconfigured domains later changes. (The global master switch is exempt: it is a kill switch and always wins — see Resolution invariants below.)
+A product requirement shapes the fix: **the distinction between "never configured" and "explicitly configured" must survive** in storage. When a customer takes an explicit configuration action, their domain must keep operating the same way if the install-level _default_ for unconfigured domains later changes. (The global master switch is exempt: it is a kill switch and always wins — see Resolution invariants below.)
 
 ## Decision
 
@@ -59,7 +59,7 @@ Reachable effective states (signin shown; signup is identical minus `restrict_to
   (AUTH_SIGNIN=false)                      wins — not pinned)
 ```
 
-Note the AND semantics make "unconfigured" and "explicit allow" behaviorally identical *today* (both yield `global`); they diverge only when a future default change is applied at the unconfigured-fallback layer. That is the pinning mechanism: **default-behavior changes are implemented by changing what the resolver returns for unconfigured domains, never by rewriting customer records and never by weakening the global master.**
+Note the AND semantics make "unconfigured" and "explicit allow" behaviorally identical _today_ (both yield `global`); they diverge only when a future default change is applied at the unconfigured-fallback layer. That is the pinning mechanism: **default-behavior changes are implemented by changing what the resolver returns for unconfigured domains, never by rewriting customer records and never by weakening the global master.**
 
 ### 2. Resolution authority: the model resolvers, plus model-owned global inputs
 
@@ -76,12 +76,14 @@ All three gates consume them: the runtime gate (`Core::Controllers::Base`), the 
 
 ```jsonc
 {
-  "record": { /* raw flags, or null when unconfigured (GET) */ },
+  "record": {
+    /* raw flags, or null when unconfigured (GET) */
+  },
   "details": {
-    "global_enabled": true,        // install-level capability (kill switch input)
-    "effective_enabled": true,     // resolver output for this domain, post-write
-    "global_restrict_to": null     // signin only: install-level restrict_to
-  }
+    "global_enabled": true, // install-level capability (kill switch input)
+    "effective_enabled": true, // resolver output for this domain, post-write
+    "global_restrict_to": null, // signin only: install-level restrict_to
+  },
 }
 ```
 
@@ -90,7 +92,7 @@ All three gates consume them: the runtime gate (`Core::Controllers::Base`), the 
 
 ### 4. Settings UI: one control, seeded from inherited state, writes materialize the pin
 
-- The `enabled` toggle is **removed** from both settings pages. The remaining control (signin: the Any / One / Disabled mode switch; signup: the Enabled/Disabled select) is the single user-facing concept: *can end users sign in / sign up on this domain?*
+- The `enabled` toggle is **removed** from both settings pages. The remaining control (signin: the Any / One / Disabled mode switch; signup: the Enabled/Disabled select) is the single user-facing concept: _can end users sign in / sign up on this domain?_
 - For an unconfigured domain, the form state is **seeded from the inherited global state** (`details` + the page's global method availability), not from static defaults. What the user sees selected is what actually runs. No dual display path in the form.
 - **Every write sets `enabled: true`** (applied once, in the composable save path — not per call site). Touching any control is an explicit configuration action and materializes the full inherited snapshot plus the user's change. This both records the pin and fixes the latent `enabled=false` write bug.
 - A **"Workspace default" badge** shows while the domain is unconfigured (`record` null or `enabled=false`); it disappears on first explicit configuration. An **effective-status line** driven by `effective_enabled` states the runtime truth and cannot contradict it.
@@ -109,18 +111,18 @@ Behavior is defined once and implemented twice: shared frontend module `useAuthO
 ## Consequences
 
 - The settings UI can no longer contradict runtime behavior: its displayed state comes from the same resolver output the POST gate uses.
-- "Configured but inherit defaults" (`enabled=false` with a record) is no longer *producible* from the UI — writes always pin, DELETE always unpins. Legacy records in that state render identically to unconfigured (badge shown, inherited state displayed), which is also how the resolver treats them.
+- "Configured but inherit defaults" (`enabled=false` with a record) is no longer _producible_ from the UI — writes always pin, DELETE always unpins. Legacy records in that state render identically to unconfigured (badge shown, inherited state displayed), which is also how the resolver treats them.
 - The GET contract change (404 → 200/`record: null`) is visible to any API consumer; the workspace UI is the only known consumer and handles both forms.
 - `enabled` in the PUT payload is now client-supplied constant `true`; the field stays in the wire format for auditability and for the (colonel/support) ability to unpin without deleting.
 
 ### Custom-domain default-OFF is implemented twice — intentionally divergent (#3672)
 
-The custom-domain fail-closed posture (sign-in/sign-up unavailable on a custom domain unless an *enabled* per-domain config exists; the global flags remain a kill-switch ceiling only) has **two implementations** whose SSO carve-outs deliberately differ:
+The custom-domain fail-closed posture (sign-in/sign-up unavailable on a custom domain unless an _enabled_ per-domain config exists; the global flags remain a kill-switch ceiling only) has **two implementations** whose SSO carve-outs deliberately differ:
 
 1. **Model resolver** — `SigninConfig.resolve_signin_enabled_for_custom_domain` (and its signup twin, which has no carve-out: SSO signup flows through the signin path). Consumed by the branded-masthead link gate (`Core::Views::DomainSerializer#effective_signin_enabled?`), the runtime POST gates (`Core::Controllers::Base`), and the settings API `details`. Its SSO carve-out (via the `domain_id:` kwarg) is **tenant-only**: `SsoConfig.tenant_sso_available_for?`. A branded front door advertises only what the domain owner opted into; the operator's platform-SSO fallback is deliberately out of scope, so a platform-fallback-only domain gets no masthead Sign In link.
 2. **`ConfigSerializer#resolve_signin`** — the /signin **page** display gate (`apps/web/core/views/serializers/config_serializer.rb`). It implements the same default-OFF posture inline, but its carve-out uses `sso_available?`, which **includes platform-SSO fallback** via `build_sso_config`. The page must stay reachable and render platform provider buttons when the operator allows fallback for tenants and the master switch is on (#3911) — even though the masthead shows no link for that same domain.
 
-The divergence is confined to *which SSO sources the carve-out consults*; the fail-closed default and the kill-switch ceiling are identical in both. Maintenance rule: **change one, check the other** — any change to the default-OFF condition or a carve-out in either implementation must be verified against (and kept in lockstep with) the other, since only the model resolver is covered by invariant 4's "one resolver" discipline.
+The divergence is confined to _which SSO sources the carve-out consults_; the fail-closed default and the kill-switch ceiling are identical in both. Maintenance rule: **change one, check the other** — any change to the default-OFF condition or a carve-out in either implementation must be verified against (and kept in lockstep with) the other, since only the model resolver is covered by invariant 4's "one resolver" discipline.
 
 **Master switch gates the tenant carve-out** (#3901 follow-up): `SsoConfig.tenant_sso_available_for?` consults `SigninConfig.global_auth_enabled` (`AUTH_ENABLED` alone, strict boolean) before the credential checks. With the master switch off, sessionauth is never registered and every session reads as unauthenticated, so an SSO sign-in could only mint a session the app ignores — the carve-out must not advertise it. Because the predicate is shared, all tenant-SSO gates go dark together: the masthead link (impl 1), the /signin page's tenant source (impl 2 via `resolve_tenant_sso_config`), the settings API `details`, and the omniauth runtime hook (`apps/web/auth/config/hooks/omniauth_tenant.rb`), which treats the state like an unconfigured tenant (reject, or platform fallback per policy). `AUTH_SIGNIN` remains deliberately unconsulted by the carve-out — it retires only the password/email path.
 
@@ -129,6 +131,7 @@ The divergence is confined to *which SSO sources the carve-out consults*; the fa
 ## References — source of truth is this ADR; these implement it
 
 Backend:
+
 - `lib/onetime/models/custom_domain/signin_config.rb` — resolver + `global_signin_enabled`
 - `lib/onetime/models/custom_domain/signup_config.rb` — resolver + `global_signup_enabled`
 - `apps/web/core/controllers/base.rb` — runtime gates (`signin_enabled?` / `signup_enabled?`)
@@ -138,12 +141,14 @@ Backend:
 - `apps/api/domains/logic/signin_config/*` / `signup_config/*` — settings API (`details` serialization)
 
 Frontend:
+
 - `src/shared/composables/useAuthOverrideState.ts` — shared derived state + writes-materialize rule
 - `src/shared/composables/useSigninConfig.ts` / `useSignupConfig.ts` — per-feature composables (seeding, pinning saves)
 - `src/apps/workspace/components/domains/DomainAuthOverrideBanner.vue` — status line / badge / dormant warning
 - `src/apps/workspace/components/domains/DomainSigninConfigForm.vue` / `DomainSignupConfigForm.vue`
 
 Tests:
+
 - `try/unit/models/custom_domain_auth_killswitch_try.rb` — resolver truth table (kill switch, narrowing, inherit)
 - `try/unit/models/custom_domain_auth_default_off_try.rb` — custom-domain default-OFF resolvers + tenant-SSO carve-out (#3672)
 - `apps/api/domains/spec/integration/simple/domain_signup_config_spec.rb` — settings API contract

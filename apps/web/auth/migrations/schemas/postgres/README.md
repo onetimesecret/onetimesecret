@@ -6,8 +6,7 @@ Rodauth authentication schema with functions, triggers, views, and Row Level Sec
 
 See apps/web/auth/migrations/README.md for setup instructions.
 
-
-```bash
+````bash
 
 ## Usage Examples
 
@@ -29,7 +28,7 @@ WHERE account_id = 1 AND password_hash = '$2b$12$...';
 -- Get password change history
 SELECT changed_at FROM account_password_change_times
 WHERE account_id = 1 ORDER BY changed_at DESC;
-```
+````
 
 ### Account Queries
 

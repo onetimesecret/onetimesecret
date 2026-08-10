@@ -5,9 +5,11 @@ title: ADR-005: Familia Transaction Block Syntax (Yield Connection)
 ---
 
 ## Status
+
 Accepted
 
 ## Date
+
 2025-10-11
 
 ## Context
@@ -15,6 +17,7 @@ Accepted
 Familia (Ruby ORM for Redis/Valkey) recently added transaction/pipeline support across four usage levels. The implementation currently yields the Redis connection to blocks.
 
 **Current Pattern:**
+
 ```ruby
 stringkey.transaction do |conn|
   conn.set(stringkey.dbkey, data)
@@ -23,6 +26,7 @@ end
 ```
 
 **Proposed Alternative:**
+
 ```ruby
 stringkey.transaction do |instance|
   instance.set(data)
@@ -31,6 +35,7 @@ end
 ```
 
 **Why Alternative Doesn't Work:**
+
 - **Cannot operate on multiple DataTypes in single transaction**
 - Global level `Familia.transaction` has no instance to yield
 - Would require wrapper methods for 200+ Redis commands on every DataType

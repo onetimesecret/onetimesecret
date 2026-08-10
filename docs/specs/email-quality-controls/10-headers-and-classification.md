@@ -82,4 +82,4 @@ threads both through every hop: template → publisher payload → worker → ma
   DKIM signing inputs for SES — prefer simple-headers if available.
 - Category strings are a frozen closed set (`Onetime::Mail::CATEGORIES`
   constant, `%w[transactional_recipient transactional_account notification
-  system]`) with fail-closed fallback — mirror `Receipt::SOURCES` style.
+system]`) with fail-closed fallback — mirror `Receipt::SOURCES` style.

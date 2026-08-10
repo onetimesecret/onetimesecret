@@ -91,9 +91,7 @@ export const secretActivityResponseSchema = z.object({
     // unresolved (removed member / out-of-org actor) and the UI renders the
     // bare objid: unique-but-unresolved, CloudTrail deleted-principal
     // semantics. Optional so older backend responses still parse.
-    actors: z
-      .record(z.string(), z.object({ email: z.string(), extid: z.string() }))
-      .optional(),
+    actors: z.record(z.string(), z.object({ email: z.string(), extid: z.string() })).optional(),
   }),
 });
 

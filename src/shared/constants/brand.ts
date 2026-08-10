@@ -73,9 +73,7 @@ export type NeutralBrandDefaults = typeof NEUTRAL_BRAND_DEFAULTS;
  * `identityStore.productName` (component surfaces) and `usePageTitle`
  * (router-guard context, i18n-free) both build on.
  */
-export function resolveProductName(
-  brandProductName: string | null | undefined
-): string {
+export function resolveProductName(brandProductName: string | null | undefined): string {
   return brandProductName || NEUTRAL_BRAND_DEFAULTS.product_name;
 }
 

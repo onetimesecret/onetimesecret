@@ -19,16 +19,33 @@ import type {
   SecretWithTimestampsCanonical,
   SecretDetailsCanonical,
 } from '@/schemas/contracts';
+import type { FeedbackCanonical, FeedbackDetailsCanonical } from '@/schemas/contracts/feedback';
 import type {
-  FeedbackCanonical,
-  FeedbackDetailsCanonical,
-} from '@/schemas/contracts/feedback';
-import type { receiptBaseSchema, receiptSchema, receiptDetailsSchema } from '@/schemas/shapes/v2/receipt';
-import type { receiptBaseSchema as v3ReceiptBaseSchema, receiptSchema as v3ReceiptSchema, receiptDetailsSchema as v3ReceiptDetailsSchema, receiptListSchema as v3ReceiptListSchema } from '@/schemas/shapes/v3/receipt';
-import type { secretResponsesSchema, secretSchema, secretDetailsSchema } from '@/schemas/shapes/v2/secret';
-import type { secretBaseSchema as v3SecretBaseSchema, secretSchema as v3SecretSchema, secretDetailsSchema as v3SecretDetailsSchema } from '@/schemas/shapes/v3/secret';
+  receiptBaseSchema,
+  receiptSchema,
+  receiptDetailsSchema,
+} from '@/schemas/shapes/v2/receipt';
+import type {
+  receiptBaseSchema as v3ReceiptBaseSchema,
+  receiptSchema as v3ReceiptSchema,
+  receiptDetailsSchema as v3ReceiptDetailsSchema,
+  receiptListSchema as v3ReceiptListSchema,
+} from '@/schemas/shapes/v3/receipt';
+import type {
+  secretResponsesSchema,
+  secretSchema,
+  secretDetailsSchema,
+} from '@/schemas/shapes/v2/secret';
+import type {
+  secretBaseSchema as v3SecretBaseSchema,
+  secretSchema as v3SecretSchema,
+  secretDetailsSchema as v3SecretDetailsSchema,
+} from '@/schemas/shapes/v3/secret';
 import type { feedbackSchema, feedbackDetailsSchema } from '@/schemas/shapes/v2/feedback';
-import type { feedbackSchema as v3FeedbackSchema, feedbackDetailsSchema as v3FeedbackDetailsSchema } from '@/schemas/shapes/v3/feedback';
+import type {
+  feedbackSchema as v3FeedbackSchema,
+  feedbackDetailsSchema as v3FeedbackDetailsSchema,
+} from '@/schemas/shapes/v3/feedback';
 import type { customerSchema } from '@/schemas/shapes/v2/customer';
 import type { CustomerCanonical } from '@/schemas/contracts';
 
@@ -171,8 +188,10 @@ export function toV2WireReceiptBase(canonical: ReceiptBaseCanonical): V2WireRece
     has_passphrase: canonical.has_passphrase,
     is_viewed: booleanToString(canonical.is_viewed),
     is_received: booleanToString(canonical.is_received),
-    is_previewed: canonical.is_previewed !== undefined ? booleanToString(canonical.is_previewed) : undefined,
-    is_revealed: canonical.is_revealed !== undefined ? booleanToString(canonical.is_revealed) : undefined,
+    is_previewed:
+      canonical.is_previewed !== undefined ? booleanToString(canonical.is_previewed) : undefined,
+    is_revealed:
+      canonical.is_revealed !== undefined ? booleanToString(canonical.is_revealed) : undefined,
     is_burned: booleanToString(canonical.is_burned),
     is_destroyed: booleanToString(canonical.is_destroyed),
     is_expired: booleanToString(canonical.is_expired),
@@ -215,7 +234,8 @@ export function toV2WireReceiptDetails(canonical: ReceiptDetailsCanonical): V2Wi
     // secret_realttl is NOT transformed in V2 schema — keeps native number
     secret_realttl: canonical.secret_realttl,
     view_count: canonical.view_count !== null ? numberToString(canonical.view_count) : null,
-    has_passphrase: canonical.has_passphrase !== null ? booleanToString(canonical.has_passphrase) : null,
+    has_passphrase:
+      canonical.has_passphrase !== null ? booleanToString(canonical.has_passphrase) : null,
     can_decrypt: canonical.can_decrypt !== null ? booleanToString(canonical.can_decrypt) : null,
     secret_value: canonical.secret_value,
     show_secret: booleanToString(canonical.show_secret),
@@ -223,12 +243,14 @@ export function toV2WireReceiptDetails(canonical: ReceiptDetailsCanonical): V2Wi
     show_receipt_link: booleanToString(canonical.show_receipt_link),
     show_receipt: booleanToString(canonical.show_receipt),
     show_recipients: booleanToString(canonical.show_recipients),
-    is_orphaned: canonical.is_orphaned !== undefined && canonical.is_orphaned !== null
-      ? booleanToString(canonical.is_orphaned)
-      : canonical.is_orphaned,
-    is_expired: canonical.is_expired !== undefined && canonical.is_expired !== null
-      ? booleanToString(canonical.is_expired)
-      : canonical.is_expired,
+    is_orphaned:
+      canonical.is_orphaned !== undefined && canonical.is_orphaned !== null
+        ? booleanToString(canonical.is_orphaned)
+        : canonical.is_orphaned,
+    is_expired:
+      canonical.is_expired !== undefined && canonical.is_expired !== null
+        ? booleanToString(canonical.is_expired)
+        : canonical.is_expired,
   } as V2WireReceiptDetails;
 }
 
@@ -319,7 +341,9 @@ export function toV3WireReceipt(canonical: ReceiptCanonical): V3WireReceipt {
  * Converts canonical receipt list record to V3 wire format.
  * Extends base with show_recipients field required for list display.
  */
-export function toV3WireReceiptListRecord(canonical: ReceiptListCanonical): V3WireReceiptListRecord {
+export function toV3WireReceiptListRecord(
+  canonical: ReceiptListCanonical
+): V3WireReceiptListRecord {
   const base = toV3WireReceiptBase(canonical);
   return {
     ...base,
@@ -362,7 +386,9 @@ export function toV3WireReceiptDetails(canonical: ReceiptDetailsCanonical): V3Wi
  *   - booleans: string ("true"/"false") via fromString.boolean
  *   - Note: V2 secret base includes deprecated is_viewed/is_received aliases
  */
-export function toV2WireSecretBase(canonical: SecretBaseCanonical & { created: Date; updated: Date }): V2WireSecretBase {
+export function toV2WireSecretBase(
+  canonical: SecretBaseCanonical & { created: Date; updated: Date }
+): V2WireSecretBase {
   return {
     identifier: canonical.identifier,
     key: canonical.key,
@@ -393,7 +419,9 @@ export function toV2WireSecretBase(canonical: SecretBaseCanonical & { created: D
  *
  * Extends base with TTL fields encoded as strings.
  */
-export function toV2WireSecret(canonical: SecretCanonical & { created: Date; updated: Date }): V2WireSecret {
+export function toV2WireSecret(
+  canonical: SecretCanonical & { created: Date; updated: Date }
+): V2WireSecret {
   return {
     identifier: canonical.identifier,
     key: canonical.key,
@@ -523,9 +551,7 @@ export function toV2WireFeedback(canonical: FeedbackCanonical): V2WireFeedback {
   return {
     msg: canonical.msg,
     // V2 expects stamp as string (ISO format)
-    stamp: canonical.stamp instanceof Date
-      ? canonical.stamp.toISOString()
-      : canonical.stamp,
+    stamp: canonical.stamp instanceof Date ? canonical.stamp.toISOString() : canonical.stamp,
   } as V2WireFeedback;
 }
 
@@ -535,7 +561,9 @@ export function toV2WireFeedback(canonical: FeedbackCanonical): V2WireFeedback {
  * V2 encoding rules:
  *   - received: string ("true"/"false") via fromString.boolean.optional()
  */
-export function toV2WireFeedbackDetails(canonical: FeedbackDetailsCanonical): V2WireFeedbackDetails {
+export function toV2WireFeedbackDetails(
+  canonical: FeedbackDetailsCanonical
+): V2WireFeedbackDetails {
   return {
     received: canonical.received !== undefined ? booleanToString(canonical.received) : undefined,
   } as V2WireFeedbackDetails;
@@ -556,9 +584,10 @@ export function toV3WireFeedback(canonical: FeedbackCanonical): V3WireFeedback {
   return {
     msg: canonical.msg,
     // V3 expects stamp as Unix epoch seconds (number)
-    stamp: canonical.stamp instanceof Date
-      ? Math.floor(canonical.stamp.getTime() / 1000)
-      : canonical.stamp,
+    stamp:
+      canonical.stamp instanceof Date
+        ? Math.floor(canonical.stamp.getTime() / 1000)
+        : canonical.stamp,
   } as V3WireFeedback;
 }
 
@@ -567,7 +596,9 @@ export function toV3WireFeedback(canonical: FeedbackCanonical): V3WireFeedback {
  *
  * V3 uses native boolean (may be null on wire, transforms to false).
  */
-export function toV3WireFeedbackDetails(canonical: FeedbackDetailsCanonical): V3WireFeedbackDetails {
+export function toV3WireFeedbackDetails(
+  canonical: FeedbackDetailsCanonical
+): V3WireFeedbackDetails {
   return {
     received: canonical.received,
   } as V3WireFeedbackDetails;
@@ -597,16 +628,16 @@ export function toV2WireCustomer(canonical: CustomerCanonical): V2WireCustomer {
     // Timestamps: strings (Unix epoch seconds as string)
     created: numberToString(dateToEpochSeconds(canonical.created)!),
     updated: numberToString(dateToEpochSeconds(canonical.updated)!),
-    last_login: canonical.last_login !== null
-      ? numberToString(dateToEpochSeconds(canonical.last_login)!)
-      : null,
+    last_login:
+      canonical.last_login !== null
+        ? numberToString(dateToEpochSeconds(canonical.last_login)!)
+        : null,
 
     // Booleans: string
     verified: booleanToString(canonical.verified),
     active: booleanToString(canonical.active),
-    contributor: canonical.contributor !== undefined
-      ? booleanToString(canonical.contributor)
-      : undefined,
+    contributor:
+      canonical.contributor !== undefined ? booleanToString(canonical.contributor) : undefined,
 
     // Counter fields: string
     secrets_created: numberToString(canonical.secrets_created),
@@ -733,9 +764,7 @@ export type V3WireOrganization = {
  *   - created/updated: string (Unix timestamp) via fromString.date
  *   - booleans: string ("true"/"false") via fromString.boolean
  */
-export function toV2WireOrganization(
-  canonical: OrganizationCanonical
-): V2WireOrganization {
+export function toV2WireOrganization(canonical: OrganizationCanonical): V2WireOrganization {
   return {
     identifier: canonical.identifier,
     objid: canonical.objid,
@@ -768,9 +797,7 @@ export function toV2WireOrganization(
  *   - timestamps: number (Unix epoch seconds)
  *   - booleans: native boolean
  */
-export function toV3WireOrganization(
-  canonical: OrganizationCanonical
-): V3WireOrganization {
+export function toV3WireOrganization(canonical: OrganizationCanonical): V3WireOrganization {
   return {
     identifier: canonical.identifier,
     objid: canonical.objid,
@@ -1103,14 +1130,12 @@ function toV2WireVHost(canonical: VHostCanonical): V2WireVHost {
     result.last_monitored_unix = dateToEpochSeconds(canonical.last_monitored_unix)!;
   }
   if (canonical.ssl_active_from !== undefined) {
-    result.ssl_active_from = canonical.ssl_active_from !== null
-      ? canonical.ssl_active_from.toISOString()
-      : null;
+    result.ssl_active_from =
+      canonical.ssl_active_from !== null ? canonical.ssl_active_from.toISOString() : null;
   }
   if (canonical.ssl_active_until !== undefined) {
-    result.ssl_active_until = canonical.ssl_active_until !== null
-      ? canonical.ssl_active_until.toISOString()
-      : null;
+    result.ssl_active_until =
+      canonical.ssl_active_until !== null ? canonical.ssl_active_until.toISOString() : null;
   }
 
   return result;
@@ -1153,9 +1178,8 @@ function toV2WireBrandSettings(canonical: BrandSettingsCanonical): V2WireBrandSe
     result.locale = canonical.locale;
   }
   if (canonical.default_ttl !== undefined) {
-    result.default_ttl = canonical.default_ttl !== null
-      ? numberToString(canonical.default_ttl)
-      : null;
+    result.default_ttl =
+      canonical.default_ttl !== null ? numberToString(canonical.default_ttl) : null;
   }
   if (canonical.passphrase_required !== undefined) {
     result.passphrase_required = booleanToString(canonical.passphrase_required);
@@ -1175,9 +1199,7 @@ function toV2WireBrandSettings(canonical: BrandSettingsCanonical): V2WireBrandSe
  *   - booleans: string ("true"/"false") via fromString.boolean
  *   - nested objects: V2 wire format
  */
-export function toV2WireCustomDomain(
-  canonical: CustomDomainCanonical
-): V2WireCustomDomain {
+export function toV2WireCustomDomain(canonical: CustomDomainCanonical): V2WireCustomDomain {
   return {
     domainid: canonical.domainid,
     extid: canonical.extid,
@@ -1313,9 +1335,7 @@ function toV3WireBrandSettings(canonical: BrandSettingsCanonical): V3WireBrandSe
  *   - booleans: native boolean
  *   - nested objects: V3 wire format
  */
-export function toV3WireCustomDomain(
-  canonical: CustomDomainCanonical
-): V3WireCustomDomain {
+export function toV3WireCustomDomain(canonical: CustomDomainCanonical): V3WireCustomDomain {
   return {
     domainid: canonical.domainid,
     extid: canonical.extid,

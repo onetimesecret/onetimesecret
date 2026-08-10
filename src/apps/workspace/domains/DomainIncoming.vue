@@ -1,178 +1,181 @@
 <!-- src/apps/workspace/domains/DomainIncoming.vue -->
 
 <script setup lang="ts">
-/**
- * Domain Incoming Secrets Configuration Page
- *
- * Page-level component that wires together the incoming config composable
- * and form component. Follows the DomainEmail page structure: header ->
- * entitlement gate -> form.
- */
-import { useI18n } from 'vue-i18n';
-import { computed, onMounted, watch } from 'vue';
-import { useRouter, onBeforeRouteLeave, RouterLink } from 'vue-router';
-import { storeToRefs } from 'pinia';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
-import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
-import DomainIncomingConfigForm from '@/apps/workspace/components/domains/DomainIncomingConfigForm.vue';
-import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
-import { useDomain } from '@/shared/composables/useDomain';
+  /**
+   * Domain Incoming Secrets Configuration Page
+   *
+   * Page-level component that wires together the incoming config composable
+   * and form component. Follows the DomainEmail page structure: header ->
+   * entitlement gate -> form.
+   */
+  import { useI18n } from 'vue-i18n';
+  import { computed, onMounted, watch } from 'vue';
+  import { useRouter, onBeforeRouteLeave, RouterLink } from 'vue-router';
+  import { storeToRefs } from 'pinia';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
+  import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
+  import DomainIncomingConfigForm from '@/apps/workspace/components/domains/DomainIncomingConfigForm.vue';
+  import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
+  import { useDomain } from '@/shared/composables/useDomain';
 
-import { useIncomingConfig } from '@/shared/composables/useIncomingConfig';
-import { useEntitlements } from '@/shared/composables/useEntitlements';
-import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import { ENTITLEMENTS } from '@/types/organization';
-import { isOrgsIncomingSecretsEnabled } from '@/utils/features';
+  import { useIncomingConfig } from '@/shared/composables/useIncomingConfig';
+  import { useEntitlements } from '@/shared/composables/useEntitlements';
+  import { useOrganizationStore } from '@/shared/stores/organizationStore';
+  import { ENTITLEMENTS } from '@/types/organization';
+  import { isOrgsIncomingSecretsEnabled } from '@/utils/features';
 
-const { t } = useI18n();
-const router = useRouter();
+  const { t } = useI18n();
+  const router = useRouter();
 
-const props = defineProps<{
-  orgid: string;
-  extid: string;
-}>();
+  const props = defineProps<{
+    orgid: string;
+    extid: string;
+  }>();
 
-// ---------------------------------------------------------------------------
-// Domain data
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Domain data
+  // ---------------------------------------------------------------------------
 
-const {
-  domain: customDomainRecord,
-  isLoading: domainLoading,
-  error: domainError,
-  initialize: initializeDomain,
-} = useDomain(props.extid);
+  const {
+    domain: customDomainRecord,
+    isLoading: domainLoading,
+    error: domainError,
+    initialize: initializeDomain,
+  } = useDomain(props.extid);
 
-// ---------------------------------------------------------------------------
-// Entitlement check
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Entitlement check
+  // ---------------------------------------------------------------------------
 
-const organizationStore = useOrganizationStore();
-const { organizations } = storeToRefs(organizationStore);
-const organization = computed(() =>
-  organizations.value.find((o) => o.extid === props.orgid) ?? null
-);
-const { can } = useEntitlements(organization);
-// Plan entitlement: does org subscription include incoming secrets?
-const hasIncomingEntitlement = computed(() => can(ENTITLEMENTS.INCOMING_SECRETS));
-// Role capability: does user have permission to manage org settings?
-const hasManageOrgCapability = computed(() => can(ENTITLEMENTS.MANAGE_ORG));
-// Both required to configure
-const canManageIncoming = computed(
-  () => hasManageOrgCapability.value && hasIncomingEntitlement.value
-);
-const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
-const incomingSecretsEnabled = computed(() => isOrgsIncomingSecretsEnabled());
+  const organizationStore = useOrganizationStore();
+  const { organizations } = storeToRefs(organizationStore);
+  const organization = computed(
+    () => organizations.value.find((o) => o.extid === props.orgid) ?? null
+  );
+  const { can } = useEntitlements(organization);
+  // Plan entitlement: does org subscription include incoming secrets?
+  const hasIncomingEntitlement = computed(() => can(ENTITLEMENTS.INCOMING_SECRETS));
+  // Role capability: does user have permission to manage org settings?
+  const hasManageOrgCapability = computed(() => can(ENTITLEMENTS.MANAGE_ORG));
+  // Both required to configure
+  const canManageIncoming = computed(
+    () => hasManageOrgCapability.value && hasIncomingEntitlement.value
+  );
+  const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
+  const incomingSecretsEnabled = computed(() => isOrgsIncomingSecretsEnabled());
 
-// ---------------------------------------------------------------------------
-// Incoming config composable
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Incoming config composable
+  // ---------------------------------------------------------------------------
 
-const {
-  isLoading: incomingLoading,
-  isInitialized,
-  isSaving,
-  isDeleting,
-  error: incomingError,
-  formState,
-  savedFormState,
-  hasUnsavedChanges,
-  maxRecipients,
-  initialize: initializeIncomingConfig,
-  saveConfig,
-  deleteConfig,
-  addRecipient,
-  removeRecipient,
-  discardChanges,
-  updateEnabled,
-} = useIncomingConfig(props.extid);
+  const {
+    isLoading: incomingLoading,
+    isInitialized,
+    isSaving,
+    isDeleting,
+    error: incomingError,
+    formState,
+    savedFormState,
+    hasUnsavedChanges,
+    maxRecipients,
+    initialize: initializeIncomingConfig,
+    saveConfig,
+    deleteConfig,
+    addRecipient,
+    removeRecipient,
+    discardChanges,
+    updateEnabled,
+  } = useIncomingConfig(props.extid);
 
-// ---------------------------------------------------------------------------
-// Event handlers
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Event handlers
+  // ---------------------------------------------------------------------------
 
-// Adding a recipient, removing one, and toggling enabled are all deliberate
-// actions, so they persist immediately instead of waiting for a manual Save.
-// Success toasts are suppressed (silent) to avoid one-per-action noise; the
-// updated list is its own feedback. On failure the error surfaces and
-// hasUnsavedChanges flips true, re-exposing the Save button as a retry.
+  // Adding a recipient, removing one, and toggling enabled are all deliberate
+  // actions, so they persist immediately instead of waiting for a manual Save.
+  // Success toasts are suppressed (silent) to avoid one-per-action noise; the
+  // updated list is its own feedback. On failure the error surfaces and
+  // hasUnsavedChanges flips true, re-exposing the Save button as a retry.
 
-const handleAddRecipient = async (email: string, name?: string) => {
-  if (addRecipient(email, name)) {
+  const handleAddRecipient = async (email: string, name?: string) => {
+    if (addRecipient(email, name)) {
+      await saveConfig({ silent: true });
+    }
+  };
+
+  const handleRemoveRecipient = async (index: number) => {
+    removeRecipient(index);
     await saveConfig({ silent: true });
-  }
-};
+  };
 
-const handleRemoveRecipient = async (index: number) => {
-  removeRecipient(index);
-  await saveConfig({ silent: true });
-};
+  const handleUpdateEnabled = async (enabled: boolean) => {
+    if (isSaving.value) return;
+    updateEnabled(enabled);
+    await saveConfig({ silent: true });
+  };
 
-const handleUpdateEnabled = async (enabled: boolean) => {
-  if (isSaving.value) return;
-  updateEnabled(enabled);
-  await saveConfig({ silent: true });
-};
+  // ---------------------------------------------------------------------------
+  // Navigation
+  // ---------------------------------------------------------------------------
 
-// ---------------------------------------------------------------------------
-// Navigation
-// ---------------------------------------------------------------------------
+  const handleBack = () => {
+    router.push(`/org/${props.orgid}/domains/${props.extid}`);
+  };
 
-const handleBack = () => {
-  router.push(`/org/${props.orgid}/domains/${props.extid}`);
-};
+  /**
+   * The domain's public homepage currently presents the incoming form.
+   * Surfaced as a notice because edits here can un-ready incoming (disable,
+   * remove all recipients, delete config) — the write is deliberately
+   * allowed, and the public homepage then degrades to the private landing
+   * page until incoming is ready again.
+   */
+  const homepageUsesIncoming = computed(() => {
+    const config = customDomainRecord.value?.homepage_config;
+    return (config?.enabled ?? false) && config?.secrets_mode === 'incoming';
+  });
 
-/**
- * The domain's public homepage currently presents the incoming form.
- * Surfaced as a notice because edits here can un-ready incoming (disable,
- * remove all recipients, delete config) — the write is deliberately
- * allowed, and the public homepage then degrades to the private landing
- * page until incoming is ready again.
- */
-const homepageUsesIncoming = computed(() => {
-  const config = customDomainRecord.value?.homepage_config;
-  return (config?.enabled ?? false) && config?.secrets_mode === 'incoming';
-});
+  // Unsaved changes guard
+  onBeforeRouteLeave((_to, _from, next) => {
+    if (hasUnsavedChanges.value) {
+      const answer = window.confirm(t('web.domains.unsaved_changes_confirmation'));
+      if (answer) next();
+      else next(false);
+    } else {
+      next();
+    }
+  });
 
-// Unsaved changes guard
-onBeforeRouteLeave((_to, _from, next) => {
-  if (hasUnsavedChanges.value) {
-    const answer = window.confirm(t('web.domains.unsaved_changes_confirmation'));
-    if (answer) next();
-    else next(false);
-  } else {
-    next();
-  }
-});
+  // ---------------------------------------------------------------------------
+  // Lifecycle
+  // ---------------------------------------------------------------------------
 
-// ---------------------------------------------------------------------------
-// Lifecycle
-// ---------------------------------------------------------------------------
+  onMounted(async () => {
+    await initializeDomain();
 
-onMounted(async () => {
-  await initializeDomain();
+    // Initialize incoming config if entitlement is already available
+    if (canManageIncoming.value) {
+      await initializeIncomingConfig();
+    }
+  });
 
-  // Initialize incoming config if entitlement is already available
-  if (canManageIncoming.value) {
-    await initializeIncomingConfig();
-  }
-});
+  // Handle race condition: organizations may load after onMounted runs.
+  // Watch for entitlement to become true and initialize if needed.
+  watch(canManageIncoming, async (entitled) => {
+    if (entitled && !isInitialized.value) {
+      await initializeIncomingConfig();
+    }
+  });
 
-// Handle race condition: organizations may load after onMounted runs.
-// Watch for entitlement to become true and initialize if needed.
-watch(canManageIncoming, async (entitled) => {
-  if (entitled && !isInitialized.value) {
-    await initializeIncomingConfig();
-  }
-});
-
-// Re-initialize when domain extid changes (e.g., navigating between domains)
-watch(() => props.extid, async () => {
-  if (canManageIncoming.value) {
-    await initializeIncomingConfig();
-  }
-});
+  // Re-initialize when domain extid changes (e.g., navigating between domains)
+  watch(
+    () => props.extid,
+    async () => {
+      if (canManageIncoming.value) {
+        await initializeIncomingConfig();
+      }
+    }
+  );
 </script>
 
 <template>
@@ -197,7 +200,9 @@ watch(() => props.extid, async () => {
       <SettingsSkeleton v-if="domainLoading" />
 
       <!-- Error State -->
-      <div v-else-if="domainError" class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+      <div
+        v-else-if="domainError"
+        class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
         <BasicFormAlerts :error="domainError.message" />
       </div>
 
@@ -268,7 +273,8 @@ watch(() => props.extid, async () => {
         class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
         <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
           <div class="flex items-center gap-3">
-            <div class="flex size-10 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/30">
+            <div
+              class="flex size-10 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/30">
               <OIcon
                 collection="heroicons"
                 name="inbox-arrow-down"
@@ -283,7 +289,7 @@ watch(() => props.extid, async () => {
           </div>
         </div>
 
-        <div class="p-6 space-y-6">
+        <div class="space-y-6 p-6">
           <!-- Homepage coupling notice: this domain's public homepage presents
                the incoming form, so un-readying incoming degrades it -->
           <div

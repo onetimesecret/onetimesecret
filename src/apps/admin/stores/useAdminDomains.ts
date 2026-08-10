@@ -1,9 +1,6 @@
 // src/apps/admin/stores/useAdminDomains.ts
 
-import {
-  usePaginatedFetch,
-  type PageMeta,
-} from '@/apps/admin/composables/usePaginatedFetch';
+import { usePaginatedFetch, type PageMeta } from '@/apps/admin/composables/usePaginatedFetch';
 import { createApiResponseSchema } from '@/schemas/api/base';
 import type { ColonelCustomDomain } from '@/schemas/api/internal/responses/colonel';
 import { colonelCustomDomainsResponseSchema } from '@/schemas/api/internal/responses/colonel';
@@ -177,7 +174,7 @@ async function verifyDomain(
     response.data,
     'ColonelDomainVerifyResponse'
   );
-  return parsed.ok ? parsed.data.details ?? null : null;
+  return parsed.ok ? (parsed.data.details ?? null) : null;
 }
 
 /**
@@ -198,7 +195,7 @@ async function probeDomain(
     response.data,
     'ColonelDomainProbeResponse'
   );
-  return parsed.ok ? parsed.data.details ?? null : null;
+  return parsed.ok ? (parsed.data.details ?? null) : null;
 }
 
 /**
@@ -219,7 +216,7 @@ async function repairDomain(
     response.data,
     'ColonelDomainRepairResponse'
   );
-  return parsed.ok ? parsed.data.details ?? null : null;
+  return parsed.ok ? (parsed.data.details ?? null) : null;
 }
 
 /**
@@ -243,7 +240,7 @@ async function transferDomain(
     response.data,
     'ColonelDomainTransferResponse'
   );
-  return parsed.ok ? parsed.data.details ?? null : null;
+  return parsed.ok ? (parsed.data.details ?? null) : null;
 }
 
 /**
@@ -265,7 +262,7 @@ async function removeDomain(
     response.data,
     'ColonelDomainRemoveResponse'
   );
-  return parsed.ok ? parsed.data.details ?? null : null;
+  return parsed.ok ? (parsed.data.details ?? null) : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -296,7 +293,7 @@ async function fetchDomainConfigs(
     response.data,
     'ColonelDomainConfigsResponse'
   );
-  return parsed.ok ? parsed.data.details ?? null : null;
+  return parsed.ok ? (parsed.data.details ?? null) : null;
 }
 
 /**
@@ -310,16 +307,13 @@ async function upsertDomainConfig(
   kind: EditableDomainConfigKind,
   body: Record<string, unknown>
 ): Promise<ColonelDomainConfigUpsertDetails | null> {
-  const response = await $api.put(
-    `${domainConfigsPath(extid)}/${encodeURIComponent(kind)}`,
-    body
-  );
+  const response = await $api.put(`${domainConfigsPath(extid)}/${encodeURIComponent(kind)}`, body);
   const parsed = gracefulParse(
     colonelDomainConfigUpsertResponseSchema,
     response.data,
     'ColonelDomainConfigUpsertResponse'
   );
-  return parsed.ok ? parsed.data.details ?? null : null;
+  return parsed.ok ? (parsed.data.details ?? null) : null;
 }
 
 /** Delete one config record (any of the seven kinds). Missing record → 404. */
@@ -328,15 +322,13 @@ async function deleteDomainConfig(
   extid: string,
   kind: DomainConfigKind
 ): Promise<ColonelDomainConfigDeleteDetails | null> {
-  const response = await $api.delete(
-    `${domainConfigsPath(extid)}/${encodeURIComponent(kind)}`
-  );
+  const response = await $api.delete(`${domainConfigsPath(extid)}/${encodeURIComponent(kind)}`);
   const parsed = gracefulParse(
     colonelDomainConfigDeleteResponseSchema,
     response.data,
     'ColonelDomainConfigDeleteResponse'
   );
-  return parsed.ok ? parsed.data.details ?? null : null;
+  return parsed.ok ? (parsed.data.details ?? null) : null;
 }
 
 /**
@@ -358,7 +350,7 @@ async function ensureDomainConfigs(
     response.data,
     'ColonelDomainConfigsEnsureResponse'
   );
-  return parsed.ok ? parsed.data.details ?? null : null;
+  return parsed.ok ? (parsed.data.details ?? null) : null;
 }
 
 /** Bind every per-domain verb to one Axios instance for the store's surface. */
@@ -367,16 +359,14 @@ function bindOperations($api: AxiosInstance) {
     fetchDetail: (extid: string) => fetchDomainDetail($api, extid),
     verify: (extid: string) => verifyDomain($api, extid),
     probe: (extid: string, timeout?: number) => probeDomain($api, extid, timeout),
-    repair: (extid: string, options: DomainRepairOptions) =>
-      repairDomain($api, extid, options),
+    repair: (extid: string, options: DomainRepairOptions) => repairDomain($api, extid, options),
     transfer: (extid: string, options: DomainTransferOptions) =>
       transferDomain($api, extid, options),
     remove: (extid: string, dryRun: boolean) => removeDomain($api, extid, dryRun),
     fetchConfigs: (extid: string) => fetchDomainConfigs($api, extid),
     upsertConfig: (extid: string, kind: EditableDomainConfigKind, body: Record<string, unknown>) =>
       upsertDomainConfig($api, extid, kind, body),
-    deleteConfig: (extid: string, kind: DomainConfigKind) =>
-      deleteDomainConfig($api, extid, kind),
+    deleteConfig: (extid: string, kind: DomainConfigKind) => deleteDomainConfig($api, extid, kind),
     ensureConfigs: (extid: string, options: DomainConfigsEnsureOptions) =>
       ensureDomainConfigs($api, extid, options),
   };

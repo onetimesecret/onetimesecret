@@ -20,16 +20,19 @@ This file contains keys that were never properly categorized during initial loca
 ## Key-by-Key Analysis
 
 ### 1. `continue`
+
 - **Current value:** `"Continue"`
 - **Already exists in:** `_common.json` at `web.COMMON.continue` and `web.COMMON.word_continue`
 - **Recommendation:** DELETE - duplicate of existing key
 
 ### 2. `back`
+
 - **Current value:** `"Back"`
 - **Already exists in:** `_common.json` at `web.COMMON.back`
 - **Recommendation:** DELETE - duplicate of existing key
 
 ### 3. `received`
+
 - **Current value:** `"RECEIVED"` (uppercase)
 - **Already exists in:**
   - `_common.json` at `web.COMMON.received` (title case: "Received")
@@ -38,6 +41,7 @@ This file contains keys that were never properly categorized during initial loca
 - **Recommendation:** DELETE - if uppercase variant is needed, it should be handled via CSS text-transform or a dedicated status display key in `_common.json`
 
 ### 4. `stats`
+
 - **Current value:** `"Stats"`
 - **Not found in other files**
 - **Possible destinations:**
@@ -48,12 +52,12 @@ This file contains keys that were never properly categorized during initial loca
 
 ## Summary of Recommendations
 
-| Key | Action | Destination |
-|-----|--------|-------------|
-| `continue` | DELETE | Already in `_common.json` |
-| `back` | DELETE | Already in `_common.json` |
-| `received` | DELETE | Already in `_common.json` |
-| `stats` | MOVE | `_common.json` -> `web.LABELS.stats` |
+| Key        | Action | Destination                          |
+| ---------- | ------ | ------------------------------------ |
+| `continue` | DELETE | Already in `_common.json`            |
+| `back`     | DELETE | Already in `_common.json`            |
+| `received` | DELETE | Already in `_common.json`            |
+| `stats`    | MOVE   | `_common.json` -> `web.LABELS.stats` |
 
 ## Suggested Changes
 

@@ -1,7 +1,7 @@
 ---
-id: "011"
+id: '011'
 status: accepted
-title: "ADR-011: I18n Initialization in Test Setup"
+title: 'ADR-011: I18n Initialization in Test Setup'
 ---
 
 ## Status

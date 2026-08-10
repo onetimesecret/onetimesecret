@@ -25,7 +25,7 @@
 </script>
 
 <template>
-  <div class="container mx-auto min-w-[320px] max-w-2xl">
+  <div class="container mx-auto max-w-2xl min-w-[320px]">
     <SecretForm
       class="mb-10"
       :with-generate="true"

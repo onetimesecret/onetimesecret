@@ -19,12 +19,8 @@
 
 import { receiptResponseSchema } from '@/schemas/api/v3/responses/receipts';
 import { receiptBaseSchema } from '@/schemas/shapes/v3/receipt';
-import {
-  secretResponseSchema,
-} from '@/schemas/api/v3/responses/secrets';
-import {
-  accountResponseSchema,
-} from '@/schemas/api/v3/responses/account';
+import { secretResponseSchema } from '@/schemas/api/v3/responses/secrets';
+import { accountResponseSchema } from '@/schemas/api/v3/responses/account';
 // Organization schemas moved to internal registry (no longer V3 public API)
 import {
   customDomainResponseSchema,
@@ -166,10 +162,7 @@ describe('V3 schema null-safety audit', () => {
     });
 
     // Fields that MUST accept null (the fix targets)
-    const nullableReceiptDetailsFields = [
-      'has_passphrase',
-      'can_decrypt',
-    ];
+    const nullableReceiptDetailsFields = ['has_passphrase', 'can_decrypt'];
 
     it.each(nullableReceiptDetailsFields)(
       'receipt details field "%s" accepts null (coerces to false)',
@@ -227,12 +220,7 @@ describe('V3 schema null-safety audit', () => {
       expect(secretBooleans.length).toBeGreaterThan(0);
     });
 
-    const secretDetailsBareFields = [
-      'continue',
-      'is_owner',
-      'show_secret',
-      'correct_passphrase',
-    ];
+    const secretDetailsBareFields = ['continue', 'is_owner', 'show_secret', 'correct_passphrase'];
 
     it.each(secretDetailsBareFields)(
       'secret details field "%s" uses bare z.boolean() and REJECTS null',
@@ -243,10 +231,7 @@ describe('V3 schema null-safety audit', () => {
       }
     );
 
-    const secretRecordBareFields = [
-      'has_passphrase',
-      'verification',
-    ];
+    const secretRecordBareFields = ['has_passphrase', 'verification'];
 
     it.each(secretRecordBareFields)(
       'secret record field "%s" uses bare z.boolean() and REJECTS null',
@@ -264,10 +249,7 @@ describe('V3 schema null-safety audit', () => {
       expect(accountBooleans.length).toBeGreaterThan(0);
     });
 
-    const accountRecordBareFields = [
-      'record.cust.verified',
-      'record.cust.active',
-    ];
+    const accountRecordBareFields = ['record.cust.verified', 'record.cust.active'];
 
     it.each(accountRecordBareFields)(
       'account field "%s" uses bare z.boolean() and REJECTS null',
@@ -726,11 +708,11 @@ describe('V3 schema null-safety audit', () => {
     // null is accepted for nullish fields like has_passphrase/can_decrypt
     const v2WireFormatPayload = {
       type: 'record' as const,
-      display_lines: '1',  // V2 sends numbers as strings
-      no_cache: 'true',    // V2 sends booleans as strings
+      display_lines: '1', // V2 sends numbers as strings
+      no_cache: 'true', // V2 sends booleans as strings
       secret_realttl: null,
       view_count: null,
-      has_passphrase: null,  // null is valid for nullish fields
+      has_passphrase: null, // null is valid for nullish fields
       can_decrypt: null,
       secret_value: null,
       show_secret: 'false',
@@ -772,14 +754,14 @@ describe('V3 schema null-safety audit', () => {
       // V3 receipt details should handle null for has_passphrase/can_decrypt
       const v3NativePayload = {
         type: 'record' as const,
-        display_lines: 1,         // V3: native number
-        no_cache: true,           // V3: native boolean
+        display_lines: 1, // V3: native number
+        no_cache: true, // V3: native boolean
         secret_realttl: null,
         view_count: null,
-        has_passphrase: null,     // null for consumed secrets
+        has_passphrase: null, // null for consumed secrets
         can_decrypt: null,
         secret_value: null,
-        show_secret: false,       // V3: native boolean
+        show_secret: false, // V3: native boolean
         show_secret_link: false,
         show_receipt_link: true,
         show_receipt: true,
@@ -806,8 +788,8 @@ describe('V3 schema null-safety audit', () => {
       // V2 wire format: numbers/booleans come as strings, null is valid for nullish fields.
       const v2AllNullBooleans = {
         type: 'record' as const,
-        display_lines: '1',  // V2 wire format: numbers as strings
-        no_cache: null,      // null is valid for z.string().nullish()
+        display_lines: '1', // V2 wire format: numbers as strings
+        no_cache: null, // null is valid for z.string().nullish()
         secret_realttl: null,
         view_count: null,
         has_passphrase: null,
@@ -883,7 +865,7 @@ describe('V3 schema null-safety audit', () => {
     it('coerces arbitrary non-matching strings to false', () => {
       expect(parseBoolean('yes')).toBe(false);
       expect(parseBoolean('no')).toBe(false);
-      expect(parseBoolean('True')).toBe(false);  // case-sensitive
+      expect(parseBoolean('True')).toBe(false); // case-sensitive
       expect(parseBoolean('FALSE')).toBe(false);
     });
 
@@ -961,8 +943,14 @@ describe('V3 schema null-safety audit', () => {
         no_cache: z.boolean(),
         secret_realttl: z.number().nullable().optional(),
         view_count: z.number().nullable(),
-        has_passphrase: z.boolean().nullable().transform((v) => v ?? false),
-        can_decrypt: z.boolean().nullable().transform((v) => v ?? false),
+        has_passphrase: z
+          .boolean()
+          .nullable()
+          .transform((v) => v ?? false),
+        can_decrypt: z
+          .boolean()
+          .nullable()
+          .transform((v) => v ?? false),
         secret_value: z.string().nullable().optional(),
         show_secret: z.boolean(),
         show_secret_link: z.boolean(),

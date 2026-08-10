@@ -64,8 +64,8 @@ routine cross-region accidental clicks — the UI should prevent those before a 
 
 ## Summary
 
-| Scenario | Correct Handling |
-|---|---|
-| User on same-region plan page, upgrading/downgrading | Normal checkout, no currency issue |
-| User on different-region plan page, clicking a plan | Disable selection; show "manage your subscription in your original region" |
-| User explicitly requesting region migration | `CurrencyMigrationModal` + cancel-and-recreate flow |
+| Scenario                                             | Correct Handling                                                           |
+| ---------------------------------------------------- | -------------------------------------------------------------------------- |
+| User on same-region plan page, upgrading/downgrading | Normal checkout, no currency issue                                         |
+| User on different-region plan page, clicking a plan  | Disable selection; show "manage your subscription in your original region" |
+| User explicitly requesting region migration          | `CurrencyMigrationModal` + cancel-and-recreate flow                        |

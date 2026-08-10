@@ -2,142 +2,144 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-import { ref, nextTick } from 'vue';
+  import { ref, nextTick } from 'vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-interface Props {
-  disabled?: boolean;
-  autoFocus?: boolean;
-  ariaDescribedby?: string;
-}
+  interface Props {
+    disabled?: boolean;
+    autoFocus?: boolean;
+    ariaDescribedby?: string;
+  }
 
-const props = withDefaults(defineProps<Props>(), {
-  disabled: false,
-  autoFocus: true,
-  ariaDescribedby: undefined,
-});
-
-const emit = defineEmits<{
-  complete: [code: string];
-  input: [code: string];
-}>();
-
-// Individual digit refs
-const digit1 = ref('');
-const digit2 = ref('');
-const digit3 = ref('');
-const digit4 = ref('');
-const digit5 = ref('');
-const digit6 = ref('');
-
-// Input element refs
-const input1 = ref<HTMLInputElement | null>(null);
-const input2 = ref<HTMLInputElement | null>(null);
-const input3 = ref<HTMLInputElement | null>(null);
-const input4 = ref<HTMLInputElement | null>(null);
-const input5 = ref<HTMLInputElement | null>(null);
-const input6 = ref<HTMLInputElement | null>(null);
-
-const inputRefs = [input1, input2, input3, input4, input5, input6];
-const digitValues = [digit1, digit2, digit3, digit4, digit5, digit6];
-
-// Focus first input on mount
-if (props.autoFocus) {
-  nextTick(() => {
-    input1.value?.focus();
+  const props = withDefaults(defineProps<Props>(), {
+    disabled: false,
+    autoFocus: true,
+    ariaDescribedby: undefined,
   });
-}
 
-// Handle input for each digit
-const handleInput = (index: number, event: Event) => {
-  const input = event.target as HTMLInputElement;
-  const value = input.value;
+  const emit = defineEmits<{
+    complete: [code: string];
+    input: [code: string];
+  }>();
 
-  // Only allow single digit
-  if (value.length > 1) {
-    digitValues[index].value = value.charAt(0);
-    return;
-  }
+  // Individual digit refs
+  const digit1 = ref('');
+  const digit2 = ref('');
+  const digit3 = ref('');
+  const digit4 = ref('');
+  const digit5 = ref('');
+  const digit6 = ref('');
 
-  // Only allow numbers
-  if (value && !/^\d$/.test(value)) {
-    digitValues[index].value = '';
-    return;
-  }
+  // Input element refs
+  const input1 = ref<HTMLInputElement | null>(null);
+  const input2 = ref<HTMLInputElement | null>(null);
+  const input3 = ref<HTMLInputElement | null>(null);
+  const input4 = ref<HTMLInputElement | null>(null);
+  const input5 = ref<HTMLInputElement | null>(null);
+  const input6 = ref<HTMLInputElement | null>(null);
 
-  // Move to next input if value entered
-  if (value && index < 5) {
+  const inputRefs = [input1, input2, input3, input4, input5, input6];
+  const digitValues = [digit1, digit2, digit3, digit4, digit5, digit6];
+
+  // Focus first input on mount
+  if (props.autoFocus) {
     nextTick(() => {
-      inputRefs[index + 1].value?.focus();
+      input1.value?.focus();
     });
   }
 
-  // Check if all digits filled
-  checkComplete();
-};
+  // Handle input for each digit
+  const handleInput = (index: number, event: Event) => {
+    const input = event.target as HTMLInputElement;
+    const value = input.value;
 
-// Handle backspace/delete
-const handleKeydown = (index: number, event: KeyboardEvent) => {
-  if (event.key === 'Backspace' && !digitValues[index].value && index > 0) {
-    // Move to previous input on backspace if current is empty
-    nextTick(() => {
-      inputRefs[index - 1].value?.focus();
-    });
-  }
-};
-
-// Handle paste
-const handlePaste = (event: ClipboardEvent) => {
-  event.preventDefault();
-  const pastedData = event.clipboardData?.getData('text') || '';
-  const digits = pastedData.replace(/\D/g, '').split('').slice(0, 6);
-
-  digits.forEach((digit, index) => {
-    if (index < 6) {
-      digitValues[index].value = digit;
+    // Only allow single digit
+    if (value.length > 1) {
+      digitValues[index].value = value.charAt(0);
+      return;
     }
-  });
 
-  // Focus last filled input or first empty one
-  const lastIndex = Math.min(digits.length, 5);
-  nextTick(() => {
-    inputRefs[lastIndex].value?.focus();
-  });
+    // Only allow numbers
+    if (value && !/^\d$/.test(value)) {
+      digitValues[index].value = '';
+      return;
+    }
 
-  checkComplete();
-};
+    // Move to next input if value entered
+    if (value && index < 5) {
+      nextTick(() => {
+        inputRefs[index + 1].value?.focus();
+      });
+    }
 
-// Check if all 6 digits are filled
-const checkComplete = () => {
-  const code = digitValues.map((d) => d.value).join('');
-  emit('input', code);
+    // Check if all digits filled
+    checkComplete();
+  };
 
-  if (code.length === 6) {
-    emit('complete', code);
-  }
-};
+  // Handle backspace/delete
+  const handleKeydown = (index: number, event: KeyboardEvent) => {
+    if (event.key === 'Backspace' && !digitValues[index].value && index > 0) {
+      // Move to previous input on backspace if current is empty
+      nextTick(() => {
+        inputRefs[index - 1].value?.focus();
+      });
+    }
+  };
 
-// Public method to clear the input
-const clear = () => {
-  digitValues.forEach((d) => {
-    d.value = '';
-  });
-  input1.value?.focus();
-};
+  // Handle paste
+  const handlePaste = (event: ClipboardEvent) => {
+    event.preventDefault();
+    const pastedData = event.clipboardData?.getData('text') || '';
+    const digits = pastedData.replace(/\D/g, '').split('').slice(0, 6);
 
-// Public method to focus
-const focus = () => {
-  input1.value?.focus();
-};
+    digits.forEach((digit, index) => {
+      if (index < 6) {
+        digitValues[index].value = digit;
+      }
+    });
 
-defineExpose({ clear, focus });
+    // Focus last filled input or first empty one
+    const lastIndex = Math.min(digits.length, 5);
+    nextTick(() => {
+      inputRefs[lastIndex].value?.focus();
+    });
+
+    checkComplete();
+  };
+
+  // Check if all 6 digits are filled
+  const checkComplete = () => {
+    const code = digitValues.map((d) => d.value).join('');
+    emit('input', code);
+
+    if (code.length === 6) {
+      emit('complete', code);
+    }
+  };
+
+  // Public method to clear the input
+  const clear = () => {
+    digitValues.forEach((d) => {
+      d.value = '';
+    });
+    input1.value?.focus();
+  };
+
+  // Public method to focus
+  const focus = () => {
+    input1.value?.focus();
+  };
+
+  defineExpose({ clear, focus });
 </script>
 
 <template>
   <div>
     <!-- Group label for screen readers -->
-    <span id="otp-code-label" class="sr-only">
+    <span
+      id="otp-code-label"
+      class="sr-only">
       {{ t('web.auth.mfa.six_digit_code') }}
     </span>
 
@@ -157,7 +159,7 @@ defineExpose({ clear, focus });
         @input="handleInput(0, $event)"
         @keydown="handleKeydown(0, $event)"
         @paste="handlePaste"
-        class="size-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
+        class="size-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
         :aria-label="t('web.auth.mfa.digit_of_count', { current: 1, total: 6 })"
         data-testid="otp-digit-1" />
       <input
@@ -170,7 +172,7 @@ defineExpose({ clear, focus });
         @input="handleInput(1, $event)"
         @keydown="handleKeydown(1, $event)"
         @paste="handlePaste"
-        class="size-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
+        class="size-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
         :aria-label="t('web.auth.mfa.digit_of_count', { current: 2, total: 6 })"
         data-testid="otp-digit-2" />
       <input
@@ -183,11 +185,15 @@ defineExpose({ clear, focus });
         @input="handleInput(2, $event)"
         @keydown="handleKeydown(2, $event)"
         @paste="handlePaste"
-        class="size-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
+        class="size-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
         :aria-label="t('web.auth.mfa.digit_of_count', { current: 3, total: 6 })"
         data-testid="otp-digit-3" />
 
-      <span class="text-2xl text-gray-400" aria-hidden="true">-</span>
+      <span
+        class="text-2xl text-gray-400"
+        aria-hidden="true"
+        >-</span
+      >
 
       <input
         ref="input4"
@@ -199,7 +205,7 @@ defineExpose({ clear, focus });
         @input="handleInput(3, $event)"
         @keydown="handleKeydown(3, $event)"
         @paste="handlePaste"
-        class="size-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
+        class="size-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
         :aria-label="t('web.auth.mfa.digit_of_count', { current: 4, total: 6 })"
         data-testid="otp-digit-4" />
       <input
@@ -212,7 +218,7 @@ defineExpose({ clear, focus });
         @input="handleInput(4, $event)"
         @keydown="handleKeydown(4, $event)"
         @paste="handlePaste"
-        class="size-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
+        class="size-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
         :aria-label="t('web.auth.mfa.digit_of_count', { current: 5, total: 6 })"
         data-testid="otp-digit-5" />
       <input
@@ -225,7 +231,7 @@ defineExpose({ clear, focus });
         @input="handleInput(5, $event)"
         @keydown="handleKeydown(5, $event)"
         @paste="handlePaste"
-        class="size-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
+        class="size-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
         :aria-label="t('web.auth.mfa.digit_of_count', { current: 6, total: 6 })"
         data-testid="otp-digit-6" />
     </div>

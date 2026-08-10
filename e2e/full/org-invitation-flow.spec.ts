@@ -358,9 +358,7 @@ test.describe('INV-003: Email Mismatch Warning', () => {
 test.describe('INV-004: Continue As Invited Email Flow', () => {
   test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
 
-  test('Clicking Continue As logs out and redirects to invite page', async ({
-    browser,
-  }) => {
+  test('Clicking Continue As logs out and redirects to invite page', async ({ browser }) => {
     const ownerContext = await browser.newContext(unauthenticatedContext);
     const wrongUserContext = await browser.newContext(unauthenticatedContext);
 
@@ -648,7 +646,6 @@ test.describe('INV-012: Gmail Alias Normalization', () => {
 
 test.describe('INV-014: Duplicate Member Invitation', () => {
   test('Inviting existing organization member shows validation error', async ({ page }) => {
-
     await navigateToOrgTeam(page);
 
     // Get the owner's email (who is already a member)

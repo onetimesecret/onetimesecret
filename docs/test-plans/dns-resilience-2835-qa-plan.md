@@ -14,28 +14,28 @@ externalization, caching, retry with backoff, and tracking fields.
 
 ### Test Files and Status
 
-| File | Coverage Area | Tests | Status |
-|------|--------------|-------|--------|
-| `try/unit/operations/validate_sender_domain_try.rb` | ValidateSenderDomain operation | 43 | PASS |
-| `try/unit/operations/provision_sender_domain_try.rb` | ProvisionSenderDomain operation | 41 | PASS |
-| `try/unit/domain_validation/sender_strategies_try.rb` | Strategy factory, DNS records | 50 | PASS |
-| `try/unit/domain_validation/parallel_dns_verification_try.rb` | Parallel DNS lookups | 25 | PASS (NEW) |
-| `try/unit/security/dns_rate_limiter_try.rb` | DNS rate limiting | 11 | PASS |
-| `try/unit/models/mailer_config_tracking_fields_try.rb` | Tracking fields | 23 | PASS (NEW) |
-| `try/unit/models/custom_domain_mailer_config_try.rb` | MailerConfig model | 74 | PASS |
-| `try/unit/jobs/domain_validation_worker_try.rb` | Worker queue config | 8 | PASS |
-| `try/unit/jobs/domain_validation_async_flow_try.rb` | Async flow, retry | 21 | PASS |
+| File                                                          | Coverage Area                   | Tests | Status     |
+| ------------------------------------------------------------- | ------------------------------- | ----- | ---------- |
+| `try/unit/operations/validate_sender_domain_try.rb`           | ValidateSenderDomain operation  | 43    | PASS       |
+| `try/unit/operations/provision_sender_domain_try.rb`          | ProvisionSenderDomain operation | 41    | PASS       |
+| `try/unit/domain_validation/sender_strategies_try.rb`         | Strategy factory, DNS records   | 50    | PASS       |
+| `try/unit/domain_validation/parallel_dns_verification_try.rb` | Parallel DNS lookups            | 25    | PASS (NEW) |
+| `try/unit/security/dns_rate_limiter_try.rb`                   | DNS rate limiting               | 11    | PASS       |
+| `try/unit/models/mailer_config_tracking_fields_try.rb`        | Tracking fields                 | 23    | PASS (NEW) |
+| `try/unit/models/custom_domain_mailer_config_try.rb`          | MailerConfig model              | 74    | PASS       |
+| `try/unit/jobs/domain_validation_worker_try.rb`               | Worker queue config             | 8     | PASS       |
+| `try/unit/jobs/domain_validation_async_flow_try.rb`           | Async flow, retry               | 21    | PASS       |
 
 ### Coverage Status by Feature
 
-| Feature | Implementation | Test Coverage |
-|---------|---------------|---------------|
-| Parallel DNS lookups (`verify_all_records`) | IMPLEMENTED | TESTED |
-| Rate limiting for DNS queries | IMPLEMENTED | TESTED |
-| Provider settings externalization | Hardcoded defaults | Partial (via strategy tests) |
-| DNS result caching (Redis) | IMPLEMENTED | TESTED |
-| DNS retry with backoff | IMPLEMENTED | TESTED |
-| MailerConfig tracking fields | IMPLEMENTED | TESTED |
+| Feature                                     | Implementation     | Test Coverage                |
+| ------------------------------------------- | ------------------ | ---------------------------- |
+| Parallel DNS lookups (`verify_all_records`) | IMPLEMENTED        | TESTED                       |
+| Rate limiting for DNS queries               | IMPLEMENTED        | TESTED                       |
+| Provider settings externalization           | Hardcoded defaults | Partial (via strategy tests) |
+| DNS result caching (Redis)                  | IMPLEMENTED        | TESTED                       |
+| DNS retry with backoff                      | IMPLEMENTED        | TESTED                       |
+| MailerConfig tracking fields                | IMPLEMENTED        | TESTED                       |
 
 ---
 
@@ -46,6 +46,7 @@ externalization, caching, retry with backoff, and tracking fields.
 **Location**: `lib/onetime/domain_validation/sender_strategies/base_strategy.rb`
 
 **Current Implementation**:
+
 - Uses `Concurrent::Promises` for parallel DNS lookups
 - Each record verification runs in its own future
 - Results collected in original order
@@ -100,6 +101,7 @@ Expected: Result contains :error key with exception message
 **Status**: Not yet implemented
 
 **Proposed Design** (based on PassphraseRateLimiter pattern):
+
 - Redis-backed counter per domain
 - Window-based rate limiting (e.g., 10 checks per minute per domain)
 - Global rate limit across all domains
@@ -149,6 +151,7 @@ Expected: 101st call raises LimitExceeded
 ### 2.3 Provider Settings Externalization
 
 **Current State**: Hardcoded in strategy classes
+
 - `SesValidation::DEFAULT_REGION = 'us-east-1'`
 - `SendgridValidation::DEFAULT_SUBDOMAIN = 'em'`
 
@@ -200,6 +203,7 @@ Expected: Validation error logged (or raise depending on strictness)
 **Status**: Not yet implemented
 
 **Proposed Design**:
+
 - Cache DNS lookup results per (host, record_type) tuple
 - TTL based on DNS record TTL (minimum 60s, maximum 3600s)
 - Cache key: `dns:cache:{sha256(host:type)}`
@@ -302,6 +306,7 @@ Expected: Final results show verified=true for retried record
 **Status**: Not yet implemented
 
 **Proposed Fields**:
+
 ```ruby
 field :last_check_at      # Unix timestamp of last verification attempt
 field :check_duration_ms  # Duration of last verification in milliseconds
@@ -429,16 +434,16 @@ And each domain should have its own rate limit state
 
 ## 5. Edge Cases and Error Conditions
 
-| Edge Case | Expected Behavior |
-|-----------|-------------------|
-| DNS resolver unavailable | Retry with backoff, then fail with error |
-| All records timeout | Return all-failed result, persist to model |
-| Redis unavailable (cache) | Fallback to live lookup, log warning |
-| Redis unavailable (rate limit) | Skip rate limiting, log warning |
-| Invalid mailer_config | ArgumentError raised before any DNS queries |
-| Empty domain_id | Early return with validation error |
-| Concurrent validation (same domain) | Rate limit prevents concurrent abuse |
-| Strategy raises NotImplementedError | Wrapped in Result.error, not re-raised |
+| Edge Case                           | Expected Behavior                           |
+| ----------------------------------- | ------------------------------------------- |
+| DNS resolver unavailable            | Retry with backoff, then fail with error    |
+| All records timeout                 | Return all-failed result, persist to model  |
+| Redis unavailable (cache)           | Fallback to live lookup, log warning        |
+| Redis unavailable (rate limit)      | Skip rate limiting, log warning             |
+| Invalid mailer_config               | ArgumentError raised before any DNS queries |
+| Empty domain_id                     | Early return with validation error          |
+| Concurrent validation (same domain) | Rate limit prevents concurrent abuse        |
+| Strategy raises NotImplementedError | Wrapped in Result.error, not re-raised      |
 
 ---
 
@@ -495,15 +500,15 @@ And each domain should have its own rate limit state
 
 ## 9. Acceptance Criteria Summary
 
-| Feature | Criteria |
-|---------|----------|
-| Parallel DNS | Total time < sum of individual lookups |
-| Error Isolation | Single record failure doesn't fail batch |
-| Rate Limiting | Per-domain and global limits enforced |
-| Caching | Cache hit ratio > 80% on repeated checks |
-| Retry | Transient failures recovered within 3 retries |
-| Tracking | All fields updated and persisted correctly |
-| Config | Settings loadable from config.yaml |
+| Feature         | Criteria                                      |
+| --------------- | --------------------------------------------- |
+| Parallel DNS    | Total time < sum of individual lookups        |
+| Error Isolation | Single record failure doesn't fail batch      |
+| Rate Limiting   | Per-domain and global limits enforced         |
+| Caching         | Cache hit ratio > 80% on repeated checks      |
+| Retry           | Transient failures recovered within 3 retries |
+| Tracking        | All fields updated and persisted correctly    |
+| Config          | Settings loadable from config.yaml            |
 
 ---
 
@@ -531,6 +536,7 @@ And each domain should have its own rate limit state
 ### Tests To Add When Features Are Implemented
 
 **DNS Caching (when implemented):**
+
 - Cache miss triggers live lookup
 - Cache hit returns cached value without DNS query
 - Cache expires after TTL
@@ -538,6 +544,7 @@ And each domain should have its own rate limit state
 - Minimum TTL floor enforced
 
 **Strategy-level Retry (when implemented):**
+
 - Transient DNS failure retries with backoff
 - Permanent failure (NXDOMAIN) does not retry
 - Max retries prevents infinite loop

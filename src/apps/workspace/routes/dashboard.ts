@@ -107,9 +107,7 @@ const routes: Array<RouteRecordRaw> = [
     // installs. On others (self-hosted/custom), a stale/bookmarked link lands
     // on the CNAME-setup screen instead. See isApproximatedDomainValidation().
     beforeEnter: (to) =>
-      isApproximatedDomainValidation()
-        ? true
-        : { name: 'DomainDns', params: to.params },
+      isApproximatedDomainValidation() ? true : { name: 'DomainDns', params: to.params },
     meta: {
       title: 'web.TITLES.domain_verify',
       requiresAuth: true,
@@ -135,9 +133,7 @@ const routes: Array<RouteRecordRaw> = [
     // Mirror of DomainVerify: approximated installs use the verification screen,
     // so a stale/bookmarked DNS link redirects there.
     beforeEnter: (to) =>
-      isApproximatedDomainValidation()
-        ? { name: 'DomainVerify', params: to.params }
-        : true,
+      isApproximatedDomainValidation() ? { name: 'DomainVerify', params: to.params } : true,
     meta: {
       title: 'web.TITLES.domain_dns',
       requiresAuth: true,

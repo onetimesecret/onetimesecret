@@ -6,9 +6,5 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": [
-    "./**/*.ts",
-    "../src/schemas/**/*.ts",
-    "../src/utils/**/*.ts"
-  ]
+  "include": ["./**/*.ts", "../src/schemas/**/*.ts", "../src/utils/**/*.ts"]
 }

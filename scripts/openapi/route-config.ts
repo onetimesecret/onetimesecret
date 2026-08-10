@@ -13,7 +13,6 @@ export interface SpecTarget {
   frozen?: boolean;
 }
 
-
 // =============================================================================
 // Error Responses
 // =============================================================================
@@ -34,12 +33,24 @@ const errorContent = {
     schema: {
       type: 'object',
       properties: {
-        error: { type: 'string', description: 'ADR-013: user-facing message (V2+). On frozen V1 this is the error type identifier.' },
-        error_type: { type: 'string', description: 'Machine-readable error class the client branches on (ADR-013, e.g., "RecordNotFound")' },
+        error: {
+          type: 'string',
+          description:
+            'ADR-013: user-facing message (V2+). On frozen V1 this is the error type identifier.',
+        },
+        error_type: {
+          type: 'string',
+          description:
+            'Machine-readable error class the client branches on (ADR-013, e.g., "RecordNotFound")',
+        },
         message: { type: 'string', description: 'Human-readable error message (legacy/V1 shape)' },
         field: { type: 'string', description: 'Field that caused the error, if applicable' },
         error_id: { type: 'string', description: 'Unique error tracking identifier' },
-        request_id: { type: 'string', description: 'Request correlation id; mirrors the x-request-id response header and appears in the server request log. Quote this when reporting an error.' },
+        request_id: {
+          type: 'string',
+          description:
+            'Request correlation id; mirrors the x-request-id response header and appears in the server request log. Quote this when reporting an error.',
+        },
       },
     },
   },
@@ -88,11 +99,11 @@ export function mergeResponses(
   includeErrors: (keyof typeof standardErrorResponses)[] = [400, 401, 500]
 ): Record<string, { description: string }> {
   const errorResponses = Object.fromEntries(
-    includeErrors.map(code => [code, standardErrorResponses[code]])
+    includeErrors.map((code) => [code, standardErrorResponses[code]])
   );
 
   return {
     ...errorResponses,
-    ...customResponses
+    ...customResponses,
   };
 }

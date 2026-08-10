@@ -10,12 +10,12 @@ CI is green while the production path is broken.
 
 ## Task states
 
-| Marker | Meaning |
-|--------|---------|
-| `[ ] TODO` | Not started |
+| Marker            | Meaning                                   |
+| ----------------- | ----------------------------------------- |
+| `[ ] TODO`        | Not started                               |
 | `[~] IN PROGRESS` | Actively being worked (note owner/branch) |
-| `[!] BLOCKED` | Blocked — note blocker inline |
-| `[x] DONE` | Fixed, tested, merged |
+| `[!] BLOCKED`     | Blocked — note blocker inline             |
+| `[x] DONE`        | Fixed, tested, merged                     |
 
 ---
 

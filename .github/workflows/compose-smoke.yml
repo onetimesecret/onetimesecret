@@ -124,7 +124,7 @@ jobs:
       # README tag, which may predate the CLI contract this step depends on.
       - name: Proof of life (incl. first-account step)
         env:
-          POL_CREATE_ACCOUNT: "1"
+          POL_CREATE_ACCOUNT: '1'
           POL_EXEC: docker compose -f docker/compose/docker-compose.simple.yml exec -T app
         run: ./scripts/install-tests/proof-of-life.sh http://127.0.0.1:3000
 

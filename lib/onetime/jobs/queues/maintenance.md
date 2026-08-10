@@ -24,11 +24,13 @@ Reserve queue arguments for structural properties that define the queue's identi
 Two-phase migration, analogous to a DB column rename across releases:
 
 **Release 1** — Add the new queue, bridge consumers:
+
 - Declare `dlq.email.message.v2` with updated arguments
 - Deploy consumers that read from both v1 and v2
 - Route new dead letters to v2
 
 **Release 2** — Remove the old queue:
+
 - Confirm v1 is drained (no pending messages)
 - Remove v1 consumer bindings
 - Delete the old queue

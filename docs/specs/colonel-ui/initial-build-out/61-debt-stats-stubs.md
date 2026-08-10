@@ -1,7 +1,7 @@
 ---
 labels: admin-v2, backend, tech debt
 depends: none
-epic: "#3653"
+epic: '#3653'
 ---
 
 # Admin rebuild: implement real global stats or drop the stubbed tiles

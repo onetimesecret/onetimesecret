@@ -39,6 +39,7 @@ import type { DataTableColumn, SortState, FilterConfig } from '@/apps/admin/comp
 ## Components
 
 ### `DataTable`
+
 Config-driven, sortable table. Replaces per-view `<th>`/`<td>` duplication.
 
 - Props: `columns: DataTableColumn<T>[]`, `rows: T[]`, `rowKey`, `loading?`,
@@ -62,28 +63,33 @@ Config-driven, sortable table. Replaces per-view `<th>`/`<td>` duplication.
 ```
 
 ### `KitPagination`
+
 Re-homed `ColonelPagination` — same frozen emit contract
 (`update:page` / `update:perPage` over `page` / `per_page` / `total_count` /
 `total_pages`). Its `pagination` prop is exactly the `PageMeta` the shared
 `usePaginatedFetch` composable produces, so store → control needs no re-mapping.
 
 ### `StatCard`
+
 Dashboard metric tile. Props: `label`, `value?`, `icon?`, `iconCollection?`,
 `trend?`, `trendDirection?`, `loading?`, `to?`. Slots: default (custom value),
 `icon`, `footer`. Renders as a `<router-link>` when `to` is set.
 
 ### `FilterBar`
+
 Config-driven filter toolbar, replacing inline per-view `<select>`s. Renders a
 native `<select>` per `FilterConfig` (native semantics for a11y) plus an optional
 search box. Controlled: emits `filter-change (key, value)`, `update:search`,
 `clear`. Bespoke controls go in the default slot; view actions in `#actions`.
 
 ### `DetailDrawer`
+
 Right-hand slide-over for record detail. Props: `open` (`v-model:open`), `title?`,
 `subtitle?`, `widthClass?`. Emits `update:open` + `close`. Slots: default (body),
 `header`, `footer`. Escape / backdrop / close-button all dismiss.
 
 ### `JsonViewer`
+
 Pretty, collapsible, syntax-coloured JSON inspector for raw record inspection.
 Props: `data`, `expandDepth?` (default 1), `showToolbar?`. Toolbar offers
 expand-all / collapse-all / copy. Read-only — callers must strip secrets/tokens
@@ -91,6 +97,7 @@ before passing sensitive records (redaction is governed by the audit log,
 CONTRACT 6).
 
 ### `AdminConfirmDialog`
+
 The D4 destructive-action gate (frozen API — reused by #22/30/40/41/42/43/44).
 Generalises `PasswordConfirmModal` into a **typed-confirmation** dialog.
 

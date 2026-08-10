@@ -102,7 +102,9 @@ async function getFirstDomain(page: Page, orgExtid: string): Promise<DomainInfo 
  */
 async function clickBackButton(page: Page): Promise<void> {
   // Look for back button - typically has arrow-left icon or "back" text
-  const backButton = page.locator('button:has([name="arrow-left"]), button:has-text("Back")').first();
+  const backButton = page
+    .locator('button:has([name="arrow-left"]), button:has-text("Back")')
+    .first();
   await backButton.waitFor({ state: 'visible', timeout: 5000 });
   await backButton.click();
 }
@@ -134,7 +136,11 @@ test.describe('Domain Sub-page Navigation', () => {
 
     // SSO might require entitlement - skip if access denied
     if (!onSsoPage) {
-      const accessDenied = await page.locator('text=access denied').first().isVisible().catch(() => false);
+      const accessDenied = await page
+        .locator('text=access denied')
+        .first()
+        .isVisible()
+        .catch(() => false);
       test.skip(accessDenied, 'SSO access denied - requires entitlement');
     }
 
@@ -168,7 +174,11 @@ test.describe('Domain Sub-page Navigation', () => {
     const onIncomingPage = await incomingTitle.isVisible().catch(() => false);
 
     if (!onIncomingPage) {
-      const accessDenied = await page.locator('text=access denied').first().isVisible().catch(() => false);
+      const accessDenied = await page
+        .locator('text=access denied')
+        .first()
+        .isVisible()
+        .catch(() => false);
       test.skip(accessDenied, 'Incoming access denied - requires entitlement');
     }
 
@@ -233,7 +243,11 @@ test.describe('DomainHeader External Link', () => {
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Check for access denied
-    const accessDenied = await page.locator('text=access denied').first().isVisible().catch(() => false);
+    const accessDenied = await page
+      .locator('text=access denied')
+      .first()
+      .isVisible()
+      .catch(() => false);
     test.skip(accessDenied, 'Incoming access denied - requires entitlement');
 
     // Find the external link in the header
@@ -258,7 +272,11 @@ test.describe('DomainHeader External Link', () => {
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Check for access denied
-    const accessDenied = await page.locator('text=access denied').first().isVisible().catch(() => false);
+    const accessDenied = await page
+      .locator('text=access denied')
+      .first()
+      .isVisible()
+      .catch(() => false);
     test.skip(accessDenied, 'SSO access denied - requires entitlement');
 
     // Find the external link in the header

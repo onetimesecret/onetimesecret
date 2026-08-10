@@ -68,14 +68,14 @@ tests:
         assertion: visible
       - selector: "[role='alert']"
         assertion: contains
-        value: "email address from your identity provider is invalid"
+        value: 'email address from your identity provider is invalid'
       - The page is usable, not a blank/stuck loading screen
-      - selector: "#signin-heading"
+      - selector: '#signin-heading'
         assertion: visible
     priority: critical
     severity: blocker
     type: error
-    covers: [Login.vue, "web.login.errors.invalid_email", authErrorMessages]
+    covers: [Login.vue, 'web.login.errors.invalid_email', authErrorMessages]
     notes: >-
       This is the core regression. The exact English text lives in
       locales/content/en/session-auth.json under web.login.errors.invalid_email.
@@ -91,7 +91,7 @@ tests:
       - No auth error alert is present on a clean sign-in page
       - selector: "[role='alert']"
         assertion: hidden
-      - selector: "#signin-heading"
+      - selector: '#signin-heading'
         assertion: visible
     priority: medium
     severity: minor
@@ -118,7 +118,7 @@ tests:
     priority: medium
     severity: minor
     type: ui
-    covers: [Login.vue, "onMounted router.replace"]
+    covers: [Login.vue, 'onMounted router.replace']
     notes: >-
       Confirms the param-clearing behavior so the error doesn't persist across
       refreshes. If timing makes the URL assertion flaky, assert the alert text
@@ -145,14 +145,14 @@ tests:
     verify:
       - After IdP authentication the browser lands back on the sign-in page
       - url:
-          pattern: "/signin"
+          pattern: '/signin'
           description: Server redirected the callback to /signin
       - The invalid_email error is shown (not a spinner, not a blank page)
       - selector: "[role='alert']"
         assertion: visible
       - selector: "[role='alert']"
         assertion: contains
-        value: "email address from your identity provider is invalid"
+        value: 'email address from your identity provider is invalid'
       - User is not authenticated
       - api:
           endpoint: GET /bootstrap/me
@@ -162,7 +162,7 @@ tests:
     severity: major
     type: integration
     covers:
-      - "apps/web/auth/config/hooks/omniauth.rb:before_omniauth_create_account"
+      - 'apps/web/auth/config/hooks/omniauth.rb:before_omniauth_create_account'
       - Login.vue
     skip:
       reason: >-
@@ -190,7 +190,7 @@ tests:
     verify:
       - User is authenticated and redirected away from the sign-in page
       - url:
-          pattern: "^/(?!signin)"
+          pattern: '^/(?!signin)'
           description: Landed on an authenticated page, not back on /signin
       - No invalid_email error is shown
       - selector: "[role='alert']"
@@ -203,8 +203,8 @@ tests:
     severity: major
     type: integration
     covers:
-      - "apps/web/auth/config/hooks/omniauth.rb"
-      - "apps/web/auth/config/hooks/login.rb:after_login"
+      - 'apps/web/auth/config/hooks/omniauth.rb'
+      - 'apps/web/auth/config/hooks/login.rb:after_login'
     skip:
       reason: Requires a configured SSO IdP that returns a valid email claim.
       when: no_idp

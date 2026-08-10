@@ -5,8 +5,7 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { Menu, MenuButton, MenuItems } from '@headlessui/vue';
 
-const { t } = useI18n();
-
+  const { t } = useI18n();
 </script>
 
 <template>
@@ -15,7 +14,7 @@ const { t } = useI18n();
     class="relative inline-block text-left">
     <div>
       <MenuButton
-        class="flex items-center rounded-full text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-100 dark:text-gray-400 dark:hover:text-gray-300 dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-900">
+        class="flex items-center rounded-full text-gray-400 hover:text-gray-600 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-100 focus:outline-none dark:text-gray-400 dark:hover:text-gray-300 dark:focus:ring-indigo-400 dark:focus:ring-offset-gray-900">
         <span class="sr-only">{{ t('web.COMMON.open_options') }}</span>
         <OIcon
           class="size-5"

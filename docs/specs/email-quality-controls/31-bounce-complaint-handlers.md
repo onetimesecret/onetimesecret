@@ -36,11 +36,11 @@ policy table, via the self-registering handler-registry shape
 - **Policy table** (the heart of the slice; constants in one module so slice 60
   and the docs cite a single source):
 
-  | Event | Action | Reason | Scope | TTL |
-  |---|---|---|---|---|
-  | hard bounce | suppress immediately | `hard_bounce` | `all` | none (permanent) |
-  | soft bounce | count; suppress after `SOFT_BOUNCE_THRESHOLD = 3` distinct events within `SOFT_BOUNCE_WINDOW = 72h` | `soft_bounce` | `all` | `SOFT_BOUNCE_TTL = 14 days` |
-  | complaint | suppress immediately | `complaint` | `recipient_and_notification` | none (permanent) |
+  | Event       | Action                                                                                              | Reason        | Scope                        | TTL                         |
+  | ----------- | --------------------------------------------------------------------------------------------------- | ------------- | ---------------------------- | --------------------------- |
+  | hard bounce | suppress immediately                                                                                | `hard_bounce` | `all`                        | none (permanent)            |
+  | soft bounce | count; suppress after `SOFT_BOUNCE_THRESHOLD = 3` distinct events within `SOFT_BOUNCE_WINDOW = 72h` | `soft_bounce` | `all`                        | `SOFT_BOUNCE_TTL = 14 days` |
+  | complaint   | suppress immediately                                                                                | `complaint`   | `recipient_and_notification` | none (permanent)            |
 
   Scope semantics (with slice 20's categories): `all` blocks everything
   including `transactional_account`; `recipient_and_notification` blocks
@@ -49,6 +49,7 @@ policy table, via the self-registering handler-registry shape
   a complaint about a share shouldn't lock a customer out of account recovery,
   while a dead mailbox blocks everything. `notification` scope is reserved for
   category-scoped unsubscribes (slice 50).
+
 - Soft-bounce counting: fixed-window Redis counter keyed by address hash
   (`emailquality:softbounce:%s`), Lua INCR+EXPIRE, same mechanics as the
   Security limiters; counter co-located with the suppression model's dbclient.

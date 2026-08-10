@@ -19,36 +19,36 @@ The `feature-organizations.json` file contains 107 translation keys organized un
 
 These keys duplicate or closely mirror existing common translations:
 
-| Key | Current Location | Recommended Destination | Rationale |
-|-----|------------------|------------------------|-----------|
-| `create` | `web.organizations.create` | `web.LABELS.create` | Generic action label |
-| `delete` | `web.organizations.delete` | `web.LABELS.delete` | Generic action label |
-| `save_changes` | `web.organizations.save_changes` | Already exists: `web.COMMON.save_changes` | Duplicate |
-| `danger_zone` | `web.organizations.danger_zone` | Already exists: `web.COMMON.danger_zone` | Duplicate |
-| `created` | `web.organizations.created` | `web.STATUS.created` | Already exists in STATUS |
-| `last_updated` | `web.organizations.last_updated` | `web.LABELS.last_updated` | Common timestamp label |
-| `default` | `web.organizations.default` | `web.COMMON.default` | Generic label |
-| `not_found` | `web.organizations.not_found` | Pattern exists: `web.COMMON.not-found` | Generic 404 pattern |
+| Key            | Current Location                 | Recommended Destination                   | Rationale                |
+| -------------- | -------------------------------- | ----------------------------------------- | ------------------------ |
+| `create`       | `web.organizations.create`       | `web.LABELS.create`                       | Generic action label     |
+| `delete`       | `web.organizations.delete`       | `web.LABELS.delete`                       | Generic action label     |
+| `save_changes` | `web.organizations.save_changes` | Already exists: `web.COMMON.save_changes` | Duplicate                |
+| `danger_zone`  | `web.organizations.danger_zone`  | Already exists: `web.COMMON.danger_zone`  | Duplicate                |
+| `created`      | `web.organizations.created`      | `web.STATUS.created`                      | Already exists in STATUS |
+| `last_updated` | `web.organizations.last_updated` | `web.LABELS.last_updated`                 | Common timestamp label   |
+| `default`      | `web.organizations.default`      | `web.COMMON.default`                      | Generic label            |
+| `not_found`    | `web.organizations.not_found`    | Pattern exists: `web.COMMON.not-found`    | Generic 404 pattern      |
 
 ### 2. Billing-Related Keys (Move to `account-billing.json`)
 
 These keys belong with billing/subscription concerns:
 
-| Key | Recommended Destination | Rationale |
-|-----|------------------------|-----------|
-| `contact_email` | `web.billing.organization.contact_email` | Labeled as "Billing Email" |
-| `contact_email_help` | `web.billing.organization.contact_email_help` | Billing/admin context |
-| `billing_settings` | `web.billing.navigation.billing_settings` | Billing section |
-| `billing_coming_soon` | `web.billing.notices.coming_soon` | Billing feature status |
-| `billing_coming_soon_description` | `web.billing.notices.coming_soon_description` | Billing feature status |
-| `tabs.billing` | `web.billing.navigation.tab` | Billing tab |
+| Key                               | Recommended Destination                       | Rationale                  |
+| --------------------------------- | --------------------------------------------- | -------------------------- |
+| `contact_email`                   | `web.billing.organization.contact_email`      | Labeled as "Billing Email" |
+| `contact_email_help`              | `web.billing.organization.contact_email_help` | Billing/admin context      |
+| `billing_settings`                | `web.billing.navigation.billing_settings`     | Billing section            |
+| `billing_coming_soon`             | `web.billing.notices.coming_soon`             | Billing feature status     |
+| `billing_coming_soon_description` | `web.billing.notices.coming_soon_description` | Billing feature status     |
+| `tabs.billing`                    | `web.billing.navigation.tab`                  | Billing tab                |
 
 ### 3. Branding-Related Keys (Move to `feature-branding.json`)
 
 Company branding belongs with the branding feature:
 
-| Key | Recommended Destination | Rationale |
-|-----|------------------------|-----------|
+| Key                     | Recommended Destination                        | Rationale        |
+| ----------------------- | ---------------------------------------------- | ---------------- |
 | `tabs.company_branding` | `web.branding.navigation.company_branding_tab` | Branding context |
 
 ---
@@ -141,11 +141,13 @@ The `invitations` sub-object (lines 61-107) is well-structured but could be its 
 ### Consider: New File `feature-organizations-invitations.json`
 
 **Pros:**
+
 - Clear separation of concerns
 - Invitation logic is distinct from org management
 - Easier to maintain independently
 
 **Cons:**
+
 - Adds file count
 - May be overkill if invitations remain tightly coupled
 
@@ -214,11 +216,11 @@ The `invitations` sub-object (lines 61-107) is well-structured but could be its 
 The following keys already exist in `_common.json` and should use references:
 
 | `feature-organizations.json` | `_common.json` Equivalent |
-|------------------------------|---------------------------|
-| `save_changes` | `web.COMMON.save_changes` |
-| `danger_zone` | `web.COMMON.danger_zone` |
-| `created` | `web.STATUS.created` |
-| `tabs.general` | `web.COMMON.general` |
+| ---------------------------- | ------------------------- |
+| `save_changes`               | `web.COMMON.save_changes` |
+| `danger_zone`                | `web.COMMON.danger_zone`  |
+| `created`                    | `web.STATUS.created`      |
+| `tabs.general`               | `web.COMMON.general`      |
 
 ---
 
@@ -227,6 +229,7 @@ The following keys already exist in `_common.json` and should use references:
 ### 1. `feature-members.json` (Future consideration)
 
 If team/member management expands beyond invitations, consider:
+
 - Member listing
 - Role management
 - Member permissions

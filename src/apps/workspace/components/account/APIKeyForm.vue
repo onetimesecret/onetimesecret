@@ -67,8 +67,7 @@
 
     <button
       type="submit"
-      class="flex w-full items-center justify-center rounded bg-gray-500 px-4 py-2
-        text-white hover:bg-gray-600">
+      class="flex w-full items-center justify-center rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600">
       <svg
         class="mr-2 size-4"
         xmlns="http://www.w3.org/2000/svg"

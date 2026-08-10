@@ -1,7 +1,7 @@
 ---
-id: "021"
+id: '021'
 status: proposed
-title: "ADR-021: Audit Log Terminology & Event-Stream Scoping"
+title: 'ADR-021: Audit Log Terminology & Event-Stream Scoping'
 ---
 
 ## Status
@@ -26,13 +26,13 @@ different things, from different sources, with different retention and actor sem
 but they share one entitlement and will land in the same workspace surface, so the
 terminology and visibility rules need to be settled before either frontend ships.
 
-| | #2799 | #3633 / #3635 / #3637 |
-|---|---|---|
-| **What it logs** | Auth / account / SSO security events (login, MFA, password change, SSO config change) | Secret lifecycle & access events (created, secret_get, revealed, burned, expired, orphaned…) |
-| **Source** | Rodauth SQL (`account_authentication_audit_logs`) + proposed Familia `AuditEvent` | Familia `AuditTrail` (Redis sorted set; since renamed `SecretActivity` — Decision 5) |
-| **Actor attribution** | Yes (actor id, email, IP, UA) | No (recipients are anonymous capability-token holders) |
-| **Retention** | TTL-based (90 days proposed) | Cap-based (newest 10,000 events per org) |
-| **Status** | Unstarted | Backend shipped (#3635); UX in #3637 |
+|                       | #2799                                                                                 | #3633 / #3635 / #3637                                                                        |
+| --------------------- | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| **What it logs**      | Auth / account / SSO security events (login, MFA, password change, SSO config change) | Secret lifecycle & access events (created, secret_get, revealed, burned, expired, orphaned…) |
+| **Source**            | Rodauth SQL (`account_authentication_audit_logs`) + proposed Familia `AuditEvent`     | Familia `AuditTrail` (Redis sorted set; since renamed `SecretActivity` — Decision 5)         |
+| **Actor attribution** | Yes (actor id, email, IP, UA)                                                         | No (recipients are anonymous capability-token holders)                                       |
+| **Retention**         | TTL-based (90 days proposed)                                                          | Cap-based (newest 10,000 events per org)                                                     |
+| **Status**            | Unstarted                                                                             | Backend shipped (#3635); UX in #3637                                                         |
 
 > **Status note (2026-08-02):** the context table above predates #3639/#3637.
 > Secret Activity now DOES record actor attribution at capture time
@@ -50,10 +50,10 @@ terminology and visibility rules need to be settled before either frontend ships
 underlying streams get distinct, user-facing names so nobody expects actor attribution on
 the secret stream or lifecycle semantics on the security stream.
 
-| Ticket | User-facing name | Answers | Actor? | Store / retention |
-|---|---|---|---|---|
-| #2799 | **Security Events** (audit log, strict sense) | who did what to the account/org | Yes | SQL / TTL |
-| #3635 | **Secret Activity** (access / usage log) | what happened to a secret | No | Redis / cap |
+| Ticket | User-facing name                              | Answers                         | Actor? | Store / retention |
+| ------ | --------------------------------------------- | ------------------------------- | ------ | ----------------- |
+| #2799  | **Security Events** (audit log, strict sense) | who did what to the account/org | Yes    | SQL / TTL         |
+| #3635  | **Secret Activity** (access / usage log)      | what happened to a secret       | No     | Redis / cap       |
 
 Rationale: this matches industry usage (NIST, Datadog, Huntress, 1Password) — "audit log"
 is the accountability-focused, actor-attributed record; "access/activity log" is the
@@ -95,7 +95,7 @@ MFA" appears in both the admin's and Bob's views.)
 
 **Org view** = every event whose org context is this org, **plus** org-level/system events
 with no individual subject (SSO config change, SCIM provision/deprovision, service-account
-actions). The org view is therefore a *superset-plus*, not a strict superset of individual
+actions). The org view is therefore a _superset-plus_, not a strict superset of individual
 views.
 
 #### What must NOT roll up into the org (individual sees; org shouldn't)
@@ -103,7 +103,7 @@ views.
 - **Events from other org contexts or the personal-account context.** If a login is a
   single global account used across multiple orgs, Org A must not see events that occurred
   while the user acted in Org B or personally. **Scope every event to the org it occurred
-  in** — the org view is not "everything about this human." *(Primary correctness risk.)*
+  in** — the org view is not "everything about this human." _(Primary correctness risk.)_
 - **Fine-grained location/device data, jurisdiction-dependent.** IP, geolocation, and
   device fingerprint are personal data. Exposing every member's raw IP/location org-wide
   can cross into regulated employee-monitoring (GDPR proportionality; works-council rules
@@ -138,12 +138,12 @@ uses its prefix. Bare "audit" is reserved for the strict, actor-attributed
 accountability sense (per Decision 1's rationale) — it appears only in the
 operator stream and in the shared feature/entitlement label.
 
-| Stream | User-facing name | Code prefix | Key identifiers |
-|---|---|---|---|
-| Secret Activity | Secret Activity | `SecretActivity` | `Organization::Features::SecretActivity`, `ListSecretActivity`, `useSecretActivity`, `secret-activity.ts` |
-| Operator audit log | Operations Ledger | `ColonelAudit` | `ColonelAuditEvent`, `ListColonelAuditEvents`, `ColonelAuditLog.vue`, `colonel-audit.ts` |
-| Security Events | Security Events | `SecurityEvent` | **Reserved for #2799** — do not use for anything else |
-| Config-change loggers | — (log lines only) | `ConfigChangeLogger` | `ConfigChangeLogger`, per-config `ChangeLogger` modules |
+| Stream                | User-facing name   | Code prefix          | Key identifiers                                                                                           |
+| --------------------- | ------------------ | -------------------- | --------------------------------------------------------------------------------------------------------- |
+| Secret Activity       | Secret Activity    | `SecretActivity`     | `Organization::Features::SecretActivity`, `ListSecretActivity`, `useSecretActivity`, `secret-activity.ts` |
+| Operator audit log    | Operations Ledger  | `ColonelAudit`       | `ColonelAuditEvent`, `ListColonelAuditEvents`, `ColonelAuditLog.vue`, `colonel-audit.ts`                  |
+| Security Events       | Security Events    | `SecurityEvent`      | **Reserved for #2799** — do not use for anything else                                                     |
+| Config-change loggers | — (log lines only) | `ConfigChangeLogger` | `ConfigChangeLogger`, per-config `ChangeLogger` modules                                                   |
 
 Intentionally unchanged by #3977: the `audit_logs` entitlement label (Decision 1
 retains "audit log" as the feature/entitlement name) and Rodauth's

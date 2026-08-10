@@ -248,15 +248,16 @@ describe('#3424 forensics — recipient ShowSecret path', () => {
       secretResponseSchema,
       secretShowResponse({ lifespan: '604800', secret_ttl: '604800' })
     );
-    expect(paths(issues)).toEqual(
-      expect.arrayContaining(['record.lifespan', 'record.secret_ttl'])
-    );
+    expect(paths(issues)).toEqual(expect.arrayContaining(['record.lifespan', 'record.secret_ttl']));
   });
 
   it('the safe_dump to_i cast (Integer wire value) makes the same record VALIDATE', () => {
     // Demonstrates the #3434 fix resolves the secret path: once cast, pass.
     expect(
-      failingFields(secretResponseSchema, secretShowResponse({ lifespan: 604800, secret_ttl: 604800 }))
+      failingFields(
+        secretResponseSchema,
+        secretShowResponse({ lifespan: 604800, secret_ttl: 604800 })
+      )
     ).toEqual([]);
   });
 
@@ -388,16 +389,56 @@ describe('#3424 forensics — ShowReceipt (_receipt_attributes) path', () => {
 describe('#3424 forensics — summary report', () => {
   it('prints the field-level failure matrix', () => {
     const scenarios: Array<{ name: string; schema: z.ZodType; payload: unknown }> = [
-      { name: 'ShowSecret  | healthy fresh secret', schema: secretResponseSchema, payload: secretShowResponse() },
-      { name: 'ShowSecret  | string lifespan/secret_ttl (pre-#3434)', schema: secretResponseSchema, payload: secretShowResponse({ lifespan: '604800', secret_ttl: '604800' }) },
-      { name: 'ListReceipts| healthy', schema: receiptListResponseSchema, payload: receiptListResponse([healthyReceiptRecord()]) },
-      { name: 'ListReceipts| legacy state="viewed"', schema: receiptListResponseSchema, payload: receiptListResponse([healthyReceiptRecord({ state: 'viewed' })]) },
-      { name: 'ListReceipts| poisoned string previewed', schema: receiptListResponseSchema, payload: receiptListResponse([healthyReceiptRecord({ previewed: '1735142890' })]) },
-      { name: 'ListReceipts| unset timestamp as ""', schema: receiptListResponseSchema, payload: receiptListResponse([healthyReceiptRecord({ revealed: '' })]) },
-      { name: 'ShowReceipt | healthy', schema: receiptResponseSchema, payload: healthyShowReceiptResponse() },
-      { name: 'ShowReceipt | expiration=null', schema: receiptResponseSchema, payload: healthyShowReceiptResponse({ expiration: null }) },
-      { name: 'ShowReceipt | raw string expiration_in_seconds', schema: receiptResponseSchema, payload: healthyShowReceiptResponse({ expiration_in_seconds: '604800' }) },
-      { name: 'ShowReceipt | legacy secret_state="viewed"', schema: receiptResponseSchema, payload: healthyShowReceiptResponse({ secret_state: 'viewed' }) },
+      {
+        name: 'ShowSecret  | healthy fresh secret',
+        schema: secretResponseSchema,
+        payload: secretShowResponse(),
+      },
+      {
+        name: 'ShowSecret  | string lifespan/secret_ttl (pre-#3434)',
+        schema: secretResponseSchema,
+        payload: secretShowResponse({ lifespan: '604800', secret_ttl: '604800' }),
+      },
+      {
+        name: 'ListReceipts| healthy',
+        schema: receiptListResponseSchema,
+        payload: receiptListResponse([healthyReceiptRecord()]),
+      },
+      {
+        name: 'ListReceipts| legacy state="viewed"',
+        schema: receiptListResponseSchema,
+        payload: receiptListResponse([healthyReceiptRecord({ state: 'viewed' })]),
+      },
+      {
+        name: 'ListReceipts| poisoned string previewed',
+        schema: receiptListResponseSchema,
+        payload: receiptListResponse([healthyReceiptRecord({ previewed: '1735142890' })]),
+      },
+      {
+        name: 'ListReceipts| unset timestamp as ""',
+        schema: receiptListResponseSchema,
+        payload: receiptListResponse([healthyReceiptRecord({ revealed: '' })]),
+      },
+      {
+        name: 'ShowReceipt | healthy',
+        schema: receiptResponseSchema,
+        payload: healthyShowReceiptResponse(),
+      },
+      {
+        name: 'ShowReceipt | expiration=null',
+        schema: receiptResponseSchema,
+        payload: healthyShowReceiptResponse({ expiration: null }),
+      },
+      {
+        name: 'ShowReceipt | raw string expiration_in_seconds',
+        schema: receiptResponseSchema,
+        payload: healthyShowReceiptResponse({ expiration_in_seconds: '604800' }),
+      },
+      {
+        name: 'ShowReceipt | legacy secret_state="viewed"',
+        schema: receiptResponseSchema,
+        payload: healthyShowReceiptResponse({ secret_state: 'viewed' }),
+      },
     ];
 
     // eslint-disable-next-line no-console

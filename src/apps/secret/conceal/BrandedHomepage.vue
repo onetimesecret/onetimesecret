@@ -93,9 +93,7 @@
     () => incomingMode.value && (incomingLoading.value || incomingAvailable.value)
   );
   const headline = computed(() =>
-    incomingCopy.value
-      ? t('web.homepage.send_a_secret')
-      : t('web.homepage.create_a_secure_link')
+    incomingCopy.value ? t('web.homepage.send_a_secret') : t('web.homepage.create_a_secure_link')
   );
   const subline = computed(() =>
     incomingCopy.value

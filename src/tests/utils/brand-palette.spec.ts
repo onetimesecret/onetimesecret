@@ -23,10 +23,7 @@ import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
 const NEUTRAL_HEX = NEUTRAL_BRAND_DEFAULTS.primary_color; // '#3B82F6'
 const OTS_ORANGE = '#dc4a22'; // Legacy OTS color, used as a custom input only
 
-const SHADE_STEPS = [
-  '50', '100', '200', '300', '400', '500',
-  '600', '700', '800', '900', '950',
-];
+const SHADE_STEPS = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'];
 
 const PALETTE_PREFIXES = ['brand', 'branddim', 'brandcomp', 'brandcompdim'];
 
@@ -35,11 +32,7 @@ const TOTAL_KEYS = SHADE_STEPS.length * PALETTE_PREFIXES.length; // 44
 /** Helper for roundtrip tests */
 function hexToSrgbValues(hex: string): [number, number, number] {
   const h = hex.replace('#', '');
-  return [
-    parseInt(h.slice(0, 2), 16),
-    parseInt(h.slice(2, 4), 16),
-    parseInt(h.slice(4, 6), 16),
-  ];
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
 }
 
 describe('brand-palette', () => {
@@ -80,7 +73,7 @@ describe('brand-palette', () => {
       const palette = generateBrandPalette(NEUTRAL_HEX);
       const [, , brandH] = hexToOklch(palette['--color-brand-500']);
       const [, , compH] = hexToOklch(palette['--color-brandcomp-500']);
-      const hueDiff = ((compH - brandH) % 360 + 360) % 360;
+      const hueDiff = (((compH - brandH) % 360) + 360) % 360;
       expect(Math.abs(hueDiff - 180)).toBeLessThan(5);
     });
 
@@ -273,14 +266,7 @@ describe('brand-palette', () => {
 
   describe('color conversion roundtrip', () => {
     it('hex → oklch → hex roundtrips within ±1/255 per channel', () => {
-      const colors = [
-        NEUTRAL_HEX,
-        OTS_ORANGE,
-        '#22c55e',
-        '#f59e0b',
-        '#8b5cf6',
-        '#ef4444',
-      ];
+      const colors = [NEUTRAL_HEX, OTS_ORANGE, '#22c55e', '#f59e0b', '#8b5cf6', '#ef4444'];
       for (const hex of colors) {
         const [L, C, H] = hexToOklch(hex);
         const result = oklchToHex(L, C, H);
@@ -357,33 +343,24 @@ describe('brand-palette', () => {
         },
       ];
 
-      it.each(edgeCases)(
-        '$name: returns a well-formed ContrastCheck',
-        ({ hex }) => {
-          const result: ContrastCheck = checkBrandContrast(hex);
-          expect(result.ratio).toBeGreaterThanOrEqual(1);
-          expect(result.ratio).toBeLessThanOrEqual(21);
-          expect(typeof result.passesAA).toBe('boolean');
-          expect(typeof result.passesAALarge).toBe('boolean');
-          expect(typeof result.useWhiteText).toBe('boolean');
-        }
-      );
+      it.each(edgeCases)('$name: returns a well-formed ContrastCheck', ({ hex }) => {
+        const result: ContrastCheck = checkBrandContrast(hex);
+        expect(result.ratio).toBeGreaterThanOrEqual(1);
+        expect(result.ratio).toBeLessThanOrEqual(21);
+        expect(typeof result.passesAA).toBe('boolean');
+        expect(typeof result.passesAALarge).toBe('boolean');
+        expect(typeof result.useWhiteText).toBe('boolean');
+      });
 
-      it.each(edgeCases)(
-        '$name: recommends correct text color',
-        ({ hex, expectWhiteText }) => {
-          const result = checkBrandContrast(hex);
-          expect(result.useWhiteText).toBe(expectWhiteText);
-        }
-      );
+      it.each(edgeCases)('$name: recommends correct text color', ({ hex, expectWhiteText }) => {
+        const result = checkBrandContrast(hex);
+        expect(result.useWhiteText).toBe(expectWhiteText);
+      });
 
-      it.each(edgeCases)(
-        '$name: meets minimum expected contrast ratio',
-        ({ hex, minRatio }) => {
-          const result = checkBrandContrast(hex);
-          expect(result.ratio).toBeGreaterThanOrEqual(minRatio);
-        }
-      );
+      it.each(edgeCases)('$name: meets minimum expected contrast ratio', ({ hex, minRatio }) => {
+        const result = checkBrandContrast(hex);
+        expect(result.ratio).toBeGreaterThanOrEqual(minRatio);
+      });
     });
   });
 

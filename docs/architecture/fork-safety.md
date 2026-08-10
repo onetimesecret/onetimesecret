@@ -4,10 +4,10 @@ Two process types fork workers — Puma (web) and Sneakers (job consumers). Both
 
 ## Connection Roles
 
-| Role | Owner | Used by | Created in |
-|------|-------|---------|------------|
-| **Publisher pool** (`$rmq_conn` / `$rmq_channel_pool`) | `SetupRabbitMQ` | Puma workers (enqueue jobs) | `setup_rabbitmq_connection` |
-| **Consumer connections** | Sneakers/Bunny internals | Sneakers workers (process jobs) | Sneakers per-thread |
+| Role                                                   | Owner                    | Used by                         | Created in                  |
+| ------------------------------------------------------ | ------------------------ | ------------------------------- | --------------------------- |
+| **Publisher pool** (`$rmq_conn` / `$rmq_channel_pool`) | `SetupRabbitMQ`          | Puma workers (enqueue jobs)     | `setup_rabbitmq_connection` |
+| **Consumer connections**                               | Sneakers/Bunny internals | Sneakers workers (process jobs) | Sneakers per-thread         |
 
 These must not coexist in a Sneakers worker. A publisher pool created after fork holds channels bound to the parent's TCP connection — stale in the child, leading to hangs or errors. `auto_reload_after_fork: false` on the ConnectionPool disables automatic recovery (intentionally — the registry manages lifecycle explicitly).
 
@@ -42,11 +42,11 @@ Puma (no SKIP_RABBITMQ_SETUP):
 
 Registered via `@phase = :fork_sensitive`. Each must implement both `cleanup` and `reconnect`. Run order is by name (TSort resolves dependencies first):
 
-| Initializer | cleanup | reconnect | Env guard? |
-|-------------|---------|-----------|------------|
-| `SetupAuthDatabase` | Disconnects Sequel | No-op (lazy reconnect) | No |
-| `SetupLoggers` | Flushes SemanticLogger | Reopens appenders | No |
-| `SetupRabbitMQ` | Closes Bunny connection | Creates publisher pool | `SKIP_RABBITMQ_SETUP` |
+| Initializer         | cleanup                 | reconnect              | Env guard?            |
+| ------------------- | ----------------------- | ---------------------- | --------------------- |
+| `SetupAuthDatabase` | Disconnects Sequel      | No-op (lazy reconnect) | No                    |
+| `SetupLoggers`      | Flushes SemanticLogger  | Reopens appenders      | No                    |
+| `SetupRabbitMQ`     | Closes Bunny connection | Creates publisher pool | `SKIP_RABBITMQ_SETUP` |
 
 ## Adding a Fork-Sensitive Initializer
 

@@ -12,7 +12,7 @@ The risk you're protecting against is not component drift — it's the **domain 
 
 **BackstopJS** now uses Playwright as its rendering engine. Adopting it means a second config format, a second baseline directory convention, and a second approval workflow wrapped around the same browser you'd run directly. Its one genuine advantage — `referenceUrl` for prod-vs-staging comparison without committed baselines — is reproducible in Playwright with two runs of the same spec (see §6). For a solo maintainer, one tool that does 100% beats two tools that overlap 90%.
 
-**Storybook** is a parallel implementation of your UI that must be kept in sync by hand. That's a standing tax with no payoff here: stories render components with props you invent, not with brand settings resolved from a real domain record. It shines when a team needs a shared component catalog. You are the team. Defer indefinitely — but note the deferral is not a claim that component consistency doesn't matter. It's that Storybook is a *viewing* instrument for consistency, and a growing component surface calls for *enforcement* instruments (see "Component consistency" below).
+**Storybook** is a parallel implementation of your UI that must be kept in sync by hand. That's a standing tax with no payoff here: stories render components with props you invent, not with brand settings resolved from a real domain record. It shines when a team needs a shared component catalog. You are the team. Defer indefinitely — but note the deferral is not a claim that component consistency doesn't matter. It's that Storybook is a _viewing_ instrument for consistency, and a growing component surface calls for _enforcement_ instruments (see "Component consistency" below).
 
 ## 1. Test matrix — small and fixed
 
@@ -28,16 +28,16 @@ The failure surface is `pages × brand configurations`, so pick representative f
 
 **Screenshot matrix** (snapshot names follow `<page>--<state>--<fixture>.png`; Playwright appends `-<projectName>-<platform>`):
 
-| Route                       | Snapshot(s)                                          | Fixtures                   | Viewports    |
-| --------------------------- | ---------------------------------------------------- | -------------------------- | ------------ |
-| `/`                         | `home--default`                                      | all 3                      | both         |
-| `/secret/:id`               | `secret--confirm`, `secret--revealed` (click-through), `secret--unknown` | all 3 | both         |
-| `/receipt/:id`              | `receipt--fresh`                                     | all 3                      | both         |
-| `/receipt/:id/burn`         | `burn--confirm`                                      | all 3                      | both         |
-| `/this-page-does-not-exist` | `notfound--default`                                  | all 3                      | both         |
-| `/secret/:id`               | `secret--passphrase` (confirmation w/ passphrase input) | canonical + branded-full | desktop only |
-| `/receipt/:id`              | `receipt--viewed`, `receipt--burned`                 | canonical + branded-full   | desktop only |
-| `/incoming`, `/incoming/:receiptId` | `incoming--form`, `incoming--success`        | canonical only             | both         |
+| Route                               | Snapshot(s)                                                              | Fixtures                 | Viewports    |
+| ----------------------------------- | ------------------------------------------------------------------------ | ------------------------ | ------------ |
+| `/`                                 | `home--default`                                                          | all 3                    | both         |
+| `/secret/:id`                       | `secret--confirm`, `secret--revealed` (click-through), `secret--unknown` | all 3                    | both         |
+| `/receipt/:id`                      | `receipt--fresh`                                                         | all 3                    | both         |
+| `/receipt/:id/burn`                 | `burn--confirm`                                                          | all 3                    | both         |
+| `/this-page-does-not-exist`         | `notfound--default`                                                      | all 3                    | both         |
+| `/secret/:id`                       | `secret--passphrase` (confirmation w/ passphrase input)                  | canonical + branded-full | desktop only |
+| `/receipt/:id`                      | `receipt--viewed`, `receipt--burned`                                     | canonical + branded-full | desktop only |
+| `/incoming`, `/incoming/:receiptId` | `incoming--form`, `incoming--success`                                    | canonical only           | both         |
 
 The core rows run all 3 fixtures × both viewports (desktop 1280px, mobile 375px). The extended-state cells (passphrase, viewed, burned) are layout-stable across viewports, so desktop-only on two fixtures suffices. Incoming is canonical-only because custom-domain incoming is gated on both the `incoming_secrets` entitlement and a per-domain `IncomingConfig` — a real but deferred surface. Total: **52 baselines per platform**. Full run should stay under a couple of minutes. Resist expanding this; the value is in the branded-domain coverage, not breadth.
 
@@ -107,8 +107,8 @@ Without this, a Host→brand resolution failure falls back to canonical branding
 - Seed via `bin/visual` → `rake qa:visual:seed`, **not** Playwright `globalSetup` and not per-test `beforeEach`. A config-level `globalSetup` executes for every lane — including CI's `e2e/all/` run — and would disturb suites that never asked for fixtures (a setup dependency-project was the alternative; the entrypoint won for simplicity). The brand configs are shared read-only state; the visual suite must not flush the test datastore at all — it reads, it doesn't mutate.
 - Seed through the model layer (the rake task creates `CustomDomain` records + brand config via the app's own persistence code), **not** raw Redis writes. Raw writes drift from the shape the app actually produces, and the test ends up passing against data production never generates. Note: don't seed through the full domain-creation API flow either — ownership verification won't pass for the fixture hostnames; the model layer sidesteps the verification gate while keeping the persistence shape honest.
 - Secret and receipt identifiers are generated-only (`Familia::VerifiableIdentifier`) — there are no "known keys" to seed. Every run mints fresh IDs, so the seed task writes a manifest at `e2e/visual/.artifacts/seed-manifest.json` (fixture hosts, per-cell secret/receipt IDs, plus a well-formed-but-nonexistent `unknownSecretId` generated without creating an object) and the specs read their URLs from it. The manifest is the contract between seed and spec.
-- **One virgin record per destructive cell.** Some pages mutate state by being visited: a reveal click-through destroys the secret; the first `/receipt/:id` load stamps `receipt_viewed_at`. Cells screenshotted in both viewports therefore get one seeded record *per viewport*; metadata-only pages (the confirmation view) and terminal states (viewed, burned) safely share a single record.
-- Matrix consequence worth pinning: on `/secret/:id`, **claimed, burned, and unknown are pixel-identical** — all three 404 into the UnknownSecret view. That's why the matrix has a single `secret--unknown` cell there, and the claimed/burned *visuals* live on `/receipt/:id` (`receipt--viewed`, `receipt--burned`).
+- **One virgin record per destructive cell.** Some pages mutate state by being visited: a reveal click-through destroys the secret; the first `/receipt/:id` load stamps `receipt_viewed_at`. Cells screenshotted in both viewports therefore get one seeded record _per viewport_; metadata-only pages (the confirmation view) and terminal states (viewed, burned) safely share a single record.
+- Matrix consequence worth pinning: on `/secret/:id`, **claimed, burned, and unknown are pixel-identical** — all three 404 into the UnknownSecret view. That's why the matrix has a single `secret--unknown` cell there, and the claimed/burned _visuals_ live on `/receipt/:id` (`receipt--viewed`, `receipt--burned`).
 
 ## 4. Determinism rules
 
@@ -147,10 +147,10 @@ Two operational caveats for the two-worktree run:
 
 §6's two-worktree dance answers "what changed since v0.25?" exactly once, at the cost of a second checkout, seed, and render. The permanent answer is to **archive the rendered set at every release** and diff against archives instead of rebuilding old versions. Two channels, one format (`bin/visual --archive` output: `*-snapshots/` dirs + `metadata.json`):
 
-| Channel | Trigger | Where | Retention | Purpose |
-| --- | --- | --- | --- | --- |
-| PR artifact | green `visual.yml` run | workflow artifact `visual-render-<sha>` | 30 days | reviewers eyeball the PR's actual renders without checking out the branch |
-| OCI release | release published (`visual-archive.yml`) | `ghcr.io/<repo>/visual-baselines:<tag>` | permanent | cross-version diffs |
+| Channel     | Trigger                                  | Where                                   | Retention | Purpose                                                                   |
+| ----------- | ---------------------------------------- | --------------------------------------- | --------- | ------------------------------------------------------------------------- |
+| PR artifact | green `visual.yml` run                   | workflow artifact `visual-render-<sha>` | 30 days   | reviewers eyeball the PR's actual renders without checking out the branch |
+| OCI release | release published (`visual-archive.yml`) | `ghcr.io/<repo>/visual-baselines:<tag>` | permanent | cross-version diffs                                                       |
 
 Consuming an archive:
 
@@ -165,11 +165,11 @@ Every diff in the report is a customer-visible change between that release and y
 Two caveats:
 
 - **Same Playwright image only.** Compare sets rendered with the same pinned container tag (`metadata.json` records `playwrightImage`); browser/font-stack drift across image versions produces phantom diffs. When bumping the image, regenerate baselines (already required) and expect pre-bump archives to diff noisily.
-- Archives are *renders of a version*, not approval state. The committed `e2e/visual/*-snapshots/` baselines remain the only thing PRs gate on; archives never feed back into them automatically.
+- Archives are _renders of a version_, not approval state. The committed `e2e/visual/*-snapshots/` baselines remain the only thing PRs gate on; archives never feed back into them automatically.
 
 ## Component consistency — enforce, don't catalog
 
-Screenshot tests catch pipeline breakage; they don't manage consistency across a growing component surface. Neither does a catalog: Storybook *documents* consistency, and a catalog of 150 stories drifts as fast as the components do. For a solo maintainer the sync tax and the benefit land on the same person — the economics never invert the way they do on a team where one author pays and ten consumers benefit.
+Screenshot tests catch pipeline breakage; they don't manage consistency across a growing component surface. Neither does a catalog: Storybook _documents_ consistency, and a catalog of 150 stories drifts as fast as the components do. For a solo maintainer the sync tax and the benefit land on the same person — the economics never invert the way they do on a team where one author pays and ten consumers benefit.
 
 Consistency is managed by making drift structurally hard, at the point of authorship:
 

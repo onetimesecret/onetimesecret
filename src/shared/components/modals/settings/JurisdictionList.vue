@@ -1,23 +1,27 @@
 <!-- src/shared/components/modals/settings/JurisdictionList.vue -->
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import type { Jurisdiction } from '@/schemas/shapes/config';
-import { resolveJurisdictionIcon, resolveJurisdictionDisplayName } from '@/shared/stores/jurisdictionStore';
+  import { useI18n } from 'vue-i18n';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import type { Jurisdiction } from '@/schemas/shapes/config';
+  import {
+    resolveJurisdictionIcon,
+    resolveJurisdictionDisplayName,
+  } from '@/shared/stores/jurisdictionStore';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-const props = defineProps<{
-  jurisdictions: Jurisdiction[];
-  currentJurisdiction?: Jurisdiction | null;
-}>();
+  const props = defineProps<{
+    jurisdictions: Jurisdiction[];
+    currentJurisdiction?: Jurisdiction | null;
+  }>();
 
-const isCurrentJurisdiction = (jurisdiction: Jurisdiction) =>
-  jurisdiction.identifier === props.currentJurisdiction?.identifier;
+  const isCurrentJurisdiction = (jurisdiction: Jurisdiction) =>
+    jurisdiction.identifier === props.currentJurisdiction?.identifier;
 
-const getIcon = (jurisdiction: Jurisdiction) => resolveJurisdictionIcon(jurisdiction);
-const getDisplayName = (jurisdiction: Jurisdiction) => resolveJurisdictionDisplayName(jurisdiction, t);
+  const getIcon = (jurisdiction: Jurisdiction) => resolveJurisdictionIcon(jurisdiction);
+  const getDisplayName = (jurisdiction: Jurisdiction) =>
+    resolveJurisdictionDisplayName(jurisdiction, t);
 </script>
 
 <template>
@@ -27,7 +31,7 @@ const getDisplayName = (jurisdiction: Jurisdiction) => resolveJurisdictionDispla
     <li
       v-for="jurisdiction in jurisdictions"
       :key="jurisdiction.identifier"
-      class="flex flex-wrap items-center gap-3 p-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 sm:flex-nowrap sm:p-4">
+      class="flex flex-wrap items-center gap-3 p-3 transition-colors hover:bg-gray-50 sm:flex-nowrap sm:p-4 dark:hover:bg-gray-800">
       <div class="flex w-full items-center gap-3 sm:w-auto">
         <OIcon
           :collection="getIcon(jurisdiction).collection"
@@ -40,7 +44,12 @@ const getDisplayName = (jurisdiction: Jurisdiction) => resolveJurisdictionDispla
           :class="{ 'font-medium': isCurrentJurisdiction(jurisdiction) }"
           class="grow text-sm text-gray-700 hover:text-brand-600 dark:text-gray-200 dark:hover:text-brand-400"
           :aria-current="isCurrentJurisdiction(jurisdiction) ? 'true' : undefined"
-          :aria-label="t('web.regions.jurisdiction_display_name_iscurrentjurisdiction_', [getDisplayName(jurisdiction), isCurrentJurisdiction(jurisdiction) ? `(Current)` : ``])">
+          :aria-label="
+            t('web.regions.jurisdiction_display_name_iscurrentjurisdiction_', [
+              getDisplayName(jurisdiction),
+              isCurrentJurisdiction(jurisdiction) ? `(Current)` : ``,
+            ])
+          ">
           {{ getDisplayName(jurisdiction) }}
         </a>
       </div>

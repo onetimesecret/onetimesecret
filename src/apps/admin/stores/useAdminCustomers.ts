@@ -4,10 +4,7 @@ import { defineStore } from 'pinia';
 import type { z } from 'zod';
 import { ref } from 'vue';
 
-import {
-  usePaginatedFetch,
-  type PageMeta,
-} from '@/apps/admin/composables/usePaginatedFetch';
+import { usePaginatedFetch, type PageMeta } from '@/apps/admin/composables/usePaginatedFetch';
 import {
   colonelUserMutationResponseSchema,
   colonelUsersResponseSchema,
@@ -137,10 +134,7 @@ export const useAdminCustomers = defineStore('adminCustomers', () => {
    * @returns the patched row, or null when it is not on the current page.
    * @throws the network/HTTP error, for `useAdminMutation` to classify.
    */
-  async function setVerification(
-    userId: string,
-    verified: boolean
-  ): Promise<ColonelUser | null> {
+  async function setVerification(userId: string, verified: boolean): Promise<ColonelUser | null> {
     const verb = verified ? 'verify' : 'unverify';
     const response = await $api.post(`${userUrl(userId)}/${verb}`, {});
     parseMutationAck(response.data);

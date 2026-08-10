@@ -11,19 +11,13 @@ describe('error classifier', () => {
     it('classifies 403 with message as human error (shows backend message)', () => {
       // When backend sends a user-friendly message with 403, it should be shown
       // Example: "Guest API access is disabled" for guest route gating
-      const axiosError = new axios.AxiosError(
-        'Forbidden',
-        '403',
-        undefined,
-        undefined,
-        {
-          status: 403,
-          statusText: 'Forbidden',
-          data: { error: 'Guest API access is disabled' },
-          headers: {},
-          config: {} as any,
-        }
-      );
+      const axiosError = new axios.AxiosError('Forbidden', '403', undefined, undefined, {
+        status: 403,
+        statusText: 'Forbidden',
+        data: { error: 'Guest API access is disabled' },
+        headers: {},
+        config: {} as any,
+      });
 
       const error = classifyError(axiosError);
 
@@ -37,19 +31,13 @@ describe('error classifier', () => {
 
     it('classifies 403 without message as security error (generic message)', () => {
       // When 403 has no user-friendly message, classify as security to show generic error
-      const axiosError = new axios.AxiosError(
-        'Forbidden',
-        '403',
-        undefined,
-        undefined,
-        {
-          status: 403,
-          statusText: 'Forbidden',
-          data: {},
-          headers: {},
-          config: {} as any,
-        }
-      );
+      const axiosError = new axios.AxiosError('Forbidden', '403', undefined, undefined, {
+        status: 403,
+        statusText: 'Forbidden',
+        data: {},
+        headers: {},
+        config: {} as any,
+      });
 
       const error = classifyError(axiosError);
 
@@ -62,19 +50,13 @@ describe('error classifier', () => {
 
     it('classifies 404 as human error', () => {
       // Create a proper AxiosError instance
-      const axiosError = new axios.AxiosError(
-        'Not Found',
-        '404',
-        undefined,
-        undefined,
-        {
-          status: 404,
-          statusText: 'Not Found',
-          data: { error: 'Not Found' },
-          headers: {},
-          config: {} as any,
-        }
-      );
+      const axiosError = new axios.AxiosError('Not Found', '404', undefined, undefined, {
+        status: 404,
+        statusText: 'Not Found',
+        data: { error: 'Not Found' },
+        headers: {},
+        config: {} as any,
+      });
 
       const error = classifyError(axiosError);
 

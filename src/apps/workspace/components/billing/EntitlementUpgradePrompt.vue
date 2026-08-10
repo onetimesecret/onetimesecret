@@ -1,62 +1,62 @@
 <!-- src/apps/workspace/components/billing/EntitlementUpgradePrompt.vue -->
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import type { ApplicationError } from '@/schemas/errors';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { useProductIdentity } from '@/shared/stores/identityStore';
-import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import { storeToRefs } from 'pinia';
+  import { computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import type { ApplicationError } from '@/schemas/errors';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { useProductIdentity } from '@/shared/stores/identityStore';
+  import { useOrganizationStore } from '@/shared/stores/organizationStore';
+  import { storeToRefs } from 'pinia';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-interface Props {
-  error: ApplicationError | null;
-  resourceType?: string;
-  show?: boolean;
-}
+  interface Props {
+    error: ApplicationError | null;
+    resourceType?: string;
+    show?: boolean;
+  }
 
-const props = withDefaults(defineProps<Props>(), {
-  resourceType: '',
-  show: true,
-});
+  const props = withDefaults(defineProps<Props>(), {
+    resourceType: '',
+    show: true,
+  });
 
-const emit = defineEmits<{
-  close: [];
-  'update:show': [value: boolean];
-}>();
+  const emit = defineEmits<{
+    close: [];
+    'update:show': [value: boolean];
+  }>();
 
-// Hide upgrade prompts when billing is disabled (self-hosted mode)
-const bootstrapStore = useBootstrapStore();
-const { billing_enabled } = storeToRefs(bootstrapStore);
-const billingEnabled = computed(() => billing_enabled.value || false);
+  // Hide upgrade prompts when billing is disabled (self-hosted mode)
+  const bootstrapStore = useBootstrapStore();
+  const { billing_enabled } = storeToRefs(bootstrapStore);
+  const billingEnabled = computed(() => billing_enabled.value || false);
 
-// Hide upgrade prompts on custom domains (managed by org admin, not end users)
-const { isCustom } = storeToRefs(useProductIdentity());
+  // Hide upgrade prompts on custom domains (managed by org admin, not end users)
+  const { isCustom } = storeToRefs(useProductIdentity());
 
-// Only show upgrade prompts to organization owners (not members/admins)
-const organizationStore = useOrganizationStore();
-const isOwner = computed(() => {
-  const role = organizationStore.currentOrganization?.current_user_role;
-  return role === 'owner';
-});
+  // Only show upgrade prompts to organization owners (not members/admins)
+  const organizationStore = useOrganizationStore();
+  const isOwner = computed(() => {
+    const role = organizationStore.currentOrganization?.current_user_role;
+    return role === 'owner';
+  });
 
-// Combined visibility: not custom domain, billing enabled, and user is owner
-const canShowUpgrade = computed(() => !isCustom.value && billingEnabled.value && isOwner.value);
+  // Combined visibility: not custom domain, billing enabled, and user is owner
+  const canShowUpgrade = computed(() => !isCustom.value && billingEnabled.value && isOwner.value);
 
-const displayMessage = computed(() => {
-  if (!props.error) return '';
-  return props.error.message || t('web.billing.upgrade.required');
-});
+  const displayMessage = computed(() => {
+    if (!props.error) return '';
+    return props.error.message || t('web.billing.upgrade.required');
+  });
 
-const upgradeUrl = computed(() => '/billing/plans');
+  const upgradeUrl = computed(() => '/billing/plans');
 
-const handleClose = () => {
-  emit('close');
-  emit('update:show', false);
-};
+  const handleClose = () => {
+    emit('close');
+    emit('update:show', false);
+  };
 </script>
 
 <template>
@@ -103,7 +103,7 @@ const handleClose = () => {
         <button
           type="button"
           @click="handleClose"
-          class="rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 dark:text-gray-500 dark:hover:text-gray-400"
+          class="rounded-md text-gray-400 hover:text-gray-500 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:outline-none dark:text-gray-500 dark:hover:text-gray-400"
           :aria-label="t('web.LABELS.dismiss')">
           <OIcon
             collection="heroicons"

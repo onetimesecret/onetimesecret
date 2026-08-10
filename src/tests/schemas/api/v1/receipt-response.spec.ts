@@ -129,7 +129,10 @@ describe('v1ReceiptResponseSchema', () => {
     });
 
     it('recipients mirrors recipient', () => {
-      const payload = makeFullPayload({ recipient: ['a@b.com', 'c@d.com'], recipients: ['a@b.com', 'c@d.com'] });
+      const payload = makeFullPayload({
+        recipient: ['a@b.com', 'c@d.com'],
+        recipients: ['a@b.com', 'c@d.com'],
+      });
       const parsed = v1ReceiptResponseSchema.parse(payload);
       expect(parsed.recipients).toEqual(parsed.recipient);
     });
@@ -243,9 +246,7 @@ describe('v1ReceiptResponseSchema', () => {
     const v1States = ['new', 'viewed', 'received', 'burned'];
     v1States.forEach((state) => {
       it(`accepts V1 state "${state}"`, () => {
-        const result = v1ReceiptResponseSchema.safeParse(
-          makeV023OnlyPayload({ state })
-        );
+        const result = v1ReceiptResponseSchema.safeParse(makeV023OnlyPayload({ state }));
         expect(result.success).toBe(true);
       });
     });

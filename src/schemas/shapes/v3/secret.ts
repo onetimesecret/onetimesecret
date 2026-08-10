@@ -16,11 +16,7 @@
 // exist only for V2 transition support.
 // See: lib/onetime/models/secret/features/safe_dump_fields.rb
 
-import {
-  secretBaseCanonical,
-  secretCanonical,
-  secretDetailsCanonical,
-} from '@/schemas/contracts';
+import { secretBaseCanonical, secretCanonical, secretDetailsCanonical } from '@/schemas/contracts';
 import { receiptBaseSchema } from '@/schemas/shapes/v3/receipt';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';

@@ -12,8 +12,7 @@ vi.mock('@/utils/features', async (importOriginal) => ({
 }));
 const mockApprox = vi.mocked(isApproximatedDomainValidation);
 
-const findRoute = (name: string) =>
-  dashboardRoutes.find((r: RouteRecordRaw) => r.name === name);
+const findRoute = (name: string) => dashboardRoutes.find((r: RouteRecordRaw) => r.name === name);
 
 /** Invoke a route's single beforeEnter guard with a minimal `to` stub. */
 const runGuard = (name: string, params: Record<string, string>) => {

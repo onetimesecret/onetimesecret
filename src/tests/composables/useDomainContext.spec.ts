@@ -116,9 +116,7 @@ function buildMultiOrgPermissionsResponse(
  * Replaces the old setMockDomains which was synchronous.
  */
 function setMockDomains(orgExtid: string, domains: string[]) {
-  mockFetchAllPermissions.mockResolvedValue(
-    buildPermissionsResponse(orgExtid, domains)
-  );
+  mockFetchAllPermissions.mockResolvedValue(buildPermissionsResponse(orgExtid, domains));
 }
 
 describe('useDomainContext', () => {
@@ -170,7 +168,8 @@ describe('useDomainContext', () => {
     bootstrapStore.site_host = config.site_host ?? 'onetimesecret.com';
     // Schema default is '' (older payloads omit it) - only set when provided
     bootstrapStore.canonical_domain = config.canonical_domain ?? '';
-    bootstrapStore.display_domain = config.display_domain ?? config.site_host ?? 'onetimesecret.com';
+    bootstrapStore.display_domain =
+      config.display_domain ?? config.site_host ?? 'onetimesecret.com';
     bootstrapStore.custom_domains = config.custom_domains ?? [];
     // Schema default is [] (pre-#4063 payloads omit it) - see the knob doc above
     bootstrapStore.link_domains = config.link_domains ?? [];
@@ -207,9 +206,8 @@ describe('useDomainContext', () => {
       extid: 'org-ext-test-123',
     };
 
-    const { __resetDomainContextForTesting } = await import(
-      '@/shared/composables/useDomainContext'
-    );
+    const { __resetDomainContextForTesting } =
+      await import('@/shared/composables/useDomainContext');
     __resetDomainContextForTesting();
   });
 
@@ -820,11 +818,7 @@ describe('useDomainContext', () => {
 
       await waitForInit();
 
-      expect(availableDomains.value).toEqual([
-        'a.example.com',
-        'b.example.com',
-        'c.example.com',
-      ]);
+      expect(availableDomains.value).toEqual(['a.example.com', 'b.example.com', 'c.example.com']);
       expect(hasMultipleContexts.value).toBe(true);
       expect(currentContext.value.domain).toBe('a.example.com');
 
@@ -853,15 +847,12 @@ describe('useDomainContext', () => {
       setMockDomains('org-ext-test-123', ['acme.example.com']);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
-      const { currentContext, availableDomains, getExtidByDomain, setContext } =
-        useDomainContext();
+      const { currentContext, availableDomains, getExtidByDomain, setContext } = useDomainContext();
 
       await waitForInit();
 
       expect(availableDomains.value).toEqual(['acme.example.com', 'short.example.com']);
-      expect(
-        availableDomains.value.filter((d) => d === 'acme.example.com')
-      ).toHaveLength(1);
+      expect(availableDomains.value.filter((d) => d === 'acme.example.com')).toHaveLength(1);
       expect(getExtidByDomain('acme.example.com')).toBe('cd_acme_example_com');
 
       await setContext('acme.example.com');
@@ -1815,7 +1806,11 @@ describe('useDomainContext', () => {
         display_domain: 'onetimesecret.com',
       });
 
-      setMockDomains('org-ext-test-123', ['zebra.example.com', 'alpha.example.com', 'beta.example.com']);
+      setMockDomains('org-ext-test-123', [
+        'zebra.example.com',
+        'alpha.example.com',
+        'beta.example.com',
+      ]);
 
       const { useDomainContext } = await import('@/shared/composables/useDomainContext');
       const { currentContext } = useDomainContext();
@@ -1918,10 +1913,9 @@ describe('useDomainContext', () => {
 
       await setContext('acme.example.com');
 
-      expect(mockApiPost).toHaveBeenCalledWith(
-        '/api/account/update-domain-context',
-        { domain: 'acme.example.com' }
-      );
+      expect(mockApiPost).toHaveBeenCalledWith('/api/account/update-domain-context', {
+        domain: 'acme.example.com',
+      });
     });
 
     it('selecting a custom domain stores value in sessionStorage', async () => {
@@ -1969,10 +1963,9 @@ describe('useDomainContext', () => {
 
       await setContext('onetimesecret.com');
 
-      expect(mockApiPost).toHaveBeenCalledWith(
-        '/api/account/update-domain-context',
-        { domain: 'onetimesecret.com' }
-      );
+      expect(mockApiPost).toHaveBeenCalledWith('/api/account/update-domain-context', {
+        domain: 'onetimesecret.com',
+      });
     });
 
     it('selecting canonical domain overwrites a stale sessionStorage domainContext', async () => {
@@ -2021,10 +2014,9 @@ describe('useDomainContext', () => {
 
       // ...and the switch back must be written through to the server, not just
       // dropped locally, or the next load restores 'acme.example.com'.
-      expect(mockApiPost).toHaveBeenCalledWith(
-        '/api/account/update-domain-context',
-        { domain: 'onetimesecret.com' }
-      );
+      expect(mockApiPost).toHaveBeenCalledWith('/api/account/update-domain-context', {
+        domain: 'onetimesecret.com',
+      });
       expect(mockSessionStorage.getItem('domainContext')).toBe('onetimesecret.com');
     });
 
@@ -2063,10 +2055,9 @@ describe('useDomainContext', () => {
       expect(currentContext.value.domain).toBe('acme.example.com');
       expect(mockSessionStorage.getItem('domainContext')).toBe('acme.example.com');
       // The half that used to be left stale.
-      expect(mockApiPost).toHaveBeenCalledWith(
-        '/api/account/update-domain-context',
-        { domain: 'acme.example.com' }
-      );
+      expect(mockApiPost).toHaveBeenCalledWith('/api/account/update-domain-context', {
+        domain: 'acme.example.com',
+      });
     });
 
     it('selecting canonical domain updates currentContext correctly', async () => {

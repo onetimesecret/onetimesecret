@@ -104,35 +104,37 @@ export const meta = {
   name: 'drain-i18n-translations',
   description: 'Drain pending translation_tasks per locale, then audit and fix in place',
   phases: [{ title: 'Drain' }, { title: 'Audit' }],
-}
+};
 
-const TARGETS = args.targets   // e.g. ["fr_CA","de","es"] — scouted + eligible inline
+const TARGETS = args.targets; // e.g. ["fr_CA","de","es"] — scouted + eligible inline
 
 const results = await pipeline(
   TARGETS,
-  loc => agent(
-    `Drain translation tasks for locale "${loc}". ` +
-    `Follow locales/AGENT_TRANSLATION_PROTOCOL.md exactly. ` +
-    `Per-locale governance (register, glossary, binding rules, declined decisions): ` +
-    `generated/i18n/.resolved/${loc}.json. ` +
-    `Preserve all interpolation/markup tokens; brand names stay English. ` +
-    `Loop until 0 pending; do not export, commit, or write the glossary table. ` +
-    `Return final pending/completed counts AND a "glossary_candidates" list of ` +
-    `{term, rendering, reason} for recurring terms not already fixed by the ` +
-    `bound glossary in generated/i18n/.resolved/${loc}.json (empty if none).`,
-    { label: `drain:${loc}`, phase: 'Drain', agentType: 'saas-translator' }
-  ),
-  (_drained, loc) => agent(
-    `Audit completed translation rows for locale "${loc}" per ` +
-    `locales/AGENT_TRANSLATION_PROTOCOL.md (key-set match vs source, token preservation, ` +
-    `untranslated-English leakage), using governance in generated/i18n/.resolved/${loc}.json. ` +
-    `Fix any problems in place. Do NOT export or commit. ` +
-    `Return: rows audited, rows fixed, and final \`tasks next ${loc} --stats\` pending count.`,
-    { label: `audit:${loc}`, phase: 'Audit', agentType: 'saas-translator' }
-  )
-)
+  (loc) =>
+    agent(
+      `Drain translation tasks for locale "${loc}". ` +
+        `Follow locales/AGENT_TRANSLATION_PROTOCOL.md exactly. ` +
+        `Per-locale governance (register, glossary, binding rules, declined decisions): ` +
+        `generated/i18n/.resolved/${loc}.json. ` +
+        `Preserve all interpolation/markup tokens; brand names stay English. ` +
+        `Loop until 0 pending; do not export, commit, or write the glossary table. ` +
+        `Return final pending/completed counts AND a "glossary_candidates" list of ` +
+        `{term, rendering, reason} for recurring terms not already fixed by the ` +
+        `bound glossary in generated/i18n/.resolved/${loc}.json (empty if none).`,
+      { label: `drain:${loc}`, phase: 'Drain', agentType: 'saas-translator' }
+    ),
+  (_drained, loc) =>
+    agent(
+      `Audit completed translation rows for locale "${loc}" per ` +
+        `locales/AGENT_TRANSLATION_PROTOCOL.md (key-set match vs source, token preservation, ` +
+        `untranslated-English leakage), using governance in generated/i18n/.resolved/${loc}.json. ` +
+        `Fix any problems in place. Do NOT export or commit. ` +
+        `Return: rows audited, rows fixed, and final \`tasks next ${loc} --stats\` pending count.`,
+      { label: `audit:${loc}`, phase: 'Audit', agentType: 'saas-translator' }
+    )
+);
 
-return { results }
+return { results };
 ```
 
 ## Done

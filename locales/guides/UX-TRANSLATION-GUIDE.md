@@ -37,6 +37,7 @@ When guidelines conflict, apply in order:
 ### Conflict Resolution Examples
 
 **Security vs Clarity:**
+
 ```
 Conflict: Specific error ("Wrong password") vs generic ("Authentication failed")
 Resolution: P0 > P3 → Use generic error + safe contextual help
@@ -44,6 +45,7 @@ Example: "Authentication failed. Please verify your credentials."
 ```
 
 **Character Limit vs Clarity:**
+
 ```
 Conflict: "Permanently Close Account" (too long) vs clarity
 Resolution: P3 pattern → Use heading + concise button
@@ -51,6 +53,7 @@ Example: Heading "Close Account" + warning text + button "Close Account"
 ```
 
 **Abbreviation vs First-time Users:**
+
 ```
 Conflict: "Enable MFA" (short) vs "Enable Two-Factor Authentication" (clear)
 Resolution: P3 context → Use full term in heading, abbreviation in button
@@ -64,6 +67,7 @@ Example: Section titled "Two-Factor Authentication" + button "Enable MFA"
 Use surrounding UI elements (headings, descriptions, icons) to provide context, allowing shorter, more translatable button text.
 
 **Pattern:**
+
 ```
 Section Heading: "Close Account"
 Description: "This action cannot be undone. All your secrets will be permanently deleted."
@@ -71,6 +75,7 @@ Button: "Close Account"
 ```
 
 Not:
+
 ```
 Button alone: "Permanently Close Account"
 ```
@@ -78,11 +83,13 @@ Button alone: "Permanently Close Account"
 ### Button Text Length Guidelines
 
 **Target lengths (English):**
+
 - Primary actions: 8-15 characters
 - Secondary actions: 10-20 characters
 - Destructive actions: Include object (10-20 chars)
 
 **Translation expansion estimates:**
+
 - German/Russian: +30-35%
 - French/Spanish: +15-20%
 - Japanese/Chinese: -10-30% (contraction)
@@ -90,15 +97,18 @@ Button alone: "Permanently Close Account"
 ### Critical vs Generic Actions
 
 **Destructive/irreversible actions MUST include object:**
+
 - "Delete Account" not "Delete"
 - "Close Account" not "Close"
 - "Remove All Sessions" not "Remove All"
 
 **Data operations SHOULD include object:**
+
 - "Save Changes" not "Save"
 - "Export Data" not "Export"
 
 **Generic actions MAY be used when context is clear:**
+
 - Multi-step flows: "Continue", "Next", "Back"
 - Modal confirmations: "Confirm", "Cancel"
 - Simple toggles: "Enable", "Disable" (when in titled section)
@@ -107,18 +117,19 @@ Button alone: "Permanently Close Account"
 
 ### Authentication & Account Actions
 
-| Context | Original | Recommended | Reasoning |
-|---------|----------|-------------|-----------|
-| Account closure modal | "Permanently Close Account" | "Close Account" | Modal heading + warning provide permanence context |
-| MFA verification step | "Complete MFA Verification" | "Verify and Continue" | Step flow provides context |
-| MFA settings section | "Manage Two-Factor Authentication" | "Manage 2FA" | Within 2FA section, abbreviation clear |
-| Recovery codes section | "Generate New Codes" | "Generate Codes" | "New" implied by regenerate action |
-| Password change form | "Change Password" | "Change Password" | ✓ Clear and concise |
-| Session management | "Logout All Other Sessions" | "Remove All Sessions" | Action-oriented, "other" implied |
+| Context                | Original                           | Recommended           | Reasoning                                          |
+| ---------------------- | ---------------------------------- | --------------------- | -------------------------------------------------- |
+| Account closure modal  | "Permanently Close Account"        | "Close Account"       | Modal heading + warning provide permanence context |
+| MFA verification step  | "Complete MFA Verification"        | "Verify and Continue" | Step flow provides context                         |
+| MFA settings section   | "Manage Two-Factor Authentication" | "Manage 2FA"          | Within 2FA section, abbreviation clear             |
+| Recovery codes section | "Generate New Codes"               | "Generate Codes"      | "New" implied by regenerate action                 |
+| Password change form   | "Change Password"                  | "Change Password"     | ✓ Clear and concise                                |
+| Session management     | "Logout All Other Sessions"        | "Remove All Sessions" | Action-oriented, "other" implied                   |
 
 ### Form Actions
 
 **Standard pattern:**
+
 - Primary: Specific action verb + object ("Save Changes", "Create Secret")
 - Secondary: "Cancel"
 - Tertiary: Context-appropriate ("Reset", "Clear Form")
@@ -126,6 +137,7 @@ Button alone: "Permanently Close Account"
 ### Navigation & Links
 
 **Links can be more descriptive** (not constrained by button sizing):
+
 - "Manage Two-Factor Authentication" ✓
 - "View Active Sessions" ✓
 - "Download Recovery Codes" ✓
@@ -133,12 +145,14 @@ Button alone: "Permanently Close Account"
 ## Character Limits by Component
 
 ### Strict Limits
+
 - Toast notifications: 60 characters
 - Mobile menu items: 20 characters
 - Tab labels: 15 characters
 - Button text (mobile): 15 characters
 
 ### Flexible Limits
+
 - Button text (desktop): 25 characters
 - Form labels: 30 characters
 - Card titles: 40 characters
@@ -157,6 +171,7 @@ Button alone: "Permanently Close Account"
 ```
 
 **Languages affected:**
+
 - Russian: 3 forms (one, few, many)
 - Arabic: 6 forms (zero, one, two, few, many, other)
 - Polish: 3 forms (one, few, many)
@@ -166,11 +181,13 @@ Button alone: "Permanently Close Account"
 ### When to Abbreviate
 
 **Abbreviations MAY be used:**
+
 - In button text when space-constrained: "Manage 2FA"
 - In technical contexts: "MFA status", "OTP code"
 - Within titled sections using full term
 
 **Full terms SHOULD be used:**
+
 - First use in new context: "Two-Factor Authentication (2FA)"
 - Primary headings: "Two-Factor Authentication"
 - Descriptions and help text
@@ -178,27 +195,30 @@ Button alone: "Permanently Close Account"
 
 ### Standard Abbreviations
 
-| Term | Abbreviation | First Use | Subsequent |
-|------|--------------|-----------|------------|
-| Two-Factor Authentication | 2FA or MFA | Spell out | Abbreviate in buttons/labels |
-| One-Time Password | OTP | Spell out | Abbreviate in technical contexts |
-| Multi-Factor Authentication | MFA | Spell out | Abbreviate in buttons/labels |
+| Term                        | Abbreviation | First Use | Subsequent                       |
+| --------------------------- | ------------ | --------- | -------------------------------- |
+| Two-Factor Authentication   | 2FA or MFA   | Spell out | Abbreviate in buttons/labels     |
+| One-Time Password           | OTP          | Spell out | Abbreviate in technical contexts |
+| Multi-Factor Authentication | MFA          | Spell out | Abbreviate in buttons/labels     |
 
 **Note:** Choose either "2FA" or "MFA" and use consistently throughout the application. Current codebase uses "MFA" in keys, recommend standardizing on "MFA".
 
 ## Voice and Tone
 
 ### Button Labels SHOULD use active/imperative voice
+
 - "Sign In" (imperative)
 - "Delete Account" (imperative)
 - "Send Login Link" (imperative)
 
 ### Status Messages SHOULD use passive/declarative voice
+
 - "Account verified successfully"
 - "Session removed"
 - "Changes saved"
 
 ### Error Messages SHOULD use declarative voice
+
 - "Authentication failed. Please verify your credentials."
 - "Invalid verification code"
 - "Session expired. Please log in again."
@@ -221,6 +241,7 @@ Button alone: "Permanently Close Account"
 ### Security-Critical Messages (P0)
 
 Security messages MUST remain generic to prevent information disclosure. See `SECURITY-TRANSLATION-GUIDE.md` for:
+
 - Authentication failures (MUST NOT reveal which credential failed)
 - Rate limiting (MUST NOT expose timing/attempt counts)
 - Account enumeration prevention
@@ -239,14 +260,17 @@ Security messages MUST remain generic to prevent information disclosure. See `SE
 ### Languages to Test
 
 **Priority 1 (longest expansions):**
+
 - German (de)
 - Russian (ru)
 
 **Priority 2 (moderate expansions):**
+
 - French (fr)
 - Spanish (es)
 
 **Priority 3 (contractions):**
+
 - Japanese (ja)
 - Chinese (zh)
 

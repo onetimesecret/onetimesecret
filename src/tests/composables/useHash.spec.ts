@@ -45,17 +45,20 @@ describe('useHash', () => {
     const { generateHash, isHashing } = useHash();
 
     // Mock subtle.digest to delay completion
-    const mockDigest = vi.fn().mockImplementation(() => new Promise((resolve) => {
-        setTimeout(() => {
-          // Create a mock hash buffer
-          const buffer = new ArrayBuffer(32);
-          const view = new Uint8Array(buffer);
-          for (let i = 0; i < 32; i++) {
-            view[i] = i;
-          }
-          resolve(buffer);
-        }, 10);
-      }));
+    const mockDigest = vi.fn().mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          setTimeout(() => {
+            // Create a mock hash buffer
+            const buffer = new ArrayBuffer(32);
+            const view = new Uint8Array(buffer);
+            for (let i = 0; i < 32; i++) {
+              view[i] = i;
+            }
+            resolve(buffer);
+          }, 10);
+        })
+    );
 
     // Replace crypto.subtle.digest with our mock implementation
     Object.defineProperty(crypto.subtle, 'digest', {
@@ -87,7 +90,7 @@ describe('useHash', () => {
         'SHA-1': new Uint8Array([1, 2, 3, 4, 5]),
         'SHA-256': new Uint8Array([6, 7, 8, 9, 10]),
         'SHA-384': new Uint8Array([11, 12, 13, 14, 15]),
-        'SHA-512': new Uint8Array([16, 17, 18, 19, 20])
+        'SHA-512': new Uint8Array([16, 17, 18, 19, 20]),
       };
 
       return Promise.resolve(mockHashResults[algorithm as keyof typeof mockHashResults].buffer);

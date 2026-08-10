@@ -8,7 +8,7 @@
   import { storeToRefs } from 'pinia';
   import type { LayoutProps } from '@/types/ui/layouts';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
   withDefaults(defineProps<LayoutProps>(), {});
 

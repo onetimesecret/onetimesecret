@@ -1,7 +1,7 @@
 ---
-id: "009"
+id: '009'
 status: accepted
-title: "ADR-009: Two-Stream Release Notes"
+title: 'ADR-009: Two-Stream Release Notes'
 ---
 
 ## Status

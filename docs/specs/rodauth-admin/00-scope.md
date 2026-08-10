@@ -54,7 +54,7 @@ searching a customer.
 At 200k production accounts, per-account grafting alone is not enough:
 aggregate questions ("which accounts are locked out right now", "how big is
 the unverified backlog", "how many SQL accounts have no matching Redis
-customer") can only be answered by a surface you reach *without* already
+customer") can only be answered by a surface you reach _without_ already
 knowing the customer. So one new read-only nav entry is in scope after all:
 
 **An "Auth" section in the `identity` band** (per D3 — cross-cutting, central)
@@ -67,7 +67,7 @@ covering:
 - Sync coverage / drift: `accounts` rows with `external_id IS NULL` (orphans),
   and the accounts-vs-customers count delta. With dual persistence at this
   scale, drift is an operational metric, not an edge case.
-- Operational lists reachable by *state*, not by customer: currently locked
+- Operational lists reachable by _state_, not by customer: currently locked
   accounts, orphan accounts. These are indexed SQL `WHERE` queries — cheap at
   200k rows, and impossible to express against the Familia customer list
   (whose SCANs already cap at 10k).
@@ -79,19 +79,19 @@ Enumerated from `apps/web/auth/migrations/001_initial.rb` +
 enabled features in `apps/web/auth/config.rb` / `config/features/*.rb` — only
 listing tables backing an **enabled** feature:
 
-| Table(s) | Feature | Admin capability |
-|---|---|---|
-| `accounts`, `account_statuses` | `create_account`, `verify_account` | status (Unverified/Verified/Closed), created/updated |
-| `account_login_failures`, `account_lockouts` | `lockout` (conditional: `lockout_enabled?`) | failure count; view/clear lockout |
-| `account_otp_keys`, `account_recovery_codes`, `account_otp_unlocks` | `otp`, `recovery_codes` (conditional: `mfa_enabled?`) | MFA status; disable MFA; regenerate recovery codes |
-| `account_webauthn_keys`, `account_webauthn_user_ids` | `webauthn` (conditional: `webauthn_enabled?`) | list/remove passkeys |
-| `account_active_session_keys` | `active_sessions` (conditional: `active_sessions_enabled?`) | view/revoke SQL-backed sessions — see dual-authority note below |
-| `account_jwt_refresh_keys` | JWT (base) | view/revoke API refresh tokens |
-| `account_password_reset_keys`, `account_verification_keys`, `account_login_change_keys` | `reset_password`, `verify_account` | pending tokens; resend/expire |
-| `account_email_auth_keys` | `email_auth` (conditional: `email_auth_enabled?`) | pending magic-link tokens |
-| `account_identities` | `omniauth` (conditional: `omniauth_enabled?`/`orgs_sso_enabled?`) | linked SSO providers; unlink |
-| `account_password_change_times`, `account_previous_password_hashes` | `change_password` | password age; reuse-history count (not the hashes themselves) |
-| `account_authentication_audit_logs` | `audit_logging` | read-only per-account auth event timeline — see below |
+| Table(s)                                                                                | Feature                                                           | Admin capability                                                |
+| --------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | --------------------------------------------------------------- |
+| `accounts`, `account_statuses`                                                          | `create_account`, `verify_account`                                | status (Unverified/Verified/Closed), created/updated            |
+| `account_login_failures`, `account_lockouts`                                            | `lockout` (conditional: `lockout_enabled?`)                       | failure count; view/clear lockout                               |
+| `account_otp_keys`, `account_recovery_codes`, `account_otp_unlocks`                     | `otp`, `recovery_codes` (conditional: `mfa_enabled?`)             | MFA status; disable MFA; regenerate recovery codes              |
+| `account_webauthn_keys`, `account_webauthn_user_ids`                                    | `webauthn` (conditional: `webauthn_enabled?`)                     | list/remove passkeys                                            |
+| `account_active_session_keys`                                                           | `active_sessions` (conditional: `active_sessions_enabled?`)       | view/revoke SQL-backed sessions — see dual-authority note below |
+| `account_jwt_refresh_keys`                                                              | JWT (base)                                                        | view/revoke API refresh tokens                                  |
+| `account_password_reset_keys`, `account_verification_keys`, `account_login_change_keys` | `reset_password`, `verify_account`                                | pending tokens; resend/expire                                   |
+| `account_email_auth_keys`                                                               | `email_auth` (conditional: `email_auth_enabled?`)                 | pending magic-link tokens                                       |
+| `account_identities`                                                                    | `omniauth` (conditional: `omniauth_enabled?`/`orgs_sso_enabled?`) | linked SSO providers; unlink                                    |
+| `account_password_change_times`, `account_previous_password_hashes`                     | `change_password`                                                 | password age; reuse-history count (not the hashes themselves)   |
+| `account_authentication_audit_logs`                                                     | `audit_logging`                                                   | read-only per-account auth event timeline — see below           |
 
 Every mutation here needs a new `Auth::Operations::*` (or extends existing
 `Auth::Operations::Customers::*`) verb, a colonel route with both auth layers,
@@ -101,9 +101,9 @@ contract (D4).
 ## Two subtleties
 
 **Two audit trails, not one.** `account_authentication_audit_logs` is
-Rodauth's own record of auth *events* (login, password change, MFA setup) per
+Rodauth's own record of auth _events_ (login, password change, MFA setup) per
 account — read-only, rendered as a timeline. `ColonelAuditEvent` is Colonel's
-record of *admin actions* (an operator revoking a session, clearing a
+record of _admin actions_ (an operator revoking a session, clearing a
 lockout). Every mutation added here writes the latter; the former is display
 data. Don't conflate them in the UI or the data model.
 

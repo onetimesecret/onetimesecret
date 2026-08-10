@@ -4,13 +4,13 @@ Logic classes handle **HTTP request processing** for API endpoints. They are the
 
 ## Characteristics
 
-| Aspect | Description |
-|--------|-------------|
-| Context | Request-bound (receives session, auth, params from HTTP request) |
-| Interface | `process_params`, `raise_concerns`, `process`, `success_data` |
-| Purpose | Parse input, validate, execute domain logic, return API response data |
-| Location | `apps/api/v2/logic/` |
-| Base class | `Onetime::Logic::Base` |
+| Aspect     | Description                                                           |
+| ---------- | --------------------------------------------------------------------- |
+| Context    | Request-bound (receives session, auth, params from HTTP request)      |
+| Interface  | `process_params`, `raise_concerns`, `process`, `success_data`         |
+| Purpose    | Parse input, validate, execute domain logic, return API response data |
+| Location   | `apps/api/v2/logic/`                                                  |
+| Base class | `Onetime::Logic::Base`                                                |
 
 ## Structure
 
@@ -58,12 +58,12 @@ end
 
 ## Comparison with Other Patterns
 
-| Aspect | Logic | Services | Operations |
-|--------|-------|----------|------------|
-| HTTP context | Yes (session, params) | No | No |
-| Primary use | API endpoints | CLI/admin tools | Event handlers |
-| Error handling | FormError with fields | Exceptions | Return symbols |
-| Response format | JSON-ready data | Reports/statistics | Result symbols |
+| Aspect          | Logic                 | Services           | Operations     |
+| --------------- | --------------------- | ------------------ | -------------- |
+| HTTP context    | Yes (session, params) | No                 | No             |
+| Primary use     | API endpoints         | CLI/admin tools    | Event handlers |
+| Error handling  | FormError with fields | Exceptions         | Return symbols |
+| Response format | JSON-ready data       | Reports/statistics | Result symbols |
 
 ## When to Use Logic
 

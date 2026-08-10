@@ -40,7 +40,8 @@ vi.mock('@/apps/workspace/layouts/SettingsLayout.vue', () => ({
 vi.mock('@/apps/workspace/components/account/AccountDeleteButtonWithModalForm.vue', () => ({
   default: {
     name: 'AccountDeleteButtonWithModalForm',
-    template: '<div data-testid="account-delete-button" class="account-delete-button">Delete Account Button</div>',
+    template:
+      '<div data-testid="account-delete-button" class="account-delete-button">Delete Account Button</div>',
     props: ['cust'],
   },
 }));
@@ -138,7 +139,9 @@ describe('CautionZone', () => {
         extid: 'ur1a2b3c4d',
       });
 
-      expect(wrapper.text()).toContain('web.settings.delete_account.permanently_delete_your_account');
+      expect(wrapper.text()).toContain(
+        'web.settings.delete_account.permanently_delete_your_account'
+      );
     });
   });
 

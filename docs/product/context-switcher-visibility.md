@@ -24,11 +24,11 @@ Implemented in:
 The call-to-action depends on whether the user can manage domains (owner or
 admin of the active organization) and how many custom domains already exist.
 
-| User state | Affordance |
-|------------|-----------|
-| Owner/admin, 0 custom domains | Prominent **"Add domain"** link in the dropdown footer |
-| Owner/admin, ≥1 custom domain | Compact **`[+]` icon** in the dropdown header + **"Manage Domains"** footer link |
-| Member (cannot manage domains) | Neither affordance |
+| User state                     | Affordance                                                                       |
+| ------------------------------ | -------------------------------------------------------------------------------- |
+| Owner/admin, 0 custom domains  | Prominent **"Add domain"** link in the dropdown footer                           |
+| Owner/admin, ≥1 custom domain  | Compact **`[+]` icon** in the dropdown header + **"Manage Domains"** footer link |
+| Member (cannot manage domains) | Neither affordance                                                               |
 
 Rationale: "Manage Domains" is meaningless with nothing to manage, so a
 zero-domain owner is steered straight to adding one. Once a domain exists, the
@@ -41,7 +41,7 @@ The org switcher is **hidden** for a brand-new self-signup user and reappears
 once there is something to switch between or administer. It shows only when all
 of these hold (`showOrgSwitcher`):
 
-- Not on a custom domain (there the domain *is* the org scope)
+- Not on a custom domain (there the domain _is_ the org scope)
 - The route allows it (`scopesAvailable.organization !== 'hide'`)
 - The org-switcher feature is enabled
 - The user **can manage orgs** (`canManageOrgs`):
@@ -60,12 +60,12 @@ workspace is surfaced.
 The chip beside the domain in the user-menu header follows the **same** solo /
 `manage_orgs` logic, so it appears and disappears in step with the org switcher.
 
-| Context | Chip |
-|---------|------|
-| Non-solo org context (multi-member or multi-org) | **Role badge** — `Owner` / `Admin` |
-| Solo default, billing enabled, no `manage_orgs` | **`Free`** chip, links to `/billing` |
-| Solo default, billing enabled, has `manage_orgs` | Role badge |
-| Solo default, billing **disabled** | **Hidden** — matches the hidden org switcher |
+| Context                                          | Chip                                         |
+| ------------------------------------------------ | -------------------------------------------- |
+| Non-solo org context (multi-member or multi-org) | **Role badge** — `Owner` / `Admin`           |
+| Solo default, billing enabled, no `manage_orgs`  | **`Free`** chip, links to `/billing`         |
+| Solo default, billing enabled, has `manage_orgs` | Role badge                                   |
+| Solo default, billing **disabled**               | **Hidden** — matches the hidden org switcher |
 
 Rationale: an "Owner" badge is noise for a lone free user. On a billing install
 it becomes a subtle plan indicator and upsell; on a standalone install — where

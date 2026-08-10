@@ -58,18 +58,19 @@
 
   // Compute the current jurisdiction or default to unknown
   // Uses resolved display_name from i18n
-  const currentJurisdiction = computed(() =>
-    currentJurisdictionWithDisplayName.value || {
-      identifier: t('web.regions.unknown_jurisdiction'),
-      display_name_i18n_key: 'web.regions.unknown_jurisdiction',
-      display_name: t('web.regions.unknown_jurisdiction'),
-      domain: '',
-      icon: {
-        collection: 'mdi',
-        name: 'help-circle',
-      },
-      enabled: false,
-    }
+  const currentJurisdiction = computed(
+    () =>
+      currentJurisdictionWithDisplayName.value || {
+        identifier: t('web.regions.unknown_jurisdiction'),
+        display_name_i18n_key: 'web.regions.unknown_jurisdiction',
+        display_name: t('web.regions.unknown_jurisdiction'),
+        domain: '',
+        icon: {
+          collection: 'mdi',
+          name: 'help-circle',
+        },
+        enabled: false,
+      }
   );
 
   // Compute the background icon based on jurisdiction status.
@@ -93,24 +94,26 @@
 
 <template>
   <div
-    class="relative flex min-h-screen items-start justify-center overflow-hidden bg-gray-50 px-4 pt-12 dark:bg-gray-900 sm:px-6 sm:pt-16 lg:px-8">
+    class="relative flex min-h-screen items-start justify-center overflow-hidden bg-gray-50 px-4 pt-12 sm:px-6 sm:pt-16 lg:px-8 dark:bg-gray-900">
     <!-- Background Icon -->
-    <div v-if="!hideBackgroundIcon" class="pointer-events-none fixed inset-0 overflow-hidden opacity-5 dark:opacity-5 blur-md">
+    <div
+      v-if="!hideBackgroundIcon"
+      class="pointer-events-none fixed inset-0 overflow-hidden opacity-5 blur-md dark:opacity-5">
       <OIcon
         v-if="backgroundIcon && backgroundIcon.collection && backgroundIcon.name"
         :collection="backgroundIcon.collection"
         :name="backgroundIcon.name"
-        class="absolute left-1/2 top-0 h-auto w-full -translate-x-1/2 translate-y-[120%] scale-[9] transform-cpu object-cover object-center backdrop-invert"
+        class="absolute top-0 left-1/2 h-auto w-full -translate-x-1/2 translate-y-[120%] scale-[9] transform-cpu object-cover object-center backdrop-invert"
         aria-hidden="true" />
     </div>
 
     <!-- Page Title -->
-    <div class="relative z-10 w-full min-w-[320px] max-w-md space-y-12">
+    <div class="relative z-10 w-full max-w-md min-w-[320px] space-y-12">
       <!-- Title Icon / Logo -->
       <div
         v-if="!omitIcon"
         class="flex flex-col items-center"
-        :class="{ 'invisible': hideIcon }">
+        :class="{ invisible: hideIcon }">
         <RouterLink
           to="/"
           class="group"
@@ -126,14 +129,15 @@
             <!-- Default icon -->
             <template v-else>
               <!-- Subtle glow effect -->
-              <div class="absolute inset-0 rounded-full bg-brand-500/10 blur-xl transition-all duration-300 group-hover:bg-brand-500/20 dark:bg-brand-400/10 dark:group-hover:bg-brand-400/20"></div>
+              <div
+                class="absolute inset-0 rounded-full bg-brand-500/10 blur-xl transition-all duration-300 group-hover:bg-brand-500/20 dark:bg-brand-400/10 dark:group-hover:bg-brand-400/20"></div>
               <!-- Icon -->
               <OIcon
                 v-if="iconToShow && iconToShow.collection && iconToShow.name"
                 :collection="iconToShow.collection"
                 :name="iconToShow.name"
                 size="32"
-                class="relative size-24 transition-transform duration-300 group-hover:scale-105 text-brand-600 dark:text-brand-400"
+                class="relative size-24 text-brand-600 transition-transform duration-300 group-hover:scale-105 dark:text-brand-400"
                 aria-hidden="true" />
             </template>
           </div>
@@ -155,7 +159,9 @@
             v-if="jurisdictionStore.enabled"
             class="mr-1">
             {{ t('web.regions.serving_you_from_the') }}:
-            <span class="font-medium text-gray-700 dark:text-gray-300">{{ currentJurisdiction.display_name }}</span>
+            <span class="font-medium text-gray-700 dark:text-gray-300">{{
+              currentJurisdiction.display_name
+            }}</span>
           </span>
         </p>
       </div>
@@ -175,7 +181,9 @@
         </div>
 
         <!-- Subtle home link for escape route -->
-        <div v-if="showReturnHome" class="border-t border-gray-200 pt-6 dark:border-gray-700">
+        <div
+          v-if="showReturnHome"
+          class="border-t border-gray-200 pt-6 dark:border-gray-700">
           <RouterLink
             to="/"
             class="inline-flex items-center text-sm text-gray-500 transition-colors duration-200 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"

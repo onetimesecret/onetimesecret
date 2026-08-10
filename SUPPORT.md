@@ -15,7 +15,7 @@ compose), and what you expected versus what happened.
 
 Self-hosting from a checkout? Run `bin/doctor --operator --bundle`
 and attach the archive it writes to `tmp/` — a sanitized diagnostic snapshot
-(versions, file presence, env variable *names* only — never values — and a
+(versions, file presence, env variable _names_ only — never values — and a
 masked log excerpt). It answers most back-and-forth questions up front;
 still, review it before posting.
 

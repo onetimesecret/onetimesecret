@@ -5,6 +5,7 @@
 The plans page (`/billing/:extid/plans`) can show duplicate plans if the same product exists in both the Stripe-synced cache and the config-only cache with different identifiers.
 
 Key components:
+
 - `Billing::Plan.refresh_from_stripe` — pulls products+prices from Stripe into Redis
 - `Billing::Plan.upsert_config_only_plans` — adds plans from billing.yaml
 - `Billing::Plan.prune_stale_plans` — soft-deletes plans no longer in Stripe (sets `active: false` but does NOT remove from Redis)
@@ -18,10 +19,10 @@ Plans are now keyed by canonical family ID (e.g., `free_v1`, `identity_plus_v1`)
 2. The `stripe_product_id` doesn't match between sources
 3. Manual entries were created with non-canonical IDs
 
-| Source | Expected ID | Problem |
-|--------|-------------|---------|
-| Stripe sync | `free_v1` | Product metadata `plan_id` must match config key |
-| Config | `free_v1` | Must use canonical family ID |
+| Source      | Expected ID | Problem                                          |
+| ----------- | ----------- | ------------------------------------------------ |
+| Stripe sync | `free_v1`   | Product metadata `plan_id` must match config key |
+| Config      | `free_v1`   | Must use canonical family ID                     |
 
 ## Diagnosis
 
@@ -35,6 +36,7 @@ Billing::Plan.list_plans.select { |p| p.tier == 'free' }.map { |p|
 ```
 
 If this returns multiple entries for the same tier, check:
+
 1. Product metadata `plan_id` in Stripe matches the config key
 2. No non-canonical IDs exist
 
@@ -43,6 +45,7 @@ If this returns multiple entries for the same tier, check:
 ### Step 1: Verify Stripe product metadata
 
 In the Stripe Dashboard:
+
 1. Go to **Product Catalog**
 2. Find the product by ID or name
 3. Under **Metadata**, ensure `plan_id` is the canonical family ID (e.g., `free_v1`)

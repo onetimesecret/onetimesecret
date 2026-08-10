@@ -61,12 +61,11 @@ end
 ```
 
 Why this works:
+
 - `self` inside `configure do` block is the Rodauth::Auth instance
 - Passing `self` to modules gives them direct access to call config methods
 - No `instance_eval` - just normal method calls
 - Clean separation by domain (features, hooks, email)
-
-
 
 ## Recommended File Structure
 
@@ -284,6 +283,7 @@ end
 ## Anti-Patterns to Avoid
 
 ❌ Don't nest `instance_eval`:
+
 ```ruby
 module Features
   def self.configure(auth)
@@ -295,6 +295,7 @@ end
 ```
 
 ❌ Don't create multiple Config subclasses:
+
 ```ruby
 class RodauthFeatures < Config  # NO!
   configure do
@@ -304,6 +305,7 @@ end
 ```
 
 ✅ Do use direct method calls:
+
 ```ruby
 module Features
   def self.configure(auth)

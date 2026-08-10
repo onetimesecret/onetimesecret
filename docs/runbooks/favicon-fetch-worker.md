@@ -7,11 +7,11 @@ default** — so nothing fetches until the feature flag is on.
 
 ## Feature flags (gate everything)
 
-| Flag | Default | Effect when off |
-| ---- | ------- | --------------- |
-| `jobs.favicon_fetch.enabled` | `false` | Every enqueue site is skipped; the worker acks-and-drops any message it receives (`favicon_fetch_worker.rb:159`). The HTTP endpoint still returns a "queued" success but enqueues nothing. |
-| `jobs.favicon_backfill.enabled` | `false` | Nightly backfill scan does nothing. Requires `jobs.favicon_fetch.enabled` **also** on. |
-| `jobs.enabled` | — | When off (dev/test default), the publisher has no RabbitMQ channel and runs the fetch **inline, synchronously, on the calling thread** instead of queueing. |
+| Flag                            | Default | Effect when off                                                                                                                                                                            |
+| ------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `jobs.favicon_fetch.enabled`    | `false` | Every enqueue site is skipped; the worker acks-and-drops any message it receives (`favicon_fetch_worker.rb:159`). The HTTP endpoint still returns a "queued" success but enqueues nothing. |
+| `jobs.favicon_backfill.enabled` | `false` | Nightly backfill scan does nothing. Requires `jobs.favicon_fetch.enabled` **also** on.                                                                                                     |
+| `jobs.enabled`                  | —       | When off (dev/test default), the publisher has no RabbitMQ channel and runs the fetch **inline, synchronously, on the calling thread** instead of queueing.                                |
 
 To exercise any path end-to-end against the real queue you need both
 `jobs.favicon_fetch.enabled: true` and `jobs.enabled: true`.
@@ -38,7 +38,7 @@ bin/ots worker --queues domain.favicon.fetch
 
 `--queues` is a comma-separated filter over auto-discovered `Sneakers::Worker`
 classes, matched on each worker's `queue_name` (`worker_command.rb:378`). It
-filters *which worker classes load* — it does **not** create the queue; all
+filters _which worker classes load_ — it does **not** create the queue; all
 exchanges/queues are declared at boot regardless. Omit `--queues` to run every
 worker. With `jobs.favicon_fetch.enabled` off, the worker connects, consumes, and
 acks-and-drops.
@@ -96,14 +96,14 @@ The result lands on the `CustomDomain`, not in the HTTP/enqueue response (the
 POST returns immediately; the icon arrives later via the worker). Inspect from
 console (`custom_domain.rb:102-108`):
 
-| Field | Meaning |
-| ----- | ------- |
-| `favicon_fetch_status` | `PENDING` / `PROCESSING` / `COMPLETED` / `FAILED` |
-| `favicon_fetched` | `true` once an icon was actually stored |
-| `favicon_fetch_error` | last failure message |
-| `favicon_fetch_started_at` | epoch secs a `PROCESSING` run began (stale-in-flight window) |
-| `favicon_fetch_completed_at` | epoch secs of the last terminal outcome |
-| `favicon_fetch_attempts` / `favicon_fetch_next_at` | backoff counter + earliest eligible re-fetch |
+| Field                                              | Meaning                                                      |
+| -------------------------------------------------- | ------------------------------------------------------------ |
+| `favicon_fetch_status`                             | `PENDING` / `PROCESSING` / `COMPLETED` / `FAILED`            |
+| `favicon_fetched`                                  | `true` once an icon was actually stored                      |
+| `favicon_fetch_error`                              | last failure message                                         |
+| `favicon_fetch_started_at`                         | epoch secs a `PROCESSING` run began (stale-in-flight window) |
+| `favicon_fetch_completed_at`                       | epoch secs of the last terminal outcome                      |
+| `favicon_fetch_attempts` / `favicon_fetch_next_at` | backoff counter + earliest eligible re-fetch                 |
 
 A message that fails terminally lands in `dlq.domain.favicon`. A run stuck at
 `PROCESSING` with no `favicon_fetch_completed_at` is re-enqueued by the nightly

@@ -85,9 +85,7 @@ describe('brandSettingsCanonical round-trip (20 fields)', () => {
   });
 
   it('preserves the canonical type shape', () => {
-    const result: BrandSettingsCanonical = brandSettingsCanonical.parse(
-      fullCanonical()
-    );
+    const result: BrandSettingsCanonical = brandSettingsCanonical.parse(fullCanonical());
     // Type-only assertion (compile-time). Runtime check that the parse
     // produced an object value.
     expect(typeof result).toBe('object');
@@ -214,53 +212,48 @@ describe('footer_text (stripHtmlTags transform)', () => {
   });
 });
 
-describe.each([
-  ['logo_url'],
-  ['logo_dark_url'],
-  ['favicon_url'],
-] as const)('%s (URL nullish)', (field) => {
-  it('accepts an https URL', () => {
-    const result = brandSettingsCanonical.parse({
-      [field]: 'https://example.com/asset.png',
+describe.each([['logo_url'], ['logo_dark_url'], ['favicon_url']] as const)(
+  '%s (URL nullish)',
+  (field) => {
+    it('accepts an https URL', () => {
+      const result = brandSettingsCanonical.parse({
+        [field]: 'https://example.com/asset.png',
+      });
+      expect((result as Record<string, unknown>)[field]).toBe('https://example.com/asset.png');
     });
-    expect((result as Record<string, unknown>)[field]).toBe(
-      'https://example.com/asset.png'
-    );
-  });
 
-  it('accepts an http URL', () => {
-    const result = brandSettingsCanonical.parse({
-      [field]: 'http://example.com/asset.png',
+    it('accepts an http URL', () => {
+      const result = brandSettingsCanonical.parse({
+        [field]: 'http://example.com/asset.png',
+      });
+      expect((result as Record<string, unknown>)[field]).toBe('http://example.com/asset.png');
     });
-    expect((result as Record<string, unknown>)[field]).toBe(
-      'http://example.com/asset.png'
-    );
-  });
 
-  it('rejects a malformed URL', () => {
-    const parsed = brandSettingsCanonical.safeParse({
-      [field]: 'not-a-url',
+    it('rejects a malformed URL', () => {
+      const parsed = brandSettingsCanonical.safeParse({
+        [field]: 'not-a-url',
+      });
+      expect(parsed.success).toBe(false);
     });
-    expect(parsed.success).toBe(false);
-  });
 
-  it('rejects an empty string (URL parser disallows empty)', () => {
-    const parsed = brandSettingsCanonical.safeParse({
-      [field]: '',
+    it('rejects an empty string (URL parser disallows empty)', () => {
+      const parsed = brandSettingsCanonical.safeParse({
+        [field]: '',
+      });
+      expect(parsed.success).toBe(false);
     });
-    expect(parsed.success).toBe(false);
-  });
 
-  it('accepts null', () => {
-    const result = brandSettingsCanonical.parse({ [field]: null });
-    expect((result as Record<string, unknown>)[field]).toBeNull();
-  });
+    it('accepts null', () => {
+      const result = brandSettingsCanonical.parse({ [field]: null });
+      expect((result as Record<string, unknown>)[field]).toBeNull();
+    });
 
-  it('accepts undefined', () => {
-    const result = brandSettingsCanonical.parse({});
-    expect((result as Record<string, unknown>)[field]).toBeUndefined();
-  });
-});
+    it('accepts undefined', () => {
+      const result = brandSettingsCanonical.parse({});
+      expect((result as Record<string, unknown>)[field]).toBeUndefined();
+    });
+  }
+);
 
 // -----------------------------------------------------------------------------
 // Enums
@@ -323,11 +316,7 @@ describe('CornerStyle enum', () => {
 // -----------------------------------------------------------------------------
 
 describe('extended color tokens (secondary/background/text_color)', () => {
-  const colorFields = [
-    'secondary_color',
-    'background_color',
-    'text_color',
-  ] as const;
+  const colorFields = ['secondary_color', 'background_color', 'text_color'] as const;
 
   it.each(colorFields)('%s normalizes 6-digit hex to uppercase', (field) => {
     const result = brandSettingsCanonical.parse({ [field]: '#ff4400' });
@@ -348,9 +337,7 @@ describe('extended color tokens (secondary/background/text_color)', () => {
     expect(
       (brandSettingsCanonical.parse({ [field]: null }) as Record<string, unknown>)[field]
     ).toBeNull();
-    expect(
-      (brandSettingsCanonical.parse({}) as Record<string, unknown>)[field]
-    ).toBeUndefined();
+    expect((brandSettingsCanonical.parse({}) as Record<string, unknown>)[field]).toBeUndefined();
   });
 
   it.each(colorFields)('%s survives a JSON round-trip (normalized)', (field) => {

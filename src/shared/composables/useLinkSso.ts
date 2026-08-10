@@ -141,10 +141,7 @@ const STATUS_FAMILY_MAP: Record<number, NonNullable<LinkSsoErrorCode>> = {
  * code-less response. Returns null when the failure is neither (e.g. a 5xx)
  * so the caller surfaces a generic message.
  */
-function resolveLinkErrorCode(
-  status: number | undefined,
-  backendCode: unknown
-): LinkSsoErrorCode {
+function resolveLinkErrorCode(status: number | undefined, backendCode: unknown): LinkSsoErrorCode {
   if (typeof backendCode === 'string' && backendCode in BACKEND_CODE_MAP) {
     return BACKEND_CODE_MAP[backendCode];
   }
@@ -263,10 +260,7 @@ export function useLinkSso() {
    * client auth state and navigates. Returns null on failure; the caller reads
    * errorCode to decide retry (invalid_password) vs dead-end (invalid_token).
    */
-  async function verifyLink(
-    token: string,
-    password: string
-  ): Promise<LinkSsoVerifySuccess | null> {
+  async function verifyLink(token: string, password: string): Promise<LinkSsoVerifySuccess | null> {
     clearError();
 
     const result = await wrap(async () => {

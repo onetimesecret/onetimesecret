@@ -10,10 +10,7 @@
  * @/types/billing to avoid circular dependencies.
  */
 
-import {
-  invoiceContractSchema,
-  subscriptionContractSchema,
-} from '@/schemas/contracts/billing';
+import { invoiceContractSchema, subscriptionContractSchema } from '@/schemas/contracts/billing';
 
 // Re-export all contracts for backwards compatibility
 export * from '@/schemas/contracts/billing';

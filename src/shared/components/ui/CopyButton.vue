@@ -22,7 +22,7 @@
   const copied = ref(false);
   const showTooltip = ref(false);
   const ariaLabel = copied.value ? t('web.STATUS.copied') : t('web.LABELS.copy_to_clipboard');
-  const tooltipText = computed(() => props.tooltip ? props.tooltip : ariaLabel);
+  const tooltipText = computed(() => (props.tooltip ? props.tooltip : ariaLabel));
 
   let tooltipTimeout: number | null = null;
 

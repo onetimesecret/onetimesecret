@@ -265,7 +265,8 @@
       </p>
       <div class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
         <div>
-          <p class="text-xs font-medium tracking-wider text-amber-700 uppercase dark:text-amber-300">
+          <p
+            class="text-xs font-medium tracking-wider text-amber-700 uppercase dark:text-amber-300">
             {{ t('web.admin.organizations.detail.entitlements.driftExtra') }}
           </p>
           <div class="mt-1 flex flex-wrap gap-1">
@@ -283,7 +284,8 @@
           </div>
         </div>
         <div>
-          <p class="text-xs font-medium tracking-wider text-amber-700 uppercase dark:text-amber-300">
+          <p
+            class="text-xs font-medium tracking-wider text-amber-700 uppercase dark:text-amber-300">
             {{ t('web.admin.organizations.detail.entitlements.driftMissing') }}
           </p>
           <div class="mt-1 flex flex-wrap gap-1">

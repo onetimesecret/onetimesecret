@@ -14,8 +14,7 @@
   const { t } = useI18n();
   const bootstrapStore = useBootstrapStore();
   const signinEnabled = computed(
-    () => bootstrapStore.authentication?.enabled
-      && bootstrapStore.authentication?.signin
+    () => bootstrapStore.authentication?.enabled && bootstrapStore.authentication?.signin
   );
   const helpEnabled = computed(() => bootstrapStore.ui?.help?.enabled ?? true);
 
@@ -131,7 +130,7 @@
           <p class="text-sm">
             {{
               submissionStatus.message ||
-                (submissionStatus.status === 'error' ? 'An error occurred' : 'Success')
+              (submissionStatus.status === 'error' ? 'An error occurred' : 'Success')
             }}
           </p>
         </div>
@@ -244,7 +243,7 @@
           class="mt-16">
           <a
             href="/signin"
-            class="block w-full rounded-md border border-slate-500 bg-white px-4 py-2 text-center text-slate-500 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 dark:border-slate-400 dark:bg-gray-800 dark:text-slate-400 dark:hover:bg-gray-700"
+            class="block w-full rounded-md border border-slate-500 bg-white px-4 py-2 text-center text-slate-500 hover:bg-slate-50 focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 focus:outline-none dark:border-slate-400 dark:bg-gray-800 dark:text-slate-400 dark:hover:bg-gray-700"
             :aria-label="t('web.COMMON.login_to_your_account')">
             {{ t('web.COMMON.login_to_your_account') }}
           </a>

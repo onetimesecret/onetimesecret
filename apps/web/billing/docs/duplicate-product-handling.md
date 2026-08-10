@@ -11,6 +11,7 @@ This follows Stripe's best practice: "To make your script idempotent and resilie
 ### Uniqueness Check
 
 Products are considered duplicates if they have the same:
+
 - `metadata['app']` = `'onetimesecret'`
 - `metadata['plan_id']` (e.g., `'identity_plus_v1'`)
 
@@ -103,11 +104,13 @@ bin/ots billing products create "Identity Plus" \
 ```
 
 **When to use `--force`:**
+
 - Testing multiple product configurations
 - Intentionally creating products with same metadata
 - Automated scripts that handle duplicates differently
 
 **Not recommended for:**
+
 - Production use
 - Standard plan setup
 
@@ -194,12 +197,14 @@ end
 ### Update vs Create
 
 **Update operation (`Stripe::Product.update`):**
+
 - Replaces product name
 - Replaces all metadata fields
 - Adds/updates marketing features
 - **Preserves existing prices**
 
 **Create operation (`Stripe::Product.create`):**
+
 - Creates new product ID
 - New metadata
 - No prices (must create separately)
@@ -213,12 +218,14 @@ end
 ## Best Practices
 
 ✅ **DO:**
+
 - Use consistent `plan_id` format: `{tier}_{version}_{interval}`
 - Let command detect and update existing products
 - Run `bin/ots billing sync` after updates
 - Review changes with `bin/ots billing products show`
 
 ❌ **DON'T:**
+
 - Use `--force` for production setups
 - Create multiple products with same `plan_id`
 - Skip the sync step after updating metadata

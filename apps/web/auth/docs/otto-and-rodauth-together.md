@@ -61,31 +61,31 @@ A design document (`docs/1007-OTTO-AND-RODAUTH-SITTING-IN-A-TREE.md`) describes 
 
 ### Architectural Philosophy
 
-| Dimension | Rodauth | Otto |
-|-----------|---------|------|
-| What it is | Authentication library (Roda plugin) | Rack routing framework |
-| Auth ownership | Owns the full auth lifecycle (login, logout, password reset, 2FA, etc.) | Owns only the auth check — delegates credential verification to the app |
-| Session layer | Abstracts via overridable `session` method | Reads `env['rack.session']` from external middleware |
-| Stateless support | JWT feature replaces session backing store transparently | No built-in stateless auth; strategy system can accommodate it |
-| Extension model | Method override chains via Ruby modules (features) | Named strategy registration + route-level declaration |
+| Dimension         | Rodauth                                                                 | Otto                                                                    |
+| ----------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| What it is        | Authentication library (Roda plugin)                                    | Rack routing framework                                                  |
+| Auth ownership    | Owns the full auth lifecycle (login, logout, password reset, 2FA, etc.) | Owns only the auth check — delegates credential verification to the app |
+| Session layer     | Abstracts via overridable `session` method                              | Reads `env['rack.session']` from external middleware                    |
+| Stateless support | JWT feature replaces session backing store transparently                | No built-in stateless auth; strategy system can accommodate it          |
+| Extension model   | Method override chains via Ruby modules (features)                      | Named strategy registration + route-level declaration                   |
 
 ### How They Handle the Same Problems
 
 **"Is this request authenticated?"**
 
-| | Rodauth | Otto |
-|-|---------|------|
+|             | Rodauth                                                 | Otto                                                                |
+| ----------- | ------------------------------------------------------- | ------------------------------------------------------------------- |
 | Entry point | `logged_in?` → `session_value` → `session[session_key]` | `RouteAuthWrapper#call` → `strategy.authenticate(env, requirement)` |
-| Abstraction | Single `session` method, overridden per transport | Named strategies with OR composition |
-| Result type | Truthy/falsy from `session_value` | `StrategyResult` immutable value object |
+| Abstraction | Single `session` method, overridden per transport       | Named strategies with OR composition                                |
+| Result type | Truthy/falsy from `session_value`                       | `StrategyResult` immutable value object                             |
 
 **Session vs stateless**
 
-| | Rodauth | Otto |
-|-|---------|------|
-| Session-based | `session` → `scope.session` (Rack session) | `SessionStrategy` reads `env['rack.session']` |
-| JWT | `session` → decoded JWT hash (transparent swap) | Not implemented; would be a custom strategy |
-| Basic Auth | `logged_in?` override → bootstraps a Rack session | Not implemented |
+|               | Rodauth                                           | Otto                                          |
+| ------------- | ------------------------------------------------- | --------------------------------------------- |
+| Session-based | `session` → `scope.session` (Rack session)        | `SessionStrategy` reads `env['rack.session']` |
+| JWT           | `session` → decoded JWT hash (transparent swap)   | Not implemented; would be a custom strategy   |
+| Basic Auth    | `logged_in?` override → bootstraps a Rack session | Not implemented                               |
 
 The key difference: Rodauth's abstraction point is the `session` method — swap the backing store, everything else works unchanged. Otto's abstraction point is the `AuthStrategy` interface — swap the strategy, the route wrapper and result propagation work unchanged. Same principle, different layer.
 

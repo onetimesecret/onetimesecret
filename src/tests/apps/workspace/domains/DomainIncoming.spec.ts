@@ -88,9 +88,7 @@ vi.mock('@/shared/composables/useEntitlements', () => ({
 // Mock organization store
 vi.mock('@/shared/stores/organizationStore', () => ({
   useOrganizationStore: () => ({
-    organizations: ref([
-      { extid: 'org-123', name: 'Test Org' },
-    ]),
+    organizations: ref([{ extid: 'org-123', name: 'Test Org' }]),
   }),
 }));
 
@@ -208,10 +206,13 @@ describe('DomainIncoming', () => {
     }
   });
 
-  const mountComponent = (props: Partial<{
-    orgid: string;
-    extid: string;
-  }> = {}) => mount(DomainIncoming, {
+  const mountComponent = (
+    props: Partial<{
+      orgid: string;
+      extid: string;
+    }> = {}
+  ) =>
+    mount(DomainIncoming, {
       props: {
         orgid: props.orgid ?? 'org-123',
         extid: props.extid ?? 'dm-ext-123',
@@ -320,9 +321,9 @@ describe('DomainIncoming', () => {
       wrapper = mountComponent({ orgid: 'org-456' });
       await flushPromises();
 
-      const upgradeLink = wrapper.findAll('a').find(
-        (a) => a.attributes('href')?.includes('/billing/')
-      );
+      const upgradeLink = wrapper
+        .findAll('a')
+        .find((a) => a.attributes('href')?.includes('/billing/'));
       expect(upgradeLink).toBeDefined();
       expect(upgradeLink!.attributes('href')).toBe('/billing/org-456/plans');
     });

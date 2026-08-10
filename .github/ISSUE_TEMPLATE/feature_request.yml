@@ -2,7 +2,7 @@
 
 name: Feature Request
 description: Suggest an idea or improvement
-labels: ["improvement"]
+labels: ['improvement']
 
 body:
   - type: textarea

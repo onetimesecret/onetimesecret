@@ -48,11 +48,7 @@ describe('parseSensitiveSpec', () => {
   it('parses a comma-separated list into a Set', () => {
     const result = parseSensitiveSpec('secret,token,receipt');
     expect(result).toBeInstanceOf(Set);
-    expect(Array.from(result as Set<string>).sort()).toEqual([
-      'receipt',
-      'secret',
-      'token',
-    ]);
+    expect(Array.from(result as Set<string>).sort()).toEqual(['receipt', 'secret', 'token']);
   });
 
   it('trims whitespace around keys', () => {
@@ -117,10 +113,7 @@ describe('pathToRegexPattern', () => {
   });
 
   it('captures every param when spec=true', () => {
-    const { regex, captureCount } = pathToRegexPattern(
-      '/foo/:a/:b/:c',
-      true
-    );
+    const { regex, captureCount } = pathToRegexPattern('/foo/:a/:b/:c', true);
     expect(captureCount).toBe(3);
     const compiled = new RegExp(regex);
     const match = `/foo/${ID20}/${ID20}/${ID20}`.match(compiled);
@@ -129,10 +122,7 @@ describe('pathToRegexPattern', () => {
   });
 
   it('captures only listed params in a multi-param path', () => {
-    const { regex, captureCount } = pathToRegexPattern(
-      '/foo/:secret/:page',
-      new Set(['secret'])
-    );
+    const { regex, captureCount } = pathToRegexPattern('/foo/:secret/:page', new Set(['secret']));
     // :secret becomes a capture group; :page becomes non-capturing.
     expect(regex).toBe('\\/foo\\/([^/\\s]+)\\/(?:[^/\\s]+)');
     expect(captureCount).toBe(1);
@@ -145,10 +135,7 @@ describe('pathToRegexPattern', () => {
   });
 
   it('captures multiple listed params when spec lists more than one', () => {
-    const { regex, captureCount } = pathToRegexPattern(
-      '/foo/:a/:b/:c',
-      new Set(['a', 'c'])
-    );
+    const { regex, captureCount } = pathToRegexPattern('/foo/:a/:b/:c', new Set(['a', 'c']));
     expect(captureCount).toBe(2);
     const compiled = new RegExp(regex);
     const match = `/foo/${ID20}/${ID20}/${ID20}`.match(compiled);
@@ -156,10 +143,7 @@ describe('pathToRegexPattern', () => {
   });
 
   it('returns captureCount=0 when no listed param is present in the path', () => {
-    const { regex, captureCount } = pathToRegexPattern(
-      '/foo/:page',
-      new Set(['nonexistent'])
-    );
+    const { regex, captureCount } = pathToRegexPattern('/foo/:page', new Set(['nonexistent']));
     expect(captureCount).toBe(0);
     // The :page param still appears as a non-capturing group so the regex is
     // syntactically valid. The generator treats a zero count from a sensitive
@@ -216,10 +200,7 @@ describe('pathToRegexPattern', () => {
   });
 
   it('captures only :a on /foo/:a/:b when spec lists :a alone', () => {
-    const { regex, captureCount } = pathToRegexPattern(
-      '/foo/:a/:b',
-      new Set(['a'])
-    );
+    const { regex, captureCount } = pathToRegexPattern('/foo/:a/:b', new Set(['a']));
     expect(captureCount).toBe(1);
     // :a -> capturing, :b -> non-capturing
     expect(regex).toBe('\\/foo\\/([^/\\s]+)\\/(?:[^/\\s]+)');
@@ -229,10 +210,7 @@ describe('pathToRegexPattern', () => {
     // If the same :x appears twice and spec names :x, both occurrences
     // become capture groups. This is an unusual but syntactically valid
     // route shape; the function should not special-case uniqueness.
-    const { regex, captureCount } = pathToRegexPattern(
-      '/a/:x/b/:x',
-      new Set(['x'])
-    );
+    const { regex, captureCount } = pathToRegexPattern('/a/:x/b/:x', new Set(['x']));
     expect(captureCount).toBe(2);
     const compiled = new RegExp(regex);
     const match = `/a/${ID20}/b/xyz`.match(compiled);

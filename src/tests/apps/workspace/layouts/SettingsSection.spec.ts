@@ -93,11 +93,7 @@ describe('SettingsSection', () => {
               ]
             ),
             // Content slot
-            h(
-              'div',
-              { class: 'divide-y divide-gray-200 dark:divide-gray-700' },
-              slots.default?.()
-            ),
+            h('div', { class: 'divide-y divide-gray-200 dark:divide-gray-700' }, slots.default?.()),
           ]
         );
     },
@@ -120,7 +116,8 @@ describe('SettingsSection', () => {
       icon: { collection: string; name: string } | null;
     }> = {},
     slots: Record<string, () => unknown> = {}
-  ) => mount(SettingsSectionStub, {
+  ) =>
+    mount(SettingsSectionStub, {
       props: {
         title: 'Test Section',
         ...props,
@@ -264,12 +261,15 @@ describe('SettingsSection', () => {
     });
 
     it('renders complex slot content', () => {
-      wrapper = mountComponent({}, {
-        default: () => [
-          h('div', { class: 'setting-item-1' }, 'First Setting'),
-          h('div', { class: 'setting-item-2' }, 'Second Setting'),
-        ],
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          default: () => [
+            h('div', { class: 'setting-item-1' }, 'First Setting'),
+            h('div', { class: 'setting-item-2' }, 'Second Setting'),
+          ],
+        }
+      );
 
       expect(wrapper.find('.setting-item-1').exists()).toBe(true);
       expect(wrapper.find('.setting-item-2').exists()).toBe(true);
@@ -285,13 +285,16 @@ describe('SettingsSection', () => {
     });
 
     it('renders form elements in slot', () => {
-      wrapper = mountComponent({}, {
-        default: () =>
-          h('form', { class: 'settings-form' }, [
-            h('input', { type: 'text', placeholder: 'Enter value' }),
-            h('button', { type: 'submit' }, 'Save'),
-          ]),
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          default: () =>
+            h('form', { class: 'settings-form' }, [
+              h('input', { type: 'text', placeholder: 'Enter value' }),
+              h('button', { type: 'submit' }, 'Save'),
+            ]),
+        }
+      );
 
       expect(wrapper.find('form.settings-form').exists()).toBe(true);
       expect(wrapper.find('input[type="text"]').exists()).toBe(true);
@@ -394,9 +397,12 @@ describe('SettingsSection', () => {
     });
 
     it('section is focusable content container', () => {
-      wrapper = mountComponent({}, {
-        default: () => h('button', { class: 'focusable' }, 'Click me'),
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          default: () => h('button', { class: 'focusable' }, 'Click me'),
+        }
+      );
 
       const button = wrapper.find('button.focusable');
       expect(button.exists()).toBe(true);

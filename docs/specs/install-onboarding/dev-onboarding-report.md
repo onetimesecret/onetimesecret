@@ -1,4 +1,5 @@
 # docs/specs/dx.md
+
 ---
 
 # Why commits and pushes are slow — and where quality checks should live
@@ -46,7 +47,7 @@ Minor: the pre-push config pins `pre-commit-hooks` at `v4.6.0` while pre-commit 
 
 ### 1.5 What's already right
 
-Worth saying: the *architecture intent* is correct (light pre-commit, heavier pre-push, full CI), CI is genuinely good (path-filtered tiers, pinned actions, concurrency cancellation), `fail_fast: true` on commit is right, and the hygiene hooks (whitespace, merge-conflict, private-key, large-files, `no-commit-to-branch`, issue-prefix) are exactly what belongs in pre-commit. The problem is that two type-aware ESLint passes and a full type-check crept into the "light" layers.
+Worth saying: the _architecture intent_ is correct (light pre-commit, heavier pre-push, full CI), CI is genuinely good (path-filtered tiers, pinned actions, concurrency cancellation), `fail_fast: true` on commit is right, and the hygiene hooks (whitespace, merge-conflict, private-key, large-files, `no-commit-to-branch`, issue-prefix) are exactly what belongs in pre-commit. The problem is that two type-aware ESLint passes and a full type-check crept into the "light" layers.
 
 ---
 
@@ -68,13 +69,13 @@ time pre-commit run --config .pre-push-config.yaml --all-files --verbose
 
 The principle: **each layer catches what it's uniquely positioned to catch, at the latency budget of that layer.** Hooks are advisory (anyone can `--no-verify`); CI + branch protection is the enforcement point. So hooks should optimize for DX, and CI for rigor.
 
-| Layer | Budget | Job |
-|---|---|---|
-| Editor (LSP) | instant | type errors, lint-as-you-type, format-on-save |
-| pre-commit | < 5s | hygiene + syntax-level lint on staged files only |
-| pre-push | < 30s, skippable | incremental type-check (optional) |
-| CI (PR) | minutes | full type-aware lint, type-check, tests — **the gate** |
-| Merge queue / protection | — | enforcement that CI passed |
+| Layer                    | Budget           | Job                                                    |
+| ------------------------ | ---------------- | ------------------------------------------------------ |
+| Editor (LSP)             | instant          | type errors, lint-as-you-type, format-on-save          |
+| pre-commit               | < 5s             | hygiene + syntax-level lint on staged files only       |
+| pre-push                 | < 30s, skippable | incremental type-check (optional)                      |
+| CI (PR)                  | minutes          | full type-aware lint, type-check, tests — **the gate** |
+| Merge queue / protection | —                | enforcement that CI passed                             |
 
 ### 3.1 Pre-commit: one ESLint pass, no type-program build
 
@@ -87,13 +88,12 @@ The principle: **each layer catches what it's uniquely positioned to catch, at t
     - id: eslint-staged
       name: ESLint (syntax, staged files)
       entry: pnpm exec eslint --quiet --fix --cache
-             --cache-location ./node_modules/.cache/eslint-hooks
-             --config eslint.config.hooks.ts
+        --cache-location ./node_modules/.cache/eslint-hooks
+        --config eslint.config.hooks.ts
       language: system
       files: \.(ts|vue|mjs)$
       exclude: ^src/tests/
 ```
-
 
 **RuboCop: switch to the bundled gem in server mode.**
 
@@ -143,17 +143,17 @@ hygiene:
 
 ### 3.4 Editor layer: make the feedback loop instant
 
-The checks people most want *before* commit are the ones the editor can show live: ESLint extension (flat-config aware) + Volar for vue-tsc diagnostics + ruby-lsp with RuboCop formatting + format-on-save with Prettier. A committed `.vscode/extensions.json` (you have `.vscode/` but no `extensions.json`) and `settings.json` entries for `"editor.codeActionsOnSave": {"source.fixAll.eslint": "explicit"}` move most lint fixes to save-time, which is the cheapest place they can possibly happen. Zed users get the same via `.zed/settings.json` (you have `.zed/` already).
+The checks people most want _before_ commit are the ones the editor can show live: ESLint extension (flat-config aware) + Volar for vue-tsc diagnostics + ruby-lsp with RuboCop formatting + format-on-save with Prettier. A committed `.vscode/extensions.json` (you have `.vscode/` but no `extensions.json`) and `settings.json` entries for `"editor.codeActionsOnSave": {"source.fixAll.eslint": "explicit"}` move most lint fixes to save-time, which is the cheapest place they can possibly happen. Zed users get the same via `.zed/settings.json` (you have `.zed/` already).
 
 ---
 
 ## Part 4 — Expected impact
 
-| Path | Today (estimated) | After |
-|---|---|---|
-| `git commit` (1 file) | 2 × full TS program build + RuboCop cold boot + 3 framework spawns → ~1–3 min cold | hygiene + syntax lint + warm RuboCop server → **2–5s** |
-| `git push` | full ESLint + full vue-tsc → ~2–5 min | nothing, or incremental vue-tsc → **0–20s** |
-| Quality regression risk | hooks skippable, CI partially duplicative | **lower** — CI + required checks enforce everything hooks did, plus hygiene checks CI never ran before |
+| Path                    | Today (estimated)                                                                  | After                                                                                                  |
+| ----------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `git commit` (1 file)   | 2 × full TS program build + RuboCop cold boot + 3 framework spawns → ~1–3 min cold | hygiene + syntax lint + warm RuboCop server → **2–5s**                                                 |
+| `git push`              | full ESLint + full vue-tsc → ~2–5 min                                              | nothing, or incremental vue-tsc → **0–20s**                                                            |
+| Quality regression risk | hooks skippable, CI partially duplicative                                          | **lower** — CI + required checks enforce everything hooks did, plus hygiene checks CI never ran before |
 
 ## Suggested order of operations
 

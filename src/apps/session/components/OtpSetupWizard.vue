@@ -2,98 +2,100 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-import OtpCodeInput from '@/apps/session/components/OtpCodeInput.vue';
-import { useMfa } from '@/shared/composables/useMfa';
-import { useClipboard } from '@/shared/composables/useClipboard';
-import { useNotificationsStore } from '@/shared/stores/notificationsStore';
-import { ref, computed, onMounted } from 'vue';
+  import OtpCodeInput from '@/apps/session/components/OtpCodeInput.vue';
+  import { useMfa } from '@/shared/composables/useMfa';
+  import { useClipboard } from '@/shared/composables/useClipboard';
+  import { useNotificationsStore } from '@/shared/stores/notificationsStore';
+  import { ref, computed, onMounted } from 'vue';
 
-const emit = defineEmits<{
-  complete: [recoveryCodes: string[]];
-  cancel: [];
-}>();
+  const emit = defineEmits<{
+    complete: [recoveryCodes: string[]];
+    cancel: [];
+  }>();
 
-const { t } = useI18n();
-const { setupData, recoveryCodes, isLoading, error, setupMfa, enableMfa } = useMfa();
-const notificationsStore = useNotificationsStore();
-const { copyToClipboard } = useClipboard();
+  const { t } = useI18n();
+  const { setupData, recoveryCodes, isLoading, error, setupMfa, enableMfa } = useMfa();
+  const notificationsStore = useNotificationsStore();
+  const { copyToClipboard } = useClipboard();
 
-// Simplified wizard: setup or codes
-const currentStep = ref<'setup' | 'codes'>('setup');
-// Track whether recovery codes have been saved (downloaded or copied)
-const codesSaved = ref(false);
-const otpCode = ref('');
-const password = ref('');
-const otpInputRef = ref<InstanceType<typeof OtpCodeInput> | null>(null);
+  // Simplified wizard: setup or codes
+  const currentStep = ref<'setup' | 'codes'>('setup');
+  // Track whether recovery codes have been saved (downloaded or copied)
+  const codesSaved = ref(false);
+  const otpCode = ref('');
+  const password = ref('');
+  const otpInputRef = ref<InstanceType<typeof OtpCodeInput> | null>(null);
 
-// Auto-load QR code on mount (without password initially). The QR is rendered
-// from the backend's provisioning_uri (which carries the brand-configured
-// issuer), so no issuer/email is needed here.
-onMounted(async () => {
-  await setupMfa();
-});
+  // Auto-load QR code on mount (without password initially). The QR is rendered
+  // from the backend's provisioning_uri (which carries the brand-configured
+  // issuer), so no issuer/email is needed here.
+  onMounted(async () => {
+    await setupMfa();
+  });
 
-// Handle OTP code input
-const handleOtpComplete = (code: string) => {
-  otpCode.value = code;
-};
+  // Handle OTP code input
+  const handleOtpComplete = (code: string) => {
+    otpCode.value = code;
+  };
 
-// Verify OTP and move to recovery codes step
-const handleVerify = async () => {
-  if (!password.value || otpCode.value.length !== 6) {
-    return;
-  }
+  // Verify OTP and move to recovery codes step
+  const handleVerify = async () => {
+    if (!password.value || otpCode.value.length !== 6) {
+      return;
+    }
 
-  const success = await enableMfa(otpCode.value, password.value);
-  if (success) {
-    // Recovery codes are automatically included in enableMfa response
-    // No need to fetch separately
-    currentStep.value = 'codes';
-  } else {
-    // Clear OTP input on error
-    otpInputRef.value?.clear();
-    otpCode.value = '';
-    // Don't clear password to allow retry
-  }
-};
+    const success = await enableMfa(otpCode.value, password.value);
+    if (success) {
+      // Recovery codes are automatically included in enableMfa response
+      // No need to fetch separately
+      currentStep.value = 'codes';
+    } else {
+      // Clear OTP input on error
+      otpInputRef.value?.clear();
+      otpCode.value = '';
+      // Don't clear password to allow retry
+    }
+  };
 
-// Complete wizard
-const handleComplete = () => {
-  emit('complete', recoveryCodes.value);
-};
+  // Complete wizard
+  const handleComplete = () => {
+    emit('complete', recoveryCodes.value);
+  };
 
-// Cancel wizard
-const handleCancel = () => {
-  emit('cancel');
-};
+  // Cancel wizard
+  const handleCancel = () => {
+    emit('cancel');
+  };
 
-// Download recovery codes as text file
-const downloadCodes = () => {
-  const content = recoveryCodes.value.join('\n');
-  const blob = new Blob([content], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'onetime-recovery-codes.txt';
-  a.click();
-  URL.revokeObjectURL(url);
-  codesSaved.value = true;
-  notificationsStore.show(t('web.auth.recovery_codes.downloaded'), 'success', 'top');
-};
-
-// Copy codes to clipboard
-const copyCodes = async () => {
-  const content = recoveryCodes.value.join('\n');
-  const success = await copyToClipboard(content);
-  if (success) {
+  // Download recovery codes as text file
+  const downloadCodes = () => {
+    const content = recoveryCodes.value.join('\n');
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'onetime-recovery-codes.txt';
+    a.click();
+    URL.revokeObjectURL(url);
     codesSaved.value = true;
-    notificationsStore.show(t('web.auth.recovery_codes.copied'), 'success', 'top');
-  } else {
-    notificationsStore.show(t('web.auth.recovery_codes.copy_failed'), 'error', 'top');
-  }
-};
+    notificationsStore.show(t('web.auth.recovery_codes.downloaded'), 'success', 'top');
+  };
 
-const canVerify = computed(() => password.value && otpCode.value.length === 6 && !isLoading.value);
+  // Copy codes to clipboard
+  const copyCodes = async () => {
+    const content = recoveryCodes.value.join('\n');
+    const success = await copyToClipboard(content);
+    if (success) {
+      codesSaved.value = true;
+      notificationsStore.show(t('web.auth.recovery_codes.copied'), 'success', 'top');
+    } else {
+      notificationsStore.show(t('web.auth.recovery_codes.copy_failed'), 'error', 'top');
+    }
+  };
+
+  const canVerify = computed(
+    () => password.value && otpCode.value.length === 6 && !isLoading.value
+  );
 </script>
 
 <template>
@@ -108,13 +110,17 @@ const canVerify = computed(() => password.value && otpCode.value.length === 6 &&
       </p>
 
       <!-- Loading state -->
-      <div v-if="isLoading && !setupData" class="flex items-center justify-center py-12">
+      <div
+        v-if="isLoading && !setupData"
+        class="flex items-center justify-center py-12">
         <i class="fas fa-spinner fa-spin mr-2 text-2xl text-gray-400"></i>
         <span class="text-gray-600 dark:text-gray-400">{{ t('web.auth.mfa.generating_qr') }}</span>
       </div>
 
       <!-- Setup Form -->
-      <div v-else-if="setupData" class="space-y-6">
+      <div
+        v-else-if="setupData"
+        class="space-y-6">
         <!-- Step 1: QR Code & Manual Entry -->
         <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
           <h3 class="mb-4 text-lg font-semibold dark:text-white">
@@ -134,19 +140,22 @@ const canVerify = computed(() => password.value && otpCode.value.length === 6 &&
           </div>
 
           <!-- Manual Entry -->
-          <div class="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900">
+          <div
+            class="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900">
             <p class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
               {{ t('web.auth.mfa.manual_entry') }}
             </p>
             <code
-              class="block break-all rounded bg-white p-2 font-mono text-sm dark:bg-gray-800 dark:text-gray-300">
+              class="block rounded bg-white p-2 font-mono text-sm break-all dark:bg-gray-800 dark:text-gray-300">
               {{ setupData.otp_setup }}
             </code>
           </div>
         </div>
 
         <!-- Step 2: Verification Form -->
-        <form @submit.prevent="handleVerify" class="space-y-6">
+        <form
+          @submit.prevent="handleVerify"
+          class="space-y-6">
           <!-- Password Input -->
           <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
             <h3 class="mb-4 text-lg font-semibold dark:text-white">
@@ -165,7 +174,9 @@ const canVerify = computed(() => password.value && otpCode.value.length === 6 &&
               readonly />
 
             <div class="mb-4">
-              <label for="mfa-password" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label
+                for="mfa-password"
+                class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                 {{ t('web.auth.mfa.password_confirmation') }}
               </label>
               <input
@@ -175,7 +186,7 @@ const canVerify = computed(() => password.value && otpCode.value.length === 6 &&
                 autocomplete="current-password"
                 :disabled="isLoading"
                 :placeholder="t('web.auth.mfa.password_placeholder')"
-                class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+                class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder:text-gray-400 focus:border-brand-500 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
               <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                 {{ t('web.auth.mfa.password_reason') }}
               </p>
@@ -212,13 +223,13 @@ const canVerify = computed(() => password.value && otpCode.value.length === 6 &&
               @click="handleCancel"
               type="button"
               :disabled="isLoading"
-              class="flex-1 rounded-md border border-gray-300 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+              class="flex-1 rounded-md border border-gray-300 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
               {{ t('web.COMMON.word_cancel') }}
             </button>
             <button
               type="submit"
               :disabled="!canVerify"
-              class="flex-1 rounded-md bg-brand-600 px-4 py-3 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+              class="flex-1 rounded-md bg-brand-600 px-4 py-3 text-sm font-medium text-white hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50">
               <span v-if="isLoading">{{ t('web.COMMON.processing') }}</span>
               <span v-else>{{ t('web.auth.mfa.enable_and_continue') }}</span>
             </button>
@@ -255,7 +266,7 @@ const canVerify = computed(() => password.value && otpCode.value.length === 6 &&
         role="alert"
         class="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-4 dark:border-amber-600 dark:bg-amber-900/20">
         <div class="flex items-start">
-          <i class="fas fa-exclamation-triangle mr-3 mt-0.5 text-amber-600 dark:text-amber-400"></i>
+          <i class="fas fa-exclamation-triangle mt-0.5 mr-3 text-amber-600 dark:text-amber-400"></i>
           <p class="text-sm text-amber-800 dark:text-amber-200">
             {{ t('web.auth.recovery_codes.save_required') }}
           </p>
@@ -279,14 +290,14 @@ const canVerify = computed(() => password.value && otpCode.value.length === 6 &&
         <button
           @click="downloadCodes"
           type="button"
-          class="flex-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+          class="flex-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
           <i class="fas fa-download mr-2"></i>
           {{ t('web.auth.recovery_codes.download') }}
         </button>
         <button
           @click="copyCodes"
           type="button"
-          class="flex-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+          class="flex-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
           <i class="fas fa-copy mr-2"></i>
           {{ t('web.auth.recovery_codes.copy') }}
         </button>
@@ -298,10 +309,10 @@ const canVerify = computed(() => password.value && otpCode.value.length === 6 &&
         type="button"
         :disabled="!codesSaved"
         :class="[
-          'mt-6 w-full rounded-md px-4 py-3 text-lg font-medium focus:outline-none focus:ring-2 focus:ring-offset-2',
+          'mt-6 w-full rounded-md px-4 py-3 text-lg font-medium focus:ring-2 focus:ring-offset-2 focus:outline-none',
           codesSaved
             ? 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500'
-            : 'cursor-not-allowed bg-gray-400 text-gray-200'
+            : 'cursor-not-allowed bg-gray-400 text-gray-200',
         ]">
         <i class="fas fa-check mr-2"></i>
         {{ t('web.auth.mfa.complete_setup') }}

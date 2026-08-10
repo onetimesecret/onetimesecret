@@ -41,7 +41,13 @@ vi.mock('@headlessui/vue', () => ({
 }));
 
 const sampleActivity = [
-  { id: 1, type: 'created', person: { name: 'Alice' }, date: '1d ago', dateTime: '2025-01-01T10:00' },
+  {
+    id: 1,
+    type: 'created',
+    person: { name: 'Alice' },
+    date: '1d ago',
+    dateTime: '2025-01-01T10:00',
+  },
   { id: 2, type: 'viewed', person: { name: 'Bob' }, date: '2d ago', dateTime: '2025-01-02T11:00' },
   {
     id: 3,

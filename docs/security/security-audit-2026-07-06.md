@@ -60,23 +60,23 @@ Status columns reflect the `security/audit-2026-07-06-high-medium` branch (2026-
 
 All 3 High and all 11 Medium findings are resolved on this branch, except **M-3** (accepted; V1 is maintenance-only) which is documented rather than fixed. One additional residual (#3516) was fixed by moving the login rate-limit check ahead of the Argon2 comparison. Low and Informational findings are not addressed on this branch.
 
-| ID   | Status       | Commit(s)               | Note                                                              |
-| ---- | ------------ | ----------------------- | ---------------------------------------------------------------- |
-| H-1  | Fixed        | `d3f5246c2`             | CSRF token required on session-authenticated API requests        |
-| H-2  | Fixed        | `1759fc294`             | Valkey/RabbitMQ credentials required in compose stacks           |
-| H-3  | Fixed        | `aa3d70b2b`             | OmniAuth email auto-link to existing accounts refused            |
-| M-1  | Fixed        | `2afbe890d`             | Security middleware protections default on                       |
-| M-2  | Fixed        | `1eadc38e9`, `ed7acb23d`| Sessions revoked on password change/reset; fails loud            |
-| M-3  | Accepted     | —                       | V1 maintenance-only; gap documented, no fix                      |
-| M-4  | Fixed        | `4ccff8543`             | Two-tier login rate limiter for simple-mode auth                 |
-| M-5  | Fixed        | `b56b99ddd`             | s6-overlay tarball checksums verified before extraction          |
-| M-6  | Fixed        | `1759fc294`             | RabbitMQ credentials required (same change as H-2)               |
-| M-7  | Fixed        | `60dd19fda`, `dcf71f3c2`| Cookie `secure` key omitted unless SSL=true; boot.rb defaults on |
-| M-8  | Fixed        | `00956813d`, `06843d620`| Passphrase limiter keyed on secret+IP; per-IP keys in ops (RL-1) |
-| M-9  | Fixed        | `11ff16ef8`             | Stripe checkout URLs host-allowlisted before navigation          |
-| M-10 | Fixed        | `3673b9be8`             | Admin routes gated on colonel role; redirect param hardened      |
-| M-11 | Fixed        | `02dd1b21d`             | Awaiting-MFA sessions blocked from authenticating                |
-| #3516| Fixed        | `643c2182e`, `468e47cdf`| Argon2 DoS-amplification residual; rate-limit check moved ahead of Argon2 comparison |
+| ID    | Status   | Commit(s)                | Note                                                                                 |
+| ----- | -------- | ------------------------ | ------------------------------------------------------------------------------------ |
+| H-1   | Fixed    | `d3f5246c2`              | CSRF token required on session-authenticated API requests                            |
+| H-2   | Fixed    | `1759fc294`              | Valkey/RabbitMQ credentials required in compose stacks                               |
+| H-3   | Fixed    | `aa3d70b2b`              | OmniAuth email auto-link to existing accounts refused                                |
+| M-1   | Fixed    | `2afbe890d`              | Security middleware protections default on                                           |
+| M-2   | Fixed    | `1eadc38e9`, `ed7acb23d` | Sessions revoked on password change/reset; fails loud                                |
+| M-3   | Accepted | —                        | V1 maintenance-only; gap documented, no fix                                          |
+| M-4   | Fixed    | `4ccff8543`              | Two-tier login rate limiter for simple-mode auth                                     |
+| M-5   | Fixed    | `b56b99ddd`              | s6-overlay tarball checksums verified before extraction                              |
+| M-6   | Fixed    | `1759fc294`              | RabbitMQ credentials required (same change as H-2)                                   |
+| M-7   | Fixed    | `60dd19fda`, `dcf71f3c2` | Cookie `secure` key omitted unless SSL=true; boot.rb defaults on                     |
+| M-8   | Fixed    | `00956813d`, `06843d620` | Passphrase limiter keyed on secret+IP; per-IP keys in ops (RL-1)                     |
+| M-9   | Fixed    | `11ff16ef8`              | Stripe checkout URLs host-allowlisted before navigation                              |
+| M-10  | Fixed    | `3673b9be8`              | Admin routes gated on colonel role; redirect param hardened                          |
+| M-11  | Fixed    | `02dd1b21d`              | Awaiting-MFA sessions blocked from authenticating                                    |
+| #3516 | Fixed    | `643c2182e`, `468e47cdf` | Argon2 DoS-amplification residual; rate-limit check moved ahead of Argon2 comparison |
 
 Low (L-1–L-10) and Informational (I-1–I-6): not scoped to this branch; tracked in the internal backlog. Statuses shown here reflect 2026-07-17 and may be out of date.
 

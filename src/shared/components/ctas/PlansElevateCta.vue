@@ -2,16 +2,15 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-import { computed } from 'vue';
-import { useRouter } from 'vue-router';
+  import { computed } from 'vue';
+  import { useRouter } from 'vue-router';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-const router = useRouter();
-// 'pricing' is a Vue Router route name, not an i18n key (it previously leaned
-// on vue-i18n's missing-key fallback returning the literal — fragile).
-const pricingLink = computed(() => router.resolve({ name: 'pricing' }).href);
-
+  const router = useRouter();
+  // 'pricing' is a Vue Router route name, not an i18n key (it previously leaned
+  // on vue-i18n's missing-key fallback returning the literal — fragile).
+  const pricingLink = computed(() => router.resolve({ name: 'pricing' }).href);
 </script>
 
 <template>
@@ -25,10 +24,7 @@ const pricingLink = computed(() => router.resolve({ name: 'pricing' }).href);
     </p>
     <a
       :href="pricingLink"
-      class="inline-flex items-center rounded-md border border-transparent bg-white px-4 py-2 font-brand text-sm text-brand-600
-       transition-colors duration-200 hover:bg-gray-50 focus:outline-none
-       focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-brand-400
-       dark:hover:bg-gray-700 dark:focus:ring-brand-400">
+      class="inline-flex items-center rounded-md border border-transparent bg-white px-4 py-2 font-brand text-sm text-brand-600 transition-colors duration-200 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none dark:bg-gray-800 dark:text-brand-400 dark:hover:bg-gray-700 dark:focus:ring-brand-400">
       <svg
         class="mr-2 size-5"
         xmlns="http://www.w3.org/2000/svg"

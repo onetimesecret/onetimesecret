@@ -94,9 +94,7 @@
   customManagers: [
     {
       customType: 'regex',
-      fileMatch: [
-        '^\\.github/workflows/(resolved-derive-gate|validate-register)\\.yml$',
-      ],
+      fileMatch: ['^\\.github/workflows/(resolved-derive-gate|validate-register)\\.yml$'],
       matchStrings: [
         // Optional quotes tolerated: the workflows emit the bare form
         // (TRANSLATION_RULES_REF: v0.1.1), but a quoted value ('v0.1.1' or

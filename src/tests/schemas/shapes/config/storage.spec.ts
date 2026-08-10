@@ -10,11 +10,7 @@ import {
   redisSchema,
   storageSchema,
 } from '@/schemas/contracts/config/section/storage';
-import {
-  redisDbsShape,
-  redisShape,
-  storageShape,
-} from '@/schemas/shapes/config/section/storage';
+import { redisDbsShape, redisShape, storageShape } from '@/schemas/shapes/config/section/storage';
 
 describe('redisDbsShape — db number defaults and bounds', () => {
   it('defaults every db field to 0 on empty input', () => {

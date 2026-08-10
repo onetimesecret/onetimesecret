@@ -33,10 +33,12 @@ describe('useWorkspacePrivacyDefaults', () => {
   /**
    * Helper to set up bootstrapStore with secret_options configuration
    */
-  function setupBootstrapStore(config: {
-    default_ttl?: number;
-    passphrase_required?: boolean;
-  } = {}) {
+  function setupBootstrapStore(
+    config: {
+      default_ttl?: number;
+      passphrase_required?: boolean;
+    } = {}
+  ) {
     const pinia = createTestingPinia({
       createSpy: vi.fn,
       stubActions: false,

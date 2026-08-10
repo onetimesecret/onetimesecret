@@ -86,10 +86,9 @@ describe('BillingService', () => {
 
       const result = await BillingService.previewPlanChange('org_123', 'price_new');
 
-      expect(mockPost).toHaveBeenCalledWith(
-        '/billing/api/org/org_123/preview-plan-change',
-        { new_price_id: 'price_new' }
-      );
+      expect(mockPost).toHaveBeenCalledWith('/billing/api/org/org_123/preview-plan-change', {
+        new_price_id: 'price_new',
+      });
       expect(result).toEqual(mockResponse.data);
     });
 
@@ -125,10 +124,10 @@ describe('BillingService', () => {
           // New fields for credit breakdown
           immediate_amount: -4600,
           next_period_amount: 3500,
-          ending_balance: -9900,  // Negative = credit remaining
+          ending_balance: -9900, // Negative = credit remaining
           tax: 0,
-          remaining_credit: 9900,  // Absolute value
-          actual_next_billing_due: 0,  // Covered by credit
+          remaining_credit: 9900, // Absolute value
+          actual_next_billing_due: 0, // Covered by credit
         },
       };
       mockPost.mockResolvedValueOnce(mockResponse);
@@ -184,7 +183,7 @@ describe('BillingService', () => {
           immediate_amount: 1500,
           next_period_amount: 3500,
           ending_balance: 0,
-          tax: 195,  // 13% tax
+          tax: 195, // 13% tax
           remaining_credit: 0,
           actual_next_billing_due: 3500,
         },
@@ -194,7 +193,7 @@ describe('BillingService', () => {
       const result = await BillingService.previewPlanChange('org_test', 'price_b');
 
       expect(result.tax).toBe(195);
-      expect(result.amount_due).toBe(1695);  // Includes tax
+      expect(result.amount_due).toBe(1695); // Includes tax
     });
 
     it('handles credit exactly matching next billing', async () => {
@@ -212,7 +211,7 @@ describe('BillingService', () => {
           ending_balance: 0,
           tax: 0,
           remaining_credit: 0,
-          actual_next_billing_due: 0,  // Exactly covered
+          actual_next_billing_due: 0, // Exactly covered
         },
       };
       mockPost.mockResolvedValueOnce(mockResponse);
@@ -239,10 +238,9 @@ describe('BillingService', () => {
 
       const result = await BillingService.changePlan('org_abc', 'price_xyz');
 
-      expect(mockPost).toHaveBeenCalledWith(
-        '/billing/api/org/org_abc/change-plan',
-        { new_price_id: 'price_xyz' }
-      );
+      expect(mockPost).toHaveBeenCalledWith('/billing/api/org/org_abc/change-plan', {
+        new_price_id: 'price_xyz',
+      });
       expect(result).toEqual(mockResponse.data);
     });
 
@@ -267,9 +265,9 @@ describe('BillingService', () => {
     it('propagates API errors', async () => {
       mockPost.mockRejectedValueOnce(new Error('Already on this plan'));
 
-      await expect(
-        BillingService.changePlan('org_test', 'price_same')
-      ).rejects.toThrow('Already on this plan');
+      await expect(BillingService.changePlan('org_test', 'price_same')).rejects.toThrow(
+        'Already on this plan'
+      );
     });
   });
 
@@ -302,15 +300,15 @@ describe('BillingService', () => {
       };
       mockPost.mockResolvedValueOnce(mockResponse);
 
-      const result = await BillingService.createCheckoutSession(
-        'org_abc',
-        { id: 'identity_plus_v1', interval: 'month' }
-      );
+      const result = await BillingService.createCheckoutSession('org_abc', {
+        id: 'identity_plus_v1',
+        interval: 'month',
+      });
 
-      expect(mockPost).toHaveBeenCalledWith(
-        '/billing/api/org/org_abc/checkout',
-        { product: 'identity_plus_v1', interval: 'month' }
-      );
+      expect(mockPost).toHaveBeenCalledWith('/billing/api/org/org_abc/checkout', {
+        product: 'identity_plus_v1',
+        interval: 'month',
+      });
       expect(result.checkout_url).toContain('stripe.com');
     });
 
@@ -323,15 +321,15 @@ describe('BillingService', () => {
       };
       mockPost.mockResolvedValueOnce(mockResponse);
 
-      const result = await BillingService.createCheckoutSession(
-        'org_abc',
-        { id: 'identity_plus_v1', interval: 'year' }
-      );
+      const result = await BillingService.createCheckoutSession('org_abc', {
+        id: 'identity_plus_v1',
+        interval: 'year',
+      });
 
-      expect(mockPost).toHaveBeenCalledWith(
-        '/billing/api/org/org_abc/checkout',
-        { product: 'identity_plus_v1', interval: 'year' }
-      );
+      expect(mockPost).toHaveBeenCalledWith('/billing/api/org/org_abc/checkout', {
+        product: 'identity_plus_v1',
+        interval: 'year',
+      });
       expect(result.checkout_url).toContain('stripe.com');
     });
 
@@ -450,9 +448,9 @@ describe('BillingService', () => {
     it('propagates API errors', async () => {
       mockPost.mockRejectedValueOnce(new Error('No active subscription'));
 
-      await expect(
-        BillingService.cancelSubscription('org_no_sub')
-      ).rejects.toThrow('No active subscription');
+      await expect(BillingService.cancelSubscription('org_no_sub')).rejects.toThrow(
+        'No active subscription'
+      );
     });
   });
 });

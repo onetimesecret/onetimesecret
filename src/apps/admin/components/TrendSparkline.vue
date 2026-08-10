@@ -35,9 +35,7 @@
   const PAD_TOP = 6;
   const BASELINE = HEIGHT - 3;
 
-  const maxCount = computed(() =>
-    Math.max(...props.points.map((point) => point.count), 1)
-  );
+  const maxCount = computed(() => Math.max(...props.points.map((point) => point.count), 1));
 
   const coords = computed(() => {
     const n = props.points.length;

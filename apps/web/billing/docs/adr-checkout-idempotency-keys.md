@@ -1,6 +1,6 @@
 ---
 status: accepted
-title: "ADR: UUID Idempotency Keys for Checkout Session Creation"
+title: 'ADR: UUID Idempotency Keys for Checkout Session Creation'
 ---
 
 ## Status
@@ -14,8 +14,8 @@ Accepted
 ## Context
 
 Stripe deduplicates API calls by idempotency key: a request that reuses a key
-within Stripe's retention window (24 hours) receives the *cached response* of
-the first request, and reusing a key with *different parameters* raises
+within Stripe's retention window (24 hours) receives the _cached response_ of
+the first request, and reusing a key with _different parameters_ raises
 `Stripe::IdempotencyError`.
 
 Checkout session creation used deterministic, time-bucketed keys:
@@ -37,12 +37,12 @@ This produced two production failure modes:
    bucket that alters the session parameters (locale, promotion settings,
    metadata) while org+plan stayed the same raised
    `Stripe::IdempotencyError: Keys for idempotent requests can only be used
-   with the same parameters they were first used with`.
+with the same parameters they were first used with`.
 
-The root problem: deterministic keys treat session *creation* as the operation
+The root problem: deterministic keys treat session _creation_ as the operation
 that must be deduplicated. It is not. Creating a checkout session is a
 pre-payment, side-effect-free operation — an unused session simply expires
-(24h default). The operation that must not be duplicated is the *completion*
+(24h default). The operation that must not be duplicated is the _completion_
 (subscription creation and charging), which is handled by the
 `checkout.session.completed` webhook handler
 (`operations/webhook_handlers/checkout_completed.rb`).
@@ -53,7 +53,7 @@ pre-payment, side-effect-free operation — an unused session simply expires
 per attempt.** Every request creates a new session; no attempt can receive a
 cached prior session or collide with a prior key.
 
-The key still serves a purpose at this narrower scope: it protects a *single*
+The key still serves a purpose at this narrower scope: it protects a _single_
 HTTP call against network-level retries inside `Billing::StripeClient`'s
 retry loop (`lib/stripe_client.rb` passes the same key to each retry of the
 same logical call).
@@ -77,21 +77,22 @@ duplicates would double-apply.**
 - Rapid duplicate clicks or open tabs can now create multiple live checkout
   sessions. This is by design — sessions are free and expire — but it means
   session creation no longer provides any accidental guard against the same
-  org completing two checkouts in one day. Duplicate-*completion* protection
+  org completing two checkouts in one day. Duplicate-_completion_ protection
   rests on:
   1. the frontend routing orgs with an active subscription to the
      plan-change flow instead of checkout (`PlanSelector.vue`), and
   2. the `checkout.session.completed` handler's idempotent replay check.
 
-  Note the webhook check currently only skips replays of the *same*
+  Note the webhook check currently only skips replays of the _same_
   subscription (`org.stripe_subscription_id == subscription.id`); a second
-  completed checkout producing a *different* subscription is applied and
+  completed checkout producing a _different_ subscription is applied and
   overwrites the first. That gap predates this change (the daily key only
   ever masked it on one of the two creation paths, within a single region and
   calendar day) and is tracked as follow-up hardening: a server-side guard at
   session creation (exempting currency-migration flows, which legitimately
   create a checkout while a `cancel_at_period_end` subscription is still
   active) and replacement detection in the webhook handler.
+
 - Test-mode iteration no longer requires waiting out a one-minute bucket.
 - VCR-based specs are unaffected: the key travels in the `Idempotency-Key`
   request header and cassettes match on method + URI.

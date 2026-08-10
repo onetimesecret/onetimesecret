@@ -20,23 +20,29 @@ Issue: #2319
 ## Core Concepts
 
 ### Task = One JSON Level
+
 A task is all sibling keys sharing a parent path. For example, `web.COMMON.buttons.submit` and `web.COMMON.buttons.cancel` form one task under `web.COMMON.buttons`.
 
 **Why:**
+
 - Correlated strings translated together for consistency
 - Natural batch size, self-limiting by design
 - Forces good locale file organization (if a level is too large, restructure it)
 
 ### Glossary
+
 Captures terminology decisions as we translate. When we decide "secret" → "sekreto" in Esperanto, that goes in the glossary so future sessions stay consistent.
 
 ### Staleness & Watermarks
-en keys carry a `content_hash`; each translated key carries a `source_hash` watermark recording which en hash it translated. A key is **stale** when the two no longer match (English changed after translation). An absent watermark is treated as current (it can't prove drift), so un-watermarked legacy keys are never mass-requeued. Each task snapshots the en `content_hash` per leaf at creation (`source_hashes_json`), and `tasks export` stamps that snapshot onto the target key's `source_hash` — advancing the watermark so the re-translation is marked current, and giving newly created keys a truthful watermark immediately instead of waiting for `content hashes` to seed the *current* en hash (which would mislabel a key that drifted in the interim as fresh). Consequence: `0 pending` does not mean current — a drained queue can still hide stale keys; the `tasks next <locale> --stats` coverage block (current/stale/missing/skipped) is the real signal.
+
+en keys carry a `content_hash`; each translated key carries a `source_hash` watermark recording which en hash it translated. A key is **stale** when the two no longer match (English changed after translation). An absent watermark is treated as current (it can't prove drift), so un-watermarked legacy keys are never mass-requeued. Each task snapshots the en `content_hash` per leaf at creation (`source_hashes_json`), and `tasks export` stamps that snapshot onto the target key's `source_hash` — advancing the watermark so the re-translation is marked current, and giving newly created keys a truthful watermark immediately instead of waiting for `content hashes` to seed the _current_ en hash (which would mislabel a key that drifted in the interim as fresh). Consequence: `0 pending` does not mean current — a drained queue can still hide stale keys; the `tasks next <locale> --stats` coverage block (current/stale/missing/skipped) is the real signal.
 
 ### Translator Guides
+
 Locale-specific translation guidance now lives in translation-rules (`_references/local-guides/for-translators/{locale}.md`) and is derived on demand into `generated/i18n/guides/for-translators/{locale}.md` (run `locales/scripts/derive-governance.sh`) — it is no longer vendored under `locales/`. Read once per session to establish context. Mature locales (de, fr) have detailed guides; new locales (eo) build them as we go.
 
 ### Handoff
+
 To continue work in a new session, generate a handoff document that preserves key decisions and context. Use `/handoff` or write one manually.
 
 ## Architecture
@@ -63,15 +69,17 @@ Replace `[LOCALE]` with the target locale code (e.g., `eo`, `fr_CA`, `de`).
 ## Fully Manual Session Workflow
 
 ### 0. Generate tasks (if not already done)
+
 ```bash
 python3 locales/scripts/i18n tasks create eo            # preview (writes nothing)
 python3 locales/scripts/i18n tasks create eo --apply    # enqueue for real
 ```
+
 Without `--apply`, `create` is a preview: it prints what would be enqueued and writes nothing. This populates the `translation_tasks` table required by `tasks next`. Run once per locale, or re-run to refresh after English source changes — it enqueues only the keys that still need work: **missing** (untranslated) plus **stale** (translated, but en changed since: the target `source_hash` no longer matches en's `content_hash`), never re-touching still-current reviewed strings. A brand-new locale needs no flag: with no `content/<locale>` yet, every key is missing. `tasks next <locale> --stats` prints a `current/stale/missing` coverage block so you can see drift even before enqueuing it.
 
 Applying is not a no-op on a populated DB: a completed level that still has work is **reopened** — status back to `pending`, its translations discarded. That is the point (a stranded completed row would never be re-served), and it is free once the level has been exported, because the text is already in `locales/content/<locale>/`.
 
-When it would *not* be free, `create --apply` refuses. A completed level whose translations were never exported exists only inside `tasks.db`, so the run stops before writing anything, names the levels at risk, and exits **3**:
+When it would _not_ be free, `create --apply` refuses. A completed level whose translations were never exported exists only inside `tasks.db`, so the run stops before writing anything, names the levels at risk, and exits **3**:
 
 ```
 Error: Refusing to write: 2 completed levels hold translations for 'de' that were never exported.
@@ -88,44 +96,54 @@ Catch-up is the only mode. There is no target-blind switch that re-queues review
 Tasks are grouped by parent path (e.g., all keys under `web.COMMON.buttons`). This keeps work productive by batching related strings together rather than handling thousands of individual keys. Translators get more context since messages at the same level are usually related.
 
 ### 1. Check status
+
 ```bash
 python3 locales/scripts/i18n tasks next eo --stats
 ```
 
 ### 2. Claim next task
+
 ```bash
 python3 locales/scripts/i18n tasks next eo --claim
 ```
+
 Outputs formatted table with Key, English, Esperanto columns.
 
 ### 3. Review proposed translations
+
 Assistant proposes translations. Respond with:
+
 - **A** - Accept (runs tasks update)
 - **S** - Skip (marks skipped, moves to next)
 - **R** - Revisit (marks pending, moves to next)
 - **Q** - Quit session
 
 ### 4. On accept, update task
+
 ```bash
 python3 locales/scripts/i18n tasks update TASK_ID '{"key": "translation", ...}'
 ```
 
 ### 5. Record glossary decisions
+
 ```bash
 python3 locales/scripts/i18n db query "INSERT INTO glossary (locale, term, translation, notes) VALUES ('eo', 'secret', 'sekreto', 'core concept')"
 ```
 
 ### 6. End session - export to content
+
 ```bash
 python3 locales/scripts/i18n tasks audit eo --strict
 python3 locales/scripts/i18n tasks export eo
 python3 locales/scripts/i18n db export
 ```
+
 The frontend auto-generates `generated/locales/` on startup from `locales/content/`.
 
 `tasks export` is per-locale — run it once for each finished locale, and only when the locale is both drained (`tasks next <locale> --stats` shows `pending: 0`) and audit-clean (`tasks audit <locale> --strict` exits 0, having found no stranded `in_progress` row, no key-set or blank-translation defect, and no lost interpolation token; the English-leak check is advisory and never gates). A partial locale would write half-translated content; a drained-but-dirty one would write broken content just as happily, which is why `pending: 0` is not the export condition — note that `pending: 0` does not even prove the locale is drained, since an abandoned `in_progress` claim is counted separately, which is why the audit checks for those too. Fix findings with `tasks update <ID> --validate --strict` and re-audit before exporting. `export-all.sh` applies both gates automatically across all locales. `db export` is locale-independent — it dumps the committable tables (glossary, session_log, translation_issues) to `db/*.sql` and regenerates `checksums.sha256` — so run it once after the per-locale loop, not inside it.
 
 ### 7. Commit
+
 ```bash
 git add locales/content/eo/ locales/db/*.sql
 git commit -m "[#2319] Add eo translations from session"
@@ -148,6 +166,7 @@ Creates `i18n/update-{locale}` branches off develop. Each branch contains only o
 ### 9. Review branches
 
 Follow `locales/slash_commands/review-locale-branches.md` (installable as a slash command) to orchestrate parallel code-reviewer agents grouped by language family; it drives `locales/scripts/review-locale-branches.sh` (`validate|consolidate|init|families`) for the deterministic stages. The workflow:
+
 1. Automated variable validation (catches mechanical issues)
 2. Agent review by family (linguistic/quality checks)
 3. Triage and fix critical findings before merge
@@ -163,6 +182,7 @@ Retrospective = the decision a finding drives. Schema'd frontmatter, lifecycle-t
 Title: `**Task 8** · _common.json · web.TITLES · 44 keys`
 
 Table columns:
+
 - Key (28 chars, right-aligned)
 - English (60 chars, wrapped)
 - Esperanto (60 chars, wrapped)
@@ -215,6 +235,7 @@ generated/locales/         # app-consumable JSON (built by `content compile`)
 - `schema_migrations` - applied schema versions
 
 Export committable tables (`glossary`, `session_log`, `translation_issues`) to SQL for version control:
+
 ```bash
 python3 locales/scripts/i18n db export   # Export to locales/db/*.sql
 python3 locales/scripts/i18n db import   # Restore from SQL files
@@ -226,19 +247,19 @@ Periodic QC reviews catch issues that slip through initial translation: terminol
 
 ### Issue Types
 
-| Type | Description |
-|------|-------------|
-| `terminology` | Inconsistent or incorrect term usage |
-| `grammar` | Grammar/agreement errors |
-| `encoding` | Encoding errors, garbled text |
-| `missing` | Missing translation |
-| `truncated` | Incomplete/cut-off translation |
-| `pluralization` | Incorrect plural forms |
-| `formality` | Formal/informal register inconsistency |
-| `rtl` | RTL/bidirectional text issues |
-| `placeholder` | Variable/placeholder problems |
-| `tone` | Tone/voice inconsistency |
-| `cultural` | Cultural adaptation issues |
+| Type            | Description                            |
+| --------------- | -------------------------------------- |
+| `terminology`   | Inconsistent or incorrect term usage   |
+| `grammar`       | Grammar/agreement errors               |
+| `encoding`      | Encoding errors, garbled text          |
+| `missing`       | Missing translation                    |
+| `truncated`     | Incomplete/cut-off translation         |
+| `pluralization` | Incorrect plural forms                 |
+| `formality`     | Formal/informal register inconsistency |
+| `rtl`           | RTL/bidirectional text issues          |
+| `placeholder`   | Variable/placeholder problems          |
+| `tone`          | Tone/voice inconsistency               |
+| `cultural`      | Cultural adaptation issues             |
 
 ### Severity Levels
 
@@ -250,12 +271,14 @@ Periodic QC reviews catch issues that slip through initial translation: terminol
 ### Running a QC Review
 
 1. **Spawn QC agents per locale** (parallel execution)
+
 ```
 Spawn saas-translator agents to spot check translations for quality control.
 One locale per agent. Report quality issues and glossary term suggestions.
 ```
 
 2. **Query issues by priority**
+
 ```bash
 python3 locales/scripts/i18n db query \
   "SELECT locale, issue_type, severity, description
@@ -265,12 +288,14 @@ python3 locales/scripts/i18n db query \
 ```
 
 3. **Fix by priority batch** - Critical first, then high, then medium
+
 ```
 Fix [LOCALE] translation issues:
 - [list specific issues with file, key_path, and fix instructions]
 ```
 
 4. **Update issue status after fixes**
+
 ```bash
 python3 locales/scripts/i18n db query \
   "UPDATE translation_issues
@@ -282,11 +307,11 @@ python3 locales/scripts/i18n db query \
 
 For efficiency, spawn one agent per locale with specific fix instructions:
 
-| Agent | Locale | Issues |
-|-------|--------|--------|
-| Fix-Critical | tr, ja | Encoding errors, corrupted text |
-| Fix-High | ar, ru, pt_BR | Pluralization, formality, terminology |
-| Fix-Medium | de, es, nl, zh, pl | Consistency, style |
+| Agent        | Locale             | Issues                                |
+| ------------ | ------------------ | ------------------------------------- |
+| Fix-Critical | tr, ja             | Encoding errors, corrupted text       |
+| Fix-High     | ar, ru, pt_BR      | Pluralization, formality, terminology |
+| Fix-Medium   | de, es, nl, zh, pl | Consistency, style                    |
 
 Monitor with single-poll pattern (see "Monitoring the process" section). Agents report back with before/after changes and JSON validation confirmation.
 
@@ -317,7 +342,7 @@ final message for the orchestrator to review and insert here.
 
 ### Bound-glossary divergence check
 
-Audit translations against the *bound* renderings a locale is supposed to honor
+Audit translations against the _bound_ renderings a locale is supposed to honor
 (`senses[*].target` in `generated/i18n/.resolved/<locale>.json`, distinct from
 the DB glossary above). Advisory and heuristic — flags a translated key whose
 English source uses a bound term but whose translation lacks that term's

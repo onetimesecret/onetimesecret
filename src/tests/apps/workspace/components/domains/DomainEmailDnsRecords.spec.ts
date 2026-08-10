@@ -45,7 +45,12 @@ const i18n = createTestI18n();
 
 const mockDnsRecords: EmailDnsRecord[] = [
   { type: 'TXT', name: '_dmarc.example.com', value: 'v=DMARC1; p=none', status: 'verified' },
-  { type: 'CNAME', name: 'em._domainkey.example.com', value: 'dkim.sendgrid.net', status: 'pending' },
+  {
+    type: 'CNAME',
+    name: 'em._domainkey.example.com',
+    value: 'dkim.sendgrid.net',
+    status: 'pending',
+  },
   { type: 'TXT', name: 'example.com', value: 'v=spf1 include:sendgrid.net ~all', status: 'failed' },
 ];
 
@@ -71,15 +76,18 @@ describe('DomainEmailDnsRecords', () => {
     }
   });
 
-  const mountComponent = (props: Partial<{
-    dnsRecords: EmailDnsRecord[];
-    validationStatus: EmailValidationStatus;
-    lastValidatedAt: Date | null;
-    dnsCheckCompletedAt: Date | null;
-    providerCheckCompletedAt: Date | null;
-    lastError: string | null;
-    isValidating: boolean;
-  }> = {}) => mount(DomainEmailDnsRecords, {
+  const mountComponent = (
+    props: Partial<{
+      dnsRecords: EmailDnsRecord[];
+      validationStatus: EmailValidationStatus;
+      lastValidatedAt: Date | null;
+      dnsCheckCompletedAt: Date | null;
+      providerCheckCompletedAt: Date | null;
+      lastError: string | null;
+      isValidating: boolean;
+    }> = {}
+  ) =>
+    mount(DomainEmailDnsRecords, {
       props: {
         dnsRecords: props.dnsRecords ?? mockDnsRecords,
         validationStatus: props.validationStatus ?? 'pending',
@@ -162,7 +170,14 @@ describe('DomainEmailDnsRecords', () => {
 
     it('applies emerald to DNS indicator when dns_exists is true', () => {
       const records: EmailDnsRecord[] = [
-        { type: 'TXT', name: 'example.com', value: 'v=spf1', status: 'verified', dns_exists: true, value_matches: true },
+        {
+          type: 'TXT',
+          name: 'example.com',
+          value: 'v=spf1',
+          status: 'verified',
+          dns_exists: true,
+          value_matches: true,
+        },
       ];
       wrapper = mountComponent({ dnsRecords: records });
 
@@ -200,7 +215,13 @@ describe('DomainEmailDnsRecords', () => {
 
     it('applies emerald to Provider indicator when record.provider_verified is true', () => {
       const records: EmailDnsRecord[] = [
-        { type: 'TXT', name: '_dmarc.example.com', value: 'v=DMARC1; p=none', status: 'verified', provider_verified: true },
+        {
+          type: 'TXT',
+          name: '_dmarc.example.com',
+          value: 'v=DMARC1; p=none',
+          status: 'verified',
+          provider_verified: true,
+        },
       ];
       wrapper = mountComponent({ dnsRecords: records, validationStatus: 'failed' });
 
@@ -212,7 +233,13 @@ describe('DomainEmailDnsRecords', () => {
 
     it('applies gray to Provider indicator when record.provider_verified is false even if domain is verified', () => {
       const records: EmailDnsRecord[] = [
-        { type: 'TXT', name: '_dmarc.example.com', value: 'v=DMARC1; p=none', status: 'failed', provider_verified: false },
+        {
+          type: 'TXT',
+          name: '_dmarc.example.com',
+          value: 'v=DMARC1; p=none',
+          status: 'failed',
+          provider_verified: false,
+        },
       ];
       wrapper = mountComponent({
         dnsRecords: records,
@@ -257,7 +284,9 @@ describe('DomainEmailDnsRecords', () => {
       wrapper = mountComponent();
 
       const buttons = wrapper.findAll('button[type="button"]');
-      const revalidateButton = buttons.find((b) => b.text().includes('web.domains.email.revalidate'));
+      const revalidateButton = buttons.find((b) =>
+        b.text().includes('web.domains.email.revalidate')
+      );
       expect(revalidateButton).toBeDefined();
 
       await revalidateButton!.trigger('click');
@@ -270,7 +299,9 @@ describe('DomainEmailDnsRecords', () => {
       wrapper = mountComponent({ isValidating: true });
 
       const buttons = wrapper.findAll('button[type="button"]');
-      const revalidateButton = buttons.find((b) => b.text().includes('web.domains.email.validating'));
+      const revalidateButton = buttons.find((b) =>
+        b.text().includes('web.domains.email.validating')
+      );
       expect(revalidateButton).toBeDefined();
       expect(revalidateButton!.attributes('disabled')).toBeDefined();
     });
@@ -279,7 +310,9 @@ describe('DomainEmailDnsRecords', () => {
       wrapper = mountComponent({ isValidating: true });
 
       const buttons = wrapper.findAll('button[type="button"]');
-      const revalidateButton = buttons.find((b) => b.text().includes('web.domains.email.validating'));
+      const revalidateButton = buttons.find((b) =>
+        b.text().includes('web.domains.email.validating')
+      );
       expect(revalidateButton).toBeDefined();
     });
 
@@ -287,7 +320,9 @@ describe('DomainEmailDnsRecords', () => {
       wrapper = mountComponent({ isValidating: false });
 
       const buttons = wrapper.findAll('button[type="button"]');
-      const revalidateButton = buttons.find((b) => b.text().includes('web.domains.email.revalidate'));
+      const revalidateButton = buttons.find((b) =>
+        b.text().includes('web.domains.email.revalidate')
+      );
       expect(revalidateButton).toBeDefined();
     });
   });
@@ -334,7 +369,9 @@ describe('DomainEmailDnsRecords', () => {
       wrapper = mountComponent({ validationStatus: 'pending' });
 
       const banners = wrapper.findAll('[role="status"]');
-      const pendingBanner = banners.find((b) => b.text().includes('web.domains.email.status_pending'));
+      const pendingBanner = banners.find((b) =>
+        b.text().includes('web.domains.email.status_pending')
+      );
       expect(pendingBanner).toBeDefined();
     });
 
@@ -346,7 +383,9 @@ describe('DomainEmailDnsRecords', () => {
       });
 
       const banners = wrapper.findAll('[role="status"]');
-      const pendingBanner = banners.find((b) => b.text().includes('web.domains.email.status_pending'));
+      const pendingBanner = banners.find((b) =>
+        b.text().includes('web.domains.email.status_pending')
+      );
       expect(pendingBanner).toBeDefined();
     });
 
@@ -358,7 +397,9 @@ describe('DomainEmailDnsRecords', () => {
       });
 
       const banners = wrapper.findAll('[role="status"]');
-      const pendingBanner = banners.find((b) => b.text().includes('web.domains.email.status_pending'));
+      const pendingBanner = banners.find((b) =>
+        b.text().includes('web.domains.email.status_pending')
+      );
       expect(pendingBanner).toBeDefined();
     });
 
@@ -426,8 +467,19 @@ describe('DomainEmailDnsRecords', () => {
 
   describe('Optional / advisory records', () => {
     const optionalRecords: EmailDnsRecord[] = [
-      { type: 'CNAME', name: 'abc._domainkey.example.com', value: 'abc.dkim.amazonses.com', status: 'pending' },
-      { type: 'TXT', name: '_dmarc.example.com', value: 'v=DMARC1; p=none;', status: 'pending', optional: true },
+      {
+        type: 'CNAME',
+        name: 'abc._domainkey.example.com',
+        value: 'abc.dkim.amazonses.com',
+        status: 'pending',
+      },
+      {
+        type: 'TXT',
+        name: '_dmarc.example.com',
+        value: 'v=DMARC1; p=none;',
+        status: 'pending',
+        optional: true,
+      },
     ];
 
     it('shows Recommended badge on optional records', () => {

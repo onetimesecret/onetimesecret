@@ -65,11 +65,14 @@ export type SignupValidationStrategy = z.infer<typeof signupValidationStrategySc
  * Used by forms to determine when the allowlist field should be shown/required
  * and to surface network-validation warnings.
  */
-export const SIGNUP_STRATEGY_METADATA: Record<SignupValidationStrategy, {
-  requiresAllowlist: boolean;
-  networkValidation: boolean;
-  description: string;
-}> = {
+export const SIGNUP_STRATEGY_METADATA: Record<
+  SignupValidationStrategy,
+  {
+    requiresAllowlist: boolean;
+    networkValidation: boolean;
+    description: string;
+  }
+> = {
   passthrough: {
     requiresAllowlist: false,
     networkValidation: false,
@@ -204,7 +207,8 @@ export const putSignupConfigPayloadStrictSchema = putSignupConfigPayloadSchema.s
       if (list.length === 0) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'allowed_signup_domains is required when validation_strategy is domain_allowlist',
+          message:
+            'allowed_signup_domains is required when validation_strategy is domain_allowlist',
           path: ['allowed_signup_domains'],
         });
       }

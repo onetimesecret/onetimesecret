@@ -49,7 +49,7 @@ definitions:
     organization: &fixture_org
       type: organization
       props:
-        name: "Acme Corporation"
+        name: 'Acme Corporation'
 
     invitation_pending: &fixture_invite
       type: organization_invitation
@@ -113,7 +113,7 @@ tests:
       - Visual indication that this is the expected email
       - selector: "[data-testid='invite-email-input']"
         assertion: contains
-        value: "invited@example.com"
+        value: 'invited@example.com'
     priority: high
     type: functional
     covers: [AcceptInvite.vue, email-prefill]
@@ -141,11 +141,11 @@ tests:
         assertion: visible
       - api: GET /api/v2/test/emails/last
         assert:
-          to: "invited@example.com"
-          subject_contains: "invitation"
+          to: 'invited@example.com'
+          subject_contains: 'invitation'
       - api: GET /api/v2/test/emails/last
         assert:
-          body_contains: "/invite/"
+          body_contains: '/invite/'
     priority: critical
     type: functional
     covers: [magic-link-api, invite-context]
@@ -202,9 +202,9 @@ tests:
       - api: GET /api/v2/bootstrap/me
         assert:
           authenticated: true
-          email: "invited@example.com"
+          email: 'invited@example.com'
       - url: matches
-        pattern: "/invite/{{invite.token}}"
+        pattern: '/invite/{{invite.token}}'
       - selector: "[data-testid='accept-invitation-button']"
         assertion: visible
       - selector: "[data-testid='user-session-indicator']"
@@ -232,13 +232,13 @@ tests:
       - Redirects to organization dashboard
       - api: GET /api/v2/organizations/{{org.extid}}/members
         assert:
-          contains_email: "invited@example.com"
-          role: "member"
+          contains_email: 'invited@example.com'
+          role: 'member'
     postconditions:
       - User is member of organization with invited role
       - api: GET /api/v2/organizations/{{org.extid}}/members
         assert:
-          contains_email: "invited@example.com"
+          contains_email: 'invited@example.com'
     priority: critical
     type: functional
     covers: [invitation-acceptance, org-membership]
@@ -302,10 +302,10 @@ tests:
       - api: GET /api/v2/bootstrap/me
         assert:
           authenticated: true
-          email: "invited@example.com"
+          email: 'invited@example.com'
           email_verified: true
       - url: matches
-        pattern: "/invite/{{invite.token}}"
+        pattern: '/invite/{{invite.token}}'
     postconditions:
       - New user account exists
       - User session established
@@ -604,9 +604,9 @@ tests:
       - No account required to decline
       - api: GET /api/v2/invitations/{{invite.extid}}
         assert:
-          status: "declined"
+          status: 'declined'
       - url: matches
-        pattern: "/"
+        pattern: '/'
     priority: medium
     type: functional
     covers: [invitation-decline, unauthenticated-decline]

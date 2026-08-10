@@ -13,10 +13,7 @@ vi.mock('@/shared/composables/useApi', () => ({
   useApi: () => mockApi,
 }));
 
-import {
-  usePaginatedFetch,
-  DEFAULT_PER_PAGE,
-} from '@/apps/admin/composables/usePaginatedFetch';
+import { usePaginatedFetch, DEFAULT_PER_PAGE } from '@/apps/admin/composables/usePaginatedFetch';
 
 // A minimal, self-contained response schema so the composable is exercised
 // generically (independent of any specific colonel resource) while still

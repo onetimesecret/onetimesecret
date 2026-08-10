@@ -30,9 +30,7 @@ export interface OrgPermissions {
  * which the backend populates from `OrganizationMembership` (see
  * apps/api/organizations/logic/base.rb#determine_user_role).
  */
-export function useOrgPermissions(
-  org?: MaybeRef<Organization | null | undefined>
-): OrgPermissions {
+export function useOrgPermissions(org?: MaybeRef<Organization | null | undefined>): OrgPermissions {
   const organizationStore = useOrganizationStore();
   const { currentOrganization } = storeToRefs(organizationStore);
 

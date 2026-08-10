@@ -125,7 +125,7 @@ tests:
       - description: User can login with new password
         action: logout_then_login
         data:
-          email: "{{current_user_email}}"
+          email: '{{current_user_email}}'
           password: newSecurePassword456
         assertion: redirect_to("/dashboard")
     priority: critical

@@ -1,7 +1,7 @@
 ---
-id: "029"
+id: '029'
 status: accepted
-title: "ADR-029: Brand Pack Vendor/Operator Root Split"
+title: 'ADR-029: Brand Pack Vendor/Operator Root Split'
 ---
 
 ## Status
@@ -36,10 +36,10 @@ hatch and outranks `BRAND_PACK`.
 **Rejected: a tracked `etc/branding/default`.** The quadlet deployment mounts
 each top-level entry of `/etc/onetimesecret` individually into `/app/etc`. The
 moment an operator creates `/etc/onetimesecret/branding/<their-pack>`, the
-entry being mounted is the `branding` *directory* — landing wholesale over
+entry being mounted is the `branding` _directory_ — landing wholesale over
 `/app/etc/branding` and shadowing any tracked `default/` inside the image.
-A tracked default there works in every deployment *except the ones that use
-the pack feature*: a latent failure, strictly worse than an immediate one.
+A tracked default there works in every deployment _except the ones that use
+the pack feature_: a latent failure, strictly worse than an immediate one.
 With `default` in the vendor root, an operator mounting packs never shadows it
 unless they deliberately create `etc/branding/default` — which then behaves as
 an intentional override, consistent with shadowing semantics everywhere else.
@@ -76,6 +76,6 @@ set; if that spec is deleted, this decision should be considered reopened.
   `!public/branding/default/` carve-out.
 - Enforcing spec: default-pack file-set == canonical list (lands with the
   #3774 implementation; not yet in tree as of acceptance).
-- Doctor probes the *outcome*, not preconditions: which root won resolution,
+- Doctor probes the _outcome_, not preconditions: which root won resolution,
   which manifest keys loaded, which overlay URLs will serve from the pack.
   Pack-not-found errors list the searched roots.

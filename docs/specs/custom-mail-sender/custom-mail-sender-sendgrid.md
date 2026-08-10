@@ -24,7 +24,7 @@ Siblings: [AWS SES](./custom-mail-sender-ses.md) (supported),
 SendGrid here is the **sender-domain provisioning provider**, selected once per
 installation. It is not a per-customer choice — the operator configures the
 provider, and the customer's only decision is "do I want emails from my domain
-to use my from-address/reply-to?" (see *Customer Decision Surface* in the
+to use my from-address/reply-to?" (see _Customer Decision Surface_ in the
 architecture overview).
 
 The work this provider enables is the **domain-level lifecycle**:
@@ -41,7 +41,7 @@ CUSTOM_MAIL_PROVIDER=sendgrid
 ```
 
 As with SES, `CUSTOM_MAIL_PROVIDER` (config: `emailer.sender_provider`)
-decouples *domain provisioning* from the *sending transport* (`EMAILER_MODE`).
+decouples _domain provisioning_ from the _sending transport_ (`EMAILER_MODE`).
 You can run SMTP for outbound delivery while provisioning sender domains
 through SendGrid. If `CUSTOM_MAIL_PROVIDER` is unset, the provisioning provider
 falls back to `EMAILER_MODE`.
@@ -53,11 +53,11 @@ transport) delivery — authenticates with a single SendGrid API key sent as
 `Authorization: Bearer <key>`. `Mailer.provider_credentials('sendgrid')`
 resolves it in this order (first non-empty wins):
 
-| Priority | Source | Notes |
-|---|---|---|
-| 1 | `emailer.sendgrid_api_key` (config) | Not present in `config.defaults.yaml` — only set if your own config defines it |
-| 2 | `emailer.pass` (`SMTP_PASSWORD`) | Intended for `EMAILER_MODE=sendgrid` installs that put the key in the password slot |
-| 3 | `SENDGRID_API_KEY` env var | Fallback |
+| Priority | Source                              | Notes                                                                               |
+| -------- | ----------------------------------- | ----------------------------------------------------------------------------------- |
+| 1        | `emailer.sendgrid_api_key` (config) | Not present in `config.defaults.yaml` — only set if your own config defines it      |
+| 2        | `emailer.pass` (`SMTP_PASSWORD`)    | Intended for `EMAILER_MODE=sendgrid` installs that put the key in the password slot |
+| 3        | `SENDGRID_API_KEY` env var          | Fallback                                                                            |
 
 > **Caution — SMTP collision:** unlike SES, SendGrid has **no dedicated
 > `CUSTOM_MAIL_SENDGRID_API_KEY` override** and no credential entry under
@@ -87,11 +87,11 @@ SendGrid manages SPF, DKIM keys, and DKIM rotation behind **three CNAMEs** —
 the CNAME-delegated model, same family as Lettermint, in contrast to SES's
 publish-it-yourself MX + TXT:
 
-| | SendGrid (`automatic_security`) | Lettermint | SES (custom MAIL FROM) | MailChannels (research) |
-|---|---|---|---|---|
-| DKIM | 2 CNAMEs (`s1`/`s2._domainkey`) | CNAME selectors | 3 CNAMEs (tokens) | TXT (managed key) |
+|                       | SendGrid (`automatic_security`)  | Lettermint                      | SES (custom MAIL FROM)          | MailChannels (research)    |
+| --------------------- | -------------------------------- | ------------------------------- | ------------------------------- | -------------------------- |
+| DKIM                  | 2 CNAMEs (`s1`/`s2._domainkey`)  | CNAME selectors                 | 3 CNAMEs (tokens)               | TXT (managed key)          |
 | SPF / envelope sender | 1 mail CNAME (`em####.<domain>`) | 1 CNAME (`lm-bounces.<domain>`) | MX + SPF TXT on `mail.<domain>` | SPF TXT on **root** domain |
-| Who maintains SPF | SendGrid | Lettermint | customer publishes it | customer publishes it |
+| Who maintains SPF     | SendGrid                         | Lettermint                      | customer publishes it           | customer publishes it      |
 
 The mail CNAME is the return-path host: SendGrid sets the envelope sender
 (Return-Path) to `em####.<domain>`, so SPF authenticates against a subdomain of
@@ -220,11 +220,11 @@ ORGS_CUSTOM_MAIL_ENABLED=true
 
 ## Key files
 
-| File | Role |
-|---|---|
-| `lib/onetime/mail/sender_strategies/sendgrid_sender_strategy.rb` | Provision / validate / delete via raw `Net::HTTP` against `api.sendgrid.com/v3` |
-| `lib/onetime/domain_validation/sender_strategies/sendgrid_validation.rb` | DNS validation from provisioned records (no hardcoded fallback) |
-| `lib/onetime/mail/delivery/sendgrid.rb` | Delivery backend via `/v3/mail/send` (only when `EMAILER_MODE=sendgrid`) |
-| `lib/onetime/domain_validation/sender_strategies/provider_config.rb` | `email_providers.sendgrid` defaults (currently inert for this flow) |
-| `lib/onetime/mail/mailer.rb` | `provider_credentials('sendgrid')` — api_key resolution (see SMTP-collision caution) |
-| `etc/defaults/config.defaults.yaml` | `emailer.sender_provider`, `email_providers.sendgrid.*` |
+| File                                                                     | Role                                                                                 |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| `lib/onetime/mail/sender_strategies/sendgrid_sender_strategy.rb`         | Provision / validate / delete via raw `Net::HTTP` against `api.sendgrid.com/v3`      |
+| `lib/onetime/domain_validation/sender_strategies/sendgrid_validation.rb` | DNS validation from provisioned records (no hardcoded fallback)                      |
+| `lib/onetime/mail/delivery/sendgrid.rb`                                  | Delivery backend via `/v3/mail/send` (only when `EMAILER_MODE=sendgrid`)             |
+| `lib/onetime/domain_validation/sender_strategies/provider_config.rb`     | `email_providers.sendgrid` defaults (currently inert for this flow)                  |
+| `lib/onetime/mail/mailer.rb`                                             | `provider_credentials('sendgrid')` — api_key resolution (see SMTP-collision caution) |
+| `etc/defaults/config.defaults.yaml`                                      | `emailer.sender_provider`, `email_providers.sendgrid.*`                              |

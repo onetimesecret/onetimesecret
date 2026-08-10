@@ -280,9 +280,11 @@ describe('useSsoLinkConfirm', () => {
     // unlike every other POST failure the link is still live — the copy key must
     // be the dedicated "wait" message, never one that declares the link dead.
     it('classifies a throttled client (429 confirm_rate_limited)', async () => {
-      axiosMock
-        .onPost('/auth/sso-link-confirm')
-        .reply(429, { error: 'too many attempts', error_code: 'confirm_rate_limited', retry_after: 900 });
+      axiosMock.onPost('/auth/sso-link-confirm').reply(429, {
+        error: 'too many attempts',
+        error_code: 'confirm_rate_limited',
+        retry_after: 900,
+      });
 
       const { confirmLink, error, errorCode } = useSsoLinkConfirm();
       const result = await confirmLink('tok123');

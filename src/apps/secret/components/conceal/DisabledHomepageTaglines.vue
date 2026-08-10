@@ -1,38 +1,37 @@
 <!-- src/apps/secret/components/conceal/DisabledHomepageTaglines.vue -->
 
 <script setup lang="ts">
-
-const props = defineProps({
-  tagline1: {
-    type: String,
-    required: true
-  },
-  tagline2: {
-    type: String,
-    required: true
-  },
-  // Brand font utility classes; empty string keeps the surrounding
-  // typography (canonical site, unbranded domains).
-  headingClass: {
-    type: String,
-    default: ''
-  },
-  fontClass: {
-    type: String,
-    default: ''
-  }
-});
+  const props = defineProps({
+    tagline1: {
+      type: String,
+      required: true,
+    },
+    tagline2: {
+      type: String,
+      required: true,
+    },
+    // Brand font utility classes; empty string keeps the surrounding
+    // typography (canonical site, unbranded domains).
+    headingClass: {
+      type: String,
+      default: '',
+    },
+    fontClass: {
+      type: String,
+      default: '',
+    },
+  });
 </script>
 
 <template>
   <div class="flex flex-col items-center text-center">
     <h1
-      class="mb-2 text-2xl text-gray-600 dark:text-gray-100 sm:mx-12 sm:block md:mx-2"
+      class="mb-2 text-2xl text-gray-600 sm:mx-12 sm:block md:mx-2 dark:text-gray-100"
       :class="props.headingClass">
       {{ props.tagline2 }}
     </h1>
     <p
-      class="mx-12 mb-6 text-base text-gray-600 dark:text-gray-300 sm:mx-2"
+      class="mx-12 mb-6 text-base text-gray-600 sm:mx-2 dark:text-gray-300"
       :class="props.fontClass">
       {{ props.tagline1 }}
     </p>

@@ -224,7 +224,10 @@ describe('V3 Wire → V2 Schema (Backward Compatibility)', () => {
       // Document whether this succeeds
       console.log('[V3→V2] receiptBase compatibility:', result.success);
       if (!result.success) {
-        console.log('[V3→V2] Errors:', result.error.issues.map((i) => `${i.path}: ${i.message}`));
+        console.log(
+          '[V3→V2] Errors:',
+          result.error.issues.map((i) => `${i.path}: ${i.message}`)
+        );
       }
     });
   });
@@ -238,7 +241,10 @@ describe('V3 Wire → V2 Schema (Backward Compatibility)', () => {
 
       console.log('[V3→V2] full receipt compatibility:', result.success);
       if (!result.success) {
-        console.log('[V3→V2] Errors:', result.error.issues.slice(0, 5).map((i) => `${i.path}: ${i.message}`));
+        console.log(
+          '[V3→V2] Errors:',
+          result.error.issues.slice(0, 5).map((i) => `${i.path}: ${i.message}`)
+        );
       }
     });
   });
@@ -252,7 +258,10 @@ describe('V3 Wire → V2 Schema (Backward Compatibility)', () => {
 
       console.log('[V3→V2] receiptDetails compatibility:', result.success);
       if (!result.success) {
-        console.log('[V3→V2] Errors:', result.error.issues.map((i) => `${i.path}: ${i.message}`));
+        console.log(
+          '[V3→V2] Errors:',
+          result.error.issues.map((i) => `${i.path}: ${i.message}`)
+        );
       }
     });
   });
@@ -431,12 +440,16 @@ describe('Compatibility Summary', () => {
   it('documents has_passphrase null→false semantic difference in V3', () => {
     // This is intentional behavior: V3 normalizes null to false
     // because a consumed/deleted secret has no passphrase concept
-    const v2Wire = createV2WireReceiptBase(createCanonicalReceiptBase({
-      has_passphrase: null,
-    }));
-    const v3Wire = createV3WireReceiptBase(createCanonicalReceiptBase({
-      has_passphrase: null,
-    }));
+    const v2Wire = createV2WireReceiptBase(
+      createCanonicalReceiptBase({
+        has_passphrase: null,
+      })
+    );
+    const v3Wire = createV3WireReceiptBase(
+      createCanonicalReceiptBase({
+        has_passphrase: null,
+      })
+    );
 
     const v2Parsed = v2ReceiptBaseSchema.safeParse(v2Wire);
     const v3Parsed = v3ReceiptBaseSchema.safeParse(v3Wire);
@@ -504,9 +517,7 @@ describe('Transform Error Handling', () => {
       // V3 expects native number, rejects strings
       expect(result.success).toBe(false);
       if (!result.success) {
-        const ttlError = result.error.issues.find((i) =>
-          i.path.includes('secret_ttl')
-        );
+        const ttlError = result.error.issues.find((i) => i.path.includes('secret_ttl'));
         expect(ttlError).toBeDefined();
         expect(ttlError?.message).toContain('number');
       }

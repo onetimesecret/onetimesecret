@@ -134,7 +134,9 @@ describe('NotificationSettings', () => {
     it('renders reveal notification description', () => {
       wrapper = mountComponent();
 
-      expect(wrapper.text()).toContain('web.settings.notifications.reveal_notifications.description');
+      expect(wrapper.text()).toContain(
+        'web.settings.notifications.reveal_notifications.description'
+      );
     });
 
     it('renders help text', () => {
@@ -227,9 +229,7 @@ describe('NotificationSettings', () => {
 
       // Find the main notification settings section (not the info box)
       const sections = wrapper.findAll('section');
-      const notificationSection = sections.find(
-        (s) => s.find('[data-icon="bell-solid"]').exists()
-      );
+      const notificationSection = sections.find((s) => s.find('[data-icon="bell-solid"]').exists());
       expect(notificationSection?.classes()).toContain('rounded-lg');
       expect(notificationSection?.classes()).toContain('border');
     });
@@ -238,9 +238,7 @@ describe('NotificationSettings', () => {
       wrapper = mountComponent();
 
       const sections = wrapper.findAll('section');
-      const notificationSection = sections.find(
-        (s) => s.find('[data-icon="bell-solid"]').exists()
-      );
+      const notificationSection = sections.find((s) => s.find('[data-icon="bell-solid"]').exists());
       // After frontend-dev fixes, this should pass
       // Current: bg-white (violation)
       // Expected: bg-white/60
@@ -251,9 +249,7 @@ describe('NotificationSettings', () => {
       wrapper = mountComponent();
 
       const sections = wrapper.findAll('section');
-      const notificationSection = sections.find(
-        (s) => s.find('[data-icon="bell-solid"]').exists()
-      );
+      const notificationSection = sections.find((s) => s.find('[data-icon="bell-solid"]').exists());
       // After frontend-dev fixes, this should pass
       // Current: border-gray-200 (violation)
       // Expected: border-gray-200/60
@@ -264,9 +260,7 @@ describe('NotificationSettings', () => {
       wrapper = mountComponent();
 
       const sections = wrapper.findAll('section');
-      const notificationSection = sections.find(
-        (s) => s.find('[data-icon="bell-solid"]').exists()
-      );
+      const notificationSection = sections.find((s) => s.find('[data-icon="bell-solid"]').exists());
       expect(notificationSection?.classes()).toContain('shadow-sm');
     });
 
@@ -274,9 +268,7 @@ describe('NotificationSettings', () => {
       wrapper = mountComponent();
 
       const sections = wrapper.findAll('section');
-      const notificationSection = sections.find(
-        (s) => s.find('[data-icon="bell-solid"]').exists()
-      );
+      const notificationSection = sections.find((s) => s.find('[data-icon="bell-solid"]').exists());
       expect(notificationSection?.classes()).toContain('backdrop-blur-sm');
     });
   });
@@ -299,7 +291,6 @@ describe('NotificationSettings', () => {
       const heading = wrapper.find('h2');
       expect(heading.classes()).toContain('text-lg');
     });
-
   });
 
   describe('Dark Mode Support', () => {
@@ -307,9 +298,7 @@ describe('NotificationSettings', () => {
       wrapper = mountComponent();
 
       const sections = wrapper.findAll('section');
-      const notificationSection = sections.find(
-        (s) => s.find('[data-icon="bell-solid"]').exists()
-      );
+      const notificationSection = sections.find((s) => s.find('[data-icon="bell-solid"]').exists());
       // Design system uses /60 transparency for dark mode
       expect(notificationSection?.classes()).toContain('dark:border-gray-700/60');
     });
@@ -318,9 +307,7 @@ describe('NotificationSettings', () => {
       wrapper = mountComponent();
 
       const sections = wrapper.findAll('section');
-      const notificationSection = sections.find(
-        (s) => s.find('[data-icon="bell-solid"]').exists()
-      );
+      const notificationSection = sections.find((s) => s.find('[data-icon="bell-solid"]').exists());
       // Design system uses /60 transparency for dark mode
       expect(notificationSection?.classes()).toContain('dark:bg-gray-800/60');
     });

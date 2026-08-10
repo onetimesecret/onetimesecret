@@ -67,25 +67,25 @@ the fallback — it is retained only where OTS-orange is specifically intended
 Each `BRAND_*` ENV var populates `OT.conf['brand'][...]` → a `brand_*` bootstrap
 field. No defaults shipped.
 
-| ENV var                      | Purpose                                            |
-| ---------------------------- | -------------------------------------------------- |
-| `BRAND_PRIMARY_COLOR`        | base hue for the generated palette                 |
-| `BRAND_PRODUCT_NAME`         | product name / manifest name                       |
-| `BRAND_PRODUCT_DOMAIN`       |                                                    |
-| `BRAND_SUPPORT_EMAIL`        |                                                    |
-| `BRAND_CORNER_STYLE`         | `rounded` \| `square` \| `pill`                    |
-| `BRAND_FONT_FAMILY`          | `sans` \| `serif` \| `mono`                        |
-| `BRAND_BUTTON_TEXT_LIGHT`    |                                                    |
-| `BRAND_LOGO_URL`             | masthead + email logo, per-domain default          |
-| `BRAND_LOGO_DARK_URL`        | dark-theme masthead logo (web UI only)             |
-| `BRAND_LOGO_ALT`             | logo alt text (falls back to product-name i18n)    |
-| `BRAND_FAVICON_URL`          | `/favicon.ico` 302 redirect                        |
-| `BRAND_APPLE_TOUCH_ICON_URL` | head `apple-touch-icon`                            |
-| `BRAND_OG_IMAGE_URL`         | head `og:image` / `twitter:image` (absolute)       |
-| `BRAND_TOTP_ISSUER`          | MFA issuer label (falls back to product name)      |
-| `BRAND_SIGNATURE_NAME`       | email sign-off (see Special cases)                 |
+| ENV var                      | Purpose                                                                 |
+| ---------------------------- | ----------------------------------------------------------------------- |
+| `BRAND_PRIMARY_COLOR`        | base hue for the generated palette                                      |
+| `BRAND_PRODUCT_NAME`         | product name / manifest name                                            |
+| `BRAND_PRODUCT_DOMAIN`       |                                                                         |
+| `BRAND_SUPPORT_EMAIL`        |                                                                         |
+| `BRAND_CORNER_STYLE`         | `rounded` \| `square` \| `pill`                                         |
+| `BRAND_FONT_FAMILY`          | `sans` \| `serif` \| `mono`                                             |
+| `BRAND_BUTTON_TEXT_LIGHT`    |                                                                         |
+| `BRAND_LOGO_URL`             | masthead + email logo, per-domain default                               |
+| `BRAND_LOGO_DARK_URL`        | dark-theme masthead logo (web UI only)                                  |
+| `BRAND_LOGO_ALT`             | logo alt text (falls back to product-name i18n)                         |
+| `BRAND_FAVICON_URL`          | `/favicon.ico` 302 redirect                                             |
+| `BRAND_APPLE_TOUCH_ICON_URL` | head `apple-touch-icon`                                                 |
+| `BRAND_OG_IMAGE_URL`         | head `og:image` / `twitter:image` (absolute)                            |
+| `BRAND_TOTP_ISSUER`          | MFA issuer label (falls back to product name)                           |
+| `BRAND_SIGNATURE_NAME`       | email sign-off (see Special cases)                                      |
 | `BRAND_PACK`                 | pack NAME → `etc/branding/` then `public/branding/` (unset ⇒ `default`) |
-| `BRAND_ASSETS_DIR`           | explicit pack PATH (wins over `BRAND_PACK`)        |
+| `BRAND_ASSETS_DIR`           | explicit pack PATH (wins over `BRAND_PACK`)                             |
 
 `BRAND_PACK` / `BRAND_ASSETS_DIR` are the two exceptions to the "populates
 `OT.conf['brand']`" rule above: they populate `site.brand_pack` /
@@ -94,7 +94,7 @@ field. No defaults shipped.
 
 `BRAND_LOGO_URL` is the operator/install logo everywhere: the masthead, email
 templates, and the default for custom domains with no uploaded logo — but it is
-never rendered *as the operator's* on tenant custom domains (they get their own
+never rendered _as the operator's_ on tenant custom domains (they get their own
 upload or the neutral mark, same guard as the wordmark). Emails only emit
 absolute `http(s)` URLs; a masthead-oriented relative path degrades emails to a
 text-only header.
@@ -125,16 +125,16 @@ naming the replacement. These are **soft** deprecations: they only ever warn —
 even under `DEPRECATED_CONFIG_MODE=strict` boot is never refused (`silent`
 suppresses the warning).
 
-| Legacy           | Replacement                                             |
-| ---------------- | ------------------------------------------------------- |
-| `SITE_NAME`      | `BRAND_PRODUCT_NAME` (`brand.product_name`)             |
-| `LOGO_URL`       | `BRAND_LOGO_URL` (`brand.logo_url`)                     |
-| `LOGO_ALT`       | `BRAND_LOGO_ALT` (`brand.logo_alt`)                     |
-| `LOGO_LINK`      | `site.interface.ui.header.logo.href` (env unchanged)    |
-| `LOGO_SHOW_NAME` | `…header.logo.show_name` (env unchanged)                |
-| `LOGO_PROMINENT` | `…header.logo.prominent` (env unchanged)                |
+| Legacy           | Replacement                                          |
+| ---------------- | ---------------------------------------------------- |
+| `SITE_NAME`      | `BRAND_PRODUCT_NAME` (`brand.product_name`)          |
+| `LOGO_URL`       | `BRAND_LOGO_URL` (`brand.logo_url`)                  |
+| `LOGO_ALT`       | `BRAND_LOGO_ALT` (`brand.logo_alt`)                  |
+| `LOGO_LINK`      | `site.interface.ui.header.logo.href` (env unchanged) |
+| `LOGO_SHOW_NAME` | `…header.logo.show_name` (env unchanged)             |
+| `LOGO_PROMINENT` | `…header.logo.prominent` (env unchanged)             |
 
-The three layout knobs are *not* deprecated — only their YAML nesting moved
+The three layout knobs are _not_ deprecated — only their YAML nesting moved
 (and `link_to` was renamed `href`). `show_name` is now explicit-only: unset
 means "show the wordmark unless a custom brand logo is configured" (custom
 logos usually embed their own wordmark). Previously, unset meant always-on —

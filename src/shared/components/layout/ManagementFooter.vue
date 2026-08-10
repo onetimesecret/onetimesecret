@@ -80,7 +80,7 @@
         label: t('web.LABELS.title_recent_secrets'),
         icon: 'clock',
         count: counts.value.receipts,
-      }
+      },
     ];
 
     if (domains_enabled.value) {
@@ -127,7 +127,7 @@
         :class="[
           isActiveRoute(item.path)
             ? 'text-brand-500'
-            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200',
         ]"
         :aria-label="item.label"
         :aria-current="isActiveRoute(item.path) ? 'page' : undefined">
@@ -140,8 +140,7 @@
         <!-- Count badge (if present) -->
         <span
           v-if="item.count !== undefined && item.count !== null && item.count > 0"
-          class="absolute -right-0.5 -top-0.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full
-                 bg-brand-500 px-1 text-[10px] font-semibold leading-none text-white shadow-sm"
+          class="absolute -top-0.5 -right-0.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-brand-500 px-1 text-[10px] leading-none font-semibold text-white shadow-sm"
           :aria-label="t('web.layout.mobile_nav_item_count', { count: item.count })">
           {{ item.count > 99 ? '99+' : item.count }}
         </span>
@@ -208,7 +207,11 @@
               :href="t('web.COMMON.website_url')"
               target="_blank"
               rel="noopener noreferrer">
-              {{ t('web.branding.powered_by_onetime_secret', { product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name }) }}
+              {{
+                t('web.branding.powered_by_onetime_secret', {
+                  product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name,
+                })
+              }}
             </a>
           </span>
         </div>

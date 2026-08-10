@@ -22,46 +22,46 @@
 
 These keys are too generic and likely duplicated or should be shared:
 
-| Key | Current Location | Recommended | Rationale |
-|-----|------------------|-------------|-----------|
-| `required` | `web.domains` | `web.COMMON` | Generic term used across forms |
-| `optional` | `web.domains` | `web.COMMON` | Generic term used across forms |
-| `enabled` | `web.domains` | `web.COMMON` | Generic state indicator |
-| `disabled` | `web.domains` | `web.COMMON` | Generic state indicator |
-| `custom` | `web.domains` | `web.COMMON` | Generic term |
-| `domain` | `web.domains` | `web.COMMON` | Could be used elsewhere |
-| `value-0`, `value-1`, `value-2` | `web.domains` | `web.COMMON.value` | Already exists as `web.COMMON.value` |
-| `host-0`, `host-1` | `web.domains` | `web.COMMON.host` | Already exists as `web.COMMON.host` |
-| `type-0`, `type-1`, `type-2` | `web.domains` | `web.COMMON.type` | Already exists as `web.COMMON.type` |
+| Key                             | Current Location | Recommended        | Rationale                            |
+| ------------------------------- | ---------------- | ------------------ | ------------------------------------ |
+| `required`                      | `web.domains`    | `web.COMMON`       | Generic term used across forms       |
+| `optional`                      | `web.domains`    | `web.COMMON`       | Generic term used across forms       |
+| `enabled`                       | `web.domains`    | `web.COMMON`       | Generic state indicator              |
+| `disabled`                      | `web.domains`    | `web.COMMON`       | Generic state indicator              |
+| `custom`                        | `web.domains`    | `web.COMMON`       | Generic term                         |
+| `domain`                        | `web.domains`    | `web.COMMON`       | Could be used elsewhere              |
+| `value-0`, `value-1`, `value-2` | `web.domains`    | `web.COMMON.value` | Already exists as `web.COMMON.value` |
+| `host-0`, `host-1`              | `web.domains`    | `web.COMMON.host`  | Already exists as `web.COMMON.host`  |
+| `type-0`, `type-1`, `type-2`    | `web.domains`    | `web.COMMON.type`  | Already exists as `web.COMMON.type`  |
 
 ### 2. Privacy Defaults -> New File or `feature-secrets.json`
 
 Privacy default settings relate more to secret creation than domain management:
 
-| Key | Recommended Destination | Rationale |
-|-----|------------------------|-----------|
-| `privacy_defaults_title` | `feature-secrets.json` or new `feature-privacy.json` | Secret-centric setting |
-| `privacy_defaults_description` | Same | Secret-centric setting |
-| `privacy_defaults` | Same | Secret-centric setting |
-| `privacy_defaults_icon` | Same | Accessibility for above |
-| `default_ttl_label` | Same | TTL is a secret attribute |
-| `default_ttl_hint` | Same | TTL is a secret attribute |
-| `passphrase_required_label` | Same | Passphrase is a secret attribute |
-| `passphrase_required_hint` | Same | Passphrase is a secret attribute |
-| `notify_enabled_label` | Same | Notification is a secret attribute |
-| `notify_enabled_hint` | Same | Notification is a secret attribute |
-| `use_global_default` | `_common.json` | Generic setting pattern |
-| `global_default` | `_common.json` | Generic label |
-| `ttl_short` | `feature-secrets.json` | TTL abbreviation |
-| `passphrase_short` | `feature-secrets.json` | Already has passphrase keys |
-| `notify_short` | `feature-secrets.json` or `_common.json` | Generic notification term |
+| Key                            | Recommended Destination                              | Rationale                          |
+| ------------------------------ | ---------------------------------------------------- | ---------------------------------- |
+| `privacy_defaults_title`       | `feature-secrets.json` or new `feature-privacy.json` | Secret-centric setting             |
+| `privacy_defaults_description` | Same                                                 | Secret-centric setting             |
+| `privacy_defaults`             | Same                                                 | Secret-centric setting             |
+| `privacy_defaults_icon`        | Same                                                 | Accessibility for above            |
+| `default_ttl_label`            | Same                                                 | TTL is a secret attribute          |
+| `default_ttl_hint`             | Same                                                 | TTL is a secret attribute          |
+| `passphrase_required_label`    | Same                                                 | Passphrase is a secret attribute   |
+| `passphrase_required_hint`     | Same                                                 | Passphrase is a secret attribute   |
+| `notify_enabled_label`         | Same                                                 | Notification is a secret attribute |
+| `notify_enabled_hint`          | Same                                                 | Notification is a secret attribute |
+| `use_global_default`           | `_common.json`                                       | Generic setting pattern            |
+| `global_default`               | `_common.json`                                       | Generic label                      |
+| `ttl_short`                    | `feature-secrets.json`                               | TTL abbreviation                   |
+| `passphrase_short`             | `feature-secrets.json`                               | Already has passphrase keys        |
+| `notify_short`                 | `feature-secrets.json` or `_common.json`             | Generic notification term          |
 
 ### 3. Status Labels -> `_common.json` under `STATUS`
 
-| Key | Recommended | Rationale |
-|-----|-------------|-----------|
-| `ssl-status` | `web.STATUS` | Status indicator pattern |
-| `domain-status` | `web.STATUS` | Status indicator pattern |
+| Key                              | Recommended         | Rationale                        |
+| -------------------------------- | ------------------- | -------------------------------- |
+| `ssl-status`                     | `web.STATUS`        | Status indicator pattern         |
+| `domain-status`                  | `web.STATUS`        | Status indicator pattern         |
 | `active` (if not already shared) | `web.STATUS.active` | Already exists in `_common.json` |
 
 ---
@@ -69,6 +69,7 @@ Privacy default settings relate more to secret creation than domain management:
 ## Hierarchy Improvements
 
 ### Current (Flat Structure)
+
 ```
 web.domains.learn-more-dns
 web.domains.verify-domain
@@ -144,17 +145,18 @@ web.domains.2-create-the-cname-record
 
 ### 1. Duplicate/Redundant Keys
 
-| Keys | Issue |
-|------|-------|
-| `value-0`, `value-1`, `value-2` | Should use single `value` key with context |
-| `host-0`, `host-1` | Should use single `host` key |
-| `type-0`, `type-1`, `type-2` | Should use single `type` key |
-| `privacy_defaults_title` vs `privacy_defaults` | Redundant naming |
-| `add-domain` vs `add_domain` | Inconsistent casing (kebab vs snake) |
+| Keys                                           | Issue                                      |
+| ---------------------------------------------- | ------------------------------------------ |
+| `value-0`, `value-1`, `value-2`                | Should use single `value` key with context |
+| `host-0`, `host-1`                             | Should use single `host` key               |
+| `type-0`, `type-1`, `type-2`                   | Should use single `type` key               |
+| `privacy_defaults_title` vs `privacy_defaults` | Redundant naming                           |
+| `add-domain` vs `add_domain`                   | Inconsistent casing (kebab vs snake)       |
 
 ### 2. Inconsistent Naming Conventions
 
 The file mixes:
+
 - kebab-case: `learn-more-dns`, `add-domain`, `ssl-status`
 - snake_case: `privacy_defaults_title`, `default_ttl_label`
 - camelCase: (none found, which is good)
@@ -163,13 +165,13 @@ The file mixes:
 
 ### 3. Overly Long Key Names
 
-| Current Key | Suggested |
-|-------------|-----------|
-| `added-formatdistancetonow-domain-created-addsuffix-true` | `added_time_ago` |
-| `control-whether-users-can-create-secret-links` | `homepage_access_description` |
-| `manage-and-configure-your-verified-custom-domains` | `domains_description` |
-| `in-order-to-connect-your-domain-youll-need-to-ha` | `cname_setup_instruction` |
-| `if-you-already-have-a-cname-record-for-that-addr` | `cname_existing_instruction` |
+| Current Key                                               | Suggested                     |
+| --------------------------------------------------------- | ----------------------------- |
+| `added-formatdistancetonow-domain-created-addsuffix-true` | `added_time_ago`              |
+| `control-whether-users-can-create-secret-links`           | `homepage_access_description` |
+| `manage-and-configure-your-verified-custom-domains`       | `domains_description`         |
+| `in-order-to-connect-your-domain-youll-need-to-ha`        | `cname_setup_instruction`     |
+| `if-you-already-have-a-cname-record-for-that-addr`        | `cname_existing_instruction`  |
 
 ---
 
@@ -178,6 +180,7 @@ The file mixes:
 ### 1. `feature-privacy.json` (Optional)
 
 If privacy defaults expand, consider extracting:
+
 - Privacy default settings
 - TTL configurations
 - Passphrase requirements
@@ -188,6 +191,7 @@ This would serve both domain-level and account-level privacy settings.
 ### 2. `feature-dns.json` (Optional)
 
 If DNS verification complexity grows, extract:
+
 - All DNS record type explanations
 - Verification step instructions
 - Propagation guidance
@@ -208,10 +212,10 @@ If DNS verification complexity grows, extract:
 
 ## Migration Priority
 
-| Priority | Action | Impact |
-|----------|--------|--------|
-| High | Move generic keys to `_common.json` | Reduces duplication |
-| High | Fix inconsistent naming conventions | Improves maintainability |
-| Medium | Restructure into nested hierarchy | Better organization |
-| Medium | Move privacy keys to appropriate file | Clearer separation of concerns |
-| Low | Create new feature files | Only if categories grow significantly |
+| Priority | Action                                | Impact                                |
+| -------- | ------------------------------------- | ------------------------------------- |
+| High     | Move generic keys to `_common.json`   | Reduces duplication                   |
+| High     | Fix inconsistent naming conventions   | Improves maintainability              |
+| Medium   | Restructure into nested hierarchy     | Better organization                   |
+| Medium   | Move privacy keys to appropriate file | Clearer separation of concerns        |
+| Low      | Create new feature files              | Only if categories grow significantly |

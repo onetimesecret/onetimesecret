@@ -6,11 +6,11 @@ feature/entitlement label** (`audit_logs`); the underlying data is two distinct
 event streams with different sources, actor semantics, and retention. A third,
 operator-facing log exists outside the entitlement entirely.
 
-| Stream | User-facing name | Answers | Store / retention | Status |
-|---|---|---|---|---|
-| Secret Activity (#3633/#3635/#3637) | **Secret Activity** | what happened to a secret, and who acted | Valkey/Redis sorted set, capped (10,000 newest per org) | Shipped |
-| Security Events (#2799) | **Security Events** | who did what to the account/org (login, MFA, SSO config) | SQL (`account_authentication_audit_logs`), TTL-based | Backend table live (Rodauth); product surface unstarted |
-| Operator audit log | — (colonel-only) | what operators did in the admin console | `ColonelAuditEvent` (Familia) | Shipped, colonel app only |
+| Stream                              | User-facing name    | Answers                                                  | Store / retention                                       | Status                                                  |
+| ----------------------------------- | ------------------- | -------------------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------- |
+| Secret Activity (#3633/#3635/#3637) | **Secret Activity** | what happened to a secret, and who acted                 | Valkey/Redis sorted set, capped (10,000 newest per org) | Shipped                                                 |
+| Security Events (#2799)             | **Security Events** | who did what to the account/org (login, MFA, SSO config) | SQL (`account_authentication_audit_logs`), TTL-based    | Backend table live (Rodauth); product surface unstarted |
+| Operator audit log                  | — (colonel-only)    | what operators did in the admin console                  | `ColonelAuditEvent` (Familia)                           | Shipped, colonel app only                               |
 
 Do not conflate them. Per ADR-021, "audit log" in the strict, actor-attributed
 compliance sense is Security Events; Secret Activity began as access/usage
@@ -83,16 +83,16 @@ Key files:
 
 ### Event kinds (11)
 
-| Kind | Emitted when | Actor |
-|---|---|---|
-| `created` | secret concealed/generated in org context | `creator` |
-| `status_get` / `secret_get` | a third party fetched the status/secret link | tri-state |
-| `previewed` | the creator opened their own secret link | tri-state (creator by construction, but **recorded**, never inferred) |
-| `creator_status_get` | the creator checked their own secret's status | tri-state |
-| `receipt_viewed` | the creator's receipt page loaded (once per receipt, atomic claim) | tri-state |
-| `revealed` / `burned` | terminal lifecycle transition (CAS winner) | tri-state |
-| `expired` / `orphaned` | system-detected transition, no acting individual | `system` |
-| `reveal_failed_undecryptable` | reveal rolled back on undecryptable ciphertext | tri-state (threaded from the reveal) |
+| Kind                          | Emitted when                                                       | Actor                                                                 |
+| ----------------------------- | ------------------------------------------------------------------ | --------------------------------------------------------------------- |
+| `created`                     | secret concealed/generated in org context                          | `creator`                                                             |
+| `status_get` / `secret_get`   | a third party fetched the status/secret link                       | tri-state                                                             |
+| `previewed`                   | the creator opened their own secret link                           | tri-state (creator by construction, but **recorded**, never inferred) |
+| `creator_status_get`          | the creator checked their own secret's status                      | tri-state                                                             |
+| `receipt_viewed`              | the creator's receipt page loaded (once per receipt, atomic claim) | tri-state                                                             |
+| `revealed` / `burned`         | terminal lifecycle transition (CAS winner)                         | tri-state                                                             |
+| `expired` / `orphaned`        | system-detected transition, no acting individual                   | `system`                                                              |
+| `reveal_failed_undecryptable` | reveal rolled back on undecryptable ciphertext                     | tri-state (threaded from the reveal)                                  |
 
 "Tri-state" is the computed discriminator (`creator` / `authenticated_other` /
 `anonymous`). A fifth value, `unknown`, is the ADR-023 sentinel for an actor —
@@ -147,7 +147,7 @@ for every event:
 - no truncation.
 
 Attribution itself (`lifecycle_actor_context`) runs the anonymous guard
-*before* the ownership test, because `Secret#owner?` compares objids and an
+_before_ the ownership test, because `Secret#owner?` compares objids and an
 anonymous caller (nil objid) fetching a guest-created secret (nil owner)
 would otherwise match `nil == nil` and be misattributed as the creator.
 
@@ -188,7 +188,7 @@ The frontend contract lives in
 Two caps, one TTL rule:
 
 - **Per-receipt timeline**: newest 100 events (`ACCESS_EVENTS_MAX`); once a
-  receipt's own timeline is saturated its *fetch* events stop fanning out to
+  receipt's own timeline is saturated its _fetch_ events stop fanning out to
   the org trail, so one hammered link (scanner, monitor) cannot evict every
   other receipt's history. Lifecycle transitions bypass the guard. The
   timeline key's TTL is clamped to its receipt's remaining TTL.
@@ -241,7 +241,7 @@ Current state:
 operator actions in the admin console and is rendered only by the colonel app
 (`ColonelAuditLog.vue`). It sits outside the
 `audit_logs` entitlement and outside ADR-021's two-stream model — it answers
-"what did *our operators* do," not "what happened in a customer's org."
+"what did _our operators_ do," not "what happened in a customer's org."
 Mentioned here only to prevent the name collision.
 
 ## Cross-cutting rules

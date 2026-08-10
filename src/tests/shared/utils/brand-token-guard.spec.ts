@@ -39,9 +39,7 @@ describe('brand token guard — fontFamilyClasses dynamic indexing', () => {
     // `?.`/`!` variants (`fontFamilyClasses?.[font]`) index just as
     // dynamically as the bare form and must not slip past the guard.
     const offenders = files
-      .filter((file) =>
-        /fontFamilyClasses\s*(\?\.|!)?\s*\[/.test(readFileSync(file, 'utf8'))
-      )
+      .filter((file) => /fontFamilyClasses\s*(\?\.|!)?\s*\[/.test(readFileSync(file, 'utf8')))
       .map((file) => relative(process.cwd(), file));
 
     expect(

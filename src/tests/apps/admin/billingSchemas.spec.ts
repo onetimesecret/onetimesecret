@@ -38,9 +38,7 @@ describe('colonelBillingCatalogResponseSchema', () => {
           in_sync: false,
           only_in_config: ['legacy_v1'],
           only_in_live: ['new_v2'],
-          changed: [
-            { planid: 'identity_plus_v1', name: 'Identity+', fields: ['entitlements'] },
-          ],
+          changed: [{ planid: 'identity_plus_v1', name: 'Identity+', fields: ['entitlements'] }],
         },
       },
     });
@@ -58,7 +56,12 @@ describe('colonelBillingCatalogResponseSchema', () => {
         stripe_configured: false,
         config_plans: [validPlan],
         live_plans: [],
-        drift: { in_sync: false, only_in_config: ['identity_plus_v1'], only_in_live: [], changed: [] },
+        drift: {
+          in_sync: false,
+          only_in_config: ['identity_plus_v1'],
+          only_in_live: [],
+          changed: [],
+        },
       },
     });
     expect(parsed.details?.stripe_configured).toBe(false);

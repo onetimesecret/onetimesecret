@@ -14,11 +14,13 @@ try/integration/api/
 ## Organization Guidelines
 
 ### Integration Tests (this directory)
+
 - Test complete API request/response cycles
 - Test API-specific behavior (transformations, response formats)
 - Organized by API version/namespace
 
 ### Unit Tests (try/unit/logic/)
+
 - Test individual logic classes
 - Organized by domain (secrets, account, authentication), NOT by API version
 - V2/V3/Account logic classes share business logic, only differ in serialization
@@ -26,7 +28,9 @@ try/integration/api/
 ## Example
 
 **Integration test** (tests v3 API endpoint response format):
+
 - `try/integration/api/v3/rest_transformations_try.rb`
 
 **Unit test** (tests shared business logic):
+
 - `try/unit/logic/secrets/reveal_secret_try.rb` (tests V2::Logic::Secrets::RevealSecret)

@@ -29,15 +29,15 @@ from the mail client's native button, and a human landing page.
   - expose `unsubscribe_url` to the ERB context for the footer link in
     `layout.html.erb` (sub-footer, beside `email.common.automated_notice`) and
     `layout.txt.erb`, rendered only for eligible categories.
-  Host resolution follows the existing `baseuri`/`brand_baseuri` helpers —
-  branded (custom-domain) mail links to the branded host.
+    Host resolution follows the existing `baseuri`/`brand_baseuri` helpers —
+    branded (custom-domain) mail links to the branded host.
 - **Endpoints**:
   - `POST /api/v3/unsubscribe/:token` — `auth=noauth` Logic class (nil-`cust`
     safe), CSRF-exempt by the `/api/` prefix rule. RFC 8058: must succeed on
     the bare POST with no further interaction; body content ignored. Decodes +
     verifies the token, creates an `EmailSuppression` (reason `unsubscribe`,
     scope from category: `transactional_recipient` → `recipient_and_
-    notification`, `notification` → `notification`), logs `unsubscribed`
+notification`, `notification` → `notification`), logs `unsubscribed`
     activity, returns 200. Idempotent: already-suppressed → 200. Invalid token
     → 404 after the rate-limit check.
   - `GET /unsubscribe/:token` — Core routes.txt `auth=noauth` line serving the

@@ -6,7 +6,7 @@
 
 Pipeline order (each step assumes the previous one ran):
 
-1. **Export** — drained *and audit-clean* DB -> `locales/content/` + shared tables via
+1. **Export** — drained _and audit-clean_ DB -> `locales/content/` + shared tables via
    `export-all.sh` (dry-run by default). Exports a locale only when `pending: 0` **and**
    `tasks audit <locale> --strict` is clean, skips the rest, then runs `i18n db export`
    once. Leaves uncommitted changes in the working tree; everything below operates on
@@ -20,7 +20,7 @@ Pipeline order (each step assumes the previous one ran):
 
 ### Exporting drained and clean locales
 
-`export-all.sh` writes each drained *and clean* locale's DB translations into
+`export-all.sh` writes each drained _and clean_ locale's DB translations into
 `locales/content/`, then runs `i18n db export` once. Dry-run is the default — pass
 `--execute` to act.
 

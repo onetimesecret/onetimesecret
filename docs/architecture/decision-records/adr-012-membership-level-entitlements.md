@@ -1,7 +1,7 @@
 ---
-id: "012"
+id: '012'
 status: proposed
-title: "ADR-012: Membership-Level Materialized Entitlements"
+title: 'ADR-012: Membership-Level Materialized Entitlements'
 ---
 
 ## Status
@@ -14,7 +14,7 @@ Proposed
 
 ## Context
 
-Entitlements and roles are two independent authorization systems in this codebase. They never intersect. `require_entitlement!` checks whether the *organization* has a feature (`auth_org.can?`); it does not check whether the *caller's role* permits exercising it. Every member of an org gets the same answer regardless of role. The role hierarchy (owner > admin > member) exists on `OrganizationMembership` but is enforced only by three discrete guard methods (`verify_organization_owner`, `verify_organization_admin`, `verify_organization_member`) that must be manually paired with entitlement checks at every call site. Nothing forces the pairing. Five domain-branding endpoints already lack it, creating an active privilege gap in self-hosted mode (#3225).
+Entitlements and roles are two independent authorization systems in this codebase. They never intersect. `require_entitlement!` checks whether the _organization_ has a feature (`auth_org.can?`); it does not check whether the _caller's role_ permits exercising it. Every member of an org gets the same answer regardless of role. The role hierarchy (owner > admin > member) exists on `OrganizationMembership` but is enforced only by three discrete guard methods (`verify_organization_owner`, `verify_organization_admin`, `verify_organization_member`) that must be manually paired with entitlement checks at every call site. Nothing forces the pairing. Five domain-branding endpoints already lack it, creating an active privilege gap in self-hosted mode (#3225).
 
 A static `ENTITLEMENT_ROLE_REQUIREMENTS` map (entitlement → minimum role, checked at evaluation time) was the original proposal. That approach adds a second authorization lookup at every check and cannot express per-member operator overrides. The codebase already has a materialized entitlement system for organizations (`WithMaterializedEntitlements`) that stores effective entitlements in Redis sets, supports operator grants/revokes, and reconciles atomically. Extending the same machinery to memberships eliminates the dual-system problem by making the membership the single authorization primitive for authenticated requests.
 
@@ -46,7 +46,6 @@ ROLE_ENTITLEMENTS = {
   'member' => member_entitlements.freeze,
 }.freeze
 ```
-
 
 At materialization time, the effective set is `org.materialized_entitlements ∩ ROLE_ENTITLEMENTS[role]`, stored in the membership's `entitlements_plan` set, then reconciled via `apply_entitlements` (which adds grants and subtracts revokes). The org intersection ensures a membership never exceeds its org's plan.
 

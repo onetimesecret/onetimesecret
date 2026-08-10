@@ -139,7 +139,11 @@ export const useOrganizationStore = defineStore('organization', () => {
         signal: abortController.value.signal,
       });
 
-      const result = gracefulParse(organizationsResponseSchema, response.data, 'OrganizationsResponse');
+      const result = gracefulParse(
+        organizationsResponseSchema,
+        response.data,
+        'OrganizationsResponse'
+      );
       if (!result.ok) {
         organizations.value = [];
         _listFetched.value = true;
@@ -166,7 +170,11 @@ export const useOrganizationStore = defineStore('organization', () => {
     try {
       const response = await $api.get(`/api/organizations/${extid}`);
 
-      const result = gracefulParse(organizationResponseSchema, response.data, 'OrganizationResponse');
+      const result = gracefulParse(
+        organizationResponseSchema,
+        response.data,
+        'OrganizationResponse'
+      );
       if (!result.ok) {
         throw new Error('Unable to load organization. Please try again.');
       }
@@ -193,14 +201,22 @@ export const useOrganizationStore = defineStore('organization', () => {
     loading.value = true;
 
     try {
-      const payloadResult = gracefulParse(createOrganizationPayloadSchema, payload, 'CreateOrganizationPayload');
+      const payloadResult = gracefulParse(
+        createOrganizationPayloadSchema,
+        payload,
+        'CreateOrganizationPayload'
+      );
       if (!payloadResult.ok) {
         throw new Error('Invalid organization data.');
       }
 
       const response = await $api.post('/api/organizations', payloadResult.data);
 
-      const orgResult = gracefulParse(organizationResponseSchema, response.data, 'OrganizationResponse');
+      const orgResult = gracefulParse(
+        organizationResponseSchema,
+        response.data,
+        'OrganizationResponse'
+      );
       if (!orgResult.ok) {
         throw new Error('Unable to create organization. Please try again.');
       }
@@ -225,14 +241,22 @@ export const useOrganizationStore = defineStore('organization', () => {
     loading.value = true;
 
     try {
-      const payloadResult = gracefulParse(updateOrganizationPayloadSchema, payload, 'UpdateOrganizationPayload');
+      const payloadResult = gracefulParse(
+        updateOrganizationPayloadSchema,
+        payload,
+        'UpdateOrganizationPayload'
+      );
       if (!payloadResult.ok) {
         throw new Error('Invalid organization update data.');
       }
 
       const response = await $api.put(`/api/organizations/${extid}`, payloadResult.data);
 
-      const orgResult = gracefulParse(organizationResponseSchema, response.data, 'OrganizationResponse');
+      const orgResult = gracefulParse(
+        organizationResponseSchema,
+        response.data,
+        'OrganizationResponse'
+      );
       if (!orgResult.ok) {
         throw new Error('Unable to update organization. Please try again.');
       }
@@ -327,14 +351,25 @@ export const useOrganizationStore = defineStore('organization', () => {
     loading.value = true;
 
     try {
-      const payloadResult = gracefulParse(createInvitationPayloadSchema, payload, 'CreateInvitationPayload');
+      const payloadResult = gracefulParse(
+        createInvitationPayloadSchema,
+        payload,
+        'CreateInvitationPayload'
+      );
       if (!payloadResult.ok) {
         throw new Error('Invalid invitation data.');
       }
 
-      const response = await $api.post(`/api/organizations/${extid}/invitations`, payloadResult.data);
+      const response = await $api.post(
+        `/api/organizations/${extid}/invitations`,
+        payloadResult.data
+      );
 
-      const invResult = gracefulParse(organizationInvitationSchema, response.data.record, 'OrganizationInvitation');
+      const invResult = gracefulParse(
+        organizationInvitationSchema,
+        response.data.record,
+        'OrganizationInvitation'
+      );
       if (!invResult.ok) {
         throw new Error('Unable to create invitation. Please try again.');
       }
@@ -476,7 +511,9 @@ export const useOrganizationStore = defineStore('organization', () => {
           updated: new Date(),
         } as Organization;
 
-        loggingService.debug('[organizationStore] Initialized from bootstrap', { objid: bootstrapOrg.objid });
+        loggingService.debug('[organizationStore] Initialized from bootstrap', {
+          objid: bootstrapOrg.objid,
+        });
       }
     },
     { immediate: true }

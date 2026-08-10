@@ -58,10 +58,10 @@ this doc as "country," never as "geo including ASN."
 
 otto 2.8 also formalizes named privacy profiles on `Otto::Privacy::Config`:
 
-| Profile      | Posture                                                          |
-| ------------ | ----------------------------------------------------------------- |
-| `:anonymous` | Mask every IP, including private/localhost                       |
-| `:masked`    | Default — public IPs masked, private/localhost exempt             |
+| Profile      | Posture                                                                   |
+| ------------ | ------------------------------------------------------------------------- |
+| `:anonymous` | Mask every IP, including private/localhost                                |
+| `:masked`    | Default — public IPs masked, private/localhost exempt                     |
 | `:audit`     | Privacy disabled — real IPs flow to env and logs; operator owns retention |
 
 onetimesecret applies exactly one posture, globally, via the universal
@@ -98,7 +98,7 @@ boundaries in the MMDB data essentially never fall inside a /24 — they are
 allocated at /24 or coarser almost universally. So the masked address and the
 real address resolve to the same country in practice.
 
-(otto also documents the one setting that *could* create daylight here:
+(otto also documents the one setting that _could_ create daylight here:
 `octet_precision: 2`, a /16 mask, is coarser than some country ranges and can
 push a small share of lookups to `'**'`. onetimesecret does not use
 `octet_precision: 2` and has no reason to — see §4.)
@@ -128,7 +128,7 @@ this evaluation asked for it. Introducing it now would be solving a problem
 **For any future need for full-precision IP matching, use `otto.ip_match`
 instead of raising stored precision.** otto 2.8 also exposes
 `env['otto.ip_match']` — a verdict-only callable (`ip_match.call(cidrs) =>
-true/false`) built from the *unmasked* client IP, available in **every**
+true/false`) built from the _unmasked_ client IP, available in **every**
 privacy profile including `:masked` (per otto's own design note: "Precise
 ephemeral matching against the unmasked IP does not require `:audit`").
 It answers "is this request's IP inside these CIDRs" without ever persisting,
@@ -146,11 +146,11 @@ it to land first or alongside.
 
 Summary table:
 
-| Question | Verdict | Why |
-| --- | --- | --- |
-| Adopt per-surface `:anonymous`/`:masked`/`:audit` storage profiles? | **No — keep current single posture** | Nothing in #3989 needs it; would be a posture change with no identified benefit |
-| Does country geo require loosening masking? | **No** | §3 — header path bypasses masking entirely; MMDB path is coarser than /24 already |
-| Where does precision-sensitive *policy* (not storage) go? | `otto.ip_match`, verdict-only, unmasked-but-unstored | Precision without persistence; tracked as #4056, out of scope here |
+| Question                                                            | Verdict                                              | Why                                                                               |
+| ------------------------------------------------------------------- | ---------------------------------------------------- | --------------------------------------------------------------------------------- |
+| Adopt per-surface `:anonymous`/`:masked`/`:audit` storage profiles? | **No — keep current single posture**                 | Nothing in #3989 needs it; would be a posture change with no identified benefit   |
+| Does country geo require loosening masking?                         | **No**                                               | §3 — header path bypasses masking entirely; MMDB path is coarser than /24 already |
+| Where does precision-sensitive _policy_ (not storage) go?           | `otto.ip_match`, verdict-only, unmasked-but-unstored | Precision without persistence; tracked as #4056, out of scope here                |
 
 ---
 
@@ -164,10 +164,10 @@ flight on the two adjacent audit-log ADRs:
 
 - **ADR-021** (`adr-021-audit-log-terminology-and-stream-scoping.md`),
   Decision 4, already flags this exact class of data as an open question for
-  Security Events: *"Fine-grained location/device data, jurisdiction-dependent
+  Security Events: _"Fine-grained location/device data, jurisdiction-dependent
   ... Exposing every member's raw IP/location org-wide can cross into
   regulated employee-monitoring (GDPR proportionality; works-council rules in
-  DE/FR) ... Confirm with counsel before exposing raw IP/UA org-wide."*
+  DE/FR) ... Confirm with counsel before exposing raw IP/UA org-wide."_
   Country is coarser than the raw IP/city-level data that language is aimed
   at, but it is still location data about an individual, surfaced to their
   org admin — the same proportionality question, at lower resolution. Decision

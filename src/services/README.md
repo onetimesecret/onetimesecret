@@ -54,12 +54,14 @@ should now go through:
 
 Direct access to `window.__BOOTSTRAP_ME__` is prohibited by ESLint rule.
 The ESLint configuration includes exceptions for:
+
 - `bootstrap.service.ts` (the only authorized accessor)
 - Type declaration files (`global.d.ts`, `window.d.ts`)
 
 ## Service vs. Utility
 
 ### Service Characteristics
+
 - Stateless (typically)
 - Encapsulates complex logic
 - Provides a consistent interface for interacting with external resources
@@ -67,6 +69,7 @@ The ESLint configuration includes exceptions for:
 - Can be easily mocked/tested in isolation
 
 ### Utility Characteristics
+
 - Pure functions
 - Typically stateless
 - Simple, direct transformations

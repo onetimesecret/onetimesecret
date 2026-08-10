@@ -10,166 +10,160 @@
 -->
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import SsoButton from '@/apps/session/components/SsoButton.vue';
-import { useInviteAuth } from '@/apps/session/composables/useInviteAuth';
-import { useMagicLink } from '@/shared/composables/useMagicLink';
-import type { AuthMethod } from '@/schemas/api/invite/responses/show-invite';
-import { ref, computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import SsoButton from '@/apps/session/components/SsoButton.vue';
+  import { useInviteAuth } from '@/apps/session/composables/useInviteAuth';
+  import { useMagicLink } from '@/shared/composables/useMagicLink';
+  import type { AuthMethod } from '@/schemas/api/invite/responses/show-invite';
+  import { ref, computed } from 'vue';
 
-export interface Props {
-  /**
-   * Email address from the invitation - displayed readonly.
-   */
-  invitedEmail: string;
-  /**
-   * Invitation token for the accept flow.
-   */
-  inviteToken: string;
-  /**
-   * Organization name for context.
-   */
-  orgName: string;
-  /**
-   * Available authentication methods for this invitation.
-   */
-  authMethods?: AuthMethod[];
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  authMethods: () => [],
-});
-
-const emit = defineEmits<{
-  (e: 'success'): void;
-  (e: 'error', message: string): void;
-  (e: 'mfaRequired', redirect: string): void;
-  (e: 'decline'): void;
-}>();
-
-const { t } = useI18n();
-const { loginForInvite, isLoading, error, fieldErrors, clearErrors } = useInviteAuth();
-const {
-  requestMagicLink,
-  sent: magicLinkSent,
-  isLoading: isMagicLinkLoading,
-  error: magicLinkError,
-  clearState: clearMagicLinkState
-} = useMagicLink();
-
-const password = ref('');
-const showPassword = ref(false);
-const isSubmitting = ref(false);
-
-/**
- * SSO auth method if available.
- */
-const ssoMethod = computed(() =>
-  props.authMethods?.find(m => m.type === 'sso' && m.enabled)
-);
-
-/**
- * Whether magic link auth is enabled.
- */
-const hasMagicLink = computed(() =>
-  props.authMethods?.some(m => m.type === 'magic_link' && m.enabled)
-);
-
-/**
- * Whether password auth is enabled.
- */
-const passwordEnabled = computed(() => {
-  const passwordMethod = props.authMethods?.find(m => m.type === 'password');
-  // Default to enabled if no auth methods specified
-  return !passwordMethod || passwordMethod.enabled;
-});
-
-/**
- * Tab configuration for auth methods.
- */
-type AuthMode = 'password' | 'magic_link';
-
-interface TabConfig {
-  mode: AuthMode;
-  labelKey: string;
-}
-
-const selectedTabIndex = ref(0);
-
-const tabs = computed<TabConfig[]>(() => {
-  const result: TabConfig[] = [];
-  if (passwordEnabled.value) {
-    result.push({ mode: 'password', labelKey: 'web.login.tab_password' });
+  export interface Props {
+    /**
+     * Email address from the invitation - displayed readonly.
+     */
+    invitedEmail: string;
+    /**
+     * Invitation token for the accept flow.
+     */
+    inviteToken: string;
+    /**
+     * Organization name for context.
+     */
+    orgName: string;
+    /**
+     * Available authentication methods for this invitation.
+     */
+    authMethods?: AuthMethod[];
   }
-  if (hasMagicLink.value) {
-    result.push({ mode: 'magic_link', labelKey: 'web.login.tab_magic_link' });
+
+  const props = withDefaults(defineProps<Props>(), {
+    authMethods: () => [],
+  });
+
+  const emit = defineEmits<{
+    (e: 'success'): void;
+    (e: 'error', message: string): void;
+    (e: 'mfaRequired', redirect: string): void;
+    (e: 'decline'): void;
+  }>();
+
+  const { t } = useI18n();
+  const { loginForInvite, isLoading, error, fieldErrors, clearErrors } = useInviteAuth();
+  const {
+    requestMagicLink,
+    sent: magicLinkSent,
+    isLoading: isMagicLinkLoading,
+    error: magicLinkError,
+    clearState: clearMagicLinkState,
+  } = useMagicLink();
+
+  const password = ref('');
+  const showPassword = ref(false);
+  const isSubmitting = ref(false);
+
+  /**
+   * SSO auth method if available.
+   */
+  const ssoMethod = computed(() => props.authMethods?.find((m) => m.type === 'sso' && m.enabled));
+
+  /**
+   * Whether magic link auth is enabled.
+   */
+  const hasMagicLink = computed(() =>
+    props.authMethods?.some((m) => m.type === 'magic_link' && m.enabled)
+  );
+
+  /**
+   * Whether password auth is enabled.
+   */
+  const passwordEnabled = computed(() => {
+    const passwordMethod = props.authMethods?.find((m) => m.type === 'password');
+    // Default to enabled if no auth methods specified
+    return !passwordMethod || passwordMethod.enabled;
+  });
+
+  /**
+   * Tab configuration for auth methods.
+   */
+  type AuthMode = 'password' | 'magic_link';
+
+  interface TabConfig {
+    mode: AuthMode;
+    labelKey: string;
   }
-  return result;
-});
 
-/**
- * Only show tabs if multiple auth methods are available.
- */
-const showTabs = computed(() => tabs.value.length > 1);
+  const selectedTabIndex = ref(0);
 
-/**
- * Current auth mode based on selected tab.
- */
-const _currentMode = computed<AuthMode | null>(() => {
-  if (tabs.value.length === 0) return null;
-  return tabs.value[selectedTabIndex.value]?.mode ?? tabs.value[0]?.mode ?? null;
-});
-
-function handleTabChange(index: number) {
-  selectedTabIndex.value = index;
-  clearErrors();
-  clearMagicLinkState();
-}
-
-const togglePasswordVisibility = () => {
-  showPassword.value = !showPassword.value;
-};
-
-/**
- * Sends a magic link to the invited email address.
- */
-const handleMagicLinkRequest = async () => {
-  await requestMagicLink(props.invitedEmail);
-};
-
-/**
- * Resets the magic link sent state for retry.
- */
-const handleMagicLinkTryAgain = () => {
-  clearMagicLinkState();
-};
-
-const handleSubmit = async () => {
-  if (isSubmitting.value) return;
-
-  isSubmitting.value = true;
-  clearErrors();
-
-  try {
-    const result = await loginForInvite(
-      props.invitedEmail,
-      password.value,
-      props.inviteToken
-    );
-
-    if (result.success) {
-      emit('success');
-    } else if (result.requiresMfa && result.redirect) {
-      emit('mfaRequired', result.redirect);
-    } else if (result.error) {
-      emit('error', result.error);
+  const tabs = computed<TabConfig[]>(() => {
+    const result: TabConfig[] = [];
+    if (passwordEnabled.value) {
+      result.push({ mode: 'password', labelKey: 'web.login.tab_password' });
     }
-  } finally {
-    isSubmitting.value = false;
+    if (hasMagicLink.value) {
+      result.push({ mode: 'magic_link', labelKey: 'web.login.tab_magic_link' });
+    }
+    return result;
+  });
+
+  /**
+   * Only show tabs if multiple auth methods are available.
+   */
+  const showTabs = computed(() => tabs.value.length > 1);
+
+  /**
+   * Current auth mode based on selected tab.
+   */
+  const _currentMode = computed<AuthMode | null>(() => {
+    if (tabs.value.length === 0) return null;
+    return tabs.value[selectedTabIndex.value]?.mode ?? tabs.value[0]?.mode ?? null;
+  });
+
+  function handleTabChange(index: number) {
+    selectedTabIndex.value = index;
+    clearErrors();
+    clearMagicLinkState();
   }
-};
+
+  const togglePasswordVisibility = () => {
+    showPassword.value = !showPassword.value;
+  };
+
+  /**
+   * Sends a magic link to the invited email address.
+   */
+  const handleMagicLinkRequest = async () => {
+    await requestMagicLink(props.invitedEmail);
+  };
+
+  /**
+   * Resets the magic link sent state for retry.
+   */
+  const handleMagicLinkTryAgain = () => {
+    clearMagicLinkState();
+  };
+
+  const handleSubmit = async () => {
+    if (isSubmitting.value) return;
+
+    isSubmitting.value = true;
+    clearErrors();
+
+    try {
+      const result = await loginForInvite(props.invitedEmail, password.value, props.inviteToken);
+
+      if (result.success) {
+        emit('success');
+      } else if (result.requiresMfa && result.redirect) {
+        emit('mfaRequired', result.redirect);
+      } else if (result.error) {
+        emit('error', result.error);
+      }
+    } finally {
+      isSubmitting.value = false;
+    }
+  };
 </script>
 
 <template>
@@ -226,20 +220,18 @@ const handleSubmit = async () => {
           as="template">
           <button
             type="button"
-            class="relative cursor-pointer px-5 py-3 text-base font-semibold transition-colors duration-200
-                   focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2
-                   dark:focus-visible:ring-offset-gray-800"
+            class="relative cursor-pointer px-5 py-3 text-base font-semibold transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-800"
             :class="[
               selected
                 ? 'text-brand-600 dark:text-brand-400'
-                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300',
             ]"
             :data-testid="`invite-signin-tab-${tab.mode}`">
             {{ t(tab.labelKey) }}
             <span
               v-if="selected"
               class="absolute inset-x-0 -bottom-px h-0.5 bg-brand-600 dark:bg-brand-400"
-              aria-hidden="true" ></span>
+              aria-hidden="true"></span>
           </button>
         </Tab>
       </TabList>
@@ -247,7 +239,9 @@ const handleSubmit = async () => {
       <!-- Tab panels -->
       <TabPanels>
         <!-- Password panel -->
-        <TabPanel v-if="passwordEnabled" data-testid="invite-signin-password-panel">
+        <TabPanel
+          v-if="passwordEnabled"
+          data-testid="invite-signin-password-panel">
           <form
             @submit.prevent="handleSubmit"
             data-testid="invite-signin-form">
@@ -310,14 +304,10 @@ const handleSubmit = async () => {
                     autocomplete="email"
                     readonly
                     :value="invitedEmail"
-                    class="block w-full appearance-none rounded-md
-                           border border-gray-300
-                           bg-gray-50 px-3
-                           py-2 pr-10 text-lg
-                           text-gray-600
-                           dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300"
+                    class="block w-full appearance-none rounded-md border border-gray-300 bg-gray-50 px-3 py-2 pr-10 text-lg text-gray-600 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300"
                     data-testid="invite-signin-email-input" />
-                  <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                  <div
+                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                     <OIcon
                       collection="heroicons"
                       name="solid-lock-closed"
@@ -348,14 +338,7 @@ const handleSubmit = async () => {
                     :disabled="isSubmitting || isLoading"
                     :aria-invalid="error ? 'true' : undefined"
                     :aria-describedby="error ? 'signin-error' : undefined"
-                    class="block w-full appearance-none rounded-md
-                           border border-gray-300
-                           px-3 py-2 pr-10 text-lg
-                           text-gray-900 placeholder:text-gray-500
-                           focus:border-brand-500 focus:outline-none focus:ring-brand-500
-                           disabled:cursor-not-allowed disabled:opacity-50
-                           dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400
-                           dark:focus:border-brand-500 dark:focus:ring-brand-500"
+                    class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 pr-10 text-lg text-gray-900 placeholder:text-gray-500 focus:border-brand-500 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:border-brand-500 dark:focus:ring-brand-500"
                     :placeholder="t('web.COMMON.password_placeholder')"
                     v-model="password"
                     @input="clearErrors"
@@ -364,7 +347,9 @@ const handleSubmit = async () => {
                     type="button"
                     @click="togglePasswordVisibility"
                     :disabled="isSubmitting || isLoading"
-                    :aria-label="showPassword ? t('web.COMMON.hide_password') : t('web.COMMON.show_password')"
+                    :aria-label="
+                      showPassword ? t('web.COMMON.hide_password') : t('web.COMMON.show_password')
+                    "
                     class="absolute inset-y-0 right-0 z-10 flex items-center pr-3 text-sm leading-5 disabled:opacity-50"
                     data-testid="invite-signin-toggle-password">
                     <OIcon
@@ -396,10 +381,7 @@ const handleSubmit = async () => {
                 type="button"
                 @click="emit('decline')"
                 :disabled="isSubmitting || isLoading"
-                class="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2
-                       text-sm font-medium text-gray-700 hover:bg-gray-50
-                       disabled:cursor-not-allowed disabled:opacity-50
-                       dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                class="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
                 data-testid="invite-signin-decline">
                 {{ t('web.organizations.invitations.decline') }}
               </button>
@@ -408,9 +390,7 @@ const handleSubmit = async () => {
               <button
                 type="submit"
                 :disabled="isSubmitting || isLoading"
-                class="flex-[2] rounded-md bg-brand-600 px-4 py-2
-                       text-sm font-medium text-white hover:bg-brand-700
-                       disabled:cursor-not-allowed disabled:opacity-50"
+                class="flex-[2] rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
                 data-testid="invite-signin-submit">
                 <span v-if="isSubmitting || isLoading">{{ t('web.COMMON.processing') }}</span>
                 <span v-else>{{ t('web.organizations.invitations.signin_continue') }}</span>
@@ -428,7 +408,9 @@ const handleSubmit = async () => {
         </TabPanel>
 
         <!-- Magic Link panel -->
-        <TabPanel v-if="hasMagicLink" data-testid="invite-signin-magic-link-panel">
+        <TabPanel
+          v-if="hasMagicLink"
+          data-testid="invite-signin-magic-link-panel">
           <!-- Error message for magic link -->
           <div
             v-if="magicLinkError"
@@ -450,12 +432,7 @@ const handleSubmit = async () => {
                 type="email"
                 readonly
                 :value="invitedEmail"
-                class="block w-full appearance-none rounded-md
-                       border border-gray-300
-                       bg-gray-50 px-3
-                       py-2 pr-10 text-lg
-                       text-gray-600
-                       dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300"
+                class="block w-full appearance-none rounded-md border border-gray-300 bg-gray-50 px-3 py-2 pr-10 text-lg text-gray-600 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300"
                 data-testid="invite-signin-magic-link-email" />
               <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                 <OIcon
@@ -478,10 +455,7 @@ const handleSubmit = async () => {
               type="button"
               @click="emit('decline')"
               :disabled="isMagicLinkLoading"
-              class="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2
-                     text-sm font-medium text-gray-700 hover:bg-gray-50
-                     disabled:cursor-not-allowed disabled:opacity-50
-                     dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+              class="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
               data-testid="invite-signin-decline">
               {{ t('web.organizations.invitations.decline') }}
             </button>
@@ -491,13 +465,13 @@ const handleSubmit = async () => {
               type="button"
               :disabled="isMagicLinkLoading"
               @click="handleMagicLinkRequest"
-              class="flex-[2] rounded-md bg-brand-600 px-4 py-2
-                     text-sm font-medium text-white hover:bg-brand-700
-                     disabled:cursor-not-allowed disabled:opacity-50"
+              class="flex-[2] rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
               data-testid="invite-signin-magic-link-button">
-              <span v-if="isMagicLinkLoading" class="flex items-center justify-center">
+              <span
+                v-if="isMagicLinkLoading"
+                class="flex items-center justify-center">
                 <svg
-                  class="-ml-1 mr-3 size-5 animate-spin motion-reduce:animate-none text-white"
+                  class="mr-3 -ml-1 size-5 animate-spin text-white motion-reduce:animate-none"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -592,12 +566,7 @@ const handleSubmit = async () => {
                 autocomplete="email"
                 readonly
                 :value="invitedEmail"
-                class="block w-full appearance-none rounded-md
-                       border border-gray-300
-                       bg-gray-50 px-3
-                       py-2 pr-10 text-lg
-                       text-gray-600
-                       dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300"
+                class="block w-full appearance-none rounded-md border border-gray-300 bg-gray-50 px-3 py-2 pr-10 text-lg text-gray-600 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300"
                 data-testid="invite-signin-email-input" />
               <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
                 <OIcon
@@ -630,14 +599,7 @@ const handleSubmit = async () => {
                 :disabled="isSubmitting || isLoading"
                 :aria-invalid="error ? 'true' : undefined"
                 :aria-describedby="error ? 'signin-error' : undefined"
-                class="block w-full appearance-none rounded-md
-                       border border-gray-300
-                       px-3 py-2 pr-10 text-lg
-                       text-gray-900 placeholder:text-gray-500
-                       focus:border-brand-500 focus:outline-none focus:ring-brand-500
-                       disabled:cursor-not-allowed disabled:opacity-50
-                       dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400
-                       dark:focus:border-brand-500 dark:focus:ring-brand-500"
+                class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 pr-10 text-lg text-gray-900 placeholder:text-gray-500 focus:border-brand-500 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:border-brand-500 dark:focus:ring-brand-500"
                 :placeholder="t('web.COMMON.password_placeholder')"
                 v-model="password"
                 @input="clearErrors"
@@ -646,7 +608,9 @@ const handleSubmit = async () => {
                 type="button"
                 @click="togglePasswordVisibility"
                 :disabled="isSubmitting || isLoading"
-                :aria-label="showPassword ? t('web.COMMON.hide_password') : t('web.COMMON.show_password')"
+                :aria-label="
+                  showPassword ? t('web.COMMON.hide_password') : t('web.COMMON.show_password')
+                "
                 class="absolute inset-y-0 right-0 z-10 flex items-center pr-3 text-sm leading-5 disabled:opacity-50"
                 data-testid="invite-signin-toggle-password">
                 <OIcon
@@ -678,10 +642,7 @@ const handleSubmit = async () => {
             type="button"
             @click="emit('decline')"
             :disabled="isSubmitting || isLoading"
-            class="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2
-                   text-sm font-medium text-gray-700 hover:bg-gray-50
-                   disabled:cursor-not-allowed disabled:opacity-50
-                   dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+            class="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
             data-testid="invite-signin-decline">
             {{ t('web.organizations.invitations.decline') }}
           </button>
@@ -690,9 +651,7 @@ const handleSubmit = async () => {
           <button
             type="submit"
             :disabled="isSubmitting || isLoading"
-            class="flex-[2] rounded-md bg-brand-600 px-4 py-2
-                   text-sm font-medium text-white hover:bg-brand-700
-                   disabled:cursor-not-allowed disabled:opacity-50"
+            class="flex-[2] rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
             data-testid="invite-signin-submit">
             <span v-if="isSubmitting || isLoading">{{ t('web.COMMON.processing') }}</span>
             <span v-else>{{ t('web.organizations.invitations.signin_continue') }}</span>
@@ -731,12 +690,7 @@ const handleSubmit = async () => {
               type="email"
               readonly
               :value="invitedEmail"
-              class="block w-full appearance-none rounded-md
-                     border border-gray-300
-                     bg-gray-50 px-3
-                     py-2 pr-10 text-lg
-                     text-gray-600
-                     dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300"
+              class="block w-full appearance-none rounded-md border border-gray-300 bg-gray-50 px-3 py-2 pr-10 text-lg text-gray-600 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300"
               data-testid="invite-signin-magic-link-email" />
             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
               <OIcon
@@ -759,10 +713,7 @@ const handleSubmit = async () => {
             type="button"
             @click="emit('decline')"
             :disabled="isMagicLinkLoading"
-            class="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2
-                   text-sm font-medium text-gray-700 hover:bg-gray-50
-                   disabled:cursor-not-allowed disabled:opacity-50
-                   dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+            class="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
             data-testid="invite-signin-decline">
             {{ t('web.organizations.invitations.decline') }}
           </button>
@@ -772,13 +723,13 @@ const handleSubmit = async () => {
             type="button"
             :disabled="isMagicLinkLoading"
             @click="handleMagicLinkRequest"
-            class="flex-[2] rounded-md bg-brand-600 px-4 py-2
-                   text-sm font-medium text-white hover:bg-brand-700
-                   disabled:cursor-not-allowed disabled:opacity-50"
+            class="flex-[2] rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
             data-testid="invite-signin-magic-link-button">
-            <span v-if="isMagicLinkLoading" class="flex items-center justify-center">
+            <span
+              v-if="isMagicLinkLoading"
+              class="flex items-center justify-center">
               <svg
-                class="-ml-1 mr-3 size-5 animate-spin motion-reduce:animate-none text-white"
+                class="mr-3 -ml-1 size-5 animate-spin text-white motion-reduce:animate-none"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -822,7 +773,9 @@ const handleSubmit = async () => {
 
     <!-- SSO Button when available -->
     <SsoButton
-      v-if="ssoMethod && ssoMethod.type === 'sso' && ssoMethod.platform_route_name && !magicLinkSent"
+      v-if="
+        ssoMethod && ssoMethod.type === 'sso' && ssoMethod.platform_route_name && !magicLinkSent
+      "
       :route-name="ssoMethod.platform_route_name"
       :display-name="ssoMethod.display_name ?? undefined"
       :redirect="`/invite/${inviteToken}`" />

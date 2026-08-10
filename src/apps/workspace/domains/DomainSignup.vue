@@ -1,135 +1,135 @@
 <!-- src/apps/workspace/domains/DomainSignup.vue -->
 
 <script setup lang="ts">
-/**
- * Domain Signup Validation Configuration Page
- *
- * Page-level component that wires together the signup config composable and
- * form component. Follows the DomainSso page structure: header ->
- * entitlement gate -> form.
- *
- * There is exactly ONE availability concept on this page: the effective
- * state (ADR-024). The banner shows the resolver's output; the form's
- * signup-enabled control is the single input. The explicit-override flag
- * (`enabled`) is not user-facing — every save materializes it, and the
- * form's delete ("remove config") unpins.
- */
-import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
-import DomainAuthOverrideBanner from '@/apps/workspace/components/domains/DomainAuthOverrideBanner.vue';
-import DomainSignupConfigForm from '@/apps/workspace/components/domains/DomainSignupConfigForm.vue';
-import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
-import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { useDomain } from '@/shared/composables/useDomain';
-import { useEntitlements } from '@/shared/composables/useEntitlements';
-import { useSignupConfig } from '@/shared/composables/useSignupConfig';
-import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import { ENTITLEMENTS } from '@/types/organization';
-import { storeToRefs } from 'pinia';
-import { computed, onMounted, ref, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRouter, onBeforeRouteLeave, RouterLink } from 'vue-router';
+  /**
+   * Domain Signup Validation Configuration Page
+   *
+   * Page-level component that wires together the signup config composable and
+   * form component. Follows the DomainSso page structure: header ->
+   * entitlement gate -> form.
+   *
+   * There is exactly ONE availability concept on this page: the effective
+   * state (ADR-024). The banner shows the resolver's output; the form's
+   * signup-enabled control is the single input. The explicit-override flag
+   * (`enabled`) is not user-facing — every save materializes it, and the
+   * form's delete ("remove config") unpins.
+   */
+  import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
+  import DomainAuthOverrideBanner from '@/apps/workspace/components/domains/DomainAuthOverrideBanner.vue';
+  import DomainSignupConfigForm from '@/apps/workspace/components/domains/DomainSignupConfigForm.vue';
+  import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
+  import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { useDomain } from '@/shared/composables/useDomain';
+  import { useEntitlements } from '@/shared/composables/useEntitlements';
+  import { useSignupConfig } from '@/shared/composables/useSignupConfig';
+  import { useOrganizationStore } from '@/shared/stores/organizationStore';
+  import { ENTITLEMENTS } from '@/types/organization';
+  import { storeToRefs } from 'pinia';
+  import { computed, onMounted, ref, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRouter, onBeforeRouteLeave, RouterLink } from 'vue-router';
 
-const { t } = useI18n();
-const router = useRouter();
+  const { t } = useI18n();
+  const router = useRouter();
 
-const props = defineProps<{
-  orgid: string;
-  extid: string;
-}>();
+  const props = defineProps<{
+    orgid: string;
+    extid: string;
+  }>();
 
-// ---------------------------------------------------------------------------
-// Domain data
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Domain data
+  // ---------------------------------------------------------------------------
 
-const {
-  domain: customDomainRecord,
-  isLoading: domainLoading,
-  error: domainError,
-  initialize: initializeDomain,
-} = useDomain(props.extid);
+  const {
+    domain: customDomainRecord,
+    isLoading: domainLoading,
+    error: domainError,
+    initialize: initializeDomain,
+  } = useDomain(props.extid);
 
-// ---------------------------------------------------------------------------
-// Entitlement check
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Entitlement check
+  // ---------------------------------------------------------------------------
 
-const organizationStore = useOrganizationStore();
-const { organizations } = storeToRefs(organizationStore);
-const organization = computed(() =>
-  organizations.value.find((o) => o.extid === props.orgid) ?? null
-);
-const { can } = useEntitlements(organization);
-const canCustomSignup = computed(() => can(ENTITLEMENTS.CUSTOM_SIGNUP_VALIDATION));
-const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
+  const organizationStore = useOrganizationStore();
+  const { organizations } = storeToRefs(organizationStore);
+  const organization = computed(
+    () => organizations.value.find((o) => o.extid === props.orgid) ?? null
+  );
+  const { can } = useEntitlements(organization);
+  const canCustomSignup = computed(() => can(ENTITLEMENTS.CUSTOM_SIGNUP_VALIDATION));
+  const billingRoute = computed(() => `/billing/${props.orgid}/plans`);
 
-// ---------------------------------------------------------------------------
-// Signup config composable
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Signup config composable
+  // ---------------------------------------------------------------------------
 
-// The dormant-policy warning (site-level signups off) now comes from the
-// banner's globalEnabled, fed by the API's resolution details (ADR-024) —
-// the same source the runtime gate uses — instead of a separate bootstrap
-// read that could disagree with it.
-const {
-  isLoading: signupLoading,
-  isInitialized,
-  isSaving,
-  isDeleting,
-  error: signupError,
-  signupConfig,
-  formState,
-  isConfigured,
-  hasUnsavedChanges,
-  globalEnabled,
-  effectiveEnabled,
-  isWorkspaceDefault,
-  initialize: initializeSignupConfig,
-  saveConfig,
-  deleteConfig,
-  discardChanges,
-} = useSignupConfig(props.extid);
+  // The dormant-policy warning (site-level signups off) now comes from the
+  // banner's globalEnabled, fed by the API's resolution details (ADR-024) —
+  // the same source the runtime gate uses — instead of a separate bootstrap
+  // read that could disagree with it.
+  const {
+    isLoading: signupLoading,
+    isInitialized,
+    isSaving,
+    isDeleting,
+    error: signupError,
+    signupConfig,
+    formState,
+    isConfigured,
+    hasUnsavedChanges,
+    globalEnabled,
+    effectiveEnabled,
+    isWorkspaceDefault,
+    initialize: initializeSignupConfig,
+    saveConfig,
+    deleteConfig,
+    discardChanges,
+  } = useSignupConfig(props.extid);
 
-// The primary Save ("Update") lives in the page header. The form owns validity,
-// so it emits `can-save`; the header's Save button is disabled unless it's true.
-const formCanSave = ref(false);
+  // The primary Save ("Update") lives in the page header. The form owns validity,
+  // so it emits `can-save`; the header's Save button is disabled unless it's true.
+  const formCanSave = ref(false);
 
-// ---------------------------------------------------------------------------
-// Navigation
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Navigation
+  // ---------------------------------------------------------------------------
 
-const handleBack = () => {
-  router.push(`/org/${props.orgid}/domains/${props.extid}`);
-};
+  const handleBack = () => {
+    router.push(`/org/${props.orgid}/domains/${props.extid}`);
+  };
 
-// Unsaved changes guard
-onBeforeRouteLeave((_to, _from, next) => {
-  if (hasUnsavedChanges.value) {
-    const answer = window.confirm(t('web.branding.you_have_unsaved_changes_are_you_sure'));
-    if (answer) next();
-    else next(false);
-  } else {
-    next();
-  }
-});
+  // Unsaved changes guard
+  onBeforeRouteLeave((_to, _from, next) => {
+    if (hasUnsavedChanges.value) {
+      const answer = window.confirm(t('web.branding.you_have_unsaved_changes_are_you_sure'));
+      if (answer) next();
+      else next(false);
+    } else {
+      next();
+    }
+  });
 
-// ---------------------------------------------------------------------------
-// Lifecycle
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Lifecycle
+  // ---------------------------------------------------------------------------
 
-onMounted(async () => {
-  await initializeDomain();
+  onMounted(async () => {
+    await initializeDomain();
 
-  if (canCustomSignup.value) {
-    await initializeSignupConfig();
-  }
-});
+    if (canCustomSignup.value) {
+      await initializeSignupConfig();
+    }
+  });
 
-// Handle race condition: organizations may load after onMounted runs.
-watch(canCustomSignup, async (entitled) => {
-  if (entitled && !isInitialized.value) {
-    await initializeSignupConfig();
-  }
-});
+  // Handle race condition: organizations may load after onMounted runs.
+  watch(canCustomSignup, async (entitled) => {
+    if (entitled && !isInitialized.value) {
+      await initializeSignupConfig();
+    }
+  });
 </script>
 
 <template>
@@ -159,8 +159,10 @@ watch(canCustomSignup, async (entitled) => {
       <SettingsSkeleton v-if="domainLoading || (canCustomSignup && signupLoading)" />
 
       <!-- Error State -->
-      <div v-else-if="domainError || signupError" class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-        <BasicFormAlerts :error="(domainError?.message ?? signupError?.message) ?? ''" />
+      <div
+        v-else-if="domainError || signupError"
+        class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+        <BasicFormAlerts :error="domainError?.message ?? signupError?.message ?? ''" />
       </div>
 
       <!-- Access Denied / Upgrade Banner -->
@@ -196,7 +198,8 @@ watch(canCustomSignup, async (entitled) => {
         class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
         <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
           <div class="flex items-center gap-3">
-            <div class="flex size-10 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/30">
+            <div
+              class="flex size-10 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/30">
               <OIcon
                 collection="heroicons"
                 name="user-plus"
@@ -204,7 +207,9 @@ watch(canCustomSignup, async (entitled) => {
                 aria-hidden="true" />
             </div>
             <div>
-              <h2 data-testid="signup-config-title" class="text-lg font-semibold text-gray-900 dark:text-white">
+              <h2
+                data-testid="signup-config-title"
+                class="text-lg font-semibold text-gray-900 dark:text-white">
                 {{ t('web.domains.signup.title') }}
               </h2>
               <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">

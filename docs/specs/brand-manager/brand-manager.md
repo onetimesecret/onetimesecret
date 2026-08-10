@@ -24,7 +24,7 @@ design, and what's still open.
   control anywhere** — not deferred-with-a-placeholder, just absent.
 - The 10 built-in **theme presets are a separate case: deliberately not
   surfaced.** A curated-theme gallery models individual aesthetic preference;
-  this feature exists to match an operator's *existing* brand (the Match path).
+  this feature exists to match an operator's _existing_ brand (the Match path).
   `brandPresets` is therefore abandoned-direction dead code, not a gap (§3).
 - The editor is now a **three-path switcher** (Simple / Match my site /
   Advanced) — a structure this doc's original version didn't anticipate.
@@ -43,34 +43,34 @@ save. The **UI control** column is new in this revision — it's now a
 materially different question from "renders today," since three tokens have
 neither.
 
-| Token | UI control (Simple path) | Renders on recipient page? | Allowed values |
-|---|---|---|---|
-| `primary_color` | ✅ ColorPicker | ✅ yes | any hex |
-| `secondary_color` | ❌ none | ❌ no (CSS var live, no consumer — §4) | any hex |
-| `background_color` | ❌ none | ❌ no (CSS var live, no consumer — §4) | any hex |
-| `text_color` | ❌ none | ❌ no (CSS var live, no consumer — §4) | any hex |
-| `font_family` (body) | ✅ native `<select>`, full 8-value vocabulary | ✅ yes | 8 curated fonts (below) |
-| `heading_font` | ❌ none | ❌ no (falls back to `font_family`) | 8 curated fonts; falls back to body font when unset |
-| `border_radius` | ⚠️ 3 hand-rolled buttons (`none`/`md`/`xl` only) | ✅ yes | preset keyword **or** integer px `0–64` |
-| `corner_style` (legacy) | ❌ removed from UI (as recommended — §5) | ✅ yes, only if `border_radius` unset | `rounded` / `square` / `pill` |
-| `button_text_light` | ❌ none | ✅ yes (existing behavior, unchanged) | boolean |
-| theme preset | ❌ none — out of scope by decision; `brandPresets` is dead code (§3) | n/a | one of 10 |
+| Token                   | UI control (Simple path)                                             | Renders on recipient page?             | Allowed values                                      |
+| ----------------------- | -------------------------------------------------------------------- | -------------------------------------- | --------------------------------------------------- |
+| `primary_color`         | ✅ ColorPicker                                                       | ✅ yes                                 | any hex                                             |
+| `secondary_color`       | ❌ none                                                              | ❌ no (CSS var live, no consumer — §4) | any hex                                             |
+| `background_color`      | ❌ none                                                              | ❌ no (CSS var live, no consumer — §4) | any hex                                             |
+| `text_color`            | ❌ none                                                              | ❌ no (CSS var live, no consumer — §4) | any hex                                             |
+| `font_family` (body)    | ✅ native `<select>`, full 8-value vocabulary                        | ✅ yes                                 | 8 curated fonts (below)                             |
+| `heading_font`          | ❌ none                                                              | ❌ no (falls back to `font_family`)    | 8 curated fonts; falls back to body font when unset |
+| `border_radius`         | ⚠️ 3 hand-rolled buttons (`none`/`md`/`xl` only)                     | ✅ yes                                 | preset keyword **or** integer px `0–64`             |
+| `corner_style` (legacy) | ❌ removed from UI (as recommended — §5)                             | ✅ yes, only if `border_radius` unset  | `rounded` / `square` / `pill`                       |
+| `button_text_light`     | ❌ none                                                              | ✅ yes (existing behavior, unchanged)  | boolean                                             |
+| theme preset            | ❌ none — out of scope by decision; `brandPresets` is dead code (§3) | n/a                                    | one of 10                                           |
 
 ### Curated fonts (`font_family` and `heading_font`)
 
 Unchanged — closed allowlist of 8, all still valid and implemented backend +
 schema side:
 
-| Value | Label |
-|---|---|
-| `sans` | Sans Serif |
-| `serif` | Serif |
-| `mono` | Monospace |
-| `system` | System UI |
-| `slab` | Slab Serif |
-| `rounded` | Rounded |
-| `humanist` | Humanist |
-| `geometric` | Geometric |
+| Value       | Label      |
+| ----------- | ---------- |
+| `sans`      | Sans Serif |
+| `serif`     | Serif      |
+| `mono`      | Monospace  |
+| `system`    | System UI  |
+| `slab`      | Slab Serif |
+| `rounded`   | Rounded    |
+| `humanist`  | Humanist   |
+| `geometric` | Geometric  |
 
 Each maps to a fixed CSS font-family stack (system stacks + self-hosted Zilla
 Slab for `slab`). No web-font upload, no free-form family names. The Simple
@@ -82,13 +82,13 @@ path's font `<select>` exposes all 8 for `font_family`; there is no
 Schema/backend unchanged — accepts **either** a named preset **or** a whole
 number of pixels `0–64`:
 
-| Value | Label | Rendered |
-|---|---|---|
-| `none` | Square | `0px` |
-| `sm` | Slightly Rounded | `0.25rem` |
-| `md` | Rounded | `0.5rem` (default) |
-| `lg` | Very Rounded | `0.75rem` |
-| `xl` | Extra Rounded | `1rem` |
+| Value  | Label            | Rendered           |
+| ------ | ---------------- | ------------------ |
+| `none` | Square           | `0px`              |
+| `sm`   | Slightly Rounded | `0.25rem`          |
+| `md`   | Rounded          | `0.5rem` (default) |
+| `lg`   | Very Rounded     | `0.75rem`          |
+| `xl`   | Extra Rounded    | `1rem`             |
 
 The `full` (Pill, `9999px`) preset was **removed**: the brand corner token is
 applied to large content containers (the secret reveal/display boxes), where a
@@ -135,18 +135,18 @@ The 10 presets described in the original design are fully implemented in
 `src/shared/utils/brand-helpers.ts` (`brandPresets`, from a `// Theme
 presets (#3646)` marker) with the same token values as this table:
 
-| Preset | Primary | Secondary | Background | Text | Body / Heading font | Radius |
-|---|---|---|---|---|---|---|
-| Midnight | `#4F46E5` | `#0EA5E9` | `#0F172A` | `#E2E8F0` | Sans / Geometric | md |
-| Forest | `#047857` | `#65A30D` | `#F7FBF9` | `#14261E` | Humanist / Slab | lg |
-| Sunset | `#DB2777` | `#F97316` | `#FFF7F9` | `#2B1220` | Rounded / Rounded | xl |
-| Slate | `#334155` | `#0891B2` | `#FFFFFF` | `#1E293B` | System / System | sm |
-| Royal | `#6D28D9` | `#DB2777` | `#FBF9FF` | `#241633` | Serif / Slab | md |
-| Terminal | `#15803D` | `#4ADE80` | `#0B0F0C` | `#D1FAE5` | Mono / Mono | none |
-| Coral | `#E11D48` | `#F59E0B` | `#FFFBF7` | `#2A1512` | Sans / Humanist | lg |
-| Ocean | `#0369A1` | `#0D9488` | `#F5FBFF` | `#0C2231` | Geometric / Geometric | md |
-| High Contrast | `#000000` | `#1D4ED8` | `#FFFFFF` | `#000000` | System / System | sm |
-| High Contrast Dark | `#2563EB` | `#FDE047` | `#000000` | `#FFFFFF` | System / System | sm |
+| Preset             | Primary   | Secondary | Background | Text      | Body / Heading font   | Radius |
+| ------------------ | --------- | --------- | ---------- | --------- | --------------------- | ------ |
+| Midnight           | `#4F46E5` | `#0EA5E9` | `#0F172A`  | `#E2E8F0` | Sans / Geometric      | md     |
+| Forest             | `#047857` | `#65A30D` | `#F7FBF9`  | `#14261E` | Humanist / Slab       | lg     |
+| Sunset             | `#DB2777` | `#F97316` | `#FFF7F9`  | `#2B1220` | Rounded / Rounded     | xl     |
+| Slate              | `#334155` | `#0891B2` | `#FFFFFF`  | `#1E293B` | System / System       | sm     |
+| Royal              | `#6D28D9` | `#DB2777` | `#FBF9FF`  | `#241633` | Serif / Slab          | md     |
+| Terminal           | `#15803D` | `#4ADE80` | `#0B0F0C`  | `#D1FAE5` | Mono / Mono           | none   |
+| Coral              | `#E11D48` | `#F59E0B` | `#FFFBF7`  | `#2A1512` | Sans / Humanist       | lg     |
+| Ocean              | `#0369A1` | `#0D9488` | `#F5FBFF`  | `#0C2231` | Geometric / Geometric | md     |
+| High Contrast      | `#000000` | `#1D4ED8` | `#FFFFFF`  | `#000000` | System / System       | sm     |
+| High Contrast Dark | `#2563EB` | `#FDE047` | `#000000`  | `#FFFFFF` | System / System       | sm     |
 
 **Status: dead code — and a deliberately abandoned direction, not a gap.**
 `brandPresets` has exactly one non-test reference — its own definition. No
@@ -311,7 +311,7 @@ The original file map is stale; `BrandSettingsBar.vue` no longer exists.
 
 - **Theme presets — decided out of scope, not a gap.** Curated theme
   galleries model individual aesthetic preference; this feature exists to
-  match an operator's *existing* brand (the Match path). `brandPresets` is
+  match an operator's _existing_ brand (the Match path). `brandPresets` is
   abandoned-direction dead code — delete it and the `theme_presets` locale
   key (§9), don't surface it.
 - **`border_radius` UI is capped at 3 of 6 presets**, no px input. Restore

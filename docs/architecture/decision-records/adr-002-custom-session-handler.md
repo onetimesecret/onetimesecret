@@ -5,9 +5,11 @@ title: ADR-002: Why a Custom Session Handler?
 ---
 
 ## Status
+
 Accepted
 
 ## Date
+
 2025-10-10
 
 ## Context
@@ -34,6 +36,7 @@ The decision was triggered by automated code review feedback (qodo-merge-pro on 
 **We will continue using the custom OnetimeSession implementation** (`lib/onetime/minimal_session.rb`) rather than adopting rack-session-redis.
 
 OnetimeSession extends `Rack::Session::Abstract::PersistedSecure` and provides:
+
 - Redis storage via Familia::StringKey (consistent with application architecture)
 - HMAC-based session integrity verification using SHA256
 - Key derivation for different purposes (HMAC, encryption)
@@ -70,4 +73,5 @@ Implementation size: ~180 lines of well-documented, tested code.
 ## Implementation Notes
 
 ### Development Status
+
 As of 2025-10-10, the custom session handler implementation is in a feature branch and is being prepared for integration into the `develop` branch.

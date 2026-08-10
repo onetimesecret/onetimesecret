@@ -14,7 +14,7 @@
 
 <template>
   <div class="flex flex-col items-center px-4 pt-24 sm:pt-32">
-    <div class="container mx-auto min-w-[320px] max-w-2xl">
+    <div class="container mx-auto max-w-2xl min-w-[320px]">
       <!--
 
       Purpose: Landing page for self-hosted installs when UI is configured to be disabled.

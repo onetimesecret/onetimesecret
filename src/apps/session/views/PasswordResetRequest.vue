@@ -2,35 +2,35 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-import AuthView from '@/apps/session/components/AuthView.vue';
-import { useAuth } from '@/shared/composables/useAuth';
-import { ref } from 'vue';
+  import AuthView from '@/apps/session/components/AuthView.vue';
+  import { useAuth } from '@/shared/composables/useAuth';
+  import { ref } from 'vue';
 
-export interface Props {
-  enabled?: boolean;
-}
-
-withDefaults(defineProps<Props>(), {
-  enabled: true,
-})
-
-const { t } = useI18n();
-
-const { requestPasswordReset, isLoading, error, clearErrors } = useAuth();
-
-const email = ref('');
-const successMessage = ref('');
-
-const handleSubmit = async () => {
-  clearErrors();
-  successMessage.value = '';
-
-  const success = await requestPasswordReset(email.value);
-  if (success) {
-    successMessage.value = t('web.auth.passwordReset.emailSent');
-    email.value = ''; // Clear the form
+  export interface Props {
+    enabled?: boolean;
   }
-};
+
+  withDefaults(defineProps<Props>(), {
+    enabled: true,
+  });
+
+  const { t } = useI18n();
+
+  const { requestPasswordReset, isLoading, error, clearErrors } = useAuth();
+
+  const email = ref('');
+  const successMessage = ref('');
+
+  const handleSubmit = async () => {
+    clearErrors();
+    successMessage.value = '';
+
+    const success = await requestPasswordReset(email.value);
+    if (success) {
+      successMessage.value = t('web.auth.passwordReset.emailSent');
+      email.value = ''; // Clear the form
+    }
+  };
 </script>
 
 <template>
@@ -99,7 +99,6 @@ const handleSubmit = async () => {
         </div>
       </form>
     </template>
-    <template #footer>
-    </template>
+    <template #footer> </template>
   </AuthView>
 </template>

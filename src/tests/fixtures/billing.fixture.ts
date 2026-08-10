@@ -1,10 +1,10 @@
 // src/tests/fixtures/billing.fixture.ts
 
 import type {
-    BillingOverviewResponse,
-    Plan,
-    PlanChangePreviewResponse,
-    SubscriptionStatusResponse,
+  BillingOverviewResponse,
+  Plan,
+  PlanChangePreviewResponse,
+  SubscriptionStatusResponse,
 } from '@/services/billing.service';
 
 // Import organization factories from canonical source

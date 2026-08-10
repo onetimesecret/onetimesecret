@@ -21,12 +21,12 @@ apps/<app>/
 
 ## The Four Apps
 
-| App         | Purpose                                                | Auth     |
-|-------------|--------------------------------------------------------|----------|
-| `secret`    | Create and reveal secrets (the transactional core)     | Mixed    |
-| `workspace` | Dashboard, account, billing, organizations, domains    | Required |
-| `session`   | Sign-in, sign-up, MFA, password reset                  | Public   |
-| `colonel`   | System administration                                  | Colonel  |
+| App         | Purpose                                             | Auth     |
+| ----------- | --------------------------------------------------- | -------- |
+| `secret`    | Create and reveal secrets (the transactional core)  | Mixed    |
+| `workspace` | Dashboard, account, billing, organizations, domains | Required |
+| `session`   | Sign-in, sign-up, MFA, password reset               | Public   |
+| `colonel`   | System administration                               | Colonel  |
 
 Route composition and load order live in `src/router/index.ts`; first match wins.
 
@@ -38,12 +38,12 @@ Route composition and load order live in `src/router/index.ts`; first match wins
 
 Several independent dimensions control how a view renders. Conflating them was the source of past architectural confusion.
 
-| Dimension        | Binds at        | Question                       | Role                          |
-|------------------|-----------------|--------------------------------|-------------------------------|
-| Interaction Mode | Design-time     | What is the user doing?        | Router selects the app        |
-| Domain Context   | Runtime         | How should it look?            | Wrapper adapts presentation   |
-| Domain Scope     | Session         | Which domain am I managing?    | Filter scopes Workspace       |
-| Homepage Mode    | Deployment-time | Is creation permitted?         | Gatekeeper for `/`            |
+| Dimension        | Binds at        | Question                    | Role                        |
+| ---------------- | --------------- | --------------------------- | --------------------------- |
+| Interaction Mode | Design-time     | What is the user doing?     | Router selects the app      |
+| Domain Context   | Runtime         | How should it look?         | Wrapper adapts presentation |
+| Domain Scope     | Session         | Which domain am I managing? | Filter scopes Workspace     |
+| Homepage Mode    | Deployment-time | Is creation permitted?      | Gatekeeper for `/`          |
 
 **Domain Context** is detected per-request from the request host: `Canonical` (config-defined) or `Custom` (per-domain branding). Each custom domain belongs to one organization and carries its own brand config.
 
@@ -52,7 +52,7 @@ Several independent dimensions control how a view renders. Conflating them was t
 **Homepage Mode** gates `/`:
 
 | Mode     | Who can create       | Who can view | Homepage shows        |
-|----------|----------------------|--------------|-----------------------|
+| -------- | -------------------- | ------------ | --------------------- |
 | Open     | Anyone               | Anyone       | Form + explainer      |
 | Internal | Internal IPs/headers | Anyone       | Form + explainer      |
 | External | Nobody               | Anyone       | "Nothing to see here" |
@@ -61,14 +61,14 @@ Several independent dimensions control how a view renders. Conflating them was t
 
 Three role systems apply at different layers. Do not conflate them.
 
-- **Transaction roles** (resolved by `useSecretContext`): `CREATOR`, `RECIPIENT_AUTH`, `RECIPIENT_ANON`. Answers "who are you relative to *this secret*?". `CREATOR` is singular by design; recipient variance is intentional.
+- **Transaction roles** (resolved by `useSecretContext`): `CREATOR`, `RECIPIENT_AUTH`, `RECIPIENT_ANON`. Answers "who are you relative to _this secret_?". `CREATOR` is singular by design; recipient variance is intentional.
 - **Organization roles**: `OWNER`, `ADMIN`, `MEMBER`. Standard RBAC inside Workspace.
 - **Account roles** (`CustomerRole`): `CUSTOMER`, `COLONEL`, `RECIPIENT`, `USER_DELETED_SELF`. Global account type; `COLONEL` grants `/colonel/*` access.
 
-| Concern        | Secret App                  | Workspace App      |
-|----------------|-----------------------------|--------------------|
-| Auth variance  | High (anon, auth, owner)    | Low (always auth)  |
-| Logic model    | Dimensional matrix          | Standard RBAC      |
+| Concern       | Secret App               | Workspace App     |
+| ------------- | ------------------------ | ----------------- |
+| Auth variance | High (anon, auth, owner) | Low (always auth) |
+| Logic model   | Dimensional matrix       | Standard RBAC     |
 
 ## Naming Conventions
 
@@ -77,7 +77,7 @@ PascalCase for Vue components, layouts, stores, views (`UserProfile.vue`). kebab
 ## Notes
 
 - `/receipt/:receiptIdentifier` lives in the Secret app, not Workspace. It requires "ownership" but ownership here is historically the unguessable URL, not authentication; the interaction is still transactional.
-- Workspace imports brand *data* (to populate forms) but not brand *presentation logic* (Workspace is always OTS-branded). Presentation lives under the Secret app.
+- Workspace imports brand _data_ (to populate forms) but not brand _presentation logic_ (Workspace is always OTS-branded). Presentation lives under the Secret app.
 
 ## See Also
 

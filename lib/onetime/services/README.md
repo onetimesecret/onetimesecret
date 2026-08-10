@@ -4,13 +4,13 @@ Services are **multi-phase administrative tools** for complex, stateful operatio
 
 ## Characteristics
 
-| Aspect | Description |
-|--------|-------------|
+| Aspect    | Description                                                            |
+| --------- | ---------------------------------------------------------------------- |
 | Interface | Multiple public methods (`validate!`, `execute!`, `preview`, `report`) |
-| State | Maintains internal state across method calls |
-| Purpose | Administrative/maintenance utilities with lifecycle phases |
-| Results | Track statistics, generate reports, support dry-run/preview |
-| Usage | Primarily CLI/admin scripts, interactive workflows |
+| State     | Maintains internal state across method calls                           |
+| Purpose   | Administrative/maintenance utilities with lifecycle phases             |
+| Results   | Track statistics, generate reports, support dry-run/preview            |
+| Usage     | Primarily CLI/admin scripts, interactive workflows                     |
 
 ## Structure
 
@@ -68,24 +68,26 @@ end
 
 ## Comparison with Other Patterns
 
-| Aspect | Logic | Operations | Services |
-|--------|-------|-----------|----------|
-| Context | HTTP-bound (session, params) | Context-free | Context-free |
-| Interface | `process`, `success_data` | Single `#call` | Multiple methods |
-| State | Request-scoped | Stateless | Stateful |
-| Lifecycle | Request-response | One-shot | Multi-phase |
-| Primary use | API endpoints | Event handlers | CLI, admin tools |
-| Results | JSON-ready data | Return symbols | Statistics, reports |
+| Aspect      | Logic                        | Operations     | Services            |
+| ----------- | ---------------------------- | -------------- | ------------------- |
+| Context     | HTTP-bound (session, params) | Context-free   | Context-free        |
+| Interface   | `process`, `success_data`    | Single `#call` | Multiple methods    |
+| State       | Request-scoped               | Stateless      | Stateful            |
+| Lifecycle   | Request-response             | One-shot       | Multi-phase         |
+| Primary use | API endpoints                | Event handlers | CLI, admin tools    |
+| Results     | JSON-ready data              | Return symbols | Statistics, reports |
 
 ### Logic vs Services
 
 **Logic** classes are tightly coupled to the HTTP request lifecycle:
+
 - Receive authentication context (`strategy_result`) and HTTP params
 - Return data structures suitable for JSON API responses
 - Have form error handling for validation feedback
 - Located in `apps/api/v2/logic/`
 
 **Services** are context-independent:
+
 - Don't know about HTTP, sessions, or authentication
 - Take simple constructor arguments
 - Support preview/dry-run workflows

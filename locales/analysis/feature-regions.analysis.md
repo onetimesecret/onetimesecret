@@ -9,14 +9,14 @@ This file contains locale strings related to data regions, jurisdictions, and da
 
 ### Current Key Categories
 
-| Category | Count | Description |
-|----------|-------|-------------|
-| Data Sovereignty Explanations | 8 | Marketing/explanatory text about data sovereignty |
-| Region/Jurisdiction Labels | 10 | UI labels for regions and jurisdictions |
-| Benefits/Value Propositions | 8 | "Why it matters" section with trust, privacy, compliance, performance |
-| Navigation/Actions | 5 | CTA buttons and navigation elements |
-| Status Indicators | 3 | Active, current, etc. |
-| Dynamic Templates | 4 | Keys with placeholders `{0}`, `{1}` |
+| Category                      | Count | Description                                                           |
+| ----------------------------- | ----- | --------------------------------------------------------------------- |
+| Data Sovereignty Explanations | 8     | Marketing/explanatory text about data sovereignty                     |
+| Region/Jurisdiction Labels    | 10    | UI labels for regions and jurisdictions                               |
+| Benefits/Value Propositions   | 8     | "Why it matters" section with trust, privacy, compliance, performance |
+| Navigation/Actions            | 5     | CTA buttons and navigation elements                                   |
+| Status Indicators             | 3     | Active, current, etc.                                                 |
+| Dynamic Templates             | 4     | Keys with placeholders `{0}`, `{1}`                                   |
 
 ---
 
@@ -24,28 +24,28 @@ This file contains locale strings related to data regions, jurisdictions, and da
 
 ### 1. Keys That Duplicate `_common.json`
 
-| Key | Current Location | Recommended Action |
-|-----|------------------|-------------------|
-| `active` | `web.regions.active` | **Remove** - Already exists at `web.COMMON.active` |
-| `jurisdiction` | `web.regions.jurisdiction` | Keep - context-specific term |
+| Key            | Current Location           | Recommended Action                                 |
+| -------------- | -------------------------- | -------------------------------------------------- |
+| `active`       | `web.regions.active`       | **Remove** - Already exists at `web.COMMON.active` |
+| `jurisdiction` | `web.regions.jurisdiction` | Keep - context-specific term                       |
 
 **Rationale:** The `active` key is a generic status indicator that already exists in `_common.json` at `web.COMMON.active`. Using the common key promotes consistency.
 
 ### 2. Keys That Could Move to `_common.json`
 
-| Key | Value | Reason |
-|-----|-------|--------|
+| Key       | Value     | Reason                                     |
+| --------- | --------- | ------------------------------------------ |
 | `current` | "Current" | Generic UI label, reusable across features |
 
 ### 3. Keys That Overlap with TITLES in `_common.json`
 
 The following keys have near-duplicates in `web.COMMON.TITLES`:
 
-| feature-regions Key | _common.json TITLES Key |
-|---------------------|------------------------|
-| `available-regions` | `available_regions` |
-| `your-region` | - (no match, keep) |
-| `data-region` | `data_region` |
+| feature-regions Key | \_common.json TITLES Key |
+| ------------------- | ------------------------ |
+| `available-regions` | `available_regions`      |
+| `your-region`       | - (no match, keep)       |
+| `data-region`       | `data_region`            |
 
 **Recommendation:** Consider using the TITLES keys for page/section titles and keep the regions file for descriptive content.
 
@@ -54,6 +54,7 @@ The following keys have near-duplicates in `web.COMMON.TITLES`:
 ## Suggested Hierarchy Improvements
 
 ### Current Structure (flat)
+
 ```
 web.regions.*
   - data-sovereignty-title
@@ -66,6 +67,7 @@ web.regions.*
 ```
 
 ### Proposed Structure (nested)
+
 ```
 web.regions
   |-- labels
@@ -114,6 +116,7 @@ web.regions
 ```
 
 ### Benefits of Nested Structure
+
 1. **Clarity:** Groups related keys logically
 2. **Maintainability:** Easier to find and update related strings
 3. **Component Mapping:** Nested structure can map 1:1 with Vue component sections
@@ -124,21 +127,21 @@ web.regions
 
 ### Naming Convention Issues
 
-| Issue | Examples | Recommendation |
-|-------|----------|----------------|
-| Mixed casing in key names | `your-region` vs `your_current_region` would be inconsistent if it existed | Stick to kebab-case (current standard) |
-| Truncated key names | `your-account-and-data-are-protected-under-the-la` | Use full descriptive names or abbreviate consistently |
-| Template key names unclear | `jurisdiction-display_name-iscurrentjurisdiction-` | Rename to `jurisdiction-display-template` |
-| Long abbreviated keys | `each-jurisdiction-maintains-separate-legal-compl` | Consider `jurisdiction-separation-explanation` |
-| `data-center-location-currentjurisdiction-identif` | Truncated and unclear | Rename to `data-center-location-template` |
+| Issue                                              | Examples                                                                   | Recommendation                                        |
+| -------------------------------------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------- |
+| Mixed casing in key names                          | `your-region` vs `your_current_region` would be inconsistent if it existed | Stick to kebab-case (current standard)                |
+| Truncated key names                                | `your-account-and-data-are-protected-under-the-la`                         | Use full descriptive names or abbreviate consistently |
+| Template key names unclear                         | `jurisdiction-display_name-iscurrentjurisdiction-`                         | Rename to `jurisdiction-display-template`             |
+| Long abbreviated keys                              | `each-jurisdiction-maintains-separate-legal-compl`                         | Consider `jurisdiction-separation-explanation`        |
+| `data-center-location-currentjurisdiction-identif` | Truncated and unclear                                                      | Rename to `data-center-location-template`             |
 
 ### Template Placeholder Issues
 
-| Key | Current Value | Issue |
-|-----|---------------|-------|
-| `jurisdiction-display_name-iscurrentjurisdiction-` | `{0} {1}` | Key name is confusing; value lacks context |
-| `continue-to-jurisdiction-domain` | `Continue to {0}` | Good - clear template |
-| `data-center-location-currentjurisdiction-identif` | `Data center location: {0}` | Key is truncated; value is clear |
+| Key                                                | Current Value               | Issue                                      |
+| -------------------------------------------------- | --------------------------- | ------------------------------------------ |
+| `jurisdiction-display_name-iscurrentjurisdiction-` | `{0} {1}`                   | Key name is confusing; value lacks context |
+| `continue-to-jurisdiction-domain`                  | `Continue to {0}`           | Good - clear template                      |
+| `data-center-location-currentjurisdiction-identif` | `Data center location: {0}` | Key is truncated; value is clear           |
 
 ---
 
@@ -157,12 +160,12 @@ However, if the feature grows significantly (50+ keys), consider:
 
 ## Action Items Summary
 
-| Priority | Action | Impact |
-|----------|--------|--------|
-| High | Remove `active` key, use `web.COMMON.active` | Reduces duplication |
-| Medium | Rename truncated keys to be descriptive | Improves maintainability |
-| Medium | Consider nested hierarchy for related keys | Better organization |
-| Low | Move `current` to `_common.json` if used elsewhere | Promotes reuse |
+| Priority | Action                                             | Impact                   |
+| -------- | -------------------------------------------------- | ------------------------ |
+| High     | Remove `active` key, use `web.COMMON.active`       | Reduces duplication      |
+| Medium   | Rename truncated keys to be descriptive            | Improves maintainability |
+| Medium   | Consider nested hierarchy for related keys         | Better organization      |
+| Low      | Move `current` to `_common.json` if used elsewhere | Promotes reuse           |
 
 ---
 

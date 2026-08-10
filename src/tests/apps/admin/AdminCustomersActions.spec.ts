@@ -377,8 +377,6 @@ describe('useAdminCustomers — operator mutations', () => {
 
     await store.purge('ur alice/../colonel');
 
-    expect(mockApi.delete).toHaveBeenCalledWith(
-      '/api/colonel/users/ur%20alice%2F..%2Fcolonel'
-    );
+    expect(mockApi.delete).toHaveBeenCalledWith('/api/colonel/users/ur%20alice%2F..%2Fcolonel');
   });
 });

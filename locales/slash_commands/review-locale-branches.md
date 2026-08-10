@@ -32,14 +32,14 @@ Launch up to 5-6 `code-reviewer` agents in parallel, grouped by language family.
 The table below is for human readability; the authoritative mapping lives in the
 script — print it with `bash locales/scripts/review-locale-branches.sh families`:
 
-| Family | Locales |
-|--------|---------|
-| semitic-rtl | ar, he |
-| slavic | bg, cs, pl, ru, sl_SI, uk |
-| germanic | de, de_AT, nl, sv_SE |
-| romance | ca_ES, es, fr_CA, fr_FR, it_IT, pt_BR, pt_PT |
-| cjk | ja, ko, zh |
-| other | da_DK, el_GR, eo, hu, mi_NZ, tr, vi |
+| Family      | Locales                                      |
+| ----------- | -------------------------------------------- |
+| semitic-rtl | ar, he                                       |
+| slavic      | bg, cs, pl, ru, sl_SI, uk                    |
+| germanic    | de, de_AT, nl, sv_SE                         |
+| romance     | ca_ES, es, fr_CA, fr_FR, it_IT, pt_BR, pt_PT |
+| cjk         | ja, ko, zh                                   |
+| other       | da_DK, el_GR, eo, hu, mi_NZ, tr, vi          |
 
 **Output structure:**
 
@@ -102,6 +102,7 @@ Format:
 ```
 
 **Family-specific checks:**
+
 - RTL (ar, he): bidirectional text markers, RTL punctuation
 - CJK (ja, ko, zh): no spurious spaces, character encoding
 - Slavic: grammatical cases preserved in templates
@@ -124,6 +125,7 @@ table (see `review-locale-branches.sh families`).
 ### Stage 4: Triage and Fix
 
 After consolidation:
+
 1. Review group files for Critical findings — must fix before merge
 2. Review Warnings — decide case-by-case
 3. Apply fixes to branches as needed
@@ -137,6 +139,7 @@ After consolidation:
 ```
 
 The orchestrator will:
+
 1. List all `i18n/update-*` branches
 2. Run Stage 1 validation
 3. Launch Stage 2 agents (5-6 at a time)

@@ -13,14 +13,14 @@
 
 ## Progress & how to continue
 
-| Phase / PR | Status | Where |
-|------------|--------|-------|
-| Phase 0 / PR 1 — unblock #3399 mask-icon + this plan | ✅ **Done** | [PR #3409](https://github.com/onetimesecret/onetimesecret/pull/3409) · branch `claude/sleepy-shannon-21ko6k` |
-| Phase 1 / PR 2 — reporter/artifacts + lint-ban + flaky gate | ✅ **Done** | [PR #3411](https://github.com/onetimesecret/onetimesecret/pull/3411) · branch `claude/affectionate-clarke-4fyakw` |
-| Phase 2.1+2.2 / PR 3 — auth setup project + app-readiness signal | 🔄 **In review** | [PR #3412](https://github.com/onetimesecret/onetimesecret/pull/3412) · branch `claude/e2e-phase2-auth-readiness` (rebased onto `develop` after #3411 merged; also carries the CI-triage-round-1 auth-compat sweep of `full/`) |
-| Phase 2.3 / PR 4 — `networkidle`/sleep sweep + lint→error | 🔄 **In review** | [PR #3416](https://github.com/onetimesecret/onetimesecret/pull/3416) (draft) · branch `claude/e2e-phase24-networkidle-sweep`, stacked on #3412; rebase + mark ready once #3412 merges |
-| Phase 2.4 / PR 5 — defensive-skip triage | 🔄 **In progress (mechanical half)** | branch `claude/hopeful-bardeen-j5695i` — `all/incoming-secrets` revived (47 self-skips → real assertions), `e2e/support/env.ts` gates, fixture-dependent suites `test.fixme`'d, domain/SSO/MFA suites env-gated. **73 of 143 `test.skip(true)` removed; ~70 org-existence conversions deferred** to a CI-verified follow-up (see `e2e/QUARANTINE.md`). |
-| Phase 3 / PR 6 — fixtures module, pinned config, parallel/shard | ⬜ Todo | not started |
+| Phase / PR                                                       | Status                               | Where                                                                                                                                                                                                                                                                                                                                                  |
+| ---------------------------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Phase 0 / PR 1 — unblock #3399 mask-icon + this plan             | ✅ **Done**                          | [PR #3409](https://github.com/onetimesecret/onetimesecret/pull/3409) · branch `claude/sleepy-shannon-21ko6k`                                                                                                                                                                                                                                           |
+| Phase 1 / PR 2 — reporter/artifacts + lint-ban + flaky gate      | ✅ **Done**                          | [PR #3411](https://github.com/onetimesecret/onetimesecret/pull/3411) · branch `claude/affectionate-clarke-4fyakw`                                                                                                                                                                                                                                      |
+| Phase 2.1+2.2 / PR 3 — auth setup project + app-readiness signal | 🔄 **In review**                     | [PR #3412](https://github.com/onetimesecret/onetimesecret/pull/3412) · branch `claude/e2e-phase2-auth-readiness` (rebased onto `develop` after #3411 merged; also carries the CI-triage-round-1 auth-compat sweep of `full/`)                                                                                                                          |
+| Phase 2.3 / PR 4 — `networkidle`/sleep sweep + lint→error        | 🔄 **In review**                     | [PR #3416](https://github.com/onetimesecret/onetimesecret/pull/3416) (draft) · branch `claude/e2e-phase24-networkidle-sweep`, stacked on #3412; rebase + mark ready once #3412 merges                                                                                                                                                                  |
+| Phase 2.4 / PR 5 — defensive-skip triage                         | 🔄 **In progress (mechanical half)** | branch `claude/hopeful-bardeen-j5695i` — `all/incoming-secrets` revived (47 self-skips → real assertions), `e2e/support/env.ts` gates, fixture-dependent suites `test.fixme`'d, domain/SSO/MFA suites env-gated. **73 of 143 `test.skip(true)` removed; ~70 org-existence conversions deferred** to a CI-verified follow-up (see `e2e/QUARANTINE.md`). |
+| Phase 3 / PR 6 — fixtures module, pinned config, parallel/shard  | ⬜ Todo                              | not started                                                                                                                                                                                                                                                                                                                                            |
 
 > **CI-signal caveat for stacked PRs:** `container-e2e-tests` only triggers on
 > PRs that target `develop`, `main`, or `rel/*` (the `pull_request.branches`
@@ -34,8 +34,8 @@
 
 ### For a fresh contributor picking up PR 5 (Phase 2.4: defensive-skip triage)
 
-> **Status (PR 5, branch `claude/hopeful-bardeen-j5695i`):** the *mechanical,
-> can't-add-red half* is done — `all/incoming-secrets.spec.ts` revived (its 47
+> **Status (PR 5, branch `claude/hopeful-bardeen-j5695i`):** the _mechanical,
+> can't-add-red half_ is done — `all/incoming-secrets.spec.ts` revived (its 47
 > self-skips were a bug: the mock recipient shape `{hash,name}` never matched
 > the `{digest,display_name}` schema, so the form never rendered and every test
 > silently skipped; now real assertions), `e2e/support/env.ts` added,
@@ -93,11 +93,11 @@
    - 12 `test.skip(!hasTestCredentials, ...)` remain **deliberately** (multi-
      context invite suites, `organization-members` admin/member sections,
      `plan-switching`) — they guard accounts beyond the storageState user
-     (TEST_ADMIN_*/TEST_MEMBER_*/TEST_SUBSCRIBER_*). Decide per the (b)/(c)
+     (TEST*ADMIN*_/TEST*MEMBER*_/TEST*SUBSCRIBER*\*). Decide per the (b)/(c)
      rule; don't blanket-delete.
    - Auth model recap (PR 3 + the auth-compat sweep on its branch): `full/`
      and `full-billing/` start authenticated via `storageState`; manual
-     `loginUser` helpers remain ONLY where they sign in as a *different*
+     `loginUser` helpers remain ONLY where they sign in as a _different_
      account inside fresh `browser.newContext()` pages or after
      `clearCookies()`. Don't reintroduce sign-in interactions on the default
      `page`.
@@ -157,44 +157,44 @@ carries a valid hex color` — `Received: ""`.
   serialization time") and `e621290` deliberately removed the default so the
   frontend can fall through to `NEUTRAL_BRAND_DEFAULTS`.
 - The CI E2E container runs **unbranded** (no `BRAND_*` env), so the attribute
-  renders as `color=""` — but the test asserts it is *always* a valid hex.
+  renders as `color=""` — but the test asserts it is _always_ a valid hex.
 
 This fails 100% of the time on any branch carrying the "stop backfilling"
 change without brand config; it is deterministic, not random.
 
 ### Systemic problems
 
-| # | Problem | Evidence | Why it hurts |
-|---|---------|----------|--------------|
-| 1 | `networkidle` everywhere | **300** `waitForLoadState('networkidle')` | Officially discouraged by Playwright; races SPA hydration → #1 flake source. |
-| 2 | Hard-coded sleeps | **43** `waitForTimeout()` | Arbitrary sleeps either flake (too short) or waste time (too long). |
-| 3 | "Defensive skip" tests that can't fail | **143** `test.skip(true, 'route/form not available')` | Zero signal; reports green. 19 of 48 CI tests skip this way — false confidence. |
-| 4 | A whole suite that never runs in CI | `full/` (19) + `full-billing/` (4) gated by **127** `test.skip(!hasCredentials)`; CI only runs `e2e/all/` and passes no creds | Hundreds of tests look like coverage but execute *never*. No auth fixture exists. |
-| 5 | Broken artifact pipeline | Workflow `--reporter=github` overrides config `html` reporter → "No files were found ... playwright-report/" | No HTML report / trace artifact on failure → slow repeated re-runs. |
-| 6 | Retries silently mask flake | `retries: 2` + `--max-failures=5`, no flaky gate | Flaky tests green-washed on retry with no tracking/quarantine. |
-| 7 | No shared fixtures | No `e2e/*.ts` helper module; every spec re-implements login/nav/waits | Fixes must be applied 29× and drift. |
-| 8 | Environment coupling | Brand tests assert against "whatever the default container serves" | Behavior changes (#3381) silently break tests; no known brand state pinned. |
-| 9 | Serial + slow | `workers: 1`, `fullyParallel: false` → 2.8 min for 28 tests | One hung test blocks all; slow feedback discourages local runs. |
+| #   | Problem                                | Evidence                                                                                                                      | Why it hurts                                                                      |
+| --- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| 1   | `networkidle` everywhere               | **300** `waitForLoadState('networkidle')`                                                                                     | Officially discouraged by Playwright; races SPA hydration → #1 flake source.      |
+| 2   | Hard-coded sleeps                      | **43** `waitForTimeout()`                                                                                                     | Arbitrary sleeps either flake (too short) or waste time (too long).               |
+| 3   | "Defensive skip" tests that can't fail | **143** `test.skip(true, 'route/form not available')`                                                                         | Zero signal; reports green. 19 of 48 CI tests skip this way — false confidence.   |
+| 4   | A whole suite that never runs in CI    | `full/` (19) + `full-billing/` (4) gated by **127** `test.skip(!hasCredentials)`; CI only runs `e2e/all/` and passes no creds | Hundreds of tests look like coverage but execute _never_. No auth fixture exists. |
+| 5   | Broken artifact pipeline               | Workflow `--reporter=github` overrides config `html` reporter → "No files were found ... playwright-report/"                  | No HTML report / trace artifact on failure → slow repeated re-runs.               |
+| 6   | Retries silently mask flake            | `retries: 2` + `--max-failures=5`, no flaky gate                                                                              | Flaky tests green-washed on retry with no tracking/quarantine.                    |
+| 7   | No shared fixtures                     | No `e2e/*.ts` helper module; every spec re-implements login/nav/waits                                                         | Fixes must be applied 29× and drift.                                              |
+| 8   | Environment coupling                   | Brand tests assert against "whatever the default container serves"                                                            | Behavior changes (#3381) silently break tests; no known brand state pinned.       |
+| 9   | Serial + slow                          | `workers: 1`, `fullyParallel: false` → 2.8 min for 28 tests                                                                   | One hung test blocks all; slow feedback discourages local runs.                   |
 
 ### Invitation/`full/` suites: test-side defect classes already corrected
 
 Switching `full/` on (Phase 2.1+2.2) unmasked a stack of **test-side** defects in
 the invitation suites — corrected across successive rounds (#3448, #3490, and the
 `#SLEXY5` series). Catalogued here so a re-failure is matched against a known class
-before it is mistaken for a product regression. What remains *after* these are the
+before it is mistaken for a product regression. What remains _after_ these are the
 fixture-dependent cases in [`QUARANTINE.md`](../QUARANTINE.md) (#3419/#3421) — those
 are a **coverage gap that never ran in CI, not a regression**.
 
-| Class | Fixed in | What was wrong |
-|-------|----------|----------------|
-| A · storageState session leakage | `9148f41`, `335d6c3` | `full`/`newContext()` inherit the owner session; the auth guard redirects authenticated visitors off `/signin`, so "anonymous" flows never saw the form. Fix: `clearCookies()` / explicit empty `storageState`. |
-| B · strict-mode / ambiguous locators | `dd038eb`, `9148f41`, `5ac72c6`, #3490 | Generic CSS (`.rounded-md`) matched ancestor+leaf+~60 rows; broad `getByText`/`getByRole`/`getByLabel` matched many/zero. Fix: stable `data-testid` (`org-invitation-row`), `.first()` scoping, test IDs over CSS/role. |
-| C · wrong API endpoint paths | `033fe95`, `335d6c3` | Non-existent routes (`/api/v2/org/:extid/invitations`, `/api/v2/bootstrap/authenticated`) → real ones (`/api/organizations/:extid/invitations`, `/bootstrap/me`). |
-| D · response-shape / vacuous assertions | `033fe95`, `335d6c3` | Checked `data.message` vs `FormError.to_h` `{error}` (ADR-013); read `record.email` from a 404 body; invited email is a readonly input (`toHaveValue`). |
-| E · signin form-variant coupling | `033fe95`, `335d6c3`, `00ef816` | Specs assumed a password-*tab* variant; CI serves password-only. Fix: dual-variant `loginUser` from `global.setup.ts`. |
-| F · wrong flow model (signup not atomic) | `335d6c3` | Signup establishes a session, *then* the state machine shows `direct_accept` confirmed via an explicit Accept button. INV-001/SEC-INV-003 rewritten to that flow. |
-| G · decline-control state dependence | `9148f41`, `5ac72c6` | Unauthenticated invitee lands in `signup_required`/`signin_required` where decline is `invite-signup-decline`/`invite-signin-decline`, not `decline-invitation-btn`. |
-| H · flaky waits | Phase 1 + 2.3 | `networkidle`/`waitForTimeout` → app-readiness signal + web-first assertions. |
+| Class                                    | Fixed in                               | What was wrong                                                                                                                                                                                                          |
+| ---------------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A · storageState session leakage         | `9148f41`, `335d6c3`                   | `full`/`newContext()` inherit the owner session; the auth guard redirects authenticated visitors off `/signin`, so "anonymous" flows never saw the form. Fix: `clearCookies()` / explicit empty `storageState`.         |
+| B · strict-mode / ambiguous locators     | `dd038eb`, `9148f41`, `5ac72c6`, #3490 | Generic CSS (`.rounded-md`) matched ancestor+leaf+~60 rows; broad `getByText`/`getByRole`/`getByLabel` matched many/zero. Fix: stable `data-testid` (`org-invitation-row`), `.first()` scoping, test IDs over CSS/role. |
+| C · wrong API endpoint paths             | `033fe95`, `335d6c3`                   | Non-existent routes (`/api/v2/org/:extid/invitations`, `/api/v2/bootstrap/authenticated`) → real ones (`/api/organizations/:extid/invitations`, `/bootstrap/me`).                                                       |
+| D · response-shape / vacuous assertions  | `033fe95`, `335d6c3`                   | Checked `data.message` vs `FormError.to_h` `{error}` (ADR-013); read `record.email` from a 404 body; invited email is a readonly input (`toHaveValue`).                                                                 |
+| E · signin form-variant coupling         | `033fe95`, `335d6c3`, `00ef816`        | Specs assumed a password-_tab_ variant; CI serves password-only. Fix: dual-variant `loginUser` from `global.setup.ts`.                                                                                                  |
+| F · wrong flow model (signup not atomic) | `335d6c3`                              | Signup establishes a session, _then_ the state machine shows `direct_accept` confirmed via an explicit Accept button. INV-001/SEC-INV-003 rewritten to that flow.                                                       |
+| G · decline-control state dependence     | `9148f41`, `5ac72c6`                   | Unauthenticated invitee lands in `signup_required`/`signin_required` where decline is `invite-signup-decline`/`invite-signin-decline`, not `decline-invitation-btn`.                                                    |
+| H · flaky waits                          | Phase 1 + 2.3                          | `networkidle`/`waitForTimeout` → app-readiness signal + web-first assertions.                                                                                                                                           |
 
 > **Latent, currently masked:** the `getFirstOrganization` org-name read
 > (`span.truncate, .font-medium, h3, h4` → `textContent()`) is byte-identical
@@ -223,10 +223,19 @@ are a **coverage gap that never ran in CI, not a regression**.
    brand-colored tags when a color exists (no empty `color=""` / `content=""`):
    ```handlebars
    {{#if has_brand_color}}
-     <link nonce="{{app.nonce}}" rel="mask-icon" href="/safari-pinned-tab.svg" color="{{brand_primary_color}}">
-     <meta name="theme-color" content="{{brand_primary_color}}" media="(prefers-color-scheme: light)">
+     <link
+       nonce='{{app.nonce}}'
+       rel='mask-icon'
+       href='/safari-pinned-tab.svg'
+       color='{{brand_primary_color}}'
+     />
+     <meta
+       name='theme-color'
+       content='{{brand_primary_color}}'
+       media='(prefers-color-scheme: light)'
+     />
    {{/if}}
-   <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)">
+   <meta name='theme-color' content='#1a1a1a' media='(prefers-color-scheme: dark)' />
    ```
 4. **`e2e/all/brand-customization.spec.ts:337`**: assert reality — absent is
    valid, present must be hex.
@@ -249,6 +258,7 @@ branches; the head-base E2E asserts an exact color with **no** `test.skip` and
 ## Phase 1 — Stop the bleeding (mechanical, high-leverage)
 
 > **Concrete starting points** (verified against the tree as of Phase 0):
+>
 > - The reporter override that breaks the HTML report lives in **two** places that
 >   both override the `reporter` array in `e2e/playwright.config.ts:38`: the
 >   `package.json` `test:playwright` script (`--reporter=list`) and the
@@ -291,9 +301,9 @@ CI **red**.
 2. ✅ **Deterministic app-readiness signal** ([#3412](https://github.com/onetimesecret/onetimesecret/pull/3412), signal half).
    Frontend sets `document.documentElement.dataset.appReady = 'true'` in
    `src/main.ts` after mount + brand theme application + `router.isReady()`;
-   the setup/auth path waits on it. The other half — migrating *specs* off
+   the setup/auth path waits on it. The other half — migrating _specs_ off
    `__BOOTSTRAP_ME__` polling + `networkidle` onto the flag — lands with the
-   PR 4 sweep. *(Highest-leverage flake fix.)*
+   PR 4 sweep. _(Highest-leverage flake fix.)_
 3. ✅ **Sweep `networkidle` → web-first assertions** (PR 4, branch
    `claude/e2e-phase24-networkidle-sweep`). All 341 flagged call sites (298
    `networkidle` + 43 `waitForTimeout`) replaced per directory with the
@@ -323,14 +333,14 @@ CI **red**.
 
 _Live status is tracked in the **Progress & how to continue** section near the top._
 
-| PR | Phase | Scope | Risk / status |
-|----|-------|-------|---------------|
-| 1 | 0 | mask-icon conditional render + deterministic (skip-free) test + Ruby spec + CI brand-color pin | ✅ Done ([#3409](https://github.com/onetimesecret/onetimesecret/pull/3409)) — unblocks #3399 |
-| 2 | 1 | reporter/artifacts, lint rules (warn), flaky gate | ✅ Done ([#3411](https://github.com/onetimesecret/onetimesecret/pull/3411)) |
-| 3 | 2.1+2.2 | global-setup/auth fixture + app-readiness signal | 🔄 In review ([#3412](https://github.com/onetimesecret/onetimesecret/pull/3412)) — surfaces real `full/` failures (intended) |
-| 4 | 2.3 | `networkidle`/sleep sweep, by directory; lint → error | 🔄 In review ([#3416](https://github.com/onetimesecret/onetimesecret/pull/3416), stacked on #3412) |
-| 5 | 2.4 | defensive-skip triage — revive `incoming-secrets`, env gates, `fixme` fixture-dependent suites | 🔄 In progress (`claude/hopeful-bardeen-j5695i`); org-existence assertion conversions split to a CI-verified follow-up |
-| 6 | 3 | fixtures.ts, pinned brand, parallel/shard | Low |
+| PR  | Phase   | Scope                                                                                          | Risk / status                                                                                                                |
+| --- | ------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| 1   | 0       | mask-icon conditional render + deterministic (skip-free) test + Ruby spec + CI brand-color pin | ✅ Done ([#3409](https://github.com/onetimesecret/onetimesecret/pull/3409)) — unblocks #3399                                 |
+| 2   | 1       | reporter/artifacts, lint rules (warn), flaky gate                                              | ✅ Done ([#3411](https://github.com/onetimesecret/onetimesecret/pull/3411))                                                  |
+| 3   | 2.1+2.2 | global-setup/auth fixture + app-readiness signal                                               | 🔄 In review ([#3412](https://github.com/onetimesecret/onetimesecret/pull/3412)) — surfaces real `full/` failures (intended) |
+| 4   | 2.3     | `networkidle`/sleep sweep, by directory; lint → error                                          | 🔄 In review ([#3416](https://github.com/onetimesecret/onetimesecret/pull/3416), stacked on #3412)                           |
+| 5   | 2.4     | defensive-skip triage — revive `incoming-secrets`, env gates, `fixme` fixture-dependent suites | 🔄 In progress (`claude/hopeful-bardeen-j5695i`); org-existence assertion conversions split to a CI-verified follow-up       |
+| 6   | 3       | fixtures.ts, pinned brand, parallel/shard                                                      | Low                                                                                                                          |
 
 ## Key risks & mitigations
 

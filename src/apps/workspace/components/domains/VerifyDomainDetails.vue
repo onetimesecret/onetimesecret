@@ -2,59 +2,61 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { useDomainsManager } from '@/shared/composables/useDomainsManager';
-import { CustomDomainProxy, type CustomDomainResponse } from '@/schemas/api/v3/responses/domains';
-import { type CustomDomain } from '@/schemas/shapes/v3/custom-domain';
-import { computed, ref } from 'vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { useDomainsManager } from '@/shared/composables/useDomainsManager';
+  import { CustomDomainProxy, type CustomDomainResponse } from '@/schemas/api/v3/responses/domains';
+  import { type CustomDomain } from '@/schemas/shapes/v3/custom-domain';
+  import { computed, ref } from 'vue';
 
-import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
-import DetailField from '@/shared/components/ui/DetailField.vue';
+  import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
+  import DetailField from '@/shared/components/ui/DetailField.vue';
 
-interface Props {
-  domain: CustomDomain;
-  cluster?: CustomDomainProxy | null;
-  withVerifyCTA?: boolean;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  domain: () => ({} as CustomDomain),
-  cluster: null,
-  withVerifyCTA: false,
-});
-
-// Define the emit function with the type
-const emit = defineEmits<{
-  (e: 'domainVerify', data: CustomDomainResponse): void;
-}>();
-
-const { verifyDomain, isLoading, error } = useDomainsManager();
-const { t } = useI18n();
-
-const success = ref<string | undefined>(undefined);
-const buttonDisabledDelay = ref(false);
-const isButtonDisabled = computed(() => isLoading.value || buttonDisabledDelay.value);
-const buttonText = computed(() => isLoading.value ? t('web.COMMON.processing') : t('web.domains.verify_domain'));
-
-const verify = async () => {
-  console.info('Refreshing DNS verification details...');
-
-  try {
-    const result = await verifyDomain(props.domain.extid);
-    if (result) {
-      success.value = t('web.domains.domain_verification_initiated_successfully')
-      emit('domainVerify', result);
-
-      buttonDisabledDelay.value = true;
-    }
-
-    setTimeout(() => {
-      buttonDisabledDelay.value = false;
-    }, 3000);
-  } catch (err) {
-    console.error('Verification failed:', err);
+  interface Props {
+    domain: CustomDomain;
+    cluster?: CustomDomainProxy | null;
+    withVerifyCTA?: boolean;
   }
-};
+
+  const props = withDefaults(defineProps<Props>(), {
+    domain: () => ({}) as CustomDomain,
+    cluster: null,
+    withVerifyCTA: false,
+  });
+
+  // Define the emit function with the type
+  const emit = defineEmits<{
+    (e: 'domainVerify', data: CustomDomainResponse): void;
+  }>();
+
+  const { verifyDomain, isLoading, error } = useDomainsManager();
+  const { t } = useI18n();
+
+  const success = ref<string | undefined>(undefined);
+  const buttonDisabledDelay = ref(false);
+  const isButtonDisabled = computed(() => isLoading.value || buttonDisabledDelay.value);
+  const buttonText = computed(() =>
+    isLoading.value ? t('web.COMMON.processing') : t('web.domains.verify_domain')
+  );
+
+  const verify = async () => {
+    console.info('Refreshing DNS verification details...');
+
+    try {
+      const result = await verifyDomain(props.domain.extid);
+      if (result) {
+        success.value = t('web.domains.domain_verification_initiated_successfully');
+        emit('domainVerify', result);
+
+        buttonDisabledDelay.value = true;
+      }
+
+      setTimeout(() => {
+        buttonDisabledDelay.value = false;
+      }, 3000);
+    } catch (err) {
+      console.error('Verification failed:', err);
+    }
+  };
 </script>
 
 <template>
@@ -75,11 +77,7 @@ const verify = async () => {
         v-if="withVerifyCTA"
         @click="verify"
         :disabled="isButtonDisabled"
-        class="flex items-center gap-2 rounded-lg bg-brand-500 px-6 py-3
-          text-lg font-semibold
-          text-white transition
-          duration-100
-          ease-in-out hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-gray-400">
+        class="flex items-center gap-2 rounded-lg bg-brand-500 px-6 py-3 text-lg font-semibold text-white transition duration-100 ease-in-out hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-gray-400">
         <span>{{ buttonText }}</span>
         <OIcon
           collection="mdi"
@@ -99,7 +97,8 @@ const verify = async () => {
           {{ t('web.domains.add_this_hostname_to_your_dns_configuration') }}
         </p>
 
-        <div class="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-600">
+        <div
+          class="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-600">
           <DetailField
             :label="t('web.COMMON.type')"
             value="TXT" />
@@ -119,7 +118,8 @@ const verify = async () => {
           {{ t('web.domains.2_create_the_a_record') }}
         </h3>
 
-        <div class="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-600">
+        <div
+          class="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-600">
           <DetailField
             :label="t('web.COMMON.type')"
             value="A" />
@@ -139,7 +139,8 @@ const verify = async () => {
           {{ t('web.domains.2_create_the_cname_record') }}
         </h3>
 
-        <div class="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-600">
+        <div
+          class="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-600">
           <DetailField
             v-if="domain?.is_apex"
             :label="t('web.COMMON.type')"
@@ -176,7 +177,7 @@ const verify = async () => {
       <OIcon
         collection="mdi"
         name="information-outline"
-        class="mr-2 mt-0.5 size-5 shrink-0 text-brandcomp-700"
+        class="mt-0.5 mr-2 size-5 shrink-0 text-brandcomp-700"
         aria-hidden="true" />
       <p class="text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica') }}

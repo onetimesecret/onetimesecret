@@ -10,14 +10,14 @@
 
 The file contains error-related strings that can be grouped into these functional categories:
 
-| Category | Count | Description |
-|----------|-------|-------------|
-| 404 Error Page | 4 | Page not found messaging |
-| Secret Unavailable | 4 | Expired/viewed secret explanations |
-| General Errors | 3 | Unexpected error states |
-| Dismissal Actions | 4 | Warning/notification dismiss buttons |
-| Data Format Errors | 1 | Data loading issues |
-| Guidance/Instructions | 3 | What to do next |
+| Category              | Count | Description                          |
+| --------------------- | ----- | ------------------------------------ |
+| 404 Error Page        | 4     | Page not found messaging             |
+| Secret Unavailable    | 4     | Expired/viewed secret explanations   |
+| General Errors        | 3     | Unexpected error states              |
+| Dismissal Actions     | 4     | Warning/notification dismiss buttons |
+| Data Format Errors    | 1     | Data loading issues                  |
+| Guidance/Instructions | 3     | What to do next                      |
 
 ---
 
@@ -27,12 +27,12 @@ The file contains error-related strings that can be grouped into these functiona
 
 These are generic UI actions that belong in `_common.json` under `web.LABELS`:
 
-| Key | Current Location | Recommended Destination |
-|-----|------------------|------------------------|
-| `warning-dismissed` | `error-pages.json` | `_common.json` -> `web.LABELS.warning_dismissed` |
+| Key                          | Current Location   | Recommended Destination                                   |
+| ---------------------------- | ------------------ | --------------------------------------------------------- |
+| `warning-dismissed`          | `error-pages.json` | `_common.json` -> `web.LABELS.warning_dismissed`          |
 | `dismiss-truncation-warning` | `error-pages.json` | `_common.json` -> `web.LABELS.dismiss_truncation_warning` |
-| `dismiss-warning` | `error-pages.json` | `_common.json` -> `web.LABELS.dismiss_warning` |
-| `dismiss-notification` | `error-pages.json` | `_common.json` -> `web.LABELS.dismiss_notification` |
+| `dismiss-warning`            | `error-pages.json` | `_common.json` -> `web.LABELS.dismiss_warning`            |
+| `dismiss-notification`       | `error-pages.json` | `_common.json` -> `web.LABELS.dismiss_notification`       |
 
 **Rationale:** `_common.json` already has `web.LABELS.dismiss` ("Dismiss"). These are variations that should be co-located for consistency and reusability across components.
 
@@ -40,18 +40,18 @@ These are generic UI actions that belong in `_common.json` under `web.LABELS`:
 
 These explain why secrets are unavailable and belong with secret-related content:
 
-| Key | Current Location | Recommended Destination |
-|-----|------------------|------------------------|
-| `why-is-this-secret-unavailable` | `error-pages.json` | `feature-secrets.json` -> `web.secrets.errors.why_unavailable` |
-| `secrets-are-designed-to-be-viewed-only-once` | `error-pages.json` | `feature-secrets.json` -> `web.secrets.errors.viewed_once_explanation` |
+| Key                                                | Current Location   | Recommended Destination                                                    |
+| -------------------------------------------------- | ------------------ | -------------------------------------------------------------------------- |
+| `why-is-this-secret-unavailable`                   | `error-pages.json` | `feature-secrets.json` -> `web.secrets.errors.why_unavailable`             |
+| `secrets-are-designed-to-be-viewed-only-once`      | `error-pages.json` | `feature-secrets.json` -> `web.secrets.errors.viewed_once_explanation`     |
 | `information-shared-through-our-service-can-only-` | `error-pages.json` | `feature-secrets.json` -> `web.secrets.errors.one_time_access_explanation` |
 
 **Rationale:** `feature-secrets.json` already contains secret-specific messaging in `web.secrets` and `web.private` namespaces. These error explanations are domain-specific to the secret viewing flow.
 
 ### 3. Navigation/CTA Keys
 
-| Key | Current Location | Recommended Destination |
-|-----|------------------|------------------------|
+| Key                 | Current Location   | Recommended Destination                                                        |
+| ------------------- | ------------------ | ------------------------------------------------------------------------------ |
 | `go-share-a-secret` | `error-pages.json` | `_common.json` -> `web.COMMON.go_share_secret` or `web.LABELS.go_share_secret` |
 
 **Rationale:** This is a call-to-action that may be reused across multiple error states and landing pages. `_common.json` already has `share_a_secret`.
@@ -102,27 +102,27 @@ web.errors.were-sorry-but-an-unexpected-error-occurred-whil
 
 Several keys use truncated or auto-generated names that reduce readability:
 
-| Current Key | Suggested Improvement |
-|-------------|----------------------|
-| `404-page-not-found-0` | Remove duplicate (keep `404-page-not-found`) |
-| `were-sorry-but-an-unexpected-error-occurred-whil` | `unexpected_error_message` |
-| `oops-the-page-you-are-looking-for-doesnt-exist-o` | `page_not_found_message` |
-| `information-shared-through-our-service-can-only-` | `one_time_access_explanation` |
-| `the-page-youre-looking-for-doesnt-exist-or-has-b` | `page_moved_message` |
-| `if-youre-unsure-what-to-do-next-please-follow-up` | `follow_up_guidance` |
-| `contact-the-person-who-sent-you-this-link` | `contact_sender_guidance` |
-| `t-web-common-oops-something-went-wrong` | `oops_something_went_wrong` |
-| `t-web-common-oops-404` | `oops_404` |
-| `unable-to-load-data-due-to-data-format-issues-pl` | `data_format_error` |
+| Current Key                                        | Suggested Improvement                        |
+| -------------------------------------------------- | -------------------------------------------- |
+| `404-page-not-found-0`                             | Remove duplicate (keep `404-page-not-found`) |
+| `were-sorry-but-an-unexpected-error-occurred-whil` | `unexpected_error_message`                   |
+| `oops-the-page-you-are-looking-for-doesnt-exist-o` | `page_not_found_message`                     |
+| `information-shared-through-our-service-can-only-` | `one_time_access_explanation`                |
+| `the-page-youre-looking-for-doesnt-exist-or-has-b` | `page_moved_message`                         |
+| `if-youre-unsure-what-to-do-next-please-follow-up` | `follow_up_guidance`                         |
+| `contact-the-person-who-sent-you-this-link`        | `contact_sender_guidance`                    |
+| `t-web-common-oops-something-went-wrong`           | `oops_something_went_wrong`                  |
+| `t-web-common-oops-404`                            | `oops_404`                                   |
+| `unable-to-load-data-due-to-data-format-issues-pl` | `data_format_error`                          |
 
 ---
 
 ## Duplicate/Redundant Keys
 
-| Keys | Issue |
-|------|-------|
-| `404-page-not-found-0` and `404-page-not-found` | Identical content, different keys |
-| `oops-the-page-you-are-looking-for-doesnt-exist-o` and `the-page-youre-looking-for-doesnt-exist-or-has-b` | Near-duplicate 404 messages |
+| Keys                                                                                                      | Issue                             |
+| --------------------------------------------------------------------------------------------------------- | --------------------------------- |
+| `404-page-not-found-0` and `404-page-not-found`                                                           | Identical content, different keys |
+| `oops-the-page-you-are-looking-for-doesnt-exist-o` and `the-page-youre-looking-for-doesnt-exist-or-has-b` | Near-duplicate 404 messages       |
 
 **Recommendation:** Consolidate to single keys with clear naming.
 
@@ -137,6 +137,7 @@ Keep error content in `error-pages.json` but with improved hierarchy. Error page
 ### Option B: Merge into `_common.json`
 
 If the project prefers minimal files, the HTTP error pages section could move to `_common.json` under:
+
 ```
 web.ERRORS.http.404.*
 web.ERRORS.http.500.*
@@ -166,6 +167,7 @@ However, this would make `_common.json` even larger (already 346 lines).
 ### Final Key Count Estimate
 
 After reorganization:
+
 - `error-pages.json`: ~8-10 keys (HTTP error pages only)
 - Keys moved to `_common.json`: 5
 - Keys moved to `feature-secrets.json`: 3

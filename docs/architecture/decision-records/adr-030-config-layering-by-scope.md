@@ -1,7 +1,7 @@
 ---
-id: "030"
+id: '030'
 status: proposed
-title: "ADR-030: Configuration Layering by Value Scope"
+title: 'ADR-030: Configuration Layering by Value Scope'
 ---
 
 ## Status
@@ -29,7 +29,7 @@ shared; shallower layers are sourced later and win:
 
 1. **Product defaults** — `etc/defaults/*.yaml`, ERB templates where
    `<%= ENV['X'] || 'default' %>` (plus `!= 'false'` ⇒ default-true,
-   `== 'true'` ⇒ default-false) defines what an *unset* variable resolves to:
+   `== 'true'` ⇒ default-false) defines what an _unset_ variable resolves to:
    the value for everyone running the software.
 2. **Shared operator env** — `.env`, sourced first (`set -a; source .env` in
    production; `dotenv .env` under direnv).
@@ -52,19 +52,19 @@ Two tests decide placement, both mechanically checkable:
   product default.
 - **Same across every instance but different from the default?** It isn't
   instance-scoped. Move it down to the shared `.env`, or — if it's what
-  *everyone* running the software should get — change the fallback in
+  _everyone_ running the software should get — change the fallback in
   `etc/defaults/*.yaml`. A value repeated identically across N instance files
   is N copies of one fact, which violates one-authority-per-value
   ([ADR-027](adr-027-one-authority-per-value.md)).
 
 Only a value that genuinely varies per instance stays in the instance overlay.
 
-| Value scope | Belongs in | Examples |
-| --- | --- | --- |
-| Same for everyone (product default) | layer 1 (`etc/defaults/*.yaml`) | flags we enable on every instance — `ENABLE_ORGS`, `DOMAINS_ENABLED`, `JOBS_ENABLED`, `I18N_ENABLED` — all default-off today, candidates for a default flip |
-| Same across our instances, not the default | layer 2 (shared `.env`) | `DOCS_URL`, `TERMS_URL`, `PRIVACY_URL`, `FROM_EMAIL`, `AUTHENTICATION_MODE`, `DEFAULT_LOG_LEVEL` |
-| Varies per instance | layer 3 (`.env.local`) | `HOST`, deployment integrations; on the regional axis: `JURISDICTION`, `APPROXIMATED_PROXY_*`, `EMAILER_REGION` |
-| Per-instance secret | layer 3 (never committed) | `SECRET`, `*_SECRET`, `*_DATABASE_URL`, `RABBITMQ_URL`, `SMTP_PASSWORD`, API tokens, DSNs |
+| Value scope                                | Belongs in                      | Examples                                                                                                                                                    |
+| ------------------------------------------ | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Same for everyone (product default)        | layer 1 (`etc/defaults/*.yaml`) | flags we enable on every instance — `ENABLE_ORGS`, `DOMAINS_ENABLED`, `JOBS_ENABLED`, `I18N_ENABLED` — all default-off today, candidates for a default flip |
+| Same across our instances, not the default | layer 2 (shared `.env`)         | `DOCS_URL`, `TERMS_URL`, `PRIVACY_URL`, `FROM_EMAIL`, `AUTHENTICATION_MODE`, `DEFAULT_LOG_LEVEL`                                                            |
+| Varies per instance                        | layer 3 (`.env.local`)          | `HOST`, deployment integrations; on the regional axis: `JURISDICTION`, `APPROXIMATED_PROXY_*`, `EMAILER_REGION`                                             |
+| Per-instance secret                        | layer 3 (never committed)       | `SECRET`, `*_SECRET`, `*_DATABASE_URL`, `RABBITMQ_URL`, `SMTP_PASSWORD`, API tokens, DSNs                                                                   |
 
 The strongest lever is layer 1: for any value that is the same for everyone,
 flip its fallback so a fresh instance needs zero lines for it, and only an
@@ -78,7 +78,7 @@ hostname, its axis-specific integrations, and its secret set.
 - **Lose**: single-file grep-ability — an instance's effective config now
   spans three layers. Mitigated by the audit tool below, which resolves the
   effective value and reports its source layer.
-- **Watch**: flipping a layer-1 default changes behaviour for *every* unset
+- **Watch**: flipping a layer-1 default changes behaviour for _every_ unset
   deployment, including third-party self-hosters. Flip only values that are
   genuinely the right product default, not merely convenient for our fleet;
   when in doubt, use layer 2.

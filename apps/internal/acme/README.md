@@ -24,17 +24,17 @@ The endpoint is then available at `http://127.0.0.1:3000/api/internal/acme/ask`.
 GET /api/internal/acme/ask?domain=example.com[&check_verification=false]
 ```
 
-| Parameter | Required | Default | Description |
-|-----------|----------|---------|-------------|
-| `domain` | yes | — | The domain to validate |
-| `check_verification` | no | `true` | Set to `false` to skip DNS verification check (domain must still exist) |
+| Parameter            | Required | Default | Description                                                             |
+| -------------------- | -------- | ------- | ----------------------------------------------------------------------- |
+| `domain`             | yes      | —       | The domain to validate                                                  |
+| `check_verification` | no       | `true`  | Set to `false` to skip DNS verification check (domain must still exist) |
 
-| Status | Meaning |
-|--------|---------|
-| 200 | Domain allowed — issue certificate |
-| 400 | Missing `domain` parameter |
-| 401 | Request not from localhost |
-| 403 | Domain not found or not verified |
+| Status | Meaning                            |
+| ------ | ---------------------------------- |
+| 200    | Domain allowed — issue certificate |
+| 400    | Missing `domain` parameter         |
+| 401    | Request not from localhost         |
+| 403    | Domain not found or not verified   |
 
 ## Security
 

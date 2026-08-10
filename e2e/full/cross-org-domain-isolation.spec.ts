@@ -144,10 +144,9 @@ async function verifyDisplayedDomains(
   // Check for expected domains
   for (const domain of expectedDomains) {
     const domainElement = page.locator(`text=${domain}`).first();
-    await expect(
-      domainElement,
-      `Expected domain "${domain}" to be visible on page`
-    ).toBeVisible({ timeout: 5000 });
+    await expect(domainElement, `Expected domain "${domain}" to be visible on page`).toBeVisible({
+      timeout: 5000,
+    });
   }
 
   // Check that unexpected domains are NOT visible
@@ -303,7 +302,7 @@ test.describe.fixme('Cross-Organization Domain Isolation', () => {
   // TC-DOI-003: Direct URL navigation respects org context
   // -------------------------------------------------------------------------
   test.describe('Direct URL Navigation', () => {
-    test('TC-DOI-003: Directly navigating to org domains URL shows that org\'s domains', async ({
+    test("TC-DOI-003: Directly navigating to org domains URL shows that org's domains", async ({
       page,
     }) => {
       const orgs = await getUserOrganizations(page);
@@ -468,7 +467,9 @@ test.describe.fixme('Cross-Organization Domain Isolation', () => {
           throw new Error('OrgB not found in org switcher — needs second-org fixture (#3420)');
         }
       } else {
-        throw new Error('Org switcher not visible on domains page — needs second-org fixture (#3420)');
+        throw new Error(
+          'Org switcher not visible on domains page — needs second-org fixture (#3420)'
+        );
       }
     });
   });
@@ -599,7 +600,10 @@ test.describe.fixme('API-Level Domain Isolation', () => {
     // Wait for the domains tab UI (table or empty state) - its appearance
     // implies the org-scoped domains API call has completed.
     await expect(
-      page.locator('table').or(page.getByText(/no domains found|get started by adding/i)).first()
+      page
+        .locator('table')
+        .or(page.getByText(/no domains found|get started by adding/i))
+        .first()
     ).toBeVisible();
 
     // Check API calls included OrgA context
@@ -614,7 +618,10 @@ test.describe.fixme('API-Level Domain Isolation', () => {
     // Wait for the domains tab UI (table or empty state) - its appearance
     // implies the org-scoped domains API call has completed.
     await expect(
-      page.locator('table').or(page.getByText(/no domains found|get started by adding/i)).first()
+      page
+        .locator('table')
+        .or(page.getByText(/no domains found|get started by adding/i))
+        .first()
     ).toBeVisible();
 
     // Check API calls included OrgB context

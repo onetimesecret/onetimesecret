@@ -22,7 +22,11 @@ vi.mock('vue-router', () => ({
 
 // Child components mocked away to keep the test focused
 vi.mock('@/shared/components/icons/OIcon.vue', () => ({
-  default: { name: 'OIcon', template: '<span class="o-icon" />', props: ['collection', 'name', 'class'] },
+  default: {
+    name: 'OIcon',
+    template: '<span class="o-icon" />',
+    props: ['collection', 'name', 'class'],
+  },
 }));
 vi.mock('@/shared/components/ui/LanguageToggle.vue', () => ({
   default: { name: 'LanguageToggle', template: '<div class="language-toggle" />' },
@@ -76,10 +80,7 @@ describe('ProfileSettings', () => {
   const mountComponent = () =>
     mount(ProfileSettings, {
       global: {
-        plugins: [
-          i18n,
-          createTestingPinia({ createSpy: vi.fn, stubActions: false }),
-        ],
+        plugins: [i18n, createTestingPinia({ createSpy: vi.fn, stubActions: false })],
       },
     });
 

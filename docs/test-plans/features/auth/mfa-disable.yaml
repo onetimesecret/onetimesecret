@@ -89,7 +89,7 @@ tests:
         assertion: visible
       - selector: "[data-testid='disable-mfa-modal'] [data-testid='mfa-warning-text']"
         assertion: contains_text
-        expected: "security"
+        expected: 'security'
     priority: medium
     type: ui
     covers: [MfaSettings.vue, security-warning]
@@ -114,7 +114,7 @@ tests:
         assertion: hidden
       - selector: "[data-testid='mfa-status']"
         assertion: contains_text
-        expected: "disabled"
+        expected: 'disabled'
       - selector: "[data-testid='enable-mfa-button']"
         assertion: visible
       - api: GET /api/account/mfa/status
@@ -172,7 +172,7 @@ tests:
         assertion: hidden
       - selector: "[data-testid='mfa-status']"
         assertion: contains_text
-        expected: "enabled"
+        expected: 'enabled'
       - url: contains /account/security
       - api: GET /api/account/mfa/status
         assert:
@@ -221,7 +221,7 @@ tests:
       - Recommendation to enable MFA
       - selector: "[data-testid='mfa-status']"
         assertion: contains_text
-        expected: "disabled"
+        expected: 'disabled'
       - selector: "[data-testid='enable-mfa-button']"
         assertion: visible
       - selector: "[data-testid='disable-mfa-button']"
@@ -317,7 +317,7 @@ tests:
       type: submit
       element: Disable confirmation form
       data:
-        password: ""
+        password: ''
     verify:
       - Validation error for empty password
       - Form not submitted to server

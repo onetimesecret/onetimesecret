@@ -65,8 +65,7 @@
   const syncStatusFilter = ref('');
 
   const hasActiveFilters = computed(
-    () =>
-      searchTerm.value !== '' || statusFilter.value !== '' || syncStatusFilter.value !== ''
+    () => searchTerm.value !== '' || statusFilter.value !== '' || syncStatusFilter.value !== ''
   );
 
   const SYNC_FILTER_LABELS: Record<string, string> = {

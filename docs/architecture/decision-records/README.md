@@ -3,6 +3,7 @@
 Documents that capture important architectural decisions along with their context and consequences. They're a best practice for technical documentation in open-source projects.
 
 **Lifecycle:**
+
 - Proposed: Under discussion
 - Accepted: Decision ratified by the team (implementation may follow; track rollout in Implementation Notes)
 - Deprecated: No longer relevant but kept for history
@@ -24,9 +25,9 @@ This expands the "One decision per ADR" key above: when two choices show up toge
 1. **One decision per record (atomicity).** The founding convention — Nygard's original format, `adr-tools`, MADR, the adr.github.io community, and AWS/Google/Microsoft's ADR guidance — is one architecturally-significant decision per file. The unit is "things that stand or fall together." Two choices that can be evaluated independently don't.
 2. **Different owners and review triggers.** A naming/structure decision and, say, a privacy/legal decision have different reviewers. Bundling forces a lawyer to wade through structural debates, and an engineer to wade through legal nuance.
 3. **Different lifecycles + immutability.** Quality ADR sets treat accepted records as immutable and **supersede rather than edit**. The volatile decision is usually the one most likely to change; if it's welded to a stable decision, revising one paragraph means superseding the whole record. Split, and you supersede just the part that moved.
-4. **Precise traceability.** A 1:1 decision↔ADR mapping keeps `git blame` and PR references clean: code that implements a decision links to *that* ADR, not to a grab-bag.
+4. **Precise traceability.** A 1:1 decision↔ADR mapping keeps `git blame` and PR references clean: code that implements a decision links to _that_ ADR, not to a grab-bag.
 
-**What mature ADR sets do:** sequentially numbered, immutable, short, single-topic records with a consistent template and a *liberal* "Related / References" section that cross-links siblings (Kubernetes KEPs, Arachne, AWS Prescriptive Guidance all do this). Cross-linking is how you get the "these belong together" benefit without a monolith. Keep the status lifecycle explicit (Proposed → Accepted → Superseded) and date every amendment.
+**What mature ADR sets do:** sequentially numbered, immutable, short, single-topic records with a consistent template and a _liberal_ "Related / References" section that cross-links siblings (Kubernetes KEPs, Arachne, AWS Prescriptive Guidance all do this). Cross-linking is how you get the "these belong together" benefit without a monolith. Keep the status lifecycle explicit (Proposed → Accepted → Superseded) and date every amendment.
 
 **Don't over-split, either.** If a decision is a single sentence with no trade-offs, a code comment at the call site suffices — it doesn't need a record. A choice earns its own ADR when it has real trade-offs, a regulatory or cross-cutting dimension, or a test/contract obligation attached to it.
 
@@ -43,12 +44,14 @@ This section is mutable. Each note should be dated and titled.
 ### When to Write ADRs
 
 Write ADRs for decisions that:
+
 - Are expensive to reverse or constrain future options
 - Affect multiple teams or components
 - Establish patterns for others
 - Resolve technical debates
 
 Don't write ADRs for:
+
 - Trivial or easily reversible
 - Implementation details within a single component
 - Non-contentious or standard practice decisions

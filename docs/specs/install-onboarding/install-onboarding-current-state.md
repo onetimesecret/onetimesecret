@@ -133,8 +133,8 @@ contributor findings are prefixed CP-/DX- here to avoid ID collisions.
   never mentions SMTP, `AUTH_AUTOVERIFY`, `bin/ots`, or admin/colonel
   creation. The one-command fix (`docker exec CTR bin/ots customers create
 me@example.com --role colonel`) is documented only in the command's own
-  `--help` usage comment (lib/onetime/cli/customers/create_command.rb:8-9);
-  promoting an _existing_ customer to colonel is documented separately
+  `--help` usage comment (lib/onetime/cli/customers/create*command.rb:8-9);
+  promoting an \_existing* customer to colonel is documented separately
   (etc/defaults/config.defaults.yaml:269-272, `bin/ots customers role
 promote`). Neither is linked from any setup doc.
 - **QS-4 [M][P] Version pinning incoherent across surfaces.** README pins

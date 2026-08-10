@@ -7,7 +7,7 @@
 
 ## Bottom line
 
-No new Critical/High/Medium security defects were confirmed in this window. Notably, the two riskiest changes in the delta — session-skip path matching and the `ORGS_AUDIT_LOGS_ENABLED` boolean-coercion gate — each shipped with a genuine bug and were fixed by a later commit in the *same* window, before this audit ran. Those are recorded below under "Self-corrected within the window" per this routine's convention of documenting refutations/closures so they aren't re-litigated next time. One Low-severity, non-security finding (a revenue/compliance regression in Stripe tax collection) is worth operator attention.
+No new Critical/High/Medium security defects were confirmed in this window. Notably, the two riskiest changes in the delta — session-skip path matching and the `ORGS_AUDIT_LOGS_ENABLED` boolean-coercion gate — each shipped with a genuine bug and were fixed by a later commit in the _same_ window, before this audit ran. Those are recorded below under "Self-corrected within the window" per this routine's convention of documenting refutations/closures so they aren't re-litigated next time. One Low-severity, non-security finding (a revenue/compliance regression in Stripe tax collection) is worth operator attention.
 
 ---
 

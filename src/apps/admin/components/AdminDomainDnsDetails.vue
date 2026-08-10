@@ -53,7 +53,8 @@
         <p class="mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ t('web.admin.domains.dns.txtStep') }}
         </p>
-        <div class="divide-y divide-gray-200 overflow-hidden rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-900">
+        <div
+          class="divide-y divide-gray-200 overflow-hidden rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-900">
           <DetailField
             :label="t('web.COMMON.type')"
             value="TXT" />
@@ -72,7 +73,8 @@
         <p class="mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ isApex ? t('web.admin.domains.dns.aStep') : t('web.admin.domains.dns.cnameStep') }}
         </p>
-        <div class="divide-y divide-gray-200 overflow-hidden rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-900">
+        <div
+          class="divide-y divide-gray-200 overflow-hidden rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-900">
           <DetailField
             :label="t('web.COMMON.type')"
             :value="isApex ? 'A' : 'CNAME'" />

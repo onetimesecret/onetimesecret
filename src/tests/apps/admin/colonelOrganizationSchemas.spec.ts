@@ -155,7 +155,11 @@ describe('investigateOrganizationResponseSchema (reused investigate contract)', 
           subscription_status: null,
           subscription_period_end: null,
         },
-        stripe: { available: false, reason: 'No subscription ID stored locally', subscription: null },
+        stripe: {
+          available: false,
+          reason: 'No subscription ID stored locally',
+          subscription: null,
+        },
         comparison: { match: null, verdict: 'unable_to_compare' },
       },
     };

@@ -59,12 +59,14 @@ describe('EntitlementUpgradePrompt', () => {
     vi.clearAllMocks();
   });
 
-  function mountPrompt(options: {
-    billingEnabled?: boolean;
-    error?: ApplicationError | null;
-    show?: boolean;
-    resourceType?: string;
-  } = {}) {
+  function mountPrompt(
+    options: {
+      billingEnabled?: boolean;
+      error?: ApplicationError | null;
+      show?: boolean;
+      resourceType?: string;
+    } = {}
+  ) {
     const {
       billingEnabled = true,
       error = createError(),
@@ -136,9 +138,7 @@ describe('EntitlementUpgradePrompt', () => {
           message: 'Homepage secrets require Identity Plus plan',
         }),
       });
-      expect(wrapper.text()).toContain(
-        'Homepage secrets require Identity Plus plan'
-      );
+      expect(wrapper.text()).toContain('Homepage secrets require Identity Plus plan');
     });
 
     it('falls back to i18n key when error has no message', () => {
@@ -174,8 +174,7 @@ describe('EntitlementUpgradePrompt', () => {
       const wrapper = mountPrompt({
         error: createError({
           code: 'entitlement_required',
-          message:
-            'Custom homepage secrets require an Identity Plus subscription',
+          message: 'Custom homepage secrets require an Identity Plus subscription',
           status: 403,
         }),
         resourceType: 'homepage_secrets',
@@ -192,8 +191,7 @@ describe('EntitlementUpgradePrompt', () => {
         billingEnabled: false,
         error: createError({
           code: 'entitlement_required',
-          message:
-            'Custom homepage secrets require an Identity Plus subscription',
+          message: 'Custom homepage secrets require an Identity Plus subscription',
           status: 403,
         }),
         resourceType: 'homepage_secrets',

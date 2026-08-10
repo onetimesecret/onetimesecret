@@ -68,9 +68,7 @@ export function useSecretConcealer(options?: SecretConcealerOptions) {
    * Only includes passphrase field if user provided one - omitting the field
    * entirely signals "no passphrase protection" to the backend.
    */
-  const createPayload = (
-    type: SubmitType
-  ): ConcealPayload | GeneratePayload => {
+  const createPayload = (type: SubmitType): ConcealPayload | GeneratePayload => {
     const basePayload: Record<string, unknown> = {
       kind: type,
       secret: form.secret,
@@ -113,8 +111,7 @@ export function useSecretConcealer(options?: SecretConcealerOptions) {
       // Generate mode skips full-form validation (the schema requires
       // `secret`, which isn't user-typed there) but recipient is still
       // user input and still gets mailed, so it's checked on its own.
-      const isValid =
-        type === 'conceal' ? validation.validate() : validation.validateRecipient();
+      const isValid = type === 'conceal' ? validation.validate() : validation.validateRecipient();
       if (!isValid) {
         throw createError('Please check the form for errors', 'human');
       }

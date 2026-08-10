@@ -65,9 +65,7 @@ describe('useAuth - Email Change', () => {
 
   describe('requestEmailChange', () => {
     it('returns true on successful request', async () => {
-      axiosMock
-        .onPost('/api/account/change-email')
-        .reply(200, { sent: true });
+      axiosMock.onPost('/api/account/change-email').reply(200, { sent: true });
 
       const { requestEmailChange } = useAuth();
       const result = await requestEmailChange('new@example.com', 'password123');
@@ -76,9 +74,7 @@ describe('useAuth - Email Change', () => {
     });
 
     it('sends correct payload with new_email, password, shrimp, and locale', async () => {
-      axiosMock
-        .onPost('/api/account/change-email')
-        .reply(200, { sent: true });
+      axiosMock.onPost('/api/account/change-email').reply(200, { sent: true });
 
       const { requestEmailChange } = useAuth();
       await requestEmailChange('new@example.com', 'mypassword');
@@ -103,12 +99,10 @@ describe('useAuth - Email Change', () => {
     });
 
     it('populates fieldError from field-error tuple', async () => {
-      axiosMock
-        .onPost('/api/account/change-email')
-        .reply(200, {
-          error: 'Validation failed',
-          'field-error': ['new_email', 'is not a valid email'],
-        });
+      axiosMock.onPost('/api/account/change-email').reply(200, {
+        error: 'Validation failed',
+        'field-error': ['new_email', 'is not a valid email'],
+      });
 
       const { requestEmailChange, fieldError } = useAuth();
       await requestEmailChange('bad-email', 'password123');
@@ -117,9 +111,7 @@ describe('useAuth - Email Change', () => {
     });
 
     it('returns false on network error', async () => {
-      axiosMock
-        .onPost('/api/account/change-email')
-        .networkError();
+      axiosMock.onPost('/api/account/change-email').networkError();
 
       const { requestEmailChange } = useAuth();
       const result = await requestEmailChange('new@example.com', 'password123');
@@ -128,9 +120,7 @@ describe('useAuth - Email Change', () => {
     });
 
     it('returns false on server 500 error', async () => {
-      axiosMock
-        .onPost('/api/account/change-email')
-        .reply(500, { error: 'Internal server error' });
+      axiosMock.onPost('/api/account/change-email').reply(500, { error: 'Internal server error' });
 
       const { requestEmailChange } = useAuth();
       const result = await requestEmailChange('new@example.com', 'password123');
@@ -140,27 +130,21 @@ describe('useAuth - Email Change', () => {
 
     it('clears previous errors before making request', async () => {
       // First call fails
-      axiosMock
-        .onPost('/api/account/change-email')
-        .replyOnce(200, { error: 'First error' });
+      axiosMock.onPost('/api/account/change-email').replyOnce(200, { error: 'First error' });
 
       const { requestEmailChange, error } = useAuth();
       await requestEmailChange('new@example.com', 'wrong');
       expect(error.value).toBe('First error');
 
       // Second call succeeds - error should be cleared
-      axiosMock
-        .onPost('/api/account/change-email')
-        .replyOnce(200, { sent: true });
+      axiosMock.onPost('/api/account/change-email').replyOnce(200, { sent: true });
 
       await requestEmailChange('new@example.com', 'correct');
       expect(error.value).toBeNull();
     });
 
     it('handles sent: false response as success (no error)', async () => {
-      axiosMock
-        .onPost('/api/account/change-email')
-        .reply(200, { sent: false });
+      axiosMock.onPost('/api/account/change-email').reply(200, { sent: false });
 
       const { requestEmailChange, error } = useAuth();
       const result = await requestEmailChange('new@example.com', 'password123');
@@ -209,9 +193,7 @@ describe('useAuth - Email Change', () => {
     });
 
     it('returns false on network error', async () => {
-      axiosMock
-        .onPost('/api/account/confirm-email-change')
-        .networkError();
+      axiosMock.onPost('/api/account/confirm-email-change').networkError();
 
       const { confirmEmailChange } = useAuth();
       const result = await confirmEmailChange('some-token');
@@ -231,12 +213,10 @@ describe('useAuth - Email Change', () => {
     });
 
     it('handles error with field-error tuple', async () => {
-      axiosMock
-        .onPost('/api/account/confirm-email-change')
-        .reply(200, {
-          error: 'Invalid token',
-          'field-error': ['token', 'has expired'],
-        });
+      axiosMock.onPost('/api/account/confirm-email-change').reply(200, {
+        error: 'Invalid token',
+        'field-error': ['token', 'has expired'],
+      });
 
       const { confirmEmailChange, error } = useAuth();
       const result = await confirmEmailChange('bad-token');
@@ -315,9 +295,7 @@ describe('useAuth - Email Change', () => {
     });
 
     it('returns false on network error', async () => {
-      axiosMock
-        .onPost('/api/account/resend-email-change-confirmation')
-        .networkError();
+      axiosMock.onPost('/api/account/resend-email-change-confirmation').networkError();
 
       const { resendEmailChangeConfirmation } = useAuth();
       const result = await resendEmailChangeConfirmation();
@@ -356,12 +334,10 @@ describe('useAuth - Email Change', () => {
     });
 
     it('handles error with field-error tuple', async () => {
-      axiosMock
-        .onPost('/api/account/resend-email-change-confirmation')
-        .reply(200, {
-          error: 'Authentication required',
-          'field-error': ['session', 'has expired'],
-        });
+      axiosMock.onPost('/api/account/resend-email-change-confirmation').reply(200, {
+        error: 'Authentication required',
+        'field-error': ['session', 'has expired'],
+      });
 
       const { resendEmailChangeConfirmation, error, fieldError } = useAuth();
       const result = await resendEmailChangeConfirmation();

@@ -19,6 +19,7 @@ The workflow reported "3 high" findings. None survive scrutiny. The three HIGH "
 ## The three HIGH "session" findings are false positives
 
 Findings as filed:
+
 - `weak-crypto` — `session.rb:63` — Session IDs generated with non-cryptographic `Kernel.rand` (Mersenne Twister) instead of a CSPRNG.
 - `session-handling` — `middleware_stack.rb:332` — Session cookie set without the HttpOnly attribute.
 - `session-handling` — `middleware_stack.rb:333` — Session ID accepted from a URL query parameter (cookie_only disabled), enabling session fixation and SID leakage.

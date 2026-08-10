@@ -28,7 +28,8 @@ describe('DashboardBasic', () => {
     vi.clearAllMocks();
   });
 
-  const mountComponent = (custOverrides = {}, billingEnabled = true) => mount(DashboardBasic, {
+  const mountComponent = (custOverrides = {}, billingEnabled = true) =>
+    mount(DashboardBasic, {
       global: {
         plugins: [
           i18n,

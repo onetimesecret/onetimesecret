@@ -19,8 +19,8 @@
 
   // Filter out groups that have no valid links (all URLs empty/missing)
   const linkGroups = computed(() =>
-    (footerConfig.value?.groups || []).filter(group =>
-      group.links?.some(link => link.url?.trim())
+    (footerConfig.value?.groups || []).filter((group) =>
+      group.links?.some((link) => link.url?.trim())
     )
   );
 </script>
@@ -29,8 +29,7 @@
   <div
     v-if="isEnabled && linkGroups.length > 0"
     class="flex w-full justify-center border-t border-gray-200 pt-8 dark:border-gray-700">
-    <div
-      class="flex w-full max-w-6xl flex-col gap-x-12 gap-y-8 px-4 sm:flex-row sm:justify-center">
+    <div class="flex w-full max-w-6xl flex-col gap-x-12 gap-y-8 px-4 sm:flex-row sm:justify-center">
       <div
         v-for="(group, groupIndex) in linkGroups"
         :key="group.name || `group-${groupIndex}`"
@@ -65,10 +64,7 @@
             <!-- Fallback for missing/empty URLs -->
             <span
               v-else
-              class="
-                 block
-                 text-sm text-gray-400
-                 dark:text-gray-500">
+              class="block text-sm text-gray-400 dark:text-gray-500">
               {{ link.i18n_key ? t(link.i18n_key) : link.text }}
             </span>
           </li>

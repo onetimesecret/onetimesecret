@@ -6,9 +6,9 @@ Localize Vue components using vue-i18n with keys from source locale files.
 
 ```vue
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
+  import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 </script>
 
 <template>
@@ -46,11 +46,11 @@ Run `pnpm run locales:generate` after editing source files.
 
 ## Key Naming
 
-| Prefix | Use |
-|--------|-----|
-| `web.*` | Frontend UI strings |
-| `api.*` | Backend API messages |
-| `email.*` | Email templates |
+| Prefix    | Use                  |
+| --------- | -------------------- |
+| `web.*`   | Frontend UI strings  |
+| `api.*`   | Backend API messages |
+| `email.*` | Email templates      |
 
 Organize by feature area: `web.COMMON.*`, `web.homepage.*`, `web.billing.*`, `web.organizations.*`.
 
@@ -103,8 +103,10 @@ Organize by feature area: `web.COMMON.*`, `web.homepage.*`, `web.billing.*`, `we
 
 ```vue
 <template>
-  {{ t('web.COMMON.secret', 1) }}  <!-- "Secret" -->
-  {{ t('web.COMMON.secret', 5) }}  <!-- "Secrets" -->
+  {{ t('web.COMMON.secret', 1) }}
+  <!-- "Secret" -->
+  {{ t('web.COMMON.secret', 5) }}
+  <!-- "Secrets" -->
 </template>
 ```
 
@@ -151,7 +153,7 @@ For preview/sandbox scenarios that need independent locale state:
 import { createI18nInstance } from '@/i18n';
 
 const { instance, composer, setLocale } = createI18nInstance('de');
-await setLocale('fr_FR');  // Only affects this instance
+await setLocale('fr_FR'); // Only affects this instance
 ```
 
 ## Testing

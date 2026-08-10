@@ -9,6 +9,7 @@
 ## Executive Summary
 
 This audit identifies existing test coverage and gaps for the domain configuration screens being modified for UI consistency. The changes involve:
+
 - Moving toggle from top to bottom of form
 - Changing toggle label from feature name to "Enabled"
 - Disabling form fields when toggle is OFF
@@ -23,97 +24,106 @@ This audit identifies existing test coverage and gaps for the domain configurati
 ### 1. Incoming Secrets Configuration
 
 #### E2E Tests (Playwright)
+
 **File:** `e2e/all/incoming-secrets.spec.ts`
 
-| Test | Status | Notes |
-|------|--------|-------|
+| Test                              | Status  | Notes                                        |
+| --------------------------------- | ------- | -------------------------------------------- |
 | Form loading when feature enabled | Covered | Tests form visibility and recipient dropdown |
-| Feature disabled state | Covered | Verifies form NOT visible when disabled |
-| Recipients dropdown population | Covered | Tests dropdown opens, recipients visible |
-| Recipient selection | Covered | Tests selecting and verifying selection |
-| Form validation (incomplete form) | Covered | Submit button disabled when incomplete |
-| Submit enabled when fields filled | Covered | Button becomes enabled with valid data |
-| Memo character counter | Covered | Counter visibility and limit behavior |
-| Happy path flow (full submission) | Covered | End-to-end create and success page |
-| API error handling | Covered | Form remains visible on error |
-| Accessibility (ARIA attributes) | Covered | Tests aria-label, aria-expanded |
-| Mobile responsiveness | Covered | Tests viewport adaptation |
+| Feature disabled state            | Covered | Verifies form NOT visible when disabled      |
+| Recipients dropdown population    | Covered | Tests dropdown opens, recipients visible     |
+| Recipient selection               | Covered | Tests selecting and verifying selection      |
+| Form validation (incomplete form) | Covered | Submit button disabled when incomplete       |
+| Submit enabled when fields filled | Covered | Button becomes enabled with valid data       |
+| Memo character counter            | Covered | Counter visibility and limit behavior        |
+| Happy path flow (full submission) | Covered | End-to-end create and success page           |
+| API error handling                | Covered | Form remains visible on error                |
+| Accessibility (ARIA attributes)   | Covered | Tests aria-label, aria-expanded              |
+| Mobile responsiveness             | Covered | Tests viewport adaptation                    |
 
 **Gap Analysis:**
+
 - No tests for toggle position (UI layout)
 - No tests for form fields becoming disabled when toggle OFF
 - No tests for info banner visibility conditions
 - No tests for recipient email display format
 
 #### Backend Tests (Tryouts)
+
 **Files:**
+
 - `try/features/incoming/incoming_enabled_toggle_try.rb` - Comprehensive
 - `try/features/incoming/incoming_config_try.rb` - Configuration
 - `try/features/incoming/incoming_config_schema_separation_try.rb`
 - `try/features/incoming/recipient_resolver_try.rb`
 
-| Test | Status | Notes |
-|------|--------|-------|
-| IncomingConfig.enabled? defaults | Covered | false by default |
-| enable!/disable! transitions | Covered | State changes correctly |
-| Recipients preserved when disabled | Covered | Round-trip preservation |
-| RecipientResolver uses IncomingConfig | Covered | Integration tests |
-| API rejects when disabled | Covered | ValidateRecipient, CreateIncomingSecret |
-| GetConfig returns enabled state | Covered | API returns correct enabled value |
+| Test                                  | Status  | Notes                                   |
+| ------------------------------------- | ------- | --------------------------------------- |
+| IncomingConfig.enabled? defaults      | Covered | false by default                        |
+| enable!/disable! transitions          | Covered | State changes correctly                 |
+| Recipients preserved when disabled    | Covered | Round-trip preservation                 |
+| RecipientResolver uses IncomingConfig | Covered | Integration tests                       |
+| API rejects when disabled             | Covered | ValidateRecipient, CreateIncomingSecret |
+| GetConfig returns enabled state       | Covered | API returns correct enabled value       |
 
 ---
 
 ### 2. SSO Configuration
 
 #### E2E Tests (Playwright)
+
 **File:** `e2e/full/domain-sso-config.spec.ts`
 
-| Test ID | Test | Status | Notes |
-|---------|------|--------|-------|
-| TC-DSSO-001 | Navigation from org SSO tab | Covered | |
-| TC-DSSO-002 | Back button navigation | Covered | |
-| TC-DSSO-003 | Direct URL navigation | Covered | |
-| TC-DSSO-004 | Domain list with SSO badges | Covered | |
-| TC-DSSO-005 | "Not Configured" badge | Covered | |
-| TC-DSSO-006 | Configure link navigation | Covered | |
-| TC-DSSO-007 | Empty domains state | Covered | |
-| TC-DSSO-008 | Empty form for unconfigured domain | Covered | |
-| TC-DSSO-009 | Provider type selector (4 options) | Covered | |
-| TC-DSSO-010 | Entra ID shows tenant_id field | Covered | |
-| TC-DSSO-011 | OIDC shows issuer field | Covered | |
-| TC-DSSO-012 | Form validation (required fields) | Covered | Save button disabled/enabled |
-| TC-DSSO-013 | Test connection button | Covered | |
-| TC-DSSO-014 | Test connection success | Covered | |
-| TC-DSSO-015 | Test connection error | Covered | |
-| TC-DSSO-016 | Save creates config | Covered | |
-| TC-DSSO-017 | Delete with confirmation | Covered | |
-| TC-DSSO-018 | Multi-domain different providers | Covered | |
-| TC-DSSO-019 | Access denied without entitlement | Covered | |
-| TC-DSSO-020 | Direct access without entitlement | Covered | |
+| Test ID     | Test                               | Status  | Notes                        |
+| ----------- | ---------------------------------- | ------- | ---------------------------- |
+| TC-DSSO-001 | Navigation from org SSO tab        | Covered |                              |
+| TC-DSSO-002 | Back button navigation             | Covered |                              |
+| TC-DSSO-003 | Direct URL navigation              | Covered |                              |
+| TC-DSSO-004 | Domain list with SSO badges        | Covered |                              |
+| TC-DSSO-005 | "Not Configured" badge             | Covered |                              |
+| TC-DSSO-006 | Configure link navigation          | Covered |                              |
+| TC-DSSO-007 | Empty domains state                | Covered |                              |
+| TC-DSSO-008 | Empty form for unconfigured domain | Covered |                              |
+| TC-DSSO-009 | Provider type selector (4 options) | Covered |                              |
+| TC-DSSO-010 | Entra ID shows tenant_id field     | Covered |                              |
+| TC-DSSO-011 | OIDC shows issuer field            | Covered |                              |
+| TC-DSSO-012 | Form validation (required fields)  | Covered | Save button disabled/enabled |
+| TC-DSSO-013 | Test connection button             | Covered |                              |
+| TC-DSSO-014 | Test connection success            | Covered |                              |
+| TC-DSSO-015 | Test connection error              | Covered |                              |
+| TC-DSSO-016 | Save creates config                | Covered |                              |
+| TC-DSSO-017 | Delete with confirmation           | Covered |                              |
+| TC-DSSO-018 | Multi-domain different providers   | Covered |                              |
+| TC-DSSO-019 | Access denied without entitlement  | Covered |                              |
+| TC-DSSO-020 | Direct access without entitlement  | Covered |                              |
 
 **Gap Analysis:**
+
 - No tests for enabled toggle behavior (currently no enabled toggle in SSO form based on code review)
 - No tests for form fields disabled state
 - No tests for info banner visibility
 
 #### Backend Tests (Tryouts)
+
 **File:** `try/integration/api/domains/list_domains_sso_fields_try.rb`
 
-| Test | Status | Notes |
-|------|--------|-------|
-| sso_configured/sso_enabled fields | Covered | API response includes correct booleans |
-| Domain without SSO config | Covered | sso_configured=false, sso_enabled=false |
-| Domain with disabled SSO | Covered | sso_configured=true, sso_enabled=false |
-| Domain with enabled SSO | Covered | sso_configured=true, sso_enabled=true |
+| Test                              | Status  | Notes                                   |
+| --------------------------------- | ------- | --------------------------------------- |
+| sso_configured/sso_enabled fields | Covered | API response includes correct booleans  |
+| Domain without SSO config         | Covered | sso_configured=false, sso_enabled=false |
+| Domain with disabled SSO          | Covered | sso_configured=true, sso_enabled=false  |
+| Domain with enabled SSO           | Covered | sso_configured=true, sso_enabled=true   |
 
 ---
 
 ### 3. Email Sending Configuration
 
 #### E2E Tests (Playwright)
+
 **Status:** NO DEDICATED E2E TESTS
 
 **Gap Analysis:**
+
 - No Playwright tests for email configuration screen
 - No tests for form field validation
 - No tests for enabled toggle behavior
@@ -121,10 +131,11 @@ This audit identifies existing test coverage and gaps for the domain configurati
 - No tests for save/delete operations
 
 #### Backend Tests (Tryouts)
+
 **File:** `try/integration/api/domains/list_domains_mail_fields_try.rb`
 
-| Test | Status | Notes |
-|------|--------|-------|
+| Test                    | Status  | Notes                             |
+| ----------------------- | ------- | --------------------------------- |
 | Domain list mail fields | Covered | API response includes mail config |
 
 ---
@@ -168,6 +179,7 @@ This audit identifies existing test coverage and gaps for the domain configurati
 ### Critical - Must Add
 
 1. **Toggle-Form State Coupling**
+
    ```typescript
    test('form fields are disabled when toggle is OFF', async ({ page }) => {
      // Navigate to config page
@@ -182,6 +194,7 @@ This audit identifies existing test coverage and gaps for the domain configurati
    ```
 
 2. **Info Banner Visibility**
+
    ```typescript
    test('shows disabled info banner when toggle is OFF', async ({ page }) => {
      // With toggle OFF
@@ -197,6 +210,7 @@ This audit identifies existing test coverage and gaps for the domain configurati
 ### High Priority
 
 3. **Cross-Screen Consistency Tests**
+
    ```typescript
    test.describe('Domain Config Screen Consistency', () => {
      const configScreens = [
@@ -230,6 +244,7 @@ This audit identifies existing test coverage and gaps for the domain configurati
 ### Medium Priority
 
 5. **Recipient Display Format Tests**
+
    ```typescript
    test('recipient list shows email addresses', async ({ page }) => {
      // Navigate to incoming config with recipients
@@ -263,10 +278,12 @@ This audit identifies existing test coverage and gaps for the domain configurati
 ## Recommended Test Update Workflow
 
 ### Phase 1: Pre-Change Baseline
+
 1. Run existing e2e tests, record current pass/fail status
 2. Identify any tests that make assumptions about toggle position
 
 ### Phase 2: Update Existing Tests
+
 1. Update `e2e/all/incoming-secrets.spec.ts`:
    - Add toggle enable step before form interaction tests
    - Update toggle label assertions if present
@@ -276,6 +293,7 @@ This audit identifies existing test coverage and gaps for the domain configurati
    - Update form validation tests to account for disabled state
 
 ### Phase 3: Add New Coverage
+
 1. Create `e2e/full/domain-config-consistency.spec.ts`:
    - Cross-screen consistency tests
    - Toggle-form state coupling tests
@@ -285,6 +303,7 @@ This audit identifies existing test coverage and gaps for the domain configurati
    - Full coverage for email configuration screen
 
 ### Phase 4: Backend Validation
+
 1. Run Tryouts to ensure backend behavior unchanged:
    ```bash
    bundle exec try --agent try/features/incoming/
@@ -318,14 +337,14 @@ Based on the UI changes, these `data-testid` attributes should be added to compo
 
 ## Files to Monitor
 
-| File | Reason |
-|------|--------|
-| `e2e/all/incoming-secrets.spec.ts` | Main incoming secrets tests |
-| `e2e/full/domain-sso-config.spec.ts` | SSO configuration tests |
-| `src/apps/workspace/components/domains/DomainIncomingConfigForm.vue` | Being modified |
-| `src/apps/workspace/components/domains/DomainEmailConfigForm.vue` | Being modified |
-| `src/apps/workspace/components/domains/DomainSsoConfigForm.vue` | Being modified |
-| `try/features/incoming/*.rb` | Backend incoming tests |
+| File                                                                 | Reason                      |
+| -------------------------------------------------------------------- | --------------------------- |
+| `e2e/all/incoming-secrets.spec.ts`                                   | Main incoming secrets tests |
+| `e2e/full/domain-sso-config.spec.ts`                                 | SSO configuration tests     |
+| `src/apps/workspace/components/domains/DomainIncomingConfigForm.vue` | Being modified              |
+| `src/apps/workspace/components/domains/DomainEmailConfigForm.vue`    | Being modified              |
+| `src/apps/workspace/components/domains/DomainSsoConfigForm.vue`      | Being modified              |
+| `try/features/incoming/*.rb`                                         | Backend incoming tests      |
 
 ---
 

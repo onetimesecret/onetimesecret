@@ -26,7 +26,12 @@ export type NotificationsStore = {
 
   // Actions
   init: () => void;
-  show: (msg: string, sev: 'success' | 'error' | 'info', pos?: NotificationPosition, dur?: number) => void;
+  show: (
+    msg: string,
+    sev: 'success' | 'error' | 'info',
+    pos?: NotificationPosition,
+    dur?: number
+  ) => void;
   hide: () => void;
   $reset: () => void;
 } & PiniaCustomProperties;
@@ -104,12 +109,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
   }
 
   /** Display a notification with auto-dismissal. Defaults to 5 s; pass 0 or negative to disable. */
-  function show(
-    msg: string,
-    sev: NotificationSeverity,
-    pos?: NotificationPosition,
-    dur?: number
-  ) {
+  function show(msg: string, sev: NotificationSeverity, pos?: NotificationPosition, dur?: number) {
     // Clear any pending hide timer so earlier timeouts don't dismiss this message
     if (_hideTimerId !== null) {
       clearTimeout(_hideTimerId);

@@ -138,7 +138,6 @@ test.describe('Stripe Integration Blockers - E2E', () => {
     });
 
     test('Plans API returns non-empty plans array', async ({ page }) => {
-
       // Intercept API call
       const apiPromise = page.waitForResponse(
         (response) => response.url().includes('/billing/api/plans'),
@@ -322,7 +321,6 @@ test.describe('Stripe Integration Blockers - E2E', () => {
     });
 
     test('Entitlements API returns 200', async ({ page }) => {
-
       // Intercept entitlements API call
       const apiPromise = page.waitForResponse(
         (response) => response.url().includes('/billing/api/entitlements/'),
@@ -469,10 +467,7 @@ test.describe('Stripe Integration Blockers - E2E', () => {
         );
 
         // Web-first assertion waits for the menu to open and render
-        await expect(
-          billingOption.first(),
-          'User menu should have Billing option'
-        ).toBeVisible();
+        await expect(billingOption.first(), 'User menu should have Billing option').toBeVisible();
       }
     });
 
@@ -493,7 +488,6 @@ test.describe('Stripe Integration Blockers - E2E', () => {
     });
 
     test('Complete upgrade flow is accessible', async ({ page }) => {
-
       // Start from dashboard
       await page.goto('/dashboard');
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();

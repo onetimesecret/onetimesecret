@@ -8,24 +8,24 @@
 
 ### Key Categories
 
-| Category | Count | Keys |
-|----------|-------|------|
-| UI Labels | 4 | `your-feedback`, `share-your-feedback`, `enter-your-feedback`, `help-us-improve` |
-| Modal Controls | 2 | `close-feedback-modal`, `open-feedback-form` |
-| Personal/Branding | 2 | `delano-mandelbaum`, `delano` |
-| Marketing Copy | 4 | `all-feedback-welcome`, `thanks-for-helping-onetime-secret-improve-it-mea`, `weve-built-this-tool-to-help-you-share-sensitive`, `hey-there-thanks-for-stopping-by-our-feedback-pa` |
-| Headers | 1 | `a-note-from-delano-founder-of-onetime-secret` |
-| Placeholder | 1 | `help-content-goes-here` |
+| Category          | Count | Keys                                                                                                                                                                               |
+| ----------------- | ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| UI Labels         | 4     | `your-feedback`, `share-your-feedback`, `enter-your-feedback`, `help-us-improve`                                                                                                   |
+| Modal Controls    | 2     | `close-feedback-modal`, `open-feedback-form`                                                                                                                                       |
+| Personal/Branding | 2     | `delano-mandelbaum`, `delano`                                                                                                                                                      |
+| Marketing Copy    | 4     | `all-feedback-welcome`, `thanks-for-helping-onetime-secret-improve-it-mea`, `weve-built-this-tool-to-help-you-share-sensitive`, `hey-there-thanks-for-stopping-by-our-feedback-pa` |
+| Headers           | 1     | `a-note-from-delano-founder-of-onetime-secret`                                                                                                                                     |
+| Placeholder       | 1     | `help-content-goes-here`                                                                                                                                                           |
 
 ---
 
 ## Potentially Misplaced Keys
 
-| Key | Current Location | Recommended Destination | Rationale |
-|-----|-----------------|------------------------|-----------|
-| `delano-mandelbaum` | `feature-feedback.json` | `_common.json` or new `about.json` | Personal names are not feedback-specific; could be reused on About page, footer credits, etc. |
-| `delano` | `feature-feedback.json` | `_common.json` or new `about.json` | Same as above |
-| `help-content-goes-here` | `feature-feedback.json` | Remove or move to `layout.json` | Appears to be placeholder/dev content; if kept, belongs in general layout |
+| Key                      | Current Location        | Recommended Destination            | Rationale                                                                                     |
+| ------------------------ | ----------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------- |
+| `delano-mandelbaum`      | `feature-feedback.json` | `_common.json` or new `about.json` | Personal names are not feedback-specific; could be reused on About page, footer credits, etc. |
+| `delano`                 | `feature-feedback.json` | `_common.json` or new `about.json` | Same as above                                                                                 |
+| `help-content-goes-here` | `feature-feedback.json` | Remove or move to `layout.json`    | Appears to be placeholder/dev content; if kept, belongs in general layout                     |
 
 ---
 
@@ -65,12 +65,12 @@ The current flat structure mixes UI controls, content, and labels. Consider:
 
 ### 2. Improve Key Naming
 
-| Current Key | Issue | Suggested Key |
-|-------------|-------|---------------|
-| `thanks-for-helping-onetime-secret-improve-it-mea` | Truncated, unclear | `thank-you-message` |
-| `weve-built-this-tool-to-help-you-share-sensitive` | Truncated | `mission-statement` |
-| `hey-there-thanks-for-stopping-by-our-feedback-pa` | Truncated | `welcome-message` |
-| `a-note-from-delano-founder-of-onetime-secret` | Overly long | `founder-note-heading` |
+| Current Key                                        | Issue              | Suggested Key          |
+| -------------------------------------------------- | ------------------ | ---------------------- |
+| `thanks-for-helping-onetime-secret-improve-it-mea` | Truncated, unclear | `thank-you-message`    |
+| `weve-built-this-tool-to-help-you-share-sensitive` | Truncated          | `mission-statement`    |
+| `hey-there-thanks-for-stopping-by-our-feedback-pa` | Truncated          | `welcome-message`      |
+| `a-note-from-delano-founder-of-onetime-secret`     | Overly long        | `founder-note-heading` |
 
 ### 3. Accessibility Improvements
 

@@ -173,10 +173,7 @@ describe('diagnostics.service', () => {
         '[Diagnostics] Exception captured (Sentry unavailable):',
         error
       );
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '[Diagnostics] Context:',
-        context
-      );
+      expect(consoleSpy).toHaveBeenCalledWith('[Diagnostics] Context:', context);
 
       consoleSpy.mockRestore();
     });
@@ -201,7 +198,12 @@ describe('diagnostics.service', () => {
 
       const clonedScope = baseScope.clone.mock.results[0].value;
       expect(clonedScope.setExtras).toHaveBeenCalledWith(context);
-      expect(client.captureMessage).toHaveBeenCalledWith('test message', undefined, undefined, clonedScope);
+      expect(client.captureMessage).toHaveBeenCalledWith(
+        'test message',
+        undefined,
+        undefined,
+        clonedScope
+      );
     });
 
     it('without context: captures without setting extras', async () => {
@@ -215,7 +217,12 @@ describe('diagnostics.service', () => {
 
       const clonedScope = baseScope.clone.mock.results[0].value;
       expect(clonedScope.setExtras).not.toHaveBeenCalled();
-      expect(client.captureMessage).toHaveBeenCalledWith('bare message', undefined, undefined, clonedScope);
+      expect(client.captureMessage).toHaveBeenCalledWith(
+        'bare message',
+        undefined,
+        undefined,
+        clonedScope
+      );
     });
 
     it('without Sentry: falls back to console.warn', async () => {
@@ -228,10 +235,7 @@ describe('diagnostics.service', () => {
         '[Diagnostics] Message captured (Sentry unavailable):',
         'fallback message'
       );
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '[Diagnostics] Context:',
-        { key: 'val' }
-      );
+      expect(consoleSpy).toHaveBeenCalledWith('[Diagnostics] Context:', { key: 'val' });
 
       consoleSpy.mockRestore();
     });

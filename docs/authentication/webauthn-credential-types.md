@@ -11,6 +11,7 @@ requireResidentKey: false
 ```
 
 **Flow:**
+
 1. User enters email
 2. Server looks up account, retrieves registered credential IDs
 3. Server sends `allowCredentials` list to browser
@@ -27,6 +28,7 @@ residentKey: 'required'
 ```
 
 **Flow:**
+
 1. Server sends empty `allowCredentials`
 2. Browser shows all passkeys stored for this origin
 3. User picks one; authenticator returns credential + user handle
@@ -62,6 +64,7 @@ end
 ```
 
 Additional changes needed:
+
 - Modify `webauthn_credentials_for_get` to allow empty `allowCredentials`
 - Handle user identification from authenticator response user handle
 - Existing non-discoverable credentials won't work; users must re-register
@@ -71,6 +74,7 @@ Additional changes needed:
 Non-discoverable is simpler (server controls credential lookup) but requires email-first UX like Stripe.
 
 Discoverable enables true "just click and authenticate" but requires:
+
 - Authenticators that support resident keys (most modern ones do)
 - More complex server-side user identification logic
 - Re-registration of existing credentials

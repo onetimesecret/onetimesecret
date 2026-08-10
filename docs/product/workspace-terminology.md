@@ -24,31 +24,31 @@ locale content files (`locales/content/en/*.json`) changes per surface below.
 
 A brand-new or solo free user has one auto-created "Default Workspace" and no
 reason to think in terms of a multi-tenant "organization" — that word implies
-team administration they haven't opted into yet. "Workspace" reads as *your
-place to work*; "Organization" reads as *a legal/administrative entity you
-manage*. The further a surface sits from onboarding — real team management,
+team administration they haven't opted into yet. "Workspace" reads as _your
+place to work_; "Organization" reads as _a legal/administrative entity you
+manage_. The further a surface sits from onboarding — real team management,
 billing administration, API/backend errors — the more acceptable "Organization"
 becomes, since by that point the user has opted into the concept it names.
 
 This mirrors the same progressive-disclosure principle already documented in
 [Context Switcher Visibility](context-switcher-visibility.md): both the org
-switcher's visibility *and* its label follow "don't show a solo/free user
+switcher's visibility _and_ its label follow "don't show a solo/free user
 machinery they don't need yet."
 
 ## Renamed to "Workspace" (done)
 
-| Surface | File(s) | Notes |
-|---|---|---|
-| Org context dropdown | `OrganizationScopeSwitcher.vue` + `workspace-organizations.json` | Header, "Manage Workspaces", "Select a workspace", locked/fallback text |
-| `/orgs` list page | `OrganizationsSettings.vue` | H1, empty-state copy, tab title |
-| Create-organization modal | `CreateOrganizationModal.vue` | Title now reuses the `create_workspace` key; description/label/error retexted |
-| Billing zero-org empty state | `BillingOverview.vue` | "No Workspaces" heading + reuses `create_workspace` for the CTA. Not reachable today (every account gets a default org on signup) — fixed for consistency/future-proofing |
+| Surface                      | File(s)                                                          | Notes                                                                                                                                                                     |
+| ---------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Org context dropdown         | `OrganizationScopeSwitcher.vue` + `workspace-organizations.json` | Header, "Manage Workspaces", "Select a workspace", locked/fallback text                                                                                                   |
+| `/orgs` list page            | `OrganizationsSettings.vue`                                      | H1, empty-state copy, tab title                                                                                                                                           |
+| Create-organization modal    | `CreateOrganizationModal.vue`                                    | Title now reuses the `create_workspace` key; description/label/error retexted                                                                                             |
+| Billing zero-org empty state | `BillingOverview.vue`                                            | "No Workspaces" heading + reuses `create_workspace` for the CTA. Not reachable today (every account gets a default org on signup) — fixed for consistency/future-proofing |
 
 ## Still "Organization" — onboarding-adjacent, not yet renamed
 
-| Surface | Key | Why it's still open |
-|---|---|---|
-| Org settings → General tab field label | `web.organizations.display_name` = "Organization Name" | A solo/free user *can* reach `/org/:extid`; this label is the one remaining "organization" word on that page (tabs read Domains/Members/SSO/Settings; the H1 is the workspace's own name). Left as-is pending explicit scope confirmation — it's shared with the settings form only, low risk to rename next. |
+| Surface                                | Key                                                    | Why it's still open                                                                                                                                                                                                                                                                                           |
+| -------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Org settings → General tab field label | `web.organizations.display_name` = "Organization Name" | A solo/free user _can_ reach `/org/:extid`; this label is the one remaining "organization" word on that page (tabs read Domains/Members/SSO/Settings; the H1 is the workspace's own name). Left as-is pending explicit scope confirmation — it's shared with the settings form only, low risk to rename next. |
 
 ## Intentionally left as "Organization" — deeper / admin surfaces
 
@@ -72,7 +72,7 @@ Not renamed because they're consumed by API clients and/or matched by
 tests, not just displayed:
 
 - `api.invite.errors.organization_no_longer_exists`, `...already a member of
-  this organization`
+this organization`
 - `api-entitlements-errors.json`: "Unable to verify entitlements
   (organization context unavailable)", "Organization management requires a
   plan upgrade"

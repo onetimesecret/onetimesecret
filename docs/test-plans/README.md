@@ -1,6 +1,7 @@
 # LLM-Optimized Test Cases
 
 Intent-based test specifications that serve two purposes:
+
 1. **Direct execution** by browser automation agents (slow but thorough)
 2. **Living documentation** for Playwright E2E tests (fast, repeatable)
 
@@ -16,7 +17,7 @@ LLM agents infer mechanics from intent, so step-by-step instructions are unneces
 
 Running test plans via LLM agents is thorough but slow (1+ hours for complex flows). For practical QA:
 
-1. **YAML test plans** document the *intent* and *spirit* of what tests should verify
+1. **YAML test plans** document the _intent_ and _spirit_ of what tests should verify
 2. **Playwright specs** implement fast, repeatable E2E tests
 3. **When tests drift**, use an LLM with both files to repair/sync them
 
@@ -29,7 +30,7 @@ suite:
   id: org-invitation-flow
   name: Organization Member Invitation Flow
   feature: Organization invitations with auth flow integration
-  e2e_spec: e2e/full/org-invitation-flow.spec.ts  # or array for multiple files
+  e2e_spec: e2e/full/org-invitation-flow.spec.ts # or array for multiple files
 ```
 
 ### Sync Workflow
@@ -42,11 +43,11 @@ Prompt: "Compare the test plan YAML with the Playwright spec.
          to match the documented intent."
 ```
 
-This keeps the YAML as the source of truth for *what* to test, while Playwright handles *how*.
+This keeps the YAML as the source of truth for _what_ to test, while Playwright handles _how_.
 
 ## Writing Verify Assertions
 
-The agent determines *how* to validate, but the test plan must ensure outcomes are **verifiable**, not assumed.
+The agent determines _how_ to validate, but the test plan must ensure outcomes are **verifiable**, not assumed.
 
 ### When intent is sufficient
 
@@ -54,9 +55,9 @@ For UI-visible outcomes, simple intent statements work - the agent infers valida
 
 ```yaml
 verify:
-  - User is redirected to dashboard        # agent checks URL
-  - Success message appears                # agent checks visible element
-  - Login form is no longer visible        # agent checks element hidden
+  - User is redirected to dashboard # agent checks URL
+  - Success message appears # agent checks visible element
+  - Login form is no longer visible # agent checks element hidden
 ```
 
 ### When explicit validation is required
@@ -106,12 +107,12 @@ If the outcome is **visible on the page**, intent is enough. If the outcome is *
 
 - `validate.ts` - Validates test plan YAML files against the Zod v4 schema.
 
-
 ## Running
 
 Use @browser-tester which has access to chrome devtools MCP and serena tools.
 
 Before you start:
+
 - Run Caddy, use TLS certs
 - Clean mail from Mailpit inbox
 
@@ -120,7 +121,6 @@ Example prompt:
 > Use @browser-tester to run this testplan. Use https://dev.onetime.dev and
 > https://dev.onetime.dev:8025/ for mailpit UI. When dealing with accounts,
 > the email addresses must use a valid domain that will pass Truemail checks.
-
 
 ## Converting from Qase
 

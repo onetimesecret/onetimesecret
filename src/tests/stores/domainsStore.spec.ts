@@ -31,7 +31,7 @@ describe('domainsStore', () => {
   describe('Initialization', () => {
     // V3 wire format: Unix epoch seconds for timestamps
     const mockNewDomainRaw = {
-      created: 1735681545,     // Unix epoch seconds
+      created: 1735681545, // Unix epoch seconds
       updated: 1735681545,
       domainid: 'domain-123',
       extid: 'dm-ext-123',

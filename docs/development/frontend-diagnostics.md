@@ -9,10 +9,10 @@ self-hosted Sentry at catch.onetimesecret.com. Plugin:
 ## Architecture
 
 Isolated-client pattern: explicit `BrowserClient` + `Scope`, no global
-`Sentry.init`. The client is bound to *both* scopes (dual-scope): our isolated
+`Sentry.init`. The client is bound to _both_ scopes (dual-scope): our isolated
 `Scope` (manual captures, tags, transaction name) and the global current scope
 via `setCurrentClient`. The global binding is required because SDK integrations
-resolve their client off the *current* scope, not our isolated one — without it
+resolve their client off the _current_ scope, not our isolated one — without it
 `browserApiErrors` drops async-callback errors (timers, listeners, XHR) and
 `browserTracing` never records transactions (so `beforeSendTransaction`
 scrubbing never runs). Both scopes route events through the same client, so all

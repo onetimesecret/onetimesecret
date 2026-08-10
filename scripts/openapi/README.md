@@ -56,7 +56,7 @@ Each V3 schema serves three roles in a single definition:
 // Wire → Domain → Documentation
 //
 // 1. VALIDATE: Parse the JSON response from the API
-secretResponseSchema.parse(json)       // input:  { created: 1641234567 }
+secretResponseSchema.parse(json); // input:  { created: 1641234567 }
 //
 // 2. TRANSFORM: Coerce wire values into domain types for Pinia/components
 //    ↓ .transform(v => new Date(v * 1000))
@@ -72,11 +72,11 @@ The `io: "input"` parameter is what makes this work. Without it, `z.toJSONSchema
 defaults to the output type — and `Date` serializes as `{}` (unrepresentable in
 JSON Schema). With `io: "input"`, it documents the wire format instead.
 
-| Wire value (input)   | Domain value (output) | JSON Schema type |
-|----------------------|----------------------|-----------------|
-| `1641234567`         | `Date`               | `number`        |
-| `"0"` / `"1"`       | `false` / `true`     | `string`        |
-| `"1641234567"`       | `1641234567`         | `string`        |
+| Wire value (input) | Domain value (output) | JSON Schema type |
+| ------------------ | --------------------- | ---------------- |
+| `1641234567`       | `Date`                | `number`         |
+| `"0"` / `"1"`      | `false` / `true`      | `string`         |
+| `"1641234567"`     | `1641234567`          | `string`         |
 
 This means you can safely add `.transform()` to any V3 schema field without breaking
 the generated OpenAPI spec. V3 timestamp transforms live in `src/schemas/transforms.ts`
@@ -138,8 +138,8 @@ This produces:
 
 ### Tag reference
 
-| Tag | OpenAPI field | Example |
-|-----|---------------|---------|
+| Tag    | OpenAPI field           | Example                                         |
+| ------ | ----------------------- | ----------------------------------------------- |
 | `@api` | `operation.description` | `@api Store a secret and receive a share link.` |
 
 Only `@api` is supported initially. Additional tags (e.g. `@api-param`, `@api-example`, `@api-since`) may be added as the pipeline matures.

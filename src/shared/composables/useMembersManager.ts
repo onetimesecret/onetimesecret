@@ -6,10 +6,7 @@
  */
 
 import { ApplicationError } from '@/schemas/errors';
-import {
-  AsyncHandlerOptions,
-  useAsyncHandler,
-} from '@/shared/composables/useAsyncHandler';
+import { AsyncHandlerOptions, useAsyncHandler } from '@/shared/composables/useAsyncHandler';
 import { useMembersStore, useNotificationsStore } from '@/shared/stores';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type {
@@ -47,9 +44,7 @@ export function useMembersManager() {
   const error = ref<ApplicationError | null>(null);
 
   // Computed properties for permissions
-  const currentUserRole = computed(
-    () => currentOrganization.value?.current_user_role
-  );
+  const currentUserRole = computed(() => currentOrganization.value?.current_user_role);
 
   const canManageMembers = computed(() => {
     const role = currentUserRole.value;
@@ -135,31 +130,19 @@ export function useMembersManager() {
       }
 
       if (!canChangeRole(member)) {
-        notifications.show(
-          t('web.organizations.members.insufficient_permissions'),
-          'error',
-          'top'
-        );
+        notifications.show(t('web.organizations.members.insufficient_permissions'), 'error', 'top');
         return undefined;
       }
 
       if (newRole === 'owner') {
-        notifications.show(
-          t('web.organizations.members.cannot_change_own_role'),
-          'error',
-          'top'
-        );
+        notifications.show(t('web.organizations.members.cannot_change_own_role'), 'error', 'top');
         return undefined;
       }
 
       const payload: UpdateMemberRolePayload = { role: newRole as 'admin' | 'member' };
       const result = await store.updateMemberRole(orgExtid, memberExtid, payload);
 
-      notifications.show(
-        t('web.organizations.members.role_updated'),
-        'success',
-        'top'
-      );
+      notifications.show(t('web.organizations.members.role_updated'), 'success', 'top');
 
       return result;
     });
@@ -178,11 +161,7 @@ export function useMembersManager() {
 
       if (!canModifyMember(member)) {
         if (member.role === 'owner') {
-          notifications.show(
-            t('web.organizations.members.cannot_remove_owner'),
-            'error',
-            'top'
-          );
+          notifications.show(t('web.organizations.members.cannot_remove_owner'), 'error', 'top');
         } else {
           notifications.show(
             t('web.organizations.members.insufficient_permissions'),
@@ -195,11 +174,7 @@ export function useMembersManager() {
 
       await store.removeMember(orgExtid, memberExtid);
 
-      notifications.show(
-        t('web.organizations.members.member_removed'),
-        'success',
-        'top'
-      );
+      notifications.show(t('web.organizations.members.member_removed'), 'success', 'top');
 
       return true;
     });
@@ -207,12 +182,14 @@ export function useMembersManager() {
   /**
    * Get role display label
    */
-  const getRoleLabel = (role: OrganizationRole): string => t(`web.organizations.members.roles.${role}`);
+  const getRoleLabel = (role: OrganizationRole): string =>
+    t(`web.organizations.members.roles.${role}`);
 
   /**
    * Get role description
    */
-  const getRoleDescription = (role: OrganizationRole): string => t(`web.organizations.members.role_descriptions.${role}`);
+  const getRoleDescription = (role: OrganizationRole): string =>
+    t(`web.organizations.members.role_descriptions.${role}`);
 
   /**
    * Clear error state

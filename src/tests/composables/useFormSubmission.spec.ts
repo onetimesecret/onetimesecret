@@ -58,9 +58,12 @@ describe('useFormSubmission', () => {
   describe('CSRF token in request', () => {
     it('sends CSRF token in X-CSRF-Token header', async () => {
       vi.mocked(global.fetch).mockResolvedValue(
-        createMockResponse({ message: 'ok' }, {
-          headers: { 'x-csrf-token': 'new-token' },
-        })
+        createMockResponse(
+          { message: 'ok' },
+          {
+            headers: { 'x-csrf-token': 'new-token' },
+          }
+        )
       );
 
       const { submitForm } = createSubmission();
@@ -72,9 +75,7 @@ describe('useFormSubmission', () => {
     });
 
     it('sends shrimp in form body', async () => {
-      vi.mocked(global.fetch).mockResolvedValue(
-        createMockResponse({ message: 'ok' })
-      );
+      vi.mocked(global.fetch).mockResolvedValue(createMockResponse({ message: 'ok' }));
 
       const { submitForm } = createSubmission();
       await submitForm();
@@ -88,9 +89,12 @@ describe('useFormSubmission', () => {
   describe('CSRF token refresh from response header', () => {
     it('updates CSRF token from success response header', async () => {
       vi.mocked(global.fetch).mockResolvedValue(
-        createMockResponse({ message: 'ok' }, {
-          headers: { 'x-csrf-token': 'refreshed-token' },
-        })
+        createMockResponse(
+          { message: 'ok' },
+          {
+            headers: { 'x-csrf-token': 'refreshed-token' },
+          }
+        )
       );
 
       const { submitForm } = createSubmission();
@@ -131,9 +135,7 @@ describe('useFormSubmission', () => {
     });
 
     it('handles missing x-csrf-token header gracefully', async () => {
-      vi.mocked(global.fetch).mockResolvedValue(
-        createMockResponse({ message: 'ok' })
-      );
+      vi.mocked(global.fetch).mockResolvedValue(createMockResponse({ message: 'ok' }));
 
       const { submitForm } = createSubmission();
       await submitForm();
@@ -144,9 +146,12 @@ describe('useFormSubmission', () => {
 
     it('ignores empty x-csrf-token header', async () => {
       vi.mocked(global.fetch).mockResolvedValue(
-        createMockResponse({ message: 'ok' }, {
-          headers: { 'x-csrf-token': '' },
-        })
+        createMockResponse(
+          { message: 'ok' },
+          {
+            headers: { 'x-csrf-token': '' },
+          }
+        )
       );
 
       const { submitForm } = createSubmission();

@@ -1,103 +1,107 @@
 <!-- src/apps/workspace/components/members/MembersTable.vue -->
 
 <script setup lang="ts">
-import MemberRoleSelector from '@/apps/workspace/components/members/MemberRoleSelector.vue';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
-import { useMembersManager } from '@/shared/composables/useMembersManager';
-import { useDomainsStore } from '@/shared/stores';
-import type { OrganizationMember, OrganizationRole } from '@/types/organization';
-import { formatDisplayDate } from '@/utils/format';
-import { useConfirmDialog } from '@vueuse/core';
-import { ref } from 'vue';
-import { useI18n } from 'vue-i18n';
+  import MemberRoleSelector from '@/apps/workspace/components/members/MemberRoleSelector.vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
+  import { useMembersManager } from '@/shared/composables/useMembersManager';
+  import { useDomainsStore } from '@/shared/stores';
+  import type { OrganizationMember, OrganizationRole } from '@/types/organization';
+  import { formatDisplayDate } from '@/utils/format';
+  import { useConfirmDialog } from '@vueuse/core';
+  import { ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
-const domainsStore = useDomainsStore();
+  const domainsStore = useDomainsStore();
 
-const getDomainName = (domainScopeId: string | null | undefined): string | null => {
-  if (!domainScopeId) return null;
-  const domain = domainsStore.records?.find(d => d.domainid === domainScopeId);
-  return domain?.display_domain ?? null;
-};
+  const getDomainName = (domainScopeId: string | null | undefined): string | null => {
+    if (!domainScopeId) return null;
+    const domain = domainsStore.records?.find((d) => d.domainid === domainScopeId);
+    return domain?.display_domain ?? null;
+  };
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-const props = withDefaults(defineProps<{
-  members: OrganizationMember[];
-  orgExtid: string;
-  isLoading: boolean;
-  /** Compact mode hides the header and reduces padding */
-  compact?: boolean;
-  /** API-provided assignable roles; falls back to useMembersManager when absent */
-  assignableRoles?: OrganizationRole[];
-}>(), {
-  compact: false,
-});
-
-const emit = defineEmits<{
-  (e: 'member-updated', member: OrganizationMember): void;
-  (e: 'member-removed', memberExtid: string): void;
-}>();
-
-const {
-  canModifyMember,
-  canChangeRole,
-  getAssignableRoles,
-  updateMemberRole,
-  removeMember,
-  getRoleLabel,
-} = useMembersManager();
-
-const { isRevealed, reveal, confirm, cancel } = useConfirmDialog();
-
-const memberToRemove = ref<OrganizationMember | null>(null);
-
-const handleRoleChange = async (member: OrganizationMember, newRole: OrganizationRole) => {
-  if (newRole === member.role) return;
-
-  const result = await updateMemberRole(props.orgExtid, member.extid, newRole);
-  if (result) {
-    emit('member-updated', result);
-  }
-};
-
-const handleRemoveClick = async (member: OrganizationMember) => {
-  memberToRemove.value = member;
-  const { isCanceled } = await reveal();
-
-  if (!isCanceled) {
-    const success = await removeMember(props.orgExtid, member.extid);
-    if (success) {
-      emit('member-removed', member.extid);
+  const props = withDefaults(
+    defineProps<{
+      members: OrganizationMember[];
+      orgExtid: string;
+      isLoading: boolean;
+      /** Compact mode hides the header and reduces padding */
+      compact?: boolean;
+      /** API-provided assignable roles; falls back to useMembersManager when absent */
+      assignableRoles?: OrganizationRole[];
+    }>(),
+    {
+      compact: false,
     }
-  }
+  );
 
-  memberToRemove.value = null;
-};
+  const emit = defineEmits<{
+    (e: 'member-updated', member: OrganizationMember): void;
+    (e: 'member-removed', memberExtid: string): void;
+  }>();
 
-const formatDate = (timestamp: number): string => formatDisplayDate(new Date(timestamp * 1000));
+  const {
+    canModifyMember,
+    canChangeRole,
+    getAssignableRoles,
+    updateMemberRole,
+    removeMember,
+    getRoleLabel,
+  } = useMembersManager();
 
-const getRoleBadgeClasses = (role: OrganizationRole): string => {
-  const baseClasses =
-    'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium';
+  const { isRevealed, reveal, confirm, cancel } = useConfirmDialog();
 
-  switch (role) {
-    case 'owner':
-      return `${baseClasses} bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400`;
-    case 'admin':
-      return `${baseClasses} bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400`;
-    case 'member':
-    default:
-      return `${baseClasses} bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300`;
-  }
-};
+  const memberToRemove = ref<OrganizationMember | null>(null);
+
+  const handleRoleChange = async (member: OrganizationMember, newRole: OrganizationRole) => {
+    if (newRole === member.role) return;
+
+    const result = await updateMemberRole(props.orgExtid, member.extid, newRole);
+    if (result) {
+      emit('member-updated', result);
+    }
+  };
+
+  const handleRemoveClick = async (member: OrganizationMember) => {
+    memberToRemove.value = member;
+    const { isCanceled } = await reveal();
+
+    if (!isCanceled) {
+      const success = await removeMember(props.orgExtid, member.extid);
+      if (success) {
+        emit('member-removed', member.extid);
+      }
+    }
+
+    memberToRemove.value = null;
+  };
+
+  const formatDate = (timestamp: number): string => formatDisplayDate(new Date(timestamp * 1000));
+
+  const getRoleBadgeClasses = (role: OrganizationRole): string => {
+    const baseClasses = 'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium';
+
+    switch (role) {
+      case 'owner':
+        return `${baseClasses} bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400`;
+      case 'admin':
+        return `${baseClasses} bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400`;
+      case 'member':
+      default:
+        return `${baseClasses} bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300`;
+    }
+  };
 </script>
 
 <template>
   <div>
     <section
       :class="[
-        compact ? '' : 'rounded-lg bg-white/60 p-4 shadow-sm backdrop-blur-sm dark:bg-gray-900/60 sm:p-6 lg:p-8'
+        compact
+          ? ''
+          : 'rounded-lg bg-white/60 p-4 shadow-sm backdrop-blur-sm sm:p-6 lg:p-8 dark:bg-gray-900/60',
       ]"
       aria-labelledby="members-heading">
       <!-- Header Section (hidden in compact mode) -->
@@ -117,28 +121,29 @@ const getRoleBadgeClasses = (role: OrganizationRole): string => {
       </div>
 
       <!-- Members Table -->
-      <div :class="compact ? '' : 'relative rounded-lg border border-gray-200 dark:border-gray-700'">
+      <div
+        :class="compact ? '' : 'relative rounded-lg border border-gray-200 dark:border-gray-700'">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 font-brand dark:bg-gray-800">
             <tr>
               <th
                 scope="col"
-                class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
                 {{ t('web.organizations.members.member') }}
               </th>
               <th
                 scope="col"
-                class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
                 {{ t('web.organizations.members.role') }}
               </th>
               <th
                 scope="col"
-                class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
                 {{ t('web.organizations.members.joined') }}
               </th>
               <th
                 scope="col"
-                class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                class="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
                 {{ t('web.organizations.members.actions') }}
               </th>
             </tr>
@@ -150,7 +155,7 @@ const getRoleBadgeClasses = (role: OrganizationRole): string => {
               :key="member.extid"
               class="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-800">
               <!-- Member Info -->
-              <td class="whitespace-nowrap px-6 py-4">
+              <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
                   <div
                     class="flex size-10 shrink-0 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700">
@@ -167,16 +172,23 @@ const getRoleBadgeClasses = (role: OrganizationRole): string => {
                     <div
                       v-if="member.provisioning_source || getDomainName(member.domain_scope_id)"
                       class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-                      <span v-if="member.provisioning_source">{{ member.provisioning_source }}</span>
-                      <span v-if="member.provisioning_source && getDomainName(member.domain_scope_id)"> · </span>
-                      <span v-if="getDomainName(member.domain_scope_id)">{{ getDomainName(member.domain_scope_id) }}</span>
+                      <span v-if="member.provisioning_source">{{
+                        member.provisioning_source
+                      }}</span>
+                      <span
+                        v-if="member.provisioning_source && getDomainName(member.domain_scope_id)">
+                        ·
+                      </span>
+                      <span v-if="getDomainName(member.domain_scope_id)">{{
+                        getDomainName(member.domain_scope_id)
+                      }}</span>
                     </div>
                   </div>
                 </div>
               </td>
 
               <!-- Role -->
-              <td class="whitespace-nowrap px-6 py-4">
+              <td class="px-6 py-4 whitespace-nowrap">
                 <MemberRoleSelector
                   v-if="canChangeRole(member)"
                   :model-value="member.role"
@@ -191,12 +203,12 @@ const getRoleBadgeClasses = (role: OrganizationRole): string => {
               </td>
 
               <!-- Joined Date -->
-              <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+              <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
                 {{ formatDate(member.joined_at) }}
               </td>
 
               <!-- Actions -->
-              <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+              <td class="px-6 py-4 text-right text-sm font-medium whitespace-nowrap">
                 <button
                   v-if="canModifyMember(member) && !member.is_current_user"
                   type="button"
@@ -225,7 +237,9 @@ const getRoleBadgeClasses = (role: OrganizationRole): string => {
     <ConfirmDialog
       v-if="isRevealed && memberToRemove"
       :title="t('web.organizations.members.remove_member_title')"
-      :message="t('web.organizations.members.remove_member_confirm', { name: memberToRemove.email })"
+      :message="
+        t('web.organizations.members.remove_member_confirm', { name: memberToRemove.email })
+      "
       type="danger"
       @confirm="confirm"
       @cancel="cancel" />

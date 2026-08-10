@@ -4,32 +4,30 @@
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useClickOutside } from '@/shared/composables/useClickOutside';
-    import {
+  import {
     useJurisdictionDisplayNames,
     type JurisdictionWithDisplayName,
   } from '@/shared/stores/jurisdictionStore';
   import { ref } from 'vue';
 
-const { t } = useI18n();
-  const {
-    currentJurisdictionWithDisplayName,
-    jurisdictionsWithDisplayName,
-  } = useJurisdictionDisplayNames();
+  const { t } = useI18n();
+  const { currentJurisdictionWithDisplayName, jurisdictionsWithDisplayName } =
+    useJurisdictionDisplayNames();
 
   /* Vue 3 Reactivity Guide: Rules for Store Access
-  * ─────────────────────────────────────────
-  * ❌ Destructuring breaks reactivity chain:
-  *    const { getCurrentJurisdiction } = jurisdictionStore
-  *    <template>{{ getCurrentJurisdiction }}</template> => undefined
-  *
-  * ✓ Computed preserves reactive reference:
-  *    const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction)
-  *    <template>{{ currentJurisdiction }}</template> => {...}
-  *
-  * ✓ Direct store access maintains reactivity:
-  *    const jurisdictionStore = useJurisdictionStore()
-  *    <template>{{ jurisdictionStore.currentJurisdiction }}</template> => {...}
-  */
+   * ─────────────────────────────────────────
+   * ❌ Destructuring breaks reactivity chain:
+   *    const { getCurrentJurisdiction } = jurisdictionStore
+   *    <template>{{ getCurrentJurisdiction }}</template> => undefined
+   *
+   * ✓ Computed preserves reactive reference:
+   *    const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction)
+   *    <template>{{ currentJurisdiction }}</template> => {...}
+   *
+   * ✓ Direct store access maintains reactivity:
+   *    const jurisdictionStore = useJurisdictionStore()
+   *    <template>{{ jurisdictionStore.currentJurisdiction }}</template> => {...}
+   */
 
   // Use jurisdictions with resolved display names
   const currentJurisdiction = currentJurisdictionWithDisplayName;
@@ -56,7 +54,7 @@ const { t } = useI18n();
 
   const setActiveIndexFromCurrent = () => {
     const currentId = currentJurisdiction.value?.identifier;
-    const index = jurisdictions.value.findIndex(j => j.identifier === currentId);
+    const index = jurisdictions.value.findIndex((j) => j.identifier === currentId);
     activeIndex.value = index >= 0 ? index : 0;
   };
 
@@ -95,7 +93,8 @@ const { t } = useI18n();
         break;
       case 'ArrowUp':
         event.preventDefault();
-        activeIndex.value = (activeIndex.value - 1 + jurisdictions.value.length) % jurisdictions.value.length;
+        activeIndex.value =
+          (activeIndex.value - 1 + jurisdictions.value.length) % jurisdictions.value.length;
         focusActiveItem();
         break;
       case 'Home':
@@ -126,9 +125,11 @@ const { t } = useI18n();
   useClickOutside(dropdownRef, closeDropdown);
 
   // Safety functions for icon props
-  const getIconCollection = (jurisdiction: JurisdictionWithDisplayName | null): string => jurisdiction?.icon?.collection || 'fa6-solid';
+  const getIconCollection = (jurisdiction: JurisdictionWithDisplayName | null): string =>
+    jurisdiction?.icon?.collection || 'fa6-solid';
 
-  const getIconName = (jurisdiction: JurisdictionWithDisplayName | null): string => jurisdiction?.icon?.name || 'globe';
+  const getIconName = (jurisdiction: JurisdictionWithDisplayName | null): string =>
+    jurisdiction?.icon?.name || 'globe';
 </script>
 
 <template>
@@ -139,16 +140,7 @@ const { t } = useI18n();
     <button
       @click="toggleDropdown"
       @keydown="handleKeyDown"
-      class="group inline-flex items-center space-x-2 rounded-full
-                  bg-inherit
-                  px-3 py-1 text-sm font-medium
-                  text-gray-700 shadow-sm
-                  hover:bg-gray-200 hover:text-gray-900
-                  hover:shadow-md focus:outline-none
-                  focus:ring-2 focus:ring-brand-500
-                  focus:ring-offset-2 focus:ring-offset-white dark:text-gray-400
-                  dark:hover:bg-gray-700 dark:hover:text-gray-300
-                  dark:focus:ring-brand-400 dark:focus:ring-offset-gray-900"
+      class="group inline-flex items-center space-x-2 rounded-full bg-inherit px-3 py-1 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-200 hover:text-gray-900 hover:shadow-md focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-white focus:outline-none dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300 dark:focus:ring-brand-400 dark:focus:ring-offset-gray-900"
       :aria-expanded="isOpen"
       aria-haspopup="listbox"
       :aria-labelledby="'jurisdiction-label'"
@@ -159,7 +151,11 @@ const { t } = useI18n();
         class="size-5 group-hover:text-brand-500 dark:group-hover:text-brand-400"
         aria-hidden="true" />
 
-      <span class="hidden whitespace-nowrap sm:inline" id="jurisdiction-label">{{ currentJurisdiction.display_name }}</span>
+      <span
+        class="hidden whitespace-nowrap sm:inline"
+        id="jurisdiction-label"
+        >{{ currentJurisdiction.display_name }}</span
+      >
 
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -184,26 +180,24 @@ const { t } = useI18n();
       <ul
         v-if="isOpen"
         ref="listboxRef"
-        class="absolute bottom-full left-0 z-50 mb-1 max-h-60 w-max min-w-[200px] max-w-xs
-                overflow-auto rounded-md bg-white py-1 text-base shadow-lg
-                ring-1 ring-black/5 focus:outline-none
-                dark:bg-gray-700 sm:text-sm"
+        class="absolute bottom-full left-0 z-50 mb-1 max-h-60 w-max max-w-xs min-w-[200px] overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm dark:bg-gray-700"
         role="listbox"
         :aria-labelledby="'jurisdiction-label'"
         id="jurisdiction-listbox"
         @keydown="handleKeyDown">
         <li
-          class="px-3 py-2 font-brand text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-100">
+          class="px-3 py-2 font-brand text-xs font-semibold tracking-wider text-gray-700 uppercase dark:text-gray-100">
           {{ t('web.regions.regions') }}
         </li>
 
         <li
           v-for="(jurisdiction, index) in jurisdictions"
           :key="jurisdiction.identifier"
-          class="relative cursor-pointer select-none py-2 pl-3 pr-9 font-brand text-base
-                 text-gray-700 transition-colors duration-200
-                 hover:bg-brand-100 dark:text-gray-50 dark:hover:bg-brandcompdim-800"
-          :class="{ 'bg-brand-50 dark:bg-brandcompdim-900': currentJurisdiction?.identifier === jurisdiction.identifier }"
+          class="relative cursor-pointer py-2 pr-9 pl-3 font-brand text-base text-gray-700 transition-colors duration-200 select-none hover:bg-brand-100 dark:text-gray-50 dark:hover:bg-brandcompdim-800"
+          :class="{
+            'bg-brand-50 dark:bg-brandcompdim-900':
+              currentJurisdiction?.identifier === jurisdiction.identifier,
+          }"
           role="option"
           tabindex="0"
           :aria-selected="currentJurisdiction?.identifier === jurisdiction.identifier"
@@ -220,7 +214,9 @@ const { t } = useI18n();
 
             <span
               class="block truncate"
-              :class="{ 'font-semibold': currentJurisdiction?.identifier === jurisdiction.identifier }">
+              :class="{
+                'font-semibold': currentJurisdiction?.identifier === jurisdiction.identifier,
+              }">
               {{ jurisdiction.display_name }}
             </span>
           </span>

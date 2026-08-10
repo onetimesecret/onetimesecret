@@ -45,18 +45,15 @@
     removeFavicon,
   } = useBranding(props.extid);
 
-  const {
-    domain: customDomainRecord,
-    initialize: initializeDomain,
-  } = useDomain(props.extid);
+  const { domain: customDomainRecord, initialize: initializeDomain } = useDomain(props.extid);
 
   const bootstrapStore = useBootstrapStore();
   const { i18n_enabled } = storeToRefs(bootstrapStore);
 
   const organizationStore = useOrganizationStore();
   const { organizations } = storeToRefs(organizationStore);
-  const organization = computed(() =>
-    organizations.value.find((o) => o.extid === props.orgid) ?? null
+  const organization = computed(
+    () => organizations.value.find((o) => o.extid === props.orgid) ?? null
   );
   const { can } = useEntitlements(organization);
   const canBrand = computed(() => can(ENTITLEMENTS.CUSTOM_BRANDING));
@@ -96,7 +93,11 @@
     () => isLoading.value,
     (loading) => {
       if (!loading && !brandSettings.value) {
-        error.value = createError(t('web.branding.failed_to_load_brand_settings'), 'technical', 'error');
+        error.value = createError(
+          t('web.branding.failed_to_load_brand_settings'),
+          'technical',
+          'error'
+        );
       }
     }
   );
@@ -198,9 +199,11 @@
             :aria-selected="activeTab === tab.id"
             @click="activeTab = tab.id"
             class="-mb-px border-b-2 px-1 pb-2.5 text-sm font-medium transition-colors focus:outline-none"
-            :class="activeTab === tab.id
-              ? 'border-brand-600 text-gray-900 dark:border-brand-400 dark:text-gray-100'
-              : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'">
+            :class="
+              activeTab === tab.id
+                ? 'border-brand-600 text-gray-900 dark:border-brand-400 dark:text-gray-100'
+                : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+            ">
             {{ t(tab.labelKey) }}
           </button>
         </div>

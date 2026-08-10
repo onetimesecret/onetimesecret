@@ -58,9 +58,7 @@ test.describe('SSO CSP form-action (#3848)', () => {
     page.setDefaultTimeout(15000);
   });
 
-  test('SSO form POST -> IdP redirect is not blocked by CSP form-action', async ({
-    page,
-  }) => {
+  test('SSO form POST -> IdP redirect is not blocked by CSP form-action', async ({ page }) => {
     // Install the violation recorder BEFORE any document loads, so it survives
     // the reload below and is present on the signin document that owns the form.
     // The event fires on the initiating (OTS) document when the redirect is
@@ -140,9 +138,7 @@ test.describe('SSO CSP form-action (#3848)', () => {
     ).toBe(true);
   });
 
-  test('CSP form-action directive advertises an IdP origin beyond \'self\'', async ({
-    page,
-  }) => {
+  test("CSP form-action directive advertises an IdP origin beyond 'self'", async ({ page }) => {
     // Non-navigational corroboration of the same fix at the header level.
     // Pre-fix the directive was exactly `form-action 'self'`; the #3848 fix
     // appends the active SSO IdP origin(s), so it must carry at least one

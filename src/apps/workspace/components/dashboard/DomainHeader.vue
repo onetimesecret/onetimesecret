@@ -61,16 +61,13 @@
   // prop contract (domain is CustomDomain | null).
   const verifyRoute = computed(() => `/org/${props.orgid}/domains/${props.domain?.extid}/verify`);
 
-  const { statusIcon, statusColor, displayStatus } = useDomainStatus(
-    () => props.domain
-  );
+  const { statusIcon, statusColor, displayStatus } = useDomainStatus(() => props.domain);
 
   // The active/inactive badge reflects Approximated's per-domain DNS check.
   // On installs that don't use Approximated, that status is never populated
   // (every domain would read "Inactive"), so hide the badge entirely. See #3618
   // rationale in isApproximatedDomainValidation().
   const showVerificationStatus = computed(() => isApproximatedDomainValidation());
-
 </script>
 
 <template>
@@ -171,8 +168,10 @@
         v-else
         class="flex flex-col gap-1">
         <!-- Loading placeholder -->
-        <div class="h-8 w-64 animate-pulse motion-reduce:animate-none rounded bg-gray-200 dark:bg-gray-700"></div>
-        <div class="h-4 w-24 animate-pulse motion-reduce:animate-none rounded bg-gray-200 dark:bg-gray-700"></div>
+        <div
+          class="h-8 w-64 animate-pulse rounded bg-gray-200 motion-reduce:animate-none dark:bg-gray-700"></div>
+        <div
+          class="h-4 w-24 animate-pulse rounded bg-gray-200 motion-reduce:animate-none dark:bg-gray-700"></div>
       </div>
     </div>
   </div>

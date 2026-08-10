@@ -3,19 +3,22 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-defineProps<{
-  actionRoute?: string;
-  actionText?: string;
-  showAction?: boolean;
-  testid?: string;
-}>();
+  defineProps<{
+    actionRoute?: string;
+    actionText?: string;
+    showAction?: boolean;
+    testid?: string;
+  }>();
 </script>
 
 <template>
-  <div :data-testid="testid" class="py-12 text-center">
-    <div class="mx-auto flex size-12 items-center justify-center rounded-full bg-gray-100 p-3 dark:bg-gray-800">
+  <div
+    :data-testid="testid"
+    class="py-12 text-center">
+    <div
+      class="mx-auto flex size-12 items-center justify-center rounded-full bg-gray-100 p-3 dark:bg-gray-800">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="64"
@@ -39,11 +42,13 @@ defineProps<{
         <div>{{ t('web.secrets.theyll_appear_here_once_youve_shared_them') }}</div>
       </slot>
     </p>
-    <div v-if="showAction !== false" class="mt-6">
+    <div
+      v-if="showAction !== false"
+      class="mt-6">
       <slot name="actionLabel">
         <router-link
           :to="actionRoute || '/'"
-          class="inline-flex items-center rounded-md border border-transparent bg-brand-600 px-4 py-2 font-brand text-base font-medium text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
+          class="inline-flex items-center rounded-md border border-transparent bg-brand-600 px-4 py-2 font-brand text-base font-medium text-white shadow-sm hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-900">
           <svg
             class="mr-2 size-4"
             xmlns="http://www.w3.org/2000/svg"

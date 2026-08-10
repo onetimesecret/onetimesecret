@@ -2,94 +2,106 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { classifyError } from '@/schemas/errors';
-import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import { createOrganizationPayloadSchema, type CreateOrganizationPayload } from '@/types/organization';
-import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
-import { computed, ref } from 'vue';
-import { z } from 'zod';
+  import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { classifyError } from '@/schemas/errors';
+  import { useOrganizationStore } from '@/shared/stores/organizationStore';
+  import {
+    createOrganizationPayloadSchema,
+    type CreateOrganizationPayload,
+  } from '@/types/organization';
+  import {
+    Dialog,
+    DialogPanel,
+    DialogTitle,
+    TransitionChild,
+    TransitionRoot,
+  } from '@headlessui/vue';
+  import { computed, ref } from 'vue';
+  import { z } from 'zod';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-withDefaults(defineProps<{
-  open?: boolean;
-}>(), {
-  open: false,
-});
+  withDefaults(
+    defineProps<{
+      open?: boolean;
+    }>(),
+    {
+      open: false,
+    }
+  );
 
-const emit = defineEmits<{
-  (e: 'close'): void;
-  // IMPORTANT: Emit extid (not id) for URL navigation
-  (e: 'created', orgExtid: string): void;
-}>();
+  const emit = defineEmits<{
+    (e: 'close'): void;
+    // IMPORTANT: Emit extid (not id) for URL navigation
+    (e: 'created', orgExtid: string): void;
+  }>();
 
-const organizationStore = useOrganizationStore();
+  const organizationStore = useOrganizationStore();
 
-const formData = ref<CreateOrganizationPayload>({
-  display_name: '',
-  description: '',
-});
-
-const errors = ref<Record<string, string>>({});
-const generalError = ref('');
-const isSubmitting = ref(false);
-
-const isFormValid = computed(() => formData.value.display_name.trim().length > 0);
-
-const closeModal = () => {
-  if (!isSubmitting.value) {
-    resetForm();
-    emit('close');
-  }
-};
-
-const resetForm = () => {
-  formData.value = {
+  const formData = ref<CreateOrganizationPayload>({
     display_name: '',
     description: '',
-  };
-  errors.value = {};
-  generalError.value = '';
-};
+  });
 
-const handleSubmit = async () => {
-  if (!isFormValid.value || isSubmitting.value) return;
+  const errors = ref<Record<string, string>>({});
+  const generalError = ref('');
+  const isSubmitting = ref(false);
 
-  errors.value = {};
-  generalError.value = '';
-  isSubmitting.value = true;
+  const isFormValid = computed(() => formData.value.display_name.trim().length > 0);
 
-  try {
-    // Validate form data
-    createOrganizationPayloadSchema.parse(formData.value);
-
-    // Create organization
-    const org = await organizationStore.createOrganization(formData.value);
-
-    // Success - emit extid for URL navigation and close
-    emit('created', org.extid);
-    closeModal();
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      // Handle validation errors - ZodError uses .issues not .errors
-      error.issues.forEach((issue) => {
-        const field = issue.path[0] as string;
-        errors.value[field] = issue.message;
-      });
-    } else {
-      // Handle API errors - ApplicationError uses .message not .userMessage
-      const classified = classifyError(error);
-      generalError.value = classified.message || t('web.organizations.create_error');
-
-      // Log for debugging
-      console.error('[CreateOrganizationModal] Error creating organization:', error);
+  const closeModal = () => {
+    if (!isSubmitting.value) {
+      resetForm();
+      emit('close');
     }
-  } finally {
-    isSubmitting.value = false;
-  }
-};
+  };
+
+  const resetForm = () => {
+    formData.value = {
+      display_name: '',
+      description: '',
+    };
+    errors.value = {};
+    generalError.value = '';
+  };
+
+  const handleSubmit = async () => {
+    if (!isFormValid.value || isSubmitting.value) return;
+
+    errors.value = {};
+    generalError.value = '';
+    isSubmitting.value = true;
+
+    try {
+      // Validate form data
+      createOrganizationPayloadSchema.parse(formData.value);
+
+      // Create organization
+      const org = await organizationStore.createOrganization(formData.value);
+
+      // Success - emit extid for URL navigation and close
+      emit('created', org.extid);
+      closeModal();
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        // Handle validation errors - ZodError uses .issues not .errors
+        error.issues.forEach((issue) => {
+          const field = issue.path[0] as string;
+          errors.value[field] = issue.message;
+        });
+      } else {
+        // Handle API errors - ApplicationError uses .message not .userMessage
+        const classified = classifyError(error);
+        generalError.value = classified.message || t('web.organizations.create_error');
+
+        // Log for debugging
+        console.error('[CreateOrganizationModal] Error creating organization:', error);
+      }
+    } finally {
+      isSubmitting.value = false;
+    }
+  };
 </script>
 
 <template>
@@ -111,7 +123,8 @@ const handleSubmit = async () => {
       </TransitionChild>
 
       <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
-        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div
+          class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
           <TransitionChild
             as="template"
             enter="ease-out duration-300"
@@ -120,9 +133,11 @@ const handleSubmit = async () => {
             leave="ease-in duration-200"
             leave-from="opacity-100 translate-y-0 sm:scale-100"
             leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
-            <DialogPanel class="relative overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+            <DialogPanel
+              class="relative overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 dark:bg-gray-800">
               <div>
-                <div class="mx-auto flex size-12 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900">
+                <div
+                  class="mx-auto flex size-12 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900">
                   <OIcon
                     collection="ph"
                     name="building-office"
@@ -132,7 +147,7 @@ const handleSubmit = async () => {
                 <div class="mt-3 text-center sm:mt-5">
                   <DialogTitle
                     as="h3"
-                    class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
+                    class="text-base leading-6 font-semibold text-gray-900 dark:text-white">
                     {{ t('web.organizations.create_workspace') }}
                   </DialogTitle>
                   <div class="mt-2">
@@ -143,7 +158,9 @@ const handleSubmit = async () => {
                 </div>
               </div>
 
-              <form @submit.prevent="handleSubmit" class="mt-5 sm:mt-6">
+              <form
+                @submit.prevent="handleSubmit"
+                class="mt-5 sm:mt-6">
                 <BasicFormAlerts
                   v-if="generalError"
                   :error="generalError" />
@@ -170,9 +187,11 @@ const handleSubmit = async () => {
                         'dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400',
                         errors.display_name
                           ? 'border-red-300 text-red-900 placeholder:text-red-300 focus:border-red-500 focus:ring-red-500'
-                          : 'border-gray-300 dark:border-gray-600'
+                          : 'border-gray-300 dark:border-gray-600',
                       ]" />
-                    <p v-if="errors.display_name" class="mt-1 text-sm text-red-600 dark:text-red-400">
+                    <p
+                      v-if="errors.display_name"
+                      class="mt-1 text-sm text-red-600 dark:text-red-400">
                       {{ errors.display_name }}
                     </p>
                   </div>
@@ -196,9 +215,11 @@ const handleSubmit = async () => {
                         'dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400',
                         errors.description
                           ? 'border-red-300 text-red-900 placeholder:text-red-300 focus:border-red-500 focus:ring-red-500'
-                          : 'border-gray-300 dark:border-gray-600'
+                          : 'border-gray-300 dark:border-gray-600',
                       ]"></textarea>
-                    <p v-if="errors.description" class="mt-1 text-sm text-red-600 dark:text-red-400">
+                    <p
+                      v-if="errors.description"
+                      class="mt-1 text-sm text-red-600 dark:text-red-400">
                       {{ errors.description }}
                     </p>
                     <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -211,7 +232,7 @@ const handleSubmit = async () => {
                   <button
                     type="submit"
                     :disabled="!isFormValid || isSubmitting"
-                    class="inline-flex w-full justify-center rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400 sm:col-start-2">
+                    class="inline-flex w-full justify-center rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 sm:col-start-2 dark:bg-brand-500 dark:hover:bg-brand-400">
                     <span v-if="!isSubmitting">{{ t('web.organizations.create') }}</span>
                     <span v-else>{{ t('web.COMMON.processing') }}</span>
                   </button>
@@ -219,7 +240,7 @@ const handleSubmit = async () => {
                     type="button"
                     @click="closeModal"
                     :disabled="isSubmitting"
-                    class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600 sm:col-start-1 sm:mt-0">
+                    class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 sm:col-start-1 sm:mt-0 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
                     {{ t('web.COMMON.word_cancel') }}
                   </button>
                 </div>

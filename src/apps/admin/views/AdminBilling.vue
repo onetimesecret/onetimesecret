@@ -1,7 +1,6 @@
 <!-- src/apps/admin/views/AdminBilling.vue -->
 
 <script setup lang="ts">
-
   import StripeOrganizationsSection from '@/apps/admin/components/billing/StripeOrganizationsSection.vue';
   import { DataTable, StatCard } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
@@ -223,20 +222,25 @@
           testid="stat-live" />
         <StatCard
           :label="t('web.admin.billing.stats.source')"
-          :value="isLocalConfig
-            ? t('web.admin.billing.source.localConfig')
-            : t('web.admin.billing.source.stripe')"
+          :value="
+            isLocalConfig
+              ? t('web.admin.billing.source.localConfig')
+              : t('web.admin.billing.source.stripe')
+          "
           icon="signal"
           testid="stat-source" />
         <StatCard
           :label="t('web.admin.billing.stats.drift')"
-          :value="drift?.in_sync
-            ? t('web.admin.billing.inSync')
-            : t('web.admin.billing.driftCount', {
-              count: (drift?.only_in_config.length ?? 0)
-                + (drift?.only_in_live.length ?? 0)
-                + (drift?.changed.length ?? 0),
-            })"
+          :value="
+            drift?.in_sync
+              ? t('web.admin.billing.inSync')
+              : t('web.admin.billing.driftCount', {
+                  count:
+                    (drift?.only_in_config.length ?? 0) +
+                    (drift?.only_in_live.length ?? 0) +
+                    (drift?.changed.length ?? 0),
+                })
+          "
           icon="rectangle-group"
           testid="stat-drift" />
       </div>

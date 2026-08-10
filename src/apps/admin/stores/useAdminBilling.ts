@@ -1,9 +1,6 @@
 // src/apps/admin/stores/useAdminBilling.ts
 
-import {
-  usePaginatedFetch,
-  type PageMeta,
-} from '@/apps/admin/composables/usePaginatedFetch';
+import { usePaginatedFetch, type PageMeta } from '@/apps/admin/composables/usePaginatedFetch';
 import {
   colonelStripeOrganizationSchema,
   colonelStripeOrganizationsDetailsSchema,
@@ -72,9 +69,10 @@ function httpStatusOf(err: unknown): number | undefined {
  * object so the view reads them from ONE place regardless of where the HTTP
  * adapter chose to emit them.
  */
-function selectPage(
-  data: ColonelStripeOrganizationsResponse
-): { items: ColonelStripeOrganization[]; pagination: StripeOrganizationsPageMeta | null } {
+function selectPage(data: ColonelStripeOrganizationsResponse): {
+  items: ColonelStripeOrganization[];
+  pagination: StripeOrganizationsPageMeta | null;
+} {
   const meta = data.details?.pagination ?? null;
   return {
     items: data.details?.organizations ?? [],

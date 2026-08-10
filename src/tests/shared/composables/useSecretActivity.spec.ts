@@ -233,7 +233,12 @@ describe('useSecretActivity — abort and superseded-request handling', () => {
     // after the response) — its data must never overwrite current state.
     let resolveFirst!: (value: unknown) => void;
     mockApi.get
-      .mockImplementationOnce(() => new Promise((resolve) => { resolveFirst = resolve; }))
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirst = resolve;
+          })
+      )
       .mockResolvedValueOnce({
         data: buildResponse({ offset: 0, limit: 50, actors: {} }, [
           buildEvent({ nonce: 'fresh-1' }),

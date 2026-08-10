@@ -8,11 +8,11 @@ Email delivery is configured via environment variables. The system will auto-det
 
 ### Core Settings
 
-| Variable               | Description                                                     | Default                     |
-| ---------------------- | --------------------------------------------------------------- | --------------------------- |
-| `EMAILER_MODE`         | Force a specific provider (`smtp`, `sendgrid`, `ses`, `logger`) | Auto-detected               |
-| `EMAIL_SUBJECT_PREFIX` | Prefix for all email subjects                                   | `[OneTimeSecret] `          |
-| `EMAIL_DELIVERY_MODE`  | Delivery mode (`sync`, `async`, `test`)                         | `sync`                      |
+| Variable               | Description                                                     | Default            |
+| ---------------------- | --------------------------------------------------------------- | ------------------ |
+| `EMAILER_MODE`         | Force a specific provider (`smtp`, `sendgrid`, `ses`, `logger`) | Auto-detected      |
+| `EMAIL_SUBJECT_PREFIX` | Prefix for all email subjects                                   | `[OneTimeSecret] ` |
+| `EMAIL_DELIVERY_MODE`  | Delivery mode (`sync`, `async`, `test`)                         | `sync`             |
 
 ### Provider-Specific Settings
 

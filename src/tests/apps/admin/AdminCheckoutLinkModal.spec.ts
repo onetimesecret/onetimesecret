@@ -42,7 +42,7 @@ vi.mock('@/shared/components/ui/CopyButton.vue', () => ({
 vi.mock('@headlessui/vue', () => ({
   Dialog: {
     name: 'Dialog',
-    template: "<div role=\"dialog\" @close=\"$emit('close')\"><slot /></div>",
+    template: '<div role="dialog" @close="$emit(\'close\')"><slot /></div>',
     props: ['class'],
     emits: ['close'],
   },
@@ -145,9 +145,9 @@ describe('AdminCheckoutLinkModal', () => {
     expect(wrapper.find('[data-testid="checkout-link-url"]').text()).toBe(
       'https://checkout.stripe.com/c/pay/cs_test_xyz'
     );
-    expect(
-      wrapper.find('[data-testid="checkout-link-copy"]').attributes('data-text')
-    ).toBe('https://checkout.stripe.com/c/pay/cs_test_xyz');
+    expect(wrapper.find('[data-testid="checkout-link-copy"]').attributes('data-text')).toBe(
+      'https://checkout.stripe.com/c/pay/cs_test_xyz'
+    );
     // The shared test i18n is pass-through (returns the key, no interpolation),
     // so assert the expiry line renders through the right key.
     expect(wrapper.find('[data-testid="checkout-link-expiry"]').text()).toBe(

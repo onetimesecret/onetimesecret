@@ -1,174 +1,174 @@
 <!-- src/apps/workspace/components/domains/DomainIncomingConfigForm.vue -->
 
 <script setup lang="ts">
-/**
- * Domain Incoming Secrets Configuration Form
- *
- * Single editable recipients list. The composable owns plaintext
- * recipients (admin view); this component renders/edits them and emits
- * changes back. No dual-state, no "pending vs configured" split, no
- * replace-warning confirm dialog — saving simply writes the current
- * formState back to the server.
- */
-import { useI18n } from 'vue-i18n';
-import { computed, ref } from 'vue';
-import { z } from 'zod';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
-import type { IncomingConfigFormState } from '@/shared/composables/useIncomingConfig';
+  /**
+   * Domain Incoming Secrets Configuration Form
+   *
+   * Single editable recipients list. The composable owns plaintext
+   * recipients (admin view); this component renders/edits them and emits
+   * changes back. No dual-state, no "pending vs configured" split, no
+   * replace-warning confirm dialog — saving simply writes the current
+   * formState back to the server.
+   */
+  import { useI18n } from 'vue-i18n';
+  import { computed, ref } from 'vue';
+  import { z } from 'zod';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
+  import type { IncomingConfigFormState } from '@/shared/composables/useIncomingConfig';
 
-const emailSchema = z.string().email();
+  const emailSchema = z.string().email();
 
-interface Props {
-  formState: IncomingConfigFormState;
-  savedFormState: IncomingConfigFormState | null;
-  isLoading?: boolean;
-  isSaving?: boolean;
-  isDeleting?: boolean;
-  hasUnsavedChanges?: boolean;
-  maxRecipients?: number;
-  error?: string;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  isLoading: false,
-  isSaving: false,
-  isDeleting: false,
-  hasUnsavedChanges: false,
-  maxRecipients: 20,
-  savedFormState: null,
-});
-
-const emit = defineEmits<{
-  (e: 'update:enabled', value: boolean): void;
-  (e: 'save'): void;
-  (e: 'delete'): void;
-  (e: 'discard'): void;
-  (e: 'addRecipient', email: string, name?: string): void;
-  (e: 'removeRecipient', index: number): void;
-}>();
-
-const { t } = useI18n();
-
-// ---------------------------------------------------------------------------
-// Local state for the add-recipient row
-// ---------------------------------------------------------------------------
-
-const newEmail = ref('');
-const newName = ref('');
-const emailError = ref<string | null>(null);
-
-// ---------------------------------------------------------------------------
-// Computed
-// ---------------------------------------------------------------------------
-
-const isEnabled = computed(() => props.formState.enabled);
-
-const recipientCount = computed(() => props.formState.recipients.length);
-
-const canAddMore = computed(() => recipientCount.value < props.maxRecipients);
-
-const isAddFormValid = computed(() => {
-  const email = newEmail.value.trim();
-  if (!email) return false;
-  return emailSchema.safeParse(email).success;
-});
-
-const hasAnyRecipients = computed(() => recipientCount.value > 0);
-
-/**
- * Whether there's persisted state worth deleting. True when the saved
- * snapshot has any recipients or the saved enabled flag is true — i.e.
- * the server holds an IncomingConfig record.
- */
-const canDelete = computed(() => {
-  const saved = props.savedFormState;
-  if (!saved) return false;
-  return saved.recipients.length > 0 || saved.enabled;
-});
-
-// ---------------------------------------------------------------------------
-// Validation
-// ---------------------------------------------------------------------------
-
-function validateEmail(email: string): string | null {
-  const trimmed = email.trim();
-
-  if (!trimmed) {
-    return t('web.domains.incoming.validation_email_required');
+  interface Props {
+    formState: IncomingConfigFormState;
+    savedFormState: IncomingConfigFormState | null;
+    isLoading?: boolean;
+    isSaving?: boolean;
+    isDeleting?: boolean;
+    hasUnsavedChanges?: boolean;
+    maxRecipients?: number;
+    error?: string;
   }
 
-  if (!emailSchema.safeParse(trimmed).success) {
-    return t('web.domains.incoming.validation_invalid_email');
+  const props = withDefaults(defineProps<Props>(), {
+    isLoading: false,
+    isSaving: false,
+    isDeleting: false,
+    hasUnsavedChanges: false,
+    maxRecipients: 20,
+    savedFormState: null,
+  });
+
+  const emit = defineEmits<{
+    (e: 'update:enabled', value: boolean): void;
+    (e: 'save'): void;
+    (e: 'delete'): void;
+    (e: 'discard'): void;
+    (e: 'addRecipient', email: string, name?: string): void;
+    (e: 'removeRecipient', index: number): void;
+  }>();
+
+  const { t } = useI18n();
+
+  // ---------------------------------------------------------------------------
+  // Local state for the add-recipient row
+  // ---------------------------------------------------------------------------
+
+  const newEmail = ref('');
+  const newName = ref('');
+  const emailError = ref<string | null>(null);
+
+  // ---------------------------------------------------------------------------
+  // Computed
+  // ---------------------------------------------------------------------------
+
+  const isEnabled = computed(() => props.formState.enabled);
+
+  const recipientCount = computed(() => props.formState.recipients.length);
+
+  const canAddMore = computed(() => recipientCount.value < props.maxRecipients);
+
+  const isAddFormValid = computed(() => {
+    const email = newEmail.value.trim();
+    if (!email) return false;
+    return emailSchema.safeParse(email).success;
+  });
+
+  const hasAnyRecipients = computed(() => recipientCount.value > 0);
+
+  /**
+   * Whether there's persisted state worth deleting. True when the saved
+   * snapshot has any recipients or the saved enabled flag is true — i.e.
+   * the server holds an IncomingConfig record.
+   */
+  const canDelete = computed(() => {
+    const saved = props.savedFormState;
+    if (!saved) return false;
+    return saved.recipients.length > 0 || saved.enabled;
+  });
+
+  // ---------------------------------------------------------------------------
+  // Validation
+  // ---------------------------------------------------------------------------
+
+  function validateEmail(email: string): string | null {
+    const trimmed = email.trim();
+
+    if (!trimmed) {
+      return t('web.domains.incoming.validation_email_required');
+    }
+
+    if (!emailSchema.safeParse(trimmed).success) {
+      return t('web.domains.incoming.validation_invalid_email');
+    }
+
+    const normalizedEmail = trimmed.toLowerCase();
+    const isDuplicate = props.formState.recipients.some(
+      (r) => r.email.toLowerCase() === normalizedEmail
+    );
+
+    if (isDuplicate) {
+      return t('web.domains.incoming.validation_duplicate_email');
+    }
+
+    return null;
   }
 
-  const normalizedEmail = trimmed.toLowerCase();
-  const isDuplicate = props.formState.recipients.some(
-    (r) => r.email.toLowerCase() === normalizedEmail,
-  );
+  // ---------------------------------------------------------------------------
+  // Actions
+  // ---------------------------------------------------------------------------
 
-  if (isDuplicate) {
-    return t('web.domains.incoming.validation_duplicate_email');
-  }
+  function handleAddRecipient(): void {
+    const email = newEmail.value.trim();
+    const name = newName.value.trim() || undefined;
 
-  return null;
-}
+    const validationError = validateEmail(email);
+    if (validationError) {
+      emailError.value = validationError;
+      return;
+    }
 
-// ---------------------------------------------------------------------------
-// Actions
-// ---------------------------------------------------------------------------
+    if (!canAddMore.value) {
+      emailError.value = t('web.domains.incoming.validation_max_recipients', {
+        max: props.maxRecipients,
+      });
+      return;
+    }
 
-function handleAddRecipient(): void {
-  const email = newEmail.value.trim();
-  const name = newName.value.trim() || undefined;
+    emit('addRecipient', email, name);
 
-  const validationError = validateEmail(email);
-  if (validationError) {
-    emailError.value = validationError;
-    return;
-  }
-
-  if (!canAddMore.value) {
-    emailError.value = t('web.domains.incoming.validation_max_recipients', {
-      max: props.maxRecipients,
-    });
-    return;
-  }
-
-  emit('addRecipient', email, name);
-
-  newEmail.value = '';
-  newName.value = '';
-  emailError.value = null;
-}
-
-function handleRemoveRecipient(index: number): void {
-  emit('removeRecipient', index);
-}
-
-function handleSave(): void {
-  if (!props.hasUnsavedChanges || props.isSaving) return;
-  emit('save');
-}
-
-function handleEmailInput(event: Event): void {
-  const target = event.target as HTMLInputElement;
-  newEmail.value = target.value;
-  if (emailError.value) {
+    newEmail.value = '';
+    newName.value = '';
     emailError.value = null;
   }
-}
 
-const showDeleteConfirm = ref(false);
+  function handleRemoveRecipient(index: number): void {
+    emit('removeRecipient', index);
+  }
 
-function handleDelete(): void {
-  emit('delete');
-  showDeleteConfirm.value = false;
-}
+  function handleSave(): void {
+    if (!props.hasUnsavedChanges || props.isSaving) return;
+    emit('save');
+  }
 
-function handleToggleEnabled(): void {
-  emit('update:enabled', !props.formState.enabled);
-}
+  function handleEmailInput(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    newEmail.value = target.value;
+    if (emailError.value) {
+      emailError.value = null;
+    }
+  }
+
+  const showDeleteConfirm = ref(false);
+
+  function handleDelete(): void {
+    emit('delete');
+    showDeleteConfirm.value = false;
+  }
+
+  function handleToggleEnabled(): void {
+    emit('update:enabled', !props.formState.enabled);
+  }
 </script>
 
 <template>
@@ -213,17 +213,17 @@ function handleToggleEnabled(): void {
         class="space-y-2">
         <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
           {{ t('web.domains.incoming.badge_configured') }}
-          <span class="ml-1 text-gray-500 dark:text-gray-400">
-            ({{ recipientCount }})
-          </span>
+          <span class="ml-1 text-gray-500 dark:text-gray-400"> ({{ recipientCount }}) </span>
         </h4>
-        <ul class="divide-y divide-gray-200 rounded-md border border-gray-200 dark:divide-gray-700 dark:border-gray-700">
+        <ul
+          class="divide-y divide-gray-200 rounded-md border border-gray-200 dark:divide-gray-700 dark:border-gray-700">
           <li
             v-for="(recipient, index) in formState.recipients"
             :key="`recipient-${index}-${recipient.email}`"
             class="flex items-center justify-between px-4 py-3">
             <div class="flex items-center gap-3">
-              <div class="flex size-8 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900/30">
+              <div
+                class="flex size-8 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900/30">
                 <OIcon
                   collection="heroicons"
                   name="user"
@@ -283,7 +283,11 @@ function handleToggleEnabled(): void {
               for="recipient-email"
               class="block text-sm font-medium text-gray-700 dark:text-gray-300">
               {{ t('web.domains.incoming.email_label') }}
-              <span class="text-red-500" aria-hidden="true">*</span>
+              <span
+                class="text-red-500"
+                aria-hidden="true"
+                >*</span
+              >
             </label>
             <input
               id="recipient-email"
@@ -294,7 +298,7 @@ function handleToggleEnabled(): void {
               :placeholder="t('web.domains.incoming.email_placeholder')"
               :aria-invalid="!!emailError"
               :aria-describedby="emailError ? 'email-error' : undefined"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:disabled:bg-gray-800 sm:text-sm"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:bg-gray-100 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:disabled:bg-gray-800"
               :class="{ 'border-red-300 dark:border-red-600': emailError }"
               @input="handleEmailInput"
               @keydown.enter.prevent="handleAddRecipient" />
@@ -320,7 +324,7 @@ function handleToggleEnabled(): void {
               maxlength="100"
               autocomplete="off"
               :placeholder="t('web.domains.incoming.name_placeholder')"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:disabled:bg-gray-800 sm:text-sm"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:bg-gray-100 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:disabled:bg-gray-800"
               @keydown.enter.prevent="handleAddRecipient" />
           </div>
         </div>
@@ -331,7 +335,7 @@ function handleToggleEnabled(): void {
             type="button"
             @click="handleAddRecipient"
             :disabled="!isAddFormValid || isSaving"
-            class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-600 dark:text-white dark:ring-gray-500 dark:hover:bg-gray-500">
+            class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-600 dark:text-white dark:ring-gray-500 dark:hover:bg-gray-500">
             <OIcon
               collection="heroicons"
               name="plus"
@@ -359,7 +363,8 @@ function handleToggleEnabled(): void {
     </div>
 
     <!-- Enabled Toggle -->
-    <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+    <div
+      class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
       <div>
         <label
           for="incoming-enabled"
@@ -380,7 +385,7 @@ function handleToggleEnabled(): void {
         aria-describedby="incoming-enabled-hint"
         @click="handleToggleEnabled"
         :class="[
-          'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800',
+          'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-800',
           isEnabled ? 'bg-brand-600' : 'bg-gray-200 dark:bg-gray-600',
         ]">
         <span class="sr-only">{{ t('web.domains.enabled') }}</span>
@@ -429,7 +434,7 @@ function handleToggleEnabled(): void {
             type="button"
             @click="showDeleteConfirm = true"
             :disabled="isDeleting || isSaving"
-            class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-red-400 dark:ring-red-700 dark:hover:bg-red-900/20">
+            class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-red-300 ring-inset hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-red-400 dark:ring-red-700 dark:hover:bg-red-900/20">
             <OIcon
               collection="heroicons"
               name="trash"
@@ -440,7 +445,9 @@ function handleToggleEnabled(): void {
         </template>
 
         <!-- Delete confirmation -->
-        <div v-if="showDeleteConfirm" class="flex items-center gap-2">
+        <div
+          v-if="showDeleteConfirm"
+          class="flex items-center gap-2">
           <span class="text-sm text-gray-600 dark:text-gray-400">
             {{ t('web.domains.incoming.remove_all_confirmation') }}
           </span>
@@ -455,7 +462,7 @@ function handleToggleEnabled(): void {
             type="button"
             @click="showDeleteConfirm = false"
             :disabled="isDeleting"
-            class="inline-flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+            class="inline-flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
             {{ t('web.COMMON.word_cancel') }}
           </button>
         </div>
@@ -466,7 +473,7 @@ function handleToggleEnabled(): void {
           type="button"
           @click="emit('discard')"
           :disabled="isSaving"
-          class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+          class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
           {{ t('web.domains.incoming.discard_changes') }}
         </button>
       </div>

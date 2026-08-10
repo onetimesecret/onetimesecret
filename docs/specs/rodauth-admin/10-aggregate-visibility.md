@@ -31,17 +31,17 @@ result). Both ops read via `Auth::Database.connection` (restricted
 
 **`Accounts::Stats`** — one result object with:
 
-| Metric | Query |
-|---|---|
-| `total_accounts` | `accounts.count` |
-| `status_breakdown` | `accounts` grouped by `status_id` (1 Unverified / 2 Verified / 3 Closed) |
-| `mfa_otp_accounts` | `account_otp_keys.count` |
-| `mfa_webauthn_accounts` | `account_webauthn_keys` distinct `account_id` |
-| `active_lockouts` | `account_lockouts` where `deadline > now` |
-| `active_sessions` | `account_active_session_keys.count` |
-| `unused_recovery_codes` | `account_recovery_codes` where `used_at IS NULL` (parity with dev stub) |
-| `orphaned_accounts` | `accounts` where `external_id IS NULL` |
-| `customer_count_delta` | `total_accounts` minus Familia customer count (drift signal — see risks) |
+| Metric                  | Query                                                                    |
+| ----------------------- | ------------------------------------------------------------------------ |
+| `total_accounts`        | `accounts.count`                                                         |
+| `status_breakdown`      | `accounts` grouped by `status_id` (1 Unverified / 2 Verified / 3 Closed) |
+| `mfa_otp_accounts`      | `account_otp_keys.count`                                                 |
+| `mfa_webauthn_accounts` | `account_webauthn_keys` distinct `account_id`                            |
+| `active_lockouts`       | `account_lockouts` where `deadline > now`                                |
+| `active_sessions`       | `account_active_session_keys.count`                                      |
+| `unused_recovery_codes` | `account_recovery_codes` where `used_at IS NULL` (parity with dev stub)  |
+| `orphaned_accounts`     | `accounts` where `external_id IS NULL`                                   |
+| `customer_count_delta`  | `total_accounts` minus Familia customer count (drift signal — see risks) |
 
 When `full` mode is off or the DB is unreachable, return
 `{ available: false, reason: ... }` instead of raising — same

@@ -75,21 +75,21 @@ restore-on-failure).
 The grant stores **references**, not money. List/net amounts and currency are
 owned by Stripe + the catalog and read back for display — never free-typed inputs.
 
-| Field | Notes |
-|---|---|
-| `objid` / `extid` | dual id; `extid` format `gr%<id>s`, user-facing |
-| `plan` | catalog planid, e.g. `identity_plus_v1` |
-| `interval` | `month` / `year`; selects the catalog Stripe Price. Required only with a billing party |
-| `coupon` | optional reusable Stripe coupon id (e.g. `reseller-20`); the only discount input |
-| `billing_party_org_id` | objid of an **existing** Organization (the payer). Absent = comp grant |
-| `admin_email` | recipient account-admin; the claim is **locked** to this address |
-| `org_name` | recipient org name (signup/onboarding hint) |
-| `payment_terms` | `Net N` → `days_until_due` on the invoice. Only meaningful when billed |
-| `status` | claim lifecycle: `issued → redeemed` / `expired` |
-| `billing_status` | Stripe-synced: `none` / `invoiced` / `paid` (none for comp grants) |
-| `claim_token` | `SecureRandom.urlsafe_base64(32)`; single-use, email-locked, expiring |
-| `stripe_sub_ref` | Stripe subscription id (Stripe-backed grants only) |
-| `created_at` / `redeemed_at` / `expires_at` | claim expiry default 30 days (lazy-checked at redeem) |
+| Field                                       | Notes                                                                                  |
+| ------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `objid` / `extid`                           | dual id; `extid` format `gr%<id>s`, user-facing                                        |
+| `plan`                                      | catalog planid, e.g. `identity_plus_v1`                                                |
+| `interval`                                  | `month` / `year`; selects the catalog Stripe Price. Required only with a billing party |
+| `coupon`                                    | optional reusable Stripe coupon id (e.g. `reseller-20`); the only discount input       |
+| `billing_party_org_id`                      | objid of an **existing** Organization (the payer). Absent = comp grant                 |
+| `admin_email`                               | recipient account-admin; the claim is **locked** to this address                       |
+| `org_name`                                  | recipient org name (signup/onboarding hint)                                            |
+| `payment_terms`                             | `Net N` → `days_until_due` on the invoice. Only meaningful when billed                 |
+| `status`                                    | claim lifecycle: `issued → redeemed` / `expired`                                       |
+| `billing_status`                            | Stripe-synced: `none` / `invoiced` / `paid` (none for comp grants)                     |
+| `claim_token`                               | `SecureRandom.urlsafe_base64(32)`; single-use, email-locked, expiring                  |
+| `stripe_sub_ref`                            | Stripe subscription id (Stripe-backed grants only)                                     |
+| `created_at` / `redeemed_at` / `expires_at` | claim expiry default 30 days (lazy-checked at redeem)                                  |
 
 The Grant is the source of truth for who (if anyone) pays, who the recipient is,
 and where both the claim and the billing sit in their lifecycles.
@@ -111,11 +111,11 @@ there is no background sweep.
 Auto-discovered from `apps/web/billing/cli/grant_*_command.rb`, registered with
 `Onetime::CLI.register 'billing grant <verb>', ...` (Dry::CLI).
 
-| Command | Operation |
-|---|---|
-| `grant create` | `Grant::Create` — mint grant + claim; if `--billing-party`, also create the Stripe subscription. Prints the claim URL |
-| `grant list` / `grant show <extid>` | read; `show` surfaces live `billing_status` |
-| `grant revoke <extid>` | `Grant::Revoke` — invalidate the claim and/or demote the grant |
+| Command                             | Operation                                                                                                             |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `grant create`                      | `Grant::Create` — mint grant + claim; if `--billing-party`, also create the Stripe subscription. Prints the claim URL |
+| `grant list` / `grant show <extid>` | read; `show` surfaces live `billing_status`                                                                           |
+| `grant revoke <extid>`              | `Grant::Revoke` — invalidate the claim and/or demote the grant                                                        |
 
 There is **no** `redeem` command (redemption is self-serve only) and **no**
 `provision` command (folded into `create`).
@@ -217,9 +217,9 @@ A grant references an existing catalog Price; discounts reference reusable coupo
   of coupons, not by orders. Model coupons in `billing.yaml` and sync them in
   `catalog push` (see [coupons catalog](#coupons-as-catalog)).
 - **Subscription.** `Stripe::Subscription.create(customer: <billing-party org's
-  stripe_customer_id>, items: [{price: <catalog price>}], discounts: [{coupon}],
-  collection_method: 'send_invoice', days_until_due: <Net N>, automatic_tax:
-  {enabled: true}, metadata: {grant_id: grant.extid})`. New code — no
+stripe_customer_id>, items: [{price: <catalog price>}], discounts: [{coupon}],
+collection_method: 'send_invoice', days_until_due: <Net N>, automatic_tax:
+{enabled: true}, metadata: {grant_id: grant.extid})`. New code — no
   `Stripe::Subscription.create` exists today.
 
 ### Auto-provision scope — priced catalog plans only
@@ -231,7 +231,7 @@ carry `prices: []` and are grant-only (comp).
 **Dedicated and Global Elite are out of scope for Stripe automation.** They are not
 in the catalog and their subscriptions are set up by hand in the Stripe Dashboard.
 This tool does not create or sync their subscriptions. (If you want the tool to
-*grant their entitlement* + issue a claim link, the plan must be cataloged with
+_grant their entitlement_ + issue a claim link, the plan must be cataloged with
 `prices: []`; its billing stays manual — see [open decisions](#open-decisions).)
 
 `grant create` rejects `--billing-party` for a plan that has no priced interval,
@@ -347,6 +347,7 @@ renewal, bespoke `--custom-amount`, multi-seat tooling.
 ## File manifest
 
 New:
+
 - `lib/onetime/models/grant.rb`
 - `apps/web/billing/operations/grant/{create,redeem,revoke}.rb`
 - `apps/web/billing/cli/grant_{create,list,show,revoke}_command.rb`
@@ -354,6 +355,7 @@ New:
 - claim web route + view under `apps/web/billing/`
 
 Reuse (no change expected):
+
 - `apps/web/billing/operations/apply_subscription_to_org.rb` — `.materialize_entitlements_for_org`, `.call(owner: false)`, `.apply_free_tier`
 - `apps/web/billing/operations/grant_probono_entitlements.rb` — pattern + idempotency ordering
 - `apps/web/billing/lib/stripe_client.rb` — `StripeClient` (idempotency + retry)
@@ -361,6 +363,7 @@ Reuse (no change expected):
 - `apps/web/billing/operations/webhook_handlers/base_handler.rb` — auto-registration
 
 Possibly extended:
+
 - `apps/web/billing/operations/catalog/*` + `etc/billing.yaml` — `coupons:` sync
 
 ## Open decisions
@@ -370,10 +373,10 @@ Possibly extended:
   leave them entirely outside this tool? Default lean: catalog with `prices: []`.
 - **Recipient org selection on redeem.** New customers: create org from `org_name`.
   Existing customers with multiple orgs: reuse `GrantProbonoEntitlements
-  .default_org_for`, or require the operator to name the org at `create`.
+.default_org_for`, or require the operator to name the org at `create`.
 - **Billing-party customer bootstrap.** If the resolved billing-party org has no
   `stripe_customer_id`, does `create` create one (from its billing_email + tax id)
   or fail and require billing setup first? Default lean: fail fast, require setup.
 - **Pro-bono consolidation.** Going forward, a new comp account is just `grant
-  create` with no `--billing-party`; `GrantProbonoEntitlements` remains the legacy
+create` with no `--billing-party`; `GrantProbonoEntitlements` remains the legacy
   `planid='identity'` backfill and retires when none remain.

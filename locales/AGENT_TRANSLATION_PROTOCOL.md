@@ -19,7 +19,7 @@
 One agent, one locale, one job: translate every pending value and write it back
 to the task DB, then stop. The agent does **not** export, sync, commit, create
 branches, or **write** glossary decisions to the DB — those are human/orchestrator
-steps in `TRANSLATION_PROTOCOL.md`. It **does** surface glossary *candidates* in
+steps in `TRANSLATION_PROTOCOL.md`. It **does** surface glossary _candidates_ in
 its final report (see [Glossary candidates](#glossary-candidates-report-dont-write)),
 which the orchestrator reviews and inserts after the drain.
 
@@ -76,11 +76,13 @@ python3 .translation-rules/lib/resolver/lint_content.py \
 Loop this until the queue is dry:
 
 1. **Get the next task** as JSON:
+
    ```bash
    python3 locales/scripts/i18n tasks next <LOCALE> --json
    ```
+
    Stop when there is no pending task. There is **one writer per locale**, so
-   `tasks next` (which returns only *pending* rows) advances with zero orphans —
+   `tasks next` (which returns only _pending_ rows) advances with zero orphans —
    do **not** use `--claim`.
 
 2. **Translate every value** in the task using the guidance from
@@ -89,14 +91,17 @@ Loop this until the queue is dry:
 3. **Write the result object** — a flat `{"key": "translation"}` map whose key
    set is the **EXACT source key set** (none added, none dropped) — to a
    per-locale temp file with the Write tool:
+
    ```
    /tmp/trans_<LOCALE>.json
    ```
+
    Per-locale paths keep concurrent agents from clobbering each other. Use a
    file, not inline JSON: apostrophes and quotes (common in fr/es/it) break
    shell single-quoting and HEREDOCs.
 
 4. **Save it back** with the write gate:
+
    ```bash
    python3 locales/scripts/i18n tasks update <ID> --file /tmp/trans_<LOCALE>.json --validate --strict
    ```
@@ -142,7 +147,7 @@ could be checked — a gate that verified nothing must not read green. Without
 key, severity, and which check failed:
 
 - **status** (error) — no row left in `in_progress`. A claimed-then-abandoned
-  row is counted separately from `pending`, so it makes the locale *look*
+  row is counted separately from `pending`, so it makes the locale _look_
   drained while its keys never export. Release it with
   `tasks update <ID> --status pending` and translate it.
 - **key-set match** (error) — each completed row's keys equal the source keys
@@ -155,7 +160,7 @@ key, severity, and which check failed:
   property of your language (en 2, ja 1, ru 3) and is never itself a finding.
 - **untranslated-English leakage** (**advisory** — reported, never gates) —
   values left byte-identical to the English source. Treat it as a review list,
-  not a task list: an identical string is the *correct* answer for many short
+  not a task list: an identical string is the _correct_ answer for many short
   labels ("Status", "TTL", "Redis", "Amazon SES", "Canada"). Never invent a
   wrong translation to silence it. Brand names that must stay English (Onetime
   Secret, Identity Plus, Starlight), empty sources, `skip` keys, and strings
@@ -164,9 +169,11 @@ key, severity, and which check failed:
 
 Fix each **error** finding in place: rewrite `/tmp/trans_<LOCALE>.json` with the
 corrected object for that task ID and re-run
+
 ```bash
 python3 locales/scripts/i18n tasks update <ID> --file /tmp/trans_<LOCALE>.json --validate --strict
 ```
+
 then re-run the audit. Loop until it exits 0. `export-all.sh` runs the same
 `--strict` audit as its export gate, so a locale you leave with error findings
 is not exported at all. Advisory findings do not block the export; report the

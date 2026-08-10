@@ -14,13 +14,20 @@ export type BrandPalette = Record<string, string>;
 // ─── Constants ───────────────────────────────────────
 
 const SHADE_STEPS = [
-  '50', '100', '200', '300', '400', '500',
-  '600', '700', '800', '900', '950',
+  '50',
+  '100',
+  '200',
+  '300',
+  '400',
+  '500',
+  '600',
+  '700',
+  '800',
+  '900',
+  '950',
 ] as const;
 
-const PALETTE_PREFIXES = [
-  'brand', 'branddim', 'brandcomp', 'brandcompdim',
-] as const;
+const PALETTE_PREFIXES = ['brand', 'branddim', 'brandcomp', 'brandcompdim'] as const;
 
 /** Lightness ceiling for shade 50 */
 const L_MAX = 0.98;
@@ -29,7 +36,7 @@ const L_MIN = 0.25;
 /** Lightness multiplier for dim palette base */
 const DIM_L_FACTOR = 0.84;
 /** Chroma multiplier for dim palette base */
-const DIM_C_FACTOR = 0.90;
+const DIM_C_FACTOR = 0.9;
 
 /**
  * Emergency fallback hex used when the supplied color is missing or fails
@@ -58,22 +65,16 @@ function hexToSrgb(hex: string): [number, number, number] {
 
 /** sRGB component → linear (inverse gamma / degamma) */
 function srgbToLinear(c: number): number {
-  return c <= 0.04045
-    ? c / 12.92
-    : Math.pow((c + 0.055) / 1.055, 2.4);
+  return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
 }
 
 /** Linear component → sRGB (gamma / compand) */
 function linearToSrgb(c: number): number {
-  return c <= 0.0031308
-    ? c * 12.92
-    : 1.055 * Math.pow(c, 1 / 2.4) - 0.055;
+  return c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055;
 }
 
 /** Linear sRGB → LMS cone responses (Ottosson's M1 matrix) */
-function linearRgbToLms(
-  r: number, g: number, b: number
-): [number, number, number] {
+function linearRgbToLms(r: number, g: number, b: number): [number, number, number] {
   return [
     0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b,
     0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b,
@@ -82,44 +83,36 @@ function linearRgbToLms(
 }
 
 /** LMS → oklab (Ottosson's M2 matrix, with cube root) */
-function lmsToOklab(
-  l: number, m: number, s: number
-): [number, number, number] {
+function lmsToOklab(l: number, m: number, s: number): [number, number, number] {
   const lp = Math.cbrt(l);
   const mp = Math.cbrt(m);
   const sp = Math.cbrt(s);
   return [
-    0.2104542553 * lp + 0.7936177850 * mp - 0.0040720468 * sp,
-    1.9779984951 * lp - 2.4285922050 * mp + 0.4505937099 * sp,
-    0.0259040371 * lp + 0.7827717662 * mp - 0.8086757660 * sp,
+    0.2104542553 * lp + 0.793617785 * mp - 0.0040720468 * sp,
+    1.9779984951 * lp - 2.428592205 * mp + 0.4505937099 * sp,
+    0.0259040371 * lp + 0.7827717662 * mp - 0.808675766 * sp,
   ];
 }
 
 /** oklab → LMS (inverse M2, then cube) */
-function oklabToLms(
-  L: number, a: number, b: number
-): [number, number, number] {
+function oklabToLms(L: number, a: number, b: number): [number, number, number] {
   const lp = L + 0.3963377774 * a + 0.2158037573 * b;
   const mp = L - 0.1055613458 * a - 0.0638541728 * b;
-  const sp = L - 0.0894841775 * a - 1.2914855480 * b;
+  const sp = L - 0.0894841775 * a - 1.291485548 * b;
   return [lp * lp * lp, mp * mp * mp, sp * sp * sp];
 }
 
 /** LMS → linear sRGB (inverse M1 matrix) */
-function lmsToLinearRgb(
-  l: number, m: number, s: number
-): [number, number, number] {
+function lmsToLinearRgb(l: number, m: number, s: number): [number, number, number] {
   return [
     +4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
     -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
-    -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s,
+    -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s,
   ];
 }
 
 /** oklab → oklch (polar form) */
-function oklabToOklch(
-  L: number, a: number, b: number
-): [number, number, number] {
+function oklabToOklch(L: number, a: number, b: number): [number, number, number] {
   const C = Math.sqrt(a * a + b * b);
   let H = Math.atan2(b, a) * (180 / Math.PI);
   if (H < 0) H += 360;
@@ -127,9 +120,7 @@ function oklabToOklch(
 }
 
 /** oklch → oklab (from polar) */
-function oklchToOklab(
-  L: number, C: number, H: number
-): [number, number, number] {
+function oklchToOklab(L: number, C: number, H: number): [number, number, number] {
   const hRad = H * (Math.PI / 180);
   return [L, C * Math.cos(hRad), C * Math.sin(hRad)];
 }
@@ -167,18 +158,14 @@ function oklchToHex(L: number, C: number, H: number): string {
 /** Check if linear RGB values are within sRGB gamut */
 function isInSrgbGamut(r: number, g: number, b: number): boolean {
   const eps = -0.001; // Small tolerance for floating point
-  return r >= eps && r <= 1.001
-    && g >= eps && g <= 1.001
-    && b >= eps && b <= 1.001;
+  return r >= eps && r <= 1.001 && g >= eps && g <= 1.001 && b >= eps && b <= 1.001;
 }
 
 /**
  * Binary search for maximum chroma at given L and H
  * that produces in-gamut sRGB. Returns clipped oklch.
  */
-function gamutClip(
-  L: number, C: number, H: number
-): [number, number, number] {
+function gamutClip(L: number, C: number, H: number): [number, number, number] {
   // Check if already in gamut
   const [oa, ob, oc] = oklchToOklab(L, C, H);
   const [l, m, s] = oklabToLms(oa, ob, oc);
@@ -232,9 +219,7 @@ function lightnessForShade(shade: number, baseL: number): number {
  * clipper will constrain if needed. Dark warm/cool colors in
  * sRGB naturally support high chroma.
  */
-function chromaForShade(
-  shade: number, baseC: number
-): number {
+function chromaForShade(shade: number, baseC: number): number {
   if (shade >= 500) {
     // Darker shades: full chroma, let gamut clipping handle
     return baseC;
@@ -249,9 +234,7 @@ function chromaForShade(
  * Generate an 11-shade scale from a base oklch color.
  * Returns shade step → hex string.
  */
-function generateScale(
-  baseL: number, baseC: number, baseH: number
-): Record<string, string> {
+function generateScale(baseL: number, baseC: number, baseH: number): Record<string, string> {
   const result: Record<string, string> = {};
   for (const step of SHADE_STEPS) {
     const shade = parseInt(step, 10);
@@ -290,12 +273,8 @@ function normalizeHex(hex: string): string {
  *
  * Invalid input falls back to NEUTRAL_BRAND_DEFAULTS.primary_color.
  */
-export function generateBrandPalette(
-  hex: string | null
-): BrandPalette {
-  const safeHex = (hex && isValidHex(hex))
-    ? normalizeHex(hex)
-    : FALLBACK_HEX;
+export function generateBrandPalette(hex: string | null): BrandPalette {
+  const safeHex = hex && isValidHex(hex) ? normalizeHex(hex) : FALLBACK_HEX;
 
   const [baseL, baseC, baseH] = hexToOklch(safeHex);
 
@@ -341,13 +320,8 @@ export function generateBrandPalette(
  * @param hex Seed color (6-digit hex, with or without leading #)
  * @param prefix CSS variable group name (e.g. `brand2`)
  */
-export function generateNamedScale(
-  hex: string | null,
-  prefix: string
-): BrandPalette {
-  const safeHex = (hex && isValidHex(hex))
-    ? normalizeHex(hex)
-    : FALLBACK_HEX;
+export function generateNamedScale(hex: string | null, prefix: string): BrandPalette {
+  const safeHex = hex && isValidHex(hex) ? normalizeHex(hex) : FALLBACK_HEX;
 
   const [baseL, baseC, baseH] = hexToOklch(safeHex);
   const scale = generateScale(baseL, baseC, baseH);
@@ -363,8 +337,7 @@ export function generateNamedScale(
  * Pre-computed default palette for validation and fallback.
  * Generated from the neutral brand fallback color.
  */
-export const DEFAULT_BRAND_PALETTE: BrandPalette =
-  generateBrandPalette(FALLBACK_HEX);
+export const DEFAULT_BRAND_PALETTE: BrandPalette = generateBrandPalette(FALLBACK_HEX);
 
 // ─── WCAG Contrast ──────────────────────────────────
 
@@ -376,11 +349,7 @@ export const DEFAULT_BRAND_PALETTE: BrandPalette =
  */
 function relativeLuminance(hex: string): number {
   const [r, g, b] = hexToSrgb(hex);
-  return (
-    0.2126 * srgbToLinear(r) +
-    0.7152 * srgbToLinear(g) +
-    0.0722 * srgbToLinear(b)
-  );
+  return 0.2126 * srgbToLinear(r) + 0.7152 * srgbToLinear(g) + 0.0722 * srgbToLinear(b);
 }
 
 /**
@@ -422,9 +391,7 @@ export interface ContrastCheck {
  * @returns Contrast check result
  */
 export function checkBrandContrast(brandHex: string): ContrastCheck {
-  const safeHex = (brandHex && isValidHex(brandHex))
-    ? normalizeHex(brandHex)
-    : FALLBACK_HEX;
+  const safeHex = brandHex && isValidHex(brandHex) ? normalizeHex(brandHex) : FALLBACK_HEX;
 
   const vsWhite = contrastRatio(safeHex, '#ffffff');
   const vsBlack = contrastRatio(safeHex, '#000000');

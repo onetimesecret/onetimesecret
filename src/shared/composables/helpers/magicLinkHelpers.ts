@@ -22,7 +22,9 @@ export function extractError(
     const errorData = response.data;
     return [
       (typeof errorData.error === 'string' ? errorData.error : null) || t(defaultKey),
-      (Array.isArray(errorData['field-error']) ? errorData['field-error'] as [string, string] : null)
+      Array.isArray(errorData['field-error'])
+        ? (errorData['field-error'] as [string, string])
+        : null,
     ];
   }
   return [t('web.auth.magicLink.networkError'), null];

@@ -8,17 +8,17 @@
 
 ### Current Key Categories
 
-| Category | Key Path | Description |
-|----------|----------|-------------|
-| `upgrade` | `web.billing.upgrade.*` | Upgrade prompts and feature gate messages |
-| `overview` | `web.billing.overview.*` | Billing dashboard overview, organization selector, quick actions |
-| `plans` | `web.billing.plans.*` | Plan selection, pricing options |
-| `invoices` | `web.billing.invoices.*` | Invoice history and status |
-| `notices` | `web.billing.notices.*` | Organization-managed billing notices |
-| `limits` | `web.billing.limits.*` | Team/member limit messages |
-| `subscription` | `web.billing.subscription.*` | Subscription status labels |
-| `portal` | `web.billing.portal.*` | External billing portal integration |
-| (flat keys) | `web.billing.*` | Marketing copy, promotional content, misc strings |
+| Category       | Key Path                     | Description                                                      |
+| -------------- | ---------------------------- | ---------------------------------------------------------------- |
+| `upgrade`      | `web.billing.upgrade.*`      | Upgrade prompts and feature gate messages                        |
+| `overview`     | `web.billing.overview.*`     | Billing dashboard overview, organization selector, quick actions |
+| `plans`        | `web.billing.plans.*`        | Plan selection, pricing options                                  |
+| `invoices`     | `web.billing.invoices.*`     | Invoice history and status                                       |
+| `notices`      | `web.billing.notices.*`      | Organization-managed billing notices                             |
+| `limits`       | `web.billing.limits.*`       | Team/member limit messages                                       |
+| `subscription` | `web.billing.subscription.*` | Subscription status labels                                       |
+| `portal`       | `web.billing.portal.*`       | External billing portal integration                              |
+| (flat keys)    | `web.billing.*`              | Marketing copy, promotional content, misc strings                |
 
 ---
 
@@ -29,10 +29,12 @@
 **Current Location:** `web.billing.overview.organization_selector`, `web.billing.overview.no_organizations_*`, `web.billing.notices.org_managed`
 
 **Recommendation:** These keys relate to organization context selection and should either:
+
 - Remain here if tightly coupled to billing workflows
 - Move to `feature-organizations.json` if they're reused elsewhere
 
 **Affected Keys:**
+
 ```
 web.billing.overview.organization_selector
 web.billing.overview.no_organizations_title
@@ -50,10 +52,12 @@ web.billing.notices.view_org_billing
 **Current Location:** `web.billing.overview.entitlements.*`
 
 **Issue:** These describe plan features/capabilities. They could belong in:
+
 - A dedicated `feature-entitlements.json` or `plans.json` file
 - The `_common.json` file under `FEATURES` namespace
 
 **Affected Keys:**
+
 ```
 web.billing.overview.entitlements.create_secrets
 web.billing.overview.entitlements.basic_sharing
@@ -72,6 +76,7 @@ web.billing.overview.entitlements.audit_logs
 **Current Location:** Lines 102-125, directly under `web.billing`
 
 **Issue:** These are promotional/marketing strings mixed with UI labels:
+
 ```
 web.billing.start-today
 web.billing.start-today-with-identity-plus
@@ -100,12 +105,14 @@ web.billing.identity-tier-not-found-in-product-tiers
 ```
 
 **Issues Identified:**
+
 1. Inconsistent key naming (kebab-case vs descriptive sentences)
 2. Truncated key names (e.g., `includes-all-features-and-unlimited-sharing-capa`)
 3. Marketing copy mixed with error messages (`identity-tier-not-found-in-product-tiers`)
 4. No logical grouping
 
 **Recommendation:** Reorganize into nested categories:
+
 - `web.billing.marketing.*` - Promotional headlines and taglines
 - `web.billing.cta.*` - Call-to-action buttons
 - `web.billing.errors.*` - Error messages (move `identity-tier-not-found...`)
@@ -115,6 +122,7 @@ web.billing.identity-tier-not-found-in-product-tiers
 ## Suggested Hierarchy Improvements
 
 ### Current Structure (Problematic Flat Keys)
+
 ```json
 {
   "web": {
@@ -128,6 +136,7 @@ web.billing.identity-tier-not-found-in-product-tiers
 ```
 
 ### Proposed Structure
+
 ```json
 {
   "web": {
@@ -175,14 +184,14 @@ web.billing.identity-tier-not-found-in-product-tiers
 
 ## Key Naming Inconsistencies
 
-| Current Key | Issue | Suggested Rename |
-|-------------|-------|------------------|
-| `includes-all-features-and-unlimited-sharing-capa` | Truncated | `all_plans_include` |
-| `t-benefits-of-identity-plus` | Unclear prefix `t-` | `identity_plus.benefits_title` |
-| `frequency-value-annually-annual-monthly-subscrip` | Truncated/confusing | `pricing.subscription_type` |
-| `click-this-lightning-bolt-to-upgrade-for-custom-domains` | Too verbose | `identity_plus.upgrade_hint` |
-| `secure-your-brand-and-build-customer-trust-with-` | Truncated | `marketing.brand_trust` |
-| `elevate-your-secure-sharing-with-custom-domains-` | Truncated | `marketing.value_prop` |
+| Current Key                                               | Issue               | Suggested Rename               |
+| --------------------------------------------------------- | ------------------- | ------------------------------ |
+| `includes-all-features-and-unlimited-sharing-capa`        | Truncated           | `all_plans_include`            |
+| `t-benefits-of-identity-plus`                             | Unclear prefix `t-` | `identity_plus.benefits_title` |
+| `frequency-value-annually-annual-monthly-subscrip`        | Truncated/confusing | `pricing.subscription_type`    |
+| `click-this-lightning-bolt-to-upgrade-for-custom-domains` | Too verbose         | `identity_plus.upgrade_hint`   |
+| `secure-your-brand-and-build-customer-trust-with-`        | Truncated           | `marketing.brand_trust`        |
+| `elevate-your-secure-sharing-with-custom-domains-`        | Truncated           | `marketing.value_prop`         |
 
 ---
 
@@ -191,6 +200,7 @@ web.billing.identity-tier-not-found-in-product-tiers
 ### Option A: Create `feature-plans.json`
 
 If plan/pricing content grows, consider extracting:
+
 - `web.billing.plans.*`
 - `web.billing.marketing.*` (promotional content)
 - `web.billing.cta.*` (upgrade CTAs)
@@ -200,6 +210,7 @@ This would align with the existing `feature-*` naming pattern.
 ### Option B: Create `pricing.json`
 
 A dedicated file for all pricing-page content:
+
 - Plan comparisons
 - Feature lists by tier
 - Marketing copy
@@ -210,12 +221,15 @@ A dedicated file for all pricing-page content:
 ## Overlap with Existing Files
 
 ### `account.json`
+
 Contains `web.account.subscription_title` and `web.account.manage_subscription` which could conflict with `web.billing.subscription.*`. Consider consolidating subscription-related keys in one location.
 
 ### `feature-organizations.json`
+
 The organization selector and billing notices referencing organizations could be shared. Evaluate whether to use shared keys from `feature-organizations.json`.
 
 ### `_common.json`
+
 - `web.COMMON.monthly` / `web.COMMON.yearly` duplicates `web.billing.plans.monthly` / `web.billing.plans.yearly`
 - `web.FEATURES.*` could house the entitlements
 
@@ -235,10 +249,10 @@ The organization selector and billing notices referencing organizations could be
 
 ## Priority Actions
 
-| Priority | Action | Impact |
-|----------|--------|--------|
-| High | Reorganize flat keys into nested structure | Maintainability, consistency |
-| High | Fix truncated key names | Developer clarity |
-| Medium | Move entitlements to shared location | Reusability |
-| Medium | Dedupe with `_common.json` | DRY principle |
-| Low | Consider `feature-plans.json` extraction | Only if content grows |
+| Priority | Action                                     | Impact                       |
+| -------- | ------------------------------------------ | ---------------------------- |
+| High     | Reorganize flat keys into nested structure | Maintainability, consistency |
+| High     | Fix truncated key names                    | Developer clarity            |
+| Medium   | Move entitlements to shared location       | Reusability                  |
+| Medium   | Dedupe with `_common.json`                 | DRY principle                |
+| Low      | Consider `feature-plans.json` extraction   | Only if content grows        |

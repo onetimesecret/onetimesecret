@@ -1,180 +1,184 @@
 <!-- src/shared/components/modals/PlanPreviewModal.vue -->
 
 <script setup lang="ts">
-import ListSkeleton from '@/shared/components/closet/ListSkeleton.vue';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { usePreviewPlanMode } from '@/shared/composables/usePreviewPlanMode';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import { createApi } from '@/api';
-import {
-  Dialog,
-  DialogPanel,
-  DialogTitle,
-  TransitionChild,
-  TransitionRoot,
-} from '@headlessui/vue';
-import { computed, onMounted, ref, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
+  import ListSkeleton from '@/shared/components/closet/ListSkeleton.vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { usePreviewPlanMode } from '@/shared/composables/usePreviewPlanMode';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { useOrganizationStore } from '@/shared/stores/organizationStore';
+  import { createApi } from '@/api';
+  import {
+    Dialog,
+    DialogPanel,
+    DialogTitle,
+    TransitionChild,
+    TransitionRoot,
+  } from '@headlessui/vue';
+  import { computed, onMounted, ref, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
-const bootstrapStore = useBootstrapStore();
-const organizationStore = useOrganizationStore();
-const $api = createApi();
+  const { t } = useI18n();
+  const bootstrapStore = useBootstrapStore();
+  const organizationStore = useOrganizationStore();
+  const $api = createApi();
 
-const props = defineProps<{
-  isOpen: boolean;
-}>();
+  const props = defineProps<{
+    isOpen: boolean;
+  }>();
 
-const emit = defineEmits<{
-  (e: 'close'): void;
-}>();
+  const emit = defineEmits<{
+    (e: 'close'): void;
+  }>();
 
-interface Plan {
-  planid: string;
-  name: string;
-  tier?: string;
-  tenancy?: string;
-  region?: string;
-  display_order?: number;
-  show_on_plans_page?: boolean;
-  description?: string;
-  entitlements?: string[];
-  limits?: Record<string, string>;
-}
-
-interface PlansResponse {
-  plans: Plan[];
-  source: 'stripe' | 'local_config';
-}
-
-// Test plan mode composable
-const { isPreviewModeActive, previewPlanId, previewPlanName, actualPlanId } = usePreviewPlanMode();
-
-// Dynamic plan loading
-const plans = ref<Plan[]>([]);
-const plansSource = ref<'stripe' | 'local_config' | null>(null);
-const isLoadingPlans = ref(false);
-const plansError = ref<string | null>(null);
-
-const isLoading = ref(false);
-const error = ref<string | null>(null);
-
-// Whether we're using local config (Stripe unavailable)
-const isUsingLocalConfig = computed(() => plansSource.value === 'local_config');
-
-// Fetch available plans from API
-const fetchPlans = async () => {
-  isLoadingPlans.value = true;
-  plansError.value = null;
-
-  try {
-    const response = await $api.get<PlansResponse>('/api/colonel/available-plans');
-    plans.value = response.data.plans || [];
-    plansSource.value = response.data.source || null;
-  } catch (err: unknown) {
-    console.error('Failed to fetch available plans:', err);
-    plansError.value = 'Failed to load available plans. Check billing configuration.';
-    plans.value = [];
-    plansSource.value = null;
-  } finally {
-    isLoadingPlans.value = false;
+  interface Plan {
+    planid: string;
+    name: string;
+    tier?: string;
+    tenancy?: string;
+    region?: string;
+    display_order?: number;
+    show_on_plans_page?: boolean;
+    description?: string;
+    entitlements?: string[];
+    limits?: Record<string, string>;
   }
-};
 
-// Load plans when modal opens
-watch(() => props.isOpen, (isOpen) => {
-  if (isOpen && plans.value.length === 0) {
-    fetchPlans();
+  interface PlansResponse {
+    plans: Plan[];
+    source: 'stripe' | 'local_config';
   }
-});
 
-onMounted(() => {
-  if (props.isOpen) {
-    fetchPlans();
-  }
-});
+  // Test plan mode composable
+  const { isPreviewModeActive, previewPlanId, previewPlanName, actualPlanId } =
+    usePreviewPlanMode();
 
-// Get actual plan name from plans list
-const actualPlanName = computed(() => {
-  const planId = actualPlanId.value;
-  if (!planId) return 'Free';
-  const plan = plans.value.find(p => p.planid === planId);
-  return plan?.name || planId;
-});
+  // Dynamic plan loading
+  const plans = ref<Plan[]>([]);
+  const plansSource = ref<'stripe' | 'local_config' | null>(null);
+  const isLoadingPlans = ref(false);
+  const plansError = ref<string | null>(null);
 
-/**
- * Sync client state after the preview override changes on the server.
- *
- * The override is applied server-side on every read (ADR-020), so plain
- * refetches return preview-corrected data: bootstrapStore.refresh() picks up
- * the banner fields (`entitlement_preview_planid` / `_plan_name`), and
- * fetchOrganizations() reloads the org records whose entitlements/limits
- * `useEntitlements` gates features on.
- *
- * fetchOrganizations() refreshes the `organizations` list but not
- * `currentOrganization`, which is the ref most feature gating passes to
- * useEntitlements(). Re-point it at the refreshed record (matched by objid)
- * so gating reflects the preview flip instead of the pre-flip entitlements.
- */
-const syncPreviewState = async () => {
-  const [, refreshedOrgs] = await Promise.all([
-    bootstrapStore.refresh(),
-    organizationStore.fetchOrganizations(),
-  ]);
+  const isLoading = ref(false);
+  const error = ref<string | null>(null);
 
-  const currentObjid = organizationStore.currentOrganization?.objid;
-  if (currentObjid) {
-    const refreshed = refreshedOrgs.find((o) => o.objid === currentObjid);
-    if (refreshed) {
-      organizationStore.setCurrentOrganization(refreshed);
+  // Whether we're using local config (Stripe unavailable)
+  const isUsingLocalConfig = computed(() => plansSource.value === 'local_config');
+
+  // Fetch available plans from API
+  const fetchPlans = async () => {
+    isLoadingPlans.value = true;
+    plansError.value = null;
+
+    try {
+      const response = await $api.get<PlansResponse>('/api/colonel/available-plans');
+      plans.value = response.data.plans || [];
+      plansSource.value = response.data.source || null;
+    } catch (err: unknown) {
+      console.error('Failed to fetch available plans:', err);
+      plansError.value = 'Failed to load available plans. Check billing configuration.';
+      plans.value = [];
+      plansSource.value = null;
+    } finally {
+      isLoadingPlans.value = false;
     }
-  }
-};
+  };
 
-const handleActivateTestMode = async (planId: string) => {
-  isLoading.value = true;
-  error.value = null;
+  // Load plans when modal opens
+  watch(
+    () => props.isOpen,
+    (isOpen) => {
+      if (isOpen && plans.value.length === 0) {
+        fetchPlans();
+      }
+    }
+  );
 
-  try {
-    await $api.post('/api/colonel/entitlement-preview', { planid: planId });
+  onMounted(() => {
+    if (props.isOpen) {
+      fetchPlans();
+    }
+  });
 
-    // Refetch server state so the banner and feature gating reflect the
-    // selected plan (no page reload needed).
-    await syncPreviewState();
-    emit('close');
-  } catch (err: unknown) {
-    console.error('Failed to activate test mode:', err);
-    error.value = 'Failed to activate test mode. Please try again.';
-  } finally {
-    isLoading.value = false;
-  }
-};
+  // Get actual plan name from plans list
+  const actualPlanName = computed(() => {
+    const planId = actualPlanId.value;
+    if (!planId) return 'Free';
+    const plan = plans.value.find((p) => p.planid === planId);
+    return plan?.name || planId;
+  });
 
-const handleResetToActual = async () => {
-  isLoading.value = true;
-  error.value = null;
+  /**
+   * Sync client state after the preview override changes on the server.
+   *
+   * The override is applied server-side on every read (ADR-020), so plain
+   * refetches return preview-corrected data: bootstrapStore.refresh() picks up
+   * the banner fields (`entitlement_preview_planid` / `_plan_name`), and
+   * fetchOrganizations() reloads the org records whose entitlements/limits
+   * `useEntitlements` gates features on.
+   *
+   * fetchOrganizations() refreshes the `organizations` list but not
+   * `currentOrganization`, which is the ref most feature gating passes to
+   * useEntitlements(). Re-point it at the refreshed record (matched by objid)
+   * so gating reflects the preview flip instead of the pre-flip entitlements.
+   */
+  const syncPreviewState = async () => {
+    const [, refreshedOrgs] = await Promise.all([
+      bootstrapStore.refresh(),
+      organizationStore.fetchOrganizations(),
+    ]);
 
-  try {
-    await $api.post('/api/colonel/entitlement-preview', { planid: null });
+    const currentObjid = organizationStore.currentOrganization?.objid;
+    if (currentObjid) {
+      const refreshed = refreshedOrgs.find((o) => o.objid === currentObjid);
+      if (refreshed) {
+        organizationStore.setCurrentOrganization(refreshed);
+      }
+    }
+  };
 
-    // Refetch server state so the banner and feature gating return to the
-    // real plan (no page reload needed).
-    await syncPreviewState();
-    emit('close');
-  } catch (err: unknown) {
-    console.error('Failed to reset test mode:', err);
-    error.value = 'Failed to reset test mode. Please try again.';
-  } finally {
-    isLoading.value = false;
-  }
-};
+  const handleActivateTestMode = async (planId: string) => {
+    isLoading.value = true;
+    error.value = null;
 
-const handleClose = () => {
-  if (!isLoading.value) {
-    emit('close');
-  }
-};
+    try {
+      await $api.post('/api/colonel/entitlement-preview', { planid: planId });
+
+      // Refetch server state so the banner and feature gating reflect the
+      // selected plan (no page reload needed).
+      await syncPreviewState();
+      emit('close');
+    } catch (err: unknown) {
+      console.error('Failed to activate test mode:', err);
+      error.value = 'Failed to activate test mode. Please try again.';
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
+  const handleResetToActual = async () => {
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+      await $api.post('/api/colonel/entitlement-preview', { planid: null });
+
+      // Refetch server state so the banner and feature gating return to the
+      // real plan (no page reload needed).
+      await syncPreviewState();
+      emit('close');
+    } catch (err: unknown) {
+      console.error('Failed to reset test mode:', err);
+      error.value = 'Failed to reset test mode. Please try again.';
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
+  const handleClose = () => {
+    if (!isLoading.value) {
+      emit('close');
+    }
+  };
 </script>
 
 <template>
@@ -196,7 +200,8 @@ const handleClose = () => {
       </TransitionChild>
 
       <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
-        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div
+          class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
           <TransitionChild
             as="template"
             enter="ease-out duration-300"
@@ -206,22 +211,22 @@ const handleClose = () => {
             leave-from="opacity-100 translate-y-0 sm:scale-100"
             leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
             <DialogPanel
-              class="relative overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+              class="relative overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 dark:bg-gray-800">
               <div>
                 <!-- Icon and Title -->
                 <div class="sm:flex sm:items-start">
                   <div
-                    class="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30 sm:mx-0 sm:size-10">
+                    class="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full bg-amber-100 sm:mx-0 sm:size-10 dark:bg-amber-900/30">
                     <OIcon
                       collection="heroicons"
                       name="beaker"
                       class="size-6 text-amber-600 dark:text-amber-400"
                       aria-hidden="true" />
                   </div>
-                  <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                  <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                     <DialogTitle
                       as="h3"
-                      class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
+                      class="text-base leading-6 font-semibold text-gray-900 dark:text-white">
                       {{ t('web.colonel.previewPlanMode') }}
                     </DialogTitle>
                     <div class="mt-2">
@@ -248,8 +253,9 @@ const handleClose = () => {
                         Using Local Configuration
                       </h4>
                       <p class="mt-1 text-sm text-orange-700 dark:text-orange-400">
-                        Plans loaded from billing.yaml, not Stripe. This indicates Stripe integration
-                        is not configured or unavailable. Test mode won't validate Stripe connectivity.
+                        Plans loaded from billing.yaml, not Stripe. This indicates Stripe
+                        integration is not configured or unavailable. Test mode won't validate
+                        Stripe connectivity.
                       </p>
                     </div>
                   </div>
@@ -327,7 +333,7 @@ const handleClose = () => {
                         'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
                         plansSource === 'stripe'
                           ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                          : 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
+                          : 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
                       ]">
                       {{ plansSource === 'stripe' ? 'Stripe' : 'Local' }}
                     </span>
@@ -383,25 +389,33 @@ const handleClose = () => {
                             <span
                               v-if="plan.tier"
                               class="text-gray-500 dark:text-gray-400">
-                              <span class="font-medium text-gray-600 dark:text-gray-300">tier:</span>
+                              <span class="font-medium text-gray-600 dark:text-gray-300"
+                                >tier:</span
+                              >
                               {{ plan.tier }}
                             </span>
                             <span
                               v-if="plan.tenancy"
                               class="text-gray-500 dark:text-gray-400">
-                              <span class="font-medium text-gray-600 dark:text-gray-300">tenancy:</span>
+                              <span class="font-medium text-gray-600 dark:text-gray-300"
+                                >tenancy:</span
+                              >
                               {{ plan.tenancy }}
                             </span>
                             <span
                               v-if="plan.region"
                               class="text-gray-500 dark:text-gray-400">
-                              <span class="font-medium text-gray-600 dark:text-gray-300">region:</span>
+                              <span class="font-medium text-gray-600 dark:text-gray-300"
+                                >region:</span
+                              >
                               {{ plan.region }}
                             </span>
                             <span
                               v-if="plan.display_order !== undefined"
                               class="text-gray-500 dark:text-gray-400">
-                              <span class="font-medium text-gray-600 dark:text-gray-300">order:</span>
+                              <span class="font-medium text-gray-600 dark:text-gray-300"
+                                >order:</span
+                              >
                               {{ plan.display_order }}
                             </span>
                           </div>
@@ -441,7 +455,7 @@ const handleClose = () => {
                   v-if="isPreviewModeActive"
                   type="button"
                   :disabled="isLoading"
-                  class="inline-flex w-full justify-center rounded-md bg-amber-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-amber-700 dark:hover:bg-amber-600 sm:w-auto"
+                  class="inline-flex w-full justify-center rounded-md bg-amber-600 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto dark:bg-amber-700 dark:hover:bg-amber-600"
                   @click="handleResetToActual">
                   <span v-if="!isLoading">{{ t('web.colonel.resetToActual') }}</span>
                   <span v-else>{{ t('web.COMMON.processing') }}</span>
@@ -449,7 +463,7 @@ const handleClose = () => {
                 <button
                   type="button"
                   :disabled="isLoading"
-                  class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-white dark:ring-gray-600 dark:hover:bg-gray-600 sm:mt-0 sm:w-auto"
+                  class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 transition-colors ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 sm:mt-0 sm:w-auto dark:bg-gray-700 dark:text-white dark:ring-gray-600 dark:hover:bg-gray-600"
                   @click="handleClose">
                   {{ t('web.COMMON.word_cancel') }}
                 </button>

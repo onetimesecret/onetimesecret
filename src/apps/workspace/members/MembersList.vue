@@ -1,76 +1,69 @@
 <!-- src/apps/workspace/members/MembersList.vue -->
 
 <script setup lang="ts">
-import MembersTable from '@/apps/workspace/components/members/MembersTable.vue';
-import TableSkeleton from '@/shared/components/closet/TableSkeleton.vue';
-import EmptyState from '@/shared/components/ui/EmptyState.vue';
-import ErrorDisplay from '@/shared/components/ui/ErrorDisplay.vue';
-import { useMembersManager } from '@/shared/composables/useMembersManager';
-import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import type { OrganizationMember } from '@/types/organization';
-import { storeToRefs } from 'pinia';
-import { computed, onUnmounted, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRoute } from 'vue-router';
+  import MembersTable from '@/apps/workspace/components/members/MembersTable.vue';
+  import TableSkeleton from '@/shared/components/closet/TableSkeleton.vue';
+  import EmptyState from '@/shared/components/ui/EmptyState.vue';
+  import ErrorDisplay from '@/shared/components/ui/ErrorDisplay.vue';
+  import { useMembersManager } from '@/shared/composables/useMembersManager';
+  import { useOrganizationStore } from '@/shared/stores/organizationStore';
+  import type { OrganizationMember } from '@/types/organization';
+  import { storeToRefs } from 'pinia';
+  import { computed, onUnmounted, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRoute } from 'vue-router';
 
-const { t } = useI18n();
-const route = useRoute();
+  const { t } = useI18n();
+  const route = useRoute();
 
-const orgStore = useOrganizationStore();
-const { currentOrganization } = storeToRefs(orgStore);
+  const orgStore = useOrganizationStore();
+  const { currentOrganization } = storeToRefs(orgStore);
 
-const {
-  members,
-  isLoading,
-  error,
-  memberCount,
-  canManageMembers,
-  fetchMembers,
-  clearError,
-} = useMembersManager();
+  const { members, isLoading, error, memberCount, canManageMembers, fetchMembers, clearError } =
+    useMembersManager();
 
-const orgExtid = computed(() => route.params.extid as string);
+  const orgExtid = computed(() => route.params.extid as string);
 
-const membersList = computed(() => members.value ?? []);
+  const membersList = computed(() => members.value ?? []);
 
-const loadMembers = async () => {
-  if (orgExtid.value) {
-    clearError();
-    await fetchMembers(orgExtid.value);
-  }
-};
-
-const handleMemberUpdated = (member: OrganizationMember) => {
-  // The store is already updated, but we could add additional handling here
-  console.debug('[MembersList] Member updated:', member.extid);
-};
-
-const handleMemberRemoved = (memberExtid: string) => {
-  // The store is already updated, but we could add additional handling here
-  console.debug('[MembersList] Member removed:', memberExtid);
-};
-
-// Single watcher handles both member loading and org fetching on route changes.
-// Using { immediate: true } replaces the onMounted call, avoiding double fetch.
-watch(
-  orgExtid,
-  async (extid) => {
-    if (!extid) return;
-    if (!currentOrganization.value) {
-      await orgStore.fetchOrganization(extid);
+  const loadMembers = async () => {
+    if (orgExtid.value) {
+      clearError();
+      await fetchMembers(orgExtid.value);
     }
-    await loadMembers();
-  },
-  { immediate: true }
-);
+  };
 
-onUnmounted(() => {
-  clearError();
-});
+  const handleMemberUpdated = (member: OrganizationMember) => {
+    // The store is already updated, but we could add additional handling here
+    console.debug('[MembersList] Member updated:', member.extid);
+  };
+
+  const handleMemberRemoved = (memberExtid: string) => {
+    // The store is already updated, but we could add additional handling here
+    console.debug('[MembersList] Member removed:', memberExtid);
+  };
+
+  // Single watcher handles both member loading and org fetching on route changes.
+  // Using { immediate: true } replaces the onMounted call, avoiding double fetch.
+  watch(
+    orgExtid,
+    async (extid) => {
+      if (!extid) return;
+      if (!currentOrganization.value) {
+        await orgStore.fetchOrganization(extid);
+      }
+      await loadMembers();
+    },
+    { immediate: true }
+  );
+
+  onUnmounted(() => {
+    clearError();
+  });
 </script>
 
 <template>
-  <div class="container mx-auto min-w-[320px] max-w-4xl">
+  <div class="container mx-auto max-w-4xl min-w-[320px]">
     <!-- Error Display -->
     <ErrorDisplay
       v-if="error"

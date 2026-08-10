@@ -65,7 +65,11 @@ vi.mock('vue-i18n', () => ({
 
 // --- router ------------------------------------------------------------------
 const mockPush = vi.fn();
-const mockRoute = reactive<{ meta: Record<string, unknown>; params: Record<string, unknown>; matched: unknown[] }>({
+const mockRoute = reactive<{
+  meta: Record<string, unknown>;
+  params: Record<string, unknown>;
+  matched: unknown[];
+}>({
   meta: {},
   params: {},
   matched: [],
@@ -254,9 +258,7 @@ describe('DomainContextSwitcher closes on navigation', () => {
   it('closes the dropdown and navigates when the gear icon is clicked', async () => {
     wrapper = mount(DomainContextSwitcher);
 
-    await wrapper
-      .find('[aria-label="web.domains.domain_settings"]')
-      .trigger('click');
+    await wrapper.find('[aria-label="web.domains.domain_settings"]').trigger('click');
 
     expect(mockPush).toHaveBeenCalledWith('/org/org1/domains/cd1');
     expect(mockClose).toHaveBeenCalled();
@@ -365,12 +367,12 @@ describe('DomainContextSwitcher operator link pool rows', () => {
     // The checkmark renders only for item.isCurrent.
     const checks = wrapper.findAll('[data-icon="check-20-solid"]');
     expect(checks).toHaveLength(1);
-    expect(rowFor(wrapper, 'link:b.example.com').find('[data-icon="check-20-solid"]').exists()).toBe(
-      true
-    );
-    expect(rowFor(wrapper, 'link:a.example.com').find('[data-icon="check-20-solid"]').exists()).toBe(
-      false
-    );
+    expect(
+      rowFor(wrapper, 'link:b.example.com').find('[data-icon="check-20-solid"]').exists()
+    ).toBe(true);
+    expect(
+      rowFor(wrapper, 'link:a.example.com').find('[data-icon="check-20-solid"]').exists()
+    ).toBe(false);
   });
 
   it('explains a disabled pool row as a link domain, and the canonical row as the default', () => {

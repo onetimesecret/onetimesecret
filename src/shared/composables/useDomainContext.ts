@@ -148,7 +148,9 @@ function getDomainDisplayName(domain: string): string {
   // here would surface an address the operator excluded from the picker.
   const name = domain || getPoolFallbackDomain();
   if (!name) {
-    console.error('[useDomainContext] getDomainDisplayName called with no domain and an empty link pool');
+    console.error(
+      '[useDomainContext] getDomainDisplayName called with no domain and an empty link pool'
+    );
   }
   return name || 'unknown';
 }
@@ -326,9 +328,7 @@ async function resetDomainContext($api: AxiosInstance | undefined): Promise<void
  * Extracts domains for the current organization from the bulk permissions response.
  * @see src/tests/composables/useDomainContext.spec.ts
  */
-function createPermissionsFetcher(
-  organizationStore: ReturnType<typeof useOrganizationStore>,
-) {
+function createPermissionsFetcher(organizationStore: ReturnType<typeof useOrganizationStore>) {
   return async (): Promise<boolean> => {
     const { domainsEnabled } = getConfig();
     if (!domainsEnabled) return true;
@@ -349,7 +349,7 @@ function createPermissionsFetcher(
       const result = await permissionsInstance!.fetchAllPermissions();
       if (controller.signal.aborted) return false;
 
-      const orgPerms = result?.organizations.find(o => o.extid === orgExtid);
+      const orgPerms = result?.organizations.find((o) => o.extid === orgExtid);
       permissionsDomains.value = orgPerms?.domains ?? [];
       return true;
     } catch (error) {
@@ -485,10 +485,7 @@ export function useDomainContext() {
   const setContextByExtid = async (extid: string, skipBackendSync = true): Promise<void> => {
     const domain = getDomainByExtid(extid);
     if (domain) await setContext(domain, skipBackendSync);
-    else loggingService.debug(
-      '[useDomainContext] No domain found for extid',
-      { extid }
-    );
+    else loggingService.debug('[useDomainContext] No domain found for extid', { extid });
   };
 
   return {

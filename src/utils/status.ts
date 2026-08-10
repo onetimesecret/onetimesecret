@@ -16,11 +16,11 @@ import type { Composer } from 'vue-i18n';
 export type DisplayStatus =
   | 'new'
   | 'unread'
-  | 'viewed'      // @deprecated - use 'previewed'
-  | 'previewed'   // NEW: link accessed, confirmation shown
+  | 'viewed' // @deprecated - use 'previewed'
+  | 'previewed' // NEW: link accessed, confirmation shown
   | 'burned'
-  | 'received'    // @deprecated - use 'revealed'
-  | 'revealed'    // NEW: secret content decrypted/consumed
+  | 'received' // @deprecated - use 'revealed'
+  | 'revealed' // NEW: secret content decrypted/consumed
   | 'expiring_soon'
   | 'orphaned'
   | 'expired';
@@ -33,9 +33,9 @@ const STATE_TO_DISPLAY: Record<string, DisplayStatus> = {
   [ReceiptState.NEW]: 'new',
   [ReceiptState.SHARED]: 'new',
   [ReceiptState.PREVIEWED]: 'previewed',
-  [ReceiptState.VIEWED]: 'previewed',      // legacy alias
+  [ReceiptState.VIEWED]: 'previewed', // legacy alias
   [ReceiptState.REVEALED]: 'revealed',
-  [ReceiptState.RECEIVED]: 'revealed',     // legacy alias
+  [ReceiptState.RECEIVED]: 'revealed', // legacy alias
   [ReceiptState.BURNED]: 'burned',
   [ReceiptState.ORPHANED]: 'orphaned',
   [ReceiptState.EXPIRED]: 'expired',
@@ -66,11 +66,7 @@ export function getDisplayStatus(
   }
 
   // Check expiring soon first (if active)
-  if (
-    state === ReceiptState.NEW &&
-    typeof expiresIn === 'number' &&
-    expiresIn < 1800
-  ) {
+  if (state === ReceiptState.NEW && typeof expiresIn === 'number' && expiresIn < 1800) {
     return 'expiring_soon';
   }
 

@@ -15,7 +15,7 @@ per-locale convention prose.
 **Prerequisite (resolved-only, no-vendor): governance exists upstream first.**
 A language becomes translatable only once the derive produces
 `generated/i18n/.resolved/{LANG}.json` with a populated register + glossary.
-"New language" here means *new to translation* — its governance already exists,
+"New language" here means _new to translation_ — its governance already exists,
 its content just hasn't been drained yet. This command does **not** bootstrap a
 language from nothing: if the derived artifact is missing, add the language's
 governance in the `translation-rules` repo
@@ -64,6 +64,7 @@ If not eligible, stop and report — do not translate without the resolved artif
 
 1. **Get the diff** between English source and the target language to scope the
    new/changed keys:
+
    ```bash
    git diff --no-index locales/content/en locales/content/{lang} 2>/dev/null || echo "New locale"
    ```

@@ -39,7 +39,10 @@ export const customDomainSignupConfigSchema = customDomainSignupConfigCanonical.
   ...timestampOverrides,
 
   // Array normalization: null → empty array
-  allowed_signup_domains: z.array(z.string()).nullish().transform((v) => v ?? []),
+  allowed_signup_domains: z
+    .array(z.string())
+    .nullish()
+    .transform((v) => v ?? []),
 });
 
 export type CustomDomainSignupConfig = z.infer<typeof customDomainSignupConfigSchema>;

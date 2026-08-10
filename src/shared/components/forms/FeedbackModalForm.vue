@@ -2,12 +2,12 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-import { useFormSubmission } from '@/shared/composables/useFormSubmission';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { useCsrfStore } from '@/shared/stores/csrfStore';
-import { useMediaQuery } from '@vueuse/core';
-import { computed, onMounted, ref } from 'vue';
-import { storeToRefs } from 'pinia';
+  import { useFormSubmission } from '@/shared/composables/useFormSubmission';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { useCsrfStore } from '@/shared/stores/csrfStore';
+  import { useMediaQuery } from '@vueuse/core';
+  import { computed, onMounted, ref } from 'vue';
+  import { storeToRefs } from 'pinia';
 
   const { t } = useI18n();
   const csrfStore = useCsrfStore();
@@ -34,7 +34,9 @@ import { storeToRefs } from 'pinia';
   const CHAR_WARNING_THRESHOLD = Math.floor(MAX_MSG_LENGTH * 0.9);
 
   const charactersRemaining = computed(() => MAX_MSG_LENGTH - feedbackMessage.value.length);
-  const showCharacterCounter = computed(() => feedbackMessage.value.length >= CHAR_WARNING_THRESHOLD);
+  const showCharacterCounter = computed(
+    () => feedbackMessage.value.length >= CHAR_WARNING_THRESHOLD
+  );
   const atCharacterLimit = computed(() => feedbackMessage.value.length >= MAX_MSG_LENGTH);
 
   const resetForm = () => {
@@ -75,7 +77,11 @@ import { storeToRefs } from 'pinia';
   /**
    * Computed property to determine the submit key combination text based on the platform
    */
-  const submitWithText = computed(() => navigator.platform.includes(t('web.COMMON.mac')) ? t('web.COMMON.enter_0') : t('web.COMMON.ctrl_enter'));
+  const submitWithText = computed(() =>
+    navigator.platform.includes(t('web.COMMON.mac'))
+      ? t('web.COMMON.enter_0')
+      : t('web.COMMON.ctrl_enter')
+  );
 
   /**
    * State to track if the device is a desktop using useMediaQuery
@@ -133,14 +139,18 @@ import { storeToRefs } from 'pinia';
           <span
             v-if="showCharacterCounter"
             class="text-xs"
-            :class="atCharacterLimit
-              ? 'text-red-600 dark:text-red-400'
-              : 'text-amber-600 dark:text-amber-400'"
+            :class="
+              atCharacterLimit
+                ? 'text-red-600 dark:text-red-400'
+                : 'text-amber-600 dark:text-amber-400'
+            "
             role="status"
             aria-live="polite">
-            {{ atCharacterLimit
-              ? t('web.feedback.character_limit_reached')
-              : t('web.feedback.characters_remaining', { count: charactersRemaining }) }}
+            {{
+              atCharacterLimit
+                ? t('web.feedback.character_limit_reached')
+                : t('web.feedback.characters_remaining', { count: charactersRemaining })
+            }}
           </span>
           <span v-else></span>
           <span v-if="isDesktop">{{ submitWithText }}</span>
@@ -150,9 +160,7 @@ import { storeToRefs } from 'pinia';
       <!-- Reply-availability notice: heads-up for anonymous submitters -->
       <div
         v-if="!cust?.objid"
-        class="rounded-md border border-blue-200 bg-blue-50
-          p-3 text-sm text-blue-800
-          dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
+        class="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300"
         role="note">
         {{ t('web.feedback.anonymous_no_reply') }}
       </div>
@@ -198,15 +206,9 @@ import { storeToRefs } from 'pinia';
       <ul class="space-y-1">
         <!-- Authentication check: cust is null for anonymous users (via AuthenticationSerializer),
              cust.objid confirms a fully hydrated customer object -->
-        <li v-if="cust?.objid">
-          • {{ t('web.account.customer_id') }}: {{ cust.email }}
-        </li>
-        <li>
-          • {{ t('web.account.timezone') }}: {{ userTimezone }}
-        </li>
-        <li>
-          • {{ t('web.site.website_version') }}: {{ ot_version_long }}
-        </li>
+        <li v-if="cust?.objid">• {{ t('web.account.customer_id') }}: {{ cust.email }}</li>
+        <li>• {{ t('web.account.timezone') }}: {{ userTimezone }}</li>
+        <li>• {{ t('web.site.website_version') }}: {{ ot_version_long }}</li>
       </ul>
     </div>
   </div>

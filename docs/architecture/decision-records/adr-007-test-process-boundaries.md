@@ -5,9 +5,11 @@ title: ADR-007: Test Process Boundaries in Multi-Service Architecture
 ---
 
 ## Status
+
 Accepted
 
 ## Date
+
 2025-12-22
 
 ## Context
@@ -21,12 +23,14 @@ The codebase contains multiple services with varying runtime requirements and de
 Components running in the same process in production have tests capable of coexisting in a single test process. Components deployed as separate runtimes may be tested separately.
 
 **Separate processes are legitimate when:**
+
 - Different language runtimes
 - Incompatible system-level dependencies
 - Integration tests instantiate actual service processes
 - Fundamentally different backing infrastructure
 
 **Separate processes indicate debt when:**
+
 - Tests fail together due to global state pollution or singleton contamination
 - Unresolvable dependency version conflicts within a shared runtime
 - Shared code initializes differently based on which test harness loads first

@@ -6,11 +6,7 @@ import { AxiosError } from 'axios';
 import { isNavigationFailure, type NavigationFailure } from 'vue-router';
 import { ZodError } from 'zod';
 
-import {
-  applicationErrorSchema,
-  ApplicationError,
-  HttpErrorLike,
-} from './types';
+import { applicationErrorSchema, ApplicationError, HttpErrorLike } from './types';
 
 export const errorGuards = {
   isApplicationError(error: unknown): error is ApplicationError {

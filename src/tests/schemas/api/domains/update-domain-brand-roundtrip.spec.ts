@@ -50,9 +50,7 @@ describe('updateDomainBrandRequestSchema (canonical-targeted) — request round-
   it('regression guard: the v2 wire shape STRIPS the extended tokens', () => {
     // Documents why the request schema was retargeted off the v2 shape: the v2
     // shape declares none of the extended tokens, so it silently drops them.
-    const parsedV2 = brandSettingschema
-      .partial()
-      .parse({ primary_color: '#3B82F6', ...EXTENDED });
+    const parsedV2 = brandSettingschema.partial().parse({ primary_color: '#3B82F6', ...EXTENDED });
     for (const key of EXTENDED_KEYS) {
       expect(parsedV2).not.toHaveProperty(key);
     }

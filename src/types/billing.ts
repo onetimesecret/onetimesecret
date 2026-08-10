@@ -108,15 +108,12 @@ export function getPlanLabel(planType: PlanType | string): string {
 
 export function getSubscriptionStatusLabel(
   status: SubscriptionStatus,
-  t: ComposerTranslation,
+  t: ComposerTranslation
 ): string {
   return t(`web.billing.subscription.${status}`);
 }
 
-export function getInvoiceStatusLabel(
-  status: InvoiceStatus,
-  t: ComposerTranslation,
-): string {
+export function getInvoiceStatusLabel(status: InvoiceStatus, t: ComposerTranslation): string {
   return t(`web.billing.invoices.${status}`);
 }
 
@@ -137,11 +134,7 @@ export function getInvoiceStatusLabel(
  * @param currency - ISO 4217 currency code; falsy values coerce to 'USD'
  * @param locale - BCP-47 or underscore-form locale; omitted = browser locale
  */
-export function formatCurrency(
-  amount: number,
-  currency?: string | null,
-  locale?: string
-): string {
+export function formatCurrency(amount: number, currency?: string | null, locale?: string): string {
   const currencyCode = (currency || 'USD').toUpperCase();
   const normalizedLocale = locale ? locale.replace(/_/g, '-') : undefined;
 

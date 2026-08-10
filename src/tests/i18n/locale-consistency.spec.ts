@@ -270,9 +270,8 @@ ${summary.map((s) => `  ${s.locale}: ${s.count} extra keys`).join('\n')}
 
       for (const [locale, comparison] of comparisons) {
         const missingCount = comparison.missingKeys.length;
-        const coverage = baselineKeyCount > 0
-          ? ((baselineKeyCount - missingCount) / baselineKeyCount) * 100
-          : 0;
+        const coverage =
+          baselineKeyCount > 0 ? ((baselineKeyCount - missingCount) / baselineKeyCount) * 100 : 0;
         coverageReport.push({
           locale,
           coverage: Math.round(coverage * 100) / 100,
@@ -311,9 +310,10 @@ ${coverageReport.map((r) => `  ${r.locale}: ${r.coverage}% (${r.missing} missing
         }
 
         // Log status for critical locales
-        const coverage = baselineKeys.length > 0
-          ? ((baselineKeys.length - comparison.missingKeys.length) / baselineKeys.length) * 100
-          : 0;
+        const coverage =
+          baselineKeys.length > 0
+            ? ((baselineKeys.length - comparison.missingKeys.length) / baselineKeys.length) * 100
+            : 0;
 
         console.info(`${locale} status:
   - Coverage: ${coverage.toFixed(1)}%

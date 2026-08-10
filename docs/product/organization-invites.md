@@ -14,14 +14,14 @@ End-to-end flow from "owner clicks invite" to "invitee is an active org member."
 
 `OrganizationMembership.status` is the FSM. Token is set during `pending`, cleared on terminal transitions.
 
-| State | Set by | Token | Indexed in |
-|-------|--------|-------|------------|
-| `pending` | `Organization#invite_member` | yes | `token_lookup`, `org_email_lookup`, `pending_invitations` |
-| `accepted` | `accept!` when `requires_admin_approval?` returns true (gated; awaiting approval workflow) | nil | none |
-| `active` | `activate!` (auto-promoted from `accept!`) | nil | `org.members`, `org_customer_lookup` |
-| `declined` | `decline!` | nil | none |
-| expired | implicit (`pending_at + 7d`) | yes (until cleanup) | unchanged |
-| revoked | `revoke!` | — | record destroyed |
+| State      | Set by                                                                                     | Token               | Indexed in                                                |
+| ---------- | ------------------------------------------------------------------------------------------ | ------------------- | --------------------------------------------------------- |
+| `pending`  | `Organization#invite_member`                                                               | yes                 | `token_lookup`, `org_email_lookup`, `pending_invitations` |
+| `accepted` | `accept!` when `requires_admin_approval?` returns true (gated; awaiting approval workflow) | nil                 | none                                                      |
+| `active`   | `activate!` (auto-promoted from `accept!`)                                                 | nil                 | `org.members`, `org_customer_lookup`                      |
+| `declined` | `decline!`                                                                                 | nil                 | none                                                      |
+| expired    | implicit (`pending_at + 7d`)                                                               | yes (until cleanup) | unchanged                                                 |
+| revoked    | `revoke!`                                                                                  | —                   | record destroyed                                          |
 
 `lib/onetime/models/organization_membership.rb` is the canonical reference. `INVITATION_TTL_SECONDS = 7.days`.
 
@@ -42,35 +42,35 @@ Acceptance is **always an explicit user click**. Signup/signin establishes auth;
 
 ## API surface
 
-| Method | Path | Auth | Logic class |
-|--------|------|------|-------------|
-| GET | `/api/invite/:token` | noauth (rate-limited) | `InviteAPI::Logic::Invites::ShowInvite` |
-| POST | `/api/invite/:token/accept` | sessionauth | `InviteAPI::Logic::Invites::AcceptInvite` |
-| POST | `/api/invite/:token/decline` | noauth | `InviteAPI::Logic::Invites::DeclineInvite` |
-| GET | `/api/org/:extid/invitations` | sessionauth (admin) | `OrganizationAPI::Logic::Invitations::ListInvitations` |
-| POST | `/api/org/:extid/invitations` | sessionauth (admin) | `OrganizationAPI::Logic::Invitations::CreateInvitation` |
-| POST | `/api/org/:extid/invitations/:token/resend` | sessionauth (admin) | `OrganizationAPI::Logic::Invitations::ResendInvitation` |
-| DELETE | `/api/org/:extid/invitations/:token` | sessionauth (admin) | `OrganizationAPI::Logic::Invitations::RevokeInvitation` |
+| Method | Path                                        | Auth                  | Logic class                                             |
+| ------ | ------------------------------------------- | --------------------- | ------------------------------------------------------- |
+| GET    | `/api/invite/:token`                        | noauth (rate-limited) | `InviteAPI::Logic::Invites::ShowInvite`                 |
+| POST   | `/api/invite/:token/accept`                 | sessionauth           | `InviteAPI::Logic::Invites::AcceptInvite`               |
+| POST   | `/api/invite/:token/decline`                | noauth                | `InviteAPI::Logic::Invites::DeclineInvite`              |
+| GET    | `/api/org/:extid/invitations`               | sessionauth (admin)   | `OrganizationAPI::Logic::Invitations::ListInvitations`  |
+| POST   | `/api/org/:extid/invitations`               | sessionauth (admin)   | `OrganizationAPI::Logic::Invitations::CreateInvitation` |
+| POST   | `/api/org/:extid/invitations/:token/resend` | sessionauth (admin)   | `OrganizationAPI::Logic::Invitations::ResendInvitation` |
+| DELETE | `/api/org/:extid/invitations/:token`        | sessionauth (admin)   | `OrganizationAPI::Logic::Invitations::RevokeInvitation` |
 
-`ShowInvite` returns structured responses for *every* invitation state (pending/accepted/declined/expired). Only truly unknown tokens 404. The response carries a computed `actionable` flag so the frontend can branch without a second round-trip. It deliberately carries **no** `account_exists` flag (AZ7 anti-enumeration hardening): unauthenticated visitors always start in the signup flow, and the frontend falls back to signin only when the signup endpoint returns its generic `signup_unavailable` error (#3856) — which likewise never confirms account existence.
+`ShowInvite` returns structured responses for _every_ invitation state (pending/accepted/declined/expired). Only truly unknown tokens 404. The response carries a computed `actionable` flag so the frontend can branch without a second round-trip. It deliberately carries **no** `account_exists` flag (AZ7 anti-enumeration hardening): unauthenticated visitors always start in the signup flow, and the frontend falls back to signin only when the signup endpoint returns its generic `signup_unavailable` error (#3856) — which likewise never confirms account existence.
 
 ## Dimensions we track
 
 Reference: industry comparison across 10 SaaS products (Clerk, GitHub, Slack, Notion, Linear, Figma, 1Password, Atlassian, WorkOS, Zitadel). These are the dimensions on which invite systems differ, and where OTS sits.
 
-| Dimension | OTS position | Notes |
-|-----------|--------------|-------|
-| Invite channel | Email only | No secret link, no Slack app, no SCIM yet |
-| Expiry | 7 days, hardcoded | Matches GitHub. Not configurable. |
-| Token lifecycle | New token on resend (old invalidated) | `ResendInvitation` calls `generate_token!`, max 3 resends |
-| Role at invite | Set at invite (`through_attrs[:role]`) | Majority pattern |
-| Account creation | Embedded in flow | Inline `InviteSignUpForm` / `InviteSignInForm` |
-| Account-exists branching | Not disclosed by the API (AZ7/#3856) | Signup is the default path; frontend falls back to signin on the generic `signup_unavailable` error. Differs from Clerk `__clerk_status` / WorkOS user-exists fork by design (anti-enumeration) |
-| Admin confirmation | Not required (`requires_admin_approval?` hardcoded `false`) | Branch exists in `accept!` for the future approval workflow |
-| Email match | Strict, case-insensitive | Enforced in `accept!` and at signup hook (`before_create_account`) — defense in depth |
-| Anti-enumeration | `InviteTokenRateLimiter` on GET (per-IP) | Mirrors GitHub verified-email matching, in spirit |
-| Acceptance trigger | Explicit user click | No auto-accept post-auth; intentional anti-phishing posture |
-| Post-accept onboarding | None | Lands on `/orgs` |
+| Dimension                | OTS position                                                | Notes                                                                                                                                                                                           |
+| ------------------------ | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Invite channel           | Email only                                                  | No secret link, no Slack app, no SCIM yet                                                                                                                                                       |
+| Expiry                   | 7 days, hardcoded                                           | Matches GitHub. Not configurable.                                                                                                                                                               |
+| Token lifecycle          | New token on resend (old invalidated)                       | `ResendInvitation` calls `generate_token!`, max 3 resends                                                                                                                                       |
+| Role at invite           | Set at invite (`through_attrs[:role]`)                      | Majority pattern                                                                                                                                                                                |
+| Account creation         | Embedded in flow                                            | Inline `InviteSignUpForm` / `InviteSignInForm`                                                                                                                                                  |
+| Account-exists branching | Not disclosed by the API (AZ7/#3856)                        | Signup is the default path; frontend falls back to signin on the generic `signup_unavailable` error. Differs from Clerk `__clerk_status` / WorkOS user-exists fork by design (anti-enumeration) |
+| Admin confirmation       | Not required (`requires_admin_approval?` hardcoded `false`) | Branch exists in `accept!` for the future approval workflow                                                                                                                                     |
+| Email match              | Strict, case-insensitive                                    | Enforced in `accept!` and at signup hook (`before_create_account`) — defense in depth                                                                                                           |
+| Anti-enumeration         | `InviteTokenRateLimiter` on GET (per-IP)                    | Mirrors GitHub verified-email matching, in spirit                                                                                                                                               |
+| Acceptance trigger       | Explicit user click                                         | No auto-accept post-auth; intentional anti-phishing posture                                                                                                                                     |
+| Post-accept onboarding   | None                                                        | Lands on `/orgs`                                                                                                                                                                                |
 
 ## Frontend state machine
 

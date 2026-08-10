@@ -98,7 +98,8 @@
             v-if="customerExtid"
             data-testid="api-username-field"
             class="font-mono text-sm text-gray-800 dark:text-gray-200">
-            <div class="relative flex items-center overflow-x-auto rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-900/50">
+            <div
+              class="relative flex items-center overflow-x-auto rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-900/50">
               <span class="pr-10 break-all">{{ customerExtid }}</span>
               <div class="absolute top-1/2 right-2 -translate-y-1/2">
                 <CopyButton

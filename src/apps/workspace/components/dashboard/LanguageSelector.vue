@@ -1,79 +1,87 @@
 <!-- src/apps/workspace/components/dashboard/LanguageSelector.vue -->
 
 <script setup lang="ts">
-import HoverTooltip from '@/shared/components/common/HoverTooltip.vue';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { useLanguage } from '@/shared/composables/useLanguage';
-import { useEventListener } from '@vueuse/core';
-import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue';
-import { Composer, useI18n } from 'vue-i18n';
+  import HoverTooltip from '@/shared/components/common/HoverTooltip.vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { useLanguage } from '@/shared/composables/useLanguage';
+  import { useEventListener } from '@vueuse/core';
+  import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue';
+  import { Composer, useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-withDefaults(defineProps<{
-  previewI18n: Composer;
-  modelValue?: string;
-}>(), {
-  modelValue: ''
-});
+  withDefaults(
+    defineProps<{
+      previewI18n: Composer;
+      modelValue?: string;
+    }>(),
+    {
+      modelValue: '',
+    }
+  );
 
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: string): void;
-}>();
+  const emit = defineEmits<{
+    (e: 'update:modelValue', value: string): void;
+  }>();
 
-// Import supportedLocalesWithNames for display
-const { supportedLocales, supportedLocalesWithNames } = useLanguage();
+  // Import supportedLocalesWithNames for display
+  const { supportedLocales, supportedLocalesWithNames } = useLanguage();
 
-const isOpen = ref(false);
+  const isOpen = ref(false);
 
-const listboxRef = ref<HTMLElement | null>(null);
+  const listboxRef = ref<HTMLElement | null>(null);
 
-const toggleOpen = () => {
-  isOpen.value = !isOpen.value;
-};
+  const toggleOpen = () => {
+    isOpen.value = !isOpen.value;
+  };
 
-const close = () => {
-  isOpen.value = false;
-};
+  const close = () => {
+    isOpen.value = false;
+  };
 
-const handleLanguageSelect = (locale: string) => {
-  emit('update:modelValue', locale);
-  close();
-};
-
-// Handle ESC key press globally
-const handleEscPress = (e: KeyboardEvent) => {
-  if (e.key === 'Escape' && isOpen.value) {
+  const handleLanguageSelect = (locale: string) => {
+    emit('update:modelValue', locale);
     close();
-  }
-};
+  };
 
-onMounted(() => {
-  document.addEventListener('keydown', handleEscPress);
-});
+  // Handle ESC key press globally
+  const handleEscPress = (e: KeyboardEvent) => {
+    if (e.key === 'Escape' && isOpen.value) {
+      close();
+    }
+  };
 
-onUnmounted(() => {
-  document.removeEventListener('keydown', handleEscPress);
-});
+  onMounted(() => {
+    document.addEventListener('keydown', handleEscPress);
+  });
 
-// Close on click outside
-useEventListener(document, 'click', (e: MouseEvent) => {
-  const target = e.target as HTMLElement;
-  // Ensure listboxRef.value exists before accessing closest
-  const modalEl = listboxRef.value?.closest('.relative');
-  if (modalEl && !modalEl.contains(target) && isOpen.value) {
-    close();
-  }
-}, { capture: true });
+  onUnmounted(() => {
+    document.removeEventListener('keydown', handleEscPress);
+  });
 
-// Focus listbox when opening
-watch(isOpen, (newValue) => {
-  if (newValue && listboxRef.value) {
-    nextTick(() => {
-      listboxRef.value?.focus();
-    });
-  }
-});
+  // Close on click outside
+  useEventListener(
+    document,
+    'click',
+    (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      // Ensure listboxRef.value exists before accessing closest
+      const modalEl = listboxRef.value?.closest('.relative');
+      if (modalEl && !modalEl.contains(target) && isOpen.value) {
+        close();
+      }
+    },
+    { capture: true }
+  );
+
+  // Focus listbox when opening
+  watch(isOpen, (newValue) => {
+    if (newValue && listboxRef.value) {
+      nextTick(() => {
+        listboxRef.value?.focus();
+      });
+    }
+  });
 </script>
 
 <template>
@@ -99,8 +107,13 @@ watch(isOpen, (newValue) => {
         name="language"
         class="size-5 shrink-0"
         aria-hidden="true" />
-      <span class="min-w-0 flex-1 truncate text-left text-base font-normal text-gray-900 dark:text-gray-100">
-        {{ modelValue ? (supportedLocalesWithNames[modelValue] || modelValue) : t('web.COMMON.language') }}
+      <span
+        class="min-w-0 flex-1 truncate text-left text-base font-normal text-gray-900 dark:text-gray-100">
+        {{
+          modelValue
+            ? supportedLocalesWithNames[modelValue] || modelValue
+            : t('web.COMMON.language')
+        }}
       </span>
       <OIcon
         collection="mdi"
@@ -144,7 +157,7 @@ watch(isOpen, (newValue) => {
               'focus:bg-gray-100 focus:outline-none dark:focus:bg-gray-700', // Focus state
               modelValue === locale
                 ? 'bg-gray-50 font-medium text-brand-600 dark:bg-gray-700 dark:text-brand-400' // Current item style
-                : 'font-normal' // Non-current item style
+                : 'font-normal', // Non-current item style
             ]"
             @click="handleLanguageSelect(locale)"
             :lang="locale">

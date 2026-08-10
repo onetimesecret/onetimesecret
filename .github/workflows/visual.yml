@@ -39,7 +39,7 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write  # sticky diff-summary comment (upserted on the PR)
+  pull-requests: write # sticky diff-summary comment (upserted on the PR)
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -74,7 +74,7 @@ jobs:
       - name: Setup Ruby (.ruby-version)
         uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0
         with:
-          bundler-cache: false  # bin/setup runs `bundle install` itself
+          bundler-cache: false # bin/setup runs `bundle install` itself
 
       - name: Setup Node (.node-version)
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0

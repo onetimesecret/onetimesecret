@@ -1,47 +1,48 @@
 <!-- src/shared/components/ui/EmailObfuscator.vue -->
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import { ref, onMounted } from 'vue';
-import { useNotificationsStore } from '@/shared/stores/notificationsStore';
+  import { useI18n } from 'vue-i18n';
+  import { ref, onMounted } from 'vue';
+  import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 
-interface Props {
-  email: string;
-  subject?: string;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  subject: '',
-});
-const { t } = useI18n();
-const notifications = useNotificationsStore();
-
-const obfuscateEmail = (email: string): string => email.replace('@', ' &#65;&#84; ').replace('.', ' D0T ');
-
-const deobfuscateEmail = (email: string): string => email
-    .replace(/ &#65;&#84; /g, "@")
-    .replace(/ AT /g, "@")
-    .replace(/ D0T /g, ".");
-
-const displayedEmail = ref(obfuscateEmail(props.email));
-
-const handleClick = async () => {
-  const deobfuscatedEmail = deobfuscateEmail(props.email);
-
-  // Copy email to clipboard
-  try {
-    await navigator.clipboard.writeText(deobfuscatedEmail);
-    notifications.show(t('web.COMMON.email_address_copied_to_clipboard'), 'success', 'top');
-  } catch (err) {
-    console.error('Failed to copy email: ', err);
-    notifications.show(t('web.COMMON.unexpected_error'), 'error', 'top');
+  interface Props {
+    email: string;
+    subject?: string;
   }
 
-};
+  const props = withDefaults(defineProps<Props>(), {
+    subject: '',
+  });
+  const { t } = useI18n();
+  const notifications = useNotificationsStore();
 
-onMounted(() => {
-  displayedEmail.value = deobfuscateEmail(props.email);
-});
+  const obfuscateEmail = (email: string): string =>
+    email.replace('@', ' &#65;&#84; ').replace('.', ' D0T ');
+
+  const deobfuscateEmail = (email: string): string =>
+    email
+      .replace(/ &#65;&#84; /g, '@')
+      .replace(/ AT /g, '@')
+      .replace(/ D0T /g, '.');
+
+  const displayedEmail = ref(obfuscateEmail(props.email));
+
+  const handleClick = async () => {
+    const deobfuscatedEmail = deobfuscateEmail(props.email);
+
+    // Copy email to clipboard
+    try {
+      await navigator.clipboard.writeText(deobfuscatedEmail);
+      notifications.show(t('web.COMMON.email_address_copied_to_clipboard'), 'success', 'top');
+    } catch (err) {
+      console.error('Failed to copy email: ', err);
+      notifications.show(t('web.COMMON.unexpected_error'), 'error', 'top');
+    }
+  };
+
+  onMounted(() => {
+    displayedEmail.value = deobfuscateEmail(props.email);
+  });
 </script>
 
 <template>

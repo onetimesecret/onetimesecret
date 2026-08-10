@@ -47,10 +47,10 @@ way `Customer::PROVISIONING_ORIGINS` declares its provenance set:
 SOURCES = %w[standard incoming].freeze
 ```
 
-| Value        | Meaning                                                       |
-| ------------ | ------------------------------------------------------------ |
-| `standard`   | Created by the owner (normal conceal/generate/API/email-share) |
-| `incoming`   | Submitted by a guest through an Incoming Secrets form          |
+| Value      | Meaning                                                        |
+| ---------- | -------------------------------------------------------------- |
+| `standard` | Created by the owner (normal conceal/generate/API/email-share) |
+| `incoming` | Submitted by a guest through an Incoming Secrets form          |
 
 String, not a boolean `incoming?`, so future surfaces (`api`, `cli`, `import`) can
 be added without a schema change or a second flag. Two values satisfy today's
@@ -120,12 +120,12 @@ Provenance is stamped at creation, never inferred at read time.
 authority for withholding the link. Four read sites call it instead of the
 `!recipients.empty?` / `!details.show_recipients` checks they used to carry:
 
-| Site                                                        | Withholds when `!shows_share_link?`              |
-| ----------------------------------------------------------- | ------------------------------------------------ |
-| `lib/onetime/models/receipt/features/safe_dump_fields.rb`   | `secret_identifier` (serializer — covers the noauth batch endpoint) |
-| `apps/api/v2/logic/secrets/show_receipt.rb`                 | `share_url`, `share_path`, `secret_identifier`   |
-| `apps/api/v1/logic/secrets/show_receipt.rb`                 | `share_url`, `share_path`, `secret_key` (near-duplicate) |
-| `src/apps/secret/components/receipt/SecretLink.vue`         | — (no gating change: already hidden for recipient-bearing receipts; only made `share_url` null-safe for the nullable contract) |
+| Site                                                      | Withholds when `!shows_share_link?`                                                                                            |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `lib/onetime/models/receipt/features/safe_dump_fields.rb` | `secret_identifier` (serializer — covers the noauth batch endpoint)                                                            |
+| `apps/api/v2/logic/secrets/show_receipt.rb`               | `share_url`, `share_path`, `secret_identifier`                                                                                 |
+| `apps/api/v1/logic/secrets/show_receipt.rb`               | `share_url`, `share_path`, `secret_key` (near-duplicate)                                                                       |
+| `src/apps/secret/components/receipt/SecretLink.vue`       | — (no gating change: already hidden for recipient-bearing receipts; only made `share_url` null-safe for the nullable contract) |
 
 The serializer gate is load-bearing: `V3::Logic::Secrets::ShowMultipleReceipts`
 builds its batch response with `map(&:safe_dump)` and never runs the logic-layer

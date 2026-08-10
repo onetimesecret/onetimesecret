@@ -87,14 +87,14 @@
       <!-- Global Loading State -->
       <div
         v-if="state.isLoading"
-        class="animate-pulse motion-reduce:animate-none space-y-6 p-4">
+        class="animate-pulse space-y-6 p-4 motion-reduce:animate-none">
         <SecretSkeleton />
       </div>
 
       <!-- Initial Loading - Prevent UnknownSecret flash -->
       <div
         v-else-if="!state.isLoading && !record && !state.error"
-        class="animate-pulse motion-reduce:animate-none space-y-6 p-4">
+        class="animate-pulse space-y-6 p-4 motion-reduce:animate-none">
         <SecretSkeleton />
       </div>
 
@@ -108,8 +108,7 @@
           :retry="load">
           <div
             role="alert"
-            class="rounded-lg border-l-4 border-red-500 bg-red-50 p-4 text-red-700
-              dark:bg-red-900/20 dark:text-red-200">
+            class="rounded-lg border-l-4 border-red-500 bg-red-50 p-4 text-red-700 dark:bg-red-900/20 dark:text-red-200">
             {{ state.error || t('web.COMMON.unexpected_error') }}
           </div>
         </slot>

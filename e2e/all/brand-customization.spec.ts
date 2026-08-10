@@ -15,7 +15,19 @@ import { test, expect, Page } from '@playwright/test';
  * Total: 4 * 11 = 44 variables
  */
 const PALETTE_PREFIXES = ['brand', 'branddim', 'brandcomp', 'brandcompdim'] as const;
-const SHADE_STEPS = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'] as const;
+const SHADE_STEPS = [
+  '50',
+  '100',
+  '200',
+  '300',
+  '400',
+  '500',
+  '600',
+  '700',
+  '800',
+  '900',
+  '950',
+] as const;
 
 /** Neutral default from NEUTRAL_BRAND_DEFAULTS.primary_color */
 const NEUTRAL_BLUE = '#3B82F6';
@@ -88,10 +100,7 @@ test.describe('Brand Customization - CSS Variable Injection', () => {
 
     // For neutral branding, variables come from Tailwind @theme (not inline styles)
     // so they should still resolve to valid colors in computed style
-    expect(
-      missingVars.length,
-      `Missing brand CSS variables:\n${missingVars.join('\n')}`
-    ).toBe(0);
+    expect(missingVars.length, `Missing brand CSS variables:\n${missingVars.join('\n')}`).toBe(0);
 
     // No console errors during brand initialization
     const criticalErrors = consoleErrors.filter(
@@ -149,9 +158,7 @@ test.describe('Brand Customization - Light/Dark Mode', () => {
     expect(bgColor).not.toBe('rgba(0, 0, 0, 0)');
 
     // No JS errors during render
-    const criticalErrors = jsErrors.filter(
-      (e) => !e.includes('Non-Error promise rejection')
-    );
+    const criticalErrors = jsErrors.filter((e) => !e.includes('Non-Error promise rejection'));
     expect(criticalErrors).toHaveLength(0);
   });
 
@@ -191,9 +198,7 @@ test.describe('Brand Customization - Light/Dark Mode', () => {
     ).toBeLessThan(450);
 
     // No JS errors during render
-    const criticalErrors = jsErrors.filter(
-      (e) => !e.includes('Non-Error promise rejection')
-    );
+    const criticalErrors = jsErrors.filter((e) => !e.includes('Non-Error promise rejection'));
     expect(criticalErrors).toHaveLength(0);
   });
 
@@ -262,13 +267,8 @@ test.describe('Brand Customization - Console Error Monitoring', () => {
     ).toHaveLength(0);
 
     // No uncaught page errors
-    const criticalPageErrors = pageErrors.filter(
-      (e) => !e.includes('Non-Error promise rejection')
-    );
-    expect(
-      criticalPageErrors,
-      `Page errors:\n${criticalPageErrors.join('\n')}`
-    ).toHaveLength(0);
+    const criticalPageErrors = pageErrors.filter((e) => !e.includes('Non-Error promise rejection'));
+    expect(criticalPageErrors, `Page errors:\n${criticalPageErrors.join('\n')}`).toHaveLength(0);
   });
 
   test('no errors on public pages after navigation', async ({ page }) => {
@@ -296,9 +296,7 @@ test.describe('Brand Customization - Console Error Monitoring', () => {
 
     // Filter out expected/ignorable errors
     const criticalErrors = pageErrors.filter(
-      (e) =>
-        !e.includes('Non-Error promise rejection') &&
-        !e.includes('ResizeObserver loop')
+      (e) => !e.includes('Non-Error promise rejection') && !e.includes('ResizeObserver loop')
     );
 
     expect(
@@ -356,57 +354,59 @@ test.describe('Brand Customization - Palette Structure Validation', () => {
       const values = prefixVars.map((v) => palette[v]);
 
       const emptyCount = values.filter((v) => !v).length;
-      expect(
-        emptyCount,
-        `Prefix '${prefix}' has ${emptyCount} missing shade values`
-      ).toBe(0);
+      expect(emptyCount, `Prefix '${prefix}' has ${emptyCount} missing shade values`).toBe(0);
     }
   });
 
-  test('shade progression follows lightness gradient (50 lightest, 950 darkest)', async ({ page }) => {
+  test('shade progression follows lightness gradient (50 lightest, 950 darkest)', async ({
+    page,
+  }) => {
     await page.goto('/');
     await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
     // Get brand palette values and convert to perceived lightness
-    const lightnessValues = await page.evaluate((steps: string[]) => {
-      const style = getComputedStyle(document.documentElement);
-      const results: Record<string, number> = {};
+    const lightnessValues = await page.evaluate(
+      (steps: string[]) => {
+        const style = getComputedStyle(document.documentElement);
+        const results: Record<string, number> = {};
 
-      for (const step of steps) {
-        const value = style.getPropertyValue(`--color-brand-${step}`).trim();
-        // Parse hex or rgb to get luminance approximation
-        let r = 0, g = 0, b = 0;
+        for (const step of steps) {
+          const value = style.getPropertyValue(`--color-brand-${step}`).trim();
+          // Parse hex or rgb to get luminance approximation
+          let r = 0,
+            g = 0,
+            b = 0;
 
-        if (value.startsWith('#')) {
-          const hex = value.slice(1);
-          r = parseInt(hex.slice(0, 2), 16);
-          g = parseInt(hex.slice(2, 4), 16);
-          b = parseInt(hex.slice(4, 6), 16);
-        } else if (value.startsWith('rgb')) {
-          const match = value.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-          if (match) {
-            r = parseInt(match[1]);
-            g = parseInt(match[2]);
-            b = parseInt(match[3]);
+          if (value.startsWith('#')) {
+            const hex = value.slice(1);
+            r = parseInt(hex.slice(0, 2), 16);
+            g = parseInt(hex.slice(2, 4), 16);
+            b = parseInt(hex.slice(4, 6), 16);
+          } else if (value.startsWith('rgb')) {
+            const match = value.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+            if (match) {
+              r = parseInt(match[1]);
+              g = parseInt(match[2]);
+              b = parseInt(match[3]);
+            }
           }
+
+          // Simple luminance approximation
+          results[step] = 0.299 * r + 0.587 * g + 0.114 * b;
         }
 
-        // Simple luminance approximation
-        results[step] = 0.299 * r + 0.587 * g + 0.114 * b;
-      }
-
-      return results;
-    }, [...SHADE_STEPS]);
+        return results;
+      },
+      [...SHADE_STEPS]
+    );
 
     // Shade 50 should be lighter than 500, which should be lighter than 950
-    expect(
-      lightnessValues['50'],
-      'Shade 50 should be lighter than 500'
-    ).toBeGreaterThan(lightnessValues['500']);
+    expect(lightnessValues['50'], 'Shade 50 should be lighter than 500').toBeGreaterThan(
+      lightnessValues['500']
+    );
 
-    expect(
-      lightnessValues['500'],
-      'Shade 500 should be lighter than 950'
-    ).toBeGreaterThan(lightnessValues['950']);
+    expect(lightnessValues['500'], 'Shade 500 should be lighter than 950').toBeGreaterThan(
+      lightnessValues['950']
+    );
   });
 });

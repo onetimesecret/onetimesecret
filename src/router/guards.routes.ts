@@ -86,7 +86,6 @@ export async function setupRouterGuards(router: Router): Promise<void> {
     const mfaRedirect = handleMfaAccess(to, authStore);
     if (mfaRedirect) return mfaRedirect;
 
-
     // Handle root path redirect
     if (to.path === '/') return authStore.isFullyAuthenticated ? { name: 'Dashboard' } : true;
 
@@ -208,10 +207,10 @@ function handleDisabledAuthFeature(to: RouteLocationNormalized) {
   const { authentication } = bootstrapStore;
 
   if (!authentication?.enabled || !authentication[feature]) {
-    loggingService.debug(
-      '[RouterGuard] Redirecting - auth feature disabled:',
-      { feature, path: to.path }
-    );
+    loggingService.debug('[RouterGuard] Redirecting - auth feature disabled:', {
+      feature,
+      path: to.path,
+    });
     return { path: '/' };
   }
 
@@ -232,10 +231,9 @@ export function handleSsoOnlyRoute(to: RouteLocationNormalized) {
   // Prevent redirect loop: never redirect /signin to itself
   if (to.path === '/signin') return null;
 
-  loggingService.debug(
-    '[RouterGuard] Redirecting - SSO-only mode blocks route:',
-    { path: to.path }
-  );
+  loggingService.debug('[RouterGuard] Redirecting - SSO-only mode blocks route:', {
+    path: to.path,
+  });
 
   // Authenticated users land on profile; unauthenticated on sign-in
   const authStore = useAuthStore();
@@ -313,7 +311,9 @@ async function anyOrgMeetsRole(
     }
   }
   return store.organizations.some(
-    (o) => (!o.is_default || o.current_user_role === 'owner') && roleMeetsRequirement(o.current_user_role, required)
+    (o) =>
+      (!o.is_default || o.current_user_role === 'owner') &&
+      roleMeetsRequirement(o.current_user_role, required)
   );
 }
 

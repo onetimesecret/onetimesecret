@@ -1,4 +1,3 @@
-
 # OpenAPI specification for the Onetime Secret API
 
 We're building an auto-generated OpenAPI 3.1 specification that documents the full HTTP API surface of Onetime
@@ -23,8 +22,8 @@ They diverge in three cases that are visible in this codebase:
 
 1. Same handler, multiple paths (the alias problem we just solved)
 
-GET /receipt/:key   V1::Controllers::Index#show_receipt
-GET /private/:key   V1::Controllers::Index#show_receipt   deprecated=true
+GET /receipt/:key V1::Controllers::Index#show_receipt
+GET /private/:key V1::Controllers::Index#show_receipt deprecated=true
 
 One Ruby handler, two distinct API operations. The namespace can't distinguish them — both are
 V1::Controllers::Index#show_receipt. But a client SDK needs two methods: v1ShowReceipt() and
@@ -32,8 +31,8 @@ v1PrivateShowReceipt().
 
 2. Same handler, different auth contexts (V3 guest routes)
 
-POST /secret/conceal        V3::Logic::Secrets::ConcealSecret  auth=sessionauth
-POST /guest/secret/conceal  V3::Logic::Secrets::ConcealSecret  auth=noauth
+POST /secret/conceal V3::Logic::Secrets::ConcealSecret auth=sessionauth
+POST /guest/secret/conceal V3::Logic::Secrets::ConcealSecret auth=noauth
 
 Same class, but these are semantically different operations (authenticated vs anonymous). The operationId
 differentiates them in the spec.
@@ -51,22 +50,20 @@ entries. The OpenAPI spec is an external contract; it shouldn't leak internal cl
 #### > What does covered and uncovered mean?
 
 - Covered = the Ruby class declares a SCHEMA/SCHEMAS constant AND each key resolves to a known Zod schema in its
-respective registry: `response` keys against `responseSchemas`, `model` keys against `modelSchemas`, and `request`
-keys against the generator's `REQUEST_SCHEMA_REGISTRY`. The OpenAPI generator can produce a typed JSON Schema for
-this handler's response.
+  respective registry: `response` keys against `responseSchemas`, `model` keys against `modelSchemas`, and `request`
+  keys against the generator's `REQUEST_SCHEMA_REGISTRY`. The OpenAPI generator can produce a typed JSON Schema for
+  this handler's response.
 - Broken (a subset of declared) = the Ruby class declares the constant but the key doesn't resolve anywhere. This
-is what we just fixed — 7 → 0.
+  is what we just fixed — 7 → 0.
 - Uncovered handler = a route handler class that has no SCHEMA/SCHEMAS constant at all. The generator still emits
-an OpenAPI path entry for it, but with a generic { type: 'object' } response body instead of a real schema. These
-are the 46 remaining gaps.
+  an OpenAPI path entry for it, but with a generic { type: 'object' } response body instead of a real schema. These
+  are the 46 remaining gaps.
 - Uncovered model = a model file in lib/onetime/models/ with no SCHEMA constant. These aren't route handlers, so
-they don't directly affect the API spec — but they're tracked because model schemas feed the JSON Schema
-generation pipeline (modelSchemas in src/schemas/registry.ts).
+  they don't directly affect the API spec — but they're tracked because model schemas feed the JSON Schema
+  generation pipeline (modelSchemas in src/schemas/registry.ts).
 
 Example: A coverage number of 64/110 (58%) means: of 110 route handlers the scanner sees, 64 have declared schema
 constants that resolve to real Zod schemas. The other 46 produce spec entries with placeholder response shapes.
-
-
 
 ---
 
@@ -101,17 +98,18 @@ request schemas under src/schemas/api/{version}/requests/. Each file is pre-popu
 from a Ruby source survey — one file per handler leaf, deduplicated across deprecated aliases, with barrel index
 re-exports per directory.
 
-  80 request schema files across 7 directories:
-  - v1 (9 files, flat form params), v2 (13), v3 (18)
-  - account (11), domains (14), organizations (12), invite (3)
+80 request schema files across 7 directories:
 
-  V1 uses flat params (secret="", ttl=""); V2/V3 nest under secret={...}. Each version gets its own directory
-  because the request shapes diverge structurally, not just by field additions.
+- v1 (9 files, flat form params), v2 (13), v3 (18)
+- account (11), domains (14), organizations (12), invite (3)
 
-  The scaffolds are human-editable starting points — the Ruby raise_concerns methods are too varied for automated
-  extraction. A reviewer removes the TODO comment to mark each schema as verified.
+V1 uses flat params (secret="", ttl=""); V2/V3 nest under secret={...}. Each version gets its own directory
+because the request shapes diverge structurally, not just by field additions.
 
-4. ✓ Route param → OpenAPI extension bridge (x-otto-route-*)
+The scaffolds are human-editable starting points — the Ruby raise_concerns methods are too varied for automated
+extraction. A reviewer removes the TODO comment to mark each schema as verified.
+
+4. ✓ Route param → OpenAPI extension bridge (x-otto-route-\*)
 
 Non-reserved route.txt key=value params now automatically emit as x-otto-route-{key} vendor extensions on OpenAPI
 operations. Reserved params consumed structurally by the generator (response, auth, csrf, deprecated) are excluded.
@@ -129,10 +127,11 @@ unaffected — they remain in the spec for documentation.
 V2/V3 conceal and generate request schemas were flat, but the Ruby handlers nest params under a "secret" key
 (BaseSecretAction: @payload = params['secret'] || {}). Fixed by composing from existing payload schemas:
 
-  z.object({ secret: concealPayloadSchema })  // transport wrapper
-  z.object({ secret: generatePayloadSchema })
+z.object({ secret: concealPayloadSchema }) // transport wrapper
+z.object({ secret: generatePayloadSchema })
 
 This established the request schema layering pattern:
+
 - payloads/ = flat domain validation schemas (used by Vue forms, stores, composables)
 - requests/ = transport wrappers that compose payloads (used by OpenAPI pipeline)
 - Endpoints with params['secret'] nesting: request wraps payload under secret key
@@ -141,7 +140,7 @@ This established the request schema layering pattern:
 V1 request schemas are frozen — flat inline definitions, not composed from payloads. V1 is deprecated; these
 exist solely for contract testing (validating response stability between releases). Do not refactor.
 
-7. ✓ Migrate v3/requests.ts → v3/requests/*.ts
+7. ✓ Migrate v3/requests.ts → v3/requests/\*.ts
 
 The single-file v3/requests.ts predated the per-endpoint requests/ directory. Deleted the flat file, consumers
 now import from the per-endpoint requests/ directory.
@@ -149,9 +148,10 @@ now import from the per-endpoint requests/ directory.
 8. ✓ Split V2/V3 response schema layers
 
 Created separate schema layers for V2 (runtime parsing) and V3 (JSON-native OpenAPI):
-- v3/responses/*.ts — JSON-native schemas using plain z.string(), z.boolean(), z.number(). No transforms,
+
+- v3/responses/\*.ts — JSON-native schemas using plain z.string(), z.boolean(), z.number(). No transforms,
   no preprocess. These are the source of truth for OpenAPI spec generation.
-- v2/responses/ — Runtime parsing schemas with z.preprocess(), transforms.fromString.*, coercion. These are
+- v2/responses/ — Runtime parsing schemas with z.preprocess(), transforms.fromString.\*, coercion. These are
   used by Pinia stores and Vue components that need to handle Redis string-encoded values.
 - api/base.ts — Shared envelope schemas (ApiRecordResponse, ApiRecordsResponse) hoisted out of v3 so both
   layers can compose from the same base.
@@ -177,11 +177,11 @@ system_status, system_version, get_supported_locales are class methods on a modu
 classes. The scanner's 1:1 class→SCHEMA mapping doesn't apply. Proposed convention: a method-keyed SCHEMAS
 hash on the Meta module:
 
-  SCHEMAS = {
-    system_status:         { response: 'systemStatus' },
-    system_version:        { response: 'systemVersion' },
-    get_supported_locales: { response: 'supportedLocales' },
-  }.freeze
+SCHEMAS = {
+system_status: { response: 'systemStatus' },
+system_version: { response: 'systemVersion' },
+get_supported_locales: { response: 'supportedLocales' },
+}.freeze
 
 Scanner changes needed: multiline SCHEMAS parsing (accumulate lines between { and }.freeze), emit entries with
 dot notation (V3::Logic::Meta.system_status) matching how routes.txt references them. Simple response schemas
@@ -189,13 +189,12 @@ needed in responseSchemas for these trivial JSON shapes.
 
 Request schema scaffolds already exist for these (empty z.object({}) — correct, since they accept no params).
 
-
 ### Remaining:
-
 
 11. Wire request schemas into the OpenAPI generator
 
 The 80 request schema scaffolds are standalone files. To connect them to the generated spec:
+
 - Create a requestSchemaRegistry (parallel to responseSchemas) that maps handler names to Zod request schemas
 - Teach the scanner to read request: keys from Ruby SCHEMA constants (currently only 4 handlers declare them)
 - Have buildRequestBody in the generator resolve against the registry
@@ -205,11 +204,13 @@ Currently 4/~50 mutation endpoints have wired request schemas. The scaffolds pro
 step connects them to the pipeline.
 
 Known scaffold issues to fix before wiring:
+
 - domains update-domain-logo.ts and update-domain-icon.ts are multipart file uploads, not JSON bodies
 
 12. Fill remaining response schema gaps
 
 The 46 uncovered handlers break down as:
+
 - 9 V1 controllers — frozen response shapes via receipt_hsh; TS-side hardcoded map is pragmatic
 - 6 V2/V3 Meta methods — covered by step 10 above
 - 8 Account mutations — generic success responses, low priority

@@ -7,6 +7,7 @@ All anchors in the maps verified against source — line numbers, signatures, an
 Phase 1 shipped: `SafeFetch`, `FetchDomainFavicon(force:)`, `FaviconFetchWorker`, `domain.favicon.fetch` queue, `Publisher.enqueue_favicon_fetch`, verify-transition trigger, and the four `favicon_fetch_*` fields on `CustomDomain`.
 
 ## Identity invariant (applies everywhere)
+
 The arg passed to `Publisher.enqueue_favicon_fetch` and `FetchDomainFavicon` is the **CustomDomain identifier == `domainid` == `objid`** (`custom_domain.rb:79` `identifier_field :domainid`, alias `:160`), **never the route `extid`**. `FetchDomainFavicon#resolve_domain` does `CustomDomain.load(@domain_id)` (`:170`). At the API boundary you get `@custom_domain` from `authorize_domain_config!(@extid)` (loads by extid), then pass `@custom_domain.identifier`.
 
 ---
@@ -42,6 +43,7 @@ This is backward-compatible: existing callers (`verify_domain.rb:353`, and Phase
 **Feature-flag decision (see §5):** recommended to mirror `verify_domain.rb:351` — gate the enqueue behind `OT.conf.dig('jobs','favicon_fetch','enabled') == true`. Without the gate and with jobs disabled, `process` runs an inline synchronous DNS+HTTPS fetch on the request thread (`publisher.rb:362-368`). Since the manual button is user-initiated, a short block may be acceptable, but the flag-gate keeps behavior consistent with the auto path.
 
 **B3 — Register route + namespace.**
+
 - `apps/api/domains/routes.txt`: add next to the icon rows (`:21-23`):
   ```
   POST   /:extid/icon/refresh   DomainsAPI::Logic::Domains::RefreshDomainFavicon response=json auth=sessionauth,basicauth
@@ -55,14 +57,17 @@ The store has **only logo actions** today (no icon actions) — this is net-new.
 **F1 — Store action.** `src/shared/stores/domainsStore.ts`: mirror `verifyDomain` (~L197). Add `async function refreshFavicon(extid: string) { await $api.post(`/api/domains/${extid}/icon/refresh`); }`; add to `DomainsStore` type and the returned action map.
 
 **F2 — Composable callback.** `src/shared/composables/useBranding.ts`: mirror `removeLogo`:
+
 ```ts
-const refreshFavicon = async () => wrap(async () => {
-  const extid = resolveExtid(domainId);
-  await domainsStore.refreshFavicon(extid);
-  notifications.show(t('...favicon-refresh-queued'), 'success', 'top');
-  return true;
-});
+const refreshFavicon = async () =>
+  wrap(async () => {
+    const extid = resolveExtid(domainId);
+    await domainsStore.refreshFavicon(extid);
+    notifications.show(t('...favicon-refresh-queued'), 'success', 'top');
+    return true;
+  });
 ```
+
 Export it. Note `wrap()` toasts on failure and resolves `undefined`; return truthy on success.
 
 **F3 — UI wiring.** `src/apps/workspace/domains/DomainBrand.vue` destructures `refreshFavicon` from `useBranding(props.extid)` and threads it via `BrandEditor` → `SimpleBrandPanel` (`src/apps/workspace/components/dashboard/brand/SimpleBrandPanel.vue`) as `onRefreshFavicon`. Simplest home: a "Refresh favicon from domain" button as a sibling of `BrandLogoField`. Optional richer form: new `BrandFaviconField.vue` mirroring `BrandLogoField.vue` with an icon thumbnail (requires loading `iconImage` in `useBranding` — only `logoImage` is loaded today).
@@ -100,15 +105,18 @@ Use `@custom_domain.identifier` (populated from `:100`), not `@display_domain`. 
 **There is no existing persisted backoff to mirror** (confirmed: `vhost_fetch_failed_at` is written but never read for skip decisions; `MailerConfig#check_recent?` is dead code + flat TTL; `RetryHelper` is in-process seconds-scale). You must build it.
 
 Add to `custom_domain.rb` after the existing favicon fields (`:102-105`):
+
 ```ruby
 field :favicon_fetch_attempts # integer count of terminal non-success attempts
 field :favicon_fetch_next_at  # epoch seconds; earliest eligible re-fetch time
 ```
 
 **Backoff formula** — `RetryHelper.compute_delay` (`base * 2^(n-1) + jitter`) converted to days, capped, with a permanent stop:
+
 ```
 next_at   = now + min(base_days * 2^(attempts-1), cap_days) * 86400  (+ jitter)
 ```
+
 Recommended concrete schedule (product decision flagged in §5): `base_days=1`, `cap_days=30`, `max_attempts=6`. Yields retry offsets 1d → 2d → 4d → 8d → 16d → 30d(cap), then stop (leave `favicon_fetched=false`, don't re-enqueue). Config knobs under a new `jobs.favicon_backfill` block.
 
 ### (c) FetchDomainFavicon terminal-recorder changes (agent: **backend-dev**)
@@ -210,14 +218,15 @@ end
 ```
 
 **Config block** — `etc/defaults/config.defaults.yaml`, inside the `jobs:` tree (after `favicon_fetch:`, ~L960):
+
 ```yaml
-  favicon_backfill:
-    enabled: <%= ENV['JOBS_FAVICON_BACKFILL_ENABLED'] == 'true' || false %>
-    cron: '0 3 * * *'
-    batch_size: 500
-    max_attempts: 6
-    base_days: 1
-    cap_days: 30
+favicon_backfill:
+  enabled: <%= ENV['JOBS_FAVICON_BACKFILL_ENABLED'] == 'true' || false %>
+  cron: '0 3 * * *'
+  batch_size: 500
+  max_attempts: 6
+  base_days: 1
+  cap_days: 30
 ```
 
 **Stuck-PROCESSING trap (must handle):** `fetch_domain_favicon.rb#mark_processing` (`:311`) stamps `PROCESSING` **before** the network call; on `FetchTimeout` it re-raises with **no terminal stamp** (`:155`) and the worker `requeue!`s. If broker retries exhaust / message is DLQ'd, `favicon_fetch_status` is stuck at `processing` forever with no `completed_at`. The `STUCK_PROCESSING_S` clause above re-enqueues those; the threshold must exceed the worker's total requeue window (`with_retry 2x` + broker redelivery).
@@ -254,24 +263,24 @@ FRONTEND (frontend-dev)  — parallel with entire backend track
 
 **Ruby — tryouts v3** (`try --agent`):
 
-| Behavior | Test |
-|---|---|
-| B1 Publisher threads `force` | Tryout: `enqueue_favicon_fetch(id, force: true)` with jobs disabled → asserts inline `FetchDomainFavicon` receives `force: true`; jobs enabled → message hash includes `force: true`. Extend the existing publisher tryout. |
-| B2 RefreshDomainFavicon | Tryout: valid extid + entitled member → enqueues with `@custom_domain.identifier`, `force: true`, returns `success_data`; bad extid format → form error; no `custom_branding` → authz error; cross-org domain → denied. Mirror the `remove_domain_image` tryout. |
-| B3 enqueue-on-add | Tryout on `AddDomain#process`: jobs-disabled + `FetchDomainFavicon` stubbed to raise `FetchTimeout` → domain still created, `success_data` returned, error logged (proves the rescue). Flag off → no enqueue. |
-| B4 backoff fields + math | Tryout on `FetchDomainFavicon`: `record_none_found` → `attempts` increments, `next_at ≈ now + base_days*86400`; second none-found → `next_at ≈ now + 2d`; at cap → `next_at ≈ now + cap_days`; `record_success` → `attempts=0`, `next_at=nil`. Assert `save_fields` persists (reload the model). |
-| B5 eligibility filter | Tryout on `FaviconBackfillJob.eligible?`: matrix — `favicon_fetched=true`→false; `favicon_source='user_upload'`→false; `attempts>=max`→false; fresh `PROCESSING`→false; stale `PROCESSING` (completed_at old)→true; `next_at` future→false; `next_at` past/nil→true. Stub `Publisher.enqueue_favicon_fetch`, assert enqueue count over a fixture set. |
-| B5 config resolution | Per MEMORY note (config test-mode merge trap): load defaults with `Onetime::Config.load(defaults_path)` (skips test merge) to assert `jobs.favicon_backfill` defaults resolve; verify `enabled?` requires BOTH gates. |
+| Behavior                     | Test                                                                                                                                                                                                                                                                                                                                                  |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| B1 Publisher threads `force` | Tryout: `enqueue_favicon_fetch(id, force: true)` with jobs disabled → asserts inline `FetchDomainFavicon` receives `force: true`; jobs enabled → message hash includes `force: true`. Extend the existing publisher tryout.                                                                                                                           |
+| B2 RefreshDomainFavicon      | Tryout: valid extid + entitled member → enqueues with `@custom_domain.identifier`, `force: true`, returns `success_data`; bad extid format → form error; no `custom_branding` → authz error; cross-org domain → denied. Mirror the `remove_domain_image` tryout.                                                                                      |
+| B3 enqueue-on-add            | Tryout on `AddDomain#process`: jobs-disabled + `FetchDomainFavicon` stubbed to raise `FetchTimeout` → domain still created, `success_data` returned, error logged (proves the rescue). Flag off → no enqueue.                                                                                                                                         |
+| B4 backoff fields + math     | Tryout on `FetchDomainFavicon`: `record_none_found` → `attempts` increments, `next_at ≈ now + base_days*86400`; second none-found → `next_at ≈ now + 2d`; at cap → `next_at ≈ now + cap_days`; `record_success` → `attempts=0`, `next_at=nil`. Assert `save_fields` persists (reload the model).                                                      |
+| B5 eligibility filter        | Tryout on `FaviconBackfillJob.eligible?`: matrix — `favicon_fetched=true`→false; `favicon_source='user_upload'`→false; `attempts>=max`→false; fresh `PROCESSING`→false; stale `PROCESSING` (completed_at old)→true; `next_at` future→false; `next_at` past/nil→true. Stub `Publisher.enqueue_favicon_fetch`, assert enqueue count over a fixture set. |
+| B5 config resolution         | Per MEMORY note (config test-mode merge trap): load defaults with `Onetime::Config.load(defaults_path)` (skips test merge) to assert `jobs.favicon_backfill` defaults resolve; verify `enabled?` requires BOTH gates.                                                                                                                                 |
 
 Note the boot trap (MEMORY): single-file tryouts need CI secrets exported or `boot true` locally, else "Key version cannot be nil."
 
 **Frontend — vitest / component tests:**
 
-| Behavior | Test |
-|---|---|
-| F1 store action | Mock `$api.post`; assert `refreshFavicon('abc')` POSTs `/api/domains/abc/icon/refresh`. |
-| F2 composable | Assert `refreshFavicon` resolves extid, calls store, toasts success; on store rejection `wrap` swallows + error-toasts. |
-| F3 UI | `SimpleBrandPanel` renders the button; click → `onRefreshFavicon` fires; button disabled/explained when icon `favicon_source==='user_upload'`. |
+| Behavior        | Test                                                                                                                                           |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| F1 store action | Mock `$api.post`; assert `refreshFavicon('abc')` POSTs `/api/domains/abc/icon/refresh`.                                                        |
+| F2 composable   | Assert `refreshFavicon` resolves extid, calls store, toasts success; on store rejection `wrap` swallows + error-toasts.                        |
+| F3 UI           | `SimpleBrandPanel` renders the button; click → `onRefreshFavicon` fires; button disabled/explained when icon `favicon_source==='user_upload'`. |
 
 **Integration (optional, full-mode rack spec):** `POST /api/domains/:extid/icon/refresh` with a session → 200 + queued; unauthenticated → 401; unentitled → 403.
 
@@ -296,6 +305,7 @@ Genuinely ambiguous — each needs a call before or during build:
 7. **Does `FaviconBackfillJob.enabled?` require the worker flag? (d)** If `jobs.favicon_fetch.enabled` is off, the worker consumes+acks (drops) enqueued messages, so backfill would be pure waste. Blueprint gates on BOTH flags. Confirm, or make the backfill flag independent and document the dependency.
 
 **Relevant files (absolute paths):**
+
 - `/Users/d/Projects/dev/onetimesecret/worktrees/onetimesecret/witty-summit/onetimesecret/lib/onetime/jobs/publisher.rb`
 - `/Users/d/Projects/dev/onetimesecret/worktrees/onetimesecret/witty-summit/onetimesecret/apps/api/domains/logic/domains/add_domain.rb`
 - `/Users/d/Projects/dev/onetimesecret/worktrees/onetimesecret/witty-summit/onetimesecret/apps/api/domains/logic/domains/remove_domain_image.rb` (mirror for new logic class)

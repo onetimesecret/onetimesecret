@@ -20,19 +20,21 @@
 
     <div class="space-y-4">
       <div
-        class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200
-          dark:bg-gray-800/50 dark:ring-gray-700">
+        class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200 dark:bg-gray-800/50 dark:ring-gray-700">
         <h3 class="mb-2 font-medium text-gray-900 dark:text-gray-100">
           {{ t('web.help.secret_view_faq.what_am_i_looking_at.title') }}
         </h3>
         <p>
-          {{ t('web.help.secret_view_faq.what_am_i_looking_at.description', { product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name }) }}
+          {{
+            t('web.help.secret_view_faq.what_am_i_looking_at.description', {
+              product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name,
+            })
+          }}
         </p>
       </div>
 
       <div
-        class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200
-          dark:bg-gray-800/50 dark:ring-gray-700">
+        class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200 dark:bg-gray-800/50 dark:ring-gray-700">
         <h3 class="mb-2 font-medium text-gray-900 dark:text-gray-100">
           {{ t('web.help.secret_view_faq.can_i_view_again.title') }}
         </h3>
@@ -42,8 +44,7 @@
       </div>
 
       <div
-        class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200
-          dark:bg-gray-800/50 dark:ring-gray-700">
+        class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200 dark:bg-gray-800/50 dark:ring-gray-700">
         <h3 class="mb-2 font-medium text-gray-900 dark:text-gray-100">
           {{ t('web.help.secret_view_faq.how_to_copy.title') }}
         </h3>
@@ -53,8 +54,7 @@
       </div>
 
       <div
-        class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200
-          dark:bg-gray-800/50 dark:ring-gray-700">
+        class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200 dark:bg-gray-800/50 dark:ring-gray-700">
         <h3 class="mb-2 font-medium text-gray-900 dark:text-gray-100">
           {{ t('web.help.secret_view_faq.is_my_viewing_tracked.title') }}
         </h3>
@@ -64,8 +64,7 @@
       </div>
 
       <div
-        class="border-l-4 border-amber-400 bg-amber-50 p-4 text-amber-800
-          dark:border-amber-500 dark:bg-amber-900 dark:text-amber-100"
+        class="border-l-4 border-amber-400 bg-amber-50 p-4 text-amber-800 dark:border-amber-500 dark:bg-amber-900 dark:text-amber-100"
         role="region"
         aria-label="Important information">
         <h4 class="font-medium">

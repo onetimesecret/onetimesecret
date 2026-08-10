@@ -1,15 +1,15 @@
 <!-- src/apps/workspace/components/settings/SettingsBreadcrumb.vue -->
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { useI18n } from 'vue-i18n';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-defineProps<{
-  /** Current page title (optional - will show as final breadcrumb) */
-  currentPage?: string;
-}>();
+  defineProps<{
+    /** Current page title (optional - will show as final breadcrumb) */
+    currentPage?: string;
+  }>();
 </script>
 
 <template>

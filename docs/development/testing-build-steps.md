@@ -4,15 +4,15 @@ How to verify that the version flows correctly from git tag → package.json →
 
 ## Quick reference
 
-| Method | What it tests | Time | Where |
-|--------|--------------|------|-------|
-| `bake --print` | Bake config resolution | ~2s | Local |
-| `bake --no-cache` | Full build with VERSION fallback | ~3min | Local |
-| `docker run --entrypoint cat` | Version in final image | ~5s | Local |
-| `workflow_dispatch` | Full CI pipeline end-to-end | ~10min | GitHub |
-| `check-oci-image` (ci.yml T4) | Container boots and serves | ~3min | GitHub |
-| `debug-oci.yml` | Interactive container debugging | ~5min | GitHub |
-| docker-compose stacks | Multi-service integration | ~2min | Local |
+| Method                        | What it tests                    | Time   | Where  |
+| ----------------------------- | -------------------------------- | ------ | ------ |
+| `bake --print`                | Bake config resolution           | ~2s    | Local  |
+| `bake --no-cache`             | Full build with VERSION fallback | ~3min  | Local  |
+| `docker run --entrypoint cat` | Version in final image           | ~5s    | Local  |
+| `workflow_dispatch`           | Full CI pipeline end-to-end      | ~10min | GitHub |
+| `check-oci-image` (ci.yml T4) | Container boots and serves       | ~3min  | GitHub |
+| `debug-oci.yml`               | Interactive container debugging  | ~5min  | GitHub |
+| docker-compose stacks         | Multi-service integration        | ~2min  | Local  |
 
 ---
 
@@ -187,15 +187,15 @@ final stage: COPY --from=build package.json (patched version)
 
 ## Key files
 
-| File | Role |
-|------|------|
-| `.github/scripts/update-version.sh` | Host-side version injection (jq) |
-| `Dockerfile` (build stage) | In-container VERSION fallback + gate |
-| `docker/bake.hcl` | Build orchestration, `_common` target passes VERSION arg |
-| `.github/workflows/build-and-publish-oci-images.yml` | Release build + audit steps |
-| `.github/workflows/ci.yml` (`check-oci-image`) | PR container validation |
-| `.github/workflows/debug-oci.yml` | Interactive debugging |
-| `.github/actions/test-docker-container/` | Reusable container test harness |
-| `.github/actions/generate-test-secrets/` | Ephemeral secret generation |
-| `package.json` (`docker:*`, `podman:*` scripts) | Local build shortcuts |
-| `docker/compose/*.yml` | Multi-service stacks |
+| File                                                 | Role                                                     |
+| ---------------------------------------------------- | -------------------------------------------------------- |
+| `.github/scripts/update-version.sh`                  | Host-side version injection (jq)                         |
+| `Dockerfile` (build stage)                           | In-container VERSION fallback + gate                     |
+| `docker/bake.hcl`                                    | Build orchestration, `_common` target passes VERSION arg |
+| `.github/workflows/build-and-publish-oci-images.yml` | Release build + audit steps                              |
+| `.github/workflows/ci.yml` (`check-oci-image`)       | PR container validation                                  |
+| `.github/workflows/debug-oci.yml`                    | Interactive debugging                                    |
+| `.github/actions/test-docker-container/`             | Reusable container test harness                          |
+| `.github/actions/generate-test-secrets/`             | Ephemeral secret generation                              |
+| `package.json` (`docker:*`, `podman:*` scripts)      | Local build shortcuts                                    |
+| `docker/compose/*.yml`                               | Multi-service stacks                                     |

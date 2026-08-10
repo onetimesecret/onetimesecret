@@ -25,7 +25,7 @@ missed — plus one deliberate scope deviation worth recording.
 > `cp` guard), `d509937eb` (this doc + the work-chunks status note). §4's
 > step 1 and step 2 are done; step 3 (the C7 clean-room harness) shipped
 > 2026-07-11 as PRs #3711/#3712/#3713 on `integration/onboarding` — see §4
-> for the recipe→lane mapping and the two recipe steps that did *not* get a
+> for the recipe→lane mapping and the two recipe steps that did _not_ get a
 > lane. Next open item: step 4 (C4/C5).
 
 **Environment** (matches the audit's fresh-contributor profile): fresh Ubuntu

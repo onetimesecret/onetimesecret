@@ -16,20 +16,20 @@ The file contains keys exclusively related to AI-generated testimonials displaye
 
 ## Key Inventory
 
-| Key | Category | Purpose |
-|-----|----------|---------|
-| `ai-generated-testimonial` | Disclaimer Label | Badge label |
-| `ai-generated-content-disclaimer` | Disclaimer Label | Full disclaimer text |
-| `ai-generated-testimonials` | Section Header | Plural form header |
-| `this-quote-was-generated-by` | Disclaimer Label | Attribution prefix |
-| `it-was-based-on-the-content-of-the-page-and-does` | Disclaimer Label | Extended disclaimer |
-| `artificial-feedback` | Section Header | Alternative section title |
-| `this-content-is-ai-generated-based-on-the-conten` | Disclaimer Label | Full disclaimer variant |
-| `what-leading-ai-says-about-us` | Section Header | Marketing-style header |
-| `randomtestimonial-stars-5` | Display Template | Star rating format |
-| `randomtestimonial-name-randomtestimonial-company` | Display Template | Attribution format |
-| `randomtestimonial-quote` | Display Template | Quote wrapper format |
-| `t-ai-generated-testimonial` | Display Template | Labeled badge format |
+| Key                                                | Category         | Purpose                   |
+| -------------------------------------------------- | ---------------- | ------------------------- |
+| `ai-generated-testimonial`                         | Disclaimer Label | Badge label               |
+| `ai-generated-content-disclaimer`                  | Disclaimer Label | Full disclaimer text      |
+| `ai-generated-testimonials`                        | Section Header   | Plural form header        |
+| `this-quote-was-generated-by`                      | Disclaimer Label | Attribution prefix        |
+| `it-was-based-on-the-content-of-the-page-and-does` | Disclaimer Label | Extended disclaimer       |
+| `artificial-feedback`                              | Section Header   | Alternative section title |
+| `this-content-is-ai-generated-based-on-the-conten` | Disclaimer Label | Full disclaimer variant   |
+| `what-leading-ai-says-about-us`                    | Section Header   | Marketing-style header    |
+| `randomtestimonial-stars-5`                        | Display Template | Star rating format        |
+| `randomtestimonial-name-randomtestimonial-company` | Display Template | Attribution format        |
+| `randomtestimonial-quote`                          | Display Template | Quote wrapper format      |
+| `t-ai-generated-testimonial`                       | Display Template | Labeled badge format      |
 
 ## Potentially Misplaced Keys
 
@@ -72,11 +72,13 @@ The current structure places all keys at the same level under `web.testimonials`
 ### Issue 2: Truncated Key Names
 
 Several keys appear to be auto-generated or truncated:
+
 - `this-quote-was-generated-by` - truncated mid-sentence
 - `it-was-based-on-the-content-of-the-page-and-does` - truncated mid-sentence
 - `this-content-is-ai-generated-based-on-the-conten` - truncated mid-word
 
 **Recommendation:** Use semantic key names that describe the purpose, not the content:
+
 - `disclaimer-source-prefix`
 - `disclaimer-source-suffix`
 - `disclaimer-full`
@@ -84,6 +86,7 @@ Several keys appear to be auto-generated or truncated:
 ### Issue 3: Redundant Keys
 
 Two keys serve similar purposes:
+
 - `ai-generated-content-disclaimer` and `this-content-is-ai-generated-based-on-the-conten...`
 
 **Recommendation:** Consolidate into a single `disclaimers.full` key or differentiate their use cases clearly (e.g., `disclaimers.tooltip` vs `disclaimers.inline`).
@@ -93,6 +96,7 @@ Two keys serve similar purposes:
 Keys like `randomtestimonial-stars-5` embed component-specific prefixes that reduce reusability.
 
 **Recommendation:** Use generic template names:
+
 - `templates.rating` instead of `randomtestimonial-stars-5`
 - `templates.attribution` instead of `randomtestimonial-name-randomtestimonial-company`
 - `templates.quote` instead of `randomtestimonial-quote`
@@ -103,11 +107,11 @@ Keys like `randomtestimonial-stars-5` embed component-specific prefixes that red
 
 ## Relationship to Other Files
 
-| Related File | Relationship |
-|--------------|--------------|
+| Related File            | Relationship                                                                                                             |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | `feature-feedback.json` | Both deal with user/public-facing feedback, but serve different purposes (testimonials = display, feedback = collection) |
-| `_common.json` | No overlap; testimonial keys are feature-specific |
-| `homepage.json` | If testimonials are displayed on homepage, keys should remain here but be referenced from homepage components |
+| `_common.json`          | No overlap; testimonial keys are feature-specific                                                                        |
+| `homepage.json`         | If testimonials are displayed on homepage, keys should remain here but be referenced from homepage components            |
 
 ## Summary
 

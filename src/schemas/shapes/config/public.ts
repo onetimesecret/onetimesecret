@@ -58,8 +58,7 @@ const contentTree: AugmentTree = {
 
 const passwordGenerationTree: AugmentTree = {
   default_length: (n) => n.int().min(4).max(128).default(12),
-  length_options: () =>
-    z.array(z.number().int().min(4).max(128)).default([8, 12, 16, 20, 24, 32]),
+  length_options: () => z.array(z.number().int().min(4).max(128)).default([8, 12, 16, 20, 24, 32]),
   character_sets: {
     uppercase: (b) => b.default(true),
     lowercase: (b) => b.default(true),

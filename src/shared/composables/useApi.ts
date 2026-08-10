@@ -16,8 +16,8 @@ export function useApi(): AxiosInstance {
   if (!$api) {
     throw new Error(
       'useApi(): No Axios instance found. ' +
-      'Ensure the component is mounted inside a provider that calls ' +
-      'app.provide("api", axiosInstance).'
+        'Ensure the component is mounted inside a provider that calls ' +
+        'app.provide("api", axiosInstance).'
     );
   }
   return $api;

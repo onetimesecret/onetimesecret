@@ -31,11 +31,11 @@ These compile to `generated/locales/{locale}.json` at build time.
 
 ## Key Naming
 
-| Prefix | Use |
-|--------|-----|
-| `web.*` | Frontend UI strings |
-| `api.*` | Backend API messages |
-| `email.*` | Email templates |
+| Prefix    | Use                  |
+| --------- | -------------------- |
+| `web.*`   | Frontend UI strings  |
+| `api.*`   | Backend API messages |
+| `email.*` | Email templates      |
 
 API errors follow: `api.{feature}.errors.{error_name}`
 

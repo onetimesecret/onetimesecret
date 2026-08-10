@@ -1,7 +1,7 @@
 ---
 labels: admin-v2, phase-2, frontend, backend
 depends: 11-admin-ui-kit, 12-resource-stores, 22-customers-ui
-epic: "#3653"
+epic: '#3653'
 ---
 
 # Admin rebuild: System, BannedIPs, Usage screens (+ extract BanIP/UnbanIP ops)

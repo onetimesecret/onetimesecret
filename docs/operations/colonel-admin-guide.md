@@ -55,22 +55,22 @@ Every capability is enforced by the two-layer authorization invariant (router
 the logic), and every mutating action is written to the audit log. Destructive
 verbs are guarded by typed-confirmation dialogs.
 
-| Section | Path | What it does |
-| ------- | ---- | ------------ |
-| Overview | `/colonel` | Console map + at-a-glance stats. |
-| Customers | `/colonel/customers` | Filterable customer list + detail; verify/unverify, plan, role, purge — support without SSH. |
-| Secrets | `/colonel/secrets` | List + receipt inspection + guarded delete. |
-| Organizations | `/colonel/organizations` | Org list, billing-investigate, entitlement overrides. |
-| Domains | `/colonel/domains` | Custom-domain grid + per-domain verify. |
-| System | `/colonel/system` | Database / Redis / queue metrics read-out. |
-| Banned IPs | `/colonel/banned-ips` | List + guarded ban / unban. |
-| Usage | `/colonel/usage` | Usage-export read-out. |
-| Sessions | `/colonel/sessions` | Inspect / search / revoke sessions. |
-| Banner | `/colonel/banner` | Set / show / clear the broadcast banner. |
-| Queue DLQ | `/colonel/queues/dlq` | Inspect dead-letter queues; guarded replay / purge. |
-| Domain toolbox | `/colonel/domain-toolbox` | Orphaned-scan, probe; guarded repair / transfer. |
-| Email + rate-limit | `/colonel/email-tools` | Template preview, test send, limiter inspect / reset. |
-| Billing catalog | `/colonel/billing` | Read-only plan-drift view. |
+| Section            | Path                      | What it does                                                                                 |
+| ------------------ | ------------------------- | -------------------------------------------------------------------------------------------- |
+| Overview           | `/colonel`                | Console map + at-a-glance stats.                                                             |
+| Customers          | `/colonel/customers`      | Filterable customer list + detail; verify/unverify, plan, role, purge — support without SSH. |
+| Secrets            | `/colonel/secrets`        | List + receipt inspection + guarded delete.                                                  |
+| Organizations      | `/colonel/organizations`  | Org list, billing-investigate, entitlement overrides.                                        |
+| Domains            | `/colonel/domains`        | Custom-domain grid + per-domain verify.                                                      |
+| System             | `/colonel/system`         | Database / Redis / queue metrics read-out.                                                   |
+| Banned IPs         | `/colonel/banned-ips`     | List + guarded ban / unban.                                                                  |
+| Usage              | `/colonel/usage`          | Usage-export read-out.                                                                       |
+| Sessions           | `/colonel/sessions`       | Inspect / search / revoke sessions.                                                          |
+| Banner             | `/colonel/banner`         | Set / show / clear the broadcast banner.                                                     |
+| Queue DLQ          | `/colonel/queues/dlq`     | Inspect dead-letter queues; guarded replay / purge.                                          |
+| Domain toolbox     | `/colonel/domain-toolbox` | Orphaned-scan, probe; guarded repair / transfer.                                             |
+| Email + rate-limit | `/colonel/email-tools`    | Template preview, test send, limiter inspect / reset.                                        |
+| Billing catalog    | `/colonel/billing`        | Read-only plan-drift view.                                                                   |
 
 The JSON API behind the console is `/api/colonel/*` (scope `internal`, not part
 of the public API contract). Its full route inventory and the authorization

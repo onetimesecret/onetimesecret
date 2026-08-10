@@ -127,38 +127,42 @@ So implementers don't follow stale assumptions:
   hard-bounce removal is colonel-UI + CLI behind typed confirmation. Every
   removal is audited on EVERY invocation.
 
-
 ## Roadmap & dependency graph
 
 **Phase 0 — Foundations:**
+
 - [ ] [headers channel + email category taxonomy end-to-end](./10-headers-and-classification.md)
 - [ ] [protection keys, address hashing, and stateless token format](./11-keys-hashing-tokens.md)
 
 **Phase 1 — Suppression core:**
+
 - [ ] [EmailSuppression model, event log, and the delivery gate](./20-suppression-model-and-gate.md)
 - [ ] [suppression operations + CLI (check/add/remove/list/import)](./21-suppression-ops-and-cli.md)
 - [ ] [colonel suppression endpoints + admin UI screen](./22-suppression-admin-ui.md)
 
 **Phase 2 — Automatic feedback (the biggest reputation win):**
+
 - [ ] [ESP webhook ingestion: endpoints, signature validation, idempotency, queue](./30-esp-webhook-ingestion.md)
 - [ ] [bounce/complaint policy handlers writing suppressions](./31-bounce-complaint-handlers.md)
 
 **Phase 3 — Outbound rate limits:**
+
 - [ ] [per-address / per-domain / per-sender outbound email limits](./40-outbound-rate-limits.md)
 
 **Phase 4 — Recipient controls:**
+
 - [ ] [RFC 8058 one-click unsubscribe: headers, endpoints, landing page](./50-one-click-unsubscribe.md)
 - [ ] [secure opt-back-in + guarded unsuppress](./51-opt-back-in.md)
 
 **Phase 5 — Observability & cutover:**
+
 - [ ] [delivery-health counters, thresholds, events console](./60-observability.md)
 - [ ] [hardening & cutover: default-on, imports, PII cleanup, docs](./61-hardening-cutover.md)
 
 Phase 0 blocks everything. 20 needs 10 (category on the wire) and 11 (hash
 helper). 21/22 need 20. 30 needs 20 (something to write to); 31 needs 30. 40
 needs 11 (hash keys) and 10 (category exemptions) but not Phase 2 — it can run
-in parallel with 30/31. 50 needs 10, 11, and 20; 51 needs 50. 60 needs 20 and
-30. 61 is last. If reputational pressure is acute, the shortest path to relief
+in parallel with 30/31. 50 needs 10, 11, and 20; 51 needs 50. 60 needs 20 and 30. 61 is last. If reputational pressure is acute, the shortest path to relief
 is 10 → 11 → 20 → 30 → 31 (suppression fed by provider feedback), with 21 in
 tow for operator access; 40 and 50 follow.
 
@@ -175,25 +179,26 @@ suppress nor even observe them.
 
 ### Per-slice flags
 
-| Slice | Flag | Rationale |
-|---|---|---|
-| 10 headers + classification | **NOW (trim)** | The **category taxonomy** is required for suppression scope (31). The **headers channel** is only consumed by unsubscribe (50) — defer that half with 50 to shrink Phase 0. |
-| 11 keys + hashing + tokens | **NOW (trim)** | `address_hash`/`domain_hash` + key purpose are required for suppression keys. The **stateless Token codec** is only consumed by 50/51 — defer with them. |
-| 20 suppression model + gate | **NOW** | The core capability. The gate at `Delivery::Base#deliver` is the whole point. |
-| 21 suppression ops + CLI | **NOW** | Operators/support need check/add/remove/import from day one. |
-| 30 ESP webhook ingestion | **NOW\*** | "Biggest reputation win." A suppression list nobody feeds is theater. **\*API-provider-only** — inert on plain SMTP (see fitness finding B). |
-| 31 bounce/complaint handlers | **NOW\*** | Turns feedback into suppressions. Same SMTP caveat. |
-| 61 hardening + cutover | **NOW (partial)** | The bits that ship Phase 1 safely: default-on flip, provider backfill import, and the **pre-existing DLQ PII leak** fix. Schedule-queue decision can ride later. |
-| 22 suppression admin UI | **MAYBE LATER** | CLI (21) covers operations. Build when list volume makes CLI painful for non-engineer support. |
-| 40 outbound rate limits | **MAYBE LATER (ship the address limiter early)** | The per-address anti-harassment cap is the valuable core and is cheap; the domain/sender/tenant limiters are the deferrable bulk. |
-| 50 one-click unsubscribe | **MAYBE LATER (strong recommend)** | Under the bulk threshold so not compulsory, but recipient-facing mail is exactly the unsolicited profile that generates complaints — a mute button directly lowers the metric that matters most. Blocked on fitness finding A. |
-| 51 opt-back-in | **MAYBE LATER** | Depends on 50; no value before it ships. |
-| 60 observability | **MAYBE LATER** | The control-loop's measurement half. Cheap, but only useful once 20+30/31 are producing signal. |
+| Slice                        | Flag                                             | Rationale                                                                                                                                                                                                                      |
+| ---------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 10 headers + classification  | **NOW (trim)**                                   | The **category taxonomy** is required for suppression scope (31). The **headers channel** is only consumed by unsubscribe (50) — defer that half with 50 to shrink Phase 0.                                                    |
+| 11 keys + hashing + tokens   | **NOW (trim)**                                   | `address_hash`/`domain_hash` + key purpose are required for suppression keys. The **stateless Token codec** is only consumed by 50/51 — defer with them.                                                                       |
+| 20 suppression model + gate  | **NOW**                                          | The core capability. The gate at `Delivery::Base#deliver` is the whole point.                                                                                                                                                  |
+| 21 suppression ops + CLI     | **NOW**                                          | Operators/support need check/add/remove/import from day one.                                                                                                                                                                   |
+| 30 ESP webhook ingestion     | **NOW\***                                        | "Biggest reputation win." A suppression list nobody feeds is theater. **\*API-provider-only** — inert on plain SMTP (see fitness finding B).                                                                                   |
+| 31 bounce/complaint handlers | **NOW\***                                        | Turns feedback into suppressions. Same SMTP caveat.                                                                                                                                                                            |
+| 61 hardening + cutover       | **NOW (partial)**                                | The bits that ship Phase 1 safely: default-on flip, provider backfill import, and the **pre-existing DLQ PII leak** fix. Schedule-queue decision can ride later.                                                               |
+| 22 suppression admin UI      | **MAYBE LATER**                                  | CLI (21) covers operations. Build when list volume makes CLI painful for non-engineer support.                                                                                                                                 |
+| 40 outbound rate limits      | **MAYBE LATER (ship the address limiter early)** | The per-address anti-harassment cap is the valuable core and is cheap; the domain/sender/tenant limiters are the deferrable bulk.                                                                                              |
+| 50 one-click unsubscribe     | **MAYBE LATER (strong recommend)**               | Under the bulk threshold so not compulsory, but recipient-facing mail is exactly the unsolicited profile that generates complaints — a mute button directly lowers the metric that matters most. Blocked on fitness finding A. |
+| 51 opt-back-in               | **MAYBE LATER**                                  | Depends on 50; no value before it ships.                                                                                                                                                                                       |
+| 60 observability             | **MAYBE LATER**                                  | The control-loop's measurement half. Cheap, but only useful once 20+30/31 are producing signal.                                                                                                                                |
 
 ### Prioritization
 
 **1. Bare minimum to maintain reputation** (the epic's own shortest path,
 `10 → 11 → 20 → 30 → 31`, plus `21`):
+
 - Category taxonomy + address hashing (10/11, trimmed).
 - Suppression store + the `Delivery::Base#deliver` gate (20).
 - CLI + import ops for operators (21).
@@ -203,6 +208,7 @@ suppress nor even observe them.
 - The Phase-1 slice of cutover (61): default-on + backfill + DLQ PII fix.
 
 **2. Stretch, if dev time allows** (in order):
+
 - One-click unsubscribe (50) + its trimmed 10/11 header/token halves — the
   single best complaint-rate lever and a Gmail/Yahoo best practice we should
   adopt before we're forced to.
@@ -210,6 +216,7 @@ suppress nor even observe them.
 - Observability counters + health job (60) for early warning.
 
 **3. Wait until X:**
+
 - **22 (admin UI)** — until support outgrows the CLI, or non-engineers need
   self-serve access.
 - **Rest of 40 (domain/sender/tenant limiters)** — until slice 60 shows an

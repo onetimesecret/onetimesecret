@@ -109,9 +109,7 @@ export function createCanonicalReceiptBase(
 /**
  * Creates a canonical full receipt with URLs and expiration.
  */
-export function createCanonicalReceipt(
-  overrides?: Partial<ReceiptCanonical>
-): ReceiptCanonical {
+export function createCanonicalReceipt(overrides?: Partial<ReceiptCanonical>): ReceiptCanonical {
   const base = createCanonicalReceiptBase(overrides);
   return {
     ...base,
@@ -162,9 +160,7 @@ export function createCanonicalReceiptDetails(
 /**
  * Creates a "shared" state receipt (secret link sent to recipient).
  */
-export function createSharedReceipt(
-  overrides?: Partial<ReceiptCanonical>
-): ReceiptCanonical {
+export function createSharedReceipt(overrides?: Partial<ReceiptCanonical>): ReceiptCanonical {
   return createCanonicalReceipt({
     state: 'shared' as ReceiptState,
     shared: ONE_HOUR_LATER,
@@ -175,9 +171,7 @@ export function createSharedReceipt(
 /**
  * Creates a "previewed" state receipt (recipient viewed the confirmation page).
  */
-export function createPreviewedReceipt(
-  overrides?: Partial<ReceiptCanonical>
-): ReceiptCanonical {
+export function createPreviewedReceipt(overrides?: Partial<ReceiptCanonical>): ReceiptCanonical {
   return createCanonicalReceipt({
     state: 'previewed' as ReceiptState,
     shared: ONE_HOUR_LATER,
@@ -193,9 +187,7 @@ export function createPreviewedReceipt(
 /**
  * Creates a "revealed" state receipt (secret content was decrypted).
  */
-export function createRevealedReceipt(
-  overrides?: Partial<ReceiptCanonical>
-): ReceiptCanonical {
+export function createRevealedReceipt(overrides?: Partial<ReceiptCanonical>): ReceiptCanonical {
   return createCanonicalReceipt({
     state: 'revealed' as ReceiptState,
     shared: ONE_HOUR_LATER,
@@ -216,9 +208,7 @@ export function createRevealedReceipt(
 /**
  * Creates a "burned" state receipt (secret was destroyed before reveal).
  */
-export function createBurnedReceipt(
-  overrides?: Partial<ReceiptCanonical>
-): ReceiptCanonical {
+export function createBurnedReceipt(overrides?: Partial<ReceiptCanonical>): ReceiptCanonical {
   return createCanonicalReceipt({
     state: 'burned' as ReceiptState,
     burned: ONE_HOUR_LATER,
@@ -232,9 +222,7 @@ export function createBurnedReceipt(
 /**
  * Creates an "expired" state receipt (TTL elapsed).
  */
-export function createExpiredReceipt(
-  overrides?: Partial<ReceiptCanonical>
-): ReceiptCanonical {
+export function createExpiredReceipt(overrides?: Partial<ReceiptCanonical>): ReceiptCanonical {
   return createCanonicalReceipt({
     state: 'expired' as ReceiptState,
     is_expired: true,
@@ -247,9 +235,7 @@ export function createExpiredReceipt(
 /**
  * Creates an "orphaned" state receipt (associated secret deleted).
  */
-export function createOrphanedReceipt(
-  overrides?: Partial<ReceiptCanonical>
-): ReceiptCanonical {
+export function createOrphanedReceipt(overrides?: Partial<ReceiptCanonical>): ReceiptCanonical {
   return createCanonicalReceipt({
     state: 'orphaned' as ReceiptState,
     is_orphaned: true,
@@ -278,15 +264,11 @@ export function createPassphraseProtectedReceipt(
 /**
  * Creates V2 wire format from canonical.
  */
-export function createV2WireReceiptBase(
-  canonical?: ReceiptBaseCanonical
-): V2WireReceiptBase {
+export function createV2WireReceiptBase(canonical?: ReceiptBaseCanonical): V2WireReceiptBase {
   return toV2WireReceiptBase(canonical ?? createCanonicalReceiptBase());
 }
 
-export function createV2WireReceipt(
-  canonical?: ReceiptCanonical
-): V2WireReceipt {
+export function createV2WireReceipt(canonical?: ReceiptCanonical): V2WireReceipt {
   return toV2WireReceipt(canonical ?? createCanonicalReceipt());
 }
 
@@ -299,15 +281,11 @@ export function createV2WireReceiptDetails(
 /**
  * Creates V3 wire format from canonical.
  */
-export function createV3WireReceiptBase(
-  canonical?: ReceiptBaseCanonical
-): V3WireReceiptBase {
+export function createV3WireReceiptBase(canonical?: ReceiptBaseCanonical): V3WireReceiptBase {
   return toV3WireReceiptBase(canonical ?? createCanonicalReceiptBase());
 }
 
-export function createV3WireReceipt(
-  canonical?: ReceiptCanonical
-): V3WireReceipt {
+export function createV3WireReceipt(canonical?: ReceiptCanonical): V3WireReceipt {
   return toV3WireReceipt(canonical ?? createCanonicalReceipt());
 }
 
@@ -356,12 +334,29 @@ export function compareCanonicalReceiptBase(
 
   // String/primitive fields
   const primitiveFields = [
-    'identifier', 'key', 'shortid', 'state', 'custid', 'owner_id',
-    'secret_ttl', 'receipt_ttl', 'lifespan', 'secret_shortid',
-    'secret_identifier', 'share_domain', 'has_passphrase',
-    'is_viewed', 'is_received', 'is_previewed', 'is_revealed',
-    'is_burned', 'is_destroyed', 'is_expired', 'is_orphaned',
-    'memo', 'kind',
+    'identifier',
+    'key',
+    'shortid',
+    'state',
+    'custid',
+    'owner_id',
+    'secret_ttl',
+    'receipt_ttl',
+    'lifespan',
+    'secret_shortid',
+    'secret_identifier',
+    'share_domain',
+    'has_passphrase',
+    'is_viewed',
+    'is_received',
+    'is_previewed',
+    'is_revealed',
+    'is_burned',
+    'is_destroyed',
+    'is_expired',
+    'is_orphaned',
+    'memo',
+    'kind',
   ] as const;
 
   for (const field of primitiveFields) {
@@ -372,8 +367,14 @@ export function compareCanonicalReceiptBase(
 
   // Date fields (compare as timestamps)
   const dateFields = [
-    'created', 'updated', 'shared', 'received', 'viewed',
-    'previewed', 'revealed', 'burned',
+    'created',
+    'updated',
+    'shared',
+    'received',
+    'viewed',
+    'previewed',
+    'revealed',
+    'burned',
   ] as const;
 
   for (const field of dateFields) {
@@ -388,7 +389,9 @@ export function compareCanonicalReceiptBase(
 
   // Array fields
   if (JSON.stringify(a.recipients) !== JSON.stringify(b.recipients)) {
-    differences.push(`recipients: ${JSON.stringify(a.recipients)} !== ${JSON.stringify(b.recipients)}`);
+    differences.push(
+      `recipients: ${JSON.stringify(a.recipients)} !== ${JSON.stringify(b.recipients)}`
+    );
   }
 
   return {
@@ -409,9 +412,15 @@ export function compareCanonicalReceipt(
 
   // Additional full receipt fields
   const additionalFields = [
-    'secret_state', 'natural_expiration', 'expiration_in_seconds',
-    'share_path', 'burn_path', 'receipt_path',
-    'share_url', 'receipt_url', 'burn_url',
+    'secret_state',
+    'natural_expiration',
+    'expiration_in_seconds',
+    'share_path',
+    'burn_path',
+    'receipt_path',
+    'share_url',
+    'receipt_url',
+    'burn_url',
   ] as const;
 
   for (const field of additionalFields) {

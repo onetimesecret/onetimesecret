@@ -4,17 +4,18 @@ Reference implementation: `receipt`
 
 ## Entity Status Overview
 
-| Entity | Contract | V2 | V3 | Fixtures | Serializers | Tests | Status |
-|--------|----------|----|----|----------|-------------|-------|--------|
-| receipt | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **DONE** |
-| secret | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **DONE** |
-| feedback | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **DONE** |
-| customer | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **DONE** |
-| organization | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **DONE** |
-| organization_membership | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **DONE** |
-| custom_domain | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | **DONE** |
+| Entity                  | Contract | V2  | V3  | Fixtures | Serializers | Tests | Status   |
+| ----------------------- | -------- | --- | --- | -------- | ----------- | ----- | -------- |
+| receipt                 | ✓        | ✓   | ✓   | ✓        | ✓           | ✓     | **DONE** |
+| secret                  | ✓        | ✓   | ✓   | ✓        | ✓           | ✓     | **DONE** |
+| feedback                | ✓        | ✓   | ✓   | ✓        | ✓           | ✓     | **DONE** |
+| customer                | ✓        | ✓   | ✓   | ✓        | ✓           | ✓     | **DONE** |
+| organization            | ✓        | ✓   | ✓   | ✓        | ✓           | ✓     | **DONE** |
+| organization_membership | ✓        | ✓   | ✓   | ✓        | ✓           | ✓     | **DONE** |
+| custom_domain           | ✓        | ✓   | ✓   | ✓        | ✓           | ✓     | **DONE** |
 
 **Tiers by complexity:**
+
 - Tier 1: V2 exists, simple structure
 - Tier 2: Core entities with relationships
 - Tier 3: Complex (domain parsing, nested structures)

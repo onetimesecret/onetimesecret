@@ -1,7 +1,7 @@
 ---
-id: "023"
+id: '023'
 status: accepted
-title: "ADR-023: Audit Actor Attribution Accuracy — Never Fabricate an Actor"
+title: 'ADR-023: Audit Actor Attribution Accuracy — Never Fabricate an Actor'
 ---
 
 ## Status
@@ -30,7 +30,7 @@ their relationship to a secret we don't have. What actor do we record?
 The change was first framed as a binary — default the nil case to
 `authenticated_other` (its current behavior, since `nil&.owner? → false`) or to
 `anonymous`. Researching how mature audit systems and data-protection law treat
-an *unresolved* actor showed that **both options are wrong for the same reason**,
+an _unresolved_ actor showed that **both options are wrong for the same reason**,
 and that the lesson generalizes well beyond this one branch.
 
 ## Decision
@@ -44,7 +44,7 @@ Four rules follow:
 1. **No convenient default.** `authenticated_other` asserts "authenticated **and
    not the owner**" — the "not owner" half is unsubstantiated when there is no
    secret. `anonymous` asserts "**unauthenticated**" — outright false for an
-   authenticated caller, and strictly worse, because it discards a fact we *do*
+   authenticated caller, and strictly worse, because it discards a fact we _do_
    know to assert one that is false. Neither is acceptable.
 2. **Record what is known; mark the rest unknown.** Emit `actor: 'unknown'`
    while keeping the authenticated principal's shortid (`actor_id`) when we have
@@ -56,7 +56,7 @@ Four rules follow:
 4. **Alert, don't raise.** The indeterminate branch signals a programmer error,
    so it logs (`OT.le`) — but it never raises. Attribution is best-effort
    observability and must not break the consume path (#3633; CAS-gated reveal,
-   ADR-019). Accuracy is fixed by the *value* recorded, not by changing control
+   ADR-019). Accuracy is fixed by the _value_ recorded, not by changing control
    flow.
 
 This governs **every** actor-attributed stream: Security Events (#2799) and the
@@ -68,7 +68,7 @@ the actor is unresolved.
 
 - **Accuracy is a legal obligation, not a nicety.** An actor attribution is
   personal data about an identifiable person, so GDPR Art. 5(1)(d) ("accurate
-  and, where necessary, kept up to date") applies directly. A *false*
+  and, where necessary, kept up to date") applies directly. A _false_
   attribution is a compliance defect, not a harmless default — the decisive
   argument against both `authenticated_other` and `anonymous` in the unresolved
   case. `unknown` is the accurate representation.

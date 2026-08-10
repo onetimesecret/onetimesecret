@@ -162,7 +162,7 @@ tests:
       - description: Next bill amount shows Identity Plus price
         selector: "[data-testid='next-bill-amount']"
         assert: text_contains
-        value: "$35.00"
+        value: '$35.00'
       - description: Credit applied line shows negative amount (green)
         selector: "[data-testid='credit-applied-line']"
         assert: text_matches

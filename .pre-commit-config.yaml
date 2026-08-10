@@ -162,6 +162,22 @@ repos:
         files: \.(ts|vue|mjs)$
         exclude: ^src/tests/
 
+  # Formatting: Prettier over staged files
+  #
+  # Prettier was previously enforced nowhere — not here, not in CI — which let
+  # ~1000 files drift out of style. It runs after ESLint so the two agree on the
+  # final text (ESLint --fix first, then Prettier owns whitespace and wrapping).
+  # Ruby is excluded in .prettierignore: RuboCop owns it, and @prettier/plugin-ruby
+  # emits double quotes against Style/StringLiterals: single_quotes.
+  - repo: local
+    hooks:
+      - id: prettier-staged
+        name: Prettier (staged files)
+        description: Format staged JS/TS/Vue/Markdown/YAML/CSS files
+        entry: pnpm exec prettier --write --ignore-unknown
+        language: system
+        files: \.(ts|vue|mjs|js|json|md|yml|yaml|css|scss|html)$
+
   # Commit metadata tracking
   - repo: local
     hooks:

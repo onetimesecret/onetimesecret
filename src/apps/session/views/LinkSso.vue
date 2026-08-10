@@ -2,10 +2,7 @@
 
 <script setup lang="ts">
   import AuthView from '@/apps/session/components/AuthView.vue';
-  import {
-    linkSsoRequiresMfa,
-    type LinkSsoVerifySuccess,
-  } from '@/schemas/api/auth/responses/auth';
+  import { linkSsoRequiresMfa, type LinkSsoVerifySuccess } from '@/schemas/api/auth/responses/auth';
   import { loggingService } from '@/services/logging.service';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useLinkSso } from '@/shared/composables/useLinkSso';
@@ -64,9 +61,7 @@
   // (spent token / conflict), else the generic expired copy (e.g. the token was
   // missing from the URL entirely, so no request ever ran). Mirrors
   // SsoLinkConfirm.vue's unavailableMessage.
-  const unavailableMessage = computed(
-    () => error.value ?? t('web.link_sso.unavailable_message')
-  );
+  const unavailableMessage = computed(() => error.value ?? t('web.link_sso.unavailable_message'));
 
   // Single polite live region, rendered unconditionally. A live region has to be
   // in the DOM BEFORE its content changes for assistive tech to announce it, so
@@ -243,7 +238,7 @@
           <button
             @click="goToSignInFallback"
             type="button"
-            class="w-full cursor-pointer rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+            class="w-full cursor-pointer rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none"
             data-testid="link-sso-unavailable-action">
             {{ t('web.link_sso.unavailable_action') }}
           </button>
@@ -290,7 +285,7 @@
                 :aria-invalid="error ? 'true' : undefined"
                 :aria-describedby="error ? 'link-sso-error' : 'link-sso-instructions'"
                 :placeholder="t('web.link_sso.password_placeholder')"
-                class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-500"
+                class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder:text-gray-400 focus:border-brand-500 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-500"
                 data-testid="link-sso-password-input" />
             </div>
 
@@ -312,7 +307,7 @@
               type="submit"
               :disabled="!password || isLoading"
               :aria-busy="isLoading ? 'true' : undefined"
-              class="w-full cursor-pointer rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              class="w-full cursor-pointer rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               data-testid="link-sso-submit">
               <span v-if="isLoading">{{ t('web.COMMON.processing') }}</span>
               <span v-else>{{ t('web.link_sso.submit') }}</span>
@@ -332,7 +327,7 @@
             @click="handleCancel"
             type="button"
             :disabled="isLoading"
-            class="cursor-pointer rounded-sm px-1 text-gray-500 underline-offset-2 transition-colors duration-200 hover:text-gray-700 focus:underline focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:text-gray-300"
+            class="cursor-pointer rounded-sm px-1 text-gray-500 underline-offset-2 transition-colors duration-200 hover:text-gray-700 focus:underline focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:text-gray-300"
             data-testid="link-sso-cancel">
             {{ t('web.link_sso.cancel') }}
           </button>

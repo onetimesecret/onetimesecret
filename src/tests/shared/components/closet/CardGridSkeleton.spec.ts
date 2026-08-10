@@ -15,8 +15,7 @@ vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: (key: string) => key }),
 }));
 
-const blocks = (wrapper: ReturnType<typeof mount>) =>
-  wrapper.findAll('[aria-hidden="true"]');
+const blocks = (wrapper: ReturnType<typeof mount>) => wrapper.findAll('[aria-hidden="true"]');
 
 describe('CardGridSkeleton', () => {
   it('exposes a busy status region with an sr-only loading label', () => {

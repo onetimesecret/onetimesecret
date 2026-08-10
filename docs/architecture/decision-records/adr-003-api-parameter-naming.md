@@ -5,9 +5,11 @@ title: ADR-003: API Parameter Naming Convention (u/p)
 ---
 
 ## Status
+
 Accepted
 
 ## Date
+
 2025-10-10
 
 ## Context
@@ -15,6 +17,7 @@ Accepted
 During PR #1798 review, automated tooling (Copilot) flagged the use of cryptic parameter names `u` (email/username) and `p` (password) in the authentication API endpoints. The suggestion was to use more descriptive names like `email` and `password` for improved code readability.
 
 Key considerations:
+
 - The `u`/`p` convention is used consistently across all authentication endpoints
 - Backend Logic classes in `apps/api/v2/logic/` expect these parameter names
 - Frontend composables (`src/composables/useAuth.ts`) send these parameters
@@ -28,11 +31,13 @@ The decision point: Should we refactor to use descriptive parameter names or mai
 **We will maintain the existing `u`/`p` parameter naming convention** for authentication endpoints.
 
 The convention:
+
 - `u` = username/email field (user identifier)
 - `p` = password field
 - `shrimp` = CSRF token (existing convention)
 
 This applies to:
+
 - `/auth/login` - Sign in endpoint
 - `/auth/create-account` - Registration endpoint
 - `/auth/reset-password-request` - Password reset initiation
@@ -61,7 +66,9 @@ This applies to:
 ## Implementation Notes
 
 ### Future Considerations (2025-10-10)
+
 If a v3 API is created with breaking changes, consider:
+
 1. Providing both abbreviated and full parameter names during transition
 2. Using JSON:API or similar standard that defines parameter naming
 3. Using typed SDK generators to abstract parameter names from consumers (e.g. zod)

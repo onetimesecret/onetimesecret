@@ -199,16 +199,19 @@ docker exec <container> s6-svc -u /run/service/worker
 ### Common Issues
 
 **Container exits immediately**
+
 - Check logs: `docker logs <container>`
 - Verify config migration: Look for "Migration required" message
 - Check Redis connectivity: Set `ONETIME_DEBUG=1` for verbose output
 
 **Service keeps restarting**
+
 - View service logs: `docker exec <container> s6-tail /run/service/<name>`
 - Check exit codes in finish script output
 - Verify dependencies are met (Redis connectivity)
 
 **Graceful shutdown timeout**
+
 - Increase Docker stop timeout: `docker stop -t 60 <container>`
 - Check Puma `worker_shutdown_timeout` in `etc/puma.rb`
 
@@ -273,6 +276,7 @@ end
 ```
 
 **What S6 adds**:
+
 - If Puma master crashes, S6 restarts it automatically
 - Graceful shutdown: S6 → Puma master → workers (clean connection close)
 - Stdout/stderr logging from master and all workers
@@ -319,6 +323,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 ```
 
 **Deployment strategy**:
+
 - Test multi-process container in staging first
 - Monitor for 24-48 hours
 - Compare metrics: restart rate, memory, response times

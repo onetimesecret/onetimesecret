@@ -1,7 +1,7 @@
 ---
-id: "017"
+id: '017'
 status: accepted
-title: "ADR-017: Gate Domain-Dependent Functionality on Ownership Verification"
+title: 'ADR-017: Gate Domain-Dependent Functionality on Ownership Verification'
 ---
 
 ## Status

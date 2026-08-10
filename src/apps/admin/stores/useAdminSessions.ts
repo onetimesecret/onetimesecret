@@ -4,10 +4,7 @@ import { defineStore } from 'pinia';
 import type { z } from 'zod';
 import { ref } from 'vue';
 
-import {
-  usePaginatedFetch,
-  type PageMeta,
-} from '@/apps/admin/composables/usePaginatedFetch';
+import { usePaginatedFetch, type PageMeta } from '@/apps/admin/composables/usePaginatedFetch';
 import { colonelSessionsResponseSchema } from '@/schemas/api/internal/responses/colonel-sessions';
 import type {
   ColonelSession,
@@ -66,10 +63,7 @@ export const useAdminSessions = defineStore('adminSessions', () => {
     search?: string
   ): Promise<{ items: ColonelSession[]; pagination: PageMeta | null } | null> {
     try {
-      const result = await pager.fetchPage(
-        targetPage,
-        search ? { search } : undefined
-      );
+      const result = await pager.fetchPage(targetPage, search ? { search } : undefined);
       if (result) {
         sessions.value = result.items;
         pagination.value = result.pagination;

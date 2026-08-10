@@ -148,7 +148,8 @@ export const useEntitlementsStore = defineStore('entitlements', () => {
         planDefinitions.value = data.plans;
         _initialized.value = true;
       } catch (err) {
-        const message = err instanceof Error ? err.message : 'Failed to load entitlement definitions';
+        const message =
+          err instanceof Error ? err.message : 'Failed to load entitlement definitions';
         error.value = message;
         console.error('[EntitlementsStore] Error fetching entitlements:', err);
         // Don't throw - allow graceful fallback to hardcoded values

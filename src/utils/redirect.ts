@@ -1,10 +1,6 @@
 // src/utils/redirect.ts
 
-import type {
-  RouteLocationNamedRaw,
-  RouteLocationPathRaw,
-  RouteLocationRaw,
-} from 'vue-router';
+import type { RouteLocationNamedRaw, RouteLocationPathRaw, RouteLocationRaw } from 'vue-router';
 
 // Define allowed route names
 type AllowedRouteNames = 'Home' | 'Dashboard' | 'Profile';

@@ -45,7 +45,7 @@ jobs:
         uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0
         with:
           ruby-version-file: '.ruby-version'
-          bundler-cache: false  # DEBUG: disabled to rule out stale cache
+          bundler-cache: false # DEBUG: disabled to rule out stale cache
 
       - name: Install Ruby dependencies
         run: bundle install --jobs 4 --retry 3

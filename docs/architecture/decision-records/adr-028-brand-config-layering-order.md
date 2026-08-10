@@ -1,7 +1,7 @@
 ---
-id: "028"
+id: '028'
 status: accepted
-title: "ADR-028: Brand Config Layering Order, and Complexity Counted in Active Layers"
+title: 'ADR-028: Brand Config Layering Order, and Complexity Counted in Active Layers'
 ---
 
 ## Status
@@ -42,8 +42,8 @@ built-in defaults < pack brand.yaml < operator config brand: < BRAND_* env
 - **The pack manifest is a fallback layer, not a replacement.** The `brand:`
   block and `BRAND_*` vars remain fully functional as the override surface;
   docs lead with the pack. (Rewire superseded surfaces, don't delete them.)
-- **Meta-principle:** runtime-configuration complexity is measured in *active
-  layers per install*, not in files or mechanisms that exist. This holds beyond
+- **Meta-principle:** runtime-configuration complexity is measured in _active
+  layers per install_, not in files or mechanisms that exist. This holds beyond
   branding: a mechanism that is exercised by specs but contributes nothing
   until an operator opts in adds zero configuration complexity. An unconfigured
   install must have **zero** live brand sources — which is

@@ -274,7 +274,9 @@ describe('authStore', () => {
       store.$patch({ isAuthenticated: true });
 
       // Configure mock to fail, with a specific error response
-      axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(() => [500, { error: 'Auth check failed' }]);
+      axiosMock
+        .onGet(AUTH_CHECK_CONFIG.ENDPOINT)
+        .reply(() => [500, { error: 'Auth check failed' }]);
 
       // Simulate MAX_FAILURES-1 consecutive failures (no logout yet)
       for (let i = 0; i < AUTH_CHECK_CONFIG.MAX_FAILURES - 1; i++) {

@@ -285,9 +285,9 @@ describe('DomainConfigsSection', () => {
 
       const grid = wrapper.find('[data-testid="config-fields-signin"]');
       expect(grid.exists()).toBe(true);
-      expect(
-        wrapper.find('[data-testid="config-field-signin-signin_enabled"]').text()
-      ).toContain('web.admin.domains.detail.yes');
+      expect(wrapper.find('[data-testid="config-field-signin-signin_enabled"]').text()).toContain(
+        'web.admin.domains.detail.yes'
+      );
       expect(wrapper.find('[data-testid="config-field-signin-restrict_to"]').text()).toContain(
         'web.admin.domains.detail.none'
       );
@@ -352,10 +352,7 @@ describe('DomainConfigsSection', () => {
       await flushPromises();
 
       expect(mockApi.post).toHaveBeenCalledWith(`${CONFIGS_URL}/ensure`, { dry_run: false });
-      expect(showMock).toHaveBeenCalledWith(
-        'web.admin.domains.configs.ensure.success',
-        'success'
-      );
+      expect(showMock).toHaveBeenCalledWith('web.admin.domains.configs.ensure.success', 'success');
       expect(mockApi.get).toHaveBeenCalledTimes(2);
     });
 
@@ -510,8 +507,10 @@ describe('DomainConfigsSection', () => {
         (wrapper.find('[data-testid="config-field-enabled"]').element as HTMLInputElement).checked
       ).toBe(true);
       expect(
-        (wrapper.find('[data-testid="config-field-email_auth_enabled"]').element as HTMLInputElement)
-          .checked
+        (
+          wrapper.find('[data-testid="config-field-email_auth_enabled"]')
+            .element as HTMLInputElement
+        ).checked
       ).toBe(false);
 
       await wrapper.find('[data-testid="config-field-email_auth_enabled"]').setValue(true);
@@ -572,8 +571,9 @@ describe('DomainConfigsSection', () => {
       // the prefill shows a valid choice, and submitting counts the repair as
       // a change (null -> 'passthrough').
       const payload = completePayload();
-      (payload.details.configs.signup.config as unknown as Record<string, unknown>).validation_strategy =
-        null;
+      (
+        payload.details.configs.signup.config as unknown as Record<string, unknown>
+      ).validation_strategy = null;
       mockApi.get.mockResolvedValue({ data: payload });
       mockApi.put.mockResolvedValue({ data: upsertAck('signup', 'updated') });
       wrapper = mountSection();
@@ -620,9 +620,7 @@ describe('DomainConfigsSection', () => {
     });
 
     it('keeps a 4xx failure inside the modal and does not toast or refetch', async () => {
-      mockApi.put.mockRejectedValue(
-        axiosError(422, { error: 'not one of the allowed values' })
-      );
+      mockApi.put.mockRejectedValue(axiosError(422, { error: 'not one of the allowed values' }));
       wrapper = mountSection();
       await flushPromises();
 
@@ -657,10 +655,7 @@ describe('DomainConfigsSection', () => {
       await flushPromises();
 
       expect(mockApi.delete).toHaveBeenCalledWith(`${CONFIGS_URL}/sso`);
-      expect(showMock).toHaveBeenCalledWith(
-        'web.admin.domains.configs.delete.success',
-        'success'
-      );
+      expect(showMock).toHaveBeenCalledWith('web.admin.domains.configs.delete.success', 'success');
       expect(mockApi.get).toHaveBeenCalledTimes(2);
     });
 
@@ -681,10 +676,7 @@ describe('DomainConfigsSection', () => {
       await wrapper.find('form').trigger('submit');
       await flushPromises();
 
-      expect(showMock).toHaveBeenCalledWith(
-        'web.admin.domains.configs.delete.success',
-        'success'
-      );
+      expect(showMock).toHaveBeenCalledWith('web.admin.domains.configs.delete.success', 'success');
       expect(warnSpy).toHaveBeenCalledWith(
         expect.stringContaining('delete ack failed schema validation')
       );

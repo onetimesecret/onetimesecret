@@ -64,7 +64,7 @@ absence — delegates to the IdP).
 
 ## 2. What Otto v2.6.0 provides today
 
-Otto supplies the *inputs* a CIDR filter needs — spoof-resistant client-IP
+Otto supplies the _inputs_ a CIDR filter needs — spoof-resistant client-IP
 resolution behind proxies — but no filtering primitive.
 
 ### Usable as-is
@@ -84,10 +84,10 @@ resolution behind proxies — but no filtering primitive.
   hops from the right with junk positions preserved — not spoofable by XFF
   padding, but assumes origin lockdown.
 - **IP privacy middleware** (`IPPrivacyMiddleware`, auto-mounted innermost
-  in 2.6.0; *since otto#219 it mounts outermost, so all other middleware
-  sees masked values*): sets `env['otto.client_ip']` and
-  `env['otto.via_trusted_proxy']` (*tri-state since otto#228: written only
-  when proxy trust is configured*); masks IPs, scrubs UA/referer, rewrites
+  in 2.6.0; _since otto#219 it mounts outermost, so all other middleware
+  sees masked values_): sets `env['otto.client_ip']` and
+  `env['otto.via_trusted_proxy']` (_tri-state since otto#228: written only
+  when proxy trust is configured_); masks IPs, scrubs UA/referer, rewrites
   forwarded headers.
 - **Rejection plumbing**: `raise Otto::ForbiddenError` from anywhere in the
   Otto request chain yields a content-negotiated 403 with security headers
@@ -101,7 +101,7 @@ resolution behind proxies — but no filtering primitive.
 
 ### Gaps (ranked by impact on this feature)
 
-1. **`env['otto.client_ip']` is the *masked* IP.** Privacy is on by default
+1. **`env['otto.client_ip']` is the _masked_ IP.** Privacy is on by default
    and OTS additionally sets `mask_private_ips = true`
    (`middleware_stack.rb:212`). Default `octet_precision: 1` masks IPv4 to
    an effective **/24** and IPv6 to **/48**
@@ -113,30 +113,30 @@ resolution behind proxies — but no filtering primitive.
    matching precision from masking.
 2. **No allow/deny-list primitive.** No `allow_ip`/`deny_ip`, no exposed
    CIDR-set matcher (`Config#trusted_proxy?` is the only one and it is
-   single-purpose), no per-route IP policy interpretation. *Addressed:
-   `Otto::Utils.ip_in_cidrs?` implemented 2026-07-25 (§3).*
+   single-purpose), no per-route IP policy interpretation. _Addressed:
+   `Otto::Utils.ip_in_cidrs?` implemented 2026-07-25 (§3)._
 3. **`filter` mode's XFF walk is leftmost-first and therefore spoofable**
-   (`utils.rb:166-172`) unless the proxy tier *replaces* inbound XFF.
+   (`utils.rb:166-172`) unless the proxy tier _replaces_ inbound XFF.
    Depth mode is the robust option but permanently disables
    `Request#secure?`'s forwarded-proto trust (modes are mutually
    exclusive, so `otto.via_trusted_proxy` is always false in depth mode).
-   *Since fixed: otto#226 grants depth-mode peer trust
+   _Since fixed: otto#226 grants depth-mode peer trust
    (`via_trusted_proxy=true`, forwarded proto honored), otto#228 makes the
    key tri-state, and the depth `+1` remap off-by-one was dropped
    (PR #4028, for #4024), so depth resolves the documented client and
-   resists XFF padding.*
+   resists XFF padding._
 4. **Geo headers are trusted unconditionally** in the released 2.6.0
    (`otto-2.6.0/lib/otto/privacy/geo_resolver.rb:164-197`): `CF-IPCountry`
    et al. are honored with no trusted-proxy gate, and the built-in range
    table is a toy. Country-based blocking on this foundation would be
-   client-spoofable. *Already fixed on otto main (unreleased): geo headers
+   client-spoofable. _Already fixed on otto main (unreleased): geo headers
    are now honored only when the request arrived via a configured CIDR
-   trusted proxy (`geo_headers_trusted?`), and the guess table is removed.*
+   trusted proxy (`geo_headers_trusted?`), and the guess table is removed._
 5. **Rate limiting is not IP-resolution-aware**: the throttle key is
-   Rack::Attack's `request.ip` computed *outside* Otto, so
+   Rack::Attack's `request.ip` computed _outside_ Otto, so
    `trusted_proxies`/`trusted_proxy_depth` have no effect on it, and
    rack-attack is not a declared dependency.
-6. **Ordering footgun**: middleware added via `otto.use` runs *before*
+6. **Ordering footgun**: middleware added via `otto.use` runs _before_
    `IPPrivacyMiddleware` (innermost-pinned) and never sees
    `otto.client_ip`. (For OTS this is moot — we mount at the app's Rack
    stack, downstream of IPPrivacy — but it bites anyone filtering inside
@@ -169,7 +169,7 @@ the pre-change design conflated:
 - **Observability posture** — what persists where anyone can see it (env
   keys, logs, fingerprints, error reports). A global invariant; the place
   for discrete, named modes.
-- **Policy precision** — what an access-control *decision* may examine,
+- **Policy precision** — what an access-control _decision_ may examine,
   ephemerally, at resolution time. A capability; the place for opt-in.
 
 Before these changes the only route to /32 matching was
@@ -196,7 +196,7 @@ examples green; changelog fragment
    in the same call override the preset; `Config#profile` is derived from
    live knob state so the label can never go stale; unknown names raise.
 3. **`env['otto.ip_match']` verdict-only capability** (precision axis) —
-   `IPPrivacyMiddleware` installs a closure over the resolved, *unmasked*
+   `IPPrivacyMiddleware` installs a closure over the resolved, _unmasked_
    client IP on every path that resolves one (masked, private-exempt, and
    `:audit`), before masking destroys the raw material. Downstream policy
    code calls it with a CIDR array and gets true/false at full /32–/128
@@ -207,7 +207,7 @@ examples green; changelog fragment
    This is a deliberate refinement of the earlier "boot-registered
    pre-masking hook" idea: a hook inside IPPrivacy cannot serve OTS's
    per-domain policy, because at that stack position (line 296) the
-   domain is not yet resolved (line 379). The closure moves the *verdict*
+   domain is not yet resolved (line 379). The closure moves the _verdict_
    to where the policy context exists while keeping the contract: the
    unmasked IP never lands in env as data — a Proc serializes to nothing
    useful, so env dumps, loggers, and error reporters cannot leak it
@@ -238,13 +238,13 @@ Gemfile constraint `'~> 2.5'` already admits it.
   whose resolved `env['onetime.domain_strategy'] == :custom` and whose
   domain has an enabled access config — HTML, all `/api/*` mounts, secret
   reveal links, and the Roda `/auth` mount (all sit behind the universal
-  middleware stack; `/auth` bypasses only Otto's *router*, not the Rack
+  middleware stack; `/auth` bypasses only Otto's _router_, not the Rack
   stack — `lib/onetime/application/base.rb:165`,
   `apps/web/auth/application.rb:53-61`). Secret links are the primary asset
   being protected, so login-only enforcement is explicitly rejected.
 - **Not resource-scoped**: requests on the canonical domain to
   domain-scoped resources (e.g. colonel, workspace domain settings, API
-  with tokens) are *not* gated. This is the intrinsic break-glass: owners
+  with tokens) are _not_ gated. This is the intrinsic break-glass: owners
   manage the allowlist from the canonical domain, so a bad list can always
   be fixed. Document this in the UI copy.
 - **Client IP matching**: exclusively via `env['otto.ip_match']` (§3.3) —
@@ -282,8 +282,8 @@ New `Onetime::Middleware::DomainAccessControl`, mounted in
 `otto.ip_match` (installed by `IPPrivacyMiddleware` at line 296) and
 `onetime.domain_strategy`/`onetime.display_domain` (set at line 379).
 The existing CIDR precedent
-`AdminNetworkIsolation` now runs *after* `Rack::DetectHost` (moved there by
-#4062, which added a host allowlist to it) but still *before*
+`AdminNetworkIsolation` now runs _after_ `Rack::DetectHost` (moved there by
+#4062, which added a host allowlist to it) but still _before_
 `DomainStrategy`, so it sees the detected host and not the domain strategy —
 it cannot be extended for this.
 
@@ -394,12 +394,12 @@ recoverable).
 
 ### Exemptions (scope contract, documented in UI + docs)
 
-| Surface | Treatment |
-|---|---|
-| `/api/incoming` (anonymous inbound reports) | Exempt — external senders are never in a customer allowlist (`apps/api/incoming/routes.txt`) |
-| ACME HTTP-01 challenges | Must remain reachable or cert renewal for the protected domain itself breaks. No in-app `/.well-known/acme-challenge` route found; TLS appears terminated upstream — **verify with ops**; exempt the path defensively if ever served in-app |
-| Health endpoints | Already governed by `HealthAccessControl` (stack line 314); no change |
-| Canonical-domain traffic | Out of scope by design (break-glass) |
+| Surface                                     | Treatment                                                                                                                                                                                                                                   |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/incoming` (anonymous inbound reports) | Exempt — external senders are never in a customer allowlist (`apps/api/incoming/routes.txt`)                                                                                                                                                |
+| ACME HTTP-01 challenges                     | Must remain reachable or cert renewal for the protected domain itself breaks. No in-app `/.well-known/acme-challenge` route found; TLS appears terminated upstream — **verify with ops**; exempt the path defensively if ever served in-app |
+| Health endpoints                            | Already governed by `HealthAccessControl` (stack line 314); no change                                                                                                                                                                       |
+| Canonical-domain traffic                    | Out of scope by design (break-glass)                                                                                                                                                                                                        |
 
 ### Audit and observability
 
@@ -425,18 +425,18 @@ login-only enforcement mode, Terraform provider.
 
 ## 5. Work breakdown
 
-| # | Work | Anchors |
-|---|---|---|
-| 1 | `AccessConfig` model + validation + schema doc + delegators/cleanup | `signin_config.rb` template; `custom_domain.rb:334-362,453` |
-| 2 | `DomainAccessControl` middleware + mount + env stash of resolved domain | `middleware_stack.rb:379`; `domain_strategy.rb:283`; `ip_ban.rb` response shape |
-| 3 | API quartet + logic + authorization + entitlement key | `apps/api/domains/routes.txt:56-59`; `logic/signin_config/` template |
-| 4 | TS contract + workspace view/form + route | `src/schemas/contracts/custom-domain/`; `dashboard.ts:183-184` |
-| 5 | Colonel read-only block + CLI info line | `AdminDomainDetail.vue`; `cli/info_command.rb:79` |
-| 6 | Audit events + blocked-request logging/counter | `audit_trail.rb:60` |
-| 7 | Tests: middleware spec (strategy gating, monitor/enforce, fail-closed incl. missing `otto.ip_match`, exemptions, dev override, /32 precision), model tryouts (validation matrix), logic specs, contract vitest | `spec/unit/onetime/application/middleware_stack_spec.rb` neighborhood |
-| 8 | Docs: scope contract + lockout guidance; locales (`locales:hashes` run) | this file |
-| 9 | Separate fix: `AdminNetworkIsolation` narrow-CIDR latent bug — migrate its matching to `env['otto.ip_match']` once the otto release lands, which makes `/32` admin CIDRs work instead of merely rejecting them | `admin_network_isolation.rb:110-145` |
-| 10 | ~~Upstream Otto~~ **done 2026-07-25** (`ip_in_cidrs?`, privacy profiles, `otto.ip_match`; geo gate pre-existing on main). Remaining: commit/release otto, then bump the gem here | §3; `~/Projects/dev/delano/otto` |
+| #   | Work                                                                                                                                                                                                           | Anchors                                                                         |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| 1   | `AccessConfig` model + validation + schema doc + delegators/cleanup                                                                                                                                            | `signin_config.rb` template; `custom_domain.rb:334-362,453`                     |
+| 2   | `DomainAccessControl` middleware + mount + env stash of resolved domain                                                                                                                                        | `middleware_stack.rb:379`; `domain_strategy.rb:283`; `ip_ban.rb` response shape |
+| 3   | API quartet + logic + authorization + entitlement key                                                                                                                                                          | `apps/api/domains/routes.txt:56-59`; `logic/signin_config/` template            |
+| 4   | TS contract + workspace view/form + route                                                                                                                                                                      | `src/schemas/contracts/custom-domain/`; `dashboard.ts:183-184`                  |
+| 5   | Colonel read-only block + CLI info line                                                                                                                                                                        | `AdminDomainDetail.vue`; `cli/info_command.rb:79`                               |
+| 6   | Audit events + blocked-request logging/counter                                                                                                                                                                 | `audit_trail.rb:60`                                                             |
+| 7   | Tests: middleware spec (strategy gating, monitor/enforce, fail-closed incl. missing `otto.ip_match`, exemptions, dev override, /32 precision), model tryouts (validation matrix), logic specs, contract vitest | `spec/unit/onetime/application/middleware_stack_spec.rb` neighborhood           |
+| 8   | Docs: scope contract + lockout guidance; locales (`locales:hashes` run)                                                                                                                                        | this file                                                                       |
+| 9   | Separate fix: `AdminNetworkIsolation` narrow-CIDR latent bug — migrate its matching to `env['otto.ip_match']` once the otto release lands, which makes `/32` admin CIDRs work instead of merely rejecting them | `admin_network_isolation.rb:110-145`                                            |
+| 10  | ~~Upstream Otto~~ **done 2026-07-25** (`ip_in_cidrs?`, privacy profiles, `otto.ip_match`; geo gate pre-existing on main). Remaining: commit/release otto, then bump the gem here                               | §3; `~/Projects/dev/delano/otto`                                                |
 
 Suggested sequencing: 10 first (otto release is the dependency), then 1–2
 (enforcement path, shippable dark), 3 (API), 4–5 (UI), 6–8 alongside;

@@ -19,13 +19,13 @@ to answer a question none of the existing access machinery answers: **"did
 this user choose to try X?"** — user-scoped, billing-independent,
 role-independent, reversible by the user themselves.
 
-This is a *third* axis, distinct from the two that #3491 is separating:
+This is a _third_ axis, distinct from the two that #3491 is separating:
 
-| Question | Scope | Changes when | Owner |
-|---|---|---|---|
-| Does the org's subscription include X? | org | money changes | plan entitlements (#3491) |
-| May this member do Y? | membership | role changes | role capabilities (#3491) |
-| **Did this user opt into trying Z?** | **customer** | **user toggles it** | **this spec** |
+| Question                               | Scope        | Changes when        | Owner                     |
+| -------------------------------------- | ------------ | ------------------- | ------------------------- |
+| Does the org's subscription include X? | org          | money changes       | plan entitlements (#3491) |
+| May this member do Y?                  | membership   | role changes        | role capabilities (#3491) |
+| **Did this user opt into trying Z?**   | **customer** | **user toggles it** | **this spec**             |
 
 Putting early-access strings into the entitlement namespace or billing catalog
 would recreate the exact conflation #3491 §0 exists to undo — one vocabulary
@@ -72,7 +72,7 @@ Three gaps, each independently fatal:
   empty object, so the absence is **fail-quiet**: "off" and "never delivered"
   are indistinguishable. `src/tests/fixtures/bootstrap.fixture.ts:34` includes
   `feature_flags: { beta: false }`, so contract tests exercise a payload shape
-  the backend never produces — the fixture *masks* the gap rather than
+  the backend never produces — the fixture _masks_ the gap rather than
   catching it.
 - **No write path.** Nothing sets the hashkey: no account-settings endpoint,
   no colonel surface, no CLI. The only other reference in `lib/`/`apps/` is
@@ -83,7 +83,7 @@ Three gaps, each independently fatal:
   ("nothing marks a string's kind, nothing can validate the inventory — and it
   has rotted accordingly").
 
-The one thing this half-wiring gets *right*: absent/unknown flags resolve
+The one thing this half-wiring gets _right_: absent/unknown flags resolve
 false, so the default state is the stable experience. Rollback semantics are
 sound by construction; observability is not.
 
@@ -166,7 +166,7 @@ axis composing with this one (§3.2), not a reason to move the flag.
   suspenders, not load-bearing). Mind the file's own note: SafeDump caches the
   field map.
 - **Contract test asserts presence**: the customer payload must contain
-  `feature_flags` as an object — the field being *absent* fails the contract
+  `feature_flags` as an object — the field being _absent_ fails the contract
   suite. This converts the fail-quiet `.default({})` from a hazard into a
   convenience. Fix `bootstrap.fixture.ts` to stop pre-supplying shapes the
   backend doesn't produce.
@@ -224,7 +224,7 @@ and routing-free. Custom domains (`BrandedHomepage`) excluded from the
 experiment initially — same posture as `workspaceMode`. Interaction with
 `workspaceMode` must be decided before build: v2 presumably subsumes or
 ignores the one-page toggle; whichever, `localReceiptStore` remains the
-source for the *stable* form's behavior, untouched.
+source for the _stable_ form's behavior, untouched.
 
 ## 3. Design rules (the ones that keep rollback trustworthy)
 
@@ -254,22 +254,22 @@ Option A/B/C stages.
 
 **Stage 0 — make the existing wiring honest (no new features).**
 Registry constant with `beta` decision (register or delete the dashboard
-gate). Serialize `feature_flags` via safe_dump. Presence-asserting contract
+gate). Serialize `feature_flags` via safe*dump. Presence-asserting contract
 test; fix the fixture. `useEarlyAccess()` composable; migrate the two
-dashboard consumers. *Outcome: the wire is real, drift is impossible, zero
+dashboard consumers. \_Outcome: the wire is real, drift is impossible, zero
 user-visible change.*
 
 **Stage 1 — write paths.**
 Self-serve settings endpoint + "Early access" settings UI. Colonel flag
 editor + CLI (incl. per-datastore bulk clear). Install-config kill-switch path
-through `config_serializer`, ANDed in both read paths. *Outcome: opt-in is
-self-serve, revocation is layered, ops can act without a deploy.*
+through `config_serializer`, ANDed in both read paths. _Outcome: opt-in is
+self-serve, revocation is layered, ops can act without a deploy._
 
 **Stage 2 — first experiment.**
 `secret_form_v2` registered; v2 form as sibling component behind the
 composable; custom domains excluded; `workspaceMode` interaction decided and
-documented in the flow spec. *Outcome: the thing we wanted, with three
-independent off-switches.*
+documented in the flow spec. _Outcome: the thing we wanted, with three
+independent off-switches._
 
 **Stage 3 — hygiene (when warranted).**
 Sunset audit. Opt-in counts on the colonel screen (a `hashkey` scan or a

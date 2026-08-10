@@ -24,7 +24,7 @@
   import { computed } from 'vue';
 
   defineOptions({
-    inheritAttrs: false
+    inheritAttrs: false,
   });
 
   export interface Props {
@@ -36,7 +36,7 @@
 
   const props = withDefaults(defineProps<Props>(), {
     ariaLabel: undefined,
-    size: "5",
+    size: '5',
   });
   const size = computed(() => `size-${props.size ?? 5}`);
   const iconId = computed(() => [props.collection, props.name].filter(Boolean).join('-'));

@@ -18,7 +18,7 @@ Companion to [install-onboarding-problem-space.md](./install-onboarding-problem-
 (the defects this strategy would have caught). The March 2026
 [landscape doc](./install-onboarding-landscape.md) already covers the tooling
 tiers (ShellCheck, BATS, Goss/Testinfra) and Sentry's twice-daily CI installs;
-this doc goes beyond it: the *maintainer-local* clean-room story, devcontainers
+this doc goes beyond it: the _maintainer-local_ clean-room story, devcontainers
 as test rigs, macOS coverage, compose-path mechanics, and drift guards — all
 verified against primary sources in July 2026.
 
@@ -31,7 +31,7 @@ Homebrew, GitLab GDK) converged on the same move:
 > artifact, and it runs from zero somewhere, on every change.**
 
 Zulip's CI runs `tools/provision` (the documented contributor command) in five
-fresh distro containers on every PR — then runs it a *second* time to prove
+fresh distro containers on every PR — then runs it a _second_ time to prove
 idempotency ([zulip-ci.yml](https://github.com/zulip/zulip/blob/main/.github/workflows/zulip-ci.yml)).
 GDK's CI installs itself using the literal `curl | bash` one-liner from its own
 docs, pinned to the MR's SHA ([Dockerfile.verify](https://gitlab.com/gitlab-org/gitlab-development-kit/-/blob/main/support/ci/Dockerfile.verify)),
@@ -53,13 +53,13 @@ Empirical first-run traces in a fresh Linux container (this repo, July 2026 —
 transcripts summarized in
 [install-onboarding-current-state.md](./install-onboarding-current-state.md)):
 
-| Defect found in ~30 min of clean-room runs | Would be caught by |
-| --- | --- |
-| README compose quick start dies at `${SECRET:?}` interpolation | Tier 2a compose smoke (any run) |
-| `install.sh init` dies "Node too old: have 22, need 25+" — CI itself builds on 22 | Tier 1 harness / Tier 2b installer matrix |
-| Gemfile floor `>= 3.3.6` is false — kanayago gem needs Ruby 3.4+ | Tier 1 harness on a `ruby:3.3` image |
-| `rake ots:secrets` and puma boot **crash on machines without a UTF-8 locale** (Unicode box-drawing in `.env.example` comments + UTF-8 in `config.ru`; `Encoding::CompatibilityError` under `LANG=` / POSIX locale — i.e. minimal Debian/Ubuntu servers, containers, systemd units) | Tier 1 harness (containers have no locale by default — the clean room *is* the repro) |
-| Bare-metal path boots but serves an assetless UI; only a server-side log line says `Run pnpm run build` | Tier 2c proof-of-life assertion (asset URL check, not just `/api/v2/status`) |
+| Defect found in ~30 min of clean-room runs                                                                                                                                                                                                                                         | Would be caught by                                                                    |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| README compose quick start dies at `${SECRET:?}` interpolation                                                                                                                                                                                                                     | Tier 2a compose smoke (any run)                                                       |
+| `install.sh init` dies "Node too old: have 22, need 25+" — CI itself builds on 22                                                                                                                                                                                                  | Tier 1 harness / Tier 2b installer matrix                                             |
+| Gemfile floor `>= 3.3.6` is false — kanayago gem needs Ruby 3.4+                                                                                                                                                                                                                   | Tier 1 harness on a `ruby:3.3` image                                                  |
+| `rake ots:secrets` and puma boot **crash on machines without a UTF-8 locale** (Unicode box-drawing in `.env.example` comments + UTF-8 in `config.ru`; `Encoding::CompatibilityError` under `LANG=` / POSIX locale — i.e. minimal Debian/Ubuntu servers, containers, systemd units) | Tier 1 harness (containers have no locale by default — the clean room _is_ the repro) |
+| Bare-metal path boots but serves an assetless UI; only a server-side log line says `Run pnpm run build`                                                                                                                                                                            | Tier 2c proof-of-life assertion (asset URL check, not just `/api/v2/status`)          |
 
 None of these reproduce on a maintainer workstation. All of them reproduce in
 any fresh container. That asymmetry is the entire argument for this strategy.
@@ -68,13 +68,13 @@ any fresh container. That asymmetry is the entire argument for this strategy.
 
 Five install surfaces × the environments that can honestly exercise them:
 
-| Surface | Persona | Clean-room environment | Tier |
-| --- | --- | --- | --- |
-| `docker run` quick start (README) | docker-selfhoster | CI ubuntu runner; any docker host | 2a |
-| `docker compose up` | compose-selfhoster | CI ubuntu runner; local `--renew-anon-volumes` | 2a |
-| `install.sh` bare-metal | baremetal-selfhoster | pinned-image containers (local + CI) | 1, 2b |
-| `install-dev.sh` + `bin/dev` | contributor | devcontainer; macOS runner; local harness | 2b, 3 |
-| `install-test.sh` → suites | contributor/CI | fresh-clone CI job (this is the Zulip shape) | 2c |
+| Surface                           | Persona              | Clean-room environment                         | Tier  |
+| --------------------------------- | -------------------- | ---------------------------------------------- | ----- |
+| `docker run` quick start (README) | docker-selfhoster    | CI ubuntu runner; any docker host              | 2a    |
+| `docker compose up`               | compose-selfhoster   | CI ubuntu runner; local `--renew-anon-volumes` | 2a    |
+| `install.sh` bare-metal           | baremetal-selfhoster | pinned-image containers (local + CI)           | 1, 2b |
+| `install-dev.sh` + `bin/dev`      | contributor          | devcontainer; macOS runner; local harness      | 2b, 3 |
+| `install-test.sh` → suites        | contributor/CI       | fresh-clone CI job (this is the Zulip shape)   | 2c    |
 
 ## 2. Tier 1 — Local clean-room harness (run it from a poisoned machine)
 
@@ -106,14 +106,14 @@ EOF
 Key mechanics from the verified implementations:
 
 - **Pinned base images per lane**: `ruby:3.4-slim` (documented floor),
-  `ruby:3.3-slim` (should fail *with a clear message* — a lane can assert an
+  `ruby:3.3-slim` (should fail _with a clear message_ — a lane can assert an
   error is good), `debian:12-slim` + rbenv (the "user installs Ruby themselves"
   lane), `ubuntu:24.04`. Pi-hole names these `_debian_12.Dockerfile` etc. and
   `--distro` selects one.
 - **Scrub inherited state explicitly**: angristan/openvpn-install runs its
   installer with `env -u HOME`; `brew test-bot --local` redirects `$HOME` into
   `./home/`. Containers give you most of this for free — which is the point.
-- **Test outcomes, not exit codes**: angristan spins up a *client* container
+- **Test outcomes, not exit codes**: angristan spins up a _client_ container
   that actually connects with the produced `client.ovpn`. Our equivalent:
   create a secret via the API and retrieve it once (see §4 proof-of-life).
 - **`docker diff` as a cheap assertion**: enumerate every file the installer
@@ -123,7 +123,7 @@ Key mechanics from the verified implementations:
   outcome") both treat second-run-clean as a contract.
 - **No expect/tmux for prompts**: no major project drives installer prompts
   with expect in CI (verified by absence). The norm is a headless mode
-  (`NONINTERACTIVE=1` in Homebrew's installer) and testing *that*. If
+  (`NONINTERACTIVE=1` in Homebrew's installer) and testing _that_. If
   `install.sh` ever grows prompts (problem-space R3.1), the flag comes first.
 - **Locale honesty**: do NOT set `LANG` in the harness images. The default
   POSIX locale of containers is representative of fresh servers — it found the
@@ -135,7 +135,7 @@ Pi-hole's `test_fresh_install.bats`), openHABian's naming convention for
 safety tiers (`unit-*` runs anywhere, `destructive-*` only ever in the
 container), and a `--lane` flag selecting docker-run/compose/baremetal/dev.
 
-Because the harness is a script in the repo, CI runs the *same artifact*
+Because the harness is a script in the repo, CI runs the _same artifact_
 (Tier 2) — local and CI cannot diverge.
 
 ## 3. Tier 2 — CI jobs
@@ -174,7 +174,7 @@ Mechanics that matter (all primary-source verified):
 - `depends_on: {condition: service_healthy}` for Valkey, not sleeps: "Compose
   does not wait until a container is 'ready', only until it's running"
   (Docker's own startup-order doc).
-- `start_interval` for fast startup polling needs Compose ≥ 2.20.2 *and*
+- `start_interval` for fast startup polling needs Compose ≥ 2.20.2 _and_
   Engine ≥ 25 — fine in CI, don't make documented files depend on it.
 - Known trap: a one-shot service with no dependents makes `up --wait` exit 1
   on success (docker/compose#10596, open) — if compose ever grows a migration
@@ -189,7 +189,7 @@ Mechanics that matter (all primary-source verified):
   as PRs, which the smoke lane then validates.
 
 Also run the `docker run` one-liner from the README verbatim as its own step —
-Supabase and Sentry both test the *documented* path, not an idealized one.
+Supabase and Sentry both test the _documented_ path, not an idealized one.
 
 ### 2b. Installer matrix (bare-metal + dev scripts)
 
@@ -205,21 +205,21 @@ For us: a path-filtered `installer.yml` that fires on changes to
 itself, plus a weekly cron:
 
 - **Linux lanes**: invoke the Tier 1 harness (`scripts/install-tests/run.sh
-  --lane baremetal --distro ruby34`, etc.). One lane deliberately uses a
+--lane baremetal --distro ruby34`, etc.). One lane deliberately uses a
   POSIX locale, one `ruby:3.3` (expect the documented failure).
 - **One `runs-on: macos-15` lane** executing `bash install-dev.sh` and
   `./install-test.sh`. This is the only honest test of stock **bash 3.2 +
   BSD userland** — a Linux container cannot simulate BSD sed/grep/readlink.
   Free on public repos. Caveat (verified): the runner image is itself a
   poisoned well (Homebrew, Node, Ruby preinstalled) — it answers "does the
-  script's *code* run on macOS," not "does dependency discovery work on a
+  script's _code_ run on macOS," not "does dependency discovery work on a
   fresh Mac." Homebrew's trick when that matters: an explicit
   `/bin/bash -u -n script.sh` syntax gate under 3.2, and scrubbing
   preinstalled tools before the real test.
 - **bash-3.2 cheap gate on Linux**: run the scripts' syntax/function tests in
   the official `bash:3.2` image (bats-core's own version-matrix pattern) —
   catches bashisms without macOS minutes; misses BSD userland (that's the
-  macOS lane's job). Note `install-dev.sh` currently *requires* bash 4+ by
+  macOS lane's job). Note `install-dev.sh` currently _requires_ bash 4+ by
   design; the gate then asserts the version check itself fails gracefully.
 - Runner-image churn is real: macos-13 retired Dec 2025, macos-14 unsupported
   Nov 2026 — pin matrix entries deliberately and expect an annual bump.
@@ -236,7 +236,7 @@ itself, plus a weekly cron:
 
 ### 2c. Fresh-clone contributor job (the Zulip shape)
 
-A CI job that is *nothing but the documented contributor path*:
+A CI job that is _nothing but the documented contributor path_:
 
 ```
 fresh runner → ./install-test.sh → pnpm run test:rspec:fast && pnpm test
@@ -295,7 +295,7 @@ For us (compose-based, mirroring Mastodon's layout; app + Valkey services;
 `postCreateCommand: ./install-dev.sh` once that script survives a clean
 machine — see dev-onboarding D-series):
 
-- The devcontainer *is* the maintainer's disposable clean room: Codespaces in
+- The devcontainer _is_ the maintainer's disposable clean room: Codespaces in
   the cloud, or the same `devcontainer.json` locally via `@devcontainers/cli`
   (`devcontainer up`) or plain Docker. This remote session's container — where
   all the empirical findings reproduced in minutes — is the same idea already
@@ -311,8 +311,8 @@ machine — see dev-onboarding D-series):
   upstream — don't hand-roll a Dockerfile that becomes a second rot surface.
 - Honest costs (verified): Home Assistant — the heaviest devcontainer user in
   OSS — ships a documented recovery procedure for stale containers; Discourse
-  routes node_modules and datastore dirs through named volumes because
-  bind-mount I/O on Apple Silicon is slow. Never *mandate* the devcontainer
+  routes node*modules and datastore dirs through named volumes because
+  bind-mount I/O on Apple Silicon is slow. Never \_mandate* the devcontainer
   (heavy images push away drive-by doc-fix contributors); it's the guaranteed
   path, not the only path.
 - Don't add `.gitpod.yml` (platform sunset Oct 2025); don't build the workflow
@@ -321,7 +321,7 @@ machine — see dev-onboarding D-series):
 
 ## 6. Tier 4 — Pins + doctor = diff(manifest, reality)
 
-Drift *prevention* so the clean-room tests fail less often, and diagnosis for
+Drift _prevention_ so the clean-room tests fail less often, and diagnosis for
 everyone's machine. All verified:
 
 - **Single-source the versions**: `.ruby-version` (missing today — `install.sh`
@@ -340,11 +340,11 @@ everyone's machine. All verified:
 - **mise** (`mise.toml` or keeping `.tool-versions`) is the recommended local
   converger — GDK made it their default and dropped asdf entirely in 2025.
   Committed mise.toml is still early-adopter territory among top OSS repos;
-  the pin *files* are the portable artifact, mise is one consumer. Do not
+  the pin _files_ are the portable artifact, mise is one consumer. Do not
   combine direnv and mise for PATH (explicitly unsupported upstream); direnv
   stays for env vars only — which is how the repo already uses it.
 - **Doctor reads, never restates**: extend `install.sh doctor` (or `bin/ots
-  doctor`) on the GDK model — ~40 small checks, `--correct` for trivial fixes.
+doctor`) on the GDK model — ~40 small checks, `--correct` for trivial fixes.
   Every check must be diff(declared file, live reality) or a live probe
   (Valkey PING, `redis-server --version` parse — GDK literally ships a
   "Valkey masquerading as Redis" check, the mirror of our Valkey-first
@@ -364,20 +364,20 @@ everyone's machine. All verified:
 
 1. **Compose smoke script + PR/cron CI lanes** (§3.2a) — one ~15-line script,
    tests the #1 user funnel, near-zero maintenance. Prereq: app healthcheck in
-   compose. *A day, including the healthcheck.*
+   compose. _A day, including the healthcheck._
 2. **Tier 1 local harness, one distro lane** (§2) — the literal answer to the
    poisoned-well problem; the same script becomes CI's installer matrix
-   (§3.2b). *A day for one lane; a week for the matrix + BATS post-conditions.*
+   (§3.2b). _A day for one lane; a week for the matrix + BATS post-conditions._
 3. **Fresh-clone contributor job** (§3.2c) — `install-test.sh` already nearly
    is this; wire it, add the idempotency re-run and litter check, chart the
-   duration. *A day.*
+   duration. _A day._
 4. **Pins + Gemfile `ruby file:` + CI reads pins + doctor extensions** (§6) —
    converts "works on my machine" from a debugging session into a one-command
-   diagnosis. *A day for pins; a week including doctor work.*
+   diagnosis. _A day for pins; a week including doctor work._
 5. **Devcontainer + devcontainers/ci weekly** (§5) — highest structural
    leverage (fixes the well and tests it with one artifact) but depends on
-   `install-dev.sh` surviving a clean machine first (D-series). *A day for the
-   container, a week including CI, after the D-series prereq.*
+   `install-dev.sh` surviving a clean machine first (D-series). _A day for the
+   container, a week including CI, after the D-series prereq._
 6. **macOS lane** (§3.2b) — an hour of YAML once the harness exists; catches
    the bash-3.2/BSD class nothing else can.
 

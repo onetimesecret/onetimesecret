@@ -2,25 +2,25 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { useJurisdictionDisplayNames } from '@/shared/stores/jurisdictionStore';
-import { storeToRefs } from 'pinia';
-import { computed } from 'vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { useJurisdictionDisplayNames } from '@/shared/stores/jurisdictionStore';
+  import { storeToRefs } from 'pinia';
+  import { computed } from 'vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-import JurisdictionInfo from './JurisdictionInfo.vue';
-import JurisdictionList from './JurisdictionList.vue';
+  import JurisdictionInfo from './JurisdictionInfo.vue';
+  import JurisdictionList from './JurisdictionList.vue';
 
-const bootstrapStore = useBootstrapStore();
-const { cust } = storeToRefs(bootstrapStore);
+  const bootstrapStore = useBootstrapStore();
+  const { cust } = storeToRefs(bootstrapStore);
 
-const {
-  currentJurisdictionWithDisplayName: currentJurisdiction,
-  jurisdictionsWithDisplayName: jurisdictions,
-} = useJurisdictionDisplayNames();
-const customerId = computed(() => cust.value?.extid);
+  const {
+    currentJurisdictionWithDisplayName: currentJurisdiction,
+    jurisdictionsWithDisplayName: jurisdictions,
+  } = useJurisdictionDisplayNames();
+  const customerId = computed(() => cust.value?.extid);
 </script>
 
 <template>
@@ -34,14 +34,15 @@ const customerId = computed(() => cust.value?.extid);
         class="text-lg font-semibold text-gray-900 dark:text-white">
         {{ t('web.regions.data_region') }}
       </h3>
-      <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-800 sm:p-6">
+      <div class="rounded-lg bg-gray-50 p-4 sm:p-6 dark:bg-gray-800">
         <div class="flex flex-col items-center gap-4 sm:flex-row sm:gap-6">
-          <div class="flex size-16 shrink-0 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900/30">
+          <div
+            class="flex size-16 shrink-0 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900/30">
             <OIcon
               v-if="currentJurisdiction?.icon"
               :collection="currentJurisdiction?.icon.collection"
               :name="currentJurisdiction?.icon.name"
-              class="size-8 text-brand-600 dark:text-brand-400 sm:size-10"
+              class="size-8 text-brand-600 sm:size-10 dark:text-brand-400"
               aria-hidden="true" />
           </div>
           <div class="space-y-1 text-center sm:text-left">
@@ -49,7 +50,11 @@ const customerId = computed(() => cust.value?.extid);
               {{ currentJurisdiction?.display_name }}
             </div>
             <div class="text-sm text-gray-500 dark:text-gray-400">
-              {{ t('web.regions.data_center_location_currentjurisdiction_identif', [currentJurisdiction?.identifier]) }}
+              {{
+                t('web.regions.data_center_location_currentjurisdiction_identif', [
+                  currentJurisdiction?.identifier,
+                ])
+              }}
             </div>
           </div>
         </div>
@@ -74,7 +79,8 @@ const customerId = computed(() => cust.value?.extid);
       </header>
 
       <!-- Info Card -->
-      <div class="prose prose-base max-w-none rounded-lg bg-gray-50 p-4 dark:prose-invert dark:bg-gray-800 sm:p-6">
+      <div
+        class="prose prose-base max-w-none rounded-lg bg-gray-50 p-4 sm:p-6 dark:bg-gray-800 dark:prose-invert">
         <div class="space-y-4">
           <JurisdictionInfo
             v-if="currentJurisdiction"

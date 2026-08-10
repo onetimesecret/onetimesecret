@@ -49,12 +49,8 @@ vi.mock('vue-i18n', () => ({
 
 const RECIPIENT_TESTID = '[data-testid="secret-recipient-input"]';
 
-const mountForm = (
-  withRecipient: boolean,
-  recipientCapability: boolean | undefined
-) => {
-  const capabilities =
-    recipientCapability === undefined ? {} : { recipient: recipientCapability };
+const mountForm = (withRecipient: boolean, recipientCapability: boolean | undefined) => {
+  const capabilities = recipientCapability === undefined ? {} : { recipient: recipientCapability };
   return mount(SecretForm, {
     props: { enabled: true, withRecipient },
     global: {

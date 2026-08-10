@@ -1,7 +1,7 @@
 ---
 labels: admin-v2, refactoring
 depends: 30-secrets-screen, 31-domains-screen, 32-organizations-screen, 33-system-bannedips-usage-screens
-epic: "#3653"
+epic: '#3653'
 ---
 
 # Admin rebuild: retire old app + tighten perimeter (cutover & hardening)

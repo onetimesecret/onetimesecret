@@ -1,5 +1,7 @@
 # docs/branding-screenshots/README.md
+
 ---
+
 # Branding verification screenshots
 
 Visual confirmation of the brand fallback system, captured against the real

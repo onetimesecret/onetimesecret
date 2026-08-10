@@ -1,42 +1,42 @@
 <!-- src/apps/workspace/components/settings/SettingsNavigation.vue -->
 
 <script setup lang="ts">
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import type {
-  SettingsNavigationItem,
-  SettingsNavigationSection,
-} from '@/apps/workspace/config/settings-navigation';
-import { computed } from 'vue';
-import { useRoute } from 'vue-router';
-import { useI18n } from 'vue-i18n';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import type {
+    SettingsNavigationItem,
+    SettingsNavigationSection,
+  } from '@/apps/workspace/config/settings-navigation';
+  import { computed } from 'vue';
+  import { useRoute } from 'vue-router';
+  import { useI18n } from 'vue-i18n';
 
-const props = defineProps<{
-  sections: SettingsNavigationSection[];
-}>();
+  const props = defineProps<{
+    sections: SettingsNavigationSection[];
+  }>();
 
-const route = useRoute();
-const { t } = useI18n();
+  const route = useRoute();
+  const { t } = useI18n();
 
-const visibleSections = computed(() =>
-  props.sections.filter((section) => (section.visible ? section.visible() : true))
-);
+  const visibleSections = computed(() =>
+    props.sections.filter((section) => (section.visible ? section.visible() : true))
+  );
 
-const getVisibleItems = (items: SettingsNavigationItem[]): SettingsNavigationItem[] =>
-  items.filter((item) => (item.visible ? item.visible() : true));
+  const getVisibleItems = (items: SettingsNavigationItem[]): SettingsNavigationItem[] =>
+    items.filter((item) => (item.visible ? item.visible() : true));
 
-const getVisibleChildren = (item: SettingsNavigationItem): SettingsNavigationItem[] =>
-  item.children ? getVisibleItems(item.children) : [];
+  const getVisibleChildren = (item: SettingsNavigationItem): SettingsNavigationItem[] =>
+    item.children ? getVisibleItems(item.children) : [];
 
-const isActiveRoute = (path: string): boolean =>
-  route.path === path || route.path.startsWith(path + '/');
+  const isActiveRoute = (path: string): boolean =>
+    route.path === path || route.path.startsWith(path + '/');
 
-const isParentActive = (item: SettingsNavigationItem): boolean => {
-  if (isActiveRoute(item.to)) return true;
-  if (item.children) {
-    return item.children.some((child) => isActiveRoute(child.to));
-  }
-  return false;
-};
+  const isParentActive = (item: SettingsNavigationItem): boolean => {
+    if (isActiveRoute(item.to)) return true;
+    if (item.children) {
+      return item.children.some((child) => isActiveRoute(child.to));
+    }
+    return false;
+  };
 </script>
 
 <template>
@@ -62,7 +62,7 @@ const isParentActive = (item: SettingsNavigationItem): boolean => {
       class="space-y-1">
       <!-- Section header -->
       <h3
-        class="px-3 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+        class="px-3 text-xs font-semibold tracking-wider text-gray-500 uppercase dark:text-gray-400">
         {{ section.label }}
       </h3>
 
@@ -101,7 +101,7 @@ const isParentActive = (item: SettingsNavigationItem): boolean => {
           <!-- Child items -->
           <div
             v-if="item.children && getVisibleChildren(item).length > 0 && isParentActive(item)"
-            class="ml-4 mt-1 space-y-1 border-l-2 border-gray-200 pl-4 dark:border-gray-700">
+            class="mt-1 ml-4 space-y-1 border-l-2 border-gray-200 pl-4 dark:border-gray-700">
             <router-link
               v-for="child in getVisibleChildren(item)"
               :key="child.id"

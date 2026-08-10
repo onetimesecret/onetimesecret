@@ -1,7 +1,7 @@
 ---
-id: "013"
+id: '013'
 status: proposed
-title: "ADR-013: API 4xx/5xx Error Response Wire Format"
+title: 'ADR-013: API 4xx/5xx Error Response Wire Format'
 ---
 
 ## Status
@@ -43,6 +43,7 @@ Aligning on this shape mirrors Rodauth, removes the field-meaning ambiguity that
 
 - **We lose**: backward compatibility for any external consumer reading `message:` on error responses. `GuestRoutesDisabled` is the most likely external break (documented in PR #3221 as a wire-format change).
 - **We gain**: a single, unambiguous error contract across all JSON APIs. Frontend error handling collapses to two field reads.
+
 ## Out of Scope
 
 - **V1 API.** Frozen by policy (see V1 application docstring). Existing V1 error bodies stay as-is.

@@ -13,12 +13,8 @@
   const { verifyAccount, isLoading, error } = useAuth();
   const bootstrapStore = useBootstrapStore();
   const { authentication } = bootstrapStore;
-  const signupEnabled = computed(
-    () => authentication?.enabled && authentication?.signup
-  );
-  const signinEnabled = computed(
-    () => authentication?.enabled && authentication?.signin
-  );
+  const signupEnabled = computed(() => authentication?.enabled && authentication?.signup);
+  const signinEnabled = computed(() => authentication?.enabled && authentication?.signin);
 
   const verificationKey = ref<string>('');
   const verificationComplete = ref(false);
@@ -220,13 +216,13 @@
             <router-link
               v-if="signinEnabled"
               to="/signin"
-              class="inline-flex justify-center rounded-md bg-brand-600 px-4 py-2 font-brand text-lg  text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
+              class="inline-flex justify-center rounded-md bg-brand-600 px-4 py-2 font-brand text-lg text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
               {{ t('web.login.button_sign_in') }}
             </router-link>
             <router-link
               v-if="signupEnabled"
               to="/signup"
-              class="inline-flex justify-center rounded-md bg-white px-4 py-2 font-brand text-lg  text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 dark:bg-gray-800 dark:text-white dark:ring-gray-700 dark:hover:bg-gray-700">
+              class="inline-flex justify-center rounded-md bg-white px-4 py-2 font-brand text-lg text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 dark:bg-gray-800 dark:text-white dark:ring-gray-700 dark:hover:bg-gray-700">
               {{ t('web.auth.verify.create_new_account') }}
             </router-link>
           </div>

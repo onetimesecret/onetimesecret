@@ -91,15 +91,15 @@ and the failure cascade (Node gate → false Gemfile floor → UTF-8 locale cras
 
 ## 2. What Already Exists (don't rebuild)
 
-| Asset | Why it matters |
-| --- | --- |
-| `install-test.sh` | Empirically survives a clean fork end-to-end (76s). Graceful direnv skip, Valkey→Redis fallback, config seeding, throwaway datastore, config smoke test. **This is the embryo of `bin/setup`.** |
-| `install.sh doctor` | Right instinct, right shape; extend per testing-strategy Tier 4 (read pins, probe services) rather than replace. |
-| `.envrc` lane switching (dev/test via `.test-mode`) | Genuinely good for direnv users; keep as the enhanced path. |
-| `rake ots:secrets` | Idempotent, well-structured secret generation with derivation — just unreachable from the dev path today. |
-| `bin/dev` port/procfile handling, `--volatile` mode | Good DX for those past the gates. |
-| `docs/development/` breadth (i18n, redis-debug, test-accounts, isolated-envs) | Depth exists; the front door is what's missing. |
-| Extensive pnpm script catalog | Powerful but undiscoverable; a front-door doc fixes that, not new scripts. |
+| Asset                                                                         | Why it matters                                                                                                                                                                                  |
+| ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `install-test.sh`                                                             | Empirically survives a clean fork end-to-end (76s). Graceful direnv skip, Valkey→Redis fallback, config seeding, throwaway datastore, config smoke test. **This is the embryo of `bin/setup`.** |
+| `install.sh doctor`                                                           | Right instinct, right shape; extend per testing-strategy Tier 4 (read pins, probe services) rather than replace.                                                                                |
+| `.envrc` lane switching (dev/test via `.test-mode`)                           | Genuinely good for direnv users; keep as the enhanced path.                                                                                                                                     |
+| `rake ots:secrets`                                                            | Idempotent, well-structured secret generation with derivation — just unreachable from the dev path today.                                                                                       |
+| `bin/dev` port/procfile handling, `--volatile` mode                           | Good DX for those past the gates.                                                                                                                                                               |
+| `docs/development/` breadth (i18n, redis-debug, test-accounts, isolated-envs) | Depth exists; the front door is what's missing.                                                                                                                                                 |
+| Extensive pnpm script catalog                                                 | Powerful but undiscoverable; a front-door doc fixes that, not new scripts.                                                                                                                      |
 
 ## 3. Recommendations (D-series)
 
@@ -113,7 +113,7 @@ compounding layers.
 `bin/dev` falls back when overmind is absent (run foreman if present, else
 print the two commands to run in two terminals); `bin/backend` must not
 require overmind at all (it defeats its documented purpose as the
-separate-terminals option). Missing-tool messages say what the tool *adds*,
+separate-terminals option). Missing-tool messages say what the tool _adds_,
 not just its install URL.
 
 **D1.2 The dev path produces a bootable app.** `install-dev.sh` (or D2's
@@ -155,7 +155,7 @@ commands thin so the docs-drift grep (testing-strategy §3.2c) can guard them.
 
 ### D4 — Version truth: pin files as the single source
 
-Add `.ruby-version` and `.node-version` (both already *referenced* by
+Add `.ruby-version` and `.node-version` (both already _referenced_ by
 `install.sh` and `ci.yml` — the files just don't exist); Gemfile becomes
 `ruby file: ".ruby-version"` (retiring the empirically-false `>= 3.3.6`
 floor); CI switches to `ruby-version-file`/`node-version-file`; a CI grep
@@ -200,10 +200,10 @@ regression net; its duration is tracked as the contributor TTFHW proxy.
 ### What NOT to do
 
 - **ND1 — Don't require the maintainer stack of anyone.** direnv, overmind,
-  pre-commit, worktree forests are excellent *enhancements*; each hard gate
+  pre-commit, worktree forests are excellent _enhancements_; each hard gate
   on them converts a contributor into a bounce.
 - **ND2 — Don't add a fourth install script.** D2 consolidates; adding
-  `bin/setup` *alongside* three live install scripts long-term recreates the
+  `bin/setup` _alongside_ three live install scripts long-term recreates the
   which-one-is-mine problem it solves.
 - **ND3 — Don't reach for Nix/devenv to fix drift** (testing-strategy §6
   anti-recommendation) — pins + mise + devcontainer capture most of the value
@@ -214,14 +214,14 @@ regression net; its duration is tracked as the contributor TTFHW proxy.
 
 ## 4. How This Maps to Contributor Complaints
 
-| Complaint shape | Addressed by |
-| --- | --- |
-| "Which script do I even run?" | D2 (one entry point), D3 (CONTRIBUTING), D7 |
-| "Setup died asking for a tool I've never heard of" | D1.1, ND1 |
-| "It set up but the app won't boot / blank page" | D1.2 (secrets), D6 (first login), current-state F-series fixes (locale, build step) |
-| "Works on my machine but not in CI / vice versa" | D4 (pins), D8 (fresh-clone job) |
-| "I don't want to install five tools for a doc fix" | D5 (Codespaces path), ND1 |
-| "My Ruby/Node is 'wrong' but the app runs fine" | D1.4, D4 |
+| Complaint shape                                    | Addressed by                                                                        |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| "Which script do I even run?"                      | D2 (one entry point), D3 (CONTRIBUTING), D7                                         |
+| "Setup died asking for a tool I've never heard of" | D1.1, ND1                                                                           |
+| "It set up but the app won't boot / blank page"    | D1.2 (secrets), D6 (first login), current-state F-series fixes (locale, build step) |
+| "Works on my machine but not in CI / vice versa"   | D4 (pins), D8 (fresh-clone job)                                                     |
+| "I don't want to install five tools for a doc fix" | D5 (Codespaces path), ND1                                                           |
+| "My Ruby/Node is 'wrong' but the app runs fine"    | D1.4, D4                                                                            |
 
 ## Related
 

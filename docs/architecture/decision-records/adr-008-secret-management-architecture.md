@@ -1,13 +1,15 @@
 ---
 id: 008
 status: accepted
-title: "ADR-008: Secret Management Architecture"
+title: 'ADR-008: Secret Management Architecture'
 ---
 
 ## Status
+
 Accepted
 
 ## Date
+
 2026-02-18
 
 ## Context
@@ -20,36 +22,39 @@ Three factors forced a deliberate architecture:
 
 2. **Federation lifecycle.** The federation secret must be identical across all instances in a group. Deriving it from a per-instance root key is incompatible with this requirement.
 
-3. **Naming inconsistency.** Three secrets used the `_HMAC_SECRET` suffix — they all use HMAC, so the suffix adds no distinguishing information. The useful axis for operators is *what the secret protects*, not *which algorithm it uses*.
+3. **Naming inconsistency.** Three secrets used the `_HMAC_SECRET` suffix — they all use HMAC, so the suffix adds no distinguishing information. The useful axis for operators is _what the secret protects_, not _which algorithm it uses_.
 
 ## Decision
 
 **Naming convention: `{PURPOSE}_SECRET`.** No algorithm names in env var names.
 
-| Env var | Purpose |
-|---|---|
-| `SECRET` | Root key for HKDF derivation and Familia field encryption |
-| `SESSION_SECRET` | Rack session HMAC signing |
-| `IDENTIFIER_SECRET` | Authenticity tags on secret/receipt identifiers |
-| `AUTH_SECRET` | Rodauth token signing and TOTP key wrapping |
-| `ARGON2_SECRET` | Argon2id password hash pepper |
-| `FEDERATION_SECRET` | Cross-region email hashing for billing federation |
+| Env var             | Purpose                                                            |
+| ------------------- | ------------------------------------------------------------------ |
+| `SECRET`            | Root key for HKDF derivation and Familia field encryption          |
+| `SESSION_SECRET`    | Rack session HMAC signing                                          |
+| `IDENTIFIER_SECRET` | Authenticity tags on secret/receipt identifiers                    |
+| `AUTH_SECRET`       | Rodauth token signing and TOTP key wrapping                        |
+| `ARGON2_SECRET`     | Argon2id password hash pepper                                      |
+| `FEDERATION_SECRET` | Cross-region email hashing for billing federation                  |
 | `ACCOUNT_ID_SECRET` | Obfuscate account IDs in email-link tokens and remember-me cookies |
 
 **Three lifecycle categories.**
 
-*Derived from SECRET* — regenerable, low-impact rotation:
+_Derived from SECRET_ — regenerable, low-impact rotation:
+
 - `SESSION_SECRET`: Sessions are ephemeral; rotation logs users out.
 - `IDENTIFIER_SECRET`: Previous values retained briefly to verify outstanding identifiers.
 
 The derived/independent split follows from an asymmetry in rotation capability: Familia's rolling key versioning (v1/v2) makes SECRET rotation for encrypted data a solved problem — old data remains decryptable while new data uses the new key. Rodauth's TOTP has no equivalent; it intentionally never re-wraps OTP keys. Secrets whose downstream systems handle rotation gracefully are derived; secrets whose systems don't are independent.
 
-*Independent per-instance* — generated randomly, must be backed up:
+_Independent per-instance_ — generated randomly, must be backed up:
+
 - `AUTH_SECRET`: Decoupled from root key so Familia rotation doesn't cascade into MFA re-enrollment.
 - `ARGON2_SECRET`: Password re-hashing is a separate operational concern.
 - `ACCOUNT_ID_SECRET`: Kept off AUTH_SECRET so rotating the HMAC secret doesn't invalidate in-flight obfuscated account IDs (version-tagged for its own rotation).
 
-*Shared per-federation-group* — generated once via passforge, distributed to all instances:
+_Shared per-federation-group_ — generated once via passforge, distributed to all instances:
+
 - `FEDERATION_SECRET`: `init.rake` validates presence but does not generate it.
 
 `KeyDerivation::PURPOSES` is the single source of truth for HKDF parameters. `init.rake` delegates to it.
@@ -64,9 +69,9 @@ The derived/independent split follows from an asymmetry in rotation capability: 
 
 Familia 2.12 unlocks additional cryptographic options. These are available but not yet enabled:
 
-| Capability | Status | Notes |
-|------------|--------|-------|
-| `encryption_personalization` rotation | Available | Set a per-deployment value; legacy `'FamilialMatters'` decrypts automatically via built-in fallback. No history entry needed for the default. |
-| Per-field `algorithm:` override | Available | Enables reader-before-writer XChaCha20 rollout: deploy readers that accept both algorithms, then flip writers per-field. |
-| Blank `VERIFIABLE_ID_HMAC_SECRET` rejection | Active | Library rejects blank secrets at mint time (delano/familia#335). OTS boot-time derivation guard (`configure_familia.rb`) is defense-in-depth. |
-| Verification-on-read | Blocked | `verified_identifier?` would reject identifiers minted under prior keys. Requires upstream secret-history mechanism; re-minting is not viable. Tracked in #3630. |
+| Capability                                  | Status    | Notes                                                                                                                                                            |
+| ------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `encryption_personalization` rotation       | Available | Set a per-deployment value; legacy `'FamilialMatters'` decrypts automatically via built-in fallback. No history entry needed for the default.                    |
+| Per-field `algorithm:` override             | Available | Enables reader-before-writer XChaCha20 rollout: deploy readers that accept both algorithms, then flip writers per-field.                                         |
+| Blank `VERIFIABLE_ID_HMAC_SECRET` rejection | Active    | Library rejects blank secrets at mint time (delano/familia#335). OTS boot-time derivation guard (`configure_familia.rb`) is defense-in-depth.                    |
+| Verification-on-read                        | Blocked   | `verified_identifier?` would reject identifiers minted under prior keys. Requires upstream secret-history mechanism; re-minting is not viable. Tracked in #3630. |

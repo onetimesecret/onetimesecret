@@ -9,10 +9,7 @@
 // record, causing accountStore.fetch() to fail silently.
 
 import { describe, it, expect } from 'vitest';
-import {
-  accountResponseSchema,
-  customerResponseSchema,
-} from '@/schemas/api/v3/responses/account';
+import { accountResponseSchema, customerResponseSchema } from '@/schemas/api/v3/responses/account';
 import { customerSchema as v3CustomerSchema } from '@/schemas/shapes/v3/customer';
 
 // ---------------------------------------------------------------------------

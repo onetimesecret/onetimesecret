@@ -20,7 +20,11 @@ const i18n = createTestI18n();
 const CATALOG: ColonelAvailableEntitlement[] = [
   { name: 'api_access', description: 'Can use REST API endpoints', category: 'infrastructure' },
   { name: 'create_secrets', description: 'Can create basic secrets', category: 'core' },
-  { name: 'custom_domains', description: 'Can configure custom domains', category: 'infrastructure' },
+  {
+    name: 'custom_domains',
+    description: 'Can configure custom domains',
+    category: 'infrastructure',
+  },
   { name: 'legacy_flag', description: null, category: null },
 ];
 
@@ -55,9 +59,15 @@ describe('EntitlementPicker (catalog dropdown + out-of-catalog escape hatch)', (
     const wrapper = mountPicker();
     const labels = wrapper.findAll('option').map((o) => o.text());
 
-    expect(labels).toContain('create_secrets — web.admin.organizations.entitlements.picker.tags.inPlan');
-    expect(labels).toContain('custom_domains — web.admin.organizations.entitlements.picker.tags.granted');
-    expect(labels).toContain('api_access — web.admin.organizations.entitlements.picker.tags.revoked');
+    expect(labels).toContain(
+      'create_secrets — web.admin.organizations.entitlements.picker.tags.inPlan'
+    );
+    expect(labels).toContain(
+      'custom_domains — web.admin.organizations.entitlements.picker.tags.granted'
+    );
+    expect(labels).toContain(
+      'api_access — web.admin.organizations.entitlements.picker.tags.revoked'
+    );
   });
 
   it('emits the chosen catalog name and shows its description', async () => {

@@ -172,9 +172,12 @@ describe('SettingsPageHeader', () => {
     });
 
     it('renders actions slot content when provided', () => {
-      wrapper = mountComponent({}, {
-        actions: () => h('button', { class: 'action-button' }, 'Save'),
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          actions: () => h('button', { class: 'action-button' }, 'Save'),
+        }
+      );
 
       const button = wrapper.find('.action-button');
       expect(button.exists()).toBe(true);
@@ -182,12 +185,15 @@ describe('SettingsPageHeader', () => {
     });
 
     it('renders multiple action elements', () => {
-      wrapper = mountComponent({}, {
-        actions: () => [
-          h('button', { class: 'cancel-btn' }, 'Cancel'),
-          h('button', { class: 'save-btn' }, 'Save'),
-        ],
-      });
+      wrapper = mountComponent(
+        {},
+        {
+          actions: () => [
+            h('button', { class: 'cancel-btn' }, 'Cancel'),
+            h('button', { class: 'save-btn' }, 'Save'),
+          ],
+        }
+      );
 
       expect(wrapper.find('.cancel-btn').exists()).toBe(true);
       expect(wrapper.find('.save-btn').exists()).toBe(true);

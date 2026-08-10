@@ -51,8 +51,8 @@ export function useMyFeature() {
   // Configure handler
   const { wrap } = useAsyncHandler({
     notify: (message, severity) => notifications.show(message, severity),
-    setLoading: (loading) => isLoading.value = loading,
-    onError: (err) => error.value = err
+    setLoading: (loading) => (isLoading.value = loading),
+    onError: (err) => (error.value = err),
   });
 
   // Wrap async operations
@@ -70,12 +70,12 @@ export function useMyFeature() {
 
 ### AsyncHandlerOptions
 
-| Option | Type | Purpose | Default |
-|--------|------|---------|---------|
-| `notify` | `(message, severity) => void \| false` | User notifications | Console logging |
-| `log` | `(error: ApplicationError) => void \| false` | Error logging | loggingService.error |
-| `setLoading` | `(isLoading: boolean) => void` | Loading state | noop |
-| `onError` | `(error: ApplicationError) => void` | Pre-throw callback | undefined |
+| Option       | Type                                         | Purpose            | Default              |
+| ------------ | -------------------------------------------- | ------------------ | -------------------- |
+| `notify`     | `(message, severity) => void \| false`       | User notifications | Console logging      |
+| `log`        | `(error: ApplicationError) => void \| false` | Error logging      | loggingService.error |
+| `setLoading` | `(isLoading: boolean) => void`               | Loading state      | noop                 |
+| `onError`    | `(error: ApplicationError) => void`          | Pre-throw callback | undefined            |
 
 ### Auth-Specific Pattern
 
@@ -90,7 +90,7 @@ export function useAuth() {
   const { wrap } = useAsyncHandler({
     // Don't auto-notify - auth shows errors inline
     notify: false,
-    setLoading: (loading) => isLoading.value = loading,
+    setLoading: (loading) => (isLoading.value = loading),
     onError: (err) => {
       // IMPORTANT: Clear all error state first to prevent stale data
       // from previous errors showing alongside new errors
@@ -102,7 +102,7 @@ export function useAuth() {
       if (err.details?.['field-error']) {
         fieldError.value = err.details['field-error'];
       }
-    }
+    },
   });
 
   async function login(email: string, password: string) {
@@ -112,7 +112,7 @@ export function useAuth() {
 
       if (isAuthError(validated)) {
         throw createError(validated.error, 'human', 'error', {
-          'field-error': validated['field-error']
+          'field-error': validated['field-error'],
         });
       }
 
@@ -182,29 +182,16 @@ The error classifier automatically extracts messages from both `error` and `mess
 import { createError } from '@/shared/composables/useAsyncHandler';
 
 // Human error with details
-throw createError(
-  'Invalid email format',
-  'human',
-  'error',
-  { 'field-error': ['email', 'invalid'] }
-);
+throw createError('Invalid email format', 'human', 'error', {
+  'field-error': ['email', 'invalid'],
+});
 
 // Security error
-throw createError(
-  'Rate limit exceeded',
-  'security',
-  'warning',
-  { retryAfter: 60 }
-);
+throw createError('Rate limit exceeded', 'security', 'warning', { retryAfter: 60 });
 
 // Technical error
-throw createError(
-  'Database connection failed',
-  'technical',
-  'error'
-);
+throw createError('Database connection failed', 'technical', 'error');
 ```
-
 
 ### Real-World Examples
 
@@ -213,7 +200,6 @@ throw createError(
 3. Clear heuristic: User message = user can act on it
 4. Flexible: Backend can change message presence without frontend changes
 5. Backward compatible: Falls back to status-code rules when no message
-
 
 ```
 | Scenario          | Status | Message                 | Classification | Why                  |
@@ -272,14 +258,14 @@ async function deleteDomain(id: string) {
 ```typescript
 const { wrap } = useAsyncHandler({
   notify: (message, severity) => notifications.show(message, severity),
-  setLoading: (loading) => isLoading.value = loading,
+  setLoading: (loading) => (isLoading.value = loading),
   onError: (err) => {
     // Custom logic based on error type
     if (err.code === 404) {
       router.push({ name: 'NotFound' });
     }
     error.value = err;
-  }
+  },
 });
 ```
 
@@ -370,9 +356,7 @@ describe('useMyFeature', () => {
     const { fetchData, error } = useMyFeature();
 
     // Mock store to throw error
-    vi.spyOn(store, 'fetchSomething').mockRejectedValue(
-      new Error('Network error')
-    );
+    vi.spyOn(store, 'fetchSomething').mockRejectedValue(new Error('Network error'));
 
     await fetchData();
 

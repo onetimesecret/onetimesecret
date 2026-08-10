@@ -80,7 +80,11 @@
                 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                 : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300',
             ]">
-            {{ mfaStatus.enabled ? t('web.auth.account.mfa_enabled') : t('web.auth.account.mfa_disabled') }}
+            {{
+              mfaStatus.enabled
+                ? t('web.auth.account.mfa_enabled')
+                : t('web.auth.account.mfa_disabled')
+            }}
           </span>
         </div>
         <p class="mt-2 text-gray-600 dark:text-gray-400">
@@ -175,7 +179,7 @@
               @click="handleDisableClick"
               type="button"
               data-testid="mfa-disable-btn"
-              class="rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-red-600 dark:text-red-400 dark:hover:bg-red-900/20">
+              class="rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none dark:border-red-600 dark:text-red-400 dark:hover:bg-red-900/20">
               {{ t('web.auth.mfa.disable') }}
             </button>
           </div>
@@ -205,7 +209,7 @@
               @click="handleEnableMfa"
               type="button"
               data-testid="mfa-enable-btn"
-              class="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
+              class="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none">
               {{ t('web.settings.security.enable') }}
             </button>
           </div>
@@ -214,7 +218,7 @@
         <!-- Quick links -->
         <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
           <h3
-            class="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            class="mb-3 text-sm font-semibold tracking-wide text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.LABELS.related_settings') }}
           </h3>
           <div class="space-y-2">
@@ -270,7 +274,9 @@
             <div class="mb-4">
               <label
                 for="disable-password"
-                class="sr-only">Password</label>
+                class="sr-only"
+                >Password</label
+              >
               <input
                 id="disable-password"
                 data-testid="mfa-disable-password-input"
@@ -279,7 +285,7 @@
                 autocomplete="current-password"
                 :disabled="isDisabling"
                 :placeholder="t('web.auth.mfa.password_placeholder')"
-                class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+                class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder:text-gray-400 focus:border-brand-500 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
             </div>
 
             <!-- Error message -->
@@ -298,14 +304,14 @@
                 @click="showDisableConfirm = false"
                 type="button"
                 :disabled="isDisabling"
-                class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+                class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
                 {{ t('web.COMMON.word_cancel') }}
               </button>
               <button
                 type="submit"
                 data-testid="mfa-confirm-btn"
                 :disabled="isDisabling || !disablePassword"
-                class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50">
                 <span v-if="isDisabling">{{ t('web.auth.mfa.disabling') }}</span>
                 <span v-else>{{ t('web.auth.mfa.disable_button') }}</span>
               </button>

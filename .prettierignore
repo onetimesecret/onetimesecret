@@ -6,3 +6,21 @@ log
 sorbet
 etc
 *.svg
+
+# Ruby is formatted by RuboCop, not Prettier. @prettier/plugin-ruby emits
+# double-quoted strings, which collides head-on with Style/StringLiterals
+# (EnforcedStyle: single_quotes) in .rubocop.yml.
+*.rb
+
+# No SQL parser is installed (the *.sql override named "sql-cst", which is not
+# a dependency). These are DB migrations — hand-formatted on purpose.
+*.sql
+
+# Generated, vendored, or cache output
+.mypy_cache
+generated
+pnpm-lock.yaml
+
+# VCR cassettes are recorded HTTP fixtures, rewritten wholesale whenever the
+# specs re-record. Formatting them is 277k lines of churn with no reader.
+**/vcr_cassettes/**

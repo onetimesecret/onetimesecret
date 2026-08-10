@@ -68,7 +68,7 @@ Today a stored record is `{type, name, value}` (+ `optional`, `status`). Add a
   match: 'spf-include' }   # default absent = exact/substring per matcher rules
 ```
 
-Rationale: the matcher currently *sniffs* `v=spf1` to decide semantics. That
+Rationale: the matcher currently _sniffs_ `v=spf1` to decide semantics. That
 works, but an explicit flag (a) survives value-shape changes, (b) lets the UI
 distinguish "create this record" from "merge into your existing record", and
 (c) gives future apex records (e.g. a provider wanting `TXT @` verification
@@ -87,7 +87,7 @@ records as copy-paste rows. Apex SPF needs different copy: "add
 `include:relay.mailchannels.net` to your existing SPF record; if you have none,
 create this record." Drive it off `match: 'spf-include'` the same way the
 dashed-border "Recommended" treatment is driven off `optional`. Also surface
-the *actual* current SPF record when the check fails (the verification result
+the _actual_ current SPF record when the check fails (the verification result
 already carries `actual` values) so the customer sees what to edit rather than
 a bare mismatch.
 

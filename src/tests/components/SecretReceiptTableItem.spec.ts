@@ -26,7 +26,11 @@ const router = createRouter({
   history: createMemoryHistory(),
   routes: [
     { path: '/', name: 'Home', component: { template: '<div />' } },
-    { path: '/receipt/:receiptIdentifier', name: 'Receipt link', component: { template: '<div />' } },
+    {
+      path: '/receipt/:receiptIdentifier',
+      name: 'Receipt link',
+      component: { template: '<div />' },
+    },
     { path: '/burn/:receiptIdentifier', name: 'Burn secret', component: { template: '<div />' } },
   ],
 });

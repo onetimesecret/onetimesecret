@@ -19,10 +19,10 @@ Regions enable multi-jurisdiction deployments where each geographic instance run
 
 Two environment variables control the feature:
 
-| Variable         | Purpose                                      |
-| ---------------- | -------------------------------------------- |
-| `REGIONS_ENABLED`| Set to `true` to activate region features    |
-| `JURISDICTION`   | Current instance's identifier (e.g., `EU`)   |
+| Variable          | Purpose                                    |
+| ----------------- | ------------------------------------------ |
+| `REGIONS_ENABLED` | Set to `true` to activate region features  |
+| `JURISDICTION`    | Current instance's identifier (e.g., `EU`) |
 
 The jurisdictions list lives in `config.yaml`:
 

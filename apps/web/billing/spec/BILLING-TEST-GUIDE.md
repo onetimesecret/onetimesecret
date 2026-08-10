@@ -4,13 +4,13 @@ This document explains how billing tests work, their Redis usage patterns, and w
 
 ## Quick Reference
 
-| Concern | Billing Tests | Regular Integration Tests |
-|---------|---------------|---------------------------|
-| Redis Flush | **Managed by billing helpers** | `flushdb` before/after each test |
-| Billing Enabled | Explicitly enabled via tags/helpers | Disabled by default |
-| Plan Cache | **Persists unless explicitly cleared** | N/A |
-| VCR Cassettes | Auto-wrapped for Stripe API | Not used |
-| Helper File | `billing_spec_helper.rb` | `integration_spec_helper.rb` |
+| Concern         | Billing Tests                          | Regular Integration Tests        |
+| --------------- | -------------------------------------- | -------------------------------- |
+| Redis Flush     | **Managed by billing helpers**         | `flushdb` before/after each test |
+| Billing Enabled | Explicitly enabled via tags/helpers    | Disabled by default              |
+| Plan Cache      | **Persists unless explicitly cleared** | N/A                              |
+| VCR Cassettes   | Auto-wrapped for Stripe API            | Not used                         |
+| Helper File     | `billing_spec_helper.rb`               | `integration_spec_helper.rb`     |
 
 ## Architecture Overview
 
@@ -50,18 +50,19 @@ end
 ```
 
 This allows tests to:
+
 1. Set up plan data in `before(:all)` blocks
 2. Share plan cache across multiple examples
 3. Avoid expensive Stripe API calls per test
 
 ### Plan Cache Persistence
 
-| Scenario | Plan Cache Behavior |
-|----------|---------------------|
-| Test tagged `billing: true` | **Persists** - no auto-flush |
-| Test uses `with_billing_enabled { }` | Cleared after block |
-| Regular integration test | Flushed with everything else |
-| Between test files | **Persists** unless explicitly cleared |
+| Scenario                             | Plan Cache Behavior                    |
+| ------------------------------------ | -------------------------------------- |
+| Test tagged `billing: true`          | **Persists** - no auto-flush           |
+| Test uses `with_billing_enabled { }` | Cleared after block                    |
+| Regular integration test             | Flushed with everything else           |
+| Between test files                   | **Persists** unless explicitly cleared |
 
 ### Clearing Plan Cache Explicitly
 
@@ -126,13 +127,13 @@ generate_stripe_signature(payload: json_body, secret: 'whsec_xxx')
 
 ### Available Tags
 
-| Tag | Effect |
-|-----|--------|
-| `billing: true` | Enables billing, skips Redis flush |
-| `billing_cli: true` | For CLI command tests, enables billing |
-| `stripe_sandbox_api: true` | For tests hitting real Stripe sandbox |
-| `type: :billing` | Full billing test setup + VCR |
-| `type: :integration` | Standard integration setup + VCR (in billing specs) |
+| Tag                        | Effect                                              |
+| -------------------------- | --------------------------------------------------- |
+| `billing: true`            | Enables billing, skips Redis flush                  |
+| `billing_cli: true`        | For CLI command tests, enables billing              |
+| `stripe_sandbox_api: true` | For tests hitting real Stripe sandbox               |
+| `type: :billing`           | Full billing test setup + VCR                       |
+| `type: :integration`       | Standard integration setup + VCR (in billing specs) |
 
 ### Usage Examples
 
@@ -167,12 +168,12 @@ STRIPE_API_KEY=sk_test_xxx bundle exec rspec apps/web/billing/spec/...
 
 ### VCR Behavior by Tag
 
-| Tag | VCR Behavior |
-|-----|--------------|
-| `type: :billing` | Auto-wrapped |
-| `type: :cli` | Auto-wrapped |
-| `type: :controller` | Auto-wrapped |
-| `type: :integration` | Auto-wrapped |
+| Tag                     | VCR Behavior |
+| ----------------------- | ------------ |
+| `type: :billing`        | Auto-wrapped |
+| `type: :cli`            | Auto-wrapped |
+| `type: :controller`     | Auto-wrapped |
+| `type: :integration`    | Auto-wrapped |
 | `:integration` (symbol) | Auto-wrapped |
 
 ## Common Patterns
@@ -258,6 +259,7 @@ end
 
 **Cause**: Stripe API response changed
 **Fix**: Re-record cassettes with real API key:
+
 ```bash
 STRIPE_API_KEY=sk_test_xxx bundle exec rspec path/to/spec.rb
 ```

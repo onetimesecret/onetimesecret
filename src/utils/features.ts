@@ -513,7 +513,10 @@ export function isOrganizationSwitcherEnabled(): boolean {
 
   const features = getBootstrapValue('features');
   const result = features?.organizations?.enabled === true;
-  debugLog.features('features.isOrganizationSwitcherEnabled', { enabled: features?.organizations?.enabled, result });
+  debugLog.features('features.isOrganizationSwitcherEnabled', {
+    enabled: features?.organizations?.enabled,
+    result,
+  });
   return result;
 }
 
@@ -528,7 +531,10 @@ export function isOrgsSsoEnabled(): boolean {
 
   const features = getBootstrapValue('features');
   const result = features?.organizations?.sso_enabled === true;
-  debugLog.features('features.isOrgsSsoEnabled', { sso_enabled: features?.organizations?.sso_enabled, result });
+  debugLog.features('features.isOrgsSsoEnabled', {
+    sso_enabled: features?.organizations?.sso_enabled,
+    result,
+  });
   return result;
 }
 
@@ -543,7 +549,10 @@ export function isOrgsCustomMailEnabled(): boolean {
 
   const features = getBootstrapValue('features');
   const result = features?.organizations?.custom_mail_enabled === true;
-  debugLog.features('features.isOrgsCustomMailEnabled', { custom_mail_enabled: features?.organizations?.custom_mail_enabled, result });
+  debugLog.features('features.isOrgsCustomMailEnabled', {
+    custom_mail_enabled: features?.organizations?.custom_mail_enabled,
+    result,
+  });
   return result;
 }
 
@@ -573,7 +582,10 @@ export function isOrgsAuditLogsEnabled(): boolean {
 
   const features = getBootstrapValue('features');
   const result = features?.organizations?.audit_logs_enabled !== false;
-  debugLog.features('features.isOrgsAuditLogsEnabled', { audit_logs_enabled: features?.organizations?.audit_logs_enabled, result });
+  debugLog.features('features.isOrgsAuditLogsEnabled', {
+    audit_logs_enabled: features?.organizations?.audit_logs_enabled,
+    result,
+  });
   return result;
 }
 
@@ -597,7 +609,10 @@ export function isSecretActivityCollectEnabled(): boolean {
 
   const features = getBootstrapValue('features');
   const result = features?.secret_activity?.collect_enabled !== false;
-  debugLog.features('features.isSecretActivityCollectEnabled', { collect_enabled: features?.secret_activity?.collect_enabled, result });
+  debugLog.features('features.isSecretActivityCollectEnabled', {
+    collect_enabled: features?.secret_activity?.collect_enabled,
+    result,
+  });
   return result;
 }
 
@@ -620,7 +635,10 @@ export function isSecretActivityGeoCountryEnabled(): boolean {
 
   const features = getBootstrapValue('features');
   const result = features?.secret_activity?.geo_country_enabled === true;
-  debugLog.features('features.isSecretActivityGeoCountryEnabled', { geo_country_enabled: features?.secret_activity?.geo_country_enabled, result });
+  debugLog.features('features.isSecretActivityGeoCountryEnabled', {
+    geo_country_enabled: features?.secret_activity?.geo_country_enabled,
+    result,
+  });
   return result;
 }
 
@@ -655,6 +673,9 @@ export function isOrgsIncomingSecretsEnabled(): boolean {
 
   const features = getBootstrapValue('features');
   const result = features?.organizations?.incoming_secrets_enabled === true;
-  debugLog.features('features.isOrgsIncomingSecretsEnabled', { incoming_secrets_enabled: features?.organizations?.incoming_secrets_enabled, result });
+  debugLog.features('features.isOrgsIncomingSecretsEnabled', {
+    incoming_secrets_enabled: features?.organizations?.incoming_secrets_enabled,
+    result,
+  });
   return result;
 }

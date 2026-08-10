@@ -1,5 +1,4 @@
-since: 2026-07-11
----
+## since: 2026-07-11
 
 The logo now uses a staged upload modal instead of committing the instant a file is picked.
 
@@ -16,13 +15,13 @@ The modal's internals (staging the file, local preview via fileToDataUrl, valida
 
 vue
 <ImageUploadModal
-  :is-open="isFaviconModalOpen"
-  :current-image="faviconImage"
-  :title="t('...favicon_title')"
-  :save-label="t('...save_favicon')"
-  :on-save="onFaviconUpload"
-  :on-remove="onFaviconRemove"
-  @close="isFaviconModalOpen = false" />
+:is-open="isFaviconModalOpen"
+:current-image="faviconImage"
+:title="t('...favicon_title')"
+:save-label="t('...save_favicon')"
+:on-save="onFaviconUpload"
+:on-remove="onFaviconRemove"
+@close="isFaviconModalOpen = false" />
 
 "Pure props wiring" = you compose it by passing props, not by editing the modal or writing new upload/staging code.
 

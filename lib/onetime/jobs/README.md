@@ -22,7 +22,7 @@ An exchange receives messages from publishers and routes them to queues based on
 
 Queues store messages until consumers acknowledge them. They're the durable part of the system. Key properties:
 
-**Durability**: Survives broker restart if declared `durable: true` *and* messages are published as `persistent`. Both matter—a durable queue with transient messages still loses data on restart.
+**Durability**: Survives broker restart if declared `durable: true` _and_ messages are published as `persistent`. Both matter—a durable queue with transient messages still loses data on restart.
 
 **Exclusivity**: An exclusive queue is deleted when its declaring connection closes. Useful for reply queues in RPC patterns.
 
@@ -101,7 +101,7 @@ One exchange, multiple queues distinguished by routing key, each with its own DL
 
 ## Idempotency in Background Job Processing
 
-Idempotency means a job can be delivered multiple times but will only be processed once. This matters because message brokers like RabbitMQ guarantee *at-least-once* delivery, not *exactly-once*. Network hiccups, worker crashes, or manual retries can cause duplicate deliveries.
+Idempotency means a job can be delivered multiple times but will only be processed once. This matters because message brokers like RabbitMQ guarantee _at-least-once_ delivery, not _exactly-once_. Network hiccups, worker crashes, or manual retries can cause duplicate deliveries.
 
 ### The Pattern
 
@@ -142,7 +142,7 @@ A DLQ captures messages that can't be processed: rejected messages, expired mess
 
 ### Declaration Order Matters
 
-RabbitMQ requires the dead letter exchange to exist *before* you declare a queue that routes failures to it. The setup sequence:
+RabbitMQ requires the dead letter exchange to exist _before_ you declare a queue that routes failures to it. The setup sequence:
 
 ```ruby
 # 1. Dead letter exchange
@@ -172,7 +172,6 @@ channel.queue_declare(
 
 The DLQ preserves the original message plus headers showing why it was dead-lettered, letting you inspect failures, fix bugs, and replay messages after deploying fixes.
 
-
 ## Cascading Failure Scenario
 
 ```
@@ -189,15 +188,15 @@ The DLQ preserves the original message plus headers showing why it was dead-lett
 
 With 4 Puma workers, after ~4 email requests your entire app becomes unresponsive.
 
-
 ## Adding a Queue
 
 | Component | Restart Required? | Why                                                             |
-|-----------|-------------------|-----------------------------------------------------------------|
+| --------- | ----------------- | --------------------------------------------------------------- |
 | Puma      | Yes               | Initializer declares queues at boot (setup_rabbitmq.rb:109-114) |
 | Workers   | Yes               | Workers only consume queues they're started with                |
 
 Workflow:
+
 1. Add queue to QueueConfig::QUEUES
 2. Create the worker class
 3. Restart Puma (declares the queue in RabbitMQ)
@@ -206,11 +205,12 @@ Workflow:
 Removing a Queue
 
 | Component | Restart Required? | Why                                   |
-|-----------|-------------------|---------------------------------------|
+| --------- | ----------------- | ------------------------------------- |
 | Workers   | Yes               | Stop consuming before removing        |
 | Puma      | Optional          | Won't declare it anymore, but no harm |
 
 Workflow:
+
 1. Stop workers first (drain in-flight messages)
 2. Remove from QueueConfig::QUEUES
 3. Restart workers

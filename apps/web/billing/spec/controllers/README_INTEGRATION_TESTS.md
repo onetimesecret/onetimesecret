@@ -15,6 +15,7 @@ You need a Stripe Test account with the following resources created:
 #### Products
 
 Create test products in Stripe Dashboard (Test Mode):
+
 - Product: "Single Team Plan" (for tier: 'single_team')
 - Product: "Multi Team Plan" (for tier: 'multi_team')
 - Product: "Identity Plan" (for tier: 'identity')
@@ -22,10 +23,12 @@ Create test products in Stripe Dashboard (Test Mode):
 #### Prices
 
 For each product, create monthly and yearly prices:
+
 - Monthly: `interval: 'month'`, `interval_count: 1`
 - Yearly: `interval: 'year'`, `interval_count: 1`
 
 Add metadata to prices:
+
 ```
 tier: single_team|multi_team|identity
 region: EU
@@ -87,9 +90,11 @@ However, this defeats the purpose of integration tests which are meant to verify
 ## Test Categories
 
 ### Currently Passing
+
 - `smoke_spec.rb` - Basic application bootstrap tests
 
 ### Require Stripe Setup
+
 - `plans_controller_spec.rb` - Plan selection and checkout flows
 - `billing_controller_spec.rb` - Billing API endpoints (some tests)
 - `webhooks_controller_spec.rb` - Webhook processing

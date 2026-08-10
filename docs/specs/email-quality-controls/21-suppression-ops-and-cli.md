@@ -31,7 +31,7 @@ adapter → (slice 22) colonel Logic + route with BOTH auth layers.**
     detail carries reason/scope/source + obscured address only.
   - `Remove.new(email: | email_hash:, actor:, reason_note:).call` — decision Q6
     guardrails: refuses `complaint`-reason entries unless `allow_complaint:
-    true` (only the CLI adapter passes it); `:not_suppressed` no-op without
+true` (only the CLI adapter passes it); `:not_suppressed` no-op without
     audit; `AUDIT_VERB = 'email.suppression.remove'`; audited on EVERY actual
     removal.
   - `List.new(page:, per_page:, reason: nil).call` — bounded pagination over

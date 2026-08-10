@@ -1,6 +1,6 @@
 ---
 labels: authorization, organization, membership, entitlements, billing, tech-debt, issue-3491
-related: "#3491, #3479, ADR-012"
+related: '#3491, #3479, ADR-012'
 status: preparation / design research
 ---
 
@@ -24,7 +24,6 @@ status: preparation / design research
 > hint. To relocate a citation, `grep` for the named symbol rather than jumping to
 > the line. Where a symbol is stable, this doc prefers naming it; the numbers are
 > retained only as a convenience for the tree at preparation time.
-
 
 ---
 
@@ -57,22 +56,22 @@ identical answer: a 403 framed as "upgrade your plan," complete with a
 suggested plan to buy. For role denials this is not just unhelpful — it is
 false. No amount of money grants a role permission. The user-facing
 consequence is misdirected UX (upgrade prompts where "ask your admin" is the
-truth); the engineering consequence is that no layer can branch on *why*
+truth); the engineering consequence is that no layer can branch on _why_
 access was refused.
 
 **2. Role authorization is accidentally coupled to billing.** Because a
 member's effective set is computed by intersecting the org's plan set with the
-role's set, a role permission only survives if the *plan* also lists it. Paid
+role's set, a role permission only survives if the _plan_ also lists it. Paid
 plans don't list management permissions — so in billing-enabled mode the
 intersection silently strips every management permission from every member,
 owners included. The only reason authorization works at all is that
 self-hosted (non-billing) mode deliberately stuffs role permissions into the
-*plan* set to survive the intersection — a plan-shaped container carrying role
+_plan_ set to survive the intersection — a plan-shaped container carrying role
 cargo purely so the math comes out right. Whether a member can administer
 their org should never depend on the billing catalog's contents, yet today it
 structurally does. The defect is latent only because paid multi-member orgs
 aren't sellable yet; the mechanism is already armed. Corollaries: a billing
-webhook recomputes everyone's *permissions* on a plan event, and an operator
+webhook recomputes everyone's _permissions_ on a plan event, and an operator
 editing billing YAML can grant or withhold administrative authority as if it
 were a SKU.
 
@@ -82,7 +81,7 @@ strings are consumed by live frontend gates but can never be granted by any
 backend path. Three hand-maintained enumerations of "the full set" disagree
 with each other. The governing ADR disagrees with shipped code and was never
 accepted. The frontend and backend disagree about self-hosted behavior: the
-client grants *everything* to *everyone* (erasing role differences), while the
+client grants _everything_ to _everyone_ (erasing role differences), while the
 server still honors roles. Enforcement itself has forked: two backend gates
 accept the same string but check different dimensions of it, with different
 anonymous-access and operator-bypass policies; sibling frontend pages gate the
@@ -93,13 +92,13 @@ distinction would have made impossible or at least detectable. (Inventory:
 
 **4. The fusion is also doing real, invisible work — which is what makes this
 hard.** Two things prevent this from being a mechanical rename. First, the
-fusion exists *on purpose*: it was the cure for the previous defect (#3225),
+fusion exists _on purpose_: it was the cure for the previous defect (#3225),
 where plan checks and role checks were separate and had to be manually paired
 at every endpoint, and endpoints shipped having forgotten one. A single fused
 check made forgetting impossible. So the problem space contains a genuine
 tension: the system must regain "which axis denied this?" without giving back
 "no endpoint can forget an axis." Second, the intersection is currently the
-*only* thing enforcing role-tiering of features at some endpoints — e.g., an
+_only_ thing enforcing role-tiering of features at some endpoints — e.g., an
 ordinary member can't add a custom domain solely because that feature happens
 to sit in the admin tier of the fused sets. Naively untangling the two axes
 silently relaxes those checks. The load the fusion carries has to be
@@ -108,13 +107,13 @@ inventoried before it can be removed. (§1.2, §6 Stage B, §8.)
 ### 0.3 Edges of the space
 
 Numeric limits are already a cleanly separated third thing and are not part of
-the problem — except that some limits are plan-imposed quotas *on roles*
+the problem — except that some limits are plan-imposed quotas _on roles_
 (`role_*_per_org`), evidence the axes genuinely interact rather than merely
 cohabiting. A few tokens are honestly dual-natured (`audit_logs`: "does the
 org have it?" and "may this role view it?" are both real questions collapsed
 into one string), so the boundary between the two kinds requires per-token
 product judgment, not just sorting. And one string (`manage_orgs`) is scoped
-to neither the org's plan nor an org role but to the *account* — a hint that
+to neither the org's plan nor an org role but to the _account_ — a hint that
 the space may hold more than two axes.
 
 ### 0.4 In one sentence
@@ -129,7 +128,7 @@ is load-bearing safety machinery that can't simply be removed.
 
 ## 1. Executive summary
 
-OnetimeSecret today stores two semantically different things — **plan entitlements** (what an organization's *subscription* includes: `incoming_secrets`, `custom_branding`, `audit_logs`, `custom_domains`, …) and **role capabilities** (what a member's *role* lets them do: `manage_org`, `manage_members`, `manage_sso`, `manage_billing`) — in **one undifferentiated `ENTITLEMENTS` string namespace**. Both are listed in the same billing catalog (`etc/examples/billing.example.yaml:72-163`), interleaved in the same per-role `ROLE_ENTITLEMENTS` Sets (`lib/onetime/models/organization_membership.rb:72-106`), fused into one flat `membership.materialized_entitlements` blob via the single intersection `org.entitlements ∩ ROLE_ENTITLEMENTS[role] + grants − revokes` (`lib/onetime/models/organization_membership/features/with_materialized_entitlements.rb:88-113`), checked through one concern-agnostic `can?(entitlement)` predicate (`lib/onetime/models/features/with_entitlements.rb:70-72`), and serialized to the frontend as one `org.entitlements` array consumed by one `can()` composable (`src/shared/composables/useEntitlements.ts:86-100`). The consequence: the system cannot tell *why* a check fails — a member denied `custom_branding` (a plan gap) and a member denied `manage_org` (a role gap) flow through identical code and both raise the same `EntitlementRequired` error framed as a **"upgrade your plan"** message (`lib/onetime/errors.rb:160-182`), even though no plan upgrade can ever grant a role capability. **Target end-state (Option C):** two disjoint registries and stores — `org.plan_entitlements` (subscription features, org-level, billing-driven) and `membership.role_capabilities` (role permissions, member-level, role-table-driven, billing-independent) — with two explicit check predicates (`org.has_feature?` / `membership.has_capability?`), two error/UX vocabularies ("upgrade plan" vs "insufficient role / ask an admin"), two wire fields, and two frontend composables (`useFeatures(org)` / `usePermissions(membership)`). Enforcement points that need both run **two explicit gates** (plan gate AND role gate). Limits (`secret_lifetime.max`, `role_*_per_org.max`, …) are already cleanly separated in `WithMaterializedLimits` and stay where they are.
+OnetimeSecret today stores two semantically different things — **plan entitlements** (what an organization's _subscription_ includes: `incoming_secrets`, `custom_branding`, `audit_logs`, `custom_domains`, …) and **role capabilities** (what a member's _role_ lets them do: `manage_org`, `manage_members`, `manage_sso`, `manage_billing`) — in **one undifferentiated `ENTITLEMENTS` string namespace**. Both are listed in the same billing catalog (`etc/examples/billing.example.yaml:72-163`), interleaved in the same per-role `ROLE_ENTITLEMENTS` Sets (`lib/onetime/models/organization_membership.rb:72-106`), fused into one flat `membership.materialized_entitlements` blob via the single intersection `org.entitlements ∩ ROLE_ENTITLEMENTS[role] + grants − revokes` (`lib/onetime/models/organization_membership/features/with_materialized_entitlements.rb:88-113`), checked through one concern-agnostic `can?(entitlement)` predicate (`lib/onetime/models/features/with_entitlements.rb:70-72`), and serialized to the frontend as one `org.entitlements` array consumed by one `can()` composable (`src/shared/composables/useEntitlements.ts:86-100`). The consequence: the system cannot tell _why_ a check fails — a member denied `custom_branding` (a plan gap) and a member denied `manage_org` (a role gap) flow through identical code and both raise the same `EntitlementRequired` error framed as a **"upgrade your plan"** message (`lib/onetime/errors.rb:160-182`), even though no plan upgrade can ever grant a role capability. **Target end-state (Option C):** two disjoint registries and stores — `org.plan_entitlements` (subscription features, org-level, billing-driven) and `membership.role_capabilities` (role permissions, member-level, role-table-driven, billing-independent) — with two explicit check predicates (`org.has_feature?` / `membership.has_capability?`), two error/UX vocabularies ("upgrade plan" vs "insufficient role / ask an admin"), two wire fields, and two frontend composables (`useFeatures(org)` / `usePermissions(membership)`). Enforcement points that need both run **two explicit gates** (plan gate AND role gate). Limits (`secret_lifetime.max`, `role_*_per_org.max`, …) are already cleanly separated in `WithMaterializedLimits` and stay where they are.
 
 ### 1.1 The sharpest consequence — capabilities are silently stripped in billing mode
 
@@ -158,7 +157,7 @@ must be billing-independent.**
 
 ### 1.2 Why the fusion exists — what the split must not regress
 
-The single namespace is not entropy; it was the cure for the *previous* defect.
+The single namespace is not entropy; it was the cure for the _previous_ defect.
 ADR-012's own Context section describes the prior regime — entitlements and
 roles as two independent systems whose role guards had to be "manually paired
 with entitlement checks at every call site. Nothing forces the pairing," and
@@ -223,17 +222,17 @@ with_plan_entitlements.rb:177-221                         │
 
 ### 2.2 Where plan and role merge into one namespace — exact loci
 
-| # | Location | What merges |
-|---|----------|-------------|
-| 1 | `etc/examples/billing.example.yaml:113-155` | Role capabilities (`manage_org`, `manage_orgs`, `manage_teams`, `manage_billing`, `manage_members`, `manage_sso`) are defined as first-class plan **entitlement** definitions, same flat map plans reference. |
-| 2 | `lib/onetime/models/organization_membership.rb:80-100` | `ADMIN_/OWNER_ENTITLEMENTS` Sets interleave plan features (`audit_logs`, `custom_domains`, `incoming_secrets`, `custom_branding`, …) with role capabilities (`manage_members`, `manage_sso`, `manage_org`, `manage_billing`). Partition is by **role**, not by concern. |
-| 3 | `lib/onetime/models/organization/features/with_plan_entitlements.rb:48-56` | `STANDALONE_ENTITLEMENTS` deliberately stuffs role capabilities into the org **plan** set (comment lines 46-47) so the intersection does not drop member-level capabilities. **This is the structural reason the two cannot separate today.** |
-| 4 | `lib/onetime/models/organization_membership/features/with_materialized_entitlements.rb:100-101` | The intersection `org.entitlements & ROLE_ENTITLEMENTS[role]` collapses the plan dimension and the role dimension into one `materialized_entitlements` set. After this write the two concerns are physically indistinguishable. |
-| 5 | `lib/onetime/models/features/with_entitlements.rb:70-72` | One `can?(e)` predicate, mixed into both `Organization` and `OrganizationMembership`, answers both "plan includes X?" and "role permits Y?". |
-| 6 | `lib/onetime/logic/base.rb:241, 303` | `require_entitlement!` / `require_entitlement_in!` take an opaque string and call `membership.can?`; a role check and a plan check have identical signatures and code paths. |
-| 7 | `lib/onetime/errors.rb:160-182` | One `EntitlementRequired(entitlement, current_plan, upgrade_to)` for every denial — bakes plan-upgrade framing into role-capability denials. |
+| #   | Location                                                                                        | What merges                                                                                                                                                                                                                                                             |
+| --- | ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `etc/examples/billing.example.yaml:113-155`                                                     | Role capabilities (`manage_org`, `manage_orgs`, `manage_teams`, `manage_billing`, `manage_members`, `manage_sso`) are defined as first-class plan **entitlement** definitions, same flat map plans reference.                                                           |
+| 2   | `lib/onetime/models/organization_membership.rb:80-100`                                          | `ADMIN_/OWNER_ENTITLEMENTS` Sets interleave plan features (`audit_logs`, `custom_domains`, `incoming_secrets`, `custom_branding`, …) with role capabilities (`manage_members`, `manage_sso`, `manage_org`, `manage_billing`). Partition is by **role**, not by concern. |
+| 3   | `lib/onetime/models/organization/features/with_plan_entitlements.rb:48-56`                      | `STANDALONE_ENTITLEMENTS` deliberately stuffs role capabilities into the org **plan** set (comment lines 46-47) so the intersection does not drop member-level capabilities. **This is the structural reason the two cannot separate today.**                           |
+| 4   | `lib/onetime/models/organization_membership/features/with_materialized_entitlements.rb:100-101` | The intersection `org.entitlements & ROLE_ENTITLEMENTS[role]` collapses the plan dimension and the role dimension into one `materialized_entitlements` set. After this write the two concerns are physically indistinguishable.                                         |
+| 5   | `lib/onetime/models/features/with_entitlements.rb:70-72`                                        | One `can?(e)` predicate, mixed into both `Organization` and `OrganizationMembership`, answers both "plan includes X?" and "role permits Y?".                                                                                                                            |
+| 6   | `lib/onetime/logic/base.rb:241, 303`                                                            | `require_entitlement!` / `require_entitlement_in!` take an opaque string and call `membership.can?`; a role check and a plan check have identical signatures and code paths.                                                                                            |
+| 7   | `lib/onetime/errors.rb:160-182`                                                                 | One `EntitlementRequired(entitlement, current_plan, upgrade_to)` for every denial — bakes plan-upgrade framing into role-capability denials.                                                                                                                            |
 
-> **Note on `materialize_for_role!` doc/code drift:** the module-header `Materialization formula:` comment in membership `with_materialized_entitlements.rb` (the `= org.materialized_entitlements ∩ ROLE_ENTITLEMENTS[role]` line, near the top of the file) claims the intersection is against `org.materialized_entitlements`, but the `materialize_for_role!` method body uses `org.entitlements` (the `(org_entitlements & role_template)` line inside the method). Cited by symbol because these line numbers drift. **The departure is deliberate and self-documented, not code rot:** an in-method comment explains that `org.entitlements` carries the plan/free-tier fallback chain while `org.materialized_entitlements` may be empty for unmaterialized orgs. ADR-012 itself contains *both* formulas (its Materialization-model section says `materialized`; its final membership section says `org.entitlements` for the fallback). The fix is therefore the stale **header comment** (and the formula in ADR-012's successor) — an implementer must **not** "correct" the method body to match the stale comment.
+> **Note on `materialize_for_role!` doc/code drift:** the module-header `Materialization formula:` comment in membership `with_materialized_entitlements.rb` (the `= org.materialized_entitlements ∩ ROLE_ENTITLEMENTS[role]` line, near the top of the file) claims the intersection is against `org.materialized_entitlements`, but the `materialize_for_role!` method body uses `org.entitlements` (the `(org_entitlements & role_template)` line inside the method). Cited by symbol because these line numbers drift. **The departure is deliberate and self-documented, not code rot:** an in-method comment explains that `org.entitlements` carries the plan/free-tier fallback chain while `org.materialized_entitlements` may be empty for unmaterialized orgs. ADR-012 itself contains _both_ formulas (its Materialization-model section says `materialized`; its final membership section says `org.entitlements` for the fallback). The fix is therefore the stale **header comment** (and the formula in ADR-012's successor) — an implementer must **not** "correct" the method body to match the stale comment.
 
 ---
 
@@ -245,50 +244,50 @@ Counts (re-verified against source at preparation; see the count-verification no
 
 ### 3.1 Plan features (subscription-granted, org-level)
 
-| Entitlement | granted_by | backend role set (current) | catalog | standalone | free_tier | FE | Key source locations |
-|---|---|---|---|---|---|---|---|
-| `create_secrets` | plan (core) | MEMBER | ✓ | ✓ | ✓ | ✓ | yaml:73,186; membership.rb:73; wpe.rb:49,64; org.ts:48; contracts:127 |
-| `view_receipt` | plan (core) | MEMBER | ✓ | ✓ | ✓ | ✓ | yaml:77,188; membership.rb:74; wpe.rb:49,65; org.ts:49; contracts:146 |
-| `api_access` | plan (infra) | MEMBER | ✓ | ✓ | ✓ | ✓ | yaml:81,189; membership.rb:75; wpe.rb:49,66; org.ts:55; contracts:125 — dual-gated (org.can? middleware + membership.can?) |
-| `extended_default_expiration` | plan (core) | MEMBER | ✓ | ✓ | — | ✓ | yaml:89; membership.rb:76; wpe.rb:50; org.ts:61; contracts:134 — overlaps `secret_lifetime.max` |
-| `notifications` | plan (core) | MEMBER | ✓ | ✓ | — | ✓ | yaml:105; membership.rb:77; wpe.rb:49; org.ts:52; contracts:145 |
-| `custom_domains` | plan (infra) | ADMIN | ✓ | ✓ | ✓ | ✓ | yaml:85,187; membership.rb:83; wpe.rb:52,67; org.ts:56; contracts:129 — **name collision** with `custom_domains.max` limit |
-| `homepage_secrets` | plan (core) | ADMIN | ✓ | ✓ | ✓ | ✓ | yaml:97,191; membership.rb:84; wpe.rb:52,69; org.ts:50; contracts:136 |
-| `incoming_secrets` | plan (core) | ADMIN | ✓ | ✓ | ✓ | ✓ | yaml:101,190; membership.rb:85; wpe.rb:52,68; org.ts:51; contracts:137 — **#3491 canonical plan example**; #3479 dual-gate reference |
-| `custom_branding` | plan (branding) | ADMIN | ✓ | ✓ | — | ✓ | yaml:93; membership.rb:86; wpe.rb:53; org.ts:66; contracts:128 — **#3491 canonical plan example** |
-| `custom_privacy_defaults` | plan (core) | ADMIN | ✓ | ✓ | — | ✓ | yaml:109; membership.rb:87; wpe.rb:53; org.ts:60; contracts:131 |
-| `audit_logs` | plan (advanced) | ADMIN | ✓ | ✓ | — | ✓ | yaml:141; membership.rb:81; wpe.rb:51; org.ts:77; contracts:126 — **#3491 canonical plan example**; genuinely dual-natured (see §4) |
-| `ip_access_rules` | plan (advanced) | OWNER | ✓ | ✓ | — | ✓ | yaml:137; membership.rb:91; wpe.rb:51; org.ts:57; contracts:138 — ADR puts in ADMIN (tier drift) |
-| `workspace_branding` | plan (branding) | OWNER | ✓ | ✓ | — | ✓ | yaml:133; membership.rb:92; wpe.rb:51; org.ts:67; contracts:147 — ADR ADMIN (tier drift) |
-| `custom_mail_sender` | plan (branding) | OWNER | ✓ | ✓ | — | ✓ | yaml:145; membership.rb:93; wpe.rb:54; org.ts:62; contracts:130 — gated via `org.can?` in sender_config/base.rb:71 |
-| `flexible_from_domain` | plan (branding) | OWNER | ✓ | ✓ | — | ✓ | yaml:149; membership.rb:94; wpe.rb:54; org.ts:63; contracts:135 |
-| `custom_signin_config` | plan (advanced) | OWNER | ✓ | ✓ | — | ✓ | yaml:157; membership.rb:95; wpe.rb:55; org.ts:78; contracts:132 — absent from ADR (post-ADR addition) |
-| `custom_signup_validation` | plan (advanced) | OWNER | ✓ | ✓ | — | ✓ | yaml:161; membership.rb:96; wpe.rb:55; org.ts:79; contracts:133 |
+| Entitlement                   | granted_by      | backend role set (current) | catalog | standalone | free_tier | FE  | Key source locations                                                                                                                 |
+| ----------------------------- | --------------- | -------------------------- | ------- | ---------- | --------- | --- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `create_secrets`              | plan (core)     | MEMBER                     | ✓       | ✓          | ✓         | ✓   | yaml:73,186; membership.rb:73; wpe.rb:49,64; org.ts:48; contracts:127                                                                |
+| `view_receipt`                | plan (core)     | MEMBER                     | ✓       | ✓          | ✓         | ✓   | yaml:77,188; membership.rb:74; wpe.rb:49,65; org.ts:49; contracts:146                                                                |
+| `api_access`                  | plan (infra)    | MEMBER                     | ✓       | ✓          | ✓         | ✓   | yaml:81,189; membership.rb:75; wpe.rb:49,66; org.ts:55; contracts:125 — dual-gated (org.can? middleware + membership.can?)           |
+| `extended_default_expiration` | plan (core)     | MEMBER                     | ✓       | ✓          | —         | ✓   | yaml:89; membership.rb:76; wpe.rb:50; org.ts:61; contracts:134 — overlaps `secret_lifetime.max`                                      |
+| `notifications`               | plan (core)     | MEMBER                     | ✓       | ✓          | —         | ✓   | yaml:105; membership.rb:77; wpe.rb:49; org.ts:52; contracts:145                                                                      |
+| `custom_domains`              | plan (infra)    | ADMIN                      | ✓       | ✓          | ✓         | ✓   | yaml:85,187; membership.rb:83; wpe.rb:52,67; org.ts:56; contracts:129 — **name collision** with `custom_domains.max` limit           |
+| `homepage_secrets`            | plan (core)     | ADMIN                      | ✓       | ✓          | ✓         | ✓   | yaml:97,191; membership.rb:84; wpe.rb:52,69; org.ts:50; contracts:136                                                                |
+| `incoming_secrets`            | plan (core)     | ADMIN                      | ✓       | ✓          | ✓         | ✓   | yaml:101,190; membership.rb:85; wpe.rb:52,68; org.ts:51; contracts:137 — **#3491 canonical plan example**; #3479 dual-gate reference |
+| `custom_branding`             | plan (branding) | ADMIN                      | ✓       | ✓          | —         | ✓   | yaml:93; membership.rb:86; wpe.rb:53; org.ts:66; contracts:128 — **#3491 canonical plan example**                                    |
+| `custom_privacy_defaults`     | plan (core)     | ADMIN                      | ✓       | ✓          | —         | ✓   | yaml:109; membership.rb:87; wpe.rb:53; org.ts:60; contracts:131                                                                      |
+| `audit_logs`                  | plan (advanced) | ADMIN                      | ✓       | ✓          | —         | ✓   | yaml:141; membership.rb:81; wpe.rb:51; org.ts:77; contracts:126 — **#3491 canonical plan example**; genuinely dual-natured (see §4)  |
+| `ip_access_rules`             | plan (advanced) | OWNER                      | ✓       | ✓          | —         | ✓   | yaml:137; membership.rb:91; wpe.rb:51; org.ts:57; contracts:138 — ADR puts in ADMIN (tier drift)                                     |
+| `workspace_branding`          | plan (branding) | OWNER                      | ✓       | ✓          | —         | ✓   | yaml:133; membership.rb:92; wpe.rb:51; org.ts:67; contracts:147 — ADR ADMIN (tier drift)                                             |
+| `custom_mail_sender`          | plan (branding) | OWNER                      | ✓       | ✓          | —         | ✓   | yaml:145; membership.rb:93; wpe.rb:54; org.ts:62; contracts:130 — gated via `org.can?` in sender_config/base.rb:71                   |
+| `flexible_from_domain`        | plan (branding) | OWNER                      | ✓       | ✓          | —         | ✓   | yaml:149; membership.rb:94; wpe.rb:54; org.ts:63; contracts:135                                                                      |
+| `custom_signin_config`        | plan (advanced) | OWNER                      | ✓       | ✓          | —         | ✓   | yaml:157; membership.rb:95; wpe.rb:55; org.ts:78; contracts:132 — absent from ADR (post-ADR addition)                                |
+| `custom_signup_validation`    | plan (advanced) | OWNER                      | ✓       | ✓          | —         | ✓   | yaml:161; membership.rb:96; wpe.rb:55; org.ts:79; contracts:133                                                                      |
 
 ### 3.2 Role capabilities (role-granted, member-level)
 
-| Capability | granted_by | backend role set (current) | catalog | FE | Key source locations / notes |
-|---|---|---|---|---|---|
-| `manage_org` | role (OWNER in code; route guards treat owner∥admin) | OWNER | yaml:117 (collaboration) | ✓ | membership.rb:98; wpe.rb:55; org.ts:70; contracts:141 — **#3491 canonical**; highest-traffic role gate (update/delete org, role changes, every domain-config authorize) |
-| `manage_members` | role (admin+) | ADMIN | yaml:129 (collaboration) | ✓ | membership.rb:82; wpe.rb:51; org.ts:73; contracts:140 — **#3491 canonical**; gates invitations CRUD; FE shows `upgrade_to_invite` for its denial |
-| `manage_sso` | role (owner) | OWNER | yaml:153 (advanced) | ✓ | membership.rb:97; wpe.rb:55; org.ts:74; contracts:143 — **#3491 canonical**; cataloged under a *plan* category |
-| `manage_billing` | role (owner) | OWNER | yaml:125 (billing) | ✗ (in KNOWN, not in ENTITLEMENTS) | membership.rb:99; wpe.rb:55; contracts:139 — **FE internal drift**: present in `KNOWN_ENTITLEMENTS` but absent from the `ENTITLEMENTS` runtime const (org.ts:46-80) |
-| `manage_teams` | role (intended) | **none** | yaml:121 (collaboration) | ✓ | wpe.rb:51 (STANDALONE only); org.ts:72; contracts:144 — **ORPHANED**: in no `ROLE_ENTITLEMENTS` set, so intersection always drops it; effectively dead at membership level |
-| `manage_orgs` | account-level role (intended) | **none** | yaml:113 (collaboration) | ✓ | org.ts:71; contracts:142 — **ORPHANED + account-scoped**; gates FE org-switcher/`canCreateMultipleOrgs` (OrganizationsSettings.vue:73) but never grantable when billing enabled |
+| Capability       | granted_by                                           | backend role set (current) | catalog                  | FE                                | Key source locations / notes                                                                                                                                                    |
+| ---------------- | ---------------------------------------------------- | -------------------------- | ------------------------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `manage_org`     | role (OWNER in code; route guards treat owner∥admin) | OWNER                      | yaml:117 (collaboration) | ✓                                 | membership.rb:98; wpe.rb:55; org.ts:70; contracts:141 — **#3491 canonical**; highest-traffic role gate (update/delete org, role changes, every domain-config authorize)         |
+| `manage_members` | role (admin+)                                        | ADMIN                      | yaml:129 (collaboration) | ✓                                 | membership.rb:82; wpe.rb:51; org.ts:73; contracts:140 — **#3491 canonical**; gates invitations CRUD; FE shows `upgrade_to_invite` for its denial                                |
+| `manage_sso`     | role (owner)                                         | OWNER                      | yaml:153 (advanced)      | ✓                                 | membership.rb:97; wpe.rb:55; org.ts:74; contracts:143 — **#3491 canonical**; cataloged under a _plan_ category                                                                  |
+| `manage_billing` | role (owner)                                         | OWNER                      | yaml:125 (billing)       | ✗ (in KNOWN, not in ENTITLEMENTS) | membership.rb:99; wpe.rb:55; contracts:139 — **FE internal drift**: present in `KNOWN_ENTITLEMENTS` but absent from the `ENTITLEMENTS` runtime const (org.ts:46-80)             |
+| `manage_teams`   | role (intended)                                      | **none**                   | yaml:121 (collaboration) | ✓                                 | wpe.rb:51 (STANDALONE only); org.ts:72; contracts:144 — **ORPHANED**: in no `ROLE_ENTITLEMENTS` set, so intersection always drops it; effectively dead at membership level      |
+| `manage_orgs`    | account-level role (intended)                        | **none**                   | yaml:113 (collaboration) | ✓                                 | org.ts:71; contracts:142 — **ORPHANED + account-scoped**; gates FE org-switcher/`canCreateMultipleOrgs` (OrganizationsSettings.vue:73) but never grantable when billing enabled |
 
 ### 3.3 Limits (numeric quotas — already separated, stay in `limits_plan`)
 
-| Limit | granted_by | Key source locations / notes |
-|---|---|---|
-| `organizations` | plan | yaml:201 (=1); wpe.rb:115 (max=5) — **free-tier drift** (code 5 vs yaml 1) |
-| `teams` | plan | wpe.rb:116 (max=0); organizationLimitsSchema.teams — tied to dormant `manage_teams` |
-| `total_members_per_org` | plan | yaml:202 (=1); wpe.rb:117 (max=0) — **free-tier drift** (code 0 vs yaml 1) |
-| `role_owners_per_org` | plan (quota on a role count) | yaml:203; wpe.rb:118 (max=1) — **third axis**: plan limit quantifying a role |
-| `role_admins_per_org` | plan (quota on a role count) | yaml:204; wpe.rb:119 — consumed by `compute_assignable_roles` (get_permissions.rb) |
-| `role_members_per_org` | plan (quota on a role count) | yaml:205; wpe.rb:120 |
-| `custom_domains` (limit) | plan | yaml:206; organizationLimitsSchema; safe_dump_fields.rb — **NAME COLLISION** with `custom_domains` feature |
-| `secret_lifetime` | plan | yaml:207 (14d); wpe.rb:121 (DEFAULT_FREE_TTL) — coupled to `extended_default_expiration` boolean |
-| `secrets_per_day` | plan | yaml:208 (null, unimplemented) |
+| Limit                    | granted_by                   | Key source locations / notes                                                                               |
+| ------------------------ | ---------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `organizations`          | plan                         | yaml:201 (=1); wpe.rb:115 (max=5) — **free-tier drift** (code 5 vs yaml 1)                                 |
+| `teams`                  | plan                         | wpe.rb:116 (max=0); organizationLimitsSchema.teams — tied to dormant `manage_teams`                        |
+| `total_members_per_org`  | plan                         | yaml:202 (=1); wpe.rb:117 (max=0) — **free-tier drift** (code 0 vs yaml 1)                                 |
+| `role_owners_per_org`    | plan (quota on a role count) | yaml:203; wpe.rb:118 (max=1) — **third axis**: plan limit quantifying a role                               |
+| `role_admins_per_org`    | plan (quota on a role count) | yaml:204; wpe.rb:119 — consumed by `compute_assignable_roles` (get_permissions.rb)                         |
+| `role_members_per_org`   | plan (quota on a role count) | yaml:205; wpe.rb:120                                                                                       |
+| `custom_domains` (limit) | plan                         | yaml:206; organizationLimitsSchema; safe_dump_fields.rb — **NAME COLLISION** with `custom_domains` feature |
+| `secret_lifetime`        | plan                         | yaml:207 (14d); wpe.rb:121 (DEFAULT_FREE_TTL) — coupled to `extended_default_expiration` boolean           |
+| `secrets_per_day`        | plan                         | yaml:208 (null, unimplemented)                                                                             |
 
 ---
 
@@ -298,7 +297,7 @@ Counts (re-verified against source at preparation; see the count-verification no
 
 **H1 — Role capabilities live in the same namespace, catalog, and ROLE sets as plan features (the root conflation).**
 `billing.example.yaml:113-155`; `organization_membership.rb:80-100`; `wpe.rb:48-56`. No type/prefix/store distinguishes "subscription includes X" from "role permits Y". `STANDALONE` (wpe.rb:46-47) explicitly requires role caps in the org plan set so the intersection survives — deliberately fusing the two at org level.
-**Action:** split `ROLE_ENTITLEMENTS` into `ROLE_CAPABILITIES` (manage_* only) and remove all plan-feature strings from role Sets; remove `manage_*` from the billing catalog and any plan array; remove `manage_*` from `STANDALONE`. Plan features flow to all members (gated only by org plan); capabilities flow from the role table (no plan intersection). Model on the already-clean `has_system_role?('colonel')` axis.
+**Action:** split `ROLE_ENTITLEMENTS` into `ROLE_CAPABILITIES` (manage*\* only) and remove all plan-feature strings from role Sets; remove `manage*\_`from the billing catalog and any plan array; remove`manage\_\_`from`STANDALONE`. Plan features flow to all members (gated only by org plan); capabilities flow from the role table (no plan intersection). Model on the already-clean `has_system_role?('colonel')` axis.
 
 **H2 — Single materialization intersection fuses the two dimensions into one blob.**
 `with_materialized_entitlements.rb:88-113, 100-101, 123-140`. A member denied `custom_branding` (plan cause) and one denied `manage_org` (role cause) flow through identical code with no record of which dimension denied them. Plus the doc/code drift at lines 60-61 vs 100.
@@ -376,17 +375,17 @@ Counts (re-verified against source at preparation; see the count-verification no
 
 ### LOW
 
-**L1 — `audit_logs` and `api_access` are genuinely dual-natured.** Whether the org *has* the feature is a plan question; whether a role may *view/use* it is a capability question — collapsed to one string. (`membership.rb:81,75`; `entitlement_check.rb:62`; `base.rb`.) **Action:** per-token product decision — each may need to exist in both registries (plan availability + role permission). **Recommended default pattern** (for turning this into tickets): keep a plan-feature flag for "the org has purchased X" (org-scoped, billing gate) *and* add a distinct role-capability for "this role may access/use X" (member-scoped, role gate); the gate then reads `org.has_feature?(:audit_logs) && membership.has_capability?(:view_audit_logs)`. Only split tokens where both questions are real — do not mint a capability for features every member may use once the org has them (e.g. `create_secrets`).
+**L1 — `audit_logs` and `api_access` are genuinely dual-natured.** Whether the org _has_ the feature is a plan question; whether a role may _view/use_ it is a capability question — collapsed to one string. (`membership.rb:81,75`; `entitlement_check.rb:62`; `base.rb`.) **Action:** per-token product decision — each may need to exist in both registries (plan availability + role permission). **Recommended default pattern** (for turning this into tickets): keep a plan-feature flag for "the org has purchased X" (org-scoped, billing gate) _and_ add a distinct role-capability for "this role may access/use X" (member-scoped, role gate); the gate then reads `org.has_feature?(:audit_logs) && membership.has_capability?(:view_audit_logs)`. Only split tokens where both questions are real — do not mint a capability for features every member may use once the org has them (e.g. `create_secrets`).
 
 **L2 — `extended_default_expiration` boolean duplicates `secret_lifetime.max`.** `membership.rb:76`; `wpe.rb:121`; `apps/api/v2/logic/secrets/base_secret_action.rb:122-123`. **Action:** convert to the numeric limit; drop the boolean stand-in.
 
 **L3 — `priority_support` / `basic_sharing` / `create_team(s)` appear in plan lists or FE docs but have no ROLE/STANDALONE home.** `ENTITLEMENT_QUICK_REFERENCE.md`; `entitlement_enforcement_spec.rb`. **Action:** treat as plan-only or remove placeholder/example strings.
 
-**L4 — Operator overrides target one namespace on both layers.** `apps/api/colonel/logic/colonel/manage_entitlement_override.rb`; `with_materialized_entitlements.rb:173-204`. An operator can grant `manage_org` (role) or `incoming_secrets` (plan) through the identical path. **Action (per §8 D2):** restrict org-level overrides to plan features and membership-level overrides to **capabilities only** — drop per-member *feature* overrides entirely rather than porting them; migrate existing override data.
+**L4 — Operator overrides target one namespace on both layers.** `apps/api/colonel/logic/colonel/manage_entitlement_override.rb`; `with_materialized_entitlements.rb:173-204`. An operator can grant `manage_org` (role) or `incoming_secrets` (plan) through the identical path. **Action (per §8 D2):** restrict org-level overrides to plan features and membership-level overrides to **capabilities only** — drop per-member _feature_ overrides entirely rather than porting them; migrate existing override data.
 
 **L5 — The org∩role intersection has a second, subtly different implementation in the unmaterialized fallback.** `compute_entitlements_from_role` (`with_materialized_entitlements.rb:227-239`) re-derives `org.entitlements ∩ ROLE_ENTITLEMENTS[role]` for memberships that were never materialized — but **skips grants − revokes**. Compounding it, `grant_entitlement`/`revoke_entitlement` write `materialized_entitlements` without setting `materialized_entitlements_at`, so an operator override on a never-materialized membership is silently invisible until `materialize_for_role!` runs. Likely unreachable in practice (invite acceptance and SSO first-auth both materialize), but real at the model layer. **Action:** the split must change **both** intersection sites, not just `materialize_for_role!`; the §6 Stage C backfill closes this seam permanently — assert that in its idempotency tests (§7).
 
-**L6 — Colonel preview mode is an unassigned consumer.** `entitlements_for_request` (used by billing `#show`) layers colonel preview overrides (`apps/api/colonel/logic/colonel/set_entitlement_preview.rb`) over org entitlements. Preview exists to preview *plans*, so it belongs to the **feature axis only** — after separation it must not be able to preview-grant role capabilities. **Action:** pin preview mode to `org.plan_entitlements` during the Stage B/C wire split.
+**L6 — Colonel preview mode is an unassigned consumer.** `entitlements_for_request` (used by billing `#show`) layers colonel preview overrides (`apps/api/colonel/logic/colonel/set_entitlement_preview.rb`) over org entitlements. Preview exists to preview _plans_, so it belongs to the **feature axis only** — after separation it must not be able to preview-grant role capabilities. **Action:** pin preview mode to `org.plan_entitlements` during the Stage B/C wire split.
 
 ---
 
@@ -428,10 +427,10 @@ FREE_TIER_FEATURES  = Set['create_secrets','view_receipt','api_access','custom_d
 
 ### 5.2 New model fields / Redis sets
 
-| Object | Field (current) | Field (target) |
-|---|---|---|
-| Organization | `set :entitlements_plan`, `set :materialized_entitlements`, grants/revokes (`with_materialized_entitlements.rb:66-86`) | unchanged in shape but **plan-features-only**; never write `manage_*` here |
-| Organization | — | (limits unchanged: `hashkey :limits_plan`) |
+| Object                 | Field (current)                                                                                                        | Field (target)                                                                                                                                                                 |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Organization           | `set :entitlements_plan`, `set :materialized_entitlements`, grants/revokes (`with_materialized_entitlements.rb:66-86`) | unchanged in shape but **plan-features-only**; never write `manage_*` here                                                                                                     |
+| Organization           | —                                                                                                                      | (limits unchanged: `hashkey :limits_plan`)                                                                                                                                     |
 | OrganizationMembership | `set :entitlements_plan`, `set :materialized_entitlements`, grants/revokes (`with_materialized_entitlements.rb:53-64`) | `set :materialized_features` (= org plan features, org-scoped read-through) **+** `set :materialized_capabilities` (= `ROLE_CAPABILITIES[role]`), each with own grants/revokes |
 
 > **Naming note:** the conflation extends to storage key names — the membership
@@ -481,30 +480,39 @@ Deprecate the generic `can?()` / `require_entitlement!` once call sites are re-t
 ### 5.6 Before/after — endpoint (domain config authorize)
 
 **Before** (`apps/api/domains/policies/domain_config_authorization.rb:109-110,158`; comment admits divergence):
+
 ```ruby
 require_entitlement_in!(@organization, 'manage_org')           # role gate via membership.can?
 # ... later ...
 organization.can?(config_entitlement)                          # plan gate via org.can?  (divergent path)
 ```
+
 **After:**
+
 ```ruby
 require_capability!('manage_org')                              # explicit role gate → CapabilityRequired
 require_plan_feature!(config_entitlement)                      # explicit plan gate → EntitlementRequired (upgrade)
 ```
+
 Both gates intentional, principled, same error semantics across middleware and logic layers.
 
 ### 5.7 Before/after — Vue component (`DomainEmail.vue`, currently plan-only)
 
 **Before** (`src/apps/workspace/domains/DomainEmail.vue:58`; relies on route `requiresOrgRole:'admin'`):
+
 ```ts
-const hasEntitlement = computed(() => can(ENTITLEMENTS.CUSTOM_MAIL_SENDER))   // plan only
+const hasEntitlement = computed(() => can(ENTITLEMENTS.CUSTOM_MAIL_SENDER)); // plan only
 // v-else-if="!hasEntitlement" → form  (no in-component role gate)
 ```
+
 **After** (matches the #3479 reference shape from `DomainIncoming.vue:58-64`):
+
 ```ts
-const hasMailFeature   = computed(() => useFeatures(org).hasFeature(PLAN_FEATURES.CUSTOM_MAIL_SENDER)) // plan → upgrade branch
-const canManageOrg     = computed(() => usePermissions(membership).can(ROLE_CAPABILITIES.MANAGE_ORG))   // role → access-denied branch
-const canConfigure     = computed(() => hasMailFeature.value && canManageOrg.value)
+const hasMailFeature = computed(() =>
+  useFeatures(org).hasFeature(PLAN_FEATURES.CUSTOM_MAIL_SENDER)
+); // plan → upgrade branch
+const canManageOrg = computed(() => usePermissions(membership).can(ROLE_CAPABILITIES.MANAGE_ORG)); // role → access-denied branch
+const canConfigure = computed(() => hasMailFeature.value && canManageOrg.value);
 // template: !hasMailFeature → "upgrade plan"; hasMailFeature && !canManageOrg → "insufficient permissions"; else → form
 ```
 
@@ -515,8 +523,8 @@ capabilities nested under features. The relationship between them is many-valued
 in one direction and partial in both:
 
 - **One plan feature → 1..N role capabilities.** A feature answers "is this
-  available at all"; the capabilities answer "which role may *view / use /
-  manage* it." This is already latent in the code: the `custom_domains` feature
+  available at all"; the capabilities answer "which role may _view / use /
+  manage_ it." This is already latent in the code: the `custom_domains` feature
   yields `can_view`/`can_edit` for any member but `can_delete`/`can_manage_settings`
   only with `manage_org` (`apps/api/account/logic/account/get_permissions.rb:221-241`).
   After separation this becomes explicit: a gate reads
@@ -529,7 +537,7 @@ in one direction and partial in both:
   registries whose gates `AND` together only where both apply.
 - **Design consequence.** `require_plan_feature!` and `require_capability!` stay
   separate calls; a two-gate endpoint invokes both (§5.6). The "feature owns
-  capabilities" intuition is a useful *documentation* grouping (which verbs a
+  capabilities" intuition is a useful _documentation_ grouping (which verbs a
   feature exposes) but must **not** be encoded as storage nesting — that would
   reintroduce the coupling this refactor removes.
 
@@ -549,8 +557,8 @@ Introduce `kind` metadata: add `PLAN_FEATURES`/`ROLE_CAPABILITIES` Ruby constant
 Add `org.has_feature?` / `membership.has_capability?` and `require_plan_feature!` / `require_capability!` that, in this stage, route to the existing merged set (so behavior is identical) but carry the correct **error semantics** (capability denials raise `CapabilityRequired` with no `current_plan`/`upgrade_to`; split locale keys — H3). Add wire fields `org.plan_entitlements` and `membership.role_capabilities` **alongside** the legacy `entitlements` arrays (do not remove yet). Add FE `useFeatures`/`usePermissions` as façades over the current `org.entitlements`. Convert domain config pages to the dual-gate shape (M2) and fix the standalone short-circuit to apply only to features (M4). Re-type call sites (`update_member_role.rb`, invitations → `require_capability!`; domain CRUD → `require_plan_feature!('custom_domains')` **plus** `require_capability!('manage_domains')` — see the decision list below). At this point the two interfaces exist and produce correct UX, but storage is still merged. Two work items gate this stage:
 
 - **Tier-preservation decision list (required before any re-typing ships).**
-  `ADMIN_/OWNER_ENTITLEMENTS` do not just hold capabilities — they *tier plan
-  features by role* (§3.1 "backend role set" column), and that tiering is live
+  `ADMIN_/OWNER_ENTITLEMENTS` do not just hold capabilities — they _tier plan
+  features by role_ (§3.1 "backend role set" column), and that tiering is live
   enforcement. Verified: `add_domain.rb:63`'s **only** authorization is
   `require_entitlement_in!(@target_organization, 'custom_domains')`; a
   member-role user is blocked solely because `custom_domains` sits in
@@ -560,7 +568,7 @@ Add `org.has_feature?` / `membership.has_capability?` and `require_plan_feature!
   intersection is the only role gate and rule each one explicitly:
   **preserve** the tier (attach a capability — e.g. D1's `manage_domains` on
   `add_domain`/`remove_domain`) or **relax** deliberately (feature flows to all
-  members — likely intended for domain *viewing*, `get_domain.rb:46` /
+  members — likely intended for domain _viewing_, `get_domain.rb:46` /
   `list_domains.rb:47`, per §5.8). Same class: `update_domain_brand.rb:193`
   (`custom_privacy_defaults`). Every "preserve" ruling gets a regression spec
   (§7).
@@ -602,13 +610,13 @@ New tests required: `require_capability!` raises `CapabilityRequired` (no upgrad
 ## 8. Risks & open questions
 
 - **Two-gate pairing hazard — a regression vector of the very defect ADR-012 fixed.** ADR-012 §Context documents why the fusion exists: separate role guards "must be manually paired with entitlement checks at every call site. Nothing forces the pairing," and five domain-branding endpoints shipped without it (#3225, an actual privilege gap). Option C's `require_plan_feature!` + `require_capability!` is structurally that same manually-paired shape. The design must ship a countermeasure — a composite `require_access!(feature:, capability:)` gate, or route-level authorization metadata plus a CI audit over mutating org-scoped endpoints — so the split regains "which axis denied this?" without losing "no endpoint can forget an axis." (§1.2; §6 Stage B.)
-- **Role-tiering of plan features is load-bearing enforcement that Option C relaxes.** "Plan features flow to all members" (H1 action) is a behavior change at every call site where an admin/owner-tier feature's intersection is the *only* role gate (verified: `add_domain.rb:63`). The §6 Stage B per-feature preserve-or-relax decision list must exist before any re-typing ships; every "preserve" ruling needs a capability and a regression spec (§7).
+- **Role-tiering of plan features is load-bearing enforcement that Option C relaxes.** "Plan features flow to all members" (H1 action) is a behavior change at every call site where an admin/owner-tier feature's intersection is the _only_ role gate (verified: `add_domain.rb:63`). The §6 Stage B per-feature preserve-or-relax decision list must exist before any re-typing ships; every "preserve" ruling needs a capability and a regression spec (§7).
 - **Gate policy for the split predicates (colonel bypass, anonymous access).** Today the two gates disagree: `require_entitlement!` fails **open** for anonymous users (`base.rb:191`) where `require_entitlement_in!` fails closed; `require_entitlement_in!` has a colonel bypass (`base.rb:278`) that `require_entitlement!` lacks. Each new gate needs an explicit ruling in the superseding ADR: colonel bypass on capabilities (operator axis — plausibly yes) vs on features (bypassing a plan gate masks billing misconfiguration — plausibly no); and anonymous access (guest route gating owns anonymous today — a capability gate should never pass for an anonymous caller). (M1.)
 - **HTTP status and wire discrimination for the two denial vocabularies.** `EntitlementRequired` subclasses `Forbidden` (`errors.rb:160`), so both denial kinds are 403 today and differ only in payload. The split must decide: `CapabilityRequired` presumably stays 403, but do plan-feature denials keep 403 with `error_type` discrimination, or move to 402 Payment Required? Whatever is chosen must be consistent across the middleware path (`Rack::EntitlementCheck` emits its own denial JSON) and the logic-layer path, and stable for frontend error handling that branches on `error_type`/payload shape. Decide in the superseding ADR alongside H3's error split.
 - **Dual-natured tokens (`audit_logs`, `api_access`).** Product decision required: does each need to exist in **both** a plan-feature registry (availability) and a capability registry (who may view/use)? (L1) This is not a mechanical split.
 - **`manage_orgs` as a third axis.** It is account-scoped ("manage organizations on your account"), not org-scoped. Option C may need an **account-role** dimension distinct from both org-plan and org-role. (H4)
 - **DECIDED (D1) — `manage_org` stays owner-exclusive; add an admin+ `manage_domains` capability.** Code makes `manage_org` OWNER-only while route guards/`useOrgPermissions` already admit owner∥admin, so admins pass route guards but would fail `can(MANAGE_ORG)` (M3). Ratified resolution: keep `manage_org` **owner-exclusive** for org-lifecycle actions (rename, delete, billing, SSO) and introduce a distinct **admin+ `manage_domains`** capability for the domain-config surface admins already reach — aligning the model with shipped route-guard behavior instead of widening `manage_org`. Reflected in §5.1 (`ADMIN_CAPABILITIES` now includes `manage_domains`) and M3.
-- **DECIDED (D2) — per-member *feature* overrides are unsupported; per-member *capability* overrides stay.** ADR-012 routed feature checks through membership so a per-member revoke could disable a feature for one user. Ratified resolution: **drop** per-member feature overrides (features are a property of the org's subscription, not the member) and **keep** per-member capability overrides (the colonel grant/revoke path, inherently member-scoped). No current spec/CLI exercises a per-member feature revoke, so Stage C removes that path and L4 splits overrides accordingly.
+- **DECIDED (D2) — per-member _feature_ overrides are unsupported; per-member _capability_ overrides stay.** ADR-012 routed feature checks through membership so a per-member revoke could disable a feature for one user. Ratified resolution: **drop** per-member feature overrides (features are a property of the org's subscription, not the member) and **keep** per-member capability overrides (the colonel grant/revoke path, inherently member-scoped). No current spec/CLI exercises a per-member feature revoke, so Stage C removes that path and L4 splits overrides accordingly.
 - **RESOLVED — `/billing/entitlements/:extid` returns org-level plan entitlements, not the role-intersected set.** `Billing::Controllers::Entitlements#show` returns `entitlements: org.entitlements_for_request(session)` (org plan entitlements + colonel preview overrides), **not** any membership set. So the frontend's `org.entitlements` is genuinely org-level plan data with **no role filter** — the schema's "org-level" framing is correct, and the fix is a **re-label** (`org.entitlements` → `org.plan_entitlements`) plus a **new membership/permissions field** for `role_capabilities`, not a re-scope of the existing endpoint. (Verified in `apps/web/billing/controllers/entitlements.rb#show`.)
 - **Standalone capability grant path.** Today `STANDALONE` carries capabilities so the intersection survives. After separation, what grants capabilities in self-hosted mode — every member gets all, or role is honored (per ADR-012's claim)? Must be honored to fix M4.
 - **`extended_default_expiration` → limit conversion** (L2) changes the gate at `base_secret_action.rb:122-123` and `update_domain_brand.rb`; verify no behavior regression around the free TTL ceiling.
@@ -619,20 +627,20 @@ New tests required: `require_capability!` raises `CapabilityRequired` (no upgrad
 
 ## 9. Acceptance-criteria mapping
 
-| Issue #3491 acceptance criterion | Where addressed in this prep doc | Concrete deliverable |
-|---|---|---|
-| Plan entitlements and role capabilities are clearly distinguished | §3 taxonomy; §5.1 two registries | `PLAN_FEATURES` vs `ROLE_CAPABILITIES`; remove `manage_*` from catalog/STANDALONE/role Sets (H1, H6) |
-| Separation reflected in storage / data model | §5.2; §6 Stage C | `org` plan-features-only; `membership.materialized_features` + `materialized_capabilities`; eliminate the org∩role intersection (H2) |
-| Separation reflected in the check interface | §5.3 | `org.has_feature?` / `membership.has_capability?`; `require_plan_feature!` / `require_capability!`; deprecate `can?()`/`require_entitlement!` (H3) |
-| Role denials are not framed as plan upgrades | §4 H3; §5.3; §6 Stage B; §7 | `CapabilityRequired` (no `current_plan`/`upgrade_to`); split locale namespaces; rewrite `entitlement_keys_spec.rb`; fix `upgrade_to_invite` UX |
-| Separation reflected on the wire | §5.4; §6 (dual-field back-compat) | `org.plan_entitlements` + `membership.role_capabilities`; `kind` discriminator on catalog endpoints |
-| Separation reflected in the frontend | §5.5, §5.7; §4 M2/M4/M6/M7 | `useFeatures(org)` / `usePermissions(membership)`; split `ENTITLEMENTS` const; dual-gate all domain config pages; fix standalone short-circuit |
-| Consistent enforcement across paths | §4 M1; §5.6; §1.2 | Re-express middleware and domain-config policy in the two-dimension API; remove accidental divergence; pairing countermeasure (composite gate / CI audit, §6 Stage B); explicit colonel/anonymous gate policy (§8) |
-| Billing lifecycle decoupled from authorization | §4 M11; §6 Stage C | Webhook re-materializes features only; `change_role!` is the sole capability driver |
-| Migration is low-risk and backward-compatible | §6 | Option A → B → C sequencing; Redis-set + wire back-compat; idempotent membership backfill |
-| Documentation/contract is trustworthy and current | §4 H7; §6 Stage 0 | Supersede ADR-012; reconcile tier drift; fix stale citations; one generated manifest |
-| Orphans resolved | §4 H4/H5; §3.2 | Wire or remove `manage_teams` and `manage_orgs` (decide account-role axis) |
-| Limits remain correctly attributed | §3.3; §1 | Limits stay in `WithMaterializedLimits`; `role_*_per_org` documented as plan limits ON roles (third axis); reconcile free-tier drift (M10) |
+| Issue #3491 acceptance criterion                                  | Where addressed in this prep doc  | Concrete deliverable                                                                                                                                                                                               |
+| ----------------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Plan entitlements and role capabilities are clearly distinguished | §3 taxonomy; §5.1 two registries  | `PLAN_FEATURES` vs `ROLE_CAPABILITIES`; remove `manage_*` from catalog/STANDALONE/role Sets (H1, H6)                                                                                                               |
+| Separation reflected in storage / data model                      | §5.2; §6 Stage C                  | `org` plan-features-only; `membership.materialized_features` + `materialized_capabilities`; eliminate the org∩role intersection (H2)                                                                               |
+| Separation reflected in the check interface                       | §5.3                              | `org.has_feature?` / `membership.has_capability?`; `require_plan_feature!` / `require_capability!`; deprecate `can?()`/`require_entitlement!` (H3)                                                                 |
+| Role denials are not framed as plan upgrades                      | §4 H3; §5.3; §6 Stage B; §7       | `CapabilityRequired` (no `current_plan`/`upgrade_to`); split locale namespaces; rewrite `entitlement_keys_spec.rb`; fix `upgrade_to_invite` UX                                                                     |
+| Separation reflected on the wire                                  | §5.4; §6 (dual-field back-compat) | `org.plan_entitlements` + `membership.role_capabilities`; `kind` discriminator on catalog endpoints                                                                                                                |
+| Separation reflected in the frontend                              | §5.5, §5.7; §4 M2/M4/M6/M7        | `useFeatures(org)` / `usePermissions(membership)`; split `ENTITLEMENTS` const; dual-gate all domain config pages; fix standalone short-circuit                                                                     |
+| Consistent enforcement across paths                               | §4 M1; §5.6; §1.2                 | Re-express middleware and domain-config policy in the two-dimension API; remove accidental divergence; pairing countermeasure (composite gate / CI audit, §6 Stage B); explicit colonel/anonymous gate policy (§8) |
+| Billing lifecycle decoupled from authorization                    | §4 M11; §6 Stage C                | Webhook re-materializes features only; `change_role!` is the sole capability driver                                                                                                                                |
+| Migration is low-risk and backward-compatible                     | §6                                | Option A → B → C sequencing; Redis-set + wire back-compat; idempotent membership backfill                                                                                                                          |
+| Documentation/contract is trustworthy and current                 | §4 H7; §6 Stage 0                 | Supersede ADR-012; reconcile tier drift; fix stale citations; one generated manifest                                                                                                                               |
+| Orphans resolved                                                  | §4 H4/H5; §3.2                    | Wire or remove `manage_teams` and `manage_orgs` (decide account-role axis)                                                                                                                                         |
+| Limits remain correctly attributed                                | §3.3; §1                          | Limits stay in `WithMaterializedLimits`; `role_*_per_org` documented as plan limits ON roles (third axis); reconcile free-tier drift (M10)                                                                         |
 
 ---
 
@@ -676,18 +684,18 @@ not foreclose it.
 Every claim below was confirmed by reading the cited source directly during
 preparation (not only via the reader passes):
 
-| Claim | Source confirmed |
-|---|---|
-| One flat namespace mixes plan features and role capabilities | `etc/examples/billing.example.yaml:72-163`; `lib/onetime/models/organization_membership.rb:72-106`; `src/types/organization.ts:46-80` |
-| Membership = `org.entitlements ∩ ROLE_ENTITLEMENTS[role] + grants − revokes` | `lib/onetime/models/organization_membership/features/with_materialized_entitlements.rb:88-140` |
-| Plans never enumerate `manage_*` → intersection strips capabilities in billing mode | `etc/examples/billing.example.yaml:185-239`; `with_plan_entitlements.rb:177-221` |
-| `STANDALONE_ENTITLEMENTS` deliberately carries `manage_*` to keep the intersection from dropping them | `with_plan_entitlements.rb:46-56` |
-| Two divergent enforcement paths: `membership.can?` vs `org.can?` | `lib/onetime/logic/base.rb:241,303`; `lib/middleware/entitlement_check.rb:62` |
-| The one explicit two-gate site admits its two paths "can diverge" | `apps/api/domains/policies/domain_config_authorization.rb:88-101,158-159` |
-| Permission booleans conflate plan and role axes on the wire | `apps/api/account/logic/account/get_permissions.rb:213,221-241` |
-| Bootstrap ships `planid` + `current_user_role` but **not** entitlements; `org.entitlements` loads from `/billing/api/entitlements/:extid` | `apps/web/core/views/serializers/organization_serializer.rb:55-73`; `src/shared/stores/organizationStore.ts:299-341` |
-| Frontend `can()` reads `org.entitlements` with **no role intersection**; standalone short-circuits `true` for everyone, although `current_user_role` is available | `src/shared/composables/useEntitlements.ts:86-100`; bootstrap org payload |
-| ADR-012 role tiers do not match shipped `ROLE_ENTITLEMENTS` | `docs/architecture/decision-records/adr-012-membership-level-entitlements.md:31-48` vs `organization_membership.rb:72-106` |
+| Claim                                                                                                                                                             | Source confirmed                                                                                                                      |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| One flat namespace mixes plan features and role capabilities                                                                                                      | `etc/examples/billing.example.yaml:72-163`; `lib/onetime/models/organization_membership.rb:72-106`; `src/types/organization.ts:46-80` |
+| Membership = `org.entitlements ∩ ROLE_ENTITLEMENTS[role] + grants − revokes`                                                                                      | `lib/onetime/models/organization_membership/features/with_materialized_entitlements.rb:88-140`                                        |
+| Plans never enumerate `manage_*` → intersection strips capabilities in billing mode                                                                               | `etc/examples/billing.example.yaml:185-239`; `with_plan_entitlements.rb:177-221`                                                      |
+| `STANDALONE_ENTITLEMENTS` deliberately carries `manage_*` to keep the intersection from dropping them                                                             | `with_plan_entitlements.rb:46-56`                                                                                                     |
+| Two divergent enforcement paths: `membership.can?` vs `org.can?`                                                                                                  | `lib/onetime/logic/base.rb:241,303`; `lib/middleware/entitlement_check.rb:62`                                                         |
+| The one explicit two-gate site admits its two paths "can diverge"                                                                                                 | `apps/api/domains/policies/domain_config_authorization.rb:88-101,158-159`                                                             |
+| Permission booleans conflate plan and role axes on the wire                                                                                                       | `apps/api/account/logic/account/get_permissions.rb:213,221-241`                                                                       |
+| Bootstrap ships `planid` + `current_user_role` but **not** entitlements; `org.entitlements` loads from `/billing/api/entitlements/:extid`                         | `apps/web/core/views/serializers/organization_serializer.rb:55-73`; `src/shared/stores/organizationStore.ts:299-341`                  |
+| Frontend `can()` reads `org.entitlements` with **no role intersection**; standalone short-circuits `true` for everyone, although `current_user_role` is available | `src/shared/composables/useEntitlements.ts:86-100`; bootstrap org payload                                                             |
+| ADR-012 role tiers do not match shipped `ROLE_ENTITLEMENTS`                                                                                                       | `docs/architecture/decision-records/adr-012-membership-level-entitlements.md:31-48` vs `organization_membership.rb:72-106`            |
 
 ## Appendix B — Where to start (smallest first PR)
 
@@ -697,7 +705,7 @@ Stage 0 (docs) + the highest-signal, lowest-risk slice of Stage A:
 2. Add backend `ROLE_CAPABILITIES` and `PLAN_FEATURES` constants as **derived
    views** over today's sets (no storage/behavior change) and a CI assertion that
    the two partitions are disjoint and exhaustive over `ROLE_ENTITLEMENTS ∪
-   STANDALONE_ENTITLEMENTS` — this freezes the taxonomy and prevents new drift.
+STANDALONE_ENTITLEMENTS` — this freezes the taxonomy and prevents new drift.
 3. Fix the two free, unambiguous drifts: the stale `lib/onetime/billing/catalog.rb`
    citation (present in **both** `src/types/organization.ts` near the `ENTITLEMENTS`
    const header and `src/schemas/contracts/organization.ts` above `KNOWN_ENTITLEMENTS`)

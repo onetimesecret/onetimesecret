@@ -2,7 +2,6 @@
 
 Utility and operational scripts for Onetime Secret.
 
-
 ## Directories
 
 - `upgrades/` - Data transformation scripts for major version upgrades

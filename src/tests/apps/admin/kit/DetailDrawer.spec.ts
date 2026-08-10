@@ -96,7 +96,10 @@ describe('DetailDrawer (record slide-over)', () => {
   });
 
   it('allows overriding the header via the header slot', () => {
-    wrapper = mountDrawer({ title: 'ignored' }, { header: '<div class="custom-head">Custom</div>' });
+    wrapper = mountDrawer(
+      { title: 'ignored' },
+      { header: '<div class="custom-head">Custom</div>' }
+    );
     expect(wrapper.find('.custom-head').exists()).toBe(true);
   });
 });

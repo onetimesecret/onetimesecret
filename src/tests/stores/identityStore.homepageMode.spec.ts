@@ -31,9 +31,7 @@ import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useProductIdentity } from '@/shared/stores/identityStore';
 import type { HomepageConfigCanonical } from '@/schemas/contracts/custom-domain/homepage-config';
 
-function homepageConfig(
-  overrides: Partial<HomepageConfigCanonical> = {}
-): HomepageConfigCanonical {
+function homepageConfig(overrides: Partial<HomepageConfigCanonical> = {}): HomepageConfigCanonical {
   return {
     domain_id: 'd_123',
     enabled: true,

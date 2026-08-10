@@ -209,7 +209,10 @@ test.describe.fixme('Org Switcher Navigation - Same Tab Navigation', () => {
     // Verify page content updated - Second Org should show "No domains found"
     // or different domain list than Default Workspace
     const noDomains = page.locator('text=/no domains/i, text=/no custom domains/i');
-    const hasDomainList = await page.locator('[data-testid="domains-list"], table').isVisible().catch(() => false);
+    const hasDomainList = await page
+      .locator('[data-testid="domains-list"], table')
+      .isVisible()
+      .catch(() => false);
 
     // Either shows "no domains" message or a domain list (but different from previous org)
     const noDomainsVisible = await noDomains.isVisible().catch(() => false);
@@ -260,7 +263,10 @@ test.describe.fixme('Org Switcher Navigation - Same Tab Navigation', () => {
     const billingContent = page.locator(
       'text=/subscription/i, text=/plan/i, text=/billing/i, [data-testid="billing-content"]'
     );
-    const hasBillingContent = await billingContent.first().isVisible().catch(() => false);
+    const hasBillingContent = await billingContent
+      .first()
+      .isVisible()
+      .catch(() => false);
     expect(hasBillingContent).toBe(true);
   });
 
@@ -299,13 +305,19 @@ test.describe.fixme('Org Switcher Navigation - Same Tab Navigation', () => {
     const orgNameInContent = page.locator(
       `text="${ORG_SECOND}", input[value="${ORG_SECOND}"], [data-testid="org-name"]`
     );
-    const hasNewOrgName = await orgNameInContent.first().isVisible().catch(() => false);
+    const hasNewOrgName = await orgNameInContent
+      .first()
+      .isVisible()
+      .catch(() => false);
 
     // Also check for generic settings content as fallback
     const settingsContent = page.locator(
       'text=/organization name/i, text=/general settings/i, form'
     );
-    const hasSettingsContent = await settingsContent.first().isVisible().catch(() => false);
+    const hasSettingsContent = await settingsContent
+      .first()
+      .isVisible()
+      .catch(() => false);
 
     expect(hasNewOrgName || hasSettingsContent).toBe(true);
   });

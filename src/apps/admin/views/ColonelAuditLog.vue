@@ -1,7 +1,6 @@
 <!-- src/apps/admin/views/ColonelAuditLog.vue -->
 
 <script setup lang="ts">
-
   import { DataTable, FilterBar, KitPagination } from '@/apps/admin/components/kit';
   import type { DataTableColumn, FilterConfig } from '@/apps/admin/components/kit';
   import { useColonelAuditLog } from '@/apps/admin/stores/useColonelAuditLog';

@@ -3,15 +3,15 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-defineProps<{
-  modelValue: 'safari' | 'edge'
-}>();
+  defineProps<{
+    modelValue: 'safari' | 'edge';
+  }>();
 
-defineEmits<{
-  (e: 'update:modelValue', value: 'safari' | 'edge'): void
-}>();
+  defineEmits<{
+    (e: 'update:modelValue', value: 'safari' | 'edge'): void;
+  }>();
 </script>
 
 <template>
@@ -21,7 +21,7 @@ defineEmits<{
       :class="[
         modelValue === 'safari'
           ? 'bg-brand-100 text-brand-700 dark:bg-brand-900 dark:text-brand-100'
-          : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+          : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200',
       ]"
       @click="$emit('update:modelValue', 'safari')"
       :aria-label="t('web.branding.switch_to_safari_preview')">
@@ -33,7 +33,7 @@ defineEmits<{
       :class="[
         modelValue === 'edge'
           ? 'bg-brand-100 text-brand-700 dark:bg-brand-900 dark:text-brand-100'
-          : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+          : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200',
       ]"
       @click="$emit('update:modelValue', 'edge')"
       :aria-label="t('web.branding.switch_to_edge_preview')">

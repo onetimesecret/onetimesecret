@@ -23,8 +23,7 @@ vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: (k: string) => k }),
 }));
 
-const brand = (over: Partial<BrandSettings> = {}): BrandSettings =>
-  ({ ...over }) as BrandSettings;
+const brand = (over: Partial<BrandSettings> = {}): BrandSettings => ({ ...over }) as BrandSettings;
 
 const mountCard = (props: { branded?: boolean; brandSettings?: BrandSettings }) =>
   mount(BaseUnknownSecret, {

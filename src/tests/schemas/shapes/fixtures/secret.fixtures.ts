@@ -66,9 +66,7 @@ export function createCanonicalSecretBase(
 /**
  * Creates a canonical full secret with TTL fields.
  */
-export function createCanonicalSecret(
-  overrides?: Partial<SecretCanonical>
-): SecretCanonical {
+export function createCanonicalSecret(overrides?: Partial<SecretCanonical>): SecretCanonical {
   const base = createCanonicalSecretBase(overrides);
   return {
     ...base,
@@ -118,9 +116,7 @@ export function createCanonicalSecretDetails(
 /**
  * Creates a "previewed" state secret (recipient viewed the confirmation page).
  */
-export function createPreviewedSecret(
-  overrides?: Partial<SecretCanonical>
-): SecretCanonical {
+export function createPreviewedSecret(overrides?: Partial<SecretCanonical>): SecretCanonical {
   return createCanonicalSecret({
     state: 'previewed' as SecretState,
     is_previewed: true,
@@ -131,9 +127,7 @@ export function createPreviewedSecret(
 /**
  * Creates a "revealed" state secret (secret content was decrypted).
  */
-export function createRevealedSecret(
-  overrides?: Partial<SecretCanonical>
-): SecretCanonical {
+export function createRevealedSecret(overrides?: Partial<SecretCanonical>): SecretCanonical {
   return createCanonicalSecret({
     state: 'revealed' as SecretState,
     is_previewed: true,
@@ -145,9 +139,7 @@ export function createRevealedSecret(
 /**
  * Creates a "burned" state secret (secret was destroyed before reveal).
  */
-export function createBurnedSecret(
-  overrides?: Partial<SecretCanonical>
-): SecretCanonical {
+export function createBurnedSecret(overrides?: Partial<SecretCanonical>): SecretCanonical {
   return createCanonicalSecret({
     state: 'burned' as SecretState,
     ...overrides,
@@ -181,9 +173,7 @@ export function createVerificationEnabledSecret(
 /**
  * Creates a secret with a value (for revealed state).
  */
-export function createSecretWithValue(
-  overrides?: Partial<SecretCanonical>
-): SecretCanonical {
+export function createSecretWithValue(overrides?: Partial<SecretCanonical>): SecretCanonical {
   return createCanonicalSecret({
     state: 'revealed' as SecretState,
     is_revealed: true,
@@ -328,15 +318,11 @@ export function createV2WireSecretBase(
   return toV2WireSecretBase(canonical ?? createCanonicalSecretWithTimestamps());
 }
 
-export function createV2WireSecret(
-  canonical?: SecretWithTimestampsCanonical
-): V2WireSecret {
+export function createV2WireSecret(canonical?: SecretWithTimestampsCanonical): V2WireSecret {
   return toV2WireSecret(canonical ?? createCanonicalSecretWithTimestamps());
 }
 
-export function createV2WireSecretDetails(
-  canonical?: SecretDetailsCanonical
-): V2WireSecretDetails {
+export function createV2WireSecretDetails(canonical?: SecretDetailsCanonical): V2WireSecretDetails {
   return toV2WireSecretDetails(canonical ?? createCanonicalSecretDetails());
 }
 
@@ -349,14 +335,10 @@ export function createV3WireSecretBase(
   return toV3WireSecretBase(canonical ?? createCanonicalSecretWithTimestamps());
 }
 
-export function createV3WireSecret(
-  canonical?: SecretWithTimestampsCanonical
-): V3WireSecret {
+export function createV3WireSecret(canonical?: SecretWithTimestampsCanonical): V3WireSecret {
   return toV3WireSecret(canonical ?? createCanonicalSecretWithTimestamps());
 }
 
-export function createV3WireSecretDetails(
-  canonical?: SecretDetailsCanonical
-): V3WireSecretDetails {
+export function createV3WireSecretDetails(canonical?: SecretDetailsCanonical): V3WireSecretDetails {
   return toV3WireSecretDetails(canonical ?? createCanonicalSecretDetails());
 }

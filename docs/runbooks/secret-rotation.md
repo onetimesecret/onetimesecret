@@ -21,11 +21,11 @@ plus no backup means the data below is gone.
 
 What is lost if SECRET is lost:
 
-| Derived from SECRET | If SECRET is lost |
-|---|---|
-| Ciphertexts (secret payloads) | **Unrecoverable, permanently** |
-| Sessions | Regenerate — users sign in again |
-| Link identifiers | Regenerate — existing links keep resolving (#3630 tracks verification-on-read) |
+| Derived from SECRET           | If SECRET is lost                                                              |
+| ----------------------------- | ------------------------------------------------------------------------------ |
+| Ciphertexts (secret payloads) | **Unrecoverable, permanently**                                                 |
+| Sessions                      | Regenerate — users sign in again                                               |
+| Link identifiers              | Regenerate — existing links keep resolving (#3630 tracks verification-on-read) |
 
 Independent secrets (`AUTH_SECRET`, `ARGON2_SECRET`, `ACCOUNT_ID_SECRET`,
 `FEDERATION_SECRET`) are NOT derived from SECRET and must be backed up
@@ -83,6 +83,7 @@ a decrypt-only chain of previous secrets (`SECRET_PREVIOUS`).
    ```
 
    and restart running app processes again so they drop the mismatch state.
+
 4. Verify: `bundle exec rake ots:secrets:verify` exits 0, and a reveal of a
    pre-rotation secret still works (the harness lane
    `scripts/install-tests/secret-rotation.sh` automates this proof).

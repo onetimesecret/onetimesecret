@@ -43,7 +43,7 @@ try {
   }
 
   // Verify some known entries exist
-  const classNames = new Set(result.entries.map(e => e.className));
+  const classNames = new Set(result.entries.map((e) => e.className));
   const expected = [
     'V3::Logic::Secrets::ConcealSecret',
     'V3::Logic::Secrets::RevealSecret',
@@ -134,7 +134,9 @@ try {
 
   // Map size should be > entries count (due to leaf aliases)
   if (handlerMap.size > result.entries.length) {
-    pass(`Handler map has ${handlerMap.size} entries (${result.entries.length} SCHEMA + leaf aliases)`);
+    pass(
+      `Handler map has ${handlerMap.size} entries (${result.entries.length} SCHEMA + leaf aliases)`
+    );
   } else {
     fail(`Handler map size ${handlerMap.size} should exceed entry count ${result.entries.length}`);
   }
@@ -151,17 +153,14 @@ console.log('Test 4: Scanner + routes coverage stats');
 try {
   const totalWithSchema = result.entries.length;
   const totalHandlers = result.uncoveredHandlers.length + totalWithSchema;
-  const coveragePercent = totalHandlers > 0
-    ? Math.round((totalWithSchema / totalHandlers) * 100)
-    : 0;
+  const coveragePercent =
+    totalHandlers > 0 ? Math.round((totalWithSchema / totalHandlers) * 100) : 0;
 
   pass(`Handler coverage: ${totalWithSchema}/${totalHandlers} (${coveragePercent}%)`);
 
-  const modelEntries = result.entries.filter(e => e.filePath.startsWith('lib/onetime/models/'));
+  const modelEntries = result.entries.filter((e) => e.filePath.startsWith('lib/onetime/models/'));
   const totalModels = modelEntries.length + result.uncoveredModels.length;
-  const modelCoverage = totalModels > 0
-    ? Math.round((modelEntries.length / totalModels) * 100)
-    : 0;
+  const modelCoverage = totalModels > 0 ? Math.round((modelEntries.length / totalModels) * 100) : 0;
 
   pass(`Model coverage: ${modelEntries.length}/${totalModels} (${modelCoverage}%)`);
 
@@ -182,15 +181,11 @@ try {
 console.log('Test 5: Gap report identifies known uncovered handlers');
 try {
   // These handlers were intentionally skipped (no schema defined)
-  const knownGaps = [
-    'DestroyAccount',
-    'UpdatePassword',
-    'UpdateLocale',
-  ];
+  const knownGaps = ['DestroyAccount', 'UpdatePassword', 'UpdateLocale'];
 
   let foundGaps = 0;
   for (const gap of knownGaps) {
-    const found = result.uncoveredHandlers.some(h => h.includes(gap));
+    const found = result.uncoveredHandlers.some((h) => h.includes(gap));
     if (found) {
       foundGaps++;
     } else {

@@ -48,12 +48,12 @@ and what is needed.
 - **Local over remote.** Fail-fast applies to what we control: config
   presence, shape, contradictions, internal invariants. These are
   deterministic — surfacing them once at boot beats N times at runtime
-  (Nygard, *Release It!*). It does not apply to third-party reachability.
+  (Nygard, _Release It!_). It does not apply to third-party reachability.
   Boot must not make live calls to external APIs: doing so couples our
   availability to theirs, proves little (up at boot is not up at minute
   five), and turns restarts into crash-loops during exactly the incidents
   when third parties are least reliable. Instead, validate credential and
-  identifier *format* at boot (presence, expected prefix, type), defer live
+  identifier _format_ at boot (presence, expected prefix, type), defer live
   verification to first use or a readiness check, and log remote failures
   with enough error discrimination to distinguish a bad identifier from a
   transient outage. Hard local dependencies (our own database) may block

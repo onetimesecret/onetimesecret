@@ -129,9 +129,7 @@ describe('V2 Wire → V3 Schema (Forward Compatibility)', () => {
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        const linesError = result.error.issues.find((i) =>
-          i.path.includes('display_lines')
-        );
+        const linesError = result.error.issues.find((i) => i.path.includes('display_lines'));
         expect(linesError).toBeDefined();
       }
     });
@@ -191,7 +189,10 @@ describe('V3 Wire → V2 Schema (Backward Compatibility)', () => {
       // Document whether this succeeds
       console.log('[V3→V2] secretSchema compatibility:', result.success);
       if (!result.success) {
-        console.log('[V3→V2] Errors:', result.error.issues.map((i) => `${i.path}: ${i.message}`));
+        console.log(
+          '[V3→V2] Errors:',
+          result.error.issues.map((i) => `${i.path}: ${i.message}`)
+        );
       }
     });
   });
@@ -205,7 +206,10 @@ describe('V3 Wire → V2 Schema (Backward Compatibility)', () => {
 
       console.log('[V3→V2] secretDetails compatibility:', result.success);
       if (!result.success) {
-        console.log('[V3→V2] Errors:', result.error.issues.map((i) => `${i.path}: ${i.message}`));
+        console.log(
+          '[V3→V2] Errors:',
+          result.error.issues.map((i) => `${i.path}: ${i.message}`)
+        );
       }
     });
   });

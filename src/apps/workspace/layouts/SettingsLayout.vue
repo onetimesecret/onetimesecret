@@ -8,62 +8,62 @@
 -->
 
 <script setup lang="ts">
-import { getSettingsNavigationSections } from '@/apps/workspace/config/settings-navigation';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { debugLog } from '@/utils/debug';
-import {
-  hasPasswordOf,
-  isFullAuthModeOf,
-  isOwnerOrAdminOf,
-  isSsoEnabledOf,
-  isSsoOnlyModeOf,
-  isWebAuthnEnabledOf,
-} from '@/utils/features';
-import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRoute } from 'vue-router';
+  import { getSettingsNavigationSections } from '@/apps/workspace/config/settings-navigation';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { debugLog } from '@/utils/debug';
+  import {
+    hasPasswordOf,
+    isFullAuthModeOf,
+    isOwnerOrAdminOf,
+    isSsoEnabledOf,
+    isSsoOnlyModeOf,
+    isWebAuthnEnabledOf,
+  } from '@/utils/features';
+  import { computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRoute } from 'vue-router';
 
-const { t } = useI18n();
-const route = useRoute();
-const bootstrapStore = useBootstrapStore();
+  const { t } = useI18n();
+  const route = useRoute();
+  const bootstrapStore = useBootstrapStore();
 
-// Flatten navigation sections into tab items.
-//
-// Reactivity: deriving feature flags from `bootstrapStore` inside the computed
-// registers each accessed field as a dependency. When checkWindowStatus or
-// changePassword updates the store (e.g. has_password flips after first
-// password set), this recomputes and tabs appear without a page reload.
-const tabItems = computed(() => {
-  const features = {
-    hasPassword: hasPasswordOf(bootstrapStore),
-    isFullAuthMode: isFullAuthModeOf(bootstrapStore),
-    isSsoOnlyMode: isSsoOnlyModeOf(bootstrapStore),
-    isOwnerOrAdmin: isOwnerOrAdminOf(bootstrapStore),
-    isWebAuthnEnabled: isWebAuthnEnabledOf(bootstrapStore),
-    isSsoEnabled: isSsoEnabledOf(bootstrapStore),
-  };
-  const sections = getSettingsNavigationSections(t, features);
-  const allItems = sections.flatMap((section) => section.items);
-  const visibleItems = allItems.filter((item) => (item.visible ? item.visible() : true));
-  debugLog.features('SettingsLayout.tabItems', {
-    features,
-    allItems: allItems.map(i => i.id),
-    visibleItems: visibleItems.map(i => i.id),
+  // Flatten navigation sections into tab items.
+  //
+  // Reactivity: deriving feature flags from `bootstrapStore` inside the computed
+  // registers each accessed field as a dependency. When checkWindowStatus or
+  // changePassword updates the store (e.g. has_password flips after first
+  // password set), this recomputes and tabs appear without a page reload.
+  const tabItems = computed(() => {
+    const features = {
+      hasPassword: hasPasswordOf(bootstrapStore),
+      isFullAuthMode: isFullAuthModeOf(bootstrapStore),
+      isSsoOnlyMode: isSsoOnlyModeOf(bootstrapStore),
+      isOwnerOrAdmin: isOwnerOrAdminOf(bootstrapStore),
+      isWebAuthnEnabled: isWebAuthnEnabledOf(bootstrapStore),
+      isSsoEnabled: isSsoEnabledOf(bootstrapStore),
+    };
+    const sections = getSettingsNavigationSections(t, features);
+    const allItems = sections.flatMap((section) => section.items);
+    const visibleItems = allItems.filter((item) => (item.visible ? item.visible() : true));
+    debugLog.features('SettingsLayout.tabItems', {
+      features,
+      allItems: allItems.map((i) => i.id),
+      visibleItems: visibleItems.map((i) => i.id),
+    });
+    return visibleItems;
   });
-  return visibleItems;
-});
 
-// Check if route matches item or any of its children
-const isActiveRoute = (item: (typeof tabItems.value)[0]): boolean => {
-  if (route.path === item.to || route.path.startsWith(item.to + '/')) return true;
-  if (item.children) {
-    return item.children.some(
-      (child) => route.path === child.to || route.path.startsWith(child.to + '/')
-    );
-  }
-  return false;
-};
+  // Check if route matches item or any of its children
+  const isActiveRoute = (item: (typeof tabItems.value)[0]): boolean => {
+    if (route.path === item.to || route.path.startsWith(item.to + '/')) return true;
+    if (item.children) {
+      return item.children.some(
+        (child) => route.path === child.to || route.path.startsWith(child.to + '/')
+      );
+    }
+    return false;
+  };
 </script>
 
 <template>

@@ -10,6 +10,7 @@ OneTimeSecret supports two authentication modes:
 - **Full Mode**: Full-featured authentication using Rodauth with SQL database
 
 Full mode enables:
+
 - RDBMS requirement
 - Multi-factor authentication (TOTP, WebAuthn)
 - Passwordless login (magic links, security keys)
@@ -32,17 +33,16 @@ Before switching modes:
 
 See etc/auth.yaml
 
-
 ### 2. Database Migrations (Automatic)
 
 **Migrations run automatically on first boot** when full auth mode is enabled.
 
 The application will:
+
 1. Detect missing schema on startup
 2. Run all Rodauth migrations automatically
 3. Create necessary tables, indexes, functions, and triggers
 4. Log migration progress to application logs
-
 
 **PostgreSQL-specific setup (one-time, before first boot):**
 
@@ -53,6 +53,7 @@ psql -U postgres -h localhost -f apps/web/auth/migrations/schemas/postgres/initi
 ```
 
 This creates:
+
 - Database `onetime_auth`
 - Role `onetime_migrator` (elevated privileges for migrations)
 - Role `onetime_user` (restricted privileges for runtime)
@@ -93,6 +94,7 @@ AUTHENTICATION_MODE=full bin/ots sync-auth-accounts --run -v
 ```
 
 **What the sync command does:**
+
 - Creates account records in SQL for all Redis customers
 - Links accounts via `external_id` field (maps to customer `extid`)
 - Sets verification status based on customer state
@@ -100,6 +102,7 @@ AUTHENTICATION_MODE=full bin/ots sync-auth-accounts --run -v
 - Idempotent: safe to run multiple times
 
 **Expected output:**
+
 ```
 Auth Account Synchronization Tool
 ============================================================
@@ -155,7 +158,7 @@ authentication:
   mode: full
   database_url: sqlite://data/auth.db
   session:
-    expire_after: 86400  # 24 hours
+    expire_after: 86400 # 24 hours
 ```
 
 Or via environment:
@@ -195,17 +198,20 @@ curl -I http://localhost:7143/auth/login
 After successful migration, configure advanced features:
 
 **MFA (TOTP):**
+
 ```ruby
 # apps/web/auth/config/features.rb
 enable :otp, :recovery_codes
 ```
 
 **WebAuthn (Security Keys):**
+
 ```ruby
 enable :webauthn, :webauthn_login
 ```
 
 **Magic Links:**
+
 ```ruby
 enable :email_auth
 ```
@@ -234,6 +240,7 @@ If issues occur, revert to simple mode:
 
 **Cause:** `DATABASE_URL` not configured or database doesn't exist
 **Solution:**
+
 - Verify database URL in config or environment
 - Create database if it doesn't exist
 - Check database permissions
@@ -242,6 +249,7 @@ If issues occur, revert to simple mode:
 
 **Cause:** Accounts not synced or external_id mismatch
 **Solution:**
+
 ```bash
 # Re-run sync to fix links
 AUTHENTICATION_MODE=full bin/ots sync-auth-accounts --run
@@ -254,6 +262,7 @@ sqlite3 data/auth.db "SELECT * FROM accounts WHERE email='user@example.com';"
 
 **Cause:** Session store mismatch between modes
 **Solution:** Clear Redis sessions and have users log in again:
+
 ```bash
 redis-cli KEYS "session:*" | xargs redis-cli DEL
 ```

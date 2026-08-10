@@ -12,12 +12,12 @@ Sanitization strips HTML, prevents header injection (`\r\n`), lowercases. Valida
 
 ## Signup vs Recipient vs Incoming
 
-|                  | Signup                            | Recipient                 | Incoming (config)         | Incoming (create)         |
-| ---------------- | --------------------------------- | ------------------------- | ------------------------- | ------------------------- |
-| Sanitization     | `sanitize_email`                  | `sanitize_email`          | `sanitize_email`          | none (hash lookup)        |
-| Validation       | `valid_email?` (Truemail)         | `valid_email?` (Truemail) | `valid_email?` (Truemail) | Truemail `:regex` only    |
-| Domain allowlist | `allowed_signup_domain?`          | none                      | none                      | none                      |
-| Truemail calls   | 2x (CreateAccount + Rodauth hook) | 1x                        | 1x                        | 1x (corruption guard)     |
+|                  | Signup                            | Recipient                 | Incoming (config)         | Incoming (create)      |
+| ---------------- | --------------------------------- | ------------------------- | ------------------------- | ---------------------- |
+| Sanitization     | `sanitize_email`                  | `sanitize_email`          | `sanitize_email`          | none (hash lookup)     |
+| Validation       | `valid_email?` (Truemail)         | `valid_email?` (Truemail) | `valid_email?` (Truemail) | Truemail `:regex` only |
+| Domain allowlist | `allowed_signup_domain?`          | none                      | none                      | none                   |
+| Truemail calls   | 2x (CreateAccount + Rodauth hook) | 1x                        | 1x                        | 1x (corruption guard)  |
 
 The duplicate Truemail call at signup is defense in depth: the Rodauth hook validates independently since there's no guarantee of which codepath is calling it.
 
@@ -25,11 +25,11 @@ Incoming has two phases: config-time (admin adds recipients, full validation) an
 
 ### Choosing a Validation Method
 
-| Context | Method |
-| ------- | ------ |
-| Signup, invitation, share boundaries | `Logic::Base#valid_email?` (full Truemail) |
+| Context                              | Method                                                 |
+| ------------------------------------ | ------------------------------------------------------ |
+| Signup, invitation, share boundaries | `Logic::Base#valid_email?` (full Truemail)             |
 | Corruption guards in booted contexts | `Truemail.validate(email, with: :regex).result.valid?` |
-| Model-layer or pre-boot code | `EmailFormat::BASIC_FORMAT` regex |
+| Model-layer or pre-boot code         | `EmailFormat::BASIC_FORMAT` regex                      |
 
 **Full Truemail** (`valid_email?`) for user-input boundaries -- validates format, MX records, optionally SMTP depending on config.
 

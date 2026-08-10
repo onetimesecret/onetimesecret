@@ -23,11 +23,9 @@ import { BillingTierSchema, CanonicalPlanIdSchema } from './config/billing';
  * Checkout host, configured at runtime from the bootstrap `checkout_host` field
  * (see setAllowedCheckoutHost in @/utils/redirect).
  */
-const checkoutUrlSchema = z
-  .url()
-  .refine((value) => isAllowedCheckoutUrl(value), {
-    message: 'checkout_url host is not allowlisted',
-  });
+const checkoutUrlSchema = z.url().refine((value) => isAllowedCheckoutUrl(value), {
+  message: 'checkout_url host is not allowlisted',
+});
 
 /**
  * Plan type schema

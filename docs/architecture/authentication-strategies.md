@@ -44,7 +44,7 @@ Otto's `RouteAuthWrapper`:
 - **Invalid** credentials must fail closed — a bad credential must not fall
   through to anonymous.
 
-The refusal is scoped to requests that would otherwise become *anonymous*.
+The refusal is scoped to requests that would otherwise become _anonymous_.
 `NoAuthStrategy` reads the credentialed-failure marker only after the session
 resolves no identity, so a valid session cookie outranks a rejected
 `Authorization` header. Without that ordering, a logged-in browser that
@@ -69,4 +69,4 @@ cannot silently authorize.
 - Session-contract: for each strategy's result, bracket access works and the
   expected keys are present or absent.
 - Chain behaviour: the `basicauth,noauth` fallback admits anonymous only on
-  *missing* credentials, never on *invalid* ones.
+  _missing_ credentials, never on _invalid_ ones.

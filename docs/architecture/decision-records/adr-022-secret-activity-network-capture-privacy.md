@@ -1,7 +1,7 @@
 ---
-id: "022"
+id: '022'
 status: proposed
-title: "ADR-022: Secret Activity Network-Context Capture Privacy"
+title: 'ADR-022: Secret Activity Network-Context Capture Privacy'
 ---
 
 ## Status
@@ -15,8 +15,8 @@ Proposed
 ## Context
 
 The org audit trail (`Organization::Features::SecretActivity`, #3633) and the
-per-receipt access timeline (`Receipt::Features::AccessTimeline`) record *what*
-happened to a secret and *when*, but capture no network context. For org
+per-receipt access timeline (`Receipt::Features::AccessTimeline`) record _what_
+happened to a secret and _when_, but capture no network context. For org
 customers, "from where" is the second question after "who"; a trail with no IP
 or user agent cannot answer it.
 
@@ -24,7 +24,7 @@ We want to add network context to the fetch events (`status_get`, `secret_get`,
 and the `creator_` / `previewed` variants) without regressing the trail's
 privacy posture. That posture is deliberate and already established: the trail
 stores **shortids only, never full identifiers**, because a secret identifier
-*is* a capability token (it is the link). Network identity is the same class of
+_is_ a capability token (it is the link). Network identity is the same class of
 problem in a different dimension — a raw IP and a full user-agent string are
 directly personal and directly identifying.
 
@@ -54,11 +54,11 @@ context is only available at the **logic** layer, so it must be threaded down.
 **Store, for each fetch event, three reduced attributes and never the raw
 values:**
 
-| Attribute | Representation | Purpose |
-|---|---|---|
+| Attribute        | Representation                                                     | Purpose                                                         |
+| ---------------- | ------------------------------------------------------------------ | --------------------------------------------------------------- |
 | `net_ip_partial` | IPv4 last octet zeroed (IPv6 last 80 bits) via `IPPrivacy.mask_ip` | Coarse "from where" — balance of forensics and personal privacy |
-| `net_ua_partial` | User agent with version/build identifiers stripped and truncated | Client family without a high-entropy fingerprint |
-| `net_ip_hash` | Keyed HMAC-SHA256 over the **partial** IP | Correlation without disclosure |
+| `net_ua_partial` | User agent with version/build identifiers stripped and truncated   | Client family without a high-entropy fingerprint                |
+| `net_ip_hash`    | Keyed HMAC-SHA256 over the **partial** IP                          | Correlation without disclosure                                  |
 
 **The raw dotted-quad IP and the full User-Agent string are never stored,
 anywhere in this pipeline.** This mirrors the trail's existing "shortids only,
@@ -66,7 +66,7 @@ no capability tokens" rule.
 
 **Capture is centralized and unconditional.** `Onetime::Security::RequestContext`
 reads the ip / user-agent from the `StrategyResult` metadata and re-applies the
-reduction *every time*, idempotently. Masking an already-masked IP is a no-op;
+reduction _every time_, idempotently. Masking an already-masked IP is a no-op;
 stripping versions from an already-stripped UA is a no-op. So even if the edge
 middleware is disabled or a future change routes a raw value here, the stored
 attributes stay masked. The raw IP is touched by exactly one operation
@@ -102,8 +102,8 @@ fan-out guard is unchanged.
 - **We gain**: a trail that answers "from where" at neighborhood granularity, a
   stable correlation token, and a capture path that is safe by construction —
   it cannot persist raw network data even under misconfiguration.
-- **Risk**: the masked IP is low-entropy, so an attacker *holding the server
-  secret* could brute-force the /24 behind a hash. Mitigated by the fact that
+- **Risk**: the masked IP is low-entropy, so an attacker _holding the server
+  secret_ could brute-force the /24 behind a hash. Mitigated by the fact that
   the server secret compromising this is the same secret that decrypts every
   stored secret; this hash is not the weak link in that scenario.
 
@@ -120,13 +120,13 @@ fan-out guard is unchanged.
 
 ### The /24 correlation granularity is temporary (2026-07-09)
 
-Hashing the *partial* IP (Decision: "We hash the partial IP, not the raw") is a
+Hashing the _partial_ IP (Decision: "We hash the partial IP, not the raw") is a
 consequence of the raw IP being architecturally unavailable at this layer, not
 a target end state. It yields only /24-granular correlation. This is a **known,
 tracked limitation**, not a permanent design choice.
 
 The proper fix lives in Otto: **otto#192** requests that Otto expose a
-*stable-keyed* HMAC correlation hash derived from the **full** client IP,
+_stable-keyed_ HMAC correlation hash derived from the **full** client IP,
 computed inside `IPPrivacyMiddleware` before masking (the one place the full IP
 briefly exists), so a consumer can get per-host correlation without ever
 handling the raw IP. Otto already computes a full-IP hash (`otto.privacy.hashed_ip`),

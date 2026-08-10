@@ -168,9 +168,7 @@ describe('AdminSecrets (lookup-first inspect + guarded delete — ticket #30)', 
   });
 
   it('renders the not-found panel on a 404', async () => {
-    mockApi.get.mockRejectedValue(
-      Object.assign(new Error('nf'), { response: { status: 404 } })
-    );
+    mockApi.get.mockRejectedValue(Object.assign(new Error('nf'), { response: { status: 404 } }));
     wrapper = mountView(pinia);
 
     await lookup(wrapper, 'does-not-exist');
@@ -225,7 +223,12 @@ describe('AdminSecrets (lookup-first inspect + guarded delete — ticket #30)', 
           shrimp: '',
           record: {
             deleted: true,
-            secret: { secret_id: SECRET_ID, shortid: SHORT_ID, state: 'received', owner_id: 'ext_owner' },
+            secret: {
+              secret_id: SECRET_ID,
+              shortid: SHORT_ID,
+              state: 'received',
+              owner_id: 'ext_owner',
+            },
             metadata: { receipt_id: 'r1', shortid: 'rh1' },
           },
           details: { message: 'Secret and associated receipt deleted successfully' },
@@ -241,8 +244,7 @@ describe('AdminSecrets (lookup-first inspect + guarded delete — ticket #30)', 
       expect(showMock).toHaveBeenCalledWith('web.admin.secrets.actions.delete.success', 'success');
       // The read-out clears back to the lookup prompt (the secret is gone).
       expect(wrapper.find('[data-testid="secret-lookup-result"]').exists()).toBe(false);
-      const input = wrapper.find('[data-testid="secret-lookup-input"]')
-        .element as HTMLInputElement;
+      const input = wrapper.find('[data-testid="secret-lookup-input"]').element as HTMLInputElement;
       expect(input.value).toBe('');
     });
 

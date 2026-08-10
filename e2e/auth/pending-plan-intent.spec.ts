@@ -141,12 +141,13 @@ test.describe('Pending Plan Intent - Signup Flow', () => {
     await page.getByTestId('signup-submit').click();
 
     // Wait for request (may succeed or fail)
-    await page.waitForResponse(
-      (response) => response.url().includes('/auth/create-account'),
-      { timeout: 10000 }
-    ).catch(() => {
-      // Response timeout is OK - we're checking request body
-    });
+    await page
+      .waitForResponse((response) => response.url().includes('/auth/create-account'), {
+        timeout: 10000,
+      })
+      .catch(() => {
+        // Response timeout is OK - we're checking request body
+      });
 
     // Verify billing params were included in request
     expect(requestBody).not.toBeNull();
@@ -198,7 +199,9 @@ test.describe('Pending Plan Intent - Query Param Validation', () => {
 
   test('email param is preserved with billing params', async ({ page }) => {
     const testEmail = 'prefill@example.com';
-    await page.goto(`/signup?email=${encodeURIComponent(testEmail)}&product=identity_plus_v1&interval=yearly`);
+    await page.goto(
+      `/signup?email=${encodeURIComponent(testEmail)}&product=identity_plus_v1&interval=yearly`
+    );
     await waitForPageLoad(page);
 
     // Email should be prefilled
@@ -257,10 +260,9 @@ test.describe('Pending Plan Intent - Sign In Flow', () => {
     await page.locator('button[type="submit"]').click();
 
     // Wait for request
-    await page.waitForResponse(
-      (response) => response.url().includes('/auth/login'),
-      { timeout: 10000 }
-    ).catch(() => {});
+    await page
+      .waitForResponse((response) => response.url().includes('/auth/login'), { timeout: 10000 })
+      .catch(() => {});
 
     // Verify billing params were included
     expect(requestBody).not.toBeNull();

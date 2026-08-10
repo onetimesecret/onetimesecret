@@ -1,7 +1,7 @@
 ---
-id: "026"
+id: '026'
 status: accepted
-title: "ADR-026: Brand Values — nil Means Unconfigured, and That Signal Is Load-Bearing"
+title: 'ADR-026: Brand Values — nil Means Unconfigured, and That Signal Is Load-Bearing'
 ---
 
 ## Status
@@ -27,7 +27,7 @@ values" into its manifest, which would silently destroy that distinction.
 
 ## Decision
 
-Brand values are never defaulted into configuration. Absence *is* the neutral
+Brand values are never defaulted into configuration. Absence _is_ the neutral
 state: an unconfigured install has brand.\* nil everywhere, exactly as before
 packs existed.
 

@@ -1,7 +1,6 @@
 <!-- src/apps/admin/views/AdminDomains.vue -->
 
 <script setup lang="ts">
-
   import AddDomainForOrgModal from '@/apps/admin/components/AddDomainForOrgModal.vue';
   import AdminDomainDnsDetails from '@/apps/admin/components/AdminDomainDnsDetails.vue';
   import AdminOrgSelectorModal from '@/apps/admin/components/AdminOrgSelectorModal.vue';
@@ -18,7 +17,10 @@
   import type { DataTableColumn, FilterConfig } from '@/apps/admin/components/kit';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useAdminDomains } from '@/apps/admin/stores/useAdminDomains';
-  import type { ColonelCustomDomain, ColonelOrganization } from '@/schemas/api/internal/responses/colonel';
+  import type {
+    ColonelCustomDomain,
+    ColonelOrganization,
+  } from '@/schemas/api/internal/responses/colonel';
   import type {
     ColonelDomainCluster,
     ColonelDomainDetailRecord,
@@ -101,9 +103,7 @@
     },
   ]);
 
-  const hasActiveFilters = computed(
-    () => searchTerm.value !== '' || stateFilter.value !== ''
-  );
+  const hasActiveFilters = computed(() => searchTerm.value !== '' || stateFilter.value !== '');
 
   /** Fetch one server page with the active filters. Errors surface via the store. */
   async function fetchPage(targetPage = 1): Promise<void> {
@@ -312,9 +312,7 @@
       {
         key: 'updated',
         label: t('web.admin.domains.fields.updated'),
-        value: d.updated
-          ? formatDisplayDateTime(d.updated)
-          : t('web.admin.domains.detail.never'),
+        value: d.updated ? formatDisplayDateTime(d.updated) : t('web.admin.domains.detail.never'),
         mono: false,
       },
     ];
@@ -358,15 +356,13 @@
     orgDomainsLoading.value = true;
     orgDomainsError.value = false;
     try {
-      const res = await $api.get(
-        `/api/colonel/organizations/${encodeURIComponent(org.extid)}`
-      );
+      const res = await $api.get(`/api/colonel/organizations/${encodeURIComponent(org.extid)}`);
       const parsed = gracefulParse(
         colonelOrganizationDetailResponseSchema,
         res.data,
         'ColonelOrganizationDetailResponse'
       );
-      orgDomains.value = parsed.ok ? parsed.data.details?.domains ?? [] : [];
+      orgDomains.value = parsed.ok ? (parsed.data.details?.domains ?? []) : [];
     } catch {
       orgDomainsError.value = true;
       orgDomains.value = [];
@@ -456,10 +452,7 @@
     if (!ok) return; // error stays in the modal for retry.
 
     addDomainOpen.value = false;
-    notifications.show(
-      t('web.admin.domains.addDomain.created', { domain }),
-      'success'
-    );
+    notifications.show(t('web.admin.domains.addDomain.created', { domain }), 'success');
     await loadOrgDomains();
     // Reveal the freshly created domain's DNS records.
     const extid = createdExtid.value;
@@ -498,7 +491,8 @@
   <div class="mx-auto max-w-6xl">
     <!-- Page header. The heavy bottom rule is the page's horizontal rule; the
          working-record panel sits between it and the list below. -->
-    <header class="mb-6 flex flex-wrap items-end justify-between gap-4 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
+    <header
+      class="mb-6 flex flex-wrap items-end justify-between gap-4 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
       <div>
         <h2 class="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
           {{ t('web.colonel.customDomains.title') }}
@@ -590,8 +584,12 @@
                 target="_blank"
                 rel="noopener noreferrer"
                 :data-testid="`panel-domain-open-${domain.extid}`"
-                :aria-label="t('web.admin.domains.attach.openExternal', { domain: domain.display_domain })"
-                :title="t('web.admin.domains.attach.openExternal', { domain: domain.display_domain })"
+                :aria-label="
+                  t('web.admin.domains.attach.openExternal', { domain: domain.display_domain })
+                "
+                :title="
+                  t('web.admin.domains.attach.openExternal', { domain: domain.display_domain })
+                "
                 class="shrink-0 rounded text-gray-400 hover:text-brand-600 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:hover:text-brand-400">
                 <OIcon
                   collection="heroicons"
@@ -636,7 +634,11 @@
                   collection="heroicons"
                   :name="panelVerifyingExtid === domain.extid ? 'arrow-path' : 'shield-check'"
                   size="4"
-                  :class="panelVerifyingExtid === domain.extid ? 'animate-spin motion-reduce:animate-none' : ''" />
+                  :class="
+                    panelVerifyingExtid === domain.extid
+                      ? 'animate-spin motion-reduce:animate-none'
+                      : ''
+                  " />
                 {{ t('web.admin.domains.verify.button') }}
               </button>
             </div>
@@ -845,7 +847,9 @@
               target="_blank"
               rel="noopener noreferrer"
               :data-testid="`domain-open-${row.extid}`"
-              :aria-label="t('web.admin.domains.attach.openExternal', { domain: row.display_domain })"
+              :aria-label="
+                t('web.admin.domains.attach.openExternal', { domain: row.display_domain })
+              "
               :title="t('web.admin.domains.attach.openExternal', { domain: row.display_domain })"
               class="rounded p-1.5 text-gray-400 hover:text-brand-600 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:hover:text-brand-400"
               @click.stop>
@@ -864,7 +868,9 @@
                 collection="heroicons"
                 :name="verifyingExtid === row.extid ? 'arrow-path' : 'shield-check'"
                 size="4"
-                :class="verifyingExtid === row.extid ? 'animate-spin motion-reduce:animate-none' : ''" />
+                :class="
+                  verifyingExtid === row.extid ? 'animate-spin motion-reduce:animate-none' : ''
+                " />
               {{ t('web.admin.domains.verify.button') }}
             </button>
             <router-link
@@ -908,7 +914,12 @@
           <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <StatCard
               :label="t('web.admin.domains.columns.state')"
-              :value="t(`web.colonel.customDomains.status.${selectedDomain.verification_state}`, selectedDomain.verification_state)"
+              :value="
+                t(
+                  `web.colonel.customDomains.status.${selectedDomain.verification_state}`,
+                  selectedDomain.verification_state
+                )
+              "
               icon="shield-check"
               testid="domain-stat-state" />
             <StatCard

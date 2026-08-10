@@ -25,9 +25,7 @@
     typeof props.brightness === 'number' ? Math.max(0, props.brightness) : 1
   );
 
-  const svgSize = computed(() =>
-    typeof props.size === 'number' ? Math.max(1, props.size) : 64
-  );
+  const svgSize = computed(() => (typeof props.size === 'number' ? Math.max(1, props.size) : 64));
 
   const ariaLabel = computed(() => props.ariaLabel || 'Application logo');
 </script>
@@ -44,7 +42,7 @@
     role="img"
     :style="{
       opacity: svgOpacity,
-      filter: `brightness(${svgBrightness})`
+      filter: `brightness(${svgBrightness})`,
     }">
     <title>{{ ariaLabel }}</title>
     <path

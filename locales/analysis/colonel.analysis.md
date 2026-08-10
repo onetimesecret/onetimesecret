@@ -6,16 +6,16 @@ The `colonel.json` file contains locale keys for the admin/colonel interface. It
 
 ### Current Key Categories
 
-| Category | Key Pattern | Count | Description |
-|----------|-------------|-------|-------------|
-| **Truncated/Generated Keys** | Long hyphenated keys | 6 | Appear auto-generated or truncated |
-| **Config Editor** | `configEditor*`, `invalidJson`, `*Error`, `*Saved` | 11 | Configuration editing UI |
-| **Navigation** | `dashboard`, `admin`, `activity`, etc. | 9 | Admin panel navigation labels |
-| **Welcome/Intro** | `welcome`, `welcomeDesc`, `quickActions` | 5 | Dashboard welcome section |
-| **Stats (nested)** | `stats.*` | 8 | Statistics display labels |
-| **Actions (nested)** | `actions.*` | 8 | Quick action buttons and descriptions |
-| **Background Jobs** | `backgroundJobs`, `queue*`, `worker*` | 10 | Job queue monitoring UI |
-| **Test Plan Mode** | `testPlanMode`, `testing*`, `*Plan*` | 11 | Plan testing/override functionality |
+| Category                     | Key Pattern                                        | Count | Description                           |
+| ---------------------------- | -------------------------------------------------- | ----- | ------------------------------------- |
+| **Truncated/Generated Keys** | Long hyphenated keys                               | 6     | Appear auto-generated or truncated    |
+| **Config Editor**            | `configEditor*`, `invalidJson`, `*Error`, `*Saved` | 11    | Configuration editing UI              |
+| **Navigation**               | `dashboard`, `admin`, `activity`, etc.             | 9     | Admin panel navigation labels         |
+| **Welcome/Intro**            | `welcome`, `welcomeDesc`, `quickActions`           | 5     | Dashboard welcome section             |
+| **Stats (nested)**           | `stats.*`                                          | 8     | Statistics display labels             |
+| **Actions (nested)**         | `actions.*`                                        | 8     | Quick action buttons and descriptions |
+| **Background Jobs**          | `backgroundJobs`, `queue*`, `worker*`              | 10    | Job queue monitoring UI               |
+| **Test Plan Mode**           | `testPlanMode`, `testing*`, `*Plan*`               | 11    | Plan testing/override functionality   |
 
 ---
 
@@ -28,6 +28,7 @@ The `colonel.json` file contains locale keys for the admin/colonel interface. It
 **Recommended Destination:** `feature-feedback.json`
 
 **Keys to Move:**
+
 ```json
 {
   "web.feedback.when-you-submit-feedback-well-see": "When you submit feedback, we'll see:",
@@ -46,21 +47,22 @@ The `colonel.json` file contains locale keys for the admin/colonel interface. It
 
 The following keys appear to be auto-generated or poorly structured:
 
-| Current Key | Suggested Restructure |
-|-------------|----------------------|
+| Current Key                                          | Suggested Restructure         |
+| ---------------------------------------------------- | ----------------------------- |
 | `customer-secrets_created-customer-secrets_shared-0` | `stats.customerSecretsFormat` |
-| `customer-verified-verified-not-verified-0` | `stats.verificationStatus` |
-| `customers-details-counts-recent_customer_count-o-0` | `stats.customerCountFormat` |
-| `user-feedback-total-details-counts-feedback_coun-0` | `stats.feedbackCountFormat` |
+| `customer-verified-verified-not-verified-0`          | `stats.verificationStatus`    |
+| `customers-details-counts-recent_customer_count-o-0` | `stats.customerCountFormat`   |
+| `user-feedback-total-details-counts-feedback_coun-0` | `stats.feedbackCountFormat`   |
 | `metadata-secrets-details-counts-metadata_count-d-0` | `stats.metadataSecretsFormat` |
-| `secrets-details-counts-secret_count-0` | `stats.secretCountFormat` |
-| `active-in-the-past-5-minutes-0` | `stats.activeRecently` |
+| `secrets-details-counts-secret_count-0`              | `stats.secretCountFormat`     |
+| `active-in-the-past-5-minutes-0`                     | `stats.activeRecently`        |
 
 **Rationale:** These keys break naming conventions (hyphenated, truncated, numeric suffixes) and should follow camelCase patterns consistent with the rest of the file.
 
 ### 2. Config Editor Keys Should Be Nested
 
 **Current:** Flat keys at root level
+
 ```
 configEditorTitle
 configEditorDescription
@@ -71,6 +73,7 @@ errorFetchingConfig
 ```
 
 **Suggested:** Nested under `configEditor` namespace
+
 ```json
 {
   "configEditor": {
@@ -105,6 +108,7 @@ errorFetchingConfig
 
 **Current:** Flat keys at root level
 **Suggested:** Nested under `jobs` or `backgroundJobs` namespace
+
 ```json
 {
   "jobs": {
@@ -131,6 +135,7 @@ errorFetchingConfig
 
 **Current:** Flat keys with `testPlanMode`, `testingAsPlan`, etc.
 **Suggested:** Nested under `testMode` namespace
+
 ```json
 {
   "testMode": {
@@ -161,20 +166,21 @@ No new files are recommended. The keys in `colonel.json` are appropriately scope
 
 ## Summary of Recommended Changes
 
-| Priority | Change | Impact |
-|----------|--------|--------|
-| High | Move `web.feedback` to `feature-feedback.json` | File organization |
-| High | Rename truncated/generated keys to camelCase | Consistency, maintainability |
-| Medium | Nest `configEditor*` keys under `configEditor` | Logical grouping |
-| Medium | Nest `backgroundJobs`/`queue*`/`worker*` under `jobs` | Logical grouping |
-| Medium | Nest `testPlanMode*` keys under `testMode` | Logical grouping |
-| Low | Consider moving `stats` and `actions` nested objects out of flat structure (already properly nested) | N/A - already done |
+| Priority | Change                                                                                               | Impact                       |
+| -------- | ---------------------------------------------------------------------------------------------------- | ---------------------------- |
+| High     | Move `web.feedback` to `feature-feedback.json`                                                       | File organization            |
+| High     | Rename truncated/generated keys to camelCase                                                         | Consistency, maintainability |
+| Medium   | Nest `configEditor*` keys under `configEditor`                                                       | Logical grouping             |
+| Medium   | Nest `backgroundJobs`/`queue*`/`worker*` under `jobs`                                                | Logical grouping             |
+| Medium   | Nest `testPlanMode*` keys under `testMode`                                                           | Logical grouping             |
+| Low      | Consider moving `stats` and `actions` nested objects out of flat structure (already properly nested) | N/A - already done           |
 
 ---
 
 ## Keys That Are Well-Organized
 
 The following patterns are already good:
+
 - `stats.*` - Properly nested statistics labels
 - `actions.*` - Properly nested action descriptions
 - Navigation labels (`dashboard`, `admin`, `activity`, etc.) - Simple, clear, flat is appropriate

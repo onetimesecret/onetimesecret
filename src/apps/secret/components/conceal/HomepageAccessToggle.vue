@@ -3,16 +3,16 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-defineProps<{
-  modelValue: boolean | null | undefined;  // Update type to allow nullable values
-  disabled?: boolean;
-}>();
+  defineProps<{
+    modelValue: boolean | null | undefined; // Update type to allow nullable values
+    disabled?: boolean;
+  }>();
 
-const emit = defineEmits<{
-  'update:modelValue': [value: boolean];
-}>();
+  const emit = defineEmits<{
+    'update:modelValue': [value: boolean];
+  }>();
 </script>
 
 <template>
@@ -20,25 +20,26 @@ const emit = defineEmits<{
     type="button"
     :class="[
       'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent',
-      'transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brandcomp-500 focus:ring-offset-2',
+      'transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-brandcomp-500 focus:ring-offset-2 focus:outline-none',
       {
         'bg-brandcomp-600': modelValue,
         'bg-gray-200 dark:bg-gray-700': !modelValue,
-        'cursor-not-allowed opacity-50': disabled
-      }
+        'cursor-not-allowed opacity-50': disabled,
+      },
     ]"
     :disabled="disabled"
     role="switch"
     :aria-checked="!!modelValue"
     @click="emit('update:modelValue', !modelValue)">
     <span class="sr-only">
-      {{ modelValue ? t('web.LABELS.disable') : t('web.LABELS.enable') }} {{ t('web.domains.homepage_access') }}
+      {{ modelValue ? t('web.LABELS.disable') : t('web.LABELS.enable') }}
+      {{ t('web.domains.homepage_access') }}
     </span>
     <span
       :class="[
         'pointer-events-none inline-block size-5 rounded-full bg-white shadow ring-0',
         'transition duration-200 ease-in-out',
-        modelValue ? 'translate-x-5' : 'translate-x-0'
+        modelValue ? 'translate-x-5' : 'translate-x-0',
       ]"></span>
     <!-- Loading spinner -->
     <span

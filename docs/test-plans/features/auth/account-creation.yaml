@@ -46,7 +46,7 @@ tests:
       - Email field on signin page is NOT prefilled
       - selector: "[data-testid='email-input']"
         assertion: value
-        expected: ""
+        expected: ''
       - selector: "[role='alert']"
         assertion: hidden
     priority: critical
@@ -61,8 +61,8 @@ tests:
         assert:
           status: 200
           body.exists: true
-          body.account_id: "{{capture:account_id}}"
-          body.created_at: "{{capture:created_at}}"
+          body.account_id: '{{capture:account_id}}'
+          body.created_at: '{{capture:created_at}}'
         notes: Verify API response includes account details, not just existence flag
       - User can sign in with created credentials
       - followup_action:
@@ -136,7 +136,7 @@ tests:
       - Form does NOT submit (browser validation prevents it)
       - Email input shows browser native validation message
       - No network request is made
-      - selector: "#email-address:invalid"
+      - selector: '#email-address:invalid'
         assertion: exists
     priority: high
     severity: major
@@ -168,7 +168,7 @@ tests:
       - selector: "[data-testid='password-input']"
         assertion: has-attribute
         attribute: aria-invalid
-        value: "true"
+        value: 'true'
       - selector: "[role='alert']"
         assertion: visible
     priority: high
@@ -193,7 +193,7 @@ tests:
       - Form does NOT submit (browser validation prevents it)
       - Terms checkbox shows validation constraint
       - No network request is made
-      - selector: "#terms-agreement:invalid"
+      - selector: '#terms-agreement:invalid'
         assertion: exists
     priority: high
     severity: major

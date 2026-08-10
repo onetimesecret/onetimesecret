@@ -75,7 +75,7 @@
       class="flex items-center justify-end gap-1 border-b border-gray-200 px-2 py-1 dark:border-gray-700">
       <button
         type="button"
-        class="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:text-gray-400 dark:hover:bg-gray-800"
+        class="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:text-gray-400 dark:hover:bg-gray-800"
         @click="expandAll">
         <OIcon
           collection="heroicons"
@@ -85,7 +85,7 @@
       </button>
       <button
         type="button"
-        class="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:text-gray-400 dark:hover:bg-gray-800"
+        class="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-gray-600 hover:bg-gray-200 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:text-gray-400 dark:hover:bg-gray-800"
         @click="collapseAll">
         <OIcon
           collection="heroicons"

@@ -101,7 +101,11 @@ export function useSecretActivity(orgExtid: Ref<string>) {
       // mid-flight. Never apply a superseded response over the current state.
       if (controller.signal.aborted) return;
 
-      const result = gracefulParse(secretActivityResponseSchema, response.data, 'SecretActivityResponse');
+      const result = gracefulParse(
+        secretActivityResponseSchema,
+        response.data,
+        'SecretActivityResponse'
+      );
       if (!result.ok) {
         // Contract mismatch: do NOT degrade to an empty list (see header note).
         records.value = [];

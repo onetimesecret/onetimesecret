@@ -4,10 +4,7 @@ import { defineStore } from 'pinia';
 import type { z } from 'zod';
 import { ref } from 'vue';
 
-import {
-  usePaginatedFetch,
-  type PageMeta,
-} from '@/apps/admin/composables/usePaginatedFetch';
+import { usePaginatedFetch, type PageMeta } from '@/apps/admin/composables/usePaginatedFetch';
 import { colonelAuditEventsResponseSchema } from '@/schemas/api/internal/responses/colonel-audit';
 import type { ColonelAuditEvent } from '@/schemas/api/internal/responses/colonel-audit';
 

@@ -40,14 +40,14 @@ Commit the resulting `*-linux.png` files under `e2e/visual/*-snapshots/`. Treat 
 
 Customer pages often have animations, dynamic content, or dates. Unstable screenshots create false failures.
 
-| Source of flakiness | Fix                                                                                          |
-| ------------------- | -------------------------------------------------------------------------------------------- |
-| Animations          | `await page.emulateMedia({ reducedMotion: 'reduce' })` or disable CSS animations in test env |
+| Source of flakiness | Fix                                                                                                                                                                                                                                                                                                                                                 |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Animations          | `await page.emulateMedia({ reducedMotion: 'reduce' })` or disable CSS animations in test env                                                                                                                                                                                                                                                        |
 | Loading states      | House rule: `await expect(page.locator('html[data-app-ready="true"]')).toBeAttached()` after every `goto` — never `networkidle` or `waitForTimeout` (e2e/global.setup.ts:26-28: "waits on `html[data-app-ready=\"true\"]` (set in src/main.ts after mount + brand theme application + router.isReady()) — never `networkidle` or `waitForTimeout`") |
-| Fonts               | Use consistent fonts; load web fonts before screenshot                                       |
-| Dates / times       | Mock `Date.now()` or freeze time in the app                                                  |
-| Viewport            | Pin viewport in `playwright.config.ts`                                                       |
-| Dynamic content     | Stub APIs or hide volatile elements with `mask`                                              |
+| Fonts               | Use consistent fonts; load web fonts before screenshot                                                                                                                                                                                                                                                                                              |
+| Dates / times       | Mock `Date.now()` or freeze time in the app                                                                                                                                                                                                                                                                                                         |
+| Viewport            | Pin viewport in `playwright.config.ts`                                                                                                                                                                                                                                                                                                              |
+| Dynamic content     | Stub APIs or hide volatile elements with `mask`                                                                                                                                                                                                                                                                                                     |
 
 Example with masking:
 

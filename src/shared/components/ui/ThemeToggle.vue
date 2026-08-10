@@ -46,15 +46,12 @@
     data-testid="theme-toggle"
     :aria-label="t('web.layout.toggle_dark_mode')"
     :aria-pressed="isDarkMode"
-    class="inline-flex size-10 items-center
-          justify-center rounded-md bg-inherit p-1
-          text-gray-700 transition-colors
-          hover:bg-gray-200
-          hover:text-gray-900 focus:outline-none focus:ring-2
-          focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-white
-          dark:text-gray-100 dark:ring-offset-gray-900 dark:hover:bg-gray-700
-          dark:focus:ring-brand-400 dark:focus:ring-offset-gray-900"
-    :title="isDarkMode ? t('web.layout.switch_to_blank_mode', ['light']) : t('web.layout.switch_to_blank_mode', ['dark'])"
+    class="inline-flex size-10 items-center justify-center rounded-md bg-inherit p-1 text-gray-700 transition-colors hover:bg-gray-200 hover:text-gray-900 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-white focus:outline-none dark:text-gray-100 dark:ring-offset-gray-900 dark:hover:bg-gray-700 dark:focus:ring-brand-400 dark:focus:ring-offset-gray-900"
+    :title="
+      isDarkMode
+        ? t('web.layout.switch_to_blank_mode', ['light'])
+        : t('web.layout.switch_to_blank_mode', ['dark'])
+    "
     @keydown.enter="handleToggle"
     @keydown.space.prevent="handleToggle">
     <!-- Moon icon -->

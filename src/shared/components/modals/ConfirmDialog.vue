@@ -2,39 +2,42 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-import { FocusTrap } from 'focus-trap-vue';
-import { ref } from 'vue';
+  import { FocusTrap } from 'focus-trap-vue';
+  import { ref } from 'vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-withDefaults(defineProps<{
-  title: string;
-  message: string;
-  confirmText?: string;
-  cancelText?: string;
-  type?: 'danger' | 'default';
-}>(), {
-  confirmText: 'web.COMMON.word_confirm',
-  cancelText: 'web.COMMON.word_cancel',
-  type: 'default'
-});
+  withDefaults(
+    defineProps<{
+      title: string;
+      message: string;
+      confirmText?: string;
+      cancelText?: string;
+      type?: 'danger' | 'default';
+    }>(),
+    {
+      confirmText: 'web.COMMON.word_confirm',
+      cancelText: 'web.COMMON.word_cancel',
+      type: 'default',
+    }
+  );
 
-const emit = defineEmits<{
-  (e: 'confirm'): void;
-  (e: 'cancel'): void;
-}>();
+  const emit = defineEmits<{
+    (e: 'confirm'): void;
+    (e: 'cancel'): void;
+  }>();
 
-const isVisible = ref(true);
+  const isVisible = ref(true);
 
-const confirm = () => {
-  isVisible.value = false;
-  emit('confirm');
-};
+  const confirm = () => {
+    isVisible.value = false;
+    emit('confirm');
+  };
 
-const cancel = () => {
-  isVisible.value = false;
-  emit('cancel');
-};
+  const cancel = () => {
+    isVisible.value = false;
+    emit('cancel');
+  };
 </script>
 
 <template>
@@ -78,7 +81,7 @@ const cancel = () => {
               'rounded px-4 py-2',
               type === 'danger'
                 ? 'bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700'
-                : 'bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700'
+                : 'bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700',
             ]">
             <span class="font-bold">{{ t(confirmText) }}</span>
           </button>

@@ -1,7 +1,7 @@
 ---
-id: "025"
+id: '025'
 status: proposed
-title: "ADR-025: Container Frontend Serves Built Assets — Vite Dev Mode Is a Host Concern"
+title: 'ADR-025: Container Frontend Serves Built Assets — Vite Dev Mode Is a Host Concern'
 ---
 
 ## Status
@@ -25,7 +25,7 @@ A containerized app started with `RACK_ENV=development` returns **500** for
 `/dist/@vite/client` and `/dist/main.ts`. Cause: `development.enabled` is derived
 from `RACK_ENV` (`etc/config.yaml:1120`), which flips the app into "proxy `/dist/*`
 to `frontend_host`" mode (`vite_proxy.rb`), defaulting to `http://localhost:5173`
-— the *container's own* loopback, where nothing listens.
+— the _container's own_ loopback, where nothing listens.
 
 The published image **cannot** satisfy that mode by construction: `Dockerfile:147`
 bakes `pnpm run build` into `public/web/dist`, then `:149–151` prune prod deps,
@@ -47,7 +47,7 @@ pair) — not as a runtime flag on the production image.
   artifact the container lane exists for.
 - **`RACK_ENV` is overloaded.** It is set for unrelated reasons (test lanes,
   logging, cookie flags). Coupling "where my frontend comes from" to it means one
-  flag silently repurposes the image into a mode that only works if you *also*
+  flag silently repurposes the image into a mode that only works if you _also_
   stand up Vite and solve container networking — failing, when you don't, as a
   bare 500 with no hint of the missing dependency. That is exactly the
   silently-broken, which-knob-is-mine DX the onboarding effort is removing.

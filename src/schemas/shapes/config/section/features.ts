@@ -18,12 +18,7 @@ import {
 } from '@/schemas/contracts/config/section/features';
 import { augment } from '@/schemas/utils/augment';
 
-export {
-  featuresSchema,
-  featuresRegionsSchema,
-  featuresIncomingSchema,
-  featuresDomainsSchema,
-};
+export { featuresSchema, featuresRegionsSchema, featuresIncomingSchema, featuresDomainsSchema };
 
 const featuresIncomingShape = augment(featuresIncomingSchema, {
   enabled: (b) => b.default(false),
@@ -55,9 +50,4 @@ const featuresShape = augment(featuresSchema, {
   },
 });
 
-export {
-  featuresShape,
-  featuresRegionsShape,
-  featuresIncomingShape,
-  featuresDomainsShape,
-};
+export { featuresShape, featuresRegionsShape, featuresIncomingShape, featuresDomainsShape };

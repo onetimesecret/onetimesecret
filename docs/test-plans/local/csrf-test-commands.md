@@ -12,7 +12,6 @@ Note: The HTML form targets the V1 API which accepts form-encoded data.
 
 Expected: 401 Unauthorized or 403 Forbidden
 
-
 ## Test 2: cURL with Spoofed Origin (V2 JSON API)
 
 ```bash
@@ -24,7 +23,6 @@ curl -X POST https://dev.onetimesecret.com/api/v2/secret \
 
 Expected: 401/403 - Origin header mismatch caught by Rack::Protection::HttpOrigin
 
-
 ## Test 3: cURL without Session (V2 JSON API)
 
 ```bash
@@ -34,7 +32,6 @@ curl -X POST https://dev.onetimesecret.com/api/v2/secret \
 ```
 
 Expected: 401 Unauthorized - no session cookie
-
 
 ## Test 4: cURL without Session (V3 JSON API)
 

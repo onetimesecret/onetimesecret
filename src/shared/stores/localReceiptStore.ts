@@ -63,9 +63,7 @@ function loadFromStorage(): LocalReceipt[] {
 
       if (!result.success) {
         // Data is malformed - clear it and start fresh
-        loggingService.warn(
-          `Invalid local receipts in storage, clearing: ${result.error.message}`
-        );
+        loggingService.warn(`Invalid local receipts in storage, clearing: ${result.error.message}`);
         sessionStorage.removeItem(STORAGE_KEY);
         return [];
       }

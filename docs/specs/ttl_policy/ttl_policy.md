@@ -11,14 +11,14 @@ How long a secret may live is decided by several independent bounds that
 accumulated over time. As of this writing the resolution logic exists in
 multiple places and two languages:
 
-| Layer | Where | Applies to | Kind |
-|---|---|---|---|
-| `MAX_TTL` (365d) | `WithEntitlements` | everyone | absolute software-safety bound |
-| Plan `secret_lifetime` | org `limit_for` via `process_ttl` | authenticated w/ org | billing limit |
-| Anonymous ceiling (7d default, `TTL_MAX_ANONYMOUS`) | `configured_anonymous_max_ttl` + `anonymous_max_ttl` | anonymous | product policy, operator-tunable |
-| Free-tier gate (14d, `DEFAULT_FREE_TTL`) | `process_ttl` entitlement gate | authenticated w/ org, billing on | loud 403 w/ upgrade path |
-| `ttl_options` min/max | config via `process_ttl` | varies by branch | UI inventory doubling as bounds |
-| Frontend safety cap | `usePrivacyOptions.ts` | browser UI | duplicate of backend policy |
+| Layer                                               | Where                                                | Applies to                       | Kind                             |
+| --------------------------------------------------- | ---------------------------------------------------- | -------------------------------- | -------------------------------- |
+| `MAX_TTL` (365d)                                    | `WithEntitlements`                                   | everyone                         | absolute software-safety bound   |
+| Plan `secret_lifetime`                              | org `limit_for` via `process_ttl`                    | authenticated w/ org             | billing limit                    |
+| Anonymous ceiling (7d default, `TTL_MAX_ANONYMOUS`) | `configured_anonymous_max_ttl` + `anonymous_max_ttl` | anonymous                        | product policy, operator-tunable |
+| Free-tier gate (14d, `DEFAULT_FREE_TTL`)            | `process_ttl` entitlement gate                       | authenticated w/ org, billing on | loud 403 w/ upgrade path         |
+| `ttl_options` min/max                               | config via `process_ttl`                             | varies by branch                 | UI inventory doubling as bounds  |
+| Frontend safety cap                                 | `usePrivacyOptions.ts`                               | browser UI                       | duplicate of backend policy      |
 
 Two structural problems:
 
@@ -28,8 +28,8 @@ Two structural problems:
    drift, and when they do the UI offers durations the server silently
    shortens — the exact failure mode of the 2026-07-29 API audit, item 4,
    and of #4008.
-2. **Inconsistent term semantics.** `ttl_options.max` is *ignored* when an
-   org has a positive plan limit but *included* in the anonymous minimum.
+2. **Inconsistent term semantics.** `ttl_options.max` is _ignored_ when an
+   org has a positive plan limit but _included_ in the anonymous minimum.
    No single mental model explains the current branches.
 
 ## Target design
@@ -144,7 +144,7 @@ secret_options.merge(
 ```
 
 Semantic shift, stated plainly: `ttl_ceiling` means "the effective ceiling
-for *this caller, this request*", not a raw config knob. That is the point
+for _this caller, this request_", not a raw config knob. That is the point
 — but it is a bootstrap-contract change, hence the one-release overlap with
 the legacy key.
 

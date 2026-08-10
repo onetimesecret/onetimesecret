@@ -10,9 +10,8 @@ import { useOrganizationStore } from '@/shared/stores/organizationStore';
 
 const organizationStore = useOrganizationStore();
 const { currentOrganization } = storeToRefs(organizationStore);
-const { can, limit, upgradePath, hasReachedLimit, ENTITLEMENTS } = useEntitlements(
-  currentOrganization
-);
+const { can, limit, upgradePath, hasReachedLimit, ENTITLEMENTS } =
+  useEntitlements(currentOrganization);
 ```
 
 ## Check if Feature is Available
@@ -35,9 +34,7 @@ const canAddTeam = canCreateTeam && !teamsLimitReached;
 ```vue
 <template>
   <!-- Simple show/hide -->
-  <button v-if="can(ENTITLEMENTS.API_ACCESS)">
-    Manage API Keys
-  </button>
+  <button v-if="can(ENTITLEMENTS.API_ACCESS)">Manage API Keys</button>
 
   <!-- Show upgrade prompt if not available -->
   <div v-if="can(ENTITLEMENTS.CUSTOM_DOMAINS)">
@@ -46,8 +43,7 @@ const canAddTeam = canCreateTeam && !teamsLimitReached;
   <UpgradePrompt
     v-else
     :entitlement="ENTITLEMENTS.CUSTOM_DOMAINS"
-    :upgrade-plan="upgradePath(ENTITLEMENTS.CUSTOM_DOMAINS)"
-  />
+    :upgrade-plan="upgradePath(ENTITLEMENTS.CUSTOM_DOMAINS)" />
 </template>
 ```
 
@@ -60,15 +56,13 @@ const canAddTeam = canCreateTeam && !teamsLimitReached;
     <UpgradePrompt
       v-if="!can(ENTITLEMENTS.CREATE_TEAMS)"
       :entitlement="ENTITLEMENTS.CREATE_TEAMS"
-      :upgrade-plan="upgradePath(ENTITLEMENTS.CREATE_TEAMS)"
-    />
+      :upgrade-plan="upgradePath(ENTITLEMENTS.CREATE_TEAMS)" />
 
     <UpgradePrompt
       v-else-if="hasReachedLimit('teams', teams.length)"
       :entitlement="ENTITLEMENTS.CREATE_TEAMS"
       :upgrade-plan="upgradePath(ENTITLEMENTS.CREATE_TEAMS)"
-      :message="t('web.billing.limits.teams_upgrade')"
-    />
+      :message="t('web.billing.limits.teams_upgrade')" />
 
     <button
       v-else
@@ -82,22 +76,22 @@ const canAddTeam = canCreateTeam && !teamsLimitReached;
 ## Available Entitlements
 
 ```typescript
-ENTITLEMENTS.CREATE_SECRETS      // Can create secrets
-ENTITLEMENTS.BASIC_SHARING       // Can share secrets
-ENTITLEMENTS.CREATE_TEAM         // Can create one team
-ENTITLEMENTS.CREATE_TEAMS        // Can create multiple teams
-ENTITLEMENTS.CUSTOM_DOMAINS      // Can use custom domains
-ENTITLEMENTS.API_ACCESS          // Can use API
-ENTITLEMENTS.PRIORITY_SUPPORT    // Has priority support
-ENTITLEMENTS.AUDIT_LOGS          // Has access to audit logs
+ENTITLEMENTS.CREATE_SECRETS; // Can create secrets
+ENTITLEMENTS.BASIC_SHARING; // Can share secrets
+ENTITLEMENTS.CREATE_TEAM; // Can create one team
+ENTITLEMENTS.CREATE_TEAMS; // Can create multiple teams
+ENTITLEMENTS.CUSTOM_DOMAINS; // Can use custom domains
+ENTITLEMENTS.API_ACCESS; // Can use API
+ENTITLEMENTS.PRIORITY_SUPPORT; // Has priority support
+ENTITLEMENTS.AUDIT_LOGS; // Has access to audit logs
 ```
 
 ## Available Limits
 
 ```typescript
-limit('teams')              // Max number of teams
-limit('total_members_per_org')   // Max members per org
-limit('custom_domains')     // Max custom domains
+limit('teams'); // Max number of teams
+limit('total_members_per_org'); // Max members per org
+limit('custom_domains'); // Max custom domains
 ```
 
 ## Upgrade Prompt Props
@@ -137,8 +131,12 @@ const formatEntitlement = (ent: string): string => {
 
 ```vue
 <template>
-  <div v-for="ent in entitlements" :key="ent">
-    <OIcon name="check-circle" class="text-green-500" />
+  <div
+    v-for="ent in entitlements"
+    :key="ent">
+    <OIcon
+      name="check-circle"
+      class="text-green-500" />
     {{ formatEntitlement(ent) }}
   </div>
 </template>
@@ -147,6 +145,7 @@ const formatEntitlement = (ent: string): string => {
 ## Common Patterns
 
 ### Pattern 1: Feature with Fallback
+
 ```vue
 <div v-if="can(ENTITLEMENTS.FEATURE)">
   <!-- Full feature UI -->
@@ -157,15 +156,15 @@ const formatEntitlement = (ent: string): string => {
 ```
 
 ### Pattern 2: Conditional Button
+
 ```vue
-<button
-  v-if="can(ENTITLEMENTS.FEATURE) && !limitReached"
-  @click="action">
+<button v-if="can(ENTITLEMENTS.FEATURE) && !limitReached" @click="action">
   Action
 </button>
 ```
 
 ### Pattern 3: Tab/Section Visibility
+
 ```vue
 <nav>
   <button
@@ -177,6 +176,7 @@ const formatEntitlement = (ent: string): string => {
 ```
 
 ### Pattern 4: Empty State with Upgrade
+
 ```vue
 <div v-if="items.length === 0">
   <div v-if="can(ENTITLEMENTS.FEATURE)">
@@ -224,6 +224,7 @@ if (can(ENTITLEMENTS.CREATE_TEAMS) && !hasReachedLimit('teams', count)) { }
 ## Troubleshooting
 
 **Features not showing up?**
+
 - Check that `currentOrganization` is set
 - Check that the org record was loaded via `fetchOrganizations()` /
   `fetchOrganization()` (or the bootstrap payload) — `/api/organizations`
@@ -231,10 +232,12 @@ if (can(ENTITLEMENTS.CREATE_TEAMS) && !hasReachedLimit('teams', count)) { }
 - Check console for organization fetch errors
 
 **Wrong upgrade plan showing?**
+
 - Update `upgradePath()` mapping in composable
 - Check backend entitlement-to-plan mapping
 
 **Limits not working?**
+
 - Verify limit values in backend response
 - Check that limit name matches (`teams`, not `team`)
 - Ensure `hasReachedLimit()` uses correct resource name

@@ -17,8 +17,7 @@ vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: (key: string) => key }),
 }));
 
-const blocks = (wrapper: ReturnType<typeof mount>) =>
-  wrapper.findAll('[aria-hidden="true"]');
+const blocks = (wrapper: ReturnType<typeof mount>) => wrapper.findAll('[aria-hidden="true"]');
 
 describe('DashboardSkeleton', () => {
   it('exposes a busy status region with an sr-only loading label', () => {
@@ -50,9 +49,7 @@ describe('DashboardSkeleton', () => {
     const wrapper = mount(DashboardSkeleton);
     // w-1/3 must be on a Skeleton root (the flex child), never on an
     // aria-hidden block (that would be 1/3 of a shrink-to-fit wrapper ≈ 0).
-    const thirdBlocks = blocks(wrapper).filter((b) =>
-      b.classes().includes('w-1/3')
-    );
+    const thirdBlocks = blocks(wrapper).filter((b) => b.classes().includes('w-1/3'));
     expect(thirdBlocks).toHaveLength(0);
     const thirdWrappers = wrapper
       .findAll('.w-1\\/3')

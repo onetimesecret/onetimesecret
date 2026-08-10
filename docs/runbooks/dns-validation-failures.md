@@ -5,29 +5,30 @@
 The DNS validation system verifies that customers have correctly configured DNS records for sender domain authentication (DKIM, SPF, etc.). Provider-specific strategies (SES, SendGrid, SMTP) generate required records and verify them via live DNS lookups.
 
 Key components:
+
 - `Onetime::Operations::ValidateSenderDomain` - orchestrates verification flow
 - `Onetime::DomainValidation::SenderStrategies::BaseStrategy` - DNS lookup, caching, retry logic
 - `Onetime::Security::DnsRateLimiter` - prevents excessive verification attempts
 
 ## Error Types
 
-| Error Type | Exception | Meaning | Retriable |
-|------------|-----------|---------|-----------|
-| timeout | `Resolv::ResolvTimeout` | DNS server did not respond in time | Yes (2 retries) |
-| not_found | `Resolv::ResolvError` | NXDOMAIN - record does not exist | No |
-| network_error | `StandardError` | Connection or network issues | No |
-| rate_limited | `Onetime::LimitExceeded` | Too many verification attempts | No (wait for reset) |
+| Error Type    | Exception                | Meaning                            | Retriable           |
+| ------------- | ------------------------ | ---------------------------------- | ------------------- |
+| timeout       | `Resolv::ResolvTimeout`  | DNS server did not respond in time | Yes (2 retries)     |
+| not_found     | `Resolv::ResolvError`    | NXDOMAIN - record does not exist   | No                  |
+| network_error | `StandardError`          | Connection or network issues       | No                  |
+| rate_limited  | `Onetime::LimitExceeded` | Too many verification attempts     | No (wait for reset) |
 
 ## Retry Behavior
 
 DNS timeouts trigger automatic retries with exponential backoff:
 
-| Parameter | Value | Source Constant |
-|-----------|-------|-----------------|
-| Max retries | 2 (3 total attempts) | `DNS_RETRY_MAX` |
-| Base delay | 0.5 seconds | `DNS_RETRY_BASE_DELAY` |
-| Backoff | Exponential with 30% jitter | `RetryHelper` |
-| Retriable errors | `Resolv::ResolvTimeout` only | `DNS_RETRIABLE` |
+| Parameter        | Value                        | Source Constant        |
+| ---------------- | ---------------------------- | ---------------------- |
+| Max retries      | 2 (3 total attempts)         | `DNS_RETRY_MAX`        |
+| Base delay       | 0.5 seconds                  | `DNS_RETRY_BASE_DELAY` |
+| Backoff          | Exponential with 30% jitter  | `RetryHelper`          |
+| Retriable errors | `Resolv::ResolvTimeout` only | `DNS_RETRIABLE`        |
 
 Only timeouts trigger retries. NXDOMAIN responses (`Resolv::ResolvError`) are authoritative and do not retry.
 
@@ -35,12 +36,12 @@ Only timeouts trigger retries. NXDOMAIN responses (`Resolv::ResolvError`) are au
 
 Prevents abuse and excessive DNS queries per domain:
 
-| Parameter | Value | Source Constant |
-|-----------|-------|-----------------|
-| Limit | 10 verifications | `MAX_VERIFICATIONS` |
-| Window | 1 hour (3600 seconds) | `RATE_WINDOW` |
+| Parameter         | Value                       | Source Constant      |
+| ----------------- | --------------------------- | -------------------- |
+| Limit             | 10 verifications            | `MAX_VERIFICATIONS`  |
+| Window            | 1 hour (3600 seconds)       | `RATE_WINDOW`        |
 | Redis key pattern | `dns:ratelimit:{domain_id}` | `dns_rate_limit_key` |
-| Auto-reset | After window expires | Redis TTL |
+| Auto-reset        | After window expires        | Redis TTL            |
 
 Rate limit enforcement is atomic via Lua script to prevent race conditions.
 
@@ -48,12 +49,12 @@ Rate limit enforcement is atomic via Lua script to prevent race conditions.
 
 DNS lookup results are cached to reduce query load:
 
-| Parameter | Value | Source Constant |
-|-----------|-------|-----------------|
-| TTL | 10 minutes (600 seconds) | `DNS_CACHE_TTL` |
-| Redis key pattern | `dns:cache:{hostname}:{type}` | `dns_cache_key` |
-| Negative caching | Yes (empty results cached) | Prevents repeated lookups |
-| Bulk operations | Redis pipelining | `fetch_cache_bulk`, `store_cache_bulk` |
+| Parameter         | Value                         | Source Constant                        |
+| ----------------- | ----------------------------- | -------------------------------------- |
+| TTL               | 10 minutes (600 seconds)      | `DNS_CACHE_TTL`                        |
+| Redis key pattern | `dns:cache:{hostname}:{type}` | `dns_cache_key`                        |
+| Negative caching  | Yes (empty results cached)    | Prevents repeated lookups              |
+| Bulk operations   | Redis pipelining              | `fetch_cache_bulk`, `store_cache_bulk` |
 
 ## Troubleshooting
 
@@ -156,14 +157,14 @@ records = Onetime::Operations::ValidateSenderDomain.required_records(
 
 Search structured logs for these events:
 
-| Pattern | Meaning |
-|---------|---------|
-| `DNS verification rate limited` | Rate limit hit, includes `retry_after` |
-| `TXT lookup timed out` | DNS timeout after all retries |
-| `TXT lookup failed` | NXDOMAIN or authoritative not found |
-| `verify_all_records completed` | Success, includes `duration_ms` |
-| `Sender domain validation complete` | Operation finished, includes `status` |
-| `Domain ... approaching limit` | 2 or fewer attempts remaining |
+| Pattern                             | Meaning                                |
+| ----------------------------------- | -------------------------------------- |
+| `DNS verification rate limited`     | Rate limit hit, includes `retry_after` |
+| `TXT lookup timed out`              | DNS timeout after all retries          |
+| `TXT lookup failed`                 | NXDOMAIN or authoritative not found    |
+| `verify_all_records completed`      | Success, includes `duration_ms`        |
+| `Sender domain validation complete` | Operation finished, includes `status`  |
+| `Domain ... approaching limit`      | 2 or fewer attempts remaining          |
 
 ### Metrics to Track
 
@@ -174,23 +175,23 @@ Search structured logs for these events:
 
 ### Recommended Alerts
 
-| Condition | Severity | Action |
-|-----------|----------|--------|
-| DNS timeout rate > 5% over 15 min | Warning | Check DNS resolver health |
-| Rate limit hits > 10/hour globally | Warning | Check for automation abuse |
-| Verification failure rate > 30% | Info | Review customer onboarding docs |
-| DNS lookup p99 > 5 seconds | Warning | Check resolver latency |
+| Condition                          | Severity | Action                          |
+| ---------------------------------- | -------- | ------------------------------- |
+| DNS timeout rate > 5% over 15 min  | Warning  | Check DNS resolver health       |
+| Rate limit hits > 10/hour globally | Warning  | Check for automation abuse      |
+| Verification failure rate > 30%    | Info     | Review customer onboarding docs |
+| DNS lookup p99 > 5 seconds         | Warning  | Check resolver latency          |
 
 ## Quick Reference
 
-| Parameter | Value |
-|-----------|-------|
-| Max retries | 2 |
-| Base delay | 0.5s |
-| Backoff | Exponential + 30% jitter |
-| Cache TTL | 10 min (600s) |
-| Rate limit | 10/hour/domain |
-| Rate window | 1 hour (3600s) |
+| Parameter        | Value                        |
+| ---------------- | ---------------------------- |
+| Max retries      | 2                            |
+| Base delay       | 0.5s                         |
+| Backoff          | Exponential + 30% jitter     |
+| Cache TTL        | 10 min (600s)                |
+| Rate limit       | 10/hour/domain               |
+| Rate window      | 1 hour (3600s)               |
 | Retriable errors | `Resolv::ResolvTimeout` only |
 
 ## Related Files

@@ -6,16 +6,17 @@ Practical examples showing how to use the billing test shared contexts.
 
 Four shared contexts for different testing scenarios:
 
-| Context | Purpose | Use Case |
-|---------|---------|----------|
-| `with_test_plans` | Load plans from YAML | Unit tests without Stripe API |
-| `with_authenticated_customer` | Authenticated user session | Tests requiring auth |
-| `with_organization` | Organization with owner | Tests requiring org access |
-| `with_stripe_vcr` | Stripe API integration | Tests making real Stripe calls |
+| Context                       | Purpose                    | Use Case                       |
+| ----------------------------- | -------------------------- | ------------------------------ |
+| `with_test_plans`             | Load plans from YAML       | Unit tests without Stripe API  |
+| `with_authenticated_customer` | Authenticated user session | Tests requiring auth           |
+| `with_organization`           | Organization with owner    | Tests requiring org access     |
+| `with_stripe_vcr`             | Stripe API integration     | Tests making real Stripe calls |
 
 ## Quick Reference
 
 ### Unit Test (No Stripe)
+
 ```ruby
 include_context 'with_test_plans'
 include_context 'with_authenticated_customer'
@@ -23,6 +24,7 @@ include_context 'with_organization'
 ```
 
 ### Integration Test (With Stripe)
+
 ```ruby
 include_context 'with_stripe_vcr'
 include_context 'with_authenticated_customer'
@@ -422,11 +424,13 @@ end
 ### 1. Choose the Right Context
 
 **Unit Test (Fast)**:
+
 ```ruby
 include_context 'with_test_plans'
 ```
 
 **Integration Test (Slow)**:
+
 ```ruby
 include_context 'with_stripe_vcr'
 ```
@@ -490,6 +494,7 @@ end
 ### 5. Keep Unit Tests Simple
 
 Avoid:
+
 ```ruby
 # DON'T: Calling Stripe in unit test
 include_context 'with_test_plans'
@@ -500,6 +505,7 @@ end
 ```
 
 Do:
+
 ```ruby
 # DO: Mock Stripe or move to integration test
 include_context 'with_stripe_vcr'
@@ -591,6 +597,7 @@ end
 **Problem**: Test looks for plan but gets nil.
 
 **Solution**: Verify region matches:
+
 ```ruby
 # In test file
 before { mock_region!('EU') }
@@ -606,6 +613,7 @@ plans:
 **Problem**: Integration test runs without VCR cassette.
 
 **Solution**: Tag test with `:vcr`:
+
 ```ruby
 it 'creates subscription', :vcr do  # Add :vcr tag
   # ...
@@ -617,6 +625,7 @@ end
 **Problem**: Forgot to include auth context.
 
 **Solution**:
+
 ```ruby
 # Add authentication context
 include_context 'with_authenticated_customer'
@@ -627,6 +636,7 @@ include_context 'with_authenticated_customer'
 **Problem**: Forgot to include organization context.
 
 **Solution**:
+
 ```ruby
 # Add organization context
 include_context 'with_organization'

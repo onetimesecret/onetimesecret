@@ -53,7 +53,7 @@
 </script>
 
 <template>
-  <div class="container mx-auto min-w-[320px] max-w-4xl px-4">
+  <div class="container mx-auto max-w-4xl min-w-[320px] px-4">
     <!-- Upgrade Banner (shown for free plan users when billing is enabled) -->
     <UpgradeBanner />
 

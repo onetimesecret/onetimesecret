@@ -1,267 +1,261 @@
 <!-- src/apps/workspace/domains/DomainDetail.vue -->
 
 <script setup lang="ts">
-/**
- * Domain Detail Hub Page
- *
- * Navigation hub showing all available configuration sections for a domain.
- * Each section is displayed as a card linking to its dedicated page.
- * Entitlement-gated sections show a lock icon and upgrade link.
- */
-import { useI18n } from 'vue-i18n';
-import { useConfirmDialog } from '@vueuse/core';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
-import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
-import DomainHomepageSelector, {
-  type HomepageChoice,
-} from '@/apps/workspace/components/domains/DomainHomepageSelector.vue';
-import { useDomain } from '@/shared/composables/useDomain';
-import { useDomainsManager } from '@/shared/composables/useDomainsManager';
-import { useEntitlements } from '@/shared/composables/useEntitlements';
-import { useNotificationsStore } from '@/shared/stores/notificationsStore';
-import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import { ENTITLEMENTS } from '@/types/organization';
-import {
-  isApproximatedDomainValidation,
-  isOrgsCustomMailEnabled,
-  isOrgsIncomingSecretsEnabled,
-} from '@/utils/features';
-import { storeToRefs } from 'pinia';
-import { computed, onMounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
+  /**
+   * Domain Detail Hub Page
+   *
+   * Navigation hub showing all available configuration sections for a domain.
+   * Each section is displayed as a card linking to its dedicated page.
+   * Entitlement-gated sections show a lock icon and upgrade link.
+   */
+  import { useI18n } from 'vue-i18n';
+  import { useConfirmDialog } from '@vueuse/core';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
+  import DomainHeader from '@/apps/workspace/components/dashboard/DomainHeader.vue';
+  import DomainHomepageSelector, {
+    type HomepageChoice,
+  } from '@/apps/workspace/components/domains/DomainHomepageSelector.vue';
+  import { useDomain } from '@/shared/composables/useDomain';
+  import { useDomainsManager } from '@/shared/composables/useDomainsManager';
+  import { useEntitlements } from '@/shared/composables/useEntitlements';
+  import { useNotificationsStore } from '@/shared/stores/notificationsStore';
+  import { useOrganizationStore } from '@/shared/stores/organizationStore';
+  import { ENTITLEMENTS } from '@/types/organization';
+  import {
+    isApproximatedDomainValidation,
+    isOrgsCustomMailEnabled,
+    isOrgsIncomingSecretsEnabled,
+  } from '@/utils/features';
+  import { storeToRefs } from 'pinia';
+  import { computed, onMounted, ref } from 'vue';
+  import { useRouter } from 'vue-router';
 
-const { t } = useI18n();
-const router = useRouter();
+  const { t } = useI18n();
+  const router = useRouter();
 
-const props = defineProps<{ extid: string; orgid: string }>();
+  const props = defineProps<{ extid: string; orgid: string }>();
 
-const { isRevealed, reveal, confirm, cancel } = useConfirmDialog();
-const { deleteDomain, updateHomepageConfig } = useDomainsManager();
-const notifications = useNotificationsStore();
+  const { isRevealed, reveal, confirm, cancel } = useConfirmDialog();
+  const { deleteDomain, updateHomepageConfig } = useDomainsManager();
+  const notifications = useNotificationsStore();
 
-const handleBack = () => {
-  router.push(`/org/${props.orgid}/domains`);
-};
-
-const handleRemoveDomain = async () => {
-  const { isCanceled } = await reveal();
-  if (!isCanceled) {
-    await deleteDomain(props.extid);
+  const handleBack = () => {
     router.push(`/org/${props.orgid}/domains`);
-  }
-};
+  };
 
-const {
-  domain: customDomainRecord,
-  isLoading: domainLoading,
-  initialize: initializeDomain,
-} = useDomain(props.extid);
-
-const organizationStore = useOrganizationStore();
-const { organizations } = storeToRefs(organizationStore);
-const organization = computed(() =>
-  organizations.value.find((o) => o.extid === props.orgid) ?? null
-);
-const { can } = useEntitlements(organization);
-
-const canBrand = computed(() => can(ENTITLEMENTS.CUSTOM_BRANDING));
-const canEmailConfig = computed(() => can(ENTITLEMENTS.CUSTOM_MAIL_SENDER));
-const canIncomingSecrets = computed(() => can(ENTITLEMENTS.INCOMING_SECRETS));
-const canCustomSignin = computed(() => can(ENTITLEMENTS.CUSTOM_SIGNIN_CONFIG));
-const canCustomSignup = computed(() => can(ENTITLEMENTS.CUSTOM_SIGNUP_VALIDATION));
-
-/** Current user is owner or admin — can modify domain settings */
-const canAdmin = computed(() => {
-  const role = organization.value?.current_user_role;
-  return role === 'owner' || role === 'admin';
-});
-
-// Removing a domain is owner-only — admins manage configuration but not lifecycle.
-const isOwner = computed(() => organization.value?.current_user_role === 'owner');
-
-// ---------------------------------------------------------------------------
-// Homepage experience (private landing / create form / incoming form)
-//
-// One three-way choice for the operator; stored backend-side as
-// enabled + secrets_mode with merge semantics.
-// ---------------------------------------------------------------------------
-
-const homepageExpanded = ref(false);
-const homepageSaving = ref(false);
-
-const homepageChoice = computed<HomepageChoice>(() => {
-  const config = customDomainRecord.value?.homepage_config;
-  if (!config?.enabled) return 'private';
-  return config.secrets_mode === 'incoming' ? 'incoming' : 'create';
-});
-
-/** Incoming option offered at all: deployment flag + plan entitlement. */
-const homepageIncomingAvailable = computed(
-  () => isOrgsIncomingSecretsEnabled() && canIncomingSecrets.value
-);
-
-/** Incoming selectable: server-computed readiness (enabled + >= 1 recipient). */
-const homepageIncomingReady = computed(
-  () => customDomainRecord.value?.incoming_ready ?? false
-);
-
-// Stored choice can drift from what visitors actually see: 'incoming' stays
-// selected (preserving the operator's intent) even after recipients are
-// removed elsewhere, but the backend fails closed to the private trust card
-// at that point (HomepageConfig#effectively_enabled?). Reflect that here so
-// the status line never claims the homepage is interactive when it isn't.
-const homepageStatusKey = computed(() => {
-  switch (homepageChoice.value) {
-    case 'create':
-      return 'web.domains.homepage.status_create';
-    case 'incoming':
-      return homepageIncomingReady.value
-        ? 'web.domains.homepage.status_incoming'
-        : 'web.domains.homepage.status_incoming_unready';
-    default:
-      return 'web.domains.homepage.status_private';
-  }
-});
-
-const incomingConfigRoute = computed(() => ({
-  name: 'DomainIncoming',
-  params: { orgid: props.orgid, extid: props.extid },
-}));
-
-const handleHomepageSelect = async (choice: HomepageChoice) => {
-  const domain = customDomainRecord.value;
-  if (!domain || homepageSaving.value) return;
-
-  // 'private' sends enabled only — merge semantics preserve the stored
-  // secrets_mode, so re-enabling later restores the operator's selection.
-  const update =
-    choice === 'private'
-      ? { enabled: false }
-      : { enabled: true, secrets_mode: choice };
-
-  homepageSaving.value = true;
-  try {
-    const result = await updateHomepageConfig(
-      domain.extid,
-      update,
-      organization.value?.current_user_role,
-    );
-    if (result) {
-      // Gate the success toast on the refetch actually landing. The selector
-      // reads its value from the refreshed domain record, so if the refetch
-      // fails (initializeDomain surfaces its own error) a "saved" toast would
-      // both contradict that error and sit above a selector still showing the
-      // pre-change value.
-      const refreshed = await initializeDomain();
-      if (refreshed) {
-        notifications.show(t('web.domains.homepage.update_success'), 'success', 'top');
-      }
+  const handleRemoveDomain = async () => {
+    const { isCanceled } = await reveal();
+    if (!isCanceled) {
+      await deleteDomain(props.extid);
+      router.push(`/org/${props.orgid}/domains`);
     }
-  } finally {
-    homepageSaving.value = false;
+  };
+
+  const {
+    domain: customDomainRecord,
+    isLoading: domainLoading,
+    initialize: initializeDomain,
+  } = useDomain(props.extid);
+
+  const organizationStore = useOrganizationStore();
+  const { organizations } = storeToRefs(organizationStore);
+  const organization = computed(
+    () => organizations.value.find((o) => o.extid === props.orgid) ?? null
+  );
+  const { can } = useEntitlements(organization);
+
+  const canBrand = computed(() => can(ENTITLEMENTS.CUSTOM_BRANDING));
+  const canEmailConfig = computed(() => can(ENTITLEMENTS.CUSTOM_MAIL_SENDER));
+  const canIncomingSecrets = computed(() => can(ENTITLEMENTS.INCOMING_SECRETS));
+  const canCustomSignin = computed(() => can(ENTITLEMENTS.CUSTOM_SIGNIN_CONFIG));
+  const canCustomSignup = computed(() => can(ENTITLEMENTS.CUSTOM_SIGNUP_VALIDATION));
+
+  /** Current user is owner or admin — can modify domain settings */
+  const canAdmin = computed(() => {
+    const role = organization.value?.current_user_role;
+    return role === 'owner' || role === 'admin';
+  });
+
+  // Removing a domain is owner-only — admins manage configuration but not lifecycle.
+  const isOwner = computed(() => organization.value?.current_user_role === 'owner');
+
+  // ---------------------------------------------------------------------------
+  // Homepage experience (private landing / create form / incoming form)
+  //
+  // One three-way choice for the operator; stored backend-side as
+  // enabled + secrets_mode with merge semantics.
+  // ---------------------------------------------------------------------------
+
+  const homepageExpanded = ref(false);
+  const homepageSaving = ref(false);
+
+  const homepageChoice = computed<HomepageChoice>(() => {
+    const config = customDomainRecord.value?.homepage_config;
+    if (!config?.enabled) return 'private';
+    return config.secrets_mode === 'incoming' ? 'incoming' : 'create';
+  });
+
+  /** Incoming option offered at all: deployment flag + plan entitlement. */
+  const homepageIncomingAvailable = computed(
+    () => isOrgsIncomingSecretsEnabled() && canIncomingSecrets.value
+  );
+
+  /** Incoming selectable: server-computed readiness (enabled + >= 1 recipient). */
+  const homepageIncomingReady = computed(() => customDomainRecord.value?.incoming_ready ?? false);
+
+  // Stored choice can drift from what visitors actually see: 'incoming' stays
+  // selected (preserving the operator's intent) even after recipients are
+  // removed elsewhere, but the backend fails closed to the private trust card
+  // at that point (HomepageConfig#effectively_enabled?). Reflect that here so
+  // the status line never claims the homepage is interactive when it isn't.
+  const homepageStatusKey = computed(() => {
+    switch (homepageChoice.value) {
+      case 'create':
+        return 'web.domains.homepage.status_create';
+      case 'incoming':
+        return homepageIncomingReady.value
+          ? 'web.domains.homepage.status_incoming'
+          : 'web.domains.homepage.status_incoming_unready';
+      default:
+        return 'web.domains.homepage.status_private';
+    }
+  });
+
+  const incomingConfigRoute = computed(() => ({
+    name: 'DomainIncoming',
+    params: { orgid: props.orgid, extid: props.extid },
+  }));
+
+  const handleHomepageSelect = async (choice: HomepageChoice) => {
+    const domain = customDomainRecord.value;
+    if (!domain || homepageSaving.value) return;
+
+    // 'private' sends enabled only — merge semantics preserve the stored
+    // secrets_mode, so re-enabling later restores the operator's selection.
+    const update =
+      choice === 'private' ? { enabled: false } : { enabled: true, secrets_mode: choice };
+
+    homepageSaving.value = true;
+    try {
+      const result = await updateHomepageConfig(
+        domain.extid,
+        update,
+        organization.value?.current_user_role
+      );
+      if (result) {
+        // Gate the success toast on the refetch actually landing. The selector
+        // reads its value from the refreshed domain record, so if the refetch
+        // fails (initializeDomain surfaces its own error) a "saved" toast would
+        // both contradict that error and sit above a selector still showing the
+        // pre-change value.
+        const refreshed = await initializeDomain();
+        if (refreshed) {
+          notifications.show(t('web.domains.homepage.update_success'), 'success', 'top');
+        }
+      }
+    } finally {
+      homepageSaving.value = false;
+    }
+  };
+
+  interface Section {
+    key: string;
+    route: { name: string; params: { orgid: string; extid: string } } | null;
+    icon: { collection: string; name: string };
+    titleKey: string;
+    descriptionKey: string;
+    available: boolean;
+    locked: boolean;
+    /** When true, the row expands in place (homepage selector) instead of navigating */
+    expandable: boolean;
   }
-};
 
-interface Section {
-  key: string;
-  route: { name: string; params: { orgid: string; extid: string } } | null;
-  icon: { collection: string; name: string };
-  titleKey: string;
-  descriptionKey: string;
-  available: boolean;
-  locked: boolean;
-  /** When true, the row expands in place (homepage selector) instead of navigating */
-  expandable: boolean;
-}
+  // eslint-disable-next-line max-lines-per-function
+  const sections = computed<Section[]>(() => [
+    {
+      // DNS setup is only surfaced on non-approximated installs. Approximated
+      // installs reach DNS/verification via the header status badge instead.
+      key: 'dns',
+      route: { name: 'DomainDns', params: { orgid: props.orgid, extid: props.extid } },
+      icon: { collection: 'heroicons', name: 'globe-alt' },
+      titleKey: 'web.domains.detail.dns_title',
+      descriptionKey: 'web.domains.detail.dns_description',
+      available: !isApproximatedDomainValidation(),
+      locked: false,
+      expandable: false,
+    },
+    {
+      key: 'brand',
+      route: { name: 'DomainBrand', params: { orgid: props.orgid, extid: props.extid } },
+      icon: { collection: 'heroicons', name: 'paint-brush' },
+      titleKey: 'web.domains.manage_brand',
+      descriptionKey: 'web.domains.detail.brand_description',
+      available: true,
+      locked: !canBrand.value,
+      expandable: false,
+    },
+    {
+      key: 'homepage',
+      route: null,
+      icon: { collection: 'heroicons', name: 'home' },
+      titleKey: 'web.domains.homepage.title',
+      descriptionKey: 'web.domains.homepage.description',
+      available: true,
+      locked: false,
+      expandable: true,
+    },
+    {
+      key: 'incoming',
+      route: { name: 'DomainIncoming', params: { orgid: props.orgid, extid: props.extid } },
+      icon: { collection: 'heroicons', name: 'inbox-arrow-down' },
+      titleKey: 'web.domains.incoming.configure_incoming',
+      descriptionKey: 'web.domains.detail.incoming_description',
+      available: isOrgsIncomingSecretsEnabled(),
+      locked: !canIncomingSecrets.value,
+      expandable: false,
+    },
+    {
+      key: 'email',
+      route: { name: 'DomainEmail', params: { orgid: props.orgid, extid: props.extid } },
+      icon: { collection: 'heroicons', name: 'envelope' },
+      titleKey: 'web.domains.email.configure_email',
+      descriptionKey: 'web.domains.detail.email_description',
+      available: isOrgsCustomMailEnabled(),
+      locked: !canEmailConfig.value,
+      expandable: false,
+    },
+    {
+      key: 'signin',
+      route: { name: 'DomainSignin', params: { orgid: props.orgid, extid: props.extid } },
+      icon: { collection: 'heroicons', name: 'arrow-right-on-rectangle' },
+      titleKey: 'web.domains.signin.configure_signin',
+      descriptionKey: 'web.domains.detail.signin_description',
+      available: true,
+      locked: !canCustomSignin.value,
+      expandable: false,
+    },
+    {
+      key: 'signup',
+      route: { name: 'DomainSignup', params: { orgid: props.orgid, extid: props.extid } },
+      icon: { collection: 'heroicons', name: 'user-plus' },
+      titleKey: 'web.domains.signup.configure_signup',
+      descriptionKey: 'web.domains.detail.signup_description',
+      available: false,
+      locked: !canCustomSignup.value,
+      expandable: false,
+    },
+  ]);
 
-// eslint-disable-next-line max-lines-per-function
-const sections = computed<Section[]>(() => [
-  {
-    // DNS setup is only surfaced on non-approximated installs. Approximated
-    // installs reach DNS/verification via the header status badge instead.
-    key: 'dns',
-    route: { name: 'DomainDns', params: { orgid: props.orgid, extid: props.extid } },
-    icon: { collection: 'heroicons', name: 'globe-alt' },
-    titleKey: 'web.domains.detail.dns_title',
-    descriptionKey: 'web.domains.detail.dns_description',
-    available: !isApproximatedDomainValidation(),
-    locked: false,
-    expandable: false,
-  },
-  {
-    key: 'brand',
-    route: { name: 'DomainBrand', params: { orgid: props.orgid, extid: props.extid } },
-    icon: { collection: 'heroicons', name: 'paint-brush' },
-    titleKey: 'web.domains.manage_brand',
-    descriptionKey: 'web.domains.detail.brand_description',
-    available: true,
-    locked: !canBrand.value,
-    expandable: false,
-  },
-  {
-    key: 'homepage',
-    route: null,
-    icon: { collection: 'heroicons', name: 'home' },
-    titleKey: 'web.domains.homepage.title',
-    descriptionKey: 'web.domains.homepage.description',
-    available: true,
-    locked: false,
-    expandable: true,
-  },
-  {
-    key: 'incoming',
-    route: { name: 'DomainIncoming', params: { orgid: props.orgid, extid: props.extid } },
-    icon: { collection: 'heroicons', name: 'inbox-arrow-down' },
-    titleKey: 'web.domains.incoming.configure_incoming',
-    descriptionKey: 'web.domains.detail.incoming_description',
-    available: isOrgsIncomingSecretsEnabled(),
-    locked: !canIncomingSecrets.value,
-    expandable: false,
-  },
-  {
-    key: 'email',
-    route: { name: 'DomainEmail', params: { orgid: props.orgid, extid: props.extid } },
-    icon: { collection: 'heroicons', name: 'envelope' },
-    titleKey: 'web.domains.email.configure_email',
-    descriptionKey: 'web.domains.detail.email_description',
-    available: isOrgsCustomMailEnabled(),
-    locked: !canEmailConfig.value,
-    expandable: false,
-  },
-  {
-    key: 'signin',
-    route: { name: 'DomainSignin', params: { orgid: props.orgid, extid: props.extid } },
-    icon: { collection: 'heroicons', name: 'arrow-right-on-rectangle' },
-    titleKey: 'web.domains.signin.configure_signin',
-    descriptionKey: 'web.domains.detail.signin_description',
-    available: true,
-    locked: !canCustomSignin.value,
-    expandable: false,
-  },
-  {
-    key: 'signup',
-    route: { name: 'DomainSignup', params: { orgid: props.orgid, extid: props.extid } },
-    icon: { collection: 'heroicons', name: 'user-plus' },
-    titleKey: 'web.domains.signup.configure_signup',
-    descriptionKey: 'web.domains.detail.signup_description',
-    available: false,
-    locked: !canCustomSignup.value,
-    expandable: false,
-  },
-]);
+  // Unlocked sections first, locked (greyed-out, upgrade-gated) last.
+  // Array#sort is stable, so original order is preserved within each group.
+  const visibleSections = computed(() =>
+    sections.value.filter((s) => s.available).sort((a, b) => Number(a.locked) - Number(b.locked))
+  );
 
-// Unlocked sections first, locked (greyed-out, upgrade-gated) last.
-// Array#sort is stable, so original order is preserved within each group.
-const visibleSections = computed(() =>
-  sections.value
-    .filter((s) => s.available)
-    .sort((a, b) => Number(a.locked) - Number(b.locked))
-);
-
-onMounted(() => {
-  initializeDomain();
-});
+  onMounted(() => {
+    initializeDomain();
+  });
 </script>
 
 <template>
@@ -284,7 +278,8 @@ onMounted(() => {
         {{ t('web.domains.detail.features') }}
       </h2>
 
-      <div class="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-800">
+      <div
+        class="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-800">
         <template
           v-for="section in visibleSections"
           :key="section.key">
@@ -292,12 +287,13 @@ onMounted(() => {
           <div v-if="section.expandable && !section.locked">
             <button
               type="button"
-              class="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500 dark:hover:bg-gray-700/50"
+              class="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-inset dark:hover:bg-gray-700/50"
               :aria-expanded="homepageExpanded"
               data-testid="homepage-section-toggle"
               @click="homepageExpanded = !homepageExpanded">
               <div class="flex min-w-0 items-center gap-4">
-                <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-900/20">
+                <div
+                  class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-900/20">
                   <OIcon
                     :collection="section.icon.collection"
                     :name="section.icon.name"
@@ -316,7 +312,7 @@ onMounted(() => {
               <div class="flex shrink-0 items-center gap-3">
                 <!-- Live status of the current homepage experience -->
                 <span
-                  class="hidden text-xs text-gray-500 dark:text-gray-400 sm:inline"
+                  class="hidden text-xs text-gray-500 sm:inline dark:text-gray-400"
                   data-testid="homepage-status">
                   {{ t(homepageStatusKey) }}
                 </span>
@@ -351,10 +347,13 @@ onMounted(() => {
             v-bind="section.route ? { to: section.route } : {}"
             :class="[
               'flex items-center justify-between gap-4 px-5 py-4',
-              section.route ? 'group transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50' : '',
+              section.route
+                ? 'group transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                : '',
             ]">
             <div class="flex min-w-0 items-center gap-4">
-              <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-900/20">
+              <div
+                class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-900/20">
                 <OIcon
                   :collection="section.icon.collection"
                   :name="section.icon.name"
@@ -385,7 +384,8 @@ onMounted(() => {
             v-else
             class="flex items-center justify-between gap-4 bg-gray-50/50 px-5 py-4 dark:bg-gray-800/50">
             <div class="flex min-w-0 items-center gap-4">
-              <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
+              <div
+                class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
                 <OIcon
                   :collection="section.icon.collection"
                   :name="section.icon.name"
@@ -426,36 +426,38 @@ onMounted(() => {
       <template v-if="isOwner">
         <hr class="my-10 border-gray-200 dark:border-gray-700/50" />
         <div>
-        <h2 class="mb-4 text-sm font-medium text-red-600 dark:text-red-400">
-          {{ t('web.COMMON.caution_zone') }}
-        </h2>
-        <div class="rounded-lg border border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20">
-          <div class="flex items-center justify-between gap-4 px-5 py-4">
-            <div class="flex min-w-0 items-center gap-4">
-              <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30">
-                <OIcon
-                  collection="heroicons"
-                  name="trash"
-                  class="size-5 text-red-600 dark:text-red-400"
-                  aria-hidden="true" />
+          <h2 class="mb-4 text-sm font-medium text-red-600 dark:text-red-400">
+            {{ t('web.COMMON.caution_zone') }}
+          </h2>
+          <div
+            class="rounded-lg border border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20">
+            <div class="flex items-center justify-between gap-4 px-5 py-4">
+              <div class="flex min-w-0 items-center gap-4">
+                <div
+                  class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30">
+                  <OIcon
+                    collection="heroicons"
+                    name="trash"
+                    class="size-5 text-red-600 dark:text-red-400"
+                    aria-hidden="true" />
+                </div>
+                <div class="min-w-0">
+                  <h3 class="font-brand text-sm font-semibold text-gray-900 dark:text-white">
+                    {{ t('web.domains.remove_domain') }}
+                  </h3>
+                  <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                    {{ t('web.domains.remove_domain_description') }}
+                  </p>
+                </div>
               </div>
-              <div class="min-w-0">
-                <h3 class="font-brand text-sm font-semibold text-gray-900 dark:text-white">
-                  {{ t('web.domains.remove_domain') }}
-                </h3>
-                <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-                  {{ t('web.domains.remove_domain_description') }}
-                </p>
-              </div>
+              <button
+                type="button"
+                class="shrink-0 rounded-md border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none dark:border-red-700 dark:bg-transparent dark:text-red-400 dark:hover:bg-red-950/50 dark:focus:ring-offset-gray-900"
+                @click="handleRemoveDomain">
+                {{ t('web.COMMON.remove') }}
+              </button>
             </div>
-            <button
-              type="button"
-              class="shrink-0 rounded-md border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-red-700 dark:bg-transparent dark:text-red-400 dark:hover:bg-red-950/50 dark:focus:ring-offset-gray-900"
-              @click="handleRemoveDomain">
-              {{ t('web.COMMON.remove') }}
-            </button>
           </div>
-        </div>
         </div>
       </template>
     </div>

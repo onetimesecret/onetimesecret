@@ -10,7 +10,7 @@
   import { formatDistanceToNow } from 'date-fns';
   import { computed, toRef } from 'vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
   interface Props {
     domain: CustomDomain;
@@ -23,9 +23,7 @@ const { t } = useI18n();
   });
 
   // Domain verification status
-  const { isWarning, isError, isStale, displayStatus } = useDomainStatus(
-    toRef(() => props.domain)
-  );
+  const { isWarning, isError, isStale, displayStatus } = useDomainStatus(toRef(() => props.domain));
 
   // The DNS verification status is driven by Approximated's per-domain check.
   // On installs that don't use Approximated, that status is never populated,
@@ -72,31 +70,46 @@ const { t } = useI18n();
 
   const emailStatusIcon = computed(() => {
     switch (emailState.value) {
-      case 'verified': return 'check-circle';
-      case 'pending': return 'clock';
-      case 'disabled': return 'minus-circle';
-      case 'not_configured': return 'envelope';
-      default: return 'envelope';
+      case 'verified':
+        return 'check-circle';
+      case 'pending':
+        return 'clock';
+      case 'disabled':
+        return 'minus-circle';
+      case 'not_configured':
+        return 'envelope';
+      default:
+        return 'envelope';
     }
   });
 
   const emailStatusColorClass = computed(() => {
     switch (emailState.value) {
-      case 'verified': return 'text-emerald-600 dark:text-emerald-400';
-      case 'pending': return 'text-amber-500 dark:text-amber-400';
-      case 'disabled': return 'text-gray-400 dark:text-gray-500';
-      case 'not_configured': return 'text-gray-400 dark:text-gray-500';
-      default: return 'text-gray-400 dark:text-gray-500';
+      case 'verified':
+        return 'text-emerald-600 dark:text-emerald-400';
+      case 'pending':
+        return 'text-amber-500 dark:text-amber-400';
+      case 'disabled':
+        return 'text-gray-400 dark:text-gray-500';
+      case 'not_configured':
+        return 'text-gray-400 dark:text-gray-500';
+      default:
+        return 'text-gray-400 dark:text-gray-500';
     }
   });
 
   const emailStatusTooltip = computed(() => {
     switch (emailState.value) {
-      case 'verified': return t('web.domains.email.status_verified');
-      case 'pending': return t('web.domains.email.status_pending');
-      case 'disabled': return t('web.domains.email.tooltip_disabled');
-      case 'not_configured': return t('web.domains.email.tooltip_not_configured');
-      default: return t('web.domains.email.configure_email');
+      case 'verified':
+        return t('web.domains.email.status_verified');
+      case 'pending':
+        return t('web.domains.email.status_pending');
+      case 'disabled':
+        return t('web.domains.email.tooltip_disabled');
+      case 'not_configured':
+        return t('web.domains.email.tooltip_not_configured');
+      default:
+        return t('web.domains.email.configure_email');
     }
   });
 </script>

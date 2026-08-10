@@ -7,9 +7,7 @@ import { RouteRecordRaw } from 'vue-router';
 describe('Account Routes', () => {
   describe('Account Route', () => {
     it('should define account route correctly', () => {
-      const route = accountRoutes.find(
-        (route: RouteRecordRaw) => route.path === '/account'
-      );
+      const route = accountRoutes.find((route: RouteRecordRaw) => route.path === '/account');
       expect(route).toBeDefined();
       expect(route?.meta?.requiresAuth).toBe(true);
       // Routes use single component, not named components

@@ -23,7 +23,7 @@ encoder/verifier that slices 20, 40, 50, and 51 consume.
 
 - Add an `email_protection:` entry to `Onetime::KeyDerivation::PURPOSES`
   (HKDF from root `SECRET`, distinct `info` string, `env_var:
-  'EMAIL_PROTECTION_SECRET'` override) per ADR-008 Category 1. Update
+'EMAIL_PROTECTION_SECRET'` override) per ADR-008 Category 1. Update
   `.env.example`'s DERIVED block and `lib/tasks/init.rake` env generation.
 - New `Onetime::Utils::EmailProtection` (module, `extend self`):
   - `address_hash(email)` — HMAC-SHA256 over `OT::Utils.normalize_email`

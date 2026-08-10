@@ -12,11 +12,13 @@ describe('usePreviewPlanMode', () => {
   /**
    * Helper to set up bootstrapStore with test plan mode configuration
    */
-  function setupBootstrapStore(config: {
-    entitlement_preview_planid?: string | null;
-    entitlement_preview_plan_name?: string | null;
-    organization?: { planid?: string } | null;
-  } = {}) {
+  function setupBootstrapStore(
+    config: {
+      entitlement_preview_planid?: string | null;
+      entitlement_preview_plan_name?: string | null;
+      organization?: { planid?: string } | null;
+    } = {}
+  ) {
     const pinia = createTestingPinia({
       createSpy: vi.fn,
       stubActions: false,
@@ -105,7 +107,7 @@ describe('usePreviewPlanMode', () => {
     it('correctly reads different plan ids', () => {
       const testCases = ['free', 'identity_v1', 'multi_team_v1'];
 
-      testCases.forEach(planId => {
+      testCases.forEach((planId) => {
         setupBootstrapStore({
           entitlement_preview_planid: planId,
         });
@@ -190,12 +192,8 @@ describe('usePreviewPlanMode', () => {
         organization: { planid: 'free' },
       });
 
-      const {
-        isPreviewModeActive,
-        previewPlanId,
-        previewPlanName,
-        actualPlanId,
-      } = usePreviewPlanMode();
+      const { isPreviewModeActive, previewPlanId, previewPlanName, actualPlanId } =
+        usePreviewPlanMode();
 
       expect(isPreviewModeActive.value).toBe(true);
       expect(previewPlanId.value).toBe('multi_team_v1');
@@ -210,12 +208,8 @@ describe('usePreviewPlanMode', () => {
         organization: { planid: 'identity_v1' },
       });
 
-      const {
-        isPreviewModeActive,
-        previewPlanId,
-        previewPlanName,
-        actualPlanId,
-      } = usePreviewPlanMode();
+      const { isPreviewModeActive, previewPlanId, previewPlanName, actualPlanId } =
+        usePreviewPlanMode();
 
       expect(isPreviewModeActive.value).toBe(false);
       expect(previewPlanId.value).toBeNull();
@@ -250,12 +244,8 @@ describe('usePreviewPlanMode', () => {
         // Other keys left undefined
       });
 
-      const {
-        isPreviewModeActive,
-        previewPlanId,
-        previewPlanName,
-        actualPlanId,
-      } = usePreviewPlanMode();
+      const { isPreviewModeActive, previewPlanId, previewPlanName, actualPlanId } =
+        usePreviewPlanMode();
 
       expect(isPreviewModeActive.value).toBe(true);
       expect(previewPlanId.value).toBe('identity_v1');

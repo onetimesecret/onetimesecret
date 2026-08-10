@@ -2,40 +2,41 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-import { useMagicLink } from '@/shared/composables/useMagicLink';
-import { onMounted, ref } from 'vue';
-import { useRoute } from 'vue-router';
+  import { useMagicLink } from '@/shared/composables/useMagicLink';
+  import { onMounted, ref } from 'vue';
+  import { useRoute } from 'vue-router';
 
-const { t } = useI18n();
-const route = useRoute();
-const { verifyMagicLink, isLoading, error } = useMagicLink();
+  const { t } = useI18n();
+  const route = useRoute();
+  const { verifyMagicLink, isLoading, error } = useMagicLink();
 
-const hasError = ref(false);
+  const hasError = ref(false);
 
-onMounted(async () => {
-  const key = route.query.key as string;
+  onMounted(async () => {
+    const key = route.query.key as string;
 
-  if (!key) {
-    hasError.value = true;
-    return;
-  }
+    if (!key) {
+      hasError.value = true;
+      return;
+    }
 
-  const success = await verifyMagicLink(key);
-  if (!success) {
-    hasError.value = true;
-  }
-});
+    const success = await verifyMagicLink(key);
+    if (!success) {
+      hasError.value = true;
+    }
+  });
 </script>
 
 <template>
-  <div class="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 dark:bg-gray-900 sm:px-6 lg:px-8">
+  <div
+    class="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8 dark:bg-gray-900">
     <div class="w-full max-w-md space-y-8">
       <!-- Loading state -->
       <div
         v-if="isLoading"
         class="text-center">
         <svg
-          class="mx-auto size-16 animate-spin motion-reduce:animate-none text-brand-600 dark:text-brand-400"
+          class="mx-auto size-16 animate-spin text-brand-600 motion-reduce:animate-none dark:text-brand-400"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"

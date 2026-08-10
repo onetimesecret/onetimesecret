@@ -205,7 +205,7 @@ describe('useDomainsManager', () => {
         expect(result).toEqual(newDomainData);
         expect(mockDependencies.domainsStore.addDomain).toHaveBeenCalledWith(
           newDomainData.domainid,
-          'test-org-id'  // orgid from route params
+          'test-org-id' // orgid from route params
         );
         expect(mockDependencies.router.push).toHaveBeenCalledWith({
           name: 'DomainVerify',
@@ -249,7 +249,8 @@ describe('useDomainsManager', () => {
 
         // Verify setContext was called with domain_context from server and skipBackendSync=true
         expect(mockDomainContext.setContext).toHaveBeenCalledWith(
-          newDomainData.display_domain, true,
+          newDomainData.display_domain,
+          true
         );
         expect(mockDomainContext.setContext).toHaveBeenCalledTimes(1);
       });
@@ -271,8 +272,10 @@ describe('useDomainsManager', () => {
 
       it('does not switch domain context when domain addition fails', async () => {
         // Store returns null (no record)
-        mockDependencies.domainsStore.addDomain
-          .mockResolvedValueOnce({ record: null, details: {} });
+        mockDependencies.domainsStore.addDomain.mockResolvedValueOnce({
+          record: null,
+          details: {},
+        });
         mockDependencies.errorHandler.createError.mockImplementation((message, type, severity) => ({
           message,
           type,

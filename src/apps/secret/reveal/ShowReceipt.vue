@@ -38,7 +38,9 @@
     record.value?.expiration_in_seconds ?? 0
   );
 
-  const isAvailable = computed(() => !(record.value?.is_destroyed || record.value?.is_burned || record.value?.is_revealed));
+  const isAvailable = computed(
+    () => !(record.value?.is_destroyed || record.value?.is_burned || record.value?.is_revealed)
+  );
 
   // The receipt-page Burn action is shown unless ui.capabilities.burn is
   // explicitly disabled. An unset flag (undefined) is treated as enabled,
@@ -148,7 +150,9 @@
                 collection="material-symbols"
                 name="mail-outline"
                 class="mr-2 size-5 text-brand-500 dark:text-brand-400" />
-              <span class="mr-2 text-gray-500 dark:text-gray-400">{{ t('web.COMMON.sent_to') }}</span>
+              <span class="mr-2 text-gray-500 dark:text-gray-400">{{
+                t('web.COMMON.sent_to')
+              }}</span>
               <span class="break-words">{{ record.recipient_name || record.recipients }}</span>
             </h3>
 
@@ -163,8 +167,10 @@
                 v-if="!details.show_recipients"
                 collection="material-symbols"
                 name="notes"
-                class="mr-2 mt-0.5 size-4 shrink-0 text-gray-400 dark:text-gray-500" />
-              <span class="mr-1 text-gray-500 dark:text-gray-400">{{ t('incoming.memo_label') }}:</span>
+                class="mt-0.5 mr-2 size-4 shrink-0 text-gray-400 dark:text-gray-500" />
+              <span class="mr-1 text-gray-500 dark:text-gray-400"
+                >{{ t('incoming.memo_label') }}:</span
+              >
               <span class="break-words">{{ record.memo }}</span>
             </p>
           </div>
@@ -218,7 +224,7 @@
               text-gray-400 dark:text-gray-500">
               <div class="flex flex-1 items-center">
                 <span class="inline-block w-full overflow-hidden">
-                  <span class="select-none blur-sm">•••••••••••••••••••••••••••••••••••••••</span>
+                  <span class="blur-sm select-none">•••••••••••••••••••••••••••••••••••••••</span>
                 </span>
                 <OIcon
                   collection="material-symbols"

@@ -108,7 +108,7 @@ tests:
       type: submit
       element: Verify code input
       data:
-        otp_code: "123456"
+        otp_code: '123456'
     verify:
       - 6-digit OTP input field visible
       - Verify button enabled when 6 digits entered
@@ -185,7 +185,7 @@ tests:
         assertion: hidden
       - selector: "[data-testid='mfa-status']"
         assertion: contains_text
-        expected: "enabled"
+        expected: 'enabled'
       - api: GET /api/account/mfa/status
         assert:
           mfa_enabled: true
@@ -288,7 +288,7 @@ tests:
       type: submit
       element: OTP code input
       data:
-        otp_code: "000000"
+        otp_code: '000000'
     verify:
       - Error message displayed
       - User remains on MFA page
@@ -360,7 +360,7 @@ tests:
       type: submit
       element: Recovery code input
       data:
-        recovery_code: "invalid-code-12345"
+        recovery_code: 'invalid-code-12345'
     verify:
       - Error message displayed
       - User remains on MFA page
@@ -376,13 +376,13 @@ tests:
       state:
         account_has_mfa: true
         awaiting_mfa: true
-        used_recovery_codes: ["abc123-def456"]
+        used_recovery_codes: ['abc123-def456']
     target: /mfa-verify (recovery mode)
     action:
       type: submit
       element: Recovery code input
       data:
-        recovery_code: "abc123-def456"
+        recovery_code: 'abc123-def456'
     verify:
       - Error message indicates code already used
       - User must use different recovery code
@@ -435,7 +435,7 @@ tests:
     setup:
       <<: *user_with_mfa
       state:
-        old_recovery_code: "old-code-123456"
+        old_recovery_code: 'old-code-123456'
     target: /account/security (regenerate modal open)
     action:
       type: submit
@@ -455,8 +455,8 @@ tests:
     postcondition_validation:
       - action: attempt_login_with_old_recovery_code
         data:
-          recovery_code: "old-code-123456"
-        expected: { error: "Invalid recovery code", authenticated: false }
+          recovery_code: 'old-code-123456'
+        expected: { error: 'Invalid recovery code', authenticated: false }
     priority: high
     type: functional
     covers: [RecoveryCodes.vue, handleGenerateNew]

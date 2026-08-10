@@ -81,7 +81,13 @@ describe('colonel Queue DLQ schemas (ticket #42, CONTRACT 3)', () => {
   it('accepts a ReplayDlq ack (counts + dry-run flag)', () => {
     const parsed = colonelDlqReplayResponseSchema.safeParse({
       shrimp: '',
-      record: { queue: 'dlq.billing.event', replayed: 3, failed: 0, would_replay: 0, dry_run: false },
+      record: {
+        queue: 'dlq.billing.event',
+        replayed: 3,
+        failed: 0,
+        would_replay: 0,
+        dry_run: false,
+      },
       details: { message: 'Replayed 3 message(s), 0 failed', errors: [] },
     });
     expect(parsed.success).toBe(true);

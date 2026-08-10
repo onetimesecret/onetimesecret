@@ -43,7 +43,7 @@ plans:
       - view_receipt
       - api_access
       - custom_domains
-      - manage_sso      # Must match root-level key exactly
+      - manage_sso # Must match root-level key exactly
       - custom_branding
 ```
 
@@ -131,13 +131,13 @@ IdP callback → tenant validation → session created
 
 Resolution chain (`apps/web/auth/config/hooks/omniauth_tenant.rb`):
 
-| Step | Lookup | Result |
-|------|--------|--------|
-| 1 | `request.host` | `secrets.acme.com` |
-| 2 | `CustomDomain.load_by_display_domain(host)` | CustomDomain record |
-| 3 | `custom_domain.identifier` | Domain identifier |
-| 4 | `CustomDomain::SsoConfig.find_by_domain_id(domain_id)` | SSO credentials |
-| 5 | `domain_config.to_omniauth_options` | OmniAuth strategy injection |
+| Step | Lookup                                                 | Result                      |
+| ---- | ------------------------------------------------------ | --------------------------- |
+| 1    | `request.host`                                         | `secrets.acme.com`          |
+| 2    | `CustomDomain.load_by_display_domain(host)`            | CustomDomain record         |
+| 3    | `custom_domain.identifier`                             | Domain identifier           |
+| 4    | `CustomDomain::SsoConfig.find_by_domain_id(domain_id)` | SSO credentials             |
+| 5    | `domain_config.to_omniauth_options`                    | OmniAuth strategy injection |
 
 **Security:** Tenant context (domain_id) stored in session during request phase, validated on callback to prevent cross-tenant redirect attacks.
 
@@ -148,22 +148,26 @@ Resolution chain (`apps/web/auth/config/hooks/omniauth_tenant.rb`):
 ### SSO Tab Not Appearing
 
 1. **Check billing mode**:
+
    ```bash
    # If billing disabled, SSO should appear automatically
    echo $BILLING_ENABLED
    ```
 
 2. **Verify Redis cache**:
+
    ```bash
    redis-cli SMEMBERS 'billing_plan:<plan_id>:entitlements'
    ```
 
 3. **Check Stripe metadata**:
+
    ```bash
    bin/ots billing catalog pull --dry-run
    ```
 
 4. **Verify organization's plan**:
+
    ```ruby
    # In console
    org = Organization.load(extid)
@@ -180,13 +184,13 @@ Resolution chain (`apps/web/auth/config/hooks/omniauth_tenant.rb`):
 
 ### Common Issues
 
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| SSO tab missing | `manage_sso` not in plan entitlements | Add to billing.yaml, push, pull |
-| Entitlement in YAML but not Redis | Push/pull not run | Run `bin/ots billing catalog push && pull` |
-| Mismatch between YAML key and plan | Root uses `sso`, plan uses `manage_sso` | Use consistent naming (`manage_sso`) |
-| SSO configured but login fails | No custom domain with SSO config | Add custom domain and configure SSO |
-| Platform SSO used instead of domain SSO | Accessing via canonical domain | Use domain's custom URL |
+| Symptom                                 | Cause                                   | Fix                                        |
+| --------------------------------------- | --------------------------------------- | ------------------------------------------ |
+| SSO tab missing                         | `manage_sso` not in plan entitlements   | Add to billing.yaml, push, pull            |
+| Entitlement in YAML but not Redis       | Push/pull not run                       | Run `bin/ots billing catalog push && pull` |
+| Mismatch between YAML key and plan      | Root uses `sso`, plan uses `manage_sso` | Use consistent naming (`manage_sso`)       |
+| SSO configured but login fails          | No custom domain with SSO config        | Add custom domain and configure SSO        |
+| Platform SSO used instead of domain SSO | Accessing via canonical domain          | Use domain's custom URL                    |
 
 ## Related Configuration
 
@@ -205,17 +209,18 @@ This controls `features.organizations.enabled` in the bootstrap response.
 Independent flags is the cleaner design.
 
 Distinction:
+
 - AUTH_SSO_ENABLED: Install-level SSO on canonical domain (env-configured providers)
 - ORGS_SSO_ENABLED: Org-level SSO for custom domains (DB-configured per-domain)
 
 The two features serve fundamentally different use cases:
 
 ┌──────────────────┬──────────────────┬──────────────────────────────────┬─────────────────────────────────────────┐
-│       Flag       │      Scope       │          Configuration           │                Use Case                 │
+│ Flag │ Scope │ Configuration │ Use Case │
 ├──────────────────┼──────────────────┼──────────────────────────────────┼─────────────────────────────────────────┤
-│ AUTH_SSO_ENABLED │ Canonical domain │ Env vars (OIDC_*, ENTRA_*, etc.) │ Self-hosted enterprise with single IdP  │
+│ AUTH*SSO_ENABLED │ Canonical domain │ Env vars (OIDC*\_, ENTRA\_\_, etc.) │ Self-hosted enterprise with single IdP │
 ├──────────────────┼──────────────────┼──────────────────────────────────┼─────────────────────────────────────────┤
-│ ORGS_SSO_ENABLED │ Custom domains   │ DB per-domain (CustomDomain::SsoConfig)  │ SaaS offering enterprise SSO to tenants │
+│ ORGS_SSO_ENABLED │ Custom domains │ DB per-domain (CustomDomain::SsoConfig) │ SaaS offering enterprise SSO to tenants │
 └──────────────────┴──────────────────┴──────────────────────────────────┴─────────────────────────────────────────┘
 
 The key scenario that breaks hierarchical design:
@@ -227,17 +232,16 @@ install-level SSO (with dummy or unused providers) just to unlock the org-level 
 Why independent is more maintainable:
 
 1. Single responsibility: Each flag controls exactly one subsystem. AUTH_SSO flows through AuthConfig.sso_enabled? →
-Rodauth OmniAuth. ORGS_SSO flows through features.organizations.sso_enabled → CustomDomain::SsoConfig resolution.
+   Rodauth OmniAuth. ORGS_SSO flows through features.organizations.sso_enabled → CustomDomain::SsoConfig resolution.
 2. No coupling bugs: Changes to install-level SSO can't accidentally break org-level SSO or vice versa.
 3. Clearer config intent: AUTH_SSO_ENABLED=false, ORGS_SSO_ENABLED=true explicitly communicates "no platform SSO, yes
-tenant SSO" without needing to understand implicit relationships.
+   tenant SSO" without needing to understand implicit relationships.
 4. Entitlements already provide the per-org gate: The manage_sso entitlement controls which organizations can use domain
-  SSO. The feature flag gates the entire capability at the install level—orthogonal concerns.
+   SSO. The feature flag gates the entire capability at the install level—orthogonal concerns.
 
 The one exception: If the underlying OAuth session machinery required AUTH_SSO_ENABLED to be true for any OAuth to work,
-  coupling would be necessary. But from the recon, domain SSO has independent provider resolution that doesn't depend on
+coupling would be necessary. But from the recon, domain SSO has independent provider resolution that doesn't depend on
 install-level providers.
-
 
 ## See Also
 

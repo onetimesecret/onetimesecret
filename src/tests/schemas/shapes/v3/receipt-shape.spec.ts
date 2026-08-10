@@ -11,11 +11,7 @@
 // The server-side half lives in apps/api/v3/logic/receipt_shape.rb; this file
 // pins the frontend contract that consumes it.
 
-import {
-  receiptBaseSchema,
-  receiptListSchema,
-  receiptSchema,
-} from '@/schemas/shapes/v3/receipt';
+import { receiptBaseSchema, receiptListSchema, receiptSchema } from '@/schemas/shapes/v3/receipt';
 import { describe, expect, it } from 'vitest';
 
 /** Minimal payload satisfying receiptBaseSchema's required fields. */
@@ -100,9 +96,9 @@ describe('V3 receipt shape: recipients is null-or-array', () => {
   });
 
   it('applies to the list and full receipt shapes too', () => {
-    expect(receiptListSchema.parse(listWire({ recipients: 'solo@example.com' })).recipients).toEqual(
-      ['solo@example.com']
-    );
+    expect(
+      receiptListSchema.parse(listWire({ recipients: 'solo@example.com' })).recipients
+    ).toEqual(['solo@example.com']);
     expect(receiptSchema.parse(fullWire({ recipients: '' })).recipients).toBeNull();
   });
 });

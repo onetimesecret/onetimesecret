@@ -130,12 +130,14 @@ describe('PlanChangeModal', () => {
     }
   });
 
-  const mountComponent = async (props: {
-    open?: boolean;
-    orgExtId?: string;
-    currentPlan?: typeof mockCurrentPlan | null;
-    targetPlan?: typeof mockTargetPlan | null;
-  } = {}) => {
+  const mountComponent = async (
+    props: {
+      open?: boolean;
+      orgExtId?: string;
+      currentPlan?: typeof mockCurrentPlan | null;
+      targetPlan?: typeof mockTargetPlan | null;
+    } = {}
+  ) => {
     const component = mount(PlanChangeModal, {
       props: {
         open: true,
@@ -188,15 +190,12 @@ describe('PlanChangeModal', () => {
       mockPreviewPlanChange.mockResolvedValueOnce(mockPreviewResponse);
       wrapper = await mountComponent();
 
-      expect(mockPreviewPlanChange).toHaveBeenCalledWith(
-        'org_123',
-        mockTargetPlan.stripe_price_id
-      );
+      expect(mockPreviewPlanChange).toHaveBeenCalledWith('org_123', mockTargetPlan.stripe_price_id);
     });
 
     it('calls API for preview on mount with pending state', async () => {
       let resolvePreview: (value: unknown) => void;
-      const pendingPromise = new Promise(resolve => {
+      const pendingPromise = new Promise((resolve) => {
         resolvePreview = resolve;
       });
       mockPreviewPlanChange.mockReturnValueOnce(pendingPromise);
@@ -256,9 +255,9 @@ describe('PlanChangeModal', () => {
       await nextTick();
 
       // Click confirm button
-      const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text().includes('confirm_')
-      );
+      const confirmButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.text().includes('confirm_'));
       await confirmButton?.trigger('click');
       await nextTick();
       await nextTick();
@@ -281,16 +280,13 @@ describe('PlanChangeModal', () => {
       wrapper = await mountComponent();
       await nextTick();
 
-      const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text().includes('confirm_')
-      );
+      const confirmButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.text().includes('confirm_'));
       await confirmButton?.trigger('click');
       await nextTick();
 
-      expect(mockChangePlan).toHaveBeenCalledWith(
-        'org_123',
-        mockTargetPlan.stripe_price_id
-      );
+      expect(mockChangePlan).toHaveBeenCalledWith('org_123', mockTargetPlan.stripe_price_id);
     });
 
     it('emits success event after successful plan change', async () => {
@@ -305,9 +301,9 @@ describe('PlanChangeModal', () => {
       wrapper = await mountComponent();
       await nextTick();
 
-      const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text().includes('confirm_')
-      );
+      const confirmButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.text().includes('confirm_'));
       await confirmButton?.trigger('click');
       await nextTick();
       await nextTick();
@@ -323,9 +319,9 @@ describe('PlanChangeModal', () => {
       wrapper = await mountComponent();
       await nextTick();
 
-      const cancelButton = wrapper.findAll('button').find(
-        btn => btn.text().includes('word_cancel')
-      );
+      const cancelButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.text().includes('word_cancel'));
       await cancelButton?.trigger('click');
 
       expect(wrapper.emitted('close')).toBeTruthy();
@@ -335,7 +331,7 @@ describe('PlanChangeModal', () => {
       mockPreviewPlanChange.mockResolvedValueOnce(mockPreviewResponse);
 
       let resolveChange: (value: unknown) => void;
-      const pendingPromise = new Promise(resolve => {
+      const pendingPromise = new Promise((resolve) => {
         resolveChange = resolve;
       });
       mockChangePlan.mockReturnValueOnce(pendingPromise);
@@ -344,16 +340,16 @@ describe('PlanChangeModal', () => {
       await nextTick();
 
       // Start plan change
-      const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text().includes('confirm_')
-      );
+      const confirmButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.text().includes('confirm_'));
       await confirmButton?.trigger('click');
       await nextTick();
 
       // Try to close
-      const cancelButton = wrapper.findAll('button').find(
-        btn => btn.text().includes('word_cancel')
-      );
+      const cancelButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.text().includes('word_cancel'));
       await cancelButton?.trigger('click');
 
       // Should not emit close while changing
@@ -367,16 +363,16 @@ describe('PlanChangeModal', () => {
   describe('Button States', () => {
     it('disables confirm button while loading preview', async () => {
       let resolvePreview: (value: unknown) => void;
-      const pendingPromise = new Promise(resolve => {
+      const pendingPromise = new Promise((resolve) => {
         resolvePreview = resolve;
       });
       mockPreviewPlanChange.mockReturnValueOnce(pendingPromise);
 
       wrapper = await mountComponent();
 
-      const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text().includes('confirm_')
-      );
+      const confirmButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.text().includes('confirm_'));
       expect(confirmButton?.attributes('disabled')).toBeDefined();
 
       resolvePreview!(mockPreviewResponse);
@@ -387,9 +383,9 @@ describe('PlanChangeModal', () => {
       wrapper = await mountComponent();
       await nextTick();
 
-      const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text().includes('confirm_')
-      );
+      const confirmButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.text().includes('confirm_'));
       expect(confirmButton?.attributes('disabled')).toBeDefined();
     });
 
@@ -397,7 +393,7 @@ describe('PlanChangeModal', () => {
       mockPreviewPlanChange.mockResolvedValueOnce(mockPreviewResponse);
 
       let resolveChange: (value: unknown) => void;
-      const pendingPromise = new Promise(resolve => {
+      const pendingPromise = new Promise((resolve) => {
         resolveChange = resolve;
       });
       mockChangePlan.mockReturnValueOnce(pendingPromise);
@@ -405,9 +401,9 @@ describe('PlanChangeModal', () => {
       wrapper = await mountComponent();
       await nextTick();
 
-      const confirmButton = wrapper.findAll('button').find(
-        btn => btn.text().includes('confirm_')
-      );
+      const confirmButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.text().includes('confirm_'));
       await confirmButton?.trigger('click');
       await nextTick();
 

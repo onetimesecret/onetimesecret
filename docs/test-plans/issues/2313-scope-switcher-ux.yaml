@@ -159,7 +159,7 @@ tests:
       <<: *user_auth
       state:
         has_organization: true
-        organization_extid: "{{org_extid}}"
+        organization_extid: '{{org_extid}}'
     target: /org/{{org_extid}}
     action:
       type: none
@@ -179,7 +179,7 @@ tests:
     setup:
       <<: *user_with_domains
       state:
-        organization_extid: "{{org_extid}}"
+        organization_extid: '{{org_extid}}'
     target: /org/{{org_extid}}
     action:
       type: none
@@ -229,7 +229,7 @@ tests:
     setup:
       <<: *user_with_domains
       state:
-        domain_extid: "{{domain_extid}}"
+        domain_extid: '{{domain_extid}}'
     target: /domains/{{domain_extid}}/brand
     action:
       type: none
@@ -247,7 +247,7 @@ tests:
     setup:
       <<: *user_with_domains
       state:
-        domain_extid: "{{domain_extid}}"
+        domain_extid: '{{domain_extid}}'
     target: /domains/{{domain_extid}}/brand
     action:
       type: click
@@ -383,7 +383,7 @@ tests:
       - css_property:
           selector: "[data-testid='org-option-current']"
           property: font-weight
-          expected: "600"
+          expected: '600'
     priority: high
     type: ui
     covers: [OrganizationScopeSwitcher, selection indicator]
@@ -409,9 +409,9 @@ tests:
         description: Trigger text updated to new org name
       - api: GET /api/v2/bootstrap/me
         assertions:
-          - path: "record.organization.extid"
+          - path: 'record.organization.extid'
             operator: exists
-          - path: "record.organization.name"
+          - path: 'record.organization.name'
             operator: not_empty
     postconditions:
       - organizationStore.currentOrganization updated
@@ -425,7 +425,7 @@ tests:
     setup:
       <<: *user_multi_org
       state:
-        organization_extid: "{{org_extid}}"
+        organization_extid: '{{org_extid}}'
     target: /dashboard
     action:
       type: click
@@ -547,7 +547,7 @@ tests:
     setup:
       <<: *user_with_domains
       state:
-        domain_extid: "{{domain_extid}}"
+        domain_extid: '{{domain_extid}}'
     target: /domains/{{domain_extid}}/brand
     action:
       type: click
@@ -570,7 +570,7 @@ tests:
     setup:
       <<: *user_with_domains
       state:
-        domain_extid: "{{domain_extid}}"
+        domain_extid: '{{domain_extid}}'
     target: /domains/{{domain_extid}}/brand
     action:
       type: none
@@ -582,7 +582,7 @@ tests:
         assertion: exists
       - selector: "[data-testid='domain-scope-switcher-trigger']"
         attribute: tabindex
-        expected: "-1"
+        expected: '-1'
         description: Disabled element removed from tab order OR
       - selector: "[data-testid='domain-scope-switcher-trigger'][aria-disabled='true']"
         assertion: exists
@@ -600,7 +600,7 @@ tests:
     setup:
       <<: *user_with_domains
       state:
-        domain_extid: "{{domain_extid}}"
+        domain_extid: '{{domain_extid}}'
     target: /domains/{{domain_extid}}/brand
     action:
       type: none
@@ -684,7 +684,8 @@ tests:
       type: navigate
       element: Organization switcher via keyboard
       data:
-        steps: [Tab to switcher, Enter to open, Arrow Down, Arrow Up, Enter to select, Escape to close]
+        steps:
+          [Tab to switcher, Enter to open, Arrow Down, Arrow Up, Enter to select, Escape to close]
     verify:
       - Switcher is focusable via Tab
       - Enter opens the dropdown
@@ -715,7 +716,7 @@ tests:
       - localStorage is updated with new domain scope
       - selector: "[data-testid='org-scope-switcher-trigger']"
         assertion: contains_text
-        expected: "Org B"
+        expected: 'Org B'
       - selector: "[data-testid='domain-scope-switcher-trigger']"
         assertion: visible
       - localStorage:
@@ -725,7 +726,7 @@ tests:
           description: Domain scope no longer points to unavailable domain
       - api: GET /api/v2/bootstrap/me
         assertions:
-          - path: "record.organization.domains"
+          - path: 'record.organization.domains'
             operator: not_contains
             value: domain1.com
             description: Confirm domain1.com not available in new org
@@ -748,7 +749,7 @@ tests:
     setup:
       <<: *user_multi_org
       state:
-        selected_org_extid: "{{org_extid}}"
+        selected_org_extid: '{{org_extid}}'
     target: /dashboard
     action:
       type: navigate
@@ -762,9 +763,9 @@ tests:
         assertion: visible
       - api: GET /api/v2/bootstrap/me
         assertions:
-          - path: "record.organization.extid"
+          - path: 'record.organization.extid'
             operator: equals
-            value: "{{org_extid}}"
+            value: '{{org_extid}}'
             description: API confirms same organization context
       - selector: "[data-testid='org-scope-switcher-trigger']"
         store_text_as: org_name_before
@@ -773,7 +774,7 @@ tests:
           then: /dashboard
       - selector: "[data-testid='org-scope-switcher-trigger']"
         assertion: text_equals
-        expected: "{{org_name_before}}"
+        expected: '{{org_name_before}}'
         description: Trigger text matches pre-navigation value
     priority: high
     type: functional
@@ -832,7 +833,7 @@ tests:
         expected: organization
       - selector: "[data-testid='org-scope-switcher-trigger']"
         attribute: aria-haspopup
-        expected: "menu"
+        expected: 'menu'
       - selector: "[data-testid='org-scope-switcher-trigger']"
         attribute: aria-expanded
         assertion: exists
@@ -860,7 +861,7 @@ tests:
         assertion: not_empty
       - selector: "[data-testid='domain-scope-switcher-trigger']"
         attribute: aria-haspopup
-        expected: "menu"
+        expected: 'menu'
       - selector: "[data-testid='domain-scope-switcher-trigger']"
         attribute: aria-expanded
         assertion: exists

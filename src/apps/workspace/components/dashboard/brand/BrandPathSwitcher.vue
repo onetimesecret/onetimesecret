@@ -43,17 +43,17 @@
       type="button"
       @click="emit('update:modelValue', card.id)"
       :aria-pressed="card.selected"
-      class="flex flex-col gap-1 rounded-xl border p-3.5 text-left transition-colors
-        hover:border-gray-400"
-      :class="card.selected
-        ? 'border-2 border-brand-600 bg-brand-50 dark:bg-brand-900/20'
-        : 'border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800'">
+      class="flex flex-col gap-1 rounded-xl border p-3.5 text-left transition-colors hover:border-gray-400"
+      :class="
+        card.selected
+          ? 'border-2 border-brand-600 bg-brand-50 dark:bg-brand-900/20'
+          : 'border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800'
+      ">
       <span class="flex items-center gap-2 text-sm font-bold text-gray-900 dark:text-gray-100">
         {{ card.name }}
         <span
           v-if="card.badge"
-          class="rounded-full border border-gray-200 bg-gray-50 px-2 py-px text-[10.5px] font-semibold
-            text-gray-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+          class="rounded-full border border-gray-200 bg-gray-50 px-2 py-px text-[10.5px] font-semibold text-gray-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
           {{ card.badge }}
         </span>
       </span>

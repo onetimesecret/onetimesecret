@@ -22,8 +22,8 @@ SES here is the **sender-domain provisioning provider**, selected once per
 installation. It is **not** a per-customer choice and is **not** something an
 end user picks from a dropdown — exactly as with Lettermint, the operator
 configures the provider, and the customer's only decision is "do I want emails
-from my domain to use my from-address/reply-to?" (see the *Customer Decision
-Surface* section of the architecture overview).
+from my domain to use my from-address/reply-to?" (see the _Customer Decision
+Surface_ section of the architecture overview).
 
 The work this provider enables is the **domain-level lifecycle**:
 
@@ -40,8 +40,8 @@ Set the provisioning provider:
 CUSTOM_MAIL_PROVIDER=ses
 ```
 
-`CUSTOM_MAIL_PROVIDER` decouples *domain provisioning* from the *sending
-transport* (`EMAILER_MODE`). You can run SMTP (or any transport) for outbound
+`CUSTOM_MAIL_PROVIDER` decouples _domain provisioning_ from the _sending
+transport_ (`EMAILER_MODE`). You can run SMTP (or any transport) for outbound
 delivery while still using SES for sender-domain DKIM provisioning. If
 `CUSTOM_MAIL_PROVIDER` is unset, the provisioning provider falls back to
 `EMAILER_MODE`.
@@ -63,10 +63,10 @@ region. `CUSTOM_MAIL_SES_REGION` maps to `email_providers.ses.region` in
 config and feeds the SESv2 API client used for provisioning, verification, and
 teardown via `Mailer.provider_credentials('ses')`.
 
-| Setting | Configures | Source |
-|---|---|---|
-| `CUSTOM_MAIL_SES_REGION` | SES **sender-domain provisioning** API client | `email_providers.ses.region` → `provider_credentials('ses')` |
-| `EMAILER_REGION` (falls back to `AWS_REGION`) | The install's **transactional mailer** (only when `EMAILER_MODE=ses`) | `emailer.region` → delivery backend |
+| Setting                                       | Configures                                                            | Source                                                       |
+| --------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `CUSTOM_MAIL_SES_REGION`                      | SES **sender-domain provisioning** API client                         | `email_providers.ses.region` → `provider_credentials('ses')` |
+| `EMAILER_REGION` (falls back to `AWS_REGION`) | The install's **transactional mailer** (only when `EMAILER_MODE=ses`) | `emailer.region` → delivery backend                          |
 
 > **Why a dedicated var?** Earlier, the SES provisioning client pulled its region
 > from `emailer.region` (`EMAILER_REGION`, which defaults to the placeholder
@@ -82,7 +82,7 @@ teardown via `Mailer.provider_credentials('ses')`.
 > [#2833](https://github.com/onetimesecret/onetimesecret/issues/2833) — threading
 > a region through `ValidateSenderDomain` — is not needed: the region belongs on
 > the provisioning side, which is exactly what `CUSTOM_MAIL_SES_REGION`
-> drives.) Any region-specific *records* (e.g. the
+> drives.) Any region-specific _records_ (e.g. the
 > `feedback-smtp.<region>.amazonses.com` MAIL FROM MX + SPF) are emitted by
 > provisioning (`SESSenderStrategy#provision_dns_records`) and are then stored on
 > the `MailerConfig` and read back verbatim at verification.
@@ -93,9 +93,9 @@ The SES API client uses standard AWS credentials. To keep sender-domain
 provisioning independent of the install's SMTP/transactional mailer, the key
 pair is resolved with this precedence (highest first):
 
-| Credential | 1st — dedicated | 2nd — AWS SDK env | 3rd — emailer config |
-|---|---|---|---|
-| Access key | `CUSTOM_MAIL_SES_ACCESS_KEY_ID` | `AWS_ACCESS_KEY_ID` | `SMTP_USERNAME` (emailer `user`) |
+| Credential | 1st — dedicated                     | 2nd — AWS SDK env       | 3rd — emailer config             |
+| ---------- | ----------------------------------- | ----------------------- | -------------------------------- |
+| Access key | `CUSTOM_MAIL_SES_ACCESS_KEY_ID`     | `AWS_ACCESS_KEY_ID`     | `SMTP_USERNAME` (emailer `user`) |
 | Secret key | `CUSTOM_MAIL_SES_SECRET_ACCESS_KEY` | `AWS_SECRET_ACCESS_KEY` | `SMTP_PASSWORD` (emailer `pass`) |
 
 The dedicated `CUSTOM_MAIL_SES_*` vars (or the `AWS_*` vars they fall back to)
@@ -122,19 +122,19 @@ AWS_SECRET_ACCESS_KEY=...
 > the SES client.
 
 > **Caution:** these must be IAM access keys valid for the **SESv2 API**
-> (`CreateEmailIdentity` etc.). SES *SMTP* credentials are a different artifact
+> (`CreateEmailIdentity` etc.). SES _SMTP_ credentials are a different artifact
 > and will not authenticate the API calls, so if you run SES-over-SMTP for
 > delivery, don't assume the SMTP user/pass double as API keys for provisioning.
 
 The IAM principal needs, at minimum:
 
-| Action | Why |
-|---|---|
-| `ses:CreateEmailIdentity` | Register the sender domain identity |
+| Action                                   | Why                                                                    |
+| ---------------------------------------- | ---------------------------------------------------------------------- |
+| `ses:CreateEmailIdentity`                | Register the sender domain identity                                    |
 | `ses:PutEmailIdentityMailFromAttributes` | Configure the custom MAIL FROM domain (SPF alignment, bounce handling) |
-| `ses:GetEmailIdentity` | Read DKIM tokens, MAIL FROM status, and verification status |
-| `ses:DeleteEmailIdentity` | Tear the identity down on sender-config removal |
-| `ses:SendEmail` | Only if SES is also the delivery transport (`EMAILER_MODE=ses`) |
+| `ses:GetEmailIdentity`                   | Read DKIM tokens, MAIL FROM status, and verification status            |
+| `ses:DeleteEmailIdentity`                | Tear the identity down on sender-config removal                        |
+| `ses:SendEmail`                          | Only if SES is also the delivery transport (`EMAILER_MODE=ses`)        |
 
 ## DMARC alignment (why custom MAIL FROM)
 
@@ -143,15 +143,15 @@ equivalent of Lettermint's Return-Path CNAME — same mechanism, different recor
 shape. Lettermint folds it into a single `lm-bounces.<domain>` CNAME (and
 manages the SPF record on its side); SES instead exposes it as an MX + SPF TXT
 that you publish on `mail.<domain>`. Both set the envelope sender (Return-Path)
-to a subdomain of the sender domain, so SPF authenticates against *your* domain.
+to a subdomain of the sender domain, so SPF authenticates against _your_ domain.
 
-| | Lettermint | SES *with* MAIL FROM | SES *without* MAIL FROM |
-|---|---|---|---|
-| Records added | one `lm-bounces.<domain>` CNAME | `mail.<domain>` MX + SPF TXT | DKIM CNAMEs only |
-| SPF passes | ✅ your subdomain | ✅ `mail.<domain>` | ✅ but against `amazonses.com` |
-| SPF aligns with `From:` | ✅ relaxed | ✅ relaxed | ❌ |
-| DKIM passes + aligns | ✅ strict | ✅ strict | ✅ strict |
-| DMARC passes via | SPF **and** DKIM | SPF **and** DKIM | DKIM only |
+|                         | Lettermint                      | SES _with_ MAIL FROM         | SES _without_ MAIL FROM        |
+| ----------------------- | ------------------------------- | ---------------------------- | ------------------------------ |
+| Records added           | one `lm-bounces.<domain>` CNAME | `mail.<domain>` MX + SPF TXT | DKIM CNAMEs only               |
+| SPF passes              | ✅ your subdomain               | ✅ `mail.<domain>`           | ✅ but against `amazonses.com` |
+| SPF aligns with `From:` | ✅ relaxed                      | ✅ relaxed                   | ❌                             |
+| DKIM passes + aligns    | ✅ strict                       | ✅ strict                    | ✅ strict                      |
+| DMARC passes via        | SPF **and** DKIM                | SPF **and** DKIM             | DKIM only                      |
 
 Provisioning configures custom MAIL FROM by default, so DMARC passes via both
 SPF and DKIM rather than DKIM alone — i.e. no single point of failure. (This is
@@ -197,12 +197,12 @@ SES will not honor.
 DKIM verification and MAIL FROM configuration are **independent** in SES. An
 identity can have DKIM `SUCCESS` while MAIL FROM is in any of these states:
 
-| MAIL FROM status | Meaning | What happened |
-|---|---|---|
-| `NOT_STARTED` | `PutEmailIdentityMailFromAttributes` was never called | Identity created without MAIL FROM — DKIM works, but SPF authenticates against `amazonses.com` instead of the sender domain |
-| `PENDING` | MAIL FROM configured, DNS propagation pending | `PutEmailIdentityMailFromAttributes` succeeded; SES is waiting for the MX and SPF TXT records on `mail.<domain>` |
-| `SUCCESS` | MAIL FROM fully verified | SES detected the MX and SPF records — SPF now aligns to the sender domain under DMARC |
-| `FAILED` | MX/SPF records missing or incorrect | SES checked and could not verify — re-check DNS records at the registrar |
+| MAIL FROM status | Meaning                                               | What happened                                                                                                               |
+| ---------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `NOT_STARTED`    | `PutEmailIdentityMailFromAttributes` was never called | Identity created without MAIL FROM — DKIM works, but SPF authenticates against `amazonses.com` instead of the sender domain |
+| `PENDING`        | MAIL FROM configured, DNS propagation pending         | `PutEmailIdentityMailFromAttributes` succeeded; SES is waiting for the MX and SPF TXT records on `mail.<domain>`            |
+| `SUCCESS`        | MAIL FROM fully verified                              | SES detected the MX and SPF records — SPF now aligns to the sender domain under DMARC                                       |
+| `FAILED`         | MX/SPF records missing or incorrect                   | SES checked and could not verify — re-check DNS records at the registrar                                                    |
 
 The provisioning flow always calls `PutEmailIdentityMailFromAttributes`, so after
 a successful provision the MAIL FROM status should be `PENDING` (never
@@ -262,12 +262,12 @@ installation and its customers. SES sender identities, DKIM key material, and
 sending metadata live in the region you provision against. Notable regions for
 data-residency-sensitive deployments:
 
-| Region | Location |
-|---|---|
-| `ca-central-1` | Canada (Central) |
-| `ap-southeast-2` | Asia Pacific (Sydney) |
-| `eu-west-1` | Europe (Ireland) |
-| `us-east-1` | US East (N. Virginia) — default |
+| Region           | Location                        |
+| ---------------- | ------------------------------- |
+| `ca-central-1`   | Canada (Central)                |
+| `ap-southeast-2` | Asia Pacific (Sydney)           |
+| `eu-west-1`      | Europe (Ireland)                |
+| `us-east-1`      | US East (N. Virginia) — default |
 
 Set the provisioning region to the chosen region:
 
@@ -313,11 +313,11 @@ AWS key pair — never the SMTP login — even though delivery runs over SMTP.
 
 ## Key files
 
-| File | Role |
-|---|---|
-| `lib/onetime/mail/sender_strategies/ses_sender_strategy.rb` | Provision / verify-status / delete via `aws-sdk-sesv2` |
-| `lib/onetime/domain_validation/sender_strategies/ses_validation.rb` | DNS validation from provisioned records |
-| `lib/onetime/mail/delivery/ses.rb` | SES delivery backend (only when `EMAILER_MODE=ses`) |
-| `lib/onetime/domain_validation/sender_strategies/provider_config.rb` | `email_providers.ses` config + region validation |
-| `lib/onetime/mail/mailer.rb` | `provider_credentials('ses')` sources region from `email_providers.ses` (decoupled from `EMAILER_REGION`) |
-| `etc/defaults/config.defaults.yaml` | `emailer.sender_provider`, `email_providers.ses.*` |
+| File                                                                 | Role                                                                                                      |
+| -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `lib/onetime/mail/sender_strategies/ses_sender_strategy.rb`          | Provision / verify-status / delete via `aws-sdk-sesv2`                                                    |
+| `lib/onetime/domain_validation/sender_strategies/ses_validation.rb`  | DNS validation from provisioned records                                                                   |
+| `lib/onetime/mail/delivery/ses.rb`                                   | SES delivery backend (only when `EMAILER_MODE=ses`)                                                       |
+| `lib/onetime/domain_validation/sender_strategies/provider_config.rb` | `email_providers.ses` config + region validation                                                          |
+| `lib/onetime/mail/mailer.rb`                                         | `provider_credentials('ses')` sources region from `email_providers.ses` (decoupled from `EMAILER_REGION`) |
+| `etc/defaults/config.defaults.yaml`                                  | `emailer.sender_provider`, `email_providers.ses.*`                                                        |

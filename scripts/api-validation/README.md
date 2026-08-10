@@ -30,12 +30,12 @@ cd scripts/api-validation/bin
 
 All scripts live in `bin/`:
 
-| Script | Description |
-|--------|-------------|
-| `v1-capture.sh` | Captures V1 API request/response pairs from a running instance |
-| `v1-diff.sh` | Compares two capture runs and produces a structured diff report |
-| `v1-schema-extract.ts` | Extracts and compares V1 API response schemas |
-| `v1-zod-diff.ts` | Extracts Zod schemas vs Ruby response hashes from local git refs |
+| Script                 | Description                                                      |
+| ---------------------- | ---------------------------------------------------------------- |
+| `v1-capture.sh`        | Captures V1 API request/response pairs from a running instance   |
+| `v1-diff.sh`           | Compares two capture runs and produces a structured diff report  |
+| `v1-schema-extract.ts` | Extracts and compares V1 API response schemas                    |
+| `v1-zod-diff.ts`       | Extracts Zod schemas vs Ruby response hashes from local git refs |
 
 ## Output Structure
 

@@ -1,7 +1,7 @@
 ---
 labels: admin-v2, security, backend
 depends: 21-admin-audit-log
-epic: "#3653"
+epic: '#3653'
 ---
 
 # Admin rebuild: explicit, audit-logged impersonation operation (confirm-then-fix)
@@ -122,7 +122,7 @@ operator identity to pass; `'cli'` is an honest statement that the actor is a
 shell session, and it names no human.
 
 For every other CLI verb this is acceptable, because the mutation is
-reconstructible from the resulting state — an operator can see *that* a plan was
+reconstructible from the resulting state — an operator can see _that_ a plan was
 changed, a domain repaired, an org reconciled, and the resulting state is the
 record. Impersonation is different in kind: the operator's identity **is** the
 control being relied on. An audit row reading `actor=cli` against an
@@ -142,7 +142,7 @@ and it is not being made here.
 ### (c) Requirements any future impersonation adapter must first satisfy
 
 Three properties of the current session design would each have to be solved
-*before* an impersonation adapter could be considered. These are stated as
+_before_ an impersonation adapter could be considered. These are stated as
 requirements on a hypothetical future design, not as defects in the present one —
 none of them is a problem for ordinary sessions, which is why the design is the
 way it is.
@@ -191,7 +191,7 @@ removed was itself an unused branch that had to be argued about years after
 whoever wrote it moved on. Adding an inert impersonation guard would recreate
 exactly that hazard in the same code path.
 
-If an impersonation feature is ever genuinely needed, the guard is part of *that*
+If an impersonation feature is ever genuinely needed, the guard is part of _that_
 project and should be built with a caller, not ahead of one.
 
 ### What operators should use instead

@@ -1,7 +1,7 @@
 ---
 labels: admin-v2, phase-3, backend, frontend, architecture
 depends: 44-email-ratelimit-tools
-epic: "#3653"
+epic: '#3653'
 ---
 
 # Email sender scope + provider visibility — what belongs on Email Tools vs the custom-domain surface
@@ -17,14 +17,14 @@ draws the line. It designs no fix — it scopes one.
 
 ## The two axes (not the same thing)
 
-| | SYSTEM transport | PER-DOMAIN custom sender |
-|---|---|---|
-| Resolver | `Mailer.determine_provider` | `Mailer.determine_sender_provider` → `CustomDomain::MailerConfig#effective_provider` |
-| Env / config | `EMAILER_MODE` → `emailer.mode` | `CUSTOM_MAIL_PROVIDER` → `emailer.sender_provider`; per-domain `MailerConfig.provider` overrides |
-| Cardinality | **One** global sending identity per deployment | **One per custom domain** (its own from-address / DKIM identity) |
-| Identity source | `emailer.from` / `FROM_EMAIL` | `MailerConfig.from_address` / `from_name` / `reply_to` per domain |
-| What it does | Actually sends **all** mail out | White-labels the from-address on custom-domain mail (SES/SendGrid/Lettermint provisioning) |
-| Surface | **Email Tools (system-wide) — this work** | **Custom-domain screen — out of scope here** |
+|                 | SYSTEM transport                               | PER-DOMAIN custom sender                                                                         |
+| --------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Resolver        | `Mailer.determine_provider`                    | `Mailer.determine_sender_provider` → `CustomDomain::MailerConfig#effective_provider`             |
+| Env / config    | `EMAILER_MODE` → `emailer.mode`                | `CUSTOM_MAIL_PROVIDER` → `emailer.sender_provider`; per-domain `MailerConfig.provider` overrides |
+| Cardinality     | **One** global sending identity per deployment | **One per custom domain** (its own from-address / DKIM identity)                                 |
+| Identity source | `emailer.from` / `FROM_EMAIL`                  | `MailerConfig.from_address` / `from_name` / `reply_to` per domain                                |
+| What it does    | Actually sends **all** mail out                | White-labels the from-address on custom-domain mail (SES/SendGrid/Lettermint provisioning)       |
+| Surface         | **Email Tools (system-wide) — this work**      | **Custom-domain screen — out of scope here**                                                     |
 
 They can differ. `GetEmailConfig` already surfaces both (`provider`,
 `sender_provider`, `sender_differs`). A deployment runs **one** transport; the

@@ -575,6 +575,7 @@ Content-Type: application/json
 ### JSON Response Patterns
 
 **Success Response**:
+
 ```json
 {
   "success": "You have been logged in"
@@ -582,6 +583,7 @@ Content-Type: application/json
 ```
 
 **Error Response**:
+
 ```json
 {
   "error": "There was an error logging in",
@@ -590,6 +592,7 @@ Content-Type: application/json
 ```
 
 **Custom Response Modification**:
+
 ```ruby
 # Modify json_response hash during request processing
 json_response['reason'] = 'account_locked'
@@ -791,6 +794,7 @@ end
 ### Rails vs Rack Integration Differences
 
 **Rack (Roda) Integration**:
+
 ```ruby
 class App < Roda
   plugin :rodauth do
@@ -810,6 +814,7 @@ end
 ```
 
 **Rails Integration** (via rodauth-rails):
+
 ```ruby
 # config/initializers/rodauth.rb
 class RodauthApp < Rodauth::Rails::App
@@ -827,6 +832,7 @@ end
 ```
 
 Key differences:
+
 - **Routing**: Roda uses block syntax, Rails uses generators
 - **Controllers**: Roda inline, Rails controller concerns
 - **Mailers**: Roda manual, Rails ActionMailer integration

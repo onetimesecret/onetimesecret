@@ -2,54 +2,47 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { computed } from 'vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { computed } from 'vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-interface Props {
-  heading: string;
-  headingId: string;
-  logoPreview?: string | null;
-  defaultIcon?: string;
-  loading?: boolean;
-  error?: string | null;
-  success?: string | null;
-}
+  interface Props {
+    heading: string;
+    headingId: string;
+    logoPreview?: string | null;
+    defaultIcon?: string;
+    loading?: boolean;
+    error?: string | null;
+    success?: string | null;
+  }
 
-const props = withDefaults(defineProps<Props>(), {
-  logoPreview: null,
-  defaultIcon: 'mdi-domain',
-  loading: false,
-  error: null,
-  success: null,
-});
+  const props = withDefaults(defineProps<Props>(), {
+    logoPreview: null,
+    defaultIcon: 'mdi-domain',
+    loading: false,
+    error: null,
+    success: null,
+  });
 
-// Compute the background icon
-const backgroundIcon = computed(() => props.defaultIcon);
+  // Compute the background icon
+  const backgroundIcon = computed(() => props.defaultIcon);
 </script>
 
 <template>
   <div
-    class="relative flex min-h-screen items-start justify-center overflow-hidden
-              bg-gray-50 px-4
-              pt-12
-              dark:bg-gray-900
-              sm:px-6 sm:pt-16
-              lg:px-8">
+    class="relative flex min-h-screen items-start justify-center overflow-hidden bg-gray-50 px-4 pt-12 sm:px-6 sm:pt-16 lg:px-8 dark:bg-gray-900">
     <!-- Background Icon -->
     <div class="absolute inset-0 overflow-hidden opacity-5 dark:opacity-10">
       <OIcon
         collection="heroicons"
         :name="backgroundIcon"
-        class="absolute left-1/2 top-0 h-auto w-full
-                   -translate-x-1/2 translate-y-0 scale-150 object-cover
-                   object-center blur-sm"
+        class="absolute top-0 left-1/2 h-auto w-full -translate-x-1/2 translate-y-0 scale-150 object-cover object-center blur-sm"
         aria-hidden="true" />
     </div>
 
     <!-- Page Content -->
-    <div class="relative z-10 w-full min-w-[320px] max-w-2xl space-y-8">
+    <div class="relative z-10 w-full max-w-2xl min-w-[320px] space-y-8">
       <!-- Logo Preview -->
       <div class="flex flex-col items-center">
         <div class="mb-8 flex size-24 items-center justify-center">

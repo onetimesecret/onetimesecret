@@ -1,7 +1,7 @@
 ---
-id: "031"
+id: '031'
 status: accepted
-title: "ADR-031: Remove Client-Side CSRF Shrimp Revalidation"
+title: 'ADR-031: Remove Client-Side CSRF Shrimp Revalidation'
 ---
 
 ## Status

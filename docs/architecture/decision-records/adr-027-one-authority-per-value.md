@@ -1,7 +1,7 @@
 ---
-id: "027"
+id: '027'
 status: accepted
-title: "ADR-027: One Authority per Value — Defaults Live in Exactly One Place"
+title: 'ADR-027: One Authority per Value — Defaults Live in Exactly One Place'
 ---
 
 ## Status

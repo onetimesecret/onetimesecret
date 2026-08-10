@@ -139,6 +139,7 @@ When all locales show 0 pending:
 ## Recovery After /compact
 
 1. Run stats to see current state:
+
    ```bash
    for locale in fr_CA de es pt_BR eo; do
      echo "=== $locale ===" && python3 locales/scripts/i18n tasks next $locale --stats

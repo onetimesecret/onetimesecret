@@ -22,7 +22,7 @@ Optionally add a migrating guide in `docs/migrating/` — use existing guides th
 ## Fragment Guidelines
 
 - One fragment per change.
-- Describe the *impact*, not the implementation. ("Fixed password reset for SSO users" not "Refactored `AuthManager`.")
+- Describe the _impact_, not the implementation. ("Fixed password reset for SSO users" not "Refactored `AuthManager`.")
 - Reference issue/PR numbers — scriv auto-links them.
 - AI assistance goes in its own fragment under the `AI Assistance` category.
 

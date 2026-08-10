@@ -89,7 +89,9 @@ function createMockReceipt(overrides = {}) {
 }
 
 describe('SecretReceiptTableItem', () => {
-  let SecretReceiptTableItem: ReturnType<typeof import('@/apps/secret/components/SecretReceiptTableItem.vue')>['default'];
+  let SecretReceiptTableItem: ReturnType<
+    typeof import('@/apps/secret/components/SecretReceiptTableItem.vue')
+  >['default'];
 
   beforeEach(async () => {
     vi.resetModules();
@@ -126,15 +128,13 @@ describe('SecretReceiptTableItem', () => {
       })),
     }));
 
-    const mod = await import(
-      '@/apps/secret/components/SecretReceiptTableItem.vue'
-    );
+    const mod = await import('@/apps/secret/components/SecretReceiptTableItem.vue');
     SecretReceiptTableItem = mod.default;
   });
 
   function mountComponent(
     receiptOverrides = {},
-    extraProps = {},
+    extraProps = {}
   ): VueWrapper<ComponentPublicInstance> {
     return mount(SecretReceiptTableItem, {
       props: {
@@ -264,9 +264,7 @@ describe('SecretReceiptTableItem', () => {
         share_domain: 'eu.example.com',
       });
       const openLink = wrapper.find('a[target="_blank"]');
-      expect(openLink.attributes('href')).toBe(
-        'https://eu.example.com/secret/fullbearerkey123456'
-      );
+      expect(openLink.attributes('href')).toBe('https://eu.example.com/secret/fullbearerkey123456');
     });
 
     it('falls back to site_host when share_domain is null', () => {

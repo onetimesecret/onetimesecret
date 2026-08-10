@@ -1,7 +1,7 @@
 ---
-id: "015"
+id: '015'
 status: accepted
-title: "ADR-015: Per-Domain Validation Strategy Override"
+title: 'ADR-015: Per-Domain Validation Strategy Override'
 ---
 
 ## Status

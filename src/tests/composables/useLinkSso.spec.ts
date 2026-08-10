@@ -98,9 +98,7 @@ describe('useLinkSso', () => {
 
   describe('verifyLink', () => {
     it('returns the success body (with redirect) on 200', async () => {
-      axiosMock
-        .onPost('/auth/link-sso')
-        .reply(200, { success: 'linked', redirect: '/dashboard' });
+      axiosMock.onPost('/auth/link-sso').reply(200, { success: 'linked', redirect: '/dashboard' });
 
       const { verifyLink, error, errorCode } = useLinkSso();
       const result = await verifyLink('tok123', 'correct-password');

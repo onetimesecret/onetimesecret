@@ -50,9 +50,7 @@
   const headlineAmount = computed((): number => props.plan.amount);
 
   const intervalLabelKey = computed((): string =>
-    props.plan.interval === 'year'
-      ? 'web.billing.plans.per_year'
-      : 'web.billing.plans.per_month'
+    props.plan.interval === 'year' ? 'web.billing.plans.per_year' : 'web.billing.plans.per_month'
   );
 
   /**
@@ -167,7 +165,7 @@
         <!-- "Includes everything in X, plus:" header when plan includes another -->
         <p
           v-if="plan.includes_plan_name"
-          class="text-sm italic text-gray-600 dark:text-gray-400">
+          class="text-sm text-gray-600 italic dark:text-gray-400">
           {{ t('web.billing.plans.everything_in', { plan: plan.includes_plan_name }) }}
         </p>
 

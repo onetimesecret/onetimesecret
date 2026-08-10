@@ -33,11 +33,11 @@ The optional affordance overrides stay on the site-level
 `bootstrap.disabled_homepage` block
 (`schemas/contracts/disabled-homepage.ts`):
 
-| location                                          | field                       | type                            | semantics                                                |
-| ------------------------------------------------- | --------------------------- | ------------------------------- | -------------------------------------------------------- |
-| `homepage_config`                                 | `disabled_homepage_variant` | `'v1' \| 'minimal' \| 'closed' \| null` | which component this domain renders (`null` = default)   |
-| `bootstrap.disabled_homepage`                     | `show_promo`                | `boolean \| null`               | tri-state override (`null` = auto, `true/false` = force) |
-| `bootstrap.disabled_homepage`                     | `show_what_is_this`         | `boolean \| null`               | same                                                     |
+| location                      | field                       | type                                    | semantics                                                |
+| ----------------------------- | --------------------------- | --------------------------------------- | -------------------------------------------------------- |
+| `homepage_config`             | `disabled_homepage_variant` | `'v1' \| 'minimal' \| 'closed' \| null` | which component this domain renders (`null` = default)   |
+| `bootstrap.disabled_homepage` | `show_promo`                | `boolean \| null`                       | tri-state override (`null` = auto, `true/false` = force) |
+| `bootstrap.disabled_homepage` | `show_what_is_this`         | `boolean \| null`                       | same                                                     |
 
 All fields optional with sensible defaults; backend may omit either.
 Ruby serializer wiring for the per-domain variant field is TBD —
@@ -84,7 +84,7 @@ can't resurrect a link to `https:///` or to `null`.
 The `minimal` / `v1` variants render a sign-in CTA (the `closed` default
 has none). The CTA's target is derived in `useDisabledConfig`:
 
-- **One-click SSO** — when SSO is the only login method *and* exactly one
+- **One-click SSO** — when SSO is the only login method _and_ exactly one
   provider is configured, the CTA POSTs straight to `/auth/sso/:provider`
   (via `shared/utils/sso.ts`), skipping `/signin`. In that configuration
   `/signin` is itself just a single "Sign in with X" button, so the hop
@@ -111,9 +111,9 @@ level.
 
 ## Operator-configured links
 
-| field                                                | env var                                  |
-| ---------------------------------------------------- | ---------------------------------------- |
-| `ui.homepage.public_links.recipient_intro` (string?) | `HOMEPAGE_PUBLIC_LINKS_RECIPIENT_INTRO`  |
+| field                                                | env var                                 |
+| ---------------------------------------------------- | --------------------------------------- |
+| `ui.homepage.public_links.recipient_intro` (string?) | `HOMEPAGE_PUBLIC_LINKS_RECIPIENT_INTRO` |
 
 Set in `etc/defaults/config.defaults.yaml` under `site.interface.ui.homepage.public_links`.
 

@@ -20,9 +20,9 @@ Redis → Ruby → API → Schema → Store → Component
 
 ### Contracts vs Shapes
 
-**Contracts** define *what* fields exist and their output types. They are version-agnostic.
+**Contracts** define _what_ fields exist and their output types. They are version-agnostic.
 
-**Shapes** define *how* fields are encoded on the wire for a specific API version (V2 or V3). They apply transforms to convert wire formats to contract types.
+**Shapes** define _how_ fields are encoded on the wire for a specific API version (V2 or V3). They apply transforms to convert wire formats to contract types.
 
 ### Transform Strategy
 
@@ -36,10 +36,10 @@ All type conversions happen at API boundaries using centralized transforms:
 
 The API is migrating state field names for clarity:
 
-| Old (V2) | New (V3) | Meaning |
-|----------|----------|---------|
-| `viewed` | `previewed` | Link accessed, confirmation shown |
-| `received` | `revealed` | Secret content decrypted/consumed |
+| Old (V2)   | New (V3)    | Meaning                           |
+| ---------- | ----------- | --------------------------------- |
+| `viewed`   | `previewed` | Link accessed, confirmation shown |
+| `received` | `revealed`  | Secret content decrypted/consumed |
 
 Both old and new values are sent for backward compatibility.
 

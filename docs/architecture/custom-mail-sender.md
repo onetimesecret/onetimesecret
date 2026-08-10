@@ -39,7 +39,7 @@ end
 
 ### Provisioning Layer
 
-`ProvisionSenderDomain` reads `mailer_config.provider` to select the right sender strategy, then loads *platform* credentials via `Mailer.provider_credentials(provider)`. The customer never sees or provides API keys for the mail provider. They flip "use custom sender" on, provide a from-address, and the system provisions DNS records through whatever provider the platform runs.
+`ProvisionSenderDomain` reads `mailer_config.provider` to select the right sender strategy, then loads _platform_ credentials via `Mailer.provider_credentials(provider)`. The customer never sees or provides API keys for the mail provider. They flip "use custom sender" on, provide a from-address, and the system provisions DNS records through whatever provider the platform runs.
 
 ## Customer Decision Surface
 
@@ -55,14 +55,14 @@ Different deployments can run different global mailers (e.g. one environment use
 
 Every provisioning provider produces the same outcome — DKIM **and** SPF aligned to the customer's domain so DMARC passes via both paths — but each exposes it through different APIs and DNS record shapes. If you already know one provider, this maps it onto the other; if you're starting from scratch, it's the quickest way to see the shape of the problem.
 
-| | AWS SES | Lettermint |
-|---|---|---|
-| Provision API | `CreateEmailIdentity` + `PutEmailIdentityMailFromAttributes` | Team API `POST /domains` |
-| DKIM records | 3 CNAMEs (`<token>._domainkey.<domain>` → `<token>.dkim.amazonses.com`) | CNAME selectors (`<sel>._domainkey.<domain>` → `<sel>.dkim.lettermint.com`) |
+|                       | AWS SES                                                                                  | Lettermint                                                                                       |
+| --------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Provision API         | `CreateEmailIdentity` + `PutEmailIdentityMailFromAttributes`                             | Team API `POST /domains`                                                                         |
+| DKIM records          | 3 CNAMEs (`<token>._domainkey.<domain>` → `<token>.dkim.amazonses.com`)                  | CNAME selectors (`<sel>._domainkey.<domain>` → `<sel>.dkim.lettermint.com`)                      |
 | SPF / envelope sender | custom MAIL FROM on `mail.<domain>`: an **MX + SPF TXT** the customer publishes directly | **one Return-Path CNAME** (`lm-bounces.<domain>`); Lettermint manages the SPF record on its side |
-| Verification status | `GetEmailIdentity` (DKIM + MAIL FROM status) | `GET /domains/:id` (+ `verify` trigger) |
-| Teardown | `DeleteEmailIdentity` | `DELETE /domains/:id` |
-| Strategy class | `SESSenderStrategy` | `LettermintSenderStrategy` |
+| Verification status   | `GetEmailIdentity` (DKIM + MAIL FROM status)                                             | `GET /domains/:id` (+ `verify` trigger)                                                          |
+| Teardown              | `DeleteEmailIdentity`                                                                    | `DELETE /domains/:id`                                                                            |
+| Strategy class        | `SESSenderStrategy`                                                                      | `LettermintSenderStrategy`                                                                       |
 
 The one mechanism difference worth internalizing: **SES's custom MAIL FROM and Lettermint's Return-Path CNAME are equivalent** — both set the envelope sender to a subdomain of the sender domain so SPF aligns under DMARC's relaxed rules. Lettermint delegates SPF via a single CNAME (it publishes the SPF record itself); SES has no CNAME-delegated SPF, so the customer publishes an MX (to the regional `feedback-smtp.<region>.amazonses.com` endpoint) plus an SPF TXT directly. SendGrid (`automatic_security`) is CNAME-based like Lettermint. See the [SES guide](./custom-mail-sender-ses.md#dmarc-alignment-why-custom-mail-from) for the full DMARC alignment table.
 
@@ -70,14 +70,14 @@ Validation is identical across providers: each reads the provisioned `dns_record
 
 ## Key Files
 
-| File | Role |
-|------|------|
-| `lib/onetime/mail/mailer.rb` | Global delivery backend, `resolve_backend`, `provider_credentials` |
-| `lib/onetime/mail/sender_strategies.rb` | Factory for provider-specific sender strategies |
-| `lib/onetime/mail/sender_strategies/base_sender_strategy.rb` | Strategy interface (provision, verify, cleanup) |
-| `lib/onetime/operations/provision_sender_domain.rb` | Orchestrates provisioning with platform credentials |
-| `lib/onetime/operations/validate_sender_domain.rb` | DNS verification via provider strategy |
-| `lib/onetime/models/custom_domain/mailer_config.rb` | Per-domain sender config model (from_address, dns_records, verification state) |
+| File                                                         | Role                                                                           |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------ |
+| `lib/onetime/mail/mailer.rb`                                 | Global delivery backend, `resolve_backend`, `provider_credentials`             |
+| `lib/onetime/mail/sender_strategies.rb`                      | Factory for provider-specific sender strategies                                |
+| `lib/onetime/mail/sender_strategies/base_sender_strategy.rb` | Strategy interface (provision, verify, cleanup)                                |
+| `lib/onetime/operations/provision_sender_domain.rb`          | Orchestrates provisioning with platform credentials                            |
+| `lib/onetime/operations/validate_sender_domain.rb`           | DNS verification via provider strategy                                         |
+| `lib/onetime/models/custom_domain/mailer_config.rb`          | Per-domain sender config model (from_address, dns_records, verification state) |
 
 ## DNS Record Normalization
 

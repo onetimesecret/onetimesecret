@@ -53,9 +53,7 @@ describe('GlobalBroadcast sanitization (S4)', () => {
     it('strips javascript: hrefs smuggled via HTML entities (decode-then-sanitize order)', () => {
       // Component decodes entities BEFORE sanitizing, so entity-encoded
       // payloads must still be caught.
-      const wrapper = mountBroadcast(
-        '&lt;a href="javascript:alert(1)"&gt;x&lt;/a&gt;'
-      );
+      const wrapper = mountBroadcast('&lt;a href="javascript:alert(1)"&gt;x&lt;/a&gt;');
       expect(renderedHtml(wrapper)).not.toContain('javascript:');
     });
 
@@ -80,26 +78,20 @@ describe('GlobalBroadcast sanitization (S4)', () => {
     });
 
     it('overrides an attacker-supplied rel value', () => {
-      const wrapper = mountBroadcast(
-        '<a href="https://example.com" rel="opener">link</a>'
-      );
+      const wrapper = mountBroadcast('<a href="https://example.com" rel="opener">link</a>');
       const anchor = wrapper.find(`${CONTENT_SELECTOR} a`);
       expect(anchor.attributes('rel')).toBe('noopener noreferrer');
     });
 
     it('keeps target="_blank"', () => {
-      const wrapper = mountBroadcast(
-        '<a href="https://example.com" target="_blank">link</a>'
-      );
+      const wrapper = mountBroadcast('<a href="https://example.com" target="_blank">link</a>');
       const anchor = wrapper.find(`${CONTENT_SELECTOR} a`);
       expect(anchor.attributes('target')).toBe('_blank');
       expect(anchor.attributes('rel')).toBe('noopener noreferrer');
     });
 
     it('strips any target other than _blank', () => {
-      const wrapper = mountBroadcast(
-        '<a href="https://example.com" target="_top">link</a>'
-      );
+      const wrapper = mountBroadcast('<a href="https://example.com" target="_top">link</a>');
       const anchor = wrapper.find(`${CONTENT_SELECTOR} a`);
       expect(anchor.attributes('target')).toBeUndefined();
     });

@@ -8,17 +8,6 @@
   "jsxSingleQuote": false,
   "overrides": [
     {
-      "files": "*.rb",
-      "options": {
-        "parser": "ruby",
-        "printWidth": 80
-      }
-    },
-    {
-      "files": "*.sql",
-      "options": { "parser": "sql-cst" }
-    },
-    {
       "files": "*.svg",
       "options": {
         "parser": "html",
@@ -36,7 +25,7 @@
       }
     }
   ],
-  "plugins": ["prettier-plugin-vue", "@prettier/plugin-ruby", "prettier-plugin-tailwindcss"],
+  "plugins": ["prettier-plugin-vue", "prettier-plugin-tailwindcss"],
   "vueIndentScriptAndStyle": true,
   "printWidth": 100,
   "proseWrap": "preserve",

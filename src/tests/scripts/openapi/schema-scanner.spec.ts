@@ -214,9 +214,12 @@ describe('schema-scanner', () => {
       // If this fails, a SCHEMA constant references a key not in the registry
       if (result.broken.length > 0) {
         const brokenDetails = result.broken.map(
-          e => `${e.className}: model=${e.schema.model}, response=${e.schema.response}, request=${e.schema.request}`
+          (e) =>
+            `${e.className}: model=${e.schema.model}, response=${e.schema.response}, request=${e.schema.request}`
         );
-        throw new Error(`Found ${result.broken.length} broken schema entries:\n${brokenDetails.join('\n')}`);
+        throw new Error(
+          `Found ${result.broken.length} broken schema entries:\n${brokenDetails.join('\n')}`
+        );
       }
 
       expect(result.broken).toHaveLength(0);
@@ -229,10 +232,10 @@ describe('schema-scanner', () => {
       expect(result.covered.length).toBeGreaterThan(0);
 
       // Verify we found entries from V3 API
-      const classNames = result.covered.map(e => e.className);
+      const classNames = result.covered.map((e) => e.className);
 
       // Check for V3 entries
-      const hasV3 = classNames.some(name => name.startsWith('V3::'));
+      const hasV3 = classNames.some((name) => name.startsWith('V3::'));
       expect(hasV3).toBe(true);
     });
 
@@ -240,8 +243,8 @@ describe('schema-scanner', () => {
       const result = scanResult;
 
       // Find model entries (from lib/onetime/models/)
-      const modelEntries = result.entries.filter(
-        e => e.filePath.startsWith('lib/onetime/models/')
+      const modelEntries = result.entries.filter((e) =>
+        e.filePath.startsWith('lib/onetime/models/')
       );
 
       // All model entries should be covered (valid model keys)
@@ -286,7 +289,7 @@ describe('schema-scanner', () => {
       const result = await scanSchemas();
 
       // Find entries with model keys that use the 'models/' prefix
-      const modelEntries = result.entries.filter(e => e.schema.model?.startsWith('models/'));
+      const modelEntries = result.entries.filter((e) => e.schema.model?.startsWith('models/'));
 
       // Ensure this test cannot pass vacuously: we must observe at least one
       // Ruby model key that requires normalization.
@@ -301,7 +304,7 @@ describe('schema-scanner', () => {
         // These entries should be reported as covered by the scanner, which
         // demonstrates that the normalized key matched a known schema.
         const isCovered = result.covered.some(
-          c => c.className === entry.className && c.filePath === entry.filePath
+          (c) => c.className === entry.className && c.filePath === entry.filePath
         );
 
         expect(isCovered).toBe(true);

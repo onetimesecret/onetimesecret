@@ -57,9 +57,7 @@
     });
   });
 
-  const errorId = computed(() =>
-    validationError.value ? 'passphrase-error' : undefined
-  );
+  const errorId = computed(() => (validationError.value ? 'passphrase-error' : undefined));
 
   // Button chip styling based on state
   const buttonClasses = computed(() => {
@@ -96,10 +94,7 @@
   // Input border styling based on validation state
   const inputBorderClasses = computed(() => {
     if (validationError.value) {
-      return [
-        'border-red-400 focus:border-red-500 focus:ring-red-500/20',
-        'dark:border-red-500',
-      ];
+      return ['border-red-400 focus:border-red-500 focus:ring-red-500/20', 'dark:border-red-500'];
     }
     return [
       'border-gray-300 focus:border-brand-500 focus:ring-brand-500/20',
@@ -135,10 +130,7 @@
     class="relative">
     <PopoverButton
       :disabled="disabled"
-      class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs
-        font-medium ring-1 ring-inset transition-all
-        focus:outline-none focus:ring-2
-        disabled:cursor-not-allowed disabled:opacity-50"
+      class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium ring-1 transition-all ring-inset focus:ring-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
       :class="buttonClasses"
       @click="open ? null : focusInput()">
       <OIcon
@@ -169,10 +161,7 @@
       leave-from-class="transform opacity-100 scale-100"
       leave-to-class="transform opacity-0 scale-95">
       <PopoverPanel
-        class="absolute left-0 top-full z-[60] mt-1
-          w-72 max-w-[calc(100vw-2rem)]
-          rounded-md bg-white p-3 shadow-lg ring-1 ring-black/5
-          dark:bg-gray-800 dark:ring-gray-700"
+        class="absolute top-full left-0 z-[60] mt-1 w-72 max-w-[calc(100vw-2rem)] rounded-md bg-white p-3 shadow-lg ring-1 ring-black/5 dark:bg-gray-800 dark:ring-gray-700"
         @vue:mounted="focusInput">
         <label
           for="passphrase-input"
@@ -189,10 +178,7 @@
             :aria-invalid="!!validationError"
             :aria-describedby="errorId"
             autocomplete="new-password"
-            class="w-full rounded-md border bg-white py-2 pl-3 pr-16
-              text-sm text-gray-900 placeholder:text-gray-400
-              focus:outline-none focus:ring-2
-              dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-500"
+            class="w-full rounded-md border bg-white py-2 pr-16 pl-3 text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:outline-none dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-500"
             :class="inputBorderClasses"
             :placeholder="t('web.secrets.enterPassphrase')"
             @input="handleInput"
@@ -212,7 +198,9 @@
             <button
               type="button"
               class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              :aria-label="passphraseVisible ? t('web.COMMON.hide_password') : t('web.COMMON.show_password')"
+              :aria-label="
+                passphraseVisible ? t('web.COMMON.hide_password') : t('web.COMMON.show_password')
+              "
               @click="toggleVisibility">
               <OIcon
                 collection="heroicons"

@@ -28,11 +28,7 @@ import {
 } from '@/schemas/api/domains/responses/test-email-config';
 import { responseSchemas, type CustomDomainDetails } from '@/schemas/api/v3/responses';
 import type { CustomDomainEmailConfig } from '@/schemas/shapes/domains/email-config';
-import type {
-  BrandSettings,
-  CustomDomain,
-  ImageProps,
-} from '@/schemas/shapes/v3';
+import type { BrandSettings, CustomDomain, ImageProps } from '@/schemas/shapes/v3';
 import { loggingService } from '@/services/logging.service';
 import { gracefulParse, strictParse } from '@/utils/schemaValidation';
 import axios, { AxiosError, AxiosInstance } from 'axios';
@@ -157,7 +153,11 @@ export const useDomainsStore = defineStore('domains', () => {
     const payload: { domain: string; org_id?: string } = { domain };
     if (orgId) payload.org_id = orgId;
     const response = await $api.post('/api/domains/add', payload);
-    const result = gracefulParse(responseSchemas.customDomain, response.data, 'CustomDomainResponse');
+    const result = gracefulParse(
+      responseSchemas.customDomain,
+      response.data,
+      'CustomDomainResponse'
+    );
     if (!result.ok) {
       throw new Error('Unable to add domain. Please try again.');
     }
@@ -176,7 +176,11 @@ export const useDomainsStore = defineStore('domains', () => {
   async function fetchList(orgId?: string) {
     const params = orgId ? { org_id: orgId } : {};
     const response = await $api.get('/api/domains', { params });
-    const result = gracefulParse(responseSchemas.customDomainList, response.data, 'CustomDomainListResponse');
+    const result = gracefulParse(
+      responseSchemas.customDomainList,
+      response.data,
+      'CustomDomainListResponse'
+    );
     if (!result.ok) {
       records.value = [];
       details.value = {};
@@ -192,7 +196,11 @@ export const useDomainsStore = defineStore('domains', () => {
 
   async function getDomain(extid: string) {
     const response = await $api.get(`/api/domains/${extid}`);
-    const result = gracefulParse(responseSchemas.customDomain, response.data, 'CustomDomainResponse');
+    const result = gracefulParse(
+      responseSchemas.customDomain,
+      response.data,
+      'CustomDomainResponse'
+    );
     if (!result.ok) {
       throw new Error('Unable to load domain. Please try again.');
     }
@@ -201,7 +209,11 @@ export const useDomainsStore = defineStore('domains', () => {
 
   async function verifyDomain(extid: string) {
     const response = await $api.post(`/api/domains/${extid}/verify`);
-    const result = gracefulParse(responseSchemas.customDomain, response.data, 'CustomDomainResponse');
+    const result = gracefulParse(
+      responseSchemas.customDomain,
+      response.data,
+      'CustomDomainResponse'
+    );
     if (!result.ok) {
       throw new Error('Unable to verify domain. Please try again.');
     }
@@ -351,7 +363,11 @@ export const useDomainsStore = defineStore('domains', () => {
   // Ensure getBrandSettings always returns valid data
   async function getBrandSettings(extid: string): Promise<BrandSettings> {
     const response = await $api.get(`/api/domains/${extid}/brand`);
-    const result = gracefulParse(responseSchemas.brandSettings, response.data, 'BrandSettingsResponse');
+    const result = gracefulParse(
+      responseSchemas.brandSettings,
+      response.data,
+      'BrandSettingsResponse'
+    );
     if (!result.ok) {
       throw new Error('Unable to load brand settings. Please try again.');
     }
@@ -365,7 +381,11 @@ export const useDomainsStore = defineStore('domains', () => {
     const response = await $api.put(`/api/domains/${extid}/brand`, {
       brand: settings,
     });
-    const result = gracefulParse(responseSchemas.brandSettings, response.data, 'BrandSettingsResponse');
+    const result = gracefulParse(
+      responseSchemas.brandSettings,
+      response.data,
+      'BrandSettingsResponse'
+    );
     if (!result.ok) {
       throw new Error('Unable to update brand settings. Please try again.');
     }
@@ -380,7 +400,11 @@ export const useDomainsStore = defineStore('domains', () => {
    */
   async function updateDomainBrand(extid: string, brandUpdate: UpdateDomainBrandRequest) {
     const response = await $api.put(`/api/domains/${extid}/brand`, brandUpdate);
-    const result = gracefulParse(responseSchemas.customDomain, response.data, 'CustomDomainResponse');
+    const result = gracefulParse(
+      responseSchemas.customDomain,
+      response.data,
+      'CustomDomainResponse'
+    );
     if (!result.ok) {
       throw new Error('Unable to update domain brand. Please try again.');
     }
@@ -402,7 +426,11 @@ export const useDomainsStore = defineStore('domains', () => {
    */
   async function getHomepageConfig(extid: string): Promise<HomepageConfigResponse> {
     const response = await $api.get(`/api/domains/${extid}/homepage-config`);
-    const result = gracefulParse(homepageConfigResponseSchema, response.data, 'HomepageConfigResponse');
+    const result = gracefulParse(
+      homepageConfigResponseSchema,
+      response.data,
+      'HomepageConfigResponse'
+    );
     if (!result.ok) {
       throw new Error('Unable to load homepage configuration. Please try again.');
     }
@@ -425,7 +453,11 @@ export const useDomainsStore = defineStore('domains', () => {
     update: PutHomepageConfigRequest
   ): Promise<HomepageConfigResponse> {
     const response = await $api.put(`/api/domains/${extid}/homepage-config`, update);
-    const result = gracefulParse(homepageConfigResponseSchema, response.data, 'HomepageConfigResponse');
+    const result = gracefulParse(
+      homepageConfigResponseSchema,
+      response.data,
+      'HomepageConfigResponse'
+    );
     if (!result.ok) {
       throw new Error('Unable to update homepage configuration. Please try again.');
     }

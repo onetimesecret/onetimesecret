@@ -1,5 +1,7 @@
 # docs/specs/domain-validation/domain-validation-policy.md
+
 ---
+
 # Custom Domain Validation Policy
 
 Itemizes known gaps in the multi-strategy domain validation system
@@ -21,11 +23,11 @@ selected by a single **install-level** config key
 `etc/defaults/config.defaults.yaml:504-509`). No per-domain or per-region
 override exists anywhere, not even as a TODO.
 
-| Strategy | Ownership proof | Cert/serving | DNS check | File |
-|---|---|---|---|---|
-| `approximated` | TXT, exact-match via Approximated API | Approximated-managed | TXT only; CNAME/A trusted from provider's `is_resolving` | `approximated_strategy.rb:33-255` |
-| `caddy_on_demand` | None (Caddy ACME challenge ≠ ownership proof) | Caddy on-demand TLS | None performed by OTS | `caddy_on_demand_strategy.rb:17-99` |
-| `passthrough` | None — always returns true | External/operator-managed | None | `passthrough_strategy.rb:16-92` |
+| Strategy          | Ownership proof                               | Cert/serving              | DNS check                                                | File                                |
+| ----------------- | --------------------------------------------- | ------------------------- | -------------------------------------------------------- | ----------------------------------- |
+| `approximated`    | TXT, exact-match via Approximated API         | Approximated-managed      | TXT only; CNAME/A trusted from provider's `is_resolving` | `approximated_strategy.rb:33-255`   |
+| `caddy_on_demand` | None (Caddy ACME challenge ≠ ownership proof) | Caddy on-demand TLS       | None performed by OTS                                    | `caddy_on_demand_strategy.rb:17-99` |
+| `passthrough`     | None — always returns true                    | External/operator-managed | None                                                     | `passthrough_strategy.rb:16-92`     |
 
 `CustomDomain` (`lib/onetime/models/custom_domain.rb`) verification state
 machine (`verification_state`, lines 639-647):
@@ -91,7 +93,7 @@ The team's original framing was UX ("a domain can get stuck in DNS
 Incomplete forever, so we can't safely gate"). Research reframes this as a
 **security** issue, not primarily a UX one: OWASP's subdomain/domain-takeover
 pattern (3-0 verified) is "a DNS record points at a resource with no
-ownership tie." Under `passthrough` this happens in the *other* direction —
+ownership tie." Under `passthrough` this happens in the _other_ direction —
 the customer doesn't need a real DNS record at all; they need only type a
 domain string into OTS to start serving branded secret links under it. If
 that string belongs to someone else (typo, expired/dangling domain, a domain
@@ -121,7 +123,7 @@ ACME issuance proves DNS points here, but proves nothing about
 account-level ownership — if that's ever read as equivalent to "verified,"
 it inherits the Issue 3 risk. → ADR-016.
 
-This inconsistency has a concrete *functional* consequence, not just a UI
+This inconsistency has a concrete _functional_ consequence, not just a UI
 one: the ACME `ask` gate (`apps/internal/acme/`) reads the resolving axis via
 `ready?`, and under `caddy_on_demand` — whose `check_status` returns
 `is_resolving: nil`, so the `resolving` field is never written — the endpoint
@@ -159,8 +161,8 @@ Strongest, best-evidenced new finding — folded into ADR-017.
 
 **2. Caddy's `ask` config key is deprecated — confidence: high, confirmed live in this repo's actual ACME app, not just an example file.**
 Caddy's live config-docs API (`GET /api/docs/config/apps/tls/automation/on_demand/`)
-marks `ask` *"Deprecated. WILL BE REMOVED SOON. Use 'permission' instead
-with the `http` module"* and `permission` as **REQUIRED**. The Caddyfile
+marks `ask` _"Deprecated. WILL BE REMOVED SOON. Use 'permission' instead
+with the `http` module"_ and `permission` as **REQUIRED**. The Caddyfile
 adapter still accepts `ask` today (not yet a hard error, confirmed via
 `/docs/caddyfile/options`), but it's on a removal path. This isn't a
 stale-example-file issue — `apps/internal/acme/`'s entire identity is
@@ -186,12 +188,12 @@ question.
 
 ## Policy Decisions
 
-| Issue | Decision | ADR |
-|---|---|---|
-| 1, 4 (partial) | Split ownership-verification and certificate/serving into two independent state axes, backend and frontend; OTS performs its own CNAME/A + TXT checks instead of trusting only Approximated's claims | ADR-016 |
-| 2 | Add per-domain `validation_strategy` override field, install-level value as default/fallback | ADR-015 |
-| 3, Additional Gap 1 | Gate domain-dependent functionality (link creation) on ownership-verification state, independent of the global `require_verified` flag, for strategies with no native ownership proof | ADR-017 |
-| 5 | Replace the full-sweep/percentage-sample framing with per-domain exponential backoff and a bounded, terminal failure state | ADR-018 |
+| Issue               | Decision                                                                                                                                                                                             | ADR     |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| 1, 4 (partial)      | Split ownership-verification and certificate/serving into two independent state axes, backend and frontend; OTS performs its own CNAME/A + TXT checks instead of trusting only Approximated's claims | ADR-016 |
+| 2                   | Add per-domain `validation_strategy` override field, install-level value as default/fallback                                                                                                         | ADR-015 |
+| 3, Additional Gap 1 | Gate domain-dependent functionality (link creation) on ownership-verification state, independent of the global `require_verified` flag, for strategies with no native ownership proof                | ADR-017 |
+| 5                   | Replace the full-sweep/percentage-sample framing with per-domain exponential backoff and a bounded, terminal failure state                                                                           | ADR-018 |
 
 ## Open Questions (not resolved by this research pass)
 

@@ -7,13 +7,13 @@
 
 The `email.json` file contains 40 lines with a single top-level `email` namespace containing 5 categories:
 
-| Category | Keys | Purpose |
-|----------|------|---------|
-| `incomingsupport` | 2 | Support ticket email templates |
-| `secretlink` | 3 | Secret sharing notification emails |
-| `welcome` | 5 | Account verification/welcome emails |
-| `organization_invitation` | 10 | Organization invitation emails (including nested `roles`) |
-| `common` | 4 | Shared email UI elements |
+| Category                  | Keys | Purpose                                                   |
+| ------------------------- | ---- | --------------------------------------------------------- |
+| `incomingsupport`         | 2    | Support ticket email templates                            |
+| `secretlink`              | 3    | Secret sharing notification emails                        |
+| `welcome`                 | 5    | Account verification/welcome emails                       |
+| `organization_invitation` | 10   | Organization invitation emails (including nested `roles`) |
+| `common`                  | 4    | Shared email UI elements                                  |
 
 **Total key count:** ~24 leaf keys
 
@@ -31,12 +31,14 @@ The `email.json` file contains 40 lines with a single top-level `email` namespac
 ```
 
 **Issue:** Role labels are duplicated. The `feature-organizations.json` file already defines:
+
 ```json
 "invitations.roles.member": "Member"
 "invitations.roles.admin": "Admin"
 ```
 
 **Recommendation:**
+
 - Remove `email.organization_invitation.roles` from `email.json`
 - Reference the existing roles from `feature-organizations.json` or create email-specific variants in the organization file under a namespace like `invitations.email_roles`
 
@@ -112,6 +114,7 @@ The `email.json` file contains 40 lines with a single top-level `email` namespac
 ```
 
 ### Benefits
+
 - Clear separation between user-facing transactional emails and internal system emails
 - Consistent nesting depth
 - Easier to locate email types
@@ -126,6 +129,7 @@ The current `email.json` is appropriately sized (~40 lines) and does not warrant
 ### Future Consideration: `email-templates.json`
 
 If the project adds HTML email templates with extensive copy blocks, a separate file may be warranted for:
+
 - Full HTML email body content
 - Rich text formatting strings
 - Footer/header content blocks
@@ -137,6 +141,7 @@ If the project adds HTML email templates with extensive copy blocks, a separate 
 ## Consistency Observations
 
 ### Positive Patterns
+
 - Uses `email` as top-level namespace (matches other files using `web`, `incoming`, etc.)
 - Keeps email-specific content isolated from UI strings
 - `common` section for reusable elements
@@ -144,6 +149,7 @@ If the project adds HTML email templates with extensive copy blocks, a separate 
 ### Areas for Alignment
 
 1. **Namespace consistency:** Other files use `web` as top-level namespace. Consider whether `email` should be nested under `web` for consistency:
+
    ```json
    { "web": { "email": { ... } } }
    ```
@@ -158,13 +164,13 @@ If the project adds HTML email templates with extensive copy blocks, a separate 
 
 ## Summary of Recommended Actions
 
-| Priority | Action | Effort |
-|----------|--------|--------|
-| Low | Remove duplicate `roles` from `email.organization_invitation` | Minimal |
-| Low | Standardize placeholder format to `%{named}` style | Low |
-| Medium | Rename `secretlink` to `secret_shared` for clarity | Low |
-| Medium | Rename `incomingsupport` to `support_ticket` for clarity | Low |
-| Low | Consider nesting under `web` namespace for consistency | Medium |
+| Priority | Action                                                        | Effort  |
+| -------- | ------------------------------------------------------------- | ------- |
+| Low      | Remove duplicate `roles` from `email.organization_invitation` | Minimal |
+| Low      | Standardize placeholder format to `%{named}` style            | Low     |
+| Medium   | Rename `secretlink` to `secret_shared` for clarity            | Low     |
+| Medium   | Rename `incomingsupport` to `support_ticket` for clarity      | Low     |
+| Low      | Consider nesting under `web` namespace for consistency        | Medium  |
 
 ---
 

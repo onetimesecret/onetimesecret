@@ -304,7 +304,9 @@ describe('ConnectedIdentities', () => {
 
     it('renders no connect region when every provider is already linked', () => {
       mockState.identities.value = [makeIdentity({ provider: 'entra' })];
-      mockGetSsoProviders.mockReturnValue([{ route_name: 'entra', display_name: 'Microsoft Entra' }]);
+      mockGetSsoProviders.mockReturnValue([
+        { route_name: 'entra', display_name: 'Microsoft Entra' },
+      ]);
       wrapper = mountComponent();
 
       expect(wrapper.find('[data-testid="connections-connect"]').exists()).toBe(false);
@@ -423,7 +425,9 @@ describe('ConnectedIdentities', () => {
       mockState.error.value = 'web.auth.connections.errors.generic';
       wrapper = mountComponent();
 
-      await wrapper.find('[data-testid="connections-error"] button[aria-label="Dismiss"]').trigger('click');
+      await wrapper
+        .find('[data-testid="connections-error"] button[aria-label="Dismiss"]')
+        .trigger('click');
       expect(mockState.clearError).toHaveBeenCalled();
     });
   });

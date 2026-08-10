@@ -43,19 +43,21 @@ const httpCaptureSchema = z.enum(['minimal', 'standard', 'debug']);
  * Named logger levels
  * Each category can be configured independently
  */
-const loggersSchema = z.object({
-  App: logLevelSchema.optional(),
-  Auth: logLevelSchema.optional(),
-  Billing: logLevelSchema.optional(),
-  Boot: logLevelSchema.optional(),
-  Familia: logLevelSchema.optional(),
-  HTTP: logLevelSchema.optional(),
-  Otto: logLevelSchema.optional(),
-  Rhales: logLevelSchema.optional(),
-  Secret: logLevelSchema.optional(),
-  Sequel: logLevelSchema.optional(),
-  Session: logLevelSchema.optional(),
-}).catchall(logLevelSchema);
+const loggersSchema = z
+  .object({
+    App: logLevelSchema.optional(),
+    Auth: logLevelSchema.optional(),
+    Billing: logLevelSchema.optional(),
+    Boot: logLevelSchema.optional(),
+    Familia: logLevelSchema.optional(),
+    HTTP: logLevelSchema.optional(),
+    Otto: logLevelSchema.optional(),
+    Rhales: logLevelSchema.optional(),
+    Secret: logLevelSchema.optional(),
+    Sequel: logLevelSchema.optional(),
+    Session: logLevelSchema.optional(),
+  })
+  .catchall(logLevelSchema);
 
 /**
  * HTTP request logging configuration

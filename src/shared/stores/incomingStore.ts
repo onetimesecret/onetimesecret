@@ -142,7 +142,11 @@ export const useIncomingStore = defineStore('incoming', () => {
       secret: payload,
     });
 
-    const result = gracefulParse(incomingSecretResponseSchema, response.data, 'IncomingSecretResponse');
+    const result = gracefulParse(
+      incomingSecretResponseSchema,
+      response.data,
+      'IncomingSecretResponse'
+    );
     if (!result.ok) {
       throw new Error('Unable to create incoming secret. Please try again.');
     }

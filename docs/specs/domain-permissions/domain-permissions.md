@@ -10,15 +10,15 @@ auth strategy.
 
 ## Generic `validate_domain_permissions` Rules
 
-| Caller | Domain context | Toggle | Result |
-|---|---|---|---|
-| Owner / org member | any | any | ✓ allowed |
-| Authenticated non-owner | custom | on | 403 "You do not have permission" |
-| Authenticated non-owner | custom | off | 403 "You do not have permission" |
-| Authenticated non-owner | canonical | n/a | 403 "You do not have permission" |
-| Anonymous | custom | on | ✓ allowed (public intake) |
-| Anonymous | custom | off | 403 "Public sharing disabled" |
-| Anonymous | canonical (with share_domain) | n/a | 403 "You do not have permission" |
+| Caller                  | Domain context                | Toggle | Result                           |
+| ----------------------- | ----------------------------- | ------ | -------------------------------- |
+| Owner / org member      | any                           | any    | ✓ allowed                        |
+| Authenticated non-owner | custom                        | on     | 403 "You do not have permission" |
+| Authenticated non-owner | custom                        | off    | 403 "You do not have permission" |
+| Authenticated non-owner | canonical                     | n/a    | 403 "You do not have permission" |
+| Anonymous               | custom                        | on     | ✓ allowed (public intake)        |
+| Anonymous               | custom                        | off    | 403 "Public sharing disabled"    |
+| Anonymous               | canonical (with share_domain) | n/a    | 403 "You do not have permission" |
 
 **Toggle semantics:** "on" means `CustomDomain#allow_public_secret_creation?` —
 the homepage is enabled **and** its `secrets_mode` is `create`. A homepage in
@@ -32,10 +32,10 @@ on an incoming-mode domain returns 403 "Public sharing disabled".
 The strategy layer rejects anonymous before our code runs. Only authenticated
 requests reach `validate_domain_permissions`:
 
-| Caller | Custom domain, toggle off | Custom domain, toggle on | Canonical (share_domain=other custom) |
-|---|---|---|---|
-| Owner / org member | ✓ allowed | ✓ allowed | ✓ allowed |
-| Authenticated non-owner | 403 "You do not have permission" | 403 "You do not have permission" | 403 "You do not have permission" |
+| Caller                  | Custom domain, toggle off        | Custom domain, toggle on         | Canonical (share_domain=other custom) |
+| ----------------------- | -------------------------------- | -------------------------------- | ------------------------------------- |
+| Owner / org member      | ✓ allowed                        | ✓ allowed                        | ✓ allowed                             |
+| Authenticated non-owner | 403 "You do not have permission" | 403 "You do not have permission" | 403 "You do not have permission"      |
 
 ## `POST /api/v3/guest/secret/conceal` (auth=noauth)
 
@@ -45,12 +45,12 @@ V3 adds `require_guest_route_enabled!(:conceal)` before `super`
 (per `guest_context?` at `lib/onetime/logic/guest_route_gating.rb:81-83`).
 Authenticated callers passing through this route bypass the guest gate.
 
-| Caller | Site `guest_routes.conceal` | Custom domain, toggle off | Custom domain, toggle on | Canonical (share_domain=other) |
-|---|---|---|---|---|
-| Anonymous | disabled | 403 GuestRoutesDisabled (before us) | 403 GuestRoutesDisabled | 403 GuestRoutesDisabled |
-| Anonymous | enabled | 403 "Public sharing disabled" | ✓ allowed (public intake) | 403 "You do not have permission" |
-| Authenticated owner | n/a (gate skipped) | ✓ allowed | ✓ allowed | ✓ allowed |
-| Authenticated non-owner | n/a (gate skipped) | 403 "You do not have permission" | 403 "You do not have permission" | 403 "You do not have permission" |
+| Caller                  | Site `guest_routes.conceal` | Custom domain, toggle off           | Custom domain, toggle on         | Canonical (share_domain=other)   |
+| ----------------------- | --------------------------- | ----------------------------------- | -------------------------------- | -------------------------------- |
+| Anonymous               | disabled                    | 403 GuestRoutesDisabled (before us) | 403 GuestRoutesDisabled          | 403 GuestRoutesDisabled          |
+| Anonymous               | enabled                     | 403 "Public sharing disabled"       | ✓ allowed (public intake)        | 403 "You do not have permission" |
+| Authenticated owner     | n/a (gate skipped)          | ✓ allowed                           | ✓ allowed                        | ✓ allowed                        |
+| Authenticated non-owner | n/a (gate skipped)          | 403 "You do not have permission"    | 403 "You do not have permission" | 403 "You do not have permission" |
 
 ## Implementation References
 

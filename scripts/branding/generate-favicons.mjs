@@ -132,7 +132,9 @@ function write(path, contents) {
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, contents);
   const rel = path.replace(REPO_ROOT + '/', '');
-  const size = Buffer.isBuffer(contents) ? `${contents.length} B` : `${Buffer.byteLength(contents)} B`;
+  const size = Buffer.isBuffer(contents)
+    ? `${contents.length} B`
+    : `${Buffer.byteLength(contents)} B`;
   console.log(`  wrote ${rel} (${size})`);
 }
 
@@ -187,7 +189,9 @@ async function main() {
   if (presetName) {
     const brandYamlPath = resolve(PACK_DIR, 'brand.yaml');
     if (existsSync(brandYamlPath)) {
-      console.log(`  kept ${brandYamlPath.replace(REPO_ROOT + '/', '')} (preserved hand-authored manifest)`);
+      console.log(
+        `  kept ${brandYamlPath.replace(REPO_ROOT + '/', '')} (preserved hand-authored manifest)`
+      );
     } else {
       write(brandYamlPath, brandManifestYaml(presetName));
     }

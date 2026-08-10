@@ -223,7 +223,8 @@ describe('CSRF Store', () => {
       store.updateShrimp(newShrimp);
 
       expect(store.shrimp).toBe(newShrimp); // Shrimp should update
-      const bootstrapState = (window as Window & { __BOOTSTRAP_ME__?: { shrimp?: string } }).__BOOTSTRAP_ME__;
+      const bootstrapState = (window as Window & { __BOOTSTRAP_ME__?: { shrimp?: string } })
+        .__BOOTSTRAP_ME__;
       expect(bootstrapState?.shrimp).not.toBe(newShrimp); // Window.shrimp should not change
     });
   });

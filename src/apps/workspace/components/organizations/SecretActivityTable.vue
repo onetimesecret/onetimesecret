@@ -1,198 +1,203 @@
 <!-- src/apps/workspace/components/organizations/SecretActivityTable.vue -->
 
 <script setup lang="ts">
-import { SECRET_ACTIVITY_KINDS, type SecretActivityKind } from '@/schemas/api/organizations';
-import {
-  getSecretActivityMaxEvents,
-  isSecretActivityCollectEnabled,
-  isSecretActivityGeoCountryEnabled,
-} from '@/utils/features';
-import TableSkeleton from '@/shared/components/closet/TableSkeleton.vue';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import EmptyState from '@/shared/components/ui/EmptyState.vue';
-import { useSecretActivity } from '@/shared/composables/useSecretActivity';
-import { formatDisplayDateTime } from '@/utils/format';
-import { useNow } from '@vueuse/core';
-import { formatDistance } from 'date-fns';
-import { computed, onMounted, onUnmounted, toRef, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
+  import { SECRET_ACTIVITY_KINDS, type SecretActivityKind } from '@/schemas/api/organizations';
+  import {
+    getSecretActivityMaxEvents,
+    isSecretActivityCollectEnabled,
+    isSecretActivityGeoCountryEnabled,
+  } from '@/utils/features';
+  import TableSkeleton from '@/shared/components/closet/TableSkeleton.vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import EmptyState from '@/shared/components/ui/EmptyState.vue';
+  import { useSecretActivity } from '@/shared/composables/useSecretActivity';
+  import { formatDisplayDateTime } from '@/utils/format';
+  import { useNow } from '@vueuse/core';
+  import { formatDistance } from 'date-fns';
+  import { computed, onMounted, onUnmounted, toRef, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
 
-/**
- * Secret Activity table (#3637) — renders the org's secret-access audit
- * trail: creations, link/status fetches, reveals, burns and expiries.
- *
- * Owns its own fetching via useSecretActivity: the parent mounts it lazily
- * (v-if per tab), so mounting IS activation. The composable keeps network
- * errors and contract mismatches distinct, and so does this template — a
- * parse failure must never masquerade as the "no activity yet" empty state.
- */
-const props = defineProps<{
-  orgExtid: string;
-}>();
+  /**
+   * Secret Activity table (#3637) — renders the org's secret-access audit
+   * trail: creations, link/status fetches, reveals, burns and expiries.
+   *
+   * Owns its own fetching via useSecretActivity: the parent mounts it lazily
+   * (v-if per tab), so mounting IS activation. The composable keeps network
+   * errors and contract mismatches distinct, and so does this template — a
+   * parse failure must never masquerade as the "no activity yet" empty state.
+   */
+  const props = defineProps<{
+    orgExtid: string;
+  }>();
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-const orgExtid = toRef(props, 'orgExtid');
+  const orgExtid = toRef(props, 'orgExtid');
 
-/**
- * Collection paused (#3990): SECRET_ACTIVITY_COLLECT=false stops event
- * RECORDING instance-wide while historical events keep rendering. The notice
- * must sit above every state — a live-looking trail (or an innocent-looking
- * empty state) is a lie of omission when nothing new is being written.
- * Read once at setup: the instance flag ships in the bootstrap payload and
- * cannot change without a reload.
- */
-const collectionPaused = !isSecretActivityCollectEnabled();
+  /**
+   * Collection paused (#3990): SECRET_ACTIVITY_COLLECT=false stops event
+   * RECORDING instance-wide while historical events keep rendering. The notice
+   * must sit above every state — a live-looking trail (or an innocent-looking
+   * empty state) is a lie of omission when nothing new is being written.
+   * Read once at setup: the instance flag ships in the bootstrap payload and
+   * cannot change without a reload.
+   */
+  const collectionPaused = !isSecretActivityCollectEnabled();
 
-/**
- * Retention cap for the capped notice (#3990). The cap is operator-
- * configurable, so the notice interpolates it — a hardcoded "10,000" would
- * state a false retention claim on an instance configured to anything else.
- * Read once at setup alongside collectionPaused: same bootstrap snapshot,
- * same reload-to-change lifetime.
- */
-const maxEventsLabel = getSecretActivityMaxEvents().toLocaleString();
+  /**
+   * Retention cap for the capped notice (#3990). The cap is operator-
+   * configurable, so the notice interpolates it — a hardcoded "10,000" would
+   * state a false retention claim on an instance configured to anything else.
+   * Read once at setup alongside collectionPaused: same bootstrap snapshot,
+   * same reload-to-change lifetime.
+   */
+  const maxEventsLabel = getSecretActivityMaxEvents().toLocaleString();
 
-/**
- * Country column gate (#3989). The country field is legally-sensitive
- * org-tier geo data pending counsel review, so it is DEFAULT OFF and only
- * renders (header + cells) when an operator explicitly opts in via
- * SECRET_ACTIVITY_GEO_COUNTRY_ENABLED=true. Read once at setup, same as the flags
- * above: the bootstrap flag ships once and cannot change without a reload.
- */
-const showCountry = isSecretActivityGeoCountryEnabled();
+  /**
+   * Country column gate (#3989). The country field is legally-sensitive
+   * org-tier geo data pending counsel review, so it is DEFAULT OFF and only
+   * renders (header + cells) when an operator explicitly opts in via
+   * SECRET_ACTIVITY_GEO_COUNTRY_ENABLED=true. Read once at setup, same as the flags
+   * above: the bootstrap flag ships once and cannot change without a reload.
+   */
+  const showCountry = isSecretActivityGeoCountryEnabled();
 
-const {
-  records,
-  actors,
-  isLoading,
-  error,
-  validationError,
-  offset,
-  total,
-  count,
-  hasNext,
-  hasPrev,
-  isCapped,
-  fetchPage,
-  next,
-  prev,
-  refresh,
-  abort,
-} = useSecretActivity(orgExtid);
+  const {
+    records,
+    actors,
+    isLoading,
+    error,
+    validationError,
+    offset,
+    total,
+    count,
+    hasNext,
+    hasPrev,
+    isCapped,
+    fetchPage,
+    next,
+    prev,
+    refresh,
+    abort,
+  } = useSecretActivity(orgExtid);
 
-// Reactive clock so the relative "3 minutes ago" labels refresh on their own
-// while the tab stays open. Coarse tick — these labels change on a
-// minute/hour scale, not per frame.
-const now = useNow({ interval: 30_000 });
+  // Reactive clock so the relative "3 minutes ago" labels refresh on their own
+  // while the tab stays open. Coarse tick — these labels change on a
+  // minute/hour scale, not per frame.
+  const now = useNow({ interval: 30_000 });
 
-/**
- * Kinds with a dedicated i18n label. An unknown future kind falls back to
- * its raw name — the schema admits it on purpose, so the row still renders
- * instead of hiding activity.
- */
-const KNOWN_KINDS = new Set<string>(SECRET_ACTIVITY_KINDS);
+  /**
+   * Kinds with a dedicated i18n label. An unknown future kind falls back to
+   * its raw name — the schema admits it on purpose, so the row still renders
+   * instead of hiding activity.
+   */
+  const KNOWN_KINDS = new Set<string>(SECRET_ACTIVITY_KINDS);
 
-/** Decorative icon per kind; unknown kinds get the neutral info glyph. */
-const KIND_ICONS: Record<SecretActivityKind, string> = {
-  created: 'plus-circle',
-  status_get: 'signal',
-  secret_get: 'key',
-  previewed: 'eye',
-  creator_status_get: 'user-circle',
-  receipt_viewed: 'document-text',
-  revealed: 'lock-open',
-  burned: 'fire',
-  expired: 'clock',
-  orphaned: 'question-mark-circle',
-  reveal_failed_undecryptable: 'exclamation-triangle',
-};
+  /** Decorative icon per kind; unknown kinds get the neutral info glyph. */
+  const KIND_ICONS: Record<SecretActivityKind, string> = {
+    created: 'plus-circle',
+    status_get: 'signal',
+    secret_get: 'key',
+    previewed: 'eye',
+    creator_status_get: 'user-circle',
+    receipt_viewed: 'document-text',
+    revealed: 'lock-open',
+    burned: 'fire',
+    expired: 'clock',
+    orphaned: 'question-mark-circle',
+    reveal_failed_undecryptable: 'exclamation-triangle',
+  };
 
-/**
- * Actor values events carry (RECOGNIZED_ACTORS, access_timeline.rb);
- * 'system' = expired/orphaned, 'unknown' = the ADR-023 sentinel for an actor
- * whose relationship to the secret could not be established (rendered as an
- * explicit "Unknown", never a blank or a misleading label).
- */
-const KNOWN_ACTORS = new Set(['creator', 'authenticated_other', 'anonymous', 'system', 'unknown']);
+  /**
+   * Actor values events carry (RECOGNIZED_ACTORS, access_timeline.rb);
+   * 'system' = expired/orphaned, 'unknown' = the ADR-023 sentinel for an actor
+   * whose relationship to the secret could not be established (rendered as an
+   * explicit "Unknown", never a blank or a misleading label).
+   */
+  const KNOWN_ACTORS = new Set([
+    'creator',
+    'authenticated_other',
+    'anonymous',
+    'system',
+    'unknown',
+  ]);
 
-const kindLabel = (kind: string): string =>
-  KNOWN_KINDS.has(kind) ? t(`web.organizations.audit.kinds.${kind}`) : kind;
+  const kindLabel = (kind: string): string =>
+    KNOWN_KINDS.has(kind) ? t(`web.organizations.audit.kinds.${kind}`) : kind;
 
-const kindIcon = (kind: string): string =>
-  KIND_ICONS[kind as SecretActivityKind] ?? 'information-circle';
+  const kindIcon = (kind: string): string =>
+    KIND_ICONS[kind as SecretActivityKind] ?? 'information-circle';
 
-const actorLabel = (actor: string): string =>
-  KNOWN_ACTORS.has(actor) ? t(`web.organizations.audit.actors.${actor}`) : actor;
+  const actorLabel = (actor: string): string =>
+    KNOWN_ACTORS.has(actor) ? t(`web.organizations.audit.actors.${actor}`) : actor;
 
-/**
- * Rows decorated with their display fields, resolved once per row. Relative
- * times are computed against the reactive clock so they refresh on the tick
- * (formatDistance with an explicit base = formatDistanceToNow, but with a
- * real reactive dependency instead of a hidden Date.now()).
- */
-const decoratedEvents = computed(() =>
-  records.value.map((event) => ({
-    event,
-    key: `${event.at.getTime()}-${event.nonce}`,
-    label: kindLabel(event.kind),
-    icon: kindIcon(event.kind),
-    absolute: formatDisplayDateTime(event.at),
-    relative: formatDistance(event.at, now.value, { addSuffix: true }),
-    actorLabel: event.actor ? actorLabel(event.actor) : null,
-    // Read-time identity resolution: email when the full actor objid resolves
-    // to a current active member, else the bare objid — unique-but-unresolved
-    // (removed member / out-of-org actor), CloudTrail deleted-principal
-    // semantics. Email never lives in the trail itself (GDPR minimization).
-    actorIdentity: event.actor_id
-      ? (actors.value[event.actor_id]?.email ?? event.actor_id)
-      : null,
-    // Gated column (#3989): computed unconditionally (cheap), rendering is
-    // what's gated by showCountry — see the th/td v-if in the template.
-    countryLabel: event.net_country ?? t('web.organizations.audit.country_unknown'),
-  }))
-);
+  /**
+   * Rows decorated with their display fields, resolved once per row. Relative
+   * times are computed against the reactive clock so they refresh on the tick
+   * (formatDistance with an explicit base = formatDistanceToNow, but with a
+   * real reactive dependency instead of a hidden Date.now()).
+   */
+  const decoratedEvents = computed(() =>
+    records.value.map((event) => ({
+      event,
+      key: `${event.at.getTime()}-${event.nonce}`,
+      label: kindLabel(event.kind),
+      icon: kindIcon(event.kind),
+      absolute: formatDisplayDateTime(event.at),
+      relative: formatDistance(event.at, now.value, { addSuffix: true }),
+      actorLabel: event.actor ? actorLabel(event.actor) : null,
+      // Read-time identity resolution: email when the full actor objid resolves
+      // to a current active member, else the bare objid — unique-but-unresolved
+      // (removed member / out-of-org actor), CloudTrail deleted-principal
+      // semantics. Email never lives in the trail itself (GDPR minimization).
+      actorIdentity: event.actor_id
+        ? (actors.value[event.actor_id]?.email ?? event.actor_id)
+        : null,
+      // Gated column (#3989): computed unconditionally (cheap), rendering is
+      // what's gated by showCountry — see the th/td v-if in the template.
+      countryLabel: event.net_country ?? t('web.organizations.audit.country_unknown'),
+    }))
+  );
 
-// "Showing X–Y of Z" — 1-based, from the server-echoed clamped offset.
-const rangeFrom = computed(() => (count.value === 0 ? 0 : offset.value + 1));
-const rangeTo = computed(() => offset.value + count.value);
+  // "Showing X–Y of Z" — 1-based, from the server-echoed clamped offset.
+  const rangeFrom = computed(() => (count.value === 0 ? 0 : offset.value + 1));
+  const rangeTo = computed(() => offset.value + count.value);
 
-/**
- * Skeleton only for the very first fetch of a context (mount or org switch),
- * when there is nothing meaningful on screen yet. Pagination and retry keep
- * their current state mounted while the request is in flight: unmounting the
- * subtree would drop keyboard focus from the Prev/Next/Retry button that
- * triggered the fetch and destroy the role="log" live region, defeating its
- * announcements (#3637 a11y review).
- */
-const showSkeleton = computed(
-  () =>
-    isLoading.value && records.value.length === 0 && !error.value && !validationError.value
-);
+  /**
+   * Skeleton only for the very first fetch of a context (mount or org switch),
+   * when there is nothing meaningful on screen yet. Pagination and retry keep
+   * their current state mounted while the request is in flight: unmounting the
+   * subtree would drop keyboard focus from the Prev/Next/Retry button that
+   * triggered the fetch and destroy the role="log" live region, defeating its
+   * announcements (#3637 a11y review).
+   */
+  const showSkeleton = computed(
+    () => isLoading.value && records.value.length === 0 && !error.value && !validationError.value
+  );
 
-onMounted(() => fetchPage(0));
+  onMounted(() => fetchPage(0));
 
-// Tab switch / navigation unmounts the component mid-fetch; drop the request
-// so its response can't resolve into a dead component tree.
-onUnmounted(abort);
+  // Tab switch / navigation unmounts the component mid-fetch; drop the request
+  // so its response can't resolve into a dead component tree.
+  onUnmounted(abort);
 
-// Org switch via URL navigation reuses the component — restart at page 1.
-// Clearing records first routes the fresh context through the skeleton
-// instead of showing the previous org's rows while the new page loads.
-// Errors and actors reset too: a latched error/mismatch from the previous
-// org would otherwise suppress the skeleton (its gate requires both clear)
-// and render the old org's failure banner over the new org's first fetch.
-// Paging state likewise: if the new org's first fetch fails, Retry replays
-// offset.value — a stale offset would land mid-trail in the new org.
-watch(orgExtid, () => {
-  records.value = [];
-  actors.value = {};
-  error.value = null;
-  validationError.value = false;
-  offset.value = 0;
-  total.value = 0;
-  fetchPage(0);
-});
+  // Org switch via URL navigation reuses the component — restart at page 1.
+  // Clearing records first routes the fresh context through the skeleton
+  // instead of showing the previous org's rows while the new page loads.
+  // Errors and actors reset too: a latched error/mismatch from the previous
+  // org would otherwise suppress the skeleton (its gate requires both clear)
+  // and render the old org's failure banner over the new org's first fetch.
+  // Paging state likewise: if the new org's first fetch fails, Retry replays
+  // offset.value — a stale offset would land mid-trail in the new org.
+  watch(orgExtid, () => {
+    records.value = [];
+    actors.value = {};
+    error.value = null;
+    validationError.value = false;
+    offset.value = 0;
+    total.value = 0;
+    fetchPage(0);
+  });
 </script>
 
 <template>
@@ -314,35 +319,45 @@ watch(orgExtid, () => {
             <tr>
               <th
                 scope="col"
-                class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
                 {{ t('web.organizations.audit.columns.event') }}
               </th>
               <th
                 scope="col"
-                class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
                 {{ t('web.organizations.audit.columns.secret') }}
               </th>
               <th
                 scope="col"
-                class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
                 {{ t('web.organizations.audit.columns.actor') }}
               </th>
               <th
                 v-if="showCountry"
                 scope="col"
-                class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
                 {{ t('web.organizations.audit.columns.country') }}
               </th>
               <th
                 scope="col"
-                class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
                 {{ t('web.organizations.audit.columns.when') }}
               </th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800/50">
             <tr
-              v-for="{ event, key, label, icon, absolute, relative, actorLabel: rowActor, actorIdentity, countryLabel } in decoratedEvents"
+              v-for="{
+                event,
+                key,
+                label,
+                icon,
+                absolute,
+                relative,
+                actorLabel: rowActor,
+                actorIdentity,
+                countryLabel,
+              } in decoratedEvents"
               :key="key"
               data-testid="org-audit-row">
               <td class="px-6 py-4 whitespace-nowrap">
@@ -367,7 +382,7 @@ watch(orgExtid, () => {
                   {{ event.receipt }}
                 </div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+              <td class="px-6 py-4 text-sm whitespace-nowrap text-gray-700 dark:text-gray-300">
                 <template v-if="rowActor">
                   {{ rowActor }}
                   <!-- title carries the full value: full objids overflow the
@@ -379,11 +394,15 @@ watch(orgExtid, () => {
                     {{ actorIdentity }}
                   </span>
                 </template>
-                <span v-else class="text-gray-400 dark:text-gray-500">—</span>
+                <span
+                  v-else
+                  class="text-gray-400 dark:text-gray-500"
+                  >—</span
+                >
               </td>
               <td
                 v-if="showCountry"
-                class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                class="px-6 py-4 text-sm whitespace-nowrap text-gray-700 dark:text-gray-300">
                 {{ countryLabel }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap">

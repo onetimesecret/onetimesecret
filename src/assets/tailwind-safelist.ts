@@ -13,17 +13,25 @@
 // SplitButton corner classes - dynamically generated via string concatenation
 // in processCornerClass() method, so Tailwind can't detect them automatically
 export const SPLIT_BUTTON_CORNERS = [
-  'rounded-l-sm', 'rounded-r-sm',
-  'rounded-l-md', 'rounded-r-md',
-  'rounded-l-lg', 'rounded-r-lg',
-  'rounded-l-xl', 'rounded-r-xl',
-  'rounded-l-2xl', 'rounded-r-2xl',
-  'rounded-l-3xl', 'rounded-r-3xl',
-  'rounded-l-full', 'rounded-r-full',
+  'rounded-l-sm',
+  'rounded-r-sm',
+  'rounded-l-md',
+  'rounded-r-md',
+  'rounded-l-lg',
+  'rounded-r-lg',
+  'rounded-l-xl',
+  'rounded-r-xl',
+  'rounded-l-2xl',
+  'rounded-r-2xl',
+  'rounded-l-3xl',
+  'rounded-r-3xl',
+  'rounded-l-full',
+  'rounded-r-full',
   // Brand radius token (#3646): cornerClass resolves to `rounded-brand` when a
   // domain sets border_radius, so processCornerClass() emits `rounded-l/r-brand`.
   // Without these the pill/brand radius silently drops on the split CTA button.
-  'rounded-l-brand', 'rounded-r-brand',
+  'rounded-l-brand',
+  'rounded-r-brand',
 ] as const;
 
 /**
@@ -46,15 +54,29 @@ export const SPLIT_BUTTON_CORNERS = [
  */
 export const BRAND_TOKEN_UTILITIES = [
   // Secondary color scale
-  'bg-brand2-50', 'bg-brand2-100', 'bg-brand2-500', 'bg-brand2-600', 'bg-brand2-700',
-  'text-brand2-500', 'text-brand2-600', 'text-brand2-700',
-  'border-brand2-500', 'ring-brand2-500',
+  'bg-brand2-50',
+  'bg-brand2-100',
+  'bg-brand2-500',
+  'bg-brand2-600',
+  'bg-brand2-700',
+  'text-brand2-500',
+  'text-brand2-600',
+  'text-brand2-700',
+  'border-brand2-500',
+  'ring-brand2-500',
   // Surface / ink single tokens
-  'bg-brandbg', 'text-brandbg', 'border-brandbg',
-  'bg-brandtext', 'text-brandtext', 'border-brandtext',
+  'bg-brandbg',
+  'text-brandbg',
+  'border-brandbg',
+  'bg-brandtext',
+  'text-brandtext',
+  'border-brandtext',
   // Brand radius
   'rounded-brand',
   // Curated font families
-  'font-brand-system', 'font-brand-slab', 'font-brand-rounded',
-  'font-brand-humanist', 'font-brand-geometric',
+  'font-brand-system',
+  'font-brand-slab',
+  'font-brand-rounded',
+  'font-brand-humanist',
+  'font-brand-geometric',
 ] as const;

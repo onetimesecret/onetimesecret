@@ -2,42 +2,58 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { storeToRefs } from 'pinia';
-import type { LayoutProps } from '@/types/ui/layouts';
+  import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { storeToRefs } from 'pinia';
+  import type { LayoutProps } from '@/types/ui/layouts';
 
-import BaseLayout from './BaseLayout.vue';
+  import BaseLayout from './BaseLayout.vue';
 
-const { t } = useI18n();
-const bootstrapStore = useBootstrapStore();
-const { site_host, brand_product_name } = storeToRefs(bootstrapStore);
-const props = withDefaults(defineProps<LayoutProps>(), {
-  bannerAudience: 'workspace',
-});
+  const { t } = useI18n();
+  const bootstrapStore = useBootstrapStore();
+  const { site_host, brand_product_name } = storeToRefs(bootstrapStore);
+  const props = withDefaults(defineProps<LayoutProps>(), {
+    bannerAudience: 'workspace',
+  });
 </script>
 
 <template>
   <BaseLayout v-bind="props">
     <template #header>
-      <router-view name="header" v-bind="props" />
+      <router-view
+        name="header"
+        v-bind="props" />
     </template>
     <template #main>
-      <main class="container mx-auto max-w-4xl" name="AccountLayout">
+      <main
+        class="container mx-auto max-w-4xl"
+        name="AccountLayout">
         <slot></slot>
       </main>
     </template>
     <template #footer>
-      <router-view name="footer" v-bind="props" />
+      <router-view
+        name="footer"
+        v-bind="props" />
 
       <!-- Powered By Link -->
-      <div v-if="displayPoweredBy" class="mb-4 mt-8 text-center">
+      <div
+        v-if="displayPoweredBy"
+        class="mt-8 mb-4 text-center">
         <a
           :href="`https://${site_host}`"
-          class="text-[0.7rem] text-gray-300 transition-colors duration-200 hover:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:text-gray-600 dark:hover:text-gray-500"
+          class="text-[0.7rem] text-gray-300 transition-colors duration-200 hover:text-gray-400 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none dark:text-gray-600 dark:hover:text-gray-500"
           rel="noopener noreferrer"
-          :aria-label="t('web.homepage.visit_onetime_secret_home', { product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name })">
-          {{ t('web.branding.powered_by_onetime_secret', { product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name }) }}
+          :aria-label="
+            t('web.homepage.visit_onetime_secret_home', {
+              product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name,
+            })
+          ">
+          {{
+            t('web.branding.powered_by_onetime_secret', {
+              product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name,
+            })
+          }}
         </a>
       </div>
     </template>

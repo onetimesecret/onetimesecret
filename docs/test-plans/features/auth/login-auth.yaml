@@ -39,10 +39,10 @@ tests:
     verify:
       - User is redirected to home page after successful login
       - url:
-          pattern: "^/$"
+          pattern: '^/$'
           description: Redirected to home page
       - No error message is displayed
-      - selector: "#signin-error"
+      - selector: '#signin-error'
         assertion: hidden
       - User menu or authenticated UI elements are visible
       - selector: "[data-testid='header-dashboard-link']"
@@ -75,10 +75,10 @@ tests:
         assertion: visible
       - Form remains on login page (no redirect)
       - url:
-          pattern: "^/signin"
+          pattern: '^/signin'
           description: URL still on signin page
       - Password field is available for re-entry
-      - selector: "input#password"
+      - selector: 'input#password'
         assertion: visible
         state: enabled
       - api:
@@ -107,17 +107,17 @@ tests:
     verify:
       - User is redirected to /mfa-verify
       - url:
-          pattern: "^/mfa-verify"
+          pattern: '^/mfa-verify'
           description: Redirected to MFA verification page
       - MFA verification form is displayed
-      - selector: "#mfa-verify-heading"
+      - selector: '#mfa-verify-heading'
         assertion: visible
         description: MFA verification heading present
-      - selector: "#otp-instructions"
+      - selector: '#otp-instructions'
         assertion: visible
         description: OTP input instructions displayed
       - No error message shown (credentials were valid)
-      - selector: "#otp-error"
+      - selector: '#otp-error'
         assertion: hidden
       - User is not fully authenticated yet
       - api:
@@ -150,7 +150,7 @@ tests:
     verify:
       - User is redirected to billing plans page after successful login
       - url:
-          pattern: "^/billing/[^/]+/plans"
+          pattern: '^/billing/[^/]+/plans'
           description: Redirected to billing plans page with org extid
       - URL contains billing path with plan parameters preserved
       - url:
@@ -187,7 +187,7 @@ tests:
           assert:
             authenticated: true
       - Remember me checkbox was checked before submit
-      - selector: "input#remember-me"
+      - selector: 'input#remember-me'
         assertion: checked
       - Session cookie has extended expiration (not session-only)
       - cookie:
@@ -225,14 +225,14 @@ tests:
       - Appropriate message about email verification is displayed
       - selector: "[role='alert']"
         assertion: visible
-        text_contains: ["verify", "verification", "confirm"]
+        text_contains: ['verify', 'verification', 'confirm']
         description: Alert message contains verification-related text
       - User is either blocked from login or shown verification prompt
       - branching:
           - condition: blocked
             verify:
               - url:
-                  pattern: "^/signin"
+                  pattern: '^/signin'
                   description: Remains on signin page
               - api:
                   endpoint: GET /bootstrap/me

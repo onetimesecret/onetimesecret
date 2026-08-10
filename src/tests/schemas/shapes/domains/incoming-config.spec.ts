@@ -53,20 +53,16 @@ describe('putIncomingConfigPayloadSchema', () => {
 
   describe('invalid payloads', () => {
     it('rejects missing enabled', () => {
-      expect(() =>
-        putIncomingConfigPayloadSchema.parse({ recipients: [] }),
-      ).toThrow();
+      expect(() => putIncomingConfigPayloadSchema.parse({ recipients: [] })).toThrow();
     });
 
     it('rejects missing recipients', () => {
-      expect(() =>
-        putIncomingConfigPayloadSchema.parse({ enabled: true }),
-      ).toThrow();
+      expect(() => putIncomingConfigPayloadSchema.parse({ enabled: true })).toThrow();
     });
 
     it('rejects enabled as string', () => {
       expect(() =>
-        putIncomingConfigPayloadSchema.parse({ enabled: 'true', recipients: [] }),
+        putIncomingConfigPayloadSchema.parse({ enabled: 'true', recipients: [] })
       ).toThrow();
     });
 
@@ -75,7 +71,7 @@ describe('putIncomingConfigPayloadSchema', () => {
         putIncomingConfigPayloadSchema.parse({
           enabled: true,
           recipients: [{ email: 'not-an-email', name: 'X' }],
-        }),
+        })
       ).toThrow();
     });
 
@@ -84,7 +80,7 @@ describe('putIncomingConfigPayloadSchema', () => {
         putIncomingConfigPayloadSchema.parse({
           enabled: true,
           recipients: [{ name: 'Nameless' }],
-        }),
+        })
       ).toThrow();
     });
 
@@ -93,15 +89,14 @@ describe('putIncomingConfigPayloadSchema', () => {
         putIncomingConfigPayloadSchema.parse({
           enabled: true,
           recipients: [{ email: 'a@example.com' }],
-        }),
+        })
       ).toThrow();
     });
   });
 
   describe('type inference', () => {
     it('infers PutIncomingConfigPayload with enabled + recipients', () => {
-      const payload: PutIncomingConfigPayload =
-        putIncomingConfigPayloadSchema.parse(validPayload);
+      const payload: PutIncomingConfigPayload = putIncomingConfigPayloadSchema.parse(validPayload);
       const _enabled: boolean = payload.enabled;
       const _recipients: Array<{ email: string; name: string }> = payload.recipients;
       expect(_enabled).toBe(true);
@@ -125,21 +120,15 @@ describe('domainIncomingRecipientSchema', () => {
   });
 
   it('rejects a malformed email', () => {
-    expect(() =>
-      domainIncomingRecipientSchema.parse({ email: 'nope', name: 'Alice' }),
-    ).toThrow();
+    expect(() => domainIncomingRecipientSchema.parse({ email: 'nope', name: 'Alice' })).toThrow();
   });
 
   it('rejects missing email', () => {
-    expect(() =>
-      domainIncomingRecipientSchema.parse({ name: 'Alice' }),
-    ).toThrow();
+    expect(() => domainIncomingRecipientSchema.parse({ name: 'Alice' })).toThrow();
   });
 
   it('rejects missing name', () => {
-    expect(() =>
-      domainIncomingRecipientSchema.parse({ email: 'alice@example.com' }),
-    ).toThrow();
+    expect(() => domainIncomingRecipientSchema.parse({ email: 'alice@example.com' })).toThrow();
   });
 });
 
@@ -228,7 +217,7 @@ describe('customDomainIncomingConfigSchema', () => {
 
     it('rejects non-positive max_recipients', () => {
       expect(() =>
-        customDomainIncomingConfigSchema.parse({ ...validConfig, max_recipients: 0 }),
+        customDomainIncomingConfigSchema.parse({ ...validConfig, max_recipients: 0 })
       ).toThrow();
     });
 

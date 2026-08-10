@@ -48,12 +48,7 @@ export default defineConfig({
       reportsDirectory: 'coverage',
       all: true, // include untested source files so they report as 0% covered
       include: ['src/**'],
-      exclude: [
-        'src/tests/**',
-        'src/**/*.spec.ts',
-        'src/**/*.spec.vue',
-        'src/**/*.d.ts',
-      ],
+      exclude: ['src/tests/**', 'src/**/*.spec.ts', 'src/**/*.spec.vue', 'src/**/*.d.ts'],
     },
     setupFiles: [
       'src/tests/setup-env.ts',

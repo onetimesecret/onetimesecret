@@ -46,9 +46,7 @@ function spyOnInjectedScript() {
 describe('useDnsWidget CSP nonce (S5)', () => {
   afterEach(() => {
     delete window.apxDns;
-    document.querySelectorAll('meta[name="csp-nonce"], script[nonce]').forEach((el) =>
-      el.remove()
-    );
+    document.querySelectorAll('meta[name="csp-nonce"], script[nonce]').forEach((el) => el.remove());
     vi.restoreAllMocks();
   });
 
@@ -82,14 +80,12 @@ describe('useDnsWidget CSP nonce (S5)', () => {
 
   describe('script injection', () => {
     beforeEach(() => {
-      getGlobalAxiosMock()
-        .onGet('/api/domains/dns-widget/token')
-        .reply(200, {
-          success: true,
-          token: 'tok',
-          api_url: 'https://apx.example',
-          expires_in: 300,
-        });
+      getGlobalAxiosMock().onGet('/api/domains/dns-widget/token').reply(200, {
+        success: true,
+        token: 'tok',
+        api_url: 'https://apx.example',
+        expires_in: 300,
+      });
     });
 
     it('stamps the injected widget script with the resolved nonce', async () => {

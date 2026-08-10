@@ -52,9 +52,7 @@ export function sanitizeDisplayEmail(value: unknown): string {
  * Used by the dev-time navigation guard to warn when PII is about to ride in a
  * URL. Array-valued query params (e.g. `?email[]=a&email[]=b`) count as present.
  */
-export function findPiiQueryKeys(
-  query: Record<string, unknown> | null | undefined
-): PiiQueryKey[] {
+export function findPiiQueryKeys(query: Record<string, unknown> | null | undefined): PiiQueryKey[] {
   if (!query) return [];
   return PII_QUERY_KEYS.filter((key) => {
     const value = query[key];

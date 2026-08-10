@@ -30,18 +30,12 @@ import {
 /**
  * Asserts that two dates are equal by timestamp.
  */
-function expectDatesEqual(
-  actual: Date | null,
-  expected: Date | null,
-  fieldName: string
-) {
+function expectDatesEqual(actual: Date | null, expected: Date | null, fieldName: string) {
   if (expected === null) {
     expect(actual, `${fieldName} should be null`).toBeNull();
   } else {
     expect(actual, `${fieldName} should be a Date`).toBeInstanceOf(Date);
-    expect(actual!.getTime(), `${fieldName} timestamp mismatch`).toBe(
-      expected.getTime()
-    );
+    expect(actual!.getTime(), `${fieldName} timestamp mismatch`).toBe(expected.getTime());
   }
 }
 

@@ -1,245 +1,271 @@
 <!-- src/apps/session/components/PasswordlessFirstSignIn.vue -->
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue';
-import LockoutAlert from '@/apps/session/components/LockoutAlert.vue';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { useAuth } from '@/shared/composables/useAuth';
-import { useMagicLink } from '@/shared/composables/useMagicLink';
-import { useWebAuthn } from '@/shared/composables/useWebAuthn';
-import { ref, computed } from 'vue';
-import { useRoute } from 'vue-router';
+  import { useI18n } from 'vue-i18n';
+  import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue';
+  import LockoutAlert from '@/apps/session/components/LockoutAlert.vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { useAuth } from '@/shared/composables/useAuth';
+  import { useMagicLink } from '@/shared/composables/useMagicLink';
+  import { useWebAuthn } from '@/shared/composables/useWebAuthn';
+  import { ref, computed } from 'vue';
+  import { useRoute } from 'vue-router';
 
-const { t } = useI18n();
-const route = useRoute();
+  const { t } = useI18n();
+  const route = useRoute();
 
-export interface Props {
-  locale?: string;
-  magicLinksEnabled?: boolean;
-  webauthnEnabled?: boolean;
-  /**
-   * Preselect a specific auth tab on first render. This is a contextual default
-   * (e.g. land on "password" right after email verification), NOT a user choice,
-   * so it takes precedence over the remembered preference but is never persisted.
-   */
-  initialMode?: 'passkey' | 'passwordless' | 'password';
-}
+  export interface Props {
+    locale?: string;
+    magicLinksEnabled?: boolean;
+    webauthnEnabled?: boolean;
+    /**
+     * Preselect a specific auth tab on first render. This is a contextual default
+     * (e.g. land on "password" right after email verification), NOT a user choice,
+     * so it takes precedence over the remembered preference but is never persisted.
+     */
+    initialMode?: 'passkey' | 'passwordless' | 'password';
+  }
 
-const props = withDefaults(defineProps<Props>(), {
-  locale: 'en',
-  magicLinksEnabled: true,
-  webauthnEnabled: false,
-  initialMode: undefined,
-});
+  const props = withDefaults(defineProps<Props>(), {
+    locale: 'en',
+    magicLinksEnabled: true,
+    webauthnEnabled: false,
+    initialMode: undefined,
+  });
 
-const VALID_AUTH_MODES = ['passkey', 'passwordless', 'password'] as const;
-type AuthMode = (typeof VALID_AUTH_MODES)[number];
+  const VALID_AUTH_MODES = ['passkey', 'passwordless', 'password'] as const;
+  type AuthMode = (typeof VALID_AUTH_MODES)[number];
 
-const emit = defineEmits<{
-  (e: 'mode-change', mode: AuthMode): void;
-}>();
+  const emit = defineEmits<{
+    (e: 'mode-change', mode: AuthMode): void;
+  }>();
 
-const SIGNIN_MODE_KEY = 'onetimeSigninMode';
-const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-const SIGNIN_MODE_TTL_MS = 30 * ONE_DAY_MS;
+  const SIGNIN_MODE_KEY = 'onetimeSigninMode';
+  const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+  const SIGNIN_MODE_TTL_MS = 30 * ONE_DAY_MS;
 
-function isAuthMode(value: unknown): value is AuthMode {
-  return typeof value === 'string' && (VALID_AUTH_MODES as readonly string[]).includes(value);
-}
+  function isAuthMode(value: unknown): value is AuthMode {
+    return typeof value === 'string' && (VALID_AUTH_MODES as readonly string[]).includes(value);
+  }
 
-function loadSigninModePreference(): { mode: AuthMode; expiresAt: number } | null {
-  try {
-    const stored = localStorage.getItem(SIGNIN_MODE_KEY);
-    if (!stored) return null;
-    const parsed = JSON.parse(stored);
-    if (
-      parsed &&
-      typeof parsed === 'object' &&
-      isAuthMode(parsed.mode) &&
-      typeof parsed.expiresAt === 'number' &&
-      Date.now() < parsed.expiresAt
-    ) {
-      return { mode: parsed.mode, expiresAt: parsed.expiresAt };
+  function loadSigninModePreference(): { mode: AuthMode; expiresAt: number } | null {
+    try {
+      const stored = localStorage.getItem(SIGNIN_MODE_KEY);
+      if (!stored) return null;
+      const parsed = JSON.parse(stored);
+      if (
+        parsed &&
+        typeof parsed === 'object' &&
+        isAuthMode(parsed.mode) &&
+        typeof parsed.expiresAt === 'number' &&
+        Date.now() < parsed.expiresAt
+      ) {
+        return { mode: parsed.mode, expiresAt: parsed.expiresAt };
+      }
+      localStorage.removeItem(SIGNIN_MODE_KEY);
+    } catch {
+      try {
+        localStorage.removeItem(SIGNIN_MODE_KEY);
+      } catch {
+        /* localStorage unavailable */
+      }
     }
-    localStorage.removeItem(SIGNIN_MODE_KEY);
-  } catch {
-    try { localStorage.removeItem(SIGNIN_MODE_KEY); } catch { /* localStorage unavailable */ }
-  }
-  return null;
-}
-
-function saveSigninModePreference(mode: AuthMode) {
-  try {
-    localStorage.setItem(SIGNIN_MODE_KEY, JSON.stringify({
-      mode,
-      expiresAt: Date.now() + SIGNIN_MODE_TTL_MS,
-    }));
-  } catch {
-    // localStorage unavailable
-  }
-}
-
-// Build dynamic tabs based on enabled features
-interface TabConfig {
-  id: AuthMode;
-  labelKey: string;
-}
-
-const tabs = computed<TabConfig[]>(() => {
-  const result: TabConfig[] = [];
-
-  // Passkey tab (first if enabled)
-  if (props.webauthnEnabled) {
-    result.push({ id: 'passkey', labelKey: 'web.login.tab_passkey' });
+    return null;
   }
 
-  // Magic Link tab
-  if (props.magicLinksEnabled) {
-    result.push({ id: 'passwordless', labelKey: 'web.login.tab_magic_link' });
+  function saveSigninModePreference(mode: AuthMode) {
+    try {
+      localStorage.setItem(
+        SIGNIN_MODE_KEY,
+        JSON.stringify({
+          mode,
+          expiresAt: Date.now() + SIGNIN_MODE_TTL_MS,
+        })
+      );
+    } catch {
+      // localStorage unavailable
+    }
   }
 
-  // Password tab (always present)
-  result.push({ id: 'password', labelKey: 'web.login.tab_password' });
-
-  return result;
-});
-
-// Tab index management. Precedence for the initial tab:
-//   1. an explicit `initialMode` (contextual default, e.g. post-verification),
-//   2. the remembered preference (localStorage), if the mode is still available,
-//   3. the first available tab.
-const savedPref = loadSigninModePreference();
-const savedIndex = savedPref ? tabs.value.findIndex(tab => tab.id === savedPref.mode) : -1;
-const initialModeIndex = props.initialMode
-  ? tabs.value.findIndex(tab => tab.id === props.initialMode)
-  : -1;
-let startIndex = 0;
-if (initialModeIndex >= 0) {
-  startIndex = initialModeIndex;
-} else if (savedIndex >= 0) {
-  startIndex = savedIndex;
-}
-const selectedTabIndex = ref(startIndex);
-
-// Housekeeping for the remembered preference, independent of any override:
-// refresh a still-valid pref's TTL, or clear a stale/unavailable one.
-if (savedIndex >= 0 && savedPref) {
-  const refreshThreshold = SIGNIN_MODE_TTL_MS - ONE_DAY_MS;
-  if (savedPref.expiresAt - Date.now() < refreshThreshold) {
-    saveSigninModePreference(savedPref.mode);
+  // Build dynamic tabs based on enabled features
+  interface TabConfig {
+    id: AuthMode;
+    labelKey: string;
   }
-} else if (savedPref) {
-  try { localStorage.removeItem(SIGNIN_MODE_KEY); } catch { /* localStorage unavailable */ }
-}
 
-// Reflect the initially selected (non-default) mode to the parent footer.
-const startMode = tabs.value[selectedTabIndex.value]?.id;
-if (selectedTabIndex.value > 0 && startMode) {
-  emit('mode-change', startMode);
-}
+  const tabs = computed<TabConfig[]>(() => {
+    const result: TabConfig[] = [];
 
-// Prefill email from query param (e.g., from invitation flow)
-// Single email ref shared across all auth tabs for consistent UX
-const emailFromQuery = typeof route.query.email === 'string' ? route.query.email : '';
-const email = ref(emailFromQuery);
+    // Passkey tab (first if enabled)
+    if (props.webauthnEnabled) {
+      result.push({ id: 'passkey', labelKey: 'web.login.tab_passkey' });
+    }
 
-// Current mode derived from tab index
-const currentMode = computed<AuthMode>(() => tabs.value[selectedTabIndex.value]?.id ?? 'password');
+    // Magic Link tab
+    if (props.magicLinksEnabled) {
+      result.push({ id: 'passwordless', labelKey: 'web.login.tab_magic_link' });
+    }
 
-// Password mode state
-const password = ref('');
-const rememberMe = ref(false);
-const showPassword = ref(false);
+    // Password tab (always present)
+    result.push({ id: 'password', labelKey: 'web.login.tab_password' });
 
-// Auth composables
-const { login, isLoading: isPasswordLoading, error: passwordError, lockoutStatus, clearErrors } = useAuth();
-const { requestMagicLink, sent: magicLinkSent, isLoading: isMagicLinkLoading, error: magicLinkError, clearState: clearMagicLinkState } = useMagicLink();
-const {
-  supported: webauthnSupported,
-  isLoading: isWebAuthnLoading,
-  error: webauthnError,
-  authenticateWebAuthn,
-  clearError: clearWebAuthnError
-} = useWebAuthn();
+    return result;
+  });
 
-// Combined loading state
-const isLoading = computed(() =>
-  isPasswordLoading.value || isMagicLinkLoading.value || isWebAuthnLoading.value
-);
-
-// Current error based on mode
-const currentError = computed(() => {
-  switch (currentMode.value) {
-    case 'passkey':
-      return webauthnError.value;
-    case 'password':
-      return passwordError.value;
-    default:
-      return magicLinkError.value;
+  // Tab index management. Precedence for the initial tab:
+  //   1. an explicit `initialMode` (contextual default, e.g. post-verification),
+  //   2. the remembered preference (localStorage), if the mode is still available,
+  //   3. the first available tab.
+  const savedPref = loadSigninModePreference();
+  const savedIndex = savedPref ? tabs.value.findIndex((tab) => tab.id === savedPref.mode) : -1;
+  const initialModeIndex = props.initialMode
+    ? tabs.value.findIndex((tab) => tab.id === props.initialMode)
+    : -1;
+  let startIndex = 0;
+  if (initialModeIndex >= 0) {
+    startIndex = initialModeIndex;
+  } else if (savedIndex >= 0) {
+    startIndex = savedIndex;
   }
-});
+  const selectedTabIndex = ref(startIndex);
 
-const togglePasswordVisibility = () => {
-  showPassword.value = !showPassword.value;
-};
+  // Housekeeping for the remembered preference, independent of any override:
+  // refresh a still-valid pref's TTL, or clear a stale/unavailable one.
+  if (savedIndex >= 0 && savedPref) {
+    const refreshThreshold = SIGNIN_MODE_TTL_MS - ONE_DAY_MS;
+    if (savedPref.expiresAt - Date.now() < refreshThreshold) {
+      saveSigninModePreference(savedPref.mode);
+    }
+  } else if (savedPref) {
+    try {
+      localStorage.removeItem(SIGNIN_MODE_KEY);
+    } catch {
+      /* localStorage unavailable */
+    }
+  }
 
-// Handle tab change from HeadlessUI
-const handleTabChange = (index: number) => {
-  selectedTabIndex.value = index;
-  const mode = tabs.value[index]?.id ?? 'password';
-  saveSigninModePreference(mode);
+  // Reflect the initially selected (non-default) mode to the parent footer.
+  const startMode = tabs.value[selectedTabIndex.value]?.id;
+  if (selectedTabIndex.value > 0 && startMode) {
+    emit('mode-change', startMode);
+  }
 
-  // Clear errors when switching tabs
-  if (mode === 'passkey') {
+  // Prefill email from query param (e.g., from invitation flow)
+  // Single email ref shared across all auth tabs for consistent UX
+  const emailFromQuery = typeof route.query.email === 'string' ? route.query.email : '';
+  const email = ref(emailFromQuery);
+
+  // Current mode derived from tab index
+  const currentMode = computed<AuthMode>(
+    () => tabs.value[selectedTabIndex.value]?.id ?? 'password'
+  );
+
+  // Password mode state
+  const password = ref('');
+  const rememberMe = ref(false);
+  const showPassword = ref(false);
+
+  // Auth composables
+  const {
+    login,
+    isLoading: isPasswordLoading,
+    error: passwordError,
+    lockoutStatus,
+    clearErrors,
+  } = useAuth();
+  const {
+    requestMagicLink,
+    sent: magicLinkSent,
+    isLoading: isMagicLinkLoading,
+    error: magicLinkError,
+    clearState: clearMagicLinkState,
+  } = useMagicLink();
+  const {
+    supported: webauthnSupported,
+    isLoading: isWebAuthnLoading,
+    error: webauthnError,
+    authenticateWebAuthn,
+    clearError: clearWebAuthnError,
+  } = useWebAuthn();
+
+  // Combined loading state
+  const isLoading = computed(
+    () => isPasswordLoading.value || isMagicLinkLoading.value || isWebAuthnLoading.value
+  );
+
+  // Current error based on mode
+  const currentError = computed(() => {
+    switch (currentMode.value) {
+      case 'passkey':
+        return webauthnError.value;
+      case 'password':
+        return passwordError.value;
+      default:
+        return magicLinkError.value;
+    }
+  });
+
+  const togglePasswordVisibility = () => {
+    showPassword.value = !showPassword.value;
+  };
+
+  // Handle tab change from HeadlessUI
+  const handleTabChange = (index: number) => {
+    selectedTabIndex.value = index;
+    const mode = tabs.value[index]?.id ?? 'password';
+    saveSigninModePreference(mode);
+
+    // Clear errors when switching tabs
+    if (mode === 'passkey') {
+      clearErrors();
+      clearMagicLinkState();
+      password.value = '';
+    } else if (mode === 'passwordless') {
+      clearErrors();
+      clearWebAuthnError();
+      password.value = '';
+    } else {
+      clearMagicLinkState();
+      clearWebAuthnError();
+    }
+
+    emit('mode-change', mode);
+  };
+
+  const handlePasswordSubmit = async () => {
     clearErrors();
+    await login(email.value, password.value, rememberMe.value);
+  };
+
+  const handleMagicLinkSubmit = async () => {
+    await requestMagicLink(email.value);
+  };
+
+  const handleWebAuthnSubmit = async () => {
+    await authenticateWebAuthn(email.value || undefined);
+  };
+
+  const handleTryAgain = () => {
     clearMagicLinkState();
-    password.value = '';
-  } else if (mode === 'passwordless') {
-    clearErrors();
-    clearWebAuthnError();
-    password.value = '';
-  } else {
-    clearMagicLinkState();
-    clearWebAuthnError();
-  }
+    email.value = '';
+  };
 
-  emit('mode-change', mode);
-};
+  // Check if a specific tab is the passkey tab
+  const isPasskeyTab = (index: number): boolean => tabs.value[index]?.id === 'passkey';
 
-const handlePasswordSubmit = async () => {
-  clearErrors();
-  await login(email.value, password.value, rememberMe.value);
-};
+  // Check if a specific tab is the magic link tab
+  const isMagicLinkTab = (index: number): boolean => tabs.value[index]?.id === 'passwordless';
 
-const handleMagicLinkSubmit = async () => {
-  await requestMagicLink(email.value);
-};
-
-const handleWebAuthnSubmit = async () => {
-  await authenticateWebAuthn(email.value || undefined);
-};
-
-const handleTryAgain = () => {
-  clearMagicLinkState();
-  email.value = '';
-};
-
-// Check if a specific tab is the passkey tab
-const isPasskeyTab = (index: number): boolean => tabs.value[index]?.id === 'passkey';
-
-// Check if a specific tab is the magic link tab
-const isMagicLinkTab = (index: number): boolean => tabs.value[index]?.id === 'passwordless';
-
-// Check if a specific tab is the password tab
-const isPasswordTab = (index: number): boolean => tabs.value[index]?.id === 'password';
+  // Check if a specific tab is the password tab
+  const isPasswordTab = (index: number): boolean => tabs.value[index]?.id === 'password';
 </script>
 
 <template>
   <!-- Magic link sent success state -->
-  <div v-if="magicLinkSent"
-class="space-y-6"
-data-testid="magic-link-sent">
+  <div
+    v-if="magicLinkSent"
+    class="space-y-6"
+    data-testid="magic-link-sent">
     <div class="rounded-md bg-green-50 p-6 text-center dark:bg-green-900/20">
       <svg
         class="mx-auto size-12 text-green-600 dark:text-green-400"
@@ -289,13 +315,11 @@ data-testid="magic-link-sent">
         v-slot="{ selected }"
         as="template">
         <button
-          class="relative cursor-pointer px-5 py-3 text-base font-semibold transition-colors duration-200
-                 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2
-                 dark:focus-visible:ring-offset-gray-800"
+          class="relative cursor-pointer px-5 py-3 text-base font-semibold transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-800"
           :class="[
             selected
               ? 'text-brand-600 dark:text-brand-400'
-              : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+              : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300',
           ]"
           :data-testid="`tab-${tab.id}`">
           {{ t(tab.labelKey) }}
@@ -313,9 +337,10 @@ data-testid="magic-link-sent">
         v-for="(tab, index) in tabs"
         :key="tab.id">
         <!-- Passkey panel -->
-        <div v-if="isPasskeyTab(index)"
-class="space-y-6"
-data-testid="passkey-panel">
+        <div
+          v-if="isPasskeyTab(index)"
+          class="space-y-6"
+          data-testid="passkey-panel">
           <!-- Browser support warning -->
           <div
             v-if="!webauthnSupported"
@@ -399,14 +424,7 @@ data-testid="passkey-panel">
                 required
                 autocomplete="username webauthn"
                 :disabled="isLoading"
-                class="block w-full appearance-none rounded-md
-                       border border-gray-300 px-3 py-2 text-lg
-                       text-gray-900 placeholder:text-gray-500
-                       focus:border-brand-500 focus:outline-none focus:ring-brand-500
-                       disabled:cursor-not-allowed disabled:opacity-50
-                       dark:border-gray-600 dark:bg-gray-700 dark:text-white
-                       dark:placeholder:text-gray-400 dark:focus:border-brand-500
-                       dark:focus:ring-brand-500"
+                class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-lg text-gray-900 placeholder:text-gray-500 focus:border-brand-500 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:border-brand-500 dark:focus:ring-brand-500"
                 :placeholder="t('web.COMMON.email_placeholder')"
                 v-model="email"
                 data-testid="webauthn-email-input" />
@@ -417,16 +435,13 @@ data-testid="passkey-panel">
               <button
                 type="submit"
                 :disabled="isLoading"
-                class="group relative flex w-full justify-center rounded-md
-                       border border-transparent bg-brand-600 px-4 py-2
-                       text-lg font-medium text-white hover:bg-brand-700
-                       focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
-                       disabled:cursor-not-allowed disabled:opacity-50
-                       dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-offset-gray-800"
+                class="group relative flex w-full justify-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-lg font-medium text-white hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-offset-gray-800"
                 data-testid="webauthn-submit">
-                <span v-if="isLoading" class="flex items-center">
+                <span
+                  v-if="isLoading"
+                  class="flex items-center">
                   <svg
-                    class="-ml-1 mr-3 size-5 animate-spin motion-reduce:animate-none text-white"
+                    class="mr-3 -ml-1 size-5 animate-spin text-white motion-reduce:animate-none"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -488,14 +503,7 @@ data-testid="passkey-panel">
               autocomplete="email"
               required
               :disabled="isLoading"
-              class="block w-full appearance-none rounded-md
-                     border border-gray-300 px-3 py-2 text-lg
-                     text-gray-900 placeholder:text-gray-500
-                     focus:border-brand-500 focus:outline-none focus:ring-brand-500
-                     disabled:cursor-not-allowed disabled:opacity-50
-                     dark:border-gray-600 dark:bg-gray-700 dark:text-white
-                     dark:placeholder:text-gray-400 dark:focus:border-brand-500
-                     dark:focus:ring-brand-500"
+              class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-lg text-gray-900 placeholder:text-gray-500 focus:border-brand-500 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:border-brand-500 dark:focus:ring-brand-500"
               :placeholder="t('web.COMMON.email_placeholder')"
               v-model="email"
               data-testid="magic-link-email-input" />
@@ -506,16 +514,13 @@ data-testid="passkey-panel">
             <button
               type="submit"
               :disabled="isLoading"
-              class="group relative flex w-full justify-center rounded-md
-                     border border-transparent bg-brand-600 px-4 py-2
-                     text-lg font-medium text-white hover:bg-brand-700
-                     focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
-                     disabled:cursor-not-allowed disabled:opacity-50
-                     dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-offset-gray-800"
+              class="group relative flex w-full justify-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-lg font-medium text-white hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-offset-gray-800"
               data-testid="magic-link-submit">
-              <span v-if="isLoading" class="flex items-center">
+              <span
+                v-if="isLoading"
+                class="flex items-center">
                 <svg
-                  class="-ml-1 mr-3 size-5 animate-spin motion-reduce:animate-none text-white"
+                  class="mr-3 -ml-1 size-5 animate-spin text-white motion-reduce:animate-none"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -583,14 +588,7 @@ data-testid="passkey-panel">
                 :disabled="isLoading"
                 :aria-invalid="currentError && !lockoutStatus ? 'true' : undefined"
                 :aria-describedby="currentError && !lockoutStatus ? 'signin-error' : undefined"
-                class="block w-full appearance-none rounded-md
-                       border border-gray-300 px-3 py-2 text-lg
-                       text-gray-900 placeholder:text-gray-500
-                       focus:border-brand-500 focus:outline-none focus:ring-brand-500
-                       disabled:cursor-not-allowed disabled:opacity-50
-                       dark:border-gray-600 dark:bg-gray-700 dark:text-white
-                       dark:placeholder:text-gray-400 dark:focus:border-brand-500
-                       dark:focus:ring-brand-500"
+                class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-lg text-gray-900 placeholder:text-gray-500 focus:border-brand-500 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:border-brand-500 dark:focus:ring-brand-500"
                 :placeholder="t('web.COMMON.email_placeholder')"
                 v-model="email"
                 data-testid="password-email-input" />
@@ -613,14 +611,7 @@ data-testid="passkey-panel">
                   :disabled="isLoading"
                   :aria-invalid="currentError && !lockoutStatus ? 'true' : undefined"
                   :aria-describedby="currentError && !lockoutStatus ? 'signin-error' : undefined"
-                  class="block w-full appearance-none rounded-md
-                         border border-gray-300 px-3 py-2 pr-10 text-lg
-                         text-gray-900 placeholder:text-gray-500
-                         focus:border-brand-500 focus:outline-none focus:ring-brand-500
-                         disabled:cursor-not-allowed disabled:opacity-50
-                         dark:border-gray-600 dark:bg-gray-700 dark:text-white
-                         dark:placeholder:text-gray-400 dark:focus:border-brand-500
-                         dark:focus:ring-brand-500"
+                  class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 pr-10 text-lg text-gray-900 placeholder:text-gray-500 focus:border-brand-500 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:border-brand-500 dark:focus:ring-brand-500"
                   :placeholder="t('web.COMMON.password_placeholder')"
                   v-model="password"
                   data-testid="password-input" />
@@ -628,7 +619,9 @@ data-testid="passkey-panel">
                   type="button"
                   @click="togglePasswordVisibility"
                   :disabled="isLoading"
-                  :aria-label="showPassword ? t('web.COMMON.hide_password') : t('web.COMMON.show_password')"
+                  :aria-label="
+                    showPassword ? t('web.COMMON.hide_password') : t('web.COMMON.show_password')
+                  "
                   class="absolute inset-y-0 right-0 z-10 flex cursor-pointer items-center pr-3 text-sm leading-5 disabled:opacity-50"
                   data-testid="toggle-password-visibility">
                   <OIcon
@@ -650,10 +643,7 @@ data-testid="passkey-panel">
               type="checkbox"
               :disabled="isLoading"
               aria-describedby="remember-me-description"
-              class="size-4 rounded border-gray-300 text-brand-600
-                     focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50
-                     dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800
-                     dark:focus:ring-brand-500"
+              class="size-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-gray-800 dark:focus:ring-brand-500"
               v-model="rememberMe"
               data-testid="remember-me-checkbox" />
             <label
@@ -661,7 +651,9 @@ data-testid="passkey-panel">
               class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
               {{ t('web.login.remember_me') }}
             </label>
-            <span id="remember-me-description" class="sr-only">
+            <span
+              id="remember-me-description"
+              class="sr-only">
               {{ t('web.COMMON.remember_me_description') }}
             </span>
           </div>
@@ -671,12 +663,7 @@ data-testid="passkey-panel">
             <button
               type="submit"
               :disabled="isLoading"
-              class="group relative flex w-full justify-center rounded-md
-                     border border-transparent bg-brand-600 px-4 py-2
-                     text-lg font-medium text-white hover:bg-brand-700
-                     focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
-                     disabled:cursor-not-allowed disabled:opacity-50
-                     dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-offset-gray-800"
+              class="group relative flex w-full justify-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-lg font-medium text-white hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-offset-gray-800"
               data-testid="password-submit">
               <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
               <span v-else>{{ t('web.login.button_sign_in') }}</span>

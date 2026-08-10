@@ -5,7 +5,10 @@
  * Handles fetching and managing user account data
  */
 
-import { accountInfoResponseSchema, type AccountInfoResponse } from '@/schemas/api/auth/responses/auth';
+import {
+  accountInfoResponseSchema,
+  type AccountInfoResponse,
+} from '@/schemas/api/auth/responses/auth';
 import type { AccountInfo } from '@/types/auth';
 import { ref } from 'vue';
 

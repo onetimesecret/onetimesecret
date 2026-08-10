@@ -4,14 +4,14 @@
 
 The `layout.json` file contains 98 lines with keys organized under `web.*` namespace. The file currently contains **6 distinct categories** of keys:
 
-| Category | Path | Key Count | Purpose |
-|----------|------|-----------|---------|
-| footer | `web.footer.*` | 20 | Footer links and labels |
-| navigation | `web.navigation.*` | 3 | Navigation labels |
-| site | `web.site.*` | 1 | Site metadata |
-| meta | `web.meta.*` | 4 | Translation feedback notices |
-| help | `web.help.*` | 11 | FAQ content for secret viewing |
-| layout | `web.layout.*` | 38 | General layout/UI strings |
+| Category   | Path               | Key Count | Purpose                        |
+| ---------- | ------------------ | --------- | ------------------------------ |
+| footer     | `web.footer.*`     | 20        | Footer links and labels        |
+| navigation | `web.navigation.*` | 3         | Navigation labels              |
+| site       | `web.site.*`       | 1         | Site metadata                  |
+| meta       | `web.meta.*`       | 4         | Translation feedback notices   |
+| help       | `web.help.*`       | 11        | FAQ content for secret viewing |
+| layout     | `web.layout.*`     | 38        | General layout/UI strings      |
 
 ---
 
@@ -21,12 +21,12 @@ The `layout.json` file contains 98 lines with keys organized under `web.*` names
 
 These keys relate to the translation feature feedback, not core layout:
 
-| Current Path | Recommended Path |
-|--------------|------------------|
+| Current Path                                                | Recommended Path                                                |
+| ----------------------------------------------------------- | --------------------------------------------------------------- |
 | `web.meta.were-making-onetime-secret-available-in-multiple` | `web.translations.feedback.making-available-multiple-languages` |
-| `web.meta.translations-are-new-spotted-an-error` | `web.translations.feedback.spotted-an-error` |
-| `web.meta.we-recently-added-translations` | `web.translations.feedback.recently-added` |
-| `web.meta.privacy-and-security-should-be-accessible` | `web.translations.feedback.accessibility-notice` |
+| `web.meta.translations-are-new-spotted-an-error`            | `web.translations.feedback.spotted-an-error`                    |
+| `web.meta.we-recently-added-translations`                   | `web.translations.feedback.recently-added`                      |
+| `web.meta.privacy-and-security-should-be-accessible`        | `web.translations.feedback.accessibility-notice`                |
 
 **Rationale**: The `feature-translations.json` file already exists and contains translation-related content. These meta notices about translation quality belong there.
 
@@ -36,15 +36,15 @@ These keys relate to the translation feature feedback, not core layout:
 
 The entire `web.help.secret_view_faq` section should move to `feature-secrets.json`:
 
-| Current Path | Recommended Path |
-|--------------|------------------|
-| `web.help.learn_more` | `web.secrets.help.learn_more` |
-| `web.help.secret_view_faq.*` | `web.secrets.faq.*` |
-| `web.help.secret_view_faq.what_am_i_looking_at.*` | `web.secrets.faq.what_am_i_looking_at.*` |
-| `web.help.secret_view_faq.can_i_view_again.*` | `web.secrets.faq.can_i_view_again.*` |
-| `web.help.secret_view_faq.how_to_copy.*` | `web.secrets.faq.how_to_copy.*` |
+| Current Path                                       | Recommended Path                          |
+| -------------------------------------------------- | ----------------------------------------- |
+| `web.help.learn_more`                              | `web.secrets.help.learn_more`             |
+| `web.help.secret_view_faq.*`                       | `web.secrets.faq.*`                       |
+| `web.help.secret_view_faq.what_am_i_looking_at.*`  | `web.secrets.faq.what_am_i_looking_at.*`  |
+| `web.help.secret_view_faq.can_i_view_again.*`      | `web.secrets.faq.can_i_view_again.*`      |
+| `web.help.secret_view_faq.how_to_copy.*`           | `web.secrets.faq.how_to_copy.*`           |
 | `web.help.secret_view_faq.is_my_viewing_tracked.*` | `web.secrets.faq.is_my_viewing_tracked.*` |
-| `web.help.secret_view_faq.one_time_warning` | `web.secrets.faq.one_time_warning` |
+| `web.help.secret_view_faq.one_time_warning`        | `web.secrets.faq.one_time_warning`        |
 
 **Rationale**: This FAQ is specific to the secret viewing experience. The `feature-secrets.json` file already has sections like `web.secrets.*`, `web.private.*`, and `web.shared.*` for secret-related content.
 
@@ -54,14 +54,14 @@ The entire `web.help.secret_view_faq` section should move to `feature-secrets.js
 
 These keys are about icon attribution, not layout:
 
-| Current Path | Recommendation |
-|--------------|----------------|
-| `web.layout.icon-library` | Move to `_common.json` under `web.COMMON.icons.*` |
-| `web.layout.google-material` | Move to `_common.json` under `web.COMMON.icons.*` |
+| Current Path                       | Recommendation                                    |
+| ---------------------------------- | ------------------------------------------------- |
+| `web.layout.icon-library`          | Move to `_common.json` under `web.COMMON.icons.*` |
+| `web.layout.google-material`       | Move to `_common.json` under `web.COMMON.icons.*` |
 | `web.layout.material-design-icons` | Move to `_common.json` under `web.COMMON.icons.*` |
-| `web.layout.heroicons` | Move to `_common.json` under `web.COMMON.icons.*` |
-| `web.layout.carbon` | Move to `_common.json` under `web.COMMON.icons.*` |
-| `web.layout.font-awesome-6` | Move to `_common.json` under `web.COMMON.icons.*` |
+| `web.layout.heroicons`             | Move to `_common.json` under `web.COMMON.icons.*` |
+| `web.layout.carbon`                | Move to `_common.json` under `web.COMMON.icons.*` |
+| `web.layout.font-awesome-6`        | Move to `_common.json` under `web.COMMON.icons.*` |
 
 **Rationale**: Icon library names are reference data, not layout strings. They could go in `_common.json` as common reference data.
 
@@ -71,12 +71,12 @@ These keys are about icon attribution, not layout:
 
 These keys in `web.layout.*` duplicate concepts in `web.footer.*`:
 
-| Current Path | Already Exists At |
-|--------------|-------------------|
-| `web.layout.view-privacy-policy` | `web.footer.read-our-privacy-policy` |
+| Current Path                       | Already Exists At                          |
+| ---------------------------------- | ------------------------------------------ |
+| `web.layout.view-privacy-policy`   | `web.footer.read-our-privacy-policy`       |
 | `web.layout.view-terms-of-service` | `web.footer.view-our-terms-and-conditions` |
-| `web.layout.terms-of-service` | `web.footer.terms` |
-| `web.layout.privacy-policy` | `web.footer.privacy` |
+| `web.layout.terms-of-service`      | `web.footer.terms`                         |
+| `web.layout.privacy-policy`        | `web.footer.privacy`                       |
 
 **Recommendation**: Consolidate into footer section or create a `web.legal.*` namespace in a dedicated file.
 
@@ -193,15 +193,15 @@ Consolidate all legal/policy-related content:
 
 ## Summary of Recommended Actions
 
-| Priority | Action | Files Affected |
-|----------|--------|----------------|
-| High | Move `web.meta.*` translation notices to `feature-translations.json` | layout.json, feature-translations.json |
-| High | Move `web.help.secret_view_faq.*` to `feature-secrets.json` | layout.json, feature-secrets.json |
-| Medium | Restructure flat `web.layout.*` into subcategories | layout.json |
-| Medium | Merge `web.navigation.*` into `web.layout.navigation.*` | layout.json |
-| Medium | Merge `web.site.*` into `web.layout.*` | layout.json |
-| Low | Move icon library keys to `_common.json` | layout.json, _common.json |
-| Low | Consider `legal.json` for consolidated legal content | New file |
+| Priority | Action                                                               | Files Affected                         |
+| -------- | -------------------------------------------------------------------- | -------------------------------------- |
+| High     | Move `web.meta.*` translation notices to `feature-translations.json` | layout.json, feature-translations.json |
+| High     | Move `web.help.secret_view_faq.*` to `feature-secrets.json`          | layout.json, feature-secrets.json      |
+| Medium   | Restructure flat `web.layout.*` into subcategories                   | layout.json                            |
+| Medium   | Merge `web.navigation.*` into `web.layout.navigation.*`              | layout.json                            |
+| Medium   | Merge `web.site.*` into `web.layout.*`                               | layout.json                            |
+| Low      | Move icon library keys to `_common.json`                             | layout.json, \_common.json             |
+| Low      | Consider `legal.json` for consolidated legal content                 | New file                               |
 
 ---
 

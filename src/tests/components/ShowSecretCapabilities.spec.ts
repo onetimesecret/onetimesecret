@@ -26,8 +26,7 @@ const createMockRoute = (secretIdentifier: string): RouteLocationNormalized => (
  * Sets up the testing pinia with the specified show capability value.
  */
 const setupPinia = (showCapability: boolean | undefined) => {
-  const capabilities =
-    showCapability === undefined ? {} : { show: showCapability };
+  const capabilities = showCapability === undefined ? {} : { show: showCapability };
 
   return createTestingPinia({
     createSpy: vi.fn,

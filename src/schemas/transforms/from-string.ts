@@ -55,13 +55,11 @@ export const fromString = {
    * schema.parse({ created: "" });                     // throws ZodError
    * ```
    */
-  date: z
-    .string()
-    .transform((val): Date => {
-      const date = parseDateValue(val);
-      if (!date) throw new Error('Valid date is required');
-      return date;
-    }),
+  date: z.string().transform((val): Date => {
+    const date = parseDateValue(val);
+    if (!date) throw new Error('Valid date is required');
+    return date;
+  }),
 
   /**
    * Parses string numbers to number, allowing null.

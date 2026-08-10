@@ -90,9 +90,7 @@ function summaryPayload(counts = {}, extra = {}) {
 }
 
 function suppressionsPayload(
-  rows = [
-    { address: 'bad@example.com', reason: 'bounce', source: 'ses', created: 1751900000 },
-  ],
+  rows = [{ address: 'bad@example.com', reason: 'bounce', source: 'ses', created: 1751900000 }],
   pagination = {}
 ) {
   return {
@@ -351,9 +349,9 @@ describe('EmailDeliverabilitySection (email deliverability)', () => {
     expect(table.exists()).toBe(true);
     expect(table.text()).toContain('bad@example.com');
     expect(table.text()).toContain('bounce');
-    expect(
-      wrapper.find('[data-testid="deliverability-remove-bad@example.com"]').exists()
-    ).toBe(true);
+    expect(wrapper.find('[data-testid="deliverability-remove-bad@example.com"]').exists()).toBe(
+      true
+    );
   });
 
   it('shows the pipe-your-feedback empty states when nothing is recorded yet', async () => {
@@ -519,7 +517,9 @@ describe('EmailDeliverabilitySection (email deliverability)', () => {
     expect(table.exists()).toBe(true);
     expect(table.text()).toContain('Your secret link');
     expect(table.text()).toContain('recipient@example.com');
-    expect(table.text()).toContain('web.admin.emailtools.deliverability.messages.status.hard_bounced');
+    expect(table.text()).toContain(
+      'web.admin.emailtools.deliverability.messages.status.hard_bounced'
+    );
   });
 
   it('shows the not-supported empty-state when the transport has no send log (capability=false)', async () => {

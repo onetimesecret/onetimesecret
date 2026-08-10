@@ -19,7 +19,7 @@ on:
   workflow_dispatch:
     inputs:
       model:
-        description: "Claude model for this run (overrides the CLAUDE_MODEL repo variable)"
+        description: 'Claude model for this run (overrides the CLAUDE_MODEL repo variable)'
         type: choice
         required: false
         default: claude-sonnet-4-6
@@ -52,9 +52,9 @@ jobs:
       !endsWith(github.actor, '[bot]') &&
       !github.event.pull_request.head.repo.fork &&
       (
-        (github.event.action == 'opened') ||
-        (github.event.action == 'labeled' && github.event.label.name == 'claude-review') ||
-        (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'claude-review'))
+      (github.event.action == 'opened') ||
+      (github.event.action == 'labeled' && github.event.label.name == 'claude-review') ||
+      (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'claude-review'))
       )
       }}
 

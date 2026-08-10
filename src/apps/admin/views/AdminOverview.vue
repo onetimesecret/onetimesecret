@@ -1,7 +1,6 @@
 <!-- src/apps/admin/views/AdminOverview.vue -->
 
 <script setup lang="ts">
-
   import TrendSparkline from '@/apps/admin/components/TrendSparkline.vue';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
   import {
@@ -155,9 +154,7 @@
     context: 'ColonelInfoResponse',
   });
 
-  const infoFailed = computed(
-    () => infoError.value !== null || infoValidationError.value !== null
-  );
+  const infoFailed = computed(() => infoError.value !== null || infoValidationError.value !== null);
 
   const feedbackGroups = computed(() => {
     const details = infoData.value?.details;
@@ -181,9 +178,7 @@
     ];
   });
 
-  const feedbackTotal = computed(
-    () => infoData.value?.details?.counts?.feedback_count ?? null
-  );
+  const feedbackTotal = computed(() => infoData.value?.details?.counts?.feedback_count ?? null);
 
   // ---- Parallel load ------------------------------------------------------------
 
@@ -214,7 +209,8 @@
         class="mb-4 flex items-center justify-between gap-4 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 dark:border-amber-800/60 dark:bg-amber-900/15"
         role="alert"
         data-testid="overview-stats-error">
-        <span class="flex items-center gap-2 text-sm font-medium text-amber-800 dark:text-amber-200">
+        <span
+          class="flex items-center gap-2 text-sm font-medium text-amber-800 dark:text-amber-200">
           <OIcon
             collection="heroicons"
             name="exclamation-triangle"
@@ -250,7 +246,7 @@
           class="flex flex-col gap-1 bg-white p-4 transition-colors dark:bg-gray-900"
           :class="
             tile.to
-              ? 'hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-500 dark:hover:bg-gray-800/60'
+              ? 'hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none focus:ring-inset dark:hover:bg-gray-800/60'
               : ''
           ">
           <span
@@ -296,7 +292,8 @@
         class="flex items-center justify-between gap-4 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 dark:border-amber-800/60 dark:bg-amber-900/15"
         role="alert"
         data-testid="overview-trends-error">
-        <span class="flex items-center gap-2 text-sm font-medium text-amber-800 dark:text-amber-200">
+        <span
+          class="flex items-center gap-2 text-sm font-medium text-amber-800 dark:text-amber-200">
           <OIcon
             collection="heroicons"
             name="exclamation-triangle"
@@ -351,9 +348,10 @@
               {{ card.label }}
             </p>
             <p class="text-xs text-gray-500 dark:text-gray-400">
-              <span class="font-brand text-2xl font-bold text-gray-900 tabular-nums dark:text-white">{{
-                card.today.toLocaleString()
-              }}</span>
+              <span
+                class="font-brand text-2xl font-bold text-gray-900 tabular-nums dark:text-white"
+                >{{ card.today.toLocaleString() }}</span
+              >
               {{ t('web.admin.overview.trends.today') }}
             </p>
           </div>
@@ -393,7 +391,8 @@
         class="flex items-center justify-between gap-4 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 dark:border-amber-800/60 dark:bg-amber-900/15"
         role="alert"
         data-testid="overview-feedback-error">
-        <span class="flex items-center gap-2 text-sm font-medium text-amber-800 dark:text-amber-200">
+        <span
+          class="flex items-center gap-2 text-sm font-medium text-amber-800 dark:text-amber-200">
           <OIcon
             collection="heroicons"
             name="exclamation-triangle"
@@ -450,7 +449,10 @@
           <h4
             class="mb-2 flex items-baseline gap-1.5 font-brand text-[11px] font-semibold tracking-[0.12em] text-gray-500 uppercase dark:text-gray-400">
             {{ group.label }}
-            <span class="font-mono text-[10px] font-normal text-gray-400 tabular-nums dark:text-gray-500">{{ group.items.length }}</span>
+            <span
+              class="font-mono text-[10px] font-normal text-gray-400 tabular-nums dark:text-gray-500"
+              >{{ group.items.length }}</span
+            >
           </h4>
 
           <p

@@ -1,121 +1,121 @@
 <!-- src/shared/components/modals/PasswordConfirmModal.vue -->
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import {
-  Dialog,
-  DialogPanel,
-  DialogTitle,
-  TransitionChild,
-  TransitionRoot,
-} from '@headlessui/vue';
-import { ref, watch, computed, nextTick } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import {
+    Dialog,
+    DialogPanel,
+    DialogTitle,
+    TransitionChild,
+    TransitionRoot,
+  } from '@headlessui/vue';
+  import { ref, watch, computed, nextTick } from 'vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-export interface Props {
-  open: boolean;
-  title: string;
-  description?: string;
-  confirmText?: string;
-  cancelText?: string;
-  variant?: 'default' | 'danger';
-  loading?: boolean;
-  error?: string | null;
-  initialFocus?: 'password' | 'cancel';
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  description: undefined,
-  confirmText: undefined,
-  cancelText: undefined,
-  variant: 'default',
-  loading: false,
-  error: null,
-  initialFocus: 'password',
-});
-
-const emit = defineEmits<{
-  'update:open': [value: boolean];
-  confirm: [password: string];
-  cancel: [];
-}>();
-
-const password = ref('');
-const showPassword = ref(false);
-const passwordInput = ref<HTMLInputElement | null>(null);
-const cancelButton = ref<HTMLButtonElement | null>(null);
-
-// Computed for button styling based on variant
-const confirmButtonClasses = computed(() => {
-  const base =
-    'inline-flex w-full justify-center rounded-md px-4 py-2 text-sm font-semibold shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:ml-3 sm:w-auto';
-  if (props.variant === 'danger') {
-    return `${base} bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 dark:bg-red-700 dark:hover:bg-red-800`;
+  export interface Props {
+    open: boolean;
+    title: string;
+    description?: string;
+    confirmText?: string;
+    cancelText?: string;
+    variant?: 'default' | 'danger';
+    loading?: boolean;
+    error?: string | null;
+    initialFocus?: 'password' | 'cancel';
   }
-  return `${base} bg-brand-600 text-white hover:bg-brand-700 focus:ring-brand-500 dark:bg-brand-500 dark:hover:bg-brand-600`;
-});
 
-// Resolve confirm/cancel text: use prop if provided, otherwise translate default key
-const resolvedConfirmText = computed(() => props.confirmText ?? t('web.COMMON.word_confirm'));
-const resolvedCancelText = computed(() => props.cancelText ?? t('web.COMMON.word_cancel'));
+  const props = withDefaults(defineProps<Props>(), {
+    description: undefined,
+    confirmText: undefined,
+    cancelText: undefined,
+    variant: 'default',
+    loading: false,
+    error: null,
+    initialFocus: 'password',
+  });
 
-// Computed for loading text
-const buttonText = computed(() => {
-  if (props.loading) {
-    return t('web.COMMON.processing');
-  }
-  return resolvedConfirmText.value;
-});
+  const emit = defineEmits<{
+    'update:open': [value: boolean];
+    confirm: [password: string];
+    cancel: [];
+  }>();
 
-// Toggle password visibility
-const togglePasswordVisibility = () => {
-  showPassword.value = !showPassword.value;
-};
+  const password = ref('');
+  const showPassword = ref(false);
+  const passwordInput = ref<HTMLInputElement | null>(null);
+  const cancelButton = ref<HTMLButtonElement | null>(null);
 
-// Handle form submission
-const handleSubmit = () => {
-  if (password.value && !props.loading) {
-    emit('confirm', password.value);
-  }
-};
-
-// Handle cancel action
-const handleCancel = () => {
-  emit('cancel');
-  closeModal();
-};
-
-// Close modal and reset state
-const closeModal = () => {
-  emit('update:open', false);
-};
-
-// Get initial focus element
-const getInitialFocusElement = () => {
-  if (props.initialFocus === 'cancel') {
-    return cancelButton.value;
-  }
-  return passwordInput.value;
-};
-
-// Clear password when modal closes
-watch(
-  () => props.open,
-  (isOpen) => {
-    if (!isOpen) {
-      password.value = '';
-      showPassword.value = false;
-    } else {
-      // Focus the appropriate element when modal opens
-      nextTick(() => {
-        const focusElement = getInitialFocusElement();
-        focusElement?.focus();
-      });
+  // Computed for button styling based on variant
+  const confirmButtonClasses = computed(() => {
+    const base =
+      'inline-flex w-full justify-center rounded-md px-4 py-2 text-sm font-semibold shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:ml-3 sm:w-auto';
+    if (props.variant === 'danger') {
+      return `${base} bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 dark:bg-red-700 dark:hover:bg-red-800`;
     }
-  }
-);
+    return `${base} bg-brand-600 text-white hover:bg-brand-700 focus:ring-brand-500 dark:bg-brand-500 dark:hover:bg-brand-600`;
+  });
+
+  // Resolve confirm/cancel text: use prop if provided, otherwise translate default key
+  const resolvedConfirmText = computed(() => props.confirmText ?? t('web.COMMON.word_confirm'));
+  const resolvedCancelText = computed(() => props.cancelText ?? t('web.COMMON.word_cancel'));
+
+  // Computed for loading text
+  const buttonText = computed(() => {
+    if (props.loading) {
+      return t('web.COMMON.processing');
+    }
+    return resolvedConfirmText.value;
+  });
+
+  // Toggle password visibility
+  const togglePasswordVisibility = () => {
+    showPassword.value = !showPassword.value;
+  };
+
+  // Handle form submission
+  const handleSubmit = () => {
+    if (password.value && !props.loading) {
+      emit('confirm', password.value);
+    }
+  };
+
+  // Handle cancel action
+  const handleCancel = () => {
+    emit('cancel');
+    closeModal();
+  };
+
+  // Close modal and reset state
+  const closeModal = () => {
+    emit('update:open', false);
+  };
+
+  // Get initial focus element
+  const getInitialFocusElement = () => {
+    if (props.initialFocus === 'cancel') {
+      return cancelButton.value;
+    }
+    return passwordInput.value;
+  };
+
+  // Clear password when modal closes
+  watch(
+    () => props.open,
+    (isOpen) => {
+      if (!isOpen) {
+        password.value = '';
+        showPassword.value = false;
+      } else {
+        // Focus the appropriate element when modal opens
+        nextTick(() => {
+          const focusElement = getInitialFocusElement();
+          focusElement?.focus();
+        });
+      }
+    }
+  );
 </script>
 
 <template>
@@ -136,7 +136,7 @@ watch(
         leave-to="opacity-0">
         <div
           class="fixed inset-0 bg-gray-500/75 transition-opacity dark:bg-gray-900/80"
-          aria-hidden="true" ></div>
+          aria-hidden="true"></div>
       </TransitionChild>
 
       <!-- Modal container -->
@@ -152,7 +152,7 @@ watch(
             leave-from="opacity-100 translate-y-0 sm:scale-100"
             leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
             <DialogPanel
-              class="relative w-full max-w-md overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all dark:bg-gray-800 sm:my-8 sm:p-6">
+              class="relative w-full max-w-md overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:p-6 dark:bg-gray-800">
               <form @submit.prevent="handleSubmit">
                 <!-- Header with icon -->
                 <div class="sm:flex sm:items-start">
@@ -179,10 +179,10 @@ watch(
                   </div>
 
                   <!-- Title and description -->
-                  <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                  <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                     <DialogTitle
                       as="h3"
-                      class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
+                      class="text-base leading-6 font-semibold text-gray-900 dark:text-white">
                       {{ title }}
                     </DialogTitle>
                     <div class="mt-2">
@@ -215,14 +215,12 @@ watch(
                       :aria-invalid="error ? 'true' : undefined"
                       :aria-describedby="error ? 'password-confirm-error' : undefined"
                       :placeholder="t('web.COMMON.password_placeholder')"
-                      class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 pr-10 text-base placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-brand-400 dark:focus:ring-brand-400" />
+                      class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 pr-10 text-base placeholder:text-gray-400 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-brand-400 dark:focus:ring-brand-400" />
                     <button
                       type="button"
                       :disabled="loading"
                       :aria-label="
-                        showPassword
-                          ? t('web.COMMON.hide_password')
-                          : t('web.COMMON.show_password')
+                        showPassword ? t('web.COMMON.hide_password') : t('web.COMMON.show_password')
                       "
                       class="absolute inset-y-0 right-0 z-10 flex items-center pr-3 text-sm leading-5 disabled:opacity-50"
                       @click="togglePasswordVisibility">
@@ -258,7 +256,7 @@ watch(
                       v-if="loading"
                       collection="heroicons"
                       name="arrow-path"
-                      class="-ml-1 mr-2 size-4 animate-spin motion-reduce:animate-none"
+                      class="mr-2 -ml-1 size-4 animate-spin motion-reduce:animate-none"
                       aria-hidden="true" />
                     {{ buttonText }}
                   </button>
@@ -266,7 +264,7 @@ watch(
                     ref="cancelButton"
                     type="button"
                     :disabled="loading"
-                    class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-600 sm:mt-0 sm:w-auto"
+                    class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 transition-colors ring-inset hover:bg-gray-50 focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 sm:mt-0 sm:w-auto dark:bg-gray-700 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-600"
                     @click="handleCancel">
                     {{ resolvedCancelText }}
                   </button>

@@ -66,10 +66,16 @@ vi.mock('@/services/billing.service', () => ({
 // Mock organizationStore
 const mockOrganizations = vi.fn(() => [
   {
-    objid: 'org_1', extid: 'org_ext_1', display_name: 'Test Org',
-    description: null, owner_id: 'cust_1', contact_email: 'test@example.com',
-    planid: 'identity_plus_v1', is_default: true,
-    created: new Date('2024-01-01'), updated: new Date('2024-01-01'),
+    objid: 'org_1',
+    extid: 'org_ext_1',
+    display_name: 'Test Org',
+    description: null,
+    owner_id: 'cust_1',
+    contact_email: 'test@example.com',
+    planid: 'identity_plus_v1',
+    is_default: true,
+    created: new Date('2024-01-01'),
+    updated: new Date('2024-01-01'),
   },
 ]);
 const mockFetchOrganizations = vi.fn();
@@ -129,10 +135,16 @@ describe('InvoiceList', () => {
     mockFetchOrganizations.mockReset();
     mockOrganizations.mockReturnValue([
       {
-        objid: 'org_1', extid: 'org_ext_1', display_name: 'Test Org',
-        description: null, owner_id: 'cust_1', contact_email: 'test@example.com',
-        planid: 'identity_plus_v1', is_default: true,
-        created: new Date('2024-01-01'), updated: new Date('2024-01-01'),
+        objid: 'org_1',
+        extid: 'org_ext_1',
+        display_name: 'Test Org',
+        description: null,
+        owner_id: 'cust_1',
+        contact_email: 'test@example.com',
+        planid: 'identity_plus_v1',
+        is_default: true,
+        created: new Date('2024-01-01'),
+        updated: new Date('2024-01-01'),
       },
     ]);
   });
@@ -163,7 +175,7 @@ describe('InvoiceList', () => {
   describe('Loading State', () => {
     it('renders loading state initially', async () => {
       let resolveInvoices: (value: unknown) => void;
-      const pendingPromise = new Promise(resolve => {
+      const pendingPromise = new Promise((resolve) => {
         resolveInvoices = resolve;
       });
       mockListInvoices.mockReturnValueOnce(pendingPromise);
@@ -255,15 +267,15 @@ describe('InvoiceList', () => {
       const badges = wrapper.findAll('span.inline-flex');
 
       // Find paid badge (green)
-      const paidBadge = badges.find(b => b.text() === 'web.billing.invoices.paid');
+      const paidBadge = badges.find((b) => b.text() === 'web.billing.invoices.paid');
       expect(paidBadge?.classes()).toContain('bg-green-100');
 
       // Find pending badge (yellow)
-      const pendingBadge = badges.find(b => b.text() === 'web.billing.invoices.pending');
+      const pendingBadge = badges.find((b) => b.text() === 'web.billing.invoices.pending');
       expect(pendingBadge?.classes()).toContain('bg-yellow-100');
 
       // Find failed badge (red)
-      const failedBadge = badges.find(b => b.text() === 'web.billing.invoices.failed');
+      const failedBadge = badges.find((b) => b.text() === 'web.billing.invoices.failed');
       expect(failedBadge?.classes()).toContain('bg-red-100');
     });
   });
@@ -273,9 +285,9 @@ describe('InvoiceList', () => {
       mockListInvoices.mockResolvedValueOnce({ invoices: mockInvoices });
       wrapper = await mountComponent();
 
-      const downloadButtons = wrapper.findAll('button').filter(
-        btn => btn.text().includes('web.billing.invoices.invoice_download')
-      );
+      const downloadButtons = wrapper
+        .findAll('button')
+        .filter((btn) => btn.text().includes('web.billing.invoices.invoice_download'));
       // First two invoices have download URLs
       expect(downloadButtons.length).toBe(2);
     });
@@ -296,9 +308,9 @@ describe('InvoiceList', () => {
 
       wrapper = await mountComponent();
 
-      const downloadButton = wrapper.findAll('button').find(
-        btn => btn.text().includes('web.billing.invoices.invoice_download')
-      );
+      const downloadButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.text().includes('web.billing.invoices.invoice_download'));
       await downloadButton?.trigger('click');
 
       expect(windowOpenSpy).toHaveBeenCalledWith(

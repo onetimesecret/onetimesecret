@@ -1,7 +1,6 @@
 <!-- src/apps/admin/views/AdminUsage.vue -->
 
 <script setup lang="ts">
-
   import { StatCard } from '@/apps/admin/components/kit';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
   import { usageExportResponseSchema } from '@/schemas/api/internal/responses/colonel-usage';
@@ -63,9 +62,7 @@
     const start = startDate.value
       ? Math.floor(new Date(startDate.value).getTime() / 1000)
       : undefined;
-    const end = endDate.value
-      ? Math.floor(new Date(endDate.value).getTime() / 1000)
-      : undefined;
+    const end = endDate.value ? Math.floor(new Date(endDate.value).getTime() / 1000) : undefined;
     load({ start_date: start, end_date: end }).catch(() => {});
   }
 
@@ -115,7 +112,11 @@
   /** Download the loaded export payload as pretty-printed JSON. */
   function exportJson(): void {
     if (!usage.value) return;
-    downloadFile(`${exportBasename.value}.json`, 'application/json', JSON.stringify(usage.value, null, 2));
+    downloadFile(
+      `${exportBasename.value}.json`,
+      'application/json',
+      JSON.stringify(usage.value, null, 2)
+    );
   }
 
   /**
@@ -282,7 +283,8 @@
         v-if="secretsByState.length > 0"
         class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"
         data-testid="usage-by-state">
-        <h3 class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+        <h3
+          class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
           {{ t('web.admin.usage.byState') }}
         </h3>
         <div class="flex flex-wrap gap-2">
@@ -291,7 +293,9 @@
             :key="row.state"
             class="inline-flex items-center gap-1.5 rounded bg-gray-100 px-2.5 py-1 text-sm text-gray-700 dark:bg-gray-800 dark:text-gray-300">
             <span class="font-mono">{{ row.state }}</span>
-            <span class="font-semibold text-gray-900 dark:text-white">{{ row.count.toLocaleString() }}</span>
+            <span class="font-semibold text-gray-900 dark:text-white">{{
+              row.count.toLocaleString()
+            }}</span>
           </span>
         </div>
       </section>
@@ -310,10 +314,12 @@
             <table class="min-w-full">
               <thead class="sticky top-0 bg-gray-50 dark:bg-gray-800">
                 <tr>
-                  <th class="px-5 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
+                  <th
+                    class="px-5 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
                     {{ t('web.admin.usage.columns.date') }}
                   </th>
-                  <th class="px-5 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400">
+                  <th
+                    class="px-5 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400">
                     {{ t('web.admin.usage.columns.count') }}
                   </th>
                 </tr>
@@ -334,7 +340,8 @@
                   <td class="px-5 py-1.5 text-sm text-gray-900 dark:text-white">
                     {{ row.date }}
                   </td>
-                  <td class="px-5 py-1.5 text-right font-mono text-sm text-gray-900 dark:text-white">
+                  <td
+                    class="px-5 py-1.5 text-right font-mono text-sm text-gray-900 dark:text-white">
                     {{ row.count.toLocaleString() }}
                   </td>
                 </tr>
@@ -355,10 +362,12 @@
             <table class="min-w-full">
               <thead class="sticky top-0 bg-gray-50 dark:bg-gray-800">
                 <tr>
-                  <th class="px-5 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
+                  <th
+                    class="px-5 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
                     {{ t('web.admin.usage.columns.date') }}
                   </th>
-                  <th class="px-5 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400">
+                  <th
+                    class="px-5 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400">
                     {{ t('web.admin.usage.columns.count') }}
                   </th>
                 </tr>
@@ -379,7 +388,8 @@
                   <td class="px-5 py-1.5 text-sm text-gray-900 dark:text-white">
                     {{ row.date }}
                   </td>
-                  <td class="px-5 py-1.5 text-right font-mono text-sm text-gray-900 dark:text-white">
+                  <td
+                    class="px-5 py-1.5 text-right font-mono text-sm text-gray-900 dark:text-white">
                     {{ row.count.toLocaleString() }}
                   </td>
                 </tr>

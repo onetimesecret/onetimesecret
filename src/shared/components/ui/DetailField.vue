@@ -1,16 +1,15 @@
 <!-- src/shared/components/ui/DetailField.vue -->
 
 <script setup lang="ts">
-import CopyButton from './CopyButton.vue';
+  import CopyButton from './CopyButton.vue';
 
-interface Props {
-  label: string;
-  value: string;
-  appendix?: string;
-}
+  interface Props {
+    label: string;
+    value: string;
+    appendix?: string;
+  }
 
-defineProps<Props>();
-
+  defineProps<Props>();
 </script>
 
 <template>
@@ -20,14 +19,19 @@ defineProps<Props>();
       ref="labelContainerRef">
       <span
         class="truncate text-sm font-medium text-gray-500 dark:text-gray-300"
-        ref="labelRef">{{ label }}:</span>
+        ref="labelRef"
+        >{{ label }}:</span
+      >
     </div>
     <div class="flex min-w-0 grow items-center p-3">
       <div class="mr-2 min-w-0 grow">
         <span class="block truncate text-gray-800 dark:text-gray-200">
-          {{ value }}<span
+          {{ value
+          }}<span
             v-if="appendix"
-            class="text-gray-400">{{ appendix }}</span>
+            class="text-gray-400"
+            >{{ appendix }}</span
+          >
         </span>
       </div>
       <div class="shrink-0">

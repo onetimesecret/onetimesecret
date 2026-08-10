@@ -16,8 +16,9 @@ regenerates each OAuth endpoint's `*_path`/`*_url` to prepend it; `authorization
 honors it (→ discovery `issuer` + `oauth_jwt_issuer`); the hand-rolled helpers
 (`registration_client_uri`, and the management `oauth_applications_path` /
 `oauth_grants_path`) prepend it explicitly. Route matching (`route_hash[remaining_path]`
-+ `request.is` on the bare segment) is untouched. Default `""` is a strict no-op. It can
-be derived from the request: `oauth_mount_prefix { request.script_name }`.
+
+- `request.is` on the bare segment) is untouched. Default `""` is a strict no-op. It can
+  be derived from the request: `oauth_mount_prefix { request.script_name }`.
 
 A diagram is in the fork at `doc/mount_prefix_fix.svg` / `doc/mount_prefix_fix.png`.
 

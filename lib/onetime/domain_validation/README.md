@@ -4,18 +4,18 @@ Custom domain SSL and DNS validation strategies.
 
 ## Strategies
 
-| Strategy | SSL Certs | DNS Widget | Use Case |
-|----------|-----------|------------|----------|
-| `approximated` | Managed | Yes | Approximated.app service |
-| `caddy_on_demand` | Auto | No | Caddy on-demand TLS |
-| `passthrough` | External | No | Manual/external certs |
+| Strategy          | SSL Certs | DNS Widget | Use Case                 |
+| ----------------- | --------- | ---------- | ------------------------ |
+| `approximated`    | Managed   | Yes        | Approximated.app service |
+| `caddy_on_demand` | Auto      | No         | Caddy on-demand TLS      |
+| `passthrough`     | External  | No         | Manual/external certs    |
 
 Configure in `config.yaml`:
 
 ```yaml
 features:
   domains:
-    validation_strategy: approximated  # or passthrough, caddy_on_demand
+    validation_strategy: approximated # or passthrough, caddy_on_demand
     approximated:
       api_key: xxx
       proxy_ip: 1.2.3.4
@@ -41,6 +41,7 @@ The Approximated strategy supports a DNS widget that auto-detects DNS providers 
 **Backend**: `strategy.get_dns_widget_token` returns a token for the widget.
 
 **Frontend**: Widget assets are self-hosted in `src/assets/approximated/`:
+
 - `dnswidget.v1.js`
 - `dnswidget.v1.css`
 

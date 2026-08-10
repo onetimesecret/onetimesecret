@@ -95,16 +95,11 @@ function unwrap(schema: any): UnwrapResult {
   };
 }
 
-export function augment<T extends z.ZodObject<z.ZodRawShape>>(
-  contract: T,
-  tree: AugmentTree
-): T {
+export function augment<T extends z.ZodObject<z.ZodRawShape>>(contract: T, tree: AugmentTree): T {
   for (const key of Object.keys(tree)) {
     if (!(key in contract.shape)) {
       const known = Object.keys(contract.shape).join(', ');
-      throw new Error(
-        `augment: unknown key "${key}" not in contract shape (known: ${known})`
-      );
+      throw new Error(`augment: unknown key "${key}" not in contract shape (known: ${known})`);
     }
   }
 

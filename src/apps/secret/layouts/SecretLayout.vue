@@ -54,7 +54,8 @@
 
   // Transactional layout: narrower, centered content
   const transactionalClasses = computed(() => {
-    const base = 'container mx-auto flex min-w-[320px] max-w-2xl flex-1 flex-col px-4 justify-start';
+    const base =
+      'container mx-auto flex min-w-[320px] max-w-2xl flex-1 flex-col px-4 justify-start';
     return props.displayMasthead ? `${base} py-8` : `${base} pt-16 pb-8`;
   });
 </script>
@@ -63,25 +64,33 @@
   <BaseLayout v-bind="props">
     <template #header>
       <!-- Authenticated: ManagementHeader with context bar -->
-      <ManagementHeader v-if="authenticated" v-bind="props">
+      <ManagementHeader
+        v-if="authenticated"
+        v-bind="props">
         <OrganizationContextBar />
       </ManagementHeader>
       <!-- Guest: BrandedHeader switches to BrandedMastHead on custom domains,
            preventing the canonical OTS logo/nav from leaking -->
-      <BrandedHeader v-else v-bind="props" />
+      <BrandedHeader
+        v-else
+        v-bind="props" />
     </template>
 
     <template #main>
       <!-- Authenticated: wider workspace-style layout -->
-      <div v-if="authenticated" class="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div class="container mx-auto min-w-[320px] max-w-4xl px-4 py-8">
+      <div
+        v-if="authenticated"
+        class="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div class="container mx-auto max-w-4xl min-w-[320px] px-4 py-8">
           <main class="min-w-0 flex-1">
             <slot></slot>
           </main>
         </div>
       </div>
       <!-- Guest: narrower transactional layout -->
-      <div v-else class="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div
+        v-else
+        class="min-h-screen bg-gray-50 dark:bg-gray-900">
         <main :class="transactionalClasses">
           <slot></slot>
         </main>
@@ -90,9 +99,13 @@
 
     <template #footer>
       <!-- Authenticated: WorkspaceFooter (no region switcher, SaaS links) -->
-      <WorkspaceFooter v-if="authenticated" v-bind="props" />
+      <WorkspaceFooter
+        v-if="authenticated"
+        v-bind="props" />
       <!-- Guest: TransactionalFooter (region switcher, toggles) -->
-      <TransactionalFooter v-else v-bind="props" />
+      <TransactionalFooter
+        v-else
+        v-bind="props" />
     </template>
   </BaseLayout>
 </template>

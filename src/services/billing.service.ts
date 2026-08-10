@@ -256,17 +256,33 @@ export interface ReactivateSubscriptionResponse {
  */
 export function createBillingService(api: AxiosInstance): typeof BillingService {
   return {
-    getOverview: (orgExtId) => api.get(`/billing/api/org/${orgExtId}`).then(r => r.data),
+    getOverview: (orgExtId) => api.get(`/billing/api/org/${orgExtId}`).then((r) => r.data),
     createCheckoutSession: (orgExtId, plan) =>
-      api.post(`/billing/api/org/${orgExtId}/checkout`, { product: plan.id, interval: plan.interval }).then(r => r.data),
-    listInvoices: (orgExtId) => api.get(`/billing/api/org/${orgExtId}/invoices`).then(r => r.data),
-    listPlans: () => api.get('/billing/api/plans').then(r => r.data),
-    getSubscriptionStatus: (orgExtId) => api.get(`/billing/api/org/${orgExtId}/subscription`).then(r => r.data),
-    previewPlanChange: (orgExtId, newPriceId) => api.post(`/billing/api/org/${orgExtId}/preview-plan-change`, { new_price_id: newPriceId }).then(r => r.data),
-    changePlan: (orgExtId, newPriceId) => api.post(`/billing/api/org/${orgExtId}/change-plan`, { new_price_id: newPriceId }).then(r => r.data),
-    cancelSubscription: (orgExtId) => api.post(`/billing/api/org/${orgExtId}/cancel-subscription`).then(r => r.data),
-    reactivateSubscription: (orgExtId) => api.post(`/billing/api/org/${orgExtId}/reactivate-subscription`).then(r => r.data),
-    migrateCurrency: (orgExtId, request) => api.post(`/billing/api/org/${orgExtId}/migrate-currency`, request).then(r => r.data),
+      api
+        .post(`/billing/api/org/${orgExtId}/checkout`, {
+          product: plan.id,
+          interval: plan.interval,
+        })
+        .then((r) => r.data),
+    listInvoices: (orgExtId) =>
+      api.get(`/billing/api/org/${orgExtId}/invoices`).then((r) => r.data),
+    listPlans: () => api.get('/billing/api/plans').then((r) => r.data),
+    getSubscriptionStatus: (orgExtId) =>
+      api.get(`/billing/api/org/${orgExtId}/subscription`).then((r) => r.data),
+    previewPlanChange: (orgExtId, newPriceId) =>
+      api
+        .post(`/billing/api/org/${orgExtId}/preview-plan-change`, { new_price_id: newPriceId })
+        .then((r) => r.data),
+    changePlan: (orgExtId, newPriceId) =>
+      api
+        .post(`/billing/api/org/${orgExtId}/change-plan`, { new_price_id: newPriceId })
+        .then((r) => r.data),
+    cancelSubscription: (orgExtId) =>
+      api.post(`/billing/api/org/${orgExtId}/cancel-subscription`).then((r) => r.data),
+    reactivateSubscription: (orgExtId) =>
+      api.post(`/billing/api/org/${orgExtId}/reactivate-subscription`).then((r) => r.data),
+    migrateCurrency: (orgExtId, request) =>
+      api.post(`/billing/api/org/${orgExtId}/migrate-currency`, request).then((r) => r.data),
   };
 }
 
@@ -351,9 +367,12 @@ export const BillingService = {
     orgExtId: string,
     newPriceId: string
   ): Promise<PlanChangePreviewResponse> {
-    const response = await getDefaultApi().post(`/billing/api/org/${orgExtId}/preview-plan-change`, {
-      new_price_id: newPriceId,
-    });
+    const response = await getDefaultApi().post(
+      `/billing/api/org/${orgExtId}/preview-plan-change`,
+      {
+        new_price_id: newPriceId,
+      }
+    );
     return response.data;
   },
 
@@ -398,7 +417,9 @@ export const BillingService = {
    * @returns Result of reactivation with subscription status
    */
   async reactivateSubscription(orgExtId: string): Promise<ReactivateSubscriptionResponse> {
-    const response = await getDefaultApi().post(`/billing/api/org/${orgExtId}/reactivate-subscription`);
+    const response = await getDefaultApi().post(
+      `/billing/api/org/${orgExtId}/reactivate-subscription`
+    );
     return response.data;
   },
 
@@ -445,19 +466,11 @@ export const BillingService = {
  * @returns The conflict details if this is a currency conflict, null otherwise
  */
 export function extractCurrencyConflict(error: unknown): CurrencyConflictError | null {
-  if (
-    typeof error === 'object' &&
-    error !== null &&
-    'response' in error
-  ) {
+  if (typeof error === 'object' && error !== null && 'response' in error) {
     const axiosError = error as { response?: { status?: number; data?: Record<string, unknown> } };
     const data = axiosError.response?.data;
 
-    if (
-      axiosError.response?.status === 409 &&
-      data &&
-      data.code === 'currency_conflict'
-    ) {
+    if (axiosError.response?.status === 409 && data && data.code === 'currency_conflict') {
       return data as unknown as CurrencyConflictError;
     }
   }

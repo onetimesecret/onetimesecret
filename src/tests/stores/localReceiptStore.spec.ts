@@ -325,9 +325,9 @@ describe('localReceiptStore', () => {
       store.addReceipt(message);
       await nextTick();
 
-      const setItemCall = vi.mocked(sessionStorage.setItem).mock.calls.find(
-        (call) => call[0] === 'onetimeReceiptCache'
-      );
+      const setItemCall = vi
+        .mocked(sessionStorage.setItem)
+        .mock.calls.find((call) => call[0] === 'onetimeReceiptCache');
 
       expect(setItemCall).toBeDefined();
       const savedData = JSON.parse(setItemCall![1]);
@@ -454,9 +454,9 @@ describe('localReceiptStore', () => {
       store.addReceipt(messageWithExtra);
       await nextTick();
 
-      const setItemCall = vi.mocked(sessionStorage.setItem).mock.calls.find(
-        (call) => call[0] === 'onetimeReceiptCache'
-      );
+      const setItemCall = vi
+        .mocked(sessionStorage.setItem)
+        .mock.calls.find((call) => call[0] === 'onetimeReceiptCache');
 
       expect(setItemCall).toBeDefined();
       const savedJson = setItemCall![1];

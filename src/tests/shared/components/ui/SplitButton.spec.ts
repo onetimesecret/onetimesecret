@@ -432,8 +432,7 @@ describe('SplitButton Keyboard Shortcut Logic (Unit Tests)', () => {
       const metaEnter = true;
       const controlEnter = false;
 
-      const submitShortcut =
-        keyboardShortcutEnabled && (metaEnter || controlEnter);
+      const submitShortcut = keyboardShortcutEnabled && (metaEnter || controlEnter);
 
       expect(submitShortcut).toBe(true);
     });
@@ -443,8 +442,7 @@ describe('SplitButton Keyboard Shortcut Logic (Unit Tests)', () => {
       const metaEnter = false;
       const controlEnter = true;
 
-      const submitShortcut =
-        keyboardShortcutEnabled && (metaEnter || controlEnter);
+      const submitShortcut = keyboardShortcutEnabled && (metaEnter || controlEnter);
 
       expect(submitShortcut).toBe(true);
     });
@@ -454,8 +452,7 @@ describe('SplitButton Keyboard Shortcut Logic (Unit Tests)', () => {
       const metaEnter = true;
       const controlEnter = false;
 
-      const submitShortcut =
-        keyboardShortcutEnabled && (metaEnter || controlEnter);
+      const submitShortcut = keyboardShortcutEnabled && (metaEnter || controlEnter);
 
       expect(submitShortcut).toBe(false);
     });
@@ -465,8 +462,7 @@ describe('SplitButton Keyboard Shortcut Logic (Unit Tests)', () => {
       const metaEnter = false;
       const controlEnter = false;
 
-      const submitShortcut =
-        keyboardShortcutEnabled && (metaEnter || controlEnter);
+      const submitShortcut = keyboardShortcutEnabled && (metaEnter || controlEnter);
 
       expect(submitShortcut).toBe(false);
     });
@@ -508,9 +504,7 @@ describe('SplitButton Keyboard Shortcut Logic (Unit Tests)', () => {
       const isContentEmpty = !content.trim();
 
       const isMainButtonDisabled =
-        selectedAction === 'create-link'
-          ? disabled || (!isContentEmpty && !content)
-          : false;
+        selectedAction === 'create-link' ? disabled || (!isContentEmpty && !content) : false;
 
       expect(isMainButtonDisabled).toBe(true);
     });
@@ -522,9 +516,7 @@ describe('SplitButton Keyboard Shortcut Logic (Unit Tests)', () => {
       const isContentEmpty = !content.trim();
 
       const isMainButtonDisabled =
-        selectedAction === 'create-link'
-          ? disabled || (!isContentEmpty && !content)
-          : false;
+        selectedAction === 'create-link' ? disabled || (!isContentEmpty && !content) : false;
 
       expect(isMainButtonDisabled).toBe(false);
     });
@@ -535,8 +527,7 @@ describe('SplitButton Keyboard Shortcut Logic (Unit Tests)', () => {
       const selectedAction = 'generate-password';
       const disableGenerate = true;
 
-      const isMainButtonDisabled =
-        selectedAction === 'generate-password' ? disableGenerate : false;
+      const isMainButtonDisabled = selectedAction === 'generate-password' ? disableGenerate : false;
 
       expect(isMainButtonDisabled).toBe(true);
     });
@@ -545,8 +536,7 @@ describe('SplitButton Keyboard Shortcut Logic (Unit Tests)', () => {
       const selectedAction = 'generate-password';
       const disableGenerate = false;
 
-      const isMainButtonDisabled =
-        selectedAction === 'generate-password' ? disableGenerate : false;
+      const isMainButtonDisabled = selectedAction === 'generate-password' ? disableGenerate : false;
 
       expect(isMainButtonDisabled).toBe(false);
     });
@@ -572,8 +562,7 @@ describe('SplitButton Platform Detection', () => {
     });
 
     const isMac =
-      typeof navigator !== 'undefined' &&
-      /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+      typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
 
     expect(isMac).toBe(true);
   });
@@ -586,8 +575,7 @@ describe('SplitButton Platform Detection', () => {
     });
 
     const isMac =
-      typeof navigator !== 'undefined' &&
-      /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+      typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
 
     expect(isMac).toBe(true);
   });
@@ -600,8 +588,7 @@ describe('SplitButton Platform Detection', () => {
     });
 
     const isMac =
-      typeof navigator !== 'undefined' &&
-      /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+      typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
 
     expect(isMac).toBe(false);
   });
@@ -614,8 +601,7 @@ describe('SplitButton Platform Detection', () => {
     });
 
     const isMac =
-      typeof navigator !== 'undefined' &&
-      /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+      typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
 
     expect(isMac).toBe(false);
   });
@@ -628,8 +614,7 @@ describe('SplitButton Platform Detection', () => {
     });
 
     const isMac =
-      typeof navigator !== 'undefined' &&
-      /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+      typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
     const shortcutHint = isMac ? '\u2318 Enter' : 'Ctrl Enter';
 
     expect(shortcutHint).toBe('\u2318 Enter');
@@ -643,8 +628,7 @@ describe('SplitButton Platform Detection', () => {
     });
 
     const isMac =
-      typeof navigator !== 'undefined' &&
-      /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+      typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
     const shortcutHint = isMac ? '\u2318 Enter' : 'Ctrl Enter';
 
     expect(shortcutHint).toBe('Ctrl Enter');

@@ -1,6 +1,7 @@
 ---
 labels: frontend, vue3, pinia, architecture
 ---
+
 # Frontend Architecture
 
 **Last Updated:** 2026-01-11
@@ -53,16 +54,19 @@ The frontend is a Vue 3 SPA using Composition API (`<script setup>`) with TypeSc
 ## Bootstrap State Bridge
 
 **Backend Injection:**
+
 - **Location:** `apps/web/core/views.rb`
 - **Classes:** `VuePoint` (page loads), `BootstrapMe` (API endpoint)
 - **Serializers:** ConfigSerializer, AuthenticationSerializer, DomainSerializer, I18nSerializer, MessagesSerializer, SystemSerializer
 
 **Frontend Access:**
+
 - **Pre-Pinia Service:** `src/services/bootstrap.service.ts` (for i18n, appInitializer)
 - **Pinia Store:** `src/shared/stores/bootstrapStore.ts` (reactive, single source of truth)
 - **Type Definition:** `src/types/declarations/bootstrap.d.ts`
 
 **Example:**
+
 ```typescript
 // Reading bootstrap state via Pinia (recommended)
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
@@ -80,6 +84,7 @@ const { authenticated, cust, ui } = storeToRefs(bootstrapStore);
 ```
 
 **State Refresh:**
+
 - **Endpoint:** `GET /bootstrap/me` (apps/web/core/routes)
 - **Frequency:** Every 15 minutes (±90s jitter)
 - **Triggers:**
@@ -92,6 +97,7 @@ const { authenticated, cust, ui } = storeToRefs(bootstrapStore);
 **Store Locations:** `src/shared/stores/*.ts`
 
 **Key Stores:**
+
 - `authStore.ts` - Authentication state, periodic window refresh
 - `csrfStore.ts` - CSRF token management
 - `customerStore.ts` - Customer data
@@ -102,6 +108,7 @@ const { authenticated, cust, ui } = storeToRefs(bootstrapStore);
 - `brandStore.ts` - Branding configuration
 
 **Store Pattern (Composition API):**
+
 ```typescript
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { storeToRefs } from 'pinia';
@@ -138,6 +145,7 @@ export const useExampleStore = defineStore('example', () => {
 ```
 
 **Auto-Init Plugin:**
+
 - **Location:** `src/plugins/pinia/autoInitPlugin.ts`
 - Automatically calls `store.init()` when store is created
 - Passes API client and options to stores
@@ -147,6 +155,7 @@ export const useExampleStore = defineStore('example', () => {
 **Location:** `src/router/index.ts`
 
 **Route Modules:**
+
 - `public.routes.ts` - Public pages (home, feedback)
 - `auth.routes.ts` - Authentication (signin, signup)
 - `secret.routes.ts` - Secret sharing/viewing
@@ -155,6 +164,7 @@ export const useExampleStore = defineStore('example', () => {
 - `colonel.routes.ts` - Admin area
 
 **Route Guards:**
+
 - **Location:** `src/router/guards.routes.ts`
 - **Pattern:** Runs before each navigation
 - **Responsibilities:**
@@ -164,6 +174,7 @@ export const useExampleStore = defineStore('example', () => {
   - Redirect logic (authenticated users away from auth pages)
 
 **Guard Flow:**
+
 ```typescript
 router.beforeEach(async (to) => {
   // 1. Process query params
@@ -198,25 +209,30 @@ router.beforeEach(async (to) => {
 **Location:** `src/shared/composables/*.ts`
 
 **Authentication:**
+
 - `useAuth.ts` - Login, signup, logout, password reset operations
 
 **UI Components:**
+
 - `useDropdown.ts` - Dropdown menu state
 - `useClickOutside.ts` - Click-outside detection
 - `useClipboard.ts` - Copy-to-clipboard
 - `useTheme.ts` - Dark/light mode
 
 **Forms:**
+
 - `useFormSubmission.ts` - Form submission handling
 - `useSecretForm.ts` - Secret creation form
 - `usePasswordChange.ts` - Password change form
 
 **Business Logic:**
+
 - `useSecret.ts` - Secret operations
 - `useDomain.ts` - Domain operations
 - `useMetadata.ts` - Metadata management
 
 **Utilities:**
+
 - `useAsyncHandler.ts` - Async error handling
 - `useFetchData.ts` - Data fetching patterns
 
@@ -225,38 +241,42 @@ router.beforeEach(async (to) => {
 **Pattern:** Composition API with `<script setup lang="ts">`
 
 **Example Structure:**
+
 ```vue
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { storeToRefs } from 'pinia';
+  import { computed, ref } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { storeToRefs } from 'pinia';
 
-// i18n
-const { t } = useI18n();
+  // i18n
+  const { t } = useI18n();
 
-// Bootstrap state (reactive via storeToRefs)
-const bootstrapStore = useBootstrapStore();
-const { authenticated, cust } = storeToRefs(bootstrapStore);
+  // Bootstrap state (reactive via storeToRefs)
+  const bootstrapStore = useBootstrapStore();
+  const { authenticated, cust } = storeToRefs(bootstrapStore);
 
-// Local state
-const isOpen = ref(false);
+  // Local state
+  const isOpen = ref(false);
 
-// Props with defaults
-const props = withDefaults(defineProps<{
-  title?: string;
-  enabled?: boolean;
-}>(), {
-  enabled: true,
-});
+  // Props with defaults
+  const props = withDefaults(
+    defineProps<{
+      title?: string;
+      enabled?: boolean;
+    }>(),
+    {
+      enabled: true,
+    }
+  );
 
-// Computed
-const displayTitle = computed(() => props.title || t('default.title'));
+  // Computed
+  const displayTitle = computed(() => props.title || t('default.title'));
 
-// Methods
-function handleClick() {
-  isOpen.value = !isOpen.value;
-}
+  // Methods
+  function handleClick() {
+    isOpen.value = !isOpen.value;
+  }
 </script>
 
 <template>
@@ -269,6 +289,7 @@ function handleClick() {
 ```
 
 **Rules:**
+
 -  Use `storeToRefs()` for bootstrapStore access (reactive)
 -  Use `$t()` for all text (i18n)
 -  Use Tailwind classes for styling
@@ -282,18 +303,21 @@ function handleClick() {
 **Location:** `src/api/index.ts`
 
 **Configuration:**
+
 - Base URL from `window.__BOOTSTRAP_ME__.baseuri`
 - Axios instance with interceptors
 - CSRF token injection via `csrfStore`
 - Error handling via interceptors
 
 **Interceptors:**
+
 - **Location:** `src/plugins/axios/interceptors.ts`
 - **Request:** Inject CSRF token from `csrfStore.shrimp`
 - **Response:** Update CSRF token from `X-Shrimp` header
 - **Error:** Handle 401 (logout), 403 (forbidden), network errors
 
 **Usage:**
+
 ```typescript
 // In composables/stores
 const $api = inject('api') as AxiosInstance;
@@ -311,12 +335,14 @@ const response = await $api.post('/auth/login', {
 **Location:** `src/locales/*.json`, `src/i18n/index.ts`
 
 **Pattern:**
+
 - Hierarchical keys (e.g., `web.secrets.enterPassphrase`)
 - Loaded from `src/locales/en.json`
 - Fallback locale: `en`
 - Available locales from `window.__BOOTSTRAP_ME__.supported_locales`
 
 **Usage:**
+
 ```vue
 <template>
   <h1>{{ $t('web.COMMON.header_sign_in') }}</h1>
@@ -324,26 +350,29 @@ const response = await $api.post('/auth/login', {
 </template>
 
 <script setup lang="ts">
-const { t } = useI18n();
-const message = t('web.COMMON.verification_sent');
+  const { t } = useI18n();
+  const message = t('web.COMMON.verification_sent');
 </script>
 ```
 
 ## Error Handling
 
 **Global Error Boundary:**
+
 - **Location:** `src/plugins/core/globalErrorBoundary.ts`
 - Catches unhandled errors
 - Logs to console in development
 - Shows user-friendly error messages
 
 **Async Error Handler:**
+
 - **Location:** `src/shared/composables/useAsyncHandler.ts`
 - Wraps async operations
 - Provides loading/error states
 - Integrates with notifications store
 
 **Pattern:**
+
 ```typescript
 const { execute, isLoading, error } = useAsyncHandler();
 
@@ -361,17 +390,19 @@ if (error.value) {
 **Framework:** Tailwind CSS 4
 
 **Pattern:**
+
 - Utility-first classes
 - Dark mode support via `dark:` prefix
 - Responsive design via breakpoints (sm, md, lg, xl)
 - Custom theme (colors, fonts, dark mode, source paths) defined CSS-first in `src/assets/style.css`
 
 **Example:**
+
 ```vue
 <template>
   <div class="container mx-auto p-4">
-    <button class="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded
-                   dark:bg-brand-400 dark:hover:bg-brand-500">
+    <button
+      class="rounded bg-brand-500 px-4 py-2 text-white hover:bg-brand-600 dark:bg-brand-400 dark:hover:bg-brand-500">
       {{ $t('submit') }}
     </button>
   </div>
@@ -381,6 +412,7 @@ if (error.value) {
 ## Build & Development
 
 **Commands:**
+
 ```bash
 # Development server (HMR)
 pnpm run dev
@@ -401,6 +433,7 @@ pnpm run preview
 ```
 
 **Vite Configuration:**
+
 - **Location:** `vite.config.ts`
 - **Features:**
   - Vue plugin with JSX support
@@ -411,11 +444,13 @@ pnpm run preview
 ## Testing
 
 **Unit Tests:**
+
 - **Framework:** Vitest 2.1.8
 - **Location:** `src/**/__tests__/*.spec.ts`
 - **Pattern:** Component testing with Vue Test Utils
 
 **E2E Tests:**
+
 - **Framework:** Playwright
 - **Location:** `tests/e2e/*.spec.ts`
 - **Commands:**
@@ -427,7 +462,9 @@ pnpm run preview
 ## Key Patterns
 
 ### Reactive Bootstrap State
+
 Use `storeToRefs()` to make bootstrap state reactive:
+
 ```typescript
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { storeToRefs } from 'pinia';
@@ -442,7 +479,9 @@ const cust = bootstrapStore.cust;
 ```
 
 ### Store Initialization
+
 Initialize stores via auto-init plugin:
+
 ```typescript
 export const useMyStore = defineStore('my', () => {
   const _initialized = ref(false);
@@ -453,12 +492,14 @@ export const useMyStore = defineStore('my', () => {
     _initialized.value = true;
   }
 
-  return { init, /* ... */ };
+  return { init /* ... */ };
 });
 ```
 
 ### Composable Pattern
+
 Extract reusable logic into composables:
+
 ```typescript
 export function useFeature() {
   const isLoading = ref(false);

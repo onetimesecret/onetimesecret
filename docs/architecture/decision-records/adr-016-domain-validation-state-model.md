@@ -1,7 +1,7 @@
 ---
-id: "016"
+id: '016'
 status: accepted
-title: "ADR-016: Decouple Ownership Verification from Certificate/Serving Status"
+title: 'ADR-016: Decouple Ownership Verification from Certificate/Serving Status'
 ---
 
 ## Status
@@ -31,7 +31,7 @@ matching (`approximated_client.rb:64-70`) is likewise `approximated`-only.
 Industry precedent, both confirmed 3-0 in research: Cloudflare for SaaS
 models hostname-ownership validation and certificate validation as two
 independent state machines that can be observably out of sync. Fly.io
-requires proof via at least one of AAAA/CNAME *or* a dedicated TXT record,
+requires proof via at least one of AAAA/CNAME _or_ a dedicated TXT record,
 treating "pointed at us" and "owned by this tenant" as separate,
 independently-satisfiable signals. OTS's `verification_state` enum
 (`custom_domain.rb:639-647`) is already structurally the ownership axis —
@@ -107,11 +107,11 @@ backing the human page at
 [`/docs/json/apps/tls/automation/on_demand/`](https://caddyserver.com/docs/json/apps/tls/automation/on_demand/))
 returns the `OnDemandConfig` struct verbatim:
 
-- `ask` (string): *"Deprecated. WILL BE REMOVED SOON. Use 'permission'
-  instead with the `http` module."*
-- `permission` (module, **REQUIRED**): *"A module that will determine
+- `ask` (string): _"Deprecated. WILL BE REMOVED SOON. Use 'permission'
+  instead with the `http` module."_
+- `permission` (module, **REQUIRED**): _"A module that will determine
   whether a certificate is allowed to be loaded from storage or obtained
-  from an issuer on demand."*
+  from an issuer on demand."_
 
 The Caddyfile adapter still accepts `ask <endpoint>` today alongside
 `permission <module>` (confirmed via
@@ -129,7 +129,7 @@ organizing concept, not a comment:
 - `application.rb:34` — the handler class is named `AskHandler`
 - `application.rb:14-17` — the header comment documents the Caddy
   `on_demand_tls { ask ... }` config form
-- `README.md:73-89` ("Caddy Integration") documents `ask` as *the*
+- `README.md:73-89` ("Caddy Integration") documents `ask` as _the_
   integration method, with a full worked Caddyfile example
 - Zero references to `permission` anywhere in `apps/internal/acme/`
   (confirmed via repo-wide grep) — no migration started

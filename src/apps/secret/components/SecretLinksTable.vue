@@ -1,95 +1,94 @@
 <!-- src/apps/secret/components/SecretLinksTable.vue -->
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { InlineToast } from '@/shared/components/ui/notifications';
-import type { RecentSecretRecord } from '@/shared/composables/useRecentSecrets';
-import { computed, ref, onMounted, onBeforeUnmount, provide } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { InlineToast } from '@/shared/components/ui/notifications';
+  import type { RecentSecretRecord } from '@/shared/composables/useRecentSecrets';
+  import { computed, ref, onMounted, onBeforeUnmount, provide } from 'vue';
 
-import SecretLinksTableRow from './SecretLinksTableRow.vue';
+  import SecretLinksTableRow from './SecretLinksTableRow.vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-const props = defineProps<{
-  records: RecentSecretRecord[];
-  ariaLabelledBy?: string;
-}>();
+  const props = defineProps<{
+    records: RecentSecretRecord[];
+    ariaLabelledBy?: string;
+  }>();
 
-const emit = defineEmits<{
-  'update:memo': [id: string, memo: string];
-}>();
+  const emit = defineEmits<{
+    'update:memo': [id: string, memo: string];
+  }>();
 
-const handleUpdateMemo = (id: string, memo: string) => {
-  emit('update:memo', id, memo);
-};
+  const handleUpdateMemo = (id: string, memo: string) => {
+    emit('update:memo', id, memo);
+  };
 
-// Toast notification state
-const showToast = ref(false);
-const toastMessage = ref('');
-const refreshInterval = ref<number | null>(null);
-const lastRefreshed = ref(new Date());
+  // Toast notification state
+  const showToast = ref(false);
+  const toastMessage = ref('');
+  const refreshInterval = ref<number | null>(null);
+  const lastRefreshed = ref(new Date());
 
-// Trigger for child components to refresh
-const refreshTrigger = ref(0);
+  // Trigger for child components to refresh
+  const refreshTrigger = ref(0);
 
-// Provide the refresh trigger to child components
-provide('refreshTrigger', refreshTrigger);
+  // Provide the refresh trigger to child components
+  provide('refreshTrigger', refreshTrigger);
 
-const hasSecrets = computed(() => props.records.length > 0);
+  const hasSecrets = computed(() => props.records.length > 0);
 
-// Sort secrets by creation time (most recent first)
-const sortedSecrets = computed(() =>
-  [...props.records].sort(
-    (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-  )
-);
+  // Sort secrets by creation time (most recent first)
+  const sortedSecrets = computed(() =>
+    [...props.records].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+  );
 
-const handleCopy = () => {
-  // Copy feedback is now handled by the tooltip in SecretLinksTableRow
-};
+  const handleCopy = () => {
+    // Copy feedback is now handled by the tooltip in SecretLinksTableRow
+  };
 
-const handleBurn = (record: RecentSecretRecord) => {
-  // Here you would add logic to delete the message, e.g.,
-  // through a store or service call
-  void record; // Suppress unused variable warning until burn logic is implemented
-  toastMessage.value = t('web.secrets.messageDeleted');
-  showToast.value = true;
-  setTimeout(() => {
-    showToast.value = false;
-  }, 1500);
-};
+  const handleBurn = (record: RecentSecretRecord) => {
+    // Here you would add logic to delete the message, e.g.,
+    // through a store or service call
+    void record; // Suppress unused variable warning until burn logic is implemented
+    toastMessage.value = t('web.secrets.messageDeleted');
+    showToast.value = true;
+    setTimeout(() => {
+      showToast.value = false;
+    }, 1500);
+  };
 
-// Method to force refresh all statuses
-const refreshAllStatuses = async () => {
-  lastRefreshed.value = new Date();
-  // Increment the refresh trigger to notify all child components
-  refreshTrigger.value++;
-};
+  // Method to force refresh all statuses
+  const refreshAllStatuses = async () => {
+    lastRefreshed.value = new Date();
+    // Increment the refresh trigger to notify all child components
+    refreshTrigger.value++;
+  };
 
-// Set up the interval to update the "last refreshed" indicator
-onMounted(() => {
-  refreshInterval.value = window.setInterval(() => {
-    // Auto-refresh status every 5 minutes
-    refreshAllStatuses();
-  }, 300000); // Every 5 minutes
-});
+  // Set up the interval to update the "last refreshed" indicator
+  onMounted(() => {
+    refreshInterval.value = window.setInterval(() => {
+      // Auto-refresh status every 5 minutes
+      refreshAllStatuses();
+    }, 300000); // Every 5 minutes
+  });
 
-// Clean up
-onBeforeUnmount(() => {
-  if (refreshInterval.value) {
-    clearInterval(refreshInterval.value);
-  }
-});
+  // Clean up
+  onBeforeUnmount(() => {
+    if (refreshInterval.value) {
+      clearInterval(refreshInterval.value);
+    }
+  });
 </script>
 
 <template>
-  <div class="mt-6" role="group">
+  <div
+    class="mt-6"
+    role="group">
     <!-- No secrets state -->
     <div
       v-if="!hasSecrets"
-      class="flex flex-col items-center justify-center rounded-xl border border-gray-200
-        bg-gray-50/50 py-10 dark:border-gray-700/50 dark:bg-slate-800/20"
+      class="flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-gray-50/50 py-10 dark:border-gray-700/50 dark:bg-slate-800/20"
       role="status">
       <OIcon
         collection="heroicons"
@@ -104,12 +103,13 @@ onBeforeUnmount(() => {
     <!-- Timeline list with secrets -->
     <div
       v-else
-      class="flow-root rounded-lg border border-gray-200/60 bg-white/60 p-4 shadow-sm backdrop-blur-sm
-        dark:border-gray-700/60 dark:bg-gray-800/60 sm:p-6"
+      class="flow-root rounded-lg border border-gray-200/60 bg-white/60 p-4 shadow-sm backdrop-blur-sm sm:p-6 dark:border-gray-700/60 dark:bg-gray-800/60"
       :aria-labelledby="ariaLabelledBy">
       <span class="sr-only">{{ t('web.LABELS.caption_recent_secrets') }}</span>
 
-      <ul role="list" class="-mb-2">
+      <ul
+        role="list"
+        class="-mb-2">
         <SecretLinksTableRow
           v-for="(record, idx) in sortedSecrets"
           :key="record.id"

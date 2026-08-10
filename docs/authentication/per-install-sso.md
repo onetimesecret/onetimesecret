@@ -12,16 +12,17 @@ SSO enables authentication through external identity providers. Users authentica
 
 Two integration patterns are available:
 
-| Pattern | When to use | Env var prefix |
-|---------|------------|----------------|
-| **Generic OIDC** | Customer runs their own IdP (Zitadel, Keycloak, Auth0, Okta) | `OIDC_*` |
-| **Provider-specific** | Direct integration with a specific service | `ENTRA_*`, `GOOGLE_*`, `GITHUB_*` |
+| Pattern               | When to use                                                  | Env var prefix                    |
+| --------------------- | ------------------------------------------------------------ | --------------------------------- |
+| **Generic OIDC**      | Customer runs their own IdP (Zitadel, Keycloak, Auth0, Okta) | `OIDC_*`                          |
+| **Provider-specific** | Direct integration with a specific service                   | `ENTRA_*`, `GOOGLE_*`, `GITHUB_*` |
 
 Generic OIDC uses the `/.well-known/openid-configuration` discovery document. Provider-specific gems handle OAuth quirks (tenant models, non-standard scopes, token formats) so the operator doesn't have to.
 
 Multiple providers can be active simultaneously. Each provider that has its required env vars set will register automatically at boot. The frontend renders one button per configured provider.
 
 **Requirements:**
+
 - `AUTHENTICATION_MODE=full`
 - SQL database with migrations applied
 - At least one provider's credentials configured
@@ -56,58 +57,58 @@ Providers load automatically when `AUTH_SSO_ENABLED=true` and their required env
 
 ### Global
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `AUTH_SSO_ENABLED` | Yes | `true` to enable SSO |
-| `SSO_DISPLAY_NAME` | No | Default button label for generic OIDC (e.g., "Company SSO") |
-| `ALLOWED_SIGNUP_DOMAIN` | No | Comma-separated allowed email domains for SSO signup |
-| `SSO_FORM_ACTION_ORIGINS` | No | Space-separated extra origins added to the CSP `form-action` directive so Chromium does not block the SSO form-POST redirect (see [Troubleshooting](#sso-login-blocked-on-chromium-family-browsers-csp-form-action)) |
+| Variable                  | Required | Description                                                                                                                                                                                                          |
+| ------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AUTH_SSO_ENABLED`        | Yes      | `true` to enable SSO                                                                                                                                                                                                 |
+| `SSO_DISPLAY_NAME`        | No       | Default button label for generic OIDC (e.g., "Company SSO")                                                                                                                                                          |
+| `ALLOWED_SIGNUP_DOMAIN`   | No       | Comma-separated allowed email domains for SSO signup                                                                                                                                                                 |
+| `SSO_FORM_ACTION_ORIGINS` | No       | Space-separated extra origins added to the CSP `form-action` directive so Chromium does not block the SSO form-POST redirect (see [Troubleshooting](#sso-login-blocked-on-chromium-family-browsers-csp-form-action)) |
 
 ### Generic OIDC
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `OIDC_ISSUER` | Yes | Issuer URL (must serve `/.well-known/openid-configuration`) |
-| `OIDC_CLIENT_ID` | Yes | OAuth client ID |
-| `OIDC_CLIENT_SECRET` | No | OAuth client secret (empty for PKCE-only flows) |
-| `OIDC_ROUTE_NAME` | No | URL segment (default: `oidc`) |
+| Variable             | Required | Description                                                 |
+| -------------------- | -------- | ----------------------------------------------------------- |
+| `OIDC_ISSUER`        | Yes      | Issuer URL (must serve `/.well-known/openid-configuration`) |
+| `OIDC_CLIENT_ID`     | Yes      | OAuth client ID                                             |
+| `OIDC_CLIENT_SECRET` | No       | OAuth client secret (empty for PKCE-only flows)             |
+| `OIDC_ROUTE_NAME`    | No       | URL segment (default: `oidc`)                               |
 
 ### Microsoft Entra ID
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `ENTRA_TENANT_ID` | Yes | Directory (tenant) ID from Azure portal |
-| `ENTRA_CLIENT_ID` | Yes | Application (client) ID |
-| `ENTRA_CLIENT_SECRET` | Yes | Client secret value (not the secret ID) |
-| `ENTRA_ROUTE_NAME` | No | URL segment (default: `entra`) |
-| `ENTRA_DISPLAY_NAME` | No | Button label (default: `Microsoft`) |
+| Variable              | Required | Description                             |
+| --------------------- | -------- | --------------------------------------- |
+| `ENTRA_TENANT_ID`     | Yes      | Directory (tenant) ID from Azure portal |
+| `ENTRA_CLIENT_ID`     | Yes      | Application (client) ID                 |
+| `ENTRA_CLIENT_SECRET` | Yes      | Client secret value (not the secret ID) |
+| `ENTRA_ROUTE_NAME`    | No       | URL segment (default: `entra`)          |
+| `ENTRA_DISPLAY_NAME`  | No       | Button label (default: `Microsoft`)     |
 
 ### Google
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `GOOGLE_CLIENT_ID` | Yes | OAuth 2.0 client ID |
-| `GOOGLE_CLIENT_SECRET` | Yes | OAuth 2.0 client secret |
-| `GOOGLE_ROUTE_NAME` | No | URL segment (default: `google`) |
-| `GOOGLE_DISPLAY_NAME` | No | Button label (default: `Google`) |
+| Variable               | Required | Description                      |
+| ---------------------- | -------- | -------------------------------- |
+| `GOOGLE_CLIENT_ID`     | Yes      | OAuth 2.0 client ID              |
+| `GOOGLE_CLIENT_SECRET` | Yes      | OAuth 2.0 client secret          |
+| `GOOGLE_ROUTE_NAME`    | No       | URL segment (default: `google`)  |
+| `GOOGLE_DISPLAY_NAME`  | No       | Button label (default: `Google`) |
 
 ### GitHub
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `GITHUB_CLIENT_ID` | Yes | OAuth App client ID |
-| `GITHUB_CLIENT_SECRET` | Yes | OAuth App client secret |
-| `GITHUB_ROUTE_NAME` | No | URL segment (default: `github`) |
-| `GITHUB_DISPLAY_NAME` | No | Button label (default: `GitHub`) |
+| Variable               | Required | Description                      |
+| ---------------------- | -------- | -------------------------------- |
+| `GITHUB_CLIENT_ID`     | Yes      | OAuth App client ID              |
+| `GITHUB_CLIENT_SECRET` | Yes      | OAuth App client secret          |
+| `GITHUB_ROUTE_NAME`    | No       | URL segment (default: `github`)  |
+| `GITHUB_DISPLAY_NAME`  | No       | Button label (default: `GitHub`) |
 
 ## Routes
 
 Each configured provider registers two routes:
 
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/auth/sso/{provider}` | Initiates SSO flow |
-| GET | `/auth/sso/{provider}/callback` | Receives IdP response |
+| Method | Path                            | Description           |
+| ------ | ------------------------------- | --------------------- |
+| POST   | `/auth/sso/{provider}`          | Initiates SSO flow    |
+| GET    | `/auth/sso/{provider}/callback` | Receives IdP response |
 
 Where `{provider}` is the route name (`oidc`, `entra`, `google`, `github`, or custom).
 
@@ -154,7 +155,7 @@ All hooks (`account_from_omniauth`, `before_omniauth_create_account`, etc.) are 
 
 ## Behavior
 
-**Account Matching:** By linked identity first — the `(provider, uid)` pair in `account_identities`. If that identity is already linked, the user is signed into its account. If the identity is *not* linked but the IdP email matches an existing account, the default is to **refuse** auto-linking (email may locate an account, but only a demonstrated credential may bind an identity to it). Three paths relax that refusal without weakening the invariant: a password-holding account is offered a **sign-in interstitial** to prove its existing password (on by default — see [Sign-in interstitial](#sign-in-interstitial-password-challenge-linking)); a **passwordless** account is offered **mailbox-proof linking** — a single-use link emailed to its on-file address (on by default, platform surface — see [Mailbox-proof linking](#mailbox-proof-linking-passwordless-accounts)); and an operator can opt a trusted IdP into email auto-linking (see [Identity Linking and the Trusted-IdP Flag](#identity-linking-and-the-trusted-idp-flag)). A signed-in user can also link an identity deliberately, without any email involvement, from [Connected Identities](#connected-identities-authenticated-linking-from-account-settings) in account settings.
+**Account Matching:** By linked identity first — the `(provider, uid)` pair in `account_identities`. If that identity is already linked, the user is signed into its account. If the identity is _not_ linked but the IdP email matches an existing account, the default is to **refuse** auto-linking (email may locate an account, but only a demonstrated credential may bind an identity to it). Three paths relax that refusal without weakening the invariant: a password-holding account is offered a **sign-in interstitial** to prove its existing password (on by default — see [Sign-in interstitial](#sign-in-interstitial-password-challenge-linking)); a **passwordless** account is offered **mailbox-proof linking** — a single-use link emailed to its on-file address (on by default, platform surface — see [Mailbox-proof linking](#mailbox-proof-linking-passwordless-accounts)); and an operator can opt a trusted IdP into email auto-linking (see [Identity Linking and the Trusted-IdP Flag](#identity-linking-and-the-trusted-idp-flag)). A signed-in user can also link an identity deliberately, without any email involvement, from [Connected Identities](#connected-identities-authenticated-linking-from-account-settings) in account settings.
 
 **Account Creation:** Automatic for unrecognized emails. Creates Customer record and default workspace.
 
@@ -170,13 +171,13 @@ All hooks (`account_from_omniauth`, `before_omniauth_create_account`, etc.) are 
 
 An email claim may **locate** an account; only a **demonstrated credential** may **bind** an identity to it. Email is metadata, not an identity join key.
 
-Concretely: an SSO login is identified by the `(provider, uid)` pair recorded in `account_identities`. When that pair is already linked, the user is signed into the linked account. When it is *not* linked, but the IdP-supplied email happens to match an existing account, the default behavior is to **refuse** — because anyone who controls the IdP can mint a token bearing any victim's email address. Auto-linking on email alone would let such a token take over the matching account. The refusal is logged as `omniauth_link_refused_existing_account` (level `warn`) and the user is redirected to `/signin?auth_error=account_exists_link_required` with a flash telling them to sign in with their existing method.
+Concretely: an SSO login is identified by the `(provider, uid)` pair recorded in `account_identities`. When that pair is already linked, the user is signed into the linked account. When it is _not_ linked, but the IdP-supplied email happens to match an existing account, the default behavior is to **refuse** — because anyone who controls the IdP can mint a token bearing any victim's email address. Auto-linking on email alone would let such a token take over the matching account. The refusal is logged as `omniauth_link_refused_existing_account` (level `warn`) and the user is redirected to `/signin?auth_error=account_exists_link_required` with a flash telling them to sign in with their existing method.
 
-This is the correct default for a multi-tenant platform. It is *not* what a self-hosted single-tenant operator wants when they control both the app and the IdP — for them, email is a trustworthy join key, and the refusal locks legitimate users out. The trusted-IdP flag is the sanctioned, opt-in exception.
+This is the correct default for a multi-tenant platform. It is _not_ what a self-hosted single-tenant operator wants when they control both the app and the IdP — for them, email is a trustworthy join key, and the refusal locks legitimate users out. The trusted-IdP flag is the sanctioned, opt-in exception.
 
 ### Connected Identities: authenticated linking from account settings
 
-The invariant says a *demonstrated credential* is what binds an identity. The cleanest such credential is one the user has **already** demonstrated: an active, authenticated session. So the primary way to attach an SSO identity to an existing account is not a callback heuristic at all — it is a deliberate action the signed-in user takes from **Security settings → Connected identities** (`/account/settings/security/connections`, `src/apps/workspace/account/ConnectedIdentities.vue`).
+The invariant says a _demonstrated credential_ is what binds an identity. The cleanest such credential is one the user has **already** demonstrated: an active, authenticated session. So the primary way to attach an SSO identity to an existing account is not a callback heuristic at all — it is a deliberate action the signed-in user takes from **Security settings → Connected identities** (`/account/settings/security/connections`, `src/apps/workspace/account/ConnectedIdentities.vue`).
 
 This is the surface the other paths point at: the H-3 refusal flash names it, and the interstitial and mailbox-proof flows send `link_expired` / `link_conflict` here rather than re-minting a token.
 
@@ -207,42 +208,42 @@ Back to /account/settings/security/connections
 
 #### Two signals are required to bind, not one
 
-`logged_in?` alone is **not** connect intent. Tabs share cookies, so an ordinary second-tab or shared-browser SSO *sign-in* arriving on an already-authenticated session would otherwise be routed through the bind path and permanently attach the arriving IdP identity to whoever happens to be signed in. Binding therefore requires **both**:
+`logged_in?` alone is **not** connect intent. Tabs share cookies, so an ordinary second-tab or shared-browser SSO _sign-in_ arriving on an already-authenticated session would otherwise be routed through the bind path and permanently attach the arriving IdP identity to whoever happens to be signed in. Binding therefore requires **both**:
 
 1. an authenticated session (`session_value`), and
 2. an **account-bound connect intent** established at initiation.
 
-The division of labour: OAuth `state`/CSRF proves *"this browser initiated a request"*; the intent nonce proves *"this browser initiated a **connect** for **this account**"*.
+The division of labour: OAuth `state`/CSRF proves _"this browser initiated a request"_; the intent nonce proves _"this browser initiated a **connect** for **this account**"_.
 
 #### The connect-intent nonce (#3859)
 
-| Property | Behavior |
-|----------|----------|
-| Written | `omniauth_request_validation_phase` (`config/hooks/omniauth.rb`), during `POST /auth/sso/:provider`, only when a logged-in caller submits `connect=1` |
-| Stored as | `sidecar:<sid>:sso_connect_intent` = the **session account id** (not a bare boolean), short TTL (~5 min — one IdP round-trip) |
-| Consumed | Atomic GETDEL in `account_from_omniauth`, before any email-based branch |
-| Binds when | The consumed value equals the *current* session account id |
+| Property          | Behavior                                                                                                                                                                                         |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Written           | `omniauth_request_validation_phase` (`config/hooks/omniauth.rb`), during `POST /auth/sso/:provider`, only when a logged-in caller submits `connect=1`                                            |
+| Stored as         | `sidecar:<sid>:sso_connect_intent` = the **session account id** (not a bare boolean), short TTL (~5 min — one IdP round-trip)                                                                    |
+| Consumed          | Atomic GETDEL in `account_from_omniauth`, before any email-based branch                                                                                                                          |
+| Binds when        | The consumed value equals the _current_ session account id                                                                                                                                       |
 | Abandoned connect | Needs no cleanup — the key expires. Additionally, any **non**-connect SSO initiation deletes a dangling intent, so a later plain `connect=0` callback can never consume one that is still in TTL |
-| Failure mode | Fail-closed — a failed write or a miss means no intent, and no intent means no bind |
+| Failure mode      | Fail-closed — a failed write or a miss means no intent, and no intent means no bind                                                                                                              |
 
-It is a sidecar key rather than a field in the session blob on purpose. A blob-resident nonce was only ever cleared at the callback, so an abandoned connect (user cancels at the IdP, the IdP errors, the tab closes) left it live for the *next* callback on that session — even a plain sign-in — to consume and bind on, which is exactly the shared-browser bind the nonce exists to prevent. Blob copies written by pre-#3859 code are discarded unconsumed.
+It is a sidecar key rather than a field in the session blob on purpose. A blob-resident nonce was only ever cleared at the callback, so an abandoned connect (user cancels at the IdP, the IdP errors, the tab closes) left it live for the _next_ callback on that session — even a plain sign-in — to consume and bind on, which is exactly the shared-browser bind the nonce exists to prevent. Blob copies written by pre-#3859 code are discarded unconsumed.
 
 #### Email plays no part in the decision
 
 The connect branch is evaluated **first** — ahead of the trusted-provider auto-link and the H-3 refusal — because a proven session credential outranks the email-only heuristics those branches rely on. Within it, the account is loaded **by session id** (`_account_from_session`, which also applies the open-status filter), never by email. The IdP-supplied email appears only in the audit event, obscured.
 
-That ordering is the point: matching a connect to an email-*located* account would be the pre-account-hijacking anti-pattern — an attacker who controls an IdP that emits a victim's email would be routed to the victim's account. Routing by session leaves the victim untouched no matter what the IdP claims.
+That ordering is the point: matching a connect to an email-_located_ account would be the pre-account-hijacking anti-pattern — an attacker who controls an IdP that emits a victim's email would be routed to the victim's account. Routing by session leaves the victim untouched no matter what the IdP claims.
 
 "Already linked elsewhere" cannot arise on this path: an existing `(provider, issuer, uid)` row routes the gem to `account_from_omniauth_identity` instead, so this hook is only ever reached for a **new** identity.
 
 #### Refusals
 
-| Condition | Outcome | Audit event |
-|-----------|---------|-------------|
-| Tenant callback (`validated_omniauth_domain_id` set) on a platform session | Redirect `/signin?auth_error=identity_connect_conflict` | `omniauth_identity_connect_refused`, reason `tenant_surface` |
-| Session account gone or no longer open (e.g. closed mid-session) | Redirect `/signin?auth_error=identity_connect_conflict` | `omniauth_identity_connect_refused`, reason `session_account_missing` |
-| Logged in, but no valid intent (second tab, shared browser, intent for a different account) | **No bind** — falls through to the email branches exactly as an unauthenticated caller would | `omniauth_connect_intent_absent` (level `info`) |
-| Bind succeeds | `(provider, issuer, uid)` row written for the session account; session re-affirmed | `omniauth_identity_connected` (level `warn`) |
+| Condition                                                                                   | Outcome                                                                                      | Audit event                                                           |
+| ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Tenant callback (`validated_omniauth_domain_id` set) on a platform session                  | Redirect `/signin?auth_error=identity_connect_conflict`                                      | `omniauth_identity_connect_refused`, reason `tenant_surface`          |
+| Session account gone or no longer open (e.g. closed mid-session)                            | Redirect `/signin?auth_error=identity_connect_conflict`                                      | `omniauth_identity_connect_refused`, reason `session_account_missing` |
+| Logged in, but no valid intent (second tab, shared browser, intent for a different account) | **No bind** — falls through to the email branches exactly as an unauthenticated caller would | `omniauth_connect_intent_absent` (level `info`)                       |
+| Bind succeeds                                                                               | `(provider, issuer, uid)` row written for the session account; session re-affirmed           | `omniauth_identity_connected` (level `warn`)                          |
 
 Refusing rather than falling back matters in the first row: a tenant admin controls their own IdP's assertions, so binding a tenant-issuer identity onto a platform-session account would hand them a login into that account.
 
@@ -250,14 +251,14 @@ Refusing rather than falling back matters in the first row: a tenant admin contr
 
 `apps/web/auth/routes/identities.rb`, mirroring `routes/active_sessions.rb`:
 
-| Endpoint | Purpose | Response |
-|----------|---------|----------|
-| `GET /auth/identities` | List the current account's identities | `{ identities: [{ id, provider, issuer, uid }] }` — `uid` is masked (`abcd…wxyz`, or `***` when ≤ 8 chars); the row `id` is the delete handle, so the full `sub` is never sent to the client. No `created_at`: migrations 006/008 do not add one. |
-| `DELETE /auth/identities/:id` | Remove one identity | `200 { success }`; `404` unknown/not-yours; `409 { error_code: "last_credential" }`; `401` unauthenticated |
+| Endpoint                      | Purpose                               | Response                                                                                                                                                                                                                                          |
+| ----------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /auth/identities`        | List the current account's identities | `{ identities: [{ id, provider, issuer, uid }] }` — `uid` is masked (`abcd…wxyz`, or `***` when ≤ 8 chars); the row `id` is the delete handle, so the full `sub` is never sent to the client. No `created_at`: migrations 006/008 do not add one. |
+| `DELETE /auth/identities/:id` | Remove one identity                   | `200 { success }`; `404` unknown/not-yours; `409 { error_code: "last_credential" }`; `401` unauthenticated                                                                                                                                        |
 
 **No IDOR by construction.** Every query derives from one dataset pinned to `account_id = rodauth.session_value`, and the dataset is never widened. A cross-account id filters to zero rows and yields `404` — never a delete of someone else's identity. The `:id` segment is an integer matcher, so a non-numeric segment falls through to the router's 404.
 
-**Last-credential guard.** An SSO-only account (no usable password) may not remove its **final** identity — that would lock it out. Accounts that have a password may remove identities freely. The existence check, the guard, and the delete run in **one transaction** with an account-scoped row lock (`for_update.all`), closing a TOCTOU where two concurrent DELETEs for *different* ids of the same SSO-only account could each observe two rows, both pass the guard, and strip every sign-in method. Note the shape: materialize the locked rows and count in Ruby — `identities_ds.for_update.count` emits `SELECT count(*) … FOR UPDATE`, which PostgreSQL rejects. Removals are logged (`SSO identity disconnected`, level `warn`).
+**Last-credential guard.** An SSO-only account (no usable password) may not remove its **final** identity — that would lock it out. Accounts that have a password may remove identities freely. The existence check, the guard, and the delete run in **one transaction** with an account-scoped row lock (`for_update.all`), closing a TOCTOU where two concurrent DELETEs for _different_ ids of the same SSO-only account could each observe two rows, both pass the guard, and strip every sign-in method. Note the shape: materialize the locked rows and count in Ruby — `identities_ds.for_update.count` emits `SELECT count(*) … FOR UPDATE`, which PostgreSQL rejects. Removals are logged (`SSO identity disconnected`, level `warn`).
 
 **Issuer column.** Binds on this path go through the same `(provider, issuer, uid)` shape as the callback, with `issuer` coerced to the `''` sentinel rather than `NULL` so it matches the issuer-scoped unique index (see migration `008_issuer_scoped_identities.rb`).
 
@@ -267,33 +268,33 @@ The panel connects identities on the **platform** surface only. Authenticated li
 
 ### Sign-in interstitial (password-challenge linking)
 
-The refusal is the *right* default, but for one common case it is unnecessarily blunt: a user who already has a **password** account and now signs in through SSO for the first time. That user *can* demonstrate a credential — their existing password — so instead of dead-ending them, the callback offers a **sign-in interstitial** that collects and verifies that password before binding the identity. This keeps the invariant intact: email still only *locates* the account; the existing password is the credential that *binds*.
+The refusal is the _right_ default, but for one common case it is unnecessarily blunt: a user who already has a **password** account and now signs in through SSO for the first time. That user _can_ demonstrate a credential — their existing password — so instead of dead-ending them, the callback offers a **sign-in interstitial** that collects and verifies that password before binding the identity. This keeps the invariant intact: email still only _locates_ the account; the existing password is the credential that _binds_.
 
 This path needs no operator configuration. It is on by default and is the platform-surface recovery for a password user's first SSO sign-in (the counterpart to the authenticated [Connected Identities panel](#connected-identities-authenticated-linking-from-account-settings), which serves users who signed in with their password first).
 
 **What happens (unauthenticated callback, existing account, identity not linked, trust flag off):**
 
-1. `account_from_omniauth` looks up the located account's password hash directly (it cannot use `has_password?`, which reads the *session* account and there is no session yet on this path).
+1. `account_from_omniauth` looks up the located account's password hash directly (it cannot use `has_password?`, which reads the _session_ account and there is no session yet on this path).
 2. **Account has a password →** it mints a single-use `Onetime::SsoLinkChallenge` in Redis — a short-lived (5 min) token snapshotting `(provider, resolved_issuer, uid, normalized email, account id)` — logs `omniauth_link_challenge_issued` (level `warn`), and redirects the browser to the SPA interstitial at `/link-sso/{token}`.
 3. **Account has no password (SSO-only) →** unchanged H-3 refusal (`omniauth_link_refused_existing_account`, redirect to `/signin?auth_error=account_exists_link_required`). There is no credential to challenge.
 
 **The interstitial endpoints** (`apps/web/auth/routes/link_sso.rb`):
 
-| Endpoint | Purpose | Response |
-|----------|---------|----------|
-| `GET /auth/link-sso/{token}` | Display context for the page | `{ provider, email }` — display only; never the account id, uid, or issuer. Missing/consumed/expired token → `404 { error, error_code: "link_expired" }`. |
-| `POST /auth/link-sso` | Verify password, bind identity, log in | Body `{ token, password }`. Success establishes the session and returns Rodauth's standard login JSON response (`200 { success, … }`, plus `mfa_required`/`billing_redirect` when applicable). Failures return `{ error, error_code }` (see below). |
+| Endpoint                     | Purpose                                | Response                                                                                                                                                                                                                                            |
+| ---------------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /auth/link-sso/{token}` | Display context for the page           | `{ provider, email }` — display only; never the account id, uid, or issuer. Missing/consumed/expired token → `404 { error, error_code: "link_expired" }`.                                                                                           |
+| `POST /auth/link-sso`        | Verify password, bind identity, log in | Body `{ token, password }`. Success establishes the session and returns Rodauth's standard login JSON response (`200 { success, … }`, plus `mfa_required`/`billing_redirect` when applicable). Failures return `{ error, error_code }` (see below). |
 
 **POST error codes** (the SPA maps these to copy and, for `link_expired`/`link_conflict`, the account-settings connections pointer `/account/settings/security/connections`):
 
-| Status | `error_code` | Meaning |
-|--------|--------------|---------|
-| 400 | `invalid_request` | token or password missing |
-| 401 | `link_expired` | token missing / already consumed / expired, or the located account vanished |
-| 401 | `invalid_password` | the existing password did not verify |
-| 409 | `link_conflict` | the email now resolves to a different account than the one snapshotted at mint |
+| Status | `error_code`       | Meaning                                                                        |
+| ------ | ------------------ | ------------------------------------------------------------------------------ |
+| 400    | `invalid_request`  | token or password missing                                                      |
+| 401    | `link_expired`     | token missing / already consumed / expired, or the located account vanished    |
+| 401    | `invalid_password` | the existing password did not verify                                           |
+| 409    | `link_conflict`    | the email now resolves to a different account than the one snapshotted at mint |
 
-**Why the token is single-use (security-load-bearing).** `POST /auth/link-sso` **deletes** the challenge up front — before it even checks the password — so a token is worth exactly **one** attempt. This is deliberate: password verification runs through `Auth::Config.valid_login_and_password?`, a Rodauth *internal request* that does **not** go through the login route and therefore does **not** increment lockout counters. Without one-shot consumption, a token minted by an attacker who completed an SSO round-trip asserting a victim's email would be an unbounded (TTL-window) password-guessing oracle with no lockout. One-shot consumption bounds it to a single guess per full IdP round-trip. The 5-minute TTL bounds abandoned challenges. On a wrong password the user must restart the SSO sign-in — a deliberate trade of a small amount of retry convenience for closing the oracle.
+**Why the token is single-use (security-load-bearing).** `POST /auth/link-sso` **deletes** the challenge up front — before it even checks the password — so a token is worth exactly **one** attempt. This is deliberate: password verification runs through `Auth::Config.valid_login_and_password?`, a Rodauth _internal request_ that does **not** go through the login route and therefore does **not** increment lockout counters. Without one-shot consumption, a token minted by an attacker who completed an SSO round-trip asserting a victim's email would be an unbounded (TTL-window) password-guessing oracle with no lockout. One-shot consumption bounds it to a single guess per full IdP round-trip. The 5-minute TTL bounds abandoned challenges. On a wrong password the user must restart the SSO sign-in — a deliberate trade of a small amount of retry convenience for closing the oracle.
 
 **Session establishment reuses Rodauth's own machinery.** On a correct password the handler binds the `(provider, issuer, uid)` row (same shape as `omniauth_identity_insert_hash`) and then calls `rodauth.login('password')` rather than hand-rolling the session. That runs the normal `after_login` path — the Redis session blob via `SyncSession` (the real app auth gate), `active_sessions` registration, and MFA detection — so a password account that has OTP configured still gets the MFA gate, exactly as a direct `/auth/login` would.
 
@@ -301,43 +302,43 @@ This path needs no operator configuration. It is on by default and is the platfo
 
 ### Mailbox-proof linking (passwordless accounts)
 
-The sign-in interstitial above proves ownership with the account's **existing password**. That leaves one case: a **passwordless** account (SSO-only, or migrated without a local password) whose owner now signs in through a *new* SSO identity. There is no password to challenge — but that account can still prove ownership the same way magic-link (email_auth) does: **control of its on-file mailbox.** So instead of dead-ending at the H-3 refusal, the callback **emails a single-use link to the account's on-file address**, and binding the `(provider, issuer, uid)` identity happens only when the user clicks it and confirms. Mailbox control is the demonstrated credential; the invariant holds.
+The sign-in interstitial above proves ownership with the account's **existing password**. That leaves one case: a **passwordless** account (SSO-only, or migrated without a local password) whose owner now signs in through a _new_ SSO identity. There is no password to challenge — but that account can still prove ownership the same way magic-link (email_auth) does: **control of its on-file mailbox.** So instead of dead-ending at the H-3 refusal, the callback **emails a single-use link to the account's on-file address**, and binding the `(provider, issuer, uid)` identity happens only when the user clicks it and confirms. Mailbox control is the demonstrated credential; the invariant holds.
 
-**The token travels only through the email — never the callback redirect.** The proof is mailbox control, so the callback redirects the browser to a **token-less** notice (`/signin?auth_notice=link_verification_sent`) and delivers the token *solely* to the on-file inbox. A caller who merely completed an SSO round-trip asserting the victim's email therefore never learns the token and cannot self-consume it.
+**The token travels only through the email — never the callback redirect.** The proof is mailbox control, so the callback redirects the browser to a **token-less** notice (`/signin?auth_notice=link_verification_sent`) and delivers the token _solely_ to the on-file inbox. A caller who merely completed an SSO round-trip asserting the victim's email therefore never learns the token and cannot self-consume it.
 
 **What happens (unauthenticated callback, existing passwordless account, identity not linked, trust flag off, platform surface):**
 
 1. `account_from_omniauth` finds no challengeable password for the located account (Phase 3's SQL + Redis-migration probe both come up empty).
 2. It mints a single-use `Onetime::SsoLinkVerification` in Redis — a short-lived (15 min) token snapshotting `(provider, resolved_issuer, uid, normalized email, account id, initiating session id, password watermark)`.
-3. It emails the token to the account's **on-file address** (`fallback: :sync`, auth-critical), logs `sso_link_verification_issued` (level `warn`), and redirects to the token-less notice. If mail delivery *raises*, the token is consumed and the flow falls through to the H-3 refusal — the user is never told to check an inbox that got no mail (fail closed).
+3. It emails the token to the account's **on-file address** (`fallback: :sync`, auth-critical), logs `sso_link_verification_issued` (level `warn`), and redirects to the token-less notice. If mail delivery _raises_, the token is consumed and the flow falls through to the H-3 refusal — the user is never told to check an inbox that got no mail (fail closed).
 
 **Consent screen + confirm endpoints** (`apps/web/auth/routes/sso_link_confirm.rb`):
 
-| Endpoint | Purpose | Response |
-|----------|---------|----------|
-| `GET /auth/sso-link-confirm/{token}` | Consent display context | `{ provider, email }` — names the requesting provider and echoes the claimed email; never the account id, uid, issuer, sid, or watermark. **Never consumes the token.** Missing/consumed/expired token → `404 { error, error_code: "link_expired" }`. |
-| `POST /auth/sso-link-confirm` | Consume token, bind identity, log in | Body `{ token }`. Success establishes the session and returns Rodauth's standard login JSON response (`200 { success, … }`, or `mfa_required` when a second factor is pending). Failures return `{ error, error_code }` (see below). |
+| Endpoint                             | Purpose                              | Response                                                                                                                                                                                                                                              |
+| ------------------------------------ | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /auth/sso-link-confirm/{token}` | Consent display context              | `{ provider, email }` — names the requesting provider and echoes the claimed email; never the account id, uid, issuer, sid, or watermark. **Never consumes the token.** Missing/consumed/expired token → `404 { error, error_code: "link_expired" }`. |
+| `POST /auth/sso-link-confirm`        | Consume token, bind identity, log in | Body `{ token }`. Success establishes the session and returns Rodauth's standard login JSON response (`200 { success, … }`, or `mfa_required` when a second factor is pending). Failures return `{ error, error_code }` (see below).                  |
 
-**Why GET is display-only and POST does the mutation.** The emailed link opens the SPA consent screen, which `GET`s the display context (the consent copy names the provider *and* the claimed email) and only mutates on an explicit user action — the `POST`. A GET must stay side-effect-free: mail clients and link-preview bots prefetch GET URLs, and a mutating GET would let such a prefetch silently consume the single-use token before the user ever consents.
+**Why GET is display-only and POST does the mutation.** The emailed link opens the SPA consent screen, which `GET`s the display context (the consent copy names the provider _and_ the claimed email) and only mutates on an explicit user action — the `POST`. A GET must stay side-effect-free: mail clients and link-preview bots prefetch GET URLs, and a mutating GET would let such a prefetch silently consume the single-use token before the user ever consents.
 
 **POST error codes:**
 
-| Status | `error_code` | Meaning |
-|--------|--------------|---------|
-| 400 | `invalid_request` | token missing from the POST body |
-| 401 | `link_expired` | token missing / already consumed / expired, or the snapshotted account vanished or is no longer loginable |
-| 409 | `link_conflict` | the account was re-emailed since issuance, or the `(provider, issuer, uid)` is already bound to a different account |
-| 409 | `link_invalidated` | a credential change advanced the account's password watermark since the token was issued |
+| Status | `error_code`       | Meaning                                                                                                             |
+| ------ | ------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| 400    | `invalid_request`  | token missing from the POST body                                                                                    |
+| 401    | `link_expired`     | token missing / already consumed / expired, or the snapshotted account vanished or is no longer loginable           |
+| 409    | `link_conflict`    | the account was re-emailed since issuance, or the `(provider, issuer, uid)` is already bound to a different account |
+| 409    | `link_invalidated` | a credential change advanced the account's password watermark since the token was issued                            |
 
 **Single-use, atomically consumed.** `POST /auth/sso-link-confirm` deletes the token up front (`#delete!` — the atomic single-use gate) before binding, so it is worth exactly one confirmation. Two concurrent confirmations race on the delete count; only the winner proceeds. The 15-minute TTL bounds abandoned tokens.
 
 **Invalidated on any credential change (watermark, not a sweep).** The token snapshots the account's `Customer#last_password_update` at issuance. Every password set/reset/change stamps that watermark (via `Auth::Operations::UpdatePasswordMetadata` in the `after_*_password` hooks). At confirm time the op re-reads the current watermark and rejects (`link_invalidated`) if it advanced. This is a comparison, not a token-enumeration sweep — no need to find and delete outstanding tokens on every credential change. (This is why the credential-change hooks needed no modification.)
 
-**Soft, cross-device session binding.** The token records the id of the session that *initiated* the SSO round-trip, but the check is **compare-and-warn, not a hard gate**: mailbox proof is inherently cross-device (the user may open the link on their phone). A sid mismatch is logged (`sso_link_verification_cross_device`, level `info`) and tolerated.
+**Soft, cross-device session binding.** The token records the id of the session that _initiated_ the SSO round-trip, but the check is **compare-and-warn, not a hard gate**: mailbox proof is inherently cross-device (the user may open the link on their phone). A sid mismatch is logged (`sso_link_verification_cross_device`, level `info`) and tolerated.
 
-**Confirm logs the user in.** The account is passwordless and clicking the emailed link proves mailbox control — the *same* proof magic-link uses to authenticate — so on success the confirm route establishes the session through Rodauth's own `login` machinery (`rodauth.login('sso_link_confirm')`), not a hand-rolled session. That runs the normal `after_login` path (Redis session blob via `SyncSession` — the real app auth gate — plus `active_sessions` registration and MFA detection). The user lands signed in and their newly linked SSO works next time.
+**Confirm logs the user in.** The account is passwordless and clicking the emailed link proves mailbox control — the _same_ proof magic-link uses to authenticate — so on success the confirm route establishes the session through Rodauth's own `login` machinery (`rodauth.login('sso_link_confirm')`), not a hand-rolled session. That runs the normal `after_login` path (Redis session blob via `SyncSession` — the real app auth gate — plus `active_sessions` registration and MFA detection). The user lands signed in and their newly linked SSO works next time.
 
-**MFA-safe bind, completed after the second factor.** SSO logins are MFA-exempt, so if the passwordless account has a pending second factor the identity bind is **deferred** rather than performed at confirm time — a pre-2FA bind would be an MFA-bypassing login path. The authorized bind is stashed by `Auth::Operations::DeferredSsoBind` in a short-TTL `SessionSidecar` key bound to the partial-MFA session's sid (#3858), the login proceeds to the OTP step (emitting `mfa_required`, logged as `sso_link_verification_deferred_mfa`), and `after_two_factor_authentication` (`config/hooks/mfa.rb`) completes the bind once the second factor succeeds — OTP *or* recovery code. Completion is single-use (atomic GETDEL at the store), account-bound, and audit-and-skip on conflict/mismatch (`sso_deferred_bind_completed`): MFA has already succeeded, so nothing on that path may fail the login. For a login that never went through a deferred branch the check is one Redis GETDEL and no DB access. Moot for default installs (MFA off), load-bearing for `AUTH_MFA_ENABLED` deployments. The password interstitial uses the same machinery (#3877/#3879).
+**MFA-safe bind, completed after the second factor.** SSO logins are MFA-exempt, so if the passwordless account has a pending second factor the identity bind is **deferred** rather than performed at confirm time — a pre-2FA bind would be an MFA-bypassing login path. The authorized bind is stashed by `Auth::Operations::DeferredSsoBind` in a short-TTL `SessionSidecar` key bound to the partial-MFA session's sid (#3858), the login proceeds to the OTP step (emitting `mfa_required`, logged as `sso_link_verification_deferred_mfa`), and `after_two_factor_authentication` (`config/hooks/mfa.rb`) completes the bind once the second factor succeeds — OTP _or_ recovery code. Completion is single-use (atomic GETDEL at the store), account-bound, and audit-and-skip on conflict/mismatch (`sso_deferred_bind_completed`): MFA has already succeeded, so nothing on that path may fail the login. For a login that never went through a deferred branch the check is one Redis GETDEL and no DB access. Moot for default installs (MFA off), load-bearing for `AUTH_MFA_ENABLED` deployments. The password interstitial uses the same machinery (#3877/#3879).
 
 **Platform-only.** Like the password interstitial, mailbox-proof linking is only offered on the platform callback path. A tenant admin controls their own IdP and could otherwise trigger link emails to arbitrary platform addresses, so tenant callbacks keep the unchanged H-3 refusal.
 
@@ -347,19 +348,19 @@ The sign-in interstitial above proves ownership with the account's **existing pa
 
 Per-provider environment variables, plus a global fallback. Default is **false** (refuse) in every case.
 
-| Variable | Applies to |
-|----------|-----------|
-| `OIDC_TRUST_EMAIL_FOR_LINKING` | Generic OIDC provider |
-| `ENTRA_TRUST_EMAIL_FOR_LINKING` | Microsoft Entra ID |
-| `GOOGLE_TRUST_EMAIL_FOR_LINKING` | Google |
-| `GITHUB_TRUST_EMAIL_FOR_LINKING` | GitHub |
-| `SSO_TRUST_EMAIL_FOR_LINKING` | Global fallback (deprecated single-OIDC default) |
+| Variable                         | Applies to                                       |
+| -------------------------------- | ------------------------------------------------ |
+| `OIDC_TRUST_EMAIL_FOR_LINKING`   | Generic OIDC provider                            |
+| `ENTRA_TRUST_EMAIL_FOR_LINKING`  | Microsoft Entra ID                               |
+| `GOOGLE_TRUST_EMAIL_FOR_LINKING` | Google                                           |
+| `GITHUB_TRUST_EMAIL_FOR_LINKING` | GitHub                                           |
+| `SSO_TRUST_EMAIL_FOR_LINKING`    | Global fallback (deprecated single-OIDC default) |
 
 Set the value to the string `true` to enable; anything else (or unset) is disabled. Precedence: a per-provider variable, **when present**, wins for that provider (`true` enables, any other value disables); otherwise the global `SSO_TRUST_EMAIL_FOR_LINKING=true` enables linking for every platform provider that has no per-provider override; otherwise the default of `false` applies.
 
-**Opting a single provider out of a global `true` requires an explicit `=false`, not omission.** With `SSO_TRUST_EMAIL_FOR_LINKING=true`, a provider whose `*_TRUST_EMAIL_FOR_LINKING` is simply left unset *inherits* the global `true` — it is not opted out. To disable linking for one provider while keeping the global default for the others, set that provider's variable explicitly, e.g. `GITHUB_TRUST_EMAIL_FOR_LINKING=false`. Setting **every** provider to `false` disables the feature entirely even with the global `true` still present.
+**Opting a single provider out of a global `true` requires an explicit `=false`, not omission.** With `SSO_TRUST_EMAIL_FOR_LINKING=true`, a provider whose `*_TRUST_EMAIL_FOR_LINKING` is simply left unset _inherits_ the global `true` — it is not opted out. To disable linking for one provider while keeping the global default for the others, set that provider's variable explicitly, e.g. `GITHUB_TRUST_EMAIL_FOR_LINKING=false`. Setting **every** provider to `false` disables the feature entirely even with the global `true` still present.
 
-**What it does when true:** for the matched provider, `account_from_omniauth` returns the account located by the (normalized, case-insensitive) email instead of refusing. `rodauth-omniauth` then persists the `(provider, uid)` row and signs the user in — the intended auto-link. The lookup surface is unchanged: it is the *same* normalized email H-3 already used, just no longer refused. Each such link emits an `omniauth_email_linked_trusted_provider` audit event at level `warn`, so linking-by-trust is always visible in the audit log.
+**What it does when true:** for the matched provider, `account_from_omniauth` returns the account located by the (normalized, case-insensitive) email instead of refusing. `rodauth-omniauth` then persists the `(provider, uid)` row and signs the user in — the intended auto-link. The lookup surface is unchanged: it is the _same_ normalized email H-3 already used, just no longer refused. Each such link emits an `omniauth_email_linked_trusted_provider` audit event at level `warn`, so linking-by-trust is always visible in the audit log.
 
 ### Threat-model caveat
 
@@ -371,7 +372,7 @@ Why: whoever controls the IdP can mint a token bearing **any** victim's email. T
 
 The flag affects **only** the platform (environment-configured) SSO provider path. It has no effect on per-domain tenant SSO (`CustomDomain::SsoConfig`). This is enforced structurally, not by a second check: the tenant callback path sets `session[:validated_omniauth_domain_id]`, and the linking branch only runs when that value is `nil`. Tenant callbacks therefore never reach the trusted-linking branch, regardless of how the flag is set.
 
-Because the flag looks like it might apply to tenants but cannot, the boot initializer `CheckTenantSsoTrust` emits a **WARN** (via the auth logger) when the flag is enabled *and* at least one `CustomDomain::SsoConfig` record exists — a signal that an operator may believe they enabled cross-IdP email linking for tenants when they have not. The guard is **non-fatal by design**: production runs live tenant SSO configs alongside a large account base, and a fatal guard would brick those deploys. A clean install with the flag off boots silently.
+Because the flag looks like it might apply to tenants but cannot, the boot initializer `CheckTenantSsoTrust` emits a **WARN** (via the auth logger) when the flag is enabled _and_ at least one `CustomDomain::SsoConfig` record exists — a signal that an operator may believe they enabled cross-IdP email linking for tenants when they have not. The guard is **non-fatal by design**: production runs live tenant SSO configs alongside a large account base, and a fatal guard would brick those deploys. A clean install with the flag off boots silently.
 
 ### Documented bypass: domain validation is skipped on the auto-link path
 
@@ -439,6 +440,7 @@ Uses the `omniauth-entra-id` gem. Handles Microsoft's tenant model and token for
 5. Click **Register**
 
 Get the values:
+
 - **Application (client) ID** → `ENTRA_CLIENT_ID`
 - **Directory (tenant) ID** → `ENTRA_TENANT_ID`
 - Certificates & secrets → New client secret → copy **Value** (not Secret ID) → `ENTRA_CLIENT_SECRET`
@@ -498,10 +500,10 @@ ALLOWED_SIGNUP_DOMAIN=company.com
 ALLOWED_SIGNUP_DOMAIN=company.com,subsidiary.com,partner.org
 ```
 
-| Configuration | Behavior |
-|--------------|----------|
-| Not set or empty | All domains allowed (default) |
-| Set | Only listed domains can create new accounts |
+| Configuration    | Behavior                                    |
+| ---------------- | ------------------------------------------- |
+| Not set or empty | All domains allowed (default)               |
+| Set              | Only listed domains can create new accounts |
 
 - Case-insensitive matching
 - Subdomains are NOT matched (`sub.company.com` does not match `company.com`)
@@ -520,10 +522,12 @@ The current implementation is install-time only — env vars set at deploy, read
 A self-serve path is architecturally possible for credential management. OmniAuth's `setup` phase allows a per-request lambda to override strategy options (client_id, client_secret, tenant_id) with values loaded from the database.
 
 **What can be self-serve:**
+
 - Credentials for an already-registered strategy type
 - Per-organization IdP settings
 
 **What cannot be self-serve:**
+
 - Adding new strategy gems (requires rebuild/redeploy)
 - Registering new strategy types (Rack middleware is assembled at boot)
 
@@ -544,7 +548,9 @@ CSRF protection for `/auth/sso/*` routes uses OAuth's state parameter, not form 
 For non-Vue integrations, a plain form POST works:
 
 ```html
-<form method="POST" action="/auth/sso/{provider}">
+<form
+  method="POST"
+  action="/auth/sso/{provider}">
   <button type="submit">Login with SSO</button>
 </form>
 ```
@@ -575,15 +581,16 @@ OmniAuth failure → omniauth_on_failure hook (logs to stderr + Auth::Logging)
     → Query param cleared from URL
 ```
 
-| `auth_error` Code | i18n Key | Meaning |
-|-------------------|----------|---------|
-| `sso_failed` | `web.login.errors.sso_failed` | General SSO failure |
+| `auth_error` Code | i18n Key                      | Meaning             |
+| ----------------- | ----------------------------- | ------------------- |
+| `sso_failed`      | `web.login.errors.sso_failed` | General SSO failure |
 
 ## Troubleshooting
 
 ### "Missing OIDC configuration" / "Missing Entra ID configuration"
 
 Check required env vars are set and non-empty:
+
 ```bash
 echo $OIDC_ISSUER $OIDC_CLIENT_ID    # for generic OIDC
 echo $ENTRA_TENANT_ID $ENTRA_CLIENT_ID $ENTRA_CLIENT_SECRET  # for Entra
@@ -617,12 +624,12 @@ If you see `encoded token is not a string`: the CSRF bypass for SSO routes is mi
 
 **Fix (automatic):** The app now derives the origin of each active SSO provider at boot and adds it to the `form-action` directive:
 
-| Provider | Origin added |
-|----------|--------------|
+| Provider           | Origin added                        |
+| ------------------ | ----------------------------------- |
 | Microsoft Entra ID | `https://login.microsoftonline.com` |
-| Google | `https://accounts.google.com` |
-| GitHub | `https://github.com` |
-| Generic OIDC | Origin of `OIDC_ISSUER` |
+| Google             | `https://accounts.google.com`       |
+| GitHub             | `https://github.com`                |
+| Generic OIDC       | Origin of `OIDC_ISSUER`             |
 
 No configuration is required for the common case. The resolved set is exposed as `Onetime.auth_config.sso_form_action_origins`.
 
@@ -651,32 +658,32 @@ SSO_FORM_ACTION_ORIGINS="https://login.microsoftonline.us https://auth.example.g
 
 ### Backend
 
-| File | Role |
-|------|------|
-| `apps/web/auth/config/features/omniauth.rb` | Provider registration (one method per provider type) |
-| `apps/web/auth/config/hooks/omniauth.rb` | Callback hooks — provider-agnostic |
-| `apps/web/auth/config.rb` | Feature gating (`if omniauth_enabled?`) |
-| `apps/web/auth/migrations/006_omniauth_identities.rb` | Identity table migration |
-| `lib/onetime/auth_config.rb` | `omniauth_enabled?`, `sso_providers` |
-| `etc/defaults/auth.defaults.yaml` | Feature flag defaults |
-| `apps/web/core/views/serializers/config_serializer.rb` | `build_omniauth_config` → frontend bootstrap |
-| `lib/onetime/middleware/security.rb` | CSRF bypass for `/auth/sso/*` |
+| File                                                   | Role                                                 |
+| ------------------------------------------------------ | ---------------------------------------------------- |
+| `apps/web/auth/config/features/omniauth.rb`            | Provider registration (one method per provider type) |
+| `apps/web/auth/config/hooks/omniauth.rb`               | Callback hooks — provider-agnostic                   |
+| `apps/web/auth/config.rb`                              | Feature gating (`if omniauth_enabled?`)              |
+| `apps/web/auth/migrations/006_omniauth_identities.rb`  | Identity table migration                             |
+| `lib/onetime/auth_config.rb`                           | `omniauth_enabled?`, `sso_providers`                 |
+| `etc/defaults/auth.defaults.yaml`                      | Feature flag defaults                                |
+| `apps/web/core/views/serializers/config_serializer.rb` | `build_omniauth_config` → frontend bootstrap         |
+| `lib/onetime/middleware/security.rb`                   | CSRF bypass for `/auth/sso/*`                        |
 
 ### Frontend
 
-| File | Role |
-|------|------|
-| `src/apps/session/components/SsoButton.vue` | SSO login button (accepts provider props) |
-| `src/apps/session/components/AuthMethodSelector.vue` | Renders SSO buttons per provider |
-| `src/utils/features.ts` | `isOmniAuthEnabled()` |
+| File                                                 | Role                                      |
+| ---------------------------------------------------- | ----------------------------------------- |
+| `src/apps/session/components/SsoButton.vue`          | SSO login button (accepts provider props) |
+| `src/apps/session/components/AuthMethodSelector.vue` | Renders SSO buttons per provider          |
+| `src/utils/features.ts`                              | `isOmniAuthEnabled()`                     |
 
 ### Tests
 
-| File | Coverage |
-|------|----------|
-| `apps/web/auth/spec/integration/omniauth_csrf_spec.rb` | CSRF configuration |
+| File                                                         | Coverage                 |
+| ------------------------------------------------------------ | ------------------------ |
+| `apps/web/auth/spec/integration/omniauth_csrf_spec.rb`       | CSRF configuration       |
 | `apps/web/auth/spec/unit/omniauth_domain_validation_spec.rb` | Domain restriction logic |
-| `apps/web/auth/spec/config/hooks/omniauth_spec.rb` | Email normalization |
+| `apps/web/auth/spec/config/hooks/omniauth_spec.rb`           | Email normalization      |
 
 ## Testing
 

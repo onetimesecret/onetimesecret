@@ -1,6 +1,10 @@
 // src/shared/composables/useDomainsManager.ts
 
-import { AsyncHandlerOptions, createError, useAsyncHandler } from '@/shared/composables/useAsyncHandler';
+import {
+  AsyncHandlerOptions,
+  createError,
+  useAsyncHandler,
+} from '@/shared/composables/useAsyncHandler';
 import { useDomainContext } from '@/shared/composables/useDomainContext';
 import { ApplicationError } from '@/schemas/errors';
 import type { PutHomepageConfigRequest } from '@/schemas/api/domains/requests';
@@ -46,8 +50,8 @@ export function useDomainsManager() {
 
   // Get org identifier from route params for org-qualified operations
   // Routes use either :orgid (domain routes) or :extid (org settings routes)
-  const orgIdentifier = computed(() =>
-    (route.params.orgid || route.params.extid) as string | undefined
+  const orgIdentifier = computed(
+    () => (route.params.orgid || route.params.extid) as string | undefined
   );
 
   // Legacy alias for backward compatibility with navigation code
@@ -109,7 +113,11 @@ export function useDomainsManager() {
   const verifyDomain = async (extid: string) =>
     wrap(async () => {
       const result = await store.verifyDomain(extid);
-      notifications.show(t('web.domains.domain_verification_initiated_successfully'), 'success', 'top');
+      notifications.show(
+        t('web.domains.domain_verification_initiated_successfully'),
+        'success',
+        'top'
+      );
       return result;
     });
 
@@ -122,7 +130,7 @@ export function useDomainsManager() {
       // we still show the warning above.
       try {
         await store.fetchList();
-        const existingDomain = store.records?.find(d => d.display_domain === domain);
+        const existingDomain = store.records?.find((d) => d.display_domain === domain);
         if (existingDomain && orgid.value) {
           redirectTimer = setTimeout(() => {
             redirectTimer = null;
@@ -199,7 +207,9 @@ export function useDomainsManager() {
 
         const { record, details } = result;
         const isReclaimed = record.updated.getTime() > record.created.getTime();
-        const message = isReclaimed ? 'web.domains.domain_claimed_successfully' : 'web.domains.domain_added_successfully';
+        const message = isReclaimed
+          ? 'web.domains.domain_claimed_successfully'
+          : 'web.domains.domain_added_successfully';
         notifications.show(t(message), 'success', 'top');
 
         updateDomainContextAfterAdd(record, details);
@@ -228,9 +238,10 @@ export function useDomainsManager() {
     onError: (err: ApplicationError) => {
       error.value = err;
       if (err.details?.error_type === 'EntitlementRequired') {
-        const key = pendingOrgRole.value === 'owner'
-          ? 'web.domains.entitlement_required_owner'
-          : 'web.domains.entitlement_required_member';
+        const key =
+          pendingOrgRole.value === 'owner'
+            ? 'web.domains.entitlement_required_owner'
+            : 'web.domains.entitlement_required_member';
         notifications.show(t(key), 'error', 'top');
       } else {
         notifications.show(err.message, err.severity, 'top');

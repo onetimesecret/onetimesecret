@@ -16,11 +16,8 @@ import { computed } from 'vue';
  */
 export function usePreviewPlanMode() {
   const bootstrapStore = useBootstrapStore();
-  const {
-    entitlement_preview_planid,
-    entitlement_preview_plan_name,
-    organization,
-  } = storeToRefs(bootstrapStore);
+  const { entitlement_preview_planid, entitlement_preview_plan_name, organization } =
+    storeToRefs(bootstrapStore);
 
   /**
    * Get test plan ID from bootstrap store

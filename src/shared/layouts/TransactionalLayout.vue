@@ -26,7 +26,8 @@
   // Content always starts at top - no vertical centering
   // Custom domains (no MastHead) get extra top padding to compensate
   const mainClasses = computed(() => {
-    const base = 'container mx-auto flex min-w-[320px] max-w-full flex-1 flex-col px-0 justify-start';
+    const base =
+      'container mx-auto flex min-w-[320px] max-w-full flex-1 flex-col px-0 justify-start';
     return props.displayMasthead ? `${base} py-8` : `${base} pt-8 pb-8`;
   });
 </script>
@@ -38,7 +39,9 @@
     </template>
 
     <template #main>
-      <main :class="mainClasses" name="DefaultLayout">
+      <main
+        :class="mainClasses"
+        name="DefaultLayout">
         <slot></slot>
       </main>
     </template>

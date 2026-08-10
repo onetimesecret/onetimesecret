@@ -107,12 +107,17 @@ test.describe('ORG-LIST: Organizations List Page (/orgs)', () => {
     const isLoading = page.locator('text=/loading/i');
 
     // Either we have orgs list or empty state (loading spinner should clear)
-    await expect(isLoading).not.toBeVisible({ timeout: 5000 }).catch(() => {
-      // Loading may have completed before we checked
-    });
+    await expect(isLoading)
+      .not.toBeVisible({ timeout: 5000 })
+      .catch(() => {
+        // Loading may have completed before we checked
+      });
 
     const hasOrgsList = await orgsList.isVisible().catch(() => false);
-    const hasEmptyState = await page.locator('text=/no organizations/i').isVisible().catch(() => false);
+    const hasEmptyState = await page
+      .locator('text=/no organizations/i')
+      .isVisible()
+      .catch(() => false);
 
     // One of these must be true
     expect(hasOrgsList || hasEmptyState).toBe(true);
@@ -149,7 +154,9 @@ test.describe('ORG-LIST: Organizations List Page (/orgs)', () => {
 
     if (!hasOrgsList) {
       // Verify empty state elements
-      const emptyStateIcon = page.locator('[class*="building-office"], svg[class*="text-gray-400"]');
+      const emptyStateIcon = page.locator(
+        '[class*="building-office"], svg[class*="text-gray-400"]'
+      );
       const emptyStateText = page.locator('text=/no organizations/i');
 
       // At least the empty state message should be present
@@ -200,7 +207,9 @@ test.describe('ORG-LIST: Organizations List Page (/orgs)', () => {
     const firstCard = orgsList.locator('[data-testid^="org-card-"]').first();
 
     // Check for badge presence (Pro, Early Supporter, or Default badge)
-    const badges = firstCard.locator('span:has-text("PRO"), span:has-text("Early"), span:has-text("Default")');
+    const badges = firstCard.locator(
+      'span:has-text("PRO"), span:has-text("Early"), span:has-text("Default")'
+    );
     const badgeCount = await badges.count();
 
     // Badges are optional - just verify they render correctly if present
@@ -216,7 +225,6 @@ test.describe('ORG-LIST: Organizations List Page (/orgs)', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () => {
-
   let testOrg: OrgInfo | null = null;
 
   test.beforeEach(async ({ page }) => {
@@ -319,8 +327,11 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
     await expect(subscriptionPanel).toBeVisible();
 
     // Panel should have content (billing info or "coming soon")
-    const hasSubscriptionContent =
-      (await page.locator('text=/subscription|plan|billing|coming soon/i').first().isVisible().catch(() => false));
+    const hasSubscriptionContent = await page
+      .locator('text=/subscription|plan|billing|coming soon/i')
+      .first()
+      .isVisible()
+      .catch(() => false);
     expect(hasSubscriptionContent).toBe(true);
   });
 
@@ -489,7 +500,9 @@ test.describe('ORG-DETAIL: Organization Settings Page (/org/:extid/:tab?)', () =
     expect(getCurrentTab(page)).toBe('subscription');
   });
 
-  test('ORG-DETAIL-011: Back/forward to entitlement-gated tab redirects to domains', async ({ page }) => {
+  test('ORG-DETAIL-011: Back/forward to entitlement-gated tab redirects to domains', async ({
+    page,
+  }) => {
     if (!testOrg) {
       test.skip(true, 'No organizations available for testing');
       return;
@@ -607,7 +620,6 @@ test.describe('ORG-ERROR: Organization Error States', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('ORG-A11Y: Organization Settings Accessibility', () => {
-
   let testOrg: OrgInfo | null = null;
 
   test.beforeEach(async ({ page }) => {

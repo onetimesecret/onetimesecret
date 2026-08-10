@@ -49,15 +49,14 @@
         border-gray-200 bg-white shadow-md
         dark:border-gray-700 dark:bg-gray-800">
       <!-- Momentum Indicator - Enhanced Animation -->
-      <div class="absolute left-0 top-0 h-1.5 w-full overflow-hidden">
+      <div class="absolute top-0 left-0 h-1.5 w-full overflow-hidden">
         <div
-          class="size-full animate-gradient-x bg-200%"
+          class="bg-200% size-full animate-gradient-x"
           :class="[
             isInitialView
               ? 'bg-gradient-to-r from-green-400 via-green-500 to-green-400'
               : 'bg-gradient-to-r from-amber-300 via-amber-500 to-amber-300',
-          ]">
-        </div>
+          ]"></div>
       </div>
 
       <!-- Initial Success Message - Enhanced with Icon Animation -->

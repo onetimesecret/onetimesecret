@@ -1,7 +1,7 @@
 ---
 labels: admin-v2, backend, tech debt, performance
 depends: none
-epic: "#3653"
+epic: '#3653'
 ---
 
 # Admin rebuild: replace SCAN-counted secret counts with per-customer counters

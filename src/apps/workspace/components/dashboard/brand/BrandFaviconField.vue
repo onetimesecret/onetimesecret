@@ -52,8 +52,7 @@
     <div class="mt-1.5 flex items-center gap-3">
       <!-- Thumbnail / empty placeholder -->
       <div
-        class="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border
-          border-gray-200 bg-gray-50 dark:border-gray-600 dark:bg-gray-900">
+        class="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-600 dark:bg-gray-900">
         <img
           v-if="isValidFavicon"
           :src="faviconSrc"
@@ -73,16 +72,15 @@
           type="button"
           data-testid="domain-favicon-upload"
           @click="isModalOpen = true"
-          class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3
-            py-1.5 text-xs font-semibold text-gray-700 shadow-sm transition-colors
-            hover:border-gray-400 focus:ring-1 focus:ring-brand-500 focus:outline-none
-            dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+          class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm transition-colors hover:border-gray-400 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
           <OIcon
             collection="mdi"
             name="upload"
             class="size-4"
             aria-hidden="true" />
-          {{ isValidFavicon ? t('web.branding.replace_favicon') : t('web.branding.upload_favicon') }}
+          {{
+            isValidFavicon ? t('web.branding.replace_favicon') : t('web.branding.upload_favicon')
+          }}
         </button>
         <span class="text-[11px] text-gray-400">{{ t('web.branding.favicon_field_hint') }}</span>
       </div>

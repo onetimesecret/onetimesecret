@@ -26,8 +26,8 @@ events onto a queue.
   request):
   - `POST /webhooks/:provider` → `MailEventsAPI::Controllers::Webhooks#handle_event`
     (provider ∈ frozen allowlist `%w[ses sendgrid lettermint]`; unknown → 404).
-  Mounting under `/api/` makes the endpoint CSRF-exempt via the existing
-  `allow_if` prefix rule — no `lib/onetime/middleware/security.rb` edit needed.
+    Mounting under `/api/` makes the endpoint CSRF-exempt via the existing
+    `allow_if` prefix rule — no `lib/onetime/middleware/security.rb` edit needed.
 - **Per-provider validators** (`apps/api/mail_events/lib/validators/`):
   - `ses`: SNS envelope handling — auto-confirm `SubscriptionConfirmation`
     (fetch SubscribeURL only after validating it is `https` on an
@@ -52,7 +52,7 @@ events onto a queue.
   failure returns **500** (provider retries).
 - **Queue** `email.event.process` + `dlx.email.event`/`dlq.email.event` in
   `QueueConfig::QUEUES`/`DEAD_LETTER_CONFIG` (follows `{domain}.{entity}.
-  {action}`; queue arguments are immutable — get it right first time).
+{action}`; queue arguments are immutable — get it right first time).
   `Publisher.enqueue_mail_provider_event(...)` with the billing dual-mode
   fallback: synchronous op execution when jobs are disabled, raise (→500) when
   the broker is down.

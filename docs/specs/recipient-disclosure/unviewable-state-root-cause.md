@@ -20,7 +20,7 @@ Four properties of the code constrain where the failure can be:
    `lifespan`/`secret_ttl` via `to_i`, `created`/`updated` via `to_f` (and
    `nil.to_f == 0.0`). None can be string- or null-typed on the wire.
 3. The 200 is gated by `Secret#viewable?`, true only for `state ∈ {new,
-   previewed}`. Any other state raises `MissingSecret` (→ 404) before a body is
+previewed}`. Any other state raises `MissingSecret` (→ 404) before a body is
    built, so a parsed secret payload always carries an in-enum `state`.
 4. The contract is strict by intent: #3477 reverted a `z.number().nullable()`
    widening back to `z.number()`. The strategy is enforce-at-read,
@@ -28,7 +28,7 @@ Four properties of the code constrain where the failure can be:
 
 These force two conclusions. The recipient `ShowSecret` payload validates for any
 healthy, current secret, so #3424 is not that path on healthy data. And it was
-never one field: it is a *class* of strict-schema mismatches whose members live
+never one field: it is a _class_ of strict-schema mismatches whose members live
 on other paths. Three fixes missed because the failing field was discarded in
 production — `gracefulParse` logged a generic string and put `issues[].path` only
 in non-searchable telemetry — so each fix targeted an inferred field.
@@ -41,13 +41,13 @@ backend can emit a non-conforming value on a path that bypasses the four
 runs the real V3 schemas against wire-faithful payloads and is the authoritative
 enumeration. The classes:
 
-| Path | Field(s) | Non-conforming value | Status |
-|---|---|---|---|
-| `ListReceipts`, `ShowReceipt` | `state`, `secret_state` | legacy `viewed`/`received` (enum excludes them) | open (see below) |
-| `ShowReceipt#_receipt_attributes` | `expiration_in_seconds` | raw `secret_ttl`, string when poisoned | coerced (`to_i`) |
-| `ShowReceipt#_receipt_attributes` | `expiration` | `nil` for a consumed/expired secret | contract nullable |
-| receipt `safe_dump` | `previewed`/`revealed`/`burned`/`shared` | raw timestamp, string or `""` when poisoned | coerced (`to_i`, Integer or nil) |
-| recipient `ShowSecret` | none on healthy data | — | — |
+| Path                              | Field(s)                                 | Non-conforming value                            | Status                           |
+| --------------------------------- | ---------------------------------------- | ----------------------------------------------- | -------------------------------- |
+| `ListReceipts`, `ShowReceipt`     | `state`, `secret_state`                  | legacy `viewed`/`received` (enum excludes them) | open (see below)                 |
+| `ShowReceipt#_receipt_attributes` | `expiration_in_seconds`                  | raw `secret_ttl`, string when poisoned          | coerced (`to_i`)                 |
+| `ShowReceipt#_receipt_attributes` | `expiration`                             | `nil` for a consumed/expired secret             | contract nullable                |
+| receipt `safe_dump`               | `previewed`/`revealed`/`burned`/`shared` | raw timestamp, string or `""` when poisoned     | coerced (`to_i`, Integer or nil) |
+| recipient `ShowSecret`            | none on healthy data                     | —                                               | —                                |
 
 Two structural properties make any single member fatal:
 
@@ -61,7 +61,7 @@ Two structural properties make any single member fatal:
 
 `safe_dump` coercion is correct but incomplete by construction: it covers the
 fields someone enumerated, on the one serialization path that runs through it. The
-receipt single-record payload is `safe_dump` *merged with* raw computed values in
+receipt single-record payload is `safe_dump` _merged with_ raw computed values in
 `ShowReceipt#_receipt_attributes`, which no cast reaches; the receipt timestamps
 had no coercion lambda; and `state` is a strict enum fed the raw stored value with
 no normalization. Because Familia v2 storage is type-preserving rather than

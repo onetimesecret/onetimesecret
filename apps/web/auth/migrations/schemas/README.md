@@ -7,6 +7,7 @@ Database-specific SQL loaded by Sequel migrations.
 **Why hybrid Sequel + SQL?**
 
 Sequel handles cross-database table creation. Database-specific SQL provides:
+
 - Indexes (performance optimization)
 - Functions (PostgreSQL convenience operations)
 - Triggers (automatic behaviors)

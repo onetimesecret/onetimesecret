@@ -34,14 +34,14 @@ the data it encrypted:
 2. **Destructive at reveal.** `Secret#reveal!`
    (`lib/onetime/models/secret/features/secret_state_management.rb:97`)
    persists the atomic claim (`win_reveal_claim!`, CAS `new/previewed →
-   revealed`) *before* decrypting. A wrong-key decrypt raises
+revealed`) _before_ decrypting. A wrong-key decrypt raises
    `Familia::EncryptionError` after the CAS has committed: the request 500s,
    `consume_after_reveal!` never runs (record and ciphertext survive in
    Valkey), but `state=revealed` is terminal — `viewable?` is false forever.
    Restoring the correct SECRET cannot un-burn it. Each retry on another
    secret burns that one too.
 
-The v1 path (`apps/api/v1/logic/secrets/show_secret.rb:66`) decrypts *before*
+The v1 path (`apps/api/v1/logic/secrets/show_secret.rb:66`) decrypts _before_
 its `revealed!` claim, so it is incidentally non-destructive already; v2
 `reveal!` — the path everything current uses — is the destructive one. v3
 delegates to v2 logic.
@@ -105,6 +105,7 @@ deploys on their first upgrade to this code). `enforce` raises
 for exotic multi-tenant datastore setups).
 
 **Surfacing.**
+
 - `/health/advanced` gains a `secret_verifier` sub-check; mismatch degrades
   top-level status. (QS-7's grep-the-whole-body healthcheck bug means the
   container healthcheck won't notice — that stays QS-7's fix, not C10's.)
@@ -160,7 +161,7 @@ typed error, with 503 precedent already there
 (`Billing::CircuitOpenError`). 503 is the
 honest status: server-side condition, retryable after operator action. The
 RevealSecret header comment's warning about non-2xx responses reverting the
-UI to click-to-reveal is exactly the behavior we want here — the secret *is*
+UI to click-to-reveal is exactly the behavior we want here — the secret _is_
 still revealable.
 
 Best-effort observability: record `reveal_failed_undecryptable` through the
@@ -168,14 +169,15 @@ receipt's org-audit fan-out (same rescue-and-log posture as the rest of
 `AccessTimeline`).
 
 **Rejected alternatives.**
-- *Decrypt before claiming* (v1's ordering): forfeits ADR-019's
+
+- _Decrypt before claiming_ (v1's ordering): forfeits ADR-019's
   by-construction property that plaintext cannot exist without a won claim.
-- *A `quarantined` lifecycle state*: every state consumer (`state_cas`
+- _A `quarantined` lifecycle state_: every state consumer (`state_cas`
   allowlists, `viewable?`, safe_dump, frontend state handling) would need to
   learn it, and it buys nothing — rollback already leaves the secret
   claimable again the moment the key is right, with the typed error carrying
   the "something is wrong" signal in the meantime.
-- *Wrapping v1 the same way*: v1 is maintenance-only and already
+- _Wrapping v1 the same way_: v1 is maintenance-only and already
   non-destructive by ordering; leave it.
 
 ### 3.3 Rotation and backup story
@@ -196,7 +198,7 @@ writes use the current SECRET:
 - No `SECRET_PREVIOUS` (the overwhelmingly common case): configuration is
   byte-identical to today — `v1`/`v2` from current SECRET, writes tagged
   `v2`. Zero change, zero risk.
-- `SECRET_PREVIOUS` set: `v1`/`v2` map to the *previous* secret's derived
+- `SECRET_PREVIOUS` set: `v1`/`v2` map to the _previous_ secret's derived
   keys (that is what all existing envelopes were written with); current
   writes move to a content-addressed version tag derived from the current
   verifier (e.g. `:"r<first-8-hex>"`). Content-addressing makes every future
@@ -232,6 +234,7 @@ reveal (§3.2) are the non-negotiable core of C10.
 
 **Unit specs** (tryouts alongside the existing secret-state coverage; RSpec
 where an existing context file fits):
+
 - `KeyDerivation` verifier purpose: deterministic, ≠ every other purpose's
   output.
 - Initializer states against the test Valkey (:adopted on absent, :ok on
@@ -249,6 +252,7 @@ where an existing context file fits):
 
 **Harness lane** — `scripts/install-tests/secret-rotation.sh`, wired into the
 C7 lane family's CI:
+
 1. Boot clean, create a secret via the API, capture the link.
 2. Restart with a regenerated SECRET. Assert the boot log carries the
    mismatch warning and `/health/advanced` reports the degraded sub-check.

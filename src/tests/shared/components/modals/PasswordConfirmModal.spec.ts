@@ -60,7 +60,8 @@ describe('PasswordConfirmModal', () => {
     }
   });
 
-  const mountComponent = (props: Record<string, unknown> = {}) => mount(PasswordConfirmModal, {
+  const mountComponent = (props: Record<string, unknown> = {}) =>
+    mount(PasswordConfirmModal, {
       props: {
         open: true,
         title: 'Confirm Action',
@@ -137,9 +138,9 @@ describe('PasswordConfirmModal', () => {
       expect(input.attributes('type')).toBe('password');
 
       // Find and click the visibility toggle button
-      const toggleButton = wrapper.findAll('button').find(btn =>
-        btn.attributes('aria-label')?.includes('password')
-      );
+      const toggleButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.attributes('aria-label')?.includes('password'));
       expect(toggleButton).toBeDefined();
 
       await toggleButton!.trigger('click');
@@ -197,7 +198,7 @@ describe('PasswordConfirmModal', () => {
       await input.setValue('password123');
 
       const buttons = wrapper.findAll('button');
-      buttons.forEach(btn => {
+      buttons.forEach((btn) => {
         expect(btn.attributes('disabled')).toBeDefined();
       });
     });
@@ -275,9 +276,9 @@ describe('PasswordConfirmModal', () => {
 
     it('emits cancel event when cancel button is clicked', async () => {
       wrapper = mountComponent();
-      const cancelButton = wrapper.findAll('button').find(btn =>
-        btn.text().includes('web.COMMON.word_cancel')
-      );
+      const cancelButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.text().includes('web.COMMON.word_cancel'));
 
       await cancelButton!.trigger('click');
 
@@ -286,9 +287,9 @@ describe('PasswordConfirmModal', () => {
 
     it('emits update:open with false when cancel is clicked', async () => {
       wrapper = mountComponent();
-      const cancelButton = wrapper.findAll('button').find(btn =>
-        btn.text().includes('web.COMMON.word_cancel')
-      );
+      const cancelButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.text().includes('web.COMMON.word_cancel'));
 
       await cancelButton!.trigger('click');
 
@@ -343,9 +344,9 @@ describe('PasswordConfirmModal', () => {
 
     it('password toggle has aria-label', () => {
       wrapper = mountComponent();
-      const toggleButton = wrapper.findAll('button').find(btn =>
-        btn.attributes('aria-label')?.includes('password')
-      );
+      const toggleButton = wrapper
+        .findAll('button')
+        .find((btn) => btn.attributes('aria-label')?.includes('password'));
       expect(toggleButton).toBeDefined();
       expect(toggleButton!.attributes('aria-label')).toContain('password');
     });

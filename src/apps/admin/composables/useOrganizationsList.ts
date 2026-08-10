@@ -1,9 +1,6 @@
 // src/apps/admin/composables/useOrganizationsList.ts
 
-import {
-  usePaginatedFetch,
-  type PageMeta,
-} from '@/apps/admin/composables/usePaginatedFetch';
+import { usePaginatedFetch, type PageMeta } from '@/apps/admin/composables/usePaginatedFetch';
 import type {
   ColonelOrganization,
   ColonelOrganizationsCache,

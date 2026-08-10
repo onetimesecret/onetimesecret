@@ -70,7 +70,7 @@
         <OIcon
           collection=""
           name="heroicons-fire-20-solid"
-          class="size-5 transition-all group-hover:rotate-12 group-hover:scale-125"
+          class="size-5 transition-all group-hover:scale-125 group-hover:rotate-12"
           aria-hidden="true" />
         <span>{{ t('web.COMMON.burn_this_secret') }}</span>
       </button>
@@ -105,8 +105,7 @@
           </h3>
           <p
             id="burn-dialog-desc"
-            class="text-sm text-gray-600
-            ">
+            class="text-sm text-gray-600">
             {{ t('web.COMMON.burn_confirmation_message') }}
           </p>
         </div>
@@ -156,7 +155,7 @@
             <OIcon
               collection="material-symbols"
               name="local-fire-department-rounded"
-              class="size-4 transition-all group-hover:rotate-12 group-hover:scale-125" />
+              class="size-4 transition-all group-hover:scale-125 group-hover:rotate-12" />
             <span>{{ t('web.COMMON.confirm_burn') }}</span>
           </button>
         </div>

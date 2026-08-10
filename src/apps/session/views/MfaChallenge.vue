@@ -146,8 +146,12 @@
     <template #form>
       <div class="space-y-6">
         <!-- OTP Mode -->
-        <div v-if="!useRecoveryMode" data-testid="mfa-otp-panel">
-          <p id="otp-instructions" class="mb-4 text-center text-gray-600 dark:text-gray-400">
+        <div
+          v-if="!useRecoveryMode"
+          data-testid="mfa-otp-panel">
+          <p
+            id="otp-instructions"
+            class="mb-4 text-center text-gray-600 dark:text-gray-400">
             {{ t('web.auth.mfa.enter_code') }}
           </p>
 
@@ -161,7 +165,9 @@
           </div>
 
           <!-- Mode announcement (screen reader only) -->
-          <div aria-live="polite" class="sr-only">
+          <div
+            aria-live="polite"
+            class="sr-only">
             {{ t('web.auth.mfa.otp_mode_active') }}
           </div>
 
@@ -186,12 +192,14 @@
             :aria-disabled="otpCode.length !== 6 || isLoading ? 'true' : undefined"
             aria-describedby="verify-button-hint"
             type="button"
-            class="w-full rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            class="w-full rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             data-testid="mfa-verify-otp-submit">
             <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
             <span v-else>{{ t('web.auth.mfa.verify_login') }}</span>
           </button>
-          <span id="verify-button-hint" class="sr-only">
+          <span
+            id="verify-button-hint"
+            class="sr-only">
             {{ otpCode.length === 6 ? '' : t('web.auth.mfa.enter_all_digits') }}
           </span>
 
@@ -206,9 +214,13 @@
         </div>
 
         <!-- Recovery Code Mode -->
-        <div v-else data-testid="mfa-recovery-panel">
+        <div
+          v-else
+          data-testid="mfa-recovery-panel">
           <!-- Mode announcement (screen reader only) -->
-          <div aria-live="polite" class="sr-only">
+          <div
+            aria-live="polite"
+            class="sr-only">
             {{ t('web.auth.mfa.recovery_code_mode_active') }}
           </div>
 
@@ -223,7 +235,9 @@
             <div>
               <label
                 for="recovery-code"
-                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('web.auth.mfa.recovery_code_label') }}</label>
+                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >{{ t('web.auth.mfa.recovery_code_label') }}</label
+              >
               <input
                 id="recovery-code"
                 v-model="recoveryCode"
@@ -232,7 +246,7 @@
                 :aria-invalid="error ? 'true' : undefined"
                 :aria-describedby="error ? 'recovery-code-error' : undefined"
                 :placeholder="t('web.auth.mfa.recovery_code_placeholder')"
-                class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-500"
+                class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder:text-gray-400 focus:border-brand-500 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-500"
                 data-testid="mfa-recovery-code-input" />
             </div>
 
@@ -253,7 +267,7 @@
             <button
               type="submit"
               :disabled="isLoading || !recoveryCode.trim()"
-              class="w-full rounded-md bg-brand-600 px-4 py-2 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              class="w-full rounded-md bg-brand-600 px-4 py-2 text-lg font-medium text-white hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               data-testid="mfa-recovery-submit">
               <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
               <span v-else>{{ t('web.auth.mfa.verify_recovery_code') }}</span>
@@ -278,37 +292,41 @@
         <nav
           :aria-label="t('web.auth.mfa.alternative_auth_options')"
           class="flex items-center justify-center gap-2 text-sm">
-        <!-- OTP mode: show recovery code option -->
-        <template v-if="!useRecoveryMode">
-          <button
-            @click="toggleRecoveryMode"
-            type="button"
-            class="text-gray-500 transition-colors duration-200 hover:text-gray-700 focus:outline-none focus:underline dark:text-gray-400 dark:hover:text-gray-300"
-            data-testid="mfa-use-recovery-code">
-            {{ t('web.auth.mfa.use_recovery_code_short') }}
-          </button>
-        </template>
-        <!-- Recovery mode: show back to OTP option -->
-        <template v-else>
-          <button
-            @click="toggleRecoveryMode"
-            type="button"
-            class="text-gray-500 transition-colors duration-200 hover:text-gray-700 focus:outline-none focus:underline dark:text-gray-400 dark:hover:text-gray-300"
-            data-testid="mfa-back-to-otp">
-            {{ t('web.auth.mfa.back_to_code') }}
-          </button>
-        </template>
+          <!-- OTP mode: show recovery code option -->
+          <template v-if="!useRecoveryMode">
+            <button
+              @click="toggleRecoveryMode"
+              type="button"
+              class="text-gray-500 transition-colors duration-200 hover:text-gray-700 focus:underline focus:outline-none dark:text-gray-400 dark:hover:text-gray-300"
+              data-testid="mfa-use-recovery-code">
+              {{ t('web.auth.mfa.use_recovery_code_short') }}
+            </button>
+          </template>
+          <!-- Recovery mode: show back to OTP option -->
+          <template v-else>
+            <button
+              @click="toggleRecoveryMode"
+              type="button"
+              class="text-gray-500 transition-colors duration-200 hover:text-gray-700 focus:underline focus:outline-none dark:text-gray-400 dark:hover:text-gray-300"
+              data-testid="mfa-back-to-otp">
+              {{ t('web.auth.mfa.back_to_code') }}
+            </button>
+          </template>
 
-        <span class="text-gray-300 dark:text-gray-600" aria-hidden="true">&#8226;</span>
+          <span
+            class="text-gray-300 dark:text-gray-600"
+            aria-hidden="true"
+            >&#8226;</span
+          >
 
-        <button
-          @click="handleCancel"
-          type="button"
-          :disabled="isLoading"
-          class="text-gray-500 transition-colors duration-200 hover:text-gray-700 focus:outline-none focus:underline disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:text-gray-300"
-          data-testid="mfa-cancel">
-          {{ t('web.auth.mfa.cancel_sign_in') }}
-        </button>
+          <button
+            @click="handleCancel"
+            type="button"
+            :disabled="isLoading"
+            class="text-gray-500 transition-colors duration-200 hover:text-gray-700 focus:underline focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:text-gray-300"
+            data-testid="mfa-cancel">
+            {{ t('web.auth.mfa.cancel_sign_in') }}
+          </button>
         </nav>
       </div>
     </template>

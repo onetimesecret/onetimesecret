@@ -132,7 +132,8 @@ export const fontFamilyStacks: Record<FontFamily, string> = {
   mono: 'ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace',
   system: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
   slab: '"Zilla Slab", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif',
-  rounded: 'ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Nunito", system-ui, sans-serif',
+  rounded:
+    'ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Nunito", system-ui, sans-serif',
   humanist: '"Segoe UI", "Helvetica Neue", "Optima", Candara, Calibri, system-ui, sans-serif',
   geometric: '"Avenir Next", Avenir, "Century Gothic", "Futura", system-ui, sans-serif',
 };
@@ -155,10 +156,13 @@ export const cornerStyleClasses: Record<CornerStyle, string> = {
  * BrandSettings schema objects (v2/v3, which type the fields as enum unions)
  * can be passed without casts.
  */
-export type BrandFontFields = {
-  font_family?: string | null;
-  heading_font?: string | null;
-} | null | undefined;
+export type BrandFontFields =
+  | {
+      font_family?: string | null;
+      heading_font?: string | null;
+    }
+  | null
+  | undefined;
 
 /**
  * Resolves the body font utility class for a brand.
@@ -242,9 +246,7 @@ export const borderRadiusIconMap: Record<BorderRadiusPreset, string> = {
  *
  * Mirrors the Ruby `BrandSettings.valid_border_radius?` acceptance rules.
  */
-export function borderRadiusToCss(
-  value: string | number | null | undefined
-): string | null {
+export function borderRadiusToCss(value: string | number | null | undefined): string | null {
   if (value == null || value === '') return null;
   if (!isValidBorderRadius(value)) return null;
 

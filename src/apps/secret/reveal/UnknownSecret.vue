@@ -42,7 +42,9 @@
                 xmlns="http://www.w3.org/2000/svg"
                 role="img"
                 aria-labelledby="secret-not-available-icon-title">
-                <title id="secret-not-available-icon-title">{{ t("web.secrets.that_information_is_no_longer_available") }}</title>
+                <title id="secret-not-available-icon-title">
+                  {{ t('web.secrets.that_information_is_no_longer_available') }}
+                </title>
                 <path
                   d="M10 14L12 12M12 12L14 10M12 12L10 10M12 12L14 14M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
                   stroke="currentColor"
@@ -53,7 +55,7 @@
             </router-link>
 
             <h1 class="text-3xl font-bold text-gray-800 dark:text-white">
-              {{ t("web.secrets.that_information_is_no_longer_available") }}
+              {{ t('web.secrets.that_information_is_no_longer_available') }}
             </h1>
           </div>
 
@@ -65,10 +67,7 @@
             aria-haspopup="dialog">
             <button
               type="button"
-              class="ml-4 text-sm font-medium
-                text-brand-600 hover:text-brand-500
-                focus:underline focus:ring-2 focus:ring-brand-500 focus:outline-none
-                dark:text-brand-400 dark:hover:text-brand-300"
+              class="ml-4 text-sm font-medium text-brand-600 hover:text-brand-500 focus:underline focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-brand-400 dark:hover:text-brand-300"
               :aria-label="t('web.COMMON.open_help_dialog')">
               {{ t('web.COMMON.need_help') }}
             </button>
@@ -80,11 +79,9 @@
       </div>
     </template>
 
-    <template #message="{}">
-    </template>
+    <template #message="{}"> </template>
 
-    <template #alert="{}">
-    </template>
+    <template #alert="{}"> </template>
 
     <template #action="{}">
       <!-- Canonical action buttons -->
@@ -99,7 +96,7 @@
             'focus:ring-brand-500 dark:focus:ring-brand-400',
             'px-6 py-3 font-brand text-lg hover:border-brand-600 dark:hover:border-brand-400',
             'border-brand-500 text-brand-500',
-            'w-full text-center sm:w-auto'
+            'w-full text-center sm:w-auto',
           ]"
           :aria-label="t('web.layout.return_to_home_page')">
           {{ t('web.layout.return_to_home') }}
@@ -114,7 +111,7 @@
             'focus:ring-2 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-900',
             'focus:ring-brand-500 dark:focus:ring-brand-400',
             'px-6 py-3 font-brand text-lg hover:border-brand-600 dark:hover:border-brand-400',
-            'w-full text-center sm:w-auto'
+            'w-full text-center sm:w-auto',
           ]"
           :aria-label="t('web.secrets.create_a_secret')">
           {{ t('web.secrets.create_a_secret') }}

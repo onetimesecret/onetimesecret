@@ -94,17 +94,13 @@ describe('scrubUrlWithPatterns', () => {
     it('scrubs a full Sentry-style breadcrumb URL via generated pattern and preserves surrounding parts', () => {
       const url = `https://onetimesecret.com/api/v1/metadata/${ID20}?foo=bar#frag`;
       const result = scrubUrlWithPatterns(url);
-      expect(result).toBe(
-        'https://onetimesecret.com/api/v1/metadata/[REDACTED]?foo=bar#frag'
-      );
+      expect(result).toBe('https://onetimesecret.com/api/v1/metadata/[REDACTED]?foo=bar#frag');
     });
 
     it('scrubs a full URL for /api/v3/secret/:identifier preserving query and fragment', () => {
       const url = `https://onetimesecret.com/api/v3/secret/${ID20}?foo=bar#frag`;
       const result = scrubUrlWithPatterns(url);
-      expect(result).toBe(
-        'https://onetimesecret.com/api/v3/secret/[REDACTED]?foo=bar#frag'
-      );
+      expect(result).toBe('https://onetimesecret.com/api/v3/secret/[REDACTED]?foo=bar#frag');
     });
 
     it('scrubs a bare path (axios interceptor input) via the catch fallback', () => {
@@ -117,16 +113,12 @@ describe('scrubUrlWithPatterns', () => {
       // Bare paths are parsed against a synthetic http://_ base. The hash
       // must round-trip untouched since it is never shown to the regex.
       const url = `/api/v1/metadata/${ID20}#frag`;
-      expect(scrubUrlWithPatterns(url)).toBe(
-        '/api/v1/metadata/[REDACTED]#frag'
-      );
+      expect(scrubUrlWithPatterns(url)).toBe('/api/v1/metadata/[REDACTED]#frag');
     });
 
     it('preserves a bare path query + hash fragment through extractAndScrubPath', () => {
       const url = `/api/v1/metadata/${ID20}?foo=bar#frag`;
-      expect(scrubUrlWithPatterns(url)).toBe(
-        '/api/v1/metadata/[REDACTED]?foo=bar#frag'
-      );
+      expect(scrubUrlWithPatterns(url)).toBe('/api/v1/metadata/[REDACTED]?foo=bar#frag');
     });
 
     it('scrubs plain bare path with no query or hash', () => {

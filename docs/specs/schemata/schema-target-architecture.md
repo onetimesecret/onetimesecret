@@ -29,20 +29,20 @@ projections** of each entity, and the trouble comes from conflating them:
   Field set: the model's `field` declarations, including storage-only fields
   the wire never sees (`org_id`, `receipt_viewed_at`, `secret_key`, `v1_*`).
 - **W — wire**: what an endpoint emits, per API version. Field set:
-  `safe_dump` output *plus* logic-class merges — computed fields (`is_*`,
+  `safe_dump` output _plus_ logic-class merges — computed fields (`is_*`,
   `shortid`, URLs) that are never stored.
 - **A — application**: the post-parse types the SPA works with (`Date`,
   narrowed enums). Field set: W after transforms.
 
 Each projection needs an authority, and the authority should sit with the
-side that *produces* the data. Measured against that rule, the current
+side that _produces_ the data. Measured against that rule, the current
 system has one healthy projection and two broken ones:
 
-| Projection | Produced by | Authored by | Bridge | Verdict |
-|---|---|---|---|---|
-| A (application) | TS transforms | TS contracts/shapes | compiler + imports | healthy |
-| W (wire) | Ruby `safe_dump` + logic merges | TS contracts/shapes | **discipline** | broken — every #3424-class bug lives here |
-| S (storage) | Ruby Familia writes | **nobody** | — | absent — type-preserving storage, untyped fields (`FieldType` has no type option, familia 2.11.2 `field_type.rb:49`) |
+| Projection      | Produced by                     | Authored by         | Bridge             | Verdict                                                                                                              |
+| --------------- | ------------------------------- | ------------------- | ------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| A (application) | TS transforms                   | TS contracts/shapes | compiler + imports | healthy                                                                                                              |
+| W (wire)        | Ruby `safe_dump` + logic merges | TS contracts/shapes | **discipline**     | broken — every #3424-class bug lives here                                                                            |
+| S (storage)     | Ruby Familia writes             | **nobody**          | —                  | absent — type-preserving storage, untyped fields (`FieldType` has no type option, familia 2.11.2 `field_type.rb:49`) |
 
 Six structural defects follow, each with a specimen:
 
@@ -57,15 +57,15 @@ Six structural defects follow, each with a specimen:
    complete. This is root cause 1 of the RCA and it has no owner today.
 3. **Ruby's wire projection is version-independent; the contracts are
    version-specific.** One `safe_dump` feeds V1, V2, and V3. Consequence:
-   the V3 *wire* carries `viewed`/`received`/`is_viewed`/`is_received` today
+   the V3 _wire_ carries `viewed`/`received`/`is_viewed`/`is_received` today
    — the generated V3 schema merely tolerates them as additionalProperties
    (P3). The invariant "V3 never carries deprecated aliases" holds only
    after Zod strips unknown keys, not on the wire.
 4. **The unit of wire contract is the endpoint payload, but Ruby's unit is
    the entity.** `generated/schemas/shapes/receipt.schema.json` already
-   describes the *merged* payload — `natural_expiration`,
+   describes the _merged_ payload — `natural_expiration`,
    `expiration_in_seconds`, the path/url fields are in `required`. A bare
-   `safe_dump` record therefore *fails* the shape schema (P2): the merges in
+   `safe_dump` record therefore _fails_ the shape schema (P2): the merges in
    `apps/api/{v1,v2}/logic/secrets/show_receipt.rb` (v1 `:205-235`, v2
    `:268-312`; V3 inherits v2's unchanged), `base_secret_action.rb:55`
    (conceal/generate), and the `secret_value` injections in
@@ -98,15 +98,15 @@ has survived at Stripe, GitHub, Kubernetes, or GitLab.
    artifact; no hand-maintained mirrors.** Stripe generates its OpenAPI spec
    from the Ruby implementation and derives seven SDKs from it; GitHub's
    `rest-api-description` both validates production requests and powers
-   contract tests. The pattern is not "spec-first" — it is *one canonical
-   source per artifact, everything else generated and CI-gated*.
+   contract tests. The pattern is not "spec-first" — it is _one canonical
+   source per artifact, everything else generated and CI-gated_.
 2. **Authority follows production.** The wire contract belongs where the
    consumer is (TS/Zod → generated JSON Schema — already flowing). The
    storage schema belongs to the writer (Ruby). "Which lineage wins?" was a
-   false dichotomy: it wins *per projection*.
+   false dichotomy: it wins _per projection_.
 3. **Generated artifacts are checked in and drift-gated.** A generated file
    that isn't versioned and diffed in review is where these setups rot. The
-   git diff of `generated/schemas/**` *is* the breaking-change gate
+   git diff of `generated/schemas/**` _is_ the breaking-change gate
    (the JSON-Schema equivalent of `buf breaking`/oasdiff).
 4. **Fail-closed at write, fail-open at emission, tolerant reader at
    consumption.** GitLab mandates json_schemer validation on every jsonb
@@ -151,7 +151,7 @@ pulling its weight. Two additions:
 
 - **Every response a logic class emits must resolve to a registered
   schema.** The V3 logic classes already declare `SCHEMAS = { response:
-  'receipt' }` — today consumed only by `scripts/openapi/schema-scanner.ts`.
+'receipt' }` — today consumed only by `scripts/openapi/schema-scanner.ts`.
   That constant becomes load-bearing: a convention-scoped CI check asserts
   every `SCHEMAS[:response]` name has a generated
   `api/v3/<name>-response.schema.json` (closes the registry-coverage gap for
@@ -224,7 +224,7 @@ Instead:
 
 - **Hand-authored JSON Schema per model, co-located with the model**:
   `lib/onetime/models/receipt/storage.schema.json`, describing the
-  *canonical at-rest shape*: every persistent field, types, `state` as the
+  _canonical at-rest shape_: every persistent field, types, `state` as the
   canonical enum, `null` allowed wherever unset is legal (Familia's `to_h`
   includes nil-valued fields; `to_h_for_storage` omits them —
   `serialization.rb:24-27,61-64`). GitLab's mandatory `JsonSchemaValidator`
@@ -249,7 +249,7 @@ Instead:
   `storage.schema.json` properties == `Model.persistent_fields` (modulo
   declared exclusions). Twenty lines, kills the mini-dual-lineage between
   field declarations and schema file until Familia grows typed field
-  declarations that *generate* the file (upstream follow-up).
+  declarations that _generate_ the file (upstream follow-up).
 - **Known residual, accepted**: fast-write methods (`field!`) and Lua CAS
   writes bypass `save`, so pre-save validation is not hermetic. The keyspace
   diagnostic (extended to any-field-out-of-schema, cure Phase 4) plus the
@@ -261,7 +261,7 @@ Instead:
 - Response schemas never `.strict()`; unknown fields are dropped, added enum
   values must not crash rendering (the GitHub/Stripe additive rule, read
   from the client side).
-- The all-or-nothing failure mode is retained *only* for fields where a
+- The all-or-nothing failure mode is retained _only_ for fields where a
   wrong value is worse than no record — `state`, `has_passphrase`,
   identifiers, anything gating reveal/burn — declared in the contracts via
   `.meta({ critical: true })` so the Phase 5 per-field salvage layer is
@@ -309,7 +309,7 @@ section stands as the rationale and evidence record.
   storage schema generated from `receiptCanonical` would either require
   fields that never exist at rest or say nothing about half of what does.
   Replaced by Ruby-authored storage schemas (above). This also dissolves the
-  premise that TS must be the *single* source; it is the wire/application
+  premise that TS must be the _single_ source; it is the wire/application
   source.
 - **Δ2 — the pre-response hook location, settled.** The verdict doc argued
   the hook must run on the final logic payload, not inside `safe_dump`; P2
@@ -324,7 +324,7 @@ section stands as the rationale and evidence record.
 - **Δ4 — registries split by projection.** Familia's `SchemaRegistry` for
   storage (class-name-keyed, `feature :schema_validation` validates `to_h`);
   an OTS `WireSchemas` registry for endpoint payloads (registry-key-keyed).
-  P4 shows Familia's registry *could* hold both; it shouldn't — the keys
+  P4 shows Familia's registry _could_ hold both; it shouldn't — the keys
   answer to different authorities and different lifecycles.
 - Unchanged and reaffirmed: Phase 0 observability (shipped), the Q5
   normalize→migrate→raise ordering, the api/-layer collapse deferred until
@@ -332,18 +332,18 @@ section stands as the rationale and evidence record.
 
 ## Enforcement matrix (end state)
 
-| Boundary | Artifact | Mechanism | CI/dev/test | Production |
-|---|---|---|---|---|
-| TS internal | contracts/shapes | compiler + imports | fail | — |
-| Generated tree | `generated/schemas/**` | regenerate + git diff | fail on drift | — |
-| Registry coverage | `SCHEMAS[:response]` ↔ registry keys | convention-scoped check | fail | — |
-| Pre-save (S) | `storage.schema.json` | Familia `feature :schema_validation` | raise | warn → **raise** after reconcile |
-| Emission (W) | `api/v3/*-response.schema.json` | `response_data` hook + WireSchemas | raise | **log + metric, permanently** |
-| Provider conformance | same wire schemas | RSpec fixtures: healthy/poisoned/legacy | fail | — |
-| Field-list sync | emission manifest | generated, consumed by TS tests | fail | — |
-| Storage↔model sync | schema vs `persistent_fields` | 20-line spec | fail | — |
-| Read (A) | Zod shapes | gracefulParse: critical-strict, salvage rest | fail | salvage + `schemaField` tag |
-| Keyspace | storage schemas | diagnostic scan + `Familia::Migration` | — | scheduled |
+| Boundary             | Artifact                             | Mechanism                                    | CI/dev/test   | Production                       |
+| -------------------- | ------------------------------------ | -------------------------------------------- | ------------- | -------------------------------- |
+| TS internal          | contracts/shapes                     | compiler + imports                           | fail          | —                                |
+| Generated tree       | `generated/schemas/**`               | regenerate + git diff                        | fail on drift | —                                |
+| Registry coverage    | `SCHEMAS[:response]` ↔ registry keys | convention-scoped check                      | fail          | —                                |
+| Pre-save (S)         | `storage.schema.json`                | Familia `feature :schema_validation`         | raise         | warn → **raise** after reconcile |
+| Emission (W)         | `api/v3/*-response.schema.json`      | `response_data` hook + WireSchemas           | raise         | **log + metric, permanently**    |
+| Provider conformance | same wire schemas                    | RSpec fixtures: healthy/poisoned/legacy      | fail          | —                                |
+| Field-list sync      | emission manifest                    | generated, consumed by TS tests              | fail          | —                                |
+| Storage↔model sync   | schema vs `persistent_fields`        | 20-line spec                                 | fail          | —                                |
+| Read (A)             | Zod shapes                           | gracefulParse: critical-strict, salvage rest | fail          | salvage + `schemaField` tag      |
+| Keyspace             | storage schemas                      | diagnostic scan + `Familia::Migration`       | —             | scheduled                        |
 
 ## Rollout
 
@@ -367,7 +367,7 @@ corrected storage track. Each stage is independently shippable.
    drops aliases from the wire; delete the TS mirrors.
 5. **Then the deletions the review already approved:** api/ layer collapse
    behind the now-existing conformance gates (plan preserved in the
-   appendix); hygiene items; OpenAPI 3.1 publication as an *output* artifact
+   appendix); hygiene items; OpenAPI 3.1 publication as an _output_ artifact
    when wanted (oasdiff becomes available then, not before).
 
 What the end state deletes — the payoff, in the currency of maintenance:
@@ -381,14 +381,14 @@ alias emission itself (V2 sunset, contraction tickets already on file).
 `bundle exec ruby docs/specs/schemata/proofs/emission_boundary_proof.rb` —
 no Redis, no boot, gems from the lockfile only:
 
-| # | Claim | Result |
-|---|---|---|
-| P1 | Emission validation names every #3424-class member precisely (`/state`, `/secret_ttl`, `/created`, `/secret_state`) | pass |
-| P2 | Bare `safe_dump` fails the shape schema on exactly the nine required merged fields — the endpoint payload is the unit | pass |
-| P3 | Deprecated aliases pass as additionalProperties — V3 wire carries them today; tightening is policy | pass |
-| P4 | `Familia::SchemaRegistry` handles named wire schemas as-is; errors carry field pointers | pass |
-| P5 | Default validator recompiles per call — asserted from the gem source; cost printed informationally (~5×); a caching validator injects via `Familia.schema_validator` | pass |
-| P6 | The hand-maintained TS mirror was stale when written (`recipient_name`, `source` missing) — reported, not asserted, so the proof survives the mirror being synced or retired; the durable inverted gate belongs in CI | informational |
+| #   | Claim                                                                                                                                                                                                                 | Result        |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| P1  | Emission validation names every #3424-class member precisely (`/state`, `/secret_ttl`, `/created`, `/secret_state`)                                                                                                   | pass          |
+| P2  | Bare `safe_dump` fails the shape schema on exactly the nine required merged fields — the endpoint payload is the unit                                                                                                 | pass          |
+| P3  | Deprecated aliases pass as additionalProperties — V3 wire carries them today; tightening is policy                                                                                                                    | pass          |
+| P4  | `Familia::SchemaRegistry` handles named wire schemas as-is; errors carry field pointers                                                                                                                               | pass          |
+| P5  | Default validator recompiles per call — asserted from the gem source; cost printed informationally (~5×); a caching validator injects via `Familia.schema_validator`                                                  | pass          |
+| P6  | The hand-maintained TS mirror was stale when written (`recipient_name`, `source` missing) — reported, not asserted, so the proof survives the mirror being synced or retired; the durable inverted gate belongs in CI | informational |
 
 ## Upstream follow-ups (nice, none blocking)
 
@@ -416,7 +416,7 @@ layer through the coarse registries (`gracefulParse(responseSchemas.secret,
 serve the OpenAPI generator and `schema-scanner.ts` (which iterate registry
 keys), not the runtime. The v1/v2 TS surfaces have no frontend consumer at
 all — they feed `scripts/openapi/*` and `scripts/api-validation/*`
-exclusively, and earn their keep as *documentation* for the still-served
+exclusively, and earn their keep as _documentation_ for the still-served
 Ruby `/api/v1` and `/api/v2` apps, not as 54 separate files. Real
 per-endpoint logic concentrates in ~8–10 files that deserve to remain
 modules: `auth/responses/auth.ts` (discriminated MFA/billing unions, type
@@ -442,7 +442,7 @@ Plan, preserving every registry key (the tooling and store contract):
    `pnpm run schemas:scan` and `pnpm run openapi:generate` producing
    identical output.
 
-This is deletion-shaped work. Do it *after* the bridge, so backend
+This is deletion-shaped work. Do it _after_ the bridge, so backend
 validation lands against the current, well-tested layout and the collapse
 has CI-level schema-sync checks watching it.
 

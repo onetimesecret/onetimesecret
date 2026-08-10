@@ -1,7 +1,6 @@
 <!-- src/apps/admin/views/AdminBannedIps.vue -->
 
 <script setup lang="ts">
-
   import { AdminConfirmDialog, DataTable, StatCard } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
@@ -194,7 +193,8 @@
 <template>
   <div class="mx-auto max-w-5xl">
     <!-- Page header -->
-    <div class="mb-6 flex flex-wrap items-start justify-between gap-3 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
+    <div
+      class="mb-6 flex flex-wrap items-start justify-between gap-3 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
       <div>
         <h2 class="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
           {{ t('web.admin.bannedIps.title') }}
@@ -212,7 +212,11 @@
           collection="heroicons"
           :name="showBanForm ? 'x-mark' : 'no-symbol'"
           size="4" />
-        {{ showBanForm ? t('web.admin.bannedIps.actions.cancel') : t('web.admin.bannedIps.actions.ban') }}
+        {{
+          showBanForm
+            ? t('web.admin.bannedIps.actions.cancel')
+            : t('web.admin.bannedIps.actions.ban')
+        }}
       </button>
     </div>
 
@@ -246,7 +250,8 @@
           <p class="text-xs font-medium tracking-wider text-blue-700 uppercase dark:text-blue-300">
             {{ t('web.admin.bannedIps.currentIp') }}
           </p>
-          <p class="mt-0.5 truncate font-mono text-lg font-semibold text-blue-900 dark:text-blue-100">
+          <p
+            class="mt-0.5 truncate font-mono text-lg font-semibold text-blue-900 dark:text-blue-100">
             {{ currentIP || '—' }}
           </p>
         </div>
@@ -343,7 +348,9 @@
           {{ bannedAtLabel(row.banned_at) }}
         </template>
         <template #cell-banned_by="{ row }">
-          <span class="font-mono text-xs text-gray-500 dark:text-gray-400">{{ row.banned_by || '—' }}</span>
+          <span class="font-mono text-xs text-gray-500 dark:text-gray-400">{{
+            row.banned_by || '—'
+          }}</span>
         </template>
         <template #cell-actions="{ row }">
           <button

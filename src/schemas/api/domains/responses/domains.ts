@@ -4,10 +4,7 @@
 
 import { createApiResponseSchema, createApiListResponseSchema } from '@/schemas/api/base';
 import { customDomainCanonical } from '@/schemas/contracts';
-import {
-  jurisdictionDetailsSchema,
-  jurisdictionSchema,
-} from '@/schemas/shapes/v2';
+import { jurisdictionDetailsSchema, jurisdictionSchema } from '@/schemas/shapes/v2';
 import { brandSettingschema, imagePropsSchema } from '@/schemas/shapes/v2/custom-domain/brand';
 import { z } from 'zod';
 

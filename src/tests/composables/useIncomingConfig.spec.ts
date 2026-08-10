@@ -199,7 +199,7 @@ describe('useIncomingConfig (single-state, plaintext)', () => {
       expect(mockNotificationsShow).toHaveBeenCalledWith(
         'This email is already added',
         'warning',
-        'top',
+        'top'
       );
     });
 
@@ -225,7 +225,7 @@ describe('useIncomingConfig (single-state, plaintext)', () => {
       expect(mockNotificationsShow).toHaveBeenCalledWith(
         'Maximum 20 recipients allowed',
         'warning',
-        'top',
+        'top'
       );
     });
 
@@ -372,7 +372,7 @@ describe('useIncomingConfig (single-state, plaintext)', () => {
           { email: 'security@acme.com', name: 'Security Team' },
           { email: 'support@acme.com', name: 'Support' },
           { email: 'newcomer@acme.com', name: 'Newcomer' },
-        ]),
+        ])
       );
     });
 

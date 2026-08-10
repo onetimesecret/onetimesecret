@@ -72,9 +72,9 @@
 <template>
   <SettingsLayout>
     <div class="mx-auto max-w-2xl">
-      <div class="bg-white shadow dark:bg-gray-800 sm:rounded-lg">
+      <div class="bg-white shadow sm:rounded-lg dark:bg-gray-800">
         <div class="px-4 py-5 sm:p-6">
-          <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
+          <h3 class="text-base leading-6 font-semibold text-gray-900 dark:text-white">
             {{ t('web.auth.change_password.title') }}
           </h3>
           <div class="mt-2 max-w-xl text-sm text-gray-500 dark:text-gray-400">
@@ -124,7 +124,7 @@
                   :aria-describedby="
                     fieldError?.[0] === 'password' ? 'current-password-error' : undefined
                   "
-                  class="block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm" />
+                  class="block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
                 <button
                   type="button"
                   @click="toggleCurrentPasswordVisibility"
@@ -193,7 +193,7 @@
                   :aria-describedby="
                     fieldError?.[0] === 'newpassword' ? 'new-password-error' : undefined
                   "
-                  class="block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm" />
+                  class="block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
                 <button
                   type="button"
                   @click="toggleNewPasswordVisibility"
@@ -258,7 +258,7 @@
                   :aria-describedby="
                     fieldError?.[0] === 'password-confirm' ? 'confirm-password-error' : undefined
                   "
-                  class="block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm" />
+                  class="block w-full rounded-md border-gray-300 pr-10 shadow-sm focus:border-brand-500 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
                 <button
                   type="button"
                   @click="toggleConfirmPasswordVisibility"
@@ -311,7 +311,7 @@
                 type="submit"
                 data-testid="change-password-submit"
                 :disabled="!canSubmit"
-                class="inline-flex justify-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-700">
+                class="inline-flex justify-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-700">
                 <span v-if="isLoading">{{ t('web.COMMON.processing') }}</span>
                 <span v-else>{{ t('web.auth.change_password.title') }}</span>
               </button>

@@ -10,6 +10,7 @@
 ## Why These Messages Are Special
 
 Unlike regular UI copy, security-critical authentication messages:
+
 - **Must NOT reveal** which credential failed (password, OTP, recovery code)
 - **Must NOT reveal** precise timing (e.g., "wait 5 minutes")
 - **Must NOT reveal** attempt counts (e.g., "3 attempts remaining")
@@ -17,6 +18,7 @@ Unlike regular UI copy, security-critical authentication messages:
 - **Cannot be creatively reworded** - semantic meaning must be identical across languages
 
 **These restrictions follow OWASP/NIST security guidelines to prevent:**
+
 - **Credential enumeration** - attackers determining valid usernames/emails
 - **Timing attacks** - using precise lockout durations to probe accounts
 - **Progress tracking** - measuring attack progress via attempt counters
@@ -51,6 +53,7 @@ All security-critical messages are in the `web.auth.security.*` namespace with i
 ### ⚠️ DO NOT Translate Keys Starting with Underscore
 
 Keys prefixed with `_` are **metadata for documentation only**:
+
 - `_README` - Warning for translators (keep in English)
 - `_meta` - Security notes with OWASP references (keep in English)
 - `_translation_guidelines` - Rules for translators (keep in English)
@@ -64,29 +67,29 @@ Keys prefixed with `_` are **metadata for documentation only**:
 
 These translations would reveal information to attackers:
 
-| **NEVER Say** | **Why It's Dangerous** |
-|---------------|------------------------|
-| "Wrong password" | Reveals which credential failed |
-| "Invalid OTP code" | Reveals which credential failed |
-| "Incorrect recovery code" | Reveals which credential failed |
-| "Wait 5 minutes" | Reveals precise lockout timing |
-| "Try again in 15 minutes" | Enables timing attacks |
-| "3 attempts remaining" | Shows attack progress |
+| **NEVER Say**                   | **Why It's Dangerous**              |
+| ------------------------------- | ----------------------------------- |
+| "Wrong password"                | Reveals which credential failed     |
+| "Invalid OTP code"              | Reveals which credential failed     |
+| "Incorrect recovery code"       | Reveals which credential failed     |
+| "Wait 5 minutes"                | Reveals precise lockout timing      |
+| "Try again in 15 minutes"       | Enables timing attacks              |
+| "3 attempts remaining"          | Shows attack progress               |
 | "Account locked for 30 minutes" | Reveals timing and confirms account |
-| "Account does not exist" | Enables account enumeration |
-| "Email not found" | Enables account enumeration |
+| "Account does not exist"        | Enables account enumeration         |
+| "Email not found"               | Enables account enumeration         |
 
 ### ✅ MUST Translate As
 
 Keep translations **generic and helpful**:
 
-| **English** | **Translation Principle** |
-|-------------|---------------------------|
-| "Authentication failed. Please verify your credentials and try again." | Generic failure - no credential specifics |
-| "Too many attempts. Please try again later." | Rate limit - no precise timing |
-| "Session expired. Please log in again." | Session timeout - safe to indicate |
-| "Recovery code not found. Please verify you entered it correctly." | Recovery code validation - no existence confirmation |
-| "This recovery code has already been used." | Expected behavior - educates user |
+| **English**                                                            | **Translation Principle**                            |
+| ---------------------------------------------------------------------- | ---------------------------------------------------- |
+| "Authentication failed. Please verify your credentials and try again." | Generic failure - no credential specifics            |
+| "Too many attempts. Please try again later."                           | Rate limit - no precise timing                       |
+| "Session expired. Please log in again."                                | Session timeout - safe to indicate                   |
+| "Recovery code not found. Please verify you entered it correctly."     | Recovery code validation - no existence confirmation |
+| "This recovery code has already been used."                            | Expected behavior - educates user                    |
 
 ### ✅ Safe Information You CAN Include
 
@@ -105,16 +108,19 @@ These don't reveal attack-relevant information but help legitimate users.
 ### Good Translations (Generic)
 
 **Spanish:**
+
 ```json
 "authentication_failed": "La autenticación falló. Por favor verifica tus credenciales e intenta de nuevo."
 ```
 
 **French:**
+
 ```json
 "authentication_failed": "L'authentification a échoué. Veuillez vérifier vos identifiants et réessayer."
 ```
 
 **German:**
+
 ```json
 "authentication_failed": "Authentifizierung fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten und versuchen Sie es erneut."
 ```
@@ -122,16 +128,19 @@ These don't reveal attack-relevant information but help legitimate users.
 ### Bad Translations (Too Specific) ❌
 
 **Spanish (BAD):**
+
 ```json
 "authentication_failed": "Contraseña incorrecta"  // ❌ Reveals password failed
 ```
 
 **French (BAD):**
+
 ```json
 "rate_limited": "Trop de tentatives. Attendez 5 minutes."  // ❌ Reveals timing
 ```
 
 **German (BAD):**
+
 ```json
 "authentication_failed": "Falscher OTP-Code"  // ❌ Reveals OTP failed
 ```
@@ -139,9 +148,11 @@ These don't reveal attack-relevant information but help legitimate users.
 ## Message-by-Message Guide
 
 ### `authentication_failed`
+
 **English:** "Authentication failed. Please verify your credentials and try again."
 
 **Rules:**
+
 - ✅ Say "authentication" or "login" failed
 - ✅ Suggest verifying "credentials" (generic)
 - ❌ Do NOT mention password, OTP, code, or any specific credential
@@ -152,9 +163,11 @@ These don't reveal attack-relevant information but help legitimate users.
 ---
 
 ### `rate_limited`
+
 **English:** "Too many attempts. Please try again later."
 
 **Rules:**
+
 - ✅ Say "too many attempts" or "rate limited"
 - ✅ Say "later" or "shortly" (vague time)
 - ❌ Do NOT include numbers (5 minutes, 15 minutes, etc.)
@@ -165,9 +178,11 @@ These don't reveal attack-relevant information but help legitimate users.
 ---
 
 ### `session_expired`
+
 **English:** "Session expired. Please log in again."
 
 **Rules:**
+
 - ✅ Safe to say "session expired" or "session timeout"
 - ✅ Direct user to log in again
 - ❌ Do NOT mention specific credentials needed
@@ -177,9 +192,11 @@ These don't reveal attack-relevant information but help legitimate users.
 ---
 
 ### `recovery_code_not_found`
+
 **English:** "Recovery code not found. Please verify you entered it correctly."
 
 **Rules:**
+
 - ✅ Safe to mention "recovery code" (user selected this method)
 - ✅ Suggest verifying input for typos
 - ❌ Do NOT say "does not exist" or "invalid code"
@@ -190,9 +207,11 @@ These don't reveal attack-relevant information but help legitimate users.
 ---
 
 ### `recovery_code_used`
+
 **English:** "This recovery code has already been used. Each code can only be used once."
 
 **Rules:**
+
 - ✅ Safe to explain single-use behavior
 - ✅ Safe to educate about recovery code rules
 - ❌ Do NOT reveal how many codes remain
@@ -202,11 +221,13 @@ These don't reveal attack-relevant information but help legitimate users.
 ## Validation
 
 Your translations will be validated by automated tests that check for:
+
 - Forbidden patterns (password, otp, specific timing)
 - Attack progress indicators (attempt counts)
 - Account enumeration risks (existence confirmation)
 
 Run the validation:
+
 ```bash
 pnpm test:unit security-messages
 ```
@@ -224,6 +245,7 @@ If you're unsure about a translation:
 **"Generic enough to prevent attacks, specific enough to help users."**
 
 If your translation would help an attacker distinguish between:
+
 - Valid vs. invalid accounts
 - Which credential failed
 - When to retry an attack
@@ -238,12 +260,14 @@ If your translation would help an attacker distinguish between:
 **Use "Two-Factor Authentication" spelled out** in message content, not abbreviations.
 
 **Rationale:**
+
 - Abbreviations don't translate well (French becomes "A2F", Spanish "A2F", etc.)
 - Your audience includes non-technical users (age 18-80 per guide)
 - Spelling out allows natural, clear translations in each language
 - First-time users understand immediately without tech knowledge
 
 **Pattern:**
+
 ```json
 // Primary contexts - spell out
 "title": "Two-Factor Authentication"
@@ -254,6 +278,7 @@ If your translation would help an attacker distinguish between:
 ```
 
 **In translations:**
+
 - English: "Two-Factor Authentication" → "2FA" (subsequent)
 - French: "Authentification à deux facteurs" → "A2F"
 - German: "Zwei-Faktor-Authentifizierung" → "2FA"

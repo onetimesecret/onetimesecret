@@ -395,9 +395,9 @@ describe('DomainForm', () => {
 
     it('is a type=button, not a submit', () => {
       wrapper = mountComponent();
-      expect(
-        wrapper.find('[data-testid="domain-add-cancel-btn"]').attributes('type')
-      ).toBe('button');
+      expect(wrapper.find('[data-testid="domain-add-cancel-btn"]').attributes('type')).toBe(
+        'button'
+      );
     });
   });
 
@@ -431,9 +431,9 @@ describe('DomainForm', () => {
   describe('Accessibility', () => {
     it('submit button has aria-live', () => {
       wrapper = mountComponent();
-      expect(
-        wrapper.find('[data-testid="domain-add-submit"]').attributes('aria-live')
-      ).toBe('polite');
+      expect(wrapper.find('[data-testid="domain-add-submit"]').attributes('aria-live')).toBe(
+        'polite'
+      );
     });
 
     it('error block is a role=alert', async () => {

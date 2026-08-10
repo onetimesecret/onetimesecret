@@ -9,10 +9,7 @@ import type { PiniaCustomProperties } from 'pinia';
 import { defineStore, storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import {
-  JURISDICTION_ICONS,
-  getJurisdictionIcon,
-} from '@/sources/jurisdictions';
+import { JURISDICTION_ICONS, getJurisdictionIcon } from '@/sources/jurisdictions';
 
 // Re-export for backward compatibility
 export { JURISDICTION_ICONS, getJurisdictionIcon };
@@ -65,13 +62,12 @@ export function useJurisdictionDisplayNames() {
     };
   });
 
-  const jurisdictionsWithDisplayName = computed(
-    (): JurisdictionWithDisplayName[] =>
-      jurisdictionStore.getAllJurisdictions.map((j) => ({
-        ...j,
-        display_name: resolveDisplayName(j),
-        icon: resolveJurisdictionIcon(j),
-      }))
+  const jurisdictionsWithDisplayName = computed((): JurisdictionWithDisplayName[] =>
+    jurisdictionStore.getAllJurisdictions.map((j) => ({
+      ...j,
+      display_name: resolveDisplayName(j),
+      icon: resolveJurisdictionIcon(j),
+    }))
   );
 
   return {
@@ -141,8 +137,7 @@ export const useJurisdictionStore = defineStore('jurisdiction', () => {
 
   function init(options?: StoreOptions) {
     if (_initialized.value) return;
-    const config: RegionsConfig | null | undefined =
-      options?.regions ?? bootstrapRegions?.value;
+    const config: RegionsConfig | null | undefined = options?.regions ?? bootstrapRegions?.value;
 
     if (!config) {
       enabled.value = false;

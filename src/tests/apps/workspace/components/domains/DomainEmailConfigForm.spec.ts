@@ -83,20 +83,23 @@ describe('DomainEmailConfigForm', () => {
     }
   });
 
-  const mountComponent = (props: Partial<{
-    formState: EmailConfigFormState;
-    isConfigured: boolean;
-    isSaving: boolean;
-    isDeleting: boolean;
-    isTesting: boolean;
-    hasUnsavedChanges: boolean;
-    provider: string;
-    testResult: Record<string, unknown> | null;
-    testError: string;
-    error: string;
-    displayDomain: string;
-    flexibleFromDomain: boolean;
-  }> = {}) => mount(DomainEmailConfigForm, {
+  const mountComponent = (
+    props: Partial<{
+      formState: EmailConfigFormState;
+      isConfigured: boolean;
+      isSaving: boolean;
+      isDeleting: boolean;
+      isTesting: boolean;
+      hasUnsavedChanges: boolean;
+      provider: string;
+      testResult: Record<string, unknown> | null;
+      testError: string;
+      error: string;
+      displayDomain: string;
+      flexibleFromDomain: boolean;
+    }> = {}
+  ) =>
+    mount(DomainEmailConfigForm, {
       props: {
         formState: props.formState ?? emptyFormState,
         isConfigured: props.isConfigured ?? false,
@@ -220,7 +223,9 @@ describe('DomainEmailConfigForm', () => {
       });
 
       const buttons = wrapper.findAll('button[type="button"]');
-      const discardButton = buttons.find((b) => b.text().includes('web.domains.email.discard_changes'));
+      const discardButton = buttons.find((b) =>
+        b.text().includes('web.domains.email.discard_changes')
+      );
       expect(discardButton).toBeDefined();
 
       await discardButton!.trigger('click');
@@ -401,7 +406,9 @@ describe('DomainEmailConfigForm', () => {
       });
 
       const buttons = wrapper.findAll('button[type="button"]');
-      const discardButton = buttons.find((b) => b.text().includes('web.domains.email.discard_changes'));
+      const discardButton = buttons.find((b) =>
+        b.text().includes('web.domains.email.discard_changes')
+      );
       expect(discardButton).toBeUndefined();
     });
 
@@ -412,7 +419,9 @@ describe('DomainEmailConfigForm', () => {
       });
 
       const buttons = wrapper.findAll('button[type="button"]');
-      const discardButton = buttons.find((b) => b.text().includes('web.domains.email.discard_changes'));
+      const discardButton = buttons.find((b) =>
+        b.text().includes('web.domains.email.discard_changes')
+      );
       expect(discardButton).toBeDefined();
     });
 
@@ -469,7 +478,9 @@ describe('DomainEmailConfigForm', () => {
       await removeButton!.trigger('click');
       await flushPromises();
 
-      const cancelButton = wrapper.findAll('button[type="button"]').find((b) => b.text().includes('web.COMMON.word_cancel'));
+      const cancelButton = wrapper
+        .findAll('button[type="button"]')
+        .find((b) => b.text().includes('web.COMMON.word_cancel'));
       expect(cancelButton).toBeDefined();
     });
 
@@ -486,11 +497,15 @@ describe('DomainEmailConfigForm', () => {
       await flushPromises();
 
       // Click cancel
-      const cancelButton = wrapper.findAll('button[type="button"]').find((b) => b.text().includes('web.COMMON.word_cancel'));
+      const cancelButton = wrapper
+        .findAll('button[type="button"]')
+        .find((b) => b.text().includes('web.COMMON.word_cancel'));
       await cancelButton!.trigger('click');
       await flushPromises();
 
-      expect(wrapper.text()).not.toContain('web.domains.are_you_sure_you_want_to_remove_this_domain');
+      expect(wrapper.text()).not.toContain(
+        'web.domains.are_you_sure_you_want_to_remove_this_domain'
+      );
     });
   });
 

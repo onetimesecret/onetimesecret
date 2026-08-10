@@ -1,4 +1,5 @@
 # lib/onetime/security/README.md
+
 ---
 
 # Onetime::Security
@@ -9,7 +10,6 @@ Layer-agnostic security logic for the Onetime Secret application.
 
 This namespace contains security-related code that is **not coupled to a specific architectural layer**. For example, code here has no Rack dependency and can be called from request handlers, background jobs, tests, or CLI tooling.
 
-
 ### Guidelines
 
 Prefer more specific namespaces when appropriate:
@@ -19,7 +19,6 @@ Prefer more specific namespaces when appropriate:
 - General utilities → `Utils::*`
 
 This namespace is for security concerns that don't fit cleanly elsewhere.
-
 
 ### Relationship to Middleware::Security
 

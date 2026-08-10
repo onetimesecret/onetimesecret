@@ -7,16 +7,19 @@ This specification addresses UX and clarity issues in the billing validation CLI
 ## Current Issues
 
 ### 1. Price ID Truncation Confusion
+
 **Issue:** Price IDs appear truncated in the table (e.g., `price_1SWaFKH5`) but show full ID in error messages (e.g., `price_1SWaFKH54PcLeqtYrxz3QnGS`), making them appear as different prices.
 
 **Impact:** Users cannot correlate errors with table rows, especially when multiple prices exist.
 
 **Root Cause:** Line 227 in `prices_validate_command.rb`:
+
 ```ruby
 price.id[0..13]  # Truncates to 15 chars but Stripe price IDs are 28 chars
 ```
 
 ### 2. Archived Product Context Missing
+
 **Issue:** Error message "Product prod_abcd1234 not found or inactive" doesn't explain these are ARCHIVED products.
 
 **Impact:** Users don't understand why a price can't be used. Stripe UI helpfully shows: "This price is attached to an archived product so it can't be used to create new subscriptions."
@@ -24,11 +27,13 @@ price.id[0..13]  # Truncates to 15 chars but Stripe price IDs are 28 chars
 **Root Cause:** Lines 76-78 in `prices_validate_command.rb` only check active products, but don't distinguish between non-existent and archived.
 
 ### 3. Validation Status Placement
+
 **Issue:** VALIDATION FAILED status appears in middle of output (after table, before error details) instead of at the end.
 
 **Impact:** Non-standard CLI pattern. Users expect summary at top and/or final status at bottom.
 
 **Current Flow:**
+
 ```
 Validating Stripe prices...
 
@@ -45,6 +50,7 @@ Total: X price(s)
 ```
 
 ### 4. Missing Price Count in Products Output
+
 **Issue:** `products validate` command doesn't show price counts in actual output, only in validation messages.
 
 **Impact:** Users can't see at-a-glance which products have prices configured.
@@ -52,7 +58,9 @@ Total: X price(s)
 **Current Code:** Lines 140-158 fetch price counts but only display in VALID section, not in summary table.
 
 ### 5. Inconsistent Status Indicators
+
 **Issue:** Different emoji/text patterns across commands:
+
 - `prices`: `✓`, `⚠️  WARNING`, `✗ INVALID`
 - `plans`: `✓ Ready`, `⚠️  WARNING`, `✗ INVALID`, `✗ NOT READY - No prices`
 - `products`: `✓`, `✗`
@@ -62,13 +70,16 @@ Total: X price(s)
 ## Design Principles
 
 ### 1. Stripe Dashboard Patterns
+
 Match Stripe's UX patterns for familiarity:
+
 - Clear status badges (Active, Archived, Inactive)
 - Helpful contextual messages
 - Grouped information (products → prices hierarchy)
 - Action-oriented guidance
 
 ### 2. CLI Best Practices
+
 - Summary information at top (counts, scope)
 - Detailed table in middle
 - Status and errors at bottom
@@ -76,12 +87,15 @@ Match Stripe's UX patterns for familiarity:
 - Color coding for quick scanning (when TTY)
 
 ### 3. Actionability
+
 Every error/warning should:
+
 - Explain what's wrong
 - Explain why it matters
 - Suggest resolution when possible
 
 ### 4. Consistency
+
 - Same column widths and formats across commands
 - Same status indicator scheme
 - Same error message patterns
@@ -90,6 +104,7 @@ Every error/warning should:
 ## Proposed Output Format
 
 ### Standard Structure
+
 ```
 [COMMAND HEADER]
 [SCOPE INFORMATION]
@@ -490,6 +505,7 @@ end
 ## Column Width Standards
 
 ### prices validate
+
 ```
 PRICE ID: 29 chars (full Stripe ID)
 PRODUCT: 20 chars (truncate with ...)
@@ -499,6 +515,7 @@ STATUS: 15 chars (✓ Valid, ✗ Unusable)
 ```
 
 ### plans validate
+
 ```
 PRODUCT ID: 22 chars (full Stripe ID)
 PLAN ID: 20 chars (truncate with ...)
@@ -508,6 +525,7 @@ STATUS: 15 chars (✓ Ready, ✗ Not Ready)
 ```
 
 ### products validate
+
 ```
 PRODUCT ID: 22 chars (full Stripe ID)
 NAME: 20 chars (truncate with ...)
@@ -536,6 +554,7 @@ end
 ## Error Message Catalog
 
 ### Archived Product (Critical)
+
 ```
 ✗ price_XXX: Attached to archived product
 
@@ -548,6 +567,7 @@ Resolution:
 ```
 
 ### Missing Product (Critical)
+
 ```
 ✗ price_XXX: Product not found
 
@@ -559,6 +579,7 @@ Resolution:
 ```
 
 ### Zero Amount (Critical)
+
 ```
 ✗ price_XXX: Invalid price configuration
 
@@ -570,6 +591,7 @@ Resolution:
 ```
 
 ### Missing Recurring Prices (Critical)
+
 ```
 ✗ prod_XXX (plan_id_YYY): No recurring prices
 
@@ -581,6 +603,7 @@ Resolution:
 ```
 
 ### Missing Metadata (Critical)
+
 ```
 ✗ prod_XXX: Missing required metadata
 
@@ -591,6 +614,7 @@ Resolution:
 ```
 
 ### Missing Yearly Price (Warning)
+
 ```
 ⚠ prod_XXX (plan_id_YYY): Missing yearly price
 
@@ -598,6 +622,7 @@ Product only has monthly pricing. Annual pricing is recommended for better LTV.
 ```
 
 ### Pricing Inconsistency (Warning)
+
 ```
 ⚠ price_XXX: Pricing consistency issue
 
@@ -606,6 +631,7 @@ Consider adjusting for typical SaaS discount pattern.
 ```
 
 ### Duplicate Prices (Warning)
+
 ```
 ⚠ prod_XXX (plan_id_YYY): Duplicate interval pricing
 
@@ -616,6 +642,7 @@ Consider archiving extras to avoid confusion.
 ## Testing Requirements
 
 ### Unit Tests
+
 ```ruby
 # Test price ID display
 it 'shows full price ID in table' do
@@ -638,6 +665,7 @@ end
 ```
 
 ### Integration Tests
+
 ```ruby
 # Test with real Stripe test mode data
 it 'handles archived products correctly' do
@@ -654,11 +682,13 @@ end
 ## Migration Plan
 
 ### Phase 1: Shared Helpers
+
 1. Create `apps/web/billing/cli/validation_helpers.rb`
 2. Define standard constants and helper methods
 3. Include in all three validation commands
 
 ### Phase 2: prices validate
+
 1. Update to fetch both active and archived products
 2. Implement new error structure
 3. Update output format with summary section
@@ -666,18 +696,21 @@ end
 5. Update tests
 
 ### Phase 3: plans validate
+
 1. Apply new output format
 2. Update error messages with resolution steps
 3. Add summary section
 4. Update tests
 
 ### Phase 4: products validate
+
 1. Add price counts to main table (not just valid section)
 2. Apply new output format
 3. Update error messages
 4. Update tests
 
 ### Phase 5: Documentation
+
 1. Update CLI help text
 2. Update billing documentation
 3. Add examples to docs/billing/README.md

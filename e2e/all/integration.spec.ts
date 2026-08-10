@@ -149,7 +149,8 @@ test.describe('E2E Integration - Production Build Validation', () => {
         !error.includes('Non-Error promise rejection') && // Filter minor errors
         !error.includes('Script error')
     );
-    expect(criticalErrors,
+    expect(
+      criticalErrors,
       `Critical JS errors during page load:\n${criticalErrors.join('\n')}`
     ).toHaveLength(0);
   });
@@ -312,12 +313,12 @@ test.describe('E2E Integration - Environment Validation', () => {
       .then(() => true)
       .catch(() => false);
     const bootstrapConsumed =
-      appReady &&
-      (await page.evaluate(() => (window as any).__BOOTSTRAP_ME__ === true));
+      appReady && (await page.evaluate(() => (window as any).__BOOTSTRAP_ME__ === true));
 
     // Build a diagnostic message that surfaces in the GitHub reporter
     // (console.log only appears in raw stdout, not the failure summary)
-    let diagnosticMsg = 'Bootstrap state should be consumed (value === true). ' +
+    let diagnosticMsg =
+      'Bootstrap state should be consumed (value === true). ' +
       'If this fails, Vue may not be mounting in the production build.';
 
     if (!bootstrapConsumed) {
@@ -332,7 +333,9 @@ test.describe('E2E Integration - Environment Validation', () => {
       });
 
       const parts = [diagnosticMsg];
-      parts.push(`DOM: vueMounted=${diagnostic.vueMounted}, appChildren=${diagnostic.appChildren}, readyState=${diagnostic.readyState}`);
+      parts.push(
+        `DOM: vueMounted=${diagnostic.vueMounted}, appChildren=${diagnostic.appChildren}, readyState=${diagnostic.readyState}`
+      );
       parts.push(`Bootstrap type: ${diagnostic.bootstrapType}`);
       if (pageErrors.length) parts.push(`Page errors: ${pageErrors.join('; ')}`);
       if (failedRequests.length) parts.push(`Failed requests: ${failedRequests.join('; ')}`);

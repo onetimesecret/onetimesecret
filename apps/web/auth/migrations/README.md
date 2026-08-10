@@ -18,7 +18,6 @@ Creates database `onetime_auth`, and two roles: `oneitme_migrator` and `onetime_
 
 No setup required. Database file created automatically at `data/auth.db`.
 
-
 ## Configuration
 
 ```bash
@@ -63,20 +62,22 @@ export AUTH_DATABASE_URL_MIGRATIONS=postgresql://onetime_migrator:@authdb/onetim
 #### CI/CD Best Practices
 
 **For PostgreSQL (recommended for production):**
+
 ```yaml
 # Safe for concurrent starts - advisory locks handle coordination
 deployment:
-  replicas: 3  # All can start simultaneously
+  replicas: 3 # All can start simultaneously
   strategy: RollingUpdate
 ```
 
 **For SQLite (development/single-instance only):**
+
 ```yaml
 # Requires sequential deployment
 deployment:
   replicas: 1
   strategy:
-    type: Recreate  # Stop old pod before starting new
+    type: Recreate # Stop old pod before starting new
 ```
 
 ### Manual Migrations (Optional)
@@ -90,6 +91,7 @@ sequel -m apps/web/auth/migrations $AUTH_DATABASE_URL_MIGRATIONS
 To disable automatic migrations, set `SKIP_AUTH_MIGRATIONS=true` in environment.
 
 **Rollback**: Set migration index to 0:
+
 ```bash
 sequel -m apps/web/auth/migrations -M 0 $AUTH_DATABASE_URL_MIGRATIONS
 ```
@@ -97,6 +99,7 @@ sequel -m apps/web/auth/migrations -M 0 $AUTH_DATABASE_URL_MIGRATIONS
 ### Development Workflow
 
 **Quick start** (SQLite in-memory):
+
 ```bash
 export AUTHENTICATION_MODE=full
 export AUTH_DATABASE_URL=sqlite::memory:
@@ -105,6 +108,7 @@ bundle exec puma -C etc/puma.rb
 ```
 
 **With persistent database** (SQLite file):
+
 ```bash
 export AUTHENTICATION_MODE=full
 export AUTH_DATABASE_URL=sqlite://data/auth.db
@@ -113,6 +117,7 @@ bundle exec puma -C etc/puma.rb
 ```
 
 **PostgreSQL development**:
+
 ```bash
 # One-time setup
 psql -U postgres -f apps/web/auth/migrations/schemas/postgres/initialize_auth_db.sql
@@ -170,12 +175,12 @@ bundle exec rspec spec/integration/full/postgres_infrastructure_spec.rb \
 
 ### Common Issues
 
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| `permission denied for table X` | Tables created by postgres, not test user | Grant privileges and transfer ownership (steps 3-4) |
-| `must be owner of table X` | Test tries to ALTER TABLE (disable trigger) | Transfer table ownership to test user |
-| `permission denied for schema public` | User can't create tables | Grant CREATE on schema public |
-| `TIMESTAMPTZ` type mismatch in function | Stale function definition in database | Re-run migrations to update functions |
+| Issue                                   | Cause                                       | Solution                                            |
+| --------------------------------------- | ------------------------------------------- | --------------------------------------------------- |
+| `permission denied for table X`         | Tables created by postgres, not test user   | Grant privileges and transfer ownership (steps 3-4) |
+| `must be owner of table X`              | Test tries to ALTER TABLE (disable trigger) | Transfer table ownership to test user               |
+| `permission denied for schema public`   | User can't create tables                    | Grant CREATE on schema public                       |
+| `TIMESTAMPTZ` type mismatch in function | Stale function definition in database       | Re-run migrations to update functions               |
 
 ### Why Ownership Matters
 

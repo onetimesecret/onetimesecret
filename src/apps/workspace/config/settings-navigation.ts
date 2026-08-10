@@ -26,7 +26,14 @@
 // │ † only when SSO is enabled (isSsoEnabled)                                    │        │
 // └──────────────────┴────────────────────┴────────┴────────┴────────┴────────┴────────┴────────┘
 
-import { hasPassword, isFullAuthMode, isSsoEnabled, isSsoOnlyMode, isOwnerOrAdmin, isWebAuthnEnabled } from '@/utils/features';
+import {
+  hasPassword,
+  isFullAuthMode,
+  isSsoEnabled,
+  isSsoOnlyMode,
+  isOwnerOrAdmin,
+  isWebAuthnEnabled,
+} from '@/utils/features';
 import type { ComposerTranslation } from 'vue-i18n';
 
 /**
@@ -138,10 +145,7 @@ function getProfileSection(t: ComposerTranslation, f: NavigationFeatures): Setti
  * any user who set a password (owners, admins, or invited members).
  * Passkeys are gated by the webauthn feature flag independently.
  */
-function getSecuritySection(
-  t: ComposerTranslation,
-  f: NavigationFeatures
-): SettingsNavigationItem {
+function getSecuritySection(t: ComposerTranslation, f: NavigationFeatures): SettingsNavigationItem {
   return {
     id: 'security',
     to: '/account/settings/security',
@@ -200,10 +204,7 @@ function getSecuritySection(
 }
 
 /** Region section navigation */
-function getRegionSection(
-  t: ComposerTranslation,
-  f: NavigationFeatures
-): SettingsNavigationItem {
+function getRegionSection(t: ComposerTranslation, f: NavigationFeatures): SettingsNavigationItem {
   return {
     id: 'region',
     to: '/account/region',

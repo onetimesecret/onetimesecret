@@ -23,28 +23,28 @@ compose two TXT records ourselves," and the SPF record lands on the customer's
 
 Single REST API, single auth scheme — no Lettermint-style Sending/Team API split.
 
-| | Value |
-|---|---|
-| Base URL | `https://api.mailchannels.net/tx/v1` |
-| Auth | `X-Api-Key: <key>` header on every request (created in Console → Settings → API Keys, `api` scope) |
-| Spec | OpenAPI 3.0, v1.4.0: `https://docs.mailchannels.com/email-api/api-reference/openapi.yaml` |
-| Docs index | `https://docs.mailchannels.com/llms.txt` (LLM-friendly, every page available as `.md`) |
-| Official SDKs | Node (`mailchannels-sdk`), Python (`mailchannels`), PHP — **no Ruby** |
-| Max message size | 30 MB including attachments |
+|                  | Value                                                                                              |
+| ---------------- | -------------------------------------------------------------------------------------------------- |
+| Base URL         | `https://api.mailchannels.net/tx/v1`                                                               |
+| Auth             | `X-Api-Key: <key>` header on every request (created in Console → Settings → API Keys, `api` scope) |
+| Spec             | OpenAPI 3.0, v1.4.0: `https://docs.mailchannels.com/email-api/api-reference/openapi.yaml`          |
+| Docs index       | `https://docs.mailchannels.com/llms.txt` (LLM-friendly, every page available as `.md`)             |
+| Official SDKs    | Node (`mailchannels-sdk`), Python (`mailchannels`), PHP — **no Ruby**                              |
+| Max message size | 30 MB including attachments                                                                        |
 
 Endpoints relevant to us:
 
-| Endpoint | Purpose |
-|---|---|
-| `POST /send` (and `?dry-run=true`) | Send email; dry-run returns rendered message without sending |
-| `POST /send-async` | Queue send, returns request ID immediately |
-| `POST /domains/{domain}/dkim-keys` | Create MailChannels-managed DKIM key pair; returns public key + DNS TXT record |
-| `GET /domains/{domain}/dkim-keys` | Retrieve keys by domain, optional `selector` filter |
-| `PATCH /domains/{domain}/dkim-keys/{selector}` | Update key status: `revoked` / `retired` / `rotated` |
-| `POST /domains/{domain}/dkim-keys/{selector}/rotate` | Rotate: old key `rotated` (3-day signing grace, auto-`retired` at 2 weeks), new key created |
-| `POST /check-domain` | Provider-side verification: DKIM + SPF + Domain Lockdown + sender-domain MX/A verdicts |
-| Webhooks (`/webhook` group) | Enroll endpoint, event types (delivered, hard/soft-bounced, complained, unsubscribed), signing-key retrieval, batch resend |
-| Sub-accounts, suppressions, metrics, usage | Not needed for v1; sub-accounts noteworthy for future tenant isolation (100K+ plans only) |
+| Endpoint                                             | Purpose                                                                                                                    |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `POST /send` (and `?dry-run=true`)                   | Send email; dry-run returns rendered message without sending                                                               |
+| `POST /send-async`                                   | Queue send, returns request ID immediately                                                                                 |
+| `POST /domains/{domain}/dkim-keys`                   | Create MailChannels-managed DKIM key pair; returns public key + DNS TXT record                                             |
+| `GET /domains/{domain}/dkim-keys`                    | Retrieve keys by domain, optional `selector` filter                                                                        |
+| `PATCH /domains/{domain}/dkim-keys/{selector}`       | Update key status: `revoked` / `retired` / `rotated`                                                                       |
+| `POST /domains/{domain}/dkim-keys/{selector}/rotate` | Rotate: old key `rotated` (3-day signing grace, auto-`retired` at 2 weeks), new key created                                |
+| `POST /check-domain`                                 | Provider-side verification: DKIM + SPF + Domain Lockdown + sender-domain MX/A verdicts                                     |
+| Webhooks (`/webhook` group)                          | Enroll endpoint, event types (delivered, hard/soft-bounced, complained, unsubscribed), signing-key retrieval, batch resend |
+| Sub-accounts, suppressions, metrics, usage           | Not needed for v1; sub-accounts noteworthy for future tenant isolation (100K+ plans only)                                  |
 
 ### Sending model
 
@@ -93,11 +93,16 @@ Three DNS-visible mechanisms, per sending domain:
 
    ```json
    {
-     "domain": "customer.com", "selector": "mc1", "status": "active",
+     "domain": "customer.com",
+     "selector": "mc1",
+     "status": "active",
      "public_key": "MIIBIjANBg…",
      "dkim_dns_records": [
-       { "name": "mc1._domainkey.customer.com", "type": "TXT",
-         "value": "v=DKIM1; k=rsa; p=MIIBIjANBg…" }
+       {
+         "name": "mc1._domainkey.customer.com",
+         "type": "TXT",
+         "value": "v=DKIM1; k=rsa; p=MIIBIjANBg…"
+       }
      ]
    }
    ```
@@ -105,6 +110,7 @@ Three DNS-visible mechanisms, per sending domain:
    Note: **TXT record with inline public key**, not a CNAME delegation like
    SES/Lettermint. Rotation therefore requires the customer to update DNS
    (managed-rotation flow exists; see endpoint table).
+
 3. **SPF**: add `include:relay.mailchannels.net` to the sending domain's SPF
    TXT. New record: `v=spf1 include:relay.mailchannels.net ~all`; existing
    record: append the include. MailChannels does not pre-check SPF/DKIM/DMARC at
@@ -229,16 +235,16 @@ lockdown record; we compose it from the handle.
 
 ### 3.1 Files
 
-| File | Contents |
-|---|---|
-| `Gemfile` | `gem 'mailchannels', require: false` (lazy-loaded like lettermint) |
-| `lib/onetime/mail/sender_strategies/mailchannels_sender_strategy.rb` | provision / provider-verify / teardown (below) |
-| `lib/onetime/mail/sender_strategies.rb` | add to `PROVIDER_STRATEGIES` and `PROVISIONING_PROVIDERS` |
+| File                                                                         | Contents                                                                            |
+| ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `Gemfile`                                                                    | `gem 'mailchannels', require: false` (lazy-loaded like lettermint)                  |
+| `lib/onetime/mail/sender_strategies/mailchannels_sender_strategy.rb`         | provision / provider-verify / teardown (below)                                      |
+| `lib/onetime/mail/sender_strategies.rb`                                      | add to `PROVIDER_STRATEGIES` and `PROVISIONING_PROVIDERS`                           |
 | `lib/onetime/domain_validation/sender_strategies/mailchannels_validation.rb` | DNS-level validation; reads `mailer_config.dns_records` like `LettermintValidation` |
-| `lib/onetime/domain_validation/sender_strategies/strategy.rb` | register validation strategy |
-| `lib/onetime/mail/delivery/mailchannels.rb` | delivery backend (only when `EMAILER_MODE=mailchannels`) |
-| `lib/onetime/domain_validation/sender_strategies/provider_config.rb` | `email_providers.mailchannels` config |
-| `etc/defaults/config.defaults.yaml`, `.env.reference` | config + env plumbing |
+| `lib/onetime/domain_validation/sender_strategies/strategy.rb`                | register validation strategy                                                        |
+| `lib/onetime/mail/delivery/mailchannels.rb`                                  | delivery backend (only when `EMAILER_MODE=mailchannels`)                            |
+| `lib/onetime/domain_validation/sender_strategies/provider_config.rb`         | `email_providers.mailchannels` config                                               |
+| `etc/defaults/config.defaults.yaml`, `.env.reference`                        | config + env plumbing                                                               |
 
 ### 3.2 Strategy mapping
 
@@ -247,7 +253,7 @@ lockdown record; we compose it from the handle.
 1. Extract domain from `from_address` (inherited helper).
 2. `client.dkim_keys.create(domain, selector: 'mc1')` — idempotent wrapper: on
    "already exists," fall back to `client.dkim_keys.list(domain, selector:
-   'mc1')` (mirrors `create_or_get_domain` in the Lettermint strategy).
+'mc1')` (mirrors `create_or_get_domain` in the Lettermint strategy).
 3. Compose and normalize the record set (standard `Array<Hash>` shape,
    `type`/`name`/`value`):
 
@@ -318,17 +324,17 @@ default plan is the documented root-domain include.
 
 ### 3.4 Provider comparison (extends the table in custom-mail-sender.md)
 
-| | AWS SES | Lettermint | MailChannels |
-|---|---|---|---|
-| Provision API | `CreateEmailIdentity` + MAIL FROM attrs | Team API `POST /domains` | `POST /domains/{d}/dkim-keys` + self-composed lockdown/SPF TXT |
-| Domain resource at provider | identity | domain object | **none** (keys only) |
-| DKIM records | 3 CNAMEs | CNAME selectors | **1 TXT** (inline public key, managed keypair) |
-| SPF / envelope | MX + SPF TXT on `mail.<domain>` | Return-Path CNAME `lm-bounces.<domain>` | `include:relay.mailchannels.net` in **root** SPF (merge!) |
-| Anti-spoofing | — (implicit in identity) | — | Domain Lockdown TXT `_mailchannels.<domain>` |
-| Verification | `GetEmailIdentity` | `GET /domains/:id` + verify trigger | `POST /check-domain` (live, no trigger) |
-| Teardown | `DeleteEmailIdentity` | `DELETE /domains/:id` | `PATCH dkim-keys status=revoked` |
-| Auth | AWS SigV4 (SDK) | dual token (Bearer team / x-lettermint-token send) | single `X-Api-Key` |
-| Ruby SDK | official `aws-sdk-sesv2` | ours (`lettermint`) | **ours (to build)** |
+|                             | AWS SES                                 | Lettermint                                         | MailChannels                                                   |
+| --------------------------- | --------------------------------------- | -------------------------------------------------- | -------------------------------------------------------------- |
+| Provision API               | `CreateEmailIdentity` + MAIL FROM attrs | Team API `POST /domains`                           | `POST /domains/{d}/dkim-keys` + self-composed lockdown/SPF TXT |
+| Domain resource at provider | identity                                | domain object                                      | **none** (keys only)                                           |
+| DKIM records                | 3 CNAMEs                                | CNAME selectors                                    | **1 TXT** (inline public key, managed keypair)                 |
+| SPF / envelope              | MX + SPF TXT on `mail.<domain>`         | Return-Path CNAME `lm-bounces.<domain>`            | `include:relay.mailchannels.net` in **root** SPF (merge!)      |
+| Anti-spoofing               | — (implicit in identity)                | —                                                  | Domain Lockdown TXT `_mailchannels.<domain>`                   |
+| Verification                | `GetEmailIdentity`                      | `GET /domains/:id` + verify trigger                | `POST /check-domain` (live, no trigger)                        |
+| Teardown                    | `DeleteEmailIdentity`                   | `DELETE /domains/:id`                              | `PATCH dkim-keys status=revoked`                               |
+| Auth                        | AWS SigV4 (SDK)                         | dual token (Bearer team / x-lettermint-token send) | single `X-Api-Key`                                             |
+| Ruby SDK                    | official `aws-sdk-sesv2`                | ours (`lettermint`)                                | **ours (to build)**                                            |
 
 ### 3.5 Open questions before implementation
 

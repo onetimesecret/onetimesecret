@@ -4,11 +4,11 @@ Playwright-based end-to-end tests. See `playwright.config.ts` for configuration.
 
 ## Directory Structure
 
-| Directory | Requires | Description |
-|-----------|----------|-------------|
-| `all/` | Nothing | Public pages, anonymous flows |
-| `full/` | Auth session | Requires `TEST_USER_EMAIL` and `TEST_USER_PASSWORD` |
-| `full-billing/` | Auth + billing | Requires billing.yaml config |
+| Directory       | Requires       | Description                                         |
+| --------------- | -------------- | --------------------------------------------------- |
+| `all/`          | Nothing        | Public pages, anonymous flows                       |
+| `full/`         | Auth session   | Requires `TEST_USER_EMAIL` and `TEST_USER_PASSWORD` |
+| `full-billing/` | Auth + billing | Requires billing.yaml config                        |
 
 ## Running Tests
 
@@ -66,11 +66,12 @@ Use `data-testid` attributes on elements tests interact with:
 
 ```typescript
 // In tests
-page.getByTestId('save-button')
-page.locator('[data-testid^="org-card-"]')  // Prefix match
+page.getByTestId('save-button');
+page.locator('[data-testid^="org-card-"]'); // Prefix match
 ```
 
 **Conventions:**
+
 - Place on the semantic element the test cares about, not wrapper divs
 - Keep values short and hierarchical: `checkout/form/submit`
 - Never reuse the same value for elements that can coexist
@@ -79,6 +80,7 @@ page.locator('[data-testid^="org-card-"]')  // Prefix match
   use the prop, not the HTML attribute. `data-testid="foo"` on these components gets
   swallowed by Vue's attribute priority—the explicit `:data-testid="testid"` binding in
   the template wins, and since the prop is undefined, nothing renders.
+
   ```vue
   <!-- WRONG: silently lost -->
   <EmptyState data-testid="my-empty">
@@ -88,21 +90,23 @@ page.locator('[data-testid^="org-card-"]')  // Prefix match
   ```
 
 **Skip testids on:**
+
 - Purely decorative elements (icons, dividers, background shapes)
 - Wrapper divs that exist only for layout — target the interactive child instead
 - Elements already reachable via `getByRole()` or `getByText()` with stable values
 
 ## Environment Variables
 
-| Variable | Description |
-|----------|-------------|
+| Variable              | Description                                |
+| --------------------- | ------------------------------------------ |
 | `PLAYWRIGHT_BASE_URL` | Target URL (e.g., `http://localhost:3000`) |
-| `TEST_USER_EMAIL` | Auth user for `full/` tests |
-| `TEST_USER_PASSWORD` | Auth password for `full/` tests |
-| `PLAYWRIGHT_HEADLESS` | Set `false` for headed debugging |
+| `TEST_USER_EMAIL`     | Auth user for `full/` tests                |
+| `TEST_USER_PASSWORD`  | Auth password for `full/` tests            |
+| `PLAYWRIGHT_HEADLESS` | Set `false` for headed debugging           |
 
 ## CI
 
 Tests run in GitHub Actions. On failure, check:
+
 - `test-results/` for screenshots and traces
 - `playwright-report/` for HTML report

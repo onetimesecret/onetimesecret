@@ -9,17 +9,17 @@ The `homepage.json` file contains keys under `web.homepage` namespace with the f
 
 ### Current Key Categories
 
-| Category | Example Keys | Count |
-|----------|-------------|-------|
-| Main taglines | `tagline1`, `tagline2`, `tagline-signed`, `tagline-sealed`, `tagline-delivered` | 5 |
-| CTA/Marketing | `cta_title`, `cta_subtitle`, `cta_feature1-3`, `explore_premium_plans` | 7 |
-| Password generation | `password_generation_title`, `password_generation_description` | 2 |
-| Auth-only mode | `authonly.tagline1`, `authonly.tagline2` | 2 |
-| Disabled mode | `disabled.tagline1`, `disabled.tagline2` | 2 |
-| Brand references | `onetime-secret`, `onetime-secret-literal`, `one-time-secret-literal`, `onetime-secret-homepage` | 4 |
-| Welcome/onboarding | `welcome-to-onetime-secret`, `welcome-to-the-global-broadcast` | 2 |
-| Feature descriptions | `secure-links`, `send-sensitive-information...`, `meets-and-exceeds-compliance-standards` | 5 |
-| Misc navigation | `log-in-to-onetime-secret`, `about-onetime-secret`, `signup-individual-and-business-plans` | 4 |
+| Category             | Example Keys                                                                                     | Count |
+| -------------------- | ------------------------------------------------------------------------------------------------ | ----- |
+| Main taglines        | `tagline1`, `tagline2`, `tagline-signed`, `tagline-sealed`, `tagline-delivered`                  | 5     |
+| CTA/Marketing        | `cta_title`, `cta_subtitle`, `cta_feature1-3`, `explore_premium_plans`                           | 7     |
+| Password generation  | `password_generation_title`, `password_generation_description`                                   | 2     |
+| Auth-only mode       | `authonly.tagline1`, `authonly.tagline2`                                                         | 2     |
+| Disabled mode        | `disabled.tagline1`, `disabled.tagline2`                                                         | 2     |
+| Brand references     | `onetime-secret`, `onetime-secret-literal`, `one-time-secret-literal`, `onetime-secret-homepage` | 4     |
+| Welcome/onboarding   | `welcome-to-onetime-secret`, `welcome-to-the-global-broadcast`                                   | 2     |
+| Feature descriptions | `secure-links`, `send-sensitive-information...`, `meets-and-exceeds-compliance-standards`        | 5     |
+| Misc navigation      | `log-in-to-onetime-secret`, `about-onetime-secret`, `signup-individual-and-business-plans`       | 4     |
 
 ---
 
@@ -29,49 +29,49 @@ The `homepage.json` file contains keys under `web.homepage` namespace with the f
 
 These are brand names and generic terms used throughout the application:
 
-| Key | Recommended Destination | Rationale |
-|-----|------------------------|-----------|
-| `onetime-secret` | `web.COMMON.brand.name` | Brand name used site-wide |
-| `onetime-secret-literal` | `web.COMMON.brand.name_literal` | Duplicate; consolidate with above |
+| Key                       | Recommended Destination            | Rationale                                  |
+| ------------------------- | ---------------------------------- | ------------------------------------------ |
+| `onetime-secret`          | `web.COMMON.brand.name`            | Brand name used site-wide                  |
+| `onetime-secret-literal`  | `web.COMMON.brand.name_literal`    | Duplicate; consolidate with above          |
 | `one-time-secret-literal` | `web.COMMON.brand.name_hyphenated` | Alternate spelling; consider single source |
-| `onetime-secret-homepage` | `web.COMMON.brand.homepage_title` | Used in page titles |
+| `onetime-secret-homepage` | `web.COMMON.brand.homepage_title`  | Used in page titles                        |
 
 ### 2. Keys That Belong in `layout.json`
 
 Navigation and link labels should be in layout:
 
-| Key | Recommended Destination | Rationale |
-|-----|------------------------|-----------|
+| Key                         | Recommended Destination                    | Rationale                                 |
+| --------------------------- | ------------------------------------------ | ----------------------------------------- |
 | `visit-onetime-secret-home` | `web.layout.visit-onetime-secret-homepage` | Already exists similar key in layout.json |
-| `log-in-to-onetime-secret` | `web.navigation.log-in` | Navigation action |
-| `about-onetime-secret` | `web.navigation.about` | Navigation link |
-| `about-onetime-secret-0` | Remove (duplicate) | Exact duplicate of `about-onetime-secret` |
+| `log-in-to-onetime-secret`  | `web.navigation.log-in`                    | Navigation action                         |
+| `about-onetime-secret`      | `web.navigation.about`                     | Navigation link                           |
+| `about-onetime-secret-0`    | Remove (duplicate)                         | Exact duplicate of `about-onetime-secret` |
 
 ### 3. Keys That Belong in `auth.json`
 
 Account/authentication related:
 
-| Key | Recommended Destination | Rationale |
-|-----|------------------------|-----------|
-| `signup-individual-and-business-plans` | `web.signup.plans_cta` | Signup-related content |
-| `sign_up_free` | `web.signup.button_free` | Signup button text |
-| `need_free_account` | `web.signup.free_account_prompt` | Signup prompt |
+| Key                                    | Recommended Destination          | Rationale              |
+| -------------------------------------- | -------------------------------- | ---------------------- |
+| `signup-individual-and-business-plans` | `web.signup.plans_cta`           | Signup-related content |
+| `sign_up_free`                         | `web.signup.button_free`         | Signup button text     |
+| `need_free_account`                    | `web.signup.free_account_prompt` | Signup prompt          |
 
 ### 4. Keys That May Warrant New File: `feature-marketing.json`
 
 CTA and promotional content could be separated:
 
-| Key | Suggested New Location |
-|-----|----------------------|
-| `cta_title` | `web.marketing.cta.title` |
-| `cta_subtitle` | `web.marketing.cta.subtitle` |
-| `cta_feature1` | `web.marketing.cta.features.custom_domains` |
-| `cta_feature2` | `web.marketing.cta.features.unlimited_sharing` |
-| `cta_feature3` | `web.marketing.cta.features.customer_trust` |
-| `explore_premium_plans` | `web.marketing.cta.explore_premium` |
-| `meets-and-exceeds-compliance-standards` | `web.marketing.compliance.badge` |
-| `secure-your-brand-build-customer-trust-etc` | `web.marketing.custom_domains.description` |
-| `now-with-custom-domains` | `web.marketing.custom_domains.badge` |
+| Key                                          | Suggested New Location                         |
+| -------------------------------------------- | ---------------------------------------------- |
+| `cta_title`                                  | `web.marketing.cta.title`                      |
+| `cta_subtitle`                               | `web.marketing.cta.subtitle`                   |
+| `cta_feature1`                               | `web.marketing.cta.features.custom_domains`    |
+| `cta_feature2`                               | `web.marketing.cta.features.unlimited_sharing` |
+| `cta_feature3`                               | `web.marketing.cta.features.customer_trust`    |
+| `explore_premium_plans`                      | `web.marketing.cta.explore_premium`            |
+| `meets-and-exceeds-compliance-standards`     | `web.marketing.compliance.badge`               |
+| `secure-your-brand-build-customer-trust-etc` | `web.marketing.custom_domains.description`     |
+| `now-with-custom-domains`                    | `web.marketing.custom_domains.badge`           |
 
 ---
 
@@ -80,6 +80,7 @@ CTA and promotional content could be separated:
 ### Current Flat Structure Issues
 
 The current structure is largely flat with inconsistent naming conventions:
+
 - Mix of `snake_case` (`cta_title`) and `kebab-case` (`secure-links`)
 - Some keys are full sentences as identifiers (`a-trusted-way-to-share-sensitive-information-etc`)
 - Duplicate concepts (`onetime-secret`, `onetime-secret-literal`, `one-time-secret-literal`)
@@ -140,9 +141,9 @@ The current structure is largely flat with inconsistent naming conventions:
 
 ## Duplicate Keys to Consolidate
 
-| Keys | Recommended Single Key |
-|------|----------------------|
-| `about-onetime-secret-0`, `about-onetime-secret` | Keep one: `about-onetime-secret` |
+| Keys                                                                              | Recommended Single Key                          |
+| --------------------------------------------------------------------------------- | ----------------------------------------------- |
+| `about-onetime-secret-0`, `about-onetime-secret`                                  | Keep one: `about-onetime-secret`                |
 | `create-a-secure-link`, `send-sensitive-information-that-can-only-be-viewed-once` | Consider consolidating if used for same purpose |
 
 ---
@@ -152,6 +153,7 @@ The current structure is largely flat with inconsistent naming conventions:
 ### 1. `feature-marketing.json` (Recommended)
 
 Group promotional and CTA content:
+
 - All `cta_*` keys
 - Compliance badges
 - Feature highlights used in marketing sections
@@ -160,6 +162,7 @@ Group promotional and CTA content:
 ### 2. `brand.json` (Optional)
 
 If brand references are used across many files:
+
 - `onetime-secret` variants
 - Logo alt texts
 - Brand-related link text
@@ -177,11 +180,11 @@ If brand references are used across many files:
 
 ## Summary of Recommended Actions
 
-| Priority | Action | Impact |
-|----------|--------|--------|
-| High | Move brand names to `_common.json` | Prevents duplication across files |
-| High | Remove duplicate `about-onetime-secret-0` | Reduces maintenance burden |
-| Medium | Move navigation labels to `layout.json` | Better organization |
-| Medium | Create `feature-marketing.json` for CTA content | Clearer separation of concerns |
-| Low | Restructure remaining keys into hierarchy | Improved maintainability |
-| Low | Standardize naming convention | Consistency across locale files |
+| Priority | Action                                          | Impact                            |
+| -------- | ----------------------------------------------- | --------------------------------- |
+| High     | Move brand names to `_common.json`              | Prevents duplication across files |
+| High     | Remove duplicate `about-onetime-secret-0`       | Reduces maintenance burden        |
+| Medium   | Move navigation labels to `layout.json`         | Better organization               |
+| Medium   | Create `feature-marketing.json` for CTA content | Clearer separation of concerns    |
+| Low      | Restructure remaining keys into hierarchy       | Improved maintainability          |
+| Low      | Standardize naming convention                   | Consistency across locale files   |

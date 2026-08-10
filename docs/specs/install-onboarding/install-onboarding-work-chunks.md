@@ -240,7 +240,7 @@ lane (`config -q` per combo + `up --wait` + proof-of-life).
 > invocation and the compose-smoke lint matrix. **CP-13:** the naming
 > convention documented in docker/README (renaming rejected: 6+ reference
 > sites for zero functional gain). **QS-5/QS-12/QS-7 entrypoint hygiene:**
-> dead 2025-07 migration guard deleted; STDOUT_SYNC double-exec removed
+> dead 2025-07 migration guard deleted; STDOUT*SYNC double-exec removed
 > (the env var itself is still live in app code — only the broken shell
 > gate died, don't scrub it from docs); healthcheck.sh parses
 > `/health/advanced`'s top-level status via `ruby -rjson` (no new image
@@ -256,7 +256,7 @@ lane (`config -q` per combo + `up --wait` + proof-of-life).
 > (CP-13's root-file half); and the full-stack `up --wait` lane (blocked on
 > the Dockerfile fix reaching a published tag, plus the proxy service being
 > build-only) — tracked with C7's residuals.
-> _(Update 2026-07-11: all four closed. Both `final` stages of the
+> *(Update 2026-07-11: all four closed. Both `final` stages of the
 > Dockerfile ship `/app/data` owned by appuser, so named volumes
 > self-initialize with uid-1001 ownership — docker/README's one-time
 > chown note now applies only to older published images. The
@@ -266,7 +266,7 @@ lane (`config -q` per combo + `up --wait` + proof-of-life).
 > published-tag blocker: compose-smoke.yml's `full-stack-smoke` job
 > builds the app image from source via bake and the proxy via
 > `compose build`, guarding the repo's Dockerfile + compose wiring
-> together — see C7's note.)_
+> together — see C7's note.)\_
 
 ## C6 — `bin/setup` consolidation + CONTRIBUTING (D2, D3, D7)
 
@@ -455,8 +455,8 @@ rabbitmqctl` CLI-presence checks are gone. **BM-10:** `--operator`
 > Procfile.dev, generated artifacts) and treats a down service as FAIL
 > rather than warn; `--init`'s trailing doctor runs `--operator`, and the
 > dev lane closes with a `--dev` doctor pass (D8's GDK-style last step —
-> the "first step" half is the version gates cmd_dev already opens with).
-> New dev-context checks: direnv _hook_ detection via the `OTS_ENV_LOADED`
+> the "first step" half is the version gates cmd*dev already opens with).
+> New dev-context checks: direnv \_hook* detection via the `OTS_ENV_LOADED`
 > export (DX-4's installed-but-unhooked trap; skipped in CI), git-hooks
 > presence, generated-artifact presence, test-datastore probe when
 > `.test-mode` is active, and a `check-version-pins.sh` cross-check.
@@ -484,9 +484,9 @@ rabbitmqctl` CLI-presence checks are gone. **BM-10:** `--operator`
 > the C8 lockstep candidate). **Proof wiring:** fresh-clone.yml runs
 > `bin/setup --doctor` (zero-failures assertion) right after `bin/setup`;
 > new `drift-guards.yml` runs both grep-guards on every PR — necessary
-> because validate-config.yml (their other home) is workflow_dispatch-only
+> because validate-config.yml (their other home) is workflow*dispatch-only
 > today. **Deviations:** no GDK-style `--correct` flag (the bin/setup
-> lanes _are_ the correction; every finding prints its fix command);
+> lanes \_are* the correction; every finding prints its fix command);
 > `.env.reference` is CI-checked, not generated (the file's prose value
 > exceeds what generation from code is worth); the 151-var documentation
 > backlog is tracked in the ignore file rather than written now.

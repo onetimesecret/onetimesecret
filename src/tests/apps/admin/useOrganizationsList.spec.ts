@@ -42,12 +42,14 @@ function orgRow(orgId: string) {
 
 /** Full wire envelope for one list page. `cache` is only present when given —
  *  an omitted block models a payload predating the roster-cache feature. */
-function listPayload(options: {
-  orgIds?: string[];
-  page?: number;
-  perPage?: number;
-  cache?: ColonelOrganizationsCache;
-} = {}) {
+function listPayload(
+  options: {
+    orgIds?: string[];
+    page?: number;
+    perPage?: number;
+    cache?: ColonelOrganizationsCache;
+  } = {}
+) {
   const { orgIds = ['org1'], page = 1, perPage = 50, cache } = options;
   return {
     record: {},

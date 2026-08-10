@@ -30,7 +30,7 @@
   import { onClickOutside, onKeyStroke } from '@vueuse/core';
   import { ref, watch } from 'vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
   const props = withDefaults(
     defineProps<{

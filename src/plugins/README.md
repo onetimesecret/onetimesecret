@@ -9,54 +9,57 @@ The Vue/Pinia ecosystem has two distinct plugin systems, plus state management t
 3. Pinia Stores themselves are not plugins - they are state management containers
 
 ### Vue Plugins
+
 Vue plugins are application-level extensions that can add global features to a Vue application. They use the `app.use()` method to install themselves. A common example is an internationalization (i18n) plugin:
 
 ```typescript
 interface VuePlugin {
-  install: (app: App, options?: any) => void
+  install: (app: App, options?: any) => void;
 }
 
 export const i18nPlugin: VuePlugin = {
   install(app: App, options = { locale: 'en' }) {
     app.config.globalProperties.$translate = (key: string) => {
-      return translations[options.locale][key]
-    }
+      return translations[options.locale][key];
+    };
 
     app.provide('i18n', {
       locale: options.locale,
-      translate: app.config.globalProperties.$translate
-    })
-  }
-}
+      translate: app.config.globalProperties.$translate,
+    });
+  },
+};
 ```
 
 ### Pinia Plugins
+
 Pinia plugins enhance Pinia store functionality by adding new properties or capabilities to all stores. They're installed using `pinia.use()`:
 
 ```typescript
-type PiniaPlugin = (context: PiniaPluginContext) => void
+type PiniaPlugin = (context: PiniaPluginContext) => void;
 
 export const PiniaApiPlugin: PiniaPlugin = ({ store }) => {
-  store.$api = markRaw(createApi())
-}
+  store.$api = markRaw(createApi());
+};
 ```
 
 ### Pinia Stores
+
 Pinia stores are state containers - they're not plugins at all. They manage application state and can be enhanced by Pinia plugins:
 
 ```typescript
 const useUserStore = defineStore('user', {
   state: () => ({
     profile: null,
-    preferences: {}
+    preferences: {},
   }),
   actions: {
     async fetchProfile() {
       // Can use plugin-added properties
-      this.profile = await $api.get('/profile')
-    }
-  }
-})
+      this.profile = await $api.get('/profile');
+    },
+  },
+});
 ```
 
 ## Error Handling
@@ -107,25 +110,23 @@ src/
         └── types.ts                   // Error definitions
 ```
 
-
-
 ## Setup Flow
 
 ```typescript
-const app = createApp(App)
-const pinia = createPinia()
+const app = createApp(App);
+const pinia = createPinia();
 
 // 1. Install Vue plugins
-app.use(i18nPlugin, { locale: 'fr' })
+app.use(i18nPlugin, { locale: 'fr' });
 
 // 2. Add Pinia plugins
-pinia.use(apiPlugin)
+pinia.use(apiPlugin);
 
 // 3. Install Pinia itself
-app.use(pinia)
+app.use(pinia);
 
 // 4. Mount application
-app.mount('#app')
+app.mount('#app');
 ```
 
 In a component, you can then use both plugin features and stores:
@@ -134,19 +135,19 @@ In a component, you can then use both plugin features and stores:
 export default {
   setup() {
     // Access Vue plugin features
-    const { translate } = inject('i18n')
+    const { translate } = inject('i18n');
 
     // Use a Pinia store
-    const userStore = useUserStore()
+    const userStore = useUserStore();
     // The store has access to plugin-added features
-    await userStore.fetchProfile()
+    await userStore.fetchProfile();
 
     return {
       translate,
-      userProfile: userStore.profile
-    }
-  }
-}
+      userProfile: userStore.profile,
+    };
+  },
+};
 ```
 
 ## Dependency Injection
@@ -161,14 +162,15 @@ app.provide('api', api);
 // In stores and components
 const $api = inject('api') as AxiosInstance;
 ```
-This approach maintains separation of concerns and follows Vue's idiomatic patterns.
 
+This approach maintains separation of concerns and follows Vue's idiomatic patterns.
 
 ### Store Initialization Pattern
 
 Stores follow a two-phase initialization pattern:
 
 1. **Synchronous Initialization**: Setup store structure only
+
    ```typescript
    function init() {
      // Structure setup only (no API calls)

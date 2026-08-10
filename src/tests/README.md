@@ -15,9 +15,7 @@ composables and components is where we use wrap function. The wrap function
 is also used by global vue error handler. In this way both async and sync
 errors are handled by the same code for consistency.
 
-
 ## Recent Changes
-
 
 We've successfully fixed the error handling pattern by making tests expect raw errors from stores rather than
 ApplicationError format. This aligns with the proper architecture where stores bubble up errors and composables/components handle them with

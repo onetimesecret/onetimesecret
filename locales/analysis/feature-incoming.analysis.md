@@ -22,24 +22,25 @@ The `feature-incoming.json` file contains 34 keys under a single `incoming` name
 
 ### Keys That Duplicate `_common.json` Patterns
 
-| Key | Current Location | Recommended Destination | Rationale |
-|-----|------------------|------------------------|-----------|
-| `loading_config` | `incoming` | `_common.json` (`web.COMMON.loading`) | Already have `loading` and `loading_ellipses` in common |
-| `submitting` | `incoming` | `_common.json` (`web.COMMON.submitting`) | Already exists in common: `submitting` |
+| Key              | Current Location | Recommended Destination                  | Rationale                                               |
+| ---------------- | ---------------- | ---------------------------------------- | ------------------------------------------------------- |
+| `loading_config` | `incoming`       | `_common.json` (`web.COMMON.loading`)    | Already have `loading` and `loading_ellipses` in common |
+| `submitting`     | `incoming`       | `_common.json` (`web.COMMON.submitting`) | Already exists in common: `submitting`                  |
 
 ### Keys That Follow Different Patterns
 
-| Key | Issue | Recommendation |
-|-----|-------|----------------|
-| `submit_button` / `submit_secret` | Duplicates - both mean "Send Secret" | Consolidate to single key |
-| `submitting_button` / `submitting` | Duplicates - both mean "Sending..." | Consolidate to single key |
-| `reset_button` / `reset_form` | Duplicates - both mean "Clear Form" | Consolidate to single key |
+| Key                                | Issue                                | Recommendation            |
+| ---------------------------------- | ------------------------------------ | ------------------------- |
+| `submit_button` / `submit_secret`  | Duplicates - both mean "Send Secret" | Consolidate to single key |
+| `submitting_button` / `submitting` | Duplicates - both mean "Sending..."  | Consolidate to single key |
+| `reset_button` / `reset_form`      | Duplicates - both mean "Clear Form"  | Consolidate to single key |
 
 ---
 
 ## Suggested Hierarchy Improvements
 
 ### Current Structure (Flat)
+
 ```json
 {
   "incoming": {
@@ -53,6 +54,7 @@ The `feature-incoming.json` file contains 34 keys under a single `incoming` name
 ```
 
 ### Recommended Structure (Nested)
+
 ```json
 {
   "incoming": {
@@ -142,6 +144,7 @@ The taglines (`tagline1`, `tagline2`) could potentially move to `homepage.json` 
 ### 4. ARIA Labels
 
 The `recipient_aria_label` key follows good accessibility practice. Consider adding similar ARIA labels for other form fields:
+
 - `memo_aria_label`
 - `secret_content_aria_label`
 
@@ -149,12 +152,12 @@ The `recipient_aria_label` key follows good accessibility practice. Consider add
 
 ## Consistency Check with Other Files
 
-| Aspect | feature-incoming.json | Other feature-*.json | Status |
-|--------|----------------------|---------------------|--------|
-| Root namespace | `incoming` | `domains`, `feedback`, etc. | Consistent |
-| Nesting depth | 1 level | 1-2 levels | OK |
-| Key naming | snake_case | Mixed | Needs review |
-| Duplicate removal | Has duplicates | Varies | Needs cleanup |
+| Aspect            | feature-incoming.json | Other feature-\*.json       | Status        |
+| ----------------- | --------------------- | --------------------------- | ------------- |
+| Root namespace    | `incoming`            | `domains`, `feedback`, etc. | Consistent    |
+| Nesting depth     | 1 level               | 1-2 levels                  | OK            |
+| Key naming        | snake_case            | Mixed                       | Needs review  |
+| Duplicate removal | Has duplicates        | Varies                      | Needs cleanup |
 
 ---
 

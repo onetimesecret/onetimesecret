@@ -13,5 +13,4 @@ export const FIELD_SHELL =
   'dark:hover:border-gray-600/80 dark:hover:bg-slate-800/90 ' +
   'dark:focus:border-blue-400/80 dark:focus:bg-slate-800 dark:focus:ring-blue-400/20';
 
-export const FIELD_ERROR =
-  'border-red-500/50 focus:border-red-500 focus:ring-red-500/20';
+export const FIELD_ERROR = 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20';

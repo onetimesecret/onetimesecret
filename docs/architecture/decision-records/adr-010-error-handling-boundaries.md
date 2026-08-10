@@ -1,7 +1,7 @@
 ---
-id: "010"
+id: '010'
 status: proposed
-title: "ADR-010: Error Handling at Layer Boundaries"
+title: 'ADR-010: Error Handling at Layer Boundaries'
 ---
 
 ## Status

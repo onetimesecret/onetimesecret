@@ -154,9 +154,9 @@ The Gitolite post-receive hook does not use bakah — it uses native `podman bui
       "dockerfile": "docker/variants/lite.dockerfile",
       // "contexts" maps context names to variant suffixes.
       // "" = the variant with suffix "" (main).
-      "contexts": { "main": "" }
-    }
-  ]
+      "contexts": { "main": "" },
+    },
+  ],
 }
 ```
 
@@ -287,11 +287,13 @@ Local builds default to your machine's native architecture. Add `--platform` whe
 ```
 
 **When to specify platform:**
+
 - Building on Apple Silicon for deployment to x86 servers
 - Testing architecture-specific issues
 - Creating images for a different architecture than your dev machine
 
 **When to omit it:**
+
 - Local development and testing (native builds are 5-10x faster)
 - Quick verification that the build succeeds
 - Your deployment target matches your dev machine

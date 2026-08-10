@@ -22,6 +22,7 @@ has, check the active subscription's `planid` against the records below.
 **Region:** N/A
 
 **Entitlements:**
+
 - `create_secrets`
 - `view_receipt`
 - `custom_domains`
@@ -35,13 +36,13 @@ has, check the active subscription's `planid` against the records below.
 
 **Limits:**
 
-| Resource | Limit | Notes |
-|----------|-------|-------|
-| organizations | 1 |  |
-| total_members_per_org | 5 |  |
-| custom_domains | ∞ (unlimited) |  |
-| secret_lifetime | 2592000 | 30 days |
-| secrets_per_day | ∞ (unlimited) |  |
+| Resource              | Limit         | Notes   |
+| --------------------- | ------------- | ------- |
+| organizations         | 1             |         |
+| total_members_per_org | 5             |         |
+| custom_domains        | ∞ (unlimited) |         |
+| secret_lifetime       | 2592000       | 30 days |
+| secrets_per_day       | ∞ (unlimited) |         |
 
 Role-specific limits (`role_owners_per_org`, `role_admins_per_org`,
 `role_members_per_org`) are not configured for this plan. When

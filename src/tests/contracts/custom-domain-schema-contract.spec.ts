@@ -33,20 +33,15 @@ describe('CustomDomain schema contract (safe_dump_fields)', () => {
       (f) => !(f in INTENTIONAL_EXCLUSIONS)
     );
 
-    it.each(backendFields)(
-      'customDomainSchema declares backend field "%s"',
-      (field) => {
-        expect(schemaKeys).toContain(field);
-      }
-    );
+    it.each(backendFields)('customDomainSchema declares backend field "%s"', (field) => {
+      expect(schemaKeys).toContain(field);
+    });
 
     it('all intentional exclusions reference real backend fields', () => {
       // Guard against stale exclusions: every key in INTENTIONAL_EXCLUSIONS
       // must actually exist in the backend field list.
       for (const excluded of Object.keys(INTENTIONAL_EXCLUSIONS)) {
-        expect(
-          CUSTOM_DOMAIN_SAFE_DUMP_FIELDS as readonly string[]
-        ).toContain(excluded);
+        expect(CUSTOM_DOMAIN_SAFE_DUMP_FIELDS as readonly string[]).toContain(excluded);
       }
     });
 

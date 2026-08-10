@@ -22,8 +22,7 @@
 
 <template>
   <div
-    class="relative overflow-hidden rounded-2xl border border-gray-200
-      bg-white dark:border-gray-700 dark:bg-gray-800">
+    class="relative overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
     <!-- Decorative faded mockup -->
     <div
       class="pointer-events-none opacity-40 blur-[1.5px] select-none"
@@ -33,12 +32,9 @@
 
     <!-- Overlay -->
     <div
-      class="absolute inset-0 flex flex-col items-center justify-center gap-2
-        bg-white/50 p-6 text-center backdrop-blur-[1px] dark:bg-gray-800/50">
+      class="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/50 p-6 text-center backdrop-blur-[1px] dark:bg-gray-800/50">
       <span
-        class="inline-flex items-center gap-1.5 rounded-full border border-gray-200
-          bg-gray-50 px-3 py-1 text-xs font-semibold tracking-wide text-gray-500
-          uppercase dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+        class="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs font-semibold tracking-wide text-gray-500 uppercase dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
         {{ t('web.branding.badge_coming_soon') }}
       </span>
       <div class="text-base font-bold text-gray-900 dark:text-gray-100">

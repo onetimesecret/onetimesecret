@@ -108,7 +108,7 @@ describe('Receipt Date Handling', () => {
       key: 'burnedkey',
       state: 'burned',
       is_burned: true,
-      burned: TEST_TIMESTAMPS.now,     // V3: Unix epoch seconds
+      burned: TEST_TIMESTAMPS.now, // V3: Unix epoch seconds
       ...overrides,
     });
     return {
@@ -233,14 +233,12 @@ describe('Receipt Date Handling', () => {
       store.record = mockReceiptRecord;
 
       // Behavior-focused mock - test the endpoint and request intent
-      axiosMock
-        ?.onPost(`/api/v3/receipt/${testKey}/burn`)
-        .reply((config) => {
-          // Verify the request body contains the expected data (behavior test)
-          const requestData = JSON.parse(config.data);
-          expect(requestData).toMatchObject({ continue: true });
-          return [200, mockResponse];
-        });
+      axiosMock?.onPost(`/api/v3/receipt/${testKey}/burn`).reply((config) => {
+        // Verify the request body contains the expected data (behavior test)
+        const requestData = JSON.parse(config.data);
+        expect(requestData).toMatchObject({ continue: true });
+        return [200, mockResponse];
+      });
 
       await store.burn(testKey);
 
@@ -302,7 +300,7 @@ describe('Receipt Date Handling', () => {
       const testKey = 'testkey123';
       const mockResponse = createMockReceiptResponse({
         revealed: TEST_TIMESTAMPS.now, // V3 canonical (replaces received)
-        state: 'revealed',             // V3 canonical (replaces received)
+        state: 'revealed', // V3 canonical (replaces received)
       });
 
       axiosMock?.onGet(`/api/v3/receipt/${testKey}`).reply(200, mockResponse);
@@ -374,8 +372,8 @@ describe('Receipt Date Handling', () => {
           receipt_url: 'https://example.com/receipt/abc123',
           burn_url: 'https://example.com/burn/abc123',
           identifier: 'test-identifier',
-          is_previewed: false,  // V3 canonical
-          is_revealed: false,   // V3 canonical
+          is_previewed: false, // V3 canonical
+          is_revealed: false, // V3 canonical
           is_burned: false,
           is_destroyed: false,
           is_expired: false,
@@ -387,7 +385,7 @@ describe('Receipt Date Handling', () => {
           updated: null,
           expiration: TEST_TIMESTAMPS.expiration,
           burned: null,
-          revealed: null,       // V3 canonical
+          revealed: null, // V3 canonical
         },
         details: mockReceiptDetails,
       };

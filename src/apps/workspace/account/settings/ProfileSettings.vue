@@ -4,15 +4,10 @@
   import { useI18n } from 'vue-i18n';
   import { useAccount } from '@/shared/composables/useAccount';
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import LanguageToggle
-    from '@/shared/components/ui/LanguageToggle.vue';
-  import SettingsLayout
-    from '@/apps/workspace/layouts/SettingsLayout.vue';
-  import ThemeToggle
-    from '@/shared/components/ui/ThemeToggle.vue';
-  import {
-    useBootstrapStore,
-  } from '@/shared/stores/bootstrapStore';
+  import LanguageToggle from '@/shared/components/ui/LanguageToggle.vue';
+  import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
+  import ThemeToggle from '@/shared/components/ui/ThemeToggle.vue';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { storeToRefs } from 'pinia';
   import { formatDisplayDate } from '@/utils/format';
   import { isOwnerOrAdminOf } from '@/utils/features';
@@ -26,13 +21,9 @@
   const canChangeEmail = computed(() => has_password.value && isOwnerOrAdminOf(bootstrapStore));
   const isOwner = computed(() => bootstrapStore.organization?.current_user_role === 'owner');
 
-  const currentEmail = computed(
-    () => bootstrapStore.email
-  );
+  const currentEmail = computed(() => bootstrapStore.email);
 
-  const emailVerified = computed(
-    () => accountInfo.value?.email_verified ?? false
-  );
+  const emailVerified = computed(() => accountInfo.value?.email_verified ?? false);
 
   const accountCreatedDate = computed(() => {
     if (!accountInfo.value?.created_at) return '';
@@ -41,9 +32,7 @@
 
   const isLoading = ref(false);
 
-  const handleThemeChange = async (
-    _isDark: boolean
-  ) => {
+  const handleThemeChange = async (_isDark: boolean) => {
     isLoading.value = true;
     try {
       // TODO: Persist theme preference to user settings
@@ -64,12 +53,8 @@
     <div class="space-y-8">
       <!-- Email Address -->
       <section
-        class="rounded-lg border border-gray-200/60
-          bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60
-          dark:bg-gray-800/60">
-        <div
-          class="border-b border-gray-200 px-6 py-4
-            dark:border-gray-700">
+        class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
+        <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
           <h2 class="flex items-center gap-3 text-lg font-semibold text-gray-900 dark:text-white">
             <OIcon
               collection="heroicons"
@@ -81,30 +66,21 @@
         </div>
 
         <div class="px-6 py-4">
-          <div
-            class="flex items-center
-              justify-between">
+          <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div>
-                <p
-                  class="font-medium text-gray-900
-                    dark:text-white">
+                <p class="font-medium text-gray-900 dark:text-white">
                   {{ currentEmail }}
                 </p>
-                <div
-                  class="mt-1 flex items-center
-                    gap-1.5">
+                <div class="mt-1 flex items-center gap-1.5">
                   <!-- SSO users: show linked status -->
                   <template v-if="!has_password">
                     <OIcon
                       collection="heroicons"
                       name="link-solid"
-                      class="size-4 text-brand-600
-                        dark:text-brand-400"
+                      class="size-4 text-brand-600 dark:text-brand-400"
                       aria-hidden="true" />
-                    <span
-                      class="text-sm text-brand-600
-                        dark:text-brand-400">
+                    <span class="text-sm text-brand-600 dark:text-brand-400">
                       {{ t('web.auth.account.sso_linked') }}
                     </span>
                   </template>
@@ -114,8 +90,7 @@
                       v-if="emailVerified"
                       collection="heroicons"
                       name="check-circle-solid"
-                      class="size-4 text-green-600
-                        dark:text-green-400"
+                      class="size-4 text-green-600 dark:text-green-400"
                       aria-hidden="true" />
                     <span
                       :class="[
@@ -127,9 +102,7 @@
                       {{
                         emailVerified
                           ? t('web.auth.account.verified')
-                          : t(
-                            'web.auth.account.not_verified'
-                          )
+                          : t('web.auth.account.not_verified')
                       }}
                     </span>
                   </template>
@@ -139,14 +112,8 @@
             <router-link
               v-if="canChangeEmail"
               to="/account/settings/profile/email"
-              class="inline-flex items-center gap-2
-                text-sm font-medium text-brand-600
-                hover:text-brand-700
-                dark:text-brand-400
-                dark:hover:text-brand-300">
-              {{
-                t('web.settings.profile.change_email')
-              }}
+              class="inline-flex items-center gap-2 text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
+              {{ t('web.settings.profile.change_email') }}
               <OIcon
                 collection="heroicons"
                 name="arrow-right-solid"
@@ -170,12 +137,8 @@
 
       <!-- Preferences -->
       <section
-        class="rounded-lg border border-gray-200/60
-          bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60
-          dark:bg-gray-800/60">
-        <div
-          class="border-b border-gray-200 px-6 py-4
-            dark:border-gray-700">
+        class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
+        <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
           <h2 class="flex items-center gap-3 text-lg font-semibold text-gray-900 dark:text-white">
             <OIcon
               collection="heroicons"
@@ -240,7 +203,7 @@
               class="mt-4 space-y-4">
               <!-- Translation Notice -->
               <div class="rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
-                <div class="prose prose-sm prose-blue max-w-none dark:prose-invert">
+                <div class="prose prose-sm max-w-none prose-blue dark:prose-invert">
                   <p class="text-sm text-blue-700 dark:text-blue-300">
                     {{ t('web.translations.as_we_add_new_features_our_translations_graduall') }}
                   </p>
@@ -272,7 +235,6 @@
           </div>
         </div>
       </section>
-
     </div>
   </SettingsLayout>
 </template>

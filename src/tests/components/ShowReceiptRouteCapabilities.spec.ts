@@ -26,8 +26,7 @@ const createMockRoute = (receiptIdentifier: string): RouteLocationNormalized => 
  * Sets up the testing pinia with the specified receipt capability value.
  */
 const setupPinia = (receiptCapability: boolean | undefined) => {
-  const capabilities =
-    receiptCapability === undefined ? {} : { receipt: receiptCapability };
+  const capabilities = receiptCapability === undefined ? {} : { receipt: receiptCapability };
 
   return createTestingPinia({
     createSpy: vi.fn,

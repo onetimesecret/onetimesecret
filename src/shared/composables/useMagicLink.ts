@@ -38,10 +38,10 @@ export function useMagicLink() {
   }
 
   async function doMagicLinkRequest(email: string): Promise<boolean> {
-    const response = await $api.post<MagicLinkResponse>(
-      '/auth/email-login-request',
-      { login: email, shrimp: csrfStore.shrimp }
-    );
+    const response = await $api.post<MagicLinkResponse>('/auth/email-login-request', {
+      login: email,
+      shrimp: csrfStore.shrimp,
+    });
     if (isError(response.data)) {
       error.value = response.data.error;
       fieldError.value = response.data['field-error'] || null;
@@ -80,10 +80,10 @@ export function useMagicLink() {
     clearState();
     isLoading.value = true;
     try {
-      const response = await $api.post<MagicLinkResponse>(
-        '/auth/email-login',
-        { key, shrimp: csrfStore.shrimp }
-      );
+      const response = await $api.post<MagicLinkResponse>('/auth/email-login', {
+        key,
+        shrimp: csrfStore.shrimp,
+      });
       if (isError(response.data)) {
         error.value = response.data.error;
         fieldError.value = response.data['field-error'] || null;

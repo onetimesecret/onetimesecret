@@ -41,10 +41,7 @@ describe('createAuthOverrideState', () => {
     });
 
     it('record.enabled true → NOT workspace default with effective_enabled true', () => {
-      const state = makeState(
-        { enabled: true },
-        { global_enabled: true, effective_enabled: true }
-      );
+      const state = makeState({ enabled: true }, { global_enabled: true, effective_enabled: true });
 
       expect(state.isWorkspaceDefault.value).toBe(false);
       expect(state.isExplicitlyConfigured.value).toBe(true);

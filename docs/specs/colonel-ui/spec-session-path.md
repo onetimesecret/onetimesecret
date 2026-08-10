@@ -26,12 +26,12 @@ One correction and one conflict govern everything below:
 "because nothing maintains an index," and proposes building one with a ZADD per
 session write. That index is already there:
 
-| Piece | Location | State |
-| --- | --- | --- |
-| ZSET of live sids, scored by last activity | `Customer#active_sessions` — `sorted_set :active_sessions` (`lib/onetime/models/customer.rb:125`) | Built |
-| The ZADD, on every authenticated write | `TrackMetadata#call` (`lib/onetime/operations/sessions/track_metadata.rb:83`) | Built |
-| Lightweight per-session record (no decrypt) | `Onetime::SessionMetadata` — `created_at`, `last_activity_at`, `ip_address`, `user_agent`, `auth_method`, `org_id`, `user_id` | Built |
-| No-scan / no-decrypt read + self-healing prune | `ListForCustomer` (`lib/onetime/operations/sessions/list_for_customer.rb`) | Built |
+| Piece                                          | Location                                                                                                                      | State |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ----- |
+| ZSET of live sids, scored by last activity     | `Customer#active_sessions` — `sorted_set :active_sessions` (`lib/onetime/models/customer.rb:125`)                             | Built |
+| The ZADD, on every authenticated write         | `TrackMetadata#call` (`lib/onetime/operations/sessions/track_metadata.rb:83`)                                                 | Built |
+| Lightweight per-session record (no decrypt)    | `Onetime::SessionMetadata` — `created_at`, `last_activity_at`, `ip_address`, `user_agent`, `auth_method`, `org_id`, `user_id` | Built |
+| No-scan / no-decrypt read + self-healing prune | `ListForCustomer` (`lib/onetime/operations/sessions/list_for_customer.rb`)                                                    | Built |
 
 So the per-write cost the performance spec budgets for is **already paid** on
 every authenticated request, and `ListForCustomer` is already a working
@@ -45,7 +45,7 @@ gates on `session_data['authenticated']`, so the index is identity-only by
 construction.
 
 **What is missing is only the global scope.** `Sessions::List` still scans and
-decrypts the whole keyspace because there is no *global* equivalent of
+decrypts the whole keyspace because there is no _global_ equivalent of
 `active_sessions`. That is one ZADD beside the one already at
 `track_metadata.rb:83`.
 
@@ -62,7 +62,7 @@ Do not treat this as a copy-paste of `ListForCustomer`. Three differences bite:
 **Email and role are not in the sidecar, deliberately.** `Store.summarize`
 returns `email` and `role`; `SessionMetadata.safe_dump_fields` returns neither,
 and the model docstring names that omission as the feature's security boundary
-("Adding a field here is a deliberate act of exposing it"). The admin UI *does*
+("Adding a field here is a deliberate act of exposing it"). The admin UI _does_
 render both — `AdminSessions.vue:67-68` has `email` and `role` columns, plus
 `email` in the detail panel and modal subtitle. So: hydrate email/role per
 **displayed row** via `Customer.find_by_extid(meta.user_id)` — 50 bounded loads
@@ -165,7 +165,7 @@ That precondition is met. Sessions die by deleting the encrypted
 - Event-driven revocation on credential change already exists (#3810): the
   password-change/reset hooks revoke in-transaction, and
   `SessionRevocationSweepWorker` re-runs the full keyspace sweep asynchronously
-  with a credential watermark so sessions authenticated *after* the change are
+  with a credential watermark so sessions authenticated _after_ the change are
   spared.
 - Deactivation revokes — `set_user_suspension.rb` revokes the customer's sessions
   and records the `ColonelAuditEvent`. The expectations doc's anti-requirement

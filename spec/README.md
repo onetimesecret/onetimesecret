@@ -4,11 +4,11 @@ Tests are organized by authentication mode. Each mode runs in a separate process
 
 ## Modes
 
-| Mode | Description |
-|------|-------------|
-| `simple` | Redis-only sessions |
-| `full` | Rodauth with SQLite or PostgreSQL |
-| `disabled` | Public access only |
+| Mode       | Description                       |
+| ---------- | --------------------------------- |
+| `simple`   | Redis-only sessions               |
+| `full`     | Rodauth with SQLite or PostgreSQL |
+| `disabled` | Public access only                |
 
 ## Running Tests
 

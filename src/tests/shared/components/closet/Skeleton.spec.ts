@@ -14,8 +14,7 @@ import { mount } from '@vue/test-utils';
 import { describe, it, expect } from 'vitest';
 import Skeleton from '@/shared/components/closet/Skeleton.vue';
 
-const blocks = (wrapper: ReturnType<typeof mount>) =>
-  wrapper.findAll('[aria-hidden="true"]');
+const blocks = (wrapper: ReturnType<typeof mount>) => wrapper.findAll('[aria-hidden="true"]');
 
 describe('Skeleton', () => {
   describe('default render', () => {

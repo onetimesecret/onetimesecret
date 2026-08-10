@@ -22,7 +22,7 @@ correction 6).
 ## Scope
 
 - `Onetime::Security::EmailRateLimiter` (`lib/onetime/security/
-  email_rate_limiter.rb`): layer-agnostic module, Lua atomic
+email_rate_limiter.rb`): layer-agnostic module, Lua atomic
   check-and-increment (the `DnsRateLimiter` single-script shape — sends have no
   separate failure event), raising `Onetime::LimitExceeded` (→ 429 via the Otto
   hook), `*_status` read-only helpers, `force_enabled` test bypass. Four

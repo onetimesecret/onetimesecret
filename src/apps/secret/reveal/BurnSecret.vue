@@ -12,7 +12,9 @@
   const props = defineProps<Props>();
 
   const { t } = useI18n();
-  const { record, details, isLoading, passphrase, fetch, burn } = useReceipt(props.receiptIdentifier);
+  const { record, details, isLoading, passphrase, fetch, burn } = useReceipt(
+    props.receiptIdentifier
+  );
 
   onMounted(() => {
     fetch();
@@ -24,7 +26,7 @@
     <!-- Loading State -->
     <div
       v-if="isLoading"
-      class="animate-pulse motion-reduce:animate-none space-y-4"
+      class="animate-pulse space-y-4 motion-reduce:animate-none"
       role="status"
       aria-live="polite"
       aria-busy="true">
@@ -137,7 +139,7 @@
           <OIcon
             collection=""
             name="heroicons-fire-20-solid"
-            class="mr-1 size-5 transition-all group-hover:rotate-12 group-hover:scale-125"
+            class="mr-1 size-5 transition-all group-hover:scale-125 group-hover:rotate-12"
             aria-hidden="true" />
           {{ t('web.COMMON.word_confirm') }}: {{ t('web.COMMON.burn_this_secret') }}
         </button>

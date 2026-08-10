@@ -194,6 +194,7 @@ Do NOT run export until the user explicitly requests it.
 ## Recovery
 
 If the session compacts or disconnects:
+
 1. Run `--stats` to see current progress.
 2. Re-check the eligibility gate.
 3. Run `--resume` to restart monitoring. Agents write directly to the database, so
@@ -241,6 +242,7 @@ python3 locales/scripts/i18n validate glossary <LOCALE>   # advisory
 ## Completion
 
 When all locales show 0 pending:
+
 1. Verify with `--stats` (also shows the content-truth current/stale/missing split).
 2. Collect + insert glossary candidates (previous section).
 3. User can then run export: `python3 locales/scripts/i18n tasks export <locale>`.

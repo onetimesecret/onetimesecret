@@ -56,9 +56,7 @@
   const passphraseVisible = ref(false);
 
   // Passphrase validation
-  const minPassphraseLength = computed(
-    () => passphraseConfig.value?.minimum_length || 0
-  );
+  const minPassphraseLength = computed(() => passphraseConfig.value?.minimum_length || 0);
 
   const isPassphraseValid = computed(() => {
     if (!props.currentPassphrase) return true;
@@ -117,7 +115,7 @@
         leave-to="opacity-0">
         <div
           class="fixed inset-0 bg-black/50"
-          aria-hidden="true" ></div>
+          aria-hidden="true"></div>
       </TransitionChild>
 
       <!-- Panel container - full viewport so clicks above panel trigger close -->
@@ -130,20 +128,18 @@
           leave="motion-safe:ease-in motion-safe:duration-200"
           leave-from="translate-y-0"
           leave-to="translate-y-full">
-          <DialogPanel
-            class="w-full rounded-t-2xl bg-white p-6 pb-safe dark:bg-gray-800">
+          <DialogPanel class="pb-safe w-full rounded-t-2xl bg-white p-6 dark:bg-gray-800">
             <!-- Drag handle indicator -->
             <div class="mb-4 flex justify-center">
               <div
                 class="h-1 w-10 rounded-full bg-gray-300 dark:bg-gray-600"
-                aria-hidden="true" ></div>
+                aria-hidden="true"></div>
             </div>
 
             <!-- Header -->
             <div class="mb-6 flex items-center gap-3">
               <div
-                class="flex size-10 items-center justify-center rounded-full
-                  bg-brand-100 dark:bg-brand-900/30">
+                class="flex size-10 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900/30">
                 <OIcon
                   collection="material-symbols"
                   name="shield-outline"
@@ -169,12 +165,7 @@
                 :value="currentTtl"
                 :disabled="disabled"
                 @change="handleTtlChange"
-                class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-base
-                  text-gray-900 transition-colors
-                  focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20
-                  disabled:cursor-not-allowed disabled:opacity-50
-                  dark:border-gray-600 dark:bg-gray-700 dark:text-white
-                  dark:focus:border-brand-400">
+                class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-base text-gray-900 transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-400">
                 <option
                   v-for="opt in lifetimeOptions"
                   :key="opt.value"
@@ -185,7 +176,9 @@
             </div>
 
             <!-- Passphrase Section -->
-            <form class="mb-6" @submit.prevent="closeSheet">
+            <form
+              class="mb-6"
+              @submit.prevent="closeSheet">
               <label
                 for="sheet-passphrase-input"
                 class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -200,11 +193,7 @@
                   autocomplete="new-password"
                   :placeholder="t('web.secrets.enterPassphrase')"
                   @input="handlePassphraseInput"
-                  class="w-full rounded-lg border bg-white px-4 py-3 pr-20 text-base
-                    text-gray-900 placeholder:text-gray-400 transition-colors
-                    focus:outline-none focus:ring-2
-                    disabled:cursor-not-allowed disabled:opacity-50
-                    dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-500"
+                  class="w-full rounded-lg border bg-white px-4 py-3 pr-20 text-base text-gray-900 transition-colors placeholder:text-gray-400 focus:ring-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-500"
                   :class="
                     passphraseValidationError
                       ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20 dark:border-red-500'
@@ -216,11 +205,7 @@
                     type="button"
                     :disabled="disabled"
                     @click="clearPassphrase"
-                    class="rounded p-1.5 text-gray-400 transition-colors
-                      hover:text-gray-600
-                      focus:outline-none focus:ring-2 focus:ring-brand-500
-                      disabled:cursor-not-allowed disabled:opacity-50
-                      dark:hover:text-gray-300"
+                    class="rounded p-1.5 text-gray-400 transition-colors hover:text-gray-600 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:hover:text-gray-300"
                     :aria-label="t('web.LABELS.clear')">
                     <OIcon
                       collection="heroicons"
@@ -231,11 +216,7 @@
                     type="button"
                     :disabled="disabled"
                     @click="togglePassphraseVisibility"
-                    class="rounded p-1.5 text-gray-400 transition-colors
-                      hover:text-gray-600
-                      focus:outline-none focus:ring-2 focus:ring-brand-500
-                      disabled:cursor-not-allowed disabled:opacity-50
-                      dark:hover:text-gray-300"
+                    class="rounded p-1.5 text-gray-400 transition-colors hover:text-gray-600 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:hover:text-gray-300"
                     :aria-label="
                       passphraseVisible
                         ? t('web.LABELS.hide_passphrase')
@@ -266,12 +247,7 @@
             <button
               type="button"
               @click="closeSheet"
-              class="w-full rounded-lg bg-brand-600 px-4 py-3 text-base font-medium text-white
-                transition-colors
-                hover:bg-brand-700
-                focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
-                dark:bg-brand-500 dark:hover:bg-brand-600
-                dark:focus:ring-offset-gray-800">
+              class="w-full rounded-lg bg-brand-600 px-4 py-3 text-base font-medium text-white transition-colors hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none dark:bg-brand-500 dark:hover:bg-brand-600 dark:focus:ring-offset-gray-800">
               {{ t('web.COMMON.done') }}
             </button>
           </DialogPanel>

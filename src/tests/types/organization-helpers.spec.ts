@@ -23,7 +23,9 @@ const PAST_S = NOW_S - 3600; // expired 1h ago
 
 describe('effectiveInvitationStatus', () => {
   it('keeps a pending invitation pending while it has time left', () => {
-    expect(effectiveInvitationStatus('pending', FUTURE_S, NOW_MS)).toBe(INVITATION_STATUSES.PENDING);
+    expect(effectiveInvitationStatus('pending', FUTURE_S, NOW_MS)).toBe(
+      INVITATION_STATUSES.PENDING
+    );
   });
 
   it('surfaces a pending-but-past-expiry invitation as expired', () => {
@@ -36,8 +38,12 @@ describe('effectiveInvitationStatus', () => {
 
   it('never reinterprets a non-pending status, even past expiry', () => {
     // Only pending flips to expired; a terminal status stands as-is.
-    expect(effectiveInvitationStatus('accepted', PAST_S, NOW_MS)).toBe(INVITATION_STATUSES.ACCEPTED);
-    expect(effectiveInvitationStatus('declined', PAST_S, NOW_MS)).toBe(INVITATION_STATUSES.DECLINED);
+    expect(effectiveInvitationStatus('accepted', PAST_S, NOW_MS)).toBe(
+      INVITATION_STATUSES.ACCEPTED
+    );
+    expect(effectiveInvitationStatus('declined', PAST_S, NOW_MS)).toBe(
+      INVITATION_STATUSES.DECLINED
+    );
   });
 
   it('passes an already-expired status through unchanged', () => {
@@ -63,16 +69,28 @@ describe('effectiveInvitationStatus', () => {
 describe('invitationStatusLabelKey', () => {
   it('maps every localized status to its label key', () => {
     for (const status of LOCALIZED_INVITATION_STATUSES) {
-      expect(invitationStatusLabelKey(status)).toBe(`web.organizations.invitations.status.${status}`);
+      expect(invitationStatusLabelKey(status)).toBe(
+        `web.organizations.invitations.status.${status}`
+      );
     }
   });
 
   it('covers the four contract statuses plus revoked', () => {
-    expect(invitationStatusLabelKey('pending')).toBe('web.organizations.invitations.status.pending');
-    expect(invitationStatusLabelKey('accepted')).toBe('web.organizations.invitations.status.accepted');
-    expect(invitationStatusLabelKey('declined')).toBe('web.organizations.invitations.status.declined');
-    expect(invitationStatusLabelKey('expired')).toBe('web.organizations.invitations.status.expired');
-    expect(invitationStatusLabelKey('revoked')).toBe('web.organizations.invitations.status.revoked');
+    expect(invitationStatusLabelKey('pending')).toBe(
+      'web.organizations.invitations.status.pending'
+    );
+    expect(invitationStatusLabelKey('accepted')).toBe(
+      'web.organizations.invitations.status.accepted'
+    );
+    expect(invitationStatusLabelKey('declined')).toBe(
+      'web.organizations.invitations.status.declined'
+    );
+    expect(invitationStatusLabelKey('expired')).toBe(
+      'web.organizations.invitations.status.expired'
+    );
+    expect(invitationStatusLabelKey('revoked')).toBe(
+      'web.organizations.invitations.status.revoked'
+    );
   });
 
   it('returns null for an unknown/future status (fallback path)', () => {

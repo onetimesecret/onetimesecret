@@ -10,11 +10,13 @@
 Billing is optional and disabled by default. To enable:
 
 1. **Copy the example config:**
+
    ```bash
    cp etc/examples/billing.example.yaml etc/billing.yaml
    ```
 
 2. **Configure environment variables** (or edit `etc/billing.yaml` directly):
+
    ```bash
    STRIPE_API_KEY=sk_test_...           # Secret key from Stripe dashboard
    STRIPE_WEBHOOK_SECRET=whsec_...     # From webhook endpoint setup
@@ -33,6 +35,7 @@ The billing app only loads when `etc/billing.yaml` exists with `enabled: true`. 
 Create products in [Stripe Dashboard → Products](https://dashboard.stripe.com/products).
 
 **Required Metadata** (on each product):
+
 ```json
 {
   "app": "onetimesecret",
@@ -75,7 +78,7 @@ invitation; the stricter of the two wins.
 
 Checkout session creation sends a fresh UUID idempotency key on every
 attempt. Sessions are pre-payment and side-effect free — duplicates expire
-unused, and duplicate *completions* are deduplicated by the
+unused, and duplicate _completions_ are deduplicated by the
 `checkout.session.completed` webhook handler. Do not reintroduce
 deterministic (time-bucketed) keys here: Stripe caches responses by key, so
 a same-window retry returns the original — possibly already-completed —
@@ -92,12 +95,14 @@ rationale.
 ## Verification
 
 **Backend:**
+
 ```bash
 pnpm run test:tryouts:agent try/billing/
 # Should show: 55 testcases passed
 ```
 
 **Test Checkout Flow:**
+
 1. Start server with billing enabled
 2. Visit `/account/billing/plans`
 3. Click upgrade button
@@ -105,6 +110,7 @@ pnpm run test:tryouts:agent try/billing/
 5. Verify organization planid updates after successful checkout
 
 **Webhook Testing:**
+
 ```bash
 # Install Stripe CLI: https://stripe.com/docs/stripe-cli
 stripe listen --forward-to localhost:3000/billing/webhook

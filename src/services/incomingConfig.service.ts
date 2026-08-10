@@ -53,7 +53,7 @@ export const IncomingConfigService = {
     const result = gracefulParse(
       getDomainIncomingConfigResponseSchema,
       response.data,
-      'GetDomainIncomingConfigResponse',
+      'GetDomainIncomingConfigResponse'
     );
     if (!result.ok) {
       console.error('Failed to parse incoming-config response:', result.error);
@@ -75,7 +75,7 @@ export const IncomingConfigService = {
    */
   async putConfigForDomain(
     domainExtId: string,
-    payload: PutDomainIncomingConfigRequest,
+    payload: PutDomainIncomingConfigRequest
   ): Promise<IncomingConfigResponse> {
     const response = await $api.put(`/api/domains/${domainExtId}/incoming-config`, payload);
     const validated = strictParse(putDomainIncomingConfigResponseSchema, response.data);

@@ -73,7 +73,7 @@ R.new.clear_feedback_rate_limit!('127.0.0.1')
 
 To verify the trusted-proxy → `Rack::Request#ip` chain (e.g. after changing
 `build_metadata`), spoof the forwarding header and confirm the lockout keys
-off the *client* IP, not the loopback peer:
+off the _client_ IP, not the loopback peer:
 
 ```bash
 # With TRUSTED_PROXY_ENABLED=true and a CIDR that covers loopback
@@ -98,7 +98,7 @@ is false, the CIDR doesn't cover the peer, or `build_metadata` is still reading
 ## Negative checks
 
 - **Empty body:** `-d '{}'` should return a form error ("You can be more
-  original than that!") and *not* increment the counter (record happens after
+  original than that!") and _not_ increment the counter (record happens after
   `Feedback.add`).
 - **Missing IP:** simulate by routing through a misconfigured proxy that strips
   `REMOTE_ADDR`; the limiter should silently no-op rather than raise. (Hard to

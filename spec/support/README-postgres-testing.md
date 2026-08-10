@@ -25,6 +25,7 @@ export AUTH_DATABASE_URL_MIGRATIONS="postgresql://admin:password@localhost/oneti
 ### Database Setup
 
 The test infrastructure will automatically:
+
 1. Connect to the PostgreSQL database specified in `AUTH_DATABASE_URL`
 2. Run migrations from `apps/web/auth/migrations/`
 3. Use elevated connection from `AUTH_DATABASE_URL_MIGRATIONS` if provided
@@ -151,13 +152,13 @@ At the very end of the test suite:
 
 ## Differences from SQLite Infrastructure
 
-| Feature | SQLite (`full_mode_suite_database.rb`) | PostgreSQL (`postgres_mode_suite_database.rb`) |
-|---------|----------------------------------------|-----------------------------------------------|
-| Database | In-memory (`sqlite::memory:`) | Real PostgreSQL via `AUTH_DATABASE_URL` |
-| Cleanup | `DELETE` per table | `TRUNCATE CASCADE` |
-| Migrations | Standard connection | Optional elevated connection |
-| Extensions | None | citext, functions, triggers |
-| Tags | `:full_auth_mode` | `:full_auth_mode, :postgres_database` |
+| Feature    | SQLite (`full_mode_suite_database.rb`) | PostgreSQL (`postgres_mode_suite_database.rb`) |
+| ---------- | -------------------------------------- | ---------------------------------------------- |
+| Database   | In-memory (`sqlite::memory:`)          | Real PostgreSQL via `AUTH_DATABASE_URL`        |
+| Cleanup    | `DELETE` per table                     | `TRUNCATE CASCADE`                             |
+| Migrations | Standard connection                    | Optional elevated connection                   |
+| Extensions | None                                   | citext, functions, triggers                    |
+| Tags       | `:full_auth_mode`                      | `:full_auth_mode, :postgres_database`          |
 
 ## Running PostgreSQL Tests
 
@@ -197,6 +198,7 @@ bundle exec rspec --tag postgres_database
 **Error:** `AUTH_DATABASE_URL must be set for PostgreSQL tests`
 
 **Solution:** Export `AUTH_DATABASE_URL` before running tests:
+
 ```bash
 export AUTH_DATABASE_URL="postgresql://user:password@localhost/onetime_auth_test"
 ```
@@ -206,11 +208,13 @@ export AUTH_DATABASE_URL="postgresql://user:password@localhost/onetime_auth_test
 **Error:** `permission denied to create extension`
 
 **Solution:** Use elevated connection for migrations:
+
 ```bash
 export AUTH_DATABASE_URL_MIGRATIONS="postgresql://admin:password@localhost/onetime_auth_test"
 ```
 
 Or grant extension privileges:
+
 ```sql
 ALTER USER testuser WITH SUPERUSER;
 ```
@@ -228,6 +232,7 @@ ALTER USER testuser WITH SUPERUSER;
 **Cause:** Previous test leaked data; cleanup not happening
 
 **Solution:**
+
 1. Verify `after` blocks clean up test data
 2. Check `PostgresModeSuiteDatabase.clean_tables!` is working
 3. Add manual cleanup in test:

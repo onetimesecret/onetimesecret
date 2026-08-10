@@ -1,7 +1,7 @@
 ---
 labels: admin-v2, work, architecture
 depends: none
-epic: "#3653"
+epic: '#3653'
 ---
 
 # Colonel Admin Rebuild — operating console (tracking)
@@ -32,22 +32,26 @@ So implementers don't follow stale assumptions:
 ## Roadmap & dependency graph
 
 **Phase 0 — Scaffold:**
+
 - [ ] [second Rolldown entry + admin shell served behind experimental.admin_v2](./10-second-entry-shell.md)
 - [ ] [admin UI kit (DataTable, StatCard, FilterBar, DetailDrawer, ConfirmDialog, JsonViewer)](./11-admin-ui-kit.md)
 - [ ] [per-resource Pinia stores + shared paginated-fetch composable](./12-resource-stores.md)
 
 **Phase 1 — Customers reference slice:**
+
 - [ ] [AdminAuditEvent — every mutating operation records actor/verb/target/result](./21-admin-audit-log.md)
-- [ ] [extract Operations::Customers::* and wire colonel + CLI through one implementation](./20-ops-customers-extraction.md)
+- [ ] [extract Operations::Customers::\* and wire colonel + CLI through one implementation](./20-ops-customers-extraction.md)
 - [ ] [Customers UI — filterable list + customer detail page (support without SSH)](./22-customers-ui.md)
 
 **Phase 2 — Parity ports:**
+
 - [ ] [Secrets screen (list + receipt + guarded delete)](./30-secrets-screen.md)
 - [ ] [Domains screen (card grid + verify button)](./31-domains-screen.md)
 - [ ] [Organizations screen + billing-investigate workflow](./32-organizations-screen.md)
 - [ ] [System, BannedIPs, Usage screens (+ extract BanIP/UnbanIP ops)](./33-system-bannedips-usage-screens.md)
 
 **Phase 3 — Surface CLI-only powers:**
+
 - [ ] [Sessions console (inspect / search / delete)](./40-sessions-console.md)
 - [ ] [Broadcast banner (set / show / clear)](./41-broadcast-banner.md)
 - [ ] [Queue DLQ console (list / show / replay / purge)](./42-queue-dlq.md)
@@ -56,11 +60,13 @@ So implementers don't follow stale assumptions:
 - [ ] [Billing catalog view (read-only drift)](./45-billing-catalog-view.md)
 
 **Phase 4 — Cutover & hardening:**
+
 - [ ] [retire old app + tighten perimeter (cutover & hardening)](./50-cutover-hardening.md)
 - [ ] [opt-in network isolation middleware (site.admin.allowed_cidrs)](./51-cidr-isolation.md)
 - [ ] [explicit, audit-logged impersonation operation (confirm-then-fix)](./52-impersonation-audit-fix.md)
 
 **Backend debt (fix in-flight):**
+
 - [ ] [replace SCAN-counted secret counts with per-customer counters](./60-debt-scan-counts.md)
 - [ ] [implement real global stats or drop the stubbed tiles](./61-debt-stats-stubs.md)
 

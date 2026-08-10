@@ -1,7 +1,7 @@
 ---
 labels: admin-v2, backend, security, ops
 depends: none
-epic: "#3653"
+epic: '#3653'
 ---
 
 # Admin rebuild: opt-in network isolation middleware (site.admin.allowed_cidrs)

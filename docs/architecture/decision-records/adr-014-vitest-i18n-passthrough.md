@@ -1,7 +1,7 @@
 ---
-id: "014"
+id: '014'
 status: accepted
-title: "ADR-014: Pass-through i18n in Vitest Component Tests"
+title: 'ADR-014: Pass-through i18n in Vitest Component Tests'
 ---
 
 ## Status

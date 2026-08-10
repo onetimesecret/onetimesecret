@@ -1,73 +1,74 @@
 <!-- src/apps/workspace/components/domains/DomainEmailDnsRecords.vue -->
 
 <script setup lang="ts">
-/**
- * DNS Records display for domain email configuration.
- *
- * Shows DNS records required for email authentication (SPF, DKIM, DMARC) as
- * vertical cards with per-record status indicators and copy-to-clipboard
- * functionality. Values render fully visible (no truncation) so DKIM keys
- * and long hostnames are copyable. Includes a "Re-validate" button.
- */
-import { useI18n } from 'vue-i18n';
-import { ref, computed } from 'vue';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import { useClipboard } from '@/shared/composables/useClipboard';
-import type { EmailDnsRecord, EmailValidationStatus } from '@/schemas/contracts/email-config';
+  /**
+   * DNS Records display for domain email configuration.
+   *
+   * Shows DNS records required for email authentication (SPF, DKIM, DMARC) as
+   * vertical cards with per-record status indicators and copy-to-clipboard
+   * functionality. Values render fully visible (no truncation) so DKIM keys
+   * and long hostnames are copyable. Includes a "Re-validate" button.
+   */
+  import { useI18n } from 'vue-i18n';
+  import { ref, computed } from 'vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import { useClipboard } from '@/shared/composables/useClipboard';
+  import type { EmailDnsRecord, EmailValidationStatus } from '@/schemas/contracts/email-config';
 
-interface Props {
-  dnsRecords: EmailDnsRecord[];
-  validationStatus: EmailValidationStatus;
-  lastValidatedAt: Date | null;
-  dnsCheckCompletedAt: Date | null;
-  providerCheckCompletedAt: Date | null;
-  lastError: string | null;
-  isValidating: boolean;
-}
-
-const props = defineProps<Props>();
-
-const emit = defineEmits<{
-  (e: 'validate'): void;
-}>();
-
-const { t } = useI18n();
-
-// Per-record clipboard state (keyed by record index)
-const copiedIndex = ref<number | null>(null);
-const { copyToClipboard } = useClipboard();
-
-const handleCopy = async (value: string, index: number) => {
-  const success = await copyToClipboard(value);
-  if (success) {
-    copiedIndex.value = index;
-    setTimeout(() => {
-      if (copiedIndex.value === index) {
-        copiedIndex.value = null;
-      }
-    }, 2000);
+  interface Props {
+    dnsRecords: EmailDnsRecord[];
+    validationStatus: EmailValidationStatus;
+    lastValidatedAt: Date | null;
+    dnsCheckCompletedAt: Date | null;
+    providerCheckCompletedAt: Date | null;
+    lastError: string | null;
+    isValidating: boolean;
   }
-};
 
-/** Whether both DNS and provider checks have completed. */
-const bothChecksComplete = computed(() =>
-  props.dnsCheckCompletedAt !== null && props.providerCheckCompletedAt !== null
-);
+  const props = defineProps<Props>();
 
-/** Effective validation status accounting for check completion. */
-const effectiveStatus = computed(() => {
-  if (props.isValidating || !bothChecksComplete.value) return 'pending';
-  return props.validationStatus;
-});
+  const emit = defineEmits<{
+    (e: 'validate'): void;
+  }>();
 
-/** Format the last validated date for display. */
-const formatDate = (date: Date): string => new Intl.DateTimeFormat(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date);
+  const { t } = useI18n();
+
+  // Per-record clipboard state (keyed by record index)
+  const copiedIndex = ref<number | null>(null);
+  const { copyToClipboard } = useClipboard();
+
+  const handleCopy = async (value: string, index: number) => {
+    const success = await copyToClipboard(value);
+    if (success) {
+      copiedIndex.value = index;
+      setTimeout(() => {
+        if (copiedIndex.value === index) {
+          copiedIndex.value = null;
+        }
+      }, 2000);
+    }
+  };
+
+  /** Whether both DNS and provider checks have completed. */
+  const bothChecksComplete = computed(
+    () => props.dnsCheckCompletedAt !== null && props.providerCheckCompletedAt !== null
+  );
+
+  /** Effective validation status accounting for check completion. */
+  const effectiveStatus = computed(() => {
+    if (props.isValidating || !bothChecksComplete.value) return 'pending';
+    return props.validationStatus;
+  });
+
+  /** Format the last validated date for display. */
+  const formatDate = (date: Date): string =>
+    new Intl.DateTimeFormat(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
 </script>
 
 <template>
@@ -92,7 +93,7 @@ const formatDate = (date: Date): string => new Intl.DateTimeFormat(undefined, {
         type="button"
         @click="emit('validate')"
         :disabled="isValidating"
-        class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-600 dark:text-gray-100 dark:ring-gray-500 dark:hover:bg-gray-500">
+        class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-600 dark:text-gray-100 dark:ring-gray-500 dark:hover:bg-gray-500">
         <OIcon
           v-if="isValidating"
           collection="heroicons"
@@ -181,12 +182,13 @@ const formatDate = (date: Date): string => new Intl.DateTimeFormat(undefined, {
           'rounded-lg border p-4',
           record.optional
             ? 'border-dashed border-sky-200 bg-sky-50/30 dark:border-sky-800 dark:bg-sky-950/20'
-            : 'border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900'
+            : 'border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900',
         ]">
         <!-- Card header: type badge + optional indicator + status -->
         <div class="flex items-center justify-between">
           <div class="inline-flex items-center gap-2">
-            <span class="inline-flex rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+            <span
+              class="inline-flex rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-300">
               {{ record.type }}
             </span>
             <span
@@ -205,7 +207,11 @@ const formatDate = (date: Date): string => new Intl.DateTimeFormat(undefined, {
           <div class="inline-flex items-center gap-3">
             <span
               class="inline-flex items-center gap-1"
-              :class="record.dns_exists === true ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-300 dark:text-gray-600'">
+              :class="
+                record.dns_exists === true
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-gray-300 dark:text-gray-600'
+              ">
               <OIcon
                 collection="heroicons"
                 name="check-circle-solid"
@@ -215,13 +221,19 @@ const formatDate = (date: Date): string => new Intl.DateTimeFormat(undefined, {
             </span>
             <span
               class="inline-flex items-center gap-1"
-              :class="(record.provider_verified ?? (effectiveStatus === 'verified')) ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-300 dark:text-gray-600'">
+              :class="
+                (record.provider_verified ?? effectiveStatus === 'verified')
+                  ? 'text-emerald-600 dark:text-emerald-400'
+                  : 'text-gray-300 dark:text-gray-600'
+              ">
               <OIcon
                 collection="heroicons"
                 name="check-circle-solid"
                 class="size-4"
                 aria-hidden="true" />
-              <span class="text-xs font-medium">{{ t('web.domains.email.provider_check_label') }}</span>
+              <span class="text-xs font-medium">{{
+                t('web.domains.email.provider_check_label')
+              }}</span>
             </span>
           </div>
         </div>
@@ -229,7 +241,8 @@ const formatDate = (date: Date): string => new Intl.DateTimeFormat(undefined, {
         <!-- Name field -->
         <div class="mt-3">
           <div class="flex items-start justify-between gap-2">
-            <span class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            <span
+              class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
               {{ t('web.domains.email.dns_column_name') }}
             </span>
             <button
@@ -251,7 +264,7 @@ const formatDate = (date: Date): string => new Intl.DateTimeFormat(undefined, {
                 aria-hidden="true" />
             </button>
           </div>
-          <code class="mt-1 block break-all text-sm text-gray-900 dark:text-gray-100">
+          <code class="mt-1 block text-sm break-all text-gray-900 dark:text-gray-100">
             {{ record.name }}
           </code>
         </div>
@@ -259,7 +272,8 @@ const formatDate = (date: Date): string => new Intl.DateTimeFormat(undefined, {
         <!-- Value field -->
         <div class="mt-3">
           <div class="flex items-start justify-between gap-2">
-            <span class="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            <span
+              class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
               {{ t('web.domains.email.dns_column_value') }}
             </span>
             <button
@@ -281,7 +295,7 @@ const formatDate = (date: Date): string => new Intl.DateTimeFormat(undefined, {
                 aria-hidden="true" />
             </button>
           </div>
-          <code class="mt-1 block break-all text-sm text-gray-900 dark:text-gray-100">
+          <code class="mt-1 block text-sm break-all text-gray-900 dark:text-gray-100">
             {{ record.value }}
           </code>
         </div>

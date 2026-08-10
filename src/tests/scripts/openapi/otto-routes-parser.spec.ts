@@ -261,13 +261,7 @@ describe('otto-routes-parser', () => {
   // ─── V1 routes.txt integration ────────────────────────────────
 
   describe('V1 routes.txt integration', () => {
-    const v1RoutesPath = join(
-      process.cwd(),
-      'apps',
-      'api',
-      'v1',
-      'routes.txt'
-    );
+    const v1RoutesPath = join(process.cwd(), 'apps', 'api', 'v1', 'routes.txt');
 
     let v1Routes: OttoRoute[];
 
@@ -298,7 +292,7 @@ describe('otto-routes-parser', () => {
     });
 
     it('V1 routes with openapi_auth=basic,anonymous return normalized schemes', () => {
-      const statusRoute = v1Routes.find(r => r.path === '/status');
+      const statusRoute = v1Routes.find((r) => r.path === '/status');
       expect(statusRoute).toBeDefined();
 
       const result = getAuthRequirements(statusRoute!);
@@ -308,7 +302,7 @@ describe('otto-routes-parser', () => {
     });
 
     it('V1 routes with openapi_auth=basic return only basicauth', () => {
-      const authcheckRoute = v1Routes.find(r => r.path === '/authcheck');
+      const authcheckRoute = v1Routes.find((r) => r.path === '/authcheck');
       expect(authcheckRoute).toBeDefined();
 
       const result = getAuthRequirements(authcheckRoute!);
@@ -320,13 +314,7 @@ describe('otto-routes-parser', () => {
   // ─── Colonel routes.txt integration ────────────────────────────────
 
   describe('Colonel routes.txt integration', () => {
-    const colonelRoutesPath = join(
-      process.cwd(),
-      'apps',
-      'api',
-      'colonel',
-      'routes.txt'
-    );
+    const colonelRoutesPath = join(process.cwd(), 'apps', 'api', 'colonel', 'routes.txt');
 
     let colonelRoutes: OttoRoute[];
 
@@ -352,7 +340,7 @@ describe('otto-routes-parser', () => {
     });
 
     it('getAuthRequirements extracts role=colonel from colonel routes', () => {
-      const infoRoute = colonelRoutes.find(r => r.path === '/info');
+      const infoRoute = colonelRoutes.find((r) => r.path === '/info');
       expect(infoRoute).toBeDefined();
 
       const result = getAuthRequirements(infoRoute!);

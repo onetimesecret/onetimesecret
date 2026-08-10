@@ -2,29 +2,29 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-import { testimonials } from '@/sources/testimonials'; // Adjust the path as necessary
-import { ref, computed } from 'vue';
+  import { testimonials } from '@/sources/testimonials'; // Adjust the path as necessary
+  import { ref, computed } from 'vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-const currentIndex = ref(0);
+  const currentIndex = ref(0);
 
-const nextTestimonial = () => {
-  currentIndex.value = (currentIndex.value + 1) % testimonials.length;
-};
+  const nextTestimonial = () => {
+    currentIndex.value = (currentIndex.value + 1) % testimonials.length;
+  };
 
-const previousTestimonial = () => {
-  currentIndex.value = (currentIndex.value - 1 + testimonials.length) % testimonials.length;
-};
+  const previousTestimonial = () => {
+    currentIndex.value = (currentIndex.value - 1 + testimonials.length) % testimonials.length;
+  };
 
-const currentTestimonial = computed(() => testimonials[currentIndex.value]);
+  const currentTestimonial = computed(() => testimonials[currentIndex.value]);
 </script>
 
 <template>
   <div class="mx-auto max-w-2xl px-4 py-12 sm:px-6 lg:px-8">
     <div class="overflow-hidden rounded-lg bg-white shadow-md dark:bg-gray-800">
       <div class="p-6 sm:p-8">
-        <div class="mb-4 hidden items-center ">
+        <div class="mb-4 hidden items-center">
           <svg
             class="mr-2 size-6 text-brand-500"
             fill="none"
@@ -39,9 +39,12 @@ const currentTestimonial = computed(() => testimonials[currentIndex.value]);
               stroke-width="2"
               d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
           </svg>
-          <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t('web.testimonials.artificial_feedback') }}</span>
+          <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{
+            t('web.testimonials.artificial_feedback')
+          }}</span>
         </div>
-        <blockquote class="mb-4 text-lg font-medium italic text-gray-900 dark:text-white sm:text-xl">
+        <blockquote
+          class="mb-4 text-lg font-medium text-gray-900 italic sm:text-xl dark:text-white">
           "{{ currentTestimonial.quote }}"
         </blockquote>
         <div class="flex items-center">
@@ -71,7 +74,8 @@ const currentTestimonial = computed(() => testimonials[currentIndex.value]);
       </div>
       <div class="bg-gray-100 px-6 py-3 dark:bg-gray-700">
         <p class="text-xs text-gray-500 dark:text-gray-400">
-          {{ t('web.COMMON.note') }}: {{ t('web.testimonials.this_content_is_ai_generated_based_on_the_conten') }}
+          {{ t('web.COMMON.note') }}:
+          {{ t('web.testimonials.this_content_is_ai_generated_based_on_the_conten') }}
         </p>
       </div>
       <div class="flex justify-between px-6 py-3">

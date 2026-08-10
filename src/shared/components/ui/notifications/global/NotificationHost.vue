@@ -12,35 +12,38 @@
 -->
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import { useNotificationsStore } from '@/shared/stores/notificationsStore';
-import { computed } from 'vue';
-import NotificationPill from './NotificationPill.vue';
-import NotificationCard from './NotificationCard.vue';
-import NotificationBanner from './NotificationBanner.vue';
+  import { useI18n } from 'vue-i18n';
+  import { useNotificationsStore } from '@/shared/stores/notificationsStore';
+  import { computed } from 'vue';
+  import NotificationPill from './NotificationPill.vue';
+  import NotificationCard from './NotificationCard.vue';
+  import NotificationBanner from './NotificationBanner.vue';
 
-type Variant = 'pill' | 'card' | 'banner';
+  type Variant = 'pill' | 'card' | 'banner';
 
-interface Props {
-  variant?: Variant;
-}
+  interface Props {
+    variant?: Variant;
+  }
 
-const props = withDefaults(defineProps<Props>(), {
-  variant: 'pill',
-});
+  const props = withDefaults(defineProps<Props>(), {
+    variant: 'pill',
+  });
 
-const { t, te } = useI18n();
-const notifications = useNotificationsStore();
+  const { t, te } = useI18n();
+  const notifications = useNotificationsStore();
 
-const translatedMessage = computed(() =>
-  te(notifications.message) ? t(notifications.message) : notifications.message
-);
+  const translatedMessage = computed(() =>
+    te(notifications.message) ? t(notifications.message) : notifications.message
+  );
 
-const variantComponent = computed(() => ({
-  pill: NotificationPill,
-  card: NotificationCard,
-  banner: NotificationBanner,
-})[props.variant]);
+  const variantComponent = computed(
+    () =>
+      ({
+        pill: NotificationPill,
+        card: NotificationCard,
+        banner: NotificationBanner,
+      })[props.variant]
+  );
 </script>
 
 <template>

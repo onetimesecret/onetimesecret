@@ -86,7 +86,6 @@ export { createError, errorGuards, wrapError }; // Re-export for convenience
  * ```
  */
 export function useAsyncHandler(options: AsyncHandlerOptions = {}) {
-
   // useAsyncHandler is called during component setup (synchronously), so we put
   // useI18n() here to execute in the correct context. The t function it returns
   // is then available via closure when wrap() is called later.

@@ -44,10 +44,10 @@ No backend code changes needed on the integration lineage (premise does NOT hold
 **C4 — Advanced panel v1: heading font + full-range border radius** (1.5d, deps: C1 — the C2 gate was artificial and is dropped)
 Replace the teaser with AdvancedBrandPanel: heading_font (8-value enum select; identityStore.headingFontClass renders it; null = inherit body font) and border_radius full range (5 presets + 0-64px numeric, isValidBorderRadius pre-emit with inline error). Same contract as SimpleBrandPanel (immutable spread emits, SimpleBrandPanel.vue:46-48); never touch corner_style; never bypass the store (single Save, DomainBrand.vue:116). Flip paths.ts:18 available:true; delete BrandAdvancedTeaser.vue. **i18n content edits live here** (feature-PR review, not buried in hash noise): delete coming_soon_advanced_blurb (workspace-branding.json:262, consumed at BrandEditor.vue:72), reword path_advanced_tag (Q7), add new keys as bare `{"text": ...}` — hashes in C5a.
 
-**C11 — Disabled-variant completion: headingFontClass** — **DONE 2026-07-11 on fix/brand-token-consumers** *(was 0.5d, deps: C1, parallel with C4)*
+**C11 — Disabled-variant completion: headingFontClass** — **DONE 2026-07-11 on fix/brand-token-consumers** _(was 0.5d, deps: C1, parallel with C4)_
 Shipped as specced: headingFontClass added to DisabledHomepageProps (null-when-no-explicit-choice, set-ness from raw domain_branding heading_font OR font_family since the store ladder backfills); consumed on DisabledV1/DisabledMinimal h1s as `headingFontClass ?? fontFamilyClass ?? 'font-brand'`. Q5 resolved (wire) in the same pass: DisabledClosed now threads `headingClass`/`fontClass` into DisabledHomepageTaglines, so the DEFAULT disabled page carries the domain's typography. Covered in useDisabledConfig.spec.ts.
 
-**C13 — Unknown-secret surfaces migration** (0.5d, deps: C1, parallel with C4) *(new — closes a consumer family the draft missed)*
+**C13 — Unknown-secret surfaces migration** (0.5d, deps: C1, parallel with C4) _(new — closes a consumer family the draft missed)_
 BaseUnknownSecret.vue:25-26 and the branded ShowSecret wrapper (ShowSecret.vue:61-64) honor only legacy corner_style (+font_family) — no border_radius, no heading_font — yet render the expired/burned/unknown-link pages (UnknownSecret.vue, UnknownReceipt.vue). Migrate both to the cornerClass derivation (border_radius supersedes) + heading-font ladder, or the 'zero silent no-ops' bar fails the day C4 ships. Background/text-color wiring for these surfaces is Q1-gated and rides with C6. **Partially landed 2026-07-11 (fix/brand-token-consumers):** UnknownSecret.vue's h2 now uses the heading ladder (local computed off the brandSettings prop), and its message `<p>` + action link gained fontClass coverage; the Q8 snapshot is also fixed (see Q8). Remaining scope = the corner-derivation migration of BaseUnknownSecret + the ShowSecret wrapper class map, and UnknownReceipt.
 
 **C5a — locales:hashes run, Wave 2** (0.5d, deps: C4, C11, C13)
@@ -58,7 +58,7 @@ Verifies Advanced v1 AND the three-path rebuild itself (shipped browser-unverifi
 
 ### Gate — landing on main
 
-**C14 — Land integration/brand-manager on main** (1d, deps: C12a, C2, C3) *(new — the merge the draft never scheduled)*
+**C14 — Land integration/brand-manager on main** (1d, deps: C12a, C2, C3) _(new — the merge the draft never scheduled)_
 Open and shepherd the integration→main PR (21+ commits, 64+ files, +3240/−1404 plus Wave 1-2 work) with real review budget and C12a screenshots attached. Resolve main-drift (BrandSettingsBar.vue exists on main, deleted on branch). Full CI. Wave 3 rebases onto main after merge. Reviewer/timing = **Q9**.
 
 ### Wave 3 — Color expansion (decision-gated, targets main)
@@ -69,13 +69,13 @@ brandbg/brandtext are single-value light-only tokens (style.css:125-126) vs a li
 **C7 — Advanced panel v2: background/text controls + contrast advisory** (0.5d, deps: C4, C6)
 Two ColorPickers with explicit clear-to-default (null → override removed → @theme default, setOrClear useBrandTheme.ts:139-140). Advisory = `contrastRatio(text_color, background_color) < 4.5` — the helper ALREADY EXISTS (brand-palette.ts:390); only the advisory computed + wiring of the dead low_contrast_text_bg_warning key is new (hence 0.5d, down from 1d). Advisory-only, never blocks save (brand_settings.rb:147-155). button_text_light watcher keys on primary_color only (useBranding.ts:148-158) — no collision; document it.
 
-**C8 — secondary_color: role + consumers + control, one atomic PR** (1.5d, deps: C4, C14; Q2 RESOLVED 2026-07-11 — unblocked) *(absorbs draft C9)*
+**C8 — secondary_color: role + consumers + control, one atomic PR** (1.5d, deps: C4, C14; Q2 RESOLVED 2026-07-11 — unblocked) _(absorbs draft C9)_
 Role DECIDED (Q2): **supporting accent** — brand2 owns the soft/decorative accents (UnknownSecret icon chip :27, DisabledV1 eyebrow dot :78-80 and promo chip :196, BaseSecretDisplay once-only footer marker :155); primary keeps buttons, links, and focus states. Wire static brand2 utilities preserving dark-mode scale relationships (`text-brand2-600 dark:text-brand2-400`), AND add the ColorPicker with seed-color semantics (one hex → 11-shade scale; never per-shade editing) in the same PR — renderer + control land together, so the PR is user-visible and 'never a control without a renderer' holds atomically. Slate @theme defaults keep unset domains stable. Safelist extended only for shades outside the curated subset. No neutral-gating, deliberately (useBrandTheme.ts:122-127).
 
 **C10 — Preview fidelity** (0.5d, deps: C6, C8)
 Extend SecretPreview's locally-scoped var precedent (SecretPreview.vue:99-104): set `--color-brandbg`, `--color-brandtext`, and the 11 `--color-brand2-*` keys (generateNamedScale) on rootStyle when present. Reduced from 1d: C6's prop-derived swap makes the conditional-class half preview-correct for free; this is var injection only. NEVER write documentElement from the editor (useBrandTheme.ts:196-202). Optionally surface the secondary accent in BrandPreviewColumn per C8's role.
 
-**C5b — locales:hashes run, Wave 3** (0.5d, deps: C7, C8) *(new — draft scheduled the pass once, stranding Wave 3 keys hash-less)*
+**C5b — locales:hashes run, Wave 3** (0.5d, deps: C7, C8) _(new — draft scheduled the pass once, stranding Wave 3 keys hash-less)_
 Pure hash pass for C7/C8 keys, own PR.
 
 **C12b — Browser verification, Wave 3** (1d, deps: C6, C7, C8, C10, C5b)

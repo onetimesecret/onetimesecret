@@ -6,10 +6,6 @@ import incomingRoutes from './incoming';
 import receiptRoutes from './receipt';
 import secretRoutes from './secret';
 
-const routes: RouteRecordRaw[] = [
-  ...receiptRoutes,
-  ...secretRoutes,
-  ...incomingRoutes,
-];
+const routes: RouteRecordRaw[] = [...receiptRoutes, ...secretRoutes, ...incomingRoutes];
 
 export default routes;

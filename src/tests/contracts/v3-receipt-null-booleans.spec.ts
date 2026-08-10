@@ -14,7 +14,9 @@ import { z } from 'zod';
 
 // Extract the inner receiptDetails schema from the response envelope.
 // receiptResponseSchema.shape.details is ZodOptional<receiptDetails>.
-const v3ReceiptDetails = (receiptResponseSchema.shape.details as z.ZodOptional<z.ZodObject<any>>).unwrap();
+const v3ReceiptDetails = (
+  receiptResponseSchema.shape.details as z.ZodOptional<z.ZodObject<any>>
+).unwrap();
 
 // ---------------------------------------------------------------------------
 // Test fixtures

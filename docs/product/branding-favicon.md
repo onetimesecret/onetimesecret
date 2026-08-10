@@ -49,15 +49,15 @@ neutral-default model, minus the per-domain layer.
 Replacing a **file** works for every asset and is the uniform override path. The
 `BRAND_*` env layer is no-rebuild convenience covering the CDN-friendly subset.
 
-| Asset                                                      | Env override                                 | File |
-| ---------------------------------------------------------- | -------------------------------------------- | ---- |
-| `favicon.ico`                                              | `BRAND_FAVICON_URL` (per-domain wins)        | ✅   |
-| `apple-touch-icon.png`                                     | `BRAND_APPLE_TOUCH_ICON_URL`                 | ✅   |
-| `social-preview.png`                                       | `BRAND_OG_IMAGE_URL` (absolute URL)          | ✅   |
-| `site.webmanifest` name/theme                              | `BRAND_PRODUCT_NAME` / `BRAND_PRIMARY_COLOR` | ✅   |
-| `favicon.svg`, `safari-pinned-tab.svg`, `icon-192/512.png` | —                                            | ✅   |
-| `brand-logo.svg` / `brand-logo.png` (masthead logo, optional) | `BRAND_LOGO_URL` (absolute CDN, or `/brand-logo.svg` for the pack file) | ✅   |
-| **Whole pack** (all rows above, incl. `favicon.ico` + `site.webmanifest`) | `BRAND_PACK` / `BRAND_ASSETS_DIR` (runtime overlay dir) | ✅   |
+| Asset                                                                     | Env override                                                            | File |
+| ------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ---- |
+| `favicon.ico`                                                             | `BRAND_FAVICON_URL` (per-domain wins)                                   | ✅   |
+| `apple-touch-icon.png`                                                    | `BRAND_APPLE_TOUCH_ICON_URL`                                            | ✅   |
+| `social-preview.png`                                                      | `BRAND_OG_IMAGE_URL` (absolute URL)                                     | ✅   |
+| `site.webmanifest` name/theme                                             | `BRAND_PRODUCT_NAME` / `BRAND_PRIMARY_COLOR`                            | ✅   |
+| `favicon.svg`, `safari-pinned-tab.svg`, `icon-192/512.png`                | —                                                                       | ✅   |
+| `brand-logo.svg` / `brand-logo.png` (masthead logo, optional)             | `BRAND_LOGO_URL` (absolute CDN, or `/brand-logo.svg` for the pack file) | ✅   |
+| **Whole pack** (all rows above, incl. `favicon.ico` + `site.webmanifest`) | `BRAND_PACK` / `BRAND_ASSETS_DIR` (runtime overlay dir)                 | ✅   |
 
 **Option A — URL overrides (no rebuild).** Point assets at your own/CDN URLs:
 
@@ -163,7 +163,7 @@ Select the generated pack with `--build-arg BRAND_PACK=<name>` to bake it in
 (Option B). Generator deps
 (`sharp`, `png-to-ico`) stay out of the app bundle. CI runs
 `pnpm run gen:favicons:check` (node-only) and fails if the committed text assets
-diverge from `mark.mjs`, so use env overrides to produce *your own* pack, not to
+diverge from `mark.mjs`, so use env overrides to produce _your own_ pack, not to
 re-skin the committed neutral defaults.
 
 A neutral `pnpm run gen:favicons` run writes to the tracked default pack

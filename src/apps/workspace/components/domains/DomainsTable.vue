@@ -19,25 +19,32 @@
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
   import { useDomainsStore } from '@/shared/stores/domainsStore';
   import { ENTITLEMENTS } from '@/types/organization';
-  import { isOrgsSsoEnabled, isOrgsCustomMailEnabled, isOrgsIncomingSecretsEnabled } from '@/utils/features';
+  import {
+    isOrgsSsoEnabled,
+    isOrgsCustomMailEnabled,
+    isOrgsIncomingSecretsEnabled,
+  } from '@/utils/features';
 
   import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
   import { computed, reactive } from 'vue';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
   // Use domainsStore for updating domain brand (proper Vue data flow)
   const domainsStore = useDomainsStore();
 
-  const props = withDefaults(defineProps<{
-    domains: CustomDomain[];
-    isLoading: boolean;
-    orgid: string;
-    /** When true, hides the header section (title, description, add button) */
-    compact?: boolean;
-  }>(), {
-    compact: false,
-  });
+  const props = withDefaults(
+    defineProps<{
+      domains: CustomDomain[];
+      isLoading: boolean;
+      orgid: string;
+      /** When true, hides the header section (title, description, add button) */
+      compact?: boolean;
+    }>(),
+    {
+      compact: false,
+    }
+  );
 
   const addDomainRoute = computed(() => `/org/${props.orgid}/domains/add`);
 
@@ -48,8 +55,12 @@ const { t } = useI18n();
   const { can } = useEntitlements(organization);
   const canBrand = computed(() => can(ENTITLEMENTS.CUSTOM_BRANDING));
   const canManageSso = computed(() => isOrgsSsoEnabled() && can(ENTITLEMENTS.MANAGE_SSO));
-  const canEmailConfig = computed(() => isOrgsCustomMailEnabled() && can(ENTITLEMENTS.CUSTOM_MAIL_SENDER));
-  const canIncomingSecrets = computed(() => isOrgsIncomingSecretsEnabled() && can(ENTITLEMENTS.INCOMING_SECRETS));
+  const canEmailConfig = computed(
+    () => isOrgsCustomMailEnabled() && can(ENTITLEMENTS.CUSTOM_MAIL_SENDER)
+  );
+  const canIncomingSecrets = computed(
+    () => isOrgsIncomingSecretsEnabled() && can(ENTITLEMENTS.INCOMING_SECRETS)
+  );
 
   /** Role-based permissions for the org backing this table (see #3033). */
   const { isOwnerOrAdmin: canAdmin, canCreateDomain } = useOrgPermissions(organization);
@@ -97,7 +108,7 @@ const { t } = useI18n();
       :class="[
         compact
           ? 'bg-transparent'
-          : 'rounded-lg bg-white p-4 shadow-sm dark:bg-gray-900 sm:p-6 lg:p-8'
+          : 'rounded-lg bg-white p-4 shadow-sm sm:p-6 lg:p-8 dark:bg-gray-900',
       ]"
       aria-labelledby="domains-heading">
       <!-- Header Section (hidden in compact mode) -->
@@ -117,7 +128,7 @@ const { t } = useI18n();
         <router-link
           v-if="canCreateDomain"
           :to="addDomainRoute"
-          class="inline-flex shrink-0 whitespace-nowrap items-center justify-center rounded-lg bg-brand-600 px-4 py-2 font-brand text-base font-medium text-white transition-colors duration-200 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:hover:bg-brand-500 dark:focus:ring-offset-gray-900">
+          class="inline-flex shrink-0 items-center justify-center rounded-lg bg-brand-600 px-4 py-2 font-brand text-base font-medium whitespace-nowrap text-white transition-colors duration-200 hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:outline-none dark:hover:bg-brand-500 dark:focus:ring-offset-gray-900">
           <OIcon
             name="plus-20-solid"
             collection="heroicons"
@@ -134,7 +145,9 @@ const { t } = useI18n();
               <th
                 scope="col"
                 class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 dark:text-gray-400">
-                <span class="uppercase">{{ t('web.domains.domain') }} &amp; {{ t('web.COMMON.status') }}</span>
+                <span class="uppercase"
+                  >{{ t('web.domains.domain') }} &amp; {{ t('web.COMMON.status') }}</span
+                >
               </th>
               <th
                 scope="col"
@@ -144,7 +157,7 @@ const { t } = useI18n();
 
               <th
                 scope="col"
-                class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                class="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
                 {{ t('web.LABELS.actions') }}
               </th>
             </tr>
@@ -174,7 +187,10 @@ const { t } = useI18n();
                        preserve the stored mode); surface an incoming-mode badge so
                        "on" isn't misread as the create form for these domains. -->
                   <div
-                    v-if="domain.homepage_config?.enabled && domain.homepage_config?.secrets_mode === 'incoming'"
+                    v-if="
+                      domain.homepage_config?.enabled &&
+                      domain.homepage_config?.secrets_mode === 'incoming'
+                    "
                     class="mt-1 inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400"
                     data-testid="homepage-incoming-badge">
                     <OIcon

@@ -1,560 +1,564 @@
 <!-- src/apps/workspace/billing/PlanSelector.vue -->
 
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
-import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
-import PlanCardSkeleton from '@/shared/components/billing/PlanCardSkeleton.vue';
-import BillingLayout from '@/shared/components/layout/BillingLayout.vue';
-import FeedbackToggle from '@/shared/components/ui/FeedbackToggle.vue';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import PlanCard from '@/shared/components/billing/PlanCard.vue';
-import PlanChangeModal from './PlanChangeModal.vue';
-import CancelSubscriptionModal from './CancelSubscriptionModal.vue';
-import CurrencyMigrationModal from './CurrencyMigrationModal.vue';
-import PendingMigrationBanner from './PendingMigrationBanner.vue';
-import {
-  isPlanCurrent as isPlanCurrentLogic,
-  isPlanCurrencyMismatch as isPlanCurrencyMismatchLogic,
-  isPlanButtonDisabled as isPlanButtonDisabledLogic,
-  canUpgrade as canUpgradeLogic,
-  canDowngrade as canDowngradeLogic,
-  isPlanRecommended,
-  resolvePlanSelectAction,
-  resolveCompletePendingMigrationAction,
-  shouldShowCancelLink,
-} from './planSelectorLogic';
-import { useEntitlements } from '@/shared/composables/useEntitlements';
-import { classifyError } from '@/schemas/errors';
-import type { CurrencyConflictError } from '@/schemas/shapes/account/billing';
-import { BillingService, extractCurrencyConflict, type Plan as BillingPlan, type SubscriptionStatusResponse } from '@/services/billing.service';
-import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import type { BillingInterval } from '@/types/billing';
-import { isLegacyPlan, getPlanLabel } from '@/types/billing';
-import type { Organization } from '@/types/organization';
-import { formatDisplayDate } from '@/utils/format';
-import { isAllowedCheckoutUrl } from '@/utils/redirect';
-import { captureMessage, isDiagnosticsEnabled } from '@/services/diagnostics.service';
-import { computed, onMounted, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
+  import { useI18n } from 'vue-i18n';
+  import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
+  import PlanCardSkeleton from '@/shared/components/billing/PlanCardSkeleton.vue';
+  import BillingLayout from '@/shared/components/layout/BillingLayout.vue';
+  import FeedbackToggle from '@/shared/components/ui/FeedbackToggle.vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import PlanCard from '@/shared/components/billing/PlanCard.vue';
+  import PlanChangeModal from './PlanChangeModal.vue';
+  import CancelSubscriptionModal from './CancelSubscriptionModal.vue';
+  import CurrencyMigrationModal from './CurrencyMigrationModal.vue';
+  import PendingMigrationBanner from './PendingMigrationBanner.vue';
+  import {
+    isPlanCurrent as isPlanCurrentLogic,
+    isPlanCurrencyMismatch as isPlanCurrencyMismatchLogic,
+    isPlanButtonDisabled as isPlanButtonDisabledLogic,
+    canUpgrade as canUpgradeLogic,
+    canDowngrade as canDowngradeLogic,
+    isPlanRecommended,
+    resolvePlanSelectAction,
+    resolveCompletePendingMigrationAction,
+    shouldShowCancelLink,
+  } from './planSelectorLogic';
+  import { useEntitlements } from '@/shared/composables/useEntitlements';
+  import { classifyError } from '@/schemas/errors';
+  import type { CurrencyConflictError } from '@/schemas/shapes/account/billing';
+  import {
+    BillingService,
+    extractCurrencyConflict,
+    type Plan as BillingPlan,
+    type SubscriptionStatusResponse,
+  } from '@/services/billing.service';
+  import { useOrganizationStore } from '@/shared/stores/organizationStore';
+  import type { BillingInterval } from '@/types/billing';
+  import { isLegacyPlan, getPlanLabel } from '@/types/billing';
+  import type { Organization } from '@/types/organization';
+  import { formatDisplayDate } from '@/utils/format';
+  import { isAllowedCheckoutUrl } from '@/utils/redirect';
+  import { captureMessage, isDiagnosticsEnabled } from '@/services/diagnostics.service';
+  import { computed, onMounted, ref, watch } from 'vue';
+  import { useRoute } from 'vue-router';
 
-const props = withDefaults(
-  defineProps<{
-    /** Display free plan as a standalone banner (true) or as a card in the grid (false) */
-    freePlanStandalone?: boolean;
-  }>(),
-  {
-    freePlanStandalone: false,
-  }
-);
-
-const { t } = useI18n();
-const route = useRoute();
-const organizationStore = useOrganizationStore();
-
-// Org extid comes from URL (e.g., /billing/:extid/plans)
-const orgExtid = computed(() => route.params.extid as string);
-
-const billingInterval = ref<BillingInterval>('month');
-const isCreatingCheckout = ref(false);
-const isLoadingPlans = ref(false);
-const isLoadingOrg = ref(false);
-const error = ref('');
-const suggestedPlanId = ref<string | null>(null);
-const successMessage = ref('');
-
-// Plans loaded from API
-const plans = ref<BillingPlan[]>([]);
-
-// Selected organization loaded from route extid
-const selectedOrg = ref<Organization | null>(null);
-
-// Subscription status for plan switching
-const subscriptionStatus = ref<SubscriptionStatusResponse | null>(null);
-const hasActiveSubscription = computed(() => subscriptionStatus.value?.has_active_subscription ?? false);
-const isCancelScheduled = computed(() => subscriptionStatus.value?.cancel_at_period_end ?? false);
-
-// Format the cancellation date for display
-const cancelAtFormatted = computed(() => {
-  const cancelAt = subscriptionStatus.value?.cancel_at;
-  if (!cancelAt) return null;
-  return formatDisplayDate(new Date(cancelAt * 1000));
-});
-
-// Plan change modal state
-const showPlanChangeModal = ref(false);
-const targetPlan = ref<BillingPlan | null>(null);
-
-// Reactivation state
-const isReactivating = ref(false);
-
-// Cancel subscription modal state
-const showCancelModal = ref(false);
-
-// Currency migration modal state
-const showCurrencyMigrationModal = ref(false);
-const currencyConflict = ref<CurrencyConflictError | null>(null);
-const isCompletingPendingMigration = ref(false);
-
-// Pending migration state (from subscription status)
-const pendingMigration = computed(() => subscriptionStatus.value?.pending_currency_migration ?? null);
-
-// Early currency mismatch detection
-const currentCurrency = computed(() => subscriptionStatus.value?.current_currency ?? null);
-
-const isPlanCurrencyMismatch = (plan: BillingPlan): boolean =>
-  isPlanCurrencyMismatchLogic(currentCurrency.value, plan);
-
-// Current plan for the modal (find from plans list based on subscription)
-const currentPlanForModal = computed(() => {
-  if (!subscriptionStatus.value?.current_price_id) return null;
-  return plans.value.find(p => p.stripe_price_id === subscriptionStatus.value?.current_price_id) ?? null;
-});
-
-// Current plan name for cancel modal
-const currentPlanName = computed(() => currentPlanForModal.value?.name ?? '');
-
-// Use entitlements composable for definitions loading
-const {
-  initDefinitions,
-  isLoadingDefinitions,
-  definitionsError,
-} = useEntitlements(selectedOrg);
-
-/**
- * Resolve the organization's current plan by STRICT id match against the
- * loaded plans list. Returns null when the org's planid isn't present (legacy
- * or unmatched) — we never invent a tier for an unresolved plan (#3824).
- */
-const currentPlan = computed(
-  () => plans.value.find((p) => p.id === selectedOrg.value?.planid) ?? null
-);
-
-/**
- * Current tier, derived strictly from the resolved plan. Null for
- * unresolved/legacy plans so the free banner and upgrade/downgrade ordering
- * never badge or mis-order the wrong card.
- */
-const currentTier = computed((): string | null => currentPlan.value?.tier ?? null);
-
-/**
- * Diagnostic: an org carrying a non-legacy planid that isn't present in the
- * loaded plans list is a data/tier drift the team needs to see (this replaces
- * the old silent 'free' fallback). Fire once per unmatched planid (deduped)
- * through the shared diagnostics service.
- */
-const reportedUnmatchedPlanids = new Set<string>();
-watch(
-  [currentPlan, selectedOrg, plans],
-  () => {
-    const planid = selectedOrg.value?.planid;
-    if (!planid) return;
-    // Plans not loaded yet — can't conclude the id is genuinely absent.
-    if (plans.value.length === 0) return;
-    if (currentPlan.value) return;
-    // Legacy plans (e.g. 'identity') are expected to be absent from the list.
-    if (isLegacyPlan(planid)) return;
-    if (reportedUnmatchedPlanids.has(planid)) return;
-
-    if (isDiagnosticsEnabled()) {
-      // Mark as reported only when actually emitting, so dedup tracks
-      // "sent" rather than "seen" (a disabled emit must not suppress a
-      // later send once diagnostics are enabled).
-      reportedUnmatchedPlanids.add(planid);
-      captureMessage('current plan id not present in plans list', {
-        service: 'web',
-        errorType: 'technical',
-        planid,
-        orgExtid: selectedOrg.value?.extid,
-      });
+  const props = withDefaults(
+    defineProps<{
+      /** Display free plan as a standalone banner (true) or as a card in the grid (false) */
+      freePlanStandalone?: boolean;
+    }>(),
+    {
+      freePlanStandalone: false,
     }
-  },
-  { immediate: true }
-);
+  );
 
-// Legacy plan detection for grandfathered customers
-const isLegacyCustomer = computed(() =>
-  selectedOrg.value?.planid ? isLegacyPlan(selectedOrg.value.planid) : false
-);
+  const { t } = useI18n();
+  const route = useRoute();
+  const organizationStore = useOrganizationStore();
 
-// Get display name for current plan (handles legacy naming)
-const currentPlanDisplayName = computed(() =>
-  selectedOrg.value?.planid ? getPlanLabel(selectedOrg.value.planid) : null
-);
+  // Org extid comes from URL (e.g., /billing/:extid/plans)
+  const orgExtid = computed(() => route.params.extid as string);
 
-// Filter plans by selected billing interval
-// When freePlanStandalone is true, exclude free plans (they show in banner)
-// When freePlanStandalone is false, include free plans in the grid
-const filteredPlans = computed(() =>
-  plans.value.filter((plan) => {
-    if (plan.tier === 'free') {
-      return !props.freePlanStandalone;
-    }
-    return plan.interval === billingInterval.value;
-  })
-);
+  const billingInterval = ref<BillingInterval>('month');
+  const isCreatingCheckout = ref(false);
+  const isLoadingPlans = ref(false);
+  const isLoadingOrg = ref(false);
+  const error = ref('');
+  const suggestedPlanId = ref<string | null>(null);
+  const successMessage = ref('');
 
-// Get the free plan (if available)
-const freePlan = computed(() => plans.value.find((plan) => plan.tier === 'free'));
+  // Plans loaded from API
+  const plans = ref<BillingPlan[]>([]);
 
-/**
- * Combined loading state for the component
- */
-const isLoadingContent = computed(() => isLoadingPlans.value || isLoadingDefinitions.value || isLoadingOrg.value);
+  // Selected organization loaded from route extid
+  const selectedOrg = ref<Organization | null>(null);
 
-/**
- * STRICT id match: the "Current" badge belongs to the plan whose id equals the
- * org's planid. No tier comparison — tier is drift-prone metadata (#3824).
- */
-const isPlanCurrent = (plan: BillingPlan): boolean =>
-  isPlanCurrentLogic(plan, selectedOrg.value?.planid);
+  // Subscription status for plan switching
+  const subscriptionStatus = ref<SubscriptionStatusResponse | null>(null);
+  const hasActiveSubscription = computed(
+    () => subscriptionStatus.value?.has_active_subscription ?? false
+  );
+  const isCancelScheduled = computed(() => subscriptionStatus.value?.cancel_at_period_end ?? false);
 
-// Upgrade/downgrade direction is pure tier-rank logic (#3824). Bind the current
-// tier here so all call sites (getButtonLabel, etc.) stay single-arg.
-const canUpgrade = (plan: BillingPlan): boolean =>
-  canUpgradeLogic(currentPlan.value?.tier, plan);
-
-const canDowngrade = (plan: BillingPlan): boolean =>
-  canDowngradeLogic(currentPlan.value?.tier, plan);
-
-const isPlanButtonDisabled = (plan: BillingPlan): boolean =>
-  isPlanButtonDisabledLogic(plan, {
-    orgPlanId: selectedOrg.value?.planid,
-    currentCurrency: currentCurrency.value,
-    isCreatingCheckout: isCreatingCheckout.value,
-    isReactivating: isReactivating.value,
-    isCancelScheduled: isCancelScheduled.value,
-    hasActiveSubscription: hasActiveSubscription.value,
+  // Format the cancellation date for display
+  const cancelAtFormatted = computed(() => {
+    const cancelAt = subscriptionStatus.value?.cancel_at;
+    if (!cancelAt) return null;
+    return formatDisplayDate(new Date(cancelAt * 1000));
   });
 
-const isPlanProcessing = (plan: BillingPlan): boolean =>
-  (isCreatingCheckout.value && !isPlanCurrent(plan)) || (isReactivating.value && isPlanCurrent(plan));
+  // Plan change modal state
+  const showPlanChangeModal = ref(false);
+  const targetPlan = ref<BillingPlan | null>(null);
 
-// Cancel-link visibility is pure state logic; share it with the spec so the
-// template condition can't drift out from under the tests (#3824).
-const showCancelLink = computed(() =>
-  shouldShowCancelLink({
-    hasActiveSubscription: hasActiveSubscription.value,
-    isLegacyCustomer: isLegacyCustomer.value,
-    currentTier: currentTier.value,
-    isCancelScheduled: isCancelScheduled.value,
-  })
-);
+  // Reactivation state
+  const isReactivating = ref(false);
 
-const getButtonLabel = (plan: BillingPlan): string => {
-  if (isPlanCurrent(plan)) {
-    // When cancellation is scheduled, show "Reactivate" instead of "Current Plan"
-    if (isCancelScheduled.value) return t('web.billing.plans.reactivate');
-    return t('web.billing.plans.current');
-  }
-  if (canUpgrade(plan)) return t('web.billing.plans.upgrade');
+  // Cancel subscription modal state
+  const showCancelModal = ref(false);
 
-  if (canDowngrade(plan)) {
-    // For Free plan: show "Cancel to downgrade" since there's no checkout for free
-    if (plan.tier === 'free') {
-      return t('web.billing.plans.cancel_to_downgrade');
-    }
-    return t('web.billing.plans.downgrade');
-  }
-  return t('web.billing.plans.select_plan');
-};
+  // Currency migration modal state
+  const showCurrencyMigrationModal = ref(false);
+  const currencyConflict = ref<CurrencyConflictError | null>(null);
+  const isCompletingPendingMigration = ref(false);
 
-const loadPlans = async () => {
-  isLoadingPlans.value = true;
-  error.value = '';
-  try {
-    const response = await BillingService.listPlans();
-    plans.value = response.plans;
-  } catch (err) {
-    const classified = classifyError(err);
-    error.value = classified.message || t('web.billing.plans.load_error');
-    console.error('[PlanSelector] Error loading plans:', err);
-  } finally {
-    isLoadingPlans.value = false;
-  }
-};
+  // Pending migration state (from subscription status)
+  const pendingMigration = computed(
+    () => subscriptionStatus.value?.pending_currency_migration ?? null
+  );
 
-const handlePlanSelect = async (plan: BillingPlan) => {
-  // Pure decision first (shared with the currency spec), then side effects.
-  const action = resolvePlanSelectAction(plan, {
-    orgExtid: selectedOrg.value?.extid,
-    orgPlanId: selectedOrg.value?.planid,
-    currentCurrency: currentCurrency.value,
-    isCancelScheduled: isCancelScheduled.value,
-    hasActiveSubscription: hasActiveSubscription.value,
-  });
+  // Early currency mismatch detection
+  const currentCurrency = computed(() => subscriptionStatus.value?.current_currency ?? null);
 
-  switch (action) {
-    case 'noop':
-      return;
+  const isPlanCurrencyMismatch = (plan: BillingPlan): boolean =>
+    isPlanCurrencyMismatchLogic(currentCurrency.value, plan);
 
-    case 'reactivate':
-      // Current plan clicked while a cancellation is scheduled → reactivate.
-      await handleReactivateSubscription();
-      return;
-
-    case 'open-cancel-modal':
-      // Free plan for an active subscriber: cancel instead of checkout.
-      showCancelModal.value = true;
-      return;
-
-    case 'currency-blocked':
-      // Clear stale messages; the disabled button already explains the block.
-      error.value = '';
-      successMessage.value = '';
-      return;
-
-    case 'open-plan-change-modal':
-      error.value = '';
-      successMessage.value = '';
-      targetPlan.value = plan;
-      showPlanChangeModal.value = true;
-      return;
-
-    case 'checkout':
-      error.value = '';
-      successMessage.value = '';
-      await startCheckoutSession(plan);
-      return;
-  }
-};
-
-// New subscriber flow: redirect to Stripe Checkout for the selected plan.
-const startCheckoutSession = async (plan: BillingPlan) => {
-  if (!selectedOrg.value?.extid) return;
-
-  isCreatingCheckout.value = true;
-
-  try {
-    // Pass plan object - service derives product from plan.id
-    const response = await BillingService.createCheckoutSession(
-      selectedOrg.value.extid,
-      { id: plan.id, interval: plan.interval }
+  // Current plan for the modal (find from plans list based on subscription)
+  const currentPlanForModal = computed(() => {
+    if (!subscriptionStatus.value?.current_price_id) return null;
+    return (
+      plans.value.find((p) => p.stripe_price_id === subscriptionStatus.value?.current_price_id) ??
+      null
     );
+  });
 
-    // Redirect to Stripe Checkout.
+  // Current plan name for cancel modal
+  const currentPlanName = computed(() => currentPlanForModal.value?.name ?? '');
+
+  // Use entitlements composable for definitions loading
+  const { initDefinitions, isLoadingDefinitions, definitionsError } = useEntitlements(selectedOrg);
+
+  /**
+   * Resolve the organization's current plan by STRICT id match against the
+   * loaded plans list. Returns null when the org's planid isn't present (legacy
+   * or unmatched) — we never invent a tier for an unresolved plan (#3824).
+   */
+  const currentPlan = computed(
+    () => plans.value.find((p) => p.id === selectedOrg.value?.planid) ?? null
+  );
+
+  /**
+   * Current tier, derived strictly from the resolved plan. Null for
+   * unresolved/legacy plans so the free banner and upgrade/downgrade ordering
+   * never badge or mis-order the wrong card.
+   */
+  const currentTier = computed((): string | null => currentPlan.value?.tier ?? null);
+
+  /**
+   * Diagnostic: an org carrying a non-legacy planid that isn't present in the
+   * loaded plans list is a data/tier drift the team needs to see (this replaces
+   * the old silent 'free' fallback). Fire once per unmatched planid (deduped)
+   * through the shared diagnostics service.
+   */
+  const reportedUnmatchedPlanids = new Set<string>();
+  watch(
+    [currentPlan, selectedOrg, plans],
+    () => {
+      const planid = selectedOrg.value?.planid;
+      if (!planid) return;
+      // Plans not loaded yet — can't conclude the id is genuinely absent.
+      if (plans.value.length === 0) return;
+      if (currentPlan.value) return;
+      // Legacy plans (e.g. 'identity') are expected to be absent from the list.
+      if (isLegacyPlan(planid)) return;
+      if (reportedUnmatchedPlanids.has(planid)) return;
+
+      if (isDiagnosticsEnabled()) {
+        // Mark as reported only when actually emitting, so dedup tracks
+        // "sent" rather than "seen" (a disabled emit must not suppress a
+        // later send once diagnostics are enabled).
+        reportedUnmatchedPlanids.add(planid);
+        captureMessage('current plan id not present in plans list', {
+          service: 'web',
+          errorType: 'technical',
+          planid,
+          orgExtid: selectedOrg.value?.extid,
+        });
+      }
+    },
+    { immediate: true }
+  );
+
+  // Legacy plan detection for grandfathered customers
+  const isLegacyCustomer = computed(() =>
+    selectedOrg.value?.planid ? isLegacyPlan(selectedOrg.value.planid) : false
+  );
+
+  // Get display name for current plan (handles legacy naming)
+  const currentPlanDisplayName = computed(() =>
+    selectedOrg.value?.planid ? getPlanLabel(selectedOrg.value.planid) : null
+  );
+
+  // Filter plans by selected billing interval
+  // When freePlanStandalone is true, exclude free plans (they show in banner)
+  // When freePlanStandalone is false, include free plans in the grid
+  const filteredPlans = computed(() =>
+    plans.value.filter((plan) => {
+      if (plan.tier === 'free') {
+        return !props.freePlanStandalone;
+      }
+      return plan.interval === billingInterval.value;
+    })
+  );
+
+  // Get the free plan (if available)
+  const freePlan = computed(() => plans.value.find((plan) => plan.tier === 'free'));
+
+  /**
+   * Combined loading state for the component
+   */
+  const isLoadingContent = computed(
+    () => isLoadingPlans.value || isLoadingDefinitions.value || isLoadingOrg.value
+  );
+
+  /**
+   * STRICT id match: the "Current" badge belongs to the plan whose id equals the
+   * org's planid. No tier comparison — tier is drift-prone metadata (#3824).
+   */
+  const isPlanCurrent = (plan: BillingPlan): boolean =>
+    isPlanCurrentLogic(plan, selectedOrg.value?.planid);
+
+  // Upgrade/downgrade direction is pure tier-rank logic (#3824). Bind the current
+  // tier here so all call sites (getButtonLabel, etc.) stay single-arg.
+  const canUpgrade = (plan: BillingPlan): boolean => canUpgradeLogic(currentPlan.value?.tier, plan);
+
+  const canDowngrade = (plan: BillingPlan): boolean =>
+    canDowngradeLogic(currentPlan.value?.tier, plan);
+
+  const isPlanButtonDisabled = (plan: BillingPlan): boolean =>
+    isPlanButtonDisabledLogic(plan, {
+      orgPlanId: selectedOrg.value?.planid,
+      currentCurrency: currentCurrency.value,
+      isCreatingCheckout: isCreatingCheckout.value,
+      isReactivating: isReactivating.value,
+      isCancelScheduled: isCancelScheduled.value,
+      hasActiveSubscription: hasActiveSubscription.value,
+    });
+
+  const isPlanProcessing = (plan: BillingPlan): boolean =>
+    (isCreatingCheckout.value && !isPlanCurrent(plan)) ||
+    (isReactivating.value && isPlanCurrent(plan));
+
+  // Cancel-link visibility is pure state logic; share it with the spec so the
+  // template condition can't drift out from under the tests (#3824).
+  const showCancelLink = computed(() =>
+    shouldShowCancelLink({
+      hasActiveSubscription: hasActiveSubscription.value,
+      isLegacyCustomer: isLegacyCustomer.value,
+      currentTier: currentTier.value,
+      isCancelScheduled: isCancelScheduled.value,
+    })
+  );
+
+  const getButtonLabel = (plan: BillingPlan): string => {
+    if (isPlanCurrent(plan)) {
+      // When cancellation is scheduled, show "Reactivate" instead of "Current Plan"
+      if (isCancelScheduled.value) return t('web.billing.plans.reactivate');
+      return t('web.billing.plans.current');
+    }
+    if (canUpgrade(plan)) return t('web.billing.plans.upgrade');
+
+    if (canDowngrade(plan)) {
+      // For Free plan: show "Cancel to downgrade" since there's no checkout for free
+      if (plan.tier === 'free') {
+        return t('web.billing.plans.cancel_to_downgrade');
+      }
+      return t('web.billing.plans.downgrade');
+    }
+    return t('web.billing.plans.select_plan');
+  };
+
+  const loadPlans = async () => {
+    isLoadingPlans.value = true;
+    error.value = '';
+    try {
+      const response = await BillingService.listPlans();
+      plans.value = response.plans;
+    } catch (err) {
+      const classified = classifyError(err);
+      error.value = classified.message || t('web.billing.plans.load_error');
+      console.error('[PlanSelector] Error loading plans:', err);
+    } finally {
+      isLoadingPlans.value = false;
+    }
+  };
+
+  const handlePlanSelect = async (plan: BillingPlan) => {
+    // Pure decision first (shared with the currency spec), then side effects.
+    const action = resolvePlanSelectAction(plan, {
+      orgExtid: selectedOrg.value?.extid,
+      orgPlanId: selectedOrg.value?.planid,
+      currentCurrency: currentCurrency.value,
+      isCancelScheduled: isCancelScheduled.value,
+      hasActiveSubscription: hasActiveSubscription.value,
+    });
+
+    switch (action) {
+      case 'noop':
+        return;
+
+      case 'reactivate':
+        // Current plan clicked while a cancellation is scheduled → reactivate.
+        await handleReactivateSubscription();
+        return;
+
+      case 'open-cancel-modal':
+        // Free plan for an active subscriber: cancel instead of checkout.
+        showCancelModal.value = true;
+        return;
+
+      case 'currency-blocked':
+        // Clear stale messages; the disabled button already explains the block.
+        error.value = '';
+        successMessage.value = '';
+        return;
+
+      case 'open-plan-change-modal':
+        error.value = '';
+        successMessage.value = '';
+        targetPlan.value = plan;
+        showPlanChangeModal.value = true;
+        return;
+
+      case 'checkout':
+        error.value = '';
+        successMessage.value = '';
+        await startCheckoutSession(plan);
+        return;
+    }
+  };
+
+  // New subscriber flow: redirect to Stripe Checkout for the selected plan.
+  const startCheckoutSession = async (plan: BillingPlan) => {
+    if (!selectedOrg.value?.extid) return;
+
+    isCreatingCheckout.value = true;
+
+    try {
+      // Pass plan object - service derives product from plan.id
+      const response = await BillingService.createCheckoutSession(selectedOrg.value.extid, {
+        id: plan.id,
+        interval: plan.interval,
+      });
+
+      // Redirect to Stripe Checkout.
+      // Security (M-9): host-allowlist the API-derived URL before navigating.
+      if (isAllowedCheckoutUrl(response.checkout_url)) {
+        window.location.href = response.checkout_url;
+      } else {
+        error.value = t('web.billing.checkout_session_failed');
+      }
+    } catch (err) {
+      // Check for currency conflict before generic error handling
+      const conflict = extractCurrencyConflict(err);
+      if (conflict) {
+        currencyConflict.value = conflict;
+        showCurrencyMigrationModal.value = true;
+      } else {
+        const classified = classifyError(err);
+        error.value = classified.message || t('web.billing.checkout_initiate_failed');
+        console.error('[PlanSelector] Checkout error:', err);
+      }
+    } finally {
+      isCreatingCheckout.value = false;
+    }
+  };
+
+  const handlePlanChangeClose = () => {
+    showPlanChangeModal.value = false;
+    targetPlan.value = null;
+  };
+
+  // Refresh subscription + org data after any billing state change
+  const refreshBillingData = async () => {
+    if (!orgExtid.value) return;
+    await loadSubscriptionStatus(orgExtid.value);
+    const org = await organizationStore.fetchOrganization(orgExtid.value);
+    selectedOrg.value = org;
+  };
+
+  const handlePlanChangeSuccess = async (newPlan: string) => {
+    showPlanChangeModal.value = false;
+    targetPlan.value = null;
+    successMessage.value = t('web.billing.plan_switch_success', { plan: newPlan });
+    await refreshBillingData();
+  };
+
+  // Cancel subscription handlers
+  const handleCancelSubscriptionClick = () => {
+    showCancelModal.value = true;
+  };
+
+  const handleCancelModalClose = () => {
+    showCancelModal.value = false;
+  };
+
+  const handleCancelSuccess = async () => {
+    showCancelModal.value = false;
+    successMessage.value = t('web.billing.cancel.success');
+    await refreshBillingData();
+  };
+
+  // Reactivation handler
+  const handleReactivateSubscription = async () => {
+    if (!selectedOrg.value?.extid || isReactivating.value) return;
+
+    isReactivating.value = true;
+    error.value = '';
+    successMessage.value = '';
+
+    try {
+      await BillingService.reactivateSubscription(selectedOrg.value.extid);
+      successMessage.value = t('web.billing.cancel.reactivate_success');
+      await refreshBillingData();
+    } catch (err) {
+      const classified = classifyError(err);
+      error.value = classified.message || t('web.billing.cancel.reactivate_error');
+      console.error('[PlanSelector] Error reactivating subscription:', err);
+    } finally {
+      isReactivating.value = false;
+    }
+  };
+
+  // Currency migration handlers
+  const handleCurrencyMigrationClose = () => {
+    showCurrencyMigrationModal.value = false;
+    currencyConflict.value = null;
+  };
+
+  const handleGracefulConfirmed = async (_cancelAt: number) => {
+    showCurrencyMigrationModal.value = false;
+    currencyConflict.value = null;
+    successMessage.value = t('web.billing.currency_migration.graceful_success');
+    await refreshBillingData();
+  };
+
+  const handleImmediateRedirect = (checkoutUrl: string) => {
+    showCurrencyMigrationModal.value = false;
+    currencyConflict.value = null;
+    // Redirect to Stripe Checkout for the new currency subscription.
     // Security (M-9): host-allowlist the API-derived URL before navigating.
-    if (isAllowedCheckoutUrl(response.checkout_url)) {
-      window.location.href = response.checkout_url;
+    if (isAllowedCheckoutUrl(checkoutUrl)) {
+      window.location.href = checkoutUrl;
     } else {
       error.value = t('web.billing.checkout_session_failed');
     }
-  } catch (err) {
-    // Check for currency conflict before generic error handling
-    const conflict = extractCurrencyConflict(err);
-    if (conflict) {
-      currencyConflict.value = conflict;
-      showCurrencyMigrationModal.value = true;
-    } else {
-      const classified = classifyError(err);
-      error.value = classified.message || t('web.billing.checkout_initiate_failed');
-      console.error('[PlanSelector] Checkout error:', err);
+  };
+
+  // Handle "Complete Migration" from the PendingMigrationBanner
+  const handleCompletePendingMigration = async () => {
+    // Pure decision first (shared with the currency spec), then side effects.
+    // 'currency-blocked' means the old subscription hasn't been cancelled yet, so
+    // its currency still differs from the migration target — creating a checkout
+    // would trigger a currency conflict from Stripe.
+    const action = resolveCompletePendingMigrationAction(pendingMigration.value, {
+      orgExtid: selectedOrg.value?.extid,
+      currentCurrency: currentCurrency.value,
+    });
+
+    if (action === 'currency-blocked') {
+      error.value = t('web.billing.plan_unavailable_region_mismatch');
+      return;
     }
-  } finally {
-    isCreatingCheckout.value = false;
-  }
-};
+    if (action !== 'checkout') return;
 
-const handlePlanChangeClose = () => {
-  showPlanChangeModal.value = false;
-  targetPlan.value = null;
-};
+    // action === 'checkout': both are guaranteed present; re-read as locals so
+    // TypeScript narrows for the checkout call below.
+    const extid = selectedOrg.value?.extid;
+    const migration = pendingMigration.value;
+    if (!extid || !migration) return;
 
-// Refresh subscription + org data after any billing state change
-const refreshBillingData = async () => {
-  if (!orgExtid.value) return;
-  await loadSubscriptionStatus(orgExtid.value);
-  const org = await organizationStore.fetchOrganization(orgExtid.value);
-  selectedOrg.value = org;
-};
+    isCompletingPendingMigration.value = true;
+    error.value = '';
 
-const handlePlanChangeSuccess = async (newPlan: string) => {
-  showPlanChangeModal.value = false;
-  targetPlan.value = null;
-  successMessage.value = t('web.billing.plan_switch_success', { plan: newPlan });
-  await refreshBillingData();
-};
-
-// Cancel subscription handlers
-const handleCancelSubscriptionClick = () => {
-  showCancelModal.value = true;
-};
-
-const handleCancelModalClose = () => {
-  showCancelModal.value = false;
-};
-
-const handleCancelSuccess = async () => {
-  showCancelModal.value = false;
-  successMessage.value = t('web.billing.cancel.success');
-  await refreshBillingData();
-};
-
-// Reactivation handler
-const handleReactivateSubscription = async () => {
-  if (!selectedOrg.value?.extid || isReactivating.value) return;
-
-  isReactivating.value = true;
-  error.value = '';
-  successMessage.value = '';
-
-  try {
-    await BillingService.reactivateSubscription(selectedOrg.value.extid);
-    successMessage.value = t('web.billing.cancel.reactivate_success');
-    await refreshBillingData();
-  } catch (err) {
-    const classified = classifyError(err);
-    error.value = classified.message || t('web.billing.cancel.reactivate_error');
-    console.error('[PlanSelector] Error reactivating subscription:', err);
-  } finally {
-    isReactivating.value = false;
-  }
-};
-
-// Currency migration handlers
-const handleCurrencyMigrationClose = () => {
-  showCurrencyMigrationModal.value = false;
-  currencyConflict.value = null;
-};
-
-const handleGracefulConfirmed = async (_cancelAt: number) => {
-  showCurrencyMigrationModal.value = false;
-  currencyConflict.value = null;
-  successMessage.value = t('web.billing.currency_migration.graceful_success');
-  await refreshBillingData();
-};
-
-const handleImmediateRedirect = (checkoutUrl: string) => {
-  showCurrencyMigrationModal.value = false;
-  currencyConflict.value = null;
-  // Redirect to Stripe Checkout for the new currency subscription.
-  // Security (M-9): host-allowlist the API-derived URL before navigating.
-  if (isAllowedCheckoutUrl(checkoutUrl)) {
-    window.location.href = checkoutUrl;
-  } else {
-    error.value = t('web.billing.checkout_session_failed');
-  }
-};
-
-// Handle "Complete Migration" from the PendingMigrationBanner
-const handleCompletePendingMigration = async () => {
-  // Pure decision first (shared with the currency spec), then side effects.
-  // 'currency-blocked' means the old subscription hasn't been cancelled yet, so
-  // its currency still differs from the migration target — creating a checkout
-  // would trigger a currency conflict from Stripe.
-  const action = resolveCompletePendingMigrationAction(pendingMigration.value, {
-    orgExtid: selectedOrg.value?.extid,
-    currentCurrency: currentCurrency.value,
-  });
-
-  if (action === 'currency-blocked') {
-    error.value = t('web.billing.plan_unavailable_region_mismatch');
-    return;
-  }
-  if (action !== 'checkout') return;
-
-  // action === 'checkout': both are guaranteed present; re-read as locals so
-  // TypeScript narrows for the checkout call below.
-  const extid = selectedOrg.value?.extid;
-  const migration = pendingMigration.value;
-  if (!extid || !migration) return;
-
-  isCompletingPendingMigration.value = true;
-  error.value = '';
-
-  try {
-    // Create a new checkout session for the pending migration target plan.
-    // target_plan_id is a family ID (e.g. "identity_plus_v1").
-    // target_interval provides the billing interval.
-    const planId = migration.target_plan_id;
-    const interval = migration.target_interval ?? 'month';
-    const response = await BillingService.createCheckoutSession(
-      extid,
-      {
+    try {
+      // Create a new checkout session for the pending migration target plan.
+      // target_plan_id is a family ID (e.g. "identity_plus_v1").
+      // target_interval provides the billing interval.
+      const planId = migration.target_plan_id;
+      const interval = migration.target_interval ?? 'month';
+      const response = await BillingService.createCheckoutSession(extid, {
         id: planId,
         interval,
-      }
-    );
+      });
 
-    // Security (M-9): host-allowlist the API-derived URL before navigating.
-    if (isAllowedCheckoutUrl(response.checkout_url)) {
-      window.location.href = response.checkout_url;
-    } else {
-      error.value = t('web.billing.checkout_session_failed');
-    }
-  } catch (err) {
-    const classified = classifyError(err);
-    error.value = classified.message || t('web.billing.checkout_initiate_failed');
-    console.error('[PlanSelector] Complete migration error:', err);
-  } finally {
-    isCompletingPendingMigration.value = false;
-  }
-};
-
-// Helper to load subscription status with error handling
-const loadSubscriptionStatus = async (extid: string) => {
-  try {
-    subscriptionStatus.value = await BillingService.getSubscriptionStatus(extid);
-  } catch (_err) {
-    // Non-fatal: user may not have a subscription yet
-    console.log('[PlanSelector] No active subscription found');
-  }
-};
-
-onMounted(async () => {
-  try {
-    isLoadingOrg.value = true;
-
-    // Load entitlement definitions and plans in parallel
-    await Promise.all([
-      initDefinitions(),
-      loadPlans(),
-    ]);
-
-    // Load organization data using extid from URL
-    if (orgExtid.value) {
-      const org = await organizationStore.fetchOrganization(orgExtid.value);
-      selectedOrg.value = org;
-      // Load subscription status to determine checkout vs plan change flow
-      await loadSubscriptionStatus(orgExtid.value);
-    }
-
-    // Check for product/interval query params (from billing redirect flow)
-    // These come from /pricing page -> signup/login -> redirect here
-    const productParam = route.query.product as string;
-    const intervalParam = route.query.interval as string;
-
-    if (productParam) {
-      // Set billing interval from query param
-      if (intervalParam === 'yearly' || intervalParam === 'year') {
-        billingInterval.value = 'year';
+      // Security (M-9): host-allowlist the API-derived URL before navigating.
+      if (isAllowedCheckoutUrl(response.checkout_url)) {
+        window.location.href = response.checkout_url;
       } else {
-        billingInterval.value = 'month';
+        error.value = t('web.billing.checkout_session_failed');
+      }
+    } catch (err) {
+      const classified = classifyError(err);
+      error.value = classified.message || t('web.billing.checkout_initiate_failed');
+      console.error('[PlanSelector] Complete migration error:', err);
+    } finally {
+      isCompletingPendingMigration.value = false;
+    }
+  };
+
+  // Helper to load subscription status with error handling
+  const loadSubscriptionStatus = async (extid: string) => {
+    try {
+      subscriptionStatus.value = await BillingService.getSubscriptionStatus(extid);
+    } catch (_err) {
+      // Non-fatal: user may not have a subscription yet
+      console.log('[PlanSelector] No active subscription found');
+    }
+  };
+
+  onMounted(async () => {
+    try {
+      isLoadingOrg.value = true;
+
+      // Load entitlement definitions and plans in parallel
+      await Promise.all([initDefinitions(), loadPlans()]);
+
+      // Load organization data using extid from URL
+      if (orgExtid.value) {
+        const org = await organizationStore.fetchOrganization(orgExtid.value);
+        selectedOrg.value = org;
+        // Load subscription status to determine checkout vs plan change flow
+        await loadSubscriptionStatus(orgExtid.value);
       }
 
-      // Find the matching plan based on product (family ID like 'identity_plus_v1')
-      // Plan IDs are now family-keyed without interval suffix
-      const matchingPlan = plans.value.find(
-        p => p.id === productParam || p.id.startsWith(productParam)
-      );
+      // Check for product/interval query params (from billing redirect flow)
+      // These come from /pricing page -> signup/login -> redirect here
+      const productParam = route.query.product as string;
+      const intervalParam = route.query.interval as string;
 
-      if (matchingPlan) {
-        suggestedPlanId.value = matchingPlan.id;
+      if (productParam) {
+        // Set billing interval from query param
+        if (intervalParam === 'yearly' || intervalParam === 'year') {
+          billingInterval.value = 'year';
+        } else {
+          billingInterval.value = 'month';
+        }
+
+        // Find the matching plan based on product (family ID like 'identity_plus_v1')
+        // Plan IDs are now family-keyed without interval suffix
+        const matchingPlan = plans.value.find(
+          (p) => p.id === productParam || p.id.startsWith(productParam)
+        );
+
+        if (matchingPlan) {
+          suggestedPlanId.value = matchingPlan.id;
+        }
       }
-    }
 
-    // Legacy: Check for upgrade_to query param (backwards compatibility)
-    const upgradeToParam = route.query.upgrade_to as string;
-    if (upgradeToParam && !suggestedPlanId.value) {
-      suggestedPlanId.value = upgradeToParam;
+      // Legacy: Check for upgrade_to query param (backwards compatibility)
+      const upgradeToParam = route.query.upgrade_to as string;
+      if (upgradeToParam && !suggestedPlanId.value) {
+        suggestedPlanId.value = upgradeToParam;
+      }
+    } catch (err) {
+      const classified = classifyError(err);
+      error.value = classified.message || t('web.billing.plans.load_error');
+      console.error('[PlanSelector] Error loading billing data:', err);
+    } finally {
+      isLoadingOrg.value = false;
     }
-  } catch (err) {
-    const classified = classifyError(err);
-    error.value = classified.message || t('web.billing.plans.load_error');
-    console.error('[PlanSelector] Error loading billing data:', err);
-  } finally {
-    isLoadingOrg.value = false;
-  }
-});
+  });
 </script>
 
 <template>
@@ -567,15 +571,15 @@ onMounted(async () => {
         :target-currency="pendingMigration.target_currency"
         :effective-date="pendingMigration.effective_after"
         :is-completing-migration="isCompletingPendingMigration"
-        @complete-migration="handleCompletePendingMigration"
-      />
+        @complete-migration="handleCompletePendingMigration" />
 
       <!-- Cancellation Scheduled Notice (most prominent placement - top of page) -->
       <div
         v-if="isCancelScheduled && cancelAtFormatted && !isLoadingContent"
         class="rounded-lg border-2 border-amber-300 bg-amber-50 p-5 dark:border-amber-600 dark:bg-amber-900/30">
         <div class="flex items-start gap-4">
-          <div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-800">
+          <div
+            class="flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-800">
             <OIcon
               collection="heroicons"
               name="exclamation-triangle"
@@ -609,7 +613,8 @@ onMounted(async () => {
         v-if="isLegacyCustomer && !isLoadingContent"
         class="rounded-lg border-2 border-amber-300 bg-amber-50 p-5 dark:border-amber-600 dark:bg-amber-900/30">
         <div class="flex items-start gap-4">
-          <div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-800">
+          <div
+            class="flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-800">
             <OIcon
               collection="heroicons"
               name="star"
@@ -662,15 +667,14 @@ onMounted(async () => {
         </button>
       </div>
 
-
-
       <!-- Organization Selector (hidden - billing uses default org) -->
 
       <!-- Success Message -->
-      <div v-if="successMessage"
-class="rounded-md bg-green-50 p-4 dark:bg-green-900/20"
-role="status"
-aria-live="polite">
+      <div
+        v-if="successMessage"
+        class="rounded-md bg-green-50 p-4 dark:bg-green-900/20"
+        role="status"
+        aria-live="polite">
         <div class="flex">
           <OIcon
             collection="heroicons"
@@ -678,14 +682,20 @@ aria-live="polite">
             class="size-5 text-green-400"
             aria-hidden="true" />
           <div class="ml-3">
-            <p class="text-sm font-medium text-green-800 dark:text-green-200">{{ successMessage }}</p>
+            <p class="text-sm font-medium text-green-800 dark:text-green-200">
+              {{ successMessage }}
+            </p>
           </div>
         </div>
       </div>
 
       <!-- Error Alerts -->
-      <BasicFormAlerts v-if="error" :error="error" />
-      <BasicFormAlerts v-if="definitionsError" :error="definitionsError" />
+      <BasicFormAlerts
+        v-if="error"
+        :error="error" />
+      <BasicFormAlerts
+        v-if="definitionsError"
+        :error="definitionsError" />
 
       <!-- Loading State -->
       <PlanCardSkeleton v-if="isLoadingContent" />
@@ -712,21 +722,29 @@ aria-live="polite">
       </div>
 
       <!-- No Plans Message -->
-      <div v-else-if="filteredPlans.length === 0" class="rounded-lg border border-gray-200/60 bg-gray-50/60 p-8 text-center shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-900/50">
+      <div
+        v-else-if="filteredPlans.length === 0"
+        class="rounded-lg border border-gray-200/60 bg-gray-50/60 p-8 text-center shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-900/50">
         <p class="text-gray-600 dark:text-gray-400">
-          {{ t('web.billing.plans.no_plans_available', { interval: billingInterval === 'year' ? t('web.billing.plans.yearly').toLowerCase() : t('web.billing.plans.monthly').toLowerCase() }) }}
+          {{
+            t('web.billing.plans.no_plans_available', {
+              interval:
+                billingInterval === 'year'
+                  ? t('web.billing.plans.yearly').toLowerCase()
+                  : t('web.billing.plans.monthly').toLowerCase(),
+            })
+          }}
         </p>
       </div>
 
       <!-- Plan Cards -->
-      <div v-else class="mx-auto flex max-w-[1600px] flex-wrap justify-center gap-6">
+      <div
+        v-else
+        class="mx-auto flex max-w-[1600px] flex-wrap justify-center gap-6">
         <div
           v-for="plan in filteredPlans"
           :key="plan.id"
-          :class="[
-            'flex w-full max-w-sm',
-            plan.tier === 'free' ? 'order-last sm:order-none' : '',
-          ]">
+          :class="['flex w-full max-w-sm', plan.tier === 'free' ? 'order-last sm:order-none' : '']">
           <PlanCard
             :plan="plan"
             :is-current="isPlanCurrent(plan)"
@@ -734,7 +752,11 @@ aria-live="polite">
             :is-suggested="suggestedPlanId === plan.id"
             :button-label="getButtonLabel(plan)"
             :button-disabled="isPlanButtonDisabled(plan)"
-            :disabled-reason="isPlanCurrencyMismatch(plan) ? $t('web.billing.plan_unavailable_region_mismatch') : undefined"
+            :disabled-reason="
+              isPlanCurrencyMismatch(plan)
+                ? $t('web.billing.plan_unavailable_region_mismatch')
+                : undefined
+            "
             :is-processing="isPlanProcessing(plan)"
             @select="handlePlanSelect" />
         </div>
@@ -753,7 +775,8 @@ aria-live="polite">
       </div>
 
       <!-- Custom Needs -->
-      <div class="rounded-lg border border-gray-200/60 bg-gray-50/60 p-8 text-center shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-900/50">
+      <div
+        class="rounded-lg border border-gray-200/60 bg-gray-50/60 p-8 text-center shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-900/50">
         <h3 class="text-lg font-medium text-gray-600 dark:text-gray-300">
           {{ t('web.billing.plans.custom_needs_title') }}
         </h3>
@@ -773,8 +796,7 @@ aria-live="polite">
       :current-plan="currentPlanForModal"
       :target-plan="targetPlan"
       @close="handlePlanChangeClose"
-      @success="handlePlanChangeSuccess"
-    />
+      @success="handlePlanChangeSuccess" />
 
     <!-- Cancel Subscription Modal -->
     <CancelSubscriptionModal
@@ -783,8 +805,7 @@ aria-live="polite">
       :plan-name="currentPlanName"
       :period-end="subscriptionStatus?.current_period_end ?? null"
       @close="handleCancelModalClose"
-      @success="handleCancelSuccess"
-    />
+      @success="handleCancelSuccess" />
 
     <!-- Currency Migration Modal -->
     <CurrencyMigrationModal
@@ -793,7 +814,6 @@ aria-live="polite">
       :conflict="currencyConflict"
       @close="handleCurrencyMigrationClose"
       @graceful-confirmed="handleGracefulConfirmed"
-      @immediate-redirect="handleImmediateRedirect"
-    />
+      @immediate-redirect="handleImmediateRedirect" />
   </BillingLayout>
 </template>

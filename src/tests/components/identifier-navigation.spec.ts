@@ -355,9 +355,7 @@ describe('Identifier Navigation Pattern', () => {
       expect(typeof org.extid).toBe('string');
 
       // But they have different formats
-      expect(org.objid).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-      );
+      expect(org.objid).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
       expect(org.extid).toMatch(/^on[a-z0-9]+$/i);
     });
 
@@ -411,9 +409,7 @@ describe('Identifier Navigation Pattern', () => {
         global: { plugins: [i18n] },
       });
 
-      expect(wrapper.find('[data-testid="view-link"]').attributes('href')).toBe(
-        '/org/on8a7b9c'
-      );
+      expect(wrapper.find('[data-testid="view-link"]').attributes('href')).toBe('/org/on8a7b9c');
     });
 
     it('builds settings path with extid', () => {
@@ -433,9 +429,7 @@ describe('Identifier Navigation Pattern', () => {
         global: { plugins: [i18n] },
       });
 
-      expect(wrapper.find('[data-testid="api-path"]').text()).toBe(
-        '/api/organizations/on8a7b9c'
-      );
+      expect(wrapper.find('[data-testid="api-path"]').text()).toBe('/api/organizations/on8a7b9c');
     });
 
     it('never includes internal objid in any URL paths', () => {
@@ -449,9 +443,9 @@ describe('Identifier Navigation Pattern', () => {
       expect(wrapper.find('[data-testid="view-link"]').attributes('href')).not.toContain(
         internalId
       );
-      expect(
-        wrapper.find('[data-testid="settings-link"]').attributes('href')
-      ).not.toContain(internalId);
+      expect(wrapper.find('[data-testid="settings-link"]').attributes('href')).not.toContain(
+        internalId
+      );
       expect(wrapper.find('[data-testid="api-path"]').text()).not.toContain(internalId);
     });
   });

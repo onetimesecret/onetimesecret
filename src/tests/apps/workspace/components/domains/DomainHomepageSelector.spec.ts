@@ -48,12 +48,12 @@ describe('DomainHomepageSelector', () => {
   it('marks the current selection checked', () => {
     const wrapper = mountSelector({ modelValue: 'create' });
 
-    expect(
-      wrapper.find('[data-testid="homepage-option-create"]').attributes('aria-checked')
-    ).toBe('true');
-    expect(
-      wrapper.find('[data-testid="homepage-option-private"]').attributes('aria-checked')
-    ).toBe('false');
+    expect(wrapper.find('[data-testid="homepage-option-create"]').attributes('aria-checked')).toBe(
+      'true'
+    );
+    expect(wrapper.find('[data-testid="homepage-option-private"]').attributes('aria-checked')).toBe(
+      'false'
+    );
   });
 
   it('emits update:modelValue when selecting an enabled option', async () => {
@@ -193,12 +193,12 @@ describe('DomainHomepageSelector', () => {
 
     // First enabled option takes the tab stop (disabled buttons drop out of
     // the tab order regardless of tabindex).
-    expect(
-      wrapper.find('[data-testid="homepage-option-private"]').attributes('tabindex')
-    ).toBe('0');
-    expect(
-      wrapper.find('[data-testid="homepage-option-incoming"]').attributes('tabindex')
-    ).toBe('-1');
+    expect(wrapper.find('[data-testid="homepage-option-private"]').attributes('tabindex')).toBe(
+      '0'
+    );
+    expect(wrapper.find('[data-testid="homepage-option-incoming"]').attributes('tabindex')).toBe(
+      '-1'
+    );
 
     // Arrow movement is anchored to the tab stop, not the disabled selection:
     // private -> create.

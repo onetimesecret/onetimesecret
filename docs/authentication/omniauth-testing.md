@@ -13,6 +13,7 @@ docker run -d --name zitadel \
 Access console at `http://localhost:8080`. Default admin: `zitadel-admin@zitadel.localhost` / `Password1!`
 
 Create a Web Application project:
+
 - Redirect URI: `http://localhost:3000/auth/sso/oidc/callback`
 - Grant type: Authorization Code + PKCE
 - Note the Client ID and Client Secret
@@ -37,6 +38,7 @@ export OIDC_ISSUER=http://localhost:8080           # Zitadel/Keycloak base URL
 export OIDC_CLIENT_ID=<from-idp>
 export OIDC_CLIENT_SECRET=<from-idp>
 ```
+
 The callback URL is auto-constructed from the request host at runtime (e.g., `https://{host}/auth/sso/oidc/callback`). Register this URL with the IdP. The correct value is displayed on the domain SSO config screen.
 
 For Zitadel, issuer is typically `http://localhost:8080`.
@@ -55,14 +57,14 @@ curl -s $OIDC_ISSUER/.well-known/openid-configuration | jq '.authorization_endpo
 
 ## Test Scenarios
 
-| Scenario | Expected |
-|----------|----------|
+| Scenario              | Expected                                          |
+| --------------------- | ------------------------------------------------- |
 | SSO button visibility | Appears on `/signin` when `AUTH_SSO_ENABLED=true` |
-| New user login | Account created, redirected to dashboard |
-| Existing user login | Logged in via linked identity |
-| Domain restriction | Redirected to `/signin?auth_error=sso_failed` |
-| OAuth state mismatch | OmniAuth rejects callback (CSRF protection) |
-| IdP denies access | Redirected to `/signin?auth_error=sso_failed` |
+| New user login        | Account created, redirected to dashboard          |
+| Existing user login   | Logged in via linked identity                     |
+| Domain restriction    | Redirected to `/signin?auth_error=sso_failed`     |
+| OAuth state mismatch  | OmniAuth rejects callback (CSRF protection)       |
+| IdP denies access     | Redirected to `/signin?auth_error=sso_failed`     |
 
 ## Automated Tests
 

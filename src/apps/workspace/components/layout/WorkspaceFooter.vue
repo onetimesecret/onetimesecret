@@ -29,7 +29,8 @@
   const { t, locale } = useI18n();
   const route = useRoute();
   const bootstrapStore = useBootstrapStore();
-  const { ot_version, ot_version_long, domains_enabled, support_host, ui, brand_product_name } = storeToRefs(bootstrapStore);
+  const { ot_version, ot_version_long, domains_enabled, support_host, ui, brand_product_name } =
+    storeToRefs(bootstrapStore);
   const { showVersionConfig } = useFooterConfig();
 
   // Store instances for counts
@@ -123,14 +124,14 @@
     const links = ui.value?.workspace_links?.links;
     if (links?.length) {
       return links
-        .filter(link => link.url?.trim())
+        .filter((link) => link.url?.trim())
         .map((link) => ({
-          label: link.i18n_key ? t(link.i18n_key) : (link.text || ''),
+          label: link.i18n_key ? t(link.i18n_key) : link.text || '',
           href: link.url!,
         }));
     }
     // Fallback to computed defaults
-    return defaultLinks.map(def => ({
+    return defaultLinks.map((def) => ({
       label: t(def.i18nKey),
       href: def.href(),
     }));
@@ -180,7 +181,7 @@
         <!-- Count badge (if present) -->
         <span
           v-if="item.count !== undefined && item.count !== null && item.count > 0"
-          class="bg-brand-500 absolute -top-0.5 -right-0.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] leading-none font-semibold text-white shadow-sm"
+          class="absolute -top-0.5 -right-0.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-brand-500 px-1 text-[10px] leading-none font-semibold text-white shadow-sm"
           :aria-label="t('web.layout.mobile_nav_item_count', { count: item.count })">
           {{ item.count > 99 ? '99+' : item.count }}
         </span>
@@ -252,7 +253,11 @@
               :href="t('web.COMMON.website_url')"
               target="_blank"
               rel="noopener noreferrer">
-              {{ t('web.branding.powered_by_onetime_secret', { product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name }) }}
+              {{
+                t('web.branding.powered_by_onetime_secret', {
+                  product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name,
+                })
+              }}
             </a>
           </span>
         </div>

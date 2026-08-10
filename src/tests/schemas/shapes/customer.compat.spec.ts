@@ -89,8 +89,7 @@ describe('V2 Wire -> V3 Schema (Forward Compatibility)', () => {
       if (!result.success) {
         // Counter fields should NOT appear in errors (they are coerced)
         const numberErrors = result.error.issues.filter(
-          (i) =>
-            i.path.includes('secrets_created') || i.path.includes('emails_sent')
+          (i) => i.path.includes('secrets_created') || i.path.includes('emails_sent')
         );
         expect(numberErrors.length).toBe(0);
       }
@@ -433,7 +432,7 @@ describe('Compatibility Summary', () => {
         'verified/active (string->boolean)': 'INCOMPATIBLE - V3 expects boolean',
         'counter fields (string->number)': 'COMPATIBLE - V3 uses z.coerce.number() per #2699',
         'null timestamps': 'COMPATIBLE - both use null',
-        'feature_flags': 'COMPATIBLE - Record<string, boolean>',
+        feature_flags: 'COMPATIBLE - Record<string, boolean>',
       },
       'V3 Wire -> V2 Schema': {
         'created/updated (number->string)': 'COMPATIBLE - V2 parseDate handles numbers',
@@ -441,7 +440,7 @@ describe('Compatibility Summary', () => {
         'verified/active (boolean->string)': 'COMPATIBLE - V2 parseBoolean handles booleans',
         'counter fields (number->string)': 'COMPATIBLE - V2 parseNumber handles numbers',
         'null timestamps': 'COMPATIBLE - both use null',
-        'feature_flags': 'COMPATIBLE - Record<string, boolean>',
+        feature_flags: 'COMPATIBLE - Record<string, boolean>',
       },
       'Semantic Differences': {
         'contributor: undefined': 'Optional in both, undefined allowed',
@@ -529,9 +528,7 @@ describe('Transform Error Handling', () => {
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        const roleError = result.error.issues.find((i) =>
-          i.path.includes('role')
-        );
+        const roleError = result.error.issues.find((i) => i.path.includes('role'));
         expect(roleError).toBeDefined();
       }
     });
@@ -559,19 +556,13 @@ describe('Transform Error Handling', () => {
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        const emailError = result.error.issues.find((i) =>
-          i.path.includes('email')
-        );
+        const emailError = result.error.issues.find((i) => i.path.includes('email'));
         expect(emailError).toBeDefined();
       }
     });
 
     it('accepts valid email formats', () => {
-      const validEmails = [
-        'user@example.com',
-        'user+tag@example.com',
-        'user.name@sub.example.com',
-      ];
+      const validEmails = ['user@example.com', 'user+tag@example.com', 'user.name@sub.example.com'];
 
       for (const email of validEmails) {
         const wire = createV2WireCustomer(createCanonicalCustomer({ email }));

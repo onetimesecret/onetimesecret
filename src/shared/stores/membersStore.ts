@@ -105,7 +105,11 @@ export const useMembersStore = defineStore('members', () => {
     loading.value = true;
 
     try {
-      const payloadResult = gracefulParse(updateMemberRolePayloadSchema, payload, 'UpdateMemberRolePayload');
+      const payloadResult = gracefulParse(
+        updateMemberRolePayloadSchema,
+        payload,
+        'UpdateMemberRolePayload'
+      );
       if (!payloadResult.ok) {
         throw new Error('Invalid member role update data.');
       }
@@ -139,11 +143,13 @@ export const useMembersStore = defineStore('members', () => {
     loading.value = true;
 
     try {
-      const response = await $api.delete(
-        `/api/organizations/${orgExtid}/members/${memberExtid}`
-      );
+      const response = await $api.delete(`/api/organizations/${orgExtid}/members/${memberExtid}`);
 
-      const deleteResult = gracefulParse(memberDeleteResponseSchema, response.data, 'MemberDeleteResponse');
+      const deleteResult = gracefulParse(
+        memberDeleteResponseSchema,
+        response.data,
+        'MemberDeleteResponse'
+      );
       if (!deleteResult.ok) {
         throw new Error('Unable to remove member. Please try again.');
       }

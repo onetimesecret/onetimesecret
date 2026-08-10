@@ -162,7 +162,7 @@
     <div
       v-show="!isLoading && !error"
       id="apxdnswidget"
-      class="apxdnswidget" ></div>
+      class="apxdnswidget"></div>
   </div>
 </template>
 
