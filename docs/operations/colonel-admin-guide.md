@@ -98,9 +98,16 @@ a dedicated hostname (`admin.example.com`) if you have one. On an install where
 it is **unset** and there is no routable hostname to anchor on — the stock
 `HOST=localhost:3000`, or access by bare IP — the gate self-disables with a boot
 warning, so single-container installs are unaffected. A value that is set but
-can never match (an IP address, `*.example.com`, a non-ASCII name) **fails the
-boot** instead, naming what it rejected. `ADMIN_ALLOWED_HOSTS=*` is the one way
-to turn the gate off, and the one-variable rollback.
+can never match (an IP address, `*.example.com`, a non-ASCII name) **404s both
+admin surfaces** instead, with a boot warning naming what it rejected; the boot
+itself is not aborted, since the surfaces are already fail-closed and the rest
+of the app is unaffected. `ADMIN_ALLOWED_HOSTS=*` — anywhere in the list — is
+the one way to turn the gate off, and the one-variable rollback.
+
+Behind a proxy that forwards the public hostname in a header (`X-Forwarded-Host`,
+`Apx-Incoming-Host`, …) rather than rewriting `Host`, `site.network.trusted_proxy`
+must be configured: the host gate accepts a forwarded host only from a peer that
+trust vouched for, so otherwise both surfaces 404.
 
 **Network — `site.admin.allowed_cidrs` / `ADMIN_ALLOWED_CIDRS`, opt-in.** Which
 client IPs may reach the surfaces. Unset (the default) it is a no-op, the right

@@ -31,8 +31,16 @@ upgrading, confirm the hostname you use to reach `/colonel`:
 
 If you do set `ADMIN_ALLOWED_HOSTS`, set it to something the gate can match: an
 explicit list with no usable entry in it (an IP address, a `*.` pattern, a
-non-ASCII name) **fails the boot** rather than quietly serving admin everywhere.
-See [When boot refuses to start](#when-boot-refuses-to-start).
+non-ASCII name) **404s both admin surfaces** rather than quietly serving admin
+everywhere, and says so at boot. See [When the allowlist cannot be
+enforced](#when-the-allowlist-cannot-be-enforced).
+
+If the app runs behind a reverse proxy that forwards the public hostname in a
+header (`X-Forwarded-Host`, `Apx-Incoming-Host`, `X-Original-Host`,
+`Forwarded`) rather than rewriting `Host`, you **must** configure
+`site.network.trusted_proxy` — otherwise the admin gate refuses the forwarded
+host and both surfaces 404. See [Behind a reverse proxy or load
+balancer](#behind-a-reverse-proxy-or-load-balancer--required-for-both-gates).
 
 **Rollback is one variable:** `ADMIN_ALLOWED_HOSTS=*` restores the pre-#4062
 behavior — the host gate off, logged at WARN on boot. The CIDR gate is
@@ -102,15 +110,21 @@ Details that matter:
 - Matching is case-insensitive, port-stripped and trailing-dot-stripped. ASCII
   A-labels only: give an internationalized domain in its `xn--` punycode form. A
   non-ASCII entry can never match, so it is dropped and named in a boot WARN —
-  and if it was the *only* entry, the boot fails.
+  and if it was the *only* entry, both admin surfaces 404.
 - **Patterns are not supported.** `*.example.com` matches nothing: it is dropped
-  and named in a boot WARN, and a list of nothing but patterns fails the boot.
-  List each hostname explicitly.
+  and named in a boot WARN, and a list of nothing but patterns 404s both admin
+  surfaces. List each hostname explicitly.
 - **A nil or unresolvable detected host is a 404** while the gate is active.
-- `ADMIN_ALLOWED_HOSTS=*` (as the sole entry) disables the host gate, logged at
-  WARN on boot. The CIDR gate is unaffected. A list that mixes `*` with named
-  hosts is ambiguous: the `*` is dropped (with a WARN) and the named hosts are
-  enforced.
+- **A forwarded host from an untrusted peer is a 404** while the gate is active
+  — see [Behind a reverse proxy or load
+  balancer](#behind-a-reverse-proxy-or-load-balancer--required-for-both-gates).
+- `ADMIN_ALLOWED_HOSTS=*` disables the host gate, logged at WARN on boot. The
+  CIDR gate is unaffected. **A `*` anywhere in the list turns the gate off** —
+  a `*` beside named hosts does not enforce those hosts, it ignores them (and
+  names them in a second WARN). Remove the `*` to enforce them.
+- **A percent-encoded spelling of an admin path is still an admin path.**
+  `/%63olonel` and `/colonel%2Fsettings` are gated exactly like `/colonel`,
+  because that is what the router serves them as.
 - Both allowlists are resolved **once, at boot**. A config or env change needs a
   restart.
 
@@ -135,42 +149,53 @@ their operators out of `/colonel`. Set a routable hostname (via
 `ADMIN_ALLOWED_HOSTS`, `HOST`, or `DEFAULT_DOMAIN`) to turn the gate on.
 
 Nothing an operator writes into `ADMIN_ALLOWED_HOSTS` reaches this rule. A list
-that was set but cannot be enforced does not go inert — it fails the boot.
+that was set but cannot be enforced does not go inert — it denies.
 
-### When boot refuses to start
+### When the allowlist cannot be enforced
 
 If `ADMIN_ALLOWED_HOSTS` is **set and non-empty** but no entry survives — every
 entry is an IP address, a `*.` pattern, a non-ASCII name, or not a hostname at
-all — the app raises a config error at boot naming each entry and why:
+all — the host gate stays **active with an empty allowlist**: `/colonel` and
+`/api/colonel` return 404 to every request, on every hostname. The rest of the
+app is untouched. Boot logs a WARN naming each entry and why:
 
 ```
 ADMIN_ALLOWED_HOSTS (site.admin.allowed_hosts) names no hostname the admin host
-gate could ever match, so /colonel and /api/colonel would be served on every
-hostname: "127.0.0.1": not a routable hostname — localhost forms and IP literals
-are never detected as a host. Set it to a routable hostname the deployment
-answers on (ADMIN_ALLOWED_HOSTS=admin.example.com), unset it entirely to allow
-the canonical host only, or set it to * to disable the host gate deliberately.
+gate could ever match, so /colonel and /api/colonel return 404 to EVERY request:
+"127.0.0.1": not a routable hostname — localhost forms and IP literals are never
+detected as a host. Set it to a routable hostname the deployment answers on
+(ADMIN_ALLOWED_HOSTS=admin.example.com), unset it entirely to allow the canonical
+host only, or set it to * to disable the host gate deliberately.
 ```
 
-Refusing to boot is deliberate. Every one of these values is an operator writing
-an allowlist in order to **restrict** the admin surfaces; disabling the gate on
-a typo would do the opposite of what was asked and serve `/colonel` on every
+Denying is deliberate. Every one of these values is an operator writing an
+allowlist in order to **restrict** the admin surfaces; disabling the gate on a
+typo would do the opposite of what was asked and serve `/colonel` on every
 hostname the app answers on. The three ways out are the three in the message:
 name a routable hostname, unset it (canonical hosts only), or ask for the gate
 to be off with `ADMIN_ALLOWED_HOSTS=*`.
+
+**This does not stop the boot** (it did until #4062 shipped). The admin surfaces
+are already fail-closed for this config, so aborting the process would take the
+public site, the API and the health endpoints down over an admin-console-only
+typo — an `ADMIN_ALLOWED_HOSTS=10.0.0.0/8` mixup with the adjacent
+`ADMIN_ALLOWED_CIDRS` key would be a full outage. Contrast `LINK_DOMAINS`
+(#4063), which *does* fail the boot: it has no fail-closed runtime backstop, so
+there the process has to stop.
 
 Common triggers:
 
 | Value | Result |
 |---|---|
-| `ADMIN_ALLOWED_HOSTS=127.0.0.1` / `localhost` | boot error — never detected as a host |
-| `ADMIN_ALLOWED_HOSTS=*.example.com` | boot error — patterns are not supported |
-| `ADMIN_ALLOWED_HOSTS=ünïcode.example` | boot error — supply the `xn--` form |
+| `ADMIN_ALLOWED_HOSTS=127.0.0.1` / `localhost` | boots with a WARN; both admin surfaces 404 — never detected as a host |
+| `ADMIN_ALLOWED_HOSTS=*.example.com` | boots with a WARN; both admin surfaces 404 — patterns are not supported |
+| `ADMIN_ALLOWED_HOSTS=ünïcode.example` | boots with a WARN; both admin surfaces 404 — supply the `xn--` form |
 | `ADMIN_ALLOWED_HOSTS=*.example.com,admin.example.com` | boots; the pattern is dropped with a WARN, `admin.example.com` is enforced |
 | `ADMIN_ALLOWED_HOSTS=*` | boots; host gate off, WARN |
+| `ADMIN_ALLOWED_HOSTS=*,admin.example.com` | boots; host gate **off** (the `*` wins), both entries named in a WARN |
 | unset / empty | boots; canonical anchors, or inert (above) |
 
-Partial failures are not fatal: as long as **one** entry is enforceable, the
+Partial failures change nothing: as long as **one** entry is enforceable, the
 rest are dropped with a WARN (`Ignoring unusable entries in
 site.admin.allowed_hosts`) and the survivors are enforced.
 
@@ -222,10 +247,13 @@ same way the rest of the stack does:
   `env['otto.client_ip']`, which the universal IP-privacy middleware sets from
   `site.network.trusted_proxy`. A **raw `X-Forwarded-For` header cannot bypass
   the allowlist** — that is the point.
-- The **host** gate matches the host `Rack::DetectHost` validated. Forwarded
-  host headers (`X-Forwarded-Host`, `Apx-Incoming-Host`, `X-Original-Host`,
-  `Forwarded`) are honored only for requests that arrived through trusted
-  infrastructure.
+- The **host** gate matches the host `Rack::DetectHost` validated, and applies
+  one extra check of its own: a forwarded host header (`X-Forwarded-Host`,
+  `Apx-Incoming-Host`, `X-Original-Host`, `Forwarded`) is accepted **only** when
+  `env['otto.via_trusted_proxy']` is true — i.e. `site.network.trusted_proxy` is
+  configured and this peer passed it. Otherwise the forwarded host must agree
+  with the `Host` header, or the request is refused. See [Forwarded hosts and
+  the admin gate](#forwarded-hosts-and-the-admin-gate).
 
 Consequently, if the app runs behind a reverse proxy, ingress, or load balancer,
 you **must** also configure `site.network.trusted_proxy` (see `.env.reference`,
@@ -249,14 +277,59 @@ legacy heuristic**: any peer connecting from a private or loopback address is
 trusted to set a forwarded host header. That keeps single-container installs
 behind a local proxy working, but it also means anything able to open a
 connection from a private address — another container on the same network, an
-SSRF egress — can choose the host the gate sees. The client IP behind the CIDR
-gate has the same dependency: with no trusted proxy declared it is resolved from
-`REMOTE_ADDR`. Configure `trusted_proxy` on any deployment where a private-
+SSRF egress — can choose the host the app sees (#4024). The client IP behind the
+CIDR gate has the same dependency: with no trusted proxy declared it is resolved
+from `REMOTE_ADDR`. Configure `trusted_proxy` on any deployment where a private-
 address peer is reachable.
 
 Because that state qualifies both gates, it is reported on the same boot line
 they are — `trusted_proxy: disabled` sitting next to `host_gate: active` is the
 combination to look for. See [Verifying](#verifying).
+
+### Forwarded hosts and the admin gate
+
+The admin host gate does not rely on that heuristic. It accepts a detected host
+only when one of these holds:
+
+1. `env['otto.via_trusted_proxy']` is **true** — `site.network.trusted_proxy` is
+   configured and this peer passed it; or
+2. the request carries **no** forwarded host header at all; or
+3. it carries one, but the detected host is **the same** as what the `Host`
+   header alone would have produced — the header changed nothing.
+
+Anything else is a 404 on both surfaces, logged as `Admin surface access denied:
+forwarded host from an untrusted peer`.
+
+Without this, on any install with `trusted_proxy` unset, a request to a tenant
+custom domain carrying `X-Forwarded-Host: <your canonical host>` would reach the
+admin console — the heuristic would trust it because the request arrived from
+the proxy's private address.
+
+The gate deliberately does **not** fall back to the `Host` header when it
+refuses a forwarded one. In the topology this defends (Approximated-style
+ingress with `trusted_proxy` unset) `Host` carries the *origin's* hostname —
+typically the canonical one, which is on the allowlist — while the tenant
+domain rides in `Apx-Incoming-Host`. Falling back would admit exactly the
+requests this exists to refuse.
+
+**If both admin surfaces started 404ing after this landed**, and your proxy
+forwards the public hostname in a header rather than rewriting `Host`, that is
+this rule. Two ways out:
+
+```yaml
+# Preferred — it is also what the CIDR gate, ban checks, sessions and audit
+# attribution all need to be correct.
+site:
+  network:
+    trusted_proxy:
+      enabled: true
+      mode: filter
+```
+
+```bash
+# Or turn the host gate off entirely.
+ADMIN_ALLOWED_HOSTS=*
+```
 
 ## Edge alternative: return 404 at the proxy (Caddy / nginx)
 
@@ -339,13 +412,20 @@ app-layer auth layers fully in force underneath.
 - With `allowed_cidrs` empty: the network factor imposes nothing; reachability
   is decided by the host gate and the auth layers.
 - With `ADMIN_ALLOWED_HOSTS` set to something unenforceable (`127.0.0.1`,
-  `*.example.com`): the process **does not start** — it exits with a config
-  error naming the entries. Nothing is served, including the admin surfaces.
+  `*.example.com`): the process starts and logs a WARN; `/colonel` and
+  `/api/colonel` return 404 on every hostname. Everything else is served
+  normally.
+- With `ADMIN_ALLOWED_CIDRS` set to something unparseable (every entry
+  malformed): same shape — the process starts, logs an error, and both admin
+  surfaces 404 from every IP. An **empty** `ADMIN_ALLOWED_CIDRS` still means "no
+  network gate"; that distinction is the point.
 - A spoofed `X-Forwarded-For: <allowed-ip>` from an untrusted origin does **not**
   bypass the CIDR allowlist, and a spoofed `X-Forwarded-Host` /
-  `Apx-Incoming-Host` does **not** bypass the host allowlist — neither header is
-  honored unless the peer is trusted (see the heuristic caveat above for
-  private-address peers with `trusted_proxy` off).
+  `Apx-Incoming-Host` does **not** bypass the host allowlist — for the host gate
+  a forwarded header counts only from a peer `site.network.trusted_proxy`
+  vouched for, never from the private-address heuristic.
+- A percent-encoded admin path (`/%63olonel`, `/colonel%2Fsettings`) returns the
+  same 404 as `/colonel` on a denied host or from a denied IP.
 
 ### The boot log
 
@@ -377,24 +457,32 @@ have been chosen by any peer on a private address, and the client IP behind
 `network_gate` comes from `REMOTE_ADDR`. Both gates are only as good as that
 line's third fact.
 
-Also emitted at boot, each at WARN, and each only in its own case:
+That line is emitted **once per process**, not once per mounted app. The
+middleware is constructed for each of the app's mounts, all from the same
+config; every message below is deduplicated the same way, so a repeated line
+means a genuinely different posture, not a second mount.
 
-| Message | Means |
-|---|---|
-| ``Admin host allowlist DISABLED by `*` `` | `ADMIN_ALLOWED_HOSTS=*` — host gate off |
-| ``Dropped `*` from site.admin.allowed_hosts: it is only honored as the sole entry`` | `*` was mixed with named hosts |
-| `Ignoring unusable entries in site.admin.allowed_hosts` | some entries dropped; each named with its reason |
-| `Admin host allowlist INACTIVE: no routable hostname configured` | the unset/fallback case only — see [inert](#when-the-host-gate-goes-inert) |
-| `Invalid CIDR in site.admin.allowed_cidrs, skipping: …` | an unparseable CIDR entry |
+Also emitted at boot, each only in its own case:
 
-There is no boot WARN for an unenforceable `ADMIN_ALLOWED_HOSTS`; that is a
-[boot error](#when-boot-refuses-to-start) — the process stops before the
-middleware is built. One exception exists for embedders that build the Rack app
-without running config validation: the middleware then logs `Admin host
-allowlist has no enforceable entry; denying both admin surfaces` and 404s both
-surfaces. If you see that line, config validation did not run.
+| Message | Level | Means |
+|---|---|---|
+| ``Admin host allowlist DISABLED by `*` `` | WARN | `ADMIN_ALLOWED_HOSTS` contains `*` — host gate off |
+| ``Ignoring every other entry in site.admin.allowed_hosts: `*` disables the host gate`` | WARN | `*` was listed beside other entries; those entries do nothing |
+| `Ignoring unusable entries in site.admin.allowed_hosts` | WARN | some entries dropped; each named with its reason |
+| `Admin host allowlist INACTIVE: no routable hostname configured` | WARN | the unset/fallback case only — see [inert](#when-the-host-gate-goes-inert) |
+| `Admin host allowlist has no enforceable entry; denying both admin surfaces` | WARN | an explicit list where nothing survived — see [above](#when-the-allowlist-cannot-be-enforced) |
+| `Invalid CIDR in site.admin.allowed_cidrs, skipping: …` | WARN | an unparseable CIDR entry, with others still usable |
+| `Admin CIDR allowlist has no usable range; denying both admin surfaces` | ERROR | a configured `ADMIN_ALLOWED_CIDRS` where **no** entry parsed |
+| `Cannot read site.admin.allowed_hosts; denying both admin surfaces` | ERROR | the config could not be read at all (not the same as unset) |
+| `Cannot read site.admin.allowed_cidrs; denying both admin surfaces` | ERROR | ditto, for the CIDR list |
+
+`Onetime::Config` emits the operator-facing diagnostic for an unenforceable
+`ADMIN_ALLOWED_HOSTS` at boot too (the message quoted
+[above](#when-the-allowlist-cannot-be-enforced)), so the reason arrives with the
+startup log rather than only on the first admin request.
 
 Per-request denials log at WARN with the host or IP that was refused: `Admin
-surface access denied by host allowlist` and `Admin surface access denied by
-network isolation`. Two distinct messages for two distinct factors — the client
-cannot tell the denials apart, but the operator can.
+surface access denied by host allowlist`, `Admin surface access denied:
+forwarded host from an untrusted peer`, and `Admin surface access denied by
+network isolation`. Three distinct messages for three distinct refusals — the
+client cannot tell the denials apart, but the operator can.

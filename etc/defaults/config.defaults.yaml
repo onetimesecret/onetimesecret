@@ -632,10 +632,10 @@ site:
     #
     #   ADMIN_ALLOWED_HOSTS=admin.example.com
     #
-    # "*" (as the sole entry) disables the host gate entirely and logs a WARN
-    # at boot. The CIDR gate is unaffected. This is the escape hatch for
-    # installs reached by bare IP or by a hostname that is not the canonical
-    # domain.
+    # "*" ANYWHERE in the list disables the host gate entirely and logs a WARN
+    # at boot; any other entry beside it is ignored (and named in a second
+    # WARN). The CIDR gate is unaffected. This is the escape hatch for installs
+    # reached by bare IP or by a hostname that is not the canonical domain.
     #
     # Matching is case-insensitive, port-stripped and trailing-dot-stripped.
     # ASCII/A-label only: there is no IDN library in this project, so an
@@ -644,10 +644,20 @@ site:
     # UNUSABLE ENTRIES — a wildcard pattern (*.example.com), a non-ASCII name,
     # a localhost form, or an IP literal — can never match a detected host.
     # Each is dropped and named in a boot WARN. If NOTHING in an explicitly set
-    # list survives, the boot FAILS (Onetime::Config
-    # .validate_admin_allowed_hosts!) rather than serving the admin console on
-    # every hostname: the operator asked to restrict it, and a typo must not
-    # produce the opposite. Set "*" to turn the gate off on purpose.
+    # list survives, the gate stays ACTIVE with an EMPTY allowlist: /colonel and
+    # /api/colonel 404 on every hostname, rather than the admin console being
+    # served on every hostname. The operator asked to restrict it, and a typo
+    # must not produce the opposite. Onetime::Config.check_admin_allowed_hosts
+    # says so at boot (WARN); it does NOT abort the boot, because the surfaces
+    # are already fail-closed and the rest of the app is innocent.
+    # Set "*" to turn the gate off on purpose.
+    #
+    # A forwarded host header (X-Forwarded-Host, Apx-Incoming-Host,
+    # X-Original-Host, Forwarded) only counts toward this gate when
+    # site.network.trusted_proxy is configured AND the peer passed it. Behind a
+    # proxy that forwards the public hostname instead of rewriting Host, set
+    # trusted_proxy or both admin surfaces 404 (see
+    # docs/operations/admin-network-isolation.md).
     #
     # INACTIVE only when this list is UNSET and neither canonical anchor is a
     # hostname the app could ever detect — the stock local-dev and bare-IP
@@ -672,7 +682,10 @@ site:
     #
     # Empty/unset (default): NO-OP. Both surfaces stay reachable and the auth
     # layers are the sole gate — the correct posture for self-hosted
-    # single-container installs, which cannot require a VPN. Set this on cloud
+    # single-container installs, which cannot require a VPN. A list that IS set
+    # but where no entry parses as a CIDR is the opposite case and denies both
+    # surfaces (with an ERROR at boot): a list an operator wrote is never
+    # silently disabled. Set this on cloud
     # deployments to private ranges only (e.g. a Tailscale/VPN CGNAT range like
     # 100.64.0.0/10, or an office RFC1918 range). Self-hosted operators who want
     # isolation without app config can instead front the surfaces with a reverse
