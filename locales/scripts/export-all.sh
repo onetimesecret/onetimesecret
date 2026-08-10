@@ -17,9 +17,9 @@
 #
 # After a successful export the content is re-checked in the working tree:
 #   - `i18n validate variables --locale <locale> --json` (placeholder parity),
-#     counting only keys the export can influence — en-only authoring metadata
-#     (`.context`, `.note`, `.source_hash`) is excluded, since `tasks export`
-#     writes `text` and nothing else
+#     gated on the report's own `blocking` count. Only each entry's `text` is
+#     compared (authoring metadata is metadata), and untranslated keys are
+#     reported but not blocking — coverage is gate 1's job, above
 #   - the register lint, when .translation-rules/ and generated/i18n/.resolved/
 #     exist (run locales/scripts/derive-governance.sh); skipped otherwise, and a
 #     skip never fails the run
@@ -122,33 +122,21 @@ audit_locale() {
 }
 
 # Post-export check: placeholder parity in the content just written.
-# `validate variables` exits with the ISSUE COUNT, and exit 1 is ambiguous (it is
+# `validate variables` exits with its BLOCKING COUNT, and exit 1 is ambiguous (it is
 # also the "locale not found"/crash path, which prints no JSON). Decide on the
 # parsed report, treating an unparseable one as dirty — never as clean.
 #
-# Counted from `details`, not `summary`, so en-only authoring metadata can be
-# excluded: `validate variables` flattens each content entry, so `<key>.context`
-# is compared as if it were translatable, while `tasks export` writes only
-# `{"text": ...}`. Three en keys carry {provider}/{email} inside their `context`
-# and are absent from all 29 locales, so a summary-based gate reports >=3
-# mismatches for every locale after even a byte-perfect export — permanently
-# non-zero, and therefore ignored. Only keys the export can actually influence
-# are counted.
+# The report categorizes its own findings and publishes `blocking` — every
+# non-advisory category, summed across locales. Read that number and nothing
+# else: a gate that post-filters the report has to re-derive the policy (which
+# key shapes are metadata, which findings are coverage rather than defects) and
+# will eventually re-derive it wrong. That is how #4080 got its shell-side
+# METADATA_FIELDS list. A missing `blocking` raises here, which the caller
+# treats as an unparseable report — dirty, never clean.
 VALIDATE_VARIABLES_COUNT_PY='
 import sys, json
 
-METADATA_FIELDS = ("context", "note", "source_hash")
-
-data = json.load(sys.stdin)
-count = 0
-for files in data.get("details", {}).values():
-    for issues in files.values():
-        for issue in issues:
-            key = str(issue.get("key", ""))
-            if key.rsplit(".", 1)[-1] in METADATA_FIELDS:
-                continue
-            count += 1
-print(count)
+print(json.load(sys.stdin)["blocking"])
 '
 
 validate_variables() {
@@ -161,7 +149,7 @@ validate_variables() {
     return 1
   fi
   if [[ "$count" -gt 0 ]]; then
-    echo "[$locale] $count variable mismatch(es) in exported content"
+    echo "[$locale] $count blocking validation finding(s) in exported content"
     return 1
   fi
   return 0
