@@ -30,7 +30,7 @@ from pathlib import Path
 from typing import Any
 
 from ..config import CONTENT_DIR, RESOLVED_DIR, SOURCE_LOCALE, iter_locale_dirs
-from ..io import load_json_file, walk_keys
+from ..io import classify_entry, load_json_file, read_entries, walk_keys
 from ..tokens import (  # noqa: F401  (re-exported: historical public names)
     ERB_VAR_PATTERN,
     PRINTF_PATTERN,
@@ -50,18 +50,6 @@ from ..tokens import (  # noqa: F401  (re-exported: historical public names)
 # Files that must use Ruby ERB format only (%{var}), not Vue ({var}).
 # Email templates are rendered server-side by Ruby, not by Vue.
 RUBY_ONLY_FILES = {"email.json"}
-
-
-def flatten_json(obj: dict[str, Any], prefix: str = "") -> dict[str, str]:
-    """Flatten nested JSON into dot-notation key paths."""
-    result = {}
-    for key, value in obj.items():
-        full_key = f"{prefix}.{key}" if prefix else key
-        if isinstance(value, dict):
-            result.update(flatten_json(value, full_key))
-        elif isinstance(value, str):
-            result[full_key] = value
-    return result
 
 
 # ===========================================================================
@@ -403,12 +391,17 @@ def validate_file(
         )
         return issues
 
-    # Load both files
+    # Load both files. Entry-aware: keys are the real dotted paths, and each
+    # entry's authoring metadata stays metadata. The field-blind flattener this
+    # replaces made every translated file trip the "Extra keys not in English"
+    # structure check on `<key>.source_hash` — a warning, so `passed` stayed
+    # true and nobody noticed. Same root cause as #4080; making that check
+    # blocking without this would have reopened it in the PR gate.
     try:
         with open(en_file, "r", encoding="utf-8") as f:
-            en_data = flatten_json(json.load(f))
+            en_entries = read_entries(json.load(f))
         with open(locale_file, "r", encoding="utf-8") as f:
-            locale_data = flatten_json(json.load(f))
+            locale_entries = read_entries(json.load(f))
     except Exception as e:
         issues.append(
             ValidationIssue(
@@ -425,19 +418,53 @@ def validate_file(
 
     # 5. Key Structure
     validate_key_structure(
-        set(en_data.keys()), set(locale_data.keys()), locale, filename, issues
+        set(en_entries.keys()),
+        set(locale_entries.keys()),
+        locale,
+        filename,
+        issues,
     )
 
+    # 6. Entry schema. `io.METADATA_FIELDS` is the single declaration of what an
+    # entry may carry; anything else is a field nobody taught the readers about,
+    # and a field-blind reader would guess at it. Surface it here rather than
+    # letting the next added field silently become translatable.
+    unknown_fields = sorted(
+        {field for entry in locale_entries.values() for field in entry.extra}
+    )
+    if unknown_fields:
+        issues.append(
+            ValidationIssue(
+                file=filename,
+                locale=locale,
+                key="",
+                severity="warning",
+                category="structure",
+                message=(
+                    "Unrecognized entry field(s): "
+                    f"{', '.join(unknown_fields)} — declare them in "
+                    "i18n.io.METADATA_FIELDS or remove them"
+                ),
+                details={"unknown_fields": unknown_fields},
+            )
+        )
+
     # Validate each key
-    for key, source_text in en_data.items():
+    for key, en_entry in en_entries.items():
         if should_skip_key_pr(key):
             continue
 
-        locale_text = locale_data.get(key, "")
-
-        # Skip if translation doesn't exist
-        if not locale_text or key not in locale_data:
+        source_text = en_entry.text
+        if source_text is None:
             continue
+
+        # Only a live translation can be compared. `skipped` (deliberate
+        # non-translation) and `missing` (absent or empty) are coverage states,
+        # reported by `tasks next`, not placeholder defects.
+        if classify_entry(locale_entries.get(key)) != "current":
+            continue
+
+        locale_text = locale_entries[key].text or ""
 
         # 2. Template Variables
         validate_variables(

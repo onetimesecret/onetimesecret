@@ -1193,6 +1193,64 @@ class ValidateVariablesTest(I18nCliTestCase):
         self.assertEqual(issue["missing"], ["{provider}"])
 
 
+class ValidatePrEntryModelTest(I18nCliTestCase):
+    """``validate pr`` reads entries, not flattened fields.
+
+    The flattener it replaced made ``<key>.source_hash`` look like a key the
+    locale had invented, so every translated file produced an "Extra keys not
+    in English" structure warning. It was only a warning, so ``passed`` stayed
+    true and nobody noticed — the worst state for a gate to be in, and the same
+    root cause as #4080.
+    """
+
+    def test_metadata_fields_are_not_extra_keys(self) -> None:
+        (self.content / "en" / "v.json").write_text(
+            '{"web.x.a": {"text": "Connect {provider}", '
+            '"context": "{provider} is the provider name", '
+            '"content_hash": "abc123"}}',
+            "utf-8",
+        )
+        de = self.content / "de"
+        de.mkdir(parents=True)
+        (de / "v.json").write_text(
+            '{"web.x.a": {"text": "{provider} verbinden", '
+            '"source_hash": "abc123"}}',
+            "utf-8",
+        )
+        proc = self.run_cli(
+            "validate", "pr", "--files", "de/v.json", "--format", "json"
+        )
+        self.assertOk(proc, "validate pr")
+        issues = json.loads(proc.stdout)["issues"]
+        self.assertEqual(
+            [i for i in issues if i["category"] == "structure"],
+            [],
+            "authoring metadata must not read as locale-invented keys",
+        )
+
+    def test_unrecognized_entry_field_is_surfaced(self) -> None:
+        # The enforcement point for io.METADATA_FIELDS: a field nobody declared
+        # must not pass silently, or the next one added becomes translatable in
+        # whichever reader is field-blind.
+        (self.content / "en" / "v.json").write_text(
+            '{"web.x.a": {"text": "Connect"}}', "utf-8"
+        )
+        de = self.content / "de"
+        de.mkdir(parents=True)
+        (de / "v.json").write_text(
+            '{"web.x.a": {"text": "Verbinden", "reviewed_by": "someone"}}',
+            "utf-8",
+        )
+        proc = self.run_cli(
+            "validate", "pr", "--files", "de/v.json", "--format", "json"
+        )
+        messages = [i["message"] for i in json.loads(proc.stdout)["issues"]]
+        self.assertTrue(
+            any("reviewed_by" in m for m in messages),
+            f"expected an unrecognized-field warning, got {messages}",
+        )
+
+
 class ValidatePrGitDiffTest(I18nCliTestCase):
     """gap #1: default (non ``--files``) git-diff discovery + validation."""
 
