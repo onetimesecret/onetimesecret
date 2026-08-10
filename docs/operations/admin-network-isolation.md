@@ -498,8 +498,18 @@ Also emitted at boot, each only in its own case:
 [above](#when-the-allowlist-cannot-be-enforced)), so the reason arrives with the
 startup log rather than only on the first admin request.
 
-Per-request denials log at WARN with the host or IP that was refused: `Admin
-surface access denied by host allowlist`, `Admin surface access denied:
-forwarded host from an untrusted peer`, and `Admin surface access denied by
-network isolation`. Three distinct messages for three distinct refusals — the
-client cannot tell the denials apart, but the operator can.
+Per-request denials log at WARN with the host or IP that was refused. Four
+distinct messages for four distinct refusals — the client cannot tell the
+denials apart, but the operator can:
+
+| Message | Means |
+|---|---|
+| `Admin surface access denied by host allowlist` | a host was detected and is not on the list |
+| `Admin surface access denied: no host could be detected for this request` | `Rack::DetectHost` emitted nothing — a bare-IP or `localhost` `Host:` header, or a malformed name. The allowlist was never consulted, so no entry in it could have helped |
+| `Admin surface access denied: forwarded host from an untrusted peer` | see [Forwarded hosts and the admin gate](#forwarded-hosts-and-the-admin-gate) |
+| `Admin surface access denied by network isolation` | the client IP is outside `allowed_cidrs` |
+
+The second one is the line to look for if you set `ADMIN_ALLOWED_HOSTS` to an IP
+address: no hostname you write into the allowlist can match a request that has
+no detected host. Reach admin on a routable hostname, or set
+`ADMIN_ALLOWED_HOSTS=*` to turn the host gate off.

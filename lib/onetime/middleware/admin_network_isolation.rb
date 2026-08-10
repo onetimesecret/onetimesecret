@@ -338,9 +338,10 @@ module Onetime
       # #allowed?, and so does one whose detected host cannot be attributed to
       # a trusted peer (see #host_provenance_trusted?).
       #
-      # The denial WARNs are distinct from the network one, and from each
-      # other, so operators can tell the three refusals apart in logs; the
-      # allowlist is never echoed into the response, only into the log.
+      # The three host denials WARN distinctly — from each other and from the
+      # network one, four lines in total — so operators can tell the refusals
+      # apart in logs; the allowlist is never echoed into the response, only
+      # into the log.
       def host_denied?(env, full_path)
         return false unless host_gate_active?
 
