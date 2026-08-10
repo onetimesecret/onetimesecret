@@ -704,7 +704,7 @@
     "source_hash": "f3e65de3"
   },
   "web.settings.api.basic_auth_hint": {
-    "text": "לאימות HTTP Basic, השתמש בדוא\"ל החשבון שלך או במזהה זה כשם משתמש ובאסימון ה-API שלך כסיסמה.",
+    "text": "לאימות HTTP Basic, השתמש בדוא״ל החשבון שלך או במזהה זה כשם משתמש ובאסימון ה-API שלך כסיסמה.",
     "source_hash": "cfa3806d"
   },
   "web.settings.security.set": {
