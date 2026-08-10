@@ -220,7 +220,7 @@
     "source_hash": "5428d7fe"
   },
   "web.billing.overview.entitlements.sso": {
-    "text": "Single Sign-On (SSO)",
+    "text": "Single sign-on (SSO)",
     "source_hash": "5db5c812"
   },
   "web.billing.overview.entitlements.priority_support": {
@@ -1030,7 +1030,7 @@
     "source_hash": "be0fe4c3"
   },
   "web.billing.overview.entitlements.manage_sso": {
-    "text": "Single Sign-On (SSO)",
+    "text": "Single sign-on (SSO)",
     "source_hash": "5db5c812"
   },
   "web.billing.overview.entitlements.manage_billing": {

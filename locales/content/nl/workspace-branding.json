@@ -144,7 +144,7 @@
     "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
-    "text": "Powered by {product_name}",
+    "text": "Mogelijk gemaakt door {product_name}",
     "source_hash": "1f393117"
   },
   "web.branding.low_contrast_warning": {
@@ -156,7 +156,7 @@
     "source_hash": "d521a5be"
   },
   "web.branding.heading_logo": {
-    "text": "{0} Logo",
+    "text": "{0}-logo",
     "source_hash": "3a3c98ed"
   },
   "web.branding.edge": {

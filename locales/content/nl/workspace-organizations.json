@@ -388,7 +388,7 @@
     "source_hash": "09bf25ef"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "lid{'@'}example.com",
+    "text": "lid{'@'}voorbeeld.com",
     "source_hash": "7fd425f7"
   },
   "web.organizations.invitations.role": {
@@ -544,7 +544,7 @@
     "source_hash": "957b0b87"
   },
   "web.organizations.early_supporter_badge": {
-    "text": "Early Supporter",
+    "text": "Vroege supporter",
     "source_hash": "e67d2ef8"
   },
   "web.organizations.member_count": {

@@ -64,7 +64,7 @@
     "source_hash": "ff8059dc"
   },
   "web.admin.domaintoolbox.probe.title": {
-    "text": "Probe (DNS / SSL)",
+    "text": "Test (DNS / SSL)",
     "source_hash": "ec69a087"
   },
   "web.admin.domaintoolbox.probe.description": {
@@ -72,7 +72,7 @@
     "source_hash": "1eecfa96"
   },
   "web.admin.domaintoolbox.probe.button": {
-    "text": "Probe",
+    "text": "Testen",
     "source_hash": "3bd51ab9"
   },
   "web.admin.domaintoolbox.probe.healthLabel": {
