@@ -5,6 +5,12 @@
 // Two color palettes exist because NotificationPill uses an inverted scheme
 // (dark bg in light mode) while Card/Banner use a standard scheme (light bg
 // in light mode). Both are exposed here so visuals don't duplicate the tables.
+//
+// `success` and `info` deliberately use fixed semantic hues (green, sky) rather
+// than the --color-brand* families: they read as "went fine" / "FYI" and must
+// not shift with per-domain branding. `info` in particular used to borrow the
+// orange brandcomp-* accent, which made neutral notices (e.g. Rodauth's "You
+// have been logged in" flash after SSO) look like warnings — see #4012.
 
 export interface SeverityMeta {
   icon: string;
@@ -49,10 +55,10 @@ const INVERTED_COLORS: Record<string, SeverityColors> = {
     ringClasses: 'ring-branddim-700/50 dark:ring-branddim-300/50',
   },
   info: {
-    bgClasses: 'bg-brandcomp-950/95 dark:bg-brandcomp-50/95',
-    textClasses: 'text-brandcomp-100 dark:text-brandcomp-700',
-    iconClasses: 'text-brandcomp-300 dark:text-brandcomp-600',
-    ringClasses: 'ring-brandcomp-700/50 dark:ring-brandcomp-300/50',
+    bgClasses: 'bg-sky-950/95 dark:bg-sky-50/95',
+    textClasses: 'text-sky-100 dark:text-sky-700',
+    iconClasses: 'text-sky-300 dark:text-sky-600',
+    ringClasses: 'ring-sky-700/50 dark:ring-sky-300/50',
   },
   loading: {
     bgClasses: 'bg-brandcompdim-950/95 dark:bg-brandcompdim-50/95',
@@ -84,10 +90,10 @@ const STANDARD_COLORS: Record<string, SeverityColors> = {
     ringClasses: 'ring-branddim-200/50 dark:ring-branddim-800/50',
   },
   info: {
-    bgClasses: 'bg-brandcomp-50/95 dark:bg-brandcomp-950/95',
-    textClasses: 'text-brandcomp-700 dark:text-brandcomp-100',
-    iconClasses: 'text-brandcomp-600 dark:text-brandcomp-300',
-    ringClasses: 'ring-brandcomp-200/50 dark:ring-brandcomp-800/50',
+    bgClasses: 'bg-sky-50/95 dark:bg-sky-950/95',
+    textClasses: 'text-sky-700 dark:text-sky-100',
+    iconClasses: 'text-sky-600 dark:text-sky-300',
+    ringClasses: 'ring-sky-200/50 dark:ring-sky-800/50',
   },
   loading: {
     bgClasses: 'bg-brandcompdim-50/95 dark:bg-brandcompdim-950/95',
@@ -119,7 +125,7 @@ const BANNER_COLORS: Record<string, SeverityColors> = {
   },
   info: {
     ...STANDARD_COLORS.info,
-    bgClasses: 'bg-brandcomp-50/90 dark:bg-brandcomp-950/90',
+    bgClasses: 'bg-sky-50/90 dark:bg-sky-950/90',
   },
   loading: {
     ...STANDARD_COLORS.loading,
