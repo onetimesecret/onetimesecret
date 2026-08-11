@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'auth/restrict_to'
 require 'onetime/security/invite_token_rate_limiter'
 
 module InviteAPI::Logic
@@ -76,13 +77,29 @@ module InviteAPI::Logic
           display_domain: display_domain,
           custom_domain: custom_domain?
 
+        # ADR-024 A11 (#4139): what this HOST permits, on every host.
+        #
+        # POST /:token/signup is gated on Auth::RestrictTo.allows?(env,
+        # 'password') and 404s where password is restricted away. Without this
+        # field the invite page renders a password signup form whose submit
+        # then 404s, with nothing in the response to predict it.
+        #
+        # UNCONDITIONAL, deliberately NOT inside the custom_domain? branch
+        # below: A11's stated live case is an SSO-only INSTALL, where the
+        # restriction is global and the request host is canonical. Gating this
+        # on custom_domain? would leave exactly that case blind — the
+        # regression that motivated the field.
+        resolution = restrict_to_resolution
+
+        result[:record][:effective_restrict_to] = serialize_restrict_to_resolution(resolution)
+
         if custom_domain?
           domain = Onetime::CustomDomain.from_display_domain(display_domain)
           auth_logger.debug 'Found custom domain',
             domain: domain&.display_domain
           if domain
             result[:record][:branding]     = serialize_brand_public(domain.brand_settings, domain)
-            result[:record][:auth_methods] = build_auth_methods(domain.sso_config)
+            result[:record][:auth_methods] = build_auth_methods(domain.sso_config, resolution)
           end
         end
         result
@@ -95,10 +112,87 @@ module InviteAPI::Logic
         @invitation.pending? && !@invitation.expired?
       end
 
-      def build_auth_methods(sso_config)
-        methods = [{ type: 'password', enabled: true }]
-        methods << { type: 'magic_link', enabled: true } if email_auth_enabled?
-        methods << serialize_sso_public(sso_config).merge(type: 'sso') if sso_config&.enabled?
+      # Resolver output for the request host (ADR-024 A2 — resolution is
+      # model-owned and re-derived NOWHERE).
+      #
+      # Auth::RestrictTo.resolution_for owns input gathering (the
+      # custom-domain 'sso' pin, the runtime-availability half of A3) and
+      # SigninConfig.resolve_restrict_to owns the rule, so this display
+      # surface answers with the same verdict the POST /:token/signup gate
+      # enforces. Calling the entry point rather than the resolver directly
+      # also keeps this insulated from the resolver's argument list.
+      #
+      # @return [Onetime::CustomDomain::SigninConfig::RestrictToResolution]
+      def restrict_to_resolution
+        Auth::RestrictTo.resolution_for(restrict_to_env)
+      end
+
+      # The two Rack env keys Auth::RestrictTo reads, rebuilt from the logic
+      # layer's domain context (Otto hands logic the StrategyResult, not the
+      # env; Logic::Base#extract_domain_context copies both values verbatim
+      # from 'onetime.domain_strategy' / 'onetime.display_domain', symbol
+      # classification included). Plumbing only — no resolution happens here.
+      #
+      # Identical to SignupAndAccept#restrict_to_env by design: the field this
+      # endpoint reports and the gate that endpoint enforces must be computed
+      # from the SAME host, or they disagree. Worth hoisting to
+      # InviteAPI::Logic::Base once both are settled (not done here: that file
+      # is outside this change's scope).
+      def restrict_to_env
+        {
+          'onetime.domain_strategy' => domain_strategy,
+          'onetime.display_domain' => display_domain,
+        }
+      end
+
+      # Wire form of RestrictToResolution — the same three-key shape the
+      # settings API emits (DomainsAPI::Logic::SigninConfig::Base
+      # #serialize_restrict_to_resolution, ADR-024 A4), so one client-side
+      # type describes both. The three states survive serialization intact: in
+      # particular :unavailable is NOT projected down to a bare null the way
+      # the display field `features.restrict_to` must be, so the invite page
+      # can say "sign-in unavailable here" instead of rendering an
+      # unrestricted-looking blank.
+      #
+      # (Duplicated rather than shared: the canonical implementation is a
+      # protected method on the DomainsAPI logic hierarchy and is not
+      # reachable from here. Extracting both onto RestrictToResolution itself
+      # is the right home and is left as follow-up.)
+      #
+      # @param resolution [Onetime::CustomDomain::SigninConfig::RestrictToResolution]
+      # @return [Hash] state ('unrestricted'|'restricted'|'unavailable'),
+      #   restrict_to (String or nil), source ('domain'|'global'|'conflict')
+      def serialize_restrict_to_resolution(resolution)
+        {
+          state: resolution.state.to_s,
+          restrict_to: resolution.restrict_to,
+          source: resolution.source.to_s,
+        }
+      end
+
+      # Sign-in methods this host will actually accept.
+      #
+      # Every entry is filtered through the resolution (A1): a page that
+      # advertises a method the host rejects is the display/runtime
+      # disagreement ADR-024 exists to kill. The list can legitimately come
+      # back EMPTY (an :unavailable resolution allows nothing, A3) — the
+      # frontend must render that as "sign-in unavailable", never as a reason
+      # to fall back to standard mode.
+      #
+      # NOTE the naming seam: the wire type is 'magic_link' while the
+      # restrict_to value for the same method is 'email_auth'
+      # (SigninConfig::RESTRICT_TO_VALUES). Ask the resolution about
+      # 'email_auth'.
+      def build_auth_methods(sso_config, resolution)
+        methods = []
+        methods << { type: 'password', enabled: true } if resolution.allows?('password')
+        methods << { type: 'magic_link', enabled: true } if email_auth_enabled? && resolution.allows?('email_auth')
+        if sso_config&.enabled? && resolution.allows?('sso')
+          # platform_route_name / display_name are load-bearing here: they are
+          # how the frontend routes the invitee to THIS tenant's SSO, and the
+          # bootstrap `features` payload does not carry them.
+          methods << serialize_sso_public(sso_config).merge(type: 'sso')
+        end
         methods
       end
 
