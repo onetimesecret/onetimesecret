@@ -21,7 +21,7 @@
 # it shadows the enumeration-safe custom endpoint in apps/web/core (mounted at
 # `/`).
 #
-# Stock Rodauth 2.44.0 (lib/rodauth/features/reset_password.rb, the
+# Stock Rodauth 2.45.0 (lib/rodauth/features/reset_password.rb, the
 # reset_password_request route) distinguishes "account exists" from "no account"
 # on that request path in THREE ways, each an account-existence oracle (CWE-204):
 #
@@ -64,7 +64,7 @@
 # would fail OPEN (re-expose the oracle) rather than crash — so the enumeration
 # regression spec
 # (apps/web/auth/spec/integration/full/reset_password_request_enumeration_spec.rb)
-# is the guard that must catch such a change. Pinned against Rodauth 2.44.0.
+# is the guard that must catch such a change. Pinned against Rodauth 2.45.0.
 #
 # RESIDUAL: TIMING SIDE-CHANNEL (accepted, not closed)
 # ----------------------------------------------------
@@ -106,7 +106,7 @@ module Auth::Config::Overrides
     def self.configure(auth)
       auth_class = auth.instance_variable_get(:@auth)
       # Rodauth exposes the enabled feature symbols via the public `features`
-      # reader on the auth class (Rodauth 2.44.0). reset_password_email_sent_response
+      # reader on the auth class (Rodauth 2.45.0). reset_password_email_sent_response
       # and the two reset-request predicates only exist when :reset_password is
       # enabled, so there is nothing to harden otherwise; the safe-navigation guards
       # also make this a no-op if `features` is ever unavailable.
