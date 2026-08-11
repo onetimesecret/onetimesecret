@@ -216,7 +216,7 @@ module Auth
               # this local is the last place it exists) and stash it INSIDE the
               # login block below as a short-TTL SessionSidecar key bound to
               # the partial MFA session's sid (#3858), to be consumed by
-              # after_two_factor_authentication (hooks/mfa.rb), which completes
+              # after_two_factor_authentication (hooks/two_factor.rb), which completes
               # the bind once the second factor succeeds.
               deferred_bind = {
                 account_id: account_id,
