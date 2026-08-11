@@ -458,8 +458,9 @@ module Onetime
               "(TRUSTED_PROXY_MODE) was canonicalized to #{raw.inspect}: running mode=#{raw}. " \
               'Earlier releases matched this setting literally and ran ' \
               "mode=#{default} for any other spelling, so upgrading with this value CHANGES " \
-              'how the client IP is resolved. Write it in lower case to silence this, or ' \
-              "set it to #{default} to keep the previous behaviour."
+              'how the client IP is resolved. Write it as ' \
+              "#{raw.inspect} exactly — lower case, no surrounding whitespace — to silence " \
+              "this, or set it to #{default} to keep the previous behaviour."
           end
 
           raw
