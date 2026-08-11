@@ -10,6 +10,7 @@ require 'uri'
 require 'singleton'
 require_relative 'utils/config_resolver'
 require_relative 'utils/enumerables'
+require_relative 'sso_provider/registry'
 
 module Onetime
   class AuthConfig
@@ -321,10 +322,14 @@ module Onetime
     # Returns an array of hashes: [{ 'route_name' => 'oidc', 'display_name' => 'SSO' }, ...]
     # Each entry corresponds to a provider whose required env vars are present.
     # Returns empty array if SSO is disabled or no providers are configured.
+    # Order follows provider_definitions (the registry), unless the operator
+    # sets SSO_PROVIDER_ORDER — a comma/space-separated list of route names.
+    # Listed providers come first in the given order; unlisted ones keep their
+    # registry order after them, so a partial list is safe.
     def sso_providers
       return [] unless sso_enabled?
 
-      provider_definitions.filter_map do |defn|
+      providers = provider_definitions.filter_map do |defn|
         next unless defn[:required_vars].all? { |var| env_present?(var) }
 
         display = ENV.fetch(defn[:display_var], nil) || defn[:display_default]
@@ -333,6 +338,8 @@ module Onetime
           'display_name' => display,
         }
       end
+
+      order_sso_providers(providers)
     end
 
     # The SSO identity-provider origins that must be allowed in the CSP
@@ -382,6 +389,33 @@ module Onetime
       self
     end
 
+    # Provider definitions for sso_providers, email-linking trust, and CSP
+    # form-action origins. The data lives in Onetime::SsoProvider::Registry —
+    # the SAME registry the auth app's boot-time strategy registration
+    # consumes — so serializer gating, CSP origins, and registered strategies
+    # can never drift apart. Each entry defines the env vars that gate the
+    # provider and where to read its route/display names; see the registry
+    # for the full field reference.
+    #
+    # trust_var / trust_default gate the #3836 email-linking escape hatch:
+    # an explicit, per-provider operator declaration that the IdP is inside
+    # the trust boundary, so an SSO identity may auto-link to an account
+    # LOCATED by email. See #trust_email_for_linking?.
+    #
+    # The one dynamic overlay: OIDC's display default honors the operator's
+    # legacy sso_display_name before falling back to the registry's 'SSO'.
+    #
+    # Public: the auth app's boot registration reads it (via
+    # display_default_for) so its logs share the serializer's view.
+    def provider_definitions
+      SsoProvider::Registry::DEFINITIONS.map do |defn|
+        next defn unless defn[:key] == :oidc
+
+        legacy_display = sso_display_name
+        legacy_display ? defn.merge(display_default: legacy_display) : defn
+      end
+    end
+
     private
 
     # Whether the legacy sso.sso_only flag is set in config.
@@ -423,63 +457,16 @@ module Onetime
       features.fetch(key, default)
     end
 
-    # Provider definitions for sso_providers. Each entry defines the env
-    # vars that gate the provider and where to read its route/display names.
-    #
-    # trust_var / trust_default gate the #3836 email-linking escape hatch:
-    # an explicit, per-provider operator declaration that the IdP is inside
-    # the trust boundary, so an SSO identity may auto-link to an account
-    # LOCATED by email. See #trust_email_for_linking?.
-    #
-    # idp_origin / idp_origin_from feed #sso_form_action_origins: a static
-    # :idp_origin for providers whose IdP host is fixed, or :idp_origin_from
-    # naming an env var whose URL the origin is derived from (OIDC's issuer).
-    # ENTRA is static because the OmniAuth strategy hard-pins the commercial
-    # cloud (login.microsoftonline.com); there is no sovereign-cloud authority
-    # env in this app — use SSO_FORM_ACTION_ORIGINS for those.
-    def provider_definitions
-      [
-        {
-          required_vars: %w[OIDC_ISSUER OIDC_CLIENT_ID],
-          route_var: 'OIDC_ROUTE_NAME',
-          route_default: 'oidc',
-          display_var: 'OIDC_DISPLAY_NAME',
-          display_default: sso_display_name || 'SSO',
-          trust_var: 'OIDC_TRUST_EMAIL_FOR_LINKING',
-          trust_default: false,
-          idp_origin_from: 'OIDC_ISSUER',
-        },
-        {
-          required_vars: %w[ENTRA_TENANT_ID ENTRA_CLIENT_ID ENTRA_CLIENT_SECRET],
-          route_var: 'ENTRA_ROUTE_NAME',
-          route_default: 'entra',
-          display_var: 'ENTRA_DISPLAY_NAME',
-          display_default: 'Microsoft',
-          trust_var: 'ENTRA_TRUST_EMAIL_FOR_LINKING',
-          trust_default: false,
-          idp_origin: 'https://login.microsoftonline.com',
-        },
-        {
-          required_vars: %w[GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET],
-          route_var: 'GOOGLE_ROUTE_NAME',
-          route_default: 'google',
-          display_var: 'GOOGLE_DISPLAY_NAME',
-          display_default: 'Google',
-          trust_var: 'GOOGLE_TRUST_EMAIL_FOR_LINKING',
-          trust_default: false,
-          idp_origin: 'https://accounts.google.com',
-        },
-        {
-          required_vars: %w[GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET],
-          route_var: 'GITHUB_ROUTE_NAME',
-          route_default: 'github',
-          display_var: 'GITHUB_DISPLAY_NAME',
-          display_default: 'GitHub',
-          trust_var: 'GITHUB_TRUST_EMAIL_FOR_LINKING',
-          trust_default: false,
-          idp_origin: 'https://github.com',
-        },
-      ]
+    # Apply the SSO_PROVIDER_ORDER override (comma/space-separated route
+    # names) to the serializer's provider list. Stable: providers not listed
+    # keep their relative registry order, after the listed ones.
+    def order_sso_providers(providers)
+      order = ENV.fetch('SSO_PROVIDER_ORDER', '').split(/[,\s]+/).reject(&:empty?)
+      return providers if order.empty?
+
+      providers.sort_by.with_index do |provider, index|
+        [order.index(provider['route_name']) || order.length, index]
+      end
     end
 
     # Reverse-map a route/provider name to its provider definition.

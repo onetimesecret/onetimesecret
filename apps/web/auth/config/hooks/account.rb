@@ -541,7 +541,7 @@ module Auth::Config::Hooks
           # Durable follow-up (#3810): enqueue the async FULL sweep — including
           # the untracked keyspace scan the in-transaction revoke below skips —
           # once the reset actually COMMITS. First use of Sequel's after_commit in
-          # this codebase: Rodauth 2.44 runs this hook INSIDE its reset
+          # this codebase: Rodauth 2.45 runs this hook INSIDE its reset
           # transaction, and after_commit defers the block until commit (skipped
           # entirely on rollback; yields immediately when no transaction is open).
           # Registered BEFORE the inline revoke so the sweep is enqueued even when

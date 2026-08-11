@@ -5,7 +5,7 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useCsrfStore } from '@/shared/stores/csrfStore';
   import { submitSsoLogin } from '@/shared/utils/sso';
-  import { ref } from 'vue';
+  import { computed, ref } from 'vue';
 
   export interface Props {
     /**
@@ -39,6 +39,28 @@
   const csrfStore = useCsrfStore();
 
   const isLoading = ref(false);
+
+  /**
+   * Brand icon per provider, keyed by route name. Route names are
+   * env-configurable (OIDC_ROUTE_NAME etc.), so this matches the DEFAULT
+   * route names plus common aliases; anything unrecognized (including
+   * generic OIDC) falls back to the neutral building-office icon.
+   */
+  const PROVIDER_ICONS: Record<string, { collection: string; name: string }> = {
+    google: { collection: 'mdi', name: 'google' },
+    github: { collection: 'mdi', name: 'github' },
+    entra: { collection: 'mdi', name: 'microsoft' },
+    microsoft: { collection: 'mdi', name: 'microsoft' },
+    apple: { collection: 'mdi', name: 'apple' },
+  };
+
+  const providerIcon = computed(
+    () =>
+      PROVIDER_ICONS[props.routeName] ?? {
+        collection: 'heroicons',
+        name: 'solid-building-office',
+      }
+  );
 
   /**
    * Initiates SSO login by submitting a form POST to /auth/sso/:provider,
@@ -91,8 +113,8 @@
       </span>
       <template v-else>
         <OIcon
-          collection="heroicons"
-          name="solid-building-office"
+          :collection="providerIcon.collection"
+          :name="providerIcon.name"
           size="5"
           class="text-gray-500 dark:text-gray-400"
           aria-hidden="true" />

@@ -77,6 +77,7 @@
 
   const authErrorMessages: Record<string, string> = {
     sso_failed: 'web.login.errors.sso_failed',
+    sso_cancelled: 'web.login.errors.sso_cancelled',
     sso_not_configured: 'web.login.errors.sso_not_configured',
     token_missing: 'web.login.errors.token_missing',
     token_expired: 'web.login.errors.token_expired',
