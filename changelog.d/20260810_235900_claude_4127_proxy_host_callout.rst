@@ -41,4 +41,6 @@ AI Assistance
   added the set-but-blank ``ADMIN_ALLOWED_HOSTS`` boot WARN with its spec
   coverage, and reworked the config template so an unset variable renders
   nil while a blank one renders an empty list — the distinction the new
-  diagnostic depends on. (#4127)
+  diagnostic depends on. Claude also restored the ``nullable`` wrapper the
+  ``site.admin`` shape dropped, so the generated JSON Schema accepts the
+  null that template now renders. (#4127)
