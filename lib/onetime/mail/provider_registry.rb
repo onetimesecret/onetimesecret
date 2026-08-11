@@ -31,6 +31,15 @@ module Onetime
     #   - Jobs::Workers::DomainValidationWorker credential guards
     #   - ConfigGenerator email_provider choices + env placeholders
     #
+    # Frontend mirrors (cannot consume Ruby; guarded by
+    # spec/unit/onetime/mail/frontend_provider_parity_spec.rb):
+    #   - src/schemas/contracts/email-config.ts emailProviderTypeSchema
+    #     (= provisioning_providers + 'inherit')
+    #   - src/apps/workspace/components/domains/DomainEmailConfigForm.vue
+    #     providerDisplayName map (same set, labels from descriptors)
+    #   - src/schemas/api/internal/responses/colonel-deliverability.ts
+    #     colonelEmailProviderStatusDetailsSchema blocks (= feedback_providers)
+    #
     # Class references are stored as NAMES and resolved lazily via const_get:
     # this file requires nothing, so it can be required from anywhere
     # (models, workers, operations) without load-order or circular-require

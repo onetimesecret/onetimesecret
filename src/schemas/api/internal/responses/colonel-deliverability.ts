@@ -250,6 +250,12 @@ export const colonelEmailProviderStatusLettermintSchema = z.object({
  * independently-nullable keys (NOT a discriminated union — the wire always
  * carries both `ses` and `lettermint`, one of them `null`). Non-live transports
  * (smtp/logger/…) return `capability=false` and both blocks null.
+ *
+ * The set of provider blocks is parity-checked against the Ruby
+ * ProviderRegistry (lib/onetime/mail/provider_registry.rb):
+ * `ProviderRegistry.feedback_providers`. Adding a feedback-capable provider
+ * requires a new block here. See
+ * spec/unit/onetime/mail/frontend_provider_parity_spec.rb.
  */
 export const colonelEmailProviderStatusDetailsSchema = z.object({
   provider: z.string(),

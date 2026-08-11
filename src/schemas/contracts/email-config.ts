@@ -47,6 +47,12 @@ import { z } from 'zod';
  * - smtp2go: SMTP2GO transactional email
  * - inherit: Use system default email configuration
  *
+ * This list is parity-checked against the Ruby ProviderRegistry
+ * (lib/onetime/mail/provider_registry.rb): it must equal
+ * `ProviderRegistry.provisioning_providers` + 'inherit'. 'smtp' is
+ * deliberately absent (not provisioning-capable). See
+ * spec/unit/onetime/mail/frontend_provider_parity_spec.rb.
+ *
  * @category Contracts
  */
 export const emailProviderTypeSchema = z.enum(['ses', 'sendgrid', 'lettermint', 'smtp2go', 'inherit']);
