@@ -144,15 +144,26 @@ module Onetime
     #
     # The allowlist check MUST use the trusted-proxy-resolved client IP, never a
     # raw forwarding header, or the allowlist is trivially spoofable by sending
-    # `X-Forwarded-For: <an-allowed-ip>`. We resolve from the canonical
-    # env['otto.client_ip'] set once by the universal IPPrivacyMiddleware mount
+    # `X-Forwarded-For: <an-allowed-ip>`. Membership is judged through
+    # env['otto.ip_match'] — the verdict-only closure the universal
+    # IPPrivacyMiddleware mount installs over the resolved, PRE-MASK client IP
     # (configured from site.network.trusted_proxy via
-    # MiddlewareStack.ip_privacy_security_config), with the same
-    # Otto::Utils.resolve_client_ip fallback the auth strategies use. This is the
-    # identical resolution the rest of the stack relies on, so the network gate
-    # agrees with ban checks, sessions, and audit attribution. When the IP cannot
-    # be resolved and an allowlist is configured, the request is denied (404) —
-    # fail closed.
+    # MiddlewareStack.ip_privacy_security_config) — because the canonical
+    # env['otto.client_ip'] is privacy-MASKED before this middleware runs: the
+    # last IPv4 octet (IPv6: the last 80 bits) is zeroed at the default
+    # precision. Matching the masked value misjudges every range finer than the
+    # mask in both directions — a single-admin-IP /32 entry can never match its
+    # own client, while an entry that happens to equal a masked network address
+    # admits every neighbor that shares it. The closure answers at full
+    # /32–/128 precision without the unmasked address ever landing in env, a
+    # log, or this middleware; it resolves via the same
+    # Otto::Utils.resolve_client_ip the auth strategies use, so the network
+    # gate still agrees with ban checks, sessions, and audit attribution on WHO
+    # the client is. A request that never passed the otto mount has no closure;
+    # membership then falls back to comparing the resolved IP itself, which in
+    # that topology was never masked. When no client IP can be resolved and an
+    # allowlist is configured, the request is denied (404) — fail closed; the
+    # closure answers false for a request with no resolvable IP.
     #
     # ## Path matching
     #
@@ -460,23 +471,44 @@ module Onetime
         normalize_host(Rack::DetectHost.normalize_host(env['HTTP_HOST']))
       end
 
-      # Network (CIDR) gate. Per-request semantics are unchanged from before
-      # #4062; what changed is when the gate counts as ACTIVE — see
-      # #resolve_network_gate.
+      # Network (CIDR) gate. Whether it counts as ACTIVE at all is decided once,
+      # at construction — see #resolve_network_gate.
       def network_denied?(env, full_path)
         return false unless network_gate_active?
 
-        client_ip = resolve_client_ip(env)
-        return false if allowed?(client_ip)
+        return false if network_allowed?(env)
 
+        # The masked/resolved IP, not the pre-mask one: the closure never
+        # discloses the address it judged, and the denial line must not either.
         @logger.warn 'Admin surface access denied by network isolation',
           {
-            ip: client_ip,
+            ip: resolve_client_ip(env),
             path: full_path,
             method: env['REQUEST_METHOD'],
           }
 
         true
+      end
+
+      # Allowlist membership at full precision when the request came through
+      # the otto mount, at the resolved value otherwise.
+      #
+      # env['otto.ip_match'] is the verdict-only closure IPPrivacyMiddleware
+      # installs over the resolved PRE-MASK client IP. It is consulted first
+      # because env['otto.client_ip'] is already privacy-masked here, and a
+      # masked address misjudges any range finer than the mask (see the class
+      # doc, "Client IP resolution"). @allowed_ranges is handed over as the
+      # pre-parsed IPAddr list, so a malformed configured entry — dropped, with
+      # a WARN, at construction — can never make the closure raise. The closure
+      # answers false when the request had no resolvable IP: fail closed.
+      #
+      # A request that never passed IPPrivacyMiddleware (embeddings, bare-Rack
+      # tests) carries no closure — anything non-callable in the key is judged
+      # the same way, never called. #allowed? then compares the resolved IP
+      # itself, which in that topology was never masked.
+      def network_allowed?(env)
+        matcher = env['otto.ip_match']
+        matcher.respond_to?(:call) ? matcher.call(@allowed_ranges) : allowed?(resolve_client_ip(env))
       end
 
       # Full request path independent of where the app is mounted, canonicalized
@@ -518,6 +550,11 @@ module Onetime
         path == '/api/colonel' || path.start_with?('/api/colonel/')
       end
 
+      # Membership of ONE resolved IP in the parsed ranges. The no-closure
+      # fallback for #network_allowed?: in a full stack env['otto.client_ip']
+      # is the privacy-masked address, so ranges finer than the mask must go
+      # through the closure, never through here. Nil/empty/malformed all fail
+      # closed.
       def allowed?(client_ip)
         return false if client_ip.nil? || client_ip.empty?
 

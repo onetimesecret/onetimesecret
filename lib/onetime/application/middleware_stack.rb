@@ -417,9 +417,10 @@ module Onetime
           # POSITION IS LOAD-BEARING — it sits between two upstream dependencies
           # and one downstream cost:
           #
-          #   - BELOW IPPrivacyMiddleware, which sets env['otto.client_ip']:
-          #     the CIDR gate must read the trusted-proxy-resolved client IP,
-          #     never a raw forwarding header.
+          #   - BELOW IPPrivacyMiddleware, which installs the true-IP verdict
+          #     matcher env['otto.ip_match'] (and the masked env['otto.client_ip']
+          #     it falls back to): the CIDR gate must judge the
+          #     trusted-proxy-resolved client IP, never a raw forwarding header.
           #   - BELOW Rack::DetectHost, which sets
           #     env[Rack::DetectHost.result_field_name]: the host gate reads the
           #     already-validated detected host. Mounted above DetectHost (where

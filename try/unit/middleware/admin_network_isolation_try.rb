@@ -21,9 +21,14 @@
 #           env[Rack::DetectHost.result_field_name] — never HTTP_HOST, never
 #           env['onetime.domain_strategy'].
 #
-#   NETWORK (site.admin.allowed_cidrs) — OPT-IN. Client IP is resolved from the
-#           trusted-proxy-aware env['otto.client_ip'], so a raw X-Forwarded-For
-#           header cannot bypass it.
+#   NETWORK (site.admin.allowed_cidrs) — OPT-IN. Membership is judged through
+#           env['otto.ip_match'], the verdict-only closure IPPrivacyMiddleware
+#           installs over the resolved PRE-MASK client IP — the canonical
+#           env['otto.client_ip'] is privacy-masked before this middleware
+#           runs, so matching it cannot express a range finer than the mask.
+#           Without the closure the gate falls back to the trusted-proxy-aware
+#           resolved IP. Either way a raw X-Forwarded-For header cannot bypass
+#           it.
 #
 # THE INERT/DENY ASYMMETRY, since it is the one thing most likely to be
 # "harmonized" by a later reader:
@@ -58,6 +63,8 @@
 #      otto vouched for (env['otto.via_trusted_proxy'] == true)
 #  13. Unreadable config, and a CIDR list with nothing parseable: both DENY
 #  14. Boot logging is once per process, not once per mounted app
+#  15. Full-precision CIDR matching via env['otto.ip_match']: a /32 admits its
+#      own client and denies neighbors that share its masked form
 
 require_relative '../../support/test_helpers'
 
@@ -274,6 +281,21 @@ def both_surfaces(mw, detected_host, client_ip: '203.0.113.9')
   ]
 end
 
+# A /colonel env carrying both halves of what IPPrivacyMiddleware writes: the
+# MASKED canonical IP in env['otto.client_ip'], and env['otto.ip_match'] — a
+# verdict-only closure over the resolved TRUE IP, shaped exactly like otto's
+# installer:
+#   env['otto.ip_match'] = ->(cidrs) { Otto::Utils.ip_in_cidrs?(client_ip, cidrs) }
+# The true IP exists only inside the closure, never as an env value.
+def ip_match_env(true_ip, masked_ip, path_info: '/colonel', script_name: '')
+  admin_env(
+    script_name: script_name,
+    path_info: path_info,
+    client_ip: masked_ip,
+    extra: { 'otto.ip_match' => ->(cidrs) { Otto::Utils.ip_in_cidrs?(true_ip, cidrs) } },
+  )
+end
+
 # The full response triple, with the body collapsed to a comparable String.
 # Used to prove a host denial and a network denial are byte-identical.
 def denial_triple(mw, detected_host, client_ip, script_name, path_info)
@@ -471,6 +493,71 @@ end
 @status, _, _ = @iso.call(@env)
 @status
 #=> 200
+
+# =================================================================
+# FULL-PRECISION MATCHING — env['otto.ip_match'] (pre-mask verdicts)
+# =================================================================
+# IPPrivacyMiddleware masks env['otto.client_ip'] BEFORE this middleware runs
+# (last IPv4 octet zeroed at the default precision) and installs
+# env['otto.ip_match'], a verdict-only closure over the resolved pre-mask IP.
+# The gate consults the closure first: the masked value cannot express a range
+# finer than /24, so ADMIN_ALLOWED_CIDRS=x.x.x.45/32 — the single-admin-IP
+# idiom — would otherwise deny its own operator on every request, while an
+# entry equal to a masked network address would admit every neighbor sharing
+# it.
+
+## a /32 entry admits its own client: the verdict comes from the TRUE IP even
+## though the canonical env value is the masked network address
+@single_admin = build_mw(cidrs: ['198.51.100.45/32'])
+@single_admin.call(ip_match_env('198.51.100.45', '198.51.100.0')).first
+#=> 200
+
+## a NEIGHBOR sharing the masked form is denied — the masked value
+## (198.51.100.0 for both clients) would have misjudged exactly this
+@single_admin.call(ip_match_env('198.51.100.7', '198.51.100.0')).first
+#=> 404
+
+## the closure's verdict is authoritative when present: a masked env value that
+## happens to sit inside a range cannot admit an outside client
+@single_admin.call(ip_match_env('203.0.113.9', '198.51.100.0')).first
+#=> 404
+
+## the API surface judges through the closure identically
+@single_admin.call(ip_match_env('198.51.100.45', '198.51.100.0',
+                                script_name: '/api/colonel', path_info: '/info')).first
+#=> 200
+
+## no resolvable client IP fails closed through the closure too (otto's closure
+## captures nil and answers false for every range)
+@single_admin.call(ip_match_env(nil, nil)).first
+#=> 404
+
+## WITHOUT the closure (a request that never passed the otto mount) membership
+## falls back to comparing the resolved IP — which in that topology was never
+## masked. Every other CIDR case in this file exercises this fallback.
+@single_admin.call(admin_env(script_name: '', path_info: '/colonel',
+                             client_ip: '198.51.100.45')).first
+#=> 200
+
+## a non-callable value in the key is judged like an absent one, never called
+@single_admin.call(admin_env(script_name: '', path_info: '/colonel', client_ip: '198.51.100.45',
+                             extra: { 'otto.ip_match' => 'bogus' })).first
+#=> 200
+
+## wide ranges answer the same through the closure — full precision changes
+## what FINE ranges can do, not what wide ones do
+@wide_range = build_mw(cidrs: ['10.0.0.0/8'])
+[@wide_range.call(ip_match_env('10.1.2.3', '10.1.2.0')).first,
+ @wide_range.call(ip_match_env('203.0.113.9', '203.0.113.0')).first]
+#=> [200, 404]
+
+## the denial line reports the MASKED IP: the closure never discloses the
+## address it judged, and neither may the log
+@masked_warn = @single_admin.capture_logs do
+  @single_admin.call(ip_match_env('198.51.100.7', '198.51.100.0'))
+end.first
+[@masked_warn.first, @masked_warn.last[:ip]]
+#=> ['Admin surface access denied by network isolation', '198.51.100.0']
 
 # =================================================================
 # HOST GATE — explicit site.admin.allowed_hosts
