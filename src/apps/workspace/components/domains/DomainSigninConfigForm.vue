@@ -68,6 +68,17 @@
      */
     workspaceDefault: boolean;
     ssoConfigured: boolean;
+    /**
+     * The SsoConfig credential record's own operational flag
+     * (SsoConfig.enabled), from useSsoConfig().isEnabled. Distinct from this
+     * form's sso_enabled (SigninConfig policy toggle). When credentials exist
+     * but this is off, SSO can never be offered regardless of the policy
+     * toggle — the dormant indicator below surfaces that (#4107). Reports the
+     * STORED value only (ADR-024): the frontend must not re-derive the
+     * availability ladder's answer. Optional, defaults false (absent = treat
+     * as disabled, matching the record's own default).
+     */
+    ssoCredentialsEnabled?: boolean;
     canManageSso: boolean;
     /**
      * Globally-available auth methods (install/global config). Gates which
@@ -244,6 +255,19 @@
    * (the SSO row is omitted when unavailable); Mode A's static row needs it.
    */
   const ssoConfigurable = computed(() => ssoAvailable.value && props.canManageSso);
+
+  /**
+   * Dormant credentials (#4107): a SsoConfig record exists but its own
+   * enabled flag is off, so the sign-in page can never offer SSO no matter
+   * what the policy toggle here says. States only the record's stored flag —
+   * NOT overall availability (other ladder rungs may also block; ADR-024).
+   * Gated on ssoConfigurable because the hint copy directs to "Edit
+   * credentials": without both write gates that button does not render, and
+   * the row already names the real blocker (upgrade lock / "Unavailable").
+   */
+  const ssoConnectionDisabled = computed(
+    () => ssoConfigurable.value && props.ssoConfigured && !props.ssoCredentialsEnabled
+  );
 
   interface MethodRow {
     value: SigninRestrictTo;
@@ -589,54 +613,55 @@
 
         <!-- Single Sign-On (Configure + availability toggle, gated on global) -->
         <div
-          class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
-          <div>
-            <p class="text-sm font-medium text-gray-900 dark:text-white">
-              {{ t('web.domains.signin.method_sso') }}
-            </p>
-            <p
-              id="signin-sso-hint"
-              class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {{
-                ssoAvailable
-                  ? t('web.domains.signin.allow_on_domain')
-                  : t('web.domains.signin.availability_unavailable')
-              }}
-            </p>
-          </div>
-          <div class="flex items-center gap-3">
-            <button
-              v-if="ssoConfigurable"
-              type="button"
-              @click="emit('configure-sso')"
-              class="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
-              <OIcon
-                collection="heroicons"
-                name="cog-6-tooth"
-                class="size-4"
-                aria-hidden="true" />
-              {{
-                ssoConfigured
-                  ? t('web.domains.sso.edit_credentials')
-                  : t('web.domains.sso.configure_button')
-              }}
-            </button>
-            <!-- Upgrade lock is for the ENTITLEMENT only. When the blocker is
+          class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-900 dark:text-white">
+                {{ t('web.domains.signin.method_sso') }}
+              </p>
+              <p
+                id="signin-sso-hint"
+                class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                {{
+                  ssoAvailable
+                    ? t('web.domains.signin.allow_on_domain')
+                    : t('web.domains.signin.availability_unavailable')
+                }}
+              </p>
+            </div>
+            <div class="flex items-center gap-3">
+              <button
+                v-if="ssoConfigurable"
+                type="button"
+                @click="emit('configure-sso')"
+                class="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+                <OIcon
+                  collection="heroicons"
+                  name="cog-6-tooth"
+                  class="size-4"
+                  aria-hidden="true" />
+                {{
+                  ssoConfigured
+                    ? t('web.domains.sso.edit_credentials')
+                    : t('web.domains.sso.configure_button')
+                }}
+              </button>
+              <!-- Upgrade lock is for the ENTITLEMENT only. When the blocker is
                  the install flag instead, neither control renders here — the
                  hint above already reads "Unavailable", and "Upgrade to
                  configure" would name the wrong cause (no plan unlocks an
                  operator's ORGS_SSO_ENABLED). -->
-            <span
-              v-else-if="!canManageSso"
-              class="inline-flex items-center gap-1.5 text-sm text-gray-400 dark:text-gray-500">
-              <OIcon
-                collection="heroicons"
-                name="lock-closed"
-                class="size-4"
-                aria-hidden="true" />
-              {{ t('web.domains.sso.upgrade_required') }}
-            </span>
-            <!-- Locked without the manage-SSO entitlement (or with tenant SSO
+              <span
+                v-else-if="!canManageSso"
+                class="inline-flex items-center gap-1.5 text-sm text-gray-400 dark:text-gray-500">
+                <OIcon
+                  collection="heroicons"
+                  name="lock-closed"
+                  class="size-4"
+                  aria-hidden="true" />
+                {{ t('web.domains.sso.upgrade_required') }}
+              </span>
+              <!-- Locked without the manage-SSO entitlement (or with tenant SSO
                  off install-wide): the org cannot configure SSO credentials, so
                  the method can never activate — showing an operable toggle next
                  to the upgrade lock would contradict it. `:enabled` reports the
@@ -645,13 +670,37 @@
                  record and sso_permitted_for?, never on these two management
                  gates, so ANDing them in here would render OFF for a domain
                  whose tenant SSO is actually live. -->
-            <ToggleWithIcon
-              :enabled="Boolean(formState.sso_enabled)"
-              :disabled="isSaving || !ssoAvailable || !canManageSso"
-              :loading="savingField === 'sso_enabled'"
-              :on-label="t('web.COMMON.enabled')"
-              :off-label="t('web.COMMON.disabled')"
-              @update:enabled="emit('auto-save', { sso_enabled: $event }, 'sso_enabled')" />
+              <ToggleWithIcon
+                :enabled="Boolean(formState.sso_enabled)"
+                :disabled="isSaving || !ssoAvailable || !canManageSso"
+                :loading="savingField === 'sso_enabled'"
+                :on-label="t('web.COMMON.enabled')"
+                :off-label="t('web.COMMON.disabled')"
+                @update:enabled="emit('auto-save', { sso_enabled: $event }, 'sso_enabled')" />
+            </div>
+          </div>
+
+          <!-- Dormant credentials indicator (#4107): the SsoConfig record's own
+               enabled flag is off, so this method can never surface no matter
+               what the policy toggle above says. States the stored flag only —
+               never a general availability verdict (ADR-024; other ladder rungs
+               may also block). -->
+          <div
+            v-if="ssoConnectionDisabled"
+            data-testid="sso-connection-disabled-indicator"
+            class="mt-3 flex items-start gap-2">
+            <span
+              class="inline-flex flex-shrink-0 items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+              <OIcon
+                collection="heroicons"
+                name="exclamation-triangle"
+                class="size-3.5"
+                aria-hidden="true" />
+              {{ t('web.domains.sso.connection_disabled_badge') }}
+            </span>
+            <span class="text-sm text-amber-700 dark:text-amber-300">
+              {{ t('web.domains.sso.connection_disabled_hint') }}
+            </span>
           </div>
         </div>
 
@@ -736,6 +785,20 @@
                   :id="`signin-restrict-${method.value}-description`"
                   class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
                   {{ method.blurb }}
+                </span>
+                <!-- Compact dormant-credentials indicator — see the Mode A
+                     row for rationale (#4107, ADR-024). -->
+                <span
+                  v-if="method.value === 'sso' && ssoConnectionDisabled"
+                  data-testid="sso-connection-disabled-indicator-compact"
+                  class="mt-1.5 inline-flex w-fit items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
+                  :title="t('web.domains.sso.connection_disabled_hint')">
+                  <OIcon
+                    collection="heroicons"
+                    name="exclamation-triangle"
+                    class="size-3.5"
+                    aria-hidden="true" />
+                  {{ t('web.domains.sso.connection_disabled_badge') }}
                 </span>
               </span>
             </span>

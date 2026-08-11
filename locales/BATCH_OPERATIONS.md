@@ -6,7 +6,7 @@
 
 Pipeline order (each step assumes the previous one ran):
 
-1. **Export** — drained *and audit-clean* DB -> `locales/content/` + shared tables via
+1. **Export** — drained _and audit-clean_ DB -> `locales/content/` + shared tables via
    `export-all.sh` (dry-run by default). Exports a locale only when `pending: 0` **and**
    `tasks audit <locale> --strict` is clean, skips the rest, then runs `i18n db export`
    once. Leaves uncommitted changes in the working tree; everything below operates on
@@ -20,7 +20,7 @@ Pipeline order (each step assumes the previous one ran):
 
 ### Exporting drained and clean locales
 
-`export-all.sh` writes each drained *and clean* locale's DB translations into
+`export-all.sh` writes each drained _and clean_ locale's DB translations into
 `locales/content/`, then runs `i18n db export` once. Dry-run is the default — pass
 `--execute` to act.
 
@@ -178,16 +178,35 @@ echo "Rebased cleanly; needs manual attention: ${failed[*]:-none}"
 
 ```bash
 pairs=(
-  "3574 i18n/update-ar"   "3575 i18n/update-bg"   "3576 i18n/update-ca_ES"
-  "3577 i18n/update-cs"   "3578 i18n/update-da_DK" "3579 i18n/update-de"
-  "3580 i18n/update-de_AT" "3581 i18n/update-el_GR" "3582 i18n/update-eo"
-  "3583 i18n/update-es"   "3584 i18n/update-fr_CA" "3585 i18n/update-fr_FR"
-  "3586 i18n/update-he"   "3587 i18n/update-hu"   "3588 i18n/update-it_IT"
-  "3589 i18n/update-ja"   "3590 i18n/update-ko"   "3591 i18n/update-mi_NZ"
-  "3592 i18n/update-nl"   "3593 i18n/update-pl"   "3594 i18n/update-pt_BR"
-  "3595 i18n/update-pt_PT" "3596 i18n/update-ru"  "3597 i18n/update-sl_SI"
-  "3598 i18n/update-sv_SE" "3599 i18n/update-tr"  "3600 i18n/update-uk"
-  "3601 i18n/update-vi"   "3602 i18n/update-zh"
+  "4105 i18n/update-zh"
+  "4104 i18n/update-vi"
+  "4103 i18n/update-uk"
+  "4102 i18n/update-tr"
+  "4101 i18n/update-sv_SE"
+  "4100 i18n/update-sl_SI"
+  "4099 i18n/update-ru"
+  "4097 i18n/update-pt_PT"
+  "4096 i18n/update-pt_BR"
+  "4095 i18n/update-pl"
+  "4094 i18n/update-nl"
+  "4093 i18n/update-mi_NZ"
+  "4092 i18n/update-ko"
+  "4091 i18n/update-ja"
+  "4090 i18n/update-it_IT"
+  "4089 i18n/update-hu"
+  "4088 i18n/update-he"
+  "4085 i18n/update-fr_FR"
+  "4084 i18n/update-fr_CA"
+  "4083 i18n/update-es"
+  "4082 i18n/update-eo"
+  "4079 i18n/update-el_GR"
+  "4078 i18n/update-de_AT"
+  "4077 i18n/update-de"
+  "4076 i18n/update-da_DK"
+  "4075 i18n/update-cs"
+  "4074 i18n/update-ca_ES"
+  "4073 i18n/update-bg"
+  "4072 i18n/update-ar"
 )
 for pair in "${pairs[@]}"; do
   pr="${pair%% *}"; b="${pair#* }"
@@ -195,7 +214,7 @@ for pair in "${pairs[@]}"; do
   git switch "$b" || { echo "skip $b"; continue; }
   claude -p --model claude-sonnet-5 --permission-mode acceptEdits "$(cat <<EOF
 You are on branch $b, which is the head of PR #$pr in onetimesecret/onetimesecret.
-Read that PR's review feedback: gh pr view $pr --comments; gh api repos/onetimesecret/onetimesecret/pulls/$pr/comments.
+Read the PR description and any review feedback: gh pr view $pr --comments; gh api repos/onetimesecret/onetimesecret/pulls/$pr/comments.
 For each actionable comment, update this locale's files under locales/content/. Validate JSON.
 Commit each logical change (commit-msg hook adds the prefix; don't hand-add it) and push with git push.
 Do not force-push, rebase, amend, or switch branches. If a comment is ambiguous or you disagree, leave it and note why.
@@ -207,7 +226,7 @@ git switch main
 
 ### Merging back into main
 
-One integration PR, not 29 (or however many branches you have). The `#3574–3602` / `seq 3574 3602`
+One integration PR, not 29 (or however many branches you have). The `#4072–4105` / `seq 4072 4105`
 references are from a prior batch — swap in the current round's numbers.
 
 ```bash
@@ -224,11 +243,15 @@ git switch -c i18n/integration-batch origin/main
 git merge --no-ff $(git branch --list 'i18n/update-*' --format='%(refname:short)')
 git push -u origin i18n/integration-batch
 gh pr create --base main \
-  --title "i18n: batch locale updates (supersedes #3574–#3602)" \
+  --title "i18n: batch locale updates (supersedes #4072–#4105)" \
   --body "Octopus merge of 29 i18n/update-* branches. Locale-only, conflict-free."
 
 # 3. after the PR merges, the 29 auto-close as Merged (tips reachable from main). verify:
-for pr in $(seq 3574 3602); do gh pr view "$pr" --json number,state --jq '"\(.number) \(.state)"'; done
+all_prs=(
+  4105 4104 4103 4102 4101 4100 4099 4097 4096 4095 4094 4093 4092 4091 4090
+  4089 4088 4085 4084 4083 4082 4079 4078 4077 4076 4075 4074 4073 4072
+)
+for pr in $all_prs; do gh pr view "$pr" --json number,state --jq '"\(.number) \(.state)"'; done
 ```
 
 Octopus aborts on conflict — run sequentially to find the offender:

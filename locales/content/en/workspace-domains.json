@@ -595,6 +595,14 @@
     "text": "Upgrade to configure",
     "content_hash": "571cfa98"
   },
+  "web.domains.sso.connection_disabled_badge": {
+    "text": "Connection disabled",
+    "content_hash": "99d6092c"
+  },
+  "web.domains.sso.connection_disabled_hint": {
+    "text": "SSO credentials are saved but the connection is turned off. Enable it under Edit credentials.",
+    "content_hash": "90180d6c"
+  },
   "web.domains.signup.title": {
     "text": "Signup Validation",
     "content_hash": "2c34ac0a"

@@ -679,14 +679,6 @@
     "text": "Eliminar {domain}",
     "source_hash": "ae708a1d"
   },
-  "web.organizations.sso.enabled": {
-    "text": "Habilitar SSO",
-    "source_hash": "d10d0801"
-  },
-  "web.organizations.sso.enabled_hint": {
-    "text": "Cuando está habilitado, los miembros de la organización pueden iniciar sesión usando este proveedor de SSO",
-    "source_hash": "d7da2fa2"
-  },
   "web.organizations.sso.save_config": {
     "text": "Guardar configuración de SSO",
     "source_hash": "70853769"

@@ -10,6 +10,10 @@ standalone scripts:
   - ``hashes``     <- ``locales/scripts/add_hashes.py``
   - ``add-field``  <- ``locales/scripts/add_field.py``
 
+``remove-key`` has no legacy counterpart; it is the inverse of ``add-field``
+(whole top-level keys rather than a field within every entry), added to drain
+the keys a source-side rename strands in the translated locales.
+
 Path constants and the source locale come from :mod:`i18n.config`; JSON file
 handling and key traversal come from :mod:`i18n.io`. No module re-derives path
 constants or re-implements those primitives.
@@ -52,6 +56,7 @@ def register(subparsers) -> None:
     _register_decompile(gsub)
     _register_hashes(gsub)
     _register_add_field(gsub)
+    _register_remove_key(gsub)
 
 
 def _register_compile(gsub) -> None:
@@ -255,6 +260,79 @@ Usage:
         help="Write changes. Default is dry run.",
     )
     c.set_defaults(func=_add_field_handler, _parser=c)
+
+
+def _register_remove_key(gsub) -> None:
+    c = gsub.add_parser(
+        "remove-key",
+        help="Delete whole top-level keys from the given locale JSON files.",
+        description=(
+            "Delete whole top-level keys from the given locale JSON files."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=f"""
+Keys are matched exactly. There is no prefix, glob, or substring matching, so
+deleting a stale `…sso.enabled` cannot take a live `…sso.status_enabled` with
+it. Entry *fields* are out of scope -- this removes the whole key; see
+`add-field` for the within-entry axis.
+
+--orphans derives the delete set per file: every key in the file with no
+counterpart in the same-named file under `content/{SOURCE_LOCALE}`. That is
+exactly the residue a source-side key rename leaves in the translated locales,
+and it needs no hand-maintained list as further renames land. A file whose
+source counterpart is missing or unparseable contributes no orphans rather
+than being emptied.
+
+Scope --orphans with the glob you pass: it reports every orphan in those
+files, including pre-existing ones unrelated to the rename you are draining.
+Read the dry run before adding --apply.
+
+Usage:
+    # Dry run (default) -- what a rename stranded, one file across all locales
+    python3 locales/scripts/i18n content remove-key --orphans \\
+        locales/content/*/workspace-organizations.json
+
+    # Apply
+    python3 locales/scripts/i18n content remove-key --orphans --apply \\
+        locales/content/*/workspace-organizations.json
+
+    # Named keys instead, repeatable
+    python3 locales/scripts/i18n content remove-key --apply \\
+        --key web.organizations.sso.enabled \\
+        --key web.organizations.sso.enabled_hint \\
+        locales/content/*/workspace-organizations.json
+
+Recompile afterwards so `generated/locales` stops carrying the dead keys:
+    pnpm locales:generate
+""",
+    )
+    c.add_argument(
+        "files",
+        nargs="+",
+        type=Path,
+        help="Locale JSON files to process.",
+    )
+    c.add_argument(
+        "--key",
+        action="append",
+        default=[],
+        metavar="KEY",
+        help="Exact top-level key to delete. Repeatable.",
+    )
+    c.add_argument(
+        "--orphans",
+        action="store_true",
+        help=(
+            "Also delete every key absent from the matching "
+            f"content/{SOURCE_LOCALE} file."
+        ),
+    )
+    c.add_argument(
+        "--apply",
+        action="store_true",
+        help="Write changes. Default is dry run.",
+    )
+    c.set_defaults(func=_remove_key_handler, _parser=c)
 
 
 # ---------------------------------------------------------------------------
@@ -1056,4 +1134,107 @@ def _add_field_handler(args) -> int:
     print(
         f"\nTotal: {label} {total_modified} entries across {total_files} files"
     )
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# remove-key  (no legacy counterpart; inverse of add-field)
+# ---------------------------------------------------------------------------
+
+
+def _remove_key_document(path: Path) -> dict:
+    """Load a locale file, accepting only a top-level JSON object.
+
+    ``load_json_file`` hands back whatever ``json.load`` produced and only
+    falls back to ``{}`` on a decode error, so a *valid* non-object document
+    (an array, say) arrives here as a list. Iterating one yields its elements
+    rather than keys, which would make every key of a target file look
+    orphaned. Anything but a mapping is reported and treated as keyless, so
+    the file is skipped rather than emptied.
+    """
+    data = load_json_file(path)
+    if isinstance(data, dict):
+        return data
+    print(f"Warning: {path} is not a JSON object, skipping", file=sys.stderr)
+    return {}
+
+
+def _remove_key_orphans(path: Path, data: dict) -> set[str]:
+    """Keys in ``data`` with no counterpart in ``path``'s source-locale file.
+
+    An absent, unparseable, or non-object source file yields no orphans:
+    treating "no source keys" as "every key is an orphan" would empty the
+    locale file instead of cleaning it.
+    """
+    source = _remove_key_document(CONTENT_DIR / SOURCE_LOCALE / path.name)
+    if not source:
+        return set()
+    return {key for key in data if key not in source}
+
+
+def _remove_key_from_file(
+    path: Path,
+    keys: set[str],
+    data: dict,
+    *,
+    dry_run: bool = True,
+) -> list[str]:
+    """Delete the given top-level keys from a locale JSON file.
+
+    Returns the keys actually removed, sorted. Surviving keys keep their
+    original order.
+    """
+    removed = sorted(key for key in keys if key in data)
+
+    for key in removed:
+        del data[key]
+
+    if removed and not dry_run:
+        save_json_file(path, data)
+
+    return removed
+
+
+def _remove_key_handler(args) -> int:
+    parser: argparse.ArgumentParser = args._parser
+
+    if not args.key and not args.orphans:
+        parser.error("At least one --key, or --orphans, must be specified")
+
+    dry_run = not args.apply
+    if dry_run:
+        print("DRY RUN (use --apply to write changes)\n")
+
+    total_removed = 0
+    total_files = 0
+
+    for path in args.files:
+        if not path.exists():
+            print(f"  {path}: not found, skipping")
+            continue
+        if not path.is_file():
+            continue
+
+        total_files += 1
+
+        data = _remove_key_document(path)
+
+        keys = set(args.key)
+        if args.orphans:
+            keys |= _remove_key_orphans(path, data)
+
+        removed = _remove_key_from_file(path, keys, data, dry_run=dry_run)
+
+        if removed:
+            status = "would remove" if dry_run else "removed"
+            print(f"  {path}: {status} {len(removed)} keys")
+            for key in removed:
+                print(f"      {key}")
+        else:
+            print(f"  {path}: no changes needed")
+
+        total_removed += len(removed)
+
+    label = "would remove" if dry_run else "removed"
+    print(f"\nTotal: {label} {total_removed} keys across {total_files} files")
     return 0

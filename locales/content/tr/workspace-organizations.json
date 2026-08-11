@@ -903,14 +903,6 @@
     "text": "{domain} adresini kaldır",
     "source_hash": "ae708a1d"
   },
-  "web.organizations.sso.enabled": {
-    "text": "SSO'yu Etkinleştir",
-    "source_hash": "d10d0801"
-  },
-  "web.organizations.sso.enabled_hint": {
-    "text": "Etkinleştirildiğinde, kuruluş üyeleri bu SSO sağlayıcısını kullanarak giriş yapabilir",
-    "source_hash": "d7da2fa2"
-  },
   "web.organizations.sso.enforce_sso_only": {
     "text": "Yalnızca SSO'yu zorunlu kıl",
     "source_hash": "b3a3f694"
