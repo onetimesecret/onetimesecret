@@ -148,3 +148,118 @@ Tests:
 - `try/unit/models/custom_domain_auth_default_off_try.rb` — custom-domain default-OFF resolvers + tenant-SSO carve-out (#3672)
 - `apps/api/domains/spec/integration/simple/domain_signup_config_spec.rb` — settings API contract
 - `src/tests/composables/useSigninConfig.spec.ts`, `src/tests/apps/workspace/components/domains/DomainSigninConfigForm.spec.ts` — seeding + materialization
+
+## Amendments
+
+### 2026-08-11 — `restrict_to` semantics: enforcement, degradation, webauthn status, identity scope
+
+PR #4130 shipped the display half of domain `restrict_to` (every value
+rendered, single-method picker enabled) and recorded two deliberate gaps —
+no server-side enforcement, no server-side re-validation — as wanting a
+decision rather than a drive-by change. The decisions below resolve them.
+Deciding principle throughout: security, privacy, and long-term codebase
+health; the default posture is fail-closed.
+
+#### A1. Domain `restrict_to` is an access control, not a display preference
+
+Normative: when resolution yields a single method for a request host, the
+server MUST reject submission of every other method on that host — crafted
+POSTs included. Corollary, broader than `restrict_to`: a disabled auth
+method must never function even when fully and correctly configured (e.g. a
+complete SSO configuration with SSO disabled stays dark at every surface).
+Configuration presence is never availability.
+
+Current state, for the record: display-only. The only server-side teeth
+anywhere is *global* `restrict_to='sso'` via `SsoOnlyGating`
+(account-management operations, keyed to the global value). Enforcement is
+follow-up work to PR #4130; until it ships, domain `restrict_to` must not
+be documented as an access control.
+
+Scope note: A1 is request-host enforcement — *which methods* work on this
+host. *Which accounts* may authenticate on this host is A6.
+
+#### A2. Invariant 5: `restrict_to` resolution is model-owned
+
+Invariant 4's discipline extends to `restrict_to`: resolution moves behind
+a model-owned resolver (`SigninConfig.resolve_restrict_to(global, config)`)
+consumed by all three gates — display (`ConfigSerializer`), runtime
+(`Core::Controllers::Base`, once A1 ships), and settings API `details`
+(A4). No caller re-derives. `ConfigSerializer#resolve_restrict_to`, today
+an inline display-only implementation — exactly the drift shape invariant 4
+exists to kill — becomes a consumer. `email_auth_enabled`'s inline AND
+resolution follows the same rule when next touched.
+
+#### A3. Domain-level degradation is fail-closed
+
+A domain restriction whose backing method is unavailable — globally
+disabled, credentials dormant, or incapable on this host — resolves to
+*sign-in unavailable* (or its method-specific notice, e.g. "SSO required").
+It never widens to standard mode: widening re-exposes exactly the methods
+the domain owner chose to hide. This retires two fail-open paths:
+
+- `restrict_to='sso'` with dormant credentials falling through to
+  password/email forms (display side fixed in #4123/#4130; runtime side
+  lands with A1);
+- the frontend's globally-disabled-method → standard-mode fallback shipped
+  in #4130 (retired by A4's repoint).
+
+The webauthn special case is deleted entirely: the resolver's
+webauthn→standard-mode degradation and the PUT carry-over exemption both
+guarded a legacy population of persisted `restrict_to='webauthn'` records
+that does not exist — webauthn first functioned in the same release that
+introduced the PUT write gate. A stray value is invalid data and fails
+closed like the rest.
+
+Deliberate asymmetry: the *global* path keeps `AuthConfig#restrict_to`'s
+drop-to-standard semantics. A global restriction naming a disabled method
+is stale operator config, and the operator's most recent intent is the
+disable; failing the whole install closed over it is the lockout trap
+(#4062 precedent). Operator misconfig fails loud (boot WARN), tenant
+config fails closed at runtime — the tenant can always fix their setting
+from the canonical host.
+
+#### A4. Settings API serializes `effective_restrict_to`
+
+`details` gains `effective_restrict_to` (A2 resolver output) alongside
+`global_restrict_to`. The frontend fallback introduced in #4130 repoints at
+it and client-side re-derivation is removed, per §3's principle that the
+client displays resolver output and never re-implements resolution.
+
+#### A5. Custom-domain webauthn: pending support, not banned (#4137)
+
+There is no security, privacy, or UX objection to passkeys on custom
+domains. WebAuthn origin binding (rp_id registrable-suffix match,
+browser-enforced) is the protocol's phishing resistance working as
+designed; the limitation is ours: `webauthn_rp_id` is already dynamic
+(`request.host`), but every credential is registered on the canonical host
+and `account_webauthn_keys` carries no rp_id column, so nothing can assert
+— or be registered — on a branded domain. The sanctioned path is
+per-domain credential scoping (#4137: rp_id column, host-filtered
+allow-lists, per-domain registration UX). Related Origin Requests were
+evaluated and rejected: browsers cap related origins at ~5 distinct labels
+platform-wide, a nonstarter for unbounded customer domains.
+
+Accordingly the existing guards — the PUT rejection of new webauthn
+restrictions, fail-closed resolution (A3), and the suppressed passkey
+tab/locked form row on custom domains — are **not-yet-supported guards,
+not policy**. #4137 retires them, at which point `restrict_to='webauthn'`
+becomes a valid, enforced domain restriction.
+
+#### A6. Account↔domain identity scope (#4138)
+
+Stance: an account's authenticatable surface is governed by its owning
+domain/org policy. Canonical-pool accounts are not valid logins on branded
+custom domains. Custom-domain signup, where the owner enables it, produces
+org-scoped accounts — never canonical-pool accounts. Account-management
+operations are governed by the owning org's auth policy: `SsoOnlyGating`
+re-keys from global-only to owning-org policy under #4138 — never to the
+request host, since account management is account-scoped, not host-scoped.
+
+Both prevailing SaaS identity models agree on this invariant —
+tenant-scoped identity (Keycloak realms, Slack workspaces) and global
+identity plus domain claim (Notion managed users, Google Workspace): the
+tenant's auth policy governs every auth surface for identities under its
+authority. The current shared-pool behavior (any account authenticates on
+any host with sign-in enabled) matches neither and is a long-standing
+defect. A1's request-host enforcement is the interim mitigation (it
+restricts methods, not accounts); #4138 is the robust fix.
