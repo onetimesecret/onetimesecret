@@ -3,8 +3,10 @@
 # frozen_string_literal: true
 
 require 'date' # ensure Date/Time constants resolve for permitted_classes
+require 'ipaddr' # check_admin_allowed_cidrs parses ADMIN_ALLOWED_CIDRS at boot
 require 'json' # String#to_json for YAML-safe BRAND_* interpolation (see brand block)
 require 'public_suffix' # validate_link_domains! parses LINK_DOMAINS entries at boot
+require_relative 'utils/admin_host_allowlist' # check_admin_allowed_hosts classifies ADMIN_ALLOWED_HOSTS at boot
 require_relative 'utils/config_resolver'
 require_relative 'utils/domain_parser'
 require_relative 'utils/enumerables'
@@ -116,13 +118,23 @@ module Onetime
             'autoverify' => false,
             'allowed_signup_domains' => [],
           },
-          # Colonel admin surfaces network posture. allowed_cidrs empty (default)
-          # = AdminNetworkIsolation middleware is a no-op; both /colonel and
-          # /api/colonel stay reachable, gated only by the two app-layer auth
-          # layers. Set to private CIDRs on cloud to require an in-network
-          # (VPN/private) origin as defense-in-depth. See
-          # lib/onetime/middleware/admin_network_isolation.rb.
+          # Colonel admin surfaces posture, two independent factors (#4062).
+          #
+          # allowed_hosts empty (default) = the host gate falls back to the
+          # canonical ANCHOR hosts (features.domains.default / site.host) and
+          # their www. variants, so the admin surfaces stop answering on tenant
+          # custom domains and link-pool domains. `*` disables it. The gate
+          # self-disables when no configured entry is a routable hostname (the
+          # stock localhost / bare-IP posture).
+          #
+          # allowed_cidrs empty (default) = the network gate is a no-op; both
+          # /colonel and /api/colonel stay reachable from any IP, gated only by
+          # the two app-layer auth layers. Set to private CIDRs on cloud to
+          # require an in-network (VPN/private) origin as defense-in-depth.
+          #
+          # See lib/onetime/middleware/admin_network_isolation.rb.
           'admin' => {
+            'allowed_hosts' => [],
             'allowed_cidrs' => [],
           },
         },
@@ -991,6 +1003,13 @@ module Onetime
       # wrote LINK_DOMAINS, so a blank value is a typo worth failing loud on,
       # and this is the only placement that runs before any feature gating.
       validate_link_domains!(conf.dig('features', 'domains', 'link_domains'))
+
+      # Fire regardless of whether the admin surfaces are otherwise reachable:
+      # an allowlist that names unusable entries is a typo the operator has to
+      # hear about at boot rather than on the first admin request. Both WARN;
+      # neither stops the boot — see the methods.
+      check_admin_allowed_hosts(conf.dig('site', 'admin', 'allowed_hosts'))
+      check_admin_allowed_cidrs(conf.dig('site', 'admin', 'allowed_cidrs'))
     end
 
     # Rejects a LINK_DOMAINS that was set but yields no usable host.
@@ -1016,7 +1035,7 @@ module Onetime
     # entries, is the only honest option.
     #
     # NOTE: this is deliberately the OPPOSITE polarity from #4062's
-    # security.admin allowed_hosts, where an empty list means canonical-only.
+    # site.admin.allowed_hosts, where an empty list means canonical-only.
     # An empty admin-host allowlist failing closed to canonical is safe. An
     # empty link pool silently becoming the canonical domain hides the
     # operator's typo and produces exactly the outcome LINK_DOMAINS exists to
@@ -1051,6 +1070,122 @@ module Onetime
         'domain, so the link picker would have nothing to offer. Check for typos and ' \
         'private/internal hostnames (a host must have a public suffix, e.g. ' \
         'links.example.com). Unset LINK_DOMAINS entirely to offer the canonical domain.'
+    end
+
+    # WARNs about a site.admin.allowed_hosts (ADMIN_ALLOWED_HOSTS, #4062) that
+    # was set but names nothing the host gate could ever match.
+    #
+    # Takes the raw config value rather than reading OT.conf so it can be
+    # driven directly by a spec without a booted config.
+    #
+    #   nil / []           -> silent (unset; the gate falls back to the
+    #                         canonical anchors, and goes inert on a
+    #                         localhost/bare-IP install)
+    #   ['*']              -> silent (the documented escape hatch: host gate
+    #                         off, the middleware WARNs about it)
+    #   ['admin.ex.com']   -> silent (enforceable)
+    #   ['*', 'admin.ex']  -> silent (the `*` turns the gate off; the sibling
+    #                         is ignored and the middleware names it)
+    #   ['127.0.0.1']      -> WARN (and the middleware denies both surfaces)
+    #   ['*.example.com']  -> WARN (ditto)
+    #
+    # WHY THIS WARNS AND validate_link_domains! RAISES — the asymmetry is
+    # deliberate, do not "harmonize" it:
+    #
+    #   LINK_DOMAINS has NO fail-closed runtime backstop. An empty or
+    #     unparseable pool silently becomes the canonical domain, i.e. the
+    #     picker offers the internal platform host LINK_DOMAINS exists to
+    #     hide. Nothing downstream can recover the operator's intent, so boot
+    #     has to stop.
+    #   ADMIN_ALLOWED_HOSTS HAS one. AdminNetworkIsolation#configured_host_gate
+    #     returns [[], true] for exactly this config — an ACTIVE gate with an
+    #     EMPTY allowlist, 404ing both admin surfaces — so the over-exposure
+    #     this check exists to prevent cannot happen whether or not the process
+    #     stops. Raising here would abort the PUBLIC site, the API and the
+    #     health endpoints over an admin-console-only typo (an
+    #     ADMIN_ALLOWED_HOSTS=10.0.0.0/8 mixup with the adjacent
+    #     ADMIN_ALLOWED_CIDRS key takes the whole deployment down). The blast
+    #     radius strictly exceeds the harm prevented.
+    #
+    # The diagnostic still fires at BOOT rather than only on the first admin
+    # request, which is the whole reason this check exists separately from the
+    # middleware: an operator who mistyped the allowlist learns it from the
+    # startup log, not from a 404 three days later.
+    #
+    # @param raw [Array<String>, nil] site.admin.allowed_hosts as loaded
+    # @return [void]
+    def check_admin_allowed_hosts(raw)
+      classified = Onetime::Utils::AdminHostAllowlist.classify(raw)
+      return unless classified.unenforceable?
+
+      described = Onetime::Utils::AdminHostAllowlist.describe_rejections(classified.rejected).join('; ')
+
+      OT.lw 'ADMIN_ALLOWED_HOSTS (site.admin.allowed_hosts) names no hostname the admin host gate ' \
+            "could ever match, so /colonel and /api/colonel return 404 to EVERY request: #{described}. " \
+            'Set it to a routable hostname the deployment answers on (ADMIN_ALLOWED_HOSTS=admin.example.com), ' \
+            'unset it entirely to allow the canonical host only (on a localhost or bare-IP install that ' \
+            'self-disables the gate instead), or set it to * to disable the host gate deliberately.'
+    end
+
+    # WARNs about site.admin.allowed_cidrs (ADMIN_ALLOWED_CIDRS) entries that
+    # do not parse as a CIDR range.
+    #
+    # Takes the raw config value rather than reading OT.conf so it can be
+    # driven directly by a spec without a booted config.
+    #
+    #   nil / []                  -> silent (no network gate; the opt-in
+    #                                default)
+    #   ['100.64.0.0/10']         -> silent (enforceable)
+    #   ['garbage', '10.0.0.0/8'] -> WARN (the bad entry is dropped; the
+    #                                survivors enforce)
+    #   ['garbage']               -> WARN (the gate stays ACTIVE with no range:
+    #                                both surfaces 404 on every request)
+    #
+    # WARN, not raise, for the same reason as check_admin_allowed_hosts above:
+    # the runtime is already fail-closed.
+    # AdminNetworkIsolation#unusable_network_gate keeps a configured list whose
+    # every entry is unparseable ACTIVE with an EMPTY range set, so the
+    # over-exposure a raise would prevent cannot happen — while raising would
+    # abort the public site over an admin-only typo. What fail-closed cannot do
+    # is tell the operator: without this check the first symptom is an admin
+    # console dark on every request, including from inside the range they
+    # meant.
+    #
+    # Rescues exactly what the middleware's parse rescues
+    # (IPAddr::InvalidAddressError, which covers bad prefixes too), so this
+    # warns about precisely the entries AdminNetworkIsolation will drop.
+    #
+    # @param raw [Array<String>, nil] site.admin.allowed_cidrs as loaded
+    # @return [void]
+    def check_admin_allowed_cidrs(raw)
+      entries   = Array(raw).map { |cidr| cidr.to_s.strip }.reject(&:empty?)
+      malformed = entries.reject { |entry| parseable_cidr?(entry) }
+      return if malformed.empty?
+
+      described = malformed.join(', ')
+
+      if malformed.size == entries.size
+        OT.lw 'ADMIN_ALLOWED_CIDRS (site.admin.allowed_cidrs) has no entry that parses as a CIDR ' \
+              "range, so /colonel and /api/colonel return 404 to EVERY request: #{described}. " \
+              'Fix the entries (ADMIN_ALLOWED_CIDRS=100.64.0.0/10,10.0.0.0/8), or unset it entirely ' \
+              'to leave the network gate off.'
+      else
+        OT.lw 'ADMIN_ALLOWED_CIDRS (site.admin.allowed_cidrs) has entries that do not parse as a ' \
+              "CIDR range and are ignored: #{described}. Only the remaining entries are enforced. " \
+              'Fix or remove the unparseable ones (ADMIN_ALLOWED_CIDRS=100.64.0.0/10,10.0.0.0/8).'
+      end
+    end
+
+    # Whether one allowlist entry parses as a CIDR range (or single address).
+    # Same parse, same rescue as AdminNetworkIsolation#parse_allowed_cidrs.
+    #
+    # @param entry [String]
+    # @return [Boolean]
+    def parseable_cidr?(entry)
+      IPAddr.new(entry)
+      true
+    rescue IPAddr::InvalidAddressError
+      false
     end
 
     # Whether a configured link-pool host survives the same parse the

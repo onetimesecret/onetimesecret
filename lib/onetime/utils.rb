@@ -4,6 +4,7 @@
 
 require 'pathname'
 
+require_relative 'utils/admin_host_allowlist'
 require_relative 'utils/canonical_hosts'
 require_relative 'utils/domain_parser'
 require_relative 'utils/email_format'

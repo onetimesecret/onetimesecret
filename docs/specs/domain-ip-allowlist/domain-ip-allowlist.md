@@ -268,9 +268,11 @@ Gemfile constraint `'~> 2.5'` already admits it.
 Sign-in/sign-up configs default **closed** for custom domains (ADR-024,
 `resolve_signin_enabled_for_custom_domain`). The IP allowlist defaults
 **open**: no config, master switch off, or empty entry list → no-op,
-matching `AdminNetworkIsolation`'s empty-allowlist behavior
-(`admin_network_isolation.rb:69`). An access-control feature that defaulted
-closed would brick every existing custom domain on deploy.
+matching `AdminNetworkIsolation`'s empty-`allowed_cidrs` behavior. (Its
+`allowed_hosts` gate, added by #4062, defaults the other way — an empty list
+falls back to the canonical anchor hosts rather than to a no-op.) An
+access-control feature that defaulted closed would brick every existing
+custom domain on deploy.
 
 ### Enforcement middleware
 
@@ -280,8 +282,10 @@ New `Onetime::Middleware::DomainAccessControl`, mounted in
 `otto.ip_match` (installed by `IPPrivacyMiddleware` at line 296) and
 `onetime.domain_strategy`/`onetime.display_domain` (set at line 379).
 The existing CIDR precedent
-`AdminNetworkIsolation` (line 322) runs *before* host detection and cannot
-be extended for this.
+`AdminNetworkIsolation` now runs *after* `Rack::DetectHost` (moved there by
+#4062, which added a host allowlist to it) but still *before*
+`DomainStrategy`, so it sees the detected host and not the domain strategy —
+it cannot be extended for this.
 
 Flow per request:
 

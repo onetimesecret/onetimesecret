@@ -233,3 +233,72 @@ OT.send(:conf=, @saved_conf)
   @captured['otto.client_ip'],
 ]
 #=> ['ca.metalbaum.example.com', true, '203.0.113.0']
+
+## Key-name contract pin for the PRECISION capability: otto still calls it
+## `otto.ip_match`. Onetime::Middleware::AdminNetworkIsolation#network_allowed?
+## reads that key as a LITERAL string, so an upstream rename raises nowhere —
+## the key is simply absent, `matcher.respond_to?(:call)` is false, and the
+## admin CIDR gate silently falls back to comparing the privacy-MASKED
+## env['otto.client_ip']. Every site.admin.allowed_cidrs entry finer than the
+## mask then misjudges in BOTH directions: a /32 can never match its own
+## client (operator locked out of /colonel), and an entry that happens to equal
+## a masked network address admits every neighbour in it. The Gemfile pin is
+## `otto', '~> 2.8'`, so 2.9+ installs without review — this case is what makes
+## a rename a deliberate decision point instead of a silent regression.
+## (Pinned as a value pair, not a bare `==`, so rubocop's Lint/Void
+## autocorrect cannot delete the expression.)
+[Otto::EnvKeys::IP_MATCH, 'otto.ip_match']
+#=> ['otto.ip_match', 'otto.ip_match']
+
+## Contract pin: the REAL IPPrivacyMiddleware installs the capability, and it
+## is callable. Deliberately not a hand-injected lambda — try/unit/middleware/
+## admin_network_isolation_try.rb builds the closure itself (see its
+## #ip_match_env helper), so it would keep passing against an otto that had
+## stopped writing the key while production silently degraded to the masked-IP
+## fallback. Only driving the middleware this repo actually mounts —
+## universally, at lib/onetime/application/middleware_stack.rb — can catch that.
+@trusted_stack.call(
+  {
+    'REMOTE_ADDR' => '10.0.0.5',
+    'HTTP_X_FORWARDED_FOR' => '203.0.113.50',
+    'HTTP_HOST' => 'eu.onetimesecret.com',
+  },
+)
+[@captured.key?('otto.ip_match'), @captured['otto.ip_match'].respond_to?(:call)]
+#=> [true, true]
+
+## THE PROPERTY THE ADMIN CIDR GATE DEPENDS ON: the closure judges the PRE-MASK
+## client at full /32 precision while env['otto.client_ip'] has already been
+## masked to a DIFFERENT address.
+##
+## Same request shape as above — the trusted proxy (10.0.0.5) forwards the real
+## client 203.0.113.50, and otto zeroes the last octet to 203.0.113.0 before
+## anything downstream sees it. Handed the pre-parsed IPAddr list that
+## AdminNetworkIsolation passes (`@allowed_ranges`), the closure still answers
+## TRUE for a /32 of the TRUE client and FALSE for a /32 of the MASKED value.
+## The second verdict is the whole point: a gate reading the canonical masked
+## IP would deny the operator's own single-host allowlist entry and admit the
+## entire /24 it sits in.
+@trusted_stack.call(
+  {
+    'REMOTE_ADDR' => '10.0.0.5',
+    'HTTP_X_FORWARDED_FOR' => '203.0.113.50',
+    'HTTP_HOST' => 'eu.onetimesecret.com',
+  },
+)
+[
+  @captured['otto.client_ip'],
+  @captured['otto.ip_match'].call([IPAddr.new('203.0.113.50/32')]),
+  @captured['otto.ip_match'].call([IPAddr.new('203.0.113.0/32')]),
+]
+#=> ['203.0.113.0', true, false]
+
+## Fail-closed pin: a request otto cannot resolve a client IP for still gets the
+## capability, and it denies EVERYTHING. This is the contract behind
+## AdminNetworkIsolation's "no resolvable client IP + a configured allowlist =>
+## 404" (class doc, "Client IP resolution"). Even 0.0.0.0/0 answers false, so an
+## otto that skipped installing the closure on this path — leaving the gate to
+## re-resolve and compare an address itself — fails here.
+@trusted_stack.call({ 'HTTP_HOST' => 'eu.onetimesecret.com' })
+[@captured.key?('otto.ip_match'), @captured['otto.ip_match'].call([IPAddr.new('0.0.0.0/0')])]
+#=> [true, false]

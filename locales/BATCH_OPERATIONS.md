@@ -35,6 +35,9 @@ Two gates, both must pass, both reported per locale:
 
 After a successful export the written content is re-checked in place with
 `validate variables` and (when the derived governance cache exists) the register lint.
+`validate variables` gates on its own `blocking` count — placeholder and format
+defects in translated text. Keys the locale has not translated yet are reported as
+`untranslated` but never block: coverage is the `pending: 0` gate's job, above.
 Failures are reported as **dirty**; nothing is reverted, because surfacing the problem
 while the content is still unstaged is the point.
 

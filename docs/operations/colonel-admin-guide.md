@@ -8,7 +8,8 @@ It covers:
 
 1. [Promoting a colonel](#1-promoting-a-colonel-cli-only) (CLI only).
 2. [What the console can do](#2-what-the-console-can-do).
-3. [Enabling CIDR network isolation](#3-enabling-cidr-network-isolation).
+3. [Restricting the admin surfaces](#3-restricting-the-admin-surfaces) by
+   hostname and by network.
 
 The console lives at **`/colonel`** and is served to any signed-in account that
 holds the `colonel` role. Since the cutover it is the sole admin frontend (the
@@ -82,20 +83,43 @@ acting colonel, the verb, the target, and the result — whether it originated
 from the console or the CLI (both go through the same shared operations). This is
 the non-negotiable backstop for privileged actions.
 
-## 3. Enabling CIDR network isolation
+## 3. Restricting the admin surfaces
 
-By default the two auth layers above are the sole gate, which is the right
-posture for a self-hosted single-container install (no VPN required — no extra
-configuration needed).
+Two independent factors restrict which requests reach `/colonel*` and
+`/api/colonel*`, as **defense-in-depth** on top of the two auth layers above.
+A request failing either one receives a **404** (indistinguishable-from-absent),
+not a 403.
 
-As **defense-in-depth**, you can additionally restrict both admin surfaces
-(`/colonel*` and `/api/colonel*`) to a trusted network with
-`site.admin.allowed_cidrs`. When set, a request from outside the allowlist
-receives a **404** (indistinguishable-from-absent), not a 403.
+**Host — `site.admin.allowed_hosts` / `ADMIN_ALLOWED_HOSTS`, active by
+default.** Which hostnames serve the admin surfaces. Unset, it falls back to the
+canonical anchor hosts (`DEFAULT_DOMAIN` / `HOST`) plus their `www.` siblings, so
+tenant custom domains and link-pool domains stop serving the console. Set it to
+a dedicated hostname (`admin.example.com`) if you have one. On an install where
+it is **unset** and there is no routable hostname to anchor on — the stock
+`HOST=localhost:3000`, or access by bare IP — the gate self-disables with a boot
+warning, so single-container installs are unaffected. A value that is set but
+can never match (an IP address, `*.example.com`, a non-ASCII name) **404s both
+admin surfaces** instead, with a boot warning naming what it rejected; the boot
+itself is not aborted, since the surfaces are already fail-closed and the rest
+of the app is unaffected. `ADMIN_ALLOWED_HOSTS=*` — anywhere in the list — is
+the one way to turn the gate off, and the one-variable rollback.
 
-This is a config posture, not a code fork — the same app-layer enforcement runs
-underneath regardless. The full setup (private CIDRs, the required
-`site.network.trusted_proxy` behind a load balancer, and a reverse-proxy
-alternative) is documented in **`docs/operations/admin-network-isolation.md`**.
-Do not put public CIDRs in the allowlist — the app-layer auth remains the gate
-for anyone already on the trusted network.
+Behind a proxy that forwards the public hostname in a header (`X-Forwarded-Host`,
+`Apx-Incoming-Host`, …) rather than rewriting `Host`, `site.network.trusted_proxy`
+must be configured **with the proxy's own address ranges in `cidrs`**: the host
+gate accepts a forwarded host only from a peer that trust vouched for, so
+otherwise both surfaces 404 — and filter mode with no explicit CIDRs trusts
+every private-network peer as a proxy, which restores exactly the
+forwarded-host spoofing the provenance rule exists to block.
+
+**Network — `site.admin.allowed_cidrs` / `ADMIN_ALLOWED_CIDRS`, opt-in.** Which
+client IPs may reach the surfaces. Unset (the default) it is a no-op, the right
+posture for a self-hosted single-container install that cannot require a VPN. Do
+not put public CIDRs in the allowlist — the app-layer auth remains the gate for
+anyone already on the trusted network.
+
+Both are a config posture, not a code fork — the same app-layer enforcement runs
+underneath regardless. The full setup (upgrade impact, private CIDRs, the
+required `site.network.trusted_proxy` with explicit proxy CIDRs behind a load
+balancer, and the edge alternative) is documented in
+**`docs/operations/admin-network-isolation.md`**.
