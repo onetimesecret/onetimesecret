@@ -76,6 +76,7 @@ RSpec.describe 'restrict_to enforcement — simple mode (ADR-024 A1/A7, #4139)',
   after do
     Array(@fixtures).each do |org, domain, owner, host|
       Onetime::CustomDomain::SigninConfig.delete_for_domain!(domain.identifier)
+      Onetime::CustomDomain::SignupConfig.delete_for_domain!(domain.identifier)
       Onetime::CustomDomain.display_domain_index.remove(host)
       domain.destroy!
       org.destroy!
@@ -91,24 +92,33 @@ RSpec.describe 'restrict_to enforcement — simple mode (ADR-024 A1/A7, #4139)',
   # Base#signin_enabled? passes and the ONLY thing that can reject the POST is
   # the restrict_to gate. Without signin_enabled the example would pass for the
   # wrong reason: custom domains default sign-in OFF.
+  # Sign-UP is opted in for the same reason sign-in is: custom domains default
+  # sign-up OFF, so without an enabled SignupConfig the create-account examples
+  # would 302 out of Base#signup_enabled? before the restrict_to gate is
+  # reached and pass for the wrong reason.
   def build_restricted_domain(restrict_to)
-    owner = Onetime::Customer.new(email: "owner-#{run_id}@test.local")
+    label = restrict_to.nil? ? 'unrestricted' : restrict_to.tr('_', '-')
+    owner = Onetime::Customer.new(email: "owner-#{label}-#{run_id}@test.local")
     owner.save
-    org  = Onetime::Organization.create!("RestrictTo Simple #{run_id}", owner, 'contact@test.local')
+    org  = Onetime::Organization.create!("RestrictTo Simple #{label} #{run_id}", owner, 'contact@test.local')
     # tr('_', '-'): an underscore is not legal in a hostname label and
     # DomainStrategy falls back to the canonical host for one, which would
     # make the example pass vacuously.
-    host = "simple-#{restrict_to.tr('_', '-')}-#{run_id}.example.com"
+    host = "simple-#{label}-#{run_id}.example.com"
 
     domain = Onetime::CustomDomain.new(display_domain: host, org_id: org.org_id)
     domain.save
     Onetime::CustomDomain.display_domain_index.put(host, domain.domainid)
 
-    Onetime::CustomDomain::SigninConfig.create!(
+    signin_attrs = { domain_id: domain.identifier, enabled: true, signin_enabled: true }
+    signin_attrs[:restrict_to] = restrict_to unless restrict_to.nil?
+    Onetime::CustomDomain::SigninConfig.create!(**signin_attrs)
+
+    Onetime::CustomDomain::SignupConfig.create!(
       domain_id: domain.identifier,
       enabled: true,
-      signin_enabled: true,
-      restrict_to: restrict_to,
+      signup_enabled: true,
+      validation_strategy: 'passthrough',
     )
 
     @fixtures << [org, domain, owner, host]
@@ -118,7 +128,7 @@ RSpec.describe 'restrict_to enforcement — simple mode (ADR-024 A1/A7, #4139)',
   # Fresh session + CSRF token, then the crafted POST. A silently-nil shrimp
   # draws a 403 from the CSRF middleware and would surface as a misleading
   # status assertion, so setup failure is loud.
-  def post_login(host, login: 'nobody@example.com', password: 'integration-test-pw')
+  def post_json(host, path, payload)
     clear_cookies
     header 'Host', host
     header 'Content-Type', nil
@@ -132,7 +142,7 @@ RSpec.describe 'restrict_to enforcement — simple mode (ADR-024 A1/A7, #4139)',
     header 'Content-Type', 'application/json'
     header 'Accept', 'application/json'
     header 'X-CSRF-Token', token
-    post '/auth/login', JSON.generate(login: login, password: password, shrimp: token)
+    post path, JSON.generate(payload.merge(shrimp: token))
 
     if last_response.status == 403
       raise "CSRF rejected by the stack (403): #{last_response.body}. " \
@@ -140,6 +150,49 @@ RSpec.describe 'restrict_to enforcement — simple mode (ADR-024 A1/A7, #4139)',
     end
 
     last_response
+  end
+
+  def post_login(host, login: 'nobody@example.com', password: 'integration-test-pw')
+    post_json(host, '/auth/login', { login: login, password: password })
+  end
+
+  # The three additional pre-auth password surfaces simple mode serves from
+  # Core::Controllers::Registration (ADR-024 A7, "pre-auth password surfaces
+  # are not exempt"). Payloads are deliberately plausible-but-doomed: the gate
+  # must fire before any of them can be evaluated.
+  def post_create_account(host)
+    post_json(host, '/auth/create-account', {
+      email: "newbie-#{SecureRandom.hex(4)}@test.local",
+      password: 'integration-test-pw',
+      password2: 'integration-test-pw',
+    })
+  end
+
+  def post_reset_password_request(host)
+    post_json(host, '/auth/reset-password-request', { email: 'nobody@example.com' })
+  end
+
+  # A plain `status == 404` check is not a safe discriminator for
+  # /auth/reset-password: its own MissingSecret rescue ALSO answers 404 (an
+  # invalid token is a legitimate not-found). The gate's 404 is the one carrying
+  # RecordNotFound's serialized shape, so match on that instead — otherwise the
+  # "permitted host still works" example would pass while the gate was rejecting
+  # everything.
+  def gate_rejected?(response)
+    return false unless response.status == 404
+
+    body = JSON.parse(response.body)
+    body['error_type'] == 'RecordNotFound' && body['error'] == 'Not Found'
+  rescue JSON::ParserError
+    false
+  end
+
+  def post_reset_password(host)
+    post_json(host, '/auth/reset-password', {
+      key: SecureRandom.hex(16),
+      newp: 'integration-test-pw',
+      newp2: 'integration-test-pw',
+    })
   end
 
   it "404s POST /auth/login on a host restricted to 'sso'" do
@@ -171,5 +224,64 @@ RSpec.describe 'restrict_to enforcement — simple mode (ADR-024 A1/A7, #4139)',
     # mean the gate rejects the very method the host permits.
     expect(response.status).not_to eq(404),
       'the permitted method must stay reachable on its own restricted host'
+  end
+
+  it 'does NOT reject POST /auth/login on an unrestricted host' do
+    response = post_login(build_restricted_domain(nil))
+
+    expect(response.status).not_to eq(404),
+      'a domain with no restrict_to must be unaffected by the gate'
+  end
+
+  # ---------------------------------------------------------------------------
+  # The other three pre-auth password surfaces (#4139, ADR-024 A7).
+  #
+  # These are served by Core::Controllers::Registration in simple mode and were
+  # ungated when the login gate landed, so enforcement was endpoint-dependent
+  # inside simple mode as well as mode-dependent between modes. A7 names all
+  # three explicitly as NOT exempt.
+  # ---------------------------------------------------------------------------
+  {
+    'POST /auth/create-account'          => :post_create_account,
+    'POST /auth/reset-password-request'  => :post_reset_password_request,
+    'POST /auth/reset-password'          => :post_reset_password,
+  }.each do |description, verb|
+    describe description do
+      it "404s on a host restricted to 'sso'" do
+        response = send(verb, build_restricted_domain('sso'))
+
+        expect(gate_rejected?(response)).to be(true),
+          "expected #{description} to read as undefined on an sso-restricted host " \
+          "(ADR-024 A7), got #{response.status}: #{response.body[0, 300]}"
+      end
+
+      it "404s on a host restricted to 'email_auth'" do
+        response = send(verb, build_restricted_domain('email_auth'))
+
+        expect(gate_rejected?(response)).to be(true), "got #{response.status}: #{response.body[0, 300]}"
+      end
+
+      it '404s on a host whose restriction resolves to :unavailable' do
+        # 'webauthn' cannot be honored on a custom domain (#4137), so resolution
+        # is :unavailable — fail CLOSED, never widening back to password.
+        response = send(verb, build_restricted_domain('webauthn'))
+
+        expect(gate_rejected?(response)).to be(true), "got #{response.status}: #{response.body[0, 300]}"
+      end
+
+      it "does NOT reject on a host restricted to 'password'" do
+        response = send(verb, build_restricted_domain('password'))
+
+        expect(gate_rejected?(response)).to be(false),
+          'the permitted method must stay reachable on its own restricted host'
+      end
+
+      it 'does NOT reject on an unrestricted host' do
+        response = send(verb, build_restricted_domain(nil))
+
+        expect(gate_rejected?(response)).to be(false),
+          'a domain with no restrict_to must be unaffected by the gate'
+      end
+    end
   end
 end
