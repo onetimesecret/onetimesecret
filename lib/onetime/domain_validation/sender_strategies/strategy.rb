@@ -21,6 +21,7 @@ require_relative 'provider_config'
 require_relative 'ses_validation'
 require_relative 'sendgrid_validation'
 require_relative 'lettermint_validation'
+require_relative 'smtp2go_validation'
 
 module Onetime
   module DomainValidation
@@ -31,6 +32,7 @@ module Onetime
           'ses' => SesValidation,
           'sendgrid' => SendgridValidation,
           'lettermint' => LettermintValidation,
+          'smtp2go' => Smtp2goValidation,
         }.freeze
 
         # Factory method to create appropriate strategy based on provider type.

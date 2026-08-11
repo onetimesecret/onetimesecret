@@ -6,6 +6,7 @@ require_relative 'sender_strategies/base_sender_strategy'
 require_relative 'sender_strategies/ses_sender_strategy'
 require_relative 'sender_strategies/sendgrid_sender_strategy'
 require_relative 'sender_strategies/lettermint_sender_strategy'
+require_relative 'sender_strategies/smtp2go_sender_strategy'
 require_relative 'sender_strategies/smtp_sender_strategy'
 
 module Onetime
@@ -23,6 +24,7 @@ module Onetime
     #   - ses: AWS SES DKIM provisioning
     #   - sendgrid: SendGrid domain authentication
     #   - lettermint: Lettermint domain setup
+    #   - smtp2go: SMTP2GO sender domain setup
     #   - smtp: No-op (manual DNS configuration)
     #
     module SenderStrategies
@@ -32,12 +34,13 @@ module Onetime
         'ses' => SESSenderStrategy,
         'sendgrid' => SendGridSenderStrategy,
         'lettermint' => LettermintSenderStrategy,
+        'smtp2go' => Smtp2goSenderStrategy,
         'smtp' => SMTPSenderStrategy,
       }.freeze
 
       # List of provider names that support automated provisioning.
       #
-      PROVISIONING_PROVIDERS = %w[ses sendgrid lettermint].freeze
+      PROVISIONING_PROVIDERS = %w[ses sendgrid lettermint smtp2go].freeze
 
       class << self
         # Create a sender strategy for the given provider.

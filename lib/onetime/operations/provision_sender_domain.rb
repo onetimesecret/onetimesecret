@@ -234,7 +234,9 @@ module Onetime
         required = case provider.to_s.downcase
                    when 'ses'
                      %w[access_key_id secret_access_key region]
-                   when 'sendgrid'
+                   when 'sendgrid', 'smtp2go'
+                     # smtp2go: the single API key covers both sending and
+                     # domain provisioning, so it has the same requirement.
                      %w[api_key]
                    when 'lettermint'
                      # Team API token for domain provisioning (Bearer auth)

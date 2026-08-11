@@ -25,6 +25,9 @@ module Onetime
       #       dkim_selectors: [lm1, lm2]
       #       spf_cname_prefix: lm-bounces
       #       spf_cname_target: bounces.lmta.net
+      #     smtp2go:
+      #       returnpath_subdomain: bounce
+      #       tracking_subdomain: track
       #
       # Usage:
       #   config = ProviderConfig.for('ses')
@@ -53,6 +56,11 @@ module Onetime
             spf_cname_prefix: 'lm-bounces',
             spf_cname_target: 'bounces.lmta.net',
             api_base_url: 'https://api.lettermint.co/v1',
+          }.freeze,
+          'smtp2go' => {
+            api_base_url: 'https://api.smtp2go.com/v3',
+            returnpath_subdomain: 'bounce',
+            tracking_subdomain: 'track',
           }.freeze,
         }.freeze
 
@@ -147,7 +155,7 @@ module Onetime
             unless subdomain.nil? || subdomain.match?(/\A[a-z0-9-]+\z/i)
               raise ArgumentError, "Invalid subdomain: #{subdomain}"
             end
-          when 'lettermint'
+          when 'lettermint', 'smtp2go'
             api_base_url = config[:api_base_url]
             unless api_base_url.nil? || api_base_url.match?(%r{\Ahttps?://[^\s]+\z})
               raise ArgumentError, "Invalid API base URL: #{api_base_url}"

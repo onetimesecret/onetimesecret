@@ -38,7 +38,7 @@ module Onetime
 
       # Supported mail provider types.
       # See lib/onetime/mail/mailer.rb for provider implementations.
-      PROVIDER_TYPES = %w[smtp ses sendgrid lettermint].freeze
+      PROVIDER_TYPES = %w[smtp ses sendgrid lettermint smtp2go].freeze
 
       prefix :custom_domain__mailer_config
 

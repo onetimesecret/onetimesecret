@@ -14,6 +14,7 @@ RSpec.describe Onetime::Operations::DeleteSenderDomain do
     'ses'        => Onetime::Mail::SenderStrategies::SESSenderStrategy,
     'sendgrid'   => Onetime::Mail::SenderStrategies::SendGridSenderStrategy,
     'lettermint' => Onetime::Mail::SenderStrategies::LettermintSenderStrategy,
+    'smtp2go'    => Onetime::Mail::SenderStrategies::Smtp2goSenderStrategy,
   }.freeze
 
   # MailerConfig stand-in. effective_provider is the single input the

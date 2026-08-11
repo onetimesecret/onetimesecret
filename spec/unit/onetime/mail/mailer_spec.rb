@@ -42,6 +42,14 @@ RSpec.describe Onetime::Mail::Mailer do
       end
     end
 
+    context 'when no mode is set and smtp2go_api_key present' do
+      let(:config) { { 'smtp2go_api_key' => 'api-test' } }
+
+      it 'auto-detects SMTP2GO' do
+        expect(subject).to eq('smtp2go')
+      end
+    end
+
     context 'when no mode is set and host present' do
       let(:config) { { 'host' => 'smtp.example.com' } }
 

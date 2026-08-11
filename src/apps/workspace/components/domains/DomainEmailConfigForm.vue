@@ -160,6 +160,7 @@ const providerDisplayName = computed(() => {
     ses: 'Amazon SES',
     sendgrid: 'SendGrid',
     lettermint: 'Lettermint',
+    smtp2go: 'SMTP2GO',
     inherit: '',
   };
   return props.provider ? (map[props.provider] ?? '') : '';

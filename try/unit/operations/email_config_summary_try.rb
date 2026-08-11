@@ -14,6 +14,7 @@
 #   from_address / from_name / provider_config / sender_provider / sender_differs
 # - sender_differs is a boolean == (sender_provider != provider)
 # - provider_config is the STABLE six-key superset with has_credentials boolean
+#   (covering every credentialed provider arm: smtp/ses/sendgrid/lettermint/smtp2go)
 # - NO-CREDS-IN-PAYLOAD: a deep scan of build's output contains no secret, and
 #   masked_provider_config on an SMTP config with user/pass emits neither
 #
@@ -89,6 +90,24 @@ CS.masked_provider_config('smtp', { 'host' => 'h', 'port' => '2525' })[:port]
 })
 [@ses[:region], @ses[:has_credentials], @ses.key?(:user), @ses.key?(:pass)]
 #=> ['us-east-1', true, false, false]
+
+## a lettermint config with a sending api token yields has_credentials, no secrets
+@lm = CS.masked_provider_config('lettermint', { 'lettermint_api_token' => 'lm_some-token' })
+[@lm[:has_credentials], @lm.keys.sort, @lm.value?('lm_some-token')]
+#=> [true, %i[domain has_credentials host port region tls].sort, false]
+
+## a lettermint config with only a team token still counts as credentialed
+CS.masked_provider_config('lettermint', { 'lettermint_team_token' => 'lm_team-token' })[:has_credentials]
+#=> true
+
+## a smtp2go config with an api key yields has_credentials, no secrets
+@s2g = CS.masked_provider_config('smtp2go', { 'smtp2go_api_key' => 'api-abcdef0123456789' })
+[@s2g[:has_credentials], @s2g.keys.sort, @s2g.value?('api-abcdef0123456789')]
+#=> [true, %i[domain has_credentials host port region tls].sort, false]
+
+## lettermint/smtp2go configs without credentials read false (test env sets no tokens)
+[CS.masked_provider_config('lettermint', {})[:has_credentials], CS.masked_provider_config('smtp2go', {})[:has_credentials]]
+#=> [false, false]
 
 ## logger/unknown provider yields the bare superset with no credentials
 @none = CS.masked_provider_config('logger', {})

@@ -96,6 +96,10 @@ module Onetime
             )
           when 'sendgrid'
             base.merge(has_credentials: sendgrid_key?(raw))
+          when 'lettermint'
+            base.merge(has_credentials: lettermint_token?(raw))
+          when 'smtp2go'
+            base.merge(has_credentials: smtp2go_key?(raw))
           else
             # logger / disabled / none: no host/region and no credentials.
             base
@@ -123,6 +127,19 @@ module Onetime
 
         def sendgrid_key?(conf)
           key = conf['sendgrid_api_key'] || conf['pass'] || ENV.fetch('SENDGRID_API_KEY', nil)
+          !(key.nil? || key.empty?)
+        end
+
+        # Mirrors build_provider_config('lettermint'): the sending api_token
+        # or the provisioning team_token each count as credentials.
+        def lettermint_token?(conf)
+          token = conf['lettermint_api_token'] || conf['pass'] || ENV.fetch('LETTERMINT_API_TOKEN', nil)
+          team  = conf['lettermint_team_token'] || ENV.fetch('LETTERMINT_TEAM_TOKEN', nil)
+          !(token.nil? || token.empty?) || !(team.nil? || team.empty?)
+        end
+
+        def smtp2go_key?(conf)
+          key = conf['smtp2go_api_key'] || ENV.fetch('SMTP2GO_API_KEY', nil)
           !(key.nil? || key.empty?)
         end
       end

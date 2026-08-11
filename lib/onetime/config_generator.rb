@@ -75,6 +75,7 @@ module Onetime
           { value: 'ses', label: 'Amazon SES' },
           { value: 'sendgrid', label: 'SendGrid' },
           { value: 'lettermint', label: 'Lettermint' },
+          { value: 'smtp2go', label: 'SMTP2GO' },
         ],
       },
       sso_enabled: {
@@ -225,7 +226,7 @@ module Onetime
 
     def to_yaml_fragment(hash)
       normalized = Onetime::Utils::Enumerables.normalize_keys(hash)
-      YAML.dump(normalized).sub(/\A---\n/, '')
+      YAML.dump(normalized).delete_prefix("---\n")
     end
 
     def env_snippet_for(selections)
@@ -246,13 +247,15 @@ module Onetime
 
       case selections[:email_provider]
       when 'smtp'
-        lines.concat(%w[SMTP_HOST= SMTP_USERNAME= SMTP_PASSWORD=])
+        lines.push('SMTP_HOST=', 'SMTP_USERNAME=', 'SMTP_PASSWORD=')
       when 'ses'
-        lines.concat(%w[AWS_ACCESS_KEY_ID= AWS_SECRET_ACCESS_KEY=])
+        lines.push('AWS_ACCESS_KEY_ID=', 'AWS_SECRET_ACCESS_KEY=')
       when 'sendgrid'
         lines << 'SENDGRID_API_KEY='
       when 'lettermint'
-        lines.concat(%w[LETTERMINT_API_TOKEN= LETTERMINT_TEAM_TOKEN=])
+        lines.push('LETTERMINT_API_TOKEN=', 'LETTERMINT_TEAM_TOKEN=')
+      when 'smtp2go'
+        lines << 'SMTP2GO_API_KEY='
       end
 
       lines << 'SENTRY_DSN_BACKEND=' if selections[:diagnostics_enabled]

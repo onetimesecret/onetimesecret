@@ -184,6 +184,8 @@ module DomainsAPI
             Onetime::Mail::Delivery::Lettermint.new(api_token: api_key)
           when 'sendgrid'
             Onetime::Mail::Delivery::SendGrid.new(api_key: api_key)
+          when 'smtp2go'
+            Onetime::Mail::Delivery::Smtp2go.new('api_key' => api_key)
           else
             # SES requires IAM credentials (key + secret + region) which
             # can't be reconstructed from a single api_key field — fall back

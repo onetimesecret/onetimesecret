@@ -22,6 +22,7 @@ SenderStrategy = Onetime::DomainValidation::SenderStrategies::SenderStrategy
 SesValidation = Onetime::DomainValidation::SenderStrategies::SesValidation
 SendgridValidation = Onetime::DomainValidation::SenderStrategies::SendgridValidation
 LettermintValidation = Onetime::DomainValidation::SenderStrategies::LettermintValidation
+Smtp2goValidation = Onetime::DomainValidation::SenderStrategies::Smtp2goValidation
 
 # Helper struct that mimics dns_records accessor on MailerConfig
 DnsRecordsWrapper = Struct.new(:value)
@@ -72,6 +73,10 @@ SendgridValidation.accepted_options
 LettermintValidation.accepted_options
 #=> []
 
+## Smtp2go accepted_options is empty
+Smtp2goValidation.accepted_options
+#=> []
+
 # --- Factory creates strategies without options ---
 
 ## Factory creates SES strategy
@@ -85,6 +90,10 @@ SenderStrategy.for_provider('sendgrid').class
 ## Factory creates Lettermint strategy
 SenderStrategy.for_provider('lettermint').class
 #=> Onetime::DomainValidation::SenderStrategies::LettermintValidation
+
+## Factory creates Smtp2go strategy
+SenderStrategy.for_provider('smtp2go').class
+#=> Onetime::DomainValidation::SenderStrategies::Smtp2goValidation
 
 # --- SES reads provisioned records ---
 

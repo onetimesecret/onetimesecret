@@ -9,6 +9,7 @@ require_relative 'delivery/smtp'
 require_relative 'delivery/ses'
 require_relative 'delivery/sendgrid'
 require_relative 'delivery/lettermint'
+require_relative 'delivery/smtp2go'
 require_relative 'views/base'
 require_relative 'views/secret_link'
 require_relative 'views/welcome'
@@ -192,7 +193,7 @@ module Onetime
         # which provider list to pull).
         #
         # @return [String] provider name: 'ses' | 'sendgrid' | 'lettermint' |
-        #   'smtp' | 'logger' (the safe fallback).
+        #   'smtp2go' | 'smtp' | 'logger' (the safe fallback).
         def determine_provider
           conf = emailer_config
           mode = conf['mode']&.to_s&.downcase
@@ -206,6 +207,7 @@ module Onetime
           #   region + user        -> ses (AWS SES credentials)
           #   sendgrid_api_key     -> sendgrid
           #   lettermint_api_token -> lettermint
+          #   smtp2go_api_key      -> smtp2go
           #   host                 -> smtp (generic SMTP)
           #   (none)               -> logger (safe fallback)
           if conf['region'] && conf['user']
@@ -214,6 +216,8 @@ module Onetime
             'sendgrid'
           elsif conf['lettermint_api_token']
             'lettermint'
+          elsif conf['smtp2go_api_key']
+            'smtp2go'
           elsif conf['host']
             'smtp'
           else
@@ -306,6 +310,8 @@ module Onetime
             Delivery::SendGrid.new(config)
           when 'lettermint'
             Delivery::Lettermint.new(config)
+          when 'smtp2go'
+            Delivery::Smtp2go.new(config)
           when 'logger'
             Delivery::Logger.new(config)
           else
@@ -343,39 +349,64 @@ module Onetime
           conf = emailer_config
 
           case provider
-          when 'smtp'
-            {
-              'host' => conf['host'] || ENV.fetch('SMTP_HOST', nil),
-              'port' => conf['port'] || ENV.fetch('SMTP_PORT', nil),
-              'username' => conf['user'] || ENV.fetch('SMTP_USERNAME', nil),
-              'password' => conf['pass'] || ENV.fetch('SMTP_PASSWORD', nil),
-              'domain' => conf['domain'] || ENV.fetch('SMTP_DOMAIN', nil),
-              'tls' => conf['tls'],
-              'allow_unauthenticated_fallback' => conf['allow_unauthenticated_fallback'],
-            }
-          when 'ses'
-            {
-              'region' => conf['region'] || ENV.fetch('AWS_REGION', nil),
-              'access_key_id' => conf['user'] || ENV.fetch('AWS_ACCESS_KEY_ID', nil),
-              'secret_access_key' => conf['pass'] || ENV.fetch('AWS_SECRET_ACCESS_KEY', nil),
-            }
-          when 'sendgrid'
-            {
-              'api_key' => conf['sendgrid_api_key'] || conf['pass'] || ENV.fetch('SENDGRID_API_KEY', nil),
-            }
-          when 'lettermint'
-            lm_conf = provider_config('lettermint')
-            {
-              # Sending API token (x-lettermint-token header) - for email delivery
-              'api_token' => conf['lettermint_api_token'] || lm_conf['api_token'] || conf['pass'] || ENV.fetch('LETTERMINT_API_TOKEN', nil),
-              # Team API token (Authorization: Bearer header) - for domain provisioning
-              'team_token' => conf['lettermint_team_token'] || lm_conf['team_token'] || ENV.fetch('LETTERMINT_TEAM_TOKEN', nil),
-              'base_url' => conf['lettermint_base_url'] || lm_conf['api_base_url'] || ENV.fetch('LETTERMINT_BASE_URL', nil),
-              'timeout' => conf['lettermint_timeout'],
-            }.compact
-          else
-            {}
+          when 'smtp'       then smtp_provider_config(conf)
+          when 'ses'        then ses_provider_config(conf)
+          when 'sendgrid'   then sendgrid_provider_config(conf)
+          when 'lettermint' then lettermint_provider_config(conf)
+          when 'smtp2go'    then smtp2go_provider_config(conf)
+          else {}
           end
+        end
+
+        def smtp_provider_config(conf)
+          {
+            'host' => conf['host'] || ENV.fetch('SMTP_HOST', nil),
+            'port' => conf['port'] || ENV.fetch('SMTP_PORT', nil),
+            'username' => conf['user'] || ENV.fetch('SMTP_USERNAME', nil),
+            'password' => conf['pass'] || ENV.fetch('SMTP_PASSWORD', nil),
+            'domain' => conf['domain'] || ENV.fetch('SMTP_DOMAIN', nil),
+            'tls' => conf['tls'],
+            'allow_unauthenticated_fallback' => conf['allow_unauthenticated_fallback'],
+          }
+        end
+
+        def ses_provider_config(conf)
+          {
+            'region' => conf['region'] || ENV.fetch('AWS_REGION', nil),
+            'access_key_id' => conf['user'] || ENV.fetch('AWS_ACCESS_KEY_ID', nil),
+            'secret_access_key' => conf['pass'] || ENV.fetch('AWS_SECRET_ACCESS_KEY', nil),
+          }
+        end
+
+        def sendgrid_provider_config(conf)
+          {
+            'api_key' => conf['sendgrid_api_key'] || conf['pass'] || ENV.fetch('SENDGRID_API_KEY', nil),
+          }
+        end
+
+        def lettermint_provider_config(conf)
+          lm_conf = provider_config('lettermint')
+          {
+            # Sending API token (x-lettermint-token header) - for email delivery
+            'api_token' => conf['lettermint_api_token'] || lm_conf['api_token'] || conf['pass'] || ENV.fetch('LETTERMINT_API_TOKEN', nil),
+            # Team API token (Authorization: Bearer header) - for domain provisioning
+            'team_token' => conf['lettermint_team_token'] || lm_conf['team_token'] || ENV.fetch('LETTERMINT_TEAM_TOKEN', nil),
+            'base_url' => conf['lettermint_base_url'] || lm_conf['api_base_url'] || ENV.fetch('LETTERMINT_BASE_URL', nil),
+            'timeout' => conf['lettermint_timeout'],
+          }.compact
+        end
+
+        def smtp2go_provider_config(conf)
+          s2g_conf = provider_config('smtp2go')
+          {
+            # Single API key covers both email delivery and domain provisioning
+            'api_key' => conf['smtp2go_api_key'] || s2g_conf['api_key'] || ENV.fetch('SMTP2GO_API_KEY', nil),
+            'base_url' => s2g_conf['api_base_url'] || ENV.fetch('SMTP2GO_BASE_URL', nil),
+            # Subdomains for the SPF/Return-Path and tracking CNAME records
+            'returnpath_subdomain' => s2g_conf['returnpath_subdomain'] || ENV.fetch('CUSTOM_MAIL_SMTP2GO_RETURNPATH_SUBDOMAIN', 'bounce'),
+            'tracking_subdomain' => s2g_conf['tracking_subdomain'] || ENV.fetch('CUSTOM_MAIL_SMTP2GO_TRACKING_SUBDOMAIN', 'track'),
+            'timeout' => conf['smtp2go_timeout'],
+          }.compact
         end
 
         def emailer_config
