@@ -210,13 +210,19 @@ that does not exist — webauthn first functioned in the same release that
 introduced the PUT write gate. A stray value is invalid data and fails
 closed like the rest.
 
-Deliberate asymmetry: the *global* path keeps `AuthConfig#restrict_to`'s
-drop-to-standard semantics. A global restriction naming a disabled method
-is stale operator config, and the operator's most recent intent is the
-disable; failing the whole install closed over it is the lockout trap
-(#4062 precedent). Operator misconfig fails loud (boot WARN), tenant
-config fails closed at runtime — the tenant can always fix their setting
-from the canonical host.
+No asymmetry (ratified 2026-08-11, superseding this amendment's original
+drop-to-standard carve-out): the *global* path fails closed too. A global
+`restrict_to` naming a method the system can already determine is
+unavailable at boot is a fatal boot error, not a fallback. Today
+`AuthConfig#restrict_to` silently returns nil when the named method's
+prerequisites fail and every caller reads that as "unrestricted" — the
+install widens to standard mode with no signal at all, re-exposing exactly
+the methods the operator restricted away. The #4062 lockout-trap argument
+was considered and overruled: a boot failure *is* the loud failure,
+surfaced at deploy time to the operator who holds the config file and can
+fix it; the trap to avoid is a silent runtime widen, not a refused boot.
+Unavailability only discoverable after boot degrades fail-closed like the
+domain path.
 
 #### A4. Settings API serializes `effective_restrict_to`
 
