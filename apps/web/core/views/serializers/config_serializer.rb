@@ -310,7 +310,24 @@ module Core
           domain_id = resolve_domain_id(view_vars)
           if domain_id
             signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id)
-            return signin_config.restrict_to if signin_config&.enabled?
+            if signin_config&.enabled?
+              value = signin_config.restrict_to
+              # 'webauthn' is never honored as a DOMAIN restriction: passkey
+              # credentials are host-scoped (rp_id = request.host), so a
+              # credential registered on the canonical sign-in host can never
+              # assert on this custom domain — a passkey-only page here locks
+              # every visitor out until the tenant changes the setting.
+              # Resolve to standard mode (nil, all enabled methods) instead,
+              # mirroring AuthConfig#restrict_to, which nils out any
+              # restriction whose backing method is unavailable, and the
+              # domain form, which offers the webauthn row only as a locked
+              # keep-if-selected entry. The persisted raw value is untouched
+              # (GET signin-config still returns it); only the login-page
+              # resolution degrades. PUT rejects NEW webauthn restrictions
+              # (DomainsAPI PutSigninConfig), so this guard covers values
+              # persisted before that check existed.
+              return value == 'webauthn' ? nil : value
+            end
           end
 
           return 'sso' if tenant_domain?(view_vars) && sso_available?(view_vars)

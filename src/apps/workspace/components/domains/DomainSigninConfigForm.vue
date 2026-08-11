@@ -315,13 +315,19 @@
         available: ssoAvailable.value && props.canManageSso,
       });
     }
-    // WebAuthn / Passkeys listed last.
-    if (webauthnAvailable.value) {
+    // WebAuthn / Passkeys listed last — but NEVER offered for selection:
+    // passkeys are host-scoped (rp_id = request.host), so a credential
+    // registered on the canonical sign-in host can never authenticate on this
+    // custom domain. Restricting a domain to webauthn-only is a guaranteed
+    // dead end. The row appears (locked) ONLY when it is already the
+    // persisted restriction — same keep-if-selected rationale as SSO above —
+    // with a blurb naming the host-scope limitation instead of the pitch.
+    if (props.formState.restrict_to === 'webauthn') {
       rows.push({
         value: 'webauthn',
         label: t('web.domains.signin.method_webauthn'),
-        blurb: t('web.domains.signin.method_webauthn_blurb'),
-        available: true,
+        blurb: t('web.domains.signin.method_webauthn_unavailable'),
+        available: false,
       });
     }
     return rows;
@@ -412,6 +418,11 @@
     // also rendered (locked) when it is the current restriction, so this is
     // the backstop for that row.
     if (value === 'sso' && !ssoConfigurable.value) return;
+    // WebAuthn is never (re)selectable: passkeys are host-scoped (rp_id), so
+    // a webauthn-only restriction dead-ends sign-in on a custom domain. Its
+    // row only renders locked (keep-if-selected); this backstop also keeps
+    // onMethodClick's ADR-024 materialize-on-touch path from saving it.
+    if (value === 'webauthn') return;
     const patch: Partial<SigninConfigFormState> = { restrict_to: value };
     if (value === 'email_auth') patch.email_auth_enabled = true;
     if (value === 'sso') patch.sso_enabled = true;

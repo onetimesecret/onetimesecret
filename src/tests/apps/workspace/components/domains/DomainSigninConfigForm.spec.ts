@@ -20,6 +20,14 @@
 // value. DOM order is [Sign-in disabled, Any available method, One specific
 // method]. Mode B is reachable both via the segment and by driving
 // formState.restrict_to directly.
+//
+// NOTE: WebAuthn is NEVER offered in Mode B, even when globally available —
+// passkeys are host-scoped (rp_id = request.host), so a passkey registered on
+// the canonical host can never authenticate on a custom domain, making a
+// webauthn-only restriction a dead end. The row renders (locked) only when
+// restrict_to === 'webauthn' is already persisted (keep-if-selected, like the
+// SSO row) with the host-scope limitation blurb. Mode A's static row is
+// untouched.
 
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
@@ -130,6 +138,7 @@ const COPY = {
   cancel: t('web.COMMON.word_cancel'),
   connectionDisabledBadge: t('web.domains.sso.connection_disabled_badge'),
   connectionDisabledHint: t('web.domains.sso.connection_disabled_hint'),
+  methodWebauthnUnavailable: t('web.domains.signin.method_webauthn_unavailable'),
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -626,12 +635,14 @@ describe('DomainSigninConfigForm', () => {
   // -----------------------------------------------------------------------
 
   describe('mode B: restrict_to picker', () => {
-    it('renders a radio for each globally-available method', () => {
+    it('renders a radio for each offerable method (webauthn excluded by design)', () => {
       wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'password' } });
       expect(wrapper.find('#signin-restrict-password').exists()).toBe(true);
-      expect(wrapper.find('#signin-restrict-webauthn').exists()).toBe(true);
       expect(wrapper.find('#signin-restrict-email_auth').exists()).toBe(true);
       expect(wrapper.find('#signin-restrict-sso').exists()).toBe(true);
+      // Host-scoped passkeys can never work webauthn-only on a custom domain,
+      // so the row is withheld even though webauthn is globally available.
+      expect(wrapper.find('#signin-restrict-webauthn').exists()).toBe(false);
     });
 
     it('pre-selects the active method radio', () => {
@@ -686,23 +697,17 @@ describe('DomainSigninConfigForm', () => {
   });
 
   // -----------------------------------------------------------------------
-  // Invariant 1 — Availability-flag flip on Mode B selection (webauthn gap)
+  // Invariant 1 — Availability-flag flip on Mode B selection
   //
   // The existing "mode B: restrict_to picker" block covers Email (+flag),
-  // SSO (+flag), and Password (no flag). The Passkeys/webauthn branch — the
-  // 4th method, restrict_to only, no per-domain field — was uncovered.
+  // SSO (+flag), and Password (no flag). Passkeys can no longer be PICKED at
+  // all (host-scoped rp_id — see the webauthn lockout block below), so the
+  // former "picking Passkeys auto-saves restrict_to: webauthn" case is
+  // structurally impossible: its radio never renders unless already persisted,
+  // and then only disabled.
   // -----------------------------------------------------------------------
 
   describe('invariant 1: Mode B selection flips availability flag', () => {
-    it('picking Passkeys auto-saves restrict_to: webauthn only (no per-domain flag)', async () => {
-      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'password' } });
-      await wrapper.find('#signin-restrict-webauthn').trigger('change');
-
-      const emitted = wrapper.emitted('auto-save');
-      expect(emitted).toBeTruthy();
-      expect(emitted![0]).toEqual([{ restrict_to: 'webauthn' }, 'restrict_to']);
-    });
-
     it('Email/SSO picks carry ONLY their own flag, not the sibling flag', async () => {
       // Picking Email must not also set sso_enabled, and vice versa: the patch
       // is exactly { restrict_to, <own flag> } — no leakage onto other methods.
@@ -735,15 +740,17 @@ describe('DomainSigninConfigForm', () => {
 
   describe('invariant 2: global availability gating', () => {
     describe('Mode B (one specific method) — radio presence', () => {
-      it('offers all four radios when everything is globally available', () => {
+      it('offers password/email/sso when everything is globally available — never webauthn', () => {
         wrapper = mountForm({
           formState: { ...defaultFormState, restrict_to: 'password' },
           globalAvailability: allAvailable,
         });
         expect(wrapper.find('#signin-restrict-password').exists()).toBe(true);
-        expect(wrapper.find('#signin-restrict-webauthn').exists()).toBe(true);
         expect(wrapper.find('#signin-restrict-email_auth').exists()).toBe(true);
         expect(wrapper.find('#signin-restrict-sso').exists()).toBe(true);
+        // Global availability is irrelevant for webauthn in Mode B: passkeys
+        // are host-scoped, so the row only appears when already persisted.
+        expect(wrapper.find('#signin-restrict-webauthn').exists()).toBe(false);
       });
 
       it('omits the Email radio when email_auth is globally off', () => {
@@ -1106,6 +1113,61 @@ describe('DomainSigninConfigForm', () => {
         orgsSsoEnabled: false,
       });
       expect(wrapper.find('#signin-restrict-password').exists()).toBe(true);
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // WebAuthn lockout — host-scoped passkeys (rp_id = request.host)
+  //
+  // A passkey registered on the canonical sign-in host can never authenticate
+  // on a custom domain, so restrict_to=webauthn is a guaranteed dead end.
+  // Mode B therefore never OFFERS the method; a domain where it is already
+  // persisted gets the keep-if-selected treatment (visible, checked, locked)
+  // so the radiogroup still reports the true configuration — mirroring the
+  // unentitled-SSO row. Mode A's static row is deliberately untouched.
+  // -----------------------------------------------------------------------
+
+  describe('webauthn lockout (host-scoped passkeys)', () => {
+    it('keeps the WebAuthn radio visible-but-locked when it is the CURRENT restriction', () => {
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'webauthn' },
+      });
+      const radio = wrapper.find('#signin-restrict-webauthn');
+      expect(radio.exists()).toBe(true);
+      expect((radio.element as HTMLInputElement).checked).toBe(true);
+      expect(radio.attributes('disabled')).toBeDefined();
+    });
+
+    it('shows the host-scope limitation blurb on the locked row', () => {
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'webauthn' },
+      });
+      expect(wrapper.find('#signin-restrict-webauthn-description').text()).toContain(
+        COPY.methodWebauthnUnavailable
+      );
+    });
+
+    it('cannot re-select WebAuthn from the locked row', async () => {
+      // Belt & suspenders like the SSO case: the disabled attribute blocks the
+      // event AND selectMethod hard-returns on 'webauthn'; this test fails
+      // only if both regress.
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'webauthn' },
+      });
+      await wrapper.find('#signin-restrict-webauthn').trigger('change');
+      expect(wrapper.emitted('auto-save')).toBeFalsy();
+    });
+
+    it('does not materialize a save via onMethodClick (ADR-024) on the locked row', async () => {
+      // While following workspace defaults, clicking a pre-checked radio
+      // routes through selectMethod to pin the inherited config — the
+      // webauthn guard must stop that path too.
+      wrapper = mountForm({
+        workspaceDefault: true,
+        formState: { ...defaultFormState, restrict_to: 'webauthn' },
+      });
+      await wrapper.find('#signin-restrict-webauthn').trigger('click');
+      expect(wrapper.emitted('auto-save')).toBeFalsy();
     });
   });
 

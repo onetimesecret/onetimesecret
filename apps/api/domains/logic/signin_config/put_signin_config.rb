@@ -47,6 +47,9 @@ module DomainsAPI
 
           # Validate restrict_to value
           validate_restrict_to(@restrict_to)
+
+          # Reject NEW webauthn restrictions (carry-over resubmits stay valid)
+          validate_webauthn_restriction!
         end
 
         def process
@@ -97,6 +100,34 @@ module DomainsAPI
         end
 
         private
+
+        # Reject a NEW restrict_to='webauthn' write for a custom domain:
+        # passkey credentials are host-scoped (rp_id = request.host), so a
+        # credential registered on the canonical sign-in host can never assert
+        # on this domain — a webauthn-only restriction is a guaranteed visitor
+        # lockout. The login page's resolver degrades such a value to standard
+        # mode (Core::Views::ConfigSerializer#resolve_restrict_to) and the
+        # domain form never offers the row for selection; this is the backend
+        # write gate for direct API calls.
+        #
+        # CARRY-OVER EXEMPTION: a value persisted before this check existed
+        # may be resubmitted unchanged. PUT is full-replacement and the form's
+        # locked keep-if-selected webauthn row re-sends the current value when
+        # any OTHER field changes — rejecting the resubmit would wedge the
+        # whole config until restrict_to is changed too. Only the transition
+        # TO webauthn is blocked; GET keeps returning the persisted raw value.
+        def validate_webauthn_restriction!
+          return unless @restrict_to == 'webauthn'
+          return if @existing_config&.restrict_to == 'webauthn'
+
+          raise_form_error(
+            'restrict_to=webauthn is not supported on custom domains: ' \
+            'passkeys are registered to the canonical sign-in host and ' \
+            'cannot be used to sign in here.',
+            field: :restrict_to,
+            error_type: :invalid,
+          )
+        end
 
         def create_new_config
           @signin_config = Onetime::CustomDomain::SigninConfig.create!(
