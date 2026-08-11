@@ -952,6 +952,11 @@ RSpec.describe Core::Views::ConfigSerializer do
       allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
         .with(custom_display_domain)
         .and_return(custom_domain_obj)
+      # Canonical requests resolve no domain — stubbed so the canonical
+      # characterization examples below do not depend on datastore state.
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+        .with(canonical_domain)
+        .and_return(nil)
       allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
         .with(domain_id)
         .and_return(nil)
@@ -988,9 +993,10 @@ RSpec.describe Core::Views::ConfigSerializer do
     # for 'webauthn', which can never be honored on a custom domain (passkey
     # rp_id is host-scoped, so canonical-host credentials cannot assert here;
     # a passkey-only page would lock every visitor out). Persisted 'webauthn'
-    # resolves to standard mode (nil) — NOT the tenant 'sso' pin, which the
-    # surrounding before-block would otherwise make available — while every
-    # other persisted value passes through verbatim.
+    # resolves to the fail-closed :unavailable state (ADR-024 A3), which this
+    # display gate still serializes as null — NOT as the tenant 'sso' pin,
+    # which the surrounding before-block would otherwise make available —
+    # while every other persisted value passes through verbatim.
     context 'with an enabled domain SigninConfig' do
       def stub_signin_config(restrict_to)
         config = instance_double(
@@ -1025,6 +1031,96 @@ RSpec.describe Core::Views::ConfigSerializer do
 
         expect(described_class.resolve_restrict_to(custom_domain_view_vars)).to be_nil
       end
+
+      # ADR-024 A2/A3: the wire field is string-or-null so it cannot express
+      # "unavailable", but the resolver output must — that is what the runtime
+      # gate (A1) and the settings API (A4) consume. The null above is the
+      # LOSSY display projection of this state, not a widening to standard
+      # mode.
+      it "reports 'webauthn' as unavailable on the resolution object" do
+        stub_signin_config('webauthn')
+
+        resolution = described_class.restrict_to_resolution(custom_domain_view_vars)
+
+        expect(resolution).to be_unavailable
+        expect(resolution).not_to be_unrestricted
+        expect(resolution.restrict_to).to eq('webauthn')
+        expect(resolution.allows?('password')).to be false
+        expect(resolution.allows?('webauthn')).to be false
+      end
+
+      it 'attributes an honored domain restriction to the domain layer' do
+        stub_signin_config('password')
+
+        resolution = described_class.restrict_to_resolution(custom_domain_view_vars)
+
+        expect(resolution).to be_restricted
+        expect(resolution.source).to eq(:domain)
+        expect(resolution.allows?('password')).to be true
+        expect(resolution.allows?('sso')).to be false
+      end
+    end
+
+    # Characterization of the pre-extraction behavior (ADR-024 A2): the
+    # serializer is now a consumer of SigninConfig.resolve_restrict_to, and
+    # these cases pin the wire output it produced before that refactor.
+    context 'on a canonical request' do
+      it 'passes the global restriction through' do
+        allow(mock_auth_config).to receive(:restrict_to).and_return('password')
+
+        expect(described_class.resolve_restrict_to(base_view_vars)).to eq('password')
+      end
+
+      it 'is nil when nothing is restricted globally' do
+        allow(mock_auth_config).to receive(:restrict_to).and_return(nil)
+
+        expect(described_class.resolve_restrict_to(base_view_vars)).to be_nil
+      end
+
+      it 'never applies the tenant SSO pin' do
+        allow(mock_auth_config).to receive(:restrict_to).and_return(nil)
+        allow(described_class).to receive(:sso_available?).and_return(true)
+
+        expect(described_class.resolve_restrict_to(base_view_vars)).to be_nil
+      end
+    end
+
+    context 'with a domain SigninConfig whose master switch is off' do
+      before do
+        config = instance_double(
+          Onetime::CustomDomain::SigninConfig,
+          enabled?: false,
+          restrict_to: 'password'
+        )
+        allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
+          .with(domain_id)
+          .and_return(config)
+      end
+
+      it 'ignores the domain restriction and takes the tenant SSO pin' do
+        expect(described_class.resolve_restrict_to(custom_domain_view_vars)).to eq('sso')
+      end
+
+      it 'falls back to global when no SSO is available' do
+        allow(mock_auth_config).to receive(:sso_enabled?).and_return(false)
+        allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
+        allow(mock_auth_config).to receive(:restrict_to).and_return('email_auth')
+
+        expect(described_class.resolve_restrict_to(custom_domain_view_vars)).to eq('email_auth')
+      end
+    end
+
+    # The point of A2: one owner. If this delegation is ever inlined again the
+    # three gates drift apart, which is the failure mode ADR-024 invariant 5
+    # exists to prevent.
+    it 'delegates resolution to the model resolver' do
+      allow(mock_auth_config).to receive(:restrict_to).and_return('password')
+
+      expect(Onetime::CustomDomain::SigninConfig).to receive(:resolve_restrict_to)
+        .with('password', nil)
+        .and_call_original
+
+      expect(described_class.resolve_restrict_to(base_view_vars)).to eq('password')
     end
   end
 

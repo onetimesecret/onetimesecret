@@ -292,8 +292,47 @@ module Core
           Onetime::Organization::Features::SecretActivity::DEFAULT_MAX_EVENTS
         end
 
-        # Resolve restrict_to for the current request context.
-        # Domain SigninConfig overrides global when enabled.
+        # Wire value of features.restrict_to for the current request context.
+        #
+        # DISPLAY CONSUMER ONLY (ADR-024 A2): resolution itself belongs to
+        # SigninConfig.resolve_restrict_to — precedence between global and
+        # domain, and the fail-closed degradation of a domain restriction whose
+        # method cannot be honored, are decided there and re-derived nowhere.
+        # This method's whole job is to gather the two inputs and flatten the
+        # result onto the bootstrap payload.
+        #
+        # LOSSY ON PURPOSE, FOR NOW: features.restrict_to is a string-or-null
+        # field, so it cannot express the resolver's :unavailable state. Until
+        # A4 ships effective_restrict_to and the frontend consumes the resolved
+        # state directly, :unavailable serializes as null (standard mode) —
+        # exactly what this method emitted before the extraction. That is the
+        # remaining display-side fail-open A1/A4 close; the runtime gate (A1)
+        # consumes the resolution object and rejects everything in that state.
+        #
+        # @param view_vars [Hash] View variables with request context
+        # @return [String, nil] the single permitted method, or nil for standard mode
+        def resolve_restrict_to(view_vars)
+          resolution = restrict_to_resolution(view_vars)
+          return nil if resolution.unavailable?
+
+          resolution.restrict_to
+        end
+
+        # Resolver output for the current request context.
+        #
+        # @param view_vars [Hash] View variables with request context
+        # @return [Onetime::CustomDomain::SigninConfig::RestrictToResolution]
+        def restrict_to_resolution(view_vars)
+          domain_id     = resolve_domain_id(view_vars)
+          signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id) if domain_id
+
+          Onetime::CustomDomain::SigninConfig.resolve_restrict_to(
+            effective_global_restrict_to(view_vars), signin_config
+          )
+        end
+
+        # The restriction this REQUEST HOST inherits when no enabled per-domain
+        # config speaks — the `global` input to the resolver.
         #
         # SSO carve-out parity with resolve_signin: a custom domain with no
         # enabled SigninConfig keeps its /signin page ONLY because SSO is
@@ -302,34 +341,20 @@ module Core
         # render the password/email form beside the SSO buttons — yet password/
         # email default OFF on custom domains and their POST route
         # (Base#signin_enabled?) rejects them, so those forms advertise methods
-        # that always fail. Force restrict_to='sso' on exactly the same
-        # predicate resolve_signin uses (tenant_domain? && sso_available?) so
-        # the page-availability gate and the method restriction stay in
-        # lockstep and the SSO-only page renders SSO buttons alone.
-        def resolve_restrict_to(view_vars)
-          domain_id = resolve_domain_id(view_vars)
-          if domain_id
-            signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id)
-            if signin_config&.enabled?
-              value = signin_config.restrict_to
-              # 'webauthn' is never honored as a DOMAIN restriction: passkey
-              # credentials are host-scoped (rp_id = request.host), so a
-              # credential registered on the canonical sign-in host can never
-              # assert on this custom domain — a passkey-only page here locks
-              # every visitor out until the tenant changes the setting.
-              # Resolve to standard mode (nil, all enabled methods) instead,
-              # mirroring AuthConfig#restrict_to, which nils out any
-              # restriction whose backing method is unavailable, and the
-              # domain form, which offers the webauthn row only as a locked
-              # keep-if-selected entry. The persisted raw value is untouched
-              # (GET signin-config still returns it); only the login-page
-              # resolution degrades. PUT rejects NEW webauthn restrictions
-              # (DomainsAPI PutSigninConfig), so this guard covers values
-              # persisted before that check existed.
-              return value == 'webauthn' ? nil : value
-            end
-          end
-
+        # that always fail. Pin 'sso' on exactly the same predicate
+        # resolve_signin uses (tenant_domain? && sso_available?) so the
+        # page-availability gate and the method restriction stay in lockstep
+        # and the SSO-only page renders SSO buttons alone.
+        #
+        # The pin is a property of the host, not of the resolution, which is
+        # why it is computed here and handed in: the resolver decides
+        # precedence, and an enabled domain config still overrides this — same
+        # ordering as before the extraction, where the pin was only reached
+        # after the domain branch declined.
+        #
+        # @param view_vars [Hash] View variables with request context
+        # @return [String, nil]
+        def effective_global_restrict_to(view_vars)
           return 'sso' if tenant_domain?(view_vars) && sso_available?(view_vars)
 
           Onetime.auth_config.restrict_to
