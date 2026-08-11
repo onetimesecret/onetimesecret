@@ -134,4 +134,83 @@ RSpec.describe DomainsAPI::Logic::SigninConfig::PutSigninConfig do
       end
     end
   end
+
+  describe '#validate_webauthn_restriction!' do
+    # Passkeys are host-scoped (rp_id = request.host): a webauthn-only
+    # restriction on a custom domain is a guaranteed visitor lockout, so NEW
+    # restrict_to='webauthn' writes are rejected. A value persisted before the
+    # check may be resubmitted unchanged (PUT is full-replacement; the form's
+    # locked keep-if-selected row re-sends it when other fields change).
+    #
+    # Exercised on the REAL private method via an allocated instance
+    # (raise_concerns has too many authorization dependencies for a unit
+    # test — same rationale as the log_enabled_state_change block above), with
+    # @restrict_to/@existing_config set to the values process_params /
+    # raise_concerns would have produced. The enum check (validate_restrict_to)
+    # is untouched and stays covered by
+    # try/integration/api/domains/put_signin_config_try.rb.
+
+    def build_logic(restrict_to:, existing_restrict_to: :none)
+      logic = described_class.allocate
+      logic.instance_variable_set(:@restrict_to, restrict_to)
+
+      existing = if existing_restrict_to == :none
+        nil
+      else
+        instance_double(
+          Onetime::CustomDomain::SigninConfig,
+          restrict_to: existing_restrict_to,
+        )
+      end
+      logic.instance_variable_set(:@existing_config, existing)
+      logic
+    end
+
+    def validate!(logic)
+      logic.send(:validate_webauthn_restriction!)
+    end
+
+    context 'rejecting new webauthn restrictions' do
+      it 'raises FormError when no config exists yet' do
+        logic = build_logic(restrict_to: 'webauthn')
+
+        expect { validate!(logic) }.to raise_error(Onetime::FormError) do |ex|
+          expect(ex.message).to include('not supported on custom domains')
+          expect(ex.field).to eq(:restrict_to)
+          expect(ex.error_type).to eq(:invalid)
+        end
+      end
+
+      it 'raises FormError when transitioning from another restriction' do
+        logic = build_logic(restrict_to: 'webauthn', existing_restrict_to: 'password')
+
+        expect { validate!(logic) }.to raise_error(Onetime::FormError)
+      end
+
+      it 'raises FormError when transitioning from no restriction' do
+        logic = build_logic(restrict_to: 'webauthn', existing_restrict_to: nil)
+
+        expect { validate!(logic) }.to raise_error(Onetime::FormError)
+      end
+    end
+
+    context 'allowing everything else' do
+      it 'permits a carry-over resubmit of an already-persisted webauthn value' do
+        logic = build_logic(restrict_to: 'webauthn', existing_restrict_to: 'webauthn')
+
+        expect { validate!(logic) }.not_to raise_error
+      end
+
+      it 'permits non-webauthn values regardless of existing state' do
+        expect { validate!(build_logic(restrict_to: 'password')) }.not_to raise_error
+        expect { validate!(build_logic(restrict_to: 'sso', existing_restrict_to: 'webauthn')) }.not_to raise_error
+      end
+
+      it 'permits clearing the restriction' do
+        logic = build_logic(restrict_to: nil, existing_restrict_to: 'webauthn')
+
+        expect { validate!(logic) }.not_to raise_error
+      end
+    end
+  end
 end

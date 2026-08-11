@@ -23,8 +23,9 @@ require 'auth/operations/detect_mfa_requirement'
 # account by its snapshotted primary key in `db[:accounts]`. Session establishment
 # (login) is NOT its job — that requires a live Rodauth request and is done by the
 # calling route (Auth::Routes::SsoLinkConfirm) after this op returns :ok. The op is
-# handed `current_sid` (for the soft cross-device check) and `mfa_feature_loaded`
-# (whether the OTP feature is present) so it stays free of Rodauth internals.
+# handed `current_sid` (for the soft cross-device check) plus `mfa_feature_loaded`
+# and `webauthn_feature_loaded` (whether the OTP / WebAuthn features are present)
+# so it stays free of Rodauth internals.
 #
 # SECURITY MODEL (mirrors SsoLinkChallenge/LinkSso, mailbox proof replacing the
 # password proof):
@@ -92,19 +93,32 @@ module Auth
       #   the op is usable outside a Rodauth request context)
       # @param token [String] the raw single-use verification token from the email link
       # @param current_sid [String, nil] the current request's session id (soft-bound)
-      # @param mfa_feature_loaded [Boolean] whether the OTP feature is enabled for this deploy
+      # @param mfa_feature_loaded [Boolean] whether the OTP feature is enabled for this
+      #   deploy (route passes rodauth.respond_to?(:otp_auth_route))
+      # @param webauthn_feature_loaded [Boolean] whether the WebAuthn feature is enabled
+      #   for this deploy (route should pass rodauth.respond_to?(:webauthn_auth_route)).
+      #   WebAuthn credentials gate logins as a second factor (hooks/login.rb), so the
+      #   MFA prediction here must see them too or a webauthn-only account would be
+      #   direct-bound while its second factor is still pending — an MFA-bypassing SSO
+      #   login path. Defaults to false for caller compatibility; a stale-false only
+      #   degrades to the after_login self-heal path, never to a wrong bind refusal.
       # @return [Result]
-      def self.call(db:, token:, current_sid: nil, mfa_feature_loaded: false)
+      def self.call(db:, token:, current_sid: nil, mfa_feature_loaded: false, webauthn_feature_loaded: false)
         new(
-          db: db, token: token, current_sid: current_sid, mfa_feature_loaded: mfa_feature_loaded,
+          db: db,
+          token: token,
+          current_sid: current_sid,
+          mfa_feature_loaded: mfa_feature_loaded,
+          webauthn_feature_loaded: webauthn_feature_loaded,
         ).call
       end
 
-      def initialize(db:, token:, current_sid: nil, mfa_feature_loaded: false)
-        @db                 = db
-        @token              = token.to_s
-        @current_sid        = current_sid.to_s
-        @mfa_feature_loaded = mfa_feature_loaded
+      def initialize(db:, token:, current_sid: nil, mfa_feature_loaded: false, webauthn_feature_loaded: false)
+        @db                      = db
+        @token                   = token.to_s
+        @current_sid             = current_sid.to_s
+        @mfa_feature_loaded      = mfa_feature_loaded
+        @webauthn_feature_loaded = webauthn_feature_loaded
       end
 
       # @return [Result]
@@ -270,16 +284,20 @@ module Auth
 
       # Mirror the after_login MFA decision (a pure function of the account's stored
       # factors, via_omniauth: false) so the bind is gated on FULL authentication.
-      # When the OTP feature is not loaded (MFA off — the default) no second factor
-      # can be pending, so this is false and the bind proceeds.
+      # Mirrors hooks/login.rb's feature gating exactly: each factor only counts
+      # when its completion feature is loaded (OTP/recovery via the mfa flag,
+      # WebAuthn via the webauthn flag) — a factor the user cannot complete must
+      # not gate the bind. When NO two-factor feature is loaded (the default) no
+      # second factor can be pending, so this is false and the bind proceeds.
       def second_factor_pending?(account_id)
-        return false unless @mfa_feature_loaded
+        return false unless @mfa_feature_loaded || @webauthn_feature_loaded
 
         mfa_state = Auth::Operations::MfaStateChecker.new(@db).check(account_id)
         Auth::Operations::DetectMfaRequirement.call(
           account_id: account_id,
-          has_otp_secret: mfa_state.has_otp_secret,
-          has_recovery_codes: mfa_state.has_recovery_codes,
+          has_otp_secret: @mfa_feature_loaded && mfa_state.has_otp_secret,
+          has_recovery_codes: @mfa_feature_loaded && mfa_state.has_recovery_codes,
+          has_webauthn: @webauthn_feature_loaded && mfa_state.has_webauthn,
           via_omniauth: false,
         ).requires_mfa?
       end

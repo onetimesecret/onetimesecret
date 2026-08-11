@@ -562,13 +562,13 @@ describe('useSigninConfig', () => {
       expect(composable.hasUnsavedChanges.value).toBe(false);
     });
 
-    it('ignores concurrent calls while a save is already running', async () => {
+    it('queues a call arriving while a save is in flight and drains it after', async () => {
       mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
-      let resolveSave: (value: unknown) => void;
+      const resolvers: Array<(value: unknown) => void> = [];
       mockPutConfigForDomain.mockImplementation(
         () =>
           new Promise((resolve) => {
-            resolveSave = resolve;
+            resolvers.push(resolve);
           })
       );
 
@@ -576,15 +576,25 @@ describe('useSigninConfig', () => {
       await composable.initialize();
 
       const first = composable.autoSaveField('sso_enabled', false);
-      // Second call while the first is in flight is a no-op — the seeded
-      // email_auth_enabled (true, globally available) must stay untouched.
+      // Second call while the first is in flight queues — no second PUT yet,
+      // and the queued patch is NOT merged into formState until its own save
+      // runs (saveConfig's settle paths would clobber an early merge).
       await composable.autoSaveField('email_auth_enabled', false);
 
       expect(composable.formState.value.email_auth_enabled).toBe(true);
       expect(mockPutConfigForDomain).toHaveBeenCalledTimes(1);
 
-      resolveSave!({ record: mockSigninConfigData });
+      resolvers[0]!({ record: mockSigninConfigData });
+      await vi.waitFor(() => expect(mockPutConfigForDomain).toHaveBeenCalledTimes(2));
+      // The drained PUT carries the queued change.
+      expect(mockPutConfigForDomain).toHaveBeenLastCalledWith(
+        'dm-ext-123',
+        expect.objectContaining({ email_auth_enabled: false })
+      );
+
+      resolvers[1]!({ record: { ...mockSigninConfigData, email_auth_enabled: false } });
       await first;
+      expect(composable.formState.value.email_auth_enabled).toBe(false);
     });
 
     it('leaves hasUnsavedChanges false after a clean auto-save', async () => {
@@ -606,7 +616,7 @@ describe('useSigninConfig', () => {
   // autoSaveFields (multi-key partial save — invariants 5 & 6)
   //
   // autoSaveField (single key) is covered above; it delegates to autoSaveFields,
-  // so the no-op-while-saving and finally-clear guards are already exercised
+  // so the queue-while-saving and finally-clear behaviors are already exercised
   // transitively. This block covers the multi-key path the component uses for
   // the atomic restrict_to + availability-flag commit, plus the signin_enabled
   // passthrough no UI touches.
@@ -706,28 +716,75 @@ describe('useSigninConfig', () => {
       );
     });
 
-    it('is a no-op while a save is already in flight (multi-key path)', async () => {
+    it('queues a concurrent multi-key call and applies it after the in-flight save', async () => {
       mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
-      let resolveSave: (value: unknown) => void;
+      const resolvers: Array<(value: unknown) => void> = [];
       mockPutConfigForDomain.mockImplementation(
         () =>
           new Promise((resolve) => {
-            resolveSave = resolve;
+            resolvers.push(resolve);
           })
       );
 
       const composable = useSigninConfig('dm-ext-123');
       await composable.initialize();
 
-      const first = composable.autoSaveFields({ restrict_to: 'sso', sso_enabled: true }, 'restrict_to');
-      // Second concurrent multi-key call is dropped.
+      const first = composable.autoSaveFields(
+        { restrict_to: 'sso', sso_enabled: true },
+        'restrict_to'
+      );
+      // Second concurrent multi-key call queues; mid-flight formState still
+      // holds the first patch only.
       await composable.autoSaveFields({ restrict_to: 'password' }, 'restrict_to');
 
       expect(mockPutConfigForDomain).toHaveBeenCalledTimes(1);
       expect(composable.formState.value.restrict_to).toBe('sso');
 
-      resolveSave!({ record: mockSigninConfigData });
+      resolvers[0]!({ record: mockRestrictedConfig });
+      await vi.waitFor(() => expect(mockPutConfigForDomain).toHaveBeenCalledTimes(2));
+      expect(mockPutConfigForDomain).toHaveBeenLastCalledWith(
+        'dm-ext-123',
+        expect.objectContaining({ restrict_to: 'password' })
+      );
+
+      resolvers[1]!({ record: { ...mockSigninConfigData, restrict_to: 'password' } });
       await first;
+      expect(composable.formState.value.restrict_to).toBe('password');
+    });
+
+    it('coalesces multiple queued patches into one follow-up PUT (later keys win)', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: null, details: mockUnconfiguredDetails });
+      const resolvers: Array<(value: unknown) => void> = [];
+      mockPutConfigForDomain.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolvers.push(resolve);
+          })
+      );
+
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+
+      const first = composable.autoSaveFields({ sso_enabled: true }, 'sso_enabled');
+      await composable.autoSaveFields({ restrict_to: 'sso' });
+      await composable.autoSaveFields({ restrict_to: 'email_auth', email_auth_enabled: true });
+
+      expect(mockPutConfigForDomain).toHaveBeenCalledTimes(1);
+
+      resolvers[0]!({ record: mockSigninConfigData });
+      // Both queued patches drain as ONE merged PUT, later restrict_to winning.
+      await vi.waitFor(() => expect(mockPutConfigForDomain).toHaveBeenCalledTimes(2));
+      expect(mockPutConfigForDomain).toHaveBeenLastCalledWith(
+        'dm-ext-123',
+        expect.objectContaining({ restrict_to: 'email_auth', email_auth_enabled: true })
+      );
+
+      resolvers[1]!({
+        record: { ...mockSigninConfigData, restrict_to: 'email_auth', email_auth_enabled: true },
+      });
+      await first;
+      expect(mockPutConfigForDomain).toHaveBeenCalledTimes(2);
+      expect(composable.formState.value.restrict_to).toBe('email_auth');
     });
   });
 

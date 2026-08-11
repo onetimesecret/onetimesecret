@@ -31,7 +31,7 @@ require_relative 'bind_sso_identity'
 #                    single-use challenge token ALREADY consumed by this point;
 #                    the stash carries the authorization forward, it does not
 #                    grant it.
-#   2. `.complete` — the after_two_factor_authentication hook (hooks/mfa.rb)
+#   2. `.complete` — the after_two_factor_authentication hook (hooks/two_factor.rb)
 #                    consumes the stash and performs the bind via the shared
 #                    BindSsoIdentity primitive.
 #
@@ -185,7 +185,7 @@ module Auth
         # :none is its normal outcome. It therefore goes to the AUTH AUDIT STREAM
         # (Auth::Logging), not this class's own category logger: the completion
         # side is already audited there as :sso_deferred_bind_completed by both
-        # callers (hooks/mfa.rb, hooks/login.rb), and a write side visible only
+        # callers (hooks/two_factor.rb, hooks/login.rb), and a write side visible only
         # under Auth::DeferredSsoBind means a SYSTEMIC sidecar failure degrades
         # linking for every MFA user without ever appearing in the stream this
         # flow is queried through.
