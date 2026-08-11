@@ -227,11 +227,6 @@ module Onetime
       # @see Onetime::Middleware::ADMIN_NOT_FOUND_HTML
       NOT_FOUND_HTML = ADMIN_NOT_FOUND_HTML
 
-      # Escape hatch that disables the HOST gate. The network gate is
-      # unaffected by it. Needed by self-hosted installs reached by bare IP or
-      # by a hostname that is not the configured canonical domain.
-      HOST_WILDCARD = Onetime::Utils::AdminHostAllowlist::WILDCARD
-
       # Returned by #site_admin_list when the config could not be READ, as
       # opposed to having been left unset. A Symbol, so it can never collide
       # with a value that came out of YAML or ENV. See #site_admin_list.
@@ -518,9 +513,9 @@ module Onetime
       # NORMALIZATION IS SECURITY-LOAD-BEARING, not tidiness. The router
       # dispatches on Otto::Utils.normalize_path, which percent-decodes: it
       # serves `GET /%63olonel` and `/colonel%2Fsettings` as the admin routes.
-      # Matching the RAW string here (as this did until the #4062 review) let
-      # both spellings miss #colonel_shell?, skip BOTH gates, and then be routed
-      # to the admin console anyway. Same idiom, and the same reasoning, as
+      # Matching the RAW string here would let both spellings miss
+      # #colonel_shell?, skip BOTH gates, and then be routed to the admin
+      # console anyway. Same idiom, and the same reasoning, as
       # HealthAccessControl#health_endpoint? and SessionSkip#skip?.
       #
       # Otto::Utils.normalize_path documents that it does not raise (it catches
@@ -652,13 +647,13 @@ module Onetime
       end
 
       # An operator wrote a CIDR list and not one entry parsed (`100.64.0.0\10`,
-      # a comma that survived splitting, a hostname). Before #4062's review this
-      # deactivated the gate: every WARNed-away entry left the range set empty,
-      # emptiness meant "inactive", and the admin surfaces silently became
-      # reachable from anywhere while the operator believed a VPN restriction
-      # was in force. Same rule as the host gate now — a list an operator wrote
-      # is never silently disabled — and the same deliberate asymmetry with an
-      # EMPTY list, which still means "no network gate".
+      # a comma that survived splitting, a hostname). Deactivating the gate
+      # here would leave every WARNed-away entry an empty range set, emptiness
+      # reading as "inactive", and the admin surfaces silently reachable from
+      # anywhere while the operator believed a VPN restriction was in force.
+      # Same rule as the host gate — a list an operator wrote is never silently
+      # disabled — and the same deliberate asymmetry with an EMPTY list, which
+      # still means "no network gate".
       def unusable_network_gate(entries)
         log_once(:cidrs_unusable, { entries: entries }) do
           @logger.error 'Admin CIDR allowlist has no usable range; denying both admin surfaces',
@@ -874,7 +869,7 @@ module Onetime
       # synthesizes either form, so it is done here.
       #
       # THIS IS NOT DomainStrategy::Chooserator.equal_to? AND MUST NOT BE
-      # "ALIGNED" WITH IT (an earlier version of this comment claimed it was).
+      # "ALIGNED" WITH IT.
       # That predicate resolves the REGISTRABLE DOMAIN first, so for an anchor
       # `app.example.com` it admits `www.example.com` — a different site — and
       # never admits an apex when the anchor is a www host. This method is
@@ -912,9 +907,9 @@ module Onetime
       # from "misconfigured" without diffing config against source.
       #
       # ONCE PER PROCESS, NOT ONCE PER MOUNT. MiddlewareStack.configure runs for
-      # each of the 13 registered applications, all from the same config; before
-      # the #4062 review this line (and every WARN above it) appeared 13 times
-      # per boot, which reads like 13 separate deployments' worth of
+      # each of the 13 registered applications, all from the same config;
+      # without the ledger this line (and every WARN above it) would appear 13
+      # times per boot, which reads like 13 separate deployments' worth of
       # misconfiguration.
       #
       # `trusted_proxy` is on this line, and deliberately not on one of its own:
