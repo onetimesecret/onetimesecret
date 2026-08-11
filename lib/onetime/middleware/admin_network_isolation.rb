@@ -277,8 +277,17 @@ module Onetime
           yield
         end
 
-        # Clear the ledger. Specs only — a process that has booted has no
+        # Clear the ledger. Tests only — a process that has booted has no
         # reason to re-announce its posture.
+        #
+        # Wired to run BEFORE EVERY EXAMPLE in spec/spec_helper.rb, not left to
+        # each spec to remember. The ledger is process-wide and a test process
+        # builds many stacks: uncleared, the first example to produce a given
+        # posture is the only one that can observe its boot line, and every
+        # later assertion about one silently sees nothing. try/unit/middleware/
+        # admin_network_isolation_try.rb calls it explicitly instead — tryouts
+        # have no per-case hook, and its ledger cases count announcements, so
+        # they need the reset at a point they choose.
         #
         # @return [void]
         def reset_boot_announcements!

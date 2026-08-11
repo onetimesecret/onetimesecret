@@ -709,6 +709,36 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
       expect(last_response.status).to eq(403)
     end
 
+    # `*` is the one posture whose only operator-visible trace is a BOOT line:
+    # the gate is off, so no request will ever log anything about it. That line
+    # goes through AdminNetworkIsolation's process-wide announcement ledger,
+    # which exists so the 13 mounted apps print one line instead of 13, and
+    # which production never clears because a process boots once.
+    #
+    # A spec process builds a stack per example, so the ledger outlives the
+    # example that filled it. The two cases below are deliberately IDENTICAL:
+    # whichever RSpec runs second sees this WARN only because spec_helper
+    # clears the ledger before every example. Without that reset the second one
+    # observes silence, and any assertion about a boot line — here or in a spec
+    # not yet written — passes or fails by run order.
+    describe 'the boot WARN that names the disabled gate' do
+      it 'warns that `*` disabled the host allowlist' do
+        warns = capture_admin_gate_warns!
+        signed_in_as(colonel)
+        get_api('tenant.example.com')
+
+        expect(warns.map(&:first)).to include(a_string_matching(/host allowlist DISABLED by/))
+      end
+
+      it 'warns again for the next stack built with the same posture' do
+        warns = capture_admin_gate_warns!
+        signed_in_as(colonel)
+        get_api('tenant.example.com')
+
+        expect(warns.map(&:first)).to include(a_string_matching(/host allowlist DISABLED by/))
+      end
+    end
+
     # `*` beside anything else is still `*`. The operator who
     # follows the diagnostic ("set it to *") without deleting the entry that
     # produced it gets the gate they asked for, not a blanket 404 — and the
