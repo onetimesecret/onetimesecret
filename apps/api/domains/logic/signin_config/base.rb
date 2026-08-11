@@ -86,37 +86,19 @@ module DomainsAPI
               domain_id: domain_id,
             ),
             global_restrict_to: global_restrict,
-            effective_restrict_to: serialize_restrict_to_resolution(
-              Onetime::CustomDomain::SigninConfig.resolve_restrict_to(
-                global_restrict,
-                config,
-                # Post-boot availability of the global restriction (ADR-024
-                # A3). The settings page must report what the gates enforce:
-                # without this it showed `restricted` for a method the runtime
-                # had already taken dark (#4139).
-                available: Onetime::CustomDomain::SigninConfig.global_restriction_available?(global_restrict),
-              ),
-            ),
+            # #to_wire is the resolution's own serialization (single
+            # implementation, shared with GET /api/invite/:token) — this app
+            # no longer carries a private copy of the wire shape.
+            effective_restrict_to: Onetime::CustomDomain::SigninConfig.resolve_restrict_to(
+              global_restrict,
+              config,
+              # Post-boot availability of the global restriction (ADR-024
+              # A3). The settings page must report what the gates enforce:
+              # without this it showed `restricted` for a method the runtime
+              # had already taken dark (#4139).
+              available: Onetime::CustomDomain::SigninConfig.global_restriction_available?(global_restrict),
+            ).to_wire,
             tenant_sso: tenant_sso_details(domain_id),
-          }
-        end
-
-        # Wire form of RestrictToResolution. The three-state shape survives
-        # serialization intact — in particular :unavailable is NOT projected
-        # down to a bare null the way the display field `features.restrict_to`
-        # must be (string-or-null cannot express it). Callers get the state and
-        # the method that was named, so the UI can say "SSO required, and it is
-        # not available here" instead of rendering an unrestricted-looking
-        # blank.
-        #
-        # @param resolution [Onetime::CustomDomain::SigninConfig::RestrictToResolution]
-        # @return [Hash] state ('unrestricted'|'restricted'|'unavailable'),
-        #   restrict_to (String or nil), source ('domain'|'global')
-        def serialize_restrict_to_resolution(resolution)
-          {
-            state: resolution.state.to_s,
-            restrict_to: resolution.restrict_to,
-            source: resolution.source.to_s,
           }
         end
 

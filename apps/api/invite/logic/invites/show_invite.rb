@@ -91,7 +91,10 @@ module InviteAPI::Logic
         # regression that motivated the field.
         resolution = restrict_to_resolution
 
-        result[:record][:effective_restrict_to] = serialize_restrict_to_resolution(resolution)
+        # #to_wire is the resolution's own serialization, shared verbatim with
+        # the settings API's details.effective_restrict_to (ADR-024 A4), so one
+        # client-side type describes both surfaces.
+        result[:record][:effective_restrict_to] = resolution.to_wire
 
         if custom_domain?
           domain = Onetime::CustomDomain.from_display_domain(display_domain)
@@ -125,49 +128,6 @@ module InviteAPI::Logic
       # @return [Onetime::CustomDomain::SigninConfig::RestrictToResolution]
       def restrict_to_resolution
         Auth::RestrictTo.resolution_for(restrict_to_env)
-      end
-
-      # The two Rack env keys Auth::RestrictTo reads, rebuilt from the logic
-      # layer's domain context (Otto hands logic the StrategyResult, not the
-      # env; Logic::Base#extract_domain_context copies both values verbatim
-      # from 'onetime.domain_strategy' / 'onetime.display_domain', symbol
-      # classification included). Plumbing only — no resolution happens here.
-      #
-      # Identical to SignupAndAccept#restrict_to_env by design: the field this
-      # endpoint reports and the gate that endpoint enforces must be computed
-      # from the SAME host, or they disagree. Worth hoisting to
-      # InviteAPI::Logic::Base once both are settled (not done here: that file
-      # is outside this change's scope).
-      def restrict_to_env
-        {
-          'onetime.domain_strategy' => domain_strategy,
-          'onetime.display_domain' => display_domain,
-        }
-      end
-
-      # Wire form of RestrictToResolution — the same three-key shape the
-      # settings API emits (DomainsAPI::Logic::SigninConfig::Base
-      # #serialize_restrict_to_resolution, ADR-024 A4), so one client-side
-      # type describes both. The three states survive serialization intact: in
-      # particular :unavailable is NOT projected down to a bare null the way
-      # the display field `features.restrict_to` must be, so the invite page
-      # can say "sign-in unavailable here" instead of rendering an
-      # unrestricted-looking blank.
-      #
-      # (Duplicated rather than shared: the canonical implementation is a
-      # protected method on the DomainsAPI logic hierarchy and is not
-      # reachable from here. Extracting both onto RestrictToResolution itself
-      # is the right home and is left as follow-up.)
-      #
-      # @param resolution [Onetime::CustomDomain::SigninConfig::RestrictToResolution]
-      # @return [Hash] state ('unrestricted'|'restricted'|'unavailable'),
-      #   restrict_to (String or nil), source ('domain'|'global'|'conflict')
-      def serialize_restrict_to_resolution(resolution)
-        {
-          state: resolution.state.to_s,
-          restrict_to: resolution.restrict_to,
-          source: resolution.source.to_s,
-        }
       end
 
       # Sign-in methods this host will actually accept.

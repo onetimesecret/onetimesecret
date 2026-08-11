@@ -255,19 +255,6 @@ module InviteAPI::Logic
         raise_not_found('Not found')
       end
 
-      # The two Rack env keys Auth::RestrictTo reads, rebuilt from the logic
-      # layer's domain context (Otto hands logic the StrategyResult, not the
-      # env; Logic::Base#extract_domain_context copies both values verbatim
-      # from 'onetime.domain_strategy' / 'onetime.display_domain', symbol
-      # classification included). This is plumbing only — no resolution
-      # happens here.
-      def restrict_to_env
-        {
-          'onetime.domain_strategy' => domain_strategy,
-          'onetime.display_domain' => display_domain,
-        }
-      end
-
       def normalize_email(email)
         OT::Utils.normalize_email(email)
       end

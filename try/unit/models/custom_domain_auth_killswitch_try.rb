@@ -364,3 +364,57 @@ resolve_restrict_dead('sso', restrict_config(enabled: false, restrict_to: 'passw
 ## available: true is the default and changes nothing
 Onetime::CustomDomain::SigninConfig.resolve_restrict_to('sso', nil, available: true).state
 #=> :restricted
+
+# ============================================================
+# RestrictToResolution#to_wire — the ONE serialization (#4139)
+#
+# Both API surfaces that publish a resolution (settings API
+# details.effective_restrict_to, ADR-024 A4; GET /api/invite/:token
+# record.effective_restrict_to, A11) call this method. They each carried a
+# private copy of the hash until #4139; the contract is pinned here so the
+# next consumer inherits it instead of re-deriving it.
+# ============================================================
+
+## the wire shape is exactly three keys, in this order
+Onetime::CustomDomain::SigninConfig::RestrictToResolution.unrestricted(:global).to_wire.keys
+#=> [:state, :restrict_to, :source]
+
+## unrestricted serializes with a null method
+Onetime::CustomDomain::SigninConfig::RestrictToResolution.unrestricted(:global).to_wire
+#=> { state: 'unrestricted', restrict_to: nil, source: 'global' }
+
+## restricted names the method and the deciding layer
+Onetime::CustomDomain::SigninConfig::RestrictToResolution.restricted('sso', :domain).to_wire
+#=> { state: 'restricted', restrict_to: 'sso', source: 'domain' }
+
+## :unavailable survives the wire — it is NOT projected down to a bare null
+## the way the display field features.restrict_to must be. A null here would
+## read as "unrestricted" and re-offer every method the restriction hid (A3).
+Onetime::CustomDomain::SigninConfig::RestrictToResolution.unavailable('sso', :domain).to_wire
+#=> { state: 'unavailable', restrict_to: 'sso', source: 'domain' }
+
+## the named method is retained on the wire so a consumer can render a
+## method-specific notice rather than a generic "unavailable"
+Onetime::CustomDomain::SigninConfig::RestrictToResolution.unavailable('sso', :conflict).to_wire[:restrict_to]
+#=> 'sso'
+
+## :conflict attribution reaches the wire (A8: neither layer won)
+Onetime::CustomDomain::SigninConfig::RestrictToResolution.unavailable('sso', :conflict).to_wire[:source]
+#=> 'conflict'
+
+## state and source are STRINGS on the wire, not symbols — this is why to_h
+## (which emits the members verbatim) is not the wire form
+Onetime::CustomDomain::SigninConfig::RestrictToResolution.restricted('password', :global).to_wire.values_at(:state, :source).map(&:class)
+#=> [String, String]
+
+## restrict_to passes through unconverted (String or nil, never a symbol)
+Onetime::CustomDomain::SigninConfig::RestrictToResolution.restricted('password', :global).to_wire[:restrict_to].class
+#=> String
+
+## to_h is deliberately NOT the wire form: it emits symbols
+Onetime::CustomDomain::SigninConfig::RestrictToResolution.restricted('password', :global).to_h
+#=> { state: :restricted, restrict_to: 'password', source: :global }
+
+## a resolver-produced resolution serializes the same way as a hand-built one
+Onetime::CustomDomain::SigninConfig.resolve_restrict_to('sso', nil).to_wire
+#=> { state: 'restricted', restrict_to: 'sso', source: 'global' }

@@ -113,6 +113,36 @@ module Onetime
 
           restrict_to == name.to_s
         end
+
+        # Wire form of the resolution — the ONE serialization every API app
+        # emits (settings API `details.effective_restrict_to`, ADR-024 A4;
+        # `GET /api/invite/:token` record.effective_restrict_to, A11), so a
+        # single client-side type describes both. The Data object owns its own
+        # serialization: two API apps each carrying a private copy of this hash
+        # is the drift shape A2 exists to kill, one level down.
+        #
+        # The three states survive serialization intact. In particular
+        # :unavailable is NOT projected down to a bare null the way the display
+        # field `features.restrict_to` must be (string-or-null cannot express
+        # it), so a consumer can say "SSO required, and it is not available
+        # here" instead of rendering an unrestricted-looking blank.
+        #
+        # NOT `to_h`: Data#to_h emits the members verbatim, i.e. Symbol values
+        # for state and source. The wire contract is strings (JSON has no
+        # symbol, and the specs/tryouts pin string values pre-serialization).
+        # Overriding to_h to stringify would make the Data object lie about its
+        # own members to every other reader, so this is a separate method.
+        #
+        # @return [Hash] state ('unrestricted'|'restricted'|'unavailable'),
+        #   restrict_to (String or nil),
+        #   source ('domain'|'global'|'conflict')
+        def to_wire
+          {
+            state: state.to_s,
+            restrict_to: restrict_to,
+            source: source.to_s,
+          }
+        end
       end
 
       prefix :custom_domain__signin_config

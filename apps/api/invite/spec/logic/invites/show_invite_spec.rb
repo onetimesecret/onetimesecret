@@ -367,6 +367,44 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
       false
     end
 
+    # THE OTHER HALF OF THE AGREEMENT, and the half the case list below cannot
+    # reach: every case above stubs resolution_for regardless of its argument,
+    # so a divergence in the ENV the two endpoints ask about would pass all of
+    # them silently. That env used to be two byte-identical private copies of
+    # the same hash (#4139); it is now one method on InviteAPI::Logic::Base.
+    #
+    # This example fails the moment either class reintroduces its own — which
+    # is the concrete drift the hoist exists to prevent: ShowInvite would
+    # report a verdict for one host while the gate judges another, and the
+    # invite page would describe a password surface the POST 404s on.
+    it 'asks about the SAME host the gate judges' do
+      asked = []
+      allow(Auth::RestrictTo).to receive(:resolution_for) do |env|
+        asked << env
+        resolution
+      end
+
+      record
+      signup_permitted?
+
+      expect(asked.length).to eq(2)
+      expect(asked.first).to eq(asked.last)
+      expect(asked.first).to eq(
+        'onetime.domain_strategy' => :custom,
+        'onetime.display_domain' => 'signin.acme.example'
+      )
+    end
+
+    # And the source of that agreement is structural, not a convention two
+    # files happen to share: both endpoints inherit one implementation.
+    it 'derives that host from a single inherited implementation' do
+      owner = ->(klass) { klass.instance_method(:restrict_to_env).owner }
+
+      expect(owner.call(described_class)).to eq(InviteAPI::Logic::Base)
+      expect(owner.call(InviteAPI::Logic::Invites::SignupAndAccept))
+        .to eq(InviteAPI::Logic::Base)
+    end
+
     # Every reachable resolution, including the two that fail closed.
     {
       'unrestricted'          => [:unrestricted, nil, :global],
