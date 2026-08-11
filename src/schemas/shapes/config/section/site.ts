@@ -86,9 +86,14 @@ const securityTree: AugmentTree = {
 };
 
 const adminTree: AugmentTree = {
-  // Empty allowlist by default: the AdminNetworkIsolation middleware is a no-op
-  // and both Colonel surfaces stay reachable (self-hosted single-container
-  // default). Populated with private CIDRs on cloud for network isolation.
+  // Empty defaults mirror config.defaults.yaml, but the two gates read empty
+  // differently. Host gate: an empty list is still ACTIVE — it anchors on the
+  // canonical hosts (DEFAULT_DOMAIN / site.host plus www. siblings) and
+  // self-disables only when neither anchor is a detectable hostname. Network
+  // gate: an empty list is a no-op and both Colonel surfaces stay reachable
+  // (self-hosted single-container default); populated with private CIDRs on
+  // cloud for network isolation.
+  allowed_hosts: (a) => a.default([]),
   allowed_cidrs: (a) => a.default([]),
 };
 

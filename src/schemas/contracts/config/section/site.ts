@@ -90,13 +90,16 @@ const middlewareSchema = z.object({
 /**
  * Admin (Colonel) configuration
  *
- * Network-level posture for the Colonel admin surfaces (/colonel + /api/colonel).
- * allowed_cidrs is an optional CIDR allowlist enforced by the
- * AdminNetworkIsolation Rack middleware. Empty/unset = no-op (self-hosted
- * default); populated = requests from outside the allowlist get a 404.
- * Defaults belong in `shapes/config/section/site.ts`.
+ * Host- and network-level posture for the Colonel admin surfaces (/colonel +
+ * /api/colonel), both enforced by the AdminNetworkIsolation Rack middleware;
+ * a request failing either gate gets the same 404. allowed_hosts is the
+ * hostname allowlist (empty/unset = the canonical anchor hosts plus their
+ * www. siblings; a `*` anywhere in the list turns the host gate off).
+ * allowed_cidrs is an opt-in CIDR allowlist (empty/unset = no-op, the
+ * self-hosted default). Defaults belong in `shapes/config/section/site.ts`.
  */
 const siteAdminSchema = z.object({
+  allowed_hosts: z.array(z.string()).optional(),
   allowed_cidrs: z.array(z.string()).optional(),
 });
 
