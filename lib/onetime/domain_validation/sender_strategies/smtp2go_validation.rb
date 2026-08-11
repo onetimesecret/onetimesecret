@@ -29,35 +29,10 @@ module Onetime
       # Reference: https://developers.smtp2go.com (provider-specific)
       #
       class Smtp2goValidation < BaseStrategy
-        # Returns the DNS records required for SMTP2GO domain verification.
-        #
-        # Reads provisioned records from mailer_config.dns_records.value
-        # (array of string-keyed hashes from the SMTP2GO API) and maps
-        # them to the validation format with symbol keys.
-        #
-        # Returns an empty array if no provisioned records exist — does
-        # NOT fall back to hardcoded selectors.
-        #
-        # @param mailer_config [Onetime::CustomDomain::MailerConfig]
-        # @return [Array<Hash>] Each hash: {type:, host:, value:, purpose:}
-        #
-        def required_dns_records(mailer_config)
-          provisioned = mailer_config.dns_records&.value
-
-          if provisioned.nil? || provisioned.empty?
-            logger.error "[smtp2go-validation] No provisioned DNS records for #{mailer_config.domain_id}; cannot validate"
-            return []
-          end
-
-          provisioned.map do |record|
-            {
-              type: record['type'].to_s.upcase,
-              host: record['name'].to_s,
-              value: record['value'].to_s,
-              purpose: classify_record_purpose(record),
-            }
-          end
-        end
+        # DNS records come from BaseStrategy#required_dns_records, which
+        # reads provisioned mailer_config.dns_records and skips the
+        # advisory tracking CNAME ('optional' => true) so it never gates
+        # verification.
 
         # Verifies SMTP2GO DNS records via live DNS lookup.
         #
