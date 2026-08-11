@@ -269,3 +269,73 @@ authority. The current shared-pool behavior (any account authenticates on
 any host with sign-in enabled) matches neither and is a long-standing
 defect. A1's request-host enforcement is the interim mitigation (it
 restricts methods, not accounts); #4138 is the robust fix.
+
+#### A7. A1's reject semantics: not-found, not forbidden
+
+A1 says the server MUST reject a restricted-away method; it does not say
+how. Settled 2026-08-11: **reject as not-found**, matching Rodauth's
+behavior for a feature that was never loaded — the route is simply
+undefined and the router answers 404. Not a 403 gate.
+
+The rationale is not secrecy. A 403 would leak close to nothing here: the
+sign-in page on that host already advertises the single method it offers,
+so the marginal disclosure is nil. Note also that OWASP's uniform-response
+guidance is about *account* enumeration — whether a given email is
+registered, a fact about a person — and does not govern disclosure of
+server configuration. Reaching for it here would be citing the wrong rule.
+
+The reason is A1's own corollary. A 403 gate means the handler is still
+mounted, still reachable, still one bug away from executing; that is
+configuration presenting as availability, the exact shape A1 exists to
+kill. A disabled auth method should present no reachable surface at all.
+Not-found is the honest description of what a restricted-away method is on
+that host.
+
+Implementation note, and the part principle does not settle: Rodauth mounts
+routes once at boot, but `restrict_to` varies per request host, so routes
+cannot be un-mounted per host. The gate is therefore request-time and
+*emulates* non-existence rather than achieving it structurally. Two
+consequences follow. First, the gate must cover every reachable route per
+method — secondary endpoints included (verify, resend, callback,
+ceremony-start), since a gate that covers the primary POST and misses
+`webauthn-auth-begin` leaves the gap open while looking closed, which is
+worse than no gate because it invites documenting `restrict_to` as an
+access control it does not yet provide. Second, `SsoOnlyGating` predates
+this decision and its existing reject shape may not match; reconcile the
+two when A1 lands rather than leaving two conventions.
+
+**A7 implementation findings (2026-08-11).** Rodauth's `route_hash` is built
+once and frozen in `post_configure`, and `route!` is a frozen-hash lookup —
+so returning nil from `login_route` per request does nothing. The gate is
+`before_rodauth` (fires inside the matched route, after `@current_route` is
+set and CSRF checked) halting with a 404, matching the app's existing 404
+shape in `apps/web/auth/router.rb`. Host and strategy are on the request
+env via `Onetime::Middleware::DomainStrategy`, which sits above the `/auth`
+mount. This is Rodauth-supported, not a workaround; only the policy is ours.
+
+Two surfaces sit outside `before_rodauth` and must be gated separately, or
+enforcement is silently partial:
+
+- **SSO** is not in `route_hash` at all — the OmniAuth request phase is
+  served by middleware, so `before_rodauth` never fires. Gate at
+  `omniauth_setup` and `before_omniauth_callback_route`, which already halt
+  for tenant mismatch.
+- **Simple mode** serves `POST /auth/login` from Core, not Rodauth, and its
+  existing gate returns a 302 to `/`. Without a Core-side gate, enforcement
+  is mode-dependent — present in full mode, absent in simple.
+
+**Scope, settled — A7 governs the pre-auth sign-in surface only.**
+Credential *management* endpoints reachable only when authenticated
+(`change-password`, `webauthn-setup`, `webauthn-remove`) are deliberately
+exempt from the 404 rule. This is not an oversight; per A1's own scope note,
+A1 is request-host enforcement (*which methods work on this host*) while
+account-scoped questions belong to A6/#4138. Management operations are
+account-scoped, so keying them to the request host would be the wrong axis.
+They stay with `SsoOnlyGating`, whose 403 + `error_key` is correct for an
+already-identified user — converting that into a 404 would turn an
+actionable error into a mystery. `SsoOnlyGating`'s divergence from A7 is
+therefore ratified as a deliberate split, not a reconciliation debt.
+
+Pre-auth password surfaces are *not* exempt: `create-account`,
+`reset-password-request`, and `reset-password` are reachable unauthenticated
+and go dark with the method.
