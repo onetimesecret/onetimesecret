@@ -261,8 +261,13 @@
    * enabled flag is off, so the sign-in page can never offer SSO no matter
    * what the policy toggle here says. States only the record's stored flag —
    * NOT overall availability (other ladder rungs may also block; ADR-024).
+   * Gated on ssoConfigurable because the hint copy directs to "Edit
+   * credentials": without both write gates that button does not render, and
+   * the row already names the real blocker (upgrade lock / "Unavailable").
    */
-  const ssoConnectionDisabled = computed(() => props.ssoConfigured && !props.ssoCredentialsEnabled);
+  const ssoConnectionDisabled = computed(
+    () => ssoConfigurable.value && props.ssoConfigured && !props.ssoCredentialsEnabled
+  );
 
   interface MethodRow {
     value: SigninRestrictTo;

@@ -1330,7 +1330,10 @@ describe('DomainSigninConfigForm', () => {
   // matter what the policy toggle says, so the form surfaces "Connection
   // disabled": a full amber row in Mode A, a compact badge on the SSO radio
   // row in Mode B. Renders ONLY when ssoConfigured && !ssoCredentialsEnabled
-  // — with no credential record there is nothing dormant to warn about.
+  // — with no credential record there is nothing dormant to warn about —
+  // AND ssoConfigurable: the hint directs to "Edit credentials", so it must
+  // not appear for users who don't get that button (no manage-SSO
+  // entitlement, or tenant SSO off install-wide).
   // -----------------------------------------------------------------------
 
   describe('dormant credentials indicator (#4107)', () => {
@@ -1357,6 +1360,33 @@ describe('DomainSigninConfigForm', () => {
       wrapper = mountForm({ ssoConfigured: false, ssoCredentialsEnabled: true });
       expect(wrapper.find(INDICATOR).exists()).toBe(false);
       expect(wrapper.find(COMPACT).exists()).toBe(false);
+    });
+
+    it('does not render without the manage-SSO entitlement — the "Edit credentials" action it points at is absent', () => {
+      wrapper = mountForm({
+        ssoConfigured: true,
+        ssoCredentialsEnabled: false,
+        canManageSso: false,
+      });
+      expect(wrapper.find(INDICATOR).exists()).toBe(false);
+      // Mode B compact badge is gated identically.
+      wrapper.unmount();
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'password' },
+        ssoConfigured: true,
+        ssoCredentialsEnabled: false,
+        canManageSso: false,
+      });
+      expect(wrapper.find(COMPACT).exists()).toBe(false);
+    });
+
+    it('does not render when tenant SSO is off install-wide (ORGS_SSO_ENABLED)', () => {
+      wrapper = mountForm({
+        ssoConfigured: true,
+        ssoCredentialsEnabled: false,
+        orgsSsoEnabled: false,
+      });
+      expect(wrapper.find(INDICATOR).exists()).toBe(false);
     });
 
     it('treats an omitted prop as connection-off (default false, matching the record default)', () => {
