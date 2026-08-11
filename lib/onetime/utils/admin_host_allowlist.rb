@@ -44,7 +44,8 @@ module Onetime
       WILDCARD = '*'
 
       # Why an entry was rejected, in the words shown to the operator. Used by
-      # both the boot WARN and the ConfigError: one judgment, one vocabulary.
+      # both boot WARNs — the config check's and the middleware's
+      # rejected-entries line: one judgment, one vocabulary.
       REJECTION_REASONS = {
         wildcard_pattern: 'wildcard patterns are not supported — list each hostname explicitly',
         non_ascii: 'non-ASCII — supply the punycode (xn--) form',
@@ -79,10 +80,10 @@ module Onetime
         # AN EXPLICIT `*` ANYWHERE IN THE LIST MAKES THIS FALSE, whatever else
         # is listed. `*` is the documented request for "host gate off"; it is
         # not made ambiguous by a sibling entry, and the sibling is ignored
-        # either way. Reading `wildcard_only?` here instead (as this did before)
-        # classified `ADMIN_ALLOWED_HOSTS="*,10.0.0.5"` as unenforceable — total
-        # deny in the middleware, and formerly a boot abort — while the error
-        # text told the operator to do exactly what they had just done.
+        # either way. Reading `wildcard_only?` here instead would classify
+        # `ADMIN_ALLOWED_HOSTS="*,10.0.0.5"` as unenforceable — a total deny in
+        # the middleware — while the diagnostic tells the operator to do
+        # exactly what they had just done: set `*`.
         def unenforceable?
           !empty? && !wildcard && hosts.empty?
         end

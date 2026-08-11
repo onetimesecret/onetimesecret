@@ -696,6 +696,11 @@ site:
     # request resolves to the proxy hop. A raw X-Forwarded-For header cannot
     # bypass the allowlist.
     #
+    # Entries may be as fine as a single host (/32, IPv6 /128): membership is
+    # judged against the full-precision resolved client IP, even though request
+    # logs carry only its privacy-masked form. An entry that does not parse as
+    # a CIDR is dropped and named in a boot WARN.
+    #
     # Example: ["100.64.0.0/10", "10.0.0.0/8"]
     allowed_cidrs: <%= ENV['ADMIN_ALLOWED_CIDRS']&.split(',')&.map(&:strip) || [] %>
 

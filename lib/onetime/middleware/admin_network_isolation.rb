@@ -144,15 +144,31 @@ module Onetime
     #
     # The allowlist check MUST use the trusted-proxy-resolved client IP, never a
     # raw forwarding header, or the allowlist is trivially spoofable by sending
-    # `X-Forwarded-For: <an-allowed-ip>`. We resolve from the canonical
-    # env['otto.client_ip'] set once by the universal IPPrivacyMiddleware mount
+    # `X-Forwarded-For: <an-allowed-ip>`. Membership is judged through
+    # env['otto.ip_match'] — the verdict-only closure the universal
+    # IPPrivacyMiddleware mount installs over the resolved, PRE-MASK client IP
     # (configured from site.network.trusted_proxy via
-    # MiddlewareStack.ip_privacy_security_config), with the same
-    # Otto::Utils.resolve_client_ip fallback the auth strategies use. This is the
-    # identical resolution the rest of the stack relies on, so the network gate
-    # agrees with ban checks, sessions, and audit attribution. When the IP cannot
-    # be resolved and an allowlist is configured, the request is denied (404) —
-    # fail closed.
+    # MiddlewareStack.ip_privacy_security_config) — because the canonical
+    # env['otto.client_ip'] is privacy-MASKED before this middleware runs: the
+    # last IPv4 octet (IPv6: the last 80 bits) is zeroed at the default
+    # precision. Matching the masked value misjudges every range finer than the
+    # mask in both directions — a single-admin-IP /32 entry can never match its
+    # own client, while an entry that happens to equal a masked network address
+    # admits every neighbor that shares it. The closure answers at full
+    # /32–/128 precision without the unmasked address ever landing in env, a
+    # log, or this middleware; it resolves via the same
+    # Otto::Utils.resolve_client_ip the auth strategies use, so the network
+    # gate still agrees with ban checks, sessions, and audit attribution on WHO
+    # the client is. A request that never passed the otto mount has no closure;
+    # membership then falls back to comparing the resolved IP itself, and that
+    # same mount is what writes env['otto.client_ip'], so with it absent
+    # #resolve_client_ip re-resolves the unmasked address. The closure and the
+    # canonical IP are co-written by that one middleware: an env that sets
+    # otto.client_ip by hand without running it is out of contract, and the
+    # fallback would judge whatever masked value it was handed. When no client
+    # IP can be resolved and an allowlist is configured, the request is denied
+    # (404) — fail closed; the closure answers false for a request with no
+    # resolvable IP.
     #
     # ## Path matching
     #
@@ -216,11 +232,6 @@ module Onetime
       # @see Onetime::Middleware::ADMIN_NOT_FOUND_HTML
       NOT_FOUND_HTML = ADMIN_NOT_FOUND_HTML
 
-      # Escape hatch that disables the HOST gate. The network gate is
-      # unaffected by it. Needed by self-hosted installs reached by bare IP or
-      # by a hostname that is not the configured canonical domain.
-      HOST_WILDCARD = Onetime::Utils::AdminHostAllowlist::WILDCARD
-
       # Returned by #site_admin_list when the config could not be READ, as
       # opposed to having been left unset. A Symbol, so it can never collide
       # with a value that came out of YAML or ENV. See #site_admin_list.
@@ -266,8 +277,17 @@ module Onetime
           yield
         end
 
-        # Clear the ledger. Specs only — a process that has booted has no
+        # Clear the ledger. Tests only — a process that has booted has no
         # reason to re-announce its posture.
+        #
+        # Wired to run BEFORE EVERY EXAMPLE in spec/spec_helper.rb, not left to
+        # each spec to remember. The ledger is process-wide and a test process
+        # builds many stacks: uncleared, the first example to produce a given
+        # posture is the only one that can observe its boot line, and every
+        # later assertion about one silently sees nothing. try/unit/middleware/
+        # admin_network_isolation_try.rb calls it explicitly instead — tryouts
+        # have no per-case hook, and its ledger cases count announcements, so
+        # they need the reset at a point they choose.
         #
         # @return [void]
         def reset_boot_announcements!
@@ -356,19 +376,18 @@ module Onetime
               host: host,
               path: full_path,
               method: env['REQUEST_METHOD'],
-              note: 'a forwarded host header changed the detected host, but the peer is not a ' \
-                    'configured trusted proxy (site.network.trusted_proxy). Configure it, or set ' \
-                    'ADMIN_ALLOWED_HOSTS=* to turn the host gate off',
+              note: 'a forwarded host header changed the detected host, but the peer is not a configured ' \
+                    'trusted proxy. Set site.network.trusted_proxy with explicit proxy CIDRs — filter mode ' \
+                    'with none listed trusts every private peer — or ADMIN_ALLOWED_HOSTS=* to turn the gate off',
             }
 
           return true
         end
 
         # THERE IS NO HOST TO JUDGE — same 404, its own line. Routing this into
-        # the membership WARN below (what it did until the #4098 review) told
-        # the operator their host was rejected BY THE ALLOWLIST, when the
-        # allowlist was never consulted and `host` logged as nil. See
-        # #warn_unresolvable_host.
+        # the membership WARN below would tell the operator their host was
+        # rejected BY THE ALLOWLIST, when the allowlist was never consulted and
+        # `host` logged as nil. See #warn_unresolvable_host.
         return warn_unresolvable_host(env, full_path, host) if host.nil? || host.empty?
 
         return false if host_allowed?(host)
@@ -404,10 +423,10 @@ module Onetime
             host: host,
             path: full_path,
             method: env['REQUEST_METHOD'],
-            note: 'Rack::DetectHost emits no host for a bare-IP `Host:` header, for localhost forms, ' \
-                  'or for a malformed name, so site.admin.allowed_hosts was never consulted — no entry ' \
-                  'in it could have matched. Reach the admin surface on a routable hostname the ' \
-                  'allowlist names, or set ADMIN_ALLOWED_HOSTS=* to turn the host gate off',
+            note: 'Rack::DetectHost emits no host for a bare-IP `Host:` header, localhost forms, or a ' \
+                  'malformed name, so site.admin.allowed_hosts was never consulted. Behind a proxy, forward ' \
+                  'the original Host (`proxy_set_header Host $host;`, plus site.network.trusted_proxy for ' \
+                  'forwarded hosts); otherwise use a routable hostname, or ADMIN_ALLOWED_HOSTS=* to turn it off',
           }
 
         true
@@ -460,23 +479,48 @@ module Onetime
         normalize_host(Rack::DetectHost.normalize_host(env['HTTP_HOST']))
       end
 
-      # Network (CIDR) gate. Per-request semantics are unchanged from before
-      # #4062; what changed is when the gate counts as ACTIVE — see
-      # #resolve_network_gate.
+      # Network (CIDR) gate. Whether it counts as ACTIVE at all is decided once,
+      # at construction — see #resolve_network_gate.
       def network_denied?(env, full_path)
         return false unless network_gate_active?
 
-        client_ip = resolve_client_ip(env)
-        return false if allowed?(client_ip)
+        return false if network_allowed?(env)
 
+        # The masked/resolved IP, not the pre-mask one: the closure never
+        # discloses the address it judged, and the denial line must not either.
         @logger.warn 'Admin surface access denied by network isolation',
           {
-            ip: client_ip,
+            ip: resolve_client_ip(env),
             path: full_path,
             method: env['REQUEST_METHOD'],
           }
 
         true
+      end
+
+      # Allowlist membership at full precision when the request came through
+      # the otto mount, at the resolved value otherwise.
+      #
+      # env['otto.ip_match'] is the verdict-only closure IPPrivacyMiddleware
+      # installs over the resolved PRE-MASK client IP. It is consulted first
+      # because env['otto.client_ip'] is already privacy-masked here, and a
+      # masked address misjudges any range finer than the mask (see the class
+      # doc, "Client IP resolution"). @allowed_ranges is handed over as the
+      # pre-parsed IPAddr list, so a malformed configured entry — dropped, with
+      # a WARN, at construction — can never make the closure raise. The closure
+      # answers false when the request had no resolvable IP: fail closed.
+      #
+      # A request that never passed IPPrivacyMiddleware (embeddings, bare-Rack
+      # tests) carries no closure — anything non-callable in the key is judged
+      # the same way, never called. #allowed? then compares the resolved IP
+      # itself, and that same topology leaves env['otto.client_ip'] unset, so
+      # #resolve_client_ip re-resolves the unmasked address. The two keys are
+      # co-written by that one middleware: an env that sets otto.client_ip by
+      # hand without running it is out of contract, and the fallback would
+      # judge whatever masked value it was handed.
+      def network_allowed?(env)
+        matcher = env['otto.ip_match']
+        matcher.respond_to?(:call) ? matcher.call(@allowed_ranges) : allowed?(resolve_client_ip(env))
       end
 
       # Full request path independent of where the app is mounted, canonicalized
@@ -487,9 +531,9 @@ module Onetime
       # NORMALIZATION IS SECURITY-LOAD-BEARING, not tidiness. The router
       # dispatches on Otto::Utils.normalize_path, which percent-decodes: it
       # serves `GET /%63olonel` and `/colonel%2Fsettings` as the admin routes.
-      # Matching the RAW string here (as this did until the #4062 review) let
-      # both spellings miss #colonel_shell?, skip BOTH gates, and then be routed
-      # to the admin console anyway. Same idiom, and the same reasoning, as
+      # Matching the RAW string here would let both spellings miss
+      # #colonel_shell?, skip BOTH gates, and then be routed to the admin
+      # console anyway. Same idiom, and the same reasoning, as
       # HealthAccessControl#health_endpoint? and SessionSkip#skip?.
       #
       # Otto::Utils.normalize_path documents that it does not raise (it catches
@@ -518,6 +562,11 @@ module Onetime
         path == '/api/colonel' || path.start_with?('/api/colonel/')
       end
 
+      # Membership of ONE resolved IP in the parsed ranges. The no-closure
+      # fallback for #network_allowed?: in a full stack env['otto.client_ip']
+      # is the privacy-masked address, so ranges finer than the mask must go
+      # through the closure, never through here. Nil/empty/malformed all fail
+      # closed.
       def allowed?(client_ip)
         return false if client_ip.nil? || client_ip.empty?
 
@@ -616,13 +665,13 @@ module Onetime
       end
 
       # An operator wrote a CIDR list and not one entry parsed (`100.64.0.0\10`,
-      # a comma that survived splitting, a hostname). Before #4062's review this
-      # deactivated the gate: every WARNed-away entry left the range set empty,
-      # emptiness meant "inactive", and the admin surfaces silently became
-      # reachable from anywhere while the operator believed a VPN restriction
-      # was in force. Same rule as the host gate now — a list an operator wrote
-      # is never silently disabled — and the same deliberate asymmetry with an
-      # EMPTY list, which still means "no network gate".
+      # a comma that survived splitting, a hostname). Deactivating the gate
+      # here would leave every WARNed-away entry an empty range set, emptiness
+      # reading as "inactive", and the admin surfaces silently reachable from
+      # anywhere while the operator believed a VPN restriction was in force.
+      # Same rule as the host gate — a list an operator wrote is never silently
+      # disabled — and the same deliberate asymmetry with an EMPTY list, which
+      # still means "no network gate".
       def unusable_network_gate(entries)
         log_once(:cidrs_unusable, { entries: entries }) do
           @logger.error 'Admin CIDR allowlist has no usable range; denying both admin surfaces',
@@ -731,9 +780,9 @@ module Onetime
               entries: classified.rejected.map(&:first),
               surfaces: SURFACES,
               note: '/colonel and /api/colonel are returning 404 to EVERY request because no entry in ' \
-                    'site.admin.allowed_hosts can match a detected host. Set ADMIN_ALLOWED_HOSTS to a ' \
-                    'routable hostname, unset it to allow the canonical host only, or set it to * to ' \
-                    'disable the host gate',
+                    'site.admin.allowed_hosts can match a detected host. Set ADMIN_ALLOWED_HOSTS to a routable ' \
+                    'hostname, unset it to allow the canonical host only (on localhost/bare-IP installs that ' \
+                    'self-disables the gate instead), or set it to * to disable the host gate',
             }
         end
 
@@ -838,7 +887,7 @@ module Onetime
       # synthesizes either form, so it is done here.
       #
       # THIS IS NOT DomainStrategy::Chooserator.equal_to? AND MUST NOT BE
-      # "ALIGNED" WITH IT (an earlier version of this comment claimed it was).
+      # "ALIGNED" WITH IT.
       # That predicate resolves the REGISTRABLE DOMAIN first, so for an anchor
       # `app.example.com` it admits `www.example.com` — a different site — and
       # never admits an apex when the anchor is a www host. This method is
@@ -876,9 +925,9 @@ module Onetime
       # from "misconfigured" without diffing config against source.
       #
       # ONCE PER PROCESS, NOT ONCE PER MOUNT. MiddlewareStack.configure runs for
-      # each of the 13 registered applications, all from the same config; before
-      # the #4062 review this line (and every WARN above it) appeared 13 times
-      # per boot, which reads like 13 separate deployments' worth of
+      # each of the 13 registered applications, all from the same config;
+      # without the ledger this line (and every WARN above it) would appear 13
+      # times per boot, which reads like 13 separate deployments' worth of
       # misconfiguration.
       #
       # `trusted_proxy` is on this line, and deliberately not on one of its own:
@@ -945,7 +994,15 @@ module Onetime
         # Onetime::Security::ResetRequestRateLimiter, and
         # Onetime::Security::CreateAccountRateLimiter — and this adds a fourth
         # site reading `mode`. One accessor pair (enabled + mode) should serve
-        # all of them. Out of scope for #4062; tracked separately.
+        # all of them. Out of scope for #4062; tracked in #4087.
+        #
+        # Note the two `mode` expressions are not identical today, and neither
+        # VALIDATES: MiddlewareStack takes `tp['mode'] || 'filter'` and then
+        # branches on `== 'depth'`, so any unrecognized value (`Depth`, a typo)
+        # silently runs the FILTER branch — while this line echoes the raw
+        # string, reporting `mode=Depth` for a deployment running filter. The
+        # consolidated reader should reject unknown modes, not just share the
+        # default.
         mode = OT.conf.dig('site', 'network', 'trusted_proxy', 'mode').to_s.strip
         mode = 'filter' if mode.empty?
 

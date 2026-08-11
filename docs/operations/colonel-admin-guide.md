@@ -106,8 +106,11 @@ the one way to turn the gate off, and the one-variable rollback.
 
 Behind a proxy that forwards the public hostname in a header (`X-Forwarded-Host`,
 `Apx-Incoming-Host`, …) rather than rewriting `Host`, `site.network.trusted_proxy`
-must be configured: the host gate accepts a forwarded host only from a peer that
-trust vouched for, so otherwise both surfaces 404.
+must be configured **with the proxy's own address ranges in `cidrs`**: the host
+gate accepts a forwarded host only from a peer that trust vouched for, so
+otherwise both surfaces 404 — and filter mode with no explicit CIDRs trusts
+every private-network peer as a proxy, which restores exactly the
+forwarded-host spoofing the provenance rule exists to block.
 
 **Network — `site.admin.allowed_cidrs` / `ADMIN_ALLOWED_CIDRS`, opt-in.** Which
 client IPs may reach the surfaces. Unset (the default) it is a no-op, the right
@@ -117,5 +120,6 @@ anyone already on the trusted network.
 
 Both are a config posture, not a code fork — the same app-layer enforcement runs
 underneath regardless. The full setup (upgrade impact, private CIDRs, the
-required `site.network.trusted_proxy` behind a load balancer, and the edge
-alternative) is documented in **`docs/operations/admin-network-isolation.md`**.
+required `site.network.trusted_proxy` with explicit proxy CIDRs behind a load
+balancer, and the edge alternative) is documented in
+**`docs/operations/admin-network-isolation.md`**.

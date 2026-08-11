@@ -269,6 +269,19 @@ RSpec.configure do |config|
     # Production runs SetupI18n initializer at boot; unit tests skip boot!.
     I18n.available_locales = [:en] unless I18n.available_locales.include?(:en)
     I18n.default_locale = :en
+
+    # AdminNetworkIsolation announces its boot posture — and every WARN about a
+    # gate being off, dark, or unenforceable — through a PROCESS-WIDE ledger, so
+    # the 13 mounted apps built from one config print one line instead of 13.
+    # Production never clears it: a process boots once. A spec process builds a
+    # stack per example, so without this the first example to produce a given
+    # posture is the only one that can ever observe its boot line, and every
+    # later assertion about one sees silence — a green-or-red decided by run
+    # order, with silence as the default. Reset per example so each stack a spec
+    # builds announces itself, exactly as the first one in a real boot does.
+    # Pinned by spec/integration/all/colonel_host_allowlist_spec.rb, which asserts
+    # the same boot WARN in two identical examples.
+    Onetime::Middleware::AdminNetworkIsolation.reset_boot_announcements!
   end
 
   # Clean Redis/Valkey database after each integration test to prevent state leakage.
