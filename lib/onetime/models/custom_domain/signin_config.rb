@@ -52,6 +52,63 @@ module Onetime
       # Valid values for restrict_to — matches AuthConfig::RESTRICT_TO_VALUES
       RESTRICT_TO_VALUES = %w[password email_auth webauthn sso].freeze
 
+      # Result of `restrict_to` resolution (ADR-024 A2).
+      #
+      # Three EXPLICIT states, because the three gates that consume it need to
+      # tell them apart and a bare string cannot:
+      #
+      #   :unrestricted — every globally-enabled sign-in method is offered.
+      #                   `restrict_to` is nil. Runtime gate: allow all.
+      #   :restricted   — exactly one method is offered. `restrict_to` names
+      #                   it. Runtime gate: allow only that method.
+      #   :unavailable  — a restriction is in force but its backing method
+      #                   cannot be honored here, so NO method is offered
+      #                   (ADR-024 A3 fail-closed). `restrict_to` still carries
+      #                   the named method so a caller can render a
+      #                   method-specific notice. Runtime gate: allow nothing.
+      #
+      # `source` records which layer decided (:domain or :global) so the
+      # settings API (A4) can explain the effective value without re-deriving.
+      #
+      # Use `allows?(method)` for the runtime gate (A1) rather than comparing
+      # `restrict_to` — it is the only form that reads correctly in all three
+      # states.
+      #
+      # NOTE: the member is `restrict_to`, not `method`; a `method` member
+      # would shadow Object#method on every instance.
+      RestrictToResolution = Data.define(:state, :restrict_to, :source) do
+        def self.unrestricted(source)
+          new(state: :unrestricted, restrict_to: nil, source: source)
+        end
+
+        def self.restricted(restrict_to, source)
+          new(state: :restricted, restrict_to: restrict_to, source: source)
+        end
+
+        def self.unavailable(restrict_to, source)
+          new(state: :unavailable, restrict_to: restrict_to, source: source)
+        end
+
+        def unrestricted? = state == :unrestricted
+        def restricted?   = state == :restricted
+        def unavailable?  = state == :unavailable
+
+        # Whether `name` is a sign-in method this resolution permits.
+        #
+        # This does NOT consider whether the method is enabled globally —
+        # restriction is a narrowing filter applied on top of the global
+        # capability, so callers still AND it with their own enablement check.
+        #
+        # @param name [String, Symbol]
+        # @return [Boolean]
+        def allows?(name)
+          return true if unrestricted?
+          return false if unavailable?
+
+          restrict_to == name.to_s
+        end
+      end
+
       prefix :custom_domain__signin_config
 
       # domain_id is the CustomDomain's identifier (objid), used as our key.
@@ -279,6 +336,88 @@ module Onetime
           return global unless config&.enabled?
 
           global && config.email_auth_enabled?
+        end
+
+        # Resolve the effective single-sign-in-method restriction, combining
+        # the install-level (global) restriction with an optional per-domain
+        # override. ADR-024 A2 (invariant 5): this is the ONE owner of
+        # restrict_to resolution, consumed by the display gate
+        # (Core::Views::ConfigSerializer#resolve_restrict_to), the runtime gate
+        # (Core::Controllers::Base, A1) and the settings API `details`
+        # (A4). No caller re-derives any part of it.
+        #
+        # PRECEDENCE — replace, not AND. An *enabled* per-domain config
+        # replaces the global restriction outright; no record, or a record with
+        # the master switch off, defers to global (ADR-024 invariant 2). This
+        # differs from resolve_signin_enabled's narrowing AND on purpose:
+        # restrict_to picks WHICH method, not WHETHER sign-in works, so there
+        # is no meaningful intersection of two different method names. The
+        # consequence is that an enabled domain config with restrict_to unset
+        # widens past a global restriction on that host. That is the behavior
+        # this method was extracted from, preserved deliberately; intersection
+        # semantics would be a policy change and needs its own ADR amendment.
+        #
+        # DOMAIN-HALF DEGRADATION IS FAIL-CLOSED (ADR-024 A3). A domain
+        # restriction naming a method that cannot be honored on a custom domain
+        # resolves to :unavailable — sign-in offers nothing — never to
+        # :unrestricted. Widening would re-expose exactly the methods the
+        # domain owner chose to hide. Two cases:
+        #
+        #   - 'webauthn': passkey credentials are host-scoped (rp_id =
+        #     request.host), so a credential registered on the canonical host
+        #     can never assert on a custom domain. Not policy, a
+        #     not-yet-supported guard — #4137 adds per-domain credential
+        #     scoping and retires it (ADR-024 A5). PUT already rejects new
+        #     webauthn restrictions; this covers values persisted earlier.
+        #   - anything outside RESTRICT_TO_VALUES: invalid data, fails closed
+        #     like the rest rather than silently reading as "unrestricted".
+        #
+        # GLOBAL HALF. `global` is taken at face value: post-#4140,
+        # AuthConfig#restrict_to returns a valid restriction or nil meaning "no
+        # restriction configured", and never nil to mean "the configured
+        # restriction could not be honored" (that is a fatal boot error now).
+        # So there is deliberately no availability check and no defensive
+        # nil-handling here — re-adding either would rebuild the silent
+        # fail-open A3 retired. Global unavailability that is only discoverable
+        # after boot is the caller's to pass in (AuthConfig#restrict_to_available?)
+        # once A1 lands; it is not derivable from these two arguments.
+        #
+        # @param global [String, nil] install-level restriction (AuthConfig#restrict_to),
+        #   or nil when nothing is restricted
+        # @param config [SigninConfig, nil] the per-domain config, if any
+        # @return [RestrictToResolution] explicit :unrestricted / :restricted / :unavailable
+        def resolve_restrict_to(global, config)
+          return resolve_domain_restrict_to(config) if config&.enabled?
+
+          value = global.to_s.strip
+          return RestrictToResolution.unrestricted(:global) if value.empty?
+
+          RestrictToResolution.restricted(value, :global)
+        end
+
+        # Domain half of resolve_restrict_to. See its PRECEDENCE and
+        # DOMAIN-HALF DEGRADATION notes; do not call this directly.
+        #
+        # @param config [SigninConfig] an *enabled* per-domain config
+        # @return [RestrictToResolution]
+        def resolve_domain_restrict_to(config)
+          value = config.restrict_to.to_s.strip
+          return RestrictToResolution.unrestricted(:domain) if value.empty?
+          return RestrictToResolution.unavailable(value, :domain) unless honorable_domain_restriction?(value)
+
+          RestrictToResolution.restricted(value, :domain)
+        end
+
+        # Whether a persisted domain restriction can be honored on a custom
+        # domain at all. False => the restriction stands but resolves to
+        # :unavailable (ADR-024 A3).
+        #
+        # @param value [String] a non-empty persisted restrict_to value
+        # @return [Boolean]
+        def honorable_domain_restriction?(value)
+          return false unless RESTRICT_TO_VALUES.include?(value)
+
+          value != 'webauthn'
         end
 
         # Install-level sign-in capability — the `global` input to
