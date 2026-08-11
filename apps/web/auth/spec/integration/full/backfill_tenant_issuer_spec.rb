@@ -36,7 +36,7 @@
 # semantics, which differ between engines. Running both is the regression guard.
 #
 # REQUIREMENTS:
-# - Valkey running on port 2121: pnpm run test:database:start
+# - Valkey running on port 2163: pnpm run test:database:start
 # - AUTHENTICATION_MODE=full, ORGS_SSO_ENABLED=true
 #
 # RUN (SQLite lane):

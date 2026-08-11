@@ -16,7 +16,7 @@
 # Run: pnpm run test:rspec apps/web/auth/spec/operations/sync_session_colonel_signin_spec.rb
 
 require 'spec_helper'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'auth/operations/sync_session'
 
 RSpec.describe Auth::Operations::SyncSession do
@@ -45,14 +45,14 @@ RSpec.describe Auth::Operations::SyncSession do
   end
 
   before do
-    allow(Onetime::AdminAuditEvent).to receive(:record)
+    allow(Onetime::ColonelAuditEvent).to receive(:record)
     allow(Auth::Logging).to receive(:log_error)
   end
 
   it 'records colonel.signin with the acting colonel as actor and target' do
     op.send(:record_colonel_signin, colonel)
 
-    expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+    expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
       actor: 'ur_colonel',
       verb: 'colonel.signin',
       target: 'ur_colonel',
@@ -62,13 +62,13 @@ RSpec.describe Auth::Operations::SyncSession do
   end
 
   it 'uses the single-sourced verb constant (both auth modes must agree)' do
-    expect(Onetime::AdminAuditEvent::VERB_COLONEL_SIGNIN).to eq('colonel.signin')
+    expect(Onetime::ColonelAuditEvent::VERB_COLONEL_SIGNIN).to eq('colonel.signin')
   end
 
   it 'records NOTHING for a non-colonel login (CONTRACT 4: not an admin action)' do
     op.send(:record_colonel_signin, plain_customer)
 
-    expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+    expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
   end
 
   it 'never fails a login because the audit event could not be assembled' do

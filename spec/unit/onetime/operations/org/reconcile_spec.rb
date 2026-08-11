@@ -18,7 +18,7 @@
 # Run: bundle exec rspec spec/unit/onetime/operations/org/reconcile_spec.rb
 
 require 'spec_helper'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/operations/org/reconcile'
 
 RSpec.describe Onetime::Operations::Org::Reconcile do
@@ -86,7 +86,7 @@ RSpec.describe Onetime::Operations::Org::Reconcile do
   end
 
   before do
-    allow(Onetime::AdminAuditEvent).to receive(:record)
+    allow(Onetime::ColonelAuditEvent).to receive(:record)
     allow(Onetime::Organization).to receive(:load).with('org-obj-1').and_return(reloaded_org)
     allow(Billing::Operations::ApplySubscriptionToOrg)
       .to receive(:materialize_entitlements_for_org).and_return(materialize_result)
@@ -132,7 +132,7 @@ RSpec.describe Onetime::Operations::Org::Reconcile do
     it 'records EXACTLY ONE audit event (public actor + org extid target)' do
       described_class.new(org: org, actor: actor, dry_run: false).call
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         actor: actor,
         verb: 'organization.reconcile',
         target: 'on_org_ext',
@@ -169,7 +169,7 @@ RSpec.describe Onetime::Operations::Org::Reconcile do
         expect(result.reason).to eq(reason)
         # No cascade ran on a skip/miss, so no counts to report (#3907).
         expect(result.memberships).to be_nil
-        expect(Onetime::AdminAuditEvent).to have_received(:record).once
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once
       end
     end
 
@@ -209,7 +209,7 @@ RSpec.describe Onetime::Operations::Org::Reconcile do
       expect(result.after).to be_nil
       expect(Billing::Operations::ApplySubscriptionToOrg)
         .to have_received(:materialize_entitlements_for_org).with(org, dry_run: true)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
       expect(Onetime::Organization).not_to have_received(:load)
     end
 
@@ -282,7 +282,7 @@ RSpec.describe Onetime::Operations::Org::Reconcile do
     it 'records EXACTLY ONE audit event with mode stripe_sync' do
       described_class.new(org: org, actor: actor, dry_run: false).call
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         hash_including(
           verb: 'organization.reconcile',
           target: 'on_org_ext',
@@ -301,7 +301,7 @@ RSpec.describe Onetime::Operations::Org::Reconcile do
       expect(result.reason).to include('sub_123')
       expect(Stripe::Subscription).not_to have_received(:retrieve)
       expect(Billing::Operations::ApplySubscriptionToOrg).not_to have_received(:new)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
     end
 
     # Stripe refusing the reconcile writes NOTHING (hence after: nil), but the
@@ -315,7 +315,7 @@ RSpec.describe Onetime::Operations::Org::Reconcile do
       expect(result.status).to eq(:stripe_error)
       expect(result.reason).to eq('no such subscription')
       expect(result.after).to be_nil
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         hash_including(
           actor: actor,
           verb: 'organization.reconcile',
@@ -342,7 +342,7 @@ RSpec.describe Onetime::Operations::Org::Reconcile do
         described_class.new(org: org, actor: actor, dry_run: false).call
       end.to raise_error(Onetime::Problem, /cascade blew up/)
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         hash_including(
           actor: actor,
           verb: 'organization.reconcile',

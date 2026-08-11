@@ -15,7 +15,7 @@ module ColonelAPI
       # in raise_concerns (404 when absent) and surfaces a typed field read-out plus
       # the full parsed payload for the detail drawer's raw inspector.
       #
-      # Read-only: no AdminAuditEvent (CONTRACT 4).
+      # Read-only: no ColonelAuditEvent (CONTRACT 4).
       #
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.

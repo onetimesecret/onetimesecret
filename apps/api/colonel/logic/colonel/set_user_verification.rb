@@ -13,7 +13,7 @@ module ColonelAPI
       #
       # Thin adapter over Auth::Operations::Customers::SetVerification, which
       # reuses the incumbent Auth::Operations::SetCustomerVerification (cross-store
-      # Redis+SQL writer) and records the AdminAuditEvent. Subclasses only choose
+      # Redis+SQL writer) and records the ColonelAuditEvent. Subclasses only choose
       # the target state.
       #
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this

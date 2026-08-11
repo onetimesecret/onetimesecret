@@ -23,7 +23,7 @@ module ColonelAPI
       #
       # Thin adapter over {Onetime::Operations::Domains::EnsureDomainConfigs} —
       # the audited single implementation (CONTRACT 4: exactly one
-      # AdminAuditEvent per applied run that created something; none on
+      # ColonelAuditEvent per applied run that created something; none on
       # dry-run, none when nothing was missing).
       #
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this

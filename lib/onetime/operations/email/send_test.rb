@@ -10,7 +10,7 @@
 # `bin/ots email test` CLI), so require the audit dependency explicitly.
 require 'socket'
 require 'onetime/mail'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 
 module Onetime
@@ -28,7 +28,7 @@ module Onetime
       # so the CLI's rendered output stays byte-identical. The CLI keeps its own
       # timing + status-line printing and simply routes the actual send through
       # this op; the op adds exactly one thing the inline send lacked: one
-      # {Onetime::AdminAuditEvent} per SUCCESSFUL real send.
+      # {Onetime::ColonelAuditEvent} per SUCCESSFUL real send.
       #
       # ## Audit rule (CONTRACT 4)
       #
@@ -121,7 +121,7 @@ module Onetime
           # One audit event per successful real send. The recipient is the (public)
           # target; the body/subject are non-secret diagnostics but we record only
           # the provider + mode, never the message content.
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @to,

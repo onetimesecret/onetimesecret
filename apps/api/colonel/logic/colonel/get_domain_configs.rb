@@ -21,7 +21,7 @@ module ColonelAPI
       # booleans, credential PRESENCE only — never client_id/client_secret/
       # api_key values) or null when absent.
       #
-      # READ-ONLY: emits NO AdminAuditEvent (CONTRACT 4 — audit is for
+      # READ-ONLY: emits NO ColonelAuditEvent (CONTRACT 4 — audit is for
       # mutations), matching GetCustomDomain / ProbeDomain.
       #
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this

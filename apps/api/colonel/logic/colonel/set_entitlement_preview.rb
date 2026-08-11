@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 
 require_relative '../base'
@@ -149,7 +149,7 @@ module ColonelAPI
         # acting colonel. Detail carries the previewed plan and nothing else —
         # no session key names, no entitlement lists.
         def record_audit_event
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: cust&.extid,
             verb: clearing? ? AUDIT_VERB_CLEAR : AUDIT_VERB_SET,
             target: cust&.extid,

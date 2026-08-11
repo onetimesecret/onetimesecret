@@ -19,18 +19,18 @@ Effort is calendar-honest solo-maintainer scale. "Proof" says how we know the
 chunk worked — every chunk lands with its regression guard or names the chunk
 that will guard it.
 
-| # | Chunk | Effort | Depends on |
-| --- | --- | --- | --- |
-| C1 | Unbreak the front door (docs-only) | hours | — |
-| C2 | Version truth | ~1 day | — |
-| C3 | Bootable clean slate (script/code fixes) | 1–2 days | C2 helps |
-| C4 | First account & first secret | ~1 day | — |
-| C5 | Compose coherence | 1–2 days | C1 |
-| C6 | `bin/setup` consolidation + CONTRIBUTING | 2–4 days | C2, C3 |
-| C7 | Clean-room harness + CI lanes | 2–4 days | C3 (to go green) |
-| C8 | Devcontainer + Codespaces | 1–2 days | C6 (or C3 min.) |
-| C9 | Doctor v2 + drift guards + support bundle | 2–3 days | C2 |
-| C10 | SECRET lifecycle safety | 2–4 days + design | — |
+| #   | Chunk                                     | Effort            | Depends on       |
+| --- | ----------------------------------------- | ----------------- | ---------------- |
+| C1  | Unbreak the front door (docs-only)        | hours             | —                |
+| C2  | Version truth                             | ~1 day            | —                |
+| C3  | Bootable clean slate (script/code fixes)  | 1–2 days          | C2 helps         |
+| C4  | First account & first secret              | ~1 day            | —                |
+| C5  | Compose coherence                         | 1–2 days          | C1               |
+| C6  | `bin/setup` consolidation + CONTRIBUTING  | 2–4 days          | C2, C3           |
+| C7  | Clean-room harness + CI lanes             | 2–4 days          | C3 (to go green) |
+| C8  | Devcontainer + Codespaces                 | 1–2 days          | C6 (or C3 min.)  |
+| C9  | Doctor v2 + drift guards + support bundle | 2–3 days          | C2               |
+| C10 | SECRET lifecycle safety                   | 2–4 days + design | —                |
 
 ## C1 — Unbreak the front door (docs-only, zero code risk)
 
@@ -45,7 +45,7 @@ Every documented command works as pasted, on Linux, today.
   and Ubuntu 22.04 today).
 - Pin the current release tag; restore the upgrade-callout pattern for v0.25.
 - Bare-metal section: add `pnpm run build` before first boot; state the real
-  Ruby/Node floors (pending C2 they're at least *consistent*); mention the
+  Ruby/Node floors (pending C2 they're at least _consistent_); mention the
   UTF-8 locale requirement until C3 removes it.
 - Kill trust papercuts: "Familia" paragraph, "three ways" (lists two),
   Dockerfile's `docs/docker.md` pointer, compose-under-Development placement.
@@ -96,7 +96,7 @@ A fresh machine that follows the (C1-fixed) docs reaches a working instance.
   .env.example header, systemd units → `.env` with `set -a` (BM-03, DX-11,
   CP-12); systemd units also create/relocate their `ReadWritePaths` dirs
   (BM-02).
-- Full-auth init ordering: preflight RabbitMQ/Redis *before* `queue init`,
+- Full-auth init ordering: preflight RabbitMQ/Redis _before_ `queue init`,
   or defer queue init with a clear next-step (BM-06); Redis detection by
   connectivity, not local CLI presence (BM-05 — small; full doctor work is C9).
 
@@ -115,7 +115,7 @@ suite (runs 3, 4b, 5, 8, 10 all flip to green).
 > production-style boot (`pnpm run build` + puma) is the overmind-free
 > alternative. D1.1's fallback work is deferred: if it returns, it is a new
 > chunk, not a silent C3 reopen. The run-3/4b proof criterion above is
-> amended accordingly (run 3 green *with direnv present*; run 4b resolved
+> amended accordingly (run 3 green _with direnv present_; run 4b resolved
 > via Option B). Ruby-gate semantics (validation NF-5) were also decided:
 > install.sh now enforces the **exact** `.ruby-version`, matching bundler's
 > `ruby file:` pin, so the two gates cannot disagree. The clean-room
@@ -128,7 +128,7 @@ issue shape after install itself: GH-4/GH-5 adjacency).
 
 - Quick starts and install.sh "Next steps" print the admin/account commands
   (`bin/ots customers create EMAIL --role colonel`, `bin/ots apitoken EMAIL
-  --create`) — promote from the commands' own usage comments and
+--create`) — promote from the commands' own usage comments and
   test-accounts.md.
 - A self-host-facing note on `AUTH_AUTOVERIFY` and the SMTP dependency of
   signup; signup UX shows email not objid (QS-13); decide whether
@@ -143,7 +143,7 @@ Addresses: QS-3, QS-13, BM-07, DX-6, D6. Proof: proof-of-life script
 > README, the signup path, and the proof-of-life harness.
 > **QS-3/BM-07:** both install.sh "Next steps" branches (full and simple)
 > now print the account-creation commands (`bin/ots customers create EMAIL
-> --role colonel` plus the `bin/ots apitoken` follow-on), and the root
+--role colonel` plus the `bin/ots apitoken` follow-on), and the root
 > README gained a "Create your first account" section — `docker exec`,
 > `docker compose exec app`, and bare-metal forms — linked from the Docker
 > quick start, the bare-metal Installation block, and the Docker Compose
@@ -160,7 +160,7 @@ Addresses: QS-3, QS-13, BM-07, DX-6, D6. Proof: proof-of-life script
 > an opt-in create-account + authenticated `/api/v2/account` step, gated on
 > `POL_CREATE_ACCOUNT=1` (default off — existing lanes byte-identical);
 > wiring it into the compose-smoke lane is follow-on CI work alongside
-> C7's residuals *(update 2026-07-11: wired into both compose-smoke jobs —
+> C7's residuals _(update 2026-07-11: wired into both compose-smoke jobs —
 > simple-stack via a `POL_EXEC` exec-prefix into the app container,
 > full-stack in-container with `-e POL_CREATE_ACCOUNT=1`, which also
 > exercises first-account provisioning against the full-mode authdb; the
@@ -170,12 +170,12 @@ Addresses: QS-3, QS-13, BM-07, DX-6, D6. Proof: proof-of-life script
 > `/api/v2/receipt/recent` — basicauth-only, no noauth fallback — and
 > first proves anonymous is rejected (401) so the authenticated 200
 > actually proves the credentials; full step proven locally against a
-> bare-metal boot)*. **Deferred:** `rake dev:seed` (D6) — the optional bullet,
-> not built *(update 2026-07-10: shipped as `lib/tasks/dev.rake` — dev-only
+> bare-metal boot)_. **Deferred:** `rake dev:seed` (D6) — the optional bullet,
+> not built _(update 2026-07-10: shipped as `lib/tasks/dev.rake` — dev-only
 > guard on RACK_ENV, delegates account provisioning to `bin/ots apitoken`
 > so both auth modes work, seeds two sample secrets via
 > `Receipt.spawn_pair`, idempotent, prints credentials; surfaced in
-> CONTRIBUTING/dev guide/test-accounts.md and bin/setup's next steps)*;
+> CONTRIBUTING/dev guide/test-accounts.md and bin/setup's next steps)_;
 > and a comment pair above `.env.reference`'s bare
 > `AUTH_AUTOVERIFY=false` explaining both polarities — that file is
 > untouched, and C9 turns it into a generated/CI-checked artifact anyway.
@@ -208,7 +208,7 @@ lane (`config -q` per combo + `up --wait` + proof-of-life).
 > `service_healthy`, and the `OTS_IMAGE_TAG` doc comments bumped to v0.25.11
 > in passing. Everything else in C5 is open. Two markers already waiting in
 > the lane: `compose-smoke.yml` carries a CP-5 workaround (`chown 1001
-> ./data` in the workflow) to delete when CP-5 is fixed properly, and the
+./data` in the workflow) to delete when CP-5 is fixed properly, and the
 > full stack is `config -q`-linted but never booted — C5's CP-3/CP-4 work is
 > what unblocks a full-stack `up` lane.
 
@@ -234,7 +234,7 @@ lane (`config -q` per combo + `up --wait` + proof-of-life).
 > docker/README gained the required-env table (`ARGON2_SECRET` listed as
 > strongly recommended). **CP-10:** the app service's dead `PUBLIC_DIR`
 > removed from the full stack. **CP-9:** stack switching documented as what
-> it is (include-edit or direct `-f`), *not* migrated to real profiles —
+> it is (include-edit or direct `-f`), _not_ migrated to real profiles —
 > simple and full define app/maindb with colliding `container_name`s, so
 > profiles would force a single-file merge breaking every documented
 > invocation and the compose-smoke lint matrix. **CP-13:** the naming
@@ -256,7 +256,7 @@ lane (`config -q` per combo + `up --wait` + proof-of-life).
 > (CP-13's root-file half); and the full-stack `up --wait` lane (blocked on
 > the Dockerfile fix reaching a published tag, plus the proxy service being
 > build-only) — tracked with C7's residuals.
-> *(Update 2026-07-11: all four closed. Both `final` stages of the
+> _(Update 2026-07-11: all four closed. Both `final` stages of the
 > Dockerfile ship `/app/data` owned by appuser, so named volumes
 > self-initialize with uid-1001 ownership — docker/README's one-time
 > chown note now applies only to older published images. The
@@ -266,7 +266,7 @@ lane (`config -q` per combo + `up --wait` + proof-of-life).
 > published-tag blocker: compose-smoke.yml's `full-stack-smoke` job
 > builds the app image from source via bake and the proxy via
 > `compose build`, guarding the repo's Dockerfile + compose wiring
-> together — see C7's note.)*
+> together — see C7's note.)_
 
 ## C6 — `bin/setup` consolidation + CONTRIBUTING (D2, D3, D7)
 
@@ -288,7 +288,7 @@ C7's fresh-clone job runs `bin/setup` itself — the Zulip property.
 > (absorbs install-test.sh incl. `.test-mode`), `--init` (absorbs
 > install.sh; **deliberate change**: `init` now auto-reconciles when an
 > environment is already initialized, since a forced re-init regenerates
-> secrets), `--reconcile`/`--doctor`/`--console`. The three install-*.sh
+> secrets), `--reconcile`/`--doctor`/`--console`. The three install-_.sh
 > are deprecation-window delegates; `package.json` gained `setup` and the
 > TR-07 `test:tryouts:clean` fix. CONTRIBUTING.md/SUPPORT.md/
 > CODE_OF_CONDUCT.md written and linked from README (CoC reports route to
@@ -304,11 +304,11 @@ C7's fresh-clone job runs `bin/setup` itself — the Zulip property.
 > `--test` lane end-to-end + delegate idempotency re-run in a clean
 > worktree, spec file green afterwards. **Open:** TR-08 has no definition
 > in the current-state audit (only the list here cites it — treat as
-> spent). *(Update 2026-07-10: the two former residuals landed — installs
+> spent). _(Update 2026-07-10: the two former residuals landed — installs
 > are frozen whenever a lockfile exists (`BUNDLE_FROZEN` /
 > `pnpm --frozen-lockfile`, single chokepoint in `scripts/setup/lib.sh`)
 > and the fresh-clone litter check now fails on lockfile drift instead of
-> warning; `rake dev:seed` (D6) shipped — see C4's note.)*
+> warning; `rake dev:seed` (D6) shipped — see C4's note.)\*
 
 ## C7 — Clean-room harness + CI lanes (testing-strategy §§2–4)
 
@@ -319,7 +319,7 @@ compose smoke (PR + scheduled-published-tags), installer matrix
 contributor job (duration charted = TTFHW proxy), README-command drift grep.
 This is R0.1 and R0.3 made concrete, and the permanent guard for C1–C6.
 
-Proof: it *is* the proof mechanism; its own guard is that it runs on cron,
+Proof: it _is_ the proof mechanism; its own guard is that it runs on cron,
 so registry/runner rot surfaces as a red scheduled run.
 
 > **Status (2026-07-11, shipped):** C7 landed as three PRs on
@@ -329,6 +329,7 @@ so registry/runner rot surfaces as a red scheduled run.
 > `scripts/test-install/run.sh` container harness). What exists:
 > `scripts/test-install/{run.sh,proof-of-life.sh,check-docs-commands.sh}`
 > and four workflows —
+>
 > - `installer.yml`: pinned-image lanes baremetal (`ruby:3.4.9-slim`),
 >   posix-locale (empty `LANG`), ruby-old (`ruby:3.3-slim`, asserted-error),
 >   each with an idempotency re-run; plus a bash-3.2 `bash -n` parse gate.
@@ -351,84 +352,84 @@ so registry/runner rot surfaces as a red scheduled run.
 > any drift, lockfiles included — setup installs frozen); duration is a per-run
 > step summary, not charted/alarmed over time. **Still open, tracked here
 > rather than implied done:** (1) a bare-metal boot lane — `rake ots:secrets`
-> + puma + proof-of-life under `LANG=C` (the clean-room validation recipe's
-> middle step; today no lane boots the app outside a container image, so the
-> run-8 locale regression is guarded at secret-generation but not at boot);
-> (2) the macOS lane; (3) full-stack compose `up` — still only linted; C5
-> cleared the original `JOBS_ENABLED`/required-env blocker, and the
-> remaining blockers are the `/app/data` Dockerfile fix reaching a
-> published tag plus the proxy service being build-only (see C5's status
-> note); (4) `pnpm run build` + asset probe as a lane.
 >
-> *(Update 2026-07-11: residuals 1–4 closed.
+> - puma + proof-of-life under `LANG=C` (the clean-room validation recipe's
+>   middle step; today no lane boots the app outside a container image, so the
+>   run-8 locale regression is guarded at secret-generation but not at boot);
+>   (2) the macOS lane; (3) full-stack compose `up` — still only linted; C5
+>   cleared the original `JOBS_ENABLED`/required-env blocker, and the
+>   remaining blockers are the `/app/data` Dockerfile fix reaching a
+>   published tag plus the proxy service being build-only (see C5's status
+>   note); (4) `pnpm run build` + asset probe as a lane.
+>
+> _(Update 2026-07-11: residuals 1–4 closed.
 > **(1)+(4)** `scripts/test-install/baremetal-boot.sh` +
 > `baremetal-boot.yml` — the whole lane runs under `LANG=C`: a scratch
 > `ENV_FILE` through `rake ots:secrets`, a real `pnpm run build`, a puma
 > production boot with the `.env` sourced the documented `set -a` way,
-> then the shared proof-of-life, whose `/dist/assets/*.js` probe is the
-> asset assertion. Passed end-to-end locally.
-> **(2)** installer.yml gained a `macos-15` job running `bin/setup`,
-> `bin/setup --test`, the RSpec fast suite, and an idempotency re-run —
-> the three `bin/setup` invocations under `/bin/bash` explicitly, because
-> the runner's PATH bash is a newer Homebrew build (the RSpec step is a
-> Ruby process and needs no such pinning); the same commands were
-> verified under real bash 3.2 + BSD userland in a clean worktree on a
-> Darwin machine (incidentally catching two initializer `require` calls
-> — one from C10, one predating it — that only resolved under bundler
-> load paths; both switched to `require_relative`).
-> **(3)** compose-smoke.yml gained `full-stack-smoke`: bake-build the
-> app image from source (which is also what proves the new `/app/data`
-> ownership contract), `compose build proxy`, `up -d --wait` on the full
-> stack — proxy + app + valkey + rabbitmq + worker + scheduler, full
-> auth mode migrating sqlite at boot — then proof-of-life inside the app
-> container and an ingress assertion through Caddy. Source-built
-> deliberately: the published-tag form stays impossible until a fixed
-> image ships, and the source-built form guards what the repo actually
-> controls. Verified locally: all compose combos `config -q`-clean and
-> the `/app/data` ownership contract proven on the exact pinned base
-> image; the assembled job's first full run is pending CI. Still open
-> after this: duration charted/alarmed over time
-> (step summary only), and C4's `POL_CREATE_ACCOUNT` wiring into
-> compose-smoke.)* *(update 2026-07-11, later same day: both closed —
-> `scripts/test-install/ttfhw-chart.sh` renders the fresh-clone job's
-> duration trend into the step summary from the last successful runs
-> (via the Actions API, `actions: read`; rename-tolerant job matching so
-> the install-test.sh→bin/setup rename keeps its history) and emits a
-> warning annotation when this run exceeds the median by 25% — telemetry,
-> never a gate: every degraded path exits 0 and the step is
-> continue-on-error. And `POL_CREATE_ACCOUNT=1` is wired into both
-> compose-smoke jobs — see C4's note for the `/api/v2/receipt/recent`
-> assertion fix that wiring surfaced.)*
+> then the shared proof-of-life, whose `/dist/assets/_.js`probe is the
+asset assertion. Passed end-to-end locally.
+**(2)** installer.yml gained a`macos-15`job running`bin/setup`,
+`bin/setup --test`, the RSpec fast suite, and an idempotency re-run —
+the three `bin/setup`invocations under`/bin/bash`explicitly, because
+the runner's PATH bash is a newer Homebrew build (the RSpec step is a
+Ruby process and needs no such pinning); the same commands were
+verified under real bash 3.2 + BSD userland in a clean worktree on a
+Darwin machine (incidentally catching two initializer`require`calls
+— one from C10, one predating it — that only resolved under bundler
+load paths; both switched to`require_relative`).
+**(3)** compose-smoke.yml gained `full-stack-smoke`: bake-build the
+app image from source (which is also what proves the new `/app/data`ownership contract),`compose build proxy`, `up -d --wait`on the full
+stack — proxy + app + valkey + rabbitmq + worker + scheduler, full
+auth mode migrating sqlite at boot — then proof-of-life inside the app
+container and an ingress assertion through Caddy. Source-built
+deliberately: the published-tag form stays impossible until a fixed
+image ships, and the source-built form guards what the repo actually
+controls. Verified locally: all compose combos`config -q`-clean and
+the `/app/data`ownership contract proven on the exact pinned base
+image; the assembled job's first full run is pending CI. Still open
+after this: duration charted/alarmed over time
+(step summary only), and C4's`POL_CREATE_ACCOUNT`wiring into
+compose-smoke.)* *(update 2026-07-11, later same day: both closed —`scripts/test-install/ttfhw-chart.sh`renders the fresh-clone job's
+duration trend into the step summary from the last successful runs
+(via the Actions API,`actions: read`; rename-tolerant job matching so
+the install-test.sh→bin/setup rename keeps its history) and emits a
+warning annotation when this run exceeds the median by 25% — telemetry,
+never a gate: every degraded path exits 0 and the step is
+continue-on-error. And `POL_CREATE_ACCOUNT=1`is wired into both
+compose-smoke jobs — see C4's note for the`/api/v2/receipt/recent`
+> assertion fix that wiring surfaced.)\*
 
 ## C8 — Devcontainer + Codespaces (D5, testing-strategy §5)
 
 Compose-based devcontainer, `postCreateCommand: bin/setup`, `devcontainers/ci`
 weekly workflow, GHCR prebuild cache. Gives contributors zero-install entry
-and gives *you* the on-demand clean room. Proof: the weekly workflow.
+and gives _you_ the on-demand clean room. Proof: the weekly workflow.
 
 > **Status (2026-07-10, shipped):** `.devcontainer/` landed on
 > `feature/onboarding-proof-of-life`: `devcontainer.json` (features: node 22
-> + pnpm; onCreate installs redis-server + python3;
-> `postCreateCommand: bin/setup` — the Mastodon keystone) +
-> `compose.yaml` (app = `ghcr.io/rails/devcontainer/images/ruby:3.4.9`, the
-> upstream-maintained image per §5's no-hand-rolled-Dockerfile rule; valkey
-> sidecar pinned to the same digest as docker-compose.simple.yml). The
-> sidecar joins the app's network namespace (`network_mode: service:app`),
-> so the datastore is 127.0.0.1:6379 exactly as the seeded `.env` assumes —
-> no devcontainer-specific env divergence; `bin/setup --test` still starts
-> its own :2121 throwaway inside the app container. node_modules routes
-> through a named volume (Discourse's Apple-Silicon I/O fix).
-> `devcontainer-ci.yml`: PR path filter (setup path + pins + lockfiles) +
-> weekly cron; `devcontainer up` exercises onCreate/postCreate, then runCmd
-> runs `bin/setup --test` + rspec:fast. **Deliberate deviation:** no GHCR
-> prebuild-cache push — devcontainers/ci's `imageName`/`cacheFrom` caching
-> doesn't work reliably with compose-based devcontainers
-> (devcontainers/ci#302), and the only built layers are two small features,
-> so rebuild cost is minutes; revisit if Codespaces launch times hurt
-> (Codespaces' own prebuilds are a repo-settings toggle, no workflow
-> needed). Toolchain duplication (node "22" in features, ruby tag in
-> compose) is by necessity — features can't read pin files; candidate for a
-> `check-version-pins.sh` extension (C9).
+>
+> - pnpm; onCreate installs redis-server + python3;
+>   `postCreateCommand: bin/setup` — the Mastodon keystone) +
+>   `compose.yaml` (app = `ghcr.io/rails/devcontainer/images/ruby:3.4.9`, the
+>   upstream-maintained image per §5's no-hand-rolled-Dockerfile rule; valkey
+>   sidecar pinned to the same digest as docker-compose.simple.yml). The
+>   sidecar joins the app's network namespace (`network_mode: service:app`),
+>   so the datastore is 127.0.0.1:6379 exactly as the seeded `.env` assumes —
+>   no devcontainer-specific env divergence; `bin/setup --test` still starts
+>   its own :2163 throwaway inside the app container. node_modules routes
+>   through a named volume (Discourse's Apple-Silicon I/O fix).
+>   `devcontainer-ci.yml`: PR path filter (setup path + pins + lockfiles) +
+>   weekly cron; `devcontainer up` exercises onCreate/postCreate, then runCmd
+>   runs `bin/setup --test` + rspec:fast. **Deliberate deviation:** no GHCR
+>   prebuild-cache push — devcontainers/ci's `imageName`/`cacheFrom` caching
+>   doesn't work reliably with compose-based devcontainers
+>   (devcontainers/ci#302), and the only built layers are two small features,
+>   so rebuild cost is minutes; revisit if Codespaces launch times hurt
+>   (Codespaces' own prebuilds are a repo-settings toggle, no workflow
+>   needed). Toolchain duplication (node "22" in features, ruby tag in
+>   compose) is by necessity — features can't read pin files; candidate for a
+>   `check-version-pins.sh` extension (C9).
 
 ## C9 — Doctor v2 + drift guards + support bundle (R0.2, D8)
 
@@ -449,19 +450,19 @@ test.
 > a live service. **BM-05 fully:** PostgreSQL (`AUTH_DATABASE_URL`) and
 > RabbitMQ (`RABBITMQ_URL`, gated on `JOBS_ENABLED` — jobs are independent
 > of auth mode) are probed by TCP connectivity; the `has psql`/`has
-> rabbitmqctl` CLI-presence checks are gone. **BM-10:** `--operator`
+rabbitmqctl` CLI-presence checks are gone. **BM-10:** `--operator`
 > context drops contributor-tooling checks (overmind, direnv, pre-commit,
 > Procfile.dev, generated artifacts) and treats a down service as FAIL
 > rather than warn; `--init`'s trailing doctor runs `--operator`, and the
 > dev lane closes with a `--dev` doctor pass (D8's GDK-style last step —
 > the "first step" half is the version gates cmd_dev already opens with).
-> New dev-context checks: direnv *hook* detection via the `OTS_ENV_LOADED`
+> New dev-context checks: direnv _hook_ detection via the `OTS_ENV_LOADED`
 > export (DX-4's installed-but-unhooked trap; skipped in CI), git-hooks
 > presence, generated-artifact presence, test-datastore probe when
 > `.test-mode` is active, and a `check-version-pins.sh` cross-check.
 > **DUP trio reconciled by ownership, not merger:** doctor = environment;
 > `/health/advanced` (+ `bin/ots status` as its CLI view) = runtime
-> services — doctor *delegates* to `/health/advanced` when something
+> services — doctor _delegates_ to `/health/advanced` when something
 > answers on `PORT` instead of restating its checks; `healthcheck.sh` =
 > container liveness. Each file's header names the split. **R0.2:**
 > `--doctor --bundle` writes a sanitized tar.gz to `tmp/` (fixed 8-entry
@@ -485,11 +486,11 @@ test.
 > new `drift-guards.yml` runs both grep-guards on every PR — necessary
 > because validate-config.yml (their other home) is workflow_dispatch-only
 > today. **Deviations:** no GDK-style `--correct` flag (the bin/setup
-> lanes *are* the correction; every finding prints its fix command);
+> lanes _are_ the correction; every finding prints its fix command);
 > `.env.reference` is CI-checked, not generated (the file's prose value
 > exceeds what generation from code is worth); the 151-var documentation
 > backlog is tracked in the ignore file rather than written now.
-> *(Update 2026-07-11: the backlog is drained — all 151 vars documented
+> _(Update 2026-07-11: the backlog is drained — all 151 vars documented
 > in `.env.reference` (each entry code-researched and independently
 > re-verified against its consumption sites: config path, default,
 > polarity, gating). The ignore file's BACKLOG section is empty; the
@@ -497,15 +498,14 @@ test.
 > being the permanent INTERNAL set (the 37 above plus `CONFIRM`, which
 > C10's adopt task added). Notable finds recorded in the
 > entries themselves: `API_ENABLED` is UI-advisory only — the
-> config.defaults.yaml comment promising 404s for `/api/*` is not
-> implemented; `RODAUTH_HMAC_SECRET` is not consumed (AUTH_SECRET is);
-> `GITHUB_KEY`/`GOOGLE_KEY` are the deprecated pre-CLIENT_ID names.)*
+> config.defaults.yaml comment promising 404s for `/api/_`is not
+implemented;`RODAUTH_HMAC_SECRET`is not consumed (AUTH_SECRET is);`GITHUB_KEY`/`GOOGLE_KEY` are the deprecated pre-CLIENT_ID names.)\*
 
 ## C10 — SECRET lifecycle safety (QS-6)
 
 Needs a short design first: boot-time key fingerprint (e.g., HKDF-derived
 verifier stored in Valkey; warn loudly on mismatch), and make a mismatched
-key *non-destructive* at reveal time (fail the claim before consuming, or
+key _non-destructive_ at reveal time (fail the claim before consuming, or
 quarantine instead of burn). Separate risk class from everything above —
 product code on the crypto path. Pairs with a documented rotation/backup
 story.

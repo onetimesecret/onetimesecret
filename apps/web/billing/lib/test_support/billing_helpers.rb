@@ -52,7 +52,7 @@ module BillingTestHelpers
     # disrupting the test infrastructure's Redis connection pool.
     def ensure_familia_configured!
       # Skip if already configured for test port OR if already connected
-      return if Familia.uri.to_s.include?('2121')
+      return if Familia.uri.to_s.include?('2163')
 
       begin
         return if Familia.dbclient.connected?
@@ -61,7 +61,7 @@ module BillingTestHelpers
       end
 
       # Use test Redis port from ENV (set by test_helpers.rb)
-      test_uri    = ENV['VALKEY_URL'] || ENV['REDIS_URL'] || 'redis://127.0.0.1:2121/0'
+      test_uri    = ENV['VALKEY_URL'] || ENV['REDIS_URL'] || 'redis://127.0.0.1:2163/0'
       Familia.uri = test_uri
     end
 

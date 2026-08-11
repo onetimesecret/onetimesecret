@@ -71,6 +71,27 @@ RSpec.describe V1::Logic::Secrets::ShowSecret do
         expect(subject.secret_value).to eq('decoded_secret')
         expect(subject.correct_passphrase).to be true
       end
+
+      # v1 reveals thread actor attribution into the lifecycle event the same
+      # way v2 does (#3639); without it every v1 reveal fell to the trail's
+      # fail-safe actor even when the caller was authenticated (ADR-023).
+      it 'threads actor attribution into revealed! (authenticated non-owner)' do
+        subject.process
+
+        expect(secret).to have_received(:revealed!).with(
+          actor_context: { 'actor' => 'authenticated_other', 'actor_id' => 'cust_obj123' },
+        )
+      end
+
+      it 'threads actor=anonymous for an anonymous caller (never creator)' do
+        allow(customer).to receive(:anonymous?).and_return(true)
+
+        subject.process
+
+        expect(secret).to have_received(:revealed!).with(
+          actor_context: { 'actor' => 'anonymous' },
+        )
+      end
     end
 
     context 'with passphrase protected secret' do

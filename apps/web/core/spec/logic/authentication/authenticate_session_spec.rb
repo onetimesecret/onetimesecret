@@ -335,14 +335,14 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
   # presence the trail can carry.
   describe 'colonel.signin audit event' do
     before do
-      allow(Onetime::AdminAuditEvent).to receive(:record)
+      allow(Onetime::ColonelAuditEvent).to receive(:record)
       logic.process_params
     end
 
     it 'records nothing for a non-colonel login' do
       logic.process
 
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
     end
 
     context 'when the customer is a colonel' do
@@ -351,7 +351,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
       it 'records one colonel.signin event with public identities only' do
         logic.process
 
-        expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
           actor: 'ur_test123',
           verb: 'colonel.signin',
           target: 'ur_test123',
@@ -367,14 +367,14 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
         logic.process_params
 
         expect { logic.process }.to raise_error(Onetime::FormError)
-        expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
       end
 
       it 'records NOTHING when the account is suspended' do
         allow(customer).to receive(:suspended?).and_return(true)
 
         expect { logic.process }.to raise_error(Onetime::FormError)
-        expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
       end
 
       it 'records NOTHING for a pending (unverified) account' do
@@ -383,7 +383,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
 
         logic.process
 
-        expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
       end
     end
   end

@@ -10,7 +10,7 @@ require 'securerandom'
 require 'colonel/application'
 
 # Integration tests for the email deliverability colonel endpoints against real
-# Redis (port 2121; type: :integration flushes after each example):
+# Redis (port 2163; type: :integration flushes after each example):
 #
 #   1. Ingest — IngestEmailDeliverabilityEvents (POST /api/colonel/email/
 #      deliverability/events): batch feedback ingestion, suppression writes,
@@ -55,7 +55,7 @@ RSpec.describe 'Colonel email deliverability endpoints', type: :integration do
   end
 
   before do
-    Onetime::AdminAuditEvent.events.clear
+    Onetime::ColonelAuditEvent.events.clear
     clear_deliverability
   end
 
@@ -146,8 +146,8 @@ RSpec.describe 'Colonel email deliverability endpoints', type: :integration do
         source: 'sendgrid',
       )
 
-      expect(Onetime::AdminAuditEvent.count).to eq(1)
-      event = Onetime::AdminAuditEvent.recent(1).first
+      expect(Onetime::ColonelAuditEvent.count).to eq(1)
+      event = Onetime::ColonelAuditEvent.recent(1).first
       expect(event['verb']).to eq('email.deliverability_ingest')
       expect(event['actor']).to eq(colonel.extid)
       expect(event['detail']).to include('accepted' => 2, 'rejected' => 0, 'source' => 'sendgrid')
@@ -156,7 +156,7 @@ RSpec.describe 'Colonel email deliverability endpoints', type: :integration do
     it 'records NO audit event when nothing was accepted (no mutation, no audit)' do
       ingest([{ 'email' => 'nope', 'kind' => 'bounce' }])
 
-      expect(Onetime::AdminAuditEvent.count).to eq(0)
+      expect(Onetime::ColonelAuditEvent.count).to eq(0)
     end
 
     # The Onetime::AuditedFailure mechanism. Per-record failures are COUNTED,
@@ -171,8 +171,8 @@ RSpec.describe 'Colonel email deliverability endpoints', type: :integration do
         ingest([{ 'email' => 'a@example.com', 'kind' => 'bounce' }], source: 'ses')
       end.to raise_error(Onetime::Problem, /redis down/)
 
-      expect(Onetime::AdminAuditEvent.count).to eq(1)
-      event = Onetime::AdminAuditEvent.recent(1).first
+      expect(Onetime::ColonelAuditEvent.count).to eq(1)
+      event = Onetime::ColonelAuditEvent.recent(1).first
       expect(event['verb']).to eq('email.deliverability_ingest')
       # The same fixed sentinel the success event uses — a batch has no single
       # public id, and the addresses are the data, not the target.
@@ -255,7 +255,7 @@ RSpec.describe 'Colonel email deliverability endpoints', type: :integration do
 
       sync
 
-      expect(Onetime::AdminAuditEvent.recent(1).first['actor']).to eq(colonel.extid)
+      expect(Onetime::ColonelAuditEvent.recent(1).first['actor']).to eq(colonel.extid)
     end
 
     it 'rejects an active transport with no pull API as a form error' do
@@ -331,7 +331,7 @@ RSpec.describe 'Colonel email deliverability endpoints', type: :integration do
 
     it 'reading the summary writes NO audit event (CONTRACT 4)' do
       summary
-      expect(Onetime::AdminAuditEvent.count).to eq(0)
+      expect(Onetime::ColonelAuditEvent.count).to eq(0)
     end
   end
 
@@ -386,8 +386,8 @@ RSpec.describe 'Colonel email deliverability endpoints', type: :integration do
       expect(data[:record]).to eq(address: 'gone@example.com', removed: true)
       expect(Onetime::EmailSuppression.suppressed?('gone@example.com')).to be(false)
 
-      expect(Onetime::AdminAuditEvent.count).to eq(1)
-      event = Onetime::AdminAuditEvent.recent(1).first
+      expect(Onetime::ColonelAuditEvent.count).to eq(1)
+      event = Onetime::ColonelAuditEvent.recent(1).first
       expect(event).to include(
         'verb' => 'email.suppression_remove',
         'actor' => colonel.extid,
@@ -402,7 +402,7 @@ RSpec.describe 'Colonel email deliverability endpoints', type: :integration do
         strategy_result_for(colonel), { 'address' => 'never@example.com' },
       )
       expect { logic.raise_concerns }.to raise_error(Onetime::RecordNotFound)
-      expect(Onetime::AdminAuditEvent.count).to eq(0)
+      expect(Onetime::ColonelAuditEvent.count).to eq(0)
     end
 
     it 'rejects non-colonel actors' do
@@ -451,7 +451,7 @@ RSpec.describe 'Colonel email deliverability endpoints', type: :integration do
 
     it 'reading the feed writes NO audit event (CONTRACT 4)' do
       list_events
-      expect(Onetime::AdminAuditEvent.count).to eq(0)
+      expect(Onetime::ColonelAuditEvent.count).to eq(0)
     end
   end
 end

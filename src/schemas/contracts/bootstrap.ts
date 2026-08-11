@@ -283,6 +283,22 @@ const organizationFeaturesInner = z.object({
   sso_enabled: z.boolean().default(false),
   custom_mail_enabled: z.boolean().default(false),
   incoming_secrets_enabled: z.boolean().default(false),
+  // Default-ON (unlike siblings): only an explicit false — set via
+  // ORGS_AUDIT_LOGS_ENABLED=false — hides the org Secret Activity tab.
+  // Absent (older backends without the flag) keeps the feature enabled.
+  audit_logs_enabled: z.boolean().default(true),
+});
+
+// Same cascade-default workaround as organizationFeaturesInner above.
+const secretActivityFeaturesInner = z.object({
+  // Default-ON: collection only stops on an explicit false — set via
+  // SECRET_ACTIVITY_COLLECT=false (GDPR data minimization, #3990). Absent
+  // (older backends without the flag) keeps events being recorded.
+  collect_enabled: z.boolean().default(true),
+  // Operator-configured retention cap (SECRET_ACTIVITY_MAX_EVENTS); the
+  // backend clamps to a floor of 100 at read time, so a positive int is
+  // the whole wire contract here.
+  max_events: z.number().int().positive().default(10000),
 });
 
 export const featuresSchema = z.object({
@@ -303,6 +319,7 @@ export const featuresSchema = z.object({
   restrict_to: z.enum(['password', 'email_auth', 'webauthn', 'sso']).nullable().optional(),
   magic_links: z.boolean().optional(),
   organizations: organizationFeaturesInner.default(organizationFeaturesInner.parse({})),
+  secret_activity: secretActivityFeaturesInner.default(secretActivityFeaturesInner.parse({})),
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════

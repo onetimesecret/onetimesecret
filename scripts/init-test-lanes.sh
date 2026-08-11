@@ -9,8 +9,8 @@
 #
 # Creates:
 #   compose.test.yml            Test services on 127.0.0.1 ports starting
-#                               with 21 (valkey 2121, postgres 2132,
-#                               rabbitmq 2172), digest-pinned to match CI.
+#                               with 21 (valkey 2163, postgres 2154,
+#                               rabbitmq 2156), digest-pinned to match CI.
 #   tests/lanes/base.env        Lane-invariant env: endpoints, dummy secrets.
 #   tests/lanes/run             Hermetic lane runner (CI + local entrypoint).
 #   tests/lanes/<lane>/         env + tasks + .envrc per lane:
@@ -75,11 +75,11 @@ write_file compose.test.yml <<'EOF'
 #
 # PORT SCHEME: every test service publishes on 127.0.0.1 with a port that
 # starts with 21. New services take "21 + last two digits of the canonical
-# port"; valkey predates the scheme and keeps its established 2121:
+# port"; valkey predates the scheme and keeps its established 2163:
 #
-#   valkey     2121   (canonical 6379; grandfathered, not 2179)
-#   postgres   2132   (canonical 5432)
-#   rabbitmq   2172   (canonical 5672)
+#   valkey     2163   (canonical 6379; grandfathered, not 2179)
+#   postgres   2154   (canonical 5432)
+#   rabbitmq   2156   (canonical 5672)
 #
 # Dev services keep canonical ports, so a leaked dev config can never reach
 # a test service and a test run can never reach dev data. If a URL in the
@@ -96,7 +96,7 @@ services:
     # No persistence: test data is disposable by design.
     command: ['valkey-server', '--save', '', '--appendonly', 'no']
     ports:
-      - '127.0.0.1:2121:6379'
+      - '127.0.0.1:2163:6379'
     healthcheck:
       test: ['CMD', 'valkey-cli', 'ping']
       interval: 10s
@@ -117,7 +117,7 @@ services:
     tmpfs:
       - /var/lib/postgresql/data
     ports:
-      - '127.0.0.1:2132:5432'
+      - '127.0.0.1:2154:5432'
     healthcheck:
       test: ['CMD', 'pg_isready', '-U', 'postgres']
       interval: 10s
@@ -127,7 +127,7 @@ services:
   rabbitmq:
     image: rabbitmq:4.2@sha256:0ea64c69ef2ced52e7188c6db826152d42f78e448433ed8b4e570170c427a437
     ports:
-      - '127.0.0.1:2172:5672'
+      - '127.0.0.1:2156:5672'
     healthcheck:
       test: ['CMD', 'rabbitmq-diagnostics', 'check_port_connectivity']
       interval: 10s
@@ -155,9 +155,9 @@ write_file tests/lanes/base.env <<'EOF'
 RACK_ENV=test
 
 # ── Service endpoints (provided by compose.test.yml) ────────────────────
-REDIS_URL='redis://127.0.0.1:2121/0'
-VALKEY_URL='valkey://127.0.0.1:2121/0'
-RABBITMQ_URL='amqp://guest:guest@127.0.0.1:2172'
+REDIS_URL='redis://127.0.0.1:2163/0'
+VALKEY_URL='valkey://127.0.0.1:2163/0'
+RABBITMQ_URL='amqp://guest:guest@127.0.0.1:2156'
 
 # Billing is off unless a lane runs with `--overlay billing`.
 BILLING_ENABLED=false
@@ -400,12 +400,12 @@ write_file tests/lanes/full-pg/env <<'EOF'
 # initialize_test_db.sql, which compose.test.yml mounts into
 # /docker-entrypoint-initdb.d/ (runs on first boot).
 AUTHENTICATION_MODE=full
-AUTH_DATABASE_URL='postgresql://onetime_user:testpass@127.0.0.1:2132/onetime_auth_test'
-AUTH_DATABASE_URL_MIGRATIONS='postgresql://onetime_migrator:migratepass@127.0.0.1:2132/onetime_auth_test'
+AUTH_DATABASE_URL='postgresql://onetime_user:testpass@127.0.0.1:2154/onetime_auth_test'
+AUTH_DATABASE_URL_MIGRATIONS='postgresql://onetime_migrator:migratepass@127.0.0.1:2154/onetime_auth_test'
 # The *_PG variants are what lib/tasks/spec.rake reads for its postgres
 # tasks (it then sets the plain variables itself, to the same values).
-AUTH_DATABASE_URL_PG='postgresql://onetime_user:testpass@127.0.0.1:2132/onetime_auth_test'
-AUTH_DATABASE_URL_MIGRATIONS_PG='postgresql://onetime_migrator:migratepass@127.0.0.1:2132/onetime_auth_test'
+AUTH_DATABASE_URL_PG='postgresql://onetime_user:testpass@127.0.0.1:2154/onetime_auth_test'
+AUTH_DATABASE_URL_MIGRATIONS_PG='postgresql://onetime_migrator:migratepass@127.0.0.1:2154/onetime_auth_test'
 EOF
 
 write_file tests/lanes/full-pg/tasks <<'EOF'
@@ -428,10 +428,10 @@ write_file tests/lanes/full-pg-agnostic/env <<'EOF'
 # Same database env as full-pg; see that lane for where roles come from.
 AUTHENTICATION_MODE=full
 ORGS_SSO_ENABLED=true
-AUTH_DATABASE_URL='postgresql://onetime_user:testpass@127.0.0.1:2132/onetime_auth_test'
-AUTH_DATABASE_URL_MIGRATIONS='postgresql://onetime_migrator:migratepass@127.0.0.1:2132/onetime_auth_test'
-AUTH_DATABASE_URL_PG='postgresql://onetime_user:testpass@127.0.0.1:2132/onetime_auth_test'
-AUTH_DATABASE_URL_MIGRATIONS_PG='postgresql://onetime_migrator:migratepass@127.0.0.1:2132/onetime_auth_test'
+AUTH_DATABASE_URL='postgresql://onetime_user:testpass@127.0.0.1:2154/onetime_auth_test'
+AUTH_DATABASE_URL_MIGRATIONS='postgresql://onetime_migrator:migratepass@127.0.0.1:2154/onetime_auth_test'
+AUTH_DATABASE_URL_PG='postgresql://onetime_user:testpass@127.0.0.1:2154/onetime_auth_test'
+AUTH_DATABASE_URL_MIGRATIONS_PG='postgresql://onetime_migrator:migratepass@127.0.0.1:2154/onetime_auth_test'
 EOF
 
 write_file tests/lanes/full-pg-agnostic/tasks <<'EOF'
@@ -485,7 +485,7 @@ EOF
 
 write_file tests/lanes/smoke/env <<'EOF'
 # Lane: smoke — representative cross-stack check (target: under 2 min).
-# Cleans the TEST valkey (2121), runs smoke:ruby, then vitest.
+# Cleans the TEST valkey (2163), runs smoke:ruby, then vitest.
 # CI job: smoke-test (T3)
 AUTHENTICATION_MODE=simple
 EOF
@@ -595,16 +595,16 @@ have no lanes — run them via pnpm directly.
 
 Every test service publishes on `127.0.0.1` with a port starting with
 21. New services take "21 + last two digits of the canonical port";
-valkey predates the scheme and keeps its established 2121. Dev services
+valkey predates the scheme and keeps its established 2163. Dev services
 keep canonical ports. A leaked dev config therefore cannot reach a test
 service, and a test run cannot reach dev data. This plus the hermetic
 runner is the answer to "tests wiped my dev database".
 
 | Service  | Test port | Canonical                |
 | -------- | --------- | ------------------------ |
-| valkey   | 2121      | 6379 (port grandfathered)|
-| postgres | 2132      | 5432                     |
-| rabbitmq | 2172      | 5672                     |
+| valkey   | 2163      | 6379 (port grandfathered)|
+| postgres | 2154      | 5432                     |
+| rabbitmq | 2156      | 5672                     |
 
 Port mappings are defined **only** in `compose.test.yml`. The env files
 here carry matching URLs; if a URL in this tree doesn't point at a 21xx

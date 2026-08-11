@@ -15,7 +15,7 @@ module ColonelAPI
       # implementation, shared with `bin/ots billing checkout-links create`).
       # This class owns HTTP concerns only (param sanitization, authorization,
       # customer/org resolution, response shape); the op creates the session
-      # AND records the AdminAuditEvent — so a support-issued checkout link is
+      # AND records the ColonelAuditEvent — so a support-issued checkout link is
       # audited like every other mutating admin verb (epic #20 CONTRACT 4).
       class CreateCheckoutLink < ColonelAPI::Logic::Base
         include AccountIdentifier

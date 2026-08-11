@@ -4,7 +4,7 @@
 
 require 'securerandom'
 
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 
 require_relative '../lib/plan_resolver'
 require_relative '../lib/stripe_client'
@@ -38,7 +38,7 @@ module Billing
     # `ColonelAPI::Logic::Colonel::CreateCheckoutLink` endpoint and the
     # `bin/ots billing checkout-links create` CLI command are thin adapters
     # over it. This is a MUTATING admin op (it creates a Stripe object tied
-    # to the customer), so it records exactly one AdminAuditEvent per created
+    # to the customer), so it records exactly one ColonelAuditEvent per created
     # session.
     #
     # Setting `:customer` (when the org already has a Stripe customer) or
@@ -302,7 +302,7 @@ module Billing
 
         # One audit event per created session, emitted from the op layer so
         # every adapter (colonel endpoint, CLI) is audited identically.
-        Onetime::AdminAuditEvent.record(
+        Onetime::ColonelAuditEvent.record(
           actor: @actor,
           verb: AUDIT_VERB,
           target: @customer.extid,

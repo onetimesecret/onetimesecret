@@ -15,7 +15,7 @@
 # - a DIFFERENT customer's session is untouched (identity match is exact)
 # - untracked_deleted counts the blob the sidecar index did not know about
 # - every sidecar destroyed + Customer#active_sessions cleared
-# - EXACTLY ONE AdminAuditEvent (verb 'session.revoke_all') with the kill counts
+# - EXACTLY ONE ColonelAuditEvent (verb 'session.revoke_all') with the kill counts
 # - rodauth_rows_deleted is 0 here (simple/test mode: no auth DB)
 # - IDEMPOTENT: a second call returns revoked:true with zero counts
 #
@@ -32,7 +32,7 @@ require 'onetime/operations/sessions/revoke_all_for_customer'
 RAFC  = Onetime::Operations::Sessions::RevokeAllForCustomer
 Store = Onetime::Operations::Sessions::Store
 SM    = Onetime::SessionMetadata
-AE    = Onetime::AdminAuditEvent
+AE    = Onetime::ColonelAuditEvent
 DB    = Familia.dbclient
 
 @nonce = Familia.generate_id[0, 12]

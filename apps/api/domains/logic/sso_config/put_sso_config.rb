@@ -5,7 +5,7 @@
 require 'onetime/models/custom_domain/sso_config'
 require_relative 'base'
 require_relative 'serializers'
-require_relative 'audit_logger'
+require_relative 'change_logger'
 require_relative 'ssrf_protection'
 
 module DomainsAPI
@@ -35,7 +35,7 @@ module DomainsAPI
       #
       class PutSsoConfig < Base
         include Serializers
-        include AuditLogger
+        include ChangeLogger
         include SsrfProtection
 
         VALID_PROVIDER_TYPES = Onetime::CustomDomain::SsoConfig::PROVIDER_TYPES.freeze
@@ -91,7 +91,7 @@ module DomainsAPI
 
           if @existing_config
             replace_existing_config
-            log_sso_audit_event(
+            log_sso_change_event(
               event: :domain_sso_config_replaced,
               domain: @custom_domain,
               org: @organization,
@@ -100,7 +100,7 @@ module DomainsAPI
             )
           else
             create_new_config
-            log_sso_audit_event(
+            log_sso_change_event(
               event: :domain_sso_config_created,
               domain: @custom_domain,
               org: @organization,
@@ -240,7 +240,7 @@ module DomainsAPI
 
           # Log when SSO is enabled (new config or was disabled)
           if is_enabled && (was_enabled.nil? || was_enabled == false)
-            log_sso_audit_event(
+            log_sso_change_event(
               event: :domain_sso_config_enabled,
               domain: @custom_domain,
               org: @organization,
@@ -248,7 +248,7 @@ module DomainsAPI
               provider_type: @provider_type,
             )
           elsif was_enabled == true && !is_enabled
-            log_sso_audit_event(
+            log_sso_change_event(
               event: :domain_sso_config_disabled,
               domain: @custom_domain,
               org: @organization,

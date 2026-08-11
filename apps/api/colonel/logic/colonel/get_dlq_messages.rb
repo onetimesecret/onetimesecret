@@ -17,7 +17,7 @@ module ColonelAPI
       # nack-requeue) of up to `limit` dead-letter payloads for inspection via
       # JsonViewer.
       #
-      # Read-only: no AdminAuditEvent (CONTRACT 4).
+      # Read-only: no ColonelAuditEvent (CONTRACT 4).
       #
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role. The

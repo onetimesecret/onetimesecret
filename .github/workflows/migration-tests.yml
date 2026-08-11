@@ -13,15 +13,18 @@ name: Migration Tests
 #
 # Architecture:
 # - Three parallel jobs test different database scenarios
-# - SQLite job uses in-memory database for speed
-# - PostgreSQL jobs use real database service container
-# - Each job runs focused test suites with appropriate tags
+# - The SQLite and PostgreSQL jobs run through the migrations-* test lanes
+#   (tests/lanes/) via the run-test-lane composite action — the same entry
+#   point as local development. Services come from compose.test.yml.
+# - The concurrent-boot job is deliberately NOT a lane: it orchestrates five
+#   parallel boot processes against a scratch database, which is CI-side
+#   process choreography rather than a test suite (tests/lanes/README.md
+#   rule 4). It still uses compose.test.yml for services.
 #
 # Test Files:
 # - spec/integration/full/database_triggers/sqlite_spec.rb
 # - spec/integration/full/database_triggers/postgres_spec.rb
 # - spec/integration/full/postgres_infrastructure_spec.rb
-# - spec/integration/full/infrastructure_spec.rb (SQLite triggers)
 #
 # Performance Targets:
 # - SQLite tests: < 2 minutes
@@ -41,6 +44,8 @@ on:
       - 'spec/integration/full/database_triggers/**'
       - 'spec/integration/full/*_infrastructure_spec.rb'
       - 'spec/support/*_database.rb'
+      - 'tests/lanes/**'
+      - 'compose.test.yml'
       - '.github/workflows/migration-tests.yml'
   workflow_dispatch:
     inputs:
@@ -67,83 +72,34 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
 
-    services:
-      redis:
-        image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 10s
-          --health-retries 5
-          --memory=2g
-        ports:
-          - 2121:6379
-
     steps:
       - name: Checkout code
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      # valkey + rabbitmq, not valkey alone: base.env carries RABBITMQ_URL
+      # for every lane and the lane runner's preflight requires every
+      # endpoint in the lane's env to be reachable.
+      - name: Start test services (valkey, rabbitmq)
+        run: docker compose -f compose.test.yml up --wait -d valkey rabbitmq
 
       - name: Setup Ruby environment
         uses: ./.github/actions/setup-ruby-test-env
         with:
           download-artifacts: 'false'
 
-      - name: Enable memory overcommit for Redis
-        run: sudo sysctl -w vm.overcommit_memory=1
-
-      # spec/spec_helper.rb fails fast when generated/locales is empty
-      # (gitignored build output). Every workflow that runs RSpec must
-      # generate it first.
-      - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
+      # Locale compilation prereq is owned by the lane's tasks file; it only
+      # needs python3 on PATH (stdlib-only script, no Node).
+      - name: Setup Python (locale compilation)
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
 
-      - name: Setup Node.js environment
-        uses: ./.github/actions/setup-node-env
-
-      - name: Generate locale files
-        run: pnpm run locales:sync
-
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@c0afd6f790e3a5564914980036ebf83216678101 # v3
-        if: inputs.debug_enabled == true
+      - name: Run migrations-sqlite lane
+        uses: ./.github/actions/run-test-lane
         with:
-          detached: true
-
-      - name: Run SQLite migration tests
-        env:
-          RACK_ENV: test
-          AUTHENTICATION_MODE: full
-          AUTH_DATABASE_URL: 'sqlite::memory:'
-          REDIS_URL: redis://127.0.0.1:2121/0
-          RSPEC_OUTPUT_FILE: tmp/sqlite_migration_results.json
-        run: |
-          set -e
-          mkdir -p tmp
-          echo "## SQLite Migration Tests" >> $GITHUB_STEP_SUMMARY
-          echo "Running database trigger tests..." >> $GITHUB_STEP_SUMMARY
-
-          # Run SQLite-specific database trigger tests
-          bundle exec rspec \
-            spec/integration/full/database_triggers/sqlite_spec.rb \
-            --format progress \
-            --format json --out $RSPEC_OUTPUT_FILE
-
-      - name: Generate test summary
-        if: always()
-        run: |
-          echo "### Results" >> $GITHUB_STEP_SUMMARY
-          if [ -f "tmp/sqlite_migration_results.json" ]; then
-            TOTAL=$(jq '.summary.example_count' tmp/sqlite_migration_results.json)
-            FAILURES=$(jq '.summary.failure_count' tmp/sqlite_migration_results.json)
-            DURATION=$(jq '.summary.duration' tmp/sqlite_migration_results.json)
-            echo "- Total: $TOTAL" >> $GITHUB_STEP_SUMMARY
-            echo "- Failures: $FAILURES" >> $GITHUB_STEP_SUMMARY
-            echo "- Duration: ${DURATION}s" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "- No results file generated" >> $GITHUB_STEP_SUMMARY
-          fi
+          lane: migrations-sqlite
+          results-file: 'sqlite_migration_results.json'
+          debug-enabled: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
       - name: Upload SQLite test results
         if: always()
@@ -162,126 +118,33 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
 
-    services:
-      redis:
-        image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 10s
-          --health-retries 5
-          --memory=2g
-        ports:
-          - 2121:6379
-
-      postgres:
-        image: postgres:17@sha256:b994732fcf33f73776c65d3a5bf1f80c00120ba5007e8ab90307b1a743c1fc16
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: onetime_auth_test
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 10s
-          --health-timeout 10s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
     steps:
       - name: Checkout code
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      # PG roles (onetime_user/onetime_migrator) come from compose.test.yml's
+      # initdb mount on first boot — no separate psql setup step.
+      - name: Start test services (valkey, rabbitmq, postgres)
+        run: docker compose -f compose.test.yml up --wait -d valkey rabbitmq postgres
 
       - name: Setup Ruby environment
         uses: ./.github/actions/setup-ruby-test-env
         with:
           download-artifacts: 'false'
 
-      - name: Enable memory overcommit for Redis
-        run: sudo sysctl -w vm.overcommit_memory=1
-
-      # See the SQLite job: spec_helper fails fast without generated/locales.
-      - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
+      - name: Setup Python (locale compilation)
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
 
-      - name: Setup Node.js environment
-        uses: ./.github/actions/setup-node-env
-
-      - name: Generate locale files
-        run: pnpm run locales:sync
-
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@c0afd6f790e3a5564914980036ebf83216678101 # v3
-        if: inputs.debug_enabled == true
+      # The lane runs the trigger/infrastructure specs and the dual-URL
+      # migration check (spec:integration:migrations:verify_dual_url).
+      - name: Run migrations-pg lane
+        uses: ./.github/actions/run-test-lane
         with:
-          detached: true
-
-      - name: Create PostgreSQL test users
-        env:
-          PGPASSWORD: postgres
-        run: psql -h localhost -U postgres -d onetime_auth_test -f apps/web/auth/migrations/schemas/postgres/initialize_test_db.sql -v ON_ERROR_STOP=1
-
-      - name: Run PostgreSQL migration tests
-        env:
-          RACK_ENV: test
-          AUTHENTICATION_MODE: full
-          AUTH_DATABASE_URL: postgresql://onetime_user:testpass@localhost:5432/onetime_auth_test
-          AUTH_DATABASE_URL_MIGRATIONS: postgresql://onetime_migrator:migratepass@localhost:5432/onetime_auth_test
-          REDIS_URL: redis://127.0.0.1:2121/0
-          RSPEC_OUTPUT_FILE: tmp/postgres_migration_results.json
-        run: |
-          set -e
-          mkdir -p tmp
-          echo "## PostgreSQL Migration Tests" >> $GITHUB_STEP_SUMMARY
-          echo "Running database trigger and infrastructure tests..." >> $GITHUB_STEP_SUMMARY
-
-          # Run PostgreSQL-specific database trigger tests
-          bundle exec rspec \
-            spec/integration/full/database_triggers/postgres_spec.rb \
-            spec/integration/full/postgres_infrastructure_spec.rb \
-            --tag postgres_database \
-            --format progress \
-            --format json --out $RSPEC_OUTPUT_FILE
-
-      - name: Test dual URL configuration
-        env:
-          RACK_ENV: test
-          AUTHENTICATION_MODE: full
-          AUTH_DATABASE_URL: postgresql://onetime_user:testpass@localhost:5432/onetime_auth_test
-          AUTH_DATABASE_URL_MIGRATIONS: postgresql://onetime_migrator:migratepass@localhost:5432/onetime_auth_test
-          REDIS_URL: redis://127.0.0.1:2121/0
-        run: |
-          echo "### Dual URL Configuration Test" >> $GITHUB_STEP_SUMMARY
-
-          # Verify migrations can run with elevated connection
-          bundle exec ruby -e '
-            require "bundler/setup"
-            require_relative "lib/onetime"
-            require_relative "apps/web/auth/database"
-
-            # This should use AUTH_DATABASE_URL_MIGRATIONS for migrations
-            # and AUTH_DATABASE_URL for normal operations
-            Auth::Database.ensure_migrations!
-
-            puts "Dual URL configuration verified"
-          ' && echo "- Dual URL configuration: PASS" >> $GITHUB_STEP_SUMMARY
-
-      - name: Generate test summary
-        if: always()
-        run: |
-          echo "### Results" >> $GITHUB_STEP_SUMMARY
-          if [ -f "tmp/postgres_migration_results.json" ]; then
-            TOTAL=$(jq '.summary.example_count' tmp/postgres_migration_results.json)
-            FAILURES=$(jq '.summary.failure_count' tmp/postgres_migration_results.json)
-            DURATION=$(jq '.summary.duration' tmp/postgres_migration_results.json)
-            echo "- Total: $TOTAL" >> $GITHUB_STEP_SUMMARY
-            echo "- Failures: $FAILURES" >> $GITHUB_STEP_SUMMARY
-            echo "- Duration: ${DURATION}s" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "- No results file generated" >> $GITHUB_STEP_SUMMARY
-          fi
+          lane: migrations-pg
+          results-file: 'postgres_migration_results.json'
+          debug-enabled: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
       - name: Upload PostgreSQL test results
         if: always()
@@ -295,48 +158,26 @@ jobs:
   # ==========================================================================
   # Concurrent Boot Simulation (~2min)
   # ==========================================================================
+  # Not a lane on purpose: this job choreographs five parallel boot
+  # processes against a scratch database — gating/orchestration policy that
+  # belongs to CI (tests/lanes/README.md rule 4). Services and ports still
+  # come from compose.test.yml so the pins live in one place.
   migration-tests-concurrent:
     name: Concurrent Boot & Race Conditions
     runs-on: ubuntu-24.04
     timeout-minutes: 5
 
-    services:
-      redis:
-        image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 10s
-          --health-retries 5
-          --memory=2g
-        ports:
-          - 2121:6379
-
-      postgres:
-        image: postgres:17@sha256:b994732fcf33f73776c65d3a5bf1f80c00120ba5007e8ab90307b1a743c1fc16
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: onetime_auth_test_concurrent
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 10s
-          --health-timeout 10s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
     steps:
       - name: Checkout code
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Start test services (valkey, postgres)
+        run: docker compose -f compose.test.yml up --wait -d valkey postgres
 
       - name: Setup Ruby environment
         uses: ./.github/actions/setup-ruby-test-env
         with:
           download-artifacts: 'false'
-
-      - name: Enable memory overcommit for Redis
-        run: sudo sysctl -w vm.overcommit_memory=1
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@c0afd6f790e3a5564914980036ebf83216678101 # v3
@@ -344,13 +185,19 @@ jobs:
         with:
           detached: true
 
-      - name: Simulate concurrent boot scenario
+      # A scratch database so concurrent-boot churn never touches
+      # onetime_auth_test (which the migrations-pg lane owns).
+      - name: Create concurrent-boot database
         env:
           PGPASSWORD: postgres
+        run: psql -h 127.0.0.1 -p 2154 -U postgres -c 'CREATE DATABASE onetime_auth_test_concurrent'
+
+      - name: Simulate concurrent boot scenario
+        env:
           RACK_ENV: test
           AUTHENTICATION_MODE: full
-          AUTH_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/onetime_auth_test_concurrent
-          REDIS_URL: redis://127.0.0.1:2121/0
+          AUTH_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:2154/onetime_auth_test_concurrent
+          REDIS_URL: redis://127.0.0.1:2163/0
         run: |
           set -e
           echo "## Concurrent Boot Simulation" >> $GITHUB_STEP_SUMMARY
@@ -393,11 +240,10 @@ jobs:
 
       - name: Verify migration idempotency
         env:
-          PGPASSWORD: postgres
           RACK_ENV: test
           AUTHENTICATION_MODE: full
-          AUTH_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/onetime_auth_test_concurrent
-          REDIS_URL: redis://127.0.0.1:2121/0
+          AUTH_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:2154/onetime_auth_test_concurrent
+          REDIS_URL: redis://127.0.0.1:2163/0
         run: |
           echo "### Migration Idempotency Test" >> $GITHUB_STEP_SUMMARY
 
@@ -420,7 +266,7 @@ jobs:
           echo "### Schema Consistency Check" >> $GITHUB_STEP_SUMMARY
 
           # Verify critical tables exist
-          TABLES=$(psql -h localhost -U postgres -d onetime_auth_test_concurrent -t -c "
+          TABLES=$(psql -h 127.0.0.1 -p 2154 -U postgres -d onetime_auth_test_concurrent -t -c "
             SELECT string_agg(tablename, ', ')
             FROM pg_tables
             WHERE schemaname = 'public'
@@ -430,7 +276,7 @@ jobs:
           echo "- Tables: $TABLES" >> $GITHUB_STEP_SUMMARY
 
           # Verify critical triggers exist
-          TRIGGERS=$(psql -h localhost -U postgres -d onetime_auth_test_concurrent -t -c "
+          TRIGGERS=$(psql -h 127.0.0.1 -p 2154 -U postgres -d onetime_auth_test_concurrent -t -c "
             SELECT string_agg(trigger_name, ', ')
             FROM information_schema.triggers
             WHERE trigger_schema = 'public'

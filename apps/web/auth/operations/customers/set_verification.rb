@@ -4,7 +4,7 @@
 
 # Reuses (does not rewrite) the incumbent verification op. The CLI runs outside
 # the auth app's autoloader, so require the dependency explicitly.
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'auth/operations/set_customer_verification'
 
@@ -16,7 +16,7 @@ module Auth
       #
       # This deliberately does NOT re-implement verification — it delegates to the
       # incumbent Auth::Operations::SetCustomerVerification (the cross-store
-      # Redis+SQL writer) and adds exactly one AdminAuditEvent on a successful
+      # Redis+SQL writer) and adds exactly one ColonelAuditEvent on a successful
       # change (epic #20 CONTRACT 4 / #21).
       #
       # ## Why a wrapper instead of auditing inside SetCustomerVerification
@@ -78,7 +78,7 @@ module Auth
 
           # Audit only an actual state change; a :no_change mutated nothing.
           if result == :success
-            Onetime::AdminAuditEvent.record(
+            Onetime::ColonelAuditEvent.record(
               actor: @actor,
               verb: AUDIT_VERB,
               target: @customer.extid,

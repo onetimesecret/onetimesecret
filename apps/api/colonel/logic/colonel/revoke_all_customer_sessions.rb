@@ -19,7 +19,7 @@ module ColonelAPI
       # is bounded by {Store::MAX_SCAN}, so when it truncates the op surfaces
       # `scan_capped` (Result + audit detail) rather than overstating totality. It
       # then tidies the sidecar + per-customer index, clears the Rodauth
-      # active-session rows in full mode, and writes ONE AdminAuditEvent
+      # active-session rows in full mode, and writes ONE ColonelAuditEvent
       # (verb `session.revoke_all`) with the kill counts.
       #
       # Bulk-destructive, so it is a POST+verb route (matching the local

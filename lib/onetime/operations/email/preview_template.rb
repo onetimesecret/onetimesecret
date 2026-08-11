@@ -48,7 +48,7 @@ module Onetime
       # `bin/ots email preview` CLI are thin adapters over it.
       #
       # READ-ONLY: rendering has NO side effects — it never dispatches an email and
-      # never touches Redis — so it records NO AdminAuditEvent (CONTRACT 4).
+      # never touches Redis — so it records NO ColonelAuditEvent (CONTRACT 4).
       #
       # ## Behavioural parity
       #

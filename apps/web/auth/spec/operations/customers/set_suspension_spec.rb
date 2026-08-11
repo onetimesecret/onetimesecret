@@ -13,7 +13,7 @@
 
 require 'spec_helper'
 require 'json'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'auth/operations/customers/set_suspension'
 
 RSpec.describe Auth::Operations::Customers::SetSuspension do
@@ -44,7 +44,7 @@ RSpec.describe Auth::Operations::Customers::SetSuspension do
 
   let(:empty_db) { dbclient_with_sessions({}) }
 
-  before { allow(Onetime::AdminAuditEvent).to receive(:record) }
+  before { allow(Onetime::ColonelAuditEvent).to receive(:record) }
 
   describe 'suspend' do
     it 'stamps the suspension fields, saves, and returns :success' do
@@ -68,7 +68,7 @@ RSpec.describe Auth::Operations::Customers::SetSuspension do
         reason: 'abuse report', dbclient: empty_db,
       ).call
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         actor: 'ur_col',
         verb: 'customer.suspend',
         target: 'ur_test',
@@ -109,7 +109,7 @@ RSpec.describe Auth::Operations::Customers::SetSuspension do
       expect(result.status).to eq(:no_change)
       expect(customer).not_to have_received(:save)
       expect(db).not_to have_received(:del)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
     end
 
     it 'refuses to suspend a colonel-role account (no save)' do
@@ -127,7 +127,7 @@ RSpec.describe Auth::Operations::Customers::SetSuspension do
     # The Onetime::AuditedFailure mechanism. The PrivilegedAccount guard raises
     # BEFORE the success-path record call, so this is the only thing that proves
     # a raising op still lands in the audit trail. Message expectation (not a
-    # store read): AdminAuditEvent.record swallows its own errors and returns
+    # store read): ColonelAuditEvent.record swallows its own errors and returns
     # nil, so a store read here could pass or fail for unrelated reasons.
     it 'records exactly one result: :failure event on the privilege guard and re-raises' do
       allow(customer).to receive(:role).and_return('colonel')
@@ -138,7 +138,7 @@ RSpec.describe Auth::Operations::Customers::SetSuspension do
         ).call
       end.to raise_error(described_class::PrivilegedAccount, /Colonel accounts cannot be suspended/)
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         hash_including(
           actor: 'ur_col',
           verb: 'customer.suspend',
@@ -158,7 +158,7 @@ RSpec.describe Auth::Operations::Customers::SetSuspension do
       ).call
 
       expect(customer).to have_received(:suspended_reason=).with(nil)
-      expect(Onetime::AdminAuditEvent).to have_received(:record).with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).with(
         hash_including(detail: { reason: nil, sessions_revoked: 0 }),
       )
     end
@@ -182,7 +182,7 @@ RSpec.describe Auth::Operations::Customers::SetSuspension do
       expect(customer).to have_received(:save)
       # Unsuspending never sweeps sessions (there is nothing to revoke).
       expect(db).not_to have_received(:del)
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         actor: 'ur_col',
         verb: 'customer.unsuspend',
         target: 'ur_test',
@@ -209,7 +209,7 @@ RSpec.describe Auth::Operations::Customers::SetSuspension do
       ).call
 
       expect(result.status).to eq(:no_change)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
     end
   end
 end

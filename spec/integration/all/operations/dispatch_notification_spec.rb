@@ -30,7 +30,7 @@
 #      - Tests invalid channel filtering
 #
 # Setup Requirements:
-#   - Redis test instance at VALKEY_URL='valkey://127.0.0.1:2121/0'
+#   - Redis test instance at VALKEY_URL='valkey://127.0.0.1:2163/0'
 #   - Mocked Onetime::Jobs::Publisher for email queueing
 #   - Mocked Net::HTTP for webhook delivery
 #

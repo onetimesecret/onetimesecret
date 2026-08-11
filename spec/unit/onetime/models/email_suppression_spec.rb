@@ -9,7 +9,7 @@ require 'spec_helper'
 # outbound guard in Onetime::Mail::Delivery::Base#deliver.
 #
 # These exercise the real Familia-backed structures on the test database (port
-# 2121), so each example clears the model's key space to stay isolated.
+# 2163), so each example clears the model's key space to stay isolated.
 RSpec.describe Onetime::EmailSuppression do
   def clear_all
     described_class.entries.clear

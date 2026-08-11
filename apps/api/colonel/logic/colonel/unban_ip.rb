@@ -13,7 +13,7 @@ module ColonelAPI
       # Thin adapter over {Onetime::Operations::UnbanIP} — the single, audited
       # implementation of the unban verb (epic #33). This class keeps only the
       # HTTP concerns (param validation + the not-banned 404); the op owns the
-      # model mutation and the AdminAuditEvent (CONTRACT 4).
+      # model mutation and the ColonelAuditEvent (CONTRACT 4).
       #
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.
@@ -37,7 +37,7 @@ module ColonelAPI
         def process
           # Delegate the model mutation + audit to the single op implementation.
           # actor is the acting colonel's PUBLIC id (never an objid).
-          result   = Onetime::Operations::UnbanIP.new(
+          result    = Onetime::Operations::UnbanIP.new(
             ip_address: ip_address,
             actor: cust.extid,
           ).call

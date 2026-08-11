@@ -4,4 +4,5 @@
  * Organizations API endpoints index
  */
 
+export * from './secret-activity';
 export * from './organizations';

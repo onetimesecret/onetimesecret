@@ -10,7 +10,7 @@
 # Usage:
 #   include_context 'strategy test'
 #
-# Requires Valkey on port 2121 (pnpm run test:database:start).
+# Requires Valkey on port 2163 (pnpm run test:database:start).
 
 require 'securerandom'
 require 'base64'

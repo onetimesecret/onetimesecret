@@ -36,4 +36,5 @@ jobs:
         with:
           repo-token: '${{ secrets.GITHUB_TOKEN }}'
           configuration-path: .github/labeler.yml
+          # Whether or not to remove labels when matching files are reverted or no longer present in the PR
           sync-labels: false

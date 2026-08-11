@@ -215,6 +215,7 @@ Governed secret sharing with SSO, access controls, and organizational visibility
 - `flexible_from_domain`
 - `homepage_secrets`
 - `incoming_secrets`
+- `audit_logs`
 - `manage_members`
 - `manage_orgs`
 - `manage_org`

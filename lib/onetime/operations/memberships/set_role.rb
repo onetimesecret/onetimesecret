@@ -4,7 +4,7 @@
 
 # Loaded at the call site (colonel logic + CLI), which run outside the app
 # autoloaders — require the audit model and the shared guard explicitly.
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require_relative 'support'
 
@@ -26,7 +26,7 @@ module Onetime
       #
       # ## Exactly-once audit + no-op semantics
       #
-      # A real change records EXACTLY ONE {Onetime::AdminAuditEvent}. An idempotent
+      # A real change records EXACTLY ONE {Onetime::ColonelAuditEvent}. An idempotent
       # `:no_change` (already at the target role) mutates and audits NOTHING.
       #
       # A REFUSED change (`:invalid_role` / `:not_found` / `:last_owner`) records
@@ -104,7 +104,7 @@ module Onetime
 
           # One audit event per real change, emitted from the op (adapters MUST NOT
           # audit — avoids a double trail). Public ids only; no secret detail.
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @customer.extid,
@@ -135,7 +135,7 @@ module Onetime
         # `membership.set_role` shows the attempt alongside the completions.
         # Best-effort like every audit write: never break the op.
         def record_refusal(status, from, to)
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @customer.extid,

@@ -4,6 +4,8 @@ labels: regions, jurisdictions, data-sovereignty
 
 # Regions Architecture
 
+> Terminology (fleet vs. federation vs. region vs. deployment): see [terminology.md](./terminology.md#deployment-topology-terminology).
+
 Regions enable multi-jurisdiction deployments where each geographic instance runs independently with its own domain, billing catalog, and data store. Users can see which region they're on and switch between them.
 
 ## Use Cases

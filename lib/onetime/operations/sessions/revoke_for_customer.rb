@@ -5,7 +5,7 @@
 require 'onetime/operations/sessions/store'
 require 'onetime/session/sidecar'
 require 'onetime/models/session_metadata'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 
 module Onetime
@@ -32,7 +32,7 @@ module Onetime
       #
       # After invalidation (whether or not a live blob existed) it destroys the
       # sidecar and ZREMs the sid from Customer#active_sessions, then records one
-      # {Onetime::AdminAuditEvent}. Revoking an already-gone session still tidies
+      # {Onetime::ColonelAuditEvent}. Revoking an already-gone session still tidies
       # the index + returns cleanly (`revoked: true`) — the colonel took an
       # intentional action and the index prune is a real mutation; `detail`
       # carries whether a live blob was present.
@@ -113,7 +113,7 @@ module Onetime
           if session_user_id && customer && session_user_id != customer.extid
             detail[:session_user_id] = session_user_id
           end
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @custid,

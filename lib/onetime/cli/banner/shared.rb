@@ -13,7 +13,7 @@ module Onetime
 
         # Public identity recorded as the audit actor for banner mutations made
         # from the shell. Mirrors Customers::Shared::CLI_ACTOR — a sentinel PUBLIC
-        # id, never an internal objid (AdminAuditEvent requires a public actor).
+        # id, never an internal objid (ColonelAuditEvent requires a public actor).
         CLI_ACTOR = 'cli'
 
         def humanize_seconds(seconds)

@@ -11,7 +11,7 @@
 #
 # These tests exercise the full Rack stack: middleware -> Otto router ->
 # response handler -> HTTP response. They require a running test Redis
-# on port 2121 and a full application boot.
+# on port 2163 and a full application boot.
 #
 # Run:
 #   pnpm run test:database:start

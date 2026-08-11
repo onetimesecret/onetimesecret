@@ -5,7 +5,7 @@
 # Repair a custom domain's organization relationship — the CLI peer of
 # `POST /api/colonel/domains/:extid/repair`. Both adapters call the same op
 # (Onetime::Operations::Domains::Repair), which owns the mutation and the
-# single `domain.repair` AdminAuditEvent. This command owns only CLI concerns.
+# single `domain.repair` ColonelAuditEvent. This command owns only CLI concerns.
 #
 # Usage:
 #   bin/ots domains repair example.com                    # plan, confirm, apply

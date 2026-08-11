@@ -156,11 +156,11 @@ RSpec.describe 'Org Create Command', type: :cli do
     end
 
     it 'never audits from the adapter' do
-      allow(Onetime::AdminAuditEvent).to receive(:record)
+      allow(Onetime::ColonelAuditEvent).to receive(:record)
 
       run_cli_command_quietly('org', 'create', 'Acme', '--owner', 'owner@example.com', '--yes')
 
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
     end
   end
 

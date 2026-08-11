@@ -164,7 +164,7 @@ module FullModeSuiteDatabase
 
       # Fail closed: refuse to TRUNCATE unless the target is a test database
       # (AUTH_DATABASE_URL comes straight from ENV; a leaked dev value must not
-      # be wiped here). Sanctioned test PG is 127.0.0.1:2132/onetime_auth_test.
+      # be wiped here). Sanctioned test PG is 127.0.0.1:2154/onetime_auth_test.
       dbname = db.opts[:database].to_s
       unless dbname =~ /test/i
         raise "[FullModeSuiteDatabase] Refusing to TRUNCATE non-test database: " \

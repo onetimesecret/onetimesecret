@@ -1,772 +1,870 @@
 <!-- src/apps/workspace/account/settings/OrganizationSettings.vue -->
 
 <script setup lang="ts">
-import EntitlementUpgradePrompt from '@/apps/workspace/components/billing/EntitlementUpgradePrompt.vue';
-import DomainsTable from '@/apps/workspace/components/domains/DomainsTable.vue';
-import MembersTable from '@/apps/workspace/components/members/MembersTable.vue';
-import { classifyError } from '@/schemas/errors';
-import type { ApplicationError } from '@/schemas/errors';
-import { BillingService } from '@/services/billing.service';
-import ListSkeleton from '@/shared/components/closet/ListSkeleton.vue';
-import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
-import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
-import OIcon from '@/shared/components/icons/OIcon.vue';
-import CopyButton from '@/shared/components/ui/CopyButton.vue';
-import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
-import EmptyState from '@/shared/components/ui/EmptyState.vue';
-import TableSkeleton from '@/shared/components/closet/TableSkeleton.vue';
-import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
-import { useDomainsManager } from '@/shared/composables/useDomainsManager';
-import { useEntitlementError } from '@/shared/composables/useEntitlementError';
-import { useEntitlements } from '@/shared/composables/useEntitlements';
-import { useOrgPermissions } from '@/shared/composables/useOrgPermissions';
-import { useResourcePermissions } from '@/shared/composables/useResourcePermissions';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import { useMembersStore } from '@/shared/stores/membersStore';
-import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import type { Subscription } from '@/types/billing';
-import { getPlanLabel, getSubscriptionStatusLabel, isFreePlan, isLegacyPlan } from '@/types/billing';
-import type { CreateInvitationPayload, Organization, OrganizationInvitation, OrganizationRole } from '@/types/organization';
-import { INVITATION_STATUSES, effectiveInvitationStatus, invitationStatusLabelKey } from '@/types/organization';
-import { isOrgsSsoEnabled } from '@/utils/features';
-import { formatDisplayDate } from '@/utils/format';
-import { useConfirmDialog, useNow } from '@vueuse/core';
-import { storeToRefs } from 'pinia';
-import { SsoService } from '@/services/sso.service';
-import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRoute, useRouter } from 'vue-router';
-import { z } from 'zod';
+  import EntitlementUpgradePrompt from '@/apps/workspace/components/billing/EntitlementUpgradePrompt.vue';
+  import DomainsTable from '@/apps/workspace/components/domains/DomainsTable.vue';
+  import MembersTable from '@/apps/workspace/components/members/MembersTable.vue';
+  import SecretActivityTable from '@/apps/workspace/components/organizations/SecretActivityTable.vue';
+  import { classifyError } from '@/schemas/errors';
+  import type { ApplicationError } from '@/schemas/errors';
+  import { BillingService } from '@/services/billing.service';
+  import ListSkeleton from '@/shared/components/closet/ListSkeleton.vue';
+  import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
+  import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
+  import CopyButton from '@/shared/components/ui/CopyButton.vue';
+  import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
+  import EmptyState from '@/shared/components/ui/EmptyState.vue';
+  import TableSkeleton from '@/shared/components/closet/TableSkeleton.vue';
+  import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
+  import { useDomainsManager } from '@/shared/composables/useDomainsManager';
+  import { useEntitlementError } from '@/shared/composables/useEntitlementError';
+  import { useEntitlements } from '@/shared/composables/useEntitlements';
+  import { useOrgPermissions } from '@/shared/composables/useOrgPermissions';
+  import { useResourcePermissions } from '@/shared/composables/useResourcePermissions';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { useMembersStore } from '@/shared/stores/membersStore';
+  import { useOrganizationStore } from '@/shared/stores/organizationStore';
+  import type { Subscription } from '@/types/billing';
+  import {
+    getPlanLabel,
+    getSubscriptionStatusLabel,
+    isFreePlan,
+    isLegacyPlan,
+  } from '@/types/billing';
+  import type {
+    CreateInvitationPayload,
+    Organization,
+    OrganizationInvitation,
+    OrganizationRole,
+  } from '@/types/organization';
+  import {
+    INVITATION_STATUSES,
+    effectiveInvitationStatus,
+    invitationStatusLabelKey,
+  } from '@/types/organization';
+  import { isOrgsAuditLogsEnabled, isOrgsSsoEnabled } from '@/utils/features';
+  import { formatDisplayDate } from '@/utils/format';
+  import { useConfirmDialog, useNow } from '@vueuse/core';
+  import { storeToRefs } from 'pinia';
+  import { SsoService } from '@/services/sso.service';
+  import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue';
+  import { useI18n } from 'vue-i18n';
+  import { useRoute, useRouter } from 'vue-router';
+  import { z } from 'zod';
 
-type TabType = 'general' | 'members' | 'domains' | 'subscription' | 'sso';
+  type TabType = 'general' | 'members' | 'domains' | 'subscription' | 'sso' | 'activity';
 
-// URL tab names map to internal tab names
-// URL: members -> internal: members (team kept as backwards-compat alias)
-// URL: settings -> internal: general
-// URL: subscription -> internal: subscription (billing kept as backwards-compat alias)
-// URL: sso -> internal: sso
-const URL_TO_TAB: Record<string, TabType> = {
-  members: 'members',
-  team: 'members', // backwards compatibility for old URLs
-  domains: 'domains',
-  subscription: 'subscription',
-  billing: 'subscription', // backwards compatibility for old URLs
-  settings: 'general',
-  sso: 'sso',
-};
+  // URL tab names map to internal tab names
+  // URL: members -> internal: members (team kept as backwards-compat alias)
+  // URL: settings -> internal: general
+  // URL: subscription -> internal: subscription (billing kept as backwards-compat alias)
+  // URL: sso -> internal: sso
+  // URL: activity -> internal: activity
+  const URL_TO_TAB: Record<string, TabType> = {
+    members: 'members',
+    team: 'members', // backwards compatibility for old URLs
+    domains: 'domains',
+    subscription: 'subscription',
+    billing: 'subscription', // backwards compatibility for old URLs
+    settings: 'general',
+    sso: 'sso',
+    activity: 'activity',
+  };
 
-const TAB_TO_URL: Record<TabType, string> = {
-  members: 'members',
-  domains: 'domains',
-  subscription: 'subscription',
-  general: 'settings',
-  sso: 'sso',
-};
+  const TAB_TO_URL: Record<TabType, string> = {
+    members: 'members',
+    domains: 'domains',
+    subscription: 'subscription',
+    general: 'settings',
+    sso: 'sso',
+    activity: 'activity',
+  };
 
-const props = withDefaults(defineProps<{
-  initialTab?: TabType;
-}>(), {
-  initialTab: 'domains',
-});
+  const props = withDefaults(
+    defineProps<{
+      initialTab?: TabType;
+    }>(),
+    {
+      initialTab: 'domains',
+    }
+  );
 
-const { t } = useI18n();
-const route = useRoute();
-const router = useRouter();
-const organizationStore = useOrganizationStore();
-const membersStore = useMembersStore();
+  const { t } = useI18n();
+  const route = useRoute();
+  const router = useRouter();
+  const organizationStore = useOrganizationStore();
+  const membersStore = useMembersStore();
 
-// Reactive clock so expiry-derived display (invitation status badge + countdown)
-// refreshes on its own instead of going stale until the next user action. Ticks
-// coarsely — these values change on a minute/hour scale, not per frame.
-const now = useNow({ interval: 30_000 });
+  // Reactive clock so expiry-derived display (invitation status badge + countdown)
+  // refreshes on its own instead of going stale until the next user action. Ticks
+  // coarsely — these values change on a minute/hour scale, not per frame.
+  const now = useNow({ interval: 30_000 });
 
-const orgId = computed(() => route.params.extid as string);
+  const orgId = computed(() => route.params.extid as string);
 
-// Resolve initial tab from route param or prop
-const resolveInitialTab = (): TabType => {
-  const urlTab = route.params.tab as string | undefined;
-  if (urlTab && URL_TO_TAB[urlTab]) {
-    return URL_TO_TAB[urlTab];
-  }
-  return props.initialTab;
-};
-const organization = ref<Organization | null>(null);
-const subscription = ref<Subscription | null>(null);
-const invitations = ref<OrganizationInvitation[]>([]);
-
-/**
- * UX Principle: Optimize for frequency of use
- *
- * Tab order and default selection follow the principle that the most frequently
- * performed actions should require the fewest clicks. When users navigate to an
- * organization's detail page, their intent hierarchy is typically:
- *
- *   1. Domains         - Most frequent: managing sender domains for platform operators
- *   2. Members         - Team management: invite members, manage roles, review team
- *   3. Subscription    - Occasional: check plan, view usage, upgrade
- *   4. Settings        - Rare: change org name or billing email (set-and-forget)
- *   5. SSO             - Rarest: configuration that's set once and rarely touched
- *
- * By defaulting to the Domains tab, we eliminate one click for the most common
- * workflow. SSO is placed last since it's configured once during setup and
- * rarely revisited.
- *
- * This aligns with Fitts's Law corollary: reduce interaction cost for frequent
- * actions, accept higher cost for infrequent ones.
- */
-const activeTab = ref<TabType>(resolveInitialTab());
-
-// Update URL when tab changes (without adding history entries)
-const setActiveTab = (tab: TabType) => {
-  activeTab.value = tab;
-  const urlTab = TAB_TO_URL[tab];
-  router.replace({ params: { ...route.params, tab: urlTab } });
-};
-
-// Watch for route param changes (e.g., back/forward navigation).
-// Reject navigation to entitlement-gated tabs the user can't access.
-watch(
-  () => route.params.tab,
-  (newTab) => {
-    const urlTab = newTab as string | undefined;
+  // Resolve initial tab from route param or prop.
+  //
+  // Only the INSTANCE flag is applied here — it's the one gate knowable
+  // synchronously from the bootstrap snapshot. A deep link to /activity on an
+  // install with ORGS_AUDIT_LOGS_ENABLED=false would otherwise seat
+  // activeTab='activity' with no matching tab or panel until onMounted's three
+  // awaits resolve and checkInitialTabRedirect() fires. Nothing is painted in
+  // that window today — isLoading starts true so the skeleton covers the
+  // content area, and the tab bar is v-if'd on `organization`, which is still
+  // null — but guarding here removes the invalid state rather than leaving it
+  // to hold on that await ordering. The entitlement-gated tabs ('members',
+  // 'sso') are deliberately NOT handled here: they depend on permissions that
+  // aren't known until fetchAllPermissions() resolves, so they stay in
+  // checkInitialTabRedirect().
+  //
+  // Calls isOrgsAuditLogsEnabled() rather than the orgAuditLogsFeatureEnabled
+  // computed below — that binding is declared later and is still in its TDZ
+  // when this runs during setup.
+  const resolveInitialTab = (): TabType => {
+    const urlTab = route.params.tab as string | undefined;
     if (urlTab && URL_TO_TAB[urlTab]) {
       const resolved = URL_TO_TAB[urlTab];
-      if (
-        (resolved === 'members' && !canManageMembers.value) ||
-        (resolved === 'sso' && !canManageSso.value)
-      ) {
-        setActiveTab('domains');
-        return;
+      if (resolved === 'activity' && !isOrgsAuditLogsEnabled()) {
+        return props.initialTab;
       }
-      activeTab.value = resolved;
-    } else if (!urlTab) {
-      activeTab.value = props.initialTab;
+      return resolved;
     }
-  }
-);
+    return props.initialTab;
+  };
+  const organization = ref<Organization | null>(null);
+  const subscription = ref<Subscription | null>(null);
+  const invitations = ref<OrganizationInvitation[]>([]);
 
-// Domains management
-const {
-  isLoading: isLoadingDomains,
-  records: domainRecords,
-  recordCount: domainCount,
-  error: domainsError,
-  refreshRecords: refreshDomains,
-} = useDomainsManager();
+  /**
+   * UX Principle: Optimize for frequency of use
+   *
+   * Tab order and default selection follow the principle that the most frequently
+   * performed actions should require the fewest clicks. When users navigate to an
+   * organization's detail page, their intent hierarchy is typically:
+   *
+   *   1. Domains         - Most frequent: managing sender domains for platform operators
+   *   2. Members         - Team management: invite members, manage roles, review team
+   *   3. Subscription    - Occasional: check plan, view usage, upgrade
+   *   4. Settings        - Rare: change org name or billing email (set-and-forget)
+   *   5. SSO             - Rarest: configuration that's set once and rarely touched
+   *
+   * By defaulting to the Domains tab, we eliminate one click for the most common
+   * workflow. SSO is placed last since it's configured once during setup and
+   * rarely revisited.
+   *
+   * This aligns with Fitts's Law corollary: reduce interaction cost for frequent
+   * actions, accept higher cost for infrequent ones.
+   */
+  const activeTab = ref<TabType>(resolveInitialTab());
 
-// Best practice: Initialize loading states to `true` to prevent uninitialized
-// content, empty states, or gated upgrade notices from briefly flashing on mount.
-const isLoading = ref(true);
-const isSaving = ref(false);
-const isLoadingBilling = ref(false);
-// Billing email editing has been moved to BillingOverview.vue
-const error = ref('');
-const success = ref('');
-const orgNotFound = ref(false);
+  // Update URL when tab changes (without adding history entries)
+  const setActiveTab = (tab: TabType) => {
+    activeTab.value = tab;
+    const urlTab = TAB_TO_URL[tab];
+    router.replace({ params: { ...route.params, tab: urlTab } });
+  };
 
-// Plan data from billing overview
-const planName = ref<string>('');
-const planFeatures = ref<string[]>([]);
-
-const showInviteForm = ref(false);
-const inviteFormData = ref<CreateInvitationPayload>({
-  email: '',
-  role: 'member',
-});
-const inviteErrors = ref<Record<string, string>>({});
-const inviteGeneralError = ref('');
-const inviteUpgradeError = ref<ApplicationError | null>(null);
-const isInviting = ref(false);
-
-const { wrap } = useAsyncHandler({
-  notify: false,
-});
-
-const bootstrapStore = useBootstrapStore();
-const { billing_enabled } = storeToRefs(bootstrapStore);
-const billingEnabled = computed(() => billing_enabled.value ?? false);
-
-// Entitlements - formatEntitlement uses API-driven i18n keys
-const {
-  entitlements,
-  can,
-  formatEntitlement,
-  isStandaloneMode,
-  initDefinitions,
-  ENTITLEMENTS,
-} = useEntitlements(organization);
-
-const sortedEntitlements = computed(() =>
-  [...entitlements.value].sort((a, b) => formatEntitlement(a).localeCompare(formatEntitlement(b)))
-);
-
-// SSO visibility: feature flag AND entitlement must both pass (dual-control)
-const canManageSso = computed(() => isOrgsSsoEnabled() && can(ENTITLEMENTS.MANAGE_SSO));
-
-// Role-based gate: only owners and admins can add new domains (mirrors
-// route guard `requireDomainAdminRole` and backend check). Hides the UI
-// affordance so members don't see a dead-end link.
-const { canCreateDomain } = useOrgPermissions(organization);
-
-const { fetchAllPermissions, getOrgPermissions } = useResourcePermissions();
-
-const assignableRoles = computed<OrganizationRole[]>(() => {
-  const orgPerms = getOrgPermissions(orgId.value);
-  return (orgPerms?.assignable_roles ?? ['member']) as OrganizationRole[];
-});
-
-const isOwner = computed(() => organization.value?.current_user_role === 'owner');
-const hasDomains = computed(() => (organization.value?.domain_count ?? 0) > 0);
-
-const currentUserMember = computed(() =>
-  membersStore.members.find(m => m.is_current_user)
-);
-
-const { isRevealed: isDeleteRevealed, reveal: revealDelete, confirm: confirmDelete, cancel: cancelDelete } = useConfirmDialog();
-const { isRevealed: isLeaveRevealed, reveal: revealLeave, confirm: confirmLeave, cancel: cancelLeave } = useConfirmDialog();
-
-const handleDeleteOrganization = async () => {
-  const { isCanceled } = await revealDelete();
-  if (isCanceled) return;
-
-  try {
-    await organizationStore.deleteOrganization(orgId.value);
-    router.push('/dashboard');
-  } catch (err) {
-    const classified = classifyError(err);
-    error.value = classified.message || t('web.organizations.delete_error');
-    console.error('[OrganizationSettings] Error deleting organization:', err);
-  }
-};
-
-const handleLeaveOrganization = async () => {
-  const member = currentUserMember.value;
-  if (!member) return;
-
-  const { isCanceled } = await revealLeave();
-  if (isCanceled) return;
-
-  try {
-    await membersStore.removeMember(orgId.value, member.extid);
-    router.push('/dashboard');
-  } catch (err) {
-    const classified = classifyError(err);
-    error.value = classified.message || t('web.organizations.leave_error');
-    console.error('[OrganizationSettings] Error leaving organization:', err);
-  }
-};
-
-// SSO status per domain — populated on-demand when SSO tab is shown
-interface DomainSsoStatus {
-  configured: boolean;
-  enabled: boolean;
-}
-const domainSsoStatus: Record<string, DomainSsoStatus> = reactive({});
-const isSsoStatusLoading = ref(false);
-const isSsoStatusLoaded = ref(false);
-
-/**
- * Fetch SSO configuration status for each domain in the list.
- * Only called when canManageSso is true and domains are loaded.
- * Uses SsoService.getConfigForDomain which returns { record: null }
- * for 404 (no config), so no error handling needed for that case.
- */
-const loadDomainSsoStatus = async () => {
-  if (!canManageSso.value || !domainRecords.value?.length) return;
-  // Guard against concurrent calls and redundant loads
-  if (isSsoStatusLoading.value || isSsoStatusLoaded.value) return;
-  isSsoStatusLoading.value = true;
-
-  const domains = domainRecords.value;
-  const results = await Promise.allSettled(
-    domains.map(async (domain) => {
-      const { record } = await SsoService.getConfigForDomain(domain.extid);
-      return { extid: domain.extid, record };
-    })
+  // Watch for route param changes (e.g., back/forward navigation).
+  // Reject navigation to entitlement-gated tabs the user can't access.
+  // NOTE: 'activity' has two distinct gates on different axes:
+  //  - instance flag OFF (ORGS_AUDIT_LOGS_ENABLED=false) → tab is absent
+  //    entirely, so deep links bounce to the default tab here;
+  //  - entitlement missing → tab stays reachable and renders an inline
+  //    upgrade notice, so it is deliberately NOT entitlement-gated here.
+  watch(
+    () => route.params.tab,
+    (newTab) => {
+      const urlTab = newTab as string | undefined;
+      if (urlTab && URL_TO_TAB[urlTab]) {
+        const resolved = URL_TO_TAB[urlTab];
+        if (
+          (resolved === 'members' && !canManageMembers.value) ||
+          (resolved === 'sso' && !canManageSso.value) ||
+          (resolved === 'activity' && !orgAuditLogsFeatureEnabled.value)
+        ) {
+          setActiveTab('domains');
+          return;
+        }
+        activeTab.value = resolved;
+      } else if (!urlTab) {
+        activeTab.value = props.initialTab;
+      }
+    }
   );
 
-  try {
-    for (const result of results) {
-      if (result.status === 'fulfilled') {
-        const { extid, record } = result.value;
-        domainSsoStatus[extid] = {
-          configured: record !== null,
-          enabled: record?.enabled === true,
-        };
-      }
-      // Rejected promises (network errors) are silently skipped —
-      // the badge simply won't appear for that domain.
-    }
+  // Domains management
+  const {
+    isLoading: isLoadingDomains,
+    records: domainRecords,
+    recordCount: domainCount,
+    error: domainsError,
+    refreshRecords: refreshDomains,
+  } = useDomainsManager();
 
-    isSsoStatusLoaded.value = true;
-  } finally {
-    isSsoStatusLoading.value = false;
-  }
-};
+  // Best practice: Initialize loading states to `true` to prevent uninitialized
+  // content, empty states, or gated upgrade notices from briefly flashing on mount.
+  const isLoading = ref(true);
+  const isSaving = ref(false);
+  const isLoadingBilling = ref(false);
+  // Billing email editing has been moved to BillingOverview.vue
+  const error = ref('');
+  const success = ref('');
+  const orgNotFound = ref(false);
 
-// Form data
-const formData = ref({
-  display_name: '',
-  description: '',
-  contact_email: '',
-});
+  // Plan data from billing overview
+  const planName = ref<string>('');
+  const planFeatures = ref<string[]>([]);
 
-const isDirty = computed(() => {
-  if (!organization.value) return false;
-  return (
-    formData.value.display_name !== organization.value.display_name ||
-    formData.value.description !== (organization.value.description || '') ||
-    formData.value.contact_email !== (organization.value.contact_email || '')
+  const showInviteForm = ref(false);
+  const inviteFormData = ref<CreateInvitationPayload>({
+    email: '',
+    role: 'member',
+  });
+  const inviteErrors = ref<Record<string, string>>({});
+  const inviteGeneralError = ref('');
+  const inviteUpgradeError = ref<ApplicationError | null>(null);
+  const isInviting = ref(false);
+
+  const { wrap } = useAsyncHandler({
+    notify: false,
+  });
+
+  const bootstrapStore = useBootstrapStore();
+  const { billing_enabled } = storeToRefs(bootstrapStore);
+  const billingEnabled = computed(() => billing_enabled.value ?? false);
+
+  // Entitlements - formatEntitlement uses API-driven i18n keys
+  const { entitlements, can, formatEntitlement, isStandaloneMode, initDefinitions, ENTITLEMENTS } =
+    useEntitlements(organization);
+
+  const sortedEntitlements = computed(() =>
+    [...entitlements.value].sort((a, b) => formatEntitlement(a).localeCompare(formatEntitlement(b)))
   );
-});
 
-// Clear success banner when user starts editing again
-watch(formData, () => {
-  if (success.value && isDirty.value) {
-    success.value = '';
-  }
-}, { deep: true });
+  // SSO visibility: feature flag AND entitlement must both pass (dual-control)
+  const canManageSso = computed(() => isOrgsSsoEnabled() && can(ENTITLEMENTS.MANAGE_SSO));
 
-const hasPaidPlan = computed(() => !isFreePlan(organization.value?.planid));
+  // Instance-level Secret Activity flag (default ON; ORGS_AUDIT_LOGS_ENABLED=false
+  // turns it off). Distinct axis from the audit_logs ENTITLEMENT below:
+  //  - flag OFF  → the Activity tab and panel are excluded entirely (unlike the
+  //    SSO tab, which renders disabled when unentitled — this one is hidden);
+  //  - flag ON + entitlement missing → tab visible, panel shows upgrade notice.
+  const orgAuditLogsFeatureEnabled = computed(() => isOrgsAuditLogsEnabled());
 
-// Legacy plan detection for grandfathered Early Supporter customers
-const isLegacyCustomer = computed(() =>
-  organization.value?.planid ? isLegacyPlan(organization.value.planid) : false
-);
+  // Secret Activity (audit trail) — gates the panel CONTENT only, never the
+  // tab. Mirrors the backend contract (list_secret_activity.rb): the materialized
+  // membership entitlements are plan ∩ role, and audit_logs sits in the
+  // admin tier — so a plain member is 403'd server-side even on an entitled
+  // plan. org.entitlements in the API payload is the PLAN-level set, so the
+  // role must be checked separately here or members mount the table and land
+  // in a generic error state.
+  const isAuditRoleAllowed = computed(() =>
+    ['owner', 'admin'].includes(organization.value?.current_user_role ?? '')
+  );
+  const canViewAuditLogs = computed(() => {
+    if (!organization.value) return false;
+    return isAuditRoleAllowed.value && can(ENTITLEMENTS.AUDIT_LOGS);
+  });
 
-const loadOrganization = async () => {
-  isLoading.value = true;
-  error.value = '';
-  orgNotFound.value = false;
-  try {
-    const org = await organizationStore.fetchOrganization(orgId.value);
-    organization.value = org;
-    formData.value = {
-      display_name: org.display_name,
-      description: org.description || '',
-      contact_email: org.contact_email || '',
-    };
-  } catch (err) {
-    organization.value = null;
-    const classified = classifyError(err);
-    if (classified.code === 404) {
-      orgNotFound.value = true;
-      error.value = t('web.organizations.not_found');
-    } else {
-      error.value = classified.message || t('web.organizations.load_error');
+  // Role-based gate: only owners and admins can add new domains (mirrors
+  // route guard `requireDomainAdminRole` and backend check). Hides the UI
+  // affordance so members don't see a dead-end link.
+  const { canCreateDomain } = useOrgPermissions(organization);
+
+  const { fetchAllPermissions, getOrgPermissions } = useResourcePermissions();
+
+  const assignableRoles = computed<OrganizationRole[]>(() => {
+    const orgPerms = getOrgPermissions(orgId.value);
+    return (orgPerms?.assignable_roles ?? ['member']) as OrganizationRole[];
+  });
+
+  const isOwner = computed(() => organization.value?.current_user_role === 'owner');
+  const hasDomains = computed(() => (organization.value?.domain_count ?? 0) > 0);
+
+  const currentUserMember = computed(() => membersStore.members.find((m) => m.is_current_user));
+
+  const {
+    isRevealed: isDeleteRevealed,
+    reveal: revealDelete,
+    confirm: confirmDelete,
+    cancel: cancelDelete,
+  } = useConfirmDialog();
+  const {
+    isRevealed: isLeaveRevealed,
+    reveal: revealLeave,
+    confirm: confirmLeave,
+    cancel: cancelLeave,
+  } = useConfirmDialog();
+
+  const handleDeleteOrganization = async () => {
+    const { isCanceled } = await revealDelete();
+    if (isCanceled) return;
+
+    try {
+      await organizationStore.deleteOrganization(orgId.value);
+      router.push('/dashboard');
+    } catch (err) {
+      const classified = classifyError(err);
+      error.value = classified.message || t('web.organizations.delete_error');
+      console.error('[OrganizationSettings] Error deleting organization:', err);
     }
-    console.error('[OrganizationSettings] Error loading organization:', err);
-  } finally {
-    isLoading.value = false;
+  };
+
+  const handleLeaveOrganization = async () => {
+    const member = currentUserMember.value;
+    if (!member) return;
+
+    const { isCanceled } = await revealLeave();
+    if (isCanceled) return;
+
+    try {
+      await membersStore.removeMember(orgId.value, member.extid);
+      router.push('/dashboard');
+    } catch (err) {
+      const classified = classifyError(err);
+      error.value = classified.message || t('web.organizations.leave_error');
+      console.error('[OrganizationSettings] Error leaving organization:', err);
+    }
+  };
+
+  // SSO status per domain — populated on-demand when SSO tab is shown
+  interface DomainSsoStatus {
+    configured: boolean;
+    enabled: boolean;
   }
-};
+  const domainSsoStatus: Record<string, DomainSsoStatus> = reactive({});
+  const isSsoStatusLoading = ref(false);
+  const isSsoStatusLoaded = ref(false);
 
-const loadInvitations = async () => {
-  try {
-    invitations.value = await organizationStore.fetchInvitations(orgId.value);
-  } catch (err) {
-    console.error('[OrganizationSettings] Error loading invitations:', err);
-  }
-};
+  /**
+   * Fetch SSO configuration status for each domain in the list.
+   * Only called when canManageSso is true and domains are loaded.
+   * Uses SsoService.getConfigForDomain which returns { record: null }
+   * for 404 (no config), so no error handling needed for that case.
+   */
+  const loadDomainSsoStatus = async () => {
+    if (!canManageSso.value || !domainRecords.value?.length) return;
+    // Guard against concurrent calls and redundant loads
+    if (isSsoStatusLoading.value || isSsoStatusLoaded.value) return;
+    isSsoStatusLoading.value = true;
 
-const loadMembers = async () => {
-  try {
-    await membersStore.fetchMembers(orgId.value);
-  } catch (err) {
-    console.error('[OrganizationSettings] Error loading members:', err);
-  }
-};
+    const domains = domainRecords.value;
+    const results = await Promise.allSettled(
+      domains.map(async (domain) => {
+        const { record } = await SsoService.getConfigForDomain(domain.extid);
+        return { extid: domain.extid, record };
+      })
+    );
 
-const loadBilling = async () => {
-  if (!billingEnabled.value) return;
+    try {
+      for (const result of results) {
+        if (result.status === 'fulfilled') {
+          const { extid, record } = result.value;
+          domainSsoStatus[extid] = {
+            configured: record !== null,
+            enabled: record?.enabled === true,
+          };
+        }
+        // Rejected promises (network errors) are silently skipped —
+        // the badge simply won't appear for that domain.
+      }
 
-  isLoadingBilling.value = true;
-  try {
-    if (organization.value?.extid) {
-      const overview = await BillingService.getOverview(organization.value.extid);
+      isSsoStatusLoaded.value = true;
+    } finally {
+      isSsoStatusLoading.value = false;
+    }
+  };
 
-      // Convert API response to Subscription type
-      if (overview.subscription && overview.plan) {
-        subscription.value = {
-          id: overview.subscription.id,
-          org_id: organization.value.objid,
-          plan_type: overview.plan.tier as any,
-          status: overview.subscription.status as any,
-          teams_limit: overview.plan.limits.teams || 0,
-          teams_used: 0, // Teams removed from usage data for 0.24; will be re-added
-          total_members_per_org_limit: overview.plan.limits.total_members_per_org || 0,
-          billing_interval: overview.plan.interval as any,
-          current_period_start: new Date(overview.subscription.period_end * 1000), // Placeholder
-          current_period_end: new Date(overview.subscription.period_end * 1000),
-          cancel_at_period_end: overview.subscription.canceled,
-          created_at: new Date(),
-          updated_at: new Date(),
-        };
-        // Store plan name and features for display
-        planName.value = overview.plan.name || '';
-        planFeatures.value = overview.plan.features || [];
+  // Form data
+  const formData = ref({
+    display_name: '',
+    description: '',
+    contact_email: '',
+  });
+
+  const isDirty = computed(() => {
+    if (!organization.value) return false;
+    return (
+      formData.value.display_name !== organization.value.display_name ||
+      formData.value.description !== (organization.value.description || '') ||
+      formData.value.contact_email !== (organization.value.contact_email || '')
+    );
+  });
+
+  // Clear success banner when user starts editing again
+  watch(
+    formData,
+    () => {
+      if (success.value && isDirty.value) {
+        success.value = '';
+      }
+    },
+    { deep: true }
+  );
+
+  const hasPaidPlan = computed(() => !isFreePlan(organization.value?.planid));
+
+  // Legacy plan detection for grandfathered Early Supporter customers
+  const isLegacyCustomer = computed(() =>
+    organization.value?.planid ? isLegacyPlan(organization.value.planid) : false
+  );
+
+  const loadOrganization = async () => {
+    isLoading.value = true;
+    error.value = '';
+    orgNotFound.value = false;
+    try {
+      const org = await organizationStore.fetchOrganization(orgId.value);
+      organization.value = org;
+      formData.value = {
+        display_name: org.display_name,
+        description: org.description || '',
+        contact_email: org.contact_email || '',
+      };
+    } catch (err) {
+      organization.value = null;
+      const classified = classifyError(err);
+      if (classified.code === 404) {
+        orgNotFound.value = true;
+        error.value = t('web.organizations.not_found');
+      } else {
+        error.value = classified.message || t('web.organizations.load_error');
+      }
+      console.error('[OrganizationSettings] Error loading organization:', err);
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
+  const loadInvitations = async () => {
+    try {
+      invitations.value = await organizationStore.fetchInvitations(orgId.value);
+    } catch (err) {
+      console.error('[OrganizationSettings] Error loading invitations:', err);
+    }
+  };
+
+  const loadMembers = async () => {
+    try {
+      await membersStore.fetchMembers(orgId.value);
+    } catch (err) {
+      console.error('[OrganizationSettings] Error loading members:', err);
+    }
+  };
+
+  const loadBilling = async () => {
+    if (!billingEnabled.value) return;
+
+    isLoadingBilling.value = true;
+    try {
+      if (organization.value?.extid) {
+        const overview = await BillingService.getOverview(organization.value.extid);
+
+        // Convert API response to Subscription type
+        if (overview.subscription && overview.plan) {
+          subscription.value = {
+            id: overview.subscription.id,
+            org_id: organization.value.objid,
+            plan_type: overview.plan.tier as any,
+            status: overview.subscription.status as any,
+            teams_limit: overview.plan.limits.teams || 0,
+            teams_used: 0, // Teams removed from usage data for 0.24; will be re-added
+            total_members_per_org_limit: overview.plan.limits.total_members_per_org || 0,
+            billing_interval: overview.plan.interval as any,
+            current_period_start: new Date(overview.subscription.period_end * 1000), // Placeholder
+            current_period_end: new Date(overview.subscription.period_end * 1000),
+            cancel_at_period_end: overview.subscription.canceled,
+            created_at: new Date(),
+            updated_at: new Date(),
+          };
+          // Store plan name and features for display
+          planName.value = overview.plan.name || '';
+          planFeatures.value = overview.plan.features || [];
+        } else {
+          subscription.value = null;
+          planName.value = '';
+          planFeatures.value = [];
+        }
       } else {
         subscription.value = null;
-        planName.value = '';
-        planFeatures.value = [];
       }
-    } else {
-      subscription.value = null;
+    } catch (err) {
+      console.error('[OrganizationSettings] Error loading billing:', err);
+    } finally {
+      isLoadingBilling.value = false;
     }
-  } catch (err) {
-    console.error('[OrganizationSettings] Error loading billing:', err);
-  } finally {
-    isLoadingBilling.value = false;
-  }
-};
+  };
 
-const handleSave = async () => {
-  if (!organization.value || !isDirty.value) return;
+  const handleSave = async () => {
+    if (!organization.value || !isDirty.value) return;
 
-  isSaving.value = true;
-  error.value = '';
-  success.value = '';
+    isSaving.value = true;
+    error.value = '';
+    success.value = '';
 
-  try {
-    // Use extid from route params for API call
-    await organizationStore.updateOrganization(orgId.value, {
-      display_name: formData.value.display_name,
-      description: formData.value.description,
-    });
-    success.value = t('web.organizations.update_success');
-    await loadOrganization(); // Reload to get latest data
-  } catch (err) {
-    const classified = classifyError(err);
-    error.value = classified.message || t('web.organizations.update_error');
-    console.error('[OrganizationSettings] Error updating organization:', err);
-  } finally {
-    isSaving.value = false;
-  }
-};
-
-const handleCancel = () => {
-  if (organization.value) {
-    formData.value = {
-      display_name: organization.value.display_name,
-      description: organization.value.description || '',
-      contact_email: organization.value.contact_email || '',
-    };
-  }
-};
-
-const handleInviteMember = async () => {
-  if (isInviting.value) return;
-
-  inviteErrors.value = {};
-  inviteGeneralError.value = '';
-  inviteUpgradeError.value = null;
-  isInviting.value = true;
-
-  try {
-    await organizationStore.createInvitation(orgId.value, inviteFormData.value);
-
-    inviteFormData.value = {
-      email: '',
-      role: 'member',
-    };
-    showInviteForm.value = false;
-    success.value = t('web.organizations.invitations.invite_sent');
-
-    await loadInvitations();
-  } catch (err) {
-    if (err instanceof z.ZodError) {
-      err.issues.forEach((issue) => {
-        const field = issue.path[0] as string;
-        inviteErrors.value[field] = issue.message;
+    try {
+      // Use extid from route params for API call
+      await organizationStore.updateOrganization(orgId.value, {
+        display_name: formData.value.display_name,
+        description: formData.value.description,
       });
-    } else {
+      success.value = t('web.organizations.update_success');
+      await loadOrganization(); // Reload to get latest data
+    } catch (err) {
       const classified = classifyError(err);
-      const { isUpgradeRequired } = useEntitlementError(classified);
+      error.value = classified.message || t('web.organizations.update_error');
+      console.error('[OrganizationSettings] Error updating organization:', err);
+    } finally {
+      isSaving.value = false;
+    }
+  };
 
-      // Check if this is an upgrade-required error
-      if (isUpgradeRequired.value) {
-        inviteUpgradeError.value = classified;
+  const handleCancel = () => {
+    if (organization.value) {
+      formData.value = {
+        display_name: organization.value.display_name,
+        description: organization.value.description || '',
+        contact_email: organization.value.contact_email || '',
+      };
+    }
+  };
+
+  const handleInviteMember = async () => {
+    if (isInviting.value) return;
+
+    inviteErrors.value = {};
+    inviteGeneralError.value = '';
+    inviteUpgradeError.value = null;
+    isInviting.value = true;
+
+    try {
+      await organizationStore.createInvitation(orgId.value, inviteFormData.value);
+
+      inviteFormData.value = {
+        email: '',
+        role: 'member',
+      };
+      showInviteForm.value = false;
+      success.value = t('web.organizations.invitations.invite_sent');
+
+      await loadInvitations();
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        err.issues.forEach((issue) => {
+          const field = issue.path[0] as string;
+          inviteErrors.value[field] = issue.message;
+        });
       } else {
-        inviteGeneralError.value = classified.message || t('web.organizations.invitations.invite_error');
+        const classified = classifyError(err);
+        const { isUpgradeRequired } = useEntitlementError(classified);
+
+        // Check if this is an upgrade-required error
+        if (isUpgradeRequired.value) {
+          inviteUpgradeError.value = classified;
+        } else {
+          inviteGeneralError.value =
+            classified.message || t('web.organizations.invitations.invite_error');
+        }
       }
+    } finally {
+      isInviting.value = false;
     }
-  } finally {
-    isInviting.value = false;
-  }
-};
+  };
 
-const handleResendInvitation = async (token: string) => {
-  error.value = '';
-  success.value = '';
+  const handleResendInvitation = async (token: string) => {
+    error.value = '';
+    success.value = '';
 
-  const result = await wrap(() => organizationStore.resendInvitation(orgId.value, token));
+    const result = await wrap(() => organizationStore.resendInvitation(orgId.value, token));
 
-  if (result !== null) {
-    success.value = t('web.organizations.invitations.resend_success');
-    await loadInvitations(); // Refresh the list
-  } else {
-    error.value = t('web.organizations.invitations.resend_error');
-  }
-};
+    if (result !== null) {
+      success.value = t('web.organizations.invitations.resend_success');
+      await loadInvitations(); // Refresh the list
+    } else {
+      error.value = t('web.organizations.invitations.resend_error');
+    }
+  };
 
-const handleRevokeInvitation = async (token: string) => {
-  error.value = '';
-  success.value = '';
+  const handleRevokeInvitation = async (token: string) => {
+    error.value = '';
+    success.value = '';
 
-  const result = await wrap(() => organizationStore.revokeInvitation(orgId.value, token));
+    const result = await wrap(() => organizationStore.revokeInvitation(orgId.value, token));
 
-  if (result !== null) {
-    success.value = t('web.organizations.invitations.revoke_success');
-    await loadInvitations(); // Refresh the list
-  } else {
-    error.value = t('web.organizations.invitations.revoke_error');
-  }
-};
+    if (result !== null) {
+      success.value = t('web.organizations.invitations.revoke_success');
+      await loadInvitations(); // Refresh the list
+    } else {
+      error.value = t('web.organizations.invitations.revoke_error');
+    }
+  };
 
-const formatTimeRemaining = (expiresAt: number, nowMs: number = Date.now()): string => {
-  const remaining = expiresAt - Math.floor(nowMs / 1000);
+  const formatTimeRemaining = (expiresAt: number, nowMs: number = Date.now()): string => {
+    const remaining = expiresAt - Math.floor(nowMs / 1000);
 
-  if (remaining <= 0) {
-    return t('web.organizations.invitations.status.expired');
-  }
+    if (remaining <= 0) {
+      return t('web.organizations.invitations.status.expired');
+    }
 
-  const days = Math.floor(remaining / 86400);
-  const hours = Math.floor((remaining % 86400) / 3600);
+    const days = Math.floor(remaining / 86400);
+    const hours = Math.floor((remaining % 86400) / 3600);
 
-  if (days > 0) {
-    return t('web.organizations.invitations.expires_in_days', { days });
-  } else if (hours > 0) {
-    return t('web.organizations.invitations.expires_in_hours', { hours });
-  } else {
-    return t('web.organizations.invitations.expires_soon');
-  }
-};
+    if (days > 0) {
+      return t('web.organizations.invitations.expires_in_days', { days });
+    } else if (hours > 0) {
+      return t('web.organizations.invitations.expires_in_hours', { hours });
+    } else {
+      return t('web.organizations.invitations.expires_soon');
+    }
+  };
 
-/** Tailwind badge classes keyed to an invitation's effective status. */
-const invitationStatusBadgeClass = (status: string): string => {
-  switch (status) {
-    case INVITATION_STATUSES.ACCEPTED:
-      return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
-    case INVITATION_STATUSES.DECLINED:
-      return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
-    case INVITATION_STATUSES.PENDING:
-      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
-    // 'revoked' is deleted server-side today so it never reaches here, but keep
-    // it explicit for symmetry with LOCALIZED_INVITATION_STATUSES.
-    case 'revoked':
-    case INVITATION_STATUSES.EXPIRED:
-    default:
-      return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
-  }
-};
+  /** Tailwind badge classes keyed to an invitation's effective status. */
+  const invitationStatusBadgeClass = (status: string): string => {
+    switch (status) {
+      case INVITATION_STATUSES.ACCEPTED:
+        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+      case INVITATION_STATUSES.DECLINED:
+        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
+      case INVITATION_STATUSES.PENDING:
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+      // 'revoked' is deleted server-side today so it never reaches here, but keep
+      // it explicit for symmetry with LOCALIZED_INVITATION_STATUSES.
+      case 'revoked':
+      case INVITATION_STATUSES.EXPIRED:
+      default:
+        return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
+    }
+  };
 
-/**
- * Invitation rows decorated with their expiry-aware display fields. Resolving
- * the effective status once per row here (rather than in each template binding)
- * avoids recomputing it, and reading `now` makes every derived field — status
- * badge and countdown — refresh on the clock tick, so a pending invitation that
- * lapses while the tab stays open updates on its own instead of showing a stale
- * "Pending" badge.
- */
-const decoratedInvitations = computed(() => {
-  const nowMs = now.value.getTime();
-  return invitations.value.map((invitation) => {
-    const status = effectiveInvitationStatus(invitation.status, invitation.expires_at, nowMs);
-    const labelKey = invitationStatusLabelKey(status);
-    return {
-      invitation,
-      statusLabel: labelKey ? t(labelKey) : status,
-      statusBadgeClass: invitationStatusBadgeClass(status),
-      timeRemaining: formatTimeRemaining(invitation.expires_at, nowMs),
-    };
+  /**
+   * Invitation rows decorated with their expiry-aware display fields. Resolving
+   * the effective status once per row here (rather than in each template binding)
+   * avoids recomputing it, and reading `now` makes every derived field — status
+   * badge and countdown — refresh on the clock tick, so a pending invitation that
+   * lapses while the tab stays open updates on its own instead of showing a stale
+   * "Pending" badge.
+   */
+  const decoratedInvitations = computed(() => {
+    const nowMs = now.value.getTime();
+    return invitations.value.map((invitation) => {
+      const status = effectiveInvitationStatus(invitation.status, invitation.expires_at, nowMs);
+      const labelKey = invitationStatusLabelKey(status);
+      return {
+        invitation,
+        statusLabel: labelKey ? t(labelKey) : status,
+        statusBadgeClass: invitationStatusBadgeClass(status),
+        timeRemaining: formatTimeRemaining(invitation.expires_at, nowMs),
+      };
+    });
   });
-});
 
-const canManageMembers = computed(() => {
-  if (!organization.value) return false;
-  return can(ENTITLEMENTS.MANAGE_MEMBERS);
-});
+  const canManageMembers = computed(() => {
+    if (!organization.value) return false;
+    return can(ENTITLEMENTS.MANAGE_MEMBERS);
+  });
 
-// Mirror backend check (create_invitation.rb:130): member_count + pending invitations
-// vs total_members_per_org limit. Limit of -1 means unlimited; null/undefined means
-// unknown (e.g. self-hosted) — treat as no limit.
-//
-// Counts the raw 'pending' status, NOT the expiry-aware effective status: the
-// backend keeps a lapsed invitation's seat reserved until cleanup, so this
-// limit check must match it. A row can therefore read "Expired" in its badge
-// while still counting toward the quota here — intentional.
-const pendingInvitationCount = computed(() =>
-  invitations.value.filter((inv) => inv.status === 'pending').length
-);
+  // Mirror backend check (create_invitation.rb:130): member_count + pending invitations
+  // vs total_members_per_org limit. Limit of -1 means unlimited; null/undefined means
+  // unknown (e.g. self-hosted) — treat as no limit.
+  //
+  // Counts the raw 'pending' status, NOT the expiry-aware effective status: the
+  // backend keeps a lapsed invitation's seat reserved until cleanup, so this
+  // limit check must match it. A row can therefore read "Expired" in its badge
+  // while still counting toward the quota here — intentional.
+  const pendingInvitationCount = computed(
+    () => invitations.value.filter((inv) => inv.status === 'pending').length
+  );
 
-const memberLimitReached = computed(() => {
-  const limit = organization.value?.limits?.total_members_per_org;
-  if (limit === null || limit === undefined || limit < 0) return false;
-  return membersStore.memberCount + pendingInvitationCount.value >= limit;
-});
+  const memberLimitReached = computed(() => {
+    const limit = organization.value?.limits?.total_members_per_org;
+    if (limit === null || limit === undefined || limit < 0) return false;
+    return membersStore.memberCount + pendingInvitationCount.value >= limit;
+  });
 
-// Finite quota cap (positive int) or null when unlimited/unknown. Drives the
-// "X of Y" count format in the title slot.
-const memberQuotaLimit = computed(() => {
-  const limit = organization.value?.limits?.total_members_per_org;
-  if (limit === null || limit === undefined || limit < 0) return null;
-  return limit;
-});
+  // Finite quota cap (positive int) or null when unlimited/unknown. Drives the
+  // "X of Y" count format in the title slot.
+  const memberQuotaLimit = computed(() => {
+    const limit = organization.value?.limits?.total_members_per_org;
+    if (limit === null || limit === undefined || limit < 0) return null;
+    return limit;
+  });
 
-// Active members only — matches what the user sees in the table. Pending is
-// shown as a separate "(N pending)" qualifier rather than folded into the
-// numerator, so the count line maps directly to visible rows. memberLimitReached
-// still uses active + pending to mirror the backend; the two can diverge here
-// without confusing the reader because the pending qualifier explains why the
-// button may be disabled at a count below the limit.
-const memberQuotaUsed = computed(() => membersStore.memberCount);
+  // Active members only — matches what the user sees in the table. Pending is
+  // shown as a separate "(N pending)" qualifier rather than folded into the
+  // numerator, so the count line maps directly to visible rows. memberLimitReached
+  // still uses active + pending to mirror the backend; the two can diverge here
+  // without confusing the reader because the pending qualifier explains why the
+  // button may be disabled at a count below the limit.
+  const memberQuotaUsed = computed(() => membersStore.memberCount);
 
-// Member management event handlers
-const handleMemberUpdated = () => {
-  // Member was updated in the store, no additional action needed
-  success.value = t('web.organizations.members.role_updated');
-};
+  // Member management event handlers
+  const handleMemberUpdated = () => {
+    // Member was updated in the store, no additional action needed
+    success.value = t('web.organizations.members.role_updated');
+  };
 
-const handleMemberRemoved = () => {
-  success.value = t('web.organizations.members.member_removed');
-};
+  const handleMemberRemoved = () => {
+    success.value = t('web.organizations.members.member_removed');
+  };
 
-onMounted(async () => {
-  // Point the store at this org immediately so the context bar doesn't
-  // flash the previously-selected org while the full fetch is in flight.
-  const cached = organizationStore.organizations?.find((o) => o.extid === orgId.value);
-  if (cached) {
-    organizationStore.setCurrentOrganization(cached);
-  }
-
-  // Initialize entitlement definitions for formatting
-  await initDefinitions();
-
-  // Fetch resource-scoped permissions (includes assignable_roles)
-  await fetchAllPermissions();
-
-  await loadOrganization();
-
-  // Redirect away from entitlement-gated tabs the user can't access
-  // (e.g. direct URL navigation to /org/.../members without manage_members)
-  if (
-    (activeTab.value === 'members' && !canManageMembers.value) ||
-    (activeTab.value === 'sso' && !canManageSso.value)
-  ) {
-    setActiveTab('domains');
-  }
-
-  // Members are always loaded so the general tab's "Leave" button can
-  // identify the current user's membership record.
-  loadMembers();
-
-  // Load data for the initial tab
-  if (activeTab.value === 'members') {
-    await loadInvitations();
-  } else if (activeTab.value === 'domains') {
-    await refreshDomains();
-  } else if (activeTab.value === 'subscription' && billingEnabled.value) {
-    await loadBilling();
-  } else if (activeTab.value === 'sso' && canManageSso.value) {
-    await refreshDomains();
-    await loadDomainSsoStatus();
-  }
-});
-
-watch(activeTab, async (newTab) => {
-  if (newTab === 'members') {
-    // Load members and invitations when switching to members tab
-    const promises: Promise<void>[] = [];
-    if (!membersStore.isInitialized || membersStore.currentOrgExtid !== orgId.value) {
-      promises.push(loadMembers());
+  const checkInitialTabRedirect = () => {
+    // Redirect away from entitlement-gated tabs the user can't access
+    // (e.g. direct URL navigation to /org/.../members without manage_members).
+    // 'activity' is entitlement-exempt (deep links land; the panel swaps in an
+    // upgrade notice when unentitled) but IS gated on the instance flag: when
+    // ORGS_AUDIT_LOGS_ENABLED=false the tab doesn't exist, so deep links bounce.
+    if (
+      (activeTab.value === 'members' && !canManageMembers.value) ||
+      (activeTab.value === 'sso' && !canManageSso.value) ||
+      (activeTab.value === 'activity' && !orgAuditLogsFeatureEnabled.value)
+    ) {
+      setActiveTab('domains');
     }
-    if (invitations.value.length === 0) {
-      promises.push(loadInvitations());
-    }
-    if (promises.length > 0) {
-      await Promise.all(promises);
-    }
-  } else if (newTab === 'domains') {
-    // Load domains when switching to domains tab
-    await refreshDomains();
-  } else if (newTab === 'subscription' && !subscription.value && billingEnabled.value) {
-    await loadBilling();
-  } else if (newTab === 'sso' && canManageSso.value) {
-    // Ensure domains are loaded, then fetch SSO status for each
-    await refreshDomains();
-    await loadDomainSsoStatus();
-  }
-});
+  };
 
-// Watch for org changes via URL navigation (e.g., /org/A/domains -> /org/B/domains)
-// Vue Router reuses the component, so onMounted doesn't run again.
-// This ensures currentOrganization in the store is updated to match the URL.
-watch(orgId, async (newOrgId, oldOrgId) => {
-  if (newOrgId && newOrgId !== oldOrgId) {
-    // Reset SSO status cache when switching orgs — domains differ per org
-    isSsoStatusLoaded.value = false;
-    for (const key of Object.keys(domainSsoStatus)) {
-      delete domainSsoStatus[key];
+  const loadInitialTabData = async () => {
+    if (activeTab.value === 'members') {
+      await loadInvitations();
+    } else if (activeTab.value === 'domains') {
+      await refreshDomains();
+    } else if (activeTab.value === 'subscription' && billingEnabled.value) {
+      await loadBilling();
+    } else if (activeTab.value === 'sso' && canManageSso.value) {
+      await refreshDomains();
+      await loadDomainSsoStatus();
     }
+  };
+
+  onMounted(async () => {
+    // Point the store at this org immediately so the context bar doesn't
+    // flash the previously-selected org while the full fetch is in flight.
+    const cached = organizationStore.organizations?.find((o) => o.extid === orgId.value);
+    if (cached) {
+      organizationStore.setCurrentOrganization(cached);
+    }
+
+    // Initialize entitlement definitions for formatting
+    await initDefinitions();
+
+    // Fetch resource-scoped permissions (includes assignable_roles)
+    await fetchAllPermissions();
 
     await loadOrganization();
-    // Guard against stale responses from rapid org navigation — if the
-    // user navigated again while we were loading, orgId has already
-    // changed and a newer watcher invocation will handle it.
-    if (orgId.value !== newOrgId) return;
-    // Only load tab-specific data if the org loaded successfully
-    if (!orgNotFound.value && !error.value) {
-      loadMembers();
-      if (activeTab.value === 'members') {
-        await loadInvitations();
-      } else if (activeTab.value === 'domains') {
-        await refreshDomains();
-      } else if (activeTab.value === 'subscription' && billingEnabled.value) {
-        await loadBilling();
-      } else if (activeTab.value === 'sso' && canManageSso.value) {
-        await refreshDomains();
-        await loadDomainSsoStatus();
+
+    checkInitialTabRedirect();
+
+    // Members are always loaded so the general tab's "Leave" button can
+    // identify the current user's membership record.
+    loadMembers();
+
+    // Load data for the initial tab. 'activity' needs no case here:
+    // SecretActivityTable owns its fetching and mounts lazily with the panel.
+    await loadInitialTabData();
+  });
+
+  // Per-tab lazy loads on tab switch. 'activity' has no case here on purpose:
+  // its panel is v-if'd on the active tab, so SecretActivityTable mounts on
+  // activation and fetches its own first page (refetching fresh on each visit —
+  // desirable for an audit trail).
+  watch(activeTab, async (newTab) => {
+    if (newTab === 'members') {
+      // Load members and invitations when switching to members tab
+      const promises: Promise<void>[] = [];
+      if (!membersStore.isInitialized || membersStore.currentOrgExtid !== orgId.value) {
+        promises.push(loadMembers());
+      }
+      if (invitations.value.length === 0) {
+        promises.push(loadInvitations());
+      }
+      if (promises.length > 0) {
+        await Promise.all(promises);
+      }
+    } else if (newTab === 'domains') {
+      // Load domains when switching to domains tab
+      await refreshDomains();
+    } else if (newTab === 'subscription' && !subscription.value && billingEnabled.value) {
+      await loadBilling();
+    } else if (newTab === 'sso' && canManageSso.value) {
+      // Ensure domains are loaded, then fetch SSO status for each
+      await refreshDomains();
+      await loadDomainSsoStatus();
+    }
+  });
+
+  // Watch for org changes via URL navigation (e.g., /org/A/domains -> /org/B/domains)
+  // Vue Router reuses the component, so onMounted doesn't run again.
+  // This ensures currentOrganization in the store is updated to match the URL.
+  watch(orgId, async (newOrgId, oldOrgId) => {
+    if (newOrgId && newOrgId !== oldOrgId) {
+      // Reset SSO status cache when switching orgs — domains differ per org
+      isSsoStatusLoaded.value = false;
+      for (const key of Object.keys(domainSsoStatus)) {
+        delete domainSsoStatus[key];
+      }
+
+      await loadOrganization();
+      // Guard against stale responses from rapid org navigation — if the
+      // user navigated again while we were loading, orgId has already
+      // changed and a newer watcher invocation will handle it.
+      if (orgId.value !== newOrgId) return;
+      // Only load tab-specific data if the org loaded successfully
+      if (!orgNotFound.value && !error.value) {
+        loadMembers();
+        if (activeTab.value === 'members') {
+          await loadInvitations();
+        } else if (activeTab.value === 'domains') {
+          await refreshDomains();
+        } else if (activeTab.value === 'subscription' && billingEnabled.value) {
+          await loadBilling();
+        } else if (activeTab.value === 'sso' && canManageSso.value) {
+          await refreshDomains();
+          await loadDomainSsoStatus();
+        }
       }
     }
-  }
-});
+  });
 
-// Keyboard navigation for tabs (WCAG 2.1 AA)
-const handleTabKeydown = (e: KeyboardEvent) => {
-  // Build navigable tabs array — only tabs the user can actually reach
-  const tabs: TabType[] = ['domains'];
-  if (canManageMembers.value) tabs.push('members');
-  if (canManageSso.value) tabs.push('sso');
-  tabs.push('general');
+  // Keyboard navigation for tabs (WCAG 2.1 AA)
+  const handleTabKeydown = (e: KeyboardEvent) => {
+    // Build navigable tabs array — only tabs the user can actually reach.
+    // 'activity' is included whenever the instance flag is on: even unentitled
+    // users can open it (the panel shows the upgrade prompt), so it must stay
+    // keyboard-reachable. When the flag is off the tab doesn't render at all.
+    const tabs: TabType[] = ['domains'];
+    if (canManageMembers.value) tabs.push('members');
+    if (canManageSso.value) tabs.push('sso');
+    if (orgAuditLogsFeatureEnabled.value) tabs.push('activity');
+    tabs.push('general');
 
-  const currentIndex = tabs.indexOf(activeTab.value);
-  if (currentIndex === -1) return;
+    const currentIndex = tabs.indexOf(activeTab.value);
+    if (currentIndex === -1) return;
 
-  switch (e.key) {
-    case 'ArrowRight':
-    case 'ArrowDown':
-      e.preventDefault();
-      setActiveTab(tabs[(currentIndex + 1) % tabs.length]);
-      nextTick(() => document.getElementById(`org-tab-${activeTab.value}`)?.focus());
-      break;
-    case 'ArrowLeft':
-    case 'ArrowUp':
-      e.preventDefault();
-      setActiveTab(tabs[(currentIndex - 1 + tabs.length) % tabs.length]);
-      nextTick(() => document.getElementById(`org-tab-${activeTab.value}`)?.focus());
-      break;
-    case 'Home':
-      e.preventDefault();
-      setActiveTab(tabs[0]);
-      nextTick(() => document.getElementById(`org-tab-${tabs[0]}`)?.focus());
-      break;
-    case 'End':
-      e.preventDefault();
-      setActiveTab(tabs[tabs.length - 1]);
-      nextTick(() => document.getElementById(`org-tab-${tabs[tabs.length - 1]}`)?.focus());
-      break;
-  }
-};
+    switch (e.key) {
+      case 'ArrowRight':
+      case 'ArrowDown':
+        e.preventDefault();
+        setActiveTab(tabs[(currentIndex + 1) % tabs.length]);
+        nextTick(() => document.getElementById(`org-tab-${activeTab.value}`)?.focus());
+        break;
+      case 'ArrowLeft':
+      case 'ArrowUp':
+        e.preventDefault();
+        setActiveTab(tabs[(currentIndex - 1 + tabs.length) % tabs.length]);
+        nextTick(() => document.getElementById(`org-tab-${activeTab.value}`)?.focus());
+        break;
+      case 'Home':
+        e.preventDefault();
+        setActiveTab(tabs[0]);
+        nextTick(() => document.getElementById(`org-tab-${tabs[0]}`)?.focus());
+        break;
+      case 'End':
+        e.preventDefault();
+        setActiveTab(tabs[tabs.length - 1]);
+        nextTick(() => document.getElementById(`org-tab-${tabs[tabs.length - 1]}`)?.focus());
+        break;
+    }
+  };
 </script>
 
 <template>
@@ -799,12 +897,18 @@ const handleTabKeydown = (e: KeyboardEvent) => {
             name="credit-card"
             class="size-3.5"
             aria-hidden="true" />
-          {{ organization.planid ? getPlanLabel(organization.planid) : t('web.billing.plans.free_plan') }}
+          {{
+            organization.planid
+              ? getPlanLabel(organization.planid)
+              : t('web.billing.plans.free_plan')
+          }}
         </router-link>
       </div>
 
-      <!-- Tabs: Domains, Members, SSO (conditional), Settings -->
-      <div v-if="!orgNotFound && organization" class="border-b border-gray-200 dark:border-gray-700">
+      <!-- Tabs: Domains, Members, SSO (conditional), Activity (conditional), Settings -->
+      <div
+        v-if="!orgNotFound && organization"
+        class="border-b border-gray-200 dark:border-gray-700">
         <nav
           role="tablist"
           aria-orientation="horizontal"
@@ -869,6 +973,27 @@ const handleTabKeydown = (e: KeyboardEvent) => {
             ]">
             {{ t('web.organizations.tabs.sso') }}
           </button>
+          <!-- Activity tab — excluded entirely when the instance flag
+               (ORGS_AUDIT_LOGS_ENABLED) is off; when on, always visible and
+               the panel gates on the audit_logs entitlement (upgrade notice
+               when unentitled) -->
+          <button
+            v-if="orgAuditLogsFeatureEnabled"
+            id="org-tab-activity"
+            role="tab"
+            :aria-selected="activeTab === 'activity'"
+            :tabindex="activeTab === 'activity' ? 0 : -1"
+            aria-controls="org-panel-activity"
+            data-testid="org-tab-activity"
+            @click="setActiveTab('activity')"
+            :class="[
+              'border-b-2 px-1 py-4 text-sm font-medium whitespace-nowrap',
+              activeTab === 'activity'
+                ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
+            ]">
+            {{ t('web.organizations.tabs.activity') }}
+          </button>
           <!-- Settings tab - always last -->
           <button
             id="org-tab-general"
@@ -893,7 +1018,9 @@ const handleTabKeydown = (e: KeyboardEvent) => {
       <SettingsSkeleton v-if="isLoading" />
 
       <!-- Error State: Organization not found or failed to load -->
-      <div v-else-if="orgNotFound || (error && !organization)" class="flex items-center justify-center py-12">
+      <div
+        v-else-if="orgNotFound || (error && !organization)"
+        class="flex items-center justify-center py-12">
         <div class="text-center">
           <OIcon
             collection="heroicons"
@@ -903,7 +1030,9 @@ const handleTabKeydown = (e: KeyboardEvent) => {
           <h3 class="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
             {{ orgNotFound ? t('web.organizations.not_found') : t('web.organizations.load_error') }}
           </h3>
-          <p v-if="error && !orgNotFound" class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p
+            v-if="error && !orgNotFound"
+            class="mt-1 text-sm text-gray-500 dark:text-gray-400">
             {{ error }}
           </p>
           <router-link
@@ -920,7 +1049,9 @@ const handleTabKeydown = (e: KeyboardEvent) => {
       </div>
 
       <!-- Content -->
-      <div v-else class="space-y-6">
+      <div
+        v-else
+        class="space-y-6">
         <!-- General Tab -->
         <section
           v-if="activeTab === 'general'"
@@ -944,7 +1075,9 @@ const handleTabKeydown = (e: KeyboardEvent) => {
               v-if="success"
               :success="success" />
 
-            <form @submit.prevent="handleSave" class="mt-4 space-y-6">
+            <form
+              @submit.prevent="handleSave"
+              class="mt-4 space-y-6">
               <!-- Display Name -->
               <div>
                 <label
@@ -1003,7 +1136,9 @@ const handleTabKeydown = (e: KeyboardEvent) => {
               </div>
 
               <!-- Billing Email - read-only display for paid plans, editable on Billing Overview -->
-              <div v-if="billingEnabled && hasPaidPlan" data-testid="org-billing-email-field">
+              <div
+                v-if="billingEnabled && hasPaidPlan"
+                data-testid="org-billing-email-field">
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   {{ t('web.organizations.contact_email') }}
                 </label>
@@ -1050,7 +1185,8 @@ const handleTabKeydown = (e: KeyboardEvent) => {
           v-if="activeTab === 'general' && !isStandaloneMode"
           class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
           <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-            <h3 class="flex items-center gap-3 text-base font-semibold text-gray-900 dark:text-white">
+            <h3
+              class="flex items-center gap-3 text-base font-semibold text-gray-900 dark:text-white">
               <OIcon
                 collection="heroicons"
                 name="puzzle-piece"
@@ -1105,8 +1241,8 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                 <router-link
                   to="/feedback"
                   class="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
-                  {{ t('web.organizations.default_org_delete_notice_link') }}
-                </router-link>{{ t('web.organizations.default_org_delete_notice_after') }}
+                  {{ t('web.organizations.default_org_delete_notice_link') }} </router-link
+                >{{ t('web.organizations.default_org_delete_notice_after') }}
               </p>
             </div>
           </div>
@@ -1119,10 +1255,12 @@ const handleTabKeydown = (e: KeyboardEvent) => {
             <h2 class="mb-4 text-sm font-medium text-red-600 dark:text-red-400">
               {{ t('web.COMMON.caution_zone') }}
             </h2>
-            <div class="rounded-lg border border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20">
+            <div
+              class="rounded-lg border border-red-200 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20">
               <div class="flex items-center justify-between gap-4 px-5 py-4">
                 <div class="flex min-w-0 items-center gap-4">
-                  <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30">
+                  <div
+                    class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30">
                     <OIcon
                       collection="heroicons"
                       name="trash"
@@ -1136,7 +1274,9 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                     <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
                       {{ t('web.organizations.delete_organization_warning') }}
                     </p>
-                    <p v-if="hasDomains" class="mt-1 text-xs text-red-600 dark:text-red-400">
+                    <p
+                      v-if="hasDomains"
+                      class="mt-1 text-xs text-red-600 dark:text-red-400">
                       {{ t('web.organizations.delete_organization_remove_domains_first') }}
                     </p>
                   </div>
@@ -1157,10 +1297,12 @@ const handleTabKeydown = (e: KeyboardEvent) => {
         <template v-if="activeTab === 'general' && !isOwner">
           <hr class="my-10 border-gray-200 dark:border-gray-700/50" />
           <div>
-            <div class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
+            <div
+              class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
               <div class="flex items-center justify-between gap-4 px-5 py-4">
                 <div class="flex min-w-0 items-center gap-4">
-                  <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
+                  <div
+                    class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
                     <OIcon
                       collection="heroicons"
                       name="arrow-right-start-on-rectangle"
@@ -1205,12 +1347,28 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                 </h3>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   <template v-if="memberQuotaLimit !== null">
-                    {{ t('web.organizations.members.member_quota', { used: memberQuotaUsed, limit: memberQuotaLimit }) }}
+                    {{
+                      t('web.organizations.members.member_quota', {
+                        used: memberQuotaUsed,
+                        limit: memberQuotaLimit,
+                      })
+                    }}
                   </template>
                   <template v-else>
-                    {{ membersStore.memberCount }} {{ membersStore.memberCount === 1 ? t('web.organizations.members.member_singular') : t('web.organizations.members.member_plural') }}
+                    {{ membersStore.memberCount }}
+                    {{
+                      membersStore.memberCount === 1
+                        ? t('web.organizations.members.member_singular')
+                        : t('web.organizations.members.member_plural')
+                    }}
                   </template>
-                  <span v-if="pendingInvitationCount > 0">&nbsp;{{ t('web.organizations.members.pending_suffix', { count: pendingInvitationCount }) }}</span>
+                  <span v-if="pendingInvitationCount > 0"
+                    >&nbsp;{{
+                      t('web.organizations.members.pending_suffix', {
+                        count: pendingInvitationCount,
+                      })
+                    }}</span
+                  >
                 </p>
               </div>
               <!--
@@ -1237,7 +1395,11 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                   type="button"
                   @click="canManageMembers && (showInviteForm = true)"
                   :disabled="!canManageMembers"
-                  :title="!canManageMembers ? t('web.organizations.invitations.upgrade_to_invite') : undefined"
+                  :title="
+                    !canManageMembers
+                      ? t('web.organizations.invitations.upgrade_to_invite')
+                      : undefined
+                  "
                   :class="[
                     'inline-flex items-center rounded-md px-3 py-2 font-brand text-sm font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
                     canManageMembers
@@ -1359,7 +1521,11 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                       type="submit"
                       :disabled="isInviting || !inviteFormData.email"
                       class="rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
-                      {{ isInviting ? t('web.COMMON.processing') : t('web.organizations.invitations.send_invite') }}
+                      {{
+                        isInviting
+                          ? t('web.COMMON.processing')
+                          : t('web.organizations.invitations.send_invite')
+                      }}
                     </button>
                   </div>
                 </div>
@@ -1377,7 +1543,9 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                 @member-removed="handleMemberRemoved" />
             </div>
 
-            <div v-else-if="!membersStore.loading" class="py-8 text-center">
+            <div
+              v-else-if="!membersStore.loading"
+              class="py-8 text-center">
               <OIcon
                 collection="heroicons"
                 name="users"
@@ -1390,18 +1558,27 @@ const handleTabKeydown = (e: KeyboardEvent) => {
 
             <TableSkeleton v-else />
 
-            <div v-if="invitations.length > 0" class="mt-6 border-t border-gray-200 pt-6 dark:border-gray-700">
+            <div
+              v-if="invitations.length > 0"
+              class="mt-6 border-t border-gray-200 pt-6 dark:border-gray-700">
               <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
                 {{ t('web.organizations.invitations.pending_invitations') }}
               </h4>
               <div class="mt-3 space-y-2">
                 <div
-                  v-for="{ invitation, statusLabel, statusBadgeClass, timeRemaining } in decoratedInvitations"
+                  v-for="{
+                    invitation,
+                    statusLabel,
+                    statusBadgeClass,
+                    timeRemaining,
+                  } in decoratedInvitations"
                   :key="invitation.id"
                   data-testid="org-invitation-row"
                   class="flex items-center justify-between rounded-md bg-gray-50 px-4 py-3 dark:bg-gray-700/50">
                   <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
-                    <span class="text-sm font-medium text-gray-900 dark:text-white">{{ invitation.email }}</span>
+                    <span class="text-sm font-medium text-gray-900 dark:text-white">{{
+                      invitation.email
+                    }}</span>
                     <div class="flex items-center gap-2">
                       <span
                         :class="statusBadgeClass"
@@ -1409,7 +1586,8 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                         {{ statusLabel }}
                       </span>
                       <span class="text-xs text-gray-500 dark:text-gray-400">
-                        {{ t('web.organizations.invitations.invited_at') }} {{ formatDisplayDate(new Date(invitation.invited_at * 1000)) }}
+                        {{ t('web.organizations.invitations.invited_at') }}
+                        {{ formatDisplayDate(new Date(invitation.invited_at * 1000)) }}
                       </span>
                       <span class="text-xs text-gray-500 dark:text-gray-400">·</span>
                       <span class="text-xs text-gray-500 dark:text-gray-400">
@@ -1417,7 +1595,9 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                       </span>
                     </div>
                   </div>
-                  <div v-if="invitation.token" class="flex gap-2">
+                  <div
+                    v-if="invitation.token"
+                    class="flex gap-2">
                     <button
                       type="button"
                       @click="handleResendInvitation(invitation.token!)"
@@ -1514,9 +1694,12 @@ const handleTabKeydown = (e: KeyboardEvent) => {
           data-testid="org-section-subscription"
           class="space-y-6">
           <!-- Billing Disabled Notice -->
-          <div v-if="!billingEnabled" class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
+          <div
+            v-if="!billingEnabled"
+            class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
             <div class="p-6">
-              <div class="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center dark:border-gray-600">
+              <div
+                class="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center dark:border-gray-600">
                 <OIcon
                   collection="heroicons"
                   name="credit-card"
@@ -1535,7 +1718,8 @@ const handleTabKeydown = (e: KeyboardEvent) => {
           <!-- Billing Enabled -->
           <template v-else>
             <!-- Subscription Overview -->
-            <div class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
+            <div
+              class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
               <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
                 <h3 class="text-base font-semibold text-gray-900 dark:text-white">
                   {{ t('web.billing.subscription.status') }}
@@ -1547,7 +1731,9 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                   v-if="isLoadingBilling"
                   :heading="false" />
 
-                <div v-else-if="subscription" class="space-y-4">
+                <div
+                  v-else-if="subscription"
+                  class="space-y-4">
                   <!-- Plan Info -->
                   <div class="flex items-start justify-between">
                     <div>
@@ -1575,9 +1761,15 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                       {{ t('web.billing.subscription.team_usage') }}
                     </p>
                     <p class="mt-1 text-sm text-gray-900 dark:text-white">
-                      {{ t('web.billing.subscription.teams_used', { used: subscription.teams_used, limit: subscription.teams_limit }) }}
+                      {{
+                        t('web.billing.subscription.teams_used', {
+                          used: subscription.teams_used,
+                          limit: subscription.teams_limit,
+                        })
+                      }}
                     </p>
-                    <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                    <div
+                      class="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
                       <div
                         :class="[
                           'h-full transition-all',
@@ -1585,7 +1777,9 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                             ? 'bg-red-500'
                             : 'bg-brand-500',
                         ]"
-                        :style="{ width: `${Math.min((subscription.teams_used / subscription.teams_limit) * 100, 100)}%` }"></div>
+                        :style="{
+                          width: `${Math.min((subscription.teams_used / subscription.teams_limit) * 100, 100)}%`,
+                        }"></div>
                     </div>
                   </div>
 
@@ -1596,7 +1790,9 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                     </p>
 
                     <!-- Features from billing overview (i18n locale keys) -->
-                    <div v-if="planFeatures.length > 0" class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <div
+                      v-if="planFeatures.length > 0"
+                      class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                       <div
                         v-for="feature in planFeatures"
                         :key="feature"
@@ -1611,7 +1807,9 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                     </div>
 
                     <!-- Fallback to org entitlements if no plan features -->
-                    <div v-else-if="entitlements.length > 0" class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <div
+                      v-else-if="entitlements.length > 0"
+                      class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                       <div
                         v-for="ent in entitlements"
                         :key="ent"
@@ -1626,7 +1824,9 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                     </div>
 
                     <!-- Loading skeleton -->
-                    <div v-else-if="isLoadingBilling" class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <div
+                      v-else-if="isLoadingBilling"
+                      class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                       <div
                         v-for="i in 4"
                         :key="i"
@@ -1637,7 +1837,9 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                     </div>
 
                     <!-- No features available -->
-                    <div v-else class="text-sm text-gray-500 dark:text-gray-400">
+                    <div
+                      v-else
+                      class="text-sm text-gray-500 dark:text-gray-400">
                       {{ t('web.billing.overview.no_entitlements') }}
                     </div>
                   </div>
@@ -1680,7 +1882,9 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                 </div>
 
                 <!-- Legacy Plan (Early Supporter) - no modern subscription record but has planid -->
-                <div v-else-if="isLegacyCustomer" class="space-y-4">
+                <div
+                  v-else-if="isLegacyCustomer"
+                  class="space-y-4">
                   <div class="flex items-start justify-between">
                     <div>
                       <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -1690,7 +1894,8 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                         {{ t('web.billing.plans.early_supporter_plan') }}
                       </p>
                     </div>
-                    <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                    <span
+                      class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
                       {{ t('web.organizations.early_supporter_badge') }}
                     </span>
                   </div>
@@ -1722,7 +1927,9 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                 </div>
 
                 <!-- No Subscription (Free Plan) -->
-                <div v-else class="text-center">
+                <div
+                  v-else
+                  class="text-center">
                   <OIcon
                     collection="tabler"
                     name="square-letter-s"
@@ -1760,10 +1967,12 @@ const handleTabKeydown = (e: KeyboardEvent) => {
           data-testid="org-section-sso"
           class="space-y-6">
           <!-- Domain SSO Configuration -->
-          <div class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
+          <div
+            class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
             <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
               <div class="flex items-center gap-3">
-                <div class="flex size-10 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/30">
+                <div
+                  class="flex size-10 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/30">
                   <OIcon
                     collection="heroicons"
                     name="shield-check"
@@ -1803,7 +2012,9 @@ const handleTabKeydown = (e: KeyboardEvent) => {
               </EmptyState>
 
               <!-- Domain list -->
-              <div v-else class="space-y-3">
+              <div
+                v-else
+                class="space-y-3">
                 <div
                   v-for="domain in domainRecords"
                   :key="domain.extid"
@@ -1824,7 +2035,9 @@ const handleTabKeydown = (e: KeyboardEvent) => {
                         class="text-xs text-yellow-700 hover:underline dark:text-yellow-400">
                         {{ t('web.domains.pending_verification') }}
                       </router-link>
-                      <p v-else class="text-xs text-gray-500 dark:text-gray-400">
+                      <p
+                        v-else
+                        class="text-xs text-gray-500 dark:text-gray-400">
                         {{ t('web.domains.verified') }}
                       </p>
                     </div>
@@ -1863,13 +2076,83 @@ const handleTabKeydown = (e: KeyboardEvent) => {
             </div>
           </div>
         </section>
+
+        <!-- Activity Tab (Secret Activity audit trail) — absent when the
+             instance flag is off; when on, the panel always renders and only
+             its CONTENT gates on the audit_logs entitlement -->
+        <section
+          v-if="orgAuditLogsFeatureEnabled && activeTab === 'activity'"
+          id="org-panel-activity"
+          role="tabpanel"
+          aria-labelledby="org-tab-activity"
+          tabindex="0"
+          data-testid="org-section-activity"
+          class="rounded-lg border border-gray-200/60 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/60">
+          <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+            <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+              {{ t('web.organizations.audit.title') }}
+            </h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              {{ t('web.organizations.audit.description') }}
+            </p>
+            <!-- Access notice for non-admin members: their role is the blocker
+                 (backend 403s regardless of plan), so no upgrade upsell -->
+            <div
+              v-if="!isAuditRoleAllowed"
+              role="status"
+              data-testid="org-audit-role-notice"
+              class="mt-4 flex items-center gap-3 rounded-md bg-gray-50 px-4 py-3 dark:bg-gray-700/40">
+              <OIcon
+                collection="heroicons"
+                name="lock-closed"
+                class="size-5 flex-shrink-0 text-gray-400 dark:text-gray-500"
+                aria-hidden="true" />
+              <p class="flex-1 text-sm text-gray-600 dark:text-gray-300">
+                {{ t('web.organizations.audit.role_required') }}
+              </p>
+            </div>
+            <div
+              v-else-if="!canViewAuditLogs"
+              role="status"
+              class="mt-4 flex items-center gap-3 rounded-md bg-amber-50 px-4 py-3 dark:bg-amber-900/20">
+              <OIcon
+                collection="heroicons"
+                name="information-circle"
+                class="size-5 flex-shrink-0 text-amber-500 dark:text-amber-400"
+                aria-hidden="true" />
+              <p class="flex-1 text-sm text-amber-700 dark:text-amber-300">
+                {{ t('web.organizations.audit.upgrade_prompt') }}
+              </p>
+              <router-link
+                :to="`/billing/${orgId}/plans`"
+                class="inline-flex items-center gap-1 text-sm font-medium text-amber-700 hover:text-amber-800 dark:text-amber-300 dark:hover:text-amber-200">
+                {{ t('web.billing.overview.view_plans_action') }}
+                <OIcon
+                  collection="heroicons"
+                  name="arrow-right"
+                  class="size-4"
+                  aria-hidden="true" />
+              </router-link>
+            </div>
+          </div>
+
+          <div
+            v-if="canViewAuditLogs"
+            class="p-6">
+            <SecretActivityTable :org-extid="orgId" />
+          </div>
+        </section>
       </div>
     </div>
 
     <ConfirmDialog
       v-if="isDeleteRevealed"
       :title="t('web.organizations.delete_organization_confirm_title')"
-      :message="t('web.organizations.delete_organization_confirm_message', { name: organization?.display_name })"
+      :message="
+        t('web.organizations.delete_organization_confirm_message', {
+          name: organization?.display_name,
+        })
+      "
       type="danger"
       @confirm="confirmDelete"
       @cancel="cancelDelete" />
@@ -1877,7 +2160,11 @@ const handleTabKeydown = (e: KeyboardEvent) => {
     <ConfirmDialog
       v-if="isLeaveRevealed"
       :title="t('web.organizations.leave_organization_confirm_title')"
-      :message="t('web.organizations.leave_organization_confirm_message', { name: organization?.display_name })"
+      :message="
+        t('web.organizations.leave_organization_confirm_message', {
+          name: organization?.display_name,
+        })
+      "
       type="danger"
       @confirm="confirmLeave"
       @cancel="cancelLeave" />

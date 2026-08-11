@@ -26,7 +26,7 @@ OT.boot! :test
 
 require 'onetime/operations/banner'
 
-AE        = Onetime::AdminAuditEvent
+AE        = Onetime::ColonelAuditEvent
 KEY       = Onetime::Operations::BannerState::KEY
 SCOPE_KEY = Onetime::Operations::BannerState::SCOPE_KEY
 DB        = Familia.dbclient(Onetime::Operations::BannerState::DB)

@@ -130,6 +130,6 @@ OT.global_banner
 # Cleanup: shared-process hygiene for whatever tryout runs next.
 B_CLIENT.del(B_KEY)
 B_CLIENT.del(B_SKEY)
-Onetime::AdminAuditEvent.events.clear
+Onetime::ColonelAuditEvent.events.clear
 Onetime::Runtime.update_features(global_banner: nil, global_banner_scope: BSTATE::DEFAULT_SCOPE)
 BSTATE.reset_cache!

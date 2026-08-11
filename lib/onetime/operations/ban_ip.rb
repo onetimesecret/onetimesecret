@@ -9,7 +9,7 @@
 # at the call site (colonel logic + CLI), so require the dependencies explicitly,
 # mirroring AdminVerifyDomain.
 require 'colonel/models/banned_ip'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 
 module Onetime
@@ -31,7 +31,7 @@ module Onetime
     # is still whatever the caller supplies (the colonel logic passes the acting
     # colonel's objid, preserving the stored field verbatim), and `expiration` is
     # passed through unchanged. The op adds exactly one thing the inline call
-    # lacked: one {Onetime::AdminAuditEvent} per successful ban.
+    # lacked: one {Onetime::ColonelAuditEvent} per successful ban.
     #
     # ## Audit vs. stored identity
     #
@@ -124,7 +124,7 @@ module Onetime
 
         # One audit event per successful mutation. `reason` is non-secret; never
         # put secret content / tokens into detail.
-        Onetime::AdminAuditEvent.record(
+        Onetime::ColonelAuditEvent.record(
           actor: @actor,
           verb: AUDIT_VERB,
           target: banned.ip_address,
@@ -147,7 +147,7 @@ module Onetime
       # Same verb/actor as the success event; see the TARGET NOTE above for why
       # the target is the raw input. Best-effort: never break the op.
       def record_refusal(status)
-        Onetime::AdminAuditEvent.record(
+        Onetime::ColonelAuditEvent.record(
           actor: @actor,
           verb: AUDIT_VERB,
           target: @ip_address,

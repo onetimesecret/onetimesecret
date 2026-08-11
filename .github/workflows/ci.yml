@@ -5,17 +5,23 @@ name: CI
 # Main CI workflow that runs Ruby tests using RSpec and tryouts, plus TypeScript
 # tests using Vitest and validation steps (linting, type-checking).
 #
-# Architecture (Phase 5 - Composite Actions):
+# Architecture (Phase 6 - Test Lanes):
 # - Tier 0: Path filtering to skip irrelevant jobs
 # - Tier 1: Lint jobs + build-assets (parallel, fast feedback)
 # - Tier 2: Unit tests (ruby-unit, typescript-unit)
 # - Tier 3: Integration tests by auth mode (parallel: simple, full, disabled)
 # - Tier 4: Container validation uses pre-built assets
 #
+# Ruby test jobs run through tests/lanes/run — the same entry point as local
+# development (tests/lanes/README.md). Services come from compose.test.yml
+# (single source of truth for test service images and 21xx host ports); each
+# job starts only the services its lane needs. The lane owns environment and
+# task list; the workflow owns gating, parallelism, and reporting.
+#
 # Composite Actions:
 # - setup-ruby-test-env: Ruby environment, artifacts, config, secrets
 # - setup-node-env: Node.js, pnpm, caching
-# - run-ruby-tests: Parameterized RSpec/Tryouts execution
+# - run-test-lane: Lane execution + failure-tail PR comments + job summary
 #
 # Path Filtering:
 # - Ruby-only changes skip TypeScript jobs
@@ -191,7 +197,7 @@ jobs:
       - uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0
         with:
           ruby-version-file: '.ruby-version'
-          bundler-cache: false  # DEBUG: disabled to rule out stale cache
+          bundler-cache: false # DEBUG: disabled to rule out stale cache
 
       - name: Install dependencies
         run: bundle install --jobs 4 --retry 3
@@ -252,7 +258,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
 
@@ -285,7 +291,7 @@ jobs:
       - *checkout-step
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
 
@@ -365,34 +371,13 @@ jobs:
       needs.changes.outputs.ruby == 'true' &&
       (needs.ruby-lint.result == 'success' || needs.ruby-lint.result == 'skipped') &&
       (needs.build-assets.result == 'success' || needs.build-assets.result == 'skipped')
-    # pull-requests: write lets run-ruby-tests post failure tails as PR
+    # pull-requests: write lets run-test-lane post failure tails as PR
     # comments. contents: read inherited from workflow-level permissions.
     permissions:
       contents: read
       pull-requests: write
       # Required to upload coverage data to GitHub Code Quality.
       code-quality: write
-
-    services:
-      redis: &valkey-service
-        image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 10s
-          --health-retries 5
-          --memory=4g
-        ports:
-          - 2121:6379
-      rabbitmq: &rabbitmq-service
-        image: rabbitmq:4.2@sha256:0ea64c69ef2ced52e7188c6db826152d42f78e448433ed8b4e570170c427a437
-        options: >-
-          --health-cmd "rabbitmq-diagnostics check_port_connectivity"
-          --health-interval 10s
-          --health-timeout 10s
-          --health-retries 5
-        ports:
-          - 5672:5672
 
     steps:
       # Check out the PR head commit (not the merge commit) so coverage line
@@ -402,38 +387,55 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
+      # Services come from compose.test.yml (the single source of truth for
+      # test service images and 21xx host ports) — the same containers a local
+      # `tests/lanes/run` uses. Start only what this job's lane needs.
+      - &start-core-services
+        name: Start test services (valkey, rabbitmq)
+        run: docker compose -f compose.test.yml up --wait -d valkey rabbitmq
+
       - name: Setup Ruby test environment
         uses: ./.github/actions/setup-ruby-test-env
 
       - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
 
       - name: Setup Node.js environment
         uses: ./.github/actions/setup-node-env
 
-      - name: Generate locale files
-        run: pnpm run locales:sync
-
-      # The billing catalog validate CLI/spec loads
-      # generated/schemas/config/billing.schema.json, which is gitignored
-      # (generated from src/schemas/). spec:fast runs that spec, so the
-      # schema must be generated before the Ruby suite.
-      - name: Generate JSON schemas
-        run: pnpm run schemas:json:generate
+      # Diagnostic probe for CI-only hash mismatch (issue being investigated).
+      # A CI-layer concern, not part of the lane contract — env mirrors the
+      # unit lane (tests/lanes/base.env + unit/env). Non-blocking (|| true).
+      - name: Run hash-mismatch diagnostic probe
+        env:
+          REDIS_URL: 'redis://127.0.0.1:2163/0'
+          RABBITMQ_URL: 'amqp://guest:guest@127.0.0.1:2156'
+          RACK_ENV: 'test'
+          AUTHENTICATION_MODE: 'simple'
+          BILLING_ENABLED: 'false'
+          DEBUG_DATABASE: 'true'
+          DEBUG_LOGGERS: 'Familia:trace'
+        run: |
+          echo "::group::Hash-mismatch diagnostic probe"
+          if [ -f "try/unit/billing/hash_mismatch_probe.rb" ]; then
+            bundle exec ruby try/unit/billing/hash_mismatch_probe.rb 2>&1 || true
+          else
+            echo "Probe file not found, skipping"
+          fi
+          echo "::endgroup::"
 
       # Enable SimpleCov for the test run below. Writing to GITHUB_ENV makes
-      # COVERAGE available to the composite action's `rake spec:fast` process.
+      # COVERAGE available to the lane's `rake spec:fast` process (the lane
+      # runner only clears the mode/endpoint/secret variables it owns).
       - name: Enable coverage
         run: echo "COVERAGE=true" >> "$GITHUB_ENV"
 
-      - name: Run Ruby tests
-        uses: ./.github/actions/run-ruby-tests
+      - name: Run unit lane
+        uses: ./.github/actions/run-test-lane
         with:
-          test-type: unit
-          auth-mode: simple
-          rabbitmq-url: 'amqp://guest:guest@localhost:5672'
+          lane: unit
           results-file: 'rspec_unit_results.json'
           debug-enabled: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
@@ -472,7 +474,7 @@ jobs:
         uses: ./.github/actions/setup-node-env
 
       - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
 
@@ -511,10 +513,13 @@ jobs:
       needs.changes.outputs.typescript == 'true' &&
       !contains(needs.*.result, 'failure') &&
       !contains(needs.*.result, 'cancelled')
-    services:
-      redis: *valkey-service
     steps:
       - *checkout-step
+
+      # valkey + rabbitmq, not valkey alone: base.env carries RABBITMQ_URL
+      # for every lane and the lane runner's preflight requires every
+      # endpoint in the lane's env to be reachable.
+      - *start-core-services
 
       - name: Setup Node.js environment
         uses: ./.github/actions/setup-node-env
@@ -523,25 +528,14 @@ jobs:
         uses: ./.github/actions/setup-ruby-test-env
 
       - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
 
-      - name: Generate locale files
-        run: pnpm run locales:sync
-
-      # smoke:ruby runs spec:apps:web_billing, which includes the catalog
-      # validate spec that loads generated/schemas/config/billing.schema.json
-      # (gitignored, generated from src/schemas/).
-      - name: Generate JSON schemas
-        run: pnpm run schemas:json:generate
-
-      - name: Run smoke test
-        shell: bash
-        env:
-          REDIS_URL: 'redis://127.0.0.1:2121/0'
-          RACK_ENV: 'test'
-        run: pnpm test:smoke
+      - name: Run smoke lane
+        uses: ./.github/actions/run-test-lane
+        with:
+          lane: smoke
 
   ruby-integration-simple:
     name: T3 · Ruby Integration (Simple Mode)
@@ -557,18 +551,16 @@ jobs:
       contents: read
       pull-requests: write
 
-    services:
-      redis: *valkey-service
-      rabbitmq: *rabbitmq-service
-
     steps:
       - *checkout-step
+
+      - *start-core-services
 
       - name: Setup Ruby test environment
         uses: ./.github/actions/setup-ruby-test-env
 
       - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
 
@@ -580,25 +572,23 @@ jobs:
       - name: Install pnpm
         run: npm install -g pnpm
 
-      - name: Generate locale files
-        run: pnpm run locales:sync
-
-      - name: Run Ruby tests
-        uses: ./.github/actions/run-ruby-tests
+      - name: Run simple lane
+        uses: ./.github/actions/run-test-lane
         with:
-          test-type: integration
-          auth-mode: simple
-          rabbitmq-url: 'amqp://guest:guest@localhost:5672'
+          lane: simple
           results-file: 'rspec_simple_results.json'
 
       # API contract specs (spec/api/) — a different axis than auth mode.
       # Blocking since the #3225 / ADR-012 Stage 3 membership-contract drift
       # was repaired (mock helpers rewritten to the membership model); this
-      # step was continue-on-error while that subset was red.
-      - name: Run API contract specs (spec/api)
-        env:
-          REDIS_URL: 'redis://127.0.0.1:2121/0'
-        run: bundle exec rake spec:api
+      # step was continue-on-error while that subset was red. Runs through
+      # the composite so a failure gets the same failure-tail PR comment
+      # and results plumbing as every other lane.
+      - name: Run api lane (spec/api)
+        uses: ./.github/actions/run-test-lane
+        with:
+          lane: api
+          results-file: 'rspec_api_results.json'
 
   ruby-integration-full:
     name: 'T3 · Ruby Integration (Full, ${{ matrix.name }})'
@@ -608,78 +598,60 @@ jobs:
     if: *if-ruby-integration
     permissions: *perms-pr-comment
 
+    # Auth-mode, database engine, and endpoints live in the lane env files
+    # (tests/lanes/<lane>/env); billing rows are the same lanes with the
+    # billing overlay. The matrix only picks lane, overlay, and services.
+    # PG roles come from compose.test.yml's initdb mount (first boot), so
+    # there is no separate psql setup step.
     strategy:
       fail-fast: false
       matrix:
         include:
           - name: 'SQLite, billing: off'
-            db: sqlite
-            billing-enabled: 'false'
-            auth-database-url: 'sqlite::memory:'
-            auth-database-url-migrations: ''
-            rspec-tag: ''
+            lane: full-sqlite
+            overlay: ''
+            services: 'valkey rabbitmq'
             results-file: 'rspec_full_sqlite_billing_off_results.json'
           - name: 'SQLite, billing: on'
-            db: sqlite
-            billing-enabled: 'true'
-            auth-database-url: 'sqlite::memory:'
-            auth-database-url-migrations: ''
-            rspec-tag: ''
+            lane: full-sqlite
+            overlay: 'billing'
+            services: 'valkey rabbitmq'
             results-file: 'rspec_full_sqlite_billing_on_results.json'
           - name: 'PG, billing: off'
-            db: postgres
-            billing-enabled: 'false'
-            auth-database-url: 'postgresql://onetime_user:testpass@localhost:5432/onetime_auth_test'
-            auth-database-url-migrations: 'postgresql://onetime_migrator:migratepass@localhost:5432/onetime_auth_test'
-            rspec-tag: 'postgres_database'
+            lane: full-pg
+            overlay: ''
+            services: 'valkey rabbitmq postgres'
             results-file: 'rspec_full_postgres_billing_off_results.json'
           - name: 'PG, billing: on'
-            db: postgres
-            billing-enabled: 'true'
-            auth-database-url: 'postgresql://onetime_user:testpass@localhost:5432/onetime_auth_test'
-            auth-database-url-migrations: 'postgresql://onetime_migrator:migratepass@localhost:5432/onetime_auth_test'
-            rspec-tag: 'postgres_database'
+            lane: full-pg
+            overlay: 'billing'
+            services: 'valkey rabbitmq postgres'
             results-file: 'rspec_full_postgres_billing_on_results.json'
           - name: 'PG agnostic, billing: off'
-            db: postgres
-            billing-enabled: 'false'
-            auth-database-url: 'postgresql://onetime_user:testpass@localhost:5432/onetime_auth_test'
-            auth-database-url-migrations: 'postgresql://onetime_migrator:migratepass@localhost:5432/onetime_auth_test'
-            rspec-tag: 'agnostic_on_pg'
+            lane: full-pg-agnostic
+            overlay: ''
+            services: 'valkey rabbitmq postgres'
             results-file: 'rspec_full_pg_agnostic_billing_off_results.json'
           - name: 'PG agnostic, billing: on'
-            db: postgres
-            billing-enabled: 'true'
-            auth-database-url: 'postgresql://onetime_user:testpass@localhost:5432/onetime_auth_test'
-            auth-database-url-migrations: 'postgresql://onetime_migrator:migratepass@localhost:5432/onetime_auth_test'
-            rspec-tag: 'agnostic_on_pg'
+            lane: full-pg-agnostic
+            overlay: 'billing'
+            services: 'valkey rabbitmq postgres'
             results-file: 'rspec_full_pg_agnostic_billing_on_results.json'
-
-    services:
-      redis: *valkey-service
-      rabbitmq: *rabbitmq-service
-      postgres:
-        image: postgres:17@sha256:b994732fcf33f73776c65d3a5bf1f80c00120ba5007e8ab90307b1a743c1fc16
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: onetime_auth_test
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 10s
-          --health-timeout 10s
-          --health-retries 5
-        ports:
-          - 5432:5432
 
     steps:
       - *checkout-step
+
+      - name: Start test services
+        env:
+          SERVICES: ${{ matrix.services }}
+        # SERVICES is a space-separated service list; word splitting intended.
+        run: docker compose -f compose.test.yml up --wait -d $SERVICES
 
       - name: Setup Ruby test environment
         uses: ./.github/actions/setup-ruby-test-env
 
       - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
 
@@ -691,27 +663,12 @@ jobs:
       - name: Install pnpm
         run: npm install -g pnpm
 
-      - name: Generate locale files
-        run: pnpm run locales:sync
-
-      - name: Setup PostgreSQL users
-        if: matrix.db == 'postgres'
-        env:
-          PGPASSWORD: postgres
-        run: psql -h localhost -U postgres -d onetime_auth_test -f apps/web/auth/migrations/schemas/postgres/initialize_test_db.sql -v ON_ERROR_STOP=1
-
-      - name: Run Ruby tests
-        uses: ./.github/actions/run-ruby-tests
+      - name: Run lane
+        uses: ./.github/actions/run-test-lane
         with:
-          test-type: integration
-          auth-mode: full
-          auth-database-url: ${{ matrix.auth-database-url }}
-          auth-database-url-migrations: ${{ matrix.auth-database-url-migrations }}
-          rspec-tag: ${{ matrix.rspec-tag }}
-          rabbitmq-url: 'amqp://guest:guest@localhost:5672'
-          billing-enabled: ${{ matrix.billing-enabled }}
+          lane: ${{ matrix.lane }}
+          overlay: ${{ matrix.overlay }}
           results-file: ${{ matrix.results-file }}
-          db-engine: ${{ matrix.db }}
 
   ruby-integration-disabled:
     name: T3 · Ruby Integration (Disabled Mode)
@@ -721,18 +678,16 @@ jobs:
     if: *if-ruby-integration
     permissions: *perms-pr-comment
 
-    services:
-      redis: *valkey-service
-      rabbitmq: *rabbitmq-service
-
     steps:
       - *checkout-step
+
+      - *start-core-services
 
       - name: Setup Ruby test environment
         uses: ./.github/actions/setup-ruby-test-env
 
       - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
 
@@ -744,15 +699,10 @@ jobs:
       - name: Install pnpm
         run: npm install -g pnpm
 
-      - name: Generate locale files
-        run: pnpm run locales:sync
-
-      - name: Run Ruby tests
-        uses: ./.github/actions/run-ruby-tests
+      - name: Run disabled lane
+        uses: ./.github/actions/run-test-lane
         with:
-          test-type: integration
-          auth-mode: disabled
-          rabbitmq-url: 'amqp://guest:guest@localhost:5672'
+          lane: disabled
           results-file: 'rspec_disabled_results.json'
 
   ruby-integration-strategies:
@@ -763,46 +713,36 @@ jobs:
     if: *if-ruby-integration
     permissions: *perms-pr-comment
 
-    services:
-      redis: *valkey-service
-      rabbitmq: *rabbitmq-service
-
     steps:
       - *checkout-step
+
+      - *start-core-services
 
       - name: Setup Ruby test environment
         uses: ./.github/actions/setup-ruby-test-env
 
       - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
 
       - name: Setup Node.js for locale sync
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
-          node-version: '22'
+          node-version-file: '.node-version'
 
       - name: Install pnpm
         run: npm install -g pnpm
-
-      - name: Generate locale files
-        run: pnpm run locales:sync
 
       # Redis-only auth strategy specs, isolated from the spec:integration:full
       # process whose spec/integration/all RabbitMQ/fork specs corrupt the
       # shared Familia/Redis connection (see #3468). Full mode + in-memory
       # SQLite mirrors their verified-green environment; they issue no SQL.
-      - name: Run Ruby tests
-        uses: ./.github/actions/run-ruby-tests
+      - name: Run strategies lane
+        uses: ./.github/actions/run-test-lane
         with:
-          test-type: integration
-          auth-mode: full
-          auth-database-url: 'sqlite::memory:'
-          rspec-tag: 'strategies'
-          rabbitmq-url: 'amqp://guest:guest@localhost:5672'
+          lane: strategies
           results-file: 'rspec_strategies_results.json'
-          db-engine: sqlite
 
   # ============================================================================
   # TIER 4: CONTAINER VALIDATION (~2-3 min)
@@ -831,8 +771,22 @@ jobs:
       (needs.typescript-unit.result == 'success' || needs.typescript-unit.result == 'skipped') &&
       !contains(needs.*.result, 'failure')
 
+    # Deliberately a services: block, not compose.test.yml: the container
+    # under test reaches valkey via host.docker.internal, which needs the
+    # port published on all interfaces — compose.test.yml binds 127.0.0.1
+    # only (tests/lanes/README.md port isolation). Image digest matches
+    # compose.test.yml; update both together.
     services:
-      redis: *valkey-service
+      redis:
+        image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
+          --memory=4g
+        ports:
+          - 2163:6379
 
     steps:
       - *checkout-step
@@ -874,7 +828,7 @@ jobs:
           image-name: 'onetime-test'
           container-name: 'onetime-test-container'
           port: '3000'
-          redis-url: 'redis://host.docker.internal:2121/0'
+          redis-url: 'redis://host.docker.internal:2163/0'
           environment-vars: |
             SESSION_SECRET=${{ env.SESSION_SECRET }}
             AUTH_SECRET=${{ env.AUTH_SECRET }}

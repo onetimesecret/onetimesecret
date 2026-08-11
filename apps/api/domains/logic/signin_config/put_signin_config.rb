@@ -4,7 +4,7 @@
 
 require 'onetime/models/custom_domain/signin_config'
 require_relative 'base'
-require_relative 'audit_logger'
+require_relative 'change_logger'
 
 module DomainsAPI
   module Logic
@@ -24,7 +24,7 @@ module DomainsAPI
       # - sso_enabled: Optional boolean (default: false) — override SSO availability
       #
       class PutSigninConfig < Base
-        include AuditLogger
+        include ChangeLogger
 
         attr_reader :signin_config, :existing_config
 
@@ -56,7 +56,7 @@ module DomainsAPI
 
           if @existing_config
             replace_existing_config
-            log_signin_audit_event(
+            log_signin_change_event(
               event: :domain_signin_config_replaced,
               domain: @custom_domain,
               org: @organization,
@@ -64,7 +64,7 @@ module DomainsAPI
             )
           else
             create_new_config
-            log_signin_audit_event(
+            log_signin_change_event(
               event: :domain_signin_config_created,
               domain: @custom_domain,
               org: @organization,
@@ -141,14 +141,14 @@ module DomainsAPI
           return if was_enabled == is_enabled
 
           if is_enabled && (was_enabled.nil? || was_enabled == false)
-            log_signin_audit_event(
+            log_signin_change_event(
               event: :domain_signin_config_enabled,
               domain: @custom_domain,
               org: @organization,
               actor: cust,
             )
           elsif was_enabled == true && !is_enabled
-            log_signin_audit_event(
+            log_signin_change_event(
               event: :domain_signin_config_disabled,
               domain: @custom_domain,
               org: @organization,

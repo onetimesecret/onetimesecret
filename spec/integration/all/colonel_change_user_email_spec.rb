@@ -13,7 +13,7 @@ require 'colonel/application'
 # against real Redis (port 2121; type: :integration flushes after each
 # example). The class is a thin adapter over
 # Auth::Operations::Customers::ChangeEmail — the op owns the swap and the
-# AdminAuditEvent — so the op is stubbed here and the spec pins the adapter's
+# ColonelAuditEvent — so the op is stubbed here and the spec pins the adapter's
 # own obligations (PR #3915 follow-up: this class previously had no spec):
 #
 #   1. Parameter contract — dry_run defaults TRUE, safe defaults for

@@ -267,14 +267,14 @@ post "/api/colonel/organizations/#{@org.extid}/entitlements/grant",
 [last_response.status, JSON.parse(last_response.body)['record']['action']]
 #=> [200, 'granted']
 
-## A grant records exactly one AdminAuditEvent with the colonel actor + org target
-@before_count = Onetime::AdminAuditEvent.count
+## A grant records exactly one ColonelAuditEvent with the colonel actor + org target
+@before_count = Onetime::ColonelAuditEvent.count
 post "/api/colonel/organizations/#{@org.extid}/entitlements/grant",
   { entitlement: 'audit_probe_two' }.to_json,
   { 'rack.session' => @colonel_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
-@evt = Onetime::AdminAuditEvent.recent(1).first
+@evt = Onetime::ColonelAuditEvent.recent(1).first
 [
-  Onetime::AdminAuditEvent.count - @before_count,
+  Onetime::ColonelAuditEvent.count - @before_count,
   @evt['verb'],
   @evt['actor'] == @colonel.extid,
   @evt['target'] == @org.extid,
@@ -287,7 +287,7 @@ post "/api/colonel/organizations/#{@org.extid}/entitlements/grant",
 delete "/api/colonel/organizations/#{@org.extid}/entitlements/overrides",
   {},
   { 'rack.session' => @colonel_session, 'HTTP_ACCEPT' => 'application/json' }
-@evt = Onetime::AdminAuditEvent.recent(1).first
+@evt = Onetime::ColonelAuditEvent.recent(1).first
 [last_response.status, @evt['verb'], @evt['target'] == @org.extid, @evt['detail']]
 #=> [200, 'organization.entitlement.clear', true, {}]
 

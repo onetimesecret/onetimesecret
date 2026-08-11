@@ -185,7 +185,7 @@ module V1::Logic
         # Loading the receipt page is a safe GET (#3633): record a one-time
         # 'receipt_viewed' audit event but do NOT advance the secret's
         # lifecycle state. See the v2 ShowReceipt for the full rationale.
-        receipt.record_receipt_view!
+        receipt.record_receipt_view!(actor_context: receipt_view_actor_context)
       end
 
       def one_liner
@@ -201,6 +201,18 @@ module V1::Logic
       end
 
       private
+
+      # Actor attribution for the receipt-page view (#3637); see the v2
+      # ShowReceipt sibling. Anonymous guard FIRST, then the same
+      # Receipt#owner?(cust) predicate @show_receipt uses. V1::Logic::Base
+      # does not include AuthorizationPolicies, so the canonical anonymous
+      # check (cust.nil? || cust.anonymous?) is inlined here.
+      def receipt_view_actor_context
+        return { 'actor' => 'anonymous' } if cust.nil? || cust.anonymous?
+
+        actor = receipt.owner?(cust) ? 'creator' : 'authenticated_other'
+        { 'actor' => actor, 'actor_id' => cust.objid }
+      end
 
       def _receipt_attributes
         # Start with safe receipt attributes

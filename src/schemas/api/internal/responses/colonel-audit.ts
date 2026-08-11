@@ -4,13 +4,13 @@
 //
 // NEW schemas only — the frozen colonel contracts in ./colonel.ts are untouched
 // (the Zod tripwire, epic non-goal). This is the read side of the
-// AdminAuditEvent flight recorder (every mutating admin op writes one):
+// ColonelAuditEvent flight recorder (every mutating admin op writes one):
 //
-//   - ListAuditEvents → GET /api/colonel/audit (newest-first list + filters)
+//   - ListColonelAuditEvents → GET /api/colonel/audit (newest-first list + filters)
 //
 // Shape verified against the live logic class
-// (apps/api/colonel/logic/colonel/list_audit_events.rb), a read-only slice of
-// the capped `admin_audit_event:events` sorted set. Reading the log never
+// (apps/api/colonel/logic/colonel/list_colonel_audit_events.rb), a read-only slice of
+// the capped `colonel_audit_event:events` sorted set. Reading the log never
 // writes an audit event (CONTRACT 4).
 
 import { createApiResponseSchema } from '@/schemas/api/base';
@@ -19,7 +19,7 @@ import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
 /**
- * One audit event (ListAuditEvents `details.events[]`). `actor` is the acting
+ * One audit event (ListColonelAuditEvents `details.events[]`). `actor` is the acting
  * colonel's PUBLIC identity (extid or email — never an internal objid), `verb`
  * the dotted action name (e.g. `customer.set_role`), `target` the affected
  * resource's public id. `detail` is the op's redacted context — free-form
@@ -59,9 +59,9 @@ export type ColonelAuditEventsDetails = z.infer<typeof colonelAuditEventsDetails
 //
 // The view + store import this DIRECTLY (CONTRACT 3) so they typecheck
 // independently of the registry; the registry key (`colonelAuditEvents`) links
-// it to the ListAuditEvents logic class for OpenAPI generation.
+// it to the ListColonelAuditEvents logic class for OpenAPI generation.
 
-// GET /api/colonel/audit → ListAuditEvents
+// GET /api/colonel/audit → ListColonelAuditEvents
 export const colonelAuditEventsResponseSchema = createApiResponseSchema(
   z.object({}),
   colonelAuditEventsDetailsSchema

@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 
 require_relative '../base'
@@ -92,7 +92,7 @@ module ColonelAPI
           # @deleted_secret: that hash carries internal ids for the response
           # body, and internal ids must not enter the audit trail. Never any
           # secret content — state and shortid only.
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: cust&.extid,
             verb: AUDIT_VERB,
             target: @audit_target,

@@ -5,10 +5,10 @@
 # Unit tests for Onetime::Operations::UnbanIP (idempotency contract).
 #
 # Symmetric sibling of the BanIP spec, fully mocked — NO datastore.
-# Onetime::BannedIP and Onetime::AdminAuditEvent are stubbed/spied.
+# Onetime::BannedIP and Onetime::ColonelAuditEvent are stubbed/spied.
 #
 #   - Banned IP (unban! -> true)  -> status: :success + EXACTLY ONE
-#     AdminAuditEvent (verb 'ip.unban', PUBLIC actor identity).
+#     ColonelAuditEvent (verb 'ip.unban', PUBLIC actor identity).
 #   - Not-banned IP (unban! -> false) -> status: :not_found, no-op, records
 #     NO audit event (negative expectation).
 #
@@ -16,7 +16,7 @@
 
 require 'spec_helper'
 require 'colonel/models/banned_ip'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/operations/unban_ip'
 
 RSpec.describe Onetime::Operations::UnbanIP do
@@ -24,7 +24,7 @@ RSpec.describe Onetime::Operations::UnbanIP do
   let(:actor) { 'ur_col_public_extid' } # PUBLIC identity (extid/email)
 
   before do
-    allow(Onetime::AdminAuditEvent).to receive(:record)
+    allow(Onetime::ColonelAuditEvent).to receive(:record)
   end
 
   context 'when a record was removed (unban! returns true)' do
@@ -47,7 +47,7 @@ RSpec.describe Onetime::Operations::UnbanIP do
     it 'records EXACTLY ONE audit event with verb ip.unban and the PUBLIC actor identity' do
       described_class.new(ip_address: ip, actor: actor).call
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         actor: actor,
         verb: 'ip.unban',
         target: ip,
@@ -73,7 +73,7 @@ RSpec.describe Onetime::Operations::UnbanIP do
     it 'records ONE result: :failure event with the unchanged verb' do
       described_class.new(ip_address: ip, actor: actor).call
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         actor: actor,
         verb: 'ip.unban',
         target: ip,
@@ -85,7 +85,7 @@ RSpec.describe Onetime::Operations::UnbanIP do
 
   # The Onetime::AuditedFailure mechanism. unban! destroys the record and its
   # index entry BEFORE the success-path record call. Message expectation, not a
-  # store read: AdminAuditEvent.record swallows its own errors.
+  # store read: ColonelAuditEvent.record swallows its own errors.
   it 'records ONE result: :failure event when unban! raises, and re-raises' do
     allow(Onetime::BannedIP).to receive(:unban!).and_raise(Onetime::Problem, 'index delete failed')
 
@@ -93,7 +93,7 @@ RSpec.describe Onetime::Operations::UnbanIP do
       described_class.new(ip_address: ip, actor: actor).call
     end.to raise_error(Onetime::Problem, /index delete failed/)
 
-    expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+    expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
       hash_including(
         actor: actor,
         verb: 'ip.unban',

@@ -108,7 +108,7 @@ end
 # ----------------------------------------------------------------
 
 ## An email survives sanitization and resolves to the account (200, not 404)
-@before_audit = Onetime::AdminAuditEvent.count
+@before_audit = Onetime::ColonelAuditEvent.count
 post "/api/colonel/organizations/#{@org.extid}/members",
   { 'customer' => @joiner_email, 'role' => 'admin' }, colonel_headers
 @add_resp = JSON.parse(last_response.body)
@@ -124,18 +124,18 @@ Onetime::Organization.find_by_extid(@org.extid).member?(Onetime::Customer.find_b
 #=> true
 
 ## Exactly one membership.add audit event was recorded (by the op, not the adapter)
-@after_audit = Onetime::AdminAuditEvent.count
-@latest = Onetime::AdminAuditEvent.recent(1, 0).first
+@after_audit = Onetime::ColonelAuditEvent.count
+@latest = Onetime::ColonelAuditEvent.recent(1, 0).first
 [@after_audit - @before_audit, @latest['verb'], @latest['actor']]
 #=> [1, "membership.add", @colonel.extid]
 
 ## Add is strictly additive: a repeat by email is :no_change and audits nothing
-@before_audit2 = Onetime::AdminAuditEvent.count
+@before_audit2 = Onetime::ColonelAuditEvent.count
 post "/api/colonel/organizations/#{@org.extid}/members",
   { 'customer' => @joiner_email, 'role' => 'member' }, colonel_headers
 @again = JSON.parse(last_response.body)
 [last_response.status, @again['record']['status'], @again['record']['role'],
- Onetime::AdminAuditEvent.count - @before_audit2]
+ Onetime::ColonelAuditEvent.count - @before_audit2]
 #=> [200, "no_change", "admin", 0]
 
 ## An unknown email is a clean 404, not a 500
@@ -253,10 +253,10 @@ get '/api/colonel/billing/stripe-organizations', { 'search' => "AOXSTALE#{@times
 [@stale['organizations'], @stale['stale_count'], @stale['pagination']['total_count']]
 #=> [[], 1, 1]
 
-## The roster is READ-ONLY: it writes no AdminAuditEvent
-@before_read = Onetime::AdminAuditEvent.count
+## The roster is READ-ONLY: it writes no ColonelAuditEvent
+@before_read = Onetime::ColonelAuditEvent.count
 get '/api/colonel/billing/stripe-organizations', {}, colonel_get_headers
-Onetime::AdminAuditEvent.count - @before_read
+Onetime::ColonelAuditEvent.count - @before_read
 #=> 0
 
 ## per_page is clamped to 100 even when the caller asks for more

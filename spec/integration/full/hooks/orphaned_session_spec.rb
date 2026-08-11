@@ -17,7 +17,7 @@
 # EXPECTED BEHAVIOR: Graceful logout (200/302), not 500 error
 #
 # REQUIREMENTS:
-# - Valkey running on port 2121: pnpm run test:database:start
+# - Valkey running on port 2163: pnpm run test:database:start
 # - AUTH_DATABASE_URL set (SQLite or PostgreSQL)
 # - AUTHENTICATION_MODE=full
 #
@@ -27,7 +27,7 @@
 # - Memoize app with @app ||= (multiple URL map generation corrupts state)
 #
 # RUN:
-#   VALKEY_URL='valkey://127.0.0.1:2121/0' AUTH_DATABASE_URL='sqlite://data/test_auth.db' \
+#   VALKEY_URL='valkey://127.0.0.1:2163/0' AUTH_DATABASE_URL='sqlite://data/test_auth.db' \
 #     pnpm run test:rspec apps/web/auth/spec/hooks/orphaned_session_spec.rb
 #
 # =============================================================================

@@ -12,7 +12,7 @@ module Onetime
       # is a thin adapter over it.
       #
       # READ-ONLY: {Store.find_message} nack-requeues every inspected message, so
-      # the queue is left untouched. No {Onetime::AdminAuditEvent} (CONTRACT 4).
+      # the queue is left untouched. No {Onetime::ColonelAuditEvent} (CONTRACT 4).
       #
       # Stateless, single `#call`, returns an immutable {Result}. `empty` is true
       # when the queue holds no messages (distinct from "found nothing matching"),

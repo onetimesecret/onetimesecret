@@ -48,7 +48,7 @@ require 'onetime/operations/domains/upsert_domain_config'
 ## misses it (interposed nil on the FIRST find only) so create! hits the
 ## exists-guard — the op must recover onto the update path
 @klass.create!(domain_id: @domain_race.identifier)
-@before_audit = Onetime::AdminAuditEvent.count
+@before_audit = Onetime::ColonelAuditEvent.count
 first_call = true
 @klass.singleton_class.alias_method(:__race_real_find, :find_by_domain_id)
 @klass.define_singleton_method(:find_by_domain_id) do |domain_id|
@@ -77,7 +77,7 @@ end
 ## The raced record was updated in place and EXACTLY ONE audit event recorded
 [
   @klass.find_by_domain_id(@domain_race.identifier).signup_enabled?,
-  Onetime::AdminAuditEvent.count - @before_audit,
+  Onetime::ColonelAuditEvent.count - @before_audit,
 ]
 #=> [true, 1]
 
@@ -89,7 +89,7 @@ end
 ## allowed_signup_domains) re-raises UNCHANGED: find_by_domain_id is called
 ## exactly ONCE (the initial read) — the rescue never re-reads, so invalid
 ## input can never be applied to a record a concurrent writer created
-@before_audit = Onetime::AdminAuditEvent.count
+@before_audit = Onetime::ColonelAuditEvent.count
 find_calls = []
 @klass.singleton_class.alias_method(:__race_real_find, :find_by_domain_id)
 @klass.define_singleton_method(:find_by_domain_id) do |domain_id|
@@ -125,12 +125,12 @@ end
 # which is still the original Onetime::Problem message).
 [
   @klass.exists_for_domain?(@domain_valid.identifier),
-  Onetime::AdminAuditEvent.count - @before_audit,
+  Onetime::ColonelAuditEvent.count - @before_audit,
 ]
 #=> [false, 1]
 
 ## the recorded event names the upsert verb, the domain, and result: failure
-@race_evt = Onetime::AdminAuditEvent.recent(1, 0).first
+@race_evt = Onetime::ColonelAuditEvent.recent(1, 0).first
 [@race_evt['verb'], @race_evt['target'], @race_evt['result'],
  @race_evt['detail']['config'], @race_evt['detail']['changed']]
 #=> ["domain.config_upsert", @domain_valid.extid, "failure", 'signup', ['allowed_signup_domains']]

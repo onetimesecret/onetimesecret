@@ -176,10 +176,10 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
       logic.process
 
       expect(logic.greenlighted).to be true
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['kind']).to eq('burned')
       expect(event['actor']).to eq('creator')
-      expect(event['actor_id']).to eq(owner_objid.slice(0, 8))
+      expect(event['actor_id']).to eq(owner_objid)
     end
 
     it 'records actor=authenticated_other when an authenticated non-owner burns' do
@@ -196,9 +196,9 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
       logic.process
 
       expect(logic.greenlighted).to be true
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['actor']).to eq('authenticated_other')
-      expect(event['actor_id']).to eq(other_objid.slice(0, 8))
+      expect(event['actor_id']).to eq(other_objid)
     end
 
     # THE privacy pin (burn variant): an anonymous burn of a guest link
@@ -210,7 +210,7 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
       logic.process
 
       expect(logic.greenlighted).to be true
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['kind']).to eq('burned')
       expect(event['actor']).to eq('anonymous')
       expect(event['actor']).not_to eq('creator')

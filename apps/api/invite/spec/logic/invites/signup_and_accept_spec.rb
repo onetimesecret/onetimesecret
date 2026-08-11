@@ -692,7 +692,7 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
   # Integration-style tests (require full app boot with Valkey)
   describe 'integration behavior', type: :integration do
     # These tests use ProductionConfigHelper and require:
-    # - Valkey running on port 2121
+    # - Valkey running on port 2163
     # - AUTH_DATABASE_URL configured
 
     it 'POST /api/invite/:token/signup with valid token creates account and accepts invitation'

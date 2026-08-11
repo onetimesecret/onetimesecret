@@ -18,13 +18,24 @@ turn; ask only when irreversible.
 
 When context gets large: write current state to tasks/mission.md. Include: what's done, what's next, what's blocked, any open questions. The next session should be able to continue from tasks/mission.md without reading the full history.
 
+### Using git
+
+NEVER AMEND, RESTORE or REBASE unless asked.
+
+Use `--no-pager` to avoid hanging on paging. Pipe to head or tail if you suspect a large output. For example:
+
+```bash
+git --no-pager diff
+git --no-pager show abcd1234 | head -n 20
+```
+
 ### Responses
 
 Use short responses. Write in plain language.
 
 ## Pull Request Reviews
 
-### Repo invariants (not defects; do not flag in review)
+### Repo conventions (not defects; do not flag in review)
 
 - Session data is stored under string keys, never symbols. Reads and writes
   agree on string keys by design.
@@ -51,7 +62,27 @@ or architectural observations (extraction candidates, complexity hotspots,
 missing abstractions) may be raised as explicitly non-blocking follow-up
 suggestions.
 
-### Replying to review comments
+### Running tests
+
+Run Ruby tests ONLY through the lane runner — never invoke `rspec`,
+`rake spec:*`, `rake try:*`, or `try` directly. Only `tests/lanes/run`
+clears the dev shell's environment (REDIS_URL, AUTH_DATABASE_URL, ...)
+and loads the lane env pointing at the dockerized test services on
+127.0.0.1 21xx ports. A raw invocation inherits ambient env and can
+reach dev data.
+
+```console
+$ tests/lanes/run --list     # all lanes and overlays
+$ tests/lanes/run unit       # try:unit + spec:fast (most changes)
+$ tests/lanes/run full-pg    # Postgres-backed auth integration
+```
+
+The runner starts the backing services itself if they aren't up
+(`docker compose -f compose.test.yml up --wait -d`). Vitest, lint, and
+type-check need no services or lane: run them via pnpm directly.
+Details: `tests/lanes/README.md`.
+
+## Replying to review comments
 
 - Every P1 gets a binary disposition before merge: fixed (cite the commit),
   refuted (one short reply citing the relevant invariant), or ticketed.

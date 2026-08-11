@@ -70,7 +70,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::TransferOrganizationOwnership do
     allow(Onetime::Organization).to receive(:find_by_extid).and_return(org)
     allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(new_owner)
     allow(Onetime::Operations::Org::TransferOwnership).to receive(:new).and_return(op)
-    allow(Onetime::AdminAuditEvent).to receive(:record)
+    allow(Onetime::ColonelAuditEvent).to receive(:record)
   end
 
   describe 'success path' do
@@ -116,7 +116,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::TransferOrganizationOwnership do
       logic.raise_concerns
       logic.process
 
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
     end
   end
 

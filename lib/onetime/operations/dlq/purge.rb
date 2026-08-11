@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/operations/dlq/store'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 
 module Onetime
@@ -24,7 +24,7 @@ module Onetime
       # ## Audit (exactly once)
       #
       # A purge that removes ≥ 1 message records EXACTLY ONE
-      # {Onetime::AdminAuditEvent} — verb `queue.dlq.purge`, target the DLQ name,
+      # {Onetime::ColonelAuditEvent} — verb `queue.dlq.purge`, target the DLQ name,
       # detail the purged count. Purging an already-empty queue mutates nothing and
       # records NO event (the "only audit an actual change" rule).
       #
@@ -81,7 +81,7 @@ module Onetime
 
           # Exactly one audit event per non-empty purge. The queue name is not
           # secret; never put message contents into detail.
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @queue,

@@ -44,7 +44,7 @@ permissions:
 
 jobs:
   clean-room:
-    name: "bin/setup --init from zero (${{ matrix.lane }})"
+    name: 'bin/setup --init from zero (${{ matrix.lane }})'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     strategy:
@@ -63,22 +63,28 @@ jobs:
         run: ./scripts/test-install/run.sh --lane "$LANE"
 
   macos:
-    name: "bin/setup on macOS (bash 3.2 + BSD userland)"
+    name: 'bin/setup on macOS (bash 3.2 + BSD userland)'
     runs-on: macos-15
     timeout-minutes: 45
     steps:
       - name: Checkout code
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
-      # bin/setup --test starts its own throwaway datastore on :2121 and
-      # discovers the binary via `command -v redis-server`.
+      # macOS runners have no container runtime, so the workflow provisions
+      # the test datastore itself (the same way other workflows use service
+      # containers): a throwaway valkey-compatible redis on :2163, the port
+      # compose.test.yml publishes. LANES_NO_AUTOSTART=1 on the test-lane
+      # steps tells bin/setup --test the job owns service lifecycle.
       - name: Install datastore (redis, Valkey-compatible)
         run: brew install redis
+
+      - name: Start test datastore on :2163
+        run: redis-server --port 2163 --bind 127.0.0.1 --daemonize yes --save '' --appendonly no
 
       - name: Setup Ruby (.ruby-version)
         uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0
         with:
-          bundler-cache: false  # bin/setup runs `bundle install` itself
+          bundler-cache: false # bin/setup runs `bundle install` itself
 
       - name: Setup Node (.node-version)
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
@@ -89,7 +95,7 @@ jobs:
         uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
 
       - name: Setup Python (locales:sync)
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
 
@@ -105,6 +111,8 @@ jobs:
 
       - name: Run bin/setup --test under /bin/bash (test lane)
         run: /bin/bash bin/setup --test
+        env:
+          LANES_NO_AUTOSTART: '1'
 
       # One real operation on the result (the Homebrew-installer pattern:
       # assert a real outcome, not output text) — the fast suite on the
@@ -114,6 +122,8 @@ jobs:
 
       - name: Run bin/setup --test again (idempotency contract)
         run: /bin/bash bin/setup --test
+        env:
+          LANES_NO_AUTOSTART: '1'
 
   bash-32-gate:
     name: bash 3.2 syntax gate (macOS parity)

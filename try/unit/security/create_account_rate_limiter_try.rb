@@ -17,7 +17,7 @@
 # 2. Over-limit raises LimitExceeded with the configured cap + lockout state
 # 3. The limiter NEVER keys on the submitted address (enumeration safety)
 # 4. nil/empty IP skips rather than sharing one global bucket
-# 5. Cap-hit writes exactly one AdminAuditEvent, in the SECURITY trail, and
+# 5. Cap-hit writes exactly one ColonelAuditEvent, in the SECURITY trail, and
 #    denied requests write no further ones
 # 6. Garbage/non-positive config falls back to defaults instead of inverting
 # 7. Configured-off (enabled:false) is a total no-op
@@ -160,15 +160,15 @@ result_empty = @raises.call('')
 
 ## -- Audit trail ----------------------------------------------------------
 
-## A cap-hit writes ONE queryable AdminAuditEvent, so a signup flood leaves
+## A cap-hit writes ONE queryable ColonelAuditEvent, so a signup flood leaves
 ## more than a log line. Counted as a delta rather than by clearing the shared
 ## store, which other tryout files also write to.
 set_create_account_rate_limit(
   'enabled' => true, 'max_per_ip' => 2, 'window' => 900, 'lockout' => 900,
 )
 @audit_verb  = Onetime::Security::CreateAccountRateLimiter::AUDIT_VERB
-@audit_count = -> { Onetime::AdminAuditEvent.recent_security(500).count { |e| e['verb'] == @audit_verb } }
-@admin_count = -> { Onetime::AdminAuditEvent.count }
+@audit_count = -> { Onetime::ColonelAuditEvent.recent_security(500).count { |e| e['verb'] == @audit_verb } }
+@admin_count = -> { Onetime::ColonelAuditEvent.count }
 @audit_ip    = '203.0.113.99'
 cleanup(@redis, @audit_ip)
 @audit_before = @audit_count.call
@@ -184,7 +184,7 @@ cleanup(@redis, @audit_ip)
 #=> 0
 
 ## The event names the tier, the caps, and an unauthenticated actor
-@audit_event = Onetime::AdminAuditEvent.recent_security(500).find { |e| e['verb'] == @audit_verb }
+@audit_event = Onetime::ColonelAuditEvent.recent_security(500).find { |e| e['verb'] == @audit_verb }
 [@audit_event['actor'], @audit_event['result'], @audit_event['detail']['tier'],
  @audit_event['detail']['count'], @audit_event['detail']['max_attempts']]
 #=> ['anonymous', 'failure', 'ip', 2, 2]
@@ -195,7 +195,7 @@ cleanup(@redis, @audit_ip)
 
 ## Denied requests write NO further events: only the cap-reaching request
 ## records, bounding writes to one per masked network per lockout window. The
-## AdminAuditEvent MAX_EVENTS rationale REQUIRES this of any unauthenticated
+## ColonelAuditEvent MAX_EVENTS rationale REQUIRES this of any unauthenticated
 ## writer; keep it.
 3.times { @raises.call(@audit_ip) }
 @audit_count.call - @audit_before

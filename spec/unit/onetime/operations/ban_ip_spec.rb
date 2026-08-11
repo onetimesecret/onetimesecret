@@ -5,10 +5,10 @@
 # Unit tests for Onetime::Operations::BanIP (idempotency contract).
 #
 # Covers the ban verb's documented contract (epic #33 / CONTRACT 4), fully
-# mocked — NO datastore. Onetime::BannedIP and Onetime::AdminAuditEvent are
+# mocked — NO datastore. Onetime::BannedIP and Onetime::ColonelAuditEvent are
 # stubbed/spied so we assert call-count and arguments without touching Redis.
 #
-#   - Fresh IP  -> status: :success + EXACTLY ONE AdminAuditEvent (verb
+#   - Fresh IP  -> status: :success + EXACTLY ONE ColonelAuditEvent (verb
 #     'ip.ban', PUBLIC actor identity, never an internal objid).
 #   - Already-banned IP -> status: :already_banned, no-op, records NO audit
 #     event (negative expectation).
@@ -19,7 +19,7 @@
 
 require 'spec_helper'
 require 'colonel/models/banned_ip'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/operations/ban_ip'
 
 RSpec.describe Onetime::Operations::BanIP do
@@ -40,7 +40,7 @@ RSpec.describe Onetime::Operations::BanIP do
   end
 
   before do
-    allow(Onetime::AdminAuditEvent).to receive(:record)
+    allow(Onetime::ColonelAuditEvent).to receive(:record)
     allow(Onetime::BannedIP).to receive(:ban!).and_return(banned_record)
   end
 
@@ -75,7 +75,7 @@ RSpec.describe Onetime::Operations::BanIP do
         ip_address: ip, actor: actor, reason: 'abuse', banned_by: banned_by, expiration: 3600
       ).call
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         actor: actor,
         verb: 'ip.ban',
         target: ip,
@@ -90,7 +90,7 @@ RSpec.describe Onetime::Operations::BanIP do
       ).call
 
       # actor goes to the audit trail (public id)...
-      expect(Onetime::AdminAuditEvent).to have_received(:record).with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).with(
         hash_including(actor: actor)
       )
       # ...banned_by goes to the record (internal objid); never crossed over.
@@ -129,7 +129,7 @@ RSpec.describe Onetime::Operations::BanIP do
     it 'records ONE result: :failure event with the unchanged verb' do
       described_class.new(ip_address: ip, actor: actor).call
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         actor: actor,
         verb: 'ip.ban',
         target: ip,
@@ -141,7 +141,7 @@ RSpec.describe Onetime::Operations::BanIP do
 
   # The Onetime::AuditedFailure mechanism. BannedIP.ban! writes the record and
   # its index BEFORE the success-path record call. Message expectation, not a
-  # store read: AdminAuditEvent.record swallows its own errors.
+  # store read: ColonelAuditEvent.record swallows its own errors.
   it 'records ONE result: :failure event when ban! raises, and re-raises' do
     allow(Onetime::BannedIP).to receive(:banned?).with(ip).and_return(false)
     allow(Onetime::BannedIP).to receive(:ban!).and_raise(Onetime::Problem, 'index write failed')
@@ -150,7 +150,7 @@ RSpec.describe Onetime::Operations::BanIP do
       described_class.new(ip_address: ip, actor: actor, reason: 'abuse').call
     end.to raise_error(Onetime::Problem, /index write failed/)
 
-    expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+    expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
       hash_including(
         actor: actor,
         verb: 'ip.ban',

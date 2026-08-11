@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 
 module Auth
@@ -13,7 +13,7 @@ module Auth
       # The ONE implementation of the plan-change verb. The colonel `UpdateUserPlan`
       # Logic class is a thin adapter over it (no CLI adapter today, but the verb
       # lives here so any future one shares the single implementation). This is a
-      # MUTATING admin op, so it records exactly one AdminAuditEvent per successful
+      # MUTATING admin op, so it records exactly one ColonelAuditEvent per successful
       # change (epic #20 CONTRACT 4 / #21). An idempotent no-op change mutates
       # nothing and is therefore not audited.
       #
@@ -61,7 +61,7 @@ module Auth
           @customer.save
 
           # One audit event per successful mutation, emitted from the op layer.
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @customer.extid,

@@ -16,7 +16,7 @@ module ColonelAPI
       # implementation of the orphaned-scan verb. The op owns the bounded scan
       # (CONTRACT 6) and pagination; this class keeps only the HTTP concerns.
       #
-      # READ-ONLY: no AdminAuditEvent (CONTRACT 4 — audit is for mutations).
+      # READ-ONLY: no ColonelAuditEvent (CONTRACT 4 — audit is for mutations).
       #
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.

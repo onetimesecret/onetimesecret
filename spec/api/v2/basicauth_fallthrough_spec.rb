@@ -26,7 +26,7 @@
 # RUN:
 #   bundle exec rspec spec/api/v2/basicauth_fallthrough_spec.rb
 #
-# Requires Valkey on port 2121 (pnpm run test:database:start).
+# Requires Valkey on port 2163 (pnpm run test:database:start).
 #
 # =============================================================================
 

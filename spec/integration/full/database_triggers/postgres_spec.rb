@@ -4,6 +4,13 @@
 
 # PostgreSQL-specific database trigger integration tests.
 #
+# Timestamps are written as Time.now.utc, not Time.now: the columns are
+# naive (no time zone) and the trigger functions compare them against
+# CURRENT_TIMESTAMP in the container's UTC session. A local-offset Time
+# writes wall-clock local time, so on a non-UTC host every deadline is
+# shifted by the UTC offset and "valid" tokens get cleaned up. CI never
+# saw this (runners are UTC); local lane runs do.
+#
 # Tests the actual behavior of PostgreSQL triggers and functions defined in
 # apps/web/auth/migrations/schemas/postgres/003_functions_⬆.sql and
 # apps/web/auth/migrations/schemas/postgres/004_triggers_⬆.sql. These tests verify
@@ -37,6 +44,19 @@ require 'spec_helper'
 RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integration do
   include_context 'auth_rack_test'
   # AuthAccountFactory and test_db are provided by :postgres_database tags
+
+  # Naive timestamp columns hold UTC (the container session is UTC, and
+  # trigger functions compare against CURRENT_TIMESTAMP). Tell Sequel so
+  # read-back Times carry the UTC offset instead of the host's local one —
+  # otherwise every assertion is shifted by the UTC offset on non-UTC hosts.
+  before(:all) do
+    @database_timezone_was  = Sequel.database_timezone
+    Sequel.database_timezone = :utc
+  end
+
+  after(:all) do
+    Sequel.database_timezone = @database_timezone_was
+  end
 
   let(:test_password) { 'Test1234!@' }
 
@@ -140,7 +160,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
     context 'direct database trigger' do
       it 'fires on direct INSERT to audit log with "login successful" message' do
         # Insert audit log directly (bypassing HTTP)
-        login_time = Time.now
+        login_time = Time.now.utc
         test_db[:account_authentication_audit_logs].insert(
           account_id: @account[:id],
           at: login_time,
@@ -154,7 +174,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
       end
 
       it 'fires on message containing "login" and "successful" (case-insensitive ILIKE)' do
-        login_time = Time.now
+        login_time = Time.now.utc
 
         # Test various message formats (PostgreSQL ILIKE is case-insensitive)
         messages = [
@@ -186,7 +206,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
       it 'does not fire on failed login attempts' do
         test_db[:account_authentication_audit_logs].insert(
           account_id: @account[:id],
-          at: Time.now,
+          at: Time.now.utc,
           message: 'login failure - invalid password'
         )
 
@@ -198,7 +218,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
       it 'does not fire on non-login audit events' do
         test_db[:account_authentication_audit_logs].insert(
           account_id: @account[:id],
-          at: Time.now,
+          at: Time.now.utc,
           message: 'password change'
         )
 
@@ -209,8 +229,8 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
 
     context 'ON CONFLICT upsert behavior' do
       it 'updates existing record instead of raising unique constraint error' do
-        login_time_1 = Time.now
-        login_time_2 = Time.now + 10
+        login_time_1 = Time.now.utc
+        login_time_2 = Time.now.utc + 10
 
         # First insert
         test_db[:account_authentication_audit_logs].insert(
@@ -258,7 +278,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
         test_db[:account_jwt_refresh_keys].insert(
           account_id: @account[:id],
           key: expired_key,
-          deadline: Time.now - 3600 # Expired 1 hour ago
+          deadline: Time.now.utc - 3600 # Expired 1 hour ago
         )
 
         # Verify expired token exists
@@ -269,7 +289,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
         test_db[:account_jwt_refresh_keys].insert(
           account_id: @account[:id],
           key: new_key,
-          deadline: Time.now + 86400 # Expires in 24 hours
+          deadline: Time.now.utc + 86400 # Expires in 24 hours
         )
 
         # Verify expired token was cleaned up by trigger
@@ -286,7 +306,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
           test_db[:account_jwt_refresh_keys].insert(
             account_id: @account[:id],
             key: key,
-            deadline: Time.now + (i + 1) * 3600 # Expires in future
+            deadline: Time.now.utc + (i + 1) * 3600 # Expires in future
           )
           key
         end
@@ -296,7 +316,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
         test_db[:account_jwt_refresh_keys].insert(
           account_id: @account[:id],
           key: new_key,
-          deadline: Time.now + 86400
+          deadline: Time.now.utc + 86400
         )
 
         # Verify all valid tokens still exist
@@ -313,8 +333,8 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
         test_db[:account_email_auth_keys].insert(
           id: @account[:id],
           key: expired_email_key,
-          deadline: Time.now - 3600, # Expired 1 hour ago
-          email_last_sent: Time.now - 7200
+          deadline: Time.now.utc - 3600, # Expired 1 hour ago
+          email_last_sent: Time.now.utc - 7200
         )
 
         # Verify expired email key exists
@@ -325,7 +345,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
         test_db[:account_jwt_refresh_keys].insert(
           account_id: @account[:id],
           key: new_jwt_key,
-          deadline: Time.now + 86400
+          deadline: Time.now.utc + 86400
         )
 
         # Verify expired email key was cleaned up
@@ -338,8 +358,8 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
         test_db[:account_email_auth_keys].insert(
           id: @account[:id],
           key: valid_email_key,
-          deadline: Time.now + 3600, # Expires in future
-          email_last_sent: Time.now
+          deadline: Time.now.utc + 3600, # Expires in future
+          email_last_sent: Time.now.utc
         )
 
         # Insert JWT token to trigger cleanup
@@ -347,7 +367,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
         test_db[:account_jwt_refresh_keys].insert(
           account_id: @account[:id],
           key: new_jwt_key,
-          deadline: Time.now + 86400
+          deadline: Time.now.utc + 86400
         )
 
         # Verify valid email key still exists
@@ -368,7 +388,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
             test_db[:account_jwt_refresh_keys].insert(
               account_id: @account[:id],
               key: key,
-              deadline: Time.now - (i + 1) * 3600 # All expired at different times
+              deadline: Time.now.utc - (i + 1) * 3600 # All expired at different times
             )
             key
           end
@@ -380,8 +400,8 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
             test_db[:account_email_auth_keys].insert(
               id: account[:id],
               key: key,
-              deadline: Time.now - 3600,
-              email_last_sent: Time.now - 7200
+              deadline: Time.now.utc - 3600,
+              email_last_sent: Time.now.utc - 7200
             )
             { account: account, key: key }
           end
@@ -402,7 +422,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
           test_db[:account_jwt_refresh_keys].insert(
             account_id: @account[:id],
             key: new_key,
-            deadline: Time.now + 86400
+            deadline: Time.now.utc + 86400
           )
 
           # Verify all expired JWT tokens were cleaned up
@@ -434,7 +454,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
           test_db[:account_jwt_refresh_keys].insert(
             account_id: @account[:id],
             key: new_key,
-            deadline: Time.now + 86400
+            deadline: Time.now.utc + 86400
           )
         end.not_to raise_error
 
@@ -446,7 +466,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
         # Insert token with deadline in the past to create reliable boundary condition
         # This is more deterministic than using sleep
         boundary_key = SecureRandom.hex(32)
-        past_deadline = Time.now - 1  # 1 second in the past
+        past_deadline = Time.now.utc - 1  # 1 second in the past
         test_db[:account_jwt_refresh_keys].insert(
           account_id: @account[:id],
           key: boundary_key,
@@ -458,7 +478,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
         test_db[:account_jwt_refresh_keys].insert(
           account_id: @account[:id],
           key: new_key,
-          deadline: Time.now + 86400
+          deadline: Time.now.utc + 86400
         )
 
         # Token with past deadline should be cleaned up (deadline < NOW())
@@ -499,8 +519,8 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
         test_db[:account_active_session_keys].insert(
           account_id: @account[:id],
           session_id: session_id,
-          created_at: Time.now,
-          last_use: Time.now
+          created_at: Time.now.utc,
+          last_use: Time.now.utc
         )
 
         result = test_db.fetch(
@@ -513,7 +533,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
 
       it 'detects last_login timestamp from activity times' do
         # Trigger login activity record
-        login_time = Time.now
+        login_time = Time.now.utc
         test_db[:account_authentication_audit_logs].insert(
           account_id: @account[:id],
           at: login_time,
@@ -580,7 +600,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
       expect {
         test_db[:account_authentication_audit_logs].insert(
           account_id: account[:id],
-          at: Time.now,
+          at: Time.now.utc,
           message: 'Login successful'  # PostgreSQL uses ILIKE (case-insensitive)
         )
       }.not_to raise_error
@@ -590,7 +610,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
         test_db[:account_jwt_refresh_keys].insert(
           account_id: account[:id],
           key: SecureRandom.urlsafe_base64(32),
-          deadline: Time.now + 86400
+          deadline: Time.now.utc + 86400
         )
       }.not_to raise_error
     end

@@ -12,7 +12,7 @@
 # Run: pnpm run test:rspec apps/web/auth/spec/operations/customers/set_plan_spec.rb
 
 require 'spec_helper'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'auth/operations/customers/set_plan'
 
 RSpec.describe Auth::Operations::Customers::SetPlan do
@@ -20,7 +20,7 @@ RSpec.describe Auth::Operations::Customers::SetPlan do
     double('Customer', planid: 'free_v1', extid: 'ur_test', :planid= => nil, save: true)
   end
 
-  before { allow(Onetime::AdminAuditEvent).to receive(:record) }
+  before { allow(Onetime::ColonelAuditEvent).to receive(:record) }
 
   it 'changes the plan, saves, and returns :success with from/to' do
     result = described_class.new(customer: customer, planid: 'pro_v1', actor: 'ur_col').call
@@ -35,7 +35,7 @@ RSpec.describe Auth::Operations::Customers::SetPlan do
   it 'records exactly one audit event on success (actor = public id, target = extid)' do
     described_class.new(customer: customer, planid: 'pro_v1', actor: 'ur_col').call
 
-    expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+    expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
       actor: 'ur_col',
       verb: 'customer.set_plan',
       target: 'ur_test',
@@ -51,13 +51,13 @@ RSpec.describe Auth::Operations::Customers::SetPlan do
 
     expect(result.status).to eq(:no_change)
     expect(customer).not_to have_received(:save)
-    expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+    expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
   end
 
   # The Onetime::AuditedFailure mechanism. `save` runs BEFORE the success-path
   # record call, so without the macro a plan change that blew up mid-write left
   # the trail claiming nothing happened. Message expectation, not a store read:
-  # AdminAuditEvent.record swallows its own errors and returns nil.
+  # ColonelAuditEvent.record swallows its own errors and returns nil.
   it 'records ONE result: :failure event when save raises, and re-raises' do
     allow(customer).to receive(:save).and_raise(Onetime::Problem, 'redis down')
 
@@ -65,7 +65,7 @@ RSpec.describe Auth::Operations::Customers::SetPlan do
       described_class.new(customer: customer, planid: 'pro_v1', actor: 'ur_col').call
     end.to raise_error(Onetime::Problem, /redis down/)
 
-    expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+    expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
       hash_including(
         actor: 'ur_col',
         verb: 'customer.set_plan',

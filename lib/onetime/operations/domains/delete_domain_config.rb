@@ -5,7 +5,7 @@
 # Domain-owned (app-scoped) operation — see decision D3 in
 # lib/onetime/operations/README.md. Loaded at the call site (colonel logic),
 # so require the audit model explicitly.
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/models/custom_domain/config_registry'
 
@@ -20,7 +20,7 @@ module Onetime
       # not colonel-editable): the absent state falls back to platform behavior
       # / fails closed, which is the documented recovery posture.
       #
-      # Records EXACTLY ONE {Onetime::AdminAuditEvent} per successful delete
+      # Records EXACTLY ONE {Onetime::ColonelAuditEvent} per successful delete
       # (CONTRACT 4). A delete of a non-existent record is `:not_found` and
       # records one `result: :failure` event, as does a raise out of
       # `delete_for_domain!` — the delete drops a config whose absence changes
@@ -65,7 +65,7 @@ module Onetime
           end
 
           # Exactly one audit event per successful delete. Kind only, no values.
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @domain.extid,
@@ -81,7 +81,7 @@ module Onetime
         # Same verb/target/actor as the success event. Best-effort: never break
         # the op.
         def record_refusal(status)
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @domain.extid,

@@ -5,7 +5,7 @@
 # Unit tests for CreateCheckoutLink operation.
 #
 # Covers:
-# - happy path: session created, result fields populated, AdminAuditEvent
+# - happy path: session created, result fields populated, ColonelAuditEvent
 #   recorded, and — CRITICALLY — subscription_data.metadata carries
 #   customer_extid + orgid (the checkout.session.completed handler reads ONLY
 #   those and skips the event without them)
@@ -100,7 +100,7 @@ RSpec.describe Billing::Operations::CreateCheckoutLink do
       'features' => { 'regions' => { 'current_jurisdiction' => 'EU' } },
     )
     allow(Billing::PlanResolver).to receive(:resolve).and_return(resolution)
-    allow(Onetime::AdminAuditEvent).to receive(:record)
+    allow(Onetime::ColonelAuditEvent).to receive(:record)
   end
 
   describe 'happy path' do
@@ -155,10 +155,10 @@ RSpec.describe Billing::Operations::CreateCheckoutLink do
       )
     end
 
-    it 'records one AdminAuditEvent with actor, target and session id' do
+    it 'records one ColonelAuditEvent with actor, target and session id' do
       result = call_op
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).with(
         actor: 'ur_colonel',
         verb: described_class::AUDIT_VERB,
         target: 'ur_target',
@@ -277,7 +277,7 @@ RSpec.describe Billing::Operations::CreateCheckoutLink do
       expect(result.failed?).to be(true)
       expect(result.reason).to eq('Organization already has an active subscription')
       expect(Stripe::Checkout::Session).not_to have_received(:create)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
     end
 
     it 'reports the block on a dry run instead of a link it would refuse' do
@@ -333,7 +333,7 @@ RSpec.describe Billing::Operations::CreateCheckoutLink do
       expect(result.plan_id).to eq('identity_plus_v1')
       expect(result.url).to be_nil
       expect(Stripe::Checkout::Session).not_to have_received(:create)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
     end
   end
 
@@ -395,7 +395,7 @@ RSpec.describe Billing::Operations::CreateCheckoutLink do
       result = call_op
       expect(result.failed?).to be(true)
       expect(result.reason).to include('No such price')
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
     end
   end
 end

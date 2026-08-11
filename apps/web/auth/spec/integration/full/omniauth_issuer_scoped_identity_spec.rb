@@ -27,7 +27,7 @@
 # the retrieve_omniauth_identity override delegates to, against a real DB.
 #
 # REQUIREMENTS:
-# - Valkey running on port 2121: pnpm run test:database:start
+# - Valkey running on port 2163: pnpm run test:database:start
 # - AUTHENTICATION_MODE=full, AUTH_DATABASE_URL=sqlite::memory: (rake sets this)
 #
 # RUN:

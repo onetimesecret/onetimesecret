@@ -1,0 +1,18 @@
+# Lane: strategies — Redis-only auth strategy specs in an isolated process.
+# CI job: ruby-integration-strategies (T3)
+#
+# Isolated on purpose (see #3468): run inside the spec:integration:full
+# process, the spec/integration/all RabbitMQ/fork specs corrupt the
+# process-wide Familia/Redis connection, after which Customer lookups
+# return nil and every success-path strategy example fails with a spurious
+# CREDENTIALS_INVALID. Its own process with just Redis avoids that.
+#
+# Full mode + in-memory SQLite mirrors the environment these specs were
+# verified green under; they touch no SQL, so DB/route-matrix variation is
+# irrelevant. lib/tasks/spec.rake hardcodes the same values for this task
+# as a defense against ambient env — keeping them identical here is
+# intentional (the lane is correct standalone, and rake's override is a
+# no-op), matching full-sqlite.
+AUTHENTICATION_MODE=full
+AUTH_DATABASE_URL='sqlite::memory:'
+ORGS_SSO_ENABLED=true

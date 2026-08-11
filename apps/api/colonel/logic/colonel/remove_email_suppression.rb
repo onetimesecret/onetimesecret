@@ -13,7 +13,7 @@ module ColonelAPI
       # Thin adapter over {Onetime::Operations::Email::RemoveSuppression} — the
       # single, audited implementation of the suppression-remove verb. This
       # class keeps only the HTTP concerns (param validation + the not-found
-      # 404); the op owns the model mutation and the AdminAuditEvent
+      # 404); the op owns the model mutation and the ColonelAuditEvent
       # (CONTRACT 4). The UnbanIP adapter pattern, applied to addresses.
       #
       # Removing a suppression re-enables sending to an address that bounced

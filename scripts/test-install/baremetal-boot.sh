@@ -26,7 +26,7 @@
 # gems, node_modules, generated/locales + generated/schemas (bin/setup
 # provides all of it), a redis-server/valkey-server binary, ruby, and curl.
 # Starts an ISOLATED throwaway datastore and app instance; never touches the
-# dev (6379/5212) or test (2121) datastores.
+# dev (6379/5212) or test (2163) datastores.
 #
 # Usage:
 #   scripts/test-install/baremetal-boot.sh

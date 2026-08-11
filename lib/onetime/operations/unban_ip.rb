@@ -6,7 +6,7 @@
 # lib/onetime/operations/README.md. Sibling of {Onetime::Operations::BanIP};
 # loaded at the call site, so require the dependencies explicitly.
 require 'colonel/models/banned_ip'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 
 module Onetime
@@ -18,7 +18,7 @@ module Onetime
     # (`DELETE /api/colonel/banned-ips/:ip`) and the `bin/ots bannedips unban` CLI
     # are thin adapters over it. The model call is IDENTICAL to the prior inline
     # call (`Onetime::BannedIP.unban!(ip)`); the op adds exactly one
-    # {Onetime::AdminAuditEvent} per successful unban.
+    # {Onetime::ColonelAuditEvent} per successful unban.
     #
     # Stateless, single `#call`, returns an immutable {Result}. An unban of an IP
     # that is not banned returns `status: :not_found`, mutates NOTHING, and
@@ -65,7 +65,7 @@ module Onetime
         end
 
         # One audit event per successful mutation.
-        Onetime::AdminAuditEvent.record(
+        Onetime::ColonelAuditEvent.record(
           actor: @actor,
           verb: AUDIT_VERB,
           target: @ip_address,
@@ -80,7 +80,7 @@ module Onetime
       # Same verb/target/actor as the success event. Best-effort: never break
       # the op.
       def record_refusal(status)
-        Onetime::AdminAuditEvent.record(
+        Onetime::ColonelAuditEvent.record(
           actor: @actor,
           verb: AUDIT_VERB,
           target: @ip_address,

@@ -28,5 +28,5 @@ Receipt = TestVersion::Receipt
 Metadata = Receipt # Legacy alias for backward compatibility
 Secret = TestVersion::Secret
 Feedback = TestVersion::Feedback
-AdminAuditEvent = TestVersion::AdminAuditEvent
+ColonelAuditEvent = TestVersion::ColonelAuditEvent
 Organization = TestVersion::Organization

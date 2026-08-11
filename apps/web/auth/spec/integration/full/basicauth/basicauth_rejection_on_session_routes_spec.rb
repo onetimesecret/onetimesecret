@@ -12,7 +12,7 @@
 # As a positive control, routes that DO declare auth=sessionauth,basicauth
 # (e.g., GET /api/account/) are verified to accept the same credentials.
 #
-# Requires Valkey on port 2121 (pnpm run test:database:start).
+# Requires Valkey on port 2163 (pnpm run test:database:start).
 #
 # Run:
 #   source .env.test && bundle exec rspec apps/web/auth/spec/integration/basicauth_rejection_on_session_routes_spec.rb --format documentation

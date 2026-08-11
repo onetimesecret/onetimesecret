@@ -109,7 +109,10 @@ class DatabaseCleaner
   end
 
   def load_database_config
-    database_url = ENV['AUTH_DATABASE_URL'] || ENV['VALKEY_URL'] || ENV.fetch('REDIS_URL', nil)
+    # Valkey/Redis endpoints only — AUTH_DATABASE_URL is a SQL database and
+    # must never configure this cleaner. Empty strings count as absent (dev
+    # shells export blank placeholders).
+    database_url = [ENV.fetch('VALKEY_URL', nil), ENV.fetch('REDIS_URL', nil)].find { |v| v && !v.empty? }
 
     if database_url
       # Parse environment variable (e.g., redis://localhost:6379/0)

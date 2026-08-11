@@ -16,7 +16,7 @@ module Onetime
   # ## Backing store
   #
   # Three class-level structures (no per-instance Horreum hashes — the
-  # AdminAuditEvent capped-collection precedent):
+  # ColonelAuditEvent capped-collection precedent):
   #
   # - `email_suppression:entries` (hash): normalized address → JSON entry
   #   `{address, reason, source, created}`. Keyed by address so the outbound
@@ -25,7 +25,7 @@ module Onetime
   #   the admin list reads newest-first pages without loading the hash.
   # - `email_suppression:events` (sorted set): JSON bounce/complaint events as
   #   they are reported, scored by occurrence time. Capped to MAX_EVENTS on
-  #   every write (the AdminAuditEvent trim idiom) — a rolling diagnostic feed,
+  #   every write (the ColonelAuditEvent trim idiom) — a rolling diagnostic feed,
   #   not an archive.
   #
   # Plus one lifetime counter, `sends_skipped`, ticked each time the outbound
@@ -47,7 +47,7 @@ module Onetime
   #   the delivery base class.
   # - Manual suppression via the ingest endpoint (reason 'manual').
   class EmailSuppression < Familia::Horreum
-    # No SCHEMA constant on purpose (the AdminAuditEvent precedent): this model
+    # No SCHEMA constant on purpose (the ColonelAuditEvent precedent): this model
     # is never serialised into an API response directly — the deliverability
     # endpoints declare their own wire contracts via SCHEMAS constants, with
     # Zod shapes at src/schemas/api/internal/responses/colonel-deliverability.ts.
@@ -80,7 +80,7 @@ module Onetime
     # What the event feed records (suppression itself is state, not an event).
     EVENT_KINDS = %w[bounce complaint].freeze
 
-    # Hard caps (by count), mirroring AdminAuditEvent::MAX_EVENTS: bounded
+    # Hard caps (by count), mirroring ColonelAuditEvent::MAX_EVENTS: bounded
     # memory with no external configuration dependency. Suppressions get a
     # deeper cap because dropping one re-enables sending to a known-bad
     # address — at 100k the oldest entries are trimmed first.
@@ -261,7 +261,7 @@ module Onetime
           'source' => source.to_s,
           'created' => Familia.now,
           # Nonce: keeps otherwise-identical events distinct members (the
-          # AdminAuditEvent idiom — a duplicate member would silently collide).
+          # ColonelAuditEvent idiom — a duplicate member would silently collide).
           'id' => Familia.generate_id,
         }
 

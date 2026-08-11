@@ -39,7 +39,7 @@
 #      accounts on the platform surface — see #3840 Phase 4.)
 #
 # REQUIREMENTS:
-# - Valkey running on port 2121: pnpm run test:database:start
+# - Valkey running on port 2163: pnpm run test:database:start
 # - AUTHENTICATION_MODE=full, AUTH_DATABASE_URL (SQLite in-memory; rake sets it)
 #
 # RUN:

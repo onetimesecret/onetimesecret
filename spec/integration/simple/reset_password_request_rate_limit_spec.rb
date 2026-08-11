@@ -30,7 +30,7 @@
 # keep the two in lockstep.
 #
 # REQUIREMENTS:
-# - Valkey running on port 2121: pnpm run test:database:start
+# - Valkey running on port 2163: pnpm run test:database:start
 # - AUTHENTICATION_MODE=simple
 #
 # RUN:
@@ -247,21 +247,21 @@ RSpec.describe 'Reset-password-request rate limiting — simple mode (#3872)', t
 
   # A throttle used to leave only an OT.le line, so an enumeration attempt
   # against the reset flow produced no signal an operator could query. The
-  # cap-hit now writes one AdminAuditEvent — into the SEPARATE security trail,
+  # cap-hit now writes one ColonelAuditEvent — into the SEPARATE security trail,
   # because the operator trail is count-capped with no TTL and evicts
   # oldest-first, so any writer an unauthenticated caller can drive would be a
   # way to flush the real destructive-action record.
   describe 'audit trail' do
     def throttle_audit_events
-      Onetime::AdminAuditEvent.recent_security(50).select do |event|
+      Onetime::ColonelAuditEvent.recent_security(50).select do |event|
         event['verb'] == Onetime::Security::ResetRequestRateLimiter::AUDIT_VERB
       end
     end
 
     before do
       # Isolate from any events other examples/suites left behind.
-      Onetime::AdminAuditEvent.events.clear
-      Onetime::AdminAuditEvent.security_events.clear
+      Onetime::ColonelAuditEvent.events.clear
+      Onetime::ColonelAuditEvent.security_events.clear
     end
 
     it 'records a queryable event when a tier hits its cap' do
@@ -318,18 +318,18 @@ RSpec.describe 'Reset-password-request rate limiting — simple mode (#3872)', t
     # the primitive, so pin that no throttle traffic reaches `events` at all.
     it 'never writes into the privileged operator trail' do
       enable_limiter(max_per_ip: 1, max_per_email: 100)
-      Onetime::AdminAuditEvent.record(
+      Onetime::ColonelAuditEvent.record(
         actor: 'ur7xexamples', verb: 'customer.purge', target: 'ur9ytargets', result: :success,
       )
-      before_admin = Onetime::AdminAuditEvent.count
+      before_admin = Onetime::ColonelAuditEvent.count
 
       expect_generic_success(request_password_reset(unique_login('audit-isolation')), 'Cap-hitting request')
       10.times { |i| expect(request_password_reset(unique_login("audit-isolation-#{i}")).status).to eq(429) }
 
       expect(throttle_audit_events.size).to eq(1)
-      expect(Onetime::AdminAuditEvent.count).to eq(before_admin),
+      expect(Onetime::ColonelAuditEvent.count).to eq(before_admin),
         'throttle events must not consume the operator trail budget'
-      expect(Onetime::AdminAuditEvent.recent(1).first['verb']).to eq('customer.purge')
+      expect(Onetime::ColonelAuditEvent.recent(1).first['verb']).to eq('customer.purge')
     end
 
     it 'writes nothing when the limiter is disabled' do

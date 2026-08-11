@@ -14,7 +14,7 @@ module Onetime
       # owning organization (`org_id` blank), a data-integrity smell the operator
       # can then repair.
       #
-      # READ-ONLY: records NO {Onetime::AdminAuditEvent} (CONTRACT 4). The
+      # READ-ONLY: records NO {Onetime::ColonelAuditEvent} (CONTRACT 4). The
       # `bin/ots domains orphaned` CLI and the colonel endpoint
       # (`GET /api/colonel/domains/orphaned`) are thin adapters over it.
       #

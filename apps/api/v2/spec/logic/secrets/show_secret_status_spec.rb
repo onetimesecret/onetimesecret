@@ -183,7 +183,7 @@ RSpec.describe V2::Logic::Secrets::ShowSecretStatus, type: :integration do
       logic.process_params
       logic.process
 
-      event = Onetime::Organization.load(trail_org.objid).audit_events_page.first
+      event = Onetime::Organization.load(trail_org.objid).secret_activity_events_page.first
       expect(event['kind']).to eq('status_get')
       expect(event['net_ip_partial']).to eq('203.0.113.0')
       expect(event['net_ip_hash']).to match(/\A[0-9a-f]{64}\z/)
@@ -202,7 +202,7 @@ RSpec.describe V2::Logic::Secrets::ShowSecretStatus, type: :integration do
       logic.process
 
       trail = Onetime::Organization.load(trail_org.objid)
-      raw   = trail.audit_events.membersraw.join
+      raw   = trail.secret_activity_events.membersraw.join
       expect(raw).not_to include(raw_ip)
       expect(raw).not_to include(full_ua)
       expect(raw).not_to include('119.0.0.0')
@@ -213,9 +213,62 @@ RSpec.describe V2::Logic::Secrets::ShowSecretStatus, type: :integration do
       logic.process_params
       logic.process
 
-      event = Onetime::Organization.load(trail_org.objid).audit_events_page.first
+      event = Onetime::Organization.load(trail_org.objid).secret_activity_events_page.first
       expect(event['kind']).to eq('status_get')
       expect(event.keys).not_to include('net_ip_partial', 'net_ua_partial', 'net_ip_hash')
+    end
+  end
+
+  # Actor attribution on fetch events (#3637): the trail records WHO fetched
+  # explicitly -- an audit consumer must never infer the actor from the
+  # creator_/previewed kind rename. actor_id is the FULL customer objid.
+  context 'actor attribution on the status fetch (#3637)' do
+    let(:trail_org) do
+      Onetime::Organization.new(
+        display_name: 'Status Actor Org',
+        contact_email: "status-actor-#{SecureRandom.hex(6)}@example.com",
+      ).tap(&:save)
+    end
+
+    before do
+      receipt.org_id = trail_org.objid
+      receipt.save_fields(:org_id)
+    end
+
+    it 'records actor=anonymous with no actor_id for an anonymous status fetch' do
+      logic = build_logic({ 'identifier' => secret.identifier })
+      logic.process_params
+      logic.process
+
+      event = Onetime::Organization.load(trail_org.objid).secret_activity_events_page.first
+      expect(event['kind']).to eq('status_get')
+      expect(event['actor']).to eq('anonymous')
+      expect(event).not_to have_key('actor_id')
+    end
+
+    context 'when the creator checks their own secret' do
+      let(:owner) do
+        Onetime::Customer.create!(email: "status-actor-owner-#{SecureRandom.hex(6)}@example.com")
+      end
+      let!(:pair) { Onetime::Receipt.spawn_pair(owner.objid, 3600, 'a secret value') }
+
+      it 'records actor=creator with the full, untruncated objid' do
+        customer = double('Customer', custid: owner.custid, objid: owner.objid, anonymous?: false)
+        org      = double('Organization', objid: "org_#{SecureRandom.hex(4)}")
+        allow(org).to receive(:can?).and_return(true)
+        strategy_result = double('StrategyResult',
+          session: mock_session, user: customer,
+          metadata: { organization: org }, auth_method: 'basicauth')
+
+        logic = described_class.new(strategy_result, { 'identifier' => secret.identifier })
+        logic.process_params
+        logic.process
+
+        event = Onetime::Organization.load(trail_org.objid).secret_activity_events_page.first
+        expect(event['kind']).to eq('creator_status_get')
+        expect(event['actor']).to eq('creator')
+        expect(event['actor_id']).to eq(owner.objid)
+      end
     end
   end
 end

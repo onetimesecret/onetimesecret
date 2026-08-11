@@ -85,15 +85,20 @@ gem 'truemail', '~> 3.3'
 # ORMs and database drivers
 # NOTE: We install both db drivers for the OCI images so that users can choose
 # which database to use at runtime via environment variable without rebuilding.
-# familia 2.11.2 floor: rejects a blank VERIFIABLE_ID_HMAC_SECRET at the library
-# layer (delano/familia#335); the 2.11 line decouples the AES-256-GCM HKDF salt
-# from the XChaCha20 personalization -- which activates the salt/personalization/
-# history pinning in ConfigureFamilia; and 2.11.2 stops persisting nil declared
-# fields as the JSON string "null" (HDEL on clear), restoring HSETNX/HEXISTS
-# atomic-claim semantics (no migration -- stale "null" decodes to nil on read).
-# Do NOT relax to 2.12: it lands breaking encryption personalization/salt-history
-# changes (delano/familia#333, #334) that need the migration tracked in issue #3630.
-gem 'familia', '~> 2.11.2'
+# familia 2.12 floor: read-side prep for the encryption rotation tracked in
+# issue #3630. 2.12.0 adds encryption_personalization_history (delano/familia#333)
+# so XChaCha20 decrypt walks current -> history -> the library default
+# 'FamilialMatters', making personalization rotatable without stranding old
+# envelopes; per-field `algorithm:` pinning (delano/familia#334, shipped 2.11.1)
+# plus envelope-driven provider dispatch means readers accept both aes-256-gcm
+# and xchacha20poly1305 ciphertext with zero configuration. This release changes
+# nothing on the write side -- ConfigureFamilia still pins the 2.11-era values
+# byte-for-byte; the write-side rotation flip lands in v0.27.0 and requires
+# every process reading the datastore to be on >= this release first.
+# (2.11.2 remains the behavior floor for blank VERIFIABLE_ID_HMAC_SECRET
+# rejection, delano/familia#335, and for nil declared fields persisting as HDEL
+# instead of the JSON string "null".)
+gem 'familia', '~> 2.12'
 gem 'pg', '~> 1.6'
 gem 'sequel', '~> 5.0'
 gem 'sqlite3', '~> 2.0'

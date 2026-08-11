@@ -20,7 +20,7 @@
 # verdict. Only failing to RESOLVE the domain exits 1. A monitor that wants to
 # alert on health pipes the JSON: `... --json | jq -e '.health == "healthy"'`.
 #
-# The op records NO AdminAuditEvent: a probe reaches the network but mutates
+# The op records NO ColonelAuditEvent: a probe reaches the network but mutates
 # nothing in our data store (CONTRACT 4 — audit is for mutations).
 #
 # Two deliberate asymmetries with the colonel adapter:

@@ -2,12 +2,12 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 
 module Onetime
   # AuditedFailure — the failure half of the mutating-admin-op audit contract.
   #
-  # {Onetime::AdminAuditEvent} is the single write path for mutating admin
+  # {Onetime::ColonelAuditEvent} is the single write path for mutating admin
   # operations, but every incumbent call site sits INSIDE the success path,
   # AFTER the mutation. When an op raises (privilege guard, precondition,
   # validation, unexpected error) the `record` line never executes, so the
@@ -79,7 +79,7 @@ module Onetime
   #
   # Nothing in this path may break the operation it wraps. Resolving verb /
   # target / actor is rescued, the record call is rescued, and
-  # {AdminAuditEvent.record} swallows its own errors. The original exception is
+  # {ColonelAuditEvent.record} swallows its own errors. The original exception is
   # always re-raised.
   module AuditedFailure
     # Marker set on an exception instance once a failure event has been written
@@ -108,10 +108,10 @@ module Onetime
       #
       # A call site that genuinely needs to record an event an UNAUTHENTICATED
       # caller can cause must write it through
-      # {Onetime::AdminAuditEvent.record_security}, which lands in the separate
+      # {Onetime::ColonelAuditEvent.record_security}, which lands in the separate
       # `security_events` collection with its own count cap and age bound — NOT
       # through `.record`. Bounding the write RATE is not an accepted substitute
-      # (see the WRITE-FREQUENCY INVARIANT on {Onetime::AdminAuditEvent}): the
+      # (see the WRITE-FREQUENCY INVARIANT on {Onetime::ColonelAuditEvent}): the
       # one such writer today, the reset-request throttle, still rate-limits
       # itself, but for signal quality only.
       #
@@ -138,7 +138,7 @@ module Onetime
 
         error.instance_variable_set(RECORDED_FLAG, true)
 
-        Onetime::AdminAuditEvent.record(
+        Onetime::ColonelAuditEvent.record(
           actor: actor,
           verb: verb,
           target: target,
@@ -153,7 +153,7 @@ module Onetime
 
       # Error class + message, plus whatever context the op declared. The
       # message may embed operator-supplied text, so it still passes through
-      # AdminAuditEvent's redaction and length bounds on the way to storage.
+      # ColonelAuditEvent's redaction and length bounds on the way to storage.
       # Op-supplied keys are merged UNDER error/message so they can never
       # displace the failure's own identity.
       def failure_detail(error, extra = nil)
@@ -188,7 +188,7 @@ module Onetime
 
       # Resolve the actor WITHOUT stringifying: `@actor` is sometimes a
       # Customer-like object, and `to_s` on one can yield an internal objid.
-      # AdminAuditEvent.normalize_actor owns the extid/email extraction — hand
+      # ColonelAuditEvent.normalize_actor owns the extid/email extraction — hand
       # it the raw value and let the single write path do its job.
       def resolve_actor(receiver, spec)
         spec.is_a?(Proc) ? receiver.instance_exec(&spec) : spec

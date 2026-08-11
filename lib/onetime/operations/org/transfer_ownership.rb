@@ -5,7 +5,7 @@
 # Loaded at the call site (CLI today, a colonel endpoint later), which run
 # outside the app autoloaders — require the audit model and the composed
 # membership op explicitly.
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require_relative '../memberships/set_role'
 
@@ -51,7 +51,7 @@ module Onetime
       #
       # ## Audit (CONTRACT 4) — three events per transfer, by design (D26)
       #
-      # This op records EXACTLY ONE {Onetime::AdminAuditEvent} ({AUDIT_VERB}).
+      # This op records EXACTLY ONE {Onetime::ColonelAuditEvent} ({AUDIT_VERB}).
       # The two composed SetRole calls each record their own
       # `membership.set_role` event, so a full transfer leaves three events. That
       # is deliberate: the sub-events make the trail replayable, and the
@@ -215,7 +215,7 @@ module Onetime
           # Exactly one audit event per applied transfer, emitted here. PUBLIC
           # ids only — never objid/custid. The two composed SetRole calls emit
           # their own `membership.set_role` events (D26).
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @org.extid,
@@ -332,7 +332,7 @@ module Onetime
         # the op. `dry_run` is carried so a refused preview is distinguishable
         # from a refused apply.
         def record_refusal(status)
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @org.extid,

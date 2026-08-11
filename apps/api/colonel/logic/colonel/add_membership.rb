@@ -16,7 +16,7 @@ module ColonelAPI
       #
       # Thin adapter over {Onetime::Operations::Memberships::Add} — the single,
       # audited, entitlement-materializing implementation. The OP owns the
-      # AdminAuditEvent (do NOT audit here).
+      # ColonelAuditEvent (do NOT audit here).
       #
       # The customer must already have an account (this endpoint does not create
       # invitations — that is the invite flow's job).

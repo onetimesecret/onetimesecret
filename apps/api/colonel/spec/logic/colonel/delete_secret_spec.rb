@@ -58,7 +58,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::DeleteSecret do
     allow(OT).to receive(:le)
     allow(Onetime::Secret).to receive(:load).and_return(secret)
     allow(Onetime::Receipt).to receive(:load).and_return(receipt)
-    allow(Onetime::AdminAuditEvent).to receive(:record)
+    allow(Onetime::ColonelAuditEvent).to receive(:record)
   end
 
   describe 'success path' do
@@ -67,7 +67,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::DeleteSecret do
       logic.raise_concerns
       logic.process
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         hash_including(
           actor: 'ur_colonel',
           verb: 'secret.delete',
@@ -83,7 +83,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::DeleteSecret do
       logic.process
 
       payload = nil
-      expect(Onetime::AdminAuditEvent).to have_received(:record) { |args| payload = args }
+      expect(Onetime::ColonelAuditEvent).to have_received(:record) { |args| payload = args }
 
       serialized = [payload[:target], payload[:detail]].inspect
       expect(serialized).not_to include('sec_internal_objid_do_not_leak')
@@ -112,7 +112,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::DeleteSecret do
 
       expect { logic.process }.to raise_error(Familia::Problem, 'datastore exploded')
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         hash_including(
           actor: 'ur_colonel',
           verb: 'secret.delete',
@@ -133,7 +133,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::DeleteSecret do
       logic = logic_for(customer)
 
       expect { logic.raise_concerns }.to raise_error(Onetime::Forbidden)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
     end
   end
 end
