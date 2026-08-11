@@ -67,8 +67,14 @@ module Onetime
       #                   the named method so a caller can render a
       #                   method-specific notice. Runtime gate: allow nothing.
       #
-      # `source` records which layer decided (:domain or :global) so the
-      # settings API (A4) can explain the effective value without re-deriving.
+      # `source` records which layer decided so the settings API (A4) can
+      # explain the effective value without re-deriving it:
+      #
+      #   :global   — the install-level restriction (or its absence) stands.
+      #   :domain   — the per-domain config produced the outcome.
+      #   :conflict — global and domain each name a DIFFERENT method, which
+      #               intersects to nothing (ADR-024 A8). Always paired with
+      #               :unavailable; neither layer won.
       #
       # Use `allows?(method)` for the runtime gate (A1) rather than comparing
       # `restrict_to` — it is the only form that reads correctly in all three
@@ -346,16 +352,31 @@ module Onetime
         # (Core::Controllers::Base, A1) and the settings API `details`
         # (A4). No caller re-derives any part of it.
         #
-        # PRECEDENCE — replace, not AND. An *enabled* per-domain config
-        # replaces the global restriction outright; no record, or a record with
-        # the master switch off, defers to global (ADR-024 invariant 2). This
-        # differs from resolve_signin_enabled's narrowing AND on purpose:
-        # restrict_to picks WHICH method, not WHETHER sign-in works, so there
-        # is no meaningful intersection of two different method names. The
-        # consequence is that an enabled domain config with restrict_to unset
-        # widens past a global restriction on that host. That is the behavior
-        # this method was extracted from, preserved deliberately; intersection
-        # semantics would be a policy change and needs its own ADR amendment.
+        # PRECEDENCE — INTERSECTION (ADR-024 A8). A domain config can only
+        # narrow, never widen (invariant 1). A record with the master switch
+        # off, or no record at all, contributes nothing and global stands
+        # (invariant 2).
+        #
+        #   global | domain      | result
+        #   -------|-------------|------------------------------------------
+        #   unset  | unset       | :unrestricted            (source :global)
+        #   set    | unset       | global method            (source :global)
+        #   unset  | set         | domain method            (source :domain)
+        #   set    | set, equal  | that method              (source :domain)
+        #   set    | set, differ | :unavailable             (source :conflict)
+        #
+        # The set/unset row is the fix: replace semantics let an enabled
+        # domain config with restrict_to UNSET erase an operator's global
+        # restriction on that host — a tenant escaping an operator-level
+        # control, silently.
+        #
+        # Two different single-method restrictions have no intersection, so a
+        # conflict fails closed instead of picking a winner: picking the
+        # domain re-creates the escape above, picking the global silently
+        # discards a setting the tenant deliberately made. The :unavailable
+        # resolution retains the GLOBAL method name — the operator's
+        # restriction is the one still in force — so a notice can say which
+        # method this host is held to while `allows?` permits nothing.
         #
         # DOMAIN-HALF DEGRADATION IS FAIL-CLOSED (ADR-024 A3). A domain
         # restriction naming a method that cannot be honored on a custom domain
@@ -387,22 +408,30 @@ module Onetime
         # @param config [SigninConfig, nil] the per-domain config, if any
         # @return [RestrictToResolution] explicit :unrestricted / :restricted / :unavailable
         def resolve_restrict_to(global, config)
-          return resolve_domain_restrict_to(config) if config&.enabled?
+          global_value = global.to_s.strip
+          domain_value = config&.enabled? ? config.restrict_to.to_s.strip : ''
 
-          value = global.to_s.strip
-          return RestrictToResolution.unrestricted(:global) if value.empty?
+          if domain_value.empty?
+            return RestrictToResolution.unrestricted(:global) if global_value.empty?
 
-          RestrictToResolution.restricted(value, :global)
+            return RestrictToResolution.restricted(global_value, :global)
+          end
+
+          unless global_value.empty? || global_value == domain_value
+            return RestrictToResolution.unavailable(global_value, :conflict)
+          end
+
+          resolve_domain_restrict_to(domain_value)
         end
 
-        # Domain half of resolve_restrict_to. See its PRECEDENCE and
-        # DOMAIN-HALF DEGRADATION notes; do not call this directly.
+        # Domain half of resolve_restrict_to: a non-empty domain restriction
+        # that the global half has already agreed with (or declined to
+        # contradict). See its PRECEDENCE and DOMAIN-HALF DEGRADATION notes;
+        # do not call this directly.
         #
-        # @param config [SigninConfig] an *enabled* per-domain config
+        # @param value [String] a non-empty persisted domain restrict_to value
         # @return [RestrictToResolution]
-        def resolve_domain_restrict_to(config)
-          value = config.restrict_to.to_s.strip
-          return RestrictToResolution.unrestricted(:domain) if value.empty?
+        def resolve_domain_restrict_to(value)
           return RestrictToResolution.unavailable(value, :domain) unless honorable_domain_restriction?(value)
 
           RestrictToResolution.restricted(value, :domain)

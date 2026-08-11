@@ -110,8 +110,9 @@ Onetime::CustomDomain::SignupConfig.resolve_signup_enabled(true, signup_config(e
 #
 # Three explicit states: :unrestricted (allow every enabled method),
 # :restricted (allow only the named one), :unavailable (allow nothing —
-# fail-closed degradation, A3). Precedence is REPLACE: an enabled per-domain
-# config decides on its own; anything else defers to global.
+# fail-closed degradation, A3). Precedence is INTERSECTION (A8): a domain
+# config narrows, never widens; two different restrictions intersect to
+# nothing and fail closed.
 
 ## no global, no domain config => unrestricted
 resolve_restrict(nil, nil).state
@@ -161,6 +162,10 @@ resolve_restrict(nil, restrict_config(enabled: true, restrict_to: 'password')).r
 resolve_restrict(nil, restrict_config(enabled: true, restrict_to: 'password')).source
 #=> :domain
 
+## no global, no domain restriction => nothing restricts, attributed to global
+resolve_restrict(nil, restrict_config(enabled: true, restrict_to: nil)).source
+#=> :global
+
 ## both agreeing => that method, domain-sourced
 resolve_restrict('sso', restrict_config(enabled: true, restrict_to: 'sso')).restrict_to
 #=> 'sso'
@@ -169,17 +174,57 @@ resolve_restrict('sso', restrict_config(enabled: true, restrict_to: 'sso')).rest
 resolve_restrict('sso', restrict_config(enabled: true, restrict_to: 'sso')).state
 #=> :restricted
 
-## both conflicting => the enabled domain config wins (replace, not intersect)
-resolve_restrict('sso', restrict_config(enabled: true, restrict_to: 'password')).restrict_to
-#=> 'password'
+## both agreeing => attributed to the domain, which asserted it explicitly
+resolve_restrict('sso', restrict_config(enabled: true, restrict_to: 'sso')).source
+#=> :domain
 
-## both conflicting => the global method is no longer allowed
+## INTERSECTION (A8): two different restrictions intersect to nothing
+resolve_restrict('sso', restrict_config(enabled: true, restrict_to: 'password')).state
+#=> :unavailable
+
+## conflict => neither layer wins; the domain does not override the operator
+resolve_restrict('sso', restrict_config(enabled: true, restrict_to: 'password')).allows?('password')
+#=> false
+
+## conflict => the global method is not permitted either
 resolve_restrict('sso', restrict_config(enabled: true, restrict_to: 'password')).allows?('sso')
 #=> false
 
-## PRECEDENCE: enabled domain config with no restriction widens past global
+## conflict => retains the GLOBAL method for a method-specific notice
+resolve_restrict('sso', restrict_config(enabled: true, restrict_to: 'password')).restrict_to
+#=> 'sso'
+
+## conflict => attributed to neither layer
+resolve_restrict('sso', restrict_config(enabled: true, restrict_to: 'password')).source
+#=> :conflict
+
+## conflict fails closed even when the domain half would be honorable alone
+resolve_restrict('password', restrict_config(enabled: true, restrict_to: 'email_auth')).unrestricted?
+#=> false
+
+## A8 FIX: an enabled domain config with no restriction NO LONGER widens past global
 resolve_restrict('sso', restrict_config(enabled: true, restrict_to: nil)).state
-#=> :unrestricted
+#=> :restricted
+
+## A8 FIX: the global restriction stands, attributed to the global layer
+resolve_restrict('sso', restrict_config(enabled: true, restrict_to: nil)).source
+#=> :global
+
+## A8 FIX: the global method is the effective one
+resolve_restrict('sso', restrict_config(enabled: true, restrict_to: nil)).restrict_to
+#=> 'sso'
+
+## A8 FIX: a tenant cannot re-expose the methods the operator restricted away
+resolve_restrict('sso', restrict_config(enabled: true, restrict_to: nil)).allows?('password')
+#=> false
+
+## A8 FIX: blank (not nil) domain restrict_to is also "unset"
+resolve_restrict('sso', restrict_config(enabled: true, restrict_to: '  ')).restrict_to
+#=> 'sso'
+
+## domain-only restriction is unaffected by the intersection (global unset)
+resolve_restrict('', restrict_config(enabled: true, restrict_to: 'email_auth')).state
+#=> :restricted
 
 ## master switch off: the domain restriction is ignored, global stands
 resolve_restrict('sso', restrict_config(enabled: false, restrict_to: 'password')).restrict_to

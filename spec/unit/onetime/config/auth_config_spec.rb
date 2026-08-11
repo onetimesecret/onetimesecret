@@ -231,9 +231,15 @@ RSpec.describe Onetime::AuthConfig do
       expect(config.restrict_to).to be_nil
     end
 
+    # AuthConfig is deliberately blind here: the template renders NOTHING when
+    # several AUTH_*_ONLY flags are true, so by the time the config is parsed
+    # the contradiction only exists in the process environment. That silent
+    # fail-open is caught at boot by ValidateAuthConfig#validate_restrict_to_flags!
+    # (ADR-024 A9, #4139) — see spec/unit/onetime/initializers/validate_auth_config_spec.rb.
     it 'returns nil when multiple ENV vars are set (mutual exclusivity)' do
       config = fresh_config('AUTH_PASSWORD_ONLY' => 'true', 'AUTH_SSO_ONLY' => 'true')
       expect(config.restrict_to).to be_nil
+      expect(config.validate_restrict_to!).to be_nil
     end
 
     # ADR-024 A3 (#4140): the drop-to-standard fallback is retired. An
