@@ -232,7 +232,7 @@ module Auth
         signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id) if domain_id
 
         resolution = Onetime::CustomDomain::SigninConfig.resolve_restrict_to(
-          global_restrict_to(env, domain_id), signin_config
+          global_restrict_to(env, domain_id, signin_config), signin_config
         )
 
         apply_global_availability(resolution)
@@ -254,7 +254,16 @@ module Auth
       # true, no tenant SsoConfig) the display pins 'sso' and this gate does
       # not, so the gate is the more permissive of the two. Recorded as a
       # follow-up on #4139 rather than papered over here.
-      def global_restrict_to(env, domain_id)
+      def global_restrict_to(env, domain_id, signin_config)
+        # NO-CONFIG CASE ONLY. Under A8's intersection semantics two different
+        # restrictions have no intersection and fail closed as :conflict, so
+        # pinning 'sso' on a tenant that HAS spoken (an enabled SigninConfig
+        # naming, say, 'password') would take that host dark instead of honoring
+        # the owner's choice. The pin exists to describe a host that has NOT
+        # configured sign-in and is reachable only via SSO; that is the only
+        # case it may apply to.
+        return Onetime.auth_config.restrict_to if signin_config&.enabled?
+
         return 'sso' if env['onetime.domain_strategy'] == :custom &&
                         domain_id &&
                         Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(domain_id)
@@ -267,15 +276,18 @@ module Auth
       #
       # AuthConfig#restrict_to_available? is NOT derivable from the resolver's
       # two arguments — it reads live prerequisite state — so the resolver
-      # cannot consult it and the caller must. Applied only to a :restricted
-      # resolution that came from the global layer AND names the same method
-      # AuthConfig does, so the SSO pin above (a host property, not the
-      # operator's config) is never second-guessed by it.
+      # cannot consult it and the caller must.
+      #
+      # Keyed on the VALUE, not the source: under A8's intersection semantics a
+      # domain config that agrees with the global restriction resolves with
+      # source :domain, and the named method is just as unavailable either way.
+      # Requiring the value to equal AuthConfig's is what keeps the SSO pin
+      # above (a host property, not the operator's config) out of scope here.
       #
       # If a future change gives resolve_restrict_to an `available:` keyword,
       # this belongs there instead; see the #4139 report.
       def apply_global_availability(resolution)
-        return resolution unless resolution.restricted? && resolution.source == :global
+        return resolution unless resolution.restricted?
         return resolution unless resolution.restrict_to == Onetime.auth_config.restrict_to
         return resolution if Onetime.auth_config.restrict_to_available?
 
