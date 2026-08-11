@@ -203,6 +203,23 @@ module Onetime
                 end
               end
 
+              # Persist the provider's current domain status back into provider_dns_data
+              # so the UI can surface it (e.g. 'verified', 'pending_verification').
+              #
+              # provider_dns_data is a jsonkey (its own Redis key), so this writes
+              # immediately. It must happen BEFORE the scalar assignments below:
+              # Familia 2.12 warns when a related key is written while the parent
+              # holds unsaved scalar fields. Same ordering as DnsRecordCheckWorker.
+              if provider_result
+                current_provider_data                 = mailer_config.provider_dns_data.value || {}
+                provider_records                      = provider_result.dig(:details, :dns_records) || []
+                mailer_config.provider_dns_data.value = current_provider_data.merge(
+                  'status' => provider_result[:status],
+                  'dns_records' => provider_records,
+                  'raw_provider_response' => provider_result[:details],
+                )
+              end
+
               # Set provider_verified from provider API check when available.
               # Fall back to DNS result only when no provider credentials exist
               # (degraded mode - better than leaving nil).
@@ -214,18 +231,6 @@ module Onetime
 
               # Record provider status when verification fails so UI can explain why
               mailer_config.last_error = provider_api_verified == false && provider_result ? "Provider status: #{provider_result[:status]}" : nil
-
-              # Persist the provider's current domain status back into provider_dns_data
-              # so the UI can surface it (e.g. 'verified', 'pending_verification').
-              if provider_result
-                current_provider_data                 = mailer_config.provider_dns_data.value || {}
-                provider_records                      = provider_result.dig(:details, :dns_records) || []
-                mailer_config.provider_dns_data.value = current_provider_data.merge(
-                  'status' => provider_result[:status],
-                  'dns_records' => provider_records,
-                  'raw_provider_response' => provider_result[:details],
-                )
-              end
 
               mailer_config.provider_check_status       = JobLifecycle::COMPLETED
               mailer_config.provider_check_completed_at = Familia.now.to_i
