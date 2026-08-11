@@ -72,6 +72,24 @@ RSpec.describe 'routes_try', type: :integration do
     expect(result).to eq([302, "/signin"])
   end
 
+  # SSO account-linking interstitials (#3840 Phases 3+4) are entered by
+  # full-page load (backend redirect / emailed link). Without explicit
+  # routes.txt entries the SPA shell is still served — but via the not-found
+  # fallback with a 404 status. Pin the explicit 200.
+  it 'serves the SPA shell with 200 for the SSO linking interstitials' do
+    %w[/link-sso/sampletoken /sso-link-confirm/sampletoken].each do |path|
+      response = @mock_request.get(path)
+      expect(response.status).to eq(200), "#{path} responded #{response.status}"
+    end
+  end
+
+  # Pricing deep links exist FOR external full-page loads
+  # (/pricing/:product/:interval) — same explicit-entry requirement.
+  it 'serves the SPA shell with 200 for pricing deep links' do
+    response = @mock_request.get('/pricing/identity_plus/month')
+    expect(response.status).to eq(200)
+  end
+
   it 'Disable authentication for all routes' do
     result = begin
       old_conf = OT.instance_variable_get(:@conf)
