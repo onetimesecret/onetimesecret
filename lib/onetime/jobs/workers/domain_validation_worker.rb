@@ -9,6 +9,7 @@ require_relative '../queues/declarator'
 require_relative '../../operations/validate_sender_domain'
 require_relative '../../models/custom_domain/mailer_config'
 require 'onetime/mail/mailer'
+require 'onetime/mail/provider_registry'
 
 #
 # Processes DNS validation requests from the domain.validation.check queue.
@@ -79,23 +80,31 @@ module Onetime
         # Validate that provider credentials are configured at boot time.
         # This prevents the worker from starting if it can't perform
         # provider-level verification checks.
+        #
+        # Checks the provider's REQUIRED keys via ProviderRegistry, not hash
+        # emptiness: some builders (smtp2go) bake in non-secret defaults so
+        # their credentials hash is never empty even with no API key.
         def self.check_essentials!
           provider = begin
                        Onetime::Mail::Mailer.determine_provider
           rescue StandardError
                        nil
           end
-          return if provider.to_s.empty? || provider.to_s == 'smtp'
+          # Only provisioning providers have a provider verification API to
+          # guard (skips smtp and non-provider transports like logger).
+          return unless Onetime::Mail::ProviderRegistry.provisioning_provider?(provider)
 
-          creds = begin
+          creds   = begin
                     Onetime::Mail::Mailer.provider_credentials(provider)
           rescue StandardError
                     nil
           end
-          return if creds && !creds.empty?
+          missing = Onetime::Mail::ProviderRegistry.missing_required_credentials(provider, creds)
+          return if missing.empty?
 
           raise Onetime::Problem,
-            "#{worker_name}: Missing #{provider} provider credentials. " \
+            "#{worker_name}: Missing #{provider} provider credentials " \
+            "(#{missing.join(', ')}). " \
             'Set the required environment variables or use --skip-checks to continue.'
         end
 
@@ -186,12 +195,19 @@ module Onetime
             provider_api_verified = nil
             begin
               provider = mailer_config.effective_provider
-              if provider && provider != 'smtp'
+              if Onetime::Mail::ProviderRegistry.provisioning_provider?(provider)
                 require 'onetime/mail/sender_strategies'
                 sender_strategy = Onetime::Mail::SenderStrategies.for_provider(provider)
                 creds           = Onetime::Mail::Mailer.provider_credentials(provider)
 
-                if creds && !creds.empty?
+                # Guard on REQUIRED keys, not hash emptiness: smtp2go's
+                # credentials hash carries baked-in subdomain defaults and is
+                # never empty even with no api_key. Skipping here keeps the
+                # doomed API call from running (the strategy would return
+                # verified: nil anyway under the tri-state contract) and logs
+                # exactly which keys are missing.
+                missing = Onetime::Mail::ProviderRegistry.missing_required_credentials(provider, creds)
+                if missing.empty?
                   provider_result       = sender_strategy.check_provider_verification_status(mailer_config, credentials: creds)
                   provider_api_verified = provider_result[:verified]
                   log_info "Provider verification check: #{domain_id}",
@@ -199,7 +215,9 @@ module Onetime
                     verified: provider_result[:verified],
                     status: provider_result[:status]
                 else
-                  log_debug "Skipping provider check: no credentials for #{provider}"
+                  log_info "Skipping provider check: missing #{provider} credentials",
+                    provider: provider,
+                    missing_keys: missing
                 end
               end
 

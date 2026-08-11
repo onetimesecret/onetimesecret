@@ -162,5 +162,70 @@ RSpec.describe Onetime::Jobs::Workers::DomainValidationWorker do
           .with(:provider_verified, :provider_check_status, :provider_check_completed_at, :last_error, :updated)
       end
     end
+
+    context 'when required keys are missing but the hash is non-empty (smtp2go baked-in defaults)' do
+      # Regression: Mailer.smtp2go_provider_config always emits the
+      # returnpath/tracking subdomain defaults via ENV.fetch, so the
+      # credentials hash is NEVER empty. The old `creds && !creds.empty?`
+      # guard was blind to a missing api_key and let a doomed API call run.
+      let(:credentials) do
+        { 'returnpath_subdomain' => 'bounce', 'tracking_subdomain' => 'track' }
+      end
+
+      before do
+        allow(strategy).to receive(:check_provider_verification_status)
+        allow(worker).to receive(:log_info)
+      end
+
+      it 'skips the provider check entirely (no doomed API call)' do
+        expect(work).to eq(:ack)
+        expect(strategy).not_to have_received(:check_provider_verification_status)
+      end
+
+      it 'logs the exact missing key names' do
+        work
+        expect(worker).to have_received(:log_info)
+          .with(/Skipping provider check: missing smtp2go credentials/,
+            hash_including(missing_keys: %w[api_key]))
+      end
+
+      it 'behaves as check-never-ran: DNS fallback, same as the empty-hash case' do
+        work
+        expect(mailer_config).to have_received(:provider_verified=).with(true) # dns_result.all_verified
+        expect(mailer_config).to have_received(:save_fields)
+          .with(:provider_verified, :provider_check_status, :provider_check_completed_at, :last_error, :updated)
+      end
+    end
+  end
+
+  describe '.check_essentials!' do
+    before do
+      allow(Onetime::Mail::Mailer).to receive(:determine_provider).and_return('smtp2go')
+    end
+
+    it 'raises naming the missing required keys, even when the hash is non-empty' do
+      allow(Onetime::Mail::Mailer).to receive(:provider_credentials).with('smtp2go')
+        .and_return('returnpath_subdomain' => 'bounce', 'tracking_subdomain' => 'track')
+
+      expect { described_class.check_essentials! }
+        .to raise_error(Onetime::Problem, /Missing smtp2go provider credentials \(api_key\)/)
+    end
+
+    it 'passes when the required keys are present' do
+      allow(Onetime::Mail::Mailer).to receive(:provider_credentials).with('smtp2go')
+        .and_return('api_key' => 'api-key', 'returnpath_subdomain' => 'bounce')
+
+      expect { described_class.check_essentials! }.not_to raise_error
+    end
+
+    it 'skips non-provisioning transports (smtp, logger)' do
+      allow(Onetime::Mail::Mailer).to receive(:provider_credentials)
+
+      %w[smtp logger].each do |transport|
+        allow(Onetime::Mail::Mailer).to receive(:determine_provider).and_return(transport)
+        expect { described_class.check_essentials! }.not_to raise_error
+      end
+      expect(Onetime::Mail::Mailer).not_to have_received(:provider_credentials)
+    end
   end
 end
