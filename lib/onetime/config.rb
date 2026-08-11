@@ -1123,8 +1123,8 @@ module Onetime
       OT.lw 'ADMIN_ALLOWED_HOSTS (site.admin.allowed_hosts) names no hostname the admin host gate ' \
             "could ever match, so /colonel and /api/colonel return 404 to EVERY request: #{described}. " \
             'Set it to a routable hostname the deployment answers on (ADMIN_ALLOWED_HOSTS=admin.example.com), ' \
-            'unset it entirely to allow the canonical host only, or set it to * to disable the host gate ' \
-            'deliberately.'
+            'unset it entirely to allow the canonical host only (on a localhost or bare-IP install that ' \
+            'self-disables the gate instead), or set it to * to disable the host gate deliberately.'
     end
 
     # WARNs about site.admin.allowed_cidrs (ADMIN_ALLOWED_CIDRS) entries that

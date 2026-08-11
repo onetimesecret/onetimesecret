@@ -367,19 +367,18 @@ module Onetime
               host: host,
               path: full_path,
               method: env['REQUEST_METHOD'],
-              note: 'a forwarded host header changed the detected host, but the peer is not a ' \
-                    'configured trusted proxy (site.network.trusted_proxy). Configure it, or set ' \
-                    'ADMIN_ALLOWED_HOSTS=* to turn the host gate off',
+              note: 'a forwarded host header changed the detected host, but the peer is not a configured ' \
+                    'trusted proxy. Set site.network.trusted_proxy with explicit proxy CIDRs — filter mode ' \
+                    'with none listed trusts every private peer — or ADMIN_ALLOWED_HOSTS=* to turn the gate off',
             }
 
           return true
         end
 
         # THERE IS NO HOST TO JUDGE — same 404, its own line. Routing this into
-        # the membership WARN below (what it did until the #4098 review) told
-        # the operator their host was rejected BY THE ALLOWLIST, when the
-        # allowlist was never consulted and `host` logged as nil. See
-        # #warn_unresolvable_host.
+        # the membership WARN below would tell the operator their host was
+        # rejected BY THE ALLOWLIST, when the allowlist was never consulted and
+        # `host` logged as nil. See #warn_unresolvable_host.
         return warn_unresolvable_host(env, full_path, host) if host.nil? || host.empty?
 
         return false if host_allowed?(host)
@@ -415,10 +414,10 @@ module Onetime
             host: host,
             path: full_path,
             method: env['REQUEST_METHOD'],
-            note: 'Rack::DetectHost emits no host for a bare-IP `Host:` header, for localhost forms, ' \
-                  'or for a malformed name, so site.admin.allowed_hosts was never consulted — no entry ' \
-                  'in it could have matched. Reach the admin surface on a routable hostname the ' \
-                  'allowlist names, or set ADMIN_ALLOWED_HOSTS=* to turn the host gate off',
+            note: 'Rack::DetectHost emits no host for a bare-IP `Host:` header, localhost forms, or a ' \
+                  'malformed name, so site.admin.allowed_hosts was never consulted. Behind a proxy, forward ' \
+                  'the original Host (`proxy_set_header Host $host;`, plus site.network.trusted_proxy for ' \
+                  'forwarded hosts); otherwise use a routable hostname, or ADMIN_ALLOWED_HOSTS=* to turn it off',
           }
 
         true
@@ -768,9 +767,9 @@ module Onetime
               entries: classified.rejected.map(&:first),
               surfaces: SURFACES,
               note: '/colonel and /api/colonel are returning 404 to EVERY request because no entry in ' \
-                    'site.admin.allowed_hosts can match a detected host. Set ADMIN_ALLOWED_HOSTS to a ' \
-                    'routable hostname, unset it to allow the canonical host only, or set it to * to ' \
-                    'disable the host gate',
+                    'site.admin.allowed_hosts can match a detected host. Set ADMIN_ALLOWED_HOSTS to a routable ' \
+                    'hostname, unset it to allow the canonical host only (on localhost/bare-IP installs that ' \
+                    'self-disables the gate instead), or set it to * to disable the host gate',
             }
         end
 

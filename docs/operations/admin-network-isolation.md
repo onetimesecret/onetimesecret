@@ -38,8 +38,11 @@ enforced](#when-the-allowlist-cannot-be-enforced).
 If the app runs behind a reverse proxy that forwards the public hostname in a
 header (`X-Forwarded-Host`, `Apx-Incoming-Host`, `X-Original-Host`,
 `Forwarded`) rather than rewriting `Host`, you **must** configure
-`site.network.trusted_proxy` — otherwise the admin gate refuses the forwarded
-host and both surfaces 404. See [Behind a reverse proxy or load
+`site.network.trusted_proxy` **with the proxy's own address ranges in
+`cidrs`** — otherwise the admin gate refuses the forwarded host and both
+surfaces 404. Filter mode with no explicit CIDRs trusts every private-network
+peer as a proxy, which restores exactly the forwarded-host spoofing the
+provenance rule exists to block. See [Behind a reverse proxy or load
 balancer](#behind-a-reverse-proxy-or-load-balancer--required-for-both-gates).
 
 **Rollback is one variable:** `ADMIN_ALLOWED_HOSTS=*` restores the pre-#4062
@@ -165,15 +168,21 @@ gate could ever match, so /colonel and /api/colonel return 404 to EVERY request:
 "127.0.0.1": not a routable hostname — localhost forms and IP literals are never
 detected as a host. Set it to a routable hostname the deployment answers on
 (ADMIN_ALLOWED_HOSTS=admin.example.com), unset it entirely to allow the canonical
-host only, or set it to * to disable the host gate deliberately.
+host only (on a localhost or bare-IP install that self-disables the gate
+instead), or set it to * to disable the host gate deliberately.
 ```
 
 Denying is deliberate. Every one of these values is an operator writing an
 allowlist in order to **restrict** the admin surfaces; disabling the gate on a
 typo would do the opposite of what was asked and serve `/colonel` on every
 hostname the app answers on. The three ways out are the three in the message:
-name a routable hostname, unset it (canonical hosts only), or ask for the gate
-to be off with `ADMIN_ALLOWED_HOSTS=*`.
+name a routable hostname, unset it, or ask for the gate to be off with
+`ADMIN_ALLOWED_HOSTS=*`. Unsetting restores the canonical-anchor fallback,
+which restricts to the canonical hosts only when an anchor (`DEFAULT_DOMAIN` /
+`HOST`) is a routable hostname. On a localhost or bare-IP install the fallback
+has nothing to anchor on, so unsetting **self-disables the gate** with a boot
+WARN ([inert](#when-the-host-gate-goes-inert)) — it is not a hardening step
+there.
 
 **This does not stop the boot** (it did until #4062 shipped). The admin surfaces
 are already fail-closed for this config, so aborting the process would take the
@@ -283,8 +292,12 @@ same way the rest of the stack does:
 
 Consequently, if the app runs behind a reverse proxy, ingress, or load balancer,
 you **must** also configure `site.network.trusted_proxy` (see `.env.reference`,
-`TRUSTED_PROXY_*`). Otherwise every request resolves to the proxy's own hop IP,
-and either all requests are allowed (if that hop is inside the allowlist) or all
+`TRUSTED_PROXY_*`) — and name the proxy's own address ranges in `cidrs`
+(`TRUSTED_PROXY_CIDRS`) explicitly. Filter mode with no explicit CIDRs trusts
+every private-network peer as a proxy, which restores exactly the
+forwarded-host spoofing the provenance rule exists to block. Without
+`trusted_proxy` at all, every request resolves to the proxy's own hop IP, and
+either all requests are allowed (if that hop is inside the allowlist) or all
 are denied. Example:
 
 ```yaml
@@ -293,6 +306,8 @@ site:
     trusted_proxy:
       enabled: true
       mode: filter          # depth mode is broken, see #4024
+      cidrs:
+        - 10.0.0.5/32       # the proxy's own address, not its whole subnet
   admin:
     allowed_cidrs:
       - 100.64.0.0/10
@@ -305,8 +320,8 @@ behind a local proxy working, but it also means anything able to open a
 connection from a private address — another container on the same network, an
 SSRF egress — can choose the host the app sees (#4024). The client IP behind the
 CIDR gate has the same dependency: with no trusted proxy declared it is resolved
-from `REMOTE_ADDR`. Configure `trusted_proxy` on any deployment where a private-
-address peer is reachable.
+from `REMOTE_ADDR`. Configure `trusted_proxy` — with the proxy's explicit
+`cidrs` — on any deployment where a private-address peer is reachable.
 
 Because that state qualifies both gates, it is reported on the same boot line
 they are — `trusted_proxy: disabled` sitting next to `host_gate: active` is the
@@ -344,18 +359,44 @@ this rule. Two ways out:
 
 ```yaml
 # Preferred — it is also what the CIDR gate, ban checks, sessions and audit
-# attribution all need to be correct.
+# attribution all need to be correct. List the proxy's own addresses in
+# `cidrs`: filter mode with no explicit CIDRs trusts every private-network
+# peer as a proxy, which restores exactly the forwarded-host spoofing this
+# rule exists to block.
 site:
   network:
     trusted_proxy:
       enabled: true
       mode: filter
+      cidrs:
+        - 10.0.0.5/32     # the proxy's own address
 ```
 
 ```bash
 # Or turn the host gate off entirely.
 ADMIN_ALLOWED_HOSTS=*
 ```
+
+### nginx: the default `proxy_pass` erases the host
+
+The other proxy-shaped 404: nginx rewrites `Host` to the upstream address
+unless told otherwise, so a stock `proxy_pass http://127.0.0.1:3000;` hands the
+app `Host: 127.0.0.1:3000` — an IP literal. `Rack::DetectHost` emits no host
+for that, and while the host gate is active a request with no detected host is
+denied, logged per request as `Admin surface access denied: no host could be
+detected for this request`. No allowlist entry can fix it, because the
+allowlist is never consulted. Forward the original host instead:
+
+```nginx
+location / {
+    proxy_pass http://127.0.0.1:3000;
+    proxy_set_header Host $host;                    # keep the client's hostname
+    proxy_set_header X-Forwarded-For $remote_addr;  # overwrite, never append
+}
+```
+
+(Caddy's `reverse_proxy` forwards `Host` unchanged by default, so it does not
+have this failure mode.)
 
 ## Edge alternative: return 404 at the proxy (Caddy / nginx)
 
@@ -419,9 +460,12 @@ app-layer auth layers fully in force underneath.
   tenant custom domains.
 - **Keep `ADMIN_ALLOWED_CIDRS`** (VPN/Tailscale/office ranges). Host and network
   are independent factors; neither replaces the other.
-- `site.network.trusted_proxy` must be configured correctly or **both** gates
-  read attacker-influenceable inputs. Depth mode is currently broken (#4024) —
-  prefer CIDR matchers until that lands.
+- `site.network.trusted_proxy` must be configured correctly — enabled, filter
+  mode, the proxy's own address ranges named in `cidrs` — or **both** gates
+  read attacker-influenceable inputs: filter mode with no explicit CIDRs
+  trusts every private-network peer as a proxy, which restores exactly the
+  forwarded-host spoofing the provenance rule exists to block. Depth mode is
+  currently broken (#4024) — do not use it.
 
 ## Verifying
 
@@ -522,5 +566,7 @@ denials apart, but the operator can:
 
 The second one is the line to look for if you set `ADMIN_ALLOWED_HOSTS` to an IP
 address: no hostname you write into the allowlist can match a request that has
-no detected host. Reach admin on a routable hostname, or set
-`ADMIN_ALLOWED_HOSTS=*` to turn the host gate off.
+no detected host. Behind nginx, the usual cause is a `proxy_pass` without
+`proxy_set_header Host $host;` — see [nginx: the default `proxy_pass` erases
+the host](#nginx-the-default-proxy_pass-erases-the-host). Reach admin on a
+routable hostname, or set `ADMIN_ALLOWED_HOSTS=*` to turn the host gate off.

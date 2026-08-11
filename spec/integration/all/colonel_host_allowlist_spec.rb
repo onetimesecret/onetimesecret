@@ -195,6 +195,23 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
     JSON.parse(last_response.body)
   end
 
+  # Capture the gate's log lines as [message, payload] pairs. The middleware
+  # resolves its logger ONCE, at construction — the first request after
+  # configure_admin! drops the memoized app is what constructs it — so this
+  # must be installed before that request. The sink is a plain object rather
+  # than a double: the stack built inside an example can outlive the example's
+  # mock scope. Every other logger passes through untouched.
+  def capture_admin_gate_warns!
+    warns = []
+    sink  = Object.new
+    sink.define_singleton_method(:warn) { |message, payload = {}| warns << [message, payload] }
+    %i[info error debug].each { |level| sink.define_singleton_method(level) { |*, **| } }
+    allow(Onetime).to receive(:get_logger).and_wrap_original do |original, name|
+      name == 'AdminNetworkIsolation' ? sink : original.call(name)
+    end
+    warns
+  end
+
   # A real verified tenant domain owned by `owner`. The host gate does not
   # consult CustomDomain rows — it judges the detected host alone — but the AC
   # names this case, and a real row is what makes the gate-off control an
@@ -612,6 +629,55 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
 
       expect(last_response.status).to eq(200)
     end
+
+    # A bare-IP Host is the common field shape for a nil detected host: a
+    # reverse proxy that does not forward the original Host rewrites it to the
+    # upstream address (the nginx `proxy_pass` default), and Rack::DetectHost
+    # rejects IP literals and localhost forms outright. The denial log must
+    # say so — the remedy is at the proxy (`proxy_set_header Host $host;`,
+    # plus site.network.trusted_proxy when the real host only arrives in
+    # forwarded headers), not in site.admin.allowed_hosts, which was never
+    # consulted and where nothing the operator writes can help.
+    describe 'the denial log line' do
+      before { configure_admin!(default_domain: 'example.com', site_host: 'example.com') }
+
+      it 'logs the distinct no-detected-host WARN for a bare-IP Host, not the allowlist one' do
+        warns = capture_admin_gate_warns!
+        signed_in_as(colonel)
+        get_api('10.0.0.5')
+
+        expect(last_response.status).to eq(404)
+        headlines = warns.map(&:first)
+        expect(headlines).to include(a_string_matching(/no host could be detected/))
+        expect(headlines).not_to include(a_string_matching(/denied by host allowlist/))
+      end
+
+      it 'names the proxy remedy: forward the original Host, and configure proxy trust' do
+        warns = capture_admin_gate_warns!
+        signed_in_as(colonel)
+        get_api('10.0.0.5')
+
+        _, payload = warns.find { |message, _| message.match?(/no host could be detected/) }
+        expect(payload).not_to be_nil
+        expect(payload[:note]).to match(/proxy_set_header Host/)
+        expect(payload[:note]).to match(/site\.network\.trusted_proxy/)
+      end
+
+      # Only the diagnosis is distinct; the response must not be. A client
+      # probing with a bare-IP Host learns nothing a wrong-host probe would
+      # not have taught it.
+      it 'keeps the nil-host denial byte-identical to a membership denial' do
+        signed_in_as(colonel)
+        get_api('tenant.example.com')
+        membership_denial = [last_response.status, last_response.headers.to_h, last_response.body]
+
+        get_api('10.0.0.5')
+        nil_host_denial = [last_response.status, last_response.headers.to_h, last_response.body]
+
+        expect(nil_host_denial.first).to eq(404)
+        expect(nil_host_denial).to eq(membership_denial)
+      end
+    end
   end
 
   # ===========================================================================
@@ -643,7 +709,7 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
       expect(last_response.status).to eq(403)
     end
 
-    # #4062 review, F5: `*` beside anything else is still `*`. The operator who
+    # `*` beside anything else is still `*`. The operator who
     # follows the diagnostic ("set it to *") without deleting the entry that
     # produced it gets the gate they asked for, not a blanket 404 — and the
     # process still boots (Onetime::Config.check_admin_allowed_hosts stays
@@ -770,7 +836,7 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
     # A PERCENT-ENCODED admin path is still an admin path. The Otto router
     # dispatches on Otto::Utils.normalize_path, which decodes first, so a gate
     # that matched the raw SCRIPT_NAME+PATH_INFO would skip both gates and then
-    # hand the request to the admin console anyway (#4062 review, F1).
+    # hand the request to the admin console anyway.
     describe 'percent-encoded spellings of the admin paths' do
       before { configure_admin!(default_domain: 'example.com', site_host: 'example.com') }
 
@@ -873,11 +939,11 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
         expect(gate_html_denial?).to be true
       end
 
-      # THE #4062-review case (F2). Rack::DetectHost DOES honour this header
-      # from a loopback peer with no trusted_proxy configured — the control two
-      # examples down proves it — so before the fix this served the admin
-      # console to anything that could open a connection from a private address
-      # while claiming to be the canonical host.
+      # Rack::DetectHost DOES honour this header from a loopback peer with no
+      # trusted_proxy configured — the control two examples down proves it — so
+      # without the provenance rule this would serve the admin console to
+      # anything that could open a connection from a private address while
+      # claiming to be the canonical host.
       it 'ignores X-Forwarded-Host from a loopback peer when no proxy trust is configured' do
         signed_in_as(colonel)
         get_api('tenant.example.com', heuristic_peer.merge('HTTP_X_FORWARDED_HOST' => 'example.com'))
@@ -966,6 +1032,24 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
         get_api('example.com', untrusted_peer)
 
         expect(last_response.status).to eq(200)
+      end
+
+      # The remedy in the provenance WARN must demand EXPLICIT proxy CIDRs:
+      # filter mode with none configured trusts every private-network peer
+      # (add_trusted_proxy(PRIVATE_PROXY_RANGES)), which re-opens exactly the
+      # forwarded-host spoofing this denial closes. A WARN that says only
+      # "configure trusted_proxy" walks the operator into that hole.
+      it 'logs the provenance WARN naming trusted_proxy with explicit proxy CIDRs as the remedy' do
+        warns = capture_admin_gate_warns!
+        signed_in_as(colonel)
+        get_api('tenant.example.com', heuristic_peer.merge('HTTP_X_FORWARDED_HOST' => 'example.com'))
+
+        expect(last_response.status).to eq(404)
+        _, payload = warns.find { |message, _| message.match?(/untrusted peer/) }
+        expect(payload).not_to be_nil
+        expect(payload[:note]).to match(/site\.network\.trusted_proxy/)
+        expect(payload[:note]).to match(/explicit/i)
+        expect(payload[:note]).to match(/CIDR/i)
       end
     end
   end
