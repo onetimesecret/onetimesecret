@@ -337,6 +337,45 @@ class ContentRemoveKeyTest(I18nCliTestCase):
             "--orphans did not converge the locale onto the source key set",
         )
 
+    def test_orphans_skips_non_object_source_documents(self) -> None:
+        # A source file that parses but is not a mapping: load_json_file only
+        # falls back to {} on a decode error, so this arrives as a list and a
+        # truthiness-only guard would call every translated key an orphan.
+        self.target.write_text(
+            json.dumps(["web.TEST.enabled"], indent=2) + "\n", "utf-8"
+        )
+        before = self._de_keys()
+        self.assertOk(
+            self.run_cli(
+                "content", "remove-key", "--orphans", "--apply", str(self.de_file)
+            ),
+            "remove-key --orphans against a non-object source",
+        )
+        self.assertEqual(
+            before,
+            self._de_keys(),
+            "a non-object source file emptied the locale file",
+        )
+
+    def test_non_object_target_documents_are_left_alone(self) -> None:
+        stray = self.de / "array-shaped.json"
+        stray.write_text(json.dumps(["web.TEST.enabled"], indent=2) + "\n", "utf-8")
+        before = stray.read_bytes()
+        self.assertOk(
+            self.run_cli(
+                "content",
+                "remove-key",
+                "--apply",
+                "--key",
+                "web.TEST.enabled",
+                str(stray),
+            ),
+            "remove-key against a non-object target",
+        )
+        self.assertEqual(
+            before, stray.read_bytes(), "a non-object target file was rewritten"
+        )
+
     def test_orphans_skips_files_with_no_source_counterpart(self) -> None:
         stray = self.de / "no-such-source-file.json"
         stray.write_text(

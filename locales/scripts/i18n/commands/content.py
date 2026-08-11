@@ -1142,22 +1142,40 @@ def _add_field_handler(args) -> int:
 # ---------------------------------------------------------------------------
 
 
-def _remove_key_orphans(path: Path) -> set[str]:
-    """Keys in ``path`` with no counterpart in the source-locale file.
+def _remove_key_document(path: Path) -> dict:
+    """Load a locale file, accepting only a top-level JSON object.
 
-    An absent or unparseable source file yields no orphans. ``load_json_file``
-    returns ``{}`` for both, and treating that as "every key is an orphan"
-    would empty the locale file instead of cleaning it.
+    ``load_json_file`` hands back whatever ``json.load`` produced and only
+    falls back to ``{}`` on a decode error, so a *valid* non-object document
+    (an array, say) arrives here as a list. Iterating one yields its elements
+    rather than keys, which would make every key of a target file look
+    orphaned. Anything but a mapping is reported and treated as keyless, so
+    the file is skipped rather than emptied.
     """
-    source = load_json_file(CONTENT_DIR / SOURCE_LOCALE / path.name)
+    data = load_json_file(path)
+    if isinstance(data, dict):
+        return data
+    print(f"Warning: {path} is not a JSON object, skipping", file=sys.stderr)
+    return {}
+
+
+def _remove_key_orphans(path: Path, data: dict) -> set[str]:
+    """Keys in ``data`` with no counterpart in ``path``'s source-locale file.
+
+    An absent, unparseable, or non-object source file yields no orphans:
+    treating "no source keys" as "every key is an orphan" would empty the
+    locale file instead of cleaning it.
+    """
+    source = _remove_key_document(CONTENT_DIR / SOURCE_LOCALE / path.name)
     if not source:
         return set()
-    return {key for key in load_json_file(path) if key not in source}
+    return {key for key in data if key not in source}
 
 
 def _remove_key_from_file(
     path: Path,
     keys: set[str],
+    data: dict,
     *,
     dry_run: bool = True,
 ) -> list[str]:
@@ -1166,7 +1184,6 @@ def _remove_key_from_file(
     Returns the keys actually removed, sorted. Surviving keys keep their
     original order.
     """
-    data = load_json_file(path)
     removed = sorted(key for key in keys if key in data)
 
     for key in removed:
@@ -1200,11 +1217,13 @@ def _remove_key_handler(args) -> int:
 
         total_files += 1
 
+        data = _remove_key_document(path)
+
         keys = set(args.key)
         if args.orphans:
-            keys |= _remove_key_orphans(path)
+            keys |= _remove_key_orphans(path, data)
 
-        removed = _remove_key_from_file(path, keys, dry_run=dry_run)
+        removed = _remove_key_from_file(path, keys, data, dry_run=dry_run)
 
         if removed:
             status = "would remove" if dry_run else "removed"
