@@ -4,6 +4,7 @@
 // GET /api/invite/:token
 //
 
+import { effectiveRestrictToSchema } from '@/schemas/api/domains/responses/signin-config';
 import { z } from 'zod';
 
 /**
@@ -24,6 +25,12 @@ export type InviteBranding = z.infer<typeof inviteBrandingSchema>;
  * - password: Standard email/password authentication
  * - magic_link: Passwordless email authentication
  * - sso: Single sign-on via identity provider (e.g., Entra ID, Google, GitHub)
+ *
+ * NAMING SEAM: the wire type here is `magic_link` while the `restrict_to`
+ * value naming the same method is `email_auth`. They refer to one method.
+ * Anything correlating this list with `effective_restrict_to` must map across
+ * that seam rather than compare the strings (see AcceptInvite.vue's
+ * RESTRICT_TO_METHOD_TYPE).
  */
 export const authMethodPasswordSchema = z.object({
   type: z.literal('password'),
@@ -86,7 +93,36 @@ export const showInviteResponseSchema = z.object({
   status: invitationStatusSchema,
   actionable: z.boolean(),
   branding: inviteBrandingSchema.nullable().optional(),
+
+  /**
+   * Sign-in methods this HOST will actually accept, already filtered by
+   * `effective_restrict_to` server-side (ADR-024 A1). Can legitimately be an
+   * empty array — an `unavailable` resolution allows nothing — which must
+   * never be read as "no restriction".
+   *
+   * Custom-domain hosts only. On a canonical host the key is absent while
+   * `effective_restrict_to` is still present, so drive state off the
+   * resolution and treat this as supplementary detail (it is what carries the
+   * SSO `platform_route_name` needed to route the invitee).
+   */
   auth_methods: z.array(authMethodSchema).optional(),
+
+  /**
+   * The request host's resolved sign-in restriction (ADR-024 A2/A11, #4139).
+   *
+   * Emitted on EVERY host, and computed from the same resolver that gates
+   * `POST /api/invite/:token/signup` — so the page can render the method the
+   * host actually offers instead of a password form whose submit 404s. The
+   * client never re-derives this (A4 deleted exactly that).
+   *
+   * Reuses the settings API's type rather than declaring a parallel one: the
+   * server emits one wire shape for both surfaces.
+   *
+   * Optional because a pre-#4139 backend does not send it. Absent is treated
+   * as unrestricted — permissive on purpose, since failing closed on a
+   * missing field would take the invite page dark for every older install.
+   */
+  effective_restrict_to: effectiveRestrictToSchema.optional(),
 });
 
 export type ShowInviteResponse = z.infer<typeof showInviteResponseSchema>;

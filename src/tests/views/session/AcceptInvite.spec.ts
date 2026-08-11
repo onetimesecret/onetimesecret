@@ -28,6 +28,17 @@ vi.mock('@/shared/components/forms/BasicFormAlerts.vue', () => ({
   },
 }));
 
+// Stubbed so the restricted-host assertions can read the routing props
+// directly. The real button POSTs a form to /auth/sso/:provider, which jsdom
+// cannot follow and which would tell us nothing about this component.
+vi.mock('@/apps/session/components/SsoButton.vue', () => ({
+  default: {
+    name: 'SsoButton',
+    template: '<button type="button" data-testid="sso-button"></button>',
+    props: ['routeName', 'displayName', 'redirect'],
+  },
+}));
+
 const i18n = createTestI18n();
 
 describe('AcceptInvite', () => {
@@ -51,6 +62,33 @@ describe('AcceptInvite', () => {
     ...mockInvitation,
     status: 'expired',
     actionable: false, // Expired invitations cannot be acted upon
+  };
+
+  /**
+   * The host's resolved sign-in restriction (ADR-024 A2), as GET
+   * /api/invite/:token now reports it. Server-owned and read verbatim — the
+   * component never re-derives it, so these fixtures are the only input that
+   * drives the restricted states.
+   */
+  const unrestricted = { state: 'unrestricted', restrict_to: null, source: 'global' };
+  const restrictedTo = (method: string, source = 'global') => ({
+    state: 'restricted',
+    restrict_to: method,
+    source,
+  });
+  const unavailable = (method: string | null, source = 'global') => ({
+    state: 'unavailable',
+    restrict_to: method,
+    source,
+  });
+
+  /** The SSO entry the server leaves in auth_methods on a custom-domain host. */
+  const ssoAuthMethod = {
+    type: 'sso',
+    enabled: true,
+    provider_type: 'oidc',
+    display_name: 'Acme SSO',
+    platform_route_name: 'oidc',
   };
 
   beforeEach(() => {
@@ -243,6 +281,275 @@ describe('AcceptInvite', () => {
       await flushPromises();
 
       expect(wrapper.text()).toContain('web.organizations.invitations.must_sign_in');
+    });
+  });
+
+  /**
+   * ADR-024 A11 (#4139). POST /api/invite/:token/signup 404s and creates
+   * nothing on a host that does not permit password. These cover the UX half:
+   * the page must render the method the host actually offers rather than a
+   * password form whose submit dies.
+   */
+  describe('Host sign-in restriction (ADR-024 A11)', () => {
+    beforeEach(() => {
+      authStore.$patch({ isAuthenticated: false, cust: null });
+    });
+
+    const replyWith = (record: Record<string, unknown>, token = 'test-token-123') => {
+      getGlobalAxiosMock().onGet(`/api/invite/${token}`).reply(200, { record });
+    };
+
+    describe('host permits password (unchanged behaviour)', () => {
+      it('renders the signup form when the host is unrestricted', async () => {
+        replyWith({ ...mockInvitation, effective_restrict_to: unrestricted });
+
+        const wrapper = await mountComponent();
+
+        expect(wrapper.find('[data-testid="invite-signup-required"]').exists()).toBe(true);
+        expect(wrapper.find('[data-testid="invite-restricted-host"]').exists()).toBe(false);
+        expect(wrapper.find('[data-testid="invite-signin-unavailable"]').exists()).toBe(false);
+      });
+
+      it('renders the signup form when the host is restricted to password', async () => {
+        replyWith({ ...mockInvitation, effective_restrict_to: restrictedTo('password') });
+
+        const wrapper = await mountComponent();
+
+        expect(wrapper.find('[data-testid="invite-signup-required"]').exists()).toBe(true);
+        expect(wrapper.find('[data-testid="invite-restricted-host"]').exists()).toBe(false);
+      });
+
+      it('renders the signup form when the field is absent (pre-#4139 backend)', async () => {
+        // Absent is treated as unrestricted on purpose: failing closed on a
+        // missing field would take the invite page dark on every older install.
+        replyWith(mockInvitation);
+
+        const wrapper = await mountComponent();
+
+        expect(wrapper.find('[data-testid="invite-signup-required"]').exists()).toBe(true);
+        expect(wrapper.find('[data-testid="invite-restricted-host"]').exists()).toBe(false);
+      });
+    });
+
+    describe('host restricted to sso', () => {
+      it('explains SSO and routes to the provider from auth_methods', async () => {
+        replyWith({
+          ...mockInvitation,
+          effective_restrict_to: restrictedTo('sso', 'domain'),
+          auth_methods: [ssoAuthMethod],
+        });
+
+        const wrapper = await mountComponent();
+
+        expect(wrapper.find('[data-testid="invite-restricted-host"]').exists()).toBe(true);
+        // The dead password form must be gone, not merely supplemented.
+        expect(wrapper.find('[data-testid="invite-signup-required"]').exists()).toBe(false);
+        expect(wrapper.find('[data-testid="invite-signup-email-input"]').exists()).toBe(false);
+        expect(wrapper.text()).toContain('web.organizations.invitations.restricted_sso_body');
+
+        const sso = wrapper.findComponent({ name: 'SsoButton' });
+        expect(sso.exists()).toBe(true);
+        expect(sso.props('routeName')).toBe('oidc');
+        expect(sso.props('displayName')).toBe('Acme SSO');
+        // Comes back here to accept — A11's flow is sign in, then join.
+        expect(sso.props('redirect')).toBe('/invite/test-token-123');
+      });
+
+      it('does not imply the invitation was lost', async () => {
+        replyWith({
+          ...mockInvitation,
+          effective_restrict_to: restrictedTo('sso'),
+          auth_methods: [ssoAuthMethod],
+        });
+
+        const wrapper = await mountComponent();
+
+        expect(wrapper.text()).toContain('web.organizations.invitations.invitation_stays_pending');
+      });
+
+      it('falls back to the sign-in page when no auth_methods entry is present', async () => {
+        // Canonical host: auth_methods is custom-domain-only, so the page has
+        // no provider route to name but the restriction is still reported.
+        replyWith({ ...mockInvitation, effective_restrict_to: restrictedTo('sso') });
+
+        const wrapper = await mountComponent();
+
+        expect(wrapper.find('[data-testid="invite-restricted-host"]').exists()).toBe(true);
+        expect(wrapper.findComponent({ name: 'SsoButton' }).exists()).toBe(false);
+
+        // router-link renders as router-link-stub here, so `to` is the only
+        // assertable surface — hence the string path in the component.
+        const link = wrapper.find('[data-testid="restricted-signin-link"]');
+        expect(link.exists()).toBe(true);
+        expect(link.attributes('to')).toBe('/signin?redirect=%2Finvite%2Ftest-token-123');
+      });
+    });
+
+    describe('host restricted to a method this page cannot complete', () => {
+      it('names the method and points at the invitation email link', async () => {
+        replyWith({ ...mockInvitation, effective_restrict_to: restrictedTo('email_auth') });
+
+        const wrapper = await mountComponent();
+
+        expect(wrapper.find('[data-testid="invite-restricted-host"]').exists()).toBe(true);
+        expect(wrapper.find('[data-testid="invite-signup-required"]').exists()).toBe(false);
+        expect(wrapper.text()).toContain('web.organizations.invitations.restricted_host_body');
+        expect(wrapper.find('[data-testid="restricted-use-email-link"]').exists()).toBe(true);
+        // No SSO affordance for a non-SSO restriction.
+        expect(wrapper.findComponent({ name: 'SsoButton' }).exists()).toBe(false);
+        expect(wrapper.find('[data-testid="restricted-signin-link"]').exists()).toBe(false);
+      });
+
+      it('still hides the form when the method is unrecognized', async () => {
+        // The schema degrades an unknown method to null while `state` keeps
+        // carrying the truth. A method we cannot name is still one we cannot
+        // offer — treating it as unrestricted would put the password form back
+        // in front of the A11 gate.
+        replyWith({ ...mockInvitation, effective_restrict_to: restrictedTo('passkey_v2') });
+
+        const wrapper = await mountComponent();
+
+        expect(wrapper.find('[data-testid="invite-restricted-host"]').exists()).toBe(true);
+        expect(wrapper.find('[data-testid="invite-signup-required"]').exists()).toBe(false);
+        expect(wrapper.text()).toContain(
+          'web.organizations.invitations.restricted_host_unknown_body'
+        );
+      });
+    });
+
+    describe('sign-in unavailable on this host', () => {
+      it('reports an honest message rather than a form or a blank screen', async () => {
+        replyWith({ ...mockInvitation, effective_restrict_to: unavailable('sso') });
+
+        const wrapper = await mountComponent();
+
+        expect(wrapper.find('[data-testid="invite-signin-unavailable"]').exists()).toBe(true);
+        expect(wrapper.find('[data-testid="invite-signup-required"]').exists()).toBe(false);
+        expect(wrapper.find('[data-testid="invite-restricted-host"]').exists()).toBe(false);
+        expect(wrapper.text()).toContain('web.organizations.invitations.signin_unavailable_body');
+        // Still tells them the invitation survives.
+        expect(wrapper.text()).toContain('web.organizations.invitations.invitation_stays_pending');
+      });
+
+      it('names the conflict rather than showing either side as the winner', async () => {
+        replyWith({ ...mockInvitation, effective_restrict_to: unavailable('sso', 'conflict') });
+
+        const wrapper = await mountComponent();
+
+        expect(wrapper.find('[data-testid="invite-signin-unavailable"]').exists()).toBe(true);
+        expect(wrapper.text()).toContain(
+          'web.organizations.invitations.signin_unavailable_conflict_body'
+        );
+      });
+
+      it('falls back to unnamed copy when the method is unrecognized', async () => {
+        replyWith({ ...mockInvitation, effective_restrict_to: unavailable('passkey_v2') });
+
+        const wrapper = await mountComponent();
+
+        expect(wrapper.text()).toContain(
+          'web.organizations.invitations.signin_unavailable_unknown_body'
+        );
+      });
+    });
+
+    describe('restriction never masks a token failure', () => {
+      it('renders the bad-token error, not a restriction, for an unknown token', async () => {
+        // A genuine 404 from GET must still read as a bad token. It cannot be
+        // confused with the A11 signup 404: the restriction is known BEFORE
+        // any form renders, so `invalid` keeps sole ownership of token failures.
+        getGlobalAxiosMock().onGet('/api/invite/invalid-token').reply(404, { error: 'Not found' });
+
+        const wrapper = await mountComponent('invalid-token');
+        await flushPromises();
+
+        expect(wrapper.find('[data-testid="invite-invalid"]').exists()).toBe(true);
+        expect(wrapper.text()).toContain('web.organizations.invitations.invalid_token');
+        expect(wrapper.find('[data-testid="invite-restricted-host"]').exists()).toBe(false);
+        expect(wrapper.find('[data-testid="invite-signin-unavailable"]').exists()).toBe(false);
+      });
+
+      it('reports an expired invitation as expired even on a restricted host', async () => {
+        // Ordering guard: non-actionable is checked before the restriction, so
+        // an expired token on an SSO-only host reads as expired.
+        replyWith({
+          ...mockExpiredInvitation,
+          effective_restrict_to: restrictedTo('sso'),
+          auth_methods: [ssoAuthMethod],
+        });
+
+        const wrapper = await mountComponent();
+
+        expect(wrapper.find('[data-testid="invite-invalid"]').exists()).toBe(true);
+        expect(wrapper.text()).toContain('web.organizations.invitations.expired_message');
+        expect(wrapper.find('[data-testid="invite-restricted-host"]').exists()).toBe(false);
+      });
+
+      it('reports an unavailable host as unavailable, not as a bad token', async () => {
+        replyWith({ ...mockInvitation, effective_restrict_to: unavailable('sso') });
+
+        const wrapper = await mountComponent();
+
+        expect(wrapper.find('[data-testid="invite-invalid"]').exists()).toBe(false);
+        expect(wrapper.text()).not.toContain('web.organizations.invitations.invalid_token');
+      });
+    });
+
+    describe('authenticated invitee', () => {
+      it('can still accept on a restricted host', async () => {
+        // POST /:token/accept is deliberately ungated (account-scoped, A7), so
+        // the restriction is spent once a session exists. This is what lets
+        // A11's flow terminate: SSO signs them in, they return here, they join.
+        authStore.$patch({
+          isAuthenticated: true,
+          cust: {
+            custid: 'cust-123',
+            email: 'invitee@example.com',
+            verified: true,
+            created: new Date(),
+            updated: new Date(),
+          },
+        });
+        replyWith({
+          ...mockInvitation,
+          effective_restrict_to: restrictedTo('sso'),
+          auth_methods: [ssoAuthMethod],
+        });
+
+        const wrapper = await mountComponent();
+
+        expect(wrapper.find('[data-testid="invite-direct-accept"]').exists()).toBe(true);
+        expect(wrapper.find('[data-testid="accept-invitation-btn"]').exists()).toBe(true);
+        expect(wrapper.find('[data-testid="invite-restricted-host"]').exists()).toBe(false);
+      });
+    });
+
+    describe('accessibility', () => {
+      it('announces the restriction rather than relying on color', async () => {
+        replyWith({
+          ...mockInvitation,
+          effective_restrict_to: restrictedTo('sso'),
+          auth_methods: [ssoAuthMethod],
+        });
+
+        const wrapper = await mountComponent();
+
+        const notice = wrapper.find('[data-testid="restricted-host-notice"]');
+        expect(notice.attributes('role')).toBe('status');
+        expect(notice.attributes('aria-live')).toBe('polite');
+        // The meaning is in the text, not the hue.
+        expect(notice.text()).toContain('web.organizations.invitations.restricted_host_title');
+      });
+
+      it('announces the unavailable dead end assertively', async () => {
+        replyWith({ ...mockInvitation, effective_restrict_to: unavailable('sso') });
+
+        const wrapper = await mountComponent();
+
+        const notice = wrapper.find('[data-testid="signin-unavailable-notice"]');
+        expect(notice.attributes('role')).toBe('alert');
+        expect(notice.text()).toContain('web.organizations.invitations.signin_unavailable_title');
+      });
     });
   });
 

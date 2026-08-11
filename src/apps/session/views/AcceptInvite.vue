@@ -7,6 +7,7 @@
   import Skeleton from '@/shared/components/closet/Skeleton.vue';
   import InviteSignUpForm from '@/apps/session/components/InviteSignUpForm.vue';
   import InviteSignInForm from '@/apps/session/components/InviteSignInForm.vue';
+  import SsoButton from '@/apps/session/components/SsoButton.vue';
   import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
   import { classifyError } from '@/schemas/errors';
   import { useAuth } from '@/shared/composables/useAuth';
@@ -22,6 +23,7 @@
     showInviteResponseSchema,
     type ShowInviteResponse,
   } from '@/schemas/api/invite/responses/show-invite';
+  import type { SigninRestrictTo } from '@/schemas/contracts/custom-domain/signin-config';
 
   const { t } = useI18n();
   const route = useRoute();
@@ -65,11 +67,19 @@
    * - accepted: User just accepted in this session (terminal, redirect pending)
    * - declined: User just declined in this session (terminal, redirect pending)
    * - invalid: Invitation is expired, declined, revoked, or doesn't exist
+   * - restricted_host: This host restricts sign-in to a method that is not
+   *   password (ADR-024 A11), so the signup form here would 404. Offers the
+   *   host's actual method instead.
+   * - signin_unavailable: The host's restriction cannot be honoured at all
+   *   (resolution `unavailable`, including `source: conflict`), so no
+   *   sign-in method works here.
    */
   type InviteState =
     | 'loading'
     | 'signup_required'
     | 'signin_required'
+    | 'restricted_host'
+    | 'signin_unavailable'
     | 'direct_accept'
     | 'wrong_email'
     | 'already_accepted'
@@ -103,12 +113,169 @@
 
     // Invitation is actionable (pending, not expired)
     if (!authStore.isAuthenticated) {
+      // ADR-024 A11 (#4139). Only the UNAUTHENTICATED branch consults the
+      // restriction: it governs which method may MINT a session on this host,
+      // and every state below this line is about doing exactly that. Once a
+      // session exists the restriction is spent — POST /:token/accept is
+      // deliberately ungated (account-scoped, A7 "Scope, settled") — so an
+      // authenticated visitor must reach direct_accept even on a host that
+      // restricts sign-in. This is what makes A11's flow terminate: SSO signs
+      // them in, they come back here authenticated, and they accept.
+      if (signinUnavailable.value) return 'signin_unavailable';
+      if (restrictedAway.value) return 'restricted_host';
       return signinFallback.value ? 'signin_required' : 'signup_required';
     }
 
     // User is authenticated
     if (emailMismatch.value) return 'wrong_email';
     return 'direct_accept';
+  });
+
+  /**
+   * Server-resolved restriction for the host this page was served from
+   * (ADR-024 A2). Read verbatim, never re-derived — A4 deleted the client-side
+   * re-derivation this would otherwise be.
+   *
+   * Absent means a pre-#4139 backend, which is treated as unrestricted so the
+   * page behaves exactly as it did before this change.
+   */
+  const restrictToResolution = computed(() => invitation.value?.effective_restrict_to ?? null);
+
+  /**
+   * The restriction stands but nothing can satisfy it, so this host offers no
+   * way to sign in at all.
+   *
+   * `source: 'conflict'` (global and domain naming different methods, which
+   * has no intersection under A8) always resolves `unavailable`, so this one
+   * check covers both; only the COPY branches on source.
+   */
+  const signinUnavailable = computed(() => restrictToResolution.value?.state === 'unavailable');
+
+  /**
+   * `restrict_to` method values map onto `auth_methods[].type` values, which
+   * disagree on one name: the restriction says `email_auth`, the method list
+   * says `magic_link`. Correlating them by raw string equality silently drops
+   * that method from the UI.
+   */
+  const RESTRICT_TO_METHOD_TYPE: Record<SigninRestrictTo, string> = {
+    password: 'password',
+    email_auth: 'magic_link',
+    webauthn: 'webauthn',
+    sso: 'sso',
+  };
+
+  /**
+   * This host permits a single method and it is NOT password — i.e. the case
+   * where the signup form below would POST into the A11 gate and 404.
+   *
+   * False when unrestricted, when restricted to password (nothing changes),
+   * and when the resolution is unavailable (that is signinUnavailable's
+   * state, and it must not also read as "use this other method").
+   *
+   * TRUE when `state` is `restricted` but `restrict_to` parsed to null: the
+   * schema degrades an unrecognized method to null while `state` keeps
+   * carrying the truth. A method this client version cannot name is still a
+   * method it cannot offer, and treating it as unrestricted would put the
+   * password form back in front of the gate — the exact fail-open this state
+   * exists to close. The copy falls back to an unnamed variant.
+   */
+  const restrictedAway = computed(() => {
+    const resolution = restrictToResolution.value;
+    if (resolution?.state !== 'restricted') return false;
+    return resolution.restrict_to !== 'password';
+  });
+
+  /** Method names, reused from the settings UI so both surfaces say one thing. */
+  const METHOD_LABEL_KEYS: Record<SigninRestrictTo, string> = {
+    password: 'web.domains.signin.method_password',
+    email_auth: 'web.domains.signin.method_email_auth',
+    webauthn: 'web.domains.signin.method_webauthn',
+    sso: 'web.domains.signin.method_sso',
+  };
+
+  /** Human label for the restricted method, or null when it names none. */
+  const restrictedMethodLabel = computed<string | null>(() => {
+    const method = restrictToResolution.value?.restrict_to;
+    return method ? t(METHOD_LABEL_KEYS[method]) : null;
+  });
+
+  /**
+   * The `auth_methods` entry describing the restricted method, when the
+   * server offered one.
+   *
+   * Only present on custom-domain hosts (auth_methods is scoped to them), and
+   * only when the entry survived the server-side resolution filter. Crosses
+   * the naming seam rather than comparing raw strings, so an `email_auth`
+   * restriction still finds its `magic_link` entry.
+   */
+  const restrictedMethodEntry = computed(() => {
+    const method = restrictToResolution.value?.restrict_to;
+    if (!method) return null;
+    const wireType = RESTRICT_TO_METHOD_TYPE[method];
+    return invitation.value?.auth_methods?.find((entry) => entry.type === wireType) ?? null;
+  });
+
+  /**
+   * The SSO entry, when this host offered a routable one. `platform_route_name`
+   * is how the invitee reaches THIS tenant's provider; the bootstrap `features`
+   * payload does not carry it, which is why the page reads it from here.
+   */
+  const ssoMethod = computed(() => {
+    const entry = restrictedMethodEntry.value;
+    return entry?.type === 'sso' && entry.platform_route_name ? entry : null;
+  });
+
+  /**
+   * Whether the host's single permitted method is SSO — the one restricted
+   * case this page can actually complete, by routing the invitee into the
+   * provider (A11: SSO signs them in and creates the account cleanly, then
+   * they return here authenticated and accept).
+   */
+  const ssoRestricted = computed(() => restrictToResolution.value?.restrict_to === 'sso');
+
+  /**
+   * Sign-in page, returning here afterwards. A string rather than a location
+   * object to match the other router-links in this template.
+   */
+  const signinPath = computed(
+    () => `/signin?redirect=${encodeURIComponent(`/invite/${invitationToken.value}`)}`
+  );
+
+  /**
+   * Copy for the restricted-but-usable state.
+   *
+   * Every branch says the same two things: this host does not take the method
+   * the form would have used, and the invitation is untouched. Nothing here
+   * implies the invitation was consumed or lost — under A11 the gated signup
+   * creates nothing, so it is still pending.
+   */
+  const restrictedNotice = computed(() => {
+    if (ssoRestricted.value) {
+      return t('web.organizations.invitations.restricted_sso_body');
+    }
+    const method = restrictedMethodLabel.value;
+    return method
+      ? t('web.organizations.invitations.restricted_host_body', { method })
+      : t('web.organizations.invitations.restricted_host_unknown_body');
+  });
+
+  /**
+   * Copy for the dead-end state, mirroring how the domain settings page
+   * renders the same resolution.
+   *
+   * A conflict is named AS a conflict — `restrict_to` carries the global
+   * method, the one still in force, and presenting it as the winner would
+   * misdescribe a state where neither side applies.
+   */
+  const unavailableNotice = computed(() => {
+    const resolution = restrictToResolution.value;
+    const method = restrictedMethodLabel.value;
+    if (resolution?.source === 'conflict' && method) {
+      return t('web.organizations.invitations.signin_unavailable_conflict_body', { method });
+    }
+    return method
+      ? t('web.organizations.invitations.signin_unavailable_body', { method })
+      : t('web.organizations.invitations.signin_unavailable_unknown_body');
   });
 
   /**
@@ -541,6 +708,218 @@
           @mfa-required="onMfaRequired"
           @decline="handleDecline" />
       </div>
+
+      <p v-if="invitation" class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+        {{ t('web.organizations.invitations.expires_at') }}
+        <span class="font-medium text-gray-900 dark:text-white">{{ formatDate(invitation.expires_at) }}</span>
+      </p>
+    </div>
+
+    <!--
+      Restricted Host State (ADR-024 A11, #4139)
+
+      This host restricts sign-in to a single method that is not password, so
+      POST /api/invite/:token/signup 404s and creates nothing. Render the
+      method the host actually offers instead of a form that cannot submit.
+    -->
+    <div
+      v-else-if="inviteState === 'restricted_host'"
+      data-testid="invite-restricted-host"
+      :style="{ '--brand-primary': primaryColor }"
+      class="rounded-lg border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <!-- Header -->
+      <div class="mb-6 text-center">
+        <OIcon
+          collection="heroicons"
+          name="envelope"
+          class="mx-auto size-12 text-brand-600 dark:text-brand-400"
+          aria-hidden="true" />
+        <h1 class="mt-4 text-2xl font-bold text-gray-900 dark:text-white">
+          {{ t('web.organizations.invitations.accept_invitation') }}
+        </h1>
+      </div>
+
+      <!-- Invite Context (org name, role, inviter) -->
+      <div
+        v-if="invitation"
+        data-testid="invitation-context"
+        class="space-y-4">
+        <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
+          <p class="mb-1 text-sm text-gray-600 dark:text-gray-400">
+            {{ t('web.organizations.invitations.you_are_invited') }}
+          </p>
+          <p class="text-lg font-semibold text-gray-900 dark:text-white">
+            {{ invitation.organization_name }}
+          </p>
+          <p v-if="invitation.invited_by" class="mt-1 text-sm text-gray-400 dark:text-gray-500">
+            by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by }}</span>
+          </p>
+          <p class="text-sm text-gray-400 dark:text-gray-500">
+            as a <span class="text-gray-600 dark:text-gray-300">{{ t(`web.organizations.invitations.roles.${invitation.role}`) }}</span>.
+          </p>
+        </div>
+      </div>
+
+      <!--
+        Announced, not implied by color: role="status" + aria-live carry this
+        to assistive tech, the heading states the constraint in words, and the
+        icon is decorative. Fixed semantic sky/info hue (#4132) rather than a
+        brand token — this is a status claim and must read the same on every
+        domain.
+      -->
+      <div
+        class="mt-6 rounded-lg border border-sky-200 bg-sky-50 p-4 dark:border-sky-800 dark:bg-sky-950/40"
+        data-testid="restricted-host-notice"
+        role="status"
+        aria-live="polite">
+        <div class="flex">
+          <OIcon
+            collection="heroicons"
+            name="information-circle"
+            class="size-5 shrink-0 text-sky-600 dark:text-sky-300"
+            aria-hidden="true" />
+          <div class="ml-3">
+            <p class="font-medium text-sky-800 dark:text-sky-100">
+              {{ t('web.organizations.invitations.restricted_host_title') }}
+            </p>
+            <p class="mt-1 text-sm text-sky-700 dark:text-sky-200">
+              {{ restrictedNotice }}
+            </p>
+            <!--
+              The invitation is NOT consumed by the gated signup (A11 creates
+              nothing), so say so plainly rather than leaving the invitee to
+              assume they burned their link.
+            -->
+            <p class="mt-2 text-sm text-sky-700 dark:text-sky-200">
+              {{ t('web.organizations.invitations.invitation_stays_pending') }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SSO: route them to the provider this host actually uses. -->
+      <div
+        v-if="ssoRestricted"
+        class="mt-6">
+        <SsoButton
+          v-if="ssoMethod"
+          :route-name="ssoMethod.platform_route_name!"
+          :display-name="ssoMethod.display_name ?? undefined"
+          :redirect="`/invite/${invitationToken}`" />
+        <!--
+          No auth_methods entry to route with — the host is canonical (the
+          list is custom-domain-only) or SSO is served by the platform. The
+          sign-in page resolves the same restriction and renders the provider
+          buttons this page cannot name; redirect brings them back here to
+          accept.
+        -->
+        <router-link
+          v-else
+          :to="signinPath"
+          data-testid="restricted-signin-link"
+          class="inline-flex w-full justify-center rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
+          {{ t('web.organizations.invitations.restricted_sso_cta') }}
+        </router-link>
+      </div>
+
+      <!--
+        Not SSO: nothing on this page can complete the restricted method, so
+        point at the canonical link from the invitation email rather than
+        inventing a host we cannot verify.
+      -->
+      <p
+        v-else
+        data-testid="restricted-use-email-link"
+        class="mt-6 text-center text-sm text-gray-600 dark:text-gray-300">
+        {{ t('web.organizations.invitations.restricted_use_email_link') }}
+      </p>
+
+      <p v-if="invitation" class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+        {{ t('web.organizations.invitations.expires_at') }}
+        <span class="font-medium text-gray-900 dark:text-white">{{ formatDate(invitation.expires_at) }}</span>
+      </p>
+    </div>
+
+    <!--
+      Sign-in Unavailable State (ADR-024 A3/A8, #4139)
+
+      The host's restriction stands but cannot be honoured — its method cannot
+      run here, or global and domain name different methods and neither
+      applies. No sign-in method works, so offer none and say why.
+    -->
+    <div
+      v-else-if="inviteState === 'signin_unavailable'"
+      data-testid="invite-signin-unavailable"
+      :style="{ '--brand-primary': primaryColor }"
+      class="rounded-lg border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <!-- Header -->
+      <div class="mb-6 text-center">
+        <OIcon
+          collection="heroicons"
+          name="envelope"
+          class="mx-auto size-12 text-brand-600 dark:text-brand-400"
+          aria-hidden="true" />
+        <h1 class="mt-4 text-2xl font-bold text-gray-900 dark:text-white">
+          {{ t('web.organizations.invitations.invitation_details') }}
+        </h1>
+      </div>
+
+      <!-- Invite Context (org name, role, inviter) -->
+      <div
+        v-if="invitation"
+        data-testid="invitation-context"
+        class="space-y-4">
+        <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
+          <p class="mb-1 text-sm text-gray-600 dark:text-gray-400">
+            {{ t('web.organizations.invitations.you_are_invited') }}
+          </p>
+          <p class="text-lg font-semibold text-gray-900 dark:text-white">
+            {{ invitation.organization_name }}
+          </p>
+          <p v-if="invitation.invited_by" class="mt-1 text-sm text-gray-400 dark:text-gray-500">
+            by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by }}</span>
+          </p>
+          <p class="text-sm text-gray-400 dark:text-gray-500">
+            as a <span class="text-gray-600 dark:text-gray-300">{{ t(`web.organizations.invitations.roles.${invitation.role}`) }}</span>.
+          </p>
+        </div>
+      </div>
+
+      <!--
+        role="alert": a dead end the invitee cannot work around here, so it is
+        announced assertively. Fixed semantic amber/warning hue (#4132). Not
+        red — nothing is broken about the invitation itself, and the wording
+        keeps that distinct from a bad token.
+      -->
+      <div
+        class="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/40"
+        data-testid="signin-unavailable-notice"
+        role="alert">
+        <div class="flex">
+          <OIcon
+            collection="heroicons"
+            name="exclamation-triangle"
+            class="size-5 shrink-0 text-amber-600 dark:text-amber-300"
+            aria-hidden="true" />
+          <div class="ml-3">
+            <p class="font-medium text-amber-800 dark:text-amber-100">
+              {{ t('web.organizations.invitations.signin_unavailable_title') }}
+            </p>
+            <p class="mt-1 text-sm text-amber-700 dark:text-amber-200">
+              {{ unavailableNotice }}
+            </p>
+            <p class="mt-2 text-sm text-amber-700 dark:text-amber-200">
+              {{ t('web.organizations.invitations.invitation_stays_pending') }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <p
+        data-testid="restricted-use-email-link"
+        class="mt-6 text-center text-sm text-gray-600 dark:text-gray-300">
+        {{ t('web.organizations.invitations.restricted_use_email_link') }}
+      </p>
 
       <p v-if="invitation" class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.organizations.invitations.expires_at') }}
