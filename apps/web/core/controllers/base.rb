@@ -196,13 +196,20 @@ module Core
       # @return [Boolean] false when this host restricts the method away
       def restrict_to_allows?(method_name)
         global = Onetime.auth_config.restrict_to
-        # Fail closed when a configured global restriction's backing method is
-        # unavailable at runtime (A3): the restriction stands, so NOTHING is
-        # permitted — never widen back to the other methods.
-        return false if global && !Onetime.auth_config.restrict_to_available?
 
+        # A3's runtime-availability half is applied BY THE RESOLVER, not here.
+        # This used to guard `return false if global && !restrict_to_available?`
+        # ahead of resolution, which was wrong in one case: a DOMAIN-only
+        # restriction went dark whenever the unrelated global method was dead.
+        # Passing the flag in lets the resolver narrow only what the global half
+        # actually governs. Four consumers each remembering this rule is the
+        # drift A2 exists to kill.
         Onetime::CustomDomain::SigninConfig
-          .resolve_restrict_to(global, domain_signin_config)
+          .resolve_restrict_to(
+            global,
+            domain_signin_config,
+            available: Onetime::CustomDomain::SigninConfig.global_restriction_available?(global),
+          )
           .allows?(method_name)
       end
 

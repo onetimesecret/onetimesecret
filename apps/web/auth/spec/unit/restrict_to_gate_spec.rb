@@ -63,7 +63,10 @@ RSpec.describe Auth::RestrictTo do
       'password' => %i[login create_account reset_password_request reset_password
                        verify_account verify_account_resend],
       'email_auth' => %i[email_auth_request email_auth],
-      'webauthn' => %i[webauthn_login webauthn_autofill_js webauthn_auth webauthn_auth_js],
+      # webauthn_auth / webauthn_auth_js are deliberately absent: they are the
+      # SECOND-FACTOR ceremony, exempt per ADR-024 A10. Covered instead by the
+      # UNGATED_ROUTES assertion below, which asserts they are never rejected.
+      'webauthn' => %i[webauthn_login webauthn_autofill_js],
     }.each do |method_name, routes|
       routes.each do |route|
         it "404s #{route} when the host permits only a different method" do

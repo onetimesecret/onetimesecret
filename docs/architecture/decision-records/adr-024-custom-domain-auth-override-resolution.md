@@ -339,3 +339,138 @@ therefore ratified as a deliberate split, not a reconciliation debt.
 Pre-auth password surfaces are *not* exempt: `create-account`,
 `reset-password-request`, and `reset-password` are reachable unauthenticated
 and go dark with the method.
+
+#### A8. Resolution intersects; a domain config never widens a global restriction
+
+Found while implementing A2 (2026-08-11). Resolution was **replace**: an
+`enabled?` domain config decided alone, so an enabled domain config with
+`restrict_to` *unset* erased a global restriction on that host. An operator
+who globally restricted to SSO lost that restriction on any host where a
+tenant enabled a signin config — a tenant escaping an operator-level
+restriction, silently.
+
+This is not a new policy. Invariant 1 already says explicit config may
+narrow, never widen; the code contradicted an invariant this ADR already
+carried. Normative resolution is intersection:
+
+| global | domain | result |
+|---|---|---|
+| set | unset | global restriction stands |
+| unset | set | domain restriction stands |
+| set | set, equal | that method |
+| set | set, different | `:unavailable` |
+| unset | unset | `:unrestricted` |
+
+Two different single-method restrictions have no intersection, so a
+conflict fails closed rather than picking a winner. Picking one would mean
+either a tenant overriding the operator (A8's whole defect) or the operator
+silently discarding a tenant's deliberate setting.
+
+#### A9. Conflicting `AUTH_*_ONLY` env flags are a boot error
+
+Found while implementing A3-global (2026-08-11). `etc/defaults/auth.defaults.yaml`
+renders `restrict_to` from four `AUTH_*_ONLY` env vars and emits **nothing**
+when more than one is true. An operator setting both `AUTH_SSO_ONLY=true`
+and `AUTH_PASSWORD_ONLY=true` gets no restriction and no signal. `AuthConfig`
+cannot detect this — it receives only the rendered blank, so #4140's fix
+does not reach it.
+
+Same class as #4140, one layer up, and it fails closed the same way:
+conflicting flags are a fatal boot error naming every flag set, per A3's
+ratified position that boot-determinable unavailability fails loud. Zero or
+one flag behaves as before.
+
+Recorded for posterity: three independent silent fail-opens in one feature —
+#4140 (availability check returning nil), A8 (domain widening past global),
+A9 (template swallowing conflicts). Each was written by someone reasonably
+choosing "degrade gracefully" at a local decision point. Graceful
+degradation of an *access control* is a fail-open by another name; the
+default for this feature is to refuse, loudly.
+
+#### A10. Second-factor ceremonies are exempt — A7's enumeration corrected
+
+Found while implementing A1 (2026-08-11). A7 listed `POST /webauthn-auth`
+and `GET /webauthn-auth-js` among the endpoints to gate. That was wrong, and
+A7's own stated principle overrides its own list.
+
+Both routes carry `require_login` + `require_two_factor_not_authenticated` —
+they are reachable only with a partially-authenticated session. That is
+exactly the "reachable only when authenticated, therefore account-scoped"
+test A7 uses to exempt `webauthn-setup` and `webauthn-remove`. `restrict_to`
+governs which methods may be **offered as a sign-in choice** on a host; a
+second factor is not a choice. The account has already authenticated with a
+first factor the host permits, and which second factor it holds is a
+property of the account — the #4138 axis, not the request host.
+
+Gating them is a lockout: on a host restricted to `sso` or `password`, an
+account whose second factor is a passkey could never complete the challenge.
+
+The tell was an internal inconsistency: `otp_auth`, the TOTP second-factor
+ceremony, was already exempt. The same ceremony must not be gated for one
+authenticator and exempt for another. When classifying a route, ask which
+axis it turns on — offer-time (host) or account-time (identity) — rather
+than matching on the method name it happens to mention.
+
+**Also corrected in A7's enumeration, found the same way:**
+
+- `verify-account` and `verify-account-resend` were missing and ARE gated.
+  Unauthenticated, and `verify_account_autologin?` mints a session, so a key
+  issued on an unrestricted host would otherwise replay on a restricted one.
+- The multi-phase magic link is not a route. With `email_auth` loaded,
+  `POST /login` for a passwordless account dispatches a magic link via
+  `force_email_auth?`, so route-level gating alone emits an `email_auth`
+  credential on a password-restricted host. Closed at
+  `before_email_auth_request`.
+- `handle_internal_request` calls `before_rodauth` with a synthesized env
+  carrying no Host. It must be exempt, or invite-signup autologin 404s.
+- `webauthn-credentials` needs nothing — already `logged_in?`-gated
+  throughout, hence exempt under A7's own rule.
+
+The general lesson, recorded because A7 was written confidently and was
+still short four entries: an endpoint enumeration written from documentation
+is a hypothesis. The assertion that has teeth is the coverage spec reading
+the live frozen `route_hash` and failing on any route classified neither
+gated nor exempt — exemptions listed explicitly, never defaulted-open.
+
+#### A11. Invite signup is gated; the internal-request exemption left a hole
+
+Found while implementing A1 (2026-08-11). `POST /api/invite/:token/signup`
+was the last unguarded path to mint a session by a restricted-away method.
+It escaped every other gate because it creates the account through
+`Auth::Config.create_account` (Rodauth `internal_request`), and A10 exempts
+internal requests — correctly, since an internal request carries no request
+host. But the *endpoint* does know the host. The exemption was written for
+the inner call and silently covered the outer one.
+
+Gated: `Auth::RestrictTo.allows?(env, 'password')` as the first line of
+`raise_concerns`, before the rate limiter — a dark endpoint should cost no
+budget and touch no invitation state. Rejects 404 per A7. `GET /:token` and
+`POST /:token/accept` stay ungated: display surface and account-scoped
+respectively.
+
+**Why gating beats the surgical alternative.** The obvious softer fix —
+create the account, suppress only the autologin — is wrong twice over, and
+both errors are worth recording because they look like the careful choice:
+
+1. It preserves nothing. This endpoint deliberately leaves the invitation
+   *pending*; acceptance happens later via the `sessionauth` route. There is
+   no "invite still accepted" state to protect. Its only outputs are an
+   account and a session.
+2. The orphan account it leaves behind actively strands the invitee. On an
+   SSO-restricted tenant host, an unauthenticated SSO callback whose email
+   matches an existing *unlinked* account hits the H-3 refusal in
+   `apps/web/auth/config/hooks/omniauth.rb`, because the password-challenge
+   interstitial mints on the platform surface only. The account we would
+   have created is exactly what prevents SSO from creating a clean one.
+   Creating nothing is what lets the invitee in.
+
+No exemption is warranted on reachability grounds. The invitation email
+links to the canonical host, but the endpoint is host-agnostic (served on
+every host by a single `Rack::URLMap`) and the *global* `restrict_to` half
+applies on canonical anyway. The live case is an SSO-only install; the
+per-domain case is the edge, not the reverse.
+
+Scope correction: this endpoint is full-mode-only in practice regardless of
+the gate — `email_exists_in_authdb?` reaches `Auth::Database.connection`,
+which is nil unless `full_enabled?`, so a simple-mode POST 500s before
+reaching any of this.
