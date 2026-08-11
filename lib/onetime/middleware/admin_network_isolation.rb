@@ -160,10 +160,15 @@ module Onetime
     # Otto::Utils.resolve_client_ip the auth strategies use, so the network
     # gate still agrees with ban checks, sessions, and audit attribution on WHO
     # the client is. A request that never passed the otto mount has no closure;
-    # membership then falls back to comparing the resolved IP itself, which in
-    # that topology was never masked. When no client IP can be resolved and an
-    # allowlist is configured, the request is denied (404) — fail closed; the
-    # closure answers false for a request with no resolvable IP.
+    # membership then falls back to comparing the resolved IP itself, and that
+    # same mount is what writes env['otto.client_ip'], so with it absent
+    # #resolve_client_ip re-resolves the unmasked address. The closure and the
+    # canonical IP are co-written by that one middleware: an env that sets
+    # otto.client_ip by hand without running it is out of contract, and the
+    # fallback would judge whatever masked value it was handed. When no client
+    # IP can be resolved and an allowlist is configured, the request is denied
+    # (404) — fail closed; the closure answers false for a request with no
+    # resolvable IP.
     #
     # ## Path matching
     #
@@ -499,7 +504,11 @@ module Onetime
       # A request that never passed IPPrivacyMiddleware (embeddings, bare-Rack
       # tests) carries no closure — anything non-callable in the key is judged
       # the same way, never called. #allowed? then compares the resolved IP
-      # itself, which in that topology was never masked.
+      # itself, and that same topology leaves env['otto.client_ip'] unset, so
+      # #resolve_client_ip re-resolves the unmasked address. The two keys are
+      # co-written by that one middleware: an env that sets otto.client_ip by
+      # hand without running it is out of contract, and the fallback would
+      # judge whatever masked value it was handed.
       def network_allowed?(env)
         matcher = env['otto.ip_match']
         matcher.respond_to?(:call) ? matcher.call(@allowed_ranges) : allowed?(resolve_client_ip(env))

@@ -532,9 +532,12 @@ end
 @single_admin.call(ip_match_env(nil, nil)).first
 #=> 404
 
-## WITHOUT the closure (a request that never passed the otto mount) membership
-## falls back to comparing the resolved IP — which in that topology was never
-## masked. Every other CIDR case in this file exercises this fallback.
+## WITHOUT the closure membership falls back to comparing the resolved IP. This
+## harness writes otto.client_ip by hand and no closure — a shape the otto mount
+## never produces — so the fallback judges exactly the value it was handed, full
+## precision only because the harness wrote it that way. In a real no-middleware
+## topology the key is absent and #resolve_client_ip re-resolves at full
+## precision. Every other CIDR case in this file exercises this fallback.
 @single_admin.call(admin_env(script_name: '', path_info: '/colonel',
                              client_ip: '198.51.100.45')).first
 #=> 200
