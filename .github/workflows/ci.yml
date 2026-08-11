@@ -258,7 +258,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
 
@@ -291,7 +291,7 @@ jobs:
       - *checkout-step
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
 
@@ -398,7 +398,7 @@ jobs:
         uses: ./.github/actions/setup-ruby-test-env
 
       - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
 
@@ -474,7 +474,7 @@ jobs:
         uses: ./.github/actions/setup-node-env
 
       - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
 
@@ -528,7 +528,7 @@ jobs:
         uses: ./.github/actions/setup-ruby-test-env
 
       - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
 
@@ -560,7 +560,7 @@ jobs:
         uses: ./.github/actions/setup-ruby-test-env
 
       - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
 
@@ -651,7 +651,7 @@ jobs:
         uses: ./.github/actions/setup-ruby-test-env
 
       - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
 
@@ -687,7 +687,7 @@ jobs:
         uses: ./.github/actions/setup-ruby-test-env
 
       - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
 
@@ -722,7 +722,7 @@ jobs:
         uses: ./.github/actions/setup-ruby-test-env
 
       - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
 
