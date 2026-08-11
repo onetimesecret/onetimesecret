@@ -120,12 +120,21 @@ module Onetime
           },
           # Colonel admin surfaces posture, two independent factors (#4062).
           #
-          # allowed_hosts empty (default) = the host gate falls back to the
+          # allowed_hosts unset (default) = the host gate falls back to the
           # canonical ANCHOR hosts (features.domains.default / site.host) and
           # their www. variants, so the admin surfaces stop answering on tenant
           # custom domains and link-pool domains. `*` disables it. The gate
           # self-disables when no configured entry is a routable hostname (the
           # stock localhost / bare-IP posture).
+          #
+          # NO 'allowed_hosts' KEY HERE — deliberate, do not "complete" this
+          # block by adding one. deep_merge has an explicit `v2.nil? -> v1`
+          # arm, so a default would resolve unset ADMIN_ALLOWED_HOSTS (the
+          # YAML renders nil) back to that default and make the set-but-blank
+          # case (which must WARN at boot, see check_admin_allowed_hosts)
+          # indistinguishable from unset. Unset must stay nil; every consumer
+          # reads the value through AdminHostAllowlist.classify, which takes
+          # nil. Same rule as features.domains.link_domains below. (#4127)
           #
           # allowed_cidrs empty (default) = the network gate is a no-op; both
           # /colonel and /api/colonel stay reachable from any IP, gated only by
@@ -134,7 +143,6 @@ module Onetime
           #
           # See lib/onetime/middleware/admin_network_isolation.rb.
           'admin' => {
-            'allowed_hosts' => [],
             'allowed_cidrs' => [],
           },
         },
@@ -1078,9 +1086,18 @@ module Onetime
     # Takes the raw config value rather than reading OT.conf so it can be
     # driven directly by a spec without a booted config.
     #
-    #   nil / []           -> silent (unset; the gate falls back to the
+    #   nil                -> silent (unset; the gate falls back to the
     #                         canonical anchors, and goes inert on a
     #                         localhost/bare-IP install)
+    #   [] / ['', '  ']    -> WARN (set but blank, #4127: ADMIN_ALLOWED_HOSTS=""
+    #                         or whitespace/commas only. The RUNTIME outcome is
+    #                         identical to unset — the same anchor fallback —
+    #                         but the operator WROTE an allowlist, and on a
+    #                         localhost/bare-IP install that written config
+    #                         quietly yields no host gate at all. Say so at
+    #                         boot. The nil/[] distinction is produced by the
+    #                         config template (unset renders nil) and preserved
+    #                         by DEFAULTS carrying no allowed_hosts key.)
     #   ['*']              -> silent (the documented escape hatch: host gate
     #                         off, the middleware WARNs about it)
     #   ['admin.ex.com']   -> silent (enforceable)
@@ -1115,7 +1132,27 @@ module Onetime
     # @param raw [Array<String>, nil] site.admin.allowed_hosts as loaded
     # @return [void]
     def check_admin_allowed_hosts(raw)
+      return if raw.nil?
+
       classified = Onetime::Utils::AdminHostAllowlist.classify(raw)
+
+      # Set but blank (#4127). Not unenforceable? — nothing was written that
+      # could fail to enforce — and not unset either: the operator explicitly
+      # configured an allowlist and it names nothing, so their written config
+      # produced no host gate of its own. The runtime needs no change (the
+      # anchor fallback is the restrictive default, and the middleware WARNs
+      # at runtime if it goes inert), but only boot can tell the operator
+      # their blank value did not do what writing a value implies.
+      if classified.empty?
+        OT.lw 'ADMIN_ALLOWED_HOSTS (site.admin.allowed_hosts) is set but names nothing, so the admin ' \
+              'host gate falls back to the canonical anchors (features.domains.default / site.host and ' \
+              'their www. variants) exactly as if it were unset — and on a localhost or bare-IP install ' \
+              'that fallback self-disables the host gate entirely. Set it to a routable hostname the ' \
+              'deployment answers on (ADMIN_ALLOWED_HOSTS=admin.example.com), unset it entirely to take ' \
+              'the canonical-anchor fallback on purpose, or set it to * to disable the host gate deliberately.'
+        return
+      end
+
       return unless classified.unenforceable?
 
       described = Onetime::Utils::AdminHostAllowlist.describe_rejections(classified.rejected).join('; ')

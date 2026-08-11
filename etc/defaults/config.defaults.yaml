@@ -620,11 +620,17 @@ site:
     # /api/colonel API). A request whose validated detected host is not on this
     # list receives the same 404 as the CIDR gate below.
     #
-    # Empty/unset (default): ENFORCED, anchored on the canonical hosts —
+    # Unset (default): ENFORCED, anchored on the canonical hosts —
     # features.domains.default and site.host, each with its www. variant. A
     # stock canonical deployment sees no change; tenant custom domains and
     # operator link-pool domains (features.domains.link_domains) stop serving
     # the admin console, which is the point.
+    #
+    # Set but BLANK (ADMIN_ALLOWED_HOSTS="" or only whitespace/commas): the
+    # same anchor fallback as unset at runtime, plus a boot WARN (#4127) — the
+    # operator wrote an allowlist that names nothing, and on a localhost or
+    # bare-IP install that written config yields no host gate at all (the
+    # anchors have nothing to anchor on, so the gate self-disables below).
     #
     # Set to serve admin on its own hostname (recommended; pair it with an edge
     # rule that 404s /colonel and /api/colonel on every OTHER vhost). Explicit
@@ -670,7 +676,16 @@ site:
     # surface isolation posture", including the site.network.trusted_proxy
     # state — with no trusted proxy declared, both gates judge inputs any peer
     # on a private address can influence.
-    allowed_hosts: <%= ENV['ADMIN_ALLOWED_HOSTS']&.split(',')&.map(&:strip) || [] %>
+    #
+    # NO `|| []` FALLBACK HERE — deliberate (#4127). Unset must render nil and
+    # a set-but-blank value (ADMIN_ALLOWED_HOSTS="" or whitespace/commas only)
+    # must render a list with nothing in it, because
+    # Onetime::Config.check_admin_allowed_hosts WARNs at boot on the second
+    # shape and stays silent on the first. Folding both to [] here made an
+    # explicitly written blank allowlist indistinguishable from no allowlist
+    # at all. (DEFAULTS in lib/onetime/config.rb carries no allowed_hosts key
+    # for the same reason — deep_merge would resolve nil back to it.)
+    allowed_hosts: <%= ENV['ADMIN_ALLOWED_HOSTS']&.split(',')&.map(&:strip) %>
 
     # Optional network isolation for the Colonel admin surfaces (/colonel shell
     # and /api/colonel API). When set to a non-empty list of CIDR ranges, any
