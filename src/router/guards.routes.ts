@@ -225,6 +225,12 @@ function handleDisabledAuthFeature(to: RouteLocationNormalized) {
  * Authenticated routes redirect to '/account' (profile page).
  * Unauthenticated routes redirect to '/signin' (SSO sign-in page).
  * Note: /signin is explicitly excluded to prevent redirect loops.
+ *
+ * The flag must never appear on routes the SSO flow itself traverses
+ * (/mfa-verify, /link-sso, /sso-link-confirm) — this guard runs BEFORE
+ * handleMfaAccess, so an excluded /mfa-verify plus awaitingMfa produces an
+ * infinite /signin <-> /mfa-verify redirect loop. The full route/flag matrix
+ * is pinned by src/tests/router/sso-only-reachability.spec.ts.
  */
 export function handleSsoOnlyRoute(to: RouteLocationNormalized) {
   if (!to.meta.excludeSsoOnly) return null;

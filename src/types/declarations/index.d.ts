@@ -36,6 +36,13 @@ declare module 'vue-router' {
      * When true, this route is excluded when SSO-only mode is active.
      * The route guard redirects authenticated users to '/account'
      * and unauthenticated users to '/signin'.
+     *
+     * INVARIANT: never set this on a route the SSO flow itself traverses
+     * (/signin, /mfa-verify, the /link-sso and /sso-link-confirm
+     * interstitials) — SSO-only mode is the one mode guaranteed to need
+     * them, and the guard would bounce users out of their own sign-in.
+     * Enforced by src/tests/router/sso-only-reachability.spec.ts; new
+     * routes carrying this flag must be added to its expected matrix.
      */
     excludeSsoOnly?: boolean;
 
