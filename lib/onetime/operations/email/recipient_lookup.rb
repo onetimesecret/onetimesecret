@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/mail/provider_registry'
 require 'onetime/models/email_suppression'
 require 'onetime/mail/feedback/ses'
 require 'onetime/mail/feedback/lettermint'
@@ -28,7 +29,9 @@ module Onetime
       #
       # `fetcher:` is injectable for unit testing without live credentials.
       class RecipientLookup
-        PROVIDERS = %w[ses lettermint].freeze
+        # Feedback-capable providers, derived from Mail::ProviderRegistry
+        # (descriptor.feedback — requires a fetcher under Onetime::Mail::Feedback).
+        PROVIDERS = Onetime::Mail::ProviderRegistry.feedback_providers.freeze
 
         Result = Data.define(
           :address, :provider, :capability, :available, :error, :local, :provider_result

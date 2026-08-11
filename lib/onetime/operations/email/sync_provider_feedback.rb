@@ -8,6 +8,7 @@
 # operations home. Dependencies are required at the call site.
 require 'onetime/operations/email/ingest_feedback'
 require 'onetime/models/email_suppression'
+require 'onetime/mail/provider_registry'
 require 'onetime/mail/feedback/ses'
 require 'onetime/mail/feedback/lettermint'
 
@@ -53,7 +54,8 @@ module Onetime
         # Providers with a pollable feedback API (a fetcher under
         # Onetime::Mail::Feedback). Other transports (SMTP, sendgrid, logger,
         # disabled) have no pull API and are rejected.
-        PROVIDERS = %w[ses lettermint].freeze
+        # Derived from Mail::ProviderRegistry (descriptor.feedback).
+        PROVIDERS = Onetime::Mail::ProviderRegistry.feedback_providers.freeze
 
         # Audit actor sentinel for the CLI/cron sync path (matches the send-test
         # CLI convention). The one ColonelAuditEvent IngestFeedback records per

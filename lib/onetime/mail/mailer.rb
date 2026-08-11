@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require_relative 'provider_registry'
 require_relative 'delivery/base'
 require_relative 'delivery/disabled'
 require_relative 'delivery/logger'
@@ -203,26 +204,11 @@ module Onetime
           # Test environment always uses logger
           return 'logger' if ENV['RACK_ENV'] == 'test'
 
-          # Auto-detect provider from config keys (first match wins):
-          #   region + user        -> ses (AWS SES credentials)
-          #   sendgrid_api_key     -> sendgrid
-          #   lettermint_api_token -> lettermint
-          #   smtp2go_api_key      -> smtp2go
-          #   host                 -> smtp (generic SMTP)
-          #   (none)               -> logger (safe fallback)
-          if conf['region'] && conf['user']
-            'ses' # AWS SES uses region + AWS credentials
-          elsif conf['sendgrid_api_key']
-            'sendgrid'
-          elsif conf['lettermint_api_token']
-            'lettermint'
-          elsif conf['smtp2go_api_key']
-            'smtp2go'
-          elsif conf['host']
-            'smtp'
-          else
-            'logger' # fallback
-          end
+          # Auto-detect provider from config keys. Each ProviderRegistry
+          # descriptor declares its detect_keys; the registry order is the
+          # precedence order (e.g. region+user -> ses is tested before
+          # host -> smtp). No match -> logger (safe fallback).
+          ProviderRegistry.detect_provider(conf) || 'logger'
         end
 
         private
@@ -299,19 +285,14 @@ module Onetime
 
           log_info "[mail] Using #{provider} delivery backend"
 
+          descriptor = ProviderRegistry.descriptor(provider)
+          return descriptor.delivery_class.new(config) if descriptor
+
+          # Non-provider transports (not in the registry): disabled/none
+          # swallow mail, logger writes it to the log.
           case provider
           when 'disabled', 'none'
             Delivery::Disabled.new(config)
-          when 'smtp'
-            Delivery::SMTP.new(config)
-          when 'ses'
-            Delivery::SES.new(config)
-          when 'sendgrid'
-            Delivery::SendGrid.new(config)
-          when 'lettermint'
-            Delivery::Lettermint.new(config)
-          when 'smtp2go'
-            Delivery::Smtp2go.new(config)
           when 'logger'
             Delivery::Logger.new(config)
           else
@@ -346,16 +327,13 @@ module Onetime
         end
 
         def build_provider_config(provider)
-          conf = emailer_config
+          conf       = emailer_config
+          descriptor = ProviderRegistry.descriptor(provider)
+          return {} unless descriptor
 
-          case provider
-          when 'smtp'       then smtp_provider_config(conf)
-          when 'ses'        then ses_provider_config(conf)
-          when 'sendgrid'   then sendgrid_provider_config(conf)
-          when 'lettermint' then lettermint_provider_config(conf)
-          when 'smtp2go'    then smtp2go_provider_config(conf)
-          else {}
-          end
+          # Each descriptor names its config-builder method (the
+          # *_provider_config methods below).
+          send(descriptor.provider_config_method, conf)
         end
 
         def smtp_provider_config(conf)

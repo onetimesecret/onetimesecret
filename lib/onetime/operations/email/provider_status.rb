@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'date'
+require 'onetime/mail/provider_registry'
 require 'onetime/mail/feedback/ses'
 require 'onetime/mail/feedback/lettermint'
 require 'onetime/operations/email/error_scrub'
@@ -31,7 +32,8 @@ module Onetime
       # testable without live credentials.
       class ProviderStatus
         # Providers with a pollable status API. Anything else → capability false.
-        PROVIDERS = %w[ses lettermint].freeze
+        # Derived from Mail::ProviderRegistry (descriptor.feedback).
+        PROVIDERS = Onetime::Mail::ProviderRegistry.feedback_providers.freeze
 
         # Fixed stats window (30 days). A selectable window (?days=) is deferred.
         WINDOW_DAYS = 30
