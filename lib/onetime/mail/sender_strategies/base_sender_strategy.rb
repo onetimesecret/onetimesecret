@@ -77,10 +77,19 @@ module Onetime
         # distinct from check_dns_records which verifies DNS propagation
         # independently of the provider.
         #
+        # Tri-state :verified contract (all subclasses must honor this):
+        #   true  - the provider confirms the domain is verified
+        #   false - the provider authoritatively says it is NOT verified
+        #           (pending records, or the identity is absent at the provider)
+        #   nil   - the answer could not be determined (missing/blank
+        #           credential, provider API error, transport failure).
+        #           Callers must NOT treat nil as a failed check — a rotated
+        #           API key must never demote a verified domain.
+        #
         # @param mailer_config [CustomDomain::MailerConfig] The mailer configuration
         # @param credentials [Hash] Provider credentials
         # @return [Hash] Verification status:
-        #   - :verified [Boolean] Whether the sender is verified
+        #   - :verified [Boolean, nil] Tri-state, see above
         #   - :status [String] Provider-specific status code
         #   - :message [String] Human-readable status
         #   - :details [Hash, nil] Additional verification details

@@ -220,22 +220,43 @@ module Onetime
                 )
               end
 
-              # Set provider_verified from provider API check when available.
-              # Fall back to DNS result only when no provider credentials exist
-              # (degraded mode - better than leaving nil).
-              mailer_config.provider_verified = if provider_api_verified.nil?
-                                                  result.all_verified
-                                                else
-                                                  provider_api_verified
-                                                end
+              # Set provider_verified from the provider API check. Two distinct
+              # situations look similar but must behave differently, so we
+              # distinguish by whether the check RAN (provider_result non-nil),
+              # not by the verified value alone:
+              #
+              #   - provider_result is nil: the check never ran (provider is
+              #     smtp, or no credentials configured). Fall back to the DNS
+              #     result (degraded mode - better than leaving nil).
+              #   - provider_result[:verified] is nil: the check ran but was
+              #     inconclusive (missing/rotated API key, provider API error,
+              #     transport failure). Leave provider_verified UNTOUCHED and
+              #     exclude it from save_fields, keeping the previously stored
+              #     value. An error must never demote: a rotated key or a
+              #     network blip would otherwise silently flip a verified
+              #     domain to failed on the next scheduled check. Only an
+              #     authoritative provider "no" (verified: false) may demote.
+              provider_check_inconclusive = provider_result && provider_api_verified.nil?
+              if provider_result.nil?
+                mailer_config.provider_verified = result.all_verified
+              elsif !provider_check_inconclusive
+                mailer_config.provider_verified = provider_api_verified
+              end
 
-              # Record provider status when verification fails so UI can explain why
-              mailer_config.last_error = provider_api_verified == false && provider_result ? "Provider status: #{provider_result[:status]}" : nil
+              # Record provider status when verification fails (or was
+              # inconclusive) so UI can explain why; cleared on verified: true.
+              mailer_config.last_error = if provider_check_inconclusive
+                                           "Provider check inconclusive: #{provider_result[:message]}"
+                                         elsif provider_api_verified == false && provider_result
+                                           "Provider status: #{provider_result[:status]}"
+                                         end
 
               mailer_config.provider_check_status       = JobLifecycle::COMPLETED
               mailer_config.provider_check_completed_at = Familia.now.to_i
               mailer_config.updated                     = Familia.now.to_i
-              mailer_config.save_fields(:provider_verified, :provider_check_status, :provider_check_completed_at, :last_error, :updated)
+              save_list                                 = [:provider_check_status, :provider_check_completed_at, :last_error, :updated]
+              save_list.unshift(:provider_verified) unless provider_check_inconclusive
+              mailer_config.save_fields(*save_list)
             rescue StandardError => ex
               # Provider check failure should not fail the overall worker
               log_error "Provider verification check failed for #{domain_id}", ex

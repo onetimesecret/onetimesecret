@@ -176,10 +176,20 @@ module Onetime
         # Queries Lettermint Team API for the domain's current verification state.
         # Uses filter to find domain by name, then fetches details with DNS records.
         #
+        # Tri-state :verified contract (shared by all sender strategies):
+        #   true  - the provider confirms the domain is verified
+        #   false - the provider authoritatively says it is NOT verified
+        #           (pending/failed status, or the domain is absent at the
+        #           provider)
+        #   nil   - the answer could not be determined (missing/blank
+        #           credential, provider API error such as 401/5xx, transport
+        #           failure). Callers must NOT treat nil as a failed check —
+        #           a rotated API key must never demote a verified domain.
+        #
         # @param mailer_config [CustomDomain::MailerConfig] Mailer configuration
         # @param credentials [Hash] Must include 'team_token'
         # @return [Hash] Verification status:
-        #   - :verified [Boolean]
+        #   - :verified [Boolean, nil] Tri-state, see above
         #   - :status [String] 'verified', 'pending', 'not_found', 'error'
         #   - :message [String]
         #   - :details [Hash, nil] Additional verification details
@@ -198,7 +208,7 @@ module Onetime
           team_token = credentials['team_token']
           unless team_token && !team_token.empty?
             return {
-              verified: false,
+              verified: nil,
               status: 'error',
               message: 'Lettermint Team API token is required',
             }
@@ -251,14 +261,14 @@ module Onetime
           error_detail = parse_error_response(ex.response_body) || ex.message
           log_error "[lettermint-sender] Verification check failed for #{domain}: HTTP #{ex.status_code} - #{error_detail}"
           {
-            verified: false,
+            verified: nil,
             status: 'error',
             message: "Verification check failed: #{error_detail}",
           }
         rescue StandardError => ex
           log_error "[lettermint-sender] Verification check failed: #{ex.message}"
           {
-            verified: false,
+            verified: nil,
             status: 'error',
             message: "Verification check failed: #{ex.message}",
           }

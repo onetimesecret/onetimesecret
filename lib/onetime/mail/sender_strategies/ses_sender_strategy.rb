@@ -139,6 +139,15 @@ module Onetime
         # DKIM status is returned directly by SES (SUCCESS, PENDING, FAILED, etc.).
         # DNS propagation is checked independently by check_dns_records (inherited
         # from BaseSenderStrategy), which works with provisioned records.
+        #
+        # Tri-state :verified contract (shared by all sender strategies):
+        #   true  - SES confirms the identity is verified (DKIM SUCCESS)
+        #   false - SES authoritatively says it is NOT verified (pending/failed
+        #           DKIM status, or the identity is absent at SES)
+        #   nil   - the answer could not be determined (SES API error such as
+        #           auth failure/5xx, transport failure). Callers must NOT
+        #           treat nil as a failed check — rotated credentials must
+        #           never demote a verified domain.
         def check_provider_verification_status(mailer_config, credentials:)
           domain = extract_domain(mailer_config.from_address)
 
@@ -181,14 +190,14 @@ module Onetime
         rescue Aws::SESV2::Errors::ServiceError => ex
           log_error "[ses-sender] SES API error: #{ex.message}"
           {
-            verified: false,
+            verified: nil,
             status: 'error',
             message: "SES verification check failed: #{ex.message}",
           }
         rescue StandardError => ex
           log_error "[ses-sender] Verification check failed: #{ex.message}"
           {
-            verified: false,
+            verified: nil,
             status: 'error',
             message: "SES verification check failed: #{ex.message}",
           }
