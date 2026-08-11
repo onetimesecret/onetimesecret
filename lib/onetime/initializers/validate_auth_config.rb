@@ -22,6 +22,16 @@ module Onetime
       @provides   = [:auth_config_validated]
 
       def execute(_context)
+        validate_present!
+        # Fatal when full.restrict_to names an unavailable method (ADR-024 A3,
+        # #4140). Fail loud at deploy time rather than silently widening the
+        # sign-in page to every enabled method.
+        Onetime.auth_config.validate_restrict_to!
+      end
+
+      private
+
+      def validate_present!
         return if Onetime.auth_config.configured?
 
         raise Onetime::ConfigError, <<~MSG.strip

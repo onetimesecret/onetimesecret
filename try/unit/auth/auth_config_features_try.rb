@@ -334,13 +334,25 @@ cfg['full']['restrict_to'] = nil
 result
 #=> false
 
-## email_auth_only_enabled? returns false when email_auth is disabled
+## email_auth_only_enabled? STAYS true when email_auth is disabled (ADR-024 A3, #4140)
+## The restriction is never dropped: consumers fail closed rather than widening.
 config = Onetime::AuthConfig.instance
 cfg = config.instance_variable_get(:@config)
 cfg['mode'] = 'full'
 cfg['full']['restrict_to'] = 'email_auth'
 cfg['full']['features']['email_auth'] = false
 result = config.email_auth_only_enabled?
+cfg['full']['restrict_to'] = nil
+result
+#=> true
+
+## restrict_to_available? is false when the restricted method is disabled
+config = Onetime::AuthConfig.instance
+cfg = config.instance_variable_get(:@config)
+cfg['mode'] = 'full'
+cfg['full']['restrict_to'] = 'email_auth'
+cfg['full']['features']['email_auth'] = false
+result = config.restrict_to_available?
 cfg['full']['restrict_to'] = nil
 result
 #=> false
@@ -357,7 +369,7 @@ cfg['full']['features']['email_auth'] = false
 result
 #=> true
 
-## webauthn_only_enabled? returns false when webauthn is disabled
+## webauthn_only_enabled? STAYS true when webauthn is disabled (ADR-024 A3, #4140)
 config = Onetime::AuthConfig.instance
 cfg = config.instance_variable_get(:@config)
 cfg['mode'] = 'full'
@@ -366,7 +378,7 @@ cfg['full']['features']['webauthn'] = false
 result = config.webauthn_only_enabled?
 cfg['full']['restrict_to'] = nil
 result
-#=> false
+#=> true
 
 ## webauthn_only_enabled? returns true when webauthn is enabled
 config = Onetime::AuthConfig.instance
@@ -395,6 +407,36 @@ ENV.delete('OIDC_ISSUER')
 ENV.delete('OIDC_CLIENT_ID')
 result
 #=> true
+
+## validate_restrict_to! raises a fatal boot error when the method is unavailable
+config = Onetime::AuthConfig.instance
+cfg = config.instance_variable_get(:@config)
+cfg['mode'] = 'full'
+cfg['full']['features']['webauthn'] = false
+cfg['full']['restrict_to'] = 'webauthn'
+config.send(:remove_instance_variable, :@validate_restrict_to) if config.instance_variable_defined?(:@validate_restrict_to)
+begin
+  config.validate_restrict_to!
+  result = :no_raise
+rescue Onetime::ConfigError => ex
+  result = ex.message.include?('WebAuthn is disabled')
+end
+cfg['full']['restrict_to'] = nil
+config.send(:remove_instance_variable, :@validate_restrict_to) if config.instance_variable_defined?(:@validate_restrict_to)
+result
+#=> true
+
+## validate_restrict_to! returns the value when prerequisites are met
+config = Onetime::AuthConfig.instance
+cfg = config.instance_variable_get(:@config)
+cfg['mode'] = 'full'
+cfg['full']['restrict_to'] = 'password'
+config.send(:remove_instance_variable, :@validate_restrict_to) if config.instance_variable_defined?(:@validate_restrict_to)
+result = config.validate_restrict_to!
+cfg['full']['restrict_to'] = nil
+config.send(:remove_instance_variable, :@validate_restrict_to) if config.instance_variable_defined?(:@validate_restrict_to)
+result
+#=> "password"
 
 ## RESTRICT_TO_VALUES constant contains exactly four values
 Onetime::AuthConfig::RESTRICT_TO_VALUES
