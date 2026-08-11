@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 
 module Onetime
   module Security
@@ -68,7 +68,7 @@ module Onetime
     #      subject — the privacy-masked address, not the raw one and not the
     #      /16-obscured form in the log line.
     #   2. `POST /api/colonel/ratelimit/reset` with kind=email_auth_ip, which
-    #      performs the delete AND records an AdminAuditEvent.
+    #      performs the delete AND records a ColonelAuditEvent.
     #
     # Fail semantics mirror the other security limiters: Redis errors propagate
     # rather than silently permitting an unthrottled mail flood.
@@ -222,10 +222,10 @@ module Onetime
           },
         }
 
-        if Onetime::AdminAuditEvent.respond_to?(:record_security)
-          Onetime::AdminAuditEvent.record_security(**args)
+        if Onetime::ColonelAuditEvent.respond_to?(:record_security)
+          Onetime::ColonelAuditEvent.record_security(**args)
         else
-          Onetime::AdminAuditEvent.record(**args)
+          Onetime::ColonelAuditEvent.record(**args)
         end
       rescue StandardError => ex
         # A magic-link request must never fail because its audit event could

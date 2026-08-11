@@ -17,7 +17,7 @@
 # 2. Over-limit raises LimitExceeded with the configured cap + lockout state
 # 3. The limiter NEVER keys on the submitted login (enumeration safety)
 # 4. nil/empty IP skips rather than sharing one global bucket
-# 5. Cap-hit writes exactly one AdminAuditEvent, and denied requests write no
+# 5. Cap-hit writes exactly one ColonelAuditEvent, and denied requests write no
 #    further ones (bounded write frequency: one per masked network per window)
 # 6. Garbage/non-positive config falls back to defaults instead of inverting
 # 7. Configured-off (enabled:false) is a total no-op
@@ -172,7 +172,7 @@ result_empty = @raises.call('')
 
 ## -- Audit trail ----------------------------------------------------------
 
-## A cap-hit writes ONE queryable AdminAuditEvent, so a magic-link flood
+## A cap-hit writes ONE queryable ColonelAuditEvent, so a magic-link flood
 ## leaves more than a log line. Counted as a delta rather than by clearing the
 ## shared store, which other tryout files also write to.
 set_email_auth_rate_limit(
@@ -180,10 +180,10 @@ set_email_auth_rate_limit(
 )
 @audit_verb = Onetime::Security::EmailAuthRateLimiter::AUDIT_VERB
 @audit_scan = lambda do
-  if Onetime::AdminAuditEvent.respond_to?(:recent_security)
-    Onetime::AdminAuditEvent.recent_security(500)
+  if Onetime::ColonelAuditEvent.respond_to?(:recent_security)
+    Onetime::ColonelAuditEvent.recent_security(500)
   else
-    Onetime::AdminAuditEvent.recent(500)
+    Onetime::ColonelAuditEvent.recent(500)
   end
 end
 @audit_count  = -> { @audit_scan.call.count { |e| e['verb'] == @audit_verb } }
