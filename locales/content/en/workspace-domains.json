@@ -1400,6 +1400,11 @@
     "text": "Biometrics and security keys",
     "content_hash": "7d6a7bd5"
   },
+  "web.domains.signin.method_webauthn_unavailable": {
+    "text": "Passkeys are tied to the main sign-in domain and aren't available on custom domains yet",
+    "context": "Blurb on the locked Passkeys row of the domain sign-in method picker, explaining that host-scoped passkeys cannot restrict a custom domain",
+    "content_hash": "88833e0f"
+  },
   "web.domains.signin.method_sso_blurb": {
     "text": "External identity provider",
     "content_hash": "a3442088"

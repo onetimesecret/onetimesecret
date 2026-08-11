@@ -147,6 +147,19 @@ module Auth
         Hooks::WebAuthn.configure(self)
       end
 
+      # Two-factor completion: after_two_factor_authentication is provided by
+      # two_factor_base, which BOTH the otp and webauthn features enable
+      # transitively. The app-side completion (SyncSession, awaiting_mfa
+      # clear, deferred SSO bind, sign-in alert) must fire for EITHER factor,
+      # so this registers whenever any two-factor feature is loaded —
+      # including webauthn-only deployments (AUTH_MFA_ENABLED=false), which
+      # would otherwise complete Rodauth's webauthn-auth but never sync the
+      # app session. Must come AFTER the MFA/WebAuthn feature blocks above so
+      # two_factor_base (and therefore the hook method) exists.
+      if Onetime.auth_config.mfa_enabled? || Onetime.auth_config.webauthn_enabled?
+        Hooks::TwoFactor.configure(self)
+      end
+
       # OmniAuth: external identity providers (SSO via OIDC)
       # Routes are registered when either:
       # - AUTH_SSO_ENABLED=true (platform-level SSO with env var credentials)

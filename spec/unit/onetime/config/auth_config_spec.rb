@@ -32,6 +32,8 @@ RSpec.describe Onetime::AuthConfig do
           mfa: <%= ENV['AUTH_MFA_ENABLED'] == 'true' %>
           email_auth: <%= ENV['AUTH_EMAIL_AUTH_ENABLED'] == 'true' %>
           webauthn: <%= ENV['AUTH_WEBAUTHN_ENABLED'] == 'true' %>
+          webauthn_verify_account: <%= ENV['AUTH_WEBAUTHN_VERIFY_ACCOUNT'] == 'true' %>
+          webauthn_autofill: <%= ENV['AUTH_WEBAUTHN_AUTOFILL'] == 'true' %>
           sso: <%= ENV['AUTH_SSO_ENABLED'] == 'true' %>
         <%
           only_flags = [
@@ -56,6 +58,7 @@ RSpec.describe Onetime::AuthConfig do
       AUTH_LOCKOUT_ENABLED AUTH_PASSWORD_REQUIREMENTS_ENABLED
       AUTH_ACTIVE_SESSIONS_ENABLED AUTH_REMEMBER_ME_ENABLED
       AUTH_MFA_ENABLED AUTH_EMAIL_AUTH_ENABLED AUTH_WEBAUTHN_ENABLED
+      AUTH_WEBAUTHN_VERIFY_ACCOUNT AUTH_WEBAUTHN_AUTOFILL
       AUTH_SSO_ENABLED AUTH_SSO_ONLY
       AUTH_PASSWORD_ONLY AUTH_EMAIL_AUTH_ONLY AUTH_WEBAUTHN_ONLY
       OIDC_ISSUER OIDC_CLIENT_ID
@@ -165,6 +168,8 @@ RSpec.describe Onetime::AuthConfig do
       'mfa' => 'AUTH_MFA_ENABLED',
       'email_auth' => 'AUTH_EMAIL_AUTH_ENABLED',
       'webauthn' => 'AUTH_WEBAUTHN_ENABLED',
+      'webauthn_verify_account' => 'AUTH_WEBAUTHN_VERIFY_ACCOUNT',
+      'webauthn_autofill' => 'AUTH_WEBAUTHN_AUTOFILL',
       'sso' => 'AUTH_SSO_ENABLED',
     }.each do |feature, env_key|
       describe "##{feature}_enabled?" do

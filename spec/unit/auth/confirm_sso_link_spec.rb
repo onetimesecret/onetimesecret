@@ -61,6 +61,17 @@ RSpec.describe Auth::Operations::ConfirmSsoLink do
       String :code
       primary_key %i[id code]
     end
+    # MfaStateChecker also counts WebAuthn credentials (passkeys as a second
+    # factor). Unlike the two tables above, this one keys the account via an
+    # account_id COLUMN (composite PK [account_id, webauthn_id]).
+    db.create_table(:account_webauthn_keys) do
+      foreign_key :account_id, :accounts, type: :Bignum
+      String :webauthn_id
+      String :public_key, null: false
+      Integer :sign_count, null: false
+      Time :last_use, null: false, default: Sequel::CURRENT_TIMESTAMP
+      primary_key %i[account_id webauthn_id]
+    end
     db
   end
 
