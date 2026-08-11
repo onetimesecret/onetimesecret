@@ -19,6 +19,15 @@ export interface Props {
   magicLinksEnabled?: boolean;
   webauthnEnabled?: boolean;
   /**
+   * Whether the password tab is offered. AuthMethodSelector passes false when
+   * a single-method restriction (restrict_to) limits the page to one
+   * passwordless method — the password tab must not advertise a method the
+   * domain has hidden. As a guard, the tab still renders when no other method
+   * is enabled: a props combination that would yield zero tabs falls back to
+   * password rather than an empty sign-in page.
+   */
+  passwordEnabled?: boolean;
+  /**
    * Preselect a specific auth tab on first render. This is a contextual default
    * (e.g. land on "password" right after email verification), NOT a user choice,
    * so it takes precedence over the remembered preference but is never persisted.
@@ -30,6 +39,7 @@ const props = withDefaults(defineProps<Props>(), {
   locale: 'en',
   magicLinksEnabled: true,
   webauthnEnabled: false,
+  passwordEnabled: true,
   initialMode: undefined,
 });
 
@@ -99,8 +109,11 @@ const tabs = computed<TabConfig[]>(() => {
     result.push({ id: 'passwordless', labelKey: 'web.login.tab_magic_link' });
   }
 
-  // Password tab (always present)
-  result.push({ id: 'password', labelKey: 'web.login.tab_password' });
+  // Password tab — offered unless withheld by a single-method restriction,
+  // but never allow a zero-tab page (see the passwordEnabled prop docs).
+  if (props.passwordEnabled || result.length === 0) {
+    result.push({ id: 'password', labelKey: 'web.login.tab_password' });
+  }
 
   return result;
 });
