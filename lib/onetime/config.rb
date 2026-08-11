@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'date' # ensure Date/Time constants resolve for permitted_classes
+require 'ipaddr' # check_admin_allowed_cidrs parses ADMIN_ALLOWED_CIDRS at boot
 require 'json' # String#to_json for YAML-safe BRAND_* interpolation (see brand block)
 require 'public_suffix' # validate_link_domains! parses LINK_DOMAINS entries at boot
 require_relative 'utils/admin_host_allowlist' # check_admin_allowed_hosts classifies ADMIN_ALLOWED_HOSTS at boot
@@ -1003,11 +1004,12 @@ module Onetime
       # and this is the only placement that runs before any feature gating.
       validate_link_domains!(conf.dig('features', 'domains', 'link_domains'))
 
-      # Fires regardless of whether the admin surfaces are otherwise reachable:
-      # an allowlist that names only unusable entries is a typo the operator
-      # has to hear about at boot rather than on the first admin request.
-      # WARNs; it does not stop the boot — see the method.
+      # Fire regardless of whether the admin surfaces are otherwise reachable:
+      # an allowlist that names unusable entries is a typo the operator has to
+      # hear about at boot rather than on the first admin request. Both WARN;
+      # neither stops the boot — see the methods.
       check_admin_allowed_hosts(conf.dig('site', 'admin', 'allowed_hosts'))
+      check_admin_allowed_cidrs(conf.dig('site', 'admin', 'allowed_cidrs'))
     end
 
     # Rejects a LINK_DOMAINS that was set but yields no usable host.
@@ -1123,6 +1125,67 @@ module Onetime
             'Set it to a routable hostname the deployment answers on (ADMIN_ALLOWED_HOSTS=admin.example.com), ' \
             'unset it entirely to allow the canonical host only, or set it to * to disable the host gate ' \
             'deliberately.'
+    end
+
+    # WARNs about site.admin.allowed_cidrs (ADMIN_ALLOWED_CIDRS) entries that
+    # do not parse as a CIDR range.
+    #
+    # Takes the raw config value rather than reading OT.conf so it can be
+    # driven directly by a spec without a booted config.
+    #
+    #   nil / []                  -> silent (no network gate; the opt-in
+    #                                default)
+    #   ['100.64.0.0/10']         -> silent (enforceable)
+    #   ['garbage', '10.0.0.0/8'] -> WARN (the bad entry is dropped; the
+    #                                survivors enforce)
+    #   ['garbage']               -> WARN (the gate stays ACTIVE with no range:
+    #                                both surfaces 404 on every request)
+    #
+    # WARN, not raise, for the same reason as check_admin_allowed_hosts above:
+    # the runtime is already fail-closed.
+    # AdminNetworkIsolation#unusable_network_gate keeps a configured list whose
+    # every entry is unparseable ACTIVE with an EMPTY range set, so the
+    # over-exposure a raise would prevent cannot happen — while raising would
+    # abort the public site over an admin-only typo. What fail-closed cannot do
+    # is tell the operator: without this check the first symptom is an admin
+    # console dark on every request, including from inside the range they
+    # meant.
+    #
+    # Rescues exactly what the middleware's parse rescues
+    # (IPAddr::InvalidAddressError, which covers bad prefixes too), so this
+    # warns about precisely the entries AdminNetworkIsolation will drop.
+    #
+    # @param raw [Array<String>, nil] site.admin.allowed_cidrs as loaded
+    # @return [void]
+    def check_admin_allowed_cidrs(raw)
+      entries   = Array(raw).map { |cidr| cidr.to_s.strip }.reject(&:empty?)
+      malformed = entries.reject { |entry| parseable_cidr?(entry) }
+      return if malformed.empty?
+
+      described = malformed.join(', ')
+
+      if malformed.size == entries.size
+        OT.lw 'ADMIN_ALLOWED_CIDRS (site.admin.allowed_cidrs) has no entry that parses as a CIDR ' \
+              "range, so /colonel and /api/colonel return 404 to EVERY request: #{described}. " \
+              'Fix the entries (ADMIN_ALLOWED_CIDRS=100.64.0.0/10,10.0.0.0/8), or unset it entirely ' \
+              'to leave the network gate off.'
+      else
+        OT.lw 'ADMIN_ALLOWED_CIDRS (site.admin.allowed_cidrs) has entries that do not parse as a ' \
+              "CIDR range and are ignored: #{described}. Only the remaining entries are enforced. " \
+              'Fix or remove the unparseable ones (ADMIN_ALLOWED_CIDRS=100.64.0.0/10,10.0.0.0/8).'
+      end
+    end
+
+    # Whether one allowlist entry parses as a CIDR range (or single address).
+    # Same parse, same rescue as AdminNetworkIsolation#parse_allowed_cidrs.
+    #
+    # @param entry [String]
+    # @return [Boolean]
+    def parseable_cidr?(entry)
+      IPAddr.new(entry)
+      true
+    rescue IPAddr::InvalidAddressError
+      false
     end
 
     # Whether a configured link-pool host survives the same parse the

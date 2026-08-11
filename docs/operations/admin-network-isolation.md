@@ -502,10 +502,12 @@ Also emitted at boot, each only in its own case:
 | `Cannot read site.admin.allowed_hosts; denying both admin surfaces` | ERROR | the config could not be read at all (not the same as unset) |
 | `Cannot read site.admin.allowed_cidrs; denying both admin surfaces` | ERROR | ditto, for the CIDR list |
 
-`Onetime::Config` emits the operator-facing diagnostic for an unenforceable
-`ADMIN_ALLOWED_HOSTS` at boot too (the message quoted
-[above](#when-the-allowlist-cannot-be-enforced)), so the reason arrives with the
-startup log rather than only on the first admin request.
+`Onetime::Config` emits the operator-facing diagnostics at boot too: the
+unenforceable-`ADMIN_ALLOWED_HOSTS` message quoted
+[above](#when-the-allowlist-cannot-be-enforced), and a matching WARN for an
+`ADMIN_ALLOWED_CIDRS` with unparseable entries — naming the entries, whether
+any survive to enforce, and the way out. The reason arrives with the startup
+log rather than only on the first admin request.
 
 Per-request denials log at WARN with the host or IP that was refused. Four
 distinct messages for four distinct refusals — the client cannot tell the
