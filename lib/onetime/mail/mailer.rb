@@ -398,9 +398,23 @@ module Onetime
 
         def smtp2go_provider_config(conf)
           s2g_conf = provider_config('smtp2go')
+
+          # Single API key covers both email delivery and domain provisioning
+          api_key = conf['smtp2go_api_key'] || s2g_conf['api_key'] || ENV.fetch('SMTP2GO_API_KEY', nil)
+
+          # Without the API key nothing SMTP2GO-related can work, so signal
+          # no-credentials with an empty hash (same contract as lettermint
+          # with no tokens). The subdomain/base_url defaults below would
+          # otherwise survive .compact and defeat the `creds.empty?` guards
+          # in DomainValidationWorker / check_essentials!. The DNS validation
+          # layer reads subdomain defaults independently via
+          # DomainValidation::SenderStrategies::ProviderConfig, and
+          # Smtp2goSenderStrategy applies its own defaults, so nothing needs
+          # these values when the key is absent.
+          return {} if api_key.to_s.empty?
+
           {
-            # Single API key covers both email delivery and domain provisioning
-            'api_key' => conf['smtp2go_api_key'] || s2g_conf['api_key'] || ENV.fetch('SMTP2GO_API_KEY', nil),
+            'api_key' => api_key,
             'base_url' => s2g_conf['api_base_url'] || ENV.fetch('SMTP2GO_BASE_URL', nil),
             # Subdomains for the SPF/Return-Path and tracking CNAME records
             'returnpath_subdomain' => s2g_conf['returnpath_subdomain'] || ENV.fetch('CUSTOM_MAIL_SMTP2GO_RETURNPATH_SUBDOMAIN', 'bounce'),

@@ -131,16 +131,32 @@ module Onetime
         end
 
         # Mirrors build_provider_config('lettermint'): the sending api_token
-        # or the provisioning team_token each count as credentials.
+        # or the provisioning team_token each count as credentials, and the
+        # email_providers.lettermint YAML source counts the same way delivery
+        # honors it (resolution order matches lettermint_provider_config).
         def lettermint_token?(conf)
-          token = conf['lettermint_api_token'] || conf['pass'] || ENV.fetch('LETTERMINT_API_TOKEN', nil)
-          team  = conf['lettermint_team_token'] || ENV.fetch('LETTERMINT_TEAM_TOKEN', nil)
+          lm_conf = mail_provider_config('lettermint')
+          token   = conf['lettermint_api_token'] || lm_conf['api_token'] || conf['pass'] || ENV.fetch('LETTERMINT_API_TOKEN', nil)
+          team    = conf['lettermint_team_token'] || lm_conf['team_token'] || ENV.fetch('LETTERMINT_TEAM_TOKEN', nil)
           !(token.nil? || token.empty?) || !(team.nil? || team.empty?)
         end
 
+        # Mirrors build_provider_config('smtp2go'): a key set via
+        # email_providers.smtp2go.api_key delivers fine, so it must read as
+        # credentialed here too.
         def smtp2go_key?(conf)
-          key = conf['smtp2go_api_key'] || ENV.fetch('SMTP2GO_API_KEY', nil)
+          s2g_conf = mail_provider_config('smtp2go')
+          key      = conf['smtp2go_api_key'] || s2g_conf['api_key'] || ENV.fetch('SMTP2GO_API_KEY', nil)
           !(key.nil? || key.empty?)
+        end
+
+        # The email_providers.<provider> config source, resolved exactly as the
+        # mailer resolves it (string or symbol provider keys — see
+        # Onetime::Mail::Mailer#provider_config). send() because the resolver
+        # is private; values checked here are never emitted, only booleans.
+        def mail_provider_config(provider)
+          conf = Onetime::Mail::Mailer.send(:provider_config, provider)
+          conf.is_a?(Hash) ? conf : {}
         end
       end
     end
