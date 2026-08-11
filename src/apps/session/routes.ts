@@ -16,6 +16,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: false,
       isAuthRoute: true,
       requiresFeature: 'signin',
+      requiredInSsoOnly: true,
       layout: AuthLayout,
       layoutProps: {
         displayMasthead: false,
@@ -170,7 +171,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: false,
       isAuthRoute: true,
       requiresFeature: 'signin',
-      excludeSsoOnly: true,
+      requiredInSsoOnly: true,
       layout: AuthLayout,
       layoutProps: {
         displayMasthead: false,
@@ -199,7 +200,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: false,
       isAuthRoute: true,
       requiresFeature: 'signin',
-      excludeSsoOnly: true,
+      requiredInSsoOnly: true,
       layout: AuthLayout,
       layoutProps: {
         displayMasthead: false,
@@ -229,7 +230,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: false,
       isAuthRoute: true,
       requiresFeature: 'signin',
-      excludeSsoOnly: true,
+      requiredInSsoOnly: true,
       layout: AuthLayout,
       layoutProps: {
         displayMasthead: false,
