@@ -14,7 +14,11 @@ import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ref } from 'vue';
 
-import type { CustomDomainSigninConfig } from '@/schemas/shapes/domains/signin-config';
+import type { EffectiveRestrictTo } from '@/schemas/api/domains/responses/signin-config';
+import type {
+  CustomDomainSigninConfig,
+  SigninRestrictTo,
+} from '@/schemas/shapes/domains/signin-config';
 
 // -----------------------------------------------------------------------------
 // Mock Setup
@@ -116,6 +120,24 @@ const _mockDisabledConfig: CustomDomainSigninConfig = {
   email_auth_enabled: false,
 };
 
+// Wire form of the server's restrict_to resolution (ADR-024 A4). The
+// composable consumes this verbatim; nothing in the client re-derives it.
+const unrestricted = (source: 'global' | 'domain' = 'global'): EffectiveRestrictTo => ({
+  state: 'unrestricted',
+  restrict_to: null,
+  source,
+});
+
+const restricted = (
+  method: SigninRestrictTo,
+  source: 'global' | 'domain' = 'global'
+): EffectiveRestrictTo => ({ state: 'restricted', restrict_to: method, source });
+
+const unavailable = (
+  method: SigninRestrictTo,
+  source: 'global' | 'domain' | 'conflict' = 'domain'
+): EffectiveRestrictTo => ({ state: 'unavailable', restrict_to: method, source });
+
 // Resolution details for an unconfigured domain under an enabled global:
 // default-off resolver output (#3814). `details` is required on GET/PUT
 // responses — a response without it is a failed load, never a seedable
@@ -124,6 +146,7 @@ const mockUnconfiguredDetails = {
   global_enabled: true,
   effective_enabled: false,
   global_restrict_to: null,
+  effective_restrict_to: unrestricted(),
 };
 
 // -----------------------------------------------------------------------------
@@ -1142,7 +1165,12 @@ describe('useSigninConfig', () => {
     it('seeds signin_enabled from details.effective_enabled (inherit: form shows the resolver output, not a static default)', async () => {
       mockGetConfigForDomain.mockResolvedValue({
         record: null,
-        details: { global_enabled: false, effective_enabled: false, global_restrict_to: null },
+        details: {
+          global_enabled: false,
+          effective_enabled: false,
+          global_restrict_to: null,
+          effective_restrict_to: unrestricted(),
+        },
       });
 
       const composable = useSigninConfig('dm-ext-123');
@@ -1151,12 +1179,17 @@ describe('useSigninConfig', () => {
       expect(composable.formState.value.signin_enabled).toBe(false);
     });
 
-    it('seeds restrict_to from details.global_restrict_to (inherit: the workspace-wide restriction is pre-selected)', async () => {
+    it('seeds restrict_to from details.effective_restrict_to (the resolver output, not the raw global)', async () => {
       // Unconfigured non-SSO-tenant domain: default-off, so the resolver
       // reports effective_enabled false (#3814); restrict_to still seeds.
       mockGetConfigForDomain.mockResolvedValue({
         record: null,
-        details: { global_enabled: true, effective_enabled: false, global_restrict_to: 'sso' },
+        details: {
+          global_enabled: true,
+          effective_enabled: false,
+          global_restrict_to: 'sso',
+          effective_restrict_to: restricted('sso'),
+        },
       });
 
       const composable = useSigninConfig('dm-ext-123');
@@ -1165,13 +1198,109 @@ describe('useSigninConfig', () => {
       expect(composable.formState.value.restrict_to).toBe('sso');
     });
 
+    // ADR-024 A4 regression proof: the client used to seed from
+    // global_restrict_to and re-derive what would actually run. Here the two
+    // disagree — the install restricts to SSO, but the resolver says this
+    // host resolves unrestricted. Seeding from the raw global would pin (and,
+    // on the next autosave, persist) a restriction the server did not resolve.
+    it('ignores global_restrict_to when the resolver disagrees with it', async () => {
+      mockGetConfigForDomain.mockResolvedValue({
+        record: null,
+        details: {
+          global_enabled: true,
+          effective_enabled: true,
+          global_restrict_to: 'sso',
+          effective_restrict_to: unrestricted('domain'),
+        },
+      });
+
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.formState.value.restrict_to).toBeNull();
+    });
+
+    // :unavailable keeps the named method. Seeding null would read as "no
+    // restriction" and the next autosave would persist that widening — the
+    // exact fail-open ADR-024 A3 closes.
+    it('seeds the named method when the resolution is unavailable', async () => {
+      mockGetConfigForDomain.mockResolvedValue({
+        record: null,
+        details: {
+          global_enabled: true,
+          effective_enabled: false,
+          global_restrict_to: null,
+          effective_restrict_to: unavailable('webauthn'),
+        },
+      });
+
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.formState.value.restrict_to).toBe('webauthn');
+      expect(composable.isRestrictionUnavailable.value).toBe(true);
+    });
+
+    // A conflict (global and domain naming different methods, ADR-024 A8)
+    // resolves unavailable and names the GLOBAL method. The client cannot
+    // derive this from global_restrict_to and the record; it reads the field.
+    it('surfaces a conflict resolution as unavailable', async () => {
+      mockGetConfigForDomain.mockResolvedValue({
+        record: null,
+        details: {
+          global_enabled: true,
+          effective_enabled: false,
+          global_restrict_to: 'password',
+          effective_restrict_to: unavailable('password', 'conflict'),
+        },
+      });
+
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.effectiveRestrictTo.value?.source).toBe('conflict');
+      expect(composable.isRestrictionUnavailable.value).toBe(true);
+    });
+
+    it('exposes the resolver output verbatim, all three states included', async () => {
+      mockGetConfigForDomain.mockResolvedValue({
+        record: null,
+        details: {
+          global_enabled: true,
+          effective_enabled: false,
+          global_restrict_to: null,
+          effective_restrict_to: restricted('email_auth', 'domain'),
+          tenant_sso: { available: false, unavailable_reason: 'sso_config_disabled' },
+        },
+      });
+
+      const composable = useSigninConfig('dm-ext-123');
+      await composable.initialize();
+
+      expect(composable.effectiveRestrictTo.value).toEqual({
+        state: 'restricted',
+        restrict_to: 'email_auth',
+        source: 'domain',
+      });
+      expect(composable.isRestrictionUnavailable.value).toBe(false);
+      expect(composable.tenantSso.value).toEqual({
+        available: false,
+        unavailable_reason: 'sso_config_disabled',
+      });
+    });
+
     it('seeds email_auth from global availability (AND semantics: a globally-off method seeds as off, not on)', async () => {
       mockFeatures.value = { email_auth: false, webauthn: true, sso: { enabled: false } };
       // Unconfigured domain, SSO globally off → no carve-out: default-off
       // resolver output (#3814).
       mockGetConfigForDomain.mockResolvedValue({
         record: null,
-        details: { global_enabled: true, effective_enabled: false, global_restrict_to: null },
+        details: {
+          global_enabled: true,
+          effective_enabled: false,
+          global_restrict_to: null,
+          effective_restrict_to: unrestricted(),
+        },
       });
 
       const composable = useSigninConfig('dm-ext-123');
@@ -1191,7 +1320,12 @@ describe('useSigninConfig', () => {
       mockFeatures.value = { email_auth: true, webauthn: true, sso: { enabled: false } };
       mockGetConfigForDomain.mockResolvedValue({
         record: null,
-        details: { global_enabled: true, effective_enabled: false, global_restrict_to: null },
+        details: {
+          global_enabled: true,
+          effective_enabled: false,
+          global_restrict_to: null,
+          effective_restrict_to: unrestricted(),
+        },
       });
 
       const composable = useSigninConfig('dm-ext-123');
@@ -1210,7 +1344,12 @@ describe('useSigninConfig', () => {
       mockFeatures.value = { email_auth: true, webauthn: true, sso: { enabled: false } };
       mockGetConfigForDomain.mockResolvedValue({
         record: null,
-        details: { global_enabled: true, effective_enabled: true, global_restrict_to: null },
+        details: {
+          global_enabled: true,
+          effective_enabled: true,
+          global_restrict_to: null,
+          effective_restrict_to: unrestricted(),
+        },
       });
 
       const composable = useSigninConfig('dm-ext-123');
@@ -1226,7 +1365,12 @@ describe('useSigninConfig', () => {
     it('an explicit record wins over seeding (explicit: formState comes from the stored override, not the inherited state)', async () => {
       mockGetConfigForDomain.mockResolvedValue({
         record: { ...mockSigninConfigData, signin_enabled: false },
-        details: { global_enabled: true, effective_enabled: false, global_restrict_to: null },
+        details: {
+          global_enabled: true,
+          effective_enabled: false,
+          global_restrict_to: null,
+          effective_restrict_to: unrestricted(),
+        },
       });
 
       const composable = useSigninConfig('dm-ext-123');
@@ -1244,7 +1388,12 @@ describe('useSigninConfig', () => {
       // resolver reports.
       mockGetConfigForDomain.mockResolvedValue({
         record: null,
-        details: { global_enabled: true, effective_enabled: true, global_restrict_to: null },
+        details: {
+          global_enabled: true,
+          effective_enabled: true,
+          global_restrict_to: null,
+          effective_restrict_to: unrestricted(),
+        },
       });
 
       const composable = useSigninConfig('dm-ext-123');
@@ -1300,7 +1449,12 @@ describe('useSigninConfig', () => {
       // carries signin_enabled false.
       mockGetConfigForDomain.mockResolvedValue({
         record: null,
-        details: { global_enabled: true, effective_enabled: false, global_restrict_to: null },
+        details: {
+          global_enabled: true,
+          effective_enabled: false,
+          global_restrict_to: null,
+          effective_restrict_to: unrestricted(),
+        },
       });
 
       const composable = useSigninConfig('dm-ext-123');
@@ -1328,7 +1482,12 @@ describe('useSigninConfig', () => {
       // is driven by record.enabled, not effective_enabled.
       mockGetConfigForDomain.mockResolvedValue({
         record: null,
-        details: { global_enabled: true, effective_enabled: false, global_restrict_to: null },
+        details: {
+          global_enabled: true,
+          effective_enabled: false,
+          global_restrict_to: null,
+          effective_restrict_to: unrestricted(),
+        },
       });
 
       const composable = useSigninConfig('dm-ext-123');
@@ -1343,7 +1502,12 @@ describe('useSigninConfig', () => {
       // so the domain resolves default-off (#3814).
       mockGetConfigForDomain.mockResolvedValue({
         record: { ...mockSigninConfigData, enabled: false },
-        details: { global_enabled: true, effective_enabled: false, global_restrict_to: null },
+        details: {
+          global_enabled: true,
+          effective_enabled: false,
+          global_restrict_to: null,
+          effective_restrict_to: unrestricted(),
+        },
       });
 
       const composable = useSigninConfig('dm-ext-123');
@@ -1356,7 +1520,12 @@ describe('useSigninConfig', () => {
     it('a record with enabled=true is explicitly configured (pinned)', async () => {
       mockGetConfigForDomain.mockResolvedValue({
         record: mockSigninConfigData,
-        details: { global_enabled: true, effective_enabled: true, global_restrict_to: null },
+        details: {
+          global_enabled: true,
+          effective_enabled: true,
+          global_restrict_to: null,
+          effective_restrict_to: unrestricted(),
+        },
       });
 
       const composable = useSigninConfig('dm-ext-123');
@@ -1373,7 +1542,12 @@ describe('useSigninConfig', () => {
 
       mockGetConfigForDomain.mockResolvedValue({
         record: null,
-        details: { global_enabled: true, effective_enabled: false, global_restrict_to: null },
+        details: {
+          global_enabled: true,
+          effective_enabled: false,
+          global_restrict_to: null,
+          effective_restrict_to: unrestricted(),
+        },
       });
       await composable.initialize();
 
@@ -1384,7 +1558,12 @@ describe('useSigninConfig', () => {
     it('isGloballyDisabled tracks the kill switch (global off ⇒ dormant), independent of per-domain flags', async () => {
       mockGetConfigForDomain.mockResolvedValue({
         record: { ...mockSigninConfigData, signin_enabled: true },
-        details: { global_enabled: false, effective_enabled: false, global_restrict_to: null },
+        details: {
+          global_enabled: false,
+          effective_enabled: false,
+          global_restrict_to: null,
+          effective_restrict_to: unrestricted(),
+        },
       });
 
       const composable = useSigninConfig('dm-ext-123');
@@ -1398,11 +1577,21 @@ describe('useSigninConfig', () => {
       // signin flips the resolver output to true via the PUT response details.
       mockGetConfigForDomain.mockResolvedValue({
         record: null,
-        details: { global_enabled: true, effective_enabled: false, global_restrict_to: null },
+        details: {
+          global_enabled: true,
+          effective_enabled: false,
+          global_restrict_to: null,
+          effective_restrict_to: unrestricted(),
+        },
       });
       mockPutConfigForDomain.mockResolvedValue({
         record: { ...mockSigninConfigData, signin_enabled: true },
-        details: { global_enabled: true, effective_enabled: true, global_restrict_to: null },
+        details: {
+          global_enabled: true,
+          effective_enabled: true,
+          global_restrict_to: null,
+          effective_restrict_to: unrestricted(),
+        },
       });
 
       const composable = useSigninConfig('dm-ext-123');
@@ -1421,11 +1610,21 @@ describe('useSigninConfig', () => {
       // reflects that resolution without a refetch.
       mockGetConfigForDomain.mockResolvedValue({
         record: { ...mockSigninConfigData, signin_enabled: true },
-        details: { global_enabled: true, effective_enabled: true, global_restrict_to: null },
+        details: {
+          global_enabled: true,
+          effective_enabled: true,
+          global_restrict_to: null,
+          effective_restrict_to: unrestricted(),
+        },
       });
       mockDeleteConfigForDomain.mockResolvedValue({
         success: true,
-        details: { global_enabled: true, effective_enabled: false, global_restrict_to: null },
+        details: {
+          global_enabled: true,
+          effective_enabled: false,
+          global_restrict_to: null,
+          effective_restrict_to: unrestricted(),
+        },
       });
 
       const composable = useSigninConfig('dm-ext-123');

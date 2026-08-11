@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/models/custom_domain/signin_config'
+require 'onetime/models/custom_domain/sso_config'
 require_relative '../../policies/domain_config_authorization'
 
 module DomainsAPI
@@ -58,11 +59,25 @@ module DomainsAPI
         # /signin page (same shared authority as
         # Core::Views::DomainSerializer#effective_signin_enabled?).
         #
+        # effective_restrict_to is the A2 resolver's output verbatim (ADR-024
+        # A4), so the settings UI stops re-deriving the effective restriction
+        # from global_restrict_to client-side. global_restrict_to stays: it
+        # names the *inherited* restriction, which the UI still labels
+        # separately from what resolves for this domain.
+        #
+        # tenant_sso carries the SsoConfig availability ladder's verdict
+        # (#4111) — the same operator question ("what will this host actually
+        # offer, and why"), answered by the same authority the runtime uses,
+        # never re-derived from raw flags in Vue.
+        #
         # @param config [Onetime::CustomDomain::SigninConfig, nil] nil when unconfigured
         # @param domain_id [String] CustomDomain identifier (objid) for the SSO carve-out
-        # @return [Hash] global_enabled, effective_enabled, global_restrict_to
+        # @return [Hash] global_enabled, effective_enabled, global_restrict_to,
+        #   effective_restrict_to, tenant_sso
         def signin_override_details(config, domain_id)
-          global = Onetime::CustomDomain::SigninConfig.global_signin_enabled
+          global          = Onetime::CustomDomain::SigninConfig.global_signin_enabled
+          global_restrict = Onetime.auth_config.restrict_to
+
           {
             global_enabled: global,
             effective_enabled: Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_custom_domain(
@@ -70,7 +85,50 @@ module DomainsAPI
               config,
               domain_id: domain_id,
             ),
-            global_restrict_to: Onetime.auth_config.restrict_to,
+            global_restrict_to: global_restrict,
+            effective_restrict_to: serialize_restrict_to_resolution(
+              Onetime::CustomDomain::SigninConfig.resolve_restrict_to(global_restrict, config),
+            ),
+            tenant_sso: tenant_sso_details(domain_id),
+          }
+        end
+
+        # Wire form of RestrictToResolution. The three-state shape survives
+        # serialization intact — in particular :unavailable is NOT projected
+        # down to a bare null the way the display field `features.restrict_to`
+        # must be (string-or-null cannot express it). Callers get the state and
+        # the method that was named, so the UI can say "SSO required, and it is
+        # not available here" instead of rendering an unrestricted-looking
+        # blank.
+        #
+        # @param resolution [Onetime::CustomDomain::SigninConfig::RestrictToResolution]
+        # @return [Hash] state ('unrestricted'|'restricted'|'unavailable'),
+        #   restrict_to (String or nil), source ('domain'|'global')
+        def serialize_restrict_to_resolution(resolution)
+          {
+            state: resolution.state.to_s,
+            restrict_to: resolution.restrict_to,
+            source: resolution.source.to_s,
+          }
+        end
+
+        # Tenant-SSO availability verdict for the settings UI (#4111).
+        #
+        # Reads the ladder that decides tenant SSO at runtime
+        # (SsoConfig.tenant_sso_unavailable_reason) rather than the connection
+        # record's own stored flag, so the settings page can report the actual
+        # blocking rung — :no_sso_config, :sso_config_disabled,
+        # :sso_not_permitted, :auth_disabled, :unsupported_provider_type.
+        # The #4107 regression went unnoticed for two months because no
+        # surface reported it.
+        #
+        # @param domain_id [String] CustomDomain identifier (objid)
+        # @return [Hash] available (Boolean), unavailable_reason (String or nil)
+        def tenant_sso_details(domain_id)
+          reason = Onetime::CustomDomain::SsoConfig.tenant_sso_unavailable_reason(domain_id)
+          {
+            available: reason.nil?,
+            unavailable_reason: reason&.to_s,
           }
         end
 
