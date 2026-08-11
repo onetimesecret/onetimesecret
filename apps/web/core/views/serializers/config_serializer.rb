@@ -325,9 +325,16 @@ module Core
         def restrict_to_resolution(view_vars)
           domain_id     = resolve_domain_id(view_vars)
           signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id) if domain_id
+          global        = effective_global_restrict_to(view_vars, signin_config, domain_id)
 
           Onetime::CustomDomain::SigninConfig.resolve_restrict_to(
-            effective_global_restrict_to(view_vars), signin_config
+            global,
+            signin_config,
+            # Post-boot availability of the global restriction (ADR-024 A3).
+            # Gathered here, applied by the resolver — the display gate must
+            # not carry its own copy of the rule, which is how it drifted from
+            # the runtime gate in the first place (#4139).
+            available: Onetime::CustomDomain::SigninConfig.global_restriction_available?(global),
           )
         end
 
@@ -346,16 +353,40 @@ module Core
         # page-availability gate and the method restriction stay in lockstep
         # and the SSO-only page renders SSO buttons alone.
         #
-        # The pin is a property of the host, not of the resolution, which is
-        # why it is computed here and handed in: the resolver decides
-        # precedence, and an enabled domain config still overrides this — same
-        # ordering as before the extraction, where the pin was only reached
-        # after the domain branch declined.
+        # The pin is a property of the HOST, not an operator restriction, and
+        # it must not reach the resolver when an enabled domain config speaks.
+        # Under ADR-024 A8 the resolver intersects rather than replaces, so a
+        # pin handed in unconditionally would CONFLICT with the tenant's own
+        # restrict_to and resolve :unavailable — turning a display convenience
+        # into a lockout. Skip it on exactly the predicate resolve_signin uses
+        # (tenant_domain? && !signin_config&.enabled?), which restores the
+        # pre-extraction ordering where the pin was only reached after the
+        # domain branch declined.
+        #
+        # Design smell, recorded: this overloads the resolver's `global`
+        # parameter with two different things — a real operator restriction
+        # and a derived host property. They intersect differently, which is
+        # why this guard exists. If a third pin ever appears, the resolver
+        # should take them as distinct inputs instead.
+        #
+        # ONE PREDICATE WITH THE RUNTIME GATE (#4139): the pin fires on
+        # SsoConfig.sso_available_for_tenant_host?, which Auth::RestrictTo
+        # calls too. It is equivalent to the local sso_available?
+        # (build_sso_config) verdict for a tenant host — tenant credentials, or
+        # platform providers when fallback is allowed — but expressed
+        # domain-id-first so a gate holding a Rack env can ask the same
+        # question. Previously the gate asked the narrower tenant-only ladder
+        # and was therefore MORE PERMISSIVE than this page.
         #
         # @param view_vars [Hash] View variables with request context
+        # @param signin_config [Onetime::CustomDomain::SigninConfig, nil]
+        # @param domain_id [String, nil] already-resolved CustomDomain objid
         # @return [String, nil]
-        def effective_global_restrict_to(view_vars)
-          return 'sso' if tenant_domain?(view_vars) && sso_available?(view_vars)
+        def effective_global_restrict_to(view_vars, signin_config = nil, domain_id = nil)
+          if tenant_domain?(view_vars) && !signin_config&.enabled?
+            domain_id ||= resolve_domain_id(view_vars)
+            return 'sso' if Onetime::CustomDomain::SsoConfig.sso_available_for_tenant_host?(domain_id)
+          end
 
           Onetime.auth_config.restrict_to
         end

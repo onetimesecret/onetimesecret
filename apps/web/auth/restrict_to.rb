@@ -107,19 +107,25 @@ module Auth
     # session (require_login + require_two_factor_not_authenticated), i.e. the
     # SECOND-FACTOR ceremony rather than a sign-in method offer.
     #
-    # Gated per A7's enumeration, but held in a separate constant because the
-    # axis is arguable and the blast radius is real: on a host restricted to
-    # 'sso' or 'password', an account whose second factor is a passkey can no
-    # longer complete the challenge. That is the same account-scoped/host-scoped
-    # confusion A7 uses to EXEMPT webauthn-setup and webauthn-remove. If the
-    # ADR is amended, moving these two entries out of the gate is a one-line
-    # change. See the #4139 report.
+    # NOT gated, per ADR-024 A10. A7's endpoint enumeration listed these; the
+    # enumeration was wrong and A7's own principle overrides it. `restrict_to`
+    # governs which methods may be OFFERED as a sign-in choice on a host. A
+    # second factor is not a choice — the account already authenticated with a
+    # first factor the host permits, and the second factor is a property of the
+    # ACCOUNT, which is the #4138 axis, not the request host.
+    #
+    # Gating them is a lockout: on a host restricted to 'sso' or 'password', an
+    # account whose second factor is a passkey could never complete the
+    # challenge. Note the internal inconsistency that made this obvious —
+    # `otp_auth` (the TOTP second-factor ceremony) sits in UNGATED_ROUTES. The
+    # same ceremony must not be gated for one authenticator and exempt for
+    # another.
     SECOND_FACTOR_ROUTES = {
       webauthn_auth: 'webauthn',
       webauthn_auth_js: 'webauthn',
     }.freeze
 
-    GATED_ROUTES = PRE_AUTH_ROUTES.merge(SECOND_FACTOR_ROUTES).freeze
+    GATED_ROUTES = PRE_AUTH_ROUTES.freeze
 
     # Routes this gate deliberately does NOT touch. Named explicitly (rather
     # than defaulted-open) so the coverage spec can fail when a new Rodauth
@@ -134,6 +140,7 @@ module Auth
     #     per-domain overridable (ADR-024 scope boundary).
     #   - NOT A SIGN-IN METHOD: logout must never 404.
     UNGATED_ROUTES = [
+      *SECOND_FACTOR_ROUTES.keys, # second-factor ceremony, not a method offer (A10)
       :logout,
       :remember,
       :close_account,
@@ -230,12 +237,19 @@ module Auth
       def resolution_for(env)
         domain_id     = domain_id_for(env)
         signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id) if domain_id
+        global        = global_restrict_to(env, domain_id, signin_config)
 
-        resolution = Onetime::CustomDomain::SigninConfig.resolve_restrict_to(
-          global_restrict_to(env, domain_id, signin_config), signin_config
+        Onetime::CustomDomain::SigninConfig.resolve_restrict_to(
+          global,
+          signin_config,
+          # Post-boot availability of the global restriction (A3, runtime
+          # half). Gathered here — it reads live prerequisite state — but
+          # APPLIED by the resolver, so this gate, the display serializer and
+          # the settings API cannot drift on the rule. The value-keying that
+          # keeps the 'sso' host pin below out of AuthConfig's scope now lives
+          # in .global_restriction_available?.
+          available: Onetime::CustomDomain::SigninConfig.global_restriction_available?(global),
         )
-
-        apply_global_availability(resolution)
       end
 
       # The restriction the request HOST inherits when no enabled per-domain
@@ -247,13 +261,14 @@ module Auth
       # OFF on custom domains. Pinning 'sso' keeps this gate in lockstep with
       # the page that host actually renders.
       #
-      # The availability predicate here is SsoConfig.tenant_sso_available_for? —
-      # the same ladder the OmniAuth runtime hook consults — rather than the
-      # serializer's build_sso_config, which additionally counts PLATFORM
-      # fallback for tenants. Where the two differ (allow_platform_fallback_for_tenants
-      # true, no tenant SsoConfig) the display pins 'sso' and this gate does
-      # not, so the gate is the more permissive of the two. Recorded as a
-      # follow-up on #4139 rather than papered over here.
+      # The availability predicate is SsoConfig.sso_available_for_tenant_host? —
+      # the SAME predicate ConfigSerializer#effective_global_restrict_to pins
+      # on, platform fallback included. It used to be the narrower
+      # tenant_sso_available_for?, which left this gate MORE permissive than
+      # the page it guards whenever allow_platform_fallback_for_tenants? was on
+      # and the tenant had no SsoConfig: the page offered SSO alone, the gate
+      # pinned nothing and accepted crafted password POSTs. See that predicate
+      # for why converging on the display's answer is the narrowing direction.
       def global_restrict_to(env, domain_id, signin_config)
         # NO-CONFIG CASE ONLY. Under A8's intersection semantics two different
         # restrictions have no intersection and fail closed as :conflict, so
@@ -266,34 +281,9 @@ module Auth
 
         return 'sso' if env['onetime.domain_strategy'] == :custom &&
                         domain_id &&
-                        Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(domain_id)
+                        Onetime::CustomDomain::SsoConfig.sso_available_for_tenant_host?(domain_id)
 
         Onetime.auth_config.restrict_to
-      end
-
-      # Fail-closed for a GLOBAL restriction whose method became unavailable
-      # after boot (ADR-024 A3, runtime half).
-      #
-      # AuthConfig#restrict_to_available? is NOT derivable from the resolver's
-      # two arguments — it reads live prerequisite state — so the resolver
-      # cannot consult it and the caller must.
-      #
-      # Keyed on the VALUE, not the source: under A8's intersection semantics a
-      # domain config that agrees with the global restriction resolves with
-      # source :domain, and the named method is just as unavailable either way.
-      # Requiring the value to equal AuthConfig's is what keeps the SSO pin
-      # above (a host property, not the operator's config) out of scope here.
-      #
-      # If a future change gives resolve_restrict_to an `available:` keyword,
-      # this belongs there instead; see the #4139 report.
-      def apply_global_availability(resolution)
-        return resolution unless resolution.restricted?
-        return resolution unless resolution.restrict_to == Onetime.auth_config.restrict_to
-        return resolution if Onetime.auth_config.restrict_to_available?
-
-        Onetime::CustomDomain::SigninConfig::RestrictToResolution.unavailable(
-          resolution.restrict_to, :global
-        )
       end
 
       # CustomDomain identifier for the request host, or nil.

@@ -46,6 +46,14 @@ def resolve_restrict(global, config)
   Onetime::CustomDomain::SigninConfig.resolve_restrict_to(global, config)
 end
 
+# Same resolver with the GLOBAL restriction's backing method dead post-boot
+# (ADR-024 A3 runtime half, #4139): available: false. The flag lives on the
+# resolver rather than in each consumer so the display gate, the route gate
+# and the settings API cannot drift on it.
+def resolve_restrict_dead(global, config)
+  Onetime::CustomDomain::SigninConfig.resolve_restrict_to(global, config, available: false)
+end
+
 # --- SigninConfig.resolve_signin_enabled ---
 
 ## global on, no per-domain config => available
@@ -268,4 +276,91 @@ resolve_restrict(nil, restrict_config(enabled: true, restrict_to: 'bogus')).stat
 
 ## global 'webauthn' is honored — the host-scoping problem is custom-domain only
 resolve_restrict('webauthn', nil).state
+#=> :restricted
+
+# --- available: false — post-boot global unavailability (A3, #4139) ---
+#
+# The flag says "the global restriction stands, but its backing method is dead
+# here". It may only NARROW: a standing restriction goes :unavailable, and an
+# install with nothing restricted stays :unrestricted — a false flag must never
+# take an unrestricted install dark.
+
+## global restriction whose method died post-boot => :unavailable
+resolve_restrict_dead('sso', nil).state
+#=> :unavailable
+
+## it does NOT widen to standard mode
+resolve_restrict_dead('sso', nil).unrestricted?
+#=> false
+
+## nothing is permitted, not even the named method
+resolve_restrict_dead('sso', nil).allows?('sso')
+#=> false
+
+## the other methods are not re-exposed
+resolve_restrict_dead('sso', nil).allows?('password')
+#=> false
+
+## the named method is retained for a method-specific notice
+resolve_restrict_dead('sso', nil).restrict_to
+#=> 'sso'
+
+## attributed to the global layer — the global half is why nothing is offered
+resolve_restrict_dead('sso', nil).source
+#=> :global
+
+## NOTHING RESTRICTED: a false flag cannot take an unrestricted install dark
+resolve_restrict_dead(nil, nil).state
+#=> :unrestricted
+
+## NOTHING RESTRICTED: every method still allowed
+resolve_restrict_dead(nil, nil).allows?('password')
+#=> true
+
+## NOTHING RESTRICTED: blank global is equally untouched
+resolve_restrict_dead('', nil).state
+#=> :unrestricted
+
+## an AGREEING domain config does not resurrect the dead method (A8 agreement)
+resolve_restrict_dead('sso', restrict_config(enabled: true, restrict_to: 'sso')).state
+#=> :unavailable
+
+## agreement + dead global => attributed to global, not the agreeing domain
+resolve_restrict_dead('sso', restrict_config(enabled: true, restrict_to: 'sso')).source
+#=> :global
+
+## agreement + dead global => the agreed method is not permitted
+resolve_restrict_dead('sso', restrict_config(enabled: true, restrict_to: 'sso')).allows?('sso')
+#=> false
+
+## an enabled domain config with NO restriction inherits the dead global (A8)
+resolve_restrict_dead('sso', restrict_config(enabled: true, restrict_to: nil)).state
+#=> :unavailable
+
+## a CONFLICTING domain config stays :unavailable, and keeps the richer source
+resolve_restrict_dead('sso', restrict_config(enabled: true, restrict_to: 'password')).state
+#=> :unavailable
+
+## conflict attribution is unchanged by the flag
+resolve_restrict_dead('sso', restrict_config(enabled: true, restrict_to: 'password')).source
+#=> :conflict
+
+## conflict + dead global permits nothing
+resolve_restrict_dead('sso', restrict_config(enabled: true, restrict_to: 'password')).allows?('password')
+#=> false
+
+## DOMAIN-ONLY restriction is untouched: the flag describes the GLOBAL value
+resolve_restrict_dead(nil, restrict_config(enabled: true, restrict_to: 'password')).state
+#=> :restricted
+
+## domain-only restriction still permits its method
+resolve_restrict_dead(nil, restrict_config(enabled: true, restrict_to: 'password')).allows?('password')
+#=> true
+
+## a disabled domain config is still ignored; the dead global stands
+resolve_restrict_dead('sso', restrict_config(enabled: false, restrict_to: 'password')).state
+#=> :unavailable
+
+## available: true is the default and changes nothing
+Onetime::CustomDomain::SigninConfig.resolve_restrict_to('sso', nil, available: true).state
 #=> :restricted

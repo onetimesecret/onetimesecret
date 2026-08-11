@@ -87,7 +87,15 @@ module DomainsAPI
             ),
             global_restrict_to: global_restrict,
             effective_restrict_to: serialize_restrict_to_resolution(
-              Onetime::CustomDomain::SigninConfig.resolve_restrict_to(global_restrict, config),
+              Onetime::CustomDomain::SigninConfig.resolve_restrict_to(
+                global_restrict,
+                config,
+                # Post-boot availability of the global restriction (ADR-024
+                # A3). The settings page must report what the gates enforce:
+                # without this it showed `restricted` for a method the runtime
+                # had already taken dark (#4139).
+                available: Onetime::CustomDomain::SigninConfig.global_restriction_available?(global_restrict),
+              ),
             ),
             tenant_sso: tenant_sso_details(domain_id),
           }

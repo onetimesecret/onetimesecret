@@ -1,0 +1,268 @@
+# apps/web/core/spec/views/serializers/restrict_to_parity_spec.rb
+#
+# frozen_string_literal: true
+
+# DISPLAY ↔ GATE PARITY for `restrict_to` (ADR-024 A1/A2/A3, #4139).
+#
+# The two consumers of the A2 resolver that a user can observe disagreeing are
+# the rendered page (Core::Views::ConfigSerializer) and the request-time gate
+# (Auth::RestrictTo). ADR-024 legislates against exactly that disagreement, so
+# the assertion here is the AGREEMENT itself — the two answers are compared to
+# each other, not to a table of expected values. A future edit to either side
+# that "fixes" one without the other reds this file even if it looks locally
+# correct.
+#
+# Two drifts are pinned:
+#
+#   1. PLATFORM SSO FALLBACK. The display pinned 'sso' for a tenant on
+#      build_sso_config (which counts platform fallback); the gate pinned on
+#      the narrower SsoConfig.tenant_sso_available_for?. With
+#      allow_platform_fallback_for_tenants? on and no tenant SsoConfig, the
+#      page offered SSO alone while the gate accepted crafted password POSTs.
+#      Both now ask SsoConfig.sso_available_for_tenant_host?.
+#
+#   2. POST-BOOT GLOBAL AVAILABILITY. The gate applied
+#      AuthConfig#restrict_to_available? by hand; the display never applied it.
+#      It now rides into the resolver as `available:`, which both sides pass.
+#
+# No datastore and no HTTP: the domain/config lookups are stubbed, because what
+# is under test is which INPUTS each side gathers and that the two agree.
+#
+# Run:
+#   bundle exec rspec apps/web/core/spec/views/serializers/restrict_to_parity_spec.rb
+
+require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
+require_relative '../../../views/serializers'
+
+# The POLICY module only (not config/hooks/restrict_to.rb, which is namespaced
+# into Auth::Config and drags the boot chain in) — the same require the auth
+# unit spec uses.
+require_relative File.join(Onetime::HOME, 'apps', 'web', 'auth', 'restrict_to')
+
+RSpec.describe 'restrict_to display/gate parity' do
+  let(:display_domain) { 'secrets.tenant.example.com' }
+  let(:domain_id)      { 'domain_parity_1' }
+
+  let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: domain_id) }
+
+  let(:mock_auth_config) do
+    instance_double(
+      Onetime::AuthConfig,
+      restrict_to: nil,
+      restrict_to_available?: true,
+      sso_enabled?: true,
+      sso_providers: [{ 'route_name' => 'oidc', 'display_name' => 'Platform SSO' }],
+      allow_platform_fallback_for_tenants?: false
+    )
+  end
+
+  let(:tenant_sso_config) do
+    instance_double(
+      Onetime::CustomDomain::SsoConfig,
+      domain_id: domain_id,
+      enabled?: true,
+      provider_type: 'oidc',
+      enforce_sso_only?: false,
+      platform_route_name: 'oidc',
+      display_name: 'Tenant SSO'
+    )
+  end
+
+  # What the page is built from.
+  let(:view_vars) do
+    {
+      'site' => { 'authentication' => { 'enabled' => true, 'signin' => true } },
+      'domain_strategy' => :custom,
+      'display_domain' => display_domain,
+    }
+  end
+
+  # What the request carries (set by Onetime::Middleware::DomainStrategy).
+  let(:env) do
+    {
+      'onetime.display_domain' => display_domain,
+      'onetime.domain_strategy' => :custom,
+    }
+  end
+
+  before do
+    allow(Onetime).to receive(:auth_config).and_return(mock_auth_config)
+    allow(OT).to receive(:conf).and_return(
+      { 'site' => { 'authentication' => { 'enabled' => true, 'signin' => true } } }
+    )
+
+    allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+      .with(display_domain).and_return(custom_domain)
+    allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
+      .with(domain_id).and_return(nil)
+    allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
+      .with(domain_id).and_return(nil)
+  end
+
+  def display_resolution
+    Core::Views::ConfigSerializer.restrict_to_resolution(view_vars)
+  end
+
+  def gate_resolution
+    Auth::RestrictTo.resolution_for(env)
+  end
+
+  # The comparable face of a resolution: what a user can observe. `source` is
+  # deliberately excluded — it is an explanation for the settings API, not a
+  # difference in what the host offers or accepts.
+  def observable(resolution)
+    Onetime::CustomDomain::SigninConfig::RESTRICT_TO_VALUES
+      .to_h { |method| [method, resolution.allows?(method)] }
+      .merge('state' => resolution.state, 'restrict_to' => resolution.restrict_to)
+  end
+
+  # THE assertion. Everything below sets up a scenario and calls this.
+  def expect_parity
+    expect(observable(display_resolution)).to eq(observable(gate_resolution))
+  end
+
+  describe 'platform SSO fallback matrix (tenant SsoConfig × fallback)' do
+    # Cell 1 was the live divergence: display pinned 'sso', gate pinned nothing.
+    context 'with no tenant SsoConfig and platform fallback ON' do
+      before { allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true) }
+
+      it 'agrees' do
+        expect_parity
+      end
+
+      it "pins 'sso' on BOTH sides — the page offers SSO alone, so the gate must too" do
+        expect(display_resolution.restrict_to).to eq('sso')
+        expect(gate_resolution.restrict_to).to eq('sso')
+        expect(gate_resolution.allows?('password')).to be false
+      end
+    end
+
+    context 'with no tenant SsoConfig and platform fallback OFF' do
+      before { allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false) }
+
+      it 'agrees' do
+        expect_parity
+      end
+
+      it 'pins nothing on either side — the host offers no SSO to restrict to' do
+        expect(display_resolution).to be_unrestricted
+        expect(gate_resolution).to be_unrestricted
+      end
+    end
+
+    context 'with a tenant SsoConfig and platform fallback ON' do
+      before do
+        allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+        allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
+          .with(domain_id).and_return(tenant_sso_config)
+      end
+
+      it 'agrees' do
+        expect_parity
+      end
+
+      it "pins 'sso' on both sides" do
+        expect(display_resolution.restrict_to).to eq('sso')
+        expect(gate_resolution.restrict_to).to eq('sso')
+      end
+    end
+
+    context 'with a tenant SsoConfig and platform fallback OFF' do
+      before do
+        allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
+        allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
+          .with(domain_id).and_return(tenant_sso_config)
+      end
+
+      it 'agrees' do
+        expect_parity
+      end
+
+      it "still pins 'sso' — the tenant's own credentials do not need fallback" do
+        expect(display_resolution.restrict_to).to eq('sso')
+        expect(gate_resolution.restrict_to).to eq('sso')
+      end
+    end
+
+    context 'with the AUTH_ENABLED master switch off' do
+      before do
+        allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+        allow(OT).to receive(:conf).and_return(
+          { 'site' => { 'authentication' => { 'enabled' => false, 'signin' => true } } }
+        )
+      end
+
+      it 'agrees: no SSO surface exists, so neither side pins' do
+        expect_parity
+        expect(display_resolution).to be_unrestricted
+      end
+    end
+  end
+
+  describe 'the pin never reaches a tenant that has spoken (A8)' do
+    let(:enabled_signin_config) do
+      instance_double(Onetime::CustomDomain::SigninConfig, enabled?: true, restrict_to: 'password')
+    end
+
+    before do
+      allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+      allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
+        .with(domain_id).and_return(enabled_signin_config)
+    end
+
+    it 'agrees, honoring the domain restriction instead of pinning sso' do
+      expect_parity
+      expect(display_resolution.restrict_to).to eq('password')
+      expect(display_resolution).to be_restricted
+    end
+  end
+
+  describe 'post-boot global unavailability (A3)' do
+    # Canonical host: no pin, so the operator's own restriction is what both
+    # sides carry — and both must degrade with it.
+    let(:view_vars) do
+      {
+        'site' => { 'authentication' => { 'enabled' => true, 'signin' => true } },
+        'domain_strategy' => :canonical,
+        'display_domain' => 'example.com',
+      }
+    end
+    let(:env) { { 'onetime.display_domain' => 'example.com', 'onetime.domain_strategy' => :canonical } }
+
+    before do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+        .with('example.com').and_return(nil)
+      allow(mock_auth_config).to receive(:restrict_to).and_return('password')
+    end
+
+    context 'when the restricted method is still available' do
+      it 'agrees on :restricted' do
+        expect_parity
+        expect(gate_resolution).to be_restricted
+      end
+    end
+
+    context 'when the restricted method died after boot' do
+      before { allow(mock_auth_config).to receive(:restrict_to_available?).and_return(false) }
+
+      it 'agrees on :unavailable — the page stops offering what the gate stopped accepting' do
+        expect_parity
+        expect(display_resolution).to be_unavailable
+        expect(gate_resolution).to be_unavailable
+      end
+    end
+
+    context 'when nothing is restricted at all' do
+      before do
+        allow(mock_auth_config).to receive(:restrict_to).and_return(nil)
+        allow(mock_auth_config).to receive(:restrict_to_available?).and_return(false)
+      end
+
+      it 'agrees on :unrestricted — an unrestricted install must not go dark' do
+        expect_parity
+        expect(display_resolution).to be_unrestricted
+        expect(gate_resolution).to be_unrestricted
+      end
+    end
+  end
+end

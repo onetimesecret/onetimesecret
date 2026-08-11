@@ -446,6 +446,43 @@ module Onetime
           tenant_sso_unavailable_reason(domain_id, auth: auth, sso_config: sso_config).nil?
         end
 
+        # Whether ANY SSO sign-in path is offered on a CUSTOM DOMAIN host —
+        # the domain's own credentials, or the operator's platform providers
+        # when tenants are allowed to fall back to them.
+        #
+        # Wider than tenant_sso_available_for? by exactly the platform-fallback
+        # arm, and that is the point: it answers the question
+        # ConfigSerializer#build_sso_config answers for the rendered page
+        # ("will this host show SSO buttons?"), so the `restrict_to` SSO pin —
+        # display (ConfigSerializer#effective_global_restrict_to) and runtime
+        # (Auth::RestrictTo.global_restrict_to) — can be computed from ONE
+        # predicate on both sides.
+        #
+        # Why the pin converges HERE rather than on the narrower tenant ladder
+        # (ADR-024 A1, #4139): with allow_platform_fallback_for_tenants? on and
+        # no tenant SsoConfig, the page renders platform SSO buttons and
+        # nothing else — password/email default OFF on custom domains — while
+        # the narrower predicate left the gate unpinned and therefore MORE
+        # permissive than the page, accepting crafted password POSTs on a host
+        # that offers only SSO. Converging on the display's answer is the
+        # narrowing direction and locks out nobody: the methods it restricts
+        # away are ones that host never offered.
+        #
+        # The masthead link gate deliberately keeps the NARROW predicate (a
+        # branded front door advertises what the domain owner opted into, not
+        # an operator fallback) — that asymmetry is unchanged.
+        #
+        # @param domain_id [String, nil] CustomDomain identifier (objid)
+        # @param auth [Hash, nil] site.authentication settings (injectable for tests)
+        # @return [Boolean] true if the host offers some SSO sign-in path
+        def sso_available_for_tenant_host?(domain_id, auth: nil)
+          return true if domain_id && tenant_sso_available_for?(domain_id, auth: auth)
+          return false unless Onetime.auth_config.allow_platform_fallback_for_tenants?
+          return false unless Onetime::CustomDomain::SigninConfig.global_auth_enabled(auth)
+
+          Onetime.auth_config.sso_enabled?
+        end
+
         # Check if a domain has SSO configured.
         #
         # @param domain_id [String] CustomDomain identifier

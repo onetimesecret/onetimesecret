@@ -116,6 +116,9 @@ RSpec.describe Core::Views::ConfigSerializer do
       sso_enabled?: false,
       sso_only_enabled?: false,
       restrict_to: nil,
+      # Post-boot availability of the global restriction (ADR-024 A3): the
+      # serializer now hands it to the resolver instead of ignoring it (#4139).
+      restrict_to_available?: true,
       sso_providers: [],
       allow_platform_fallback_for_tenants?: false
     )
@@ -1117,10 +1120,54 @@ RSpec.describe Core::Views::ConfigSerializer do
       allow(mock_auth_config).to receive(:restrict_to).and_return('password')
 
       expect(Onetime::CustomDomain::SigninConfig).to receive(:resolve_restrict_to)
-        .with('password', nil)
+        .with('password', nil, available: true)
         .and_call_original
 
       expect(described_class.resolve_restrict_to(base_view_vars)).to eq('password')
+    end
+
+    # ADR-024 A3, post-boot half (#4139). Before this, the serializer was the
+    # one consumer that never applied restrict_to_available? at all: the route
+    # gate had already gone dark while this page still rendered the restricted
+    # method's form. The flag now rides into the resolver, so display and gate
+    # degrade together.
+    context 'when the global restriction became unavailable after boot' do
+      before do
+        allow(mock_auth_config).to receive(:restrict_to).and_return('password')
+        allow(mock_auth_config).to receive(:restrict_to_available?).and_return(false)
+      end
+
+      it 'hands the availability flag to the resolver' do
+        expect(Onetime::CustomDomain::SigninConfig).to receive(:resolve_restrict_to)
+          .with('password', nil, available: false)
+          .and_call_original
+
+        described_class.restrict_to_resolution(base_view_vars)
+      end
+
+      it 'resolves :unavailable rather than the restricted method' do
+        resolution = described_class.restrict_to_resolution(base_view_vars)
+
+        expect(resolution).to be_unavailable
+        expect(resolution.restrict_to).to eq('password')
+        expect(resolution.source).to eq(:global)
+        expect(resolution.allows?('password')).to be false
+      end
+
+      it 'never widens to standard mode when nothing is restricted' do
+        allow(mock_auth_config).to receive(:restrict_to).and_return(nil)
+
+        resolution = described_class.restrict_to_resolution(base_view_vars)
+
+        expect(resolution).to be_unrestricted
+        expect(resolution.allows?('password')).to be true
+      end
+
+      it 'does not apply to the tenant SSO pin, which is a host property' do
+        # The pin is not the operator's configured restriction, so AuthConfig's
+        # availability verdict about that restriction must not reach it.
+        expect(described_class.resolve_restrict_to(custom_domain_view_vars)).to eq('sso')
+      end
     end
   end
 

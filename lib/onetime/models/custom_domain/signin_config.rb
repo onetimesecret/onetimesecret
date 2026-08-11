@@ -393,35 +393,88 @@ module Onetime
         #   - anything outside RESTRICT_TO_VALUES: invalid data, fails closed
         #     like the rest rather than silently reading as "unrestricted".
         #
-        # GLOBAL HALF. `global` is taken at face value: post-#4140,
+        # GLOBAL HALF. `global` is taken at face value as a VALUE: post-#4140,
         # AuthConfig#restrict_to returns a valid restriction or nil meaning "no
         # restriction configured", and never nil to mean "the configured
         # restriction could not be honored" (that is a fatal boot error now).
-        # So there is deliberately no availability check and no defensive
-        # nil-handling here — re-adding either would rebuild the silent
-        # fail-open A3 retired. Global unavailability that is only discoverable
-        # after boot is the caller's to pass in (AuthConfig#restrict_to_available?)
-        # once A1 lands; it is not derivable from these two arguments.
+        # Re-adding defensive nil-handling here would rebuild the silent
+        # fail-open A3 retired.
+        #
+        # GLOBAL AVAILABILITY (`available:`) is the post-boot half of A3. It is
+        # not derivable from `global` and `config` — it reads live prerequisite
+        # state (AuthConfig#restrict_to_available?) — so the caller supplies it,
+        # but this resolver APPLIES it: three consumers each remembering to
+        # apply the same rule by hand is precisely the drift A2 exists to
+        # eliminate.
+        #
+        #   available: false means "the global restriction stands, but its
+        #   backing method is dead here". It can only ever NARROW: a standing
+        #   restriction becomes :unavailable, never :unrestricted, and an
+        #   install with nothing restricted (`global` blank) is untouched — a
+        #   false flag must not take an unrestricted install dark.
+        #
+        # The flag describes the VALUE the caller passed as `global`, not
+        # whatever AuthConfig happens to hold. That distinction is load-bearing
+        # for the display/gate SSO pin, which hands in a HOST property rather
+        # than the operator's config; callers derive the flag through
+        # .global_restriction_available? so they cannot disagree about it.
         #
         # @param global [String, nil] install-level restriction (AuthConfig#restrict_to),
         #   or nil when nothing is restricted
         # @param config [SigninConfig, nil] the per-domain config, if any
+        # @param available [Boolean] whether `global`'s backing method is usable
+        #   right now (see .global_restriction_available?)
         # @return [RestrictToResolution] explicit :unrestricted / :restricted / :unavailable
-        def resolve_restrict_to(global, config)
+        def resolve_restrict_to(global, config, available: true)
           global_value = global.to_s.strip
           domain_value = config&.enabled? ? config.restrict_to.to_s.strip : ''
 
+          # A blank global has nothing to be unavailable, so the flag cannot
+          # reach the :unrestricted row of the table above.
+          global_dead = !global_value.empty? && available != true
+
           if domain_value.empty?
             return RestrictToResolution.unrestricted(:global) if global_value.empty?
+            return RestrictToResolution.unavailable(global_value, :global) if global_dead
 
             return RestrictToResolution.restricted(global_value, :global)
           end
 
+          # A conflict is :unavailable either way; report the richer source.
           unless global_value.empty? || global_value == domain_value
             return RestrictToResolution.unavailable(global_value, :conflict)
           end
 
+          # An AGREEING domain config does not resurrect a dead global method
+          # (A8: agreement resolves with source :domain, but the method named is
+          # the same one, and it is just as dead). Source stays :global — the
+          # global half is why nothing is offered.
+          return RestrictToResolution.unavailable(global_value, :global) if global_dead
+
           resolve_domain_restrict_to(domain_value)
+        end
+
+        # The `available:` input to resolve_restrict_to for a caller that has
+        # already chosen the `global` VALUE it is handing in.
+        #
+        # Keyed on the value, not on the caller: AuthConfig#restrict_to_available?
+        # describes the OPERATOR's configured restriction, so it applies only
+        # when the caller is passing that same restriction through. The display
+        # and runtime gates also hand in a derived 'sso' HOST pin
+        # (ConfigSerializer#effective_global_restrict_to,
+        # Auth::RestrictTo.global_restrict_to) whose availability their own pin
+        # predicate already established; AuthConfig has no opinion about it and
+        # must not be consulted for it.
+        #
+        # Defined here, beside global_signin_enabled / global_auth_enabled, so
+        # the three resolver consumers read it identically (ADR-024 A2).
+        #
+        # @param global_value [String, nil] the value being passed as `global`
+        # @return [Boolean]
+        def global_restriction_available?(global_value)
+          return true unless global_value.to_s == Onetime.auth_config.restrict_to.to_s
+
+          Onetime.auth_config.restrict_to_available?
         end
 
         # Domain half of resolve_restrict_to: a non-empty domain restriction
