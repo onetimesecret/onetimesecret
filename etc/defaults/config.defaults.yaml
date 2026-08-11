@@ -531,6 +531,12 @@ site:
       #   - Forged leftmost entry: filter returns it (see SECURITY above); depth
       #     ignores it, since only the position N-from-the-right is read
       #
+      # Matched case-insensitively and canonicalized (like `header` below). The
+      # set is closed: any other value falls back to filter — the safer mode —
+      # and WARNs at boot naming the value, rather than failing the boot. The
+      # 'filter' default here is documentation; the app applies the same default
+      # itself, so an unset or programmatically assembled config behaves
+      # identically.
       mode: <%= ENV['TRUSTED_PROXY_MODE'] || 'filter' %>
 
       # Depth mode only: which header to read the forwarding chain from.
