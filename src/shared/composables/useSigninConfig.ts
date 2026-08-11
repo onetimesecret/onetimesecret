@@ -300,6 +300,34 @@ export function useSigninConfig(domainExtId: string) {
   };
 
   /**
+   * Patch queued while a PUT is in flight. Concurrent auto-saves coalesce
+   * here (later keys win) and drain as follow-up saves once the in-flight
+   * request settles. Dropping them instead would silently lose a user
+   * action — today every control disables while isSaving, but the composable
+   * must not stake correctness on every future caller remembering to.
+   *
+   * The queued patch is deliberately NOT merged into formState until its own
+   * save runs: saveConfig's success path replaces formState from the server
+   * record (and its failure path reverts to the saved snapshot), either of
+   * which would clobber an early optimistic merge.
+   */
+  let queuedPatch: {
+    partial: Partial<SigninConfigFormState>;
+    hint?: keyof SigninConfigFormState;
+  } | null = null;
+
+  /** Merge one patch into formState, attribute the spinner, run one PUT. */
+  const applyAndSave = async (
+    partial: Partial<SigninConfigFormState>,
+    savingFieldHint?: keyof SigninConfigFormState
+  ) => {
+    formState.value = { ...formState.value, ...partial };
+    const firstKey = Object.keys(partial)[0] as keyof SigninConfigFormState | undefined;
+    savingField.value = savingFieldHint ?? firstKey ?? null;
+    await saveConfig();
+  };
+
+  /**
    * Merge a partial form patch and persist immediately (save-on-change).
    *
    * The signin form auto-saves every change — there is no Save button. The
@@ -307,6 +335,10 @@ export function useSigninConfig(domainExtId: string) {
    * partial only carries the fields that changed. Multi-field saves (e.g.
    * picking a restrict_to method also flips its availability flag) commit
    * atomically as one PUT, avoiding a two-request race.
+   *
+   * A call arriving while a save is in flight queues (see queuedPatch) and
+   * resolves immediately; the call that owns the in-flight save drains the
+   * queue before returning.
    *
    * @param partial - fields to merge into formState before saving
    * @param savingFieldHint - field to attribute the spinner to; defaults to
@@ -316,14 +348,21 @@ export function useSigninConfig(domainExtId: string) {
     partial: Partial<SigninConfigFormState>,
     savingFieldHint?: keyof SigninConfigFormState
   ) => {
-    if (isSaving.value) return;
-    formState.value = { ...formState.value, ...partial };
-
-    const firstKey = Object.keys(partial)[0] as keyof SigninConfigFormState | undefined;
-    savingField.value = savingFieldHint ?? firstKey ?? null;
+    if (isSaving.value) {
+      queuedPatch = {
+        partial: { ...queuedPatch?.partial, ...partial },
+        hint: savingFieldHint ?? queuedPatch?.hint,
+      };
+      return;
+    }
 
     try {
-      await saveConfig();
+      await applyAndSave(partial, savingFieldHint);
+      while (queuedPatch) {
+        const next = queuedPatch;
+        queuedPatch = null;
+        await applyAndSave(next.partial, next.hint);
+      }
     } finally {
       savingField.value = null;
     }
