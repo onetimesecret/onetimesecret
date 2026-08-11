@@ -14,7 +14,7 @@
 # - Response envelope { record, details.cluster } and the DNS fields the admin
 #   panel renders — including the three merged-in fields safe_dump omits
 #   (verification_state / resolving / ready), typed to match VerifyCustomDomain
-# - Exactly one AdminAuditEvent per create: verb=domain.create,
+# - Exactly one ColonelAuditEvent per create: verb=domain.create,
 #   target=domain.extid, actor=colonel.extid
 # - Duplicate create is a clean 4xx (pre-checked), not a 500
 # - Detail: 200 by extid with the same shape, 404 for unknown extid
@@ -111,7 +111,7 @@ last_response.status < 500
 #=> true
 
 ## Create: 200 with { record, details } envelope
-@before_count = Onetime::AdminAuditEvent.count
+@before_count = Onetime::ColonelAuditEvent.count
 post '/api/colonel/domains', { 'org_id' => @org.extid, 'domain' => @domain }, colonel_headers
 @resp = JSON.parse(last_response.body)
 [last_response.status, @resp.key?('record'), @resp.key?('details')]
@@ -157,9 +157,9 @@ r = @resp['record']
 
 ## Create: records exactly one audit event — verb=domain.create, target=domain extid
 @created_extid = JSON.parse(last_response.body)['record']['extid']
-@evt = Onetime::AdminAuditEvent.recent(1).first
+@evt = Onetime::ColonelAuditEvent.recent(1).first
 [
-  Onetime::AdminAuditEvent.count - @before_count,
+  Onetime::ColonelAuditEvent.count - @before_count,
   @evt['verb'],
   @evt['actor'] == @colonel.extid,
   @evt['target'] == @created_extid,

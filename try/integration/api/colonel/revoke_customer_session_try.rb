@@ -14,7 +14,7 @@
 # - 403 for non-colonel, 401 for anonymous (dual-gate)
 # - a successful DELETE returns record.revoked=true; the live blob is GONE, the
 #   sidecar is destroyed, and the sid is ZREM'd from Customer#active_sessions
-# - EXACTLY ONE AdminAuditEvent per revoke (verb 'session.revoke', target = the
+# - EXACTLY ONE ColonelAuditEvent per revoke (verb 'session.revoke', target = the
 #   target extid, actor = the acting colonel's extid)
 # - IDEMPOTENT: a second DELETE still returns revoked=true
 #
@@ -42,7 +42,7 @@ def last_response;  @test.last_response;  end
 
 Store = Onetime::Operations::Sessions::Store
 SM    = Onetime::SessionMetadata
-AE    = Onetime::AdminAuditEvent
+AE    = Onetime::ColonelAuditEvent
 DB    = Familia.dbclient
 
 @timestamp = Familia.now.to_i

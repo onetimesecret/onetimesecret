@@ -5,7 +5,7 @@
 require 'onetime/operations/sessions/store'
 require 'onetime/session/sidecar'
 require 'onetime/models/session_metadata'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 
 module Onetime
@@ -55,7 +55,7 @@ module Onetime
       #
       # ## 3. One audit event with counts
       #
-      # Exactly one {Onetime::AdminAuditEvent} (`verb: session.revoke_all`, target =
+      # Exactly one {Onetime::ColonelAuditEvent} (`verb: session.revoke_all`, target =
       # the customer), detail carrying the kill counts so the operator (and the
       # trail) sees how total the revoke actually was. Best-effort throughout: a
       # missing customer or a down auth DB degrades to zero-counts, never a raise
@@ -119,7 +119,7 @@ module Onetime
 
           blobs_deleted = tracked_deleted + untracked_deleted
 
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @custid,

@@ -14,7 +14,7 @@ module ColonelAPI
       #
       # Thin adapter over {Onetime::Operations::Domains::Transfer} — the single,
       # audited implementation of the transfer verb. The op owns the ownership
-      # check, the atomic-ish move, and the AdminAuditEvent (CONTRACT 4); this class
+      # check, the atomic-ish move, and the ColonelAuditEvent (CONTRACT 4); this class
       # resolves the domain + orgs and threads the `dry_run` flag.
       #
       # `dry_run` defaults to TRUE (D4 — dry-run default): the screen previews the
@@ -24,8 +24,14 @@ module ColonelAPI
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.
       class TransferDomain < ColonelAPI::Logic::Base
-        attr_reader :extid, :to_org_id, :from_org_id, :dry_run,
-                    :custom_domain, :to_org, :from_org, :result
+        attr_reader :extid,
+          :to_org_id,
+          :from_org_id,
+          :dry_run,
+          :custom_domain,
+          :to_org,
+          :from_org,
+          :result
 
         def process_params
           @extid = sanitize_identifier(params['extid'])

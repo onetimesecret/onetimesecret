@@ -5,7 +5,7 @@
 require 'onetime/models/custom_domain/mailer_config'
 require 'onetime/operations/delete_sender_domain'
 require_relative 'base'
-require_relative 'audit_logger'
+require_relative 'change_logger'
 
 module DomainsAPI
   module Logic
@@ -21,7 +21,7 @@ module DomainsAPI
       # mail sender configuration.
       #
       class DeleteSenderConfig < Base
-        include AuditLogger
+        include ChangeLogger
 
         attr_reader :deleted_provider
 
@@ -58,7 +58,7 @@ module DomainsAPI
           deleted = Onetime::CustomDomain::MailerConfig.delete_for_domain!(@custom_domain.identifier)
 
           if deleted
-            log_sender_audit_event(
+            log_sender_change_event(
               event: :domain_sender_config_deleted,
               domain: @custom_domain,
               org: @organization,

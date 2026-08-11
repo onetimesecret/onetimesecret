@@ -10,7 +10,7 @@
 # Run: pnpm run test:rspec apps/web/auth/spec/operations/customers/set_role_spec.rb
 
 require 'spec_helper'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'auth/operations/customers/set_role'
 
 RSpec.describe Auth::Operations::Customers::SetRole do
@@ -18,7 +18,7 @@ RSpec.describe Auth::Operations::Customers::SetRole do
     double('Customer', role: 'customer', extid: 'ur_test', :role= => nil, save: true)
   end
 
-  before { allow(Onetime::AdminAuditEvent).to receive(:record) }
+  before { allow(Onetime::ColonelAuditEvent).to receive(:record) }
 
   it 'changes the role, saves, and returns :success with from/to' do
     result = described_class.new(customer: customer, role: 'colonel', actor: 'ur_col').call
@@ -33,7 +33,7 @@ RSpec.describe Auth::Operations::Customers::SetRole do
   it 'records exactly one audit event on success (actor = public id, target = extid)' do
     described_class.new(customer: customer, role: 'colonel', actor: 'ur_col').call
 
-    expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+    expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
       actor: 'ur_col',
       verb: 'customer.set_role',
       target: 'ur_test',
@@ -49,7 +49,7 @@ RSpec.describe Auth::Operations::Customers::SetRole do
 
     expect(result.status).to eq(:no_change)
     expect(customer).not_to have_received(:save)
-    expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+    expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
   end
 
   it 'raises InvalidRole (no save) for an unknown role' do
@@ -69,7 +69,7 @@ RSpec.describe Auth::Operations::Customers::SetRole do
       described_class.new(customer: customer, role: 'wizard', actor: 'x').call
     end.to raise_error(described_class::InvalidRole)
 
-    expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+    expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
       hash_including(
         actor: 'x',
         verb: 'customer.set_role',

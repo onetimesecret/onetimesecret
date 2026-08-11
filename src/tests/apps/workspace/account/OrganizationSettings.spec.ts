@@ -7,11 +7,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick, ref } from 'vue';
 import { createTestI18n } from '@tests/setup';
 
-// Mock vue-router
+// Mock vue-router.
+// `params` is a shared mutable object so tests can simulate a deep link
+// (e.g. /org/on1abc123/activity) by setting `mockRouteParams.tab` before mount.
+// Reset in beforeEach.
+const mockRouteParams: Record<string, string | undefined> = {
+  extid: 'on1abc123',
+  orgid: 'on1abc123',
+};
 vi.mock('vue-router', () => ({
   useRoute: () => ({
     path: '/org/on1abc123',
-    params: { extid: 'on1abc123', orgid: 'on1abc123' },
+    params: mockRouteParams,
     query: {},
   }),
   useRouter: () => ({
@@ -59,6 +66,17 @@ vi.mock('@/apps/workspace/components/domains/DomainsTable.vue', () => ({
   default: {
     name: 'DomainsTable',
     template: '<div class="domains-table" />',
+  },
+}));
+// SecretActivityTable owns its own fetching (mounting IS activation), so it
+// must be mocked here — otherwise switching to the Activity tab fires a real
+// useApi fetch this suite doesn't stub.
+vi.mock('@/apps/workspace/components/organizations/SecretActivityTable.vue', () => ({
+  default: {
+    name: 'SecretActivityTable',
+    template:
+      '<div class="secret-activity-table" data-testid="secret-activity-table" :data-org-extid="orgExtid" />',
+    props: ['orgExtid'],
   },
 }));
 vi.mock('@/shared/components/closet/ListSkeleton.vue', () => ({
@@ -135,6 +153,9 @@ const mockOrganization = {
   entitlements: ['manage_members'],
   limits: { teams: 1 },
   planid: 'plan_starter', // Required for billing email field to be visible
+  // Audit-trail role gate (#3637): admin/owner required. 'admin' keeps
+  // isOwner false so owner-only sections stay unaffected.
+  current_user_role: 'admin',
 };
 
 const mockFetchOrganization = vi.fn();
@@ -176,14 +197,17 @@ vi.mock('@/shared/composables/useEntitlements', () => ({
     ENTITLEMENTS: {
       MANAGE_MEMBERS: 'manage_members',
       MANAGE_SSO: 'manage_sso',
+      AUDIT_LOGS: 'audit_logs',
     },
   }),
 }));
 
-// Mock features (SSO feature flag)
+// Mock features (SSO opt-in flag + default-ON audit logs instance flag)
 const mockOrgsSsoEnabled = ref(false);
+const mockOrgsAuditLogsEnabled = ref(true);
 vi.mock('@/utils/features', () => ({
   isOrgsSsoEnabled: () => mockOrgsSsoEnabled.value,
+  isOrgsAuditLogsEnabled: () => mockOrgsAuditLogsEnabled.value,
 }));
 
 vi.mock('@/shared/composables/useAsyncHandler', () => ({
@@ -221,13 +245,18 @@ describe('OrganizationSettings', () => {
     mockDomainCount.value = 0;
     mockCanCreateDomain.value = true;
     mockOrgsSsoEnabled.value = false;
+    mockOrgsAuditLogsEnabled.value = true;
+    delete mockRouteParams.tab;
   });
 
   afterEach(() => {
     wrapper?.unmount();
   });
 
-  const mountComponent = async () => {
+  // Mounts without awaiting. Use when a test needs the pre-fetch render, i.e.
+  // the window before onMounted's awaits (initDefinitions / fetchAllPermissions
+  // / loadOrganization) resolve.
+  const mountComponentUnsettled = () => {
     const pinia = createTestingPinia({
       createSpy: vi.fn,
       initialState: {
@@ -245,6 +274,11 @@ describe('OrganizationSettings', () => {
         },
       },
     });
+    return wrapper;
+  };
+
+  const mountComponent = async () => {
+    mountComponentUnsettled();
     await flushPromises();
     await nextTick();
     return wrapper;
@@ -553,6 +587,235 @@ describe('OrganizationSettings', () => {
       // When domains exist, the domain list is shown instead of EmptyState
       const emptyState = wrapper.find('[data-testid="org-section-sso"] [data-testid="empty-state"]');
       expect(emptyState.exists()).toBe(false);
+    });
+  });
+
+  /**
+   * Activity tab — Secret Activity audit trail (#3637).
+   *
+   * The audit_logs entitlement gates the panel CONTENT only, never the tab:
+   * the tab is always rendered (and keyboard-reachable), and an unentitled
+   * user who opens it lands on an inline upgrade notice — no redirect, no
+   * hidden tab. SecretActivityTable owns its fetching, so when unentitled the
+   * content div (and therefore the fetch) never mounts.
+   */
+  describe('Activity Tab — Secret Activity', () => {
+    const switchToActivityTab = async (w: VueWrapper) => {
+      const navTabs = w.find('nav[aria-label="Organization settings tabs"]');
+      const tabs = navTabs.findAll('button');
+      const activityTab = tabs.find((tab) => tab.attributes('id') === 'org-tab-activity');
+      if (!activityTab) {
+        throw new Error('Activity tab not found');
+      }
+      await activityTab.trigger('click');
+      await flushPromises();
+      await nextTick();
+      return activityTab;
+    };
+
+    const findPanel = (w: VueWrapper) => w.find('[data-testid="org-section-activity"]');
+    const findActivityTable = (w: VueWrapper) => w.find('[data-testid="secret-activity-table"]');
+
+    describe('entitled organization', () => {
+      beforeEach(() => {
+        mockEntitlements.value = ['manage_members', 'audit_logs'];
+      });
+
+      it('shows the activity panel with the SecretActivityTable', async () => {
+        wrapper = await mountComponent();
+        await switchToActivityTab(wrapper);
+
+        const panel = findPanel(wrapper);
+        expect(panel.exists()).toBe(true);
+        expect(panel.text()).toContain('web.organizations.audit.title');
+        expect(panel.text()).toContain('web.organizations.audit.description');
+
+        const table = findActivityTable(wrapper);
+        expect(table.exists()).toBe(true);
+        // The table fetches for the org in the route.
+        expect(table.attributes('data-org-extid')).toBe('on1abc123');
+      });
+
+      it('does not show the upgrade notice', async () => {
+        wrapper = await mountComponent();
+        await switchToActivityTab(wrapper);
+
+        expect(findPanel(wrapper).text()).not.toContain(
+          'web.organizations.audit.upgrade_prompt'
+        );
+      });
+    });
+
+    describe('unentitled organization', () => {
+      // beforeEach default: mockEntitlements = ['manage_members'] (no audit_logs)
+
+      it('still renders the Activity tab in the tab bar', async () => {
+        wrapper = await mountComponent();
+
+        const navTabs = wrapper.find('nav[aria-label="Organization settings tabs"]');
+        const activityTab = navTabs
+          .findAll('button')
+          .find((tab) => tab.attributes('id') === 'org-tab-activity');
+        expect(activityTab).toBeDefined();
+        expect(activityTab!.text()).toContain('web.organizations.tabs.activity');
+      });
+
+      it('opens the panel with the upgrade notice instead of redirecting', async () => {
+        wrapper = await mountComponent();
+        const activityTab = await switchToActivityTab(wrapper);
+
+        // No redirect: the tab stays selected and its panel renders.
+        expect(activityTab.attributes('aria-selected')).toBe('true');
+        const panel = findPanel(wrapper);
+        expect(panel.exists()).toBe(true);
+        expect(panel.text()).toContain('web.organizations.audit.upgrade_prompt');
+
+        // The upgrade CTA links to the plans page.
+        const plansLink = panel
+          .findAll('a')
+          .find((a) => a.attributes('href') === '/billing/on1abc123/plans');
+        expect(plansLink).toBeDefined();
+        expect(plansLink!.text()).toContain('web.billing.overview.view_plans_action');
+      });
+
+      it('never mounts SecretActivityTable (so its fetch cannot fire)', async () => {
+        wrapper = await mountComponent();
+        await switchToActivityTab(wrapper);
+
+        expect(findActivityTable(wrapper).exists()).toBe(false);
+      });
+    });
+
+    describe('instance flag off (ORGS_AUDIT_LOGS_ENABLED=false)', () => {
+      // Distinct axis from the entitlement: when the instance flag is off the
+      // tab is EXCLUDED entirely (not disabled, not upgrade-noticed) — even
+      // for an entitled admin.
+      beforeEach(() => {
+        mockOrgsAuditLogsEnabled.value = false;
+        mockEntitlements.value = ['manage_members', 'audit_logs'];
+      });
+
+      it('does not render the Activity tab at all', async () => {
+        wrapper = await mountComponent();
+
+        const navTabs = wrapper.find('nav[aria-label="Organization settings tabs"]');
+        const activityTab = navTabs
+          .findAll('button')
+          .find((tab) => tab.attributes('id') === 'org-tab-activity');
+        expect(activityTab).toBeUndefined();
+        expect(findPanel(wrapper).exists()).toBe(false);
+      });
+
+      it('never activates activity via keyboard traversal', async () => {
+        wrapper = await mountComponent();
+        const navTabs = wrapper.find('nav[aria-label="Organization settings tabs"]');
+
+        // Cycle through every reachable tab; activity must never become
+        // selected and its panel must never mount.
+        const tabCount = navTabs.findAll('button').length;
+        for (let i = 0; i <= tabCount; i++) {
+          await navTabs.trigger('keydown', { key: 'ArrowRight' });
+          await flushPromises();
+          await nextTick();
+
+          const selected = navTabs
+            .findAll('button')
+            .find((tab) => tab.attributes('aria-selected') === 'true');
+          expect(selected?.attributes('id')).not.toBe('org-tab-activity');
+          expect(findPanel(wrapper).exists()).toBe(false);
+          expect(findActivityTable(wrapper).exists()).toBe(false);
+        }
+      });
+
+      // Deep link (/org/<extid>/activity) on a flag-off install. The URL
+      // segment must never seat activeTab='activity' — not even for the window
+      // before onMounted's three awaits (initDefinitions / fetchAllPermissions
+      // / loadOrganization) resolve, since no tab and no panel matches
+      // 'activity' when the flag is off. resolveInitialTab() applies the
+      // instance flag synchronously; checkInitialTabRedirect() only corrects
+      // it after those fetches land, which is too late to be the only guard.
+      describe('deep link to /activity', () => {
+        beforeEach(() => {
+          mockRouteParams.tab = 'activity';
+        });
+
+        it('never seats activity before the mount fetches resolve', () => {
+          wrapper = mountComponentUnsettled();
+
+          // Synchronous assertion: no flushPromises, so onMounted's awaits
+          // (and checkInitialTabRedirect) have not run yet.
+          expect((wrapper.vm as unknown as { activeTab: string }).activeTab).toBe('domains');
+          expect(findPanel(wrapper).exists()).toBe(false);
+          // The loading skeleton (isLoading starts true) covers this window,
+          // so the invalid tab state was never painted — but the state itself
+          // must still be valid, independent of that coverage.
+          expect(wrapper.find('[role="status"][aria-busy="true"]').exists()).toBe(true);
+        });
+
+        it('lands on the default tab with its panel rendered, not a blank area', async () => {
+          wrapper = await mountComponent();
+
+          const navTabs = wrapper.find('nav[aria-label="Organization settings tabs"]');
+          const selected = navTabs
+            .findAll('button')
+            .find((tab) => tab.attributes('aria-selected') === 'true');
+          expect(selected?.attributes('id')).toBe('org-tab-domains');
+
+          // Content area is populated, not empty.
+          expect(wrapper.find('[data-testid="org-section-domains"]').exists()).toBe(true);
+          expect(findPanel(wrapper).exists()).toBe(false);
+          expect(findActivityTable(wrapper).exists()).toBe(false);
+        });
+      });
+    });
+
+    describe('instance flag on (default)', () => {
+      it('renders the Activity tab (unchanged behavior)', async () => {
+        // beforeEach default: mockOrgsAuditLogsEnabled = true (absent key on
+        // older backends also reads as ON — see features.spec.ts)
+        wrapper = await mountComponent();
+
+        const navTabs = wrapper.find('nav[aria-label="Organization settings tabs"]');
+        const activityTab = navTabs
+          .findAll('button')
+          .find((tab) => tab.attributes('id') === 'org-tab-activity');
+        expect(activityTab).toBeDefined();
+      });
+
+      it('honours a deep link to /activity (flag guard does not overreach)', async () => {
+        mockRouteParams.tab = 'activity';
+        mockEntitlements.value = ['manage_members', 'audit_logs'];
+
+        wrapper = await mountComponent();
+
+        expect((wrapper.vm as unknown as { activeTab: string }).activeTab).toBe('activity');
+        expect(findPanel(wrapper).exists()).toBe(true);
+      });
+    });
+
+    describe('member role (entitled plan)', () => {
+      // Backend materializes membership entitlements as plan ∩ role and
+      // audit_logs is admin-tier, so a plain member is 403'd server-side even
+      // on an entitled plan. The UI must show the role notice — not the
+      // upgrade prompt, and never mount the table (whose fetch would 403).
+      beforeEach(() => {
+        mockEntitlements.value = ['manage_members', 'audit_logs'];
+        mockFetchOrganization.mockResolvedValue({
+          ...mockOrganization,
+          current_user_role: 'member',
+        });
+      });
+
+      it('shows the role notice instead of the table or upgrade prompt', async () => {
+        wrapper = await mountComponent();
+        await switchToActivityTab(wrapper);
+
+        const panel = findPanel(wrapper);
+        expect(panel.find('[data-testid="org-audit-role-notice"]').exists()).toBe(true);
+        expect(panel.text()).toContain('web.organizations.audit.role_required');
+        expect(panel.text()).not.toContain('web.organizations.audit.upgrade_prompt');
+        expect(findActivityTable(wrapper).exists()).toBe(false);
+      });
     });
   });
 });

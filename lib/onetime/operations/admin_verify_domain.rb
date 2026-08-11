@@ -6,7 +6,7 @@
 # call site (the colonel logic class), so require the dependencies explicitly —
 # the same convention the CLI + domain API logic follow.
 require 'onetime/operations/verify_domain'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 
 module Onetime
   module Operations
@@ -17,7 +17,7 @@ module Onetime
     # This deliberately does NOT re-implement verification — it delegates to the
     # incumbent {Onetime::Operations::VerifyDomain} (the shared DNS/SSL verifier
     # with atomic persistence semantics, issue #3080) and adds exactly one
-    # {Onetime::AdminAuditEvent} per call.
+    # {Onetime::ColonelAuditEvent} per call.
     #
     # ## Why a wrapper instead of auditing inside VerifyDomain
     #
@@ -62,7 +62,7 @@ module Onetime
           persist: @persist,
         ).call
 
-        Onetime::AdminAuditEvent.record(
+        Onetime::ColonelAuditEvent.record(
           actor: @actor,
           verb: AUDIT_VERB,
           target: @domain.extid,

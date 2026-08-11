@@ -14,7 +14,7 @@ module ColonelAPI
       # single, audited implementation of the feedback-ingest verb. This class
       # keeps only the HTTP concerns (payload shape validation + the batch
       # cap); the op owns validation of individual records, the model writes,
-      # and the one-per-batch AdminAuditEvent (CONTRACT 4).
+      # and the one-per-batch ColonelAuditEvent (CONTRACT 4).
       #
       # ## Intended flow
       #

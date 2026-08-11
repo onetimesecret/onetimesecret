@@ -62,6 +62,7 @@ function createMockReceipt(overrides = {}) {
     shortid: 'rcpt123',
     key: 'test-key',
     secret_shortid: 'sec1234',
+    secret_identifier: 'sec1234fullbearerkey',
     secret_ttl: 604800,
     receipt_ttl: 604800,
     lifespan: 604800,
@@ -249,6 +250,42 @@ describe('SecretReceiptTableItem', () => {
       const wrapper = mountComponent({ is_expired: true });
       expect(wrapper.text()).not.toContain('[ COPY ]');
       expect(wrapper.text()).not.toContain('[ BURN ]');
+    });
+  });
+
+  describe('share link', () => {
+    // The share link must carry the full bearer key. secret_shortid is the
+    // 8-char display prefix (safe_dump derives it via
+    // secret_identifier.to_s.slice(0, 8)) and does not resolve as a URL.
+    it('builds the OPEN href from secret_identifier, not secret_shortid', () => {
+      const wrapper = mountComponent({
+        secret_identifier: 'fullbearerkey123456',
+        secret_shortid: 'fullbear',
+        share_domain: 'eu.example.com',
+      });
+      const openLink = wrapper.find('a[target="_blank"]');
+      expect(openLink.attributes('href')).toBe(
+        'https://eu.example.com/secret/fullbearerkey123456'
+      );
+    });
+
+    it('falls back to site_host when share_domain is null', () => {
+      const wrapper = mountComponent({
+        secret_identifier: 'fullbearerkey123456',
+        share_domain: null,
+      });
+      const openLink = wrapper.find('a[target="_blank"]');
+      expect(openLink.attributes('href')).toContain('/secret/fullbearerkey123456');
+    });
+
+    // Incoming secrets withhold the bearer key (Receipt#shows_share_link?).
+    // COPY/OPEN must disappear rather than link to /secret/null; BURN stays,
+    // since it routes on the receipt identifier.
+    it('hides COPY and OPEN but keeps BURN when secret_identifier is withheld', () => {
+      const wrapper = mountComponent({ secret_identifier: null });
+      expect(wrapper.text()).not.toContain('[ COPY ]');
+      expect(wrapper.text()).not.toContain('[ OPEN');
+      expect(wrapper.text()).toContain('[ BURN ]');
     });
   });
 

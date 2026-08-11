@@ -15,7 +15,7 @@ module ColonelAPI
       #
       # Thin adapter over {Onetime::Operations::Memberships::Remove} — the single,
       # audited implementation. It tears down the membership and clears the
-      # member's materialized entitlements. The OP owns the AdminAuditEvent (do
+      # member's materialized entitlements. The OP owns the ColonelAuditEvent (do
       # NOT audit here).
       #
       # MUTATING + destructive; the colonel UI guards it behind a typed

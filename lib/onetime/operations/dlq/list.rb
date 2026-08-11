@@ -13,7 +13,7 @@ module Onetime
       # arg) are thin adapters over it.
       #
       # READ-ONLY: summarising queue depths mutates nothing, so — like the session
-      # list / system read-outs — it records NO {Onetime::AdminAuditEvent}
+      # list / system read-outs — it records NO {Onetime::ColonelAuditEvent}
       # (CONTRACT 4: audit is for mutations).
       #
       # Bounded by construction (CONTRACT 6): the set of DLQs is the fixed

@@ -58,7 +58,7 @@ policy table, via the self-registering handler-registry shape
   escalation rule: a complaint or hard bounce UPGRADES an existing softer
   entry — wider scope/longer TTL wins; never downgrades).
 - These are recipient-caused mutations, not admin actions: NO
-  `AdminAuditEvent` per event (CONTRACT 4 actors are admins); the activity log
+  `ColonelAuditEvent` per event (CONTRACT 4 actors are admins); the activity log
   is the record. A daily aggregate line in logs keeps operators aware.
 
 ## Grounding — files & pointers

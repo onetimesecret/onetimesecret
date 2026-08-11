@@ -12,7 +12,7 @@
 #      owner_id -> demote. Memberships::SetRole is stubbed at its constructor so
 #      the ordering is directly observable; it has its own coverage.
 #
-#   2. Real datastore (Valkey on 2121, see spec/config.test.yaml) — the
+#   2. Real datastore (Valkey on 2163, see spec/config.test.yaml) — the
 #      post-condition that actually matters: BOTH parties' entitlements are
 #      re-materialized (the incoming owner GAINS manage_org, the outgoing owner
 #      LOSES it) and the org still passes all five `bin/ots org doctor`
@@ -28,7 +28,7 @@
 # Run: bundle exec rspec spec/unit/onetime/operations/org/transfer_ownership_spec.rb
 
 require 'spec_helper'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/operations/org/transfer_ownership'
 
 RSpec.describe Onetime::Operations::Org::TransferOwnership do
@@ -98,7 +98,7 @@ RSpec.describe Onetime::Operations::Org::TransferOwnership do
     end
 
     before do
-      allow(Onetime::AdminAuditEvent).to receive(:record)
+      allow(Onetime::ColonelAuditEvent).to receive(:record)
       allow(OT).to receive(:info)
       allow(OT).to receive(:le)
 
@@ -184,7 +184,7 @@ RSpec.describe Onetime::Operations::Org::TransferOwnership do
         # The two composed SetRole calls emit their own 'membership.set_role'
         # events (D26 — three per transfer). They are stubbed here; the
         # real-datastore layer is where composition is exercised end to end.
-        expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
           actor: actor,
           verb: 'organization.transfer_ownership',
           target: 'on_org_ext',
@@ -236,7 +236,7 @@ RSpec.describe Onetime::Operations::Org::TransferOwnership do
         expect(org).not_to have_received(:owner_id=)
         expect(org).not_to have_received(:save)
         expect(Onetime::Operations::Memberships::SetRole).not_to have_received(:new)
-        expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
       end
     end
 
@@ -252,7 +252,7 @@ RSpec.describe Onetime::Operations::Org::TransferOwnership do
         expect(result.status).to eq(:not_member)
         expect(org).not_to have_received(:owner_id=)
         expect(Onetime::Operations::Memberships::SetRole).not_to have_received(:new)
-        expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
           actor: actor,
           verb: 'organization.transfer_ownership',
           target: 'on_org_ext',
@@ -271,7 +271,7 @@ RSpec.describe Onetime::Operations::Org::TransferOwnership do
 
         expect(result.status).to eq(:not_member)
         expect(Onetime::Operations::Memberships::SetRole).not_to have_received(:new)
-        expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
           hash_including(
             verb: 'organization.transfer_ownership',
             target: 'on_org_ext',
@@ -288,7 +288,7 @@ RSpec.describe Onetime::Operations::Org::TransferOwnership do
           expect(result.status).to eq(:invalid_role)
           expect(org).not_to have_received(:owner_id=)
           expect(Onetime::Operations::Memberships::SetRole).not_to have_received(:new)
-          expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+          expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
             hash_including(
               verb: 'organization.transfer_ownership',
               target: 'on_org_ext',
@@ -321,7 +321,7 @@ RSpec.describe Onetime::Operations::Org::TransferOwnership do
         expect(org).not_to have_received(:owner_id=)
         expect(org).not_to have_received(:save)
         expect(Onetime::Operations::Memberships::SetRole).not_to have_received(:new)
-        expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
       end
 
       it 'repairs a partial state (already owner, stale owner_id) instead of reporting :no_change' do
@@ -335,7 +335,7 @@ RSpec.describe Onetime::Operations::Org::TransferOwnership do
         expect(org).to have_received(:owner_id=).with('cust-obj-new')
         # Already an owner -> no promote call; only the demote.
         expect(calls).to eq([[:owner_id=, 'cust-obj-new'], ['ur_old_ext', 'admin']])
-        expect(Onetime::AdminAuditEvent).to have_received(:record).once
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once
       end
     end
 
@@ -373,7 +373,7 @@ RSpec.describe Onetime::Operations::Org::TransferOwnership do
             ['ur_old2_ext', 'admin'],
           ]
         )
-        expect(Onetime::AdminAuditEvent).to have_received(:record).once
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once
           .with(hash_including(detail: hash_including(demoted_count: 2)))
       end
 
@@ -396,7 +396,7 @@ RSpec.describe Onetime::Operations::Org::TransferOwnership do
         expect(result.orphaned_owner).to be(true)
         expect(result.from_owner_id).to be_nil
         expect(org).to have_received(:owner_id=).with('cust-obj-new')
-        expect(Onetime::AdminAuditEvent).to have_received(:record).once
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once
           .with(hash_including(detail: hash_including(from: nil)))
       end
 
@@ -430,7 +430,7 @@ RSpec.describe Onetime::Operations::Org::TransferOwnership do
     # BEFORE the success-path record call, so an aborted transfer — which can
     # leave the org with two owners, and doctor check 4 is `repairable: false` —
     # would otherwise leave no trace at all. Message expectations, not store
-    # reads: AdminAuditEvent.record swallows its own errors. The composed
+    # reads: ColonelAuditEvent.record swallows its own errors. The composed
     # SetRole is an instance_double here, so its own failure event does not
     # fire; in production a failed transfer emits both (D26).
     describe 'rollback' do
@@ -455,7 +455,7 @@ RSpec.describe Onetime::Operations::Org::TransferOwnership do
         expect(org).to have_received(:owner_id=).with('cust-obj-old').ordered
         # The new owner is put back at the role they held before the promote.
         expect(calls.last).to eq(['ur_new_ext', 'member'])
-        expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
           hash_including(
             actor: actor,
             verb: 'organization.transfer_ownership',
@@ -484,7 +484,7 @@ RSpec.describe Onetime::Operations::Org::TransferOwnership do
         expect { build.call }.to raise_error(Onetime::Problem, /Failed to set role 'owner'/)
 
         expect(org).not_to have_received(:owner_id=)
-        expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
           hash_including(
             verb: 'organization.transfer_ownership',
             target: 'on_org_ext',
@@ -507,7 +507,7 @@ RSpec.describe Onetime::Operations::Org::TransferOwnership do
       # Layer 2 exercises the WRITE path, not the audit model. (The composed
       # SetRole calls would otherwise emit two real 'membership.set_role'
       # events into the capped admin audit set on every example.)
-      allow(Onetime::AdminAuditEvent).to receive(:record)
+      allow(Onetime::ColonelAuditEvent).to receive(:record)
 
       @customers = []
       @orgs      = []

@@ -13,6 +13,7 @@ module V1::Logic
     # decrypted_secret_value for decryption.
     class ShowSecret < V1::Logic::Base
       include Onetime::Security::PassphraseRateLimiter
+      include ActorAttribution
 
       attr_reader :key, :passphrase, :continue
       attr_reader :secret, :show_secret, :secret_value, :is_truncated,
@@ -74,7 +75,7 @@ module V1::Logic
               owner.verified! "true"
               # Skip for stateless auth (BasicAuth provides empty session)
               sess.clear unless sess.empty?
-              @revealed = secret.revealed!
+              @revealed = secret.revealed!(actor_context: lifecycle_actor_context(secret))
             else
               raise_form_error "You can't verify an account when you're already logged in."
             end
@@ -91,7 +92,7 @@ module V1::Logic
             # happens in success_data). This is a feature, not a
             # bug but it means that all return values need to be
             # pluck out of the secret object before this is called.
-            @revealed = secret.revealed!
+            @revealed = secret.revealed!(actor_context: lifecycle_actor_context(secret))
 
             # Gate the shared-secret metric on winning the atomic claim:
             # revealed! returns false to a request that lost the burn-after-

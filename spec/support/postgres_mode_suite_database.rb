@@ -322,14 +322,14 @@ module PostgresModeSuiteDatabase
       # Fail closed: refuse to TRUNCATE unless the target is a test database.
       # AUTH_DATABASE_URL is read straight from ENV; when it leaks a dev value
       # (e.g. running outside the sanctioned PG lane, which pins it to the
-      # :2132/onetime_auth_test target) this stops the suite from wiping dev.
+      # :2154/onetime_auth_test target) this stops the suite from wiping dev.
       # Mirrors the "database name MUST contain 'test'" invariant that
       # initialize_test_db.sql enforces at provisioning time.
       dbname = db.opts[:database].to_s
       unless dbname =~ /test/i
         raise "[PostgresModeSuiteDatabase] Refusing to TRUNCATE non-test database: " \
               "#{dbname.empty? ? '<unknown>' : dbname.inspect}. Check AUTH_DATABASE_URL " \
-              "(sanctioned test PG is 127.0.0.1:2132/onetime_auth_test)."
+              "(sanctioned test PG is 127.0.0.1:2154/onetime_auth_test)."
       end
 
       # Disable foreign key checks for cleaning

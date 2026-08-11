@@ -17,7 +17,7 @@ module ColonelAPI
       # health taxonomy; this class resolves the domain by public extid.
       #
       # READ-ONLY: probing reaches the network but mutates nothing in our store, so
-      # it records NO AdminAuditEvent (CONTRACT 4).
+      # it records NO ColonelAuditEvent (CONTRACT 4).
       #
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role. The

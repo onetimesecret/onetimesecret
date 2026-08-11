@@ -6,7 +6,7 @@
 # autoloaders — require the audit model explicitly. The org-level op is the
 # authority on the entitlement catalog predicate; require it so
 # {.known_entitlement?} can delegate rather than fork.
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require 'onetime/operations/org/entitlement_override'
 
@@ -210,7 +210,7 @@ module Onetime
           # double-records. `detail` always carries org_id (the target is the
           # customer; org_id completes the membership identity). The cleared
           # set stays unrecorded — it is unbounded, matching the org op.
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: audit_verb,
             target: @customer.extid,
@@ -242,7 +242,7 @@ module Onetime
         # the op. `dry_run` is carried so a refused preview is distinguishable
         # from a refused apply.
         def record_refusal(status)
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: audit_verb,
             target: @customer.extid,

@@ -20,7 +20,7 @@ module Auth
       # `bin/ots customers diagnose` CLI are thin adapters over it, so support
       # staff get the same answer with or without SSH access.
       #
-      # READ-ONLY: mutates nothing, records NO AdminAuditEvent (epic #20
+      # READ-ONLY: mutates nothing, records NO ColonelAuditEvent (epic #20
       # CONTRACT 4 — same posture as Show and RateLimit::Inspect).
       #
       # Every section degrades independently (`available: false` + reason)

@@ -4,7 +4,7 @@
 
 # Loaded at the call site (colonel logic + CLI), which run outside the app
 # autoloaders — require the audit model explicitly.
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 
 module Onetime
@@ -38,7 +38,7 @@ module Onetime
       # {SetRole} op's job; folding a demote/promote into "add" would let an add
       # silently demote the last owner. The Result carries the member's CURRENT
       # role so the adapter can point the operator at set-role. A real add records
-      # EXACTLY ONE {Onetime::AdminAuditEvent}; a `:no_change` audits nothing.
+      # EXACTLY ONE {Onetime::ColonelAuditEvent}; a `:no_change` audits nothing.
       #
       # ## Refusals audit too
       #
@@ -109,7 +109,7 @@ module Onetime
 
           # One audit event per real add, emitted from the op (adapters MUST NOT
           # audit). Public ids only; no secret detail.
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @customer.extid,
@@ -138,7 +138,7 @@ module Onetime
         # Same verb/target/actor as the success event. Best-effort: never break
         # the op.
         def record_refusal(status, role)
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @customer.extid,

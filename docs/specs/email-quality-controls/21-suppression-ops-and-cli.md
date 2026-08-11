@@ -27,7 +27,7 @@ adapter → (slice 22) colonel Logic + route with BOTH auth layers.**
   - `Add.new(email:, reason:, actor:, scope: nil, note: nil, expiration: nil).call`
     — validates reason/scope against allowlists, computes hash + obscured form,
     idempotent `:already_suppressed` no-op (records NO audit), else exactly one
-    `AdminAuditEvent.record` with `AUDIT_VERB = 'email.suppression.add'`;
+    `ColonelAuditEvent.record` with `AUDIT_VERB = 'email.suppression.add'`;
     detail carries reason/scope/source + obscured address only.
   - `Remove.new(email: | email_hash:, actor:, reason_note:).call` — decision Q6
     guardrails: refuses `complaint`-reason entries unless `allow_complaint:
@@ -62,7 +62,7 @@ adapter → (slice 22) colonel Logic + route with BOTH auth layers.**
 - CLI adapter templates: `lib/onetime/cli/email/test_command.rb`, `lib/onetime/cli/queue/dlq_command.rb`; registration in `lib/onetime/cli.rb`
 - Bulk-import style (if Import outgrows an op): `lib/onetime/services/README.md` (multi-phase Services), CLI backfill precedent `lib/onetime/cli/migrations/backfill_email_hash_command.rb`
 - Validate command: `lib/onetime/cli/email/validate_command.rb`
-- Audit store: `lib/onetime/models/admin_audit_event.rb` (redaction, PUBLIC actor ids)
+- Audit store: `lib/onetime/models/colonel_audit_event.rb` (redaction, PUBLIC actor ids)
 
 ## Acceptance criteria
 
@@ -70,7 +70,7 @@ adapter → (slice 22) colonel Logic + route with BOTH auth layers.**
       `Data.define` Result; loading requires no app boot beyond the documented
       `boot_application!` in CLI adapters; ops `require` their dependencies
       explicitly.
-- [ ] Mutations record EXACTLY ONE `AdminAuditEvent` per actual change; reads,
+- [ ] Mutations record EXACTLY ONE `ColonelAuditEvent` per actual change; reads,
       dry-runs, and idempotent no-ops record none; audit detail contains
       obscured addresses only (never plaintext, never full hashes as the only
       identifier — include obscured form for operator readability).

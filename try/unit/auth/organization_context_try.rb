@@ -4,8 +4,8 @@
 
 # Setup - Load the real application
 ENV['AUTHENTICATION_MODE'] = 'simple'
-ENV['VALKEY_URL'] = 'valkey://127.0.0.1:2121/0'
-ENV['REDIS_URL'] = 'redis://127.0.0.1:2121/0'
+ENV['VALKEY_URL'] = 'valkey://127.0.0.1:2163/0'
+ENV['REDIS_URL'] = 'redis://127.0.0.1:2163/0'
 
 require 'rack'
 require_relative '../../support/test_helpers'

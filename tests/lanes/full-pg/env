@@ -5,9 +5,9 @@
 # initialize_test_db.sql, which compose.test.yml mounts into
 # /docker-entrypoint-initdb.d/ (runs on first boot).
 AUTHENTICATION_MODE=full
-AUTH_DATABASE_URL='postgresql://onetime_user:testpass@127.0.0.1:2132/onetime_auth_test'
-AUTH_DATABASE_URL_MIGRATIONS='postgresql://onetime_migrator:migratepass@127.0.0.1:2132/onetime_auth_test'
+AUTH_DATABASE_URL='postgresql://onetime_user:testpass@127.0.0.1:2154/onetime_auth_test'
+AUTH_DATABASE_URL_MIGRATIONS='postgresql://onetime_migrator:migratepass@127.0.0.1:2154/onetime_auth_test'
 # The *_PG variants are what lib/tasks/spec.rake reads for its postgres
 # tasks (it then sets the plain variables itself, to the same values).
-AUTH_DATABASE_URL_PG='postgresql://onetime_user:testpass@127.0.0.1:2132/onetime_auth_test'
-AUTH_DATABASE_URL_MIGRATIONS_PG='postgresql://onetime_migrator:migratepass@127.0.0.1:2132/onetime_auth_test'
+AUTH_DATABASE_URL_PG='postgresql://onetime_user:testpass@127.0.0.1:2154/onetime_auth_test'
+AUTH_DATABASE_URL_MIGRATIONS_PG='postgresql://onetime_migrator:migratepass@127.0.0.1:2154/onetime_auth_test'

@@ -30,7 +30,7 @@
 #      - Uses mocked Mail and Sneakers methods (ack!/reject!)
 #
 # Setup Requirements:
-#   - Redis test instance at VALKEY_URL='valkey://127.0.0.1:2121/0'
+#   - Redis test instance at VALKEY_URL='valkey://127.0.0.1:2163/0'
 #   - Mocked Onetime::Mail module (Mail.deliver, Mail.deliver_raw)
 #   - Mocked Sneakers methods (ack!, reject!, delivery_info)
 #   - Redis idempotency key cleanup between tests

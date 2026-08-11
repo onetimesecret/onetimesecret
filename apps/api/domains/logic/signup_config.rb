@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'signup_config/base'
-require_relative 'signup_config/audit_logger'
+require_relative 'signup_config/change_logger'
 require_relative 'signup_config/get_signup_config'
 require_relative 'signup_config/put_signup_config'
 require_relative 'signup_config/patch_signup_config'

@@ -451,7 +451,16 @@ module V2::Logic
 
         receipt.org_id = auth_org.objid
         receipt.add_to_organization_receipts(auth_org)
-        receipt.record_org_audit_event('created', organization: auth_org)
+        # Always an authenticated creator here (guarded by auth_org and the
+        # anonymous_user? check in update_stats). actor_id is the FULL objid:
+        # unique traceability (AU-3 / PCI 10.2.2), resolved to an identity at
+        # read time (#3637).
+        receipt.record_org_secret_activity_event(
+          'created',
+          organization: auth_org,
+          'actor' => 'creator',
+          'actor_id' => cust.objid,
+        )
         true
       end
 

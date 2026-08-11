@@ -12,7 +12,7 @@
 # Run: pnpm run test:rspec spec/unit/onetime/operations/memberships/add_spec.rb
 
 require 'spec_helper'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/operations/memberships/add'
 
 RSpec.describe Onetime::Operations::Memberships::Add do
@@ -26,7 +26,7 @@ RSpec.describe Onetime::Operations::Memberships::Add do
     double('Customer', objid: 'cust-obj-1', extid: 'ur_member')
   end
 
-  before { allow(Onetime::AdminAuditEvent).to receive(:record) }
+  before { allow(Onetime::ColonelAuditEvent).to receive(:record) }
 
   context 'when the customer is not yet a member (fresh add)' do
     let(:membership) { double('OrganizationMembership', role: 'member') }
@@ -49,7 +49,7 @@ RSpec.describe Onetime::Operations::Memberships::Add do
     it 'records EXACTLY ONE audit event (verb membership.add, public ids, org_id in detail)' do
       described_class.new(org: org, customer: customer, role: 'member', actor: actor).call
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         actor: actor,
         verb: 'membership.add',
         target: 'ur_member',
@@ -107,7 +107,7 @@ RSpec.describe Onetime::Operations::Memberships::Add do
 
       described_class.new(org: org, customer: customer, role: 'member', actor: actor).call
 
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
       expect(Onetime::OrganizationMembership).not_to have_received(:ensure_membership)
     end
   end
@@ -120,7 +120,7 @@ RSpec.describe Onetime::Operations::Memberships::Add do
     result = described_class.new(org: org, customer: customer, role: 'wizard', actor: actor).call
 
     expect(result.status).to eq(:invalid_role)
-    expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+    expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
       actor: actor,
       verb: 'membership.add',
       target: 'ur_member',
@@ -138,14 +138,14 @@ RSpec.describe Onetime::Operations::Memberships::Add do
 
     # The Onetime::AuditedFailure mechanism. This raise happens BEFORE the
     # success-path record call, so it is the only thing that puts a failed add
-    # in the trail. Message expectation, not a store read: AdminAuditEvent.record
+    # in the trail. Message expectation, not a store read: ColonelAuditEvent.record
     # swallows its own errors.
     it 'raises Onetime::Problem and records ONE result: :failure event' do
       expect do
         described_class.new(org: org, customer: customer, role: 'member', actor: actor).call
       end.to raise_error(Onetime::Problem, /Failed to create membership record/)
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         hash_including(
           actor: actor,
           verb: 'membership.add',

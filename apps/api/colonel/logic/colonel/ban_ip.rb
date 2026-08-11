@@ -14,7 +14,7 @@ module ColonelAPI
       # Thin adapter over {Onetime::Operations::BanIP} — the single, audited
       # implementation of the ban verb (epic #33). This class keeps only the HTTP
       # concerns (param validation + the already-banned form error); the op owns
-      # the model mutation and the AdminAuditEvent (CONTRACT 4).
+      # the model mutation and the ColonelAuditEvent (CONTRACT 4).
       #
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.

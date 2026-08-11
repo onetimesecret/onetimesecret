@@ -32,7 +32,7 @@ require 'onetime/operations/dlq/peek'
 require 'onetime/operations/dlq/replay'
 require 'onetime/operations/dlq/purge'
 
-AE = Onetime::AdminAuditEvent
+AE = Onetime::ColonelAuditEvent
 
 # --- Duck-typed Bunny fakes -------------------------------------------------
 

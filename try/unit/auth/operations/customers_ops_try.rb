@@ -23,7 +23,7 @@ OT.boot! :test
 
 require 'web/auth/operations/customers'
 
-AE = Onetime::AdminAuditEvent
+AE = Onetime::ColonelAuditEvent
 
 @stamp = Familia.now.to_f.to_s.gsub('.', '')
 

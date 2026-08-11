@@ -18,7 +18,7 @@ module ColonelAPI
       #
       # Thin adapter over {Onetime::Operations::Domains::DeleteDomainConfig} —
       # the audited single implementation (CONTRACT 4: exactly one
-      # AdminAuditEvent per successful delete, none on :not_found).
+      # ColonelAuditEvent per successful delete, none on :not_found).
       #
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.

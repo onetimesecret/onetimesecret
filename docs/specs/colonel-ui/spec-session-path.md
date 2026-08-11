@@ -168,7 +168,7 @@ That precondition is met. Sessions die by deleting the encrypted
   with a credential watermark so sessions authenticated *after* the change are
   spared.
 - Deactivation revokes — `set_user_suspension.rb` revokes the customer's sessions
-  and records the `AdminAuditEvent`. The expectations doc's anti-requirement
+  and records the `ColonelAuditEvent`. The expectations doc's anti-requirement
   ("don't ship a delete-user that leaves sessions live") is already honoured.
 - A CLI path exists (`bin/ots session`, over the same `Operations::Sessions`
   primitives) — the expectations doc's "revoke when the web UI is unreachable."
@@ -201,7 +201,7 @@ cites (NIST AAL2 30 min idle / 12 h absolute, PCI DSS 4.0 §8.6.x 15 min idle,
 HIPAA automatic logoff) is unreachable without idle-timeout support specifically.
 
 **Impersonation is not a first-class session type.** Three files mention it
-(`admin_audit_event.rb`, `detect_host.rb`, `authenticate_session.rb`). The
+(`colonel_audit_event.rb`, `detect_host.rb`, `authenticate_session.rb`). The
 expectations doc's requirements — required reason, time-boxed, non-nestable,
 separately revocable, cannot target other super admins, banner, dual attribution
 — are essentially unimplemented.

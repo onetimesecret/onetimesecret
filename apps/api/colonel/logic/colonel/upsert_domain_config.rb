@@ -24,7 +24,7 @@ module ColonelAPI
       #
       # Thin adapter over {Onetime::Operations::Domains::UpsertDomainConfig} —
       # the audited single implementation (CONTRACT 4: exactly one
-      # AdminAuditEvent per successful mutation, field NAMES only in detail).
+      # ColonelAuditEvent per successful mutation, field NAMES only in detail).
       #
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.

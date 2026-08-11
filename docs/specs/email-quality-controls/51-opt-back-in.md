@@ -53,7 +53,7 @@ invocation.
   | manual | ❌ | ✅ typed-confirm | ✅ |
 
   Stricter-than-CONTRACT-4 audit rule (the Slice-6 impersonation convention):
-  `Release` records an `AdminAuditEvent` (`email.suppression.release`) on
+  `Release` records a `ColonelAuditEvent` (`email.suppression.release`) on
   EVERY invocation that reaches the policy check — including refusals
   (`result: :refused`) — because unsuppression is the abuse-sensitive verb in
   this system.

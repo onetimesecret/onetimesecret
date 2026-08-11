@@ -19,8 +19,8 @@ require 'open3'
   'FAMILIA_DEBUG' => '0',
   'RACK_ENV' => 'test',
   'BILLING_ENABLED' => 'false',
-  'VALKEY_URL' => 'valkey://127.0.0.1:2121/0',
-  'REDIS_URL' => 'redis://127.0.0.1:2121/0',
+  'VALKEY_URL' => 'valkey://127.0.0.1:2163/0',
+  'REDIS_URL' => 'redis://127.0.0.1:2163/0',
   'ONETIME_HOME' => ENV['ONETIME_HOME'] || File.expand_path(File.join(__dir__, '..', '..', '..'))
 }
 

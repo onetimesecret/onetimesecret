@@ -12,7 +12,7 @@
 # Run: pnpm run test:rspec apps/web/auth/spec/operations/customers/set_verification_spec.rb
 
 require 'spec_helper'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'auth/operations/customers/set_verification'
 
 RSpec.describe Auth::Operations::Customers::SetVerification do
@@ -20,7 +20,7 @@ RSpec.describe Auth::Operations::Customers::SetVerification do
   let(:inner)    { instance_double(Auth::Operations::SetCustomerVerification) }
 
   before do
-    allow(Onetime::AdminAuditEvent).to receive(:record)
+    allow(Onetime::ColonelAuditEvent).to receive(:record)
     allow(Auth::Operations::SetCustomerVerification).to receive(:new).and_return(inner)
   end
 
@@ -35,7 +35,7 @@ RSpec.describe Auth::Operations::Customers::SetVerification do
     expect(Auth::Operations::SetCustomerVerification).to have_received(:new).with(
       customer: customer, verified: true, verified_by: 'colonel_admin', db: nil
     )
-    expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+    expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
       actor: 'ur_col',
       verb: 'customer.set_verification',
       target: 'ur_v',
@@ -52,7 +52,7 @@ RSpec.describe Auth::Operations::Customers::SetVerification do
     ).call
 
     expect(result).to eq(:no_change)
-    expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+    expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
   end
 
   it 'passes an injected db through to the underlying op' do
@@ -72,7 +72,7 @@ RSpec.describe Auth::Operations::Customers::SetVerification do
   # audit event, and all three documented error classes are raised by the inner
   # op before it — so an operator repeatedly trying to verify a closed or
   # missing account previously left no trace whatsoever. Message expectation,
-  # not a store read: AdminAuditEvent.record swallows its own errors.
+  # not a store read: ColonelAuditEvent.record swallows its own errors.
   it 'records ONE result: :failure event when the inner op raises, and re-raises' do
     error_class = Auth::Operations::SetCustomerVerification::AccountNotFound
     allow(inner).to receive(:call).and_raise(error_class, 'no auth row for ur_v')
@@ -83,7 +83,7 @@ RSpec.describe Auth::Operations::Customers::SetVerification do
       ).call
     end.to raise_error(error_class, /no auth row for ur_v/)
 
-    expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+    expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
       hash_including(
         actor: 'ur_col',
         verb: 'customer.set_verification',

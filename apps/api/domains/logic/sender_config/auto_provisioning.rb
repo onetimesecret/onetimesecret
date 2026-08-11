@@ -18,7 +18,7 @@ module DomainsAPI
       # - @organization: Organization instance
       # - @domain_id: Domain identifier string
       # - cust: Customer/user performing the action
-      # - log_sender_audit_event: Method from AuditLogger module
+      # - log_sender_change_event: Method from ChangeLogger module
       #
       module AutoProvisioning
         include Onetime::LoggerMethods
@@ -66,7 +66,7 @@ module DomainsAPI
                 provider: provider,
                 record_count: result.dns_records.size
 
-              log_sender_audit_event(
+              log_sender_change_event(
                 event: :domain_sender_provisioned,
                 domain: @custom_domain,
                 org: @organization,

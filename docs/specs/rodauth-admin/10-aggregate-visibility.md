@@ -15,7 +15,7 @@ unauthenticated stats stub in `apps/web/auth/routes/admin.rb`. This doc ships
 the smallest change that gives operators real numbers: a read-only "Auth"
 console section backed by indexed SQL queries.
 
-Read-only throughout — **no mutations, so no AdminAuditEvent** (colonel-ui
+Read-only throughout — **no mutations, so no ColonelAuditEvent** (colonel-ui
 CONTRACT 4: audit is for mutations). Recipe follows the uniform Phase-3
 pattern from colonel-ui: **op → colonel route (BOTH auth layers) → screen on
 the UI kit.**

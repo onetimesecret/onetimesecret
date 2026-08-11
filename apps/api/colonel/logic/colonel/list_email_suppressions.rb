@@ -56,7 +56,7 @@ module ColonelAPI
         private
 
         # Emit fields explicitly (never the raw stored hash) so the wire
-        # contract stays a deliberate allowlist — the ListAuditEvents idiom.
+        # contract stays a deliberate allowlist — the ListColonelAuditEvents idiom.
         def format_entry(entry)
           {
             address: entry['address'].to_s,

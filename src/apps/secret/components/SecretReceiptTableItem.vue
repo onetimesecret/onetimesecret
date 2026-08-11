@@ -57,14 +57,27 @@ const showEncryptionTooltip = ref(false);
 const bootstrapStore = useBootstrapStore();
 const { site_host } = storeToRefs(bootstrapStore);
 
-// Create shareable link with proper domain
+/**
+ * Whether a share link can be built for this receipt.
+ *
+ * `secret_identifier` is the bearer key and is withheld by safe_dump for
+ * provenance that must not expose the link (incoming secrets — see
+ * Receipt#shows_share_link?), and is empty once the secret is consumed.
+ * COPY/OPEN are gated on it; BURN is not, since it routes on the receipt
+ * identifier, which is always present.
+ */
+const canShare = computed(() => !!props.secretReceipt.secret_identifier);
+
+// Create shareable link with proper domain.
+// Uses secret_identifier (the full bearer key), NOT secret_shortid — the
+// shortid is the 8-char display prefix and does not resolve as a URL.
 const shareLink = computed(() => {
   const shareDomain = props.secretReceipt.share_domain ?? site_host.value;
-  return `https://${shareDomain}/secret/${props.secretReceipt.secret_shortid}`;
+  return `https://${shareDomain}/secret/${props.secretReceipt.secret_identifier}`;
 });
 
 const handleCopy = async () => {
-  if (!isActive.value) return;
+  if (!isActive.value || !canShare.value) return;
   try {
     await navigator.clipboard.writeText(shareLink.value);
     isCopied.value = true;
@@ -325,6 +338,7 @@ const rowClasses = computed(() => ['font-mono text-sm', isTerminal.value && 'opa
           @click.stop>
           <!-- Copy button: icon-only on mobile, text on sm+ -->
           <button
+            v-if="canShare"
             type="button"
             @click="handleCopy"
             :class="[
@@ -354,6 +368,7 @@ const rowClasses = computed(() => ['font-mono text-sm', isTerminal.value && 'opa
 
           <!-- Open link button: icon-only on mobile, text on sm+ -->
           <a
+            v-if="canShare"
             :href="shareLink"
             target="_blank"
             rel="noopener noreferrer"

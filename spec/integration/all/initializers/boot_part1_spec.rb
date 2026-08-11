@@ -259,8 +259,8 @@ RSpec.describe "Onetime::Config during Onetime.boot!", type: :integration do
       expect(conf.dig('site', 'secret_options', 'ttl_options')).to eq(%w[1800 43200 604800].map(&:to_i))
 
       # Run with the env var set:
-      #    VALKEY_URL=redis://127.0.0.1:2121/0 pnpm test:rspec
-      expect(conf.dig('redis', 'uri')).to eq('redis://127.0.0.1:2121/0')
+      #    VALKEY_URL=redis://127.0.0.1:2163/0 pnpm test:rspec
+      expect(conf.dig('redis', 'uri')).to eq('redis://127.0.0.1:2163/0')
       expect(conf.dig('development', 'enabled')).to be(false)
       expect(Onetime.env).to eq('testing')
     end

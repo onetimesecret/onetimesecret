@@ -14,7 +14,7 @@ Proposed
 
 ## Context
 
-The org audit trail (`Organization::Features::AuditTrail`, #3633) and the
+The org audit trail (`Organization::Features::SecretActivity`, #3633) and the
 per-receipt access timeline (`Receipt::Features::AccessTimeline`) record *what*
 happened to a secret and *when*, but capture no network context. For org
 customers, "from where" is the second question after "who"; a trail with no IP
@@ -46,7 +46,7 @@ Two facts shape the decision:
    lean on, not bypass.
 
 The plumbing constraint: the org-trail emit happens at the **model** layer
-(`Receipt#record_org_audit_event`), which has no request object. The request
+(`Receipt#record_org_secret_activity_event`), which has no request object. The request
 context is only available at the **logic** layer, so it must be threaded down.
 
 ## Decision
@@ -90,7 +90,7 @@ stable across the trail's lifetime.
 
 **Threading.** `record_access_event(kind, context:)` accepts an optional
 string-keyed context hash and forwards it through
-`record_org_audit_event(..., **event_attrs)`, which splats it into the org
+`record_org_secret_activity_event(..., **event_attrs)`, which splats it into the org
 audit event. Only the fetch/telemetry path supplies it today. The saturation
 fan-out guard is unchanged.
 
@@ -114,7 +114,7 @@ fan-out guard is unchanged.
   primary safety net against a future change silently persisting raw data.
 - Key names are namespaced (`net_`) so this capture composes additively with
   the actor-identity capture (#3639), which shares the same
-  `record_org_audit_event(**event_attrs)` seam.
+  `record_org_secret_activity_event(**event_attrs)` seam.
 
 ## Implementation Notes
 
@@ -146,7 +146,7 @@ granularity stands and is documented inline at the hash site
 - ADR-021 (audit-log stream terminology / scoping) — naming of the stream this
   data lands in.
 - Sibling capture: #3639 (actor identity on revealed/burned), same
-  `record_org_audit_event` extension point.
+  `record_org_secret_activity_event` extension point.
 - Upstream follow-up: otto#192 (stable-keyed full-IP correlation hash) — see
   Implementation Notes; unblocks per-host correlation.
 - Upstream follow-up: otto#194 (public UA-anonymization surface) — lets

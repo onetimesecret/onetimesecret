@@ -13,7 +13,7 @@ module ColonelAPI
       #
       # Thin adapter over Auth::Operations::Customers::SetSuspension (the single
       # implementation). The op performs the mutation, revokes the customer's
-      # readable sessions, AND records the AdminAuditEvent — this class only
+      # readable sessions, AND records the ColonelAuditEvent — this class only
       # handles HTTP concerns (param sanitization, authorization, response
       # shape). Subclasses only choose the target state.
       #
@@ -54,7 +54,7 @@ module ColonelAPI
         end
 
         def process
-          result = Auth::Operations::Customers::SetSuspension.new(
+          result            = Auth::Operations::Customers::SetSuspension.new(
             customer: user,
             suspended: suspended_target,
             actor: cust.extid, # acting colonel's PUBLIC id (never an objid)

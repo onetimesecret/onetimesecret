@@ -13,7 +13,7 @@ module ColonelAPI
       #
       # Thin adapter over {Onetime::Operations::Domains::Repair} — the single,
       # audited implementation of the repair verb. The op owns the plan/apply logic
-      # and the AdminAuditEvent (CONTRACT 4); this class resolves the domain + the
+      # and the ColonelAuditEvent (CONTRACT 4); this class resolves the domain + the
       # optional target org and threads the `dry_run` flag.
       #
       # `dry_run` defaults to TRUE (CONTRACT / D4 — dry-run default): the screen

@@ -4,7 +4,7 @@
 
 # Reuses (does not rewrite) the incumbent delete primitive.
 require 'auth/operations/delete_customer'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 
 module Auth
@@ -14,7 +14,7 @@ module Auth
       # admin audit trail.
       #
       # Reuses Auth::Operations::DeleteCustomer (the single delete primitive) and
-      # layers on exactly one AdminAuditEvent per successful destroy (epic #20
+      # layers on exactly one ColonelAuditEvent per successful destroy (epic #20
       # CONTRACT 4 / #21). This is the colonel single-customer delete verb
       # (DELETE /api/colonel/users/:user_id).
       #
@@ -59,7 +59,7 @@ module Auth
 
           # One audit event per successful mutation. obscure_email is non-secret;
           # never put secret content / tokens / passphrases into detail.
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: extid,

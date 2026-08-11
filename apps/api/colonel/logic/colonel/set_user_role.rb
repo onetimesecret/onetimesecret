@@ -12,7 +12,7 @@ module ColonelAPI
       #
       # Thin adapter over Auth::Operations::Customers::SetRole (the single
       # implementation). The op performs the mutation AND records the
-      # AdminAuditEvent — this class only handles HTTP concerns (param
+      # ColonelAuditEvent — this class only handles HTTP concerns (param
       # sanitization, authorization, response shape).
       #
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
@@ -53,7 +53,7 @@ module ColonelAPI
         def process
           @old_role = user.role
 
-          result = Auth::Operations::Customers::SetRole.new(
+          result         = Auth::Operations::Customers::SetRole.new(
             customer: user,
             role: new_role,
             actor: cust.extid, # acting colonel's PUBLIC id (never an objid)

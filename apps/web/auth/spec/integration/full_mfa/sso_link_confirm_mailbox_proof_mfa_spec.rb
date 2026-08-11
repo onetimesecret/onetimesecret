@@ -68,7 +68,7 @@
 # the path-derived tag only matches /integration/full/.
 #
 # REQUIREMENTS:
-# - Valkey running on port 2121: pnpm run test:database:start
+# - Valkey running on port 2163: pnpm run test:database:start
 #
 # RUN:
 #   bundle exec rake spec:integration:full:mfa

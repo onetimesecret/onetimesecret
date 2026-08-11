@@ -19,7 +19,7 @@
 #   3. Organization must have custom_signup_validation entitlement
 #
 # REQUIREMENTS:
-# - Valkey running on port 2121: pnpm run test:database:start
+# - Valkey running on port 2163: pnpm run test:database:start
 # - AUTHENTICATION_MODE=simple (login_as creates a Valkey-backed Customer
 #   with a passphrase; full mode routes /auth/login through Rodauth, which
 #   has no matching account row, so every login 401s)
@@ -534,7 +534,7 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
     # whose values match the existing Array (after normalization) must not
     # surface as a change in the audit log. Exhaustive normalization coverage
     # of compute_signup_changes lives in the unit spec at
-    # apps/api/domains/spec/logic/signup_config/audit_logger_spec.rb. See #3245.
+    # apps/api/domains/spec/logic/signup_config/change_logger_spec.rb. See #3245.
     context 'audit log change detection' do
       before do
         Onetime::CustomDomain::SignupConfig.create!(
@@ -547,15 +547,15 @@ RSpec.describe 'Domain Signup Config API', type: :integration do
       end
 
       it 'does not record allowed_signup_domains as changed when string form matches existing array' do
-        # Captures the structured payload emitted by log_signup_audit_event,
-        # which writes via OT.info as: "[DOMAIN_SIGNUP_AUDIT] <event>", <json>.
+        # Captures the structured payload emitted by log_signup_change_event,
+        # which writes via OT.info as: "[DOMAIN_SIGNUP_CHANGE] <event>", <json>.
         # Forwards to the original logger so normal side-effects are preserved.
         events = []
         allow(OT).to receive(:info).and_wrap_original do |original, *args, **kwargs|
           prefix = args.first.to_s
-          if prefix.start_with?('[DOMAIN_SIGNUP_AUDIT]')
+          if prefix.start_with?('[DOMAIN_SIGNUP_CHANGE]')
             events << {
-              event: prefix.sub('[DOMAIN_SIGNUP_AUDIT] ', ''),
+              event: prefix.sub('[DOMAIN_SIGNUP_CHANGE] ', ''),
               payload: JSON.parse(args[1]),
             }
           end

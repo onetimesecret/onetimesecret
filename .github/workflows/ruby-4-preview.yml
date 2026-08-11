@@ -13,16 +13,20 @@ name: Ruby 4 Preview
 # - Jobs are independent: each test job only needs build-assets for the
 #   frontend artifact, and uses `if: always()` so a failure in one job
 #   does not cascade into skipping others.
-# - Mirrors the service image pins and composite actions from ci.yml so
-#   the only intended variable is the Ruby version.
+# - Test jobs run through tests/lanes/run — the same entry point as
+#   ci.yml and local development — with services from compose.test.yml,
+#   so the only intended variable is the Ruby version. The lanes are
+#   invoked directly (not via the run-test-lane composite): this
+#   workflow is advisory, so the composite's failure-tail PR comments
+#   and results plumbing would be noise (gating and reporting policy is
+#   CI's per-workflow decision; tests/lanes/README.md rule 4).
 # - Artifacts are scoped per workflow run, so there is no collision with
 #   the main CI workflow's `frontend-build` artifact.
 # - `continue-on-error` is at the step level (not job level) on every
 #   step whose outcome depends on Ruby 4 gem compatibility. Any failure
-#   there — setup-ruby's bundle install, rubocop, or the test rake
-#   tasks — is captured as a warning annotation on the step while the
-#   job itself completes successfully. See the step annotations and the
-#   uploaded result artifacts for the actual Ruby 4 compatibility signal.
+#   there — setup-ruby's bundle install, rubocop, or the lane run — is
+#   captured as a warning annotation on the step while the job itself
+#   completes successfully.
 
 on:
   pull_request:
@@ -78,7 +82,7 @@ jobs:
         continue-on-error: true
         with:
           ruby-version: '4.0.2'
-          bundler-cache: false  # DEBUG: disabled to rule out stale cache
+          bundler-cache: false # DEBUG: disabled to rule out stale cache
 
       - name: Install dependencies
         continue-on-error: true
@@ -109,29 +113,14 @@ jobs:
     needs: [build-assets]
     if: always()
 
-    services:
-      redis: &valkey-service
-        image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 10s
-          --health-retries 5
-          --memory=4g
-        ports:
-          - 2121:6379
-      rabbitmq: &rabbitmq-service
-        image: rabbitmq:4.2@sha256:0ea64c69ef2ced52e7188c6db826152d42f78e448433ed8b4e570170c427a437
-        options: >-
-          --health-cmd "rabbitmq-diagnostics check_port_connectivity"
-          --health-interval 10s
-          --health-timeout 10s
-          --health-retries 5
-        ports:
-          - 5672:5672
-
     steps:
       - *checkout-step
+
+      # Services come from compose.test.yml — the same containers ci.yml
+      # and a local `tests/lanes/run` use.
+      - &start-core-services
+        name: Start test services (valkey, rabbitmq)
+        run: docker compose -f compose.test.yml up --wait -d valkey rabbitmq
 
       - name: Setup Ruby test environment (may fail on bundle install)
         uses: ./.github/actions/setup-ruby-test-env
@@ -139,6 +128,8 @@ jobs:
         with:
           ruby-version: '4.0.2'
 
+      # Locale + JSON-schema generation is owned by the lane's tasks file;
+      # it needs python3, node, and pnpm on PATH.
       - name: Setup Python for locale sync
         uses: actions/setup-python@v5
         with:
@@ -147,24 +138,11 @@ jobs:
       - name: Setup Node.js environment
         uses: ./.github/actions/setup-node-env
 
-      - name: Generate locale files
-        run: pnpm run locales:sync
-
-      # The billing catalog validate CLI/spec loads
-      # generated/schemas/config/billing.schema.json, which is gitignored
-      # (generated from src/schemas/). spec:fast runs that spec, so the
-      # schema must be generated before the Ruby suite.
-      - name: Generate JSON schemas
-        run: pnpm run schemas:json:generate
-
-      - name: Run Ruby tests
-        uses: ./.github/actions/run-ruby-tests
+      - name: Run unit lane (Ruby 4)
         continue-on-error: true
-        with:
-          test-type: unit
-          auth-mode: simple
-          rabbitmq-url: 'amqp://guest:guest@localhost:5672'
-          results-file: 'ruby4_rspec_unit_results.json'
+        env:
+          LANES_NO_AUTOSTART: '1'
+        run: tests/lanes/run unit
 
   ruby-integration-simple:
     name: Ruby 4 · Integration (Simple Mode)
@@ -173,12 +151,10 @@ jobs:
     needs: [build-assets]
     if: always()
 
-    services:
-      redis: *valkey-service
-      rabbitmq: *rabbitmq-service
-
     steps:
       - *checkout-step
+
+      - *start-core-services
 
       - name: Setup Ruby test environment (may fail on bundle install)
         uses: ./.github/actions/setup-ruby-test-env
@@ -186,30 +162,27 @@ jobs:
         with:
           ruby-version: '4.0.2'
 
-      - name: Setup Python for locale sync
+      - &setup-python-step
+        name: Setup Python for locale sync
         uses: actions/setup-python@v5
         with:
           python-version: '3.14'
 
-      - name: Setup Node.js for locale sync
+      - &setup-node-step
+        name: Setup Node.js for locale sync
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.node-version'
 
-      - name: Install pnpm
+      - &install-pnpm-step
+        name: Install pnpm
         run: npm install -g pnpm
 
-      - name: Generate locale files
-        run: pnpm run locales:sync
-
-      - name: Run Ruby tests
-        uses: ./.github/actions/run-ruby-tests
+      - name: Run simple lane (Ruby 4)
         continue-on-error: true
-        with:
-          test-type: integration
-          auth-mode: simple
-          rabbitmq-url: 'amqp://guest:guest@localhost:5672'
-          results-file: 'ruby4_rspec_simple_results.json'
+        env:
+          LANES_NO_AUTOSTART: '1'
+        run: tests/lanes/run simple
 
   ruby-integration-full:
     name: 'Ruby 4 · Integration (Full, SQLite, billing: ${{ matrix.billing-enabled }})'
@@ -218,17 +191,21 @@ jobs:
     needs: [build-assets]
     if: always()
 
+    # Same lane + overlay pairing as ci.yml's SQLite matrix rows; the
+    # billing rows are the full-sqlite lane with the billing overlay.
     strategy:
       fail-fast: false
       matrix:
-        billing-enabled: ['false', 'true']
-
-    services:
-      redis: *valkey-service
-      rabbitmq: *rabbitmq-service
+        include:
+          - billing-enabled: 'false'
+            overlay: ''
+          - billing-enabled: 'true'
+            overlay: 'billing'
 
     steps:
       - *checkout-step
+
+      - *start-core-services
 
       - name: Setup Ruby test environment (may fail on bundle install)
         uses: ./.github/actions/setup-ruby-test-env
@@ -236,32 +213,23 @@ jobs:
         with:
           ruby-version: '4.0.2'
 
-      - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.14'
+      - *setup-python-step
 
-      - name: Setup Node.js for locale sync
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
-        with:
-          node-version-file: '.node-version'
+      - *setup-node-step
 
-      - name: Install pnpm
-        run: npm install -g pnpm
+      - *install-pnpm-step
 
-      - name: Generate locale files
-        run: pnpm run locales:sync
-
-      - name: Run Ruby tests
-        uses: ./.github/actions/run-ruby-tests
+      - name: Run full-sqlite lane (Ruby 4)
         continue-on-error: true
-        with:
-          test-type: integration
-          auth-mode: full
-          auth-database-url: 'sqlite::memory:'
-          rabbitmq-url: 'amqp://guest:guest@localhost:5672'
-          billing-enabled: ${{ matrix.billing-enabled }}
-          results-file: 'ruby4_rspec_full_sqlite_billing_${{ matrix.billing-enabled }}_results.json'
+        env:
+          LANES_NO_AUTOSTART: '1'
+          OVERLAY: ${{ matrix.overlay }}
+        run: |
+          args=(tests/lanes/run full-sqlite)
+          if [ -n "$OVERLAY" ]; then
+            args+=(--overlay "$OVERLAY")
+          fi
+          "${args[@]}"
 
   ruby-integration-disabled:
     name: Ruby 4 · Integration (Disabled Mode)
@@ -270,12 +238,10 @@ jobs:
     needs: [build-assets]
     if: always()
 
-    services:
-      redis: *valkey-service
-      rabbitmq: *rabbitmq-service
-
     steps:
       - *checkout-step
+
+      - *start-core-services
 
       - name: Setup Ruby test environment (may fail on bundle install)
         uses: ./.github/actions/setup-ruby-test-env
@@ -283,27 +249,14 @@ jobs:
         with:
           ruby-version: '4.0.2'
 
-      - name: Setup Python for locale sync
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.14'
+      - *setup-python-step
 
-      - name: Setup Node.js for locale sync
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
-        with:
-          node-version-file: '.node-version'
+      - *setup-node-step
 
-      - name: Install pnpm
-        run: npm install -g pnpm
+      - *install-pnpm-step
 
-      - name: Generate locale files
-        run: pnpm run locales:sync
-
-      - name: Run Ruby tests
-        uses: ./.github/actions/run-ruby-tests
+      - name: Run disabled lane (Ruby 4)
         continue-on-error: true
-        with:
-          test-type: integration
-          auth-mode: disabled
-          rabbitmq-url: 'amqp://guest:guest@localhost:5672'
-          results-file: 'ruby4_rspec_disabled_results.json'
+        env:
+          LANES_NO_AUTOSTART: '1'
+        run: tests/lanes/run disabled

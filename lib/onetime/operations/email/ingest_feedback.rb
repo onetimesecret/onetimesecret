@@ -8,7 +8,7 @@
 # the central operations home. Loaded at the call site, so require the
 # dependencies explicitly.
 require 'onetime/models/email_suppression'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 
 module Onetime
@@ -49,7 +49,7 @@ module Onetime
       #
       # ## Audit rule (CONTRACT 4)
       #
-      # One {Onetime::AdminAuditEvent} per batch that accepted at least one
+      # One {Onetime::ColonelAuditEvent} per batch that accepted at least one
       # record (verb `email.deliverability_ingest`) — per-address events would
       # flood the audit trail with what is effectively one operator action. A
       # batch that accepts nothing mutates nothing and records no audit event.
@@ -131,7 +131,7 @@ module Onetime
 
           # One audit event per batch that actually changed state (CONTRACT 4).
           if accepted.positive?
-            Onetime::AdminAuditEvent.record(
+            Onetime::ColonelAuditEvent.record(
               actor: @actor,
               verb: AUDIT_VERB,
               target: 'email_suppression',

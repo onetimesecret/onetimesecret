@@ -323,7 +323,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
   # known actor — so these two tests are the contract.
   describe 'failure auditing (gated on the repair path)' do
     before do
-      allow(Onetime::AdminAuditEvent).to receive(:record)
+      allow(Onetime::ColonelAuditEvent).to receive(:record)
       # Blow up in the FIRST check so the raise is deterministic regardless of
       # which checks the customer double happens to satisfy.
       allow(customer).to receive(:default_org_id).and_raise(Onetime::Problem, 'redis down')
@@ -332,7 +332,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
     it 'records ONE result: :failure event on a --repair run, and re-raises' do
       expect { doctor(repair: true).call }.to raise_error(Onetime::Problem, /redis down/)
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         hash_including(
           actor: 'cli',
           verb: 'customer.doctor_repair',
@@ -349,7 +349,7 @@ RSpec.describe Auth::Operations::Customers::Doctor do
     it 'records NOTHING on a diagnostic run, even though it raises the same way' do
       expect { doctor(repair: false).call }.to raise_error(Onetime::Problem, /redis down/)
 
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
     end
   end
 end

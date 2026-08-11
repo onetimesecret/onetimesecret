@@ -7,7 +7,7 @@
 # {Onetime::Operations::Email::IngestFeedback}; loaded at the call site, so
 # require the dependencies explicitly.
 require 'onetime/models/email_suppression'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 
 module Onetime
@@ -70,7 +70,7 @@ module Onetime
           # One audit event per successful mutation. The address is the public
           # target (the SendTest precedent); detail keeps why it was suppressed
           # so the trail explains what protection was lifted.
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @address,
@@ -86,7 +86,7 @@ module Onetime
         # Same verb/target/actor as the success event. Best-effort: never break
         # the op.
         def record_refusal(status)
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @address,

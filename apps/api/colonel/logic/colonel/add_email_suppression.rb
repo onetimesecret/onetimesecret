@@ -14,7 +14,7 @@ module ColonelAPI
       # single, audited implementation of the manual-suppress verb (the mirror
       # of {RemoveEmailSuppression}). This class keeps only the HTTP concerns
       # (address validation); the op owns the model mutation and the
-      # AdminAuditEvent (CONTRACT 4).
+      # ColonelAuditEvent (CONTRACT 4).
       #
       # The request carries ONLY `address`. `reason` is hardcoded 'manual' and
       # `source` is hardcoded 'colonel' SERVER-SIDE — a client-supplied

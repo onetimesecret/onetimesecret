@@ -196,7 +196,7 @@ RSpec.describe V2::Logic::Secrets::ShowReceipt, type: :integration do
         logic.process
       end
 
-      kinds = Onetime::Organization.load(org.objid).audit_events_page.map { |e| e['kind'] }
+      kinds = Onetime::Organization.load(org.objid).secret_activity_events_page.map { |e| e['kind'] }
       expect(kinds).to eq(['receipt_viewed'])
     end
   end

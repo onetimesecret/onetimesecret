@@ -14,7 +14,7 @@ module ColonelAPI
       # Thin adapter over {Onetime::Operations::RateLimit::Reset} — the single,
       # audited implementation whose keys the `bin/ots ratelimit keys` CLI also
       # emits as a `DEL` (ticket #44). This class keeps only the HTTP concerns
-      # (param validation); the op owns the delete + the AdminAuditEvent.
+      # (param validation); the op owns the delete + the ColonelAuditEvent.
       #
       # Clearing a limiter lets a throttled subject act again, so the UI gates this
       # behind an AdminConfirmDialog typed-confirmation. A reset that actually

@@ -4,7 +4,7 @@
 
 require 'onetime/models/custom_domain/mailer_config'
 require_relative 'base'
-require_relative 'audit_logger'
+require_relative 'change_logger'
 
 module DomainsAPI
   module Logic
@@ -30,7 +30,7 @@ module DomainsAPI
       #   { success: true/false, message: "...", details: { ... } }
       #
       class SendTestEmail < Base
-        include AuditLogger
+        include ChangeLogger
 
         attr_reader :mailer_config
 
@@ -306,7 +306,7 @@ module DomainsAPI
         end
 
         def log_test_email_event(result)
-          log_sender_audit_event(
+          log_sender_change_event(
             event: :domain_sender_test_email_sent,
             domain: @custom_domain,
             org: @organization,

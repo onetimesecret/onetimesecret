@@ -27,13 +27,13 @@ RSpec.describe DomainsAPI::Logic::SigninConfig::PutSigninConfig do
     # dependencies for a unit test. The method signature is:
     #   log_enabled_state_change(was_enabled, is_enabled)
     #
-    # It calls log_signin_audit_event which calls OT.info, so we can
+    # It calls log_signin_change_event which calls OT.info, so we can
     # assert on OT.info to verify which branch fires.
 
     # Minimal host that includes the mixin methods we need
     let(:host_class) do
       Class.new do
-        include DomainsAPI::Logic::SigninConfig::AuditLogger
+        include DomainsAPI::Logic::SigninConfig::ChangeLogger
 
         attr_accessor :custom_domain, :organization, :cust_obj
 
@@ -42,14 +42,14 @@ RSpec.describe DomainsAPI::Logic::SigninConfig::PutSigninConfig do
           return if was_enabled == is_enabled
 
           if is_enabled && (was_enabled.nil? || was_enabled == false)
-            log_signin_audit_event(
+            log_signin_change_event(
               event: :domain_signin_config_enabled,
               domain: custom_domain,
               org: organization,
               actor: cust_obj,
             )
           elsif was_enabled == true && !is_enabled
-            log_signin_audit_event(
+            log_signin_change_event(
               event: :domain_signin_config_disabled,
               domain: custom_domain,
               org: organization,

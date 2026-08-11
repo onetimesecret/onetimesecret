@@ -359,7 +359,7 @@ module Onetime
         end
 
         # Route the actual deletion through the extracted, audited op (the single
-        # implementation). It re-resolves the key and records one AdminAuditEvent.
+        # implementation). It re-resolves the key and records one ColonelAuditEvent.
         Onetime::Operations::Sessions::Delete.new(
           session_id: session_id,
           actor: CLI_ACTOR,

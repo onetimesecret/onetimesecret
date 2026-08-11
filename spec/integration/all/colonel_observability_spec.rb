@@ -10,9 +10,9 @@ require 'securerandom'
 require 'colonel/application'
 
 # Integration tests for the observability colonel endpoints against real Redis
-# (port 2121; type: :integration flushes after each example):
+# (port 2163; type: :integration flushes after each example):
 #
-#   1. Audit log reader — ListAuditEvents (GET /api/colonel/audit): newest-first
+#   1. Audit log reader — ListColonelAuditEvents (GET /api/colonel/audit): newest-first
 #      pagination, actor/verb filters, and the CONTRACT 4 invariant that reading
 #      the log never writes an audit event.
 #   2. Trends — GetTrends (GET /api/colonel/trends): 30-day zero-filled series
@@ -44,29 +44,29 @@ RSpec.describe 'Colonel observability endpoints', type: :integration do
   end
 
   before do
-    Onetime::AdminAuditEvent.events.clear
-    Onetime::AdminAuditEvent.security_events.clear
+    Onetime::ColonelAuditEvent.events.clear
+    Onetime::ColonelAuditEvent.security_events.clear
   end
 
   def record_event(actor: 'ur_colonel1', verb: 'customer.set_role', target: 'ur_target', result: :success, detail: nil)
-    Onetime::AdminAuditEvent.record(actor: actor, verb: verb, target: target, result: result, detail: detail)
+    Onetime::ColonelAuditEvent.record(actor: actor, verb: verb, target: target, result: result, detail: detail)
   end
 
   # The second trail: events an UNAUTHENTICATED caller can cause, stored under
   # their own cap so they cannot evict operator records.
   def record_security_event(actor: 'anonymous', verb: 'auth.reset_request_throttled', target: 'ip:203.0.x.x',
                             result: :failure, detail: nil)
-    Onetime::AdminAuditEvent.record_security(
+    Onetime::ColonelAuditEvent.record_security(
       actor: actor, verb: verb, target: target, result: result, detail: detail,
     )
   end
 
   # ---------------------------------------------------------------------------
-  # 1. Audit log reader (ListAuditEvents)
+  # 1. Audit log reader (ListColonelAuditEvents)
   # ---------------------------------------------------------------------------
-  describe 'ListAuditEvents' do
+  describe 'ListColonelAuditEvents' do
     def list(params = {})
-      logic = ColonelAPI::Logic::Colonel::ListAuditEvents.new(
+      logic = ColonelAPI::Logic::Colonel::ListColonelAuditEvents.new(
         strategy_result_for(colonel), params,
       )
       logic.raise_concerns
@@ -198,18 +198,18 @@ RSpec.describe 'Colonel observability endpoints', type: :integration do
 
     it 'reading the log writes NO audit event (CONTRACT 4)' do
       record_event
-      before_count = Onetime::AdminAuditEvent.count
+      before_count = Onetime::ColonelAuditEvent.count
 
       list
       list('actor' => 'someone', 'verb' => 'customer')
 
-      expect(Onetime::AdminAuditEvent.count).to eq(before_count)
+      expect(Onetime::ColonelAuditEvent.count).to eq(before_count)
     end
 
     it 'rejects non-colonel actors (defense-in-depth below the router role gate)' do
       staff = create_customer(email: "staff-#{SecureRandom.hex(4)}@example.com", role: 'staff')
 
-      logic = ColonelAPI::Logic::Colonel::ListAuditEvents.new(strategy_result_for(staff), {})
+      logic = ColonelAPI::Logic::Colonel::ListColonelAuditEvents.new(strategy_result_for(staff), {})
       expect { logic.raise_concerns }.to raise_error(Onetime::Forbidden)
     end
   end
@@ -267,11 +267,11 @@ RSpec.describe 'Colonel observability endpoints', type: :integration do
     end
 
     it 'reading trends writes NO audit event (CONTRACT 4)' do
-      before_count = Onetime::AdminAuditEvent.count
+      before_count = Onetime::ColonelAuditEvent.count
 
       trends
 
-      expect(Onetime::AdminAuditEvent.count).to eq(before_count)
+      expect(Onetime::ColonelAuditEvent.count).to eq(before_count)
     end
 
     it 'rejects non-colonel actors' do

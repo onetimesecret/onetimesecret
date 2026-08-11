@@ -19,7 +19,7 @@
 # Run: bundle exec rspec spec/unit/onetime/operations/org/entitlement_override_spec.rb
 
 require 'spec_helper'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/operations/org/entitlement_override'
 
 RSpec.describe Onetime::Operations::Org::EntitlementOverride do
@@ -68,7 +68,7 @@ RSpec.describe Onetime::Operations::Org::EntitlementOverride do
   end
 
   before do
-    allow(Onetime::AdminAuditEvent).to receive(:record)
+    allow(Onetime::ColonelAuditEvent).to receive(:record)
   end
 
   def run(action, entitlement: nil, dry_run: false)
@@ -95,7 +95,7 @@ RSpec.describe Onetime::Operations::Org::EntitlementOverride do
     it 'records EXACTLY ONE audit event, fully specified' do
       run('grant', entitlement: 'custom_branding')
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         actor: actor,
         verb: 'organization.entitlement.grant',
         target: 'on_org_ext',
@@ -137,7 +137,7 @@ RSpec.describe Onetime::Operations::Org::EntitlementOverride do
     it 'records EXACTLY ONE audit event with the revoke verb' do
       run('revoke', entitlement: 'api_access')
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         hash_including(
           verb: 'organization.entitlement.revoke',
           target: 'on_org_ext',
@@ -168,7 +168,7 @@ RSpec.describe Onetime::Operations::Org::EntitlementOverride do
     it 'records an audit event with an EMPTY detail (the cleared set is unbounded)' do
       run('clear')
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         hash_including(verb: 'organization.entitlement.clear', detail: {})
       )
     end
@@ -193,7 +193,7 @@ RSpec.describe Onetime::Operations::Org::EntitlementOverride do
 
       expect(result.status).to eq(:no_change)
       expect(org).not_to have_received(:grant_entitlement)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
       expect(result.grants).to eq(['custom_branding'])
     end
 
@@ -205,7 +205,7 @@ RSpec.describe Onetime::Operations::Org::EntitlementOverride do
 
       expect(result.status).to eq(:no_change)
       expect(org).not_to have_received(:revoke_entitlement)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
     end
 
     it 'still APPLIES a grant when the name also sits in revokes (not a no-change)' do
@@ -223,7 +223,7 @@ RSpec.describe Onetime::Operations::Org::EntitlementOverride do
 
       expect(result.status).to eq(:cleared)
       expect(org).to have_received(:clear_entitlement_overrides).once
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         hash_including(verb: 'organization.entitlement.clear')
       )
     end
@@ -245,7 +245,7 @@ RSpec.describe Onetime::Operations::Org::EntitlementOverride do
 
         expect(result.status).to eq(:planned)
         expect(org).not_to have_received(:"#{action}_entitlement")
-        expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
       end
     end
 
@@ -257,7 +257,7 @@ RSpec.describe Onetime::Operations::Org::EntitlementOverride do
 
       expect(result.status).to eq(:planned)
       expect(org).not_to have_received(:clear_entitlement_overrides)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
       expect(result.grants).to eq([])
       expect(result.revokes).to eq([])
       expect(result.effective).to contain_exactly('create_secrets', 'api_access')
@@ -285,7 +285,7 @@ RSpec.describe Onetime::Operations::Org::EntitlementOverride do
       expect(org).not_to have_received(:grant_entitlement)
       # An unknown action has NO success-path verb to match, so the event lands
       # on the bare prefix rather than interpolating operator input into `verb`.
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         actor: actor,
         verb: 'organization.entitlement',
         target: 'on_org_ext',
@@ -302,7 +302,7 @@ RSpec.describe Onetime::Operations::Org::EntitlementOverride do
 
       expect(result.status).to eq(:missing_entitlement)
       expect(org).not_to have_received(:grant_entitlement)
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         actor: actor,
         verb: 'organization.entitlement.grant',
         target: 'on_org_ext',
@@ -325,7 +325,7 @@ RSpec.describe Onetime::Operations::Org::EntitlementOverride do
     # The Onetime::AuditedFailure mechanism. apply! runs BEFORE the success-path
     # record call, so a raise there leaves the org's effective permissions
     # unknown with no trail unless the macro fires. Message expectation, not a
-    # store read: AdminAuditEvent.record swallows its own errors.
+    # store read: ColonelAuditEvent.record swallows its own errors.
     it 'records ONE result: :failure event when apply! raises, and re-raises' do
       allow(org).to receive(:grant_entitlement).and_raise(Onetime::Problem, 'redis down')
 
@@ -333,7 +333,7 @@ RSpec.describe Onetime::Operations::Org::EntitlementOverride do
         run('grant', entitlement: 'custom_branding')
       end.to raise_error(Onetime::Problem, /redis down/)
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         hash_including(
           actor: actor,
           verb: 'organization.entitlement.grant',
@@ -359,7 +359,7 @@ RSpec.describe Onetime::Operations::Org::EntitlementOverride do
       expect(result.standalone).to be(true)
       expect(result.status).to eq(:granted)
       expect(org).to have_received(:grant_entitlement).with('custom_branding')
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once
     end
 
     it 'reports standalone: false when billing is enabled' do

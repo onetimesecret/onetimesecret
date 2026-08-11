@@ -45,22 +45,22 @@ supplies the specific bolt list.)
 ## 1. Empirical first-run transcripts
 
 Every run in a clean-room clone; full logs were captured during the audit
-session. TTFHW context: once past the gates, the machinery is *fast* —
+session. TTFHW context: once past the gates, the machinery is _fast_ —
 the product is minutes from a 15-minute clone-to-working-instance experience.
 
-| # | Path exercised | Result |
-| --- | --- | --- |
-| 1 | `./install.sh init` (Node 22) | **DIES**: `Node too old: have 22, need 25+` — after warning `.ruby-version` missing (`version not verified`) |
-| 2 | `./install.sh doctor` | Works; correctly enumerates gaps |
-| 3 | `./install-dev.sh` | **DIES**: `Required tools missing: direnv` |
-| 4 | README compose quick start | **DIES**: `required variable SECRET is missing a value ... run ./install.sh` — before any container starts |
-| 4b | `bin/dev`, `bin/backend` | **DIE**: overmind required (including "Option B" `bin/backend`) |
-| 5 | `./install-test.sh` on Ruby 3.3.6 (Gemfile-legal) | **DIES**: kanayago native-extension build failure — the Gemfile floor `>= 3.3.6` is factually wrong |
-| 7 | `./install-test.sh` on Ruby 3.4.9 | ✅ **EXIT=0 in 76s** — configs seeded, deps installed, test datastore up, config smoke-verified |
-| 8 | `rake ots:secrets` + puma boot, POSIX locale | **DIES**: `Encoding::CompatibilityError` — UTF-8 box-drawing chars in `.env.example` comments crash `read_env`; UTF-8 in `config.ru` crashes `Rack::Builder.load_file`. Fresh servers/containers/systemd default to POSIX locale; maintainer desktops never do |
-| 8b | Same, `LANG=C.UTF-8` | ✅ Boots; `GET /` 200; `/api/v2/status` `nominal` — but the page references **zero JS/CSS**; server log says `Run pnpm run build` (browser user sees nothing) |
-| 9 | `pnpm run build` on Node 22 | ✅ **21s**; UI fully working (`/dist/assets/main.*.js` → 200) — the Node 25 gate blocks a version that demonstrably works |
-| 10 | `pnpm run test:rspec:fast` | ✅ 260 examples, 0 failures, 2.6s — **but see caveat** |
+| #   | Path exercised                                    | Result                                                                                                                                                                                                                                                         |
+| --- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `./install.sh init` (Node 22)                     | **DIES**: `Node too old: have 22, need 25+` — after warning `.ruby-version` missing (`version not verified`)                                                                                                                                                   |
+| 2   | `./install.sh doctor`                             | Works; correctly enumerates gaps                                                                                                                                                                                                                               |
+| 3   | `./install-dev.sh`                                | **DIES**: `Required tools missing: direnv`                                                                                                                                                                                                                     |
+| 4   | README compose quick start                        | **DIES**: `required variable SECRET is missing a value ... run ./install.sh` — before any container starts                                                                                                                                                     |
+| 4b  | `bin/dev`, `bin/backend`                          | **DIE**: overmind required (including "Option B" `bin/backend`)                                                                                                                                                                                                |
+| 5   | `./install-test.sh` on Ruby 3.3.6 (Gemfile-legal) | **DIES**: kanayago native-extension build failure — the Gemfile floor `>= 3.3.6` is factually wrong                                                                                                                                                            |
+| 7   | `./install-test.sh` on Ruby 3.4.9                 | ✅ **EXIT=0 in 76s** — configs seeded, deps installed, test datastore up, config smoke-verified                                                                                                                                                                |
+| 8   | `rake ots:secrets` + puma boot, POSIX locale      | **DIES**: `Encoding::CompatibilityError` — UTF-8 box-drawing chars in `.env.example` comments crash `read_env`; UTF-8 in `config.ru` crashes `Rack::Builder.load_file`. Fresh servers/containers/systemd default to POSIX locale; maintainer desktops never do |
+| 8b  | Same, `LANG=C.UTF-8`                              | ✅ Boots; `GET /` 200; `/api/v2/status` `nominal` — but the page references **zero JS/CSS**; server log says `Run pnpm run build` (browser user sees nothing)                                                                                                  |
+| 9   | `pnpm run build` on Node 22                       | ✅ **21s**; UI fully working (`/dist/assets/main.*.js` → 200) — the Node 25 gate blocks a version that demonstrably works                                                                                                                                      |
+| 10  | `pnpm run test:rspec:fast`                        | ✅ 260 examples, 0 failures, 2.6s — **but see caveat**                                                                                                                                                                                                         |
 
 **Run-10 caveat (a poisoned-well lesson in miniature):** RSpec passed only
 because run 9's `pnpm run build` had already executed `schemas:json:generate`
@@ -69,7 +69,7 @@ JSON schemas and its headline command fails (TR-01 below, `[C]`). Our own
 clean room got contaminated by experiment ordering — exactly how maintainer
 machines hide these bugs.
 
-Environment boundaries, stated honestly: the compose *runtime* could not be
+Environment boundaries, stated honestly: the compose _runtime_ could not be
 tested here (egress proxy 403s Docker Hub blobs); the compose finding (§3.2)
 is the client-side interpolation failure, which occurs before Docker is
 contacted. Docker-run networking (QS-1) is verified by code/CI reading, not
@@ -91,12 +91,12 @@ execution.
   construction (decryption only inside the won atomic claim).
 - **`install-test.sh`** is the closest thing to a true `bin/setup`: honest
   header promise, fail-fast tool checks with URLs, Valkey→Redis fallback,
-  CI-mirroring config seeding, throwaway 2121 datastore, config smoke test —
+  CI-mirroring config seeding, throwaway 2163 datastore, config smoke test —
   and it empirically delivers in 76s (modulo TR-01).
 - **Test isolation** is layered and real: hermetic lane env-clearing, flushdb
-  refuses any port but 2121, sqlite-only spec.rake, the 21xx port scheme.
+  refuses any port but 2163, sqlite-only spec.rake, the 21xx port scheme.
 - **Supply-chain pinning** of service images is excellent (digest-pinned
-  Valkey/PG/RabbitMQ in CI and compose) — the *tool* versions are the mess,
+  Valkey/PG/RabbitMQ in CI and compose) — the _tool_ versions are the mess,
   not the images.
 - **`docker/README.md` is accurate end-to-end** — the one compose recipe in
   the repo that works. All docs.onetimesecret.com links in first-touch files
@@ -132,11 +132,11 @@ contributor findings are prefixed CP-/DX- here to avoid ID collisions.
   an internal `cust_…` objid instead of the email — QS-13). The Quick Start
   never mentions SMTP, `AUTH_AUTOVERIFY`, `bin/ots`, or admin/colonel
   creation. The one-command fix (`docker exec CTR bin/ots customers create
-  me@example.com --role colonel`) is documented only in the command's own
+me@example.com --role colonel`) is documented only in the command's own
   `--help` usage comment (lib/onetime/cli/customers/create_command.rb:8-9);
-  promoting an *existing* customer to colonel is documented separately
+  promoting an _existing_ customer to colonel is documented separately
   (etc/defaults/config.defaults.yaml:269-272, `bin/ots customers role
-  promote`). Neither is linked from any setup doc.
+promote`). Neither is linked from any setup doc.
 - **QS-4 [M][P] Version pinning incoherent across surfaces.** README pins
   v0.24.6 (~3.5 months old; one minor + one patch behind v0.25.11); the docs
   site pins differently; compose defaults to `:latest`. No v0.25 upgrade
@@ -145,12 +145,12 @@ contributor findings are prefixed CP-/DX- here to avoid ID collisions.
   that has never existed in the tree; its printed remedy references a
   nonexistent script (docker/entrypoints/entrypoint.sh:84).
 - **QS-6 [M][C] Lost/changed SECRET is undetected at boot and destructive at
-  reveal**: the reveal claim persists *before* decryption, so each attempt on
+  reveal**: the reveal claim persists _before_ decryption, so each attempt on
   a pre-rotation secret errors AND permanently consumes it; restoring the
   right SECRET can't un-burn. Nothing fingerprints the key against stored
   data.
 - **QS-7 [minor][P] The container healthcheck structurally can't fail while
-  puma answers**: healthcheck.sh:49 greps the *whole* `/health/advanced` body
+  puma answers**: healthcheck.sh:49 greps the _whole_ `/health/advanced` body
   for the unanchored substring `"status":"ok"` — any single healthy sub-check
   matches even when top-level status is `degraded`; plus a fallback to the
   unconditional-ok `/health`.
@@ -193,7 +193,7 @@ message shows objid not email; QS-14 [C] prerequisites contradict themselves
   (needs GNU coreutils ≥ 9.3) — the very first command of the quick start.
   CP-9 [C] switching stacks = editing a tracked file; README calls it
   "profiles" (a different Compose feature). CP-10 [P] vestigial static-asset
-  wiring in full stack (Caddy *does* serve baked assets; the `/mnt/public`
+  wiring in full stack (Caddy _does_ serve baked assets; the `/mnt/public`
   copy and empty-volume pieces are dead). CP-11 [P] proxy gates on
   `service_started` despite the image shipping a HEALTHCHECK. CP-12 [C]
   `.env.example` header's step 2 says `source .env.sh` (ghost file, §5).
@@ -205,7 +205,7 @@ message shows objid not email; QS-14 [C] prerequisites contradict themselves
 
 - **BM-01 [B][P][E] The path ends at a blank UI**: neither the README
   Installation section nor install.sh's printed "Next steps" ever runs or
-  mentions `pnpm run build` (it appears once, in the *Development* section as
+  mentions `pnpm run build` (it appears once, in the _Development_ section as
   "Option B"). Empirically: boot succeeds, API nominal, page ships zero
   assets, and the only mention of the fix is a server-side log line.
 - **BM-02 [B][P] The recommended systemd path fails twice over**: units set
@@ -219,13 +219,13 @@ message shows objid not email; QS-14 [C] prerequisites contradict themselves
 - **BM-05 [M][C] "Redis availability" is detected via local CLI binaries,
   not connectivity** — remote/containerized Redis reads as down forever.
 - **BM-06 [M][P] Full-auth init is order-broken**: `bin/ots queue init
-  --force` runs under `set -e` *before* the Redis check and *before* printing
+--force` runs under `set -e` _before_ the Redis check and _before_ printing
   "Next steps: 1. Start Valkey/Redis and RabbitMQ" — so init aborts unless
   the services it later tells you to start are already up.
 - **BM-07 [M][C] Nothing tells the operator how to create the first
   account/admin** (same gap as QS-3, bare-metal flavor).
 - **BM-03 [M][C] Three contradictory env-loading stories**: `set -a; source
-  .env` (install.sh/README) vs `source .env.sh` (systemd, .env.example,
+.env` (install.sh/README) vs `source .env.sh` (systemd, .env.example,
   bin/console, bin/worker, bin/scheduler) vs `.envrc`/direnv (dev tooling).
 - **[B][E] POSIX-locale crash (empirical run 8)**: UTF-8 decorative
   characters in `.env.example` comments and in `config.ru` crash
@@ -241,7 +241,7 @@ message shows objid not email; QS-14 [C] prerequisites contradict themselves
   operator's output. BM-11 [C] README papercuts ("This version of Familia…";
   "three ways" listing two).
 
-### 3.4 Contributor dev path (README §Development + install-dev.sh + bin/*)
+### 3.4 Contributor dev path (README §Development + install-dev.sh + bin/\*)
 
 - **DX-1 [B][C][E] The recommended path can't boot the app**: install-dev.sh
   on a fresh clone (no `~/.config/onetimesecret-dev`) skips all config
@@ -254,14 +254,14 @@ message shows objid not email; QS-14 [C] prerequisites contradict themselves
   (apps/web/core/application.rb:45-48); production `StaticFiles` serves the
   very `public/web/dist` that install-dev.sh just deleted (`pnpm run clean`);
   pages render a `console.warn` stub.
-- **DX-4 [M][C] direnv hard-required, never documented**; the shell *hook* is
+- **DX-4 [M][C] direnv hard-required, never documented**; the shell _hook_ is
   never checked (installed-but-unhooked direnv passes the tool check and then
   nothing loads); bin/dev's failure message gives a wrong fix.
 - **DX-5 [M][C] Documented "Option B: separate terminals" cannot work**: two
   overmind instances collide on one socket; `bin/backend`/`bin/frontend` also
   lack every protection `bin/dev` added (`OVERMIND_SKIP_ENV=1`, env guard).
 - **DX-6 [M][P] First-login dead end, silently**: default `autoverify:
-  false` + blank SMTP means web signup strands the first user with no error
+false` + blank SMTP means web signup strands the first user with no error
   anywhere (the send failure is rescued); the CLI escape hatch
   (`bin/ots apitoken user@example.com --create`, documented well in
   docs/development/test-accounts.md) is never linked from any setup doc.
@@ -314,32 +314,32 @@ message shows objid not email; QS-14 [C] prerequisites contradict themselves
 
 ### 3.6 Version truth matrix (VER-01…13)
 
-| Tool | Source of claim | Value |
-| --- | --- | --- |
-| Ruby | README.md:72 | "3.4+" |
-| Ruby | Gemfile:13 | `>= 3.3.6` — **empirically false** (kanayago needs 3.4+; run 5) |
-| Ruby | install-test.sh:76 | 3.4.7, mislabeled "the Gemfile floor" |
-| Ruby | ci.yml:193, validate-config.yml:41 | hard-pinned **3.4.9** (lint) |
-| Ruby | setup-ruby-test-env default | floating "3.4" (all test/integration/migration jobs) |
-| Ruby | `.ruby-version` | **absent** — referenced by install.sh:179 and ci.yml:108 |
-| Node | `.nvmrc` | **25** (non-LTS); install.sh gates `>= 25` and dies |
-| Node | CI workflows | 22 (ci.yml ×3), 25 (e2e), **20 — EOL** (translation workflow) |
-| Node | bump-api-docs.yml:86 | `node-version-file: .nvmrc` — **the one correct pattern in-tree** |
-| Node | empirical | build + full UI works on 22 (runs 7, 9) |
-| pnpm | package.json:6 | `packageManager: pnpm@11.10.0` (honored by CI setup actions) |
-| pnpm | docker/base.dockerfile:88 | installs `pnpm@10` — self-corrects via packageManager at run time, silently |
-| Bundler | Gemfile.lock | BUNDLED WITH 4.0.9; unpinned everywhere else |
-| Valkey | CI + compose | digest-pinned 8.1.x ✓; README step 1: unpinned `redis:bookworm` |
-| PostgreSQL / RabbitMQ | CI digests only | 17 / 4.x — no doc states supported versions |
-| Bash | install-dev.sh | 4+ (for one associative array); others POSIX-safe |
-| Python 3 | *(nowhere)* | [U] hard dependency of `pnpm run build`/locales; absent from every requirements list |
+| Tool                  | Source of claim                    | Value                                                                                |
+| --------------------- | ---------------------------------- | ------------------------------------------------------------------------------------ |
+| Ruby                  | README.md:72                       | "3.4+"                                                                               |
+| Ruby                  | Gemfile:13                         | `>= 3.3.6` — **empirically false** (kanayago needs 3.4+; run 5)                      |
+| Ruby                  | install-test.sh:76                 | 3.4.7, mislabeled "the Gemfile floor"                                                |
+| Ruby                  | ci.yml:193, validate-config.yml:41 | hard-pinned **3.4.9** (lint)                                                         |
+| Ruby                  | setup-ruby-test-env default        | floating "3.4" (all test/integration/migration jobs)                                 |
+| Ruby                  | `.ruby-version`                    | **absent** — referenced by install.sh:179 and ci.yml:108                             |
+| Node                  | `.nvmrc`                           | **25** (non-LTS); install.sh gates `>= 25` and dies                                  |
+| Node                  | CI workflows                       | 22 (ci.yml ×3), 25 (e2e), **20 — EOL** (translation workflow)                        |
+| Node                  | bump-api-docs.yml:86               | `node-version-file: .nvmrc` — **the one correct pattern in-tree**                    |
+| Node                  | empirical                          | build + full UI works on 22 (runs 7, 9)                                              |
+| pnpm                  | package.json:6                     | `packageManager: pnpm@11.10.0` (honored by CI setup actions)                         |
+| pnpm                  | docker/base.dockerfile:88          | installs `pnpm@10` — self-corrects via packageManager at run time, silently          |
+| Bundler               | Gemfile.lock                       | BUNDLED WITH 4.0.9; unpinned everywhere else                                         |
+| Valkey                | CI + compose                       | digest-pinned 8.1.x ✓; README step 1: unpinned `redis:bookworm`                      |
+| PostgreSQL / RabbitMQ | CI digests only                    | 17 / 4.x — no doc states supported versions                                          |
+| Bash                  | install-dev.sh                     | 4+ (for one associative array); others POSIX-safe                                    |
+| Python 3              | _(nowhere)_                        | [U] hard dependency of `pnpm run build`/locales; absent from every requirements list |
 
 VER-06 [C]: `check_version` requires exact equality — creating
 `.ruby-version` will start rejecting every newer patch release until the
 comparison is fixed. VER-12 [P]: CI caching is disabled with "DEBUG" comments
 left in. VER-13 [C]: `.npmrc` comment contradicts its own setting.
 
-### 3.7 Duplication & drift map (DUP-*)
+### 3.7 Duplication & drift map (DUP-\*)
 
 - **Config seeding: six implementations, three behaviors** [C] — install.sh
   (hardcoded 3-name list), install-test.sh (glob of all defaults — the only

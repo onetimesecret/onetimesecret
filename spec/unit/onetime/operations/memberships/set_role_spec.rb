@@ -14,7 +14,7 @@
 # Run: pnpm run test:rspec spec/unit/onetime/operations/memberships/set_role_spec.rb
 
 require 'spec_helper'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/operations/memberships/set_role'
 
 RSpec.describe Onetime::Operations::Memberships::SetRole do
@@ -28,7 +28,7 @@ RSpec.describe Onetime::Operations::Memberships::SetRole do
     double('Customer', objid: 'cust-obj-1', extid: 'ur_member')
   end
 
-  before { allow(Onetime::AdminAuditEvent).to receive(:record) }
+  before { allow(Onetime::ColonelAuditEvent).to receive(:record) }
 
   describe 'mocked contract' do
     let(:membership) do
@@ -63,7 +63,7 @@ RSpec.describe Onetime::Operations::Memberships::SetRole do
     it 'records EXACTLY ONE audit event (public actor, target = member extid, org_id in detail)' do
       described_class.new(org: org, customer: customer, new_role: 'admin', actor: actor).call
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         actor: actor,
         verb: 'membership.set_role',
         target: 'ur_member',
@@ -79,7 +79,7 @@ RSpec.describe Onetime::Operations::Memberships::SetRole do
 
       expect(result.status).to eq(:no_change)
       expect(membership).not_to have_received(:change_role!)
-      expect(Onetime::AdminAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
     end
 
     # A refusal is an ATTEMPTED privileged mutation, so it lands in the trail
@@ -88,7 +88,7 @@ RSpec.describe Onetime::Operations::Memberships::SetRole do
       result = described_class.new(org: org, customer: customer, new_role: 'wizard', actor: actor).call
 
       expect(result.status).to eq(:invalid_role)
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         actor: actor,
         verb: 'membership.set_role',
         target: 'ur_member',
@@ -104,7 +104,7 @@ RSpec.describe Onetime::Operations::Memberships::SetRole do
       result = described_class.new(org: org, customer: customer, new_role: 'admin', actor: actor).call
 
       expect(result.status).to eq(:not_found)
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         actor: actor,
         verb: 'membership.set_role',
         target: 'ur_member',
@@ -116,7 +116,7 @@ RSpec.describe Onetime::Operations::Memberships::SetRole do
     # The Onetime::AuditedFailure mechanism. change_role! re-materializes
     # entitlements and runs BEFORE the success-path record call, so a raise
     # there leaves a half-changed membership with no trail unless the macro
-    # fires. Message expectation, not a store read: AdminAuditEvent.record
+    # fires. Message expectation, not a store read: ColonelAuditEvent.record
     # swallows its own errors.
     it 'records ONE result: :failure event when change_role! raises, and re-raises' do
       allow(membership).to receive(:change_role!).and_raise(Onetime::Problem, 'materialize failed')
@@ -125,7 +125,7 @@ RSpec.describe Onetime::Operations::Memberships::SetRole do
         described_class.new(org: org, customer: customer, new_role: 'admin', actor: actor).call
       end.to raise_error(Onetime::Problem, /materialize failed/)
 
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         hash_including(
           actor: actor,
           verb: 'membership.set_role',
@@ -162,7 +162,7 @@ RSpec.describe Onetime::Operations::Memberships::SetRole do
 
       expect(result.status).to eq(:last_owner)
       expect(owner_membership).not_to have_received(:change_role!)
-      expect(Onetime::AdminAuditEvent).to have_received(:record).once.with(
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         actor: actor,
         verb: 'membership.set_role',
         target: 'ur_member',

@@ -26,7 +26,7 @@ module ColonelAPI
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.
       #
-      # Audit: one AdminAuditEvent per successful create (CONTRACT 4), emitted by
+      # Audit: one ColonelAuditEvent per successful create (CONTRACT 4), emitted by
       # {Onetime::Operations::Domains::Create} — this adapter MUST NOT audit.
       # verb is 'domain.create' (the domain.* family: verify/repair/transfer),
       # target is the domain extid, and the org's extid is carried in detail.

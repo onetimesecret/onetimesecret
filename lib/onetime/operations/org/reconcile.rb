@@ -12,7 +12,7 @@
 # do NOT copy its `../` count. A wrong count fails only at CLI runtime, outside
 # the app autoloaders — a spec that loads billing another way will NOT catch it.
 require 'stripe'
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require_relative '../../../../apps/web/billing/operations/apply_subscription_to_org'
 
@@ -106,7 +106,7 @@ module Onetime
       #
       # ## Exactly-once audit (CONTRACT 4)
       #
-      # An applied run records EXACTLY ONE {Onetime::AdminAuditEvent} with verb
+      # An applied run records EXACTLY ONE {Onetime::ColonelAuditEvent} with verb
       # {AUDIT_VERB}, emitted from HERE. Adapters MUST NOT audit. The event is
       # unconditional on every applied path — including the "nothing to do"
       # statuses (`:skipped_no_plan`, `:plan_not_found`) — because an operator
@@ -479,7 +479,7 @@ module Onetime
           detail          = { mode: mode, status: status.to_s, before: before, after: after }
           detail[:reason] = reason.to_s unless reason.to_s.empty?
 
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: org_extid,

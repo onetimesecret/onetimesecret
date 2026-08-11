@@ -17,7 +17,7 @@ module Onetime
       # scored by last activity) and resolve each sid to its lightweight
       # {Onetime::SessionMetadata} record — no scan, no decrypt, no blob read.
       #
-      # READ-ONLY w.r.t. sessions: it records NO {Onetime::AdminAuditEvent}
+      # READ-ONLY w.r.t. sessions: it records NO {Onetime::ColonelAuditEvent}
       # (CONTRACT 4 — audit is for mutations). It DOES self-heal against BOTH the
       # sidecar and the live blob, so the console only ever shows sessions that
       # are actually alive:

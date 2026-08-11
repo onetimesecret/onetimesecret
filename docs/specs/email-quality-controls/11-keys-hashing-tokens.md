@@ -79,7 +79,7 @@ encoder/verifier that slices 20, 40, 50, and 51 consume.
   because the token payload includes a purpose discriminator; if reviewers
   prefer full separation, register two PURPOSES entries — decide in PR, the
   codec API doesn't change.
-- Never log tokens or full hashes; `AdminAuditEvent`'s `SENSITIVE_KEY_PATTERN`
+- Never log tokens or full hashes; `ColonelAuditEvent`'s `SENSITIVE_KEY_PATTERN`
   already redacts `token`-named detail keys — keep that naming so redaction
   applies.
 - Keep the module dependency-light (no Familia/models at require time) so

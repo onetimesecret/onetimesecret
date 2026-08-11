@@ -138,5 +138,5 @@ require_relative 'colonel/get_billing_catalog'
 require_relative 'colonel/list_stripe_organizations'
 
 # Observability: audit trail reader + daily activity trends
-require_relative 'colonel/list_audit_events'
+require_relative 'colonel/list_colonel_audit_events'
 require_relative 'colonel/get_trends'

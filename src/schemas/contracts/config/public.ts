@@ -186,50 +186,20 @@ const regionsSchema = z.object({
 });
 
 /**
- * Schema for the :approximated section within :domains
- *
- * Approximated proxy configuration (used by the 'approximated' validation
- * strategy). All fields default to nil in the Ruby YAML when env vars are
- * unset, so every key is optional/nullable here.
- */
-const approximatedSchema = z
-  .object({
-    api_key: z.string().nullable().optional(),
-    proxy_ip: z.string().nullable().optional(),
-    proxy_host: z.string().nullable().optional(),
-    proxy_name: z.string().nullable().optional(),
-    vhost_target: z.string().nullable().optional(),
-  })
-  .strip();
-
-/**
- * Schema for the :acme section within :domains
- *
- * Internal ACME endpoint configuration (used by the 'caddy_on_demand'
- * validation strategy).
- */
-const acmeSchema = z
-  .object({
-    enabled: z.boolean(),
-    listen_address: z.string().optional(),
-    port: z.union([z.string(), z.number()]).optional(),
-  })
-  .strip();
-
-/**
  * Schema for the :domains section
  *
- * Mirrors `features.domains` in etc/defaults/config.defaults.yaml. The
- * bootstrap payload is the raw Ruby hash (see ConfigSerializer), so any
- * rename here must be applied on the Ruby side as well.
+ * Allowlisted subset of `features.domains` from
+ * etc/defaults/config.defaults.yaml, serialized by
+ * ConfigSerializer#transform_domains. The `approximated` (proxy
+ * credentials) and `acme` (internal listener) blocks are server-side only
+ * and must never appear in a client-facing payload — do not re-add them
+ * here; per-domain DNS targets come from the authenticated domains API.
  */
 const domainsSchema = z.object({
   enabled: z.boolean(),
   require_verified: z.boolean().optional(),
   default: z.string().nullable().optional(),
   validation_strategy: z.string().optional(),
-  approximated: approximatedSchema.optional(),
-  acme: acmeSchema.optional(),
 });
 
 /**

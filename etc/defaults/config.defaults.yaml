@@ -499,8 +499,19 @@ site:
     # - Each proxy appends its own IP to the forwarding header
     #
     trusted_proxy:
-      # Master switch. When false, all forwarded headers are ignored
-      # and REMOTE_ADDR is used directly.
+      # Turns proxy-aware IP resolution on. The mode, cidrs, and depth
+      # settings below do nothing while this is false.
+      #
+      # When false, forwarded headers are ignored and the client IP is
+      # REMOTE_ADDR — the address that opened the connection. That is right
+      # only when clients connect to the app directly: put a
+      # proxy in front and REMOTE_ADDR is the proxy, so every request looks
+      # like it came from one address. When true, the client IP is read out
+      # of the forwarded headers using `mode` below. Behind a proxy you
+      # control, you want true. Behind one you cannot configure to overwrite
+      # X-Forwarded-For, set true and set `mode` to depth, which picks the
+      # client by its position in the chain so a forged entry is never
+      # reached.
       enabled: <%= ENV['TRUSTED_PROXY_ENABLED'] == 'true' %>
 
       # How to resolve client IP behind proxies:
@@ -538,11 +549,26 @@ site:
       #
       mode: <%= ENV['TRUSTED_PROXY_MODE'] || 'filter' %>
 
-      # Which header to read the forwarding chain from.
-      # - X-Forwarded-For: Most common (nginx, Caddy, AWS ALB)
+      # Depth mode only: which header to read the forwarding chain from.
+      # The accepted set is closed — exactly one of:
+      # - X-Forwarded-For: Most common (nginx, Caddy, HAProxy, AWS ALB/ELB,
+      #   Cloudflare, Fastly, most k8s ingresses)
       # - Forwarded: RFC 7239 standard; IPv6 addresses are bracketed,
-      #   e.g. for="[2001:db8::1]"
+      #   e.g. for="[2001:db8::1]". HAProxy and Apache can emit it, but it
+      #   remains uncommon in practice
       # - Both: Try Forwarded first, fall back to X-Forwarded-For
+      #
+      # Matched case-insensitively and canonicalized; any other value raises
+      # at boot instead of silently resolving from the wrong header.
+      #
+      # Vendor client-IP headers are NOT selectable — CF-Connecting-IP,
+      # True-Client-IP and friends are never read for client-IP resolution,
+      # and they carry a single address rather than a chain, so there are no
+      # hops to count. (Vendor GEO headers such as CF-IPCountry are a separate
+      # concern with its own resolution path; this setting does not affect
+      # them.) If the edge only sets one of those, have it write the chain
+      # into X-Forwarded-For. Filter mode ignores this setting and reads the
+      # X-Forwarded-For family (X-Forwarded-For, X-Real-IP, X-Client-IP).
       header: <%= ENV['TRUSTED_PROXY_HEADER'] || 'X-Forwarded-For' %>
 
       # Filter mode only: Additional CIDR ranges to trust as proxies
@@ -781,6 +807,23 @@ features:
     sso_enabled: <%= ENV['ORGS_SSO_ENABLED'] == 'true' %>
     custom_mail_enabled: <%= ENV['ORGS_CUSTOM_MAIL_ENABLED'] == 'true' %>
     incoming_secrets_enabled: <%= ENV['ORGS_INCOMING_SECRETS_ENABLED'] == 'true' %>
+    # Gates exposure (UI + list API) of the organization secret-activity
+    # trail; pairs with the `audit_logs` entitlement. Defaults ON, unlike
+    # the sibling flags above, because the trail ships working out of the
+    # box — this is an opt-out exclusion (ORGS_AUDIT_LOGS_ENABLED=false),
+    # not an opt-in feature. Does not stop event collection.
+    audit_logs_enabled: <%= ENV['ORGS_AUDIT_LOGS_ENABLED'] != 'false' %>
+  # Secret Activity Trail (collection)
+  # The data-existence axis of the org secret-activity trail: whether events
+  # are recorded at all (GDPR data minimization). UI + list API exposure is
+  # the separate organizations.audit_logs_enabled axis above. Both default
+  # ON; these are opt-out exclusions.
+  secret_activity:
+    # When false, event recording pauses; existing events stay readable.
+    collect: <%= ENV['SECRET_ACTIVITY_COLLECT'] != 'false' %>
+    # Newest events retained per organization (floor: 100). Lowering this
+    # deletes (not hides) each org's oldest events on its next write.
+    max_events: <%= ENV['SECRET_ACTIVITY_MAX_EVENTS'] || 10000 %>
 
 # Main Database Configuration
 redis:

@@ -34,7 +34,7 @@ require 'onetime/operations/ratelimit/registry'
 require 'onetime/operations/ratelimit/inspect'
 require 'onetime/operations/ratelimit/reset'
 
-AE = Onetime::AdminAuditEvent
+AE = Onetime::ColonelAuditEvent
 
 @actor = 'ur1colonelpub' # a PUBLIC id (extid-shaped), never an objid
 

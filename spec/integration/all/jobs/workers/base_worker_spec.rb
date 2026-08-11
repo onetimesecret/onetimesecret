@@ -25,7 +25,7 @@
 #       * with_retry exhausts max retries then raises (caller handles reject!)
 #
 # Setup Requirements:
-#   - Redis test instance: VALKEY_URL='valkey://127.0.0.1:2121/0'
+#   - Redis test instance: VALKEY_URL='valkey://127.0.0.1:2163/0'
 #   - Mocked delivery_info and metadata structs (Kicks/Sneakers format)
 #   - Mocked ack!/reject! methods on test worker instance
 #

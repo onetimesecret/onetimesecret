@@ -13,7 +13,7 @@ require 'auth/operations/confirm_sso_link'
 # Mirrors the real-DB approach of the Phase 4.0 bind_sso_identity spec: the accounts
 # / account_identities / OTP tables are a REAL in-memory SQLite carrying the REAL
 # (provider, issuer, uid) unique index, while the token is a REAL Familia record on
-# the test database (port 2121) and the watermark reads a REAL Onetime::Customer.
+# the test database (port 2163) and the watermark reads a REAL Onetime::Customer.
 # The end-to-end HTTP path (issue -> email -> confirm -> login) is Wave 2.
 RSpec.describe Auth::Operations::ConfirmSsoLink do
   let(:db)         { build_auth_db }

@@ -49,7 +49,7 @@ module Onetime
       # are dropped from `organizations` and counted in `stale_count` for the
       # page, so a page can contain fewer rows than `per_page`.
       #
-      # READ-ONLY: emits NO AdminAuditEvent (CONTRACT 4).
+      # READ-ONLY: emits NO ColonelAuditEvent (CONTRACT 4).
       class StripeOrganizations
         # Bound on how many index entries a single request will COLLECT into
         # memory (and therefore sort and paginate here). It is NOT a bound on

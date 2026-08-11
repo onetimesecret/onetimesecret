@@ -36,7 +36,7 @@
 #   self-skips when that route isn't registered in this boot.
 #
 # REQUIREMENTS:
-#   - Valkey running on port 2121: pnpm run test:database:start
+#   - Valkey running on port 2163: pnpm run test:database:start
 #   - AUTH_DATABASE_URL set (SQLite or PostgreSQL)
 #   - AUTHENTICATION_MODE=full
 #   - ORGS_SSO_ENABLED=true so the /auth/sso/* routes register (provided by

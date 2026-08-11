@@ -12,7 +12,7 @@ module Onetime
       # `bin/ots session list` / `search` CLI commands are thin adapters over it.
       #
       # READ-ONLY: inspecting sessions mutates nothing, so — like the billing
-      # catalog / system read-outs — it records NO {Onetime::AdminAuditEvent}
+      # catalog / system read-outs — it records NO {Onetime::ColonelAuditEvent}
       # (CONTRACT 4: audit is for mutations).
       #
       # Bounded by construction (CONTRACT 6): the listing is a bounded cursor SCAN

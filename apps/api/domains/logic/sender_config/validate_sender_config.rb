@@ -7,7 +7,7 @@ require 'onetime/jobs/publisher'
 require 'onetime/jobs/workers/job_lifecycle'
 require_relative 'base'
 require_relative 'serializers'
-require_relative 'audit_logger'
+require_relative 'change_logger'
 
 module DomainsAPI
   module Logic
@@ -48,7 +48,7 @@ module DomainsAPI
       #
       class ValidateSenderConfig < Base
         include Serializers
-        include AuditLogger
+        include ChangeLogger
 
         attr_reader :mailer_config
 
@@ -152,7 +152,7 @@ module DomainsAPI
             lock&.release(lock_token) if lock_token
           end
 
-          log_sender_audit_event(
+          log_sender_change_event(
             event: :domain_sender_validation_requested,
             domain: @custom_domain,
             org: @organization,

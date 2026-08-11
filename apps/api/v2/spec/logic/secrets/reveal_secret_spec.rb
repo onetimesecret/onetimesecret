@@ -125,10 +125,10 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
       logic.process
 
       expect(logic.secret_value).to eq('a secret value')
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['kind']).to eq('revealed')
       expect(event['actor']).to eq('creator')
-      expect(event['actor_id']).to eq(owner_objid.slice(0, 8))
+      expect(event['actor_id']).to eq(owner_objid)
     end
 
     it 'records actor=authenticated_other when an authenticated non-owner reveals' do
@@ -145,9 +145,9 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
       logic.process
 
       expect(logic.secret_value).to eq('a secret value')
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['actor']).to eq('authenticated_other')
-      expect(event['actor_id']).to eq(other_objid.slice(0, 8))
+      expect(event['actor_id']).to eq(other_objid)
     end
 
     # THE privacy pin: an anonymous reveal of a guest link (secret owner_id nil,
@@ -161,7 +161,7 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
       logic.process
 
       expect(logic.secret_value).to eq('a secret value')
-      event = org.audit_events_page.first
+      event = org.secret_activity_events_page.first
       expect(event['kind']).to eq('revealed')
       expect(event['actor']).to eq('anonymous')
       expect(event['actor']).not_to eq('creator')

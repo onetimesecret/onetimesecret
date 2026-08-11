@@ -1,0 +1,155 @@
+# .github/actions/run-test-lane/action.yml
+---
+# ==============================================================================
+# Run Test Lane - Composite Action
+# ==============================================================================
+# Version: 1.0.0
+# Repository: onetimesecret/onetimesecret
+#
+# Runs one test lane (tests/lanes/<lane>) and layers the CI-only concerns on
+# top: failure-tail PR comments and job summaries. The lane owns environment
+# and task list (what runs in which environment); this action owns reporting.
+# That split is rule 4 in tests/lanes/README.md.
+#
+# The workflow owns service lifecycle (docker compose -f compose.test.yml),
+# so the lane runner's autostart is disabled here (LANES_NO_AUTOSTART).
+#
+# Usage:
+#   - uses: ./.github/actions/run-test-lane
+#     with:
+#       lane: full-pg
+#       overlay: billing
+#       results-file: 'rspec_full_postgres_billing_on_results.json'
+#
+# Changelog:
+#   1.0.0 - Initial release; replaces run-ruby-tests for lane-based jobs
+# ==============================================================================
+
+name: Run Test Lane
+description: |
+  Runs a test lane via tests/lanes/run with CI reporting layered on top:
+  failure tails posted to the PR and a job summary.
+
+inputs:
+  lane:
+    description: 'Lane name (a directory under tests/lanes/)'
+    required: true
+  overlay:
+    description: 'Optional overlay name (tests/lanes/overlays/<name>.env)'
+    required: false
+    default: ''
+  results-file:
+    description: >-
+      Name for the RSpec JSON results file (written to tmp/). Empty skips
+      RSPEC_OUTPUT_FILE plumbing (e.g. the smoke lane).
+    required: false
+    default: ''
+  debug-enabled:
+    description: 'Enable tmate debugging session'
+    required: false
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@c0afd6f790e3a5564914980036ebf83216678101 # v3
+      if: inputs.debug-enabled == 'true'
+      with:
+        detached: true
+
+    - name: Run lane
+      id: lane
+      shell: bash
+      env:
+        LANE: ${{ inputs.lane }}
+        OVERLAY: ${{ inputs.overlay }}
+        RESULTS_FILE: ${{ inputs.results-file }}
+        # CI owns service lifecycle; never let the runner start compose.
+        LANES_NO_AUTOSTART: '1'
+      # Pipe through tee so the runner's live log still streams while we keep
+      # a copy on disk for the failure-comment step. PIPESTATUS[0] preserves
+      # the lane's exit code.
+      run: |
+        mkdir -p tmp
+        if [ -n "$RESULTS_FILE" ]; then
+          export RSPEC_OUTPUT_FILE="tmp/${RESULTS_FILE}"
+        fi
+        args=(tests/lanes/run "$LANE")
+        if [ -n "$OVERLAY" ]; then
+          args+=(--overlay "$OVERLAY")
+        fi
+        "${args[@]}" 2>&1 | tee tmp/lane.log
+        exit ${PIPESTATUS[0]}
+
+    - name: Post failure tail to PR
+      # Only on PR events that actually failed. Skips push/manual runs to keep
+      # comment churn off main. Caller workflow must grant pull-requests: write.
+      if: failure() && steps.lane.outcome == 'failure' && github.event_name == 'pull_request'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        REPO: ${{ github.repository }}
+        JOB_NAME: ${{ github.job }}
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
+        LANE: ${{ inputs.lane }}
+        OVERLAY: ${{ inputs.overlay }}
+      run: |
+        if [ ! -f tmp/lane.log ]; then
+          echo "No captured log to post; skipping PR comment."
+          exit 0
+        fi
+
+        # 300 lines is enough for one tryouts/rspec failure with stack trace
+        # but stays well under GitHub's 65k-char comment limit.
+        tail -n 300 tmp/lane.log > /tmp/tail.log
+
+        lane_label="$LANE"
+        if [ -n "$OVERLAY" ]; then
+          lane_label="${LANE} --overlay ${OVERLAY}"
+        fi
+
+        body_file=$(mktemp)
+        {
+          echo "### CI failure: ${JOB_NAME} (lane: \`${lane_label}\`)"
+          echo ""
+          echo "[Run log](${RUN_URL})"
+          echo ""
+          echo "<details><summary>Last 300 lines of output</summary>"
+          echo ""
+          echo '```'
+          cat /tmp/tail.log
+          echo '```'
+          echo "</details>"
+          echo ""
+          echo "<sub>Posted by run-test-lane action so unauthenticated reviewers (humans + agents) can read the failure without log-viewer access.</sub>"
+        } > "$body_file"
+
+        gh api "repos/${REPO}/issues/${PR_NUMBER}/comments" \
+          -f body="$(cat "$body_file")" >/dev/null
+        echo "Posted failure tail to PR #${PR_NUMBER}"
+
+    - name: Generate job summary
+      if: always()
+      shell: bash
+      env:
+        LANE: ${{ inputs.lane }}
+        OVERLAY: ${{ inputs.overlay }}
+        RESULTS_FILE: ${{ inputs.results-file }}
+      run: |
+        echo "## Lane Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
+        echo "|---------|-------|" >> $GITHUB_STEP_SUMMARY
+        echo "| lane | \`${LANE}\` |" >> $GITHUB_STEP_SUMMARY
+        if [ -n "${OVERLAY}" ]; then
+          echo "| overlay | \`${OVERLAY}\` |" >> $GITHUB_STEP_SUMMARY
+        fi
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        if [ -n "${RESULTS_FILE}" ] && [ -f "tmp/${RESULTS_FILE}" ]; then
+          echo "### RSpec" >> $GITHUB_STEP_SUMMARY
+          echo "- Total: $(jq '.summary.example_count' "tmp/${RESULTS_FILE}")" >> $GITHUB_STEP_SUMMARY
+          echo "- Failures: $(jq '.summary.failure_count' "tmp/${RESULTS_FILE}")" >> $GITHUB_STEP_SUMMARY
+        fi

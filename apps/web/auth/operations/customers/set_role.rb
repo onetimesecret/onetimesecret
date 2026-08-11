@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/models/admin_audit_event'
+require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 
 module Auth
@@ -13,7 +13,7 @@ module Auth
       # The ONE implementation of the role-change verb. The colonel `SetUserRole`
       # Logic class and the CLI `customers role promote/demote` command are thin
       # adapters over it. This is a MUTATING admin op, so it records exactly one
-      # AdminAuditEvent per successful change (epic #20 CONTRACT 4 / #21). An
+      # ColonelAuditEvent per successful change (epic #20 CONTRACT 4 / #21). An
       # idempotent no-op change mutates nothing and is therefore not audited.
       #
       # `VALID_ROLES` is the single source of truth for assignable roles; the CLI
@@ -68,7 +68,7 @@ module Auth
           @customer.save
 
           # One audit event per successful mutation, emitted from the op layer.
-          Onetime::AdminAuditEvent.record(
+          Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @customer.extid,

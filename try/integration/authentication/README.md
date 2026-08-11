@@ -15,6 +15,7 @@ authentication/
 ## Authentication Modes
 
 ### Disabled Mode (`AUTHENTICATION_MODE=disabled`)
+
 - No authentication required at all
 - Simplest deployment option
 - All auth endpoints return 404
@@ -22,6 +23,7 @@ authentication/
 - Use case: Internal tools, demos, simplest setup
 
 ### Simple Mode (`AUTHENTICATION_MODE=simple` or unset)
+
 - Default mode
 - Redis-based authentication (simple authentication mode)
 - Core app handles `/auth/*` routes
@@ -29,6 +31,7 @@ authentication/
 - Use case: Standard deployments, small teams
 
 ### Full Mode (`AUTHENTICATION_MODE=full`)
+
 - Rodauth integration (full Rodauth mode)
 - SQL database required (PostgreSQL or SQLite)
 - Auth app mounted at `/auth`
@@ -40,8 +43,9 @@ authentication/
 ### Required Services
 
 **Redis/Valkey** (all modes):
+
 ```bash
-# Start test database (port 2121)
+# Start test database (port 2163)
 pnpm run test:database:start
 
 # Check status
@@ -52,6 +56,7 @@ pnpm run test:database:stop
 ```
 
 **SQL Database** (full mode only):
+
 - PostgreSQL or SQLite for Rodauth account storage
 - Configure via `AUTH_DATABASE_URL` environment variable
 - Examples:
@@ -61,6 +66,7 @@ pnpm run test:database:stop
 ### Optional Services
 
 **Mailpit** (email testing):
+
 - SMTP server for password reset/verification emails
 - Default: `localhost:1025`
 - Environment: `MAILPIT_SMTP_HOST`, `MAILPIT_SMTP_PORT`
@@ -68,12 +74,14 @@ pnpm run test:database:stop
 ## Running Tests
 
 ### Run All Tests for Current Mode
+
 ```bash
 # Runs tests based on AUTHENTICATION_MODE environment variable
 pnpm run test:tryouts:agent try/integration/authentication/
 ```
 
 ### Run Mode-Specific Tests
+
 ```bash
 # Simple mode tests only
 AUTHENTICATION_MODE=simple pnpm run test:tryouts:agent try/integration/authentication/simple_mode/
@@ -89,6 +97,7 @@ pnpm run test:tryouts:agent try/integration/authentication/common/
 ```
 
 ### Debug Specific Failures
+
 ```bash
 # Verbose output with stack traces for specific test lines
 pnpm run test:tryouts:failures try/integration/authentication/simple_mode/core_auth_try.rb:169-180
@@ -100,23 +109,28 @@ pnpm run test:tryouts:agent try/integration/authentication/simple_mode/
 ### Test Files
 
 #### Simple Mode
+
 - `core_auth_try.rb` - Core app authentication flow tests
 - `adapter_try.rb` - Auth app adapter behavior in simple mode
 
 #### Full Mode
+
 - `rodauth_try.rb` - Rodauth integration tests
 
 #### Disabled Mode
+
 - `public_access_try.rb` - Public access without authentication
 
 #### Common
+
 - `routes_try.rb` - Route behavior tests (work in any mode)
 
 ## How Skipping Works
 
 Each mode-specific test file includes:
+
 ```ruby
-require_relative '../../../support/auth_mode_config'
+require_relative "../../../support/auth_mode_config"
 Object.new.extend(AuthModeConfig).skip_unless_mode :simple
 ```
 
@@ -125,6 +139,7 @@ This causes the test file to exit cleanly (status 0) if not in the required mode
 ## CI Configuration
 
 The CI workflow should run tests for each mode:
+
 ```yaml
 strategy:
   matrix:
@@ -141,12 +156,14 @@ This ensures all authentication modes are tested without false positives from mo
 ### Key Principles
 
 **Controllers**:
+
 - Read from `env['otto.user']` (authenticated user object)
 - Read from `env['otto.strategy_result']` (strategy result with session)
 - **Never** read directly from session
 - Test by mocking `env['otto.user']` and `env['otto.strategy_result']`
 
 **Logic Classes**:
+
 - Receive `StrategyResult` object in constructor
 - Access session via `@strategy_result.session` (not `@sess` directly in tests)
 - **Only** Logic classes write to session
@@ -154,6 +171,7 @@ This ensures all authentication modes are tested without false positives from mo
 - Verify session changes via `strategy_result.session`
 
 **Key Assertions**:
+
 - Controllers read authentication state from environment only
 - Logic classes write session keys after authentication (login/logout/registration)
 - Session is cleared on logout via `@sess.clear`
@@ -161,6 +179,7 @@ This ensures all authentication modes are tested without false positives from mo
 - Error conditions raise appropriate exceptions (`OT::FormError`, etc.)
 
 **Test Approach**:
+
 - **Controller tests**: Set environment variables to simulate auth states
 - **Logic tests**: Initialize with `StrategyResult`, verify session mutations
 - **Integration tests**: Use `Rack::Test` to simulate full request/response cycle
@@ -174,7 +193,7 @@ This ensures all authentication modes are tested without false positives from mo
    - Works everywhere: `common/`
 3. Add skip logic for mode-specific tests:
    ```ruby
-   require_relative '../../../support/auth_mode_config'
+   require_relative "../../../support/auth_mode_config"
    Object.new.extend(AuthModeConfig).skip_unless_mode :simple
    ```
 4. Follow test patterns above (controllers read env, logic writes session)
