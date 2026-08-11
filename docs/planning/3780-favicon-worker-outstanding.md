@@ -6,6 +6,10 @@ supersedes `3780-favicon-worker-blueprint.md`, `3780-favicon-worker-decisions.md
 `3780-favicon-worker-phase23-blueprint.md` as the tracker for what's left — those three now
 describe completed work and have been trimmed to short historical pointers.
 
+**Tracking issue: #4135.** Every item below is mirrored as a checkbox on
+[#4135](https://github.com/onetimesecret/onetimesecret/issues/4135) — check items off in both
+places as they land, and keep this document in sync with that issue.
+
 Produced by a code-verified audit (8 independent agents, each finding checked directly against
 the current tree, not against the original adversarial-review comment's claims) run against the
 current codebase on 2026-08-11. Every item below cites file:line evidence; see the audit for the
