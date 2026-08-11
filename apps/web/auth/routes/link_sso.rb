@@ -284,7 +284,7 @@ module Auth
             # `.defer` and the login proceeds unlinked (fail-closed).
             #
             # VERSION-SENSITIVE: that block position is Rodauth internals (verified
-            # against rodauth 2.44.0, base.rb #login). If an upgrade moves the block
+            # against rodauth 2.45.0, login.rb #login). If an upgrade moves the block
             # relative to login_session/after_login, the stash is keyed to a
             # destroyed sid or written too late — caught by the end-to-end example
             # in spec/integration/full_mfa/ (the deferred bind would never land).

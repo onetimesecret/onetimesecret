@@ -32,7 +32,7 @@ require 'onetime/security/create_account_rate_limiter'
 # before_create_account, which is a different hook AND fires too late for this
 # purpose — it runs inside the create-account POST body, after Rodauth has
 # begun processing the submission. before_create_account_route fires at the top
-# of the route (rodauth-2.44.0/lib/rodauth/features/create_account.rb:35),
+# of the route (rodauth-2.45.0/lib/rodauth/features/create_account.rb:35),
 # ahead of the db[:accounts] lookup at hooks/account.rb:67 and the
 # Onetime::Customer.email_exists? call at :92, which is the
 # "before any account lookup or write" ordering the limiter's header asserts.
@@ -60,7 +60,7 @@ require 'onetime/security/create_account_rate_limiter'
 # INTERNAL REQUESTS ARE EXCLUDED, EXPLICITLY. :internal_request is enabled
 # (config/base.rb), and handle_internal_request runs this same route block with
 # a SYNTHESIZED env whose REQUEST_METHOD is 'POST'
-# (rodauth-2.44.0/lib/rodauth/features/internal_request.rb:325) — so a bare
+# (rodauth-2.45.0/lib/rodauth/features/internal_request.rb:325) — so a bare
 # `request.post?` guard does NOT exclude it. The affected caller is the
 # invite-signup path (Auth::Config.create_account in
 # apps/api/invite/logic/invites/signup_and_accept.rb), which is already
