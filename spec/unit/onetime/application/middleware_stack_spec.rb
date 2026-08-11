@@ -171,6 +171,42 @@ RSpec.describe Onetime::Application::MiddlewareStack do
       end
     end
 
+    # The mode reaches this method through .trusted_proxy_mode, so the branch
+    # below must follow the CANONICALIZED, VALIDATED value — not the operator's
+    # raw string. Before #4087 `Depth` fell through the `== 'depth'` equality
+    # test into the filter branch while the boot log announced `mode=Depth`.
+    context 'when the mode needs canonicalizing or rejecting (#4087)' do
+      before do
+        allow(OT).to receive(:lw)
+        described_class.reset_warn_once!
+      end
+
+      after { described_class.reset_warn_once! }
+
+      it 'honours a mixed-case Depth as depth mode' do
+        stub_conf('enabled' => true, 'mode' => 'Depth', 'depth' => 3)
+        aggregate_failures do
+          expect(config.trusted_proxy_depth_mode?).to be(true)
+          expect(config.trusted_proxy_depth).to eq(3)
+          # depth and CIDRs are mutually exclusive in otto
+          expect(config.trusted_proxies).to be_empty
+        end
+      end
+
+      it 'runs the filter/CIDR branch for an unrecognized mode' do
+        # The fallback is the SAFER mode: each hop is authenticated against the
+        # trusted-proxy CIDRs rather than counted. Asserting the CIDRs are
+        # actually registered (not just "depth is off") is what distinguishes
+        # the filter branch from a stack that trusts nothing at all.
+        stub_conf('enabled' => true, 'mode' => 'dept', 'depth' => 3)
+        aggregate_failures do
+          expect(config.trusted_proxy_depth_mode?).to be(false)
+          expect(config.trusted_proxy?('10.0.0.1')).to be(true)
+          expect(config.trusted_proxies).not_to be_empty
+        end
+      end
+    end
+
     context 'when geo.header meets depth mode (#4068)' do
       # otto 2.8 raises on trusted_proxy_depth + geo_header, so the translator
       # skips the setting under depth. Skipping silently left the operator with
@@ -290,6 +326,215 @@ RSpec.describe Onetime::Application::MiddlewareStack do
       it 'is true only when explicitly enabled' do
         stub_conf('enabled' => true)
         expect(described_class.trusted_proxy_enabled?).to be(true)
+      end
+    end
+
+    # #4087: the SINGLE Ruby reader for site.network.trusted_proxy.mode. Two
+    # consumers depend on it agreeing with itself — .ip_privacy_security_config
+    # branches on it to configure otto, and
+    # AdminNetworkIsolation#trusted_proxy_posture prints it on the boot line
+    # operators are told to read. They used to dig the config independently
+    # with different expressions, which is how a deployment could run filter
+    # while announcing `mode=Depth`.
+    describe '.trusted_proxy_mode' do
+      subject(:mode) { described_class.trusted_proxy_mode }
+
+      def stub_mode(value)
+        allow(OT).to receive(:conf).and_return(
+          'site' => { 'network' => { 'trusted_proxy' => { 'enabled' => true, 'mode' => value } } },
+        )
+      end
+
+      before do
+        allow(OT).to receive(:lw)
+        # The ledger is process-wide and every example here is about whether a
+        # warning fired; without the reset the first example to warn is the
+        # only one that can observe it and the rest pass or fail by run order.
+        described_class.reset_warn_once!
+      end
+
+      after { described_class.reset_warn_once! }
+
+      it 'never returns a value outside the known set' do
+        # Pins the contract the two consumers rely on, against the constant
+        # rather than restating the set.
+        expect(described_class::TRUSTED_PROXY_MODES).to contain_exactly('filter', 'depth')
+      end
+
+      context 'with nothing configured' do
+        it 'defaults to filter when the trusted_proxy section is absent' do
+          allow(OT).to receive(:conf).and_return({})
+          aggregate_failures do
+            expect(mode).to eq('filter')
+            expect(OT).not_to have_received(:lw)
+          end
+        end
+
+        it 'defaults to filter when the key is absent from an enabled block' do
+          allow(OT).to receive(:conf).and_return(
+            'site' => { 'network' => { 'trusted_proxy' => { 'enabled' => true } } },
+          )
+          aggregate_failures do
+            expect(mode).to eq('filter')
+            expect(OT).not_to have_received(:lw)
+          end
+        end
+
+        it 'defaults to filter for an explicit nil' do
+          stub_mode(nil)
+          aggregate_failures do
+            expect(mode).to eq('filter')
+            expect(OT).not_to have_received(:lw)
+          end
+        end
+
+        it 'defaults to filter for an empty string, silently' do
+          # Unset and blank are the same operator statement — "I did not
+          # choose" — and must not produce a boot warning on a stock install.
+          stub_mode('')
+          aggregate_failures do
+            expect(mode).to eq('filter')
+            expect(OT).not_to have_received(:lw)
+          end
+        end
+
+        it 'defaults to filter for a whitespace-only value' do
+          stub_mode("  \t ")
+          aggregate_failures do
+            expect(mode).to eq('filter')
+            expect(OT).not_to have_received(:lw)
+          end
+        end
+      end
+
+      context 'with a recognized value' do
+        it 'returns filter' do
+          stub_mode('filter')
+          aggregate_failures do
+            expect(mode).to eq('filter')
+            expect(OT).not_to have_received(:lw)
+          end
+        end
+
+        it 'returns depth' do
+          stub_mode('depth')
+          aggregate_failures do
+            expect(mode).to eq('depth')
+            expect(OT).not_to have_received(:lw)
+          end
+        end
+
+        it 'strips surrounding whitespace' do
+          # OT.conf is also assembled programmatically (specs, embedders), so
+          # the strip is not covered by YAML plain-scalar parsing alone.
+          stub_mode('  depth  ')
+          expect(mode).to eq('depth')
+        end
+      end
+
+      # Downcase FIRST, then validate: `Depth` is the same setting written in a
+      # different case, not a typo, and the sibling trusted_proxy.header value
+      # is already canonicalized case-insensitively. The operator is still told
+      # their value was rewritten, so the boot log and their config file can be
+      # reconciled by eye.
+      context 'with a mixed-case value' do
+        it 'canonicalizes Depth to depth' do
+          stub_mode('Depth')
+          expect(mode).to eq('depth')
+        end
+
+        it 'canonicalizes DEPTH to depth' do
+          stub_mode('DEPTH')
+          expect(mode).to eq('depth')
+        end
+
+        it 'canonicalizes FILTER to filter' do
+          stub_mode('FILTER')
+          expect(mode).to eq('filter')
+        end
+
+        it 'warns that the value was canonicalized, naming both forms' do
+          stub_mode('Depth')
+          mode
+          expect(OT).to have_received(:lw).with(/Depth/)
+        end
+
+        it 'does not call the canonicalized value unrecognized' do
+          # A distinct warning from the unknown-value one: `Depth` IS honoured.
+          # Telling the operator it is "not a recognized mode" while running
+          # depth would be the same class of untrue boot line #4087 fixes.
+          stub_mode('Depth')
+          mode
+          expect(OT).not_to have_received(:lw).with(/not a recognized mode/)
+        end
+
+        it 'warns once across repeated calls' do
+          stub_mode('Depth')
+          3.times { described_class.trusted_proxy_mode }
+          expect(OT).to have_received(:lw).once
+        end
+      end
+
+      # WARN, do not raise: the fallback is the safer mode and a log-adjacent
+      # setting must never be the thing that fails a boot. Silence is the only
+      # unacceptable option, since the operator asked for something the app is
+      # not doing.
+      context 'with an unrecognized value' do
+        it 'falls back to filter for a near-miss typo' do
+          stub_mode('dept')
+          expect(mode).to eq('filter')
+        end
+
+        it 'falls back to filter for an unrelated word' do
+          stub_mode('cidr')
+          expect(mode).to eq('filter')
+        end
+
+        it 'falls back to filter for garbage' do
+          stub_mode('!!!')
+          expect(mode).to eq('filter')
+        end
+
+        it 'falls back to filter for a non-string value' do
+          stub_mode(2)
+          expect(mode).to eq('filter')
+        end
+
+        it 'does not raise' do
+          stub_mode('dept')
+          expect { mode }.not_to raise_error
+        end
+
+        it 'warns naming the rejected value and the mode actually in force' do
+          stub_mode('dept')
+          mode
+          aggregate_failures do
+            expect(OT).to have_received(:lw).with(/dept/)
+            expect(OT).to have_received(:lw).with(/filter/)
+          end
+        end
+
+        it 'names the valid values so the operator can fix it without the source' do
+          stub_mode('dept')
+          mode
+          expect(OT).to have_received(:lw).with(/depth/)
+        end
+
+        it 'warns once across repeated calls' do
+          # Seven Application subclasses each build a stack and reach this
+          # reader; the operator should read one finding, not seven.
+          stub_mode('dept')
+          3.times { described_class.trusted_proxy_mode }
+          expect(OT).to have_received(:lw).once
+        end
+
+        it 'still warns when the value is only unrecognized after downcasing' do
+          stub_mode('Dept')
+          aggregate_failures do
+            expect(mode).to eq('filter')
+            expect(OT).to have_received(:lw).with(/not a recognized mode/)
+          end
+        end
       end
     end
   end
