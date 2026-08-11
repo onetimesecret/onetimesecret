@@ -87,6 +87,15 @@ module Onetime
         )
       /ix
 
+      # The closed set of client-IP resolution strategies accepted in
+      # site.network.trusted_proxy.mode. Anything else is an operator typo:
+      # .trusted_proxy_mode canonicalizes case, then falls back to 'filter' with
+      # a warning rather than defaulting through the unknown value silently
+      # (#4087). Module scope for the same two reasons as the regex above — it
+      # stays lexically visible to the singleton methods in `class << self`, and
+      # specs can assert against the set rather than restating it.
+      TRUSTED_PROXY_MODES = %w[filter depth].freeze
+
       class << self
         # Build locale map for Otto::Locale::Middleware
         #
@@ -191,6 +200,11 @@ module Onetime
         #     deleted walker's off-by-one). Mutually exclusive with
         #     add_trusted_proxy.
         #
+        # The mode itself is read through .trusted_proxy_mode, which owns the
+        # 'filter' default, canonicalizes case, and warns on an unrecognized
+        # value instead of letting it fall through the `else` branch below
+        # unannounced (#4087).
+        #
         # Header (site.network.trusted_proxy.header): in depth mode otto 2.3.1
         # counts hops from the configured forwarded header — 'X-Forwarded-For'
         # (default), RFC 7239 'Forwarded', or 'Both' — wired straight through to
@@ -244,8 +258,14 @@ module Onetime
           # still masks it per the flag above).
           return config unless trusted_proxy_enabled?
 
-          tp     = OT.conf.dig('site', 'network', 'trusted_proxy') || {}
-          mode   = tp['mode'] || 'filter'
+          tp = OT.conf.dig('site', 'network', 'trusted_proxy') || {}
+
+          # Mode comes from the shared reader, not from `tp` — it is the one
+          # key in this block that a second consumer (the admin-isolation
+          # posture line) also reads, and it is the one that gets defaulted and
+          # validated. See .trusted_proxy_mode.
+          mode = trusted_proxy_mode
+
           header = tp['header'].to_s.strip
           header = 'X-Forwarded-For' if header.empty?
 
@@ -356,6 +376,93 @@ module Onetime
         # @return [Boolean]
         def trusted_proxy_enabled?
           OT.conf.dig('site', 'network', 'trusted_proxy', 'enabled') == true
+        end
+
+        # How the client IP is resolved when a trusted proxy IS declared
+        # (site.network.trusted_proxy.mode). The SINGLE Ruby reader for this
+        # setting: ip_privacy_security_config branches on it to configure otto,
+        # and AdminNetworkIsolation#trusted_proxy_posture reports it on the boot
+        # line operators are told to read. Those two used to dig the config
+        # independently with different expressions, which is how a deployment
+        # could run filter while its boot log announced `mode=Depth` (#4087).
+        #
+        # The 'filter' default lives HERE and nowhere else in Ruby. The ERB
+        # default in etc/defaults/config.defaults.yaml stays as operator
+        # documentation, but nothing depends on it having been applied — OT.conf
+        # is also assembled programmatically (specs, embedders) and a modeless
+        # trusted_proxy block must still resolve to a defined mode.
+        #
+        # DOWNCASE FIRST, THEN VALIDATE. `Depth` is an operator writing the same
+        # setting in a different case, not a typo, and the sibling
+        # trusted_proxy.header setting is already documented as "matched
+        # case-insensitively and canonicalized" — canonicalizing case here keeps
+        # the two halves of the same config block consistent. The unknown-value
+        # WARN is reserved for values that are still unrecognized after
+        # canonicalization (`dept`, `cidr`, garbage).
+        #
+        # BUT CANONICALIZING IS NOT SILENT. A second, distinct warning fires when
+        # canonicalization actually CHANGED the operator's value while still
+        # landing on a valid mode (`Depth`, `DEPTH`, ` depth `). Honouring those
+        # is a genuine RUNTIME CHANGE on upgrade: before this reader existed the
+        # branch was an exact `== 'depth'` test, so a mixed-case value ran FILTER.
+        # Such a deployment now switches client-IP resolution to depth — which is
+        # still incomplete, since depth mode does not record peer trust in
+        # env['otto.via_trusted_proxy'] pending delano/otto#226, so forwarded host
+        # headers are discarded and custom domains classify as canonical (#4024).
+        # The operator must be TOLD their value was reinterpreted, not merely
+        # obeyed. Exact-lowercase valid values stay silent — nothing changed for
+        # them, and a warning on the correct spelling is noise.
+        #
+        # WARN, DO NOT RAISE. The fallback is the SAFER mode: filter authenticates
+        # each hop against a CIDR set, where depth trusts a hop count. Refusing
+        # the boot would take a deployment offline over a log-adjacent setting
+        # whose misreading already fails closed — the same reasoning #4062 applied
+        # to the admin host allowlist, where a boot log line must never be the
+        # thing that fails a boot. Silence is the only unacceptable option, since
+        # the operator asked for something the app is not doing.
+        #
+        # warn_once: every Application subclass builds its own Rack stack and
+        # reaches this reader, so an unguarded warning repeats once per app and
+        # reads like several distinct problems.
+        #
+        # The .strip is belt-and-braces: YAML plain-scalar parsing already strips
+        # whitespace out of the ERB interpolation, but OT.conf is also set
+        # directly in specs and by embedders.
+        #
+        # @return [String] 'filter' or 'depth' — never any other value
+        def trusted_proxy_mode
+          default    = 'filter'
+          configured = OT.conf.dig('site', 'network', 'trusted_proxy', 'mode').to_s
+          raw        = configured.strip.downcase
+
+          return default if raw.empty?
+
+          unless TRUSTED_PROXY_MODES.include?(raw)
+            warn_once :trusted_proxy_mode_unknown,
+              "[MiddlewareStack] site.network.trusted_proxy.mode #{raw.inspect} " \
+              '(TRUSTED_PROXY_MODE) is not a recognized mode — valid values are ' \
+              "#{TRUSTED_PROXY_MODES.join(', ')}. Running mode=#{default}: the client IP " \
+              'is resolved by walking the forwarded chain against the trusted-proxy ' \
+              'CIDRs. Fix the value or unset it to silence this.'
+
+            return default
+          end
+
+          # Valid, but not written the way the app stores it — say so. See the
+          # CANONICALIZING IS NOT SILENT note above: this is the upgrade case
+          # where a mixed-case value stops running filter and starts running
+          # what it says.
+          if raw != configured
+            warn_once :trusted_proxy_mode_canonicalized,
+              "[MiddlewareStack] site.network.trusted_proxy.mode #{configured.inspect} " \
+              "(TRUSTED_PROXY_MODE) was canonicalized to #{raw.inspect}: running mode=#{raw}. " \
+              'Earlier releases matched this setting literally and ran ' \
+              "mode=#{default} for any other spelling, so upgrading with this value CHANGES " \
+              'how the client IP is resolved. Write it in lower case to silence this, or ' \
+              "set it to #{default} to keep the previous behaviour."
+          end
+
+          raw
         end
 
         def configure(builder, application_context: nil)
