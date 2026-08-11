@@ -33,3 +33,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     """CLI entry point. Returns a process exit code."""
     args = build_parser().parse_args(argv)
     return args.func(args) or 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
