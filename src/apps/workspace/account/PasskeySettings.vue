@@ -5,13 +5,24 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import ListSkeleton from '@/shared/components/closet/ListSkeleton.vue';
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
+  import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
   import PasswordConfirmModal from '@/shared/components/modals/PasswordConfirmModal.vue';
   import { useWebAuthn } from '@/shared/composables/useWebAuthn';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { formatDisplayDateTime } from '@/utils/format';
-  import { onMounted, ref, watch } from 'vue';
+  import { computed, onMounted, ref, watch } from 'vue';
 
   const { t } = useI18n();
-  const { supported, isLoading, error, registerWebAuthn, clearError } = useWebAuthn();
+  const {
+    supported,
+    isLoading,
+    error,
+    registerWebAuthn,
+    fetchWebAuthnCredentials,
+    removeWebAuthn,
+    clearError,
+  } = useWebAuthn();
+  const bootstrapStore = useBootstrapStore();
 
   // Local state
   const isRegistering = ref(false);
@@ -19,36 +30,75 @@
   const showPasswordModal = ref(false);
   const passwordError = ref<string | null>(null);
 
-  // Passkey list - would be populated from API in full implementation
-  // For now, we show the registration flow
+  // Removal flow state
+  const pendingRemovalId = ref<string | null>(null);
+  const showRemovePasswordModal = ref(false);
+  const showRemoveConfirm = ref(false);
+  const isRemoving = ref(false);
+
+  // The credentials table stores no name and no created_at — id plus
+  // last_used_at is the entire per-passkey shape.
   interface Passkey {
     id: string;
-    name: string;
-    created_at: string;
     last_used_at: string | null;
   }
 
   const passkeys = ref<Passkey[]>([]);
   const isLoadingPasskeys = ref(false);
 
+  // SSO-only accounts have no local password: skip the password prompt and let
+  // the backend validate (it only checks a password for accounts that have
+  // one). Read has_password from the bootstrap store — available synchronously
+  // at mount (no async gap where an SSO-only user could get an unsatisfiable
+  // prompt) and refreshed by useAuth when the account later sets a password.
+  // Anything other than an explicit false keeps the password prompt.
+  const requiresPassword = computed(() => bootstrapStore.has_password !== false);
+
+  const fetchPasskeys = async () => {
+    isLoadingPasskeys.value = true;
+    const credentials = await fetchWebAuthnCredentials();
+    if (credentials) {
+      passkeys.value = credentials;
+    }
+    isLoadingPasskeys.value = false;
+  };
+
   onMounted(async () => {
-    // TODO: Fetch passkeys list from API when endpoint is available
-    // await fetchPasskeys();
+    await fetchPasskeys();
   });
 
-  // Sync error from composable to modal
+  // Sync error from composable to whichever password modal is open
   watch(error, (newError) => {
-    if (newError && showPasswordModal.value) {
+    if (newError && (showPasswordModal.value || showRemovePasswordModal.value)) {
       passwordError.value = newError;
     }
   });
 
-  // Show password confirmation modal
-  const handleAddPasskeyClick = () => {
+  // Register a passkey after a successful ceremony, then refresh the list
+  const performRegistration = async (password?: string): Promise<boolean> => {
+    const success = await registerWebAuthn(password);
+    if (success) {
+      successMessage.value = t('web.auth.passkeys.registered_success');
+      await fetchPasskeys();
+    }
+    return success;
+  };
+
+  // Add passkey: password-holding accounts confirm via modal first; SSO-only
+  // accounts (has_password === false) go straight to the browser ceremony.
+  const handleAddPasskeyClick = async () => {
     clearError();
     successMessage.value = null;
     passwordError.value = null;
-    showPasswordModal.value = true;
+
+    if (requiresPassword.value) {
+      showPasswordModal.value = true;
+      return;
+    }
+
+    isRegistering.value = true;
+    await performRegistration();
+    isRegistering.value = false;
   };
 
   // Handle password confirmation and register passkey
@@ -56,12 +106,10 @@
     passwordError.value = null;
     isRegistering.value = true;
 
-    const success = await registerWebAuthn(password);
+    const success = await performRegistration(password);
 
     if (success) {
       showPasswordModal.value = false;
-      successMessage.value = t('web.auth.passkeys.registered_success');
-      // TODO: Refresh passkeys list when API is available
     } else {
       // Error is set by the composable, sync to modal
       passwordError.value = error.value;
@@ -77,6 +125,64 @@
     clearError();
   };
 
+  // Remove passkey: confirm first — via PasswordConfirmModal when the account
+  // has a password, via a plain ConfirmDialog otherwise (same pattern as
+  // ActiveSessions individual-session removal).
+  const handleRemoveClick = (credentialId: string) => {
+    clearError();
+    successMessage.value = null;
+    passwordError.value = null;
+    pendingRemovalId.value = credentialId;
+
+    if (requiresPassword.value) {
+      showRemovePasswordModal.value = true;
+    } else {
+      showRemoveConfirm.value = true;
+    }
+  };
+
+  const performRemoval = async (password?: string): Promise<boolean> => {
+    if (!pendingRemovalId.value) return false;
+
+    const success = await removeWebAuthn(pendingRemovalId.value, password);
+    if (success) {
+      successMessage.value = t('web.auth.passkeys.removed_success');
+      pendingRemovalId.value = null;
+      await fetchPasskeys();
+    }
+    return success;
+  };
+
+  const handleRemovePasswordConfirm = async (password: string) => {
+    passwordError.value = null;
+    isRemoving.value = true;
+
+    const success = await performRemoval(password);
+
+    if (success) {
+      showRemovePasswordModal.value = false;
+    } else {
+      passwordError.value = error.value;
+    }
+
+    isRemoving.value = false;
+  };
+
+  const handleRemoveConfirm = async () => {
+    showRemoveConfirm.value = false;
+    isRemoving.value = true;
+    await performRemoval();
+    isRemoving.value = false;
+  };
+
+  const handleRemoveCancel = () => {
+    showRemoveConfirm.value = false;
+    showRemovePasswordModal.value = false;
+    pendingRemovalId.value = null;
+    passwordError.value = null;
+    clearError();
+  };
+
   // Clear messages
   const clearMessages = () => {
     clearError();
@@ -88,6 +194,10 @@
     if (!dateString) return t('web.auth.passkeys.never_used');
     return formatDisplayDateTime(new Date(dateString));
   };
+
+  // Short id suffix so multiple passkeys are distinguishable (credentials
+  // carry no user-visible name)
+  const idSuffix = (credentialId: string): string => credentialId.slice(-6);
 </script>
 
 <template>
@@ -259,10 +369,10 @@
                   aria-hidden="true" />
                 <div>
                   <p class="font-medium text-gray-900 dark:text-white">
-                    {{ passkey.name }}
-                  </p>
-                  <p class="text-sm text-gray-500 dark:text-gray-400">
-                    {{ t('web.auth.passkeys.created') }}: {{ formatDate(passkey.created_at) }}
+                    {{ t('web.auth.passkeys.name') }}
+                    <span class="font-mono text-sm text-gray-500 dark:text-gray-400"
+                      >#{{ idSuffix(passkey.id) }}</span
+                    >
                   </p>
                   <p class="text-sm text-gray-500 dark:text-gray-400">
                     {{
@@ -274,8 +384,10 @@
                 </div>
               </div>
               <button
+                @click="handleRemoveClick(passkey.id)"
                 type="button"
-                class="text-sm font-medium text-red-600 hover:text-red-500 dark:text-red-400 dark:hover:text-red-300">
+                :disabled="isRemoving || isLoading"
+                class="text-sm font-medium text-red-600 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:text-red-300">
                 {{ t('web.auth.passkeys.remove_passkey') }}
               </button>
             </div>
@@ -362,6 +474,26 @@
             aria-hidden="true" />
         </template>
       </PasswordConfirmModal>
+
+      <!-- Password Confirmation Modal for Passkey Removal (accounts with a password) -->
+      <PasswordConfirmModal
+        v-model:open="showRemovePasswordModal"
+        :title="t('web.auth.passkeys.remove_passkey')"
+        :description="t('web.auth.passkeys.confirm_remove')"
+        variant="danger"
+        :loading="isRemoving"
+        :error="passwordError"
+        @confirm="handleRemovePasswordConfirm"
+        @cancel="handleRemoveCancel" />
+
+      <!-- Plain confirmation for Passkey Removal (SSO-only accounts, no password) -->
+      <ConfirmDialog
+        v-if="showRemoveConfirm"
+        :title="t('web.auth.passkeys.remove_passkey')"
+        :message="t('web.auth.passkeys.confirm_remove')"
+        type="danger"
+        @confirm="handleRemoveConfirm"
+        @cancel="handleRemoveCancel" />
     </div>
   </SettingsLayout>
 </template>

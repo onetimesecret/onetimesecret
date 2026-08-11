@@ -513,18 +513,42 @@ export const accountInfoResponseSchema = z.object({
   created_at: z.string(),
   status: z.number(),
   email_verified: z.boolean(),
+  // Whether the account has a local password credential. SSO-only accounts
+  // report false; consumers use this to skip password-confirmation prompts.
+  has_password: z.boolean().optional(),
   mfa_enabled: z.boolean(),
   recovery_codes_count: z.number(),
   passkeys_count: z.number().optional(),
 });
 export type AccountInfoResponse = z.infer<typeof accountInfoResponseSchema>;
 
+// WebAuthn credential item (GET /auth/webauthn-credentials).
+// The table has no name and no created_at column — id + last_used_at is the
+// entire shape. last_used_at is NOT NULL in the DB, but stay nullable-tolerant.
+export const webauthnCredentialSchema = z.object({
+  id: z.string(),
+  last_used_at: z.string().nullable(),
+});
+export type WebAuthnCredential = z.infer<typeof webauthnCredentialSchema>;
+
+// WebAuthn credentials list response, ordered last_used_at desc by the server.
+export const webauthnCredentialsResponseSchema = z.object({
+  credentials: z.array(webauthnCredentialSchema),
+  count: z.number(),
+});
+export type WebAuthnCredentialsResponse = z.infer<typeof webauthnCredentialsResponseSchema>;
+
 // MFA status response
+// `enabled` deliberately still means otp || recovery only — webauthn does NOT
+// flip it. The per-factor booleans below are additive (2026-08); older
+// backends omit them, so consumers must treat undefined as false.
 export const mfaStatusResponseSchema = z.object({
   enabled: z.boolean(),
   last_used_at: z.string().nullable(),
   recovery_codes_remaining: z.number(),
   recovery_codes_limit: z.number(),
+  otp_enabled: z.boolean().optional(),
+  webauthn_enabled: z.boolean().optional(),
 });
 export type MfaStatusResponse = z.infer<typeof mfaStatusResponseSchema>;
 
