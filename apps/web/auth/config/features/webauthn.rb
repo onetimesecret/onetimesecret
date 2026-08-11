@@ -5,10 +5,15 @@
 module Auth::Config::Features
   module WebAuthn
     def self.configure(auth)
-      # WebAuthn features (conditionally enabled via ENV in config.rb)
+      # WebAuthn features. This module itself is conditionally loaded via
+      # AUTH_WEBAUTHN_ENABLED (config.rb); the two sub-features are their own
+      # opt-ins, read through the same config path as the main flag
+      # (full.features in etc/defaults/auth.defaults.yaml, rendered from
+      # AUTH_WEBAUTHN_VERIFY_ACCOUNT / AUTH_WEBAUTHN_AUTOFILL with == 'true'
+      # semantics — only the literal string 'true' enables; default OFF).
       auth.enable :webauthn, :webauthn_login, :webauthn_modify_email
-      auth.enable :webauthn_verify_account if ENV['WEBAUTHN_VERIFY_ACCOUNT']
-      auth.enable :webauthn_autofill if ENV['WEBAUTHN_AUTOFILL']
+      auth.enable :webauthn_verify_account if Onetime.auth_config.webauthn_verify_account_enabled?
+      auth.enable :webauthn_autofill if Onetime.auth_config.webauthn_autofill_enabled?
 
       # WebAuthn configuration
       auth.webauthn_rp_id do
@@ -31,12 +36,29 @@ module Auth::Config::Features
       # This enables Face ID, Touch ID, Windows Hello
       auth.webauthn_user_verification 'preferred'
 
-      # Authenticator selection: allows both platform and cross-platform
-      # (Face ID, Touch ID, Windows Hello AND YubiKey)
-      # Setting to nil allows both types
-      auth.webauthn_authenticator_selection do
-        { authenticatorAttachment: nil }
-      end
+      # A passkey LOGIN whose authenticator reports user verification counts as
+      # both factors natively (authenticated_by = ['webauthn',
+      # 'webauthn-verification'] before after_login fires — gem
+      # webauthn_login.rb). Policy: a passkey first factor fully authenticates.
+      # The after_login hook (hooks/login.rb) extends the same treatment to the
+      # non-UV residual (e.g. a security key without PIN), so this flag is the
+      # honest/native half of that pair. Note the gem pins the login-ceremony
+      # user verification to 'preferred' when this is on — identical to the
+      # setting above, so no behavior change there.
+      auth.webauthn_login_user_verification_additional_factor? true
+
+      # Authenticator selection: Rodauth's default is used ON PURPOSE —
+      #   {'requireResidentKey' => false,
+      #    'userVerification' => webauthn_user_verification}
+      # It does not set authenticatorAttachment at all, which already permits
+      # both platform (Face ID, Touch ID, Windows Hello) and cross-platform
+      # (YubiKey) authenticators. A previous override returned
+      # { authenticatorAttachment: nil } to express that same intent, but the
+      # whole-hash replacement silently dropped requireResidentKey and
+      # userVerification from credential-creation options (decoupling them
+      # from the setting above) and broke webauthn_autofill's super.merge
+      # composition. Do not override webauthn_authenticator_selection without
+      # carrying the default keys forward.
 
       # Routes (relative to /auth mount point)
       auth.webauthn_setup_route 'webauthn-setup'

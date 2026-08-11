@@ -304,6 +304,29 @@ module Onetime
             Legacy values are honored as fallbacks for now.
           MSG
         },
+        # WebAuthn sub-feature env flags joined the AUTH_ family (and switched
+        # from presence-based to == 'true' semantics). No fallback shim — the
+        # features were never functional under the old names, so the old vars
+        # are simply ignored; severity: :warn points operators at the rename
+        # without refusing boot.
+        {
+          env: 'WEBAUTHN_AUTOFILL',
+          severity: :warn,
+          message: <<~MSG.chomp,
+            WEBAUTHN_AUTOFILL is ignored. Set AUTH_WEBAUTHN_AUTOFILL=true
+            (auth: full.features.webauthn_autofill) to enable passkey autofill;
+            only the literal string 'true' enables it.
+          MSG
+        },
+        {
+          env: 'WEBAUTHN_VERIFY_ACCOUNT',
+          severity: :warn,
+          message: <<~MSG.chomp,
+            WEBAUTHN_VERIFY_ACCOUNT is ignored. Set AUTH_WEBAUTHN_VERIFY_ACCOUNT=true
+            (auth: full.features.webauthn_verify_account) to enable passkey-based
+            account verification; only the literal string 'true' enables it.
+          MSG
+        },
       ].freeze
 
     end
