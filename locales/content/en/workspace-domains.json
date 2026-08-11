@@ -571,10 +571,6 @@
     "text": "Connection test failed",
     "content_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "To require SSO for all sign-ins on this domain, configure it in the domain's sign-in settings. SSO-only mode restricts the login page to the SSO provider configured here.",
-    "content_hash": "d26627a5"
-  },
   "web.domains.sso.configure_sso": {
     "text": "Configure SSO",
     "content_hash": "80d3a144"
@@ -602,6 +598,54 @@
   "web.domains.sso.connection_disabled_hint": {
     "text": "SSO credentials are saved but the connection is turned off. Enable it under Edit credentials.",
     "content_hash": "90180d6c"
+  },
+  "web.domains.sso.status_active_badge": {
+    "text": "Active",
+    "context": "Badge on the SSO row of domain Sign-in Settings when the server reports tenant SSO as available on this domain."
+  },
+  "web.domains.sso.status_active_hint": {
+    "text": "Members can sign in with this SSO connection on this domain.",
+    "context": "Explanatory line beside the Active badge on the SSO row of domain Sign-in Settings."
+  },
+  "web.domains.sso.status_not_configured_badge": {
+    "text": "Not configured",
+    "context": "Badge on the SSO row of domain Sign-in Settings when no SSO credentials are saved for the domain."
+  },
+  "web.domains.sso.status_not_configured_hint": {
+    "text": "No SSO credentials are saved for this domain yet.",
+    "context": "Explanatory line beside the Not configured badge on the SSO row of domain Sign-in Settings."
+  },
+  "web.domains.sso.status_not_permitted_badge": {
+    "text": "Not allowed on this domain",
+    "context": "Badge on the SSO row of domain Sign-in Settings when the domain's own sign-in settings turn SSO off."
+  },
+  "web.domains.sso.status_not_permitted_hint": {
+    "text": "SSO is turned off for this domain, so the sign-in page does not offer it.",
+    "context": "Explanatory line beside the Not allowed badge on the SSO row of domain Sign-in Settings."
+  },
+  "web.domains.sso.status_auth_disabled_badge": {
+    "text": "Sign-in disabled",
+    "context": "Badge on the SSO row of domain Sign-in Settings when sign-in is turned off for the whole domain."
+  },
+  "web.domains.sso.status_auth_disabled_hint": {
+    "text": "Sign-in is turned off on this domain, so no method is offered — including SSO.",
+    "context": "Explanatory line beside the Sign-in disabled badge on the SSO row of domain Sign-in Settings."
+  },
+  "web.domains.sso.status_unsupported_provider_badge": {
+    "text": "Unsupported provider",
+    "context": "Badge on the SSO row of domain Sign-in Settings when the saved provider type cannot be used for per-domain SSO."
+  },
+  "web.domains.sso.status_unsupported_provider_hint": {
+    "text": "The saved provider cannot be used for domain SSO. Edit the credentials and choose Microsoft Entra ID or generic OIDC.",
+    "context": "Explanatory line beside the Unsupported provider badge on the SSO row of domain Sign-in Settings."
+  },
+  "web.domains.sso.status_unavailable_badge": {
+    "text": "Unavailable",
+    "context": "Fallback badge on the SSO row of domain Sign-in Settings when the server reports a blocking reason this version does not recognise."
+  },
+  "web.domains.sso.status_unavailable_hint": {
+    "text": "SSO cannot be offered on this domain right now. Check the SSO credentials and this domain's sign-in settings.",
+    "context": "Fallback explanatory line beside the Unavailable badge on the SSO row of domain Sign-in Settings."
   },
   "web.domains.signup.title": {
     "text": "Signup Validation",
@@ -1367,6 +1411,30 @@
   "web.domains.signin.restrict_picker_hint": {
     "text": "Only methods available on this domain are listed.",
     "content_hash": "c7a56f44"
+  },
+  "web.domains.signin.sso_restrict_warning_title": {
+    "text": "Restricting to SSO would close sign-in on this domain",
+    "context": "Heading of the confirmation panel shown when an owner picks SSO as the only sign-in method while the server reports SSO unavailable on that domain."
+  },
+  "web.domains.signin.sso_restrict_warning_body": {
+    "text": "SSO is not available on this domain, and a restriction that cannot be honoured blocks sign-in entirely. Nobody will be able to sign in here until SSO works. Fix SSO first, or restrict anyway and finish the setup.",
+    "context": "Body of the confirmation panel warning that restricting to an unavailable SSO takes the domain's sign-in page dark."
+  },
+  "web.domains.signin.sso_restrict_warning_confirm": {
+    "text": "Restrict anyway",
+    "context": "Button that saves the SSO-only restriction despite the warning that SSO is unavailable on this domain."
+  },
+  "web.domains.signin.restriction_unavailable_notice": {
+    "text": "Sign-in is unavailable on this domain: it is restricted to {method}, which cannot run here. Pick another method, or make {method} available.",
+    "context": "Notice shown when the server resolves this domain's sign-in restriction to a method that cannot run, so no one can sign in. {method} is a method name such as Single Sign-On."
+  },
+  "web.domains.signin.restriction_unavailable_unknown_notice": {
+    "text": "Sign-in is unavailable on this domain: it is restricted to a method that cannot run here. Pick another method, or reset this domain to defaults.",
+    "context": "Notice shown when the server resolves the domain's sign-in restriction as unavailable but does not name a method this version recognises."
+  },
+  "web.domains.signin.restriction_conflict_notice": {
+    "text": "This domain restricts sign-in to a different method than the workspace-wide restriction ({method}), so neither can apply and sign-in is unavailable here. Match the workspace-wide method, or reset this domain to defaults.",
+    "context": "Notice shown when the domain and workspace-wide sign-in restrictions name different methods. {method} is the workspace-wide method name."
   },
   "web.domains.signin.availability_always": {
     "text": "Always available",

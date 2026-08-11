@@ -916,6 +916,10 @@
     "text": "When active, members can sign in with this SSO provider. SSO must also be enabled as a sign-in method in the domain's Sign-in Settings.",
     "content_hash": "71a53159"
   },
+  "web.organizations.sso.enable_untested_warning": {
+    "text": "This connection has not passed a test here yet. Run Test connection before turning it on, so a broken setup never reaches your sign-in page.",
+    "context": "Advisory warning beside the Connection active toggle when it is switched on without a successful connection test in the current editing session. Not a hard block."
+  },
   "web.organizations.sso.enforce_sso_only": {
     "text": "Enforce SSO only",
     "content_hash": "b3a3f694"

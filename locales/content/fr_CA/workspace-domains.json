@@ -1343,10 +1343,6 @@
     "text": "Échec du test de connexion",
     "source_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "Pour exiger l'authentification unique pour toutes les connexions sur ce domaine, configurez-la dans les paramètres de connexion du domaine. Le mode SSO uniquement restreint la page de connexion au fournisseur SSO configuré ici.",
-    "source_hash": "d26627a5"
-  },
   "web.domains.sso.edit_credentials": {
     "text": "Modifier les identifiants",
     "source_hash": "5a6622b6"

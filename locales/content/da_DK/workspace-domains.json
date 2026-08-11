@@ -1335,10 +1335,6 @@
     "text": "Forbindelsestest mislykkedes",
     "source_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "For at kræve SSO for alle logins på dette domæne skal du konfigurere det i domænets loginindstillinger. Kun-SSO-tilstand begrænser loginsiden til den SSO-udbyder, der er konfigureret her.",
-    "source_hash": "d26627a5"
-  },
   "web.domains.sso.configure_sso": {
     "text": "Konfigurer SSO",
     "source_hash": "80d3a144"

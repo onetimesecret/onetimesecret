@@ -107,6 +107,10 @@ const {
   globalEnabled,
   effectiveEnabled,
   isWorkspaceDefault,
+  // Server-resolved (ADR-024 A4 / #4111) — passed through to the form, which
+  // renders them verbatim and derives no availability of its own.
+  effectiveRestrictTo,
+  tenantSso,
   initialize: initializeSigninConfig,
   autoSaveFields,
   deleteConfig,
@@ -128,7 +132,6 @@ const {
   testResult,
   testError,
   isConfigured: ssoIsConfigured,
-  isEnabled: ssoIsEnabled,
   hasUnsavedChanges: ssoHasUnsavedChanges,
   clientSecretMasked,
   initialize: initializeSsoConfig,
@@ -311,7 +314,8 @@ watch(canFetchSsoConfig, async (allowed) => {
             :is-configured="isConfigured"
             :workspace-default="isWorkspaceDefault"
             :sso-configured="ssoIsConfigured"
-            :sso-credentials-enabled="ssoIsEnabled"
+            :tenant-sso="tenantSso"
+            :effective-restrict-to="effectiveRestrictTo"
             :can-manage-sso="canManageSso"
             :global-availability="globalAvailability"
             :saving-field="savingField"

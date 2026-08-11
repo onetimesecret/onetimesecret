@@ -1335,10 +1335,6 @@
     "text": "O teste de ligação falhou",
     "source_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "Para exigir SSO em todos os inícios de sessão neste domínio, configura-o nas definições de início de sessão do domínio. O modo exclusivo de SSO restringe a página de início de sessão ao fornecedor de SSO configurado aqui.",
-    "source_hash": "d26627a5"
-  },
   "web.domains.sso.configure_sso": {
     "text": "Configurar SSO",
     "source_hash": "80d3a144"

@@ -1335,10 +1335,6 @@
     "text": "La prova de connexió ha fallat",
     "source_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "Per exigir l'SSO a tots els inicis de sessió d'aquest domini, configura-ho a la configuració d'inici de sessió del domini. El mode només SSO restringeix la pàgina d'inici de sessió al proveïdor d'SSO configurat aquí.",
-    "source_hash": "d26627a5"
-  },
   "web.domains.sso.configure_sso": {
     "text": "Configura l'SSO",
     "source_hash": "80d3a144"

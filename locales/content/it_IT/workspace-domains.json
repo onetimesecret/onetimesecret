@@ -1335,10 +1335,6 @@
     "text": "Test di connessione non riuscito",
     "source_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "Per richiedere l'SSO per tutti gli accessi su questo dominio, configuralo nelle impostazioni di accesso del dominio. La modalità solo SSO limita la pagina di login al provider SSO configurato qui.",
-    "source_hash": "d26627a5"
-  },
   "web.domains.sso.configure_sso": {
     "text": "Configura SSO",
     "source_hash": "80d3a144"

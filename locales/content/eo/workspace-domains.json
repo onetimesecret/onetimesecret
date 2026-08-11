@@ -1343,10 +1343,6 @@
     "text": "Konektotesto malsukcesis",
     "source_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "Por postuli SSO por ĉiuj ensalutoj sur ĉi tiu domajno, agordu ĝin en la ensalutaj agordoj de la domajno. Nur-SSO reĝimo limigas la ensalutan paĝon al la SSO-provizanto agordita ĉi tie.",
-    "source_hash": "d26627a5"
-  },
   "web.domains.sso.edit_credentials": {
     "text": "Redakti akreditaĵojn",
     "source_hash": "5a6622b6"

@@ -1335,10 +1335,6 @@
     "text": "Anslutningstestet misslyckades",
     "source_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "För att kräva SSO för alla inloggningar på denna domän konfigurerar du det i domänens inloggningsinställningar. Läget med enbart SSO begränsar inloggningssidan till den SSO-leverantör som konfigurerats här.",
-    "source_hash": "d26627a5"
-  },
   "web.domains.sso.configure_sso": {
     "text": "Konfigurera SSO",
     "source_hash": "80d3a144"

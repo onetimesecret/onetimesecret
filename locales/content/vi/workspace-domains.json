@@ -1335,10 +1335,6 @@
     "text": "Kiểm tra kết nối thất bại",
     "source_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "Để yêu cầu SSO cho mọi lần đăng nhập trên tên miền này, hãy cấu hình nó trong cài đặt đăng nhập của tên miền. Chế độ chỉ SSO giới hạn trang đăng nhập ở nhà cung cấp SSO được cấu hình tại đây.",
-    "source_hash": "d26627a5"
-  },
   "web.domains.sso.configure_sso": {
     "text": "Cấu hình SSO",
     "source_hash": "80d3a144"

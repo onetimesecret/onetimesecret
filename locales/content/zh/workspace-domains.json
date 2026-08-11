@@ -1343,10 +1343,6 @@
     "text": "连接测试失败",
     "source_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "要在此域名的所有登录中强制使用 SSO，请在域名的登录设置中进行配置。仅 SSO 模式会将登录页面限制为此处配置的 SSO 提供商。",
-    "source_hash": "d26627a5"
-  },
   "web.domains.sso.edit_credentials": {
     "text": "编辑凭据",
     "source_hash": "5a6622b6"
