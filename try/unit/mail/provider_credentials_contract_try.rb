@@ -419,3 +419,19 @@ else
 end
 creds['api_key']
 #=> 'api-from-env'
+
+# --- teardown ------------------------------------------------------------
+# Later files in the same tryouts process observe these class-level stubs
+# (mode 'logger' is what delivery_logger_try and email_ratelimit_tools_try
+# expect from determine_provider), so put back the top-of-file state.
+class Onetime::Mail::Mailer
+  class << self
+    def emailer_config
+      { 'mode' => 'logger', 'from' => 'test@example.com' }
+    end
+
+    def provider_config(_provider)
+      {}
+    end
+  end
+end
