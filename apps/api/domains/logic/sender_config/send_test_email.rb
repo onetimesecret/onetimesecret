@@ -296,6 +296,19 @@ module DomainsAPI
             return true if msg.include?('not verified') || msg.include?('sender')
           end
 
+          # SMTP2GO: unverified senders surface as a per-recipient failure
+          # envelope (HTTP 200, error_code E_DeliveryFailures) rather than a
+          # 4xx. Recipient addresses in the message are redacted upstream
+          # (Delivery::Smtp2go), so match on the stable error_code plus the
+          # "unable to verify sender" reason wording — narrow enough not to
+          # swallow unrelated per-recipient delivery failures.
+          if defined?(Onetime::Mail::Smtp2goClient::APIError) &&
+             original.is_a?(Onetime::Mail::Smtp2goClient::APIError) &&
+             original.error_code == 'E_DeliveryFailures'
+            msg = original.message.to_s.downcase
+            return true if msg.include?('unable to verify sender')
+          end
+
           false
         end
 

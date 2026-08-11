@@ -22,6 +22,11 @@ module Onetime
       # see perform_delivery.
       #
       class Smtp2go < Base
+        # Mirrors OT::Utils::EMAIL_PATTERN (inlined so the mail lib stays
+        # loadable without the full app): unicode local part/domain, atomic
+        # group to prevent backtracking.
+        EMAIL_PATTERN = /\b(?>[\p{L}\p{N}._%+'-]+)@[\p{L}\p{N}.\p{Pd}]+\.\p{L}{2,}\b/
+
         def perform_delivery(email)
           data = client.post('/email/send', build_payload(email))
 
@@ -30,12 +35,17 @@ module Onetime
           # wraps it like every other provider error.
           failed = data['failed'].to_i
           if failed.positive?
-            failures = Array(data['failures']).join('; ')
+            # Failure strings embed the raw recipient address; redact it so
+            # the obscure_email discipline holds when log_error and Sentry
+            # pick up the message and response_body. The failure reason text
+            # survives (downstream code matches on it, e.g.
+            # domain_not_provisioned_error? in SendTestEmail).
+            failures = Array(data['failures']).map { |entry| redact_emails(entry) }.join('; ')
             raise Smtp2goClient::APIError.new(
               "SMTP2GO reported #{failed} failed recipient(s): #{failures}",
               status_code: 200,
               error_code: 'E_DeliveryFailures',
-              response_body: data.to_json[0, 500],
+              response_body: redact_emails(data.to_json)[0, 500],
             )
           end
 
@@ -95,6 +105,13 @@ module Onetime
         end
 
         private
+
+        # Replace each email address embedded in provider text with its
+        # obscured form (Base#obscure_email), leaving the surrounding
+        # failure-reason wording intact for diagnostics.
+        def redact_emails(text)
+          text.to_s.gsub(EMAIL_PATTERN) { |address| obscure_email(address) }
+        end
 
         # Build the /email/send payload from the normalized email hash.
         #
