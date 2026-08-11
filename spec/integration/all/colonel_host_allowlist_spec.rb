@@ -1053,4 +1053,54 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
       end
     end
   end
+
+  # ===========================================================================
+  # 10. The CIDR gate judges the FULL client IP, not the privacy-masked one
+  # ===========================================================================
+  #
+  # IPPrivacyMiddleware is mounted ABOVE this gate in the same universal stack
+  # and zeroes the last IPv4 octet before AdminNetworkIsolation runs, so
+  # env['otto.client_ip'] reads 203.0.113.0 for a client at 203.0.113.9. The
+  # gate therefore judges membership through env['otto.ip_match'] — the
+  # verdict-only closure that middleware installs over the PRE-MASK address.
+  #
+  # Every other CIDR example in this file puts the client a whole /8 outside
+  # the allowlist, which 404s under either reading and so says nothing about
+  # WHICH address was judged. This one is built so the two readings disagree,
+  # in both directions:
+  #
+  #   allowed_cidrs 203.0.113.9/32 — full precision ADMITS, masked DENIES: an
+  #     operator's single-admin-IP entry locking them out of their own console.
+  #   allowed_cidrs 203.0.113.0/32 — full precision DENIES, masked ADMITS: the
+  #     masked network address admitting every neighbor that shares the /24.
+  #
+  # Both halves flip if the gate ever goes back to matching the masked value.
+  describe 'the CIDR gate at /32 precision' do
+    it 'admits the client its own /32 names, and denies the /32 of its masked form' do
+      configure_admin!(
+        allowed_hosts: ['*'],
+        allowed_cidrs: ['203.0.113.9/32'],
+        default_domain: 'example.com',
+        site_host: 'example.com',
+      )
+      signed_in_as(colonel)
+      get_api('example.com', 'REMOTE_ADDR' => '203.0.113.9')
+
+      expect(last_response.status).to eq(200)
+      expect(json_body).to have_key('details')
+
+      # The inverse. 203.0.113.0 is what the mask produces and is NOT the
+      # client; admitting it would mean the gate judged the masked value.
+      configure_admin!(
+        allowed_hosts: ['*'],
+        allowed_cidrs: ['203.0.113.0/32'],
+        default_domain: 'example.com',
+        site_host: 'example.com',
+      )
+      signed_in_as(colonel)
+      get_api('example.com', 'REMOTE_ADDR' => '203.0.113.9')
+
+      expect(last_response.status).to eq(404)
+    end
+  end
 end
