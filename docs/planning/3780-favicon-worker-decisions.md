@@ -1,5 +1,10 @@
 # #3780 — Resolved decisions & scope additions
 
+**Status: SHIPPED.** All decisions below were implemented via PR #3782 (2026-07-15) — kept here
+as the design-rationale record (why the overwrite guard, precedence, and trigger points behave the
+way they do). Outstanding work and gaps found in a post-merge audit are tracked in
+`3780-favicon-worker-outstanding.md`, not here.
+
 Companion to `3780-favicon-worker-blueprint.md`. This file records the human decisions
 on the blueprint's open questions and the mid-flight scope additions, verbatim.
 
@@ -25,18 +30,6 @@ Remaining open questions default as the blueprint recommends unless changed:
 > - a job is queued when a domain is added.
 > - a nightly job that scans for custom domains without a favicon and queues up a job for each one. ideally with backoff similar to our domain validation so that we don't check every night forever for a domain that has no favicon to get.
 
-### Interpretation / sequencing
-
-Build order — additions land **after** the core worker + test coverage are green:
-
-1. **Operation** — `Onetime::Operations::FetchDomainFavicon`. Already in the blueprint core (the unit of work shared by worker + inline fallback). ✔ Core.
-2. **Enqueue on domain add** — fire `enqueue_favicon_fetch(domain_id)` at custom-domain creation (in addition to the verification-success trigger), feature-flag gated. New trigger point beyond the blueprint.
-3. **Nightly backoff scan** — a scheduled job that finds custom domains with no `auto_fetch` favicon and whose backoff window has elapsed, and enqueues a fetch for each. Backoff mirrors domain-validation so we stop retrying domains that never yield a favicon.
-   - Requires backoff bookkeeping on `CustomDomain`: attempt counter + `favicon_fetch_next_at` (or equivalent), incremented on empty/failed outcomes; cleared on success.
-   - Mirror the existing `domain_refresh_job` / expiration-warnings scheduled-job mechanism.
-
-## Build phases
-
-- **Phase 1 (core):** SafeFetch + operation + worker + queue/publisher + storage/serving + config + trigger-on-verify + tests. *(this workflow)*
-- **Phase 2:** Manual refresh UI (backend endpoint + Vue).
-- **Phase 3:** Enqueue-on-add trigger + nightly backoff scan + backoff fields.
+All three phases below (operation, enqueue-on-add, nightly backoff scan) shipped in PR #3782. The
+per-phase build sequencing that used to be listed here described completed work and has been
+removed; see `3780-favicon-worker-outstanding.md` for what's left.

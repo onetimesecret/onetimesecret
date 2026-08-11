@@ -52,7 +52,9 @@
 
   const closeWarning = (event: Event) => {
     const element = event.target as HTMLElement;
-    const warning = element.closest('.bg-amber-50, .bg-brand-50, .bg-amber-900, .bg-brand-900');
+    // Match on role, not background classes: both dismissible creator alerts
+    // carry role="alert", so recoloring them can't silently break dismissal.
+    const warning = element.closest('[role="alert"]');
     if (warning) {
       warning.remove();
     }
