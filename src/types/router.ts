@@ -78,14 +78,37 @@ export interface RouteMeta {
    * The route guard redirects authenticated users to '/account'
    * and unauthenticated users to '/signin'.
    *
-   * INVARIANT: never set this on a route the SSO flow itself traverses
-   * (/signin, /mfa-verify, the /link-sso and /sso-link-confirm
-   * interstitials) — SSO-only mode is the one mode guaranteed to need
-   * them, and the guard would bounce users out of their own sign-in.
-   * Enforced by src/tests/router/sso-only-reachability.spec.ts; new
-   * routes carrying this flag must be added to its expected matrix.
+   * INVARIANT: never set this on a route the SSO flow itself traverses —
+   * those routes declare `requiredInSsoOnly` (below), which the guard
+   * gives precedence. Enforced by
+   * src/tests/router/sso-only-reachability.spec.ts; new routes carrying
+   * this flag must be added to its expected matrix.
    */
   excludeSsoOnly?: boolean;
+  /**
+   * When true, this route IS the SSO flow (or its MFA continuation) and
+   * must stay reachable when SSO-only mode is active (site
+   * restrict_to='sso'). In that mode most password-auth routes are hidden
+   * via `excludeSsoOnly` (above), enforced by handleSsoOnlyRoute in
+   * guards.routes.ts. The pinned set of flagged paths lives in
+   * src/tests/router/sso-only-reachability.spec.ts (REQUIRED_IN_SSO_ONLY).
+   *
+   * The guard gives this flag precedence over `excludeSsoOnly`: if someone
+   * copy-pastes `excludeSsoOnly` onto one of these routes, runtime
+   * behavior stays correct (the route remains reachable) and the sweep
+   * spec fails loudly on the double-flagged configuration.
+   *
+   * History: /mfa-verify once carried `excludeSsoOnly` by copy-paste.
+   * handleSsoOnlyRoute runs BEFORE handleMfaAccess, so for awaitingMfa
+   * users the ssoOnly guard bounced /mfa-verify -> /signin while
+   * handleMfaAccess bounced /signin -> /mfa-verify — an infinite redirect
+   * loop. MFA is flow-agnostic: an SSO sign-in can also demand a second
+   * factor (the /sso-link-confirm POST returns mfa_required and hands off
+   * to /mfa-verify), so the MFA continuation is part of the SSO flow.
+   *
+   * Enforced by src/tests/router/sso-only-reachability.spec.ts.
+   */
+  requiredInSsoOnly?: boolean;
   /**
    * When true, this route requires the signed-in customer to have the
    * `colonel` role. Set on every admin-console route (src/apps/admin).

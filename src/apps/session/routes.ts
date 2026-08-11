@@ -16,6 +16,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: false,
       isAuthRoute: true,
       requiresFeature: 'signin',
+      requiredInSsoOnly: true,
       layout: AuthLayout,
       layoutProps: {
         displayMasthead: false,
@@ -161,11 +162,6 @@ const routes: Array<RouteRecordRaw> = [
       sentryScrubParams: false,
     },
   },
-  // NO excludeSsoOnly: MFA is flow-agnostic — an SSO sign-in can also demand a
-  // second factor (the /sso-link-confirm POST returns mfa_required and hands
-  // off here). Excluding it in SSO-only mode is worse than a dead end: the
-  // ssoOnly guard bounces /mfa-verify -> /signin while handleMfaAccess bounces
-  // /signin -> /mfa-verify for awaitingMfa users — an infinite redirect loop.
   {
     path: '/mfa-verify',
     name: 'MFA Verify',
@@ -175,6 +171,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: false,
       isAuthRoute: true,
       requiresFeature: 'signin',
+      requiredInSsoOnly: true,
       layout: AuthLayout,
       layoutProps: {
         displayMasthead: false,
@@ -194,11 +191,6 @@ const routes: Array<RouteRecordRaw> = [
   // (another post-credential, pre-fully-authenticated interstitial), EXCEPT the
   // token is sensitive: sentryScrubParams: ['token'] redacts it from diagnostics
   // (mfa-verify has no path param, so it opts out with `false`).
-  //
-  // NO excludeSsoOnly: this interstitial IS the SSO flow. SSO-only installs
-  // (restrict_to='sso') are the one mode guaranteed to need it — excluding it
-  // bounces the user to /signin before the page can mount (the bug that
-  // motivated sso-only-reachability.spec.ts).
   {
     path: '/link-sso/:token',
     name: 'Link SSO',
@@ -208,6 +200,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: false,
       isAuthRoute: true,
       requiresFeature: 'signin',
+      requiredInSsoOnly: true,
       layout: AuthLayout,
       layoutProps: {
         displayMasthead: false,
@@ -228,9 +221,6 @@ const routes: Array<RouteRecordRaw> = [
   // ['token'] redacts it from diagnostics. Meta mirrors /link-sso (another
   // post-issuance, pre-fully-authenticated interstitial); the GET is display-only
   // and the mutating confirm is an explicit user action (never auto-POST on load).
-  //
-  // NO excludeSsoOnly: same invariant as /link-sso — this consent page IS the
-  // SSO flow and must stay reachable in SSO-only mode.
   {
     path: '/sso-link-confirm/:token',
     name: 'SSO Link Confirm',
@@ -240,6 +230,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: false,
       isAuthRoute: true,
       requiresFeature: 'signin',
+      requiredInSsoOnly: true,
       layout: AuthLayout,
       layoutProps: {
         displayMasthead: false,

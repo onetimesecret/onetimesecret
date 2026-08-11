@@ -224,18 +224,33 @@ function handleDisabledAuthFeature(to: RouteLocationNormalized) {
  *
  * Authenticated routes redirect to '/account' (profile page).
  * Unauthenticated routes redirect to '/signin' (SSO sign-in page).
- * Note: /signin is explicitly excluded to prevent redirect loops.
+ * Note: /signin stays reachable because it carries `requiredInSsoOnly` and
+ * early-returns below; the explicit path check further down is only a
+ * backstop against a self-redirect loop should that flag ever be stripped
+ * from /signin.
  *
- * The flag must never appear on routes the SSO flow itself traverses
- * (/mfa-verify, /link-sso, /sso-link-confirm) — this guard runs BEFORE
- * handleMfaAccess, so an excluded /mfa-verify plus awaitingMfa produces an
- * infinite /signin <-> /mfa-verify redirect loop. The full route/flag matrix
- * is pinned by src/tests/router/sso-only-reachability.spec.ts.
+ * Routes marked `meta.requiredInSsoOnly: true` (the SSO flow itself and its
+ * MFA continuation) are always allowed through, with precedence over
+ * `excludeSsoOnly` — see the RouteMeta docs in src/types/router.ts. The full
+ * route/flag matrix is pinned by src/tests/router/sso-only-reachability.spec.ts.
  */
 export function handleSsoOnlyRoute(to: RouteLocationNormalized) {
+  // Precedence over excludeSsoOnly — see requiredInSsoOnly in src/types/router.ts.
+  if (to.meta.requiredInSsoOnly) {
+    if (import.meta.env.DEV && to.meta.excludeSsoOnly) {
+      loggingService.warn(
+        '[RouterGuard] Route sets both requiredInSsoOnly and excludeSsoOnly ' +
+          '— configuration error; requiredInSsoOnly wins. Remove ' +
+          'excludeSsoOnly (see RouteMeta in src/types/router.ts).',
+        { path: to.path }
+      );
+    }
+    return null;
+  }
   if (!to.meta.excludeSsoOnly) return null;
   if (!isSsoOnlyMode()) return null;
-  // Prevent redirect loop: never redirect /signin to itself
+  // Backstop only: /signin normally early-returns via requiredInSsoOnly above;
+  // this keeps a self-redirect loop impossible if that flag is ever stripped.
   if (to.path === '/signin') return null;
 
   loggingService.debug(

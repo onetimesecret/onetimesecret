@@ -12,9 +12,11 @@
 //     excludeSsoOnly, checked exhaustively in BOTH directions — a route
 //     gaining or losing the flag fails until this matrix is updated
 //     deliberately.
-//  2. A tripwire pins the routes the SSO flow itself traverses as never
-//     excluded, independent of the matrix — so even a careless edit to
-//     EXCLUDED_IN_SSO_ONLY cannot re-open the hole.
+//  2. requiredInSsoOnly (canonical doc: src/types/router.ts) positively marks
+//     the routes the SSO flow itself traverses. The flagged set is pinned
+//     here in BOTH directions — dropping the flag from one of the four fails,
+//     and flagging a new route fails until it is deliberately added — and no
+//     route may combine it with excludeSsoOnly.
 //  3. Every session-app route must have an explicit GET entry in
 //     apps/web/core/routes.txt: these routes are entered by full-page load
 //     (emailed links, backend redirects), and a missing entry silently
@@ -103,14 +105,16 @@ const EXCLUDED_IN_SSO_ONLY = new Set([
   '/pricing/:product/:interval',
 ]);
 
-// ── 2. The tripwire: routes the SSO flow itself traverses ─────────────────
+// ── 2. The tripwire: routes flagged requiredInSsoOnly ─────────────────────
 //
-// /signin hosts the SSO buttons; /mfa-verify handles the second factor an
-// SSO sign-in can demand (excluding it also loops: handleSsoOnlyRoute runs
-// before handleMfaAccess, so awaitingMfa ping-pongs /signin <-> /mfa-verify);
-// the two interstitials are the #3840 account-linking consent pages reached
+// The routes the SSO flow itself traverses declare requiredInSsoOnly: true
+// (canonical doc: src/types/router.ts), and handleSsoOnlyRoute gives that
+// flag precedence over excludeSsoOnly. /signin hosts the SSO buttons;
+// /mfa-verify handles the second factor an SSO sign-in can demand (loop
+// mechanics: see the requiredInSsoOnly doc in src/types/router.ts); the two
+// interstitials are the #3840 account-linking consent pages reached
 // mid-SSO-sign-in.
-const SSO_FLOW_PATHS = [
+const REQUIRED_IN_SSO_ONLY = [
   '/signin',
   '/mfa-verify',
   '/link-sso/:token',
@@ -125,7 +129,8 @@ describe('SSO-only mode reachability', () => {
         Boolean(meta.excludeSsoOnly),
         `${path}: excludeSsoOnly should be ${expected}. If this change is ` +
           `deliberate, update EXCLUDED_IN_SSO_ONLY in this spec — and never ` +
-          `exclude a route the SSO flow itself needs (see SSO_FLOW_PATHS).`
+          `exclude a route the SSO flow itself needs (see REQUIRED_IN_SSO_ONLY ` +
+          `and the requiredInSsoOnly doc in src/types/router.ts).`
       ).toBe(expected);
     }
   });
@@ -141,17 +146,56 @@ describe('SSO-only mode reachability', () => {
     }
   });
 
+  it('routes flagged requiredInSsoOnly are exactly the SSO-flow set (both directions)', () => {
+    const flagged = allFlat
+      .filter((r) => r.meta.requiredInSsoOnly === true)
+      .map((r) => r.path);
+
+    for (const path of REQUIRED_IN_SSO_ONLY) {
+      expect(
+        flagged,
+        `${path} must declare requiredInSsoOnly: true — it is part of the ` +
+          `SSO flow and must stay reachable in SSO-only mode (see the ` +
+          `requiredInSsoOnly doc in src/types/router.ts)`
+      ).toContain(path);
+    }
+    for (const path of flagged) {
+      expect(
+        REQUIRED_IN_SSO_ONLY,
+        `${path} carries requiredInSsoOnly but is not in this spec's ` +
+          `expected set. If the route genuinely IS the SSO flow (or its MFA ` +
+          `continuation), add it to REQUIRED_IN_SSO_ONLY deliberately; ` +
+          `otherwise remove the flag (see the requiredInSsoOnly doc in ` +
+          `src/types/router.ts).`
+      ).toContain(path);
+    }
+  });
+
   it('SSO-flow routes exist and are never excluded in SSO-only mode', () => {
-    for (const path of SSO_FLOW_PATHS) {
+    for (const path of REQUIRED_IN_SSO_ONLY) {
       const route = allFlat.find((r) => r.path === path);
       expect(route, `${path} must exist — the SSO flow depends on it`).toBeDefined();
       expect(
         route?.meta.excludeSsoOnly,
-        `${path} is part of the SSO flow and must stay reachable in SSO-only mode`
+        `${path} is part of the SSO flow and must stay reachable in SSO-only ` +
+          `mode (see the requiredInSsoOnly doc in src/types/router.ts)`
       ).toBeFalsy();
       expect(
         EXCLUDED_IN_SSO_ONLY.has(path),
         `${path} must not be listed in EXCLUDED_IN_SSO_ONLY`
+      ).toBe(false);
+    }
+  });
+
+  it('no route combines requiredInSsoOnly with excludeSsoOnly', () => {
+    for (const { path, meta } of allFlat) {
+      expect(
+        meta.requiredInSsoOnly === true && Boolean(meta.excludeSsoOnly),
+        `${path} carries BOTH requiredInSsoOnly and excludeSsoOnly — a ` +
+          `configuration error: the flags are mutually exclusive. The guard ` +
+          `gives requiredInSsoOnly precedence at runtime, but the conflicting ` +
+          `flag must be removed (see the requiredInSsoOnly doc in ` +
+          `src/types/router.ts).`
       ).toBe(false);
     }
   });
