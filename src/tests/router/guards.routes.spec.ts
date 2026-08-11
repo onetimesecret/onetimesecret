@@ -18,6 +18,7 @@ import {
   setupRouterGuards,
   validateAuthentication,
 } from '@/router/guards.routes';
+import { loggingService } from '@/services/logging.service';
 import { useAuthStore } from '@/shared/stores';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
@@ -881,6 +882,52 @@ describe('Router Guards', () => {
 
         const result = handleSsoOnlyRoute(to);
         expect(result).toEqual({ path: '/signin' });
+      });
+    });
+
+    describe('requiredInSsoOnly precedence', () => {
+      // Precedence over excludeSsoOnly — see requiredInSsoOnly in
+      // src/types/router.ts. No real route carries both flags (the sweep spec
+      // forbids the combination), so the double-flag case uses a synthetic
+      // route location.
+
+      it('allows a requiredInSsoOnly route when SSO-only mode is active', () => {
+        vi.mocked(isSsoOnlyMode).mockReturnValue(true);
+
+        const to = makeRoute({
+          meta: { requiredInSsoOnly: true },
+          path: '/sso-link-confirm/abc123',
+          name: 'SSO Link Confirm',
+        });
+
+        const result = handleSsoOnlyRoute(to);
+        expect(result).toBeNull();
+      });
+
+      it('allows a synthetic double-flagged route (requiredInSsoOnly wins) and warns via loggingService', () => {
+        vi.mocked(isSsoOnlyMode).mockReturnValue(true);
+        vi.mocked(useAuthStore).mockReturnValue({
+          isFullyAuthenticated: false,
+        } as ReturnType<typeof useAuthStore>);
+        const warnSpy = vi
+          .spyOn(loggingService, 'warn')
+          .mockImplementation(() => {});
+
+        // Without the precedence early-return this would redirect to /signin.
+        const to = makeRoute({
+          meta: { requiredInSsoOnly: true, excludeSsoOnly: true },
+          path: '/mfa-verify',
+          name: 'MFA Verify',
+        });
+
+        const result = handleSsoOnlyRoute(to);
+        expect(result).toBeNull();
+        expect(warnSpy).toHaveBeenCalledWith(
+          expect.stringContaining('requiredInSsoOnly'),
+          { path: '/mfa-verify' }
+        );
+
+        warnSpy.mockRestore();
       });
     });
   });
