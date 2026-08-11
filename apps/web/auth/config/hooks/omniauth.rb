@@ -812,7 +812,18 @@ module Auth::Config::Hooks
       auth.omniauth_failure_redirect do
         # Redirect to Vue frontend login page with error indicator.
         # Query param allows frontend to display appropriate error message.
-        '/signin?auth_error=sso_failed'
+        #
+        # A user clicking "Cancel"/"Deny" at the IdP arrives here as OAuth2
+        # error=access_denied (OmniAuth surfaces it as the failure type).
+        # That's a choice, not a malfunction — route it to its own code so
+        # the frontend can render calm "sign-in was cancelled" copy instead
+        # of the alarming generic failure message.
+        error_type = (omniauth_error_type if respond_to?(:omniauth_error_type)) || :unknown
+        if error_type.to_s == 'access_denied'
+          '/signin?auth_error=sso_cancelled'
+        else
+          '/signin?auth_error=sso_failed'
+        end
       end
     end
     # rubocop:enable Metrics/PerceivedComplexity
