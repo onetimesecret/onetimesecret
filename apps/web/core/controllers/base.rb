@@ -173,6 +173,39 @@ module Core
         end
       end
 
+      # Runtime gate for `restrict_to` on the SIMPLE-MODE auth routes
+      # (ADR-024 A1/A7, #4139).
+      #
+      # In simple mode POST /auth/login is served HERE, by Core, not by Rodauth
+      # (apps/web/core/routes.txt) — so the before_rodauth gate in
+      # apps/web/auth/config/hooks/restrict_to.rb never runs for it. Without
+      # this method enforcement would be mode-dependent: present in full mode,
+      # absent in simple.
+      #
+      # Resolution is NOT re-derived here (ADR-024 A2): this gathers the two
+      # inputs and asks SigninConfig.resolve_restrict_to, same as the display
+      # gate (ConfigSerializer) and the full-mode route gate.
+      #
+      # The global input is normally nil in simple mode — AuthConfig#restrict_to
+      # returns nil unless full_enabled? — so what this actually enforces is a
+      # per-domain restriction on a custom domain that has opted into sign-in.
+      # It is written against the resolver rather than that special case so the
+      # global half starts working the moment AuthConfig grants it meaning.
+      #
+      # @param method_name [String, Symbol] one of SigninConfig::RESTRICT_TO_VALUES
+      # @return [Boolean] false when this host restricts the method away
+      def restrict_to_allows?(method_name)
+        global = Onetime.auth_config.restrict_to
+        # Fail closed when a configured global restriction's backing method is
+        # unavailable at runtime (A3): the restriction stands, so NOTHING is
+        # permitted — never widen back to the other methods.
+        return false if global && !Onetime.auth_config.restrict_to_available?
+
+        Onetime::CustomDomain::SigninConfig
+          .resolve_restrict_to(global, domain_signin_config)
+          .allows?(method_name)
+      end
+
       # Runtime gate for POST /signup. Same custom-domain-default-OFF / opt-in
       # polarity as signin_enabled?: a custom domain never accepts account
       # creation unless an enabled SignupConfig opts in, while canonical /

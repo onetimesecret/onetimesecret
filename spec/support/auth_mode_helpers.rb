@@ -137,6 +137,27 @@ module AuthModeHelpers
       @restrict_to
     end
 
+    # Boot-time validation of the global restriction (ADR-024 A3, #4140).
+    # The ValidateAuthConfig initializer calls this on EVERY boot, so a mock
+    # without it fails the whole full-mode suite at Onetime.boot! with a
+    # NoMethodError that reads as a harness break rather than a config error.
+    #
+    # The mock's @restrict_to is set by the spec that built it, not parsed from
+    # config, so there is nothing to reject: mirror the real method's return
+    # contract (the validated restriction, or nil) and never raise.
+    def validate_restrict_to!
+      restrict_to
+    end
+
+    # Runtime availability of the configured restriction (ADR-024 A3, runtime
+    # half). Consumed by the restrict_to route gate
+    # (apps/web/auth/config/hooks/restrict_to.rb, #4139) to degrade fail-closed.
+    # A mock restriction is available by construction — a spec that needs the
+    # unavailable path stubs this.
+    def restrict_to_available?
+      true
+    end
+
     def sso_only_enabled?
       return false unless sso_enabled?
 

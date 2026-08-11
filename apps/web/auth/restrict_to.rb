@@ -1,0 +1,319 @@
+# apps/web/auth/restrict_to.rb
+#
+# frozen_string_literal: true
+
+#
+# Runtime enforcement of `restrict_to` (ADR-024 A1 + A7, issue #4139).
+#
+# WHAT THIS CLOSES
+#   PR #4130 shipped the DISPLAY half: a restricted host renders exactly one
+#   sign-in method. The server still ACCEPTED a crafted POST to every other
+#   method's endpoint. A1 makes `restrict_to` an access control: when
+#   resolution yields a single method for a request host, the server MUST
+#   reject submission of every other method on that host.
+#
+# REJECT SHAPE — 404, not 403 (A7)
+#   A restricted-away method presents NO reachable surface, matching Rodauth's
+#   behavior for a feature that was never loaded. A 403 gate would leave the
+#   handler mounted and reachable — "configuration presenting as availability",
+#   the exact shape A1 exists to kill. The body is the router's shared
+#   Auth::ErrorTranslator::NOT_FOUND_BODY so a gated route is byte-identical to
+#   an undefined one.
+#
+#   SsoOnlyGating's 403 + error_key is DELIBERATELY NOT reconciled with this
+#   (A7, "Scope, settled"): it governs account-scoped credential MANAGEMENT for
+#   an already-identified user, where an actionable error beats a mystery.
+#
+# MECHANISM — before_rodauth
+#   Rodauth builds `route_hash` once and FREEZES it in post_configure, and
+#   `route!` is a frozen-hash lookup — returning nil from `login_route` per
+#   request does nothing, and routes cannot be un-mounted per host. The gate is
+#   therefore request-time and *emulates* non-existence. `before_rodauth` fires
+#   inside the matched route, after `@current_route` is set and after CSRF has
+#   been checked (rodauth.rb, `define_method(handle_meth)`), which is exactly
+#   where the route's identity is known and nothing has executed yet.
+#
+# WHERE THIS LIVES, AND WHY NOT UNDER config/hooks/. This is the POLICY, and it
+# has three callers in two different worlds: the Rodauth hook
+# (config/hooks/restrict_to.rb), the OmniAuth hooks
+# (config/hooks/omniauth_tenant.rb), and two plain Roda routes
+# (routes/link_sso.rb, routes/sso_link_confirm.rb). Everything under config/ can
+# only be required once Auth::Config exists (it is namespaced into it), which
+# the route files and their unit specs do not require and must not be made to.
+# So the policy lives here, beside error_translator.rb, as a plain module with
+# no boot chain, and config/hooks/restrict_to.rb is the thin Rodauth wiring.
+#
+# THIS IS NOT THE WHOLE GATE. Three surfaces, and a gap in any one leaves
+# enforcement open while looking closed:
+#   1. Rodauth routes — config/hooks/restrict_to.rb, which calls .enforce_route!
+#      from before_rodauth.
+#   2. SSO (OmniAuth request phase) — NOT in route_hash at all; served by
+#      middleware, so before_rodauth never fires. Gated in
+#      config/hooks/omniauth_tenant.rb (omniauth_setup +
+#      before_omniauth_callback_route) and in the app-owned SSO linking routes
+#      (routes/link_sso.rb, routes/sso_link_confirm.rb) via .allows?.
+#   3. Simple mode — POST /auth/login is served by Core, not Rodauth
+#      (apps/web/core/routes.txt). Gated in
+#      Core::Controllers::Base#restrict_to_allows?.
+#
+# See: docs/architecture/decision-records/adr-024-custom-domain-auth-override-resolution.md
+#      (A1, A3, A7 — normative), lib/onetime/models/custom_domain/signin_config.rb
+#      (the A2 resolver; resolution is owned there and re-derived nowhere).
+#
+
+require 'json'
+
+require 'onetime/models/custom_domain/signin_config'
+require 'onetime/models/custom_domain/sso_config'
+require_relative 'error_translator'
+require_relative 'lib/logging'
+
+module Auth
+  module RestrictTo
+    # Sign-in method a pre-auth Rodauth route belongs to, keyed by
+    # `@current_route` (the symbol passed to Rodauth's `route(...)`, NOT the
+    # URL — the URLs are configurable and several are renamed in
+    # config/features/).
+    #
+    # Every route here goes dark when its method is restricted away. Secondary
+    # endpoints are included on purpose (A7): a gate that covers POST /login
+    # and misses the ceremony-start endpoint leaves the gap open while looking
+    # closed, which is worse than no gate because it invites documenting
+    # restrict_to as an access control it does not provide.
+    PRE_AUTH_ROUTES = {
+      # --- password ---------------------------------------------------------
+      login: 'password',
+      create_account: 'password',
+      reset_password_request: 'password',
+      reset_password: 'password',
+      # Account verification completes the password SIGNUP flow and autologins
+      # (verify_account_autologin?). Not named in A7's enumeration, included
+      # here deliberately: a key minted on an unrestricted host would otherwise
+      # replay on a restricted one and mint a session by a method that host
+      # does not offer. See the report note in #4139.
+      verify_account: 'password',
+      verify_account_resend: 'password',
+
+      # --- email_auth (magic links) ----------------------------------------
+      email_auth_request: 'email_auth',
+      email_auth: 'email_auth',
+
+      # --- webauthn (passkeys) ---------------------------------------------
+      webauthn_login: 'webauthn',
+      webauthn_autofill_js: 'webauthn',
+    }.freeze
+
+    # WebAuthn routes that are reachable only with a partially-authenticated
+    # session (require_login + require_two_factor_not_authenticated), i.e. the
+    # SECOND-FACTOR ceremony rather than a sign-in method offer.
+    #
+    # Gated per A7's enumeration, but held in a separate constant because the
+    # axis is arguable and the blast radius is real: on a host restricted to
+    # 'sso' or 'password', an account whose second factor is a passkey can no
+    # longer complete the challenge. That is the same account-scoped/host-scoped
+    # confusion A7 uses to EXEMPT webauthn-setup and webauthn-remove. If the
+    # ADR is amended, moving these two entries out of the gate is a one-line
+    # change. See the #4139 report.
+    SECOND_FACTOR_ROUTES = {
+      webauthn_auth: 'webauthn',
+      webauthn_auth_js: 'webauthn',
+    }.freeze
+
+    GATED_ROUTES = PRE_AUTH_ROUTES.merge(SECOND_FACTOR_ROUTES).freeze
+
+    # Routes this gate deliberately does NOT touch. Named explicitly (rather
+    # than defaulted-open) so the coverage spec can fail when a new Rodauth
+    # route appears and nobody classified it — an unclassified route silently
+    # defaulting to "allowed" is how surface #1 rots.
+    #
+    # Three reasons appear here:
+    #   - ACCOUNT-SCOPED (A7 "Scope, settled"): reachable only when
+    #     authenticated, so keying them to the REQUEST HOST is the wrong axis.
+    #     They belong to SsoOnlyGating / #4138.
+    #   - INSTALL-WIDE SECURITY POSTURE: MFA/lockout are explicitly not
+    #     per-domain overridable (ADR-024 scope boundary).
+    #   - NOT A SIGN-IN METHOD: logout must never 404.
+    UNGATED_ROUTES = [
+      :logout,
+      :remember,
+      :close_account,
+      :change_password,
+      :change_login,
+      :verify_login_change,
+      :confirm_password,
+      :unlock_account,
+      :unlock_account_request,
+      :otp_auth,
+      :otp_setup,
+      :otp_disable,
+      :otp_unlock,
+      :recovery_auth,
+      :recovery_codes,
+      :two_factor_auth,
+      :two_factor_manage,
+      :two_factor_disable,
+      :webauthn_setup,
+      :webauthn_setup_js,
+      :webauthn_remove,
+    ].freeze
+
+    class << self
+      # Gate the currently-matched Rodauth route.
+      #
+      # @param rodauth [Rodauth::Auth]
+      def enforce_route!(rodauth)
+        method_name = GATED_ROUTES[rodauth.current_route]
+        return unless method_name
+
+        enforce_method!(rodauth, method_name, rodauth.current_route)
+      end
+
+      # Gate an explicit sign-in method for the current request.
+      #
+      # @param rodauth [Rodauth::Auth]
+      # @param method_name [String] one of SigninConfig::RESTRICT_TO_VALUES
+      # @param route [Symbol] for logging only
+      def enforce_method!(rodauth, method_name, route)
+        # Internal requests (Rodauth's internal_request feature) synthesize a
+        # bare env with no Host and no DomainStrategy classification, and are
+        # server-initiated app operations rather than a visitor choosing a
+        # sign-in method on a host — e.g. invite signup autologin. Gating them
+        # would break app flows for a policy about REQUEST HOSTS that an
+        # internal request does not have. handle_internal_request calls
+        # before_rodauth directly, so this guard is load-bearing.
+        return if rodauth.send(:internal_request?)
+
+        resolution = resolution_for(rodauth.request.env)
+        return if resolution.allows?(method_name)
+
+        Auth::Logging.log_auth_event(
+          :restrict_to_route_rejected,
+          level: :info,
+          route: route,
+          auth_method: method_name,
+          restrict_to: resolution.restrict_to,
+          restrict_state: resolution.state,
+          restrict_source: resolution.source,
+          host: rodauth.request.env['onetime.display_domain'],
+          path: rodauth.request.path,
+        )
+
+        rodauth.request.halt(not_found_response)
+      end
+
+      # Whether `method_name` may be used on the host this request arrived on.
+      #
+      # Public entry point for the surfaces that are NOT Rodauth routes: the
+      # OmniAuth hooks (middleware-served request phase) and the app-owned SSO
+      # linking routes.
+      #
+      # NARROWING FILTER ONLY — callers still AND this with the method's own
+      # enablement check (see RestrictToResolution#allows?).
+      #
+      # @param env [Hash] Rack env
+      # @param method_name [String, Symbol]
+      # @return [Boolean]
+      def allows?(env, method_name)
+        resolution_for(env).allows?(method_name)
+      end
+
+      # Resolver output for the request host (ADR-024 A2).
+      #
+      # This method GATHERS INPUTS ONLY. Precedence between global and domain,
+      # and the fail-closed degradation of a restriction whose method cannot be
+      # honored, are decided by SigninConfig.resolve_restrict_to and re-derived
+      # nowhere — mirroring ConfigSerializer#restrict_to_resolution, the display
+      # consumer, so the rendered page and the route gate cannot disagree.
+      #
+      # @param env [Hash] Rack env
+      # @return [Onetime::CustomDomain::SigninConfig::RestrictToResolution]
+      def resolution_for(env)
+        domain_id     = domain_id_for(env)
+        signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id) if domain_id
+
+        resolution = Onetime::CustomDomain::SigninConfig.resolve_restrict_to(
+          global_restrict_to(env, domain_id), signin_config
+        )
+
+        apply_global_availability(resolution)
+      end
+
+      # The restriction the request HOST inherits when no enabled per-domain
+      # config speaks — the `global` input to the resolver.
+      #
+      # SSO PIN, parity with ConfigSerializer#effective_global_restrict_to: a
+      # custom domain with no enabled SigninConfig keeps a working /signin page
+      # only because tenant SSO is available there, and password/email default
+      # OFF on custom domains. Pinning 'sso' keeps this gate in lockstep with
+      # the page that host actually renders.
+      #
+      # The availability predicate here is SsoConfig.tenant_sso_available_for? —
+      # the same ladder the OmniAuth runtime hook consults — rather than the
+      # serializer's build_sso_config, which additionally counts PLATFORM
+      # fallback for tenants. Where the two differ (allow_platform_fallback_for_tenants
+      # true, no tenant SsoConfig) the display pins 'sso' and this gate does
+      # not, so the gate is the more permissive of the two. Recorded as a
+      # follow-up on #4139 rather than papered over here.
+      def global_restrict_to(env, domain_id)
+        return 'sso' if env['onetime.domain_strategy'] == :custom &&
+                        domain_id &&
+                        Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(domain_id)
+
+        Onetime.auth_config.restrict_to
+      end
+
+      # Fail-closed for a GLOBAL restriction whose method became unavailable
+      # after boot (ADR-024 A3, runtime half).
+      #
+      # AuthConfig#restrict_to_available? is NOT derivable from the resolver's
+      # two arguments — it reads live prerequisite state — so the resolver
+      # cannot consult it and the caller must. Applied only to a :restricted
+      # resolution that came from the global layer AND names the same method
+      # AuthConfig does, so the SSO pin above (a host property, not the
+      # operator's config) is never second-guessed by it.
+      #
+      # If a future change gives resolve_restrict_to an `available:` keyword,
+      # this belongs there instead; see the #4139 report.
+      def apply_global_availability(resolution)
+        return resolution unless resolution.restricted? && resolution.source == :global
+        return resolution unless resolution.restrict_to == Onetime.auth_config.restrict_to
+        return resolution if Onetime.auth_config.restrict_to_available?
+
+        Onetime::CustomDomain::SigninConfig::RestrictToResolution.unavailable(
+          resolution.restrict_to, :global
+        )
+      end
+
+      # CustomDomain identifier for the request host, or nil.
+      def domain_id_for(env)
+        display_domain = env['onetime.display_domain']
+        return nil if display_domain.to_s.empty?
+
+        Onetime::CustomDomain.load_by_display_domain(display_domain)&.identifier
+      rescue Redis::BaseError => ex
+        # FAIL CLOSED is not available here: with no domain identity we cannot
+        # tell a restricted host from an unrestricted one, and returning nil
+        # falls back to the GLOBAL restriction, which is still enforced. Logged
+        # loudly because it silently drops the per-domain half of the gate.
+        Auth::Logging.log_auth_event(
+          :restrict_to_domain_lookup_failed,
+          level: :error,
+          host: display_domain,
+          error: ex.message,
+        )
+        nil
+      end
+
+      # The router's shared 404 — a gated route must be indistinguishable from
+      # an undefined one (A7). Built here rather than reusing the router's
+      # status_handler because request.halt bypasses Roda's status handlers.
+      def not_found_response
+        [
+          404,
+          { 'content-type' => 'application/json' },
+          [JSON.generate(Auth::ErrorTranslator::NOT_FOUND_BODY)],
+        ]
+      end
+    end
+  end
+end

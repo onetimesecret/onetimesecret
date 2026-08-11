@@ -81,6 +81,14 @@ module Auth
       # Hooks for customizing authentication behavior.
       # NOTE: hooks don't chain — this order is a precedence list (last writer
       # wins per hook name); each hook has exactly one owner. See config/hooks.rb.
+      # restrict_to enforcement (ADR-024 A1/A7, #4139). Registered FIRST among
+      # the hooks because before_rodauth fires for every route: a method the
+      # request host restricts away must 404 before any other hook observes the
+      # request. Registration order is otherwise irrelevant (hooks are
+      # last-writer-wins per NAME, and this is the sole owner of
+      # before_rodauth), but reading order should match execution order.
+      Hooks::RestrictTo.configure(self)
+
       Hooks::Account.configure(self)
       Hooks::Login.configure(self)
       Hooks::Logout.configure(self)
@@ -139,6 +147,9 @@ module Auth
       if Onetime.auth_config.email_auth_enabled?
         Features::EmailAuth.configure(self)
         Hooks::EmailAuth.configure(self)
+        # before_email_auth_request only exists once :email_auth is enabled;
+        # closes the multi-phase-login magic-link path on the /login route.
+        Hooks::RestrictTo.configure_email_auth(self)
       end
 
       # WebAuthn: biometrics, security keys (Face ID, Touch ID, YubiKey)

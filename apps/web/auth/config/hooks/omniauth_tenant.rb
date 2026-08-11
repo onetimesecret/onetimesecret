@@ -31,6 +31,8 @@
 
 require 'onetime/models/custom_domain/signin_config'
 
+require_relative '../../restrict_to'
+
 module Auth::Config::Hooks
   module OmniAuthTenant
     # Module reference for calling helper methods from within Rodauth blocks
@@ -60,6 +62,28 @@ module Auth::Config::Hooks
       #
       auth.omniauth_setup do
         host = request.host
+
+        # RESTRICT_TO ENFORCEMENT (ADR-024 A1/A7, #4139).
+        #
+        # The OmniAuth request phase is NOT in Rodauth's route_hash — it is
+        # served by middleware run from route_omniauth!, so the before_rodauth
+        # gate in hooks/restrict_to.rb never fires here. Without this block,
+        # SSO stays fully reachable on a host restricted to password/email_auth
+        # and enforcement is silently partial.
+        #
+        # Both phases are gated: the callback is a credential-bearing entry
+        # point in its own right, so gating only the request phase would leave
+        # a replayable surface. 404 (not the tenant-mismatch 403 below) because
+        # a restricted-away method must present no reachable surface at all.
+        unless Auth::RestrictTo.allows?(request.env, 'sso')
+          Auth::Logging.log_auth_event(
+            :restrict_to_omniauth_rejected,
+            level: :info,
+            host: host,
+            path: request.path,
+          )
+          request.halt(Auth::RestrictTo.not_found_response)
+        end
 
         # Skip tenant context storage during callback phase.
         # The setup hook fires for BOTH request and callback phases, but we only
@@ -197,6 +221,20 @@ module Auth::Config::Hooks
       # therefore does both jobs: log callback start, then validate the tenant.
       #
       auth.before_omniauth_callback_route do
+        # RESTRICT_TO ENFORCEMENT (ADR-024 A1/A7, #4139). Belt to
+        # omniauth_setup's braces: this hook fires on the callback route even
+        # when a strategy short-circuits setup, and it is the last point before
+        # the identity is consumed.
+        unless Auth::RestrictTo.allows?(request.env, 'sso')
+          Auth::Logging.log_auth_event(
+            :restrict_to_omniauth_callback_rejected,
+            level: :info,
+            host: request.host,
+            path: request.path,
+          )
+          request.halt(Auth::RestrictTo.not_found_response)
+        end
+
         Auth::Logging.log_auth_event(
           :omniauth_callback_start,
           level: :info,

@@ -40,6 +40,12 @@
 #   email_auth.rb       before_email_auth_route, after_email_auth_request
 #   reset_password_request.rb  before_reset_password_request_route (rate
 #                       limiting per client IP + per submitted login, #3872)
+#   restrict_to.rb      before_rodauth (ADR-024 A1/A7 restrict_to enforcement —
+#                       404s a sign-in method the request host restricts away;
+#                       fires for EVERY route, so it is the one hook that must
+#                       stay cheap and must never be redefined elsewhere),
+#                       before_email_auth_request (the multi-phase-login magic
+#                       link, which is not its own route)
 #   create_account.rb   before_create_account_route (rate limiting per client
 #                       IP, #3948; NOT before_create_account, which account.rb
 #                       owns and which fires later in the submission)
@@ -77,6 +83,7 @@ module Auth::Config::Hooks
   require_relative 'hooks/omniauth_tenant'
   require_relative 'hooks/password'
   require_relative 'hooks/reset_password_request'
+  require_relative 'hooks/restrict_to'
   require_relative 'hooks/email_auth'
   require_relative 'hooks/two_factor'
   require_relative 'hooks/webauthn'
