@@ -225,9 +225,13 @@ module Onetime
         new_status
       end
 
-      private
-
       # Parse a boolean field that may be stored as string, boolean, or nil.
+      #
+      # Public: the nil-preserving semantics are part of the tri-state
+      # contract for the worker-written outcome fields (dns_verified /
+      # provider_verified, nil = unknown). Serializers (e.g. ConfigRegistry's
+      # colonel drift view) must use this rather than a `.to_s == 'true'`
+      # coercion, which would render "unknown" as an authoritative false.
       #
       # @param value [String, Boolean, nil] The field value
       # @return [Boolean, nil] true, false, or nil if unknown
@@ -239,8 +243,6 @@ module Onetime
           false
         end
       end
-
-      public
 
       # Update the from_address, resetting verification state.
       #

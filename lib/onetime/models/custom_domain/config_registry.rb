@@ -364,7 +364,12 @@ module Onetime
             sending_mode: config.sending_mode,
             verification_status: config.verification_status,
             dns_verified: config.dns_verified.to_s == 'true',
-            provider_verified: config.provider_verified.to_s == 'true',
+            # Tri-state: nil = unknown (provider check inconclusive or never
+            # determined), which can persist indefinitely — it must not read
+            # as an authoritative provider "no". dns_verified stays a plain
+            # boolean: the DNS worker always writes true/false at completion,
+            # so nil is only a transient pre-completion state there.
+            provider_verified: config.parse_boolean_field(config.provider_verified),
             has_api_key: encrypted_present?(config.api_key),
             created: epoch_or_nil(config.created),
             updated: epoch_or_nil(config.updated),
