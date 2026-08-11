@@ -976,7 +976,15 @@ module Onetime
         # Onetime::Security::ResetRequestRateLimiter, and
         # Onetime::Security::CreateAccountRateLimiter — and this adds a fourth
         # site reading `mode`. One accessor pair (enabled + mode) should serve
-        # all of them. Out of scope for #4062; tracked separately.
+        # all of them. Out of scope for #4062; tracked in #4087.
+        #
+        # Note the two `mode` expressions are not identical today, and neither
+        # VALIDATES: MiddlewareStack takes `tp['mode'] || 'filter'` and then
+        # branches on `== 'depth'`, so any unrecognized value (`Depth`, a typo)
+        # silently runs the FILTER branch — while this line echoes the raw
+        # string, reporting `mode=Depth` for a deployment running filter. The
+        # consolidated reader should reject unknown modes, not just share the
+        # default.
         mode = OT.conf.dig('site', 'network', 'trusted_proxy', 'mode').to_s.strip
         mode = 'filter' if mode.empty?
 
