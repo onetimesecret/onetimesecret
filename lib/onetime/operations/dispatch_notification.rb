@@ -5,8 +5,6 @@
 require 'net/http'
 require 'uri'
 require 'securerandom'
-require 'ipaddr'
-require 'socket'
 
 module Onetime
   module Operations
@@ -228,22 +226,35 @@ module Onetime
       # @return [Net::HTTPResponse] HTTP response
       def send_webhook_request(url, payload)
         # ALPHA: Webhook delivery needs further security review before wide use.
-        # Current mitigations: SSRF protection, TLS verification, timeouts.
+        # Current mitigations: SSRF protection with DNS pinning (single pinned
+        # IP — no multi-address fallback if that one address is unreachable),
+        # TLS verification, timeouts.
         # Missing: request signing, URL allowlisting, rate limiting, payload size limits.
         logger.warn 'Webhook delivery is alpha functionality', url: url
 
         uri = URI.parse(url)
 
-        # SSRF Protection: Resolve hostname and check for private/loopback addresses
-        validate_webhook_target!(uri)
-
-        http = Net::HTTP.new(uri.host, uri.port)
-
-        # Validate scheme and configure SSL
+        # Validate scheme before doing any resolution work
         scheme = (uri.scheme || '').downcase
         unless %w[http https].include?(scheme)
           raise ArgumentError, "Unsupported webhook scheme: #{uri.scheme.inspect}"
         end
+
+        # SSRF Protection with DNS pinning: resolve + validate the hostname
+        # once, then dial that exact IP via Net::HTTP#ipaddr= while the Host
+        # header, SNI, and certificate verification keep using the hostname.
+        # This closes the validate-then-reresolve DNS-rebinding window the
+        # previous Addrinfo check left open. Raises Guard::Blocked (an
+        # Onetime::Problem) for forbidden targets; dispatch_to_channel's
+        # StandardError rescue classifies that as a permanent :error — the
+        # worker never retries per-channel failures.
+        pinned_ip = Onetime::Http::Guard.pinned_address!(uri.host)
+
+        # The explicit nil p_addr disables environment-proxy pickup
+        # (http_proxy env var), which would otherwise route the request
+        # through a proxy and silently bypass the IP pinning below.
+        http        = Net::HTTP.new(uri.host, uri.port, nil)
+        http.ipaddr = pinned_ip
 
         http.use_ssl = (scheme == 'https')
 
@@ -262,24 +273,6 @@ module Onetime
         request.body            = payload.to_json
 
         http.request(request)
-      end
-
-      # Validate webhook target to prevent SSRF attacks
-      # @param uri [URI] Parsed webhook URI
-      # @raise [ArgumentError] If URL resolves to private/loopback address
-      def validate_webhook_target!(uri)
-        # Resolve all IP addresses for the hostname
-        addresses = Addrinfo.getaddrinfo(uri.host, uri.port, nil, :STREAM)
-
-        addresses.each do |addr_info|
-          ip = IPAddr.new(addr_info.ip_address)
-
-          if ip.loopback? || ip.private? || ip.link_local?
-            raise ArgumentError, "Webhook URL resolves to restricted address: #{addr_info.ip_address}"
-          end
-        end
-      rescue SocketError => ex
-        raise ArgumentError, "Cannot resolve webhook hostname: #{ex.message}"
       end
 
       # @return [SemanticLogger::Logger] Logger instance

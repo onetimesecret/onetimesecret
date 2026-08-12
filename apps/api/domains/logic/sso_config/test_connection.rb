@@ -284,6 +284,19 @@ module DomainsAPI
               description: sanitize_error_message(ex.message),
             },
           }
+        rescue Onetime::Http::Guard::Blocked
+          # Deliberately generic: Blocked#message carries the resolved IP,
+          # which must not be echoed back to the caller (information
+          # disclosure about internal address space).
+          {
+            success: false,
+            provider_type: @provider_type,
+            message: "#{provider_name} issuer resolves to a blocked address",
+            details: {
+              error_code: 'blocked_target',
+              description: 'The issuer host resolves to an address that is not allowed.',
+            },
+          }
         rescue StandardError => ex
           OT.le "[TestConnection] Unexpected error testing #{provider_name}: #{ex.class.name} - #{ex.message}"
           {
@@ -300,7 +313,21 @@ module DomainsAPI
         def fetch_url(url)
           uri = URI.parse(url)
 
-          http              = Net::HTTP.new(uri.host, uri.port)
+          # SSRF enforcement point: resolve + validate the host once, then pin
+          # the connection to that exact IP via Net::HTTP#ipaddr= while the
+          # Host header, SNI, and certificate verification keep using the
+          # hostname. Closes the validate-then-reresolve DNS-rebinding window,
+          # and covers every caller — including test_entra_id_connection,
+          # which never passes through valid_issuer_host? (that check remains
+          # upstream as a cheap early rejection with a friendly message).
+          # Raises Onetime::Http::Guard::Blocked for forbidden targets.
+          pinned_ip = Onetime::Http::Guard.pinned_address!(uri.host)
+
+          # The explicit nil p_addr disables environment-proxy pickup
+          # (http_proxy env var), which would otherwise route the request
+          # through a proxy and silently bypass the IP pinning below.
+          http              = Net::HTTP.new(uri.host, uri.port, nil)
+          http.ipaddr       = pinned_ip
           http.use_ssl      = (uri.scheme == 'https')
           http.open_timeout = CONNECTION_TIMEOUT
           http.read_timeout = READ_TIMEOUT

@@ -42,20 +42,14 @@ require 'onetime/operations/dispatch_notification'
 RSpec.describe Onetime::Operations::DispatchNotification, type: :integration do
   let(:custid) { 'cust:test-user-456' }
 
-  # Helper to stub Addrinfo for SSRF validation in webhook tests.
-  # Must be called explicitly in webhook test contexts to avoid interfering with Redis client.
-  # Uses and_call_original as fallback so Redis connections still work.
+  # Helper to stub the shared SSRF guard's DNS seam for webhook tests.
+  # Guard.pinned_address! dispatches through Guard.resolve_addresses, so
+  # stubbing that single seam avoids live DNS while keeping the guard's
+  # validation and pinning logic real. Redis is unaffected (the Redis client
+  # does not resolve through Guard).
   def stub_public_ip_resolution
-    addr = instance_double(Addrinfo)
-    allow(addr).to receive(:ip_address).and_return('93.184.216.34') # example.com public IP
-
-    # Stub for webhook hostnames, let other calls (e.g., Redis) pass through
-    # Uses DomainParser.hostname_within_domain? for secure domain boundary checking
-    # to prevent matching attacker-controlled domains like 'attacker-example.com'
-    allow(Addrinfo).to receive(:getaddrinfo).and_call_original
-    allow(Addrinfo).to receive(:getaddrinfo)
-      .with(satisfy { |h| Onetime::Utils::DomainParser.hostname_within_domain?(h, 'example.com') }, anything, anything, anything)
-      .and_return([addr])
+    allow(Onetime::Http::Guard).to receive(:resolve_addresses)
+      .and_return(['93.184.216.34']) # example.com public IP
   end
 
   let(:base_data) do
@@ -196,6 +190,7 @@ RSpec.describe Onetime::Operations::DispatchNotification, type: :integration do
       before do
         stub_public_ip_resolution
         allow(Net::HTTP).to receive(:new).and_return(http_instance)
+        allow(http_instance).to receive(:ipaddr=)
         allow(http_instance).to receive(:use_ssl=)
         allow(http_instance).to receive(:use_ssl?).and_return(true)
         allow(http_instance).to receive(:verify_mode=)
@@ -272,6 +267,7 @@ RSpec.describe Onetime::Operations::DispatchNotification, type: :integration do
         allow(publisher_instance).to receive(:publish).and_return('msg-id')
 
         allow(Net::HTTP).to receive(:new).and_return(http_instance)
+        allow(http_instance).to receive(:ipaddr=)
         allow(http_instance).to receive(:use_ssl=)
         allow(http_instance).to receive(:use_ssl?).and_return(true)
         allow(http_instance).to receive(:verify_mode=)
@@ -434,6 +430,7 @@ RSpec.describe Onetime::Operations::DispatchNotification, type: :integration do
     before do
       stub_public_ip_resolution
       allow(Net::HTTP).to receive(:new).and_return(http_instance)
+      allow(http_instance).to receive(:ipaddr=)
       allow(http_instance).to receive(:use_ssl=)
       allow(http_instance).to receive(:use_ssl?).and_return(true)
       allow(http_instance).to receive(:verify_mode=)
@@ -482,6 +479,7 @@ RSpec.describe Onetime::Operations::DispatchNotification, type: :integration do
     before do
       stub_public_ip_resolution
       allow(Net::HTTP).to receive(:new).and_return(http_instance)
+      allow(http_instance).to receive(:ipaddr=)
       allow(http_instance).to receive(:use_ssl=)
       allow(http_instance).to receive(:verify_mode=)
       allow(http_instance).to receive(:verify_hostname=)
@@ -543,6 +541,7 @@ RSpec.describe Onetime::Operations::DispatchNotification, type: :integration do
 
     before do
       allow(Net::HTTP).to receive(:new).and_return(http_instance)
+      allow(http_instance).to receive(:ipaddr=)
       allow(http_instance).to receive(:use_ssl=)
       allow(http_instance).to receive(:use_ssl?).and_return(true)
       allow(http_instance).to receive(:verify_mode=)
@@ -551,22 +550,21 @@ RSpec.describe Onetime::Operations::DispatchNotification, type: :integration do
       allow(http_instance).to receive(:read_timeout=)
     end
 
-    # Helper to stub Addrinfo for specific IP while allowing Redis to work
+    # Helper to stub the guard's DNS seam for a specific resolved IP. The
+    # guard's validation logic stays real; only resolution is faked.
     def stub_webhook_ip(ip_address)
-      addr = instance_double(Addrinfo)
-      allow(addr).to receive(:ip_address).and_return(ip_address)
-      allow(Addrinfo).to receive(:getaddrinfo).and_call_original
-      allow(Addrinfo).to receive(:getaddrinfo)
-        .with(satisfy { |h| Onetime::Utils::DomainParser.hostname_within_domain?(h, 'example.com') }, anything, anything, anything)
-        .and_return([addr])
+      allow(Onetime::Http::Guard).to receive(:resolve_addresses).and_return([ip_address])
     end
 
-    it 'blocks loopback addresses' do
+    it 'blocks loopback addresses without attempting a connection' do
       stub_webhook_ip('127.0.0.1')
+      allow(http_instance).to receive(:request)
 
       results = described_class.new(data: data).call
 
       expect(results[:via_webhook]).to eq(:error)
+      expect(Net::HTTP).not_to have_received(:new)
+      expect(http_instance).not_to have_received(:request)
     end
 
     it 'blocks private network addresses' do
@@ -575,6 +573,7 @@ RSpec.describe Onetime::Operations::DispatchNotification, type: :integration do
       results = described_class.new(data: data).call
 
       expect(results[:via_webhook]).to eq(:error)
+      expect(Net::HTTP).not_to have_received(:new)
     end
 
     it 'blocks link-local addresses' do
@@ -583,9 +582,20 @@ RSpec.describe Onetime::Operations::DispatchNotification, type: :integration do
       results = described_class.new(data: data).call
 
       expect(results[:via_webhook]).to eq(:error)
+      expect(Net::HTTP).not_to have_received(:new)
     end
 
-    it 'allows public IP addresses' do
+    it 'blocks split RRsets with any restricted address' do
+      allow(Onetime::Http::Guard).to receive(:resolve_addresses)
+        .and_return(['93.184.216.34', '10.0.0.5'])
+
+      results = described_class.new(data: data).call
+
+      expect(results[:via_webhook]).to eq(:error)
+      expect(Net::HTTP).not_to have_received(:new)
+    end
+
+    it 'allows public IP addresses and pins the connection to the validated IP' do
       response = instance_double(Net::HTTPSuccess, code: '200', body: 'OK')
       allow(http_instance).to receive(:request).and_return(response)
       allow(response).to receive(:is_a?).with(Net::HTTPSuccess).and_return(true)
@@ -595,17 +605,21 @@ RSpec.describe Onetime::Operations::DispatchNotification, type: :integration do
       results = described_class.new(data: data).call
 
       expect(results[:via_webhook]).to eq(:success)
+      # Explicit nil p_addr disables environment-proxy pickup so pinning
+      # cannot be silently bypassed via http_proxy.
+      expect(Net::HTTP).to have_received(:new).with('example.com', 443, nil)
+      expect(http_instance).to have_received(:ipaddr=).with('93.184.216.34')
     end
 
     it 'handles DNS resolution failure' do
-      allow(Addrinfo).to receive(:getaddrinfo).and_call_original
-      allow(Addrinfo).to receive(:getaddrinfo)
-        .with(satisfy { |h| Onetime::Utils::DomainParser.hostname_within_domain?(h, 'example.com') }, anything, anything, anything)
-        .and_raise(SocketError, 'getaddrinfo: nodename nor servname provided')
+      # Resolv::DNS#getaddresses returns [] for unresolvable hosts; the guard
+      # fails closed on empty resolution.
+      allow(Onetime::Http::Guard).to receive(:resolve_addresses).and_return([])
 
       results = described_class.new(data: data).call
 
       expect(results[:via_webhook]).to eq(:error)
+      expect(Net::HTTP).not_to have_received(:new)
     end
   end
 
