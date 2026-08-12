@@ -66,6 +66,22 @@ end
 @validator.valid_issuer_host?('https://[::ffff:a00:1]')
 #=> false
 
+## BYPASS: IPv4-compatible IPv6 cloud IMDS (::169.254.169.254) is blocked
+@validator.valid_issuer_host?('https://[::169.254.169.254]')
+#=> false
+
+## BYPASS: IPv4-compatible IPv6 loopback (::127.0.0.1) is blocked
+@validator.valid_issuer_host?('https://[::127.0.0.1]')
+#=> false
+
+## BYPASS: IPv4-compatible private 10.0.0.1 (::10.0.0.1) is blocked
+@validator.valid_issuer_host?('https://[::10.0.0.1]')
+#=> false
+
+## blocked_ip? unwraps IPv4-compatible and matches the embedded IPv4
+@validator.blocked_ip?(IPAddr.new('::169.254.169.254'))
+#=> true
+
 ## BYPASS: NAT64 well-known prefix to IMDS (64:ff9b::169.254.169.254) is blocked
 @validator.valid_issuer_host?('https://[64:ff9b::a9fe:a9fe]')
 #=> false

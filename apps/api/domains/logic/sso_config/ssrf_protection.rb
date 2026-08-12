@@ -130,10 +130,14 @@ module DomainsAPI
         # @param ip [IPAddr] The address to check
         # @return [Boolean] true if the address is internal/blocked
         def blocked_ip?(ip)
-          # Unwrap IPv4-mapped IPv6 (::ffff:a.b.c.d) to the embedded IPv4 so the
-          # native range predicates below actually see it. #native returns the
-          # address unchanged when it is not mapped, so this is safe for all IPs.
-          ip = ip.native if ip.ipv6? && ip.ipv4_mapped?
+          # Unwrap IPv4-mapped (::ffff:a.b.c.d) and IPv4-compatible (::a.b.c.d)
+          # IPv6 to the embedded IPv4 so the native range predicates below
+          # actually see it. Both formats otherwise slip past #loopback?,
+          # #private?, and #link_local?, which only match native ranges, so
+          # ::169.254.169.254 or ::127.0.0.1 would reach the metadata service or
+          # loopback. #native returns the address unchanged when it is neither,
+          # so this is safe for all IPs.
+          ip = ip.native if ip.ipv6? && (ip.ipv4_mapped? || ip.ipv4_compat?)
 
           return true if ip.loopback?
           return true if ip.private?
