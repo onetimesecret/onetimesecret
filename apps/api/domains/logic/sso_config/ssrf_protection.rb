@@ -95,12 +95,23 @@ module DomainsAPI
         # prefixes, multicast, etc.). A resolver answer we cannot parse also
         # counts as internal: Guard.blocked_ip? fails closed on unparseable
         # input, so malformed addresses block rather than being skipped.
+        # Empty resolution (NXDOMAIN / no A/AAAA records) also counts as
+        # internal — an unresolvable host is not a valid egress target.
         #
         # @param hostname [String] The hostname to resolve
         # @return [Boolean] true if any resolved IP is internal
         def resolves_to_internal_ip?(hostname)
           # Resolve all A and AAAA records
           addresses = Resolv.getaddresses(hostname)
+
+          # Fail closed on empty resolution. Resolv.getaddresses returns []
+          # (rather than raising) for NXDOMAIN or a host with no A/AAAA
+          # records, so without this an unresolvable issuer host would slip
+          # through save-time validation as "not internal". A host that
+          # resolves to nothing is not a valid egress target; the request-time
+          # guard (Guard.resolve_and_validate!) already rejects empty
+          # resolution, and this keeps save-time consistent with it.
+          return true if addresses.empty?
 
           addresses.any? { |addr_str| blocked_ip?(addr_str) }
         rescue Resolv::ResolvError, Resolv::ResolvTimeout

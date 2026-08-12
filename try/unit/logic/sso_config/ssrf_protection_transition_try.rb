@@ -37,9 +37,12 @@ require_relative '../../../../apps/api/domains/logic/sso_config/ssrf_protection'
 # bare `class Resolv` reopening would create a sandboxed twin, not stub the
 # real class SsrfProtection calls).
 ssrf_try_dns = {
+  'idp.example.com'     => ['93.184.216.34'],           # normal public issuer
   'garbage-answer.test' => ['not-an-ip-address'],       # unparseable resolver answer
   'mixed-garbage.test'  => ['93.184.216.34', 'bogus!'], # one good, one unparseable
 }.freeze
+# Unknown hosts fall through to [] (NXDOMAIN / no A-AAAA records), which the
+# guard treats as a blocked host — see the empty-resolution case below.
 ::Resolv.define_singleton_method(:getaddresses) do |hostname|
   ssrf_try_dns.fetch(hostname) { [] }
 end
@@ -204,4 +207,16 @@ end
 
 ## blocked_ip? leaves another public IPv4 (8.8.8.8) alone
 @validator.blocked_ip?(IPAddr.new('8.8.8.8'))
+#=> false
+
+## FAIL-CLOSED: a host that resolves to nothing (NXDOMAIN => []) is blocked.
+## Resolv.getaddresses returns [] rather than raising, so save-time validation
+## must reject empty resolution or an unresolvable host slips through.
+@validator.resolves_to_internal_ip?('no-such-host.test')
+#=> true
+
+## Public IPv4-mapped IPv6 (::ffff:8.8.8.8) unwraps to its public v4 and is
+## allowed — the prefix-based unwrap replaced the obsolete #ipv4_compat?
+## predicate without over-blocking legitimate mapped public addresses.
+@validator.blocked_ip?(IPAddr.new('::ffff:8.8.8.8'))
 #=> false

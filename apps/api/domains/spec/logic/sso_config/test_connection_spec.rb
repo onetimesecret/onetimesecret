@@ -43,6 +43,14 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::TestConnection do
     allow(OT).to receive(:ld)
     allow(OT).to receive(:le)
 
+    # Upstream valid_issuer_host? resolves the host via Resolv.getaddresses and
+    # now fails closed on empty resolution. Stub it to a public IP so the
+    # save-time check passes and these tests exercise fetch_url's pinned guard
+    # (the enforcement point). Guard.resolve_addresses is the separately-stubbed
+    # fetch-time seam, so a test can model DNS rebinding: public at check time,
+    # something else at fetch time.
+    allow(Resolv).to receive(:getaddresses).and_return(['203.0.113.10'])
+
     allow(Net::HTTP).to receive(:new).and_return(http_instance)
     allow(http_instance).to receive(:ipaddr=)
     allow(http_instance).to receive(:use_ssl=)

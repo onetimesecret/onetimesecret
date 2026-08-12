@@ -4,6 +4,7 @@
 
 require 'resolv'
 require 'ipaddr'
+require 'socket'
 
 module Onetime
   module Http
@@ -66,6 +67,16 @@ module Onetime
         64:ff9b::/96 64:ff9b:1::/48 2001::/32 2002::/16 2001:db8::/32
       ].map { |cidr| IPAddr.new(cidr) }.freeze
 
+      # IPv4-mapped (::ffff:0:0/96) and the deprecated IPv4-compatible (::/96)
+      # IPv6 forms carry a 32-bit IPv4 destination in their low bits. We detect
+      # them by prefix rather than IPAddr#ipv4_mapped?/#ipv4_compat? because the
+      # #ipv4_compat? predicate is obsolete in Ruby 3.4+ (it warns and is slated
+      # for removal); a prefix test is stable and warning-free. The embedded
+      # IPv4 is the low 32 bits (see #blocked_ip?).
+      IPV4_MAPPED_PREFIX = IPAddr.new('::ffff:0:0/96').freeze
+      IPV4_COMPAT_PREFIX = IPAddr.new('::/96').freeze
+      LOW32_MASK         = 0xffff_ffff
+
       # extend self (rather than module_function) keeps every method callable
       # both as Guard.blocked_ip?(...) and as an instance method for classes
       # that `include Guard`. The DNS seam stays stubbable in tests by
@@ -84,13 +95,16 @@ module Onetime
         ip = addr.is_a?(IPAddr) ? addr : IPAddr.new(addr.to_s)
         # Unwrap IPv4-mapped (::ffff:a.b.c.d) and IPv4-compatible (::a.b.c.d)
         # IPv6 to the embedded IPv4 so the v4 range list actually sees it.
-        # #native returns the address unchanged when it is neither, so this
-        # is safe for all IPs.
-        ip = ip.native if ip.ipv6? && (ip.ipv4_mapped? || ip.ipv4_compat?)
+        # Detected by prefix (not the obsolete #ipv4_compat? predicate); the
+        # embedded IPv4 is the low 32 bits. AF_INET keeps the result an IPv4
+        # IPAddr so the v4 branch below applies.
+        if ip.ipv6? && (IPV4_MAPPED_PREFIX.include?(ip) || IPV4_COMPAT_PREFIX.include?(ip))
+          ip = IPAddr.new(ip.to_i & LOW32_MASK, Socket::AF_INET)
+        end
 
-        # Unspecified address in either family (0.0.0.0, :: — including the
-        # ::0.0.0.0 spelling, which is not ipv4_compat? so the unwrap above
-        # leaves it as ::). Both route to localhost as a connect target.
+        # Unspecified address in either family (0.0.0.0, :: — the :: forms are
+        # unwrapped to 0.0.0.0 above, native 0.0.0.0 lands here directly). Both
+        # route to localhost as a connect target.
         return true if ip.to_i.zero?
 
         # 169.254.0.0/16 and fe80::/10 are already in BLOCKED_V4/BLOCKED_V6;
