@@ -122,10 +122,42 @@ end
 @validator.blocked_ip?(IPAddr.new('64:ff9b::a00:1'))
 #=> true
 
+## BYPASS: unspecified IPv4 0.0.0.0 (routes to localhost) is blocked
+@validator.valid_issuer_host?('https://0.0.0.0')
+#=> false
+
+## BYPASS: unspecified IPv6 [::] (routes to localhost) is blocked
+@validator.valid_issuer_host?('https://[::]')
+#=> false
+
+## BYPASS: ::0.0.0.0 spelling of the unspecified address is blocked
+@validator.blocked_ip?(IPAddr.new('::0.0.0.0'))
+#=> true
+
+## BYPASS: this-network 0.0.0.0/8 (0.0.0.5) is blocked
+@validator.blocked_ip?(IPAddr.new('0.0.0.5'))
+#=> true
+
+## BYPASS: CGNAT shared range 100.64.0.0/10 is blocked
+@validator.blocked_ip?(IPAddr.new('100.64.0.1'))
+#=> true
+
+## BYPASS: reserved 240.0.0.0/4 is blocked
+@validator.blocked_ip?(IPAddr.new('240.0.0.1'))
+#=> true
+
+## BYPASS: broadcast 255.255.255.255 is blocked
+@validator.blocked_ip?(IPAddr.new('255.255.255.255'))
+#=> true
+
 ## blocked_ip? leaves a normal public IPv6 address alone
 @validator.blocked_ip?(IPAddr.new('2606:4700:4700::1111'))
 #=> false
 
 ## blocked_ip? leaves a normal public IPv4 address alone
 @validator.blocked_ip?(IPAddr.new('93.184.216.34'))
+#=> false
+
+## blocked_ip? leaves another public IPv4 (8.8.8.8) alone
+@validator.blocked_ip?(IPAddr.new('8.8.8.8'))
 #=> false

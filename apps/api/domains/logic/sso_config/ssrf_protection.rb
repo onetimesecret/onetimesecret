@@ -54,6 +54,18 @@ module DomainsAPI
           IPAddr.new('64:ff9b:1::/48'), # NAT64 local-use prefix (RFC 8215)
         ].freeze
 
+        # Special-use IPv4 ranges that IPAddr#loopback?/#private?/#link_local?
+        # do NOT match but which no legitimate SSO issuer resolves into. Most
+        # important is 0.0.0.0/8: 0.0.0.0 connects to localhost on Linux, so it
+        # is a loopback bypass the native predicates miss.
+        BLOCKED_IPV4_RANGES = [
+          IPAddr.new('0.0.0.0/8'),      # "this host on this network" (RFC 1122)
+          IPAddr.new('100.64.0.0/10'),  # CGNAT / shared address space (RFC 6598)
+          IPAddr.new('192.0.0.0/24'),   # IETF protocol assignments (RFC 6890)
+          IPAddr.new('198.18.0.0/15'),  # benchmarking (RFC 2544)
+          IPAddr.new('240.0.0.0/4'),    # reserved + 255.255.255.255 broadcast
+        ].freeze
+
         # Validates that a URL host is safe for external requests.
         #
         # @param url [String] The URL to validate
@@ -142,6 +154,16 @@ module DomainsAPI
           return true if ip.loopback?
           return true if ip.private?
           return true if ip.link_local?
+
+          # Unspecified address in either family (0.0.0.0, :: — including the
+          # ::0.0.0.0 spelling, which is not ipv4_compat? so the unwrap above
+          # leaves it as ::). Both route to localhost as a connect target.
+          return true if ip.to_i.zero?
+
+          # Special-use IPv4 the native predicates miss (0.0.0.0/8 → localhost,
+          # CGNAT, reserved, broadcast). Applies after the unwrap above, so it
+          # also catches ::0.0.0.0 / ::ffff:0.0.0.0 embed forms.
+          return true if ip.ipv4? && BLOCKED_IPV4_RANGES.any? { |range| range.include?(ip) }
 
           # NAT64 / 6to4 / Teredo carry an embedded IPv4 the native predicates
           # ignore. Block the whole prefixes rather than decode-and-allow.
