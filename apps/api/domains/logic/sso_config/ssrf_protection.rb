@@ -23,49 +23,24 @@ module DomainsAPI
       # - Blocking internal hostnames (localhost, .local, .internal)
       # - DNS rebinding protection via hostname resolution check
       #
-      # Note on IPv6 transition addresses: Ruby's IPAddr#loopback?, #private?,
-      # and #link_local? only match native IPv4/IPv6 ranges. They do NOT look at
-      # IPv4 addresses embedded in IPv6 transition formats, so an address like
-      # ::ffff:169.254.169.254 (IPv4-mapped) or 64:ff9b::a9fe:a9fe (NAT64) would
-      # otherwise slip past the guard. blocked_ip? closes that gap by unwrapping
-      # IPv4-mapped literals to their embedded IPv4 and by blocking the transition
-      # prefixes outright, since no legitimate SSO issuer resolves into them.
+      # IP range coverage (transition prefixes, special-use IPv4, multicast,
+      # documentation ranges, etc.) lives in Onetime::Http::Guard — the shared
+      # SSRF egress guard and single source of truth for "is this IP a
+      # forbidden egress target". blocked_ip? below delegates to it.
       #
       # Note on DNS rebinding: While we resolve hostnames at validation time,
       # a sophisticated attacker could still exploit DNS rebinding by returning
       # a safe IP during our check, then switching to an internal IP during
-      # the actual OmniAuth request (if sufficient time passes). Full mitigation
-      # would require DNS pinning at the HTTP client level, which is beyond
-      # the scope of this module.
+      # the actual OmniAuth request (if sufficient time passes). Request-time
+      # DNS pinning is now implemented at the HTTP-client callsites (SafeFetch,
+      # webhook dispatch, SSO test connection, and the OIDC Faraday hook), so
+      # the validation here is defense-in-depth, not the only line.
       #
       # Usage:
       #   include SsrfProtection
       #   # Then call valid_issuer_host?(url) to validate
       #
       module SsrfProtection
-        # IPv6 transition prefixes that embed a routable IPv4 destination.
-        # These are blocked wholesale: an SSO issuer has no legitimate reason
-        # to resolve into any of them, and decoding-then-allowing would just
-        # reintroduce the bypass surface we are trying to close.
-        TRANSITION_RANGES = [
-          IPAddr.new('2001::/32'),      # Teredo (RFC 4380)
-          IPAddr.new('2002::/16'),      # 6to4 (RFC 3056)
-          IPAddr.new('64:ff9b::/96'),   # NAT64 well-known prefix (RFC 6052)
-          IPAddr.new('64:ff9b:1::/48'), # NAT64 local-use prefix (RFC 8215)
-        ].freeze
-
-        # Special-use IPv4 ranges that IPAddr#loopback?/#private?/#link_local?
-        # do NOT match but which no legitimate SSO issuer resolves into. Most
-        # important is 0.0.0.0/8: 0.0.0.0 connects to localhost on Linux, so it
-        # is a loopback bypass the native predicates miss.
-        BLOCKED_IPV4_RANGES = [
-          IPAddr.new('0.0.0.0/8'),      # "this host on this network" (RFC 1122)
-          IPAddr.new('100.64.0.0/10'),  # CGNAT / shared address space (RFC 6598)
-          IPAddr.new('192.0.0.0/24'),   # IETF protocol assignments (RFC 6890)
-          IPAddr.new('198.18.0.0/15'),  # benchmarking (RFC 2544)
-          IPAddr.new('240.0.0.0/4'),    # reserved + 255.255.255.255 broadcast
-        ].freeze
-
         # Validates that a URL host is safe for external requests.
         #
         # @param url [String] The URL to validate
@@ -115,8 +90,11 @@ module DomainsAPI
 
         # Resolves a hostname and checks if any resolved IP is internal.
         #
-        # Returns true if the hostname resolves to a loopback, private,
-        # link-local, or IPv6-transition address.
+        # Returns true if the hostname resolves to any address the shared
+        # egress guard forbids (loopback, private, link-local, transition
+        # prefixes, multicast, etc.). A resolver answer we cannot parse also
+        # counts as internal: Guard.blocked_ip? fails closed on unparseable
+        # input, so malformed addresses block rather than being skipped.
         #
         # @param hostname [String] The hostname to resolve
         # @return [Boolean] true if any resolved IP is internal
@@ -124,12 +102,7 @@ module DomainsAPI
           # Resolve all A and AAAA records
           addresses = Resolv.getaddresses(hostname)
 
-          addresses.any? do |addr_str|
-            blocked_ip?(IPAddr.new(addr_str))
-          rescue IPAddr::InvalidAddressError
-            # Skip malformed addresses
-            false
-          end
+          addresses.any? { |addr_str| blocked_ip?(addr_str) }
         rescue Resolv::ResolvError, Resolv::ResolvTimeout
           # DNS resolution failed - block as a precaution
           # If we can't resolve the hostname, we shouldn't proceed
@@ -137,39 +110,14 @@ module DomainsAPI
         end
 
         # Determines whether an IP address points at an internal/private
-        # destination, accounting for IPv6 transition formats.
+        # destination. Thin delegation to the shared egress guard, which
+        # unwraps IPv4-embedded IPv6 forms, blocks transition prefixes, and
+        # fails closed (returns true) on anything IPAddr cannot parse.
         #
-        # @param ip [IPAddr] The address to check
+        # @param ip [IPAddr, String] The address to check
         # @return [Boolean] true if the address is internal/blocked
         def blocked_ip?(ip)
-          # Unwrap IPv4-mapped (::ffff:a.b.c.d) and IPv4-compatible (::a.b.c.d)
-          # IPv6 to the embedded IPv4 so the native range predicates below
-          # actually see it. Both formats otherwise slip past #loopback?,
-          # #private?, and #link_local?, which only match native ranges, so
-          # ::169.254.169.254 or ::127.0.0.1 would reach the metadata service or
-          # loopback. #native returns the address unchanged when it is neither,
-          # so this is safe for all IPs.
-          ip = ip.native if ip.ipv6? && (ip.ipv4_mapped? || ip.ipv4_compat?)
-
-          return true if ip.loopback?
-          return true if ip.private?
-          return true if ip.link_local?
-
-          # Unspecified address in either family (0.0.0.0, :: — including the
-          # ::0.0.0.0 spelling, which is not ipv4_compat? so the unwrap above
-          # leaves it as ::). Both route to localhost as a connect target.
-          return true if ip.to_i.zero?
-
-          # Special-use IPv4 the native predicates miss (0.0.0.0/8 → localhost,
-          # CGNAT, reserved, broadcast). Applies after the unwrap above, so it
-          # also catches ::0.0.0.0 / ::ffff:0.0.0.0 embed forms.
-          return true if ip.ipv4? && BLOCKED_IPV4_RANGES.any? { |range| range.include?(ip) }
-
-          # NAT64 / 6to4 / Teredo carry an embedded IPv4 the native predicates
-          # ignore. Block the whole prefixes rather than decode-and-allow.
-          return true if ip.ipv6? && TRANSITION_RANGES.any? { |range| range.include?(ip) }
-
-          false
+          Onetime::Http::Guard.blocked_ip?(ip)
         end
       end
     end

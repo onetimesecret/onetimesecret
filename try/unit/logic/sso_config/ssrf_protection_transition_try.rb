@@ -12,23 +12,36 @@
 # point OmniAuth at loopback, the cloud metadata service (169.254.169.254),
 # or private networks.
 #
+# The range checks themselves now live in Onetime::Http::Guard (the shared
+# SSRF egress guard); SsrfProtection#blocked_ip? is a thin delegation. These
+# vectors stay as regression coverage that the delegation preserves the
+# original blocking behavior, plus the ranges Guard added on top (multicast,
+# v6 documentation) and Guard's fail-closed handling of unparseable input.
+#
 # These tests exercise the validation methods directly with literal IPs, so
-# they are hermetic: no HTTP and no DNS. DNS resolution is neutralized in
-# setup so resolves_to_internal_ip? cannot reach the network.
+# they are hermetic: no HTTP and no DNS. DNS resolution is stubbed in setup
+# so resolves_to_internal_ip? cannot reach the network.
 #
 # Run:
 #   try try/unit/logic/sso_config/ssrf_protection_transition_try.rb --agent
 
 require 'ipaddr'
 require 'resolv'
+require_relative '../../../../lib/onetime/errors'
+require_relative '../../../../lib/onetime/http/guard'
 require_relative '../../../../apps/api/domains/logic/sso_config/ssrf_protection'
 
-# Neutralize DNS: literal-IP hosts never resolve, and we assert on the
-# literal-IP path only. Returning [] means "no resolved addresses".
-class Resolv
-  def self.getaddresses(_hostname)
-    []
-  end
+# Stub DNS: known hosts resolve to fixed answers, everything else (including
+# literal-IP hosts) returns [] meaning "no resolved addresses". Defined on the
+# ::Resolv singleton (tryouts evaluates files inside a sandbox module, so a
+# bare `class Resolv` reopening would create a sandboxed twin, not stub the
+# real class SsrfProtection calls).
+ssrf_try_dns = {
+  'garbage-answer.test' => ['not-an-ip-address'],       # unparseable resolver answer
+  'mixed-garbage.test'  => ['93.184.216.34', 'bogus!'], # one good, one unparseable
+}.freeze
+::Resolv.define_singleton_method(:getaddresses) do |hostname|
+  ssrf_try_dns.fetch(hostname) { [] }
 end
 
 @validator = Object.new
@@ -148,6 +161,37 @@ end
 
 ## BYPASS: broadcast 255.255.255.255 is blocked
 @validator.blocked_ip?(IPAddr.new('255.255.255.255'))
+#=> true
+
+## NEWLY BLOCKED via Guard: IPv6 multicast ff00::/8 (ff02::1) is blocked
+@validator.blocked_ip?(IPAddr.new('ff02::1'))
+#=> true
+
+## NEWLY BLOCKED via Guard: IPv6 documentation 2001:db8::/32 is blocked
+@validator.blocked_ip?(IPAddr.new('2001:db8::1'))
+#=> true
+
+## NEWLY BLOCKED via Guard: IPv4 multicast 224.0.0.0/4 is blocked
+@validator.blocked_ip?(IPAddr.new('224.0.0.1'))
+#=> true
+
+## blocked_ip? accepts String input (delegation to Guard preserves both forms)
+@validator.blocked_ip?('127.0.0.1')
+#=> true
+
+## FAIL-CLOSED delta: blocked_ip? on unparseable input returns true (blocked);
+## the pre-delegation code was IPAddr-only and callers rescued the parse error
+## with false (skip). Guard treats unparseable as a forbidden target.
+@validator.blocked_ip?('not-an-ip-address')
+#=> true
+
+## FAIL-CLOSED delta: a resolver answer we cannot parse now BLOCKS the host
+## (previously resolves_to_internal_ip? skipped malformed addresses => false)
+@validator.resolves_to_internal_ip?('garbage-answer.test')
+#=> true
+
+## FAIL-CLOSED delta: one good address plus one unparseable answer still blocks
+@validator.resolves_to_internal_ip?('mixed-garbage.test')
 #=> true
 
 ## blocked_ip? leaves a normal public IPv6 address alone
