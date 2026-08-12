@@ -50,13 +50,13 @@ module Onetime
 
       # @param api_key [String] SMTP2GO API key (format: api-<32 chars>)
       # @param base_url [String, nil] API base URL; nil falls back to DEFAULT_BASE_URL
-      # @param open_timeout [Integer] TCP connect timeout in seconds
-      # @param read_timeout [Integer] Response read timeout in seconds
+      # @param open_timeout [Integer, String] TCP connect timeout in seconds
+      # @param read_timeout [Integer, String] Response read timeout in seconds
       def initialize(api_key:, base_url: DEFAULT_BASE_URL, open_timeout: 15, read_timeout: 30)
         @api_key      = api_key
         @base_url     = (base_url || DEFAULT_BASE_URL).to_s.chomp('/')
-        @open_timeout = open_timeout
-        @read_timeout = read_timeout
+        @open_timeout = coerce_timeout(open_timeout, 15)
+        @read_timeout = coerce_timeout(read_timeout, 30)
       end
 
       # Makes a POST request and unwraps the SMTP2GO response envelope.
@@ -83,6 +83,16 @@ module Onetime
       end
 
       private
+
+      # Timeout values reach here from YAML/ENV-sourced config, where a quoted
+      # value ("30") arrives as a String, and Net::HTTP's timeout setters
+      # raise TypeError on non-numeric input. This is the one constructor all
+      # callers share, so coerce here: non-positive or unparseable values fall
+      # back to the default.
+      def coerce_timeout(value, default)
+        seconds = Integer(value.to_s, exception: false)
+        seconds&.positive? ? seconds : default
+      end
 
       # Builds a configured HTTP client (same knobs as SendGridSenderStrategy).
       #

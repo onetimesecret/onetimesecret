@@ -144,7 +144,10 @@ end
 ## an api_key present only in email_providers.smtp2go reads as credentialed
 class Onetime::Mail::Mailer
   class << self
-    alias_method :real_provider_config, :provider_config
+    # Capture the original only once: tryouts share one Ruby process, so a
+    # re-run of this block (or another file aliasing first) must not save a
+    # stub as the "real" method and poison the restore below.
+    alias_method :real_provider_config, :provider_config unless method_defined?(:real_provider_config)
     def provider_config(provider)
       provider.to_s == 'smtp2go' ? { 'api_key' => 'api-from-yaml' } : {}
     end

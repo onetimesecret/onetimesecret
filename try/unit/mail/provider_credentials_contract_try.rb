@@ -386,8 +386,14 @@ class Onetime::Mail::Mailer
     end
   end
 end
-@saved_s2g_env = ENV.delete('SMTP2GO_API_KEY')
-Onetime::Mail::Mailer.provider_credentials('smtp2go')
+# Restore ENV inside the same testcase (ensure), so a failure here can't
+# leak a mutated ENV into the rest of the shared tryouts process.
+saved_s2g_env = ENV.delete('SMTP2GO_API_KEY')
+begin
+  Onetime::Mail::Mailer.provider_credentials('smtp2go')
+ensure
+  ENV['SMTP2GO_API_KEY'] = saved_s2g_env if saved_s2g_env
+end
 #=> {}
 
 ## An api_key from the email_providers YAML source restores the full config with subdomain defaults
@@ -410,12 +416,16 @@ class Onetime::Mail::Mailer
     end
   end
 end
-ENV['SMTP2GO_API_KEY'] = 'api-from-env'
-creds = Onetime::Mail::Mailer.provider_credentials('smtp2go')
-if @saved_s2g_env
-  ENV['SMTP2GO_API_KEY'] = @saved_s2g_env
-else
-  ENV.delete('SMTP2GO_API_KEY')
+saved_s2g_env = ENV['SMTP2GO_API_KEY']
+begin
+  ENV['SMTP2GO_API_KEY'] = 'api-from-env'
+  creds = Onetime::Mail::Mailer.provider_credentials('smtp2go')
+ensure
+  if saved_s2g_env
+    ENV['SMTP2GO_API_KEY'] = saved_s2g_env
+  else
+    ENV.delete('SMTP2GO_API_KEY')
+  end
 end
 creds['api_key']
 #=> 'api-from-env'

@@ -22,9 +22,12 @@ module Onetime
       # see perform_delivery.
       #
       class Smtp2go < Base
-        # Mirrors OT::Utils::EMAIL_PATTERN (inlined so the mail lib stays
-        # loadable without the full app): unicode local part/domain, atomic
-        # group to prevent backtracking.
+        # Standalone twin of the canonical redaction regex,
+        # Onetime::Utils::Strings::EMAIL_PATTERN: unicode local part/domain,
+        # atomic group to prevent backtracking. #email_pattern prefers the
+        # canonical constant whenever the app is loaded (the same conditional
+        # Base#obscure_email uses for OT::Utils), so in-app redaction tracks
+        # the vetted corpus; this twin only covers standalone mail-lib loads.
         EMAIL_PATTERN = /\b(?>[\p{L}\p{N}._%+'-]+)@[\p{L}\p{N}.\p{Pd}]+\.\p{L}{2,}\b/
 
         def perform_delivery(email)
@@ -110,7 +113,17 @@ module Onetime
         # obscured form (Base#obscure_email), leaving the surrounding
         # failure-reason wording intact for diagnostics.
         def redact_emails(text)
-          text.to_s.gsub(EMAIL_PATTERN) { |address| obscure_email(address) }
+          text.to_s.gsub(email_pattern) { |address| obscure_email(address) }
+        end
+
+        # The canonical, corpus-pinned pattern when the app is loaded; the
+        # inline EMAIL_PATTERN twin otherwise (standalone mail-lib loads).
+        def email_pattern
+          if defined?(Onetime::Utils::Strings::EMAIL_PATTERN)
+            Onetime::Utils::Strings::EMAIL_PATTERN
+          else
+            EMAIL_PATTERN
+          end
         end
 
         # Build the /email/send payload from the normalized email hash.
