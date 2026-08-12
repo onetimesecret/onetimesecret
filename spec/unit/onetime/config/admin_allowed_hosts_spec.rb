@@ -104,9 +104,9 @@ RSpec.describe Onetime::Config, 'ADMIN_ALLOWED_HOSTS validation (#4062)' do
         end
 
         it 'offers every way out: a hostname, unsetting, or the `*` escape hatch' do
-          expect(captured).to match(/admin\.example\.com/)
-          expect(captured).to match(/unset/)
-          expect(captured).to match(/\*/)
+          expect(captured).to include('admin.example.com')
+          expect(captured).to include('unset')
+          expect(captured).to include('*')
         end
       end
     end
