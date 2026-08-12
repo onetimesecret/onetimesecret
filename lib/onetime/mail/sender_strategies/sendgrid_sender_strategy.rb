@@ -125,7 +125,7 @@ module Onetime
         # @param mailer_config [CustomDomain::MailerConfig] Mailer configuration
         # @param credentials [Hash] Must include 'api_key'; optionally 'domain_id'
         # @return [Hash] Verification status:
-        #   - :verified [Boolean]
+        #   - :verified [Boolean, nil] Tri-state, see below
         #   - :status [String] 'verified', 'pending', 'failed', 'not_found'
         #   - :message [String]
         #   - :details [Hash, nil] Per-record validation results
@@ -134,6 +134,15 @@ module Onetime
         # SendGrid validates all DNS records on its side and returns per-record results.
         # DNS propagation is checked independently by check_dns_records (inherited
         # from BaseSenderStrategy), which works with provisioned records.
+        #
+        # Tri-state :verified contract (shared by all sender strategies):
+        #   true  - SendGrid confirms the domain is verified
+        #   false - SendGrid authoritatively says it is NOT verified (records
+        #           pending, or the domain authentication is absent)
+        #   nil   - the answer could not be determined (missing/blank API key,
+        #           SendGrid API error such as 401/5xx, transport failure).
+        #           Callers must NOT treat nil as a failed check — a rotated
+        #           API key must never demote a verified domain.
         def check_provider_verification_status(mailer_config, credentials:)
           domain = extract_domain(mailer_config.from_address)
 
@@ -148,7 +157,7 @@ module Onetime
           api_key = credentials['api_key']
           unless api_key && !api_key.empty?
             return {
-              verified: false,
+              verified: nil,
               status: 'error',
               message: 'SendGrid API key is required',
             }
@@ -187,7 +196,7 @@ module Onetime
             }
           else
             {
-              verified: false,
+              verified: nil,
               status: 'error',
               message: response[:error] || 'Validation check failed',
             }
@@ -195,7 +204,7 @@ module Onetime
         rescue StandardError => ex
           log_error "[sendgrid-sender] Verification check failed: #{ex.message}"
           {
-            verified: false,
+            verified: nil,
             status: 'error',
             message: "Verification check failed: #{ex.message}",
           }

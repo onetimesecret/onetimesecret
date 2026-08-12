@@ -392,18 +392,33 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
       end
     end
 
-    context 'when API returns error' do
+    context 'when API returns error (e.g. 401 from a rotated key, or 5xx)' do
       before do
         allow(mock_domains).to receive(:list)
           .and_raise(Lettermint::HttpRequestError.new(message: 'Server Error', status_code: 500))
       end
 
-      it 'returns error status' do
+      it 'returns verified: nil — indeterminate, never an authoritative false' do
         result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
 
-        expect(result[:verified]).to be false
+        expect(result[:verified]).to be_nil
         expect(result[:status]).to eq('error')
         expect(result[:message]).to include('Verification check failed')
+      end
+    end
+
+    context 'when an unexpected error occurs (transport failure)' do
+      before do
+        allow(mock_domains).to receive(:list)
+          .and_raise(StandardError.new('connection reset'))
+      end
+
+      it 'returns verified: nil — indeterminate, never an authoritative false' do
+        result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
+
+        expect(result[:verified]).to be_nil
+        expect(result[:status]).to eq('error')
+        expect(result[:message]).to include('connection reset')
       end
     end
 
@@ -421,10 +436,10 @@ RSpec.describe Onetime::Mail::SenderStrategies::LettermintSenderStrategy do
     context 'with missing team_token' do
       let(:credentials) { { team_token: nil } }
 
-      it 'returns error status' do
+      it 'returns verified: nil — the check could not run' do
         result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
 
-        expect(result[:verified]).to be false
+        expect(result[:verified]).to be_nil
         expect(result[:status]).to eq('error')
         expect(result[:message]).to include('Team API token is required')
       end

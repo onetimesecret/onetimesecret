@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require_relative 'provider_registry'
 require_relative 'sender_strategies/base_sender_strategy'
 require_relative 'sender_strategies/ses_sender_strategy'
 require_relative 'sender_strategies/sendgrid_sender_strategy'
@@ -28,19 +29,18 @@ module Onetime
     #   - smtp: No-op (manual DNS configuration)
     #
     module SenderStrategies
-      # Registry of provider names to strategy classes.
+      # Registry of provider names to strategy classes, derived from the
+      # authoritative ProviderRegistry (the strategy files are required
+      # above, so class resolution here is safe).
       #
-      PROVIDER_STRATEGIES = {
-        'ses' => SESSenderStrategy,
-        'sendgrid' => SendGridSenderStrategy,
-        'lettermint' => LettermintSenderStrategy,
-        'smtp2go' => Smtp2goSenderStrategy,
-        'smtp' => SMTPSenderStrategy,
-      }.freeze
+      PROVIDER_STRATEGIES = ProviderRegistry.providers.to_h do |name|
+        [name, ProviderRegistry.sender_strategy_for(name)]
+      end.freeze
 
       # List of provider names that support automated provisioning.
+      # Derived from ProviderRegistry (descriptor.provisioning).
       #
-      PROVISIONING_PROVIDERS = %w[ses sendgrid lettermint smtp2go].freeze
+      PROVISIONING_PROVIDERS = ProviderRegistry.provisioning_providers.freeze
 
       class << self
         # Create a sender strategy for the given provider.

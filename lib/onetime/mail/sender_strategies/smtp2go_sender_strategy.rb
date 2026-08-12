@@ -165,10 +165,19 @@ module Onetime
         # rewriting, not sender authentication, so their state is surfaced
         # in details but never gates verification.
         #
+        # Tri-state :verified contract (shared by all sender strategies):
+        #   true  - the provider confirms the domain is verified
+        #   false - the provider authoritatively says it is NOT verified
+        #           (pending records, or the domain is absent at the provider)
+        #   nil   - the answer could not be determined (missing/blank
+        #           credential, provider API error such as 401/5xx, transport
+        #           failure). Callers must NOT treat nil as a failed check —
+        #           a rotated API key must never demote a verified domain.
+        #
         # @param mailer_config [CustomDomain::MailerConfig] Mailer configuration
         # @param credentials [Hash] Must include 'api_key'
         # @return [Hash] Verification status:
-        #   - :verified [Boolean]
+        #   - :verified [Boolean, nil] Tri-state, see above
         #   - :status [String] 'verified', 'pending', 'not_found', 'error'
         #   - :message [String]
         #   - :details [Hash, nil] Additional verification details
@@ -187,7 +196,7 @@ module Onetime
           api_key = credentials['api_key']
           unless api_key && !api_key.empty?
             return {
-              verified: false,
+              verified: nil,
               status: 'error',
               message: 'SMTP2GO API key is required',
             }
@@ -246,14 +255,14 @@ module Onetime
         rescue Smtp2goClient::APIError => ex
           log_error "[smtp2go-sender] Verification check failed for #{domain}: HTTP #{ex.status_code} - #{ex.message}"
           {
-            verified: false,
+            verified: nil,
             status: 'error',
             message: "Verification check failed: #{ex.message}",
           }
         rescue StandardError => ex
           log_error "[smtp2go-sender] Verification check failed: #{ex.message}"
           {
-            verified: false,
+            verified: nil,
             status: 'error',
             message: "Verification check failed: #{ex.message}",
           }
