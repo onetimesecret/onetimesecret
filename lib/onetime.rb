@@ -425,6 +425,7 @@ end
 require_relative 'onetime/alias'
 require_relative 'onetime/errors'
 require_relative 'onetime/error_handler'
+require_relative 'onetime/http/guard' # needs Onetime::Problem (errors) first
 require_relative 'onetime/version'
 require_relative 'onetime/config'
 require_relative 'onetime/config_generator'
