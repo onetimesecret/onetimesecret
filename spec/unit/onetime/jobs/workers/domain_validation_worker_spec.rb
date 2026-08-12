@@ -164,10 +164,11 @@ RSpec.describe Onetime::Jobs::Workers::DomainValidationWorker do
     end
 
     context 'when required keys are missing but the hash is non-empty (smtp2go baked-in defaults)' do
-      # Regression: Mailer.smtp2go_provider_config always emits the
-      # returnpath/tracking subdomain defaults via ENV.fetch, so the
-      # credentials hash is NEVER empty. The old `creds && !creds.empty?`
-      # guard was blind to a missing api_key and let a doomed API call run.
+      # Regression: the old `creds && !creds.empty?` guard was blind to a
+      # non-empty hash missing its api_key and let a doomed API call run.
+      # Mailer.smtp2go_provider_config now signals a missing api_key with an
+      # empty hash, but the key-level guard must stay robust to a builder
+      # that bakes non-secret defaults into an otherwise keyless hash.
       let(:credentials) do
         { 'returnpath_subdomain' => 'bounce', 'tracking_subdomain' => 'track' }
       end

@@ -194,16 +194,19 @@ module Onetime
           name: 'smtp2go',
           label: 'SMTP2GO',
           # The single API key covers both sending and domain provisioning.
-          # NOTE: smtp2go_provider_config bakes in returnpath/tracking
-          # subdomain defaults, so its credentials hash is NEVER empty — an
-          # emptiness test can not detect a missing api_key. Use
-          # missing_required_credentials, never creds.empty?.
+          # NOTE: smtp2go_provider_config signals a missing api_key with an
+          # empty hash (the returnpath/tracking subdomain defaults are only
+          # baked in once the key is present), so both creds.empty? guards
+          # and missing_required_credentials detect it.
           required_credential_keys: %w[api_key].freeze,
           optional_credential_keys: %w[base_url returnpath_subdomain tracking_subdomain timeout].freeze,
           summary_credential_groups: [%w[api_key].freeze].freeze,
           masked_config_keys: [].freeze,
           provisioning: true,
-          feedback: false,
+          # Suppression-list import + per-address lookup via
+          # POST /suppression/view, cycle stats via POST /stats/email_summary
+          # (Feedback::Smtp2go).
+          feedback: true,
           sender_strategy_class_name: 'Onetime::Mail::SenderStrategies::Smtp2goSenderStrategy',
           validation_strategy_class_name: 'Onetime::DomainValidation::SenderStrategies::Smtp2goValidation',
           delivery_class_name: 'Onetime::Mail::Delivery::Smtp2go',

@@ -685,6 +685,13 @@ RSpec.describe Onetime::Mail::SenderStrategies::Smtp2goSenderStrategy do
 
     context 'when an unexpected error occurs (transport failure)' do
       before do
+        # The status check tries /domain/verify first (non-fatal, falls back
+        # to /domain/view), so a transport failure must be raised from BOTH
+        # endpoints — an unstubbed verify call would raise
+        # MockExpectationError, which no rescue StandardError sees.
+        allow(mock_client).to receive(:post)
+          .with('/domain/verify', { 'domain' => 'example.com' })
+          .and_raise(StandardError.new('connection reset'))
         allow(mock_client).to receive(:post)
           .with('/domain/view', { 'domain' => 'example.com' })
           .and_raise(StandardError.new('connection reset'))

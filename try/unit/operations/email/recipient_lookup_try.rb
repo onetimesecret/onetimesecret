@@ -12,6 +12,7 @@
 # - a "not found" on the provider is available=true + suppressed=false
 # - provider read failure is fail-soft: available=false, local still authoritative
 # - non-live provider -> capability false, provider_result nil
+# - smtp2go is feedback-capable: same lookup contract as ses/lettermint
 # - NO-CREDS scan (§9)
 #
 # Run: try --agent try/unit/operations/email/recipient_lookup_try.rb
@@ -40,6 +41,12 @@ end
 
 class FakeBoomLookup
   def lookup(address); raise 'SES get_suppressed_destination failed'; end
+end
+
+class FakeSmtp2goSuppressed
+  # The SMTP2GO fetcher hands over the RAW provider reason ('spam', not the
+  # REASON_MAP'd 'complaint') and the row timestamp parsed to unix seconds.
+  def lookup(address); { suppressed: true, reason: 'spam', last_update_time: 1_619_740_800 }; end
 end
 
 def deep_string_values(obj)
@@ -97,6 +104,28 @@ SUP.suppress!(address: @addr, reason: 'bounce', source: 'manual')
 @r = RL.new(address: @addr, provider: 'logger').call
 [@r.capability, @r.provider_result, @r.local[:suppressed]]
 #=> [false, nil, true]
+
+# --- smtp2go: same lookup contract as ses/lettermint ---------------------
+
+## smtp2go is feedback-capable and carries the RAW provider reason ('spam')
+@r = RL.new(address: @addr, provider: 'smtp2go', fetcher: FakeSmtp2goSuppressed.new).call
+[@r.capability, @r.available, @r.provider_result[:suppressed], @r.provider_result[:reason]]
+#=> [true, true, true, 'spam']
+
+## smtp2go last_update_time (row timestamp as unix seconds) passes through untouched
+@r = RL.new(address: @addr, provider: 'smtp2go', fetcher: FakeSmtp2goSuppressed.new).call
+@r.provider_result[:last_update_time]
+#=> 1_619_740_800
+
+## smtp2go reports clean -> available true, suppressed false (not an error)
+@r = RL.new(address: @addr, provider: 'smtp2go', fetcher: FakeClean.new).call
+[@r.available, @r.provider_result[:suppressed], @r.provider_result[:reason]]
+#=> [true, false, nil]
+
+## a raising smtp2go lookup degrades but local (suppressed) remains
+@r = RL.new(address: @addr, provider: 'smtp2go', fetcher: FakeBoomLookup.new).call
+[@r.available, @r.error.include?('failed'), @r.provider_result, @r.local[:suppressed]]
+#=> [false, true, nil, true]
 
 # --- NO-CREDS scan (§9) --------------------------------------------------
 

@@ -120,7 +120,7 @@ RSpec.describe Onetime::Mail::ProviderRegistry do
 
   describe '.feedback_providers' do
     it 'lists the providers with a pollable feedback API' do
-      expect(described_class.feedback_providers).to eq(%w[ses lettermint])
+      expect(described_class.feedback_providers).to eq(%w[ses lettermint smtp2go])
     end
   end
 
@@ -149,8 +149,9 @@ RSpec.describe Onetime::Mail::ProviderRegistry do
     end
 
     it 'is NOT fooled by smtp2go baked-in subdomain defaults (the emptiness-test defect)' do
-      # Mailer.smtp2go_provider_config always emits these via ENV.fetch
-      # defaults, so the hash is never empty even with no API key.
+      # Mailer.smtp2go_provider_config now signals a missing api_key with an
+      # empty hash, but the key-level check must stay robust to a builder
+      # that bakes non-secret defaults into an otherwise keyless hash.
       creds = { 'returnpath_subdomain' => 'bounce', 'tracking_subdomain' => 'track' }
       expect(described_class.missing_required_credentials('smtp2go', creds)).to eq(%w[api_key])
     end
@@ -240,10 +241,10 @@ RSpec.describe Onetime::Mail::ProviderRegistry do
       )
     end
 
-    it 'feedback PROVIDERS constants match the pre-refactor list' do
-      expect(Onetime::Operations::Email::SyncProviderFeedback::PROVIDERS).to eq(%w[ses lettermint])
-      expect(Onetime::Operations::Email::ProviderStatus::PROVIDERS).to eq(%w[ses lettermint])
-      expect(Onetime::Operations::Email::RecipientLookup::PROVIDERS).to eq(%w[ses lettermint])
+    it 'feedback PROVIDERS constants derive the registry list (incl. smtp2go)' do
+      expect(Onetime::Operations::Email::SyncProviderFeedback::PROVIDERS).to eq(%w[ses lettermint smtp2go])
+      expect(Onetime::Operations::Email::ProviderStatus::PROVIDERS).to eq(%w[ses lettermint smtp2go])
+      expect(Onetime::Operations::Email::RecipientLookup::PROVIDERS).to eq(%w[ses lettermint smtp2go])
     end
   end
 end

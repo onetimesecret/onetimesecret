@@ -82,8 +82,10 @@ module Onetime
         # provider-level verification checks.
         #
         # Checks the provider's REQUIRED keys via ProviderRegistry, not hash
-        # emptiness: some builders (smtp2go) bake in non-secret defaults so
-        # their credentials hash is never empty even with no API key.
+        # emptiness: a builder may bake non-secret defaults into an otherwise
+        # credentialed hash, so key-level checks are the robust contract
+        # (smtp2go now signals a missing api_key with an empty hash, but the
+        # required-key check stays the guard either way).
         def self.check_essentials!
           provider = begin
                        Onetime::Mail::Mailer.determine_provider
@@ -200,12 +202,13 @@ module Onetime
                 sender_strategy = Onetime::Mail::SenderStrategies.for_provider(provider)
                 creds           = Onetime::Mail::Mailer.provider_credentials(provider)
 
-                # Guard on REQUIRED keys, not hash emptiness: smtp2go's
-                # credentials hash carries baked-in subdomain defaults and is
-                # never empty even with no api_key. Skipping here keeps the
-                # doomed API call from running (the strategy would return
-                # verified: nil anyway under the tri-state contract) and logs
-                # exactly which keys are missing.
+                # Guard on REQUIRED keys, not hash emptiness: key-level checks
+                # stay correct even when a builder bakes non-secret defaults
+                # into the hash (smtp2go now signals a missing api_key with an
+                # empty hash, but this guard never depended on that). Skipping
+                # here keeps the doomed API call from running (the strategy
+                # would return verified: nil anyway under the tri-state
+                # contract) and logs exactly which keys are missing.
                 missing = Onetime::Mail::ProviderRegistry.missing_required_credentials(provider, creds)
                 if missing.empty?
                   provider_result       = sender_strategy.check_provider_verification_status(mailer_config, credentials: creds)
