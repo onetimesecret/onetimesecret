@@ -49,6 +49,11 @@ module Onetime
       unless defined?(TRUTHY_VALUES)
         TRUTHY_VALUES = %w[1 true yes on y t].freeze
         FALSEY_VALUES = %w[0 false no off n f].freeze
+
+        # Longest rejected value strict_bool! will echo verbatim in its error
+        # message. Comfortably longer than every recognized token, short
+        # enough that a misrouted secret is not reproduced in full.
+        MAX_BOOL_ECHO_LENGTH = 32
       end
 
       # Generates a random string of specified length using predefined
@@ -278,11 +283,26 @@ module Onetime
         return false   if FALSEY_VALUES.include?(value)
 
         raise Onetime::ConfigError,
-          "#{name} is #{raw.inspect} — unrecognized boolean. " \
+          "#{name} is #{bool_echo(raw)} — unrecognized boolean. " \
           "Use one of #{TRUTHY_VALUES.join('/')} or #{FALSEY_VALUES.join('/')}, or leave unset."
       end
 
       private
+
+      # Renders a rejected boolean token for the error message. The message
+      # reaches logs and Sentry, so cap the echo: every legitimate token is a
+      # handful of characters, and anything longer is a misrouted value (a
+      # credential, a URL, a whole config blob) that should not be reproduced
+      # in full. The head is kept — it is what an operator needs to recognize
+      # which value they mistyped.
+      # @param raw [Object] Value that failed the token tables
+      # @return [String] Quoted, length-capped rendering
+      def bool_echo(raw)
+        text = raw.to_s
+        return text.inspect if text.length <= MAX_BOOL_ECHO_LENGTH
+
+        "#{text[0, MAX_BOOL_ECHO_LENGTH].inspect} (truncated, #{text.length} chars)"
+      end
 
       # Masks a single email address string
       # @param raw [String] Raw email address to mask

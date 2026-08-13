@@ -8,15 +8,10 @@
 # `ENV.fetch('RABBITMQ_VERIFY_PEER', 'true') == 'true'`, so every spelling
 # other than the literal `true` — TRUE, 1, yes, " true ", or the typo
 # `ture` — silently DISABLED AMQPS certificate verification on a
-# default-ON control. Same bug class 508d018c fixed in billing with a
-# private BillingConfig#strict_bool! (since replaced by this shared
-# helper); the case-table style here mirrors
-# apps/web/billing/spec/lib/billing_config_automatic_tax_spec.rb.
-#
-# The load-bearing distinction, and the reason explicit_no? is not
-# `!explicit_yes?`: these are RECOGNIZERS, not a partition. Unrecognized
-# input is neither yes nor no, which is what lets strict_bool! raise
-# instead of landing a typo on false (ADR-033: fail fast and loud).
+# default-ON control. The load-bearing distinction, and the reason
+# explicit_no? is not `!explicit_yes?`: these are RECOGNIZERS, not a
+# partition. Unrecognized input is neither yes nor no, so the configuration
+# resolver can fail loudly rather than landing a typo on false (ADR-033).
 #
 # Run with:
 #   AUTHENTICATION_MODE=simple bundle exec rspec spec/unit/onetime/utils/strings_spec.rb
@@ -82,44 +77,7 @@ RSpec.describe Onetime::Utils::Strings do
     end
   end
 
-  describe '#strict_bool!' do
-    # Unset takes the caller's documented default — including the
-    # security-relevant default-ON case.
-    [true, false].each do |default|
-      [nil, '', '   ', "\n"].each do |blank|
-        it "resolves #{blank.inspect} to the caller's default (#{default})" do
-          expect(utils.strict_bool!('RABBITMQ_VERIFY_PEER', blank, default: default)).to be(default)
-        end
-      end
-
-      described_class::TRUTHY_VALUES.each do |token|
-        it "resolves #{token.inspect} to true regardless of default (#{default})" do
-          expect(utils.strict_bool!('FLAG', token, default: default)).to be(true)
-        end
-      end
-
-      described_class::FALSEY_VALUES.each do |token|
-        it "resolves #{token.inspect} to false regardless of default (#{default})" do
-          expect(utils.strict_bool!('FLAG', token, default: default)).to be(false)
-        end
-      end
-    end
-
-    it 'accepts padded and mixed-case tokens' do
-      expect(utils.strict_bool!('FLAG', ' TRUE ', default: false)).to be(true)
-      expect(utils.strict_bool!('FLAG', "Off\n", default: true)).to be(false)
-    end
-
-    %w[ture flase enabled maybe 2].each do |garbage|
-      it "raises ConfigError on #{garbage.inspect} instead of falling back to the default" do
-        expect { utils.strict_bool!('RABBITMQ_VERIFY_PEER', garbage, default: true) }
-          .to raise_error(Onetime::ConfigError)
-      end
-    end
-
-    it 'names the flag and quotes the offending value in the message' do
-      expect { utils.strict_bool!('RABBITMQ_VERIFY_PEER', 'ture', default: true) }
-        .to raise_error(Onetime::ConfigError, /RABBITMQ_VERIFY_PEER.*"ture"/)
-    end
+  it 'does not expose configuration resolution on the mixed-in utility surface' do
+    expect(utils).not_to respond_to(:strict_bool!)
   end
 end
