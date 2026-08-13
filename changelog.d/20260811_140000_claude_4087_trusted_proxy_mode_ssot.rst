@@ -24,15 +24,11 @@ Fixed
   forwarded chain — a different address, and a wrong one if
   ``TRUSTED_PROXY_DEPTH`` does not match the real proxy topology. Boot now
   logs a warning naming both the configured and the canonicalized value when
-  this applies. Two things to check before upgrading: that
-  ``TRUSTED_PROXY_DEPTH`` matches your hop count, and that you are prepared
-  for depth mode's known limitation — depth does not record peer trust in
-  ``otto.via_trusted_proxy`` (pending delano/otto#226, the upstream half of
-  #4024), so forwarded host headers are discarded and every request
-  classifies as the canonical site; custom-domain branding, per-domain
-  homepage modes and domain-scoped sign-in behave as if the request arrived
-  on the canonical host. Setting ``TRUSTED_PROXY_MODE=filter`` explicitly
-  preserves the behaviour you were actually running. (#4087, #4024)
+  this applies. Check before upgrading that ``TRUSTED_PROXY_DEPTH`` matches
+  your actual hop count: a mismatch resolves a proxy or CDN address as the
+  client, which affects admin CIDR enforcement and shares rate-limit buckets
+  across unrelated clients. Setting ``TRUSTED_PROXY_MODE=filter`` explicitly
+  preserves the behaviour you were actually running. (#4087)
 
 Changed
 -------

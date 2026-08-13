@@ -405,10 +405,13 @@ module Onetime
         # landing on a valid mode (`Depth`, `DEPTH`, ` depth `). Honouring those
         # is a genuine RUNTIME CHANGE on upgrade: before this reader existed the
         # branch was an exact `== 'depth'` test, so a mixed-case value ran FILTER.
-        # Such a deployment now switches client-IP resolution to depth — which is
-        # still incomplete, since depth mode does not record peer trust in
-        # env['otto.via_trusted_proxy'] pending delano/otto#226, so forwarded host
-        # headers are discarded and custom domains classify as canonical (#4024).
+        # Such a deployment now switches client-IP resolution to depth, which
+        # counts hops from the right of the forwarded chain instead of walking
+        # it against the trusted-proxy CIDRs — a different address, and a wrong
+        # one if TRUSTED_PROXY_DEPTH does not match the real proxy topology.
+        # (Forwarded-host trust is NOT a concern here: otto 2.8 records
+        # env['otto.via_trusted_proxy'] in depth mode too, delano/otto#226,
+        # pinned in try/integration/middleware/detect_host_ip_privacy_stack_try.rb.)
         # The operator must be TOLD their value was reinterpreted, not merely
         # obeyed. Exact-lowercase valid values stay silent — nothing changed for
         # them, and a warning on the correct spelling is noise.
