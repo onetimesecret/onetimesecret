@@ -5,6 +5,11 @@
 require 'mail'
 require 'public_suffix'
 
+# strict_bool! raises Onetime::ConfigError. This file loads early in
+# lib/onetime.rb, hundreds of lines before the main errors require, so pull
+# it in here rather than relying on load order (errors.rb is dependency-free).
+require_relative '../errors'
+
 module Onetime
   module Utils
     module Strings
@@ -30,12 +35,18 @@ module Onetime
         # improve readability and reduce user errors when manually entering
         # generated strings.
         VALID_CHARS_SAFE = VALID_CHARS.reject { |char| AMBIGUOUS_CHARS.include?(char) }.freeze
+      end
 
-        # Definitive list of strings that can represent a boolean value. These
-        # are used by explicit_yes? and explicit_no? to avoid any confusion
-        # around guesses like, "it doesn't meet our definition for a clear
-        # positive signal so we'll assume the negative case" which is
-        # not the same as an explicit false.
+      # Definitive list of strings that can represent a boolean value. These
+      # are used by explicit_yes? and explicit_no? to avoid any confusion
+      # around guesses like, "it doesn't meet our definition for a clear
+      # positive signal so we'll assume the negative case" which is
+      # not the same as an explicit false.
+      #
+      # Guarded on their own name, not VALID_CHARS: Onetime::Utils defines its
+      # own VALID_CHARS, so a load path that evaluates this body after utils.rb
+      # would otherwise skip these definitions entirely.
+      unless defined?(TRUTHY_VALUES)
         TRUTHY_VALUES = %w[1 true yes on y t].freeze
         FALSEY_VALUES = %w[0 false no off n f].freeze
       end
@@ -259,11 +270,15 @@ module Onetime
       # @return [Boolean]
       # @raise [Onetime::ConfigError] if raw is present but not a recognized token
       def strict_bool!(name, raw, default:)
-        return default if raw.to_s.strip.empty?
-        return true    if explicit_yes?(raw)
-        return false   if explicit_no?(raw)
+        # Normalize exactly once so the blank guard and the token tables can
+        # never disagree about what normalization means. NOTE: the message
+        # echoes raw into logs/Sentry — fine for boolean flags, do not reuse
+        # this for operator-sensitive values.
+        value = raw.to_s.strip.downcase
+        return default if value.empty?
+        return true    if TRUTHY_VALUES.include?(value)
+        return false   if FALSEY_VALUES.include?(value)
 
-        # One nit: raw.inspect in the error message is fine for boolean flags, but if strict_bool! later gets reused for something operator-sensitive, the raised message echoes the raw value into logs/Sentry.
         raise Onetime::ConfigError,
           "#{name} is #{raw.inspect} — unrecognized boolean. " \
           "Use one of #{TRUTHY_VALUES.join('/')} or #{FALSEY_VALUES.join('/')}, or leave unset."

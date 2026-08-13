@@ -8,8 +8,9 @@
 # `ENV.fetch('RABBITMQ_VERIFY_PEER', 'true') == 'true'`, so every spelling
 # other than the literal `true` — TRUE, 1, yes, " true ", or the typo
 # `ture` — silently DISABLED AMQPS certificate verification on a
-# default-ON control. Same bug class 508d018c fixed in billing with
-# BillingConfig#strict_bool!; the case-table style here mirrors
+# default-ON control. Same bug class 508d018c fixed in billing with a
+# private BillingConfig#strict_bool! (since replaced by this shared
+# helper); the case-table style here mirrors
 # apps/web/billing/spec/lib/billing_config_automatic_tax_spec.rb.
 #
 # The load-bearing distinction, and the reason explicit_no? is not
