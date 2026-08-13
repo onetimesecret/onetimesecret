@@ -10,6 +10,85 @@ this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.htm
 
    <!--scriv-insert-here-->
 
+.. _changelog-0.26.5:
+
+0.26.5 — 2026-08-13
+===========================
+
+Added
+-----
+
+- Added ``LINK_DOMAINS`` (``features.domains.link_domains``) to
+  configure the link-domain picker. Invalid or empty pools now
+  report boot-time diagnostics. (#4063)
+
+- Added ``ADMIN_ALLOWED_HOSTS`` (``site.admin.allowed_hosts``) to
+  restrict Colonel surfaces by host. Added boot-time validation for admin
+  host and CIDR allowlists. (#4062, #4127)
+
+- Added full passkey sign-in, second-factor, credential-management, and
+  status support behind ``AUTH_WEBAUTHN_ENABLED``.
+
+Changed
+-------
+
+- Hardened detected-host handling for trusted proxies and ``Forwarded``
+  headers. (#4024, #4040)
+
+- ``GEO_HEADER`` (``site.network.geo.header``) is now honored only in
+  ``TRUSTED_PROXY_MODE=filter``. Depth-mode deployments should use
+  ``GEO_DB_PATH``. (#4024, #4068)
+
+- In ``TRUSTED_PROXY_MODE=depth`` (``site.network.trusted_proxy.mode``),
+  depth now expresses the explicit trust-at-edge decision. Ensure the origin is
+  reachable only through the proxy tier. (#4024)
+
+- Admin surfaces are host-gated by default to canonical ``DEFAULT_DOMAIN``
+  and ``HOST`` values. Set ``ADMIN_ALLOWED_HOSTS`` before upgrading if Colonel
+  is served on another host; ``*`` disables the host gate. (#4062, #4127)
+
+- Admin host-gate forwarded-host trust now requires
+  ``TRUSTED_PROXY_CIDRS`` configuration. Proxies must forward the original
+  ``Host`` header, or use a trusted forwarded-host header. (#4062, #4127)
+
+- ``ADMIN_ALLOWED_CIDRS`` (``site.admin.allowed_cidrs``) allowlists with no
+  valid entries now fail closed. CIDR matching uses the unmasked client IP for
+  verdicts. (#4062)
+
+- Renamed ``WEBAUTHN_VERIFY_ACCOUNT`` and ``WEBAUTHN_AUTOFILL`` to
+  ``AUTH_WEBAUTHN_VERIFY_ACCOUNT`` and ``AUTH_WEBAUTHN_AUTOFILL``. Only the
+  literal ``true`` now enables them; the previous names emit a deprecation
+  warning.
+
+- Custom domains cannot be restricted to passkey-only sign-in.
+
+- ``TRUSTED_PROXY_MODE`` is now canonicalized and validated at boot. Typos
+  continue to run in safer ``filter`` mode with a warning. (#4087)
+
+Fixed
+------
+
+- Fixed ``TRUSTED_PROXY_MODE=depth`` client-IP selection. Deployments that
+  compensated for the bug should restore the actual ``TRUSTED_PROXY_DEPTH``.
+  (#4024)
+
+- Fixed ``Forwarded`` ``host=`` parsing, bracketed IPv6 hosts, and hostname
+  validation. (#4040)
+
+- Fixed link-domain classification, secret creation validation, and
+  domain-context picker state. (#4063)
+
+- Fixed the frontend admin config contract for ``allowed_hosts``. (#4062)
+
+- Fixed passkey sign-in requests and restored ``userVerification`` in
+  credential-creation options.
+
+Documentation
+-------------
+
+- Updated admin-isolation and trusted-proxy guides, including nginx
+  host-forwarding troubleshooting. (#4062, #4127)
+
 .. _changelog-0.26.4:
 
 0.26.4 — 2026-08-05
