@@ -441,12 +441,12 @@ auth_methods = resp['record']['auth_methods']
 [@sso_config.nil?, auth_methods.any? { |m| m['type'] == 'sso' }]
 #=> [false, true]
 
-## GET /api/invite/:token with SSO configured - auth_methods has both password and sso
+## GET /api/invite/:token with SSO configured - auth_methods honors the domain SSO restriction
 resp = JSON.parse(last_response.body)
 auth_methods = resp['record']['auth_methods']
 types = auth_methods.map { |m| m['type'] }.sort
 types
-#=> ['password', 'sso']
+#=> ['sso']
 
 ## GET /api/invite/:token with SSO configured - SSO includes provider_type
 resp = JSON.parse(last_response.body)

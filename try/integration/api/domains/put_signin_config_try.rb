@@ -463,7 +463,7 @@ Onetime.auth_config.restrict_to
 @logic_rt_unconf.process[:details][:effective_restrict_to]
 #=> { state: 'unrestricted', restrict_to: nil, source: 'global' }
 
-## Unconfigured domain under a global restriction — inherited, global source
+## Unconfigured domain under a global restriction — unavailable: the domain never opted sign-in in
 @auth_conf = Onetime.auth_config
 @auth_conf.define_singleton_method(:restrict_to) { 'password' }
 begin
@@ -473,9 +473,9 @@ begin
 ensure
   @auth_conf.singleton_class.remove_method(:restrict_to)
 end
-#=> { global_enabled: true, effective_enabled: false, global_restrict_to: 'password', effective_restrict_to: { state: 'restricted', restrict_to: 'password', source: 'global' }, tenant_sso: { available: false, unavailable_reason: 'no_sso_config' } }
+#=> { global_enabled: true, effective_enabled: false, global_restrict_to: 'password', effective_restrict_to: { state: 'unavailable', restrict_to: 'password', source: 'global' }, tenant_sso: { available: false, unavailable_reason: 'no_sso_config' } }
 
-## Enabled domain config naming a method — REPLACES the global restriction, domain source
+## Enabled domain config naming a method that is unavailable here — domain source, fail closed
 @domain_rt_dom = Onetime::CustomDomain.create!("psc-rt-dom-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
 @logic_rt_put = build_put(
   extid: @domain_rt_dom.extid,
@@ -483,7 +483,7 @@ end
 )
 @logic_rt_put.raise_concerns
 @logic_rt_put.process[:details][:effective_restrict_to]
-#=> { state: 'restricted', restrict_to: 'email_auth', source: 'domain' }
+#=> { state: 'unavailable', restrict_to: 'email_auth', source: 'domain' }
 
 ## Domain and global naming different methods — :unavailable, source :conflict, global method named (A8)
 @auth_conf_x = Onetime.auth_config
