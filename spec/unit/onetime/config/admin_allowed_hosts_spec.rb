@@ -4,6 +4,10 @@
 
 # #4062: an explicitly set ADMIN_ALLOWED_HOSTS that names nothing the admin
 # host gate could ever match is announced at boot with a WARN.
+# #4127: so is an ADMIN_ALLOWED_HOSTS that was set but left blank — the gate
+# quietly takes the same canonical-anchor fallback as unset, which on a
+# localhost/bare-IP install means no host gate at all, and only boot can say
+# so.
 #
 # The check is driven DIRECTLY with an explicit raw argument rather than
 # through a booted OT.conf, the same way spec/unit/onetime/config/
@@ -47,22 +51,63 @@ RSpec.describe Onetime::Config, 'ADMIN_ALLOWED_HOSTS validation (#4062)' do
   before { allow(OT).to receive(:lw) }
 
   describe '.check_admin_allowed_hosts' do
-    # Posture 1: unset / empty. The gate falls back to the canonical anchors
-    # and self-disables on a localhost or bare-IP install. Nothing to say.
-    context 'when ADMIN_ALLOWED_HOSTS is unset or empty' do
+    # Posture 1: unset. The gate falls back to the canonical anchors and
+    # self-disables on a localhost or bare-IP install. Nobody configured
+    # anything, so there is nothing to say.
+    context 'when ADMIN_ALLOWED_HOSTS is unset' do
       it 'says nothing for nil — the canonical anchor fallback' do
         described_class.check_admin_allowed_hosts(nil)
         expect(OT).not_to have_received(:lw)
       end
+    end
 
-      it 'says nothing for an empty list' do
+    # Posture 1b: SET BUT BLANK (#4127). ADMIN_ALLOWED_HOSTS="" renders [],
+    # ADMIN_ALLOWED_HOSTS="  " renders [''] (see the ENV mapping specs below).
+    # The runtime outcome is identical to unset — anchor fallback, restrictive
+    # on a routable canonical, self-disabling on localhost/bare-IP — but the
+    # operator explicitly wrote an allowlist, and boot is the only place to
+    # tell them their written config produced no host gate of its own.
+    context 'when ADMIN_ALLOWED_HOSTS is set but blank' do
+      it 'warns for an empty list (ADMIN_ALLOWED_HOSTS="")' do
         described_class.check_admin_allowed_hosts([])
-        expect(OT).not_to have_received(:lw)
+        expect(OT).to have_received(:lw).with(/ADMIN_ALLOWED_HOSTS/)
       end
 
-      it 'says nothing for a list of only blanks (the shape ERB renders for a blank value)' do
+      it 'warns for a list of only blanks (ADMIN_ALLOWED_HOSTS="  " or ", ,")' do
         described_class.check_admin_allowed_hosts(['', '   '])
-        expect(OT).not_to have_received(:lw)
+        expect(OT).to have_received(:lw).with(/ADMIN_ALLOWED_HOSTS/)
+      end
+
+      it 'does NOT raise — the fallback is the restrictive default, only unvoiced' do
+        expect { described_class.check_admin_allowed_hosts([]) }.not_to raise_error
+      end
+
+      describe 'the warning message' do
+        let(:captured) do
+          message = nil
+          allow(OT).to receive(:lw) { |text| message = text }
+          described_class.check_admin_allowed_hosts([])
+          message
+        end
+
+        it 'names the env var and the config path' do
+          expect(captured).to match(/ADMIN_ALLOWED_HOSTS/)
+          expect(captured).to match(/site\.admin\.allowed_hosts/)
+        end
+
+        it 'states the consequence: the canonical-anchor fallback' do
+          expect(captured).to match(/canonical anchors/)
+        end
+
+        it 'states the localhost/bare-IP consequence: the gate self-disables' do
+          expect(captured).to match(/self-disables/)
+        end
+
+        it 'offers every way out: a hostname, unsetting, or the `*` escape hatch' do
+          expect(captured).to include('admin.example.com')
+          expect(captured).to include('unset')
+          expect(captured).to include('*')
+        end
       end
     end
 
@@ -272,8 +317,9 @@ RSpec.describe Onetime::Config, 'ADMIN_ALLOWED_HOSTS validation (#4062)' do
       expect { described_class.raise_concerns(conf_with(:unset)) }.not_to raise_error
     end
 
-    it 'boots when ADMIN_ALLOWED_HOSTS is empty (the canonical anchor fallback)' do
+    it 'boots when ADMIN_ALLOWED_HOSTS is blank — the set-but-blank WARN is not fatal (#4127)' do
       expect { described_class.raise_concerns(conf_with([])) }.not_to raise_error
+      expect(OT).to have_received(:lw).with(/ADMIN_ALLOWED_HOSTS/)
     end
 
     it 'boots when ADMIN_ALLOWED_HOSTS names a routable hostname' do
@@ -303,9 +349,15 @@ RSpec.describe Onetime::Config, 'ADMIN_ALLOWED_HOSTS validation (#4062)' do
 
   # One classifier, one answer. Onetime::Config warns at boot exactly when
   # Onetime::Middleware::AdminNetworkIsolation would construct itself with an
-  # active gate and an EMPTY allowlist (deny both surfaces). If these two ever
-  # disagreed the app would boot quietly into a config the middleware then
-  # refuses to serve, or warn about one it serves happily.
+  # active gate and an EMPTY allowlist (deny both surfaces) — and additionally
+  # (#4127) when the list is set but blank, where the middleware takes the
+  # anchor fallback and the boot WARN is the ONLY signal. `denies` below is
+  # the middleware half (Classification#unenforceable?); `warns` is the boot
+  # half. warns must be a superset of denies: every runtime denial is
+  # announced, and the one extra warning names a fallback, not a denial. If
+  # the two halves ever disagreed on denials the app would boot quietly into
+  # a config the middleware then refuses to serve, or warn about one it
+  # serves happily.
   #
   # Asserted through the shared classifier rather than by booting a middleware
   # (that lives in try/unit/middleware/admin_network_isolation_try.rb), so this
@@ -321,22 +373,89 @@ RSpec.describe Onetime::Config, 'ADMIN_ALLOWED_HOSTS validation (#4062)' do
     end
 
     {
-      nil => false,
-      []                                 => false,
-      ['*']                              => false,
-      ['admin.example.com']              => false,
-      ['*', 'admin.example.com']         => false,
-      ['*', '10.0.0.5']                  => false,
-      ['127.0.0.1', 'admin.example.com'] => false,
-      ['127.0.0.1']                      => true,
-      ['*.example.com']                  => true,
-      ['bücher.example']                 => true,
-      %w[localhost ::1]                  => true,
+      nil => { warns: false, denies: false },
+      []                                 => { warns: true,  denies: false }, # set-but-blank: anchor fallback, announced (#4127)
+      ['', '   ']                        => { warns: true,  denies: false }, # ditto, the ADMIN_ALLOWED_HOSTS="  " shape
+      ['*']                              => { warns: false, denies: false },
+      ['admin.example.com']              => { warns: false, denies: false },
+      ['*', 'admin.example.com']         => { warns: false, denies: false },
+      ['*', '10.0.0.5']                  => { warns: false, denies: false },
+      ['127.0.0.1', 'admin.example.com'] => { warns: false, denies: false },
+      ['127.0.0.1']                      => { warns: true,  denies: true },
+      ['*.example.com']                  => { warns: true,  denies: true },
+      ['bücher.example']                 => { warns: true,  denies: true },
+      %w[localhost ::1]                  => { warns: true,  denies: true },
     }.each do |raw, expected|
-      it "agrees on #{raw.inspect}: warns=#{expected}" do
-        expect(warns?(raw)).to eq(expected)
-        expect(classifier.classify(raw).unenforceable?).to eq(expected)
+      it "agrees on #{raw.inspect}: warns=#{expected[:warns]} denies=#{expected[:denies]}" do
+        expect(warns?(raw)).to eq(expected[:warns])
+        expect(classifier.classify(raw).unenforceable?).to eq(expected[:denies])
       end
+    end
+  end
+
+  # The nil/[] distinction the boot check relies on is MANUFACTURED upstream,
+  # by two pieces that must hold together (#4127):
+  #
+  #   1. The config template renders ADMIN_ALLOWED_HOSTS without an `|| []`
+  #      fallback, so unset arrives as YAML nil and set-but-blank as a list
+  #      with nothing usable in it.
+  #   2. DEFAULTS carries NO site.admin.allowed_hosts key, because deep_merge
+  #      has an explicit `v2.nil? -> v1` arm that would resolve the YAML nil
+  #      back to any default and erase the distinction.
+  #
+  # Either piece regressing silently turns the set-but-blank WARN into either
+  # noise on every default install or a check that can never fire — so both
+  # are pinned here, against the REAL defaults template.
+  describe 'the ENV -> config shapes the check depends on (#4127)' do
+    let(:defaults_path) do
+      File.expand_path('../../../../etc/defaults/config.defaults.yaml', __dir__)
+    end
+
+    def rendered_allowed_hosts(env_value)
+      original = ENV.fetch('ADMIN_ALLOWED_HOSTS', :absent)
+      if env_value.nil?
+        ENV.delete('ADMIN_ALLOWED_HOSTS')
+      else
+        ENV['ADMIN_ALLOWED_HOSTS'] = env_value
+      end
+
+      yaml = described_class.send(:load_yaml_with_erb, defaults_path)
+      yaml.dig('site', 'admin', 'allowed_hosts')
+    ensure
+      if original == :absent
+        ENV.delete('ADMIN_ALLOWED_HOSTS')
+      else
+        ENV['ADMIN_ALLOWED_HOSTS'] = original
+      end
+    end
+
+    it 'renders nil when ADMIN_ALLOWED_HOSTS is unset' do
+      expect(rendered_allowed_hosts(nil)).to be_nil
+    end
+
+    it 'renders an empty list for ADMIN_ALLOWED_HOSTS=""' do
+      expect(rendered_allowed_hosts('')).to eq([])
+    end
+
+    it 'renders a blank entry for ADMIN_ALLOWED_HOSTS="  "' do
+      expect(rendered_allowed_hosts('  ')).to eq([''])
+    end
+
+    it 'still renders a real list for a set value' do
+      expect(rendered_allowed_hosts('admin.example.com, ops.example.net'))
+        .to eq(%w[admin.example.com ops.example.net])
+    end
+
+    it 'has no allowed_hosts key in DEFAULTS, so deep_merge cannot resurrect []' do
+      expect(described_class::DEFAULTS.dig('site', 'admin')).not_to have_key('allowed_hosts')
+    end
+
+    it 'preserves the rendered nil through the DEFAULTS merge' do
+      loaded = { 'site' => { 'admin' => { 'allowed_hosts' => nil } } }
+      merged = described_class.send(:deep_merge, described_class::DEFAULTS, loaded)
+
+      expect(merged['site']['admin']).to have_key('allowed_hosts')
+      expect(merged.dig('site', 'admin', 'allowed_hosts')).to be_nil
     end
   end
 end

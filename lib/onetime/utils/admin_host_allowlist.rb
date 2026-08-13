@@ -96,12 +96,17 @@ module Onetime
         # BLANK ENTRIES ARE SKIPPED, NOT REJECTED — a DELIBERATE asymmetry with
         # #4063's LINK_DOMAINS, where `LINK_DOMAINS="  "` is a boot error.
         # ADMIN_ALLOWED_HOSTS="   " classifies as empty?, which sends the gate
-        # to the canonical-anchor fallback: the RESTRICTIVE default. There is no
-        # over-exposure to fail loud about, so a benign typo does not earn a
-        # diagnostic. The unenforceable cases are the opposite — an entry that
-        # survives stripping but can never match would leave the operator's
-        # intent to restrict silently unfulfilled — and those DO warn loudly at
-        # boot and deny both surfaces at runtime.
+        # to the canonical-anchor fallback: the RESTRICTIVE default. There is
+        # no over-exposure to deny over, so the RUNTIME treats it exactly like
+        # unset. The BOOT check no longer stays quiet about it, though (#4127):
+        # check_admin_allowed_hosts distinguishes a set-but-blank list (an
+        # empty? classification of a non-nil raw) from unset (nil) and WARNs,
+        # because on a localhost/bare-IP install the anchor fallback
+        # self-disables and the operator's written config yields no host gate
+        # at all. The unenforceable cases remain the loud ones — an entry that
+        # survives stripping but can never match leaves the operator's intent
+        # to restrict silently unfulfilled — and those warn at boot and deny
+        # both surfaces at runtime.
         #
         # @param raw [Array<String>, String, nil]
         # @return [Classification]

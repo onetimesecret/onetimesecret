@@ -11,37 +11,37 @@
  */
 
 import {
-  siteSchema,
-  siteAuthenticationSchema,
-  siteSecretOptionsSchema,
+  cspSchema,
+  middlewareSchema,
   passphraseSchema,
   passwordGenerationSchema,
-  sessionConfigSchema,
-  middlewareSchema,
   securitySchema,
-  cspSchema,
+  sessionConfigSchema,
   siteAdminSchema,
+  siteAuthenticationSchema,
+  siteSchema,
+  siteSecretOptionsSchema,
 } from '@/schemas/contracts/config/section/site';
 import { augment, type AugmentTree } from '@/schemas/utils/augment';
 
 export {
-  siteSchema,
-  siteAuthenticationSchema,
-  siteSecretOptionsSchema,
+  cspSchema,
+  middlewareSchema,
   passphraseSchema,
   passwordGenerationSchema,
-  sessionConfigSchema,
-  middlewareSchema,
   securitySchema,
-  cspSchema,
+  sessionConfigSchema,
   siteAdminSchema,
+  siteAuthenticationSchema,
+  siteSchema,
+  siteSecretOptionsSchema,
 };
 
 export type {
-  SessionConfig,
-  MiddlewareConfig,
   CspConfig,
+  MiddlewareConfig,
   SecurityConfig,
+  SessionConfig,
   SiteAdminConfig,
 } from '@/schemas/contracts/config/section/site';
 
@@ -93,7 +93,12 @@ const adminTree: AugmentTree = {
   // gate: an empty list is a no-op and both Colonel surfaces stay reachable
   // (self-hosted single-container default); populated with private CIDRs on
   // cloud for network isolation.
-  allowed_hosts: (a) => a.default([]),
+  //
+  // `.nullable()` is re-applied here on purpose: augment hands the leaf the
+  // UNWRAPPED field and does not re-wrap, and config.defaults.yaml renders
+  // `allowed_hosts:` as null when ADMIN_ALLOWED_HOSTS is unset (#4127). Drop
+  // it and the generated JSON Schema rejects the shipped defaults file.
+  allowed_hosts: (a) => a.nullable().default([]),
   allowed_cidrs: (a) => a.default([]),
 };
 
@@ -166,14 +171,14 @@ const siteShape = augment(siteSchema, {
 });
 
 export {
-  siteShape,
-  siteAuthenticationShape,
-  siteSecretOptionsShape,
+  cspShape,
+  middlewareShape,
   passphraseShape,
   passwordGenerationShape,
-  sessionConfigShape,
-  middlewareShape,
   securityShape,
-  cspShape,
+  sessionConfigShape,
   siteAdminShape,
+  siteAuthenticationShape,
+  siteSecretOptionsShape,
+  siteShape,
 };
