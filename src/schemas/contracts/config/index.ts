@@ -62,6 +62,7 @@ export {
   storageSchema,
   redisSchema,
   emailerSchema,
+  emailProvidersSchema,
   mailSchema,
   mailConnectionSchema,
   mailValidationSchema,
