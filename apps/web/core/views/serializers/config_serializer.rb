@@ -436,9 +436,18 @@ module Core
           domain_id     = resolve_domain_id(view_vars)
           signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id) if domain_id
 
-          # Custom domain that has not opted into per-domain sign-in: password/
-          # email defaults OFF; keep the page only when SSO is available.
-          if tenant_domain?(view_vars) && !signin_config&.enabled?
+          # Anything but a positively-classified operator host, with no opted-in
+          # per-domain sign-in: password/email default OFF; keep the page only
+          # when SSO is available.
+          #
+          # The predicate is operator_domain?, NOT tenant_domain? (ADR-024 A12).
+          # The runtime gate now requires positive :canonical/:subdomain
+          # evidence before applying operator defaults, and this display gate
+          # must move with it: leaving `== :custom` here would advertise
+          # sign-in on a host classified :invalid by a datastore blip while
+          # Base#signin_enabled? rejects the POST — the display/runtime
+          # disagreement both gates' comments exist to forbid.
+          if !operator_domain?(view_vars) && !signin_config&.enabled?
             return sso_available?(view_vars)
           end
 
@@ -508,9 +517,25 @@ module Core
             return build_tenant_sso_response(tenant_config)
           end
 
-          # Check if we're on a custom domain that should have tenant config
-          # but doesn't - honor the fallback policy
-          if tenant_domain?(view_vars) && !allow_platform_fallback?
+          # No tenant config resolved. Honor the operator's fallback policy:
+          # when platform fallback is withheld from tenants, a host that is not
+          # positively one of the operator's OWN gets no providers.
+          #
+          # The predicate is operator_domain?, NOT tenant_domain? (ADR-024 A12).
+          # This is a POLICY decision — "may this host borrow the platform's
+          # SSO providers" — so it takes the same positive test as the sign-in
+          # gates. Keyed on `== :custom` it skipped the withholding for
+          # :invalid, and platform omniauth routes are host-independent, so a
+          # customer domain misclassified by a datastore blip was OFFERED the
+          # providers its correct classification denies — the A12 widen one
+          # layer down, in a working sign-in method rather than a rendering
+          # detail.
+          #
+          # Tenant-vs-platform SELECTION above is untouched and still keys on
+          # domain identity (resolve_tenant_sso_config, via domain_id): a
+          # genuinely unknown host has no tenant config to select, and this
+          # guard is what decides whether it may fall back.
+          if !operator_domain?(view_vars) && !allow_platform_fallback?
             return { 'enabled' => false, 'providers' => [] }
           end
 
@@ -587,6 +612,21 @@ module Core
         def tenant_domain?(view_vars)
           strategy = view_vars['domain_strategy']
           strategy == :custom
+        end
+
+        # Whether this request is positively classified as one of the operator's
+        # OWN hosts, and may therefore inherit operator auth defaults (ADR-024
+        # A12). The complement of tenant_domain? is NOT this: :invalid and nil
+        # are neither operator hosts nor tenant hosts, and must be treated as
+        # tenant-safe for auth while staying non-tenant for branding/routing.
+        #
+        # SigninConfig.operator_host? owns the classification list so this page
+        # and the runtime gates cannot disagree about it.
+        #
+        # @param view_vars [Hash] View variables
+        # @return [Boolean] true on :canonical / :subdomain
+        def operator_domain?(view_vars)
+          Onetime::CustomDomain::SigninConfig.operator_host?(view_vars['domain_strategy'])
         end
 
         # Check if platform fallback is allowed for tenant domains
