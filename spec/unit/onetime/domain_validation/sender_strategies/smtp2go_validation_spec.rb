@@ -14,12 +14,13 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::Smtp2goValidation do
   end
 
   # Realistic SMTP2GO-provisioned DNS records (string-keyed hashes, as
-  # normalized by Smtp2goSenderStrategy#build_dns_records)
+  # normalized by Smtp2goSenderStrategy#build_dns_records — the tracking
+  # CNAME is advisory and carries 'optional' => true)
   let(:provisioned_dns_records) do
     [
       {'type' => 'CNAME', 'name' => "em1234._domainkey.#{domain}", 'value' => 'dkim.smtp2go.net', 'status' => 'pending'},
       {'type' => 'CNAME', 'name' => "bounce.#{domain}", 'value' => 'return.smtp2go.net', 'status' => 'pending'},
-      {'type' => 'CNAME', 'name' => "track.#{domain}", 'value' => 'track.smtp2go.net', 'status' => 'pending'},
+      {'type' => 'CNAME', 'name' => "track.#{domain}", 'value' => 'track.smtp2go.net', 'status' => 'pending', 'optional' => true},
     ]
   end
 
@@ -55,8 +56,8 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::Smtp2goValidation do
       expect(records).to be_an(Array)
     end
 
-    it 'returns one record per provisioned DNS entry' do
-      expect(records.size).to eq(3)
+    it 'returns one record per required (non-optional) provisioned DNS entry' do
+      expect(records.size).to eq(2)
     end
 
     it 'maps provisioned records to symbol-keyed hashes' do
@@ -101,19 +102,17 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::Smtp2goValidation do
       end
     end
 
-    describe 'tracking CNAME record' do
-      subject(:tracking_record) { records.find { |r| r[:value] == 'track.smtp2go.net' } }
-
-      it 'has correct type' do
-        expect(tracking_record[:type]).to eq('CNAME')
+    describe 'tracking CNAME record (advisory)' do
+      it 'is excluded from the gating record set' do
+        expect(records.none? { |r| r[:value] == 'track.smtp2go.net' }).to be true
       end
 
-      it 'has correct host from provisioned data' do
-        expect(tracking_record[:host]).to eq("track.#{domain}")
-      end
+      it 'is included when provisioned without the optional flag' do
+        allow(dns_records_field).to receive(:value).and_return([
+          {'type' => 'CNAME', 'name' => "track.#{domain}", 'value' => 'track.smtp2go.net'},
+        ])
 
-      it 'classifies purpose as Tracking' do
-        expect(tracking_record[:purpose]).to eq('Tracking')
+        expect(records.first).to include(type: 'CNAME', host: "track.#{domain}", purpose: 'Tracking')
       end
     end
 
@@ -191,6 +190,38 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::Smtp2goValidation do
     it 'passes bypass_cache option through' do
       expect(strategy).to receive(:verify_all_records).with(mailer_config, bypass_cache: true)
       strategy.verify_dns_records(mailer_config, bypass_cache: true)
+    end
+  end
+
+  describe 'optional records do not gate all_verified (regression)' do
+    # A customer who publishes only the DKIM and return-path CNAMEs must
+    # verify even when the advisory track.<domain> CNAME is absent from
+    # DNS. ValidateSenderDomain computes:
+    #   all_verified = records.any? && records.all? { |r| r[:verified] }
+    before do
+      # DKIM and return-path resolve; the tracking CNAME does not exist
+      allow(strategy).to receive(:lookup_cname_records) do |hostname, **|
+        case hostname
+        when "em1234._domainkey.#{domain}" then [['dkim.smtp2go.net'], nil]
+        when "bounce.#{domain}" then [['return.smtp2go.net'], nil]
+        else [[], 'not_found']
+        end
+      end
+    end
+
+    it 'reports every gating record verified when only required records resolve' do
+      results = strategy.verify_dns_records(mailer_config, bypass_cache: true)
+
+      all_verified = results.any? && results.all? { |r| r[:verified] }
+      expect(all_verified).to be true
+    end
+
+    it 'does not include the missing tracking CNAME in verification results' do
+      results = strategy.verify_dns_records(mailer_config, bypass_cache: true)
+
+      expect(results.map { |r| r[:host] }).to contain_exactly(
+        "em1234._domainkey.#{domain}", "bounce.#{domain}"
+      )
     end
   end
 

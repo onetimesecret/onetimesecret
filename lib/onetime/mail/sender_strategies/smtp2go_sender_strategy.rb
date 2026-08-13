@@ -157,17 +157,27 @@ module Onetime
         # Checks verification status of a sender domain.
         #
         # Triggers an immediate re-verification via /domain/verify (SMTP2GO
-        # otherwise re-checks DNS every ~7 minutes), then reads the current
-        # state from /domain/view. SMTP2GO exposes no domain-level verified
+        # otherwise re-checks DNS every ~7 minutes) and reads the current
+        # state from its response, falling back to /domain/view when the
+        # trigger fails. SMTP2GO exposes no domain-level verified
         # boolean; the domain is verified when dkim_verified and
         # rpath_verified are both true. Tracker CNAMEs affect link
         # rewriting, not sender authentication, so their state is surfaced
         # in details but never gates verification.
         #
+        # Tri-state :verified contract (shared by all sender strategies):
+        #   true  - the provider confirms the domain is verified
+        #   false - the provider authoritatively says it is NOT verified
+        #           (pending records, or the domain is absent at the provider)
+        #   nil   - the answer could not be determined (missing/blank
+        #           credential, provider API error such as 401/5xx, transport
+        #           failure). Callers must NOT treat nil as a failed check —
+        #           a rotated API key must never demote a verified domain.
+        #
         # @param mailer_config [CustomDomain::MailerConfig] Mailer configuration
         # @param credentials [Hash] Must include 'api_key'
         # @return [Hash] Verification status:
-        #   - :verified [Boolean]
+        #   - :verified [Boolean, nil] Tri-state, see above
         #   - :status [String] 'verified', 'pending', 'not_found', 'error'
         #   - :message [String]
         #   - :details [Hash, nil] Additional verification details
@@ -186,7 +196,7 @@ module Onetime
           api_key = credentials['api_key']
           unless api_key && !api_key.empty?
             return {
-              verified: false,
+              verified: nil,
               status: 'error',
               message: 'SMTP2GO API key is required',
             }
@@ -198,16 +208,22 @@ module Onetime
 
           # Trigger SMTP2GO to re-check DNS records before reading status.
           # Without this, SMTP2GO's ~7-minute polling cadence means the
-          # cached status may not reflect recent DNS changes.
-          begin
-            client.post('/domain/verify', { 'domain' => domain })
+          # cached status may not reflect recent DNS changes. The verify
+          # response carries the same data.domains envelope as /domain/view,
+          # so its entry is reused directly — no second round trip.
+          entry = begin
+            data = client.post('/domain/verify', { 'domain' => domain })
             log_info "[smtp2go-sender] Triggered provider verification for #{domain}"
+            extract_domain_entry(data, domain)
           rescue StandardError => ex
             # Non-fatal: continue and read whatever status SMTP2GO has
             log_warn "[smtp2go-sender] Provider trigger failed for #{domain}: #{ex.message}"
+            nil
           end
 
-          entry = find_domain(client, domain)
+          # Fall back to /domain/view only when the verify call failed or
+          # its response lacked the domain entry.
+          entry ||= find_domain(client, domain)
 
           unless entry
             return {
@@ -239,14 +255,14 @@ module Onetime
         rescue Smtp2goClient::APIError => ex
           log_error "[smtp2go-sender] Verification check failed for #{domain}: HTTP #{ex.status_code} - #{ex.message}"
           {
-            verified: false,
+            verified: nil,
             status: 'error',
             message: "Verification check failed: #{ex.message}",
           }
         rescue StandardError => ex
           log_error "[smtp2go-sender] Verification check failed: #{ex.message}"
           {
-            verified: false,
+            verified: nil,
             status: 'error',
             message: "Verification check failed: #{ex.message}",
           }

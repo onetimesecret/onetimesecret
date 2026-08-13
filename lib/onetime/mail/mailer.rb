@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require_relative 'provider_registry'
 require_relative 'delivery/base'
 require_relative 'delivery/disabled'
 require_relative 'delivery/logger'
@@ -203,26 +204,11 @@ module Onetime
           # Test environment always uses logger
           return 'logger' if ENV['RACK_ENV'] == 'test'
 
-          # Auto-detect provider from config keys (first match wins):
-          #   region + user        -> ses (AWS SES credentials)
-          #   sendgrid_api_key     -> sendgrid
-          #   lettermint_api_token -> lettermint
-          #   smtp2go_api_key      -> smtp2go
-          #   host                 -> smtp (generic SMTP)
-          #   (none)               -> logger (safe fallback)
-          if conf['region'] && conf['user']
-            'ses' # AWS SES uses region + AWS credentials
-          elsif conf['sendgrid_api_key']
-            'sendgrid'
-          elsif conf['lettermint_api_token']
-            'lettermint'
-          elsif conf['smtp2go_api_key']
-            'smtp2go'
-          elsif conf['host']
-            'smtp'
-          else
-            'logger' # fallback
-          end
+          # Auto-detect provider from config keys. Each ProviderRegistry
+          # descriptor declares its detect_keys; the registry order is the
+          # precedence order (e.g. region+user -> ses is tested before
+          # host -> smtp). No match -> logger (safe fallback).
+          ProviderRegistry.detect_provider(conf) || 'logger'
         end
 
         private
@@ -299,19 +285,14 @@ module Onetime
 
           log_info "[mail] Using #{provider} delivery backend"
 
+          descriptor = ProviderRegistry.descriptor(provider)
+          return descriptor.delivery_class.new(config) if descriptor
+
+          # Non-provider transports (not in the registry): disabled/none
+          # swallow mail, logger writes it to the log.
           case provider
           when 'disabled', 'none'
             Delivery::Disabled.new(config)
-          when 'smtp'
-            Delivery::SMTP.new(config)
-          when 'ses'
-            Delivery::SES.new(config)
-          when 'sendgrid'
-            Delivery::SendGrid.new(config)
-          when 'lettermint'
-            Delivery::Lettermint.new(config)
-          when 'smtp2go'
-            Delivery::Smtp2go.new(config)
           when 'logger'
             Delivery::Logger.new(config)
           else
@@ -346,16 +327,13 @@ module Onetime
         end
 
         def build_provider_config(provider)
-          conf = emailer_config
+          conf       = emailer_config
+          descriptor = ProviderRegistry.descriptor(provider)
+          return {} unless descriptor
 
-          case provider
-          when 'smtp'       then smtp_provider_config(conf)
-          when 'ses'        then ses_provider_config(conf)
-          when 'sendgrid'   then sendgrid_provider_config(conf)
-          when 'lettermint' then lettermint_provider_config(conf)
-          when 'smtp2go'    then smtp2go_provider_config(conf)
-          else {}
-          end
+          # Each descriptor names its config-builder method (the
+          # *_provider_config methods below).
+          send(descriptor.provider_config_method, conf)
         end
 
         def smtp_provider_config(conf)
@@ -398,9 +376,23 @@ module Onetime
 
         def smtp2go_provider_config(conf)
           s2g_conf = provider_config('smtp2go')
+
+          # Single API key covers both email delivery and domain provisioning
+          api_key = conf['smtp2go_api_key'] || s2g_conf['api_key'] || ENV.fetch('SMTP2GO_API_KEY', nil)
+
+          # Without the API key nothing SMTP2GO-related can work, so signal
+          # no-credentials with an empty hash (same contract as lettermint
+          # with no tokens). The subdomain/base_url defaults below would
+          # otherwise survive .compact and defeat the `creds.empty?` guards
+          # in DomainValidationWorker / check_essentials!. The DNS validation
+          # layer reads subdomain defaults independently via
+          # DomainValidation::SenderStrategies::ProviderConfig, and
+          # Smtp2goSenderStrategy applies its own defaults, so nothing needs
+          # these values when the key is absent.
+          return {} if api_key.to_s.empty?
+
           {
-            # Single API key covers both email delivery and domain provisioning
-            'api_key' => conf['smtp2go_api_key'] || s2g_conf['api_key'] || ENV.fetch('SMTP2GO_API_KEY', nil),
+            'api_key' => api_key,
             'base_url' => s2g_conf['api_base_url'] || ENV.fetch('SMTP2GO_BASE_URL', nil),
             # Subdomains for the SPF/Return-Path and tracking CNAME records
             'returnpath_subdomain' => s2g_conf['returnpath_subdomain'] || ENV.fetch('CUSTOM_MAIL_SMTP2GO_RETURNPATH_SUBDOMAIN', 'bounce'),

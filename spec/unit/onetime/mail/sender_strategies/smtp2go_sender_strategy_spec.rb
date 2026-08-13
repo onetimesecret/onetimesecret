@@ -472,16 +472,14 @@ RSpec.describe Onetime::Mail::SenderStrategies::Smtp2goSenderStrategy do
       }
     end
 
-    before do
-      allow(mock_client).to receive(:post)
-        .with('/domain/verify', { 'domain' => 'example.com' })
-        .and_return({ 'domains' => [domain_entry] })
-    end
-
+    # The /domain/verify response carries the same data.domains envelope as
+    # /domain/view, so the strategy reads the entry straight from the verify
+    # response — a single round trip unless the trigger fails or omits the
+    # entry (fallback contexts below).
     context 'when all three records are verified' do
       before do
         allow(mock_client).to receive(:post)
-          .with('/domain/view', { 'domain' => 'example.com' })
+          .with('/domain/verify', { 'domain' => 'example.com' })
           .and_return({ 'domains' => [verified_entry] })
       end
 
@@ -503,10 +501,11 @@ RSpec.describe Onetime::Mail::SenderStrategies::Smtp2goSenderStrategy do
         expect(result[:details][:dns_records].size).to eq(3)
       end
 
-      it 'triggers a provider re-verification before reading status' do
+      it 'reuses the verify response entry without a /domain/view round trip' do
         strategy.check_provider_verification_status(mailer_config, credentials: credentials)
 
         expect(mock_client).to have_received(:post).with('/domain/verify', { 'domain' => 'example.com' })
+        expect(mock_client).not_to have_received(:post).with('/domain/view', anything)
       end
     end
 
@@ -520,7 +519,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::Smtp2goSenderStrategy do
 
       before do
         allow(mock_client).to receive(:post)
-          .with('/domain/view', { 'domain' => 'example.com' })
+          .with('/domain/verify', { 'domain' => 'example.com' })
           .and_return({ 'domains' => [partial_entry] })
       end
 
@@ -545,7 +544,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::Smtp2goSenderStrategy do
 
       before do
         allow(mock_client).to receive(:post)
-          .with('/domain/view', { 'domain' => 'example.com' })
+          .with('/domain/verify', { 'domain' => 'example.com' })
           .and_return({ 'domains' => [tracking_pending_entry] })
       end
 
@@ -574,7 +573,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::Smtp2goSenderStrategy do
 
       before do
         allow(mock_client).to receive(:post)
-          .with('/domain/view', { 'domain' => 'example.com' })
+          .with('/domain/verify', { 'domain' => 'example.com' })
           .and_return({ 'domains' => [stringly_entry] })
       end
 
@@ -596,7 +595,7 @@ RSpec.describe Onetime::Mail::SenderStrategies::Smtp2goSenderStrategy do
 
       before do
         allow(mock_client).to receive(:post)
-          .with('/domain/view', { 'domain' => 'example.com' })
+          .with('/domain/verify', { 'domain' => 'example.com' })
           .and_return({ 'domains' => [trackerless_entry] })
       end
 
@@ -618,22 +617,45 @@ RSpec.describe Onetime::Mail::SenderStrategies::Smtp2goSenderStrategy do
           .and_return({ 'domains' => [verified_entry] })
       end
 
-      it 'is non-fatal and still reads status from /domain/view' do
+      it 'is non-fatal and falls back to reading status from /domain/view' do
         result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
 
         expect(result[:verified]).to be true
         expect(result[:status]).to eq('verified')
+        expect(mock_client).to have_received(:post).with('/domain/view', { 'domain' => 'example.com' })
+      end
+    end
+
+    context 'when the verify response lacks the domain entry' do
+      before do
+        allow(mock_client).to receive(:post)
+          .with('/domain/verify', { 'domain' => 'example.com' })
+          .and_return({ 'domains' => [] })
+        allow(mock_client).to receive(:post)
+          .with('/domain/view', { 'domain' => 'example.com' })
+          .and_return({ 'domains' => [verified_entry] })
+      end
+
+      it 'falls back to /domain/view for the entry' do
+        result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
+
+        expect(result[:verified]).to be true
+        expect(result[:status]).to eq('verified')
+        expect(mock_client).to have_received(:post).with('/domain/view', { 'domain' => 'example.com' })
       end
     end
 
     context 'when domain is not found' do
       before do
         allow(mock_client).to receive(:post)
+          .with('/domain/verify', { 'domain' => 'example.com' })
+          .and_return({ 'domains' => [] })
+        allow(mock_client).to receive(:post)
           .with('/domain/view', { 'domain' => 'example.com' })
           .and_return({ 'domains' => [] })
       end
 
-      it 'returns not_found status' do
+      it 'returns not_found status — an authoritative negative, not an error' do
         result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
 
         expect(result[:verified]).to be false
@@ -642,19 +664,45 @@ RSpec.describe Onetime::Mail::SenderStrategies::Smtp2goSenderStrategy do
       end
     end
 
-    context 'when API returns error' do
+    context 'when API returns error (e.g. 401 from a rotated key, or 5xx)' do
       before do
+        allow(mock_client).to receive(:post)
+          .with('/domain/verify', { 'domain' => 'example.com' })
+          .and_raise(api_error('Server Error', status_code: 500))
         allow(mock_client).to receive(:post)
           .with('/domain/view', { 'domain' => 'example.com' })
           .and_raise(api_error('Server Error', status_code: 500))
       end
 
-      it 'returns error status' do
+      it 'returns verified: nil — indeterminate, never an authoritative false' do
         result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
 
-        expect(result[:verified]).to be false
+        expect(result[:verified]).to be_nil
         expect(result[:status]).to eq('error')
         expect(result[:message]).to include('Verification check failed')
+      end
+    end
+
+    context 'when an unexpected error occurs (transport failure)' do
+      before do
+        # The status check tries /domain/verify first (non-fatal, falls back
+        # to /domain/view), so a transport failure must be raised from BOTH
+        # endpoints — an unstubbed verify call would raise
+        # MockExpectationError, which no rescue StandardError sees.
+        allow(mock_client).to receive(:post)
+          .with('/domain/verify', { 'domain' => 'example.com' })
+          .and_raise(StandardError.new('connection reset'))
+        allow(mock_client).to receive(:post)
+          .with('/domain/view', { 'domain' => 'example.com' })
+          .and_raise(StandardError.new('connection reset'))
+      end
+
+      it 'returns verified: nil — indeterminate, never an authoritative false' do
+        result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
+
+        expect(result[:verified]).to be_nil
+        expect(result[:status]).to eq('error')
+        expect(result[:message]).to include('connection reset')
       end
     end
 
@@ -672,10 +720,10 @@ RSpec.describe Onetime::Mail::SenderStrategies::Smtp2goSenderStrategy do
     context 'with missing api_key' do
       let(:credentials) { { 'api_key' => nil } }
 
-      it 'returns error status' do
+      it 'returns verified: nil — the check could not run' do
         result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
 
-        expect(result[:verified]).to be false
+        expect(result[:verified]).to be_nil
         expect(result[:status]).to eq('error')
         expect(result[:message]).to include('SMTP2GO API key is required')
       end

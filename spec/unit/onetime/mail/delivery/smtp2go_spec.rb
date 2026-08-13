@@ -111,6 +111,26 @@ RSpec.describe Onetime::Mail::Delivery::Smtp2go do
           expect(err.message).to include('unable to verify sender')
         end
     end
+
+    it 'redacts recipient addresses in the error message and response_body' do
+      allow(mock_client).to receive(:post).and_return(
+        { 'succeeded' => 0, 'failed' => 1, 'failures' => ['recipient@example.com: unable to verify sender'], 'email_id' => nil },
+      )
+
+      expect { backend.deliver(email) }
+        .to raise_error(Onetime::Mail::DeliveryError) do |err|
+          original = err.original_error
+          # The raw address never reaches the wrapped message, the APIError
+          # message, or its response_body — but the obscured form and the
+          # failure reason text survive for diagnostics.
+          expect(err.message).not_to include('recipient@example.com')
+          expect(err.message).to include('re***@')
+          expect(err.message).to include('unable to verify sender')
+          expect(original.message).not_to include('recipient@example.com')
+          expect(original.response_body).not_to include('recipient@example.com')
+          expect(original.response_body).to include('unable to verify sender')
+        end
+    end
   end
 
   describe '#deliver error classification' do

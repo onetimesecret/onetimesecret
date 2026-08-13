@@ -4,6 +4,7 @@
 
 require 'yaml'
 require_relative 'utils/enumerables'
+require_relative 'mail/provider_registry'
 
 module Onetime
   # Backend for the Configuration Generator JSON API (GET
@@ -70,13 +71,12 @@ module Onetime
         description: 'How outgoing mail (verification, notifications, password reset) is sent.',
         type: 'select',
         default: 'smtp',
-        choices: [
-          { value: 'smtp', label: 'Generic SMTP' },
-          { value: 'ses', label: 'Amazon SES' },
-          { value: 'sendgrid', label: 'SendGrid' },
-          { value: 'lettermint', label: 'Lettermint' },
-          { value: 'smtp2go', label: 'SMTP2GO' },
-        ],
+        # Derived from Mail::ProviderRegistry (smtp first for display, like
+        # MailerConfig::PROVIDER_TYPES) so a new provider can never be
+        # missing from the generator.
+        choices: (%w[smtp] + (Onetime::Mail::ProviderRegistry.providers - %w[smtp])).map do |name|
+          { value: name, label: Onetime::Mail::ProviderRegistry.descriptor(name).label }
+        end,
       },
       sso_enabled: {
         label: 'Single sign-on (SSO)',
@@ -245,18 +245,10 @@ module Onetime
         lines << 'ARGON2_SECRET='
       end
 
-      case selections[:email_provider]
-      when 'smtp'
-        lines.push('SMTP_HOST=', 'SMTP_USERNAME=', 'SMTP_PASSWORD=')
-      when 'ses'
-        lines.push('AWS_ACCESS_KEY_ID=', 'AWS_SECRET_ACCESS_KEY=')
-      when 'sendgrid'
-        lines << 'SENDGRID_API_KEY='
-      when 'lettermint'
-        lines.push('LETTERMINT_API_TOKEN=', 'LETTERMINT_TEAM_TOKEN=')
-      when 'smtp2go'
-        lines << 'SMTP2GO_API_KEY='
-      end
+      # Each registry descriptor declares its ENV placeholders (always
+      # emitted empty — never a real secret value; see module Security note).
+      email_descriptor = Onetime::Mail::ProviderRegistry.descriptor(selections[:email_provider])
+      email_descriptor&.env_placeholders&.each { |var| lines << "#{var}=" }
 
       lines << 'SENTRY_DSN_BACKEND=' if selections[:diagnostics_enabled]
 

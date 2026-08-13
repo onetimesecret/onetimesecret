@@ -132,3 +132,62 @@ end
 @keys    = @summary.keys.map(&:to_s) + @summary[:provider_config].keys.map(&:to_s)
 @keys.any? { |k| k.match?(/user|pass|secret|token/i) || k == 'api_key' }
 #=> false
+
+# ---- email_providers YAML credentials count as has_credentials ----
+#
+# smtp2go_key? / lettermint_token? must consult the same email_providers
+# source that build_provider_config honors (Mailer#provider_config): a key set
+# only in etc/config.yaml delivers fine, so the summary must not report
+# has_credentials: false. Stub the resolver (same technique as
+# provider_credentials_contract_try) rather than mutating OT.conf.
+
+## an api_key present only in email_providers.smtp2go reads as credentialed
+class Onetime::Mail::Mailer
+  class << self
+    # Capture the original only once: tryouts share one Ruby process, so a
+    # re-run of this block (or another file aliasing first) must not save a
+    # stub as the "real" method and poison the restore below.
+    alias_method :real_provider_config, :provider_config unless method_defined?(:real_provider_config)
+    def provider_config(provider)
+      provider.to_s == 'smtp2go' ? { 'api_key' => 'api-from-yaml' } : {}
+    end
+  end
+end
+CS.masked_provider_config('smtp2go', {})[:has_credentials]
+#=> true
+
+## an api_token present only in email_providers.lettermint reads as credentialed
+class Onetime::Mail::Mailer
+  class << self
+    def provider_config(provider)
+      provider.to_s == 'lettermint' ? { 'api_token' => 'lm-from-yaml' } : {}
+    end
+  end
+end
+CS.masked_provider_config('lettermint', {})[:has_credentials]
+#=> true
+
+## a team_token present only in email_providers.lettermint also counts
+class Onetime::Mail::Mailer
+  class << self
+    def provider_config(provider)
+      provider.to_s == 'lettermint' ? { 'team_token' => 'lm-team-from-yaml' } : {}
+    end
+  end
+end
+CS.masked_provider_config('lettermint', {})[:has_credentials]
+#=> true
+
+## the YAML-sourced secrets never leak into the masked payload (booleans only)
+@yaml_masked = CS.masked_provider_config('lettermint', {})
+[@yaml_masked.value?('lm-team-from-yaml'), @yaml_masked.keys.sort]
+#=> [false, %i[domain has_credentials host port region tls].sort]
+
+## with the real resolver restored, no-creds configs still read false
+class Onetime::Mail::Mailer
+  class << self
+    alias_method :provider_config, :real_provider_config
+  end
+end
+[CS.masked_provider_config('lettermint', {})[:has_credentials], CS.masked_provider_config('smtp2go', {})[:has_credentials]]
+#=> [false, false]

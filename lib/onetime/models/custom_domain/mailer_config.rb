@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../features/boolean_encoding'
+require_relative '../../mail/provider_registry'
 
 #
 # CustomDomain::MailerConfig - Per-domain mail sender configuration
@@ -36,9 +37,12 @@ module Onetime
     class MailerConfig < Familia::Horreum
       include Familia::Features::Autoloader
 
-      # Supported mail provider types.
+      # Supported mail provider types, derived from the authoritative
+      # Onetime::Mail::ProviderRegistry. Historical ordering (smtp first)
+      # is preserved for stable display/serialization; the registry itself
+      # is ordered for auto-detection precedence.
       # See lib/onetime/mail/mailer.rb for provider implementations.
-      PROVIDER_TYPES = %w[smtp ses sendgrid lettermint smtp2go].freeze
+      PROVIDER_TYPES = (%w[smtp] + (Onetime::Mail::ProviderRegistry.providers - %w[smtp])).freeze
 
       prefix :custom_domain__mailer_config
 
@@ -221,9 +225,13 @@ module Onetime
         new_status
       end
 
-      private
-
       # Parse a boolean field that may be stored as string, boolean, or nil.
+      #
+      # Public: the nil-preserving semantics are part of the tri-state
+      # contract for the worker-written outcome fields (dns_verified /
+      # provider_verified, nil = unknown). Serializers (e.g. ConfigRegistry's
+      # colonel drift view) must use this rather than a `.to_s == 'true'`
+      # coercion, which would render "unknown" as an authoritative false.
       #
       # @param value [String, Boolean, nil] The field value
       # @return [Boolean, nil] true, false, or nil if unknown
@@ -235,8 +243,6 @@ module Onetime
           false
         end
       end
-
-      public
 
       # Update the from_address, resetting verification state.
       #

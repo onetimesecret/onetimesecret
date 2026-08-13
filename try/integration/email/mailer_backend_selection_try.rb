@@ -174,10 +174,12 @@ config = Onetime::Mail::Mailer.send(:build_provider_config, 'sendgrid')
 config.key?('api_key')
 #=> true
 
-## build_provider_config for smtp2go includes subdomain defaults (string keys per interface convention)
+## build_provider_config for smtp2go without an api_key signals no-credentials
+## with an empty hash (subdomain/base_url defaults must not survive, or the
+## DomainValidationWorker/check_essentials! empty-guards can never trigger)
 config = Onetime::Mail::Mailer.send(:build_provider_config, 'smtp2go')
-[config['returnpath_subdomain'], config['tracking_subdomain']]
-#=> ['bounce', 'track']
+config
+#=> {}
 
 ## build_provider_config for smtp2go contains no symbol keys
 config = Onetime::Mail::Mailer.send(:build_provider_config, 'smtp2go')

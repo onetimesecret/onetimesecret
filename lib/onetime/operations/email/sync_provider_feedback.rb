@@ -8,20 +8,22 @@
 # operations home. Dependencies are required at the call site.
 require 'onetime/operations/email/ingest_feedback'
 require 'onetime/models/email_suppression'
+require 'onetime/mail/provider_registry'
 require 'onetime/mail/feedback/ses'
 require 'onetime/mail/feedback/lettermint'
+require 'onetime/mail/feedback/smtp2go'
 
 module Onetime
   module Operations
     module Email
       # Pull a provider's deliverability suppression list and ingest it — the
       # concrete wiring of "get ESP feedback into our suppression list" for the
-      # two API-based providers (AWS SES, Lettermint).
+      # API-based providers (AWS SES, Lettermint, SMTP2GO).
       #
       # ## Why this exists
       #
       # {IngestFeedback} is the passive receiver: an operator relay POSTs
-      # normalized records to it. This op is the ACTIVE relay for the two
+      # normalized records to it. This op is the ACTIVE relay for the
       # providers whose feedback is a pollable API list — it selects the right
       # {Onetime::Mail::Feedback} fetcher, walks the provider's suppression list,
       # and feeds the normalized records straight into IngestFeedback in-process
@@ -53,7 +55,8 @@ module Onetime
         # Providers with a pollable feedback API (a fetcher under
         # Onetime::Mail::Feedback). Other transports (SMTP, sendgrid, logger,
         # disabled) have no pull API and are rejected.
-        PROVIDERS = %w[ses lettermint].freeze
+        # Derived from Mail::ProviderRegistry (descriptor.feedback).
+        PROVIDERS = Onetime::Mail::ProviderRegistry.feedback_providers.freeze
 
         # Audit actor sentinel for the CLI/cron sync path (matches the send-test
         # CLI convention). The one ColonelAuditEvent IngestFeedback records per
@@ -68,9 +71,10 @@ module Onetime
         # @!attribute dry_run  [r] @return [Boolean] true when nothing ingested
         Result = Data.define(:provider, :fetched, :accepted, :rejected, :errors, :dry_run)
 
-        # @param provider [String, nil] 'ses' or 'lettermint'. Defaults to the
-        #   configured delivery provider (Mailer.determine_provider) so a
-        #   single-provider install needs no flag.
+        # @param provider [String, nil] 'ses', 'lettermint' or 'smtp2go'.
+        #   Defaults to the configured delivery provider
+        #   (Mailer.determine_provider) so a single-provider install needs no
+        #   flag.
         # @param actor [String, #extid, #email] audit actor (default: CLI sentinel).
         # @param limit [Integer, nil] cap on records pulled this run.
         # @param dry_run [Boolean] fetch and count but do not ingest (no writes,
@@ -149,6 +153,8 @@ module Onetime
                          Onetime::Mail::Feedback::SES.new(provider_credentials('ses'))
                        when 'lettermint'
                          Onetime::Mail::Feedback::Lettermint.new(provider_credentials('lettermint'))
+                       when 'smtp2go'
+                         Onetime::Mail::Feedback::Smtp2go.new(provider_credentials('smtp2go'))
                        end
         end
 
