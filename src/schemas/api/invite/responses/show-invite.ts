@@ -27,10 +27,18 @@ export type InviteBranding = z.infer<typeof inviteBrandingSchema>;
  * - sso: Single sign-on via identity provider (e.g., Entra ID, Google, GitHub)
  *
  * NAMING SEAM: the wire type here is `magic_link` while the `restrict_to`
- * value naming the same method is `email_auth`. They refer to one method.
- * Anything correlating this list with `effective_restrict_to` must map across
- * that seam rather than compare the strings (see AcceptInvite.vue's
- * RESTRICT_TO_METHOD_TYPE).
+ * value naming the same method is `email_auth` (the restrict_to vocabulary is
+ * `password | email_auth | webauthn | sso` — see `restrictToSchema` in
+ * @/schemas/contracts/bootstrap.ts). They are one method under two names, and
+ * only this one pair differs; `password` and `sso` are spelled identically on
+ * both sides.
+ *
+ * So anything correlating this list with `effective_restrict_to` must translate
+ * `magic_link` <-> `email_auth` rather than compare the strings — a direct
+ * comparison silently drops the one method the host does offer. The server
+ * already applies that translation when it builds this list: see
+ * `build_auth_methods` in apps/api/invite/logic/invites/show_invite.rb, which
+ * asks the resolution about 'email_auth' while emitting type 'magic_link'.
  */
 export const authMethodPasswordSchema = z.object({
   type: z.literal('password'),
@@ -45,6 +53,15 @@ export const authMethodMagicLinkSchema = z.object({
 export const authMethodSsoSchema = z.object({
   type: z.literal('sso'),
   enabled: z.boolean(),
+  /**
+   * TENANT SSO ONLY: the domain's own SsoConfig provider type ('oidc' |
+   * 'entra_id', CustomDomain::SsoConfig::PROVIDER_TYPES). ABSENT on
+   * platform-fallback entries — platform providers are identified by
+   * `platform_route_name`, and their registry vocabulary (oidc, entra, google,
+   * github) is a different namespace from the tenant one, so there is no
+   * honest value to fill in. Never branch on this to decide whether an entry
+   * is routable; branch on `platform_route_name`, which both arms carry.
+   */
   provider_type: z.string().optional(),
   display_name: z.string().nullable().optional(),
   platform_route_name: z.string().optional(),

@@ -102,7 +102,7 @@ module InviteAPI::Logic
             domain: domain&.display_domain
           if domain
             result[:record][:branding]     = serialize_brand_public(domain.brand_settings, domain)
-            result[:record][:auth_methods] = build_auth_methods(domain.sso_config, resolution)
+            result[:record][:auth_methods] = build_auth_methods(domain, resolution)
           end
         end
         result
@@ -143,17 +143,53 @@ module InviteAPI::Logic
       # restrict_to value for the same method is 'email_auth'
       # (SigninConfig::RESTRICT_TO_VALUES). Ask the resolution about
       # 'email_auth'.
-      def build_auth_methods(sso_config, resolution)
+      def build_auth_methods(domain, resolution)
         methods = []
         methods << { type: 'password', enabled: true } if resolution.allows?('password')
         methods << { type: 'magic_link', enabled: true } if email_auth_enabled? && resolution.allows?('email_auth')
-        if sso_config&.enabled? && resolution.allows?('sso')
-          # platform_route_name / display_name are load-bearing here: they are
-          # how the frontend routes the invitee to THIS tenant's SSO, and the
-          # bootstrap `features` payload does not carry them.
-          methods << serialize_sso_public(sso_config).merge(type: 'sso')
-        end
+        methods.concat(build_sso_auth_methods(domain)) if resolution.allows?('sso')
         methods
+      end
+
+      # Use the same runtime availability ladder as the sign-in route. A stored
+      # enabled flag alone can advertise tenant SSO after AUTH_ENABLED, provider
+      # support, or SigninConfig has made that route unusable.
+      def build_sso_auth_methods(domain)
+        domain_id  = domain.identifier
+        sso_config = domain.sso_config
+
+        if Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(
+          domain_id,
+          sso_config: sso_config,
+        )
+          return [serialize_sso_public(sso_config).merge(type: 'sso')]
+        end
+
+        return [] unless Onetime::CustomDomain::SsoConfig.sso_available_for_tenant_host?(domain_id)
+
+        # PLATFORM FALLBACK. These entries deliberately carry NO :provider_type,
+        # unlike the tenant arm above (serialize_sso_public reads
+        # sso_config.provider_type). AuthConfig#sso_providers yields only
+        # 'route_name' and 'display_name', and the platform registry's own
+        # identity (SsoProvider::Registry keys: oidc, entra, google, github) is
+        # a different vocabulary from tenant PROVIDER_TYPES (oidc, entra_id) —
+        # 'entra' vs 'entra_id' collide, and google/github have no tenant
+        # counterpart at all. Emitting a registry key as :provider_type would
+        # put a third vocabulary on a field whose values consumers read as the
+        # tenant enum, so the field stays absent. What identifies a
+        # platform-fallback provider is :platform_route_name, which the tenant
+        # arm carries too — that is the field to route and branch on.
+        Onetime.auth_config.sso_providers.filter_map do |provider|
+          route_name = provider['route_name'].to_s
+          next if route_name.empty?
+
+          {
+            type: 'sso',
+            enabled: true,
+            platform_route_name: route_name,
+            display_name: provider['display_name'].to_s,
+          }
+        end
       end
 
       def email_auth_enabled?

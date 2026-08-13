@@ -21,6 +21,7 @@
   import { useApi } from '@/shared/composables/useApi';
   import {
     showInviteResponseSchema,
+    type AuthMethod,
     type ShowInviteResponse,
   } from '@/schemas/api/invite/responses/show-invite';
   import type { SigninRestrictTo } from '@/schemas/contracts/custom-domain/signin-config';
@@ -152,19 +153,6 @@
   const signinUnavailable = computed(() => restrictToResolution.value?.state === 'unavailable');
 
   /**
-   * `restrict_to` method values map onto `auth_methods[].type` values, which
-   * disagree on one name: the restriction says `email_auth`, the method list
-   * says `magic_link`. Correlating them by raw string equality silently drops
-   * that method from the UI.
-   */
-  const RESTRICT_TO_METHOD_TYPE: Record<SigninRestrictTo, string> = {
-    password: 'password',
-    email_auth: 'magic_link',
-    webauthn: 'webauthn',
-    sso: 'sso',
-  };
-
-  /**
    * This host permits a single method and it is NOT password — i.e. the case
    * where the signup form below would POST into the A11 gate and 404.
    *
@@ -199,31 +187,17 @@
     return method ? t(METHOD_LABEL_KEYS[method]) : null;
   });
 
-  /**
-   * The `auth_methods` entry describing the restricted method, when the
-   * server offered one.
-   *
-   * Only present on custom-domain hosts (auth_methods is scoped to them), and
-   * only when the entry survived the server-side resolution filter. Crosses
-   * the naming seam rather than comparing raw strings, so an `email_auth`
-   * restriction still finds its `magic_link` entry.
-   */
-  const restrictedMethodEntry = computed(() => {
-    const method = restrictToResolution.value?.restrict_to;
-    if (!method) return null;
-    const wireType = RESTRICT_TO_METHOD_TYPE[method];
-    return invitation.value?.auth_methods?.find((entry) => entry.type === wireType) ?? null;
-  });
+  type RoutableSsoMethod = Extract<AuthMethod, { type: 'sso' }> & {
+    platform_route_name: string;
+  };
 
-  /**
-   * The SSO entry, when this host offered a routable one. `platform_route_name`
-   * is how the invitee reaches THIS tenant's provider; the bootstrap `features`
-   * payload does not carry it, which is why the page reads it from here.
-   */
-  const ssoMethod = computed(() => {
-    const entry = restrictedMethodEntry.value;
-    return entry?.type === 'sso' && entry.platform_route_name ? entry : null;
-  });
+  /** Routable tenant or platform-fallback SSO methods reported for this host. */
+  const ssoMethods = computed(() =>
+    (invitation.value?.auth_methods ?? []).filter(
+      (entry): entry is RoutableSsoMethod =>
+        entry.type === 'sso' && Boolean(entry.platform_route_name)
+    )
+  );
 
   /**
    * Whether the host's single permitted method is SSO — the one restricted
@@ -294,7 +268,12 @@
    * Returns the organization's primary brand color, falling back to domain branding
    * or a default brand color.
    */
-  const primaryColor = computed(() => invitation.value?.branding?.primary_color || bootstrapStore.domain_branding?.primary_color || '#d45a2a');
+  const primaryColor = computed(
+    () =>
+      invitation.value?.branding?.primary_color ||
+      bootstrapStore.domain_branding?.primary_color ||
+      '#d45a2a'
+  );
 
   /**
    * Logs out the current user and redirects back to the invite page.
@@ -517,7 +496,8 @@
         </h1>
       </div>
 
-      <div class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+      <div
+        class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
         <div class="flex">
           <OIcon
             collection="heroicons"
@@ -605,14 +585,19 @@
           <p class="text-lg font-semibold text-gray-900 dark:text-white">
             {{ invitation.organization_name }}
           </p>
-          <p v-if="invitation.invited_by" class="mt-1 text-sm text-gray-400 dark:text-gray-500">
+          <p
+            v-if="invitation.invited_by"
+            class="mt-1 text-sm text-gray-400 dark:text-gray-500">
             by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by }}</span>
           </p>
           <p class="text-sm text-gray-400 dark:text-gray-500">
-            as a <span class="text-gray-600 dark:text-gray-300">{{ t(`web.organizations.invitations.roles.${invitation.role}`) }}</span>.
+            as a
+            <span class="text-gray-600 dark:text-gray-300">{{
+              t(`web.organizations.invitations.roles.${invitation.role}`)
+            }}</span
+            >.
           </p>
         </div>
-
       </div>
 
       <!-- Inline Signup Form (handles its own error display) -->
@@ -627,9 +612,13 @@
         @decline="handleDecline"
         @signin-required="onSigninRequired" />
 
-      <p v-if="invitation" class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+      <p
+        v-if="invitation"
+        class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.organizations.invitations.expires_at') }}
-        <span class="font-medium text-gray-900 dark:text-white">{{ formatDate(invitation.expires_at) }}</span>
+        <span class="font-medium text-gray-900 dark:text-white">{{
+          formatDate(invitation.expires_at)
+        }}</span>
       </p>
     </div>
 
@@ -667,14 +656,19 @@
           <p class="text-lg font-semibold text-gray-900 dark:text-white">
             {{ invitation.organization_name }}
           </p>
-          <p v-if="invitation.invited_by" class="mt-1 text-sm text-gray-400 dark:text-gray-500">
+          <p
+            v-if="invitation.invited_by"
+            class="mt-1 text-sm text-gray-400 dark:text-gray-500">
             by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by }}</span>
           </p>
           <p class="text-sm text-gray-400 dark:text-gray-500">
-            as a <span class="text-gray-600 dark:text-gray-300">{{ t(`web.organizations.invitations.roles.${invitation.role}`) }}</span>.
+            as a
+            <span class="text-gray-600 dark:text-gray-300">{{
+              t(`web.organizations.invitations.roles.${invitation.role}`)
+            }}</span
+            >.
           </p>
         </div>
-
       </div>
 
       <!-- Sign-in Notice -->
@@ -709,9 +703,13 @@
           @decline="handleDecline" />
       </div>
 
-      <p v-if="invitation" class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+      <p
+        v-if="invitation"
+        class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.organizations.invitations.expires_at') }}
-        <span class="font-medium text-gray-900 dark:text-white">{{ formatDate(invitation.expires_at) }}</span>
+        <span class="font-medium text-gray-900 dark:text-white">{{
+          formatDate(invitation.expires_at)
+        }}</span>
       </p>
     </div>
 
@@ -751,11 +749,17 @@
           <p class="text-lg font-semibold text-gray-900 dark:text-white">
             {{ invitation.organization_name }}
           </p>
-          <p v-if="invitation.invited_by" class="mt-1 text-sm text-gray-400 dark:text-gray-500">
+          <p
+            v-if="invitation.invited_by"
+            class="mt-1 text-sm text-gray-400 dark:text-gray-500">
             by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by }}</span>
           </p>
           <p class="text-sm text-gray-400 dark:text-gray-500">
-            as a <span class="text-gray-600 dark:text-gray-300">{{ t(`web.organizations.invitations.roles.${invitation.role}`) }}</span>.
+            as a
+            <span class="text-gray-600 dark:text-gray-300">{{
+              t(`web.organizations.invitations.roles.${invitation.role}`)
+            }}</span
+            >.
           </p>
         </div>
       </div>
@@ -797,46 +801,42 @@
         </div>
       </div>
 
-      <!-- SSO: route them to the provider this host actually uses. -->
+      <!-- SSO: route directly when the API supplied usable provider metadata. -->
       <div
-        v-if="ssoRestricted"
-        class="mt-6">
+        v-if="ssoRestricted && ssoMethods.length > 0"
+        class="mt-6 space-y-3">
         <SsoButton
-          v-if="ssoMethod"
-          :route-name="ssoMethod.platform_route_name!"
-          :display-name="ssoMethod.display_name ?? undefined"
+          v-for="method in ssoMethods"
+          :key="method.platform_route_name"
+          :route-name="method.platform_route_name!"
+          :display-name="method.display_name ?? undefined"
           :redirect="`/invite/${invitationToken}`" />
-        <!--
-          No auth_methods entry to route with — the host is canonical (the
-          list is custom-domain-only) or SSO is served by the platform. The
-          sign-in page resolves the same restriction and renders the provider
-          buttons this page cannot name; redirect brings them back here to
-          accept.
-        -->
-        <router-link
-          v-else
-          :to="signinPath"
-          data-testid="restricted-signin-link"
-          class="inline-flex w-full justify-center rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
-          {{ t('web.organizations.invitations.restricted_sso_cta') }}
-        </router-link>
       </div>
 
       <!--
-        Not SSO: nothing on this page can complete the restricted method, so
-        point at the canonical link from the invitation email rather than
-        inventing a host we cannot verify.
+        Canonical SSO and restricted email-auth/webauthn are completed by the
+        sign-in page. Preserve the invite return path so this handoff cannot
+        loop back to the same unauthenticated static invite state.
       -->
-      <p
+      <router-link
         v-else
-        data-testid="restricted-use-email-link"
-        class="mt-6 text-center text-sm text-gray-600 dark:text-gray-300">
-        {{ t('web.organizations.invitations.restricted_use_email_link') }}
-      </p>
+        :to="signinPath"
+        data-testid="restricted-signin-link"
+        class="mt-6 inline-flex w-full justify-center rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
+        {{
+          ssoRestricted
+            ? t('web.organizations.invitations.restricted_sso_cta')
+            : t('web.login.button_sign_in')
+        }}
+      </router-link>
 
-      <p v-if="invitation" class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+      <p
+        v-if="invitation"
+        class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.organizations.invitations.expires_at') }}
-        <span class="font-medium text-gray-900 dark:text-white">{{ formatDate(invitation.expires_at) }}</span>
+        <span class="font-medium text-gray-900 dark:text-white">{{
+          formatDate(invitation.expires_at)
+        }}</span>
       </p>
     </div>
 
@@ -876,11 +876,17 @@
           <p class="text-lg font-semibold text-gray-900 dark:text-white">
             {{ invitation.organization_name }}
           </p>
-          <p v-if="invitation.invited_by" class="mt-1 text-sm text-gray-400 dark:text-gray-500">
+          <p
+            v-if="invitation.invited_by"
+            class="mt-1 text-sm text-gray-400 dark:text-gray-500">
             by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by }}</span>
           </p>
           <p class="text-sm text-gray-400 dark:text-gray-500">
-            as a <span class="text-gray-600 dark:text-gray-300">{{ t(`web.organizations.invitations.roles.${invitation.role}`) }}</span>.
+            as a
+            <span class="text-gray-600 dark:text-gray-300">{{
+              t(`web.organizations.invitations.roles.${invitation.role}`)
+            }}</span
+            >.
           </p>
         </div>
       </div>
@@ -921,9 +927,13 @@
         {{ t('web.organizations.invitations.restricted_use_email_link') }}
       </p>
 
-      <p v-if="invitation" class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+      <p
+        v-if="invitation"
+        class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.organizations.invitations.expires_at') }}
-        <span class="font-medium text-gray-900 dark:text-white">{{ formatDate(invitation.expires_at) }}</span>
+        <span class="font-medium text-gray-900 dark:text-white">{{
+          formatDate(invitation.expires_at)
+        }}</span>
       </p>
     </div>
 
@@ -964,14 +974,19 @@
           <p class="text-lg font-semibold text-gray-900 dark:text-white">
             {{ invitation.organization_name }}
           </p>
-          <p v-if="invitation.invited_by" class="mt-1 text-sm text-gray-400 dark:text-gray-500">
+          <p
+            v-if="invitation.invited_by"
+            class="mt-1 text-sm text-gray-400 dark:text-gray-500">
             by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by }}</span>
           </p>
           <p class="text-sm text-gray-400 dark:text-gray-500">
-            as a <span class="text-gray-600 dark:text-gray-300">{{ t(`web.organizations.invitations.roles.${invitation.role}`) }}</span>.
+            as a
+            <span class="text-gray-600 dark:text-gray-300">{{
+              t(`web.organizations.invitations.roles.${invitation.role}`)
+            }}</span
+            >.
           </p>
         </div>
-
 
         <!-- Action Buttons -->
         <div class="mt-6 flex flex-col gap-3 sm:flex-row-reverse">
@@ -980,7 +995,7 @@
             @click="handleAccept"
             :disabled="isProcessing"
             data-testid="accept-invitation-btn"
-            class="inline-flex w-full justify-center rounded-md bg-brand-600 px-4 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400 sm:w-auto">
+            class="inline-flex w-full justify-center rounded-md bg-brand-600 px-4 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto dark:bg-brand-500 dark:hover:bg-brand-400">
             <span v-if="!isProcessing">
               {{ t('web.organizations.invitations.accept_invitation') }}
             </span>
@@ -991,14 +1006,16 @@
             @click="handleDecline"
             :disabled="isProcessing"
             data-testid="decline-invitation-btn"
-            class="inline-flex w-full justify-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600 sm:w-auto">
+            class="inline-flex w-full justify-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
             {{ t('web.organizations.invitations.decline_invitation') }}
           </button>
         </div>
 
         <p class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
           {{ t('web.organizations.invitations.expires_at') }}
-          <span class="font-medium text-gray-900 dark:text-white">{{ formatDate(invitation.expires_at) }}</span>
+          <span class="font-medium text-gray-900 dark:text-white">{{
+            formatDate(invitation.expires_at)
+          }}</span>
         </p>
       </div>
     </div>
@@ -1040,14 +1057,19 @@
           <p class="text-lg font-semibold text-gray-900 dark:text-white">
             {{ invitation.organization_name }}
           </p>
-          <p v-if="invitation.invited_by" class="mt-1 text-sm text-gray-400 dark:text-gray-500">
+          <p
+            v-if="invitation.invited_by"
+            class="mt-1 text-sm text-gray-400 dark:text-gray-500">
             by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by }}</span>
           </p>
           <p class="text-sm text-gray-400 dark:text-gray-500">
-            as a <span class="text-gray-600 dark:text-gray-300">{{ t(`web.organizations.invitations.roles.${invitation.role}`) }}</span>.
+            as a
+            <span class="text-gray-600 dark:text-gray-300">{{
+              t(`web.organizations.invitations.roles.${invitation.role}`)
+            }}</span
+            >.
           </p>
         </div>
-
 
         <!-- Email Mismatch Notice -->
         <div
@@ -1064,7 +1086,12 @@
                 {{ t('web.organizations.invitations.email_mismatch_title') }}
               </p>
               <p class="mt-1 text-sm text-amber-700 dark:text-amber-300">
-                {{ t('web.organizations.invitations.email_mismatch_body', { invitedEmail: invitation?.email, currentEmail: bootstrapStore.email }) }}
+                {{
+                  t('web.organizations.invitations.email_mismatch_body', {
+                    invitedEmail: invitation?.email,
+                    currentEmail: bootstrapStore.email,
+                  })
+                }}
               </p>
               <div class="mt-3">
                 <button
@@ -1072,8 +1099,12 @@
                   @click="handleContinueAs"
                   :disabled="isProcessing"
                   data-testid="continue-as-btn"
-                  class="inline-flex items-center rounded-md bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-amber-800 dark:text-amber-100 dark:hover:bg-amber-700">
-                  {{ t('web.organizations.invitations.continue_as_invited_email', { email: invitation?.email }) }}
+                  class="inline-flex items-center rounded-md bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-200 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-amber-800 dark:text-amber-100 dark:hover:bg-amber-700">
+                  {{
+                    t('web.organizations.invitations.continue_as_invited_email', {
+                      email: invitation?.email,
+                    })
+                  }}
                 </button>
               </div>
             </div>
@@ -1086,15 +1117,16 @@
             @click="handleDecline"
             :disabled="isProcessing"
             data-testid="decline-invitation-btn"
-            class="text-sm font-medium text-gray-500 underline hover:text-gray-700
-                   dark:text-gray-400 dark:hover:text-gray-300">
+            class="text-sm font-medium text-gray-500 underline hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
             {{ t('web.organizations.invitations.decline_invitation') }}
           </button>
         </div>
 
         <p class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
           {{ t('web.organizations.invitations.expires_at') }}
-          <span class="font-medium text-gray-900 dark:text-white">{{ formatDate(invitation.expires_at) }}</span>
+          <span class="font-medium text-gray-900 dark:text-white">{{
+            formatDate(invitation.expires_at)
+          }}</span>
         </p>
       </div>
     </div>

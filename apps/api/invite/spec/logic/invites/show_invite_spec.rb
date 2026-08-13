@@ -248,6 +248,7 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
     let(:custom_domain) do
       instance_double(
         Onetime::CustomDomain,
+        identifier: 'domain-acme-123',
         display_domain: display_domain,
         sso_config: sso_config,
         brand_settings: nil
@@ -258,6 +259,12 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
       allow(Onetime::CustomDomain).to receive(:from_display_domain)
         .with(display_domain).and_return(custom_domain)
       allow(Onetime.auth_config).to receive(:email_auth_enabled?).and_return(true)
+      allow(Onetime::CustomDomain::SsoConfig).to receive(:tenant_sso_available_for?)
+        .with('domain-acme-123', sso_config: sso_config)
+        .and_return(true)
+      allow(Onetime::CustomDomain::SsoConfig).to receive(:sso_available_for_tenant_host?)
+        .with('domain-acme-123')
+        .and_return(true)
     end
 
     context 'unrestricted' do
@@ -281,6 +288,81 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
       it 'keeps platform_route_name and display_name on the surviving entry' do
         sso = record[:auth_methods].find { |m| m[:type] == 'sso' }
         expect(sso).to include(platform_route_name: 'acme-oidc', display_name: 'Acme SSO')
+      end
+
+      it 'checks the tenant route through the runtime availability ladder' do
+        expect(Onetime::CustomDomain::SsoConfig).to receive(:tenant_sso_available_for?)
+          .with('domain-acme-123', sso_config: sso_config)
+          .and_return(true)
+
+        expect(record[:auth_methods].map { |method| method[:type] }).to eq(['sso'])
+      end
+
+      context 'when the stored tenant config is enabled but unavailable at runtime' do
+        before do
+          allow(Onetime::CustomDomain::SsoConfig).to receive(:tenant_sso_available_for?)
+            .and_return(false)
+        end
+
+        it 'does not advertise the unusable tenant route' do
+          allow(Onetime::CustomDomain::SsoConfig).to receive(:sso_available_for_tenant_host?)
+            .and_return(false)
+
+          expect(record[:auth_methods]).to eq([])
+        end
+
+        it 'serializes usable platform fallback providers instead' do
+          allow(Onetime::CustomDomain::SsoConfig).to receive(:sso_available_for_tenant_host?)
+            .with('domain-acme-123')
+            .and_return(true)
+          allow(Onetime.auth_config).to receive(:sso_providers).and_return([
+            { 'route_name' => 'oidc', 'display_name' => 'Platform SSO' },
+            { 'route_name' => 'github', 'display_name' => 'GitHub' },
+          ])
+
+          expect(record[:auth_methods]).to include(
+            include(type: 'sso', platform_route_name: 'oidc', display_name: 'Platform SSO'),
+            include(type: 'sso', platform_route_name: 'github', display_name: 'GitHub'),
+          )
+          expect(record[:auth_methods]).not_to include(
+            include(platform_route_name: 'acme-oidc')
+          )
+        end
+
+        # Shape pin for the fallback arm. It is NOT the tenant arm's shape:
+        # :provider_type is absent because AuthConfig#sso_providers has no such
+        # key and the platform registry's vocabulary (oidc, entra, google,
+        # github) is not tenant PROVIDER_TYPES (oidc, entra_id). What both arms
+        # do share is :platform_route_name — the field the frontend routes on
+        # (AcceptInvite.vue#ssoMethods filters on exactly that), so the
+        # asymmetry is invisible to the consumer that matters.
+        it 'emits routable entries without a tenant provider_type' do
+          allow(Onetime::CustomDomain::SsoConfig).to receive(:sso_available_for_tenant_host?)
+            .with('domain-acme-123')
+            .and_return(true)
+          allow(Onetime.auth_config).to receive(:sso_providers).and_return([
+            { 'route_name' => 'entra', 'display_name' => 'Microsoft' },
+          ])
+
+          expect(record[:auth_methods]).to eq([
+            { type: 'sso', enabled: true, platform_route_name: 'entra', display_name: 'Microsoft' },
+          ])
+          expect(record[:auth_methods].first).not_to have_key(:provider_type)
+        end
+
+        # A provider with no route name is unroutable: advertising it would
+        # render a button with nowhere to send the invitee.
+        it 'drops a provider with a blank route_name' do
+          allow(Onetime::CustomDomain::SsoConfig).to receive(:sso_available_for_tenant_host?)
+            .with('domain-acme-123')
+            .and_return(true)
+          allow(Onetime.auth_config).to receive(:sso_providers).and_return([
+            { 'route_name' => '', 'display_name' => 'Broken' },
+            { 'route_name' => 'oidc', 'display_name' => 'Platform SSO' },
+          ])
+
+          expect(record[:auth_methods].map { |method| method[:platform_route_name] }).to eq(['oidc'])
+        end
       end
     end
 

@@ -1,13 +1,13 @@
 // src/tests/views/session/AcceptInvite.spec.ts
 
-import AcceptInvite from '@/apps/session/views/AcceptInvite.vue';
 import InviteSignUpForm from '@/apps/session/components/InviteSignUpForm.vue';
+import AcceptInvite from '@/apps/session/views/AcceptInvite.vue';
 import { useAuthStore } from '@/shared/stores/authStore';
+import { createTestI18n } from '@tests/setup';
 import { flushPromises, mount } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createMemoryHistory, createRouter } from 'vue-router';
-import { createTestI18n } from '@tests/setup';
 import { createSharedApiInstance, getGlobalAxiosMock } from '../../setup-stores';
 
 // Mock components
@@ -196,8 +196,12 @@ describe('AcceptInvite', () => {
       const buttons = wrapper.findAll('button');
       const buttonTexts = buttons.map((b) => b.text());
 
-      expect(buttonTexts.some((t) => t.includes('web.organizations.invitations.accept_invitation'))).toBe(true);
-      expect(buttonTexts.some((t) => t.includes('web.organizations.invitations.decline_invitation'))).toBe(true);
+      expect(
+        buttonTexts.some((t) => t.includes('web.organizations.invitations.accept_invitation'))
+      ).toBe(true);
+      expect(
+        buttonTexts.some((t) => t.includes('web.organizations.invitations.decline_invitation'))
+      ).toBe(true);
     });
   });
 
@@ -368,8 +372,8 @@ describe('AcceptInvite', () => {
       });
 
       it('falls back to the sign-in page when no auth_methods entry is present', async () => {
-        // Canonical host: auth_methods is custom-domain-only, so the page has
-        // no provider route to name but the restriction is still reported.
+        // Canonical host: the invite response has no provider route to name but
+        // the restriction is still reported.
         replyWith({ ...mockInvitation, effective_restrict_to: restrictedTo('sso') });
 
         const wrapper = await mountComponent();
@@ -383,22 +387,47 @@ describe('AcceptInvite', () => {
         expect(link.exists()).toBe(true);
         expect(link.attributes('to')).toBe('/signin?redirect=%2Finvite%2Ftest-token-123');
       });
-    });
 
-    describe('host restricted to a method this page cannot complete', () => {
-      it('names the method and points at the invitation email link', async () => {
-        replyWith({ ...mockInvitation, effective_restrict_to: restrictedTo('email_auth') });
+      it('renders every platform-fallback provider supplied by the API', async () => {
+        replyWith({
+          ...mockInvitation,
+          effective_restrict_to: restrictedTo('sso', 'domain'),
+          auth_methods: [
+            { ...ssoAuthMethod, platform_route_name: 'oidc', display_name: 'Platform SSO' },
+            { ...ssoAuthMethod, platform_route_name: 'github', display_name: 'GitHub' },
+          ],
+        });
 
         const wrapper = await mountComponent();
+        const buttons = wrapper.findAllComponents({ name: 'SsoButton' });
 
-        expect(wrapper.find('[data-testid="invite-restricted-host"]').exists()).toBe(true);
-        expect(wrapper.find('[data-testid="invite-signup-required"]').exists()).toBe(false);
-        expect(wrapper.text()).toContain('web.organizations.invitations.restricted_host_body');
-        expect(wrapper.find('[data-testid="restricted-use-email-link"]').exists()).toBe(true);
-        // No SSO affordance for a non-SSO restriction.
-        expect(wrapper.findComponent({ name: 'SsoButton' }).exists()).toBe(false);
+        expect(buttons.map((button) => button.props('routeName'))).toEqual(['oidc', 'github']);
+        expect(
+          buttons.every((button) => button.props('redirect') === '/invite/test-token-123')
+        ).toBe(true);
         expect(wrapper.find('[data-testid="restricted-signin-link"]').exists()).toBe(false);
       });
+    });
+
+    describe('host restricted to a method completed on the sign-in page', () => {
+      it.each(['email_auth', 'webauthn'])(
+        'offers an actionable sign-in handoff for %s without exposing password signup',
+        async (method) => {
+          replyWith({ ...mockInvitation, effective_restrict_to: restrictedTo(method) });
+
+          const wrapper = await mountComponent();
+
+          expect(wrapper.find('[data-testid="invite-restricted-host"]').exists()).toBe(true);
+          expect(wrapper.find('[data-testid="invite-signup-required"]').exists()).toBe(false);
+          expect(wrapper.find('[data-testid="invite-signup-email-input"]').exists()).toBe(false);
+          expect(wrapper.text()).toContain('web.organizations.invitations.restricted_host_body');
+          expect(wrapper.findComponent({ name: 'SsoButton' }).exists()).toBe(false);
+
+          const link = wrapper.find('[data-testid="restricted-signin-link"]');
+          expect(link.exists()).toBe(true);
+          expect(link.attributes('to')).toBe('/signin?redirect=%2Finvite%2Ftest-token-123');
+        }
+      );
 
       it('still hides the form when the method is unrecognized', async () => {
         // The schema degrades an unknown method to null while `state` keeps
@@ -414,6 +443,7 @@ describe('AcceptInvite', () => {
         expect(wrapper.text()).toContain(
           'web.organizations.invitations.restricted_host_unknown_body'
         );
+        expect(wrapper.find('[data-testid="restricted-signin-link"]').exists()).toBe(true);
       });
     });
 
@@ -682,7 +712,9 @@ describe('AcceptInvite', () => {
 
       const wrapper = await mountComponent();
 
-      expect(wrapper.find('h1').text()).toContain('web.organizations.invitations.invitation_details');
+      expect(wrapper.find('h1').text()).toContain(
+        'web.organizations.invitations.invitation_details'
+      );
     });
 
     it('has proper container styling', async () => {
