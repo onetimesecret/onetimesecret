@@ -2,14 +2,17 @@
 #
 # frozen_string_literal: true
 
-# Unit tests for the restrict_to route gate (ADR-024 A1/A7, #4139).
+# Unit tests for the restrict_to route gate
+# (ADR-034#restrict-to-is-an-access-control-not-a-display-preference /
+# #reject-as-not-found-not-forbidden, #4139).
 #
 # WHY THIS EXISTS ALONGSIDE THE INTEGRATION SPEC. The integration spec
 # (spec/integration/full/restrict_to_enforcement_spec.rb) can only exercise
 # routes that are actually MOUNTED, and the full-mode lane boots with
 # email_auth and webauthn disabled (spec/support/auth_mode_helpers.rb's
 # MockAuthConfig defaults them off), so their endpoints are absent and those
-# examples skip. That is exactly the coverage A7 says must not be missing —
+# examples skip. That is exactly the coverage
+# ADR-034#reject-as-not-found-not-forbidden says must not be missing —
 # the secondary endpoints. Here the routing decision is exercised directly
 # against @current_route, so every gated route symbol is covered regardless of
 # which features a lane happens to load.
@@ -64,7 +67,8 @@ RSpec.describe Auth::RestrictTo do
                        verify_account verify_account_resend],
       'email_auth' => %i[email_auth_request email_auth],
       # webauthn_auth / webauthn_auth_js are deliberately absent: they are the
-      # SECOND-FACTOR ceremony, exempt per ADR-024 A10. Covered instead by the
+      # SECOND-FACTOR ceremony, exempt per
+      # ADR-034#reject-as-not-found-not-forbidden. Covered instead by the
       # UNGATED_ROUTES assertion below, which asserts they are never rejected.
       'webauthn' => %i[webauthn_login webauthn_autofill_js],
     }.each do |method_name, routes|

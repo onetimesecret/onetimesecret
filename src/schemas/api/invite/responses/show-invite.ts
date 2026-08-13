@@ -113,9 +113,10 @@ export const showInviteResponseSchema = z.object({
 
   /**
    * Sign-in methods this HOST will actually accept, already filtered by
-   * `effective_restrict_to` server-side (ADR-024 A1). Can legitimately be an
-   * empty array — an `unavailable` resolution allows nothing — which must
-   * never be read as "no restriction".
+   * `effective_restrict_to` server-side
+   * (ADR-034#restrict-to-is-an-access-control-not-a-display-preference). Can
+   * legitimately be an empty array — an `unavailable` resolution allows
+   * nothing — which must never be read as "no restriction".
    *
    * Custom-domain hosts only. On a canonical host the key is absent while
    * `effective_restrict_to` is still present, so drive state off the
@@ -125,12 +126,14 @@ export const showInviteResponseSchema = z.object({
   auth_methods: z.array(authMethodSchema).optional(),
 
   /**
-   * The request host's resolved sign-in restriction (ADR-024 A2/A11, #4139).
+   * The request host's resolved sign-in restriction
+   * (ADR-034#resolution-is-model-owned / #invite-signup-is-gated, #4139).
    *
    * Emitted on EVERY host, and computed from the same resolver that gates
    * `POST /api/invite/:token/signup` — so the page can render the method the
    * host actually offers instead of a password form whose submit 404s. The
-   * client never re-derives this (A4 deleted exactly that).
+   * client never re-derives this
+   * (ADR-034#settings-api-serializes-effective-restrict-to deleted exactly that).
    *
    * Reuses the settings API's type rather than declaring a parallel one: the
    * server emits one wire shape for both surfaces.

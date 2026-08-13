@@ -2,9 +2,12 @@
 #
 # frozen_string_literal: true
 
-# DISPLAY ↔ GATE PARITY for `restrict_to` (ADR-024 A1/A2/A3, #4139).
+# DISPLAY ↔ GATE PARITY for `restrict_to`
+# (ADR-034#restrict-to-is-an-access-control-not-a-display-preference /
+# #resolution-is-model-owned / #degradation-is-fail-closed, #4139).
 #
-# The two consumers of the A2 resolver that a user can observe disagreeing are
+# The two consumers of the ADR-034#resolution-is-model-owned resolver that a
+# user can observe disagreeing are
 # the rendered page (Core::Views::ConfigSerializer) and the request-time gate
 # (Auth::RestrictTo). ADR-024 legislates against exactly that disagreement, so
 # the assertion here is the AGREEMENT itself — the two answers are compared to
@@ -39,7 +42,8 @@ require_relative '../../../views/serializers'
 # unit spec uses.
 require_relative File.join(Onetime::HOME, 'apps', 'web', 'auth', 'restrict_to')
 
-# THE THIRD CONSUMER (ADR-024 A4): the settings API's details.effective_restrict_to.
+# THE THIRD CONSUMER (ADR-034#settings-api-serializes-effective-restrict-to):
+# the settings API's details.effective_restrict_to.
 # Reached here without booting the domains app — signin_override_details is a
 # pure function of (config, domain_id) plus the model resolvers, so an allocated
 # instance is enough and no authorization/request plumbing is involved. It is
@@ -344,7 +348,7 @@ RSpec.describe 'restrict_to display/gate parity' do
     end
 
     context 'with an SSO restriction on a host whose SSO ladder says yes' do
-      # ADR-024 A2 / #4139: restrict_to='sso' gates the SSO ROUTE, so its
+      # ADR-034#resolution-is-model-owned / #4139: restrict_to='sso' gates the SSO ROUTE, so its
       # availability must come from the ladder that route obeys —
       # sso_available_for_tenant_host? -> sso_permitted_for?, keyed on
       # sso_enabled?. signin_enabled=false is the password/email opt-in and must

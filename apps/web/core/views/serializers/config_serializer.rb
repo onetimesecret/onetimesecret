@@ -298,7 +298,7 @@ module Core
 
         # Wire value of features.restrict_to for the current request context.
         #
-        # DISPLAY CONSUMER ONLY (ADR-024 A2): resolution itself belongs to
+        # DISPLAY CONSUMER ONLY (ADR-034#resolution-is-model-owned): resolution itself belongs to
         # SigninConfig.resolve_restrict_to — precedence between global and
         # domain, and the fail-closed degradation of a domain restriction whose
         # method cannot be honored, are decided there and re-derived nowhere.
@@ -330,7 +330,7 @@ module Core
           Onetime::CustomDomain::SigninConfig.resolve_restrict_to(
             global,
             signin_config,
-            # Post-boot availability of the global restriction (ADR-024 A3),
+            # Post-boot availability of the global restriction (ADR-034#degradation-is-fail-closed),
             # asked through the SHARED gatherer so the page cannot answer it
             # differently from the route gate. It briefly did: with only
             # global_restriction_available? here, this page reported
@@ -365,7 +365,7 @@ module Core
         #
         # The pin is a property of the HOST, not an operator restriction, and
         # it must not reach the resolver when an enabled domain config speaks.
-        # Under ADR-024 A8 the resolver intersects rather than replaces, so a
+        # Under ADR-034#resolution-intersects-never-widens the resolver intersects rather than replaces, so a
         # pin handed in unconditionally would CONFLICT with the tenant's own
         # restrict_to and resolve :unavailable — turning a display convenience
         # into a lockout. Skip it on exactly the predicate resolve_signin uses

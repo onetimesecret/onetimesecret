@@ -137,7 +137,8 @@ module AuthModeHelpers
       @restrict_to
     end
 
-    # Boot-time validation of the global restriction (ADR-024 A3, #4140).
+    # Boot-time validation of the global restriction
+    # (ADR-034#degradation-is-fail-closed, #4140).
     # The ValidateAuthConfig initializer calls this on EVERY boot, so a mock
     # without it fails the whole full-mode suite at Onetime.boot! with a
     # NoMethodError that reads as a harness break rather than a config error.
@@ -149,8 +150,9 @@ module AuthModeHelpers
       restrict_to
     end
 
-    # Runtime availability of the configured restriction (ADR-024 A3, runtime
-    # half). Consumed by the restrict_to route gate
+    # Runtime availability of the configured restriction
+    # (ADR-034#degradation-is-fail-closed, runtime half). Consumed by the
+    # restrict_to route gate
     # (apps/web/auth/config/hooks/restrict_to.rb, #4139) to degrade fail-closed.
     # A mock restriction is available by construction — a spec that needs the
     # unavailable path stubs this.

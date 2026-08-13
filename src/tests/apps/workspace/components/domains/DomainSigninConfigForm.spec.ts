@@ -201,7 +201,10 @@ interface MountOptions {
    * no guard: the client has no verdict and may not invent one (ADR-024).
    */
   tenantSso?: TenantSsoVerdict | null;
-  /** The server's restriction resolution (ADR-024 A2/A4). */
+  /**
+   * The server's restriction resolution
+   * (ADR-034#resolution-is-model-owned / #settings-api-serializes-effective-restrict-to).
+   */
   effectiveRestrictTo?: EffectiveRestrictTo | null;
   canManageSso?: boolean;
   globalAvailability?: { email_auth: boolean; webauthn: boolean };
@@ -1589,7 +1592,7 @@ describe('DomainSigninConfigForm', () => {
   });
 
   // -----------------------------------------------------------------------
-  // SSO-restriction lockout guard (#4111 / ADR-024 A8)
+  // SSO-restriction lockout guard (#4111 / ADR-034#resolution-intersects-never-widens)
   //
   // A restriction that cannot be honoured fails CLOSED: restricting a domain
   // to SSO while the server reports tenant SSO unavailable takes the host
@@ -1744,7 +1747,8 @@ describe('DomainSigninConfigForm', () => {
   });
 
   // -----------------------------------------------------------------------
-  // Resolved-restriction notice (ADR-024 A2/A8)
+  // Resolved-restriction notice
+  // (ADR-034#resolution-is-model-owned / #resolution-intersects-never-widens)
   //
   // `unavailable` and `source: 'conflict'` are states a method picker cannot
   // express: the restriction stands, but nothing satisfies it, so sign-in is

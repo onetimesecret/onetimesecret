@@ -170,7 +170,9 @@ module Onetime
         end
 
         # The restrict_to gate could not read this host's sign-in policy
-        # (ADR-024 A1/A3, #4139) — the per-domain half lives in the datastore.
+        # (ADR-034#restrict-to-is-an-access-control-not-a-display-preference
+        # / #degradation-is-fail-closed, #4139) — the per-domain half lives
+        # in the datastore.
         # Raised by Core::Controllers::Base#restrict_to_allows? (simple-mode
         # POST /auth/login and the pre-auth password surfaces) and by
         # Auth::RestrictTo on the invite API's host-policy paths.

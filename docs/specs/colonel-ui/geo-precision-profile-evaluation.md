@@ -24,8 +24,8 @@ Related docs:
   rows point to.
 - `initial-build-out/40-sessions-metadata-sidecar.md` — the sidecar that now
   persists `geo_country` (#3989).
-- ADR-021 (`../../architecture/decision-records/adr-021-audit-log-terminology-and-stream-scoping.md`)
-  and ADR-022 (`../../architecture/decision-records/adr-022-secret-activity-network-capture-privacy.md`)
+- ADR-021 (`../../adr/adr-021-audit-log-terminology-and-stream-scoping.md`)
+  and ADR-022 (`../../adr/adr-022-secret-activity-network-capture-privacy.md`)
   — see §5.
 
 ---

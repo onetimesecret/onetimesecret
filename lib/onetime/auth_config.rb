@@ -199,7 +199,7 @@ module Onetime
     # (and always nil in simple mode, where restrict_to has no meaning).
     #
     # It NEVER returns nil to express "the configured restriction could not
-    # be honored" (ADR-024 A3, #4140). That was a silent fail-OPEN: every
+    # be honored" (ADR-034#degradation-is-fail-closed, #4140). That was a silent fail-OPEN: every
     # caller reads nil as "unrestricted", so an install whose restricted
     # method was unavailable widened to standard mode and re-exposed exactly
     # the methods the operator restricted away — with no log line at all.
@@ -226,7 +226,7 @@ module Onetime
     # Whether the configured restriction's backing method is actually usable
     # right now. Consumers use this to degrade fail-closed: a restriction
     # whose method is unavailable means sign-in is unavailable, never that
-    # sign-in widens to the other methods (ADR-024 A3).
+    # sign-in widens to the other methods (ADR-034#degradation-is-fail-closed).
     #
     # Returns true when nothing is restricted (nothing to be unavailable).
     def restrict_to_available?
@@ -236,7 +236,7 @@ module Onetime
       restrict_to_unmet_prerequisite(value).nil?
     end
 
-    # Boot-time validation of the global restriction (ADR-024 A3, #4140).
+    # Boot-time validation of the global restriction (ADR-034#degradation-is-fail-closed, #4140).
     #
     # Raises OT::ConfigError — a fatal boot error — when full.restrict_to
     # names a method whose prerequisites the system can already determine are

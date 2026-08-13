@@ -38,7 +38,7 @@ module InviteAPI
       # env; Logic::Base#extract_domain_context copies both values verbatim
       # from 'onetime.domain_strategy' / 'onetime.display_domain', symbol
       # classification included). Plumbing only — no resolution happens here
-      # (ADR-024 A2: resolution is model-owned and re-derived nowhere).
+      # (ADR-034#resolution-is-model-owned: resolution is model-owned and re-derived nowhere).
       #
       # SHARED ON PURPOSE, and this is the point of it living here. ShowInvite
       # REPORTS what the host permits (record.effective_restrict_to) and

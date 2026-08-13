@@ -86,7 +86,7 @@ RSpec.describe Onetime::CustomDomain::SigninConfig do
         expect(resolution).to be_restricted
       end
 
-      # ADR-024 A2: the SSO route's authority is the SsoConfig ladder
+      # ADR-034#resolution-is-model-owned: the SSO route's authority is the SsoConfig ladder
       # (sso_available_for_tenant_host? -> tenant_sso_available_for? ->
       # SigninConfig.sso_permitted_for?), which keys on sso_enabled? and
       # ignores signin_enabled? entirely. A signin_enabled? short-circuit here
@@ -194,7 +194,7 @@ RSpec.describe Onetime::CustomDomain::SigninConfig do
         )
       end
 
-      it 'reports unavailable from the global half (ADR-024 A3)' do
+      it 'reports unavailable from the global half (ADR-034#degradation-is-fail-closed)' do
         expect(available).to be(false)
       end
     end

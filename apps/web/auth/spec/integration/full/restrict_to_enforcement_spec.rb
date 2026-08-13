@@ -3,7 +3,9 @@
 # frozen_string_literal: true
 
 # =============================================================================
-# TEST TYPE: Integration — restrict_to as ACCESS CONTROL (ADR-024 A1/A7, #4139)
+# TEST TYPE: Integration — restrict_to as ACCESS CONTROL
+# (ADR-034#restrict-to-is-an-access-control-not-a-display-preference /
+# #reject-as-not-found-not-forbidden, #4139)
 # =============================================================================
 #
 # PR #4130 shipped the display half of domain `restrict_to`: a restricted host
@@ -45,7 +47,7 @@
 require_relative '../../spec_helper'
 require 'rack/test'
 
-RSpec.describe 'restrict_to enforcement — full mode (ADR-024 A1/A7, #4139)', type: :integration do
+RSpec.describe 'restrict_to enforcement — full mode (ADR-034#restrict-to-is-an-access-control-not-a-display-preference / #reject-as-not-found-not-forbidden, #4139)', type: :integration do
   include Rack::Test::Methods
 
   before(:all) do
@@ -94,8 +96,9 @@ RSpec.describe 'restrict_to enforcement — full mode (ADR-024 A1/A7, #4139)', t
     )
 
     # A restriction resolves :restricted only while its backing method can
-    # actually run here (ADR-024 A3) — so a host restricted to 'sso' with no
-    # tenant credentials resolves :unavailable and 404s EVERYTHING, including
+    # actually run here (ADR-034#degradation-is-fail-closed) — so a host
+    # restricted to 'sso' with no tenant credentials resolves :unavailable
+    # and 404s EVERYTHING, including
     # the SSO routes the examples below assert stay reachable. Standing the
     # credentials up is what makes those examples test the narrowing rather
     # than the fail-closed state, which has its own describe block.
@@ -143,7 +146,7 @@ RSpec.describe 'restrict_to enforcement — full mode (ADR-024 A1/A7, #4139)', t
   # AND the router's shared ADR-013 body, not a bespoke shape.
   def expect_not_found(response, path)
     expect(response.status).to eq(404),
-      "#{path} returned #{response.status}, expected 404 (ADR-024 A7 reject shape). Body: #{response.body[0, 300]}"
+      "#{path} returned #{response.status}, expected 404 (ADR-034#reject-as-not-found-not-forbidden reject shape). Body: #{response.body[0, 300]}"
     body = JSON.parse(response.body)
     expect(body['error_type']).to eq('NotFound'),
       "#{path} 404'd with a non-router body: #{response.body[0, 300]}"
@@ -228,7 +231,7 @@ RSpec.describe 'restrict_to enforcement — full mode (ADR-024 A1/A7, #4139)', t
   # 2. Resolution states
   # ==========================================================================
 
-  describe 'the :unavailable state (ADR-024 A3 fail-closed)' do
+  describe 'the :unavailable state (ADR-034#degradation-is-fail-closed)' do
     # 'webauthn' is not honorable on a custom domain (credentials are rp_id/
     # host-scoped, #4137), so the restriction stands but NOTHING resolves as
     # permitted. The failure mode this guards is widening back to standard mode.
@@ -278,7 +281,7 @@ RSpec.describe 'restrict_to enforcement — full mode (ADR-024 A1/A7, #4139)', t
   # sign-in method in GATED_ROUTES or an explicit exemption in UNGATED_ROUTES;
   # defaulting to "allowed" silently is what this exists to prevent.
   #
-  describe 'route coverage (ADR-024 A7: every reachable route per method)' do
+  describe 'route coverage (ADR-034#reject-as-not-found-not-forbidden: every reachable route per method)' do
     let(:gate) { Auth::RestrictTo }
 
     def mounted_route_names
@@ -292,7 +295,7 @@ RSpec.describe 'restrict_to enforcement — full mode (ADR-024 A1/A7, #4139)', t
       expect(unclassified).to be_empty,
         "Rodauth routes with no restrict_to classification: #{unclassified.inspect}\n" \
         'Add each to GATED_ROUTES (with its sign-in method) or UNGATED_ROUTES (with a reason) ' \
-        'in apps/web/auth/config/hooks/restrict_to.rb. See ADR-024 A7.'
+        'in apps/web/auth/config/hooks/restrict_to.rb. See ADR-034#reject-as-not-found-not-forbidden.'
     end
 
     it 'reads a non-trivial route set (guards against a vacuous pass)' do

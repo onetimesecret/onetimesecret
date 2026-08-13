@@ -70,9 +70,11 @@ module Core
 
       private
 
-      # RESTRICT_TO ENFORCEMENT (ADR-024 A1/A7, #4139).
+      # RESTRICT_TO ENFORCEMENT
+      # (ADR-034#restrict-to-is-an-access-control-not-a-display-preference
+      # / #reject-as-not-found-not-forbidden, #4139).
       #
-      # A7, "Scope, settled": pre-auth password surfaces are NOT exempt from the
+      # "Scope, settled": pre-auth password surfaces are NOT exempt from the
       # 404 rule — create-account, reset-password-request and reset-password are
       # reachable unauthenticated and go dark with the method. In full mode the
       # equivalent Rodauth routes are gated by before_rodauth
@@ -83,9 +85,10 @@ module Core
       # Reject shape matches the sibling gate in
       # Core::Controllers::Authentication#authenticate: Onetime::RecordNotFound,
       # which otto_hooks renders as a 404. Not a 403 — a restricted-away method
-      # presents no reachable surface at all (A7).
+      # presents no reachable surface at all.
       #
-      # Resolution is not re-derived here (A2): Base#restrict_to_allows? asks
+      # Resolution is not re-derived here
+      # (ADR-034#resolution-is-model-owned): Base#restrict_to_allows? asks
       # the model-owned resolver, same as the display and full-mode gates.
       def enforce_password_restrict_to!
         return if restrict_to_allows?('password')

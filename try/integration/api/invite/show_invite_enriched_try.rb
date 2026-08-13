@@ -13,8 +13,10 @@
 # - Response is indistinguishable whether or not the invited email has an
 #   account (no account_exists oracle) [AZ7]
 # - auth_methods includes magic_link when email_auth feature is enabled
-# - auth_methods is filtered by the host's restrict_to resolution (ADR-024 A1)
-# - effective_restrict_to is present on EVERY host, custom or not (A11, #4139)
+# - auth_methods is filtered by the host's restrict_to resolution
+#   (ADR-034#restrict-to-is-an-access-control-not-a-display-preference)
+# - effective_restrict_to is present on EVERY host, custom or not
+#   (ADR-034#invite-signup-is-gated, #4139)
 # - actionable field indicates if invitation can still be acted upon
 
 require 'rack/test'
@@ -292,7 +294,8 @@ auth_methods = resp['record']['auth_methods']
 #=> [200, true]
 
 ## Verify auth_methods is filtered by the host's restrict_to resolution
-## (ADR-024 A1/A11, #4139) — password appears BECAUSE this host permits it
+## (ADR-034#restrict-to-is-an-access-control-not-a-display-preference /
+## #invite-signup-is-gated, #4139) — password appears BECAUSE this host permits it
 # This assertion used to read "password is always enabled" and hardcoded that
 # as contract. It is no longer true, and asserting it would pin the exact
 # display/runtime disagreement A1 exists to kill: POST /:token/signup 404s on
@@ -323,7 +326,7 @@ allowed = case resolution['state']
 offered.sort == allowed.sort
 #=> true
 
-## Setup: pin this domain to password-only (enabled SigninConfig, ADR-024 A2)
+## Setup: pin this domain to password-only (enabled SigninConfig, ADR-034#resolution-is-model-owned)
 @signin_config = Onetime::CustomDomain::SigninConfig.new(domain_id: @auth_test_domain.identifier)
 @signin_config.enabled = true
 @signin_config.signin_enabled = true
@@ -340,7 +343,8 @@ record = resp['record']
 #=> [{'state' => 'restricted', 'restrict_to' => 'password', 'source' => 'domain'}, ['password']]
 
 ## Setup: a restriction whose method cannot be honored on a custom domain
-# webauthn credentials are rp_id-bound to the canonical host (ADR-024 A5), so
+# webauthn credentials are rp_id-bound to the canonical host
+# (ADR-034#custom-domain-webauthn-fails-closed-pending-rp-id-scoping), so
 # this restriction stands but nothing can satisfy it.
 @signin_config.restrict_to = 'webauthn'
 @signin_config.save
@@ -387,7 +391,7 @@ required_fields = %w[organization_name organization_id email role status expires
 required_fields.all? { |f| record.key?(f) }
 #=> true
 
-## effective_restrict_to is present on a NON-custom host (ADR-024 A11, #4139)
+## effective_restrict_to is present on a NON-custom host (ADR-034#invite-signup-is-gated, #4139)
 # The regression this field fixes: auth_methods lives inside the custom-domain
 # branch, so an SSO-only INSTALL — A11's stated live case, global restriction,
 # invitee on the canonical host the invitation email links to — got nothing at

@@ -107,7 +107,8 @@ const {
   globalEnabled,
   effectiveEnabled,
   isWorkspaceDefault,
-  // Server-resolved (ADR-024 A4 / #4111) — passed through to the form, which
+  // Server-resolved (ADR-034#settings-api-serializes-effective-restrict-to /
+  // #4111) — passed through to the form, which
   // renders them verbatim and derives no availability of its own.
   effectiveRestrictTo,
   tenantSso,

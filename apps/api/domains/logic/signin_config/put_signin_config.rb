@@ -106,7 +106,8 @@ module DomainsAPI
         # credential registered on the canonical sign-in host can never assert
         # on this domain — a webauthn-only restriction is a guaranteed visitor
         # lockout. The resolver now fails such a value CLOSED — :unavailable,
-        # never standard mode (SigninConfig.resolve_restrict_to, ADR-024 A3) —
+        # never standard mode (SigninConfig.resolve_restrict_to,
+        # ADR-034#degradation-is-fail-closed) —
         # and the domain form never offers the row for selection; this is the
         # backend write gate for direct API calls.
         #

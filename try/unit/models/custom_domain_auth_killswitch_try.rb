@@ -10,7 +10,8 @@
 # global capability — it can never re-enable sign-in or sign-up when the
 # operator has disabled it globally (AUTH_ENABLED / AUTH_SIGNIN / AUTH_SIGNUP).
 #
-# Also covers SigninConfig.resolve_restrict_to (ADR-024 A2) — the single owner
+# Also covers SigninConfig.resolve_restrict_to
+# (ADR-034#resolution-is-model-owned) — the single owner
 # of restrict_to resolution — whose degradation rule is fail-CLOSED: a domain
 # restriction naming a method that cannot be honored here resolves to
 # :unavailable, never to "unrestricted" (A3).
@@ -75,8 +76,9 @@ def domain_method_available?(value, config)
 end
 
 # Same resolver with the GLOBAL restriction's backing method dead post-boot
-# (ADR-024 A3 runtime half, #4139): available: false. The flag lives on the
-# resolver rather than in each consumer so the display gate, the route gate
+# (ADR-034#degradation-is-fail-closed runtime half, #4139): available:
+# false. The flag lives on the resolver rather than in each consumer so
+# the display gate, the route gate
 # and the settings API cannot drift on it.
 def resolve_restrict_dead(global, config)
   Onetime::CustomDomain::SigninConfig.resolve_restrict_to(
@@ -87,7 +89,7 @@ def resolve_restrict_dead(global, config)
   )
 end
 
-# --- SigninConfig.restriction_available_for_request? (ADR-024 A2, #4139) ---
+# --- SigninConfig.restriction_available_for_request? (ADR-034#resolution-is-model-owned, #4139) ---
 #
 # The availability INPUT every gate hands to the resolver. It lives on the
 # model, not in the gate that first needed it, because all three consumers must
@@ -162,7 +164,7 @@ Onetime::CustomDomain::SignupConfig.resolve_signup_enabled(false, signup_config(
 Onetime::CustomDomain::SignupConfig.resolve_signup_enabled(true, signup_config(enabled: false, signup_enabled: false))
 #=> true
 
-# --- SigninConfig.resolve_restrict_to (ADR-024 A2) ---
+# --- SigninConfig.resolve_restrict_to (ADR-034#resolution-is-model-owned) ---
 #
 # Three explicit states: :unrestricted (allow every enabled method),
 # :restricted (allow only the named one), :unavailable (allow nothing —
@@ -477,8 +479,10 @@ Onetime::CustomDomain::SigninConfig.resolve_restrict_to('sso', nil, available: t
 # RestrictToResolution#to_wire — the ONE serialization (#4139)
 #
 # Both API surfaces that publish a resolution (settings API
-# details.effective_restrict_to, ADR-024 A4; GET /api/invite/:token
-# record.effective_restrict_to, A11) call this method. They each carried a
+# details.effective_restrict_to,
+# ADR-034#settings-api-serializes-effective-restrict-to; GET
+# /api/invite/:token record.effective_restrict_to,
+# ADR-034#invite-signup-is-gated) call this method. They each carried a
 # private copy of the hash until #4139; the contract is pinned here so the
 # next consumer inherits it instead of re-deriving it.
 # ============================================================

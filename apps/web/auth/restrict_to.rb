@@ -3,7 +3,8 @@
 # frozen_string_literal: true
 
 #
-# Runtime enforcement of `restrict_to` (ADR-024 A1 + A7, issue #4139).
+# Runtime enforcement of `restrict_to` (ADR-034#restrict-to-is-an-access-control-not-a-display-preference
+# + #reject-as-not-found-not-forbidden, issue #4139).
 #
 # WHAT THIS CLOSES
 #   PR #4130 shipped the DISPLAY half: a restricted host renders exactly one
@@ -65,7 +66,7 @@
 #      (apps/web/core/routes.txt). Gated in
 #      Core::Controllers::Base#restrict_to_allows?.
 #
-# See: docs/architecture/decision-records/adr-024-custom-domain-auth-override-resolution.md
+# See: docs/adr/adr-024-custom-domain-auth-override-resolution.md
 #      (A1, A3, A7 — normative), lib/onetime/models/custom_domain/signin_config.rb
 #      (the A2 resolver; resolution is owned there and re-derived nowhere).
 #
@@ -126,8 +127,9 @@ module Auth
     # session (require_login + require_two_factor_not_authenticated), i.e. the
     # SECOND-FACTOR ceremony rather than a sign-in method offer.
     #
-    # NOT gated, per ADR-024 A10. A7's endpoint enumeration listed these; the
-    # enumeration was wrong and A7's own principle overrides it. `restrict_to`
+    # NOT gated, per ADR-034#reject-as-not-found-not-forbidden. The endpoint
+    # enumeration originally listed these; it was wrong and the section's own
+    # principle overrides it. `restrict_to`
     # governs which methods may be OFFERED as a sign-in choice on a host. A
     # second factor is not a choice — the account already authenticated with a
     # first factor the host permits, and the second factor is a property of the
@@ -152,14 +154,14 @@ module Auth
     # defaulting to "allowed" is how surface #1 rots.
     #
     # Three reasons appear here:
-    #   - ACCOUNT-SCOPED (A7 "Scope, settled"): reachable only when
-    #     authenticated, so keying them to the REQUEST HOST is the wrong axis.
-    #     They belong to SsoOnlyGating / #4138.
+    #   - ACCOUNT-SCOPED (ADR-034#reject-as-not-found-not-forbidden "Scope"):
+    #     reachable only when authenticated, so keying them to the REQUEST HOST
+    #     is the wrong axis. They belong to SsoOnlyGating / ADR-035.
     #   - INSTALL-WIDE SECURITY POSTURE: MFA/lockout are explicitly not
     #     per-domain overridable (ADR-024 scope boundary).
     #   - NOT A SIGN-IN METHOD: logout must never 404.
     UNGATED_ROUTES = [
-      *SECOND_FACTOR_ROUTES.keys, # second-factor ceremony, not a method offer (A10)
+      *SECOND_FACTOR_ROUTES.keys, # second-factor ceremony, not a method offer (ADR-034#reject-as-not-found-not-forbidden)
       :logout,
       :remember,
       :close_account,
@@ -257,7 +259,7 @@ module Auth
         resolution_for(env).allows?(method_name)
       end
 
-      # Resolver output for the request host (ADR-024 A2).
+      # Resolver output for the request host (ADR-034#resolution-is-model-owned).
       #
       # This method GATHERS INPUTS ONLY. Precedence between global and domain,
       # and the fail-closed degradation of a restriction whose method cannot be
@@ -304,7 +306,7 @@ module Auth
       # Whether an inherited restriction is usable on this request host.
       #
       # Thin wrapper, on purpose: the availability POLICY is
-      # SigninConfig.restriction_available_for_request? (ADR-024 A2 — the
+      # SigninConfig.restriction_available_for_request? (ADR-034#resolution-is-model-owned — the
       # display serializer and the settings API ask the same method, so no
       # consumer can narrow an inherited restriction the others do not). All
       # that belongs to the web layer is reading the request classification out

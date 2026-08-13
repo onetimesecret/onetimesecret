@@ -116,7 +116,8 @@ RSpec.describe Core::Views::ConfigSerializer do
       sso_enabled?: false,
       sso_only_enabled?: false,
       restrict_to: nil,
-      # Post-boot availability of the global restriction (ADR-024 A3): the
+      # Post-boot availability of the global restriction
+      # (ADR-034#degradation-is-fail-closed): the
       # serializer now hands it to the resolver instead of ignoring it (#4139).
       restrict_to_available?: true,
       sso_providers: [],
@@ -996,7 +997,8 @@ RSpec.describe Core::Views::ConfigSerializer do
     # for 'webauthn', which can never be honored on a custom domain (passkey
     # rp_id is host-scoped, so canonical-host credentials cannot assert here;
     # a passkey-only page would lock every visitor out). Persisted 'webauthn'
-    # resolves to the fail-closed :unavailable state (ADR-024 A3). The legacy
+    # resolves to the fail-closed :unavailable state
+    # (ADR-034#degradation-is-fail-closed). The legacy
     # scalar remains null — NOT the tenant 'sso' pin — while the companion
     # effective_restrict_to field carries the explicit resolver state.
     context 'with an enabled domain SigninConfig' do
@@ -1014,8 +1016,9 @@ RSpec.describe Core::Views::ConfigSerializer do
       end
 
       # The resolver DERIVES whether the named method can run on this host
-      # (ADR-024 A3 domain half), so the double must answer the capability
-      # questions restriction_available_for_custom_domain? asks: the domain's
+      # (ADR-034#degradation-is-fail-closed domain half), so the double must
+      # answer the capability questions
+      # restriction_available_for_custom_domain? asks: the domain's
       # own opt-ins, and its identifier for the SSO ladder.
       def stub_signin_config(restrict_to)
         config = instance_double(
@@ -1055,8 +1058,9 @@ RSpec.describe Core::Views::ConfigSerializer do
         expect(described_class.resolve_restrict_to(custom_domain_view_vars)).to be_nil
       end
 
-      # ADR-024 A2/A3: the legacy scalar is string-or-null, while the explicit
-      # resolver wire object preserves "unavailable" for display consumers.
+      # ADR-034#resolution-is-model-owned / #degradation-is-fail-closed: the
+      # legacy scalar is string-or-null, while the explicit resolver wire
+      # object preserves "unavailable" for display consumers.
       it "reports 'webauthn' as unavailable on the resolution object" do
         stub_signin_config('webauthn')
 
@@ -1094,7 +1098,8 @@ RSpec.describe Core::Views::ConfigSerializer do
       end
     end
 
-    # Characterization of the pre-extraction behavior (ADR-024 A2): the
+    # Characterization of the pre-extraction behavior
+    # (ADR-034#resolution-is-model-owned): the
     # serializer is now a consumer of SigninConfig.resolve_restrict_to, and
     # these cases pin the wire output it produced before that refactor.
     context 'on a canonical request' do
@@ -1168,8 +1173,9 @@ RSpec.describe Core::Views::ConfigSerializer do
       expect(described_class.resolve_restrict_to(base_view_vars)).to eq('password')
     end
 
-    # ADR-024 A3, post-boot half (#4139). Before this, the serializer was the
-    # one consumer that never applied restrict_to_available? at all: the route
+    # ADR-034#degradation-is-fail-closed, post-boot half (#4139). Before
+    # this, the serializer was the one consumer that never applied
+    # restrict_to_available? at all: the route
     # gate had already gone dark while this page still rendered the restricted
     # method's form. The flag now rides into the resolver, so display and gate
     # degrade together.

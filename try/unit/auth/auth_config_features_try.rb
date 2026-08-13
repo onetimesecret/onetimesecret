@@ -334,7 +334,7 @@ cfg['full']['restrict_to'] = nil
 result
 #=> false
 
-## email_auth_only_enabled? STAYS true when email_auth is disabled (ADR-024 A3, #4140)
+## email_auth_only_enabled? STAYS true when email_auth is disabled (ADR-034#degradation-is-fail-closed, #4140)
 ## The restriction is never dropped: consumers fail closed rather than widening.
 config = Onetime::AuthConfig.instance
 cfg = config.instance_variable_get(:@config)
@@ -369,7 +369,7 @@ cfg['full']['features']['email_auth'] = false
 result
 #=> true
 
-## webauthn_only_enabled? STAYS true when webauthn is disabled (ADR-024 A3, #4140)
+## webauthn_only_enabled? STAYS true when webauthn is disabled (ADR-034#degradation-is-fail-closed, #4140)
 config = Onetime::AuthConfig.instance
 cfg = config.instance_variable_get(:@config)
 cfg['mode'] = 'full'

@@ -34,19 +34,19 @@ module Onetime
 
       def execute(_context)
         validate_present!
-        # Fatal when more than one AUTH_*_ONLY flag is set (ADR-024 A9,
+        # Fatal when more than one AUTH_*_ONLY flag is set (ADR-034#conflicting-auth-only-env-flags-are-a-boot-error,
         # #4139). Runs BEFORE the rendered value is inspected: conflicting
         # flags render as a blank restrict_to, so by the time the config is
         # parsed the contradiction is gone and validate_restrict_to! below has
         # nothing left to complain about.
         validate_restrict_to_flags!
-        # Fatal when full.restrict_to names an unavailable method (ADR-024 A3,
+        # Fatal when full.restrict_to names an unavailable method (ADR-034#degradation-is-fail-closed,
         # #4140). Fail loud at deploy time rather than silently widening the
         # sign-in page to every enabled method.
         Onetime.auth_config.validate_restrict_to!
       end
 
-      # Boot-time validation of the AUTH_*_ONLY env flags (ADR-024 A9, #4139).
+      # Boot-time validation of the AUTH_*_ONLY env flags (ADR-034#conflicting-auth-only-env-flags-are-a-boot-error, #4139).
       #
       # The template renders full.restrict_to from four mutually exclusive
       # flags and emits NOTHING when more than one is true — so an operator

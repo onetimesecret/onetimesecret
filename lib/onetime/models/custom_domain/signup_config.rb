@@ -23,7 +23,7 @@ require_relative '../features/boolean_encoding'
 #
 # See: apps/api/account/logic/account/create_account.rb (signup flow)
 #      apps/web/auth/config/hooks/omniauth.rb (SSO signup flow)
-#      docs/architecture/decision-records/adr-024-custom-domain-auth-override-resolution.md
+#      docs/adr/adr-024-custom-domain-auth-override-resolution.md
 #      (source of truth for the two-flag model, resolution invariants, and the
 #      settings API/UI contract built on them)
 #
