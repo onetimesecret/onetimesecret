@@ -56,6 +56,13 @@ module Onetime
       # only hosts no per-domain config can speak for. Used by
       # resolve_lookup_failure to decide who survives an unreadable policy;
       # :custom, :invalid and nil all fail closed there.
+      #
+      # Safe to carve out because these two are decided from in-memory config
+      # alone — a datastore failure can neither produce nor withdraw them. The
+      # invariant, the two ways a request reaches :invalid, and the full table
+      # of what every other consumer does with it live at the producer:
+      # Onetime::Middleware::DomainStrategy's class doc. Do not restate it
+      # here; it will drift.
       OPERATOR_HOST_STRATEGIES = [:canonical, :subdomain].freeze
 
       # Result of `restrict_to` resolution (ADR-024 A2).
@@ -544,7 +551,17 @@ module Onetime
         # classify — including, when the domain index read is the one that
         # failed, a host that IS a customer's custom domain. Carving out
         # everything that is not :custom would hand those the global-only
-        # answer, which is the widen this whole path exists to refuse.
+        # answer, which is the widen this whole path exists to refuse. The
+        # producer-side account of that failure mode is in
+        # Onetime::Middleware::DomainStrategy's class doc ("two ways to land
+        # on :invalid").
+        #
+        # The invariant that makes the carve-out safe is one-directional: a
+        # datastore failure can never MANUFACTURE :canonical or :subdomain,
+        # so this test may only ever be over-strict during an outage. It can
+        # withdraw :subdomain, though — those sweeps run after the datastore
+        # read, so subdomain hosts fail closed alongside the custom domains
+        # while canonical sign-in stays up.
         #
         # @param domain_strategy [Symbol, nil] env['onetime.domain_strategy']
         # @raise [Onetime::SigninPolicyUnavailable] on any host that is not positively an operator host

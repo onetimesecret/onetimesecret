@@ -474,3 +474,73 @@ Scope correction: this endpoint is full-mode-only in practice regardless of
 the gate — `email_exists_in_authdb?` reaches `Auth::Database.connection`,
 which is nil unless `full_enabled?`, so a simple-mode POST 500s before
 reaching any of this.
+
+#### A12. A misclassified custom domain must not inherit operator treatment
+
+Found while implementing A3's fail-closed rescue (2026-08-13, #4139).
+
+`DomainStrategy` answers `:invalid` in two unrelated situations, and the
+distinction is invisible at every consumer:
+
+1. the host is genuinely unplaceable (unparseable, or matching nothing);
+2. `known_custom_domain?` — a datastore read — **raised**, and
+   `choose_strategy`'s `rescue StandardError` returned nil, which `call`
+   resolves to `:invalid`.
+
+In case 2 the request is a real customer domain wearing the classification
+of an unrecognised one. Roughly ten consumers test `== :custom` and take
+their else branch for it. Most of those rows are cosmetic (branding,
+favicon). Two are not: `signin_enabled?` and `signup_enabled?` branch on
+`custom_domain_request?`, and the two branches have **opposite defaults** —
+custom domains are default-OFF and must opt in, canonical follows the
+global default. So for the duration of a datastore blip, a custom domain
+that never opted into sign-up follows the operator's global default
+instead. That is the A3 failure mode (a widen the domain owner did not
+choose) re-entered through classification rather than through resolution.
+
+**Normative.** A check whose false branch grants operator treatment to a
+host that could be a customer's must be a POSITIVE test against the operator
+classifications (`:canonical`, `:subdomain`), never `!= :custom`.
+`SigninConfig::OPERATOR_HOST_STRATEGIES` / `operator_host?` is that test and
+is the only place it is written.
+
+The carve-out rests on a **one-directional** invariant, and the obvious
+stronger version of it is false. `:canonical` is genuinely read-free — the
+exact/`www.` arm runs before `known_custom_domain?`. `:subdomain` is not:
+its sweeps run *after* that read, and the rescue wraps the whole if/elsif
+chain, so a raise aborts the method rather than falling through, and a
+subdomain host classifies `:invalid` during a blip. The practical
+consequence is that a datastore outage takes subdomain hosts down with the
+custom domains while canonical sign-in stays up.
+
+What holds in both cases is that a failure can never *manufacture*
+`:canonical` or `:subdomain`. That is the only direction the carve-out
+needs: `operator_host?` may be over-strict during an outage, never
+over-permissive. A new datastore read placed ahead of the exact canonical
+arm in `choose_strategy` would break it silently and take canonical sign-in
+dark as well.
+
+**Scope of the #4139 fix, and what remains open.** A3's rescue closes this
+for `restrict_to` only, and only when the gate's *own* read also fails — the
+path that reaches `resolve_lookup_failure`. If the middleware read fails and
+the gate read succeeds (a blip that clears in between), the request carries
+`:invalid` with a fully readable policy, no 503 is raised, and every
+`== :custom` consumer still takes the operator branch. **The sign-up
+polarity flip is therefore still live** and is not fixed by A3.
+
+The fix belongs in the resolvers, not in `custom_domain_request?`:
+inverting that method would deny branding and tenant treatment to case-1
+hosts, which is correct today. `resolve_signup_enabled` /
+`resolve_signin_enabled` should take the classification and refuse to apply
+the operator default to a host that is not positively an operator host —
+the same rule as `operator_host?`, applied to polarity instead of to
+failure. Filed as a follow-up; not folded into #4139, whose scope is
+`restrict_to`.
+
+**Pinned executably.** The consumer table is a claim about ~10 independent
+`== :custom` call sites and would rot as prose. It is asserted in
+`spec/unit/domain_strategy_classification_contract_spec.rb`, which drives
+every classification (`:canonical`, `:subdomain`, `:custom`, `:invalid`,
+`nil`) through the gates and pins each resolved answer, including the open
+sign-up flip above. An eleventh consumer with a different polarity fails
+there rather than in review.

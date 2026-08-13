@@ -264,6 +264,21 @@ module Core
       # subdomain requests are the operator's own surfaces and follow the global
       # auth defaults; custom domains must opt in. Mirrors
       # ConfigSerializer#tenant_domain?.
+      #
+      # THIS ONE LINE DECIDES THE POLARITY OF signin_enabled? AND
+      # signup_enabled?, and its false branch is wider than "not a custom
+      # domain": :invalid and nil land there too. :invalid is not only a
+      # malformed host — DomainStrategy also answers it when its
+      # `known_custom_domain?` datastore read RAISES, so a blip classifies a
+      # real customer domain :invalid and this method reports false for it.
+      # The cost is an inverted default: custom domains are default-OFF for
+      # sign-in and sign-up, canonical follows the global default, so such a
+      # request follows the operator's default instead of the domain's own.
+      # Unlike SigninConfig.operator_host?, this is NOT a positive test and
+      # deliberately stays that way — flipping it would deny branding and
+      # tenant treatment to genuinely unplaceable hosts. See ADR-024 A12 for
+      # why the fix belongs in the resolvers, and
+      # Onetime::Middleware::DomainStrategy's class doc for the full table.
       def custom_domain_request?
         req.env['onetime.domain_strategy'] == :custom
       end
