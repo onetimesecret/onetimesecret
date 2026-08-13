@@ -324,6 +324,17 @@ RSpec.configure do |config|
   # Ensures stubs are fresh after any WebMock.reset!
   config.before(:each, :omniauth_mock) do
     stub_oidc_discovery
+
+    # OIDC request-phase traffic now runs through the pinned Net::HTTP adapter
+    # installed by Auth::OidcHttpPinning (OpenIDConnect.http_config), which
+    # resolves the issuer host itself before dialing. That lookup is real DNS
+    # inside the adapter block, below the level WebMock intercepts, so the
+    # placeholder issuer (an unresolvable .invalid host) makes the guard raise
+    # and the request phase redirect to /signin?auth_error=sso_failed.
+    #
+    # Stub the resolver seam, not the guard: validation and pinning still run
+    # for real, and WebMock serves the stubbed discovery response as before.
+    allow(Onetime::Http::Guard).to receive(:resolve_addresses).and_return(['203.0.113.10'])
   end
 
   config.after(:each, :omniauth_mock) do

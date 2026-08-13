@@ -69,6 +69,17 @@ RSpec.describe 'Domain SSO Config API', type: :integration do
     end
   end
 
+  # Issuer save-time validation (SsrfProtection#valid_issuer_host?) resolves
+  # the issuer host and fails closed on empty resolution, so the fixture
+  # issuers below (auth.example.com, pkce-issuer.example.com — all NXDOMAIN)
+  # would be rejected with 422 on a machine with working DNS. Resolve them to
+  # a documentation-range public address instead: these tests are about the
+  # SSO config API's own semantics, and the SSRF rules themselves are covered
+  # in apps/api/domains/spec/logic/sso_config/ssrf_protection_spec.rb.
+  before do
+    allow(Resolv).to receive(:getaddresses).and_return(['203.0.113.10'])
+  end
+
   let(:test_run_id) { SecureRandom.hex(8) }
   let(:test_email) { "owner-#{test_run_id}@test.local" }
   let(:test_password) { 'Test123!@#' }
