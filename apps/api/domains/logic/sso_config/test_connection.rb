@@ -313,31 +313,33 @@ module DomainsAPI
         def fetch_url(url)
           uri = URI.parse(url)
 
-          # SSRF enforcement point: resolve + validate the host once, then pin
-          # the connection to that exact IP via Net::HTTP#ipaddr= while the
-          # Host header, SNI, and certificate verification keep using the
-          # hostname. Closes the validate-then-reresolve DNS-rebinding window,
-          # and covers every caller — including test_entra_id_connection,
-          # which never passes through valid_issuer_host? (that check remains
-          # upstream as a cheap early rejection with a friendly message).
-          # Raises Onetime::Http::Guard::Blocked for forbidden targets.
-          pinned_ip = Onetime::Http::Guard.pinned_address!(uri.host)
-
-          # The explicit nil p_addr disables environment-proxy pickup
-          # (http_proxy env var), which would otherwise route the request
-          # through a proxy and silently bypass the IP pinning below.
-          http              = Net::HTTP.new(uri.host, uri.port, nil)
-          http.ipaddr       = pinned_ip
-          http.use_ssl      = (uri.scheme == 'https')
-          http.open_timeout = CONNECTION_TIMEOUT
-          http.read_timeout = READ_TIMEOUT
-          http.verify_mode  = OpenSSL::SSL::VERIFY_PEER
-
           request               = Net::HTTP::Get.new(uri.request_uri)
           request['Accept']     = 'application/json'
           request['User-Agent'] = 'OneTimeSecret-SSO-Test/1.0'
 
-          http.request(request)
+          # SSRF enforcement point: resolve + validate the host once, then
+          # dial each validated IP pinned via Net::HTTP#ipaddr= while the
+          # Host header, SNI, and certificate verification keep using the
+          # hostname. Closes the validate-then-reresolve DNS-rebinding
+          # window (the fallback walk only spans already-validated
+          # addresses), and covers every caller — including
+          # test_entra_id_connection, which never passes through
+          # valid_issuer_host? (that check remains upstream as a cheap early
+          # rejection with a friendly message). Raises
+          # Onetime::Http::Guard::Blocked for forbidden targets.
+          Onetime::Http::Guard.try_each_address!(uri.host) do |pinned_ip|
+            # The explicit nil p_addr disables environment-proxy pickup
+            # (http_proxy env var), which would otherwise route the request
+            # through a proxy and silently bypass the IP pinning below.
+            http              = Net::HTTP.new(uri.host, uri.port, nil)
+            http.ipaddr       = pinned_ip
+            http.use_ssl      = (uri.scheme == 'https')
+            http.open_timeout = CONNECTION_TIMEOUT
+            http.read_timeout = READ_TIMEOUT
+            http.verify_mode  = OpenSSL::SSL::VERIFY_PEER
+
+            http.request(request)
+          end
         end
 
         def validate_discovery_response(response, provider_name)

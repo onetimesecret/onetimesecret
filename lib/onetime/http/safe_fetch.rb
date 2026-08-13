@@ -59,16 +59,11 @@ module Onetime
       SUCCESS_CODES   = (200..299)
 
       # Connect-time failures that justify dialing the next validated address.
-      # Deliberately excludes timeouts (mapped to retriable FetchTimeout — and
-      # falling through would spend a full extra @timeout per address) and all
-      # post-connect errors. These errnos surface from connect(2) in
-      # microseconds, so walking the list adds no meaningful wall-clock.
-      CONNECT_FALLBACK_ERRNOS = [
-        Errno::EHOSTUNREACH,  # no route to host (e.g. AAAA on a v6-broken network)
-        Errno::ENETUNREACH,   # no route to network (v4-only or v6-only client)
-        Errno::EADDRNOTAVAIL, # no usable local address for this family
-        Errno::ECONNREFUSED,  # this endpoint is down; another may serve
-      ].freeze
+      # The list lives on the shared Guard (which also documents the
+      # exclusions: timeouts — mapped here to retriable FetchTimeout — and all
+      # post-connect errors) so every pinned-dial callsite falls back on the
+      # same errno set.
+      CONNECT_FALLBACK_ERRNOS = Guard::CONNECT_FALLBACK_ERRNOS
 
       DEFAULT_HEADERS = { 'user-agent' => 'OnetimeSecret-SafeFetch/1.0' }.freeze
 

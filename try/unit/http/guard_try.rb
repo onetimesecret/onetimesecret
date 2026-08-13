@@ -17,7 +17,9 @@
 # lacked), v4-mapped AND v4-compatible unwrapping, zero-address guard,
 # fail-closed on unparseable/encoded addresses and mixed RRsets, empty
 # resolution rejected, IP-literal hosts validated directly (Resolv::DNS
-# returns [] for literals), IPv4-first uniq'd ordering, and pinned_address!.
+# returns [] for literals), IPv4-first uniq'd ordering, pinned_address!, and
+# try_each_address!'s reachability fallback (connect errnos fall through to
+# the next validated address; anything else propagates from the first dial).
 #
 # Run:
 #   bundle exec try --agent try/unit/http/guard_try.rb
@@ -140,4 +142,47 @@ G.pinned_address!('ds.test')
 
 ## pinned_address! propagates Blocked for a forbidden target
 classify { G.pinned_address!('meta.test') }
+#=> :blocked
+
+## try_each_address! yields the first validated address and returns the
+## block's value when the dial succeeds
+G.try_each_address!('ds.test') { |addr| "dialed #{addr}" }
+#=> 'dialed 8.8.8.8'
+
+## try_each_address! falls through connect-level errnos to the next
+## validated address, preserving the IPv4-first order
+attempts = []
+result = G.try_each_address!('ds.test') do |addr|
+  attempts << addr
+  raise Errno::ECONNREFUSED if attempts.size < 3
+  addr
+end
+[result, attempts]
+#=> ['2606:4700::6810:84e5', ['8.8.8.8', '93.184.216.34', '2606:4700::6810:84e5']]
+
+## try_each_address! re-raises the last connect error once every validated
+## address has been exhausted
+begin
+  G.try_each_address!('ok.test') { raise Errno::EHOSTUNREACH }
+rescue Errno::EHOSTUNREACH
+  :exhausted
+end
+#=> :exhausted
+
+## try_each_address! does NOT swallow non-connect errors: the first dial's
+## failure propagates without trying further addresses (timeouts and TLS
+## errors are not an excuse to widen the walk)
+dials = 0
+begin
+  G.try_each_address!('ds.test') do
+    dials += 1
+    raise 'tls verification failed'
+  end
+rescue RuntimeError
+  dials
+end
+#=> 1
+
+## try_each_address! propagates Blocked before any dial for forbidden targets
+classify { G.try_each_address!('meta.test') { :never } }
 #=> :blocked

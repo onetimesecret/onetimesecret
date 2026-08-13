@@ -226,9 +226,9 @@ module Onetime
       # @return [Net::HTTPResponse] HTTP response
       def send_webhook_request(url, payload)
         # ALPHA: Webhook delivery needs further security review before wide use.
-        # Current mitigations: SSRF protection with DNS pinning (single pinned
-        # IP — no multi-address fallback if that one address is unreachable),
-        # TLS verification, timeouts.
+        # Current mitigations: SSRF protection with DNS pinning (each dial
+        # pinned to one validated IP, with reachability fallback across the
+        # remaining validated addresses), TLS verification, timeouts.
         # Missing: request signing, URL allowlisting, rate limiting, payload size limits.
         logger.warn 'Webhook delivery is alpha functionality', url: url
 
@@ -240,39 +240,41 @@ module Onetime
           raise ArgumentError, "Unsupported webhook scheme: #{uri.scheme.inspect}"
         end
 
-        # SSRF Protection with DNS pinning: resolve + validate the hostname
-        # once, then dial that exact IP via Net::HTTP#ipaddr= while the Host
-        # header, SNI, and certificate verification keep using the hostname.
-        # This closes the validate-then-reresolve DNS-rebinding window the
-        # previous Addrinfo check left open. Raises Guard::Blocked (an
-        # Onetime::Problem) for forbidden targets; dispatch_to_channel's
-        # StandardError rescue classifies that as a permanent :error — the
-        # worker never retries per-channel failures.
-        pinned_ip = Onetime::Http::Guard.pinned_address!(uri.host)
-
-        # The explicit nil p_addr disables environment-proxy pickup
-        # (http_proxy env var), which would otherwise route the request
-        # through a proxy and silently bypass the IP pinning below.
-        http        = Net::HTTP.new(uri.host, uri.port, nil)
-        http.ipaddr = pinned_ip
-
-        http.use_ssl = (scheme == 'https')
-
-        # Explicit TLS verification settings
-        if http.use_ssl?
-          http.verify_mode     = OpenSSL::SSL::VERIFY_PEER
-          http.verify_hostname = true
-        end
-
-        http.open_timeout = WEBHOOK_OPEN_TIMEOUT
-        http.read_timeout = WEBHOOK_READ_TIMEOUT
-
         request                 = Net::HTTP::Post.new(uri.request_uri)
         request['Content-Type'] = 'application/json'
         request['User-Agent']   = Onetime::VERSION.user_agent
         request.body            = payload.to_json
 
-        http.request(request)
+        # SSRF Protection with DNS pinning: resolve + validate the hostname
+        # once, then dial each validated IP via Net::HTTP#ipaddr= while the
+        # Host header, SNI, and certificate verification keep using the
+        # hostname. This closes the validate-then-reresolve DNS-rebinding
+        # window the previous Addrinfo check left open; the fallback walk
+        # only spans already-validated addresses (reachability, not target
+        # widening). Raises Guard::Blocked (an Onetime::Problem) for
+        # forbidden targets; dispatch_to_channel's StandardError rescue
+        # classifies that as a permanent :error — the worker never retries
+        # per-channel failures.
+        Onetime::Http::Guard.try_each_address!(uri.host) do |pinned_ip|
+          # The explicit nil p_addr disables environment-proxy pickup
+          # (http_proxy env var), which would otherwise route the request
+          # through a proxy and silently bypass the IP pinning below.
+          http        = Net::HTTP.new(uri.host, uri.port, nil)
+          http.ipaddr = pinned_ip
+
+          http.use_ssl = (scheme == 'https')
+
+          # Explicit TLS verification settings
+          if http.use_ssl?
+            http.verify_mode     = OpenSSL::SSL::VERIFY_PEER
+            http.verify_hostname = true
+          end
+
+          http.open_timeout = WEBHOOK_OPEN_TIMEOUT
+          http.read_timeout = WEBHOOK_READ_TIMEOUT
+
+          http.request(request)
+        end
       end
 
       # @return [SemanticLogger::Logger] Logger instance

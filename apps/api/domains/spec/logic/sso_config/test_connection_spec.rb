@@ -129,6 +129,32 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::TestConnection do
         expect(http_instance).to have_received(:ipaddr=).with('203.0.113.10')
       end
     end
+
+    context 'when the first validated address is unreachable' do
+      let(:discovery_body) do
+        {
+          issuer: issuer,
+          authorization_endpoint: "#{issuer}/authorize",
+          token_endpoint: "#{issuer}/token",
+          jwks_uri: "#{issuer}/jwks",
+        }.to_json
+      end
+
+      before do
+        stub_issuer_resolution(['203.0.113.10', '203.0.113.11'])
+        allow(http_instance).to receive(:request)
+          .and_invoke(->(_req) { raise Errno::ECONNREFUSED },
+                      ->(_req) { success_response(discovery_body) })
+      end
+
+      it 'falls back to the next validated address, each dial still pinned' do
+        result = logic.send(:test_oidc_connection)
+
+        expect(result[:success]).to be true
+        expect(http_instance).to have_received(:ipaddr=).with('203.0.113.10').ordered
+        expect(http_instance).to have_received(:ipaddr=).with('203.0.113.11').ordered
+      end
+    end
   end
 
   describe '#test_entra_id_connection' do

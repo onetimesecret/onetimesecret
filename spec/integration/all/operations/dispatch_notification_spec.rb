@@ -43,7 +43,7 @@ RSpec.describe Onetime::Operations::DispatchNotification, type: :integration do
   let(:custid) { 'cust:test-user-456' }
 
   # Helper to stub the shared SSRF guard's DNS seam for webhook tests.
-  # Guard.pinned_address! dispatches through Guard.resolve_addresses, so
+  # Guard.try_each_address! dispatches through Guard.resolve_addresses, so
   # stubbing that single seam avoids live DNS while keeping the guard's
   # validation and pinning logic real. Redis is unaffected (the Redis client
   # does not resolve through Guard).
@@ -620,6 +620,34 @@ RSpec.describe Onetime::Operations::DispatchNotification, type: :integration do
 
       expect(results[:via_webhook]).to eq(:error)
       expect(Net::HTTP).not_to have_received(:new)
+    end
+
+    it 'falls back to the next validated address when the first is unreachable' do
+      response = instance_double(Net::HTTPSuccess, code: '200', body: 'OK')
+      allow(response).to receive(:is_a?).with(Net::HTTPSuccess).and_return(true)
+      allow(Onetime::Http::Guard).to receive(:resolve_addresses)
+        .and_return(['93.184.216.34', '93.184.216.35'])
+      allow(http_instance).to receive(:request)
+        .and_invoke(->(_req) { raise Errno::ECONNREFUSED }, ->(_req) { response })
+
+      results = described_class.new(data: data).call
+
+      expect(results[:via_webhook]).to eq(:success)
+      # Each dial stays pinned to one exact validated IP; the fallback walk
+      # never widens beyond the guard-validated set.
+      expect(http_instance).to have_received(:ipaddr=).with('93.184.216.34').ordered
+      expect(http_instance).to have_received(:ipaddr=).with('93.184.216.35').ordered
+    end
+
+    it 'reports an error when every validated address is unreachable' do
+      allow(Onetime::Http::Guard).to receive(:resolve_addresses)
+        .and_return(['93.184.216.34', '93.184.216.35'])
+      allow(http_instance).to receive(:request).and_raise(Errno::ECONNREFUSED)
+
+      results = described_class.new(data: data).call
+
+      expect(results[:via_webhook]).to eq(:error)
+      expect(http_instance).to have_received(:request).twice
     end
   end
 

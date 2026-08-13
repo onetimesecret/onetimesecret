@@ -53,6 +53,18 @@
 #        ever reports a different http_config than OpenIDConnect, some
 #        other caller won the race; find it and remove it.
 #
+# SINGLE-PIN BY DESIGN AT THIS SEAM
+#
+#   Guard.try_each_address! gives callers that own their dial loop a
+#   reachability fallback across ALL validated addresses (webhook delivery
+#   and SSO test-connection use it). This hook cannot: faraday-net_http
+#   yields the live Net::HTTP instance exactly once, immediately before it
+#   dials — falling back to a different address would mean re-running the
+#   entire Faraday request, and this seam does not control the request
+#   cycle (it spans four gems: OpenIDConnect, SWD, WebFinger, Rack::OAuth2).
+#   pinned_address! prefers IPv4, which already sidesteps the common
+#   broken-dual-stack failure mode (unreachable AAAA ahead of a healthy A).
+#
 # PROXY FAIL-CLOSED
 #
 #   `http.ipaddr=` controls the TCP dial target. Through a forward proxy

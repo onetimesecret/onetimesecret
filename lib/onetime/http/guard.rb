@@ -26,11 +26,14 @@ module Onetime
     #     wholesale (defeats one-public-one-private split RRsets),
     #   - empty resolution is rejected (nothing resolvable, nothing fetchable).
     #
-    # Callers that dial the returned addresses should pin the connection to one
-    # exact validated IP (e.g. Net::HTTP#ipaddr=) so no second DNS resolution
-    # happens at connect time — closing the classic validate-then-reresolve
-    # (DNS-rebinding) window. See SafeFetch for the canonical pinned-dial
-    # implementation.
+    # Callers that dial the returned addresses should pin the connection to
+    # one exact validated IP (e.g. Net::HTTP#ipaddr=) so no second DNS
+    # resolution happens at connect time — closing the classic
+    # validate-then-reresolve (DNS-rebinding) window. Callers that own their
+    # dial loop should use #try_each_address!, which walks ALL validated
+    # addresses on connect-level reachability errors (each dial still pinned
+    # to one exact IP); SafeFetch implements the same fallback over its own
+    # per-instance resolver seam.
     module Guard
       # Raised when a host/address is a forbidden egress target (blocked
       # range, unparseable address, or empty resolution).
@@ -146,13 +149,54 @@ module Onetime
         v4 + v6
       end
 
-      # The single address a caller should pin its connection to.
+      # The single address a caller should pin its connection to. For callers
+      # that control their own dial loop, prefer #try_each_address!: it keeps
+      # the same per-dial pinning but falls back across the remaining
+      # validated addresses when one is unreachable. This single-address form
+      # exists for seams that get exactly one shot at configuring a
+      # connection (see Auth::OidcHttpPinning).
       #
       # @param host [String]
       # @return [String] the first validated address (IPv4 preferred)
       # @raise [Blocked]
       def pinned_address!(host)
         resolve_and_validate!(host).first
+      end
+
+      # Connect-time failures that justify dialing the next validated
+      # address. Deliberately excludes timeouts (falling through would spend
+      # a full extra open-timeout per address) and all post-connect errors.
+      # These errnos surface from connect(2) in microseconds, so walking the
+      # list adds no meaningful wall-clock. Shared with SafeFetch's dial loop.
+      CONNECT_FALLBACK_ERRNOS = [
+        Errno::EHOSTUNREACH,  # no route to host (e.g. AAAA on a v6-broken network)
+        Errno::ENETUNREACH,   # no route to network (v4-only or v6-only client)
+        Errno::EADDRNOTAVAIL, # no usable local address for this family
+        Errno::ECONNREFUSED,  # this endpoint is down; another may serve
+      ].freeze
+
+      # Resolve + validate host, then yield each validated address in order
+      # (IPv4-first) until the block completes without a connect-level
+      # reachability error, returning that block's value. The caller dials
+      # inside the block with the connection pinned to the yielded IP
+      # (Net::HTTP#ipaddr=), so walking the list is a reachability fallback
+      # across already-validated addresses — never a widening of the target
+      # set. Non-connect errors (timeouts, TLS, HTTP failures) propagate
+      # immediately from the first dial that raises them; when every address
+      # fails to connect, the last errno propagates unchanged.
+      #
+      # @param host [String]
+      # @yieldparam addr [String] one validated address to pin and dial
+      # @return the block's value for the first reachable address
+      # @raise [Blocked] if resolution or validation fails
+      def try_each_address!(host)
+        last_error = nil
+        resolve_and_validate!(host).each do |addr|
+          return yield(addr)
+        rescue *CONNECT_FALLBACK_ERRNOS => ex
+          last_error = ex
+        end
+        raise last_error # never nil: resolve_and_validate! raises on empty
       end
 
       # Isolated for testability (redefined in the unit tryout to avoid real
