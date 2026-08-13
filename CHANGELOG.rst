@@ -10,6 +10,31 @@ this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.htm
 
    <!--scriv-insert-here-->
 
+.. _changelog-0.26.1:
+
+0.26.1 — 2026-07-21
+====================
+
+Added
+-----
+
+- Configurable and validated Stripe checkout-host allowlisting for custom domains.
+  (#3821)
+
+- Brand-pack resolution diagnostics in the CLI, Colonel API, and admin console,
+  including operator runbook guidance. (#3822, #3825)
+
+- Receipt status UI now surfaces receipt access telemetry. (#3829, #3832)
+
+Fixed
+-----
+
+- Password changes now invalidate stale sessions and reject sessions authenticated
+  before the credential watermark, preventing session fixation. (#3810, #3830)
+
+- The pricing-page **Current** badge now selects the active plan by plan ID.
+  (#3824, #3827)
+
 .. _changelog-0.26.0:
 
 0.26.0 — 2026-07-20
