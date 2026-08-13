@@ -36,8 +36,9 @@ require 'onetime/middleware/static_files'
 require 'web/core/logic/page/get_favicon'
 require 'web/core/logic/page/get_webmanifest'
 
-BRAND_PACK_URLS      = Onetime::Middleware::StaticFiles::BRAND_PACK_URLS
-BRAND_PACK_LOGO_URLS = Onetime::Middleware::StaticFiles::BRAND_PACK_LOGO_URLS
+BRAND_PACK_URLS        = Onetime::Middleware::StaticFiles::BRAND_PACK_URLS
+BRAND_PACK_LOGO_URLS   = Onetime::Middleware::StaticFiles::BRAND_PACK_LOGO_URLS
+BRAND_PACK_SOCIAL_URLS = Onetime::Middleware::StaticFiles::BRAND_PACK_SOCIAL_URLS
 DEFAULT_PACK         = File.join(Onetime::HOME, 'public', 'branding', 'default')
 
 OT.conf['site'] ||= {}
@@ -76,6 +77,11 @@ File.write(File.join(@overlay_partial, 'favicon.svg'), '<svg/>')
 # to prove the optional logo URLs are existence-filtered like other assets.
 @overlay_logo = Dir.mktmpdir('ots-overlay-logo')
 File.write(File.join(@overlay_logo, 'brand-logo.svg'), '<svg/>')
+
+# Overlay carrying a pack-local social card (#4150): social-preview.png only,
+# to prove the optional social URL is existence-filtered like the logo URLs.
+@overlay_social = Dir.mktmpdir('ots-overlay-social')
+File.binwrite(File.join(@overlay_social, 'social-preview.png'), 'SOCIAL-OVERLAY-PNG')
 
 # Symmetric fixture: brand-logo.png ONLY, to prove the existence filter works
 # independently for the .png extension too.
@@ -336,7 +342,7 @@ overlay_dir = Onetime.brand_overlay_dir
 present = BRAND_PACK_URLS.select { |u| File.exist?(File.join(overlay_dir, u)) }
 absent  = (BRAND_PACK_URLS - present).sort
 [present, absent]
-#=> [['/favicon.svg'], ['/apple-touch-icon.png', '/icon-192.png', '/icon-512.png', '/safari-pinned-tab.svg', '/social-preview.png']]
+#=> [['/favicon.svg'], ['/apple-touch-icon.png', '/icon-192.png', '/icon-512.png', '/safari-pinned-tab.svg']]
 
 ## the default pack (base layer) carries the full BRAND_PACK_URLS set
 BRAND_PACK_URLS.all? { |u| File.exist?(File.join(DEFAULT_PACK, u)) }
@@ -372,6 +378,34 @@ overlay_dir = Onetime.brand_overlay_dir
 ## the neutral default pack ships NO logo — base layer existence-filters both out
 BRAND_PACK_LOGO_URLS.select { |u| File.exist?(File.join(DEFAULT_PACK, u)) }
 #=> []
+
+# ============================================================================
+# 7b. Optional pack-carried social card (#4150): same existence-filtered
+#     treatment as the logo, so a pack WITHOUT a card emits no og:image at all
+#     rather than serving/advertising the canonical one.
+# ============================================================================
+
+## the social card is NOT in the mandatory set (a pack may legitimately omit it)
+BRAND_PACK_URLS.include?('/social-preview.png')
+#=> false
+
+## the optional social URL set is the single og:image card
+BRAND_PACK_SOCIAL_URLS
+#=> ['/social-preview.png']
+
+## the optional URL set unions the logo and social URLs (one filter, both layers)
+Onetime::Middleware::StaticFiles::BRAND_PACK_OPTIONAL_URLS.sort
+#=> ['/brand-logo-dark.png', '/brand-logo-dark.svg', '/brand-logo.png', '/brand-logo.svg', '/social-preview.png']
+
+## an overlay carrying social-preview.png lists it among the optional URLs
+set_overlay(assets_dir: @overlay_social, pack: nil)
+overlay_dir = Onetime.brand_overlay_dir
+BRAND_PACK_SOCIAL_URLS.select { |u| File.exist?(File.join(overlay_dir, u)) }
+#=> ['/social-preview.png']
+
+## the tracked default pack ships a card, so the base layer serves it
+BRAND_PACK_SOCIAL_URLS.select { |u| File.exist?(File.join(DEFAULT_PACK, u)) }
+#=> ['/social-preview.png']
 
 clear_overlay
 
@@ -416,6 +450,6 @@ OT.conf['site']['brand_assets_dir'] = @orig_assets_dir
 OT.conf['site']['brand_pack']       = @orig_pack
 [@overlay_favicon, @overlay_manifest, @overlay_bad_manifest,
  @overlay_empty, @overlay_partial, @overlay_logo, @overlay_logo_png,
- @e2e_overlay].each { |d| FileUtils.remove_entry(d) rescue nil }
+ @overlay_social, @e2e_overlay].each { |d| FileUtils.remove_entry(d) rescue nil }
 [@etc_pack_dir, @public_pack_dir, @vendor_only_dir].each { |d| FileUtils.remove_entry(d) rescue nil }
 FileUtils.remove_entry(File.join(Onetime::HOME, 'etc', 'branding')) if Dir.exist?(File.join(Onetime::HOME, 'etc', 'branding')) && Dir.empty?(File.join(Onetime::HOME, 'etc', 'branding'))

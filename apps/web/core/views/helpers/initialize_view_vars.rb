@@ -216,15 +216,35 @@ module Core
         brand_logo_dark_url         = brand_config['logo_dark_url']
         brand_logo_alt              = brand_config['logo_alt'] || brand_global_defaults[:logo_alt]
         brand_favicon_url           = brand_config['favicon_url'] || brand_global_defaults[:favicon_url]
-        # Mobile/social variety-pack URLs used by the HTML head. Unlike the
-        # fields above (which default to nil and fall through to the frontend
-        # neutral theme), these resolve to the bundled NEUTRAL asset files so
-        # the head always emits a valid, brand-agnostic pack. Operators set
-        # BRAND_APPLE_TOUCH_ICON_URL / BRAND_OG_IMAGE_URL (or drop replacement
-        # files into the brand directory) to override. og:image must be
-        # absolute for social scrapers, so the default is anchored to baseuri.
+        # Mobile/social variety-pack URLs used by the HTML head. apple-touch-icon
+        # resolves to the bundled NEUTRAL asset so the head always emits a valid,
+        # brand-agnostic pack; operators set BRAND_APPLE_TOUCH_ICON_URL (or drop a
+        # replacement file into the brand directory) to override.
         brand_apple_touch_icon_url  = brand_config['apple_touch_icon_url'] || '/apple-touch-icon.png'
-        brand_og_image_url          = brand_config['og_image_url'] || "#{baseuri}/social-preview.png"
+
+        # og:image / twitter:image are OPT-IN and may legitimately be absent
+        # (#4150) — see normalize_brand, which resolves brand.og_image_url from
+        # the pack asset and leaves it nil when no pack carries a social card.
+        # Two further gates apply here, both about the card travelling off-site:
+        #
+        #   - custom domains get NO card. brand_config is the INSTALL's brand
+        #     (OT.conf), not the domain's, and there is no per-domain social
+        #     image field, so anything we emitted here would put the install
+        #     operator's card on a customer's shared link. Same reasoning as
+        #     show_default_svg_favicon below, which suppresses the canonical SVG
+        #     for exactly this class of shadowing.
+        #   - a root-relative value is absolutized against baseuri, since social
+        #     scrapers require an absolute og:image.
+        #
+        # nil means "emit no image tags"; the head partial branches on it, and
+        # twitter:card degrades from summary_large_image to summary so the card
+        # still renders correctly without an image.
+        brand_og_image_url          = brand_config['og_image_url'].to_s.strip
+        brand_og_image_url          = nil if brand_og_image_url.empty? || domain_strategy == :custom
+        if brand_og_image_url&.start_with?('/') && !brand_og_image_url.start_with?('//')
+          brand_og_image_url = "#{baseuri}#{brand_og_image_url}"
+        end
+        twitter_card_type           = brand_og_image_url ? 'summary_large_image' : 'summary'
 
         # Whether to emit the static neutral SVG favicon link. Modern browsers
         # prefer an SVG <link rel="icon"> over the .ico, so we must NOT emit it
@@ -282,6 +302,7 @@ module Core
           'brand_favicon_url' => brand_favicon_url,
           'brand_apple_touch_icon_url' => brand_apple_touch_icon_url,
           'brand_og_image_url' => brand_og_image_url,
+          'twitter_card_type' => twitter_card_type,
           'show_default_svg_favicon' => show_default_svg_favicon,
           'support_email' => support_email,
           'docs_host' => docs_host,

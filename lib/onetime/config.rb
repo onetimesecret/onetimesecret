@@ -669,6 +669,12 @@ module Onetime
       conf
     end
 
+    # Sentinel values for brand.og_image_url meaning "emit no social card at
+    # all" (#4150). A dedicated sentinel is needed because blank already means
+    # "unset" — see normalize_brand for why deleting the pack file is not on its
+    # own a sufficient opt-out. Compared case-insensitively after stripping.
+    OG_IMAGE_NONE = %w[none off false].freeze
+
     # Maps each brand config key to its backing env var. String fields are
     # trimmed (empty -> nil); button_text_light is coerced to a real boolean.
     BRAND_ENV = {
@@ -895,6 +901,34 @@ module Onetime
       end
       # rubocop:enable Style/CombinableLoops
 
+      # og:image resolves from the ASSET, not a hardcoded path (#4150). When the
+      # resolved pack (or the default pack it falls through to) carries
+      # social-preview.png, that file is the card; when nothing carries it, the
+      # key stays nil and the head emits no image meta tags AT ALL — never an
+      # empty tag, never one pointing at a 404. Serving and linking therefore key
+      # off the same file: StaticFiles existence-filters the URL and this resolves
+      # the tag, so a pack cannot advertise a card at a URL that serves nothing.
+      #
+      # Root-relative on purpose — the view absolutizes it against baseuri, since
+      # og:image must be absolute for social scrapers.
+      #
+      # OG_IMAGE_NONE is the explicit "no card at all" opt-out, and it is the one
+      # an install like onetimesecret.com needs. Deleting social-preview.png from
+      # your own pack is NOT sufficient by itself: a partial pack falls through to
+      # the default pack for the files it omits (that fall-through is the whole
+      # contract for every other asset), and the tracked default pack carries a
+      # card. Blank cannot serve as the opt-out either — the loop above collapses
+      # blanks to nil, which is indistinguishable from unset. So: set
+      # BRAND_OG_IMAGE_URL=none (or og_image_url: "none").
+      #
+      # Custom domains never inherit the install's card regardless of any of this
+      # — see initialize_view_vars. This switch is only the install-wide posture.
+      if OG_IMAGE_NONE.include?(brand['og_image_url'].to_s.strip.downcase)
+        brand['og_image_url'] = nil
+      elsif brand['og_image_url'].nil? && brand_pack_carries?(conf, 'social-preview.png')
+        brand['og_image_url'] = '/social-preview.png'
+      end
+
       # button_text_light: light text on brand-colored buttons. Default-on;
       # only an explicit 'false' (env or YAML) disables it. nil when unset.
       raw                        = ENV.fetch('BRAND_BUTTON_TEXT_LIGHT', nil)
@@ -909,6 +943,34 @@ module Onetime
       else
         raw.strip != 'false'
       end
+    end
+
+    # Whether a brand-pack asset file is actually on disk, resolved the SAME way
+    # StaticFiles serves it (#4150): the selected pack first, then the default
+    # pack it falls through to. Pure with respect to OT.conf — it reads the pack
+    # selection out of the conf hash being normalized, so it works at boot before
+    # OT.conf is installed (Onetime.brand_overlay_dir would not).
+    #
+    # Resolution happens ONCE at boot, matching the middleware, which also
+    # resolves overlay existence at boot: adding or removing a pack asset needs a
+    # restart either way, and the two must not disagree about which URLs serve.
+    #
+    # @param conf [Hash] the merged configuration
+    # @param name [String] pack-relative file name, e.g. 'social-preview.png'
+    # @return [Boolean]
+    def brand_pack_carries?(conf, name)
+      selected = Onetime.resolve_brand_pack_dir(
+        brand_assets_dir: conf.dig('site', 'brand_assets_dir'),
+        brand_pack: conf.dig('site', 'brand_pack'),
+      )
+      default  = Onetime.brand_pack_dir(Onetime::DEFAULT_BRAND_PACK)
+
+      [selected, default].compact.uniq.any? { |dir| File.exist?(File.join(dir, name)) }
+    rescue StandardError => ex
+      # Same posture as apply_brand_manifest: an unreadable pack must never abort
+      # boot. Absent means the tag is simply not emitted.
+      OT.le "[brand_pack_carries?] #{name}: #{ex.class}: #{ex.message}" if defined?(OT)
+      false
     end
 
     # Digs a key path out of a config hash, tolerating malformed intermediate

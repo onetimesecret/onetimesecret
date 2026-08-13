@@ -48,8 +48,17 @@
 # logo_alt: "Example logo"                     # logo alt text
 # favicon_url: "https://cdn.example.com/favicon.ico" # /favicon.ico 302 redirect
 # apple_touch_icon_url: "https://cdn.example.com/touch.png" # head apple-touch-icon
-# og_image_url: "https://cdn.example.com/card.png"          # og:image / twitter:image (absolute)
+# og_image_url: "https://cdn.example.com/card.png"          # og:image / twitter:image (absolute; opt-in — see below)
 # totp_issuer: "Secure Links"                  # MFA issuer label (falls back to product_name)
+#
+# The social card (og:image / twitter:image) is resolved from the pack ASSET:
+# this pack ships a neutral social-preview.png, so it is served and linked by
+# default. To use your own, drop a social-preview.png into your pack or point
+# og_image_url / BRAND_OG_IMAGE_URL at an absolute CDN URL. To have NO card,
+# set og_image_url: "none" — deleting the file from your own pack is not enough
+# on its own, since a partial pack falls through to this one. With no card the
+# head emits no og:image/twitter:image at all (twitter:card degrades to
+# `summary`). Custom domains never inherit the install's card.
 #
 # Not a manifest key: button_text_light (light text on brand-colored CTA
 # buttons) is auto-derived from the primary_color luminance. A pack cannot set
