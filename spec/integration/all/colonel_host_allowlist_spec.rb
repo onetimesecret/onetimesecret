@@ -78,11 +78,18 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
     @orig_domains    = OT.conf.dig('features', 'domains')&.dup
     @orig_developmnt = OT.conf['development']&.dup
     @orig_features   = Onetime::Runtime.features
+    # The posture examples write site.network.trusted_proxy. Snapshotting it
+    # here rather than in those examples keeps the restore in ONE place: a
+    # leaked trusted_proxy block changes how every later example in the
+    # process resolves a client IP, which is exactly the cross-file residue
+    # the rest of this hook exists to prevent.
+    @orig_network    = OT.conf.dig('site', 'network')&.dup
   end
 
   after do
     OT.conf['site']['admin']        = @orig_admin if @orig_admin
     OT.conf['site']['host']         = @orig_site_host
+    OT.conf['site']['network']      = @orig_network if @orig_network
     OT.conf['features']['domains']  = @orig_domains if @orig_domains
     OT.conf['development']          = @orig_developmnt if @orig_developmnt
     Onetime::Runtime.features       = @orig_features
@@ -210,6 +217,22 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
       name == 'AdminNetworkIsolation' ? sink : original.call(name)
     end
     warns
+  end
+
+  # Same sink, one level up: the posture line is INFO, which
+  # capture_admin_gate_warns! deliberately swallows. Returns [message, payload]
+  # pairs for the info channel and must likewise be installed BEFORE the
+  # request that constructs the stack, since the middleware resolves its logger
+  # in #initialize and logs the posture there.
+  def capture_admin_gate_infos!
+    infos = []
+    sink  = Object.new
+    sink.define_singleton_method(:info) { |message, payload = {}| infos << [message, payload] }
+    %i[warn error debug].each { |level| sink.define_singleton_method(level) { |*, **| } }
+    allow(Onetime).to receive(:get_logger).and_wrap_original do |original, name|
+      name == 'AdminNetworkIsolation' ? sink : original.call(name)
+    end
+    infos
   end
 
   # A real verified tenant domain owned by `owner`. The host gate does not
@@ -1131,6 +1154,81 @@ RSpec.describe 'Colonel admin surface host allowlist (#4062)', type: :integratio
       get_api('example.com', 'REMOTE_ADDR' => '203.0.113.9')
 
       expect(last_response.status).to eq(404)
+    end
+  end
+
+  # ===========================================================================
+  # 11. The boot posture line reports the trusted-proxy mode ACTUALLY IN FORCE
+  # ===========================================================================
+  #
+  # #4087. `trusted_proxy` rides on the posture line because it qualifies the
+  # two gate states beside it — both gates judge inputs a proxy layer
+  # determines. That makes this field the artifact the #4062 changelog tells
+  # operators to read to confirm their configuration, so it must never report a
+  # posture the stack does not have.
+  #
+  # It used to echo the operator's raw string while
+  # MiddlewareStack.ip_privacy_security_config branched on `== 'depth'`, so
+  # TRUSTED_PROXY_MODE=Depth ran FILTER and announced `mode=Depth`, and a typo
+  # ran filter and announced the typo. Both halves now read
+  # MiddlewareStack.trusted_proxy_mode, which is also what configures otto —
+  # one reader, so the line and the behaviour cannot disagree.
+  #
+  # These assert the line, not the resolution: the resolution itself is pinned
+  # in spec/unit/onetime/application/middleware_stack_spec.rb, against the same
+  # accessor. The value here is that the OPERATOR-FACING string comes from it.
+  describe 'the trusted_proxy field on the boot posture line' do
+    # The posture is logged in AdminNetworkIsolation#initialize, so the first
+    # request after configure_admin! drops the memoized app is what emits it.
+    def posture_after_boot(trusted_proxy)
+      OT.conf['site']['network'] = (OT.conf['site']['network'] || {}).merge(
+        'trusted_proxy' => trusted_proxy,
+      )
+      configure_admin!(default_domain: 'example.com', site_host: 'example.com')
+
+      infos = capture_admin_gate_infos!
+      signed_in_as(colonel)
+      get_api('example.com')
+
+      _, payload = infos.find { |message, _| message.match?(/isolation posture/i) }
+      expect(payload).not_to be_nil, 'no posture line was logged'
+      payload[:trusted_proxy]
+    end
+
+    it 'reports disabled when no trusted proxy is declared (the shipped default)' do
+      # The control the other two are read against: `disabled` is a real
+      # posture, not an absence, and it is what says neither gate's input is
+      # authenticated.
+      expect(posture_after_boot('enabled' => false)).to eq('disabled')
+    end
+
+    it 'reports disabled when the trusted_proxy block is absent entirely' do
+      expect(posture_after_boot({})).to eq('disabled')
+    end
+
+    it 'reports the recognized mode verbatim' do
+      expect(posture_after_boot('enabled' => true, 'mode' => 'filter')).to eq('enabled (mode=filter)')
+    end
+
+    it 'reports mode=depth for a mixed-case Depth, which is what runs' do
+      # Honoured, not rejected — and reported in the canonical spelling the
+      # stack uses, so the line matches the otto configuration beside it.
+      expect(posture_after_boot('enabled' => true, 'mode' => 'Depth', 'depth' => 2))
+        .to eq('enabled (mode=depth)')
+    end
+
+    it 'reports mode=filter for a malformed mode, not the operator string' do
+      # The regression this issue ships. Echoing `dept` would tell the operator
+      # their typo took effect; the deployment is running filter.
+      posture = posture_after_boot('enabled' => true, 'mode' => 'dept')
+      aggregate_failures do
+        expect(posture).to eq('enabled (mode=filter)')
+        expect(posture).not_to include('dept')
+      end
+    end
+
+    it 'reports mode=filter for an enabled-but-modeless block' do
+      expect(posture_after_boot('enabled' => true)).to eq('enabled (mode=filter)')
     end
   end
 end

@@ -290,6 +290,21 @@ set_trusted_proxy_enabled(true)
 @tester.send(:collapsed_ip_tier_hint, 'ip')
 #=> ""
 
+## #4087: the hint no longer digs the config itself - it asks
+## MiddlewareStack.trusted_proxy_enabled?, the SAME predicate that decides how
+## the IP-privacy mount resolves the address the hint is talking about. Two
+## things are pinned here. (1) The constant resolves at CALL TIME under a bare
+## tryout boot, with no require_relative in the limiter. (2) The predicate is
+## strict about `== true`, so a hand-edited string 'true' is NOT a declared
+## proxy and the hint still fires - the hint and the mount agree on the same
+## wrong-looking config rather than one of them guessing.
+set_trusted_proxy_enabled('true')
+[
+  Onetime::Application::MiddlewareStack.trusted_proxy_enabled?,
+  @tester.send(:collapsed_ip_tier_hint, 'ip').empty?,
+]
+#=> [false, false]
+
 ## The email backstop never carries the hint - it does not key on IP, in either
 ## trusted-proxy state
 [false, true].map do |enabled|

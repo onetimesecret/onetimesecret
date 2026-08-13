@@ -21,9 +21,20 @@
 # required lazily, per definition, in configure_provider.
 require_relative '../../../../../lib/onetime/sso_provider/registry'
 
+# Runtime OIDC egress pinning (DNS-rebinding guard). Defines
+# Auth::OidcHttpPinning; installed below, first thing in configure.
+require_relative '../oidc_http_pinning'
+
 module Auth::Config::Features
   module OmniAuth
     def self.configure(auth)
+      # Pin OIDC egress (discovery/JWKS/token) to save-time-validated IPs
+      # BEFORE any provider registers: OpenIDConnect.http_config is
+      # set-once per process and skips already-configured sub-protocols,
+      # so this must be the first http_config caller. See
+      # ../oidc_http_pinning.rb for the full rationale.
+      Auth::OidcHttpPinning.install!
+
       auth.enable :omniauth
 
       # Route prefix for OmniAuth endpoints

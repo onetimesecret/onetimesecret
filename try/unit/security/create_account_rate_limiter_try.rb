@@ -274,6 +274,21 @@ set_trusted_proxy_enabled(true)
 @tester.send(:collapsed_create_account_ip_hint)
 #=> ""
 
+## #4087: the hint no longer digs the config itself - it asks
+## MiddlewareStack.trusted_proxy_enabled?, the SAME predicate that decides how
+## the IP-privacy mount resolves the address the hint is talking about. Two
+## things are pinned here. (1) The constant resolves at CALL TIME under a bare
+## tryout boot, with no require_relative in the limiter. (2) The predicate is
+## strict about `== true`, so a hand-edited string 'true' is NOT a declared
+## proxy and the hint still fires - the hint and the mount agree on the same
+## wrong-looking config rather than one of them guessing.
+set_trusted_proxy_enabled('true')
+[
+  Onetime::Application::MiddlewareStack.trusted_proxy_enabled?,
+  @tester.send(:collapsed_create_account_ip_hint).empty?,
+]
+#=> [false, false]
+
 ## The hint is WIRED IN: a REAL cap hit (trusted proxy not declared) emits
 ## exactly one OT.le line carrying both the cap text and the hint. The three
 ## cases above call the private helper directly, so they stay green even if the

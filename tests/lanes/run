@@ -296,7 +296,10 @@ list_lanes() {
 }
 
 if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
-  echo "usage: tests/lanes/run <lane> [--overlay <name>]..."
+  echo "usage: tests/lanes/run <lane> [--overlay <name>]... [--only <path>]..."
+  echo
+  echo "  --only <path>  run just these test files in the lane's environment,"
+  echo "                 instead of the lane's tasks file. Repeatable."
   echo
   echo "Lanes:"
   list_lanes | sed 's/^/  /'
@@ -317,12 +320,28 @@ if [[ ! -f "${LANE_DIR}/env" || ! -f "${LANE_DIR}/tasks" ]]; then
 fi
 
 OVERLAYS=()
+ONLY=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --overlay)
       [[ $# -ge 2 ]] || { echo "error: --overlay requires a name" >&2; exit 64; }
       [[ "$2" =~ ^[A-Za-z0-9_-]+$ ]] || { echo "error: overlay name '$2' contains invalid characters" >&2; exit 64; }
       OVERLAYS+=("$2")
+      shift 2
+      ;;
+    --only)
+      # Iteration escape hatch: run one file (or a handful) inside the lane's
+      # environment instead of its whole tasks list. The hermetic boundary is
+      # unchanged — same scrub, same env, same exec — so this is the sanctioned
+      # way to loop on a single failing file. `path[:LINE]` is accepted and
+      # forwarded to rspec verbatim.
+      [[ $# -ge 2 ]] || { echo "error: --only requires a path" >&2; exit 64; }
+      # The command runs from the repo root, so a path is checked there (and
+      # as given, so an absolute path or one typed from the repo root while
+      # standing elsewhere both work). Catching a typo here beats a runner
+      # that boots the whole app and then reports "0 examples".
+      [[ -f "${REPO_ROOT}/${2%%:*}" || -f "${2%%:*}" ]] || { echo "error: --only path '${2%%:*}' not found (relative to the repo root)" >&2; exit 64; }
+      ONLY+=("$2")
       shift 2
       ;;
     *)
@@ -458,4 +477,38 @@ else
   echo "  whose names are not shell identifiers cannot be enumerated or stripped" >&2
 fi
 
-exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash -euo pipefail "${LANE_DIR}/tasks"
+if [[ ${#ONLY[@]} -eq 0 ]]; then
+  exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash -euo pipefail "${LANE_DIR}/tasks"
+fi
+
+# ── --only: single-file run inside the lane's environment ────────────────
+# The lane's tasks file is skipped wholesale, so anything it does *before*
+# the test command (e.g. `pnpm run locales:sync` in the full lanes) does not
+# run. That is fine for iterating on a spec and wrong for a final check —
+# the full lane is still the thing CI runs and the thing that must be green
+# before pushing.
+#
+# Runner is chosen by filename: tryouts own `*_try.rb`, rspec owns the rest.
+# Mixing the two in one invocation would need two commands and an ordering
+# rule nobody asked for; ask for two runs instead.
+_only_try=0
+_only_spec=0
+for _p in "${ONLY[@]}"; do
+  case "${_p%%:*}" in
+    *_try.rb) _only_try=1 ;;
+    *)        _only_spec=1 ;;
+  esac
+done
+if [[ ${_only_try} -eq 1 && ${_only_spec} -eq 1 ]]; then
+  echo "error: --only cannot mix tryouts (*_try.rb) and rspec files in one run" >&2
+  exit 64
+fi
+
+if [[ ${_only_try} -eq 1 ]]; then
+  _only_cmd=(bundle exec try --agent "${ONLY[@]}")
+else
+  _only_cmd=(bundle exec rspec "${ONLY[@]}")
+fi
+
+echo "[lane:${LANE}] --only: ${_only_cmd[*]}"
+exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} "${_only_cmd[@]}"
