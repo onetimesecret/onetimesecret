@@ -105,10 +105,10 @@ module DomainsAPI
         # passkey credentials are host-scoped (rp_id = request.host), so a
         # credential registered on the canonical sign-in host can never assert
         # on this domain — a webauthn-only restriction is a guaranteed visitor
-        # lockout. The login page's resolver degrades such a value to standard
-        # mode (Core::Views::ConfigSerializer#resolve_restrict_to) and the
-        # domain form never offers the row for selection; this is the backend
-        # write gate for direct API calls.
+        # lockout. The resolver now fails such a value CLOSED — :unavailable,
+        # never standard mode (SigninConfig.resolve_restrict_to, ADR-024 A3) —
+        # and the domain form never offers the row for selection; this is the
+        # backend write gate for direct API calls.
         #
         # CARRY-OVER EXEMPTION: a value persisted before this check existed
         # may be resubmitted unchanged. PUT is full-replacement and the form's

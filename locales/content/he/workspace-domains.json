@@ -1335,10 +1335,6 @@
     "text": "בדיקת החיבור נכשלה",
     "source_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "כדי לחייב SSO לכל הכניסות בדומיין זה, הגדר זאת בהגדרות הכניסה של הדומיין. מצב SSO-בלבד מגביל את דף הכניסה לספק ה-SSO שהוגדר כאן.",
-    "source_hash": "d26627a5"
-  },
   "web.domains.sso.configure_sso": {
     "text": "הגדר SSO",
     "source_hash": "80d3a144"

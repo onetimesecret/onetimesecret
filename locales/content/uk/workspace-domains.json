@@ -1335,10 +1335,6 @@
     "text": "Тест з'єднання не вдався",
     "source_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "Щоб вимагати SSO для всіх входів на цьому домені, налаштуйте це в налаштуваннях входу домену. Режим лише SSO обмежує сторінку входу провайдером SSO, налаштованим тут.",
-    "source_hash": "d26627a5"
-  },
   "web.domains.sso.configure_sso": {
     "text": "Налаштувати SSO",
     "source_hash": "80d3a144"

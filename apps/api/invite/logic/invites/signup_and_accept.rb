@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'auth/restrict_to'
 require 'onetime/security/invite_token_rate_limiter'
 
 module InviteAPI::Logic
@@ -38,6 +39,15 @@ module InviteAPI::Logic
     # acceptance code path regardless of whether the user signed up fresh
     # or already had an account.
     #
+    # ## `restrict_to` (ADR-024 A1/A7, #4139)
+    #
+    # This is a PRE-AUTH PASSWORD SURFACE: it accepts a password from an
+    # unauthenticated caller, creates a password account, and mints a session
+    # for it. That is create-account + autologin with a different URL, so it
+    # goes dark on any host that restricts `password` away — see
+    # enforce_restrict_to! below for why the Rodauth-side gate cannot reach it
+    # and why "create the account but skip the autologin" is the wrong shape.
+    #
     class SignupAndAccept < InviteAPI::Logic::Base
       include Onetime::LoggerMethods
 
@@ -46,8 +56,8 @@ module InviteAPI::Logic
       # phrased conditionally and carries a generic error_type so the response
       # never *asserts* account existence. See raise_signup_unavailable.
       SIGNUP_UNAVAILABLE_MESSAGE = 'Unable to complete signup for this ' \
-        'invitation. If you already have an account, sign in and then open ' \
-        'your invitation link again.'
+                                   'invitation. If you already have an account, sign in and then open ' \
+                                   'your invitation link again.'
 
       attr_reader :invitation, :customer
 
@@ -57,6 +67,12 @@ module InviteAPI::Logic
       end
 
       def raise_concerns
+        # A restricted-away method presents no surface at all (A7), so this
+        # runs FIRST — before the rate limiter, before the token is even read.
+        # A dark endpoint must not consume the invitee's rate-limit budget or
+        # touch invitation state.
+        enforce_restrict_to!
+
         # Rate limiting for noauth endpoint - prevents token enumeration
         client_ip    = @strategy_result&.metadata&.dig(:ip) || @strategy_result&.metadata&.dig('ip') || '0.0.0.0'
         rate_limiter = Onetime::Security::InviteTokenRateLimiter.new(client_ip)
@@ -174,6 +190,71 @@ module InviteAPI::Logic
 
       private
 
+      # ADR-024 A1/A7 (#4139) — the `restrict_to` gate for this endpoint.
+      #
+      # WHY THIS EXISTS AT ALL. Every other pre-auth password surface is gated
+      # by Auth::RestrictTo (Rodauth routes via before_rodauth, simple mode's
+      # POST /auth/login via Core::Controllers::Base). This one is reachable by
+      # neither: the account is created through Rodauth's internal_request,
+      # whose synthesized env carries no Host, and Auth::RestrictTo.
+      # enforce_method! deliberately exempts internal requests for exactly that
+      # reason (ADR-024 A10). The exemption is correct — an internal request has
+      # no request host to key a host policy on — but it leaves this endpoint,
+      # which DOES know the request host, as the one unguarded way to mint a
+      # password credential and a session on a host that offers neither.
+      #
+      # WHY 404 AND NOT "CREATE THE ACCOUNT, SKIP THE AUTOLOGIN". Suppressing
+      # only the session looks more forgiving and is strictly worse:
+      #
+      #   1. It does not preserve the invitation. This endpoint never accepts
+      #      the invite (see the class doc — the frontend POSTs /accept next),
+      #      and /accept is auth=sessionauth. Without the session the very next
+      #      call 401s, so the invite stays pending EITHER WAY. "Account without
+      #      session" is not a degraded success; it is this same failure plus an
+      #      account nobody asked for.
+      #   2. That account actively strands the invitee on an sso-restricted
+      #      host. An unauthenticated tenant-SSO callback whose email matches an
+      #      existing unlinked account hits the H-3 refusal in
+      #      apps/web/auth/config/hooks/omniauth.rb (the password-challenge
+      #      interstitial is minted on the PLATFORM surface only) — so the
+      #      account we just created is precisely what blocks SSO from creating
+      #      a clean one. With no account, SSO signs them in and /accept works.
+      #   3. It mints a password credential the install has restricted away —
+      #      "configuration presenting as availability", the shape A1 exists to
+      #      kill.
+      #
+      # WHERE THE INVITEE GOES INSTEAD. The invitation is untouched and still
+      # pending: they authenticate by the method the host does offer (SSO on an
+      # sso-restricted host; the canonical host, which is what the invitation
+      # email links to, when the restriction is per-domain) and then POST
+      # /accept. GET /:token (ShowInvite) and POST /:token/accept are NOT gated
+      # and must not be: the first is a display surface, the second is
+      # account-scoped and reachable only with a session already established by
+      # a permitted method (A7 "Scope, settled").
+      #
+      # Resolution is NOT re-derived here (A2): Auth::RestrictTo owns input
+      # gathering (including the custom-domain 'sso' pin and the runtime
+      # availability half of A3) and SigninConfig.resolve_restrict_to owns the
+      # rule. This asks the same question the sign-in page on this host answers.
+      def enforce_restrict_to!
+        return if Auth::RestrictTo.allows?(restrict_to_env, 'password')
+
+        Auth::Logging.log_auth_event(
+          :restrict_to_route_rejected,
+          level: :info,
+          route: :invite_signup,
+          auth_method: 'password',
+          host: display_domain,
+        )
+
+        # 404, not 403 (A7): the reject shape for a restricted-away method is
+        # not-found, matching Rodauth's behavior for a feature that was never
+        # loaded. No error_key — an undefined route has no bespoke i18n string,
+        # and reusing the invite API's "not found or expired" key would assert
+        # something false about a token that is perfectly valid.
+        raise_not_found('Not found')
+      end
+
       def normalize_email(email)
         OT::Utils.normalize_email(email)
       end
@@ -268,8 +349,11 @@ module InviteAPI::Logic
           # can forward without message-sniffing.
           raise_form_error(message, field: field.to_sym, error_type: 'validation_error')
         else
-          raise_form_error(ex.flash || 'Failed to create account',
-            field: :email, error_type: 'validation_error')
+          raise_form_error(
+            ex.flash || 'Failed to create account',
+            field: :email,
+            error_type: 'validation_error',
+          )
         end
       end
 

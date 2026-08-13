@@ -1335,10 +1335,6 @@
     "text": "I rahu te whakamātautau hononga",
     "source_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "Hei whakarite kia hiahiatia te SSO mō ngā takiuru katoa o tēnei rohe, whirihorahia i roto i ngā tautuhinga takiuru o te rohe. Ka whakawhāiti te aratau SSO-anake i te whārangi takiuru ki te kaiwhakarato SSO kua whirihorahia ki konei.",
-    "source_hash": "d26627a5"
-  },
   "web.domains.sso.configure_sso": {
     "text": "Whirihora SSO",
     "source_hash": "80d3a144"

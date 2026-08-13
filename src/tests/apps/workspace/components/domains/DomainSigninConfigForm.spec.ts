@@ -37,6 +37,10 @@ import { createTestingPinia } from '@pinia/testing';
 import { createI18n } from 'vue-i18n';
 import { ref } from 'vue';
 import DomainSigninConfigForm from '@/apps/workspace/components/domains/DomainSigninConfigForm.vue';
+import type {
+  EffectiveRestrictTo,
+  TenantSsoVerdict,
+} from '@/schemas/api/domains/responses/signin-config';
 import type { SigninConfigFormState } from '@/shared/composables/useSigninConfig';
 
 // ---------------------------------------------------------------------------
@@ -118,6 +122,9 @@ const i18n = createI18n({
 /** Resolve a key against the real bundle. */
 const t = (key: string) => i18n.global.t(key);
 
+/** Resolve a key with named interpolation, as the component does. */
+const tp = (key: string, params: Record<string, string>) => i18n.global.t(key, params);
+
 /**
  * Copy the component renders, sourced from the bundle — never hand-typed here.
  * Assertions reference these so they track the shipped copy automatically.
@@ -138,6 +145,27 @@ const COPY = {
   cancel: t('web.COMMON.word_cancel'),
   connectionDisabledBadge: t('web.domains.sso.connection_disabled_badge'),
   connectionDisabledHint: t('web.domains.sso.connection_disabled_hint'),
+  // Tenant-SSO status line (#4111)
+  statusActiveBadge: t('web.domains.sso.status_active_badge'),
+  statusActiveHint: t('web.domains.sso.status_active_hint'),
+  statusNotConfiguredBadge: t('web.domains.sso.status_not_configured_badge'),
+  statusNotPermittedBadge: t('web.domains.sso.status_not_permitted_badge'),
+  statusAuthDisabledBadge: t('web.domains.sso.status_auth_disabled_badge'),
+  statusUnsupportedProviderBadge: t('web.domains.sso.status_unsupported_provider_badge'),
+  statusUnavailableBadge: t('web.domains.sso.status_unavailable_badge'),
+  statusUnavailableHint: t('web.domains.sso.status_unavailable_hint'),
+  // SSO-restriction lockout guard (#4111)
+  ssoRestrictWarningTitle: t('web.domains.signin.sso_restrict_warning_title'),
+  ssoRestrictWarningBody: t('web.domains.signin.sso_restrict_warning_body'),
+  // Resolved-restriction notices — interpolated exactly as the component does,
+  // so the {method} placeholder is verified as substituted, not printed.
+  restrictionUnavailableSso: tp('web.domains.signin.restriction_unavailable_notice', {
+    method: t('web.domains.signin.method_sso'),
+  }),
+  restrictionConflictPassword: tp('web.domains.signin.restriction_conflict_notice', {
+    method: t('web.domains.signin.method_password'),
+  }),
+  restrictionUnavailableUnknown: t('web.domains.signin.restriction_unavailable_unknown_notice'),
   methodWebauthnUnavailable: t('web.domains.signin.method_webauthn_unavailable'),
 } as const;
 
@@ -168,11 +196,13 @@ interface MountOptions {
   workspaceDefault?: boolean;
   ssoConfigured?: boolean;
   /**
-   * SsoConfig.enabled — the credential record's own operational flag (#4107),
-   * distinct from formState.sso_enabled (the SigninConfig policy toggle).
-   * Left undefined ⇒ the prop is omitted so the component default applies.
+   * The server's tenant-SSO verdict (#4111, `details.tenant_sso`). Left
+   * undefined ⇒ the prop is omitted, which must render no status line and arm
+   * no guard: the client has no verdict and may not invent one (ADR-024).
    */
-  ssoCredentialsEnabled?: boolean;
+  tenantSso?: TenantSsoVerdict | null;
+  /** The server's restriction resolution (ADR-024 A2/A4). */
+  effectiveRestrictTo?: EffectiveRestrictTo | null;
   canManageSso?: boolean;
   globalAvailability?: { email_auth: boolean; webauthn: boolean };
   /** ORGS_SSO_ENABLED — tenant-SSO availability (bootstrap flag, not a prop). */
@@ -195,10 +225,11 @@ function mountForm(opts: MountOptions = {}): VueWrapper {
       // below flips this on.
       workspaceDefault: opts.workspaceDefault ?? false,
       ssoConfigured: opts.ssoConfigured ?? false,
-      // Omit (not default) when unset, so the component's own prop default
-      // stays observable — one #4107 test pins that default.
-      ...(opts.ssoCredentialsEnabled !== undefined
-        ? { ssoCredentialsEnabled: opts.ssoCredentialsEnabled }
+      // Omitted (not defaulted) when unset, so the no-verdict case — an older
+      // backend, or details not loaded — stays observable.
+      ...(opts.tenantSso !== undefined ? { tenantSso: opts.tenantSso } : {}),
+      ...(opts.effectiveRestrictTo !== undefined
+        ? { effectiveRestrictTo: opts.effectiveRestrictTo }
         : {}),
       canManageSso: opts.canManageSso ?? true,
       globalAvailability: opts.globalAvailability ?? allAvailable,
@@ -1416,59 +1447,108 @@ describe('DomainSigninConfigForm', () => {
   });
 
   // -----------------------------------------------------------------------
-  // Dormant credentials indicator (#4107)
+  // Tenant-SSO status line (#4111)
   //
-  // SsoConfig.enabled is the credential record's own operational flag,
-  // distinct from this form's sso_enabled policy toggle. When credentials
-  // exist but that flag is off, the sign-in page can never offer SSO no
-  // matter what the policy toggle says, so the form surfaces "Connection
-  // disabled": a full amber row in Mode A, a compact badge on the SSO radio
-  // row in Mode B. Renders ONLY when ssoConfigured && !ssoCredentialsEnabled
-  // — with no credential record there is nothing dormant to warn about —
-  // AND ssoConfigurable: the hint directs to "Edit credentials", so it must
-  // not appear for users who don't get that button (no manage-SSO
-  // entitlement, or tenant SSO off install-wide).
+  // Supersedes the #4107 dormant-credentials indicator. The blocking rung is
+  // computed once by the server (SsoConfig.tenant_sso_unavailable_reason) and
+  // arrives as `details.tenant_sso`; this form maps the reported rung to copy
+  // and derives nothing (ADR-024). The render sites and the
+  // connection-disabled copy carry over — only the condition's source swapped.
+  //
+  // Still gated on ssoConfigurable: the remedial copy points at controls
+  // ("Edit credentials", the SSO toggle) that only render with both write
+  // gates, and without them the row already names the real blocker.
   // -----------------------------------------------------------------------
 
-  describe('dormant credentials indicator (#4107)', () => {
-    const INDICATOR = '[data-testid="sso-connection-disabled-indicator"]';
-    const COMPACT = '[data-testid="sso-connection-disabled-indicator-compact"]';
+  describe('tenant-SSO status line (#4111)', () => {
+    const STATUS = '[data-testid="sso-tenant-status"]';
+    const COMPACT = '[data-testid="sso-tenant-status-compact"]';
 
-    it('renders in Mode A when credentials exist but the connection is off', () => {
-      wrapper = mountForm({ ssoConfigured: true, ssoCredentialsEnabled: false });
-      expect(wrapper.find(INDICATOR).exists()).toBe(true);
+    const verdict = (reason: string | null): TenantSsoVerdict => ({
+      available: reason === null,
+      unavailable_reason: reason,
     });
 
-    it('does not render when the connection is active', () => {
-      wrapper = mountForm({ ssoConfigured: true, ssoCredentialsEnabled: true });
-      expect(wrapper.find(INDICATOR).exists()).toBe(false);
+    it('renders nothing when the response carries no verdict', () => {
+      // Older backend, or details not yet loaded. The client has no verdict
+      // and must not invent one from ssoConfigured / the policy toggle.
+      wrapper = mountForm({ ssoConfigured: true });
+      expect(wrapper.find(STATUS).exists()).toBe(false);
       expect(wrapper.find(COMPACT).exists()).toBe(false);
     });
 
-    it('does not render when no credentials are configured, regardless of the flag', () => {
-      wrapper = mountForm({ ssoConfigured: false, ssoCredentialsEnabled: false });
-      expect(wrapper.find(INDICATOR).exists()).toBe(false);
-      expect(wrapper.find(COMPACT).exists()).toBe(false);
-      wrapper.unmount();
-
-      wrapper = mountForm({ ssoConfigured: false, ssoCredentialsEnabled: true });
-      expect(wrapper.find(INDICATOR).exists()).toBe(false);
-      expect(wrapper.find(COMPACT).exists()).toBe(false);
+    it('reports Active when the server says tenant SSO is available', () => {
+      wrapper = mountForm({ ssoConfigured: true, tenantSso: verdict(null) });
+      const status = wrapper.find(STATUS);
+      expect(status.exists()).toBe(true);
+      expect(status.text()).toContain(COPY.statusActiveBadge);
+      expect(status.text()).toContain(COPY.statusActiveHint);
+      expect(status.text()).not.toContain('web.domains.sso.status_active');
     });
 
-    it('does not render without the manage-SSO entitlement — the "Edit credentials" action it points at is absent', () => {
+    it('reports the connection-disabled rung with the copy carried over from #4107', () => {
       wrapper = mountForm({
         ssoConfigured: true,
-        ssoCredentialsEnabled: false,
+        tenantSso: verdict('sso_config_disabled'),
+      });
+      const status = wrapper.find(STATUS);
+      expect(status.text()).toContain(COPY.connectionDisabledBadge);
+      expect(status.text()).toContain(COPY.connectionDisabledHint);
+      expect(status.text()).not.toContain('web.domains.sso.connection_disabled');
+    });
+
+    it('reports "Not configured" for the no_sso_config rung — even with credentials claimed present', () => {
+      // ssoConfigured is a UI convenience for the Configure/Edit button label;
+      // it is NOT the availability source. The verdict wins.
+      wrapper = mountForm({
+        ssoConfigured: true,
+        tenantSso: verdict('no_sso_config'),
+      });
+      expect(wrapper.find(STATUS).text()).toContain(COPY.statusNotConfiguredBadge);
+    });
+
+    it.each([
+      ['sso_not_permitted', 'statusNotPermittedBadge'],
+      ['auth_disabled', 'statusAuthDisabledBadge'],
+      ['unsupported_provider_type', 'statusUnsupportedProviderBadge'],
+    ] as const)('reports the %s rung', (reason, copyKey) => {
+      wrapper = mountForm({ ssoConfigured: true, tenantSso: verdict(reason) });
+      expect(wrapper.find(STATUS).text()).toContain(COPY[copyKey]);
+    });
+
+    it('falls back to generic unavailable copy for a rung this version does not know', () => {
+      // The rung list is a backend enumeration; a newer one must degrade to
+      // "unavailable", never to silence.
+      wrapper = mountForm({
+        ssoConfigured: true,
+        tenantSso: verdict('some_future_rung'),
+      });
+      const status = wrapper.find(STATUS);
+      expect(status.text()).toContain(COPY.statusUnavailableBadge);
+      expect(status.text()).toContain(COPY.statusUnavailableHint);
+    });
+
+    it('falls back to generic unavailable copy when unavailable with no reason given', () => {
+      wrapper = mountForm({
+        ssoConfigured: true,
+        tenantSso: { available: false, unavailable_reason: null },
+      });
+      expect(wrapper.find(STATUS).text()).toContain(COPY.statusUnavailableBadge);
+    });
+
+    it('does not render without the manage-SSO entitlement — the actions it points at are absent', () => {
+      wrapper = mountForm({
+        ssoConfigured: true,
+        tenantSso: verdict('sso_config_disabled'),
         canManageSso: false,
       });
-      expect(wrapper.find(INDICATOR).exists()).toBe(false);
-      // Mode B compact badge is gated identically.
+      expect(wrapper.find(STATUS).exists()).toBe(false);
+
       wrapper.unmount();
       wrapper = mountForm({
         formState: { ...defaultFormState, restrict_to: 'password' },
         ssoConfigured: true,
-        ssoCredentialsEnabled: false,
+        tenantSso: verdict('sso_config_disabled'),
         canManageSso: false,
       });
       expect(wrapper.find(COMPACT).exists()).toBe(false);
@@ -1477,62 +1557,276 @@ describe('DomainSigninConfigForm', () => {
     it('does not render when tenant SSO is off install-wide (ORGS_SSO_ENABLED)', () => {
       wrapper = mountForm({
         ssoConfigured: true,
-        ssoCredentialsEnabled: false,
+        tenantSso: verdict('sso_config_disabled'),
         orgsSsoEnabled: false,
       });
-      expect(wrapper.find(INDICATOR).exists()).toBe(false);
+      expect(wrapper.find(STATUS).exists()).toBe(false);
     });
 
-    it('treats an omitted prop as connection-off (default false, matching the record default)', () => {
-      // ssoCredentialsEnabled deliberately NOT passed — the component's own
-      // prop default must fail toward "dormant", never silently hide the
-      // warning for parents that don't wire the prop.
-      wrapper = mountForm({ ssoConfigured: true });
-      expect(wrapper.find(INDICATOR).exists()).toBe(true);
-    });
-
-    it('renders the compact badge on the SSO radio row in Mode B under the same condition', () => {
+    it('renders the compact status on the SSO radio row in Mode B', () => {
       wrapper = mountForm({
         formState: { ...defaultFormState, restrict_to: 'password' },
         ssoConfigured: true,
-        ssoCredentialsEnabled: false,
+        tenantSso: verdict('sso_config_disabled'),
       });
-      // Mode B shows the compact badge; the Mode A row (and its full
-      // indicator) is not in the tree at all.
-      expect(wrapper.find(COMPACT).exists()).toBe(true);
-      expect(wrapper.find(INDICATOR).exists()).toBe(false);
+      const compact = wrapper.find(COMPACT);
+      expect(compact.exists()).toBe(true);
+      // Mode A's row (and its status line) is not in the tree at all.
+      expect(wrapper.find(STATUS).exists()).toBe(false);
+      // The reason is TEXT, not just a tooltip — a title attribute is neither
+      // keyboard- nor screen-reader-reliable.
+      expect(compact.text()).toContain(COPY.connectionDisabledBadge);
+      expect(compact.text()).toContain(COPY.connectionDisabledHint);
     });
 
-    it('does not render the compact badge in Mode B when the connection is active', () => {
+    it('announces the status rather than conveying it by colour alone', () => {
       wrapper = mountForm({
-        formState: { ...defaultFormState, restrict_to: 'password' },
         ssoConfigured: true,
-        ssoCredentialsEnabled: true,
+        tenantSso: verdict('sso_config_disabled'),
       });
-      expect(wrapper.find(COMPACT).exists()).toBe(false);
+      expect(wrapper.find(STATUS).attributes('role')).toBe('status');
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // SSO-restriction lockout guard (#4111 / ADR-024 A8)
+  //
+  // A restriction that cannot be honoured fails CLOSED: restricting a domain
+  // to SSO while the server reports tenant SSO unavailable takes the host
+  // dark. The form auto-saves, so the warning has to land BEFORE the PUT —
+  // nothing is emitted until "Restrict anyway".
+  // -----------------------------------------------------------------------
+
+  describe('SSO-restriction lockout guard (#4111)', () => {
+    const WARNING = '[data-testid="sso-restriction-lockout-warning"]';
+    const CONFIRM = '[data-testid="sso-restriction-lockout-confirm"]';
+    const CANCEL = '[data-testid="sso-restriction-lockout-cancel"]';
+
+    /** Mode B with the SSO radio present and pickable. */
+    const modeB = { ...defaultFormState, restrict_to: 'password' as const };
+
+    it('warns instead of saving when tenant SSO is unavailable', async () => {
+      wrapper = mountForm({
+        formState: modeB,
+        ssoConfigured: true,
+        tenantSso: { available: false, unavailable_reason: 'sso_config_disabled' },
+      });
+
+      await wrapper.find('#signin-restrict-sso').trigger('change');
+
+      expect(wrapper.emitted('auto-save')).toBeFalsy();
+      const warning = wrapper.find(WARNING);
+      expect(warning.exists()).toBe(true);
+      expect(warning.attributes('role')).toBe('alert');
+      expect(warning.text()).toContain(COPY.ssoRestrictWarningTitle);
+      expect(warning.text()).toContain(COPY.ssoRestrictWarningBody);
+      // The radio stays unchecked: formState was never touched.
+      expect(
+        (wrapper.find('#signin-restrict-sso').element as HTMLInputElement).checked
+      ).toBe(false);
     });
 
-    it('renders the shipped badge + hint copy, not raw key paths', () => {
-      wrapper = mountForm({ ssoConfigured: true, ssoCredentialsEnabled: false });
-      const indicator = wrapper.find(INDICATOR);
-      expect(indicator.text()).toContain(COPY.connectionDisabledBadge);
-      expect(indicator.text()).toContain(COPY.connectionDisabledHint);
-      // COPY resolves through the same bundle, so toContain alone is
-      // tautological for a missing key (both collapse to the key path); this
-      // pins that the keys actually resolved.
-      expect(indicator.text()).not.toContain('web.domains.sso.connection_disabled');
+    it('does not warn when selecting SSO atomically resolves sso_not_permitted', async () => {
+      wrapper = mountForm({
+        formState: { ...modeB, sso_enabled: false },
+        ssoConfigured: true,
+        tenantSso: { available: false, unavailable_reason: 'sso_not_permitted' },
+      });
+
+      await wrapper.find('#signin-restrict-sso').trigger('change');
+
+      expect(wrapper.find(WARNING).exists()).toBe(false);
+      expect(wrapper.emitted('auto-save')![0]).toEqual([
+        { restrict_to: 'sso', sso_enabled: true },
+        'restrict_to',
+      ]);
     });
 
-    it('compact badge carries the badge copy and the hint as its title', () => {
+    it('still warns for sso_not_permitted when SSO is already enabled', async () => {
+      wrapper = mountForm({
+        formState: { ...modeB, sso_enabled: true },
+        ssoConfigured: true,
+        tenantSso: { available: false, unavailable_reason: 'sso_not_permitted' },
+      });
+
+      await wrapper.find('#signin-restrict-sso').trigger('change');
+
+      expect(wrapper.emitted('auto-save')).toBeFalsy();
+      expect(wrapper.find(WARNING).exists()).toBe(true);
+    });
+
+    it('does NOT fire when the server reports tenant SSO available', async () => {
+      wrapper = mountForm({
+        formState: modeB,
+        ssoConfigured: true,
+        tenantSso: { available: true, unavailable_reason: null },
+      });
+
+      await wrapper.find('#signin-restrict-sso').trigger('change');
+
+      expect(wrapper.find(WARNING).exists()).toBe(false);
+      expect(wrapper.emitted('auto-save')![0]).toEqual([
+        { restrict_to: 'sso', sso_enabled: true },
+        'restrict_to',
+      ]);
+    });
+
+    it('does NOT fire when no verdict was serialized', async () => {
+      // No claim from the server means no guard — the client may not
+      // manufacture an availability verdict of its own (ADR-024).
+      wrapper = mountForm({ formState: modeB, ssoConfigured: true });
+
+      await wrapper.find('#signin-restrict-sso').trigger('change');
+
+      expect(wrapper.find(WARNING).exists()).toBe(false);
+      expect(wrapper.emitted('auto-save')).toBeTruthy();
+    });
+
+    it('saves the restriction once confirmed', async () => {
+      wrapper = mountForm({
+        formState: modeB,
+        ssoConfigured: true,
+        tenantSso: { available: false, unavailable_reason: 'no_sso_config' },
+      });
+
+      await wrapper.find('#signin-restrict-sso').trigger('change');
+      await wrapper.find(CONFIRM).trigger('click');
+
+      expect(wrapper.emitted('auto-save')![0]).toEqual([
+        { restrict_to: 'sso', sso_enabled: true },
+        'restrict_to',
+      ]);
+      expect(wrapper.find(WARNING).exists()).toBe(false);
+    });
+
+    it('cancelling dismisses the warning and saves nothing', async () => {
+      wrapper = mountForm({
+        formState: modeB,
+        ssoConfigured: true,
+        tenantSso: { available: false, unavailable_reason: 'no_sso_config' },
+      });
+
+      await wrapper.find('#signin-restrict-sso').trigger('change');
+      await wrapper.find(CANCEL).trigger('click');
+
+      expect(wrapper.find(WARNING).exists()).toBe(false);
+      expect(wrapper.emitted('auto-save')).toBeFalsy();
+    });
+
+    it('guards the materialize-on-touch path too (workspace default, SSO pre-selected)', async () => {
+      // Clicking an already-checked radio while following workspace defaults
+      // still persists a pin (ADR-024) — that write is the same lockout.
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'sso' },
+        workspaceDefault: true,
+        ssoConfigured: true,
+        tenantSso: { available: false, unavailable_reason: 'sso_config_disabled' },
+      });
+
+      await wrapper.find('#signin-restrict-sso').trigger('click');
+
+      expect(wrapper.emitted('auto-save')).toBeFalsy();
+      expect(wrapper.find(WARNING).exists()).toBe(true);
+    });
+
+    it('does not guard non-SSO methods', async () => {
       wrapper = mountForm({
         formState: { ...defaultFormState, restrict_to: 'sso' },
         ssoConfigured: true,
-        ssoCredentialsEnabled: false,
+        tenantSso: { available: false, unavailable_reason: 'sso_config_disabled' },
       });
-      const compact = wrapper.find(COMPACT);
-      expect(compact.text()).toContain(COPY.connectionDisabledBadge);
-      expect(compact.text()).not.toContain('web.domains.sso.connection_disabled');
-      expect(compact.attributes('title')).toBe(COPY.connectionDisabledHint);
+
+      await wrapper.find('#signin-restrict-password').trigger('change');
+
+      expect(wrapper.find(WARNING).exists()).toBe(false);
+      expect(wrapper.emitted('auto-save')![0]).toEqual([{ restrict_to: 'password' }, 'restrict_to']);
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Resolved-restriction notice (ADR-024 A2/A8)
+  //
+  // `unavailable` and `source: 'conflict'` are states a method picker cannot
+  // express: the restriction stands, but nothing satisfies it, so sign-in is
+  // closed. Both are server-resolved and rendered verbatim — the client never
+  // recomputes them from global_restrict_to and the raw flags.
+  // -----------------------------------------------------------------------
+
+  describe('resolved-restriction notice (#4111 / ADR-024)', () => {
+    const NOTICE = '[data-testid="signin-restriction-notice"]';
+
+    const resolution = (r: Partial<EffectiveRestrictTo>): EffectiveRestrictTo => ({
+      state: 'restricted',
+      restrict_to: null,
+      source: 'domain',
+      ...r,
+    });
+
+    it('names the method that cannot run when the restriction is unavailable', () => {
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'sso' },
+        effectiveRestrictTo: resolution({
+          state: 'unavailable',
+          restrict_to: 'sso',
+          source: 'domain',
+        }),
+      });
+      const notice = wrapper.find(NOTICE);
+      expect(notice.exists()).toBe(true);
+      expect(notice.attributes('role')).toBe('status');
+      expect(notice.text()).toContain(COPY.restrictionUnavailableSso);
+      expect(notice.text()).not.toContain('web.domains.signin.restriction_unavailable');
+    });
+
+    it('explains a conflict as a conflict, not as one side winning', () => {
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'sso' },
+        effectiveRestrictTo: resolution({
+          state: 'unavailable',
+          restrict_to: 'password',
+          source: 'conflict',
+        }),
+      });
+      const notice = wrapper.find(NOTICE);
+      // The GLOBAL method (the one still in force) is named, and the copy
+      // says the two sides disagree rather than showing one as the winner.
+      expect(notice.text()).toContain(COPY.restrictionConflictPassword);
+    });
+
+    it('falls back to unnamed copy when the resolved method is unrecognized', () => {
+      // A persisted value this version cannot parse degrades restrict_to to
+      // null while `state` keeps carrying the truth.
+      wrapper = mountForm({
+        effectiveRestrictTo: resolution({
+          state: 'unavailable',
+          restrict_to: null,
+          source: 'domain',
+        }),
+      });
+      expect(wrapper.find(NOTICE).text()).toContain(COPY.restrictionUnavailableUnknown);
+    });
+
+    it('renders nothing for a healthy restriction or an unrestricted domain', () => {
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'password' },
+        effectiveRestrictTo: resolution({
+          state: 'restricted',
+          restrict_to: 'password',
+          source: 'domain',
+        }),
+      });
+      expect(wrapper.find(NOTICE).exists()).toBe(false);
+
+      wrapper.unmount();
+      wrapper = mountForm({
+        effectiveRestrictTo: resolution({ state: 'unrestricted', source: 'global' }),
+      });
+      expect(wrapper.find(NOTICE).exists()).toBe(false);
+    });
+
+    it('renders nothing when no resolution was serialized', () => {
+      wrapper = mountForm({});
+      expect(wrapper.find(NOTICE).exists()).toBe(false);
     });
   });
 });

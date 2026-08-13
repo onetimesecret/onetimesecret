@@ -24,6 +24,73 @@ module Onetime
     # @note Adds to Rack environment:
     #   - env['onetime.display_domain']  : Normalized domain for display
     #   - env['onetime.domain_strategy'] : Classification symbol (:canonical, :subdomain, :custom, :invalid)
+    #
+    # ## :invalid is NOT only a property of the hostname (#4139)
+    #
+    # The one-liner above reads as if :invalid described the host. It also
+    # describes a FAILURE. There are two ways to land on it, and downstream
+    # code that treats them alike is wrong for one of them:
+    #
+    # 1. The host is genuinely unplaceable — unparseable by PublicSuffix, or
+    #    matching nothing in the canonical set and no CustomDomain record.
+    #    Not a customer domain, so operator treatment is correct.
+    # 2. `known_custom_domain?` RAISED. That predicate is a datastore read
+    #    (`CustomDomain.from_display_domain`); `Chooserator.choose_strategy`
+    #    wraps the whole chain in `rescue StandardError => ex … nil`, and
+    #    `call` turns that nil into :invalid (`resolved_domain_strategy =
+    #    domain_strategy || :invalid`). So a datastore blip classifies a REAL
+    #    customer domain :invalid, and every consumer testing `== :custom`
+    #    silently downgrades it to the operator's own polarity.
+    #
+    # Case 2 is why a fail-closed check must be a POSITIVE test against
+    # :canonical/:subdomain and never `!= :custom` — see
+    # Onetime::CustomDomain::SigninConfig.operator_host?.
+    #
+    # ## Invariant: a datastore failure can never PRODUCE :canonical/:subdomain
+    #
+    # The property that makes those two safe to carve out of a fail-closed
+    # rule is one-directional, and it is worth stating precisely because the
+    # obvious stronger version is FALSE:
+    #
+    # - :canonical is fully read-free. The exact / `www.` arm runs BEFORE
+    #   `known_custom_domain?`, so the canonical host classifies :canonical
+    #   whether or not the datastore is reachable.
+    # - :subdomain is NOT read-free. Its sweeps run AFTER
+    #   `known_custom_domain?`, and the rescue wraps the entire if/elsif
+    #   chain — so a raise aborts the method rather than falling through, and
+    #   a subdomain host classifies :invalid during a blip. It fails closed
+    #   with the custom domains; it does not quietly keep operator treatment.
+    #
+    # Neither can be MANUFACTURED by a failure, which is the direction the
+    # carve-out depends on: `operator_host?` may only ever be over-strict
+    # during an outage, never over-permissive. Preserve that. A new datastore
+    # read added to `choose_strategy` ahead of the exact canonical arm would
+    # break it silently and take canonical sign-in dark with everything else.
+    #
+    # ## How downstream reads this
+    #
+    # Every consumer below except the first tests `== :custom`, so :invalid,
+    # nil and :default all take the operator branch. This table is pinned by
+    # spec/unit/domain_strategy_classification_contract_spec.rb — a new
+    # consumer that disagrees with it fails there, not in review.
+    #
+    #   Consumer                                         :invalid resolves to
+    #   ------------------------------------------------ --------------------
+    #   SigninConfig.operator_host?                       FAIL CLOSED (503)
+    #     (via resolve_lookup_failure; read-failure path only)
+    #   Core::Controllers::Base#custom_domain_request?    false
+    #   Base#signin_enabled?                              operator polarity
+    #   Base#signup_enabled?                              operator polarity
+    #   Auth::RestrictTo `custom_host:`                   false (no narrowing)
+    #   Auth::RestrictTo host pin                         no 'sso' pin
+    #   ConfigSerializer#tenant_domain?                   false
+    #   DomainSerializer                                  no branding applied
+    #   InitializeViewVars / GetFavicon                   default favicon
+    #   API v1 Logic::Base#custom_domain?                 false
+    #
+    # "Operator polarity" is the load-bearing row: custom domains are
+    # default-OFF for sign-in and sign-up, canonical follows the global
+    # default, so a case-2 :invalid INVERTS the default. See ADR-024 A12.
     class DomainStrategy
       include Onetime::LoggerMethods
 

@@ -5,6 +5,7 @@
 require 'onetime/security/login_rate_limiter'
 
 require_relative 'json_body'
+require_relative '../restrict_to'
 
 #
 # JSON API for the SSO sign-in interstitial (#3840 Phase 3 / #3838 item 1b).
@@ -82,6 +83,23 @@ module Auth
       #                      carries retry_after seconds
       def handle_link_sso_routes(r)
         r.on 'link-sso' do
+          # RESTRICT_TO ENFORCEMENT (ADR-024 A1/A7, #4139).
+          #
+          # These endpoints exist ONLY as a continuation of an SSO sign-in (the
+          # challenge is minted by account_from_omniauth), so they go dark with
+          # the SSO method on hosts that restrict it away. This is an app-owned
+          # Roda route, not a Rodauth one, so the before_rodauth gate in
+          # config/hooks/restrict_to.rb does not cover it.
+          #
+          # Gated on 'sso', not 'password', even though the POST verifies a
+          # password: the password here authorizes a BIND inside an SSO flow, it
+          # is not an offer of password sign-in. On an sso-restricted host this
+          # route must keep working.
+          unless Auth::RestrictTo.allows?(r.env, 'sso')
+            response.status = 404
+            next Auth::ErrorTranslator::NOT_FOUND_BODY
+          end
+
           # GET /auth/link-sso/:token — display context for the interstitial.
           # Returns ONLY the provider name and claimed email; never the account
           # id, uid, or issuer. Missing/consumed/expired token → 404.

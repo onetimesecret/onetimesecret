@@ -1343,10 +1343,6 @@
     "text": "接続テストに失敗しました",
     "source_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "このドメインのすべてのサインインにSSOを必須にするには、ドメインのサインイン設定で設定してください。SSO専用モードでは、ログインページはここで設定されたSSOプロバイダーに制限されます。",
-    "source_hash": "d26627a5"
-  },
   "web.domains.sso.edit_credentials": {
     "text": "資格情報を編集",
     "source_hash": "5a6622b6"

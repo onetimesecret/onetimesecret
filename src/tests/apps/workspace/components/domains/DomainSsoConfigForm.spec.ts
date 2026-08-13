@@ -763,6 +763,127 @@ describe('DomainSsoConfigForm', () => {
   });
 
   // ─────────────────────────────────────────────────────────────────────────────
+  // Weak test-before-enable warning (#4111)
+  //
+  // Advisory only — never a gate. The record carries no "has ever passed a
+  // test" field, so the warning speaks about THIS editing session: it fires
+  // when the operator turns the connection on without a passing test in view,
+  // and stays silent for configs that merely load enabled (that would be noise
+  // on every open, and would punish the #4107 flag-stuck cohort).
+  //
+  // The toggle is prop-controlled, so each test flips it and then applies the
+  // parent's formState update, exactly as SsoCredentialsModal does.
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  describe('test-before-enable warning (#4111)', () => {
+    const TOGGLE = '[data-testid="sso-connection-enabled-toggle"]';
+    const WARNING = '[data-testid="sso-enable-untested-warning"]';
+    const passingTest: TestSsoConnectionResponse = {
+      success: true,
+      message: 'ok',
+    } as TestSsoConnectionResponse;
+
+    const turnOn = async (w: VueWrapper) => {
+      await w.find(TOGGLE).trigger('click');
+      await w.setProps({ formState: { ...mockExistingFormState, enabled: true } });
+    };
+
+    it('is silent on a fresh form', async () => {
+      wrapper = await mountComponent();
+      expect(wrapper.find(WARNING).exists()).toBe(false);
+    });
+
+    it('is silent for a config that merely loads enabled', async () => {
+      wrapper = await mountComponent({
+        formState: { ...mockExistingFormState, enabled: true },
+        isConfigured: true,
+      });
+      expect(wrapper.find(WARNING).exists()).toBe(false);
+    });
+
+    it('warns when the connection is switched on with no passing test in this session', async () => {
+      wrapper = await mountComponent({
+        formState: { ...mockExistingFormState, enabled: false },
+        isConfigured: true,
+      });
+
+      await turnOn(wrapper);
+
+      const warning = wrapper.find(WARNING);
+      expect(warning.exists()).toBe(true);
+      // Announced, not conveyed by colour alone.
+      expect(warning.attributes('role')).toBe('alert');
+      expect(warning.text()).toContain('web.organizations.sso.enable_untested_warning');
+    });
+
+    it('does not gate the save — the form stays submittable', async () => {
+      wrapper = await mountComponent({
+        formState: { ...mockExistingFormState, enabled: false },
+        isConfigured: true,
+      });
+
+      await turnOn(wrapper);
+
+      expect(wrapper.find(WARNING).exists()).toBe(true);
+      const submit = wrapper.find('button[type="submit"]');
+      expect(submit.attributes('disabled')).toBeUndefined();
+    });
+
+    it('stays silent when a connection test passed in this session', async () => {
+      wrapper = await mountComponent({
+        formState: { ...mockExistingFormState, enabled: false },
+        isConfigured: true,
+        testResult: passingTest,
+      });
+
+      await turnOn(wrapper);
+
+      expect(wrapper.find(WARNING).exists()).toBe(false);
+    });
+
+    it('clears once a test passes after the toggle was switched on', async () => {
+      wrapper = await mountComponent({
+        formState: { ...mockExistingFormState, enabled: false },
+        isConfigured: true,
+      });
+
+      await turnOn(wrapper);
+      expect(wrapper.find(WARNING).exists()).toBe(true);
+
+      await wrapper.setProps({ testResult: passingTest });
+      expect(wrapper.find(WARNING).exists()).toBe(false);
+    });
+
+    it('clears when the connection is switched back off', async () => {
+      wrapper = await mountComponent({
+        formState: { ...mockExistingFormState, enabled: false },
+        isConfigured: true,
+      });
+
+      await turnOn(wrapper);
+      await wrapper.find(TOGGLE).trigger('click');
+      await wrapper.setProps({ formState: { ...mockExistingFormState, enabled: false } });
+
+      expect(wrapper.find(WARNING).exists()).toBe(false);
+    });
+
+    it('clears when a different domain is loaded into the reused instance', async () => {
+      wrapper = await mountComponent({
+        formState: { ...mockExistingFormState, enabled: false },
+        isConfigured: true,
+      });
+
+      await turnOn(wrapper);
+      expect(wrapper.find(WARNING).exists()).toBe(true);
+
+      // SsoCredentialsModal reuses this component across domains (no :key),
+      // so a stale session flag would follow the operator to the next domain.
+      await wrapper.setProps({ domainExtId: 'dm_456' });
+      expect(wrapper.find(WARNING).exists()).toBe(false);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────────
   // Accessibility
   // ─────────────────────────────────────────────────────────────────────────────
 

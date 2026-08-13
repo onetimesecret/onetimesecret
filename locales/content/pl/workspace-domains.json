@@ -1335,10 +1335,6 @@
     "text": "Test połączenia nie powiódł się",
     "source_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "Aby wymagać SSO dla wszystkich logowań w tej domenie, skonfiguruj to w ustawieniach logowania domeny. Tryb wyłącznie SSO ogranicza stronę logowania do dostawcy SSO skonfigurowanego tutaj.",
-    "source_hash": "d26627a5"
-  },
   "web.domains.sso.configure_sso": {
     "text": "Konfiguruj SSO",
     "source_hash": "80d3a144"

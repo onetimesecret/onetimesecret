@@ -1343,10 +1343,6 @@
     "text": "Falha no teste de conexão",
     "source_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "Para exigir SSO em todos os inícios de sessão neste domínio, configure-o nas configurações de início de sessão do domínio. O modo somente SSO restringe a página de início de sessão ao provedor de SSO configurado aqui.",
-    "source_hash": "d26627a5"
-  },
   "web.domains.sso.edit_credentials": {
     "text": "Editar credenciais",
     "source_hash": "5a6622b6"

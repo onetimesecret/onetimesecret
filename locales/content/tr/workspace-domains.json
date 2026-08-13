@@ -1335,10 +1335,6 @@
     "text": "Bağlantı testi başarısız oldu",
     "source_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "Bu alan adındaki tüm girişler için SSO'yu zorunlu kılmak istiyorsanız bunu alan adının giriş ayarlarında yapılandırın. Yalnızca SSO modu, giriş sayfasını burada yapılandırılan SSO sağlayıcısıyla kısıtlar.",
-    "source_hash": "d26627a5"
-  },
   "web.domains.sso.configure_sso": {
     "text": "SSO'yu Yapılandır",
     "source_hash": "80d3a144"

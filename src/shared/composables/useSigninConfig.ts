@@ -96,6 +96,14 @@ export function resolveGlobalMethodAvailability(): GlobalMethodAvailability {
  * opt-in, #3814) and only backs the placeholder state before initialize
  * resolves — initialize itself errors on a details-less response instead of
  * seeding, so a guessed seed can never be materialized by an autosave.
+ *
+ * restrict_to is seeded from `details.effective_restrict_to` — the server's
+ * resolution — NOT from `global_restrict_to` (ADR-024 A4). The client used to
+ * read the raw global value and re-derive what would actually run; there is
+ * now exactly one place that decides, and it is the server. The named method
+ * is taken whatever the state, including `unavailable`: the restriction still
+ * stands, and dropping the name here would seed (and, on the next autosave,
+ * persist) an unrestricted domain.
  */
 function createSeededFormState(
   details: SigninConfigDetails | null,
@@ -104,7 +112,7 @@ function createSeededFormState(
   return {
     enabled: false,
     signin_enabled: details?.effective_enabled ?? false,
-    restrict_to: details?.global_restrict_to ?? null,
+    restrict_to: details?.effective_restrict_to?.restrict_to ?? null,
     email_auth_enabled: methods.email_auth,
     // Both seed call sites run with no record (initialize's null branch,
     // deleteConfig after clearing it), and for an unconfigured domain the
@@ -205,6 +213,26 @@ export function useSigninConfig(domainExtId: string) {
    * availability and the workspace-default flag that drives the badge.
    */
   const overrideState = createAuthOverrideState(signinConfig, details);
+
+  /**
+   * The server's restriction resolution for this domain (ADR-024 A4),
+   * verbatim. Null only until details have loaded. Consumers read `.state`
+   * — all three states, `unavailable` included — and never recompute it from
+   * `global_restrict_to` and the raw flags.
+   */
+  const effectiveRestrictTo = computed(() => details.value?.effective_restrict_to ?? null);
+
+  /**
+   * The resolved restriction cannot run on this domain: sign-in offers
+   * nothing until the owner changes it (fail-closed, ADR-024 A3). Distinct
+   * from "unrestricted" — this is a surfaced dead end, not an open door.
+   */
+  const isRestrictionUnavailable = computed(
+    () => effectiveRestrictTo.value?.state === 'unavailable'
+  );
+
+  /** Tenant-SSO availability verdict from the runtime ladder (#4111). */
+  const tenantSso = computed(() => details.value?.tenant_sso ?? null);
 
   /** Whether the form has been modified since last save/load. */
   const hasUnsavedChanges = computed(() => {
@@ -426,6 +454,11 @@ export function useSigninConfig(domainExtId: string) {
     // Computed
     isConfigured,
     hasUnsavedChanges,
+
+    // Server-resolved restriction + tenant SSO verdict (ADR-024 A4, #4111)
+    effectiveRestrictTo,
+    isRestrictionUnavailable,
+    tenantSso,
 
     // Auth-override display state (ADR-024)
     globalEnabled: overrideState.globalEnabled,

@@ -40,6 +40,10 @@
    * That's why the no-change early-returns are bypassed when
    * `workspaceDefault` is true: the value may not change, but the pin must.
    */
+  import type {
+    EffectiveRestrictTo,
+    TenantSsoVerdict,
+  } from '@/schemas/api/domains/responses/signin-config';
   import type { SigninRestrictTo } from '@/schemas/shapes/domains/signin-config';
   import SettingsSkeleton from '@/shared/components/closet/SettingsSkeleton.vue';
   import ToggleWithIcon from '@/shared/components/common/ToggleWithIcon.vue';
@@ -69,16 +73,27 @@
     workspaceDefault: boolean;
     ssoConfigured: boolean;
     /**
-     * The SsoConfig credential record's own operational flag
-     * (SsoConfig.enabled), from useSsoConfig().isEnabled. Distinct from this
-     * form's sso_enabled (SigninConfig policy toggle). When credentials exist
-     * but this is off, SSO can never be offered regardless of the policy
-     * toggle — the dormant indicator below surfaces that (#4107). Reports the
-     * STORED value only (ADR-024): the frontend must not re-derive the
-     * availability ladder's answer. Optional, defaults false (absent = treat
-     * as disabled, matching the record's own default).
+     * The runtime ladder's tenant-SSO verdict, serialized by the server
+     * (#4111, `details.tenant_sso`). ONE authoritative field: the status line
+     * below renders `available` / `unavailable_reason` verbatim and the client
+     * never re-derives availability from raw flags (ADR-024). It supersedes
+     * the #4107 client-side condition (`ssoConfigured && !ssoCredentialsEnabled`),
+     * which could only see one rung of the ladder.
+     *
+     * Absent/null (older backend, or details not loaded yet) ⇒ no status line
+     * and no SSO-restriction guard: there is no verdict to report, and
+     * inventing one here is exactly the drift this field exists to kill.
      */
-    ssoCredentialsEnabled?: boolean;
+    tenantSso?: TenantSsoVerdict | null;
+    /**
+     * The server's restriction resolution for this domain (ADR-024 A2/A4),
+     * verbatim. Drives the notices for the two states a method picker cannot
+     * express on its own: `unavailable` (the restriction stands but its method
+     * cannot run here, so sign-in offers nothing — fail-closed, A8) and
+     * `source: 'conflict'` (global and domain name different methods, so
+     * neither applies). Never recomputed client-side.
+     */
+    effectiveRestrictTo?: EffectiveRestrictTo | null;
     canManageSso: boolean;
     /**
      * Globally-available auth methods (install/global config). Gates which
@@ -224,6 +239,10 @@
     () => props.formState.restrict_to,
     (v) => {
       if (v === null) oneSelectedIntent.value = false;
+      // A restriction landing (from this form or elsewhere) settles the
+      // pending question — never leave the warning stranded over a stale
+      // choice.
+      pendingSsoRestriction.value = false;
     }
   );
 
@@ -257,17 +276,107 @@
   const ssoConfigurable = computed(() => ssoAvailable.value && props.canManageSso);
 
   /**
-   * Dormant credentials (#4107): a SsoConfig record exists but its own
-   * enabled flag is off, so the sign-in page can never offer SSO no matter
-   * what the policy toggle here says. States only the record's stored flag —
-   * NOT overall availability (other ladder rungs may also block; ADR-024).
-   * Gated on ssoConfigurable because the hint copy directs to "Edit
-   * credentials": without both write gates that button does not render, and
-   * the row already names the real blocker (upgrade lock / "Unavailable").
+   * Tenant-SSO status line (#4111). The server answers "why isn't SSO being
+   * offered on my sign-in page?" once (`SsoConfig.tenant_sso_unavailable_reason`);
+   * this maps the reported rung to copy and NOTHING else — no client-side AND
+   * of raw flags (ADR-024). An unrecognized rung (a newer backend) falls back
+   * to the generic unavailable copy rather than rendering nothing.
+   *
+   * Gated on ssoConfigurable: the remedial copy points at controls
+   * ("Edit credentials", the toggle above) that only render with both write
+   * gates, and without them the row already names the real blocker (upgrade
+   * lock / "Unavailable site-wide").
    */
-  const ssoConnectionDisabled = computed(
-    () => ssoConfigurable.value && props.ssoConfigured && !props.ssoCredentialsEnabled
-  );
+  const UNAVAILABLE_REASON_COPY: Record<string, { badge: string; hint: string }> = {
+    no_sso_config: {
+      badge: 'web.domains.sso.status_not_configured_badge',
+      hint: 'web.domains.sso.status_not_configured_hint',
+    },
+    // Carried over from #4107 — same rung, same copy, authoritative source.
+    sso_config_disabled: {
+      badge: 'web.domains.sso.connection_disabled_badge',
+      hint: 'web.domains.sso.connection_disabled_hint',
+    },
+    sso_not_permitted: {
+      badge: 'web.domains.sso.status_not_permitted_badge',
+      hint: 'web.domains.sso.status_not_permitted_hint',
+    },
+    auth_disabled: {
+      badge: 'web.domains.sso.status_auth_disabled_badge',
+      hint: 'web.domains.sso.status_auth_disabled_hint',
+    },
+    unsupported_provider_type: {
+      badge: 'web.domains.sso.status_unsupported_provider_badge',
+      hint: 'web.domains.sso.status_unsupported_provider_hint',
+    },
+  };
+
+  const ssoStatus = computed<{ tone: 'ok' | 'warn'; badge: string; hint: string } | null>(() => {
+    if (!ssoConfigurable.value) return null;
+    const verdict = props.tenantSso;
+    if (!verdict) return null;
+    if (verdict.available) {
+      return {
+        tone: 'ok',
+        badge: t('web.domains.sso.status_active_badge'),
+        hint: t('web.domains.sso.status_active_hint'),
+      };
+    }
+    const copy = verdict.unavailable_reason
+      ? UNAVAILABLE_REASON_COPY[verdict.unavailable_reason]
+      : undefined;
+    return {
+      tone: 'warn',
+      badge: t(copy?.badge ?? 'web.domains.sso.status_unavailable_badge'),
+      hint: t(copy?.hint ?? 'web.domains.sso.status_unavailable_hint'),
+    };
+  });
+
+  /**
+   * Restricting to SSO requires confirmation when it would remain unavailable
+   * after the atomic patch. `sso_not_permitted` can be caused solely by the
+   * current SigninConfig having sso_enabled=false; selecting SSO fixes that in
+   * the same PUT, so that one recoverable state is not a lockout. If SSO is
+   * already enabled, the same verdict has another cause and remains guarded.
+   * Absent verdict => false: no guard fires on a claim the server never made.
+   */
+  const ssoRestrictionRequiresConfirmation = computed(() => {
+    const verdict = props.tenantSso;
+    if (verdict?.available !== false) return false;
+    return !(verdict.unavailable_reason === 'sso_not_permitted' && !props.formState.sso_enabled);
+  });
+
+  const METHOD_LABEL_KEYS: Record<SigninRestrictTo, string> = {
+    password: 'web.domains.signin.method_password',
+    email_auth: 'web.domains.signin.method_email_auth',
+    webauthn: 'web.domains.signin.method_webauthn',
+    sso: 'web.domains.signin.method_sso',
+  };
+
+  /**
+   * Resolution notice for the two states the method picker cannot express
+   * (ADR-024 A2/A8), rendered from the server's resolution verbatim:
+   *
+   * - `conflict` — this domain and the workspace-wide setting restrict to
+   *   DIFFERENT methods, so neither applies and sign-in is closed. Named as a
+   *   conflict rather than showing one side as if it had won; `restrict_to`
+   *   carries the global method, the one still in force.
+   * - `unavailable` — the restriction stands but its method cannot run here,
+   *   so sign-in offers nothing. The method is still named ("SSO required,
+   *   but unavailable here"), never blanked.
+   */
+  const restrictionNotice = computed<string | null>(() => {
+    const resolution = props.effectiveRestrictTo;
+    if (!resolution) return null;
+    const method = resolution.restrict_to ? t(METHOD_LABEL_KEYS[resolution.restrict_to]) : null;
+    if (resolution.source === 'conflict' && method) {
+      return t('web.domains.signin.restriction_conflict_notice', { method });
+    }
+    if (resolution.state !== 'unavailable') return null;
+    return method
+      ? t('web.domains.signin.restriction_unavailable_notice', { method })
+      : t('web.domains.signin.restriction_unavailable_unknown_notice');
+  });
 
   interface MethodRow {
     value: SigninRestrictTo;
@@ -338,6 +447,13 @@
   // ---------------------------------------------------------------------------
 
   const showDeleteConfirm = ref(false);
+
+  /**
+   * The owner picked SSO as the only sign-in method while the server reports
+   * tenant SSO unavailable here (#4111). Nothing is persisted until they
+   * confirm; the radio stays unchecked because formState is untouched.
+   */
+  const pendingSsoRestriction = ref(false);
 
   const isEditing = computed(() => props.isConfigured);
 
@@ -423,11 +539,34 @@
     // row only renders locked (keep-if-selected); this backstop also keeps
     // onMethodClick's ADR-024 materialize-on-touch path from saving it.
     if (value === 'webauthn') return;
+    // Restricting to SSO the server says cannot run here fails CLOSED
+    // (ADR-024 A8): the sign-in page goes dark for everyone. Confirm BEFORE
+    // the PUT — this form auto-saves, so a post-hoc notice would arrive after
+    // the lockout. Nothing persists until confirmSsoRestriction runs.
+    if (value === 'sso' && ssoRestrictionRequiresConfirmation.value) {
+      pendingSsoRestriction.value = true;
+      return;
+    }
+    commitMethod(value);
+  };
+
+  /** Persist a restrict_to choice. Guards live in selectMethod. */
+  const commitMethod = (value: SigninRestrictTo) => {
     const patch: Partial<SigninConfigFormState> = { restrict_to: value };
     if (value === 'email_auth') patch.email_auth_enabled = true;
     if (value === 'sso') patch.sso_enabled = true;
     if (!props.formState.signin_enabled) patch.signin_enabled = true;
     emit('auto-save', patch, 'restrict_to');
+  };
+
+  /** Save the SSO-only restriction the operator was warned about (#4111). */
+  const confirmSsoRestriction = () => {
+    pendingSsoRestriction.value = false;
+    commitMethod('sso');
+  };
+
+  const cancelSsoRestriction = () => {
+    pendingSsoRestriction.value = false;
   };
 
   /**
@@ -552,6 +691,25 @@
           class="mt-2 text-sm text-gray-500 dark:text-gray-400">
           {{ modeHint }}
         </p>
+
+        <!-- Resolved-restriction notice (ADR-024 A2/A8): the restriction
+             stands but nothing can satisfy it, so sign-in is closed here.
+             Server-resolved, rendered verbatim. role="status" announces it;
+             the icon is decorative and the text carries the meaning. -->
+        <div
+          v-if="restrictionNotice"
+          data-testid="signin-restriction-notice"
+          role="status"
+          class="mt-3 flex items-start gap-3 rounded-md bg-amber-50 px-4 py-3 dark:bg-amber-900/20">
+          <OIcon
+            collection="heroicons"
+            name="exclamation-triangle"
+            class="mt-0.5 size-5 flex-shrink-0 text-amber-600 dark:text-amber-400"
+            aria-hidden="true" />
+          <p class="flex-1 text-sm text-amber-700 dark:text-amber-300">
+            {{ restrictionNotice }}
+          </p>
+        </div>
       </fieldset>
 
       <!-- ===================================================================
@@ -691,26 +849,39 @@
             </div>
           </div>
 
-          <!-- Dormant credentials indicator (#4107): the SsoConfig record's own
-               enabled flag is off, so this method can never surface no matter
-               what the policy toggle above says. States the stored flag only —
-               never a general availability verdict (ADR-024; other ladder rungs
-               may also block). -->
+          <!-- Tenant-SSO status line (#4111): the server's single verdict on
+               whether SSO can be offered here, and which rung blocks it when
+               it can't. Rendered verbatim — no client-side derivation
+               (ADR-024). role="status" so the reason is announced, and the
+               badge carries text (not colour alone) for WCAG 1.4.1. Fixed
+               semantic hues per #4132: amber = warning, green = success. -->
           <div
-            v-if="ssoConnectionDisabled"
-            data-testid="sso-connection-disabled-indicator"
+            v-if="ssoStatus"
+            data-testid="sso-tenant-status"
+            role="status"
             class="mt-3 flex items-start gap-2">
             <span
-              class="inline-flex flex-shrink-0 items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+              :class="[
+                'inline-flex flex-shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
+                ssoStatus.tone === 'ok'
+                  ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
+                  : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
+              ]">
               <OIcon
                 collection="heroicons"
-                name="exclamation-triangle"
+                :name="ssoStatus.tone === 'ok' ? 'check-circle' : 'exclamation-triangle'"
                 class="size-3.5"
                 aria-hidden="true" />
-              {{ t('web.domains.sso.connection_disabled_badge') }}
+              {{ ssoStatus.badge }}
             </span>
-            <span class="text-sm text-amber-700 dark:text-amber-300">
-              {{ t('web.domains.sso.connection_disabled_hint') }}
+            <span
+              :class="[
+                'text-sm',
+                ssoStatus.tone === 'ok'
+                  ? 'text-green-700 dark:text-green-300'
+                  : 'text-amber-700 dark:text-amber-300',
+              ]">
+              {{ ssoStatus.hint }}
             </span>
           </div>
         </div>
@@ -797,19 +968,38 @@
                   class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
                   {{ method.blurb }}
                 </span>
-                <!-- Compact dormant-credentials indicator — see the Mode A
-                     row for rationale (#4107, ADR-024). -->
+                <!-- Compact tenant-SSO status — see the Mode A row for
+                     rationale (#4111, ADR-024). The reason is rendered as
+                     text, not only as a title tooltip: a tooltip is neither
+                     keyboard- nor screen-reader-reliable. -->
                 <span
-                  v-if="method.value === 'sso' && ssoConnectionDisabled"
-                  data-testid="sso-connection-disabled-indicator-compact"
-                  class="mt-1.5 inline-flex w-fit items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
-                  :title="t('web.domains.sso.connection_disabled_hint')">
-                  <OIcon
-                    collection="heroicons"
-                    name="exclamation-triangle"
-                    class="size-3.5"
-                    aria-hidden="true" />
-                  {{ t('web.domains.sso.connection_disabled_badge') }}
+                  v-if="method.value === 'sso' && ssoStatus"
+                  data-testid="sso-tenant-status-compact"
+                  role="status"
+                  class="mt-1.5 flex flex-col items-start gap-1">
+                  <span
+                    :class="[
+                      'inline-flex w-fit items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
+                      ssoStatus.tone === 'ok'
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
+                        : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
+                    ]">
+                    <OIcon
+                      collection="heroicons"
+                      :name="ssoStatus.tone === 'ok' ? 'check-circle' : 'exclamation-triangle'"
+                      class="size-3.5"
+                      aria-hidden="true" />
+                    {{ ssoStatus.badge }}
+                  </span>
+                  <span
+                    :class="[
+                      'text-xs',
+                      ssoStatus.tone === 'ok'
+                        ? 'text-green-700 dark:text-green-300'
+                        : 'text-amber-700 dark:text-amber-300',
+                    ]">
+                    {{ ssoStatus.hint }}
+                  </span>
                 </span>
               </span>
             </span>
@@ -850,6 +1040,51 @@
               </span>
             </span>
           </label>
+        </div>
+
+        <!-- SSO-restriction lockout guard (#4111). Restricting to a method the
+             server says cannot run here fails CLOSED (ADR-024 A8), so the
+             sign-in page would go dark for everyone. The form auto-saves, so
+             the warning has to land BEFORE the PUT: nothing is persisted until
+             "Restrict anyway". role="alert" announces it immediately, and the
+             colour is redundant with the text (WCAG 1.4.1). -->
+        <div
+          v-if="pendingSsoRestriction"
+          data-testid="sso-restriction-lockout-warning"
+          role="alert"
+          class="flex flex-col gap-3 rounded-md bg-amber-50 px-4 py-3 sm:flex-row sm:items-start sm:justify-between dark:bg-amber-900/20">
+          <div class="flex items-start gap-3">
+            <OIcon
+              collection="heroicons"
+              name="exclamation-triangle"
+              class="mt-0.5 size-5 flex-shrink-0 text-amber-600 dark:text-amber-400"
+              aria-hidden="true" />
+            <div class="text-sm">
+              <p class="font-medium text-amber-800 dark:text-amber-200">
+                {{ t('web.domains.signin.sso_restrict_warning_title') }}
+              </p>
+              <p class="mt-1 text-amber-700 dark:text-amber-300">
+                {{ t('web.domains.signin.sso_restrict_warning_body') }}
+              </p>
+            </div>
+          </div>
+          <div class="flex flex-shrink-0 items-center gap-2">
+            <button
+              type="button"
+              data-testid="sso-restriction-lockout-confirm"
+              :disabled="isSaving"
+              @click="confirmSsoRestriction"
+              class="inline-flex items-center rounded-md bg-amber-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-amber-500 dark:hover:bg-amber-400">
+              {{ t('web.domains.signin.sso_restrict_warning_confirm') }}
+            </button>
+            <button
+              type="button"
+              data-testid="sso-restriction-lockout-cancel"
+              @click="cancelSsoRestriction"
+              class="inline-flex items-center rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+              {{ t('web.COMMON.word_cancel') }}
+            </button>
+          </div>
         </div>
       </fieldset>
 

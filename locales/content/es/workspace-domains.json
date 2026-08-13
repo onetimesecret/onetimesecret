@@ -1343,10 +1343,6 @@
     "text": "La prueba de conexión falló",
     "source_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "Para exigir SSO en todos los inicios de sesión de este dominio, configúralo en los ajustes de inicio de sesión del dominio. El modo solo SSO restringe la página de inicio de sesión al proveedor de SSO configurado aquí.",
-    "source_hash": "d26627a5"
-  },
   "web.domains.sso.edit_credentials": {
     "text": "Editar credenciales",
     "source_hash": "5a6622b6"

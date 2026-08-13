@@ -441,6 +441,121 @@ Onetime::CustomDomain::SsoConfig.create!(
 [@signup_details[:global_enabled], @signup_details[:effective_enabled]]
 #=> [true, false]
 
+# ============================================================
+# 12. ADR-024 A4 — details.effective_restrict_to
+#
+# The settings API serializes the A2 resolver's output instead of the
+# frontend re-deriving the effective restriction from the raw global
+# value. Every state of SigninConfig.resolve_restrict_to must survive
+# serialization, :unavailable included — that state is the one the
+# display field `features.restrict_to` (string-or-null) cannot express,
+# and projecting it to null here would rebuild the fail-open A3 closed.
+# ============================================================
+
+## Sanity: the test config sets no global restriction (makes the cases below discriminating)
+Onetime.auth_config.restrict_to
+#=> nil
+
+## Unconfigured domain, no global restriction — unrestricted, global source
+@domain_rt_unconf = Onetime::CustomDomain.create!("psc-rt-unconf-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@logic_rt_unconf = build_get(extid: @domain_rt_unconf.extid)
+@logic_rt_unconf.raise_concerns
+@logic_rt_unconf.process[:details][:effective_restrict_to]
+#=> { state: 'unrestricted', restrict_to: nil, source: 'global' }
+
+## Unconfigured domain under a global restriction — unavailable: the domain never opted sign-in in
+@auth_conf = Onetime.auth_config
+@auth_conf.define_singleton_method(:restrict_to) { 'password' }
+begin
+  @logic_rt_global = build_get(extid: @domain_rt_unconf.extid)
+  @logic_rt_global.raise_concerns
+  @logic_rt_global.process[:details]
+ensure
+  @auth_conf.singleton_class.remove_method(:restrict_to)
+end
+#=> { global_enabled: true, effective_enabled: false, global_restrict_to: 'password', effective_restrict_to: { state: 'unavailable', restrict_to: 'password', source: 'global' }, tenant_sso: { available: false, unavailable_reason: 'no_sso_config' } }
+
+## Enabled domain config naming a method that is unavailable here — domain source, fail closed
+@domain_rt_dom = Onetime::CustomDomain.create!("psc-rt-dom-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@logic_rt_put = build_put(
+  extid: @domain_rt_dom.extid,
+  params: { 'enabled' => 'true', 'signin_enabled' => 'true', 'restrict_to' => 'email_auth' },
+)
+@logic_rt_put.raise_concerns
+@logic_rt_put.process[:details][:effective_restrict_to]
+#=> { state: 'unavailable', restrict_to: 'email_auth', source: 'domain' }
+
+## Domain and global naming different methods — :unavailable, source :conflict, global method named (A8)
+@auth_conf_x = Onetime.auth_config
+@auth_conf_x.define_singleton_method(:restrict_to) { 'password' }
+begin
+  @logic_rt_conflict = build_get(extid: @domain_rt_dom.extid)
+  @logic_rt_conflict.raise_concerns
+  @logic_rt_conflict.process[:details][:effective_restrict_to]
+ensure
+  @auth_conf_x.singleton_class.remove_method(:restrict_to)
+end
+#=> { state: 'unavailable', restrict_to: 'password', source: 'conflict' }
+
+## Domain restriction that cannot run here — :unavailable, method still named (fail closed, A3)
+@domain_rt_wa = Onetime::CustomDomain.create!("psc-rt-wa-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+Onetime::CustomDomain::SigninConfig.create!(
+  domain_id: @domain_rt_wa.identifier,
+  enabled: true,
+  signin_enabled: true,
+  restrict_to: 'webauthn',
+)
+@logic_rt_wa = build_get(extid: @domain_rt_wa.extid)
+@logic_rt_wa.raise_concerns
+@logic_rt_wa.process[:details][:effective_restrict_to]
+#=> { state: 'unavailable', restrict_to: 'webauthn', source: 'domain' }
+
+## DELETE also reports the resolution (post-delete: back to the global answer)
+@logic_rt_del = build_delete(extid: @domain_rt_dom.extid)
+@logic_rt_del.raise_concerns
+@logic_rt_del.process[:details][:effective_restrict_to]
+#=> { state: 'unrestricted', restrict_to: nil, source: 'global' }
+
+# ============================================================
+# 13. #4111 — details.tenant_sso carries the availability ladder's verdict
+# ============================================================
+
+## No SsoConfig record — the blocking rung is reported, not just "off"
+@logic_sso_none = build_get(extid: @domain_rt_unconf.extid)
+@logic_sso_none.raise_concerns
+@logic_sso_none.process[:details][:tenant_sso]
+#=> { available: false, unavailable_reason: 'no_sso_config' }
+
+## Dormant credentials (#4107 shape) — reported as sso_config_disabled, not silence
+@domain_sso_off = Onetime::CustomDomain.create!("psc-sso-off-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+Onetime::CustomDomain::SsoConfig.create!(
+  domain_id: @domain_sso_off.identifier,
+  provider_type: 'oidc',
+  display_name: 'PSC SSO Off',
+  enabled: false,
+  issuer: 'https://idp-psc-off.example.com',
+  client_id: 'client-psc-off',
+)
+@logic_sso_off = build_get(extid: @domain_sso_off.extid)
+@logic_sso_off.raise_concerns
+@logic_sso_off.process[:details][:tenant_sso]
+#=> { available: false, unavailable_reason: 'sso_config_disabled' }
+
+## Enabled tenant credentials — available, no reason
+@domain_sso_on = Onetime::CustomDomain.create!("psc-sso-on-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+Onetime::CustomDomain::SsoConfig.create!(
+  domain_id: @domain_sso_on.identifier,
+  provider_type: 'oidc',
+  display_name: 'PSC SSO On',
+  enabled: true,
+  issuer: 'https://idp-psc-on.example.com',
+  client_id: 'client-psc-on',
+)
+@logic_sso_on = build_get(extid: @domain_sso_on.extid)
+@logic_sso_on.raise_concerns
+@logic_sso_on.process[:details][:tenant_sso]
+#=> { available: true, unavailable_reason: nil }
+
 # --- Cleanup ---
 
 Familia.dbclient.flushdb

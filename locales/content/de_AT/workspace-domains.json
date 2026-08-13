@@ -1335,10 +1335,6 @@
     "text": "Verbindungstest fehlgeschlagen",
     "source_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "Um SSO für alle Anmeldungen in diesem Bereich vorzuschreiben, konfigurieren Sie es in den Anmeldeeinstellungen des Bereichs. Der reine SSO-Modus beschränkt die Anmeldeseite auf den hier konfigurierten SSO-Anbieter.",
-    "source_hash": "d26627a5"
-  },
   "web.domains.sso.configure_sso": {
     "text": "SSO konfigurieren",
     "source_hash": "80d3a144"

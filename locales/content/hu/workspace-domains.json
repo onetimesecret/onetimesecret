@@ -1335,10 +1335,6 @@
     "text": "A kapcsolatteszt sikertelen",
     "source_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "Ha minden bejelentkezéshez SSO-t szeretne megkövetelni ezen a doménen, állítsa be a domén bejelentkezési beállításaiban. A csak SSO mód a bejelentkezési oldalt az itt beállított SSO-szolgáltatóra korlátozza.",
-    "source_hash": "d26627a5"
-  },
   "web.domains.sso.configure_sso": {
     "text": "SSO beállítása",
     "source_hash": "80d3a144"

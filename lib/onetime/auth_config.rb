@@ -195,35 +195,78 @@ module Onetime
 
     # The login-page restriction, if any.
     # Returns one of RESTRICT_TO_VALUES ('password', 'email_auth',
-    # 'webauthn', 'sso') or nil when all enabled methods are shown.
+    # 'webauthn', 'sso'), or nil ONLY when no restriction is configured
+    # (and always nil in simple mode, where restrict_to has no meaning).
     #
-    # Guards:
-    # - Returns nil in simple mode or when the value is unrecognised.
-    # - For 'sso': requires sso_enabled? and at least one provider.
-    # - For 'email_auth': requires email_auth_enabled?.
-    # - For 'webauthn': requires webauthn_enabled?.
-    # - 'password' has no prerequisite (passwords are always available
-    #   in full mode).
+    # It NEVER returns nil to express "the configured restriction could not
+    # be honored" (ADR-024 A3, #4140). That was a silent fail-OPEN: every
+    # caller reads nil as "unrestricted", so an install whose restricted
+    # method was unavailable widened to standard mode and re-exposed exactly
+    # the methods the operator restricted away — with no log line at all.
+    #
+    # Availability is handled in two separate places instead:
+    # - Boot: #validate_restrict_to! raises OT::ConfigError when the named
+    #   method's prerequisites are already known to be unmet. Validate once,
+    #   loudly; this reader never raises, so a request path stays cheap.
+    # - Runtime: unavailability only discoverable AFTER boot keeps the
+    #   restriction in place, so callers degrade fail-CLOSED (sign-in
+    #   unavailable / method-specific notice) instead of widening. See
+    #   #restrict_to_available?.
+    #
+    # An unrecognised value still reads as nil here, but it can only survive
+    # boot when validation did not run (partial boot); #validate_restrict_to!
+    # rejects it.
     def restrict_to
       return nil unless full_enabled?
 
-      value = full['restrict_to'].to_s.strip
-      # Legacy fallback: configs that still use sso.sso_only instead of restrict_to
-      value = 'sso' if value.empty? && legacy_sso_only?
+      value = configured_restrict_to
+      RESTRICT_TO_VALUES.include?(value) ? value : nil
+    end
 
-      return nil unless RESTRICT_TO_VALUES.include?(value)
+    # Whether the configured restriction's backing method is actually usable
+    # right now. Consumers use this to degrade fail-closed: a restriction
+    # whose method is unavailable means sign-in is unavailable, never that
+    # sign-in widens to the other methods (ADR-024 A3).
+    #
+    # Returns true when nothing is restricted (nothing to be unavailable).
+    def restrict_to_available?
+      value = restrict_to
+      return true if value.nil?
 
-      # Ensure the restriction refers to an actually enabled method.
-      case value
-      when 'sso'
-        return nil unless sso_enabled? && sso_providers.any?
-      when 'email_auth'
-        return nil unless email_auth_enabled?
-      when 'webauthn'
-        return nil unless webauthn_enabled?
-      end
+      restrict_to_unmet_prerequisite(value).nil?
+    end
 
-      value
+    # Boot-time validation of the global restriction (ADR-024 A3, #4140).
+    #
+    # Raises OT::ConfigError — a fatal boot error — when full.restrict_to
+    # names a method whose prerequisites the system can already determine are
+    # unmet, or names a value that is not a valid restriction at all. A
+    # refused boot is the loud failure: it reaches the operator holding the
+    # config file at deploy time. (Contrast #4062's set-but-blank admin host
+    # allowlist, which warns because of a lockout trap; that argument was
+    # considered and overruled here — the trap on this path is a silent
+    # runtime widen, not a refused boot.)
+    #
+    # Idempotent: the result is memoized so repeated boot phases (and
+    # #reload! in tests) behave predictably.
+    #
+    # @raise [Onetime::ConfigError] when the configured restriction cannot be honored
+    # @return [String, nil] the validated restriction, or nil when none is configured
+    def validate_restrict_to!
+      return @validate_restrict_to if defined?(@validate_restrict_to)
+
+      @validate_restrict_to = nil
+      return nil unless full_enabled?
+
+      value = configured_restrict_to
+      return nil if value.empty?
+
+      raise Onetime::ConfigError, restrict_to_error_message(value, nil) unless RESTRICT_TO_VALUES.include?(value)
+
+      unmet = restrict_to_unmet_prerequisite(value)
+      raise Onetime::ConfigError, restrict_to_error_message(value, unmet) if unmet
+
+      @validate_restrict_to = value
     end
 
     # Whether SSO-only mode is active.
@@ -412,6 +455,7 @@ module Onetime
     # Reload configuration (useful for testing)
     def reload!
       @path = Onetime::Utils::ConfigResolver.resolve('auth')
+      remove_instance_variable(:@validate_restrict_to) if defined?(@validate_restrict_to)
       load_config
       self
     end
@@ -444,6 +488,66 @@ module Onetime
     end
 
     private
+
+    # The restriction as CONFIGURED, before any validation: the stripped
+    # full.restrict_to value, or 'sso' via the legacy sso.sso_only fallback.
+    # Returns '' when nothing is configured. May be an unrecognised value —
+    # #validate_restrict_to! is what rejects those.
+    def configured_restrict_to
+      value = full['restrict_to'].to_s.strip
+      # Legacy fallback: configs that still use sso.sso_only instead of restrict_to
+      value = 'sso' if value.empty? && legacy_sso_only?
+      value
+    end
+
+    # Which config key the restriction came from, for operator-facing errors.
+    def restrict_to_source
+      full['restrict_to'].to_s.strip.empty? ? 'full.sso.sso_only (AUTH_SSO_ONLY)' : 'full.restrict_to'
+    end
+
+    # The unmet prerequisite for a restriction value, as an operator-facing
+    # phrase, or nil when the method is available.
+    #
+    # 'password' is deliberately absent: password authentication has no
+    # feature flag in full mode — Rodauth's login/password features are
+    # always loaded — so there is no prerequisite that could fail. If a
+    # password-disable switch is ever introduced, it belongs here.
+    def restrict_to_unmet_prerequisite(value)
+      case value
+      when 'sso'
+        return 'SSO is disabled (full.features.sso / AUTH_SSO_ENABLED)' unless sso_enabled?
+        if sso_providers.empty?
+          return 'SSO is enabled but no provider is configured (no provider has its ' \
+                 'required env vars set, e.g. OIDC_ISSUER + OIDC_CLIENT_ID)'
+        end
+      when 'email_auth'
+        return 'email auth is disabled (full.features.email_auth / AUTH_EMAIL_AUTH_ENABLED)' unless email_auth_enabled?
+      when 'webauthn'
+        return 'WebAuthn is disabled (full.features.webauthn / AUTH_WEBAUTHN_ENABLED)' unless webauthn_enabled?
+      end
+
+      nil
+    end
+
+    # Operator-facing fatal message for an unusable restriction. `unmet` is
+    # nil when the value itself is not a valid restriction.
+    def restrict_to_error_message(value, unmet)
+      reason = unmet || "#{value.inspect} is not a valid restriction " \
+                        "(expected one of: #{RESTRICT_TO_VALUES.join(', ')})"
+
+      <<~MSG.strip
+        Authentication is restricted to #{value.inspect} (#{restrict_to_source}) but #{reason}.
+
+        Refusing to boot: continuing would silently show every enabled sign-in
+        method, re-exposing exactly the methods this setting restricts away.
+
+        To fix this issue:
+        1. Enable the prerequisite for #{value.inspect}, or
+        2. Change #{restrict_to_source} to an available method
+           (one of: #{RESTRICT_TO_VALUES.join(', ')}), or
+        3. Clear it to show all enabled authentication methods.
+      MSG
+    end
 
     # Nil for a nil/blank/whitespace-only value, the value otherwise.
     # Lets `presence(x) || default` behave the way `x || default` is

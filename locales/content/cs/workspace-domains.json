@@ -1335,10 +1335,6 @@
     "text": "Test připojení se nezdařil",
     "source_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "Chceš-li vyžadovat SSO pro všechna přihlášení na této doméně, nakonfiguruj to v nastavení přihlášení dané domény. Režim pouze SSO omezuje přihlašovací stránku na poskytovatele SSO nakonfigurovaného zde.",
-    "source_hash": "d26627a5"
-  },
   "web.domains.sso.configure_sso": {
     "text": "Nakonfigurovat SSO",
     "source_hash": "80d3a144"

@@ -1335,10 +1335,6 @@
     "text": "Preizkus povezave ni uspel",
     "source_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "Če želite zahtevati SSO za vse prijave na tej domeni, ga konfigurirajte v nastavitvah prijave za domeno. Način samo SSO omeji prijavno stran na ponudnika SSO, konfiguriranega tukaj.",
-    "source_hash": "d26627a5"
-  },
   "web.domains.sso.configure_sso": {
     "text": "Konfiguriraj SSO",
     "source_hash": "80d3a144"

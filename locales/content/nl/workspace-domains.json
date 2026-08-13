@@ -1343,10 +1343,6 @@
     "text": "Verbindingstest mislukt",
     "source_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "Om SSO te vereisen voor alle inlogpogingen op dit domein, configureer het in de inloginstellingen van het domein. SSO-only modus beperkt de inlogpagina tot de hier geconfigureerde SSO-provider.",
-    "source_hash": "d26627a5"
-  },
   "web.domains.sso.edit_credentials": {
     "text": "Inloggegevens bewerken",
     "source_hash": "5a6622b6"

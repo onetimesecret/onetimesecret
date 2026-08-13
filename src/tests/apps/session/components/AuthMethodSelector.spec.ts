@@ -1,10 +1,10 @@
 // src/tests/apps/session/components/AuthMethodSelector.spec.ts
 
-import { mount, VueWrapper } from '@vue/test-utils';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
-import { defineComponent, ref, computed } from 'vue';
 import { createTestI18n } from '@tests/setup';
+import { mount, VueWrapper } from '@vue/test-utils';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { computed, defineComponent, ref } from 'vue';
 
 // Mock vue-router
 vi.mock('vue-router', () => ({
@@ -33,6 +33,19 @@ const mockEnforceSsoOnly = ref(false);
 
 // Mock single-method restriction (features.restrict_to)
 const mockRestrictTo = ref<'password' | 'email_auth' | 'webauthn' | 'sso' | null>(null);
+const mockEffectiveRestrictTo = ref<
+  | {
+      state: 'unrestricted' | 'restricted' | 'unavailable';
+      restrict_to: 'password' | 'email_auth' | 'webauthn' | 'sso' | null;
+      source: 'domain' | 'global' | 'conflict';
+    }
+  | undefined
+>(undefined);
+
+vi.mock('@/services/bootstrap.service', () => ({
+  getBootstrapValue: (key: string) =>
+    key === 'features' ? { effective_restrict_to: mockEffectiveRestrictTo.value } : undefined,
+}));
 
 vi.mock('@/utils/features', () => ({
   isMagicLinksEnabled: () => mockFeatures.magicLinksEnabled.value,
@@ -60,7 +73,8 @@ vi.mock('@/apps/session/components/PasswordlessFirstSignIn.vue', () => ({
     name: 'PasswordlessFirstSignIn',
     props: ['locale', 'magicLinksEnabled', 'webauthnEnabled', 'passwordEnabled', 'initialMode'],
     emits: ['mode-change'],
-    template: '<div class="mock-passwordless-signin" data-testid="passwordless-signin"><slot /></div>',
+    template:
+      '<div class="mock-passwordless-signin" data-testid="passwordless-signin"><slot /></div>',
   },
 }));
 
@@ -199,6 +213,7 @@ describe('AuthMethodSelector', () => {
     mockIsCustomRef.value = false;
     mockEnforceSsoOnly.value = false;
     mockRestrictTo.value = null;
+    mockEffectiveRestrictTo.value = undefined;
   });
 
   afterEach(() => {
@@ -381,9 +396,7 @@ describe('AuthMethodSelector', () => {
     it('shows only SSO buttons when sso_only and sso are both active with providers', () => {
       mockFeatures.ssoEnabled.value = true;
       mockFeatures.ssoOnlyMode.value = true;
-      mockProviders.value = [
-        { route_name: 'entra', display_name: 'Microsoft' },
-      ];
+      mockProviders.value = [{ route_name: 'entra', display_name: 'Microsoft' }];
 
       wrapper = mountComponent();
 
@@ -432,9 +445,7 @@ describe('AuthMethodSelector', () => {
     it('does not show divider in sso-only mode', () => {
       mockFeatures.ssoEnabled.value = true;
       mockFeatures.ssoOnlyMode.value = true;
-      mockProviders.value = [
-        { route_name: 'entra', display_name: 'Microsoft' },
-      ];
+      mockProviders.value = [{ route_name: 'entra', display_name: 'Microsoft' }];
 
       wrapper = mountComponent();
 
@@ -445,9 +456,7 @@ describe('AuthMethodSelector', () => {
       mockFeatures.magicLinksEnabled.value = true;
       mockFeatures.ssoEnabled.value = true;
       mockFeatures.ssoOnlyMode.value = false;
-      mockProviders.value = [
-        { route_name: 'entra', display_name: 'Microsoft' },
-      ];
+      mockProviders.value = [{ route_name: 'entra', display_name: 'Microsoft' }];
 
       wrapper = mountComponent();
 
@@ -541,9 +550,8 @@ describe('AuthMethodSelector', () => {
       }
 
       // Use dynamic import for the real component
-      const { default: AuthMethodSelector } = await import(
-        '@/apps/session/components/AuthMethodSelector.vue'
-      );
+      const { default: AuthMethodSelector } =
+        await import('@/apps/session/components/AuthMethodSelector.vue');
 
       const pinia = createTestingPinia({
         createSpy: vi.fn,
@@ -581,9 +589,7 @@ describe('AuthMethodSelector', () => {
       wrapper = await mountRealComponent({
         sso: {
           enabled: true,
-          providers: [
-            { route_name: 'oidc', display_name: 'Okta' },
-          ],
+          providers: [{ route_name: 'oidc', display_name: 'Okta' }],
         },
       });
 
@@ -705,7 +711,9 @@ describe('AuthMethodSelector', () => {
 
         wrapper = mountComponent();
 
-        expect(wrapper.find('[data-testid="passwordless-signin"]').exists()).toBe(expected.passwordless);
+        expect(wrapper.find('[data-testid="passwordless-signin"]').exists()).toBe(
+          expected.passwordless
+        );
         expect(wrapper.find('[data-testid="signin-form"]').exists()).toBe(expected.password);
         expect(wrapper.find('[data-testid="sso-button"]').exists()).toBe(expected.sso);
       });
@@ -747,9 +755,8 @@ describe('AuthMethodSelector', () => {
       mockFeatures.webauthnEnabled.value = opts.webauthn ?? false;
       mockProviders.value = opts.providers ?? [];
 
-      const { default: AuthMethodSelector } = await import(
-        '@/apps/session/components/AuthMethodSelector.vue'
-      );
+      const { default: AuthMethodSelector } =
+        await import('@/apps/session/components/AuthMethodSelector.vue');
 
       const pinia = createTestingPinia({
         createSpy: vi.fn,
@@ -804,9 +811,7 @@ describe('AuthMethodSelector', () => {
         isCustom: true,
         ssoEnabled: true,
         enforceOnly: true,
-        providers: [
-          { route_name: 'entra', display_name: 'Microsoft' },
-        ],
+        providers: [{ route_name: 'entra', display_name: 'Microsoft' }],
       });
 
       expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(true);
@@ -973,9 +978,8 @@ describe('AuthMethodSelector', () => {
       mockFeatures.webauthnEnabled.value = opts.webauthn ?? false;
       mockProviders.value = opts.providers ?? [];
 
-      const { default: AuthMethodSelector } = await import(
-        '@/apps/session/components/AuthMethodSelector.vue'
-      );
+      const { default: AuthMethodSelector } =
+        await import('@/apps/session/components/AuthMethodSelector.vue');
 
       const pinia = createTestingPinia({
         createSpy: vi.fn,
@@ -1188,8 +1192,12 @@ describe('AuthMethodSelector', () => {
           });
 
           expect(wrapper.find('[data-testid="signin-form"]').exists()).toBe(expected.form);
-          expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(expected.ssoOnly);
-          expect(wrapper.find('[data-testid="auth-custom-domain-no-sso"]').exists()).toBe(expected.noSso);
+          expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(
+            expected.ssoOnly
+          );
+          expect(wrapper.find('[data-testid="auth-custom-domain-no-sso"]').exists()).toBe(
+            expected.noSso
+          );
 
           if (expected.ssoBtn !== undefined) {
             expect(wrapper.find('[data-testid="sso-button"]').exists()).toBe(expected.ssoBtn);
@@ -1225,9 +1233,8 @@ describe('AuthMethodSelector', () => {
       mockEnforceSsoOnly.value = opts.enforceOnly ?? false;
       mockProviders.value = opts.providers ?? [];
 
-      const { default: AuthMethodSelector } = await import(
-        '@/apps/session/components/AuthMethodSelector.vue'
-      );
+      const { default: AuthMethodSelector } =
+        await import('@/apps/session/components/AuthMethodSelector.vue');
 
       const w = mount(AuthMethodSelector, {
         props: { locale: 'en' },
@@ -1379,6 +1386,7 @@ describe('AuthMethodSelector', () => {
 
     const mountRealRestricted = async (opts: {
       restrictTo?: 'password' | 'email_auth' | 'webauthn' | 'sso' | null;
+      unavailable?: boolean;
       magic?: boolean;
       webauthn?: boolean;
       sso?: boolean;
@@ -1387,6 +1395,9 @@ describe('AuthMethodSelector', () => {
       providers?: Array<{ route_name: string; display_name: string }>;
     }) => {
       mockRestrictTo.value = opts.restrictTo ?? null;
+      mockEffectiveRestrictTo.value = opts.unavailable
+        ? { state: 'unavailable', restrict_to: opts.restrictTo ?? null, source: 'domain' }
+        : undefined;
       mockFeatures.magicLinksEnabled.value = opts.magic ?? false;
       mockFeatures.webauthnEnabled.value = opts.webauthn ?? false;
       mockFeatures.ssoEnabled.value = opts.sso ?? false;
@@ -1394,9 +1405,8 @@ describe('AuthMethodSelector', () => {
       mockIsCustomRef.value = opts.isCustom ?? false;
       mockProviders.value = opts.providers ?? [];
 
-      const { default: AuthMethodSelector } = await import(
-        '@/apps/session/components/AuthMethodSelector.vue'
-      );
+      const { default: AuthMethodSelector } =
+        await import('@/apps/session/components/AuthMethodSelector.vue');
 
       const w = mount(AuthMethodSelector, {
         props: { locale: 'en' },
@@ -1410,6 +1420,28 @@ describe('AuthMethodSelector', () => {
 
     const passwordlessProps = (w: VueWrapper) =>
       w.findComponent({ name: 'PasswordlessFirstSignIn' }).props();
+
+    it('renders sign-in unavailable instead of any auth form when the resolver fails closed', async () => {
+      wrapper = await mountRealRestricted({
+        restrictTo: null,
+        unavailable: true,
+        magic: true,
+        webauthn: true,
+        sso: true,
+        ssoOnlyMode: true,
+        isCustom: true,
+        providers: PROVIDERS,
+      });
+
+      const notice = wrapper.find('[data-testid="auth-signin-unavailable"]');
+      expect(notice.exists()).toBe(true);
+      expect(notice.attributes('role')).toBe('alert');
+      expect(notice.text()).toContain('web.organizations.invitations.signin_unavailable_title');
+      expect(wrapper.find('[data-testid="signin-form"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="passwordless-signin"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="sso-button"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="auth-custom-domain-no-sso"]').exists()).toBe(false);
+    });
 
     it('password restriction renders only the password form (no SSO, no tabs)', async () => {
       wrapper = await mountRealRestricted({

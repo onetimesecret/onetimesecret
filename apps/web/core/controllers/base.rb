@@ -173,6 +173,76 @@ module Core
         end
       end
 
+      # Runtime gate for `restrict_to` on the SIMPLE-MODE auth routes
+      # (ADR-024 A1/A7, #4139).
+      #
+      # In simple mode POST /auth/login is served HERE, by Core, not by Rodauth
+      # (apps/web/core/routes.txt) — so the before_rodauth gate in
+      # apps/web/auth/config/hooks/restrict_to.rb never runs for it. Without
+      # this method enforcement would be mode-dependent: present in full mode,
+      # absent in simple.
+      #
+      # Resolution is NOT re-derived here (ADR-024 A2): this gathers the two
+      # inputs and asks SigninConfig.resolve_restrict_to, same as the display
+      # gate (ConfigSerializer) and the full-mode route gate.
+      #
+      # The global input is normally nil in simple mode — AuthConfig#restrict_to
+      # returns nil unless full_enabled? — so what this actually enforces is a
+      # per-domain restriction on a custom domain that has opted into sign-in.
+      # It is written against the resolver rather than that special case so the
+      # global half starts working the moment AuthConfig grants it meaning.
+      #
+      # UNREADABLE POLICY IS NOT "ALLOWED" (#4139). The custom-domain identity,
+      # its SigninConfig and the SSO availability probe are datastore reads, so
+      # this gate can fail to learn what the host permits. It answers that the
+      # same way the full-mode gate does — SigninConfig.resolve_lookup_failure,
+      # which fails closed on a custom host (Onetime::SigninPolicyUnavailable →
+      # 503 via otto_hooks) and keeps enforcing the still-known global
+      # elsewhere. Before this the error propagated as an unhandled 500:
+      # fail-closed by crash, which is the right direction with the wrong shape
+      # and no shared rule behind it.
+      #
+      # @param method_name [String, Symbol] one of SigninConfig::RESTRICT_TO_VALUES
+      # @raise [Onetime::SigninPolicyUnavailable] on an unreadable custom-host policy
+      # @return [Boolean] false when this host restricts the method away
+      def restrict_to_allows?(method_name)
+        global        = Onetime.auth_config.restrict_to
+        signin_config = domain_signin_config
+
+        # A3's runtime-availability half is applied BY THE RESOLVER, not here.
+        # This used to guard `return false if global && !restrict_to_available?`
+        # ahead of resolution, which was wrong in one case: a DOMAIN-only
+        # restriction went dark whenever the unrelated global method was dead.
+        # Passing the flag in lets the resolver narrow only what the global half
+        # actually governs. Four consumers each remembering this rule is the
+        # drift A2 exists to kill — hence restriction_available_for_request?,
+        # which is the one place that rule lives (#4139). It also narrows an
+        # INHERITED global restriction through the custom host's own
+        # capabilities, so this gate cannot accept a method the full-mode gate
+        # and the /signin page both treat as dark.
+        Onetime::CustomDomain::SigninConfig
+          .resolve_restrict_to(
+            global,
+            signin_config,
+            available: Onetime::CustomDomain::SigninConfig.restriction_available_for_request?(
+              global,
+              signin_config,
+              domain_id: custom_domain_id,
+              custom_host: custom_domain_request?,
+            ),
+          )
+          .allows?(method_name)
+      rescue Redis::BaseError => ex
+        # Not covered by the read guards below: the availability half probes
+        # SSO config for an inherited restriction. Same rule, same shape —
+        # this raises on any host that could have a per-domain policy, and
+        # falls through to the global-only resolution on an operator host.
+        signin_policy_read_failed!(ex)
+        Onetime::CustomDomain::SigninConfig
+          .resolve_lookup_failure(domain_strategy: req.env['onetime.domain_strategy'])
+          .allows?(method_name)
+      end
+
       # Runtime gate for POST /signup. Same custom-domain-default-OFF / opt-in
       # polarity as signin_enabled?: a custom domain never accepts account
       # creation unless an enabled SignupConfig opts in, while canonical /
@@ -194,6 +264,21 @@ module Core
       # subdomain requests are the operator's own surfaces and follow the global
       # auth defaults; custom domains must opt in. Mirrors
       # ConfigSerializer#tenant_domain?.
+      #
+      # THIS ONE LINE DECIDES THE POLARITY OF signin_enabled? AND
+      # signup_enabled?, and its false branch is wider than "not a custom
+      # domain": :invalid and nil land there too. :invalid is not only a
+      # malformed host — DomainStrategy also answers it when its
+      # `known_custom_domain?` datastore read RAISES, so a blip classifies a
+      # real customer domain :invalid and this method reports false for it.
+      # The cost is an inverted default: custom domains are default-OFF for
+      # sign-in and sign-up, canonical follows the global default, so such a
+      # request follows the operator's default instead of the domain's own.
+      # Unlike SigninConfig.operator_host?, this is NOT a positive test and
+      # deliberately stays that way — flipping it would deny branding and
+      # tenant treatment to genuinely unplaceable hosts. See ADR-024 A12 for
+      # why the fix belongs in the resolvers, and
+      # Onetime::Middleware::DomainStrategy's class doc for the full table.
       def custom_domain_request?
         req.env['onetime.domain_strategy'] == :custom
       end
@@ -210,14 +295,59 @@ module Core
         auth_settings[key]
       end
 
+      # CustomDomain identifier for the request host, or nil.
+      #
+      # Read separately from the SigninConfig rather than off it, because the
+      # restrict_to gate needs it precisely when there is NO config: an
+      # inherited global restriction is narrowed by the host's own capabilities
+      # either way, and `config&.domain_id` is nil in exactly that case (#4139).
+      # Memoized — two gates ask per request.
+      def custom_domain_id
+        return @custom_domain_id if defined?(@custom_domain_id)
+
+        display_domain    = req.env['onetime.display_domain']
+        @custom_domain_id = display_domain &&
+                            Onetime::CustomDomain.load_by_display_domain(display_domain)&.identifier
+      rescue Redis::BaseError => ex
+        signin_policy_read_failed!(ex)
+      end
+
       def domain_signin_config
-        display_domain = req.env['onetime.display_domain']
-        return unless display_domain
+        return unless custom_domain_id
 
-        custom_domain = Onetime::CustomDomain.load_by_display_domain(display_domain)
-        return unless custom_domain
+        Onetime::CustomDomain::SigninConfig.find_by_domain_id(custom_domain_id)
+      rescue Redis::BaseError => ex
+        signin_policy_read_failed!(ex)
+      end
 
-        Onetime::CustomDomain::SigninConfig.find_by_domain_id(custom_domain.identifier)
+      # The two datastore reads that back the per-domain sign-in policy failed
+      # (#4139). Guarded at the READ, not at each gate, because signin_enabled?
+      # runs before restrict_to_allows? and asks for the same config — a rescue
+      # in the gate alone leaves the earlier read crashing as an unhandled 500,
+      # which is fail-closed with the wrong shape (see
+      # Onetime::SigninPolicyUnavailable).
+      #
+      # Returns nil only for the operator's OWN hosts, which have no per-domain
+      # config to consult in the first place — the read could only ever have
+      # produced nil there, and their global policy is in-memory and still
+      # fully known. Every other host fails closed, including one classified
+      # :invalid: that is what DomainStrategy answers for a host it could not
+      # place, which is exactly what a failing domain-index read produces for a
+      # real custom domain. SigninConfig.operator_host? owns the test so this
+      # gate and the full-mode one carve out the same hosts.
+      #
+      # @raise [Onetime::SigninPolicyUnavailable] on any non-operator host
+      # @return [nil] on an operator host
+      def signin_policy_read_failed!(exception)
+        http_logger.error 'Sign-in policy lookup failed',
+          {
+            host: req.env['onetime.display_domain'],
+            exception: exception,
+          }
+        strategy = req.env['onetime.domain_strategy']
+        raise Onetime::SigninPolicyUnavailable unless Onetime::CustomDomain::SigninConfig.operator_host?(strategy)
+
+        nil
       end
 
       # Returns the StrategyResult created by Otto's RouteAuthWrapper

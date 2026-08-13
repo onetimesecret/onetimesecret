@@ -1343,10 +1343,6 @@
     "text": "연결 테스트 실패",
     "source_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "이 도메인의 모든 로그인에 SSO를 요구하려면 도메인의 로그인 설정에서 구성하세요. SSO 전용 모드는 로그인 페이지를 여기서 구성한 SSO 공급자로 제한합니다.",
-    "source_hash": "d26627a5"
-  },
   "web.domains.sso.edit_credentials": {
     "text": "자격 증명 편집",
     "source_hash": "5a6622b6"

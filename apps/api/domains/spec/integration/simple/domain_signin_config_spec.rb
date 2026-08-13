@@ -210,4 +210,173 @@ RSpec.describe 'Domain Signin Config API', type: :integration do
       expect(body['details']['global_enabled']).to be true
     end
   end
+
+  # ===========================================================================
+  # ADR-024 A4 — details carries the RESOLVED restriction, not just the raw
+  # global. Every state of SigninConfig.resolve_restrict_to must survive the
+  # HTTP boundary intact; the settings UI reads this instead of re-deriving.
+  # ===========================================================================
+  describe 'details.effective_restrict_to' do
+    before { login_as(test_owner) }
+
+    def effective_restrict_to
+      json_get api_path(test_custom_domain.extid)
+      expect(last_response.status).to eq(200)
+      json_body['details']['effective_restrict_to']
+    end
+
+    context 'unconfigured domain, no global restriction' do
+      it 'resolves unrestricted from the global source' do
+        expect(effective_restrict_to).to eq(
+          'state' => 'unrestricted', 'restrict_to' => nil, 'source' => 'global',
+        )
+      end
+    end
+
+    # An INHERITED restriction is narrowed by the domain's own capabilities,
+    # exactly as it is at request time (#4139). These settings describe a
+    # custom domain, where password and email-auth default OFF, so an
+    # unconfigured domain cannot honor a global 'password' restriction — the
+    # route gate 404s it. Reporting `restricted` here was the settings-API half
+    # of the display/gate drift: the page showed a method whose routes were
+    # already dark, and the UI seeded a form from it.
+    context 'unconfigured domain under a global restriction' do
+      before { allow(Onetime.auth_config).to receive(:restrict_to).and_return('password') }
+
+      it 'reports :unavailable — the domain never opted sign-in in, so the method is dark here' do
+        expect(effective_restrict_to).to eq(
+          'state' => 'unavailable', 'restrict_to' => 'password', 'source' => 'global',
+        )
+        expect(json_body['details']['global_restrict_to']).to eq('password')
+      end
+    end
+
+    context 'domain that opted sign-in in, under a global restriction' do
+      before do
+        allow(Onetime.auth_config).to receive(:restrict_to).and_return('password')
+        Onetime::CustomDomain::SigninConfig.create!(
+          domain_id: test_custom_domain.identifier,
+          enabled: true,
+          signin_enabled: true,
+        )
+      end
+
+      it 'inherits the global restriction and names its source' do
+        expect(effective_restrict_to).to eq(
+          'state' => 'restricted', 'restrict_to' => 'password', 'source' => 'global',
+        )
+      end
+    end
+
+    context 'enabled domain config naming a method' do
+      before do
+        Onetime::CustomDomain::SigninConfig.create!(
+          domain_id: test_custom_domain.identifier,
+          enabled: true,
+          signin_enabled: true,
+          restrict_to: 'password',
+        )
+      end
+
+      it 'resolves the domain restriction from the domain source' do
+        expect(effective_restrict_to).to eq(
+          'state' => 'restricted', 'restrict_to' => 'password', 'source' => 'domain',
+        )
+      end
+    end
+
+    # A domain restriction is subject to the same A3 degradation as an
+    # inherited one: 'sso' with no tenant SsoConfig and no platform fallback
+    # names a method this host cannot serve, so it fails closed rather than
+    # reporting a restriction the omniauth routes would refuse.
+    context 'enabled domain config naming a method with no backing credentials' do
+      before do
+        Onetime::CustomDomain::SigninConfig.create!(
+          domain_id: test_custom_domain.identifier,
+          enabled: true,
+          signin_enabled: true,
+          sso_enabled: true,
+          restrict_to: 'sso',
+        )
+      end
+
+      it 'reports :unavailable and still names the method' do
+        expect(effective_restrict_to).to eq(
+          'state' => 'unavailable', 'restrict_to' => 'sso', 'source' => 'domain',
+        )
+      end
+    end
+
+    context 'domain and global each naming a different method' do
+      before do
+        Onetime::CustomDomain::SigninConfig.create!(
+          domain_id: test_custom_domain.identifier,
+          enabled: true,
+          signin_enabled: true,
+          restrict_to: 'sso',
+        )
+        allow(Onetime.auth_config).to receive(:restrict_to).and_return('password')
+      end
+
+      # Two single-method restrictions have no intersection, so the pair
+      # fails closed and names the GLOBAL method (ADR-024 A8). This is the
+      # case the client could not have derived from global_restrict_to alone.
+      it 'reports :unavailable with the conflict source' do
+        expect(effective_restrict_to).to eq(
+          'state' => 'unavailable', 'restrict_to' => 'password', 'source' => 'conflict',
+        )
+        expect(json_body['details']['global_restrict_to']).to eq('password')
+      end
+    end
+
+    context 'enabled domain config naming a method that cannot run here' do
+      before do
+        # webauthn is host-scoped: PUT rejects new writes, but a value
+        # persisted earlier must resolve :unavailable — fail closed, never
+        # widening to unrestricted (ADR-024 A3).
+        Onetime::CustomDomain::SigninConfig.create!(
+          domain_id: test_custom_domain.identifier,
+          enabled: true,
+          signin_enabled: true,
+          restrict_to: 'webauthn',
+        )
+      end
+
+      it 'reports :unavailable and still names the method' do
+        expect(effective_restrict_to).to eq(
+          'state' => 'unavailable', 'restrict_to' => 'webauthn', 'source' => 'domain',
+        )
+      end
+    end
+
+    it 'accompanies every response shape (PUT included)' do
+      csrf_put api_path(test_custom_domain.extid), {
+        enabled: true,
+        signin_enabled: true,
+        restrict_to: 'password',
+      }
+
+      expect(last_response.status).to eq(200)
+      expect(json_body['details']['effective_restrict_to']).to eq(
+        'state' => 'restricted', 'restrict_to' => 'password', 'source' => 'domain',
+      )
+    end
+  end
+
+  # ===========================================================================
+  # #4111 — the tenant-SSO availability verdict, serialized once by the
+  # server so the settings UI can report WHY SSO is (not) offered.
+  # ===========================================================================
+  describe 'details.tenant_sso' do
+    before { login_as(test_owner) }
+
+    it 'reports the blocking rung for a domain with no SSO credentials' do
+      json_get api_path(test_custom_domain.extid)
+
+      expect(last_response.status).to eq(200)
+      expect(json_body['details']['tenant_sso']).to eq(
+        'available' => false, 'unavailable_reason' => 'no_sso_config',
+      )
+    end
+  end
 end

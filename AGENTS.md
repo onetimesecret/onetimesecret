@@ -35,6 +35,13 @@ Use short responses. Write in plain language.
 
 ## Pull Request Reviews
 
+### Security-posture decisions
+
+- Changes that widen access, including on error paths, require explicit
+  operator approval.
+- Verify a finding’s claimed failure on the current baseline before applying
+  its prescribed fix.
+
 ### Repo conventions (not defects; do not flag in review)
 
 - Session data is stored under string keys, never symbols. Reads and writes

@@ -689,6 +689,178 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
     end
   end
 
+  # ADR-024 A1/A7 (#4139) — `restrict_to` enforcement.
+  #
+  # POST /:token/signup is a pre-auth PASSWORD surface: it takes a password
+  # from an unauthenticated caller, creates a password account and mints a
+  # session. Auth::RestrictTo's Rodauth gate cannot reach it (the account is
+  # created via internal_request, which is exempt per A10 because its
+  # synthesized env has no Host), so the policy is applied here, where the
+  # request host IS known.
+  #
+  # The gate rejects as NOT-FOUND (A7) and rejects the WHOLE endpoint rather
+  # than only suppressing the autologin: this endpoint never accepts the
+  # invitation (the frontend POSTs /:token/accept next, auth=sessionauth), so
+  # an account without a session accepts nothing either — it just leaves an
+  # unusable password account behind that then blocks tenant SSO from creating
+  # a clean one (the H-3 refusal in apps/web/auth/config/hooks/omniauth.rb).
+  describe 'restrict_to enforcement (ADR-024 A1/A7, #4139)' do
+    let(:display_domain) { 'signin.acme.example' }
+
+    let(:tenant_strategy_result) do
+      build_strategy_result(
+        session: session,
+        user: nil,
+        authenticated: false,
+        metadata: {
+          ip: client_ip,
+          domain_strategy: :custom,
+          display_domain: display_domain,
+        }
+      )
+    end
+
+    let(:rate_limiter) { instance_double(Onetime::Security::InviteTokenRateLimiter) }
+
+    subject(:logic) { described_class.new(tenant_strategy_result, valid_params) }
+
+    before do
+      # The gate consults the A2 resolver through Auth::RestrictTo, which
+      # gathers its inputs from live per-host state (CustomDomain +
+      # SigninConfig lookups). Stub at THAT seam only, and drive it with real
+      # RestrictToResolution values so the semantics under test — including
+      # :unavailable rejecting everything — stay the model's, not the spec's.
+      # (Resolution itself is covered in the SigninConfig and
+      # Auth::RestrictTo specs; re-deriving it here would be the drift A2
+      # exists to prevent.)
+      allow(Auth::RestrictTo).to receive(:allows?) do |_env, method_name|
+        resolution.allows?(method_name)
+      end
+
+      allow(Onetime::Security::InviteTokenRateLimiter).to receive(:new)
+        .with(client_ip)
+        .and_return(rate_limiter)
+      allow(rate_limiter).to receive(:check!)
+      allow(rate_limiter).to receive(:record_attempt)
+      allow(Onetime::OrganizationMembership).to receive(:find_by_token)
+        .with(invite_token)
+        .and_return(invitation)
+      allow(Onetime::Customer).to receive(:email_exists?)
+        .with(normalized_email)
+        .and_return(false)
+      allow(Auth::Config).to receive(:create_account).and_return(nil)
+      allow(Auth::Logging).to receive(:log_auth_event)
+    end
+
+    def resolution_for(state, value, source = :domain)
+      klass = Onetime::CustomDomain::SigninConfig::RestrictToResolution
+      case state
+      when :unrestricted then klass.unrestricted(source)
+      when :restricted   then klass.restricted(value, source)
+      when :unavailable  then klass.unavailable(value, source)
+      end
+    end
+
+    context 'on an unrestricted host (unchanged behavior)' do
+      let(:resolution) { resolution_for(:unrestricted, nil, :global) }
+
+      it 'lets signup proceed' do
+        expect { logic.raise_concerns }.not_to raise_error
+      end
+    end
+
+    context 'on a host restricted to password (unchanged behavior)' do
+      let(:resolution) { resolution_for(:restricted, 'password') }
+
+      it 'lets signup proceed' do
+        expect { logic.raise_concerns }.not_to raise_error
+      end
+    end
+
+    it 'asks about `password` for the host this request arrived on' do
+      # Plumbing check: the logic layer receives a StrategyResult, not the
+      # Rack env, so it rebuilds the two keys Auth::RestrictTo reads. A host
+      # that never reaches the resolver is a gate that never fires.
+      expect(Auth::RestrictTo).to receive(:allows?).with(
+        {
+          'onetime.domain_strategy' => :custom,
+          'onetime.display_domain' => display_domain,
+        },
+        'password'
+      ).and_return(true)
+
+      logic.raise_concerns
+    end
+
+    %w[sso email_auth webauthn].each do |method_name|
+      context "on a host restricted to #{method_name}" do
+        let(:resolution) { resolution_for(:restricted, method_name) }
+
+        it 'rejects as not-found (A7), not 403' do
+          expect { logic.raise_concerns }.to raise_error(Onetime::RecordNotFound)
+        end
+
+        it 'creates no account' do
+          expect(Auth::Config).not_to receive(:create_account)
+          expect { logic.raise_concerns }.to raise_error(Onetime::RecordNotFound)
+        end
+
+        it 'establishes no session' do
+          expect { logic.raise_concerns }.to raise_error(Onetime::RecordNotFound)
+          expect(session).to be_empty
+        end
+
+        # THE LOAD-BEARING ASSERTION. The invitation must survive the
+        # rejection intact and still pending: the invitee signs in by the
+        # method this host does offer (or on the canonical host, which is what
+        # the invitation email links to) and completes the join through the
+        # normal POST /:token/accept. A gate that consumed or accepted the
+        # invitation would trade a session leak for a lost invitation.
+        it 'leaves the invitation untouched and still pending' do
+          expect(invitation).not_to receive(:accept!)
+          expect(invitation).not_to receive(:decline!)
+          expect(Onetime::OrganizationMembership).not_to receive(:find_by_token)
+
+          expect { logic.raise_concerns }.to raise_error(Onetime::RecordNotFound)
+          expect(invitation.pending?).to be true
+        end
+
+        it 'runs before the rate limiter so a dark endpoint costs no budget' do
+          expect(Onetime::Security::InviteTokenRateLimiter).not_to receive(:new)
+          expect { logic.raise_concerns }.to raise_error(Onetime::RecordNotFound)
+        end
+
+        it 'logs the rejection with the host and the refused method' do
+          expect(Auth::Logging).to receive(:log_auth_event).with(
+            :restrict_to_route_rejected,
+            hash_including(
+              route: :invite_signup,
+              auth_method: 'password',
+              host: display_domain
+            )
+          )
+          expect { logic.raise_concerns }.to raise_error(Onetime::RecordNotFound)
+        end
+      end
+    end
+
+    context 'when resolution is :unavailable (A3 fail-closed)' do
+      # Dormant credentials, a globally-disabled method, or a global/domain
+      # conflict (A8). Nothing is permitted — never widen back to password.
+      let(:resolution) { resolution_for(:unavailable, 'sso', :conflict) }
+
+      it 'rejects as not-found' do
+        expect { logic.raise_concerns }.to raise_error(Onetime::RecordNotFound)
+      end
+
+      it 'creates no account and no session' do
+        expect(Auth::Config).not_to receive(:create_account)
+        expect { logic.raise_concerns }.to raise_error(Onetime::RecordNotFound)
+        expect(session).to be_empty
+      end
+    end
+  end
+
   # Integration-style tests (require full app boot with Valkey)
   describe 'integration behavior', type: :integration do
     # These tests use ProductionConfigHelper and require:

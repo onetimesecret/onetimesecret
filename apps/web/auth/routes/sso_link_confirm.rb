@@ -9,6 +9,7 @@ require 'auth/operations/confirm_sso_link'
 require 'auth/operations/deferred_sso_bind'
 
 require_relative 'json_body'
+require_relative '../restrict_to'
 
 #
 # JSON API for the MAILBOX-PROOF SSO linking flow (#3840 Phase 4).
@@ -87,6 +88,17 @@ module Auth
       #                      "the link is dead"
       def handle_sso_link_confirm_routes(r)
         r.on 'sso-link-confirm' do
+          # RESTRICT_TO ENFORCEMENT (ADR-024 A1/A7, #4139). Mailbox-proof SSO
+          # linking is a continuation of an SSO sign-in and — unlike link-sso —
+          # its POST establishes a session on token possession alone, so it is a
+          # credential-bearing surface that must go dark with the SSO method on
+          # hosts that restrict it away. App-owned Roda route, so the
+          # before_rodauth gate does not cover it.
+          unless Auth::RestrictTo.allows?(r.env, 'sso')
+            response.status = 404
+            next Auth::ErrorTranslator::NOT_FOUND_BODY
+          end
+
           # GET /auth/sso-link-confirm/:token — consent display context.
           # Returns ONLY the provider name and claimed email; never the account id,
           # uid, issuer, sid, or watermark. NEVER consumes the token (see the
