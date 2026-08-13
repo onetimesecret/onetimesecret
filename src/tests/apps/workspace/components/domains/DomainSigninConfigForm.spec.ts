@@ -1626,6 +1626,35 @@ describe('DomainSigninConfigForm', () => {
       ).toBe(false);
     });
 
+    it('does not warn when selecting SSO atomically resolves sso_not_permitted', async () => {
+      wrapper = mountForm({
+        formState: { ...modeB, sso_enabled: false },
+        ssoConfigured: true,
+        tenantSso: { available: false, unavailable_reason: 'sso_not_permitted' },
+      });
+
+      await wrapper.find('#signin-restrict-sso').trigger('change');
+
+      expect(wrapper.find(WARNING).exists()).toBe(false);
+      expect(wrapper.emitted('auto-save')![0]).toEqual([
+        { restrict_to: 'sso', sso_enabled: true },
+        'restrict_to',
+      ]);
+    });
+
+    it('still warns for sso_not_permitted when SSO is already enabled', async () => {
+      wrapper = mountForm({
+        formState: { ...modeB, sso_enabled: true },
+        ssoConfigured: true,
+        tenantSso: { available: false, unavailable_reason: 'sso_not_permitted' },
+      });
+
+      await wrapper.find('#signin-restrict-sso').trigger('change');
+
+      expect(wrapper.emitted('auto-save')).toBeFalsy();
+      expect(wrapper.find(WARNING).exists()).toBe(true);
+    });
+
     it('does NOT fire when the server reports tenant SSO available', async () => {
       wrapper = mountForm({
         formState: modeB,

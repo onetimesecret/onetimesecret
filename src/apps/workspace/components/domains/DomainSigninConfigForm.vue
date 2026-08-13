@@ -333,10 +333,18 @@
   });
 
   /**
-   * Tenant SSO cannot run on this domain, per the server. Absent verdict =>
-   * false: no guard fires on a claim the server never made.
+   * Restricting to SSO requires confirmation when it would remain unavailable
+   * after the atomic patch. `sso_not_permitted` can be caused solely by the
+   * current SigninConfig having sso_enabled=false; selecting SSO fixes that in
+   * the same PUT, so that one recoverable state is not a lockout. If SSO is
+   * already enabled, the same verdict has another cause and remains guarded.
+   * Absent verdict => false: no guard fires on a claim the server never made.
    */
-  const tenantSsoUnavailable = computed(() => props.tenantSso?.available === false);
+  const ssoRestrictionRequiresConfirmation = computed(() => {
+    const verdict = props.tenantSso;
+    if (verdict?.available !== false) return false;
+    return !(verdict.unavailable_reason === 'sso_not_permitted' && !props.formState.sso_enabled);
+  });
 
   const METHOD_LABEL_KEYS: Record<SigninRestrictTo, string> = {
     password: 'web.domains.signin.method_password',
@@ -535,7 +543,7 @@
     // (ADR-024 A8): the sign-in page goes dark for everyone. Confirm BEFORE
     // the PUT — this form auto-saves, so a post-hoc notice would arrive after
     // the lockout. Nothing persists until confirmSsoRestriction runs.
-    if (value === 'sso' && tenantSsoUnavailable.value) {
+    if (value === 'sso' && ssoRestrictionRequiresConfirmation.value) {
       pendingSsoRestriction.value = true;
       return;
     }
