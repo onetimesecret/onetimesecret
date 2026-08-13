@@ -167,11 +167,17 @@ module Onetime
       # need override without config file changes (e.g., disable verify_peer in dev).
       #
       # Environment variables:
-      # - RABBITMQ_VERIFY_PEER: 'true' (default) or 'false' for local dev
+      # - RABBITMQ_VERIFY_PEER: defaults ON. Accepts any token in
+      #   Utils::Strings::TRUTHY_VALUES/FALSEY_VALUES (case-insensitive,
+      #   whitespace-tolerant); set a falsey token to disable for local dev.
+      #   An unrecognized value raises at boot rather than silently disabling
+      #   certificate verification (ADR-033/ADR-037).
       # - RABBITMQ_CA_CERTIFICATES: Optional path to custom CA cert file
       #
       # @param url [String, nil] RabbitMQ connection URL
       # @return [Hash] TLS options hash (empty if URL is not amqps://)
+      # @raise [Onetime::ConfigError] if RABBITMQ_VERIFY_PEER is set to an
+      #   unrecognized token (only reached for amqps:// URLs)
       #
       # @example
       #   config.merge!(QueueConfig.tls_options(amqp_url))
@@ -181,7 +187,9 @@ module Onetime
 
         options = {
           tls: true,
-          verify_peer: ENV.fetch('RABBITMQ_VERIFY_PEER', 'true') == 'true',
+          verify_peer: Onetime::Utils.strict_bool!(
+            'RABBITMQ_VERIFY_PEER', ENV.fetch('RABBITMQ_VERIFY_PEER', nil), default: true
+          ),
         }
 
         ca_certs_path                 = ENV.fetch('RABBITMQ_CA_CERTIFICATES', nil)
