@@ -238,8 +238,12 @@ module Onetime
       # while keeping the Host header and TLS SNI set to the hostname so cert
       # verification still works. Does NOT rescue timeouts: #fetch owns that
       # mapping so the real path is exercised by tests.
+      #
+      # The explicit nil p_addr matters: Net::HTTP.new defaults it to :ENV, and a
+      # proxy from http_proxy would make #connect dial the proxy and CONNECT by
+      # hostname — the proxy re-resolves and the pin is silently inert.
       def with_pinned_response(uri, validated_ip)
-        http              = ::Net::HTTP.new(uri.host, uri.port)
+        http              = ::Net::HTTP.new(uri.host, uri.port, nil)
         http.ipaddr       = validated_ip
         http.use_ssl      = true
         http.verify_mode  = OpenSSL::SSL::VERIFY_PEER
