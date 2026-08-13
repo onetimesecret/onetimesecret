@@ -10,6 +10,42 @@ this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.htm
 
    <!--scriv-insert-here-->
 
+.. _changelog-0.26.4:
+
+0.26.4 — 2026-08-05
+====================
+
+Added
+-----
+
+- Organization Secret Activity now records custom-domain context, has a
+  workspace audit-events interface, and can be enabled or disabled with
+  ``ORGS_AUDIT_LOGS_ENABLED``. (#3642, #3975, #3976, #3985)
+
+- Operators can configure Secret Activity collection and its retention cap.
+  (#3992)
+
+- The test suite now has isolated lanes and containerized services on 21xx
+  ports. (#3980)
+
+Changed
+-------
+
+- Environment terminology and configuration scoping are clarified. (#3986)
+
+Fixed
+-----
+
+- Domain configuration is sanitized and constrained at the serializer
+  boundary. (#3998)
+
+- Muted sidebar text now meets the WCAG AA contrast floor. (#3994)
+
+Security
+--------
+
+- Updated PostCSS to 8.5.23. (#4004)
+
 .. _changelog-0.26.3:
 
 0.26.3 — 2026-08-01
