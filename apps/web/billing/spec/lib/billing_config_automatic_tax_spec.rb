@@ -4,7 +4,7 @@
 
 # Parsing rules for the deployment-level automatic-tax switch:
 # ENV['STRIPE_AUTOMATIC_TAX'] first, then billing.yaml 'automatic_tax',
-# default false. Parsing delegates to Onetime::Utils.strict_bool!, so the
+# default false. Parsing delegates to Onetime::Utils::Strings.strict_bool!, so the
 # full shared token vocabulary applies (1/true/yes/on/y/t and
 # 0/false/no/off/n/f); blank is explicitly off; any other set value raises
 # Onetime::ConfigError — an unrecognized token used to silently disable tax
@@ -50,7 +50,7 @@ RSpec.describe Onetime::BillingConfig, '#automatic_tax?' do
     end
   end
 
-  # Additional coverage since parsing unified on Onetime::Utils.strict_bool!:
+  # Additional coverage since parsing unified on Onetime::Utils::Strings.strict_bool!:
   # the full shared vocabulary is accepted, so STRIPE_AUTOMATIC_TAX=yes now
   # enables tax collection instead of raising at boot.
   %w[yes on y t].each do |truthy|
@@ -75,11 +75,18 @@ RSpec.describe Onetime::BillingConfig, '#automatic_tax?' do
 
   # 'yes'/'on'/'t' moved out of this table when parsing unified on the
   # shared vocabulary — they are recognized tokens now, asserted above.
+  #
+  # The message names the flag but never reproduces the value: ENV is
+  # operator-supplied, so a misrouted credential must not land in the boot log
+  # or a Sentry title (ADR-037). The assertion here used to require the value
+  # to appear; that contract is retired, and the non-disclosure sweep lives in
+  # spec/unit/onetime/utils/strings_spec.rb.
   %w[enabled ture 2].each do |bad|
     it "raises ConfigError when ENV['STRIPE_AUTOMATIC_TAX'] is '#{bad}'" do
       stub_env(bad)
       expect { billing_config.automatic_tax? }
-        .to raise_error(Onetime::ConfigError, /STRIPE_AUTOMATIC_TAX.*#{bad}/)
+        .to raise_error(Onetime::ConfigError,
+          /STRIPE_AUTOMATIC_TAX is set to an unrecognized boolean \(\d+ chars, sha256:\h+\)/)
     end
   end
 

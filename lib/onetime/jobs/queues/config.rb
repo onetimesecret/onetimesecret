@@ -187,7 +187,7 @@ module Onetime
 
         options = {
           tls: true,
-          verify_peer: Onetime::Utils.strict_bool!(
+          verify_peer: Onetime::Utils::Strings.strict_bool!(
             'RABBITMQ_VERIFY_PEER', ENV.fetch('RABBITMQ_VERIFY_PEER', nil), default: true
           ),
         }

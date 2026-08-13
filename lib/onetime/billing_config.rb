@@ -49,9 +49,9 @@ module Onetime
     # disabling billing (BILLING_ENABLED=1 used to mean "off").
     def enabled?
       env_val = ENV.fetch('BILLING_ENABLED', nil)
-      return Onetime::Utils.strict_bool!('BILLING_ENABLED', env_val, default: false) unless env_val.nil?
+      return Onetime::Utils::Strings.strict_bool!('BILLING_ENABLED', env_val, default: false) unless env_val.nil?
 
-      Onetime::Utils.strict_bool!("billing.yaml 'enabled'", config['enabled'], default: false)
+      Onetime::Utils::Strings.strict_bool!("billing.yaml 'enabled'", config['enabled'], default: false)
     end
 
     # Stripe API key
@@ -160,9 +160,9 @@ module Onetime
     # tax registrations + product tax codes) before enabling.
     def automatic_tax?
       raw = ENV.fetch('STRIPE_AUTOMATIC_TAX', nil)
-      return Onetime::Utils.strict_bool!('STRIPE_AUTOMATIC_TAX', raw, default: false) unless raw.nil?
+      return Onetime::Utils::Strings.strict_bool!('STRIPE_AUTOMATIC_TAX', raw, default: false) unless raw.nil?
 
-      Onetime::Utils.strict_bool!("billing.yaml 'automatic_tax'", config['automatic_tax'], default: false)
+      Onetime::Utils::Strings.strict_bool!("billing.yaml 'automatic_tax'", config['automatic_tax'], default: false)
     end
 
     # Stripe payment method configuration ID (pmc_...).

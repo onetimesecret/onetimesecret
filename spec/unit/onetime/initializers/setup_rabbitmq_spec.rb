@@ -362,10 +362,22 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
           end
         end
 
+        # The message names the flag but never reproduces the rejected value —
+        # this method reads an env var, so a misrouted credential must not
+        # reach the boot log or Sentry (ADR-037). The value-quoting assertion
+        # this replaced is retired; the non-disclosure contract is pinned in
+        # spec/unit/onetime/utils/strings_spec.rb.
         it 'raises rather than guessing on an unrecognized token' do
           with_verify_peer('bogus') do
             expect { Onetime::Jobs::QueueConfig.tls_options('amqps://localhost') }
-              .to raise_error(Onetime::ConfigError, /RABBITMQ_VERIFY_PEER.*"bogus"/)
+              .to raise_error(Onetime::ConfigError, /RABBITMQ_VERIFY_PEER/)
+          end
+        end
+
+        it 'does not echo the rejected value into the boot log' do
+          with_verify_peer('bogus') do
+            expect { Onetime::Jobs::QueueConfig.tls_options('amqps://localhost') }
+              .to raise_error(Onetime::ConfigError) { |e| expect(e.message).not_to include('bogus') }
           end
         end
 

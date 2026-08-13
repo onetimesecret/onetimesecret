@@ -26,11 +26,24 @@ One vocabulary, one parser, defined in `Onetime::Utils::Strings`:
   unrecognized input is neither yes nor no. `explicit_no?` is deliberately
   not `!explicit_yes?` — that negation would resolve a typo to "no", which
   on a default-ON control means silently off.
-- `Onetime::Utils.strict_bool!(name, raw, default:)` is the sole parser for
+- `Onetime::Utils::Strings.strict_bool!(name, raw, default:)` is the sole parser for
   operator flags: blank/nil takes the caller's documented default; a
   recognized token takes its value; anything else raises
   `Onetime::ConfigError` naming the flag and the valid tokens
   ([ADR-033](adr-033-fail-fast-and-loud.md)).
+- **The rejected value is never echoed.** `strict_bool!` is public and its
+  message reaches logs and Sentry issue titles, so a caller that hands it a
+  credential-adjacent value must not have that value reproduced. The message
+  carries the flag name, the character count, the valid tokens, and the first
+  8 hex characters of `sha256(normalized_value)` as a correlation tag — enough
+  to match a log line to a host's config, or to confirm two hosts share one
+  typo, without reproducing the value. (For a low-entropy value the digest is
+  brute-forceable; that is acceptable, since low-entropy values are exactly
+  the non-sensitive case.) Truncating a head instead was rejected:
+  it caps volume, not sensitivity, and most secrets are shorter than any
+  workable cap. By-param-name scrubbing downstream cannot help, because the
+  value would be interpolated into the exception message itself; suppression
+  belongs at the raise site.
 - No per-caller vocabularies. A recognized synonym resolves to its value
   everywhere — never raises in one subsystem while meaning true in another.
   Strictness targets *silent misinterpretation*; rejecting `yes` was
