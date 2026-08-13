@@ -271,9 +271,7 @@ module Onetime
       # @raise [Onetime::ConfigError] if raw is present but not a recognized token
       def strict_bool!(name, raw, default:)
         # Normalize exactly once so the blank guard and the token tables can
-        # never disagree about what normalization means. NOTE: the message
-        # echoes raw into logs/Sentry — fine for boolean flags, do not reuse
-        # this for operator-sensitive values.
+        # never disagree about what normalization means.
         value = raw.to_s.strip.downcase
         return default if value.empty?
         return true    if TRUTHY_VALUES.include?(value)

@@ -6,7 +6,7 @@
 # ENV['STRIPE_AUTOMATIC_TAX'] first, then billing.yaml 'automatic_tax',
 # default false. Parsing delegates to Onetime::Utils.strict_bool!, so the
 # full shared token vocabulary applies (1/true/yes/on/y/t and
-# 0/false/no/off/n/f); blank is unset; any other set value raises
+# 0/false/no/off/n/f); blank is explicitly off; any other set value raises
 # Onetime::ConfigError — an unrecognized token used to silently disable tax
 # collection on every checkout. ENV access is stubbed (never mutated) so
 # nothing leaks between examples.
@@ -67,7 +67,7 @@ RSpec.describe Onetime::BillingConfig, '#automatic_tax?' do
     end
   end
 
-  it 'treats a blank ENV value as unset (false)' do
+  it 'treats a blank ENV value as explicitly off, not a fallback to config' do
     stub_env('   ')
     stub_config('automatic_tax' => true)
     expect(billing_config.automatic_tax?).to be(false)

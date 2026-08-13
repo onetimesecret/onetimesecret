@@ -40,9 +40,10 @@ module Onetime
 
     # Whether billing is enabled
     # Returns false if file doesn't exist or enabled is not set.
-    # ENV['BILLING_ENABLED'] overrides config when set; a blank ENV value
-    # counts as explicitly unset (billing off) and does not fall back to
-    # the config file. Accepts the shared boolean token vocabulary
+    # ENV['BILLING_ENABLED'] overrides config whenever it is present —
+    # including when it is blank, which resolves to false (billing off)
+    # rather than falling back to the config file. Only an absent variable
+    # reaches the config key. Accepts the shared boolean token vocabulary
     # (Utils::Strings::TRUTHY_VALUES/FALSEY_VALUES, case-insensitive); any
     # other set value raises Onetime::ConfigError rather than silently
     # disabling billing (BILLING_ENABLED=1 used to mean "off").
@@ -147,8 +148,10 @@ module Onetime
     #
     # Deployment-level policy, not a per-checkout choice. Checks
     # ENV['STRIPE_AUTOMATIC_TAX'] first, then the config file key
-    # 'automatic_tax', mirroring checkout_host. Accepts the shared boolean
-    # token vocabulary (case-insensitive); unset and blank are false. Any
+    # 'automatic_tax', mirroring checkout_host and enabled?. Accepts the
+    # shared boolean token vocabulary (case-insensitive). A blank ENV value
+    # resolves to false rather than falling back to the config file; only an
+    # absent variable reaches the config key. Any
     # other set value raises Onetime::ConfigError — before this,
     # STRIPE_AUTOMATIC_TAX=yes silently disabled tax collection on every
     # checkout, which is a compliance exposure, not a default.
