@@ -104,54 +104,88 @@ RSpec.describe 'DomainStrategy classification contract' do
     # WHICH RESOLVER IS CALLED is the whole point — the two have OPPOSITE
     # defaults. resolve_*_enabled_for_custom_domain is default-OFF (a domain
     # must opt in); resolve_*_enabled follows the operator's global default.
+    #
+    # The branch is chosen by SigninConfig.operator_host?, NOT by
+    # custom_domain_request? (ADR-024 A12): the operator branch requires a
+    # POSITIVE :canonical/:subdomain classification, so :invalid and nil take
+    # the tenant-safe branch along with :custom. That is the one row in this
+    # file where the auth gates deliberately DISAGREE with the identity
+    # predicates above — those stay `== :custom`.
     describe 'gate polarity' do
       before do
         allow(OT).to receive(:conf).and_return({ 'site' => { 'authentication' => {} } })
       end
 
       DomainStrategyContract::CLASSIFICATIONS.each do |strategy|
-        custom = strategy == :custom
+        operator = DomainStrategyContract::OPERATOR.include?(strategy)
 
-        it "signin_enabled? takes the #{custom ? 'custom-domain' : 'operator'} branch for #{strategy.inspect}" do
+        it "signin_enabled? takes the #{operator ? 'operator' : 'custom-domain'} branch for #{strategy.inspect}" do
           controller = controller_for(strategy)
           allow(controller).to receive(:domain_signin_config).and_return(nil)
           allow(Onetime::CustomDomain::SigninConfig).to receive(:global_signin_enabled).and_return(true)
 
-          expected_branch = custom ? :resolve_signin_enabled_for_custom_domain : :resolve_signin_enabled
+          expected_branch = operator ? :resolve_signin_enabled : :resolve_signin_enabled_for_custom_domain
           expect(Onetime::CustomDomain::SigninConfig).to receive(expected_branch).and_return(true)
 
           controller.send(:signin_enabled?)
         end
 
-        it "signup_enabled? takes the #{custom ? 'custom-domain' : 'operator'} branch for #{strategy.inspect}" do
+        it "signup_enabled? takes the #{operator ? 'operator' : 'custom-domain'} branch for #{strategy.inspect}" do
           controller = controller_for(strategy)
           allow(controller).to receive(:domain_signup_config).and_return(nil)
           allow(Onetime::CustomDomain::SignupConfig).to receive(:global_signup_enabled).and_return(true)
 
-          expected_branch = custom ? :resolve_signup_enabled_for_custom_domain : :resolve_signup_enabled
+          expected_branch = operator ? :resolve_signup_enabled : :resolve_signup_enabled_for_custom_domain
           expect(Onetime::CustomDomain::SignupConfig).to receive(expected_branch).and_return(true)
 
           controller.send(:signup_enabled?)
         end
       end
 
-      # STILL OPEN (unresolved — no ADR entry covers this asymmetry yet).
-      # This is the row the table exists for: it is
-      # invisible unless :invalid is evaluated against both branches side by
-      # side. A domain that never opted into sign-up follows the OPERATOR's
-      # default while misclassified. Change this expectation when A12's
-      # resolver-side fix lands — do not delete it.
-      it 'KNOWN GAP (A12): :invalid inverts the sign-up default for a real custom domain' do
+      # ADR-024 A12, CLOSED. This is the row the table exists for: the defect
+      # was invisible unless :invalid was evaluated against both branches side
+      # by side. Before the fix, a domain that never opted into sign-up
+      # followed the OPERATOR's default while misclassified — a datastore blip
+      # widening access on someone else's domain. This example is deliberately
+      # kept (not deleted) with its expectation inverted, so that a
+      # re-introduction of the `== :custom` branch selection reds HERE with the
+      # history attached rather than passing silently.
+      it 'A12 CLOSED: :invalid resolves the tenant-safe sign-up default, not the operator one' do
         controller = controller_for(:invalid)
         allow(controller).to receive(:domain_signup_config).and_return(nil)
         allow(Onetime::CustomDomain::SignupConfig).to receive(:global_signup_enabled).and_return(true)
 
-        # No config + operator polarity => follows the global default (true).
-        # The same request classified :custom would be false (default-OFF).
-        expect(controller.send(:signup_enabled?)).to be(true)
+        # No config + tenant-safe polarity => default-OFF, the same answer the
+        # request would get if it had been classified :custom correctly.
+        expect(controller.send(:signup_enabled?)).to be(false)
         expect(
           Onetime::CustomDomain::SignupConfig.resolve_signup_enabled_for_custom_domain(true, nil),
         ).to be(false)
+      end
+
+      # Sign-in has the same inverted-default risk and the same fix; pinned
+      # explicitly so a partial revert (one gate only) cannot pass.
+      it 'A12 CLOSED: :invalid resolves the tenant-safe sign-in default, not the operator one' do
+        controller = controller_for(:invalid)
+        allow(controller).to receive(:domain_signin_config).and_return(nil)
+        allow(Onetime::CustomDomain::SigninConfig).to receive(:global_signin_enabled).and_return(true)
+
+        expect(controller.send(:signin_enabled?)).to be(false)
+        expect(
+          Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_custom_domain(true, nil),
+        ).to be(false)
+      end
+
+      # nil is the same failure with a different provenance: a request that
+      # never passed through the middleware carries no classification at all.
+      it 'A12 CLOSED: nil is tenant-safe for both gates' do
+        controller = controller_for(nil)
+        allow(controller).to receive_messages(domain_signin_config: nil, domain_signup_config: nil)
+        allow(Onetime::CustomDomain::SigninConfig).to receive(:global_signin_enabled).and_return(true)
+        allow(Onetime::CustomDomain::SignupConfig).to receive(:global_signup_enabled).and_return(true)
+
+        expect(controller.send(:signin_enabled?)).to be(false)
+        expect(controller.send(:signup_enabled?)).to be(false)
       end
     end
   end
@@ -208,6 +242,41 @@ RSpec.describe 'DomainStrategy classification contract' do
       it "answers #{expected} for #{strategy.inspect}" do
         answer = Core::Views::ConfigSerializer.tenant_domain?('domain_strategy' => strategy)
         expect(answer).to be(expected)
+      end
+    end
+  end
+
+  # ---------------------------------------------------------------- row 7b
+  #
+  # The DISPLAY-side twin of SigninConfig.operator_host? (ADR-024 A12). It is
+  # NOT the negation of tenant_domain? above: :invalid and nil are neither
+  # operator hosts nor tenant hosts, and both predicates must answer false for
+  # them — tenant-safe for auth, non-tenant for branding/routing.
+  describe 'ConfigSerializer.operator_domain?' do
+    DomainStrategyContract::CLASSIFICATIONS.each do |strategy|
+      expected = DomainStrategyContract::OPERATOR.include?(strategy)
+
+      it "answers #{expected} for #{strategy.inspect}" do
+        answer = Core::Views::ConfigSerializer.operator_domain?('domain_strategy' => strategy)
+        expect(answer).to be(expected)
+      end
+    end
+
+    it 'delegates to SigninConfig.operator_host? — one owner of the classification list' do
+      expect(Onetime::CustomDomain::SigninConfig)
+        .to receive(:operator_host?).with(:canonical).and_return(true)
+
+      Core::Views::ConfigSerializer.operator_domain?('domain_strategy' => :canonical)
+    end
+
+    it 'is never simultaneously true with tenant_domain?, and both are false for :invalid/nil' do
+      DomainStrategyContract::CLASSIFICATIONS.each do |strategy|
+        vars   = { 'domain_strategy' => strategy }
+        tenant = Core::Views::ConfigSerializer.tenant_domain?(vars)
+        opera  = Core::Views::ConfigSerializer.operator_domain?(vars)
+
+        expect(tenant && opera).to be(false)
+        expect([tenant, opera]).to eq([false, false]) if [:invalid, nil].include?(strategy)
       end
     end
   end
