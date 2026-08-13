@@ -20,7 +20,8 @@ import { z } from 'zod';
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Server-resolved restriction for this domain (ADR-024 A2/A4).
+ * Server-resolved restriction for this domain
+ * (ADR-034#resolution-is-model-owned / #settings-api-serializes-effective-restrict-to).
  *
  * The wire form of `SigninConfig::RestrictToResolution`. The three states are
  * distinct on purpose and the client never collapses them:
@@ -36,7 +37,8 @@ import { z } from 'zod';
  * `source` says which side the resolution came from: `global` (install),
  * `domain` (this domain's config), or `conflict` — global and domain each
  * name a DIFFERENT method, which has no intersection and fails closed
- * (ADR-024 A8). A conflict names the GLOBAL method, the one still in force.
+ * (ADR-034#resolution-intersects-never-widens). A conflict names the GLOBAL
+ * method, the one still in force.
  */
 export const effectiveRestrictToSchema = z.object({
   state: z.enum(['unrestricted', 'restricted', 'unavailable']),
@@ -85,7 +87,8 @@ export const signinConfigDetailsSchema = authOverrideDetailsSchema.extend({
   global_restrict_to: signinRestrictToSchema.nullable().catch(null).optional(),
 
   /**
-   * Resolver output (ADR-024 A4). Required: the settings UI seeds an
+   * Resolver output (ADR-034#settings-api-serializes-effective-restrict-to).
+   * Required: the settings UI seeds an
    * unconfigured domain from it and every save materializes that seed, so a
    * response without it must fail parse rather than let the client guess.
    */

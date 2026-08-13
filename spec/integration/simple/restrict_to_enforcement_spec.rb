@@ -6,13 +6,16 @@
 # TEST TYPE: Integration — restrict_to enforcement in SIMPLE mode (#4139)
 # =============================================================================
 #
-# The SIMPLE-mode half of ADR-024 A1. In simple mode POST /auth/login is served
-# by Core::Controllers::Authentication (apps/web/core/routes.txt), NOT by
+# The SIMPLE-mode half of
+# ADR-034#restrict-to-is-an-access-control-not-a-display-preference. In
+# simple mode POST /auth/login is served by
+# Core::Controllers::Authentication (apps/web/core/routes.txt), NOT by
 # Rodauth, so the before_rodauth gate in
 # apps/web/auth/config/hooks/restrict_to.rb never runs for it. Without the
 # Core-side gate (Core::Controllers::Base#restrict_to_allows?) enforcement
 # would be mode-dependent — present in full mode, absent in simple — which is
-# the shape A7 warns about: enforcement that looks closed and is not.
+# the shape ADR-034#reject-as-not-found-not-forbidden warns about:
+# enforcement that looks closed and is not.
 #
 # The FULL-mode half is
 # apps/web/auth/spec/integration/full/restrict_to_enforcement_spec.rb. Neither
@@ -37,7 +40,7 @@
 
 require_relative '../integration_spec_helper'
 
-RSpec.describe 'restrict_to enforcement — simple mode (ADR-024 A1/A7, #4139)', type: :integration do
+RSpec.describe 'restrict_to enforcement — simple mode (ADR-034#restrict-to-is-an-access-control-not-a-display-preference / #reject-as-not-found-not-forbidden, #4139)', type: :integration do
   include Rack::Test::Methods
 
   # Memoized: repeated generate_rack_url_map calls corrupt middleware state.
@@ -157,7 +160,8 @@ RSpec.describe 'restrict_to enforcement — simple mode (ADR-024 A1/A7, #4139)',
   end
 
   # The three additional pre-auth password surfaces simple mode serves from
-  # Core::Controllers::Registration (ADR-024 A7, "pre-auth password surfaces
+  # Core::Controllers::Registration (ADR-034#reject-as-not-found-not-forbidden,
+  # "pre-auth password surfaces
   # are not exempt"). Payloads are deliberately plausible-but-doomed: the gate
   # must fire before any of them can be evaluated.
   def post_create_account(host)
@@ -200,7 +204,7 @@ RSpec.describe 'restrict_to enforcement — simple mode (ADR-024 A1/A7, #4139)',
 
     expect(response.status).to eq(404),
       "expected the password route to read as undefined on an sso-restricted host " \
-      "(ADR-024 A7), got #{response.status}: #{response.body[0, 300]}"
+      "(ADR-034#reject-as-not-found-not-forbidden), got #{response.status}: #{response.body[0, 300]}"
   end
 
   it "404s POST /auth/login on a host restricted to 'email_auth'" do
@@ -279,12 +283,14 @@ RSpec.describe 'restrict_to enforcement — simple mode (ADR-024 A1/A7, #4139)',
   end
 
   # ---------------------------------------------------------------------------
-  # The other three pre-auth password surfaces (#4139, ADR-024 A7).
+  # The other three pre-auth password surfaces
+  # (#4139, ADR-034#reject-as-not-found-not-forbidden).
   #
   # These are served by Core::Controllers::Registration in simple mode and were
   # ungated when the login gate landed, so enforcement was endpoint-dependent
-  # inside simple mode as well as mode-dependent between modes. A7 names all
-  # three explicitly as NOT exempt.
+  # inside simple mode as well as mode-dependent between modes.
+  # ADR-034#reject-as-not-found-not-forbidden names all three explicitly as
+  # NOT exempt.
   # ---------------------------------------------------------------------------
   {
     'POST /auth/create-account'          => :post_create_account,
@@ -297,7 +303,7 @@ RSpec.describe 'restrict_to enforcement — simple mode (ADR-024 A1/A7, #4139)',
 
         expect(gate_rejected?(response)).to be(true),
           "expected #{description} to read as undefined on an sso-restricted host " \
-          "(ADR-024 A7), got #{response.status}: #{response.body[0, 300]}"
+          "(ADR-034#reject-as-not-found-not-forbidden), got #{response.status}: #{response.body[0, 300]}"
       end
 
       it "404s on a host restricted to 'email_auth'" do

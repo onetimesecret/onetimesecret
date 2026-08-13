@@ -174,7 +174,8 @@ module Core
       end
 
       # Runtime gate for `restrict_to` on the SIMPLE-MODE auth routes
-      # (ADR-024 A1/A7, #4139).
+      # (ADR-034#restrict-to-is-an-access-control-not-a-display-preference
+      # / #reject-as-not-found-not-forbidden, #4139).
       #
       # In simple mode POST /auth/login is served HERE, by Core, not by Rodauth
       # (apps/web/core/routes.txt) — so the before_rodauth gate in
@@ -182,7 +183,7 @@ module Core
       # this method enforcement would be mode-dependent: present in full mode,
       # absent in simple.
       #
-      # Resolution is NOT re-derived here (ADR-024 A2): this gathers the two
+      # Resolution is NOT re-derived here (ADR-034#resolution-is-model-owned): this gathers the two
       # inputs and asks SigninConfig.resolve_restrict_to, same as the display
       # gate (ConfigSerializer) and the full-mode route gate.
       #
@@ -276,8 +277,9 @@ module Core
       # request follows the operator's default instead of the domain's own.
       # Unlike SigninConfig.operator_host?, this is NOT a positive test and
       # deliberately stays that way — flipping it would deny branding and
-      # tenant treatment to genuinely unplaceable hosts. See ADR-024 A12 for
-      # why the fix belongs in the resolvers, and
+      # tenant treatment to genuinely unplaceable hosts. The fix belongs in the
+      # resolvers, not here (unresolved — no ADR entry covers this asymmetry
+      # yet). See
       # Onetime::Middleware::DomainStrategy's class doc for the full table.
       def custom_domain_request?
         req.env['onetime.domain_strategy'] == :custom

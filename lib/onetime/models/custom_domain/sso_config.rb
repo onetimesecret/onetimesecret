@@ -459,7 +459,8 @@ module Onetime
         # predicate on both sides.
         #
         # Why the pin converges HERE rather than on the narrower tenant ladder
-        # (ADR-024 A1, #4139): with allow_platform_fallback_for_tenants? on and
+        # (ADR-034#restrict-to-is-an-access-control-not-a-display-preference,
+        # #4139): with allow_platform_fallback_for_tenants? on and
         # no tenant SsoConfig, the page renders platform SSO buttons and
         # nothing else — password/email default OFF on custom domains — while
         # the narrower predicate left the gate unpinned and therefore MORE

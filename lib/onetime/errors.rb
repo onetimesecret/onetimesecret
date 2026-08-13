@@ -91,7 +91,8 @@ module Onetime
   end
 
   # Raised when the `restrict_to` policy for the REQUEST HOST could not be
-  # read (ADR-024 A1/A3, #4139): the per-domain half of the policy lives in
+  # read (ADR-034#restrict-to-is-an-access-control-not-a-display-preference /
+  # #degradation-is-fail-closed, #4139): the per-domain half of the policy lives in
   # the datastore, and a read failure leaves the gate unable to say which
   # sign-in methods this host permits.
   #

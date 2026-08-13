@@ -4,7 +4,8 @@
 
 # ValidateAuthConfig initializer — boot-time auth config enforcement.
 #
-# Focus: #validate_restrict_to_flags! (ADR-024 A9, #4139). The config
+# Focus: #validate_restrict_to_flags!
+# (ADR-034#conflicting-auth-only-env-flags-are-a-boot-error, #4139). The config
 # template renders full.restrict_to from four mutually exclusive AUTH_*_ONLY
 # env vars and emits NOTHING when more than one is true, so the contradiction
 # never reaches AuthConfig — it only exists in the process environment, and

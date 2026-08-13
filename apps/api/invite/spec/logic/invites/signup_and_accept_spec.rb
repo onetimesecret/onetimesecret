@@ -689,22 +689,26 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
     end
   end
 
-  # ADR-024 A1/A7 (#4139) — `restrict_to` enforcement.
+  # ADR-034#restrict-to-is-an-access-control-not-a-display-preference /
+  # #reject-as-not-found-not-forbidden (#4139) — `restrict_to` enforcement.
   #
   # POST /:token/signup is a pre-auth PASSWORD surface: it takes a password
   # from an unauthenticated caller, creates a password account and mints a
   # session. Auth::RestrictTo's Rodauth gate cannot reach it (the account is
-  # created via internal_request, which is exempt per A10 because its
-  # synthesized env has no Host), so the policy is applied here, where the
-  # request host IS known.
+  # created via internal_request, which is exempt per
+  # ADR-034#reject-as-not-found-not-forbidden because its synthesized env
+  # has no Host), so the policy is applied here, where the request host IS
+  # known.
   #
-  # The gate rejects as NOT-FOUND (A7) and rejects the WHOLE endpoint rather
-  # than only suppressing the autologin: this endpoint never accepts the
+  # The gate rejects as NOT-FOUND
+  # (ADR-034#reject-as-not-found-not-forbidden) and rejects the WHOLE
+  # endpoint rather than only suppressing the autologin: this endpoint
+  # never accepts the
   # invitation (the frontend POSTs /:token/accept next, auth=sessionauth), so
   # an account without a session accepts nothing either — it just leaves an
   # unusable password account behind that then blocks tenant SSO from creating
   # a clean one (the H-3 refusal in apps/web/auth/config/hooks/omniauth.rb).
-  describe 'restrict_to enforcement (ADR-024 A1/A7, #4139)' do
+  describe 'restrict_to enforcement (ADR-034#restrict-to-is-an-access-control-not-a-display-preference / #reject-as-not-found-not-forbidden, #4139)' do
     let(:display_domain) { 'signin.acme.example' }
 
     let(:tenant_strategy_result) do

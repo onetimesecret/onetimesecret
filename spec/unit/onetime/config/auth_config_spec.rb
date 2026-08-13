@@ -235,16 +235,18 @@ RSpec.describe Onetime::AuthConfig do
     # several AUTH_*_ONLY flags are true, so by the time the config is parsed
     # the contradiction only exists in the process environment. That silent
     # fail-open is caught at boot by ValidateAuthConfig#validate_restrict_to_flags!
-    # (ADR-024 A9, #4139) — see spec/unit/onetime/initializers/validate_auth_config_spec.rb.
+    # (ADR-034#conflicting-auth-only-env-flags-are-a-boot-error, #4139) — see
+    # spec/unit/onetime/initializers/validate_auth_config_spec.rb.
     it 'returns nil when multiple ENV vars are set (mutual exclusivity)' do
       config = fresh_config('AUTH_PASSWORD_ONLY' => 'true', 'AUTH_SSO_ONLY' => 'true')
       expect(config.restrict_to).to be_nil
       expect(config.validate_restrict_to!).to be_nil
     end
 
-    # ADR-024 A3 (#4140): the drop-to-standard fallback is retired. An
-    # unavailable method keeps the restriction in place so consumers degrade
-    # fail-closed; it must never read as "unrestricted".
+    # ADR-034#degradation-is-fail-closed (#4140): the drop-to-standard
+    # fallback is retired. An unavailable method keeps the restriction in
+    # place so consumers degrade fail-closed; it must never read as
+    # "unrestricted".
     context 'when the restricted method is unavailable (post-boot degradation)' do
       it "keeps 'sso' when SSO is disabled" do
         config = fresh_config('AUTH_SSO_ONLY' => 'true', 'AUTH_SSO_ENABLED' => 'false')
@@ -307,7 +309,7 @@ RSpec.describe Onetime::AuthConfig do
     end
   end
 
-  # ── #validate_restrict_to! (ADR-024 A3 fatal boot error, #4140) ────
+  # ── #validate_restrict_to! (ADR-034#degradation-is-fail-closed fatal boot error, #4140) ────
 
   describe '#validate_restrict_to!' do
     it 'returns nil and does not raise when no restriction is configured' do
@@ -414,8 +416,9 @@ RSpec.describe Onetime::AuthConfig do
       expect(config.email_auth_only_enabled?).to be true
     end
 
-    # ADR-024 A3 (#4140): the restriction stands even when the method is
-    # unavailable — consumers fail closed rather than widening to standard mode.
+    # ADR-034#degradation-is-fail-closed (#4140): the restriction stands
+    # even when the method is unavailable — consumers fail closed rather
+    # than widening to standard mode.
     it 'stays true when restrict_to is email_auth but email_auth is disabled' do
       config = fresh_config('AUTH_EMAIL_AUTH_ONLY' => 'true', 'AUTH_EMAIL_AUTH_ENABLED' => 'false')
       expect(config.email_auth_only_enabled?).to be true
@@ -447,9 +450,10 @@ RSpec.describe Onetime::AuthConfig do
       expect(config.sso_only_enabled?).to be true
     end
 
-    # ADR-024 A3 (#4140): SSO-only stays engaged when SSO is unavailable —
-    # account management stays locked down and sign-in fails closed. Widening
-    # here would re-expose password management the operator restricted away.
+    # ADR-034#degradation-is-fail-closed (#4140): SSO-only stays engaged
+    # when SSO is unavailable — account management stays locked down and
+    # sign-in fails closed. Widening here would re-expose password
+    # management the operator restricted away.
     it 'stays true when restrict_to is sso but SSO disabled' do
       config = fresh_config('AUTH_SSO_ONLY' => 'true', 'AUTH_SSO_ENABLED' => 'false')
       expect(config.sso_only_enabled?).to be true

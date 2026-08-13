@@ -88,7 +88,9 @@ module Auth
       #                      "the link is dead"
       def handle_sso_link_confirm_routes(r)
         r.on 'sso-link-confirm' do
-          # RESTRICT_TO ENFORCEMENT (ADR-024 A1/A7, #4139). Mailbox-proof SSO
+          # RESTRICT_TO ENFORCEMENT
+          # (ADR-034#restrict-to-is-an-access-control-not-a-display-preference
+          # / #reject-as-not-found-not-forbidden, #4139). Mailbox-proof SSO
           # linking is a continuation of an SSO sign-in and — unlike link-sso —
           # its POST establishes a session on token possession alone, so it is a
           # credential-bearing surface that must go dark with the SSO method on

@@ -65,7 +65,7 @@ module Onetime
       # here; it will drift.
       OPERATOR_HOST_STRATEGIES = [:canonical, :subdomain].freeze
 
-      # Result of `restrict_to` resolution (ADR-024 A2).
+      # Result of `restrict_to` resolution (ADR-034#resolution-is-model-owned).
       #
       # Three EXPLICIT states, because the three gates that consume it need to
       # tell them apart and a bare string cannot:
@@ -76,20 +76,25 @@ module Onetime
       #                   it. Runtime gate: allow only that method.
       #   :unavailable  — a restriction is in force but its backing method
       #                   cannot be honored here, so NO method is offered
-      #                   (ADR-024 A3 fail-closed). `restrict_to` still carries
-      #                   the named method so a caller can render a
-      #                   method-specific notice. Runtime gate: allow nothing.
+      #                   (ADR-034#degradation-is-fail-closed). `restrict_to`
+      #                   still carries the named method so a caller can
+      #                   render a method-specific notice. Runtime gate:
+      #                   allow nothing.
       #
-      # `source` records which layer decided so the settings API (A4) can
-      # explain the effective value without re-deriving it:
+      # `source` records which layer decided so the settings API
+      # (ADR-034#settings-api-serializes-effective-restrict-to) can explain
+      # the effective value without re-deriving it:
       #
       #   :global   — the install-level restriction (or its absence) stands.
       #   :domain   — the per-domain config produced the outcome.
       #   :conflict — global and domain each name a DIFFERENT method, which
-      #               intersects to nothing (ADR-024 A8). Always paired with
-      #               :unavailable; neither layer won.
+      #               intersects to nothing
+      #               (ADR-034#resolution-intersects-never-widens). Always
+      #               paired with :unavailable; neither layer won.
       #
-      # Use `allows?(method)` for the runtime gate (A1) rather than comparing
+      # Use `allows?(method)` for the runtime gate
+      # (ADR-034#restrict-to-is-an-access-control-not-a-display-preference)
+      # rather than comparing
       # `restrict_to` — it is the only form that reads correctly in all three
       # states.
       #
@@ -128,11 +133,13 @@ module Onetime
         end
 
         # Wire form of the resolution — the ONE serialization every API app
-        # emits (settings API `details.effective_restrict_to`, ADR-024 A4;
-        # `GET /api/invite/:token` record.effective_restrict_to, A11), so a
-        # single client-side type describes both. The Data object owns its own
-        # serialization: two API apps each carrying a private copy of this hash
-        # is the drift shape A2 exists to kill, one level down.
+        # emits (settings API `details.effective_restrict_to`,
+        # ADR-034#settings-api-serializes-effective-restrict-to;
+        # `GET /api/invite/:token` record.effective_restrict_to,
+        # ADR-034#invite-signup-is-gated), so a single client-side type
+        # describes both. The Data object owns its own serialization: two API
+        # apps each carrying a private copy of this hash is the drift shape
+        # ADR-034#resolution-is-model-owned exists to kill, one level down.
         #
         # The three states survive serialization intact. In particular
         # :unavailable is NOT projected down to a bare null the way the display
@@ -400,13 +407,17 @@ module Onetime
 
         # Resolve the effective single-sign-in-method restriction, combining
         # the install-level (global) restriction with an optional per-domain
-        # override. ADR-024 A2 (invariant 5): this is the ONE owner of
-        # restrict_to resolution, consumed by the display gate
-        # (Core::Views::ConfigSerializer#resolve_restrict_to), the runtime gate
-        # (Core::Controllers::Base, A1) and the settings API `details`
-        # (A4). No caller re-derives any part of it.
+        # override. ADR-034#resolution-is-model-owned (invariant 5): this is
+        # the ONE owner of restrict_to resolution, consumed by the display
+        # gate (Core::Views::ConfigSerializer#resolve_restrict_to), the
+        # runtime gate (Core::Controllers::Base,
+        # ADR-034#restrict-to-is-an-access-control-not-a-display-preference)
+        # and the settings API `details`
+        # (ADR-034#settings-api-serializes-effective-restrict-to). No caller
+        # re-derives any part of it.
         #
-        # PRECEDENCE — INTERSECTION (ADR-024 A8). A domain config can only
+        # PRECEDENCE — INTERSECTION
+        # (ADR-034#resolution-intersects-never-widens). A domain config can only
         # narrow, never widen (invariant 1). A record with the master switch
         # off, or no record at all, contributes nothing and global stands
         # (invariant 2).
@@ -432,7 +443,8 @@ module Onetime
         # restriction is the one still in force — so a notice can say which
         # method this host is held to while `allows?` permits nothing.
         #
-        # DOMAIN-HALF DEGRADATION IS FAIL-CLOSED (ADR-024 A3). A domain
+        # DOMAIN-HALF DEGRADATION IS FAIL-CLOSED
+        # (ADR-034#degradation-is-fail-closed). A domain
         # restriction naming a method that cannot be honored on a custom domain
         # resolves to :unavailable — sign-in offers nothing — never to
         # :unrestricted. Widening would re-expose exactly the methods the
@@ -442,7 +454,9 @@ module Onetime
         #     request.host), so a credential registered on the canonical host
         #     can never assert on a custom domain. Not policy, a
         #     not-yet-supported guard — #4137 adds per-domain credential
-        #     scoping and retires it (ADR-024 A5). PUT already rejects new
+        #     scoping and retires it
+        #     (ADR-034#custom-domain-webauthn-fails-closed-pending-rp-id-scoping).
+        #     PUT already rejects new
         #     webauthn restrictions; this covers values persisted earlier.
         #   - anything outside RESTRICT_TO_VALUES: invalid data, fails closed
         #     like the rest rather than silently reading as "unrestricted".
@@ -509,7 +523,8 @@ module Onetime
                                                      end
 
           # An AGREEING domain config does not resurrect a dead global method
-          # (A8: agreement resolves with source :domain, but the method named is
+          # (ADR-034#resolution-intersects-never-widens: agreement resolves
+          # with source :domain, but the method named is
           # the same one, and it is just as dead). Source stays :global — the
           # global half is why nothing is offered.
           return RestrictToResolution.unavailable(global_value, :global) if global_dead
@@ -519,7 +534,8 @@ module Onetime
         end
 
         # What a gate answers when the policy for this request host could NOT
-        # be read (ADR-024 A1/A3, #4139).
+        # be read (ADR-034#restrict-to-is-an-access-control-not-a-display-preference
+        # / #degradation-is-fail-closed, #4139).
         #
         # UNCONDITIONAL FAIL-CLOSED ON A CUSTOM HOST. Half the policy for such
         # a host lives in the datastore — the CustomDomain identity, its
@@ -596,7 +612,8 @@ module Onetime
         # must not be consulted for it.
         #
         # Defined here, beside global_signin_enabled / global_auth_enabled, so
-        # the three resolver consumers read it identically (ADR-024 A2).
+        # the three resolver consumers read it identically
+        # (ADR-034#resolution-is-model-owned).
         #
         # @param global_value [String, nil] the value being passed as `global`
         # @return [Boolean]
@@ -623,8 +640,9 @@ module Onetime
         # (DomainsAPI::Logic::SigninConfig::Base#signin_override_details).
         #
         # It lived in the gate for one commit and the two display consumers did
-        # not follow, which reproduced the very drift ADR-024 A2 legislates
-        # against, one layer down — the resolver was shared, its INPUT was not.
+        # not follow, which reproduced the very drift
+        # ADR-034#resolution-is-model-owned legislates against, one layer
+        # down — the resolver was shared, its INPUT was not.
         # The observable symptom: a custom host with no enabled SigninConfig
         # under a global `restrict_to='password'`. The gate narrowed through the
         # custom-host capabilities (password defaults OFF on custom domains),
@@ -691,7 +709,8 @@ module Onetime
             # That ladder is also what apps/web/auth/config/hooks/
             # omniauth_tenant.rb reads, so a host omniauth will happily serve
             # can never be reported :unavailable here. Two authorities
-            # disagreeing about one route is precisely what ADR-024 A2 forbids.
+            # disagreeing about one route is precisely what
+            # ADR-034#resolution-is-model-owned forbids.
             #
             # `signin_enabled?` is deliberately NOT consulted, and a
             # short-circuit on it lived here briefly (#4139): a config with

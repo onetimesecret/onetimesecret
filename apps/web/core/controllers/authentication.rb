@@ -15,13 +15,16 @@ module Core
           raise OT::Redirect.new('/')
         end
 
-        # RESTRICT_TO ENFORCEMENT (ADR-024 A1/A7, #4139). This is the simple-mode
-        # half of the gate: POST /auth/login is served here rather than by
-        # Rodauth, so without this the same crafted POST that 404s in full mode
-        # would still authenticate in simple mode.
+        # RESTRICT_TO ENFORCEMENT
+        # (ADR-034#restrict-to-is-an-access-control-not-a-display-preference
+        # / #reject-as-not-found-not-forbidden, #4139). This is the
+        # simple-mode half of the gate: POST /auth/login is served here rather
+        # than by Rodauth, so without this the same crafted POST that 404s in
+        # full mode would still authenticate in simple mode.
         #
-        # 404, not the 302 above: A7 settled the reject shape as not-found — a
-        # restricted-away method presents no reachable surface. The 302 stays
+        # 404, not the 302 above: ADR-034#reject-as-not-found-not-forbidden
+        # settled the reject shape as not-found — a restricted-away method
+        # presents no reachable surface. The 302 stays
         # for signin_enabled?, which is a different question (sign-in is off
         # here) with an answer the SPA already handles.
         unless restrict_to_allows?('password')

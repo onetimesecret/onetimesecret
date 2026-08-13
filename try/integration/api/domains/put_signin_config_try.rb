@@ -442,10 +442,12 @@ Onetime::CustomDomain::SsoConfig.create!(
 #=> [true, false]
 
 # ============================================================
-# 12. ADR-024 A4 — details.effective_restrict_to
+# 12. ADR-034#settings-api-serializes-effective-restrict-to —
+# details.effective_restrict_to
 #
-# The settings API serializes the A2 resolver's output instead of the
-# frontend re-deriving the effective restriction from the raw global
+# The settings API serializes the ADR-034#resolution-is-model-owned
+# resolver's output instead of the frontend re-deriving the effective
+# restriction from the raw global
 # value. Every state of SigninConfig.resolve_restrict_to must survive
 # serialization, :unavailable included — that state is the one the
 # display field `features.restrict_to` (string-or-null) cannot express,

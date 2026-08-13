@@ -39,7 +39,7 @@ module InviteAPI::Logic
     # acceptance code path regardless of whether the user signed up fresh
     # or already had an account.
     #
-    # ## `restrict_to` (ADR-024 A1/A7, #4139)
+    # ## `restrict_to` (ADR-034#invite-signup-is-gated, #4139)
     #
     # This is a PRE-AUTH PASSWORD SURFACE: it accepts a password from an
     # unauthenticated caller, creates a password account, and mints a session
@@ -190,7 +190,7 @@ module InviteAPI::Logic
 
       private
 
-      # ADR-024 A1/A7 (#4139) — the `restrict_to` gate for this endpoint.
+      # ADR-034#invite-signup-is-gated (#4139) — the `restrict_to` gate for this endpoint.
       #
       # WHY THIS EXISTS AT ALL. Every other pre-auth password surface is gated
       # by Auth::RestrictTo (Rodauth routes via before_rodauth, simple mode's
@@ -198,7 +198,7 @@ module InviteAPI::Logic
       # neither: the account is created through Rodauth's internal_request,
       # whose synthesized env carries no Host, and Auth::RestrictTo.
       # enforce_method! deliberately exempts internal requests for exactly that
-      # reason (ADR-024 A10). The exemption is correct — an internal request has
+      # reason (ADR-034#reject-as-not-found-not-forbidden). The exemption is correct — an internal request has
       # no request host to key a host policy on — but it leaves this endpoint,
       # which DOES know the request host, as the one unguarded way to mint a
       # password credential and a session on a host that offers neither.

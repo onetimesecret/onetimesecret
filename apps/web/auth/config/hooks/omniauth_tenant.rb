@@ -63,7 +63,9 @@ module Auth::Config::Hooks
       auth.omniauth_setup do
         host = request.host
 
-        # RESTRICT_TO ENFORCEMENT (ADR-024 A1/A7, #4139).
+        # RESTRICT_TO ENFORCEMENT
+        # (ADR-034#restrict-to-is-an-access-control-not-a-display-preference
+        # / #reject-as-not-found-not-forbidden, #4139).
         #
         # The OmniAuth request phase is NOT in Rodauth's route_hash — it is
         # served by middleware run from route_omniauth!, so the before_rodauth
@@ -221,7 +223,9 @@ module Auth::Config::Hooks
       # therefore does both jobs: log callback start, then validate the tenant.
       #
       auth.before_omniauth_callback_route do
-        # RESTRICT_TO ENFORCEMENT (ADR-024 A1/A7, #4139). Belt to
+        # RESTRICT_TO ENFORCEMENT
+        # (ADR-034#restrict-to-is-an-access-control-not-a-display-preference
+        # / #reject-as-not-found-not-forbidden, #4139). Belt to
         # omniauth_setup's braces: this hook fires on the callback route even
         # when a strategy short-circuits setup, and it is the last point before
         # the identity is consumed.

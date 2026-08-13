@@ -83,7 +83,9 @@ module Auth
       #                      carries retry_after seconds
       def handle_link_sso_routes(r)
         r.on 'link-sso' do
-          # RESTRICT_TO ENFORCEMENT (ADR-024 A1/A7, #4139).
+          # RESTRICT_TO ENFORCEMENT
+          # (ADR-034#restrict-to-is-an-access-control-not-a-display-preference
+          # / #reject-as-not-found-not-forbidden, #4139).
           #
           # These endpoints exist ONLY as a continuation of an SSO sign-in (the
           # challenge is minted by account_from_omniauth), so they go dark with

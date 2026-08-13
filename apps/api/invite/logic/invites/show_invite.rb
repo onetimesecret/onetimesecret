@@ -77,7 +77,8 @@ module InviteAPI::Logic
           display_domain: display_domain,
           custom_domain: custom_domain?
 
-        # ADR-024 A11 (#4139): what this HOST permits, on every host.
+        # ADR-034#invite-signup-is-gated (#4139): what this HOST permits, on
+        # every host.
         #
         # POST /:token/signup is gated on Auth::RestrictTo.allows?(env,
         # 'password') and 404s where password is restricted away. Without this
@@ -85,14 +86,15 @@ module InviteAPI::Logic
         # then 404s, with nothing in the response to predict it.
         #
         # UNCONDITIONAL, deliberately NOT inside the custom_domain? branch
-        # below: A11's stated live case is an SSO-only INSTALL, where the
+        # below: this ADR's stated live case is an SSO-only INSTALL, where the
         # restriction is global and the request host is canonical. Gating this
         # on custom_domain? would leave exactly that case blind — the
         # regression that motivated the field.
         resolution = restrict_to_resolution
 
         # #to_wire is the resolution's own serialization, shared verbatim with
-        # the settings API's details.effective_restrict_to (ADR-024 A4), so one
+        # the settings API's details.effective_restrict_to
+        # (ADR-034#settings-api-serializes-effective-restrict-to), so one
         # client-side type describes both surfaces.
         result[:record][:effective_restrict_to] = resolution.to_wire
 
@@ -115,11 +117,12 @@ module InviteAPI::Logic
         @invitation.pending? && !@invitation.expired?
       end
 
-      # Resolver output for the request host (ADR-024 A2 — resolution is
-      # model-owned and re-derived NOWHERE).
+      # Resolver output for the request host (ADR-034#resolution-is-model-owned
+      # — resolution is model-owned and re-derived NOWHERE).
       #
       # Auth::RestrictTo.resolution_for owns input gathering (the
-      # custom-domain 'sso' pin, the runtime-availability half of A3) and
+      # custom-domain 'sso' pin, the runtime-availability half of
+      # ADR-034#degradation-is-fail-closed) and
       # SigninConfig.resolve_restrict_to owns the rule, so this display
       # surface answers with the same verdict the POST /:token/signup gate
       # enforces. Calling the entry point rather than the resolver directly

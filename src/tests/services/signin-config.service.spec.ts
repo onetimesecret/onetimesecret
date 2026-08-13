@@ -57,7 +57,8 @@ describe('SigninConfigService', () => {
       global_enabled: true,
       effective_enabled: true,
       global_restrict_to: null,
-      // Required (ADR-024 A4): the server's resolution. A details payload
+      // Required (ADR-034#settings-api-serializes-effective-restrict-to): the
+      // server's resolution. A details payload
       // without it fails parse rather than letting the client re-derive.
       effective_restrict_to: { state: 'unrestricted', restrict_to: null, source: 'global' },
       tenant_sso: { available: false, unavailable_reason: 'no_sso_config' },

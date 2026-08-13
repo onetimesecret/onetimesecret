@@ -65,7 +65,7 @@ describe('AcceptInvite', () => {
   };
 
   /**
-   * The host's resolved sign-in restriction (ADR-024 A2), as GET
+   * The host's resolved sign-in restriction (ADR-034#resolution-is-model-owned), as GET
    * /api/invite/:token now reports it. Server-owned and read verbatim — the
    * component never re-derives it, so these fixtures are the only input that
    * drives the restricted states.
@@ -289,12 +289,12 @@ describe('AcceptInvite', () => {
   });
 
   /**
-   * ADR-024 A11 (#4139). POST /api/invite/:token/signup 404s and creates
-   * nothing on a host that does not permit password. These cover the UX half:
-   * the page must render the method the host actually offers rather than a
-   * password form whose submit dies.
+   * ADR-034#invite-signup-is-gated (#4139). POST /api/invite/:token/signup 404s
+   * and creates nothing on a host that does not permit password. These cover
+   * the UX half: the page must render the method the host actually offers
+   * rather than a password form whose submit dies.
    */
-  describe('Host sign-in restriction (ADR-024 A11)', () => {
+  describe('Host sign-in restriction (ADR-034#invite-signup-is-gated)', () => {
     beforeEach(() => {
       authStore.$patch({ isAuthenticated: false, cust: null });
     });

@@ -120,7 +120,8 @@ const _mockDisabledConfig: CustomDomainSigninConfig = {
   email_auth_enabled: false,
 };
 
-// Wire form of the server's restrict_to resolution (ADR-024 A4). The
+// Wire form of the server's restrict_to resolution
+// (ADR-034#settings-api-serializes-effective-restrict-to). The
 // composable consumes this verbatim; nothing in the client re-derives it.
 const unrestricted = (source: 'global' | 'domain' = 'global'): EffectiveRestrictTo => ({
   state: 'unrestricted',
@@ -1198,11 +1199,11 @@ describe('useSigninConfig', () => {
       expect(composable.formState.value.restrict_to).toBe('sso');
     });
 
-    // ADR-024 A4 regression proof: the client used to seed from
-    // global_restrict_to and re-derive what would actually run. Here the two
-    // disagree — the install restricts to SSO, but the resolver says this
-    // host resolves unrestricted. Seeding from the raw global would pin (and,
-    // on the next autosave, persist) a restriction the server did not resolve.
+    // ADR-034#settings-api-serializes-effective-restrict-to regression proof: the
+    // client used to seed from global_restrict_to and re-derive what would actually
+    // run. Here the two disagree — the install restricts to SSO, but the resolver
+    // says this host resolves unrestricted. Seeding from the raw global would pin
+    // (and, on the next autosave, persist) a restriction the server did not resolve.
     it('ignores global_restrict_to when the resolver disagrees with it', async () => {
       mockGetConfigForDomain.mockResolvedValue({
         record: null,
@@ -1222,7 +1223,7 @@ describe('useSigninConfig', () => {
 
     // :unavailable keeps the named method. Seeding null would read as "no
     // restriction" and the next autosave would persist that widening — the
-    // exact fail-open ADR-024 A3 closes.
+    // exact fail-open ADR-034#degradation-is-fail-closed closes.
     it('seeds the named method when the resolution is unavailable', async () => {
       mockGetConfigForDomain.mockResolvedValue({
         record: null,
@@ -1241,9 +1242,10 @@ describe('useSigninConfig', () => {
       expect(composable.isRestrictionUnavailable.value).toBe(true);
     });
 
-    // A conflict (global and domain naming different methods, ADR-024 A8)
-    // resolves unavailable and names the GLOBAL method. The client cannot
-    // derive this from global_restrict_to and the record; it reads the field.
+    // A conflict (global and domain naming different methods,
+    // ADR-034#resolution-intersects-never-widens) resolves unavailable and names
+    // the GLOBAL method. The client cannot derive this from global_restrict_to
+    // and the record; it reads the field.
     it('surfaces a conflict resolution as unavailable', async () => {
       mockGetConfigForDomain.mockResolvedValue({
         record: null,

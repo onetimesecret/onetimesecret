@@ -40,10 +40,12 @@
 #   email_auth.rb       before_email_auth_route, after_email_auth_request
 #   reset_password_request.rb  before_reset_password_request_route (rate
 #                       limiting per client IP + per submitted login, #3872)
-#   restrict_to.rb      before_rodauth (ADR-024 A1/A7 restrict_to enforcement —
-#                       404s a sign-in method the request host restricts away;
-#                       fires for EVERY route, so it is the one hook that must
-#                       stay cheap and must never be redefined elsewhere),
+#   restrict_to.rb      before_rodauth (restrict_to enforcement — 404s a sign-in
+#                       method the request host restricts away; fires for
+#                       EVERY route, so it is the one hook that must stay cheap
+#                       and must never be redefined elsewhere; see
+#                       ADR-034#restrict-to-is-an-access-control-not-a-display-preference
+#                       / #reject-as-not-found-not-forbidden),
 #                       before_email_auth_request (the multi-phase-login magic
 #                       link, which is not its own route)
 #   create_account.rb   before_create_account_route (rate limiting per client

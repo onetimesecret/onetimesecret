@@ -3,7 +3,9 @@
 # frozen_string_literal: true
 
 #
-# Rodauth wiring for restrict_to enforcement (ADR-024 A1/A7, issue #4139).
+# Rodauth wiring for restrict_to enforcement
+# (ADR-034#restrict-to-is-an-access-control-not-a-display-preference
+# / #reject-as-not-found-not-forbidden, issue #4139).
 #
 # The POLICY — the route → sign-in-method table, resolution input gathering,
 # and the 404 reject shape — lives in apps/web/auth/restrict_to.rb

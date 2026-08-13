@@ -69,7 +69,8 @@
    * - declined: User just declined in this session (terminal, redirect pending)
    * - invalid: Invitation is expired, declined, revoked, or doesn't exist
    * - restricted_host: This host restricts sign-in to a method that is not
-   *   password (ADR-024 A11), so the signup form here would 404. Offers the
+   *   password (ADR-034#invite-signup-is-gated), so the signup form here
+   *   would 404. Offers the
    *   host's actual method instead.
    * - signin_unavailable: The host's restriction cannot be honoured at all
    *   (resolution `unavailable`, including `source: conflict`), so no
@@ -114,14 +115,16 @@
 
     // Invitation is actionable (pending, not expired)
     if (!authStore.isAuthenticated) {
-      // ADR-024 A11 (#4139). Only the UNAUTHENTICATED branch consults the
-      // restriction: it governs which method may MINT a session on this host,
-      // and every state below this line is about doing exactly that. Once a
-      // session exists the restriction is spent — POST /:token/accept is
-      // deliberately ungated (account-scoped, A7 "Scope, settled") — so an
+      // ADR-034#invite-signup-is-gated (#4139). Only the UNAUTHENTICATED
+      // branch consults the restriction: it governs which method may MINT a
+      // session on this host, and every state below this line is about doing
+      // exactly that. Once a session exists the restriction is spent — POST
+      // /:token/accept is deliberately ungated (account-scoped,
+      // ADR-034#reject-as-not-found-not-forbidden "Scope, settled") — so an
       // authenticated visitor must reach direct_accept even on a host that
-      // restricts sign-in. This is what makes A11's flow terminate: SSO signs
-      // them in, they come back here authenticated, and they accept.
+      // restricts sign-in. This is what makes the invite-signup-is-gated
+      // flow terminate: SSO signs them in, they come back here
+      // authenticated, and they accept.
       if (signinUnavailable.value) return 'signin_unavailable';
       if (restrictedAway.value) return 'restricted_host';
       return signinFallback.value ? 'signin_required' : 'signup_required';
@@ -134,8 +137,9 @@
 
   /**
    * Server-resolved restriction for the host this page was served from
-   * (ADR-024 A2). Read verbatim, never re-derived — A4 deleted the client-side
-   * re-derivation this would otherwise be.
+   * (ADR-034#resolution-is-model-owned). Read verbatim, never re-derived —
+   * ADR-034#settings-api-serializes-effective-restrict-to deleted the
+   * client-side re-derivation this would otherwise be.
    *
    * Absent means a pre-#4139 backend, which is treated as unrestricted so the
    * page behaves exactly as it did before this change.
@@ -714,7 +718,7 @@
     </div>
 
     <!--
-      Restricted Host State (ADR-024 A11, #4139)
+      Restricted Host State (ADR-034#invite-signup-is-gated, #4139)
 
       This host restricts sign-in to a single method that is not password, so
       POST /api/invite/:token/signup 404s and creates nothing. Render the
@@ -841,7 +845,8 @@
     </div>
 
     <!--
-      Sign-in Unavailable State (ADR-024 A3/A8, #4139)
+      Sign-in Unavailable State
+      (ADR-034#degradation-is-fail-closed / #resolution-intersects-never-widens, #4139)
 
       The host's restriction stands but cannot be honoured — its method cannot
       run here, or global and domain name different methods and neither

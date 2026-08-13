@@ -3,7 +3,8 @@
 # frozen_string_literal: true
 
 # EXECUTABLE PIN for the consumer table in
-# Onetime::Middleware::DomainStrategy's class doc (ADR-024 A12, #4139).
+# Onetime::Middleware::DomainStrategy's class doc (unresolved — no ADR
+# entry covers this asymmetry yet; #4139).
 #
 # The table is a claim about ~10 INDEPENDENT `== :custom` call sites spread
 # across controllers, serializers, view helpers and two API stacks. As prose it
@@ -134,7 +135,8 @@ RSpec.describe 'DomainStrategy classification contract' do
         end
       end
 
-      # ADR-024 A12, STILL OPEN. This is the row the table exists for: it is
+      # STILL OPEN (unresolved — no ADR entry covers this asymmetry yet).
+      # This is the row the table exists for: it is
       # invisible unless :invalid is evaluated against both branches side by
       # side. A domain that never opted into sign-up follows the OPERATOR's
       # default while misclassified. Change this expectation when A12's
@@ -257,8 +259,8 @@ RSpec.describe 'DomainStrategy classification contract' do
     # NOT :subdomain — the sweeps run AFTER known_custom_domain? and the
     # rescue wraps the whole chain, so a raise aborts before reaching them.
     # Subdomain hosts fail closed alongside the custom domains; canonical
-    # sign-in (above) stays up. This is the asymmetry the ADR-024 A12 prose
-    # got wrong before this spec existed.
+    # sign-in (above) stays up. This is the asymmetry that remained
+    # unresolved — no ADR entry covers it — before this spec existed.
     it 'WITHDRAWS :subdomain when the datastore is down — it does not fall through' do
       strategy = Onetime::Middleware::DomainStrategy::Chooserator
                  .choose_strategy('api.example.com', ['example.com'])

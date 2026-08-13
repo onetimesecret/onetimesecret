@@ -90,7 +90,8 @@ module Onetime
     #
     # "Operator polarity" is the load-bearing row: custom domains are
     # default-OFF for sign-in and sign-up, canonical follows the global
-    # default, so a case-2 :invalid INVERTS the default. See ADR-024 A12.
+    # default, so a case-2 :invalid INVERTS the default (unresolved — no ADR
+    # entry covers this asymmetry yet).
     class DomainStrategy
       include Onetime::LoggerMethods
 

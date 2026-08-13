@@ -86,10 +86,12 @@
      */
     tenantSso?: TenantSsoVerdict | null;
     /**
-     * The server's restriction resolution for this domain (ADR-024 A2/A4),
+     * The server's restriction resolution for this domain
+     * (ADR-034#resolution-is-model-owned / #settings-api-serializes-effective-restrict-to),
      * verbatim. Drives the notices for the two states a method picker cannot
      * express on its own: `unavailable` (the restriction stands but its method
-     * cannot run here, so sign-in offers nothing — fail-closed, A8) and
+     * cannot run here, so sign-in offers nothing — fail-closed,
+     * ADR-034#resolution-intersects-never-widens) and
      * `source: 'conflict'` (global and domain name different methods, so
      * neither applies). Never recomputed client-side.
      */
@@ -355,7 +357,8 @@
 
   /**
    * Resolution notice for the two states the method picker cannot express
-   * (ADR-024 A2/A8), rendered from the server's resolution verbatim:
+   * (ADR-034#resolution-is-model-owned / #resolution-intersects-never-widens),
+   * rendered from the server's resolution verbatim:
    *
    * - `conflict` — this domain and the workspace-wide setting restrict to
    *   DIFFERENT methods, so neither applies and sign-in is closed. Named as a
@@ -540,7 +543,8 @@
     // onMethodClick's ADR-024 materialize-on-touch path from saving it.
     if (value === 'webauthn') return;
     // Restricting to SSO the server says cannot run here fails CLOSED
-    // (ADR-024 A8): the sign-in page goes dark for everyone. Confirm BEFORE
+    // (ADR-034#resolution-intersects-never-widens): the sign-in page goes
+    // dark for everyone. Confirm BEFORE
     // the PUT — this form auto-saves, so a post-hoc notice would arrive after
     // the lockout. Nothing persists until confirmSsoRestriction runs.
     if (value === 'sso' && ssoRestrictionRequiresConfirmation.value) {
@@ -692,8 +696,9 @@
           {{ modeHint }}
         </p>
 
-        <!-- Resolved-restriction notice (ADR-024 A2/A8): the restriction
-             stands but nothing can satisfy it, so sign-in is closed here.
+        <!-- Resolved-restriction notice
+             (ADR-034#resolution-is-model-owned / #resolution-intersects-never-widens):
+             the restriction stands but nothing can satisfy it, so sign-in is closed here.
              Server-resolved, rendered verbatim. role="status" announces it;
              the icon is decorative and the text carries the meaning. -->
         <div
@@ -1043,7 +1048,8 @@
         </div>
 
         <!-- SSO-restriction lockout guard (#4111). Restricting to a method the
-             server says cannot run here fails CLOSED (ADR-024 A8), so the
+             server says cannot run here fails CLOSED
+             (ADR-034#resolution-intersects-never-widens), so the
              sign-in page would go dark for everyone. The form auto-saves, so
              the warning has to land BEFORE the PUT: nothing is persisted until
              "Restrict anyway". role="alert" announces it immediately, and the

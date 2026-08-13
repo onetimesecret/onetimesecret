@@ -92,7 +92,8 @@ module DomainsAPI
             effective_restrict_to: Onetime::CustomDomain::SigninConfig.resolve_restrict_to(
               global_restrict,
               config,
-              # Post-boot availability of the global restriction (ADR-024 A3),
+              # Post-boot availability of the global restriction
+              # (ADR-034#degradation-is-fail-closed),
               # asked through the SHARED gatherer — the same call the route
               # gate and the /signin page make, so this page reports what those
               # two enforce rather than a third answer. custom_host is always

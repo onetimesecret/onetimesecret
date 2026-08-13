@@ -212,7 +212,8 @@ RSpec.describe 'Domain Signin Config API', type: :integration do
   end
 
   # ===========================================================================
-  # ADR-024 A4 — details carries the RESOLVED restriction, not just the raw
+  # ADR-034#settings-api-serializes-effective-restrict-to — details carries
+  # the RESOLVED restriction, not just the raw
   # global. Every state of SigninConfig.resolve_restrict_to must survive the
   # HTTP boundary intact; the settings UI reads this instead of re-deriving.
   # ===========================================================================
@@ -319,7 +320,8 @@ RSpec.describe 'Domain Signin Config API', type: :integration do
       end
 
       # Two single-method restrictions have no intersection, so the pair
-      # fails closed and names the GLOBAL method (ADR-024 A8). This is the
+      # fails closed and names the GLOBAL method
+      # (ADR-034#resolution-intersects-never-widens). This is the
       # case the client could not have derived from global_restrict_to alone.
       it 'reports :unavailable with the conflict source' do
         expect(effective_restrict_to).to eq(
@@ -333,7 +335,7 @@ RSpec.describe 'Domain Signin Config API', type: :integration do
       before do
         # webauthn is host-scoped: PUT rejects new writes, but a value
         # persisted earlier must resolve :unavailable — fail closed, never
-        # widening to unrestricted (ADR-024 A3).
+        # widening to unrestricted (ADR-034#degradation-is-fail-closed).
         Onetime::CustomDomain::SigninConfig.create!(
           domain_id: test_custom_domain.identifier,
           enabled: true,

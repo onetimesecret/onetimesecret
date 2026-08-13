@@ -8,10 +8,11 @@
 #
 # Auth: noauth (the invite token is the only credential).
 #
-# This spec covers the ADR-024 A11 (#4139) addition: the response carries the
-# request host's `restrict_to` resolution, so the invite page can tell in
-# advance which sign-in/sign-up methods that host will accept. Without it the
-# page renders a password signup form whose submit 404s at the A11 gate on
+# This spec covers the ADR-034#invite-signup-is-gated (#4139) addition:
+# the response carries the request host's `restrict_to` resolution, so the
+# invite page can tell in advance which sign-in/sign-up methods that host
+# will accept. Without it the page renders a password signup form whose
+# submit 404s at the ADR-034#invite-signup-is-gated gate on
 # POST /:token/signup.
 #
 # Run: pnpm run test:rspec apps/api/invite/spec/logic/invites/show_invite_spec.rb
@@ -108,7 +109,7 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
   end
 
   # ==========================================================================
-  # effective_restrict_to (ADR-024 A11, #4139)
+  # effective_restrict_to (ADR-034#invite-signup-is-gated, #4139)
   # ==========================================================================
 
   describe 'effective_restrict_to' do
@@ -228,7 +229,7 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
   end
 
   # ==========================================================================
-  # auth_methods filtering (ADR-024 A1)
+  # auth_methods filtering (ADR-034#restrict-to-is-an-access-control-not-a-display-preference)
   # ==========================================================================
 
   describe 'auth_methods on a custom domain' do

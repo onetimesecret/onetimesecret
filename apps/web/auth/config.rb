@@ -81,7 +81,9 @@ module Auth
       # Hooks for customizing authentication behavior.
       # NOTE: hooks don't chain — this order is a precedence list (last writer
       # wins per hook name); each hook has exactly one owner. See config/hooks.rb.
-      # restrict_to enforcement (ADR-024 A1/A7, #4139). Registered FIRST among
+      # restrict_to enforcement
+      # (ADR-034#restrict-to-is-an-access-control-not-a-display-preference
+      # / #reject-as-not-found-not-forbidden, #4139). Registered FIRST among
       # the hooks because before_rodauth fires for every route: a method the
       # request host restricts away must 404 before any other hook observes the
       # request. Registration order is otherwise irrelevant (hooks are

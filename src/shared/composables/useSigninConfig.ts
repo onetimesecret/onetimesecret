@@ -98,7 +98,8 @@ export function resolveGlobalMethodAvailability(): GlobalMethodAvailability {
  * seeding, so a guessed seed can never be materialized by an autosave.
  *
  * restrict_to is seeded from `details.effective_restrict_to` — the server's
- * resolution — NOT from `global_restrict_to` (ADR-024 A4). The client used to
+ * resolution — NOT from `global_restrict_to`
+ * (ADR-034#settings-api-serializes-effective-restrict-to). The client used to
  * read the raw global value and re-derive what would actually run; there is
  * now exactly one place that decides, and it is the server. The named method
  * is taken whatever the state, including `unavailable`: the restriction still
@@ -215,8 +216,9 @@ export function useSigninConfig(domainExtId: string) {
   const overrideState = createAuthOverrideState(signinConfig, details);
 
   /**
-   * The server's restriction resolution for this domain (ADR-024 A4),
-   * verbatim. Null only until details have loaded. Consumers read `.state`
+   * The server's restriction resolution for this domain
+   * (ADR-034#settings-api-serializes-effective-restrict-to), verbatim. Null
+   * only until details have loaded. Consumers read `.state`
    * — all three states, `unavailable` included — and never recompute it from
    * `global_restrict_to` and the raw flags.
    */
@@ -224,7 +226,8 @@ export function useSigninConfig(domainExtId: string) {
 
   /**
    * The resolved restriction cannot run on this domain: sign-in offers
-   * nothing until the owner changes it (fail-closed, ADR-024 A3). Distinct
+   * nothing until the owner changes it (fail-closed,
+   * ADR-034#degradation-is-fail-closed). Distinct
    * from "unrestricted" — this is a surfaced dead end, not an open door.
    */
   const isRestrictionUnavailable = computed(
@@ -455,7 +458,8 @@ export function useSigninConfig(domainExtId: string) {
     isConfigured,
     hasUnsavedChanges,
 
-    // Server-resolved restriction + tenant SSO verdict (ADR-024 A4, #4111)
+    // Server-resolved restriction + tenant SSO verdict
+    // (ADR-034#settings-api-serializes-effective-restrict-to, #4111)
     effectiveRestrictTo,
     isRestrictionUnavailable,
     tenantSso,
