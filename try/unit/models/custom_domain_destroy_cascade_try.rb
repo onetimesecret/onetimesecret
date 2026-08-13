@@ -165,9 +165,7 @@ begin
   @fail_domain.destroy!
   :completed
 ensure
-  hp_class.define_singleton_method(:delete_for_domain!) do |domain_id|
-    original_delete.call(domain_id)
-  end
+  hp_class.define_singleton_method(:delete_for_domain!, original_delete)
 end
 #=> :completed
 
@@ -209,9 +207,7 @@ end
 begin
   @order_domain.destroy!
 ensure
-  hp_class.define_singleton_method(:delete_for_domain!) do |domain_id|
-    original_delete.call(domain_id)
-  end
+  hp_class.define_singleton_method(:delete_for_domain!, original_delete)
 end
 captured_primary_exists
 #=> true
