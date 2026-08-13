@@ -10,6 +10,367 @@ this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.htm
 
    <!--scriv-insert-here-->
 
+.. _changelog-0.26.3:
+
+0.26.3 — 2026-08-01
+===================
+
+Added
+-----
+
+- Support staff can now answer "why can't this user log in or create an
+  account" without SSH access. A new read-only diagnose operation
+  (``Auth::Operations::Customers::Diagnose``) aggregates every relevant
+  signal for one identifier — customer record state, Rodauth account status,
+  lockout and consecutive login failures, pending verification / reset keys,
+  MFA enrollment, active sessions, the authentication audit log tail, and the
+  login rate limiter — and derives a severity-ordered findings list naming
+  the blocking condition (locked out, rate limited, unverified with a stale
+  verification email, email drift from a half-completed change, SSO-only
+  account, orphaned auth account, suspended, or nothing found in this
+  region). It is exposed twice over the single implementation: the
+  ``bin/ots customers diagnose IDENTIFIER`` CLI command and a new Account
+  Diagnostics panel on the colonel customer detail page
+  (``GET /api/colonel/users/:user_id/diagnostics``). Every section degrades
+  independently, so simple auth mode (no SQL authdb) still renders the
+  Redis-side read-out. Identifiers can be an email, extid, or Rodauth
+  account id; any of them resolving to no customer is still diagnosed
+  against the auth database rather than 404ing, so orphaned accounts rows
+  and "nothing exists here — check the other regions" both come back as
+  findings instead of dead ends.
+
+- The reset-password-request rate limiter is now registered with the operator
+  rate-limit tooling as two kinds, ``reset_request_ip`` and
+  ``reset_request_email``. Both are now reachable from the two supported
+  operator paths, which previously offered no way to clear a reset-request
+  lockout — an operator whose deployment tripped the per-IP tier had to wait it
+  out. ``bin/ots ratelimit keys <kind> <subject>`` EMITS the ``TTL``/``GET``/
+  ``DEL`` command text for the pair without touching the datastore itself, so it
+  clears a lockout only once piped (``| grep -v '^#' | valkey-cli``); the
+  colonel ``GET /api/colonel/ratelimit/inspect`` and ``POST
+  /api/colonel/ratelimit/reset`` endpoints read and delete those same keys
+  directly, and the reset records an admin audit event. Subjects
+  are the STORED form: the privacy-masked client IP (/24 IPv4, /48 IPv6) for the
+  IP tier and the normalized address (strip + NFC + case-fold) for the backstop;
+  a raw address or mixed-case login reads back as not set. Enforcement,
+  key shapes and limiter defaults are unchanged.
+
+- A password-reset IP-tier lockout now logs an operator hint when
+  ``site.network.trusted_proxy`` is not enabled, naming the remedy
+  (``TRUSTED_PROXY_ENABLED=true``, or a higher
+  ``RESET_REQUEST_RATE_LIMIT_MAX_PER_IP``). In that configuration the resolved
+  client IP is ``REMOTE_ADDR`` — the proxy's own address behind a reverse proxy —
+  so every visitor shares one bucket and the lockout is deployment-wide rather
+  than per-origin. The hint is a server log line only; it never appears in a
+  response and does not vary on whether an account exists.
+
+Changed
+-------
+
+- ``TTL_MAX_ANONYMOUS`` replaces ``PLAN_TTL_ANONYMOUS`` throughout. The old name
+  implied a coupling to plan and billing state that no longer exists. It is
+  still read as an alias for the anonymous ceiling when the new name is unset,
+  but it is no longer read anywhere else — including its second, older job of
+  setting the free-tier ``secret_lifetime`` fallback used when plan state is
+  unavailable. That fallback now reads ``TTL_MAX_ANONYMOUS`` as well, so on a
+  billing-enabled deployment one variable moves both values.
+
+  **Operators on a billing-enabled deployment should rename the variable.** Left
+  as-is, ``PLAN_TTL_ANONYMOUS`` still sets the anonymous ceiling via the alias,
+  but the free-tier ``secret_lifetime`` fallback reverts to its 14-day default
+  (``free_v1`` in ``etc/billing.yaml``). That fallback only applies when plan
+  state is unavailable — an empty or uncached ``planid`` — and the anonymous
+  ceiling is unaffected either way.
+
+.. note::
+
+   **Self-hosted operators:** the anonymous ceiling defaults to 7 days whether
+   or not billing is enabled. Deployments with billing off previously allowed
+   anonymous secrets up to the configured ``ttl_options`` maximum (30 days on
+   stock config), so this is a behaviour change on upgrade. It is a default,
+   not a limit — set ``TTL_MAX_ANONYMOUS=2592000`` to restore 30 days, or any
+   value up to 365 days. Authenticated users are unaffected; their limits still
+   come from their plan, and the 14-day free-tier gate is unchanged.
+
+- **API v3 receipt shape cleanup.** Two long-standing wart fields are corrected
+  in v3 only; v1 and v2 responses are byte-for-byte unchanged.
+
+  - ``recipients`` is now ``null`` or an array of strings. The shared
+    serializer emits a single ``", "``-joined string (and ``""`` when the
+    secret was never emailed), so a client had to branch on the type; v3
+    normalizes it at its own serialization boundary. An empty list is ``null``,
+    not ``[]``. Note that ``details.recipient`` (the array echoing the
+    submitted request) and ``recipient_name`` (an Incoming-secret display name)
+    are different fields and are unchanged.
+  - ``custid`` is removed from v3 receipt payloads. It is a deprecated creator
+    identifier that new receipts never write, so it has been ``null`` on every
+    record created since the identifier migration. Read ``owner_id`` instead —
+    it was already present alongside it.
+
+  Applies to every v3 endpoint that returns a receipt: secret conceal/generate,
+  receipt read, burn, update, the receipt list, and the guest batch receipts
+  endpoint.
+
+Fixed
+-----
+
+- Restored the Free plan on the pricing page. ``GET /billing/api/plans``
+  dropped every plan that had no prices, and the free tier is defined with
+  ``prices: []`` — so it passed the ``show_on_plans_page`` gate and was then
+  filtered out one line later, leaving the pricing page with only paid plans
+  and no way to see what the free tier includes. This regressed when the
+  endpoint was refactored to flat per-interval records (#3153) and contradicted
+  the catalog loader, which persists price-less plans specifically so they can
+  be displayed. The endpoint now emits a single record for a price-less visible
+  plan (``amount: 0``, no Stripe price, ``month`` interval). Signed-in
+  customers also see the Free tier in the workspace plan grid, where it acts as
+  the downgrade path for an active subscription.
+
+- Fixed the billing catalog losing the free tier whenever plans are loaded from
+  ``billing.yaml`` rather than Stripe. The loader skipped price-less plans
+  outright, so a deployment that started while Stripe was unreachable had no
+  free tier in its catalog at all — affecting entitlement materialization as
+  well as the pricing page. The same loader backs the billing test fixtures, so
+  the entire billing test suite ran against a catalog with no free tier, which
+  is why this went unnoticed. The loader now handles config-only plans through
+  the same path the Stripe sync uses.
+
+- The **Single Sign-On** controls on a domain's *Sign-in Settings* page
+  (``/org/:orgid/domains/:extid/signin``) were gated on the wrong switch. They
+  read the PLATFORM SSO flag (``AUTH_SSO_ENABLED``, resolved by the config
+  serializer against the *current request's* domain — the canonical workspace
+  host), while per-domain SSO is TENANT SSO, whose real authorities are
+  ``ORGS_SSO_ENABLED`` plus the ``manage_sso`` entitlement. On any install with
+  platform SSO off, the availability toggle and the "SSO" method radio rendered
+  permanently locked even for an organization fully entitled to configure tenant
+  SSO. This page was the only surface gating on that axis; the domains table and
+  the organization SSO tab already used ``ORGS_SSO_ENABLED`` + ``manage_sso``,
+  and it now matches them.
+
+- **Data loss:** on a domain with no sign-in configuration, the form seeded its
+  ``sso_enabled`` flag from that same platform SSO flag. Because the page
+  auto-saves every change as a full-replacement ``PUT``, the first edit to *any*
+  field — the mode switch, the email toggle — persisted ``sso_enabled: false``
+  on installs with platform SSO off. That flips
+  ``SigninConfig.sso_permitted_for?`` to false and takes the domain's working
+  tenant SSO sign-in buttons down. The flag is now seeded from the backend
+  authority for an unconfigured domain (``sso_permitted_for?``, which defers to
+  the domain's SSO credentials), so materializing the seed leaves tenant SSO
+  exactly as it was running. Structurally the same failure as the
+  ``signin_enabled`` bug fixed in #3817. Domains already carrying a stored
+  ``sso_enabled: false`` from this bug are **not** rewritten by this release.
+  Recovering one in-app requires ``ORGS_SSO_ENABLED=true`` *and* the
+  ``manage_sso`` entitlement — the conditions under which the toggle is
+  operable; with tenant SSO disabled install-wide there is no in-app path, and
+  the flag must be turned on first.
+
+- The SSO availability toggle reported OFF whenever the org lacked ``manage_sso``
+  or tenant SSO was disabled install-wide, even when the stored value was true
+  and the domain's SSO was live. Those two are management gates — the runtime
+  ladder (``SsoConfig.tenant_sso_unavailable_reason``) never consults them — so
+  the toggle now reports the stored value and expresses the lock through its
+  disabled state alone.
+
+- In "One specific method" mode, a domain restricted to SSO rendered a method
+  list with nothing selected whenever the SSO row was filtered out, hiding the
+  domain's actual configuration. The SSO row now stays visible — locked, and
+  still not re-selectable — when it is the current restriction.
+
+.. note::
+
+   Tenant SSO is off by default (``ORGS_SSO_ENABLED``, absent ⇒ ``false``).
+   These controls are *correctly* locked on an install that has not set it;
+   turning them on is an operator action, not a plan upgrade.
+
+- The secret duration dropdown no longer offers a lifetime the server will
+  quietly shorten. Secrets created without signing in are capped server-side at
+  7 days, but the dropdown was built from the full configured list, so on a
+  stock install a guest could pick "30 days", see no error, and get less. The
+  applicable ceiling is now published in the bootstrap payload
+  (``secret_options.ttl_max_anonymous`` for guests,
+  ``organization.limits.secret_lifetime`` for signed-in users) and longer
+  options are filtered out of the list. The guest ceiling is published on every
+  deployment, self-hosted included, and reflects any ``TTL_MAX_ANONYMOUS``
+  override, so raising or lowering it moves the dropdown with it. A remembered
+  duration above the
+  ceiling now falls back to the configured default instead of silently
+  resolving to a shorter lifetime.
+
+Security
+--------
+
+- Added rate limiting to the password-reset request endpoint. In full
+  authentication mode ``POST /auth/reset-password-request`` was made
+  enumeration-safe earlier (#3857) but retained an accepted response-timing
+  residual; exploiting it statistically requires many requests per target
+  address. The route now enforces a two-tier limiter before any account lookup
+  runs: a tight per-client-IP cap (default 10 requests/hour, using the
+  trusted-proxy-resolved, privacy-masked client IP so forwarded headers cannot
+  spoof it) and a higher per-submitted-address backstop (default 30/hour,
+  case-normalized) that bounds IP-rotating callers probing a single target.
+  Both tiers key only on request-observable inputs — never on whether the
+  address maps to an account — so the 429 response discloses nothing about
+  account existence. This stacks with Rodauth's per-account resend throttle,
+  which caps emails but not request volume per source. Configurable via
+  ``site.authentication.reset_request_rate_limit`` /
+  ``RESET_REQUEST_RATE_LIMIT_*``; enabled by default. (#3872)
+
+- Closed the account-enumeration oracle in the invite signup endpoint
+  (``POST /api/invite/:token/signup``). It previously returned a distinct
+  ``account_exists`` error when the invited email already had an account,
+  re-opening the oracle the AZ7 hardening removed from the sibling
+  show-invite endpoint — exploitable by any registered user who invites a
+  target address and probes the token. The endpoint now validates the
+  password before any account-existence check (an invalid-password probe
+  gets a byte-identical error whether or not the account exists) and
+  collapses all existing-account outcomes — authdb pre-check, Redis
+  pre-check, and the Rodauth create race — into one generic
+  ``signup_unavailable`` error whose conditional message never confirms
+  account existence. The frontend keys its sign-in fallback off that
+  error_type instead of sniffing the message text, so the invitee UX is
+  unchanged. Residual: with a valid password, "exists" remains
+  distinguishable from a successful signup — inherent to any signup
+  endpoint, and probing it is destructive and noisy (creates the account,
+  emails the invitee); the per-IP ``InviteTokenRateLimiter`` bounds it.
+  (#3856)
+
+- **API v2 Basic auth now fails closed.** Routes that accept either API
+  credentials or anonymous access (``auth=basicauth,noauth`` — secret conceal,
+  generate, reveal, receipt read/burn/update) treated a chain of strategies as
+  OR logic, so a request presenting *invalid* Basic credentials fell through to
+  the anonymous strategy and succeeded: HTTP 200 with the secret created under
+  no owner. A caller whose API key was wrong, revoked, or whose username was an
+  organization ID or ``owner_id`` instead of the account email or customer ID
+  (``ur…``) silently got anonymous behaviour — anonymous TTL, no receipt in
+  their account, no error. Rejected credentials now produce 401 with the
+  original failure reason. Requests that present no ``Authorization`` header at
+  all are unaffected and remain anonymous.
+
+- Anonymous secret TTLs are now bounded by a ceiling that is read on every
+  deployment, closing a policy inversion where an anonymous request could
+  outlive an authenticated free-tier one (which is denied above 14 days with an
+  upgrade prompt). The ceiling defaults to 7 days; a configured ``ttl_options``
+  maximum below it still wins, and with billing enabled the free-tier
+  ``secret_lifetime`` limit applies as well. See the note below for the
+  self-hosted override.
+
+- A recipient email supplied without an account now raises 401 rather than a
+  422 field-validation error, correctly signalling an authentication failure.
+
+.. note::
+
+   **Operators behind an htpasswd-style reverse proxy:** strip the
+   ``Authorization`` header before proxying to ``/api/v2``. A forwarded proxy
+   credential is now read as a presented API credential, and an *anonymous*
+   request carrying one gets 401. Session-authenticated requests are not
+   affected — a valid session cookie outranks a stray or cached
+   ``Authorization`` header, so the web UI keeps working either way.
+
+- **The anonymous secret TTL ceiling is now read on every deployment.**
+  Previously it was derived from the free-tier plan limit, so it applied only
+  where billing was enabled — leaving deployments with billing off with no
+  anonymous ceiling at all, and an override (``PLAN_TTL_ANONYMOUS``) that was
+  silently ignored on exactly those installs. The ceiling is now its own
+  configuration value (``site.secret_options.ttl_max_anonymous``, env
+  ``TTL_MAX_ANONYMOUS``), defaulting to 7 days, resolved through a single reader
+  shared by TTL enforcement and the bootstrap payload that builds the duration
+  dropdown. A configured ``ttl_options`` maximum below the ceiling still wins.
+  With billing enabled, the free-tier ``secret_lifetime`` limit applies as an
+  additional ceiling, which is what preserves the invariant that an anonymous
+  caller never receives a longer TTL than an authenticated free-tier user.
+
+- Extended the password-reset request rate limiter to simple authentication
+  mode, the application default. The two-tier limiter added in #3872 was wired
+  only into the Rodauth ``before_reset_password_request_route`` hook, which is
+  loaded exclusively in full mode — so in a default install ``POST
+  /auth/reset-password-request`` had no throughput cap at all, letting an
+  unauthenticated caller mail-bomb arbitrary addresses and accumulate unbounded
+  samples against the endpoint's accepted response-timing residual. The shared
+  reset-request logic now enforces the same limiter itself, before the email
+  format check and before any account lookup, using the same subjects as the
+  full-mode hook: the trusted-proxy-resolved, privacy-masked client IP (tight
+  tier) and the submitted address (higher backstop). Both tiers key only on
+  request-observable inputs, so the 429 discloses nothing about account
+  existence. Configuration is unchanged
+  (``site.authentication.reset_request_rate_limit`` /
+  ``RESET_REQUEST_RATE_LIMIT_*``, enabled by default) and now applies in both
+  auth modes.
+
+  **Upgrade note for simple-mode operators.** Because the limiter is enabled by
+  default, an install that has never set
+  ``site.authentication.reset_request_rate_limit`` starts throttling this
+  endpoint after upgrading — previously only full-mode installs did. The per-IP
+  bucket is the privacy-MASKED client network (/24 for IPv4, /48 for IPv6 — the
+  raw address never survives the IP-privacy middleware, the same granularity as
+  every other IP-keyed limiter here), so users sharing one NAT egress share one
+  budget: 10 reset requests per hour by default, then a one-hour lockout for
+  that network. Sites with dense NAT populations should raise
+  ``RESET_REQUEST_RATE_LIMIT_MAX_PER_IP`` (or shorten
+  ``RESET_REQUEST_RATE_LIMIT_LOCKOUT``); ``RESET_REQUEST_RATE_LIMIT_ENABLED=false``
+  opts out entirely. The per-address backstop is unaffected by IP granularity.
+
+  **Configure trusted-proxy resolution if you run behind a reverse proxy.**
+  ``TRUSTED_PROXY_ENABLED`` ships as ``false``, and while it is off every
+  forwarded header is ignored and ``REMOTE_ADDR`` is used directly — which
+  behind nginx/Caddy/Traefik/an ingress is the *proxy's* address for every
+  request. The per-IP tier then resolves to one bucket for the whole
+  deployment, so 10 reset requests per hour from any users combined trip a
+  site-wide lockout (and one caller can burn it deliberately). This is a
+  property of every IP-keyed control here, not of this endpoint specifically,
+  but the reset-request tier is keyed on IP alone, so it is the most exposed.
+  Proxied deployments should set ``TRUSTED_PROXY_ENABLED=true`` with the
+  matching ``TRUSTED_PROXY_MODE``/``TRUSTED_PROXY_CIDRS`` for their topology —
+  after confirming the proxy overwrites client-supplied ``X-Forwarded-For``,
+  since trusting that header from an untrusted hop makes the tier spoofable.
+  Where that is not possible, raise the per-IP cap and rely on the per-address
+  backstop, which is unaffected.
+
+Documentation
+-------------
+
+- **API response field semantics documented.** ``docs/api/README.md`` now
+  states which secret/receipt fields are deprecated, which are aliases, and
+  which are commonly confused for each other:
+
+  - ``custid`` is deprecated — read ``owner_id``. v3 omits it from receipt
+    records entirely; v2 still emits it but it is null on every receipt created
+    since the v0.24 identifier migration; v1 alone translates it back to an
+    email address. The top-level ``custid`` in receipt-list responses is a
+    different field — the requesting customer — and is unaffected.
+  - ``record.metadata`` in v2 conceal/generate responses is an alias emitting
+    the identical object as ``record.receipt``. v1 returns only ``metadata``,
+    v3 returns only ``receipt``. The separate ``metadata_path`` /
+    ``metadata_url`` aliases on receipt responses remain in v3.
+  - ``recipients`` (obscured addresses on the receipt — a joined string in v2,
+    an array or ``null`` in v3),
+    ``details.recipient`` (an array echoing the submitted request values), and
+    ``recipient_name`` (an Incoming-secret display name, null for standard
+    secrets) are three distinct fields, now tabulated with their per-version
+    types.
+
+AI Assistance
+-------------
+
+- Feature implemented end-to-end (operation, CLI adapter, colonel endpoint,
+  admin UI panel, specs) with Claude Code.
+
+- Simple-mode reset-request rate limiting implemented end-to-end with Claude
+  Code: the limiter call site, the integration and unit coverage, and the
+  operator/audit documentation. The specs were then hardened against an
+  adversarial review pass that found two of them passing under mutation, and
+  that pass also surfaced the invalid-UTF-8 constructor path that bypassed the
+  new counter.
+
+- A follow-up review pass, also with Claude Code, examined four reservations
+  raised against the change. Two did not survive contact with the code and were
+  dropped: keying the tight tier on IP alone is correct here rather than
+  inconsistent, and the raise_concerns/process lifecycle is enforced at a
+  controller chokepoint rather than by convention. The pass instead found the
+  registry gap that left a lockout unclearable, a documented recovery command
+  that only printed text without touching the datastore, and a hint whose
+  production call site no test pinned. Recovery procedures in this changeset
+  were confirmed by clearing a seeded lockout key, not by reading help output.
+
 .. _changelog-0.26.2:
 
 0.26.2 — 2026-07-26
