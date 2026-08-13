@@ -233,7 +233,8 @@ module Core
         # @param view_vars [Hash] View variables with request context
         # @return [Hash] Feature flags for frontend consumption
         def build_feature_flags(view_vars)
-          features = view_vars['features'] || {}
+          features               = view_vars['features'] || {}
+          restrict_to_resolution = restrict_to_resolution(view_vars)
 
           {
             'signin' => resolve_signin(view_vars),
@@ -245,7 +246,10 @@ module Core
             'email_auth' => resolve_email_auth(view_vars),
             'webauthn' => Onetime.auth_config.webauthn_enabled?,
             'sso' => build_sso_config(view_vars),
-            'restrict_to' => resolve_restrict_to(view_vars),
+            # Keep the scalar for existing consumers, and carry the resolver's
+            # full wire form so :unavailable is not widened to standard mode.
+            'restrict_to' => restrict_to_resolution.unavailable? ? nil : restrict_to_resolution.restrict_to,
+            'effective_restrict_to' => restrict_to_resolution.to_wire.transform_keys(&:to_s),
             'organizations' => {
               'enabled' => features.dig('organizations', 'enabled') || false,
               'sso_enabled' => features.dig('organizations', 'sso_enabled') || false,
@@ -301,13 +305,9 @@ module Core
         # This method's whole job is to gather the two inputs and flatten the
         # result onto the bootstrap payload.
         #
-        # LOSSY ON PURPOSE, FOR NOW: features.restrict_to is a string-or-null
-        # field, so it cannot express the resolver's :unavailable state. Until
-        # A4 ships effective_restrict_to and the frontend consumes the resolved
-        # state directly, :unavailable serializes as null (standard mode) —
-        # exactly what this method emitted before the extraction. That is the
-        # remaining display-side fail-open A1/A4 close; the runtime gate (A1)
-        # consumes the resolution object and rejects everything in that state.
+        # features.restrict_to remains the backwards-compatible string-or-null
+        # projection. build_feature_flags also emits effective_restrict_to so
+        # display consumers retain the resolver's explicit :unavailable state.
         #
         # @param view_vars [Hash] View variables with request context
         # @return [String, nil] the single permitted method, or nil for standard mode
@@ -330,11 +330,21 @@ module Core
           Onetime::CustomDomain::SigninConfig.resolve_restrict_to(
             global,
             signin_config,
-            # Post-boot availability of the global restriction (ADR-024 A3).
-            # Gathered here, applied by the resolver — the display gate must
-            # not carry its own copy of the rule, which is how it drifted from
-            # the runtime gate in the first place (#4139).
-            available: Onetime::CustomDomain::SigninConfig.global_restriction_available?(global),
+            # Post-boot availability of the global restriction (ADR-024 A3),
+            # asked through the SHARED gatherer so the page cannot answer it
+            # differently from the route gate. It briefly did: with only
+            # global_restriction_available? here, this page reported
+            # `restricted/password` on a custom host with no enabled
+            # SigninConfig under a global password restriction, while the gate
+            # narrowed through the custom-host capabilities (password defaults
+            # OFF there), resolved :unavailable, and 404'd the very routes this
+            # page's form posts to (#4139).
+            available: Onetime::CustomDomain::SigninConfig.restriction_available_for_request?(
+              global,
+              signin_config,
+              domain_id: domain_id,
+              custom_host: tenant_domain?(view_vars),
+            ),
           )
         end
 

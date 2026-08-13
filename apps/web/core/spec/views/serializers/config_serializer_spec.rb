@@ -996,15 +996,22 @@ RSpec.describe Core::Views::ConfigSerializer do
     # for 'webauthn', which can never be honored on a custom domain (passkey
     # rp_id is host-scoped, so canonical-host credentials cannot assert here;
     # a passkey-only page would lock every visitor out). Persisted 'webauthn'
-    # resolves to the fail-closed :unavailable state (ADR-024 A3), which this
-    # display gate still serializes as null — NOT as the tenant 'sso' pin,
-    # which the surrounding before-block would otherwise make available —
-    # while every other persisted value passes through verbatim.
+    # resolves to the fail-closed :unavailable state (ADR-024 A3). The legacy
+    # scalar remains null — NOT the tenant 'sso' pin — while the companion
+    # effective_restrict_to field carries the explicit resolver state.
     context 'with an enabled domain SigninConfig' do
+      # The resolver DERIVES whether the named method can run on this host
+      # (ADR-024 A3 domain half), so the double must answer the capability
+      # questions restriction_available_for_custom_domain? asks: the domain's
+      # own opt-ins, and its identifier for the SSO ladder.
       def stub_signin_config(restrict_to)
         config = instance_double(
           Onetime::CustomDomain::SigninConfig,
+          domain_id: domain_id,
           enabled?: true,
+          signin_enabled?: true,
+          email_auth_enabled?: true,
+          sso_enabled?: true,
           restrict_to: restrict_to
         )
         allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
@@ -1012,7 +1019,7 @@ RSpec.describe Core::Views::ConfigSerializer do
           .and_return(config)
       end
 
-      it "resolves persisted restrict_to='webauthn' to standard mode (nil)" do
+      it "keeps persisted restrict_to='webauthn' null in the legacy scalar projection" do
         stub_signin_config('webauthn')
 
         expect(described_class.resolve_restrict_to(custom_domain_view_vars)).to be_nil
@@ -1035,11 +1042,8 @@ RSpec.describe Core::Views::ConfigSerializer do
         expect(described_class.resolve_restrict_to(custom_domain_view_vars)).to be_nil
       end
 
-      # ADR-024 A2/A3: the wire field is string-or-null so it cannot express
-      # "unavailable", but the resolver output must — that is what the runtime
-      # gate (A1) and the settings API (A4) consume. The null above is the
-      # LOSSY display projection of this state, not a widening to standard
-      # mode.
+      # ADR-024 A2/A3: the legacy scalar is string-or-null, while the explicit
+      # resolver wire object preserves "unavailable" for display consumers.
       it "reports 'webauthn' as unavailable on the resolution object" do
         stub_signin_config('webauthn')
 
@@ -1050,6 +1054,19 @@ RSpec.describe Core::Views::ConfigSerializer do
         expect(resolution.restrict_to).to eq('webauthn')
         expect(resolution.allows?('password')).to be false
         expect(resolution.allows?('webauthn')).to be false
+      end
+
+      it 'serializes the unavailable resolution into bootstrap features' do
+        stub_signin_config('webauthn')
+
+        features = described_class.build_feature_flags(custom_domain_view_vars)
+
+        expect(features['restrict_to']).to be_nil
+        expect(features['effective_restrict_to']).to eq(
+          'state' => 'unavailable',
+          'restrict_to' => 'webauthn',
+          'source' => 'domain'
+        )
       end
 
       it 'attributes an honored domain restriction to the domain layer' do
@@ -1104,12 +1121,24 @@ RSpec.describe Core::Views::ConfigSerializer do
         expect(described_class.resolve_restrict_to(custom_domain_view_vars)).to eq('sso')
       end
 
-      it 'falls back to global when no SSO is available' do
+      # The inherited global restriction still stands (the domain's own
+      # restriction is ignored while its master switch is off), but it names a
+      # method this host cannot run: email-auth defaults OFF on a custom domain
+      # and this config never opted in. So the page reports :unavailable — the
+      # same answer Auth::RestrictTo gives, which 404s those routes (#4139).
+      # The legacy string-or-null scalar cannot express :unavailable and
+      # projects to nil; effective_restrict_to carries the real state.
+      it 'inherits the global restriction and fails it closed for this host' do
         allow(mock_auth_config).to receive(:sso_enabled?).and_return(false)
         allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
         allow(mock_auth_config).to receive(:restrict_to).and_return('email_auth')
 
-        expect(described_class.resolve_restrict_to(custom_domain_view_vars)).to eq('email_auth')
+        resolution = described_class.restrict_to_resolution(custom_domain_view_vars)
+
+        expect(resolution).to be_unavailable
+        expect(resolution.restrict_to).to eq('email_auth')
+        expect(resolution.source).to eq(:global)
+        expect(described_class.resolve_restrict_to(custom_domain_view_vars)).to be_nil
       end
     end
 

@@ -22,9 +22,17 @@ import { z } from 'zod';
 import { CanonicalPlanIdSchema } from '@/schemas/contracts/config/billing';
 import { featuresDomainsSchema } from '@/schemas/contracts/config/section/features';
 import { regionsConfigSchema } from '@/schemas/contracts/config/section/jurisdiction';
-import { brandSettingsCanonical, cornerStyleValues, fontFamilyValues, homepageConfigCanonical } from '@/schemas/contracts/custom-domain';
-import { disabledHomepageConfigSchema, disabledHomepageVariantSchema } from '@/schemas/contracts/disabled-homepage';
+import {
+  brandSettingsCanonical,
+  cornerStyleValues,
+  fontFamilyValues,
+  homepageConfigCanonical,
+} from '@/schemas/contracts/custom-domain';
 import { customerCanonical } from '@/schemas/contracts/customer';
+import {
+  disabledHomepageConfigSchema,
+  disabledHomepageVariantSchema,
+} from '@/schemas/contracts/disabled-homepage';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // LOCALE SCHEMAS
@@ -307,6 +315,18 @@ const secretActivityFeaturesInner = z.object({
   geo_country_enabled: z.boolean().default(false),
 });
 
+const restrictToSchema = z.enum(['password', 'email_auth', 'webauthn', 'sso']);
+
+/**
+ * Domain-aware resolver output. Unlike the legacy scalar projection below,
+ * this preserves an unavailable restriction so display code can fail closed.
+ */
+export const effectiveRestrictToSchema = z.object({
+  state: z.enum(['unrestricted', 'restricted', 'unavailable']),
+  restrict_to: restrictToSchema.nullable().catch(null),
+  source: z.enum(['domain', 'global', 'conflict']),
+});
+
 export const featuresSchema = z.object({
   markdown: z.boolean().default(false),
   // Sign-in availability for the current domain context (AND of global
@@ -321,8 +341,11 @@ export const featuresSchema = z.object({
   email_auth: z.boolean().optional(),
   webauthn: z.boolean().optional(),
   sso: z.union([z.boolean(), ssoConfigSchema]).optional(),
-  // Single-auth-method restriction: 'password', 'email_auth', 'webauthn', 'sso', or null
-  restrict_to: z.enum(['password', 'email_auth', 'webauthn', 'sso']).nullable().optional(),
+  // Legacy scalar projection retained for existing consumers.
+  restrict_to: restrictToSchema.nullable().optional(),
+  // Explicit resolver state for display/runtime parity. Optional keeps
+  // bootstraps from older backends valid; absence preserves prior behavior.
+  effective_restrict_to: effectiveRestrictToSchema.optional(),
   magic_links: z.boolean().optional(),
   organizations: organizationFeaturesInner.default(organizationFeaturesInner.parse({})),
   secret_activity: secretActivityFeaturesInner.default(secretActivityFeaturesInner.parse({})),
@@ -574,9 +597,7 @@ export const bootstrapSchema = z.object({
 
   // Frontend rendering config for the disabled-homepage view. All knobs
   // optional with auto-detection defaults; backend may omit entirely.
-  disabled_homepage: disabledHomepageConfigSchema.default(
-    disabledHomepageConfigSchema.parse({})
-  ),
+  disabled_homepage: disabledHomepageConfigSchema.default(disabledHomepageConfigSchema.parse({})),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Brand fields (per-installation defaults from OT.conf['brand'])
