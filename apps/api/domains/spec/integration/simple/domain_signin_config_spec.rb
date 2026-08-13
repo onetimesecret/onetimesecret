@@ -233,14 +233,38 @@ RSpec.describe 'Domain Signin Config API', type: :integration do
       end
     end
 
+    # An INHERITED restriction is narrowed by the domain's own capabilities,
+    # exactly as it is at request time (#4139). These settings describe a
+    # custom domain, where password and email-auth default OFF, so an
+    # unconfigured domain cannot honor a global 'password' restriction — the
+    # route gate 404s it. Reporting `restricted` here was the settings-API half
+    # of the display/gate drift: the page showed a method whose routes were
+    # already dark, and the UI seeded a form from it.
     context 'unconfigured domain under a global restriction' do
       before { allow(Onetime.auth_config).to receive(:restrict_to).and_return('password') }
+
+      it 'reports :unavailable — the domain never opted sign-in in, so the method is dark here' do
+        expect(effective_restrict_to).to eq(
+          'state' => 'unavailable', 'restrict_to' => 'password', 'source' => 'global',
+        )
+        expect(json_body['details']['global_restrict_to']).to eq('password')
+      end
+    end
+
+    context 'domain that opted sign-in in, under a global restriction' do
+      before do
+        allow(Onetime.auth_config).to receive(:restrict_to).and_return('password')
+        Onetime::CustomDomain::SigninConfig.create!(
+          domain_id: test_custom_domain.identifier,
+          enabled: true,
+          signin_enabled: true,
+        )
+      end
 
       it 'inherits the global restriction and names its source' do
         expect(effective_restrict_to).to eq(
           'state' => 'restricted', 'restrict_to' => 'password', 'source' => 'global',
         )
-        expect(json_body['details']['global_restrict_to']).to eq('password')
       end
     end
 
@@ -250,13 +274,35 @@ RSpec.describe 'Domain Signin Config API', type: :integration do
           domain_id: test_custom_domain.identifier,
           enabled: true,
           signin_enabled: true,
-          restrict_to: 'sso',
+          restrict_to: 'password',
         )
       end
 
       it 'resolves the domain restriction from the domain source' do
         expect(effective_restrict_to).to eq(
-          'state' => 'restricted', 'restrict_to' => 'sso', 'source' => 'domain',
+          'state' => 'restricted', 'restrict_to' => 'password', 'source' => 'domain',
+        )
+      end
+    end
+
+    # A domain restriction is subject to the same A3 degradation as an
+    # inherited one: 'sso' with no tenant SsoConfig and no platform fallback
+    # names a method this host cannot serve, so it fails closed rather than
+    # reporting a restriction the omniauth routes would refuse.
+    context 'enabled domain config naming a method with no backing credentials' do
+      before do
+        Onetime::CustomDomain::SigninConfig.create!(
+          domain_id: test_custom_domain.identifier,
+          enabled: true,
+          signin_enabled: true,
+          sso_enabled: true,
+          restrict_to: 'sso',
+        )
+      end
+
+      it 'reports :unavailable and still names the method' do
+        expect(effective_restrict_to).to eq(
+          'state' => 'unavailable', 'restrict_to' => 'sso', 'source' => 'domain',
         )
       end
     end
@@ -307,12 +353,12 @@ RSpec.describe 'Domain Signin Config API', type: :integration do
       csrf_put api_path(test_custom_domain.extid), {
         enabled: true,
         signin_enabled: true,
-        restrict_to: 'email_auth',
+        restrict_to: 'password',
       }
 
       expect(last_response.status).to eq(200)
       expect(json_body['details']['effective_restrict_to']).to eq(
-        'state' => 'restricted', 'restrict_to' => 'email_auth', 'source' => 'domain',
+        'state' => 'restricted', 'restrict_to' => 'password', 'source' => 'domain',
       )
     end
   end

@@ -92,11 +92,21 @@ module DomainsAPI
             effective_restrict_to: Onetime::CustomDomain::SigninConfig.resolve_restrict_to(
               global_restrict,
               config,
-              # Post-boot availability of the global restriction (ADR-024
-              # A3). The settings page must report what the gates enforce:
-              # without this it showed `restricted` for a method the runtime
-              # had already taken dark (#4139).
-              available: Onetime::CustomDomain::SigninConfig.global_restriction_available?(global_restrict),
+              # Post-boot availability of the global restriction (ADR-024 A3),
+              # asked through the SHARED gatherer — the same call the route
+              # gate and the /signin page make, so this page reports what those
+              # two enforce rather than a third answer. custom_host is always
+              # true here: these settings describe a custom domain, so an
+              # INHERITED global restriction must be narrowed by that domain's
+              # capabilities exactly as it is at request time. Without it the
+              # page showed `restricted/password` for a domain whose Rodauth
+              # routes the gate had already taken to 404 (#4139).
+              available: Onetime::CustomDomain::SigninConfig.restriction_available_for_request?(
+                global_restrict,
+                config,
+                domain_id: domain_id,
+                custom_host: true,
+              ),
             ).to_wire,
             tenant_sso: tenant_sso_details(domain_id),
           }

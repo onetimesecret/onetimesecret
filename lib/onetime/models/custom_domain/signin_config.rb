@@ -359,10 +359,21 @@ module Onetime
         #
         # Same AND semantics and strict-boolean coercion as resolve_signin_enabled:
         # a domain config can only narrow email-auth, never re-enable it when it
-        # is disabled globally. Currently consulted only by the display gate
-        # (Core::Views::ConfigSerializer#resolve_email_auth) — there is no runtime
-        # email-auth gate today — but routed through here so any future gate uses
-        # the same single source of truth and cannot drift.
+        # is disabled globally.
+        #
+        # Two consumers today, and the second is a RUNTIME gate — this comment
+        # used to say there was no runtime email-auth gate, which stopped being
+        # true when #4139 landed A1 and cost a reviewer a false bug report:
+        #
+        #   - display: Core::Views::ConfigSerializer#resolve_email_auth
+        #   - runtime: restriction_available_for_custom_domain? below, which
+        #     decides whether a restrict_to='email_auth' host can honor its own
+        #     restriction, and feeds Auth::RestrictTo — so a domain that turned
+        #     email-auth off now takes the magic-link ROUTES dark, not just the
+        #     button.
+        #
+        # Which is exactly why resolution was routed through here in the first
+        # place: the second consumer arrived without either side drifting.
         #
         # @param global [Boolean] install-level availability (auth_config.email_auth_enabled?)
         # @param config [SigninConfig, nil] the per-domain config, if any
@@ -454,8 +465,10 @@ module Onetime
         # @param config [SigninConfig, nil] the per-domain config, if any
         # @param available [Boolean] whether `global`'s backing method is usable
         #   right now (see .global_restriction_available?)
+        # @param domain_available [Boolean, nil] injectable domain-method verdict;
+        #   nil derives it from the live custom-host capabilities
         # @return [RestrictToResolution] explicit :unrestricted / :restricted / :unavailable
-        def resolve_restrict_to(global, config, available: true)
+        def resolve_restrict_to(global, config, available: true, domain_available: nil)
           global_value = global.to_s.strip
           domain_value = config&.enabled? ? config.restrict_to.to_s.strip : ''
 
@@ -475,13 +488,21 @@ module Onetime
             return RestrictToResolution.unavailable(global_value, :conflict)
           end
 
+          structurally_unavailable = !RESTRICT_TO_VALUES.include?(domain_value) || domain_value == 'webauthn'
+          domain_dead              = structurally_unavailable || if domain_available.nil?
+                                                       !restriction_available_for_custom_domain?(domain_value, config)
+                                                     else
+                                                       domain_available != true
+                                                     end
+
           # An AGREEING domain config does not resurrect a dead global method
           # (A8: agreement resolves with source :domain, but the method named is
           # the same one, and it is just as dead). Source stays :global — the
           # global half is why nothing is offered.
           return RestrictToResolution.unavailable(global_value, :global) if global_dead
+          return RestrictToResolution.unavailable(domain_value, :domain) if domain_dead
 
-          resolve_domain_restrict_to(domain_value)
+          RestrictToResolution.restricted(domain_value, :domain)
         end
 
         # The `available:` input to resolve_restrict_to for a caller that has
@@ -507,29 +528,112 @@ module Onetime
           Onetime.auth_config.restrict_to_available?
         end
 
-        # Domain half of resolve_restrict_to: a non-empty domain restriction
-        # that the global half has already agreed with (or declined to
-        # contradict). See its PRECEDENCE and DOMAIN-HALF DEGRADATION notes;
-        # do not call this directly.
+        # The `available:` input to resolve_restrict_to for a REQUEST — the
+        # whole post-boot availability question, which is two questions: the
+        # operator's own prerequisites (global_restriction_available?) and,
+        # on a custom host, whether the method that restriction names can run
+        # on THAT host at all.
         #
-        # @param value [String] a non-empty persisted domain restrict_to value
-        # @return [RestrictToResolution]
-        def resolve_domain_restrict_to(value)
-          return RestrictToResolution.unavailable(value, :domain) unless honorable_domain_restriction?(value)
+        # WHY THIS LIVES HERE and not in the gate that first needed it (#4139).
+        # It is policy, not request wiring: the only request facts it needs are
+        # "is this host a custom domain" and "which domain", both passed in
+        # explicitly, so every consumer can ask it — the runtime gate holding a
+        # Rack env (Auth::RestrictTo.restriction_available_for_host?), the
+        # display serializer holding view_vars
+        # (Core::Views::ConfigSerializer#restrict_to_resolution), and the
+        # settings API holding a domain record
+        # (DomainsAPI::Logic::SigninConfig::Base#signin_override_details).
+        #
+        # It lived in the gate for one commit and the two display consumers did
+        # not follow, which reproduced the very drift ADR-024 A2 legislates
+        # against, one layer down — the resolver was shared, its INPUT was not.
+        # The observable symptom: a custom host with no enabled SigninConfig
+        # under a global `restrict_to='password'`. The gate narrowed through the
+        # custom-host capabilities (password defaults OFF on custom domains),
+        # resolved :unavailable and 404'd every Rodauth route, while the
+        # serializer still reported `restricted/password` and the page rendered
+        # a sign-in form whose routes were dark.
+        #
+        # NARROWING ONLY. Three explicit pass-throughs, each of which would
+        # otherwise take a host dark for no reason:
+        #   - a canonical host has no custom-domain capabilities to intersect;
+        #   - an install with nothing restricted (`global` blank) has nothing to
+        #     be unavailable — a false flag must never manufacture a restriction;
+        #   - a custom host we could not classify (domain_id nil) has no domain
+        #     whose capabilities could narrow the verdict.
+        #
+        # @param global [String, nil] the value being handed to resolve_restrict_to as `global`
+        # @param config [SigninConfig, nil] the host's per-domain config, if any
+        # @param domain_id [String, nil] the classified CustomDomain identifier (objid)
+        # @param custom_host [Boolean] whether the request host is a custom domain
+        # @return [Boolean]
+        def restriction_available_for_request?(global, config, domain_id: nil, custom_host: false)
+          available = global_restriction_available?(global)
+          return available unless available && custom_host == true
 
-          RestrictToResolution.restricted(value, :domain)
+          global_value = global.to_s.strip
+          return available if global_value.empty? || domain_id.nil?
+
+          restriction_available_for_custom_domain?(global_value, config, domain_id: domain_id)
         end
 
-        # Whether a persisted domain restriction can be honored on a custom
-        # domain at all. False => the restriction stands but resolves to
-        # :unavailable (ADR-024 A3).
+        # Whether a restriction's backing method is usable on a custom host.
+        # This is shared by domain restrictions and inherited global
+        # restrictions: either one must resolve :unavailable when the only
+        # method it permits cannot actually run on this host.
         #
-        # @param value [String] a non-empty persisted restrict_to value
+        # Password and email-auth use the custom-domain sign-in opt-in as well
+        # as their install-wide capability. Email-auth additionally requires
+        # both the domain field and the full-mode feature. SSO asks the host
+        # availability predicate, which includes tenant credentials and the
+        # operator-controlled platform fallback. WebAuthn remains unavailable
+        # until credentials are scoped per custom host (#4137).
+        #
+        # @param value [String] a persisted restrict_to value
+        # @param config [SigninConfig, nil] the host's per-domain config
+        # @param domain_id [String, nil] the classified custom-domain identifier
         # @return [Boolean]
-        def honorable_domain_restriction?(value)
+        def restriction_available_for_custom_domain?(value, config, domain_id: nil)
           return false unless RESTRICT_TO_VALUES.include?(value)
 
-          value != 'webauthn'
+          domain_id ||= config&.domain_id
+
+          case value
+          when 'password'
+            resolve_signin_enabled_for_custom_domain(global_signin_enabled, config)
+          when 'email_auth'
+            resolve_signin_enabled_for_custom_domain(global_signin_enabled, config) &&
+              resolve_email_auth_enabled(Onetime.auth_config.email_auth_enabled?, config)
+          when 'sso'
+            # ASK THE AUTHORITY THAT SERVES THE ROUTE. `restrict_to` gates the
+            # SSO sign-in ROUTE, so its availability verdict must come from the
+            # ladder that route obeys: sso_available_for_tenant_host? →
+            # tenant_sso_available_for? → tenant_sso_unavailable_reason →
+            # SigninConfig.sso_permitted_for?, which keys on `sso_enabled?`.
+            # That ladder is also what apps/web/auth/config/hooks/
+            # omniauth_tenant.rb reads, so a host omniauth will happily serve
+            # can never be reported :unavailable here. Two authorities
+            # disagreeing about one route is precisely what ADR-024 A2 forbids.
+            #
+            # `signin_enabled?` is deliberately NOT consulted, and a
+            # short-circuit on it lived here briefly (#4139): a config with
+            # enabled=true, sso_enabled=true, signin_enabled=false resolved
+            # :unavailable and 404'd an SSO route omniauth_tenant served
+            # successfully. signin_enabled is the PASSWORD/EMAIL opt-in
+            # (resolve_signin_enabled) — the two cases above that consult it do
+            # so because their methods are the ones it governs.
+            #
+            # The display side genuinely reads differently:
+            # resolve_signin_enabled_for_custom_domain lets an enabled config's
+            # signin_enabled=false hide SSO from the masthead link and the page
+            # availability verdict. That display/route asymmetry pre-dates this
+            # fix and is left exactly as it was — changing display semantics is
+            # not in scope here. What is in scope is that restrict_to, which
+            # gates the ROUTE, agrees with the route.
+            Onetime::CustomDomain::SsoConfig.sso_available_for_tenant_host?(domain_id)
+          else
+            false
+          end
         end
 
         # Install-level sign-in capability — the `global` input to

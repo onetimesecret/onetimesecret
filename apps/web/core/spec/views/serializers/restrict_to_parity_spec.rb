@@ -39,6 +39,16 @@ require_relative '../../../views/serializers'
 # unit spec uses.
 require_relative File.join(Onetime::HOME, 'apps', 'web', 'auth', 'restrict_to')
 
+# THE THIRD CONSUMER (ADR-024 A4): the settings API's details.effective_restrict_to.
+# Reached here without booting the domains app — signin_override_details is a
+# pure function of (config, domain_id) plus the model resolvers, so an allocated
+# instance is enough and no authorization/request plumbing is involved. It is
+# included because "the settings page shows a restriction the routes do not
+# enforce" is the same defect as "the sign-in page does", and the parity
+# assertion is the only thing that catches either.
+require_relative File.join(Onetime::HOME, 'apps', 'api', 'domains', 'logic', 'base')
+require_relative File.join(Onetime::HOME, 'apps', 'api', 'domains', 'logic', 'signin_config', 'base')
+
 RSpec.describe 'restrict_to display/gate parity' do
   let(:display_domain) { 'secrets.tenant.example.com' }
   let(:domain_id)      { 'domain_parity_1' }
@@ -105,6 +115,15 @@ RSpec.describe 'restrict_to display/gate parity' do
 
   def gate_resolution
     Auth::RestrictTo.resolution_for(env)
+  end
+
+  # details.effective_restrict_to, already in wire form.
+  def settings_api_wire
+    config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id)
+
+    DomainsAPI::Logic::SigninConfig::Base.allocate
+                                         .send(:signin_override_details, config, domain_id)
+                                         .fetch(:effective_restrict_to)
   end
 
   # The comparable face of a resolution: what a user can observe. `source` is
@@ -201,7 +220,13 @@ RSpec.describe 'restrict_to display/gate parity' do
 
   describe 'the pin never reaches a tenant that has spoken (A8)' do
     let(:enabled_signin_config) do
-      instance_double(Onetime::CustomDomain::SigninConfig, enabled?: true, restrict_to: 'password')
+      instance_double(
+        Onetime::CustomDomain::SigninConfig,
+        domain_id: domain_id,
+        enabled?: true,
+        signin_enabled?: true,
+        restrict_to: 'password',
+      )
     end
 
     before do
@@ -214,6 +239,161 @@ RSpec.describe 'restrict_to display/gate parity' do
       expect_parity
       expect(display_resolution.restrict_to).to eq('password')
       expect(display_resolution).to be_restricted
+    end
+  end
+
+  # THE HOLE THIS SPEC HAD. Every cell above either sits on a canonical host or
+  # leaves the global restriction nil, so nothing ever exercised a CUSTOM host
+  # INHERITING a non-nil global restriction — which is exactly where the two
+  # sides diverged (#4139). The gate narrowed the inherited restriction through
+  # the custom-host capabilities (SigninConfig.restriction_available_for_*) and
+  # resolved :unavailable, 404ing every Rodauth route, while the serializer
+  # applied only the global predicate and reported `restricted/password`. The
+  # page then rendered a password form whose POST target was dark.
+  #
+  # Three consumers are compared here, not two: the settings API reads the same
+  # inherited restriction for the same domain and must not be a third answer.
+  describe 'custom host inheriting a global restriction' do
+    def expect_three_way_parity
+      expect(display_resolution.to_wire).to eq(gate_resolution.to_wire)
+      expect(settings_api_wire).to eq(gate_resolution.to_wire)
+    end
+
+    # Fallback OFF and no tenant SsoConfig, so the 'sso' host pin never fires
+    # and `global` on all three sides is the operator's own restriction.
+    before do
+      allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
+      allow(mock_auth_config).to receive(:restrict_to).and_return('password')
+      allow(mock_auth_config).to receive(:email_auth_enabled?).and_return(true)
+    end
+
+    def signin_config_double(restrict_to:, signin_enabled: true, sso_enabled: true)
+      instance_double(
+        Onetime::CustomDomain::SigninConfig,
+        domain_id: domain_id,
+        enabled?: true,
+        signin_enabled?: signin_enabled,
+        email_auth_enabled?: true,
+        sso_enabled?: sso_enabled,
+        restrict_to: restrict_to,
+      )
+    end
+
+    context 'with NO SigninConfig on the domain' do
+      it 'agrees' do
+        expect_three_way_parity
+      end
+
+      it 'resolves :unavailable — password defaults OFF on a custom domain, so the routes are dark' do
+        expect(gate_resolution).to be_unavailable
+        expect(display_resolution).to be_unavailable
+        expect(display_resolution.restrict_to).to eq('password')
+        expect(display_resolution.allows?('password')).to be(false)
+      end
+    end
+
+    context 'with an enabled SigninConfig AGREEING with the global restriction' do
+      before do
+        allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
+          .with(domain_id).and_return(signin_config_double(restrict_to: 'password'))
+      end
+
+      it 'agrees' do
+        expect_three_way_parity
+      end
+
+      it 'resolves :restricted — the domain opted sign-in in, so the method can run here' do
+        expect(gate_resolution).to be_restricted
+        expect(gate_resolution.restrict_to).to eq('password')
+        expect(gate_resolution.source).to eq(:domain)
+      end
+    end
+
+    context 'with an enabled SigninConfig agreeing but the method unavailable on this host' do
+      before do
+        allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
+          .with(domain_id).and_return(signin_config_double(restrict_to: 'password', signin_enabled: false))
+      end
+
+      it 'agrees' do
+        expect_three_way_parity
+      end
+
+      it 'resolves :unavailable rather than widening back to standard mode (A3)' do
+        expect(gate_resolution).to be_unavailable
+        expect(gate_resolution.allows?('password')).to be(false)
+        expect(gate_resolution.allows?('sso')).to be(false)
+      end
+    end
+
+    context 'with an enabled SigninConfig DISAGREEING with the global restriction' do
+      before do
+        allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
+          .with(domain_id).and_return(signin_config_double(restrict_to: 'sso'))
+      end
+
+      it 'agrees' do
+        expect_three_way_parity
+      end
+
+      it 'resolves :unavailable from the conflict source (A8), naming the operator method' do
+        expect(gate_resolution).to be_unavailable
+        expect(gate_resolution.source).to eq(:conflict)
+        expect(gate_resolution.restrict_to).to eq('password')
+      end
+    end
+
+    context 'with an SSO restriction on a host whose SSO ladder says yes' do
+      # ADR-024 A2 / #4139: restrict_to='sso' gates the SSO ROUTE, so its
+      # availability must come from the ladder that route obeys —
+      # sso_available_for_tenant_host? -> sso_permitted_for?, keyed on
+      # sso_enabled?. signin_enabled=false is the password/email opt-in and must
+      # NOT take this route dark; a short-circuit on it 404'd an SSO route
+      # apps/web/auth/config/hooks/omniauth_tenant.rb serves successfully.
+      before do
+        allow(mock_auth_config).to receive(:restrict_to).and_return(nil)
+        allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
+          .with(domain_id).and_return(
+            signin_config_double(restrict_to: 'sso', signin_enabled: false, sso_enabled: true)
+          )
+        allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
+          .with(domain_id).and_return(tenant_sso_config)
+      end
+
+      it 'agrees' do
+        expect_three_way_parity
+      end
+
+      it 'resolves restricted/sso despite signin_enabled=false' do
+        expect(gate_resolution).to be_restricted
+        expect(gate_resolution.restrict_to).to eq('sso')
+        expect(gate_resolution.source).to eq(:domain)
+      end
+    end
+  end
+
+  # RESIDUAL GAP, recorded rather than papered over. The display serializer and
+  # the route gate both pin 'sso' as the inherited restriction for a custom host
+  # with no enabled SigninConfig that is reachable only via SSO
+  # (ConfigSerializer#effective_global_restrict_to,
+  # Auth::RestrictTo.global_restrict_to). The settings API does not — it hands
+  # the resolver Onetime.auth_config.restrict_to verbatim — so it reports
+  # :unrestricted for a host that offers SSO alone. Same A2 drift shape as the
+  # four defects #4139 fixed, but a different input (the `global` VALUE, not the
+  # `available:` flag) and out of that scope: closing it means extracting the pin
+  # too, which changes what the settings page reports for every SSO-only tenant.
+  #
+  # Written as a pending example on purpose: it reds when someone fixes it,
+  # which is when this note should be deleted.
+  describe 'the SSO host pin does not reach the settings API' do
+    before do
+      allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+    end
+
+    it 'should agree with the two request-time consumers' do
+      pending 'settings API does not apply the SSO host pin — residual A2 gap, follow-up to #4139'
+
+      expect(settings_api_wire).to eq(gate_resolution.to_wire)
     end
   end
 

@@ -83,16 +83,14 @@ module Auth
     PRE_AUTH_ROUTES = {
       # --- password ---------------------------------------------------------
       login: 'password',
+      # These three are password routes by default, but become WebAuthn routes
+      # when Rodauth's webauthn_verify_account feature is loaded. See
+      # WEBAUTHN_VERIFY_ACCOUNT_ROUTES below.
       create_account: 'password',
-      reset_password_request: 'password',
-      reset_password: 'password',
-      # Account verification completes the password SIGNUP flow and autologins
-      # (verify_account_autologin?). Not named in A7's enumeration, included
-      # here deliberately: a key minted on an unrestricted host would otherwise
-      # replay on a restricted one and mint a session by a method that host
-      # does not offer. See the report note in #4139.
       verify_account: 'password',
       verify_account_resend: 'password',
+      reset_password_request: 'password',
+      reset_password: 'password',
 
       # --- email_auth (magic links) ----------------------------------------
       email_auth_request: 'email_auth',
@@ -102,6 +100,18 @@ module Auth
       webauthn_login: 'webauthn',
       webauthn_autofill_js: 'webauthn',
     }.freeze
+
+    # Rodauth's webauthn_verify_account feature changes the signup ceremony
+    # without changing its route names: create_account_set_password? and
+    # verify_account_set_password? become false, verification registers a
+    # WebAuthn credential, and its autologin is marked as `webauthn`. Resending
+    # the verification email must follow the same classification so that a
+    # WebAuthn-only signup can complete after an expired or lost email.
+    WEBAUTHN_VERIFY_ACCOUNT_ROUTES = [
+      :create_account,
+      :verify_account,
+      :verify_account_resend,
+    ].freeze
 
     # WebAuthn routes that are reachable only with a partially-authenticated
     # session (require_login + require_two_factor_not_authenticated), i.e. the
@@ -169,10 +179,15 @@ module Auth
       #
       # @param rodauth [Rodauth::Auth]
       def enforce_route!(rodauth)
-        method_name = GATED_ROUTES[rodauth.current_route]
+        route       = rodauth.current_route
+        method_name = GATED_ROUTES[route]
         return unless method_name
 
-        enforce_method!(rodauth, method_name, rodauth.current_route)
+        if WEBAUTHN_VERIFY_ACCOUNT_ROUTES.include?(route) && rodauth.features.include?(:webauthn_verify_account)
+          method_name = 'webauthn'
+        end
+
+        enforce_method!(rodauth, method_name, route)
       end
 
       # Gate an explicit sign-in method for the current request.
@@ -242,13 +257,125 @@ module Auth
         Onetime::CustomDomain::SigninConfig.resolve_restrict_to(
           global,
           signin_config,
-          # Post-boot availability of the global restriction (A3, runtime
-          # half). Gathered here — it reads live prerequisite state — but
-          # APPLIED by the resolver, so this gate, the display serializer and
-          # the settings API cannot drift on the rule. The value-keying that
-          # keeps the 'sso' host pin below out of AuthConfig's scope now lives
-          # in .global_restriction_available?.
-          available: Onetime::CustomDomain::SigninConfig.global_restriction_available?(global),
+          available: restriction_available_for_host?(
+            env,
+            global,
+            signin_config,
+            domain_id,
+          ),
+        )
+      rescue Redis::BaseError => ex
+        lookup_failure_resolution(env, ex, signin_config)
+      end
+
+      # Resolution for a request whose datastore reads failed.
+      #
+      # THREE READS CAN RAISE HERE, all on the hot path of every request to a
+      # custom host: the CustomDomain lookup, the SigninConfig lookup, and the
+      # SSO probes behind the 'sso' host pin and the availability gathering. So
+      # this path is reached by a transient blip, not only by a real outage, and
+      # what it returns is what every gated route on every custom domain does
+      # until the blip clears.
+      #
+      # FAIL CLOSED WHERE THAT IS LOAD-BEARING, AND ONLY THERE. When a
+      # restriction IS in force — the operator's global one, or a domain one we
+      # had already read before the failure — we cannot establish that its
+      # method is usable here, and A3 says a restriction whose method we cannot
+      # honor offers nothing. Widening would re-expose exactly the methods that
+      # restriction hides, which is the failure mode A3 exists to prevent.
+      #
+      # BUT A BLIP MUST NOT MANUFACTURE A RESTRICTION. On an install with
+      # nothing restricted anywhere, there is no access control to preserve and
+      # nothing to fail closed about; returning :unavailable would take every
+      # gated route on every custom domain to 404 — a self-inflicted auth
+      # outage, on an install whose correct answer is :unrestricted. That is a
+      # widening no one asked for in the other direction. #4139 shipped it
+      # briefly by moving the rescue up from domain_id_for, where it could only
+      # ever see the domain lookup.
+      #
+      # Note the asymmetry is decided by the GLOBAL value, which is in-memory
+      # config and cannot itself have failed, so the degrade path never guesses.
+      #
+      # @param env [Hash] Rack env
+      # @param exception [Redis::BaseError]
+      # @param signin_config [SigninConfig, nil] the domain config, when the
+      #   failure came after it was read
+      # @return [Onetime::CustomDomain::SigninConfig::RestrictToResolution]
+      def lookup_failure_resolution(env, exception, signin_config = nil)
+        global = Onetime.auth_config.restrict_to
+
+        unless env['onetime.domain_strategy'] == :custom
+          # A non-custom host has no per-domain half to lose: the global
+          # restriction is still fully known and still enforced.
+          log_domain_lookup_failure(env, exception)
+          return Onetime::CustomDomain::SigninConfig.resolve_restrict_to(
+            global,
+            nil,
+            available: Onetime::CustomDomain::SigninConfig.global_restriction_available?(global),
+          )
+        end
+
+        known = known_restriction(global, signin_config)
+        if known.nil?
+          log_domain_lookup_degraded(env, exception)
+          return Onetime::CustomDomain::SigninConfig::RestrictToResolution.unrestricted(:global)
+        end
+
+        log_domain_lookup_failure(env, exception)
+        Onetime::CustomDomain::SigninConfig::RestrictToResolution.unavailable(known[:restrict_to], known[:source])
+      end
+
+      # The restriction we can still name after a lookup failure, or nil when
+      # this install has none. The domain half wins the name when we got far
+      # enough to read it — it is the more specific of the two, and the
+      # :unavailable resolution carries the name only so a caller can render a
+      # method-specific notice.
+      def known_restriction(global, signin_config)
+        domain_value = signin_config&.enabled? ? signin_config.restrict_to.to_s.strip : ''
+        return { restrict_to: domain_value, source: :domain } unless domain_value.empty?
+
+        global_value = global.to_s.strip
+        return nil if global_value.empty?
+
+        { restrict_to: global_value, source: :global }
+      end
+
+      # Whether an inherited restriction is usable on this request host.
+      #
+      # Thin wrapper, on purpose: the availability POLICY is
+      # SigninConfig.restriction_available_for_request? (ADR-024 A2 — the
+      # display serializer and the settings API ask the same method, so no
+      # consumer can narrow an inherited restriction the others do not). All
+      # that belongs to the web layer is reading the request classification out
+      # of the Rack env, which is what this does.
+      def restriction_available_for_host?(env, global, signin_config, domain_id)
+        Onetime::CustomDomain::SigninConfig.restriction_available_for_request?(
+          global,
+          signin_config,
+          domain_id: domain_id,
+          custom_host: env['onetime.domain_strategy'] == :custom,
+        )
+      end
+
+      def log_domain_lookup_failure(env, exception)
+        Auth::Logging.log_auth_event(
+          :restrict_to_domain_lookup_failed,
+          level: :error,
+          host: env['onetime.display_domain'],
+          error: exception.message,
+        )
+      end
+
+      # Distinct event for the degrade-to-unrestricted path: the gate is down
+      # on this host and NOTHING is being enforced. An operator watching only
+      # the fail-closed event would see 404s and know; this one is silent by
+      # design and must be visible on its own.
+      def log_domain_lookup_degraded(env, exception)
+        Auth::Logging.log_auth_event(
+          :restrict_to_domain_lookup_degraded,
+          level: :error,
+          host: env['onetime.display_domain'],
+          error: exception.message,
         )
       end
 
@@ -292,18 +419,6 @@ module Auth
         return nil if display_domain.to_s.empty?
 
         Onetime::CustomDomain.load_by_display_domain(display_domain)&.identifier
-      rescue Redis::BaseError => ex
-        # FAIL CLOSED is not available here: with no domain identity we cannot
-        # tell a restricted host from an unrestricted one, and returning nil
-        # falls back to the GLOBAL restriction, which is still enforced. Logged
-        # loudly because it silently drops the per-domain half of the gate.
-        Auth::Logging.log_auth_event(
-          :restrict_to_domain_lookup_failed,
-          level: :error,
-          host: display_domain,
-          error: ex.message,
-        )
-        nil
       end
 
       # The router's shared 404 — a gated route must be indistinguishable from

@@ -36,21 +36,21 @@ RSpec.describe Auth::RestrictTo do
   # current_route, request.env, request.path and the halt. `internal_request?`
   # is private on the real object, which is why the gate reaches it with send —
   # the double mirrors that.
-  def rodauth_double(route, internal: false)
+  def rodauth_double(route, internal: false, features: [])
     request = double('request', env: { 'onetime.display_domain' => 'tenant.example.com' }, path: "/#{route}")
     allow(request).to receive(:halt) { |response| throw :halted, response }
 
-    instance = double('rodauth', current_route: route, request: request)
+    instance = double('rodauth', current_route: route, request: request, features: features)
     allow(instance).to receive(:send).with(:internal_request?).and_return(internal)
     instance
   end
 
   # Runs the gate and returns the halt response, or nil when it allowed through.
-  def gate(route, resolution, internal: false)
+  def gate(route, resolution, internal: false, features: [])
     allow(described_class).to receive(:resolution_for).and_return(resolution)
 
     catch(:halted) do
-      described_class.enforce_route!(rodauth_double(route, internal: internal))
+      described_class.enforce_route!(rodauth_double(route, internal: internal, features: features))
       nil
     end
   end
@@ -81,6 +81,24 @@ RSpec.describe Auth::RestrictTo do
         it "allows #{route} when the host permits #{method_name}" do
           expect(gate(route, resolution_class.restricted(method_name, :domain))).to be_nil
         end
+      end
+    end
+  end
+
+  describe 'webauthn_verify_account signup routes' do
+    let(:features) { [:webauthn_verify_account] }
+
+    described_class::WEBAUTHN_VERIFY_ACCOUNT_ROUTES.each do |route|
+      it "allows #{route} on a WebAuthn-only host" do
+        resolution = resolution_class.restricted('webauthn', :global)
+
+        expect(gate(route, resolution, features: features)).to be_nil
+      end
+
+      it "404s #{route} on a password-only host" do
+        resolution = resolution_class.restricted('password', :global)
+
+        expect(gate(route, resolution, features: features)&.first).to eq(404)
       end
     end
   end
@@ -132,6 +150,178 @@ RSpec.describe Auth::RestrictTo do
 
       expect(described_class.allows?({}, 'sso')).to be true
       expect(described_class.allows?({}, 'password')).to be false
+    end
+  end
+
+  describe '.resolution_for custom-host capability' do
+    let(:domain_id) { 'domain-4139' }
+    let(:env) do
+      {
+        'onetime.display_domain' => 'tenant.example.com',
+        'onetime.domain_strategy' => :custom,
+      }
+    end
+    let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: domain_id) }
+
+    before do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+        .with('tenant.example.com').and_return(custom_domain)
+      allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
+        .with(domain_id).and_return(nil)
+      allow(Onetime.auth_config).to receive(:restrict_to).and_return('sso')
+      allow(Onetime::CustomDomain::SigninConfig).to receive(:global_restriction_available?)
+        .with('sso').and_return(true)
+    end
+
+    it 'fails an inherited SSO restriction closed when this host has no usable SSO path' do
+      allow(Onetime::CustomDomain::SsoConfig).to receive(:sso_available_for_tenant_host?)
+        .with(domain_id).and_return(false)
+
+      expect(described_class.resolution_for(env)).to be_unavailable
+    end
+
+    it 'keeps an inherited SSO restriction when the host predicate finds tenant or platform-fallback SSO' do
+      allow(Onetime::CustomDomain::SsoConfig).to receive(:sso_available_for_tenant_host?)
+        .with(domain_id).and_return(true)
+
+      resolution = described_class.resolution_for(env)
+
+      expect(resolution).to be_restricted
+      expect(resolution.allows?('sso')).to be(true)
+    end
+  end
+
+  # A datastore blip on the hot path is not the same event as a restriction we
+  # cannot honor, and #4139 briefly conflated them: the rescue moved up from
+  # domain_id_for to resolution_for, where it also catches the SigninConfig
+  # read and the SSO probes, and returned :unavailable for EVERY custom host.
+  # On an install with nothing restricted anywhere that turned a transient
+  # error into a self-inflicted auth outage — every gated route 404 on every
+  # custom domain — where the correct answer is :unrestricted.
+  #
+  # The rule the cases below pin: fail closed only where a restriction is
+  # actually in force. The deciding input is the GLOBAL value, which is
+  # in-memory config and cannot itself have failed, plus a domain restriction
+  # if we got far enough to read one.
+  describe '.resolution_for lookup failures' do
+    let(:custom_env) do
+      {
+        'onetime.display_domain' => 'tenant.example.com',
+        'onetime.domain_strategy' => :custom,
+      }
+    end
+
+    before do
+      allow(Auth::Logging).to receive(:log_auth_event)
+      allow(Onetime.auth_config).to receive(:restrict_to).and_return('password')
+      allow(Onetime::CustomDomain::SigninConfig).to receive(:global_restriction_available?).and_return(true)
+    end
+
+    it 'fails closed when the classified custom host cannot be resolved' do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+        .with('tenant.example.com').and_raise(Redis::BaseError, 'lookup unavailable')
+
+      resolution = described_class.resolution_for(custom_env)
+
+      expect(resolution).to be_unavailable
+      expect(resolution.allows?('password')).to be(false)
+      expect(resolution.allows?('sso')).to be(false)
+    end
+
+    it 'names the standing restriction so a notice can still be method-specific' do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+        .with('tenant.example.com').and_raise(Redis::BaseError, 'lookup unavailable')
+
+      resolution = described_class.resolution_for(custom_env)
+
+      expect(resolution.restrict_to).to eq('password')
+      expect(resolution.source).to eq(:global)
+    end
+
+    it 'fails closed when the classified custom host signin config lookup fails' do
+      domain = instance_double(Onetime::CustomDomain, identifier: 'domain-4139')
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
+      allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
+        .with('domain-4139').and_raise(Redis::BaseError, 'config unavailable')
+
+      expect(described_class.resolution_for(custom_env)).to be_unavailable
+    end
+
+    context 'with NO restriction configured anywhere' do
+      before { allow(Onetime.auth_config).to receive(:restrict_to).and_return(nil) }
+
+      it 'degrades to :unrestricted — a blip must not manufacture a restriction' do
+        allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+          .with('tenant.example.com').and_raise(Redis::BaseError, 'lookup unavailable')
+
+        resolution = described_class.resolution_for(custom_env)
+
+        expect(resolution).to be_unrestricted
+        expect(resolution.allows?('password')).to be(true)
+        expect(resolution.allows?('sso')).to be(true)
+      end
+
+      it 'degrades on the SSO probe too — that read is on the hot path of every request' do
+        domain = instance_double(Onetime::CustomDomain, identifier: 'domain-4139')
+        allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
+        allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
+          .with('domain-4139').and_return(nil)
+        allow(Onetime::CustomDomain::SsoConfig).to receive(:sso_available_for_tenant_host?)
+          .and_raise(Redis::BaseError, 'sso probe unavailable')
+
+        expect(described_class.resolution_for(custom_env)).to be_unrestricted
+      end
+
+      it 'logs the degrade distinctly — nothing is being enforced and that is silent otherwise' do
+        allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+          .with('tenant.example.com').and_raise(Redis::BaseError, 'lookup unavailable')
+
+        described_class.resolution_for(custom_env)
+
+        expect(Auth::Logging).to have_received(:log_auth_event)
+          .with(:restrict_to_domain_lookup_degraded, hash_including(level: :error))
+      end
+
+      it 'still fails closed for a DOMAIN restriction read before the failure' do
+        domain        = instance_double(Onetime::CustomDomain, identifier: 'domain-4139')
+        signin_config = instance_double(
+          Onetime::CustomDomain::SigninConfig,
+          domain_id: 'domain-4139',
+          enabled?: true,
+          signin_enabled?: true,
+          restrict_to: 'sso',
+        )
+        allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
+        allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
+          .with('domain-4139').and_return(signin_config)
+        allow(Onetime::CustomDomain::SsoConfig).to receive(:sso_available_for_tenant_host?)
+          .and_raise(Redis::BaseError, 'sso probe unavailable')
+
+        resolution = described_class.resolution_for(custom_env)
+
+        expect(resolution).to be_unavailable
+        expect(resolution.restrict_to).to eq('sso')
+        expect(resolution.source).to eq(:domain)
+        expect(Auth::Logging).to have_received(:log_auth_event)
+          .with(:restrict_to_domain_lookup_failed, hash_including(level: :error))
+      end
+    end
+
+    it 'preserves global fallback semantics for a non-custom host lookup failure' do
+      canonical_env = {
+        'onetime.display_domain' => 'example.com',
+        'onetime.domain_strategy' => :canonical,
+      }
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+        .with('example.com').and_raise(Redis::BaseError, 'lookup unavailable')
+      allow(Onetime.auth_config).to receive(:restrict_to).and_return('password')
+      allow(Onetime::CustomDomain::SigninConfig).to receive(:global_restriction_available?)
+        .with('password').and_return(true)
+
+      resolution = described_class.resolution_for(canonical_env)
+
+      expect(resolution).to be_restricted
+      expect(resolution.allows?('password')).to be(true)
     end
   end
 end
