@@ -502,6 +502,10 @@ module ProductionConfigHelper
   # privileges. Use AUTH_DATABASE_URL_MIGRATIONS (onetime_migrator) when available.
   def clear_auth_database
     db = Auth::Database.connection
+    # Simple mode has no SQL auth database (connection returns nil), but specs
+    # tagged type: :integration still run in that lane. Nothing to clear.
+    return if db.nil?
+
     # Preserve schema bookkeeping and seed-once reference tables (PRESERVED_TABLES).
     tables = db.tables - AuthTestConstants::PRESERVED_TABLES
     return if tables.empty?
