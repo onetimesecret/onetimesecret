@@ -117,6 +117,15 @@ with_brand_conf({ 'og_image_url' => '/social-preview.png' }) do
 end
 #=> [true, true]
 
+## a bare-relative card is treated as a root path and absolutized too — pack
+## assets all serve from the root, and a relative og:image is ignored by scrapers
+with_brand_conf({ 'og_image_url' => 'social-preview.png' }) do
+  vars = @host.initialize_view_vars(Rack::Request.new(build_env))
+  u = vars['brand_og_image_url']
+  [u.start_with?('http://', 'https://'), u.end_with?('/social-preview.png')]
+end
+#=> [true, true]
+
 ## a protocol-relative card is left alone (already scheme-resolvable, not a path)
 with_brand_conf({ 'og_image_url' => '//cdn.acme.test/card.png' }) do
   vars = @host.initialize_view_vars(Rack::Request.new(build_env))

@@ -233,16 +233,20 @@ module Core
         #     operator's card on a customer's shared link. Same reasoning as
         #     show_default_svg_favicon below, which suppresses the canonical SVG
         #     for exactly this class of shadowing.
-        #   - a root-relative value is absolutized against baseuri, since social
-        #     scrapers require an absolute og:image.
+        #   - any value that is not already scheme-resolvable (no `scheme:`, no
+        #     protocol-relative `//`) is treated as a path and absolutized
+        #     against baseuri, since social scrapers require an absolute
+        #     og:image. That covers the pack-resolved `/social-preview.png` and
+        #     also an operator's bare `social-preview.png`, which serves from
+        #     the root like every other pack asset.
         #
         # nil means "emit no image tags"; the head partial branches on it, and
         # twitter:card degrades from summary_large_image to summary so the card
         # still renders correctly without an image.
         brand_og_image_url          = brand_config['og_image_url'].to_s.strip
         brand_og_image_url          = nil if brand_og_image_url.empty? || domain_strategy == :custom
-        if brand_og_image_url&.start_with?('/') && !brand_og_image_url.start_with?('//')
-          brand_og_image_url = "#{baseuri}#{brand_og_image_url}"
+        if brand_og_image_url && !brand_og_image_url.match?(%r{\A(?:[a-z][a-z0-9+.-]*:|//)}i)
+          brand_og_image_url = "#{baseuri}/#{brand_og_image_url.delete_prefix('/')}"
         end
         twitter_card_type           = brand_og_image_url ? 'summary_large_image' : 'summary'
 
