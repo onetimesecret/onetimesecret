@@ -24,6 +24,15 @@
 #   (A7, "Scope, settled"): it governs account-scoped credential MANAGEMENT for
 #   an already-identified user, where an actionable error beats a mystery.
 #
+#   ONE EXCEPTION: 503 when the policy itself
+#   could not be READ (Onetime::SigninPolicyUnavailable, raised from
+#   resolution_for). A 404 here would be the gate claiming a restriction it
+#   never managed to look up — mystery not-founds on the sign-in routes of an
+#   install that may restrict nothing, indistinguishable from a routing
+#   regression. A7's 404 hides policy-gated methods; an unreadable policy has
+#   nothing to hide, and "the backend read failed, retry" is both the truth and
+#   the alertable signal.
+#
 # MECHANISM — before_rodauth
 #   Rodauth builds `route_hash` once and FREEZES it in post_configure, and
 #   `route!` is a frozen-hash lookup — returning nil from `login_route` per
@@ -232,8 +241,17 @@ module Auth
       # NARROWING FILTER ONLY — callers still AND this with the method's own
       # enablement check (see RestrictToResolution#allows?).
       #
+      # RAISES RATHER THAN ANSWERING when the policy for this host could not be
+      # read (Onetime::SigninPolicyUnavailable → 503; see resolution_for). A
+      # boolean cannot carry "I do not know", and every caller of this method
+      # is a gate whose false is a 404 — the one shape that must NOT stand in
+      # for an unreadable policy. Callers do not rescue it: both edges
+      # translate it (Auth::ErrorTranslator for the Roda auth router,
+      # otto_hooks for Core and the invite API).
+      #
       # @param env [Hash] Rack env
       # @param method_name [String, Symbol]
+      # @raise [Onetime::SigninPolicyUnavailable] on an unreadable host policy
       # @return [Boolean]
       def allows?(env, method_name)
         resolution_for(env).allows?(method_name)
@@ -248,6 +266,8 @@ module Auth
       # consumer, so the rendered page and the route gate cannot disagree.
       #
       # @param env [Hash] Rack env
+      # @raise [Onetime::SigninPolicyUnavailable] when a datastore read failed
+      #   on a host that could have a per-domain policy, so its policy is unknown
       # @return [Onetime::CustomDomain::SigninConfig::RestrictToResolution]
       def resolution_for(env)
         domain_id     = domain_id_for(env)
@@ -265,79 +285,20 @@ module Auth
           ),
         )
       rescue Redis::BaseError => ex
-        lookup_failure_resolution(env, ex, signin_config)
-      end
-
-      # Resolution for a request whose datastore reads failed.
-      #
-      # THREE READS CAN RAISE HERE, all on the hot path of every request to a
-      # custom host: the CustomDomain lookup, the SigninConfig lookup, and the
-      # SSO probes behind the 'sso' host pin and the availability gathering. So
-      # this path is reached by a transient blip, not only by a real outage, and
-      # what it returns is what every gated route on every custom domain does
-      # until the blip clears.
-      #
-      # FAIL CLOSED WHERE THAT IS LOAD-BEARING, AND ONLY THERE. When a
-      # restriction IS in force — the operator's global one, or a domain one we
-      # had already read before the failure — we cannot establish that its
-      # method is usable here, and A3 says a restriction whose method we cannot
-      # honor offers nothing. Widening would re-expose exactly the methods that
-      # restriction hides, which is the failure mode A3 exists to prevent.
-      #
-      # BUT A BLIP MUST NOT MANUFACTURE A RESTRICTION. On an install with
-      # nothing restricted anywhere, there is no access control to preserve and
-      # nothing to fail closed about; returning :unavailable would take every
-      # gated route on every custom domain to 404 — a self-inflicted auth
-      # outage, on an install whose correct answer is :unrestricted. That is a
-      # widening no one asked for in the other direction. #4139 shipped it
-      # briefly by moving the rescue up from domain_id_for, where it could only
-      # ever see the domain lookup.
-      #
-      # Note the asymmetry is decided by the GLOBAL value, which is in-memory
-      # config and cannot itself have failed, so the degrade path never guesses.
-      #
-      # @param env [Hash] Rack env
-      # @param exception [Redis::BaseError]
-      # @param signin_config [SigninConfig, nil] the domain config, when the
-      #   failure came after it was read
-      # @return [Onetime::CustomDomain::SigninConfig::RestrictToResolution]
-      def lookup_failure_resolution(env, exception, signin_config = nil)
-        global = Onetime.auth_config.restrict_to
-
-        unless env['onetime.domain_strategy'] == :custom
-          # A non-custom host has no per-domain half to lose: the global
-          # restriction is still fully known and still enforced.
-          log_domain_lookup_failure(env, exception)
-          return Onetime::CustomDomain::SigninConfig.resolve_restrict_to(
-            global,
-            nil,
-            available: Onetime::CustomDomain::SigninConfig.global_restriction_available?(global),
-          )
-        end
-
-        known = known_restriction(global, signin_config)
-        if known.nil?
-          log_domain_lookup_degraded(env, exception)
-          return Onetime::CustomDomain::SigninConfig::RestrictToResolution.unrestricted(:global)
-        end
-
-        log_domain_lookup_failure(env, exception)
-        Onetime::CustomDomain::SigninConfig::RestrictToResolution.unavailable(known[:restrict_to], known[:source])
-      end
-
-      # The restriction we can still name after a lookup failure, or nil when
-      # this install has none. The domain half wins the name when we got far
-      # enough to read it — it is the more specific of the two, and the
-      # :unavailable resolution carries the name only so a caller can render a
-      # method-specific notice.
-      def known_restriction(global, signin_config)
-        domain_value = signin_config&.enabled? ? signin_config.restrict_to.to_s.strip : ''
-        return { restrict_to: domain_value, source: :domain } unless domain_value.empty?
-
-        global_value = global.to_s.strip
-        return nil if global_value.empty?
-
-        { restrict_to: global_value, source: :global }
+        # THREE READS CAN RAISE HERE, all on the hot path of every request to a
+        # custom host: the CustomDomain lookup, the SigninConfig lookup, and the
+        # SSO probes behind the 'sso' host pin and the availability gathering.
+        # So this path is reached by a transient blip, not only by a real
+        # outage — which is exactly why it may not guess. The rule (fail closed
+        # unless the host is positively one of the operator's own, whose policy
+        # is in-memory and therefore still fully known) is
+        # SigninConfig.resolve_lookup_failure, shared with the simple-mode gate
+        # so both cannot drift; all that belongs here is the logging and reading
+        # the request classification out of the Rack env.
+        log_domain_lookup_failure(env, ex)
+        Onetime::CustomDomain::SigninConfig.resolve_lookup_failure(
+          domain_strategy: env['onetime.domain_strategy'],
+        )
       end
 
       # Whether an inherited restriction is usable on this request host.
@@ -360,19 +321,6 @@ module Auth
       def log_domain_lookup_failure(env, exception)
         Auth::Logging.log_auth_event(
           :restrict_to_domain_lookup_failed,
-          level: :error,
-          host: env['onetime.display_domain'],
-          error: exception.message,
-        )
-      end
-
-      # Distinct event for the degrade-to-unrestricted path: the gate is down
-      # on this host and NOTHING is being enforced. An operator watching only
-      # the fail-closed event would see 404s and know; this one is silent by
-      # design and must be visible on its own.
-      def log_domain_lookup_degraded(env, exception)
-        Auth::Logging.log_auth_event(
-          :restrict_to_domain_lookup_degraded,
           level: :error,
           host: env['onetime.display_domain'],
           error: exception.message,

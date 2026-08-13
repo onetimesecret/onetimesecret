@@ -234,6 +234,51 @@ RSpec.describe 'restrict_to enforcement — simple mode (ADR-024 A1/A7, #4139)',
   end
 
   # ---------------------------------------------------------------------------
+  # An UNREADABLE policy (#4139). The per-domain half of restrict_to is a
+  # datastore read; when it fails the gate does not know what this host permits
+  # and must not guess. What it must NOT do is answer with the gate's own 404:
+  # that shape is built to be indistinguishable from an undefined route, so a
+  # blip would read as a routing regression on an install that may restrict
+  # nothing. 503 is the honest, alertable answer — and it is what makes
+  # unconditional fail-closed survivable.
+  # ---------------------------------------------------------------------------
+  describe 'when the host policy cannot be read' do
+    it '503s POST /auth/login on a custom host, not 404' do
+      host = build_restricted_domain('password')
+      allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
+        .and_raise(Redis::BaseError, 'datastore unavailable')
+
+      response = post_login(host)
+
+      expect(response.status).to eq(503),
+        "expected an unreadable policy to answer 503, got #{response.status}: #{response.body[0, 300]}"
+
+      body = JSON.parse(response.body)
+      expect(body['error_type']).to eq('SigninPolicyUnavailable')
+      expect(response.headers['retry-after']).to eq(Onetime::SigninPolicyUnavailable::RETRY_AFTER.to_s)
+    end
+
+    it 'does not fail an operator host — its restriction is in-memory and still known' do
+      # domains_enabled OFF for this example only: with it on, DomainStrategy
+      # classifies the test canonical host (an IP:port, which PublicSuffix
+      # rejects) :invalid, and :invalid fails closed by design. Off is also the
+      # honest shape of the case under test — an install with no custom domains
+      # has nothing per-domain to lose when a datastore read fails.
+      features                  = Onetime::Runtime.features
+      Onetime::Runtime.features = features.with(domains_enabled: false)
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+        .and_raise(Redis::BaseError, 'datastore unavailable')
+
+      response = post_login(Onetime::Middleware::DomainStrategy.canonical_domain)
+
+      expect(response.status).not_to eq(503),
+        'an operator host has no per-domain half to lose and must stay reachable'
+    ensure
+      Onetime::Runtime.features = features if features
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # The other three pre-auth password surfaces (#4139, ADR-024 A7).
   #
   # These are served by Core::Controllers::Registration in simple mode and were

@@ -570,6 +570,15 @@ module Core
           OT.le "[ConfigSerializer] Redis error resolving domain_id for domain=#{display_domain}: #{ex.class}"
           nil
         end
+        # ASYMMETRIC WITH THE GATES ON PURPOSE (#4139). The runtime gates raise
+        # Onetime::SigninPolicyUnavailable when this same read fails, because a
+        # gate that cannot read the policy must not decide. This is the DISPLAY
+        # half: degrading to the global-only answer costs nothing an attacker
+        # can spend — every method it might over-advertise is still rejected by
+        # the gate the form posts to, so the safe ordering (gate at least as
+        # narrow as the page) holds in the one direction that matters. Raising
+        # here instead would take the whole bootstrap payload down, i.e. a blank
+        # app rather than a page whose submit answers 503.
 
         # Check if request is from a tenant/custom domain
         #

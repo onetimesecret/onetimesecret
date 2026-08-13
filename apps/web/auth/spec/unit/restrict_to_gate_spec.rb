@@ -191,18 +191,19 @@ RSpec.describe Auth::RestrictTo do
     end
   end
 
-  # A datastore blip on the hot path is not the same event as a restriction we
-  # cannot honor, and #4139 briefly conflated them: the rescue moved up from
-  # domain_id_for to resolution_for, where it also catches the SigninConfig
-  # read and the SSO probes, and returned :unavailable for EVERY custom host.
-  # On an install with nothing restricted anywhere that turned a transient
-  # error into a self-inflicted auth outage — every gated route 404 on every
-  # custom domain — where the correct answer is :unrestricted.
+  # An unreadable policy is not a policy. Three reads on the hot path of every
+  # custom-host request can raise — the CustomDomain identity, the SigninConfig,
+  # the SSO probes — and when one does, the gate does not know what this host
+  # permits. It answers by raising, and the edge renders 503.
   #
-  # The rule the cases below pin: fail closed only where a restriction is
-  # actually in force. The deciding input is the GLOBAL value, which is
-  # in-memory config and cannot itself have failed, plus a domain restriction
-  # if we got far enough to read one.
+  # NO GUESSING IN EITHER DIRECTION, which is what the cases below pin. An
+  # earlier cut of #4139 keyed the answer on the GLOBAL value: fail closed when
+  # something was globally restricted, degrade to :unrestricted when nothing
+  # was. That reads as prudent and is not — the global value describes the
+  # install, not this host, so on an install with no global restriction a blip
+  # silently dropped the per-domain gate and served every method the domain
+  # config exists to hide. The objection it was protecting against (mystery
+  # 404s on an unrestricted install) is answered by the 503, not by widening.
   describe '.resolution_for lookup failures' do
     let(:custom_env) do
       {
@@ -221,21 +222,8 @@ RSpec.describe Auth::RestrictTo do
       allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
         .with('tenant.example.com').and_raise(Redis::BaseError, 'lookup unavailable')
 
-      resolution = described_class.resolution_for(custom_env)
-
-      expect(resolution).to be_unavailable
-      expect(resolution.allows?('password')).to be(false)
-      expect(resolution.allows?('sso')).to be(false)
-    end
-
-    it 'names the standing restriction so a notice can still be method-specific' do
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
-        .with('tenant.example.com').and_raise(Redis::BaseError, 'lookup unavailable')
-
-      resolution = described_class.resolution_for(custom_env)
-
-      expect(resolution.restrict_to).to eq('password')
-      expect(resolution.source).to eq(:global)
+      expect { described_class.resolution_for(custom_env) }
+        .to raise_error(Onetime::SigninPolicyUnavailable)
     end
 
     it 'fails closed when the classified custom host signin config lookup fails' do
@@ -244,67 +232,74 @@ RSpec.describe Auth::RestrictTo do
       allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
         .with('domain-4139').and_raise(Redis::BaseError, 'config unavailable')
 
-      expect(described_class.resolution_for(custom_env)).to be_unavailable
+      expect { described_class.resolution_for(custom_env) }
+        .to raise_error(Onetime::SigninPolicyUnavailable)
     end
 
-    context 'with NO restriction configured anywhere' do
+    it 'fails closed on the SSO probe too — that read is on the hot path of every request' do
+      domain = instance_double(Onetime::CustomDomain, identifier: 'domain-4139')
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
+      allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
+        .with('domain-4139').and_return(nil)
+      allow(Onetime::CustomDomain::SsoConfig).to receive(:sso_available_for_tenant_host?)
+        .and_raise(Redis::BaseError, 'sso probe unavailable')
+
+      expect { described_class.resolution_for(custom_env) }
+        .to raise_error(Onetime::SigninPolicyUnavailable)
+    end
+
+    it 'logs the failure — an auth surface is down and it must alert' do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+        .with('tenant.example.com').and_raise(Redis::BaseError, 'lookup unavailable')
+
+      expect { described_class.resolution_for(custom_env) }
+        .to raise_error(Onetime::SigninPolicyUnavailable)
+
+      expect(Auth::Logging).to have_received(:log_auth_event)
+        .with(:restrict_to_domain_lookup_failed, hash_including(level: :error))
+    end
+
+    it 'carries a retry_after so the edge can hint a back-off' do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+        .with('tenant.example.com').and_raise(Redis::BaseError, 'lookup unavailable')
+
+      expect { described_class.resolution_for(custom_env) }
+        .to raise_error(Onetime::SigninPolicyUnavailable) { |ex|
+          expect(ex.to_h[:error_type]).to eq('SigninPolicyUnavailable')
+          expect(ex.to_h[:retry_after]).to be_a(Integer)
+        }
+    end
+
+    # The widen an earlier cut of this gate allowed, pinned as a rejection: the
+    # install restricts nothing globally, so the OLD rule degraded to
+    # :unrestricted and served the very methods a per-domain restriction we
+    # never got to read may have hidden.
+    context 'with NO restriction configured globally' do
       before { allow(Onetime.auth_config).to receive(:restrict_to).and_return(nil) }
 
-      it 'degrades to :unrestricted — a blip must not manufacture a restriction' do
+      it 'still fails closed — a blank global says nothing about this host' do
         allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
           .with('tenant.example.com').and_raise(Redis::BaseError, 'lookup unavailable')
 
-        resolution = described_class.resolution_for(custom_env)
-
-        expect(resolution).to be_unrestricted
-        expect(resolution.allows?('password')).to be(true)
-        expect(resolution.allows?('sso')).to be(true)
+        expect { described_class.resolution_for(custom_env) }
+          .to raise_error(Onetime::SigninPolicyUnavailable)
       end
+    end
 
-      it 'degrades on the SSO probe too — that read is on the hot path of every request' do
-        domain = instance_double(Onetime::CustomDomain, identifier: 'domain-4139')
-        allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
-        allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
-          .with('domain-4139').and_return(nil)
-        allow(Onetime::CustomDomain::SsoConfig).to receive(:sso_available_for_tenant_host?)
-          .and_raise(Redis::BaseError, 'sso probe unavailable')
+    # The carve-out below is a positive test for an OPERATOR host, not
+    # `!= :custom`. A host DomainStrategy could not classify answers :invalid —
+    # which is exactly what a failing domain-index read produces for a host
+    # that IS a custom domain — so it must fail closed with the rest.
+    it 'fails closed on a host that could not be classified' do
+      unclassified_env = {
+        'onetime.display_domain' => 'tenant.example.com',
+        'onetime.domain_strategy' => :invalid,
+      }
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+        .with('tenant.example.com').and_raise(Redis::BaseError, 'lookup unavailable')
 
-        expect(described_class.resolution_for(custom_env)).to be_unrestricted
-      end
-
-      it 'logs the degrade distinctly — nothing is being enforced and that is silent otherwise' do
-        allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
-          .with('tenant.example.com').and_raise(Redis::BaseError, 'lookup unavailable')
-
-        described_class.resolution_for(custom_env)
-
-        expect(Auth::Logging).to have_received(:log_auth_event)
-          .with(:restrict_to_domain_lookup_degraded, hash_including(level: :error))
-      end
-
-      it 'still fails closed for a DOMAIN restriction read before the failure' do
-        domain        = instance_double(Onetime::CustomDomain, identifier: 'domain-4139')
-        signin_config = instance_double(
-          Onetime::CustomDomain::SigninConfig,
-          domain_id: 'domain-4139',
-          enabled?: true,
-          signin_enabled?: true,
-          restrict_to: 'sso',
-        )
-        allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
-        allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
-          .with('domain-4139').and_return(signin_config)
-        allow(Onetime::CustomDomain::SsoConfig).to receive(:sso_available_for_tenant_host?)
-          .and_raise(Redis::BaseError, 'sso probe unavailable')
-
-        resolution = described_class.resolution_for(custom_env)
-
-        expect(resolution).to be_unavailable
-        expect(resolution.restrict_to).to eq('sso')
-        expect(resolution.source).to eq(:domain)
-        expect(Auth::Logging).to have_received(:log_auth_event)
-          .with(:restrict_to_domain_lookup_failed, hash_including(level: :error))
-      end
+      expect { described_class.resolution_for(unclassified_env) }
+        .to raise_error(Onetime::SigninPolicyUnavailable)
     end
 
     it 'preserves global fallback semantics for a non-custom host lookup failure' do

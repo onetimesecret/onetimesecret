@@ -52,6 +52,12 @@ module Onetime
       # Valid values for restrict_to — matches AuthConfig::RESTRICT_TO_VALUES
       RESTRICT_TO_VALUES = %w[password email_auth webauthn sso].freeze
 
+      # DomainStrategy classifications for the operator's OWN surfaces, the
+      # only hosts no per-domain config can speak for. Used by
+      # resolve_lookup_failure to decide who survives an unreadable policy;
+      # :custom, :invalid and nil all fail closed there.
+      OPERATOR_HOST_STRATEGIES = [:canonical, :subdomain].freeze
+
       # Result of `restrict_to` resolution (ADR-024 A2).
       #
       # Three EXPLICIT states, because the three gates that consume it need to
@@ -503,6 +509,61 @@ module Onetime
           return RestrictToResolution.unavailable(domain_value, :domain) if domain_dead
 
           RestrictToResolution.restricted(domain_value, :domain)
+        end
+
+        # What a gate answers when the policy for this request host could NOT
+        # be read (ADR-024 A1/A3, #4139).
+        #
+        # UNCONDITIONAL FAIL-CLOSED ON A CUSTOM HOST. Half the policy for such
+        # a host lives in the datastore — the CustomDomain identity, its
+        # SigninConfig, the SSO availability probes — so a read failure means
+        # the gate does not know what this host permits. It must not guess in
+        # either direction: continuing with the global half alone re-exposes
+        # exactly the methods a per-domain restriction hides (the A3 failure
+        # mode), and degrading to "unrestricted because nothing is globally
+        # restricted" makes the answer depend on a value that says nothing
+        # about this host. Sign-in fails, loudly, until the read works.
+        #
+        # The 503 is what makes that survivable. See
+        # Onetime::SigninPolicyUnavailable: the gate's normal reject shape is a
+        # 404 that deliberately looks like an undefined route, and wearing it
+        # here would manufacture a mystery restriction on an install that has
+        # none. An honest, alertable "backend read failed" does not.
+        #
+        # OPERATOR HOSTS ARE CARVED OUT, and this is not a softening: a
+        # canonical or subdomain request has no per-domain half to lose. Its
+        # restriction is the operator's global one, which is in-memory config
+        # that cannot have failed, so the policy is still fully known and still
+        # enforced. Failing those requests would take the canonical sign-in page
+        # dark for a read that could only ever have narrowed a host this request
+        # is not on.
+        #
+        # The carve-out is a POSITIVE test against those two classifications,
+        # not `!= :custom`. DomainStrategy also answers :invalid (and nil, for
+        # a request that never passed through it) for hosts it could not
+        # classify — including, when the domain index read is the one that
+        # failed, a host that IS a customer's custom domain. Carving out
+        # everything that is not :custom would hand those the global-only
+        # answer, which is the widen this whole path exists to refuse.
+        #
+        # @param domain_strategy [Symbol, nil] env['onetime.domain_strategy']
+        # @raise [Onetime::SigninPolicyUnavailable] on any host that is not positively an operator host
+        # @return [RestrictToResolution] the global-only resolution, on an operator host
+        def resolve_lookup_failure(domain_strategy:)
+          raise Onetime::SigninPolicyUnavailable unless operator_host?(domain_strategy)
+
+          global = Onetime.auth_config.restrict_to
+          resolve_restrict_to(global, nil, available: global_restriction_available?(global))
+        end
+
+        # Whether the request host's sign-in policy is entirely in-memory
+        # config — i.e. no per-domain override can apply to it, so a datastore
+        # failure costs it nothing. See resolve_lookup_failure.
+        #
+        # @param domain_strategy [Symbol, String, nil] env['onetime.domain_strategy']
+        # @return [Boolean]
+        def operator_host?(domain_strategy)
+          OPERATOR_HOST_STRATEGIES.include?(domain_strategy&.to_sym)
         end
 
         # The `available:` input to resolve_restrict_to for a caller that has

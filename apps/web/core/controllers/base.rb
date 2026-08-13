@@ -192,7 +192,18 @@ module Core
       # It is written against the resolver rather than that special case so the
       # global half starts working the moment AuthConfig grants it meaning.
       #
+      # UNREADABLE POLICY IS NOT "ALLOWED" (#4139). The custom-domain identity,
+      # its SigninConfig and the SSO availability probe are datastore reads, so
+      # this gate can fail to learn what the host permits. It answers that the
+      # same way the full-mode gate does — SigninConfig.resolve_lookup_failure,
+      # which fails closed on a custom host (Onetime::SigninPolicyUnavailable →
+      # 503 via otto_hooks) and keeps enforcing the still-known global
+      # elsewhere. Before this the error propagated as an unhandled 500:
+      # fail-closed by crash, which is the right direction with the wrong shape
+      # and no shared rule behind it.
+      #
       # @param method_name [String, Symbol] one of SigninConfig::RESTRICT_TO_VALUES
+      # @raise [Onetime::SigninPolicyUnavailable] on an unreadable custom-host policy
       # @return [Boolean] false when this host restricts the method away
       def restrict_to_allows?(method_name)
         global        = Onetime.auth_config.restrict_to
@@ -220,6 +231,15 @@ module Core
               custom_host: custom_domain_request?,
             ),
           )
+          .allows?(method_name)
+      rescue Redis::BaseError => ex
+        # Not covered by the read guards below: the availability half probes
+        # SSO config for an inherited restriction. Same rule, same shape —
+        # this raises on any host that could have a per-domain policy, and
+        # falls through to the global-only resolution on an operator host.
+        signin_policy_read_failed!(ex)
+        Onetime::CustomDomain::SigninConfig
+          .resolve_lookup_failure(domain_strategy: req.env['onetime.domain_strategy'])
           .allows?(method_name)
       end
 
@@ -273,12 +293,46 @@ module Core
         display_domain    = req.env['onetime.display_domain']
         @custom_domain_id = display_domain &&
                             Onetime::CustomDomain.load_by_display_domain(display_domain)&.identifier
+      rescue Redis::BaseError => ex
+        signin_policy_read_failed!(ex)
       end
 
       def domain_signin_config
         return unless custom_domain_id
 
         Onetime::CustomDomain::SigninConfig.find_by_domain_id(custom_domain_id)
+      rescue Redis::BaseError => ex
+        signin_policy_read_failed!(ex)
+      end
+
+      # The two datastore reads that back the per-domain sign-in policy failed
+      # (#4139). Guarded at the READ, not at each gate, because signin_enabled?
+      # runs before restrict_to_allows? and asks for the same config — a rescue
+      # in the gate alone leaves the earlier read crashing as an unhandled 500,
+      # which is fail-closed with the wrong shape (see
+      # Onetime::SigninPolicyUnavailable).
+      #
+      # Returns nil only for the operator's OWN hosts, which have no per-domain
+      # config to consult in the first place — the read could only ever have
+      # produced nil there, and their global policy is in-memory and still
+      # fully known. Every other host fails closed, including one classified
+      # :invalid: that is what DomainStrategy answers for a host it could not
+      # place, which is exactly what a failing domain-index read produces for a
+      # real custom domain. SigninConfig.operator_host? owns the test so this
+      # gate and the full-mode one carve out the same hosts.
+      #
+      # @raise [Onetime::SigninPolicyUnavailable] on any non-operator host
+      # @return [nil] on an operator host
+      def signin_policy_read_failed!(exception)
+        http_logger.error 'Sign-in policy lookup failed',
+          {
+            host: req.env['onetime.display_domain'],
+            exception: exception,
+          }
+        strategy = req.env['onetime.domain_strategy']
+        raise Onetime::SigninPolicyUnavailable unless Onetime::CustomDomain::SigninConfig.operator_host?(strategy)
+
+        nil
       end
 
       # Returns the StrategyResult created by Otto's RouteAuthWrapper

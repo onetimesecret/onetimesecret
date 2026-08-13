@@ -38,6 +38,9 @@ module Auth
       Onetime::GuestRoutesDisabled => 403,
       Onetime::Forbidden => 403,
       Onetime::Unauthorized => 401,
+      # The restrict_to gate could not READ this host's policy (#4139). 503,
+      # not the gate's usual 404: see Onetime::SigninPolicyUnavailable.
+      Onetime::SigninPolicyUnavailable => 503,
     }.freeze
 
     # Per-class log severity for translated exceptions. Mirrors the
@@ -55,6 +58,7 @@ module Auth
       Onetime::GuestRoutesDisabled => :info,
       Onetime::Forbidden => :warn,
       Onetime::Unauthorized => :warn,
+      Onetime::SigninPolicyUnavailable => :error,
     }.freeze
 
     DEFAULT_STATUS     = 500

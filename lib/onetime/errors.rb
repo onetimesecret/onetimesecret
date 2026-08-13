@@ -90,6 +90,44 @@ module Onetime
     end
   end
 
+  # Raised when the `restrict_to` policy for the REQUEST HOST could not be
+  # read (ADR-024 A1/A3, #4139): the per-domain half of the policy lives in
+  # the datastore, and a read failure leaves the gate unable to say which
+  # sign-in methods this host permits.
+  #
+  # Maps to HTTP 503 in BOTH edges — otto_hooks (Core, invite API) and
+  # Auth::ErrorTranslator (the Roda auth router) — because that is the piece
+  # that makes unconditional fail-closed survivable. The gate's normal reject
+  # shape is a 404 (A7) whose whole point is to be indistinguishable from an
+  # undefined route; answering an unreadable policy the same way would put
+  # mystery 404s on the sign-in routes of an install that restricts nothing,
+  # indistinguishable from a routing regression. A 503 says what actually
+  # happened — a backend read failed, retry — and is alertable as itself.
+  # A7's 404 exists to hide policy-gated methods; when the policy is
+  # unreadable there is no policy to hide.
+  #
+  # NOT a FormError/Forbidden: nothing about the request is wrong.
+  class SigninPolicyUnavailable < Problem
+    DEFAULT_MESSAGE = 'Sign-in is temporarily unavailable. Please try again shortly.'
+
+    # Seconds. Surfaced in the body (Otto error handlers cannot set response
+    # headers) and lifted into a Retry-After header by
+    # Onetime::Middleware::RetryAfterHeader.
+    RETRY_AFTER = 5
+
+    def initialize(message = DEFAULT_MESSAGE)
+      super
+    end
+
+    def to_h
+      {
+        error: message,
+        error_type: 'SigninPolicyUnavailable',
+        retry_after: RETRY_AFTER,
+      }
+    end
+  end
+
   class RecordNotFound < Problem
     # i18n shape: error_key + args are resolved at the HTTP edge so logic
     # classes never touch I18n. error_key is the full dotted i18n key (e.g.
