@@ -150,13 +150,14 @@
   });
 
   /**
-   * "One specific method" (Mode B) is hidden from the mode switch pending
-   * further testing (targeted for after v0.26.0). The mode's logic below is
-   * left intact — a domain whose restrict_to is already set still renders the
-   * picker — but the segment to switch INTO it is not offered. Flip to `true`
-   * to restore the option.
+   * "One specific method" (Mode B) in the mode switch. Was hidden pending
+   * further testing while the sign-in page only honored restrict_to='sso';
+   * restored once AuthMethodSelector renders all four restrict_to values.
+   * Flip to `false` to withhold the segment again — the mode's logic stays
+   * intact either way (a preset restrict_to still renders the picker), and
+   * the sr-only stand-in radio below keeps the radiogroup accessible.
    */
-  const showRestrictMode: boolean = false;
+  const showRestrictMode: boolean = true;
 
   // ---------------------------------------------------------------------------
   // Mode switch keyboard support (roving tabindex)
@@ -170,9 +171,8 @@
    * focus when activation has side effects like network requests.
    */
   // Segment order (disabled, any, one) matches the DOM so roving tabindex and
-  // arrow-key navigation stay consistent. "one" is last because it is hidden
-  // pending further testing (see showRestrictMode); getElementById filtering in
-  // onModeKeydown skips it while hidden.
+  // arrow-key navigation stay consistent. getElementById filtering in
+  // onModeKeydown skips "one" if it is ever withheld again (showRestrictMode).
   const MODE_SEGMENT_IDS = ['signin-mode-disabled', 'signin-mode-any', 'signin-mode-one'] as const;
 
   const checkedModeIndex = computed(() => {
@@ -315,13 +315,19 @@
         available: ssoAvailable.value && props.canManageSso,
       });
     }
-    // WebAuthn / Passkeys listed last.
-    if (webauthnAvailable.value) {
+    // WebAuthn / Passkeys listed last — but NEVER offered for selection:
+    // passkeys are host-scoped (rp_id = request.host), so a credential
+    // registered on the canonical sign-in host can never authenticate on this
+    // custom domain. Restricting a domain to webauthn-only is a guaranteed
+    // dead end. The row appears (locked) ONLY when it is already the
+    // persisted restriction — same keep-if-selected rationale as SSO above —
+    // with a blurb naming the host-scope limitation instead of the pitch.
+    if (props.formState.restrict_to === 'webauthn') {
       rows.push({
         value: 'webauthn',
         label: t('web.domains.signin.method_webauthn'),
-        blurb: t('web.domains.signin.method_webauthn_blurb'),
-        available: true,
+        blurb: t('web.domains.signin.method_webauthn_unavailable'),
+        available: false,
       });
     }
     return rows;
@@ -412,6 +418,11 @@
     // also rendered (locked) when it is the current restriction, so this is
     // the backstop for that row.
     if (value === 'sso' && !ssoConfigurable.value) return;
+    // WebAuthn is never (re)selectable: passkeys are host-scoped (rp_id), so
+    // a webauthn-only restriction dead-ends sign-in on a custom domain. Its
+    // row only renders locked (keep-if-selected); this backstop also keeps
+    // onMethodClick's ADR-024 materialize-on-touch path from saving it.
+    if (value === 'webauthn') return;
     const patch: Partial<SigninConfigFormState> = { restrict_to: value };
     if (value === 'email_auth') patch.email_auth_enabled = true;
     if (value === 'sso') patch.sso_enabled = true;
@@ -464,8 +475,8 @@
           aria-labelledby="signin-mode-legend"
           @keydown="onModeKeydown">
           <!-- DOM order: Sign-in disabled is rendered first, then Any available
-               method (the actual default). "One specific method" is last and
-               hidden pending testing (showRestrictMode). -->
+               method (the actual default), then One specific method
+               (withheld only when showRestrictMode is off). -->
           <button
             id="signin-mode-disabled"
             type="button"

@@ -93,13 +93,18 @@ const middlewareSchema = z.object({
  * Host- and network-level posture for the Colonel admin surfaces (/colonel +
  * /api/colonel), both enforced by the AdminNetworkIsolation Rack middleware;
  * a request failing either gate gets the same 404. allowed_hosts is the
- * hostname allowlist (empty/unset = the canonical anchor hosts plus their
+ * hostname allowlist (unset = the canonical anchor hosts plus their
  * www. siblings; a `*` anywhere in the list turns the host gate off).
  * allowed_cidrs is an opt-in CIDR allowlist (empty/unset = no-op, the
  * self-hosted default). Defaults belong in `shapes/config/section/site.ts`.
+ *
+ * allowed_hosts is nullable because the YAML renders null when
+ * ADMIN_ALLOWED_HOSTS is unset, and an EMPTY list when it is set but blank —
+ * a distinction the boot check warns on (#4127), so the template must not
+ * collapse null to []. Runtime behavior is identical for both shapes.
  */
 const siteAdminSchema = z.object({
-  allowed_hosts: z.array(z.string()).optional(),
+  allowed_hosts: z.array(z.string()).nullable().optional(),
   allowed_cidrs: z.array(z.string()).optional(),
 });
 

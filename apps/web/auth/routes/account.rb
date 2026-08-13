@@ -43,6 +43,15 @@ module Auth
         has_password = rodauth.db[:account_password_hashes]
           .where(id: account[:id]).any?
 
+        # Deliberately NOT gated on the webauthn feature being loaded (unlike
+        # mfa-status's webauthn_enabled): passkeys_count is management /
+        # visibility data for Settings -> Security, not an offer of a
+        # completable factor. With AUTH_WEBAUTHN_ENABLED temporarily off,
+        # hiding existing credentials would misreport account state.
+        passkeys_count = rodauth.db[:account_webauthn_keys]
+          .where(account_id: account[:id])
+          .count
+
         {
           id: account[:id],
           email: account[:email],
@@ -53,6 +62,7 @@ module Auth
           mfa_enabled: mfa_enabled,
           recovery_codes_count: recovery_codes_count,
           active_sessions_count: active_sessions_count,
+          passkeys_count: passkeys_count,
         }
       end
 
@@ -93,8 +103,27 @@ module Auth
             # Note: Don't use rodauth.recovery_codes.size as it may auto-generate codes
             recovery_codes_remaining = recovery_codes_count_for(rodauth.account_id)
 
-            # MFA is enabled if either OTP is setup OR recovery codes exist
+            # MFA is enabled if either OTP is setup OR recovery codes exist.
+            #
+            # NOTE: webauthn deliberately does NOT feed into `enabled` — other
+            # UI consumes it as "TOTP-family MFA on". The MFA challenge page
+            # reads the per-factor booleans below instead.
             enabled = has_otp || recovery_codes_remaining > 0
+
+            # Per-factor booleans for the MFA challenge page: it must offer a
+            # passkey factor and must not auto-complete auth for an account
+            # whose only second factor is webauthn.
+            #
+            # Gated on the completion route being loaded, mirroring has_otp
+            # above: with AUTH_WEBAUTHN_ENABLED=false the /auth/webauthn-auth
+            # route is not mounted, so advertising leftover credential rows
+            # here would send the SPA's "Use a passkey instead" POST into a
+            # 404. Feature off => false, rows or not. (passkeys_count in
+            # build_account_info deliberately stays ungated — see there.)
+            webauthn_enabled = rodauth.respond_to?(:webauthn_auth_route) &&
+                               rodauth.db[:account_webauthn_keys]
+                                 .where(account_id: rodauth.account_id)
+                                 .any?
 
             # Get last_use timestamp from account_otp_keys table if OTP is enabled
             last_used_at = nil
@@ -108,6 +137,8 @@ module Auth
             response.headers['Content-Type'] = 'application/json'
             {
               enabled: enabled,
+              otp_enabled: has_otp,
+              webauthn_enabled: webauthn_enabled,
               last_used_at: last_used_at,
               recovery_codes_remaining: recovery_codes_remaining,
               recovery_codes_limit: Auth::Config::Features::MFA::RECOVERY_CODES_LIMIT,

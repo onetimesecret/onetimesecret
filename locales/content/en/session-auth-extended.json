@@ -206,6 +206,11 @@
     "text": "Password is required to set up a passkey",
     "content_hash": "085bb238"
   },
+  "web.auth.webauthn.emailRequired": {
+    "text": "Enter your email address to sign in with a passkey",
+    "context": "Shown when passkey sign-in is attempted without an email; the login route needs it to locate the account",
+    "content_hash": "7f07647f"
+  },
   "web.auth.webauthn.authFailed": {
     "text": "Biometric authentication failed. Please try again.",
     "content_hash": "626b9ece"
@@ -276,6 +281,16 @@
     "context": "Success message after removing passkey",
     "content_hash": "436c1050"
   },
+  "web.auth.passkeys.remove_failed": {
+    "text": "Unable to remove passkey",
+    "context": "Fallback error when passkey removal fails",
+    "content_hash": "3e131515"
+  },
+  "web.auth.passkeys.load_failed": {
+    "text": "Unable to load passkeys",
+    "context": "Fallback error when the passkey list cannot be fetched",
+    "content_hash": "8d704e00"
+  },
   "web.auth.passkeys.registered_success": {
     "text": "Passkey registered successfully",
     "context": "Success message after registering passkey",
@@ -292,9 +307,9 @@
     "content_hash": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "Passkey Name",
-    "context": "Label for passkey name field",
-    "content_hash": "22eefa67"
+    "text": "Passkey",
+    "context": "Generic display name for a registered passkey (credentials have no stored name)",
+    "content_hash": "904c9aa9"
   },
   "web.auth.passkeys.created": {
     "text": "Created",
@@ -875,6 +890,26 @@
   "web.auth.mfa.otp_mode_active": {
     "text": "Authentication code mode active",
     "content_hash": "8c44a306"
+  },
+  "web.auth.mfa.passkey_mode_active": {
+    "text": "Passkey mode active",
+    "context": "Screen-reader announcement when the MFA challenge switches to passkey verification",
+    "content_hash": "824dceb6"
+  },
+  "web.auth.mfa.passkey_prompt": {
+    "text": "Verify it's you with a passkey. Your device will ask for your fingerprint, face, or security key.",
+    "context": "Explanatory line on the passkey panel of the MFA challenge",
+    "content_hash": "c0b0cbbc"
+  },
+  "web.auth.mfa.verify_with_passkey": {
+    "text": "Verify with passkey",
+    "context": "Primary button that starts passkey verification during the MFA challenge",
+    "content_hash": "4f105a30"
+  },
+  "web.auth.mfa.use_passkey": {
+    "text": "Use a passkey instead",
+    "context": "Footer link to switch the MFA challenge to passkey verification",
+    "content_hash": "bd6430a4"
   },
   "web.auth.mfa.enter_all_digits": {
     "text": "Please enter all 6 digits to continue",

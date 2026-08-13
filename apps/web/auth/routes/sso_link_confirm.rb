@@ -131,6 +131,7 @@ module Auth
               token: token,
               current_sid: sso_link_confirm_current_sid,
               mfa_feature_loaded: rodauth.respond_to?(:otp_auth_route),
+              webauthn_feature_loaded: rodauth.respond_to?(:webauthn_auth_route),
             )
 
             case result.status

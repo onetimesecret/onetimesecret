@@ -838,17 +838,30 @@ module Auth::Config::Hooks
     # /auth/link-sso password verify, which itself routes through password_match?
     # -> migrate_password_from_redis (the SAME transparent path a normal login
     # uses), and the account was already LOCATED by the caller, so no new
-    # existence / has-password oracle is introduced. Fail-safe: any lookup error
-    # returns false, so the caller falls through to the H-3 refusal — never a
-    # weaker bind. SQL-first short-circuit avoids the Redis read for the migrated
-    # common case. Extracted from account_from_omniauth to keep that hook's
-    # branching (and complexity) contained.
+    # existence / has-password oracle is introduced. SQL-first short-circuit
+    # avoids the Redis read for the migrated common case. Extracted from
+    # account_from_omniauth to keep that hook's branching (and complexity)
+    # contained.
+    #
+    # FAIL DIRECTION on probe error is the CALLER'S call (error_result):
+    # - The omniauth interstitial minting (default false) fails SAFE by falling
+    #   through to the H-3 refusal — never a weaker bind.
+    # - The password-modification gate (features/mfa.rb) passes true: on a
+    #   probe outage an account must be TREATED as password-holding, so
+    #   modifications stay password-gated (fail closed) rather than silently
+    #   exempting a possibly-hijacked session.
+    #
+    # SHARED with features/mfa.rb's modifications_require_password? gate: a
+    # Redis-resident (not-yet-migrated) password must satisfy that gate the
+    # same way it satisfies this interstitial — has_password? alone cannot see
+    # it (it reads only account_password_hashes).
     #
     # @param hash_ds [Sequel::Dataset] account_password_hashes scoped to the id
     # @param normalized_email [String] email that located the account
-    # @param provider [String] OmniAuth provider name (logging only)
+    # @param provider [String] provider/context tag (logging only)
+    # @param error_result [Boolean] value returned when the probe errors
     # @return [Boolean]
-    def self.account_has_challengeable_password?(hash_ds, normalized_email, provider)
+    def self.account_has_challengeable_password?(hash_ds, normalized_email, provider, error_result: false)
       return true if hash_ds.any?
 
       Onetime::Customer.email_exists?(normalized_email) &&
@@ -861,7 +874,7 @@ module Auth::Config::Hooks
         provider: provider,
         error: ex.message,
       )
-      false
+      error_result
     end
 
     # Send the Phase 4 mailbox-proof link and report whether it was ACTUALLY

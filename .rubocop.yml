@@ -196,6 +196,7 @@ Naming/PredicatePrefix:
       has_passphrase?, # correlates with the REST API field `has_passphrase`
       has_otp?,
       has_recovery_codes?,
+      has_webauthn?, # same DetectMfaRequirement::Decision family as has_otp?
       has_role?,
       has_system_role?,
       has_memo?,

@@ -85,7 +85,9 @@ const showProgressBar = computed(() =>
         <button
           v-if="dismissible && !loading"
           type="button"
-          class="ml-4 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+          class="ml-4 shrink-0 rounded-full p-0.5 transition-colors
+            hover:bg-black/5 dark:hover:bg-white/10"
+          :class="colorConfig.textClasses"
           @click="emit('dismiss')">
           <span class="sr-only">{{ t('web.LABELS.dismiss') }}</span>
           <OIcon

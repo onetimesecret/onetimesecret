@@ -17,7 +17,7 @@
 # user in via rodauth.login('sso_link_confirm') — which THROWS the SAME
 # mfa_required body POST /auth/login emits — and STASHES the authorized bind
 # tuple inside the login block (Auth::Operations::DeferredSsoBind.defer). The
-# bind is completed by after_two_factor_authentication (config/hooks/mfa.rb) once
+# bind is completed by after_two_factor_authentication (config/hooks/two_factor.rb) once
 # the second factor succeeds. Without that stash an MFA-enabled account would
 # re-hit the mailbox flow on every SSO sign-in and NEVER link (the exact failure
 # greptile flagged as P1 against the pre-#3877 snapshot, which returned the

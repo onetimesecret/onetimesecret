@@ -31,6 +31,9 @@ const mockProviders = ref<Array<{ route_name: string; display_name: string }>>([
 // Mock enforce_sso_only flag from domain SSO config
 const mockEnforceSsoOnly = ref(false);
 
+// Mock single-method restriction (features.restrict_to)
+const mockRestrictTo = ref<'password' | 'email_auth' | 'webauthn' | 'sso' | null>(null);
+
 vi.mock('@/utils/features', () => ({
   isMagicLinksEnabled: () => mockFeatures.magicLinksEnabled.value,
   isWebAuthnEnabled: () => mockFeatures.webauthnEnabled.value,
@@ -38,6 +41,7 @@ vi.mock('@/utils/features', () => ({
   isSsoOnlyMode: () => mockFeatures.ssoOnlyMode.value,
   getSsoProviders: () => mockProviders.value,
   isSsoEnforcedForDomain: () => mockEnforceSsoOnly.value,
+  getRestrictTo: () => mockRestrictTo.value,
 }));
 
 // Mock useProductIdentity store — the component uses storeToRefs(useProductIdentity()),
@@ -54,7 +58,7 @@ vi.mock('@/shared/stores/identityStore', () => ({
 vi.mock('@/apps/session/components/PasswordlessFirstSignIn.vue', () => ({
   default: {
     name: 'PasswordlessFirstSignIn',
-    props: ['locale', 'magicLinksEnabled', 'webauthnEnabled'],
+    props: ['locale', 'magicLinksEnabled', 'webauthnEnabled', 'passwordEnabled', 'initialMode'],
     emits: ['mode-change'],
     template: '<div class="mock-passwordless-signin" data-testid="passwordless-signin"><slot /></div>',
   },
@@ -194,6 +198,7 @@ describe('AuthMethodSelector', () => {
     mockProviders.value = [];
     mockIsCustomRef.value = false;
     mockEnforceSsoOnly.value = false;
+    mockRestrictTo.value = null;
   });
 
   afterEach(() => {
@@ -1354,6 +1359,158 @@ describe('AuthMethodSelector', () => {
         });
         expect(wrapper.find('[data-testid="auth-sso-only-section"]').exists()).toBe(false);
       });
+    });
+  });
+
+  describe('Single-Method Restriction (restrict_to)', () => {
+    /**
+     * features.restrict_to narrows the sign-in page to ONE method. The value
+     * arrives domain-aware from the backend serializer (an enabled domain
+     * SigninConfig overrides the global). 'sso' flows through the existing
+     * SSO-only path; 'password' / 'email_auth' / 'webauthn' are rendered here.
+     * A restriction naming a method that is not enabled falls back to
+     * standard mode, mirroring AuthConfig#restrict_to on the backend.
+     *
+     * Uses the real component (dynamic import) — the stub does not replicate
+     * restriction logic.
+     */
+
+    const PROVIDERS = [{ route_name: 'entra', display_name: 'Microsoft' }];
+
+    const mountRealRestricted = async (opts: {
+      restrictTo?: 'password' | 'email_auth' | 'webauthn' | 'sso' | null;
+      magic?: boolean;
+      webauthn?: boolean;
+      sso?: boolean;
+      ssoOnlyMode?: boolean;
+      isCustom?: boolean;
+      providers?: Array<{ route_name: string; display_name: string }>;
+    }) => {
+      mockRestrictTo.value = opts.restrictTo ?? null;
+      mockFeatures.magicLinksEnabled.value = opts.magic ?? false;
+      mockFeatures.webauthnEnabled.value = opts.webauthn ?? false;
+      mockFeatures.ssoEnabled.value = opts.sso ?? false;
+      mockFeatures.ssoOnlyMode.value = opts.ssoOnlyMode ?? false;
+      mockIsCustomRef.value = opts.isCustom ?? false;
+      mockProviders.value = opts.providers ?? [];
+
+      const { default: AuthMethodSelector } = await import(
+        '@/apps/session/components/AuthMethodSelector.vue'
+      );
+
+      const w = mount(AuthMethodSelector, {
+        props: { locale: 'en' },
+        global: {
+          plugins: [i18n, createTestingPinia({ createSpy: vi.fn })],
+        },
+      });
+      await w.vm.$nextTick();
+      return w;
+    };
+
+    const passwordlessProps = (w: VueWrapper) =>
+      w.findComponent({ name: 'PasswordlessFirstSignIn' }).props();
+
+    it('password restriction renders only the password form (no SSO, no tabs)', async () => {
+      wrapper = await mountRealRestricted({
+        restrictTo: 'password',
+        magic: true,
+        webauthn: true,
+        sso: true,
+        providers: PROVIDERS,
+      });
+
+      expect(wrapper.find('[data-testid="signin-form"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="passwordless-signin"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="sso-button"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="auth-sso-divider"]').exists()).toBe(false);
+    });
+
+    it('email_auth restriction renders the passwordless UI limited to magic links', async () => {
+      wrapper = await mountRealRestricted({
+        restrictTo: 'email_auth',
+        magic: true,
+        webauthn: true,
+        sso: true,
+        providers: PROVIDERS,
+      });
+
+      expect(wrapper.find('[data-testid="passwordless-signin"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="signin-form"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="sso-button"]').exists()).toBe(false);
+      expect(passwordlessProps(wrapper)).toMatchObject({
+        magicLinksEnabled: true,
+        webauthnEnabled: false,
+        passwordEnabled: false,
+      });
+    });
+
+    it('webauthn restriction renders the passwordless UI limited to passkeys', async () => {
+      wrapper = await mountRealRestricted({
+        restrictTo: 'webauthn',
+        magic: true,
+        webauthn: true,
+        sso: true,
+        providers: PROVIDERS,
+      });
+
+      expect(wrapper.find('[data-testid="passwordless-signin"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="signin-form"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="sso-button"]').exists()).toBe(false);
+      expect(passwordlessProps(wrapper)).toMatchObject({
+        magicLinksEnabled: false,
+        webauthnEnabled: true,
+        passwordEnabled: false,
+      });
+    });
+
+    it('falls back to standard mode when email_auth restriction has no backing method', async () => {
+      wrapper = await mountRealRestricted({
+        restrictTo: 'email_auth',
+        magic: false,
+        webauthn: false,
+        sso: true,
+        providers: PROVIDERS,
+      });
+
+      // Magic links are globally off — the restriction is dropped, standard
+      // mode renders (password form + SSO), never a blank page.
+      expect(wrapper.find('[data-testid="signin-form"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="sso-button"]').exists()).toBe(true);
+    });
+
+    it('falls back to standard mode when webauthn restriction has no backing method', async () => {
+      wrapper = await mountRealRestricted({
+        restrictTo: 'webauthn',
+        magic: true,
+        webauthn: false,
+      });
+
+      expect(wrapper.find('[data-testid="passwordless-signin"]').exists()).toBe(true);
+      const props = passwordlessProps(wrapper);
+      expect(props).toMatchObject({ magicLinksEnabled: true, webauthnEnabled: false });
+      // Standard mode leaves passwordEnabled unset — the child's default (true)
+      // applies, so the password tab stays offered.
+      expect(props.passwordEnabled).not.toBe(false);
+    });
+
+    it('sso restriction on a custom domain with no working provider shows the SSO-required notice', async () => {
+      // restrict_to='sso' arrives via isSsoOnlyMode (features.restrict_to).
+      // With the domain's SSO credentials dormant (no providers resolved), the
+      // page must not fall through to password/email forms the owner chose to
+      // hide — it shows the "SSO required" notice instead (#4107 follow-on).
+      wrapper = await mountRealRestricted({
+        restrictTo: 'sso',
+        ssoOnlyMode: true,
+        isCustom: true,
+        magic: true,
+        sso: false,
+        providers: [],
+      });
+
+      expect(wrapper.find('[data-testid="auth-custom-domain-no-sso"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="signin-form"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="passwordless-signin"]').exists()).toBe(false);
     });
   });
 });

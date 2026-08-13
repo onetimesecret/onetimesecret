@@ -138,6 +138,25 @@ module Onetime
       feature_enabled?('webauthn', default: false)
     end
 
+    # Whether WebAuthn passwordless signup is enabled: verifying a new account
+    # sets up a passkey instead of a password (Rodauth webauthn_verify_account).
+    # Only consulted when webauthn_enabled? — config.rb loads the WebAuthn
+    # feature module only then. Driven by AUTH_WEBAUTHN_VERIFY_ACCOUNT
+    # (== 'true' semantics, rendered in auth.defaults.yaml).
+    # Default: false
+    def webauthn_verify_account_enabled?
+      feature_enabled?('webauthn_verify_account', default: false)
+    end
+
+    # Whether passkey autofill (browser conditional UI) on the login form is
+    # enabled (Rodauth webauthn_autofill). Only consulted when
+    # webauthn_enabled?. Driven by AUTH_WEBAUTHN_AUTOFILL (== 'true'
+    # semantics, rendered in auth.defaults.yaml).
+    # Default: false
+    def webauthn_autofill_enabled?
+      feature_enabled?('webauthn_autofill', default: false)
+    end
+
     # Whether SSO (external identity providers via OmniAuth) is enabled
     # Default: false
     #
