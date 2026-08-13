@@ -80,6 +80,7 @@ def setup_test_plans
     region: 'global'
   )
   plan.active = 'true'
+  plan.save
   plan.prices[:month] = {
     stripe_price_id: 'price_test_identity_monthly',
     amount: '1500',
@@ -90,7 +91,6 @@ def setup_test_plans
     amount: '15000',
     interval: 'year'
   }
-  plan.save
 
   @plans_created = true
 end
@@ -105,6 +105,9 @@ end
 def billing_enabled_with_config?(config)
   config&.dig('enabled').to_s == 'true'
 end
+
+setup_test_plans
+BillingTestHelpers.restore_billing!(enabled: true)
 
 # ============================================================================
 # capture_plan_selection tests
@@ -153,9 +156,6 @@ instance.capture_plan_selection
 # ============================================================================
 # build_billing_redirect_info tests
 # ============================================================================
-
-setup_test_plans
-BillingTestHelpers.restore_billing!(enabled: true)
 
 ## build_billing_redirect_info returns valid structure for good params
 instance = MockRodauthInstance.new
