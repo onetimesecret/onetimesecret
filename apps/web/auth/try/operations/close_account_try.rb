@@ -7,9 +7,23 @@
 # Tests the deletion of auth accounts and all related data from the auth
 # database. This operation is used when a user deletes their account.
 
-# Setup - Load the real application with full auth mode
-ENV['RACK_ENV']            = 'test'
-ENV['AUTHENTICATION_MODE'] = 'full'
+# --- delete_redis_sessions: AES-GCM decode + sidecar purge (#3858) ---
+#
+# delete_redis_sessions SCANs session:* for blobs whose codec-DECODED
+# external_id matches the closing account, deletes each matching blob AND
+# purges its per-value sidecar keys, skipping sidecar-shaped keys. Sessions are
+# AES-256-GCM encrypted, so the sweep MUST decode through the codec -- the old
+# JSON.parse(base64) path raised on every authenticated blob and silently
+# skipped it, leaving live sessions behind on account closure. These cases
+# assert the real Redis effects (the method swallows all errors, so nothing
+# else could catch a regression). Redis-only: no auth DB required, so they run
+# even when the accounts DB is absent (db: passed non-nil to skip the connect).
+require 'onetime/session/codec'
+require 'onetime/session/sidecar'
+
+# Setup - Keep the lane's authentication mode. Database-backed cases are
+# skipped below when the lane does not provide an auth database.
+ENV['RACK_ENV'] = 'test'
 
 require_relative '../../../../../try/support/test_helpers'
 
@@ -21,12 +35,19 @@ OT.boot! :test, false
 require 'auth/database'
 require_relative '../../operations/close_account'
 
-@db = Auth::Database.connection
+# NOTE: Auth::Database.connection returns a LazyConnection proxy that is
+# truthy even when no database can be reached — it only answers "is this full
+# mode?". Ask #available?, which forces the connection behind a rescue, so a
+# lane without a provisioned database skips rather than exploding inside
+# Sequel::Migrator.run below.
+@db = Auth::Database.available? ? Auth::Database.connection : nil
 
 if @db
-  Sequel.extension :migration
-  migrations_path = File.join(Onetime::HOME, 'apps', 'web', 'auth', 'migrations')
-  Sequel::Migrator.run(@db, migrations_path)
+  # Use the app's migrator rather than a hand-rolled Sequel::Migrator.run on
+  # @db: on PostgreSQL, DDL requires the elevated database_url_migrations
+  # credentials, and only Auth::Migrator knows to switch connections for them.
+  require 'auth/migrator'
+  Auth::Migrator.run_if_needed
 end
 
 # Skip this test file gracefully if auth database is not available.
@@ -36,7 +57,7 @@ end
 # halts all remaining files in the batch. Test cases use skip_without_db
 # to return the expected value when @db is nil.
 unless @db
-  warn "[SKIP] close_account_try.rb: Auth database not configured (full auth mode requires database)"
+  warn "[SKIP] close_account_try.rb: Auth database not reachable (full auth mode requires database)"
 end
 
 def skip_without_db(expected, &block)
@@ -138,20 +159,6 @@ skip_without_db(false) do
   result[:success]
 end
 #=> false
-
-# --- delete_redis_sessions: AES-GCM decode + sidecar purge (#3858) ---
-#
-# delete_redis_sessions SCANs session:* for blobs whose codec-DECODED
-# external_id matches the closing account, deletes each matching blob AND
-# purges its per-value sidecar keys, skipping sidecar-shaped keys. Sessions are
-# AES-256-GCM encrypted, so the sweep MUST decode through the codec -- the old
-# JSON.parse(base64) path raised on every authenticated blob and silently
-# skipped it, leaving live sessions behind on account closure. These cases
-# assert the real Redis effects (the method swallows all errors, so nothing
-# else could catch a regression). Redis-only: no auth DB required, so they run
-# even when the accounts DB is absent (db: passed non-nil to skip the connect).
-require 'onetime/session/codec'
-require 'onetime/session/sidecar'
 
 ## an authenticated, AES-GCM-encrypted session blob for the closing account is
 ## deleted along with its sidecar keys, while a DIFFERENT account's blob
