@@ -191,6 +191,7 @@ Onetime::SessionSidecar.write(@ca_sid, 'awaiting_mfa', true, codec: @ca_codec)
 @ca_result = @ca_op.send(:delete_redis_sessions, @ca_extid)
 @ca_db.del(@ca_blob, @ca_other_blob)
 Onetime::SessionSidecar.purge(@ca_sid)
+@ca_result
 #=> 1
 
 # Teardown

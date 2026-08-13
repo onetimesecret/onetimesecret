@@ -69,6 +69,7 @@ Onetime::CustomDomain::ApiConfig.exists_for_domain?(@domain_id)
 
 ## Destroy the domain (triggers cascade)
 @domain.destroy!
+true
 #=> true
 
 ## After destroy: HomepageConfig was cleaned up
@@ -131,6 +132,7 @@ Onetime::CustomDomain::ApiConfig.delete_for_domain!(@bare_domain_id)
 
 ## Destroy on bare domain does not raise
 @bare_domain.destroy!
+true
 #=> true
 
 ## Bare domain is gone
@@ -207,6 +209,7 @@ begin
 ensure
   hp_class.define_singleton_method(:delete_for_domain!, original_delete)
 end
+captured_primary_exists
 #=> true
 
 ## After destroy: primary record is gone
