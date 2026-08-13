@@ -43,6 +43,9 @@ ssrf_try_dns = {
 }.freeze
 # Unknown hosts fall through to [] (NXDOMAIN / no A-AAAA records), which the
 # guard treats as a blocked host — see the empty-resolution case below.
+class << ::Resolv
+  alias_method :__ssrf_try_orig_getaddresses, :getaddresses
+end
 ::Resolv.define_singleton_method(:getaddresses) do |hostname|
   ssrf_try_dns.fetch(hostname) { [] }
 end
@@ -220,3 +223,12 @@ end
 ## predicate without over-blocking legitimate mapped public addresses.
 @validator.blocked_ip?(IPAddr.new('::ffff:8.8.8.8'))
 #=> false
+
+# Teardown: restore the real resolver. This stubs stdlib, not a project seam,
+# so leaving it in place would hand [] to every later tryout in the shared
+# `try` process that resolves through ::Resolv.getaddresses.
+class << ::Resolv
+  remove_method :getaddresses
+  alias_method :getaddresses, :__ssrf_try_orig_getaddresses
+  remove_method :__ssrf_try_orig_getaddresses
+end
