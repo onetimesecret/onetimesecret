@@ -123,6 +123,31 @@ module Auth
       end
     end
 
+    # Whether the auth database can actually be reached right now.
+    #
+    # `connection` returns a LazyConnection proxy, which is ALWAYS truthy in
+    # full mode — it defers the real connect to first use. So `if db` only
+    # answers "is this full mode?", never "is there a usable database?", and a
+    # caller that treats it as the latter blows up later at an arbitrary query.
+    # This forces the connection behind a rescue so callers that must degrade
+    # gracefully (CLI commands, tryouts without a provisioned DB) can ask
+    # directly.
+    #
+    # Not memoized: a database may come up (or go away) during a process's
+    # lifetime, and tests reset the connection between examples.
+    def self.available?
+      conn = connection
+      return false if conn.nil?
+
+      conn.__connect__!
+      true
+    rescue StandardError => ex
+      sequel_logger.warn '[Database] Auth database unavailable',
+        error: ex.message,
+        error_class: ex.class.name
+      false
+    end
+
     # Check if a connection has been established
     def self.connected?
       return false unless @connection
