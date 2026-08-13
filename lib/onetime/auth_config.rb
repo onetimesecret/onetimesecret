@@ -59,14 +59,22 @@ module Onetime
     # Use Onetime.session_config instead of Onetime.auth_config.session
 
     # Full mode database URL (from config only, env vars captured in auth.yaml)
+    #
+    # A BLANK value is treated as unset. The config file renders this key from
+    # ENV (`ENV['AUTH_DATABASE_URL'] || <default>`), and an exported-but-empty
+    # AUTH_DATABASE_URL is truthy in Ruby — so without this normalization the
+    # empty string wins over the default and reaches Sequel.connect(''), where
+    # URI.parse('').scheme is nil and adapter_class raises a bare
+    # `NoMethodError: undefined method 'to_sym' for nil`.
     def database_url
-      full['database_url'] || 'sqlite://data/auth.db'
+      presence(full['database_url']) || 'sqlite://data/auth.db'
     end
 
     # Full mode database URL for migrations (with elevated privileges)
     # Returns nil if not explicitly configured - caller must handle fallback
+    # (blank is treated as unset, same as #database_url)
     def database_url_migrations
-      full['database_url_migrations']
+      presence(full['database_url_migrations'])
     end
 
     # Argon2 secret key (pepper) for password hashing defense-in-depth.
@@ -436,6 +444,16 @@ module Onetime
     end
 
     private
+
+    # Nil for a nil/blank/whitespace-only value, the value otherwise.
+    # Lets `presence(x) || default` behave the way `x || default` is
+    # usually intended when x originates from an environment variable.
+    def presence(value)
+      return nil if value.nil?
+
+      str = value.to_s.strip
+      str.empty? ? nil : value
+    end
 
     # Whether the legacy sso.sso_only flag is set in config.
     # Used as a fallback by #restrict_to for configs that predate
