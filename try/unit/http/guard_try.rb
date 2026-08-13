@@ -8,7 +8,8 @@
 #
 # Hermetic: DNS (Resolv) is stubbed by redefining the module_function seam
 # Guard.resolve_addresses (internal callers dispatch through the module
-# singleton, so the redefinition covers resolve_and_validate! too). NO real
+# singleton, so the redefinition covers resolve_and_validate! too; it is
+# aliased away and restored in the teardown at the foot of this file). NO real
 # network is touched and no OT.boot! / Redis / encryption is required
 # (requiring 'onetime' through the support helper is enough to define
 # Onetime::Problem, the error base).
@@ -40,8 +41,11 @@ GUARD_DNS = {
   'meta.test' => ['169.254.169.254'],
 }.freeze
 
-def G.resolve_addresses(host)
-  GUARD_DNS.fetch(host) { [] }
+class << G
+  alias_method :__guard_try_orig_resolve_addresses, :resolve_addresses
+  def resolve_addresses(host)
+    GUARD_DNS.fetch(host) { [] }
+  end
 end
 
 # Classify what resolve_and_validate!/pinned_address! raises.
@@ -186,3 +190,12 @@ end
 ## try_each_address! propagates Blocked before any dial for forbidden targets
 classify { G.try_each_address!('meta.test') { :never } }
 #=> :blocked
+
+# Teardown: restore the singleton so sibling tryouts see the real resolver
+# (the lane runner shares one process across every file, and a module-level
+# redefinition outlives the per-test container).
+class << G
+  remove_method :resolve_addresses
+  alias_method :resolve_addresses, :__guard_try_orig_resolve_addresses
+  remove_method :__guard_try_orig_resolve_addresses
+end
