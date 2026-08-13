@@ -89,8 +89,27 @@ RSpec.describe 'restrict_to enforcement — full mode (ADR-024 A1/A7, #4139)', t
       domain_id: domain.identifier,
       enabled: true,
       signin_enabled: true,
+      sso_enabled: true,
       restrict_to: restrict_to,
     )
+
+    # A restriction resolves :restricted only while its backing method can
+    # actually run here (ADR-024 A3) — so a host restricted to 'sso' with no
+    # tenant credentials resolves :unavailable and 404s EVERYTHING, including
+    # the SSO routes the examples below assert stay reachable. Standing the
+    # credentials up is what makes those examples test the narrowing rather
+    # than the fail-closed state, which has its own describe block.
+    if restrict_to == 'sso'
+      Onetime::CustomDomain::SsoConfig.create!(
+        domain_id: domain.identifier,
+        provider_type: 'oidc',
+        display_name: 'Tenant SSO',
+        issuer: 'https://idp.example.com',
+        client_id: "client-#{run_id}",
+        client_secret: "secret-#{run_id}",
+        enabled: true,
+      )
+    end
 
     @fixtures << [org, domain, config, owner, host]
     host
@@ -101,6 +120,7 @@ RSpec.describe 'restrict_to enforcement — full mode (ADR-024 A1/A7, #4139)', t
   after do
     Array(@fixtures).each do |org, domain, _config, owner, host|
       Onetime::CustomDomain::SigninConfig.delete_for_domain!(domain.identifier)
+      Onetime::CustomDomain::SsoConfig.delete_for_domain!(domain.identifier)
       Onetime::CustomDomain.display_domain_index.remove(host)
       domain.destroy!
       org.destroy!

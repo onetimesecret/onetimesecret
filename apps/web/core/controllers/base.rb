@@ -195,7 +195,8 @@ module Core
       # @param method_name [String, Symbol] one of SigninConfig::RESTRICT_TO_VALUES
       # @return [Boolean] false when this host restricts the method away
       def restrict_to_allows?(method_name)
-        global = Onetime.auth_config.restrict_to
+        global        = Onetime.auth_config.restrict_to
+        signin_config = domain_signin_config
 
         # A3's runtime-availability half is applied BY THE RESOLVER, not here.
         # This used to guard `return false if global && !restrict_to_available?`
@@ -203,12 +204,21 @@ module Core
         # restriction went dark whenever the unrelated global method was dead.
         # Passing the flag in lets the resolver narrow only what the global half
         # actually governs. Four consumers each remembering this rule is the
-        # drift A2 exists to kill.
+        # drift A2 exists to kill — hence restriction_available_for_request?,
+        # which is the one place that rule lives (#4139). It also narrows an
+        # INHERITED global restriction through the custom host's own
+        # capabilities, so this gate cannot accept a method the full-mode gate
+        # and the /signin page both treat as dark.
         Onetime::CustomDomain::SigninConfig
           .resolve_restrict_to(
             global,
-            domain_signin_config,
-            available: Onetime::CustomDomain::SigninConfig.global_restriction_available?(global),
+            signin_config,
+            available: Onetime::CustomDomain::SigninConfig.restriction_available_for_request?(
+              global,
+              signin_config,
+              domain_id: custom_domain_id,
+              custom_host: custom_domain_request?,
+            ),
           )
           .allows?(method_name)
       end
@@ -250,14 +260,25 @@ module Core
         auth_settings[key]
       end
 
+      # CustomDomain identifier for the request host, or nil.
+      #
+      # Read separately from the SigninConfig rather than off it, because the
+      # restrict_to gate needs it precisely when there is NO config: an
+      # inherited global restriction is narrowed by the host's own capabilities
+      # either way, and `config&.domain_id` is nil in exactly that case (#4139).
+      # Memoized — two gates ask per request.
+      def custom_domain_id
+        return @custom_domain_id if defined?(@custom_domain_id)
+
+        display_domain    = req.env['onetime.display_domain']
+        @custom_domain_id = display_domain &&
+                            Onetime::CustomDomain.load_by_display_domain(display_domain)&.identifier
+      end
+
       def domain_signin_config
-        display_domain = req.env['onetime.display_domain']
-        return unless display_domain
+        return unless custom_domain_id
 
-        custom_domain = Onetime::CustomDomain.load_by_display_domain(display_domain)
-        return unless custom_domain
-
-        Onetime::CustomDomain::SigninConfig.find_by_domain_id(custom_domain.identifier)
+        Onetime::CustomDomain::SigninConfig.find_by_domain_id(custom_domain_id)
       end
 
       # Returns the StrategyResult created by Otto's RouteAuthWrapper

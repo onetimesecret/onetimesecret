@@ -1000,6 +1000,19 @@ RSpec.describe Core::Views::ConfigSerializer do
     # scalar remains null — NOT the tenant 'sso' pin — while the companion
     # effective_restrict_to field carries the explicit resolver state.
     context 'with an enabled domain SigninConfig' do
+      # These examples are about which restriction the serializer REPORTS, so
+      # the host's capabilities are stood up as available: AUTH_SIGNIN on
+      # (the file-level stub carries only the master switch) and the
+      # email-auth feature on. Without them the A3 derivation below correctly
+      # answers :unavailable for every method and the examples stop testing
+      # what they are named for.
+      before do
+        allow(OT).to receive(:conf).and_return(
+          { 'site' => { 'authentication' => { 'enabled' => true, 'signin' => true } } }
+        )
+        allow(mock_auth_config).to receive(:email_auth_enabled?).and_return(true)
+      end
+
       # The resolver DERIVES whether the named method can run on this host
       # (ADR-024 A3 domain half), so the double must answer the capability
       # questions restriction_available_for_custom_domain? asks: the domain's
