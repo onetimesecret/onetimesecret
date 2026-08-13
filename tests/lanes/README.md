@@ -20,6 +20,30 @@ $ tests/lanes/run full-pg --overlay billing
 $ docker compose -f compose.test.yml down
 ```
 
+### Iterating on one file: `--only`
+
+A whole lane is minutes; one file is seconds. `--only <path>` runs just
+that file (repeatable) in the lane's environment, skipping the lane's
+tasks file:
+
+```console
+$ tests/lanes/run simple --only apps/api/domains/spec/integration/simple/domain_sso_config_spec.rb
+$ tests/lanes/run full-sqlite --only apps/web/auth/spec/integration/full/omniauth_csrf_spec.rb:145
+$ tests/lanes/run unit --only try/logic/sso_config/ssrf_protection_transition_try.rb
+```
+
+- Pick the lane whose env the file expects — a `spec/integration/full/`
+  file under `simple` fails on missing auth-mode config, not on its own
+  logic. The lane table below maps lane to what it runs.
+- Runner is chosen by filename: `*_try.rb` goes to `try --agent`,
+  everything else to `rspec`. One kind per invocation.
+- `path:LINE` is forwarded to rspec, so a single example works.
+- The hermetic boundary is unchanged: same scrub, same lane env, same
+  exec. This is the sanctioned fast loop, not a bypass.
+- What it skips is the rest of the tasks file — including setup steps
+  like `pnpm run locales:sync` in the full lanes. Iterate with `--only`,
+  then run the whole lane before pushing. CI runs lanes, not files.
+
 Prerequisites: `bash` 5+ (the runner's env scrub needs it; stock macOS
 ships 3.2 — `brew install bash`), `bundle install`, `pnpm install`,
 `python3` (locale compilation). Lanes whose specs read built frontend

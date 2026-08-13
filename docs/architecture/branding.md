@@ -81,7 +81,7 @@ field. No defaults shipped.
 | `BRAND_LOGO_ALT`             | logo alt text (falls back to product-name i18n)    |
 | `BRAND_FAVICON_URL`          | `/favicon.ico` 302 redirect                        |
 | `BRAND_APPLE_TOUCH_ICON_URL` | head `apple-touch-icon`                            |
-| `BRAND_OG_IMAGE_URL`         | head `og:image` / `twitter:image` (absolute)       |
+| `BRAND_OG_IMAGE_URL`         | head `og:image` / `twitter:image` (absolute; `none` disables; never emitted on custom domains) |
 | `BRAND_TOTP_ISSUER`          | MFA issuer label (falls back to product name)      |
 | `BRAND_SIGNATURE_NAME`       | email sign-off (see Special cases)                 |
 | `BRAND_PACK`                 | pack NAME → `etc/branding/` then `public/branding/` (unset ⇒ `default`) |

@@ -1,0 +1,219 @@
+# lib/onetime/http/guard.rb
+#
+# frozen_string_literal: true
+
+require 'resolv'
+require 'ipaddr'
+require 'socket'
+
+module Onetime
+  module Http
+    # Shared SSRF egress guard: the single source of truth for "is this IP a
+    # forbidden egress target" and "resolve this host and give me addresses
+    # safe to pin".
+    #
+    # Unifies three previously divergent per-callsite blocklists
+    # (SafeFetch::BLOCKED_V4/V6, SsoConfig::SsrfProtection's
+    # TRANSITION_RANGES/BLOCKED_IPV4_RANGES, and DispatchNotification's
+    # loopback/private/link-local-only webhook check) into one deny-by-default,
+    # fail-closed range set. Each list below is the UNION of its predecessors —
+    # notably Teredo (2001::/32), which SafeFetch lacked.
+    #
+    # The guard is deny-by-default and fail-closed:
+    #   - anything IPAddr cannot parse is BLOCKED (encoded-loopback smuggling
+    #     like "2130706433" / "0x7f000001" fails closed),
+    #   - a host whose RRset contains even ONE blocked address is rejected
+    #     wholesale (defeats one-public-one-private split RRsets),
+    #   - empty resolution is rejected (nothing resolvable, nothing fetchable).
+    #
+    # Callers that dial the returned addresses should pin the connection to
+    # one exact validated IP (e.g. Net::HTTP#ipaddr=) so no second DNS
+    # resolution happens at connect time — closing the classic
+    # validate-then-reresolve (DNS-rebinding) window. Callers that own their
+    # dial loop should use #try_each_address!, which walks ALL validated
+    # addresses on connect-level reachability errors (each dial still pinned
+    # to one exact IP); SafeFetch implements the same fallback over its own
+    # per-instance resolver seam.
+    module Guard
+      # Raised when a host/address is a forbidden egress target (blocked
+      # range, unparseable address, or empty resolution).
+      class Blocked < Onetime::Problem; end
+
+      # Deny-by-default range lists. A resolved IP is blocked unless it
+      # belongs to NONE of these. v4-mapped and v4-compatible IPv6 are
+      # unwrapped to their v4 form first (see #blocked_ip?).
+      BLOCKED_V4 = %w[
+        0.0.0.0/8 10.0.0.0/8 100.64.0.0/10 127.0.0.0/8 169.254.0.0/16
+        172.16.0.0/12 192.0.0.0/24 192.168.0.0/16 198.18.0.0/15
+        224.0.0.0/4 240.0.0.0/4
+      ].map { |cidr| IPAddr.new(cidr) }.freeze
+      # 0.0.0.0/8      "this host on this network" (RFC 1122; 0.0.0.0
+      #                connects to localhost on Linux — a loopback bypass the
+      #                native IPAddr predicates miss)
+      # 100.64.0.0/10  CGNAT / shared address space (RFC 6598)
+      # 192.0.0.0/24   IETF protocol assignments (RFC 6890)
+      # 198.18.0.0/15  benchmarking (RFC 2544)
+      # 224.0.0.0/4    multicast
+      # 240.0.0.0/4    reserved + 255.255.255.255 broadcast
+
+      # ::/96 is the deprecated IPv4-compatible block (subsumes ::, ::1, and
+      # e.g. ::127.0.0.1). The IPv6 transition prefixes — 2002::/16 (6to4),
+      # the 64:ff9b* NAT64 ranges, and 2001::/32 (Teredo, RFC 4380) — all
+      # embed a routable IPv4 destination the native IPAddr predicates never
+      # look at; they are blocked wholesale because no legitimate egress
+      # target lives on a translation address, and decoding-then-allowing
+      # would just reintroduce the bypass surface we are trying to close.
+      # ::ffff:0:0/96 is the separate v4-MAPPED block (unwrapped to v4 in
+      # #blocked_ip?, listed here as a belt).
+      BLOCKED_V6 = %w[
+        ::/96 fc00::/7 fe80::/10 ff00::/8 ::ffff:0:0/96
+        64:ff9b::/96 64:ff9b:1::/48 2001::/32 2002::/16 2001:db8::/32
+      ].map { |cidr| IPAddr.new(cidr) }.freeze
+
+      # IPv4-mapped (::ffff:0:0/96) and the deprecated IPv4-compatible (::/96)
+      # IPv6 forms carry a 32-bit IPv4 destination in their low bits. We detect
+      # them by prefix rather than IPAddr#ipv4_mapped?/#ipv4_compat? because the
+      # #ipv4_compat? predicate is obsolete in Ruby 3.4+ (it warns and is slated
+      # for removal); a prefix test is stable and warning-free. The embedded
+      # IPv4 is the low 32 bits (see #blocked_ip?).
+      IPV4_MAPPED_PREFIX = IPAddr.new('::ffff:0:0/96').freeze
+      IPV4_COMPAT_PREFIX = IPAddr.new('::/96').freeze
+      LOW32_MASK         = 0xffff_ffff
+
+      # extend self (rather than module_function) keeps every method callable
+      # both as Guard.blocked_ip?(...) and as an instance method for classes
+      # that `include Guard`. The DNS seam stays stubbable in tests by
+      # redefining the singleton method (def Guard.resolve_addresses).
+      extend self
+
+      # Deny-by-default IP check. Accepts a String or IPAddr. Fails closed on
+      # anything IPAddr cannot parse — notably Ruby's IPAddr rejects
+      # decimal/octal/hex-encoded forms (e.g. "2130706433", "0x7f000001")
+      # with InvalidAddressError, so such loopback-smuggling attempts are
+      # treated as blocked rather than resolved.
+      #
+      # @param addr [String, IPAddr]
+      # @return [Boolean] true if the address is a forbidden egress target
+      def blocked_ip?(addr)
+        ip = addr.is_a?(IPAddr) ? addr : IPAddr.new(addr.to_s)
+        # Unwrap IPv4-mapped (::ffff:a.b.c.d) and IPv4-compatible (::a.b.c.d)
+        # IPv6 to the embedded IPv4 so the v4 range list actually sees it.
+        # Detected by prefix (not the obsolete #ipv4_compat? predicate); the
+        # embedded IPv4 is the low 32 bits. AF_INET keeps the result an IPv4
+        # IPAddr so the v4 branch below applies.
+        if ip.ipv6? && (IPV4_MAPPED_PREFIX.include?(ip) || IPV4_COMPAT_PREFIX.include?(ip))
+          ip = IPAddr.new(ip.to_i & LOW32_MASK, Socket::AF_INET)
+        end
+
+        # Unspecified address in either family (0.0.0.0, :: — the :: forms are
+        # unwrapped to 0.0.0.0 above, native 0.0.0.0 lands here directly). Both
+        # route to localhost as a connect target.
+        return true if ip.to_i.zero?
+
+        # 169.254.0.0/16 and fe80::/10 are already in BLOCKED_V4/BLOCKED_V6;
+        # this is a redundant early-out on IPAddr's own predicate, not extra
+        # coverage.
+        return true if ip.link_local?
+
+        (ip.ipv4? ? BLOCKED_V4 : BLOCKED_V6).any? { |net| net.include?(ip) }
+      rescue IPAddr::InvalidAddressError
+        true # fail closed
+      end
+
+      # Resolve host A + AAAA, validate EVERY address, and fail closed: raise
+      # if ANY resolved address is blocked (defeats one-public-one-private
+      # RRsets). Returns ALL validated addresses uniq'd and ordered
+      # IPv4-first: resolvers commonly list AAAA ahead of A, and a machine
+      # with an IPv6 address but no IPv6 route (broken dual-stack) would
+      # otherwise dial an unreachable v6 and never try a perfectly good v4.
+      #
+      # IP-literal hosts: Resolv::DNS#getaddresses returns [] for a literal
+      # (it speaks only DNS; the generic Resolv.getaddresses handles literals
+      # via the hosts resolver, which we deliberately avoid), so a literal
+      # host is validated directly and returned as-is.
+      #
+      # @param host [String] hostname or IP literal
+      # @return [Array<String>] validated addresses, IPv4-first
+      # @raise [Blocked]
+      def resolve_and_validate!(host)
+        addrs = resolve_addresses(host)
+        addrs = [host] if addrs.empty? && ip_literal?(host)
+        raise Blocked, "no A/AAAA records for #{host}" if addrs.empty?
+
+        addrs.each do |addr|
+          raise Blocked, "blocked address #{addr} for #{host}" if blocked_ip?(addr)
+        end
+
+        # Safe to parse: anything unparseable already failed closed in blocked_ip?.
+        v4, v6 = addrs.uniq.partition { |addr| IPAddr.new(addr).ipv4? }
+        v4 + v6
+      end
+
+      # The single address a caller should pin its connection to. For callers
+      # that control their own dial loop, prefer #try_each_address!: it keeps
+      # the same per-dial pinning but falls back across the remaining
+      # validated addresses when one is unreachable. This single-address form
+      # exists for seams that get exactly one shot at configuring a
+      # connection (see Auth::OidcHttpPinning).
+      #
+      # @param host [String]
+      # @return [String] the first validated address (IPv4 preferred)
+      # @raise [Blocked]
+      def pinned_address!(host)
+        resolve_and_validate!(host).first
+      end
+
+      # Connect-time failures that justify dialing the next validated
+      # address. Deliberately excludes timeouts (falling through would spend
+      # a full extra open-timeout per address) and all post-connect errors.
+      # These errnos surface from connect(2) in microseconds, so walking the
+      # list adds no meaningful wall-clock. Shared with SafeFetch's dial loop.
+      CONNECT_FALLBACK_ERRNOS = [
+        Errno::EHOSTUNREACH,  # no route to host (e.g. AAAA on a v6-broken network)
+        Errno::ENETUNREACH,   # no route to network (v4-only or v6-only client)
+        Errno::EADDRNOTAVAIL, # no usable local address for this family
+        Errno::ECONNREFUSED,  # this endpoint is down; another may serve
+      ].freeze
+
+      # Resolve + validate host, then yield each validated address in order
+      # (IPv4-first) until the block completes without a connect-level
+      # reachability error, returning that block's value. The caller dials
+      # inside the block with the connection pinned to the yielded IP
+      # (Net::HTTP#ipaddr=), so walking the list is a reachability fallback
+      # across already-validated addresses — never a widening of the target
+      # set. Non-connect errors (timeouts, TLS, HTTP failures) propagate
+      # immediately from the first dial that raises them; when every address
+      # fails to connect, the last errno propagates unchanged.
+      #
+      # @param host [String]
+      # @yieldparam addr [String] one validated address to pin and dial
+      # @return the block's value for the first reachable address
+      # @raise [Blocked] if resolution or validation fails
+      def try_each_address!(host)
+        last_error = nil
+        resolve_and_validate!(host).each do |addr|
+          return yield(addr)
+        rescue *CONNECT_FALLBACK_ERRNOS => ex
+          last_error = ex
+        end
+        raise last_error # never nil: resolve_and_validate! raises on empty
+      end
+
+      # Isolated for testability (redefined in the unit tryout to avoid real
+      # DNS). Returns an array of IP strings (both families).
+      def resolve_addresses(host)
+        ::Resolv::DNS.open { |dns| dns.getaddresses(host).map(&:to_s) }
+      end
+
+      # @return [Boolean] true if host parses as an IP address literal
+      #   (IPAddr also accepts the bracketed IPv6 form URI#host returns,
+      #   e.g. "[::1]")
+      def ip_literal?(host)
+        IPAddr.new(host.to_s)
+        true
+      rescue IPAddr::InvalidAddressError
+        false
+      end
+    end
+  end
+end

@@ -959,11 +959,16 @@ module Onetime
       end
 
       # Whether the deployment declares a trusted reverse proxy, and in which
-      # mode. Read through the SAME predicate that decides how the universal
-      # IP-privacy mount is configured
-      # (Onetime::Application::MiddlewareStack.trusted_proxy_enabled?, consumed
-      # by .ip_privacy_security_config), so this line cannot report a posture
-      # the stack does not actually have.
+      # mode. Both halves are read through the SAME accessors that decide how
+      # the universal IP-privacy mount is configured
+      # (Onetime::Application::MiddlewareStack.trusted_proxy_enabled? and
+      # .trusted_proxy_mode, consumed by .ip_privacy_security_config), so this
+      # line cannot report a posture the stack does not actually have. In
+      # particular the mode is the CANONICALIZED, VALIDATED one — a deployment
+      # configured `TRUSTED_PROXY_MODE=Depth` reports `mode=depth`, and one
+      # configured with a typo reports `mode=filter` (the mode it is really
+      # running) alongside the accessor's own boot warning, rather than echoing
+      # the operator's raw string back at them (#4087).
       #
       # WHY IT IS LOGGED HERE: with trusted_proxy DISABLED — the shipped
       # default — neither gate's input is authenticated. Rack::DetectHost falls
@@ -982,31 +987,10 @@ module Onetime
       # middleware has loaded it; the rescue covers an embedding that builds it
       # standalone. A boot log line must never be the thing that fails a boot.
       def trusted_proxy_posture
-        return 'disabled' unless Onetime::Application::MiddlewareStack.trusted_proxy_enabled?
+        stack = Onetime::Application::MiddlewareStack
+        return 'disabled' unless stack.trusted_proxy_enabled?
 
-        # Reproduces MiddlewareStack.ip_privacy_security_config's own default
-        # for an enabled-but-modeless block. There is no shared reader for the
-        # MODE (only for `enabled`), so this expression is duplicated.
-        #
-        # TODO: consolidate the trusted-proxy config readers. `enabled` is
-        # already reimplemented verbatim in THREE places —
-        # Onetime::Application::MiddlewareStack.trusted_proxy_enabled?,
-        # Onetime::Security::ResetRequestRateLimiter, and
-        # Onetime::Security::CreateAccountRateLimiter — and this adds a fourth
-        # site reading `mode`. One accessor pair (enabled + mode) should serve
-        # all of them. Out of scope for #4062; tracked in #4087.
-        #
-        # Note the two `mode` expressions are not identical today, and neither
-        # VALIDATES: MiddlewareStack takes `tp['mode'] || 'filter'` and then
-        # branches on `== 'depth'`, so any unrecognized value (`Depth`, a typo)
-        # silently runs the FILTER branch — while this line echoes the raw
-        # string, reporting `mode=Depth` for a deployment running filter. The
-        # consolidated reader should reject unknown modes, not just share the
-        # default.
-        mode = OT.conf.dig('site', 'network', 'trusted_proxy', 'mode').to_s.strip
-        mode = 'filter' if mode.empty?
-
-        "enabled (mode=#{mode})"
+        "enabled (mode=#{stack.trusted_proxy_mode})"
       rescue StandardError
         'unknown'
       end

@@ -10,6 +10,188 @@ this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.htm
 
    <!--scriv-insert-here-->
 
+.. _changelog-0.26.4:
+
+0.26.4 — 2026-08-05
+====================
+
+Added
+-----
+
+- Organization Secret Activity now records custom-domain context, has a
+  workspace audit-events interface, and can be enabled or disabled with
+  ``ORGS_AUDIT_LOGS_ENABLED``. (#3642, #3975, #3976, #3985)
+
+- Operators can configure Secret Activity collection and its retention cap.
+  (#3992)
+
+- The test suite now has isolated lanes and containerized services on 21xx
+  ports. (#3980)
+
+Changed
+-------
+
+- Environment terminology and configuration scoping are clarified. (#3986)
+
+Fixed
+-----
+
+- Domain configuration is sanitized and constrained at the serializer
+  boundary. (#3998)
+
+- Muted sidebar text now meets the WCAG AA contrast floor. (#3994)
+
+Security
+--------
+
+- Updated PostCSS to 8.5.23. (#4004)
+
+.. _changelog-0.26.3:
+
+0.26.3 — 2026-08-01
+===================
+
+Added
+-----
+
+- Added account diagnostics for support via the CLI and Colonel console.
+
+- Registered password-reset rate limits with operator tooling and trusted-proxy
+  guidance.
+
+Changed
+-------
+
+- Renamed ``PLAN_TTL_ANONYMOUS`` to ``TTL_MAX_ANONYMOUS``; the former remains an
+  alias for the anonymous ceiling.
+
+- Standardized API v3 receipt payloads: ``recipients`` is ``null`` or an array,
+  and ``custid`` is removed.
+
+Fixed
+-----
+
+- Restored pricing-page and catalog support for price-less Free plans.
+
+- Fixed tenant SSO settings controls and preservation.
+
+- Aligned the secret duration selector with applicable server-side limits.
+
+Security
+--------
+
+- Added two-tier rate limiting to password-reset requests in both authentication
+  modes. (#3872)
+
+- Hardened invite signup, API v2 Basic auth, and anonymous secret TTL handling.
+  (#3856)
+
+- Corrected authentication error classification for unknown recipient addresses.
+
+Documentation
+-------------
+
+- Documented versioned API secret and receipt field semantics.
+
+.. _changelog-0.26.2:
+
+0.26.2 — 2026-07-26
+===================
+
+Added
+-----
+
+- Added opt-in, per-provider trusted-email SSO linking for single-tenant
+  deployments. (#3836, #3840)
+
+- Added Stripe-organization listing, billing-catalog-drift checks, and filtered
+  custom-domain listing for operators.
+
+- Added CLI and Colonel interfaces for domain creation, single-customer purging,
+  organization creation/reconciliation/ownership transfer, and entitlement
+  overrides.
+
+- Added account email-change and customer-doctor commands, and membership-level
+  entitlement overrides. (#3907)
+
+- Linked customer-table rows to full detail pages.
+
+Changed
+-------
+
+- Applied ``AUTH_ENABLED`` to tenant SSO and standardized its rejection audit
+  reason. (#3672)
+
+- Updated ``domains repair`` prompting, confirmation, and exit-status behavior.
+
+- Routed domain doctor repairs through the audited operation, added orphan
+  reporting, and fixed ``--timeout`` parsing.
+
+- Made ``org reconcile`` materialize standalone entitlements and used indexed
+  session revocation for email changes.
+
+- Enforced ``ots server`` configuration-file conflicts for ``threads`` and
+  ``bind``.
+
+Removed
+-------
+
+- Removed ``bin/ots domains bulk-repair``; use ``domains doctor --all --repair``
+  instead.
+
+Fixed
+------
+
+- Restored option-based SSO user linking and Chromium SSO redirects.
+  (#3836, #3840, #3848)
+
+- Fixed admin endpoint email identifiers, customer-detail performance, and
+  table-row interactions.
+
+- Fixed the domain homepage masthead after save. (#3672)
+
+- Fixed CLI numeric option coercion and validation.
+
+- Hardened admin email change and verification updates, including atomic email
+  claims. (#3916)
+
+- Deduplicated domain doctor findings, corrected entitlement override validation,
+  and made CLI loading order independent. (#3907)
+
+- Hardened the ``add-msg-issue-prefix`` commit hook. (#3891)
+
+Security
+--------
+
+- Made password-reset requests enumeration-safe. (#3857)
+
+- Prevented admin verification updates from affecting closed accounts. (#3916)
+
+.. _changelog-0.26.1:
+
+0.26.1 — 2026-07-21
+====================
+
+Added
+-----
+
+- Configurable and validated Stripe checkout-host allowlisting for custom domains.
+  (#3821)
+
+- Added brand-pack diagnostics across the CLI, Colonel API, and admin console.
+  (#3822, #3825)
+
+- Receipt status UI now surfaces receipt access telemetry. (#3829, #3832)
+
+Fixed
+-----
+
+- Password changes now invalidate stale sessions and enforce the credential
+  watermark. (#3810, #3830)
+
+- The pricing-page **Current** badge now selects the active plan by plan ID.
+  (#3824, #3827)
+
 .. _changelog-0.26.0:
 
 0.26.0 — 2026-07-20

@@ -82,7 +82,13 @@ and can reach dev data.
 $ tests/lanes/run --list     # all lanes and overlays
 $ tests/lanes/run unit       # try:unit + spec:fast (most changes)
 $ tests/lanes/run full-pg    # Postgres-backed auth integration
+$ tests/lanes/run simple --only path/to/one_spec.rb[:LINE]
 ```
+
+Use `--only <path>` (repeatable) while iterating: it runs just that file
+in the lane's environment — seconds instead of minutes — with the same
+env scrub. `*_try.rb` routes to tryouts, everything else to rspec. It
+skips the lane's other tasks, so run the whole lane before pushing.
 
 The runner needs bash 5+ (macOS ships 3.2: `brew install bash`) and
 starts the backing services itself if they aren't up

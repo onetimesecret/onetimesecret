@@ -297,7 +297,7 @@ module Onetime
     # from what StaticFiles actually serves — that overlay set is frozen at boot
     # — so a divergence here is itself a mount-race signal.
     overlay_urls   = Onetime::Middleware::StaticFiles::BRAND_PACK_URLS +
-                     Onetime::Middleware::StaticFiles::BRAND_PACK_LOGO_URLS
+                     Onetime::Middleware::StaticFiles::BRAND_PACK_OPTIONAL_URLS
     overlay_assets = overlay_urls.select { |u| resolved_dir && File.exist?(File.join(resolved_dir, u)) }
 
     {
@@ -425,6 +425,7 @@ end
 require_relative 'onetime/alias'
 require_relative 'onetime/errors'
 require_relative 'onetime/error_handler'
+require_relative 'onetime/http/guard' # needs Onetime::Problem (errors) first
 require_relative 'onetime/version'
 require_relative 'onetime/config'
 require_relative 'onetime/config_generator'

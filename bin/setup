@@ -1119,7 +1119,11 @@ doctor_operator_assets() {
 # existing wins), else the tracked `default` pack. Then it lists the canonical
 # file set present in the winner and any uncommented brand.yaml keys.
 doctor_brand_pack() {
-  local canonical="favicon.ico favicon.svg apple-touch-icon.png icon-192.png icon-512.png safari-pinned-tab.svg social-preview.png site.webmanifest"
+  local canonical="favicon.ico favicon.svg apple-touch-icon.png icon-192.png icon-512.png safari-pinned-tab.svg site.webmanifest"
+  # Optional: a pack that omits social-preview.png emits no og:image/twitter:image
+  # at all (#4150) — that is a supported posture, not a partial pack, so it is
+  # reported separately rather than warned about.
+  local optional_social="social-preview.png"
   local roots="etc/branding public/branding"
   local resolved="" source=""
 
@@ -1164,7 +1168,13 @@ doctor_brand_pack() {
     doc_warn "Resolved pack missing canonical file(s):$missing" \
       "partial packs fall through to the default pack for these"
   else
-    doc_ok "Resolved pack carries the full canonical asset set (8 files)"
+    doc_ok "Resolved pack carries the full canonical asset set (7 files)"
+  fi
+
+  if [[ -f "$resolved/$optional_social" ]]; then
+    doc_ok "Social card present ($optional_social) — og:image/twitter:image emitted"
+  else
+    doc_info "No social card ($optional_social) — og:image/twitter:image omitted, twitter:card=summary"
   fi
 
   if [[ -f "$resolved/brand.yaml" ]]; then

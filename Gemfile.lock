@@ -540,7 +540,7 @@ GEM
       openssl-signature_algorithm (~> 1.0)
     truemail (3.3.1)
       simpleidn (~> 0.2.1)
-    tryouts (3.7.1)
+    tryouts (4.0.0.pre1)
       concurrent-ruby (~> 1.0, < 2)
       irb
       minitest (~> 5.0)
@@ -684,7 +684,7 @@ DEPENDENCIES
   tilt
   timecop (~> 0.9)
   truemail (~> 3.3)
-  tryouts (~> 3.7.1)
+  tryouts (~> 4.0.0.pre1)
   uri-valkey (~> 1.4.0)
   vcr (~> 6.0)
   webauthn (~> 3.0)
