@@ -1,15 +1,21 @@
 <!-- src/apps/session/views/AcceptInvite.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+  import InviteSignInForm from '@/apps/session/components/InviteSignInForm.vue';
+  import InviteSignUpForm from '@/apps/session/components/InviteSignUpForm.vue';
+  import SsoButton from '@/apps/session/components/SsoButton.vue';
+  import {
+    showInviteResponseSchema,
+    type AuthMethod,
+    type ShowInviteResponse,
+  } from '@/schemas/api/invite/responses/show-invite';
+  import type { SigninRestrictTo } from '@/schemas/contracts/custom-domain/signin-config';
+  import { classifyError } from '@/schemas/errors';
+  import Skeleton from '@/shared/components/closet/Skeleton.vue';
   import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import Skeleton from '@/shared/components/closet/Skeleton.vue';
-  import InviteSignUpForm from '@/apps/session/components/InviteSignUpForm.vue';
-  import InviteSignInForm from '@/apps/session/components/InviteSignInForm.vue';
-  import SsoButton from '@/apps/session/components/SsoButton.vue';
+  import { useApi } from '@/shared/composables/useApi';
   import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
-  import { classifyError } from '@/schemas/errors';
   import { useAuth } from '@/shared/composables/useAuth';
   import { useAuthStore } from '@/shared/stores/authStore';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
@@ -17,14 +23,8 @@
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
   import { formatDisplayDate } from '@/utils/format';
   import { onMounted, ref, computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
   import { useRoute, useRouter } from 'vue-router';
-  import { useApi } from '@/shared/composables/useApi';
-  import {
-    showInviteResponseSchema,
-    type AuthMethod,
-    type ShowInviteResponse,
-  } from '@/schemas/api/invite/responses/show-invite';
-  import type { SigninRestrictTo } from '@/schemas/contracts/custom-domain/signin-config';
 
   const { t } = useI18n();
   const route = useRoute();
@@ -598,8 +598,7 @@
             as a
             <span class="text-gray-600 dark:text-gray-300">{{
               t(`web.organizations.invitations.roles.${invitation.role}`)
-            }}</span
-            >.
+            }}</span>.
           </p>
         </div>
       </div>
@@ -669,8 +668,7 @@
             as a
             <span class="text-gray-600 dark:text-gray-300">{{
               t(`web.organizations.invitations.roles.${invitation.role}`)
-            }}</span
-            >.
+            }}</span>.
           </p>
         </div>
       </div>
@@ -762,8 +760,7 @@
             as a
             <span class="text-gray-600 dark:text-gray-300">{{
               t(`web.organizations.invitations.roles.${invitation.role}`)
-            }}</span
-            >.
+            }}</span>.
           </p>
         </div>
       </div>
@@ -890,8 +887,7 @@
             as a
             <span class="text-gray-600 dark:text-gray-300">{{
               t(`web.organizations.invitations.roles.${invitation.role}`)
-            }}</span
-            >.
+            }}</span>.
           </p>
         </div>
       </div>
@@ -988,8 +984,7 @@
             as a
             <span class="text-gray-600 dark:text-gray-300">{{
               t(`web.organizations.invitations.roles.${invitation.role}`)
-            }}</span
-            >.
+            }}</span>.
           </p>
         </div>
 
@@ -1071,8 +1066,7 @@
             as a
             <span class="text-gray-600 dark:text-gray-300">{{
               t(`web.organizations.invitations.roles.${invitation.role}`)
-            }}</span
-            >.
+            }}</span>.
           </p>
         </div>
 
