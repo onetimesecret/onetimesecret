@@ -61,9 +61,9 @@ export const colonelDeliverabilitySummaryDetailsSchema = z.object({
     .optional(),
   /**
    * The active transport (Mailer.determine_provider) and whether it has a
-   * pollable feedback API (ses/lettermint). Gates the "Sync now" button —
-   * other transports (smtp/sendgrid/logger) have no pull API, only the
-   * events-ingest endpoint.
+   * pollable feedback API (ses/lettermint/smtp2go). Gates the "Sync now"
+   * button — other transports (smtp/sendgrid/logger) have no pull API, only
+   * the events-ingest endpoint.
    */
   active_provider: z.string().nullable(),
   sync_capability: z.boolean(),
@@ -246,10 +246,41 @@ export const colonelEmailProviderStatusLettermintSchema = z.object({
 });
 
 /**
- * GetEmailProviderStatus `details`. Both provider blocks are ALWAYS present as
+ * SMTP2GO-specific stats block. Provider-computed over the CURRENT BILLING
+ * CYCLE (POST /stats/email_summary takes no date-range parameter) — `rate_note`
+ * says so. `rate_*` are ratios (the provider's bounce_percent/spam_percent
+ * ÷ 100) to match the unit of the other provider blocks; the counts are
+ * provider-native. `rate_*` are null when the provider omits the percentage
+ * (rendered as "not reported", never a fake 0).
+ */
+export const colonelEmailProviderStatusSmtp2goSchema = z.object({
+  cycle_start: z.string().nullable(),
+  cycle_end: z.string().nullable(),
+  cycle_used: z.number(),
+  cycle_remaining: z.number(),
+  cycle_max: z.number(),
+  email_count: z.number(),
+  bounce_rejects: z.number(),
+  softbounces: z.number(),
+  hardbounces: z.number(),
+  spam_rejects: z.number(),
+  unsubscribes: z.number(),
+  rate_bounce: z.number().nullable(),
+  rate_complaint: z.number().nullable(),
+  rate_note: z.string().nullable(),
+});
+
+/**
+ * GetEmailProviderStatus `details`. All provider blocks are ALWAYS present as
  * independently-nullable keys (NOT a discriminated union — the wire always
- * carries both `ses` and `lettermint`, one of them `null`). Non-live transports
- * (smtp/logger/…) return `capability=false` and both blocks null.
+ * carries every block, all but the active provider's `null`). Non-live
+ * transports (smtp/logger/…) return `capability=false` and every block null.
+ *
+ * The set of provider blocks is parity-checked against the Ruby
+ * ProviderRegistry (lib/onetime/mail/provider_registry.rb):
+ * `ProviderRegistry.feedback_providers`. Adding a feedback-capable provider
+ * requires a new block here. See
+ * spec/unit/onetime/mail/frontend_provider_parity_spec.rb.
  */
 export const colonelEmailProviderStatusDetailsSchema = z.object({
   provider: z.string(),
@@ -258,6 +289,7 @@ export const colonelEmailProviderStatusDetailsSchema = z.object({
   error: z.string().nullable(),
   ses: colonelEmailProviderStatusSesSchema.nullable(),
   lettermint: colonelEmailProviderStatusLettermintSchema.nullable(),
+  smtp2go: colonelEmailProviderStatusSmtp2goSchema.nullable(),
 });
 
 /**

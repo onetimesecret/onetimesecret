@@ -56,6 +56,21 @@ module Onetime
 
         # Returns the DNS records the customer must configure for this provider.
         #
+        # Reads provisioned records from mailer_config.dns_records.value
+        # (array of string-keyed hashes stored from the provider API) and
+        # maps them to the validation format with symbol keys. Purpose
+        # classification is delegated to the per-provider
+        # #classify_record_purpose hook.
+        #
+        # Advisory records ('optional' => true, e.g. SMTP2GO tracking, SES
+        # DMARC) are excluded so they never gate verification — the same
+        # discipline as Mail::SenderStrategies::BaseSenderStrategy
+        # #check_dns_records. Display paths read
+        # MailerConfig#required_dns_records, which still includes them.
+        #
+        # Returns an empty array if no provisioned records exist — does
+        # NOT fall back to hardcoded selectors.
+        #
         # @param mailer_config [Onetime::CustomDomain::MailerConfig]
         # @return [Array<Hash>] Each hash contains:
         #   - :type [String] Record type (TXT, CNAME, MX)
@@ -64,7 +79,23 @@ module Onetime
         #   - :purpose [String] Human-readable description (e.g. "DKIM", "SPF")
         #
         def required_dns_records(mailer_config)
-          raise NotImplementedError, "#{self.class} must implement #required_dns_records"
+          provisioned = mailer_config.dns_records&.value
+
+          if provisioned.nil? || provisioned.empty?
+            logger.error "[#{strategy_name}-validation] No provisioned DNS records for #{mailer_config.domain_id}; cannot validate"
+            return []
+          end
+
+          required = provisioned.reject { |r| [true, 'true'].include?(r['optional']) }
+
+          required.map do |record|
+            {
+              type: record['type'].to_s.upcase,
+              host: record['name'].to_s,
+              value: record['value'].to_s,
+              purpose: classify_record_purpose(record),
+            }
+          end
         end
 
         # Queries live DNS and compares against expected records.
@@ -95,6 +126,17 @@ module Onetime
 
         def logger
           @logger ||= Onetime.get_logger('SenderStrategies')
+        end
+
+        # Per-provider hook for #required_dns_records: infer a
+        # human-readable purpose (e.g. "DKIM", "SPF") for a provisioned
+        # record.
+        #
+        # @param record [Hash] String-keyed hash from provisioned dns_records
+        # @return [String]
+        #
+        def classify_record_purpose(record)
+          raise NotImplementedError, "#{self.class} must implement #classify_record_purpose"
         end
 
         # Resolve the sender domain from mailer_config's from_address.

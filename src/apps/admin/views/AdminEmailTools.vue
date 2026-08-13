@@ -84,8 +84,9 @@
   }
 
   // ---- Provider status (Track B — live read of the ACTIVE transport) --------
-  // Reads Mailer.determine_provider's live status (SES account tier + quota, or
-  // Lettermint 30-day stats). Two orthogonal flags drive the 2×2 render matrix:
+  // Reads Mailer.determine_provider's live status (SES account tier + quota,
+  // Lettermint 30-day stats, or SMTP2GO billing-cycle stats). Two orthogonal
+  // flags drive the 2×2 render matrix:
   //   capability=false            → static "not available on <provider>"
   //   capability=true, avail=false → retry alert with the provider error note
   //   capability=true, avail=true  → render the provider block
@@ -136,6 +137,9 @@
   const psSes = computed(() => (psOk.value ? providerStatus.value?.ses ?? null : null));
   const psLettermint = computed(() =>
     psOk.value ? providerStatus.value?.lettermint ?? null : null
+  );
+  const psSmtp2go = computed(() =>
+    psOk.value ? providerStatus.value?.smtp2go ?? null : null
   );
 
   function reloadProviderStatus(): void {
@@ -610,6 +614,102 @@
           class="mt-4 text-sm text-gray-500 dark:text-gray-400"
           data-testid="provider-status-lettermint-rate-note">
           {{ t('web.admin.emailtools.providerStatus.complaintsUnavailable') }}
+        </p>
+      </div>
+
+      <!-- SMTP2GO: current-billing-cycle quota + counts + provider rates. -->
+      <div
+        v-else-if="psSmtp2go"
+        data-testid="provider-status-smtp2go">
+        <div class="mb-4 flex items-center gap-3">
+          <span
+            class="text-xs text-gray-500 dark:text-gray-400"
+            data-testid="provider-status-cycle-window">
+            {{
+              t('web.admin.emailtools.providerStatus.cycle.window', {
+                start: psSmtp2go.cycle_start ?? '—',
+                end: psSmtp2go.cycle_end ?? '—',
+              })
+            }}
+          </span>
+          <span class="text-xs text-gray-500 dark:text-gray-400">{{ psProvider }}</span>
+        </div>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <StatCard
+            :label="t('web.admin.emailtools.providerStatus.cycle.used')"
+            :value="`${psSmtp2go.cycle_used} / ${psSmtp2go.cycle_max}`"
+            icon="inbox-stack"
+            :loading="providerStatusLoading"
+            testid="provider-status-cycle-used" />
+          <StatCard
+            :label="t('web.admin.emailtools.providerStatus.cycle.remaining')"
+            :value="psSmtp2go.cycle_remaining"
+            icon="inbox-arrow-down"
+            :loading="providerStatusLoading"
+            testid="provider-status-cycle-remaining" />
+          <StatCard
+            :label="t('web.admin.emailtools.providerStatus.stats.sentCycle')"
+            :value="psSmtp2go.email_count"
+            icon="paper-airplane"
+            :loading="providerStatusLoading"
+            testid="provider-status-email-count" />
+          <StatCard
+            :label="t('web.admin.emailtools.providerStatus.stats.hardBounced')"
+            :value="psSmtp2go.hardbounces"
+            icon="arrow-uturn-left"
+            :loading="providerStatusLoading"
+            testid="provider-status-hardbounces" />
+          <StatCard
+            :label="t('web.admin.emailtools.providerStatus.stats.softBounced')"
+            :value="psSmtp2go.softbounces"
+            icon="arrow-down-circle"
+            :loading="providerStatusLoading"
+            testid="provider-status-softbounces" />
+          <StatCard
+            :label="t('web.admin.emailtools.providerStatus.stats.bounceRejects')"
+            :value="psSmtp2go.bounce_rejects"
+            icon="no-symbol"
+            :loading="providerStatusLoading"
+            testid="provider-status-bounce-rejects" />
+          <StatCard
+            :label="t('web.admin.emailtools.providerStatus.stats.spamRejects')"
+            :value="psSmtp2go.spam_rejects"
+            icon="hand-raised"
+            :loading="providerStatusLoading"
+            testid="provider-status-spam-rejects" />
+          <StatCard
+            :label="t('web.admin.emailtools.providerStatus.stats.unsubscribes')"
+            :value="psSmtp2go.unsubscribes"
+            icon="user-minus"
+            :loading="providerStatusLoading"
+            testid="provider-status-unsubscribes" />
+          <StatCard
+            :label="t('web.admin.emailtools.providerStatus.rate.bounce')"
+            icon="chart-bar"
+            :loading="providerStatusLoading"
+            testid="provider-status-rate-bounce">
+            <span :class="rateClass(psSmtp2go.rate_bounce, 0.05)">
+              {{ formatRate(psSmtp2go.rate_bounce) }}
+            </span>
+          </StatCard>
+          <StatCard
+            :label="t('web.admin.emailtools.providerStatus.rate.complaint')"
+            icon="chart-bar"
+            :loading="providerStatusLoading"
+            testid="provider-status-rate-complaint">
+            <span :class="rateClass(psSmtp2go.rate_complaint, 0.001)">
+              {{ formatRate(psSmtp2go.rate_complaint) }}
+            </span>
+          </StatCard>
+        </div>
+        <!-- SMTP2GO stats cover the CURRENT BILLING CYCLE (its stats API takes
+             no date range), not a trailing 30-day window; a "—" rate is "not
+             reported", NOT zero. rate_note (server) is the signal. -->
+        <p
+          v-if="psSmtp2go.rate_note"
+          class="mt-4 text-sm text-gray-500 dark:text-gray-400"
+          data-testid="provider-status-smtp2go-rate-note">
+          {{ t('web.admin.emailtools.providerStatus.cycleNote') }}
         </p>
       </div>
     </section>

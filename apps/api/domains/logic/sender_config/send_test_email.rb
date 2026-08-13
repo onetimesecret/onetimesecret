@@ -184,6 +184,8 @@ module DomainsAPI
             Onetime::Mail::Delivery::Lettermint.new(api_token: api_key)
           when 'sendgrid'
             Onetime::Mail::Delivery::SendGrid.new(api_key: api_key)
+          when 'smtp2go'
+            Onetime::Mail::Delivery::Smtp2go.new('api_key' => api_key)
           else
             # SES requires IAM credentials (key + secret + region) which
             # can't be reconstructed from a single api_key field — fall back
@@ -292,6 +294,19 @@ module DomainsAPI
           if original.respond_to?(:status_code) && original.status_code == 403
             msg = original.message.to_s.downcase
             return true if msg.include?('not verified') || msg.include?('sender')
+          end
+
+          # SMTP2GO: unverified senders surface as a per-recipient failure
+          # envelope (HTTP 200, error_code E_DeliveryFailures) rather than a
+          # 4xx. Recipient addresses in the message are redacted upstream
+          # (Delivery::Smtp2go), so match on the stable error_code plus the
+          # "unable to verify sender" reason wording — narrow enough not to
+          # swallow unrelated per-recipient delivery failures.
+          if defined?(Onetime::Mail::Smtp2goClient::APIError) &&
+             original.is_a?(Onetime::Mail::Smtp2goClient::APIError) &&
+             original.error_code == 'E_DeliveryFailures'
+            msg = original.message.to_s.downcase
+            return true if msg.include?('unable to verify sender')
           end
 
           false

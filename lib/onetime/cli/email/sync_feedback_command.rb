@@ -4,7 +4,8 @@
 
 # CLI command to pull a provider's deliverability suppression list and ingest
 # it into the local suppression list — the operator/cron relay that wires AWS
-# SES and Lettermint feedback into the colonel deliverability console.
+# SES, Lettermint, and SMTP2GO feedback into the colonel deliverability
+# console.
 #
 # Usage:
 #   ots email sync-feedback                         # default (configured) provider
@@ -25,7 +26,7 @@ module Onetime
   module CLI
     module Email
       class SyncFeedbackCommand < Command
-        desc 'Pull ESP suppression feedback (SES/Lettermint) into the suppression list'
+        desc 'Pull ESP suppression feedback (SES/Lettermint/SMTP2GO) into the suppression list'
 
         # Audit actor sentinel for CLI-initiated ingestion (matches the send-test
         # / customer / session CLI convention). The op attributes the one
@@ -34,7 +35,7 @@ module Onetime
 
         option :provider,
           type: :string,
-          desc: 'Feedback provider: ses or lettermint (default: configured provider)'
+          desc: 'Feedback provider: ses, lettermint or smtp2go (default: configured provider)'
 
         option :limit,
           type: :integer,

@@ -81,9 +81,9 @@ result = backend.deliver(email_empty_html)
 result[:status]
 #=> 'logged'
 
-## Logger config is stored
+## Logger config is stored (keys stringified at the Base boundary)
 backend = Onetime::Mail::Delivery::Logger.new({ custom: 'value' })
-backend.config[:custom]
+backend.config['custom']
 #=> 'value'
 
 ## Base normalize_email converts values to strings

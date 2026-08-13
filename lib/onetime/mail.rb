@@ -17,7 +17,7 @@
 #
 # Example config (etc/config.yaml):
 #   emailer:
-#     mode: smtp  # smtp, ses, sendgrid, or logger
+#     mode: smtp  # smtp, ses, sendgrid, smtp2go, or logger
 #     from: noreply@example.com
 #     from_name: Onetime Secret
 #     host: smtp.example.com

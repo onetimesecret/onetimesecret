@@ -164,7 +164,10 @@ export const colonelMailerConfigSchema = z.object({
   sending_mode: z.string().nullable(),
   verification_status: z.string().nullable(),
   dns_verified: z.boolean(),
-  provider_verified: z.boolean(),
+  // Tri-state: null = unknown (provider check inconclusive or never
+  // determined) — distinct from an authoritative provider false. The field
+  // grid renders null as "none", never as "no".
+  provider_verified: z.boolean().nullable(),
   has_api_key: z.boolean(),
   ...configTimestamps,
 });
