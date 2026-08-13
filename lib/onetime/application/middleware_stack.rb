@@ -401,8 +401,8 @@ module Onetime
         # canonicalization (`dept`, `cidr`, garbage).
         #
         # BUT CANONICALIZING IS NOT SILENT. A second, distinct warning fires when
-        # canonicalization actually CHANGED the operator's value while still
-        # landing on a valid mode (`Depth`, `DEPTH`, ` depth `). Honouring those
+        # canonicalization CHANGED the operator's value while still landing on a
+        # valid mode (`Depth`, `DEPTH`, ` depth `). Honouring those
         # is a genuine RUNTIME CHANGE on upgrade: before this reader existed the
         # branch was an exact `== 'depth'` test, so a mixed-case value ran FILTER.
         # Such a deployment now switches client-IP resolution to depth, which
@@ -414,7 +414,9 @@ module Onetime
         # pinned in try/integration/middleware/detect_host_ip_privacy_stack_try.rb.)
         # The operator must be TOLD their value was reinterpreted, not merely
         # obeyed. Exact-lowercase valid values stay silent — nothing changed for
-        # them, and a warning on the correct spelling is noise.
+        # them, and a warning on the correct spelling is noise. A rewritten
+        # spelling that lands on the mode it already ran (`FILTER`, ` filter `)
+        # gets a THIRD, milder warning that does not claim a behaviour change.
         #
         # WARN, DO NOT RAISE. The fallback is the SAFER mode: filter authenticates
         # each hop against a CIDR set, where depth trusts a hop count. Refusing
@@ -452,10 +454,22 @@ module Onetime
           end
 
           # Valid, but not written the way the app stores it — say so. See the
-          # CANONICALIZING IS NOT SILENT note above: this is the upgrade case
-          # where a mixed-case value stops running filter and starts running
-          # what it says.
-          if raw != configured
+          # CANONICALIZING IS NOT SILENT note above.
+          #
+          # TWO DISTINCT CASES, TWO DISTINCT TAGS. The old branch was an exact
+          # `== 'depth'` test, so the ONLY spelling whose runtime behaviour moves
+          # on upgrade is one that canonicalizes TO depth without having been
+          # exactly `depth` already (`Depth`, `DEPTH`, `  depth  `). Every other
+          # rewritten spelling (`FILTER`, `  filter  `) ran filter before and
+          # runs filter now — telling that operator their client-IP resolution
+          # CHANGED is false, and sharing a warn_once tag with the real case
+          # would let a cosmetic rewrite in one Application subclass swallow the
+          # behaviour-change warning for the next one.
+          #
+          # Compare against `configured`, not `configured.strip`: whitespace was
+          # significant to the old exact match, so `  depth  ` ran filter then
+          # and runs depth now — a behaviour change like any other misspelling.
+          if raw == 'depth' && configured != 'depth'
             warn_once :trusted_proxy_mode_canonicalized,
               "[MiddlewareStack] site.network.trusted_proxy.mode #{configured.inspect} " \
               "(TRUSTED_PROXY_MODE) was canonicalized to #{raw.inspect}: running mode=#{raw}. " \
@@ -464,6 +478,13 @@ module Onetime
               'how the client IP is resolved. Write it as ' \
               "#{raw.inspect} exactly — lower case, no surrounding whitespace — to silence " \
               "this, or set it to #{default} to keep the previous behaviour."
+          elsif raw != configured
+            warn_once :trusted_proxy_mode_respelled,
+              "[MiddlewareStack] site.network.trusted_proxy.mode #{configured.inspect} " \
+              "(TRUSTED_PROXY_MODE) was canonicalized to #{raw.inspect}: running mode=#{raw}, " \
+              'the same mode earlier releases ran for this value — client IP resolution is ' \
+              "unchanged. Write it as #{raw.inspect} exactly — lower case, no surrounding " \
+              'whitespace — to silence this.'
           end
 
           raw

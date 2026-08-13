@@ -17,14 +17,17 @@ Fixed
   mode the request path will use. (#4087)
 
 - **Operators — action may be required on upgrade.** If your
-  ``TRUSTED_PROXY_MODE`` is not written in lower case, this release changes
-  how client IPs are resolved. ``Depth``, ``DEPTH`` and the like previously
+  ``TRUSTED_PROXY_MODE`` means depth but is not written as exactly ``depth``,
+  this release changes how client IPs are resolved. ``Depth``, ``DEPTH`` and
+  ``  depth  `` previously
   failed the exact-string test and ran **filter**; they are now canonicalized
   and genuinely select **depth**, which counts hops from the right of the
   forwarded chain — a different address, and a wrong one if
   ``TRUSTED_PROXY_DEPTH`` does not match the real proxy topology. Boot now
   logs a warning naming both the configured and the canonicalized value when
-  this applies. Check before upgrading that ``TRUSTED_PROXY_DEPTH`` matches
+  this applies. Other rewritten spellings — ``FILTER``, ``  filter  `` — ran
+  filter before and run filter now; they get a separate, milder boot line that
+  does not claim a behaviour change. Check before upgrading that ``TRUSTED_PROXY_DEPTH`` matches
   your actual hop count: a mismatch resolves a proxy or CDN address as the
   client, which affects admin CIDR enforcement and shares rate-limit buckets
   across unrelated clients. Setting ``TRUSTED_PROXY_MODE=filter`` explicitly
@@ -41,8 +44,11 @@ Changed
   authenticates each forwarded hop against the trusted-proxy CIDR set — and
   still boots: a configuration whose misreading already fails closed should
   not take a deployment offline. The warning is emitted once per process
-  rather than once per mounted application, and a second, distinct warning
-  covers the canonicalization case above. Behaviour for unset, empty and
+  rather than once per mounted application, and two further distinct warnings
+  cover the canonicalization cases above — one for a rewrite that selects depth
+  where filter used to run, one for a rewrite that changes nothing. Each is
+  tagged separately, so a cosmetic rewrite cannot silence the warning that
+  reports a real change. Behaviour for unset, empty and
   exactly-lowercase values is unchanged, and those spellings log nothing.
   (#4087)
 
@@ -52,7 +58,8 @@ AI Assistance
 - Claude consolidated the four independent readers of
   ``site.network.trusted_proxy`` onto the single
   ``MiddlewareStack.trusted_proxy_enabled?`` / ``.trusted_proxy_mode`` pair,
-  added the mode canonicalization, closed-set validation and the two boot
-  warnings (unrecognized value, and value reinterpreted by canonicalization),
+  added the mode canonicalization, closed-set validation and the three boot
+  warnings (unrecognized value, rewrite that changes the running mode, and
+  rewrite that does not),
   and moved the ``filter`` default out of its three homes into the accessor.
   (#4087)

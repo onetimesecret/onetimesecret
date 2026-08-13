@@ -475,6 +475,62 @@ RSpec.describe Onetime::Application::MiddlewareStack do
         end
       end
 
+      # The behaviour-change claim is only true for values that canonicalize TO
+      # depth: the old branch was an exact `== 'depth'` test, so every other
+      # rewritten spelling ran filter before and runs filter now. Saying their
+      # client IP resolution CHANGED is the same class of untrue boot line #4087
+      # exists to fix, and sharing a warn_once tag with the real case would let a
+      # cosmetic rewrite swallow the warning that matters.
+      context 'when canonicalization does not change the effective mode' do
+        it 'does not claim a behaviour change for FILTER' do
+          stub_mode('FILTER')
+          mode
+          expect(OT).not_to have_received(:lw).with(/CHANGES how the client IP is resolved/)
+        end
+
+        it 'does not claim a behaviour change for padded filter' do
+          stub_mode('  filter  ')
+          mode
+          expect(OT).not_to have_received(:lw).with(/CHANGES how the client IP is resolved/)
+        end
+
+        it 'still tells the operator the value was rewritten, naming both forms' do
+          # Silence would leave the boot log and the config file irreconcilable
+          # by eye — the point of warning at all.
+          stub_mode('FILTER')
+          mode
+          expect(OT).to have_received(:lw).with(/FILTER.*"filter"/m)
+        end
+
+        it 'says client IP resolution is unchanged' do
+          stub_mode('FILTER')
+          mode
+          expect(OT).to have_received(:lw).with(/client IP resolution is unchanged/)
+        end
+
+        it 'does not consume the behaviour-change warning for a later value' do
+          # Each Application subclass builds its own stack and re-reads this;
+          # one tag for both cases means a cosmetic FILTER rewrite in the first
+          # stack silences the real Depth warning in the second.
+          stub_mode('FILTER')
+          mode
+          stub_mode('Depth')
+          described_class.trusted_proxy_mode
+          expect(OT).to have_received(:lw).with(/CHANGES how the client IP is resolved/)
+        end
+      end
+
+      # Whitespace was significant to the old exact `== 'depth'` match, so a
+      # padded depth ran filter then and runs depth now — a behaviour change like
+      # any other misspelling, not a cosmetic rewrite.
+      context 'with a padded depth value' do
+        it 'warns that the behaviour changed on upgrade' do
+          stub_mode('  depth  ')
+          mode
+          expect(OT).to have_received(:lw).with(/CHANGES how the client IP is resolved/)
+        end
+      end
+
       # WARN, do not raise: the fallback is the safer mode and a log-adjacent
       # setting must never be the thing that fails a boot. Silence is the only
       # unacceptable option, since the operator asked for something the app is
