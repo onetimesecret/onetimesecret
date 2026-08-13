@@ -89,6 +89,10 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
         def materialized_entitlements
           @materialized_entitlements ||= []
         end
+
+        def rematerialize_all_memberships!
+          { success: 0, failed: 0, total: 0, failed_ids: [] }
+        end
       end
     end
 
