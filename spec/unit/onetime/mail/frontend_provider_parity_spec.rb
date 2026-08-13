@@ -345,12 +345,45 @@ RSpec.describe 'Frontend mail provider parity' do # rubocop:disable RSpec/Descri
       end
     end
 
+    # The two ENV specs above learn which variables exist by asking the
+    # registry, so they can only ever set declared names. An ENV source that
+    # the YAML reads but the registry never declares is therefore invisible to
+    # them: it stays unset, contributes nothing to the `||` chain, and every
+    # assertion still passes -- even when the undeclared source is written
+    # first and outranks the whole declared chain at runtime. Catching that
+    # requires reading the shipped YAML statically.
+    it 'reads no ENV source that the registry does not declare' do
+      raw     = File.read(defaults_path)
+      section = raw[/^email_providers:\n(.*?)(?=^\S)/m, 1]
+      unless section
+        raise 'email_providers block not found in etc/defaults/config.defaults.yaml. ' \
+              'If the file was reshaped, update ' \
+              'spec/unit/onetime/mail/frontend_provider_parity_spec.rb.'
+      end
+
+      blocks = section.scan(/^  (\w+):\n(.*?)(?=^  \w+:|\z)/m).to_h
+
+      registry.provisioning_providers.each do |name|
+        body = blocks.fetch(name) do
+          raise "no email_providers.#{name} block in etc/defaults/config.defaults.yaml."
+        end
+        actual   = body.gsub(/#.*/, '').scan(/ENV\['([A-Z0-9_]+)'\]/).flatten.uniq
+        declared = registry.descriptor!(name).config_env_sources.values.flatten.uniq
+
+        expect(actual).to match_array(declared),
+          "email_providers.#{name} reads ENV #{actual.inspect} but ProviderRegistry " \
+          "declares #{declared.inspect}. Update config_env_sources."
+      end
+    end
+
     it 'uses the declared ENV source order as fallback precedence' do
       registry.provisioning_providers.each do |name|
         registry.descriptor!(name).config_env_sources.each do |key, env_names|
           next unless env_names.length > 1
 
-          env_names.each_index do |start_index|
+          # Stop before the one-element suffix: a single active source is just
+          # the "wires every declared ENV source" case above.
+          (env_names.length - 1).times do |start_index|
             active_sources = env_names.drop(start_index)
             markers        = active_sources.each_with_index.to_h do |env_name, index|
               [env_name, "parity-source-#{start_index}-#{index}"]
