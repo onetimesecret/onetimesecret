@@ -30,7 +30,14 @@ module Onetime
         # improve readability and reduce user errors when manually entering
         # generated strings.
         VALID_CHARS_SAFE = VALID_CHARS.reject { |char| AMBIGUOUS_CHARS.include?(char) }.freeze
-        TRUTHY_VALUES    = %w[1 true yes on y t].freeze
+
+        # Definitive list of strings that can represent a boolean value. These
+        # are used by explicit_yes? and explicit_no? to avoid any confusion
+        # around guesses like, "it doesn't meet our definition for a clear
+        # positive signal so we'll assume the negative case" which is
+        # not the same as an explicit false.
+        TRUTHY_VALUES = %w[1 true yes on y t].freeze
+        FALSEY_VALUES = %w[0 false no off n f].freeze
       end
 
       # Generates a random string of specified length using predefined
@@ -217,11 +224,49 @@ module Onetime
         end
       end
 
-      # Checks if a value represents a truthy boolean value
+      # Checks whether a value is an explicitly recognized truthy token.
+      #
+      # This is a recognizer, not a partition: a false return means "not a
+      # truthy token", NOT "falsey". Unrecognized input (typos, blanks) is
+      # neither yes nor no. Use strict_bool! when unrecognized input must
+      # not silently resolve to a default.
+      #
       # @param value [Object] Value to check
-      # @return [Boolean] true if value one of the TRUTHY_VALUES (case-insensitive)
-      def yes?(value)
-        !value.to_s.empty? && TRUTHY_VALUES.include?(value.to_s.downcase)
+      # @return [Boolean] true if value is one of TRUTHY_VALUES (case-insensitive, whitespace-tolerant)
+      def explicit_yes?(value)
+        TRUTHY_VALUES.include?(value.to_s.strip.downcase)
+      end
+      alias yes? explicit_yes?
+
+      # Checks whether a value is an explicitly recognized falsey token.
+      # Complement of explicit_yes?, not its negation: both return false for
+      # unrecognized input.
+      #
+      # @param value [Object] Value to check
+      # @return [Boolean] true if value is one of FALSEY_VALUES (case-insensitive, whitespace-tolerant)
+      def explicit_no?(value)
+        FALSEY_VALUES.include?(value.to_s.strip.downcase)
+      end
+
+      # Resolves an operator-supplied boolean, failing loudly on anything
+      # unrecognized (ADR-033). Blank/nil means unset and takes the caller's
+      # documented default; a typo raises instead of silently landing on
+      # false, which would disable a default-ON control.
+      #
+      # @param name [String] Flag name, for the error message (e.g. 'RABBITMQ_VERIFY_PEER')
+      # @param raw [Object] Raw value as supplied
+      # @param default [Boolean] Value to use when raw is unset/blank
+      # @return [Boolean]
+      # @raise [Onetime::ConfigError] if raw is present but not a recognized token
+      def strict_bool!(name, raw, default:)
+        return default if raw.to_s.strip.empty?
+        return true    if explicit_yes?(raw)
+        return false   if explicit_no?(raw)
+
+        # One nit: raw.inspect in the error message is fine for boolean flags, but if strict_bool! later gets reused for something operator-sensitive, the raised message echoes the raw value into logs/Sentry.
+        raise Onetime::ConfigError,
+          "#{name} is #{raw.inspect} — unrecognized boolean. " \
+          "Use one of #{TRUTHY_VALUES.join('/')} or #{FALSEY_VALUES.join('/')}, or leave unset."
       end
 
       private
