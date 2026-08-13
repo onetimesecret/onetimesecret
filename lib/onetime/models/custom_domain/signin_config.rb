@@ -38,7 +38,7 @@ require_relative '../features/boolean_encoding'
 #
 # See: lib/onetime/auth_config.rb (AuthConfig, restrict_to logic)
 #      etc/defaults/auth.defaults.yaml (install-level defaults)
-#      docs/architecture/decision-records/adr-024-custom-domain-auth-override-resolution.md
+#      docs/adr/adr-024-custom-domain-auth-override-resolution.md
 #      (source of truth for the two-flag model, resolution invariants, and the
 #      settings API/UI contract built on them)
 #

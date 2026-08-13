@@ -50,7 +50,7 @@ encoder/verifier that slices 20, 40, 50, and 51 consume.
 ## Grounding — files & pointers
 
 - Key derivation: `lib/onetime/key_derivation.rb` (frozen `PURPOSES`, `derive`/`derive_hex`; SALT `'onetimesecret-v1'`)
-- ADR: `docs/architecture/decision-records/adr-008-secret-management-architecture.md` (`{PURPOSE}_SECRET` naming, derived-vs-independent categories)
+- ADR: `docs/adr/adr-008-secret-management-architecture.md` (`{PURPOSE}_SECRET` naming, derived-vs-independent categories)
 - Hash precedent (shape + normalization contract): `lib/onetime/utils/email_hash.rb` — note its private `normalize_email` copy must stay in sync with `OT::Utils.normalize_email` (`lib/onetime/utils/strings.rb`); the new helper should call `OT::Utils.normalize_email` directly
 - Domain parsing: `lib/onetime/utils/domain_parser.rb`
 - Constant-time compare precedent: `EmailHash.same_hash?`; session HMAC in `lib/onetime/session.rb`

@@ -66,7 +66,7 @@
 #      (apps/web/core/routes.txt). Gated in
 #      Core::Controllers::Base#restrict_to_allows?.
 #
-# See: docs/architecture/decision-records/adr-024-custom-domain-auth-override-resolution.md
+# See: docs/adr/adr-024-custom-domain-auth-override-resolution.md
 #      (A1, A3, A7 — normative), lib/onetime/models/custom_domain/signin_config.rb
 #      (the A2 resolver; resolution is owned there and re-derived nowhere).
 #
