@@ -15,7 +15,7 @@ security, privacy, and long-term codebase health; the default posture is
 fail-closed.
 
 Section headings below declare their own citation anchors (ADR-036#anchors-are-declared) — reference them as
-`ADR-034#slug` rather than by position; sections may be reordered or reworded without
+`ADR-034#slug` rather than by position; sections may be reordered or reworded without <!-- adr-lint:ignore -->
 breaking a citation.
 
 ## Decision

@@ -40,7 +40,7 @@ def levenshtein(a, b)
     end
     prev = cur
   end
-  prev.last÷
+  prev.last
 end
 
 # Anchors are DECLARED, not derived (ADR-036#anchors-are-declared). Derived
