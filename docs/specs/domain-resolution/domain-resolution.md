@@ -1,7 +1,6 @@
 # docs/specs/domain-resolution/domain-resolution.md
 
-created: 2026-08-13
----
+## created: 2026-08-13
 
 # Domain Resolution
 
@@ -292,3 +291,160 @@ Also test:
 ## Conclusion
 
 Solution 1 is the correct immediate remediation, with one qualification: implement it as a request-aware policy resolver and propagate it to both runtime and display consumers. Do not redefine domain identity predicates. Preserve failure provenance later for diagnostics and metrics, but it is not required to close this access-policy widening.
+
+## Long-term mitigation
+
+The durable solution is **typed classification with explicit trust and failure provenance**, combined with **centralized policy resolution**.
+
+Solution 1 should remain the security boundary. Solution 2 should eventually improve the information supplied to that boundary.
+
+### 1. Replace ambiguous symbols with a structured result
+
+`DomainStrategy` should return an object rather than a bare symbol:
+
+```ruby
+DomainResolution.new(
+  classification: :custom,
+  trust: :confirmed,
+  host: normalized_host,
+  tenant_id: domain_id,
+)
+```
+
+Failure example:
+
+```ruby
+DomainResolution.new(
+  classification: :unknown,
+  trust: :indeterminate,
+  reason: :custom_lookup_unavailable,
+  host: normalized_host,
+)
+```
+
+Useful states include:
+
+- Confirmed operator host
+- Confirmed customer host, ideally including `tenant_id`
+- Confirmed unknown or malformed host
+- Indeterminate because tenant lookup was unavailable
+
+The critical distinction is not merely `:invalid_host` versus `:custom_lookup_unavailable`. It is:
+
+```text
+confirmed operator
+confirmed tenant
+confirmed non-tenant
+indeterminate
+```
+
+### 2. Make authentication policy consume positive authority
+
+Centralize request policy resolution:
+
+```ruby
+AuthenticationPolicy.for(domain_resolution)
+```
+
+Its invariant should be:
+
+```text
+Operator defaults require a confirmed operator classification.
+Tenant permissions require confirmed tenant identity and readable tenant policy.
+Everything indeterminate fails closed.
+```
+
+This avoids negative tests such as:
+
+```ruby
+strategy != :custom
+```
+
+Individual controllers and serializers should consume the resolved policy rather than interpret domain classifications themselves.
+
+### 3. Separate identity, presentation, and security decisions
+
+A single predicate such as `custom_domain_request?` should not control unrelated concerns.
+
+Use distinct interfaces:
+
+```ruby
+resolution.presentation_context
+resolution.routing_context
+resolution.authentication_authority
+```
+
+That permits:
+
+- Unknown hosts to retain generic presentation.
+- Indeterminate hosts to avoid tenant branding.
+- Authentication to remain closed whenever operator ownership is not positively established.
+
+Generic presentation does not imply operator authorization.
+
+### 4. Resolve tenant identity once
+
+When custom-domain lookup succeeds, include the tenant/domain identifier in the resolution object. Downstream code should not independently repeat:
+
+```ruby
+CustomDomain.load_by_display_domain(host)
+```
+
+Repeated reads create inconsistent snapshots:
+
+1. Middleware lookup succeeds.
+2. A later lookup fails or returns different data.
+3. Routing, branding, and authentication disagree.
+
+One request should carry one authoritative domain-resolution result. Tenant policy reads can then use its confirmed `tenant_id`.
+
+### 5. Define explicit failure behavior
+
+For an indeterminate domain:
+
+- Authentication-enabling endpoints: reject, preferably with `503`.
+- Public/generic rendering: continue where safe.
+- Tenant-specific routing or sensitive operations: reject.
+- Branding: use generic presentation.
+- Logs and metrics: record lookup unavailability separately from invalid input.
+
+This preserves availability for harmless routes without widening access.
+
+### 6. Enforce the invariant structurally
+
+Use exhaustive handling instead of permissive `else` branches:
+
+```ruby
+case resolution.authentication_authority
+when :operator
+  operator_policy
+when :tenant
+  tenant_policy
+when :none, :indeterminate
+  disabled_policy
+else
+  raise "Unhandled authentication authority"
+end
+```
+
+Adding a new classification should cause tests—or preferably runtime construction validation/static exhaustiveness—to fail until its security behavior is chosen explicitly.
+
+Ban direct classification interpretation outside the domain-resolution/policy layer.
+
+### Migration path
+
+1. **Immediately:** implement classification-aware, fail-closed request resolvers.
+2. Introduce `DomainResolution` while retaining compatibility accessors for existing consumers.
+3. Carry confirmed `tenant_id` in the resolution.
+4. Move authentication decisions into one request-level policy object.
+5. Migrate consumers by concern: authentication first, then routing and presentation.
+6. Remove direct symbol comparisons after all consumers migrate.
+7. Add metrics for malformed, unknown, and lookup-unavailable outcomes.
+
+## Bottom line
+
+The long-term design is not classifier provenance alone. It is:
+
+> **Structured domain resolution, positive authority checks, one resolution per request, and centralized fail-closed security policy.**
+
+That makes an ambiguous or newly introduced classification unable to inherit operator permissions accidentally.
