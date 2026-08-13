@@ -601,51 +601,63 @@
   },
   "web.domains.sso.status_active_badge": {
     "text": "Active",
-    "context": "Badge on the SSO row of domain Sign-in Settings when the server reports tenant SSO as available on this domain."
+    "context": "Badge on the SSO row of domain Sign-in Settings when the server reports tenant SSO as available on this domain.",
+    "content_hash": "92340695"
   },
   "web.domains.sso.status_active_hint": {
     "text": "Members can sign in with this SSO connection on this domain.",
-    "context": "Explanatory line beside the Active badge on the SSO row of domain Sign-in Settings."
+    "context": "Explanatory line beside the Active badge on the SSO row of domain Sign-in Settings.",
+    "content_hash": "313ec61e"
   },
   "web.domains.sso.status_not_configured_badge": {
     "text": "Not configured",
-    "context": "Badge on the SSO row of domain Sign-in Settings when no SSO credentials are saved for the domain."
+    "context": "Badge on the SSO row of domain Sign-in Settings when no SSO credentials are saved for the domain.",
+    "content_hash": "dd1841d2"
   },
   "web.domains.sso.status_not_configured_hint": {
     "text": "No SSO credentials are saved for this domain yet.",
-    "context": "Explanatory line beside the Not configured badge on the SSO row of domain Sign-in Settings."
+    "context": "Explanatory line beside the Not configured badge on the SSO row of domain Sign-in Settings.",
+    "content_hash": "d817ad9c"
   },
   "web.domains.sso.status_not_permitted_badge": {
     "text": "Not allowed on this domain",
-    "context": "Badge on the SSO row of domain Sign-in Settings when the domain's own sign-in settings turn SSO off."
+    "context": "Badge on the SSO row of domain Sign-in Settings when the domain's own sign-in settings turn SSO off.",
+    "content_hash": "afbd20ba"
   },
   "web.domains.sso.status_not_permitted_hint": {
     "text": "SSO is turned off for this domain, so the sign-in page does not offer it.",
-    "context": "Explanatory line beside the Not allowed badge on the SSO row of domain Sign-in Settings."
+    "context": "Explanatory line beside the Not allowed badge on the SSO row of domain Sign-in Settings.",
+    "content_hash": "ef092481"
   },
   "web.domains.sso.status_auth_disabled_badge": {
     "text": "Sign-in disabled",
-    "context": "Badge on the SSO row of domain Sign-in Settings when sign-in is turned off for the whole domain."
+    "context": "Badge on the SSO row of domain Sign-in Settings when sign-in is turned off for the whole domain.",
+    "content_hash": "bb807607"
   },
   "web.domains.sso.status_auth_disabled_hint": {
     "text": "Sign-in is turned off on this domain, so no method is offered — including SSO.",
-    "context": "Explanatory line beside the Sign-in disabled badge on the SSO row of domain Sign-in Settings."
+    "context": "Explanatory line beside the Sign-in disabled badge on the SSO row of domain Sign-in Settings.",
+    "content_hash": "3a98964b"
   },
   "web.domains.sso.status_unsupported_provider_badge": {
     "text": "Unsupported provider",
-    "context": "Badge on the SSO row of domain Sign-in Settings when the saved provider type cannot be used for per-domain SSO."
+    "context": "Badge on the SSO row of domain Sign-in Settings when the saved provider type cannot be used for per-domain SSO.",
+    "content_hash": "1609d5fb"
   },
   "web.domains.sso.status_unsupported_provider_hint": {
     "text": "The saved provider cannot be used for domain SSO. Edit the credentials and choose Microsoft Entra ID or generic OIDC.",
-    "context": "Explanatory line beside the Unsupported provider badge on the SSO row of domain Sign-in Settings."
+    "context": "Explanatory line beside the Unsupported provider badge on the SSO row of domain Sign-in Settings.",
+    "content_hash": "72ea0a2e"
   },
   "web.domains.sso.status_unavailable_badge": {
     "text": "Unavailable",
-    "context": "Fallback badge on the SSO row of domain Sign-in Settings when the server reports a blocking reason this version does not recognise."
+    "context": "Fallback badge on the SSO row of domain Sign-in Settings when the server reports a blocking reason this version does not recognise.",
+    "content_hash": "ca184496"
   },
   "web.domains.sso.status_unavailable_hint": {
     "text": "SSO cannot be offered on this domain right now. Check the SSO credentials and this domain's sign-in settings.",
-    "context": "Fallback explanatory line beside the Unavailable badge on the SSO row of domain Sign-in Settings."
+    "context": "Fallback explanatory line beside the Unavailable badge on the SSO row of domain Sign-in Settings.",
+    "content_hash": "b03b14f4"
   },
   "web.domains.signup.title": {
     "text": "Signup Validation",
@@ -1414,27 +1426,33 @@
   },
   "web.domains.signin.sso_restrict_warning_title": {
     "text": "Restricting to SSO would close sign-in on this domain",
-    "context": "Heading of the confirmation panel shown when an owner picks SSO as the only sign-in method while the server reports SSO unavailable on that domain."
+    "context": "Heading of the confirmation panel shown when an owner picks SSO as the only sign-in method while the server reports SSO unavailable on that domain.",
+    "content_hash": "3476cb5c"
   },
   "web.domains.signin.sso_restrict_warning_body": {
     "text": "SSO is not available on this domain, and a restriction that cannot be honoured blocks sign-in entirely. Nobody will be able to sign in here until SSO works. Fix SSO first, or restrict anyway and finish the setup.",
-    "context": "Body of the confirmation panel warning that restricting to an unavailable SSO takes the domain's sign-in page dark."
+    "context": "Body of the confirmation panel warning that restricting to an unavailable SSO takes the domain's sign-in page dark.",
+    "content_hash": "b36ce005"
   },
   "web.domains.signin.sso_restrict_warning_confirm": {
     "text": "Restrict anyway",
-    "context": "Button that saves the SSO-only restriction despite the warning that SSO is unavailable on this domain."
+    "context": "Button that saves the SSO-only restriction despite the warning that SSO is unavailable on this domain.",
+    "content_hash": "4674e3cf"
   },
   "web.domains.signin.restriction_unavailable_notice": {
     "text": "Sign-in is unavailable on this domain: it is restricted to {method}, which cannot run here. Pick another method, or make {method} available.",
-    "context": "Notice shown when the server resolves this domain's sign-in restriction to a method that cannot run, so no one can sign in. {method} is a method name such as Single Sign-On."
+    "context": "Notice shown when the server resolves this domain's sign-in restriction to a method that cannot run, so no one can sign in. {method} is a method name such as Single Sign-On.",
+    "content_hash": "ca1b7f69"
   },
   "web.domains.signin.restriction_unavailable_unknown_notice": {
     "text": "Sign-in is unavailable on this domain: it is restricted to a method that cannot run here. Pick another method, or reset this domain to defaults.",
-    "context": "Notice shown when the server resolves the domain's sign-in restriction as unavailable but does not name a method this version recognises."
+    "context": "Notice shown when the server resolves the domain's sign-in restriction as unavailable but does not name a method this version recognises.",
+    "content_hash": "8c2cce6b"
   },
   "web.domains.signin.restriction_conflict_notice": {
     "text": "This domain restricts sign-in to a different method than the workspace-wide restriction ({method}), so neither can apply and sign-in is unavailable here. Match the workspace-wide method, or reset this domain to defaults.",
-    "context": "Notice shown when the domain and workspace-wide sign-in restrictions name different methods. {method} is the workspace-wide method name."
+    "context": "Notice shown when the domain and workspace-wide sign-in restrictions name different methods. {method} is the workspace-wide method name.",
+    "content_hash": "15398362"
   },
   "web.domains.signin.availability_always": {
     "text": "Always available",
