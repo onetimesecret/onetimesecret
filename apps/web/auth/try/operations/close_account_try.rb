@@ -7,9 +7,23 @@
 # Tests the deletion of auth accounts and all related data from the auth
 # database. This operation is used when a user deletes their account.
 
-# Setup - Load the real application with full auth mode
-ENV['RACK_ENV']            = 'test'
-ENV['AUTHENTICATION_MODE'] = 'full'
+# --- delete_redis_sessions: AES-GCM decode + sidecar purge (#3858) ---
+#
+# delete_redis_sessions SCANs session:* for blobs whose codec-DECODED
+# external_id matches the closing account, deletes each matching blob AND
+# purges its per-value sidecar keys, skipping sidecar-shaped keys. Sessions are
+# AES-256-GCM encrypted, so the sweep MUST decode through the codec -- the old
+# JSON.parse(base64) path raised on every authenticated blob and silently
+# skipped it, leaving live sessions behind on account closure. These cases
+# assert the real Redis effects (the method swallows all errors, so nothing
+# else could catch a regression). Redis-only: no auth DB required, so they run
+# even when the accounts DB is absent (db: passed non-nil to skip the connect).
+require 'onetime/session/codec'
+require 'onetime/session/sidecar'
+
+# Setup - Keep the lane's authentication mode. Database-backed cases are
+# skipped below when the lane does not provide an auth database.
+ENV['RACK_ENV'] = 'test'
 
 require_relative '../../../../../try/support/test_helpers'
 
@@ -21,12 +35,19 @@ OT.boot! :test, false
 require 'auth/database'
 require_relative '../../operations/close_account'
 
-@db = Auth::Database.connection
+# NOTE: Auth::Database.connection returns a LazyConnection proxy that is
+# truthy even when no database can be reached — it only answers "is this full
+# mode?". Ask #available?, which forces the connection behind a rescue, so a
+# lane without a provisioned database skips rather than exploding inside
+# Sequel::Migrator.run below.
+@db = Auth::Database.available? ? Auth::Database.connection : nil
 
 if @db
-  Sequel.extension :migration
-  migrations_path = File.join(Onetime::HOME, 'apps', 'web', 'auth', 'migrations')
-  Sequel::Migrator.run(@db, migrations_path)
+  # Use the app's migrator rather than a hand-rolled Sequel::Migrator.run on
+  # @db: on PostgreSQL, DDL requires the elevated database_url_migrations
+  # credentials, and only Auth::Migrator knows to switch connections for them.
+  require 'auth/migrator'
+  Auth::Migrator.run_if_needed
 end
 
 # Skip this test file gracefully if auth database is not available.
@@ -36,17 +57,18 @@ end
 # halts all remaining files in the batch. Test cases use skip_without_db
 # to return the expected value when @db is nil.
 unless @db
-  warn "[SKIP] close_account_try.rb: Auth database not configured (full auth mode requires database)"
+  warn '[SKIP] close_account_try.rb: Auth database not reachable (full auth mode requires database)'
 end
 
-def skip_without_db(expected, &block)
+def skip_without_db(expected, &)
   return expected unless @db
-  block.call
+
+  yield
 end
 
 # Create a test account directly in the auth database
 if @db
-  @test_email = generate_unique_test_email("closeaccount")
+  @test_email = generate_unique_test_email('closeaccount')
   @test_extid = "test_extid_#{SecureRandom.hex(8)}"
 
   @db.transaction do
@@ -55,20 +77,20 @@ if @db
       status_id: 2,
       external_id: @test_extid,
       created_at: Time.now,
-      updated_at: Time.now
+      updated_at: Time.now,
     )
 
     # Insert related records to verify cascade deletion
     @db[:account_password_hashes].insert(
       id: @account_id,
       password_hash: '$argon2id$v=19$m=16384,t=2,p=1$fakehash',
-      created_at: Time.now
+      created_at: Time.now,
     )
 
     @db[:account_remember_keys].insert(
       id: @account_id,
       key: SecureRandom.hex(32),
-      deadline: Time.now + 86400
+      deadline: Time.now + 86_400,
     )
   end
 end
@@ -139,20 +161,6 @@ skip_without_db(false) do
 end
 #=> false
 
-# --- delete_redis_sessions: AES-GCM decode + sidecar purge (#3858) ---
-#
-# delete_redis_sessions SCANs session:* for blobs whose codec-DECODED
-# external_id matches the closing account, deletes each matching blob AND
-# purges its per-value sidecar keys, skipping sidecar-shaped keys. Sessions are
-# AES-256-GCM encrypted, so the sweep MUST decode through the codec -- the old
-# JSON.parse(base64) path raised on every authenticated blob and silently
-# skipped it, leaving live sessions behind on account closure. These cases
-# assert the real Redis effects (the method swallows all errors, so nothing
-# else could catch a regression). Redis-only: no auth DB required, so they run
-# even when the accounts DB is absent (db: passed non-nil to skip the connect).
-require 'onetime/session/codec'
-require 'onetime/session/sidecar'
-
 ## an authenticated, AES-GCM-encrypted session blob for the closing account is
 ## deleted along with its sidecar keys, while a DIFFERENT account's blob
 ## survives -- proving the encrypted blob actually decodes (a plain JSON.parse
@@ -161,16 +169,16 @@ require 'onetime/session/sidecar'
 # (session_config['secret'], the chain middleware_stack mounts the session
 # with) — the sweep's SessionCodec.from_config must resolve the SAME secret
 # for the encrypted blob to decode and match.
-@ca_secret = Onetime.session_config['secret']
-@ca_codec  = Onetime::SessionCodec.new(@ca_secret)
-@ca_db     = Familia.dbclient
-@ca_extid  = "extid_close_#{SecureRandom.hex(6)}"
-@ca_sid    = SecureRandom.hex(32) # 64 hex -- the shape the sidecar purge is gated on
-@ca_blob   = "session:#{@ca_sid}"
-@ca_mfa    = "sidecar:#{@ca_sid}:awaiting_mfa"
+@ca_secret     = Onetime.session_config['secret']
+@ca_codec      = Onetime::SessionCodec.new(@ca_secret)
+@ca_db         = Familia.dbclient
+@ca_extid      = "extid_close_#{SecureRandom.hex(6)}"
+@ca_sid        = SecureRandom.hex(32) # 64 hex -- the shape the sidecar purge is gated on
+@ca_blob       = "session:#{@ca_sid}"
+@ca_mfa        = "sidecar:#{@ca_sid}:awaiting_mfa"
 @ca_other_sid  = SecureRandom.hex(32)
 @ca_other_blob = "session:#{@ca_other_sid}"
-@ca_op = Auth::Operations::CloseAccount.new(extid: @ca_extid, db: :redis_only)
+@ca_op         = Auth::Operations::CloseAccount.new(extid: @ca_extid, db: :redis_only)
 @ca_db.set(@ca_blob, @ca_codec.encode({ 'external_id' => @ca_extid, 'authenticated' => true }), ex: 3600)
 Onetime::SessionSidecar.write(@ca_sid, 'awaiting_mfa', true, codec: @ca_codec)
 @ca_db.set(@ca_other_blob, @ca_codec.encode({ 'external_id' => 'someone_else', 'authenticated' => true }), ex: 3600)
@@ -193,7 +201,7 @@ if @db
     @db[:account_remember_keys].where(id: @account_id).delete
     @db[:account_password_hashes].where(id: @account_id).delete
     @db[:accounts].where(id: @account_id).delete
-  rescue StandardError => ex
+  rescue StandardError
     # Ignore cleanup errors - data should already be deleted
   end
 end

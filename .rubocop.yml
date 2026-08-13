@@ -80,6 +80,9 @@ Lint/UnusedMethodArgument:
 
 Lint/UselessAssignment:
   Enabled: true
+  # See the Lint/Void note below — same hazard, same defence.
+  Exclude:
+    - '**/*_try.rb'
 
 Lint/DuplicateBranch:
   Enabled: true
@@ -276,6 +279,22 @@ Layout/FirstMethodArgumentLineBreak:
 
 Lint/Void:
   Enabled: true
+  # Tryouts files are excluded wholesale by AllCops (try/**/*, apps/**/try/**/*),
+  # but that exclusion is only honoured with --force-exclusion. The pre-commit
+  # hook passes it; an ad-hoc `bundle exec rubocop -A some_try.rb` does not, and
+  # then Lint/Void's autocorrect DELETES the trailing expression a testcase uses
+  # as its result value:
+  #
+  #     @domain.destroy!
+  #     true          # <- "literal in void context", silently removed
+  #     #=> true
+  #
+  # The case then asserts destroy!'s return value instead, which is a different
+  # (and sometimes still-passing) test. This bit us in bb9ca4cb9. A per-cop
+  # Exclude is honoured regardless of --force-exclusion, so it closes the hole
+  # for every invocation path.
+  Exclude:
+    - '**/*_try.rb'
 
 Lint/CopDirectiveSyntax:
   Enabled: true

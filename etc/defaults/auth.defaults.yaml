@@ -33,7 +33,11 @@ full:
   #     (e.g., /app/data or /data) or all data will be lost on container restart.
   #
   # NOTE: The double quotes prevent YAML issues when parsing `sqlite::memory:`
-  database_url: "<%= ENV['AUTH_DATABASE_URL'] || 'sqlite://data/auth.db' %>"
+  # NOTE: An exported-but-empty AUTH_DATABASE_URL is truthy in Ruby, so it is
+  #       normalized to unset here rather than rendering "" (which reaches
+  #       Sequel.connect as a schemeless URL). AuthConfig#database_url applies
+  #       the same rule for operator config files that do not.
+  database_url: "<%= ENV['AUTH_DATABASE_URL'].to_s.strip.empty? ? 'sqlite://data/auth.db' : ENV['AUTH_DATABASE_URL'] %>"
 
   # Migrations Connection (PostgreSQL, MySQL, MS SQL Server only)
   #
@@ -48,7 +52,7 @@ full:
   #
   # Not needed for SQLite or other databases that don't support this security model.
   #
-  database_url_migrations: <%= ENV['AUTH_DATABASE_URL_MIGRATIONS'] || nil %>
+  database_url_migrations: <%= ENV['AUTH_DATABASE_URL_MIGRATIONS'].to_s.strip.empty? ? nil : ENV['AUTH_DATABASE_URL_MIGRATIONS'] %>
 
   # Service URL (used for internal requests)
   #service_url: <%= ENV['AUTH_SERVICE_URL'] || 'http://127.0.0.1:3000/auth' %>
