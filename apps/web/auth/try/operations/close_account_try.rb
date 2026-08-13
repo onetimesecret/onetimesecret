@@ -57,17 +57,18 @@ end
 # halts all remaining files in the batch. Test cases use skip_without_db
 # to return the expected value when @db is nil.
 unless @db
-  warn "[SKIP] close_account_try.rb: Auth database not reachable (full auth mode requires database)"
+  warn '[SKIP] close_account_try.rb: Auth database not reachable (full auth mode requires database)'
 end
 
-def skip_without_db(expected, &block)
+def skip_without_db(expected, &)
   return expected unless @db
-  block.call
+
+  yield
 end
 
 # Create a test account directly in the auth database
 if @db
-  @test_email = generate_unique_test_email("closeaccount")
+  @test_email = generate_unique_test_email('closeaccount')
   @test_extid = "test_extid_#{SecureRandom.hex(8)}"
 
   @db.transaction do
@@ -76,20 +77,20 @@ if @db
       status_id: 2,
       external_id: @test_extid,
       created_at: Time.now,
-      updated_at: Time.now
+      updated_at: Time.now,
     )
 
     # Insert related records to verify cascade deletion
     @db[:account_password_hashes].insert(
       id: @account_id,
       password_hash: '$argon2id$v=19$m=16384,t=2,p=1$fakehash',
-      created_at: Time.now
+      created_at: Time.now,
     )
 
     @db[:account_remember_keys].insert(
       id: @account_id,
       key: SecureRandom.hex(32),
-      deadline: Time.now + 86400
+      deadline: Time.now + 86_400,
     )
   end
 end
@@ -168,16 +169,16 @@ end
 # (session_config['secret'], the chain middleware_stack mounts the session
 # with) — the sweep's SessionCodec.from_config must resolve the SAME secret
 # for the encrypted blob to decode and match.
-@ca_secret = Onetime.session_config['secret']
-@ca_codec  = Onetime::SessionCodec.new(@ca_secret)
-@ca_db     = Familia.dbclient
-@ca_extid  = "extid_close_#{SecureRandom.hex(6)}"
-@ca_sid    = SecureRandom.hex(32) # 64 hex -- the shape the sidecar purge is gated on
-@ca_blob   = "session:#{@ca_sid}"
-@ca_mfa    = "sidecar:#{@ca_sid}:awaiting_mfa"
+@ca_secret     = Onetime.session_config['secret']
+@ca_codec      = Onetime::SessionCodec.new(@ca_secret)
+@ca_db         = Familia.dbclient
+@ca_extid      = "extid_close_#{SecureRandom.hex(6)}"
+@ca_sid        = SecureRandom.hex(32) # 64 hex -- the shape the sidecar purge is gated on
+@ca_blob       = "session:#{@ca_sid}"
+@ca_mfa        = "sidecar:#{@ca_sid}:awaiting_mfa"
 @ca_other_sid  = SecureRandom.hex(32)
 @ca_other_blob = "session:#{@ca_other_sid}"
-@ca_op = Auth::Operations::CloseAccount.new(extid: @ca_extid, db: :redis_only)
+@ca_op         = Auth::Operations::CloseAccount.new(extid: @ca_extid, db: :redis_only)
 @ca_db.set(@ca_blob, @ca_codec.encode({ 'external_id' => @ca_extid, 'authenticated' => true }), ex: 3600)
 Onetime::SessionSidecar.write(@ca_sid, 'awaiting_mfa', true, codec: @ca_codec)
 @ca_db.set(@ca_other_blob, @ca_codec.encode({ 'external_id' => 'someone_else', 'authenticated' => true }), ex: 3600)
@@ -190,7 +191,6 @@ Onetime::SessionSidecar.write(@ca_sid, 'awaiting_mfa', true, codec: @ca_codec)
 @ca_result = @ca_op.send(:delete_redis_sessions, @ca_extid)
 @ca_db.del(@ca_blob, @ca_other_blob)
 Onetime::SessionSidecar.purge(@ca_sid)
-@ca_result
 #=> 1
 
 # Teardown
@@ -200,7 +200,7 @@ if @db
     @db[:account_remember_keys].where(id: @account_id).delete
     @db[:account_password_hashes].where(id: @account_id).delete
     @db[:accounts].where(id: @account_id).delete
-  rescue StandardError => ex
+  rescue StandardError
     # Ignore cleanup errors - data should already be deleted
   end
 end

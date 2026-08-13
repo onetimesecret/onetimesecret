@@ -55,14 +55,14 @@ WebMock.stub_request(:get, "#{PLACEHOLDER_OIDC_ISSUER}/.well-known/openid-config
       claims_supported: %w[sub email email_verified name],
       code_challenge_methods_supported: %w[S256],
     }.to_json,
-    headers: { 'Content-Type' => 'application/json' }
+    headers: { 'Content-Type' => 'application/json' },
   )
 
 WebMock.stub_request(:get, "#{PLACEHOLDER_OIDC_ISSUER}/.well-known/jwks.json")
   .to_return(
     status: 200,
     body: { keys: [] }.to_json,
-    headers: { 'Content-Type' => 'application/json' }
+    headers: { 'Content-Type' => 'application/json' },
   )
 
 require 'rspec'
@@ -110,7 +110,7 @@ module TenantVerifyingMockRegistration
     # Uses the strategy class from OmniAuth::Strategies namespace.
     auth.omniauth_provider(
       :tenant_verifying_mock,
-      name: :tenant_verify
+      name: :tenant_verify,
     )
   end
 end
@@ -118,6 +118,7 @@ end
 # Helper module for creating isolated Rodauth test environments
 module RodauthTestHelper
   include AuthTestConstants
+
   # Creates a fresh SQLite in-memory database with all Rodauth tables
   #
   # @return [Sequel::Database] configured database connection
@@ -136,7 +137,7 @@ module RodauthTestHelper
     # rather than the adapter's default datetime(CURRENT_TIMESTAMP,'localtime')
     # rewrite — otherwise DB-side comparisons (e.g. Rodauth's OTP replay guard
     # in otp_update_last_use) mix UTC-stored values with local wall clocks.
-    db.timezone = :utc
+    db.timezone              = :utc
     db.current_timestamp_utc = true
 
     create_core_tables(db)
@@ -159,7 +160,7 @@ module RodauthTestHelper
     end
     db[:account_statuses].import(
       [:id, :name],
-      [[STATUS_UNVERIFIED, 'Unverified'], [STATUS_VERIFIED, 'Verified'], [STATUS_CLOSED, 'Closed']]
+      [[STATUS_UNVERIFIED, 'Unverified'], [STATUS_VERIFIED, 'Verified'], [STATUS_CLOSED, 'Closed']],
     )
 
     db.create_table(:accounts) do
@@ -313,8 +314,8 @@ module RodauthTestHelper
   # @param config_block [Proc] additional Rodauth configuration
   # @return [Class] Roda application class
   def self.create_rodauth_app(db:, features: [:base, :login, :logout], &config_block)
-    app_db = db
-    app_features = features
+    app_db           = db
+    app_features     = features
     app_config_block = config_block
 
     Class.new(Roda) do
@@ -483,8 +484,8 @@ module ProductionConfigHelper
     return unless valkey_available?
 
     Familia.dbclient.flushdb
-  rescue StandardError => e
-    OT.le "[flush_test_database] Failed to flush test database: #{e.message}"
+  rescue StandardError => ex
+    OT.le "[flush_test_database] Failed to flush test database: #{ex.message}"
   end
 
   # Clean up SQL auth data between integration examples.
@@ -518,7 +519,7 @@ module ProductionConfigHelper
       # ENV, so a run outside the sanctioned :2154 PG lane must not wipe dev.
       dbname = db.opts[:database].to_s
       unless dbname =~ /test/i
-        raise "[auth spec_helper] Refusing to TRUNCATE non-test database: " \
+        raise '[auth spec_helper] Refusing to TRUNCATE non-test database: ' \
               "#{dbname.empty? ? '<unknown>' : dbname.inspect}. Check AUTH_DATABASE_URL."
       end
 
@@ -527,7 +528,7 @@ module ProductionConfigHelper
       if defined?(PostgresModeSuiteDatabase) && PostgresModeSuiteDatabase.migration_database
         PostgresModeSuiteDatabase.migration_database.run("TRUNCATE #{tables.join(', ')} RESTART IDENTITY CASCADE")
       else
-        migration_url = ENV['AUTH_DATABASE_URL_MIGRATIONS']
+        migration_url = ENV.fetch('AUTH_DATABASE_URL_MIGRATIONS', nil)
         if migration_url && !migration_url.to_s.empty? && migration_url != ENV['AUTH_DATABASE_URL']
           elevated_db = Sequel.connect(migration_url)
           begin
@@ -545,8 +546,8 @@ module ProductionConfigHelper
       db[:sqlite_sequence].delete if db.table_exists?(:sqlite_sequence)
       db.run('PRAGMA foreign_keys = ON')
     end
-  rescue StandardError => e
-    OT.le "[clear_auth_database] Failed to clear auth database: #{e.message}"
+  rescue StandardError => ex
+    OT.le "[clear_auth_database] Failed to clear auth database: #{ex.message}"
   end
 
   # Get the auth database connection for assertions
@@ -569,19 +570,21 @@ RSpec.configure do |config|
   Kernel.srand config.seed
 
   # Helper methods available in all tests
-  config.include Module.new {
-    def create_test_database
-      RodauthTestHelper.create_test_database
-    end
+  config.include(
+    Module.new do
+        def create_test_database
+          RodauthTestHelper.create_test_database
+        end
 
-    def create_rodauth_app(db:, features: [:base, :login, :logout], &block)
-      RodauthTestHelper.create_rodauth_app(db: db, features: features, &block)
-    end
+        def create_rodauth_app(db:, features: [:base, :login, :logout], &)
+          RodauthTestHelper.create_rodauth_app(db: db, features: features, &)
+        end
 
-    def rodauth_responds_to?(app, method_name)
-      RodauthTestHelper.rodauth_responds_to?(app, method_name)
-    end
-  }
+        def rodauth_responds_to?(app, method_name)
+          RodauthTestHelper.rodauth_responds_to?(app, method_name)
+        end
+    end,
+  )
 
   # Integration test helpers (for tests requiring full app boot)
   config.include Rack::Test::Methods, type: :integration
@@ -644,10 +647,10 @@ RSpec.configure do |config|
   # never reset it, so :get leaks into subsequent strategy inits and triggers
   # the CVE-2015-9284 GET-request CSRF warning mid-suite. Unguarded (no
   # shared_db_state/billing opt-out) so it always runs.
-  config.after(:each) do
+  config.after do
     next unless defined?(OmniAuth)
 
     OmniAuth.config.allowed_request_methods = [:post]
-    OmniAuth.config.silence_get_warning = false
+    OmniAuth.config.silence_get_warning     = false
   end
 end
