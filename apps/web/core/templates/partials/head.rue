@@ -7,13 +7,21 @@
   <meta property="og:url" content="{{baseuri}}">
   <meta property="og:title" content="{{page_title}}">
   <meta property="og:description" content="{{description}}">
+  <!-- Social card is OPT-IN (#4150): emitted only when a brand pack carries
+       social-preview.png (or BRAND_OG_IMAGE_URL is set), and never on a custom
+       domain — the install's card is not the domain owner's brand. When absent,
+       twitter:card drops to `summary`, which renders correctly imageless. -->
+  {{#if brand_og_image_url}}
   <meta property="og:image" content="{{brand_og_image_url}}">
+  {{/if}}
 
   <!-- Twitter Card meta tags -->
-  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:card" content="{{twitter_card_type}}">
   <meta property="twitter:domain" content="{{site_host}}">
   <meta property="twitter:url" content="{{baseuri}}">
   <meta name="twitter:title" content="{{page_title}}">
   <meta name="twitter:description" content="{{description}}">
+  {{#if brand_og_image_url}}
   <meta name="twitter:image" content="{{brand_og_image_url}}">
+  {{/if}}
 </template>

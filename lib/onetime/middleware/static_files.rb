@@ -29,8 +29,19 @@ module Onetime
       # serves them unconditionally.
       BRAND_PACK_URLS = %w[
         /favicon.svg /safari-pinned-tab.svg /apple-touch-icon.png
-        /icon-192.png /icon-512.png /social-preview.png
+        /icon-192.png /icon-512.png
       ].freeze
+
+      # Optional pack-carried social card (og:image / twitter:image). OPTIONAL —
+      # and deliberately so (#4150): a single canonical card is worse than no
+      # card on a custom domain, since the share preview would advertise someone
+      # else's brand. A pack opts IN by carrying social-preview.png; omitting the
+      # file means the head emits no image meta tags at all rather than pointing
+      # at a 404 or at the canonical card. Existence-filtered on BOTH layers for
+      # the same reason as BRAND_PACK_LOGO_URLS below: Rack::Static matches by
+      # URL prefix, not file existence, so listing a missing file would 404 the
+      # URL instead of letting it fall through.
+      BRAND_PACK_SOCIAL_URLS = %w[/social-preview.png].freeze
 
       # Optional pack-carried masthead/header logo, served overlay-first at a
       # stable URL so a pack can ship its OWN logo image instead of hosting it
@@ -47,6 +58,10 @@ module Onetime
       # web UI but is omitted from emails (which need an absolute URL) — the
       # same pre-existing caveat normalize_brand already warns about at boot.
       BRAND_PACK_LOGO_URLS = %w[/brand-logo.svg /brand-logo.png /brand-logo-dark.svg /brand-logo-dark.png].freeze
+
+      # Every existence-filtered (optional) brand-pack URL, in one list so both
+      # layers apply the same filter to the same set.
+      BRAND_PACK_OPTIONAL_URLS = (BRAND_PACK_LOGO_URLS + BRAND_PACK_SOCIAL_URLS).freeze
 
       # The wrapped Rack application
       # @return [#call] The Rack application instance passed to this middleware
@@ -112,7 +127,7 @@ module Onetime
             # omits a mandatory file simply isn't listed in this overlay layer, so it
             # falls through to the default base for that file.
             if overlay_dir && base_dir && overlay_dir != base_dir
-              overlay_urls = (BRAND_PACK_URLS + BRAND_PACK_LOGO_URLS).select { |u| File.exist?(File.join(overlay_dir, u)) }
+              overlay_urls = (BRAND_PACK_URLS + BRAND_PACK_OPTIONAL_URLS).select { |u| File.exist?(File.join(overlay_dir, u)) }
               unless overlay_urls.empty?
                 Onetime.ld "[StaticFiles] Brand overlay active: #{overlay_dir} (#{overlay_urls.size} file(s))"
                 use Rack::Static, urls: overlay_urls, root: overlay_dir
@@ -129,11 +144,11 @@ module Onetime
             # brand-aware manifest fields keep working.
             if base_dir
               # Mandatory assets serve unconditionally (drift-guarded present);
-              # the optional logo URLs are existence-filtered so an absent logo
-              # (the neutral default pack) falls through instead of 404-shadowing.
-              base_logo_urls = BRAND_PACK_LOGO_URLS.select { |u| File.exist?(File.join(base_dir, u)) }
+              # the optional URLs (logo, social card) are existence-filtered so an
+              # absent file falls through instead of 404-shadowing.
+              base_optional_urls = BRAND_PACK_OPTIONAL_URLS.select { |u| File.exist?(File.join(base_dir, u)) }
               Onetime.ld "[StaticFiles] Base brand layer: #{base_dir}"
-              use Rack::Static, urls: BRAND_PACK_URLS + base_logo_urls, root: base_dir
+              use Rack::Static, urls: BRAND_PACK_URLS + base_optional_urls, root: base_dir
             else
               Onetime.le '[StaticFiles] default brand pack not found; brand assets will 404'
             end
