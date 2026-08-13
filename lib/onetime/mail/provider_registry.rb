@@ -7,12 +7,11 @@ module Onetime
     # ProviderRegistry - THE single authoritative description of every custom
     # mail sender provider.
     #
-    # Every other provider list or case-arm in the codebase derives from this
-    # registry, so adding provider N+1 means:
-    #   1. Implement its strategy/client/delivery classes.
-    #   2. Add ONE descriptor here.
-    #   3. Add the frontend enum entry.
-    # Nothing else. Before this registry existed, ~10 independent hashes and
+    # Every Ruby provider list or case-arm derives from this registry. Adding a
+    # provider still requires updating independent configuration/frontend
+    # mirrors that cannot consume Ruby; frontend_provider_parity_spec.rb names
+    # those surfaces and fails until they agree with the new descriptor.
+    # Before this registry existed, ~10 independent hashes and
     # case statements had to be updated in lockstep and drifted silently
     # (e.g. ConfigSummary shipped without a lettermint arm and nobody
     # noticed).
@@ -31,7 +30,7 @@ module Onetime
     #   - Jobs::Workers::DomainValidationWorker credential guards
     #   - ConfigGenerator email_provider choices + env placeholders
     #
-    # Frontend mirrors (cannot consume Ruby; guarded by
+    # Configuration/frontend mirrors (cannot consume Ruby; guarded by
     # spec/unit/onetime/mail/frontend_provider_parity_spec.rb):
     #   - src/schemas/contracts/email-config.ts emailProviderTypeSchema
     #     (= provisioning_providers + 'inherit')
@@ -39,6 +38,10 @@ module Onetime
     #     providerDisplayName map (same set, labels from descriptors)
     #   - src/schemas/api/internal/responses/colonel-deliverability.ts
     #     colonelEmailProviderStatusDetailsSchema blocks (= feedback_providers)
+    #   - etc/defaults/config.defaults.yaml email_providers blocks
+    #     (= provisioning_providers; DNS defaults must match each descriptor)
+    #   - generated/schemas/config/static.schema.json emailer enums and
+    #     email_providers blocks/defaults (generated from TS config shapes)
     #
     # Class references are stored as NAMES and resolved lazily via const_get:
     # this file requires nothing, so it can be required from anywhere
@@ -79,6 +82,9 @@ module Onetime
       #   registry order is the detection precedence order)
       # @!attribute env_placeholders [Array<String>] ENV var names the config
       #   generator emits as empty placeholders for this provider
+      # @!attribute config_env_sources [Hash{Symbol => Array<String>}] config
+      #   keys mapped to their ordered ENV sources in config.defaults.yaml;
+      #   parity specs verify every source, fallback order, and default value
       # @!attribute dns_defaults [Hash] hardcoded defaults for DNS
       #   provisioning/validation options (was ProviderConfig::DEFAULTS)
       Descriptor = Data.define(
@@ -96,6 +102,7 @@ module Onetime
         :provider_config_method,
         :detect_keys,
         :env_placeholders,
+        :config_env_sources,
         :dns_defaults,
       ) do
         def provisioning? = provisioning
@@ -139,6 +146,11 @@ module Onetime
           provider_config_method: :ses_provider_config,
           detect_keys: %w[region user].freeze,
           env_placeholders: %w[AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY].freeze,
+          config_env_sources: {
+            region: %w[CUSTOM_MAIL_SES_REGION].freeze,
+            access_key_id: %w[CUSTOM_MAIL_SES_ACCESS_KEY_ID AWS_ACCESS_KEY_ID].freeze,
+            secret_access_key: %w[CUSTOM_MAIL_SES_SECRET_ACCESS_KEY AWS_SECRET_ACCESS_KEY].freeze,
+          }.freeze,
           dns_defaults: {
             region: 'us-east-1',
             dkim_selector_count: 3,
@@ -160,6 +172,9 @@ module Onetime
           provider_config_method: :sendgrid_provider_config,
           detect_keys: %w[sendgrid_api_key].freeze,
           env_placeholders: %w[SENDGRID_API_KEY].freeze,
+          config_env_sources: {
+            subdomain: %w[CUSTOM_MAIL_SENDGRID_SUBDOMAIN].freeze,
+          }.freeze,
           dns_defaults: {
             subdomain: 'em',
             dkim_selectors: %w[s1 s2].freeze,
@@ -183,6 +198,13 @@ module Onetime
           provider_config_method: :lettermint_provider_config,
           detect_keys: %w[lettermint_api_token].freeze,
           env_placeholders: %w[LETTERMINT_API_TOKEN LETTERMINT_TEAM_TOKEN].freeze,
+          config_env_sources: {
+            api_token: %w[LETTERMINT_API_TOKEN].freeze,
+            team_token: %w[LETTERMINT_TEAM_TOKEN].freeze,
+            api_base_url: %w[LETTERMINT_BASE_URL].freeze,
+            spf_cname_prefix: %w[CUSTOM_MAIL_LETTERMINT_SPF_CNAME_PREFIX].freeze,
+            spf_cname_target: %w[CUSTOM_MAIL_LETTERMINT_SPF_CNAME_TARGET].freeze,
+          }.freeze,
           dns_defaults: {
             dkim_selectors: %w[lm1 lm2].freeze,
             spf_cname_prefix: 'lm-bounces',
@@ -213,6 +235,12 @@ module Onetime
           provider_config_method: :smtp2go_provider_config,
           detect_keys: %w[smtp2go_api_key].freeze,
           env_placeholders: %w[SMTP2GO_API_KEY].freeze,
+          config_env_sources: {
+            api_key: %w[SMTP2GO_API_KEY].freeze,
+            api_base_url: %w[SMTP2GO_BASE_URL].freeze,
+            returnpath_subdomain: %w[CUSTOM_MAIL_SMTP2GO_RETURNPATH_SUBDOMAIN].freeze,
+            tracking_subdomain: %w[CUSTOM_MAIL_SMTP2GO_TRACKING_SUBDOMAIN].freeze,
+          }.freeze,
           dns_defaults: {
             api_base_url: 'https://api.smtp2go.com/v3',
             returnpath_subdomain: 'bounce',
@@ -234,6 +262,7 @@ module Onetime
           provider_config_method: :smtp_provider_config,
           detect_keys: %w[host].freeze,
           env_placeholders: %w[SMTP_HOST SMTP_USERNAME SMTP_PASSWORD].freeze,
+          config_env_sources: {}.freeze,
           dns_defaults: {}.freeze,
         ),
       ].to_h { |descriptor| [descriptor.name, descriptor] }.freeze

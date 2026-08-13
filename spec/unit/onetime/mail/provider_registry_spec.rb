@@ -31,6 +31,15 @@ RSpec.describe Onetime::Mail::ProviderRegistry do
         expect(descriptor.required_credential_keys).not_to be_empty,
           "#{descriptor.name} must declare required credential keys"
         expect(descriptor.optional_credential_keys).to all(be_a(String))
+        expect(descriptor.config_env_sources.keys).to all(be_a(Symbol)),
+          "#{descriptor.name} config keys"
+        descriptor.config_env_sources.each do |key, env_names|
+          expect(env_names).not_to be_empty, "#{descriptor.name}.#{key} ENV sources"
+          expect(env_names).to all(match(/\A[A-Z][A-Z0-9_]*\z/)),
+            "#{descriptor.name}.#{key} ENV sources"
+          expect(env_names).to eq(env_names.uniq),
+            "#{descriptor.name}.#{key} ENV sources must be unique"
+        end
       end
     end
 

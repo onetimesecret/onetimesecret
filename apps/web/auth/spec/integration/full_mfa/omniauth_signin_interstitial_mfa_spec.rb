@@ -234,7 +234,7 @@ RSpec.describe 'OmniAuth sign-in interstitial: deferred bind after MFA (#3877)',
 
       # after_two_factor_authentication fires for ANY accepted factor, so the
       # deferred bind must land via /auth/recovery-auth exactly as via OTP —
-      # this locks in the hook's factor-agnostic placement (hooks/mfa.rb).
+      # this locks in the hook's factor-agnostic placement (hooks/two_factor.rb).
       csrf_json_post('/auth/recovery-auth', 'recovery-code' => recovery_codes.first)
       expect(last_response.status).to eq(200),
         "Recovery-code auth should succeed, got #{last_response.status}: #{last_response.body}"

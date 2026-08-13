@@ -17,6 +17,7 @@ import { nullableString } from '../shared/primitives';
  */
 const emailerSchema = z.object({
   mode: z.string().optional(),
+  sender_provider: nullableString,
   region: z.string().optional(),
   from: z.string().optional(),
   from_name: z.string().optional(),
@@ -27,6 +28,51 @@ const emailerSchema = z.object({
   pass: nullableString,
   auth: nullableString, // 'login', 'plain', etc.
   tls: z.boolean().nullable().optional(),
+  feedback_to: nullableString,
+  show_logo: z.boolean().optional(),
+});
+
+/**
+ * Provider-specific custom sender configuration. Provider blocks stay optional:
+ * installations only need the providers they use. The set of block names and
+ * DNS defaults is parity-checked against Ruby's ProviderRegistry through the
+ * generated static JSON Schema.
+ */
+const sesEmailProviderSchema = z.strictObject({
+  region: z.string().optional(),
+  access_key_id: nullableString,
+  secret_access_key: nullableString,
+  dkim_selector_count: z.number().optional(),
+  spf_include: z.string().optional(),
+});
+
+const sendgridEmailProviderSchema = z.strictObject({
+  subdomain: z.string().optional(),
+  dkim_selectors: z.array(z.string()).optional(),
+  spf_include: z.string().optional(),
+});
+
+const lettermintEmailProviderSchema = z.strictObject({
+  api_token: nullableString,
+  team_token: nullableString,
+  api_base_url: z.string().optional(),
+  dkim_selectors: z.array(z.string()).optional(),
+  spf_cname_prefix: z.string().optional(),
+  spf_cname_target: z.string().optional(),
+});
+
+const smtp2goEmailProviderSchema = z.strictObject({
+  api_key: nullableString,
+  api_base_url: z.string().optional(),
+  returnpath_subdomain: z.string().optional(),
+  tracking_subdomain: z.string().optional(),
+});
+
+const emailProvidersSchema = z.strictObject({
+  ses: sesEmailProviderSchema.optional(),
+  sendgrid: sendgridEmailProviderSchema.optional(),
+  lettermint: lettermintEmailProviderSchema.optional(),
+  smtp2go: smtp2goEmailProviderSchema.optional(),
 });
 
 /**
@@ -110,17 +156,24 @@ const mailValidationSchema = z.object({
   smtp_fail_fast: z.boolean().optional(),
   smtp_safe_check: z.boolean().optional(),
   not_rfc_mx_lookup_flow: z.boolean().optional(),
-  logger: z.object({
-    tracking_event: z.string().optional(),
-    stdout: z.boolean().optional(),
-    log_absolute_path: z.string().optional(),
-  }).optional(),
+  logger: z
+    .object({
+      tracking_event: z.string().optional(),
+      stdout: z.boolean().optional(),
+      log_absolute_path: z.string().optional(),
+    })
+    .optional(),
 });
 
 export {
   emailerSchema,
-  mailSchema,
-  truemailSchema,
+  emailProvidersSchema,
+  lettermintEmailProviderSchema,
   mailConnectionSchema,
+  mailSchema,
   mailValidationSchema,
+  sendgridEmailProviderSchema,
+  sesEmailProviderSchema,
+  smtp2goEmailProviderSchema,
+  truemailSchema,
 };

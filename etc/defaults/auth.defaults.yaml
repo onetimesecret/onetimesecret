@@ -83,6 +83,17 @@ full:
     # WebAuthn: biometrics and security keys (default: OFF)
     webauthn: <%= ENV['AUTH_WEBAUTHN_ENABLED'] == 'true' %>
 
+    # WebAuthn passwordless signup: verifying a new account sets up a passkey
+    # instead of a password — Rodauth's webauthn_verify_account feature.
+    # Only meaningful when webauthn is enabled; leave verify_account ON.
+    # (default: OFF)
+    webauthn_verify_account: <%= ENV['AUTH_WEBAUTHN_VERIFY_ACCOUNT'] == 'true' %>
+
+    # WebAuthn autofill: passkey autofill (browser conditional UI) on the
+    # login form — Rodauth's webauthn_autofill feature. Only meaningful when
+    # webauthn is enabled. (default: OFF)
+    webauthn_autofill: <%= ENV['AUTH_WEBAUTHN_AUTOFILL'] == 'true' %>
+
     # SSO: external identity providers via OmniAuth (default: OFF)
     # Master switch — individual providers are enabled by their own env vars:
     #   OIDC: OIDC_ISSUER, OIDC_CLIENT_ID

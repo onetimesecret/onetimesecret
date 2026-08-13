@@ -3,7 +3,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import { useProductIdentity } from '@/shared/stores/identityStore';
-import { isMagicLinksEnabled, isSsoEnabled, isWebAuthnEnabled, getSsoProviders, isSsoOnlyMode, isSsoEnforcedForDomain } from '@/utils/features';
+import { isMagicLinksEnabled, isSsoEnabled, isWebAuthnEnabled, getSsoProviders, getRestrictTo, isSsoOnlyMode, isSsoEnforcedForDomain } from '@/utils/features';
 import { ref, computed } from 'vue';
 import { storeToRefs } from 'pinia';
 
@@ -61,14 +61,34 @@ const ssoConfigured = computed(() => ssoEnabled && ssoProviders.value.length > 0
 // SSO-only mode: show only SSO buttons when SSO is both required and configured.
 const showSsoOnly = computed(() => ssoRequired.value && ssoConfigured.value);
 
-// Custom domain with SSO enforcement but SSO not properly configured:
-// show friendly "SSO required" message instead of standard auth forms.
-// This appears when:
-// - On a custom domain with enforce_sso_only=true
-// - But SSO is disabled OR no providers are configured (misconfiguration)
+// Custom domain that requires SSO but has no working provider: show a
+// friendly "SSO required" message instead of standard auth forms. The
+// requirement can come from either axis — the domain's enforce_sso_only
+// flag (SsoConfig) or restrict_to='sso' (SigninConfig, resolved into
+// features.restrict_to by the backend) — and in both cases falling through
+// to the password/email forms would advertise methods the domain owner
+// chose to hide (and, for restrict_to, whose credentials may be dormant).
+// Canonical requests keep the standard fallback: the backend nils a global
+// sso restriction when no provider is configured, so this combination only
+// arises on custom domains.
 const showCustomDomainNoSso = computed(() =>
-  isCustom.value && enforceSsoForDomain.value && !showSsoOnly.value
+  isCustom.value && ssoRequired.value && !ssoConfigured.value
 );
+
+// Single-method restriction (features.restrict_to, resolved domain-aware by
+// the backend serializer). 'sso' is carried by ssoRequired/showSsoOnly above;
+// the other three values narrow the rendering below to that one method. A
+// restriction naming a method that is not actually enabled resolves to null
+// (standard mode) — mirroring AuthConfig#restrict_to, which drops a
+// restriction with no backing method, so a stale domain config can never
+// render a blank sign-in page.
+const restrictTo = getRestrictTo();
+const restrictedMethod = computed<'password' | 'email_auth' | 'webauthn' | null>(() => {
+  if (restrictTo === 'password') return 'password';
+  if (restrictTo === 'email_auth' && magicLinksEnabled) return 'email_auth';
+  if (restrictTo === 'webauthn' && webauthnEnabled) return 'webauthn';
+  return null;
+});
 
 // Show passwordless-first UI when any passwordless method is enabled
 const hasPasswordlessMethods = computed(() => magicLinksEnabled || webauthnEnabled);
@@ -111,6 +131,23 @@ defineExpose({ currentMode });
           :route-name="provider.route_name"
           :display-name="provider.display_name" />
       </div>
+    </template>
+
+    <!-- Single-method restriction: password only (no tabs, no SSO section) -->
+    <template v-else-if="restrictedMethod === 'password'">
+      <SignInForm :locale="locale" />
+    </template>
+
+    <!-- Single-method restriction: one passwordless method, password tab and
+         SSO section withheld -->
+    <template v-else-if="restrictedMethod === 'email_auth' || restrictedMethod === 'webauthn'">
+      <PasswordlessFirstSignIn
+        :locale="locale"
+        :initial-mode="initialMode"
+        :magic-links-enabled="restrictedMethod === 'email_auth'"
+        :webauthn-enabled="restrictedMethod === 'webauthn'"
+        :password-enabled="false"
+        @mode-change="handleModeChange" />
     </template>
 
     <!-- Standard auth mode: password/passwordless forms with optional SSO -->

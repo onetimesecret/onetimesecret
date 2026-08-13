@@ -114,13 +114,19 @@ describe('useWebAuthn', () => {
       const { startAuthentication } = await import('@simplewebauthn/browser');
       const startAuthenticationMock = vi.mocked(startAuthentication);
 
-      // Mock challenge response (passwordless login uses webauthn_login fields)
-      // Rodauth JSON API returns credential options as raw JSON objects (not base64)
+      // Rodauth's JSON layer emits the webauthn-login challenge under the
+      // webauthn_auth key family (json.rb) — webauthn_login* keys never exist
+      // on the wire. Raw JSON objects, not base64. The challenge arrives in a
+      // 422 body: before_webauthn_login_route populates the keys without
+      // returning early, then the credential-less POST hits the route's
+      // invalid_field throw (json.rb:157-165 + webauthn.rb).
       const challengeOptions = { challenge: 'test-challenge', rpId: 'localhost' };
       const challengeResponse = {
-        webauthn_login: challengeOptions, // Raw JSON object, not base64
-        webauthn_login_challenge: 'challenge-data',
-        webauthn_login_challenge_hmac: 'hmac-data',
+        error: 'There was an error authenticating via WebAuthn',
+        'field-error': ['webauthn_auth', 'invalid webauthn authentication param'],
+        webauthn_auth: challengeOptions, // Raw JSON object, not base64
+        webauthn_auth_challenge: 'challenge-data',
+        webauthn_auth_challenge_hmac: 'hmac-data',
       };
 
       // Mock credential assertion
@@ -138,7 +144,7 @@ describe('useWebAuthn', () => {
       startAuthenticationMock.mockResolvedValue(mockAssertion as any);
 
       // Mock API calls (uses /auth/webauthn-login for passwordless)
-      axiosMock.onPost('/auth/webauthn-login').replyOnce(200, challengeResponse);
+      axiosMock.onPost('/auth/webauthn-login').replyOnce(422, challengeResponse);
       axiosMock.onPost('/auth/webauthn-login').replyOnce(200, { success: 'Authenticated' });
       // Mock the bootstrap/me call that happens after setAuthenticated(true)
       axiosMock.onGet('/bootstrap/me').reply(200, { authenticated: true });
@@ -155,17 +161,76 @@ describe('useWebAuthn', () => {
       // @simplewebauthn/browser v10+ uses { optionsJSON } wrapper
       expect(startAuthenticationMock).toHaveBeenCalledWith({ optionsJSON: challengeOptions });
       expect(mockRouterPush).toHaveBeenCalledWith('/');
+
+      // Phase 2 posts webauthn_auth* param names (webauthn_login.rb reads
+      // those) plus login — the route resolves the account by login.
+      const verifyBody = JSON.parse(axiosMock.history.post[1].data);
+      expect(verifyBody.webauthn_auth).toEqual(mockAssertion);
+      expect(verifyBody.webauthn_auth_challenge).toBe('challenge-data');
+      expect(verifyBody.webauthn_auth_challenge_hmac).toBe('hmac-data');
+      expect(verifyBody.login).toBe('user@example.com');
+      expect(verifyBody).toHaveProperty('shrimp');
+      expect(verifyBody).not.toHaveProperty('webauthn_login');
+      expect(verifyBody).not.toHaveProperty('webauthn_login_challenge');
     });
 
-    it('handles invalid challenge response', async () => {
-      // Return response without webauthn_login field
-      axiosMock.onPost('/auth/webauthn-login').reply(200, {});
+    it('tolerates a 2xx challenge body carrying the same keys', async () => {
+      const { startAuthentication } = await import('@simplewebauthn/browser');
+      const startAuthenticationMock = vi.mocked(startAuthentication);
 
+      const challengeOptions = { challenge: 'test-challenge', rpId: 'localhost' };
+      startAuthenticationMock.mockResolvedValue({ id: 'cred' } as any);
+
+      axiosMock.onPost('/auth/webauthn-login').replyOnce(200, {
+        webauthn_auth: challengeOptions,
+        webauthn_auth_challenge: 'challenge',
+        webauthn_auth_challenge_hmac: 'hmac',
+      });
+      axiosMock.onPost('/auth/webauthn-login').replyOnce(200, { success: 'Authenticated' });
+      axiosMock.onGet('/bootstrap/me').reply(200, { authenticated: true });
+
+      const { authenticateWebAuthn, error } = useWebAuthn();
+      const result = await authenticateWebAuthn('user@example.com');
+
+      expect(result).toBe(true);
+      expect(error.value).toBeNull();
+      expect(startAuthenticationMock).toHaveBeenCalledWith({ optionsJSON: challengeOptions });
+    });
+
+    it('requires an email and fails fast without posting', async () => {
+      // Without a login param the route 401s at no_matching_login before ever
+      // emitting a challenge (webauthn_login.rb) — no autofill in this version.
       const { authenticateWebAuthn, error } = useWebAuthn();
       const result = await authenticateWebAuthn();
 
       expect(result).toBe(false);
+      expect(error.value).toBe('web.auth.webauthn.emailRequired');
+      expect(axiosMock.history.post).toHaveLength(0);
+    });
+
+    it('handles invalid challenge response', async () => {
+      // 2xx response without the webauthn_auth field
+      axiosMock.onPost('/auth/webauthn-login').reply(200, {});
+
+      const { authenticateWebAuthn, error } = useWebAuthn();
+      const result = await authenticateWebAuthn('user@example.com');
+
+      expect(result).toBe(false);
       expect(error.value).toBe('Invalid challenge response');
+    });
+
+    it('surfaces a 401 no-matching-login error (unknown email)', async () => {
+      // Unknown login: no challenge keys in the body, so this is a real error
+      axiosMock.onPost('/auth/webauthn-login').reply(401, {
+        error: 'There was an error authenticating via WebAuthn',
+        'field-error': ['login', 'no matching login'],
+      });
+
+      const { authenticateWebAuthn, error } = useWebAuthn();
+      const result = await authenticateWebAuthn('unknown@example.com');
+
+      expect(result).toBe(false);
+      expect(error.value).toBe('There was an error authenticating via WebAuthn');
     });
 
     it('handles NotAllowedError when user cancels', async () => {
@@ -173,10 +238,11 @@ describe('useWebAuthn', () => {
       const startAuthenticationMock = vi.mocked(startAuthentication);
 
       const challengeOptions = { challenge: 'test', rpId: 'localhost' };
-      axiosMock.onPost('/auth/webauthn-login').reply(200, {
-        webauthn_login: challengeOptions, // Raw JSON object
-        webauthn_login_challenge: 'challenge',
-        webauthn_login_challenge_hmac: 'hmac',
+      axiosMock.onPost('/auth/webauthn-login').reply(422, {
+        error: 'There was an error authenticating via WebAuthn',
+        webauthn_auth: challengeOptions, // Raw JSON object
+        webauthn_auth_challenge: 'challenge',
+        webauthn_auth_challenge_hmac: 'hmac',
       });
 
       // Simulate user cancellation — must be a DOMException (not Error) because
@@ -185,7 +251,7 @@ describe('useWebAuthn', () => {
       startAuthenticationMock.mockRejectedValue(cancelError);
 
       const { authenticateWebAuthn, error } = useWebAuthn();
-      const result = await authenticateWebAuthn();
+      const result = await authenticateWebAuthn('user@example.com');
 
       expect(result).toBe(false);
       expect(error.value).toBe('web.auth.webauthn.cancelled');
@@ -198,11 +264,12 @@ describe('useWebAuthn', () => {
       const challengeOptions = { challenge: 'test', rpId: 'localhost' };
       startAuthenticationMock.mockResolvedValue({ id: 'cred' } as any);
 
-      // First call: challenge
-      axiosMock.onPost('/auth/webauthn-login').replyOnce(200, {
-        webauthn_login: challengeOptions, // Raw JSON object
-        webauthn_login_challenge: 'challenge',
-        webauthn_login_challenge_hmac: 'hmac',
+      // First call: challenge (422 delivery)
+      axiosMock.onPost('/auth/webauthn-login').replyOnce(422, {
+        error: 'There was an error authenticating via WebAuthn',
+        webauthn_auth: challengeOptions, // Raw JSON object
+        webauthn_auth_challenge: 'challenge',
+        webauthn_auth_challenge_hmac: 'hmac',
       });
       // Second call: verification returns error
       axiosMock.onPost('/auth/webauthn-login').replyOnce(200, {
@@ -210,7 +277,7 @@ describe('useWebAuthn', () => {
       });
 
       const { authenticateWebAuthn, error } = useWebAuthn();
-      const result = await authenticateWebAuthn();
+      const result = await authenticateWebAuthn('user@example.com');
 
       expect(result).toBe(false);
       expect(error.value).toBe('Invalid credential');
@@ -222,7 +289,7 @@ describe('useWebAuthn', () => {
       });
 
       const { authenticateWebAuthn, error } = useWebAuthn();
-      const result = await authenticateWebAuthn();
+      const result = await authenticateWebAuthn('user@example.com');
 
       expect(result).toBe(false);
       expect(error.value).toBe('Server error');
@@ -240,10 +307,11 @@ describe('useWebAuthn', () => {
       startAuthenticationMock.mockReturnValue(authPromise as any);
 
       const challengeOptions = { challenge: 'test', rpId: 'localhost' };
-      axiosMock.onPost('/auth/webauthn-login').replyOnce(200, {
-        webauthn_login: challengeOptions, // Raw JSON object
-        webauthn_login_challenge: 'challenge',
-        webauthn_login_challenge_hmac: 'hmac',
+      axiosMock.onPost('/auth/webauthn-login').replyOnce(422, {
+        error: 'There was an error authenticating via WebAuthn',
+        webauthn_auth: challengeOptions, // Raw JSON object
+        webauthn_auth_challenge: 'challenge',
+        webauthn_auth_challenge_hmac: 'hmac',
       });
       axiosMock.onPost('/auth/webauthn-login').replyOnce(200, { success: 'OK' });
 
@@ -251,7 +319,7 @@ describe('useWebAuthn', () => {
 
       expect(isLoading.value).toBe(false);
 
-      const resultPromise = authenticateWebAuthn();
+      const resultPromise = authenticateWebAuthn('user@example.com');
 
       // Wait for the async operation to start
       await new Promise((r) => setTimeout(r, 10));
@@ -281,7 +349,9 @@ describe('useWebAuthn', () => {
       const challengeOptions = { challenge: 'mfa-challenge', rpId: 'localhost' };
       startAuthenticationMock.mockResolvedValue({ id: 'cred' } as any);
 
-      axiosMock.onPost('/auth/webauthn-auth').replyOnce(200, {
+      // Phase 1 challenge arrives in a 422 body (Rodauth json.rb quirk)
+      axiosMock.onPost('/auth/webauthn-auth').replyOnce(422, {
+        error: 'Error authenticating via WebAuthn',
         webauthn_auth: challengeOptions, // Raw JSON object
         webauthn_auth_challenge: 'challenge',
         webauthn_auth_challenge_hmac: 'hmac',
@@ -356,8 +426,12 @@ describe('useWebAuthn', () => {
 
       startRegistrationMock.mockResolvedValue(mockCredential as any);
 
-      // Mock setup challenge (Rodauth returns raw JSON objects)
-      axiosMock.onPost('/auth/webauthn-setup').replyOnce(200, {
+      // Mock setup challenge: 422 delivery with raw JSON credential options
+      // (before_webauthn_setup_route populates the keys, then the missing
+      // webauthn_setup param hits invalid_field_error_status)
+      axiosMock.onPost('/auth/webauthn-setup').replyOnce(422, {
+        error: 'There was an error setting up WebAuthn authentication',
+        'field-error': ['webauthn_setup', 'invalid webauthn setup param'],
         webauthn_setup: challengeOptions, // Raw JSON object, not base64
         webauthn_setup_challenge: 'setup-challenge',
         webauthn_setup_challenge_hmac: 'setup-hmac',
@@ -378,14 +452,44 @@ describe('useWebAuthn', () => {
       expect(isLoading.value).toBe(false);
       // @simplewebauthn/browser v10+ uses { optionsJSON } wrapper
       expect(startRegistrationMock).toHaveBeenCalledWith({ optionsJSON: challengeOptions });
+
+      // Password accompanies both the challenge request and the verify request
+      const challengeBody = JSON.parse(axiosMock.history.post[0].data);
+      const verifyBody = JSON.parse(axiosMock.history.post[1].data);
+      expect(challengeBody.password).toBe('testpassword');
+      expect(verifyBody.password).toBe('testpassword');
     });
 
-    it('returns false when password is not provided', async () => {
-      const { registerWebAuthn, error } = useWebAuthn();
-      const result = await registerWebAuthn('');
+    it('registers without a password (SSO-only account) and omits the password key', async () => {
+      const { startRegistration } = await import('@simplewebauthn/browser');
+      const startRegistrationMock = vi.mocked(startRegistration);
 
-      expect(result).toBe(false);
-      expect(error.value).toBe('web.auth.webauthn.passwordRequired');
+      const challengeOptions = { challenge: 'reg-challenge', rp: { name: 'Test' } };
+      startRegistrationMock.mockResolvedValue({ id: 'cred' } as any);
+
+      axiosMock.onPost('/auth/webauthn-setup').replyOnce(422, {
+        error: 'There was an error setting up WebAuthn authentication',
+        webauthn_setup: challengeOptions,
+        webauthn_setup_challenge: 'setup-challenge',
+        webauthn_setup_challenge_hmac: 'setup-hmac',
+      });
+      axiosMock.onPost('/auth/webauthn-setup').replyOnce(200, {
+        success: 'Credential registered',
+      });
+
+      const { registerWebAuthn, error } = useWebAuthn();
+      const result = await registerWebAuthn();
+
+      expect(result).toBe(true);
+      expect(error.value).toBeNull();
+
+      // The password key must be absent entirely — not undefined/empty-string
+      const challengeBody = JSON.parse(axiosMock.history.post[0].data);
+      const verifyBody = JSON.parse(axiosMock.history.post[1].data);
+      expect(challengeBody).not.toHaveProperty('password');
+      expect(verifyBody).not.toHaveProperty('password');
+      expect(challengeBody).toHaveProperty('shrimp');
+      expect(verifyBody).toHaveProperty('shrimp');
     });
 
     it('handles invalid setup challenge response', async () => {
@@ -398,12 +502,28 @@ describe('useWebAuthn', () => {
       expect(error.value).toBe('Invalid challenge response');
     });
 
+    it('surfaces a wrong-password 401 from phase 1', async () => {
+      // invalid_password throws with invalid_password_error_status (401), so
+      // the challenge-tolerant path must NOT swallow it
+      axiosMock.onPost('/auth/webauthn-setup').reply(401, {
+        error: 'invalid password',
+        'field-error': ['password', 'invalid password'],
+      });
+
+      const { registerWebAuthn, error } = useWebAuthn();
+      const result = await registerWebAuthn('wrongpassword');
+
+      expect(result).toBe(false);
+      expect(error.value).toBe('invalid password');
+    });
+
     it('handles NotAllowedError when user cancels registration', async () => {
       const { startRegistration } = await import('@simplewebauthn/browser');
       const startRegistrationMock = vi.mocked(startRegistration);
 
       const challengeOptions = { challenge: 'test', rp: { name: 'Test' } };
-      axiosMock.onPost('/auth/webauthn-setup').reply(200, {
+      axiosMock.onPost('/auth/webauthn-setup').reply(422, {
+        error: 'There was an error setting up WebAuthn authentication',
         webauthn_setup: challengeOptions, // Raw JSON object
         webauthn_setup_challenge: 'challenge',
         webauthn_setup_challenge_hmac: 'hmac',
@@ -427,7 +547,8 @@ describe('useWebAuthn', () => {
       const challengeOptions = { challenge: 'test', rp: { name: 'Test' } };
       startRegistrationMock.mockResolvedValue({ id: 'cred' } as any);
 
-      axiosMock.onPost('/auth/webauthn-setup').replyOnce(200, {
+      axiosMock.onPost('/auth/webauthn-setup').replyOnce(422, {
+        error: 'There was an error setting up WebAuthn authentication',
         webauthn_setup: challengeOptions, // Raw JSON object
         webauthn_setup_challenge: 'challenge',
         webauthn_setup_challenge_hmac: 'hmac',
@@ -460,6 +581,8 @@ describe('useWebAuthn', () => {
       const startRegistrationMock = vi.mocked(startRegistration);
 
       const challengeOptions = { challenge: 'test', rp: { name: 'Test' } };
+      // 200-body challenge here doubles as tolerance coverage for the setup
+      // route (proves the ceremony starts from a 2xx delivery too)
       axiosMock.onPost('/auth/webauthn-setup').reply(200, {
         webauthn_setup: challengeOptions, // Raw JSON object
         webauthn_setup_challenge: 'challenge',
@@ -474,6 +597,109 @@ describe('useWebAuthn', () => {
 
       expect(result).toBe(false);
       expect(error.value).toBe('web.auth.webauthn.setupFailed');
+    });
+  });
+
+  describe('fetchWebAuthnCredentials', () => {
+    it('returns the parsed credential list', async () => {
+      const credentials = [
+        { id: 'credential-aaa-a1b2c3', last_used_at: '2026-08-10T12:00:00Z' },
+        { id: 'credential-bbb-d4e5f6', last_used_at: null },
+      ];
+      axiosMock.onGet('/auth/webauthn-credentials').reply(200, {
+        credentials,
+        count: 2,
+      });
+
+      const { fetchWebAuthnCredentials, error, isLoading } = useWebAuthn();
+      const result = await fetchWebAuthnCredentials();
+
+      expect(result).toEqual(credentials);
+      expect(error.value).toBeNull();
+      expect(isLoading.value).toBe(false);
+    });
+
+    it('returns an empty list when no credentials are registered', async () => {
+      axiosMock.onGet('/auth/webauthn-credentials').reply(200, {
+        credentials: [],
+        count: 0,
+      });
+
+      const { fetchWebAuthnCredentials, error } = useWebAuthn();
+      const result = await fetchWebAuthnCredentials();
+
+      expect(result).toEqual([]);
+      expect(error.value).toBeNull();
+    });
+
+    it('returns null and sets error on 401', async () => {
+      axiosMock.onGet('/auth/webauthn-credentials').reply(401, {
+        error: 'Authentication required',
+      });
+
+      const { fetchWebAuthnCredentials, error, isLoading } = useWebAuthn();
+      const result = await fetchWebAuthnCredentials();
+
+      expect(result).toBeNull();
+      expect(error.value).toBe('Authentication required');
+      expect(isLoading.value).toBe(false);
+    });
+  });
+
+  describe('removeWebAuthn', () => {
+    it('removes a credential with password confirmation', async () => {
+      axiosMock.onPost('/auth/webauthn-remove').reply(200, { success: 'Removed' });
+
+      const { removeWebAuthn, error } = useWebAuthn();
+      const result = await removeWebAuthn('credential-id-123', 'testpassword');
+
+      expect(result).toBe(true);
+      expect(error.value).toBeNull();
+
+      const body = JSON.parse(axiosMock.history.post[0].data);
+      expect(body.webauthn_remove).toBe('credential-id-123');
+      expect(body.password).toBe('testpassword');
+      expect(body).toHaveProperty('shrimp');
+    });
+
+    it('removes a credential without a password and omits the password key', async () => {
+      axiosMock.onPost('/auth/webauthn-remove').reply(200, { success: 'Removed' });
+
+      const { removeWebAuthn, error } = useWebAuthn();
+      const result = await removeWebAuthn('credential-id-123');
+
+      expect(result).toBe(true);
+      expect(error.value).toBeNull();
+
+      const body = JSON.parse(axiosMock.history.post[0].data);
+      expect(body.webauthn_remove).toBe('credential-id-123');
+      expect(body).not.toHaveProperty('password');
+      expect(body).toHaveProperty('shrimp');
+    });
+
+    it('returns false and sets error on a 200 error-body response', async () => {
+      axiosMock.onPost('/auth/webauthn-remove').reply(200, {
+        error: 'invalid password',
+      });
+
+      const { removeWebAuthn, error } = useWebAuthn();
+      const result = await removeWebAuthn('credential-id-123', 'wrong');
+
+      expect(result).toBe(false);
+      expect(error.value).toBe('invalid password');
+    });
+
+    it('returns false and sets error on an HTTP error response', async () => {
+      axiosMock.onPost('/auth/webauthn-remove').reply(401, {
+        error: 'Authentication required',
+      });
+
+      const { removeWebAuthn, error, isLoading } = useWebAuthn();
+      const result = await removeWebAuthn('credential-id-123');
+
+      expect(result).toBe(false);
+      expect(error.value).toBe('Authentication required');
+      expect(isLoading.value).toBe(false);
     });
   });
 
@@ -521,16 +747,17 @@ describe('useWebAuthn', () => {
       vi.mocked(startAuthentication).mockResolvedValue({ id: 'cred' } as any);
 
       const challengeOptions = { challenge: 'test', rpId: 'localhost' };
-      axiosMock.onPost('/auth/webauthn-login').replyOnce(200, {
-        webauthn_login: challengeOptions, // Raw JSON object
-        webauthn_login_challenge: 'challenge',
-        webauthn_login_challenge_hmac: 'hmac',
+      axiosMock.onPost('/auth/webauthn-login').replyOnce(422, {
+        error: 'There was an error authenticating via WebAuthn',
+        webauthn_auth: challengeOptions, // Raw JSON object
+        webauthn_auth_challenge: 'challenge',
+        webauthn_auth_challenge_hmac: 'hmac',
       });
       axiosMock.onPost('/auth/webauthn-login').replyOnce(200, { success: 'OK' });
 
       const { authenticateWebAuthn, isLoading } = useWebAuthn();
 
-      await authenticateWebAuthn();
+      await authenticateWebAuthn('user@example.com');
       expect(isLoading.value).toBe(false);
     });
 
@@ -539,7 +766,7 @@ describe('useWebAuthn', () => {
 
       const { authenticateWebAuthn, isLoading } = useWebAuthn();
 
-      await authenticateWebAuthn();
+      await authenticateWebAuthn('user@example.com');
       expect(isLoading.value).toBe(false);
     });
   });

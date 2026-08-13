@@ -983,6 +983,49 @@ RSpec.describe Core::Views::ConfigSerializer do
         expect(result).to be_nil
       end
     end
+
+    # An ENABLED domain SigninConfig replaces the global restrict_to — except
+    # for 'webauthn', which can never be honored on a custom domain (passkey
+    # rp_id is host-scoped, so canonical-host credentials cannot assert here;
+    # a passkey-only page would lock every visitor out). Persisted 'webauthn'
+    # resolves to standard mode (nil) — NOT the tenant 'sso' pin, which the
+    # surrounding before-block would otherwise make available — while every
+    # other persisted value passes through verbatim.
+    context 'with an enabled domain SigninConfig' do
+      def stub_signin_config(restrict_to)
+        config = instance_double(
+          Onetime::CustomDomain::SigninConfig,
+          enabled?: true,
+          restrict_to: restrict_to
+        )
+        allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
+          .with(domain_id)
+          .and_return(config)
+      end
+
+      it "resolves persisted restrict_to='webauthn' to standard mode (nil)" do
+        stub_signin_config('webauthn')
+
+        expect(described_class.resolve_restrict_to(custom_domain_view_vars)).to be_nil
+      end
+
+      it 'passes other persisted restrictions through verbatim' do
+        stub_signin_config('password')
+        expect(described_class.resolve_restrict_to(custom_domain_view_vars)).to eq('password')
+
+        stub_signin_config('email_auth')
+        expect(described_class.resolve_restrict_to(custom_domain_view_vars)).to eq('email_auth')
+
+        stub_signin_config('sso')
+        expect(described_class.resolve_restrict_to(custom_domain_view_vars)).to eq('sso')
+      end
+
+      it 'keeps an unrestricted enabled config at nil' do
+        stub_signin_config(nil)
+
+        expect(described_class.resolve_restrict_to(custom_domain_view_vars)).to be_nil
+      end
+    end
   end
 
   describe '.build_feature_flags' do

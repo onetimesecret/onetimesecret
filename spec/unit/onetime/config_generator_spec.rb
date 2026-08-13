@@ -11,6 +11,13 @@ RSpec.describe Onetime::ConfigGenerator do
       expect(descriptor.keys).to include('deployment_mode', 'email_provider', 'default_ttl')
       expect(descriptor['deployment_mode'][:choices].map { |c| c[:value] }).to contain_exactly('simple', 'full')
     end
+
+    it 'keeps the default email provider among the registry-derived choices' do
+      email  = described_class.descriptor.fetch('email_provider')
+      values = email.fetch(:choices).map { |choice| choice.fetch(:value) }
+
+      expect(values).to include(email.fetch(:default))
+    end
   end
 
   describe '.build' do

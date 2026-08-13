@@ -5,7 +5,7 @@
 #
 # Resolves a privacy-safe "location" string for the new-sign-in / MFA
 # security-alert emails (issue #3989), shared by hooks/login.rb and
-# hooks/mfa.rb so both alerts use one policy.
+# hooks/two_factor.rb so both alerts use one policy.
 #
 # PURE FUNCTION: accepts only primitive data (no request/env objects) — the
 # same convention as Auth::Operations::DetectMfaRequirement.

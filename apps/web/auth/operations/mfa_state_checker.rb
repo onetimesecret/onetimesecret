@@ -29,21 +29,27 @@ module Auth
         attr_reader :account_id,
           :has_otp_secret,
           :has_recovery_codes,
+          :has_webauthn,
           :otp_last_use,
-          :unused_recovery_code_count
+          :unused_recovery_code_count,
+          :webauthn_credential_count
 
         def initialize(
           account_id:,
           has_otp_secret:,
           has_recovery_codes:,
+          has_webauthn: false,
           otp_last_use: nil,
-          unused_recovery_code_count: 0
+          unused_recovery_code_count: 0,
+          webauthn_credential_count: 0
         )
           @account_id                 = account_id
           @has_otp_secret             = has_otp_secret
           @has_recovery_codes         = has_recovery_codes
+          @has_webauthn               = has_webauthn
           @otp_last_use               = otp_last_use
           @unused_recovery_code_count = unused_recovery_code_count
+          @webauthn_credential_count  = webauthn_credential_count
 
           freeze # Immutable
         end
@@ -51,28 +57,37 @@ module Auth
         # Does the account have ANY form of MFA configured?
         # @return [Boolean]
         def mfa_enabled?
-          has_otp_secret || has_recovery_codes
+          has_otp_secret || has_recovery_codes || has_webauthn
         end
 
         # Get list of available MFA methods
-        # @return [Array<Symbol>] Array of :otp, :recovery_codes, or empty
+        # @return [Array<Symbol>] Array of :otp, :webauthn, :recovery_codes, or empty
         def available_methods
           methods = []
           methods << :otp if has_otp_secret
+          methods << :webauthn if has_webauthn
           methods << :recovery_codes if has_recovery_codes
           methods.freeze
         end
 
-        # Get a reason string for why MFA is or isn't required
+        # Get a reason string for why MFA is or isn't required.
+        # Legacy strings (otp_*, recovery_codes_only) are preserved verbatim
+        # so log/monitoring queries keep matching.
         # @return [String]
         def reason
           return 'no_mfa_configured' unless mfa_enabled?
 
-          if has_otp_secret && has_recovery_codes
+          if has_otp_secret && has_webauthn
+            'otp_and_webauthn_configured'
+          elsif has_webauthn && has_recovery_codes
+            'webauthn_and_recovery_configured'
+          elsif has_webauthn
+            'webauthn_configured'
+          elsif has_otp_secret && has_recovery_codes
             'otp_and_recovery_configured'
           elsif has_otp_secret
             'otp_configured'
-          elsif has_recovery_codes
+          else
             'recovery_codes_only'
           end
         end
@@ -112,6 +127,7 @@ module Auth
           account_id: account_id,
           has_otp: state.has_otp_secret,
           has_recovery: state.has_recovery_codes,
+          has_webauthn: state.has_webauthn,
           mfa_enabled: state.mfa_enabled?,
           module: 'MfaStateChecker'
 
@@ -155,12 +171,26 @@ module Auth
 
         has_recovery_codes = unused_codes_count > 0
 
+        # Check for WebAuthn credentials (passkeys / security keys).
+        # Note: unlike the two tables above, account_webauthn_keys keys the
+        # account by an account_id column (composite PK [account_id,
+        # webauthn_id]) — see migrations/001_initial.rb. The table exists in
+        # every deployment regardless of AUTH_WEBAUTHN_ENABLED, so this query
+        # is always safe; whether the count participates in the MFA decision
+        # is the caller's call (the login hook gates it on the webauthn
+        # feature being loaded).
+        webauthn_count = @db[:account_webauthn_keys]
+          .where(account_id: account_id)
+          .count
+
         State.new(
           account_id: account_id,
           has_otp_secret: has_otp_secret,
           has_recovery_codes: has_recovery_codes,
+          has_webauthn: webauthn_count > 0,
           otp_last_use: otp_last_use,
           unused_recovery_code_count: unused_codes_count,
+          webauthn_credential_count: webauthn_count,
         )
       end
 

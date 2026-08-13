@@ -64,6 +64,21 @@ RSpec.describe Auth::Operations::MfaStateChecker do
     end
   end
 
+  # account_webauthn_keys keys the account via an account_id COLUMN (composite
+  # PK [account_id, webauthn_id]) — unlike the two tables above, whose id IS
+  # the account_id. This asymmetry is exactly what these tests guard: a
+  # regression to `where(id: ...)` would silently never find a credential.
+  def add_webauthn_keys(account_id, count)
+    count.times do |i|
+      db[:account_webauthn_keys].insert(
+        account_id: account_id,
+        webauthn_id: "cred-#{account_id}-#{i}",
+        public_key: SecureRandom.hex(32),
+        sign_count: 0,
+      )
+    end
+  end
+
   describe '#check' do
     context 'when the account has neither OTP nor recovery codes' do
       let(:account_id) { create_account('none@example.com') }
@@ -74,11 +89,50 @@ RSpec.describe Auth::Operations::MfaStateChecker do
         expect(state.account_id).to eq(account_id)
         expect(state.has_otp_secret).to be(false)
         expect(state.has_recovery_codes).to be(false)
+        expect(state.has_webauthn).to be(false)
         expect(state.unused_recovery_code_count).to eq(0)
+        expect(state.webauthn_credential_count).to eq(0)
         expect(state.otp_last_use).to be_nil
         expect(state.mfa_enabled?).to be(false)
         expect(state.available_methods).to eq([])
         expect(state.reason).to eq('no_mfa_configured')
+      end
+    end
+
+    context 'when the account has WebAuthn credentials only' do
+      let(:account_id) { create_account('passkey@example.com') }
+
+      before { add_webauthn_keys(account_id, 2) }
+
+      it 'reads has_webauthn=true and the credential count from account_webauthn_keys' do
+        state = checker.check(account_id)
+
+        expect(state.has_otp_secret).to be(false)
+        expect(state.has_recovery_codes).to be(false)
+        expect(state.has_webauthn).to be(true)
+        expect(state.webauthn_credential_count).to eq(2)
+        expect(state.mfa_enabled?).to be(true)
+        expect(state.available_methods).to eq([:webauthn])
+        expect(state.reason).to eq('webauthn_configured')
+      end
+    end
+
+    context 'when the account has OTP and WebAuthn' do
+      let(:account_id) { create_account('otp-passkey@example.com') }
+
+      before do
+        add_otp_key(account_id)
+        add_webauthn_keys(account_id, 1)
+      end
+
+      it 'reports both methods with OTP first' do
+        state = checker.check(account_id)
+
+        expect(state.has_otp_secret).to be(true)
+        expect(state.has_webauthn).to be(true)
+        expect(state.mfa_enabled?).to be(true)
+        expect(state.available_methods).to eq([:otp, :webauthn])
+        expect(state.reason).to eq('otp_and_webauthn_configured')
       end
     end
 
@@ -184,16 +238,20 @@ RSpec.describe Auth::Operations::MfaStateChecker do
 
         add_otp_key(account_a)
         add_recovery_codes(account_a, 2)
+        add_webauthn_keys(account_a, 1)
         # account_b intentionally left with no MFA rows.
 
         state_b = checker.check(account_b)
         expect(state_b.has_otp_secret).to be(false)
         expect(state_b.has_recovery_codes).to be(false)
+        expect(state_b.has_webauthn).to be(false)
         expect(state_b.unused_recovery_code_count).to eq(0)
+        expect(state_b.webauthn_credential_count).to eq(0)
 
         state_a = checker.check(account_a)
         expect(state_a.has_otp_secret).to be(true)
         expect(state_a.unused_recovery_code_count).to eq(2)
+        expect(state_a.webauthn_credential_count).to eq(1)
       end
     end
   end

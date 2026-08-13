@@ -65,7 +65,10 @@ export {
 export { limitsShape } from './section/limits';
 
 export {
+  emailDeliveryModeSchema,
+  emailSenderProviderSchema,
   emailerShape,
+  emailProvidersShape,
   mailShape,
   truemailShape,
   mailConnectionShape,

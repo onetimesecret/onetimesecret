@@ -27,15 +27,29 @@
 #      == ProviderRegistry.feedback_providers (providers with a pollable
 #      feedback/status API).
 #
+#   4. The generated static config schema constrains emailer.mode to registry
+#      providers plus Mailer's non-provider transports, constrains
+#      sender_provider to registry providers, and models exactly one
+#      email_providers block per provisioning provider.
+#
+#   5. DNS defaults in both the generated schema and rendered shipped YAML
+#      agree with each registry descriptor. Provider ENV variables are cleared
+#      around the YAML check so ambient deployment config cannot mask drift.
+#
 # Extraction is designed to fail LOUDLY: if a regex no longer matches (file
 # moved or reshaped), the spec fails telling the maintainer to update this
 # parity spec — it never silently passes on extraction failure.
 
+require 'json'
 require 'spec_helper'
 require 'onetime/mail/provider_registry'
 
 RSpec.describe 'Frontend mail provider parity' do # rubocop:disable RSpec/DescribeClass
   let(:project_root) { File.expand_path('../../../..', __dir__) }
+  let(:generated_schema_path) do
+    File.join(project_root, 'generated', 'schemas', 'config', 'static.schema.json')
+  end
+  let(:defaults_path) { File.join(project_root, 'etc', 'defaults', 'config.defaults.yaml') }
 
   def frontend_source(relative_path)
     path = File.join(project_root, relative_path)
@@ -61,9 +75,22 @@ RSpec.describe 'Frontend mail provider parity' do # rubocop:disable RSpec/Descri
     match[1]
   end
 
-  let(:provisioning_plus_inherit) do
-    Onetime::Mail::ProviderRegistry.provisioning_providers + %w[inherit]
+  def generated_static_schema
+    unless File.file?(generated_schema_path)
+      skip 'JSON Schema not generated; run `pnpm run schemas:json:generate`'
+    end
+
+    JSON.parse(File.read(generated_schema_path))
   end
+
+  def enum_values(schema)
+    direct = schema.fetch('enum', [])
+    nested = schema.fetch('anyOf', []).flat_map { |branch| enum_values(branch) }
+    direct + nested
+  end
+
+  let(:registry) { Onetime::Mail::ProviderRegistry }
+  let(:provisioning_plus_inherit) { registry.provisioning_providers + %w[inherit] }
 
   describe 'zod emailProviderTypeSchema (src/schemas/contracts/email-config.ts)' do
     it 'equals ProviderRegistry.provisioning_providers + inherit' do
@@ -120,6 +147,54 @@ RSpec.describe 'Frontend mail provider parity' do # rubocop:disable RSpec/Descri
     end
   end
 
+  describe 'config provider mirrors (src/schemas/.../config/section/mail.ts)' do
+    it 'keeps delivery and sender-provider enums aligned with the registry' do
+      relative = 'src/schemas/shapes/config/section/mail.ts'
+      source   = frontend_source(relative)
+
+      delivery_body = extract!(
+        source,
+        /emailDeliveryModeSchema\s*=\s*z\.enum\(\[([^\]]*)\]/m,
+        'emailDeliveryModeSchema z.enum values',
+        relative,
+      )
+      sender_body = extract!(
+        source,
+        /emailSenderProviderSchema\s*=\s*z\.enum\(\[([^\]]*)\]/m,
+        'emailSenderProviderSchema z.enum values',
+        relative,
+      )
+      delivery_values = delivery_body.scan(/['"]([^'"]+)['"]/).flatten
+      sender_values   = sender_body.scan(/['"]([^'"]+)['"]/).flatten
+
+      expect(delivery_values).to match_array(registry.providers + %w[logger disabled none])
+      expect(sender_values).to match_array(registry.providers)
+    end
+
+    it 'models exactly the provisioning-provider config blocks' do
+      relative = 'src/schemas/contracts/config/section/mail.ts'
+      source   = frontend_source(relative)
+      body     = extract!(
+        source,
+        /emailProvidersSchema\s*=\s*z\.strictObject\(\{(.*?)\}\);/m,
+        'emailProvidersSchema object body',
+        relative,
+      )
+      provider_entries = body.scan(
+        /^\s*(\w+):\s*(\w+EmailProviderSchema)\.optional\(\)/,
+      )
+      provider_keys = provider_entries.map(&:first)
+
+      expect(provider_keys).to match_array(registry.provisioning_providers),
+        "emailProvidersSchema blocks #{provider_keys.inspect} drifted from " \
+        "ProviderRegistry.provisioning_providers #{registry.provisioning_providers.inspect}."
+      provider_entries.each do |name, schema_name|
+        expect(source).to match(/const\s+#{Regexp.escape(schema_name)}\s*=\s*z\.strictObject\(/),
+          "email_providers.#{name} must use z.strictObject so misspelled keys are rejected."
+      end
+    end
+  end
+
   describe 'colonel provider-status blocks (colonel-deliverability.ts)' do
     it 'carries exactly the feedback-capable providers as nullable blocks' do
       relative = 'src/schemas/api/internal/responses/colonel-deliverability.ts'
@@ -134,11 +209,197 @@ RSpec.describe 'Frontend mail provider parity' do # rubocop:disable RSpec/Descri
       # schema; scalar fields (provider/capability/available/error) don't match.
       provider_keys = body.scan(/^\s*(\w+):\s*colonelEmailProviderStatus\w+Schema\.nullable\(\)/).flatten
 
-      expect(provider_keys).to match_array(Onetime::Mail::ProviderRegistry.feedback_providers),
+      expect(provider_keys).to match_array(registry.feedback_providers),
         "colonelEmailProviderStatusDetailsSchema provider blocks #{provider_keys.inspect} " \
         'drifted from ProviderRegistry.feedback_providers ' \
-        "#{Onetime::Mail::ProviderRegistry.feedback_providers.inspect} — a new feedback " \
-        "provider needs a status block in #{relative} (and vice versa)."
+        "#{registry.feedback_providers.inspect} — a new feedback provider needs a status " \
+        "block in #{relative} (and vice versa)."
+    end
+  end
+
+  describe 'generated static config schema provider surfaces' do
+    let(:properties) { generated_static_schema.fetch('properties') }
+    let(:emailer_properties) { properties.fetch('emailer').fetch('properties') }
+    let(:provider_schemas) do
+      properties.fetch('email_providers').fetch('properties')
+    end
+
+    it 'constrains emailer.mode to registry providers plus non-provider transports' do
+      expected = registry.providers + %w[logger disabled none]
+      actual   = enum_values(emailer_properties.fetch('mode'))
+
+      expect(actual).to match_array(expected),
+        "generated emailer.mode values #{actual.inspect} drifted from registry providers " \
+        "plus Mailer transports #{expected.inspect} — update the TypeScript mail shape " \
+        'and regenerate schemas.'
+    end
+
+    it 'constrains emailer.sender_provider to registry providers while preserving null' do
+      schema = emailer_properties.fetch('sender_provider')
+      actual = enum_values(schema)
+
+      expect(actual).to match_array(registry.providers),
+        "generated emailer.sender_provider values #{actual.inspect} drifted from " \
+        "ProviderRegistry.providers #{registry.providers.inspect}."
+      expect(schema.fetch('anyOf', []).map { |branch| branch['type'] }).to include('null'),
+        'emailer.sender_provider must remain nullable for an unset CUSTOM_MAIL_PROVIDER.'
+    end
+
+    it 'strictly models exactly the provisioning-provider blocks' do
+      email_providers_schema = properties.fetch('email_providers')
+
+      expect(provider_schemas.keys).to match_array(registry.provisioning_providers),
+        "generated email_providers blocks #{provider_schemas.keys.inspect} drifted from " \
+        "ProviderRegistry.provisioning_providers #{registry.provisioning_providers.inspect}."
+      expect(email_providers_schema['additionalProperties']).to be(false),
+        'email_providers must reject misspelled or unregistered provider blocks.'
+      provider_schemas.each do |name, schema|
+        expect(schema['additionalProperties']).to be(false),
+          "email_providers.#{name} must reject unknown provider config keys."
+      end
+    end
+
+    it 'uses every descriptor config key and DNS default in the generated provider blocks' do
+      registry.provisioning_providers.each do |name|
+        descriptor = registry.descriptor!(name)
+        properties = provider_schemas.fetch(name).fetch('properties')
+        expected_keys = (descriptor.dns_defaults.keys + descriptor.config_env_sources.keys)
+          .map(&:to_s)
+          .uniq
+        actual_defaults = properties.filter_map do |key, schema|
+          [key, schema.fetch('default')] if schema.key?('default')
+        end.to_h
+        expected_defaults = descriptor.dns_defaults.transform_keys(&:to_s)
+
+        expect(properties.keys).to match_array(expected_keys),
+          "generated email_providers.#{name} keys #{properties.keys.inspect} drifted from " \
+          "ProviderRegistry #{expected_keys.inspect}."
+        expect(actual_defaults).to eq(expected_defaults),
+          "generated email_providers.#{name} defaults #{actual_defaults.inspect} drifted " \
+          "from ProviderRegistry #{expected_defaults.inspect}."
+      end
+    end
+  end
+
+  describe 'rendered etc/defaults/config.defaults.yaml provider surfaces' do
+    def load_provider_config
+      Onetime::Config.load(defaults_path).fetch('email_providers')
+    end
+
+    around do |example|
+      env_names = registry.descriptors
+        .flat_map { |descriptor| descriptor.config_env_sources.values.flatten }
+        .uniq
+      saved = env_names.to_h { |name| [name, ENV.fetch(name, nil)] }
+      env_names.each { |name| ENV.delete(name) }
+      example.run
+    ensure
+      saved&.each do |name, value|
+        value.nil? ? ENV.delete(name) : (ENV[name] = value)
+      end
+    end
+
+    it 'contains exactly one block per provisioning provider' do
+      actual = load_provider_config.keys
+
+      expect(actual).to match_array(registry.provisioning_providers),
+        "shipped email_providers blocks #{actual.inspect} drifted from " \
+        "ProviderRegistry.provisioning_providers #{registry.provisioning_providers.inspect}."
+    end
+
+    it 'accounts for every provider config key and uses registry DNS defaults' do
+      provider_config = load_provider_config
+
+      registry.provisioning_providers.each do |name|
+        descriptor    = registry.descriptor!(name)
+        expected_keys = (descriptor.dns_defaults.keys + descriptor.config_env_sources.keys)
+          .map(&:to_s)
+          .uniq
+        actual         = provider_config.fetch(name)
+        expected_defaults = descriptor.dns_defaults.transform_keys(&:to_s)
+
+        expect(actual.keys).to match_array(expected_keys),
+          "shipped email_providers.#{name} keys #{actual.keys.inspect} drifted from " \
+          "ProviderRegistry #{expected_keys.inspect}."
+        expect(actual.slice(*expected_defaults.keys)).to eq(expected_defaults),
+          "shipped email_providers.#{name} defaults drifted from ProviderRegistry " \
+          "#{expected_defaults.inspect}."
+      end
+    end
+
+    it 'wires every declared ENV source to its provider config key' do
+      registry.provisioning_providers.each do |name|
+        registry.descriptor!(name).config_env_sources.each do |key, env_names|
+          env_names.each do |env_name|
+            marker = "parity-#{name}-#{key}-#{env_name.downcase}"
+            begin
+              ENV[env_name] = marker
+              actual        = load_provider_config.fetch(name).fetch(key.to_s)
+              expect(actual).to eq(marker),
+                "#{env_name} did not populate email_providers.#{name}.#{key}."
+            ensure
+              ENV.delete(env_name)
+            end
+          end
+        end
+      end
+    end
+
+    # The two ENV specs above learn which variables exist by asking the
+    # registry, so they can only ever set declared names. An ENV source that
+    # the YAML reads but the registry never declares is therefore invisible to
+    # them: it stays unset, contributes nothing to the `||` chain, and every
+    # assertion still passes -- even when the undeclared source is written
+    # first and outranks the whole declared chain at runtime. Catching that
+    # requires reading the shipped YAML statically.
+    it 'reads no ENV source that the registry does not declare' do
+      raw     = File.read(defaults_path)
+      section = raw[/^email_providers:\n(.*?)(?=^\S)/m, 1]
+      unless section
+        raise 'email_providers block not found in etc/defaults/config.defaults.yaml. ' \
+              'If the file was reshaped, update ' \
+              'spec/unit/onetime/mail/frontend_provider_parity_spec.rb.'
+      end
+
+      blocks = section.scan(/^  (\w+):\n(.*?)(?=^  \w+:|\z)/m).to_h
+
+      registry.provisioning_providers.each do |name|
+        body = blocks.fetch(name) do
+          raise "no email_providers.#{name} block in etc/defaults/config.defaults.yaml."
+        end
+        actual   = body.gsub(/#.*/, '').scan(/ENV\['([A-Z0-9_]+)'\]/).flatten.uniq
+        declared = registry.descriptor!(name).config_env_sources.values.flatten.uniq
+
+        expect(actual).to match_array(declared),
+          "email_providers.#{name} reads ENV #{actual.inspect} but ProviderRegistry " \
+          "declares #{declared.inspect}. Update config_env_sources."
+      end
+    end
+
+    it 'uses the declared ENV source order as fallback precedence' do
+      registry.provisioning_providers.each do |name|
+        registry.descriptor!(name).config_env_sources.each do |key, env_names|
+          next unless env_names.length > 1
+
+          # Stop before the one-element suffix: a single active source is just
+          # the "wires every declared ENV source" case above.
+          (env_names.length - 1).times do |start_index|
+            active_sources = env_names.drop(start_index)
+            markers        = active_sources.each_with_index.to_h do |env_name, index|
+              [env_name, "parity-source-#{start_index}-#{index}"]
+            end
+            begin
+              markers.each { |env_name, marker| ENV[env_name] = marker }
+              actual = load_provider_config.fetch(name).fetch(key.to_s)
+              expect(actual).to eq(markers.fetch(active_sources.first)),
+                "email_providers.#{name}.#{key} did not honor declared ENV precedence " \
+                "from #{active_sources.inspect}."
+            ensure
+              active_sources.each { |env_name| ENV.delete(env_name) }
+            end
+          end
+        end
+      end
     end
   end
 end
