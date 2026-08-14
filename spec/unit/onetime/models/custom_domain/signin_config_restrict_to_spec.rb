@@ -199,4 +199,84 @@ RSpec.describe Onetime::CustomDomain::SigninConfig do
       end
     end
   end
+
+  # The `global` VALUE the three consumers hand to the resolver (#4140). Same
+  # rule as restriction_available_for_request? above and for the same reason:
+  # the SSO HOST PIN used to be written twice (display serializer, route gate)
+  # and omitted entirely by the settings API, which therefore reported
+  # `unrestricted` for a host whose routes the gate restricted to SSO.
+  describe '.inherited_restrict_to' do
+    subject(:inherited) do
+      described_class.inherited_restrict_to(
+        config_arg, domain_id: domain_id_arg, custom_host: custom_host
+      )
+    end
+
+    let(:config_arg)    { nil }
+    let(:domain_id_arg) { 'domain-4139' }
+    let(:custom_host)   { true }
+    let(:auth_config) do
+      instance_double(Onetime::AuthConfig, email_auth_enabled?: true, restrict_to: nil)
+    end
+
+    context 'on an SSO-only custom host with no SigninConfig' do
+      it "pins 'sso' — password and email default OFF there" do
+        expect(inherited).to eq('sso')
+      end
+    end
+
+    context 'on a custom host with no SSO available' do
+      before do
+        allow(Onetime::CustomDomain::SsoConfig).to receive(:sso_available_for_tenant_host?)
+          .with('domain-4139').and_return(false)
+      end
+
+      it 'inherits the operator restriction (here: none)' do
+        expect(inherited).to be_nil
+      end
+    end
+
+    context 'on a canonical host' do
+      let(:custom_host) { false }
+
+      it 'never pins — the pin is a custom-host property' do
+        expect(inherited).to be_nil
+      end
+    end
+
+    context 'when the custom host could not be classified' do
+      let(:domain_id_arg) { nil }
+
+      it 'never pins — there is no domain whose SSO could be probed' do
+        expect(inherited).to be_nil
+      end
+    end
+
+    context 'when an enabled SigninConfig speaks' do
+      let(:config_arg) do
+        described_class.new(
+          domain_id: 'domain-4139', enabled: true, signin_enabled: true, restrict_to: 'password'
+        )
+      end
+      let(:auth_config) do
+        instance_double(Onetime::AuthConfig, email_auth_enabled?: true, restrict_to: 'password')
+      end
+
+      it 'declines the pin — intersecting it would resolve :conflict and lock the host out' do
+        expect(inherited).to eq('password')
+      end
+    end
+
+    context 'when a DISABLED SigninConfig exists on an SSO-only host' do
+      let(:config_arg) do
+        described_class.new(
+          domain_id: 'domain-4139', enabled: false, signin_enabled: true, restrict_to: 'password'
+        )
+      end
+
+      it "still pins 'sso' — a disabled config has not spoken" do
+        expect(inherited).to eq('sso')
+      end
+    end
+  end
 end

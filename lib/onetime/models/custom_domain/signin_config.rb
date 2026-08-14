@@ -425,7 +425,9 @@ module Onetime
         #
         # Two consumers today, and the second is a RUNTIME gate — this comment
         # used to say there was no runtime email-auth gate, which stopped being
-        # true when #4139 landed A1 and cost a reviewer a false bug report:
+        # true when #4139 landed
+        # ADR-034#restrict-to-is-an-access-control-not-a-display-preference and
+        # cost a reviewer a false bug report:
         #
         #   - display: Core::Views::ConfigSerializer#resolve_email_auth
         #   - runtime: restriction_available_for_custom_domain? below, which
@@ -508,14 +510,15 @@ module Onetime
         # restriction configured", and never nil to mean "the configured
         # restriction could not be honored" (that is a fatal boot error now).
         # Re-adding defensive nil-handling here would rebuild the silent
-        # fail-open A3 retired.
+        # fail-open ADR-034#degradation-is-fail-closed retired.
         #
-        # GLOBAL AVAILABILITY (`available:`) is the post-boot half of A3. It is
+        # GLOBAL AVAILABILITY (`available:`) is the post-boot half of
+        # ADR-034#degradation-is-fail-closed. It is
         # not derivable from `global` and `config` — it reads live prerequisite
         # state (AuthConfig#restrict_to_available?) — so the caller supplies it,
         # but this resolver APPLIES it: three consumers each remembering to
-        # apply the same rule by hand is precisely the drift A2 exists to
-        # eliminate.
+        # apply the same rule by hand is precisely the drift
+        # ADR-034#resolution-is-model-owned exists to eliminate.
         #
         #   available: false means "the global restriction stands, but its
         #   backing method is dead here". It can only ever NARROW: a standing
@@ -584,7 +587,8 @@ module Onetime
         # SigninConfig, the SSO availability probes — so a read failure means
         # the gate does not know what this host permits. It must not guess in
         # either direction: continuing with the global half alone re-exposes
-        # exactly the methods a per-domain restriction hides (the A3 failure
+        # exactly the methods a per-domain restriction hides (the
+        # ADR-034#degradation-is-fail-closed failure
         # mode), and degrading to "unrestricted because nothing is globally
         # restricted" makes the answer depend on a value that says nothing
         # about this host. Sign-in fails, loudly, until the read works.
@@ -639,6 +643,58 @@ module Onetime
         # @return [Boolean]
         def operator_host?(domain_strategy)
           OPERATOR_HOST_STRATEGIES.include?(domain_strategy&.to_sym)
+        end
+
+        # The `global` VALUE a request host INHERITS when no enabled per-domain
+        # config speaks — the operator's own `restrict_to`, or the derived 'sso'
+        # HOST PIN on a custom domain that offers SSO alone.
+        #
+        # WHY THIS LIVES HERE (ADR-034#resolution-is-model-owned). The pin was
+        # written twice — ConfigSerializer#effective_global_restrict_to and
+        # Auth::RestrictTo.global_restrict_to — and the settings API
+        # (DomainsAPI::Logic::SigninConfig::Base#signin_override_details) had
+        # neither copy, so it handed the resolver Onetime.auth_config.restrict_to
+        # verbatim and reported `unrestricted` for an SSO-only tenant whose
+        # Rodauth routes the gate was already restricting to SSO. Same
+        # ADR-034#resolution-is-model-owned drift
+        # shape as the four defects #4139 fixed, one input over: the resolver was
+        # shared, this input was not. Two copies plus one omission is exactly the
+        # arrangement that produced it, so the pin is now one method taking
+        # explicit request facts, and every consumer calls it.
+        #
+        # WHY THE PIN EXISTS. Password and email-auth default OFF on a custom
+        # domain, so a custom host with no enabled SigninConfig keeps a working
+        # /signin page only because SSO is available there. Pinning 'sso' keeps
+        # what the page OFFERS, what the route gate ACCEPTS and what the settings
+        # page REPORTS in lockstep; without it the page renders forms whose POST
+        # targets are dark and the gate accepts crafted POSTs for methods the
+        # host never offered.
+        #
+        # NO-CONFIG CASE ONLY. Under ADR-034#resolution-intersects-never-widens
+        # the resolver INTERSECTS `global` with the domain's own restriction, so
+        # a pin handed in for a tenant that HAS spoken (an enabled SigninConfig
+        # naming, say, 'password') would resolve :conflict and take that host
+        # dark — a display convenience turned into a lockout. The pin describes a
+        # host that has NOT configured sign-in and is reachable only via SSO.
+        #
+        # The predicate is SsoConfig.sso_available_for_tenant_host? (tenant
+        # credentials OR operator platform fallback) — the same question
+        # ConfigSerializer#build_sso_config answers for the rendered page, so the
+        # pin cannot be narrower than the buttons the host shows.
+        #
+        # @param config [SigninConfig, nil] the host's per-domain config, if any
+        # @param domain_id [String, nil] the classified CustomDomain identifier (objid)
+        # @param custom_host [Boolean] whether the host is a custom domain
+        # @return [String, nil] the value to pass to resolve_restrict_to as `global`
+        def inherited_restrict_to(config, domain_id: nil, custom_host: false)
+          return Onetime.auth_config.restrict_to if config&.enabled?
+
+          if custom_host == true && domain_id &&
+             Onetime::CustomDomain::SsoConfig.sso_available_for_tenant_host?(domain_id)
+            return 'sso'
+          end
+
+          Onetime.auth_config.restrict_to
         end
 
         # The `available:` input to resolve_restrict_to for a caller that has
