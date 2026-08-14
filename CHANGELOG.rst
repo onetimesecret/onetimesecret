@@ -18,23 +18,34 @@ this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.htm
 Added
 -----
 
-- Added configurable link-domain selection through ``LINK_DOMAINS``. (#4063)
+- Added configurable link-domain selection through ``LINK_DOMAINS``
+  (``features.domains.link_domains``). (#4063)
 - Added passkey authentication and credential management behind
   ``AUTH_WEBAUTHN_ENABLED``.
-- Added ``ADMIN_ALLOWED_HOSTS`` to restrict Colonel access by host. (#4062, #4127)
+- Added ``ADMIN_ALLOWED_HOSTS`` (``site.admin.allowed_hosts``) to restrict
+  Colonel access by host. (#4062, #4127)
 
 Changed
 -------
 
-- Hardened trusted-proxy and forwarded-host handling. (#4024, #4040)
-- Admin surfaces now default to the canonical host. Configure
-  ``ADMIN_ALLOWED_HOSTS`` before upgrading when Colonel uses another host;
-  ``*`` disables this restriction. (#4062, #4127)
-- ``GEO_HEADER`` is now used only with ``TRUSTED_PROXY_MODE=filter``. Depth-mode
-  deployments should use ``GEO_DB_PATH``. (#4024, #4068)
+- Hardened trusted-proxy and forwarded-host handling. In
+  ``TRUSTED_PROXY_MODE=depth``, depth now expresses the explicit trust-at-edge
+  decision; ensure the origin is reachable only through the proxy tier.
+  (#4024, #4040)
+- Admin surfaces now default to the canonical ``DEFAULT_DOMAIN``/``HOST``.
+  Configure ``ADMIN_ALLOWED_HOSTS`` before upgrading when Colonel uses another
+  host; ``*`` disables this restriction. Behind a proxy, forwarded-host trust
+  additionally requires ``TRUSTED_PROXY_CIDRS``, or the proxy must forward the
+  original ``Host`` header. (#4062, #4127)
+- ``ADMIN_ALLOWED_CIDRS`` (``site.admin.allowed_cidrs``) allowlists with no
+  valid entries now fail closed. (#4062)
+- ``GEO_HEADER`` (``site.network.geo.header``) is now used only with
+  ``TRUSTED_PROXY_MODE=filter`` (``site.network.trusted_proxy.mode``).
+  Depth-mode deployments should use ``GEO_DB_PATH``. (#4024, #4068)
 - Renamed ``WEBAUTHN_VERIFY_ACCOUNT`` and ``WEBAUTHN_AUTOFILL`` to
-  ``AUTH_WEBAUTHN_VERIFY_ACCOUNT`` and ``AUTH_WEBAUTHN_AUTOFILL``. The old names
-  are deprecated.
+  ``AUTH_WEBAUTHN_VERIFY_ACCOUNT`` and ``AUTH_WEBAUTHN_AUTOFILL``. Only the
+  literal ``true`` now enables them; the old names are deprecated.
+- Custom domains cannot be restricted to passkey-only sign-in.
 - ``TRUSTED_PROXY_MODE`` is validated at boot; invalid values use safer
   ``filter`` mode with a warning. (#4087)
 
@@ -55,18 +66,19 @@ Added
 -----
 
 - Added organization Secret Activity, including retention controls and an audit
-  events interface. (#3642, #3975, #3976, #3985, #3992)
+  events interface. Enable or disable with ``ORGS_AUDIT_LOGS_ENABLED``.
+  (#3642, #3975, #3976, #3985, #3992)
 
 Fixed
 -----
 
-- Improved domain configuration validation. (#3998)
+- Domain configuration is now sanitized and constrained. (#3998)
 - Improved sidebar text contrast. (#3994)
 
 Security
 --------
 
-- Updated PostCSS. (#4004)
+- Updated PostCSS to 8.5.23. (#4004)
 
 .. _changelog-0.26.3:
 
@@ -128,7 +140,8 @@ Fixed
 -----
 
 - Restored SSO user linking and Chromium SSO redirects. (#3836, #3840, #3848)
-- Improved domain, customer, and operator-email management.
+- Hardened admin email changes and entitlement-override validation.
+  (#3907, #3916)
 
 Security
 --------
@@ -175,7 +188,10 @@ Changed
 - Unbranded installs now use the neutral ``Secure Links`` identity and keyhole
   mark; configured branding is unchanged. (#3048, #3049, #3612)
 - Brand settings are now centralized under ``brand:``. ``BRAND_LOGO_URL`` also
-  controls the masthead logo. (#3612)
+  controls the masthead logo, and ``BRAND_TOTP_ISSUER`` (defaulting to the
+  product name) labels TOTP/MFA entries. Masthead layout knobs live under
+  ``site.interface.ui.header.logo`` (``LOGO_LINK``, ``LOGO_SHOW_NAME``,
+  ``LOGO_PROMINENT``). (#3612)
 - Secret reads no longer change lifecycle state or extend expiration. Receipt
   access is reported through access telemetry instead. (#3633)
 - Custom-domain authentication links are hidden by default. Existing domains
@@ -186,12 +202,14 @@ Changed
   (#3618)
 - Job configuration is now managed through the ``jobs:`` block in
   ``etc/config.yaml``. Per-job ``JOBS_*`` environment variables no longer take
-  effect; deployment-wide job switches remain supported. (#3775)
+  effect; the deployment-wide switches ``JOBS_ENABLED``, ``JOBS_FALLBACK_SYNC``,
+  and ``JOBS_SCHEDULER_ENABLED`` remain env-overridable. (#3775)
 
 Deprecated
 ----------
 
-- ``SITE_NAME``, ``LOGO_URL``, and ``LOGO_ALT`` are deprecated in favor of
+- ``SITE_NAME``, ``LOGO_URL``, and ``LOGO_ALT`` (the
+  ``site.interface.ui.header.branding`` path) are deprecated in favor of
   ``BRAND_PRODUCT_NAME``, ``BRAND_LOGO_URL``, and ``BRAND_LOGO_ALT``. (#3612)
 
 Removed
@@ -202,10 +220,17 @@ Removed
 Fixed
 -----
 
-- Global authentication settings can no longer be bypassed by per-domain
-  configuration. (#3453)
-- Improved resilience for secret reveal, receipt display, email delivery, and
-  custom-domain branding.
+- The global authentication kill switch (``AUTH_ENABLED`` / ``AUTH_SIGNIN`` /
+  ``AUTH_SIGNUP``) can no longer be bypassed by per-domain configuration.
+  (#3453)
+- The Content-Security-Policy header is now emitted on web responses by
+  default; it was previously gated behind ``CSP_ENABLED=true`` and not sent.
+  Set ``CSP_ENABLED=false`` to opt out.
+- The API v1 receipt endpoint no longer reveals a concealed (user-supplied)
+  secret's plaintext to the creator, matching v2/v3.
+- Email delivery failures during synchronous fallback no longer return
+  HTTP 500 after the record was persisted; auth and invitation emails stay
+  resendable. (#3486)
 - Incoming secrets submitted on a custom domain now use that domain for links
   and email delivery.
 - Prevented duplicate checkout sessions and subscriptions. (#2605)
@@ -272,9 +297,9 @@ v0.25.9 — 2026-06-09
 Added
 -----
 
-- Added opt-in, signal-triggered heap dumps for diagnosing memory growth.
-  Dumps can contain plaintext secrets and must be handled as sensitive data.
-  (#3366)
+- Added opt-in ``SIGUSR2``-triggered heap dumps (``HEAP_DUMP_ENABLED``) for
+  diagnosing memory growth. Dumps can contain plaintext secrets and must be
+  handled as sensitive data. (#3366)
 
 .. _changelog-v0.25.8:
 
@@ -292,7 +317,8 @@ Changed
 -------
 
 - Updated Familia storage indexes. Existing deployments with legacy indexes
-  should run the remediation command reported at boot. (#3336, #3347)
+  should run migration ``20260606_01_unique_index_json_to_raw``; boot logs a
+  warning with the exact command while any remain. (#3336, #3347)
 
 .. _changelog-v0.25.6:
 
@@ -353,7 +379,7 @@ v0.24.2 — 2026-03-14
 Added
 -----
 
-- Added configurable locale fallback support.
+- Added configurable locale fallback support via ``fallback_locale`` chains.
 
 Changed
 -------
@@ -393,7 +419,8 @@ Added
   rollback, and configuration guidance. (#1619, #1673)
 - Added CSRF protection, secret-reveal notifications, and dashboard onboarding
   improvements.
-- Added dead-letter email replay for authentication-critical messages. (#2530)
+- Added dead-letter email replay for authentication-critical messages. Enabled
+  by default; set ``JOBS_DLQ_CONSUMER_ENABLED=false`` to disable. (#2530)
 
 Changed
 -------
@@ -408,7 +435,6 @@ Changed
       bin/ots queue reset --force
       bin/ots queue init
 
-- Reorganized the frontend around domain-focused applications.
 
 Removed
 -------
