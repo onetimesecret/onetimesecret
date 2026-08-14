@@ -24,6 +24,7 @@ Added
   ``AUTH_WEBAUTHN_ENABLED``.
 - Added ``ADMIN_ALLOWED_HOSTS`` (``site.admin.allowed_hosts``) to restrict
   Colonel access by host. (#4062, #4127)
+- Social cards can now be disabled with ``BRAND_OG_IMAGE_URL=none``. (#4150)
 
 Changed
 -------
@@ -56,6 +57,8 @@ Fixed
   that worked around this issue should restore their actual
   ``TRUSTED_PROXY_DEPTH``. (#4024)
 - Fixed forwarded-host parsing and link-domain validation. (#4040, #4063)
+- Social cards now use available brand assets, and custom domains no longer
+  inherit the install's social image. (#4150)
 
 .. _changelog-0.26.4:
 
