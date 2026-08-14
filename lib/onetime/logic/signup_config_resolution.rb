@@ -50,7 +50,7 @@ module Onetime
         dd = signup_config_display_domain
         return unless dd
 
-        custom_domain = Onetime::CustomDomain.load_by_display_domain(dd)
+        custom_domain = Onetime::CustomDomain.from_display_domain(dd)
         return unless custom_domain
 
         Onetime::CustomDomain::SignupConfig.find_by_domain_id(custom_domain.identifier)

@@ -367,7 +367,7 @@ module Onetime
         # error family, different copy — because "disabled unless explicitly
         # enabled" is only true if the application can actually READ the
         # tenant's SignupConfig. Two datastore reads back that policy
-        # (CustomDomain.load_by_display_domain, then find_by_domain_id); when
+        # (CustomDomain.from_display_domain, then find_by_domain_id); when
         # either raises, the gate cannot establish explicit enablement and must
         # not guess.
         #

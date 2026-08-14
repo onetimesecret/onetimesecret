@@ -6,7 +6,7 @@
 #
 # The classification-aware resolvers only close the widening when the app can
 # actually READ the tenant's SignupConfig. Two datastore reads back that policy
-# (CustomDomain.load_by_display_domain, then SignupConfig.find_by_domain_id) and
+# (CustomDomain.from_display_domain, then SignupConfig.find_by_domain_id) and
 # both live in Onetime::Logic::SignupConfigResolution. Before this change a
 # Redis::BaseError there produced an unhandled 500 at best — and the same blip
 # is what makes DomainStrategy answer :invalid for a real customer domain, the
@@ -147,9 +147,14 @@ RSpec.describe 'Sign-up policy read failure (#4157)' do
         before do
           case failing_read
           when :identity
-            allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_raise(blip)
+            # Exercise from_display_domain's production behavior: unlike the
+            # fail-open load_by_display_domain helper, it lets primary-database
+            # failures escape so policy resolution can answer 503.
+            index = instance_double(Familia::HashKey)
+            allow(index).to receive(:get).and_raise(blip)
+            allow(Onetime::CustomDomain).to receive(:display_domain_index).and_return(index)
           when :config
-            allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+            allow(Onetime::CustomDomain).to receive(:from_display_domain)
               .and_return(instance_double(Onetime::CustomDomain, identifier: 'domain-1'))
             allow(Onetime::CustomDomain::SignupConfig).to receive(:find_by_domain_id).and_raise(blip)
           end
@@ -209,7 +214,7 @@ RSpec.describe 'Sign-up policy read failure (#4157)' do
 
     it 'is transparent when the reads succeed' do
       config = instance_double(Onetime::CustomDomain::SignupConfig)
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+      allow(Onetime::CustomDomain).to receive(:from_display_domain)
         .and_return(instance_double(Onetime::CustomDomain, identifier: 'domain-1'))
       allow(Onetime::CustomDomain::SignupConfig).to receive(:find_by_domain_id)
         .with('domain-1').and_return(config)
@@ -248,7 +253,7 @@ RSpec.describe 'Sign-up policy read failure (#4157)' do
         { 'site' => { 'authentication' => { 'enabled' => true, 'signup' => true } } },
       )
       allow(OT).to receive(:le)
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_raise(blip)
+      allow(Onetime::CustomDomain).to receive(:from_display_domain).and_raise(blip)
     end
 
     it 'raises SignupPolicyUnavailable on :custom' do
