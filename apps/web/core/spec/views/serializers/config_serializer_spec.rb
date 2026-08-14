@@ -1666,6 +1666,54 @@ RSpec.describe Core::Views::ConfigSerializer do
         expect(result).to be_nil
       end
     end
+
+    context 'when CustomDomain lookup fails (Redis error)' do
+      before do
+        allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+          .and_raise(Redis::ConnectionError.new('Connection refused'))
+      end
+
+      it 'returns DOMAIN_READ_FAILED sentinel (#4157)' do
+        vars = base_view_vars.merge(
+          'display_domain' => 'tenant.example.com'
+        )
+        result = described_class.resolve_domain_id(vars)
+        expect(result).to eq(described_class::DOMAIN_READ_FAILED)
+      end
+    end
+  end
+
+  describe 'tri-state domain resolution (#4157)' do
+    let(:custom_domain_view_vars) do
+      base_view_vars.merge(
+        'domain_strategy' => :custom,
+        'display_domain' => custom_display_domain,
+        'site' => { 'authentication' => { 'enabled' => true, 'signin' => true } },
+      )
+    end
+
+    before do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+        .and_raise(Redis::ConnectionError.new('Connection refused'))
+      allow(mock_auth_config).to receive(:email_auth_enabled?).and_return(true)
+      allow(mock_auth_config).to receive(:restrict_to).and_return(nil)
+    end
+
+    it 'resolve_signin returns false on read failure (narrowest surface)' do
+      result = described_class.resolve_signin(custom_domain_view_vars)
+      expect(result).to be(false)
+    end
+
+    it 'resolve_email_auth returns false on read failure' do
+      result = described_class.resolve_email_auth(custom_domain_view_vars)
+      expect(result).to be(false)
+    end
+
+    it 'restrict_to_resolution returns :unavailable on read failure' do
+      result = described_class.restrict_to_resolution(custom_domain_view_vars)
+      expect(result.unavailable?).to be(true)
+      expect(result.source).to eq(:domain_read_failed)
+    end
   end
 
   describe '.tenant_domain?' do
