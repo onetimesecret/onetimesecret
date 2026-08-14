@@ -217,7 +217,7 @@ RSpec.describe 'DomainStrategy classification contract' do
 
     describe 'custom_host: input to the availability half' do
       before do
-        allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(nil)
+        allow(Onetime::CustomDomain).to receive(:from_display_domain).and_return(nil)
         allow(Onetime.auth_config).to receive(:restrict_to).and_return(nil)
         allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id).and_return(nil)
       end
@@ -306,6 +306,130 @@ RSpec.describe 'DomainStrategy classification contract' do
       logic                 = V1::Logic::Base.allocate
       logic.domain_strategy = 'custom'
       expect(logic.send(:custom_domain?)).to be(true)
+    end
+  end
+
+  # ---------------------------------------------------------- identity read
+  #
+  # THE READ ITSELF, NOT A STUB OF IT (#4157). Every fail-closed example above
+  # and in the parity spec stubs the CustomDomain finder to raise — which is
+  # exactly what hid this: the sign-in gates called
+  # CustomDomain.load_by_display_domain, whose own body rescues
+  # Redis::BaseError AND a blanket StandardError and returns nil ("intentional
+  # fail-open behavior for the lookup layer", and correct for its ~15 CLI,
+  # operations and serializer callers). So in production a blip produced nil,
+  # not a raise: the gate read it as "this host has no SigninConfig" and fell
+  # through to the operator's global default on a tenant host. The rescue those
+  # gates carry was dead code, and every spec that stubbed the finder to raise
+  # jumped over the swallow.
+  #
+  # These examples therefore stub ONLY the datastore seam (display_domain_index)
+  # and let the real finder run, so the swallow-vs-propagate boundary is what is
+  # under test. If someone repoints an identity read back at the fail-open
+  # helper, these red and the stubbed examples do not.
+  describe 'the sign-in identity read propagates datastore failures' do
+    let(:blip) { Redis::BaseError.new('connection reset') }
+
+    let(:failing_index) do
+      instance_double(Familia::HashKey).tap do |index|
+        allow(index).to receive(:get).and_raise(blip)
+      end
+    end
+
+    let(:controller_class) do
+      Class.new do
+        include Core::Controllers::Base
+
+        def initialize(env)
+          @req = Struct.new(:env).new(env)
+        end
+      end
+    end
+
+    before do
+      allow(Onetime::CustomDomain).to receive(:display_domain_index).and_return(failing_index)
+      allow(OT).to receive(:le)
+      allow(Auth::Logging).to receive(:log_auth_event)
+    end
+
+    it 'raises out of CustomDomain.from_display_domain rather than answering nil' do
+      expect { Onetime::CustomDomain.from_display_domain('tenant.example.com') }
+        .to raise_error(Redis::BaseError)
+    end
+
+    it 'still swallows in load_by_display_domain — its other callers depend on that' do
+      expect(Onetime::CustomDomain.load_by_display_domain('tenant.example.com')).to be_nil
+    end
+
+    DomainStrategyContract::CLASSIFICATIONS.each do |strategy|
+      operator = DomainStrategyContract::OPERATOR.include?(strategy)
+
+      if operator
+        it "resolves custom_domain_id to nil on #{strategy.inspect} — no per-domain policy to lose" do
+          expect(controller_class.new(env_for(strategy)).send(:custom_domain_id)).to be_nil
+        end
+      else
+        it "raises SigninPolicyUnavailable from custom_domain_id on #{strategy.inspect}" do
+          expect { controller_class.new(env_for(strategy)).send(:custom_domain_id) }
+            .to raise_error(Onetime::SigninPolicyUnavailable)
+        end
+      end
+    end
+
+    # The row this exists for: the widen was silent BECAUSE the gate got a
+    # plausible nil. signin_enabled? must not answer at all here.
+    it 'does not let signin_enabled? answer from the operator global default on :invalid' do
+      controller = controller_class.new(env_for(:invalid))
+      allow(OT).to receive(:conf).and_return({ 'site' => { 'authentication' => {} } })
+      allow(Onetime::CustomDomain::SigninConfig).to receive(:global_signin_enabled).and_return(true)
+
+      expect { controller.send(:signin_enabled?) }
+        .to raise_error(Onetime::SigninPolicyUnavailable)
+    end
+
+    # Auth::RestrictTo reads the same identity through its own helper, so it
+    # had the same dead rescue: resolution_for's comment names the CustomDomain
+    # lookup as one of the three reads it guards, and it was the one that could
+    # not reach it.
+    it 'fails the restrict_to gate closed instead of inheriting the global restriction' do
+      allow(Onetime.auth_config).to receive(:restrict_to).and_return('password')
+      allow(Onetime::CustomDomain::SigninConfig)
+        .to receive(:global_restriction_available?).and_return(true)
+
+      expect { Auth::RestrictTo.resolution_for(env_for(:custom)) }
+        .to raise_error(Onetime::SigninPolicyUnavailable)
+    end
+  end
+
+  # ------------------------------------------------------- host normalization
+  #
+  # A mixed-case Host is the same widen by a different route: the index is
+  # keyed on the downcased display_domain, so an un-normalized lookup misses,
+  # reads as "no tenant config", and hands a tenant host the operator default.
+  # load_by_display_domain always downcased; from_display_domain did not, which
+  # left it latent on both the sign-in and sign-up policy paths once they share
+  # this finder.
+  describe 'CustomDomain.from_display_domain host normalization' do
+    let(:index) { instance_double(Familia::HashKey) }
+
+    before do
+      allow(Onetime::CustomDomain).to receive(:display_domain_index).and_return(index)
+      allow(index).to receive(:get).and_return(nil)
+      allow(index).to receive(:get).with('tenant.example.com').and_return('domain-1')
+      allow(Onetime::CustomDomain).to receive(:find_by_identifier)
+        .with('domain-1').and_return(:the_record)
+    end
+
+    ['tenant.example.com', 'Tenant.Example.com', 'TENANT.EXAMPLE.COM'].each do |host|
+      it "resolves #{host.inspect} to the indexed record" do
+        expect(Onetime::CustomDomain.from_display_domain(host)).to be(:the_record)
+      end
+    end
+
+    it 'returns nil for a blank host without touching the index' do
+      expect(Onetime::CustomDomain.from_display_domain(nil)).to be_nil
+      expect(Onetime::CustomDomain.from_display_domain('')).to be_nil
+      expect(index).not_to have_received(:get)
     end
   end
 

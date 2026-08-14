@@ -336,12 +336,20 @@ module Core
       # inherited global restriction is narrowed by the host's own capabilities
       # either way, and `config&.domain_id` is nil in exactly that case (#4139).
       # Memoized — two gates ask per request.
+      #
+      # Uses from_display_domain, NOT load_by_display_domain (#4157): the
+      # latter rescues Redis::BaseError (and a blanket StandardError) internally
+      # and returns nil, which made the rescue below dead code and let a
+      # datastore blip on a tenant host read as "no SigninConfig" → operator
+      # global default. That is the widen ADR-024 closes. This is also the
+      # lookup the sign-up half already uses, so both policy reads now resolve
+      # tenant identity through one non-swallowing path.
       def custom_domain_id
         return @custom_domain_id if defined?(@custom_domain_id)
 
         display_domain    = req.env['onetime.display_domain']
         @custom_domain_id = display_domain &&
-                            Onetime::CustomDomain.load_by_display_domain(display_domain)&.identifier
+                            Onetime::CustomDomain.from_display_domain(display_domain)&.identifier
       rescue Redis::BaseError => ex
         signin_policy_read_failed!(ex)
       end

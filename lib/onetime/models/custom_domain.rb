@@ -1250,14 +1250,23 @@ module Onetime
         instances.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
-      # Load a custom domain by display domain only. Used during requests
-      # after determining the domain strategy is :custom.
+      # Finds a custom domain by its display domain.
       #
-      # @param display_domain [String] The display domain to load
-      # @return [Onetime::CustomDomain, nil] The custom domain record or nil if not found
+      # The lookup normalizes `display_domain` to lowercase to match the index.
+      # Returns `nil` when the domain is blank, absent from the index, or its
+      # indexed record no longer exists. Datastore errors intentionally propagate:
+      # callers use this lookup to resolve tenant policy and must not treat a failed
+      # read as an absent tenant configuration.
+      #
+      # @param display_domain [String, #to_s] Display domain to look up
+      # @return [Onetime::CustomDomain, nil]
+      # @raise [Redis::BaseError] if reading the index or domain record fails
       def from_display_domain(display_domain)
+        normalized = display_domain.to_s.downcase
+        return nil if normalized.empty?
+
         # Get the domain ID from the display_domain_index hash
-        domain_id = display_domain_index.get(display_domain)
+        domain_id = display_domain_index.get(normalized)
         return nil unless domain_id
 
         # Load the record using the domain ID
