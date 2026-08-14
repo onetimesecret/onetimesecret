@@ -252,6 +252,24 @@ RSpec.describe 'restrict_to enforcement — full mode (ADR-034#restrict-to-is-an
   end
 
   describe 'the :unrestricted state' do
+    # THE CUSTOM-DOMAIN FEATURE GOES BACK OFF for this block (#4163). These two
+    # examples assert that NO gate fires on the operator's own host, and since
+    # the opt-in axis (Auth::SigninGate) joined this hook they are no longer
+    # only about restrict_to. This lane's canonical host is an IP:port, which is
+    # not a classifiable domain: with the feature ON, DomainStrategy answers
+    # :invalid for it and the opt-in gate correctly takes the tenant-safe
+    # default-OFF branch
+    # (ADR-024#operator-defaults-require-positive-classification), 404ing
+    # /auth/login for reasons that have nothing to do with restrict_to. Turning
+    # the feature off restores the classification a default install gives its
+    # own host (:canonical) so this block keeps testing what it claims to.
+    around do |example|
+      saved                     = Onetime::Runtime.features
+      Onetime::Runtime.features = saved.with(domains_enabled: false)
+      example.run
+      Onetime::Runtime.features = saved
+    end
+
     let(:canonical_host) do
       Onetime::Middleware::DomainStrategy.canonical_domain || 'localhost:3000'
     end
