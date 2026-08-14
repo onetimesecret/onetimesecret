@@ -124,9 +124,7 @@ and the platform fallback, including the Rodauth `/auth` surface itself.
 `AUTH_SIGNIN` is narrower: it disables the password/email path only and
 does not touch either SSO carve-out.
 
-### A12. Operator auth defaults require a positive operator classification (#4157)
-
-Recorded as a known gap 2026-08-11; resolved 2026-08-13.
+### Operator auth defaults require a positive operator classification {#operator-defaults-require-positive-classification}
 
 Normative: **only a positively classified operator host may inherit the
 install's global sign-in/sign-up defaults.** The test is
@@ -156,7 +154,16 @@ semantics for administrative and non-request callers. Sign-up reuses
 so sign-in and sign-up cannot drift apart. The sign-in `domain_id:` carve-out
 is preserved verbatim.
 
-**The domain identity predicates are deliberately NOT flipped.**
+**Accepted cost: this is fail-closed, and it bites `:subdomain`.**
+`:canonical` classifies before the datastore read, but the subdomain sweeps
+run after it, so during an outage a recognized operator subdomain classifies
+`:invalid` and is held to the stricter default. That denies nothing ever
+explicitly granted, and it is the correct direction: `operator_host?` may be
+over-strict during an outage, never over-permissive.
+
+### Identity predicates are not auth gates {#identity-predicates-are-not-auth-gates}
+
+The domain identity predicates are deliberately NOT flipped.
 `Core::Controllers::Base#custom_domain_request?` and
 `ConfigSerializer#tenant_domain?` stay `== :custom` identity tests: redefining
 them as "not canonical and not subdomain" would hand tenant branding, routing
@@ -165,23 +172,17 @@ and presentation to genuinely malformed and unknown hosts. Splitting
 consumer) and 503-ing every `:invalid` request were both rejected as broader
 than the gap requires.
 
-**Accepted cost: this is fail-closed, and it bites `:subdomain`.**
-`:canonical` classifies before the datastore read, but the subdomain sweeps
-run after it, so during an outage a recognized operator subdomain classifies
-`:invalid` and is held to the stricter default. That denies nothing ever
-explicitly granted, and it is the correct direction: `operator_host?` may be
-over-strict during an outage, never over-permissive.
+An auth decision keyed to the request host asks `operator_host?`; a branding,
+routing or presentation decision asks the identity predicate. The two differ
+for `:invalid` by design.
 
-**Display/runtime parity is a requirement.** The runtime gates
-(`Base#signin_enabled?`, `Base#signup_enabled?`) and the display gate
-(`ConfigSerializer#resolve_signin`, via `operator_domain?`) branch on the same
-predicate, so `/signin` cannot advertise what the POST will reject.
+### Display and runtime gates branch on the same predicate {#display-runtime-parity}
+
+The runtime gates (`Base#signin_enabled?`, `Base#signup_enabled?`) and the
+display gate (`ConfigSerializer#resolve_signin`, via `operator_domain?`) branch
+on the same predicate, so `/signin` cannot advertise what the POST will reject.
 `DomainSerializer` needs no change — it already consumes the
 custom-domain-specific resolver.
-
-Follow-on rule: an auth decision keyed to the request host asks
-`operator_host?`; a branding, routing or presentation decision asks the
-identity predicate. The two differ for `:invalid` by design.
 
 ## References
 
