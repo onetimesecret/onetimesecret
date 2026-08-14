@@ -40,6 +40,7 @@ drift is currently a non-issue.
 | `risk-register.md` | Prioritized register with exploitability × business-impact ratings |
 | `tooling.md` | Every tool installed, every command run, and how to reset the environment |
 | `poc/` | Runnable proof-of-concept scripts for the reproducible findings |
+| `release-v0.26.5-rc1-verification.md` | Addendum: confirms the RC is the reviewed commit, checks novelty against the four prior in-repo audits, and verifies the release's own four security claims |
 
 ---
 
