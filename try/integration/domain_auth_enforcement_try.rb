@@ -611,13 +611,14 @@ Core::Views::ConfigSerializer.send(:resolve_tenant_sso_config, { 'display_domain
 #     carve-out so a domain that enabled SSO (SsoConfig) without a
 #     SigninConfig still renders its provider buttons.
 #   - ANYTHING ELSE (:invalid, or a missing classification): tenant-safe,
-#     i.e. default OFF (ADR-024 A12).
+#     i.e. default OFF.
+#     ADR-024#operator-defaults-require-positive-classification
 #
 # Global signin comes from site.authentication (AUTH_ENABLED + AUTH_SIGNIN)
 # via view_vars['site']. The BRANCH is chosen by operator_domain? — a
 # POSITIVE test on view_vars['domain_strategy'] — not by tenant_domain?, so
 # the "canonical" cases below must SAY :canonical. They used to omit the key
-# and rely on `!= :custom`, which is exactly the fail-open the A12 fix
+# and rely on `!= :custom`, which is exactly the fail-open the positive test
 # removed; served requests always carry a classification (the DomainStrategy
 # middleware is mounted unconditionally and falls back to :canonical), so the
 # omission was a fixture artifact, never a real request shape.
@@ -643,12 +644,12 @@ Core::Views::ConfigSerializer.send(
 )
 #=> false
 
-## A12: a MISSING classification is tenant-safe, not canonical — a request
+## A MISSING classification is tenant-safe, not canonical — a request
 ## that never passed the middleware must not inherit the operator default
 Core::Views::ConfigSerializer.send(:resolve_signin, { 'site' => SITE_SIGNIN_ON })
 #=> false
 
-## A12: :invalid is tenant-safe too — that is what a failing domain-index
+## :invalid is tenant-safe too — that is what a failing domain-index
 ## read answers for a REAL custom domain, so it must not widen sign-in
 Core::Views::ConfigSerializer.send(
   :resolve_signin,
@@ -761,7 +762,7 @@ Core::Views::ConfigSerializer.send(
 )
 #=> true
 
-## A12: the SAME host and the SAME master-off config, classified :invalid by a
+## The SAME host and the SAME master-off config, classified :invalid by a
 ## datastore blip, does NOT get that operator fallback — the whole point of the
 ## positive test
 Core::Views::ConfigSerializer.send(

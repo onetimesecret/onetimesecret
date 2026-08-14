@@ -3,7 +3,8 @@
 # frozen_string_literal: true
 
 # DISPLAY <-> RUNTIME PARITY for the sign-in / sign-up DEFAULT, keyed by the
-# request's DomainStrategy classification (ADR-024 A12,
+# request's DomainStrategy classification (ADR-024#display-runtime-parity,
+# ADR-024#operator-defaults-require-positive-classification,
 # docs/specs/domain-resolution/domain-resolution.md).
 #
 # The defect this pins: choosing the auth resolver on `== :custom` picks the
@@ -37,15 +38,15 @@
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require_relative '../../../views/serializers'
 
-RSpec.describe 'sign-in/sign-up classification polarity (ADR-024 A12)' do
+RSpec.describe 'sign-in/sign-up default polarity by host classification' do
   # Every value env['onetime.domain_strategy'] can carry at a consumer.
-  CLASSIFICATIONS_A12 = [:canonical, :subdomain, :custom, :invalid, nil].freeze
+  PARITY_CLASSIFICATIONS = [:canonical, :subdomain, :custom, :invalid, nil].freeze
 
   # The required test matrix from docs/specs/domain-resolution/domain-resolution.md,
   # for global auth ENABLED and NO tenant configuration. Only the two
   # classifications a datastore failure can never MANUFACTURE inherit the
   # operator default.
-  EXPECTED_A12 = {
+  PARITY_EXPECTED_DEFAULT = {
     canonical: true,
     subdomain: true,
     custom: false,
@@ -54,7 +55,7 @@ RSpec.describe 'sign-in/sign-up classification polarity (ADR-024 A12)' do
   }.freeze
 
   def expected_for(strategy)
-    EXPECTED_A12.fetch(strategy.nil? ? nil : strategy)
+    PARITY_EXPECTED_DEFAULT.fetch(strategy.nil? ? nil : strategy)
   end
 
   let(:display_domain) { 'secrets.tenant.example.com' }
@@ -158,19 +159,19 @@ RSpec.describe 'sign-in/sign-up classification polarity (ADR-024 A12)' do
   # ---------------------------------------------------- the required matrix
 
   describe 'global auth ENABLED, no tenant configuration' do
-    CLASSIFICATIONS_A12.each do |strategy|
+    PARITY_CLASSIFICATIONS.each do |strategy|
       context "on #{strategy.inspect}" do
-        let(:expected) { EXPECTED_A12.fetch(strategy) }
+        let(:expected) { PARITY_EXPECTED_DEFAULT.fetch(strategy) }
 
-        it "resolves sign-in #{EXPECTED_A12.fetch(strategy) ? 'enabled' : 'disabled'} at the runtime gate" do
+        it "resolves sign-in #{PARITY_EXPECTED_DEFAULT.fetch(strategy) ? 'enabled' : 'disabled'} at the runtime gate" do
           expect(runtime_signin(strategy)).to be(expected)
         end
 
-        it "resolves sign-up #{EXPECTED_A12.fetch(strategy) ? 'enabled' : 'disabled'} at the runtime gate" do
+        it "resolves sign-up #{PARITY_EXPECTED_DEFAULT.fetch(strategy) ? 'enabled' : 'disabled'} at the runtime gate" do
           expect(runtime_signup(strategy)).to be(expected)
         end
 
-        it "resolves sign-in #{EXPECTED_A12.fetch(strategy) ? 'enabled' : 'disabled'} at the display gate" do
+        it "resolves sign-in #{PARITY_EXPECTED_DEFAULT.fetch(strategy) ? 'enabled' : 'disabled'} at the display gate" do
           expect(display_signin(strategy)).to be(expected)
         end
 
@@ -206,7 +207,7 @@ RSpec.describe 'sign-in/sign-up classification polarity (ADR-024 A12)' do
   describe 'global auth DISABLED' do
     let(:auth_settings) { { 'enabled' => false, 'signin' => true, 'signup' => true } }
 
-    CLASSIFICATIONS_A12.each do |strategy|
+    PARITY_CLASSIFICATIONS.each do |strategy|
       it "stays disabled for #{strategy.inspect} on both surfaces" do
         expect(runtime_signin(strategy)).to be(false)
         expect(runtime_signup(strategy)).to be(false)
@@ -218,7 +219,7 @@ RSpec.describe 'sign-in/sign-up classification polarity (ADR-024 A12)' do
   describe 'AUTH_SIGNIN / AUTH_SIGNUP off with the master switch on' do
     let(:auth_settings) { { 'enabled' => true, 'signin' => false, 'signup' => false } }
 
-    CLASSIFICATIONS_A12.each do |strategy|
+    PARITY_CLASSIFICATIONS.each do |strategy|
       it "stays disabled for #{strategy.inspect} on both surfaces" do
         expect(runtime_signin(strategy)).to be(false)
         expect(runtime_signup(strategy)).to be(false)
@@ -255,7 +256,7 @@ RSpec.describe 'sign-in/sign-up classification polarity (ADR-024 A12)' do
       let(:signin_opt_in) { false }
       let(:signup_opt_in) { false }
 
-      CLASSIFICATIONS_A12.each do |strategy|
+      PARITY_CLASSIFICATIONS.each do |strategy|
         it "narrows #{strategy.inspect} to disabled, INCLUDING the operator's own host" do
           expect(runtime_signin(strategy)).to be(false)
           expect(runtime_signup(strategy)).to be(false)
@@ -269,7 +270,7 @@ RSpec.describe 'sign-in/sign-up classification polarity (ADR-024 A12)' do
       let(:signup_opt_in)  { true }
       let(:auth_settings)  { { 'enabled' => true, 'signin' => false, 'signup' => false } }
 
-      CLASSIFICATIONS_A12.each do |strategy|
+      PARITY_CLASSIFICATIONS.each do |strategy|
         it "cannot widen #{strategy.inspect} back to enabled" do
           expect(runtime_signin(strategy)).to be(false)
           expect(runtime_signup(strategy)).to be(false)
@@ -422,7 +423,7 @@ RSpec.describe 'sign-in/sign-up classification polarity (ADR-024 A12)' do
 
   # ------------------------------------------- platform SSO fallback (closed)
 
-  # A12 ONE LAYER DOWN, CLOSED. Found while writing the matrix above and fixed
+  # THE SAME WIDEN ONE LAYER DOWN, CLOSED. Found while writing the matrix above and fixed
   # in the same pass. resolve_signin moved to operator_domain?, but the SSO
   # surface it delegates to still keyed on the IDENTITY predicate:
   # build_sso_config's `tenant_domain?(view_vars) && !allow_platform_fallback?`
@@ -479,7 +480,7 @@ RSpec.describe 'sign-in/sign-up classification polarity (ADR-024 A12)' do
       end
 
       it 'agrees with the runtime password/email gate on every classification' do
-        CLASSIFICATIONS_A12.each do |strategy|
+        PARITY_CLASSIFICATIONS.each do |strategy|
           expect(display_signin(strategy)).to be(runtime_signin(strategy))
         end
       end
@@ -491,7 +492,7 @@ RSpec.describe 'sign-in/sign-up classification polarity (ADR-024 A12)' do
     context 'when the operator ALLOWS platform fallback' do
       let(:fallback_allowed) { true }
 
-      CLASSIFICATIONS_A12.each do |strategy|
+      PARITY_CLASSIFICATIONS.each do |strategy|
         it "offers platform SSO on #{strategy.inspect}" do
           expect(sso_payload(strategy)['enabled']).to be(true)
         end
@@ -538,10 +539,11 @@ RSpec.describe 'sign-in/sign-up classification polarity (ADR-024 A12)' do
 
   # ------------------------------------------- unreadable policy fails closed
 
-  # Spec refinement 4. "Disabled unless explicitly enabled" requires actually
-  # READING the tenant policy. If that read fails, the application cannot
-  # establish explicit enablement and must not degrade into the operator
-  # default — that is the same widen A12 closes, arriving one layer later.
+  # "Disabled unless explicitly enabled" requires actually READING the tenant
+  # policy. If that read fails, the application cannot establish explicit
+  # enablement and must not degrade into the operator default — the same widen
+  # ADR-024#operator-defaults-require-positive-classification closes, arriving
+  # one layer later.
   describe 'unreadable tenant policy' do
     let(:redis_down) { Redis::BaseError.new('datastore unavailable') }
 

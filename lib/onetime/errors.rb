@@ -92,7 +92,8 @@ module Onetime
 
   # An authentication gate could not READ the policy for the request host
   # (ADR-034#restrict-to-is-an-access-control-not-a-display-preference /
-  # #degradation-is-fail-closed, ADR-024 A1/A3/A12, #4139/#4157): the
+  # #degradation-is-fail-closed,
+  # ADR-024#operator-defaults-require-positive-classification, #4139/#4157): the
   # per-domain half of that policy lives in the datastore, so a read failure
   # leaves the gate unable to say what this host permits. Sign-in and sign-up
   # each get a subclass; the SHAPE lives here exactly once, because the two
@@ -101,12 +102,13 @@ module Onetime
   # Maps to HTTP 503 at every edge — otto_hooks (Core, invite API) and
   # Auth::ErrorTranslator (the Roda auth router) — because that is the piece
   # that makes unconditional fail-closed survivable. A gate's normal reject
-  # shape is a 404 (A7) whose whole point is to be indistinguishable from an
+  # shape is a 404 (ADR-034#reject-as-not-found-not-forbidden) whose whole
+  # point is to be indistinguishable from an
   # undefined route, or a bare redirect home; answering an unreadable policy
   # the same way would put mystery not-founds on the auth routes of an install
   # that restricts nothing, indistinguishable from a routing regression. A 503
   # says what actually happened — a backend read failed, retry — and is
-  # alertable as itself. A7's 404 exists to hide policy-gated methods; when the
+  # alertable as itself. That 404 exists to hide policy-gated methods; when the
   # policy is unreadable there is no policy to hide.
   #
   # NOT a FormError/Forbidden: nothing about the request is wrong.

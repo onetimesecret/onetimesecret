@@ -106,7 +106,9 @@ RSpec.describe 'DomainStrategy classification contract' do
     # must opt in); resolve_*_enabled follows the operator's global default.
     #
     # The branch is chosen by SigninConfig.operator_host?, NOT by
-    # custom_domain_request? (ADR-024 A12): the operator branch requires a
+    # custom_domain_request?
+    # (ADR-024#operator-defaults-require-positive-classification): the
+    # operator branch requires a
     # POSITIVE :canonical/:subdomain classification, so :invalid and nil take
     # the tenant-safe branch along with :custom. That is the one row in this
     # file where the auth gates deliberately DISAGREE with the identity
@@ -142,7 +144,8 @@ RSpec.describe 'DomainStrategy classification contract' do
         end
       end
 
-      # ADR-024 A12, CLOSED. This is the row the table exists for: the defect
+      # ADR-024#operator-defaults-require-positive-classification, CLOSED.
+      # This is the row the table exists for: the defect
       # was invisible unless :invalid was evaluated against both branches side
       # by side. Before the fix, a domain that never opted into sign-up
       # followed the OPERATOR's default while misclassified — a datastore blip
@@ -150,7 +153,7 @@ RSpec.describe 'DomainStrategy classification contract' do
       # kept (not deleted) with its expectation inverted, so that a
       # re-introduction of the `== :custom` branch selection reds HERE with the
       # history attached rather than passing silently.
-      it 'A12 CLOSED: :invalid resolves the tenant-safe sign-up default, not the operator one' do
+      it ':invalid resolves the tenant-safe sign-up default, not the operator one' do
         controller = controller_for(:invalid)
         allow(controller).to receive(:domain_signup_config).and_return(nil)
         allow(Onetime::CustomDomain::SignupConfig).to receive(:global_signup_enabled).and_return(true)
@@ -165,7 +168,7 @@ RSpec.describe 'DomainStrategy classification contract' do
 
       # Sign-in has the same inverted-default risk and the same fix; pinned
       # explicitly so a partial revert (one gate only) cannot pass.
-      it 'A12 CLOSED: :invalid resolves the tenant-safe sign-in default, not the operator one' do
+      it ':invalid resolves the tenant-safe sign-in default, not the operator one' do
         controller = controller_for(:invalid)
         allow(controller).to receive(:domain_signin_config).and_return(nil)
         allow(Onetime::CustomDomain::SigninConfig).to receive(:global_signin_enabled).and_return(true)
@@ -178,7 +181,7 @@ RSpec.describe 'DomainStrategy classification contract' do
 
       # nil is the same failure with a different provenance: a request that
       # never passed through the middleware carries no classification at all.
-      it 'A12 CLOSED: nil is tenant-safe for both gates' do
+      it 'nil is tenant-safe for both gates' do
         controller = controller_for(nil)
         allow(controller).to receive_messages(domain_signin_config: nil, domain_signup_config: nil)
         allow(Onetime::CustomDomain::SigninConfig).to receive(:global_signin_enabled).and_return(true)
@@ -248,7 +251,8 @@ RSpec.describe 'DomainStrategy classification contract' do
 
   # ---------------------------------------------------------------- row 7b
   #
-  # The DISPLAY-side twin of SigninConfig.operator_host? (ADR-024 A12). It is
+  # The DISPLAY-side twin of SigninConfig.operator_host?
+  # (ADR-024#identity-predicates-are-not-auth-gates). It is
   # NOT the negation of tenant_domain? above: :invalid and nil are neither
   # operator hosts nor tenant hosts, and both predicates must answer false for
   # them — tenant-safe for auth, non-tenant for branding/routing.

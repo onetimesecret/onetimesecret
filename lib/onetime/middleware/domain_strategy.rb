@@ -69,8 +69,8 @@ module Onetime
     #
     # ## How downstream reads this
     #
-    # Consumers split into two groups, and the split IS the policy (ADR-024
-    # A12):
+    # Consumers split into two groups, and the split IS the policy
+    # (ADR-024#identity-predicates-are-not-auth-gates):
     #
     # - AUTH decisions ask a POSITIVE test — `SigninConfig.operator_host?`,
     #   true for :canonical/:subdomain only. Everything else fails closed with
@@ -119,7 +119,8 @@ module Onetime
     # the operator's global setting. They now require positive evidence, and
     # the display gate (ConfigSerializer) moves with the runtime gates so the
     # /signin page cannot advertise what the POST will reject. The identity
-    # predicates were deliberately left alone. See ADR-024 A12.
+    # predicates were deliberately left alone.
+    # ADR-024#identity-predicates-are-not-auth-gates
     class DomainStrategy
       include Onetime::LoggerMethods
 

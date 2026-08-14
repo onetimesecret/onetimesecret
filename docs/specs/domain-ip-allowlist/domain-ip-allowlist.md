@@ -2,8 +2,9 @@
 
 Status: Draft (proposed) — 2026-07-25; classification handling revised 2026-08-13
 Depends on: Otto v2.6.0 trusted-proxy features; ADR-024 config-resolution
-semantics, in particular A12 (operator auth defaults require a positive
-operator classification, #4157)
+semantics, in particular
+ADR-024#operator-defaults-require-positive-classification (operator auth
+defaults require a positive operator classification, #4157)
 
 Tenant-configurable CIDR filtering that restricts which networks can reach a
 custom domain — an additional access-control layer alongside the existing
@@ -281,13 +282,15 @@ access-control feature that defaulted closed would brick every existing
 custom domain on deploy.
 
 That default-open polarity is exactly what makes this feature's handling of
-the host classification differ from every other auth gate, and why the A12
-rule cannot simply be copied. Read the next section before implementing.
+the host classification differ from every other auth gate, and why the
+positive-operator-classification rule cannot simply be copied. Read the next
+section before implementing.
 
 ### Classification: which hosts are in scope, and the `:invalid` ambiguity
 
 This supersedes the original "pass through unless `== :custom`" gate. It is
-the one place where this spec deviates from ADR-024 A12 in *mechanism*,
+the one place where this spec deviates from
+ADR-024#operator-defaults-require-positive-classification in *mechanism*,
 though not in intent.
 
 **The hazard.** `env['onetime.domain_strategy']` answers `:invalid` in two
@@ -297,10 +300,13 @@ read — *raised* and the blanket rescue in `choose_strategy` turned that into
 `:invalid` for what may be a perfectly real customer domain. A filter gated
 on `== :custom` therefore stops enforcing, entirely, for every protected
 domain for the duration of a datastore blip: a fail-open access-control
-bypass whose trigger is load. That is the shape A12, A3, A8 and A9 exist to
-refuse.
+bypass whose trigger is load. That is the shape the positive-classification
+and fail-closed-degradation rules exist to refuse
+(ADR-024#operator-defaults-require-positive-classification,
+ADR-034#degradation-is-fail-closed,
+ADR-034#resolution-intersects-never-widens).
 
-**Why A12's remedy does not transfer.** A12 works because sign-in and
+**Why the ADR-024 remedy does not transfer.** It works because sign-in and
 sign-up have *opposite* defaults on the two branches, so picking the branch
 is itself the policy decision. Here both branches default **open**, so a
 positive operator test alone changes nothing — an unreadable host passes
@@ -353,7 +359,8 @@ during a blip — that is the honest answer, the alternative is guessing at a
 policy, and it is bounded by the same outage already degrading the rest of
 the request path.
 
-**Consequence to accept, stated plainly.** Like A12, this is over-strict
+**Consequence to accept, stated plainly.** Like the sign-in/sign-up rule,
+this is over-strict
 during an outage and never over-permissive, and it bites `:subdomain` for
 the same reason: the subdomain sweeps run *after* the datastore read, so a
 recognized operator subdomain classifies `:invalid` during a blip and falls

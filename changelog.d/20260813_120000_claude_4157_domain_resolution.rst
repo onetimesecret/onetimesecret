@@ -48,8 +48,8 @@ Documentation
 -------------
 
 - (`#4157 <https://github.com/onetimesecret/onetimesecret/issues/4157>`_)
-  ADR-024 gains amendment A12, recording the rule (operator defaults require
-  positive evidence), why the domain identity predicates were deliberately
+  ADR-024 now states that operator auth defaults require positive evidence
+  of an operator host, why the domain identity predicates were deliberately
   not redefined, the fail-closed availability cost, and the display/runtime
   parity requirement. The ``DomainStrategy`` consumer table now groups its
   consumers by which test they use.
@@ -58,5 +58,5 @@ AI Assistance
 -------------
 
 - Claude added the request-aware sign-in/sign-up resolvers and repointed the
-  runtime and display gates at them, wrote ADR-024 A12, and regrouped the
+  runtime and display gates at them, updated ADR-024, and regrouped the
   ``DomainStrategy`` consumer table. (#4157)

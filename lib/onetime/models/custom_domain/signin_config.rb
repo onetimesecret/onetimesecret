@@ -375,7 +375,8 @@ module Onetime
         end
 
         # Effective sign-in availability for a REQUEST, chosen by the request's
-        # DomainStrategy classification (ADR-024 A12).
+        # DomainStrategy classification.
+        # ADR-024#operator-defaults-require-positive-classification
         #
         # OPERATOR DEFAULTS REQUIRE POSITIVE EVIDENCE. The two context-free
         # resolvers above have OPPOSITE defaults — resolve_signin_enabled

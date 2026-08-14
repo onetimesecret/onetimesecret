@@ -298,7 +298,8 @@ Onetime::CustomDomain::SignupConfig.resolve_signup_enabled_for_custom_domain(fal
 Onetime::CustomDomain::SignupConfig.resolve_signup_enabled_for_custom_domain(true, signup_config(enabled: true, signup_enabled: false))
 #=> false
 
-# --- REQUEST resolvers: which default a classification gets (ADR-024 A12) ---
+# --- REQUEST resolvers: which default a classification gets ---
+# ADR-024#operator-defaults-require-positive-classification
 #
 # The two resolvers above have OPPOSITE defaults, so CHOOSING between them is
 # the access-policy decision. Choosing on `== :custom` gave :invalid and nil

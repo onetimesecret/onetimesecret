@@ -335,7 +335,8 @@ module Onetime
         end
 
         # Effective sign-up availability for a REQUEST, chosen by the request's
-        # DomainStrategy classification (ADR-024 A12).
+        # DomainStrategy classification.
+        # ADR-024#operator-defaults-require-positive-classification
         #
         # Mirrors SigninConfig.resolve_signin_enabled_for_request, and shares
         # its operator test rather than restating the classification list:

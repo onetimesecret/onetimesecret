@@ -440,13 +440,10 @@ module Core
           # per-domain sign-in: password/email default OFF; keep the page only
           # when SSO is available.
           #
-          # The predicate is operator_domain?, NOT tenant_domain? (ADR-024 A12).
-          # The runtime gate now requires positive :canonical/:subdomain
-          # evidence before applying operator defaults, and this display gate
-          # must move with it: leaving `== :custom` here would advertise
-          # sign-in on a host classified :invalid by a datastore blip while
-          # Base#signin_enabled? rejects the POST — the display/runtime
-          # disagreement both gates' comments exist to forbid.
+          # The predicate is operator_domain?, NOT tenant_domain? — this is the
+          # display half of the pair, and it must branch on whatever
+          # Base#signin_enabled? branches on.
+          # ADR-024#display-runtime-parity
           if !operator_domain?(view_vars) && !signin_config&.enabled?
             return sso_available?(view_vars)
           end
@@ -521,15 +518,11 @@ module Core
           # when platform fallback is withheld from tenants, a host that is not
           # positively one of the operator's OWN gets no providers.
           #
-          # The predicate is operator_domain?, NOT tenant_domain? (ADR-024 A12).
-          # This is a POLICY decision — "may this host borrow the platform's
-          # SSO providers" — so it takes the same positive test as the sign-in
-          # gates. Keyed on `== :custom` it skipped the withholding for
-          # :invalid, and platform omniauth routes are host-independent, so a
-          # customer domain misclassified by a datastore blip was OFFERED the
-          # providers its correct classification denies — the A12 widen one
-          # layer down, in a working sign-in method rather than a rendering
-          # detail.
+          # The predicate is operator_domain?, NOT tenant_domain? — "may this
+          # host borrow the platform's SSO providers" is an auth decision, and
+          # the platform omniauth routes are host-independent, so a widen here
+          # hands out a working sign-in method rather than a rendering detail.
+          # ADR-024#operator-defaults-require-positive-classification
           #
           # Tenant-vs-platform SELECTION above is untouched and still keys on
           # domain identity (resolve_tenant_sso_config, via domain_id): a
@@ -615,8 +608,10 @@ module Core
         end
 
         # Whether this request is positively classified as one of the operator's
-        # OWN hosts, and may therefore inherit operator auth defaults (ADR-024
-        # A12). The complement of tenant_domain? is NOT this: :invalid and nil
+        # OWN hosts, and may therefore inherit operator auth defaults.
+        # ADR-024#identity-predicates-are-not-auth-gates
+        #
+        # The complement of tenant_domain? is NOT this: :invalid and nil
         # are neither operator hosts nor tenant hosts, and must be treated as
         # tenant-safe for auth while staying non-tenant for branding/routing.
         #

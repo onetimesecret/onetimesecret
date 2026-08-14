@@ -2,7 +2,8 @@
 #
 # frozen_string_literal: true
 
-# UNREADABLE TENANT SIGN-UP POLICY FAILS CLOSED (ADR-024 A12 refinement 4, #4157).
+# UNREADABLE TENANT SIGN-UP POLICY FAILS CLOSED (#4157).
+# ADR-024#operator-defaults-require-positive-classification
 #
 # The classification-aware resolvers only close the widening when the app can
 # actually READ the tenant's SignupConfig. Two datastore reads back that policy
@@ -85,7 +86,7 @@ RSpec.describe 'Sign-up policy read failure (#4157)' do
 
     # The carve-out must be the SAME predicate the sign-in path uses, not a
     # second list: two gates disagreeing about which hosts survive an outage is
-    # exactly the drift ADR-024 A2 exists to kill.
+    # exactly the drift a single shared predicate exists to kill.
     it 'delegates the carve-out to SigninConfig.operator_host?' do
       expect(Onetime::CustomDomain::SigninConfig).to receive(:operator_host?).with(:custom).and_return(true)
 

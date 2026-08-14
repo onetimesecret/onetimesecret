@@ -167,7 +167,9 @@ module Core
       #
       # The branch is chosen by SigninConfig.resolve_signin_enabled_for_request,
       # NOT by custom_domain_request?, so operator defaults require a positive
-      # :canonical/:subdomain classification (ADR-024 A12). domain_id is omitted:
+      # :canonical/:subdomain classification
+      # (ADR-024#operator-defaults-require-positive-classification). domain_id
+      # is omitted:
       # this is the password/email POST gate, which never inherits the display
       # SSO carve-out.
       def signin_enabled?
@@ -255,7 +257,8 @@ module Core
       # creation unless an enabled SignupConfig opts in, while canonical /
       # subdomain requests follow the global default. The global kill switch
       # (AUTH_ENABLED / AUTH_SIGNUP) always wins. Branch chosen positively by
-      # the request resolver, same rule as signin_enabled? (ADR-024 A12).
+      # the request resolver, same rule as signin_enabled?.
+      # ADR-024#operator-defaults-require-positive-classification
       #
       # UNREADABLE POLICY IS NOT "FOLLOW THE GLOBAL" (#4157). domain_signup_config
       # is two datastore reads (CustomDomain identity, then SignupConfig), so
@@ -286,7 +289,8 @@ module Core
       # auth defaults; custom domains must opt in. Mirrors
       # ConfigSerializer#tenant_domain?.
       #
-      # NO LONGER DECIDES AUTH POLARITY (ADR-024 A12). It used to pick the
+      # NO LONGER DECIDES AUTH POLARITY
+      # (ADR-024#identity-predicates-are-not-auth-gates). It used to pick the
       # branch for signin_enabled? and signup_enabled?, and its false branch is
       # wider than "not a custom domain": :invalid and nil land there too, and
       # :invalid is also what DomainStrategy answers when its
