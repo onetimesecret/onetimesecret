@@ -270,7 +270,7 @@ RSpec.describe 'restrict_to enforcement — simple mode (ADR-034#restrict-to-is-
       # has nothing per-domain to lose when a datastore read fails.
       features                  = Onetime::Runtime.features
       Onetime::Runtime.features = features.with(domains_enabled: false)
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+      allow(Onetime::CustomDomain).to receive(:from_display_domain)
         .and_raise(Redis::BaseError, 'datastore unavailable')
 
       response = post_login(Onetime::Middleware::DomainStrategy.canonical_domain)

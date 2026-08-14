@@ -23,6 +23,11 @@ module Core
     #   view_vars['display_domain'] -> CustomDomain.load_by_display_domain -> CustomDomain::SsoConfig
     #
     module ConfigSerializer
+      # Sentinel returned by resolve_domain_id when a datastore read fails.
+      # Callers must check for this and render the narrowest surface rather
+      # than treating it as "no tenant config" (#4157).
+      DOMAIN_READ_FAILED = :domain_read_failed
+
       # Serializes configuration data from view variables
       #
       # Transforms server configuration including site settings, feature flags,
@@ -323,7 +328,17 @@ module Core
         # @param view_vars [Hash] View variables with request context
         # @return [Onetime::CustomDomain::SigninConfig::RestrictToResolution]
         def restrict_to_resolution(view_vars)
-          domain_id     = resolve_domain_id(view_vars)
+          domain_id = resolve_domain_id(view_vars)
+
+          # Tri-state handling (#4157): failed read → unavailable (no auth methods).
+          if domain_id == DOMAIN_READ_FAILED
+            return Onetime::CustomDomain::SigninConfig::RestrictToResolution.new(
+              restrict_to: nil,
+              state: :unavailable,
+              source: :domain_read_failed,
+            )
+          end
+
           signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id) if domain_id
           global        = effective_global_restrict_to(view_vars, signin_config, domain_id)
 
@@ -390,12 +405,17 @@ module Core
         #
         # @param view_vars [Hash] View variables with request context
         # @param signin_config [Onetime::CustomDomain::SigninConfig, nil]
-        # @param domain_id [String, nil] already-resolved CustomDomain objid
+        # @param domain_id [String, nil, :domain_read_failed] already-resolved CustomDomain objid
         # @return [String, nil]
         def effective_global_restrict_to(view_vars, signin_config = nil, domain_id = nil)
-          if tenant_domain?(view_vars) && !signin_config&.enabled?
+          # Tri-state handling (#4157): if domain_id is DOMAIN_READ_FAILED, the
+          # caller should have already short-circuited. If we reach here anyway,
+          # don't attempt the SSO pin — fall through to global.
+          if tenant_domain?(view_vars) && !signin_config&.enabled? && domain_id != DOMAIN_READ_FAILED
             domain_id ||= resolve_domain_id(view_vars)
-            return 'sso' if Onetime::CustomDomain::SsoConfig.sso_available_for_tenant_host?(domain_id)
+            # Defensive: if the fallback read also failed, skip the SSO pin.
+            return 'sso' if domain_id != DOMAIN_READ_FAILED &&
+                            Onetime::CustomDomain::SsoConfig.sso_available_for_tenant_host?(domain_id)
           end
 
           Onetime.auth_config.restrict_to
@@ -433,12 +453,24 @@ module Core
           auth_settings = (view_vars['site'] || {})['authentication'] || {}
           global        = auth_settings['enabled'] && auth_settings['signin']
 
-          domain_id     = resolve_domain_id(view_vars)
+          domain_id = resolve_domain_id(view_vars)
+
+          # Tri-state handling (#4157): a failed read is not "no tenant config."
+          # Render the narrowest surface (no sign-in) rather than falling back
+          # to operator defaults during a datastore blip.
+          return false if domain_id == DOMAIN_READ_FAILED
+
           signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id) if domain_id
 
-          # Custom domain that has not opted into per-domain sign-in: password/
-          # email defaults OFF; keep the page only when SSO is available.
-          if tenant_domain?(view_vars) && !signin_config&.enabled?
+          # Anything but a positively-classified operator host, with no opted-in
+          # per-domain sign-in: password/email default OFF; keep the page only
+          # when SSO is available.
+          #
+          # The predicate is operator_domain?, NOT tenant_domain? — this is the
+          # display half of the pair, and it must branch on whatever
+          # Base#signin_enabled? branches on.
+          # ADR-024#display-runtime-parity
+          if !operator_domain?(view_vars) && !signin_config&.enabled?
             return sso_available?(view_vars)
           end
 
@@ -468,8 +500,12 @@ module Core
         # @param view_vars [Hash] View variables with request context
         # @return [Boolean] true if email_auth is available
         def resolve_email_auth(view_vars)
-          global        = Onetime.auth_config.email_auth_enabled?
-          domain_id     = resolve_domain_id(view_vars)
+          global    = Onetime.auth_config.email_auth_enabled?
+          domain_id = resolve_domain_id(view_vars)
+
+          # Tri-state handling (#4157): failed read → narrow to off.
+          return false if domain_id == DOMAIN_READ_FAILED
+
           signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id) if domain_id
 
           Onetime::CustomDomain::SigninConfig.resolve_email_auth_enabled(global, signin_config)
@@ -508,9 +544,21 @@ module Core
             return build_tenant_sso_response(tenant_config)
           end
 
-          # Check if we're on a custom domain that should have tenant config
-          # but doesn't - honor the fallback policy
-          if tenant_domain?(view_vars) && !allow_platform_fallback?
+          # No tenant config resolved. Honor the operator's fallback policy:
+          # when platform fallback is withheld from tenants, a host that is not
+          # positively one of the operator's OWN gets no providers.
+          #
+          # The predicate is operator_domain?, NOT tenant_domain? — "may this
+          # host borrow the platform's SSO providers" is an auth decision, and
+          # the platform omniauth routes are host-independent, so a widen here
+          # hands out a working sign-in method rather than a rendering detail.
+          # ADR-024#operator-defaults-require-positive-classification
+          #
+          # Tenant-vs-platform SELECTION above is untouched and still keys on
+          # domain identity (resolve_tenant_sso_config, via domain_id): a
+          # genuinely unknown host has no tenant config to select, and this
+          # guard is what decides whether it may fall back.
+          if !operator_domain?(view_vars) && !allow_platform_fallback?
             return { 'enabled' => false, 'providers' => [] }
           end
 
@@ -547,7 +595,8 @@ module Core
         # @return [Onetime::CustomDomain::SsoConfig, nil] Config if found and enabled
         def resolve_tenant_sso_config(view_vars)
           domain_id = resolve_domain_id(view_vars)
-          return nil unless domain_id
+          # Tri-state handling (#4157): failed read → no SSO (narrowest surface).
+          return nil if domain_id.nil? || domain_id == DOMAIN_READ_FAILED
 
           config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain_id)
           return nil unless config
@@ -558,8 +607,16 @@ module Core
 
         # Resolve domain identifier from view variables
         #
+        # Returns the CustomDomain identifier when the lookup succeeds,
+        # nil when the display_domain is blank or the domain doesn't exist,
+        # or DOMAIN_READ_FAILED when the datastore read fails.
+        #
+        # Callers MUST check for DOMAIN_READ_FAILED and render the narrowest
+        # surface (omit sign-in affordances) rather than treating a failed
+        # read as "no tenant config" (#4157).
+        #
         # @param view_vars [Hash] View variables
-        # @return [String, nil] CustomDomain identifier (objid) or nil
+        # @return [String, nil, :domain_read_failed]
         def resolve_domain_id(view_vars)
           display_domain = view_vars['display_domain']
           return nil if display_domain.to_s.empty?
@@ -568,17 +625,16 @@ module Core
           custom_domain&.identifier
         rescue Redis::BaseError => ex
           OT.le "[ConfigSerializer] Redis error resolving domain_id for domain=#{display_domain}: #{ex.class}"
-          nil
+          DOMAIN_READ_FAILED
         end
         # ASYMMETRIC WITH THE GATES ON PURPOSE (#4139). The runtime gates raise
         # Onetime::SigninPolicyUnavailable when this same read fails, because a
         # gate that cannot read the policy must not decide. This is the DISPLAY
-        # half: degrading to the global-only answer costs nothing an attacker
-        # can spend — every method it might over-advertise is still rejected by
-        # the gate the form posts to, so the safe ordering (gate at least as
-        # narrow as the page) holds in the one direction that matters. Raising
-        # here instead would take the whole bootstrap payload down, i.e. a blank
-        # app rather than a page whose submit answers 503.
+        # half: we return DOMAIN_READ_FAILED so callers can render the narrowest
+        # surface (no sign-in affordance) rather than falling back to operator
+        # defaults. The gate still catches any form submission with a 503, but
+        # now the display layer agrees: unknown tenant policy means no sign-in
+        # form, not the operator's default (#4157).
 
         # Check if request is from a tenant/custom domain
         #
@@ -587,6 +643,23 @@ module Core
         def tenant_domain?(view_vars)
           strategy = view_vars['domain_strategy']
           strategy == :custom
+        end
+
+        # Whether this request is positively classified as one of the operator's
+        # OWN hosts, and may therefore inherit operator auth defaults.
+        # ADR-024#identity-predicates-are-not-auth-gates
+        #
+        # The complement of tenant_domain? is NOT this: :invalid and nil
+        # are neither operator hosts nor tenant hosts, and must be treated as
+        # tenant-safe for auth while staying non-tenant for branding/routing.
+        #
+        # SigninConfig.operator_host? owns the classification list so this page
+        # and the runtime gates cannot disagree about it.
+        #
+        # @param view_vars [Hash] View variables
+        # @return [Boolean] true on :canonical / :subdomain
+        def operator_domain?(view_vars)
+          Onetime::CustomDomain::SigninConfig.operator_host?(view_vars['domain_strategy'])
         end
 
         # Check if platform fallback is allowed for tenant domains

@@ -164,13 +164,21 @@ module Core
       # AUTH_SIGNIN) always wins: a per-domain config can only narrow. SSO login
       # is unaffected — it runs through the omniauth routes, gated separately by
       # SsoConfig. Keep in lockstep with ConfigSerializer#resolve_signin.
+      #
+      # The branch is chosen by SigninConfig.resolve_signin_enabled_for_request,
+      # NOT by custom_domain_request?, so operator defaults require a positive
+      # :canonical/:subdomain classification
+      # (ADR-024#operator-defaults-require-positive-classification). domain_id
+      # is omitted:
+      # this is the password/email POST gate, which never inherits the display
+      # SSO carve-out.
       def signin_enabled?
         global = Onetime::CustomDomain::SigninConfig.global_signin_enabled(auth_settings)
-        if custom_domain_request?
-          Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_custom_domain(global, domain_signin_config)
-        else
-          Onetime::CustomDomain::SigninConfig.resolve_signin_enabled(global, domain_signin_config)
-        end
+        Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_request(
+          global,
+          domain_signin_config,
+          domain_strategy: req.env['onetime.domain_strategy'],
+        )
       end
 
       # Runtime gate for `restrict_to` on the SIMPLE-MODE auth routes
@@ -248,14 +256,29 @@ module Core
       # polarity as signin_enabled?: a custom domain never accepts account
       # creation unless an enabled SignupConfig opts in, while canonical /
       # subdomain requests follow the global default. The global kill switch
-      # (AUTH_ENABLED / AUTH_SIGNUP) always wins.
+      # (AUTH_ENABLED / AUTH_SIGNUP) always wins. Branch chosen positively by
+      # the request resolver, same rule as signin_enabled?.
+      # ADR-024#operator-defaults-require-positive-classification
+      #
+      # UNREADABLE POLICY IS NOT "FOLLOW THE GLOBAL" (#4157). domain_signup_config
+      # is two datastore reads (CustomDomain identity, then SignupConfig), so
+      # this gate can fail to learn whether the tenant opted in. Both reads are
+      # guarded inside Onetime::Logic::SignupConfigResolution, which fails
+      # closed via SignupConfig.resolve_lookup_failure — Onetime::SignupPolicyUnavailable
+      # → 503 on any host not positively an operator host, nil (the only answer
+      # such a host could have had) on canonical/subdomain. Before that, a blip
+      # produced an unhandled 500 here at best and, on the :invalid
+      # misclassification the same blip causes, the operator's global sign-up
+      # default at worst. Mirrors signin_policy_read_failed! exactly.
+      #
+      # @raise [Onetime::SignupPolicyUnavailable] on an unreadable custom-host policy
       def signup_enabled?
         global = Onetime::CustomDomain::SignupConfig.global_signup_enabled(auth_settings)
-        if custom_domain_request?
-          Onetime::CustomDomain::SignupConfig.resolve_signup_enabled_for_custom_domain(global, domain_signup_config)
-        else
-          Onetime::CustomDomain::SignupConfig.resolve_signup_enabled(global, domain_signup_config)
-        end
+        Onetime::CustomDomain::SignupConfig.resolve_signup_enabled_for_request(
+          global,
+          domain_signup_config,
+          domain_strategy: req.env['onetime.domain_strategy'],
+        )
       end
 
       private
@@ -266,21 +289,21 @@ module Core
       # auth defaults; custom domains must opt in. Mirrors
       # ConfigSerializer#tenant_domain?.
       #
-      # THIS ONE LINE DECIDES THE POLARITY OF signin_enabled? AND
-      # signup_enabled?, and its false branch is wider than "not a custom
-      # domain": :invalid and nil land there too. :invalid is not only a
-      # malformed host — DomainStrategy also answers it when its
-      # `known_custom_domain?` datastore read RAISES, so a blip classifies a
-      # real customer domain :invalid and this method reports false for it.
-      # The cost is an inverted default: custom domains are default-OFF for
-      # sign-in and sign-up, canonical follows the global default, so such a
-      # request follows the operator's default instead of the domain's own.
-      # Unlike SigninConfig.operator_host?, this is NOT a positive test and
-      # deliberately stays that way — flipping it would deny branding and
-      # tenant treatment to genuinely unplaceable hosts. The fix belongs in the
-      # resolvers, not here (unresolved — no ADR entry covers this asymmetry
-      # yet). See
-      # Onetime::Middleware::DomainStrategy's class doc for the full table.
+      # NO LONGER DECIDES AUTH POLARITY
+      # (ADR-024#identity-predicates-are-not-auth-gates). It used to pick the
+      # branch for signin_enabled? and signup_enabled?, and its false branch is
+      # wider than "not a custom domain": :invalid and nil land there too, and
+      # :invalid is also what DomainStrategy answers when its
+      # `known_custom_domain?` datastore read RAISES — so a blip handed a real
+      # customer domain the operator's global auth default. Those two gates now
+      # ask SigninConfig.operator_host? through the request resolvers, which
+      # require POSITIVE evidence of an operator host.
+      #
+      # This predicate stays a `== :custom` identity test and is NOT flipped:
+      # its remaining consumers govern branding, tenant treatment and the
+      # restrict_to custom-host narrowing, none of which a genuinely unplaceable
+      # host should receive. See Onetime::Middleware::DomainStrategy's class doc
+      # for the full consumer table.
       def custom_domain_request?
         req.env['onetime.domain_strategy'] == :custom
       end
@@ -291,6 +314,15 @@ module Core
 
       def signup_config_display_domain
         req.env['onetime.display_domain']
+      end
+
+      # Classification hook for Onetime::Logic::SignupConfigResolution's
+      # read-failure path (#4157), so an unreadable tenant sign-up policy fails
+      # closed on exactly the hosts the sign-in side fails closed on — the
+      # mixin's default is nil, which would 503 the canonical sign-up page
+      # during a blip that costs it nothing.
+      def signup_config_domain_strategy
+        req.env['onetime.domain_strategy']
       end
 
       def signup_config_auth_setting(key)
@@ -304,12 +336,20 @@ module Core
       # inherited global restriction is narrowed by the host's own capabilities
       # either way, and `config&.domain_id` is nil in exactly that case (#4139).
       # Memoized — two gates ask per request.
+      #
+      # Uses from_display_domain, NOT load_by_display_domain (#4157): the
+      # latter rescues Redis::BaseError (and a blanket StandardError) internally
+      # and returns nil, which made the rescue below dead code and let a
+      # datastore blip on a tenant host read as "no SigninConfig" → operator
+      # global default. That is the widen ADR-024 closes. This is also the
+      # lookup the sign-up half already uses, so both policy reads now resolve
+      # tenant identity through one non-swallowing path.
       def custom_domain_id
         return @custom_domain_id if defined?(@custom_domain_id)
 
         display_domain    = req.env['onetime.display_domain']
         @custom_domain_id = display_domain &&
-                            Onetime::CustomDomain.load_by_display_domain(display_domain)&.identifier
+                            Onetime::CustomDomain.from_display_domain(display_domain)&.identifier
       rescue Redis::BaseError => ex
         signin_policy_read_failed!(ex)
       end

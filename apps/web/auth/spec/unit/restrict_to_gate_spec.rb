@@ -168,7 +168,7 @@ RSpec.describe Auth::RestrictTo do
     let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: domain_id) }
 
     before do
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+      allow(Onetime::CustomDomain).to receive(:from_display_domain)
         .with('tenant.example.com').and_return(custom_domain)
       allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
         .with(domain_id).and_return(nil)
@@ -223,7 +223,7 @@ RSpec.describe Auth::RestrictTo do
     end
 
     it 'fails closed when the classified custom host cannot be resolved' do
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+      allow(Onetime::CustomDomain).to receive(:from_display_domain)
         .with('tenant.example.com').and_raise(Redis::BaseError, 'lookup unavailable')
 
       expect { described_class.resolution_for(custom_env) }
@@ -232,7 +232,7 @@ RSpec.describe Auth::RestrictTo do
 
     it 'fails closed when the classified custom host signin config lookup fails' do
       domain = instance_double(Onetime::CustomDomain, identifier: 'domain-4139')
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
+      allow(Onetime::CustomDomain).to receive(:from_display_domain).and_return(domain)
       allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
         .with('domain-4139').and_raise(Redis::BaseError, 'config unavailable')
 
@@ -242,7 +242,7 @@ RSpec.describe Auth::RestrictTo do
 
     it 'fails closed on the SSO probe too — that read is on the hot path of every request' do
       domain = instance_double(Onetime::CustomDomain, identifier: 'domain-4139')
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
+      allow(Onetime::CustomDomain).to receive(:from_display_domain).and_return(domain)
       allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
         .with('domain-4139').and_return(nil)
       allow(Onetime::CustomDomain::SsoConfig).to receive(:sso_available_for_tenant_host?)
@@ -253,7 +253,7 @@ RSpec.describe Auth::RestrictTo do
     end
 
     it 'logs the failure — an auth surface is down and it must alert' do
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+      allow(Onetime::CustomDomain).to receive(:from_display_domain)
         .with('tenant.example.com').and_raise(Redis::BaseError, 'lookup unavailable')
 
       expect { described_class.resolution_for(custom_env) }
@@ -264,7 +264,7 @@ RSpec.describe Auth::RestrictTo do
     end
 
     it 'carries a retry_after so the edge can hint a back-off' do
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+      allow(Onetime::CustomDomain).to receive(:from_display_domain)
         .with('tenant.example.com').and_raise(Redis::BaseError, 'lookup unavailable')
 
       expect { described_class.resolution_for(custom_env) }
@@ -282,7 +282,7 @@ RSpec.describe Auth::RestrictTo do
       before { allow(Onetime.auth_config).to receive(:restrict_to).and_return(nil) }
 
       it 'still fails closed — a blank global says nothing about this host' do
-        allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+        allow(Onetime::CustomDomain).to receive(:from_display_domain)
           .with('tenant.example.com').and_raise(Redis::BaseError, 'lookup unavailable')
 
         expect { described_class.resolution_for(custom_env) }
@@ -299,7 +299,7 @@ RSpec.describe Auth::RestrictTo do
         'onetime.display_domain' => 'tenant.example.com',
         'onetime.domain_strategy' => :invalid,
       }
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+      allow(Onetime::CustomDomain).to receive(:from_display_domain)
         .with('tenant.example.com').and_raise(Redis::BaseError, 'lookup unavailable')
 
       expect { described_class.resolution_for(unclassified_env) }
@@ -311,7 +311,7 @@ RSpec.describe Auth::RestrictTo do
         'onetime.display_domain' => 'example.com',
         'onetime.domain_strategy' => :canonical,
       }
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+      allow(Onetime::CustomDomain).to receive(:from_display_domain)
         .with('example.com').and_raise(Redis::BaseError, 'lookup unavailable')
       allow(Onetime.auth_config).to receive(:restrict_to).and_return('password')
       allow(Onetime::CustomDomain::SigninConfig).to receive(:global_restriction_available?)

@@ -188,6 +188,22 @@ module Onetime
           with_error_correlation(error.to_h, req, error)
         end
 
+        # The sign-up gate could not read this host's SignupConfig (#4157).
+        # Raised by Onetime::Logic::SignupConfigResolution — so from
+        # Core::Controllers::Base#signup_enabled? (POST /auth/create-account)
+        # and from CreateAccount's autoverify resolution.
+        #
+        # Registered separately from the sign-in handler above because Otto
+        # dispatches on the EXACT class name (Otto::Core::ErrorHandler looks up
+        # error.class.name), so the shared Onetime::AuthPolicyUnavailable
+        # parent buys the shape but not the routing. Identical status, level
+        # and body construction to its sibling: same failure, and the only
+        # thing that should differ between the two responses is the error_type
+        # and the sentence a user reads.
+        router.register_error_handler(Onetime::SignupPolicyUnavailable, status: 503, log_level: :error) do |error, req|
+          with_error_correlation(error.to_h, req, error)
+        end
+
         return unless Onetime.debug?
 
         router.on_request_complete do |req, res, duration|

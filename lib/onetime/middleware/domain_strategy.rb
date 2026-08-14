@@ -69,18 +69,43 @@ module Onetime
     #
     # ## How downstream reads this
     #
-    # Every consumer below except the first tests `== :custom`, so :invalid,
-    # nil and :default all take the operator branch. This table is pinned by
+    # Consumers split into two groups, and the split IS the policy
+    # (ADR-024#identity-predicates-are-not-auth-gates):
+    #
+    # - AUTH decisions ask a POSITIVE test — `SigninConfig.operator_host?`,
+    #   true for :canonical/:subdomain only. Everything else fails closed with
+    #   the custom domains, including nil.
+    # - IDENTITY / presentation decisions test `== :custom`, so :invalid and
+    #   nil take the operator/generic branch. That is correct for branding and
+    #   routing: a genuinely unplaceable host has no tenant.
+    #
+    # `call` always sets the env key, so nil reaches a consumer only outside a
+    # served request (internal callers, code invoked off the Rack path). Both
+    # groups already answer it correctly: fail-closed for auth, generic for
+    # presentation. One exception to know about — the view layer substitutes its
+    # own `:default` sentinel when the key is absent
+    # (InitializeViewVars: `req.env.fetch('onetime.domain_strategy', :default)`),
+    # which is not a classification this middleware can produce; it is neither
+    # :custom nor an operator host, so it lands on the same safe branches.
+    #
+    # This table is pinned by
     # spec/unit/domain_strategy_classification_contract_spec.rb — a new
     # consumer that disagrees with it fails there, not in review.
     #
     #   Consumer                                         :invalid resolves to
     #   ------------------------------------------------ --------------------
+    #   -- positive operator_host? test (auth) --
     #   SigninConfig.operator_host?                       FAIL CLOSED (503)
     #     (via resolve_lookup_failure; read-failure path only)
+    #   SigninConfig.resolve_signin_enabled_for_request   tenant-safe (OFF)
+    #   SignupConfig.resolve_signup_enabled_for_request   tenant-safe (OFF)
+    #   Base#signin_enabled? (via the request resolver)   tenant-safe (OFF)
+    #   Base#signup_enabled? (via the request resolver)   tenant-safe (OFF)
+    #   ConfigSerializer#operator_domain?                 false
+    #   ConfigSerializer#resolve_signin (via that helper) tenant-safe (OFF,
+    #                                                     SSO carve-out only)
+    #   -- `== :custom` identity test (branding, routing, narrowing) --
     #   Core::Controllers::Base#custom_domain_request?    false
-    #   Base#signin_enabled?                              operator polarity
-    #   Base#signup_enabled?                              operator polarity
     #   Auth::RestrictTo `custom_host:`                   false (no narrowing)
     #   Auth::RestrictTo host pin                         no 'sso' pin
     #   ConfigSerializer#tenant_domain?                   false
@@ -88,10 +113,14 @@ module Onetime
     #   InitializeViewVars / GetFavicon                   default favicon
     #   API v1 Logic::Base#custom_domain?                 false
     #
-    # "Operator polarity" is the load-bearing row: custom domains are
-    # default-OFF for sign-in and sign-up, canonical follows the global
-    # default, so a case-2 :invalid INVERTS the default (unresolved — no ADR
-    # entry covers this asymmetry yet).
+    # The auth rows used to read "operator polarity": they chose their branch
+    # on `== :custom`, so a case-2 :invalid INVERTED the default — custom
+    # domains are default-OFF for sign-in and sign-up while canonical follows
+    # the operator's global setting. They now require positive evidence, and
+    # the display gate (ConfigSerializer) moves with the runtime gates so the
+    # /signin page cannot advertise what the POST will reject. The identity
+    # predicates were deliberately left alone.
+    # ADR-024#identity-predicates-are-not-auth-gates
     class DomainStrategy
       include Onetime::LoggerMethods
 

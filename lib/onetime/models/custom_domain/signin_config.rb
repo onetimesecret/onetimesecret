@@ -374,6 +374,48 @@ module Onetime
           resolve_signin_enabled(global, config)
         end
 
+        # Effective sign-in availability for a REQUEST, chosen by the request's
+        # DomainStrategy classification.
+        # ADR-024#operator-defaults-require-positive-classification
+        #
+        # OPERATOR DEFAULTS REQUIRE POSITIVE EVIDENCE. The two context-free
+        # resolvers above have OPPOSITE defaults — resolve_signin_enabled
+        # follows the operator's global setting, resolve_signin_enabled_for_custom_domain
+        # is default-OFF — so choosing between them IS the access-policy
+        # decision. Choosing on `== :custom` picks the operator branch for
+        # :invalid and nil as well, and :invalid is what DomainStrategy answers
+        # when its own datastore read RAISES for a REAL customer domain. A blip
+        # would then hand that domain the operator's global default, i.e. an
+        # availability failure widening authentication access on a domain whose
+        # owner never opted in.
+        #
+        # So this asks operator_host?, a POSITIVE test: only :canonical and
+        # :subdomain — the two classifications a datastore failure can never
+        # manufacture — inherit operator defaults. :custom, :invalid and nil all
+        # take the tenant-safe branch. The cost is fail-closed, not fail-open: a
+        # recognized subdomain can be held to the stricter default during an
+        # outage (the subdomain sweep runs after the datastore read, so it is
+        # withdrawn too), which denies nothing that was ever explicitly granted.
+        #
+        # The domain identity predicates are deliberately NOT redefined to match
+        # (Core::Controllers::Base#custom_domain_request?,
+        # ConfigSerializer.tenant_domain?): those also decide branding, routing
+        # and tenant presentation, which a genuinely unknown host must not
+        # receive. The fix belongs here, at policy resolution, not there.
+        #
+        # @param global [Boolean] install-level availability (auth.enabled && auth.signin)
+        # @param config [SigninConfig, nil] the per-domain config, if any
+        # @param domain_strategy [Symbol, String, nil] env['onetime.domain_strategy']
+        # @param domain_id [String, nil] CustomDomain identifier; pass it on
+        #   DISPLAY surfaces to keep the tenant-SSO carve-out, omit it on the
+        #   password/email POST gate (see resolve_signin_enabled_for_custom_domain)
+        # @return [Boolean]
+        def resolve_signin_enabled_for_request(global, config, domain_strategy:, domain_id: nil)
+          return resolve_signin_enabled(global, config) if operator_host?(domain_strategy)
+
+          resolve_signin_enabled_for_custom_domain(global, config, domain_id: domain_id)
+        end
+
         # Resolve effective email-auth (magic-link) availability, combining the
         # install-level capability with an optional per-domain override.
         #

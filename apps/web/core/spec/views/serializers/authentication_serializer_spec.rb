@@ -141,7 +141,7 @@ RSpec.describe Core::Views::AuthenticationSerializer do
 
       before do
         allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
-          .and_raise(StandardError, 'redis down')
+          .and_raise(Redis::ConnectionError, 'redis down')
       end
 
       it 'fails closed: an unresolvable domain policy does not advertise the affordance' do

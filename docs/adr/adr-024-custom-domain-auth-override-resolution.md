@@ -124,6 +124,66 @@ and the platform fallback, including the Rodauth `/auth` surface itself.
 `AUTH_SIGNIN` is narrower: it disables the password/email path only and
 does not touch either SSO carve-out.
 
+### Operator auth defaults require a positive operator classification {#operator-defaults-require-positive-classification}
+
+Normative: **only a positively classified operator host may inherit the
+install's global sign-in/sign-up defaults.** The test is
+`SigninConfig.operator_host?` — true for `:canonical` and `:subdomain` only.
+`:custom`, `:invalid` and a missing classification all take the tenant-safe,
+default-OFF resolver. "Anything that is not `:custom`" is not evidence of an
+operator host and must never select the branch.
+
+`:invalid` is not purely a property of the hostname: `DomainStrategy` also
+answers it when its own custom-domain datastore read raises (that class's doc
+owns the full consumer table). Because the two context-free resolvers have
+**opposite** defaults — `resolve_signin_enabled` follows the operator's
+global setting, `resolve_signin_enabled_for_custom_domain` is default-OFF —
+choosing between them *is* the access-policy decision. Choosing on
+`== :custom` let a transient datastore failure hand a real customer domain
+the operator's global default on a domain whose owner never opted in: an
+availability failure widening an access policy.
+
+Resolution is request-aware and lives at the policy layer:
+`SigninConfig.resolve_signin_enabled_for_request(global, config,
+domain_strategy:, domain_id: nil)` and
+`SignupConfig.resolve_signup_enabled_for_request(global, config,
+domain_strategy:)`. Both are thin selectors over the existing resolvers, so
+invariant 4 holds unchanged and the context-free resolvers keep their
+semantics for administrative and non-request callers. Sign-up reuses
+`SigninConfig.operator_host?` rather than restating the classification list,
+so sign-in and sign-up cannot drift apart. The sign-in `domain_id:` carve-out
+is preserved verbatim.
+
+**Accepted cost: this is fail-closed, and it bites `:subdomain`.**
+`:canonical` classifies before the datastore read, but the subdomain sweeps
+run after it, so during an outage a recognized operator subdomain classifies
+`:invalid` and is held to the stricter default. That denies nothing ever
+explicitly granted, and it is the correct direction: `operator_host?` may be
+over-strict during an outage, never over-permissive.
+
+### Identity predicates are not auth gates {#identity-predicates-are-not-auth-gates}
+
+The domain identity predicates are deliberately NOT flipped.
+`Core::Controllers::Base#custom_domain_request?` and
+`ConfigSerializer#tenant_domain?` stay `== :custom` identity tests: redefining
+them as "not canonical and not subdomain" would hand tenant branding, routing
+and presentation to genuinely malformed and unknown hosts. Splitting
+`:invalid` into distinct classifications (accurate, but touches every
+consumer) and 503-ing every `:invalid` request were both rejected as broader
+than the gap requires.
+
+An auth decision keyed to the request host asks `operator_host?`; a branding,
+routing or presentation decision asks the identity predicate. The two differ
+for `:invalid` by design.
+
+### Display and runtime gates branch on the same predicate {#display-runtime-parity}
+
+The runtime gates (`Base#signin_enabled?`, `Base#signup_enabled?`) and the
+display gate (`ConfigSerializer#resolve_signin`, via `operator_domain?`) branch
+on the same predicate, so `/signin` cannot advertise what the POST will reject.
+`DomainSerializer` needs no change — it already consumes the
+custom-domain-specific resolver.
+
 ## References
 
 Source of truth is this ADR. Principal implementation: the model resolvers

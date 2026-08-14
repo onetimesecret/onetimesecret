@@ -334,6 +334,73 @@ module Onetime
           resolve_signup_enabled(global, config)
         end
 
+        # Effective sign-up availability for a REQUEST, chosen by the request's
+        # DomainStrategy classification.
+        # ADR-024#operator-defaults-require-positive-classification
+        #
+        # Mirrors SigninConfig.resolve_signin_enabled_for_request, and shares
+        # its operator test rather than restating the classification list:
+        # SigninConfig.operator_host? is the ONE owner of "which hosts may
+        # inherit operator auth defaults", and sign-up must not be able to
+        # disagree with sign-in about that. Only :canonical and :subdomain take
+        # the global default; :custom, :invalid and nil are default-OFF, so a
+        # datastore blip that classifies a real customer domain :invalid can no
+        # longer hand it the operator's global sign-up setting.
+        #
+        # There is no display carve-out here — unlike sign-in, sign-up has no
+        # SSO path that works without an enabled config.
+        #
+        # @param global [Boolean] install-level availability (auth.enabled && auth.signup)
+        # @param config [SignupConfig, nil] the per-domain config, if any
+        # @param domain_strategy [Symbol, String, nil] env['onetime.domain_strategy']
+        # @return [Boolean]
+        def resolve_signup_enabled_for_request(global, config, domain_strategy:)
+          if Onetime::CustomDomain::SigninConfig.operator_host?(domain_strategy)
+            return resolve_signup_enabled(global, config)
+          end
+
+          resolve_signup_enabled_for_custom_domain(global, config)
+        end
+
+        # What the sign-up gate answers when the policy for this request host
+        # could NOT be read (#4157). Mirrors
+        # SigninConfig.resolve_lookup_failure exactly — same carve-out, same
+        # error family, different copy — because "disabled unless explicitly
+        # enabled" is only true if the application can actually READ the
+        # tenant's SignupConfig. Two datastore reads back that policy
+        # (CustomDomain.from_display_domain, then find_by_domain_id); when
+        # either raises, the gate cannot establish explicit enablement and must
+        # not guess.
+        #
+        # Guessing here is not hypothetical: before this, a Redis::BaseError on
+        # those reads propagated as an unhandled 500 in the controller — fail
+        # closed with the wrong shape — and, worse, the SAME blip that broke
+        # the read is what makes DomainStrategy answer :invalid for a real
+        # customer domain, which used to route that request to the operator's
+        # global sign-up default. Availability failure, access widening.
+        #
+        # OPERATOR HOSTS ARE CARVED OUT, and it costs nothing: a :canonical or
+        # :subdomain request has no per-domain SignupConfig to lose. The read
+        # could only ever have produced nil there, and nil is exactly what this
+        # returns, so the caller resolves against the operator's in-memory
+        # global setting as it always would. The test is POSITIVE
+        # (SigninConfig.operator_host?, the single owner of "which hosts may
+        # inherit operator auth defaults"), never `!= :custom`: :invalid and
+        # nil are precisely the classifications a datastore failure
+        # manufactures for a customer domain.
+        #
+        # @param domain_strategy [Symbol, String, nil] env['onetime.domain_strategy']
+        # @raise [Onetime::SignupPolicyUnavailable] on any host that is not positively an operator host
+        # @return [nil] on an operator host — "no per-domain config", the only
+        #   answer such a host could ever have had
+        def resolve_lookup_failure(domain_strategy:)
+          unless Onetime::CustomDomain::SigninConfig.operator_host?(domain_strategy)
+            raise Onetime::SignupPolicyUnavailable
+          end
+
+          nil
+        end
+
         # Install-level signup capability — the `global` input to
         # resolve_signup_enabled, defined once so the runtime gate
         # (Core::Controllers::Base#signup_enabled?) and the settings API

@@ -173,7 +173,11 @@ module Core
           return false unless Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(domain_id, sso_config: config)
 
           config.enforce_sso_only?
-        rescue StandardError
+        rescue Redis::BaseError
+          # Tri-state handling (#4157): failed read → enforce SSO (narrowest
+          # surface for password_auth_permitted?). This hides the password
+          # form during a blip rather than showing it on a tenant that may
+          # have disabled local passwords.
           true
         end
 
