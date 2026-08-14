@@ -1005,7 +1005,8 @@ RSpec.describe Core::Views::ConfigSerializer do
       # These examples are about which restriction the serializer REPORTS, so
       # the host's capabilities are stood up as available: AUTH_SIGNIN on
       # (the file-level stub carries only the master switch) and the
-      # email-auth feature on. Without them the A3 derivation below correctly
+      # email-auth feature on. Without them the fail-closed derivation below
+      # (ADR-034#degradation-is-fail-closed) correctly
       # answers :unavailable for every method and the examples stop testing
       # what they are named for.
       before do
@@ -1160,9 +1161,9 @@ RSpec.describe Core::Views::ConfigSerializer do
       end
     end
 
-    # The point of A2: one owner. If this delegation is ever inlined again the
-    # three gates drift apart, which is the failure mode ADR-024 invariant 5
-    # exists to prevent.
+    # The point of ADR-034#resolution-is-model-owned: one owner. If this
+    # delegation is ever inlined again the three gates drift apart, which is
+    # the failure mode that decision exists to prevent.
     it 'delegates resolution to the model resolver' do
       allow(mock_auth_config).to receive(:restrict_to).and_return('password')
 

@@ -218,13 +218,15 @@ module Core
         global        = Onetime.auth_config.restrict_to
         signin_config = domain_signin_config
 
-        # A3's runtime-availability half is applied BY THE RESOLVER, not here.
+        # The runtime-availability half of ADR-034#degradation-is-fail-closed is
+        # applied BY THE RESOLVER, not here.
         # This used to guard `return false if global && !restrict_to_available?`
         # ahead of resolution, which was wrong in one case: a DOMAIN-only
         # restriction went dark whenever the unrelated global method was dead.
         # Passing the flag in lets the resolver narrow only what the global half
         # actually governs. Four consumers each remembering this rule is the
-        # drift A2 exists to kill — hence restriction_available_for_request?,
+        # drift ADR-034#resolution-is-model-owned exists to kill — hence
+        # restriction_available_for_request?,
         # which is the one place that rule lives (#4139). It also narrows an
         # INHERITED global restriction through the custom host's own
         # capabilities, so this gate cannot accept a method the full-mode gate

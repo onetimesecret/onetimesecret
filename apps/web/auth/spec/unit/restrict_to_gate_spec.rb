@@ -115,7 +115,7 @@ RSpec.describe Auth::RestrictTo do
       end
     end
 
-    it 'rejects every route when the restriction is unavailable (A3 fail-closed)' do
+    it 'rejects every route when the restriction is unavailable (fail-closed)' do
       described_class::GATED_ROUTES.each_key do |route|
         halted = gate(route, resolution_class.unavailable('sso', :global))
 
