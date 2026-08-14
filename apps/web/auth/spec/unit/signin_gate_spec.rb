@@ -213,6 +213,16 @@ RSpec.describe Auth::SigninGate do
       expect(described_class.axis_for(:reset_password_request)).to eq(:signin)
       expect(described_class.axis_for(:reset_password)).to eq(:signin)
     end
+
+    # Both unlock routes are PRE-auth, and Rodauth's lockout defaults
+    # (unlock_account_requires_password? false, unlock_account_autologin? true —
+    # config/features/lockout.rb overrides neither) make unlock_account mint a
+    # full session from an emailed key. Exempting them as "account-scoped" would
+    # hand a canonical account holder a session on a host that never opted in.
+    it 'classifies account unlock as sign-in — it mints a session with no password' do
+      expect(described_class.axis_for(:unlock_account_request)).to eq(:signin)
+      expect(described_class.axis_for(:unlock_account)).to eq(:signin)
+    end
   end
 
   # ==========================================================================
@@ -339,12 +349,69 @@ RSpec.describe Auth::SigninGate do
       end
     end
 
-    # Multi-phase login can dispatch a magic link from the LOGIN route. That
-    # path is closed at before_email_auth_request (config/hooks/restrict_to.rb),
-    # the one chokepoint both entry points share — so :login is deliberately not
-    # in EMAIL_AUTH_ROUTES and must not start consulting the magic-link flag.
+    # Multi-phase login can dispatch a magic link from the LOGIN route, but only
+    # for a passwordless account — ANDing the flag into the route itself would
+    # 404 password sign-in on a host that merely turned magic links off. The
+    # route stays on the plain axis and the dispatch is closed at
+    # before_email_auth_request instead (enforce_email_auth!, below).
     it 'does not AND the email-auth flag into the login route' do
       expect(described_class::EMAIL_AUTH_ROUTES).not_to include(:login)
+      expect(described_class::SIGNIN_ROUTES).to include(:login)
+    end
+  end
+
+  # The before_email_auth_request chokepoint: the multi-phase-login dispatch
+  # never enters the email_auth_request ROUTE, so enforce_route! cannot see it.
+  describe '.enforce_email_auth! — the multi-phase login dispatch' do
+    def gate_email_auth(strategy: :custom, internal: false)
+      instance = rodauth_double(:login, strategy: strategy, internal: internal)
+      catch(:halted) do
+        described_class.enforce_email_auth!(instance)
+        nil
+      end
+    end
+
+    context 'on a host that opted into sign-in but DISABLED magic links' do
+      let(:signin_config) { signin_config_double(signin_enabled: true, email_auth_enabled: false) }
+
+      it 'allows POST /login itself (password sign-in is still on)' do
+        expect_allowed(:login)
+      end
+
+      it '404s the magic-link dispatch reached from that same route' do
+        halted = gate_email_auth
+
+        expect(halted&.first).to eq(404),
+          'a host that turned magic links off still dispatched one via multi-phase login'
+        expect(JSON.parse(halted[2].first)['error_type']).to eq('NotFound')
+      end
+    end
+
+    context 'on a host with no SigninConfig at all' do
+      it '404s — no opt-in, no magic link' do
+        expect(gate_email_auth&.first).to eq(404)
+      end
+    end
+
+    context 'on a host that opted into sign-in with magic links ON' do
+      let(:signin_config) { signin_config_double(signin_enabled: true, email_auth_enabled: true) }
+
+      it 'allows the dispatch' do
+        expect(gate_email_auth).to be_nil
+      end
+    end
+
+    context 'when magic links are disabled INSTALL-wide' do
+      let(:email_auth_global) { false }
+      let(:signin_config)     { signin_config_double(signin_enabled: true, email_auth_enabled: true) }
+
+      it '404s' do
+        expect(gate_email_auth&.first).to eq(404)
+      end
+    end
+
+    it 'exempts internal requests, same as enforce_route!' do
+      expect(gate_email_auth(internal: true)).to be_nil
     end
   end
 

@@ -25,10 +25,11 @@
 # changes; the function does not, so this gate's SIGNUP_ROUTES are unchanged
 # by that feature.
 #
-# ORDER — AFTER RestrictTo.enforce_route!, from the same before_rodauth hook
-# (config/hooks/restrict_to.rb). Both gates reject as the same 404 body, so
-# order cannot leak which one fired; running restrict_to first keeps the
-# narrower, method-level verdict authoritative on a host where both apply.
+# MECHANISM — before_rodauth (ADR-038#gate-at-before-rodauth), AFTER
+# RestrictTo.enforce_route! from the same hook (config/hooks/restrict_to.rb):
+# restrict_to first keeps the narrower, method-level verdict authoritative on
+# a host where both apply, and the shared 404 body keeps the firing gate
+# invisible either way.
 #
 # REJECT SHAPE — 404 (ADR-034#reject-as-not-found-not-forbidden). A host that
 # never opted into sign-in presents no reachable sign-in surface; the body is
@@ -65,8 +66,7 @@ require_relative 'lib/logging'
 module Auth
   module SigninGate
     # Routes that let a visitor OBTAIN or RECOVER a session on the request host.
-    # Keyed by `@current_route` (the symbol passed to Rodauth's `route(...)`,
-    # not the URL — several URLs are renamed in config/features/).
+    # Keyed by `@current_route` (ADR-038#classify-by-symbol-not-url).
     #
     # reset_password* is here rather than under sign-up or ungated: password
     # recovery is a sign-in path. A host that never opted into sign-in must not
@@ -75,6 +75,18 @@ module Auth
     #
     # webauthn_autofill_js serves the conditional-UI challenge; without it the
     # ceremony-start endpoint stays live on a host that offers no sign-in.
+    #
+    # unlock_account* is here for the same reason as reset_password*, and it is
+    # not second-factor or account-scoped despite the name: both routes are
+    # PRE-auth (check_already_logged_in), and Rodauth's lockout defaults are
+    # unlock_account_requires_password? false + unlock_account_autologin? true
+    # (config/features/lockout.rb overrides neither), so unlock_account mints a
+    # full session from an emailed key alone. Ungated, a canonical account
+    # holder — or anyone who can trip five failed logins for that login and
+    # reach the resulting mail — obtains a session on a host that never opted
+    # into sign-in. Lockout POLICY stays install-wide and non-overridable
+    # (ADR-024 scope); what is gated here is only WHERE the session may be
+    # obtained, and the canonical host still serves both routes.
     SIGNIN_ROUTES = [
       :login,
       :email_auth_request,
@@ -83,16 +95,21 @@ module Auth
       :webauthn_autofill_js,
       :reset_password_request,
       :reset_password,
+      :unlock_account_request,
+      :unlock_account,
     ].freeze
 
     # Sign-in routes that ALSO require effective email-auth (magic links) to be
     # enabled for the host — the per-domain override can turn magic links off
     # while leaving password sign-in on (SigninConfig.resolve_email_auth_enabled).
     #
-    # The login route is NOT here even though multi-phase login can dispatch a
-    # magic link from it: that path is closed at its own chokepoint
-    # (before_email_auth_request, config/hooks/restrict_to.rb), which is the
-    # only place both entry points meet.
+    # The login route is NOT here because its magic-link dispatch is not a
+    # property of the ROUTE: with the email_auth feature loaded,
+    # use_multi_phase_login? makes POST /login dispatch a link only for a
+    # passwordless account. Route-level ANDing would 404 password sign-in on a
+    # host that merely turned magic links off. That path is closed instead at
+    # before_email_auth_request (enforce_email_auth!), the one chokepoint both
+    # entry points share — which enforces THIS axis, not just restrict_to.
     EMAIL_AUTH_ROUTES = [
       :email_auth_request,
       :email_auth,
@@ -113,10 +130,10 @@ module Auth
 
     GATED_ROUTES = (SIGNIN_ROUTES + SIGNUP_ROUTES).freeze
 
-    # Routes this axis deliberately does NOT touch. Named explicitly (rather
-    # than defaulted-open) so the coverage spec fails when a new Rodauth route
-    # appears and nobody classified it on this axis — an unclassified route
-    # silently defaulting to "allowed" is the exact defect #4163 fixes.
+    # Routes this axis deliberately does NOT touch. Named explicitly with the
+    # coverage spec behind it (ADR-038#classify-exhaustively-or-fail) — an
+    # unclassified route silently defaulting to "allowed" is the exact defect
+    # #4163 fixes.
     #
     # Two reasons appear here:
     #   - ACCOUNT-SCOPED: reachable only when already authenticated, so keying
@@ -136,8 +153,6 @@ module Auth
       :change_login,
       :verify_login_change,
       :confirm_password,
-      :unlock_account,
-      :unlock_account_request,
       :otp_auth,
       :otp_setup,
       :otp_disable,
@@ -177,6 +192,36 @@ module Auth
 
         env = rodauth.request.env
         return if allowed?(env, axis, route)
+
+        reject!(rodauth, route, axis)
+      end
+
+      # Gate the SECONDARY email_auth surface, which is not its own route.
+      #
+      # With the email_auth feature loaded, use_multi_phase_login? is true, so a
+      # POST to the LOGIN route for a passwordless account reaches
+      # after_login_entered_during_multi_phase_login and dispatches a magic link
+      # without ever entering the email_auth_request route. enforce_route! sees
+      # :login and applies only the plain sign-in axis, so a host with
+      # signin_enabled and email_auth DISABLED would still emit a magic link
+      # from that path. before_email_auth_request is the one chokepoint both
+      # entry points share; the restrict_to gate already hangs there, and this
+      # is the same chokepoint for the ADR-024 opt-in axis
+      # (ADR-034#resolution-is-model-owned — one policy, every entry point).
+      #
+      # @param rodauth [Rodauth::Auth]
+      # @raise [Onetime::SigninPolicyUnavailable] on an unreadable host policy
+      def enforce_email_auth!(rodauth)
+        return if rodauth.send(:internal_request?)
+        return if signin_allowed?(rodauth.request.env, email_auth: true)
+
+        reject!(rodauth, :email_auth_request, :signin)
+      end
+
+      # Log and halt. Single reject shape for both entry points, so the surface
+      # that fired is invisible to the caller.
+      def reject!(rodauth, route, axis)
+        env = rodauth.request.env
 
         Auth::Logging.log_auth_event(
           :signin_gate_route_rejected,

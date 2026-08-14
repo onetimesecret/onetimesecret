@@ -181,6 +181,19 @@ RSpec.describe 'sign-in/sign-up opt-in enforcement — full mode (ADR-024, #4163
       )
     end
 
+    # Pre-auth despite the name, and Rodauth's defaults make unlock_account
+    # mint a session with no password (unlock_account_requires_password? false,
+    # unlock_account_autologin? true). Left open, a canonical account holder
+    # gets a session on a host that never opted into sign-in.
+    it '404s POST /auth/unlock-account-request' do
+      skip 'lockout feature not enabled in this lane' unless route_mounted?('/unlock-account-request')
+
+      expect_not_found(
+        post_as(host, '/auth/unlock-account-request', login: "nobody-#{run_id}@example.com"),
+        '/auth/unlock-account-request',
+      )
+    end
+
     it '404s POST /auth/email-auth-request' do
       skip 'email_auth feature not enabled in this lane' unless route_mounted?('/email-auth-request')
 

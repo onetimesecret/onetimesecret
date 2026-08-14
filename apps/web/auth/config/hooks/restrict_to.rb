@@ -54,12 +54,21 @@ module Auth::Config::Hooks
     # credential. This hook closes it at the one chokepoint both entry points
     # share.
     #
+    # BOTH AXES hang here, for the same reason they both hang on before_rodauth:
+    # the restrict_to gate answers "may this host offer magic links as a METHOD"
+    # and Auth::SigninGate answers "did this host opt into sign-in at all, and
+    # is email_auth effective for it" (SigninConfig.resolve_email_auth_enabled).
+    # before_rodauth cannot cover this path — it sees route :login and applies
+    # only the plain sign-in axis, so leaving SigninGate off this hook leaves a
+    # host that disabled magic links still sending them.
+    #
     # Registered separately because `before_email_auth_request` only EXISTS as a
     # configuration method when the email_auth feature is loaded — see the call
     # site in config.rb, inside the email_auth_enabled? branch.
     def self.configure_email_auth(auth)
       auth.before_email_auth_request do
         Auth::RestrictTo.enforce_method!(self, 'email_auth', :email_auth_request)
+        Auth::SigninGate.enforce_email_auth!(self)
       end
     end
   end
