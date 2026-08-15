@@ -38,14 +38,10 @@
 #   nothing to hide, and "the backend read failed, retry" is both the truth and
 #   the alertable signal.
 #
-# MECHANISM — before_rodauth
-#   Rodauth builds `route_hash` once and FREEZES it in post_configure, and
-#   `route!` is a frozen-hash lookup — returning nil from `login_route` per
-#   request does nothing, and routes cannot be un-mounted per host. The gate is
-#   therefore request-time and *emulates* non-existence. `before_rodauth` fires
-#   inside the matched route, after `@current_route` is set and after CSRF has
-#   been checked (rodauth.rb, `define_method(handle_meth)`), which is exactly
-#   where the route's identity is known and nothing has executed yet.
+# MECHANISM — before_rodauth (ADR-038#gate-at-before-rodauth): Rodauth routes
+#   never pass through Otto and cannot be un-mounted per request or host, so
+#   the gate is request-time and *emulates* non-existence from the one
+#   chokepoint where `@current_route` is known and nothing has executed yet.
 #
 # WHERE THIS LIVES, AND WHY NOT UNDER config/hooks/. This is the POLICY, and it
 # has three callers in two different worlds: the Rodauth hook
@@ -88,9 +84,7 @@ require_relative 'lib/logging'
 module Auth
   module RestrictTo
     # Sign-in method a pre-auth Rodauth route belongs to, keyed by
-    # `@current_route` (the symbol passed to Rodauth's `route(...)`, NOT the
-    # URL — the URLs are configurable and several are renamed in
-    # config/features/).
+    # `@current_route` (ADR-038#classify-by-symbol-not-url).
     #
     # Every route here goes dark when its method is restricted away. Secondary
     # endpoints are included on purpose
@@ -156,9 +150,8 @@ module Auth
 
     GATED_ROUTES = PRE_AUTH_ROUTES.freeze
 
-    # Routes this gate deliberately does NOT touch. Named explicitly (rather
-    # than defaulted-open) so the coverage spec can fail when a new Rodauth
-    # route appears and nobody classified it — an unclassified route silently
+    # Routes this gate deliberately does NOT touch
+    # (ADR-038#classify-exhaustively-or-fail): an unclassified route silently
     # defaulting to "allowed" is how surface #1 rots.
     #
     # Three reasons appear here:
