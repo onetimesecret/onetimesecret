@@ -56,12 +56,22 @@
 #   on this host"; gating SSO on it would take that tenant's ONLY working
 #   sign-in path dark. SSO availability is SsoConfig's question
 #   (tenant_sso_available_for? / sso_available_for_tenant_host?). Hence
-#   GATED_ROUTES below covers exactly the 'password' and 'email_auth' entries of
+#   GATED_ROUTES below covers the 'password' and 'email_auth' entries of
 #   Auth::RestrictTo::PRE_AUTH_ROUTES and nothing else — not 'webauthn', not the
 #   middleware-served OmniAuth request phase, not the app-owned SSO linking
 #   routes.
 #
-# SCOPE — pre-auth password/email routes only
+# NEVER GATE ACCOUNT CREATION ON THIS FLAG EITHER
+#   The account-creation ceremony (create_account / verify_account /
+#   verify_account_resend) is classified 'password' in PRE_AUTH_ROUTES, but
+#   registration availability answers to the SIGN-UP opt-in
+#   (SignupConfig#signup_enabled), not this one. A tenant may run SSO-only
+#   sign-in with open self-service registration (signin_enabled=false,
+#   signup_enabled=true); gating those routes here 404s a working registration
+#   flow on a policy its owner never applied to it. They are subtracted from
+#   GATED_ROUTES and owned by the sibling Auth::SignupEnabled.
+#
+# SCOPE — pre-auth password/email SIGN-IN routes only
 #   The route classification is REUSED from Auth::RestrictTo::PRE_AUTH_ROUTES
 #   rather than re-transcribed, so a route that gets classified for one gate
 #   cannot be missed by the other. Deliberately untouched, for the reasons
@@ -118,6 +128,7 @@
 
 require 'onetime/models/custom_domain/signin_config'
 require_relative 'restrict_to'
+require_relative 'signup_enabled'
 require_relative 'lib/logging'
 
 module Auth
@@ -132,10 +143,22 @@ module Auth
     # Derived rather than copied on purpose: a new route added there is
     # automatically considered here, and the coverage spec that guards
     # PRE_AUTH_ROUTES therefore guards this set too.
-    GATED_ROUTES = Auth::RestrictTo::PRE_AUTH_ROUTES
-                   .select { |_route, method_name| GOVERNED_METHODS.include?(method_name) }
-                   .keys
-                   .freeze
+    #
+    # The account-creation ceremony is SUBTRACTED, not because those routes
+    # are ungated but because they answer to a DIFFERENT opt-in:
+    # `signup_enabled` on SignupConfig, enforced by the sibling
+    # Auth::SignupEnabled. PRE_AUTH_ROUTES classifies create_account as a
+    # 'password' route — true for the method question restrict_to asks —
+    # but registration availability is the signup axis, and gating it here
+    # took an SSO-only tenant's open self-service registration
+    # (signin_enabled=false, signup_enabled=true) to 404. Subtracting the
+    # sibling's own constant means a route is claimed by exactly one
+    # availability gate, never both and never neither.
+    GATED_ROUTES = (
+      Auth::RestrictTo::PRE_AUTH_ROUTES
+        .select { |_route, method_name| GOVERNED_METHODS.include?(method_name) }
+        .keys - Auth::SignupEnabled::GATED_ROUTES
+    ).freeze
 
     class << self
       # Gate the currently-matched Rodauth route.
@@ -144,17 +167,6 @@ module Auth
       def enforce_route!(rodauth)
         route = rodauth.current_route
         return unless GATED_ROUTES.include?(route)
-
-        # Same reclassification Auth::RestrictTo applies: with Rodauth's
-        # webauthn_verify_account feature loaded, create_account /
-        # verify_account / verify_account_resend stop being password routes —
-        # the ceremony registers a WebAuthn credential and sets no password. A
-        # password/email opt-in has no say over them, so they fall out of this
-        # gate exactly as they change method for the restrict_to gate.
-        if Auth::RestrictTo::WEBAUTHN_VERIFY_ACCOUNT_ROUTES.include?(route) &&
-           rodauth.features.include?(:webauthn_verify_account)
-          return
-        end
 
         enforce!(rodauth, route)
       end

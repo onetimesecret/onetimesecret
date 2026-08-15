@@ -32,11 +32,28 @@ Fixed
   is still denied, but an unreadable policy is reported as an outage instead
   of being disguised as a route that does not exist.
 
+- Full mode now also enforces the per-domain **sign-up** opt-in
+  (``SignupConfig#signup_enabled``) on the account-creation routes
+  (``create-account``, ``verify-account``, ``verify-account-resend``), via a
+  sibling gate (``Auth::SignupEnabled``) using the same model-owned resolver
+  simple mode already uses
+  (``SignupConfig.resolve_signup_enabled_for_request``). Registration and
+  sign-in are gated at parity, each on its own opt-in: the account-creation
+  routes answer to the sign-up flag alone, and the sign-in routes to the
+  sign-in flag alone. This partition also fixes an over-gate present in an
+  earlier draft of the sign-in gate, where an SSO-only tenant with open
+  self-service registration (``signin_enabled=false``,
+  ``signup_enabled=true``) had its working ``create-account`` route taken to
+  ``404`` by the sign-in opt-out. Reject and degradation shapes match the
+  sign-in gate (``404`` identical to an undefined route; ``503`` when the
+  policy cannot be read).
+
 AI Assistance
 -------------
 
-- Claude added the full-mode availability gate (``Auth::SigninEnabled``) as a
-  sibling of ``Auth::RestrictTo``, wired it into the existing
-  ``before_rodauth`` / ``before_email_auth_request`` hooks, and added
-  integration coverage for the opted-out and never-configured custom-domain
-  cases along with the narrowing and non-gated surfaces.
+- Claude added the full-mode availability gates (``Auth::SigninEnabled`` and
+  ``Auth::SignupEnabled``) as siblings of ``Auth::RestrictTo``, wired them
+  into the existing ``before_rodauth`` / ``before_email_auth_request`` hooks,
+  and added integration coverage for the opted-out, never-configured and
+  SSO-only-with-open-registration custom-domain cases along with the
+  narrowing and non-gated surfaces.

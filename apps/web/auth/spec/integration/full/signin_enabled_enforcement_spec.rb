@@ -256,7 +256,10 @@ RSpec.describe 'per-domain signin_enabled enforcement — full mode (ADR-024 cus
     end
 
     it '404s the secondary password endpoints' do
-      %w[/auth/create-account /auth/reset-password-request /auth/reset-password].each do |path|
+      # /auth/create-account is NOT in this list: registration answers to the
+      # SIGN-UP opt-in (Auth::SignupEnabled, SignupConfig#signup_enabled), not
+      # this gate — see signup_enabled_enforcement_spec.rb.
+      %w[/auth/reset-password-request /auth/reset-password].each do |path|
         expect_not_found(post_as(host, path, login: "nobody-#{run_id}@example.com", password: password), path)
       end
     end
@@ -281,7 +284,7 @@ RSpec.describe 'per-domain signin_enabled enforcement — full mode (ADR-024 cus
     end
 
     it '404s the secondary password endpoints' do
-      %w[/auth/create-account /auth/reset-password-request /auth/reset-password].each do |path|
+      %w[/auth/reset-password-request /auth/reset-password].each do |path|
         expect_not_found(post_as(host, path, login: "nobody-#{run_id}@example.com", password: password), path)
       end
     end
@@ -413,16 +416,35 @@ RSpec.describe 'per-domain signin_enabled enforcement — full mode (ADR-024 cus
       post_as(build_domain(:no_domain_id), '/auth/login', login: "nobody-#{run_id}@example.com", password: password)
     end
 
-    it 'gates exactly the password and email_auth pre-auth routes' do
+    it 'gates the password and email_auth pre-auth routes, minus the account-creation ceremony' do
       # Reuses Auth::RestrictTo's classification rather than a second copy of
       # it, so a newly-classified route cannot be covered by one gate and
-      # missed by the other.
-      expect(Auth::SigninEnabled::GATED_ROUTES.to_a)
-        .to match_array(Auth::RestrictTo::PRE_AUTH_ROUTES.select { |_, m| %w[password email_auth].include?(m) }.keys)
+      # missed by the other. The account-creation routes answer to the SIGN-UP
+      # opt-in and are owned by Auth::SignupEnabled instead — gating them here
+      # 404'd an SSO-only tenant's open registration (signin_enabled=false,
+      # signup_enabled=true).
+      expected = Auth::RestrictTo::PRE_AUTH_ROUTES
+                 .select { |_, m| %w[password email_auth].include?(m) }
+                 .keys - Auth::SignupEnabled::GATED_ROUTES
+
+      expect(Auth::SigninEnabled::GATED_ROUTES.to_a).to match_array(expected)
 
       expect(Auth::SigninEnabled::GATED_ROUTES).not_to include(:logout)
       expect(Auth::SigninEnabled::GATED_ROUTES).not_to include(*Auth::RestrictTo::SECOND_FACTOR_ROUTES.keys)
       expect(Auth::SigninEnabled::GATED_ROUTES).not_to include(:webauthn_login)
+    end
+
+    it 'partitions the password/email pre-auth routes with Auth::SignupEnabled — disjoint, jointly exhaustive' do
+      # Every password/email pre-auth route is claimed by exactly ONE
+      # availability gate. A route in both would let the sign-in opt-in veto
+      # registration again; a route in neither is the original full-mode gap.
+      password_email = Auth::RestrictTo::PRE_AUTH_ROUTES
+                       .select { |_, m| %w[password email_auth].include?(m) }
+                       .keys
+
+      expect(Auth::SigninEnabled::GATED_ROUTES & Auth::SignupEnabled::GATED_ROUTES).to be_empty
+      expect(Auth::SigninEnabled::GATED_ROUTES.to_a + Auth::SignupEnabled::GATED_ROUTES.to_a)
+        .to match_array(password_email)
     end
   end
 end
