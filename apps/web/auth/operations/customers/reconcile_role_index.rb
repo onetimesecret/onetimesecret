@@ -47,6 +47,19 @@ module Auth
       # own, so an interrupted run leaves the index strictly closer to correct
       # — never worse than when it started — and a re-run converges.
       #
+      # ## Concurrency posture: revalidate at apply, converge on rerun
+      #
+      # The customer scan and the index scan are separate, non-atomic reads, so
+      # a role change/creation/deletion that lands between snapshot and apply
+      # can make a diff entry stale. An applied run therefore REVALIDATES each
+      # entry immediately before writing it: the customer is freshly reloaded
+      # and the write is skipped (and reported in Result#skipped) when the
+      # entry's premise no longer holds. A single fresh read per entry is
+      # deliberate — no WATCH/MULTI across the whole run; the tiny remaining
+      # window between an entry's revalidation and its SADD/SREM is accepted,
+      # and a rerun (which skipped entries exit non-cleanly into anyway)
+      # converges on it.
+      #
       # ## Audit (epic #20 CONTRACT 4)
       #
       # A dry run is a pure diagnostic read and records nothing. An applied run
@@ -76,13 +89,21 @@ module Auth
         #     roles that exist only on customer records (all-missing).
         # @!attribute additions [r]
         #   @return [Array<Hash>] { role:, objid: } members missing from their
-        #     role's bucket (SADDed on an applied run)
+        #     role's bucket. On a dry run: the full detected set. On an applied
+        #     run: only the entries actually SADDed (stale ones move to skipped).
         # @!attribute removals [r]
         #   @return [Array<Hash>] { role:, objid: } stale members — customer
-        #     gone/expired, or its current role differs (SREMed on apply)
+        #     gone/expired, or its current role differs. On an applied run: only
+        #     the entries actually SREMed (stale ones move to skipped).
+        # @!attribute skipped [r]
+        #   @return [Array<Hash>] { role:, objid:, action:, reason: } diff
+        #     entries whose premise no longer held at apply-time revalidation
+        #     (a concurrent role change/creation/deletion overlapped the run);
+        #     nothing was written for them. Always empty on a dry run. A rerun
+        #     re-evaluates them from fresh snapshots.
         # @!attribute dry_run [r]
         #   @return [Boolean]
-        Result = Data.define(:status, :scanned, :buckets, :additions, :removals, :dry_run)
+        Result = Data.define(:status, :scanned, :buckets, :additions, :removals, :skipped, :dry_run)
 
         # @param apply [Boolean] write the SADD/SREM diff when true; default is
         #   a report-only dry run (the safe default — this rewrites index sets
@@ -110,6 +131,7 @@ module Auth
               buckets: buckets,
               additions: additions,
               removals: removals,
+              skipped: [],
               dry_run: !@apply,
             )
           end
@@ -121,19 +143,25 @@ module Auth
               buckets: buckets,
               additions: additions,
               removals: removals,
+              skipped: [],
               dry_run: true,
             )
           end
 
-          apply_diff(additions, removals)
-          audit_repair(scanned, additions, removals)
+          applied_additions, applied_removals, skipped = apply_diff(additions, removals)
+
+          # Diff fully written: from here on, a raise (e.g. in the audit write)
+          # must not be recorded as a repair failure.
+          repair_written = true
+          audit_repair(scanned, applied_additions, applied_removals, skipped)
 
           Result.new(
             status: :repaired,
             scanned: scanned,
             buckets: buckets,
-            additions: additions,
-            removals: removals,
+            additions: applied_additions,
+            removals: applied_removals,
+            skipped: skipped,
             dry_run: false,
           )
         rescue StandardError => ex
@@ -141,8 +169,12 @@ module Auth
           # write an audit event (CONTRACT 4: viewing never writes). A failed
           # APPLIED run may have left part of the diff written — each applied
           # SADD/SREM is individually correct, but the attempt belongs in the
-          # trail.
-          audit_repair_failure(ex) if @apply && !@actor.nil?
+          # trail. Once the diff is fully written, though, a failure in the
+          # audit write itself must NOT record a failure event — the repair
+          # succeeded, and a `:failure` entry for a run that fixed the index
+          # would poison the trail (the exception still propagates so the CLI
+          # surfaces it).
+          audit_repair_failure(ex) if @apply && !@actor.nil? && !repair_written
           raise
         end
 
@@ -232,20 +264,67 @@ module Auth
         # the add-only drift already produces), never a missing colonel.
         # Removing the last member of a set deletes the key server-side, so
         # emptied buckets need no separate cleanup.
+        #
+        # Each entry is REVALIDATED against a fresh read of its customer
+        # immediately before the write, because the diff was computed from
+        # snapshots that a concurrent role change/creation/deletion may have
+        # invalidated. A write whose premise no longer holds is skipped and
+        # reported instead of applied. A mutation can still land between an
+        # entry's fresh read and its SADD/SREM — that residual per-entry window
+        # is accepted; a rerun converges on it.
+        #
+        # @return [Array(Array<Hash>, Array<Hash>, Array<Hash>)]
+        #   [applied_additions, applied_removals, skipped]
         def apply_diff(additions, removals)
-          additions.each do |entry|
-            Onetime::Customer.role_index_for(entry[:role]).add(entry[:objid])
+          skipped = []
+
+          applied_additions = additions.select do |entry|
+            current = current_role(entry[:objid])
+            if current == entry[:role]
+              Onetime::Customer.role_index_for(entry[:role]).add(entry[:objid])
+              true
+            else
+              skipped << entry.merge(
+                action: :add,
+                reason: "customer role is now #{current.nil? ? '(gone)' : current.inspect}",
+              )
+              false
+            end
           end
 
-          removals.each do |entry|
-            Onetime::Customer.role_index_for(entry[:role]).remove_element(entry[:objid])
+          applied_removals = removals.select do |entry|
+            current = current_role(entry[:objid])
+            if current == entry[:role]
+              skipped << entry.merge(
+                action: :remove,
+                reason: 'customer now holds this role again',
+              )
+              false
+            else
+              Onetime::Customer.role_index_for(entry[:role]).remove_element(entry[:objid])
+              true
+            end
           end
+
+          [applied_additions, applied_removals, skipped]
+        end
+
+        # Fresh, non-batched read of the customer's current role, bypassing the
+        # snapshot the diff was computed from.
+        #
+        # @return [String, nil] the role, or nil when the customer hash is
+        #   gone/expired or the role field is blank (no bucket membership is
+        #   correct for either)
+        def current_role(objid)
+          customer = Onetime::Customer.load(objid)
+          role     = customer&.role.to_s
+          role.strip.empty? ? nil : role
         end
 
         # One audit event per applied run that changed the index. objid lists
         # are intentionally NOT embedded — a large drift repair would bloat the
         # count-capped audit set; the CLI/report output carries the detail.
-        def audit_repair(scanned, additions, removals)
+        def audit_repair(scanned, additions, removals, skipped)
           return if @actor.nil?
 
           Onetime::ColonelAuditEvent.record(
@@ -257,7 +336,8 @@ module Auth
               scanned: scanned,
               additions: additions.size,
               removals: removals.size,
-              roles: (additions + removals).map { |entry| entry[:role] }.uniq.sort,
+              skipped: skipped.size,
+              roles: (additions + removals + skipped).map { |entry| entry[:role] }.uniq.sort,
             },
           )
         end

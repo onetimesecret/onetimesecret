@@ -198,7 +198,8 @@ module Onetime
 
         OT.info "[cli-customers-role-reconcile] status=#{result.status} " \
                 "scanned=#{result.scanned} additions=#{result.additions.size} " \
-                "removals=#{result.removals.size} dry_run=#{result.dry_run}"
+                "removals=#{result.removals.size} skipped=#{result.skipped.size} " \
+                "dry_run=#{result.dry_run}"
 
         json ? reconcile_output_json(result) : reconcile_output_text(result)
 
@@ -255,6 +256,17 @@ module Onetime
         verb = result.dry_run ? 'Would add' : 'Added'
         result.additions.each { |entry| puts "#{verb} #{entry[:objid]} to role_index:#{entry[:role]}" }
 
+        # Entries whose premise no longer held when the applied run revalidated
+        # them (concurrent role change) — nothing was written; rerun to
+        # re-evaluate from fresh snapshots.
+        result.skipped.each do |entry|
+          puts "Skipped #{entry[:action]} of #{entry[:objid]} in role_index:#{entry[:role]} (#{entry[:reason]})"
+        end
+        if result.skipped.any?
+          puts
+          puts "#{result.skipped.size} entr#{result.skipped.size == 1 ? 'y' : 'ies'} skipped after revalidation; rerun reconcile to re-check."
+        end
+
         return unless result.dry_run
 
         puts
@@ -269,6 +281,7 @@ module Onetime
           buckets: result.buckets,
           additions: result.additions,
           removals: result.removals,
+          skipped: result.skipped,
         )
       end
 

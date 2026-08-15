@@ -221,6 +221,68 @@ RSpec.describe 'Customers Role Reconcile Command' do
         expect(customer_bucket.member?(drifted.objid)).to be(true)
       end
 
+      it 'skips and reports a stale addition when the role changed between snapshot and apply' do
+        # Simulate the race deterministically: the SNAPSHOT (stubbed) claims
+        # the customer is a colonel, but by apply time the datastore says
+        # 'customer' — as if a concurrent demote landed mid-run. Apply-time
+        # revalidation must refuse the SADD instead of writing a membership
+        # the customer no longer holds.
+        raced = create_customer("race_add_#{suffix}@onetimesecret.com", role: 'customer')
+
+        op       = Auth::Operations::Customers::ReconcileRoleIndex.new(apply: true)
+        expected = Hash.new { |hash, key| hash[key] = Set.new }
+        expected['colonel'] << raced.objid
+        allow(op).to receive(:expected_memberships).and_return([expected, 1])
+
+        result = op.call
+
+        expect(result.status).to eq(:repaired)
+        expect(result.additions).to be_empty
+        expect(result.skipped).to include(
+          hash_including(role: 'colonel', objid: raced.objid, action: :add),
+        )
+        expect(colonel_bucket.member?(raced.objid)).to be(false)
+      end
+
+      it 'skips and reports a stale removal when the customer regained the role before apply' do
+        # Inverse race: the snapshot says this colonel-bucket member is stale,
+        # but by apply time the customer legitimately holds 'colonel' again
+        # (concurrent promote). Revalidation must refuse the SREM so the live
+        # colonel keeps its membership.
+        raced = create_customer("race_rem_#{suffix}@onetimesecret.com", role: 'colonel')
+        expect(colonel_bucket.member?(raced.objid)).to be(true)
+
+        op       = Auth::Operations::Customers::ReconcileRoleIndex.new(apply: true)
+        expected = Hash.new { |hash, key| hash[key] = Set.new }
+        allow(op).to receive(:expected_memberships).and_return([expected, 1])
+
+        result = op.call
+
+        expect(result.removals).not_to include(hash_including(objid: raced.objid))
+        expect(result.skipped).to include(
+          hash_including(role: 'colonel', objid: raced.objid, action: :remove),
+        )
+        expect(colonel_bucket.member?(raced.objid)).to be(true)
+      end
+
+      it 'surfaces skipped entries in the CLI text output' do
+        raced = create_customer("race_cli_#{suffix}@onetimesecret.com", role: 'customer')
+
+        op       = Auth::Operations::Customers::ReconcileRoleIndex.new(apply: true)
+        expected = Hash.new { |hash, key| hash[key] = Set.new }
+        expected['colonel'] << raced.objid
+        allow(op).to receive(:expected_memberships).and_return([expected, 1])
+        allow(Auth::Operations::Customers::ReconcileRoleIndex).to receive(:new).and_return(op)
+
+        outcome = run_reconcile(apply: true, force: true)
+
+        expect(outcome[:exit_code]).to eq(0)
+        expect(outcome[:stdout])
+          .to include("Skipped add of #{raced.objid} in role_index:colonel")
+        expect(outcome[:stdout]).to include('skipped after revalidation; rerun reconcile')
+        expect(colonel_bucket.member?(raced.objid)).to be(false)
+      end
+
       it 'applied run returns :repaired and converges to :clean' do
         drifted      = create_customer("op_apply_#{suffix}@onetimesecret.com", role: 'customer')
         drifted.role = 'colonel'
