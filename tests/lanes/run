@@ -389,64 +389,20 @@ set +a
 # index explicitly by setting LANES_DATASTORE_DB itself; the caller's
 # shell cannot (the scrub already cleared it).
 #
-# A checksum maps many paths onto 1023 indexes, so two worktrees CAN derive
-# the same one — and a silent collision reproduces exactly the contamination
-# this feature exists to prevent, which is the worst way for it to fail.
-# lanes_claim_db turns the derived index into a claim: a file per index under
-# ${HOME}/.cache/onetime-lanes/db/, holding the repo root that owns it. On a
-# collision the run walks to the next free index instead of sharing.
-#
-# Why a file and not a key in valkey: this has to resolve before the service
-# preflight (the index decides which database the preflight probes), and it
-# has to survive `pnpm clean:db`, which flushes the assigned database.
-#
-# Claims are sticky (the same worktree keeps its index across runs) and
-# reclaimable (a claim whose repo root no longer exists is stale — worktrees
-# get deleted — so the next run takes it over). If HOME is unwritable, the
-# derived index stands: no worse than having no registry at all.
-lanes_claim_db() {
-  local dir="${HOME:-}/.cache/onetime-lanes/db" candidate owner attempt
-  [[ -n "${HOME:-}" ]] || return 0
-  mkdir -p "${dir}" 2>/dev/null || return 0
-
-  candidate="${LANES_DATASTORE_DB}"
-  for (( attempt = 0; attempt < 32; attempt++ )); do
-    # noclobber makes "create only if absent" atomic, so two worktrees
-    # racing for one index can't both believe they won.
-    if ( set -o noclobber; builtin printf '%s\n' "${REPO_ROOT}" >"${dir}/${candidate}" ) 2>/dev/null; then
-      LANES_DATASTORE_DB="${candidate}"
-      return 0
-    fi
-
-    owner=''
-    IFS= read -r owner <"${dir}/${candidate}" 2>/dev/null || true
-    # An empty read means the winner of a noclobber race hasn't finished
-    # writing yet, so treat it as taken rather than stale — reclaiming it
-    # would undo the very race the atomic create just resolved.
-    if [[ -n "${owner}" ]]; then
-      if [[ "${owner}" == "${REPO_ROOT}" ]]; then
-        # Ours already — idempotent re-entry from a previous run.
-        LANES_DATASTORE_DB="${candidate}"
-        return 0
-      elif [[ ! -d "${owner}" ]]; then
-        # Stale: the owning worktree is gone. Remove the claim file so
-        # competing runners must race on the noclobber create — exactly one
-        # wins the slot rather than both silently overwriting it.
-        rm -f "${dir}/${candidate}" 2>/dev/null || true
-        # Re-contest the same slot: continue increments attempt but not
-        # candidate, so the next iteration tries the noclobber path again.
-        continue
-      fi
-    fi
-
-    # Taken by a live worktree: probe on, staying inside 1..1023.
-    candidate=$(( 1 + candidate % 1023 ))
-  done
-
-  echo "error: no free datastore index near ${LANES_DATASTORE_DB} (see ${dir})" >&2
-  echo "hint: remove claims for checkouts you no longer have, or set LANES_DATASTORE_DB" >&2
-  exit 69
-}
+# A checksum maps many paths onto 8191 indexes, so two live worktrees CAN
+# derive the same one — and a silent collision reproduces exactly the
+# contamination this feature exists to prevent, which is the worst way for
+# it to fail. The index space is sized so that stays rare (~2% lifetime odds
+# across 20 worktrees), and the valkey preflight below DETECTS the case and
+# fails loudly instead of resolving it: an owner marker inside the selected
+# database names the repo root using it, and a mismatch against a checkout
+# that still exists on disk aborts the run. No registry on disk, no stale
+# reclamation, no cross-process locking — a collision is an error with a
+# one-line fix (pin LANES_DATASTORE_DB in a lane overlay), not a state
+# machine. The marker lives in the datastore because that's where writes
+# are atomic (SET NX resolves on the server); it can't be consulted before
+# the preflight, but it doesn't need to be — the derived index is final,
+# never probed away from.
 
 if [[ -z "${LANES_DATASTORE_DB:-}" ]]; then
   if [[ -n "${CI:-}" ]]; then
@@ -459,13 +415,12 @@ if [[ -z "${LANES_DATASTORE_DB:-}" ]]; then
     LANES_DATASTORE_DB=0
   else
     # cksum: POSIX, deterministic across platforms (unlike bash's RANDOM or
-    # a hash of inode numbers). Derived indexes land in 1..1023
-    # (compose.test.yml starts valkey with --databases 1024), leaving 0 to
+    # a hash of inode numbers). Derived indexes land in 1..8191
+    # (compose.test.yml starts valkey with --databases 8192), leaving 0 to
     # mean "the shared, unsuffixed datastore".
     read -r _lanes_cksum _ < <(builtin printf '%s' "${REPO_ROOT}" | cksum)
-    LANES_DATASTORE_DB=$(( 1 + _lanes_cksum % 1023 ))
+    LANES_DATASTORE_DB=$(( 1 + _lanes_cksum % 8191 ))
     builtin unset _lanes_cksum
-    lanes_claim_db  # may move the index off a collision
   fi
 fi
 case "${LANES_DATASTORE_DB}" in
@@ -563,7 +518,7 @@ for p in ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"}; do
 done
 
 # The derived DB index only exists if the valkey container was created with
-# enough databases (compose.test.yml pins --databases 1024; the image default
+# enough databases (compose.test.yml pins --databases 8192; the image default
 # is 16). Probe with a raw RESP SELECT over /dev/tcp — a container from
 # before the pin would otherwise surface as opaque mid-suite connection
 # errors instead of one actionable line here. Subshell so a refused
@@ -578,11 +533,69 @@ if [[ "${REDIS_URL:-}" =~ 127\.0\.0\.1:2163 ]]; then
   if [[ "${_lanes_reply}" != '+OK'* ]]; then
     echo "error: valkey on 127.0.0.1:2163 rejected SELECT ${LANES_DATASTORE_DB}" \
          "(${_lanes_reply:-no reply}). The container likely predates the" >&2
-    echo "  --databases 1024 pin in compose.test.yml; recreate it:" >&2
+    echo "  --databases 8192 pin in compose.test.yml; recreate it:" >&2
     echo "  docker compose -f compose.test.yml up -d --force-recreate valkey" >&2
     exit 69
   fi
   builtin unset _lanes_reply
+fi
+
+# Two worktrees can hash to one index. Detect that inside the database
+# itself: an owner marker names the repo root using this index, SET NX makes
+# the first writer win on the server (no filesystem locking, no TOCTOU), and
+# a mismatch against a checkout that still exists on disk aborts loudly —
+# silently sharing the database is the exact failure this feature exists to
+# prevent. A marker whose checkout is gone is stale (worktrees get deleted):
+# overwrite it, then re-read to confirm this runner won the takeover, so two
+# runners contesting a stale slot can't both proceed. The marker does not
+# survive `pnpm clean:db` flushing the database mid-run; it is re-established
+# at the start of every run, which is where the guard matters. Best-effort by
+# design: a protocol hiccup lets the run proceed on the derived index (the
+# SELECT probe above already proved the service works), only a confirmed
+# live foreign owner aborts. DB 0 is the shared, unsuffixed datastore — no
+# marker. Runner-internal key, not app data: the app under test never reads
+# it, and every run re-asserts it after any flush.
+if [[ "${LANES_DATASTORE_DB}" != 0 && "${REDIS_URL:-}" =~ 127\.0\.0\.1:2163 ]]; then
+  _lanes_owner="$( (
+    LC_ALL=C  # ${#arg} must count bytes: RESP bulk lengths are byte counts
+    exec 3<>"/dev/tcp/127.0.0.1/2163" || exit 0
+    crlf=$'\r\n'
+    send() {  # RESP array of bulk strings — safe for any bytes in the path
+      local out="*$#${crlf}" arg
+      for arg in "$@"; do out+="\$${#arg}${crlf}${arg}${crlf}"; done
+      printf '%s' "${out}" >&3
+    }
+    recv() {  # prints a bulk/simple reply payload; nothing for null bulk
+      local line data
+      IFS= read -r -t 5 line <&3 || return 1
+      line=${line%$'\r'}
+      case "${line}" in
+        '$-1') ;;
+        \$*)   IFS= read -r -t 5 data <&3 || return 1
+               printf '%s' "${data%$'\r'}" ;;
+        *)     printf '%s' "${line}" ;;
+      esac
+    }
+    send SELECT "${LANES_DATASTORE_DB}"; recv >/dev/null || exit 0
+    send SET _lanes:owner "${REPO_ROOT}" NX; recv >/dev/null || exit 0
+    owner="$(send GET _lanes:owner; recv)" || exit 0
+    [[ "${owner}" == "${REPO_ROOT}" ]] && exit 0
+    if [[ -n "${owner}" && -d "${owner}" ]]; then
+      printf '%s' "${owner}"; exit 1
+    fi
+    # Stale: overwrite, then confirm the takeover actually stuck with us.
+    send SET _lanes:owner "${REPO_ROOT}"; recv >/dev/null || exit 0
+    owner="$(send GET _lanes:owner; recv)" || exit 0
+    [[ "${owner}" == "${REPO_ROOT}" ]] && exit 0
+    printf '%s' "${owner}"; exit 1
+  ) 2>/dev/null )" || {
+    echo "error: valkey DB ${LANES_DATASTORE_DB} is in use by another live checkout:" >&2
+    echo "  ${_lanes_owner}" >&2
+    echo "hint: pin a free index for this worktree by setting LANES_DATASTORE_DB in" >&2
+    echo "  a lane env file or overlay (the calling shell can't; the scrub clears it)" >&2
+    exit 69
+  }
+  builtin unset _lanes_owner
 fi
 
 echo "[lane:${LANE}] mode=${AUTHENTICATION_MODE:-?}" \
