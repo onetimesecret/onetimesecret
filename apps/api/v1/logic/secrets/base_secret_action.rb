@@ -167,13 +167,21 @@ module V1::Logic
         # Convert to integer, now that we know it has a value
         @ttl = ttl.to_i
 
+        # Anonymous TTL ceiling (#4172): apply the configured anonymous
+        # ceiling when the caller is unauthenticated, mirroring V2's
+        # anonymous_max_ttl. Without this, anonymous callers land on the
+        # bare V1_MAX_TTL (30 days) instead of the configured 7-day default.
+        anon_max = if cust.nil? || cust.anonymous?
+                     anonymous_max_ttl(max_ttl)
+                   end
+
         # V1 TTL clamping [#2621]: silently clamp to V1 bounds.
         # v0.23.4 silently clamped rather than rejecting, so V1 preserves
         # that behavior for backward compatibility. Clamping happens BEFORE
         # the entitlement gate so that e.g. ttl=9999999 gets clamped to
         # 30 days rather than rejected for missing entitlements.
         # plan_max may be lower than max_ttl, so use the stricter ceiling.
-        effective_max_ttl = [max_ttl, plan_max].min
+        effective_max_ttl = [max_ttl, plan_max, anon_max].compact.min
         @ttl              = ttl.clamp(min_ttl, effective_max_ttl)
 
         # Entitlement gate: requests beyond free tier TTL require extended_default_expiration.
@@ -434,6 +442,37 @@ module V1::Logic
       rescue StandardError => ex
         OT.ld "[BaseSecretAction] TTL limit resolution failed: #{ex.message}"
         config_max
+      end
+
+      # Anonymous TTL ceiling (#4172), mirroring V2's anonymous_max_ttl.
+      #
+      # Lowest of up to three ceilings:
+      #   1. configured_anonymous_max_ttl (default 7 days, env TTL_MAX_ANONYMOUS)
+      #   2. config_max (V1_MAX_TTL, so a global cap still wins)
+      #   3. free-tier secret_lifetime limit (only when billing is enabled)
+      #
+      # @param config_max [Integer] V1_MAX_TTL fallback
+      # @return [Integer] Maximum TTL in seconds for anonymous callers
+      def anonymous_max_ttl(config_max)
+        ceilings = [
+          Onetime::Models::Features::WithEntitlements.configured_anonymous_max_ttl,
+          config_max,
+        ]
+
+        billing_enabled = begin
+          Onetime::BillingConfig.instance.enabled?
+        rescue StandardError => ex
+          OT.ld "[anonymous_max_ttl] BillingConfig unavailable (#{ex.class}: #{ex.message}); " \
+                "anonymous TTL ceiling falls back to #{ceilings.min}"
+          false
+        end
+
+        if billing_enabled
+          free_tier_max = Onetime::Organization.free_tier_limits['secret_lifetime.max'].to_i
+          ceilings << free_tier_max if free_tier_max.positive?
+        end
+
+        ceilings.min
       end
 
       # Creates the receipt/secret pair using the modern Metadata.spawn_pair API.
