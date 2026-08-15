@@ -7,6 +7,10 @@
 # (ADR-034#restrict-to-is-an-access-control-not-a-display-preference
 # / #reject-as-not-found-not-forbidden, issue #4139).
 #
+# This file registers BOTH pre-auth gates, because before_rodauth can only be
+# defined once (hooks do not chain): the restrict_to axis (Auth::RestrictTo)
+# and the ADR-024 sign-in/sign-up opt-in axis (Auth::SigninGate, #4163).
+#
 # The POLICY — the route → sign-in-method table, resolution input gathering,
 # and the 404 reject shape — lives in apps/web/auth/restrict_to.rb
 # (Auth::RestrictTo), because it also has non-Rodauth callers that must not be
@@ -21,12 +25,23 @@
 #
 
 require_relative '../../restrict_to'
+require_relative '../../signin_gate'
 
 module Auth::Config::Hooks
   module RestrictTo
     def self.configure(auth)
       auth.before_rodauth do
         Auth::RestrictTo.enforce_route!(self)
+        # SECOND AXIS, same hook (#4163). restrict_to says WHICH sign-in method
+        # a host may offer; Auth::SigninGate says whether the host opted into
+        # sign-in / sign-up at all (ADR-024). Hooks do not chain, so both must
+        # be driven from this one registration.
+        #
+        # ORDER IS LOAD-BEARING ONLY IN ONE DIRECTION: the reject bodies are
+        # byte-identical, so neither order leaks which gate fired, but
+        # restrict_to runs first so the narrower method-level verdict is the one
+        # that stands where both apply.
+        Auth::SigninGate.enforce_route!(self)
       end
     end
 
@@ -39,12 +54,21 @@ module Auth::Config::Hooks
     # credential. This hook closes it at the one chokepoint both entry points
     # share.
     #
+    # BOTH AXES hang here, for the same reason they both hang on before_rodauth:
+    # the restrict_to gate answers "may this host offer magic links as a METHOD"
+    # and Auth::SigninGate answers "did this host opt into sign-in at all, and
+    # is email_auth effective for it" (SigninConfig.resolve_email_auth_enabled).
+    # before_rodauth cannot cover this path — it sees route :login and applies
+    # only the plain sign-in axis, so leaving SigninGate off this hook leaves a
+    # host that disabled magic links still sending them.
+    #
     # Registered separately because `before_email_auth_request` only EXISTS as a
     # configuration method when the email_auth feature is loaded — see the call
     # site in config.rb, inside the email_auth_enabled? branch.
     def self.configure_email_auth(auth)
       auth.before_email_auth_request do
         Auth::RestrictTo.enforce_method!(self, 'email_auth', :email_auth_request)
+        Auth::SigninGate.enforce_email_auth!(self)
       end
     end
   end

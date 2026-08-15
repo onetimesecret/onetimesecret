@@ -296,9 +296,12 @@ export function isSsoOnlyModeOf(state: { features?: Features }): boolean {
  * When true, password-based auth routes are disabled and the sign-in page
  * shows only SSO provider buttons.
  *
- * The backend only sets restrict_to='sso' when SSO is enabled and at
- * least one provider is configured, so no additional frontend guard is
- * needed.
+ * The scalar only carries 'sso' when the server's resolver could honor it:
+ * an unavailable restriction is nulled and reported through
+ * features.effective_restrict_to as state 'unavailable', never widened back
+ * to standard mode. So no extra frontend availability guard is needed — but
+ * see AuthMethodSelector: display code must fail closed on
+ * effective_restrict_to, not on this scalar.
  */
 export function isSsoOnlyMode(): boolean {
   if (typeof window === 'undefined') return false;

@@ -67,7 +67,8 @@ module InviteAPI::Logic
       end
 
       def raise_concerns
-        # A restricted-away method presents no surface at all (A7), so this
+        # A restricted-away method presents no surface at all
+        # (ADR-034#reject-as-not-found-not-forbidden), so this
         # runs FIRST — before the rate limiter, before the token is even read.
         # A dark endpoint must not consume the invitee's rate-limit budget or
         # touch invitation state.
@@ -220,8 +221,9 @@ module InviteAPI::Logic
       #      account we just created is precisely what blocks SSO from creating
       #      a clean one. With no account, SSO signs them in and /accept works.
       #   3. It mints a password credential the install has restricted away —
-      #      "configuration presenting as availability", the shape A1 exists to
-      #      kill.
+      #      "configuration presenting as availability", the shape
+      #      ADR-034#restrict-to-is-an-access-control-not-a-display-preference
+      #      exists to kill.
       #
       # WHERE THE INVITEE GOES INSTEAD. The invitation is untouched and still
       # pending: they authenticate by the method the host does offer (SSO on an
@@ -230,11 +232,14 @@ module InviteAPI::Logic
       # /accept. GET /:token (ShowInvite) and POST /:token/accept are NOT gated
       # and must not be: the first is a display surface, the second is
       # account-scoped and reachable only with a session already established by
-      # a permitted method (A7 "Scope, settled").
+      # a permitted method (ADR-034#reject-as-not-found-not-forbidden, scope
+      # note).
       #
-      # Resolution is NOT re-derived here (A2): Auth::RestrictTo owns input
+      # Resolution is NOT re-derived here
+      # (ADR-034#resolution-is-model-owned): Auth::RestrictTo owns input
       # gathering (including the custom-domain 'sso' pin and the runtime
-      # availability half of A3) and SigninConfig.resolve_restrict_to owns the
+      # availability half of ADR-034#degradation-is-fail-closed) and
+      # SigninConfig.resolve_restrict_to owns the
       # rule. This asks the same question the sign-in page on this host answers.
       def enforce_restrict_to!
         return if Auth::RestrictTo.allows?(restrict_to_env, 'password')
@@ -247,7 +252,8 @@ module InviteAPI::Logic
           host: display_domain,
         )
 
-        # 404, not 403 (A7): the reject shape for a restricted-away method is
+        # 404, not 403 (ADR-034#reject-as-not-found-not-forbidden): the reject
+        # shape for a restricted-away method is
         # not-found, matching Rodauth's behavior for a feature that was never
         # loaded. No error_key — an undefined route has no bespoke i18n string,
         # and reusing the invite API's "not found or expired" key would assert

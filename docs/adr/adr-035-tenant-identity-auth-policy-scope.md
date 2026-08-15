@@ -7,8 +7,8 @@ title: "ADR-035: Tenant Identity and Authentication-Policy Scope"
 
 ## Context
 
-Split out of [ADR-024](adr-024-custom-domain-auth-override-resolution.md)
-amendment A6. [ADR-034](adr-034-restrict-to-enforcement.md) governs *which
+Split out of [ADR-024](adr-024-custom-domain-auth-override-resolution.md).
+[ADR-034](adr-034-restrict-to-enforcement.md) governs *which
 methods* work on a request host; this ADR governs *which accounts* may
 authenticate on it — a separate axis.
 

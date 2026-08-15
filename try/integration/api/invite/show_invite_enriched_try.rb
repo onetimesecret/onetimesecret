@@ -298,7 +298,9 @@ auth_methods = resp['record']['auth_methods']
 ## #invite-signup-is-gated, #4139) — password appears BECAUSE this host permits it
 # This assertion used to read "password is always enabled" and hardcoded that
 # as contract. It is no longer true, and asserting it would pin the exact
-# display/runtime disagreement A1 exists to kill: POST /:token/signup 404s on
+# display/runtime disagreement
+# ADR-034#restrict-to-is-an-access-control-not-a-display-preference exists to
+# kill: POST /:token/signup 404s on
 # a host that restricts password away, so a page that always advertises a
 # password method advertises a submit that cannot succeed. What holds now is
 # the conditional: password is offered iff the resolution permits it. This
@@ -313,7 +315,7 @@ password_permitted = resolution['state'] == 'unrestricted' ||
 [resolution['state'], password_permitted, !password_method.nil?, password_method && password_method['enabled']]
 #=> ['unrestricted', true, true, true]
 
-## auth_methods never advertises a method the resolution disallows [A1]
+## auth_methods never advertises a method the resolution disallows
 resp = JSON.parse(last_response.body)
 resolution = resp['record']['effective_restrict_to']
 # Wire type 'magic_link' is restrict_to value 'email_auth'.
@@ -351,7 +353,7 @@ record = resp['record']
 true
 #=> true
 
-## An unhonorable domain restriction fails closed: no method is offered [A3]
+## An unhonorable domain restriction fails closed: no method is offered
 # The load-bearing negative. Widening back to password here would re-expose
 # exactly the method the restriction hid, AND would advertise a signup form
 # that POST /:token/signup 404s on.
@@ -393,7 +395,8 @@ required_fields.all? { |f| record.key?(f) }
 
 ## effective_restrict_to is present on a NON-custom host (ADR-034#invite-signup-is-gated, #4139)
 # The regression this field fixes: auth_methods lives inside the custom-domain
-# branch, so an SSO-only INSTALL — A11's stated live case, global restriction,
+# branch, so an SSO-only INSTALL — the live case stated in
+# ADR-034#invite-signup-is-gated, global restriction,
 # invitee on the canonical host the invitation email links to — got nothing at
 # all to predict the POST /:token/signup gate with, and rendered a password
 # form whose submit 404s.
@@ -403,7 +406,7 @@ resolution = record['effective_restrict_to']
 [record.key?('auth_methods'), resolution.nil?, resolution.keys.sort]
 #=> [false, false, ['restrict_to', 'source', 'state']]
 
-## effective_restrict_to reports resolver states, never a bare boolean [A3]
+## effective_restrict_to reports resolver states, never a bare boolean
 # :unavailable must survive the wire distinct from :unrestricted — collapsing
 # it to a null restrict_to would read as "no restriction" and re-offer every
 # method the restriction hid.

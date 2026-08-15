@@ -193,7 +193,9 @@ module Onetime
       OT.conf.dig('features', 'organizations', 'sso_enabled') == true
     end
 
-    # The login-page restriction, if any.
+    # The global sign-in restriction, if any. An access control over which
+    # methods work on this install, not a login-page display preference
+    # (ADR-034#restrict-to-is-an-access-control-not-a-display-preference).
     # Returns one of RESTRICT_TO_VALUES ('password', 'email_auth',
     # 'webauthn', 'sso'), or nil ONLY when no restriction is configured
     # (and always nil in simple mode, where restrict_to has no meaning).

@@ -71,7 +71,8 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
   subject(:logic) { described_class.new(strategy_result, params) }
 
   # Resolution helper. Drives the endpoint with REAL RestrictToResolution
-  # values so the semantics under test stay the model's (A2): in particular
+  # values so the semantics under test stay the model's
+  # (ADR-034#resolution-is-model-owned): in particular
   # #allows? returning false for everything in the :unavailable state.
   def resolution_for(state, value, source)
     klass = Onetime::CustomDomain::SigninConfig::RestrictToResolution
@@ -98,7 +99,8 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
     # reads live per-host state (CustomDomain + SigninConfig lookups); the
     # rule it feeds (SigninConfig.resolve_restrict_to) and the verdict object
     # stay real. Auth::RestrictTo.allows? is built on resolution_for, so the
-    # A11 gate on POST /:token/signup reads the same stub — which is what
+    # ADR-034#invite-signup-is-gated gate on POST /:token/signup reads the
+    # same stub — which is what
     # makes the agreement test below meaningful rather than circular.
     allow(Auth::RestrictTo).to receive(:resolution_for).and_return(resolution)
   end
@@ -143,13 +145,14 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
       end
     end
 
-    context 'when the restricted method is unavailable (A3 fail-closed)' do
+    context 'when the restricted method is unavailable (fail-closed)' do
       let(:resolution) { resolution_for(:unavailable, 'sso', :domain) }
 
       # The three-state shape survives the wire: :unavailable is NOT projected
       # down to a bare null the way `features.restrict_to` must be. A null
       # here would read as "unrestricted" and re-offer every method the
-      # restriction hid — the fail-open A3 exists to kill.
+      # restriction hid — the fail-open ADR-034#degradation-is-fail-closed
+      # exists to kill.
       it 'reports unavailable, keeping the method that was named' do
         expect(record[:effective_restrict_to]).to eq(
           state: 'unavailable', restrict_to: 'sso', source: 'domain'
@@ -157,7 +160,7 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
       end
     end
 
-    context 'when global and domain restrictions conflict (A8)' do
+    context 'when global and domain restrictions conflict' do
       let(:resolution) { resolution_for(:unavailable, 'sso', :conflict) }
 
       it 'reports unavailable with source conflict' do
@@ -168,7 +171,8 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
     end
 
     # THE REGRESSION THAT MOTIVATED THE FIELD. auth_methods sits inside the
-    # `custom_domain?` branch, so an SSO-only INSTALL — A11's stated live case,
+    # `custom_domain?` branch, so an SSO-only INSTALL — the live case stated
+    # in ADR-034#invite-signup-is-gated,
     # where the restriction is global and the invitee is on the canonical host
     # — used to receive nothing at all to predict the gate with.
     context 'on a NON-custom host' do
@@ -386,7 +390,7 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
       end
     end
 
-    context 'unavailable (A3)' do
+    context 'unavailable' do
       let(:resolution) { resolution_for(:unavailable, 'sso', :domain) }
 
       # Empty is the correct answer: the frontend renders "sign-in
@@ -421,11 +425,12 @@ RSpec.describe InviteAPI::Logic::Invites::ShowInvite do
   #
   # The whole point of the field. Both endpoints route through
   # Auth::RestrictTo for the SAME host: ShowInvite renders
-  # resolution_for(env), the A11 gate on POST /:token/signup calls
+  # resolution_for(env), the ADR-034#invite-signup-is-gated gate on
+  # POST /:token/signup calls
   # allows?(env, 'password'), which is resolution_for(env).allows?('password').
   # Stubbing only resolution_for means a divergence in how either side
   # interprets the verdict shows up here.
-  describe 'agreement with the POST /:token/signup gate (A11)' do
+  describe 'agreement with the POST /:token/signup gate' do
     let(:domain_strategy) { :custom }
     let(:display_domain)  { 'signin.acme.example' }
     let(:valid_password)  { 'SecureP@ssw0rd123!' }

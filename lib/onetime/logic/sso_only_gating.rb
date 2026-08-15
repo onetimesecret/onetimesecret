@@ -6,9 +6,22 @@ module Onetime
   module Logic
     # Concern for enforcing SSO-only mode restrictions in API logic classes.
     #
-    # When SSO-only mode is active (AUTH_SSO_ONLY=true and AUTH_SSO_ENABLED=true),
-    # password-based account management operations are disabled. Users must
-    # manage their credentials through the SSO identity provider instead.
+    # Keys off AuthConfig#sso_only_enabled? — the global restriction, i.e.
+    # `full.restrict_to == 'sso'` (rendered from AUTH_SSO_ONLY=true, or set
+    # directly). A global restriction naming an unavailable method is a fatal
+    # boot error, so by the time this concern runs the restriction is honorable;
+    # the predicate is a bare comparison with no availability guard of its own
+    # (ADR-034#degradation-is-fail-closed).
+    #
+    # When it is active, password-based account management operations are
+    # disabled. Users must manage their credentials through the SSO identity
+    # provider instead.
+    #
+    # These endpoints are account-scoped, not host-scoped, so they are
+    # explicitly EXEMPT from host-scoped restrict_to route enforcement
+    # (ADR-034#reject-as-not-found-not-forbidden) and are governed by this
+    # concern instead — hence 403 here rather than the 404 the route gate
+    # returns. A per-domain restrict_to never reaches this check.
     #
     # Blocked operations:
     # - Account destruction (POST /destroy)

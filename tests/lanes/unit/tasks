@@ -6,5 +6,8 @@
 # generated/schemas/config/billing.schema.json.
 pnpm run locales:sync
 pnpm run schemas:json:generate
-bundle exec rake try:unit
+# A try:unit failure aborts the lane before spec:fast ever runs (#4168's
+# secondary issue): say so explicitly, or a red lane silently implies the
+# rspec half was exercised when it wasn't.
+bundle exec rake try:unit || { echo "[lane:unit] try:unit FAILED — spec:fast did NOT run; the rspec half of this lane is unverified" >&2; exit 1; }
 bundle exec rake spec:fast

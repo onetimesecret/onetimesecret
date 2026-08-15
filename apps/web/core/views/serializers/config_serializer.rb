@@ -340,10 +340,10 @@ module Core
           end
 
           signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id) if domain_id
-          global        = effective_global_restrict_to(view_vars, signin_config, domain_id)
+          inherited     = effective_global_restrict_to(view_vars, signin_config, domain_id)
 
           Onetime::CustomDomain::SigninConfig.resolve_restrict_to(
-            global,
+            inherited.value,
             signin_config,
             # Post-boot availability of the global restriction (ADR-034#degradation-is-fail-closed),
             # asked through the SHARED gatherer so the page cannot answer it
@@ -354,11 +354,15 @@ module Core
             # narrowed through the custom-host capabilities (password defaults
             # OFF there), resolved :unavailable, and 404'd the very routes this
             # page's form posts to (#4139).
+            #
+            # #4165: pass pin_established so the availability check trusts the
+            # SSO pin's own proof instead of re-consulting AuthConfig.
             available: Onetime::CustomDomain::SigninConfig.restriction_available_for_request?(
-              global,
+              inherited.value,
               signin_config,
               domain_id: domain_id,
               custom_host: tenant_domain?(view_vars),
+              already_established: inherited.pin_established,
             ),
           )
         end
@@ -366,59 +370,37 @@ module Core
         # The restriction this REQUEST HOST inherits when no enabled per-domain
         # config speaks — the `global` input to the resolver.
         #
-        # SSO carve-out parity with resolve_signin: a custom domain with no
-        # enabled SigninConfig keeps its /signin page ONLY because SSO is
-        # available (resolve_signin returns sso_available?). Without narrowing
-        # restrict_to, AuthMethodSelector would fall into standard mode and
-        # render the password/email form beside the SSO buttons — yet password/
-        # email default OFF on custom domains and their POST route
-        # (Base#signin_enabled?) rejects them, so those forms advertise methods
-        # that always fail. Pin 'sso' on exactly the same predicate
-        # resolve_signin uses (tenant_domain? && sso_available?) so the
-        # page-availability gate and the method restriction stay in lockstep
-        # and the SSO-only page renders SSO buttons alone.
-        #
-        # The pin is a property of the HOST, not an operator restriction, and
-        # it must not reach the resolver when an enabled domain config speaks.
-        # Under ADR-034#resolution-intersects-never-widens the resolver intersects rather than replaces, so a
-        # pin handed in unconditionally would CONFLICT with the tenant's own
-        # restrict_to and resolve :unavailable — turning a display convenience
-        # into a lockout. Skip it on exactly the predicate resolve_signin uses
-        # (tenant_domain? && !signin_config&.enabled?), which restores the
-        # pre-extraction ordering where the pin was only reached after the
-        # domain branch declined.
-        #
-        # Design smell, recorded: this overloads the resolver's `global`
-        # parameter with two different things — a real operator restriction
-        # and a derived host property. They intersect differently, which is
-        # why this guard exists. If a third pin ever appears, the resolver
-        # should take them as distinct inputs instead.
-        #
-        # ONE PREDICATE WITH THE RUNTIME GATE (#4139): the pin fires on
-        # SsoConfig.sso_available_for_tenant_host?, which Auth::RestrictTo
-        # calls too. It is equivalent to the local sso_available?
-        # (build_sso_config) verdict for a tenant host — tenant credentials, or
-        # platform providers when fallback is allowed — but expressed
-        # domain-id-first so a gate holding a Rack env can ask the same
-        # question. Previously the gate asked the narrower tenant-only ladder
-        # and was therefore MORE PERMISSIVE than this page.
+        # The pin POLICY is SigninConfig.inherited_restrict_to (see it for why
+        # an SSO-only custom host inherits 'sso' and why the pin may only apply
+        # when no enabled domain config speaks). It is shared with the runtime
+        # gate (Auth::RestrictTo.global_restrict_to) and the settings API
+        # (DomainsAPI signin_config details), so the page cannot inherit a
+        # different restriction from the routes it posts to
+        # (ADR-034#resolution-is-model-owned). All that is left here is the
+        # display side's own request facts: the tenant-host classification and
+        # the #4157 read-failure tri-state.
         #
         # @param view_vars [Hash] View variables with request context
         # @param signin_config [Onetime::CustomDomain::SigninConfig, nil]
         # @param domain_id [String, nil, :domain_read_failed] already-resolved CustomDomain objid
-        # @return [String, nil]
+        # @return [Onetime::CustomDomain::SigninConfig::InheritedRestriction]
         def effective_global_restrict_to(view_vars, signin_config = nil, domain_id = nil)
           # Tri-state handling (#4157): if domain_id is DOMAIN_READ_FAILED, the
           # caller should have already short-circuited. If we reach here anyway,
           # don't attempt the SSO pin — fall through to global.
-          if tenant_domain?(view_vars) && !signin_config&.enabled? && domain_id != DOMAIN_READ_FAILED
+          custom_host = tenant_domain?(view_vars) && domain_id != DOMAIN_READ_FAILED
+
+          if custom_host && !signin_config&.enabled?
             domain_id ||= resolve_domain_id(view_vars)
             # Defensive: if the fallback read also failed, skip the SSO pin.
-            return 'sso' if domain_id != DOMAIN_READ_FAILED &&
-                            Onetime::CustomDomain::SsoConfig.sso_available_for_tenant_host?(domain_id)
+            custom_host = domain_id != DOMAIN_READ_FAILED
           end
 
-          Onetime.auth_config.restrict_to
+          Onetime::CustomDomain::SigninConfig.inherited_restrict_to(
+            signin_config,
+            domain_id: custom_host ? domain_id : nil,
+            custom_host: custom_host,
+          )
         end
 
         # Resolve sign-in availability for the current request context.

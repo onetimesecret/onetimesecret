@@ -9,7 +9,7 @@ title: "ADR-034: Authentication Method Restriction Resolution and Fail-Closed En
 
 PR #4130 shipped the display half of domain `restrict_to` (every value
 rendered, single-method picker enabled) but left two gaps: no server-side
-enforcement, no server-side re-validation. Split out of [ADR-024](adr-024-custom-domain-auth-override-resolution.md#amendments),
+enforcement, no server-side re-validation. Split out of [ADR-024](adr-024-custom-domain-auth-override-resolution.md),
 which recorded the underlying decisions. Deciding principle throughout:
 security, privacy, and long-term codebase health; the default posture is
 fail-closed.

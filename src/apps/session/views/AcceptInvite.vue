@@ -151,14 +151,16 @@
    * way to sign in at all.
    *
    * `source: 'conflict'` (global and domain naming different methods, which
-   * has no intersection under A8) always resolves `unavailable`, so this one
+   * has no intersection under ADR-034#resolution-intersects-never-widens)
+   * always resolves `unavailable`, so this one
    * check covers both; only the COPY branches on source.
    */
   const signinUnavailable = computed(() => restrictToResolution.value?.state === 'unavailable');
 
   /**
    * This host permits a single method and it is NOT password — i.e. the case
-   * where the signup form below would POST into the A11 gate and 404.
+   * where the signup form below would POST into the
+   * ADR-034#invite-signup-is-gated gate and 404.
    *
    * False when unrestricted, when restricted to password (nothing changes),
    * and when the resolution is unavailable (that is signinUnavailable's
@@ -206,7 +208,8 @@
   /**
    * Whether the host's single permitted method is SSO — the one restricted
    * case this page can actually complete, by routing the invitee into the
-   * provider (A11: SSO signs them in and creates the account cleanly, then
+   * provider (ADR-034#invite-signup-is-gated: SSO signs them in and creates
+   * the account cleanly, then
    * they return here authenticated and accept).
    */
   const ssoRestricted = computed(() => restrictToResolution.value?.restrict_to === 'sso');
@@ -224,7 +227,8 @@
    *
    * Every branch says the same two things: this host does not take the method
    * the form would have used, and the invitation is untouched. Nothing here
-   * implies the invitation was consumed or lost — under A11 the gated signup
+   * implies the invitation was consumed or lost — under
+   * ADR-034#invite-signup-is-gated the gated signup
    * creates nothing, so it is still pending.
    */
   const restrictedNotice = computed(() => {
@@ -791,8 +795,9 @@
               {{ restrictedNotice }}
             </p>
             <!--
-              The invitation is NOT consumed by the gated signup (A11 creates
-              nothing), so say so plainly rather than leaving the invitee to
+              The invitation is NOT consumed by the gated signup
+              (ADR-034#invite-signup-is-gated creates nothing), so say so plainly
+              rather than leaving the invitee to
               assume they burned their link.
             -->
             <p class="mt-2 text-sm text-sky-700 dark:text-sky-200">

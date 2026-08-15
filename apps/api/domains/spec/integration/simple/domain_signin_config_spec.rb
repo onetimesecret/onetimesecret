@@ -286,7 +286,8 @@ RSpec.describe 'Domain Signin Config API', type: :integration do
       end
     end
 
-    # A domain restriction is subject to the same A3 degradation as an
+    # A domain restriction is subject to the same fail-closed degradation
+    # (ADR-034#degradation-is-fail-closed) as an
     # inherited one: 'sso' with no tenant SsoConfig and no platform fallback
     # names a method this host cannot serve, so it fails closed rather than
     # reporting a restriction the omniauth routes would refuse.

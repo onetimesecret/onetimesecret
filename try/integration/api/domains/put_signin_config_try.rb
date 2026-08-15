@@ -451,7 +451,8 @@ Onetime::CustomDomain::SsoConfig.create!(
 # value. Every state of SigninConfig.resolve_restrict_to must survive
 # serialization, :unavailable included — that state is the one the
 # display field `features.restrict_to` (string-or-null) cannot express,
-# and projecting it to null here would rebuild the fail-open A3 closed.
+# and projecting it to null here would rebuild the fail-open that
+# ADR-034#degradation-is-fail-closed closed.
 # ============================================================
 
 ## Sanity: the test config sets no global restriction (makes the cases below discriminating)
@@ -487,7 +488,7 @@ end
 @logic_rt_put.process[:details][:effective_restrict_to]
 #=> { state: 'unavailable', restrict_to: 'email_auth', source: 'domain' }
 
-## Domain and global naming different methods — :unavailable, source :conflict, global method named (A8)
+## Domain and global naming different methods — :unavailable, source :conflict, global method named
 @auth_conf_x = Onetime.auth_config
 @auth_conf_x.define_singleton_method(:restrict_to) { 'password' }
 begin
@@ -499,7 +500,7 @@ ensure
 end
 #=> { state: 'unavailable', restrict_to: 'password', source: 'conflict' }
 
-## Domain restriction that cannot run here — :unavailable, method still named (fail closed, A3)
+## Domain restriction that cannot run here — :unavailable, method still named (fail closed)
 @domain_rt_wa = Onetime::CustomDomain.create!("psc-rt-wa-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
 Onetime::CustomDomain::SigninConfig.create!(
   domain_id: @domain_rt_wa.identifier,

@@ -15,7 +15,8 @@
 # The highest-value cases here are not the happy paths — they are:
 #
 #   1. on a host restricted to ONE method, a direct POST to every OTHER
-#      method's endpoint is 404 (A7's reject shape: the route reads as
+#      method's endpoint is 404 (the reject shape of
+#      ADR-034#reject-as-not-found-not-forbidden: the route reads as
 #      undefined, not forbidden), INCLUDING the secondary endpoints;
 #   2. the SSO surface, which is NOT in Rodauth's route_hash — the OmniAuth
 #      request phase is middleware-served, so the before_rodauth gate never
@@ -23,7 +24,8 @@
 #   3. the ROUTE COVERAGE assertion at the bottom, which fails when a new
 #      Rodauth route appears and nobody classified it. A gate that covers the
 #      primary POST and misses a ceremony endpoint leaves the gap open while
-#      LOOKING closed, which A7 calls worse than no gate at all.
+#      LOOKING closed, which ADR-034#reject-as-not-found-not-forbidden calls
+#      worse than no gate at all.
 #
 # Simple mode is a separate deployment shape and is covered by its sibling,
 # spec/integration/simple/restrict_to_enforcement_spec.rb: there POST
@@ -142,7 +144,8 @@ RSpec.describe 'restrict_to enforcement — full mode (ADR-034#restrict-to-is-an
     csrf_json_post(path, params)
   end
 
-  # A gated route must be byte-identical to an undefined one (A7): same status
+  # A gated route must be byte-identical to an undefined one
+  # (ADR-034#reject-as-not-found-not-forbidden): same status
   # AND the router's shared ADR-013 body, not a bespoke shape.
   def expect_not_found(response, path)
     expect(response.status).to eq(404),
@@ -167,8 +170,9 @@ RSpec.describe 'restrict_to enforcement — full mode (ADR-034#restrict-to-is-an
     let(:host) { build_restricted_domain('email_auth') }
 
     # Every PASSWORD endpoint, primary and secondary. reset-password-request and
-    # reset-password are pre-auth surfaces and go dark with the method (A7's
-    # closing paragraph); create-account likewise.
+    # reset-password are pre-auth surfaces and go dark with the method
+    # (ADR-034#reject-as-not-found-not-forbidden, closing paragraph);
+    # create-account likewise.
     %w[
       /auth/login
       /auth/create-account
@@ -252,6 +256,24 @@ RSpec.describe 'restrict_to enforcement — full mode (ADR-034#restrict-to-is-an
   end
 
   describe 'the :unrestricted state' do
+    # THE CUSTOM-DOMAIN FEATURE GOES BACK OFF for this block (#4163). These two
+    # examples assert that NO gate fires on the operator's own host, and since
+    # the opt-in axis (Auth::SigninGate) joined this hook they are no longer
+    # only about restrict_to. This lane's canonical host is an IP:port, which is
+    # not a classifiable domain: with the feature ON, DomainStrategy answers
+    # :invalid for it and the opt-in gate correctly takes the tenant-safe
+    # default-OFF branch
+    # (ADR-024#operator-defaults-require-positive-classification), 404ing
+    # /auth/login for reasons that have nothing to do with restrict_to. Turning
+    # the feature off restores the classification a default install gives its
+    # own host (:canonical) so this block keeps testing what it claims to.
+    around do |example|
+      saved                     = Onetime::Runtime.features
+      Onetime::Runtime.features = saved.with(domains_enabled: false)
+      example.run
+      Onetime::Runtime.features = saved
+    end
+
     let(:canonical_host) do
       Onetime::Middleware::DomainStrategy.canonical_domain || 'localhost:3000'
     end
