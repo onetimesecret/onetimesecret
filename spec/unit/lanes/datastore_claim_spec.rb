@@ -25,9 +25,34 @@ require 'fileutils'
 module LaneClaimProbe
   ROOT     = File.expand_path('../../..', __dir__)
   REGISTRY = File.join('.cache', 'onetime-lanes', 'db')
+
+  module_function
+
+  # The floor the runner enforces, read from the same pin file it reads.
+  def bash_floor
+    @bash_floor ||= Integer(File.read(File.join(ROOT, '.bash-version')).strip)
+  end
+
+  # The runner's shebang is `#!/usr/bin/env bash`, so the bash that matters
+  # is the first one on PATH — not the shell that launched RSpec, and on
+  # macOS not /bin/bash either.
+  def path_bash_major
+    return @path_bash_major if defined?(@path_bash_major)
+
+    out, status = Open3.capture2e('bash', '-c', 'echo "${BASH_VERSINFO[0]}"')
+    @path_bash_major = status.success? ? Integer(out.strip, exception: false) : nil
+  end
 end
 
 RSpec.describe 'tests/lanes/run per-worktree datastore claim' do
+  # Without bash 5+ on PATH the runner refuses to start, exactly as it does
+  # for a fresh macOS checkout. Skip rather than fail, matching
+  # hermetic_boundary_spec.rb.
+  before do
+    major = LaneClaimProbe.path_bash_major
+    floor = LaneClaimProbe.bash_floor
+    skip "bash #{floor}+ is not on PATH (macOS: brew install bash)" if major.nil? || major < floor
+  end
   # `selftest` runs no application code and blanks the service URLs, so this
   # never needs a container — but LANES_NO_AUTOSTART is set anyway, because
   # a spec that can start containers is a spec that can hang CI.
