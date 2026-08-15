@@ -448,6 +448,36 @@ site:
     # Disable only for development or when behind a secure proxy
     # ENV: MIDDLEWARE_STRICT_TRANSPORT (default: true)
     strict_transport: <%= ENV['MIDDLEWARE_STRICT_TRANSPORT'] != 'false' %>
+    # Per-application middleware profiles (#4170 refactor).
+    # Each profile section gates the components a declared middleware profile
+    # mounts (lib/onetime/application/middleware_profile.rb). These toggles
+    # are independent of the shared site.middleware.* toggles above, which
+    # govern the main app's Security mount and carry different defaults.
+    profiles:
+      # Governs the auth app's /auth middleware stack. All keys default ON
+      # so the stack is identical in every environment (dev/test/prod).
+      authenticated_web:
+        # Gzip response compression via Rack::Deflater
+        # ENV: MIDDLEWARE_AUTH_DEFLATER (default: true)
+        deflater: <%= ENV['MIDDLEWARE_AUTH_DEFLATER'] != 'false' %>
+        # Content-Security-Policy header via Rack::Protection
+        # ENV: MIDDLEWARE_AUTH_CONTENT_SECURITY_POLICY (default: true)
+        content_security_policy: <%= ENV['MIDDLEWARE_AUTH_CONTENT_SECURITY_POLICY'] != 'false' %>
+        # X-Frame-Options clickjacking protection
+        # ENV: MIDDLEWARE_AUTH_FRAME_OPTIONS (default: true)
+        frame_options: <%= ENV['MIDDLEWARE_AUTH_FRAME_OPTIONS'] != 'false' %>
+        # Origin-based CSRF protection with display-domain allow_if (#4170)
+        # ENV: MIDDLEWARE_AUTH_HTTP_ORIGIN (default: true)
+        http_origin: <%= ENV['MIDDLEWARE_AUTH_HTTP_ORIGIN'] != 'false' %>
+        # Rejects requests with disagreeing forwarded-IP headers
+        # ENV: MIDDLEWARE_AUTH_IP_SPOOFING (default: true)
+        ip_spoofing: <%= ENV['MIDDLEWARE_AUTH_IP_SPOOFING'] != 'false' %>
+        # Normalizes "../" segments out of request paths
+        # ENV: MIDDLEWARE_AUTH_PATH_TRAVERSAL (default: true)
+        path_traversal: <%= ENV['MIDDLEWARE_AUTH_PATH_TRAVERSAL'] != 'false' %>
+        # Ties the session to stable client attributes
+        # ENV: MIDDLEWARE_AUTH_SESSION_HIJACKING (default: true)
+        session_hijacking: <%= ENV['MIDDLEWARE_AUTH_SESSION_HIJACKING'] != 'false' %>
   # Security Configuration
   # Additional security settings beyond middleware
   security:

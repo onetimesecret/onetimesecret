@@ -100,11 +100,15 @@ RSpec.describe Onetime::Application::MiddlewareProfile do
     end
   end
 
-  describe '.apply (config-gated resolution)' do
+  describe '.apply (profile-scoped config-gated resolution)' do
     let(:recorder) { ProfileRecorder.new }
 
-    def stub_middleware_config(settings)
-      allow(Onetime).to receive(:conf).and_return('site' => { 'middleware' => settings })
+    # Components are gated on site.middleware.profiles.<profile>.<key> —
+    # deliberately NOT the shared site.middleware.<key> toggles (#4170 step 3).
+    def stub_profile_config(settings, profile: 'authenticated_web')
+      allow(Onetime).to receive(:conf).and_return(
+        'site' => { 'middleware' => { 'profiles' => { profile => settings } } },
+      )
     end
 
     it 'mounts nothing for an empty profile without touching config' do
@@ -112,14 +116,29 @@ RSpec.describe Onetime::Application::MiddlewareProfile do
       expect(recorder.used).to be_empty
     end
 
-    it 'does not mount components whose config keys are absent (falsy default)' do
-      stub_middleware_config({})
+    it 'does not mount components when the profiles section is absent (fail-safe)' do
+      allow(Onetime).to receive(:conf).and_return('site' => { 'middleware' => {} })
+      described_class.apply(:authenticated_web, recorder)
+      expect(recorder.used).to be_empty
+    end
+
+    it 'does not mount components whose profile-scoped keys are absent (falsy default)' do
+      stub_profile_config({})
+      described_class.apply(:authenticated_web, recorder)
+      expect(recorder.used).to be_empty
+    end
+
+    it 'ignores the shared site.middleware.<key> toggles entirely' do
+      # Shared toggles all true, profile section absent: nothing mounts.
+      allow(Onetime).to receive(:conf).and_return(
+        'site' => { 'middleware' => { 'frame_options' => true, 'http_origin' => true } },
+      )
       described_class.apply(:authenticated_web, recorder)
       expect(recorder.used).to be_empty
     end
 
     it 'mounts only components whose config keys are true, with Registry klass/options' do
-      stub_middleware_config('frame_options' => true, 'http_origin' => true)
+      stub_profile_config({ 'frame_options' => true, 'http_origin' => true })
       described_class.apply(:authenticated_web, recorder)
 
       expect(recorder.used.map(&:first)).to eq([
@@ -131,18 +150,19 @@ RSpec.describe Onetime::Application::MiddlewareProfile do
     end
 
     it 'skips components whose key is explicitly false' do
-      stub_middleware_config('frame_options' => false, 'deflater' => true)
+      stub_profile_config({ 'frame_options' => false, 'deflater' => true })
       described_class.apply(:authenticated_web, recorder)
       expect(recorder.used.map(&:first)).to eq([Rack::Deflater])
     end
 
-    it 'warns when a security-critical component is disabled' do
-      stub_middleware_config('frame_options' => false)
+    it 'warns when a security-critical component is disabled, naming the scoped key' do
+      stub_profile_config({ 'frame_options' => false })
       allow(OT).to receive(:lw)
       described_class.apply(:authenticated_web, recorder)
       # (PathTraversal, the profile's other security-critical component, also
       # warns because its key is absent — the assertion targets frame_options.)
-      expect(OT).to have_received(:lw).with(/FrameOptions DISABLED.*site\.middleware\.frame_options/)
+      expect(OT).to have_received(:lw)
+        .with(/FrameOptions DISABLED.*site\.middleware\.profiles\.authenticated_web\.frame_options/)
     end
 
     it 'raises for an unknown profile name' do

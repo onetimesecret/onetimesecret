@@ -4,7 +4,6 @@
 
 require 'onetime/application'
 require 'onetime/logger_methods'
-require 'onetime/middleware/http_origin_options'
 
 # Load Rodauth configuration first
 require_relative 'config'
@@ -24,41 +23,23 @@ module Auth
       Onetime.auth_config.mode != 'full'
     end
 
-    # Declared middleware profile (#4170 step 2): the config-gated registry
-    # components this app mounts beyond the universal stack. Until step 3
-    # lands config defaults for the profile's site.middleware keys, the
-    # profile resolves to nothing extra and the production? block below
-    # remains the effective production mount path.
+    # Declared middleware profile (#4170): Deflater + the Rack::Protection
+    # security stack (ContentSecurityPolicy, FrameOptions, HttpOrigin,
+    # IPSpoofing, PathTraversal, SessionHijacking), resolved from
+    # Onetime::Middleware::Registry at build time in Base#build_rack_app and
+    # gated by site.middleware.profiles.authenticated_web.<key> config
+    # (defaults ship all keys ON, so the stack is identical in every
+    # environment — no more production-only block).
+    #
+    # The Registry's HttpOrigin entry carries the shared
+    # Onetime::Middleware::HttpOriginOptions.options: its allow_if reads
+    # env['onetime.display_domain'] so custom-domain /auth POSTs behind a
+    # Host-rewriting proxy aren't rejected with 403 before reaching a route
+    # (#4170; SSO initiation being the most visible casualty).
     middleware_profile :authenticated_web
 
     # Auth app specific middleware (common middleware is in MiddlewareStack)
     use Rack::JSONBodyParser  # Parse JSON request bodies for Rodauth
-
-    Onetime.development? do
-      # Development configuration if needed
-    end
-
-    # NOTE (#4170 step 3): this entire production-only block is superseded by
-    # the :authenticated_web middleware_profile above once config defaults for
-    # its site.middleware keys land — step 3 removes it.
-    Onetime.production? do
-      # Production configuration
-      use Rack::Deflater  # Gzip compression
-
-      # Additional security headers (some may be redundant with MiddlewareStack)
-      use Rack::Protection::ContentSecurityPolicy
-      use Rack::Protection::FrameOptions
-      # Shared options with the main app's Security mount (#4170): without the
-      # allow_if reading env['onetime.display_domain'], custom-domain /auth
-      # POSTs behind a Host-rewriting proxy are rejected with 403 before
-      # reaching a route (SSO initiation being the most visible casualty).
-      # NOTE: unlike the Security mount, this one ignores the
-      # site.middleware.http_origin toggle and is production-only.
-      use Rack::Protection::HttpOrigin, **Onetime::Middleware::HttpOriginOptions.options
-      use Rack::Protection::IPSpoofing
-      use Rack::Protection::PathTraversal
-      use Rack::Protection::SessionHijacking
-    end
 
     warmup do
       # Warmup is for preloading and preparing the router

@@ -10,11 +10,14 @@
 # Onetime::Middleware::Registry. Applications declare a profile at class
 # level (`middleware_profile :authenticated_web`) instead of mounting
 # middleware imperatively inside environment-conditional blocks. Resolution
-# happens per-request-app at build time in Base#build_rack_app, gated by the
-# same `site.middleware.<key>` config toggles Onetime::Middleware::Security
-# uses — a key absent from config resolves falsy and the component is NOT
-# mounted, which keeps this step behavior-neutral until config defaults for
-# the profile keys land (step 3).
+# happens per-request-app at build time in Base#build_rack_app, gated by
+# PROFILE-SCOPED config toggles: `site.middleware.profiles.<profile>.<key>`
+# (step 3). These are deliberately independent of the shared
+# `site.middleware.<key>` toggles that govern the main app's Security mount —
+# e.g. http_origin defaults false there but must stay ON for the auth app.
+# A missing profile section or missing key resolves falsy and the component
+# is NOT mounted (fail-safe for unknown config states; the shipped defaults
+# enable every key, see etc/defaults/config.defaults.yaml).
 
 require_relative '../middleware/registry'
 
@@ -26,9 +29,10 @@ module Onetime
         # The default for every application that does not declare otherwise.
         standard: [].freeze,
 
-        # What apps/web/auth/application.rb's production-only block mounts
-        # today, in the same order. Step 3 removes that block and adds config
-        # defaults so this profile takes over in production.
+        # The auth app's security/compression stack (formerly a production-only
+        # block in apps/web/auth/application.rb; removed in step 3). Config
+        # defaults ship every key ON, so the stack is identical in dev, test
+        # and production.
         authenticated_web: %w[
           Deflater
           ContentSecurityPolicy
@@ -57,9 +61,12 @@ module Onetime
       # Resolve a named profile against a Rack builder.
       #
       # Each component's klass/options come from the Registry; mounting is
-      # gated by `site.middleware.<key>` exactly like Security's mounts, with
-      # matching enable/disable logging (warn on a disabled security-critical
-      # component, per Registry.security_critical?).
+      # gated by the profile-scoped toggle
+      # `site.middleware.profiles.<profile>.<key>` (NOT the shared
+      # `site.middleware.<key>` toggles, which govern the main app's Security
+      # mount and carry different defaults), with enable/disable logging
+      # (warn on a disabled security-critical component, per
+      # Registry.security_critical?).
       #
       # @param name [Symbol, String] profile name
       # @param builder [#use] Rack::Builder (or recorder) to mount onto
@@ -68,22 +75,23 @@ module Onetime
         component_names = fetch(name)
         return if component_names.empty?
 
-        settings = Onetime.conf&.dig('site', 'middleware') || {}
+        settings = Onetime.conf&.dig('site', 'middleware', 'profiles', name.to_s) || {}
 
         component_names.each do |component_name|
           config = Onetime::Middleware::Registry.fetch(component_name)
           key    = config[:key].to_s
+          scoped = "site.middleware.profiles.#{name}.#{key}"
 
           unless settings[key]
             if Onetime::Middleware::Registry.security_critical?(key)
-              OT.lw "[MiddlewareProfile] #{component_name} DISABLED for profile :#{name} (site.middleware.#{key}=false)"
+              OT.lw "[MiddlewareProfile] #{component_name} DISABLED for profile :#{name} (#{scoped}=false)"
             else
-              OT.ld "[MiddlewareProfile] Skipping #{component_name} for profile :#{name} (site.middleware.#{key} not enabled)"
+              OT.ld "[MiddlewareProfile] Skipping #{component_name} for profile :#{name} (#{scoped} not enabled)"
             end
             next
           end
 
-          OT.ld "[MiddlewareProfile] Enabling #{component_name} for profile :#{name} (site.middleware.#{key})"
+          OT.ld "[MiddlewareProfile] Enabling #{component_name} for profile :#{name} (#{scoped})"
           builder.use config[:klass], **(config[:options] || {})
         end
       end

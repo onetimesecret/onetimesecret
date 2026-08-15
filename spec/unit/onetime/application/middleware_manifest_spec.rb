@@ -23,19 +23,22 @@ require 'spec_helper'
 # ============================================================================
 # PROMINENT BLIND-SPOT WARNING (issue #4170)
 # ============================================================================
-# Some apps register middleware inside `Onetime.production? do ... use ... end`
-# (and `Onetime.development? do ... end`) blocks — e.g.
-# apps/web/auth/application.rb wraps Rack::Deflater and five
-# Rack::Protection::* middlewares in a production-only block, and
-# apps/web/core/application.rb wraps ViteProxy/SchemaValidator in a
-# development-only block. Those blocks execute at CLASS-LOAD time, so under
-# RACK_ENV=test they simply never run and the middleware is ABSENT from
-# `.middleware`. This spec therefore CANNOT see production-only middleware:
-# the snapshots below are the test-environment view, and the production /auth
-# stack differs from what is recorded here. That environment-dependent,
-# load-time-conditional registration is exactly the bug class the later
-# registry/profile refactor removes. Step 3 of that refactor is EXPECTED to
-# change these snapshots deliberately — update them in the same reviewed diff.
+# The production-only security block that used to live in
+# apps/web/auth/application.rb (Rack::Deflater + five Rack::Protection::*
+# mounts, executed at class-load time only when Onetime.production?) is GONE
+# — that environment-dependent registration was exactly the #4170 bug class,
+# and step 3 replaced it with the :authenticated_web middleware profile,
+# gated by site.middleware.profiles.authenticated_web.* config whose defaults
+# ship every component ON in EVERY environment.
+#
+# A smaller env-conditional blind spot REMAINS, documented and accepted:
+# apps/web/core/application.rb wraps dev-only tooling (ViteProxy,
+# SessionDebugger, SchemaValidator) in an `Onetime.development? do ... end`
+# block. Those still execute at class-load time and are absent from the
+# snapshots under RACK_ENV=test. This is lower-risk than the removed auth
+# block because the middleware involved is development tooling, not
+# production security — but any new env-conditional `use` registration
+# should go through a profile instead.
 #
 # A second blind spot this spec previously made visible is now FIXED (#4170
 # step 2): `middleware` is a plain class-ivar reader and does not inherit, so
@@ -49,9 +52,11 @@ require 'spec_helper'
 # apps/web/auth/config.rb, whose header explicitly forbids requiring it from
 # tests (it triggers the full boot chain: database.rb, production config,
 # database connections). The Auth app is therefore NOT loaded or manifested
-# here; its test-env class-level list would in any case show only
-# Rack::JSONBodyParser, with the entire production security block invisible
-# (see the blind-spot warning above).
+# here; its stack is characterized INDIRECTLY instead: the class declares
+# `middleware_profile :authenticated_web` plus `use Rack::JSONBodyParser`,
+# the profile's contents and resolution are covered by
+# middleware_profile_spec.rb, and the profile's config defaults (all seven
+# components ON) live in etc/defaults/config.defaults.yaml.
 RSpec.describe 'Middleware manifest (characterization)' do
   # Minimal stand-in for Rack::Builder: records what MiddlewareStack.configure
   # would mount without instantiating any middleware or booting an app.
@@ -195,13 +200,12 @@ RSpec.describe 'Middleware manifest (characterization)' do
       end
     end
 
-    # Declared middleware profiles (#4170 step 2): profile names are DATA
-    # resolved against Onetime::Middleware::Registry at build time, gated by
-    # site.middleware config keys. Under test config every profile currently
-    # resolves to zero extra mounts (no config defaults yet — step 3), so this
-    # section characterizes the DECLARATIONS, not extra mounted middleware.
-    # Auth::Application (not loadable here, see header) declares
-    # :authenticated_web.
+    # Declared middleware profiles (#4170): profile names are DATA resolved
+    # against Onetime::Middleware::Registry at build time, gated by
+    # site.middleware.profiles.<profile>.<key> config. This section
+    # characterizes the DECLARATIONS; resolution behavior is covered by
+    # middleware_profile_spec.rb. Auth::Application (not loadable here, see
+    # header) declares :authenticated_web.
     EXPECTED_MIDDLEWARE_PROFILES = {
       'Core::Application' => :standard,
       'Billing::Application' => :standard,

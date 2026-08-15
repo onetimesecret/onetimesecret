@@ -7,10 +7,11 @@
 # issue #4170 middleware consolidation).
 #
 # This is the single component table that middleware consumers draw from.
-# Today it is consumed by Onetime::Middleware::Security (which mounts the
-# nine config-toggled protections); later steps introduce per-app profiles
-# that select from the same table, replacing ad-hoc environment-conditional
-# `use` blocks (e.g. apps/web/auth/application.rb's production-only stack).
+# It is consumed by Onetime::Middleware::Security (which mounts the nine
+# config-toggled protections) and by the per-app middleware profiles
+# (Onetime::Application::MiddlewareProfile), which replaced the ad-hoc
+# environment-conditional `use` blocks (e.g. apps/web/auth/application.rb's
+# former production-only stack).
 #
 # Each entry: display name => {
 #   key:               Symbol   — config toggle under site.middleware
@@ -176,14 +177,13 @@ module Onetime
         },
 
         # --------------------------------------------------------------------
-        # Entries below are registered for the per-app profile steps of the
-        # #4170 refactor. Nothing consumes them yet; the auth app currently
-        # mounts these classes ad hoc in a production-only block
-        # (apps/web/auth/application.rb). Config defaults for their keys
-        # arrive in a later step.
+        # Entries below are consumed by the :authenticated_web middleware
+        # profile (lib/onetime/application/middleware_profile.rb), gated by
+        # site.middleware.profiles.authenticated_web.<key> config with
+        # defaults ON in every environment (#4170 step 3).
         # --------------------------------------------------------------------
 
-        # Gzip response compression (not a protection; auth app production stack).
+        # Gzip response compression (not a protection; auth app profile stack).
         'Deflater' => {
           key: :deflater,
           klass: Rack::Deflater,
