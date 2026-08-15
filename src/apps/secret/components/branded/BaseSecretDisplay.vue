@@ -60,43 +60,83 @@
            displayComposer.t(defaultKey);
   });
 
-  // Reusable computed properties
+  // Reusable computed properties. Note the clamp is `instructions-clamp`, a
+  // class this component owns, not Tailwind's `line-clamp-6`: two sibling
+  // components used to re-declare `.line-clamp-6` at a shallower line count,
+  // so the clamp actually in force depended on stylesheet injection order.
   const textClasses = computed(() => ({
     'text-gray-600 dark:text-gray-400 text-xs sm:text-sm leading-relaxed': true,
-    'line-clamp-6': !isExpanded.value,
-    'pb-6': isLongText.value && !isExpanded.value,
+    'instructions-clamp': !isExpanded.value,
   }));
 
-  // Text length checking
+  // Text length checking.
+  //
+  // Asks the clamped element whether it is actually overflowing rather than
+  // re-deriving the clamp height from line-height and a line count. A derived
+  // threshold is a second copy of the clamp that can disagree with the CSS —
+  // which is what produced a "Show More" toggle over text that was already
+  // fully visible. Overflow is measured in the layout the reader sees, so the
+  // toggle appears exactly when content is hidden.
+  //
+  // Both sides of the comparison are content-box heights (the element carries
+  // no vertical padding of its own — the space the toggle overlays is reserved
+  // by the wrapper), so nothing about the toggle's presence feeds back into
+  // the measurement that decides it. The 1px slack absorbs subpixel
+  // line-height rounding.
   const checkTextLength = () => {
     nextTick(() => {
       const element = textRef.value;
-      if (element) {
-        element.classList.remove('line-clamp-6');
-        const lineHeight = parseInt(window.getComputedStyle(element).lineHeight);
-        isLongText.value = element.scrollHeight > lineHeight * 4;
-        if (!isExpanded.value) {
-          element.classList.add('line-clamp-6');
-        }
-      }
+      // While expanded there is no clamp to overflow, so a measurement would
+      // always read "not long" and retract the toggle mid-use. The last
+      // clamped measurement stands until the text collapses again.
+      if (!element || isExpanded.value) return;
+
+      isLongText.value = element.scrollHeight - element.clientHeight > 1;
     });
   };
 
+  // Coalesce bursts of layout notifications (a resize drag emits one per
+  // frame) into a single measurement.
+  let pendingFrame: number | null = null;
+  const scheduleCheck = () => {
+    if (pendingFrame !== null) return;
+    pendingFrame = window.requestAnimationFrame(() => {
+      pendingFrame = null;
+      checkTextLength();
+    });
+  };
+
+  let resizeObserver: ResizeObserver | null = null;
+
   onMounted(() => {
     checkTextLength();
-    // Re-measure once webfonts finish loading: scrollHeight measured against
-    // the fallback font can cross the clamp threshold and render a spurious
-    // "Show More" toggle that disappears after the brand font swaps in.
+    // Re-measure once webfonts finish loading: text measured against the
+    // fallback font can sit on the other side of the clamp and render a
+    // spurious "Show More" toggle that disappears after the brand font swaps
+    // in.
     document.fonts?.ready.then(checkTextLength);
-    window.addEventListener('resize', checkTextLength);
+
+    // Observe the paragraph itself rather than the window: it also catches
+    // reflows the window never reports, such as the surrounding layout
+    // changing width or the brand font swapping in.
+    if (typeof ResizeObserver !== 'undefined' && textRef.value) {
+      resizeObserver = new ResizeObserver(scheduleCheck);
+      resizeObserver.observe(textRef.value);
+    } else {
+      window.addEventListener('resize', scheduleCheck);
+    }
   });
 
   onUnmounted(() => {
-    window.removeEventListener('resize', checkTextLength);
+    resizeObserver?.disconnect();
+    window.removeEventListener('resize', scheduleCheck);
+    if (pendingFrame !== null) window.cancelAnimationFrame(pendingFrame);
   });
 
   const toggleExpand = () => {
     isExpanded.value = !isExpanded.value;
+    // Collapsing restores the clamp; re-measure in the layout that follows.
+    if (!isExpanded.value) checkTextLength();
   };
 </script>
 
@@ -117,19 +157,26 @@
             </slot>
           </h2>
 
-          <div class="relative">
+          <!-- The bottom padding the toggle overlays lives here, not on the
+               paragraph: padding on the measured element would make the
+               toggle's presence change the measurement that decides it. -->
+          <div
+            class="relative"
+            :class="isLongText && !isExpanded ? 'pb-6' : 'pb-4'">
             <p
               ref="textRef"
               :class="[textClasses, cornerClass, fontClass]"
-              class="pb-4"
               data-testid="brand-instructions">
               {{ instructions || displayComposer.t('web.shared.pre_reveal_default') }}
             </p>
 
             <button
               v-if="isLongText"
+              type="button"
               @click="toggleExpand"
-              :class="[textClasses, cornerClass, fontClass]"
+              :aria-expanded="isExpanded"
+              data-testid="brand-instructions-toggle"
+              :class="[cornerClass, fontClass]"
               class="absolute bottom-0 left-1/2 -translate-x-1/2
                 border border-gray-200 bg-white px-3 py-1
                 text-xs text-gray-500 shadow-sm transition-all
@@ -173,3 +220,18 @@
     </div>
   </div>
 </template>
+
+<style scoped>
+  /*
+   * The instructions clamp. Scoped so it cannot be redefined from elsewhere in
+   * the cascade, and named for its role rather than its line count so callers
+   * are not tempted to re-declare a Tailwind utility to change it.
+   */
+  .instructions-clamp {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
+  }
+</style>
