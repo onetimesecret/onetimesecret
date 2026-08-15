@@ -1,0 +1,17 @@
+.. A new scriv changelog fragment.
+
+Fixed
+-----
+
+- (`#4165 <https://github.com/onetimesecret/onetimesecret/pull/4165>`_)
+  SSO routes no longer 404 when tenant SSO is available but platform SSO
+  prerequisites are unmet. The SSO host pin now carries proof that tenant
+  availability was already established, so the gate no longer re-consults
+  AuthConfig when the pin value happens to match the operator's configured
+  ``restrict_to``.
+
+AI Assistance
+-------------
+
+- Claude fixed the SSO host pin collision, removed a wasted datastore probe,
+  and aligned the simple-mode gate with the display serializer. (#4165)
