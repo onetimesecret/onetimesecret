@@ -423,13 +423,20 @@ lanes_claim_db() {
     # An empty read means the winner of a noclobber race hasn't finished
     # writing yet, so treat it as taken rather than stale — reclaiming it
     # would undo the very race the atomic create just resolved.
-    if [[ -n "${owner}" && ( "${owner}" == "${REPO_ROOT}" || ! -d "${owner}" ) ]]; then
-      # Ours already, or stale (the owning worktree is gone). Rewriting a
-      # stale claim is safe: the run that owned it cannot still be using
-      # the index, because its checkout no longer exists.
-      builtin printf '%s\n' "${REPO_ROOT}" >"${dir}/${candidate}" 2>/dev/null || return 0
-      LANES_DATASTORE_DB="${candidate}"
-      return 0
+    if [[ -n "${owner}" ]]; then
+      if [[ "${owner}" == "${REPO_ROOT}" ]]; then
+        # Ours already — idempotent re-entry from a previous run.
+        LANES_DATASTORE_DB="${candidate}"
+        return 0
+      elif [[ ! -d "${owner}" ]]; then
+        # Stale: the owning worktree is gone. Remove the claim file so
+        # competing runners must race on the noclobber create — exactly one
+        # wins the slot rather than both silently overwriting it.
+        rm -f "${dir}/${candidate}" 2>/dev/null || true
+        # Re-contest the same slot: continue increments attempt but not
+        # candidate, so the next iteration tries the noclobber path again.
+        continue
+      fi
     fi
 
     # Taken by a live worktree: probe on, staying inside 1..1023.
