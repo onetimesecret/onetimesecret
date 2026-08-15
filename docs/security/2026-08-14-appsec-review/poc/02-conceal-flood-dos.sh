@@ -16,13 +16,16 @@ redis-cli info memory | grep used_memory_human
 echo -n "keys: "; redis-cli -n 0 dbsize
 
 echo "=== $N unauthenticated POSTs, 10 KB each, ttl=604800 (anonymous max) ==="
+OK=0 FAIL=0
 for i in $(seq 1 "$N"); do
-  curl -sS -m 10 -o /dev/null -X POST "$BASE/api/v2/secret/conceal" \
+  CODE=$(curl -sS -m 10 -o /dev/null -w '%{http_code}' -X POST "$BASE/api/v2/secret/conceal" \
     -H 'Content-Type: application/json' \
-    -d "{\"secret\":{\"secret\":\"$PAYLOAD\",\"ttl\":604800}}" &
-  (( i % 20 )) || wait
+    -d "{\"secret\":{\"secret\":\"$PAYLOAD\",\"ttl\":604800}}")
+  if [[ "$CODE" == 2* ]]; then ((OK++)); else ((FAIL++)); fi
+  (( i % 20 )) || echo "  progress: $i/$N (ok=$OK fail=$FAIL)"
 done
-wait
+echo "  completed: ok=$OK fail=$FAIL"
+[[ $FAIL -gt 0 ]] && echo "WARNING: $FAIL requests failed — results may be unreliable"
 
 echo "=== after ==="
 redis-cli info memory | grep used_memory_human

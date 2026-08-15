@@ -45,12 +45,12 @@ cp etc/defaults/auth.defaults.yaml etc/auth.yaml
 # 4. Synthetic environment — ALL SECRETS BELOW ARE THROWAWAY TEST VALUES
 cat > /tmp/appsec.env <<'ENVEOF'
 RACK_ENV=production
-SECRET=<64 random hex bytes, generated locally>
-ACCOUNT_ID_SECRET=<32 random hex bytes>
-VERIFIABLE_ID_HMAC_SECRET=<32 random hex bytes>
-HMAC_SECRET=<32 random hex bytes>
-AUTH_SECRET=<32 random hex bytes>
-FEDERATION_SECRET=<32 random hex bytes>
+SECRET=$(openssl rand -hex 32)
+ACCOUNT_ID_SECRET=$(openssl rand -hex 16)
+VERIFIABLE_ID_HMAC_SECRET=$(openssl rand -hex 16)
+HMAC_SECRET=$(openssl rand -hex 16)
+AUTH_SECRET=$(openssl rand -hex 16)
+FEDERATION_SECRET=$(openssl rand -hex 16)
 REDIS_URL=redis://127.0.0.1:6379/0
 HOST=localhost:3000
 SSL=false
@@ -61,7 +61,7 @@ AUTH_MFA_ENABLED=true
 AUTH_WEBAUTHN_ENABLED=true
 AUTH_EMAIL_AUTH_ENABLED=true
 ENVEOF
-set -a; . /tmp/appsec.env; set +a
+set -a; eval "$(cat /tmp/appsec.env)"; set +a
 
 # 5. Auth schema (SQLite; requires the UTF-8 RUBYOPT above — migration 003 has non-ASCII content)
 mkdir -p data
@@ -98,13 +98,13 @@ lib/onetime/class_methods.rb:480:in 'block in in_environment?':
 
 **Workaround:** rewrite the 20 `it` block-parameter uses to the semantically identical `_1`, which
 both versions accept. Affected: 14 files under `lib/` and `apps/`, plus `Rakefile`. Confirmed
-complete with `grep -rn "{ it\b\|{ it\.\|{ it\[" --include=*.rb lib/ apps/`.
+complete with `grep -Prn '\{ it(?:\b|\.|\[)' --include='*.rb' lib/ apps/`.
 
 **This is an analysis-environment shim, not a proposed change.** It was reverted before committing
 (§4). Re-apply with:
 
 ```bash
-for f in $(grep -rl '{ it\b\|{ it\.\|{ it\[\|== it }' --include=*.rb lib/ apps/) Rakefile; do
+for f in $(grep -Prl '\{ it(?:\b|\.|\[)|== it \}' --include='*.rb' lib/ apps/) Rakefile; do
   perl -pi -e 's/\{ it \}/{ _1 }/g; s/\{ it\.(\w)/{ _1.$1/g;
                s/\{ it\[/{ _1[/g; s/\{ env == it \}/{ env == _1 }/g;
                s/\.each \{ load it \}/.each { load _1 }/g;' "$f"
