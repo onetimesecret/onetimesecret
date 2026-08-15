@@ -369,6 +369,49 @@ if [[ ${#OVERLAYS[@]} -gt 0 ]]; then
 fi
 set +a
 
+# ── Per-worktree datastore isolation ─────────────────────────────────────
+# Every checkout of this repo (worktrees included) shares the one test
+# valkey on 127.0.0.1:2163. Two lane runs sharing DB 0 contaminate each
+# other's fixtures and the failure set becomes nondeterministic (#4168).
+# Assign each worktree its own valkey DB index, derived from the repo
+# root path, so concurrent runs in a worktree forest never share keys.
+#
+# The index rides on ONE name, LANES_DATASTORE_DB, which is exported into
+# the task environment (it is set below the scrub, so it survives):
+#   - spec/config.test.yaml interpolates it into redis.uri, which is the
+#     single connection source for the app under test (Familia.uri).
+#   - REDIS_URL/VALKEY_URL below are rewritten to match, so anything
+#     reading the env agrees with the config.
+# The port stays a literal 2163 everywhere — this changes WHICH database
+# on the test service a run uses, never which service it talks to, so the
+# hermetic "21 rule" and the boot guards are untouched (their regex
+# already accepts a /db suffix). A lane env file or overlay may pin the
+# index explicitly by setting LANES_DATASTORE_DB itself; the caller's
+# shell cannot (the scrub already cleared it).
+if [[ -z "${LANES_DATASTORE_DB:-}" ]]; then
+  # cksum: POSIX, deterministic across platforms (unlike bash's RANDOM or
+  # a hash of inode numbers). Index 0 is reserved for CI and single-tree
+  # setups' muscle memory; derived indexes land in 1..1023 (compose.test.yml
+  # starts valkey with --databases 1024).
+  read -r _lanes_cksum _ < <(builtin printf '%s' "${REPO_ROOT}" | cksum)
+  LANES_DATASTORE_DB=$(( 1 + _lanes_cksum % 1023 ))
+  builtin unset _lanes_cksum
+fi
+case "${LANES_DATASTORE_DB}" in
+  ''|*[!0-9]*)
+    echo "error: LANES_DATASTORE_DB must be a decimal DB index, got '${LANES_DATASTORE_DB}'" >&2
+    exit 64
+    ;;
+esac
+export LANES_DATASTORE_DB
+for _lanes_name in REDIS_URL VALKEY_URL; do
+  if [[ -n "${!_lanes_name:-}" && "${!_lanes_name}" =~ ^(.*:2163)(/[0-9]+)?/?$ ]]; then
+    printf -v "${_lanes_name}" '%s/%s' "${BASH_REMATCH[1]}" "${LANES_DATASTORE_DB}"
+    export "${_lanes_name}"
+  fi
+done
+builtin unset _lanes_name
+
 # Billing rides on the full-mode auth stack (Stripe customer records live
 # in the auth database); it has no meaning in other modes.
 if [[ "${BILLING_ENABLED:-false}" == "true" && "${AUTHENTICATION_MODE:-}" != "full" ]]; then
@@ -418,9 +461,33 @@ for p in ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"}; do
   fi
 done
 
+# The derived DB index only exists if the valkey container was created with
+# enough databases (compose.test.yml pins --databases 1024; the image default
+# is 16). Probe with a raw RESP SELECT over /dev/tcp — a container from
+# before the pin would otherwise surface as opaque mid-suite connection
+# errors instead of one actionable line here. Subshell so a refused
+# connection can't take the runner down; the port was verified open above.
+if [[ "${REDIS_URL:-}" =~ 127\.0\.0\.1:2163 ]]; then
+  _lanes_reply="$( (
+    exec 3<>"/dev/tcp/127.0.0.1/2163"
+    printf 'SELECT %s\r\n' "${LANES_DATASTORE_DB}" >&3
+    IFS= read -r -t 5 _r <&3
+    printf '%s' "${_r}"
+  ) 2>/dev/null || true )"
+  if [[ "${_lanes_reply}" != '+OK'* ]]; then
+    echo "error: valkey on 127.0.0.1:2163 rejected SELECT ${LANES_DATASTORE_DB}" \
+         "(${_lanes_reply:-no reply}). The container likely predates the" >&2
+    echo "  --databases 1024 pin in compose.test.yml; recreate it:" >&2
+    echo "  docker compose -f compose.test.yml up -d --force-recreate valkey" >&2
+    exit 69
+  fi
+  builtin unset _lanes_reply
+fi
+
 echo "[lane:${LANE}] mode=${AUTHENTICATION_MODE:-?}" \
      "billing=${BILLING_ENABLED:-false}" \
      "redis=${REDIS_URL:-?}" \
+     "db=${LANES_DATASTORE_DB}" \
      "auth_db=${AUTH_DATABASE_URL:-n/a}"
 
 cd "${REPO_ROOT}"

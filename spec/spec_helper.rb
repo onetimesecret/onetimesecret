@@ -34,10 +34,14 @@ require 'simplecov' if ENV['COVERAGE'] == 'true'
 # spec/spec_helper.rb
 # Test harness for Onetime.
 
-# Test database URL: spec/config.test.yaml hardcodes redis://127.0.0.1:2163/0
-# (port 2163 avoids conflicts with development Redis on 6379). It is not
-# overridable via VALKEY_URL/REDIS_URL; see [#2128] which centralized the
-# test Redis URL in config instead of env vars scattered across spec helpers.
+# Test database URL: spec/config.test.yaml hardcodes host/port
+# 127.0.0.1:2163 (avoids conflicts with development Redis on 6379). It is
+# not overridable via VALKEY_URL/REDIS_URL; see [#2128] which centralized
+# the test Redis URL in config instead of env vars scattered across spec
+# helpers. The DB index alone varies: LANES_DATASTORE_DB (exported by
+# tests/lanes/run, derived per worktree) selects which database on 2163 a
+# run uses, so concurrent worktrees don't share keys ([#4168]). Unset — the
+# interactive case — it falls back to /0.
 
 require 'rspec'
 require 'yaml'

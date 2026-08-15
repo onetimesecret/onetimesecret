@@ -103,6 +103,30 @@ Port mappings are defined **only** in `compose.test.yml`. The env files
 here carry matching URLs; if a URL in this tree doesn't point at a 21xx
 port, that's a bug.
 
+## Per-worktree datastore isolation
+
+All checkouts (worktrees included) share the one test valkey on 2163,
+and two lane runs sharing DB 0 contaminate each other's fixtures — the
+failure set then shifts run to run with sibling activity (#4168). So the
+runner assigns each worktree its own valkey DB index, derived
+deterministically from the repo root path (range 1..1023;
+`compose.test.yml` starts valkey with `--databases 1024`). The index is
+exported as `LANES_DATASTORE_DB`; `spec/config.test.yaml` interpolates
+it into `redis.uri`, and the runner rewrites `REDIS_URL`/`VALKEY_URL` to
+match. Host and port never vary — this selects a database *on* the test
+service, it cannot redirect a run to another service.
+
+DB 0 is reserved: it's what CI containers and interactive
+`bundle exec rspec` (no `LANES_DATASTORE_DB` set) use. A lane env file
+or overlay may pin an index explicitly by setting `LANES_DATASTORE_DB`;
+the calling shell cannot (the scrub clears it like everything else).
+The runner probes `SELECT <index>` before starting and tells you to
+recreate the valkey container if it still has the 16-database default.
+
+PostgreSQL (2154) has **no** per-worktree isolation yet: the full/
+migrations lanes still share `onetime_auth_test`. Avoid running two
+PG lanes concurrently across worktrees.
+
 ## Hermetic runs vs. interactive shells
 
 `tests/lanes/run` clears every variable the calling shell exports,
