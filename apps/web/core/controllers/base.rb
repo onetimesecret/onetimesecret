@@ -215,8 +215,18 @@ module Core
       # @raise [Onetime::SigninPolicyUnavailable] on an unreadable custom-host policy
       # @return [Boolean] false when this host restricts the method away
       def restrict_to_allows?(method_name)
-        global        = Onetime.auth_config.restrict_to
         signin_config = domain_signin_config
+
+        # Use inherited_restrict_to (not raw auth_config.restrict_to) so the
+        # SSO host pin applies here the same way it does in the display
+        # serializer and the full-mode gate (#4165). Without this, a custom
+        # domain with SSO available but no enabled SigninConfig could show
+        # restricted/sso on the page while this gate resolves :unrestricted.
+        inherited = Onetime::CustomDomain::SigninConfig.inherited_restrict_to(
+          signin_config,
+          domain_id: custom_domain_id,
+          custom_host: custom_domain_request?,
+        )
 
         # The runtime-availability half of ADR-034#degradation-is-fail-closed is
         # applied BY THE RESOLVER, not here.
@@ -231,15 +241,19 @@ module Core
         # INHERITED global restriction through the custom host's own
         # capabilities, so this gate cannot accept a method the full-mode gate
         # and the /signin page both treat as dark.
+        #
+        # #4165: pass pin_established so the availability check trusts the
+        # SSO pin's own proof instead of re-consulting AuthConfig.
         Onetime::CustomDomain::SigninConfig
           .resolve_restrict_to(
-            global,
+            inherited.value,
             signin_config,
             available: Onetime::CustomDomain::SigninConfig.restriction_available_for_request?(
-              global,
+              inherited.value,
               signin_config,
               domain_id: custom_domain_id,
               custom_host: custom_domain_request?,
+              already_established: inherited.pin_established,
             ),
           )
           .allows?(method_name)
