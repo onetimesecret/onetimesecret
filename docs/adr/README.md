@@ -8,6 +8,8 @@ Documents that capture important architectural decisions along with their contex
 - Deprecated: No longer relevant but kept for history
 - Superseded: Replaced by a newer ADR (reference the new one)
 
+The `status` in an ADR's frontmatter and its `Status` section must agree.
+
 ### Keys to Success
 
 - **Be courteous**: ADRs should be readable in 2-3 minutes, so focus on why. The decision itself is less important than the reasoning.
@@ -36,8 +38,14 @@ This expands the "One decision per ADR" key above: when two choices show up toge
 Use Trade-offs for the inherent exchange in a decision: what the project gives
 up to obtain a benefit, plus the risks that make the exchange conditional. Do
 not use it to restate the decision, list routine implementation obligations, or
-organize generic positives and negatives. Omit it when Context and Decision
-already contain the complete argument.
+organize generic positives and negatives. Include it only when it adds insight
+that does not belong in Context or Decision.
+
+### Related Section
+
+Use Related to cross-link ADRs and other durable documents that help a reader
+understand this decision. Omit it when there are no useful links; do not use it
+for transient implementation discussions or change-tracking metadata.
 
 ### Implementation Notes Section
 
