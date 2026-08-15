@@ -23,7 +23,10 @@ module Onetime::Customer::Features
       base.field :role
       base.field :joined
       base.boolean_field :verified
-      base.field :verified_by  # 'email', 'stripe_payment', 'autoverify', 'sso', nil
+      # Provenance tag for how the account became verified; nil when
+      # unverified. See Auth::Operations::Customers::Doctor::VALID_VERIFIED_BY
+      # for the full list of in-use values and where each is written.
+      base.field :verified_by
 
       # Reversible trust & safety pause (NOT a role, NOT destructive).
       # A suspended customer keeps all of their data but cannot authenticate:

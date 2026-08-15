@@ -56,10 +56,27 @@ module Auth
         # Valid customer roles (historical data-shape check — see NOTE above)
         VALID_ROLES = %w[customer anonymous colonel].freeze
 
-        # Valid verified_by values. 'sso' is stamped by the OmniAuth JIT
-        # provisioning path (config/hooks/omniauth.rb) and by this doctor's
-        # :sso_customer_unverified repair.
-        VALID_VERIFIED_BY = %w[email stripe_payment autoverify sso].freeze
+        # Every verified_by provenance tag the codebase writes, with the
+        # writer for each:
+        #   email          - secret reveal by owner (apps/api/v2/logic/secrets/
+        #                    {show,reveal}_secret.rb) and Rodauth verify_account
+        #                    (apps/web/auth/config/hooks/account.rb)
+        #   stripe_payment - payment-initiated signup (apps/web/billing/logic/welcome.rb)
+        #   autoverify     - autoverify-mode account creation
+        #                    (apps/api/account/logic/account/create_account.rb)
+        #   sso            - OmniAuth JIT provisioning (apps/web/auth/config/hooks/
+        #                    omniauth.rb) and this doctor's :sso_customer_unverified repair
+        #   invite_token   - invitation acceptance (apps/web/auth/operations/
+        #                    accept_invitation.rb, config/hooks/account.rb)
+        #   cli_provision  - CLI customer/apitoken commands (lib/onetime/cli/)
+        #   colonel_admin  - colonel admin verification (apps/api/colonel/logic/
+        #                    colonel/set_user_verification.rb)
+        #   legacy         - backfilled by this doctor's verified_by repair
+        # Keep this list in sync when adding a new provenance writer.
+        VALID_VERIFIED_BY = %w[
+          email stripe_payment autoverify sso
+          invite_token cli_provision colonel_admin legacy
+        ].freeze
 
         # Counter fields to check
         COUNTER_FIELDS = [:secrets_created, :secrets_burned, :secrets_shared, :emails_sent].freeze
