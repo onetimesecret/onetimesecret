@@ -89,7 +89,7 @@
   const getLogoDarkUrl = () =>
     props.logo?.url ? null : logoDarkSource.value;
   // Alt text: caller > operator BRAND_LOGO_ALT (only while the install logo
-  // is the asset being shown) > i18n string derived from the product name.
+  // is the asset being shown) > the resolver's productName, read directly.
   // When platform identity is suppressed (custom domain / tenant logo), the
   // accessible name must not leak the operator's product name either — use
   // the tenant-facing displayName (brand description or display domain),
@@ -97,9 +97,7 @@
   const getLogoAlt = () =>
     props.logo?.alt ||
     installLogoAlt.value ||
-    (showPlatformIdentity.value
-      ? t('web.homepage.one_time_secret_literal', { product_name: productName.value })
-      : displayName.value);
+    (showPlatformIdentity.value ? productName.value : displayName.value);
   const getLogoHref = () => props.logo?.href || headerConfig.value?.logo?.href || '/';
 
   // Custom install-wide logo: operator set BRAND_LOGO_URL. Distinct from the
@@ -146,7 +144,16 @@
   // The wordmark text is the resolver's productName (brand.product_name or
   // the neutral default) — the deprecated header.branding.site_name is
   // absorbed into brand.product_name by Config#normalize_brand (#3612).
-  const getSiteName = () => props.logo?.siteName || t('web.homepage.one_time_secret_literal', { product_name: productName.value });
+  //
+  // Read from the resolver directly rather than through the
+  // `web.homepage.one_time_secret_literal` i18n key. That key is a bare
+  // `{product_name}` passthrough in every locale today, so this is not a
+  // behavior change — it removes the indirection, and with it the risk that
+  // a future locale edit replaces the placeholder with a literal brand
+  // string and reintroduces the platform-brand leak on a neutral or
+  // private-label install (#3571). A brand-neutral value should not be
+  // translatable in the first place.
+  const getSiteName = () => props.logo?.siteName || productName.value;
   const getAriaLabel = () => props.logo?.ariaLabel;
   const getIsColonelArea = () => props.logo?.isColonelArea ?? props.colonel;
 

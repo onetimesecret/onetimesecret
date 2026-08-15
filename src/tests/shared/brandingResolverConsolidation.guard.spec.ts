@@ -98,6 +98,17 @@ describe('branding resolver consolidation guardrail', () => {
       expect(raw).toContain('installLogoAlt');
       expect(raw).toContain('logoSource');
     });
+
+    it('does not route the neutral alt/site-name through a translatable brand literal (#3571)', () => {
+      // The neutral alt text and wordmark come from the resolver's
+      // productName directly. web.homepage.one_time_secret_literal is a bare
+      // {product_name} passthrough in every locale today, so routing through
+      // it is currently equivalent — but it makes a brand-neutral value
+      // translatable, and one locale edit swapping the placeholder for a
+      // literal brand string would leak the platform brand onto a
+      // neutral/private-label install. Keep the indirection out.
+      expect(code).not.toContain('one_time_secret_literal');
+    });
   });
 
   describe('identityStore is the one place the raw install-brand fields are read', () => {
