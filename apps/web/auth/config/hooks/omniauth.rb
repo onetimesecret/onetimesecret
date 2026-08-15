@@ -15,6 +15,8 @@
 # See: features/omniauth.rb (provider registration)
 #
 
+require 'auth/account_statuses'
+
 module Auth::Config::Hooks
   module OmniAuth
     # rubocop:disable Metrics/PerceivedComplexity
@@ -704,6 +706,51 @@ module Auth::Config::Hooks
         custom_domain    = display_domain ? Onetime::CustomDomain.load_by_display_domain(display_domain) : nil
         signup_domain_id = custom_domain&.identifier
 
+        # ────────────────────────────────────────────────────────────────
+        # Verified state for the JIT-provisioned Customer (#3973)
+        # ────────────────────────────────────────────────────────────────
+        #
+        # CreateCustomer defaults to verified: false because that is the
+        # PASSWORD signup shape — Rodauth's after_verify_account flips the flag
+        # when the emailed link is followed. A JIT SSO account never traverses
+        # that flow, so the Customer mirror stayed unverified forever while its
+        # Rodauth account was already open. That is not cosmetic:
+        # has_system_role? (authorization_policies.rb) returns false on
+        # `!cust.verified?` BEFORE it reads the role field, so an
+        # SSO-provisioned colonel could never exercise the role even after CLI
+        # promotion.
+        #
+        # THE GATE — all three must hold, and nothing else is consulted:
+        #
+        #   1. We are inside after_omniauth_create_account. This hook fires
+        #      only on SSO JIT provisioning (the same call that stamps
+        #      provisioning_origin: 'sso_jit'), never on password signup and
+        #      never on login.
+        #   2. Rodauth has ALREADY persisted this account at
+        #      AccountStatuses::VERIFIED. rodauth-omniauth 0.6.2 stamps
+        #      account_open_status_value in _omniauth_new_account and commits it
+        #      in omniauth_save_account, both of which run BEFORE this hook
+        #      (omniauth_create_account), so the read below reports the auth
+        #      store's own decision rather than making a new one. If a
+        #      deployment opens SSO accounts unverified (or skip_status_checks?
+        #      is on) the read is not VERIFIED and the Customer stays
+        #      unverified — exactly the pre-fix behaviour.
+        #   3. The IdP did not EXPLICITLY assert email_verified: false.
+        #
+        # This only mirrors an auth-store fact onto the Customer record; it
+        # grants nothing the accounts row does not already grant. It also
+        # cannot reach a non-SSO account, which is why there is deliberately NO
+        # login-path reconcile: on login a bare status check is worthless
+        # because with verify_account disabled every ordinary password account
+        # is VERIFIED too. Records that already drifted are handled by
+        # `bin/ots customers doctor --repair` (:sso_customer_unverified).
+        account_status = db[:accounts].where(id: account_id).get(:status_id)
+        sso_verified   = account_status == Auth::AccountStatuses::VERIFIED &&
+                         !Auth::Config::Hooks::OmniAuth.idp_asserts_unverified_email?(
+                           info: omniauth_info,
+                           extra: omniauth_extra,
+                         )
+
         # Create Customer record (same as regular signup)
         customer = Onetime::ErrorHandler.safe_execute(
           'create_customer_omniauth',
@@ -716,6 +763,8 @@ module Auth::Config::Hooks
             db: db,
             provisioning_origin: 'sso_jit',
             signup_domain_id: signup_domain_id,
+            verified: sso_verified,
+            verified_by: sso_verified ? 'sso' : nil,
           ).call
         end
 
@@ -827,6 +876,49 @@ module Auth::Config::Hooks
       end
     end
     # rubocop:enable Metrics/PerceivedComplexity
+
+    # Did the IdP EXPLICITLY tell us the address is not verified?
+    #
+    # Only an explicit false is a veto. Absence is NOT: the claim is an OIDC
+    # optional, and several supported providers (Entra ID, plain OAuth2
+    # strategies, GitHub) never emit it at all — treating silence as
+    # "unverified" would leave those deployments in exactly the broken state
+    # the caller is fixing, while treating it as a positive signal would be us
+    # inventing an assertion the IdP never made. So this narrows the
+    # verified stamp and can never widen it.
+    #
+    # Looks in `info` first, then `extra.raw_info` (OIDC UserInfo / the decoded
+    # id_token). Both may be a plain Hash or an OmniAuth::AuthHash, and may be
+    # string- or symbol-keyed, so every read goes through fetch_claim.
+    #
+    # @param info [Hash, OmniAuth::AuthHash, nil] omniauth_info
+    # @param extra [Hash, OmniAuth::AuthHash, nil] omniauth_extra
+    # @return [Boolean] true only on an explicit false-y assertion
+    def self.idp_asserts_unverified_email?(info:, extra:)
+      claim = fetch_claim(info, 'email_verified')
+      claim = fetch_claim(fetch_claim(extra, 'raw_info'), 'email_verified') if claim.nil?
+      return false if claim.nil?
+
+      # Some providers stringify the claim ("false"); false and "false" are the
+      # same assertion. Anything else (true, "true", 1, garbage) is not a veto.
+      claim.to_s.strip.downcase == 'false'
+    end
+
+    # Key-shape-tolerant single-key read. Returns nil for a missing key, an
+    # unindexable source, or any error — never raises into a callback.
+    #
+    # @param source [#[], nil]
+    # @param key [String] string key; the symbol form is tried as a fallback
+    # @return [Object, nil]
+    def self.fetch_claim(source, key)
+      return nil unless source.respond_to?(:[])
+
+      value = source[key]
+      value = source[key.to_sym] if value.nil?
+      value
+    rescue StandardError
+      nil
+    end
 
     # Does the located account have a password the Phase 3 interstitial can
     # challenge? True when a Rodauth password hash exists, OR (coverage) when a
