@@ -3,16 +3,15 @@
 # frozen_string_literal: true
 
 #
-# Per-application middleware profiles (refactor step 2 of the issue #4170
-# middleware consolidation).
+# Per-application middleware profiles.
 #
 # A profile is DECLARED DATA: a named, ordered list of component names from
 # Onetime::Middleware::Registry. Applications declare a profile at class
 # level (`middleware_profile :authenticated_web`) instead of mounting
 # middleware imperatively inside environment-conditional blocks. Resolution
 # happens per-request-app at build time in Base#build_rack_app, gated by
-# PROFILE-SCOPED config toggles: `site.middleware.profiles.<profile>.<key>`
-# (step 3). These are deliberately independent of the shared
+# PROFILE-SCOPED config toggles: `site.middleware.profiles.<profile>.<key>`.
+# These are deliberately independent of the shared
 # `site.middleware.<key>` toggles that govern the main app's Security mount —
 # e.g. http_origin defaults false there but must stay ON for the auth app.
 # A missing profile section or missing key resolves falsy and the component

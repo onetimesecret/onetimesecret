@@ -4,7 +4,7 @@
 
 module Onetime
   module Middleware
-    # Shared options for Rack::Protection::HttpOrigin (#4170).
+    # Shared options for Rack::Protection::HttpOrigin.
     #
     # HttpOrigin resolves the request host via Rack::Request#host, which reads
     # the Host header (or X-Forwarded-Host when present). Behind a proxy tier
@@ -26,14 +26,14 @@ module Onetime
     # returns false and HttpOrigin's own Origin-vs-Host check decides.
     #
     # Consumed by both HttpOrigin mounts — Onetime::Middleware::Security
-    # (toggle: site.middleware.http_origin) and the auth app's production
-    # stack (apps/web/auth/application.rb) — so their behavior cannot drift.
+    # (toggle: site.middleware.http_origin) and the auth app's middleware
+    # profile (apps/web/auth/application.rb) — so their behavior cannot drift.
     module HttpOriginOptions
       # Accept an Origin that matches the host the application already
       # resolved for this request. The scheme is hardcoded https: custom
       # domains are only served over TLS, and a laxer scheme would let a
       # network attacker on a plaintext leg mint a matching Origin.
-      ALLOW_IF = lambda do |env|
+      ALLOW_IF = ->(env) do
         display = env['onetime.display_domain'].to_s
         next false if display.empty?
 

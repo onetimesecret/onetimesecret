@@ -65,7 +65,7 @@ RSpec.describe Onetime::Middleware::Registry do
   end
 
   describe 'HttpOrigin entry' do
-    it 'uses the shared allow_if from HttpOriginOptions (#4170)' do
+    it 'uses the shared allow_if from HttpOriginOptions' do
       options = described_class.fetch('HttpOrigin')[:options]
       expect(options[:allow_if])
         .to equal(Onetime::Middleware::HttpOriginOptions::ALLOW_IF)

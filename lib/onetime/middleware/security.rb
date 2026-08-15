@@ -33,8 +33,8 @@ module Onetime
     #
     class Security
       # The components this wrapper mounts, in mount order. The definitions
-      # themselves live in Onetime::Middleware::Registry (the single component
-      # table, #4170 refactor); this list selects the Security subset.
+      # themselves live in Onetime::Middleware::Registry, the single component
+      # table; this list selects the Security subset.
       COMPONENT_NAMES = %w[
         UTF8Sanitizer
         AuthenticityToken

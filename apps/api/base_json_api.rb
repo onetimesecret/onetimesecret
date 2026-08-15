@@ -38,7 +38,7 @@ class BaseJSONAPI < Onetime::Application::Base
   # Mark as abstract - should not be mounted directly
   @abstract = true
 
-  # NOTE (#4170): BaseJSONAPI deliberately registers NO class-level middleware.
+  # BaseJSONAPI deliberately registers no class-level middleware.
   # It previously registered Rack::JSONBodyParser here, but the class-level
   # `middleware` ivar did not inherit and BaseJSONAPI itself is abstract (never
   # instantiated), so that registration was dead code — subclasses never

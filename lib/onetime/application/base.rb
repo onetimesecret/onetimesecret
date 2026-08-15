@@ -168,7 +168,7 @@ module Onetime
 
           # Declared per-app profile (config-gated registry components), mounted
           # between the universal stack and the class-level `use` list. See
-          # MiddlewareProfile (#4170 step 2).
+          # MiddlewareProfile for profile resolution details.
           MiddlewareProfile.apply(base_klass.middleware_profile, builder)
 
           base_klass.resolved_middleware.each do |middleware, args, block|
