@@ -23,25 +23,23 @@ module Auth
       Onetime.auth_config.mode != 'full'
     end
 
+    # Declared middleware profile: Deflater + the Rack::Protection
+    # security stack (ContentSecurityPolicy, FrameOptions, HttpOrigin,
+    # IPSpoofing, PathTraversal, SessionHijacking), resolved from
+    # Onetime::Middleware::Registry at build time in Base#build_rack_app and
+    # gated by site.middleware.profiles.authenticated_web.<key> config
+    # (defaults ship all keys ON, so the stack is identical in every
+    # environment — no more production-only block).
+    #
+    # The Registry's HttpOrigin entry carries the shared
+    # Onetime::Middleware::HttpOriginOptions.options: its allow_if reads
+    # env['onetime.display_domain'] so custom-domain /auth POSTs behind a
+    # Host-rewriting proxy aren't rejected with 403 before reaching a route;
+    # SSO initiation is the most visible affected flow.
+    middleware_profile :authenticated_web
+
     # Auth app specific middleware (common middleware is in MiddlewareStack)
     use Rack::JSONBodyParser  # Parse JSON request bodies for Rodauth
-
-    Onetime.development? do
-      # Development configuration if needed
-    end
-
-    Onetime.production? do
-      # Production configuration
-      use Rack::Deflater  # Gzip compression
-
-      # Additional security headers (some may be redundant with MiddlewareStack)
-      use Rack::Protection::ContentSecurityPolicy
-      use Rack::Protection::FrameOptions
-      use Rack::Protection::HttpOrigin
-      use Rack::Protection::IPSpoofing
-      use Rack::Protection::PathTraversal
-      use Rack::Protection::SessionHijacking
-    end
 
     warmup do
       # Warmup is for preloading and preparing the router

@@ -210,6 +210,14 @@ module Onetime
               next
             end
 
+            # Skip classes that opt out of loading (same predicate
+            # reregister_loaded_applications applies — previously only checked
+            # there, leaving a registered-but-should-skip class mountable here).
+            if app_class.should_skip_loading?
+              Onetime.app_logger.info " [#{idx + 1} of #{application_classes.size}] Skipping #{app_class} (should_skip_loading?)"
+              next
+            end
+
             mount = app_class.uri_prefix
 
             unless mount.is_a?(String)
