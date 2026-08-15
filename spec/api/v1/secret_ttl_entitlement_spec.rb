@@ -169,11 +169,65 @@ RSpec.describe 'API V1 Secret TTL Entitlement Gate', type: :integration, billing
     end
   end
 
+  # Anonymous TTL ceiling tests (#4172)
+  #
+  # V1 now applies the configured anonymous ceiling (default 7 days) to
+  # unauthenticated callers, matching V2's anonymous_max_ttl behavior.
+  # Previously V1 allowed anonymous users the full V1_MAX_TTL (30 days).
+  shared_examples 'V1 anonymous TTL ceiling' do |logic_class_proc|
+    let(:logic_class) { logic_class_proc.call }
+    let(:anonymous_ceiling) { Onetime::Models::Features::WithEntitlements.configured_anonymous_max_ttl }
+
+    def conceal_params(ttl)
+      { 'secret' => 'test value', 'ttl' => ttl.to_s }
+    end
+
+    context 'anonymous caller requesting TTL above the ceiling' do
+      it 'clamps to the configured anonymous ceiling' do
+        logic = create_logic(logic_class, params: conceal_params(2_592_000), org: nil)
+        expect { logic.process_params }.not_to raise_error
+        expect(logic.ttl).to eq(anonymous_ceiling)
+      end
+    end
+
+    context 'anonymous caller requesting TTL at the ceiling' do
+      it 'preserves the exact ceiling value' do
+        logic = create_logic(logic_class, params: conceal_params(anonymous_ceiling), org: nil)
+        expect { logic.process_params }.not_to raise_error
+        expect(logic.ttl).to eq(anonymous_ceiling)
+      end
+    end
+
+    context 'anonymous caller requesting TTL below the ceiling' do
+      it 'preserves the lower requested value' do
+        one_hour = 3600
+        logic = create_logic(logic_class, params: conceal_params(one_hour), org: nil)
+        expect { logic.process_params }.not_to raise_error
+        expect(logic.ttl).to eq(one_hour)
+      end
+    end
+
+    context 'authenticated caller' do
+      it 'is not affected by the anonymous ceiling' do
+        org = mock_organization(
+          planid: 'identity_plus_v1',
+          entitlements: %w[create_secrets api_access extended_default_expiration],
+          secret_lifetime: 2_592_000,
+        )
+        logic = create_logic(logic_class, params: conceal_params(2_592_000), org: org)
+        expect { logic.process_params }.not_to raise_error
+        expect(logic.ttl).to eq(2_592_000)
+      end
+    end
+  end
+
   describe 'V1::Logic::Secrets::ConcealSecret' do
     include_examples 'V1 extended_default_expiration TTL gate', -> { V1::Logic::Secrets::ConcealSecret }
+    include_examples 'V1 anonymous TTL ceiling', -> { V1::Logic::Secrets::ConcealSecret }
   end
 
   describe 'V1::Logic::Secrets::GenerateSecret' do
     include_examples 'V1 extended_default_expiration TTL gate', -> { V1::Logic::Secrets::GenerateSecret }
+    include_examples 'V1 anonymous TTL ceiling', -> { V1::Logic::Secrets::GenerateSecret }
   end
 end
