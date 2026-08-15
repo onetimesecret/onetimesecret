@@ -32,12 +32,12 @@ RSpec.describe Onetime::Middleware::Registry do
       expect(described_class.components).to be_frozen
     end
 
-    it 'gives every entry a key, a klass, and a security_critical flag' do
+    it 'gives every entry a key, a klass, and a warn_when_disabled flag' do
       described_class.components.each do |name, cfg|
         expect(cfg[:key]).to be_a(Symbol), "#{name} missing :key"
         expect(cfg[:klass]).to be_a(Class), "#{name} missing :klass"
-        expect([true, false]).to include(cfg[:security_critical]),
-          "#{name} missing :security_critical"
+        expect([true, false]).to include(cfg[:warn_when_disabled]),
+          "#{name} missing :warn_when_disabled"
       end
     end
 
@@ -72,29 +72,30 @@ RSpec.describe Onetime::Middleware::Registry do
     end
   end
 
-  describe '.security_critical?' do
-    CRITICAL = %i[frame_options path_traversal strict_transport
-                  authenticity_token utf8_sanitizer].freeze
+  describe '.warn_when_disabled?' do
+    WARN_WHEN_DISABLED = %i[
+      frame_options path_traversal strict_transport authenticity_token
+      utf8_sanitizer http_origin xss_header cookie_tossing ip_spoofing
+    ].freeze
 
-    CRITICAL.each do |key|
+    WARN_WHEN_DISABLED.each do |key|
       it "is true for #{key}" do
-        expect(described_class.security_critical?(key)).to be(true)
+        expect(described_class.warn_when_disabled?(key)).to be(true)
       end
     end
 
-    %i[http_origin xss_header cookie_tossing ip_spoofing deflater
-       content_security_policy session_hijacking].each do |key|
+    %i[deflater content_security_policy session_hijacking].each do |key|
       it "is false for #{key}" do
-        expect(described_class.security_critical?(key)).to be(false)
+        expect(described_class.warn_when_disabled?(key)).to be(false)
       end
     end
 
     it 'accepts string keys' do
-      expect(described_class.security_critical?('frame_options')).to be(true)
+      expect(described_class.warn_when_disabled?('frame_options')).to be(true)
     end
 
     it 'is false for unknown keys' do
-      expect(described_class.security_critical?(:nonexistent)).to be(false)
+      expect(described_class.warn_when_disabled?(:nonexistent)).to be(false)
     end
   end
 
@@ -111,10 +112,12 @@ RSpec.describe Onetime::Middleware::Registry do
       end
     end
 
-    it 'derives SECURITY_CRITICAL_KEYS from the registry flags, matching the historical set' do
-      expect(Onetime::Middleware::Security::SECURITY_CRITICAL_KEYS)
-        .to match_array(%w[frame_options path_traversal strict_transport
-                           authenticity_token utf8_sanitizer])
+    it 'derives WARN_WHEN_DISABLED_KEYS from the registry flags' do
+      expect(Onetime::Middleware::Security::WARN_WHEN_DISABLED_KEYS)
+        .to match_array(%w[
+          frame_options path_traversal strict_transport authenticity_token
+          utf8_sanitizer http_origin xss_header cookie_tossing ip_spoofing
+        ])
     end
 
     it 'keeps the AuthenticityToken allow_if reachable via the historical access path' do

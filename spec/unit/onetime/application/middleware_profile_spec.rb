@@ -155,12 +155,12 @@ RSpec.describe Onetime::Application::MiddlewareProfile do
       expect(recorder.used.map(&:first)).to eq([Rack::Deflater])
     end
 
-    it 'warns when a security-critical component is disabled, naming the scoped key' do
+    it 'warns when project guidance marks a disabled component for review, naming the scoped key' do
       stub_profile_config({ 'frame_options' => false })
       allow(OT).to receive(:lw)
       described_class.apply(:authenticated_web, recorder)
-      # (PathTraversal, the profile's other security-critical component, also
-      # warns because its key is absent — the assertion targets frame_options.)
+      # PathTraversal also warns because its key is absent; the assertion targets
+      # the warning for frame_options.
       expect(OT).to have_received(:lw)
         .with(/FrameOptions DISABLED.*site\.middleware\.profiles\.authenticated_web\.frame_options/)
     end

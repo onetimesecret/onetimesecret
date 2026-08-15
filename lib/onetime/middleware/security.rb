@@ -47,14 +47,12 @@ module Onetime
         StrictTransport
       ].freeze
 
-      # Middleware keys whose protections are security-critical: switching one of
-      # these off silently weakens the app, so a disable is logged at warn level.
-      # Toggles that ship OFF by design (http_origin, xss_header, cookie_tossing,
-      # ip_spoofing) are intentionally excluded (security_critical: false in the
-      # Registry) to keep the log quiet. Derived from the Registry flags.
-      SECURITY_CRITICAL_KEYS = COMPONENT_NAMES
+      # Middleware keys for which project guidance says a disabled toggle should
+      # be reviewed. Derived from the Registry flags; this is distinct from the
+      # operator configuration that determines whether the component is mounted.
+      WARN_WHEN_DISABLED_KEYS = COMPONENT_NAMES
         .map { |name| Registry.fetch(name) }
-        .select { |cfg| cfg[:security_critical] }
+        .select { |cfg| cfg[:warn_when_disabled] }
         .map { |cfg| cfg[:key].to_s }
         .freeze
 
@@ -93,8 +91,8 @@ module Onetime
         middleware_settings = Onetime.conf.dig('site', 'middleware') || {}
 
         # Define middleware components with their corresponding settings keys
-        components     = self.class.middleware_components
-        critical_keys  = SECURITY_CRITICAL_KEYS
+        components               = self.class.middleware_components
+        warn_when_disabled_keys  = WARN_WHEN_DISABLED_KEYS
         Rack::Builder.new do
           # Apply each middleware if configured
           components.each do |name, config|
@@ -102,10 +100,9 @@ module Onetime
             # reads a real boolean, not a string.
             middleware_key = config[:key].to_s
             unless middleware_settings[middleware_key]
-              # Loudly flag a security-critical protection that is switched off so
-              # an accidental disable is visible in logs. Deliberately-off toggles
-              # stay quiet (see SECURITY_CRITICAL_KEYS).
-              if critical_keys.include?(middleware_key)
+              # Flag a disabled component when project guidance says the
+              # operator's configuration choice merits review.
+              if warn_when_disabled_keys.include?(middleware_key)
                 OT.lw "[Security] #{name} protection DISABLED (site.middleware.#{middleware_key}=false)"
               end
               next
@@ -129,7 +126,7 @@ module Onetime
         # middleware_components['AuthenticityToken'][:options][:allow_if]
         # keep working unchanged.
         #
-        # @return [Hash] name => {key:, klass:, options:, security_critical:}
+        # @return [Hash] name => {key:, klass:, options:, warn_when_disabled:}
         def middleware_components
           @middleware_components ||= COMPONENT_NAMES
             .to_h { |name| [name, Registry.fetch(name)] }

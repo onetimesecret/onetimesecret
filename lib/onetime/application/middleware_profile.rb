@@ -65,8 +65,8 @@ module Onetime
       # `site.middleware.profiles.<profile>.<key>` (NOT the shared
       # `site.middleware.<key>` toggles, which govern the main app's Security
       # mount and carry different defaults), with enable/disable logging
-      # (warn on a disabled security-critical component, per
-      # Registry.security_critical?).
+      # (warn when project guidance marks a disabled component for review, per
+      # Registry.warn_when_disabled?).
       #
       # @param name [Symbol, String] profile name
       # @param builder [#use] Rack::Builder (or recorder) to mount onto
@@ -83,7 +83,7 @@ module Onetime
           scoped = "site.middleware.profiles.#{name}.#{key}"
 
           unless settings[key]
-            if Onetime::Middleware::Registry.security_critical?(key)
+            if Onetime::Middleware::Registry.warn_when_disabled?(key)
               OT.lw "[MiddlewareProfile] #{component_name} DISABLED for profile :#{name} (#{scoped}=false)"
             else
               OT.ld "[MiddlewareProfile] Skipping #{component_name} for profile :#{name} (#{scoped} not enabled)"

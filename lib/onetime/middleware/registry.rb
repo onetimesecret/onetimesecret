@@ -14,11 +14,16 @@
 # former production-only stack).
 #
 # Each entry: display name => {
-#   key:               Symbol   — config toggle under site.middleware
-#   klass:             Class    — the Rack middleware class
-#   options:           Hash     — (optional) keyword options for the middleware
-#   security_critical: Boolean  — disabling this toggle is logged at warn level
+#   key:                Symbol   — operator config toggle under site.middleware
+#   klass:              Class    — the Rack middleware class
+#   options:            Hash     — (optional) keyword options for the middleware
+#   warn_when_disabled: Boolean  — project guidance: log a warning when disabled
 # }
+#
+# `key` is operator configuration (whether this deployment runs a component).
+# `warn_when_disabled` is project-owner guidance (whether disabling it merits
+# review). They intentionally remain separate so operator and owner choices can
+# disagree visibly in the startup log.
 
 require 'rack'
 require 'rack/protection'
@@ -36,7 +41,7 @@ module Onetime
           key: :utf8_sanitizer,
           klass: Rack::UTF8Sanitizer,
           options: { sanitize_null_bytes: true },
-          security_critical: true,
+          warn_when_disabled: true,
         },
 
         # CSRF Protection (Token-based): Validates 'shrimp' authenticity tokens.
@@ -112,7 +117,7 @@ module Onetime
               false
             },
           },
-          security_critical: true,
+          warn_when_disabled: true,
         },
 
         # CSRF Protection (Origin-based): Validates Origin and Referer headers.
@@ -126,7 +131,7 @@ module Onetime
           key: :http_origin,
           klass: Rack::Protection::HttpOrigin,
           options: Onetime::Middleware::HttpOriginOptions.options,
-          security_critical: false,
+          warn_when_disabled: true,
         },
 
         # NOTE: Rack::Protection::EscapedParams is intentionally EXCLUDED.
@@ -138,42 +143,42 @@ module Onetime
         'XSSHeader' => {
           key: :xss_header,
           klass: Rack::Protection::XSSHeader,
-          security_critical: false,
+          warn_when_disabled: true,
         },
 
         # Frame Options: Prevents clickjacking by restricting iframe embedding.
         'FrameOptions' => {
           key: :frame_options,
           klass: Rack::Protection::FrameOptions,
-          security_critical: true,
+          warn_when_disabled: true,
         },
 
         # Path Traversal: Prevents directory traversal attacks in request paths.
         'PathTraversal' => {
           key: :path_traversal,
           klass: Rack::Protection::PathTraversal,
-          security_critical: true,
+          warn_when_disabled: true,
         },
 
         # Cookie Tossing: Blocks session fixation via cookies set on subdomains.
         'CookieTossing' => {
           key: :cookie_tossing,
           klass: Rack::Protection::CookieTossing,
-          security_critical: false,
+          warn_when_disabled: true,
         },
 
         # IP Spoofing: Detects and blocks IP spoofing attempts via header validation.
         'IPSpoofing' => {
           key: :ip_spoofing,
           klass: Rack::Protection::IPSpoofing,
-          security_critical: false,
+          warn_when_disabled: true,
         },
 
         # HSTS: Forces HTTPS by setting the Strict-Transport-Security header.
         'StrictTransport' => {
           key: :strict_transport,
           klass: Rack::Protection::StrictTransport,
-          security_critical: true,
+          warn_when_disabled: true,
         },
 
         # --------------------------------------------------------------------
@@ -187,21 +192,21 @@ module Onetime
         'Deflater' => {
           key: :deflater,
           klass: Rack::Deflater,
-          security_critical: false,
+          warn_when_disabled: false,
         },
 
         # CSP: Sets a Content-Security-Policy header restricting resource origins.
         'ContentSecurityPolicy' => {
           key: :content_security_policy,
           klass: Rack::Protection::ContentSecurityPolicy,
-          security_critical: false,
+          warn_when_disabled: false,
         },
 
         # Session Hijacking: Ties the session to stable client attributes.
         'SessionHijacking' => {
           key: :session_hijacking,
           klass: Rack::Protection::SessionHijacking,
-          security_critical: false,
+          warn_when_disabled: false,
         },
       }.freeze
 
@@ -219,9 +224,9 @@ module Onetime
 
       # @param key [Symbol, String] config toggle key, e.g. :frame_options
       # @return [Boolean] whether disabling this toggle warrants a warning
-      def self.security_critical?(key)
+      def self.warn_when_disabled?(key)
         key = key.to_sym
-        COMPONENTS.any? { |_name, cfg| cfg[:key] == key && cfg[:security_critical] }
+        COMPONENTS.any? { |_name, cfg| cfg[:key] == key && cfg[:warn_when_disabled] }
       end
     end
   end
