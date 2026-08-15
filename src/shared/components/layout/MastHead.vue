@@ -16,13 +16,7 @@
 
   const authStore = useAuthStore();
   const bootstrapStore = useBootstrapStore();
-  const {
-    authentication,
-    awaiting_mfa,
-    email,
-    cust,
-    ui,
-  } = storeToRefs(bootstrapStore);
+  const { authentication, awaiting_mfa, email, cust, ui } = storeToRefs(bootstrapStore);
 
   // Brand identity resolves through the central resolver so the masthead shares
   // one neutral-safe source of truth with every other surface — the header reads
@@ -86,8 +80,7 @@
   // asset describes the resolver's choice, not the caller's. Swapped via the
   // app's class-based `dark:` variants so it follows the site theme toggle,
   // not the OS scheme.
-  const getLogoDarkUrl = () =>
-    props.logo?.url ? null : logoDarkSource.value;
+  const getLogoDarkUrl = () => (props.logo?.url ? null : logoDarkSource.value);
   // Alt text: caller > operator BRAND_LOGO_ALT (only while the install logo
   // is the asset being shown) > the resolver's productName, read directly.
   // When platform identity is suppressed (custom domain / tenant logo), the
@@ -108,9 +101,7 @@
   const isCustomStaticLogo = computed(() => !!installLogoUri.value);
 
   // LOGO_PROMINENT opt-in for larger logo sizing.
-  const isProminentLogo = computed(() =>
-    headerConfig.value?.logo?.prominent === true
-  );
+  const isProminentLogo = computed(() => headerConfig.value?.logo?.prominent === true);
 
   // Logo sizing: LOGO_PROMINENT controls size, auth state determines the tier.
   // Default (prominent=false): 48px unauthenticated, 40px authenticated
@@ -130,8 +121,8 @@
   //                                          below can act)
   //   4. isCustomStaticLogo.value           (heuristic: a custom BRAND_LOGO_URL
   //                                          usually embeds its own wordmark)
-  //   5. true                               (default: show the resolver-supplied
-  //                                          product name next to the neutral mark)
+  //   5. !isUserPresent.value                (default: show the resolver-supplied
+  //                                          product name only before sign-in)
   const getShowSiteName = () => {
     if (props.logo?.showSiteName != null) return props.logo.showSiteName;
     if (!showPlatformIdentity.value) return false;
@@ -139,7 +130,7 @@
     const showName = headerConfig.value?.logo?.show_name;
     if (showName != null) return showName;
 
-    return !isCustomStaticLogo.value;
+    return !isCustomStaticLogo.value && !isUserPresent.value;
   };
   // The wordmark text is the resolver's productName (brand.product_name or
   // the neutral default) — the deprecated header.branding.site_name is
@@ -184,7 +175,9 @@
   // When a caller passes an explicit pixel size via props.logo.size, we must NOT
   // apply a Tailwind h-* class (the class would override the pixel value). In that
   // case we render the height via an inline style and skip the responsive class.
-  const hasExplicitImgSize = computed(() => typeof props.logo?.size === 'number' && props.logo.size > 0);
+  const hasExplicitImgSize = computed(
+    () => typeof props.logo?.size === 'number' && props.logo.size > 0
+  );
 
   // Tailwind height classes mirror getLogoSize() logic.
   // Prominent: h-20 (80px) authenticated, h-24/sm:h-40 (96px mobile, 160px desktop) unauthenticated
@@ -210,9 +203,7 @@
   // so config-supplied values are always real asset URLs.
   const isVueComponent = computed(() => logoConfig.value.url.endsWith('.vue'));
   const logoComponent = shallowRef<Component | null>(
-    isVueComponent.value && logoConfig.value.url === DEFAULT_LOGO
-      ? DefaultLogo
-      : null
+    isVueComponent.value && logoConfig.value.url === DEFAULT_LOGO ? DefaultLogo : null
   );
 
   // Helper function to load logo component
@@ -261,11 +252,12 @@
       console.warn('Failed to refresh bootstrap state:', error);
     }
   });
-
 </script>
 
 <template>
-  <div v-if="headerEnabled" class="w-full">
+  <div
+    v-if="headerEnabled"
+    class="w-full">
     <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
       <!-- Logo lockup -->
       <div class="shrink-0">
@@ -298,7 +290,7 @@
               :height="logoConfig.size" />
             <span
               v-if="logoConfig.showSiteName"
-              class="font-brand text-lg font-bold leading-tight">
+              class="font-brand text-lg leading-tight font-bold">
               {{ logoConfig.siteName }}
             </span>
           </a>
@@ -306,7 +298,9 @@
       </div>
 
       <!-- Context Switchers slot (collapses progressively: org text at lg+, domain text at md+) -->
-      <div v-if="isUserPresent" class="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+      <div
+        v-if="isUserPresent"
+        class="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
         <slot name="context-switchers"></slot>
       </div>
 
@@ -315,8 +309,7 @@
         v-if="displayNavigation && navigationEnabled"
         role="navigation"
         :aria-label="t('web.layout.main_navigation')"
-        class="ml-auto flex shrink-0 items-center justify-end gap-4
-          font-brand text-sm sm:text-base">
+        class="ml-auto flex shrink-0 items-center justify-end gap-4 font-brand text-sm sm:text-base">
         <template v-if="isUserPresent">
           <!-- User Menu Dropdown -->
           <UserMenu
@@ -359,6 +352,5 @@
         </template>
       </nav>
     </div>
-
   </div>
 </template>
