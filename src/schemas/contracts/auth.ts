@@ -19,6 +19,7 @@ export const sessionSchema = z.object({
   last_activity_at: z.string(),
   ip_address: z.string().optional(),
   user_agent: z.string().optional(),
+  geo_country: z.string().nullable().optional(),
   is_current: z.boolean(),
   remember_enabled: z.boolean(),
 });
