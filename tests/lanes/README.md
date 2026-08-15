@@ -128,6 +128,25 @@ clears it like everything else). The runner probes `SELECT <index>`
 before starting and tells you to recreate the valkey container if it
 still has the 16-database default.
 
+A checksum maps many paths onto 1023 indexes, so two worktrees can derive
+the same one — and a silent collision reproduces exactly the
+contamination this feature exists to prevent. So the derived index is
+only a starting point: the runner claims it in a registry under
+`~/.cache/onetime-lanes/db/`, one file per index naming the repo root
+that owns it, and walks to the next free index if a *live* checkout
+already holds that one. Claims are atomic (`noclobber`), so worktrees
+starting together can't both win an index; sticky, so a worktree keeps
+its index and its data across runs; and reclaimable, since a claim whose
+repo root no longer exists is stale and gets taken over. The registry is
+a file rather than a key in valkey because the index has to be settled
+before the service preflight — it decides which database to probe — and
+has to survive `pnpm clean:db` flushing the assigned database. If `HOME`
+is unwritable the derived index stands, which is no worse than having no
+registry at all.
+
+To see who owns what: `grep -r . ~/.cache/onetime-lanes/db/`. Stale
+entries are harmless and self-clearing; nothing needs pruning by hand.
+
 PostgreSQL is isolated the same way, as a database name rather than an
 index: `onetime_auth_test` becomes `onetime_auth_test_w<index>`, and the
 runner rewrites all four `AUTH_DATABASE_URL*` variables to match.

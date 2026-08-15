@@ -388,6 +388,59 @@ set +a
 # already accepts a /db suffix). A lane env file or overlay may pin the
 # index explicitly by setting LANES_DATASTORE_DB itself; the caller's
 # shell cannot (the scrub already cleared it).
+#
+# A checksum maps many paths onto 1023 indexes, so two worktrees CAN derive
+# the same one — and a silent collision reproduces exactly the contamination
+# this feature exists to prevent, which is the worst way for it to fail.
+# lanes_claim_db turns the derived index into a claim: a file per index under
+# ${HOME}/.cache/onetime-lanes/db/, holding the repo root that owns it. On a
+# collision the run walks to the next free index instead of sharing.
+#
+# Why a file and not a key in valkey: this has to resolve before the service
+# preflight (the index decides which database the preflight probes), and it
+# has to survive `pnpm clean:db`, which flushes the assigned database.
+#
+# Claims are sticky (the same worktree keeps its index across runs) and
+# reclaimable (a claim whose repo root no longer exists is stale — worktrees
+# get deleted — so the next run takes it over). If HOME is unwritable, the
+# derived index stands: no worse than having no registry at all.
+lanes_claim_db() {
+  local dir="${HOME:-}/.cache/onetime-lanes/db" candidate owner attempt
+  [[ -n "${HOME:-}" ]] || return 0
+  mkdir -p "${dir}" 2>/dev/null || return 0
+
+  candidate="${LANES_DATASTORE_DB}"
+  for (( attempt = 0; attempt < 32; attempt++ )); do
+    # noclobber makes "create only if absent" atomic, so two worktrees
+    # racing for one index can't both believe they won.
+    if ( set -o noclobber; builtin printf '%s\n' "${REPO_ROOT}" >"${dir}/${candidate}" ) 2>/dev/null; then
+      LANES_DATASTORE_DB="${candidate}"
+      return 0
+    fi
+
+    owner=''
+    IFS= read -r owner <"${dir}/${candidate}" 2>/dev/null || true
+    # An empty read means the winner of a noclobber race hasn't finished
+    # writing yet, so treat it as taken rather than stale — reclaiming it
+    # would undo the very race the atomic create just resolved.
+    if [[ -n "${owner}" && ( "${owner}" == "${REPO_ROOT}" || ! -d "${owner}" ) ]]; then
+      # Ours already, or stale (the owning worktree is gone). Rewriting a
+      # stale claim is safe: the run that owned it cannot still be using
+      # the index, because its checkout no longer exists.
+      builtin printf '%s\n' "${REPO_ROOT}" >"${dir}/${candidate}" 2>/dev/null || return 0
+      LANES_DATASTORE_DB="${candidate}"
+      return 0
+    fi
+
+    # Taken by a live worktree: probe on, staying inside 1..1023.
+    candidate=$(( 1 + candidate % 1023 ))
+  done
+
+  echo "error: no free datastore index near ${LANES_DATASTORE_DB} (see ${dir})" >&2
+  echo "hint: remove claims for checkouts you no longer have, or set LANES_DATASTORE_DB" >&2
+  exit 69
+}
+
 if [[ -z "${LANES_DATASTORE_DB:-}" ]]; then
   if [[ -n "${CI:-}" ]]; then
     # CI gets index 0 and the unsuffixed database name, i.e. exactly the
@@ -405,6 +458,7 @@ if [[ -z "${LANES_DATASTORE_DB:-}" ]]; then
     read -r _lanes_cksum _ < <(builtin printf '%s' "${REPO_ROOT}" | cksum)
     LANES_DATASTORE_DB=$(( 1 + _lanes_cksum % 1023 ))
     builtin unset _lanes_cksum
+    lanes_claim_db  # may move the index off a collision
   fi
 fi
 case "${LANES_DATASTORE_DB}" in
