@@ -53,8 +53,9 @@ module ProvisionPgDatabase
   # it refuses to address anything not obviously a test database.
   TEST_NAME = /test/i.freeze
 
-  INIT_SQL = File.join(
-    'apps', 'web', 'auth', 'migrations', 'schemas', 'postgres', 'initialize_test_db.sql'
+  INIT_SQL = File.expand_path(
+    '../../../apps/web/auth/migrations/schemas/postgres/initialize_test_db.sql',
+    __dir__
   ).freeze
 
   class << self
