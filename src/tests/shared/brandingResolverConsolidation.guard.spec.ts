@@ -42,6 +42,12 @@ function stripComments(src: string): string {
     if (src.startsWith('<!--', i)) {
       const end = src.indexOf('-->', i + 4);
       i = end === -1 ? src.length : end + 3;
+    } else if (src.startsWith('-->', i)) {
+      // A bare `-->` only occurs as residue of a nested `<!-- <!-- … --> -->`
+      // (the region scan above ends at the first `-->`); it is never valid
+      // Vue/TS code on its own. Drop it so the stripped output carries no
+      // dangling comment closer a future guard assertion could match.
+      i += 3;
     } else if (src.startsWith('/*', i)) {
       const end = src.indexOf('*/', i + 2);
       i = end === -1 ? src.length : end + 2;
@@ -97,6 +103,17 @@ describe('branding resolver consolidation guardrail', () => {
       expect(raw).toContain('installLogoUri');
       expect(raw).toContain('installLogoAlt');
       expect(raw).toContain('logoSource');
+    });
+
+    it('does not route the neutral alt/site-name through a translatable brand literal (#3571)', () => {
+      // The neutral alt text and wordmark come from the resolver's
+      // productName directly. web.homepage.one_time_secret_literal is a bare
+      // {product_name} passthrough in every locale today, so routing through
+      // it is currently equivalent — but it makes a brand-neutral value
+      // translatable, and one locale edit swapping the placeholder for a
+      // literal brand string would leak the platform brand onto a
+      // neutral/private-label install. Keep the indirection out.
+      expect(code).not.toContain('one_time_secret_literal');
     });
   });
 
@@ -201,10 +218,11 @@ describe('stripComments (guard helper)', () => {
 
   // Invariant guarded by the comment scanner: however comments nest, no
   // forbidden token and no dangling comment opener may survive.
-  it('removes nested HTML comments, leaving no forbidden token or `<!--` opener', () => {
+  it('removes nested HTML comments, leaving no forbidden token, `<!--` opener, or `-->` closer', () => {
     const out = stripComments('<!--<!-- brand_product_name -->--> keep');
     expect(out).not.toContain('brand_product_name');
     expect(out).not.toContain('<!--');
+    expect(out).not.toContain('-->');
     expect(out).toContain('keep');
   });
 
