@@ -21,7 +21,10 @@
     },
     "Ruby": {
       "language_servers": ["ruby-lsp"],
-      "formatter": "language_server"
-    }
-  }
+      "formatter": "language_server",
+    },
+    "JSON": {
+      "language_servers": ["json5-lsp"]
+    },
+  },
 }
