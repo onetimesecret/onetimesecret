@@ -73,7 +73,6 @@ const remeasure = async () => {
  * assert against the key rather than English copy.
  */
 const SHOW_MORE = 'web.LABELS.view_toggle.show_more';
-const SHOW_LESS = 'web.LABELS.view_toggle.show_less';
 
 const toggle = (wrapper: VueWrapper) => {
   const found = wrapper.find('[data-testid="brand-instructions-toggle"]');
@@ -124,7 +123,7 @@ describe('BaseSecretDisplay (branded) instructions toggle', () => {
     expect(toggle(wrapper)?.attributes('aria-expanded')).toBe('false');
   });
 
-  it('drops the clamp when expanded and restores it when collapsed', async () => {
+  it('drops the clamp and hides the toggle when expanded (one-way expansion)', async () => {
     wrapper = mountDisplay();
     setOverflow(wrapper, { content: 120, visible: 60 });
     await remeasure();
@@ -134,25 +133,20 @@ describe('BaseSecretDisplay (branded) instructions toggle', () => {
 
     await toggle(wrapper)!.trigger('click');
     expect(paragraph.classes()).not.toContain('instructions-clamp');
-    expect(toggle(wrapper)?.text()).toBe(SHOW_LESS);
-    expect(toggle(wrapper)?.attributes('aria-expanded')).toBe('true');
-
-    await toggle(wrapper)!.trigger('click');
-    expect(paragraph.classes()).toContain('instructions-clamp');
+    expect(toggle(wrapper)).toBeUndefined();
   });
 
-  it('keeps the toggle through a re-measurement taken while expanded', async () => {
+  it('keeps the toggle hidden after expansion even through re-measurement', async () => {
     wrapper = mountDisplay();
     setOverflow(wrapper, { content: 120, visible: 60 });
     await remeasure();
     await toggle(wrapper)!.trigger('click');
 
-    // Expanded, the element no longer overflows — reading that as "not long"
-    // would retract the toggle mid-use.
+    // Expanded state hides the toggle; re-measurement should not bring it back.
     setOverflow(wrapper, { content: 120, visible: 120 });
     await remeasure();
 
-    expect(toggle(wrapper)?.text()).toBe(SHOW_LESS);
+    expect(toggle(wrapper)).toBeUndefined();
   });
 
   it('measures a paragraph that carries no vertical padding of its own', async () => {

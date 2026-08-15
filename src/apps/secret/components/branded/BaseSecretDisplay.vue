@@ -176,10 +176,10 @@
             </p>
 
             <button
-              v-if="isLongText"
+              v-if="isLongText && !isExpanded"
               type="button"
               @click="toggleExpand"
-              :aria-expanded="isExpanded"
+              aria-expanded="false"
               data-testid="brand-instructions-toggle"
               :class="[cornerClass, fontClass]"
               class="absolute bottom-0 left-1/2 -translate-x-1/2
@@ -190,7 +190,7 @@
               <slot
                 name="expand-button"
                 :is-expanded="isExpanded">
-                {{ isExpanded ? displayComposer.t('web.LABELS.view_toggle.show_less') : displayComposer.t('web.LABELS.view_toggle.show_more') }}
+                {{ displayComposer.t('web.LABELS.view_toggle.show_more') }}
               </slot>
             </button>
           </div>
