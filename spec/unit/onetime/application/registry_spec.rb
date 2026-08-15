@@ -4,7 +4,7 @@
 
 require 'spec_helper'
 
-# Onetime::Application::Registry — mount-mapping filters (#4170 step 2)
+# Onetime::Application::Registry — mount-mapping filters
 #
 # create_mount_mappings previously skipped only @abstract classes while
 # reregister_loaded_applications filtered on BOTH @abstract and

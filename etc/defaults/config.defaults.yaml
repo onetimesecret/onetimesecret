@@ -438,7 +438,7 @@ site:
     # Forces all connections to use HTTPS via HSTS headers
     # Disable only for development or when behind a secure proxy
     strict_transport: <%= ENV['MIDDLEWARE_STRICT_TRANSPORT'] != 'false' %>
-    # Per-application middleware profiles (#4170 refactor).
+    # Per-application middleware profiles.
     # Each profile section gates the components a declared middleware profile
     # mounts (lib/onetime/application/middleware_profile.rb). These toggles
     # are independent of the shared site.middleware.* toggles above, which
@@ -453,7 +453,7 @@ site:
         content_security_policy: <%= ENV['MIDDLEWARE_AUTH_CONTENT_SECURITY_POLICY'] != 'false' %>
         # X-Frame-Options clickjacking protection
         frame_options: <%= ENV['MIDDLEWARE_AUTH_FRAME_OPTIONS'] != 'false' %>
-        # Origin-based CSRF protection with display-domain allow_if (#4170)
+        # Origin-based CSRF protection with a display-domain allow_if
         http_origin: <%= ENV['MIDDLEWARE_AUTH_HTTP_ORIGIN'] != 'false' %>
         # Rejects requests with disagreeing forwarded-IP headers
         ip_spoofing: <%= ENV['MIDDLEWARE_AUTH_IP_SPOOFING'] != 'false' %>

@@ -4,7 +4,7 @@
 
 require 'spec_helper'
 
-# MiddlewareProfile (#4170 refactor step 2)
+# MiddlewareProfile
 #
 # Covers: profile definitions, class-level declaration + inheritance on
 # Onetime::Application::Base, config-gated resolution against the middleware
@@ -103,8 +103,8 @@ RSpec.describe Onetime::Application::MiddlewareProfile do
   describe '.apply (profile-scoped config-gated resolution)' do
     let(:recorder) { ProfileRecorder.new }
 
-    # Components are gated on site.middleware.profiles.<profile>.<key> —
-    # deliberately NOT the shared site.middleware.<key> toggles (#4170 step 3).
+    # Components are gated on site.middleware.profiles.<profile>.<key>, not
+    # the shared site.middleware.<key> toggles.
     def stub_profile_config(settings, profile: 'authenticated_web')
       allow(Onetime).to receive(:conf).and_return(
         'site' => { 'middleware' => { 'profiles' => { profile => settings } } },

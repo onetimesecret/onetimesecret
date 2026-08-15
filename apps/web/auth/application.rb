@@ -23,7 +23,7 @@ module Auth
       Onetime.auth_config.mode != 'full'
     end
 
-    # Declared middleware profile (#4170): Deflater + the Rack::Protection
+    # Declared middleware profile: Deflater + the Rack::Protection
     # security stack (ContentSecurityPolicy, FrameOptions, HttpOrigin,
     # IPSpoofing, PathTraversal, SessionHijacking), resolved from
     # Onetime::Middleware::Registry at build time in Base#build_rack_app and
@@ -34,8 +34,8 @@ module Auth
     # The Registry's HttpOrigin entry carries the shared
     # Onetime::Middleware::HttpOriginOptions.options: its allow_if reads
     # env['onetime.display_domain'] so custom-domain /auth POSTs behind a
-    # Host-rewriting proxy aren't rejected with 403 before reaching a route
-    # (#4170; SSO initiation being the most visible casualty).
+    # Host-rewriting proxy aren't rejected with 403 before reaching a route;
+    # SSO initiation is the most visible affected flow.
     middleware_profile :authenticated_web
 
     # Auth app specific middleware (common middleware is in MiddlewareStack)

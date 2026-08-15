@@ -640,8 +640,10 @@ module Onetime
               {
                 config: diagnostics_conf,
               }
-            # Position Sentry middleware early to capture exceptions throughout the stack
-            builder.use Sentry::Rack::CaptureExceptions
+            # The SDK is loaded lazily by SetupDiagnostics. Diagnostics state can
+            # outlive a test's SDK load, so mount only when its Rack integration
+            # is actually available.
+            builder.use ::Sentry::Rack::CaptureExceptions if defined?(::Sentry::Rack::CaptureExceptions)
           end
 
           # Retry-After header for throttled (429) responses. Both routing

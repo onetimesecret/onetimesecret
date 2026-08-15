@@ -3,8 +3,7 @@
 # frozen_string_literal: true
 
 #
-# Central registry of security/middleware components (refactor step 1 of the
-# issue #4170 middleware consolidation).
+# Central registry of security/middleware components.
 #
 # This is the single component table that middleware consumers draw from.
 # It is consumed by Onetime::Middleware::Security (which mounts the nine
@@ -125,7 +124,7 @@ module Onetime
         # The allow_if accepts an Origin matching env['onetime.display_domain'],
         # the host DetectHost/DomainStrategy already resolved for this request —
         # without it, custom-domain requests behind a Host-rewriting proxy are
-        # rejected with 403 (#4170). Shared with the auth app's mount via
+        # rejected with 403. Shared with the auth app's mount via
         # HttpOriginOptions so the two cannot drift.
         'HttpOrigin' => {
           key: :http_origin,
@@ -185,7 +184,7 @@ module Onetime
         # Entries below are consumed by the :authenticated_web middleware
         # profile (lib/onetime/application/middleware_profile.rb), gated by
         # site.middleware.profiles.authenticated_web.<key> config with
-        # defaults ON in every environment (#4170 step 3).
+        # defaults ON in every environment.
         # --------------------------------------------------------------------
 
         # Gzip response compression (not a protection; auth app profile stack).

@@ -7,7 +7,7 @@ require 'rack'
 require 'rack/protection'
 require 'onetime/middleware/http_origin_options'
 
-# Regression coverage for #4170: the HttpOrigin protection resolves the
+# Regression coverage: the HttpOrigin protection resolves the
 # request host via Rack::Request#host (Host / X-Forwarded-Host), while the
 # application's authoritative answer lives in env['onetime.display_domain']
 # (DetectHost + DomainStrategy). Behind a proxy that rewrites Host to the
@@ -28,8 +28,8 @@ RSpec.describe Onetime::Middleware::HttpOriginOptions do
     app.call(env).first
   end
 
-  # The proxy shape from the issue: Host rewritten to the canonical origin,
-  # true public host resolved by DetectHost/DomainStrategy upstream.
+  # A proxy may rewrite Host to the canonical origin while DetectHost and
+  # DomainStrategy resolve the true public host upstream.
   let(:canonical_host) { 'app.example.com' }
   let(:custom_domain)  { 'tenant.example.net' }
 

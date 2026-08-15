@@ -4,7 +4,7 @@
 
 require 'spec_helper'
 
-# Middleware Manifest — characterization spec (refactor step 4)
+# Middleware Manifest — characterization spec
 #
 # Snapshots the resolved Rack middleware for every Onetime Application
 # subclass so that ANY drift in a middleware stack shows up as a reviewed
@@ -21,14 +21,14 @@ require 'spec_helper'
 #      the ancestor chain), plus each class's declared middleware profile.
 #
 # ============================================================================
-# PROMINENT BLIND-SPOT WARNING (issue #4170)
+# PROMINENT BLIND-SPOT WARNING
 # ============================================================================
 # The production-only security block that used to live in
 # apps/web/auth/application.rb (Rack::Deflater + five Rack::Protection::*
-# mounts, executed at class-load time only when Onetime.production?) is GONE
-# — that environment-dependent registration was exactly the #4170 bug class,
-# and step 3 replaced it with the :authenticated_web middleware profile,
-# gated by site.middleware.profiles.authenticated_web.* config whose defaults
+# mounts, executed at class-load time only when Onetime.production?) is gone.
+# The :authenticated_web middleware profile replaces that environment-dependent
+# registration. It is gated by site.middleware.profiles.authenticated_web.*
+# config whose defaults
 # ship every component ON in EVERY environment.
 #
 # A smaller env-conditional blind spot REMAINS, documented and accepted:
@@ -40,8 +40,8 @@ require 'spec_helper'
 # production security — but any new env-conditional `use` registration
 # should go through a profile instead.
 #
-# A second blind spot this spec previously made visible is now FIXED (#4170
-# step 2): `middleware` is a plain class-ivar reader and does not inherit, so
+# A second blind spot this spec previously made visible is resolved:
+# `middleware` is a plain class-ivar reader and does not inherit, so
 # BaseJSONAPI's `use Rack::JSONBodyParser` was dead code for its subclasses.
 # `build_rack_app` now reads `resolved_middleware` (ancestor-chain walk,
 # superclass entries first), and BaseJSONAPI's dead `use` line was removed in
@@ -200,7 +200,7 @@ RSpec.describe 'Middleware manifest (characterization)' do
       end
     end
 
-    # Declared middleware profiles (#4170): profile names are DATA resolved
+    # Declared middleware profiles: profile names are data resolved
     # against Onetime::Middleware::Registry at build time, gated by
     # site.middleware.profiles.<profile>.<key> config. This section
     # characterizes the DECLARATIONS; resolution behavior is covered by
