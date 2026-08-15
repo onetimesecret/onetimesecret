@@ -150,16 +150,23 @@ module V1::Logic
         min_ttl = V1_MIN_TTL
         max_ttl = V1_MAX_TTL
 
-        # Plan-aware TTL cap: resolve the customer's org for plan limits.
-        # Falls back to V1_MAX_TTL when billing is disabled (self-hosted).
-        # V1::Logic::Base does not include OrganizationContext (no @strategy_result),
-        # so auth_org is unavailable — guard with respond_to? before calling.
-        plan_max = if respond_to?(:auth_org) && auth_org.respond_to?(:limit_for)
-                     org_limit = auth_org.limit_for('secret_lifetime')
-                     org_limit.positive? ? org_limit : max_ttl
-                   else
-                     resolve_ttl_limit(max_ttl)
-                   end
+        # TTL ceiling dispatch — mirrors V2's three-way structure (#4172).
+        #
+        # 1. auth_org present (V1 specs that inject one): plan limit
+        # 2. anonymous caller: configured anonymous ceiling (default 7 days)
+        # 3. authenticated without OrganizationContext: resolve via billing/org lookup
+        #
+        # Before #4172 the anonymous case fell through to resolve_ttl_limit,
+        # which returned the bare V1_MAX_TTL (30 days) when billing was
+        # disabled — 4× wider than the configured anonymous ceiling.
+        caller_max = if respond_to?(:auth_org) && auth_org.respond_to?(:limit_for)
+                       org_limit = auth_org.limit_for('secret_lifetime')
+                       org_limit.positive? ? org_limit : max_ttl
+                     elsif cust.nil? || cust.anonymous?
+                       anonymous_max_ttl(max_ttl)
+                     else
+                       resolve_ttl_limit(max_ttl)
+                     end
 
         # Apply default if nil
         @ttl = default_ttl || 7.days if ttl.nil?
@@ -172,8 +179,8 @@ module V1::Logic
         # that behavior for backward compatibility. Clamping happens BEFORE
         # the entitlement gate so that e.g. ttl=9999999 gets clamped to
         # 30 days rather than rejected for missing entitlements.
-        # plan_max may be lower than max_ttl, so use the stricter ceiling.
-        effective_max_ttl = [max_ttl, plan_max].min
+        # caller_max may be lower than max_ttl, so use the stricter ceiling.
+        effective_max_ttl = [max_ttl, caller_max].min
         @ttl              = ttl.clamp(min_ttl, effective_max_ttl)
 
         # Entitlement gate: requests beyond free tier TTL require extended_default_expiration.
@@ -381,11 +388,13 @@ module V1::Logic
 
       private
 
-      # Resolve max TTL when OrganizationContext is not available (V1).
+      # Resolve max TTL for an authenticated caller without OrganizationContext.
+      #
+      # Only reached for authenticated users — anonymous callers are dispatched
+      # to anonymous_max_ttl by the three-way split in process_ttl (#4172).
       #
       # Looks up the customer's organization to check plan-based limits.
       # Billing-disabled (self-hosted) deployments get config_max (30 days).
-      # Billing-enabled free/anonymous users get the free tier limit (14 days).
       #
       # Codeflow for organization_instances (Familia participates_in):
       #   1. Customer.participates_in :Organization, :members (customer.rb:116)
@@ -415,12 +424,6 @@ module V1::Logic
         # Billing disabled (self-hosted): fail-open at config max
         return config_max unless billing_enabled
 
-        # Anonymous users: free tier limit
-        if cust.nil? || cust.anonymous?
-          free_max = Onetime::Organization.free_tier_limits['secret_lifetime.max']
-          return free_max.positive? ? free_max : config_max
-        end
-
         # Authenticated: look up customer's org for plan-based limit
         resolved_org = cust.organization_instances.to_a.first
         if resolved_org.respond_to?(:limit_for)
@@ -434,6 +437,37 @@ module V1::Logic
       rescue StandardError => ex
         OT.ld "[BaseSecretAction] TTL limit resolution failed: #{ex.message}"
         config_max
+      end
+
+      # Anonymous TTL ceiling (#4172), mirroring V2's anonymous_max_ttl.
+      #
+      # Lowest of up to three ceilings:
+      #   1. configured_anonymous_max_ttl (default 7 days, env TTL_MAX_ANONYMOUS)
+      #   2. config_max (V1_MAX_TTL, so a global cap still wins)
+      #   3. free-tier secret_lifetime limit (only when billing is enabled)
+      #
+      # @param config_max [Integer] V1_MAX_TTL fallback
+      # @return [Integer] Maximum TTL in seconds for anonymous callers
+      def anonymous_max_ttl(config_max)
+        ceilings = [
+          Onetime::Models::Features::WithEntitlements.configured_anonymous_max_ttl,
+          config_max,
+        ]
+
+        billing_enabled = begin
+          Onetime::BillingConfig.instance.enabled?
+        rescue StandardError => ex
+          OT.ld "[anonymous_max_ttl] BillingConfig unavailable (#{ex.class}: #{ex.message}); " \
+                "anonymous TTL ceiling falls back to #{ceilings.min}"
+          false
+        end
+
+        if billing_enabled
+          free_tier_max = Onetime::Organization.free_tier_limits['secret_lifetime.max'].to_i
+          ceilings << free_tier_max if free_tier_max.positive?
+        end
+
+        ceilings.min
       end
 
       # Creates the receipt/secret pair using the modern Metadata.spawn_pair API.
