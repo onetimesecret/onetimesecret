@@ -9,20 +9,23 @@
 # WHAT THIS CLOSES
 #   PR #4130 shipped the DISPLAY half: a restricted host renders exactly one
 #   sign-in method. The server still ACCEPTED a crafted POST to every other
-#   method's endpoint. A1 makes `restrict_to` an access control: when
+#   method's endpoint. ADR-034#restrict-to-is-an-access-control-not-a-display-preference
+#   makes `restrict_to` an access control: when
 #   resolution yields a single method for a request host, the server MUST
 #   reject submission of every other method on that host.
 #
-# REJECT SHAPE — 404, not 403 (A7)
+# REJECT SHAPE — 404, not 403 (ADR-034#reject-as-not-found-not-forbidden)
 #   A restricted-away method presents NO reachable surface, matching Rodauth's
 #   behavior for a feature that was never loaded. A 403 gate would leave the
 #   handler mounted and reachable — "configuration presenting as availability",
-#   the exact shape A1 exists to kill. The body is the router's shared
+#   the exact shape ADR-034#restrict-to-is-an-access-control-not-a-display-preference
+#   exists to kill. The body is the router's shared
 #   Auth::ErrorTranslator::NOT_FOUND_BODY so a gated route is byte-identical to
 #   an undefined one.
 #
 #   SsoOnlyGating's 403 + error_key is DELIBERATELY NOT reconciled with this
-#   (A7, "Scope, settled"): it governs account-scoped credential MANAGEMENT for
+#   (ADR-034#reject-as-not-found-not-forbidden, scope note): it governs
+#   account-scoped credential MANAGEMENT for
 #   an already-identified user, where an actionable error beats a mystery.
 #
 #   ONE EXCEPTION: 503 when the policy itself
@@ -30,7 +33,8 @@
 #   resolution_for). A 404 here would be the gate claiming a restriction it
 #   never managed to look up — mystery not-founds on the sign-in routes of an
 #   install that may restrict nothing, indistinguishable from a routing
-#   regression. A7's 404 hides policy-gated methods; an unreadable policy has
+#   regression. The 404 of ADR-034#reject-as-not-found-not-forbidden hides
+#   policy-gated methods; an unreadable policy has
 #   nothing to hide, and "the backend read failed, retry" is both the truth and
 #   the alertable signal.
 #
@@ -66,9 +70,12 @@
 #      (apps/web/core/routes.txt). Gated in
 #      Core::Controllers::Base#restrict_to_allows?.
 #
-# See: docs/adr/adr-024-custom-domain-auth-override-resolution.md
-#      (A1, A3, A7 — normative), lib/onetime/models/custom_domain/signin_config.rb
-#      (the A2 resolver; resolution is owned there and re-derived nowhere).
+# See: docs/adr/adr-034-restrict-to-enforcement.md — normative:
+#      #restrict-to-is-an-access-control-not-a-display-preference,
+#      #degradation-is-fail-closed, #reject-as-not-found-not-forbidden — and
+#      lib/onetime/models/custom_domain/signin_config.rb (the resolver of
+#      ADR-034#resolution-is-model-owned; resolution is owned there and
+#      re-derived nowhere).
 #
 
 require 'json'
@@ -86,7 +93,8 @@ module Auth
     # config/features/).
     #
     # Every route here goes dark when its method is restricted away. Secondary
-    # endpoints are included on purpose (A7): a gate that covers POST /login
+    # endpoints are included on purpose
+    # (ADR-034#reject-as-not-found-not-forbidden): a gate that covers POST /login
     # and misses the ceremony-start endpoint leaves the gap open while looking
     # closed, which is worse than no gate because it invites documenting
     # restrict_to as an access control it does not provide.
@@ -274,16 +282,19 @@ module Auth
       def resolution_for(env)
         domain_id     = domain_id_for(env)
         signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id) if domain_id
-        global        = global_restrict_to(env, domain_id, signin_config)
+        inherited     = global_restrict_to(env, domain_id, signin_config)
 
         Onetime::CustomDomain::SigninConfig.resolve_restrict_to(
-          global,
+          inherited.value,
           signin_config,
+          # #4165: pass pin_established so the availability check trusts the
+          # SSO pin's own proof instead of re-consulting AuthConfig.
           available: restriction_available_for_host?(
             env,
-            global,
+            inherited.value,
             signin_config,
             domain_id,
+            already_established: inherited.pin_established,
           ),
         )
       rescue Redis::BaseError => ex
@@ -311,12 +322,15 @@ module Auth
       # consumer can narrow an inherited restriction the others do not). All
       # that belongs to the web layer is reading the request classification out
       # of the Rack env, which is what this does.
-      def restriction_available_for_host?(env, global, signin_config, domain_id)
+      #
+      # @param already_established [Boolean] see global_restriction_available? (#4165)
+      def restriction_available_for_host?(env, global, signin_config, domain_id, already_established: false)
         Onetime::CustomDomain::SigninConfig.restriction_available_for_request?(
           global,
           signin_config,
           domain_id: domain_id,
           custom_host: env['onetime.domain_strategy'] == :custom,
+          already_established: already_established,
         )
       end
 
@@ -332,35 +346,19 @@ module Auth
       # The restriction the request HOST inherits when no enabled per-domain
       # config speaks — the `global` input to the resolver.
       #
-      # SSO PIN, parity with ConfigSerializer#effective_global_restrict_to: a
-      # custom domain with no enabled SigninConfig keeps a working /signin page
-      # only because tenant SSO is available there, and password/email default
-      # OFF on custom domains. Pinning 'sso' keeps this gate in lockstep with
-      # the page that host actually renders.
-      #
-      # The availability predicate is SsoConfig.sso_available_for_tenant_host? —
-      # the SAME predicate ConfigSerializer#effective_global_restrict_to pins
-      # on, platform fallback included. It used to be the narrower
-      # tenant_sso_available_for?, which left this gate MORE permissive than
-      # the page it guards whenever allow_platform_fallback_for_tenants? was on
-      # and the tenant had no SsoConfig: the page offered SSO alone, the gate
-      # pinned nothing and accepted crafted password POSTs. See that predicate
-      # for why converging on the display's answer is the narrowing direction.
+      # Thin wrapper, same shape as restriction_available_for_host? above: the
+      # pin POLICY (including the no-enabled-config precondition and the
+      # SsoConfig.sso_available_for_tenant_host? predicate it fires on) is
+      # SigninConfig.inherited_restrict_to, so the display serializer, this gate
+      # and the settings API cannot inherit three different restrictions for one
+      # host. All that belongs to the web layer is reading the request
+      # classification out of the Rack env.
       def global_restrict_to(env, domain_id, signin_config)
-        # NO-CONFIG CASE ONLY. Under A8's intersection semantics two different
-        # restrictions have no intersection and fail closed as :conflict, so
-        # pinning 'sso' on a tenant that HAS spoken (an enabled SigninConfig
-        # naming, say, 'password') would take that host dark instead of honoring
-        # the owner's choice. The pin exists to describe a host that has NOT
-        # configured sign-in and is reachable only via SSO; that is the only
-        # case it may apply to.
-        return Onetime.auth_config.restrict_to if signin_config&.enabled?
-
-        return 'sso' if env['onetime.domain_strategy'] == :custom &&
-                        domain_id &&
-                        Onetime::CustomDomain::SsoConfig.sso_available_for_tenant_host?(domain_id)
-
-        Onetime.auth_config.restrict_to
+        Onetime::CustomDomain::SigninConfig.inherited_restrict_to(
+          signin_config,
+          domain_id: domain_id,
+          custom_host: env['onetime.domain_strategy'] == :custom,
+        )
       end
 
       # CustomDomain identifier for the request host, or nil.
@@ -380,7 +378,8 @@ module Auth
       end
 
       # The router's shared 404 — a gated route must be indistinguishable from
-      # an undefined one (A7). Built here rather than reusing the router's
+      # an undefined one (ADR-034#reject-as-not-found-not-forbidden). Built here
+      # rather than reusing the router's
       # status_handler because request.halt bypasses Roda's status handlers.
       def not_found_response
         [

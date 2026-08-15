@@ -59,8 +59,9 @@ module DomainsAPI
         # /signin page (same shared authority as
         # Core::Views::DomainSerializer#effective_signin_enabled?).
         #
-        # effective_restrict_to is the A2 resolver's output verbatim (ADR-024
-        # A4), so the settings UI stops re-deriving the effective restriction
+        # effective_restrict_to is the resolver's output verbatim
+        # (ADR-034#settings-api-serializes-effective-restrict-to), so the
+        # settings UI stops re-deriving the effective restriction
         # from global_restrict_to client-side. global_restrict_to stays: it
         # names the *inherited* restriction, which the UI still labels
         # separately from what resolves for this domain.
@@ -78,6 +79,27 @@ module DomainsAPI
           global          = Onetime::CustomDomain::SigninConfig.global_signin_enabled
           global_restrict = Onetime.auth_config.restrict_to
 
+          # The value this HOST inherits, which is not always the operator's own
+          # restriction: an SSO-only custom domain (no enabled SigninConfig,
+          # tenant or platform SSO available) inherits the 'sso' HOST PIN. Asked
+          # through the shared SigninConfig.inherited_restrict_to — the same call
+          # the /signin page and the route gate make. This page used to hand the
+          # resolver Onetime.auth_config.restrict_to verbatim and so reported
+          # `unrestricted` for a host whose Rodauth routes the gate was already
+          # restricting to SSO: a fail-OPEN divergence of exactly the kind
+          # ADR-034#degradation-is-fail-closed forbids, caught by
+          # apps/web/core/spec/views/serializers/restrict_to_parity_spec.rb.
+          #
+          # custom_host is always true here: these settings describe a custom
+          # domain. The details.global_restrict_to field below keeps the
+          # OPERATOR's own value — the UI labels the inherited operator
+          # restriction separately from what resolves for this host.
+          inherited = Onetime::CustomDomain::SigninConfig.inherited_restrict_to(
+            config,
+            domain_id: domain_id,
+            custom_host: true,
+          )
+
           {
             global_enabled: global,
             effective_enabled: Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_custom_domain(
@@ -90,7 +112,7 @@ module DomainsAPI
             # implementation, shared with GET /api/invite/:token) — this app
             # no longer carries a private copy of the wire shape.
             effective_restrict_to: Onetime::CustomDomain::SigninConfig.resolve_restrict_to(
-              global_restrict,
+              inherited.value,
               config,
               # Post-boot availability of the global restriction
               # (ADR-034#degradation-is-fail-closed),
@@ -102,11 +124,15 @@ module DomainsAPI
               # capabilities exactly as it is at request time. Without it the
               # page showed `restricted/password` for a domain whose Rodauth
               # routes the gate had already taken to 404 (#4139).
+              #
+              # #4165: pass pin_established so the availability check trusts the
+              # SSO pin's own proof instead of re-consulting AuthConfig.
               available: Onetime::CustomDomain::SigninConfig.restriction_available_for_request?(
-                global_restrict,
+                inherited.value,
                 config,
                 domain_id: domain_id,
                 custom_host: true,
+                already_established: inherited.pin_established,
               ),
             ).to_wire,
             tenant_sso: tenant_sso_details(domain_id),

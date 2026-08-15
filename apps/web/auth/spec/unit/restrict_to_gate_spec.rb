@@ -115,7 +115,7 @@ RSpec.describe Auth::RestrictTo do
       end
     end
 
-    it 'rejects every route when the restriction is unavailable (A3 fail-closed)' do
+    it 'rejects every route when the restriction is unavailable (fail-closed)' do
       described_class::GATED_ROUTES.each_key do |route|
         halted = gate(route, resolution_class.unavailable('sso', :global))
 
@@ -173,8 +173,9 @@ RSpec.describe Auth::RestrictTo do
       allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
         .with(domain_id).and_return(nil)
       allow(Onetime.auth_config).to receive(:restrict_to).and_return('sso')
+      # #4165: global_restriction_available? now accepts already_established: keyword
       allow(Onetime::CustomDomain::SigninConfig).to receive(:global_restriction_available?)
-        .with('sso').and_return(true)
+        .and_return(true)
     end
 
     it 'fails an inherited SSO restriction closed when this host has no usable SSO path' do
@@ -314,8 +315,9 @@ RSpec.describe Auth::RestrictTo do
       allow(Onetime::CustomDomain).to receive(:from_display_domain)
         .with('example.com').and_raise(Redis::BaseError, 'lookup unavailable')
       allow(Onetime.auth_config).to receive(:restrict_to).and_return('password')
+      # #4165: global_restriction_available? now accepts already_established: keyword
       allow(Onetime::CustomDomain::SigninConfig).to receive(:global_restriction_available?)
-        .with('password').and_return(true)
+        .and_return(true)
 
       resolution = described_class.resolution_for(canonical_env)
 

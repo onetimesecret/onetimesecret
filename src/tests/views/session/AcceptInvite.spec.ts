@@ -355,7 +355,8 @@ describe('AcceptInvite', () => {
         expect(sso.exists()).toBe(true);
         expect(sso.props('routeName')).toBe('oidc');
         expect(sso.props('displayName')).toBe('Acme SSO');
-        // Comes back here to accept — A11's flow is sign in, then join.
+        // Comes back here to accept — the ADR-034#invite-signup-is-gated flow
+        // is sign in, then join.
         expect(sso.props('redirect')).toBe('/invite/test-token-123');
       });
 
@@ -433,7 +434,7 @@ describe('AcceptInvite', () => {
         // The schema degrades an unknown method to null while `state` keeps
         // carrying the truth. A method we cannot name is still one we cannot
         // offer — treating it as unrestricted would put the password form back
-        // in front of the A11 gate.
+        // in front of the ADR-034#invite-signup-is-gated gate.
         replyWith({ ...mockInvitation, effective_restrict_to: restrictedTo('passkey_v2') });
 
         const wrapper = await mountComponent();
@@ -486,7 +487,8 @@ describe('AcceptInvite', () => {
     describe('restriction never masks a token failure', () => {
       it('renders the bad-token error, not a restriction, for an unknown token', async () => {
         // A genuine 404 from GET must still read as a bad token. It cannot be
-        // confused with the A11 signup 404: the restriction is known BEFORE
+        // confused with the gated-signup 404 of
+        // ADR-034#invite-signup-is-gated: the restriction is known BEFORE
         // any form renders, so `invalid` keeps sole ownership of token failures.
         getGlobalAxiosMock().onGet('/api/invite/invalid-token').reply(404, { error: 'Not found' });
 
@@ -527,9 +529,11 @@ describe('AcceptInvite', () => {
 
     describe('authenticated invitee', () => {
       it('can still accept on a restricted host', async () => {
-        // POST /:token/accept is deliberately ungated (account-scoped, A7), so
+        // POST /:token/accept is deliberately ungated (account-scoped, per
+        // ADR-034#reject-as-not-found-not-forbidden), so
         // the restriction is spent once a session exists. This is what lets
-        // A11's flow terminate: SSO signs them in, they return here, they join.
+        // the ADR-034#invite-signup-is-gated flow terminate: SSO signs them in,
+        // they return here, they join.
         authStore.$patch({
           isAuthenticated: true,
           cust: {

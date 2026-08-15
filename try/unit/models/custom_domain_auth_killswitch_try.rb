@@ -14,7 +14,8 @@
 # (ADR-034#resolution-is-model-owned) — the single owner
 # of restrict_to resolution — whose degradation rule is fail-CLOSED: a domain
 # restriction naming a method that cannot be honored here resolves to
-# :unavailable, never to "unrestricted" (A3).
+# :unavailable, never to "unrestricted"
+# (ADR-034#degradation-is-fail-closed).
 #
 # Run:
 #   try try/unit/models/custom_domain_auth_killswitch_try.rb --agent
@@ -168,7 +169,8 @@ Onetime::CustomDomain::SignupConfig.resolve_signup_enabled(true, signup_config(e
 #
 # Three explicit states: :unrestricted (allow every enabled method),
 # :restricted (allow only the named one), :unavailable (allow nothing —
-# fail-closed degradation, A3). Precedence is INTERSECTION (A8): a domain
+# fail-closed degradation, ADR-034#degradation-is-fail-closed). Precedence is
+# INTERSECTION (ADR-034#resolution-intersects-never-widens): a domain
 # config narrows, never widens; two different restrictions intersect to
 # nothing and fail closed.
 
@@ -236,7 +238,7 @@ resolve_restrict_with('sso', restrict_config(enabled: true, restrict_to: 'sso'),
 resolve_restrict_with('sso', restrict_config(enabled: true, restrict_to: 'sso'), domain_available: true).source
 #=> :domain
 
-## INTERSECTION (A8): two different restrictions intersect to nothing
+## INTERSECTION: two different restrictions intersect to nothing
 resolve_restrict('sso', restrict_config(enabled: true, restrict_to: 'password')).state
 #=> :unavailable
 
@@ -260,23 +262,23 @@ resolve_restrict('sso', restrict_config(enabled: true, restrict_to: 'password'))
 resolve_restrict('password', restrict_config(enabled: true, restrict_to: 'email_auth')).unrestricted?
 #=> false
 
-## A8 FIX: an enabled domain config with no restriction NO LONGER widens past global
+## INTERSECTION FIX: an enabled domain config with no restriction NO LONGER widens past global
 resolve_restrict('sso', restrict_config(enabled: true, restrict_to: nil)).state
 #=> :restricted
 
-## A8 FIX: the global restriction stands, attributed to the global layer
+## INTERSECTION FIX: the global restriction stands, attributed to the global layer
 resolve_restrict('sso', restrict_config(enabled: true, restrict_to: nil)).source
 #=> :global
 
-## A8 FIX: the global method is the effective one
+## INTERSECTION FIX: the global method is the effective one
 resolve_restrict('sso', restrict_config(enabled: true, restrict_to: nil)).restrict_to
 #=> 'sso'
 
-## A8 FIX: a tenant cannot re-expose the methods the operator restricted away
+## INTERSECTION FIX: a tenant cannot re-expose the methods the operator restricted away
 resolve_restrict('sso', restrict_config(enabled: true, restrict_to: nil)).allows?('password')
 #=> false
 
-## A8 FIX: blank (not nil) domain restrict_to is also "unset"
+## INTERSECTION FIX: blank (not nil) domain restrict_to is also "unset"
 resolve_restrict('sso', restrict_config(enabled: true, restrict_to: '  ')).restrict_to
 #=> 'sso'
 
@@ -296,7 +298,7 @@ resolve_restrict('sso', restrict_config(enabled: false, restrict_to: 'password')
 resolve_restrict(nil, restrict_config(enabled: false, restrict_to: 'password')).state
 #=> :unrestricted
 
-## FAIL CLOSED (A3): domain 'webauthn' cannot be honored on a custom domain
+## FAIL CLOSED: domain 'webauthn' cannot be honored on a custom domain
 resolve_restrict(nil, restrict_config(enabled: true, restrict_to: 'webauthn')).state
 #=> :unavailable
 
@@ -328,7 +330,8 @@ resolve_restrict(nil, restrict_config(enabled: true, restrict_to: 'bogus')).stat
 resolve_restrict('webauthn', nil).state
 #=> :restricted
 
-# --- DOMAIN AVAILABILITY DERIVATION (A3 domain half, #4139) ---
+# --- DOMAIN AVAILABILITY DERIVATION
+# (domain half of ADR-034#degradation-is-fail-closed, #4139) ---
 #
 # Production never injects domain_available:, so the branch that matters is the
 # DERIVATION: resolve_restrict_to asking
@@ -388,7 +391,8 @@ available_for_request?('password', nil, domain_id: nil, custom_host: true)
 available_for_request?('password', nil, domain_id: 'ks_restrict', custom_host: true)
 #=> false
 
-# --- available: false — post-boot global unavailability (A3, #4139) ---
+# --- available: false — post-boot global unavailability
+# (ADR-034#degradation-is-fail-closed, #4139) ---
 #
 # The flag says "the global restriction stands, but its backing method is dead
 # here". It may only NARROW: a standing restriction goes :unavailable, and an
@@ -431,7 +435,7 @@ resolve_restrict_dead(nil, nil).allows?('password')
 resolve_restrict_dead('', nil).state
 #=> :unrestricted
 
-## an AGREEING domain config does not resurrect the dead method (A8 agreement)
+## an AGREEING domain config does not resurrect the dead method
 resolve_restrict_dead('sso', restrict_config(enabled: true, restrict_to: 'sso')).state
 #=> :unavailable
 
@@ -443,7 +447,7 @@ resolve_restrict_dead('sso', restrict_config(enabled: true, restrict_to: 'sso'))
 resolve_restrict_dead('sso', restrict_config(enabled: true, restrict_to: 'sso')).allows?('sso')
 #=> false
 
-## an enabled domain config with NO restriction inherits the dead global (A8)
+## an enabled domain config with NO restriction inherits the dead global
 resolve_restrict_dead('sso', restrict_config(enabled: true, restrict_to: nil)).state
 #=> :unavailable
 
@@ -501,7 +505,8 @@ Onetime::CustomDomain::SigninConfig::RestrictToResolution.restricted('sso', :dom
 
 ## :unavailable survives the wire — it is NOT projected down to a bare null
 ## the way the display field features.restrict_to must be. A null here would
-## read as "unrestricted" and re-offer every method the restriction hid (A3).
+## read as "unrestricted" and re-offer every method the restriction hid
+## (ADR-034#degradation-is-fail-closed).
 Onetime::CustomDomain::SigninConfig::RestrictToResolution.unavailable('sso', :domain).to_wire
 #=> { state: 'unavailable', restrict_to: 'sso', source: 'domain' }
 
@@ -510,7 +515,7 @@ Onetime::CustomDomain::SigninConfig::RestrictToResolution.unavailable('sso', :do
 Onetime::CustomDomain::SigninConfig::RestrictToResolution.unavailable('sso', :conflict).to_wire[:restrict_to]
 #=> 'sso'
 
-## :conflict attribution reaches the wire (A8: neither layer won)
+## :conflict attribution reaches the wire (neither layer won)
 Onetime::CustomDomain::SigninConfig::RestrictToResolution.unavailable('sso', :conflict).to_wire[:source]
 #=> 'conflict'
 

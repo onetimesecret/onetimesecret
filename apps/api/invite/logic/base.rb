@@ -42,7 +42,8 @@ module InviteAPI
       #
       # SHARED ON PURPOSE, and this is the point of it living here. ShowInvite
       # REPORTS what the host permits (record.effective_restrict_to) and
-      # SignupAndAccept ENFORCES it (the A11 gate on POST /:token/signup). The
+      # SignupAndAccept ENFORCES it (the ADR-034#invite-signup-is-gated gate on
+      # POST /:token/signup). The
       # two must be computed from the SAME host or `GET /:token` describes a
       # surface the subsequent POST 404s on, with nothing in the response to
       # predict it. Two byte-identical private copies made that agreement a

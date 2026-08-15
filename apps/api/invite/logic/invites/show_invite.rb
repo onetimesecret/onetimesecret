@@ -135,10 +135,12 @@ module InviteAPI::Logic
 
       # Sign-in methods this host will actually accept.
       #
-      # Every entry is filtered through the resolution (A1): a page that
-      # advertises a method the host rejects is the display/runtime
+      # Every entry is filtered through the resolution
+      # (ADR-034#restrict-to-is-an-access-control-not-a-display-preference): a
+      # page that advertises a method the host rejects is the display/runtime
       # disagreement ADR-024 exists to kill. The list can legitimately come
-      # back EMPTY (an :unavailable resolution allows nothing, A3) — the
+      # back EMPTY (an :unavailable resolution allows nothing,
+      # ADR-034#degradation-is-fail-closed) — the
       # frontend must render that as "sign-in unavailable", never as a reason
       # to fall back to standard mode.
       #
