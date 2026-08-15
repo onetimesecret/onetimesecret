@@ -67,6 +67,19 @@ RSpec.describe Core::Middleware::RequestSetup do
       emit({ 'content-type' => 'text/html' }, development: true)
     end
 
+    it 'allows same-origin Vite module imports in development without dropping the nonce' do
+      policy = emit({ 'content-type' => 'text/html' }, development: true)
+
+      expect(policy).to include("script-src 'nonce-N' 'unsafe-inline' 'self'")
+    end
+
+    it 'keeps production scripts nonce-only' do
+      policy = emit({ 'content-type' => 'text/html' })
+
+      expect(policy).to include("script-src 'nonce-N'")
+      expect(policy).not_to include("script-src 'nonce-N' 'self'")
+    end
+
     it 'reads a canonically-cased Content-Type when emitting (Writer lookup is case-insensitive)' do
       # emit_csp_header delegates to the Writer, whose Content-Type lookup is
       # case-insensitive, so a canonically-cased key still yields a CSP. This
