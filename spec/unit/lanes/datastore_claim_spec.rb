@@ -33,32 +33,47 @@ module LaneClaimProbe
     @bash_floor ||= Integer(File.read(File.join(ROOT, '.bash-version')).strip)
   end
 
-  # The runner's shebang is `#!/usr/bin/env bash`, so the bash that matters
-  # is the first one on PATH — not the shell that launched RSpec, and on
-  # macOS not /bin/bash either.
-  def path_bash_major
-    return @path_bash_major if defined?(@path_bash_major)
+  # A PATH the runner's `#!/usr/bin/env bash` resolves to a bash that meets
+  # the floor. That shebang picks the FIRST bash on PATH, which on macOS is
+  # Apple's frozen 3.2 — but bin/setup --test requires a newer one and it is
+  # installed elsewhere on disk (brew install bash). So rather than give up
+  # when the leading bash is too old, prepend the directory of a qualifying
+  # bash. A too-old leading bash is not a reason to skip when a good one is
+  # already installed; its total absence is an environment fault the spec
+  # should surface, not hide.
+  def runner_path
+    @runner_path ||= begin
+      base = ENV.fetch('PATH')
+      dir  = qualifying_bash_dir(base)
+      dir ? "#{dir}#{File::PATH_SEPARATOR}#{base}" : base
+    end
+  end
 
-    out, status = Open3.capture2e('bash', '-c', 'echo "${BASH_VERSINFO[0]}"')
-    @path_bash_major = status.success? ? Integer(out.strip, exception: false) : nil
+  # First bash at or above the floor: PATH entries in order (so a modern
+  # bash already leading PATH, as on CI, is used as-is), then the standard
+  # Homebrew prefixes, which sit outside the default PATH order on macOS.
+  def qualifying_bash_dir(base)
+    from_path = base.split(File::PATH_SEPARATOR).map { |d| File.join(d, 'bash') }
+    candidates = (from_path + ['/opt/homebrew/bin/bash', '/usr/local/bin/bash']).uniq
+    found = candidates.find do |bin|
+      File.executable?(bin) && (major = bash_major(bin)) && major >= bash_floor
+    end
+    found && File.dirname(found)
+  end
+
+  def bash_major(bin)
+    out, status = Open3.capture2e(bin, '-c', 'echo "${BASH_VERSINFO[0]}"')
+    status.success? ? Integer(out.strip, exception: false) : nil
   end
 end
 
 RSpec.describe 'tests/lanes/run per-worktree datastore claim' do
-  # Without bash 5+ on PATH the runner refuses to start, exactly as it does
-  # for a fresh macOS checkout. Skip rather than fail, matching
-  # hermetic_boundary_spec.rb.
-  before do
-    major = LaneClaimProbe.path_bash_major
-    floor = LaneClaimProbe.bash_floor
-    skip "bash #{floor}+ is not on PATH (macOS: brew install bash)" if major.nil? || major < floor
-  end
   # `selftest` runs no application code and blanks the service URLs, so this
   # never needs a container — but LANES_NO_AUTOSTART is set anyway, because
   # a spec that can start containers is a spec that can hang CI.
   def assigned_index(home)
     out, status = Open3.capture2e(
-      { 'HOME' => home, 'PATH' => ENV.fetch('PATH'), 'LANES_NO_AUTOSTART' => '1' },
+      { 'HOME' => home, 'PATH' => LaneClaimProbe.runner_path, 'LANES_NO_AUTOSTART' => '1' },
       File.join(LaneClaimProbe::ROOT, 'tests', 'lanes', 'run'), 'selftest',
       unsetenv_others: true, chdir: LaneClaimProbe::ROOT
     )
