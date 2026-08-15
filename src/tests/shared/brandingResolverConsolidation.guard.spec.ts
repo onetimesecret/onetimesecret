@@ -42,6 +42,12 @@ function stripComments(src: string): string {
     if (src.startsWith('<!--', i)) {
       const end = src.indexOf('-->', i + 4);
       i = end === -1 ? src.length : end + 3;
+    } else if (src.startsWith('-->', i)) {
+      // A bare `-->` only occurs as residue of a nested `<!-- <!-- … --> -->`
+      // (the region scan above ends at the first `-->`); it is never valid
+      // Vue/TS code on its own. Drop it so the stripped output carries no
+      // dangling comment closer a future guard assertion could match.
+      i += 3;
     } else if (src.startsWith('/*', i)) {
       const end = src.indexOf('*/', i + 2);
       i = end === -1 ? src.length : end + 2;
@@ -212,10 +218,11 @@ describe('stripComments (guard helper)', () => {
 
   // Invariant guarded by the comment scanner: however comments nest, no
   // forbidden token and no dangling comment opener may survive.
-  it('removes nested HTML comments, leaving no forbidden token or `<!--` opener', () => {
+  it('removes nested HTML comments, leaving no forbidden token, `<!--` opener, or `-->` closer', () => {
     const out = stripComments('<!--<!-- brand_product_name -->--> keep');
     expect(out).not.toContain('brand_product_name');
     expect(out).not.toContain('<!--');
+    expect(out).not.toContain('-->');
     expect(out).toContain('keep');
   });
 

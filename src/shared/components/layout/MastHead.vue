@@ -154,6 +154,14 @@
   // private-label install (#3571). A brand-neutral value should not be
   // translatable in the first place.
   const getSiteName = () => props.logo?.siteName || productName.value;
+
+  // Sign-in tooltip: genuinely translatable copy, so it stays an i18n message
+  // with the resolver's product name interpolated. Computed in script so the
+  // ref read is an explicit `.value`, consistent with every other resolver
+  // read in this component (the template would otherwise rely on auto-unwrap).
+  const signInLinkTitle = computed(() =>
+    t('web.homepage.log_in_to_onetime_secret', { product_name: productName.value })
+  );
   const getAriaLabel = () => props.logo?.ariaLabel;
   const getIsColonelArea = () => props.logo?.isColonelArea ?? props.colonel;
 
@@ -341,7 +349,7 @@
             <router-link
               v-if="authentication?.signin"
               to="/signin"
-              :title="t('web.homepage.log_in_to_onetime_secret', { product_name: productName })"
+              :title="signInLinkTitle"
               data-testid="header-signin-link"
               class="text-gray-600 transition-colors duration-200
                 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
