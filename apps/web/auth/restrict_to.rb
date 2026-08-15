@@ -282,16 +282,19 @@ module Auth
       def resolution_for(env)
         domain_id     = domain_id_for(env)
         signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id) if domain_id
-        global        = global_restrict_to(env, domain_id, signin_config)
+        inherited     = global_restrict_to(env, domain_id, signin_config)
 
         Onetime::CustomDomain::SigninConfig.resolve_restrict_to(
-          global,
+          inherited.value,
           signin_config,
+          # #4165: pass pin_established so the availability check trusts the
+          # SSO pin's own proof instead of re-consulting AuthConfig.
           available: restriction_available_for_host?(
             env,
-            global,
+            inherited.value,
             signin_config,
             domain_id,
+            already_established: inherited.pin_established,
           ),
         )
       rescue Redis::BaseError => ex
@@ -319,12 +322,15 @@ module Auth
       # consumer can narrow an inherited restriction the others do not). All
       # that belongs to the web layer is reading the request classification out
       # of the Rack env, which is what this does.
-      def restriction_available_for_host?(env, global, signin_config, domain_id)
+      #
+      # @param already_established [Boolean] see global_restriction_available? (#4165)
+      def restriction_available_for_host?(env, global, signin_config, domain_id, already_established: false)
         Onetime::CustomDomain::SigninConfig.restriction_available_for_request?(
           global,
           signin_config,
           domain_id: domain_id,
           custom_host: env['onetime.domain_strategy'] == :custom,
+          already_established: already_established,
         )
       end
 

@@ -340,10 +340,10 @@ module Core
           end
 
           signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id) if domain_id
-          global        = effective_global_restrict_to(view_vars, signin_config, domain_id)
+          inherited     = effective_global_restrict_to(view_vars, signin_config, domain_id)
 
           Onetime::CustomDomain::SigninConfig.resolve_restrict_to(
-            global,
+            inherited.value,
             signin_config,
             # Post-boot availability of the global restriction (ADR-034#degradation-is-fail-closed),
             # asked through the SHARED gatherer so the page cannot answer it
@@ -354,11 +354,15 @@ module Core
             # narrowed through the custom-host capabilities (password defaults
             # OFF there), resolved :unavailable, and 404'd the very routes this
             # page's form posts to (#4139).
+            #
+            # #4165: pass pin_established so the availability check trusts the
+            # SSO pin's own proof instead of re-consulting AuthConfig.
             available: Onetime::CustomDomain::SigninConfig.restriction_available_for_request?(
-              global,
+              inherited.value,
               signin_config,
               domain_id: domain_id,
               custom_host: tenant_domain?(view_vars),
+              already_established: inherited.pin_established,
             ),
           )
         end
@@ -379,7 +383,7 @@ module Core
         # @param view_vars [Hash] View variables with request context
         # @param signin_config [Onetime::CustomDomain::SigninConfig, nil]
         # @param domain_id [String, nil, :domain_read_failed] already-resolved CustomDomain objid
-        # @return [String, nil]
+        # @return [Onetime::CustomDomain::SigninConfig::InheritedRestriction]
         def effective_global_restrict_to(view_vars, signin_config = nil, domain_id = nil)
           # Tri-state handling (#4157): if domain_id is DOMAIN_READ_FAILED, the
           # caller should have already short-circuited. If we reach here anyway,

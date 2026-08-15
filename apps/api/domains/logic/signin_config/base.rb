@@ -94,7 +94,7 @@ module DomainsAPI
           # domain. The details.global_restrict_to field below keeps the
           # OPERATOR's own value — the UI labels the inherited operator
           # restriction separately from what resolves for this host.
-          inherited_restrict = Onetime::CustomDomain::SigninConfig.inherited_restrict_to(
+          inherited = Onetime::CustomDomain::SigninConfig.inherited_restrict_to(
             config,
             domain_id: domain_id,
             custom_host: true,
@@ -112,7 +112,7 @@ module DomainsAPI
             # implementation, shared with GET /api/invite/:token) — this app
             # no longer carries a private copy of the wire shape.
             effective_restrict_to: Onetime::CustomDomain::SigninConfig.resolve_restrict_to(
-              inherited_restrict,
+              inherited.value,
               config,
               # Post-boot availability of the global restriction
               # (ADR-034#degradation-is-fail-closed),
@@ -124,11 +124,15 @@ module DomainsAPI
               # capabilities exactly as it is at request time. Without it the
               # page showed `restricted/password` for a domain whose Rodauth
               # routes the gate had already taken to 404 (#4139).
+              #
+              # #4165: pass pin_established so the availability check trusts the
+              # SSO pin's own proof instead of re-consulting AuthConfig.
               available: Onetime::CustomDomain::SigninConfig.restriction_available_for_request?(
-                inherited_restrict,
+                inherited.value,
                 config,
                 domain_id: domain_id,
                 custom_host: true,
+                already_established: inherited.pin_established,
               ),
             ).to_wire,
             tenant_sso: tenant_sso_details(domain_id),

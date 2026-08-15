@@ -221,7 +221,8 @@ RSpec.describe Onetime::CustomDomain::SigninConfig do
 
     context 'on an SSO-only custom host with no SigninConfig' do
       it "pins 'sso' — password and email default OFF there" do
-        expect(inherited).to eq('sso')
+        expect(inherited.value).to eq('sso')
+        expect(inherited.pin_established).to be(true)
       end
     end
 
@@ -232,7 +233,8 @@ RSpec.describe Onetime::CustomDomain::SigninConfig do
       end
 
       it 'inherits the operator restriction (here: none)' do
-        expect(inherited).to be_nil
+        expect(inherited.value).to be_nil
+        expect(inherited.pin_established).to be(false)
       end
     end
 
@@ -240,7 +242,8 @@ RSpec.describe Onetime::CustomDomain::SigninConfig do
       let(:custom_host) { false }
 
       it 'never pins — the pin is a custom-host property' do
-        expect(inherited).to be_nil
+        expect(inherited.value).to be_nil
+        expect(inherited.pin_established).to be(false)
       end
     end
 
@@ -248,7 +251,8 @@ RSpec.describe Onetime::CustomDomain::SigninConfig do
       let(:domain_id_arg) { nil }
 
       it 'never pins — there is no domain whose SSO could be probed' do
-        expect(inherited).to be_nil
+        expect(inherited.value).to be_nil
+        expect(inherited.pin_established).to be(false)
       end
     end
 
@@ -263,7 +267,8 @@ RSpec.describe Onetime::CustomDomain::SigninConfig do
       end
 
       it 'declines the pin — intersecting it would resolve :conflict and lock the host out' do
-        expect(inherited).to eq('password')
+        expect(inherited.value).to eq('password')
+        expect(inherited.pin_established).to be(false)
       end
     end
 
@@ -275,7 +280,45 @@ RSpec.describe Onetime::CustomDomain::SigninConfig do
       end
 
       it "still pins 'sso' — a disabled config has not spoken" do
-        expect(inherited).to eq('sso')
+        expect(inherited.value).to eq('sso')
+        expect(inherited.pin_established).to be(true)
+      end
+    end
+  end
+
+  describe '.global_restriction_available?' do
+    let(:auth_config) do
+      instance_double(Onetime::AuthConfig,
+        restrict_to: 'sso',
+        restrict_to_available?: false,
+      )
+    end
+
+    before do
+      allow(Onetime).to receive(:auth_config).and_return(auth_config)
+    end
+
+    context 'when already_established is true' do
+      it 'returns true without consulting AuthConfig (#4165)' do
+        # Even though restrict_to_available? would return false
+        result = described_class.global_restriction_available?('sso', already_established: true)
+        expect(result).to be(true)
+
+        # Verify we did not call restrict_to_available?
+        expect(auth_config).not_to have_received(:restrict_to_available?)
+      end
+    end
+
+    context 'when already_established is false (default)' do
+      it 'consults AuthConfig when the value matches operator restrict_to' do
+        result = described_class.global_restriction_available?('sso')
+        expect(result).to be(false)
+        expect(auth_config).to have_received(:restrict_to_available?)
+      end
+
+      it 'returns true when the value does NOT match operator restrict_to' do
+        result = described_class.global_restriction_available?('password')
+        expect(result).to be(true)
       end
     end
   end
