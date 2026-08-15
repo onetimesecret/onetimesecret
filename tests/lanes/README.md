@@ -89,7 +89,7 @@ port; a non-`21xx` endpoint is a safety defect.
 Outside CI, lanes isolate each checkout—including Git worktrees—from sibling
 checkouts while sharing the local test service instances:
 
-- Valkey uses a deterministic per-worktree database index (`1..8191`), exposed
+- Valkey uses a deterministic per-worktree database index (`1..65535`), exposed
   as `LANES_DATASTORE_DB`. Its host and port remain the test service.
 - PostgreSQL uses a corresponding `onetime_auth_test_w<index>` database.
 - CI and direct test commands outside the lane runner use the shared index or

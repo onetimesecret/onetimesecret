@@ -389,7 +389,7 @@ set +a
 # index explicitly by setting LANES_DATASTORE_DB itself; the caller's
 # shell cannot (the scrub already cleared it).
 #
-# A checksum maps many paths onto 8191 indexes, so two live worktrees CAN
+# A checksum maps many paths onto 65535 indexes, so two live worktrees CAN
 # derive the same one — and a silent collision reproduces exactly the
 # contamination this feature exists to prevent, which is the worst way for
 # it to fail. The index space is sized so that stays rare (~2% lifetime odds
@@ -415,11 +415,11 @@ if [[ -z "${LANES_DATASTORE_DB:-}" ]]; then
     LANES_DATASTORE_DB=0
   else
     # cksum: POSIX, deterministic across platforms (unlike bash's RANDOM or
-    # a hash of inode numbers). Derived indexes land in 1..8191
-    # (compose.test.yml starts valkey with --databases 8192), leaving 0 to
+    # a hash of inode numbers). Derived indexes land in 1..65535
+    # (compose.test.yml starts valkey with --databases 65536), leaving 0 to
     # mean "the shared, unsuffixed datastore".
     read -r _lanes_cksum _ < <(builtin printf '%s' "${REPO_ROOT}" | cksum)
-    LANES_DATASTORE_DB=$(( 1 + _lanes_cksum % 8191 ))
+    LANES_DATASTORE_DB=$(( 1 + _lanes_cksum % 65535 ))
     builtin unset _lanes_cksum
   fi
 fi
@@ -429,6 +429,10 @@ case "${LANES_DATASTORE_DB}" in
     exit 64
     ;;
 esac
+if (( 10#${LANES_DATASTORE_DB} > 65535 )); then
+  echo "error: LANES_DATASTORE_DB must be between 0 and 65535, got '${LANES_DATASTORE_DB}'" >&2
+  exit 64
+fi
 export LANES_DATASTORE_DB
 for _lanes_name in REDIS_URL VALKEY_URL; do
   if [[ -n "${!_lanes_name:-}" && "${!_lanes_name}" =~ ^(.*:2163)(/[0-9]+)?/?$ ]]; then
@@ -518,7 +522,7 @@ for p in ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"}; do
 done
 
 # The derived DB index only exists if the valkey container was created with
-# enough databases (compose.test.yml pins --databases 8192; the image default
+# enough databases (compose.test.yml pins --databases 65536; the image default
 # is 16). Probe with a raw RESP SELECT over /dev/tcp — a container from
 # before the pin would otherwise surface as opaque mid-suite connection
 # errors instead of one actionable line here. Subshell so a refused
@@ -533,7 +537,7 @@ if [[ "${REDIS_URL:-}" =~ 127\.0\.0\.1:2163 ]]; then
   if [[ "${_lanes_reply}" != '+OK'* ]]; then
     echo "error: valkey on 127.0.0.1:2163 rejected SELECT ${LANES_DATASTORE_DB}" \
          "(${_lanes_reply:-no reply}). The container likely predates the" >&2
-    echo "  --databases 8192 pin in compose.test.yml; recreate it:" >&2
+    echo "  --databases 65536 pin in compose.test.yml; recreate it:" >&2
     echo "  docker compose -f compose.test.yml up -d --force-recreate valkey" >&2
     exit 69
   fi

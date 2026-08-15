@@ -101,12 +101,12 @@ isolation boundary.
 
 Local worktrees share test service instances. They must not share fixtures.
 Outside CI, the runner derives a deterministic index from the repository root
-and assigns it to both datastores. The index range is `1..8191`; Valkey is
-configured with 8192 databases.
+and assigns it to both datastores. The index range is `1..65535`; Valkey is
+configured with 65536 databases (1024*64).
 
 | Datastore | Shared mode | Per-worktree mode |
 | --- | --- | --- |
-| Valkey | database `0` | database index `1..8191` |
+| Valkey | database `0` | database index `1..65535` |
 | PostgreSQL | `onetime_auth_test` | `onetime_auth_test_w<index>` |
 
 The index is exported as `LANES_DATASTORE_DB`. `spec/config.test.yaml` uses it
