@@ -4,6 +4,7 @@
 
 require 'onetime/application'
 require 'onetime/logger_methods'
+require 'onetime/middleware/http_origin_options'
 
 # Load Rodauth configuration first
 require_relative 'config'
@@ -37,7 +38,13 @@ module Auth
       # Additional security headers (some may be redundant with MiddlewareStack)
       use Rack::Protection::ContentSecurityPolicy
       use Rack::Protection::FrameOptions
-      use Rack::Protection::HttpOrigin
+      # Shared options with the main app's Security mount (#4170): without the
+      # allow_if reading env['onetime.display_domain'], custom-domain /auth
+      # POSTs behind a Host-rewriting proxy are rejected with 403 before
+      # reaching a route (SSO initiation being the most visible casualty).
+      # NOTE: unlike the Security mount, this one ignores the
+      # site.middleware.http_origin toggle and is production-only.
+      use Rack::Protection::HttpOrigin, **Onetime::Middleware::HttpOriginOptions.options
       use Rack::Protection::IPSpoofing
       use Rack::Protection::PathTraversal
       use Rack::Protection::SessionHijacking

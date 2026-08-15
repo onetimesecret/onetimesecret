@@ -11,6 +11,7 @@ require 'rack'
 require 'rack/protection'
 require 'rack/utf8_sanitizer'
 
+require_relative 'http_origin_options'
 require_relative 'instrumented_authenticity_token'
 
 module Onetime
@@ -201,9 +202,16 @@ Onetime::Middleware::Security.middleware_components = {
   },
 
   # CSRF Protection (Origin-based): Validates Origin and Referer headers.
+  #
+  # The allow_if accepts an Origin matching env['onetime.display_domain'],
+  # the host DetectHost/DomainStrategy already resolved for this request —
+  # without it, custom-domain requests behind a Host-rewriting proxy are
+  # rejected with 403 (#4170). Shared with the auth app's mount via
+  # HttpOriginOptions so the two cannot drift.
   'HttpOrigin' => {
     key: :http_origin,
     klass: Rack::Protection::HttpOrigin,
+    options: Onetime::Middleware::HttpOriginOptions.options,
   },
 
   # NOTE: Rack::Protection::EscapedParams is intentionally EXCLUDED.
