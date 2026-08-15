@@ -112,6 +112,10 @@ module Internal
     class Application < Onetime::Application::Base
       @uri_prefix = '/api/internal/acme'
 
+      # Loopback-only service: declares intent, resolves to no extra
+      # registry components (#4170 step 2).
+      middleware_profile :internal
+
       # Security: restrict to localhost. Runs after the universal MiddlewareStack
       # (including IPPrivacyMiddleware which resolves the real client IP from
       # forwarded headers), so REMOTE_ADDR reflects the true client even when

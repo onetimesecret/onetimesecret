@@ -24,6 +24,13 @@ module Auth
       Onetime.auth_config.mode != 'full'
     end
 
+    # Declared middleware profile (#4170 step 2): the config-gated registry
+    # components this app mounts beyond the universal stack. Until step 3
+    # lands config defaults for the profile's site.middleware keys, the
+    # profile resolves to nothing extra and the production? block below
+    # remains the effective production mount path.
+    middleware_profile :authenticated_web
+
     # Auth app specific middleware (common middleware is in MiddlewareStack)
     use Rack::JSONBodyParser  # Parse JSON request bodies for Rodauth
 
@@ -31,6 +38,9 @@ module Auth
       # Development configuration if needed
     end
 
+    # NOTE (#4170 step 3): this entire production-only block is superseded by
+    # the :authenticated_web middleware_profile above once config defaults for
+    # its site.middleware keys land — step 3 removes it.
     Onetime.production? do
       # Production configuration
       use Rack::Deflater  # Gzip compression

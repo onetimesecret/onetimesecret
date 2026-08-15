@@ -38,8 +38,15 @@ class BaseJSONAPI < Onetime::Application::Base
   # Mark as abstract - should not be mounted directly
   @abstract = true
 
-  # Common middleware for all JSON APIs
-  use Rack::JSONBodyParser
+  # NOTE (#4170): BaseJSONAPI deliberately registers NO class-level middleware.
+  # It previously registered Rack::JSONBodyParser here, but the class-level
+  # `middleware` ivar did not inherit and BaseJSONAPI itself is abstract (never
+  # instantiated), so that registration was dead code — subclasses never
+  # mounted it. Middleware resolution now inherits (Base.resolved_middleware),
+  # so re-adding a `use` here WOULD apply to every subclass; the line stays
+  # removed to keep today's resolved stacks identical. JSON request-body
+  # parsing is already covered by Rack::Parser in the universal MiddlewareStack
+  # (plus v1/v2's own explicit Rack::JSONBodyParser mounts).
 
   # Warmup block placeholder for future initialization
   warmup { nil }

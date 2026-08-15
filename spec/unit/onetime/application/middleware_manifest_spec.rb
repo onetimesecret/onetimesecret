@@ -17,7 +17,8 @@ require 'spec_helper'
 #   1. The universal MiddlewareStack (MiddlewareStack.configure) — identical
 #      for every app, captured once with a recorder in place of Rack::Builder.
 #   2. Each application class's class-level middleware (registered via `use`
-#      in the class body, read back from `.middleware`).
+#      in the class body, read back via `.resolved_middleware`, which walks
+#      the ancestor chain), plus each class's declared middleware profile.
 #
 # ============================================================================
 # PROMINENT BLIND-SPOT WARNING (issue #4170)
@@ -36,13 +37,13 @@ require 'spec_helper'
 # registry/profile refactor removes. Step 3 of that refactor is EXPECTED to
 # change these snapshots deliberately — update them in the same reviewed diff.
 #
-# A second, related blind spot this spec makes visible: `middleware` is a
-# plain class-ivar reader (Base `attr_reader :middleware`), so it does NOT
-# inherit. BaseJSONAPI registers Rack::JSONBodyParser, but its subclasses
-# (Account, Colonel, Domains, Incoming, Invite, Organizations, V3) have a nil
-# `@middleware` of their own — and `build_rack_app` reads `base_klass
-# .middleware` (the subclass), so BaseJSONAPI's registration is never applied
-# to them. Their snapshots below are therefore [].
+# A second blind spot this spec previously made visible is now FIXED (#4170
+# step 2): `middleware` is a plain class-ivar reader and does not inherit, so
+# BaseJSONAPI's `use Rack::JSONBodyParser` was dead code for its subclasses.
+# `build_rack_app` now reads `resolved_middleware` (ancestor-chain walk,
+# superclass entries first), and BaseJSONAPI's dead `use` line was removed in
+# the same change so today's resolved stacks stay EXACTLY the same. This spec
+# snapshots `resolved_middleware` — the list build_rack_app actually mounts.
 #
 # NOTE on Auth::Application: apps/web/auth/application.rb requires
 # apps/web/auth/config.rb, whose header explicitly forbids requiring it from
@@ -172,9 +173,10 @@ RSpec.describe 'Middleware manifest (characterization)' do
       'Billing::Application' => [],
       'V1::Application' => ['Rack::JSONBodyParser'],
       'V2::Application' => ['Rack::JSONBodyParser'],
-      # BaseJSONAPI registers Rack::JSONBodyParser on ITSELF, but @middleware
-      # does not inherit, so every subclass resolves to [] (see header note).
-      'BaseJSONAPI' => ['Rack::JSONBodyParser'],
+      # BaseJSONAPI's former `use Rack::JSONBodyParser` was dead (it never
+      # inherited and the class is abstract); now that resolution DOES inherit,
+      # the line was removed so subclasses still resolve to [] (header note).
+      'BaseJSONAPI' => [],
       'V3::Application' => [],
       'AccountAPI::Application' => [],
       'ColonelAPI::Application' => [],
@@ -186,10 +188,39 @@ RSpec.describe 'Middleware manifest (characterization)' do
     }.freeze
 
     EXPECTED_CLASS_LEVEL_MIDDLEWARE.each do |class_name, expected|
-      it "#{class_name} registers exactly #{expected.inspect}" do
+      it "#{class_name} resolves exactly #{expected.inspect}" do
         klass  = Object.const_get(class_name)
-        actual = (klass.middleware || []).map { |mw, _args, _blk| mw.name }
+        actual = klass.resolved_middleware.map { |mw, _args, _blk| mw.name }
         expect(actual).to eq(expected)
+      end
+    end
+
+    # Declared middleware profiles (#4170 step 2): profile names are DATA
+    # resolved against Onetime::Middleware::Registry at build time, gated by
+    # site.middleware config keys. Under test config every profile currently
+    # resolves to zero extra mounts (no config defaults yet — step 3), so this
+    # section characterizes the DECLARATIONS, not extra mounted middleware.
+    # Auth::Application (not loadable here, see header) declares
+    # :authenticated_web.
+    EXPECTED_MIDDLEWARE_PROFILES = {
+      'Core::Application' => :standard,
+      'Billing::Application' => :standard,
+      'V1::Application' => :standard,
+      'V2::Application' => :standard,
+      'BaseJSONAPI' => :standard,
+      'V3::Application' => :standard,
+      'AccountAPI::Application' => :standard,
+      'ColonelAPI::Application' => :standard,
+      'DomainsAPI::Application' => :standard,
+      'Incoming::Application' => :standard,
+      'InviteAPI::Application' => :standard,
+      'OrganizationAPI::Application' => :standard,
+      'Internal::ACME::Application' => :internal,
+    }.freeze
+
+    EXPECTED_MIDDLEWARE_PROFILES.each do |class_name, expected_profile|
+      it "#{class_name} declares middleware profile #{expected_profile.inspect}" do
+        expect(Object.const_get(class_name).middleware_profile).to eq(expected_profile)
       end
     end
 
