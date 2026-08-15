@@ -311,6 +311,46 @@ module Onetime
           config.sso_enabled?
         end
 
+        # Whether an enabled per-domain config actually EXPRESSES a sign-in
+        # policy the restrict_to inheritance should defer to (#4167).
+        #
+        # The display serializer and the route gate pin 'sso' as the inherited
+        # (`global`) restriction for a custom host that is reachable only via
+        # SSO, and they must skip that pin when a per-domain config speaks —
+        # under intersection semantics
+        # (ADR-034#resolution-intersects-never-widens) an unconditional pin
+        # would CONFLICT with the tenant's own restrict_to and lock the host
+        # out. Both consumers used to skip on `enabled?` alone, but a config
+        # can be enabled WITHOUT having an opinion: restrict_to unset and
+        # signin_enabled=false (password/email opted off). Such a config
+        # contributes an empty domain half to the resolver, so skipping the
+        # pin for it resolved :unrestricted on a host whose only working
+        # method is SSO (e.g. via the operator platform-SSO fallback) — the
+        # widen direction ADR-034#degradation-is-fail-closed exists to
+        # prevent.
+        #
+        # A config speaks when it names a restriction, or when it opts the
+        # password/email methods IN (signin_enabled) — in that second case the
+        # host genuinely offers more than SSO, so pinning 'sso' would wrongly
+        # narrow away methods the owner explicitly enabled. sso_enabled is
+        # deliberately not consulted: it feeds the SSO availability ladder
+        # (sso_permitted_for?) that decides whether the pin's predicate fires
+        # at all.
+        #
+        # Class-level like the resolvers it serves, so both pin sites
+        # (Core::Views::ConfigSerializer#effective_global_restrict_to,
+        # Auth::RestrictTo.global_restrict_to) ask it identically
+        # (ADR-034#resolution-is-model-owned) and nil configs are handled here.
+        #
+        # @param config [SigninConfig, nil] the per-domain config, if any
+        # @return [Boolean]
+        def speaks_for_restrict_to?(config)
+          return false unless config&.enabled?
+          return true unless config.restrict_to.to_s.strip.empty?
+
+          config.signin_enabled?
+        end
+
         # Resolve effective sign-in availability, combining the install-level
         # (global) capability with an optional per-domain override.
         #
