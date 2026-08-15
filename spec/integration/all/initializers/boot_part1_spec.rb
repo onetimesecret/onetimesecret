@@ -260,7 +260,11 @@ RSpec.describe "Onetime::Config during Onetime.boot!", type: :integration do
 
       # Run with the env var set:
       #    VALKEY_URL=redis://127.0.0.1:2163/0 pnpm test:rspec
-      expect(conf.dig('redis', 'uri')).to eq('redis://127.0.0.1:2163/0')
+      # DB index varies per worktree (LANES_DATASTORE_DB, see #4168); host
+      # and port are the invariant.
+      db = ENV.fetch('LANES_DATASTORE_DB', '')
+      expected_db = db.match?(/\A\d+\z/) && db.to_i <= 65_535 ? db : 0
+      expect(conf.dig('redis', 'uri')).to eq("redis://127.0.0.1:2163/#{expected_db}")
       expect(conf.dig('development', 'enabled')).to be(false)
       expect(Onetime.env).to eq('testing')
     end

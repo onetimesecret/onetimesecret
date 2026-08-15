@@ -35,7 +35,13 @@ services:
   valkey:
     image: ghcr.io/valkey-io/valkey:8.1.3-bookworm@sha256:fea8b3e67b15729d4bb70589eb03367bab9ad1ee89c876f54327fc7c6e618571
     # No persistence: test data is disposable by design.
-    command: ['valkey-server', '--save', '', '--appendonly', 'no']
+    # --databases 65536: tests/lanes/run assigns each worktree its own DB
+    # index (hashed from the repo root path, range 1..65535) so concurrent
+    # lane runs in a worktree forest never share keys (#4168). The space is
+    # wide because hash collisions abort a run rather than being resolved.
+    # Database slots are pre-allocated; see
+    # docs/specs/testing-lanes/valkey-max-dbsize.md.
+    command: ['valkey-server', '--save', '', '--appendonly', 'no', '--databases', '65536']
     ports:
       - '127.0.0.1:2163:6379'
     healthcheck:

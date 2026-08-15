@@ -369,6 +369,109 @@ if [[ ${#OVERLAYS[@]} -gt 0 ]]; then
 fi
 set +a
 
+# ── Per-worktree datastore isolation ─────────────────────────────────────
+# Every checkout of this repo (worktrees included) shares the one test
+# valkey on 127.0.0.1:2163. Two lane runs sharing DB 0 contaminate each
+# other's fixtures and the failure set becomes nondeterministic (#4168).
+# Assign each worktree its own valkey DB index, derived from the repo
+# root path, so concurrent runs in a worktree forest never share keys.
+#
+# The index rides on ONE name, LANES_DATASTORE_DB, which is exported into
+# the task environment (it is set below the scrub, so it survives):
+#   - spec/config.test.yaml interpolates it into redis.uri, which is the
+#     single connection source for the app under test (Familia.uri).
+#   - REDIS_URL/VALKEY_URL below are rewritten to match, so anything
+#     reading the env agrees with the config.
+# The port stays a literal 2163 everywhere — this changes WHICH database
+# on the test service a run uses, never which service it talks to, so the
+# hermetic "21 rule" and the boot guards are untouched (their regex
+# already accepts a /db suffix). A lane env file or overlay may pin the
+# index explicitly by setting LANES_DATASTORE_DB itself; the caller's
+# shell cannot (the scrub already cleared it).
+#
+# A checksum maps many paths onto 65535 indexes, so two live worktrees CAN
+# derive the same one — and a silent collision reproduces exactly the
+# contamination this feature exists to prevent, which is the worst way for
+# it to fail. The index space is sized so that stays rare (~2% lifetime odds
+# across 20 worktrees), and the valkey preflight below DETECTS the case and
+# fails loudly instead of resolving it: an owner marker inside the selected
+# database names the repo root using it, and a mismatch against a checkout
+# that still exists on disk aborts the run. No registry on disk, no stale
+# reclamation, no cross-process locking — a collision is an error with a
+# one-line fix (pin LANES_DATASTORE_DB in a lane overlay), not a state
+# machine. The marker lives in the datastore because that's where writes
+# are atomic (SET NX resolves on the server); it can't be consulted before
+# the preflight, but it doesn't need to be — the derived index is final,
+# never probed away from.
+
+if [[ -z "${LANES_DATASTORE_DB:-}" ]]; then
+  if [[ -n "${CI:-}" ]]; then
+    # CI gets index 0 and the unsuffixed database name, i.e. exactly the
+    # addressing that predates this feature. Its services are exclusive to
+    # the job, so isolation would buy nothing there and would instead cost
+    # a CREATE DATABASE per run and a divergence from the workflow steps
+    # that psql into onetime_auth_test by name. `CI` is already keep-listed,
+    # so this reads the real signal rather than needing a seventh entry.
+    LANES_DATASTORE_DB=0
+  else
+    # cksum: POSIX, deterministic across platforms (unlike bash's RANDOM or
+    # a hash of inode numbers). Derived indexes land in 1..65535
+    # (compose.test.yml starts valkey with --databases 65536), leaving 0 to
+    # mean "the shared, unsuffixed datastore".
+    read -r _lanes_cksum _ < <(builtin printf '%s' "${REPO_ROOT}" | cksum)
+    LANES_DATASTORE_DB=$(( 1 + _lanes_cksum % 65535 ))
+    builtin unset _lanes_cksum
+  fi
+fi
+case "${LANES_DATASTORE_DB}" in
+  ''|*[!0-9]*)
+    echo "error: LANES_DATASTORE_DB must be a decimal DB index, got '${LANES_DATASTORE_DB}'" >&2
+    exit 64
+    ;;
+esac
+if (( 10#${LANES_DATASTORE_DB} > 65535 )); then
+  echo "error: LANES_DATASTORE_DB must be between 0 and 65535, got '${LANES_DATASTORE_DB}'" >&2
+  exit 64
+fi
+export LANES_DATASTORE_DB
+for _lanes_name in REDIS_URL VALKEY_URL; do
+  if [[ -n "${!_lanes_name:-}" && "${!_lanes_name}" =~ ^(.*:2163)(/[0-9]+)?/?$ ]]; then
+    printf -v "${_lanes_name}" '%s/%s' "${BASH_REMATCH[1]}" "${LANES_DATASTORE_DB}"
+    export "${_lanes_name}"
+  fi
+done
+builtin unset _lanes_name
+
+# PostgreSQL gets the same treatment, as a database name rather than an
+# index: `onetime_auth_test` becomes `onetime_auth_test_w<index>`. A
+# separate database (not a schema in the shared one) because the repo's
+# role model already permits it — onetime_migrator is created WITH CREATEDB
+# and owns what it creates, so the existing initialize_test_db.sql and the
+# existing migration chain both run against a fresh database unmodified and
+# without a superuser. Per-worktree schemas would instead need their own
+# GRANT USAGE and ALTER DEFAULT PRIVILEGES restated per worktree, a
+# search_path threaded through every connection, and would test a topology
+# production never runs.
+#
+# Index 0 means "shared, unsuffixed" — CI and any lane that pins it — so it
+# rewrites nothing and provisions nothing.
+if [[ "${LANES_DATASTORE_DB}" != 0 ]]; then
+  for _lanes_name in AUTH_DATABASE_URL AUTH_DATABASE_URL_MIGRATIONS \
+                     AUTH_DATABASE_URL_PG AUTH_DATABASE_URL_MIGRATIONS_PG; do
+    # Anchored on the test host:port so a lane addressing anything else (or
+    # a URL already carrying the suffix) is left exactly as written. The
+    # optional query string is preserved.
+    if [[ -n "${!_lanes_name:-}" &&
+          "${!_lanes_name}" =~ ^(.*@127\.0\.0\.1:2154/)([A-Za-z0-9_]+)(\?.*)?$ &&
+          "${BASH_REMATCH[2]}" != *_w"${LANES_DATASTORE_DB}" ]]; then
+      printf -v "${_lanes_name}" '%s%s_w%s%s' \
+        "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${LANES_DATASTORE_DB}" "${BASH_REMATCH[3]}"
+      export "${_lanes_name}"
+    fi
+  done
+  builtin unset _lanes_name
+fi
+
 # Billing rides on the full-mode auth stack (Stripe customer records live
 # in the auth database); it has no meaning in other modes.
 if [[ "${BILLING_ENABLED:-false}" == "true" && "${AUTHENTICATION_MODE:-}" != "full" ]]; then
@@ -418,12 +521,107 @@ for p in ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"}; do
   fi
 done
 
+# The derived DB index only exists if the valkey container was created with
+# enough databases (compose.test.yml pins --databases 65536; the image default
+# is 16). Probe with a raw RESP SELECT over /dev/tcp — a container from
+# before the pin would otherwise surface as opaque mid-suite connection
+# errors instead of one actionable line here. Subshell so a refused
+# connection can't take the runner down; the port was verified open above.
+if [[ "${REDIS_URL:-}" =~ 127\.0\.0\.1:2163 ]]; then
+  _lanes_reply="$( (
+    exec 3<>"/dev/tcp/127.0.0.1/2163"
+    printf 'SELECT %s\r\n' "${LANES_DATASTORE_DB}" >&3
+    IFS= read -r -t 5 _r <&3
+    printf '%s' "${_r}"
+  ) 2>/dev/null || true )"
+  if [[ "${_lanes_reply}" != '+OK'* ]]; then
+    echo "error: valkey on 127.0.0.1:2163 rejected SELECT ${LANES_DATASTORE_DB}" \
+         "(${_lanes_reply:-no reply}). The container likely predates the" >&2
+    echo "  --databases 65536 pin in compose.test.yml; recreate it:" >&2
+    echo "  docker compose -f compose.test.yml up -d --force-recreate valkey" >&2
+    exit 69
+  fi
+  builtin unset _lanes_reply
+fi
+
+# Two worktrees can hash to one index. Detect that inside the database
+# itself: an owner marker names the repo root using this index, SET NX makes
+# the first writer win on the server (no filesystem locking, no TOCTOU), and
+# a mismatch against a checkout that still exists on disk aborts loudly —
+# silently sharing the database is the exact failure this feature exists to
+# prevent. A marker whose checkout is gone is stale (worktrees get deleted):
+# overwrite it, then re-read to confirm this runner won the takeover, so two
+# runners contesting a stale slot can't both proceed. The marker does not
+# survive `pnpm clean:db` flushing the database mid-run; it is re-established
+# at the start of every run, which is where the guard matters. Best-effort by
+# design: a protocol hiccup lets the run proceed on the derived index (the
+# SELECT probe above already proved the service works), only a confirmed
+# live foreign owner aborts. DB 0 is the shared, unsuffixed datastore — no
+# marker. Runner-internal key, not app data: the app under test never reads
+# it, and every run re-asserts it after any flush.
+if [[ "${LANES_DATASTORE_DB}" != 0 && "${REDIS_URL:-}" =~ 127\.0\.0\.1:2163 ]]; then
+  _lanes_owner="$( (
+    LC_ALL=C  # ${#arg} must count bytes: RESP bulk lengths are byte counts
+    exec 3<>"/dev/tcp/127.0.0.1/2163" || exit 0
+    crlf=$'\r\n'
+    send() {  # RESP array of bulk strings — safe for any bytes in the path
+      local out="*$#${crlf}" arg
+      for arg in "$@"; do out+="\$${#arg}${crlf}${arg}${crlf}"; done
+      printf '%s' "${out}" >&3
+    }
+    recv() {  # prints a bulk/simple reply payload; nothing for null bulk
+      local line data
+      IFS= read -r -t 5 line <&3 || return 1
+      line=${line%$'\r'}
+      case "${line}" in
+        '$-1') ;;
+        \$*)   IFS= read -r -t 5 data <&3 || return 1
+               printf '%s' "${data%$'\r'}" ;;
+        *)     printf '%s' "${line}" ;;
+      esac
+    }
+    send SELECT "${LANES_DATASTORE_DB}"; recv >/dev/null || exit 0
+    send SET _lanes:owner "${REPO_ROOT}" NX; recv >/dev/null || exit 0
+    owner="$(send GET _lanes:owner; recv)" || exit 0
+    [[ "${owner}" == "${REPO_ROOT}" ]] && exit 0
+    if [[ -n "${owner}" && -d "${owner}" ]]; then
+      printf '%s' "${owner}"; exit 1
+    fi
+    # Stale: overwrite, then confirm the takeover actually stuck with us.
+    send SET _lanes:owner "${REPO_ROOT}"; recv >/dev/null || exit 0
+    owner="$(send GET _lanes:owner; recv)" || exit 0
+    [[ "${owner}" == "${REPO_ROOT}" ]] && exit 0
+    printf '%s' "${owner}"; exit 1
+  ) 2>/dev/null )" || {
+    echo "error: valkey DB ${LANES_DATASTORE_DB} is in use by another live checkout:" >&2
+    echo "  ${_lanes_owner}" >&2
+    echo "hint: pin a free index for this worktree by setting LANES_DATASTORE_DB in" >&2
+    echo "  a lane env file or overlay (the calling shell can't; the scrub clears it)" >&2
+    exit 69
+  }
+  builtin unset _lanes_owner
+fi
+
 echo "[lane:${LANE}] mode=${AUTHENTICATION_MODE:-?}" \
      "billing=${BILLING_ENABLED:-false}" \
      "redis=${REDIS_URL:-?}" \
+     "db=${LANES_DATASTORE_DB}" \
      "auth_db=${AUTH_DATABASE_URL:-n/a}"
 
 cd "${REPO_ROOT}"
+
+# The per-worktree PG database has to exist before the lane's specs open a
+# connection to it, and unlike a valkey DB index it is not conjured by
+# addressing it. Provision here: after the port preflight (so a refused
+# connection is already a clearer error) and from the repo root, which is
+# where `bundle exec` and the script's relative path to the SQL resolve.
+#
+# Only for a lane that addresses the rewritten database, so no other lane
+# pays Ruby startup for it. The script itself no-ops after one catalog
+# lookup once the database exists, which is every run after the first.
+if [[ "${LANES_DATASTORE_DB}" != 0 && "${AUTH_DATABASE_URL:-}" =~ 127\.0\.0\.1:2154 ]]; then
+  bundle exec ruby tests/lanes/support/provision_pg_database.rb || exit $?
+fi
 # `env -u` finishes what the scrub could not: readonly exported vars and
 # readonly exported functions survive `unset` in this shell, but env(1)
 # builds the child environment itself, so it can drop them regardless.
