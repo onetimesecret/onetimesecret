@@ -593,9 +593,11 @@ export function useAuth() {
         });
       }
 
-      // Success - show notification and navigate to signin
-      notificationsStore.show(validated.success, 'success', 'top');
-      await router.push('/signin');
+      // A successful reset revokes every session, including this browser's.
+      // Clear local session state and hard-navigate so stale authenticated
+      // stores cannot issue protected requests during an SPA route change.
+      await authStore.logoutMinimal();
+      window.location.href = '/signin';
       return true;
     });
 
