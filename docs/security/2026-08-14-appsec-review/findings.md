@@ -17,7 +17,7 @@ Severity uses exploitability × impact. Each finding is tagged:
 | H-1 | High | Any org member can harvest colleagues' secret bearer tokens via `receipt/recent?scope=org` | CODE-CONFIRMED |
 | H-2 | High | Non-owner member is handed the org's Stripe Customer Portal | CODE-CONFIRMED |
 | H-3 | High | Tenant SSO `allowed_domains` is dead code — the documented access control has no runtime effect | CODE-CONFIRMED |
-| M-1 | Medium | `email_verified` is never checked on any SSO path | CODE-CONFIRMED |
+| M-1 | Medium (High for generic-OIDC/Entra tenants) | IdP-asserted `email_verified` claim is never checked on any SSO path | CODE-CONFIRMED |
 | M-2 | Medium | Magic-link lifetime is 24h, not the configured 15 minutes | CODE-CONFIRMED |
 | M-3 | Medium | Account enumeration on `email-login-request` and `verify-account-resend` | CODE-CONFIRMED |
 | M-4 | Medium | No rate limit on `email-login-request` (mailbox bombing) | CODE-CONFIRMED |
@@ -148,6 +148,16 @@ controller checks ownership — `apps/web/billing/controllers/billing.rb:77,557,
 (`apps/web/core/controllers/welcome.rb:178-197`) is clean: it uses the caller's own
 `cust.stripe_customer_id`.
 
+**Repoint premise verified.** The exploit depends on a non-owner member's `default_org_id` actually
+pointing at the shared tenant org. `JoinDomainOrganization#adopt_domain_default_org`
+(`apps/web/auth/operations/join_domain_organization.rb:130-160`) performs
+`customer.default_org_id = domain_org.objid; customer.save` and then archives the personal workspace,
+after `ensure_membership(..., role: 'member')`. The repoint fires whenever the caller's current
+default is a personal workspace they own (`is_default`, owned, not archived) — the normal state of any
+pre-existing account holder who then signs in through the tenant's SSO. So the member is left
+defaulting to an org they do **not** own, and `find_or_create_default_organization` in the portal
+handler resolves that org's `stripe_customer_id`. Premise confirmed; rating stands at High.
+
 **Remediation.** Require `org.owner?(cust)` — or `require_entitlement_in!(org, 'manage_billing')` —
 before creating the portal session.
 
@@ -209,11 +219,15 @@ rejected end-to-end.
 
 ## 2. Medium severity
 
-### M-1 — `email_verified` is never checked on any SSO path
-**CODE-CONFIRMED** · `apps/web/auth/config/hooks/omniauth.rb:32-33,199-209`
+### M-1 — IdP-asserted `email_verified` claim is never checked on any SSO path
+**Severity:** Medium — **High for deployments using generic OIDC or Entra ID** · **CWE-287 / CWE-345** · **CODE-CONFIRMED** · `apps/web/auth/config/hooks/omniauth.rb:32-33,199-209`
 
-A repo-wide search for `email_verified` in production Ruby returns zero hits. The OIDC strategy does
-surface the claim (`omniauth_openid_connect-0.8.0/.../openid_connect.rb:78`) — it is discarded.
+The **IdP-asserted `email_verified` claim** is never consulted on any SSO path. The OIDC strategy
+surfaces it (`omniauth_openid_connect-0.8.0/.../openid_connect.rb:78`) and it reaches
+`omniauth_info`, but no callback code reads it. The only `email_verified` references in production
+Ruby are unrelated — they report the **local account's own** verification status
+(`apps/web/auth/routes/account.rb:60`, `lib/onetime/models/customer/features/status.rb:51`), keyed on
+`status_id == VERIFIED_STATUS_ID`, not on anything the IdP asserted.
 
 Two consequences:
 
@@ -233,6 +247,15 @@ two providers offered on the tenant surface.
 Combined with `ENTRA_TENANT_ID=common` (which the Entra strategy also does not issuer-check —
 `omniauth-entra-id-3.1.1/.../entra_id.rb:152-204`, `JWT.decode(..., nil, false)`), this is textbook
 **nOAuth**: any Entra tenant admin can set a user's `email` claim to a victim's address.
+
+**Why High for generic-OIDC/Entra deployments.** The JIT-creation path
+(`omniauth_create_account? true`, `omniauth_verify_account? true` — both defaults,
+`features/omniauth.rb:52,59`) trusts the asserted `email` with no verification gate, so it does **not**
+require the default-off `*_TRUST_EMAIL_FOR_LINKING` flag. On a tenant using generic OIDC or Entra ID
+(`ENTRA_TENANT_ID=common`, no issuer check), an IdP that lets a principal set an unverified `email`
+claim yields address squatting and `ALLOWED_SIGNUP_DOMAIN` bypass on defaults, and full nOAuth account
+takeover once `trust_email_for_linking?` is on. On the base surface (Google/GitHub, which filter
+verification themselves; no auto-link trust) the exposure is Medium — hence the split rating.
 
 **Remediation.** Refuse to link (and refuse to create) when `omniauth_info['email_verified']` is
 present and falsey; require it truthy for the `trust_email_for_linking?` branch. Reject
