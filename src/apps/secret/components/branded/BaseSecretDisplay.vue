@@ -26,6 +26,7 @@
   import { BrandSettings } from '@/schemas/shapes/v3/custom-domain';
   import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
   import { Composer, useI18n } from 'vue-i18n';
+  import { useMounted } from '@vueuse/core';
 
   const i18n = useI18n();
 
@@ -107,17 +108,17 @@
   };
 
   let resizeObserver: ResizeObserver | null = null;
-  let unmounted = false;
+  const isMounted = useMounted();
 
   onMounted(() => {
     scheduleCheck();
     // Re-measure once webfonts finish loading: text measured against the
     // fallback font can sit on the other side of the clamp and render a
     // spurious "Show More" toggle that disappears after the brand font swaps
-    // in. The unmounted guard prevents a queued callback from running against
+    // in. The isMounted guard prevents a queued callback from running against
     // a stopped reactive scope.
     document.fonts?.ready.then(() => {
-      if (!unmounted) scheduleCheck();
+      if (isMounted.value) scheduleCheck();
     });
 
     // Observe the paragraph itself rather than the window: it also catches
@@ -132,7 +133,6 @@
   });
 
   onUnmounted(() => {
-    unmounted = true;
     resizeObserver?.disconnect();
     window.removeEventListener('resize', scheduleCheck);
     if (pendingFrame !== null) window.cancelAnimationFrame(pendingFrame);
