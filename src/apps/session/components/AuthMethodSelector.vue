@@ -77,9 +77,10 @@
   // features.restrict_to by the backend) — and in both cases falling through
   // to the password/email forms would advertise methods the domain owner
   // chose to hide (and, for restrict_to, whose credentials may be dormant).
-  // Canonical requests keep the standard fallback: the backend nils a global
-  // sso restriction when no provider is configured, so this combination only
-  // arises on custom domains.
+  // Canonical requests never reach this branch: a global restrict_to='sso'
+  // with no provider configured is a fatal boot error, not a restriction the
+  // backend quietly drops (ADR-034#degradation-is-fail-closed), so the
+  // combination only arises on custom domains.
   const showCustomDomainNoSso = computed(
     () => isCustom.value && ssoRequired.value && !ssoConfigured.value
   );

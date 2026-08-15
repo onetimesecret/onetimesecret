@@ -375,11 +375,12 @@ Core::Views::ConfigSerializer.send(:resolve_restrict_to, @view_vars_no_config)
 Core::Views::ConfigSerializer.send(:resolve_restrict_to, @view_vars_with_config)
 #=> 'sso'
 
-## FAIL CLOSED (#4139, ADR-024 A3): the same enabled restrict_to='sso' on a
-## domain with NO SSO credentials resolves :unavailable — the display value is
-## nil (nothing offered), NOT 'sso' and NOT a widening fallback to global. This
-## case used to expect 'sso'; the expectation predates the A3 availability
-## derivation, and the fixture above is what the case name actually meant.
+## FAIL CLOSED (#4139, ADR-034#degradation-is-fail-closed): the same enabled
+## restrict_to='sso' on a domain with NO SSO credentials resolves :unavailable —
+## the display value is nil (nothing offered), NOT 'sso' and NOT a widening
+## fallback to global. This case used to expect 'sso'; the expectation predates
+## the availability derivation, and the fixture above is what the case name
+## actually meant.
 @domain_rt2b = Onetime::CustomDomain.create!("dae-rt2b-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
 @config_rt2b = Onetime::CustomDomain::SigninConfig.create!(
   domain_id: @domain_rt2b.identifier,

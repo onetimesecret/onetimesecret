@@ -729,14 +729,15 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
     subject(:logic) { described_class.new(tenant_strategy_result, valid_params) }
 
     before do
-      # The gate consults the A2 resolver through Auth::RestrictTo, which
+      # The gate consults the model-owned resolver
+      # (ADR-034#resolution-is-model-owned) through Auth::RestrictTo, which
       # gathers its inputs from live per-host state (CustomDomain +
       # SigninConfig lookups). Stub at THAT seam only, and drive it with real
       # RestrictToResolution values so the semantics under test — including
       # :unavailable rejecting everything — stay the model's, not the spec's.
       # (Resolution itself is covered in the SigninConfig and
-      # Auth::RestrictTo specs; re-deriving it here would be the drift A2
-      # exists to prevent.)
+      # Auth::RestrictTo specs; re-deriving it here would be the drift that
+      # decision exists to prevent.)
       allow(Auth::RestrictTo).to receive(:allows?) do |_env, method_name|
         resolution.allows?(method_name)
       end
@@ -800,7 +801,7 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
       context "on a host restricted to #{method_name}" do
         let(:resolution) { resolution_for(:restricted, method_name) }
 
-        it 'rejects as not-found (A7), not 403' do
+        it 'rejects as not-found, not 403' do
           expect { logic.raise_concerns }.to raise_error(Onetime::RecordNotFound)
         end
 
@@ -848,9 +849,9 @@ RSpec.describe InviteAPI::Logic::Invites::SignupAndAccept do
       end
     end
 
-    context 'when resolution is :unavailable (A3 fail-closed)' do
+    context 'when resolution is :unavailable (fail-closed)' do
       # Dormant credentials, a globally-disabled method, or a global/domain
-      # conflict (A8). Nothing is permitted — never widen back to password.
+      # conflict. Nothing is permitted — never widen back to password.
       let(:resolution) { resolution_for(:unavailable, 'sso', :conflict) }
 
       it 'rejects as not-found' do

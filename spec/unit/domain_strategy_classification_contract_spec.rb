@@ -206,11 +206,13 @@ RSpec.describe 'DomainStrategy classification contract' do
       end
 
       DomainStrategyContract::CLASSIFICATIONS.each do |strategy|
-        expected = strategy == :custom ? 'sso' : nil
+        expected_value = strategy == :custom ? 'sso' : nil
+        expected_pin   = strategy == :custom
 
-        it "pins #{expected.inspect} for #{strategy.inspect}" do
-          pinned = Auth::RestrictTo.global_restrict_to(env_for(strategy), 'domain_abc', nil)
-          expect(pinned).to eq(expected)
+        it "pins #{expected_value.inspect} for #{strategy.inspect}" do
+          inherited = Auth::RestrictTo.global_restrict_to(env_for(strategy), 'domain_abc', nil)
+          expect(inherited.value).to eq(expected_value)
+          expect(inherited.pin_established).to eq(expected_pin)
         end
       end
     end

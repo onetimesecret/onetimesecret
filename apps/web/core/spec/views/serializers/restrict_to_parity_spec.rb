@@ -230,7 +230,7 @@ RSpec.describe 'restrict_to display/gate parity' do
     end
   end
 
-  describe 'the pin never reaches a tenant that has spoken (A8)' do
+  describe 'the pin never reaches a tenant that has spoken' do
     let(:enabled_signin_config) do
       instance_double(
         Onetime::CustomDomain::SigninConfig,
@@ -331,7 +331,7 @@ RSpec.describe 'restrict_to display/gate parity' do
         expect_three_way_parity
       end
 
-      it 'resolves :unavailable rather than widening back to standard mode (A3)' do
+      it 'resolves :unavailable rather than widening back to standard mode' do
         expect(gate_resolution).to be_unavailable
         expect(gate_resolution.allows?('password')).to be(false)
         expect(gate_resolution.allows?('sso')).to be(false)
@@ -348,7 +348,7 @@ RSpec.describe 'restrict_to display/gate parity' do
         expect_three_way_parity
       end
 
-      it 'resolves :unavailable from the conflict source (A8), naming the operator method' do
+      it 'resolves :unavailable from the conflict source, naming the operator method' do
         expect(gate_resolution).to be_unavailable
         expect(gate_resolution.source).to eq(:conflict)
         expect(gate_resolution.restrict_to).to eq('password')
@@ -384,32 +384,40 @@ RSpec.describe 'restrict_to display/gate parity' do
     end
   end
 
-  # RESIDUAL GAP, recorded rather than papered over. The display serializer and
-  # the route gate both pin 'sso' as the inherited restriction for a custom host
-  # with no enabled SigninConfig that is reachable only via SSO
-  # (ConfigSerializer#effective_global_restrict_to,
-  # Auth::RestrictTo.global_restrict_to). The settings API does not — it hands
-  # the resolver Onetime.auth_config.restrict_to verbatim — so it reports
-  # :unrestricted for a host that offers SSO alone. Same A2 drift shape as the
-  # four defects #4139 fixed, but a different input (the `global` VALUE, not the
-  # `available:` flag) and out of that scope: closing it means extracting the pin
-  # too, which changes what the settings page reports for every SSO-only tenant.
+  # CLOSED (#4140). The display serializer and the route gate both pin 'sso' as
+  # the inherited restriction for a custom host with no enabled SigninConfig
+  # that is reachable only via SSO. The settings API did not — it handed the
+  # resolver Onetime.auth_config.restrict_to verbatim — so it reported
+  # :unrestricted for a host that offers SSO alone, while the gate was already
+  # restricting that host's routes to SSO. A fail-OPEN divergence, which is the
+  # one direction ADR-034#degradation-is-fail-closed forbids.
   #
-  # Written as a pending example on purpose: it reds when someone fixes it,
-  # which is when this note should be deleted.
-  describe 'the SSO host pin does not reach the settings API' do
+  # Same ADR-034#resolution-is-model-owned drift shape as the four defects
+  # #4139 fixed, one input over: the
+  # `global` VALUE rather than the `available:` flag. Fixed the same way —
+  # the pin moved onto the model as
+  # SigninConfig.inherited_restrict_to(config, domain_id:, custom_host:), and
+  # all three consumers now call it instead of two of them carrying a private
+  # copy and the third carrying none.
+  describe 'the SSO host pin reaches the settings API' do
     before do
       allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
     end
 
-    it 'should agree with the two request-time consumers' do
-      pending 'settings API does not apply the SSO host pin — residual A2 gap, follow-up to #4139'
-
+    it 'agrees with the two request-time consumers' do
       expect(settings_api_wire).to eq(gate_resolution.to_wire)
+    end
+
+    it "reports restricted/sso rather than a fail-open 'unrestricted'" do
+      expect(settings_api_wire).to eq(state: 'restricted', restrict_to: 'sso', source: 'global')
+    end
+
+    it 'agrees with the display serializer too' do
+      expect(settings_api_wire).to eq(display_resolution.to_wire)
     end
   end
 
-  describe 'post-boot global unavailability (A3)' do
+  describe 'post-boot global unavailability' do
     # Canonical host: no pin, so the operator's own restriction is what both
     # sides carry — and both must degrade with it.
     let(:view_vars) do

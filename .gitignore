@@ -41,6 +41,7 @@ pnpm-debug.log*
 .temp/
 .zed/*
 !.zed/settings.json
+!.zed/tasks.json
 .appendonlydir/
 .bundle/
 .rspec
