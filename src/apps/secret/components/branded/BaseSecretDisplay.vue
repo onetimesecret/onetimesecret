@@ -107,14 +107,18 @@
   };
 
   let resizeObserver: ResizeObserver | null = null;
+  let unmounted = false;
 
   onMounted(() => {
-    checkTextLength();
+    scheduleCheck();
     // Re-measure once webfonts finish loading: text measured against the
     // fallback font can sit on the other side of the clamp and render a
     // spurious "Show More" toggle that disappears after the brand font swaps
-    // in.
-    document.fonts?.ready.then(checkTextLength);
+    // in. The unmounted guard prevents a queued callback from running against
+    // a stopped reactive scope.
+    document.fonts?.ready.then(() => {
+      if (!unmounted) scheduleCheck();
+    });
 
     // Observe the paragraph itself rather than the window: it also catches
     // reflows the window never reports, such as the surrounding layout
@@ -128,6 +132,7 @@
   });
 
   onUnmounted(() => {
+    unmounted = true;
     resizeObserver?.disconnect();
     window.removeEventListener('resize', scheduleCheck);
     if (pendingFrame !== null) window.cancelAnimationFrame(pendingFrame);
@@ -136,7 +141,7 @@
   const toggleExpand = () => {
     isExpanded.value = !isExpanded.value;
     // Collapsing restores the clamp; re-measure in the layout that follows.
-    if (!isExpanded.value) checkTextLength();
+    if (!isExpanded.value) scheduleCheck();
   };
 </script>
 

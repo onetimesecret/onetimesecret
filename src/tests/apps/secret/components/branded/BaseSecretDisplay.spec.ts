@@ -19,10 +19,13 @@
 //      vanish out from under the reader.
 
 import { mount, VueWrapper } from '@vue/test-utils';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createTestI18n } from '@tests/setup';
 import { nextTick } from 'vue';
 import BaseSecretDisplay from '@/apps/secret/components/branded/BaseSecretDisplay.vue';
+
+// Capture the real ResizeObserver (if any) so we can restore it after the suite.
+const RealResizeObserver = globalThis.ResizeObserver;
 
 const i18n = createTestI18n();
 
@@ -81,13 +84,20 @@ describe('BaseSecretDisplay (branded) instructions toggle', () => {
   let wrapper: VueWrapper;
 
   beforeEach(() => {
-    // jsdom ships no ResizeObserver, so the component takes its window-resize
-    // fallback. Asserting through that path keeps the test honest about the
-    // fallback still working.
-    expect(typeof ResizeObserver).toBe('undefined');
+    // Force the component onto its window-resize fallback by removing any
+    // ResizeObserver the test environment may provide. This keeps the test
+    // deterministic regardless of jsdom version or polyfills.
+    // @ts-expect-error -- intentionally deleting a global for test isolation
+    delete globalThis.ResizeObserver;
   });
 
-  afterEach(() => wrapper?.unmount());
+  afterEach(() => {
+    wrapper?.unmount();
+    // Restore the real ResizeObserver (if any) so other suites are unaffected.
+    if (RealResizeObserver) {
+      globalThis.ResizeObserver = RealResizeObserver;
+    }
+  });
 
   it('offers no toggle when the text fits inside the clamp', async () => {
     wrapper = mountDisplay();
