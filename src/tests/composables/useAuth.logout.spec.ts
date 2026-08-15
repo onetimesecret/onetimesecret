@@ -24,11 +24,11 @@
 
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { mockCustomer } from '@/tests/fixtures/bootstrap.fixture';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setupTestPinia } from '../setup';
-import { mockCustomer } from '@/tests/fixtures/bootstrap.fixture';
 
 describe('useAuth logout flow — no brand flash', () => {
   let authStore: ReturnType<typeof useAuthStore>;
