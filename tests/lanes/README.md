@@ -116,16 +116,60 @@ it into `redis.uri`, and the runner rewrites `REDIS_URL`/`VALKEY_URL` to
 match. Host and port never vary — this selects a database *on* the test
 service, it cannot redirect a run to another service.
 
-DB 0 is reserved: it's what CI containers and interactive
-`bundle exec rspec` (no `LANES_DATASTORE_DB` set) use. A lane env file
-or overlay may pin an index explicitly by setting `LANES_DATASTORE_DB`;
-the calling shell cannot (the scrub clears it like everything else).
-The runner probes `SELECT <index>` before starting and tells you to
-recreate the valkey container if it still has the 16-database default.
+Index 0 means "the shared, unsuffixed datastore" and turns the whole
+feature off. CI pins it (the runner keys off `CI`, already keep-listed)
+because a CI job's services are exclusive to it: isolation would buy
+nothing and would cost a `CREATE DATABASE` per run plus a divergence
+from the workflow steps that address `onetime_auth_test` by name. An
+interactive `bundle exec rspec` outside the runner also lands on 0,
+since `LANES_DATASTORE_DB` is only set by the runner. A lane env file or
+overlay may pin an index explicitly; the calling shell cannot (the scrub
+clears it like everything else). The runner probes `SELECT <index>`
+before starting and tells you to recreate the valkey container if it
+still has the 16-database default.
 
-PostgreSQL (2154) has **no** per-worktree isolation yet: the full/
-migrations lanes still share `onetime_auth_test`. Avoid running two
-PG lanes concurrently across worktrees.
+PostgreSQL is isolated the same way, as a database name rather than an
+index: `onetime_auth_test` becomes `onetime_auth_test_w<index>`, and the
+runner rewrites all four `AUTH_DATABASE_URL*` variables to match.
+
+A separate database rather than a schema in the shared one, because the
+repo's role model already permits it: `onetime_migrator` is created
+`WITH ... CREATEDB`, so it can create a database, and it *owns* what it
+creates. Two things follow, both verified rather than assumed — the
+migrator can install citext itself (a trusted extension since PG 13,
+which is why migration `001_initial.rb` can run it on a fresh database),
+and it can run `initialize_test_db.sql` wholesale against that database,
+`DROP SCHEMA public CASCADE` included, because the public schema of a
+database belongs to its owner. So provisioning restates no SQL: it is
+`CREATE DATABASE` plus the script this repo already has, with no
+superuser involved. Roles are cluster-scoped, so the three existing ones
+are reused. Per-worktree *schemas* were the alternative and cost more:
+each needs its own `GRANT USAGE` and `ALTER DEFAULT PRIVILEGES`
+restated, a `search_path` threaded through every connection including
+Rodauth's, and it would test a topology production never runs — which is
+worst for `migrations-pg`, whose subject is migration and permission
+behavior.
+
+`tests/lanes/support/provision_pg_database.rb` does this on the first PG
+lane run in a worktree (a few seconds, once); later runs cost one
+catalog lookup. It holds a PostgreSQL advisory lock across
+check-create-initialize, so simultaneous first runs in two worktrees
+cannot half-provision a database for each other, and it drops the
+database if the script fails rather than leaving one that later runs
+would mistake for finished.
+
+Unlike valkey DB indexes, these databases persist on disk after a
+worktree is gone. To sweep them:
+
+```
+psql -h 127.0.0.1 -p 2154 -U onetime_migrator -d postgres -tAc \
+  "SELECT 'DROP DATABASE ' || quote_ident(datname) || ';' \
+     FROM pg_database WHERE datname LIKE 'onetime_auth_test\_w%'"
+```
+
+Review that list, then feed the statements back to `psql`. The shared
+`onetime_auth_test` never matches, so a sweep cannot take out CI's or a
+single-tree setup's database.
 
 ## Hermetic runs vs. interactive shells
 

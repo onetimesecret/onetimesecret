@@ -389,13 +389,23 @@ set +a
 # index explicitly by setting LANES_DATASTORE_DB itself; the caller's
 # shell cannot (the scrub already cleared it).
 if [[ -z "${LANES_DATASTORE_DB:-}" ]]; then
-  # cksum: POSIX, deterministic across platforms (unlike bash's RANDOM or
-  # a hash of inode numbers). Index 0 is reserved for CI and single-tree
-  # setups' muscle memory; derived indexes land in 1..1023 (compose.test.yml
-  # starts valkey with --databases 1024).
-  read -r _lanes_cksum _ < <(builtin printf '%s' "${REPO_ROOT}" | cksum)
-  LANES_DATASTORE_DB=$(( 1 + _lanes_cksum % 1023 ))
-  builtin unset _lanes_cksum
+  if [[ -n "${CI:-}" ]]; then
+    # CI gets index 0 and the unsuffixed database name, i.e. exactly the
+    # addressing that predates this feature. Its services are exclusive to
+    # the job, so isolation would buy nothing there and would instead cost
+    # a CREATE DATABASE per run and a divergence from the workflow steps
+    # that psql into onetime_auth_test by name. `CI` is already keep-listed,
+    # so this reads the real signal rather than needing a seventh entry.
+    LANES_DATASTORE_DB=0
+  else
+    # cksum: POSIX, deterministic across platforms (unlike bash's RANDOM or
+    # a hash of inode numbers). Derived indexes land in 1..1023
+    # (compose.test.yml starts valkey with --databases 1024), leaving 0 to
+    # mean "the shared, unsuffixed datastore".
+    read -r _lanes_cksum _ < <(builtin printf '%s' "${REPO_ROOT}" | cksum)
+    LANES_DATASTORE_DB=$(( 1 + _lanes_cksum % 1023 ))
+    builtin unset _lanes_cksum
+  fi
 fi
 case "${LANES_DATASTORE_DB}" in
   ''|*[!0-9]*)
@@ -411,6 +421,36 @@ for _lanes_name in REDIS_URL VALKEY_URL; do
   fi
 done
 builtin unset _lanes_name
+
+# PostgreSQL gets the same treatment, as a database name rather than an
+# index: `onetime_auth_test` becomes `onetime_auth_test_w<index>`. A
+# separate database (not a schema in the shared one) because the repo's
+# role model already permits it — onetime_migrator is created WITH CREATEDB
+# and owns what it creates, so the existing initialize_test_db.sql and the
+# existing migration chain both run against a fresh database unmodified and
+# without a superuser. Per-worktree schemas would instead need their own
+# GRANT USAGE and ALTER DEFAULT PRIVILEGES restated per worktree, a
+# search_path threaded through every connection, and would test a topology
+# production never runs.
+#
+# Index 0 means "shared, unsuffixed" — CI and any lane that pins it — so it
+# rewrites nothing and provisions nothing.
+if [[ "${LANES_DATASTORE_DB}" != 0 ]]; then
+  for _lanes_name in AUTH_DATABASE_URL AUTH_DATABASE_URL_MIGRATIONS \
+                     AUTH_DATABASE_URL_PG AUTH_DATABASE_URL_MIGRATIONS_PG; do
+    # Anchored on the test host:port so a lane addressing anything else (or
+    # a URL already carrying the suffix) is left exactly as written. The
+    # optional query string is preserved.
+    if [[ -n "${!_lanes_name:-}" &&
+          "${!_lanes_name}" =~ ^(.*@127\.0\.0\.1:2154/)([A-Za-z0-9_]+)(\?.*)?$ &&
+          "${BASH_REMATCH[2]}" != *_w"${LANES_DATASTORE_DB}" ]]; then
+      printf -v "${_lanes_name}" '%s%s_w%s%s' \
+        "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${LANES_DATASTORE_DB}" "${BASH_REMATCH[3]}"
+      export "${_lanes_name}"
+    fi
+  done
+  builtin unset _lanes_name
+fi
 
 # Billing rides on the full-mode auth stack (Stripe customer records live
 # in the auth database); it has no meaning in other modes.
@@ -491,6 +531,19 @@ echo "[lane:${LANE}] mode=${AUTHENTICATION_MODE:-?}" \
      "auth_db=${AUTH_DATABASE_URL:-n/a}"
 
 cd "${REPO_ROOT}"
+
+# The per-worktree PG database has to exist before the lane's specs open a
+# connection to it, and unlike a valkey DB index it is not conjured by
+# addressing it. Provision here: after the port preflight (so a refused
+# connection is already a clearer error) and from the repo root, which is
+# where `bundle exec` and the script's relative path to the SQL resolve.
+#
+# Only for a lane that addresses the rewritten database, so no other lane
+# pays Ruby startup for it. The script itself no-ops after one catalog
+# lookup once the database exists, which is every run after the first.
+if [[ "${LANES_DATASTORE_DB}" != 0 && "${AUTH_DATABASE_URL:-}" =~ 127\.0\.0\.1:2154 ]]; then
+  bundle exec ruby tests/lanes/support/provision_pg_database.rb || exit $?
+fi
 # `env -u` finishes what the scrub could not: readonly exported vars and
 # readonly exported functions survive `unset` in this shell, but env(1)
 # builds the child environment itself, so it can drop them regardless.
