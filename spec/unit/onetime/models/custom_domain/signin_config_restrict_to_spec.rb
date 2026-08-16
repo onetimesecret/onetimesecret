@@ -119,6 +119,65 @@ RSpec.describe Onetime::CustomDomain::SigninConfig do
     end
   end
 
+  # Whether the display/gate 'sso' host pin must defer to the per-domain
+  # config (#4167). Skipping the pin on `enabled?` alone let a config that is
+  # enabled WITHOUT an opinion (restrict_to unset, signin_enabled=false)
+  # resolve :unrestricted on a host whose only working method is SSO.
+  describe '.speaks_for_restrict_to?' do
+    subject(:speaks) { described_class.speaks_for_restrict_to?(config) }
+
+    context 'with no config at all' do
+      let(:config) { nil }
+
+      it { is_expected.to be(false) }
+    end
+
+    context 'with the master switch off' do
+      let(:config) do
+        described_class.new(domain_id: 'domain-4167', enabled: false, restrict_to: 'password')
+      end
+
+      it 'does not speak, whatever the fields say' do
+        expect(speaks).to be(false)
+      end
+    end
+
+    context 'enabled and naming a restriction' do
+      let(:config) do
+        described_class.new(
+          domain_id: 'domain-4167', enabled: true, signin_enabled: false, restrict_to: 'password'
+        )
+      end
+
+      it { is_expected.to be(true) }
+    end
+
+    context 'enabled with restrict_to unset but password/email opted IN' do
+      let(:config) do
+        described_class.new(
+          domain_id: 'domain-4167', enabled: true, signin_enabled: true, restrict_to: nil
+        )
+      end
+
+      it 'speaks — the host genuinely offers more than SSO, so no pin' do
+        expect(speaks).to be(true)
+      end
+    end
+
+    context 'enabled without an opinion (restrict_to unset, signin_enabled off)' do
+      let(:config) do
+        described_class.new(
+          domain_id: 'domain-4167', enabled: true, signin_enabled: false,
+          sso_enabled: true, restrict_to: nil
+        )
+      end
+
+      it 'does not speak — the SSO host pin still applies (#4167)' do
+        expect(speaks).to be(false)
+      end
+    end
+  end
+
   # The `available:` INPUT the three gates hand to the resolver (#4139). It
   # lives on the model precisely so no consumer can gather it differently; the
   # parity spec asserts the display serializer and the route gate agree, and
