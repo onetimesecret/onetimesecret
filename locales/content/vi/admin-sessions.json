@@ -31,6 +31,10 @@
     "text": "Địa chỉ IP",
     "source_hash": "3c3de0c9"
   },
+  "web.admin.sessions.columns.country": {
+    "text": "Quốc gia",
+    "source_hash": "701d021d"
+  },
   "web.admin.sessions.columns.created": {
     "text": "Xác thực lúc",
     "source_hash": "8d6c9b01"

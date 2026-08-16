@@ -30,6 +30,12 @@ import { z } from 'zod';
  * is the bare id used for routing + revoke; `key` is the resolved Redis key.
  * Identity fields are nullable (anonymous / pre-auth sessions carry no email or
  * external id). `created_at` is `authenticated_at` as a Unix-second number.
+ *
+ * `geo_country` is an ISO-3166-1 alpha-2 code joined from the session metadata
+ * sidecar, or `'**'` when Otto could not resolve one — render both that sentinel
+ * and a null as "Unknown", never as a country. It is `.optional()` as well as
+ * nullable so that mid-deploy, a response from a backend that predates the join
+ * still parses instead of dropping the whole session list.
  */
 export const colonelSessionSchema = z.object({
   session_id: z.string(),
@@ -41,6 +47,7 @@ export const colonelSessionSchema = z.object({
   ip_address: z.string().nullable(),
   user_agent: z.string().nullable(),
   created_at: z.number().nullable(),
+  geo_country: z.string().nullable().optional(),
 });
 
 /**
