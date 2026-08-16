@@ -177,7 +177,8 @@ Each phase is independently shippable; 1–3 are the Pareto core.
   endpoint only accepts categories in the unsubscribable set — never
   `transactional` or `security` class (§04). The one write it performs is a
   scoped suppression row, so the effect is idempotent within the token's
-  window. `POST /unsubscribe/:token` endpoint
+  window. `POST /unsubscribe/:token` endpoint — with the token path redacted
+  from request logs, since it embeds a stable email hash.
 - Stamp `List-Unsubscribe` / `List-Unsubscribe-Post` headers centrally in
   `Mailer.deliver`; footer link in the shared layout
 
