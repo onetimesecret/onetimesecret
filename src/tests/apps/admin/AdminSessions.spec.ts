@@ -66,6 +66,10 @@ const i18n = createTestI18n();
 const LIST_URL = '/api/colonel/sessions';
 const SID = 'sid_auth_1';
 
+/** Pass-through i18n (ADR-014): keys render verbatim, so assert on the key. */
+const COUNTRY_HEADER = 'web.admin.sessions.columns.country';
+const UNKNOWN = 'web.admin.sessions.detail.unknown';
+
 function sessionsPayload(rows = [sessionRow()]) {
   return {
     shrimp: '',
@@ -89,8 +93,20 @@ function sessionRow(overrides: Record<string, unknown> = {}) {
     ip_address: '203.0.113.7',
     user_agent: 'Mozilla/5.0',
     created_at: 1700000000,
+    geo_country: 'DE',
     ...overrides,
   };
+}
+
+/**
+ * A row from a backend that predates the geo join: the key is ABSENT, not null.
+ * `{ geo_country: undefined }` would not exercise the same thing — the property
+ * would still exist — so it is deleted outright.
+ */
+function sessionRowWithoutCountry(overrides: Record<string, unknown> = {}) {
+  const row = sessionRow(overrides) as Record<string, unknown>;
+  delete row.geo_country;
+  return row;
 }
 
 function detailPayload() {
@@ -131,6 +147,18 @@ const mountView = (pinia: ReturnType<typeof createPinia>) =>
 const dialogInput = (w: VueWrapper) => w.find('#admin-confirm-input');
 const dialogSubmit = (w: VueWrapper) => w.find('[data-testid="admin-confirm-submit"]');
 const listGetCount = () => mockApi.get.mock.calls.filter((c) => c[0] === LIST_URL).length;
+
+/**
+ * Text of the country cell for one body row. DataTable emits cells positionally
+ * (one `<td>` per column, same order), so the column is located by its header
+ * rather than a hard-coded index — the assertion survives a column reshuffle.
+ */
+function countryCell(w: VueWrapper, rowIndex: number): string {
+  const table = w.find('[data-testid="sessions-table"]');
+  const columnIndex = table.findAll('thead th').findIndex((th) => th.text() === COUNTRY_HEADER);
+  expect(columnIndex).toBeGreaterThanOrEqual(0);
+  return table.findAll('tbody tr')[rowIndex].findAll('td')[columnIndex].text();
+}
 
 describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40)', () => {
   let wrapper: VueWrapper;
@@ -198,6 +226,64 @@ describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40
     await banner.find('button').trigger('click');
     await flushPromises();
     expect(wrapper.find('[data-testid="sessions-error"]').exists()).toBe(false);
+  });
+
+  // ---- Country column -------------------------------------------------------
+
+  describe('country column', () => {
+    it('renders a resolved country code verbatim', async () => {
+      mockApi.get.mockResolvedValue({
+        data: sessionsPayload([sessionRow({ geo_country: 'DE' })]),
+      });
+      wrapper = mountView(pinia);
+      await flushPromises();
+
+      expect(countryCell(wrapper, 0)).toBe('DE');
+    });
+
+    it('renders the "**" sentinel as Unknown, never as literal "**"', async () => {
+      mockApi.get.mockResolvedValue({
+        data: sessionsPayload([sessionRow({ geo_country: '**' })]),
+      });
+      wrapper = mountView(pinia);
+      await flushPromises();
+
+      expect(countryCell(wrapper, 0)).toBe(UNKNOWN);
+      expect(countryCell(wrapper, 0)).not.toContain('**');
+    });
+
+    it('renders a null and an absent geo_country as Unknown', async () => {
+      mockApi.get.mockResolvedValue({
+        data: sessionsPayload([
+          sessionRow({ session_id: 'sid_null', geo_country: null }),
+          sessionRowWithoutCountry({ session_id: 'sid_absent' }),
+        ]),
+      });
+      wrapper = mountView(pinia);
+      await flushPromises();
+
+      expect(countryCell(wrapper, 0)).toBe(UNKNOWN);
+      expect(countryCell(wrapper, 1)).toBe(UNKNOWN);
+    });
+
+    it('never leaks an IP into the country cell — only a 2-letter code or Unknown', async () => {
+      const rows = [
+        sessionRow({ session_id: 'sid_code', ip_address: '203.0.113.7', geo_country: 'DE' }),
+        sessionRow({ session_id: 'sid_sentinel', ip_address: '198.51.100.9', geo_country: '**' }),
+        sessionRow({ session_id: 'sid_null', ip_address: '192.0.2.44', geo_country: null }),
+        sessionRowWithoutCountry({ session_id: 'sid_absent', ip_address: '2001:db8::1' }),
+      ];
+      mockApi.get.mockResolvedValue({ data: sessionsPayload(rows) });
+      wrapper = mountView(pinia);
+      await flushPromises();
+
+      rows.forEach((row, index) => {
+        const text = countryCell(wrapper, index);
+        // Country is a country: an ISO-3166-1 alpha-2 code, or the Unknown label.
+        expect(text === UNKNOWN || /^[A-Z]{2}$/.test(text)).toBe(true);
+        expect(text).not.toContain(row.ip_address as string);
+      });
+    });
   });
 
   // ---- Inspect drawer -------------------------------------------------------
