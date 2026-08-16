@@ -1,9 +1,16 @@
 ---
 id: 039
 status: proposed
-decided: 2026-08-15
 title: "ADR-039: Issue and Pull Request References in Change Metadata"
 ---
+
+## Status
+
+Proposed
+
+## Date
+
+2026-08-15
 
 ## Context
 
