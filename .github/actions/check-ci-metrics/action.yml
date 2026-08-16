@@ -154,6 +154,7 @@ runs:
           "T2 · Ruby Unit Tests"
           "T2 · TypeScript Unit Tests"
           "T3 · Ruby Integration (Simple Mode)"
+          "T3 · Ruby Integration (API Contract)"
           "T3 · Ruby Integration (Full, "
           "T3 · Ruby Integration (Disabled Mode)"
           "T4 · Container Validation"
@@ -196,6 +197,7 @@ runs:
         TIER3_COMPLETE=$(echo "$JOBS_JSON" | jq -r '
           [.[] | select(
               .name == "T3 · Ruby Integration (Simple Mode)" or
+              .name == "T3 · Ruby Integration (API Contract)" or
               .name == "T3 · Ruby Integration (Disabled Mode)" or
               (.name | startswith("T3 · Ruby Integration (Full, "))
             )

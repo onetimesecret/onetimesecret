@@ -9,7 +9,7 @@ name: CI
 # - Tier 0: Path filtering to skip irrelevant jobs
 # - Tier 1: Lint jobs + build-assets (parallel, fast feedback)
 # - Tier 2: Unit tests (ruby-unit, typescript-unit)
-# - Tier 3: Integration tests by auth mode (parallel: simple, full, disabled)
+# - Tier 3: Integration tests (parallel: simple, API contract, full, disabled)
 # - Tier 4: Container validation uses pre-built assets
 #
 # Ruby test jobs run through tests/lanes/run — the same entry point as local
@@ -564,12 +564,39 @@ jobs:
           lane: simple
           results-file: 'rspec_simple_results.json'
 
-      # API contract specs (spec/api/) — a different axis than auth mode.
-      # Blocking since the #3225 / ADR-012 Stage 3 membership-contract drift
-      # was repaired (mock helpers rewritten to the membership model); this
-      # step was continue-on-error while that subset was red. Runs through
-      # the composite so a failure gets the same failure-tail PR comment
-      # and results plumbing as every other lane.
+  ruby-integration-api:
+    name: T3 · Ruby Integration (API Contract)
+    timeout-minutes: 10
+    runs-on: *runs-on
+    needs: [changes, ruby-lint, build-assets]
+    if: *if-ruby-integration
+    permissions: *perms-pr-comment
+
+    steps:
+      - *checkout-step
+
+      - *start-core-services
+
+      - name: Setup Ruby test environment
+        uses: ./.github/actions/setup-ruby-test-env
+
+      - name: Setup Python for locale sync
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Setup Node.js for locale sync
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: '.node-version'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      # API contract specs (spec/api/) are a different axis than auth mode.
+      # This was continue-on-error while the #3225 / ADR-012 Stage 3
+      # membership-contract drift was repaired. It is now blocking and runs
+      # independently so it can execute alongside simple mode.
       - name: Run api lane (spec/api)
         uses: ./.github/actions/run-test-lane
         with:
@@ -795,6 +822,7 @@ jobs:
     needs:
       - ruby-unit
       - ruby-integration-simple
+      - ruby-integration-api
       - ruby-integration-full
       - ruby-integration-disabled
       - typescript-unit
@@ -861,6 +889,7 @@ jobs:
       - ruby-unit
       - typescript-unit
       - ruby-integration-simple
+      - ruby-integration-api
       - ruby-integration-full
       - ruby-integration-disabled
       - check-oci-image
@@ -897,6 +926,7 @@ jobs:
           echo "| Ruby Unit | ${{ needs.ruby-unit.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| TypeScript Unit | ${{ needs.typescript-unit.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Ruby Integration (Simple) | ${{ needs.ruby-integration-simple.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruby Integration (API Contract) | ${{ needs.ruby-integration-api.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Ruby Integration (Full matrix) | ${{ needs.ruby-integration-full.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Ruby Integration (Disabled) | ${{ needs.ruby-integration-disabled.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Container Validation | ${{ needs.check-oci-image.result }} |" >> $GITHUB_STEP_SUMMARY
