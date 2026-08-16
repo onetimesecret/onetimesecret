@@ -15,6 +15,9 @@ that surface. It is updated in the same PR as any slice work.
 
 Audit date: 2026-08-16, against `main` (`ddeed4f`).
 
+Problem-space background (event taxonomy, channels beyond email, preference
+design): [`../notifications/pareto-brief.md`](../notifications/pareto-brief.md).
+
 ## Slice status
 
 | Slice | Status | Evidence |
