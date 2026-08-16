@@ -25,7 +25,7 @@
 #   - a per-lane summary and a non-zero exit naming the lane that failed.
 
 # ── bash major-version floor ─────────────────────────────────────────────
-# Same floor, same pin file, same reason as tests/lanes/run — the long
+# Same floor, same pin file, same reason as tests/lanes/run; the long
 # version of this comment lives there. This script expands arrays under
 # `set -u` and uses a nameref, and stock macOS bash 3.2 fails on both in
 # ways that read like a broken wrapper rather than a too-old shell. Sits
@@ -350,15 +350,12 @@ done
 
 prefix_stream() {  # <tag> — tag every line of stdin
   local tag="$1" line
-  while IFS= read -r line; do
+  # `read` returns nonzero for a final line without a newline, while still
+  # populating $line. Keep that line in this iteration rather than printing
+  # it after the loop, which would duplicate a normally terminated final line.
+  while IFS= read -r line || [[ -n "${line:-}" ]]; do
     printf '[%-*s] %s\n' "${PREFIX_WIDTH}" "${tag}" "${line}"
   done
-  # A last line with no trailing newline leaves `read` non-zero with the
-  # text still in $line; an `if` (not `&&`) so this function's own exit
-  # status stays 0 and pipefail cannot read it as a failed lane.
-  if [[ -n "${line:-}" ]]; then
-    printf '[%-*s] %s\n' "${PREFIX_WIDTH}" "${tag}" "${line}"
-  fi
 }
 
 # In parallel mode the children must not autostart compose either: the

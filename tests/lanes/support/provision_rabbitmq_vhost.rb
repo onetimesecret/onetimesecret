@@ -23,17 +23,11 @@
 #
 # WHY THERE IS NO LOCK, UNLIKE THE POSTGRESQL PROVISIONER
 #
-# provision_pg_database.rb holds an advisory lock because CREATE DATABASE
-# followed by a multi-statement init script has an observable half-provisioned
-# window: the database exists but carries no grants, and a loser that merely
-# checked existence would hand its specs that database. There is no such
-# window here. Both management-API calls are idempotent create-or-update PUTs
-# (201 created / 204 already existed), so two runners starting together
-# converge: whoever loses the vhost PUT gets 204, and the permissions PUT is
-# last-write-wins with a byte-identical body. That only holds if BOTH PUTs run
-# unconditionally on every invocation — short-circuiting on "vhost exists"
-# would reintroduce exactly the window the lock exists to close, because the
-# winner's permissions may not be set yet when the loser observes the vhost.
+# A vhost is deleted and recreated for each invocation so stale queues and
+# messages from an interrupted run cannot affect a later run. The runner's
+# liveness token rejects overlapping runs with the same isolation key before
+# this script is reached, while distinct lane/overlay keys have distinct
+# vhosts. That makes the reset exclusive without adding a second lock here.
 #
 # WHY IT FAILS LOUD
 #
@@ -78,12 +72,17 @@ module ProvisionRabbitmqVhost
       pass  = uri.password && URI.decode_www_form_component(uri.password)
 
       unless vhost.match?(VHOST_NAME)
-        abort "[lane:rabbitmq] refusing to provision non-worktree vhost #{vhost.inspect}"
+        raise ProvisioningError, "refusing to provision non-worktree vhost #{vhost.inspect}"
       end
-      abort '[lane:rabbitmq] RABBITMQ_URL carries no credentials; cannot provision' if user.nil?
+      raise ProvisioningError, 'RABBITMQ_URL carries no credentials; cannot provision' if user.nil? || pass.nil?
 
+      vhost_path = "/api/vhosts/#{URI.encode_www_form_component(vhost)}"
+      # The runner rejects overlapping runs with the same isolation key, so
+      # this vhost belongs exclusively to this lane invocation. Recreate it
+      # to discard queues and messages left by an interrupted earlier run.
+      delete(vhost_path, user, pass, retry_connect: true)
       created = put(
-        "/api/vhosts/#{URI.encode_www_form_component(vhost)}",
+        vhost_path,
         '{}',
         user,
         pass,
@@ -101,10 +100,24 @@ module ProvisionRabbitmqVhost
 
     private
 
-    # One idempotent PUT. Returns true when the resource was created (201),
-    # false when it already existed (204) — the same two codes
-    # lib/onetime/cli/queue/init_command.rb:121-126,172-174 treats as success
-    # for these exact endpoints.
+    # Deletes a previous lane's vhost state. A missing vhost is the normal
+    # first-run case; RabbitMQ returns 204 for a successful deletion.
+    def delete(path, user, pass, retry_connect: false)
+      uri = URI.parse("#{MANAGEMENT_URL}#{path}")
+
+      request = Net::HTTP::Delete.new(uri.path)
+      request.basic_auth(user, pass)
+      response = request!(uri, request, retry_connect)
+
+      return if [204, 404].include?(response.code.to_i)
+
+      detail = response.body.to_s.empty? ? '' : " — #{response.body.strip}"
+      raise ProvisioningError,
+        "DELETE #{path} returned #{response.code} #{response.message}#{detail}"
+    end
+
+    # Creates a fresh vhost. RabbitMQ returns 201 for creation; accepting 204
+    # keeps this safe if a management API retry observes an existing vhost.
     def put(path, body, user, pass, retry_connect: false)
       uri = URI.parse("#{MANAGEMENT_URL}#{path}")
 
