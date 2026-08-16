@@ -53,7 +53,8 @@ def track(cust, sid, extid, score)
   Onetime::Operations::Sessions::TrackMetadata.new(
     session_id: sid,
     session_data: { 'authenticated' => true, 'external_id' => extid,
-                    'ip_address' => '203.0.113.1', 'user_agent' => 'UA' },
+                    'ip_address' => '203.0.113.1', 'user_agent' => 'UA',
+                    'active_session_id_hmac' => "hmac_#{sid}" },
   ).call
   # Mint a REAL encrypted session blob so the blob-liveness probe sees a live
   # session (ListForCustomer prunes any sid whose `session:<sid>` blob is gone).
@@ -78,6 +79,9 @@ track(@cust, @sid_new, @extid, @ts + 100)
 [@row[:user_id], @row.key?(:email), @row.key?(:token)]
 #=> ["#{@extid}", false, false]
 
+## internal join keys accompany safe rows without a second sidecar read
+@res.active_session_id_hmac_by_session_id
+#=> {"#{@sid_new}" => "hmac_#{@sid_new}", "#{@sid_old}" => "hmac_#{@sid_old}"}
 
 # ---- degraded sidecar read: other sessions remain available -----------
 

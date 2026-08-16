@@ -32,7 +32,10 @@ module Onetime
       class ListForCustomer
         # @!attribute sessions [r] Array<Hash> safe_dump rows, newest-first
         # @!attribute count [r] Integer sessions returned (== sessions.size, post-prune)
-        Result = Data.define(:sessions, :count)
+        # @!attribute active_session_id_hmac_by_session_id [r] Hash<String, String>
+        #   internal join keys for consumers that need to correlate sidecar rows
+        #   with Rodauth active-session records
+        Result = Data.define(:sessions, :count, :active_session_id_hmac_by_session_id)
 
         # @param custid [String] route param identifying the target customer;
         #   resolved by extid → email → objid (see #call), matching the colonel
@@ -47,7 +50,7 @@ module Onetime
         # @return [Result]
         def call
           customer = load_customer
-          return Result.new(sessions: [], count: 0) if customer.nil?
+          return Result.new(sessions: [], count: 0, active_session_id_hmac_by_session_id: {}) if customer.nil?
 
           db = @dbclient || Familia.dbclient
 
@@ -55,7 +58,8 @@ module Onetime
           # last-activity first (TrackMetadata scores by last_activity epoch).
           sids = customer.active_sessions.revrange(0, -1)
 
-          sessions = sids.filter_map do |sid|
+          active_session_id_hmac_by_session_id = {}
+          sessions                             = sids.filter_map do |sid|
             begin
               meta = Onetime::SessionMetadata.load(sid)
             rescue StandardError
@@ -81,10 +85,17 @@ module Onetime
               next nil
             end
 
+            hmac                                      = meta.active_session_id_hmac
+            active_session_id_hmac_by_session_id[sid] = hmac unless hmac.to_s.empty?
+
             meta.safe_dump
           end
 
-          Result.new(sessions: sessions, count: sessions.size)
+          Result.new(
+            sessions: sessions,
+            count: sessions.size,
+            active_session_id_hmac_by_session_id: active_session_id_hmac_by_session_id,
+          )
         end
 
         private

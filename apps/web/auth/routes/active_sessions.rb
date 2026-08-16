@@ -149,20 +149,17 @@ module Auth
       private
 
       # Map HMAC(active_session_id) -> safe_dump metadata row, i.e. keyed by the
-      # exact value the Rodauth session_id column holds.
-      #
-      # The join key is read from the SessionMetadata record rather than from the
-      # safe_dump row on purpose: it is an internal key and is deliberately not on
-      # the model's safe_dump allow-list, which is a positive list of what the
-      # colonel view may render. Sessions written before the stamp existed have no
-      # key and simply do not join — their row keeps its Rodauth timestamps and
-      # reports no browser/network detail, exactly as an unmatched row always has.
+      # exact value the Rodauth session_id column holds. The operation returns the
+      # internal join key alongside its safe display rows, avoiding a second
+      # SessionMetadata load per row.
       def active_session_metadata_by_hmac(account_id)
-        active_session_metadata(account_id).each_with_object({}) do |metadata, map|
+        result = active_session_metadata(account_id)
+
+        result.sessions.each_with_object({}) do |metadata, map|
           # Familia persists an unset declared field as the literal "null", so a
           # record written before the join key existed can read back as that
           # sentinel rather than nil; both mean "no join key".
-          hmac = Onetime::SessionMetadata.load(metadata[:session_id])&.active_session_id_hmac
+          hmac = result.active_session_id_hmac_by_session_id[metadata[:session_id]]
           next if hmac.to_s.empty? || hmac.to_s == 'null'
 
           map[hmac] = metadata
@@ -171,13 +168,21 @@ module Auth
 
       def active_session_metadata(account_id)
         account = rodauth.db[:accounts].where(id: account_id).first
-        return [] unless account
+        return empty_active_session_metadata unless account
 
         customer = Onetime::Customer.find_by_extid(account[:external_id]) ||
                    Onetime::Customer.find_by_email(account[:email])
-        return [] unless customer
+        return empty_active_session_metadata unless customer
 
-        Onetime::Operations::Sessions::ListForCustomer.new(custid: customer.extid).call.sessions
+        Onetime::Operations::Sessions::ListForCustomer.new(custid: customer.extid).call
+      end
+
+      def empty_active_session_metadata
+        Onetime::Operations::Sessions::ListForCustomer::Result.new(
+          sessions: [],
+          count: 0,
+          active_session_id_hmac_by_session_id: {},
+        )
       end
 
       def epoch_iso8601(epoch)
