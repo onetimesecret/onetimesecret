@@ -142,7 +142,11 @@ runs:
           exit 0
         fi
 
-        # Validate expected job names exist (warns if job names change)
+        # Validate expected job names exist (warns if job names change).
+        # ruby-integration-full is a matrix, named
+        # 'T3 · Ruby Integration (Full, <matrix.name>)' in ci.yml; the check
+        # below is a substring match (grep -F), so one prefix entry covers
+        # every row without re-listing the matrix here.
         EXPECTED_JOBS=(
           "T1 · Ruby Lint"
           "T1 · TypeScript Lint"
@@ -150,8 +154,7 @@ runs:
           "T2 · Ruby Unit Tests"
           "T2 · TypeScript Unit Tests"
           "T3 · Ruby Integration (Simple Mode)"
-          "T3 · Ruby Integration (Full Mode - SQLite)"
-          "T3 · Ruby Integration (Full Mode - PostgreSQL)"
+          "T3 · Ruby Integration (Full, "
           "T3 · Ruby Integration (Disabled Mode)"
           "T4 · Container Validation"
           "T5 · Aggregate Test Results"
@@ -184,13 +187,17 @@ runs:
           | sort | last // empty
         ')
 
-        # Tier 3: Integration Tests - latest completion of all Tier 3 jobs
+        # Tier 3: Integration Tests - latest completion of all Tier 3 jobs.
+        # The full-mode rows are matched by prefix because their names carry
+        # the matrix suffix (ci.yml: 'T3 · Ruby Integration (Full, SQLite,
+        # billing: off)' and five siblings). Equality against the pre-matrix
+        # names 'Full Mode - SQLite' / 'Full Mode - PostgreSQL' matched
+        # nothing, so tier3 silently reported Simple+Disabled only.
         TIER3_COMPLETE=$(echo "$JOBS_JSON" | jq -r '
           [.[] | select(
               .name == "T3 · Ruby Integration (Simple Mode)" or
-              .name == "T3 · Ruby Integration (Full Mode - SQLite)" or
-              .name == "T3 · Ruby Integration (Full Mode - PostgreSQL)" or
-              .name == "T3 · Ruby Integration (Disabled Mode)"
+              .name == "T3 · Ruby Integration (Disabled Mode)" or
+              (.name | startswith("T3 · Ruby Integration (Full, "))
             )
             | select(.completed_at != null) | .completed_at]
           | sort | last // empty
