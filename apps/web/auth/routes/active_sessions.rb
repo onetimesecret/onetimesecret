@@ -156,11 +156,8 @@ module Auth
         result = active_session_metadata(account_id)
 
         result.sessions.each_with_object({}) do |metadata, map|
-          # Familia persists an unset declared field as the literal "null", so a
-          # record written before the join key existed can read back as that
-          # sentinel rather than nil; both mean "no join key".
           hmac = result.active_session_id_hmac_by_session_id[metadata[:session_id]]
-          next if hmac.to_s.empty? || hmac.to_s == 'null'
+          next if hmac.to_s.empty?
 
           map[hmac] = metadata
         end
