@@ -384,6 +384,63 @@ RSpec.describe 'restrict_to display/gate parity' do
     end
   end
 
+  # AN ENABLED CONFIG WITHOUT AN OPINION DOES NOT ERASE THE PIN (#4167).
+  # restrict_to unset + signin_enabled=false is a config that is technically
+  # present but expresses no restriction and opts the non-SSO methods off.
+  # Both pin sites used to skip the 'sso' host pin on `enabled?` alone, so with
+  # the platform-SSO fallback keeping /signin alive, resolution widened to
+  # :unrestricted for a host whose only working method is SSO — the direction
+  # ADR-034#resolution-intersects-never-widens exists to prevent.
+  describe 'enabled SigninConfig with no opinion (#4167)' do
+    def no_opinion_config(signin_enabled:, sso_enabled: true)
+      instance_double(
+        Onetime::CustomDomain::SigninConfig,
+        domain_id: domain_id,
+        enabled?: true,
+        signin_enabled?: signin_enabled,
+        email_auth_enabled?: false,
+        sso_enabled?: sso_enabled,
+        restrict_to: nil,
+      )
+    end
+
+    before do
+      allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
+    end
+
+    context 'with signin_enabled=false and SSO reachable via platform fallback' do
+      before do
+        allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
+          .with(domain_id).and_return(no_opinion_config(signin_enabled: false))
+      end
+
+      it 'agrees' do
+        expect_parity
+      end
+
+      it "still pins 'sso' — the host's effective capability set is SSO-only" do
+        expect(gate_resolution).to be_restricted
+        expect(gate_resolution.restrict_to).to eq('sso')
+        expect(gate_resolution.allows?('password')).to be(false)
+        expect(gate_resolution.allows?('email_auth')).to be(false)
+        expect(display_resolution.restrict_to).to eq('sso')
+      end
+    end
+
+    context 'with signin_enabled=true (the config DOES speak: password/email opted in)' do
+      before do
+        allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
+          .with(domain_id).and_return(no_opinion_config(signin_enabled: true))
+      end
+
+      it 'agrees, and no pin narrows away the methods the owner enabled' do
+        expect_parity
+        expect(gate_resolution).to be_unrestricted
+        expect(display_resolution).to be_unrestricted
+      end
+    end
+  end
+
   # CLOSED (#4140). The display serializer and the route gate both pin 'sso' as
   # the inherited restriction for a custom host with no enabled SigninConfig
   # that is reachable only via SSO. The settings API did not — it handed the

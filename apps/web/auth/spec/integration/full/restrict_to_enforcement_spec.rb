@@ -64,11 +64,44 @@ RSpec.describe 'restrict_to enforcement — full mode (ADR-034#restrict-to-is-an
     # middleware resolves the Host header it was given, and restore after.
     @original_features        = Onetime::Runtime.features
     Onetime::Runtime.features = @original_features.with(domains_enabled: true)
+
+    # AND give the lane a PARSEABLE canonical host (added with the
+    # signin_enabled availability gate, ADR-024).
+    #
+    # The test config's site.host is an IP with a port (127.0.0.1:3000), which
+    # PublicSuffix cannot parse, so with domains_enabled flipped on above the
+    # canonical SET is empty and Chooserator classifies every non-custom host
+    # :invalid — the "unrestricted host" examples below included. :invalid is
+    # NOT an operator host
+    # (ADR-024#operator-defaults-require-positive-classification): it takes the
+    # tenant-safe branch, where password/email sign-in defaults OFF, so those
+    # examples were asserting against a host the policy layer considers
+    # unknown. That was invisible while restrict_to was the only per-domain
+    # gate (an unrestricted resolution rejects nothing regardless of
+    # classification) and became visible the moment the availability gate
+    # started reading the same classification.
+    #
+    # Overriding OT.conf and not just the class state is load-bearing:
+    # DomainStrategy#initialize re-derives from OT.conf, and the Rack app is
+    # built lazily on the first request, i.e. after this hook.
+    @original_domains_config       = OT.conf.dig('features', 'domains') || {}
+    OT.conf['features']['domains'] = @original_domains_config.merge(
+      'enabled' => true,
+      'default' => CANONICAL_HOST,
+    )
+    Onetime::Middleware::DomainStrategy.initialize_from_config(OT.conf['features']['domains'])
   end
 
   after(:all) do
     Onetime::Runtime.features = @original_features if @original_features
+    if @original_domains_config
+      OT.conf['features']['domains'] = @original_domains_config
+      Onetime::Middleware::DomainStrategy.initialize_from_config(@original_domains_config)
+    end
   end
+
+  # An operator host the classifier can actually parse. See before(:all).
+  CANONICAL_HOST = 'operator-restrict-to.example.com'
 
   let(:run_id) { SecureRandom.hex(6) }
 

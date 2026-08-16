@@ -62,6 +62,14 @@
 #      config/hooks/omniauth_tenant.rb (omniauth_setup +
 #      before_omniauth_callback_route) and in the app-owned SSO linking routes
 #      (routes/link_sso.rb, routes/sso_link_confirm.rb) via .allows?.
+#   1a. SIBLING GATE, same chokepoint: `restrict_to` answers WHICH methods may
+#      be offered, never WHETHER sign-in is offered at all. The per-domain
+#      `signin_enabled` opt-in (ADR-024, custom domains default OFF) is the
+#      availability half and lives in apps/web/auth/signin_enabled.rb; it is
+#      invoked from the same before_rodauth block (hooks do not chain, so it
+#      cannot register its own). Do NOT fold it in here: this resolver's
+#      invariant is that an absent restriction gates nothing, and teaching it
+#      to manufacture one from an absence takes SSO-only tenants dark — #4139.
 #   3. Simple mode — POST /auth/login is served by Core, not Rodauth
 #      (apps/web/core/routes.txt). Gated in
 #      Core::Controllers::Base#restrict_to_allows?.
