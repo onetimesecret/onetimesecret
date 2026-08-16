@@ -6,9 +6,9 @@
 # =====================================
 #
 # spec:fast used to be 13 rspec processes: spec:unit, spec:cli, and one per
-# apps/*/*/spec tree. It is now two (spec:root_fast, spec:apps_fast), and the
-# whole value of that consolidation rests on the two invocations selecting
-# exactly the files the 13 selected. That equivalence is NOT something a
+# apps/*/*/spec tree. It is now three (spec:root_fast, spec:apps_fast, and
+# spec:apps_config_ru), and the whole value of that consolidation rests on
+# those invocations selecting exactly the files the 13 selected. That equivalence is NOT something a
 # reviewer can check by reading the globs: rspec resolves --pattern and
 # --exclude-pattern separately against each checked path, so an include and an
 # exclude that look symmetric can behave asymmetrically (see the HARD RULE in
@@ -81,9 +81,9 @@ module SpecSelection
     invocations
   end
 
-  # The two invocations spec:fast spawns today. Patterns come from the
-  # constants the rake tasks themselves use, so the guard can never verify a
-  # pattern the lane does not run.
+  # The invocations spec:fast spawns today. Patterns come from the constants
+  # the rake tasks themselves use, so the guard can never verify a pattern the
+  # lane does not run.
   #
   # @return [Array<Hash>] invocation descriptors
   def fast_invocations
@@ -94,6 +94,10 @@ module SpecSelection
         pattern: APPS_FAST_PATTERN,
         exclude_pattern: APPS_FAST_EXCLUDE,
         tags: APPS_FAST_TAG_FILTERS,
+      },
+      {
+        name: 'apps_config_ru',
+        pattern: 'apps/web/core/spec/controllers/{config_generator,page_bootstrap_me}_spec.rb',
       },
     ]
   end
@@ -198,7 +202,7 @@ namespace :spec do
 
     unless dropped.empty? && added.empty? && missing_adoptions.empty?
       abort <<~MSG
-        spec:fast selection drift — the two consolidated invocations no longer
+        spec:fast selection drift — the consolidated invocations no longer
         select what the legacy per-tree invocations select.
 
           dropped (legacy ran these, spec:fast no longer does):
@@ -260,7 +264,7 @@ namespace :spec do
   end
 
   namespace :verify_selection do
-    desc 'Verify spec:fast runs the same EXAMPLE IDs as the legacy fan-out (slow: 16 dry-runs)'
+    desc 'Verify spec:fast runs the same EXAMPLE IDs as the legacy fan-out (slow: 17 dry-runs)'
     task :deep do
       require 'json'
 

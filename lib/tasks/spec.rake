@@ -90,8 +90,9 @@ end.freeze
 # spec:fast pattern set
 # =====================
 #
-# spec:fast is TWO rspec processes (spec:root_fast + spec:apps_fast), not one
-# per spec tree. The split is a behaviour boundary, not a performance
+# spec:fast is THREE rspec processes (spec:root_fast, spec:apps_fast, and
+# spec:apps_config_ru), not one per spec tree. The split is a behaviour boundary,
+# not a performance
 # compromise: apps/web/billing/spec/support/billing_spec_helper.rb registers VCR
 # around-hooks and billing stubs on the GENERIC type: :cli key, and
 # spec/cli/**/*_spec.rb declares type: :cli — merging the two into one process
@@ -113,7 +114,11 @@ end.freeze
 # made absolute. `rake spec:verify_selection` fails on the mistake.
 ROOT_FAST_PATTERN = 'spec/unit/**/*_spec.rb,spec/cli/**/*_spec.rb,spec/lib/**/*_spec.rb'
 APPS_FAST_PATTERN = 'apps/*/*/spec/**/*_spec.rb'
-APPS_FAST_EXCLUDE = 'apps/*/*/spec/integration/**/*_spec.rb'
+APPS_FAST_EXCLUDE = [
+  'apps/*/*/spec/integration/**/*_spec.rb',
+  'apps/web/core/spec/controllers/config_generator_spec.rb',
+  'apps/web/core/spec/controllers/page_bootstrap_me_spec.rb',
+].join(',')
 
 # Carried over VERBATIM from the per-app tasks, and inert in both places today.
 # rspec-core 4.0.0.beta1 ANDs exclusion filters (MetadataFilter.apply? uses
@@ -131,9 +136,9 @@ APPS_FAST_EXCLUDE = 'apps/*/*/spec/integration/**/*_spec.rb'
 APPS_FAST_TAG_FILTERS = '--tag ~postgres_database --tag ~integration'
 
 namespace :spec do
-  # The two invocations `spec:fast` runs. Everything about their patterns is
-  # documented at ROOT_FAST_PATTERN above; `rake spec:verify_selection` proves
-  # they select exactly what the per-tree tasks below select.
+  # The `spec:fast` invocations. Their patterns are documented at
+  # ROOT_FAST_PATTERN above; `rake spec:verify_selection` proves they select
+  # exactly what the per-tree tasks below select.
   desc 'Run unit + CLI + lib specs (one process)'
   RSpec::Core::RakeTask.new(:root_fast) do |t|
     t.pattern    = ROOT_FAST_PATTERN
@@ -145,6 +150,15 @@ namespace :spec do
     t.pattern         = APPS_FAST_PATTERN
     t.exclude_pattern = APPS_FAST_EXCLUDE
     t.rspec_opts      = "#{rspec_format_options('apps_fast')} #{APPS_FAST_TAG_FILTERS}"
+  end
+
+  # These Rack specs boot config.ru, which reconfigures process-global runtime
+  # state. Keep them outside the merged apps process so their boot cannot alter
+  # the model and controller specs that follow.
+  desc 'Run config.ru controller specs in an isolated process'
+  RSpec::Core::RakeTask.new(:apps_config_ru) do |t|
+    t.pattern    = 'apps/web/core/spec/controllers/{config_generator,page_bootstrap_me}_spec.rb'
+    t.rspec_opts = rspec_format_options('apps_config_ru')
   end
 
   # Per-tree tasks below are kept for targeted runs (`rake spec:apps:web_auth`)
@@ -380,7 +394,7 @@ namespace :spec do
   # pair selects exactly the files the thirteen selected; run it after any edit
   # to ROOT_FAST_PATTERN / APPS_FAST_PATTERN / APPS_FAST_EXCLUDE.
   desc 'Run all non-integration specs (unit, cli, lib, apps)'
-  task fast: [:root_fast, :apps_fast]
+  task fast: [:root_fast, :apps_fast, :apps_config_ru]
 
   desc 'Run the complete test suite'
   task all: ['spec:fast', 'spec:integration:all']

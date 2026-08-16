@@ -23,33 +23,18 @@ RSpec.describe 'GET /bootstrap/me', type: :integration do
   before(:all) do
     require 'rack'
     require 'rack/mock'
-    # Clear Redis env vars to ensure test config defaults are used (port 2163)
-    @original_rack_env = ENV['RACK_ENV']
-    @original_redis_url = ENV['REDIS_URL']
-    @original_valkey_url = ENV['VALKEY_URL']
-    ENV.delete('REDIS_URL')
-    ENV.delete('VALKEY_URL')
-    # Ensure RACK_ENV is test so boot! is idempotent
-    ENV['RACK_ENV'] = 'test'
+    @original_conf           = OT.conf
+    @original_execution_mode = OT.execution_mode
+    @original_familia_uri    = Familia.uri
     @app = Rack::Builder.parse_file('config.ru')
   end
 
   after(:all) do
-    if @original_rack_env
-      ENV['RACK_ENV'] = @original_rack_env
-    else
-      ENV.delete('RACK_ENV')
-    end
-    if @original_redis_url
-      ENV['REDIS_URL'] = @original_redis_url
-    else
-      ENV.delete('REDIS_URL')
-    end
-    if @original_valkey_url
-      ENV['VALKEY_URL'] = @original_valkey_url
-    else
-      ENV.delete('VALKEY_URL')
-    end
+    OT.reset_all_boot_state!
+    OT.replace_config!(@original_conf)
+    OT.execution_mode = @original_execution_mode
+    Familia.uri = @original_familia_uri
+    Onetime::Application::Registry.reset!
   end
 
   describe 'response format' do
