@@ -356,6 +356,34 @@ RSpec.describe Onetime::Organization, type: :integration do
         end
       end
 
+      # Country capture (#3989) rides the same **event_attrs splat as the rest
+      # of the network context, so the trail-facing half of the contract is
+      # that a gated-ON net_country survives receipt -> org unchanged and
+      # lands alongside the shortid context. Whether country is captured AT
+      # ALL is the logic layer's default-OFF decision (ADR-021 Decision 4;
+      # see access_telemetry_spec.rb) -- by the time a context reaches here
+      # that gate has already been applied.
+      it 'carries a resolved net_country into the trail without ever storing the raw IP' do
+        raw_ip  = '203.0.113.42'
+        full_ua = 'Mozilla/5.0 (X11; Linux x86_64) Chrome/119.0.0.0 Safari/537.36'
+
+        real_context = Onetime::Security::RequestContext.capture(
+          ip: raw_ip, user_agent: full_ua, country: 'US',
+        )
+        receipt.record_access_event('secret_get', context: real_context)
+
+        event = org.secret_activity_events_page.first
+        expect(event['net_country']).to eq('US')
+        expect(event['net_ip_partial']).to eq('203.0.113.0')
+        # Alongside the existing shortid context, not instead of it.
+        expect(event['receipt']).to eq(receipt.shortid)
+
+        # Country is the COARSEST geo signal; capturing it must not relax the
+        # IP stance -- the raw dotted-quad still never reaches the trail.
+        expect(event.to_json).not_to include(raw_ip)
+        expect(org.secret_activity_events.membersraw.join).not_to include(raw_ip)
+      end
+
       it 'records a stable, keyed correlation hash across two events from the same source' do
         real_context = Onetime::Security::RequestContext.capture(
           ip: '203.0.113.42', user_agent: 'UA/1.0',
