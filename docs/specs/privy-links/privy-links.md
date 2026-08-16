@@ -83,25 +83,48 @@ of `SignupConfig`, since global config has no runtime mutation path.
 ## The `/ps/:token/join` ceremony
 
 ```
-token lookup ──▶ revoked/expired? ──▶ max_uses (atomic INCR) ──▶
-email domain allowed? ──▶ plan quota (ROLE_LIMIT_RESOURCES, org/domain
-scopes only) ──▶ [signed out: create_account with privy grant] ──▶
+token lookup ──▶ revoked/expired? ──▶ email domain allowed? ──▶
+plan quota (ROLE_LIMIT_RESOURCES, org/domain scopes only) ──▶
+max_uses claim (atomic check-and-INCR, LAST gate) ──▶
+[signed out: create_account, grant stamped on account] ──▶
 attach per scope table ──▶ done
 ```
 
+- **Gate ordering: the use-count claim is the LAST gate.** All read-only
+  checks (revocation, expiry, email domain, quota) run before the counter is
+  touched, so a visitor rejected by any precondition consumes no use. The
+  claim itself is a single atomic check-and-increment (Lua: fail unless
+  `use_count < max_uses`, else INCR) so concurrent joins cannot race past the
+  cap. If a step *after* the claim fails (`create_account` validation error,
+  attach failure), the claim is released with a compensating decrement —
+  mirroring how `accept!` restores the invitation token on failure. Only a
+  ceremony that reaches account-plus-attach (or attach, for signed-in
+  holders) permanently consumes a use.
 - Signed-out visitor: registration form; the privy token is the grant that
   satisfies the signup gate for that request. Signed-in visitor: attach only.
-- The grant must satisfy the gate for the **whole ceremony** —
-  `create_account`, `verify_account`, `verify_account_resend` (the
-  `Auth::SignupEnabled::GATED_ROUTES` set) — or privy signups on an
-  otherwise-closed host would strand at email verification.
-- Any gate failure produces a typed error with **no state change**.
+- **The grant is stamped, then honoured for the rest of the ceremony.** On
+  successful `create_account`, the grant (link objid + scope) is stamped on
+  the account (as the invite flow stamps `invite_token`), and
+  `verify_account` / `verify_account_resend` — the remaining
+  `Auth::SignupEnabled::GATED_ROUTES` — satisfy the signup gate from the
+  *stamped* grant, not by re-validating the live token. The use was already
+  consumed at the claim; re-checking the live token at verification would
+  double-count it, and would strand an unverifiable account whenever the
+  token hit `max_uses`, expired, or was rotated between registration and the
+  verification click. Consequence: rotation/exhaustion revokes *future
+  joins*, never an in-flight ceremony.
+- Any gate failure produces a typed error with **no net state change** (the
+  claim/decrement pair above is how that invariant is kept for the counter).
 - `ensure_member!` makes the attach idempotent: clicking twice never
   double-adds, and a holder with a pending emailed invitation who joins via
-  link converges on one membership. (Implementation must verify the staged
-  emailed invitation is reaped by the lazy ghost cleanup in
-  `Organization#list_pending_invitations` rather than left counting against
-  `pending_invitation_count`.)
+  link converges on one membership. **Explicit contract, not a lazy-sweep
+  assumption:** the attach step looks up any staged emailed invitation for
+  the same (organization, email) via `find_pending_by_email` and destroys it
+  (`destroy_with_index_cleanup!`) in the same operation. The lazy ghost
+  cleanup in `Organization#list_pending_invitations` only runs when that
+  method is called and must not be relied on — without the explicit reap, the
+  superseded invitation would inflate `pending_invitation_count` (and quota
+  enforcement) indefinitely.
 
 ## Security model
 
