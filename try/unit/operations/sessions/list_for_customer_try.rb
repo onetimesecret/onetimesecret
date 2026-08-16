@@ -16,7 +16,8 @@
 #   `session:<sid>` blob is gone (the 30d sidecar outliving the 24h blob) is a
 #   DEAD session — the orphan sidecar is destroyed, the index member ZREM'd, and
 #   the row is hidden
-# - an unknown customer returns an empty Result (no raise)
+# - reconciliation write failures skip only their stale row and preserve the
+#   readable rows; an unknown customer returns an empty Result (no raise)
 #
 # Run: try --agent try/unit/operations/sessions/list_for_customer_try.rb
 
@@ -125,6 +126,27 @@ SM.load(@sid_old)&.destroy!            # drop the sidecar, leave the index membe
 @after  = @cust.active_sessions.member?(@sid_old)
 [@before, @res2.count, @res2.sessions.map { |s| s[:session_id] }, @after]
 #=> [true, 1, ["#{@sid_new}"], false]
+
+## a transient self-heal write failure skips its stale row without hiding readable sessions
+@write_failure_sid = "trylist_write_failure_#{@nonce}"
+@cust.active_sessions.add(@write_failure_sid, @ts + 200)
+write_failure_sid = @write_failure_sid
+@active_sessions_class = @cust.active_sessions.class
+@active_sessions_class.alias_method(:__list_for_customer_real_remove, :remove)
+@active_sessions_class.define_method(:remove) do |sid|
+  raise IOError, 'transient Valkey write failure' if sid == write_failure_sid
+
+  __list_for_customer_real_remove(sid)
+end
+begin
+  @write_failure_result = LFC.new(custid: @extid).call
+ensure
+  @active_sessions_class.remove_method(:remove)
+  @active_sessions_class.alias_method(:remove, :__list_for_customer_real_remove)
+  @active_sessions_class.remove_method(:__list_for_customer_real_remove)
+end
+[@write_failure_result.count, @write_failure_result.sessions.map { |s| s[:session_id] }, @cust.active_sessions.member?(@write_failure_sid)]
+#=> [1, ["#{@sid_new}"], true]
 
 # ---- blob-liveness reconcile: dead session pruned (blob gone) ----------
 

@@ -11,8 +11,8 @@ require 'onetime/security/request_context'
 #
 # The load-bearing property here is the COMPLIANCE GATE: country capture on
 # the org-tier Secret Activity trail is DEFAULT-OFF (opt-in) pending counsel
-# review of org-tier geo exposure (ADR-021 Decision 4; ADR-022 does not yet
-# cover net_country). The gate lives entirely at this layer -- RequestContext
+# review of org-tier geo exposure (ADR-021 Decision 4; ADR-022 documents
+# net_country's opt-in gate). The gate lives entirely at this layer -- RequestContext
 # happily stores any well-formed country it is handed -- so if
 # #geo_country_enabled? ever regressed to default-on, nothing downstream
 # would catch it. These examples pin:

@@ -107,21 +107,27 @@ module Onetime
               # record must not hide otherwise-authoritative session information.
               next nil
             end
-            if meta.nil?
-              # Self-heal: the sidecar is gone (TTL-expired or the blob was
-              # revoked out-of-band) but the index still names it. Drop the stale
-              # member so the set converges to live sessions only.
-              customer.active_sessions.remove(sid)
-              next nil
-            end
+            begin
+              if meta.nil?
+                # Self-heal: the sidecar is gone (TTL-expired or the blob was
+                # revoked out-of-band) but the index still names it. Drop the stale
+                # member so the set converges to live sessions only.
+                customer.active_sessions.remove(sid)
+                next nil
+              end
 
-            # Blob-liveness reconcile: the sidecar (30d TTL) outlives the session
-            # blob (24h default), so a sid whose `session:<sid>` blob is gone is a
-            # DEAD session the sidecar hasn't caught up to. Hide it and converge
-            # the sidecar + index. EXISTS-only probe — no decrypt, no SCAN.
-            if Store.find_key(db, sid).nil?
-              meta.destroy!
-              customer.active_sessions.remove(sid)
+              # Blob-liveness reconcile: the sidecar (30d TTL) outlives the session
+              # blob (24h default), so a sid whose `session:<sid>` blob is gone is a
+              # DEAD session the sidecar hasn't caught up to. Hide it and converge
+              # the sidecar + index. EXISTS-only probe — no decrypt, no SCAN.
+              if Store.find_key(db, sid).nil?
+                meta.destroy!
+                customer.active_sessions.remove(sid)
+                next nil
+              end
+            rescue StandardError
+              # Reconciliation is best-effort. A store failure while probing or
+              # pruning one stale row must not abort the entire session listing.
               next nil
             end
 
