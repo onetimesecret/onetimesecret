@@ -121,9 +121,9 @@ const authResponseSchema = z.union([authSuccessSchema, authErrorSchema]);
  * 3. Plain success - least specific
  */
 export const loginResponseSchema = z.union([
-  authSuccessWithMfaSchema,     // Most specific - has mfa_required
+  authSuccessWithMfaSchema, // Most specific - has mfa_required
   authSuccessWithBillingSchema, // Moderately specific - has billing_redirect
-  authSuccessSchema,            // Least specific - just { success }
+  authSuccessSchema, // Least specific - just { success }
   authErrorSchema,
 ]);
 export type LoginResponse = z.infer<typeof loginResponseSchema>;
@@ -134,7 +134,7 @@ export type LoginResponse = z.infer<typeof loginResponseSchema>;
  */
 export const createAccountResponseSchema = z.union([
   authSuccessWithBillingSchema, // Has billing_redirect
-  authSuccessSchema,            // Just { success }
+  authSuccessSchema, // Just { success }
   authErrorSchema,
 ]);
 export type CreateAccountResponse = z.infer<typeof createAccountResponseSchema>;
@@ -252,6 +252,7 @@ export const sessionSchema = z.object({
   last_activity_at: z.string(),
   ip_address: z.string().nullable(),
   user_agent: z.string().nullable(),
+  geo_country: z.string().nullable(),
   is_current: z.boolean(),
   remember_enabled: z.boolean(),
 });
@@ -453,10 +454,7 @@ export function ssoLinkConfirmRequiresMfa(
   return 'mfa_required' in response && response.mfa_required === true;
 }
 
-export const ssoLinkConfirmResponseSchema = z.union([
-  ssoLinkConfirmSuccessSchema,
-  authErrorSchema,
-]);
+export const ssoLinkConfirmResponseSchema = z.union([ssoLinkConfirmSuccessSchema, authErrorSchema]);
 export type SsoLinkConfirmResponse = z.infer<typeof ssoLinkConfirmResponseSchema>;
 
 // OTP setup response
@@ -561,8 +559,7 @@ export const emailChangeRequestResponseSchema = z.union([
   emailChangeRequestSuccessSchema,
   authErrorSchema,
 ]);
-export type EmailChangeRequestResponse =
-  z.infer<typeof emailChangeRequestResponseSchema>;
+export type EmailChangeRequestResponse = z.infer<typeof emailChangeRequestResponseSchema>;
 
 // Email change confirmation response
 // Backend returns { confirmed: true, redirect: '/signin' } on success
@@ -574,8 +571,7 @@ export const emailChangeConfirmResponseSchema = z.union([
   emailChangeConfirmSuccessSchema,
   authErrorSchema,
 ]);
-export type EmailChangeConfirmResponse =
-  z.infer<typeof emailChangeConfirmResponseSchema>;
+export type EmailChangeConfirmResponse = z.infer<typeof emailChangeConfirmResponseSchema>;
 
 // Email change resend confirmation response
 // Backend returns { sent: true, resend_count: number } on success
@@ -587,8 +583,7 @@ export const emailChangeResendResponseSchema = z.union([
   emailChangeResendSuccessSchema,
   authErrorSchema,
 ]);
-export type EmailChangeResendResponse =
-  z.infer<typeof emailChangeResendResponseSchema>;
+export type EmailChangeResendResponse = z.infer<typeof emailChangeResendResponseSchema>;
 
 // Resend verification email response.
 // ANTI-ENUMERATION: backend returns an identical { sent: true } for every
@@ -600,5 +595,4 @@ export const resendVerificationEmailResponseSchema = z.union([
   resendVerificationEmailSuccessSchema,
   authErrorSchema,
 ]);
-export type ResendVerificationEmailResponse =
-  z.infer<typeof resendVerificationEmailResponseSchema>;
+export type ResendVerificationEmailResponse = z.infer<typeof resendVerificationEmailResponseSchema>;

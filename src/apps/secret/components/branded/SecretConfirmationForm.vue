@@ -133,14 +133,6 @@
 </template>
 
 <style>
-  .line-clamp-6 {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    line-clamp: 3;
-  }
-
   /* Ensure focus outline is visible in all color schemes */
   :focus {
     outline: 2px solid currentColor;

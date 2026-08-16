@@ -159,12 +159,13 @@ RSpec.describe 'Auth::Config::Email modules' do
 
     let(:default_locale) { 'en' }
 
-    # Simulates the determine_account_locale method logic from email.rb
+    # Mirrors Auth::Config::Email::Helpers#determine_account_locale.
     def determine_locale(account:, session:, request_params:)
-      account[:locale] ||
-        session[:locale] ||
-        request_params['locale'] ||
-        default_locale
+      [
+        account[:locale],
+        session[:locale],
+        request_params['locale'],
+      ].find { !it.to_s.strip.empty? } || default_locale
     end
 
     context 'when account has locale set' do
@@ -222,16 +223,25 @@ RSpec.describe 'Auth::Config::Email modules' do
       end
     end
 
-    context 'when session locale is empty string' do
-      it 'treats empty string as falsy and falls through' do
-        # Note: Ruby treats empty string as truthy, so this documents current behavior
+    context 'when a locale candidate is blank' do
+      it 'skips an empty session locale in favor of the request locale' do
         result = determine_locale(
           account: {},
           session: { locale: '' },
           request_params: { 'locale' => 'zh' }
         )
-        # Empty string is truthy in Ruby, so it returns ''
-        expect(result).to eq('')
+
+        expect(result).to eq('zh')
+      end
+
+      it 'skips whitespace-only account, session, and request locales' do
+        result = determine_locale(
+          account: { locale: ' ' },
+          session: { locale: "\t" },
+          request_params: { 'locale' => "\n" }
+        )
+
+        expect(result).to eq(default_locale)
       end
     end
   end

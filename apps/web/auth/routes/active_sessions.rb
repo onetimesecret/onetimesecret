@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/operations/sessions/list_for_customer'
+
 module Auth
   module Routes
     module ActiveSessions
@@ -36,20 +38,30 @@ module Auth
             # (database stores HMAC-hashed session IDs for security)
             current_session_id_hmac = current_session_id ? rodauth.compute_hmac(current_session_id) : nil
 
-            # Query active sessions from database
-            sessions = rodauth.db[:account_active_session_keys]
+            # Rodauth stores only an HMAC of the Rack session id, while the
+            # privacy-filtered SessionMetadata sidecar stores the display data.
+            # Keep the Rodauth rows authoritative for session membership and join
+            # their opaque ids to the current customer's metadata by HMAC.
+            sessions       = rodauth.db[:account_active_session_keys]
               .where(account_id: account_id)
               .order(Sequel.desc(:last_use))
               .all
+            metadata_by_id = active_session_metadata(account_id).to_h do |metadata|
+              [rodauth.compute_hmac(metadata[:session_id]), metadata]
+            end
 
-            # Transform to frontend schema
+            # Transform to frontend schema. Older sessions that predate the
+            # metadata sidecar retain their existing timestamps but cannot expose
+            # browser/network details that were never stored.
             sessions_data = sessions.map do |session|
+              metadata = metadata_by_id[session[:session_id]]
               {
                 id: session[:session_id],
-                created_at: session[:created_at]&.iso8601,
-                last_activity_at: session[:last_use]&.iso8601,
-                ip_address: nil,  # TODO: Store IP in table if needed
-                user_agent: nil,  # TODO: Store user agent if needed
+                created_at: epoch_iso8601(metadata&.dig(:created_at)) || session[:created_at]&.iso8601,
+                last_activity_at: epoch_iso8601(metadata&.dig(:last_activity_at)) || session[:last_use]&.iso8601,
+                ip_address: metadata&.dig(:ip_address),
+                user_agent: metadata&.dig(:user_agent),
+                geo_country: metadata&.dig(:geo_country),
                 is_current: session[:session_id] == current_session_id_hmac,
                 remember_enabled: false,  # TODO: Check remember table if feature enabled
               }
@@ -128,6 +140,25 @@ module Auth
           response.status = 500
           { error: 'Failed to remove sessions' }
         end
+      end
+
+      private
+
+      def active_session_metadata(account_id)
+        account = rodauth.db[:accounts].where(id: account_id).first
+        return [] unless account
+
+        customer = Onetime::Customer.find_by_extid(account[:external_id]) ||
+                   Onetime::Customer.find_by_email(account[:email])
+        return [] unless customer
+
+        Onetime::Operations::Sessions::ListForCustomer.new(custid: customer.extid).call.sessions
+      end
+
+      def epoch_iso8601(epoch)
+        return nil if epoch.nil?
+
+        Time.at(epoch.to_i).utc.iso8601
       end
     end
   end

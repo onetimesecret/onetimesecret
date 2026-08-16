@@ -24,11 +24,11 @@
 
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { mockCustomer } from '@/tests/fixtures/bootstrap.fixture';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setupTestPinia } from '../setup';
-import { mockCustomer } from '@/tests/fixtures/bootstrap.fixture';
 
 describe('useAuth logout flow — no brand flash', () => {
   let authStore: ReturnType<typeof useAuthStore>;
@@ -136,6 +136,21 @@ describe('useAuth logout flow — no brand flash', () => {
         .join('\n');
 
       expect(codeOnly).not.toContain('bootstrapStore.$reset()');
+    });
+
+    it('password reset clears local session state before a hard sign-in navigation', () => {
+      const resetMatch = useAuthSource.match(
+        /async function resetPassword\([\s\S]*?\): Promise<boolean> \{([\s\S]*?)^\s{2}\}/m
+      );
+      expect(resetMatch).not.toBeNull();
+
+      const resetBody = resetMatch![1];
+      const minimalIndex = resetBody.indexOf('authStore.logoutMinimal()');
+      const hrefIndex = resetBody.indexOf("window.location.href = '/signin'");
+
+      expect(minimalIndex).toBeGreaterThan(-1);
+      expect(hrefIndex).toBeGreaterThan(minimalIndex);
+      expect(resetBody).not.toContain("router.push('/signin')");
     });
   });
 

@@ -1,10 +1,10 @@
 // src/tests/shared/components/navigation/UserMenu.spec.ts
 
-import { mount, VueWrapper } from '@vue/test-utils';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import UserMenu from '@/shared/components/navigation/UserMenu.vue';
 import { createTestingPinia } from '@pinia/testing';
 import { createTestI18n } from '@tests/setup';
-import UserMenu from '@/shared/components/navigation/UserMenu.vue';
+import { mount, VueWrapper } from '@vue/test-utils';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick, ref } from 'vue';
 
 // Mock HeadlessUI components (Menu + Dialog for PlanPreviewModal)
@@ -118,6 +118,20 @@ vi.mock('@/shared/stores/organizationStore', () => ({
   }),
 }));
 
+const mockCurrentDomainContext = ref({
+  domain: '',
+  extid: undefined as string | undefined,
+  displayName: '',
+  isCanonical: true,
+});
+const mockIsDomainContextActive = ref(false);
+vi.mock('@/shared/composables/useDomainContext', () => ({
+  useDomainContext: () => ({
+    currentContext: mockCurrentDomainContext,
+    isContextActive: mockIsDomainContextActive,
+  }),
+}));
+
 // Mock the scope-switcher visibility composable. UserMenu only consumes
 // isSoloDefaultContext (the same gate the org switcher uses); mocking it keeps
 // the route-aware composable out of the unit test.
@@ -166,6 +180,13 @@ describe('UserMenu', () => {
     mockPush.mockReset();
     // Reset mock store states to defaults
     mockCurrentOrganizationRef.value = null;
+    mockCurrentDomainContext.value = {
+      domain: '',
+      extid: undefined,
+      displayName: '',
+      isCanonical: true,
+    };
+    mockIsDomainContextActive.value = false;
     mockIsCustomRef.value = false;
     mockIsSoloDefaultContext.value = false;
     mockAuditLogsEnabled.value = true;
@@ -180,7 +201,8 @@ describe('UserMenu', () => {
   const mountComponent = (
     props: Record<string, unknown> = {},
     bootstrapState: Record<string, unknown> = {}
-  ) => mount(UserMenu, {
+  ) =>
+    mount(UserMenu, {
       props: {
         cust: mockCustomer,
         colonel: false,
@@ -284,10 +306,7 @@ describe('UserMenu', () => {
 
   describe('Test Plan Mode - Visual Variants', () => {
     it('shows caution variant when test mode is active', async () => {
-      wrapper = mountComponent(
-        { colonel: true },
-        { entitlement_preview_planid: 'identity_v1' }
-      );
+      wrapper = mountComponent({ colonel: true }, { entitlement_preview_planid: 'identity_v1' });
 
       const trigger = wrapper.find('button[aria-haspopup="true"]');
       await trigger.trigger('click');
@@ -301,10 +320,7 @@ describe('UserMenu', () => {
     });
 
     it('shows default variant when test mode is inactive', async () => {
-      wrapper = mountComponent(
-        { colonel: true },
-        { entitlement_preview_planid: null }
-      );
+      wrapper = mountComponent({ colonel: true }, { entitlement_preview_planid: null });
 
       const trigger = wrapper.find('button[aria-haspopup="true"]');
       await trigger.trigger('click');
@@ -312,7 +328,7 @@ describe('UserMenu', () => {
 
       // Find the test plan menu item specifically
       const menuItems = wrapper.findAll('[role="menuitem"]');
-      const testPlanItem = menuItems.find(item => {
+      const testPlanItem = menuItems.find((item) => {
         const html = item.html().toLowerCase();
         return html.includes('test') || html.includes('beaker');
       });
@@ -364,10 +380,7 @@ describe('UserMenu', () => {
 
     it('shows billing item when billing is enabled (owner)', async () => {
       mockCurrentOrganizationRef.value = { current_user_role: 'owner' };
-      wrapper = mountComponent(
-        { colonel: true },
-        { billing_enabled: true }
-      );
+      wrapper = mountComponent({ colonel: true }, { billing_enabled: true });
 
       const trigger = wrapper.find('button[aria-haspopup="true"]');
       await trigger.trigger('click');
@@ -378,10 +391,7 @@ describe('UserMenu', () => {
     });
 
     it('does not show billing item when billing is disabled', async () => {
-      wrapper = mountComponent(
-        { colonel: false },
-        { billing_enabled: false }
-      );
+      wrapper = mountComponent({ colonel: false }, { billing_enabled: false });
 
       const trigger = wrapper.find('button[aria-haspopup="true"]');
       await trigger.trigger('click');
@@ -460,6 +470,65 @@ describe('UserMenu', () => {
     });
   });
 
+  describe('Customer external ID header', () => {
+    it('shows the customer external ID beneath the email, rather than the active organization ID', async () => {
+      mockCurrentOrganizationRef.value = { current_user_role: 'owner', extid: 'org_abc' };
+
+      wrapper = mountComponent({
+        cust: { ...mockCustomer, extid: 'customer_xyz' },
+      });
+      await wrapper.find('button[aria-haspopup="true"]').trigger('click');
+      await nextTick();
+
+      const extid = wrapper.find('[data-testid="user-menu-customer-extid"]');
+      expect(extid.exists()).toBe(true);
+      expect(extid.text()).toContain('customer_xyz');
+      expect(extid.text()).not.toContain('org_abc');
+      expect(extid.element.closest('nav')).toBeNull();
+    });
+  });
+
+  describe('Domain context footer', () => {
+    it('shows the full active domain and links its gear to domain settings', async () => {
+      mockCurrentOrganizationRef.value = {
+        current_user_role: 'owner',
+        extid: 'org_abc',
+        entitlements: ['manage_org'],
+      };
+      mockCurrentDomainContext.value = {
+        domain: 'very-long-domain-name.example.com',
+        extid: 'domain_xyz',
+        displayName: 'very-long-domain-name.example.com',
+        isCanonical: false,
+      };
+      mockIsDomainContextActive.value = true;
+
+      wrapper = mountComponent();
+      await wrapper.find('button[aria-haspopup="true"]').trigger('click');
+      await nextTick();
+
+      expect(wrapper.text()).toContain('very-long-domain-name.example.com');
+      const settingsLink = wrapper.find('a[href="/org/org_abc/domains/domain_xyz"]');
+      expect(settingsLink.exists()).toBe(true);
+      expect(settingsLink.find('[data-icon="cog"]').exists()).toBe(true);
+    });
+
+    it('links the owner badge to the active organization domains list', async () => {
+      mockCurrentOrganizationRef.value = {
+        current_user_role: 'owner',
+        extid: 'org_abc',
+        entitlements: ['manage_orgs'],
+      };
+      mockIsSoloDefaultContext.value = false;
+      wrapper = mountComponent();
+      await wrapper.find('button[aria-haspopup="true"]').trigger('click');
+      await nextTick();
+
+      const badge = wrapper.find('[data-testid="user-menu-role-badge"]');
+      expect(badge.attributes('href')).toBe('/org/org_abc');
+    });
+  });
+
   describe('MFA State', () => {
     it('shows limited menu when awaiting MFA', async () => {
       wrapper = mountComponent({
@@ -497,9 +566,7 @@ describe('UserMenu', () => {
       await nextTick();
 
       const menuItems = wrapper.findAll('[role="menuitem"]');
-      const logoutItem = menuItems.find(item =>
-        item.text().toLowerCase().includes('logout')
-      );
+      const logoutItem = menuItems.find((item) => item.text().toLowerCase().includes('logout'));
 
       if (logoutItem) {
         await logoutItem.trigger('click');
@@ -517,9 +584,7 @@ describe('UserMenu', () => {
       await nextTick();
 
       const menuItems = wrapper.findAll('[role="menuitem"]');
-      const logoutItem = menuItems.find(item =>
-        item.text().toLowerCase().includes('logout')
-      );
+      const logoutItem = menuItems.find((item) => item.text().toLowerCase().includes('logout'));
 
       if (logoutItem) {
         const html = logoutItem.html().toLowerCase();
@@ -671,13 +736,13 @@ describe('UserMenu', () => {
       await nextTick();
 
       const menuItems = wrapper.findAll('[role="menuitem"]');
-      return menuItems.map(item => item.text().toLowerCase());
+      return menuItems.map((item) => item.text().toLowerCase());
     };
 
     // Helper to check if menu contains specific items
     const expectMenuContains = (texts: string[], itemLabels: string[]) => {
       for (const label of itemLabels) {
-        const found = texts.some(t => t.includes(label.toLowerCase()));
+        const found = texts.some((t) => t.includes(label.toLowerCase()));
         expect(found, `Expected menu to contain "${label}"`).toBe(true);
       }
     };
@@ -685,7 +750,7 @@ describe('UserMenu', () => {
     // Helper to check if menu does NOT contain specific items
     const expectMenuNotContains = (texts: string[], itemLabels: string[]) => {
       for (const label of itemLabels) {
-        const found = texts.some(t => t.includes(label.toLowerCase()));
+        const found = texts.some((t) => t.includes(label.toLowerCase()));
         expect(found, `Expected menu NOT to contain "${label}"`).toBe(false);
       }
     };
@@ -726,7 +791,15 @@ describe('UserMenu', () => {
         const menuTexts = await getVisibleMenuItemTexts();
 
         // Admin sees the full menu, but billing is owner-only
-        expectMenuContains(menuTexts, ['dashboard', 'domains', 'account', 'colonel', 'help', 'feedback', 'logout']);
+        expectMenuContains(menuTexts, [
+          'dashboard',
+          'domains',
+          'account',
+          'colonel',
+          'help',
+          'feedback',
+          'logout',
+        ]);
         expectMenuNotContains(menuTexts, ['billing']);
       });
 
@@ -751,7 +824,16 @@ describe('UserMenu', () => {
         const menuTexts = await getVisibleMenuItemTexts();
 
         // Owner sees all items
-        expectMenuContains(menuTexts, ['dashboard', 'domains', 'billing', 'account', 'colonel', 'help', 'feedback', 'logout']);
+        expectMenuContains(menuTexts, [
+          'dashboard',
+          'domains',
+          'billing',
+          'account',
+          'colonel',
+          'help',
+          'feedback',
+          'logout',
+        ]);
       });
 
       it('should see test plan mode when colonel', async () => {
@@ -775,7 +857,14 @@ describe('UserMenu', () => {
         const menuTexts = await getVisibleMenuItemTexts();
 
         // Non-colonel members on canonical site see standard menu, but billing is owner-only
-        expectMenuContains(menuTexts, ['dashboard', 'domains', 'account', 'help', 'feedback', 'logout']);
+        expectMenuContains(menuTexts, [
+          'dashboard',
+          'domains',
+          'account',
+          'help',
+          'feedback',
+          'logout',
+        ]);
         expectMenuNotContains(menuTexts, ['billing']);
       });
     });
@@ -791,7 +880,14 @@ describe('UserMenu', () => {
         const menuTexts = await getVisibleMenuItemTexts();
 
         // Users without organization on canonical see standard menu; billing is owner-only
-        expectMenuContains(menuTexts, ['dashboard', 'domains', 'account', 'help', 'feedback', 'logout']);
+        expectMenuContains(menuTexts, [
+          'dashboard',
+          'domains',
+          'account',
+          'help',
+          'feedback',
+          'logout',
+        ]);
         expectMenuNotContains(menuTexts, ['billing']);
       });
     });
@@ -808,7 +904,14 @@ describe('UserMenu', () => {
         wrapper = mountComponent({ colonel: false }, { billing_enabled: true });
         const menuTexts = await getVisibleMenuItemTexts();
 
-        expectMenuContains(menuTexts, ['dashboard', 'domains', 'account', 'help', 'feedback', 'logout']);
+        expectMenuContains(menuTexts, [
+          'dashboard',
+          'domains',
+          'account',
+          'help',
+          'feedback',
+          'logout',
+        ]);
         expectMenuNotContains(menuTexts, ['billing']);
       });
     });
@@ -825,7 +928,14 @@ describe('UserMenu', () => {
 
         // MFA takes precedence - only MFA verification and logout should be visible
         expectMenuContains(menuTexts, ['mfa', 'logout']);
-        expectMenuNotContains(menuTexts, ['dashboard', 'domains', 'billing', 'account', 'help', 'feedback']);
+        expectMenuNotContains(menuTexts, [
+          'dashboard',
+          'domains',
+          'billing',
+          'account',
+          'help',
+          'feedback',
+        ]);
       });
 
       it('should restrict menu when awaitingMfa=true even for custom domain owner', async () => {
