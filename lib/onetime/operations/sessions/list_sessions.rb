@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/operations/sessions/store'
+require 'onetime/models/session_metadata'
 
 module Onetime
   module Operations
@@ -22,7 +23,9 @@ module Onetime
       #
       # Stateless, single `#call`, returns an immutable {Result}.
       class List
-        # @!attribute sessions [r] Array<Hash> one page of {Store.summarize} rows
+        # @!attribute sessions [r] Array<Hash> one page of {Store.summarize} rows,
+        #   each decorated with `:geo_country` from the metadata sidecar
+        #   (see {#attach_geo_country}); nil when no sidecar record survives
         # @!attribute total_count [r] Integer identity sessions matched (pre-pagination)
         # @!attribute scanned [r] Integer session keys examined this scan
         # @!attribute anonymous_count [r] Integer scanned keys with no actor identity (filtered out)
@@ -75,7 +78,7 @@ module Onetime
           total_count = identified.size
           total_pages = @per_page.zero? ? 0 : (total_count.to_f / @per_page).ceil
           start_idx   = (@page - 1) * @per_page
-          page_rows   = identified[start_idx, @per_page] || []
+          page_rows   = attach_geo_country(identified[start_idx, @per_page] || [])
 
           Result.new(
             sessions: page_rows,
@@ -102,6 +105,38 @@ module Onetime
             next nil unless data
 
             Store.summarize(Store.extract_id(key), key, data).merge(__data: data)
+          end
+        end
+
+        # Decorate one page of rows with the country recorded on each session's
+        # metadata sidecar.
+        #
+        # Country lives ONLY on the sidecar: Otto resolves it per request into
+        # `env['otto.privacy.geo_country']` and TrackMetadata stamps it onto
+        # {Onetime::SessionMetadata}. It is never written into the encrypted
+        # session blob this listing decrypts, so the global console has to join
+        # to get it — there is nothing to read out of `data`.
+        #
+        # Deliberately applied AFTER pagination, and so NOT folded into
+        # {Store.summarize}: summarize runs once per scanned key (up to
+        # {Store::MAX_SCAN}), while this runs once per row actually returned —
+        # at most {MAX_PER_PAGE} HGETs instead of up to ten thousand.
+        #
+        # Absence is normal and is not pruned. Unlike ListForCustomer — whose
+        # source of truth IS the sidecar index, so a missing sidecar means a
+        # stale member worth removing — here the session blob is the source of
+        # truth and the sidecar is decoration. A session predating the sidecar,
+        # or one whose 30d sidecar TTL lapsed, is still a live session; it just
+        # has no country. A sidecar read must never take down the listing, for
+        # the same reason {Store.load_data} swallows a bad key.
+        def attach_geo_country(rows)
+          rows.each do |row|
+            row[:geo_country] = begin
+              Onetime::SessionMetadata.load(row[:session_id])&.geo_country
+            rescue StandardError => ex
+              OT.le "[session-list] sidecar geo lookup failed: #{ex.class}: #{ex.message}"
+              nil
+            end
           end
         end
 

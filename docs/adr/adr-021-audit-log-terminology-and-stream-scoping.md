@@ -163,6 +163,15 @@ because it concerns the #2799 stream; ADR-022 governs the #3640 stream.
 
 1. Retention target for Security Events if positioned as compliance (≥12 months?).
 2. Legal review of org-tier granularity for IP / geolocation / device data.
+   **Still open. Blocking a shipped surface (2026-08-16):** #3989 implemented
+   org-tier country capture on the Secret Activity stream (`net_country`, an
+   ISO-3166-1 alpha-2 code; see ADR-022 Implementation Notes). It shipped
+   **default-OFF** behind `features.secret_activity.geo_country_enabled`
+   specifically because this question is unanswered. The flag must not be
+   enabled until counsel signs off here and ADR-022 is amended to record that
+   sign-off. Note the scope difference: this question was raised for the #2799
+   Security Events stream, but the same org-tier geo-exposure concern is what
+   gates #3989 on the #3635 stream, so answering it needs to cover both.
 3. #3637's open UX questions (merge `status_get`/`secret_get`; surface vs hide `previewed`).
 4. Whether personal-account mutations (email/password change) surface to every org a
    multi-org user belongs to, or only the org owning the identity.
