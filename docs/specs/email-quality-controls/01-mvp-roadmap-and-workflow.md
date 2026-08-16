@@ -80,8 +80,8 @@ reviewable PRs, CI as the merge gate, decisions recorded once.
   read-only exploration, implementation (including tests) to implementation
   agents working from a task spec that quotes the relevant slice file.
 - **Per-PR loop.** Write the task spec from the slice doc → implement on the
-  PR branch → code review + unit lane (`bundle exec rake try:unit` and
-  `bundle exec rake spec:fast`) locally → push → PR referencing the slice
+  PR branch → code review + unit lane (`tests/lanes/run unit` and
+  `tests/lanes/run spec-fast`) locally → push → PR referencing the slice
   spec → CI auth-mode matrix green → land. Each PR also updates the status
   table in this document.
 - **Branching.** One branch per PR off latest `main` (names above), landed
