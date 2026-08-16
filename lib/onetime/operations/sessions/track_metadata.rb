@@ -82,6 +82,15 @@ module Onetime
           meta.auth_method      = auth_method
           meta.mfa_used         = mfa_used
           meta.geo_country      = geo_country
+
+          # Internal join key, copied VERBATIM like auth_method: the digest is
+          # computed at auth time by the Rodauth side (compute_hmac needs the
+          # Rodauth instance, which this operation does not have) and stamped into
+          # the session there. Set unconditionally — Rodauth re-mints its token on
+          # every update_session, so a stale digest must be overwritten, and a
+          # session predating the stamp simply writes nil.
+          meta.active_session_id_hmac = @session_data['active_session_id_hmac']
+
           meta.save
 
           # Score by last-activity so the per-customer list reads newest-first.

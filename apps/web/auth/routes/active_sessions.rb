@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/models/session_metadata'
 require 'onetime/operations/sessions/list_for_customer'
 
 module Auth
@@ -38,21 +39,24 @@ module Auth
             # (database stores HMAC-hashed session IDs for security)
             current_session_id_hmac = current_session_id ? rodauth.compute_hmac(current_session_id) : nil
 
-            # Rodauth stores only an HMAC of the Rack session id, while the
-            # privacy-filtered SessionMetadata sidecar stores the display data.
-            # Keep the Rodauth rows authoritative for session membership and join
-            # their opaque ids to the current customer's metadata by HMAC.
+            # Rodauth rows stay authoritative for session MEMBERSHIP and own the
+            # revocation semantics (remove_active_session, the inactivity/lifetime
+            # deadlines); the privacy-filtered SessionMetadata sidecar supplies the
+            # display data. The two are joined on the sidecar's stored
+            # active_session_id_hmac, which is the very value Rodauth persists in
+            # its session_id column. Rodauth's token is its own minted
+            # active_session_id, NOT the Rack sid, so no digest computed here from
+            # a sid could ever match a row.
             sessions       = rodauth.db[:account_active_session_keys]
               .where(account_id: account_id)
               .order(Sequel.desc(:last_use))
               .all
-            metadata_by_id = active_session_metadata(account_id).to_h do |metadata|
-              [rodauth.compute_hmac(metadata[:session_id]), metadata]
-            end
+            metadata_by_id = active_session_metadata_by_hmac(account_id)
 
-            # Transform to frontend schema. Older sessions that predate the
-            # metadata sidecar retain their existing timestamps but cannot expose
-            # browser/network details that were never stored.
+            # Transform to frontend schema. A Rodauth row with no matching sidecar
+            # (a session older than the sidecar, or older than the join key) falls
+            # back to Rodauth's own timestamps and exposes no browser/network
+            # details, because none were ever stored for it.
             sessions_data = sessions.map do |session|
               metadata = metadata_by_id[session[:session_id]]
               {
@@ -143,6 +147,27 @@ module Auth
       end
 
       private
+
+      # Map HMAC(active_session_id) -> safe_dump metadata row, i.e. keyed by the
+      # exact value the Rodauth session_id column holds.
+      #
+      # The join key is read from the SessionMetadata record rather than from the
+      # safe_dump row on purpose: it is an internal key and is deliberately not on
+      # the model's safe_dump allow-list, which is a positive list of what the
+      # colonel view may render. Sessions written before the stamp existed have no
+      # key and simply do not join — their row keeps its Rodauth timestamps and
+      # reports no browser/network detail, exactly as an unmatched row always has.
+      def active_session_metadata_by_hmac(account_id)
+        active_session_metadata(account_id).each_with_object({}) do |metadata, map|
+          # Familia persists an unset declared field as the literal "null", so a
+          # record written before the join key existed can read back as that
+          # sentinel rather than nil; both mean "no join key".
+          hmac = Onetime::SessionMetadata.load(metadata[:session_id])&.active_session_id_hmac
+          next if hmac.to_s.empty? || hmac.to_s == 'null'
+
+          map[hmac] = metadata
+        end
+      end
 
       def active_session_metadata(account_id)
         account = rodauth.db[:accounts].where(id: account_id).first
