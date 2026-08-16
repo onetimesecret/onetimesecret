@@ -58,11 +58,22 @@ PG_TEST_MIGRATIONS_URL = ENV.fetch(
 )
 
 # Build RSpec format options based on environment
+#
+# +suffix+ names the JSON results file for ONE rspec invocation. A lane runs
+# several invocations in a single job under one RSPEC_OUTPUT_FILE, and rspec
+# truncates --out on open, so unsuffixed invocations leave only the last one's
+# results behind and CI aggregates a fraction of the run. Pass a suffix from
+# every task a lane can invoke alongside another (spec:integration:full:mfa has
+# done this by hand since it was added). The names must be stable and distinct:
+# .github/actions/run-test-lane uploads them by the glob tmp/<stem>*.json.
+#
+# @param suffix [String, nil] per-invocation discriminator for the JSON file
 # @return [String] RSpec format flags
-def rspec_format_options
-  opts = ['--format progress']
-  if ENV['RSPEC_OUTPUT_FILE']
-    opts << "--format json --out #{ENV['RSPEC_OUTPUT_FILE']}"
+def rspec_format_options(suffix = nil)
+  opts    = ['--format progress']
+  if (out = ENV.fetch('RSPEC_OUTPUT_FILE', nil))
+    out = "#{out.delete_suffix('.json')}_#{suffix}.json" if suffix
+    opts << "--format json --out #{out}"
   end
   opts.join(' ')
 end
@@ -76,17 +87,78 @@ APP_SPECS = Dir.glob('apps/*/*/spec').each_with_object({}) do |path, hash|
   hash[key] = path
 end.freeze
 
+# spec:fast pattern set
+# =====================
+#
+# spec:fast is TWO rspec processes (spec:root_fast + spec:apps_fast), not one
+# per spec tree. The split is a behaviour boundary, not a performance
+# compromise: apps/web/billing/spec/support/billing_spec_helper.rb registers VCR
+# around-hooks and billing stubs on the GENERIC type: :cli key, and
+# spec/cli/**/*_spec.rb declares type: :cli — merging the two into one process
+# would wrap all 430 CLI examples in cassettes and stub Object#sleep under them.
+# The trees that carry no exclusions (spec/unit, spec/cli, spec/lib) keep their
+# own process for that reason.
+#
+# HARD RULE for anyone editing these patterns: never mix a 'spec/…'-prefixed
+# include pattern with an 'apps/…'-prefixed exclude pattern in ONE invocation.
+# rspec resolves both globs against each checked path, and
+# Configuration#file_glob_from (rspec-core 4.0.0.beta1 configuration.rb:2071)
+# returns a pattern verbatim only when it prefix-matches that path. The default
+# checked path is 'spec', so an include of 'spec/unit/**' is used verbatim (i.e.
+# repo-wide) while an exclude of 'apps/*/*/spec/integration/**' gets joined onto
+# 'spec/' and matches nothing — silently leaking 807 examples from 52
+# integration spec files into the fast lane. If a single invocation is ever
+# wanted, the only safe spellings are explicit directories with a
+# directory-relative exclude ('**/integration/**/*_spec.rb'), or both patterns
+# made absolute. `rake spec:verify_selection` fails on the mistake.
+ROOT_FAST_PATTERN = 'spec/unit/**/*_spec.rb,spec/cli/**/*_spec.rb,spec/lib/**/*_spec.rb'
+APPS_FAST_PATTERN = 'apps/*/*/spec/**/*_spec.rb'
+APPS_FAST_EXCLUDE = 'apps/*/*/spec/integration/**/*_spec.rb'
+
+# Carried over VERBATIM from the per-app tasks, and inert in both places today.
+# rspec-core 4.0.0.beta1 ANDs exclusion filters (MetadataFilter.apply? uses
+# all?), and spec/support/postgres_mode_suite_database.rb:378 contributes a
+# second exclusion rule whenever PostgreSQL is absent — which it always is here.
+# The consequence is that these flags exclude nothing and roughly 500
+# :integration-tagged billing examples run inside spec:fast right now.
+#
+# Do not "fix" this alongside a consolidation: making the tags bite again would
+# silently REMOVE those ~500 examples from the fast lane, which is a lane
+# membership decision, not a refactor. Keeping the flags means an rspec-core
+# upgrade that restores OR-semantics changes what spec:fast covers without a
+# diff, so the follow-up is to decide the membership explicitly and then either
+# retag the billing specs or drop these flags.
+APPS_FAST_TAG_FILTERS = '--tag ~postgres_database --tag ~integration'
+
 namespace :spec do
+  # The two invocations `spec:fast` runs. Everything about their patterns is
+  # documented at ROOT_FAST_PATTERN above; `rake spec:verify_selection` proves
+  # they select exactly what the per-tree tasks below select.
+  desc 'Run unit + CLI + lib specs (one process)'
+  RSpec::Core::RakeTask.new(:root_fast) do |t|
+    t.pattern    = ROOT_FAST_PATTERN
+    t.rspec_opts = rspec_format_options('root_fast')
+  end
+
+  desc 'Run every app spec tree except integration (one process)'
+  RSpec::Core::RakeTask.new(:apps_fast) do |t|
+    t.pattern         = APPS_FAST_PATTERN
+    t.exclude_pattern = APPS_FAST_EXCLUDE
+    t.rspec_opts      = "#{rspec_format_options('apps_fast')} #{APPS_FAST_TAG_FILTERS}"
+  end
+
+  # Per-tree tasks below are kept for targeted runs (`rake spec:apps:web_auth`)
+  # and are what smoke:rspec invokes. They are no longer how spec:fast runs.
   desc 'Run unit tests'
   RSpec::Core::RakeTask.new(:unit) do |t|
     t.pattern    = 'spec/unit/**/*_spec.rb'
-    t.rspec_opts = rspec_format_options
+    t.rspec_opts = rspec_format_options('unit')
   end
 
   desc 'Run CLI tests'
   RSpec::Core::RakeTask.new(:cli) do |t|
     t.pattern    = 'spec/cli/**/*_spec.rb'
-    t.rspec_opts = rspec_format_options
+    t.rspec_opts = rspec_format_options('cli')
   end
 
   # App-specific specs (co-located with their applications)
@@ -99,7 +171,7 @@ namespace :spec do
       RSpec::Core::RakeTask.new(name.tr(':', '_')) do |t|
         t.pattern         = "#{path}/**/*_spec.rb"
         t.exclude_pattern = "#{path}/integration/**/*_spec.rb"
-        t.rspec_opts      = "#{rspec_format_options} --tag ~postgres_database --tag ~integration"
+        t.rspec_opts      = "#{rspec_format_options(name.tr(':', '_'))} #{APPS_FAST_TAG_FILTERS}"
       end
     end
 
@@ -120,7 +192,7 @@ namespace :spec do
   desc 'Run ACME internal app specs'
   RSpec::Core::RakeTask.new(:acme) do |t|
     t.pattern    = 'apps/internal/acme/spec/**/*_spec.rb'
-    t.rspec_opts = rspec_format_options
+    t.rspec_opts = rspec_format_options('acme')
   end
 
   namespace :integration do
@@ -178,12 +250,7 @@ namespace :spec do
 
       # Distinct results file so this lane never clobbers the main full-mode
       # JSON output when CI sets RSPEC_OUTPUT_FILE for the parent task.
-      opts = ['--format progress']
-      if ENV['RSPEC_OUTPUT_FILE']
-        opts << "--format json --out #{ENV['RSPEC_OUTPUT_FILE'].delete_suffix('.json')}_mfa.json"
-      end
-
-      sh env, "bundle exec rspec #{patterns.join(' ')} --tag ~postgres_database #{opts.join(' ')}"
+      sh env, "bundle exec rspec #{patterns.join(' ')} --tag ~postgres_database #{rspec_format_options('mfa')}"
     end
 
     desc 'Run full mode with PostgreSQL (PG-only specs)'
@@ -309,8 +376,11 @@ namespace :spec do
     sh env, "bundle exec rspec spec/api #{rspec_format_options}"
   end
 
-  desc 'Run all non-integration specs (unit, cli, apps)'
-  task fast: [:unit, :cli] + ['apps:all']
+  # Two rspec processes, not thirteen. `rake spec:verify_selection` asserts the
+  # pair selects exactly the files the thirteen selected; run it after any edit
+  # to ROOT_FAST_PATTERN / APPS_FAST_PATTERN / APPS_FAST_EXCLUDE.
+  desc 'Run all non-integration specs (unit, cli, lib, apps)'
+  task fast: [:root_fast, :apps_fast]
 
   desc 'Run the complete test suite'
   task all: ['spec:fast', 'spec:integration:all']
