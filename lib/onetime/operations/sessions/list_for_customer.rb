@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/safe_dumpable'
 require 'onetime/operations/sessions/store'
 require 'onetime/models/session_metadata'
 
@@ -32,33 +33,43 @@ module Onetime
       class ListForCustomer
         # One listed session: the public {SessionMetadata#safe_dump} projection
         # paired with the internal correlation key drawn from the SAME sidecar
-        # read. Deliberately a plain frozen object, not a Data/Struct — those
-        # expose `#to_h`, which would make it trivial to serialize the internal
-        # join key onto an HTTP response by accident. The only HTTP-facing shape
-        # is {#session} ({SessionMetadata#safe_dump}).
+        # read.
         #
-        # @!attribute session [r] Hash — the safe_dump allow-list row
-        # @!attribute active_session_id_hmac [r] String, nil — the value Rodauth
+        # A plain Ruby 3.2+ {Data} value object, so it carries `#to_h` (full,
+        # internal, includes the join key) for internal joins and logging. Its
+        # public boundary is {#safe_dump}, exactly as a Horreum model's is: the
+        # only shape that may cross an HTTP response is {#safe_dump}, never
+        # {#to_h} ({Onetime::SafeDumpable}, ADR-040). Here the projection is a
+        # single member that is ITSELF a model safe_dump row, so #safe_dump
+        # returns it directly rather than wrapping it.
+        #
+        # @!attribute session [r] Hash: the SessionMetadata safe_dump row
+        # @!attribute active_session_id_hmac [r] String, nil: the value Rodauth
         #   persists in its `session_id` column, for consumers that must join
-        #   sidecar rows to Rodauth active-session records. nil/empty when the
-        #   sidecar never stored one (sessions older than the join key).
-        class Entry
-          attr_reader :session, :active_session_id_hmac
+        #   sidecar rows to Rodauth active-session records. INTERNAL: present in
+        #   #to_h, absent from #safe_dump. nil/empty when the sidecar never
+        #   stored one (sessions older than the join key).
+        Entry = Data.define(:session, :active_session_id_hmac) do
+          include Onetime::SafeDumpable
 
-          def initialize(session:, active_session_id_hmac:)
-            @session                = session
-            @active_session_id_hmac = active_session_id_hmac
-            freeze
+          def safe_dump
+            session
           end
         end
 
         # @!attribute entries [r] Array<Entry> listed sessions, newest-first,
         #   post-prune. The single source of truth; {#sessions} and {#count} are
-        #   derived public projections over it.
+        #   derived public projections over it, and {#safe_dump} is the public
+        #   boundary ({Onetime::SafeDumpable}, ADR-040); {#to_h} exposes the
+        #   internal Entry objects and must not cross an HTTP response.
         Result = Data.define(:entries) do
+          include Onetime::SafeDumpable
+
+          safe_dump_fields :sessions, :count
+
           # @return [Array<Hash>] safe_dump rows, newest-first
           def sessions
-            entries.map(&:session)
+            entries.map(&:safe_dump)
           end
 
           # @return [Integer] sessions returned (== sessions.size, post-prune)

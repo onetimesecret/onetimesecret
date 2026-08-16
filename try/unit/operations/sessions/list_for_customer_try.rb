@@ -83,9 +83,18 @@ track(@cust, @sid_new, @extid, @ts + 100)
 @res.entries.to_h { |e| [e.session[:session_id], e.active_session_id_hmac] }
 #=> {"#{@sid_new}" => "hmac_#{@sid_new}", "#{@sid_old}" => "hmac_#{@sid_old}"}
 
-## Entry does not expose #to_h, so the internal join key can't be serialized by accident
-@res.entries.first.respond_to?(:to_h)
-#=> false
+## safe_dump is the public boundary: the row carries NO internal join key
+@entry = @res.entries.first
+[@entry.safe_dump.equal?(@entry.session), @entry.safe_dump.key?(:active_session_id_hmac)]
+#=> [true, false]
+
+## to_h is the FULL internal dump: the join key IS present (never serialized across a boundary)
+@entry.to_h.key?(:active_session_id_hmac)
+#=> true
+
+## Result#safe_dump is the public projection; Result#to_h exposes internal Entry objects
+[@res.safe_dump[:count], @res.safe_dump[:sessions].first.key?(:active_session_id_hmac), @res.to_h.key?(:entries)]
+#=> [2, false, true]
 
 # ---- degraded sidecar read: other sessions remain available -----------
 
