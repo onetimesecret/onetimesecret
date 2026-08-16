@@ -1,4 +1,4 @@
-# docs/specs/testing-lanes/parallel-test-execution.md
+# docs/specs/testing-lanes/design/00-parallel-test-execution-1.md
 
 ---
 
