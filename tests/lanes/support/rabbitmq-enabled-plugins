@@ -1,0 +1,19 @@
+%% tests/lanes/support/rabbitmq-enabled-plugins — bind-mounted over
+%% /etc/rabbitmq/enabled_plugins by compose.test.yml (test services only).
+%%
+%% Lives beside the provisioner rather than under etc/, which is deny-by-default
+%% in .gitignore and holds operator runtime config: an uncommitted file here
+%% would leave every fresh clone bind-mounting a path that does not exist, and
+%% docker answers that by creating a directory where the broker expects a file.
+%%
+%% The pinned rabbitmq image ships this file containing [rabbitmq_prometheus].
+%% and its entrypoint never rewrites it, so mounting a replacement is how the
+%% management plugin gets enabled without changing the pin or baking an image.
+%%
+%% rabbitmq_prometheus is kept deliberately: dropping it would change the
+%% image's own default behaviour as a side effect of this mount.
+%%
+%% rabbitmq_management serves the HTTP API on 15672 (published as 2172), which
+%% tests/lanes/support/provision_rabbitmq_vhost.rb uses to create the
+%% per-worktree vhost. Erlang term file: one list, trailing period.
+[rabbitmq_prometheus,rabbitmq_management].

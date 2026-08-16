@@ -19,6 +19,7 @@
 #   valkey     2163   (canonical 6379; grandfathered, not 2179)
 #   postgres   2154   (canonical 5432)
 #   rabbitmq   2156   (canonical 5672)
+#   rabbitmq   2172   (canonical 15672; management HTTP API)
 #
 # Dev services keep canonical ports, so a leaked dev config can never reach
 # a test service and a test run can never reach dev data. If a URL in the
@@ -73,8 +74,15 @@ services:
 
   rabbitmq:
     image: rabbitmq:4.2@sha256:0ea64c69ef2ced52e7188c6db826152d42f78e448433ed8b4e570170c427a437
+    # The management plugin ships in the pinned image but is not enabled.
+    # Mounting an enabled_plugins file turns it on without changing the pin;
+    # tests/lanes/run provisions a per-worktree vhost over its HTTP API so
+    # concurrent lane runs in a worktree forest never share queues (#4168).
+    volumes:
+      - ./tests/lanes/support/rabbitmq-enabled-plugins:/etc/rabbitmq/enabled_plugins:ro
     ports:
       - '127.0.0.1:2156:5672'
+      - '127.0.0.1:2172:15672'
     healthcheck:
       test: ['CMD', 'rabbitmq-diagnostics', 'check_port_connectivity']
       interval: 10s
