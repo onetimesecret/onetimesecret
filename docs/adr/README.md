@@ -8,11 +8,14 @@ Documents that capture important architectural decisions along with their contex
 - Deprecated: No longer relevant but kept for history
 - Superseded: Replaced by a newer ADR (reference the new one)
 
+The `status` in an ADR's frontmatter and its `Status` section must agree.
+
 ### Keys to Success
 
 - **Be courteous**: ADRs should be readable in 2-3 minutes, so focus on why. The decision itself is less important than the reasoning.
 - **Avoid formulaic sections**: Don't force content into rigid templates. If your core argument is complete in Context and Decision, stop there. Skip sections that merely reorganize the same points.
-- **Combine related content**: Merge rationale directly into the Decision section. Trade-offs are optional—only include them when they add genuine insight.
+- **Combine related content**: Merge rationale directly into the Decision section. Trade-offs are optional—include them only when they add genuine insight about the decision's actual exchange.
+- **Make trade-offs complete**: Be terse elsewhere, but name the real costs, lost flexibility, and conditional risks in Trade-offs. Future readers need these details to judge whether the decision still holds or should be superseded.
 - **Immutable**: Once accepted, don't edit the decision; that's like re-writing history. Use Implementation Notes or create another ADR to supersede.
 - **Numbered sequentially**: Makes referencing easy (`ADR-001`, `ADR-002`, etc.)
 - **One decision per ADR**: Don't bundle multiple choices together
@@ -29,6 +32,20 @@ This expands the "One decision per ADR" key above: when two choices show up toge
 **What mature ADR sets do:** sequentially numbered, immutable, short, single-topic records with a consistent template and a *liberal* "Related / References" section that cross-links siblings (Kubernetes KEPs, Arachne, AWS Prescriptive Guidance all do this). Cross-linking is how you get the "these belong together" benefit without a monolith. Keep the status lifecycle explicit (Proposed → Accepted → Superseded) and date every amendment.
 
 **Don't over-split, either.** If a decision is a single sentence with no trade-offs, a code comment at the call site suffices — it doesn't need a record. A choice earns its own ADR when it has real trade-offs, a regulatory or cross-cutting dimension, or a test/contract obligation attached to it.
+
+### Trade-offs Section
+
+Use Trade-offs for the inherent exchange in a decision: what the project gives
+up to obtain a benefit, plus the risks that make the exchange conditional. Do
+not use it to restate the decision, list routine implementation obligations, or
+organize generic positives and negatives. Include it only when it adds insight
+that does not belong in Context or Decision.
+
+### Related Section
+
+Use Related to cross-link ADRs and other durable documents that help a reader
+understand this decision. Omit it when there are no useful links; do not use it
+for transient implementation discussions or change-tracking metadata.
 
 ### Implementation Notes Section
 
