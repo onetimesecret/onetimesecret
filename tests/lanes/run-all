@@ -196,32 +196,29 @@ add_unique() {  # <array name> <value>
 }
 
 lane_declares() {  # <lane> — one "codegen <tokens>" line, then "port <n>" lines
-  (
-    # This shell is NOT scrubbed — only the children get the runner's
-    # hermetic boundary — so drop the names this read depends on before
-    # sourcing. A dev shell's exported LANES_CODEGEN would otherwise read
-    # as a declaration from any lane that makes none (selftest), and an
-    # exported AUTH_DATABASE_URL would put its port on every lane's
-    # preflight list. `|| true`: a readonly export survives unset, and then
-    # wins below — which for a codegen token is at least loud, because an
-    # unknown one aborts before any lane starts.
-    unset -v LANES_CODEGEN REDIS_URL RABBITMQ_URL AUTH_DATABASE_URL 2>/dev/null || true
-    set -a
-    # shellcheck source=/dev/null
-    source "${LANES_DIR}/base.env"
-    # shellcheck source=/dev/null
-    source "${LANES_DIR}/$1/env"
-    set +a
-    printf 'codegen %s\n' "${LANES_CODEGEN:-}"
-    # The three variables tests/lanes/run builds REQUIRED_PORTS from, matched
-    # the same way. A lane that blanks them (selftest) needs no services.
-    local url
-    for url in "${REDIS_URL:-}" "${RABBITMQ_URL:-}" "${AUTH_DATABASE_URL:-}"; do
-      if [[ "${url}" =~ 127\.0\.0\.1:([0-9]+) ]]; then
-        printf 'port %s\n' "${BASH_REMATCH[1]}"
-      fi
-    done
-  )
+  # This wrapper does not enter the lane runner's hermetic boundary itself, so
+  # load declarations in an empty environment. `unset` is insufficient here:
+  # Bash cannot unset a readonly exported name, letting it survive and override
+  # a lane that intentionally declares no codegen (such as selftest). A fresh
+  # bash process also prevents any future declaration variable from inheriting
+  # ambient state by accident.
+  env -i PATH="${PATH}" HOME="${HOME}" LANG=C.UTF-8 LC_ALL=C.UTF-8 \
+    bash --noprofile --norc -c '
+      set -a
+      # shellcheck source=/dev/null
+      source "$1/base.env"
+      # shellcheck source=/dev/null
+      source "$1/$2/env"
+      set +a
+      printf "codegen %s\\n" "${LANES_CODEGEN:-}"
+      # The three variables tests/lanes/run builds REQUIRED_PORTS from, matched
+      # the same way. A lane that blanks them (selftest) needs no services.
+      for url in "${REDIS_URL:-}" "${RABBITMQ_URL:-}" "${AUTH_DATABASE_URL:-}"; do
+        if [[ "${url}" =~ 127\.0\.0\.1:([0-9]+) ]]; then
+          printf "port %s\\n" "${BASH_REMATCH[1]}"
+        fi
+      done
+    ' bash "${LANES_DIR}" "$1"
 }
 
 CODEGEN=()

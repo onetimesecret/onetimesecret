@@ -45,6 +45,21 @@ module LaneRunAllProbe
   def run(*args, env: {})
     Open3.capture2e({ 'CI' => nil }.merge(env), wrapper, *args, chdir: repo_root)
   end
+
+  def run_with_readonly_codegen(*args)
+    # A readonly exported name cannot be removed with `unset`, which is the
+    # hostile caller state the wrapper must not inherit while reading lane env.
+    Open3.capture2e(
+      { 'CI' => nil },
+      'bash',
+      '-c',
+      'readonly LANES_CODEGEN=schemas; export LANES_CODEGEN; exec "$@"',
+      'bash',
+      wrapper,
+      *args,
+      chdir: repo_root,
+    )
+  end
 end
 
 RSpec.describe 'tests/lanes/run-all' do
@@ -120,11 +135,8 @@ RSpec.describe 'tests/lanes/run-all' do
     end
 
     it 'does not read lane declarations from the calling environment' do
-      # The wrapper's own shell is unscrubbed (only the children get the
-      # runner's hermetic boundary), so it has to drop these names itself
-      # before sourcing a lane's env: selftest declares no codegen and
-      # blanks its service URLs, and an exported value must not fill
-      # either back in.
+      # selftest declares no codegen and blanks its service URLs, so caller
+      # values must not fill either back in.
       output, status = probe.run(
         '--dry-run', 'selftest',
         env: {
@@ -132,6 +144,14 @@ RSpec.describe 'tests/lanes/run-all' do
           'AUTH_DATABASE_URL' => 'postgresql://x:y@127.0.0.1:2154/leak',
         },
       )
+
+      expect(status).to be_success
+      expect(output).to include('codegen: none')
+      expect(output).to include('ports:   none')
+    end
+
+    it 'does not read readonly exported lane declarations' do
+      output, status = probe.run_with_readonly_codegen('--dry-run', 'selftest')
 
       expect(status).to be_success
       expect(output).to include('codegen: none')
