@@ -126,6 +126,10 @@ RSpec.describe 'tests/lanes/run-all' do
       expect(output).to include('lanes:   unit simple disabled full-sqlite')
       # The union of what the four lanes declare, generated once up front …
       expect(output).to include('codegen: locales schemas')
+      # RabbitMQ vhost provisioning is a runner dependency, not a task
+      # dependency: parallel children have autostart disabled, so the wrapper
+      # must preflight the management API as well as AMQP.
+      expect(output).to include('ports:   2163 2156 12156')
       # … and every child told so. A planned child without the flag is a
       # child that will regenerate into the shared generated/ mid-fan-out.
       %w[unit simple disabled full-sqlite].each do |lane|

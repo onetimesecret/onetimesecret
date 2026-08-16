@@ -218,6 +218,13 @@ lane_declares() {  # <lane> — one "codegen <tokens>" line, then "port <n>" lin
           printf "port %s\\n" "${BASH_REMATCH[1]}"
         fi
       done
+      # Local lanes derive a nonzero datastore index and use the RabbitMQ
+      # management API to create their isolated vhost before tasks start.
+      # --parallel disables child autostart, so include that control-plane
+      # dependency in the wrapper readiness check.
+      if [[ -z "${CI:-}" && "${RABBITMQ_URL:-}" =~ 127\.0\.0\.1:2156 ]]; then
+        printf "port 12156\\n"
+      fi
     ' bash "${LANES_DIR}" "$1"
 }
 
@@ -260,6 +267,27 @@ fi
 # parallel mode, say so instead and let one command do it.
 port_open() { (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null; }
 
+# Prefer the runtime that owns the live test broker. With both Docker Desktop
+# and Podman installed, Docker cannot recreate a Podman container because the
+# latter already owns the published AMQP port.
+compose_runtime() {
+  local podman_rabbitmq=''
+  if command -v podman >/dev/null 2>&1; then
+    podman_rabbitmq="$(podman ps -q --filter 'name=ots-test-rabbitmq-1' 2>/dev/null || true)"
+    if [[ -n "${podman_rabbitmq}" ]]; then
+      printf '%s' podman
+      return
+    fi
+  fi
+  if command -v docker >/dev/null 2>&1; then
+    printf '%s' docker
+  elif command -v podman >/dev/null 2>&1; then
+    printf '%s' podman
+  else
+    return 1
+  fi
+}
+
 if [[ ${PARALLEL} -eq 1 ]]; then
   down=()
   for port in ${PORTS[@]+"${PORTS[@]}"}; do
@@ -269,7 +297,13 @@ if [[ ${PARALLEL} -eq 1 ]]; then
     echo "error: test services unreachable on 127.0.0.1: ${down[*]}" >&2
     echo "  --parallel does not autostart them — several runners starting compose" >&2
     echo "  at once race for the same containers. Start them once, then re-run:" >&2
-    echo "  docker compose -f compose.test.yml up --wait -d" >&2
+    runtime="$(compose_runtime || true)"
+    runtime="${runtime:-docker}"
+    if [[ " ${down[*]} " == *' 12156 '* ]]; then
+      echo "  ${runtime} compose -f compose.test.yml up --wait -d --force-recreate rabbitmq" >&2
+    else
+      echo "  ${runtime} compose -f compose.test.yml up --wait -d" >&2
+    fi
     exit 69
   fi
 fi

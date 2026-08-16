@@ -594,37 +594,81 @@ fi
 # the workflow owns service lifecycle): LANES_NO_AUTOSTART=1.
 port_open() { (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null; }
 
+# A machine can have both Docker Desktop and Podman installed. Prefer Podman
+# when it owns the live test RabbitMQ container; otherwise Docker would try to
+# bind ports already held by Podman rather than recreate the stale container.
+compose_runtime() {
+  local podman_rabbitmq=''
+  if command -v podman >/dev/null 2>&1; then
+    podman_rabbitmq="$(env ${_lanes_daemon_env[@]+"${_lanes_daemon_env[@]}"} \
+      podman ps -q --filter 'name=ots-test-rabbitmq-1' 2>/dev/null || true)"
+    if [[ -n "${podman_rabbitmq}" ]]; then
+      printf '%s' podman
+      return
+    fi
+  fi
+  if command -v docker >/dev/null 2>&1; then
+    printf '%s' docker
+  elif command -v podman >/dev/null 2>&1; then
+    printf '%s' podman
+  else
+    return 1
+  fi
+}
+
+compose_up() {  # remaining arguments go to `compose up`
+  local runtime
+  runtime="$(compose_runtime)" || return 1
+  env ${_lanes_daemon_env[@]+"${_lanes_daemon_env[@]}"} \
+    "${runtime}" compose -f "${REPO_ROOT}/compose.test.yml" up "$@"
+}
+
 # Ports come from the lane's own env, so this can't drift from
-# compose.test.yml (whose URLs the lane files mirror).
+# compose.test.yml (whose URLs the lane files mirror). A rewritten RabbitMQ
+# URL also needs the management API: AMQP may be healthy while a container
+# created before the management-port mapping lacks 12156 entirely.
+RABBITMQ_MANAGEMENT_PORT=12156
 REQUIRED_PORTS=()
 for _url in "${REDIS_URL:-}" "${RABBITMQ_URL:-}" "${AUTH_DATABASE_URL:-}"; do
   [[ "$_url" =~ 127\.0\.0\.1:([0-9]+) ]] && REQUIRED_PORTS+=("${BASH_REMATCH[1]}")
 done
+if [[ "${LANES_DATASTORE_DB}" != 0 && "${RABBITMQ_URL:-}" =~ 127\.0\.0\.1:2156 ]]; then
+  REQUIRED_PORTS+=("${RABBITMQ_MANAGEMENT_PORT}")
+fi
 
 missing=0
 for p in ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"}; do port_open "$p" || missing=1; done
 
 if [[ $missing -eq 1 && -z "${LANES_NO_AUTOSTART:-}" ]]; then
   echo "[lane:${LANE}] test services not reachable; starting compose.test.yml" >&2
-  # `env <snapshot>` scopes the daemon-addressing vars to the compose client
-  # (see the snapshot block above); they never reach the task process.
-  if command -v docker >/dev/null 2>&1; then
-    env ${_lanes_daemon_env[@]+"${_lanes_daemon_env[@]}"} \
-      docker compose -f "${REPO_ROOT}/compose.test.yml" up --wait -d
-  elif command -v podman >/dev/null 2>&1; then
-    env ${_lanes_daemon_env[@]+"${_lanes_daemon_env[@]}"} \
-      podman compose -f "${REPO_ROOT}/compose.test.yml" up --wait -d
-  else
-    echo "error: docker/podman not found; start test services manually:" >&2
+  if ! compose_up --wait -d; then
+    echo "error: docker/podman not found or unavailable; start test services manually:" >&2
     echo "  docker compose -f compose.test.yml up --wait -d" >&2
     exit 69
   fi
 fi
 
+# `compose up` preserves an already-running container. Recreate RabbitMQ when
+# AMQP is reachable but this runner-only port is absent, which is the precise
+# stale-container shape introduced by a published-port or plugin change.
+if [[ "${LANES_DATASTORE_DB}" != 0 &&
+      "${RABBITMQ_URL:-}" =~ 127\.0\.0\.1:2156 &&
+      -z "${LANES_NO_AUTOSTART:-}" ]] && ! port_open "${RABBITMQ_MANAGEMENT_PORT}"; then
+  echo "[lane:${LANE}] RabbitMQ management API unreachable; recreating rabbitmq" >&2
+  compose_up --wait -d --force-recreate rabbitmq || {
+    echo "error: could not recreate RabbitMQ with the available container runtime" >&2
+    exit 69
+  }
+fi
+
 for p in ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"}; do
   if ! port_open "$p"; then
     echo "error: test service on 127.0.0.1:${p} unreachable. Start with:" >&2
-    echo "  docker compose -f compose.test.yml up --wait -d" >&2
+    if [[ "${p}" == "${RABBITMQ_MANAGEMENT_PORT}" ]]; then
+      echo "  docker compose -f compose.test.yml up --wait -d --force-recreate rabbitmq" >&2
+    else
+      echo "  docker compose -f compose.test.yml up --wait -d" >&2
+    fi
     exit 69
   fi
 done
