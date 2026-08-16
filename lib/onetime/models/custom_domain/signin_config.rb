@@ -744,7 +744,7 @@ module Onetime
         # @param custom_host [Boolean] whether the host is a custom domain
         # @return [InheritedRestriction] value plus metadata for availability check (#4165)
         def inherited_restrict_to(config, domain_id: nil, custom_host: false)
-          if config&.enabled?
+          if speaks_for_restrict_to?(config)
             return InheritedRestriction.new(value: Onetime.auth_config.restrict_to, pin_established: false)
           end
 
