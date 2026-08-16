@@ -42,13 +42,11 @@ require 'net/http'
 require 'uri'
 
 module ProvisionRabbitmqVhost
-  # The management API is published by compose.test.yml on the loopback port
-  # that follows the file's own scheme ("21 + last two digits of the canonical
-  # port", 15672 -> 2172). Hardcoded exactly as the rest of this tree
-  # hardcodes 2163/2154/2156, and deliberately NOT read from
+  # The management API is published by compose.test.yml on the loopback-only
+  # control-plane port 12156. It is deliberately NOT read from
   # RABBITMQ_MANAGEMENT_URL: that name is scrubbed from every lane run and
   # must not become another keep-list entry.
-  MANAGEMENT_URL = 'http://127.0.0.1:2172'
+  MANAGEMENT_URL = 'http://127.0.0.1:12156'
 
   # Mirrors provision_pg_database.rb's TEST_NAME guard. This script hands a
   # user full configure/write/read on whatever it is pointed at, so it refuses
@@ -57,7 +55,7 @@ module ProvisionRabbitmqVhost
 
   # The container may be up on 5672 before the management plugin is listening:
   # the compose health check probes AMQP only, and the runner's port preflight
-  # probes 2156 only, so `up --wait` can return with 2172 still coming up.
+  # probes 2156 only, so `up --wait` can return with 12156 still coming up.
   # Short and bounded — this is a just-started broker, not an outage.
   CONNECT_ATTEMPTS = 10
   CONNECT_BACKOFF  = 0.5

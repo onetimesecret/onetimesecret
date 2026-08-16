@@ -13,7 +13,7 @@
 %% rabbitmq_prometheus is kept deliberately: dropping it would change the
 %% image's own default behaviour as a side effect of this mount.
 %%
-%% rabbitmq_management serves the HTTP API on 15672 (published as 2172), which
+%% rabbitmq_management serves the HTTP API on 15672 (published as 12156), which
 %% tests/lanes/support/provision_rabbitmq_vhost.rb uses to create the
 %% per-worktree vhost. Erlang term file: one list, trailing period.
 [rabbitmq_prometheus,rabbitmq_management].

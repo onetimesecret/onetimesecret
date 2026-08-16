@@ -27,9 +27,10 @@ for what a lane needs. CI and local execution enter through
 | `compose.test.yml` | Test service images, ports, and published endpoints |
 | `tests/lanes/base.env` | Environment shared by every lane |
 | `tests/lanes/<lane>/env` | Lane-specific environment |
-| `tests/lanes/<lane>/tasks` | The complete workload and generated prerequisites for a lane |
+| `tests/lanes/<lane>/tasks` | The complete workload for a lane; its `env` declares code generation |
 | `tests/lanes/overlays/` | Environment-only variations, such as billing |
-| `tests/lanes/run` | Hermetic environment, service preflight, datastore isolation, and execution |
+| `tests/lanes/run` | Hermetic environment, service preflight, codegen, datastore isolation, and execution |
+| `tests/lanes/run-all` | Local multi-lane composition, one-time codegen, prefixed logs, and result collection |
 | `.envrc` files | Interactive lane environment; never the development environment |
 | CI workflows | Gating, parallelism, artifacts, and reporting |
 
@@ -50,7 +51,7 @@ specs.
 | `full-pg-agnostic` | valkey, rabbitmq, postgres | `spec:integration:full:agnostic_on_pg` | ruby-integration-full — PG agnostic rows |
 | `disabled` | valkey, rabbitmq | `spec:integration:disabled` | ruby-integration-disabled (T3) |
 | `api` | valkey, rabbitmq | `spec:api` | blocking step, T3 simple job |
-| `smoke` | valkey, rabbitmq | `pnpm test:smoke` | smoke-test (T3) |
+| `smoke` | valkey, rabbitmq | `pnpm test:smoke` | local-only |
 | `migrations-sqlite` | valkey, rabbitmq | `spec:integration:migrations:sqlite` | migration-tests.yml — SQLite job |
 | `migrations-pg` | valkey, rabbitmq, postgres | `spec:integration:migrations:postgres` plus dual-URL check | migration-tests.yml — PostgreSQL job |
 | `selftest` | none | boundary fixture | none — driven by `spec/unit/lanes/` |
@@ -70,11 +71,13 @@ nor lane environment.
 The following invariants protect local developer state and make local results
 comparable with CI:
 
-1. Test endpoints are loopback-only and use the test-port scheme below.
+1. Test endpoints are loopback-only and use the test-port scheme below; the
+   runner-only RabbitMQ management endpoint is its documented exception.
 2. Lane configuration contains no real secrets. Committed `base.env` values are
    public deterministic dummies; real configuration stays outside the repo.
-3. A complete lane run obtains its generated prerequisites from that lane's
-   `tasks` file. Do not move those prerequisites to CI-only setup.
+3. A complete direct lane run executes the `LANES_CODEGEN` prerequisites
+   declared by its lane environment. `run-all` executes their union once before
+   starting children; do not move these prerequisites to CI-only setup.
 4. Application test configuration originates in lane environment files, not the
    caller's shell.
 5. CI policy is not lane policy. Lanes define the environment and workload;
@@ -83,40 +86,46 @@ comparable with CI:
 
 ### Test service ports
 
-Every test service is published only on `127.0.0.1` with a `21xx` port.
-Development services retain their canonical ports. This creates a separate
-address space: leaked development configuration cannot reach test services, and
-lane configuration cannot reach development datastores.
+Every test service is published only on `127.0.0.1`. Application test services
+use `21xx` ports, while RabbitMQ's runner-only management API is published on
+`12156`. Development services retain their canonical ports. This creates a
+separate address space: leaked development configuration cannot reach test
+services, and lane configuration cannot reach development datastores.
 
-New test services use `21` followed by the last two digits of their canonical
-port. Valkey predates this convention and retains `2163`.
+New application test services use `21` followed by the last two digits of their
+canonical port. Valkey predates this convention and retains `2163`.
 
 | Service | Test port | Canonical port |
 | --- | --- | --- |
 | valkey | 2163 | 6379 |
 | postgres | 2154 | 5432 |
-| rabbitmq | 2156 | 5672 |
+| rabbitmq (AMQP) | 2156 | 5672 |
+| rabbitmq management API | 12156 | 15672 |
 
 Port mappings belong only in `compose.test.yml`; lane environment files carry
-matching URLs. A URL in this tree that does not use a `21xx` port violates the
-isolation boundary.
+matching `21xx` service URLs. The runner's hardcoded RabbitMQ management URL is
+the sole `12156` exception; any other endpoint violates the isolation boundary.
 
 ## Per-worktree datastore isolation
 
 Local worktrees share test service instances. They must not share fixtures.
-Outside CI, the runner derives a deterministic index from the repository root
-and assigns it to both datastores. The index range is `1..65535`; Valkey is
-configured with 65536 databases (1024*64).
+Outside CI, the runner derives a deterministic index from the lane, normalized
+overlay set, and repository root. This gives independently selected lanes in one
+checkout distinct backing state as well as isolating sibling worktrees. The
+index range is `1..65535`; Valkey is configured with 65536 databases (1024*64).
 
-| Datastore | Shared mode | Per-worktree mode |
+| Datastore | Shared mode | Isolated mode |
 | --- | --- | --- |
 | Valkey | database `0` | database index `1..65535` |
 | PostgreSQL | `onetime_auth_test` | `onetime_auth_test_w<index>` |
+| RabbitMQ | vhost `/` | vhost `w<index>` |
 
 The index is exported as `LANES_DATASTORE_DB`. `spec/config.test.yaml` uses it
 for `redis.uri`, and the runner aligns `REDIS_URL` and `VALKEY_URL`. This
 selects a database on the existing test service; it must never alter the host
-or port.
+or port. The runner also rewrites the loopback RabbitMQ URL to `w<index>` and,
+before the task starts, recreates that vhost and grants its URL user full
+permissions through the management API on port 12156.
 
 ### Shared mode and explicit assignment
 
@@ -134,11 +143,15 @@ that the Valkey service supports the selected index and reports the default
 The deterministic mapping can collide. A collision must fail rather than let
 two worktrees contaminate each other's fixtures.
 
-The runner stores an owner marker, `_lanes:owner`, containing the repository
-root in the selected Valkey database. It claims a fresh marker atomically with
-`SET NX`. A live owner from another checkout aborts the run and requires an
-explicit index pin. If the recorded checkout no longer exists, the runner may
-take over the stale marker and verifies the takeover.
+The runner stores an owner marker, `_lanes:owner`, containing the full
+isolation key in the selected Valkey database. It claims a fresh marker
+atomically with `SET NX`. A live owner from another checkout aborts the run and
+requires an explicit index pin. If the recorded checkout no longer exists, the
+runner may take over the stale marker and verifies the takeover.
+
+The same lane and overlay set cannot run twice in one checkout: they derive the
+same key. A TTL-backed liveness token in Valkey database 0 detects that state
+and rejects the second runner rather than letting both runs share fixtures.
 
 There is intentionally no on-disk registry, reclamation process, or
 cross-process file lock. The datastore is the shared coordination point. The
@@ -248,6 +261,28 @@ variable and exported function; use that output to place required configuration
 in lane files rather than extending the allowlist.
 
 ## Execution semantics
+
+### Code generation
+
+A lane declares generated prerequisites in `LANES_CODEGEN` in its `env` file.
+A direct `tests/lanes/run <lane>` executes the declaration before its task. The
+`--skip-codegen` flag is internal coordination for a caller that has already
+completed that phase; it is not a general way to omit prerequisites.
+
+`tests/lanes/run-all` reads the requested lane declarations, generates their
+unique union under the runner-equivalent hermetic environment, and then starts
+every child with `--skip-codegen`. This prevents concurrent writes to the
+shared repository `generated/` tree. It emits per-lane logs and RSpec output in
+`tmp/lanes/<timestamp>-<pid>/`; `--dry-run` reports the planned lanes,
+prerequisites, ports, and paths without changing state.
+
+`--parallel` is local-only. It requires services to be running before fan-out,
+rejects `CI` (whose runners deliberately use shared datastore index 0), and
+rejects a duplicate lane. The smoke lane cannot be included in a parallel run:
+its task performs its own locale generation and is not safe to combine with
+other lanes. Run it alone (normally `tests/lanes/run smoke`).
+
+### Targeted execution
 
 `--only` is a fast path through the same hermetic environment and datastore
 isolation, but it skips the lane's `tasks` file. It is therefore unsuitable as
