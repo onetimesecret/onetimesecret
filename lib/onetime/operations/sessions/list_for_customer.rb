@@ -56,7 +56,13 @@ module Onetime
           sids = customer.active_sessions.revrange(0, -1)
 
           sessions = sids.filter_map do |sid|
-            meta = Onetime::SessionMetadata.load(sid)
+            begin
+              meta = Onetime::SessionMetadata.load(sid)
+            rescue StandardError
+              # Sidecar data is supplementary. A transient store failure or corrupt
+              # record must not hide otherwise-authoritative session information.
+              next nil
+            end
             if meta.nil?
               # Self-heal: the sidecar is gone (TTL-expired or the blob was
               # revoked out-of-band) but the index still names it. Drop the stale

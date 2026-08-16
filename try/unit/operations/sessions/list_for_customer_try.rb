@@ -78,6 +78,27 @@ track(@cust, @sid_new, @extid, @ts + 100)
 [@row[:user_id], @row.key?(:email), @row.key?(:token)]
 #=> ["#{@extid}", false, false]
 
+
+# ---- degraded sidecar read: other sessions remain available -----------
+
+## an unreadable sidecar skips only that row and leaves its index member intact
+failing_sid = @sid_old
+SM.singleton_class.alias_method(:__list_for_customer_real_load, :load)
+SM.define_singleton_method(:load) do |sid|
+  raise IOError, 'transient Valkey failure' if sid == failing_sid
+
+  __list_for_customer_real_load(sid)
+end
+begin
+  @degraded = LFC.new(custid: @extid).call
+ensure
+  SM.singleton_class.remove_method(:load)
+  SM.singleton_class.alias_method(:load, :__list_for_customer_real_load)
+  SM.singleton_class.remove_method(:__list_for_customer_real_load)
+end
+[@degraded.count, @degraded.sessions.map { |s| s[:session_id] }, @cust.active_sessions.member?(@sid_old)]
+#=> [1, ["#{@sid_new}"], true]
+
 # ---- self-heal: stale index member is pruned (sidecar gone) -----------
 
 ## a sid whose sidecar is GONE gets ZREM'd and never surfaces in the result
