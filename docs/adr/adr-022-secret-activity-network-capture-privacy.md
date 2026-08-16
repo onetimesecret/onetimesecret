@@ -140,9 +140,92 @@ this pipeline's "raw IP never reaches app code" invariant. Until then, the /24
 granularity stands and is documented inline at the hash site
 (`lib/onetime/security/request_context.rb`).
 
+### A fourth attribute, `net_country`, ships gated default-off (2026-08-16)
+
+#3989 added a country attribute to the same pipeline, so the Decision's "three
+reduced attributes" table is now three of **four**. The Decision above is left
+as written (it records what was decided in July); this note reconciles it with
+the shipped pipeline.
+
+| Attribute | Representation | Purpose |
+|---|---|---|
+| `net_country` | ISO-3166-1 alpha-2, **validated, not masked** | Coarsest possible "from where" — jurisdiction, not location |
+
+Country is the only attribute that is not reduced, because it is already the
+coarsest geo signal there is: masking a country produces either the same
+country or nothing. `RequestContext.normalize_country`
+(`lib/onetime/security/request_context.rb`) therefore upcases and format-checks
+(`/\A[A-Z]{2}\z/`) instead of masking.
+
+**Otto's unknown sentinel is never stored as a country.** The sentinel `**`
+(Otto's explicit "no country resolved" — it emits that rather than a guess),
+along with any blank or malformed value, is **omitted from the event
+entirely**; the `net_country` key is simply absent. A stored country therefore
+always means "Otto actually resolved this jurisdiction", never "we assumed
+something". This is the key privacy property
+of the attribute and it holds the same "present only when derivable" contract
+as the other three keys.
+
+**It does not weaken the masking posture.** Country is resolved by Otto
+*before/independently of* the IP reduction this ADR turns on — either from a
+vendor geo header trusted only in filter mode from a proven CDN range
+(`CF-IPCountry` and friends), or from a local MMDB looked up on the
+**already-masked** IP (`site.network.geo.db_path`). Neither path requires, receives, or
+reconstructs a raw address, so adding country does not reverse the mask and the
+Decision's "the raw dotted-quad IP is never stored, anywhere in this pipeline"
+invariant is untouched.
+
+**Unlike the other three, it is opt-in and default-OFF.** Capture is gated on
+`features.secret_activity.geo_country_enabled`
+(`AccessTelemetry#geo_country_enabled?`, `apps/api/v2/logic/secrets/access_telemetry.rb`),
+which defaults to false — the inverse polarity of the sibling
+`features.secret_activity.collect` flag. The gate is a distinct axis from
+`collect`: it suppresses only `net_country`, not the event. It is off because
+**ADR-021 Decision 4 leaves org-tier exposure of IP / geolocation / device data
+to counsel ("Confirm with counsel before exposing raw IP/UA org-wide"), and
+that review is still an open question (ADR-021 Open Question 2)**. This ADR
+records the mechanics of the attribute; it does not resolve that question and
+does not judge whether the flag should be enabled. No counsel sign-off is
+recorded as of this note.
+
+### Lifecycle events carry no network context, by design (2026-08-16)
+
+An asymmetry worth stating explicitly, because it is visible in the UI: only
+the **fetch/telemetry** path threads network context. `AccessTelemetry`
+(`request_network_context` → `record_access_event(context:)`) is the sole
+producer of `net_*` attributes.
+
+Lifecycle and bookkeeping events call
+`record_org_secret_activity_event` **directly**, bypassing `request_network_context`
+entirely:
+
+- `revealed`, `burned`, `orphaned`, `expired` —
+  `lib/onetime/models/receipt/features/deprecated_fields.rb` (lines 177, 211,
+  241, 277)
+- `reveal_failed_undecryptable` —
+  `lib/onetime/models/secret/features/secret_state_management.rb:200`
+- (likewise `created` and `receipt_viewed`, which reach the same seam from the
+  create path and the receipt view)
+
+Consequence: with the flag ON, the workspace Secret Activity table renders its
+Country column as the `country_unknown` fallback ("Unknown") for every one of
+those rows — `SecretActivityTable.vue` falls back whenever `net_country` is
+absent.
+
+**This is intended scope, not a defect.** Several of these transitions have no
+request behind them at all (`expired` and `orphaned` are system-detected;
+`burned`/`revealed` may be reached from a cascade), and the model layer has no
+request object by construction — that is the plumbing constraint in Context
+above. Attributing a network origin to a server-side state transition would be
+inventing data. ADR-023's rule for the actor dimension applies unchanged here:
+record nothing rather than fabricate. Do not "fix" the Unknown column by
+backfilling a country onto lifecycle events.
+
 ## Cross-references
 
 - Ticket #3640 (this work); event-side capture umbrella #3633 / PR #3635.
+- Ticket #3989 (`net_country`) — see Implementation Notes; gated default-off
+  pending ADR-021 Open Question 2.
 - ADR-021 (audit-log stream terminology / scoping) — naming of the stream this
   data lands in.
 - Sibling capture: #3639 (actor identity on revealed/burned), same
