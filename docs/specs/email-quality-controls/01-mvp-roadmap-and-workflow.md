@@ -55,12 +55,20 @@ reviewable and shippable:
 | 1 | 11 | `claude/eqc-pr1-token` | S | `EmailProtection::Token` codec + KeyDerivation purpose. Pure library, no behavior change. Unblocks everything. |
 | 2 | 10 | `claude/eqc-pr2-headers` | M–L | Template category registry (replace the `Mailer.template_class_for` case statement with a metadata hash: class, category, unsubscribable) and a `headers:` channel threaded `Templates::Base#to_email` → `Mailer.deliver_raw` → worker payload → `normalize_email` → all four real backends. SESv2 stays on simple content with a headers array; warn-and-skip if the SDK lacks it — no raw-MIME rewrite in MVP. |
 | 3 | 20 (alignment) | `claude/eqc-pr3-suppression` | M–L | Migrate suppression to spec 20: `email_hash` key, `scope`, category-aware gate, `unsubscribed` reason. Keep the gate location (`Delivery::Base#deliver`) and fail-open semantics. Move colonel endpoints off plaintext-address URLs (Q4). |
-| 4 | 50 | `claude/eqc-pr4-unsubscribe` | M | `POST /unsubscribe/:token` (`auth=noauth csrf=exempt`; precedent: billing Stripe webhook route) + GET landing page that renders a confirm form and never mutates; footer link in `layout.html.erb`. **Completes the MVP.** |
+| 4 | 50 | `claude/eqc-pr4-unsubscribe` | M | `POST /unsubscribe/:token` (`auth=noauth csrf=exempt`; precedent: billing Stripe webhook route). Because the endpoint is CSRF-exempt and the token is stateless, the `EmailProtection::Token` codec (PR 1) must carry an expiry and nonce, and the route must reject any category outside the unsubscribable set (never `transactional`/`security`); its only write is a scoped suppression row so a replayed token is idempotent, not additive. Plus a GET landing page that renders a confirm form and never mutates; footer link in `layout.html.erb`. **Completes the MVP.** |
 | 5 (fast-follow) | 51 | `claude/eqc-pr5-optin` | M | Opt-back-in + category preferences (extend `update_notification_preference.rb` VALID_FIELDS, Customer hashkey per the `feature_flags` pattern, `NotificationSettings.vue`). |
 
 Deferred beyond MVP: slice 30 (pull sync suffices for now), 40, the 22
-rebuild, 60, and 61 — though 61's dropped-expiration-warning bug deserves a
-separate targeted fix ahead of the rest of that slice.
+rebuild, 60, and the rest of 61.
+
+Extracted ahead of the sequence — slice 61's dropped-expiration-warning bug
+(row 61 above) is a silent data-loss path: expiration warnings queued on
+`email.message.schedule` dead-letter into `dlq.email.message`, where
+`DlqEmailConsumerJob` discards non-auth templates, so the mail is never sent
+and no user-visible error surfaces. This is not coupled to the rest of the
+cutover and should land as its own targeted fix before PR 1 — either route
+`expiration_warning_job.rb` onto a delivered channel or teach the DLQ consumer
+to handle the template — not wait for the full hardening slice.
 
 ### MVP acceptance test
 

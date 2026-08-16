@@ -171,8 +171,13 @@ Each phase is independently shippable; 1–3 are the Pareto core.
 
 - `email_suppressions` store + check in `EmailWorker`/dispatch before every
   send — result: `:suppressed`, not `:error`
-- Signed unsubscribe tokens (HMAC of email + category, no DB row per token),
-  `POST /unsubscribe/:token` endpoint
+- Signed unsubscribe tokens (HMAC of email + category, no DB row per token).
+  The token carries an expiry and a random nonce so a leaked token (email
+  forward, log line, header capture) cannot be replayed indefinitely, and the
+  endpoint only accepts categories in the unsubscribable set — never
+  `transactional` or `security` class (§04). The one write it performs is a
+  scoped suppression row, so the effect is idempotent within the token's
+  window. `POST /unsubscribe/:token` endpoint
 - Stamp `List-Unsubscribe` / `List-Unsubscribe-Post` headers centrally in
   `Mailer.deliver`; footer link in the shared layout
 
