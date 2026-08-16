@@ -30,12 +30,42 @@ module Onetime
       #
       # Stateless, single `#call`, returns an immutable {Result}.
       class ListForCustomer
-        # @!attribute sessions [r] Array<Hash> safe_dump rows, newest-first
-        # @!attribute count [r] Integer sessions returned (== sessions.size, post-prune)
-        # @!attribute active_session_id_hmac_by_session_id [r] Hash<String, String>
-        #   internal join keys for consumers that need to correlate sidecar rows
-        #   with Rodauth active-session records
-        Result = Data.define(:sessions, :count, :active_session_id_hmac_by_session_id)
+        # One listed session: the public {SessionMetadata#safe_dump} projection
+        # paired with the internal correlation key drawn from the SAME sidecar
+        # read. Deliberately a plain frozen object, not a Data/Struct — those
+        # expose `#to_h`, which would make it trivial to serialize the internal
+        # join key onto an HTTP response by accident. The only HTTP-facing shape
+        # is {#session} ({SessionMetadata#safe_dump}).
+        #
+        # @!attribute session [r] Hash — the safe_dump allow-list row
+        # @!attribute active_session_id_hmac [r] String, nil — the value Rodauth
+        #   persists in its `session_id` column, for consumers that must join
+        #   sidecar rows to Rodauth active-session records. nil/empty when the
+        #   sidecar never stored one (sessions older than the join key).
+        class Entry
+          attr_reader :session, :active_session_id_hmac
+
+          def initialize(session:, active_session_id_hmac:)
+            @session                = session
+            @active_session_id_hmac = active_session_id_hmac
+            freeze
+          end
+        end
+
+        # @!attribute entries [r] Array<Entry> listed sessions, newest-first,
+        #   post-prune. The single source of truth; {#sessions} and {#count} are
+        #   derived public projections over it.
+        Result = Data.define(:entries) do
+          # @return [Array<Hash>] safe_dump rows, newest-first
+          def sessions
+            entries.map(&:session)
+          end
+
+          # @return [Integer] sessions returned (== sessions.size, post-prune)
+          def count
+            entries.size
+          end
+        end
 
         # @param custid [String] route param identifying the target customer;
         #   resolved by extid → email → objid (see #call), matching the colonel
@@ -50,7 +80,7 @@ module Onetime
         # @return [Result]
         def call
           customer = load_customer
-          return Result.new(sessions: [], count: 0, active_session_id_hmac_by_session_id: {}) if customer.nil?
+          return Result.new(entries: []) if customer.nil?
 
           db = @dbclient || Familia.dbclient
 
@@ -58,8 +88,7 @@ module Onetime
           # last-activity first (TrackMetadata scores by last_activity epoch).
           sids = customer.active_sessions.revrange(0, -1)
 
-          active_session_id_hmac_by_session_id = {}
-          sessions                             = sids.filter_map do |sid|
+          entries = sids.filter_map do |sid|
             begin
               meta = Onetime::SessionMetadata.load(sid)
             rescue StandardError
@@ -85,17 +114,13 @@ module Onetime
               next nil
             end
 
-            hmac                                      = meta.active_session_id_hmac
-            active_session_id_hmac_by_session_id[sid] = hmac unless hmac.to_s.empty?
-
-            meta.safe_dump
+            Entry.new(
+              session: meta.safe_dump,
+              active_session_id_hmac: meta.active_session_id_hmac,
+            )
           end
 
-          Result.new(
-            sessions: sessions,
-            count: sessions.size,
-            active_session_id_hmac_by_session_id: active_session_id_hmac_by_session_id,
-          )
+          Result.new(entries: entries)
         end
 
         private

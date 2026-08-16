@@ -80,8 +80,12 @@ track(@cust, @sid_new, @extid, @ts + 100)
 #=> ["#{@extid}", false, false]
 
 ## internal join keys accompany safe rows without a second sidecar read
-@res.active_session_id_hmac_by_session_id
+@res.entries.to_h { |e| [e.session[:session_id], e.active_session_id_hmac] }
 #=> {"#{@sid_new}" => "hmac_#{@sid_new}", "#{@sid_old}" => "hmac_#{@sid_old}"}
+
+## Entry does not expose #to_h, so the internal join key can't be serialized by accident
+@res.entries.first.respond_to?(:to_h)
+#=> false
 
 # ---- degraded sidecar read: other sessions remain available -----------
 

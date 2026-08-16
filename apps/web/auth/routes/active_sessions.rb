@@ -149,17 +149,15 @@ module Auth
       private
 
       # Map HMAC(active_session_id) -> safe_dump metadata row, i.e. keyed by the
-      # exact value the Rodauth session_id column holds. The operation returns the
-      # internal join key alongside its safe display rows, avoiding a second
+      # exact value the Rodauth session_id column holds. The operation returns each
+      # row's internal join key alongside its safe display row, avoiding a second
       # SessionMetadata load per row.
       def active_session_metadata_by_hmac(account_id)
-        result = active_session_metadata(account_id)
-
-        result.sessions.each_with_object({}) do |metadata, map|
-          hmac = result.active_session_id_hmac_by_session_id[metadata[:session_id]]
+        active_session_metadata(account_id).entries.each_with_object({}) do |entry, map|
+          hmac = entry.active_session_id_hmac
           next if hmac.to_s.empty?
 
-          map[hmac] = metadata
+          map[hmac] = entry.session
         end
       end
 
@@ -175,11 +173,7 @@ module Auth
       end
 
       def empty_active_session_metadata
-        Onetime::Operations::Sessions::ListForCustomer::Result.new(
-          sessions: [],
-          count: 0,
-          active_session_id_hmac_by_session_id: {},
-        )
+        Onetime::Operations::Sessions::ListForCustomer::Result.new(entries: [])
       end
 
       def epoch_iso8601(epoch)
