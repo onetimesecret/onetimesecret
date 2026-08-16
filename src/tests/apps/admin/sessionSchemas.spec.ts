@@ -64,6 +64,36 @@ describe('colonelSessionsResponseSchema (ListSessions)', () => {
     expect(result.data.details?.pagination.total_count).toBe(2);
   });
 
+  it('parses geo_country as a resolved code, a null, and Otto\'s "**" unknown sentinel', () => {
+    const payload = listPayload();
+    const rows = payload.details.sessions as Array<Record<string, unknown>>;
+    rows[0].geo_country = 'DE';
+    rows[1].geo_country = null;
+    rows.push({ ...rows[0], session_id: 'sid_sentinel', geo_country: '**' });
+
+    const result = colonelSessionsResponseSchema.safeParse(payload);
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    const parsed = result.data.details?.sessions ?? [];
+    expect(parsed[0].geo_country).toBe('DE');
+    expect(parsed[1].geo_country).toBeNull();
+    expect(parsed[2].geo_country).toBe('**');
+  });
+
+  it('parses rows that OMIT geo_country entirely — deploy skew must not fail the whole list', () => {
+    // The wire payload above predates the geo join: the key is ABSENT (not
+    // null) on every row. A mid-deploy response from an older backend must
+    // still yield the full list rather than dropping every session.
+    const payload = listPayload();
+    expect('geo_country' in payload.details.sessions[0]).toBe(false);
+
+    const result = colonelSessionsResponseSchema.safeParse(payload);
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    expect(result.data.details?.sessions).toHaveLength(2);
+    expect(result.data.details?.sessions[0].geo_country).toBeUndefined();
+  });
+
   it('rejects a row missing the required authenticated flag (contract drift)', () => {
     const payload = listPayload() as unknown as {
       details: { sessions: Array<{ authenticated?: boolean }> };

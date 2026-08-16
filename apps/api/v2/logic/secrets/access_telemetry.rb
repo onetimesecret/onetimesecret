@@ -86,7 +86,7 @@ module V2::Logic
       # Country capture on the org-tier Secret Activity trail is gated behind a
       # DEFAULT-OFF flag (features.secret_activity.geo_country_enabled) pending
       # counsel review of org-tier geo exposure (ADR-021 Decision 4 open
-      # question; ADR-022 does not yet cover country). When off, country: nil is
+      # question; ADR-022 documents the opt-in gate). When off, country: nil is
       # passed, so RequestContext omits net_country entirely and nothing is
       # stored — distinct from the `collect` axis, which gates ALL events.
       #

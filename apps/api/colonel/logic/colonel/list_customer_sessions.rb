@@ -51,11 +51,11 @@ module ColonelAPI
         def success_data
           {
             record: {},
-            details: {
-              sessions: result.sessions,
-              count: result.count,
+            # safe_dump is the HTTP boundary (ADR-040): serialize it, never the
+            # Result's #to_h (which exposes internal Entry objects + join keys).
+            details: result.safe_dump.merge(
               current_session_id: current_session_id,
-            },
+            ),
           }
         end
 

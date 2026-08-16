@@ -75,9 +75,23 @@ module Onetime
     field :user_agent       # copied AS-IS from session_data (already masked upstream by Otto)
     field :auth_method       # primary login method stamped at auth time: 'password' | 'email_auth' | 'webauthn' | 'omniauth' | nil (legacy)
     field :mfa_used          # true | false | nil
+    # INTERNAL JOIN KEY — not display data, deliberately absent from the
+    # safe_dump allow-list below. Rodauth's active_sessions feature mints its own
+    # opaque token (`active_session_id`) and stores only HMAC(that token) in
+    # account_active_session_keys; it never sees the Rack sid this record is keyed
+    # by. Without this column the Rodauth rows and these records share no value,
+    # so the auth UI cannot attach ip/ua/country to a Rodauth session row. The
+    # digest — never the raw token, which would be a downgrade in a record that is
+    # not encrypted at rest — is computed where a Rodauth instance exists
+    # (apps/web/auth/config/features/active_sessions.rb stamps it into the session
+    # from update_session) and copied verbatim here by TrackMetadata.
+    field :active_session_id_hmac
+
     field :geo_country       # ISO 3166-1 alpha-2 from Otto (env['otto.privacy.geo_country']); '**' unknown; nil when the privacy layer is absent. Country-only, never a raw IP — resolved by Otto before masking, not derived from ip_address.
 
     # POSITIVE allow-list — the security boundary. No token, no payload, no email.
+    # active_session_id_hmac is omitted on purpose: it is an internal join key,
+    # not something the colonel view renders.
     safe_dump_fields(
       :session_id,
       :user_id,

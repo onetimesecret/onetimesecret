@@ -31,6 +31,10 @@
     "text": "Endereço IP",
     "source_hash": "3c3de0c9"
   },
+  "web.admin.sessions.columns.country": {
+    "text": "País",
+    "source_hash": "701d021d"
+  },
   "web.admin.sessions.columns.created": {
     "text": "Autenticado em",
     "source_hash": "8d6c9b01"

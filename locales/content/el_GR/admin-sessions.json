@@ -31,6 +31,10 @@
     "text": "Διεύθυνση IP",
     "source_hash": "3c3de0c9"
   },
+  "web.admin.sessions.columns.country": {
+    "text": "Χώρα",
+    "source_hash": "701d021d"
+  },
   "web.admin.sessions.columns.created": {
     "text": "Έλεγχος ταυτότητας στις",
     "source_hash": "8d6c9b01"

@@ -16,7 +16,8 @@
 #   `session:<sid>` blob is gone (the 30d sidecar outliving the 24h blob) is a
 #   DEAD session — the orphan sidecar is destroyed, the index member ZREM'd, and
 #   the row is hidden
-# - an unknown customer returns an empty Result (no raise)
+# - reconciliation write failures skip only their stale row and preserve the
+#   readable rows; an unknown customer returns an empty Result (no raise)
 #
 # Run: try --agent try/unit/operations/sessions/list_for_customer_try.rb
 
@@ -53,7 +54,8 @@ def track(cust, sid, extid, score)
   Onetime::Operations::Sessions::TrackMetadata.new(
     session_id: sid,
     session_data: { 'authenticated' => true, 'external_id' => extid,
-                    'ip_address' => '203.0.113.1', 'user_agent' => 'UA' },
+                    'ip_address' => '203.0.113.1', 'user_agent' => 'UA',
+                    'active_session_id_hmac' => "hmac_#{sid}" },
   ).call
   # Mint a REAL encrypted session blob so the blob-liveness probe sees a live
   # session (ListForCustomer prunes any sid whose `session:<sid>` blob is gone).
@@ -78,6 +80,43 @@ track(@cust, @sid_new, @extid, @ts + 100)
 [@row[:user_id], @row.key?(:email), @row.key?(:token)]
 #=> ["#{@extid}", false, false]
 
+## internal join keys accompany safe rows without a second sidecar read
+@res.entries.to_h { |e| [e.session[:session_id], e.active_session_id_hmac] }
+#=> {"#{@sid_new}" => "hmac_#{@sid_new}", "#{@sid_old}" => "hmac_#{@sid_old}"}
+
+## safe_dump is the public boundary: the row carries NO internal join key
+@entry = @res.entries.first
+[@entry.safe_dump.equal?(@entry.session), @entry.safe_dump.key?(:active_session_id_hmac)]
+#=> [true, false]
+
+## to_h is the FULL internal dump: the join key IS present (never serialized across a boundary)
+@entry.to_h.key?(:active_session_id_hmac)
+#=> true
+
+## Result#safe_dump is the public projection; Result#to_h exposes internal Entry objects
+[@res.safe_dump[:count], @res.safe_dump[:sessions].first.key?(:active_session_id_hmac), @res.to_h.key?(:entries)]
+#=> [2, false, true]
+
+# ---- degraded sidecar read: other sessions remain available -----------
+
+## an unreadable sidecar skips only that row and leaves its index member intact
+failing_sid = @sid_old
+SM.singleton_class.alias_method(:__list_for_customer_real_load, :load)
+SM.define_singleton_method(:load) do |sid|
+  raise IOError, 'transient Valkey failure' if sid == failing_sid
+
+  __list_for_customer_real_load(sid)
+end
+begin
+  @degraded = LFC.new(custid: @extid).call
+ensure
+  SM.singleton_class.remove_method(:load)
+  SM.singleton_class.alias_method(:load, :__list_for_customer_real_load)
+  SM.singleton_class.remove_method(:__list_for_customer_real_load)
+end
+[@degraded.count, @degraded.sessions.map { |s| s[:session_id] }, @cust.active_sessions.member?(@sid_old)]
+#=> [1, ["#{@sid_new}"], true]
+
 # ---- self-heal: stale index member is pruned (sidecar gone) -----------
 
 ## a sid whose sidecar is GONE gets ZREM'd and never surfaces in the result
@@ -87,6 +126,27 @@ SM.load(@sid_old)&.destroy!            # drop the sidecar, leave the index membe
 @after  = @cust.active_sessions.member?(@sid_old)
 [@before, @res2.count, @res2.sessions.map { |s| s[:session_id] }, @after]
 #=> [true, 1, ["#{@sid_new}"], false]
+
+## a transient self-heal write failure skips its stale row without hiding readable sessions
+@write_failure_sid = "trylist_write_failure_#{@nonce}"
+@cust.active_sessions.add(@write_failure_sid, @ts + 200)
+write_failure_sid = @write_failure_sid
+@active_sessions_class = @cust.active_sessions.class
+@active_sessions_class.alias_method(:__list_for_customer_real_remove, :remove)
+@active_sessions_class.define_method(:remove) do |sid|
+  raise IOError, 'transient Valkey write failure' if sid == write_failure_sid
+
+  __list_for_customer_real_remove(sid)
+end
+begin
+  @write_failure_result = LFC.new(custid: @extid).call
+ensure
+  @active_sessions_class.remove_method(:remove)
+  @active_sessions_class.alias_method(:remove, :__list_for_customer_real_remove)
+  @active_sessions_class.remove_method(:__list_for_customer_real_remove)
+end
+[@write_failure_result.count, @write_failure_result.sessions.map { |s| s[:session_id] }, @cust.active_sessions.member?(@write_failure_sid)]
+#=> [1, ["#{@sid_new}"], true]
 
 # ---- blob-liveness reconcile: dead session pruned (blob gone) ----------
 
