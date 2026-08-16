@@ -1,3 +1,9 @@
 # Lane: simple — integration specs for AUTHENTICATION_MODE=simple.
 # CI job: ruby-integration-simple (T3)
 AUTHENTICATION_MODE=simple
+
+# Generated prerequisites, produced by tests/lanes/run before the tasks
+# below (see the codegen phase there). spec/spec_helper.rb refuses to boot
+# with an empty generated/locales, so every lane that runs Ruby specs
+# declares it.
+LANES_CODEGEN='locales'
