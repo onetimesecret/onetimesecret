@@ -32,15 +32,14 @@ module Core
         # was previously emitted to every visitor on every page load. Signed-in
         # sessions still receive it (footer display, support diagnostics).
         #
-        # Scope note: ruby_version is not exposed anywhere else, so this closes
-        # its disclosure outright. The app version remains available to
-        # unauthenticated callers via GET /api/v2/version and GET /api/v3/version,
-        # which are deliberate public meta endpoints (see the "Meta/Public
-        # endpoints" block in apps/api/v3/routes.txt). What changes here is the
-        # passive, every-pageview disclosure — retrieving the version now takes
-        # a deliberate request to an endpoint an operator can choose to remove.
-        # (/health also reports it but is network-gated to loopback/RFC1918 by
-        # Onetime::Middleware::HealthAccessControl, so it is not public.)
+        # Scope note: this is the passive, every-pageview vector. The two
+        # deliberate ones are gated to match — GET /api/v2/version and
+        # GET /api/v3/version now require auth=sessionauth,basicauth — and
+        # /health is network-gated to loopback/RFC1918 by
+        # Onetime::Middleware::HealthAccessControl. The remaining anonymous
+        # reader is the Sentry `release` field in ConfigSerializer, which the
+        # SDK needs for error grouping and which only ships when the operator
+        # has enabled diagnostics.
         if view_vars['authenticated']
           output['ot_version']      = OT::VERSION.to_s
           output['ot_version_long'] = OT::VERSION.details
