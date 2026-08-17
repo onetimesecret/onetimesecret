@@ -2,7 +2,6 @@
 
 <script setup lang="ts">
   import AdminAccountDiagnosticsSection from '@/apps/admin/components/AdminAccountDiagnosticsSection.vue';
-  import AdminCheckoutLinkModal from '@/apps/admin/components/AdminCheckoutLinkModal.vue';
   import AdminCustomerSessionsSection from '@/apps/admin/components/AdminCustomerSessionsSection.vue';
   import { AdminConfirmDialog, DataTable, StatCard } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
@@ -14,7 +13,6 @@
     ColonelUserDetailSecret,
   } from '@/schemas/api/internal/responses/colonel';
   import {
-    colonelAvailablePlansResponseSchema,
     colonelUserDetailResponseSchema,
     colonelUserMutationResponseSchema,
   } from '@/schemas/api/internal/responses/colonel';
@@ -33,11 +31,10 @@
    *
    * - Single-resource fetch via {@link useResourceFetch} against
    *   GET /api/colonel/users/:id, keyed by the customer's PUBLIC id (extid).
-   * - Read-out: profile, plan/entitlement, verification + role, key timestamps,
-   *   lifetime stats, billing (plan + latest Stripe invoice, gracefully
-   *   degrading when Stripe is unconfigured/unreachable), and the customer's
-   *   secrets / receipts / organizations. Loading, empty, not-found and error
-   *   states are all handled explicitly.
+   * - Read-out: profile, verification + role, key timestamps, lifetime stats,
+   *   and the customer's secrets / receipts / organizations. Organization
+   *   detail owns plan, Stripe, and subscription information. Loading, empty,
+   *   not-found and error states are all handled explicitly.
    * - Guarded actions (CONTRACT 3 / D4): set-role, verify, unverify and
    *   unsuspend go through a simple confirm; PURGE and SUSPEND require typed
    *   confirmation (retype the public id) via {@link AdminConfirmDialog} in
@@ -80,48 +77,9 @@
     () => (userError.value !== null && !userNotFound.value) || userValidationError.value !== null
   );
 
-  // ---- Available plans (for the plan selector) ------------------------------
-  // The endpoint returns a BARE { plans, source } body (no record/details
-  // envelope), so the schema is a plain object, not createApiResponseSchema.
-  // Loaded once on mount; the list is site-wide, not per-customer.
-  const { data: plansData, load: loadPlans } = useResourceFetch({
-    url: '/api/colonel/available-plans',
-    schema: colonelAvailablePlansResponseSchema,
-    context: 'ColonelAvailablePlansResponse',
-  });
-
-  const availablePlans = computed(() => plansData.value?.plans ?? []);
-  /** True when plans came from billing.yaml (Stripe unconfigured/unreachable). */
-  const plansFromLocalConfig = computed(() => plansData.value?.source === 'local_config');
-
-  /**
-   * Selectable plan ids, sorted by display_order then name. The customer's
-   * current planid is always included (prepended) even if the catalog no longer
-   * lists it, so a legacy plan still renders as the selected option.
-   */
-  const planOptions = computed(() => {
-    const options = [...availablePlans.value]
-      .sort(
-        (a, b) => (a.display_order ?? 0) - (b.display_order ?? 0) || a.name.localeCompare(b.name)
-      )
-      .map((p) => ({ planid: p.planid, label: `${p.name} (${p.planid})` }));
-    const current = record.value?.planid;
-    if (current && !options.some((o) => o.planid === current)) {
-      options.unshift({ planid: current, label: current });
-    }
-    return options;
-  });
-
   // ---- Guarded actions ------------------------------------------------------
 
-  type ActionKey =
-    | 'setRole'
-    | 'changePlan'
-    | 'verify'
-    | 'unverify'
-    | 'suspend'
-    | 'unsuspend'
-    | 'purge';
+  type ActionKey = 'setRole' | 'verify' | 'unverify' | 'suspend' | 'unsuspend' | 'purge';
 
   /** Assignable roles, mirrored from the backend SetRole::VALID_ROLES. */
   const ROLE_OPTIONS = ['colonel', 'admin', 'staff', 'customer'] as const;
@@ -129,17 +87,14 @@
   const dialogOpen = ref(false);
   const activeAction = ref<ActionKey | null>(null);
   const pendingRole = ref('');
-  /** Plan selector value; synced to the loaded record's planid. */
-  const pendingPlan = ref('');
   /** Optional operator-supplied suspension reason (sent with the suspend POST). */
   const suspendReason = ref('');
 
-  // Keep the role + plan selectors in sync with the loaded record.
+  // Keep the role selector in sync with the loaded record.
   watch(
     record,
     (value) => {
       pendingRole.value = value?.role ?? '';
-      pendingPlan.value = value?.planid ?? '';
     },
     { immediate: true }
   );
@@ -169,8 +124,6 @@
     switch (activeAction.value) {
       case 'setRole':
         return callMutation('post', `${userUrl()}/role`, { role: pendingRole.value });
-      case 'changePlan':
-        return callMutation('post', `${userUrl()}/plan`, { planid: pendingPlan.value });
       case 'verify':
         return callMutation('post', `${userUrl()}/verify`);
       case 'unverify':
@@ -194,12 +147,11 @@
   });
 
   /**
-   * The i18n key segment per action (mostly the action name, but setRole →
-   * `role` and changePlan → `plan` to match the existing translation tree).
+   * The i18n key segment per action. `setRole` maps to `role` to match the
+   * existing translation tree.
    */
   const ACTION_I18N_KEY: Record<ActionKey, string> = {
     setRole: 'role',
-    changePlan: 'plan',
     verify: 'verify',
     unverify: 'unverify',
     suspend: 'suspend',
@@ -251,12 +203,10 @@
     if (!action) return blank;
 
     const key = ACTION_I18N_KEY[action];
-    // Extra interpolation vars only setRole/changePlan use; harmless elsewhere.
+    // The role confirmation interpolates the selected role; email is harmless elsewhere.
     const args: Record<string, string> = { email: record.value?.email ?? '' };
     if (action === 'setRole') {
       args.role = t(`web.admin.customers.roles.${pendingRole.value}`, pendingRole.value);
-    } else if (action === 'changePlan') {
-      args.plan = pendingPlan.value;
     }
     const isDanger = DANGER_ACTIONS.includes(action);
     return {
@@ -281,7 +231,6 @@
 
   const successMessageKey: Record<ActionKey, string> = {
     setRole: 'web.admin.customers.actions.role.success',
-    changePlan: 'web.admin.customers.actions.plan.success',
     verify: 'web.admin.customers.actions.verify.success',
     unverify: 'web.admin.customers.actions.unverify.success',
     suspend: 'web.admin.customers.actions.suspend.success',
@@ -302,12 +251,6 @@
     // No-op guard: ignore if the role is unchanged (nothing to confirm).
     if (!pendingRole.value || pendingRole.value === record.value?.role) return;
     requestAction('setRole');
-  }
-
-  function requestChangePlan(): void {
-    // No-op guard: ignore if the plan is unchanged (nothing to confirm).
-    if (!pendingPlan.value || pendingPlan.value === record.value?.planid) return;
-    requestAction('changePlan');
   }
 
   async function onConfirm(): Promise<void> {
@@ -370,11 +313,6 @@
           : t('web.admin.customers.detail.no'),
       },
       {
-        key: 'plan',
-        label: t('web.admin.customers.detail.fields.plan'),
-        value: r.planid || t('web.admin.customers.detail.none'),
-      },
-      {
         key: 'locale',
         label: t('web.admin.customers.detail.fields.locale'),
         value: r.locale || t('web.admin.customers.detail.none'),
@@ -421,103 +359,12 @@
     ];
   });
 
-  // ---- Billing card ----------------------------------------------------------
-
-  /** Billing summary (plan + org subscription + optional live Stripe block). */
-  const billing = computed(() => details.value?.billing ?? null);
-
-  /** "12.34 USD" from Stripe's smallest-currency-unit total. */
-  function invoiceAmount(total: number | null, currency: string | null): string {
-    if (total === null) return t('web.admin.customers.detail.none');
-    const amount = (total / 100).toFixed(2);
-    return currency ? `${amount} ${currency.toUpperCase()}` : amount;
-  }
-
-  type BillingSummary = NonNullable<typeof billing.value>;
-  type BillingField = { key: string; label: string; value: string };
-
-  /** Org-scoped rows (name, subscription status, period end), if an org exists. */
-  function organizationBillingFields(b: BillingSummary): BillingField[] {
-    const org = b.organization;
-    if (!org) return [];
-
-    const rows: BillingField[] = [
-      {
-        key: 'organization',
-        label: t('web.admin.customers.detail.billing.organization'),
-        value: org.display_name || org.extid,
-      },
-    ];
-    const status = b.stripe.subscription?.status || org.subscription_status;
-    if (status) {
-      rows.push({
-        key: 'subscriptionStatus',
-        label: t('web.admin.customers.detail.billing.subscriptionStatus'),
-        value: status,
-      });
-    }
-    const periodEnd =
-      b.stripe.subscription?.current_period_end ??
-      (org.subscription_period_end ? Number(org.subscription_period_end) : null);
-    if (periodEnd) {
-      rows.push({
-        key: 'periodEnd',
-        label: t('web.admin.customers.detail.billing.periodEnd'),
-        value: formatDisplayDateTime(new Date(periodEnd * 1000)),
-      });
-    }
-    return rows;
-  }
-
-  /** The "latest invoice" row, only when the live Stripe read succeeded. */
-  function latestInvoiceFields(b: BillingSummary): BillingField[] {
-    if (!b.stripe.available) return [];
-
-    const invoice = b.stripe.latest_invoice;
-    const value = invoice
-      ? [
-          invoice.created ? formatDisplayDateTime(invoice.created) : null,
-          invoiceAmount(invoice.total, invoice.currency),
-          invoice.status,
-        ]
-          .filter(Boolean)
-          .join(' · ')
-      : t('web.admin.customers.detail.billing.noInvoices');
-    return [
-      { key: 'latestInvoice', label: t('web.admin.customers.detail.billing.latestInvoice'), value },
-    ];
-  }
-
-  const billingFields = computed<BillingField[]>(() => {
-    const b = billing.value;
-    if (!b) return [];
-
-    return [
-      {
-        key: 'plan',
-        label: t('web.admin.customers.detail.billing.plan'),
-        value: b.plan_id || record.value?.planid || t('web.admin.customers.detail.none'),
-      },
-      ...organizationBillingFields(b),
-      ...latestInvoiceFields(b),
-    ];
-  });
-
-  // ---- Create checkout link (form modal, not the confirm-dialog flow) -------
-  // Needs INPUTS (plan family + cycle + toggles), so it lives in its own
-  // AdminModal instead of the ActionKey/AdminConfirmDialog switch; the modal
-  // owns its POST + result presentation (URL + copy + expiry).
-  const checkoutLinkOpen = ref(false);
-
   function goBack(): void {
     router.push({ name: 'AdminCustomers' });
   }
 
   onMounted(() => {
     loadUser().catch(() => {});
-    // Plans populate the selector; a failure just leaves the current plan as the
-    // only option (the selector degrades, the rest of the page is unaffected).
-    loadPlans().catch(() => {});
   });
 </script>
 
@@ -750,44 +597,6 @@
               </div>
             </div>
 
-            <!-- Change plan (catalog-validated server-side; reversible) -->
-            <div>
-              <label
-                for="detail-plan-select"
-                class="block text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
-                {{ t('web.admin.customers.actions.plan.label') }}
-              </label>
-              <div class="mt-2 flex gap-2">
-                <select
-                  id="detail-plan-select"
-                  v-model="pendingPlan"
-                  data-testid="plan-select"
-                  class="min-w-0 flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">
-                  <option
-                    v-for="plan in planOptions"
-                    :key="plan.planid"
-                    :value="plan.planid">
-                    {{ plan.label }}
-                  </option>
-                </select>
-                <button
-                  type="button"
-                  data-testid="plan-apply"
-                  :disabled="pendingPlan === record.planid"
-                  class="inline-flex shrink-0 items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
-                  @click="requestChangePlan">
-                  {{ t('web.admin.customers.actions.plan.apply') }}
-                </button>
-              </div>
-              <!-- Stripe unconfigured/unreachable: plans came from billing.yaml. -->
-              <p
-                v-if="plansFromLocalConfig"
-                class="mt-2 text-xs text-amber-600 dark:text-amber-400"
-                data-testid="plan-local-config-warning">
-                {{ t('web.admin.customers.actions.plan.localConfigWarning') }}
-              </p>
-            </div>
-
             <!-- Verify / unverify -->
             <button
               v-if="!record.verified"
@@ -947,82 +756,6 @@
         </p>
       </section>
 
-      <!-- Billing ("why was I charged" — plan always renders from the model;
-           the Stripe block degrades gracefully when unavailable). -->
-      <section
-        v-if="billing"
-        class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900"
-        data-testid="billing-section">
-        <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
-          <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-            {{ t('web.admin.customers.detail.sections.billing') }}
-          </h3>
-        </div>
-        <dl class="grid grid-cols-1 gap-x-6 gap-y-4 px-6 py-5 sm:grid-cols-2">
-          <div
-            v-for="field in billingFields"
-            :key="field.key"
-            :data-testid="`billing-${field.key}`">
-            <dt
-              class="text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
-              {{ field.label }}
-            </dt>
-            <dd class="mt-1 text-sm break-words text-gray-900 dark:text-gray-100">
-              {{ field.value }}
-            </dd>
-          </div>
-        </dl>
-        <div
-          class="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 px-6 py-4 dark:border-gray-800">
-          <!-- Deep link into the Stripe dashboard when the live read worked. -->
-          <a
-            v-if="billing.stripe.available && billing.stripe.dashboard_url"
-            :href="billing.stripe.dashboard_url"
-            target="_blank"
-            rel="noopener noreferrer"
-            data-testid="billing-stripe-link"
-            class="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-brand-400 dark:hover:text-brand-300">
-            <OIcon
-              collection="heroicons"
-              name="arrow-top-right-on-square"
-              size="4" />
-            {{ t('web.admin.customers.detail.billing.openStripe') }}
-          </a>
-          <!-- Graceful degradation: Stripe configured but unreachable / no identity. -->
-          <p
-            v-else-if="billing.enabled"
-            class="text-sm text-gray-500 dark:text-gray-400"
-            data-testid="billing-unavailable">
-            {{
-              t('web.admin.customers.detail.billing.unavailable', {
-                reason: billing.stripe.reason ?? '',
-              })
-            }}
-          </p>
-          <p
-            v-else
-            class="text-sm text-gray-500 dark:text-gray-400"
-            data-testid="billing-disabled">
-            {{ t('web.admin.customers.detail.billing.notConfigured') }}
-          </p>
-          <!-- Colonel-built Stripe Checkout session for this customer.
-               Hidden when billing is disabled: the colonel endpoint's
-               configuration_guard fails every request in that state. -->
-          <button
-            v-if="billing.enabled"
-            type="button"
-            data-testid="checkout-link-button"
-            class="inline-flex shrink-0 items-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
-            @click="checkoutLinkOpen = true">
-            <OIcon
-              collection="heroicons"
-              name="link"
-              size="4" />
-            {{ t('web.admin.customers.actions.checkoutLink.button') }}
-          </button>
-        </div>
-      </section>
-
       <!-- Secrets -->
       <section
         class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
@@ -1112,15 +845,6 @@
            sign up. Same read-out as `bin/ots customers diagnose`. -->
       <AdminAccountDiagnosticsSection :user-id="publicId" />
     </div>
-
-    <!-- Create-checkout-link form modal (plan/cycle/toggles → URL + copy). -->
-    <AdminCheckoutLinkModal
-      v-if="record"
-      v-model:open="checkoutLinkOpen"
-      :endpoint="`${userUrl()}/checkout-link`"
-      :subject="publicId"
-      :plans="planOptions"
-      :default-plan="record.planid" />
 
     <!-- Shared guarded-action dialog (typed-confirm for purge + suspend). -->
     <AdminConfirmDialog
