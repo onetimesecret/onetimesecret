@@ -229,7 +229,40 @@ module Onetime
         self.allowed_domains_json = normalized.empty? ? nil : JSON.generate(normalized)
       end
 
+      # Whether allowed_domains_json holds something we cannot read as a
+      # domain list.
+      #
+      # allowed_domains (above) swallows JSON::ParserError and returns [], and
+      # valid_email_domain? reads an empty list as "no allowlist configured →
+      # allow all". That pairing is right for display surfaces — a corrupt
+      # value must not 500 the config UI — but on the AUTHENTICATION path it
+      # inverts the operator's intent: a hand-edited or truncated value would
+      # silently disable the very restriction it encodes. Callers that gate
+      # sign-in consult this first and deny when it is true, so a value we
+      # cannot parse fails closed instead of opening the door.
+      #
+      # An absent/blank value is NOT corrupt — that is the legitimate "no
+      # allowlist" state written by allowed_domains= when the list is empty.
+      # A well-formed empty array ("[]") is likewise not corrupt.
+      #
+      # @return [Boolean] true when a value is present but unreadable as an Array
+      def allowed_domains_corrupt?
+        raw = allowed_domains_json.to_s.strip
+        return false if raw.empty?
+
+        !JSON.parse(raw).is_a?(Array)
+      rescue JSON::ParserError
+        true
+      end
+
       # Validate an email address against the allowed domains list.
+      #
+      # NOTE: returns true when the list is empty — an unconfigured allowlist
+      # means "allow every domain the IdP will authenticate", which is the
+      # intended state for providers that control access themselves (Entra ID,
+      # see PROVIDER_METADATA). Authentication callers must therefore pair this
+      # with allowed_domains_corrupt? so an unreadable list is not mistaken for
+      # an unconfigured one.
       #
       # @param email [String] Email address to validate
       # @return [Boolean] true if email domain is allowed

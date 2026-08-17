@@ -467,4 +467,130 @@ RSpec.describe 'Cross-Tenant Callback Validation', type: :integration do
       end
     end
   end
+
+  # ==========================================================================
+  # Tenant SSO email-domain allowlist enforcement
+  #
+  # Regression coverage for the 2026-08-14 appsec review, finding H-3:
+  # "Tenant SSO allowed_domains is dead code — the documented access control
+  # has no runtime effect."
+  #
+  # allowed_domains is plumbed through the API, rendered in the UI, and
+  # described by the provider metadata as the way to restrict a generic OIDC
+  # IdP ('oidc' declares requires_domain_filter: true) — but SsoConfig's
+  # valid_email_domain? had zero production callers, so an operator who
+  # restricted their tenant to @example.com got no restriction at all.
+  #
+  # Enforcement lives in before_omniauth_callback_route rather than
+  # before_omniauth_create_account, because the latter runs on the CREATE path
+  # only: once an (provider, issuer, uid) identity row exists the gem skips
+  # both account_from_omniauth and before_omniauth_create_account, so a
+  # create-only gate lets an already-provisioned user keep signing in forever
+  # after their domain is removed from the allowlist.
+  # ==========================================================================
+
+  describe '.enforce_tenant_email_domain!' do
+    let(:rodauth) { double('Rodauth') }
+    let(:domain_id) { 'domain_under_test' }
+
+    before do
+      allow(rodauth).to receive(:redirect)
+      allow(Auth::Logging).to receive(:log_auth_event)
+    end
+
+    # In production `redirect` throws to halt the callback; the double simply
+    # records the call, which is sufficient because the redirect is the last
+    # statement on the rejection path.
+    def expect_rejected
+      expect(rodauth).to have_received(:redirect).with('/signin?auth_error=domain_not_allowed')
+    end
+
+    def expect_permitted
+      expect(rodauth).not_to have_received(:redirect)
+    end
+
+    def enforce(email, sso_config)
+      allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
+        .with(domain_id).and_return(sso_config)
+      helpers.enforce_tenant_email_domain!(domain_id, email, rodauth)
+    end
+
+    context 'with an allowlist configured' do
+      # build_domain_sso_config(:oidc) allows example.com and
+      # subsidiary.example.com.
+      let(:sso_config) { build_domain_sso_config(:oidc) }
+
+      it 'permits an address in the allowlist' do
+        enforce('user@example.com', sso_config)
+
+        expect_permitted
+      end
+
+      it 'rejects an address outside the allowlist' do
+        enforce('attacker@evil.com', sso_config)
+
+        expect_rejected
+      end
+
+      it 'rejects a multi-@ address whose LAST segment is a listed domain' do
+        # This exact ordering is the bypass the structural check exists for.
+        # valid_email_domain? reads the segment after the LAST '@', so the
+        # allowlist ALONE returns true here:
+        #   'attacker@evil.com@example.com'.split('@').last => 'example.com'
+        # Only Onetime::SignupValidation.structurally_valid_email? rejects it.
+        #
+        # Do NOT "simplify" this to user@example.com@evil.com — that resolves
+        # to evil.com, which the allowlist rejects unaided, so it would pass
+        # even with the structural check deleted and this test would stop
+        # guarding anything.
+        expect(sso_config.valid_email_domain?('attacker@evil.com@example.com')).to be true
+
+        enforce('attacker@evil.com@example.com', sso_config)
+
+        expect_rejected
+      end
+
+      it 'rejects a missing email claim' do
+        enforce(nil, sso_config)
+
+        expect_rejected
+      end
+
+      it 'rejects a blank email claim' do
+        enforce('', sso_config)
+
+        expect_rejected
+      end
+    end
+
+    context 'without an allowlist configured' do
+      let(:sso_config) { build_domain_sso_config(:oidc, allowed_domains: []) }
+
+      it 'permits any address the IdP authenticates' do
+        # Allow-all is the documented, intended state for providers that
+        # control access themselves (Entra ID via app assignment). Enforcement
+        # must not turn an unconfigured allowlist into a lockout.
+        enforce('anyone@anywhere.example', sso_config)
+
+        expect_permitted
+      end
+    end
+
+    context 'when the tenant configuration cannot be evaluated' do
+      it 'rejects when the SSO config has gone missing mid-flow' do
+        enforce('user@example.com', nil)
+
+        expect_rejected
+      end
+
+      it 'rejects when the allowlist is unreadable rather than treating it as absent' do
+        corrupt = build_domain_sso_config(:oidc)
+        corrupt.allowed_domains_json = '["example.com"'
+
+        enforce('user@example.com', corrupt)
+
+        expect_rejected
+      end
+    end
+  end
 end
