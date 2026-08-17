@@ -56,6 +56,7 @@ require_relative 'colonel/verify_custom_domain'
 require_relative 'colonel/create_custom_domain'
 require_relative 'colonel/get_custom_domain'
 require_relative 'colonel/remove_custom_domain'
+require_relative 'colonel/override_domain_verification'
 
 # Organizations
 require_relative 'colonel/list_organizations'

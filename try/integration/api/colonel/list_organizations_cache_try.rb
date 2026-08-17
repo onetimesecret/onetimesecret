@@ -104,8 +104,11 @@ end
 # ----------------------------------------------------------------
 
 ## Cold read reports a MISS and carries the full cache block
+# NOTE: The cache path only activates when filters/search are provided.
+# Without filters, the endpoint takes a fast path that loads top-N orgs
+# directly from the sorted set without caching (see DEFAULT_LIMIT).
 drop_cache
-get '/api/colonel/organizations', {}, colonel_headers
+get '/api/colonel/organizations', { 'search' => 'loc_' }, colonel_headers
 @resp  = JSON.parse(last_response.body)
 @cache = @resp['details']['cache']
 [last_response.status, @cache['cached'], @cache['ttl'], @cache['generated_at'].positive?]
@@ -116,7 +119,7 @@ Familia.dbclient.ttl(@cache_key).positive?
 #=> true
 
 ## Second read is a HIT and reuses the SAME generated_at (it tracks the build)
-@second = cache_block
+@second = cache_block('search' => 'loc_')
 [@second['cached'], @second['generated_at'] == @cache['generated_at']]
 #=> [true, true]
 
@@ -178,14 +181,14 @@ JSON.parse(last_response.body)['details']['pagination']['total_count']
 # ----------------------------------------------------------------
 
 ## refresh=1 skips the read and rewrites the entry (reported as a miss)
-@before = cache_block
+@before = cache_block('search' => 'loc_')
 sleep 1 # generated_at is a unix SECOND; make the rebuild observable
-@bypassed = cache_block('refresh' => '1')
+@bypassed = cache_block('search' => 'loc_', 'refresh' => '1')
 [@before['cached'], @bypassed['cached'], @bypassed['generated_at'] > @before['generated_at']]
 #=> [true, false, true]
 
 ## The read after a bypass is a hit again, on the REBUILT entry
-@after = cache_block
+@after = cache_block('search' => 'loc_')
 [@after['cached'], @after['generated_at'] == @bypassed['generated_at']]
 #=> [true, true]
 
