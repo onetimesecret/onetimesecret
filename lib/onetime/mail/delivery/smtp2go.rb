@@ -30,6 +30,13 @@ module Onetime
         # the vetted corpus; this twin only covers standalone mail-lib loads.
         EMAIL_PATTERN = /\b(?>[\p{L}\p{N}._%+'-]+)@[\p{L}\p{N}.\p{Pd}]+\.\p{L}{2,}\b/
 
+        def initialize(config = {})
+          super
+          # Default to true for backward compatibility (fire-and-forget mode).
+          # Set to false for synchronous delivery accounting.
+          @fastaccept = config.fetch('fastaccept', false)
+        end
+
         def perform_delivery(email)
           data = client.post('/email/send', build_payload(email))
 
@@ -48,6 +55,18 @@ module Onetime
               "SMTP2GO reported #{failed} failed recipient(s): #{failures}",
               status_code: 200,
               error_code: 'E_DeliveryFailures',
+              response_body: redact_emails(data.to_json)[0, 500],
+            )
+          end
+
+          # Fail-closed: if response has neither 'succeeded' key nor a non-empty
+          # 'email_id', treat as unknown response shape rather than silent success.
+          # This guards against fastaccept or API changes omitting accounting keys.
+          unless data.key?('succeeded') || data['email_id'].to_s.strip.length.positive?
+            raise Smtp2goClient::APIError.new(
+              'SMTP2GO response missing delivery accounting',
+              status_code: 200,
+              error_code: 'E_MissingAccounting',
               response_body: redact_emails(data.to_json)[0, 500],
             )
           end
@@ -130,9 +149,14 @@ module Onetime
         #
         # SMTP2GO expects: sender (string), to (array of strings), subject,
         # text_body always, html_body only when present, Reply-To via
-        # custom_headers, and fastaccept: true so the message is accepted
-        # immediately and dispatched in the background (recommended by
-        # SMTP2GO; slated to become the default).
+        # custom_headers, and fastaccept controlling sync vs async mode.
+        #
+        # When fastaccept is true, the message is accepted immediately
+        # and dispatched in the background — lower latency but no per-recipient
+        # failure detection (succeeded/failed keys omitted from response).
+        #
+        # When fastaccept is false, the response includes full delivery accounting
+        # (succeeded, failed, failures, email_id).
         #
         # @param email [Hash] Normalized email parameters
         # @return [Hash] String-keyed request payload
@@ -142,7 +166,7 @@ module Onetime
             'to' => [email[:to]],
             'subject' => email[:subject],
             'text_body' => email[:text_body],
-            'fastaccept' => true,
+            'fastaccept' => @fastaccept,
           }
 
           payload['html_body'] = email[:html_body] if html_content?(email)
