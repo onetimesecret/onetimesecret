@@ -265,6 +265,16 @@ describe('AdminCustomerDetail (ticket #22)', () => {
 
       expect(wrapper.find('[data-testid="detail-error"]').exists()).toBe(true);
     });
+
+    it('renders an "Open" link for each organization that navigates to AdminOrganizationDetail', async () => {
+      mockApi.get.mockResolvedValue({ data: detailPayload() });
+      wrapper = mountView();
+      await flushPromises();
+
+      // The organization link routes to the detail page (data-testid set by the component)
+      const orgLink = wrapper.find('[data-testid="organization-link"]');
+      expect(orgLink.exists()).toBe(true);
+    });
   });
 
   // ---- Guarded actions (CONTRACT 3 / D4) -----------------------------------

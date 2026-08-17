@@ -288,4 +288,97 @@ describe('AdminOrganizations (list + row navigation — ticket #32)', () => {
     await flushPromises();
     expect(wrapper.find('[data-testid="organizations-error"]').exists()).toBe(false);
   });
+
+  describe('search behavior (explicit submit, no debounce)', () => {
+    it('does NOT fetch on mere typing — requires explicit submit', async () => {
+      mockApi.get.mockResolvedValue({ data: orgsPayload() });
+      wrapper = mountView();
+      await flushPromises();
+
+      const initialCallCount = mockApi.get.mock.calls.length;
+
+      // Type into the search box without pressing Enter
+      const searchInput = wrapper.find('#kit-filter-search');
+      await searchInput.setValue('acme');
+      await flushPromises();
+
+      // No additional fetch should have occurred
+      expect(mockApi.get.mock.calls.length).toBe(initialCallCount);
+    });
+
+    it('fetches with the search term when Enter is pressed', async () => {
+      mockApi.get.mockResolvedValue({ data: orgsPayload() });
+      wrapper = mountView();
+      await flushPromises();
+
+      const searchInput = wrapper.find('#kit-filter-search');
+      await searchInput.setValue('acme');
+      await searchInput.trigger('keydown', { key: 'Enter' });
+      await flushPromises();
+
+      expect(mockApi.get).toHaveBeenLastCalledWith('/api/colonel/organizations', {
+        params: { page: 1, per_page: 50, search: 'acme' },
+      });
+    });
+
+    it('trims whitespace from search term before submitting', async () => {
+      mockApi.get.mockResolvedValue({ data: orgsPayload() });
+      wrapper = mountView();
+      await flushPromises();
+
+      const searchInput = wrapper.find('#kit-filter-search');
+      await searchInput.setValue('  acme corp  ');
+      await searchInput.trigger('keydown', { key: 'Enter' });
+      await flushPromises();
+
+      expect(mockApi.get).toHaveBeenLastCalledWith('/api/colonel/organizations', {
+        params: { page: 1, per_page: 50, search: 'acme corp' },
+      });
+    });
+
+    it('skips redundant fetch when search term has not changed', async () => {
+      mockApi.get.mockResolvedValue({ data: orgsPayload() });
+      wrapper = mountView();
+      await flushPromises();
+
+      const searchInput = wrapper.find('#kit-filter-search');
+
+      // First search
+      await searchInput.setValue('acme');
+      await searchInput.trigger('keydown', { key: 'Enter' });
+      await flushPromises();
+      const callCountAfterFirst = mockApi.get.mock.calls.length;
+
+      // Same search again (should be no-op)
+      await searchInput.trigger('keydown', { key: 'Enter' });
+      await flushPromises();
+
+      expect(mockApi.get.mock.calls.length).toBe(callCountAfterFirst);
+    });
+
+    it('clears search term when clear button is clicked', async () => {
+      mockApi.get.mockResolvedValue({ data: orgsPayload() });
+      wrapper = mountView();
+      await flushPromises();
+
+      // Set a search term and submit
+      const searchInput = wrapper.find('#kit-filter-search');
+      await searchInput.setValue('acme');
+      await searchInput.trigger('keydown', { key: 'Enter' });
+      await flushPromises();
+
+      // Find and click the clear button inside the FilterBar
+      const clearBtn = wrapper
+        .findAll('button')
+        .find((btn) => btn.text().includes('clearFilters'));
+      expect(clearBtn).toBeDefined();
+      await clearBtn!.trigger('click');
+      await flushPromises();
+
+      // Should fetch without the search param
+      expect(mockApi.get).toHaveBeenLastCalledWith('/api/colonel/organizations', {
+        params: { page: 1, per_page: 50 },
+      });
+    });
+  });
 });

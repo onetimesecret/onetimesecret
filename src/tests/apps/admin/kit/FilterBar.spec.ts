@@ -100,4 +100,21 @@ describe('FilterBar (config-driven filters)', () => {
     wrapper = mountBar({ searchPlaceholder: 'Find a customer…' });
     expect(wrapper.find('#kit-filter-search').attributes('placeholder')).toBe('Find a customer…');
   });
+
+  it('emits submit when Enter is pressed in the search box', async () => {
+    wrapper = mountBar();
+    const search = wrapper.find('#kit-filter-search');
+    await search.trigger('keydown', { key: 'Enter' });
+    expect(wrapper.emitted('submit')).toBeTruthy();
+    expect(wrapper.emitted('submit')!.length).toBe(1);
+  });
+
+  it('does not emit submit on other key presses', async () => {
+    wrapper = mountBar();
+    const search = wrapper.find('#kit-filter-search');
+    await search.trigger('keydown', { key: 'a' });
+    await search.trigger('keydown', { key: 'Tab' });
+    await search.trigger('keydown', { key: 'Escape' });
+    expect(wrapper.emitted('submit')).toBeFalsy();
+  });
 });
