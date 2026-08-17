@@ -894,6 +894,59 @@
         </section>
       </div>
 
+      <!-- Organizations -->
+      <section
+        class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+        <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
+          <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+            {{ t('web.admin.customers.detail.sections.organizations') }}
+            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400"
+              >({{ details.organizations.length }})</span
+            >
+          </h3>
+        </div>
+        <ul
+          v-if="details.organizations.length > 0"
+          class="divide-y divide-gray-200 dark:divide-gray-800"
+          data-testid="organizations-list">
+          <li
+            v-for="org in details.organizations"
+            :key="org.organization_id"
+            class="flex items-center justify-between px-6 py-3">
+            <div class="min-w-0">
+              <p class="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
+                {{ org.display_name || t('web.admin.customers.detail.none') }}
+              </p>
+              <p class="truncate font-mono text-xs text-gray-400 dark:text-gray-500">
+                {{ org.extid }}
+              </p>
+            </div>
+            <div class="ml-3 flex shrink-0 items-center gap-2">
+              <span
+                v-if="org.is_default"
+                class="rounded bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
+                {{ t('web.admin.customers.detail.organizations.default') }}
+              </span>
+              <router-link
+                :to="{ name: 'AdminOrganizationDetail', params: { id: org.extid } }"
+                data-testid="organization-link"
+                class="inline-flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800">
+                {{ t('web.admin.customers.detail.organizations.open') }}
+                <OIcon
+                  collection="heroicons"
+                  name="arrow-right"
+                  size="4" />
+              </router-link>
+            </div>
+          </li>
+        </ul>
+        <p
+          v-else
+          class="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.admin.customers.detail.organizations.empty') }}
+        </p>
+      </section>
+
       <!-- Billing ("why was I charged" — plan always renders from the model;
            the Stripe block degrades gracefully when unavailable). -->
       <section
@@ -1049,59 +1102,6 @@
             {{ formatDisplayDateTime(row.created) }}
           </template>
         </DataTable>
-      </section>
-
-      <!-- Organizations -->
-      <section
-        class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-        <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
-          <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-            {{ t('web.admin.customers.detail.sections.organizations') }}
-            <span class="ml-1 text-sm font-normal text-gray-500 dark:text-gray-400"
-              >({{ details.organizations.length }})</span
-            >
-          </h3>
-        </div>
-        <ul
-          v-if="details.organizations.length > 0"
-          class="divide-y divide-gray-200 dark:divide-gray-800"
-          data-testid="organizations-list">
-          <li
-            v-for="org in details.organizations"
-            :key="org.organization_id"
-            class="flex items-center justify-between px-6 py-3">
-            <div class="min-w-0">
-              <p class="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
-                {{ org.display_name || t('web.admin.customers.detail.none') }}
-              </p>
-              <p class="truncate font-mono text-xs text-gray-400 dark:text-gray-500">
-                {{ org.extid }}
-              </p>
-            </div>
-            <div class="ml-3 flex shrink-0 items-center gap-2">
-              <span
-                v-if="org.is_default"
-                class="rounded bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
-                {{ t('web.admin.customers.detail.organizations.default') }}
-              </span>
-              <router-link
-                :to="{ name: 'AdminOrganizationDetail', params: { id: org.extid } }"
-                data-testid="organization-link"
-                class="inline-flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800">
-                {{ t('web.admin.customers.detail.organizations.open') }}
-                <OIcon
-                  collection="heroicons"
-                  name="arrow-right"
-                  size="4" />
-              </router-link>
-            </div>
-          </li>
-        </ul>
-        <p
-          v-else
-          class="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
-          {{ t('web.admin.customers.detail.organizations.empty') }}
-        </p>
       </section>
 
       <!-- Active sessions (SIDECAR view — SessionMetadata safe_dump, no token/
