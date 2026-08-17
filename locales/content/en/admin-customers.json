@@ -195,6 +195,9 @@
     "text": "Public ID",
     "content_hash": "3705b64f"
   },
+  "web.admin.customers.detail.fields.internalId": {
+    "text": "Internal ID"
+  },
   "web.admin.customers.detail.fields.role": {
     "text": "Role",
     "content_hash": "14736a2e"

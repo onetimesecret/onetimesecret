@@ -160,6 +160,12 @@
       {
         key: 'publicId',
         label: t('web.admin.customers.detail.fields.publicId'),
+        value: c.extid,
+        mono: true,
+      },
+      {
+        key: 'internalId',
+        label: t('web.admin.customers.detail.fields.internalId'),
         value: c.user_id,
         mono: true,
       },
