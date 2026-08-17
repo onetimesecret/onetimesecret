@@ -241,10 +241,12 @@ module Onetime
             returnpath_subdomain: %w[CUSTOM_MAIL_SMTP2GO_RETURNPATH_SUBDOMAIN].freeze,
             tracking_subdomain: %w[CUSTOM_MAIL_SMTP2GO_TRACKING_SUBDOMAIN].freeze,
           }.freeze,
+          # fastaccept is a boolean with ENV override, not a passthrough - lives here
           dns_defaults: {
             api_base_url: 'https://api.smtp2go.com/v3',
             returnpath_subdomain: 'bounce',
             tracking_subdomain: 'track',
+            fastaccept: false,
           }.freeze,
         ),
         Descriptor.new(
