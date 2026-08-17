@@ -55,6 +55,7 @@ GET    /domains/orphaned                 ColonelAPI::Logic::Colonel::ListOrphane
 POST   /domains/:extid/verify             ColonelAPI::Logic::Colonel::VerifyCustomDomain response=json auth=sessionauth role=colonel scope=internal
 GET    /domains/:extid/probe             ColonelAPI::Logic::Colonel::ProbeDomain response=json auth=sessionauth role=colonel scope=internal
 POST   /domains/:extid/repair            ColonelAPI::Logic::Colonel::RepairDomain response=json auth=sessionauth role=colonel scope=internal
+POST   /domains/:extid/override          ColonelAPI::Logic::Colonel::OverrideDomainVerification response=json auth=sessionauth role=colonel scope=internal
 POST   /domains/:extid/transfer          ColonelAPI::Logic::Colonel::TransferDomain response=json auth=sessionauth role=colonel scope=internal
 # Per-domain config records (signin/signup/homepage/api/incoming/sso/mailer): view/upsert/delete + ensure-missing (v0.26.2 outage class)
 GET    /domains/:extid/configs           ColonelAPI::Logic::Colonel::GetDomainConfigs response=json auth=sessionauth role=colonel scope=internal
