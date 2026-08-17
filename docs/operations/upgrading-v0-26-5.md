@@ -119,8 +119,14 @@ RABBITMQ_VERIFY_PEER=true
 
 Two distinct consequences, and only one of them is a boot failure:
 
-- **A flag can turn on.** `BILLING_ENABLED=1` (or `yes`, `on`, `TRUE`) was
-  **off** in v0.26.4 and is **on** in v0.26.5. Same for `STRIPE_AUTOMATIC_TAX`.
+- **A truthy token you set deliberately is no longer ignored.**
+  `BILLING_ENABLED=1` (or `yes`, `on`, `TRUE`) was **off** in v0.26.4 and is
+  **on** in v0.26.5. Same for `STRIPE_AUTOMATIC_TAX`. Billing itself is still
+  **disabled by default and unconditionally**: unset, blank, and a missing
+  `billing.yaml` all resolve to off, and an unrecognized value raises rather than
+  enabling. Nothing turns on by itself — but if your config has said billing is
+  on while your install behaved as though it were off, it will now behave as
+  configured.
 - **A typo now stops the boot.** `BILLING_ENABLED=enabled` raises
   `Onetime::ConfigError`. The message names the flag, the character count and a
   truncated SHA-256 — never the value, since these variables sometimes hold
@@ -242,10 +248,12 @@ One of the three strict-parsed flags holds a value outside
 `1/true/yes/on/y/t` / `0/false/no/off/n/f`. The message names the flag; set it to
 `true` or `false`.
 
-### Billing turned itself on
+### Billing surfaces appeared after upgrade
 
-`BILLING_ENABLED` was set to a truthy token that v0.26.4 ignored. Set it to
-`false` if that was the intent.
+`BILLING_ENABLED` was already set to a truthy token — `1`, `yes`, `on`, `TRUE` —
+that v0.26.4 ignored and v0.26.5 honours. Billing does not enable itself from an
+unset, blank or invalid value. Set it to the literal `false` if off was the
+intent.
 
 ### Session country shows "Unknown" everywhere
 

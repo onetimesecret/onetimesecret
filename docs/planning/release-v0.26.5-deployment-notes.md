@@ -35,11 +35,15 @@ detail lives in [`docs/operations/upgrading-v0-26-5.md`](../operations/upgrading
 > old behaviour to reach a node with an untrusted certificate, that connection will
 > now fail — set `RABBITMQ_VERIFY_PEER=false` explicitly and fix the certificate.
 
-> [!WARNING]
-> **`BILLING_ENABLED` and `STRIPE_AUTOMATIC_TAX` can turn themselves on.** Both moved
-> to the same strict reader. `BILLING_ENABLED=1` (or `yes`, `on`, `TRUE`) was **off**
-> in v0.26.4 and is **on** in v0.26.5. Set the literal `false` if that was the intent.
-> A value outside `1/true/yes/on/y/t` / `0/false/no/off/n/f` now raises at boot.
+> [!NOTE]
+> **`BILLING_ENABLED=1` now does what it says.** Billing remains **disabled by
+> default** — unset, blank, and a missing `billing.yaml` all resolve to off, and an
+> unrecognized value raises at boot rather than enabling anything. What changed is
+> that a truthy token you set *deliberately* is no longer ignored: `1`, `yes`, `on`
+> or `TRUE` meant **off** in v0.26.4 and means **on** in v0.26.5. If your config says
+> billing is on and your install has been behaving as though it is off, this is why —
+> and it will start behaving as configured. Set the literal `false` if off was the
+> intent. Same reader, same change, for `STRIPE_AUTOMATIC_TAX`.
 
 **Also check before upgrading:**
 
