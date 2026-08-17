@@ -21,10 +21,10 @@
 # newly declared field is guarded the moment it exists, with no list to
 # maintain here.
 #
-# Scope and known limits: the scan is name-based, so an unrelated method that
-# happens to share a declared field's name would false-positive — acceptable
-# for the current field names (verified, suspended), and the failure message
-# says how to resolve one. Comments are skipped; multi-line conditions are
+# Scope and known limits: the scan is name-based, so native fields that share
+# a name with a string-backed field need an explicit `# boolean_field native`
+# marker at direct-read call sites. That marker documents the representation
+# and is skipped by the guard. Comments are skipped; multi-line conditions are
 # matched per-line.
 #
 # =============================================================================
@@ -88,6 +88,7 @@ RSpec.describe 'boolean_field raw-read guard' do
     offenses = source_files.flat_map do |path|
       File.read(path).each_line.with_index(1).filter_map do |line, lineno|
         next if line.strip.start_with?('#')
+        next if line.include?('# boolean_field native')
         next unless line.match?(pattern)
 
         "#{path.delete_prefix("#{ROOT}/")}:#{lineno}: #{line.strip}"

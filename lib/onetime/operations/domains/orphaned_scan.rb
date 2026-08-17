@@ -99,11 +99,9 @@ module Onetime
             extid: (domain.extid if domain.respond_to?(:extid)),
             display_domain: domain.display_domain,
             verification_state: domain.verification_state.to_s,
-            # `!!` collapses nil: an unset field is a meaningful "never
-            # determined" on the model, but colonelOrphanedDomainSchema
-            # declares `verified: z.boolean()`, and orphans are exactly the
-            # rows most likely to have never been written.
-            verified: !!domain.verified,
+            # `!!` maps an undetermined native value to false; the
+            # colonelOrphanedDomainSchema declares a plain boolean.
+            verified: !!domain.verified, # boolean_field native
             created: domain.created,
           }
         end
