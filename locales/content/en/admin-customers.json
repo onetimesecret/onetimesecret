@@ -196,7 +196,8 @@
     "content_hash": "3705b64f"
   },
   "web.admin.customers.detail.fields.internalId": {
-    "text": "Internal ID"
+    "text": "Internal ID",
+    "content_hash": "e468bb47"
   },
   "web.admin.customers.detail.fields.role": {
     "text": "Role",
@@ -303,7 +304,8 @@
     "content_hash": "21b111cb"
   },
   "web.admin.customers.detail.organizations.open": {
-    "text": "Open"
+    "text": "Open",
+    "content_hash": "ed077f3d"
   },
   "web.admin.customers.actions.role.label": {
     "text": "Role",
