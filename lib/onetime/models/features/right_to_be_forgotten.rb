@@ -65,7 +65,7 @@ module Onetime
             self.default_expiration = 365.days
             regenerate_apitoken
             self.passphrase         = ''
-            self.verified           = 'false'
+            self.verified           = false
             self.role               = 'user_deleted_self'
           end
         end

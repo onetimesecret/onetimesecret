@@ -64,7 +64,12 @@ module Onetime::CustomDomain::Features
       base.safe_dump_field :status
       base.safe_dump_field :vhost, ->(obj) { obj.parse_vhost }
       base.safe_dump_field :vhost_fetch_failed_at, ->(obj) { obj.vhost_fetch_failed_at&.to_i }
-      base.safe_dump_field :verified, ->(obj) { obj.verified.to_s == 'true' }
+      # Both are already real booleans on the model (boolean_field, storage
+      # :native). The `!!` is only to collapse nil — an unset field is a
+      # meaningful "never determined" in Ruby, but the API contract these
+      # feed (and the frontend Zod schema) is a plain boolean.
+      base.safe_dump_field :verified, ->(obj) { !!obj.verified }
+      base.safe_dump_field :resolving, ->(obj) { !!obj.resolving }
       base.safe_dump_field :created
       base.safe_dump_field :updated
 

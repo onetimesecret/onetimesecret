@@ -10,6 +10,7 @@ const BASE_DOMAIN = {
   trd: '',
   is_apex: false,
   verified: false,
+  resolving: false,
 } as const;
 
 const BRAND_DOMAIN1 = {
@@ -47,6 +48,7 @@ export const mockDomainsRaw: Record<string, Record<string, unknown>> = {
     created: 1704067200,     // 2024-01-01T00:00:00Z
     updated: 1704067200,
     verified: true,
+    resolving: true,
     is_apex: true,
     brand: { ...BRAND_DOMAIN1 },
     vhost: {},
@@ -83,6 +85,7 @@ export const mockDomains: Record<string, CustomDomain> = {
     created: new Date(1704067200 * 1000),
     updated: new Date(1704067200 * 1000),
     verified: true,
+    resolving: true,
     is_apex: true,
     brand: { ...BRAND_DOMAIN1 },
     vhost: {},

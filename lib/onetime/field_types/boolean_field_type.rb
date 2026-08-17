@@ -4,29 +4,49 @@
 
 module Onetime
   module FieldTypes
-    # Custom Familia field type that stores boolean-ish values in a canonical
-    # 'true' / 'false' string form, regardless of how callers express truth.
+    # Custom Familia field type that coerces boolean-ish values to a single
+    # declared encoding on every write, and heals legacy spellings on read.
     #
     # ## Why this exists
     #
-    # Familia's hash fields are persisted to Redis as strings, so storing
-    # native Ruby booleans is a category error — they round-trip as whatever
-    # string the redis client picks (`"true"`, `"1"`, etc., depending on the
-    # call path). Codebases that lean on `field :verified` end up with
-    # mixed representations: `'true'`, `'false'`, `'1'`, `'0'`, sometimes
-    # raw booleans in memory, and predicate methods like `verified?` end up
-    # carrying the burden of every possible spelling.
+    # A plain `field :verified` accepts whatever the caller hands it, so a
+    # model accumulates mixed representations across its rows: `true`,
+    # `'true'`, `'1'`, `1`, `'yes'`, `nil`. Reads then have to carry the
+    # burden of every spelling, and the ones that forget — `verified == true`
+    # against a row stored as the string `'true'` — are silent false
+    # negatives.
     #
-    # By moving canonicalization down to the field type itself we get:
+    # By moving coercion down to the field type we get:
     #
-    # 1. **One source of truth**: every write — `cust.verified = …`,
-    #    `Customer.create!(verified: …)`, the fast writer
-    #    `cust.verified!(…)` — funnels through {.canonicalize}.
-    # 2. **Self-healing reads**: legacy values like `'1'` written before
-    #    this type existed are normalized when loaded from Redis, so
-    #    downstream code only ever sees `'true'` or `'false'`.
-    # 3. **Predicate simplicity**: `def verified? = verified == 'true'`.
-    #    No `to_s.downcase`, no truthy-table.
+    # 1. **One source of truth**: every write — `obj.verified = …`,
+    #    `Model.create!(verified: …)`, the fast writer `obj.verified!(…)` —
+    #    funnels through {#coerce}.
+    # 2. **Self-healing reads**: Familia's load path assigns through the
+    #    setter, so a row persisted as `'1'` before this type existed comes
+    #    back coerced. Downstream code only ever sees the declared encoding.
+    # 3. **No defensive reads**: callers just use the field. No
+    #    `.to_s == 'true'`, no truthy-table, no predicate wrapper whose only
+    #    job is to re-do the coercion the type already did.
+    #
+    # ## Storage encodings
+    #
+    # `storage:` names how the value is persisted, using the same vocabulary
+    # as the CustomDomain config models' FIELD_SPECS (#3951):
+    #
+    # - `:native` (**preferred for new fields**) — coerce to a real Ruby
+    #   `true` / `false`. Familia JSON-encodes scalars, so these land in the
+    #   datastore as the JSON literals `true` / `false` and come back as real
+    #   booleans. `obj.verified` IS a boolean; `if obj.verified` is correct,
+    #   and it serializes to JSON as a boolean without a transform.
+    #   `nil` is preserved — an unset field means "never determined", which
+    #   is not the same claim as `false`.
+    #
+    # - `:string` (**default, grandfathered**) — coerce to the strings
+    #   `'true'` / `'false'`, including `nil` → `'false'`. This is what
+    #   Customer's `verified` / `suspended` already store; changing it would
+    #   rewrite live rows, so it stays the default and those models keep
+    #   their `verified?` / `suspended?` predicates. Do not choose it for new
+    #   fields.
     #
     # ## Familia integration
     #
@@ -44,8 +64,10 @@ module Onetime
     # validation, …) should live alongside this one under
     # `lib/onetime/field_types/` and follow the same shape:
     #
-    #   1. A `FieldType` subclass overriding {#define_setter},
-    #      {#serialize}, and {#deserialize} as appropriate.
+    #   1. A `FieldType` subclass overriding {#define_setter} and
+    #      {#define_fast_writer} — the two paths that actually reach the
+    #      value. (Familia 2.12 declares `#serialize` / `#deserialize`
+    #      hooks on FieldType but never calls them; don't rely on those.)
     #   2. A small `…Macro` module exposing a class method that wraps
     #      `register_field_type`.
     #   3. A feature module (or model directly) that does
@@ -62,16 +84,16 @@ module Onetime
     #
     # ## Usage
     #
-    #   class Customer < ::Familia::Horreum
+    #   class CustomDomain < ::Familia::Horreum
     #     extend Onetime::FieldTypes::BooleanFieldMacro
-    #     boolean_field :verified
+    #     boolean_field :verified, storage: :native
     #   end
     #
-    #   cust = Customer.new
-    #   cust.verified = 1       # in-memory: 'true'
-    #   cust.verified           # => 'true'
-    #   cust.verified = 'YES'   # in-memory: 'true'
-    #   cust.verified!('no')    # fast writer; persists 'false' to Redis
+    #   dom = CustomDomain.new
+    #   dom.verified = 1        # => true
+    #   dom.verified = 'YES'    # => true
+    #   dom.verified = nil      # => nil (unset, not false)
+    #   dom.verified!('no')     # fast writer; persists the JSON literal false
     #
     class BooleanFieldType < ::Familia::FieldType
       # Canonical truthy aliases (case-insensitive). Any value whose
@@ -81,50 +103,98 @@ module Onetime
       # contract change.
       TRUTHY = %w[true 1 yes].freeze
 
+      STORAGE_ENCODINGS = [:native, :string].freeze
+
+      # Is this value one of the recognized spellings of true? Case
+      # insensitive, and covers both the Ruby value and its string form, so
+      # `true`, `'true'`, `'TRUE'`, `1`, `'1'`, `'yes'` all qualify.
+      #
+      # @param value [Object] anything responding to `to_s`; nil is allowed
+      # @return [Boolean]
+      def self.truthy?(value)
+        TRUTHY.include?(value.to_s.downcase)
+      end
+
       # Map any reasonable input to the canonical `'true'` / `'false'`
-      # string form. Class-level so it can be referenced from tests and
-      # from the closures defined inside {#define_setter} without holding
-      # a reference to `self`.
+      # string form used by `storage: :string` fields.
       #
       # @param value [Object] anything responding to `to_s`; nil is allowed
       # @return [String] either `'true'` or `'false'`
       def self.canonicalize(value)
-        TRUTHY.include?(value.to_s.downcase) ? 'true' : 'false'
+        truthy?(value) ? 'true' : 'false'
       end
 
-      # Override the setter to canonicalize before storing in the
-      # in-memory ivar. Mirrors {::Familia::FieldType#define_setter},
-      # interposing a coercion step so that subsequent reads of the raw
-      # field via `instance_variable_get` already see the canonical form.
+      # @return [Symbol] :native or :string
+      attr_reader :storage
+
+      def initialize(name, storage: :string, **)
+        unless STORAGE_ENCODINGS.include?(storage)
+          raise ArgumentError,
+            "Unknown boolean storage #{storage.inspect} for field #{name} " \
+            "(expected one of #{STORAGE_ENCODINGS.inspect})"
+        end
+
+        @storage = storage
+        super(name, **)
+      end
+
+      # Coerce an input to this field's declared encoding. Under `:native`
+      # nil is preserved — an unset field means "never determined", a
+      # different claim than false. `:string` keeps its grandfathered
+      # nil → 'false'.
+      #
+      # @param value [Object]
+      # @return [Boolean, String, nil]
+      def coerce(value)
+        return self.class.canonicalize(value) unless storage == :native
+
+        value.nil? ? nil : self.class.truthy?(value)
+      end
+
+      # Override the setter to coerce before storing in the in-memory ivar.
+      # Mirrors {::Familia::FieldType#define_setter}, interposing the
+      # coercion step.
+      #
+      # This is also where legacy rows self-heal: Familia's load path
+      # deserializes each stored value and assigns it through this setter,
+      # so a row persisted as `'true'` (a JSON-quoted string) or `'1'`
+      # arrives coerced, without a data migration.
       def define_setter(klass)
         field_name  = @name
         method_name = @method_name
+        field_type  = self
 
         handle_method_conflict(klass, :"#{method_name}=") do
           klass.define_method :"#{method_name}=" do |value|
-            canonical = BooleanFieldType.canonicalize(value)
+            coerced   = field_type.coerce(value)
             old_value = instance_variable_get(:"@#{field_name}")
-            instance_variable_set(:"@#{field_name}", canonical)
+            instance_variable_set(:"@#{field_name}", coerced)
             mark_dirty!(field_name, old_value) if respond_to?(:mark_dirty!)
           end
         end
       end
 
-      # Database serialization hook. Even though {#define_setter} already
-      # canonicalizes on the in-memory side, the fast writer
-      # (`field!(value)`) and any future Familia code path that calls
-      # `serialize_value` directly bypass the setter — so we canonicalize
-      # here too. Belt and suspenders against gem refactors.
-      def serialize(value, _record = nil)
-        BooleanFieldType.canonicalize(value)
-      end
+      # Familia's fast writer (`field!(value)`) assigns the ivar through the
+      # setter above, but persists `serialize_value(raw_argument)` — the
+      # UN-coerced input (familia/field_type.rb#define_fast_writer). That is
+      # the one write path the setter cannot cover, so wrap the generated
+      # method to coerce the argument before it reaches either side.
+      #
+      # A nil/absent argument is left alone: Familia treats `field!` with no
+      # usable value as a READ, and coercing it would turn the getter into a
+      # write of false.
+      def define_fast_writer(klass)
+        super
+        return unless @fast_method_name
+        return unless klass.method_defined?(@fast_method_name, false)
 
-      # Database deserialization hook. Loaded values pass through here
-      # before being assigned to the in-memory ivar, so this is where
-      # legacy data self-heals: rows persisted as `'1'` / `'0'` (or any
-      # other historical spelling) come back as `'true'` / `'false'`.
-      def deserialize(value, _record = nil)
-        BooleanFieldType.canonicalize(value)
+        field_type = self
+        original   = klass.instance_method(@fast_method_name)
+
+        klass.define_method(@fast_method_name) do |*args|
+          args = [field_type.coerce(args.first)] unless args.empty? || args.first.nil?
+          original.bind_call(self, *args)
+        end
       end
     end
 
