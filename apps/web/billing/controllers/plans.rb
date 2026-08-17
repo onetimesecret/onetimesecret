@@ -153,6 +153,21 @@ module Billing
           session_params[:client_reference_id] = cust.extid
 
           # Check for existing Stripe customer on user's default organization
+          #
+          # NOTE: this reuse is deliberately NOT ownership-gated, even though
+          # default_org can be a shared tenant organization the caller only
+          # belongs to (default_org_id is repointed by JoinDomainOrganization —
+          # the same premise behind the portal gate in
+          # customer_portal_redirect). Withholding the reuse here makes things
+          # worse, not better: this checkout path writes no orgid metadata
+          # (see subscription_data below), so completion resolves the target org
+          # through the caller's default_org_id anyway
+          # (Billing::Logic::Welcome::ProcessCheckoutSession), and
+          # ApplySubscriptionToOrg would then overwrite the organization's
+          # stripe_customer_id with the new Customer minted for the member —
+          # detaching the org from its own billing customer and surfacing that
+          # member's payment instrument to the owner. Gating the checkout for
+          # non-owners belongs with the orgid-metadata work in #4017, not here.
           default_org = default_organization_for(cust)
           if default_org&.stripe_customer_id.to_s.length.positive?
             session_params[:customer] = default_org.stripe_customer_id
@@ -302,6 +317,41 @@ module Billing
 
         # Load default organization for customer
         org = find_or_create_default_organization(cust)
+
+        # AUTHORIZATION: the Stripe Customer Portal is the organization's
+        # billing root — it exposes the full invoice history and payment
+        # instruments, and it can change the payment method and CANCEL the
+        # subscription. Membership is not sufficient authority for any of that.
+        #
+        # cust.default_org_id is NOT proof of ownership. JoinDomainOrganization
+        # repoints it to the shared tenant organization for a caller who is only
+        # a 'member' (auth/operations/join_domain_organization.rb, and likewise
+        # bulk_sso_migration.rb / add_member_command.rb), so a pre-existing
+        # account holder who signs in through a tenant's custom-domain SSO ends
+        # up defaulting to an org they do not own. Without this gate that member
+        # is handed the tenant's portal.
+        #
+        # Gate on ownership rather than the manage_billing entitlement:
+        # effective entitlements are the org plan ∩ ROLE_ENTITLEMENTS[role], and
+        # no shipped catalog grants manage_billing (it appears in
+        # etc/examples/billing.example.yaml only as a definition, not in any
+        # plan's entitlements list), so an entitlement gate here would deny
+        # every caller — legitimate owners included. Ownership is the same test
+        # every mutating sibling endpoint already applies via
+        # load_organization(..., require_owner: true) (controllers/billing.rb).
+        #
+        # Redirect rather than raise Onetime::Forbidden: this route is declared
+        # with no response= (routes.txt), so Otto content-negotiates the error
+        # and a browser navigation would render a bare text/plain 403 body.
+        unless org.owner?(cust)
+          billing_logger.warn 'Customer portal denied: caller does not own organization',
+            {
+              org_extid: org.extid,
+              customer_extid: cust.extid,
+            }
+          res.redirect '/account?billing_error=not_authorized'
+          return
+        end
 
         unless org.stripe_customer_id
           billing_logger.warn 'No Stripe customer ID for organization',
