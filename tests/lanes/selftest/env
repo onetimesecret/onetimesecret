@@ -19,3 +19,10 @@ AUTHENTICATION_MODE=simple
 REDIS_URL=''
 RABBITMQ_URL=''
 AUTH_DATABASE_URL=''
+
+# No LANES_CODEGEN, deliberately: this lane runs no Ruby and no Node, so
+# nothing under generated/ is a prerequisite and the runner's codegen phase
+# has nothing to do here. Declaring it empty would read the same to the
+# runner but would also make this the one lane whose codegen state a caller
+# cannot override — which is how spec/unit/lanes/codegen_phase_spec.rb
+# drives the phase without paying for a real lane.

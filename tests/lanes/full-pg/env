@@ -11,3 +11,9 @@ AUTH_DATABASE_URL_MIGRATIONS='postgresql://onetime_migrator:migratepass@127.0.0.
 # tasks (it then sets the plain variables itself, to the same values).
 AUTH_DATABASE_URL_PG='postgresql://onetime_user:testpass@127.0.0.1:2154/onetime_auth_test'
 AUTH_DATABASE_URL_MIGRATIONS_PG='postgresql://onetime_migrator:migratepass@127.0.0.1:2154/onetime_auth_test'
+
+# Generated prerequisites, produced by tests/lanes/run before the tasks
+# below (see the codegen phase there). spec/spec_helper.rb refuses to boot
+# with an empty generated/locales, so every lane that runs Ruby specs
+# declares it.
+LANES_CODEGEN='locales'

@@ -3,3 +3,10 @@
 # CI job: migration-tests-sqlite (.github/workflows/migration-tests.yml)
 AUTHENTICATION_MODE=full
 AUTH_DATABASE_URL='sqlite::memory:'
+
+# Generated prerequisites, produced by tests/lanes/run before the tasks
+# below (see the codegen phase there). `locales-python` rather than
+# `locales`: it invokes the stdlib-only compile script directly, the same
+# command `pnpm run locales:sync` wraps, so the paths-filtered migration
+# workflow needs no Node setup.
+LANES_CODEGEN='locales-python'

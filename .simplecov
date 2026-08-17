@@ -5,9 +5,12 @@
 #
 # Produces a Cobertura XML coverage report consumed by GitHub Code Quality.
 # Coverage is opt-in via COVERAGE=true so normal/local test runs are
-# unaffected. The unit suite runs across several RSpec processes (unit, cli and
-# per-app specs), so each process gets a unique command name and SimpleCov
-# merges their results into a single coverage/coverage.xml.
+# unaffected. The unit suite still runs across more than one RSpec process
+# (spec:fast is two: spec:root_fast and spec:apps_fast — it was thirteen before
+# the fan-out was consolidated), so each process gets a unique command name and
+# SimpleCov merges their results into a single coverage/coverage.xml. The
+# process count is not a constant here on purpose: pid-keyed command names and
+# the merge timeout below work for any number of them.
 if ENV['COVERAGE'] == 'true'
   require 'simplecov-cobertura'
 

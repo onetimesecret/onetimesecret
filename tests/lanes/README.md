@@ -13,6 +13,7 @@ $ docker compose -f compose.test.yml up --wait -d   # or: podman compose
 $ tests/lanes/run --list
 $ tests/lanes/run unit
 $ tests/lanes/run full-pg --overlay billing
+$ tests/lanes/run-all --parallel
 $ docker compose -f compose.test.yml down
 ```
 
@@ -52,7 +53,7 @@ $ tests/lanes/run unit --only try/logic/sso_config/ssrf_protection_transition_tr
 | `full-pg-agnostic`  | valkey, rabbitmq, postgres | `spec:integration:full:agnostic_on_pg`                     | ruby-integration-full — PG agnostic rows |
 | `disabled`          | valkey, rabbitmq           | `spec:integration:disabled`                                | ruby-integration-disabled (T3)           |
 | `api`               | valkey, rabbitmq           | `spec:api`                                                 | blocking step, T3 simple job             |
-| `smoke`             | valkey, rabbitmq           | `pnpm test:smoke`                                          | smoke-test (T3)                          |
+| `smoke`             | valkey, rabbitmq           | `pnpm test:smoke`                                          | local-only                               |
 | `migrations-sqlite` | valkey, rabbitmq           | `spec:integration:migrations:sqlite`                       | migration-tests.yml — SQLite job         |
 | `migrations-pg`     | valkey, rabbitmq, postgres | `spec:integration:migrations:postgres` plus dual-URL check | migration-tests.yml — PostgreSQL job     |
 | `selftest`          | none                       | boundary fixture                                           | none — driven by `spec/unit/lanes/`      |
@@ -75,26 +76,32 @@ Test services bind only to `127.0.0.1` ports beginning with `21`. Development
 services retain their canonical ports, so lane configuration cannot target a
 development datastore by accident.
 
-| Service  | Test port | Canonical port |
-| -------- | --------- | -------------- |
-| valkey   | 2163      | 6379           |
-| postgres | 2154      | 5432           |
-| rabbitmq | 2156      | 5672           |
+| Service                 | Test port | Canonical port |
+| ----------------------- | --------- | -------------- |
+| valkey                  | 2163      | 6379           |
+| postgres                | 2154      | 5432           |
+| rabbitmq (AMQP)         | 2156      | 5672           |
+| rabbitmq management API | 12156     | 15672          |
 
-Define mappings only in `compose.test.yml`. URLs in this tree must use a test
-port; a non-`21xx` endpoint is a safety defect.
+Define mappings only in `compose.test.yml`. Lane URLs use `21xx` service
+ports; the runner-only RabbitMQ management endpoint is the loopback-only
+`12156` exception. Any other endpoint is a safety defect.
 
 ## Per-worktree datastore isolation
 
 Outside CI, lanes isolate each checkout—including Git worktrees—from sibling
 checkouts while sharing the local test service instances:
 
-- Valkey uses a deterministic per-worktree database index (`1..65535`), exposed
-  as `LANES_DATASTORE_DB`. Its host and port remain the test service.
-- PostgreSQL uses a corresponding `onetime_auth_test_w<index>` database.
-- CI and direct test commands outside the lane runner use the shared index or
-  database (`0` / `onetime_auth_test`). Do not rely on that mode for concurrent
-  local worktrees.
+- Valkey uses a deterministic index (`1..65535`) derived from the lane,
+  normalized overlay set, and checkout root, exposed as `LANES_DATASTORE_DB`.
+  Its host and port remain the test service.
+- PostgreSQL uses the corresponding `onetime_auth_test_w<index>` database.
+- RabbitMQ uses the corresponding `w<index>` vhost. The runner recreates and
+  grants the vhost through RabbitMQ's loopback-only management API before a
+  lane starts, preventing stale queues/messages from a prior run.
+- CI and direct test commands outside the lane runner use the shared index,
+  database, and vhost (`0` / `onetime_auth_test` / `/`). Do not rely on that
+  mode for concurrent local worktrees.
 - A collision between derived Valkey indexes fails loudly rather than allowing
   fixture contamination. Pin `LANES_DATASTORE_DB` in a lane `env` file or an
   overlay if the runner reports a collision; a shell export is intentionally
@@ -141,14 +148,40 @@ lane shell intentionally excludes the repository's development environment.
 To enable a local, gitignored overlay for that shell, write its name to
 `.overlays`, for example `echo billing > .overlays`.
 
+## Parallel local runs
+
+`tests/lanes/run-all` composes direct lane runs. With no lane names it runs
+`unit simple disabled full-sqlite`; use `--parallel` to fan them out:
+
+```console
+$ docker compose -f compose.test.yml up --wait -d
+$ tests/lanes/run-all --parallel
+$ tests/lanes/run-all --parallel unit full-sqlite
+```
+
+It generates the union of requested `LANES_CODEGEN` prerequisites once before
+starting children, then starts each child with `--skip-codegen`. This prevents
+parallel writes to shared `generated/` files. Logs and RSpec JSON results are
+written below `tmp/lanes/<timestamp>-<pid>/`; use `--dry-run` to inspect the
+plan without generating or running tests.
+
+`--parallel` requires test services to already be running and is rejected when
+`CI` is set. It also rejects a duplicate lane: two copies derive the same
+isolation key and would share a datastore. The `smoke` lane is local-only and
+cannot be used with `--parallel`, because its task regenerates locales itself
+and can race with other lanes. Run it alone (normally
+`tests/lanes/run smoke`).
+
 ## Rules
 
-1. Endpoints in this tree target only `127.0.0.1` test ports in the `21xx`
-   range.
+1. Endpoints in this tree target only loopback test ports: application services
+   use the `21xx` range, with RabbitMQ management as the runner-only `12156`
+   exception.
 2. Commit no real secrets. `base.env` contains public deterministic dummy
    values; real environment configuration remains outside the repository.
-3. Each lane's `tasks` file owns the generated prerequisites required for a
-   complete lane run.
+3. Each lane's `env` file declares generated prerequisites through
+   `LANES_CODEGEN`; direct runs execute them, while `run-all` owns the shared
+   one-time phase before children start.
 4. Lanes define the test environment and workload. CI owns gating,
    parallelism, artifacts, and reporting policy.
 

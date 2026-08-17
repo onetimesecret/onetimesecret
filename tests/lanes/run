@@ -297,9 +297,18 @@ list_lanes() {
 
 if [[ $# -eq 0 || "${1:-}" == "--list" || "${1:-}" == "-l" ]]; then
   echo "usage: tests/lanes/run <lane> [--overlay <name>]... [--only <path>]..."
+  echo "                            [--skip-codegen] [--print-key]"
   echo
   echo "  --only <path>  run just these test files in the lane's environment,"
-  echo "                 instead of the lane's tasks file. Repeatable."
+  echo "                 instead of the lane's tasks file. Repeatable. Skips"
+  echo "                 the codegen phase too — the tasks file is bypassed"
+  echo "                 wholesale, which is what it has always done."
+  echo "  --skip-codegen skip the lane's declared codegen (LANES_CODEGEN in"
+  echo "                 its env file). A direct run ALWAYS generates; this is"
+  echo "                 for a caller that generated once before fanning out."
+  echo "  --print-key    print the isolation key and datastore index this"
+  echo "                 lane+overlay set derives, then exit. Touches no"
+  echo "                 services and runs nothing."
   echo
   echo "Lanes:"
   list_lanes | sed 's/^/  /'
@@ -321,6 +330,16 @@ fi
 
 OVERLAYS=()
 ONLY=()
+# Both are runner-internal control state, assigned here — below the scrub —
+# and never read from the environment. That is the whole point: the scrub
+# cleared every exported name above, so a fresh assignment is a name the
+# calling shell provably did not supply. A flag that was instead read as
+# `${LANES_SKIP_CODEGEN:-}` would be settable by a dev shell (a readonly
+# exported copy even survives the scrub), and "did this run generate its
+# own prerequisites?" is exactly the kind of control state this runner
+# exists to take away from the caller.
+SKIP_CODEGEN=0
+PRINT_KEY=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --overlay)
@@ -344,12 +363,52 @@ while [[ $# -gt 0 ]]; do
       ONLY+=("$2")
       shift 2
       ;;
+    --skip-codegen)
+      SKIP_CODEGEN=1
+      shift
+      ;;
+    --print-key)
+      PRINT_KEY=1
+      shift
+      ;;
     *)
       echo "error: unknown argument '$1'" >&2
       exit 64
       ;;
   esac
 done
+
+# ── Isolation key ────────────────────────────────────────────────────────
+# What "one run" means for datastore isolation: the lane, the overlays it
+# was given, and the checkout it runs in. All three change what a run
+# writes, so all three belong in the key. Keying on the checkout alone —
+# which is what this did when the feature landed — hands `unit` and
+# `full-sqlite` in one worktree the same valkey DB and the same PG
+# database, i.e. exactly the cross-contamination the isolation exists to
+# prevent, one level in.
+#
+# Overlays are normalized before they join the key: `--overlay billing
+# --overlay billing`, and (once there are two) `--overlay a --overlay b`
+# vs `--overlay b --overlay a`, describe the same environment, so they
+# have to derive the same index. A developer who reorders flags and gets a
+# fresh empty datastore back has been given a different bug to chase, not
+# isolation. Dedupe, sort in C byte order (not the locale's collation, or
+# the index depends on LANG), join with commas.
+#
+# REPO_ROOT is LAST on purpose. The owner marker below stores this exact
+# string and has to recover the path from it by stripping the first two
+# fields; a path may contain '|', so it must be the field that runs to the
+# end of the string. The other two cannot contain one: overlay names are
+# validated to [A-Za-z0-9_-]+ above, and a lane name is a directory under
+# tests/lanes/.
+OVERLAY_KEY=''
+if [[ ${#OVERLAYS[@]} -gt 0 ]]; then
+  while builtin read -r _lanes_overlay; do
+    OVERLAY_KEY+="${OVERLAY_KEY:+,}${_lanes_overlay}"
+  done < <(builtin printf '%s\n' "${OVERLAYS[@]}" | LC_ALL=C sort -u)
+  builtin unset _lanes_overlay
+fi
+LANES_ISOLATION_KEY="${LANE}|${OVERLAY_KEY}|${REPO_ROOT}"
 
 set -a
 # shellcheck source=/dev/null
@@ -373,8 +432,9 @@ set +a
 # Every checkout of this repo (worktrees included) shares the one test
 # valkey on 127.0.0.1:2163. Two lane runs sharing DB 0 contaminate each
 # other's fixtures and the failure set becomes nondeterministic (#4168).
-# Assign each worktree its own valkey DB index, derived from the repo
-# root path, so concurrent runs in a worktree forest never share keys.
+# Assign each run its own valkey DB index, derived from the isolation key
+# built above (lane + overlays + repo root), so concurrent runs — across a
+# worktree forest OR across lanes in one worktree — never share keys.
 #
 # The index rides on ONE name, LANES_DATASTORE_DB, which is exported into
 # the task environment (it is set below the scrub, so it survives):
@@ -389,20 +449,27 @@ set +a
 # index explicitly by setting LANES_DATASTORE_DB itself; the caller's
 # shell cannot (the scrub already cleared it).
 #
-# A checksum maps many paths onto 65535 indexes, so two live worktrees CAN
+# A checksum maps many keys onto 65535 indexes, so two live runs CAN
 # derive the same one — and a silent collision reproduces exactly the
 # contamination this feature exists to prevent, which is the worst way for
 # it to fail. The index space is sized so that stays rare (~2% lifetime odds
 # across 20 worktrees), and the valkey preflight below DETECTS the case and
 # fails loudly instead of resolving it: an owner marker inside the selected
-# database names the repo root using it, and a mismatch against a checkout
-# that still exists on disk aborts the run. No registry on disk, no stale
+# database names the isolation key using it, and a mismatch whose checkout
+# still exists on disk aborts the run. No registry on disk, no stale
 # reclamation, no cross-process locking — a collision is an error with a
 # one-line fix (pin LANES_DATASTORE_DB in a lane overlay), not a state
 # machine. The marker lives in the datastore because that's where writes
 # are atomic (SET NX resolves on the server); it can't be consulted before
 # the preflight, but it doesn't need to be — the derived index is final,
 # never probed away from.
+#
+# The one thing the key composition costs: changing what is fed to cksum
+# re-keys every existing checkout. Old indexes and old
+# onetime_auth_test_w<index> databases become orphans nothing reclaims —
+# see the cleanup query in tests/lanes/README.md — and per-lane keying
+# multiplies the PG side, since full-pg, full-pg-agnostic and migrations-pg
+# now derive three databases per worktree instead of sharing one.
 
 if [[ -z "${LANES_DATASTORE_DB:-}" ]]; then
   if [[ -n "${CI:-}" ]]; then
@@ -418,7 +485,11 @@ if [[ -z "${LANES_DATASTORE_DB:-}" ]]; then
     # a hash of inode numbers). Derived indexes land in 1..65535
     # (compose.test.yml starts valkey with --databases 65536), leaving 0 to
     # mean "the shared, unsuffixed datastore".
-    read -r _lanes_cksum _ < <(builtin printf '%s' "${REPO_ROOT}" | cksum)
+    #
+    # `printf '%s'`, not `echo`: a trailing newline in the input is part of
+    # what cksum digests, so adding one would shift every index by two (the
+    # value here and the marker written from it) for no reason.
+    read -r _lanes_cksum _ < <(builtin printf '%s' "${LANES_ISOLATION_KEY}" | cksum)
     LANES_DATASTORE_DB=$(( 1 + _lanes_cksum % 65535 ))
     builtin unset _lanes_cksum
   fi
@@ -472,6 +543,43 @@ if [[ "${LANES_DATASTORE_DB}" != 0 ]]; then
   builtin unset _lanes_name
 fi
 
+# RabbitMQ gets it as a vhost: the default '/' becomes 'w<index>'. Queue and
+# exchange names are scoped to the vhost named in Connection.Open, and that
+# vhost comes from the URL alone, so this is the only isolation available for
+# the specs that exercise the production queue names — those are hardcoded in
+# lib/onetime/jobs/publisher.rb and cannot be salted per run.
+#
+# No leading slash in the name: a vhost literally named '/w<index>' would need
+# %2F encoding in the URL and in every management-API path. 'w<index>' appends
+# cleanly and stays a literal path segment.
+#
+# The optional trailing slash is matched and dropped, not preserved:
+# 'amqp://host:2156/' addresses the EMPTY-STRING vhost, which is a third vhost
+# distinct from both '/' and 'w<index>'. Consuming it also makes the rewrite
+# idempotent — a URL already carrying '/w<index>' does not match. The selftest
+# lane blanks RABBITMQ_URL, and index 0 is the shared, unsuffixed datastore,
+# so both are left alone.
+if [[ "${LANES_DATASTORE_DB}" != 0 &&
+      -n "${RABBITMQ_URL:-}" &&
+      "${RABBITMQ_URL}" =~ ^(.*@127\.0\.0\.1:2156)/?$ ]]; then
+  RABBITMQ_URL="${BASH_REMATCH[1]}/w${LANES_DATASTORE_DB}"
+  export RABBITMQ_URL
+fi
+
+# ── --print-key ──────────────────────────────────────────────────────────
+# Everything above is pure derivation: the addressing this lane+overlay set
+# resolves to, computed without touching a service. Report it and stop.
+# This is the answer to "which datastore is this lane on?", which is what a
+# developer needs when the collision guard below tells them to pin an index
+# — and what a spec needs to assert that two lanes derive two indexes,
+# without paying for a lane run to find out.
+if [[ ${PRINT_KEY} -eq 1 ]]; then
+  echo "lane=${LANE} overlays=${OVERLAY_KEY:-none} db=${LANES_DATASTORE_DB}" \
+       "redis=${REDIS_URL:-n/a} auth_db=${AUTH_DATABASE_URL:-n/a}" \
+       "key=${LANES_ISOLATION_KEY}"
+  exit 0
+fi
+
 # Billing rides on the full-mode auth stack (Stripe customer records live
 # in the auth database); it has no meaning in other modes.
 if [[ "${BILLING_ENABLED:-false}" == "true" && "${AUTHENTICATION_MODE:-}" != "full" ]]; then
@@ -486,37 +594,81 @@ fi
 # the workflow owns service lifecycle): LANES_NO_AUTOSTART=1.
 port_open() { (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null; }
 
+# A machine can have both Docker Desktop and Podman installed. Prefer Podman
+# when it owns the live test RabbitMQ container; otherwise Docker would try to
+# bind ports already held by Podman rather than recreate the stale container.
+compose_runtime() {
+  local podman_rabbitmq=''
+  if command -v podman >/dev/null 2>&1; then
+    podman_rabbitmq="$(env ${_lanes_daemon_env[@]+"${_lanes_daemon_env[@]}"} \
+      podman ps -q --filter 'name=ots-test-rabbitmq-1' 2>/dev/null || true)"
+    if [[ -n "${podman_rabbitmq}" ]]; then
+      printf '%s' podman
+      return
+    fi
+  fi
+  if command -v docker >/dev/null 2>&1; then
+    printf '%s' docker
+  elif command -v podman >/dev/null 2>&1; then
+    printf '%s' podman
+  else
+    return 1
+  fi
+}
+
+compose_up() {  # remaining arguments go to `compose up`
+  local runtime
+  runtime="$(compose_runtime)" || return 1
+  env ${_lanes_daemon_env[@]+"${_lanes_daemon_env[@]}"} \
+    "${runtime}" compose -f "${REPO_ROOT}/compose.test.yml" up "$@"
+}
+
 # Ports come from the lane's own env, so this can't drift from
-# compose.test.yml (whose URLs the lane files mirror).
+# compose.test.yml (whose URLs the lane files mirror). A rewritten RabbitMQ
+# URL also needs the management API: AMQP may be healthy while a container
+# created before the management-port mapping lacks 12156 entirely.
+RABBITMQ_MANAGEMENT_PORT=12156
 REQUIRED_PORTS=()
 for _url in "${REDIS_URL:-}" "${RABBITMQ_URL:-}" "${AUTH_DATABASE_URL:-}"; do
   [[ "$_url" =~ 127\.0\.0\.1:([0-9]+) ]] && REQUIRED_PORTS+=("${BASH_REMATCH[1]}")
 done
+if [[ "${LANES_DATASTORE_DB}" != 0 && "${RABBITMQ_URL:-}" =~ 127\.0\.0\.1:2156 ]]; then
+  REQUIRED_PORTS+=("${RABBITMQ_MANAGEMENT_PORT}")
+fi
 
 missing=0
 for p in ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"}; do port_open "$p" || missing=1; done
 
 if [[ $missing -eq 1 && -z "${LANES_NO_AUTOSTART:-}" ]]; then
   echo "[lane:${LANE}] test services not reachable; starting compose.test.yml" >&2
-  # `env <snapshot>` scopes the daemon-addressing vars to the compose client
-  # (see the snapshot block above); they never reach the task process.
-  if command -v docker >/dev/null 2>&1; then
-    env ${_lanes_daemon_env[@]+"${_lanes_daemon_env[@]}"} \
-      docker compose -f "${REPO_ROOT}/compose.test.yml" up --wait -d
-  elif command -v podman >/dev/null 2>&1; then
-    env ${_lanes_daemon_env[@]+"${_lanes_daemon_env[@]}"} \
-      podman compose -f "${REPO_ROOT}/compose.test.yml" up --wait -d
-  else
-    echo "error: docker/podman not found; start test services manually:" >&2
+  if ! compose_up --wait -d; then
+    echo "error: docker/podman not found or unavailable; start test services manually:" >&2
     echo "  docker compose -f compose.test.yml up --wait -d" >&2
     exit 69
   fi
 fi
 
+# `compose up` preserves an already-running container. Recreate RabbitMQ when
+# AMQP is reachable but this runner-only port is absent, which is the precise
+# stale-container shape introduced by a published-port or plugin change.
+if [[ "${LANES_DATASTORE_DB}" != 0 &&
+      "${RABBITMQ_URL:-}" =~ 127\.0\.0\.1:2156 &&
+      -z "${LANES_NO_AUTOSTART:-}" ]] && ! port_open "${RABBITMQ_MANAGEMENT_PORT}"; then
+  echo "[lane:${LANE}] RabbitMQ management API unreachable; recreating rabbitmq" >&2
+  compose_up --wait -d --force-recreate rabbitmq || {
+    echo "error: could not recreate RabbitMQ with the available container runtime" >&2
+    exit 69
+  }
+fi
+
 for p in ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"}; do
   if ! port_open "$p"; then
     echo "error: test service on 127.0.0.1:${p} unreachable. Start with:" >&2
-    echo "  docker compose -f compose.test.yml up --wait -d" >&2
+    if [[ "${p}" == "${RABBITMQ_MANAGEMENT_PORT}" ]]; then
+      echo "  docker compose -f compose.test.yml up --wait -d --force-recreate rabbitmq" >&2
+    else
+      echo "  docker compose -f compose.test.yml up --wait -d" >&2
+    fi
     exit 69
   fi
 done
@@ -544,65 +696,250 @@ if [[ "${REDIS_URL:-}" =~ 127\.0\.0\.1:2163 ]]; then
   builtin unset _lanes_reply
 fi
 
-# Two worktrees can hash to one index. Detect that inside the database
-# itself: an owner marker names the repo root using this index, SET NX makes
-# the first writer win on the server (no filesystem locking, no TOCTOU), and
-# a mismatch against a checkout that still exists on disk aborts loudly —
-# silently sharing the database is the exact failure this feature exists to
-# prevent. A marker whose checkout is gone is stale (worktrees get deleted):
+# ── RESP helpers ─────────────────────────────────────────────────────────
+# Three blocks below speak RESP to the test valkey — the owner marker, the
+# same-lane liveness token, and the token's refresher — so the two helpers
+# the owner claim used to define inline live here, once. Each caller opens
+# its own fd 3 (`exec 3<>/dev/tcp/...`) inside its own subshell; these read
+# and write whatever fd 3 the caller opened, and set LC_ALL=C themselves,
+# because ${#arg} has to count BYTES (RESP bulk lengths are byte counts).
+#
+# Deliberately NOT exported. bash re-materializes exported functions in the
+# exec'd task process via BASH_FUNC_*%% — the shadowing the scrub at the top
+# exists to prevent — and spec/unit/lanes/hermetic_boundary_spec.rb asserts
+# the task process's function table is empty. A plain shell function does
+# not survive exec, so these stop at the boundary on their own.
+_lanes_resp_send() {  # RESP array of bulk strings — safe for any bytes
+  local crlf=$'\r\n' out arg
+  out="*$#${crlf}"
+  for arg in "$@"; do out+="\$${#arg}${crlf}${arg}${crlf}"; done
+  printf '%s' "${out}" >&3
+}
+_lanes_resp_recv() {  # prints a bulk/simple reply payload; nothing for null bulk
+  local line data
+  IFS= read -r -t 5 line <&3 || return 1
+  line=${line%$'\r'}
+  case "${line}" in
+    '$-1') ;;
+    \$*)   IFS= read -r -t 5 data <&3 || return 1
+           printf '%s' "${data%$'\r'}" ;;
+    *)     printf '%s' "${line}" ;;
+  esac
+}
+
+# The two halves of the liveness token's upkeep, called only by the
+# refresher spawned below the codegen phase. Each opens its own connection
+# in its own subshell and swallows every failure: this is bookkeeping for a
+# detection heuristic, and a refresh that could take the run down would be
+# a worse bug than the collisions it reports.
+_lanes_token_refresh() {  # re-assert this run's claim before the TTL lapses
+  ( LC_ALL=C
+    exec 3<>"/dev/tcp/127.0.0.1/2163" || exit 0
+    _lanes_resp_send SELECT 0; _lanes_resp_recv >/dev/null || exit 0
+    _lanes_resp_send SET "${_lanes_active_key}" "${_lanes_active}" EX 60; _lanes_resp_recv >/dev/null || exit 0
+    # And the owner marker, which lanes delete out from under themselves:
+    # the unit lane's tryouts and every integration lane's after(:each)
+    # hook flush the whole database, repeatedly, for the length of the run.
+    # A marker asserted once at startup is therefore absent a large
+    # fraction of the time, and a colliding worktree walks straight in.
+    # NX, never a plain SET — if another run legitimately claimed the index
+    # in the gap, its marker is the true one and must not be overwritten.
+    _lanes_resp_send SELECT "${LANES_DATASTORE_DB}"; _lanes_resp_recv >/dev/null || exit 0
+    _lanes_resp_send SET _lanes:owner "${LANES_ISOLATION_KEY}" NX; _lanes_resp_recv >/dev/null || exit 0
+  ) 2>/dev/null || true
+}
+_lanes_token_release() {  # drop it — but only while it is still ours
+  # The GET/compare is what makes a late release safe. A refresher that
+  # overslept its own TTL and lost the token to the next run must not then
+  # delete that run's claim on its way out.
+  ( LC_ALL=C
+    exec 3<>"/dev/tcp/127.0.0.1/2163" || exit 0
+    _lanes_resp_send SELECT 0; _lanes_resp_recv >/dev/null || exit 0
+    holder="$(_lanes_resp_send GET "${_lanes_active_key}"; _lanes_resp_recv)" || exit 0
+    [[ "${holder}" == "${_lanes_active}" ]] || exit 0
+    _lanes_resp_send DEL "${_lanes_active_key}"; _lanes_resp_recv >/dev/null || exit 0
+  ) 2>/dev/null || true
+}
+
+# Two runs can hash to one index. Detect that inside the database itself: an
+# owner marker names the isolation key using this index, SET NX makes the
+# first writer win on the server (no filesystem locking, no TOCTOU), and a
+# mismatch whose checkout still exists on disk aborts loudly — silently
+# sharing the database is the exact failure this feature exists to prevent.
+# A marker whose checkout is gone is stale (worktrees get deleted):
 # overwrite it, then re-read to confirm this runner won the takeover, so two
 # runners contesting a stale slot can't both proceed. The marker does not
-# survive `pnpm clean:db` flushing the database mid-run; it is re-established
-# at the start of every run, which is where the guard matters. Best-effort by
+# survive a mid-run flush (the unit lane's tryouts and every integration
+# lane's after(:each) hook flush the whole database), so the refresher
+# spawned below re-asserts it with NX every few seconds — asserting it once
+# here would leave the index unmarked for most of the run. Best-effort by
 # design: a protocol hiccup lets the run proceed on the derived index (the
 # SELECT probe above already proved the service works), only a confirmed
 # live foreign owner aborts. DB 0 is the shared, unsuffixed datastore — no
 # marker. Runner-internal key, not app data: the app under test never reads
 # it, and every run re-asserts it after any flush.
+#
+# The marker holds the whole isolation key, not just the path, so the abort
+# can say WHICH lane is holding the index — "another checkout" was true
+# when the key was a path and is now half the story.
 if [[ "${LANES_DATASTORE_DB}" != 0 && "${REDIS_URL:-}" =~ 127\.0\.0\.1:2163 ]]; then
   _lanes_owner="$( (
     LC_ALL=C  # ${#arg} must count bytes: RESP bulk lengths are byte counts
     exec 3<>"/dev/tcp/127.0.0.1/2163" || exit 0
-    crlf=$'\r\n'
-    send() {  # RESP array of bulk strings — safe for any bytes in the path
-      local out="*$#${crlf}" arg
-      for arg in "$@"; do out+="\$${#arg}${crlf}${arg}${crlf}"; done
-      printf '%s' "${out}" >&3
-    }
-    recv() {  # prints a bulk/simple reply payload; nothing for null bulk
-      local line data
-      IFS= read -r -t 5 line <&3 || return 1
-      line=${line%$'\r'}
-      case "${line}" in
-        '$-1') ;;
-        \$*)   IFS= read -r -t 5 data <&3 || return 1
-               printf '%s' "${data%$'\r'}" ;;
-        *)     printf '%s' "${line}" ;;
-      esac
-    }
-    send SELECT "${LANES_DATASTORE_DB}"; recv >/dev/null || exit 0
-    send SET _lanes:owner "${REPO_ROOT}" NX; recv >/dev/null || exit 0
-    owner="$(send GET _lanes:owner; recv)" || exit 0
-    [[ "${owner}" == "${REPO_ROOT}" ]] && exit 0
-    if [[ -n "${owner}" && -d "${owner}" ]]; then
+    _lanes_resp_send SELECT "${LANES_DATASTORE_DB}"; _lanes_resp_recv >/dev/null || exit 0
+    _lanes_resp_send SET _lanes:owner "${LANES_ISOLATION_KEY}" NX; _lanes_resp_recv >/dev/null || exit 0
+    owner="$(_lanes_resp_send GET _lanes:owner; _lanes_resp_recv)" || exit 0
+    [[ "${owner}" == "${LANES_ISOLATION_KEY}" ]] && exit 0
+    # Staleness is a question about the OWNER'S PATH, which is field 3 of
+    # the marker — everything past the second '|', because a path may
+    # contain one. Testing -d on the whole composed value instead would
+    # find no such directory, call every live foreign owner stale, take its
+    # database over and let the run proceed: the guard would fail OPEN,
+    # which is worse than not having it (it reports success while doing the
+    # contamination it exists to stop).
+    owner_root="${owner#*|}"
+    owner_root="${owner_root#*|}"
+    if [[ -n "${owner}" && -d "${owner_root}" ]]; then
       printf '%s' "${owner}"; exit 1
     fi
     # Stale: overwrite, then confirm the takeover actually stuck with us.
-    send SET _lanes:owner "${REPO_ROOT}"; recv >/dev/null || exit 0
-    owner="$(send GET _lanes:owner; recv)" || exit 0
-    [[ "${owner}" == "${REPO_ROOT}" ]] && exit 0
+    _lanes_resp_send SET _lanes:owner "${LANES_ISOLATION_KEY}"; _lanes_resp_recv >/dev/null || exit 0
+    owner="$(_lanes_resp_send GET _lanes:owner; _lanes_resp_recv)" || exit 0
+    [[ "${owner}" == "${LANES_ISOLATION_KEY}" ]] && exit 0
     printf '%s' "${owner}"; exit 1
   ) 2>/dev/null )" || {
-    echo "error: valkey DB ${LANES_DATASTORE_DB} is in use by another live checkout:" >&2
-    echo "  ${_lanes_owner}" >&2
-    echo "hint: pin a free index for this worktree by setting LANES_DATASTORE_DB in" >&2
+    # <lane>|<overlays>|<root>, the same shape this run would have written.
+    _lanes_other_rest="${_lanes_owner#*|}"
+    _lanes_other_overlays="${_lanes_other_rest%%|*}"
+    echo "error: valkey DB ${LANES_DATASTORE_DB} is in use by another live run:" >&2
+    echo "  lane=${_lanes_owner%%|*} overlays=${_lanes_other_overlays:-none} root=${_lanes_other_rest#*|}" >&2
+    echo "  this run: lane=${LANE} overlays=${OVERLAY_KEY:-none} root=${REPO_ROOT}" >&2
+    echo "hint: pin a free index for this run by setting LANES_DATASTORE_DB in" >&2
     echo "  a lane env file or overlay (the calling shell can't; the scrub clears it)" >&2
     exit 69
   }
-  builtin unset _lanes_owner
+  builtin unset _lanes_owner _lanes_other_rest _lanes_other_overlays
+fi
+
+# ── Same-lane concurrency: detected, not serialized ──────────────────────
+# The isolation key separates different lanes, different overlay sets and
+# different checkouts. It cannot separate two runs of the SAME lane in the
+# SAME checkout: they derive the same index by construction, and the owner
+# marker agrees with both — the second run reads its own key back and
+# proceeds straight into the first one's fixtures. That is #4168 again with
+# the one clue (two different lane names) removed, so detect it.
+#
+# Detection, not a lock: a token carrying the runner's PID is claimed with
+# SET NX EX 60 and kept alive by the refresher spawned below. Losing the NX
+# aborts only when the holder's PID is a DIFFERENT process that is still
+# alive; a token whose process is gone (or whose PID field is unreadable)
+# is taken over, and any protocol hiccup lets the run proceed — the same
+# best-effort posture as the owner marker above. Serializing instead would
+# mean a real lock: an owner, a timeout, a release path on every abort and
+# a queue. Two concurrent runs of one lane is a mistake to report, not a
+# workload to schedule.
+#
+# The token lives in DB 0 under the index it is about, NOT in the isolated
+# database like the owner marker: a lane flushes its own database many
+# times over a run (the unit lane's tryouts, every integration lane's
+# after(:each)), which was measured erasing the token for roughly a third
+# of the wall clock and let a colliding second run straight through. DB 0
+# is the shared, unsuffixed datastore no lane run writes to, so nothing but
+# an explicit `pnpm clean:db` clears it — and CI never gets here at all,
+# since the whole block is gated on a non-zero index.
+#
+# Known false positive: PID reuse. A recycled PID belonging to some
+# unrelated live process reads as "the other run is still going". The cost
+# is one loud abort carrying the PID, which a developer can check in a
+# second; the alternative failure — silent sharing — costs an afternoon.
+if [[ "${LANES_DATASTORE_DB}" != 0 && "${REDIS_URL:-}" =~ 127\.0\.0\.1:2163 ]]; then
+  # Captured before anything is backgrounded, and deliberately `$$` rather
+  # than BASHPID: `$$` stays the runner's PID inside the subshells below,
+  # and it is the PID the refresher polls and the PID that survives the
+  # exec(2) at the bottom (exec replaces the image, not the process).
+  _lanes_pid=$$
+  _lanes_active_key="_lanes:active:${LANES_DATASTORE_DB}"
+  _lanes_active="${_lanes_pid}|${LANES_ISOLATION_KEY}"
+  _lanes_holder="$( (
+    LC_ALL=C
+    exec 3<>"/dev/tcp/127.0.0.1/2163" || exit 0
+    _lanes_resp_send SELECT 0; _lanes_resp_recv >/dev/null || exit 0
+    reply="$(_lanes_resp_send SET "${_lanes_active_key}" "${_lanes_active}" NX EX 60; _lanes_resp_recv)" || exit 0
+    [[ "${reply}" == '+OK'* ]] && exit 0
+    holder="$(_lanes_resp_send GET "${_lanes_active_key}"; _lanes_resp_recv)" || exit 0
+    holder_pid="${holder%%|*}"
+    if [[ -n "${holder}" && "${holder_pid}" =~ ^[0-9]+$ && "${holder_pid}" != "${_lanes_pid}" ]] &&
+       kill -0 "${holder_pid}" 2>/dev/null; then
+      printf '%s' "${holder}"; exit 1
+    fi
+    # Anything else is ours to take: our own token, a malformed one, or one
+    # whose process is gone (a run that was killed before its refresher
+    # could DEL it). Plain SET, no NX — the NX already lost.
+    _lanes_resp_send SET "${_lanes_active_key}" "${_lanes_active}" EX 60; _lanes_resp_recv >/dev/null || exit 0
+  ) 2>/dev/null )" || {
+    # <pid>|<lane>|<overlays>|<root> — one field more than the owner marker.
+    _lanes_other_pid="${_lanes_holder%%|*}"
+    _lanes_other_rest="${_lanes_holder#*|}"
+    echo "error: another lane run already holds valkey DB ${LANES_DATASTORE_DB} (pid ${_lanes_other_pid}):" >&2
+    echo "  lane=${_lanes_other_rest%%|*} key=${_lanes_other_rest}" >&2
+    echo "  this run: lane=${LANE} overlays=${OVERLAY_KEY:-none} root=${REPO_ROOT}" >&2
+    echo "hint: two runs of the same lane in one checkout share a datastore, which" >&2
+    echo "  is what this token detects. Wait for pid ${_lanes_other_pid} to finish, or give" >&2
+    echo "  this run its own index (LANES_DATASTORE_DB in a lane env file or overlay)." >&2
+    exit 69
+  }
+  builtin unset _lanes_holder _lanes_other_pid _lanes_other_rest
+fi
+
+# ── Liveness refresher ───────────────────────────────────────────────────
+# The token claimed above expires in 60s; a lane run does not. Refresh it
+# from a detached child, because this shell will exec(2) the lane's tasks
+# further down and stop being a shell. exec keeps the PID, so `kill -0` on
+# the value captured before backgrounding is a valid liveness test for the
+# whole run, exec'd process included.
+#
+# Started here rather than beside the exec so it also covers the slow part
+# of a first run — CREATE DATABASE plus initialize_test_db.sql, a vhost
+# provision and a full codegen pass can outlast a 60s TTL between them —
+# and so an abort in any of those releases the token in seconds instead of
+# leaving it to expire.
+#
+# Self-terminating: the loop ends when the runner's PID stops answering
+# (clean exit, failure, ^C), and then DELs the token — but only if it still
+# holds this run's exact value, so a refresher that overslept a takeover
+# cannot delete the run that replaced it. The tick cap is the backstop for
+# PID reuse: if an unrelated process inherits the runner's PID, this child
+# would otherwise refresh forever and lock the index out of every future
+# run. Four hours is longer than any lane and shorter than a workday.
+#
+# `</dev/null >/dev/null 2>&1`: a background child holding the write end of
+# the caller's pipe keeps `tests/lanes/run unit | tee` (or Open3.capture2e)
+# blocked until the child exits, which would turn every captured lane run
+# into a five-second hang.
+#
+# The two traps are what make the release reliable. A signal with no
+# handler kills bash outright and the EXIT trap never runs, and this child
+# is in the runner's process group — so `timeout`, a CI cancel, or anything
+# else that signals the group would otherwise leave the token behind for
+# its full TTL. Handling TERM/HUP/INT turns each of them into an ordinary
+# exit, which is what fires the release.
+if [[ -n "${_lanes_active:-}" ]]; then
+  (
+    trap 'exit 0' TERM HUP INT
+    trap '_lanes_token_release' EXIT
+    _lanes_ticks=0
+    while kill -0 "${_lanes_pid}" 2>/dev/null && (( _lanes_ticks < 2880 )); do
+      # `|| true`: a signal that kills the sleep must reach the traps
+      # above, not errexit.
+      sleep 5 || true
+      _lanes_ticks=$(( _lanes_ticks + 1 ))
+      _lanes_token_refresh
+    done
+  ) </dev/null >/dev/null 2>&1 &
 fi
 
 echo "[lane:${LANE}] mode=${AUTHENTICATION_MODE:-?}" \
+     "overlays=${OVERLAY_KEY:-none}" \
      "billing=${BILLING_ENABLED:-false}" \
      "redis=${REDIS_URL:-?}" \
      "db=${LANES_DATASTORE_DB}" \
@@ -621,6 +958,15 @@ cd "${REPO_ROOT}"
 # lookup once the database exists, which is every run after the first.
 if [[ "${LANES_DATASTORE_DB}" != 0 && "${AUTH_DATABASE_URL:-}" =~ 127\.0\.0\.1:2154 ]]; then
   bundle exec ruby tests/lanes/support/provision_pg_database.rb || exit $?
+fi
+
+# Same for the per-worktree RabbitMQ vhost, which is likewise not conjured by
+# addressing it. A missing vhost makes three of the four live-AMQP spec files
+# self-skip, so a failure here has to be loud or it shows up as silently
+# reduced coverage rather than a red lane; the script exits nonzero and this
+# propagates it.
+if [[ "${LANES_DATASTORE_DB}" != 0 && "${RABBITMQ_URL:-}" =~ 127\.0\.0\.1:2156 ]]; then
+  bundle exec ruby tests/lanes/support/provision_rabbitmq_vhost.rb || exit $?
 fi
 # `env -u` finishes what the scrub could not: readonly exported vars and
 # readonly exported functions survive `unset` in this shell, but env(1)
@@ -675,16 +1021,73 @@ else
   echo "  whose names are not shell identifiers cannot be enumerated or stripped" >&2
 fi
 
+# ── Codegen phase ────────────────────────────────────────────────────────
+# Compiled locale JSON and generated JSON schemas are prerequisites, not
+# tests: spec/spec_helper.rb refuses to boot with an empty
+# generated/locales, and the billing specs read a gitignored
+# generated/schemas file. They used to be the first lines of each lane's
+# tasks file, which made every tasks file interpret control state ("has
+# somebody already generated this?") and gave two concurrent lanes in one
+# checkout a race the datastore isolation above cannot fix — generated/ is
+# a single repo-root directory that the Ruby readers resolve as
+# Onetime::HOME/generated, the writes into it are not atomic, and the
+# schema manifest is not even byte-stable between runs.
+#
+# So the lane declares WHAT it needs (LANES_CODEGEN in its env file) and
+# the runner decides WHETHER to run it — once per invocation, here, from
+# the repo root, in the same environment the tasks are about to receive.
+# A tasks file is now a list of test commands and nothing else.
+#
+# Two things skip the phase, both meaning "the caller already owns this":
+#   --skip-codegen  a caller that generates once and then fans out. A
+#                   direct run always generates; see the flag's assignment
+#                   above for why it is never read from the environment.
+#   --only          bypasses the tasks file wholesale and always has. The
+#                   documented iteration semantics do not change here.
+_lanes_codegen_run() {
+  # Through the same `env -u` strip the exec below applies, so a generator
+  # sees the environment the tasks see rather than the runner's (readonly
+  # scrub survivors and all). `builtin command env` for the reason spelled
+  # out above the strip loop: bare `env` is an ordinary command word, and a
+  # readonly exported `env` function would be what runs.
+  builtin command env ${_lanes_strip[@]+"${_lanes_strip[@]}"} "$@"
+}
+
+if [[ ${SKIP_CODEGEN} -eq 0 && ${#ONLY[@]} -eq 0 && -n "${LANES_CODEGEN:-}" ]]; then
+  for _lanes_gen in ${LANES_CODEGEN}; do
+    echo "[lane:${LANE}] codegen: ${_lanes_gen}"
+    case "${_lanes_gen}" in
+      locales)
+        _lanes_codegen_run pnpm run locales:sync
+        ;;
+      locales-python)
+        # The stdlib-only script `pnpm run locales:sync` wraps, invoked
+        # directly so the paths-filtered migration workflow needs no Node.
+        _lanes_codegen_run python3 locales/scripts/i18n content compile --all
+        ;;
+      schemas)
+        _lanes_codegen_run pnpm run schemas:json:generate
+        ;;
+      *)
+        echo "error: lane '${LANE}' declares unknown codegen token '${_lanes_gen}'" >&2
+        echo "  known tokens: locales locales-python schemas" >&2
+        exit 64
+        ;;
+    esac
+  done
+  builtin unset _lanes_gen
+fi
+
 if [[ ${#ONLY[@]} -eq 0 ]]; then
   exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash -euo pipefail "${LANE_DIR}/tasks"
 fi
 
 # ── --only: single-file run inside the lane's environment ────────────────
-# The lane's tasks file is skipped wholesale, so anything it does *before*
-# the test command (e.g. `pnpm run locales:sync` in the full lanes) does not
-# run. That is fine for iterating on a spec and wrong for a final check —
-# the full lane is still the thing CI runs and the thing that must be green
-# before pushing.
+# The lane's tasks file is skipped wholesale, and so is the codegen phase
+# above — the generated locales and schemas a lane declares are whatever
+# the last full run left in generated/. That is fine for iterating on a
+# spec and wrong for a final check — the full lane is still the thing CI
+# runs and the thing that must be green before pushing.
 #
 # Runner is chosen by filename: tryouts own `*_try.rb`, rspec owns the rest.
 # Mixing the two in one invocation would need two commands and an ordering

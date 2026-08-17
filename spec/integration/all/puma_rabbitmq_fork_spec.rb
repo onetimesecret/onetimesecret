@@ -38,7 +38,11 @@ RSpec.describe 'Puma RabbitMQ Fork Safety', type: :integration do
       test_conn = Bunny.new(@rabbitmq_url)
       test_conn.start
       test_conn.close
-    rescue Bunny::TCPConnectionFailed
+    rescue StandardError
+      # Not just TCPConnectionFailed: a missing vhost closes the connection
+      # with reply_code 530, which Bunny raises as NotAllowedError. Both are
+      # "the broker this lane addresses isn't usable", and the other three
+      # live-AMQP files already skip on StandardError for that reason.
       skip "RabbitMQ not available at #{@rabbitmq_url}"
     end
 

@@ -12,17 +12,20 @@
 #   podman compose -f compose.test.yml up --wait -d
 #   docker compose -f compose.test.yml down
 #
-# PORT SCHEME: every test service publishes on 127.0.0.1 with a port that
-# starts with 21. New services take "21 + last two digits of the canonical
-# port"; valkey predates the scheme and keeps its established 2163:
+# PORT SCHEME: application test services publish on 127.0.0.1 with a port
+# that starts with 21. New application services take "21 + last two digits of
+# the canonical port"; valkey predates the scheme and keeps its established
+# 2163. RabbitMQ's management API is a runner-only control-plane exception on
+# 12156:
 #
 #   valkey     2163   (canonical 6379; grandfathered, not 2179)
 #   postgres   2154   (canonical 5432)
 #   rabbitmq   2156   (canonical 5672)
+#   rabbitmq   12156  (canonical 15672; management HTTP API)
 #
 # Dev services keep canonical ports, so a leaked dev config can never reach
 # a test service and a test run can never reach dev data. If a URL in the
-# test tree doesn't point at a 21xx port, that's a bug.
+# test tree doesn't point at an approved test port, that's a bug.
 #
 # This file is where test-service images are pinned. The one remaining
 # copy of a pin lives in ci.yml's container-validation job (its valkey
@@ -73,8 +76,15 @@ services:
 
   rabbitmq:
     image: rabbitmq:4.2@sha256:0ea64c69ef2ced52e7188c6db826152d42f78e448433ed8b4e570170c427a437
+    # The management plugin ships in the pinned image but is not enabled.
+    # Mounting an enabled_plugins file turns it on without changing the pin;
+    # tests/lanes/run provisions a per-worktree vhost over its HTTP API so
+    # concurrent lane runs in a worktree forest never share queues (#4168).
+    volumes:
+      - ./tests/lanes/support/rabbitmq-enabled-plugins:/etc/rabbitmq/enabled_plugins:ro
     ports:
       - '127.0.0.1:2156:5672'
+      - '127.0.0.1:12156:15672'
     healthcheck:
       test: ['CMD', 'rabbitmq-diagnostics', 'check_port_connectivity']
       interval: 10s

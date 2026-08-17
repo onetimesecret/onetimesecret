@@ -1,9 +1,4 @@
 # Lane tasks: executed top-to-bottom from the repo root by tests/lanes/run
 # (bash -euo pipefail: first failure stops the lane). Keep each line standalone.
-#
-# Locale compilation calls the stdlib-only python script directly (the same
-# command `pnpm run locales:sync` wraps) so the paths-filtered migration
-# workflow needs no Node setup.
-python3 locales/scripts/i18n content compile --all
 bundle exec rake spec:integration:migrations:postgres
 bundle exec rake spec:integration:migrations:verify_dual_url
