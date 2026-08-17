@@ -58,6 +58,13 @@ module ColonelAPI
         CACHE_KEY   = "colonel:organizations:list:#{CACHE_SHAPE}".freeze
         CACHE_TTL   = 90 # seconds
 
+        # Maximum orgs to load when no filters are active. The instances
+        # sorted set orders by last-modified timestamp, so revrange(0, 24)
+        # returns the 25 most recently touched orgs without scanning the
+        # full set. Filtered/searched requests still load everything (and
+        # benefit from the cache).
+        DEFAULT_LIMIT = 25
+
         # Upper bound on the serialized roster we are willing to push through a
         # single Redis string. A large fleet (one default workspace per account)
         # would serialize to tens of megabytes, and GET-ing that on every admin
@@ -132,23 +139,40 @@ module ColonelAPI
           @cache_hit          = false
           @cache_generated_at = Familia.now.to_i
 
-          unless refresh
-            cached = read_cache
-            if cached
-              @cache_hit          = true
-              @cache_generated_at = cached[:generated_at]
-              return cached[:organizations]
+          # When filters/search are active, use the full roster (with caching).
+          # Otherwise, load only the DEFAULT_LIMIT most recently modified orgs
+          # directly from the sorted set — fast and cache-free.
+          if active_filters?
+            unless refresh
+              cached = read_cache
+              if cached
+                @cache_hit          = true
+                @cache_generated_at = cached[:generated_at]
+                return cached[:organizations]
+              end
             end
+
+            all_org_ids   = Onetime::Organization.instances.to_a
+            all_orgs      = Onetime::Organization.load_multi(all_org_ids).compact
+            org_data_list = all_orgs.map { |org| build_org_data(org) }
+
+            @cache_generated_at = Familia.now.to_i
+            write_cache(org_data_list, @cache_generated_at)
+
+            org_data_list
+          else
+            # Default: top N by most recently modified (revrange = highest scores first)
+            recent_org_ids = Onetime::Organization.instances.revrange(0, DEFAULT_LIMIT - 1)
+            recent_orgs    = Onetime::Organization.load_multi(recent_org_ids).compact
+            recent_orgs.map { |org| build_org_data(org) }
           end
+        end
 
-          all_org_ids   = Onetime::Organization.instances.to_a
-          all_orgs      = Onetime::Organization.load_multi(all_org_ids).compact
-          org_data_list = all_orgs.map { |org| build_org_data(org) }
-
-          @cache_generated_at = Familia.now.to_i
-          write_cache(org_data_list, @cache_generated_at)
-
-          org_data_list
+        # @return [Boolean] true if any filter or search term is active
+        def active_filters?
+          (status_filter && !status_filter.empty?) ||
+            (sync_status_filter && !sync_status_filter.empty?) ||
+            (search_term && !search_term.empty?)
         end
 
         # Read the cached roster.

@@ -58,6 +58,8 @@
     'filter-change': [key: string, value: string];
     /** The clear affordance was activated. */
     clear: [];
+    /** The search input submitted (Enter key). */
+    submit: [];
   }>();
 
   const { t } = useI18n();
@@ -68,6 +70,12 @@
 
   function onSearchInput(event: Event): void {
     emit('update:search', (event.target as HTMLInputElement).value);
+  }
+
+  function onSearchKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      emit('submit');
+    }
   }
 
   function onFilterChange(config: FilterConfig, event: Event): void {
@@ -102,7 +110,8 @@
           :value="search"
           :placeholder="resolvedSearchPlaceholder"
           class="block w-full rounded-md border border-gray-300 py-2 pr-3 pl-10 text-sm placeholder:text-gray-400 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
-          @input="onSearchInput" />
+          @input="onSearchInput"
+          @keydown="onSearchKeydown" />
       </div>
     </div>
 

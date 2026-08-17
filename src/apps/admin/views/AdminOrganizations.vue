@@ -9,7 +9,7 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { getPlanLabel } from '@/types/billing';
   import { formatDisplayDateTime, formatRelativeTime } from '@/utils/format';
-  import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+  import { computed, onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRouter } from 'vue-router';
 
@@ -195,21 +195,13 @@
     );
   }
 
-  // Debounce search input so we issue one request per pause, not per keystroke.
-  let searchTimer: ReturnType<typeof setTimeout> | null = null;
-  watch(searchTerm, (value) => {
-    if (searchTimer) clearTimeout(searchTimer);
-    // Skip no-op changes (e.g. the programmatic reset in onClear(), which
-    // already issues its own fetch) so clearing doesn't double-fetch.
-    if (value.trim() === activeSearch.value) return;
-    searchTimer = setTimeout(() => {
-      activeSearch.value = value.trim();
-      load(1);
-    }, 300);
-  });
-  onBeforeUnmount(() => {
-    if (searchTimer) clearTimeout(searchTimer);
-  });
+  /** Submit search on explicit user action (Enter key or button click). */
+  function onSearchSubmit(): void {
+    const trimmed = searchTerm.value.trim();
+    if (trimmed === activeSearch.value) return; // No-op guard
+    activeSearch.value = trimmed;
+    load(1);
+  }
 
   /** Header control: bypass the server's roster cache and rebuild it. */
   function onRefresh(): void {
@@ -222,9 +214,6 @@
     load(1);
   }
   function onClear(): void {
-    // Cancel any in-flight debounce so the reset below doesn't fire a second,
-    // late request on top of this one.
-    if (searchTimer) clearTimeout(searchTimer);
     searchTerm.value = '';
     activeSearch.value = '';
     statusFilter.value = '';
@@ -338,7 +327,8 @@
         :has-active-filters="hasActiveFilters"
         testid="organizations-filterbar"
         @filter-change="onFilterChange"
-        @clear="onClear" />
+        @clear="onClear"
+        @submit="onSearchSubmit" />
     </div>
 
     <!-- Table -->

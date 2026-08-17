@@ -1078,11 +1078,23 @@
                 {{ org.extid }}
               </p>
             </div>
-            <span
-              v-if="org.is_default"
-              class="ml-3 shrink-0 rounded bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
-              {{ t('web.admin.customers.detail.organizations.default') }}
-            </span>
+            <div class="ml-3 flex shrink-0 items-center gap-2">
+              <span
+                v-if="org.is_default"
+                class="rounded bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
+                {{ t('web.admin.customers.detail.organizations.default') }}
+              </span>
+              <router-link
+                :to="{ name: 'AdminOrganizationDetail', params: { id: org.extid } }"
+                data-testid="organization-link"
+                class="inline-flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800">
+                {{ t('web.admin.customers.detail.organizations.open') }}
+                <OIcon
+                  collection="heroicons"
+                  name="arrow-right"
+                  size="4" />
+              </router-link>
+            </div>
           </li>
         </ul>
         <p

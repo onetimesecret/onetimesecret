@@ -299,6 +299,9 @@
     "text": "Default",
     "content_hash": "21b111cb"
   },
+  "web.admin.customers.detail.organizations.open": {
+    "text": "Open"
+  },
   "web.admin.customers.actions.role.label": {
     "text": "Role",
     "content_hash": "14736a2e"
