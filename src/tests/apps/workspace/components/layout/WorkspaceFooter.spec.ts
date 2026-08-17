@@ -148,6 +148,7 @@ describe('WorkspaceFooter footerLinks', () => {
                 ot_version_long: '1.0.0-test',
                 domains_enabled: false,
                 support_host: 'support.onetimesecret.com',
+                authenticated: true,
                 ui: bootstrapState.ui ?? {
                   footer_links: {
                     enabled: true,
@@ -352,7 +353,7 @@ describe('WorkspaceFooter footerLinks', () => {
     });
   });
 
-  describe('version display respects showVersionConfig', () => {
+  describe('version display respects showVersionConfig and authentication', () => {
     it('shows version when displayVersion=true and ui.show_version=true', async () => {
       wrapper = mountComponent({
         ui: {
@@ -401,6 +402,7 @@ describe('WorkspaceFooter footerLinks', () => {
                   ot_version_long: '1.0.0-test',
                   domains_enabled: false,
                   support_host: 'support.onetimesecret.com',
+                  authenticated: true,
                   ui: {
                     show_version: true,
                   },
@@ -439,6 +441,18 @@ describe('WorkspaceFooter footerLinks', () => {
 
       versionLink = wrapper.find('a[href*="github.com/onetimesecret/onetimesecret/releases"]');
       expect(versionLink.exists()).toBe(true);
+    });
+
+    it('hides version for unauthenticated sessions even when show_version=true', async () => {
+      wrapper = mountComponent({
+        authenticated: false,
+        ui: {
+          show_version: true,
+        },
+      });
+
+      const versionLink = wrapper.find('a[href*="github.com/onetimesecret/onetimesecret/releases"]');
+      expect(versionLink.exists()).toBe(false);
     });
   });
 });

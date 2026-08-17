@@ -10,7 +10,7 @@ import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 
 export function useFooterConfig() {
   const bootstrapStore = useBootstrapStore();
-  const { ui } = storeToRefs(bootstrapStore);
+  const { ui, authenticated } = storeToRefs(bootstrapStore);
 
   /**
    * Whether to show version info in footer.
@@ -19,7 +19,16 @@ export function useFooterConfig() {
    */
   const showVersionConfig = computed(() => ui.value?.show_version ?? true);
 
+  /**
+   * Whether to render the version string in the footer.
+   * Exposing the exact deployment version to anonymous visitors makes it
+   * easier to fingerprint the install and target known CVEs, so this is
+   * additionally restricted to authenticated sessions.
+   */
+  const showVersion = computed(() => showVersionConfig.value && authenticated.value === true);
+
   return {
     showVersionConfig,
+    showVersion,
   };
 }

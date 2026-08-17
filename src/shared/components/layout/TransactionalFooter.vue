@@ -37,7 +37,7 @@
   } = storeToRefs(bootstrapStore);
 
   const { isCustom } = storeToRefs(useProductIdentity());
-  const { showVersionConfig } = useFooterConfig();
+  const { showVersion } = useFooterConfig();
 
   // Hide regions toggle on custom domains (they're tied to a specific deployment)
   const showRegionsToggle = computed(
@@ -81,7 +81,7 @@
           text-center
           text-xs text-gray-600 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
           <span
-            v-if="displayVersion && showVersionConfig"
+            v-if="displayVersion && showVersion"
             :title="`${t('web.homepage.onetime_secret_literal')} ${t('web.COMMON.version')}`">
             <a
               :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${ot_version}`"
@@ -90,7 +90,7 @@
             </a>
           </span>
           <span
-            v-if="displayVersion && showVersionConfig && displayPoweredBy"
+            v-if="displayVersion && showVersion && displayPoweredBy"
             class="flex items-center justify-center px-2">
             -
           </span>
