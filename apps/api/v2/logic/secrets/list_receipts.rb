@@ -22,7 +22,7 @@ module V2::Logic
       # safe_dump_for. The default (customer) scope reads the caller's own
       # index, so it is deliberately absent: nothing there needs redacting, and
       # leaving it out keeps the personal dashboard byte-identical.
-      CROSS_MEMBER_SCOPES = %i[org domain].freeze
+      CROSS_MEMBER_SCOPES = [:org, :domain].freeze
       private_constant :CROSS_MEMBER_SCOPES
 
       attr_reader :records,
