@@ -193,10 +193,11 @@ RSpec.describe Onetime::Mail::Delivery::Smtp2go do
         .to raise_error(Onetime::Mail::DeliveryError) do |err|
           original = err.original_error
           # The raw address never reaches the wrapped message, the APIError
-          # message, or its response_body — but the obscured form and the
-          # failure reason text survive for diagnostics.
+          # message, or its response_body — but the domain-preserving masked
+          # form and the failure reason text survive for diagnostics.
+          # Domain is preserved so tenants know which domain failed.
           expect(err.message).not_to include('recipient@example.com')
-          expect(err.message).to include('re***@')
+          expect(err.message).to include('***@example.com')
           expect(err.message).to include('unable to verify sender')
           expect(original.message).not_to include('recipient@example.com')
           expect(original.response_body).not_to include('recipient@example.com')
@@ -364,6 +365,32 @@ RSpec.describe Onetime::Mail::Delivery::Smtp2go do
       ).and_return(mock_client)
 
       fresh_backend.send(:client)
+    end
+  end
+
+  describe '#redact_emails (domain-preserving)' do
+    # Error messages shown to tenants configuring domains must preserve
+    # the domain so they know which domain failed verification.
+    it 'masks local-part and preserves domain' do
+      text = 'Unrouteable address <no-reply@local-secrets.pet>'
+      result = backend.send(:redact_emails, text)
+      expect(result).to eq('Unrouteable address <***@local-secrets.pet>')
+    end
+
+    it 'handles multiple email addresses' do
+      text = 'user@example.com failed and admin@sub.example.org also failed'
+      result = backend.send(:redact_emails, text)
+      expect(result).to eq('***@example.com failed and ***@sub.example.org also failed')
+    end
+
+    it 'preserves non-email text' do
+      text = 'domain verify fail'
+      result = backend.send(:redact_emails, text)
+      expect(result).to eq('domain verify fail')
+    end
+
+    it 'handles empty string' do
+      expect(backend.send(:redact_emails, '')).to eq('')
     end
   end
 end

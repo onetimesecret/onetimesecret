@@ -128,11 +128,27 @@ module Onetime
 
         private
 
-        # Replace each email address embedded in provider text with its
-        # obscured form (Base#obscure_email), leaving the surrounding
-        # failure-reason wording intact for diagnostics.
+        # Replace each email address embedded in provider text with a
+        # domain-preserving mask. Unlike obscure_email (which masks domains
+        # for log/Sentry privacy), tenant-facing error messages must show
+        # which domain failed verification — the local-part is redacted,
+        # but the domain is kept intact.
+        #
+        # Example: "no-reply@local-secrets.pet" → "***@local-secrets.pet"
         def redact_emails(text)
-          text.to_s.gsub(email_pattern) { |address| obscure_email(address) }
+          text.to_s.gsub(email_pattern) { |address| mask_local_preserve_domain(address) }
+        end
+
+        # Mask the local-part of an email address, preserving the domain.
+        # @param address [String] Email address to mask
+        # @return [String] Masked address with full domain preserved
+        def mask_local_preserve_domain(address)
+          return address if address.to_s.empty?
+
+          parts = address.split('@', 2)
+          return address unless parts.length == 2
+
+          "***@#{parts[1]}"
         end
 
         # The canonical, corpus-pinned pattern when the app is loaded; the
