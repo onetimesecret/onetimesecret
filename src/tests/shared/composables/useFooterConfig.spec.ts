@@ -94,4 +94,72 @@ describe('useFooterConfig', () => {
       expect(bootstrapStore.ui?.footer_links?.enabled).toBe(true);
     });
   });
+
+  // showVersion is the flag footers actually render on. It ANDs the deployment
+  // config with the session's authenticated state, so the exact build version
+  // is never shown to anonymous visitors (fingerprinting / CVE matching).
+  // The server withholds it too (SystemSerializer) — this is the UI half.
+  describe('showVersion', () => {
+    it('is true only when configured AND authenticated', () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.$patch({
+        authenticated: true,
+        ui: { show_version: true },
+      });
+
+      const { showVersion } = useFooterConfig();
+
+      expect(showVersion.value).toBe(true);
+    });
+
+    it('is false for an anonymous visitor even when show_version is true', () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.$patch({
+        authenticated: false,
+        ui: { show_version: true },
+      });
+
+      const { showVersion } = useFooterConfig();
+
+      expect(showVersion.value).toBe(false);
+    });
+
+    it('is false when authenticated but the deployment disabled show_version', () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.$patch({
+        authenticated: true,
+        ui: { show_version: false },
+      });
+
+      const { showVersion } = useFooterConfig();
+
+      expect(showVersion.value).toBe(false);
+    });
+
+    it('defaults to hidden when authenticated is unset (fails closed)', () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.$patch({
+        ui: { show_version: true },
+      });
+
+      const { showVersion } = useFooterConfig();
+
+      expect(showVersion.value).toBe(false);
+    });
+
+    it('flips reactively when the session becomes authenticated', () => {
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.$patch({
+        authenticated: false,
+        ui: { show_version: true },
+      });
+
+      const { showVersion } = useFooterConfig();
+      expect(showVersion.value).toBe(false);
+
+      bootstrapStore.$patch({ authenticated: true });
+
+      expect(showVersion.value).toBe(true);
+    });
+  });
 });
