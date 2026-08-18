@@ -576,6 +576,38 @@ RSpec.describe 'Cross-Tenant Callback Validation', type: :integration do
       end
     end
 
+    context 'with a request-cached SsoConfig' do
+      # omniauth_setup stashes the record it loaded in the rack env; the
+      # callback hook hands it to the helper so the tenant path costs one
+      # Redis read, not two.
+      let(:sso_config) { build_domain_sso_config(:oidc, domain_id: domain_id) }
+
+      it 'uses the provided record without a second fetch when it matches the domain' do
+        expect(Onetime::CustomDomain::SsoConfig).not_to receive(:find_by_domain_id)
+
+        helpers.enforce_tenant_email_domain!(
+          domain_id, 'user@example.com', rodauth, sso_config: sso_config
+        )
+
+        expect_permitted
+      end
+
+      it 're-fetches rather than trusting a record for a different domain' do
+        stranger = build_domain_sso_config(:oidc, domain_id: 'some_other_domain')
+        allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
+          .with(domain_id).and_return(nil)
+
+        helpers.enforce_tenant_email_domain!(
+          domain_id, 'user@example.com', rodauth, sso_config: stranger
+        )
+
+        # The fresh fetch found nothing, so the no_sso_config rung denies —
+        # proving the stranger record was not consulted.
+        expect(Onetime::CustomDomain::SsoConfig).to have_received(:find_by_domain_id).with(domain_id)
+        expect_rejected
+      end
+    end
+
     context 'when the tenant configuration cannot be evaluated' do
       it 'rejects when the SSO config has gone missing mid-flow' do
         enforce('user@example.com', nil)

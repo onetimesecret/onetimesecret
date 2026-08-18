@@ -187,6 +187,12 @@ module Auth::Config::Hooks
           next # Continue with platform defaults (if allowed)
         end
 
+        # Cache the loaded record for the rest of this rack request: on the
+        # callback phase, before_omniauth_callback_route's allowlist
+        # enforcement needs the same SsoConfig and would otherwise pay a
+        # second identical Redis read per callback.
+        request.env['onetime.tenant_sso_config'] = sso_config
+
         # Store tenant context in session for callback validation.
         # Only during request phase — callback phase must NOT overwrite the
         # stored context, otherwise the mismatch check is defeated.
@@ -320,7 +326,12 @@ module Auth::Config::Hooks
         # denials rather than pass-throughs. An EMPTY allowlist still means
         # allow-all — that is the documented, spec-asserted state and the correct
         # one for Entra ID, where the IdP controls access via app assignment.
-        HELPERS.enforce_tenant_email_domain!(expected_domain_id, omniauth_email, self)
+        HELPERS.enforce_tenant_email_domain!(
+          expected_domain_id,
+          omniauth_email,
+          self,
+          sso_config: request.env['onetime.tenant_sso_config'],
+        )
 
         # Re-store validated domain_id under a separate key so downstream hooks
         # (after_omniauth_create_account, after_login) can join the tenant org.
@@ -424,9 +435,18 @@ module Auth::Config::Hooks
     # @param domain_id [String] validated CustomDomain identifier for this flow
     # @param email [String, nil] IdP-asserted email address
     # @param rodauth [Rodauth] Rodauth instance (for redirect)
+    # @param sso_config [Onetime::CustomDomain::SsoConfig, nil] record already
+    #   loaded by omniauth_setup on this request (rack-env cache); trusted only
+    #   when its domain_id matches, otherwise re-fetched
     # @return [void]
-    def self.enforce_tenant_email_domain!(domain_id, email, rodauth)
-      sso_config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain_id)
+    def self.enforce_tenant_email_domain!(domain_id, email, rodauth, sso_config: nil)
+      # omniauth_setup loads this record on the same request; accepting it
+      # avoids a second Redis read per callback. Trust it only when it belongs
+      # to the validated domain — anything else (nil, setup short-circuited by
+      # the strategy, mismatched record) falls back to a fresh fetch so the
+      # ladder below stays fail-closed.
+      sso_config   = nil unless sso_config&.domain_id == domain_id
+      sso_config ||= Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain_id)
 
       # Normalized exactly as the sibling signup-domain gate normalizes it
       # (before_omniauth_create_account, hooks/omniauth.rb), so the two gates
