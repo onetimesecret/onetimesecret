@@ -4,7 +4,7 @@
     "source_hash": "0bc449a3"
   },
   "web.admin.banner.description": {
-    "text": "Veröffentlichen Sie eine seitenweite Ankündigung, die jedem Besucher angezeigt wird, oder entfernen Sie die aktuelle.",
+    "text": "Veröffentlichen Sie eine standortweite Ankündigung, die jedem Besucher angezeigt wird, oder entfernen Sie die aktuelle.",
     "source_hash": "a0f720d7"
   },
   "web.admin.banner.loadError": {

@@ -417,7 +417,7 @@
     "source_hash": "6b435c76"
   },
   "web.login.signin_disabled_message": {
-    "text": "Die Anmeldung ist auf diesem Bereich derzeit nicht verfügbar.",
+    "text": "Die Anmeldung ist in diesem Bereich derzeit nicht verfügbar.",
     "source_hash": "b681c35d"
   },
   "web.login.errors.sso_not_configured": {

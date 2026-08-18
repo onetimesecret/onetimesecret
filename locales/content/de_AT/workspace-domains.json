@@ -140,7 +140,7 @@
     "source_hash": "421b1e61"
   },
   "web.domains.control_whether_users_can_create_secret_links": {
-    "text": "Kontrollieren Sie, ob Benutzer geheime Links von der Homepage Ihrer Bereich erstellen können",
+    "text": "Kontrollieren Sie, ob Benutzer geheime Links von der Homepage Ihres Bereichs erstellen können",
     "source_hash": "a25d6fca"
   },
   "web.domains.homepage_access": {
@@ -236,7 +236,7 @@
     "source_hash": "b5549ff7"
   },
   "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
-    "text": "Um Ihre Bereich zu verbinden, benötigen Sie einen CNAME-Eintrag in Ihrem Namensserver-Datensatz, der auf",
+    "text": "Um Ihren Bereich zu verbinden, benötigen Sie einen CNAME-Eintrag in Ihrem Namensserver-Datensatz, der auf",
     "source_hash": "c560710e"
   },
   "web.domains.if_you_already_have_a_cname_record_for_that_addr": {
@@ -336,7 +336,7 @@
     "source_hash": "62766ffd"
   },
   "web.domains.follow_these_steps_to_verify_domain_ownership_an": {
-    "text": "Befolgen Sie diese Schritte, um die Bereichinhaberschaft zu überprüfen und Ihre Online-Präsenz zu verbessern:",
+    "text": "Befolgen Sie diese Schritte, um die Bereichsinhaberschaft zu überprüfen und Ihre Online-Präsenz zu verbessern:",
     "source_hash": "a33f94d3"
   },
   "web.domains.domain_verification_steps": {
@@ -1524,19 +1524,19 @@
     "source_hash": "cc0d4997"
   },
   "web.domains.signin.effective_status_label": {
-    "text": "Anmeldung auf diesem Bereich",
+    "text": "Anmeldung in diesem Bereich",
     "source_hash": "d8b884c3"
   },
   "web.domains.signin.dormant_notice": {
-    "text": "Die Anmeldung ist workspace-weit deaktiviert, daher ist sie auf jedem Bereich nicht verfügbar. Ihre Einstellungen hier werden beibehalten und werden wirksam, sobald die Workspace-Anmeldung wieder aktiviert ist.",
+    "text": "Die Anmeldung ist workspace-weit deaktiviert, daher ist sie in keinem Bereich verfügbar. Ihre Einstellungen hier werden beibehalten und werden wirksam, sobald die Workspace-Anmeldung wieder aktiviert ist.",
     "source_hash": "723d35dc"
   },
   "web.domains.signup.effective_status_label": {
-    "text": "Registrierungen auf diesem Bereich",
+    "text": "Registrierungen in diesem Bereich",
     "source_hash": "115ab21b"
   },
   "web.domains.signup.dormant_notice": {
-    "text": "Registrierungen sind workspace-weit deaktiviert, daher sind sie auf jedem Bereich nicht verfügbar. Ihre Einstellungen hier werden beibehalten und werden wirksam, sobald Workspace-Registrierungen wieder aktiviert sind.",
+    "text": "Registrierungen sind workspace-weit deaktiviert, daher sind sie in keinem Bereich verfügbar. Ihre Einstellungen hier werden beibehalten und werden wirksam, sobald Workspace-Registrierungen wieder aktiviert sind.",
     "source_hash": "49faefe4"
   },
   "web.domains.link_domain_no_settings": {

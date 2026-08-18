@@ -1052,7 +1052,7 @@
     "source_hash": "57a92aee"
   },
   "web.domains.signin.restrict_to_label": {
-    "text": "Anmeldemethode einschränken",
+    "text": "Anmeldemethode beschränken",
     "source_hash": "edbec83f"
   },
   "web.domains.signin.restrict_to_hint": {
@@ -1144,7 +1144,7 @@
     "source_hash": "67a926f7"
   },
   "web.domains.signin.availability_unavailable": {
-    "text": "Seitenweit nicht verfügbar",
+    "text": "Websiteweit nicht verfügbar",
     "source_hash": "da29c1be"
   },
   "web.domains.signin.allow_on_domain": {

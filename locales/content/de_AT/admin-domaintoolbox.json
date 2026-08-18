@@ -16,11 +16,11 @@
     "source_hash": "324b134f"
   },
   "web.admin.domaintoolbox.fields.extid": {
-    "text": "Externe Bereich-ID",
+    "text": "Externe Bereichs-ID",
     "source_hash": "f52af6c5"
   },
   "web.admin.domaintoolbox.fields.extidPlaceholder": {
-    "text": "cd_… (Bereich-extid)",
+    "text": "cd_… (Bereichs-extid)",
     "source_hash": "bb9bf49a"
   },
   "web.admin.domaintoolbox.orphaned.title": {
@@ -112,11 +112,11 @@
     "source_hash": "24f25b9b"
   },
   "web.admin.domaintoolbox.repair.confirmTitle": {
-    "text": "Bereich-Reparaturen anwenden?",
+    "text": "Bereichsreparaturen anwenden?",
     "source_hash": "9429998b"
   },
   "web.admin.domaintoolbox.repair.confirmDescription": {
-    "text": "Dadurch wird der Inhaberschafts-/Beziehungsstatus für {domain} geändert. Geben Sie die externe Bereich-ID zur Bestätigung erneut ein.",
+    "text": "Dadurch wird der Inhaberschafts-/Beziehungsstatus für {domain} geändert. Geben Sie die externe Bereichs-ID zur Bestätigung erneut ein.",
     "source_hash": "426d267b"
   },
   "web.admin.domaintoolbox.reverify.button": {
@@ -168,11 +168,11 @@
     "source_hash": "bbca9de9"
   },
   "web.admin.domaintoolbox.transfer.confirmTitle": {
-    "text": "Bereich-Inhaberschaft übertragen?",
+    "text": "Bereichsinhaberschaft übertragen?",
     "source_hash": "d306a15a"
   },
   "web.admin.domaintoolbox.transfer.confirmDescription": {
-    "text": "Dadurch wird die Inhaberschaft von {domain} einer anderen Organisation zugewiesen. Geben Sie die externe Bereich-ID zur Bestätigung erneut ein.",
+    "text": "Dadurch wird die Inhaberschaft von {domain} einer anderen Organisation zugewiesen. Geben Sie die externe Bereichs-ID zur Bestätigung erneut ein.",
     "source_hash": "edefd97c"
   }
 }
