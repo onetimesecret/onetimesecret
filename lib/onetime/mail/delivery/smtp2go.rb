@@ -15,6 +15,8 @@ module Onetime
       #   api_key:  SMTP2GO API key (ENV: SMTP2GO_API_KEY)
       #   base_url: Custom API base URL (ENV: SMTP2GO_BASE_URL)
       #   timeout:  Read timeout in seconds
+      #   fastaccept: Fire-and-forget mode, default false
+      #     (ENV: CUSTOM_MAIL_SMTP2GO_FASTACCEPT)
       #
       # Response semantics: SMTP2GO returns 200 with per-recipient
       # accounting ({succeeded:, failed:, failures: [], email_id:}), so a
@@ -30,11 +32,21 @@ module Onetime
         # the vetted corpus; this twin only covers standalone mail-lib loads.
         EMAIL_PATTERN = /\b(?>[\p{L}\p{N}._%+'-]+)@[\p{L}\p{N}.\p{Pd}]+\.\p{L}{2,}\b/
 
+        # Recognized truthy tokens for standalone mail-lib loads, where the
+        # canonical strict coercion (Onetime::Utils::Strings.strict_bool!) is
+        # not on the load path. Same token set, minus the loud rejection of
+        # unrecognized input — see #coerce_fastaccept.
+        FASTACCEPT_TRUE_TOKENS = %w[1 true yes on y t].freeze
+
         def initialize(config = {})
           super
-          # Default to true for backward compatibility (fire-and-forget mode).
-          # Set to false for synchronous delivery accounting.
-          @fastaccept = config.fetch('fastaccept', false)
+          # Default false: synchronous delivery accounting. SMTP2GO's
+          # fastaccept=true is fire-and-forget — the API returns 200 with no
+          # succeeded/failed/failures keys, so every delivery failure is
+          # invisible. Opt into it only when the latency matters more than
+          # knowing a message bounced. Read from @config (string-keyed by
+          # Base#initialize) so symbol-keyed callers are not silently ignored.
+          @fastaccept = coerce_fastaccept(@config['fastaccept'])
         end
 
         def perform_delivery(email)
@@ -149,6 +161,25 @@ module Onetime
           return address unless parts.length == 2
 
           "***@#{parts[1]}"
+        end
+
+        # Coerce the configured fastaccept value to a real boolean. SMTP2GO
+        # expects a JSON boolean; a string "false" arriving from ENV or a
+        # hand-built config hash would be truthy on their side and silently
+        # switch off the per-recipient accounting this backend depends on.
+        #
+        # Prefers the canonical strict coercion, which raises on an
+        # unrecognized token instead of quietly resolving to the default. The
+        # standalone mail-lib load (no Onetime::Utils) falls back to token
+        # matching, mirroring #email_pattern's twin-constant arrangement.
+        def coerce_fastaccept(raw)
+          return raw if [true, false].include?(raw)
+
+          if defined?(Onetime::Utils::Strings) && Onetime::Utils::Strings.respond_to?(:strict_bool!)
+            return Onetime::Utils::Strings.strict_bool!("smtp2go 'fastaccept'", raw, default: false)
+          end
+
+          FASTACCEPT_TRUE_TOKENS.include?(raw.to_s.strip.downcase)
         end
 
         # The canonical, corpus-pinned pattern when the app is loaded; the

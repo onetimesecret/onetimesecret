@@ -74,6 +74,64 @@ RSpec.describe Onetime::Mail::Delivery::Smtp2go do
       end
     end
 
+    # Base#initialize stringifies config keys, so a symbol-keyed caller
+    # (BYOK backends are built with api_key:/fastaccept:) must not silently
+    # fall through to the default.
+    context 'with symbol-keyed fastaccept: true' do
+      let(:backend) { described_class.new(config.merge(fastaccept: true)) }
+
+      before do
+        allow(backend).to receive(:client).and_return(mock_client)
+        allow(backend).to receive(:log_delivery)
+        allow(backend).to receive(:log_error)
+      end
+
+      it 'posts fastaccept: true in payload' do
+        backend.deliver(email)
+
+        expect(mock_client).to have_received(:post).with(
+          '/email/send',
+          hash_including('fastaccept' => true),
+        )
+      end
+    end
+
+    # SMTP2GO's API expects a JSON boolean; the string "false" would be
+    # truthy on their side and silently disable delivery accounting.
+    {
+      'true' => true,
+      'True' => true,
+      ' TRUE ' => true,
+      'false' => false,
+      'no' => false,
+      '' => false,
+      nil => false,
+    }.each do |raw, expected|
+      context "with fastaccept configured as #{raw.inspect}" do
+        let(:backend) { described_class.new(config.merge('fastaccept' => raw)) }
+
+        before do
+          allow(backend).to receive(:client).and_return(mock_client)
+          allow(backend).to receive(:log_delivery)
+          allow(backend).to receive(:log_error)
+        end
+
+        it "coerces to the boolean #{expected}" do
+          backend.deliver(email)
+
+          expect(mock_client).to have_received(:post).with(
+            '/email/send',
+            hash_including('fastaccept' => expected),
+          )
+        end
+      end
+    end
+
+    it 'rejects an unrecognized fastaccept token instead of defaulting' do
+      expect { described_class.new(config.merge('fastaccept' => 'ture')) }
+        .to raise_error(Onetime::ConfigError, /fastaccept/)
+    end
+
     it 'sets Reply-To via custom_headers when present' do
       backend.deliver(email.merge(reply_to: 'reply@example.com'))
 
