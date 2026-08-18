@@ -323,6 +323,84 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
   end
 
   # ==========================================================================
+  # allowed_domains_corrupt? Tests
+  #
+  # Regression coverage for the 2026-08-14 appsec review, finding H-3
+  # ("Tenant SSO allowed_domains is dead code"). The allowlist is now enforced
+  # on the SSO callback path, which makes the DIRECTION of failure a security
+  # property: allowed_domains swallows JSON::ParserError and returns [], and
+  # valid_email_domain? reads an empty list as allow-all, so without this
+  # predicate a truncated or hand-edited value would silently disable the very
+  # restriction it encodes. Authentication callers deny when this is true.
+  # ==========================================================================
+
+  describe '#allowed_domains_corrupt?' do
+    let(:config) { build_domain_sso_config(:oidc) }
+
+    it 'is false for a well-formed allowlist' do
+      config.allowed_domains = ['example.com']
+
+      expect(config.allowed_domains_corrupt?).to be false
+    end
+
+    it 'is false when no allowlist is configured' do
+      # The legitimate "no restriction" state: allowed_domains= writes nil when
+      # the normalized list is empty. This must stay allow-all.
+      config.allowed_domains = []
+
+      expect(config.allowed_domains_corrupt?).to be false
+      expect(config.valid_email_domain?('user@anydomain.com')).to be true
+    end
+
+    it 'is false for a well-formed empty array' do
+      config.allowed_domains_json = '[]'
+
+      expect(config.allowed_domains_corrupt?).to be false
+    end
+
+    it 'is true for unparseable JSON' do
+      config.allowed_domains_json = '["example.com"'
+
+      expect(config.allowed_domains_corrupt?).to be true
+    end
+
+    it 'is true for a whitespace-only value' do
+      # No app write path produces this — allowed_domains= writes nil or valid
+      # JSON — so a whitespace value is by definition hand-edited or truncated.
+      # The permissive reader degrades it to [] (allow-all); the auth path
+      # must read it as corrupt instead. Regression: an earlier revision
+      # stripped before the blank check and misread this as "no allowlist".
+      config.allowed_domains_json = '   '
+
+      expect(config.allowed_domains).to eq([])
+      expect(config.allowed_domains_corrupt?).to be true
+    end
+
+    it 'is false for a well-formed allowlist padded with whitespace' do
+      config.allowed_domains_json = ' ["example.com"] '
+
+      expect(config.allowed_domains_corrupt?).to be false
+    end
+
+    it 'is true for valid JSON that is not an array' do
+      config.allowed_domains_json = '{"example.com":true}'
+
+      expect(config.allowed_domains_corrupt?).to be true
+    end
+
+    it 'flags exactly the case where allowed_domains silently degrades to allow-all' do
+      config.allowed_domains_json = 'not json at all'
+
+      # The permissive reader still reports "no restrictions"...
+      expect(config.allowed_domains).to eq([])
+      expect(config.valid_email_domain?('user@attacker.com')).to be true
+
+      # ...which is why the authentication path must consult this instead.
+      expect(config.allowed_domains_corrupt?).to be true
+    end
+  end
+
+  # ==========================================================================
   # Finder Method Tests
   # ==========================================================================
 

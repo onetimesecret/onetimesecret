@@ -707,5 +707,67 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       # (exact headers depend on res.do_not_cache! implementation)
       expect(last_response.headers).to have_key('Cache-Control')
     end
+
+    # ========================================================================
+    # Regression coverage for the 2026-08-14 appsec review, finding H-2:
+    # "Non-owner member is handed the organization's Stripe Customer Portal".
+    #
+    # The portal can read the full billing history, change the payment method
+    # and cancel the subscription, so membership is not sufficient authority.
+    # The precondition is not exotic: JoinDomainOrganization repoints a
+    # member's default_org_id at the shared tenant organization when they sign
+    # in through that tenant's custom-domain SSO, so the org this handler
+    # resolves is routinely one the caller does not own.
+    # ========================================================================
+    # stripe_sandbox_api: false overrides the describe-level tag. This example
+    # reaches the authorization gate and returns before any Stripe call, so it
+    # needs neither the sandbox nor a cassette — and billing_spec_helper's
+    # around hook skips every :stripe_sandbox_api example in CI (no real
+    # STRIPE_API_KEY is configured there). Without the override this regression
+    # test would silently never run on the branch it is meant to protect.
+    it 'denies a non-owner member the organization portal', :vcr, stripe_sandbox_api: false do
+      member = Onetime::Customer.create!(email: "portal-member-#{SecureRandom.hex(4)}@example.com")
+      created_customers << member
+      member.save
+
+      # Reproduce the repoint: an active 'member' whose default org is the
+      # organization owned by someone else.
+      organization.add_members_instance(member, through_attrs: { role: 'member', status: 'active' })
+      member.default_org_id = organization.objid
+      member.save
+
+      # Give the org a Stripe customer so the ONLY reason to redirect away is
+      # the authorization gate — not the "no Stripe customer" branch, which
+      # would also land on /account and could mask a missing check.
+      organization.stripe_customer_id = 'cus_owner_only_fixture'
+      organization.save
+
+      env 'rack.session', {
+        'authenticated' => true,
+        'external_id' => member.extid,
+      }
+
+      get '/billing/portal'
+
+      expect(last_response.status).to eq(302)
+      expect(last_response.location).to include('billing_error=not_authorized')
+      expect(last_response.location).not_to match(%r{\Ahttps://billing\.stripe\.com/})
+    end
+
+    # Positive control: the gate must not over-block the legitimate owner.
+    # Asserts the Stripe portal URL rather than merely "no billing_error",
+    # because the handler's Stripe rescue also redirects to a plain /account
+    # with no error param — so the weaker assertion would stay green even if
+    # the owner never reached the portal at all.
+    it 'still admits the organization owner', :vcr do
+      stripe_customer                 = Stripe::Customer.create(email: organization.billing_email)
+      organization.stripe_customer_id = stripe_customer.id
+      organization.save
+
+      get '/billing/portal'
+
+      expect(last_response.status).to eq(302)
+      expect(last_response.location).to match(%r{\Ahttps://billing\.stripe\.com/})
+    end
   end
 end
