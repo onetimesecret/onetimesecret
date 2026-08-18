@@ -364,6 +364,24 @@ RSpec.describe Onetime::CustomDomain::SsoConfig do
       expect(config.allowed_domains_corrupt?).to be true
     end
 
+    it 'is true for a whitespace-only value' do
+      # No app write path produces this — allowed_domains= writes nil or valid
+      # JSON — so a whitespace value is by definition hand-edited or truncated.
+      # The permissive reader degrades it to [] (allow-all); the auth path
+      # must read it as corrupt instead. Regression: an earlier revision
+      # stripped before the blank check and misread this as "no allowlist".
+      config.allowed_domains_json = '   '
+
+      expect(config.allowed_domains).to eq([])
+      expect(config.allowed_domains_corrupt?).to be true
+    end
+
+    it 'is false for a well-formed allowlist padded with whitespace' do
+      config.allowed_domains_json = ' ["example.com"] '
+
+      expect(config.allowed_domains_corrupt?).to be false
+    end
+
     it 'is true for valid JSON that is not an array' do
       config.allowed_domains_json = '{"example.com":true}'
 

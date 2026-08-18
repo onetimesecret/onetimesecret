@@ -241,13 +241,19 @@ module Onetime
       # sign-in consult this first and deny when it is true, so a value we
       # cannot parse fails closed instead of opening the door.
       #
-      # An absent/blank value is NOT corrupt — that is the legitimate "no
+      # An absent/empty value is NOT corrupt — that is the legitimate "no
       # allowlist" state written by allowed_domains= when the list is empty.
-      # A well-formed empty array ("[]") is likewise not corrupt.
+      # A well-formed empty array ("[]") is likewise not corrupt. A
+      # whitespace-only value IS corrupt: no app write path produces one
+      # (allowed_domains= writes nil or valid JSON), and allowed_domains
+      # above — whose blank guard does not strip — would degrade it to
+      # allow-all, the exact silent failure this predicate exists to catch.
+      # JSON.parse tolerates surrounding whitespace, so a padded-but-valid
+      # value still reads as well-formed.
       #
       # @return [Boolean] true when a value is present but unreadable as an Array
       def allowed_domains_corrupt?
-        raw = allowed_domains_json.to_s.strip
+        raw = allowed_domains_json.to_s
         return false if raw.empty?
 
         !JSON.parse(raw).is_a?(Array)
