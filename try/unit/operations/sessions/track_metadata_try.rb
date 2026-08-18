@@ -152,13 +152,15 @@ SM.load(@lcgeo_sid)&.destroy!
 @lcgeo.geo_country
 #=> "CA"
 
-## the '**' unknown sentinel is preserved verbatim (consumers render it as Unknown)
+## the '**' unknown sentinel normalizes to nil — it is never stored and never
+## reaches a client (SessionMetadata#geo_country is the read-side chokepoint;
+## the write path drops it like any other non-country value)
 @unkgeo_sid = "tryunkgeo_#{@nonce}"
 SM.load(@unkgeo_sid)&.destroy!
 @unkgeo = TM.new(session_id: @unkgeo_sid, session_data: @auth_session,
                  env: { 'otto.privacy.geo_country' => '**' }).call
-@unkgeo.geo_country
-#=> "**"
+[@unkgeo.geo_country, Familia.dbclient.hget(SM.dbkey(@unkgeo_sid), 'geo_country')]
+#=> [nil, nil]
 
 ## org resolution is nil-safe: a customer with no organization writes the sidecar
 ## with org_id = nil, never raising (own rescue). (@cust has no org yet.)
