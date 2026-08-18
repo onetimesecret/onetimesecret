@@ -104,19 +104,28 @@ end
 # ----------------------------------------------------------------
 
 ## Cold read reports a MISS and carries the full cache block
+# NOTE: The cache path only activates when filters/search are provided.
+# Without filters, the endpoint pages directly against the instances sorted
+# set (revrange of just the requested page) without touching the cache.
 drop_cache
-get '/api/colonel/organizations', {}, colonel_headers
+get '/api/colonel/organizations', { 'search' => 'loc_' }, colonel_headers
 @resp  = JSON.parse(last_response.body)
 @cache = @resp['details']['cache']
 [last_response.status, @cache['cached'], @cache['ttl'], @cache['generated_at'].positive?]
 #=> [200, false, ColonelAPI::Logic::Colonel::ListOrganizations::CACHE_TTL, true]
+
+## Cold read actually WROTE the cache entry. write_cache rescues and swallows
+## failures, so without this direct check a silent write failure would surface
+## as four cascading hit-path assertion failures below instead of one here.
+Familia.dbclient.get(@cache_key).nil?
+#=> false
 
 ## Cold read populated the cache key with a TTL
 Familia.dbclient.ttl(@cache_key).positive?
 #=> true
 
 ## Second read is a HIT and reuses the SAME generated_at (it tracks the build)
-@second = cache_block
+@second = cache_block('search' => 'loc_')
 [@second['cached'], @second['generated_at'] == @cache['generated_at']]
 #=> [true, true]
 
@@ -153,8 +162,10 @@ Familia.dbclient.ttl(@cache_key).positive?
 @found.map { |r| r['extid'] }.sort == [@stale_org.extid, @synced_org.extid].sort
 #=> true
 
-## HIT: rows are ordered created-descending (the sort key survives the blob)
-@created = rows_for.map { |r| r['created'] }
+## HIT: rows are ordered created-descending (the sort key survives the blob).
+## Must use a filter param: an unfiltered request takes the cache-free paged
+## path, which returns modified-recency order, not the created sort.
+@created = rows_for('search' => 'loc_').map { |r| r['created'] }
 @created == @created.sort.reverse
 #=> true
 
@@ -178,14 +189,14 @@ JSON.parse(last_response.body)['details']['pagination']['total_count']
 # ----------------------------------------------------------------
 
 ## refresh=1 skips the read and rewrites the entry (reported as a miss)
-@before = cache_block
+@before = cache_block('search' => 'loc_')
 sleep 1 # generated_at is a unix SECOND; make the rebuild observable
-@bypassed = cache_block('refresh' => '1')
+@bypassed = cache_block('search' => 'loc_', 'refresh' => '1')
 [@before['cached'], @bypassed['cached'], @bypassed['generated_at'] > @before['generated_at']]
 #=> [true, false, true]
 
 ## The read after a bypass is a hit again, on the REBUILT entry
-@after = cache_block
+@after = cache_block('search' => 'loc_')
 [@after['cached'], @after['generated_at'] == @bypassed['generated_at']]
 #=> [true, true]
 
@@ -201,16 +212,17 @@ sleep 1 # generated_at is a unix SECOND; make the rebuild observable
 # Failure tolerance: a cache read must never break the endpoint
 # ----------------------------------------------------------------
 
-## A corrupt cache entry falls through to the uncached computation
+## A corrupt cache entry falls through to the uncached computation.
+## Filter param required: only filtered requests read the cache at all.
 Familia.dbclient.setex(@cache_key, 90, 'not-json-at-all')
-get '/api/colonel/organizations', {}, colonel_headers
+get '/api/colonel/organizations', { 'search' => 'loc_' }, colonel_headers
 @resp = JSON.parse(last_response.body)
 [last_response.status, @resp['details']['cache']['cached'], @resp['details']['organizations'].any?]
 #=> [200, false, true]
 
 ## A well-formed-but-wrong-shaped entry also falls through
 Familia.dbclient.setex(@cache_key, 90, JSON.generate({ generated_at: 1, organizations: 'nope' }))
-get '/api/colonel/organizations', {}, colonel_headers
+get '/api/colonel/organizations', { 'search' => 'loc_' }, colonel_headers
 @resp = JSON.parse(last_response.body)
 [last_response.status, @resp['details']['cache']['cached'], @resp['details']['organizations'].any?]
 #=> [200, false, true]

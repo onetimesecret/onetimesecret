@@ -3,6 +3,7 @@
 <script setup lang="ts">
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useTheme } from '@/shared/composables/useTheme';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import { isColorValue } from '@/utils/color-utils';
   import { computed, onMounted } from 'vue';
@@ -19,6 +20,10 @@
   const { t } = useI18n();
   const route = useRoute();
   const { isDarkMode, toggleDarkMode, initializeTheme } = useTheme();
+  const bootstrapStore = useBootstrapStore();
+
+  /** The logged-in colonel admin's email (compliance awareness). */
+  const currentUserEmail = computed(() => bootstrapStore.cust?.email ?? '');
 
   // Sync the reactive flag with the class the inline head script already
   // applied before mount, so the toggle button reflects the real state.
@@ -200,18 +205,27 @@
             </span>
           </template>
         </nav>
-        <button
-          type="button"
-          class="inline-flex size-9 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-100 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-gray-400 dark:hover:bg-gray-800"
-          :aria-label="t('web.layout.toggle_dark_mode')"
-          :aria-pressed="isDarkMode"
-          @click="toggleDarkMode">
-          <OIcon
-            collection="heroicons"
-            name="light-bulb"
-            :class="isDarkMode ? 'text-brand-400' : ''"
-            size="5" />
-        </button>
+        <div class="flex items-center gap-3">
+          <!-- Logged-in colonel identity (compliance awareness) -->
+          <span
+            v-if="currentUserEmail"
+            class="hidden truncate text-sm text-gray-500 sm:block dark:text-gray-400"
+            data-testid="admin-current-user">
+            {{ currentUserEmail }}
+          </span>
+          <button
+            type="button"
+            class="inline-flex size-9 items-center justify-center rounded-md text-gray-500 transition-colors hover:bg-gray-100 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:text-gray-400 dark:hover:bg-gray-800"
+            :aria-label="t('web.layout.toggle_dark_mode')"
+            :aria-pressed="isDarkMode"
+            @click="toggleDarkMode">
+            <OIcon
+              collection="heroicons"
+              name="light-bulb"
+              :class="isDarkMode ? 'text-brand-400' : ''"
+              size="5" />
+          </button>
+        </div>
       </header>
 
       <main class="flex-1 overflow-x-auto p-5 sm:p-8">

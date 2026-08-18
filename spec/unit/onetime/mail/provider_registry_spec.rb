@@ -246,6 +246,7 @@ RSpec.describe Onetime::Mail::ProviderRegistry do
           api_base_url: 'https://api.smtp2go.com/v3',
           returnpath_subdomain: 'bounce',
           tracking_subdomain: 'track',
+          fastaccept: false,
         },
       )
     end

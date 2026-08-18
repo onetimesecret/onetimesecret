@@ -40,7 +40,7 @@ RSpec.describe Onetime::Mail::Delivery::Smtp2go do
       expect(backend).to have_received(:log_delivery)
     end
 
-    it 'posts sender, to array, subject, text_body and fastaccept' do
+    it 'defaults fastaccept to false when not specified in config' do
       backend.deliver(email)
 
       expect(mock_client).to have_received(:post).with(
@@ -50,9 +50,86 @@ RSpec.describe Onetime::Mail::Delivery::Smtp2go do
           'to' => ['recipient@example.com'],
           'subject' => 'Test email',
           'text_body' => 'Hello',
-          'fastaccept' => true,
+          'fastaccept' => false,
         ),
       )
+    end
+
+    context 'with fastaccept: false configured' do
+      let(:backend) { described_class.new(config.merge('fastaccept' => false)) }
+
+      before do
+        allow(backend).to receive(:client).and_return(mock_client)
+        allow(backend).to receive(:log_delivery)
+        allow(backend).to receive(:log_error)
+      end
+
+      it 'posts fastaccept: false in payload' do
+        backend.deliver(email)
+
+        expect(mock_client).to have_received(:post).with(
+          '/email/send',
+          hash_including('fastaccept' => false),
+        )
+      end
+    end
+
+    # Base#initialize stringifies config keys, so a symbol-keyed caller
+    # (BYOK backends are built with api_key:/fastaccept:) must not silently
+    # fall through to the default.
+    context 'with symbol-keyed fastaccept: true' do
+      let(:backend) { described_class.new(config.merge(fastaccept: true)) }
+
+      before do
+        allow(backend).to receive(:client).and_return(mock_client)
+        allow(backend).to receive(:log_delivery)
+        allow(backend).to receive(:log_error)
+      end
+
+      it 'posts fastaccept: true in payload' do
+        backend.deliver(email)
+
+        expect(mock_client).to have_received(:post).with(
+          '/email/send',
+          hash_including('fastaccept' => true),
+        )
+      end
+    end
+
+    # SMTP2GO's API expects a JSON boolean; the string "false" would be
+    # truthy on their side and silently disable delivery accounting.
+    {
+      'true' => true,
+      'True' => true,
+      ' TRUE ' => true,
+      'false' => false,
+      'no' => false,
+      '' => false,
+      nil => false,
+    }.each do |raw, expected|
+      context "with fastaccept configured as #{raw.inspect}" do
+        let(:backend) { described_class.new(config.merge('fastaccept' => raw)) }
+
+        before do
+          allow(backend).to receive(:client).and_return(mock_client)
+          allow(backend).to receive(:log_delivery)
+          allow(backend).to receive(:log_error)
+        end
+
+        it "coerces to the boolean #{expected}" do
+          backend.deliver(email)
+
+          expect(mock_client).to have_received(:post).with(
+            '/email/send',
+            hash_including('fastaccept' => expected),
+          )
+        end
+      end
+    end
+
+    it 'rejects an unrecognized fastaccept token instead of defaulting' do
+      expect { described_class.new(config.merge('fastaccept' => 'ture')) }
+        .to raise_error(Onetime::ConfigError, /fastaccept/)
     end
 
     it 'sets Reply-To via custom_headers when present' do
@@ -93,6 +170,59 @@ RSpec.describe Onetime::Mail::Delivery::Smtp2go do
       expect(payload).not_to have_key('html_body')
       expect(payload['text_body']).to eq('Hello')
     end
+
+    it 'accepts fastaccept response with email_id only (no succeeded key)' do
+      # When fastaccept: true, SMTP2GO may omit succeeded/failed keys
+      fastaccept_data = { 'email_id' => '1er8bV-6Sw0i9-6ci1pC' }
+      allow(mock_client).to receive(:post).and_return(fastaccept_data)
+
+      result = backend.deliver(email)
+      expect(result).to eq(fastaccept_data)
+      expect(backend).to have_received(:log_delivery)
+    end
+  end
+
+  describe '#deliver with missing accounting (fail-closed)' do
+    it 'raises E_MissingAccounting when response lacks both succeeded and email_id' do
+      # Empty response or malformed data without accounting keys
+      allow(mock_client).to receive(:post).and_return({})
+
+      expect { backend.deliver(email) }
+        .to raise_error(Onetime::Mail::DeliveryError) do |err|
+          expect(err.transient?).to be false
+          expect(err.original_error).to be_a(Onetime::Mail::Smtp2goClient::APIError)
+          expect(err.original_error.status_code).to eq(200)
+          expect(err.original_error.error_code).to eq('E_MissingAccounting')
+          expect(err.message).to include('missing delivery accounting')
+        end
+    end
+
+    it 'raises E_MissingAccounting when email_id is nil and succeeded is absent' do
+      allow(mock_client).to receive(:post).and_return({ 'email_id' => nil })
+
+      expect { backend.deliver(email) }
+        .to raise_error(Onetime::Mail::DeliveryError) do |err|
+          expect(err.original_error.error_code).to eq('E_MissingAccounting')
+        end
+    end
+
+    it 'raises E_MissingAccounting when email_id is empty string and succeeded is absent' do
+      allow(mock_client).to receive(:post).and_return({ 'email_id' => '' })
+
+      expect { backend.deliver(email) }
+        .to raise_error(Onetime::Mail::DeliveryError) do |err|
+          expect(err.original_error.error_code).to eq('E_MissingAccounting')
+        end
+    end
+
+    it 'does NOT raise when succeeded key is present (even if zero)' do
+      # succeeded: 0, failed: 0 is valid (empty batch, edge case)
+      data = { 'succeeded' => 0, 'failed' => 0, 'failures' => [] }
+      allow(mock_client).to receive(:post).and_return(data)
+
+      result = backend.deliver(email)
+      expect(result).to eq(data)
+    end
   end
 
   describe '#deliver with per-recipient failures in a 200 response' do
@@ -121,10 +251,11 @@ RSpec.describe Onetime::Mail::Delivery::Smtp2go do
         .to raise_error(Onetime::Mail::DeliveryError) do |err|
           original = err.original_error
           # The raw address never reaches the wrapped message, the APIError
-          # message, or its response_body — but the obscured form and the
-          # failure reason text survive for diagnostics.
+          # message, or its response_body — but the domain-preserving masked
+          # form and the failure reason text survive for diagnostics.
+          # Domain is preserved so tenants know which domain failed.
           expect(err.message).not_to include('recipient@example.com')
-          expect(err.message).to include('re***@')
+          expect(err.message).to include('***@example.com')
           expect(err.message).to include('unable to verify sender')
           expect(original.message).not_to include('recipient@example.com')
           expect(original.response_body).not_to include('recipient@example.com')
@@ -292,6 +423,32 @@ RSpec.describe Onetime::Mail::Delivery::Smtp2go do
       ).and_return(mock_client)
 
       fresh_backend.send(:client)
+    end
+  end
+
+  describe '#redact_emails (domain-preserving)' do
+    # Error messages shown to tenants configuring domains must preserve
+    # the domain so they know which domain failed verification.
+    it 'masks local-part and preserves domain' do
+      text = 'Unrouteable address <no-reply@local-secrets.pet>'
+      result = backend.send(:redact_emails, text)
+      expect(result).to eq('Unrouteable address <***@local-secrets.pet>')
+    end
+
+    it 'handles multiple email addresses' do
+      text = 'user@example.com failed and admin@sub.example.org also failed'
+      result = backend.send(:redact_emails, text)
+      expect(result).to eq('***@example.com failed and ***@sub.example.org also failed')
+    end
+
+    it 'preserves non-email text' do
+      text = 'domain verify fail'
+      result = backend.send(:redact_emails, text)
+      expect(result).to eq('domain verify fail')
+    end
+
+    it 'handles empty string' do
+      expect(backend.send(:redact_emails, '')).to eq('')
     end
   end
 end

@@ -100,4 +100,41 @@ describe('FilterBar (config-driven filters)', () => {
     wrapper = mountBar({ searchPlaceholder: 'Find a customer…' });
     expect(wrapper.find('#kit-filter-search').attributes('placeholder')).toBe('Find a customer…');
   });
+
+  it('emits submit when Enter is pressed in the search box', async () => {
+    wrapper = mountBar();
+    const search = wrapper.find('#kit-filter-search');
+    await search.trigger('keydown', { key: 'Enter' });
+    expect(wrapper.emitted('submit')).toBeTruthy();
+    expect(wrapper.emitted('submit')!.length).toBe(1);
+  });
+
+  it('does not emit submit on other key presses', async () => {
+    wrapper = mountBar();
+    const search = wrapper.find('#kit-filter-search');
+    await search.trigger('keydown', { key: 'a' });
+    await search.trigger('keydown', { key: 'Tab' });
+    await search.trigger('keydown', { key: 'Escape' });
+    expect(wrapper.emitted('submit')).toBeFalsy();
+  });
+
+  it('renders a search submit button when the search box is shown', () => {
+    wrapper = mountBar();
+    const submitBtn = wrapper.findAll('button').find((b) => b.text().includes('searchSubmit'));
+    expect(submitBtn).toBeDefined();
+  });
+
+  it('emits submit when the search button is clicked', async () => {
+    wrapper = mountBar();
+    const submitBtn = wrapper.findAll('button').find((b) => b.text().includes('searchSubmit'));
+    await submitBtn!.trigger('click');
+    expect(wrapper.emitted('submit')).toBeTruthy();
+    expect(wrapper.emitted('submit')!.length).toBe(1);
+  });
+
+  it('hides the search submit button when showSearch is false', () => {
+    wrapper = mountBar({ showSearch: false });
+    const submitBtn = wrapper.findAll('button').find((b) => b.text().includes('searchSubmit'));
+    expect(submitBtn).toBeUndefined();
+  });
 });
