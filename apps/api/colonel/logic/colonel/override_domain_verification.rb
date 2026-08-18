@@ -37,8 +37,8 @@ module ColonelAPI
           raise_form_error('Domain ID is required', field: :extid) if extid.to_s.empty?
 
           # Both are optional; nil means "do not change"
-          @verified_param  = parse_optional_boolean(params['verified'])
-          @resolving_param = parse_optional_boolean(params['resolving'])
+          @verified_param  = parse_optional_boolean(params['verified'], field: :verified)
+          @resolving_param = parse_optional_boolean(params['resolving'], field: :resolving)
 
           # At least one flag must be provided
           if verified_param.nil? && resolving_param.nil?
@@ -91,6 +91,8 @@ module ColonelAPI
               previous_resolving: previous_resolving,
               current_verified: custom_domain.verified.to_s == 'true',
               current_resolving: custom_domain.resolving.to_s == 'true',
+              verified_changed: (custom_domain.verified.to_s == 'true') != previous_verified,
+              resolving_changed: (custom_domain.resolving.to_s == 'true') != previous_resolving,
               message: 'Domain verification flags overridden',
             },
           }
@@ -116,11 +118,17 @@ module ColonelAPI
 
         # Parse an optional boolean parameter.
         # Returns true, false, or nil (when param is absent or blank).
-        def parse_optional_boolean(value)
+        # Any other value is rejected loudly: silently coercing garbage
+        # (e.g. "maybe") to false could clear a manually-verified domain.
+        def parse_optional_boolean(value, field:)
           return nil if value.nil?
           return nil if value.to_s.strip.empty?
 
-          %w[true 1 yes on].include?(value.to_s.strip.downcase)
+          normalized = value.to_s.strip.downcase
+          return true  if %w[true 1 yes on].include?(normalized)
+          return false if %w[false 0 no off].include?(normalized)
+
+          raise_form_error("Invalid boolean value for #{field}: #{value.inspect}", field: field)
         end
       end
     end
