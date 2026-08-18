@@ -97,41 +97,70 @@ module ColonelAPI
         end
 
         def process
-          # Pre-filter roster, from cache when possible (see the cache notes above)
-          org_data_list = roster
+          # Seed the MISS shape for both paths: `details.cache` is a required
+          # member of the frontend Zod contract, so it must be present even
+          # when the cache read AND write both blow up (filtered path) and on
+          # the cache-free paged path, which never touches the cache at all.
+          @cache_hit          = false
+          @cache_generated_at = Familia.now.to_i
 
-          # Apply filters
-          org_data_list = apply_filters(org_data_list)
+          if active_filters?
+            # Full roster (from cache when possible — see the cache notes
+            # above), filtered in memory, then sorted and paginated.
+            org_data_list = apply_filters(filtered_roster)
 
-          @total_count = org_data_list.size
+            @total_count = org_data_list.size
+
+            # Sort by created timestamp (most recent first)
+            org_data_list.sort_by! { |data| -(data[:created] || 0) }
+
+            start_idx      = (@page - 1) * @per_page
+            @organizations = org_data_list[start_idx, @per_page] || []
+          else
+            # Default admin view: page straight off the instances sorted set,
+            # loading only this page's orgs. total_count is the set
+            # cardinality (ZCARD), so the pagination envelope reflects the
+            # full population even though only one page is ever loaded.
+            @total_count   = Onetime::Organization.instances.size
+            @organizations = paged_roster
+          end
+
           @total_pages = (@total_count.to_f / @per_page).ceil
-
-          # Sort by created timestamp (most recent first)
-          org_data_list.sort_by! { |data| -(data[:created] || 0) }
-
-          # Paginate
-          start_idx      = (@page - 1) * @per_page
-          end_idx        = start_idx + @per_page - 1
-          @organizations = org_data_list[start_idx..end_idx] || []
 
           success_data
         end
 
         private
 
-        # Pre-filter roster for this request.
+        # One page of the roster, straight off the instances sorted set — no
+        # cache involved.
         #
-        # Sets @cache_hit / @cache_generated_at as a side effect so #success_data
-        # can report the cache state on the wire. Both are seeded with the MISS
-        # shape up front: `details.cache` is a required member of the frontend
-        # Zod contract, so it must be present even when the read AND the write
-        # both blow up.
+        # The set orders by last-modified timestamp, so revrange(start, end)
+        # returns exactly this page of most-recently-touched orgs (highest
+        # scores first) without scanning or loading the full set. Rows keep
+        # that recency order: page 1 is the @per_page most recently modified
+        # orgs, page 2 the next tranche, and so on.
+        #
+        # @return [Array<Hash>] one symbol-keyed row per org on this page
+        def paged_roster
+          start_idx = (@page - 1) * @per_page
+          end_idx   = start_idx + @per_page - 1
+
+          page_org_ids = Onetime::Organization.instances.revrange(start_idx, end_idx)
+          page_orgs    = Onetime::Organization.load_multi(page_org_ids).compact
+          page_orgs.map { |org| build_org_data(org) }
+        end
+
+        # Pre-filter roster for a filtered/search request, from cache when
+        # possible (see the cache notes above).
+        #
+        # Sets @cache_hit / @cache_generated_at as a side effect so
+        # #success_data can report the cache state on the wire. Both were
+        # seeded with the MISS shape in #process, so they hold sane values
+        # even when the read AND the write both blow up.
         #
         # @return [Array<Hash>] one symbol-keyed row per organization
-        def roster
-          @cache_hit          = false
-          @cache_generated_at = Familia.now.to_i
-
+        def filtered_roster
           unless refresh
             cached = read_cache
             if cached
@@ -149,6 +178,13 @@ module ColonelAPI
           write_cache(org_data_list, @cache_generated_at)
 
           org_data_list
+        end
+
+        # @return [Boolean] true if any filter or search term is active
+        def active_filters?
+          (status_filter && !status_filter.empty?) ||
+            (sync_status_filter && !sync_status_filter.empty?) ||
+            (search_term && !search_term.empty?)
         end
 
         # Read the cached roster.

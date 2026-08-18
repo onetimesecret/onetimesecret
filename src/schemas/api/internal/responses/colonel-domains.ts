@@ -144,3 +144,53 @@ export const colonelDomainDetailResponseSchema = createApiResponseSchema(
 export type ColonelDomainDetailRecord = z.infer<typeof colonelDomainDetailRecordSchema>;
 export type ColonelDomainCluster = z.infer<typeof colonelDomainClusterSchema>;
 export type ColonelDomainDetailResponse = z.infer<typeof colonelDomainDetailResponseSchema>;
+
+// ============================================================================
+// Colonel domain verification override (manual status flag set).
+//
+// `POST /api/colonel/domains/:extid/override` allows a colonel to manually set
+// the `verified` and `resolving` flags, bypassing the normal DNS/SSL checks.
+// Used for edge cases where automatic verification fails but the domain is
+// known to be correctly configured.
+// ============================================================================
+
+/** Override request payload — both flags optional, only provided ones are set. */
+export const colonelDomainOverrideRequestSchema = z.object({
+  verified: z.boolean().optional(),
+  resolving: z.boolean().optional(),
+});
+
+/** Refreshed domain record after an override. Same slice as verify. */
+export const colonelDomainOverrideRecordSchema = z.object({
+  domain_id: z.string(),
+  extid: z.string(),
+  display_domain: z.string(),
+  verification_state: z.string(),
+  verified: z.boolean(),
+  resolving: z.boolean(),
+  ready: z.boolean(),
+  updated: transforms.fromNumber.toDateNullable,
+});
+
+/** The override outcome. Reports what was changed. */
+export const colonelDomainOverrideDetailsSchema = z.object({
+  previous_verified: z.boolean(),
+  previous_resolving: z.boolean(),
+  current_verified: z.boolean(),
+  current_resolving: z.boolean(),
+  verified_changed: z.boolean(),
+  resolving_changed: z.boolean(),
+  message: z.string(),
+});
+
+export type ColonelDomainOverrideRequest = z.infer<typeof colonelDomainOverrideRequestSchema>;
+export type ColonelDomainOverrideRecord = z.infer<typeof colonelDomainOverrideRecordSchema>;
+export type ColonelDomainOverrideDetails = z.infer<typeof colonelDomainOverrideDetailsSchema>;
+
+/** `POST /api/colonel/domains/:extid/override` -> `{ record, details }` ack. */
+export const colonelDomainOverrideResponseSchema = createApiResponseSchema(
+  colonelDomainOverrideRecordSchema,
+  colonelDomainOverrideDetailsSchema
+);
+
+export type ColonelDomainOverrideResponse = z.infer<typeof colonelDomainOverrideResponseSchema>;

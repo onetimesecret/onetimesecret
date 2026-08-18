@@ -433,6 +433,60 @@
     resetMutation();
   }
 
+  // ---- Override verification status (inline form) ----------------------------
+
+  const overrideOpen = ref(false);
+  const overrideVerified = ref<boolean | null>(null);
+  const overrideResolving = ref<boolean | null>(null);
+
+  const {
+    loading: overrideLoading,
+    error: overrideError,
+    run: runOverride,
+    reset: resetOverride,
+  } = useAdminMutation(async () => {
+    const r = record.value;
+    if (!r) return;
+
+    const options: { verified?: boolean; resolving?: boolean } = {};
+    if (overrideVerified.value !== null && overrideVerified.value !== r.verified) {
+      options.verified = overrideVerified.value;
+    }
+    if (overrideResolving.value !== null && overrideResolving.value !== r.resolving) {
+      options.resolving = overrideResolving.value;
+    }
+
+    if (Object.keys(options).length === 0) {
+      notifications.show(t('web.admin.domains.override.noChange'), 'info');
+      return;
+    }
+
+    await store.override(publicId.value, options);
+  });
+
+  function openOverride(): void {
+    if (!record.value) return;
+    overrideVerified.value = record.value.verified;
+    overrideResolving.value = record.value.resolving;
+    resetOverride();
+    overrideOpen.value = true;
+  }
+
+  function closeOverride(): void {
+    overrideOpen.value = false;
+    overrideVerified.value = null;
+    overrideResolving.value = null;
+  }
+
+  async function applyOverride(): Promise<void> {
+    const ok = await runOverride();
+    if (!ok) return;
+
+    closeOverride();
+    notifications.show(t('web.admin.domains.override.success'), 'success');
+    await refreshDomain().catch(() => {});
+  }
+
   function goBack(): void {
     router.push({ name: 'AdminDomains' });
   }
@@ -581,6 +635,86 @@
           :value="yesNo(record.ready)"
           icon="check-badge"
           testid="stat-ready" />
+      </div>
+
+      <!-- Override status inline form -->
+      <div
+        v-if="overrideOpen"
+        class="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950"
+        data-testid="override-form">
+        <h4 class="mb-3 text-sm font-medium text-amber-900 dark:text-amber-100">
+          {{ t('web.admin.domains.override.title') }}
+        </h4>
+        <p class="mb-4 text-xs text-amber-700 dark:text-amber-300">
+          {{ t('web.admin.domains.override.description') }}
+        </p>
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+            <input
+              v-model="overrideVerified"
+              type="checkbox"
+              :true-value="true"
+              :false-value="false"
+              class="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800" />
+            {{ t('web.admin.domains.override.verified') }}
+          </label>
+          <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+            <input
+              v-model="overrideResolving"
+              type="checkbox"
+              :true-value="true"
+              :false-value="false"
+              class="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800" />
+            {{ t('web.admin.domains.override.resolving') }}
+          </label>
+        </div>
+        <p
+          v-if="overrideError"
+          class="mt-2 text-sm text-red-700 dark:text-red-300"
+          role="alert">
+          {{ overrideError }}
+        </p>
+        <div class="mt-4 flex gap-2">
+          <button
+            type="button"
+            data-testid="override-apply"
+            :disabled="overrideLoading"
+            class="inline-flex items-center gap-1 rounded-md bg-amber-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-700 focus:ring-2 focus:ring-amber-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            @click="applyOverride">
+            <OIcon
+              v-if="overrideLoading"
+              collection="heroicons"
+              name="arrow-path"
+              size="4"
+              class="animate-spin" />
+            {{ t('web.admin.domains.override.apply') }}
+          </button>
+          <button
+            type="button"
+            data-testid="override-cancel"
+            :disabled="overrideLoading"
+            class="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+            @click="closeOverride">
+            {{ t('web.admin.domains.override.cancel') }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Override trigger button (when form is closed) -->
+      <div
+        v-if="!overrideOpen"
+        class="flex justify-end">
+        <button
+          type="button"
+          data-testid="override-button"
+          class="inline-flex items-center gap-1.5 rounded-md border border-amber-300 px-3 py-1.5 text-sm font-medium text-amber-700 hover:bg-amber-50 focus:ring-2 focus:ring-amber-500 focus:outline-none dark:border-amber-600 dark:text-amber-300 dark:hover:bg-amber-950"
+          @click="openOverride">
+          <OIcon
+            collection="heroicons"
+            name="adjustments-horizontal"
+            size="4" />
+          {{ t('web.admin.domains.override.button') }}
+        </button>
       </div>
 
       <!-- Overview + Actions -->
