@@ -17,7 +17,7 @@
 # No Redis or SQL required.
 #
 # Run with:
-#   bundle exec rspec apps/web/core/spec/views/serializers/system_serializer_spec.rb
+#   tests/lanes/run unit --only apps/web/core/spec/views/serializers/system_serializer_spec.rb
 
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require_relative '../../../views/serializers'

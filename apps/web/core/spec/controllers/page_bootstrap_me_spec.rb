@@ -9,7 +9,7 @@
 # and after login/MFA completion.
 #
 # Run with:
-#   source .env.test && bundle exec rspec apps/web/core/spec/controllers/page_bootstrap_me_spec.rb
+#   tests/lanes/run unit --only apps/web/core/spec/controllers/page_bootstrap_me_spec.rb
 
 require_relative '../../../../../spec/integration/integration_spec_helper'
 
