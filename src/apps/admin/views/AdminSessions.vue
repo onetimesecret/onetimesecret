@@ -74,14 +74,12 @@
   ]);
 
   /**
-   * Country cell. Otto's `'**'` sentinel means "could not resolve", and a null
-   * means the session has no metadata sidecar to join to (it predates the
-   * sidecar, or the sidecar's TTL lapsed while the session lived on). Both are
-   * the same thing to an operator — no country known — and neither is ever
-   * shown as if it were one.
+   * Country cell. A null means no country is known — the session has no
+   * metadata sidecar to join to (it predates the sidecar, or the sidecar's TTL
+   * lapsed while the session lived on), or geo resolution failed server-side.
    */
   function countryLabel(country: string | null | undefined): string {
-    if (!country || country === '**') return t('web.admin.sessions.detail.unknown');
+    if (!country) return t('web.admin.sessions.detail.unknown');
     return country;
   }
 

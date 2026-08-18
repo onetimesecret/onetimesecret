@@ -64,12 +64,13 @@ describe('colonelSessionsResponseSchema (ListSessions)', () => {
     expect(result.data.details?.pagination.total_count).toBe(2);
   });
 
-  it('parses geo_country as a resolved code, a null, and Otto\'s "**" unknown sentinel', () => {
+  it('parses geo_country as a resolved code or a null — the only shapes the API emits', () => {
+    // Otto's '**' unknown sentinel is normalized to null server-side and never
+    // crosses the API.
     const payload = listPayload();
     const rows = payload.details.sessions as Array<Record<string, unknown>>;
     rows[0].geo_country = 'DE';
     rows[1].geo_country = null;
-    rows.push({ ...rows[0], session_id: 'sid_sentinel', geo_country: '**' });
 
     const result = colonelSessionsResponseSchema.safeParse(payload);
     expect(result.success).toBe(true);
@@ -77,7 +78,6 @@ describe('colonelSessionsResponseSchema (ListSessions)', () => {
     const parsed = result.data.details?.sessions ?? [];
     expect(parsed[0].geo_country).toBe('DE');
     expect(parsed[1].geo_country).toBeNull();
-    expect(parsed[2].geo_country).toBe('**');
   });
 
   it('parses rows that OMIT geo_country entirely — deploy skew must not fail the whole list', () => {
