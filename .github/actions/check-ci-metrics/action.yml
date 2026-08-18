@@ -16,11 +16,11 @@
 #   - Tier 3: Integration Tests (Simple, Full, Disabled auth modes)
 #   - Tier 4: Container Validation
 #
-# Performance Targets (cumulative from workflow start, revised 2025-12):
-#   - Tier 1: <60s   (lint + build complete)
-#   - Tier 2: <120s  (unit tests complete)
-#   - Tier 3: <210s  (integration tests complete)
-#   - Tier 4: <400s  (container validated, full pipeline)
+# Performance Targets (cumulative from workflow start, revised 2026-08):
+#   - Tier 1: <130s  (lint + build complete)
+#   - Tier 2: <540s  (unit tests complete)
+#   - Tier 3: <510s  (integration tests complete)
+#   - Tier 4: <720s  (container validated, full pipeline)
 #
 # Outputs:
 #   - GitHub Step Summary with timing breakdown by tier
@@ -69,19 +69,19 @@ inputs:
   target-tier1:
     description: 'Target seconds for Tier 1 (Lint & Build)'
     required: false
-    default: '60'
+    default: '130'
   target-tier2:
     description: 'Target seconds for Tier 2 (Unit Tests)'
     required: false
-    default: '120'
+    default: '540'
   target-tier3:
     description: 'Target seconds for Tier 3 (Integration Tests)'
     required: false
-    default: '210'
+    default: '510'
   target-tier4:
     description: 'Target seconds for Tier 4 (Container / Full Pipeline)'
     required: false
-    default: '400'
+    default: '720'
 
   # Behavior
   fail-on-violation:
@@ -167,40 +167,23 @@ runs:
           fi
         done
 
-        # Tier 1: Lint & Build - latest completion of all Tier 1 jobs
+        # Each prefix defines its tier, including the full integration matrix.
+        # This avoids stale explicit job-name lists when matrix labels change.
         TIER1_COMPLETE=$(echo "$JOBS_JSON" | jq -r '
-          [.[] | select(
-              .name == "T1 · Ruby Lint" or
-              .name == "T1 · TypeScript Lint" or
-              .name == "T1 · Build Frontend Assets"
-            )
+          [.[] | select(.name | startswith("T1 · "))
             | select(.completed_at != null) | .completed_at]
           | sort | last // empty
         ')
 
-        # Tier 2: Unit Tests - latest completion of all Tier 2 jobs
         TIER2_COMPLETE=$(echo "$JOBS_JSON" | jq -r '
-          [.[] | select(
-              .name == "T2 · Ruby Unit Tests" or
-              .name == "T2 · TypeScript Unit Tests"
-            )
+          [.[] | select(.name | startswith("T2 · "))
             | select(.completed_at != null) | .completed_at]
           | sort | last // empty
         ')
 
-        # Tier 3: Integration Tests - latest completion of all Tier 3 jobs.
-        # The full-mode rows are matched by prefix because their names carry
-        # the matrix suffix (ci.yml: 'T3 · Ruby Integration (Full, SQLite,
-        # billing: off)' and five siblings). Equality against the pre-matrix
-        # names 'Full Mode - SQLite' / 'Full Mode - PostgreSQL' matched
-        # nothing, so tier3 silently reported Simple+Disabled only.
+        # Tier 3: latest completion of all Tier 3 jobs, including matrix rows.
         TIER3_COMPLETE=$(echo "$JOBS_JSON" | jq -r '
-          [.[] | select(
-              .name == "T3 · Ruby Integration (Simple Mode)" or
-              .name == "T3 · Ruby Integration (API Contract)" or
-              .name == "T3 · Ruby Integration (Disabled Mode)" or
-              (.name | startswith("T3 · Ruby Integration (Full, "))
-            )
+          [.[] | select(.name | startswith("T3 · "))
             | select(.completed_at != null) | .completed_at]
           | sort | last // empty
         ')

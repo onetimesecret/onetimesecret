@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require_relative '../utils/strings' # strict_bool! for boolean provider options
 require_relative 'provider_registry'
 require_relative 'delivery/base'
 require_relative 'delivery/disabled'
@@ -398,7 +399,33 @@ module Onetime
             'returnpath_subdomain' => s2g_conf['returnpath_subdomain'] || ENV.fetch('CUSTOM_MAIL_SMTP2GO_RETURNPATH_SUBDOMAIN', 'bounce'),
             'tracking_subdomain' => s2g_conf['tracking_subdomain'] || ENV.fetch('CUSTOM_MAIL_SMTP2GO_TRACKING_SUBDOMAIN', 'track'),
             'timeout' => conf['smtp2go_timeout'],
+            # Always a real boolean, never nil: .compact must not drop it,
+            # otherwise Delivery::Smtp2go falls back to its own default and
+            # the configured value never reaches the payload.
+            'fastaccept' => smtp2go_fastaccept(s2g_conf),
           }.compact
+        end
+
+        # Resolve the SMTP2GO fastaccept toggle.
+        #
+        # The provider config section wins (config.defaults.yaml already
+        # evaluates CUSTOM_MAIL_SMTP2GO_FASTACCEPT to a boolean there); the
+        # ENV read is the fallback for configs built without that template.
+        # Default false = synchronous per-recipient accounting, so a failed
+        # delivery raises instead of disappearing into fire-and-forget.
+        #
+        # @return [Boolean] never nil — see the .compact note above
+        def smtp2go_fastaccept(s2g_conf)
+          raw = s2g_conf.fetch('fastaccept') { s2g_conf.fetch(:fastaccept, nil) }
+          unless raw.nil?
+            return Onetime::Utils::Strings.strict_bool!(
+              "email_providers.smtp2go 'fastaccept'", raw, default: false
+            )
+          end
+
+          Onetime::Utils::Strings.strict_bool!(
+            'CUSTOM_MAIL_SMTP2GO_FASTACCEPT', ENV.fetch('CUSTOM_MAIL_SMTP2GO_FASTACCEPT', nil), default: false
+          )
         end
 
         def emailer_config

@@ -15,6 +15,8 @@ module Onetime
       #   api_key:  SMTP2GO API key (ENV: SMTP2GO_API_KEY)
       #   base_url: Custom API base URL (ENV: SMTP2GO_BASE_URL)
       #   timeout:  Read timeout in seconds
+      #   fastaccept: Fire-and-forget mode, default false
+      #     (ENV: CUSTOM_MAIL_SMTP2GO_FASTACCEPT)
       #
       # Response semantics: SMTP2GO returns 200 with per-recipient
       # accounting ({succeeded:, failed:, failures: [], email_id:}), so a
@@ -29,6 +31,23 @@ module Onetime
         # Base#obscure_email uses for OT::Utils), so in-app redaction tracks
         # the vetted corpus; this twin only covers standalone mail-lib loads.
         EMAIL_PATTERN = /\b(?>[\p{L}\p{N}._%+'-]+)@[\p{L}\p{N}.\p{Pd}]+\.\p{L}{2,}\b/
+
+        # Recognized truthy tokens for standalone mail-lib loads, where the
+        # canonical strict coercion (Onetime::Utils::Strings.strict_bool!) is
+        # not on the load path. Same token set, minus the loud rejection of
+        # unrecognized input — see #coerce_fastaccept.
+        FASTACCEPT_TRUE_TOKENS = %w[1 true yes on y t].freeze
+
+        def initialize(config = {})
+          super
+          # Default false: synchronous delivery accounting. SMTP2GO's
+          # fastaccept=true is fire-and-forget — the API returns 200 with no
+          # succeeded/failed/failures keys, so every delivery failure is
+          # invisible. Opt into it only when the latency matters more than
+          # knowing a message bounced. Read from @config (string-keyed by
+          # Base#initialize) so symbol-keyed callers are not silently ignored.
+          @fastaccept = coerce_fastaccept(@config['fastaccept'])
+        end
 
         def perform_delivery(email)
           data = client.post('/email/send', build_payload(email))
@@ -48,6 +67,18 @@ module Onetime
               "SMTP2GO reported #{failed} failed recipient(s): #{failures}",
               status_code: 200,
               error_code: 'E_DeliveryFailures',
+              response_body: redact_emails(data.to_json)[0, 500],
+            )
+          end
+
+          # Fail-closed: if response has neither 'succeeded' key nor a non-empty
+          # 'email_id', treat as unknown response shape rather than silent success.
+          # This guards against fastaccept or API changes omitting accounting keys.
+          unless data.key?('succeeded') || data['email_id'].to_s.strip.length.positive?
+            raise Smtp2goClient::APIError.new(
+              'SMTP2GO response missing delivery accounting',
+              status_code: 200,
+              error_code: 'E_MissingAccounting',
               response_body: redact_emails(data.to_json)[0, 500],
             )
           end
@@ -109,11 +140,46 @@ module Onetime
 
         private
 
-        # Replace each email address embedded in provider text with its
-        # obscured form (Base#obscure_email), leaving the surrounding
-        # failure-reason wording intact for diagnostics.
+        # Replace each email address embedded in provider text with a
+        # domain-preserving mask. Unlike obscure_email (which masks domains
+        # for log/Sentry privacy), tenant-facing error messages must show
+        # which domain failed verification — the local-part is redacted,
+        # but the domain is kept intact.
+        #
+        # Example: "no-reply@local-secrets.pet" → "***@local-secrets.pet"
         def redact_emails(text)
-          text.to_s.gsub(email_pattern) { |address| obscure_email(address) }
+          text.to_s.gsub(email_pattern) { |address| mask_local_preserve_domain(address) }
+        end
+
+        # Mask the local-part of an email address, preserving the domain.
+        # @param address [String] Email address to mask
+        # @return [String] Masked address with full domain preserved
+        def mask_local_preserve_domain(address)
+          return address if address.to_s.empty?
+
+          parts = address.split('@', 2)
+          return address unless parts.length == 2
+
+          "***@#{parts[1]}"
+        end
+
+        # Coerce the configured fastaccept value to a real boolean. SMTP2GO
+        # expects a JSON boolean; a string "false" arriving from ENV or a
+        # hand-built config hash would be truthy on their side and silently
+        # switch off the per-recipient accounting this backend depends on.
+        #
+        # Prefers the canonical strict coercion, which raises on an
+        # unrecognized token instead of quietly resolving to the default. The
+        # standalone mail-lib load (no Onetime::Utils) falls back to token
+        # matching, mirroring #email_pattern's twin-constant arrangement.
+        def coerce_fastaccept(raw)
+          return raw if [true, false].include?(raw)
+
+          if defined?(Onetime::Utils::Strings) && Onetime::Utils::Strings.respond_to?(:strict_bool!)
+            return Onetime::Utils::Strings.strict_bool!("smtp2go 'fastaccept'", raw, default: false)
+          end
+
+          FASTACCEPT_TRUE_TOKENS.include?(raw.to_s.strip.downcase)
         end
 
         # The canonical, corpus-pinned pattern when the app is loaded; the
@@ -130,9 +196,14 @@ module Onetime
         #
         # SMTP2GO expects: sender (string), to (array of strings), subject,
         # text_body always, html_body only when present, Reply-To via
-        # custom_headers, and fastaccept: true so the message is accepted
-        # immediately and dispatched in the background (recommended by
-        # SMTP2GO; slated to become the default).
+        # custom_headers, and fastaccept controlling sync vs async mode.
+        #
+        # When fastaccept is true, the message is accepted immediately
+        # and dispatched in the background — lower latency but no per-recipient
+        # failure detection (succeeded/failed keys omitted from response).
+        #
+        # When fastaccept is false, the response includes full delivery accounting
+        # (succeeded, failed, failures, email_id).
         #
         # @param email [Hash] Normalized email parameters
         # @return [Hash] String-keyed request payload
@@ -142,7 +213,7 @@ module Onetime
             'to' => [email[:to]],
             'subject' => email[:subject],
             'text_body' => email[:text_body],
-            'fastaccept' => true,
+            'fastaccept' => @fastaccept,
           }
 
           payload['html_body'] = email[:html_body] if html_content?(email)

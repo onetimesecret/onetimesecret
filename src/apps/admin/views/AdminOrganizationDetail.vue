@@ -1,6 +1,7 @@
 <!-- src/apps/admin/views/AdminOrganizationDetail.vue -->
 
 <script setup lang="ts">
+  import AdminCheckoutLinkModal from '@/apps/admin/components/AdminCheckoutLinkModal.vue';
   import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
   import { AdminConfirmDialog, DataTable, JsonViewer, StatCard } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
@@ -104,6 +105,8 @@
   type ReadField = { key: string; label: string; value: string; mono?: boolean };
 
   /** Non-email billing rows (emails are rendered via RevealEmail, out of loop). */
+  const checkoutLinkOpen = ref(false);
+
   const billingFields = computed<ReadField[]>(() => {
     const r = record.value;
     if (!r) return [];
@@ -802,6 +805,19 @@
             </dd>
           </div>
         </dl>
+        <div class="flex justify-end border-t border-gray-200 px-6 py-4 dark:border-gray-800">
+          <button
+            type="button"
+            data-testid="checkout-link-button"
+            class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+            @click="checkoutLinkOpen = true">
+            <OIcon
+              collection="heroicons"
+              name="link"
+              size="4" />
+            {{ t('web.admin.customers.actions.checkoutLink.button') }}
+          </button>
+        </div>
       </section>
 
       <!-- Entitlements: current state on load + grant/revoke/clear -->
@@ -1297,6 +1313,14 @@
       :error="addMemberError"
       @update:open="onAddMemberOpenChange"
       @submit="onAddMemberSubmit" />
+
+    <AdminCheckoutLinkModal
+      v-if="record"
+      v-model:open="checkoutLinkOpen"
+      :endpoint="`${orgUrl()}/checkout-link`"
+      :subject="heading"
+      :plans="[]"
+      :default-plan="record.planid" />
 
     <!-- Guarded entitlement mutation (typed-confirmation — retype the extid). -->
     <AdminConfirmDialog

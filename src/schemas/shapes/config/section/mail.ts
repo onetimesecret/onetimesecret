@@ -75,6 +75,7 @@ const emailProvidersShape = augment(emailProvidersSchema, {
     api_base_url: (s) => s.default('https://api.smtp2go.com/v3'),
     returnpath_subdomain: (s) => s.default('bounce'),
     tracking_subdomain: (s) => s.default('track'),
+    fastaccept: (b) => b.default(false),
   },
 });
 

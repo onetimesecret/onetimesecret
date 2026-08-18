@@ -158,7 +158,7 @@ module DomainsAPI
             lock&.release(lock_token) if lock_token
           end
 
-          log_sender_change_event(
+          log_sender_config_event(
             event: :domain_sender_validation_requested,
             domain: @custom_domain,
             org: @organization,
