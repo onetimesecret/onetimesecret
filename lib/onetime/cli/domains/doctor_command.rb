@@ -510,7 +510,7 @@ module Onetime
 
       # CHECK: verification state coherence
       def check_verification_coherence(domain, issues)
-        verified_flag = domain.verified.to_s == 'true'
+        verified_flag = domain.verified
         has_txt_value = !domain.txt_validation_value.to_s.empty?
 
         # If verified but no txt_validation_value, this is suspicious but may be legitimate
@@ -520,7 +520,7 @@ module Onetime
         issues << {
           check: :verification_incoherent,
           severity: :warning,
-          message: "verified='true' but txt_validation_value is empty",
+          message: 'verified is true but txt_validation_value is empty',
           repairable: false,
           repair_action: 'May be legitimate (migrated data or alternate verification)',
         }

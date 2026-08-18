@@ -175,7 +175,8 @@ module DomainsAPI
           api_key  = @mailer_config.api_key.to_s.strip
 
           if api_key.empty?
-            OT.info "[SendTestEmail] No domain api_key for #{@domain_id}, using global backend"
+            OT.info '[SendTestEmail] Using global mail credentials (domain-specific credentials not configured)'
+            OT.info "[SendTestEmail] Sending from validated domain: #{@custom_domain.display_domain}"
             return Onetime::Mail::Mailer.delivery_backend
           end
 
@@ -185,12 +186,14 @@ module DomainsAPI
           when 'sendgrid'
             Onetime::Mail::Delivery::SendGrid.new(api_key: api_key)
           when 'smtp2go'
-            Onetime::Mail::Delivery::Smtp2go.new('api_key' => api_key)
+            # Test emails need real delivery accounting, not fire-and-forget
+            Onetime::Mail::Delivery::Smtp2go.new('api_key' => api_key, 'fastaccept' => false)
           else
             # SES requires IAM credentials (key + secret + region) which
             # can't be reconstructed from a single api_key field — fall back
             # to the global backend which has the full SES config.
-            OT.info "[SendTestEmail] No per-domain backend for provider=#{provider}, using global"
+            OT.info "[SendTestEmail] Provider #{provider} requires multi-field credentials; using global backend"
+            OT.info "[SendTestEmail] Sending from validated domain: #{@custom_domain.display_domain}"
             Onetime::Mail::Mailer.delivery_backend
           end
         end
@@ -321,7 +324,7 @@ module DomainsAPI
         end
 
         def log_test_email_event(result)
-          log_sender_change_event(
+          log_sender_config_event(
             event: :domain_sender_test_email_sent,
             domain: @custom_domain,
             org: @organization,
@@ -331,6 +334,20 @@ module DomainsAPI
               success: result[:success],
               recipient: cust.email,
               from_address: @mailer_config.from_address,
+              error_code: result.dig(:details, :error_code),
+            }.compact,
+          )
+
+          # Persist to audit trail for admin visibility
+          Onetime::ColonelAuditEvent.record(
+            actor: cust,
+            verb: 'domain_sender.test_email_sent',
+            target: @custom_domain.identifier,
+            result: result[:success] ? :success : :failure,
+            detail: {
+              recipient: cust.email,
+              from_address: @mailer_config.from_address,
+              provider: @mailer_config.effective_provider,
               error_code: result.dig(:details, :error_code),
             }.compact,
           )
