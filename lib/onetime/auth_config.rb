@@ -428,8 +428,10 @@ module Onetime
     # feature enabled AND the provider's required env vars present), so they
     # can never drift from the providers that actually register. The
     # SSO_FORM_ACTION_ORIGINS override is merged in unconditionally — it covers
-    # sovereign clouds, an OIDC issuer that differs from its authorization
-    # endpoint, and org-level SSO whose issuers are unknown at boot.
+    # sovereign clouds and an OIDC issuer that differs from its authorization
+    # endpoint. Tenant (per-domain) SSO issuers are NOT this method's job:
+    # they are unknown at boot and reach the header per-request via
+    # Onetime::Middleware::TenantCspExtras + #tenant_idp_origin (#4173).
     #
     # Returns a de-duplicated Array of origin strings (scheme://host[:port]),
     # or [] when nothing is configured. Side-effect free and safe to call at
@@ -438,12 +440,18 @@ module Onetime
       provider_origins = active_provider_origins
       override_origins = override_form_action_origins
 
-      # An override set with zero auto-derived provider origins (SSO disabled or
-      # no active providers) is a config smell worth surfacing: form-action is
-      # being widened without any provider that actually registers.
+      # An override set with zero auto-derived provider origins is worth
+      # surfacing — but it is not automatically a misconfiguration. Tenant SSO
+      # no longer needs the override (tenant IdP origins arrive per-request
+      # via Onetime::Middleware::TenantCspExtras, #4173), so this combination
+      # now legitimately means sovereign-cloud or split-endpoint usage
+      # (e.g. login.microsoftonline.us, or an OIDC authorization_endpoint on
+      # a different origin than the issuer). Log it as context, not a smell.
       if provider_origins.empty? && !ENV.fetch('SSO_FORM_ACTION_ORIGINS', '').to_s.strip.empty?
-        OT.lw '[auth_config] SSO_FORM_ACTION_ORIGINS is widening CSP form-action but ' \
-              'no SSO provider origins are active (SSO disabled or no active providers)'
+        OT.lw '[auth_config] SSO_FORM_ACTION_ORIGINS is widening CSP form-action with ' \
+              'no active platform SSO provider origins — expected only for sovereign-cloud ' \
+              'or split-endpoint IdPs (tenant SSO origins are added per-request and do not ' \
+              'need this override)'
       end
 
       (provider_origins + override_origins).uniq
@@ -486,6 +494,38 @@ module Onetime
 
         legacy_display = sso_display_name
         legacy_display ? defn.merge(display_default: legacy_display) : defn
+      end
+    end
+
+    # The CSP form-action origin for a TENANT's IdP (#4173) — the per-request
+    # complement to the boot-time #sso_form_action_origins. Tenant SSO issuers
+    # live in per-domain CustomDomain::SsoConfig records, so they cannot be
+    # derived at boot; Onetime::Middleware::TenantCspExtras calls this per
+    # request and feeds the result through otto's request-scoped CSP extras
+    # channel (env['otto.csp.extra_directives'], delano/otto#243).
+    #
+    # The issuer is tenant-supplied and therefore attacker-influenced, so
+    # #origin_from_url is the mandatory funnel: it strips the path, accepts
+    # only http(s), rejects CSP-hostile hosts, omits default ports, and
+    # returns nil on garbage — never raises. Entra reuses the registry's
+    # static commercial-cloud origin (the tenant strategy pins that cloud:
+    # SsoConfig#build_entra_id_options passes no authority option); sovereign
+    # clouds remain SSO_FORM_ACTION_ORIGINS territory.
+    #
+    # Caveat (same as the platform OIDC derivation): OIDC discovery may place
+    # authorization_endpoint on a DIFFERENT origin than the issuer, so the
+    # issuer origin is best-effort and SSO_FORM_ACTION_ORIGINS stays the
+    # escape hatch for split-endpoint topologies.
+    #
+    # @param sso_config [Onetime::CustomDomain::SsoConfig] the tenant's record
+    # @return [String, nil] scheme://host[:port], or nil when the provider
+    #   type is unknown or the issuer does not resolve to a clean origin
+    def tenant_idp_origin(sso_config)
+      case sso_config&.provider_type
+      when 'oidc'
+        origin_from_url(sso_config.issuer)
+      when 'entra_id'
+        SsoProvider::Registry.fetch(:entra)[:idp_origin]
       end
     end
 

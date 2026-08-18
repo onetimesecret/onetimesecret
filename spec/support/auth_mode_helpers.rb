@@ -272,6 +272,31 @@ module AuthModeHelpers
     def sso_form_action_origins
       ENV.fetch('SSO_FORM_ACTION_ORIGINS', '').to_s.split.uniq
     end
+
+    # Mirrors Onetime::AuthConfig#tenant_idp_origin (#4173) so boot/router
+    # specs that mount Onetime::Middleware::TenantCspExtras don't
+    # NoMethodError. Minimal on purpose: entra_id returns the registry's
+    # static commercial-cloud origin; oidc does a naive scheme://host[:port]
+    # extraction (the production origin_from_url validation is deliberately
+    # not replicated here — specs exercising hostile issuers must use the
+    # real AuthConfig); anything else is nil.
+    def tenant_idp_origin(sso_config)
+      case sso_config&.provider_type
+      when 'entra_id'
+        'https://login.microsoftonline.com'
+      when 'oidc'
+        uri = begin
+          URI.parse(sso_config.issuer.to_s)
+        rescue URI::Error
+          nil
+        end
+        return nil unless uri&.host && %w[http https].include?(uri.scheme.to_s)
+
+        origin  = "#{uri.scheme}://#{uri.host}"
+        origin += ":#{uri.port}" if uri.port && uri.port != uri.default_port
+        origin
+      end
+    end
   end
 
   # Mutex for thread-safe singleton method modification

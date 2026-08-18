@@ -108,6 +108,7 @@ module Core
         config: env['otto.security_config'],
         mode: :backstop,
         development_mode: development_mode,
+        env: env,
       )
       allow_same_origin_scripts_in_development(headers) if development_mode && result.applied?
     end

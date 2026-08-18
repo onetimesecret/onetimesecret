@@ -5,6 +5,7 @@
 require 'onetime/application'
 require 'onetime/application/otto_hooks'
 require 'onetime/middleware'
+require 'onetime/middleware/tenant_csp_extras'
 require 'onetime/logger_methods'
 
 require_relative 'middleware/request_setup'
@@ -37,6 +38,13 @@ module Core
     #
     # Initialize request context (nonce, locale) before other processing
     use Core::Middleware::RequestSetup
+
+    # Per-request CSP form-action widening for tenant SSO IdPs (#4173).
+    # Mounted INSIDE RequestSetup: it writes env['otto.csp.extra_directives']
+    # on the way in, and RequestSetup's finalize_response (which emits the
+    # CSP via Otto's Writer with env in hand) sees the write on the way out.
+    # Core-only: the API/auth apps do not emit this CSP.
+    use Onetime::Middleware::TenantCspExtras
 
     # Simplified error handling for Vue SPA - serves entry points
     # Must come after security but before router to catch all downstream errors
