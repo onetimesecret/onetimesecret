@@ -5,10 +5,11 @@
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require 'colonel/logic'
 
-# Coverage for the DEFAULT_LIMIT behavior introduced in #4XXX: when no filters
-# are active the roster is limited to the N most recently modified orgs via
-# revrange (fast, no cache). When filters/search are active, the full roster
-# is loaded and cached.
+# Coverage for the split roster paths: when no filters are active only the
+# requested page's org ids are loaded via revrange (fast, no cache) while
+# total_count comes from the sorted set cardinality, so pagination spans the
+# full population. When filters/search are active, the full roster is loaded
+# (and cached), then filtered/sorted/paginated in memory.
 RSpec.describe ColonelAPI::Logic::Colonel::ListOrganizations do
   let(:colonel) do
     instance_double(
@@ -77,10 +78,36 @@ RSpec.describe ColonelAPI::Logic::Colonel::ListOrganizations do
     )
   end
 
+  let(:org3) do
+    instance_double(
+      Onetime::Organization,
+      objid: 'org3',
+      extid: 'on_org3',
+      display_name: 'Gamma LLC',
+      contact_email: 'contact@gamma.test',
+      owner_id: 'cust3',
+      owner: instance_double(Onetime::Customer, email: 'owner@gamma.test'),
+      member_count: 2,
+      domain_count: 0,
+      is_default: 'false',
+      created: 1700002000,
+      updated: 1700004000,
+      planid: nil,
+      stripe_customer_id: nil,
+      stripe_subscription_id: nil,
+      subscription_status: nil,
+      subscription_period_end: nil,
+      billing_email: nil,
+    )
+  end
+
+  let(:orgs_by_id) { { 'org1' => org1, 'org2' => org2, 'org3' => org3 } }
+
   let(:instances_double) do
     instance_double('Familia::SortedSet').tap do |ss|
       allow(ss).to receive(:to_a).and_return(%w[org1 org2])
       allow(ss).to receive(:revrange).and_return(%w[org2 org1])
+      allow(ss).to receive(:size).and_return(2)
     end
   end
 
@@ -95,7 +122,10 @@ RSpec.describe ColonelAPI::Logic::Colonel::ListOrganizations do
     allow(OT).to receive(:le)
 
     allow(Onetime::Organization).to receive(:instances).and_return(instances_double)
-    allow(Onetime::Organization).to receive(:load_multi).and_return([org1, org2])
+    # Order-preserving, like the real load_multi (aligned with the input ids)
+    allow(Onetime::Organization).to receive(:load_multi) do |ids|
+      ids.map { |id| orgs_by_id[id] }
+    end
 
     allow(Billing::BillingService).to receive(:compute_sync_status).and_return('unknown')
     allow(Billing::BillingService).to receive(:compute_sync_status_reason).and_return(nil)
@@ -107,15 +137,37 @@ RSpec.describe ColonelAPI::Logic::Colonel::ListOrganizations do
     )
   end
 
-  describe 'DEFAULT_LIMIT behavior (no filters active)' do
-    it 'uses revrange to load only the top N orgs by recency' do
+  describe 'paged behavior (no filters active)' do
+    it 'loads only the requested page via revrange (default page 1)' do
       logic = logic_for({})
       logic.raise_concerns
       logic.process
 
-      expect(instances_double).to have_received(:revrange)
-        .with(0, described_class::DEFAULT_LIMIT - 1)
+      # Default per_page is 50, so page 1 is indices 0..49
+      expect(instances_double).to have_received(:revrange).with(0, 49)
       expect(instances_double).not_to have_received(:to_a)
+    end
+
+    it 'derives the revrange window from page and per_page' do
+      allow(instances_double).to receive(:revrange).with(10, 19).and_return([])
+
+      logic = logic_for('page' => 2, 'per_page' => 10)
+      logic.raise_concerns
+      logic.process
+
+      expect(instances_double).to have_received(:revrange).with(10, 19)
+    end
+
+    it 'reports total_count from the sorted set cardinality, not the page' do
+      allow(instances_double).to receive(:size).and_return(120)
+
+      logic = logic_for({})
+      logic.raise_concerns
+      data = logic.process
+
+      pagination = data[:details][:pagination]
+      expect(pagination[:total_count]).to eq(120)
+      expect(pagination[:total_pages]).to eq(3) # ceil(120 / 50.0)
     end
 
     it 'skips the cache entirely for the default unfiltered load' do
@@ -127,15 +179,36 @@ RSpec.describe ColonelAPI::Logic::Colonel::ListOrganizations do
       expect(data[:details][:cache][:cached]).to be(false)
     end
 
-    it 'returns organizations sorted by created descending' do
-      # org2 created at 1700001000, org1 at 1700000000 - org2 should come first
+    it 'returns rows in revrange order (most recently modified first)' do
       logic = logic_for({})
       logic.raise_concerns
       data = logic.process
 
       orgs = data[:details][:organizations]
-      expect(orgs.first[:extid]).to eq('on_org2')
-      expect(orgs.last[:extid]).to eq('on_org1')
+      expect(orgs.map { |o| o[:extid] }).to eq(%w[on_org2 on_org1])
+    end
+
+    it 'paginates a population larger than per_page without overlap' do
+      allow(instances_double).to receive(:size).and_return(3)
+      allow(instances_double).to receive(:revrange).with(0, 1).and_return(%w[org3 org2])
+      allow(instances_double).to receive(:revrange).with(2, 3).and_return(%w[org1])
+
+      page1 = logic_for('per_page' => 2)
+      page1.raise_concerns
+      data1 = page1.process
+
+      page2 = logic_for('page' => 2, 'per_page' => 2)
+      page2.raise_concerns
+      data2 = page2.process
+
+      rows1 = data1[:details][:organizations].map { |o| o[:extid] }
+      rows2 = data2[:details][:organizations].map { |o| o[:extid] }
+
+      expect(data1[:details][:pagination][:total_count]).to eq(3)
+      expect(data1[:details][:pagination][:total_pages]).to eq(2)
+      expect(rows1).to eq(%w[on_org3 on_org2])
+      expect(rows2).to eq(%w[on_org1])
+      expect(rows1 & rows2).to be_empty
     end
   end
 
