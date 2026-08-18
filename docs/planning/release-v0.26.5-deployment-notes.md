@@ -69,8 +69,12 @@ means it needs a routable one. On an install serving `localhost` or a bare IP, b
 logs `Admin host allowlist INACTIVE: no routable hostname configured` and **no host
 gate applies at all**. That is deliberate — the alternative locks such installs out
 of their own admin console — but it makes "the gate is now active" conditional on
-`site.host` being a real hostname. Set `ADMIN_ALLOWED_HOSTS` explicitly if you want
-the gate on a bare-IP install.
+`site.host` being a real hostname. Do **not** work around this by putting the IP
+in `ADMIN_ALLOWED_HOSTS`: IP literals are rejected as unenforceable, and an
+explicit allowlist with no enforceable entry fails closed — every `/colonel` and
+`/api/colonel` request 404s. To get the gate on such an install, give it a
+routable hostname (DNS, or a hosts-file entry resolving to the IP), reach the
+admin surfaces through that name, and set `ADMIN_ALLOWED_HOSTS` to it.
 
 **Rollback:** no schema migration and no bulk data transform in this release, so
 rolling back is pinning the previous tag and restarting. Config written for v0.26.5
