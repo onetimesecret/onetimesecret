@@ -88,7 +88,7 @@
     "source_hash": "0e7a533b"
   },
   "web.admin.emailtools.deliverability.events.empty": {
-    "text": "Данных о возвратах и жалобах пока нет. Передавайте обратную связь вашего ESP через POST /api/colonel/email/deliverability/events (с аутентификацией colonel — формат записи см. в документации эндпоинта). Синхронные жёсткие возвраты SMTP записываются автоматически.",
+    "text": "Данных о возвратах и жалобах пока нет. Передавайте обратную связь Вашего ESP через POST /api/colonel/email/deliverability/events (с аутентификацией colonel — формат записи см. в документации эндпоинта). Синхронные жёсткие возвраты SMTP записываются автоматически.",
     "source_hash": "a90f259c"
   },
   "web.admin.emailtools.deliverability.events.loadError": {

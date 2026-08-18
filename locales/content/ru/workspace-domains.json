@@ -480,7 +480,7 @@
     "source_hash": "87073c93"
   },
   "web.domains.email.provider_inherit_description": {
-    "text": "Используются настройки отправки email по умолчанию для вашего аккаунта",
+    "text": "Используются настройки отправки email по умолчанию для Вашего аккаунта",
     "source_hash": "3f798263"
   },
   "web.domains.email.dns_records_title": {
@@ -488,7 +488,7 @@
     "source_hash": "34d2c307"
   },
   "web.domains.email.dns_records_description": {
-    "text": "Добавьте следующие DNS-записи для подтверждения вашего домена для отправки email.",
+    "text": "Добавьте следующие DNS-записи для подтверждения Вашего домена для отправки email.",
     "source_hash": "9fa85863"
   },
   "web.domains.email.dns_column_type": {
@@ -564,7 +564,7 @@
     "source_hash": "d134ca02"
   },
   "web.domains.email.access_denied_description": {
-    "text": "У вас нет прав для управления настройками email этого домена. Обратитесь к администратору вашей организации.",
+    "text": "У Вас нет прав для управления настройками email этого домена. Обратитесь к администратору Вашей организации.",
     "source_hash": "32049ff0"
   },
   "web.domains.email.update_success": {
@@ -636,7 +636,7 @@
     "source_hash": "d134ca02"
   },
   "web.domains.incoming.access_denied_description": {
-    "text": "У вас нет прав для управления настройками входящих секретов этого домена. Обратитесь к администратору вашей организации.",
+    "text": "У Вас нет прав для управления настройками входящих секретов этого домена. Обратитесь к администратору Вашей организации.",
     "source_hash": "3e9d8adc"
   },
   "web.domains.incoming.upgrade_to_configure": {
@@ -648,7 +648,7 @@
     "source_hash": "eab52939"
   },
   "web.domains.incoming.not_configured_notice": {
-    "text": "Входящие секреты не настроены для этого домена. Добавьте получателей, чтобы внешние пользователи могли отправлять секреты вашей команде.",
+    "text": "Входящие секреты не настроены для этого домена. Добавьте получателей, чтобы внешние пользователи могли отправлять секреты Вашей команде.",
     "source_hash": "dbc443a6"
   },
   "web.domains.incoming.disabled_notice": {
@@ -692,7 +692,7 @@
     "source_hash": "bc8c2058"
   },
   "web.domains.incoming.empty_state_description": {
-    "text": "Добавьте получателей, чтобы внешние пользователи могли отправлять секреты вашей команде.",
+    "text": "Добавьте получателей, чтобы внешние пользователи могли отправлять секреты Вашей команде.",
     "source_hash": "2a647a40"
   },
   "web.domains.incoming.validation_invalid_email": {
@@ -796,7 +796,7 @@
     "source_hash": "ca598f6d"
   },
   "web.domains.incoming.save_will_replace_confirmation": {
-    "text": "Сохранение заменит всех существующих получателей на ваши текущие изменения. Вы уверены?",
+    "text": "Сохранение заменит всех существующих получателей на Ваши текущие изменения. Вы уверены?",
     "source_hash": "f497862e"
   },
   "web.domains.incoming.delete_all_recipients": {
@@ -820,7 +820,7 @@
     "source_hash": "d134ca02"
   },
   "web.domains.sso.access_denied_description": {
-    "text": "У вас нет прав для управления настройками SSO этого домена. Обратитесь к администратору вашей организации.",
+    "text": "У Вас нет прав для управления настройками SSO этого домена. Обратитесь к администратору Вашей организации.",
     "source_hash": "db7fcfeb"
   },
   "web.domains.sso.upgrade_to_configure": {
@@ -844,7 +844,7 @@
     "source_hash": "80d3a144"
   },
   "web.domains.sso.not_configured_notice": {
-    "text": "SSO ещё не настроен для этого домена. Включите единый вход, чтобы участники команды могли проходить аутентификацию через провайдера идентификации вашей организации.",
+    "text": "SSO ещё не настроен для этого домена. Включите единый вход, чтобы участники команды могли проходить аутентификацию через провайдера идентификации Вашей организации.",
     "source_hash": "c439214b"
   },
   "api.domains.errors.add_admin_required": {
@@ -896,7 +896,7 @@
     "source_hash": "d134ca02"
   },
   "web.domains.add_access_denied_description": {
-    "text": "У вас нет разрешения на добавление доменов в эту организацию. Обратитесь к администратору вашей организации.",
+    "text": "У Вас нет разрешения на добавление доменов в эту организацию. Обратитесь к администратору Вашей организации.",
     "source_hash": "25e035c6"
   },
   "web.domains.dns_widget_load_failed": {
@@ -920,7 +920,7 @@
     "source_hash": "77e07795"
   },
   "web.domains.unsaved_changes_confirmation": {
-    "text": "У вас есть несохранённые изменения. Вы уверены, что хотите выйти?",
+    "text": "У Вас есть несохранённые изменения. Вы уверены, что хотите выйти?",
     "source_hash": "322380c1"
   },
   "web.domains.entitlement_required_owner": {
@@ -928,7 +928,7 @@
     "source_hash": "6de1f752"
   },
   "web.domains.entitlement_required_member": {
-    "text": "Эта функция недоступна на вашем текущем плане. Обратитесь к владельцу вашей организации.",
+    "text": "Эта функция недоступна на Вашем текущем плане. Обратитесь к владельцу Вашей организации.",
     "source_hash": "8f1688b2"
   },
   "web.domains.detail.manage": {
@@ -944,7 +944,7 @@
     "source_hash": "6360f7ec"
   },
   "web.domains.detail.homepage_description": {
-    "text": "Разрешить публичный доступ для создания секретов на домашней странице вашего домена",
+    "text": "Разрешить публичный доступ для создания секретов на домашней странице Вашего домена",
     "source_hash": "209b3ded"
   },
   "web.domains.detail.brand_description": {
@@ -1360,7 +1360,7 @@
     "source_hash": "d7d4c1e4"
   },
   "web.domains.add.field_help": {
-    "text": "Точное имя хоста, которое будет использовать ваша команда, например {example}.",
+    "text": "Точное имя хоста, которое будет использовать Ваша команда, например {example}.",
     "source_hash": "3ba71f78"
   },
   "web.domains.add.echo_label": {
@@ -1368,7 +1368,7 @@
     "source_hash": "ad60b17d"
   },
   "web.domains.add.apex_question": {
-    "text": "Это весь ваш домен — где должны размещаться секретные ссылки?",
+    "text": "Это весь Ваш домен — где должны размещаться секретные ссылки?",
     "source_hash": "efacad1b"
   },
   "web.domains.add.apex_help": {
@@ -1380,7 +1380,7 @@
     "source_hash": "d70604e8"
   },
   "web.domains.add.no_wrong_answer": {
-    "text": "Неправильного выбора нет — выберите тот, который узнает ваша команда.",
+    "text": "Неправильного выбора нет — выберите тот, который узнает Ваша команда.",
     "source_hash": "a04f0086"
   },
   "web.domains.add.subdomains_label": {
@@ -1436,7 +1436,7 @@
     "source_hash": "2fc0c524"
   },
   "web.domains.dns.point_domain_outro": {
-    "text": "на этот сервер, добавив следующую DNS-запись у вашего провайдера.",
+    "text": "на этот сервер, добавив следующую DNS-запись у Вашего провайдера.",
     "source_hash": "8d260c05"
   },
   "web.domains.dns.cname_heading": {
@@ -1448,7 +1448,7 @@
     "source_hash": "41135375"
   },
   "web.domains.dns.apex_notice": {
-    "text": "Апекс-домены (корневые) не могут использовать CNAME-запись. Вместо этого используйте запись ALIAS или ANAME вашего DNS-провайдера либо направьте A-запись на IP-адрес вашего сервера.",
+    "text": "Апекс-домены (корневые) не могут использовать CNAME-запись. Вместо этого используйте запись ALIAS или ANAME Вашего DNS-провайдера либо направьте A-запись на IP-адрес Вашего сервера.",
     "source_hash": "2d1c3298"
   },
   "web.domains.email.from_address_local_placeholder": {
@@ -1460,7 +1460,7 @@
     "source_hash": "9e3391e9"
   },
   "web.domains.homepage.description": {
-    "text": "Что посетители могут делать на главной странице вашего домена",
+    "text": "Что посетители могут делать на главной странице Вашего домена",
     "source_hash": "974d159e"
   },
   "web.domains.homepage.option_private_title": {
@@ -1484,7 +1484,7 @@
     "source_hash": "882997bf"
   },
   "web.domains.homepage.option_incoming_description": {
-    "text": "Посетители могут отправлять секреты вашим настроенным получателям",
+    "text": "Посетители могут отправлять секреты Вашим настроенным получателям",
     "source_hash": "86bdaedb"
   },
   "web.domains.homepage.incoming_requires_recipients": {
@@ -1504,7 +1504,7 @@
     "source_hash": "251cfb95"
   },
   "web.domains.homepage.status_incoming": {
-    "text": "Публичная: посетители отправляют вам секреты",
+    "text": "Публичная: посетители отправляют Вам секреты",
     "source_hash": "baa926b8"
   },
   "web.domains.homepage.status_incoming_unready": {

@@ -32,7 +32,7 @@
     "source_hash": "97d0b117"
   },
   "web.organizations.no_organizations_description": {
-    "text": "Рабочие пространства обеспечивают единую оплату и администрирование. Начните с создания вашего первого рабочего пространства.",
+    "text": "Рабочие пространства обеспечивают единую оплату и администрирование. Начните с создания Вашего первого рабочего пространства.",
     "source_hash": "f09d4987"
   },
   "web.organizations.no_description": {
@@ -536,7 +536,7 @@
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "Приглашение участников требует платного плана. Перейдите на более высокий план, чтобы добавить соавторов в вашу организацию.",
+    "text": "Приглашение участников требует платного плана. Перейдите на более высокий план, чтобы добавить соавторов в Вашу организацию.",
     "source_hash": "47d0eeab"
   },
   "web.organizations.paid_badge": {
@@ -588,7 +588,7 @@
     "source_hash": "5db5c812"
   },
   "web.organizations.sso.description": {
-    "text": "Настройте SSO, чтобы участники могли входить через провайдера идентификации вашей организации",
+    "text": "Настройте SSO, чтобы участники могли входить через провайдера идентификации Вашей организации",
     "source_hash": "464f0a8b"
   },
   "web.organizations.sso.provider_type": {
@@ -596,7 +596,7 @@
     "source_hash": "bdfbb1ec"
   },
   "web.organizations.sso.provider_type_description": {
-    "text": "Выберите провайдера идентификации вашей организации",
+    "text": "Выберите провайдера идентификации Вашей организации",
     "source_hash": "e81325a6"
   },
   "web.organizations.sso.display_name": {
@@ -636,7 +636,7 @@
     "source_hash": "de1f5fff"
   },
   "web.organizations.sso.tenant_id_hint": {
-    "text": "Идентификатор вашего тенанта Azure AD / Entra ID",
+    "text": "Идентификатор Вашего тенанта Azure AD / Entra ID",
     "source_hash": "3c5b707a"
   },
   "web.organizations.sso.tenant_id_placeholder": {
@@ -648,7 +648,7 @@
     "source_hash": "4d03ba8a"
   },
   "web.organizations.sso.issuer_hint": {
-    "text": "URL обнаружения OIDC для вашего провайдера идентификации",
+    "text": "URL обнаружения OIDC для Вашего провайдера идентификации",
     "source_hash": "6102d81b"
   },
   "web.organizations.sso.issuer_placeholder": {
@@ -688,7 +688,7 @@
     "source_hash": "9ac1ac7b"
   },
   "web.organizations.sso.delete_confirm": {
-    "text": "Вы уверены? Это отключит SSO для вашей организации.",
+    "text": "Вы уверены? Это отключит SSO для Вашей организации.",
     "source_hash": "5b3f5b9d"
   },
   "web.organizations.sso.load_error": {
@@ -880,7 +880,7 @@
     "source_hash": "9191d915"
   },
   "web.organizations.default_org_delete_notice_before": {
-    "text": "Это ваша организация по умолчанию, её нельзя удалить из панели управления. Чтобы удалить её, пожалуйста, обратитесь через",
+    "text": "Это Ваша организация по умолчанию, её нельзя удалить из панели управления. Чтобы удалить её, пожалуйста, обратитесь через",
     "source_hash": "e203607d"
   },
   "web.organizations.default_org_delete_notice_link": {
@@ -904,7 +904,7 @@
     "source_hash": "ec8314da"
   },
   "web.organizations.leave_organization_confirm_message": {
-    "text": "Вы уверены, что хотите покинуть {name}? Для повторного присоединения вам потребуется новое приглашение.",
+    "text": "Вы уверены, что хотите покинуть {name}? Для повторного присоединения Вам потребуется новое приглашение.",
     "source_hash": "e21c5fec"
   },
   "web.organizations.leave_organization_success": {
@@ -988,7 +988,7 @@
     "source_hash": "dc297ae9"
   },
   "web.organizations.sso.callback_url_hint": {
-    "text": "Добавьте этот URL в список разрешённых URI перенаправления у вашего поставщика идентификации",
+    "text": "Добавьте этот URL в список разрешённых URI перенаправления у Вашего поставщика идентификации",
     "source_hash": "65d55683"
   },
   "web.organizations.sso.enforce_sso_only": {
