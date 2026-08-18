@@ -177,10 +177,13 @@ register_lint() {
   fi
   (cd "$ROOT" && python3 "$COVERAGE_REL" --resolved "$RESOLVED_DIR_REL/$locale.json") \
     2>&1 | sed "s/^/[$locale] /" || true
+  # Glob unquoted: the shell owns expansion (matches the validate-register.yml
+  # call site). No nullglob here, so an unmatched glob passes through literally
+  # and lint exits 3, exactly as before.
   out="$(cd "$ROOT" && python3 "$RULES_LINT_REL" \
     --resolved "$RESOLVED_DIR_REL/$locale.json" \
     --content-root . \
-    "locales/content/$locale/*.json" 2>&1)" || rc=$?
+    "locales/content/$locale"/*.json 2>&1)" || rc=$?
   if [[ $rc -ne 0 ]]; then
     echo "[$locale] register lint FAILED (exit $rc)"
     if [[ -n "$out" ]]; then printf '%s\n' "$out" | indent; fi

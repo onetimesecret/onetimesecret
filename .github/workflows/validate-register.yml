@@ -254,11 +254,18 @@ jobs:
             # register from <model>, scans rendered content strings, emits GitHub
             # ::error:: annotations, and exits non-zero on any forbidden-token hit
             # (1), config error (2), or empty glob (3) — any of which fails the gate.
+            # The glob is deliberately UNQUOTED so the shell owns the expansion
+            # instead of relying on lint_content.py (a versioned external dep)
+            # to keep expanding glob strings itself. nullglob is on (top of
+            # this block), so a dir with no .json files expands to ZERO args
+            # and lint's argparse (nargs='+') exits 2 — caught by the if !
+            # below, so the gate stays fail-closed on that (near-unreachable)
+            # path.
             if ! python3 "$rules"/lib/resolver/lint_content.py \
                  --resolved "$model" \
                  --content-root . \
                  --format github \
-                 "${content_dir}/*.json"; then
+                 "${content_dir}"/*.json; then
               echo "::error::forbidden register token (or scan error) in ${locale} content"
               fail=1
             fi
