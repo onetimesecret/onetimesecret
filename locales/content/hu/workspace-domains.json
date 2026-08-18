@@ -1364,11 +1364,11 @@
     "source_hash": "3ba71f78"
   },
   "web.domains.add.echo_label": {
-    "text": "A titokhivatkozásai itt lesznek elérhetők:",
+    "text": "A titkos hivatkozásai itt lesznek elérhetők:",
     "source_hash": "ad60b17d"
   },
   "web.domains.add.apex_question": {
-    "text": "Ez az egész doménje — hol legyenek a titokhivatkozások?",
+    "text": "Ez az egész doménje — hol legyenek a titkos hivatkozások?",
     "source_hash": "efacad1b"
   },
   "web.domains.add.apex_help": {
@@ -1476,7 +1476,7 @@
     "source_hash": "6539dfc1"
   },
   "web.domains.homepage.option_create_description": {
-    "text": "A látogatók létrehozhatják saját titokhivatkozásaikat",
+    "text": "A látogatók létrehozhatják saját titkos hivatkozásaikat",
     "source_hash": "884310f4"
   },
   "web.domains.homepage.option_incoming_title": {

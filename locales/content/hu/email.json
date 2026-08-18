@@ -790,7 +790,7 @@
     "source_hash": "1cd0194a"
   },
   "email.common.secret_link_label": {
-    "text": "Titokhivatkozás",
+    "text": "Titkos hivatkozás",
     "source_hash": "18ddf44f"
   },
   "email.common.automated_notice": {
