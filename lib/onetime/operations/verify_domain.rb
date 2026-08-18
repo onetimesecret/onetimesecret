@@ -321,7 +321,7 @@ module Onetime
         if status_result[:data] || status_result[:mode]
           domain.vhost                 = status_result[:data].to_json if status_result[:data]
           unless status_result[:is_resolving].nil?
-            domain.resolving = status_result[:is_resolving].to_s
+            domain.resolving = status_result[:is_resolving]
           end
           domain.vhost_fetch_failed_at = nil
         else

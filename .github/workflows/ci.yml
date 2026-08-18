@@ -182,7 +182,7 @@ jobs:
           echo "| OCI | ${{ steps.compute.outputs.oci }} |" >> $GITHUB_STEP_SUMMARY
 
   # ============================================================================
-  # TIER 1: LINT & BUILD JOBS (~30-45s)
+  # TIER 1: LINT & BUILD JOBS (~2 min)
   # ============================================================================
 
   ruby-lint:
@@ -358,7 +358,7 @@ jobs:
           if-no-files-found: error
 
   # ============================================================================
-  # TIER 2: UNIT TESTS (~30-45s)
+  # TIER 2: UNIT TESTS (~7-9 min)
   # ============================================================================
 
   ruby-unit:
@@ -506,7 +506,7 @@ jobs:
         run: pnpm type-check:tests
 
   # ============================================================================
-  # TIER 3: INTEGRATION TESTS (~45-90s each, run in parallel)
+  # TIER 3: INTEGRATION TESTS (~4-6 min each, run in parallel)
   # ============================================================================
 
   ruby-integration-simple:
@@ -719,7 +719,7 @@ jobs:
           results-file: 'rspec_disabled_results.json'
 
   # ============================================================================
-  # TIER 4: CONTAINER VALIDATION (~2-3 min)
+  # TIER 4: CONTAINER VALIDATION (~3 min, after Tier 3)
   # ============================================================================
 
   check-oci-image:

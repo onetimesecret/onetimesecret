@@ -147,6 +147,40 @@ describe('AdminDomains (card grid + verify — ticket #31)', () => {
     expect(wrapper.find('[data-testid="domain-row-cd_abc123"]').exists()).toBe(true);
   });
 
+  it('fetches immediately when the search button is clicked (debounce cancelled)', async () => {
+    vi.useFakeTimers();
+    try {
+      mockApi.get.mockResolvedValue({ data: domainsPayload() });
+      wrapper = mountView();
+      await flushPromises();
+
+      await wrapper
+        .find('[data-testid="domains-filterbar"] input[type="search"]')
+        .setValue('secrets');
+      const before = mockApi.get.mock.calls.length;
+
+      const submitBtn = wrapper
+        .findAll('[data-testid="domains-filterbar"] button')
+        .find((b) => b.text().includes('searchSubmit'));
+      await submitBtn!.trigger('click');
+      await flushPromises();
+
+      // Immediate fetch with the term…
+      expect(mockApi.get.mock.calls.length).toBe(before + 1);
+      expect(mockApi.get).toHaveBeenLastCalledWith('/api/colonel/domains', {
+        params: { page: 1, per_page: 50, search: 'secrets' },
+      });
+
+      // …and the pending debounce was cancelled — no second, late request.
+      vi.advanceTimersByTime(300);
+      await flushPromises();
+      expect(mockApi.get.mock.calls.length).toBe(before + 1);
+    } finally {
+      vi.runOnlyPendingTimers();
+      vi.useRealTimers();
+    }
+  });
+
   it('renders the empty state when there are no domains', async () => {
     mockApi.get.mockResolvedValue({
       data: { shrimp: '', record: {}, details: { domains: [], pagination: { page: 1, per_page: 50, total_count: 0, total_pages: 0 } } },

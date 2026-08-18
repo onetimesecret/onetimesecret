@@ -66,6 +66,7 @@ const smtp2goEmailProviderSchema = z.strictObject({
   api_base_url: z.string().optional(),
   returnpath_subdomain: z.string().optional(),
   tracking_subdomain: z.string().optional(),
+  fastaccept: z.boolean().optional(),
 });
 
 const emailProvidersSchema = z.strictObject({

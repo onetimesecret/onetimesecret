@@ -129,6 +129,16 @@
     if (searchTimer) clearTimeout(searchTimer);
   });
 
+  /** Submit search on explicit user action (Enter key or search button). */
+  function onSearchSubmit(): void {
+    // Cancel the pending debounce so it doesn't re-fire for the same term.
+    if (searchTimer) clearTimeout(searchTimer);
+    const trimmed = searchTerm.value.trim();
+    if (trimmed === activeSearch.value) return; // No-op guard
+    activeSearch.value = trimmed;
+    fetchPage(1);
+  }
+
   function onClear(): void {
     searchTerm.value = '';
     activeSearch.value = '';
@@ -343,7 +353,8 @@
         :search-placeholder="t('web.admin.sessions.search.placeholder')"
         :has-active-filters="hasActiveFilters"
         testid="sessions-filterbar"
-        @clear="onClear" />
+        @clear="onClear"
+        @submit="onSearchSubmit" />
     </div>
 
     <!-- Table -->

@@ -41,9 +41,9 @@ module Onetime
         # @param page [Integer] 1-based page (clamped to >= 1). Ignored when unpaginated.
         # @param per_page [Integer, nil] page size; nil returns the full list (CLI mode).
         def initialize(page: 1, per_page: DEFAULT_PER_PAGE)
-          @page       = page.to_i < 1 ? 1 : page.to_i
+          @page        = page.to_i < 1 ? 1 : page.to_i
           @unpaginated = per_page.nil?
-          @per_page   = @unpaginated ? nil : clamp_per_page(per_page)
+          @per_page    = @unpaginated ? nil : clamp_per_page(per_page)
         end
 
         # @return [Result]
@@ -99,7 +99,9 @@ module Onetime
             extid: (domain.extid if domain.respond_to?(:extid)),
             display_domain: domain.display_domain,
             verification_state: domain.verification_state.to_s,
-            verified: domain.verified.to_s == 'true',
+            # `!!` maps an undetermined native value to false; the
+            # colonelOrphanedDomainSchema declares a plain boolean.
+            verified: !!domain.verified, # boolean_field native
             created: domain.created,
           }
         end
