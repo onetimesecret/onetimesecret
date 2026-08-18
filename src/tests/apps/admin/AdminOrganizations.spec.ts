@@ -321,6 +321,25 @@ describe('AdminOrganizations (list + row navigation — ticket #32)', () => {
       });
     });
 
+    it('fetches with the search term when the search button is clicked', async () => {
+      mockApi.get.mockResolvedValue({ data: orgsPayload() });
+      wrapper = mountView();
+      await flushPromises();
+
+      const searchInput = wrapper.find('#kit-filter-search');
+      await searchInput.setValue('acme');
+      const submitBtn = wrapper
+        .findAll('button')
+        .find((btn) => btn.text().includes('searchSubmit'));
+      expect(submitBtn).toBeDefined();
+      await submitBtn!.trigger('click');
+      await flushPromises();
+
+      expect(mockApi.get).toHaveBeenLastCalledWith('/api/colonel/organizations', {
+        params: { page: 1, per_page: 50, search: 'acme' },
+      });
+    });
+
     it('trims whitespace from search term before submitting', async () => {
       mockApi.get.mockResolvedValue({ data: orgsPayload() });
       wrapper = mountView();

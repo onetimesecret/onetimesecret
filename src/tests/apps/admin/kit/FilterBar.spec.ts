@@ -117,4 +117,24 @@ describe('FilterBar (config-driven filters)', () => {
     await search.trigger('keydown', { key: 'Escape' });
     expect(wrapper.emitted('submit')).toBeFalsy();
   });
+
+  it('renders a search submit button when the search box is shown', () => {
+    wrapper = mountBar();
+    const submitBtn = wrapper.findAll('button').find((b) => b.text().includes('searchSubmit'));
+    expect(submitBtn).toBeDefined();
+  });
+
+  it('emits submit when the search button is clicked', async () => {
+    wrapper = mountBar();
+    const submitBtn = wrapper.findAll('button').find((b) => b.text().includes('searchSubmit'));
+    await submitBtn!.trigger('click');
+    expect(wrapper.emitted('submit')).toBeTruthy();
+    expect(wrapper.emitted('submit')!.length).toBe(1);
+  });
+
+  it('hides the search submit button when showSearch is false', () => {
+    wrapper = mountBar({ showSearch: false });
+    const submitBtn = wrapper.findAll('button').find((b) => b.text().includes('searchSubmit'));
+    expect(submitBtn).toBeUndefined();
+  });
 });

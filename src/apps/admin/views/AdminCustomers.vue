@@ -110,6 +110,16 @@
     if (searchTimer) clearTimeout(searchTimer);
   });
 
+  /** Submit search on explicit user action (Enter key or search button). */
+  function onSearchSubmit(): void {
+    // Cancel the pending debounce so it doesn't re-fire for the same term.
+    if (searchTimer) clearTimeout(searchTimer);
+    const trimmed = searchTerm.value.trim();
+    if (trimmed === activeSearch.value) return; // No-op guard
+    activeSearch.value = trimmed;
+    fetchPage(1);
+  }
+
   function onFilterChange(key: string, value: string): void {
     if (key === 'role') {
       roleFilter.value = value;
@@ -405,7 +415,8 @@
         :has-active-filters="hasActiveFilters"
         testid="customers-filterbar"
         @filter-change="onFilterChange"
-        @clear="onClear" />
+        @clear="onClear"
+        @submit="onSearchSubmit" />
     </div>
 
     <!-- Table -->
