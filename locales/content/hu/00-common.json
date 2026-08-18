@@ -5,7 +5,7 @@
     "note": "empty"
   },
   "web.COMMON.tagline": {
-    "text": "Biztonságos linkek, amelyek csak egyszer működnek",
+    "text": "Biztonságos hivatkozások, amelyek csak egyszer működnek",
     "source_hash": "9da7aece"
   },
   "web.COMMON.powered_by": {
@@ -37,7 +37,7 @@
     "source_hash": "6170ab94"
   },
   "web.COMMON.custom_domains_description": {
-    "text": "Erősítse kapcsolatait és építsen bizalmat saját márkázott titkos linkjeivel.",
+    "text": "Erősítse kapcsolatait és építsen bizalmat saját márkázott titkos hivatkozásaival.",
     "source_hash": "71fddc05"
   },
   "web.COMMON.get_started_button": {
@@ -65,7 +65,7 @@
     "source_hash": "f40a853e"
   },
   "web.COMMON.description": {
-    "text": "Tartsa távol az érzékeny információkat a csevegési naplóktól és e-mailektől. Osszon meg egy titkos linket, amely csak egyszer érhető el.",
+    "text": "Tartsa távol az érzékeny információkat a csevegési naplóktól és e-mailektől. Osszon meg egy titkos hivatkozást, amely csak egyszer érhető el.",
     "source_hash": "4c895f85"
   },
   "web.COMMON.incorrect_passphrase": {
@@ -77,7 +77,7 @@
     "source_hash": "52728258"
   },
   "web.COMMON.button_create_secret": {
-    "text": "Titkos link létrehozása",
+    "text": "Titkos hivatkozás létrehozása",
     "source_hash": "a3e07632"
   },
   "web.COMMON.button_generate_secret": {
@@ -329,7 +329,7 @@
     "source_hash": "b4c8bbc3"
   },
   "web.COMMON.share_link_securely": {
-    "text": "Biztonsági okokból ossza meg ezt a linket a többi adattól elkülönítve.",
+    "text": "Biztonsági okokból ossza meg ezt a hivatkozást a többi adattól elkülönítve.",
     "source_hash": "c46e6204"
   },
   "web.COMMON.copied_to_clipboard": {
@@ -773,7 +773,7 @@
     "source_hash": "29887a5f"
   },
   "web.LABELS.secret_link": {
-    "text": "Titkos link",
+    "text": "Titkos hivatkozás",
     "source_hash": "a02fb1cd"
   },
   "web.LABELS.dismiss": {
@@ -849,15 +849,15 @@
     "source_hash": "83b12c22"
   },
   "web.LABELS.caption_recent_secrets": {
-    "text": "Ebben a munkamenetben létrehozott titkos linkek",
+    "text": "Ebben a munkamenetben létrehozott titkos hivatkozások",
     "source_hash": "6c7ceab8"
   },
   "web.LABELS.create_link_short": {
-    "text": "Link létrehozása",
+    "text": "Hivatkozás létrehozása",
     "source_hash": "cac74fdb"
   },
   "web.LABELS.create_link": {
-    "text": "Titkos link létrehozása",
+    "text": "Titkos hivatkozás létrehozása",
     "source_hash": "a30a47b9"
   },
   "web.LABELS.create_request_short": {
@@ -865,7 +865,7 @@
     "source_hash": "71a0bd40"
   },
   "web.LABELS.create_request": {
-    "text": "Kérés link létrehozása",
+    "text": "Kérési hivatkozás létrehozása",
     "source_hash": "190463dc"
   },
   "web.LABELS.related_settings": {
@@ -878,7 +878,7 @@
     "source_hash": "d5b67bc9"
   },
   "web.LABELS.creating_links_for": {
-    "text": "Linkek létrehozása ehhez:",
+    "text": "Hivatkozások létrehozása ehhez:",
     "source_hash": "57db069e"
   },
   "web.LABELS.scope_indicator": {
@@ -894,7 +894,7 @@
     "source_hash": "1b9f384c"
   },
   "web.STATUS.viewed": {
-    "text": "Link megnyitva",
+    "text": "Hivatkozás megnyitva",
     "source_hash": "66844573"
   },
   "web.STATUS.received": {
@@ -954,15 +954,15 @@
     "source_hash": "9e65f559"
   },
   "web.STATUS.new_description": {
-    "text": "A titkos link létrejött és még nem tekintették meg",
+    "text": "A titkos hivatkozás létrejött és még nem tekintették meg",
     "source_hash": "447c4445"
   },
   "web.STATUS.unread_description": {
-    "text": "A titkos link létrejött és nem tekintették meg",
+    "text": "A titkos hivatkozás létrejött és nem tekintették meg",
     "source_hash": "83b9a0ca"
   },
   "web.STATUS.viewed_description": {
-    "text": "A titkos linket megnyitották és készen áll a megtekintésre",
+    "text": "A titkos hivatkozást megnyitották és készen áll a megtekintésre",
     "source_hash": "f392af12"
   },
   "web.STATUS.received_description": {
@@ -970,7 +970,7 @@
     "source_hash": "ceb756b4"
   },
   "web.STATUS.previewed_description": {
-    "text": "A titkos linket megnyitották és készen áll a megjelenítésre",
+    "text": "A titkos hivatkozást megnyitották és készen áll a megjelenítésre",
     "source_hash": "cc7d1e92"
   },
   "web.STATUS.revealed_description": {
@@ -1287,7 +1287,7 @@
     "source_hash": "1a450046"
   },
   "web.INSTRUCTION.share_link_instruction": {
-    "text": "Ossza meg a linket a címzettel",
+    "text": "Ossza meg a hivatkozást a címzettel",
     "source_hash": "43bdee1d"
   },
   "web.INSTRUCTION.share_passphrase_instruction": {
@@ -1299,7 +1299,7 @@
     "source_hash": "fc78d9cb"
   },
   "web.INSTRUCTION.phishing_warning": {
-    "text": "Mindig ellenőrizze, hogy a hivatalos {product_name} weboldalon van-e. A csalók néha hamis weboldalakat hoznak létre, amelyek pontosan úgy néznek ki, mint az {product_name}, hogy ellopják titkait. Az adathalász támadások elkerülése érdekében ellenőrizze a régió domain-t új linkek létrehozása előtt.",
+    "text": "Mindig ellenőrizze, hogy a hivatalos {product_name} weboldalon van-e. A csalók néha hamis weboldalakat hoznak létre, amelyek pontosan úgy néznek ki, mint az {product_name}, hogy ellopják titkait. Az adathalász támadások elkerülése érdekében ellenőrizze a régió domain-t új hivatkozások létrehozása előtt.",
     "source_hash": "2e3b856e"
   },
   "web.pricing.title": {

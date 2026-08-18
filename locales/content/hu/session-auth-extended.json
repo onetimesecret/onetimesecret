@@ -98,7 +98,7 @@
     "source_hash": "e7cf3ef4"
   },
   "web.auth.methods.magicLink": {
-    "text": "E-mail link",
+    "text": "E-mail hivatkozás",
     "context": "Passwordless authentication via email link",
     "source_hash": "1b6ffed2"
   },
