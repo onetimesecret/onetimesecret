@@ -1036,7 +1036,7 @@
     "source_hash": "e242bb74"
   },
   "web.domains.signin.not_configured_notice": {
-    "text": "このドメインではサインイン設定がまだ設定されていません。このドメインのサインインページで利用可能な認証方法を制御するオーバーライドを設定してください。",
+    "text": "このドメインではサインイン設定がまだ設定されていません。このドメインのサインインページで利用可能な認証方法を制御する上書き設定を行ってください。",
     "source_hash": "cb788a2d"
   },
   "web.domains.signin.signin_enabled_label": {
@@ -1084,7 +1084,7 @@
     "source_hash": "cf7cd744"
   },
   "web.domains.signin.method_overrides_label": {
-    "text": "方法のオーバーライド",
+    "text": "方法の上書き設定",
     "source_hash": "5496cba6"
   },
   "web.domains.signin.method_overrides_hint": {
@@ -1312,11 +1312,11 @@
     "source_hash": "eb6add4d"
   },
   "web.domains.signup.domain_overrides_label": {
-    "text": "ドメインオーバーライド",
+    "text": "ドメインの上書き設定",
     "source_hash": "d25da3cd"
   },
   "web.domains.signup.domain_overrides_hint": {
-    "text": "このドメインのグローバルサインアップ設定をオーバーライドします",
+    "text": "このドメインのグローバルサインアップ設定を上書きします",
     "source_hash": "53101057"
   },
   "web.domains.signup.signup_enabled_label": {
@@ -1324,7 +1324,7 @@
     "source_hash": "296ac66d"
   },
   "web.domains.signup.signup_enabled_hint": {
-    "text": "このドメインでサインアップが有効かどうかをオーバーライドします",
+    "text": "このドメインでサインアップが有効かどうかを上書きします",
     "source_hash": "2ee146b6"
   },
   "web.domains.signup.autoverify_label": {
@@ -1332,7 +1332,7 @@
     "source_hash": "4b103cd5"
   },
   "web.domains.signup.autoverify_hint": {
-    "text": "このドメインで新しいアカウントを自動的に検証するかどうかをオーバーライドします",
+    "text": "このドメインで新しいアカウントを自動的に検証するかどうかを上書きします",
     "source_hash": "63866ecd"
   },
   "web.domains.sso.test_success": {

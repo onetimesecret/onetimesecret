@@ -111,7 +111,7 @@
     "source_hash": "79a864df"
   },
   "web.auth.magicLink.description": {
-    "text": "Biztonságos bejelentkezési linket küldünk Önnek",
+    "text": "Biztonságos bejelentkezési hivatkozást küldünk Önnek",
     "source_hash": "5d75aeb0"
   },
   "web.auth.magicLink.emailPlaceholder": {
@@ -119,7 +119,7 @@
     "source_hash": "2837f6fa"
   },
   "web.auth.magicLink.sendLink": {
-    "text": "Bejelentkezési link küldése",
+    "text": "Bejelentkezési hivatkozás küldése",
     "source_hash": "f5f52392"
   },
   "web.auth.magicLink.checkEmail": {
@@ -127,11 +127,11 @@
     "source_hash": "77322879"
   },
   "web.auth.magicLink.sentTo": {
-    "text": "Bejelentkezési linket küldtünk ide: {email}",
+    "text": "Bejelentkezési hivatkozást küldtünk ide: {email}",
     "source_hash": "d9193f59"
   },
   "web.auth.magicLink.linkExpiresIn": {
-    "text": "Ez a link 15 perc múlva lejár",
+    "text": "Ez a hivatkozás 15 perc múlva lejár",
     "source_hash": "91b5f027"
   },
   "web.auth.magicLink.tryDifferentEmail": {
@@ -139,7 +139,7 @@
     "source_hash": "98657c0b"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "Nincs szükség jelszóra — csak kattintson a linkre az e-mailben",
+    "text": "Nincs szükség jelszóra — csak kattintson a hivatkozásra az e-mailben",
     "source_hash": "5f539b97"
   },
   "web.auth.magicLink.networkError": {
@@ -147,11 +147,11 @@
     "source_hash": "9ff8cfaf"
   },
   "web.auth.magicLink.requestFailed": {
-    "text": "Nem sikerült elküldeni a bejelentkezési linket. Kérjük, próbálja újra.",
+    "text": "Nem sikerült elküldeni a bejelentkezési hivatkozást. Kérjük, próbálja újra.",
     "source_hash": "4c685e97"
   },
   "web.auth.magicLink.invalidLink": {
-    "text": "Érvénytelen vagy hiányzó bejelentkezési link",
+    "text": "Érvénytelen vagy hiányzó bejelentkezési hivatkozás",
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
@@ -167,7 +167,7 @@
     "source_hash": "9d432ef1"
   },
   "web.auth.magicLink.pleaseWait": {
-    "text": "Kérjük, várjon, amíg ellenőrizzük a linket",
+    "text": "Kérjük, várjon, amíg ellenőrizzük a hivatkozást",
     "source_hash": "81e4efed"
   },
   "web.auth.magicLink.error": {
