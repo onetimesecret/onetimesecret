@@ -36,15 +36,17 @@ RSpec.describe Core::Middleware::RequestSetup do
   end
 
   # Drive the finalize chokepoint helper with a stubbed OT.conf and return the
-  # emitted (lowercase-key) Content-Security-Policy.
-  def emit(config)
+  # emitted (lowercase-key) Content-Security-Policy. env_extra lets a case add
+  # request-scoped keys (e.g. otto.csp.extra_directives) to the env the
+  # chokepoint hands to Otto's Writer.
+  def emit(config, env_extra: {})
     conf = {
       'site' => { 'security' => { 'csp' => { 'enabled' => true } } },
       'development' => { 'enabled' => false },
     }
     allow(OT).to receive(:conf).and_return(conf)
     headers = { 'content-type' => 'text/html; charset=utf-8' }
-    env = { 'otto.security_config' => config, 'onetime.nonce' => 'N' }
+    env = { 'otto.security_config' => config, 'onetime.nonce' => 'N' }.merge(env_extra)
     middleware.send(:emit_csp_header, headers, env)
     headers['content-security-policy']
   end
@@ -59,6 +61,61 @@ RSpec.describe Core::Middleware::RequestSetup do
       policy = emit(security_config)
       expect(policy).to include("form-action 'self'")
       expect(policy).not_to include(origin)
+    end
+  end
+
+  # Request-scoped tenant widening (#4173): Onetime::Middleware::TenantCspExtras
+  # writes env['otto.csp.extra_directives'] on the way in; the chokepoint passes
+  # env: to Writer.apply and otto (2.9 / delano/otto#243) sanitizes and folds
+  # the extras additively at policy build. These cases drive the REAL otto
+  # integration — no stubs between the env write and the emitted header.
+  describe 'request-scoped form-action extras (tenant SSO)' do
+    let(:tenant_origin) { 'https://idp.tenant.example' }
+
+    it 'folds a tenant origin from the env extras into the emitted form-action' do
+      policy = emit(
+        security_config,
+        env_extra: { 'otto.csp.extra_directives' => { 'form-action' => [tenant_origin] } },
+      )
+      expect(policy).to include("form-action 'self' #{tenant_origin}")
+    end
+
+    it 'appends the tenant origin after a boot-time SSO override (additive, not replacing)' do
+      policy = emit(
+        security_config(form_action_origins: origin),
+        env_extra: { 'otto.csp.extra_directives' => { 'form-action' => [tenant_origin] } },
+      )
+      expect(policy).to include("form-action 'self' #{origin} #{tenant_origin}")
+    end
+
+    it 'emits the same policy for an empty extras hash as for no extras key at all' do
+      without_key = emit(security_config)
+      empty_hash  = emit(security_config, env_extra: { 'otto.csp.extra_directives' => {} })
+      expect(empty_hash).to eq(without_key)
+      expect(empty_hash).to include("form-action 'self'")
+      expect(empty_hash).not_to include(tenant_origin)
+    end
+
+    it 'drops a hostile extras token at the otto boundary and keeps the policy intact' do
+      policy = emit(
+        security_config,
+        env_extra: {
+          'otto.csp.extra_directives' => {
+            'form-action' => ["#{tenant_origin}; script-src https://evil.example", 'javascript:alert(1)'],
+          },
+        },
+      )
+      expect(policy).to include("form-action 'self'")
+      expect(policy).not_to include('evil.example')
+      expect(policy).not_to include('javascript:')
+    end
+
+    it 'refuses a script-src extra wholesale (otto REFUSED_DIRECTIVES)' do
+      policy = emit(
+        security_config,
+        env_extra: { 'otto.csp.extra_directives' => { 'script-src' => [tenant_origin] } },
+      )
+      expect(policy).not_to include(tenant_origin)
     end
   end
 end

@@ -247,4 +247,94 @@ RSpec.describe Onetime::AuthConfig do
       expect(config.sso_form_action_origins).to eq([])
     end
   end
+
+  # The per-request complement (#4173): Onetime::Middleware::TenantCspExtras
+  # feeds a tenant's CustomDomain::SsoConfig through this funnel to widen the
+  # CSP form-action directive for that request only. The issuer is
+  # tenant-supplied (attacker-influenced), so every oidc value must survive
+  # origin_from_url or resolve to nil.
+  describe '#tenant_idp_origin' do
+    def tenant_sso_config(provider_type:, issuer: nil)
+      double('CustomDomain::SsoConfig', provider_type: provider_type, issuer: issuer)
+    end
+
+    # ── oidc: issuer-derived through origin_from_url ─────────────────
+
+    it 'extracts the issuer origin for an oidc config, stripping the path' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: 'https://idp.tenant.example/realms/main')
+      expect(fresh_config.tenant_idp_origin(config)).to eq('https://idp.tenant.example')
+    end
+
+    it 'preserves a non-default port in the oidc issuer origin' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: 'https://idp.tenant.example:8443/x')
+      expect(fresh_config.tenant_idp_origin(config)).to eq('https://idp.tenant.example:8443')
+    end
+
+    it 'omits the default 443 port from the oidc issuer origin' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: 'https://idp.tenant.example:443/x')
+      expect(fresh_config.tenant_idp_origin(config)).to eq('https://idp.tenant.example')
+    end
+
+    it 'strips a bare trailing slash (otto extras reject any path, even "/")' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: 'https://idp.tenant.example/')
+      expect(fresh_config.tenant_idp_origin(config)).to eq('https://idp.tenant.example')
+    end
+
+    # ── oidc: malformed / hostile issuers resolve to nil, never raise ─
+
+    it 'returns nil for a blank issuer' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: '')
+      expect(fresh_config.tenant_idp_origin(config)).to be_nil
+    end
+
+    it 'returns nil for a nil issuer' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: nil)
+      expect(fresh_config.tenant_idp_origin(config)).to be_nil
+    end
+
+    it 'returns nil for a schemeless issuer' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: 'idp.tenant.example')
+      expect(fresh_config.tenant_idp_origin(config)).to be_nil
+    end
+
+    it 'returns nil for a non-http(s) issuer (javascript:)' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: 'javascript:alert(1)')
+      expect(fresh_config.tenant_idp_origin(config)).to be_nil
+    end
+
+    it 'returns nil (never a token with ";") for a semicolon-injection issuer' do
+      config = tenant_sso_config(
+        provider_type: 'oidc',
+        issuer: 'https://idp.tenant.example; script-src https://evil.example',
+      )
+      expect(fresh_config.tenant_idp_origin(config)).to be_nil
+    end
+
+    it 'returns nil (no raise) for an unparseable issuer' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: 'not a valid uri')
+      instance = fresh_config
+      expect { instance.tenant_idp_origin(config) }.not_to raise_error
+      expect(instance.tenant_idp_origin(config)).to be_nil
+    end
+
+    # ── entra_id: static registry origin ─────────────────────────────
+
+    it 'returns the registry commercial-cloud origin for entra_id, ignoring any issuer' do
+      config = tenant_sso_config(provider_type: 'entra_id', issuer: 'https://sts.windows.net/tenant/')
+      expect(fresh_config.tenant_idp_origin(config))
+        .to eq(Onetime::SsoProvider::Entra::DEFINITION[:idp_origin])
+      expect(fresh_config.tenant_idp_origin(config)).to eq('https://login.microsoftonline.com')
+    end
+
+    # ── everything else ──────────────────────────────────────────────
+
+    it 'returns nil for an unknown provider_type' do
+      config = tenant_sso_config(provider_type: 'github', issuer: 'https://github.com')
+      expect(fresh_config.tenant_idp_origin(config)).to be_nil
+    end
+
+    it 'returns nil for a nil sso_config' do
+      expect(fresh_config.tenant_idp_origin(nil)).to be_nil
+    end
+  end
 end
