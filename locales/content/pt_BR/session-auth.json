@@ -84,7 +84,7 @@
     "source_hash": "4d1213f9"
   },
   "web.auth.sso.error": {
-    "text": "Falha no login SSO. Por favor, tente novamente.",
+    "text": "Falha no início de sessão via SSO. Por favor, tente novamente.",
     "source_hash": "45a1e65d"
   },
   "web.login.errors.sso_failed": {

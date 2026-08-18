@@ -175,7 +175,7 @@
     "source_hash": "797b4f03"
   },
   "web.auth.magicLink.back_to_signin": {
-    "text": "Voltar para o Login",
+    "text": "Voltar para o início de sessão",
     "source_hash": "ee9eb75e"
   },
   "web.auth.webauthn.signIn": {
@@ -203,7 +203,7 @@
     "source_hash": "290cca44"
   },
   "web.auth.webauthn.passwordRequired": {
-    "text": "A senha é necessária para configurar uma passkey",
+    "text": "A senha é necessária para configurar uma chave de acesso",
     "source_hash": "085bb238"
   },
   "web.auth.webauthn.authFailed": {
@@ -528,11 +528,11 @@
     "source_hash": "6fa090b4"
   },
   "web.auth.mfa.cancel": {
-    "text": "Cancelar e voltar ao login",
+    "text": "Cancelar e voltar ao início de sessão",
     "source_hash": "83256742"
   },
   "web.auth.mfa.cancel_sign_in": {
-    "text": "Cancelar login",
+    "text": "Cancelar início de sessão",
     "source_hash": "1bebad2f"
   },
   "web.auth.mfa.loading_status": {

@@ -804,7 +804,7 @@
     "source_hash": "207d0dbe"
   },
   "web.domains.sso.title": {
-    "text": "Login Único",
+    "text": "Início de sessão único",
     "source_hash": "cf7cd744"
   },
   "web.domains.sso.config_title": {
@@ -812,7 +812,7 @@
     "source_hash": "afd5751e"
   },
   "web.domains.sso.config_description": {
-    "text": "Configure a autenticação de login único para este domínio",
+    "text": "Configure a autenticação de início de sessão único para este domínio",
     "source_hash": "f37a0b47"
   },
   "web.domains.sso.access_denied": {
@@ -824,7 +824,7 @@
     "source_hash": "db7fcfeb"
   },
   "web.domains.sso.upgrade_to_configure": {
-    "text": "Faça upgrade do seu plano para configurar login único para este domínio.",
+    "text": "Faça upgrade do seu plano para configurar o início de sessão único para este domínio.",
     "source_hash": "71fc0069"
   },
   "web.domains.sso.create_success": {
@@ -844,7 +844,7 @@
     "source_hash": "80d3a144"
   },
   "web.domains.sso.not_configured_notice": {
-    "text": "SSO ainda não está configurado para este domínio. Ative o login único para permitir que membros da equipe se autentiquem usando o provedor de identidade da sua organização.",
+    "text": "SSO ainda não está configurado para este domínio. Ative o início de sessão único para permitir que membros da equipe se autentiquem usando o provedor de identidade da sua organização.",
     "source_hash": "c439214b"
   },
   "api.domains.errors.add_admin_required": {
