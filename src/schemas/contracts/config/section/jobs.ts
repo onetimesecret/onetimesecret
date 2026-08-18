@@ -109,6 +109,11 @@ const jobsHousekeepingSchema = z.object({
   cron: z.string().optional(),
 });
 
+const jobsEntitlementMaterializeSchema = z.object({
+  enabled: z.boolean().optional(),
+  cron: z.string().optional(),
+});
+
 const jobsMaintenanceSchema = z.object({
   enabled: z.boolean().optional(),
   phantom_cleanup: jobsPhantomCleanupSchema.optional(),
@@ -117,6 +122,7 @@ const jobsMaintenanceSchema = z.object({
   index_rebuild: jobsIndexRebuildSchema.optional(),
   instances_rebuild: jobsInstancesRebuildSchema.optional(),
   housekeeping: jobsHousekeepingSchema.optional(),
+  entitlement_materialize: jobsEntitlementMaterializeSchema.optional(),
 });
 
 const jobsSchema = z.object({
