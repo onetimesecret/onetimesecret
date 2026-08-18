@@ -333,6 +333,23 @@ RSpec.describe Onetime::AuthConfig do
       expect(fresh_config.tenant_idp_origin(config)).to be_nil
     end
 
+    it 'returns nil (no raise) when a mapped provider has no registry definition' do
+      # Guards route-map/registry drift: a PROVIDER_ROUTE_MAP entry whose
+      # route has no SsoProvider::Registry definition must answer nil per
+      # request — Registry.fetch would raise KeyError, which is right for
+      # boot-time typos but would 500 the CSP middleware path.
+      stub_const(
+        'Onetime::CustomDomain::SsoConfig::PROVIDER_ROUTE_MAP',
+        Onetime::CustomDomain::SsoConfig::PROVIDER_ROUTE_MAP.merge(
+          'future_idp' => { env_var: 'FUTURE_ROUTE_NAME', default: 'future' },
+        ),
+      )
+      config = tenant_sso_config(provider_type: 'future_idp')
+      instance = fresh_config
+      expect { instance.tenant_idp_origin(config) }.not_to raise_error
+      expect(instance.tenant_idp_origin(config)).to be_nil
+    end
+
     it 'returns nil for a nil sso_config' do
       expect(fresh_config.tenant_idp_origin(nil)).to be_nil
     end

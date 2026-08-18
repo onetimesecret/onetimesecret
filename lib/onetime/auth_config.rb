@@ -512,6 +512,16 @@ module Onetime
     # SsoConfig#build_entra_id_options passes no authority option); sovereign
     # clouds remain SSO_FORM_ACTION_ORIGINS territory.
     #
+    # Non-oidc types resolve through SsoConfig::PROVIDER_ROUTE_MAP (the same
+    # provider_type -> route mapping the tenant strategy registration uses)
+    # to a registry definition, then through #provider_origin — so a future
+    # tenant provider type needs a route-map entry plus a registry
+    # definition, not another case arm here. Every miss along that chain
+    # (unmapped provider_type, no matching registry definition, no
+    # resolvable origin) answers nil, never raises: this runs per-request
+    # inside the CSP middleware, where an exception would only be swallowed
+    # into a warning anyway.
+    #
     # Caveat (same as the platform OIDC derivation): OIDC discovery may place
     # authorization_endpoint on a DIFFERENT origin than the issuer, so the
     # issuer origin is best-effort and SSO_FORM_ACTION_ORIGINS stays the
@@ -521,12 +531,24 @@ module Onetime
     # @return [String, nil] scheme://host[:port], or nil when the provider
     #   type is unknown or the issuer does not resolve to a clean origin
     def tenant_idp_origin(sso_config)
-      case sso_config&.provider_type
-      when 'oidc'
-        origin_from_url(sso_config.issuer)
-      when 'entra_id'
-        SsoProvider::Registry.fetch(:entra)[:idp_origin]
-      end
+      provider_type = sso_config&.provider_type
+      return nil if provider_type.nil?
+
+      # OIDC derives from the tenant record's own issuer — the registry's
+      # oidc definition points at the PLATFORM env var, which would be the
+      # wrong tenant's (or no) issuer here.
+      return origin_from_url(sso_config.issuer) if provider_type == 'oidc'
+
+      route_name = Onetime::CustomDomain::SsoConfig::PROVIDER_ROUTE_MAP
+        .dig(provider_type, :default)
+      return nil if route_name.nil?
+
+      # Registry lookup that answers nil on a miss (Registry.fetch raises
+      # KeyError, which is right for boot-time typos but not per-request).
+      defn = SsoProvider::Registry::DEFINITIONS.find { |d| d[:key] == route_name.to_sym }
+      return nil if defn.nil?
+
+      provider_origin(defn)
     end
 
     private
