@@ -83,7 +83,7 @@ module DomainsAPI
               provider: provider,
               record_count: result.dns_records.size
 
-            log_sender_change_event(
+            log_sender_config_event(
               event: :domain_sender_provisioned,
               domain: @custom_domain,
               org: @organization,

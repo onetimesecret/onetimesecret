@@ -65,7 +65,7 @@ module ColonelAPI
             next if cust.anonymous?
 
             {
-              user_id: cust.extid,
+              user_id: cust.user_id,
               extid: cust.extid,
               # FULL address (colonel-only, scope=internal). The admin table
               # obscures it client-side and reveals on interaction — RevealEmail.vue.

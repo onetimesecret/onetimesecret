@@ -4,6 +4,8 @@
 
 require 'public_suffix'
 
+require_relative '../field_types/boolean_field_type'
+
 module Onetime
   # Custom Domain
   #
@@ -53,6 +55,14 @@ module Onetime
   class CustomDomain < Familia::Horreum
     include Familia::Features::Autoloader
 
+    # Boolean fields are declared with `boolean_field ..., storage: :native`
+    # so every write path (setter, create!, the `field!` fast writer) stores
+    # a real Ruby boolean, and every read coerces legacy spellings ('true',
+    # '1', 'yes') back to one. Read them directly — `if domain.verified` —
+    # never `.to_s == 'true'` or `== true`.
+    # See Onetime::FieldTypes::BooleanFieldType.
+    extend Onetime::FieldTypes::BooleanFieldMacro
+
     SCHEMA = 'models/custom-domain'
 
     unless defined?(MAX_SUBDOMAIN_DEPTH)
@@ -89,8 +99,8 @@ module Onetime
     field :txt_validation_value
     field :status
     field :vhost
-    field :verified # the txt record matches?
-    field :resolving # there's a valid A or CNAME record?
+    boolean_field :verified, storage: :native  # the txt record matches?
+    boolean_field :resolving, storage: :native # there's a valid A or CNAME record?
     field :vhost_fetch_failed_at # epoch seconds; non-nil while last vhost fetch failed
     field :created
     field :updated
@@ -100,7 +110,7 @@ module Onetime
     # worker via save_fields, kept off the icon hashkey so status updates
     # don't race the icon image write.
     field :favicon_fetch_status # JobLifecycle string (PENDING/PROCESSING/COMPLETED/FAILED)
-    field :favicon_fetched # outcome bool: true once an icon was actually stored
+    boolean_field :favicon_fetched, storage: :native # true once an icon was actually stored
     field :favicon_fetch_error # last failure message
     field :favicon_fetch_started_at # epoch seconds a PROCESSING run began (stale-in-flight window)
     field :favicon_fetch_completed_at # epoch seconds of the last terminal outcome
@@ -656,8 +666,8 @@ module Onetime
     def verification_state
       return :unverified unless txt_validation_value
 
-      if resolving.to_s == 'true'
-        verified.to_s == 'true' ? :verified : :resolving
+      if resolving
+        verified ? :verified : :resolving
       else
         :pending
       end

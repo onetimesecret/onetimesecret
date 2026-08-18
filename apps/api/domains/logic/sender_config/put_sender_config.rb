@@ -77,7 +77,7 @@ module DomainsAPI
 
           if @existing_config
             replace_existing_config
-            log_sender_change_event(
+            log_sender_config_event(
               event: :domain_sender_config_replaced,
               domain: @custom_domain,
               org: @organization,
@@ -85,7 +85,7 @@ module DomainsAPI
             )
           else
             create_new_config
-            log_sender_change_event(
+            log_sender_config_event(
               event: :domain_sender_config_created,
               domain: @custom_domain,
               org: @organization,
@@ -187,14 +187,14 @@ module DomainsAPI
           # Log when sender config is enabled (new config or was disabled).
           # !was_enabled covers both nil (new config) and false (was disabled).
           if is_enabled && !was_enabled
-            log_sender_change_event(
+            log_sender_config_event(
               event: :domain_sender_config_enabled,
               domain: @custom_domain,
               org: @organization,
               actor: cust,
             )
           elsif was_enabled == true && !is_enabled
-            log_sender_change_event(
+            log_sender_config_event(
               event: :domain_sender_config_disabled,
               domain: @custom_domain,
               org: @organization,

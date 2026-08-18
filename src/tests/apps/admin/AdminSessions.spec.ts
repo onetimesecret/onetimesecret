@@ -214,6 +214,32 @@ describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40
     });
   });
 
+  it('fetches immediately when the search button is clicked (debounce cancelled)', async () => {
+    mockApi.get.mockResolvedValue({ data: sessionsPayload() });
+    wrapper = mountView(pinia);
+    await flushPromises();
+
+    await wrapper.find('[data-testid="sessions-filterbar"] input').setValue('alice');
+    const before = listGetCount();
+
+    const submitBtn = wrapper
+      .findAll('[data-testid="sessions-filterbar"] button')
+      .find((b) => b.text().includes('searchSubmit'));
+    await submitBtn!.trigger('click');
+    await flushPromises();
+
+    // Immediate fetch with the term…
+    expect(listGetCount()).toBe(before + 1);
+    expect(mockApi.get).toHaveBeenLastCalledWith(LIST_URL, {
+      params: { page: 1, per_page: 50, search: 'alice' },
+    });
+
+    // …and the pending debounce was cancelled — no second, late request.
+    vi.advanceTimersByTime(300);
+    await flushPromises();
+    expect(listGetCount()).toBe(before + 1);
+  });
+
   it('shows the error banner + retry on a network failure', async () => {
     mockApi.get.mockRejectedValue(new Error('Network Error'));
     wrapper = mountView(pinia);

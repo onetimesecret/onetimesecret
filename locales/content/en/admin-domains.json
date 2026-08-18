@@ -842,5 +842,41 @@
   "web.admin.domains.configs.fields.updated": {
     "text": "Updated",
     "content_hash": "3a5ecca1"
+  },
+  "web.admin.domains.override.button": {
+    "text": "Override Status",
+    "content_hash": "c683774c"
+  },
+  "web.admin.domains.override.title": {
+    "text": "Override verification status",
+    "content_hash": "66dbebb2"
+  },
+  "web.admin.domains.override.description": {
+    "text": "Manually set the verified and resolving flags for this domain. Use with caution.",
+    "content_hash": "bc3eb719"
+  },
+  "web.admin.domains.override.verified": {
+    "text": "Verified",
+    "content_hash": "4f783840"
+  },
+  "web.admin.domains.override.resolving": {
+    "text": "Resolving",
+    "content_hash": "3287a034"
+  },
+  "web.admin.domains.override.apply": {
+    "text": "Apply Override",
+    "content_hash": "e2d1472a"
+  },
+  "web.admin.domains.override.cancel": {
+    "text": "Cancel",
+    "content_hash": "19766ed6"
+  },
+  "web.admin.domains.override.success": {
+    "text": "Domain status overridden.",
+    "content_hash": "42104cd0"
+  },
+  "web.admin.domains.override.noChange": {
+    "text": "No changes to apply.",
+    "content_hash": "07632d50"
   }
 }

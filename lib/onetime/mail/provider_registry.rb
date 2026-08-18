@@ -241,10 +241,21 @@ module Onetime
             returnpath_subdomain: %w[CUSTOM_MAIL_SMTP2GO_RETURNPATH_SUBDOMAIN].freeze,
             tracking_subdomain: %w[CUSTOM_MAIL_SMTP2GO_TRACKING_SUBDOMAIN].freeze,
           }.freeze,
+          # fastaccept is not a DNS option, but dns_defaults is the registry's
+          # only shipped-default channel: the parity specs read it as the
+          # expected default for both the rendered YAML and the generated
+          # static config schema, and Mailer#smtp2go_fastaccept resolves the
+          # same false default at runtime. It cannot live in config_env_sources
+          # because that map declares verbatim string passthroughs (the parity
+          # spec sets a marker in the ENV var and expects it to arrive in the
+          # config unchanged), while this key's template coerces to a boolean.
+          # Consequence: CUSTOM_MAIL_SMTP2GO_FASTACCEPT is not covered by the
+          # ENV parity specs — Mailer's own spec covers that wiring instead.
           dns_defaults: {
             api_base_url: 'https://api.smtp2go.com/v3',
             returnpath_subdomain: 'bounce',
             tracking_subdomain: 'track',
+            fastaccept: false,
           }.freeze,
         ),
         Descriptor.new(

@@ -1162,6 +1162,12 @@ email_providers:
     # Published by the customer as a CNAME record for open/click tracking.
     # Override via CUSTOM_MAIL_SMTP2GO_TRACKING_SUBDOMAIN env var
     tracking_subdomain: <%= ENV['CUSTOM_MAIL_SMTP2GO_TRACKING_SUBDOMAIN'] || 'track' %>
+    # Fast-accept mode. Default false = synchronous delivery accounting: the
+    # response carries succeeded/failed/failures, so a failed recipient is
+    # reported instead of silently dropped. Set true only to opt into
+    # fire-and-forget (lower latency, no per-recipient failure detection).
+    # Override via CUSTOM_MAIL_SMTP2GO_FASTACCEPT env var (true/false)
+    fastaccept: <%= ENV.fetch('CUSTOM_MAIL_SMTP2GO_FASTACCEPT', 'false') == 'true' %>
 
 mail:
   truemail:
