@@ -1076,7 +1076,7 @@
     "source_hash": "68c38f94"
   },
   "web.domains.signin.method_webauthn": {
-    "text": "WebAuthn / claves de acceso",
+    "text": "WebAuthn / llaves de acceso",
     "source_hash": "c40224ce"
   },
   "web.domains.signin.method_sso": {
@@ -1568,7 +1568,7 @@
     "source_hash": "15398362"
   },
   "web.domains.signin.method_webauthn_unavailable": {
-    "text": "Las claves de acceso están vinculadas al dominio principal de inicio de sesión y todavía no están disponibles en dominios personalizados",
+    "text": "Las llaves de acceso están vinculadas al dominio principal de inicio de sesión y todavía no están disponibles en dominios personalizados",
     "source_hash": "88833e0f"
   },
   "web.domains.sso.connection_disabled_badge": {

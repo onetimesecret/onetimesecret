@@ -203,7 +203,7 @@
     "source_hash": "290cca44"
   },
   "web.auth.webauthn.passwordRequired": {
-    "text": "La contraseña es necesaria para configurar una clave de acceso",
+    "text": "La contraseña es necesaria para configurar una llave de acceso",
     "source_hash": "085bb238"
   },
   "web.auth.webauthn.authFailed": {

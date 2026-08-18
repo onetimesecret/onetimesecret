@@ -156,7 +156,7 @@
     "source_hash": "79fa3361"
   },
   "web.domains.manage_and_configure_your_verified_custom_domains": {
-    "text": "인증된 맞춤 도메인을 관리하고 구성합니다",
+    "text": "인증된 사용자 지정 도메인을 관리하고 구성합니다",
     "source_hash": "4e7f8311"
   },
   "web.domains.domains": {
@@ -224,7 +224,7 @@
     "source_hash": "6b95c91c"
   },
   "web.domains.get_started_by_adding_a_custom_domain": {
-    "text": "맞춤 도메인을 추가하여 시작하세요.",
+    "text": "사용자 지정 도메인을 추가하여 시작하세요.",
     "source_hash": "abdbe9ab"
   },
   "web.domains.no_domains_found": {
