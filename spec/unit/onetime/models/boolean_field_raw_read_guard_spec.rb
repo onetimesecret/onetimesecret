@@ -7,9 +7,11 @@
 #            (security audit 2026-07-31, dead-branch finding)
 # =============================================================================
 #
-# `boolean_field` readers return the canonical STRINGS 'true'/'false'
-# (Onetime::FieldTypes::BooleanFieldType), so `if cust.verified` type-checks,
-# reads naturally, and is ALWAYS truthy — "false" is truthy in Ruby. That
+# `boolean_field` readers (Onetime::FieldTypes::BooleanFieldType) return the
+# canonical STRINGS 'true'/'false' under the default `storage: :string`, so
+# `if cust.verified` type-checks, reads naturally, and is ALWAYS truthy —
+# "false" is truthy in Ruby. (Under `storage: :native` the reader returns a
+# real boolean and a bare read is fine; see the marker note below.) That
 # exact bug made the verification-resend branch in
 # apps/api/account/logic/account/create_account.rb unreachable for every
 # persisted customer until 2026-07-31. The correct read is the predicate:
@@ -96,9 +98,19 @@ RSpec.describe 'boolean_field raw-read guard' do
     end
 
     expect(offenses).to be_empty, <<~MSG
-      Bare truthiness read of a boolean_field. These readers return the STRINGS
-      'true'/'false' (BooleanFieldType), so the condition is always truthy —
-      "false" is truthy in Ruby. Use the predicate (e.g. `verified?`) instead.
+      Bare truthiness read of a boolean_field (BooleanFieldType). What the
+      reader returns depends on the field's declared storage:
+
+        storage: :string  — the STRINGS 'true'/'false', so the condition is
+                            ALWAYS truthy ("false" is truthy in Ruby). This
+                            is a bug. Use the predicate: `verified?`.
+        storage: :native  — a real Ruby true/false/nil, so a bare read is
+                            correct. Mark the line `# boolean_field native`
+                            to say so; the guard skips any line containing
+                            that exact comment.
+
+      The scan is name-based and cannot tell the two apart, so a native read
+      needs the marker even though it is already correct.
       If a hit is an unrelated method that merely shares a declared field name
       (#{fields.join(', ')}), rename one of them or adjust this guard.
 
