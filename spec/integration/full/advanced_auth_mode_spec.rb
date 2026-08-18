@@ -96,10 +96,16 @@ RSpec.describe 'Full Authentication Mode', type: :integration do
         expect(last_response.content_type).to include('application/json')
       end
 
-      it 'includes version information' do
+      # This path sits ahead of r.rodauth, so it answers anonymous callers. The
+      # build version fingerprints the install for CVE matching and must not
+      # ride along on a service-identification response; GET /api/v3/version is
+      # the auth-gated way to obtain it.
+      it 'returns the service message without the build version' do
         body = JSON.parse(last_response.body)
         expect(body).to have_key('message')
-        expect(body).to have_key('version')
+        expect(body['message']).to include('Authentication Service')
+        expect(body).not_to have_key('version')
+        expect(last_response.body).not_to include(Onetime::VERSION.to_s)
       end
     end
 
