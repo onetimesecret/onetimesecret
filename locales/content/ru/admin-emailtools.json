@@ -546,5 +546,41 @@
   "web.admin.emailtools.test.success": {
     "text": "Тестовое письмо отправлено на {to}.",
     "source_hash": "daa61a62"
+  },
+  "web.admin.emailtools.providerStatus.cycleNote": {
+    "text": "SMTP2GO сообщает статистику за текущий расчётный период, а не за последние 30 дней. Показатель, отображаемый как «—», не сообщается провайдером, а не равен нулю.",
+    "source_hash": "b052009b"
+  },
+  "web.admin.emailtools.providerStatus.cycle.window": {
+    "text": "Расчётный период: {start} → {end}",
+    "source_hash": "a9ea52bb"
+  },
+  "web.admin.emailtools.providerStatus.cycle.used": {
+    "text": "Использовано квоты (за период)",
+    "source_hash": "95a86428"
+  },
+  "web.admin.emailtools.providerStatus.cycle.remaining": {
+    "text": "Осталось квоты",
+    "source_hash": "b2605e14"
+  },
+  "web.admin.emailtools.providerStatus.stats.sentCycle": {
+    "text": "Отправлено (за период)",
+    "source_hash": "e2ed5d2e"
+  },
+  "web.admin.emailtools.providerStatus.stats.softBounced": {
+    "text": "Мягкие возвраты",
+    "source_hash": "58028553"
+  },
+  "web.admin.emailtools.providerStatus.stats.bounceRejects": {
+    "text": "Отклонено (возвраты)",
+    "source_hash": "0ca14701"
+  },
+  "web.admin.emailtools.providerStatus.stats.spamRejects": {
+    "text": "Отклонено (спам)",
+    "source_hash": "4d487ce5"
+  },
+  "web.admin.emailtools.providerStatus.stats.unsubscribes": {
+    "text": "Отписки",
+    "source_hash": "8a8c3ef7"
   }
 }

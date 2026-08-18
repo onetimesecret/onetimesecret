@@ -1538,5 +1538,93 @@
   "web.domains.signup.dormant_notice": {
     "text": "Registrace jsou vypnuté pro celý pracovní prostor, takže nejsou dostupné na žádné doméně. Tvá nastavení zde zůstávají zachována a projeví se, jakmile budou registrace pro pracovní prostor znovu povoleny.",
     "source_hash": "49faefe4"
+  },
+  "web.domains.link_domain_no_settings": {
+    "text": "Tato doména nemá stránku nastavení",
+    "source_hash": "8a8430fe"
+  },
+  "web.domains.signin.sso_restrict_warning_title": {
+    "text": "Omezení na SSO by na této doméně zcela zablokovalo přihlášení",
+    "source_hash": "3476cb5c"
+  },
+  "web.domains.signin.sso_restrict_warning_body": {
+    "text": "SSO není na této doméně k dispozici a omezení, které nelze dodržet, přihlášení úplně zablokuje. Dokud SSO nebude fungovat, nikdo se sem nepřihlásí. Nejdřív oprav SSO, nebo omezení přesto nastav a dokonči konfiguraci.",
+    "source_hash": "b36ce005"
+  },
+  "web.domains.signin.sso_restrict_warning_confirm": {
+    "text": "Přesto omezit",
+    "source_hash": "4674e3cf"
+  },
+  "web.domains.signin.restriction_unavailable_notice": {
+    "text": "Přihlášení na této doméně není dostupné: je omezeno na metodu {method}, kterou zde nelze použít. Vyber jinou metodu, nebo metodu {method} zpřístupni.",
+    "source_hash": "ca1b7f69"
+  },
+  "web.domains.signin.restriction_unavailable_unknown_notice": {
+    "text": "Přihlášení na této doméně není dostupné: je omezeno na metodu, kterou zde nelze použít. Vyber jinou metodu, nebo obnov výchozí nastavení této domény.",
+    "source_hash": "8c2cce6b"
+  },
+  "web.domains.signin.restriction_conflict_notice": {
+    "text": "Tato doména omezuje přihlášení na jinou metodu, než jaká je nastavena pro celý pracovní prostor ({method}), takže se nemůže uplatnit ani jedno omezení a přihlášení zde není dostupné. Sjednoť metodu s nastavením pro celý pracovní prostor, nebo obnov výchozí nastavení této domény.",
+    "source_hash": "15398362"
+  },
+  "web.domains.signin.method_webauthn_unavailable": {
+    "text": "Passkeys jsou vázány na hlavní přihlašovací doménu a na vlastních doménách zatím nejsou k dispozici",
+    "source_hash": "88833e0f"
+  },
+  "web.domains.sso.connection_disabled_badge": {
+    "text": "Připojení vypnuto",
+    "source_hash": "99d6092c"
+  },
+  "web.domains.sso.connection_disabled_hint": {
+    "text": "Přihlašovací údaje SSO jsou uložené, ale připojení je vypnuté. Zapni ho v části Upravit přihlašovací údaje.",
+    "source_hash": "90180d6c"
+  },
+  "web.domains.sso.status_active_badge": {
+    "text": "Aktivní",
+    "source_hash": "92340695"
+  },
+  "web.domains.sso.status_active_hint": {
+    "text": "Členové se na této doméně mohou přihlásit tímto připojením SSO.",
+    "source_hash": "313ec61e"
+  },
+  "web.domains.sso.status_not_configured_badge": {
+    "text": "Nenakonfigurováno",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.sso.status_not_configured_hint": {
+    "text": "Pro tuto doménu zatím nejsou uložené žádné přihlašovací údaje SSO.",
+    "source_hash": "d817ad9c"
+  },
+  "web.domains.sso.status_not_permitted_badge": {
+    "text": "Na této doméně není povoleno",
+    "source_hash": "afbd20ba"
+  },
+  "web.domains.sso.status_not_permitted_hint": {
+    "text": "SSO je pro tuto doménu vypnuté, takže ho přihlašovací stránka nenabízí.",
+    "source_hash": "ef092481"
+  },
+  "web.domains.sso.status_auth_disabled_badge": {
+    "text": "Přihlášení vypnuto",
+    "source_hash": "bb807607"
+  },
+  "web.domains.sso.status_auth_disabled_hint": {
+    "text": "Přihlášení je na této doméně vypnuté, takže se nenabízí žádná metoda — včetně SSO.",
+    "source_hash": "3a98964b"
+  },
+  "web.domains.sso.status_unsupported_provider_badge": {
+    "text": "Nepodporovaný poskytovatel",
+    "source_hash": "1609d5fb"
+  },
+  "web.domains.sso.status_unsupported_provider_hint": {
+    "text": "Uložený poskytovatel nelze pro doménové SSO použít. Uprav přihlašovací údaje a zvol Microsoft Entra ID nebo obecný OIDC.",
+    "source_hash": "72ea0a2e"
+  },
+  "web.domains.sso.status_unavailable_badge": {
+    "text": "Nedostupné",
+    "source_hash": "ca184496"
+  },
+  "web.domains.sso.status_unavailable_hint": {
+    "text": "SSO teď na této doméně nelze nabídnout. Zkontroluj přihlašovací údaje SSO a nastavení přihlašování této domény.",
+    "source_hash": "b03b14f4"
   }
 }

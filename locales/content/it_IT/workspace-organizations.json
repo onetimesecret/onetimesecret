@@ -1174,5 +1174,61 @@
   "web.organizations.tabs.activity": {
     "text": "Attività",
     "source_hash": "38da1505"
+  },
+  "web.organizations.invitations.restricted_host_title": {
+    "text": "Qui è richiesto un metodo di accesso diverso",
+    "source_hash": "d761ad30"
+  },
+  "web.organizations.invitations.restricted_host_body": {
+    "text": "Questo sito consente di accedere solo con {method}, quindi qui non è possibile creare un account con una password. {method} non è una procedura che puoi completare in questa pagina.",
+    "source_hash": "6ac146d4"
+  },
+  "web.organizations.invitations.restricted_host_unknown_body": {
+    "text": "Questo sito consente un solo metodo di accesso specifico, che questa pagina non può offrire. Qui non è possibile creare un account con una password.",
+    "source_hash": "e24d59a9"
+  },
+  "web.organizations.invitations.restricted_sso_body": {
+    "text": "Questo sito usa il Single Sign-On. Accedi con il provider della tua organizzazione per continuare — così viene creato il tuo account e viene effettuato l'accesso.",
+    "source_hash": "e942d04b"
+  },
+  "web.organizations.invitations.restricted_sso_cta": {
+    "text": "Continua per accedere",
+    "source_hash": "d398cd0a"
+  },
+  "web.organizations.invitations.restricted_use_email_link": {
+    "text": "In alternativa, apri il link nell'email di invito per accettare dal sito principale.",
+    "source_hash": "73bf298f"
+  },
+  "web.organizations.invitations.invitation_stays_pending": {
+    "text": "Il tuo invito è ancora valido — non è stato consumato nulla e puoi accettarlo dopo aver effettuato l'accesso.",
+    "source_hash": "f4d00be1"
+  },
+  "web.organizations.invitations.signin_unavailable_title": {
+    "text": "L'accesso non è disponibile su questo sito",
+    "source_hash": "c56bce2b"
+  },
+  "web.organizations.invitations.signin_unavailable_body": {
+    "text": "Questo sito è limitato a {method}, che qui non funziona, quindi al momento non c'è modo di accedere.",
+    "source_hash": "62c01601"
+  },
+  "web.organizations.invitations.signin_unavailable_unknown_body": {
+    "text": "Questo sito è limitato a un metodo di accesso che qui non funziona, quindi al momento non c'è modo di accedere.",
+    "source_hash": "1f61e456"
+  },
+  "web.organizations.invitations.signin_unavailable_conflict_body": {
+    "text": "Le impostazioni di accesso di questo sito sono in conflitto con la limitazione applicata a tutto il sito ({method}), quindi non si applica nessuna delle due e al momento non c'è modo di accedere.",
+    "source_hash": "54cdfd61"
+  },
+  "web.organizations.sso.connection_enabled": {
+    "text": "Connessione attiva",
+    "source_hash": "b6334b2b"
+  },
+  "web.organizations.sso.connection_enabled_hint": {
+    "text": "Quando è attiva, i membri possono accedere con questo provider SSO. L'SSO deve essere abilitato anche come metodo di accesso nelle Impostazioni di accesso del dominio.",
+    "source_hash": "71a53159"
+  },
+  "web.organizations.sso.enable_untested_warning": {
+    "text": "Questa connessione non ha ancora superato una prova qui. Esegui “Prova connessione” prima di attivarla, così una configurazione non funzionante non arriva mai alla tua pagina di accesso.",
+    "source_hash": "c1fbdeca"
   }
 }

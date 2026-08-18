@@ -292,9 +292,9 @@
     "source_hash": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "Hozzáférési kulcs neve",
+    "text": "Hozzáférési kulcs",
     "context": "Label for passkey name field",
-    "source_hash": "22eefa67"
+    "source_hash": "904c9aa9"
   },
   "web.auth.passkeys.created": {
     "text": "Létrehozva",
@@ -929,5 +929,33 @@
   "web.sso_link_confirm.errors.generic": {
     "text": "Nem sikerült megerősíteni ezt a kapcsolatot. Jelentkezzen be újra a szolgáltatójával.",
     "source_hash": "076fa25a"
+  },
+  "web.auth.mfa.passkey_mode_active": {
+    "text": "Hozzáférési kulcs mód aktív",
+    "source_hash": "824dceb6"
+  },
+  "web.auth.mfa.passkey_prompt": {
+    "text": "Igazolja hozzáférési kulccsal, hogy Ön az. Az eszköze az ujjlenyomatát, arcát vagy biztonsági kulcsát fogja kérni.",
+    "source_hash": "c0b0cbbc"
+  },
+  "web.auth.mfa.verify_with_passkey": {
+    "text": "Ellenőrzés hozzáférési kulccsal",
+    "source_hash": "4f105a30"
+  },
+  "web.auth.mfa.use_passkey": {
+    "text": "Használjon helyette hozzáférési kulcsot",
+    "source_hash": "bd6430a4"
+  },
+  "web.auth.passkeys.remove_failed": {
+    "text": "Nem sikerült eltávolítani a hozzáférési kulcsot",
+    "source_hash": "3e131515"
+  },
+  "web.auth.passkeys.load_failed": {
+    "text": "Nem sikerült betölteni a hozzáférési kulcsokat",
+    "source_hash": "8d704e00"
+  },
+  "web.auth.webauthn.emailRequired": {
+    "text": "Adja meg az e-mail címét a hozzáférési kulccsal való bejelentkezéshez",
+    "source_hash": "7f07647f"
   }
 }

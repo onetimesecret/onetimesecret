@@ -1538,5 +1538,93 @@
   "web.domains.signup.dormant_notice": {
     "text": "التسجيلات معطّلة على مستوى مساحة العمل بأكملها، لذا فهي غير متاحة على كل نطاق. تُحفظ إعداداتك هنا وتصبح سارية عند إعادة تفعيل التسجيلات لمساحة العمل.",
     "source_hash": "49faefe4"
+  },
+  "web.domains.link_domain_no_settings": {
+    "text": "لا تتوفر صفحة إعدادات لهذا النطاق",
+    "source_hash": "8a8430fe"
+  },
+  "web.domains.signin.sso_restrict_warning_title": {
+    "text": "التقييد بتسجيل الدخول الموحّد (SSO) سيُغلق تسجيل الدخول على هذا النطاق",
+    "source_hash": "3476cb5c"
+  },
+  "web.domains.signin.sso_restrict_warning_body": {
+    "text": "تسجيل الدخول الموحّد (SSO) غير متاح على هذا النطاق، والتقييد الذي يتعذّر تطبيقه يمنع تسجيل الدخول تماماً. لن يتمكن أحد من تسجيل الدخول هنا حتى يعمل تسجيل الدخول الموحّد. أصلِح تسجيل الدخول الموحّد أولاً، أو طبّق التقييد على أي حال وأكمل الإعداد.",
+    "source_hash": "b36ce005"
+  },
+  "web.domains.signin.sso_restrict_warning_confirm": {
+    "text": "التقييد على أي حال",
+    "source_hash": "4674e3cf"
+  },
+  "web.domains.signin.restriction_unavailable_notice": {
+    "text": "تسجيل الدخول غير متاح على هذا النطاق: فهو مقيّد بـ {method} الذي يتعذّر تشغيله هنا. اختر طريقة أخرى، أو أتِح {method}.",
+    "source_hash": "ca1b7f69"
+  },
+  "web.domains.signin.restriction_unavailable_unknown_notice": {
+    "text": "تسجيل الدخول غير متاح على هذا النطاق: فهو مقيّد بطريقة يتعذّر تشغيلها هنا. اختر طريقة أخرى، أو أعِد ضبط هذا النطاق إلى الإعدادات الافتراضية.",
+    "source_hash": "8c2cce6b"
+  },
+  "web.domains.signin.restriction_conflict_notice": {
+    "text": "يقيّد هذا النطاق تسجيل الدخول بطريقة مختلفة عن التقييد على مستوى مساحة العمل ({method})، لذا يتعذّر تطبيق أيٍّ منهما وتسجيل الدخول غير متاح هنا. طابِق الطريقة المحددة على مستوى مساحة العمل، أو أعِد ضبط هذا النطاق إلى الإعدادات الافتراضية.",
+    "source_hash": "15398362"
+  },
+  "web.domains.signin.method_webauthn_unavailable": {
+    "text": "ترتبط مفاتيح المرور بنطاق تسجيل الدخول الرئيسي، وهي غير متاحة على النطاقات المخصّصة بعد",
+    "source_hash": "88833e0f"
+  },
+  "web.domains.sso.connection_disabled_badge": {
+    "text": "الاتصال معطّل",
+    "source_hash": "99d6092c"
+  },
+  "web.domains.sso.connection_disabled_hint": {
+    "text": "تم حفظ بيانات اعتماد تسجيل الدخول الموحّد (SSO) لكن الاتصال معطّل. فعّله ضمن تعديل بيانات الاعتماد.",
+    "source_hash": "90180d6c"
+  },
+  "web.domains.sso.status_active_badge": {
+    "text": "نشط",
+    "source_hash": "92340695"
+  },
+  "web.domains.sso.status_active_hint": {
+    "text": "يمكن للأعضاء تسجيل الدخول عبر اتصال تسجيل الدخول الموحّد (SSO) هذا على هذا النطاق.",
+    "source_hash": "313ec61e"
+  },
+  "web.domains.sso.status_not_configured_badge": {
+    "text": "غير معدّ",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.sso.status_not_configured_hint": {
+    "text": "لم يتم حفظ أي بيانات اعتماد لتسجيل الدخول الموحّد (SSO) لهذا النطاق بعد.",
+    "source_hash": "d817ad9c"
+  },
+  "web.domains.sso.status_not_permitted_badge": {
+    "text": "غير مسموح على هذا النطاق",
+    "source_hash": "afbd20ba"
+  },
+  "web.domains.sso.status_not_permitted_hint": {
+    "text": "تسجيل الدخول الموحّد (SSO) معطّل لهذا النطاق، لذا لا تعرضه صفحة تسجيل الدخول.",
+    "source_hash": "ef092481"
+  },
+  "web.domains.sso.status_auth_disabled_badge": {
+    "text": "تسجيل الدخول معطّل",
+    "source_hash": "bb807607"
+  },
+  "web.domains.sso.status_auth_disabled_hint": {
+    "text": "تسجيل الدخول معطّل على هذا النطاق، لذا لا تُعرض أي طريقة — بما في ذلك تسجيل الدخول الموحّد (SSO).",
+    "source_hash": "3a98964b"
+  },
+  "web.domains.sso.status_unsupported_provider_badge": {
+    "text": "موفّر غير مدعوم",
+    "source_hash": "1609d5fb"
+  },
+  "web.domains.sso.status_unsupported_provider_hint": {
+    "text": "لا يمكن استخدام الموفّر المحفوظ لتسجيل الدخول الموحّد على مستوى النطاق. عدّل بيانات الاعتماد واختر Microsoft Entra ID أو OIDC العام.",
+    "source_hash": "72ea0a2e"
+  },
+  "web.domains.sso.status_unavailable_badge": {
+    "text": "غير متاح",
+    "source_hash": "ca184496"
+  },
+  "web.domains.sso.status_unavailable_hint": {
+    "text": "لا يمكن عرض تسجيل الدخول الموحّد (SSO) على هذا النطاق حالياً. تحقّق من بيانات اعتماد تسجيل الدخول الموحّد ومن إعدادات تسجيل الدخول لهذا النطاق.",
+    "source_hash": "b03b14f4"
   }
 }

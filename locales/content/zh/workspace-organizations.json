@@ -1174,5 +1174,61 @@
   "web.organizations.tabs.activity": {
     "text": "活动",
     "source_hash": "38da1505"
+  },
+  "web.organizations.invitations.restricted_host_title": {
+    "text": "此处需要使用其他登录方式",
+    "source_hash": "d761ad30"
+  },
+  "web.organizations.invitations.restricted_host_body": {
+    "text": "此站点仅允许使用 {method} 登录，因此无法在此使用密码创建账户。{method} 无法在此页面上完成。",
+    "source_hash": "6ac146d4"
+  },
+  "web.organizations.invitations.restricted_host_unknown_body": {
+    "text": "此站点仅允许一种特定的登录方式，而此页面无法提供该方式。因此无法在此使用密码创建账户。",
+    "source_hash": "e24d59a9"
+  },
+  "web.organizations.invitations.restricted_sso_body": {
+    "text": "此站点使用单点登录。请使用您组织的身份提供商登录以继续 — 这将创建您的账户并为您完成登录。",
+    "source_hash": "e942d04b"
+  },
+  "web.organizations.invitations.restricted_sso_cta": {
+    "text": "继续登录",
+    "source_hash": "d398cd0a"
+  },
+  "web.organizations.invitations.restricted_use_email_link": {
+    "text": "也可以打开邀请邮件中的链接，从主站点接受邀请。",
+    "source_hash": "73bf298f"
+  },
+  "web.organizations.invitations.invitation_stays_pending": {
+    "text": "您的邀请仍然有效 — 尚未被使用，您可以在登录后接受它。",
+    "source_hash": "f4d00be1"
+  },
+  "web.organizations.invitations.signin_unavailable_title": {
+    "text": "此站点上的登录不可用",
+    "source_hash": "c56bce2b"
+  },
+  "web.organizations.invitations.signin_unavailable_body": {
+    "text": "此站点被限制为 {method}，而该方式在此无法使用，因此目前无法登录。",
+    "source_hash": "62c01601"
+  },
+  "web.organizations.invitations.signin_unavailable_unknown_body": {
+    "text": "此站点被限制为一种在此无法使用的登录方式，因此目前无法登录。",
+    "source_hash": "1f61e456"
+  },
+  "web.organizations.invitations.signin_unavailable_conflict_body": {
+    "text": "此站点的登录设置与全站限制（{method}）冲突，因此两者都无法生效，目前无法登录。",
+    "source_hash": "54cdfd61"
+  },
+  "web.organizations.sso.connection_enabled": {
+    "text": "连接已启用",
+    "source_hash": "b6334b2b"
+  },
+  "web.organizations.sso.connection_enabled_hint": {
+    "text": "启用后，成员可以使用此 SSO 提供商登录。还必须在该域名的「登录设置」中将 SSO 启用为一种登录方式。",
+    "source_hash": "71a53159"
+  },
+  "web.organizations.sso.enable_untested_warning": {
+    "text": "此连接尚未在此通过测试。请在启用前运行「测试连接」，以免有问题的配置出现在您的登录页面上。",
+    "source_hash": "c1fbdeca"
   }
 }

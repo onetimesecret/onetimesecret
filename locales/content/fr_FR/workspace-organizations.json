@@ -1174,5 +1174,61 @@
   "web.organizations.tabs.activity": {
     "text": "Activité",
     "source_hash": "38da1505"
+  },
+  "web.organizations.invitations.restricted_host_title": {
+    "text": "Une autre méthode de connexion est requise ici",
+    "source_hash": "d761ad30"
+  },
+  "web.organizations.invitations.restricted_host_body": {
+    "text": "Ce site n'autorise la connexion qu'avec {method} ; il n'est donc pas possible de créer un compte ici avec un mot de passe. {method} ne peut pas être utilisé depuis cette page.",
+    "source_hash": "6ac146d4"
+  },
+  "web.organizations.invitations.restricted_host_unknown_body": {
+    "text": "Ce site n'autorise qu'une seule méthode de connexion, et cette page ne peut pas la proposer. Il n'est pas possible de créer un compte ici avec un mot de passe.",
+    "source_hash": "e24d59a9"
+  },
+  "web.organizations.invitations.restricted_sso_body": {
+    "text": "Ce site utilise l'authentification unique. Connectez-vous avec le fournisseur de votre organisation pour continuer — cela crée votre compte et vous connecte.",
+    "source_hash": "e942d04b"
+  },
+  "web.organizations.invitations.restricted_sso_cta": {
+    "text": "Continuer vers la connexion",
+    "source_hash": "d398cd0a"
+  },
+  "web.organizations.invitations.restricted_use_email_link": {
+    "text": "Ouvrez plutôt le lien de votre e-mail d'invitation pour accepter depuis le site principal.",
+    "source_hash": "73bf298f"
+  },
+  "web.organizations.invitations.invitation_stays_pending": {
+    "text": "Votre invitation reste valable — rien n'a été consommé, et vous pourrez l'accepter une fois la connexion effectuée.",
+    "source_hash": "f4d00be1"
+  },
+  "web.organizations.invitations.signin_unavailable_title": {
+    "text": "La connexion n'est pas disponible sur ce site",
+    "source_hash": "c56bce2b"
+  },
+  "web.organizations.invitations.signin_unavailable_body": {
+    "text": "Ce site est restreint à {method}, qui ne fonctionne pas ici ; il n'y a donc aucun moyen de se connecter pour le moment.",
+    "source_hash": "62c01601"
+  },
+  "web.organizations.invitations.signin_unavailable_unknown_body": {
+    "text": "Ce site est restreint à une méthode de connexion qui ne fonctionne pas ici ; il n'y a donc aucun moyen de se connecter pour le moment.",
+    "source_hash": "1f61e456"
+  },
+  "web.organizations.invitations.signin_unavailable_conflict_body": {
+    "text": "Les paramètres de connexion de ce site entrent en conflit avec la restriction appliquée à l'ensemble du site ({method}) ; aucune des deux ne s'applique et il n'y a aucun moyen de se connecter pour le moment.",
+    "source_hash": "54cdfd61"
+  },
+  "web.organizations.sso.connection_enabled": {
+    "text": "Connexion active",
+    "source_hash": "b6334b2b"
+  },
+  "web.organizations.sso.connection_enabled_hint": {
+    "text": "Lorsqu'elle est active, les membres peuvent se connecter avec ce fournisseur SSO. Le SSO doit également être activé comme méthode de connexion dans la configuration de la connexion du domaine.",
+    "source_hash": "71a53159"
+  },
+  "web.organizations.sso.enable_untested_warning": {
+    "text": "Cette connexion n'a pas encore réussi de test ici. Lancez « Tester la connexion » avant de l'activer, afin qu'une configuration défaillante n'atteigne jamais votre page de connexion.",
+    "source_hash": "c1fbdeca"
   }
 }

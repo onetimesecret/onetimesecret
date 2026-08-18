@@ -1538,5 +1538,93 @@
   "web.domains.signup.dormant_notice": {
     "text": "Регистрации отключены для всего рабочего пространства, поэтому они недоступны на каждом домене. Ваши настройки здесь сохраняются и вступают в силу, когда регистрации в рабочем пространстве снова будут включены.",
     "source_hash": "49faefe4"
+  },
+  "web.domains.link_domain_no_settings": {
+    "text": "Этот домен не имеет страницы настроек",
+    "source_hash": "8a8430fe"
+  },
+  "web.domains.signin.sso_restrict_warning_title": {
+    "text": "Ограничение до SSO закроет вход на этом домене",
+    "source_hash": "3476cb5c"
+  },
+  "web.domains.signin.sso_restrict_warning_body": {
+    "text": "SSO недоступен на этом домене, а ограничение, которое невозможно применить, полностью блокирует вход. Никто не сможет войти здесь, пока SSO не заработает. Сначала настройте SSO или всё равно установите ограничение и завершите настройку.",
+    "source_hash": "b36ce005"
+  },
+  "web.domains.signin.sso_restrict_warning_confirm": {
+    "text": "Всё равно ограничить",
+    "source_hash": "4674e3cf"
+  },
+  "web.domains.signin.restriction_unavailable_notice": {
+    "text": "Вход недоступен на этом домене: он ограничен способом «{method}», который здесь не работает. Выберите другой способ или сделайте «{method}» доступным.",
+    "source_hash": "ca1b7f69"
+  },
+  "web.domains.signin.restriction_unavailable_unknown_notice": {
+    "text": "Вход недоступен на этом домене: он ограничен способом, который здесь не работает. Выберите другой способ или сбросьте этот домен к значениям по умолчанию.",
+    "source_hash": "8c2cce6b"
+  },
+  "web.domains.signin.restriction_conflict_notice": {
+    "text": "Этот домен ограничивает вход другим способом, чем ограничение для всего рабочего пространства («{method}»), поэтому ни одно из них не может быть применено и вход здесь недоступен. Укажите тот же способ, что и для всего рабочего пространства, или сбросьте этот домен к значениям по умолчанию.",
+    "source_hash": "15398362"
+  },
+  "web.domains.signin.method_webauthn_unavailable": {
+    "text": "Ключи доступа привязаны к основному домену входа и пока недоступны на пользовательских доменах",
+    "source_hash": "88833e0f"
+  },
+  "web.domains.sso.connection_disabled_badge": {
+    "text": "Подключение отключено",
+    "source_hash": "99d6092c"
+  },
+  "web.domains.sso.connection_disabled_hint": {
+    "text": "Учётные данные SSO сохранены, но подключение отключено. Включите его в разделе «Редактировать учётные данные».",
+    "source_hash": "90180d6c"
+  },
+  "web.domains.sso.status_active_badge": {
+    "text": "Активно",
+    "source_hash": "92340695"
+  },
+  "web.domains.sso.status_active_hint": {
+    "text": "Участники могут входить через это подключение SSO на этом домене.",
+    "source_hash": "313ec61e"
+  },
+  "web.domains.sso.status_not_configured_badge": {
+    "text": "Не настроено",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.sso.status_not_configured_hint": {
+    "text": "Для этого домена ещё не сохранены учётные данные SSO.",
+    "source_hash": "d817ad9c"
+  },
+  "web.domains.sso.status_not_permitted_badge": {
+    "text": "Не разрешено на этом домене",
+    "source_hash": "afbd20ba"
+  },
+  "web.domains.sso.status_not_permitted_hint": {
+    "text": "SSO отключён для этого домена, поэтому страница входа его не предлагает.",
+    "source_hash": "ef092481"
+  },
+  "web.domains.sso.status_auth_disabled_badge": {
+    "text": "Вход отключён",
+    "source_hash": "bb807607"
+  },
+  "web.domains.sso.status_auth_disabled_hint": {
+    "text": "Вход отключён на этом домене, поэтому не предлагается ни один способ — включая SSO.",
+    "source_hash": "3a98964b"
+  },
+  "web.domains.sso.status_unsupported_provider_badge": {
+    "text": "Неподдерживаемый поставщик",
+    "source_hash": "1609d5fb"
+  },
+  "web.domains.sso.status_unsupported_provider_hint": {
+    "text": "Сохранённый поставщик нельзя использовать для SSO домена. Отредактируйте учётные данные и выберите Microsoft Entra ID или универсальный OIDC.",
+    "source_hash": "72ea0a2e"
+  },
+  "web.domains.sso.status_unavailable_badge": {
+    "text": "Недоступно",
+    "source_hash": "ca184496"
+  },
+  "web.domains.sso.status_unavailable_hint": {
+    "text": "SSO сейчас не может быть предложен на этом домене. Проверьте учётные данные SSO и настройки входа этого домена.",
+    "source_hash": "b03b14f4"
   }
 }

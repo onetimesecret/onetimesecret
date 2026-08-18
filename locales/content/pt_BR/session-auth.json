@@ -519,5 +519,9 @@
   "web.login.notices.link_verification_sent": {
     "text": "Verifique sua caixa de entrada — enviamos um link por e-mail para confirmar a conexão da sua conta. Abra-o para concluir o início de sessão.",
     "source_hash": "b251c8f3"
+  },
+  "web.login.errors.sso_cancelled": {
+    "text": "O início de sessão foi cancelado. Você pode tentar novamente quando quiser.",
+    "source_hash": "b5f3d3ec"
   }
 }

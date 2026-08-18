@@ -519,5 +519,9 @@
   "web.login.notices.link_verification_sent": {
     "text": "받은 편지함을 확인하세요 — 계정 연결을 확인하는 링크를 이메일로 보냈습니다. 로그인을 완료하려면 링크를 열어주세요.",
     "source_hash": "b251c8f3"
+  },
+  "web.login.errors.sso_cancelled": {
+    "text": "로그인이 취소되었습니다. 준비되면 언제든지 다시 시도하실 수 있습니다.",
+    "source_hash": "b5f3d3ec"
   }
 }

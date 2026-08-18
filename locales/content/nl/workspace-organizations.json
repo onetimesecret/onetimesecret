@@ -1174,5 +1174,61 @@
   "web.organizations.tabs.activity": {
     "text": "Activiteit",
     "source_hash": "38da1505"
+  },
+  "web.organizations.invitations.restricted_host_title": {
+    "text": "Hier is een andere inlogmethode vereist",
+    "source_hash": "d761ad30"
+  },
+  "web.organizations.invitations.restricted_host_body": {
+    "text": "Op deze site kun je alleen inloggen met {method}, dus er kan hier geen account met een wachtwoord worden aangemaakt. {method} kun je niet op deze pagina voltooien.",
+    "source_hash": "6ac146d4"
+  },
+  "web.organizations.invitations.restricted_host_unknown_body": {
+    "text": "Op deze site is maar één specifieke inlogmethode toegestaan, en die kan deze pagina niet aanbieden. Er kan hier geen account met een wachtwoord worden aangemaakt.",
+    "source_hash": "e24d59a9"
+  },
+  "web.organizations.invitations.restricted_sso_body": {
+    "text": "Deze site gebruikt single sign-on. Log in met de provider van je organisatie om verder te gaan — daarmee wordt je account aangemaakt en word je ingelogd.",
+    "source_hash": "e942d04b"
+  },
+  "web.organizations.invitations.restricted_sso_cta": {
+    "text": "Doorgaan naar inloggen",
+    "source_hash": "d398cd0a"
+  },
+  "web.organizations.invitations.restricted_use_email_link": {
+    "text": "Open in plaats daarvan de link in je uitnodigingsmail om de uitnodiging op de hoofdsite te accepteren.",
+    "source_hash": "73bf298f"
+  },
+  "web.organizations.invitations.invitation_stays_pending": {
+    "text": "Je uitnodiging is nog steeds geldig — er is niets verbruikt en je kunt de uitnodiging accepteren zodra je bent ingelogd.",
+    "source_hash": "f4d00be1"
+  },
+  "web.organizations.invitations.signin_unavailable_title": {
+    "text": "Inloggen is niet beschikbaar op deze site",
+    "source_hash": "c56bce2b"
+  },
+  "web.organizations.invitations.signin_unavailable_body": {
+    "text": "Deze site is beperkt tot {method}, die hier niet werkt, dus er is op dit moment geen manier om in te loggen.",
+    "source_hash": "62c01601"
+  },
+  "web.organizations.invitations.signin_unavailable_unknown_body": {
+    "text": "Deze site is beperkt tot een inlogmethode die hier niet werkt, dus er is op dit moment geen manier om in te loggen.",
+    "source_hash": "1f61e456"
+  },
+  "web.organizations.invitations.signin_unavailable_conflict_body": {
+    "text": "De inloginstellingen van deze site zijn in conflict met de sitebrede beperking ({method}), waardoor geen van beide geldt en er op dit moment geen manier is om in te loggen.",
+    "source_hash": "54cdfd61"
+  },
+  "web.organizations.sso.connection_enabled": {
+    "text": "Verbinding actief",
+    "source_hash": "b6334b2b"
+  },
+  "web.organizations.sso.connection_enabled_hint": {
+    "text": "Wanneer de verbinding actief is, kunnen leden inloggen met deze SSO-provider. SSO moet ook zijn ingeschakeld als inlogmethode in de Inloginstellingen van het domein.",
+    "source_hash": "71a53159"
+  },
+  "web.organizations.sso.enable_untested_warning": {
+    "text": "Deze verbinding heeft hier nog geen test doorstaan. Voer Verbinding testen uit voordat je de verbinding inschakelt, zodat een onjuiste configuratie nooit je inlogpagina bereikt.",
+    "source_hash": "c1fbdeca"
   }
 }

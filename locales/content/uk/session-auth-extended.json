@@ -292,9 +292,9 @@
     "source_hash": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "Назва ключа доступу",
+    "text": "Ключ доступу",
     "context": "Label for passkey name field",
-    "source_hash": "22eefa67"
+    "source_hash": "904c9aa9"
   },
   "web.auth.passkeys.created": {
     "text": "Створено",
@@ -929,5 +929,33 @@
   "web.sso_link_confirm.errors.generic": {
     "text": "Не вдалося підтвердити це підключення. Будь ласка, увійдіть через Вашого провайдера знову.",
     "source_hash": "076fa25a"
+  },
+  "web.auth.mfa.passkey_mode_active": {
+    "text": "Режим ключа доступу активний",
+    "source_hash": "824dceb6"
+  },
+  "web.auth.mfa.passkey_prompt": {
+    "text": "Підтвердіть свою особу за допомогою ключа доступу. Ваш пристрій запитає відбиток пальця, обличчя або ключ безпеки.",
+    "source_hash": "c0b0cbbc"
+  },
+  "web.auth.mfa.verify_with_passkey": {
+    "text": "Перевірити за допомогою ключа доступу",
+    "source_hash": "4f105a30"
+  },
+  "web.auth.mfa.use_passkey": {
+    "text": "Використати ключ доступу замість цього",
+    "source_hash": "bd6430a4"
+  },
+  "web.auth.passkeys.remove_failed": {
+    "text": "Не вдалося видалити ключ доступу",
+    "source_hash": "3e131515"
+  },
+  "web.auth.passkeys.load_failed": {
+    "text": "Не вдалося завантажити ключі доступу",
+    "source_hash": "8d704e00"
+  },
+  "web.auth.webauthn.emailRequired": {
+    "text": "Введіть Вашу електронну адресу, щоб увійти за допомогою ключа доступу",
+    "source_hash": "7f07647f"
   }
 }

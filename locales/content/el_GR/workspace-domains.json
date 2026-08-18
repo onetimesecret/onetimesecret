@@ -1538,5 +1538,93 @@
   "web.domains.signup.dormant_notice": {
     "text": "Οι εγγραφές είναι απενεργοποιημένες σε ολόκληρο τον χώρο εργασίας, επομένως δεν είναι διαθέσιμες σε κανέναν τομέα. Οι ρυθμίσεις σας εδώ διατηρούνται και τίθενται σε ισχύ όταν ενεργοποιηθούν ξανά οι εγγραφές του χώρου εργασίας.",
     "source_hash": "49faefe4"
+  },
+  "web.domains.link_domain_no_settings": {
+    "text": "Αυτός ο τομέας δεν διαθέτει σελίδα ρυθμίσεων",
+    "source_hash": "8a8430fe"
+  },
+  "web.domains.signin.sso_restrict_warning_title": {
+    "text": "Ο περιορισμός σε SSO θα έκλεινε τη σύνδεση σε αυτόν τον τομέα",
+    "source_hash": "3476cb5c"
+  },
+  "web.domains.signin.sso_restrict_warning_body": {
+    "text": "Το SSO δεν είναι διαθέσιμο σε αυτόν τον τομέα και ένας περιορισμός που δεν μπορεί να τηρηθεί αποκλείει εντελώς τη σύνδεση. Κανείς δεν θα μπορεί να συνδεθεί εδώ μέχρι να λειτουργήσει το SSO. Διορθώστε πρώτα το SSO ή εφαρμόστε τον περιορισμό ούτως ή άλλως και ολοκληρώστε τη διαμόρφωση.",
+    "source_hash": "b36ce005"
+  },
+  "web.domains.signin.sso_restrict_warning_confirm": {
+    "text": "Περιορισμός ούτως ή άλλως",
+    "source_hash": "4674e3cf"
+  },
+  "web.domains.signin.restriction_unavailable_notice": {
+    "text": "Η σύνδεση δεν είναι διαθέσιμη σε αυτόν τον τομέα: έχει περιοριστεί σε {method}, που δεν μπορεί να λειτουργήσει εδώ. Επιλέξτε άλλη μέθοδο ή καταστήστε διαθέσιμη τη μέθοδο {method}.",
+    "source_hash": "ca1b7f69"
+  },
+  "web.domains.signin.restriction_unavailable_unknown_notice": {
+    "text": "Η σύνδεση δεν είναι διαθέσιμη σε αυτόν τον τομέα: έχει περιοριστεί σε μια μέθοδο που δεν μπορεί να λειτουργήσει εδώ. Επιλέξτε άλλη μέθοδο ή επαναφέρετε αυτόν τον τομέα στις προεπιλογές.",
+    "source_hash": "8c2cce6b"
+  },
+  "web.domains.signin.restriction_conflict_notice": {
+    "text": "Αυτός ο τομέας περιορίζει τη σύνδεση σε διαφορετική μέθοδο από τον περιορισμό σε επίπεδο χώρου εργασίας ({method}), επομένως κανένας από τους δύο δεν μπορεί να εφαρμοστεί και η σύνδεση δεν είναι διαθέσιμη εδώ. Αντιστοιχίστε τη μέθοδο του χώρου εργασίας ή επαναφέρετε αυτόν τον τομέα στις προεπιλογές.",
+    "source_hash": "15398362"
+  },
+  "web.domains.signin.method_webauthn_unavailable": {
+    "text": "Τα κλειδιά πρόσβασης είναι συνδεδεμένα με τον κύριο τομέα σύνδεσης και δεν είναι ακόμη διαθέσιμα σε προσαρμοσμένους τομείς",
+    "source_hash": "88833e0f"
+  },
+  "web.domains.sso.connection_disabled_badge": {
+    "text": "Απενεργοποιημένη σύνδεση SSO",
+    "source_hash": "99d6092c"
+  },
+  "web.domains.sso.connection_disabled_hint": {
+    "text": "Τα διαπιστευτήρια SSO έχουν αποθηκευτεί, αλλά η σύνδεση είναι απενεργοποιημένη. Ενεργοποιήστε την από την «Επεξεργασία διαπιστευτηρίων».",
+    "source_hash": "90180d6c"
+  },
+  "web.domains.sso.status_active_badge": {
+    "text": "Ενεργή",
+    "source_hash": "92340695"
+  },
+  "web.domains.sso.status_active_hint": {
+    "text": "Τα μέλη μπορούν να συνδεθούν με αυτήν τη σύνδεση SSO σε αυτόν τον τομέα.",
+    "source_hash": "313ec61e"
+  },
+  "web.domains.sso.status_not_configured_badge": {
+    "text": "Μη διαμορφωμένο",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.sso.status_not_configured_hint": {
+    "text": "Δεν έχουν αποθηκευτεί ακόμη διαπιστευτήρια SSO για αυτόν τον τομέα.",
+    "source_hash": "d817ad9c"
+  },
+  "web.domains.sso.status_not_permitted_badge": {
+    "text": "Δεν επιτρέπεται σε αυτόν τον τομέα",
+    "source_hash": "afbd20ba"
+  },
+  "web.domains.sso.status_not_permitted_hint": {
+    "text": "Το SSO είναι απενεργοποιημένο για αυτόν τον τομέα, επομένως η σελίδα σύνδεσης δεν το προσφέρει.",
+    "source_hash": "ef092481"
+  },
+  "web.domains.sso.status_auth_disabled_badge": {
+    "text": "Η σύνδεση απενεργοποιήθηκε",
+    "source_hash": "bb807607"
+  },
+  "web.domains.sso.status_auth_disabled_hint": {
+    "text": "Η σύνδεση είναι απενεργοποιημένη σε αυτόν τον τομέα, επομένως δεν προσφέρεται καμία μέθοδος — συμπεριλαμβανομένου του SSO.",
+    "source_hash": "3a98964b"
+  },
+  "web.domains.sso.status_unsupported_provider_badge": {
+    "text": "Μη υποστηριζόμενος πάροχος",
+    "source_hash": "1609d5fb"
+  },
+  "web.domains.sso.status_unsupported_provider_hint": {
+    "text": "Ο αποθηκευμένος πάροχος δεν μπορεί να χρησιμοποιηθεί για SSO τομέα. Επεξεργαστείτε τα διαπιστευτήρια και επιλέξτε Microsoft Entra ID ή γενικό OIDC.",
+    "source_hash": "72ea0a2e"
+  },
+  "web.domains.sso.status_unavailable_badge": {
+    "text": "Μη διαθέσιμη",
+    "source_hash": "ca184496"
+  },
+  "web.domains.sso.status_unavailable_hint": {
+    "text": "Το SSO δεν μπορεί να προσφερθεί σε αυτόν τον τομέα αυτήν τη στιγμή. Ελέγξτε τα διαπιστευτήρια SSO και τις ρυθμίσεις σύνδεσης αυτού του τομέα.",
+    "source_hash": "b03b14f4"
   }
 }

@@ -1174,5 +1174,61 @@
   "web.organizations.tabs.activity": {
     "text": "활동",
     "source_hash": "38da1505"
+  },
+  "web.organizations.invitations.restricted_host_title": {
+    "text": "여기서는 다른 로그인 방법이 필요합니다",
+    "source_hash": "d761ad30"
+  },
+  "web.organizations.invitations.restricted_host_body": {
+    "text": "이 사이트에서는 {method}(으)로만 로그인할 수 있으므로 비밀번호로는 여기서 계정을 만들 수 없습니다. {method}은(는) 이 페이지에서 완료할 수 있는 방법이 아닙니다.",
+    "source_hash": "6ac146d4"
+  },
+  "web.organizations.invitations.restricted_host_unknown_body": {
+    "text": "이 사이트는 특정 로그인 방법 하나만 허용하며, 그 방법은 이 페이지에서 제공할 수 없습니다. 비밀번호로는 여기서 계정을 만들 수 없습니다.",
+    "source_hash": "e24d59a9"
+  },
+  "web.organizations.invitations.restricted_sso_body": {
+    "text": "이 사이트는 Single Sign-On을 사용합니다. 계속하려면 조직의 공급자로 로그인하세요 — 그러면 계정이 생성되고 로그인됩니다.",
+    "source_hash": "e942d04b"
+  },
+  "web.organizations.invitations.restricted_sso_cta": {
+    "text": "로그인 계속하기",
+    "source_hash": "d398cd0a"
+  },
+  "web.organizations.invitations.restricted_use_email_link": {
+    "text": "대신 초대 이메일의 링크를 열어 기본 사이트에서 수락하세요.",
+    "source_hash": "73bf298f"
+  },
+  "web.organizations.invitations.invitation_stays_pending": {
+    "text": "초대는 여전히 유효합니다 — 사용된 것은 없으며, 로그인한 후에 수락하실 수 있습니다.",
+    "source_hash": "f4d00be1"
+  },
+  "web.organizations.invitations.signin_unavailable_title": {
+    "text": "이 사이트에서는 로그인을 사용할 수 없습니다",
+    "source_hash": "c56bce2b"
+  },
+  "web.organizations.invitations.signin_unavailable_body": {
+    "text": "이 사이트는 여기서 작동하지 않는 {method}(으)로 제한되어 있어 현재 로그인할 방법이 없습니다.",
+    "source_hash": "62c01601"
+  },
+  "web.organizations.invitations.signin_unavailable_unknown_body": {
+    "text": "이 사이트는 여기서 작동하지 않는 로그인 방법으로 제한되어 있어 현재 로그인할 방법이 없습니다.",
+    "source_hash": "1f61e456"
+  },
+  "web.organizations.invitations.signin_unavailable_conflict_body": {
+    "text": "이 사이트의 로그인 설정이 사이트 전체 제한({method})과 충돌하여 어느 쪽도 적용되지 않으며, 현재 로그인할 방법이 없습니다.",
+    "source_hash": "54cdfd61"
+  },
+  "web.organizations.sso.connection_enabled": {
+    "text": "연결 활성",
+    "source_hash": "b6334b2b"
+  },
+  "web.organizations.sso.connection_enabled_hint": {
+    "text": "활성 상태이면 멤버가 이 SSO 공급자로 로그인할 수 있습니다. 도메인의 로그인 설정에서도 SSO를 로그인 방법으로 활성화해야 합니다.",
+    "source_hash": "71a53159"
+  },
+  "web.organizations.sso.enable_untested_warning": {
+    "text": "이 연결은 아직 여기서 테스트를 통과하지 않았습니다. 잘못된 설정이 로그인 페이지에 노출되지 않도록, 켜기 전에 연결 테스트를 실행하세요.",
+    "source_hash": "c1fbdeca"
   }
 }

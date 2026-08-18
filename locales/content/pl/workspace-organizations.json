@@ -1174,5 +1174,61 @@
   "web.organizations.tabs.activity": {
     "text": "Aktywność",
     "source_hash": "38da1505"
+  },
+  "web.organizations.invitations.restricted_host_title": {
+    "text": "Wymagana jest tutaj inna metoda logowania",
+    "source_hash": "d761ad30"
+  },
+  "web.organizations.invitations.restricted_host_body": {
+    "text": "Ta witryna zezwala na logowanie tylko metodą {method}, więc nie można tutaj utworzyć konta za pomocą hasła. Metody {method} nie da się ukończyć na tej stronie.",
+    "source_hash": "6ac146d4"
+  },
+  "web.organizations.invitations.restricted_host_unknown_body": {
+    "text": "Ta witryna zezwala tylko na jedną określoną metodę logowania, a nie jest to metoda, którą ta strona może zaoferować. Nie można tutaj utworzyć konta za pomocą hasła.",
+    "source_hash": "e24d59a9"
+  },
+  "web.organizations.invitations.restricted_sso_body": {
+    "text": "Ta witryna korzysta z jednokrotnego logowania. Zaloguj się u dostawcy swojej organizacji, aby kontynuować — spowoduje to utworzenie konta i zalogowanie.",
+    "source_hash": "e942d04b"
+  },
+  "web.organizations.invitations.restricted_sso_cta": {
+    "text": "Przejdź do logowania",
+    "source_hash": "d398cd0a"
+  },
+  "web.organizations.invitations.restricted_use_email_link": {
+    "text": "Otwórz link z e-maila z zaproszeniem, aby zaakceptować je zamiast tego w głównej witrynie.",
+    "source_hash": "73bf298f"
+  },
+  "web.organizations.invitations.invitation_stays_pending": {
+    "text": "Twoje zaproszenie jest nadal ważne — nic nie zostało wykorzystane i możesz je zaakceptować po zalogowaniu.",
+    "source_hash": "f4d00be1"
+  },
+  "web.organizations.invitations.signin_unavailable_title": {
+    "text": "Logowanie nie jest dostępne w tej witrynie",
+    "source_hash": "c56bce2b"
+  },
+  "web.organizations.invitations.signin_unavailable_body": {
+    "text": "Ta witryna jest ograniczona do metody {method}, która tutaj nie działa, więc w tej chwili nie ma możliwości zalogowania się.",
+    "source_hash": "62c01601"
+  },
+  "web.organizations.invitations.signin_unavailable_unknown_body": {
+    "text": "Ta witryna jest ograniczona do metody logowania, która tutaj nie działa, więc w tej chwili nie ma możliwości zalogowania się.",
+    "source_hash": "1f61e456"
+  },
+  "web.organizations.invitations.signin_unavailable_conflict_body": {
+    "text": "Ustawienia logowania tej witryny są sprzeczne z ograniczeniem obowiązującym w całej witrynie ({method}), więc żadne z nich nie ma zastosowania i w tej chwili nie ma możliwości zalogowania się.",
+    "source_hash": "54cdfd61"
+  },
+  "web.organizations.sso.connection_enabled": {
+    "text": "Połączenie aktywne",
+    "source_hash": "b6334b2b"
+  },
+  "web.organizations.sso.connection_enabled_hint": {
+    "text": "Gdy połączenie jest aktywne, członkowie mogą logować się u tego dostawcy SSO. SSO musi być również włączone jako metoda logowania w Ustawieniach logowania domeny.",
+    "source_hash": "71a53159"
+  },
+  "web.organizations.sso.enable_untested_warning": {
+    "text": "To połączenie nie przeszło jeszcze tutaj testu. Uruchom Testuj połączenie, zanim je włączysz, aby niedziałająca konfiguracja nigdy nie trafiła na Twoją stronę logowania.",
+    "source_hash": "c1fbdeca"
   }
 }

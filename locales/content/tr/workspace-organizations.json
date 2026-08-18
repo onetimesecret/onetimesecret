@@ -1174,5 +1174,61 @@
   "web.organizations.tabs.activity": {
     "text": "Aktivite",
     "source_hash": "38da1505"
+  },
+  "web.organizations.invitations.restricted_host_title": {
+    "text": "Burada farklı bir giriş yöntemi gerekiyor",
+    "source_hash": "d761ad30"
+  },
+  "web.organizations.invitations.restricted_host_body": {
+    "text": "Bu site yalnızca {method} ile giriş yapmaya izin verir, bu nedenle burada parolayla hesap oluşturulamaz. {method} bu sayfada tamamlayabileceğiniz bir yöntem değil.",
+    "source_hash": "6ac146d4"
+  },
+  "web.organizations.invitations.restricted_host_unknown_body": {
+    "text": "Bu site yalnızca belirli bir giriş yöntemine izin verir ve bu yöntem, bu sayfanın sunabileceği bir yöntem değil. Burada parolayla hesap oluşturulamaz.",
+    "source_hash": "e24d59a9"
+  },
+  "web.organizations.invitations.restricted_sso_body": {
+    "text": "Bu site tek oturum açma (SSO) kullanır. Devam etmek için kuruluşunuzun sağlayıcısıyla giriş yapın — bu işlem hesabınızı oluşturur ve oturumunuzu açar.",
+    "source_hash": "e942d04b"
+  },
+  "web.organizations.invitations.restricted_sso_cta": {
+    "text": "Girişe devam et",
+    "source_hash": "d398cd0a"
+  },
+  "web.organizations.invitations.restricted_use_email_link": {
+    "text": "Bunun yerine ana siteden kabul etmek için davet e-postanızdaki bağlantıyı açın.",
+    "source_hash": "73bf298f"
+  },
+  "web.organizations.invitations.invitation_stays_pending": {
+    "text": "Davetiniz hâlâ geçerli — hiçbir şey tükenmedi ve giriş yaptıktan sonra kabul edebilirsiniz.",
+    "source_hash": "f4d00be1"
+  },
+  "web.organizations.invitations.signin_unavailable_title": {
+    "text": "Bu sitede giriş kullanılamıyor",
+    "source_hash": "c56bce2b"
+  },
+  "web.organizations.invitations.signin_unavailable_body": {
+    "text": "Bu site {method} ile kısıtlanmış ancak bu yöntem burada çalışmıyor, bu nedenle şu anda giriş yapmanın bir yolu yok.",
+    "source_hash": "62c01601"
+  },
+  "web.organizations.invitations.signin_unavailable_unknown_body": {
+    "text": "Bu site, burada çalışmayan bir giriş yöntemiyle kısıtlanmış, bu nedenle şu anda giriş yapmanın bir yolu yok.",
+    "source_hash": "1f61e456"
+  },
+  "web.organizations.invitations.signin_unavailable_conflict_body": {
+    "text": "Bu sitenin giriş ayarları, site genelindeki kısıtlamayla ({method}) çelişiyor; bu nedenle ikisi de uygulanmaz ve şu anda giriş yapmanın bir yolu yok.",
+    "source_hash": "54cdfd61"
+  },
+  "web.organizations.sso.connection_enabled": {
+    "text": "Bağlantı etkin",
+    "source_hash": "b6334b2b"
+  },
+  "web.organizations.sso.connection_enabled_hint": {
+    "text": "Etkin olduğunda üyeler bu SSO sağlayıcısıyla giriş yapabilir. Ayrıca SSO'nun, alan adının Giriş Ayarları bölümünde bir giriş yöntemi olarak etkinleştirilmesi gerekir.",
+    "source_hash": "71a53159"
+  },
+  "web.organizations.sso.enable_untested_warning": {
+    "text": "Bu bağlantı burada henüz bir testi geçmedi. Bozuk bir kurulumun giriş sayfanıza ulaşmaması için, açmadan önce Bağlantıyı Test Et işlemini çalıştırın.",
+    "source_hash": "c1fbdeca"
   }
 }

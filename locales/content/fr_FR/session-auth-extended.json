@@ -292,9 +292,9 @@
     "source_hash": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "Nom de la clé d'accès",
+    "text": "Clé d'accès",
     "context": "Label for passkey name field",
-    "source_hash": "22eefa67"
+    "source_hash": "904c9aa9"
   },
   "web.auth.passkeys.created": {
     "text": "Créée",
@@ -929,5 +929,33 @@
   "web.sso_link_confirm.errors.generic": {
     "text": "Nous n'avons pas pu confirmer cette connexion. Veuillez vous reconnecter avec votre fournisseur.",
     "source_hash": "076fa25a"
+  },
+  "web.auth.mfa.passkey_mode_active": {
+    "text": "Mode clé d'accès activé",
+    "source_hash": "824dceb6"
+  },
+  "web.auth.mfa.passkey_prompt": {
+    "text": "Confirmez votre identité avec une clé d'accès. Votre appareil vous demandera votre empreinte, votre visage ou votre clé de sécurité.",
+    "source_hash": "c0b0cbbc"
+  },
+  "web.auth.mfa.verify_with_passkey": {
+    "text": "Vérifier avec une clé d'accès",
+    "source_hash": "4f105a30"
+  },
+  "web.auth.mfa.use_passkey": {
+    "text": "Utiliser plutôt une clé d'accès",
+    "source_hash": "bd6430a4"
+  },
+  "web.auth.passkeys.remove_failed": {
+    "text": "Impossible de supprimer la clé d'accès",
+    "source_hash": "3e131515"
+  },
+  "web.auth.passkeys.load_failed": {
+    "text": "Impossible de charger les clés d'accès",
+    "source_hash": "8d704e00"
+  },
+  "web.auth.webauthn.emailRequired": {
+    "text": "Saisissez votre adresse e-mail pour vous connecter avec une clé d'accès",
+    "source_hash": "7f07647f"
   }
 }

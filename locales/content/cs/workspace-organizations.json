@@ -1174,5 +1174,61 @@
   "web.organizations.tabs.activity": {
     "text": "Aktivita",
     "source_hash": "38da1505"
+  },
+  "web.organizations.invitations.restricted_host_title": {
+    "text": "Zde je vyžadována jiná metoda přihlášení",
+    "source_hash": "d761ad30"
+  },
+  "web.organizations.invitations.restricted_host_body": {
+    "text": "Tento web umožňuje přihlášení pouze metodou {method}, takže tu nelze vytvořit účet s heslem. Metodu {method} na této stránce nedokončíš.",
+    "source_hash": "6ac146d4"
+  },
+  "web.organizations.invitations.restricted_host_unknown_body": {
+    "text": "Tento web umožňuje jen jednu konkrétní metodu přihlášení a tato stránka ji nabídnout neumí. Účet s heslem tu nelze vytvořit.",
+    "source_hash": "e24d59a9"
+  },
+  "web.organizations.invitations.restricted_sso_body": {
+    "text": "Tento web používá jednotné přihlášení. Pokračuj přihlášením u poskytovatele své organizace — tím se vytvoří tvůj účet a rovnou se přihlásíš.",
+    "source_hash": "e942d04b"
+  },
+  "web.organizations.invitations.restricted_sso_cta": {
+    "text": "Pokračovat k přihlášení",
+    "source_hash": "d398cd0a"
+  },
+  "web.organizations.invitations.restricted_use_email_link": {
+    "text": "Případně otevři odkaz v e-mailu s pozvánkou a přijmi ji na hlavním webu.",
+    "source_hash": "73bf298f"
+  },
+  "web.organizations.invitations.invitation_stays_pending": {
+    "text": "Tvoje pozvánka je stále platná — nic se nespotřebovalo a můžeš ji přijmout, jakmile se přihlásíš.",
+    "source_hash": "f4d00be1"
+  },
+  "web.organizations.invitations.signin_unavailable_title": {
+    "text": "Na tomto webu není přihlášení dostupné",
+    "source_hash": "c56bce2b"
+  },
+  "web.organizations.invitations.signin_unavailable_body": {
+    "text": "Tento web je omezen na metodu {method}, která zde nefunguje, takže se teď není jak přihlásit.",
+    "source_hash": "62c01601"
+  },
+  "web.organizations.invitations.signin_unavailable_unknown_body": {
+    "text": "Tento web je omezen na metodu přihlášení, která zde nefunguje, takže se teď není jak přihlásit.",
+    "source_hash": "1f61e456"
+  },
+  "web.organizations.invitations.signin_unavailable_conflict_body": {
+    "text": "Nastavení přihlášení tohoto webu je v rozporu s omezením platným pro celý web ({method}), takže se neuplatní ani jedno a teď se není jak přihlásit.",
+    "source_hash": "54cdfd61"
+  },
+  "web.organizations.sso.connection_enabled": {
+    "text": "Připojení aktivní",
+    "source_hash": "b6334b2b"
+  },
+  "web.organizations.sso.connection_enabled_hint": {
+    "text": "Když je připojení aktivní, členové se mohou přihlásit tímto poskytovatelem SSO. SSO musí být zároveň povoleno jako metoda přihlášení v Konfiguraci přihlášení dané domény.",
+    "source_hash": "71a53159"
+  },
+  "web.organizations.sso.enable_untested_warning": {
+    "text": "Toto připojení zde zatím neprošlo testem. Než ho zapneš, spusť Otestovat připojení, aby se rozbitá konfigurace nikdy nedostala na tvou přihlašovací stránku.",
+    "source_hash": "c1fbdeca"
   }
 }

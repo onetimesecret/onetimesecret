@@ -1538,5 +1538,93 @@
   "web.domains.signup.dormant_notice": {
     "text": "Đăng ký đã bị tắt trên toàn không gian làm việc, nên không khả dụng trên mọi tên miền. Cài đặt của bạn ở đây được giữ lại và có hiệu lực khi đăng ký của không gian làm việc được bật lại.",
     "source_hash": "49faefe4"
+  },
+  "web.domains.link_domain_no_settings": {
+    "text": "Tên miền này không có trang cài đặt",
+    "source_hash": "8a8430fe"
+  },
+  "web.domains.signin.sso_restrict_warning_title": {
+    "text": "Giới hạn ở SSO sẽ đóng đăng nhập trên tên miền này",
+    "source_hash": "3476cb5c"
+  },
+  "web.domains.signin.sso_restrict_warning_body": {
+    "text": "SSO không khả dụng trên tên miền này, và một giới hạn không thể đáp ứng sẽ chặn hoàn toàn việc đăng nhập. Sẽ không ai đăng nhập được ở đây cho đến khi SSO hoạt động. Hãy khắc phục SSO trước, hoặc vẫn giới hạn rồi hoàn tất thiết lập.",
+    "source_hash": "b36ce005"
+  },
+  "web.domains.signin.sso_restrict_warning_confirm": {
+    "text": "Vẫn giới hạn",
+    "source_hash": "4674e3cf"
+  },
+  "web.domains.signin.restriction_unavailable_notice": {
+    "text": "Đăng nhập không khả dụng trên tên miền này: nó bị giới hạn ở {method}, phương thức không thể hoạt động ở đây. Hãy chọn phương thức khác, hoặc làm cho {method} khả dụng.",
+    "source_hash": "ca1b7f69"
+  },
+  "web.domains.signin.restriction_unavailable_unknown_notice": {
+    "text": "Đăng nhập không khả dụng trên tên miền này: nó bị giới hạn ở một phương thức không thể hoạt động ở đây. Hãy chọn phương thức khác, hoặc đặt lại tên miền này về mặc định.",
+    "source_hash": "8c2cce6b"
+  },
+  "web.domains.signin.restriction_conflict_notice": {
+    "text": "Tên miền này giới hạn đăng nhập ở một phương thức khác với giới hạn toàn không gian làm việc ({method}), nên không giới hạn nào có hiệu lực và đăng nhập không khả dụng ở đây. Hãy dùng đúng phương thức của toàn không gian làm việc, hoặc đặt lại tên miền này về mặc định.",
+    "source_hash": "15398362"
+  },
+  "web.domains.signin.method_webauthn_unavailable": {
+    "text": "Khóa truy cập gắn với tên miền đăng nhập chính và chưa khả dụng trên các tên miền tùy chỉnh",
+    "source_hash": "88833e0f"
+  },
+  "web.domains.sso.connection_disabled_badge": {
+    "text": "Đã tắt kết nối",
+    "source_hash": "99d6092c"
+  },
+  "web.domains.sso.connection_disabled_hint": {
+    "text": "Thông tin xác thực SSO đã được lưu nhưng kết nối đang tắt. Hãy bật nó trong mục Chỉnh sửa thông tin xác thực.",
+    "source_hash": "90180d6c"
+  },
+  "web.domains.sso.status_active_badge": {
+    "text": "Đang hoạt động",
+    "source_hash": "92340695"
+  },
+  "web.domains.sso.status_active_hint": {
+    "text": "Thành viên có thể đăng nhập bằng kết nối SSO này trên tên miền này.",
+    "source_hash": "313ec61e"
+  },
+  "web.domains.sso.status_not_configured_badge": {
+    "text": "Chưa cấu hình",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.sso.status_not_configured_hint": {
+    "text": "Chưa có thông tin xác thực SSO nào được lưu cho tên miền này.",
+    "source_hash": "d817ad9c"
+  },
+  "web.domains.sso.status_not_permitted_badge": {
+    "text": "Không được phép trên tên miền này",
+    "source_hash": "afbd20ba"
+  },
+  "web.domains.sso.status_not_permitted_hint": {
+    "text": "SSO đã bị tắt cho tên miền này, nên trang đăng nhập không cung cấp phương thức này.",
+    "source_hash": "ef092481"
+  },
+  "web.domains.sso.status_auth_disabled_badge": {
+    "text": "Đã tắt đăng nhập",
+    "source_hash": "bb807607"
+  },
+  "web.domains.sso.status_auth_disabled_hint": {
+    "text": "Đăng nhập đã bị tắt trên tên miền này, nên không có phương thức nào được cung cấp — kể cả SSO.",
+    "source_hash": "3a98964b"
+  },
+  "web.domains.sso.status_unsupported_provider_badge": {
+    "text": "Nhà cung cấp không được hỗ trợ",
+    "source_hash": "1609d5fb"
+  },
+  "web.domains.sso.status_unsupported_provider_hint": {
+    "text": "Nhà cung cấp đã lưu không thể dùng cho SSO của tên miền. Hãy chỉnh sửa thông tin xác thực và chọn Microsoft Entra ID hoặc OIDC chung.",
+    "source_hash": "72ea0a2e"
+  },
+  "web.domains.sso.status_unavailable_badge": {
+    "text": "Không khả dụng",
+    "source_hash": "ca184496"
+  },
+  "web.domains.sso.status_unavailable_hint": {
+    "text": "Hiện chưa thể cung cấp SSO trên tên miền này. Hãy kiểm tra thông tin xác thực SSO và cài đặt đăng nhập của tên miền này.",
+    "source_hash": "b03b14f4"
   }
 }

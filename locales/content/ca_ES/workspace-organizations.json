@@ -1174,5 +1174,61 @@
   "web.organizations.tabs.activity": {
     "text": "Activitat",
     "source_hash": "38da1505"
+  },
+  "web.organizations.invitations.restricted_host_title": {
+    "text": "Aquí cal un mètode d'inici de sessió diferent",
+    "source_hash": "d761ad30"
+  },
+  "web.organizations.invitations.restricted_host_body": {
+    "text": "Aquest lloc només permet iniciar la sessió amb {method}, de manera que aquí no es pot crear un compte amb una contrasenya. {method} no és una cosa que puguis completar en aquesta pàgina.",
+    "source_hash": "6ac146d4"
+  },
+  "web.organizations.invitations.restricted_host_unknown_body": {
+    "text": "Aquest lloc només permet un mètode d'inici de sessió concret, i no és un que aquesta pàgina pugui oferir. Aquí no es pot crear un compte amb una contrasenya.",
+    "source_hash": "e24d59a9"
+  },
+  "web.organizations.invitations.restricted_sso_body": {
+    "text": "Aquest lloc utilitza l'inici de sessió únic. Inicia la sessió amb el proveïdor de la teva organització per continuar — així es crea el teu compte i s'inicia la sessió.",
+    "source_hash": "e942d04b"
+  },
+  "web.organizations.invitations.restricted_sso_cta": {
+    "text": "Continua a l'inici de sessió",
+    "source_hash": "d398cd0a"
+  },
+  "web.organizations.invitations.restricted_use_email_link": {
+    "text": "Obre l'enllaç del correu d'invitació per acceptar-la des del lloc principal.",
+    "source_hash": "73bf298f"
+  },
+  "web.organizations.invitations.invitation_stays_pending": {
+    "text": "La teva invitació encara és vàlida — no s'ha consumit res i la pots acceptar quan hagis iniciat la sessió.",
+    "source_hash": "f4d00be1"
+  },
+  "web.organizations.invitations.signin_unavailable_title": {
+    "text": "L'inici de sessió no està disponible en aquest lloc",
+    "source_hash": "c56bce2b"
+  },
+  "web.organizations.invitations.signin_unavailable_body": {
+    "text": "Aquest lloc està restringit a {method}, que aquí no funciona, de manera que ara mateix no hi ha cap manera d'iniciar la sessió.",
+    "source_hash": "62c01601"
+  },
+  "web.organizations.invitations.signin_unavailable_unknown_body": {
+    "text": "Aquest lloc està restringit a un mètode d'inici de sessió que aquí no funciona, de manera que ara mateix no hi ha cap manera d'iniciar la sessió.",
+    "source_hash": "1f61e456"
+  },
+  "web.organizations.invitations.signin_unavailable_conflict_body": {
+    "text": "La configuració d'inici de sessió d'aquest lloc entra en conflicte amb la restricció de tot el lloc ({method}), de manera que no se n'aplica cap i ara mateix no hi ha cap manera d'iniciar la sessió.",
+    "source_hash": "54cdfd61"
+  },
+  "web.organizations.sso.connection_enabled": {
+    "text": "Connexió activa",
+    "source_hash": "b6334b2b"
+  },
+  "web.organizations.sso.connection_enabled_hint": {
+    "text": "Quan està activa, els membres poden iniciar la sessió amb aquest proveïdor d'SSO. L'SSO també ha d'estar activat com a mètode d'inici de sessió a «Configuració de l'inici de sessió» del domini.",
+    "source_hash": "71a53159"
+  },
+  "web.organizations.sso.enable_untested_warning": {
+    "text": "Aquesta connexió encara no ha superat cap prova aquí. Executa «Prova la connexió» abans d'activar-la, perquè una configuració defectuosa no arribi mai a la teva pàgina d'inici de sessió.",
+    "source_hash": "c1fbdeca"
   }
 }

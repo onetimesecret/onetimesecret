@@ -1538,5 +1538,93 @@
   "web.domains.signup.dormant_notice": {
     "text": "Registriĝoj estas malŝaltitaj tra la tuta laborspaco, do ili ne disponeblas sur ĉiu domajno. Viaj agordoj ĉi tie estas konservitaj kaj ekvalidas kiam laborspacaj registriĝoj estos denove ŝaltitaj.",
     "source_hash": "49faefe4"
+  },
+  "web.domains.link_domain_no_settings": {
+    "text": "Ĉi tiu domajno ne havas agordan paĝon",
+    "source_hash": "8a8430fe"
+  },
+  "web.domains.signin.sso_restrict_warning_title": {
+    "text": "Limigo al SSO fermus ensaluton sur ĉi tiu domajno",
+    "source_hash": "3476cb5c"
+  },
+  "web.domains.signin.sso_restrict_warning_body": {
+    "text": "SSO ne disponeblas sur ĉi tiu domajno, kaj limigo kiu ne povas esti plenumita blokas ensaluton tute. Neniu povos ensaluti ĉi tie ĝis SSO funkcios. Riparu SSO unue, aŭ limigu tamen kaj finu la agordon.",
+    "source_hash": "b36ce005"
+  },
+  "web.domains.signin.sso_restrict_warning_confirm": {
+    "text": "Limigi tamen",
+    "source_hash": "4674e3cf"
+  },
+  "web.domains.signin.restriction_unavailable_notice": {
+    "text": "Ensaluto ne disponeblas sur ĉi tiu domajno: ĝi estas limigita al {method}, kiu ne povas funkcii ĉi tie. Elektu alian metodon, aŭ disponebligu {method}.",
+    "source_hash": "ca1b7f69"
+  },
+  "web.domains.signin.restriction_unavailable_unknown_notice": {
+    "text": "Ensaluto ne disponeblas sur ĉi tiu domajno: ĝi estas limigita al metodo kiu ne povas funkcii ĉi tie. Elektu alian metodon, aŭ restarigu ĉi tiun domajnon al la defaŭltoj.",
+    "source_hash": "8c2cce6b"
+  },
+  "web.domains.signin.restriction_conflict_notice": {
+    "text": "Ĉi tiu domajno limigas ensaluton al alia metodo ol la limigo tra la tuta laborspaco ({method}), do nek unu nek la alia povas apliki kaj ensaluto ne disponeblas ĉi tie. Kongruigu kun la metodo de la tuta laborspaco, aŭ restarigu ĉi tiun domajnon al la defaŭltoj.",
+    "source_hash": "15398362"
+  },
+  "web.domains.signin.method_webauthn_unavailable": {
+    "text": "Pasŝlosiloj estas ligitaj al la ĉefa ensaluta domajno kaj ankoraŭ ne disponeblas sur propraj domajnoj",
+    "source_hash": "88833e0f"
+  },
+  "web.domains.sso.connection_disabled_badge": {
+    "text": "Konekto malŝaltita",
+    "source_hash": "99d6092c"
+  },
+  "web.domains.sso.connection_disabled_hint": {
+    "text": "SSO-akreditaĵoj estas konservitaj sed la konekto estas malŝaltita. Ŝaltu ĝin sub Redakti akreditaĵojn.",
+    "source_hash": "90180d6c"
+  },
+  "web.domains.sso.status_active_badge": {
+    "text": "Aktiva",
+    "source_hash": "92340695"
+  },
+  "web.domains.sso.status_active_hint": {
+    "text": "Membroj povas ensaluti per ĉi tiu SSO-konekto sur ĉi tiu domajno.",
+    "source_hash": "313ec61e"
+  },
+  "web.domains.sso.status_not_configured_badge": {
+    "text": "Ne agordita",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.sso.status_not_configured_hint": {
+    "text": "Ankoraŭ neniuj SSO-akreditaĵoj estas konservitaj por ĉi tiu domajno.",
+    "source_hash": "d817ad9c"
+  },
+  "web.domains.sso.status_not_permitted_badge": {
+    "text": "Ne permesita sur ĉi tiu domajno",
+    "source_hash": "afbd20ba"
+  },
+  "web.domains.sso.status_not_permitted_hint": {
+    "text": "SSO estas malŝaltita por ĉi tiu domajno, do la ensaluta paĝo ne proponas ĝin.",
+    "source_hash": "ef092481"
+  },
+  "web.domains.sso.status_auth_disabled_badge": {
+    "text": "Ensaluto malŝaltita",
+    "source_hash": "bb807607"
+  },
+  "web.domains.sso.status_auth_disabled_hint": {
+    "text": "Ensaluto estas malŝaltita sur ĉi tiu domajno, do neniu metodo estas proponata — inkluzive de SSO.",
+    "source_hash": "3a98964b"
+  },
+  "web.domains.sso.status_unsupported_provider_badge": {
+    "text": "Nesubtenata provizanto",
+    "source_hash": "1609d5fb"
+  },
+  "web.domains.sso.status_unsupported_provider_hint": {
+    "text": "La konservita provizanto ne povas esti uzata por domajna SSO. Redaktu la akreditaĵojn kaj elektu Microsoft Entra ID aŭ ĝeneralan OIDC.",
+    "source_hash": "72ea0a2e"
+  },
+  "web.domains.sso.status_unavailable_badge": {
+    "text": "Nedisponebla",
+    "source_hash": "ca184496"
+  },
+  "web.domains.sso.status_unavailable_hint": {
+    "text": "SSO ne povas esti proponata sur ĉi tiu domajno nun. Kontrolu la SSO-akreditaĵojn kaj la ensalutajn agordojn de ĉi tiu domajno.",
+    "source_hash": "b03b14f4"
   }
 }

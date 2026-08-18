@@ -1538,5 +1538,93 @@
   "web.domains.signup.dormant_notice": {
     "text": "ההרשמות מושבתות בכל סביבת העבודה, ולכן אינן זמינות בכל דומיין. ההגדרות שלך כאן נשמרות ונכנסות לתוקף כאשר ההרשמות לסביבת העבודה יופעלו שוב.",
     "source_hash": "49faefe4"
+  },
+  "web.domains.link_domain_no_settings": {
+    "text": "לדומיין זה אין דף הגדרות",
+    "source_hash": "8a8430fe"
+  },
+  "web.domains.signin.sso_restrict_warning_title": {
+    "text": "הגבלה ל-SSO תסגור את הכניסה בדומיין זה",
+    "source_hash": "3476cb5c"
+  },
+  "web.domains.signin.sso_restrict_warning_body": {
+    "text": "SSO אינו זמין בדומיין זה, והגבלה שלא ניתן לקיים חוסמת את הכניסה לחלוטין. איש לא יוכל להיכנס כאן עד ש-SSO יפעל. תקן תחילה את SSO, או הגבל בכל זאת והשלם את ההגדרה.",
+    "source_hash": "b36ce005"
+  },
+  "web.domains.signin.sso_restrict_warning_confirm": {
+    "text": "הגבל בכל זאת",
+    "source_hash": "4674e3cf"
+  },
+  "web.domains.signin.restriction_unavailable_notice": {
+    "text": "הכניסה אינה זמינה בדומיין זה: הוא מוגבל ל-{method}, שאינה יכולה לפעול כאן. בחר שיטה אחרת, או הפוך את {method} לזמינה.",
+    "source_hash": "ca1b7f69"
+  },
+  "web.domains.signin.restriction_unavailable_unknown_notice": {
+    "text": "הכניסה אינה זמינה בדומיין זה: הוא מוגבל לשיטה שאינה יכולה לפעול כאן. בחר שיטה אחרת, או אפס דומיין זה לברירות המחדל.",
+    "source_hash": "8c2cce6b"
+  },
+  "web.domains.signin.restriction_conflict_notice": {
+    "text": "דומיין זה מגביל את הכניסה לשיטה שונה מההגבלה החלה על סביבת העבודה כולה ({method}), ולכן אף אחת מהן אינה יכולה לחול והכניסה אינה זמינה כאן. התאם לשיטה של סביבת העבודה, או אפס דומיין זה לברירות המחדל.",
+    "source_hash": "15398362"
+  },
+  "web.domains.signin.method_webauthn_unavailable": {
+    "text": "מפתחות גישה קשורים לדומיין הכניסה הראשי ואינם זמינים עדיין בדומיינים מותאמים אישית",
+    "source_hash": "88833e0f"
+  },
+  "web.domains.sso.connection_disabled_badge": {
+    "text": "החיבור מושבת",
+    "source_hash": "99d6092c"
+  },
+  "web.domains.sso.connection_disabled_hint": {
+    "text": "פרטי הכניסה של SSO שמורים, אך החיבור כבוי. הפעל אותו תחת ערוך פרטי כניסה.",
+    "source_hash": "90180d6c"
+  },
+  "web.domains.sso.status_active_badge": {
+    "text": "פעיל",
+    "source_hash": "92340695"
+  },
+  "web.domains.sso.status_active_hint": {
+    "text": "חברים יכולים להיכנס באמצעות חיבור SSO זה בדומיין זה.",
+    "source_hash": "313ec61e"
+  },
+  "web.domains.sso.status_not_configured_badge": {
+    "text": "לא הוגדר",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.sso.status_not_configured_hint": {
+    "text": "עדיין לא נשמרו פרטי כניסה של SSO עבור דומיין זה.",
+    "source_hash": "d817ad9c"
+  },
+  "web.domains.sso.status_not_permitted_badge": {
+    "text": "אינו מותר בדומיין זה",
+    "source_hash": "afbd20ba"
+  },
+  "web.domains.sso.status_not_permitted_hint": {
+    "text": "SSO כבוי בדומיין זה, ולכן דף הכניסה אינו מציע אותו.",
+    "source_hash": "ef092481"
+  },
+  "web.domains.sso.status_auth_disabled_badge": {
+    "text": "הכניסה מושבתת",
+    "source_hash": "bb807607"
+  },
+  "web.domains.sso.status_auth_disabled_hint": {
+    "text": "הכניסה כבויה בדומיין זה, ולכן לא מוצעת אף שיטה — כולל SSO.",
+    "source_hash": "3a98964b"
+  },
+  "web.domains.sso.status_unsupported_provider_badge": {
+    "text": "ספק לא נתמך",
+    "source_hash": "1609d5fb"
+  },
+  "web.domains.sso.status_unsupported_provider_hint": {
+    "text": "לא ניתן להשתמש בספק השמור עבור SSO ברמת הדומיין. ערוך את פרטי הכניסה ובחר Microsoft Entra ID או OIDC גנרי.",
+    "source_hash": "72ea0a2e"
+  },
+  "web.domains.sso.status_unavailable_badge": {
+    "text": "לא זמין",
+    "source_hash": "ca184496"
+  },
+  "web.domains.sso.status_unavailable_hint": {
+    "text": "לא ניתן להציע SSO בדומיין זה כרגע. בדוק את פרטי הכניסה של SSO ואת הגדרות הכניסה של דומיין זה.",
+    "source_hash": "b03b14f4"
   }
 }

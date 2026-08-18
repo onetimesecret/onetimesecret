@@ -1174,5 +1174,61 @@
   "web.organizations.tabs.activity": {
     "text": "Atividade",
     "source_hash": "38da1505"
+  },
+  "web.organizations.invitations.restricted_host_title": {
+    "text": "É necessário outro método de início de sessão aqui",
+    "source_hash": "d761ad30"
+  },
+  "web.organizations.invitations.restricted_host_body": {
+    "text": "Este site permite iniciar sessão apenas com {method}, portanto não é possível criar uma conta aqui com senha. Não é possível concluir {method} nesta página.",
+    "source_hash": "6ac146d4"
+  },
+  "web.organizations.invitations.restricted_host_unknown_body": {
+    "text": "Este site permite apenas um método específico de início de sessão, e não é um método que esta página possa oferecer. Não é possível criar uma conta aqui com senha.",
+    "source_hash": "e24d59a9"
+  },
+  "web.organizations.invitations.restricted_sso_body": {
+    "text": "Este site usa single sign-on (SSO). Entre com o provedor da sua organização para continuar — isso cria sua conta e inicia sua sessão.",
+    "source_hash": "e942d04b"
+  },
+  "web.organizations.invitations.restricted_sso_cta": {
+    "text": "Continuar para entrar",
+    "source_hash": "d398cd0a"
+  },
+  "web.organizations.invitations.restricted_use_email_link": {
+    "text": "Abra o link no seu e-mail de convite para aceitar pelo site principal.",
+    "source_hash": "73bf298f"
+  },
+  "web.organizations.invitations.invitation_stays_pending": {
+    "text": "Seu convite continua válido — nada foi consumido, e você poderá aceitá-lo assim que entrar.",
+    "source_hash": "f4d00be1"
+  },
+  "web.organizations.invitations.signin_unavailable_title": {
+    "text": "O início de sessão não está disponível neste site",
+    "source_hash": "c56bce2b"
+  },
+  "web.organizations.invitations.signin_unavailable_body": {
+    "text": "Este site está restrito a {method}, que não está funcionando aqui, portanto não há como entrar no momento.",
+    "source_hash": "62c01601"
+  },
+  "web.organizations.invitations.signin_unavailable_unknown_body": {
+    "text": "Este site está restrito a um método de início de sessão que não está funcionando aqui, portanto não há como entrar no momento.",
+    "source_hash": "1f61e456"
+  },
+  "web.organizations.invitations.signin_unavailable_conflict_body": {
+    "text": "As configurações de início de sessão deste site conflitam com a restrição de todo o site ({method}), portanto nenhuma das duas se aplica e não há como entrar no momento.",
+    "source_hash": "54cdfd61"
+  },
+  "web.organizations.sso.connection_enabled": {
+    "text": "Conexão ativa",
+    "source_hash": "b6334b2b"
+  },
+  "web.organizations.sso.connection_enabled_hint": {
+    "text": "Quando ativa, os membros podem entrar com este provedor de SSO. O SSO também deve estar ativado como método de início de sessão na Configuração de início de sessão do domínio.",
+    "source_hash": "71a53159"
+  },
+  "web.organizations.sso.enable_untested_warning": {
+    "text": "Esta conexão ainda não passou por um teste aqui. Execute Testar Conexão antes de ativá-la, para que uma configuração com problemas nunca chegue à sua página de início de sessão.",
+    "source_hash": "c1fbdeca"
   }
 }

@@ -1538,5 +1538,93 @@
   "web.domains.signup.dormant_notice": {
     "text": "Registracije so izklopljene za celoten delovni prostor, zato niso na voljo na nobeni domeni. Vaše nastavitve tukaj so ohranjene in začnejo veljati, ko so registracije za delovni prostor znova omogočene.",
     "source_hash": "49faefe4"
+  },
+  "web.domains.link_domain_no_settings": {
+    "text": "Ta domena nima strani z nastavitvami",
+    "source_hash": "8a8430fe"
+  },
+  "web.domains.signin.sso_restrict_warning_title": {
+    "text": "Omejitev na SSO bi zaprla prijavo na tej domeni",
+    "source_hash": "3476cb5c"
+  },
+  "web.domains.signin.sso_restrict_warning_body": {
+    "text": "SSO na tej domeni ni na voljo, omejitev, ki je ni mogoče upoštevati, pa prijavo v celoti blokira. Nihče se tukaj ne bo mogel prijaviti, dokler SSO ne bo deloval. Najprej popravite SSO ali kljub temu omejite in dokončajte nastavitev.",
+    "source_hash": "b36ce005"
+  },
+  "web.domains.signin.sso_restrict_warning_confirm": {
+    "text": "Kljub temu omeji",
+    "source_hash": "4674e3cf"
+  },
+  "web.domains.signin.restriction_unavailable_notice": {
+    "text": "Prijava na tej domeni ni na voljo: omejena je na metodo {method}, ki tukaj ne more delovati. Izberite drugo metodo ali poskrbite, da bo metoda {method} na voljo.",
+    "source_hash": "ca1b7f69"
+  },
+  "web.domains.signin.restriction_unavailable_unknown_notice": {
+    "text": "Prijava na tej domeni ni na voljo: omejena je na metodo, ki tukaj ne more delovati. Izberite drugo metodo ali ponastavite to domeno na privzete vrednosti.",
+    "source_hash": "8c2cce6b"
+  },
+  "web.domains.signin.restriction_conflict_notice": {
+    "text": "Ta domena omejuje prijavo na drugo metodo, kot jo določa omejitev za celoten delovni prostor ({method}), zato ne more veljati nobena in prijava tukaj ni na voljo. Uskladite jo z metodo za celoten delovni prostor ali ponastavite to domeno na privzete vrednosti.",
+    "source_hash": "15398362"
+  },
+  "web.domains.signin.method_webauthn_unavailable": {
+    "text": "Ključi za dostop so vezani na glavno prijavno domeno in na domenah po meri še niso na voljo",
+    "source_hash": "88833e0f"
+  },
+  "web.domains.sso.connection_disabled_badge": {
+    "text": "Povezava onemogočena",
+    "source_hash": "99d6092c"
+  },
+  "web.domains.sso.connection_disabled_hint": {
+    "text": "Poverilnice SSO so shranjene, vendar je povezava izklopljena. Omogočite jo pod „Uredi poverilnice“.",
+    "source_hash": "90180d6c"
+  },
+  "web.domains.sso.status_active_badge": {
+    "text": "Aktivno",
+    "source_hash": "92340695"
+  },
+  "web.domains.sso.status_active_hint": {
+    "text": "Člani se lahko na tej domeni prijavijo s to povezavo SSO.",
+    "source_hash": "313ec61e"
+  },
+  "web.domains.sso.status_not_configured_badge": {
+    "text": "Ni konfigurirano",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.sso.status_not_configured_hint": {
+    "text": "Za to domeno še ni shranjenih poverilnic SSO.",
+    "source_hash": "d817ad9c"
+  },
+  "web.domains.sso.status_not_permitted_badge": {
+    "text": "Ni dovoljeno na tej domeni",
+    "source_hash": "afbd20ba"
+  },
+  "web.domains.sso.status_not_permitted_hint": {
+    "text": "SSO je za to domeno izklopljen, zato ga prijavna stran ne ponuja.",
+    "source_hash": "ef092481"
+  },
+  "web.domains.sso.status_auth_disabled_badge": {
+    "text": "Prijava onemogočena",
+    "source_hash": "bb807607"
+  },
+  "web.domains.sso.status_auth_disabled_hint": {
+    "text": "Prijava je na tej domeni izklopljena, zato ni ponujena nobena metoda — vključno z SSO.",
+    "source_hash": "3a98964b"
+  },
+  "web.domains.sso.status_unsupported_provider_badge": {
+    "text": "Nepodprt ponudnik",
+    "source_hash": "1609d5fb"
+  },
+  "web.domains.sso.status_unsupported_provider_hint": {
+    "text": "Shranjenega ponudnika ni mogoče uporabiti za SSO domene. Uredite poverilnice in izberite Microsoft Entra ID ali splošni OIDC.",
+    "source_hash": "72ea0a2e"
+  },
+  "web.domains.sso.status_unavailable_badge": {
+    "text": "Ni na voljo",
+    "source_hash": "ca184496"
+  },
+  "web.domains.sso.status_unavailable_hint": {
+    "text": "SSO na tej domeni trenutno ni mogoče ponuditi. Preverite poverilnice SSO in nastavitve prijave te domene.",
+    "source_hash": "b03b14f4"
   }
 }
