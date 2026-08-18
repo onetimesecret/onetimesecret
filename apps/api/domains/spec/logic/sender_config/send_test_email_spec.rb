@@ -9,8 +9,9 @@
 #   - On success: verb 'domain_sender.test_email_sent', result :success
 #   - On failure: result :failure, error_code in detail
 #
-# RUN:
-#   pnpm run test:rspec apps/api/domains/spec/logic/sender_config/send_test_email_spec.rb
+# RUN (lane runner only — a raw rspec/rake invocation inherits the dev
+# shell's env and can reach dev data; see AGENTS.md "Running tests"):
+#   tests/lanes/run api --only apps/api/domains/spec/logic/sender_config/send_test_email_spec.rb
 
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require_relative '../../../../../../apps/api/domains/application'
