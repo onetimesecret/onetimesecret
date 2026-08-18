@@ -116,7 +116,17 @@ def assess(locale: str, resolved: dict[str, Any]) -> dict[str, Any]:
     """Coverage verdict for one resolved model. Pure: callers supply the parsed
     model so this stays free of I/O."""
     register = resolved.get("register")
-    tokens = list((register or {}).get("forbidden_tokens") or [])
+    raw_tokens = list((register or {}).get("forbidden_tokens") or [])
+    # count/enforcing/forbidden_tokens MUST all derive from the same filtered
+    # list: an entry the lint engine cannot match (not a {token: ...} dict --
+    # e.g. a bare string or null after an upstream schema change) must not be
+    # allowed to flip `enforcing` while contributing zero enforcement. Such
+    # entries are counted separately and warned about in _lines().
+    token_names = [
+        t["token"]
+        for t in raw_tokens
+        if isinstance(t, dict) and isinstance(t.get("token"), str) and t["token"]
+    ]
     policy_only = _policy_only_terms((register or {}).get("register_spec"))
     return {
         "casing_conflict": bool(register) and _casing_conflict(register),
@@ -124,21 +134,35 @@ def assess(locale: str, resolved: dict[str, Any]) -> dict[str, Any]:
         "has_register": register is not None,
         "form": (register or {}).get("form"),
         "pronoun": (register or {}).get("pronoun"),
-        "forbidden_token_count": len(tokens),
-        "forbidden_tokens": [t.get("token") for t in tokens if isinstance(t, dict)],
+        "forbidden_token_count": len(token_names),
+        "forbidden_tokens": token_names,
+        "malformed_token_count": len(raw_tokens) - len(token_names),
         # Documented-but-unenforceable prohibitions. Zero at translation-rules
         # v0.1.1: the resolver's _build_register drops register_spec from the
         # emitted model (lib/resolver/model.py), so no consumer can see them --
         # filed upstream. This surfaces them the moment that lands.
         "policy_only_count": len(policy_only),
         "policy_only_terms": policy_only,
-        "enforcing": bool(tokens),
+        "enforcing": bool(token_names),
     }
 
 
 def _lines(verdict: dict[str, Any]) -> list[tuple[str, str]]:
     """(level, message) pairs; level is "warning" or "notice"."""
     locale = verdict["locale"]
+    malformed: list[tuple[str, str]] = []
+    if verdict.get("malformed_token_count"):
+        malformed = [
+            (
+                "warning",
+                f"{locale}: {verdict['malformed_token_count']} entr(y/ies) in "
+                f"register.forbidden_tokens are not {{token: ...}} dicts -- the "
+                f"lint engine cannot match them, so they enforce NOTHING. They "
+                f"are excluded from the token count. Upstream schema drift in "
+                f"translation-rules? Inspect the resolved model's "
+                f"register.forbidden_tokens.",
+            )
+        ]
     if not verdict["has_register"]:
         return [
             (
@@ -170,14 +194,14 @@ def _lines(verdict: dict[str, Any]) -> list[tuple[str, str]]:
                 f"checked', not 'nothing wrong'.{extra} Fix belongs upstream in "
                 f"translation-rules (rules/locales/{locale}/register.yaml).",
             )
-        ]
+        ] + malformed
     out = [
         (
             "notice",
             f"{locale}: {verdict['forbidden_token_count']} forbidden token(s) "
             f"enforced (form={verdict['form']}).",
         )
-    ]
+    ] + malformed
     if verdict["casing_conflict"]:
         out.append(
             (

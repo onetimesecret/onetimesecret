@@ -169,6 +169,64 @@ class RegisterCoverage(unittest.TestCase):
         self.assertNotIn("capitalization", proc.stderr)
         self.assertFalse(json.loads(_run(model, "--json").stdout)["casing_conflict"])
 
+    def test_malformed_token_entries_do_not_count_as_enforcement(self) -> None:
+        """Upstream schema drift: a bare string or null in forbidden_tokens is
+        invisible to the lint engine. It must not inflate the token count nor
+        flip `enforcing`, and it must be warned about -- otherwise the probe
+        declares coverage that does not exist (the exact gap it was built to
+        surface)."""
+        mixed = _model(
+            {
+                "form": "formal",
+                "pronoun": "Sie",
+                "forbidden_tokens": [
+                    {"token": "du", "context": "standalone_word", "severity": "error"},
+                    "dein",
+                    None,
+                    {"severity": "error"},
+                    {"token": ""},
+                    {"token": 123},
+                ],
+                "exceptions": [],
+            },
+            locale="de_AT",
+        )
+        verdict = json.loads(_run(mixed, "--json").stdout)
+        self.assertEqual(verdict["forbidden_token_count"], 1)
+        self.assertEqual(verdict["forbidden_tokens"], ["du"])
+        self.assertEqual(verdict["malformed_token_count"], 5)
+        self.assertTrue(verdict["enforcing"])
+        proc = _run(mixed)
+        self.assertEqual(proc.returncode, 0)
+        self.assertIn("1 forbidden token(s) enforced", proc.stdout)
+        self.assertIn("enforce NOTHING", proc.stderr)
+        # The malformed warning must survive --format github as an annotation.
+        gh = _run(mixed, "--format", "github")
+        self.assertIn("::warning::", gh.stdout)
+        self.assertIn("enforce NOTHING", gh.stdout)
+
+    def test_all_malformed_tokens_is_not_enforcing(self) -> None:
+        """A list of only unmatched shapes is an empty ruleset in disguise: the
+        EMPTY warning and --fail-on-empty must treat it exactly like []."""
+        broken = _model(
+            {
+                "form": "formal",
+                "pronoun": "Sie",
+                "forbidden_tokens": ["du", "dein"],
+                "exceptions": [],
+            },
+            locale="de",
+        )
+        verdict = json.loads(_run(broken, "--json").stdout)
+        self.assertFalse(verdict["enforcing"])
+        self.assertEqual(verdict["forbidden_token_count"], 0)
+        self.assertEqual(verdict["malformed_token_count"], 2)
+        proc = _run(broken)
+        self.assertEqual(proc.returncode, 0)
+        self.assertIn("EMPTY", proc.stderr)
+        self.assertIn("enforce NOTHING", proc.stderr)
+        self.assertEqual(_run(broken, "--fail-on-empty").returncode, 1)
+
     def test_register_spec_prohibitions_counted_as_unenforced(self) -> None:
         """Forward-compatible with the upstream fix. translation-rules v0.1.1
         drops `register_spec` from the emitted model (lib/resolver/model.py
