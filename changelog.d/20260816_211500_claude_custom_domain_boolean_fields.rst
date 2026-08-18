@@ -20,6 +20,13 @@ Fixed
   verification uses) bypassed coercion entirely. Reads now heal legacy
   spellings on load, so no data migration is required.
 
+- The boolean fast-writer wrapper coerced by argument value rather than by
+  what Familia treats as a write. A two-argument ``field!`` call was collapsed
+  to one argument, swallowing the ``ArgumentError`` Familia would have raised
+  and persisting a value instead. Coercion is now applied only to calls that
+  actually write; reads (``field!`` and ``field!(nil)`` are both reads),
+  ``Redis::Future`` placeholders and arity errors pass through untouched.
+
 AI Assistance
 -------------
 

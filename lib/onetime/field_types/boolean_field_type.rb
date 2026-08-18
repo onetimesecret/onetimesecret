@@ -94,6 +94,8 @@ module Onetime
     #   dom.verified = 'YES'    # => true
     #   dom.verified = nil      # => nil (unset, not false)
     #   dom.verified!('no')     # fast writer; persists the JSON literal false
+    #   dom.verified!           # NOT a write — Familia reads the stored
+    #   dom.verified!(nil)      # bytes for both of these ({#fast_write?})
     #
     class BooleanFieldType < ::Familia::FieldType
       # Canonical truthy aliases (case-insensitive). Any value whose
@@ -155,6 +157,13 @@ module Onetime
       # Mirrors {::Familia::FieldType#define_setter}, interposing the
       # coercion step.
       #
+      # Every assignment is a write, so every assignment is coerced —
+      # including `nil`, which under `:string` becomes `'false'` and under
+      # `:native` stays nil. {#define_fast_writer} is the mirror image of
+      # this method for the `field!` path; see {#fast_write?} for why the
+      # two do not coerce the same set of *calls* even though they coerce
+      # every *write* identically.
+      #
       # This is also where legacy rows self-heal: Familia's load path
       # deserializes each stored value and assigns it through this setter,
       # so a row persisted as `'true'` (a JSON-quoted string) or `'1'`
@@ -174,15 +183,59 @@ module Onetime
         end
       end
 
+      # Does this argument list reach Familia's fast-writer WRITE path?
+      #
+      # Mirrors the guard at the top of the generated method, verified
+      # against familia 2.12.0 (lib/familia/field_type.rb, #define_fast_writer):
+      #
+      #   raise ArgumentError, "wrong number of arguments ..." if args.size > 1
+      #   val = args.first
+      #   return hget(field_name) if val.nil? || val.is_a?(Redis::Future)
+      #
+      # Three calls therefore never write:
+      #
+      # 1. `field!` — no argument at all.
+      # 2. `field!(nil)` — Familia does NOT distinguish "no argument" from
+      #    "explicit nil" (`[].first` and `[nil].first` are both nil), so
+      #    both forms return `hget(field_name)`. Confirmed by probing the
+      #    generated method under both storage encodings: the stored bytes
+      #    are returned and left untouched.
+      # 3. More than one argument — Familia raises ArgumentError.
+      #
+      # Coercing any of those would change what the call MEANS rather than
+      # just its value. Under `:string`, `coerce(nil)` is `'false'`, so a
+      # coerced `field!(nil)` would stop being a read and start silently
+      # overwriting the stored value with false; and collapsing a 2-arg call
+      # to 1 arg would swallow Familia's arity error. So only real writes are
+      # coerced and everything else is forwarded verbatim.
+      #
+      # @param args [Array] the argument list as received by `field!`
+      # @return [Boolean] true when Familia will persist `args.first`
+      def fast_write?(args)
+        return false unless args.size == 1
+
+        value = args.first
+
+        # `===` rather than `value.is_a?`/`value.nil?`: Redis::Future
+        # subclasses BasicObject, so a method call on one can raise
+        # NoMethodError. Checked before the nil test for that reason.
+        return false if ::Redis::Future === value # rubocop:disable Style/CaseEquality
+
+        !value.nil?
+      end
+
       # Familia's fast writer (`field!(value)`) assigns the ivar through the
       # setter above, but persists `serialize_value(raw_argument)` — the
       # UN-coerced input (familia/field_type.rb#define_fast_writer). That is
       # the one write path the setter cannot cover, so wrap the generated
       # method to coerce the argument before it reaches either side.
       #
-      # A nil/absent argument is left alone: Familia treats `field!` with no
-      # usable value as a READ, and coercing it would turn the getter into a
-      # write of false.
+      # Coercion is applied to exactly the calls Familia treats as writes
+      # (see {#fast_write?}); reads, `Redis::Future` placeholders and arity
+      # errors are forwarded untouched. That keeps `field=` and `field!` in
+      # agreement for every storage encoding: every value that reaches the
+      # datastore has been through {#coerce}, and no call that wasn't a write
+      # is turned into one.
       def define_fast_writer(klass)
         super
         return unless @fast_method_name
@@ -192,7 +245,7 @@ module Onetime
         original   = klass.instance_method(@fast_method_name)
 
         klass.define_method(@fast_method_name) do |*args|
-          args = [field_type.coerce(args.first)] unless args.empty? || args.first.nil?
+          args = [field_type.coerce(args.first)] if field_type.fast_write?(args)
           original.bind_call(self, *args)
         end
       end
