@@ -187,6 +187,12 @@ module Auth::Config::Hooks
           next # Continue with platform defaults (if allowed)
         end
 
+        # Cache the loaded record for the rest of this rack request: on the
+        # callback phase, before_omniauth_callback_route's allowlist
+        # enforcement needs the same SsoConfig and would otherwise pay a
+        # second identical Redis read per callback.
+        request.env['onetime.tenant_sso_config'] = sso_config
+
         # Store tenant context in session for callback validation.
         # Only during request phase — callback phase must NOT overwrite the
         # stored context, otherwise the mismatch check is defeated.
@@ -286,6 +292,47 @@ module Auth::Config::Hooks
           request.halt
         end
 
+        # ────────────────────────────────────────────────────────────────
+        # TENANT SSO EMAIL-DOMAIN ALLOWLIST
+        # ────────────────────────────────────────────────────────────────
+        #
+        # Enforce CustomDomain::SsoConfig#allowed_domains — the access control
+        # the SSO config UI, the API and the provider metadata all present to
+        # operators as the way to restrict a generic OIDC IdP to their own
+        # email domains ('oidc' declares requires_domain_filter: true,
+        # sso_config.rb). It had no runtime call site at all: the only domain
+        # gate that ran was before_omniauth_create_account (hooks/omniauth.rb),
+        # which consults a DIFFERENT object (CustomDomain::SignupConfig / the
+        # global allowed_signup_domains) and runs on the CREATE path only.
+        #
+        # THIS hook is the enforcement point precisely because it is not the
+        # create path: before_omniauth_callback_route is the first statement of
+        # rodauth-omniauth's _handle_omniauth_callback, so it runs on EVERY
+        # callback — JIT creation and every subsequent sign-in alike — before
+        # the gem branches on whether an (provider, issuer, uid) identity row
+        # already exists. account_from_omniauth and before_omniauth_create_account
+        # are both skipped once that row exists, which is why a create-only gate
+        # let a user keep signing in indefinitely after their domain was removed
+        # from the allowlist. The auth hash is already available here — the
+        # logging above reads omniauth_provider/omniauth_uid/omniauth_email.
+        #
+        # Placed AFTER the tenant-mismatch check so the allowlist consulted is
+        # the one belonging to the domain that actually initiated this flow, and
+        # BEFORE the validated stamp below so a rejected callback never leaves
+        # :validated_omniauth_domain_id behind for the org-join hooks.
+        #
+        # Fails closed on every branch it can: a config that has gone missing, an
+        # unreadable allowlist, and a missing/malformed asserted email are all
+        # denials rather than pass-throughs. An EMPTY allowlist still means
+        # allow-all — that is the documented, spec-asserted state and the correct
+        # one for Entra ID, where the IdP controls access via app assignment.
+        HELPERS.enforce_tenant_email_domain!(
+          expected_domain_id,
+          omniauth_email,
+          self,
+          sso_config: request.env['onetime.tenant_sso_config'],
+        )
+
         # Re-store validated domain_id under a separate key so downstream hooks
         # (after_omniauth_create_account, after_login) can join the tenant org.
         # The original :omniauth_tenant_domain_id is intentionally consumed by
@@ -342,6 +389,95 @@ module Auth::Config::Hooks
       return false if host.to_s.empty?
 
       Onetime::Middleware::DomainStrategy.canonical_host?(host)
+    end
+
+    # Enforce a tenant's SSO email-domain allowlist, halting the callback when
+    # the IdP-asserted address is not permitted.
+    #
+    # Runs on both the account-creation and the sign-in path (see the call site
+    # in before_omniauth_callback_route for why that hook is the enforcement
+    # point). Returns normally only when the address is allowed.
+    #
+    # FAIL-CLOSED LADDER. Reached only for a callback whose tenant context has
+    # already been validated, so every rung below describes a tenant flow we
+    # cannot authorize, not an ordinary platform sign-in:
+    #
+    #   no SsoConfig      - the record backing this flow is gone (deleted or
+    #                       unreadable mid-flow). We have no policy to apply and
+    #                       cannot conclude "unrestricted", so deny.
+    #   corrupt allowlist - a value is present but unparseable. Denying keeps a
+    #                       damaged allowlist from silently becoming allow-all;
+    #                       see SsoConfig#allowed_domains_corrupt?.
+    #   unusable email    - absent, or not matching the accounts.valid_email
+    #                       shape. This rung is load-bearing, not hygiene:
+    #                       valid_email_domain? takes the segment after the
+    #                       LAST '@', so for an allowlist of ['example.com'] the
+    #                       asserted address attacker@evil.com@example.com
+    #                       resolves to example.com and the allowlist ALONE
+    #                       returns true. The structural check rejects it first
+    #                       (nothing after the first '@' may contain another
+    #                       '@'). Note the mirror image, user@example.com@evil.com,
+    #                       proves nothing here — it resolves to evil.com and the
+    #                       allowlist rejects it unaided. Any regression test for
+    #                       this rung must use the FORMER ordering.
+    #   domain not listed - the ordinary rejection.
+    #
+    # An empty allowlist is NOT a rung — valid_email_domain? returns true and
+    # the callback proceeds. That is the documented allow-all state.
+    #
+    # Rejections reuse auth_error=domain_not_allowed, which Login.vue already
+    # renders from a localized key and which deliberately does not disclose the
+    # configured domains. The audit event is distinct
+    # (:omniauth_tenant_domain_rejected) so operators can still tell a tenant
+    # allowlist denial apart from the signup-domain denial in hooks/omniauth.rb.
+    # The asserted address is attacker-controlled, so it is obscured in logs.
+    #
+    # @param domain_id [String] validated CustomDomain identifier for this flow
+    # @param email [String, nil] IdP-asserted email address
+    # @param rodauth [Rodauth] Rodauth instance (for redirect)
+    # @param sso_config [Onetime::CustomDomain::SsoConfig, nil] record already
+    #   loaded by omniauth_setup on this request (rack-env cache); trusted only
+    #   when its domain_id matches, otherwise re-fetched
+    # @return [void]
+    def self.enforce_tenant_email_domain!(domain_id, email, rodauth, sso_config: nil)
+      # omniauth_setup loads this record on the same request; accepting it
+      # avoids a second Redis read per callback. Trust it only when it belongs
+      # to the validated domain — anything else (nil, setup short-circuited by
+      # the strategy, mismatched record) falls back to a fresh fetch so the
+      # ladder below stays fail-closed.
+      sso_config   = nil unless sso_config&.domain_id == domain_id
+      sso_config ||= Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain_id)
+
+      # Normalized exactly as the sibling signup-domain gate normalizes it
+      # (before_omniauth_create_account, hooks/omniauth.rb), so the two gates
+      # cannot disagree about what address they are judging. Without the strip
+      # an IdP that pads the claim would fail the structural check below and be
+      # denied for the wrong reason.
+      candidate = email.to_s.strip.downcase
+
+      reason = if sso_config.nil?
+                 :no_sso_config
+               elsif sso_config.allowed_domains_corrupt?
+                 :allowlist_unreadable
+               elsif sso_config.allowed_domains.empty?
+                 nil # No allowlist configured — every authenticated identity is permitted.
+               elsif !Onetime::SignupValidation.structurally_valid_email?(candidate)
+                 :unusable_email
+               elsif !sso_config.valid_email_domain?(candidate)
+                 :domain_not_allowed
+               end
+
+      return unless reason
+
+      Auth::Logging.log_auth_event(
+        :omniauth_tenant_domain_rejected,
+        level: :warn,
+        domain_id: domain_id,
+        email: OT::Utils.obscure_email(email),
+        reason: reason,
+      )
+
+      rodauth.send(:redirect, '/signin?auth_error=domain_not_allowed')
     end
 
     # Handle requests where no tenant SSO config is available.
