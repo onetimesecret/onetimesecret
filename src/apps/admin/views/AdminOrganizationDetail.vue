@@ -15,11 +15,13 @@
   import type { InvestigateOrganizationResult } from '@/schemas/api/internal/responses/colonel';
   import { investigateOrganizationResponseSchema } from '@/schemas/api/internal/responses/colonel';
   import type {
+    ColonelDeleteOrganizationDetails,
     ColonelOrganizationDetailDomain,
     ColonelOrganizationDetailMember,
     ColonelReconcileOrganizationRecord,
   } from '@/schemas/api/internal/responses/colonel-organizations';
   import {
+    colonelDeleteOrganizationResponseSchema,
     colonelEntitlementOverrideResponseSchema,
     colonelOrganizationDetailResponseSchema,
     colonelReconcileOrganizationResponseSchema,
@@ -31,7 +33,7 @@
   import { getPlanLabel } from '@/types/billing';
   import { formatDisplayDateTime } from '@/utils/format';
   import { gracefulParse } from '@/utils/schemaValidation';
-  import { computed, onMounted, ref } from 'vue';
+  import { computed, onMounted, ref, watch } from 'vue';
   import { useI18n } from 'vue-i18n';
   import { useRouter } from 'vue-router';
 
@@ -481,6 +483,176 @@
       },
     ];
   });
+
+  // ---- Delete (IRREVERSIBLE — preview, then a typed-confirmation apply) -----
+  //
+  // Console peer of `bin/ots org delete` (#4204), over the same
+  // `Onetime::Operations::Org::Delete` op. Support's actual case — "customer
+  // has two orgs, delete the free one" — previously had NO operator path: the
+  // customer-facing UI hides the button for a default workspace and 403s
+  // without a materialised `manage_org`, and the alternative was a hand-run
+  // `bin/console destroy!` that leaves the org in `Organization.instances`,
+  // mails nobody, and leaves `default_org_id` pointing at a dead org.
+  //
+  // TWO requests, always in this order:
+  //
+  //   1. PREVIEW — `dry_run=true`. The endpoint already defaults to a dry run;
+  //      we send it explicitly so a future default change cannot silently turn
+  //      a preview into a delete. It returns the plan the operator confirms
+  //      against (members + emails, invitations, domains, plan, owner, and the
+  //      `default_org_id` rows the delete repairs) plus the guardrail that
+  //      would block an apply.
+  //   2. APPLY — `dry_run=false`, only after the operator retypes the extid.
+  //
+  // `record.deleted` is the ONLY thing treated as proof of deletion: the
+  // preview also answers 200, and a 200 there means "here is what would
+  // happen", not "it is gone".
+
+  /** Guardrail statuses the server refuses an APPLY on (the op's vocabulary). */
+  const DELETE_BLOCKING_STATUSES: readonly string[] = [
+    'has_domains',
+    'is_default',
+    'active_subscription',
+    'last_org',
+  ];
+
+  const deleteDialogOpen = ref(false);
+  const deletePlan = ref<ColonelDeleteOrganizationDetails | null>(null);
+  const deleteStatus = ref<string | null>(null);
+  /** Each override unlocks exactly ONE guard; both are operator-only. */
+  const forceDefault = ref(false);
+  const forceSubscription = ref(false);
+
+  function deleteUrl(dryRun: boolean): string {
+    // Query string, not a request body: DELETE bodies are not reliably parsed
+    // across this stack (same reason the domain-remove call does it).
+    const params = new URLSearchParams({
+      dry_run: String(dryRun),
+      force_default: String(forceDefault.value),
+      force_subscription: String(forceSubscription.value),
+    });
+    return `${orgUrl()}?${params.toString()}`;
+  }
+
+  const {
+    loading: deletePreviewLoading,
+    error: deletePreviewError,
+    run: runDeletePreview,
+  } = useAdminMutation(async () => {
+    const response = await $api.delete(deleteUrl(true));
+    const parsed = gracefulParse(
+      colonelDeleteOrganizationResponseSchema,
+      response.data,
+      'ColonelDeleteOrganizationResponse'
+    );
+    // Ack drift is non-fatal elsewhere, but this payload IS the confirmation:
+    // refusing to open a destroy dialog we cannot describe is the whole point.
+    if (!parsed.ok || !parsed.data.details) {
+      throw new Error(t('web.admin.organizations.detail.delete.errors.planUnreadable'));
+    }
+    deletePlan.value = parsed.data.details;
+    deleteStatus.value = parsed.data.record.status;
+  });
+
+  /**
+   * Names when the server could load them, the raw count when it could not: a
+   * stale entry in the domains collection still blocks the delete but has no
+   * name to print.
+   */
+  const domainSummary = computed(() => {
+    const plan = deletePlan.value;
+    if (!plan || plan.domain_count === 0) return '';
+    return plan.domains.length ? plan.domains.join(', ') : String(plan.domain_count);
+  });
+
+  /**
+   * The guardrail message, or null when the delete would go through. Rendered
+   * in the dialog AND enforced in the apply below, so a blocked delete cannot
+   * be confirmed past the client either.
+   */
+  const deleteBlockedReason = computed<string | null>(() => {
+    const status = deleteStatus.value;
+    if (!status || !DELETE_BLOCKING_STATUSES.includes(status)) return null;
+    if (status === 'has_domains') {
+      return t('web.admin.organizations.detail.delete.blocked.hasDomains', {
+        domains: domainSummary.value,
+      });
+    }
+    if (status === 'is_default') {
+      return t('web.admin.organizations.detail.delete.blocked.isDefault');
+    }
+    if (status === 'active_subscription') {
+      return t('web.admin.organizations.detail.delete.blocked.activeSubscription');
+    }
+    return t('web.admin.organizations.detail.delete.blocked.lastOrg', {
+      owner: deletePlan.value?.owner_id ?? '—',
+    });
+  });
+
+  const {
+    loading: deleteLoading,
+    error: deleteError,
+    run: runDeleteMutation,
+    reset: resetDelete,
+  } = useAdminMutation(async () => {
+    // The server refuses these on the apply path too (4xx). Checking here means
+    // the operator reads the reason instead of a generic request failure.
+    if (deleteBlockedReason.value) throw new Error(deleteBlockedReason.value);
+
+    const response = await $api.delete(deleteUrl(false));
+    const parsed = gracefulParse(
+      colonelDeleteOrganizationResponseSchema,
+      response.data,
+      'ColonelDeleteOrganizationResponse'
+    );
+    if (!parsed.ok) {
+      // The delete may well have happened — say so rather than guessing either
+      // way. The audit log and the org list are the record.
+      throw new Error(t('web.admin.organizations.detail.delete.errors.unverified'));
+    }
+    if (!parsed.data.record.deleted || parsed.data.details?.dry_run !== false) {
+      // A dry_run echo on an apply means the flag did not reach the endpoint.
+      throw new Error(t('web.admin.organizations.detail.delete.errors.notApplied'));
+    }
+  });
+
+  async function requestDelete(): Promise<void> {
+    resetDelete();
+    deletePlan.value = null;
+    deleteStatus.value = null;
+    forceDefault.value = false;
+    forceSubscription.value = false;
+
+    if (!(await runDeletePreview())) return; // preview failure renders inline
+    deleteDialogOpen.value = true;
+  }
+
+  // Re-plan whenever an override is toggled: clearing one guard can reveal the
+  // next one (a default workspace that is also the owner's only org), and the
+  // dialog must never show a stale verdict.
+  watch([forceDefault, forceSubscription], () => {
+    if (!deleteDialogOpen.value) return;
+    resetDelete();
+    runDeletePreview();
+  });
+
+  async function onDeleteConfirm(): Promise<void> {
+    const ok = await runDeleteMutation();
+    if (!ok) return; // Failure message stays in the dialog for retry/cancel.
+
+    deleteDialogOpen.value = false;
+    notifications.show(
+      t('web.admin.organizations.detail.delete.success', { org: heading.value }),
+      'success'
+    );
+    // The record is gone; the detail route would 404 on refresh.
+    goBack();
+  }
+
+  function onDeleteCancel(): void {
+    deleteDialogOpen.value = false;
+    resetDelete();
+  }
 
   // ---- Add an EXISTING account to this org (MUTATING — audited server-side) --
   //
@@ -1298,6 +1470,57 @@
           </div>
         </div>
       </section>
+
+      <!--
+        Caution zone — permanent delete (#4204). The console peer of
+        `bin/ots org delete`, and the reason an operator never has to reach for
+        `bin/console` (a hand-run destroy! leaves Organization.instances
+        dangling, mails nobody, and strands default_org_id).
+
+        The button only PREVIEWS: the plan it fetches is what the confirmation
+        dialog is built from, and nothing is written until the extid is retyped.
+      -->
+      <section
+        class="overflow-hidden rounded-lg border border-red-200 bg-white shadow-sm dark:border-red-900/50 dark:bg-gray-800"
+        data-testid="org-danger-zone">
+        <div class="border-b border-red-200 px-6 py-4 dark:border-red-900/50">
+          <h2 class="text-sm font-semibold text-red-700 dark:text-red-400">
+            {{ t('web.COMMON.caution_zone') }}
+          </h2>
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            {{ t('web.admin.organizations.detail.delete.warning') }}
+          </p>
+        </div>
+
+        <div class="space-y-3 px-6 py-5">
+          <button
+            type="button"
+            data-testid="org-delete-button"
+            :disabled="deletePreviewLoading || deleteLoading"
+            class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-600 transition-colors hover:bg-red-600 hover:text-white focus:ring-2 focus:ring-red-500 focus:ring-offset-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-700 dark:hover:text-white"
+            @click="requestDelete">
+            <OIcon
+              collection="heroicons"
+              :name="deletePreviewLoading ? 'arrow-path' : 'trash'"
+              size="4"
+              :class="deletePreviewLoading ? 'animate-spin motion-reduce:animate-none' : ''" />
+            {{
+              deletePreviewLoading
+                ? t('web.admin.organizations.detail.delete.previewing')
+                : t('web.admin.organizations.detail.delete.button')
+            }}
+          </button>
+
+          <!-- Preview failure: the dialog never opens, so report it here. -->
+          <div
+            v-if="deletePreviewError && !deleteDialogOpen"
+            class="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-300"
+            role="alert"
+            data-testid="org-delete-preview-error">
+            {{ deletePreviewError }}
+          </div>
+        </div>
+      </section>
     </div>
 
     <!--
@@ -1349,5 +1572,118 @@
       :error="reconcileError"
       @confirm="onReconcileConfirm"
       @cancel="onReconcileCancel" />
+
+    <!--
+      Guarded delete (typed-confirmation — retype the extid). The description
+      slot carries the server's own plan: what is about to be destroyed, the
+      guardrail that would block it, and the single override that clears that
+      one guard. Toggling an override re-runs the preview.
+    -->
+    <AdminConfirmDialog
+      v-model:open="deleteDialogOpen"
+      :title="t('web.admin.organizations.detail.delete.confirmTitle')"
+      :confirm-token="record?.extid"
+      variant="danger"
+      :confirm-text="t('web.admin.organizations.detail.delete.button')"
+      :loading="deleteLoading || deletePreviewLoading"
+      :error="deleteError || deletePreviewError"
+      @confirm="onDeleteConfirm"
+      @cancel="onDeleteCancel">
+      <template #description>
+        <div
+          class="space-y-3 text-sm text-gray-600 dark:text-gray-300"
+          data-testid="org-delete-plan">
+          <p>
+            {{ t('web.admin.organizations.detail.delete.confirmDescription', { org: heading }) }}
+          </p>
+
+          <!-- The guardrail verdict, when the server would refuse the apply. -->
+          <p
+            v-if="deleteBlockedReason"
+            class="rounded-md bg-red-50 p-2 text-xs text-red-700 dark:bg-red-900/20 dark:text-red-300"
+            role="alert"
+            data-testid="org-delete-blocked">
+            {{ deleteBlockedReason }}
+          </p>
+
+          <dl
+            v-if="deletePlan"
+            class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+            <dt class="text-gray-500 dark:text-gray-400">
+              {{ t('web.admin.organizations.fields.plan') }}
+            </dt>
+            <dd class="font-mono text-gray-900 dark:text-white">{{ deletePlan.planid }}</dd>
+
+            <dt class="text-gray-500 dark:text-gray-400">
+              {{ t('web.admin.organizations.detail.delete.membersLabel') }}
+            </dt>
+            <dd
+              class="text-gray-900 dark:text-white"
+              data-testid="org-delete-member-count">
+              {{ deletePlan.members.length }}
+            </dd>
+
+            <dt class="text-gray-500 dark:text-gray-400">
+              {{ t('web.admin.organizations.detail.delete.invitationsLabel') }}
+            </dt>
+            <dd class="text-gray-900 dark:text-white">{{ deletePlan.pending_invitations }}</dd>
+
+            <dt class="text-gray-500 dark:text-gray-400">
+              {{ t('web.admin.organizations.detail.delete.domainsLabel') }}
+            </dt>
+            <dd class="text-gray-900 dark:text-white">
+              {{ domainSummary || t('web.admin.organizations.detail.none') }}
+            </dd>
+
+            <dt class="text-gray-500 dark:text-gray-400">
+              {{ t('web.admin.organizations.detail.delete.defaultOrgLabel') }}
+            </dt>
+            <dd class="text-gray-900 dark:text-white">
+              {{
+                deletePlan.default_org_cleared.length
+                  ? deletePlan.default_org_cleared.join(', ')
+                  : t('web.admin.organizations.detail.none')
+              }}
+            </dd>
+          </dl>
+
+          <!-- Member roster: the operator checks they have the right org. -->
+          <ul
+            v-if="deletePlan?.members.length"
+            class="max-h-32 space-y-0.5 overflow-y-auto rounded border border-gray-200 p-2 text-xs dark:border-gray-700">
+            <li
+              v-for="member in deletePlan.members"
+              :key="member.extid"
+              class="flex items-center justify-between gap-2">
+              <span class="font-mono text-gray-500 dark:text-gray-400">{{ member.extid }}</span>
+              <span class="truncate text-gray-700 dark:text-gray-200">{{ member.email }}</span>
+            </li>
+          </ul>
+
+          <!-- Overrides: each clears exactly ONE guard, and only when it trips. -->
+          <label
+            v-if="deletePlan?.is_default"
+            class="flex items-start gap-2 text-xs text-gray-700 dark:text-gray-300"
+            data-testid="org-delete-force-default">
+            <input
+              v-model="forceDefault"
+              type="checkbox"
+              class="mt-0.5 rounded border-gray-300 text-red-600 focus:ring-red-500 dark:border-gray-600 dark:bg-gray-700" />
+            <span>{{ t('web.admin.organizations.detail.delete.forceDefault') }}</span>
+          </label>
+
+          <label
+            v-if="deletePlan?.active_subscription"
+            class="flex items-start gap-2 text-xs text-gray-700 dark:text-gray-300"
+            data-testid="org-delete-force-subscription">
+            <input
+              v-model="forceSubscription"
+              type="checkbox"
+              class="mt-0.5 rounded border-gray-300 text-red-600 focus:ring-red-500 dark:border-gray-600 dark:bg-gray-700" />
+            <span>{{ t('web.admin.organizations.detail.delete.forceSubscription') }}</span>
+          </label>
+        </div>
+      </template>
+    </AdminConfirmDialog>
   </div>
 </template>
