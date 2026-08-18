@@ -7,6 +7,16 @@ detail lives in [`docs/operations/upgrading-v0-26-5.md`](../operations/upgrading
 
 ## Deployment Notes
 
+> [!TIP]
+> **Already running `v0.26.5-rc1`?** Everything in the first three boxes below is
+> already live for you — the admin gates, the proxy and geo changes, the boolean
+> reader and the passkey renames all shipped in the RC. What is new since the RC is:
+> the full-mode per-domain sign-in/sign-up enforcement (the third checklist item),
+> the SSO admin repair and the role-index tool under **After upgrading**, the V1
+> anonymous TTL cap, the `HttpOrigin` fix with the middleware registry, and the two
+> authorization controls from #4196 in the box below. Those are the only items worth
+> re-reading.
+
 > [!IMPORTANT]
 > **Three gates now fail closed, and all three answer the same `404`.** The admin
 > host gate, the admin CIDR gate, and the new per-domain sign-in/sign-up opt-ins
@@ -34,6 +44,27 @@ detail lives in [`docs/operations/upgrading-v0-26-5.md`](../operations/upgrading
 > Confirm your value is `true` or `false`. If you were unknowingly relying on the
 > old behaviour to reach a node with an untrusted certificate, that connection will
 > now fail — set `RABBITMQ_VERIFY_PEER=false` explicitly and fix the certificate.
+
+> [!WARNING]
+> **Two authorization controls start being enforced (#4196).** Both were closed as
+> High findings from the 2026-08-14 security review, and both fail closed, so the
+> tightening is visible on day one.
+> - **Tenant SSO `allowed_domains` is now actually applied.** The method existed in
+>   the model, the UI, the API and the docs, but nothing called it at runtime — every
+>   tenant allowlist was inert. It is enforced on the OmniAuth callback now. **If any
+>   tenant's allowlist is stale or wrong, their users stop being able to sign in.**
+>   Review each tenant SSO allowlist before upgrading. An empty allowlist is still the
+>   documented allow-all state; an unreadable one denies rather than degrading to
+>   allow-all. Rejections carry `auth_error=domain_not_allowed` and the distinct audit
+>   event `:omniauth_tenant_domain_rejected`.
+> - **Organization-scope receipts now require `audit_logs`.** `GET /receipt/recent?scope=org`
+>   returns other members' receipts, so it is gated at the same entitlement as the
+>   sibling org-wide audit surface. Standalone and billing-disabled installs are
+>   unaffected — `STANDALONE_ENTITLEMENTS` already includes `audit_logs`. **On
+>   billing-enabled installs it is an operator action:** entitlements come from the
+>   plan catalog, and the shipped example catalog defines `audit_logs` without granting
+>   it in any plan, so `scope=org` returns 403 for every role — owners included — until
+>   you grant it on the plans that should have org-wide visibility.
 
 > [!NOTE]
 > **`BILLING_ENABLED=1` now does what it says.** Billing remains **disabled by
@@ -63,6 +94,40 @@ detail lives in [`docs/operations/upgrading-v0-26-5.md`](../operations/upgrading
   to compensate for the old miscount, restore the real value. (#4024)
 - **Org-trail geolocation is opt-in and stays off.** `SECRET_ACTIVITY_GEO_COUNTRY_ENABLED`
   defaults to `false` pending the legal review in ADR-021. (#3989)
+- **Anonymous secrets created through the V1 API are now capped at the configured
+  anonymous TTL** (default 7 days). They previously fell through to the global
+  ceiling — 30 days — so an anonymous V1 client asking for a longer expiry now gets
+  7 days instead. The V2 path already behaved this way. (#4172)
+- **Custom-domain `HttpOrigin` 403s are fixed.** If you added a proxy rule or a
+  middleware workaround for those, you can remove it. The middleware stack is now
+  assembled from a registry with per-app profiles, and the auth app's members are
+  individually toggleable via `MIDDLEWARE_AUTH_*` (all default on — leave them alone
+  unless you are debugging). (#4170, #4181)
+
+**After upgrading:**
+
+- **Repair SSO-provisioned admins.** Customers created just-in-time through SSO were
+  written unverified and nothing ever flipped the flag, so an SSO-provisioned colonel
+  or admin **cannot exercise their role** — the system role check refuses an
+  unverified customer before it looks at the role. New signups are fixed at creation;
+  existing records need a one-time repair:
+
+  ```bash
+  bin/ots customers doctor --all              # reports :sso_customer_unverified
+  bin/ots customers doctor --all --repair     # heals them
+  ```
+
+  The repair only touches records whose provisioning origin is literally SSO and whose
+  Rodauth account is already Verified. If you have never used SSO, skip this. (#3973)
+- **Optional: reconcile the role index.** `bin/ots customers role reconcile` reports
+  drift between the authoritative `role` field and the derived `customer:role_index:*`
+  sets that `role list` and `colonel_count` read. Drift predates this release (targeted
+  field writers and TTL expiry both leave stale members, permanently inflating
+  `colonel_count`). Dry-run by default; `--apply` writes an incremental diff. (#3974)
+- **Expect the account "active sessions" list to fill in gradually.** It previously
+  showed no IP, browser or country for anyone, because it joined on a value Rodauth
+  never stores. Sessions that already exist at deploy time have no join key until
+  their next sign-in. No migration or backfill. (#3989)
 
 **Background on the admin host gate:** it anchors on the canonical hostname, which
 means it needs a routable one. On an install serving `localhost` or a bare IP, boot
