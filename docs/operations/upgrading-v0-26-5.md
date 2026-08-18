@@ -3,8 +3,9 @@
 v0.26.5 tightens several gates that previously degraded permissively. Nothing in
 this release adds a schema migration or a bulk data transform, so **rollback is a
 tag swap** — but three of the tightened gates produce the *same* symptom (a
-`404`), and one config-parsing change can flip a flag you thought was off. Those
-are the reasons to read this before upgrading rather than after.
+`404`), one config-parsing change starts honouring a flag that was previously
+ignored, and SSO installs need a one-time repair afterwards. Those are the
+reasons to read this before upgrading rather than after.
 
 Coming from a version older than v0.26.0? Work through the earlier upgrade
 guides first; this one only covers the v0.26.4 → v0.26.5 step.
@@ -22,6 +23,7 @@ guides first; this one only covers the v0.26.4 → v0.26.5 step.
      `RABBITMQ_VERIFY_PEER` in your environment, if set.
    - Whether any custom domain in your install serves password or magic-link
      sign-in.
+   - Whether any of your admins or colonels were provisioned through SSO.
 
 ## What Changes
 
@@ -34,6 +36,9 @@ guides first; this one only covers the v0.26.4 → v0.26.5 step.
 | Boolean parsing | `BILLING_ENABLED`, `STRIPE_AUTOMATIC_TAX`, `RABBITMQ_VERIFY_PEER` accept the full `1/true/yes/on/y/t` vocabulary and **raise at boot** on anything unrecognized | **Yes**, if any of the three is set to something other than `true`/`false` |
 | Geo | `GEO_HEADER` is honoured only in `TRUSTED_PROXY_MODE=filter`; depth-mode and direct-connect installs need `GEO_DB_PATH` | Only to keep session country resolving |
 | Passkey flag names | `WEBAUTHN_VERIFY_ACCOUNT` / `WEBAUTHN_AUTOFILL` renamed to `AUTH_WEBAUTHN_*` | Rename when convenient — the old names log a warning and are ignored |
+| SSO-provisioned admins | Customers created just-in-time through SSO were written unverified, which blocks their role. New signups are fixed; existing records need a one-time repair | **Yes**, if you use SSO — see After Upgrading |
+| V1 API anonymous TTL | Anonymous secret creation through the V1 API is capped at the configured anonymous ceiling (default 7 days) instead of falling through to the 30-day global one | Only if anonymous V1 clients request longer expiries |
+| Custom-domain `HttpOrigin` | 403s on custom domains are fixed; middleware is assembled from a registry with per-app profiles and `MIDDLEWARE_AUTH_*` toggles | Remove any workaround you added for those 403s |
 | Sessions list | The account "active sessions" list starts showing IP, browser and country | No — it fills in as users re-authenticate |
 
 ## The Upgrade Checklist
@@ -172,6 +177,52 @@ The old names are ignored and log a `CONFIG DEPRECATION` line. They are
 registered as soft deprecations, so they will not fail your boot even under the
 default `DEPRECATED_CONFIG_MODE=strict`. Only the literal `true` enables either
 flag.
+
+## After Upgrading
+
+### Only if you use SSO: repair provisioned admins
+
+Customers provisioned just-in-time through SSO were created unverified and nothing
+ever flipped the flag — the flag is normally set by the emailed verify-account flow,
+which an SSO user never traverses. The visible consequence is that an
+SSO-provisioned colonel or admin **cannot exercise their role**: the system role
+check refuses an unverified customer before it looks at the role at all, even after
+a promotion from the CLI.
+
+New SSO signups are marked verified at creation. Existing records need a one-time
+repair:
+
+```bash
+bin/ots customers doctor --all              # reports :sso_customer_unverified
+bin/ots customers doctor --all --repair     # heals them
+```
+
+The repair is limited to records whose provisioning origin is literally SSO and
+whose Rodauth account is already Verified. It writes only the customer mirror and
+preserves any verification provenance already present. (#3973)
+
+### Optional: reconcile the role index
+
+```bash
+bin/ots customers role reconcile            # dry-run report
+bin/ots customers role reconcile --apply --force
+```
+
+This repairs drift between the authoritative `role` field and the derived
+`customer:role_index:*` sets that `role list` and `colonel_count` read. The drift
+predates this release — targeted field writers retain the previous role's bucket
+member, and TTL expiry deletes the customer hash while its index members persist,
+permanently inflating `colonel_count`. The repair is an incremental SADD/SREM diff
+rather than a delete-and-repopulate rebuild, so an interrupted run cannot leave the
+index emptier than it started. (#3974)
+
+### Expect the active-sessions list to fill in gradually
+
+The account "active sessions" list previously showed no IP address, browser or
+country for anyone — it joined Rodauth's session rows on a value Rodauth never
+stores. Sessions that already exist at deploy time have no join key until their
+next sign-in, so they keep listing without those details. No migration or backfill
+is needed. (#3989)
 
 ## Verify
 
