@@ -64,12 +64,25 @@ locale) before review — same engine as the `validate-register` CI gate. Needs
 the resolved governance above.
 
 ```bash
+# Does this locale enforce anything at all? (WARNING when it does not)
+python3 locales/scripts/register-coverage.py \
+  --resolved generated/i18n/.resolved/<locale>.json
+
 # exit 0 = clean; 1 = lists each hit
 python3 .translation-rules/lib/resolver/lint_content.py \
   --resolved generated/i18n/.resolved/<locale>.json \
   --content-root . \
   "locales/content/<locale>/*.json"
 ```
+
+**A clean lint is not proof of enforcement.** When `register.forbidden_tokens`
+is empty the linter has nothing to search for: it reports `0 string(s) scanned`
+and exits 0, which looks exactly like a full clean pass. Today `de` and `ar`
+are in that state. Run `register-coverage.py` first — it prints the tokens
+enforced, or a WARNING when the answer is "none". An empty list is sometimes
+correct (`ar`'s dialectal markers are substrings of valid MSA words and cannot
+be tokenized); when it is not, the fix belongs upstream in `translation-rules`
+(`rules/locales/<locale>/register.yaml`), never in content.
 
 ## Per-task cycle (one writer per locale, claim-free)
 
