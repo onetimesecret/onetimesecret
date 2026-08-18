@@ -1549,7 +1549,7 @@
   },
   "web.domains.signin.sso_restrict_warning_body": {
     "text": "SSO nie jest dostępne w tej domenie, a ograniczenie, którego nie da się zastosować, całkowicie blokuje logowanie. Nikt nie będzie mógł się tutaj zalogować, dopóki SSO nie zacznie działać. Napraw najpierw SSO albo mimo to wprowadź ograniczenie i dokończ konfigurację.",
-    "source_hash": "b36ce005"
+    "source_hash": "086e3247"
   },
   "web.domains.signin.sso_restrict_warning_confirm": {
     "text": "Ogranicz mimo to",

@@ -1225,7 +1225,7 @@
   },
   "web.organizations.sso.connection_enabled_hint": {
     "text": "Quan està activa, els membres poden iniciar la sessió amb aquest proveïdor d'SSO. L'SSO també ha d'estar activat com a mètode d'inici de sessió a «Configuració de l'inici de sessió» del domini.",
-    "source_hash": "71a53159"
+    "source_hash": "871db2f1"
   },
   "web.organizations.sso.enable_untested_warning": {
     "text": "Aquesta connexió encara no ha superat cap prova aquí. Executa «Prova la connexió» abans d'activar-la, perquè una configuració defectuosa no arribi mai a la teva pàgina d'inici de sessió.",

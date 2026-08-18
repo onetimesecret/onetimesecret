@@ -1549,7 +1549,7 @@
   },
   "web.domains.signin.sso_restrict_warning_body": {
     "text": "此域名上无法使用 SSO，而无法生效的限制会完全阻止登录。在 SSO 正常工作之前，任何人都无法在此登录。请先修复 SSO，或者仍然限制并完成设置。",
-    "source_hash": "b36ce005"
+    "source_hash": "086e3247"
   },
   "web.domains.signin.sso_restrict_warning_confirm": {
     "text": "仍然限制",

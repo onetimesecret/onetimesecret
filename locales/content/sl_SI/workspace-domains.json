@@ -1549,7 +1549,7 @@
   },
   "web.domains.signin.sso_restrict_warning_body": {
     "text": "SSO na tej domeni ni na voljo, omejitev, ki je ni mogoče upoštevati, pa prijavo v celoti blokira. Nihče se tukaj ne bo mogel prijaviti, dokler SSO ne bo deloval. Najprej popravite SSO ali kljub temu omejite in dokončajte nastavitev.",
-    "source_hash": "b36ce005"
+    "source_hash": "086e3247"
   },
   "web.domains.signin.sso_restrict_warning_confirm": {
     "text": "Kljub temu omeji",

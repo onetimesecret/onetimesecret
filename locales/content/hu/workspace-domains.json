@@ -1549,7 +1549,7 @@
   },
   "web.domains.signin.sso_restrict_warning_body": {
     "text": "Az SSO nem érhető el ezen a doménen, és egy nem teljesíthető korlátozás teljesen blokkolja a bejelentkezést. Senki sem tud majd itt bejelentkezni, amíg az SSO nem működik. Először javítsa meg az SSO-t, vagy korlátozza mégis, és fejezze be a beállítást.",
-    "source_hash": "b36ce005"
+    "source_hash": "086e3247"
   },
   "web.domains.signin.sso_restrict_warning_confirm": {
     "text": "Korlátozás mégis",

@@ -1225,7 +1225,7 @@
   },
   "web.organizations.sso.connection_enabled_hint": {
     "text": "Ko je aktivna, se lahko člani prijavijo s tem ponudnikom SSO. SSO mora biti omogočen tudi kot metoda prijave v razdelku „Konfiguracija prijave“ domene.",
-    "source_hash": "71a53159"
+    "source_hash": "871db2f1"
   },
   "web.organizations.sso.enable_untested_warning": {
     "text": "Ta povezava tukaj še ni opravila preizkusa. Preden jo vklopite, zaženite „Preizkusi povezavo“, da pokvarjena nastavitev nikoli ne pride na vašo prijavno stran.",

@@ -1224,8 +1224,8 @@
     "source_hash": "b6334b2b"
   },
   "web.organizations.sso.connection_enabled_hint": {
-    "text": "När den är aktiv kan medlemmar logga in med denna SSO-leverantör. SSO måste också vara aktiverat som inloggningsmetod i domänens inloggningsinställningar.",
-    "source_hash": "71a53159"
+    "text": "När den är aktiv kan medlemmar logga in med denna SSO-leverantör. SSO måste också vara aktiverat som inloggningsmetod i domänens Inloggningskonfiguration.",
+    "source_hash": "871db2f1"
   },
   "web.organizations.sso.enable_untested_warning": {
     "text": "Den här anslutningen har ännu inte klarat ett test här. Kör Testa anslutning innan du aktiverar den, så att en felaktig konfiguration aldrig når din inloggningssida.",

@@ -1549,7 +1549,7 @@
   },
   "web.domains.signin.sso_restrict_warning_body": {
     "text": "このドメインではSSOを利用できません。適用できない制限を設定すると、サインインが完全にブロックされます。SSOが機能するようになるまで、このドメインでは誰もサインインできません。先にSSOを修正するか、このまま制限を適用して設定を完了してください。",
-    "source_hash": "b36ce005"
+    "source_hash": "086e3247"
   },
   "web.domains.signin.sso_restrict_warning_confirm": {
     "text": "このまま制限する",

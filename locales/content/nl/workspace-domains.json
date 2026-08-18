@@ -1549,7 +1549,7 @@
   },
   "web.domains.signin.sso_restrict_warning_body": {
     "text": "SSO is niet beschikbaar op dit domein, en een beperking die niet kan worden nageleefd blokkeert het inloggen volledig. Niemand kan hier inloggen totdat SSO werkt. Los SSO eerst op, of beperk toch en rond daarna de configuratie af.",
-    "source_hash": "b36ce005"
+    "source_hash": "086e3247"
   },
   "web.domains.signin.sso_restrict_warning_confirm": {
     "text": "Toch beperken",

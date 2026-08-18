@@ -1549,7 +1549,7 @@
   },
   "web.domains.signin.sso_restrict_warning_body": {
     "text": "El SSO no está disponible en este dominio, y una restricción que no se puede cumplir bloquea el inicio de sesión por completo. Nadie podrá iniciar sesión aquí hasta que el SSO funcione. Arregla primero el SSO, o restringe de todos modos y termina la configuración.",
-    "source_hash": "b36ce005"
+    "source_hash": "086e3247"
   },
   "web.domains.signin.sso_restrict_warning_confirm": {
     "text": "Restringir de todos modos",

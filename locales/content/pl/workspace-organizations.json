@@ -1224,8 +1224,8 @@
     "source_hash": "b6334b2b"
   },
   "web.organizations.sso.connection_enabled_hint": {
-    "text": "Gdy połączenie jest aktywne, członkowie mogą logować się u tego dostawcy SSO. SSO musi być również włączone jako metoda logowania w Ustawieniach logowania domeny.",
-    "source_hash": "71a53159"
+    "text": "Gdy połączenie jest aktywne, członkowie mogą logować się u tego dostawcy SSO. SSO musi być również włączone jako metoda logowania w Konfiguracji logowania domeny.",
+    "source_hash": "871db2f1"
   },
   "web.organizations.sso.enable_untested_warning": {
     "text": "To połączenie nie przeszło jeszcze tutaj testu. Uruchom Testuj połączenie, zanim je włączysz, aby niedziałająca konfiguracja nigdy nie trafiła na Twoją stronę logowania.",

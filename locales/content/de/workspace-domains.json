@@ -1549,7 +1549,7 @@
   },
   "web.domains.signin.sso_restrict_warning_body": {
     "text": "SSO ist auf dieser Domain nicht verfügbar, und eine Beschränkung, die nicht eingehalten werden kann, blockiert die Anmeldung vollständig. Niemand kann sich hier anmelden, bis SSO funktioniert. Behebe zuerst SSO oder beschränke trotzdem und schließe die Einrichtung ab.",
-    "source_hash": "b36ce005"
+    "source_hash": "086e3247"
   },
   "web.domains.signin.sso_restrict_warning_confirm": {
     "text": "Trotzdem beschränken",

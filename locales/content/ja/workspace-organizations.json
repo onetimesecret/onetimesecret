@@ -1225,7 +1225,7 @@
   },
   "web.organizations.sso.connection_enabled_hint": {
     "text": "有効にすると、メンバーはこのSSOプロバイダーでサインインできます。あわせて、ドメインの「サインイン設定」でSSOをサインイン方法として有効にする必要があります。",
-    "source_hash": "71a53159"
+    "source_hash": "871db2f1"
   },
   "web.organizations.sso.enable_untested_warning": {
     "text": "この接続はまだここでのテストに合格していません。不完全な設定がサインインページに影響しないよう、有効にする前に「接続テスト」を実行してください。",

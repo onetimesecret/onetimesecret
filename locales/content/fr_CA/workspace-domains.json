@@ -1549,7 +1549,7 @@
   },
   "web.domains.signin.sso_restrict_warning_body": {
     "text": "L'authentification unique n'est pas disponible sur ce domaine, et une restriction qui ne peut pas être respectée bloque complètement la connexion. Personne ne pourra se connecter ici tant que l'authentification unique ne fonctionnera pas. Corrigez d'abord la configuration SSO, ou restreignez quand même et terminez la configuration.",
-    "source_hash": "b36ce005"
+    "source_hash": "086e3247"
   },
   "web.domains.signin.sso_restrict_warning_confirm": {
     "text": "Restreindre quand même",

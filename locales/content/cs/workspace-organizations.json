@@ -1225,7 +1225,7 @@
   },
   "web.organizations.sso.connection_enabled_hint": {
     "text": "Když je připojení aktivní, členové se mohou přihlásit tímto poskytovatelem SSO. SSO musí být zároveň povoleno jako metoda přihlášení v Konfiguraci přihlášení dané domény.",
-    "source_hash": "71a53159"
+    "source_hash": "871db2f1"
   },
   "web.organizations.sso.enable_untested_warning": {
     "text": "Toto připojení zde zatím neprošlo testem. Než ho zapneš, spusť Otestovat připojení, aby se rozbitá konfigurace nikdy nedostala na tvou přihlašovací stránku.",

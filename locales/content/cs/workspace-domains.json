@@ -1549,7 +1549,7 @@
   },
   "web.domains.signin.sso_restrict_warning_body": {
     "text": "SSO není na této doméně k dispozici a omezení, které nelze dodržet, přihlášení úplně zablokuje. Dokud SSO nebude fungovat, nikdo se sem nepřihlásí. Nejdřív oprav SSO, nebo omezení přesto nastav a dokonči konfiguraci.",
-    "source_hash": "b36ce005"
+    "source_hash": "086e3247"
   },
   "web.domains.signin.sso_restrict_warning_confirm": {
     "text": "Přesto omezit",

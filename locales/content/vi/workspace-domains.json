@@ -1549,7 +1549,7 @@
   },
   "web.domains.signin.sso_restrict_warning_body": {
     "text": "SSO không khả dụng trên tên miền này, và một giới hạn không thể đáp ứng sẽ chặn hoàn toàn việc đăng nhập. Sẽ không ai đăng nhập được ở đây cho đến khi SSO hoạt động. Hãy khắc phục SSO trước, hoặc vẫn giới hạn rồi hoàn tất thiết lập.",
-    "source_hash": "b36ce005"
+    "source_hash": "086e3247"
   },
   "web.domains.signin.sso_restrict_warning_confirm": {
     "text": "Vẫn giới hạn",

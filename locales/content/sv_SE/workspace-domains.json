@@ -1549,7 +1549,7 @@
   },
   "web.domains.signin.sso_restrict_warning_body": {
     "text": "SSO är inte tillgängligt på den här domänen, och en begränsning som inte kan uppfyllas blockerar inloggningen helt. Ingen kommer att kunna logga in här förrän SSO fungerar. Åtgärda SSO först, eller begränsa ändå och slutför konfigurationen.",
-    "source_hash": "b36ce005"
+    "source_hash": "086e3247"
   },
   "web.domains.signin.sso_restrict_warning_confirm": {
     "text": "Begränsa ändå",

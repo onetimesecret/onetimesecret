@@ -1225,7 +1225,7 @@
   },
   "web.organizations.sso.connection_enabled_hint": {
     "text": "Lorsqu'elle est active, les membres peuvent se connecter avec ce fournisseur SSO. L'authentification unique doit aussi être activée comme méthode de connexion dans la Configuration de la connexion du domaine.",
-    "source_hash": "71a53159"
+    "source_hash": "871db2f1"
   },
   "web.organizations.sso.enable_untested_warning": {
     "text": "Cette connexion n'a pas encore réussi de test ici. Lancez « Tester la connexion » avant de l'activer, afin qu'une configuration défectueuse n'atteigne jamais votre page de connexion.",

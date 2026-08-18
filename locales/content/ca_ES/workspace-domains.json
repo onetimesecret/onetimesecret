@@ -1549,7 +1549,7 @@
   },
   "web.domains.signin.sso_restrict_warning_body": {
     "text": "L'SSO no està disponible en aquest domini, i una restricció que no es pot aplicar bloqueja completament l'inici de sessió. Ningú no hi podrà iniciar la sessió fins que l'SSO funcioni. Arregla primer l'SSO, o restringeix igualment i acaba la configuració.",
-    "source_hash": "b36ce005"
+    "source_hash": "086e3247"
   },
   "web.domains.signin.sso_restrict_warning_confirm": {
     "text": "Restringeix igualment",

@@ -1224,8 +1224,8 @@
     "source_hash": "b6334b2b"
   },
   "web.organizations.sso.connection_enabled_hint": {
-    "text": "Quando ativa, os membros podem entrar com este provedor de SSO. O SSO também deve estar ativado como método de início de sessão na Configuração de início de sessão do domínio.",
-    "source_hash": "71a53159"
+    "text": "Quando ativa, os membros podem iniciar sessão com este provedor de SSO. O SSO também deve estar ativado como método de início de sessão na Configuração de início de sessão do domínio.",
+    "source_hash": "871db2f1"
   },
   "web.organizations.sso.enable_untested_warning": {
     "text": "Esta conexão ainda não passou por um teste aqui. Execute Testar Conexão antes de ativá-la, para que uma configuração com problemas nunca chegue à sua página de início de sessão.",

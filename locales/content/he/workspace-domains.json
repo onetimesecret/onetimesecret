@@ -1549,7 +1549,7 @@
   },
   "web.domains.signin.sso_restrict_warning_body": {
     "text": "SSO אינו זמין בדומיין זה, והגבלה שלא ניתן לקיים חוסמת את הכניסה לחלוטין. איש לא יוכל להיכנס כאן עד ש-SSO יפעל. תקן תחילה את SSO, או הגבל בכל זאת והשלם את ההגדרה.",
-    "source_hash": "b36ce005"
+    "source_hash": "086e3247"
   },
   "web.domains.signin.sso_restrict_warning_confirm": {
     "text": "הגבל בכל זאת",
