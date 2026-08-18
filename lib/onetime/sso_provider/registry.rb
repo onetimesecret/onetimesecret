@@ -55,14 +55,18 @@
 #                     explicit per-provider operator declaration that the IdP
 #                     is inside the trust boundary (see
 #                     AuthConfig#trust_email_for_linking?)
-#   idp_origin / idp_origin_from: feed AuthConfig#sso_form_action_origins — a
-#                     static origin for providers whose IdP host is fixed, or
-#                     the name of an env var whose URL the origin is derived
-#                     from (OIDC's issuer). ENTRA is static because the
-#                     OmniAuth strategy hard-pins the commercial cloud
-#                     (login.microsoftonline.com); there is no sovereign-cloud
-#                     authority env in this app — use SSO_FORM_ACTION_ORIGINS
-#                     for those.
+#   idp_origin / idp_origin_from: feed the CSP form-action derivations — the
+#                     boot-time AuthConfig#sso_form_action_origins (platform
+#                     providers) and, for entra's static origin, the
+#                     per-request AuthConfig#tenant_idp_origin (tenant SSO,
+#                     #4173). Either a static origin for providers whose IdP
+#                     host is fixed, or the name of an env var whose URL the
+#                     origin is derived from (OIDC's issuer; tenant OIDC uses
+#                     the SsoConfig record's issuer instead). ENTRA is static
+#                     because the OmniAuth strategy hard-pins the commercial
+#                     cloud (login.microsoftonline.com); there is no
+#                     sovereign-cloud authority env in this app — use
+#                     SSO_FORM_ACTION_ORIGINS for those.
 #   placeholder_options: strategy options (minus name:) used when platform
 #                     credentials are absent but org-level SSO is enabled —
 #                     the OmniAuthTenant hook injects real tenant credentials

@@ -61,7 +61,7 @@ Providers load automatically when `AUTH_SSO_ENABLED=true` and their required env
 | `AUTH_SSO_ENABLED` | Yes | `true` to enable SSO |
 | `SSO_DISPLAY_NAME` | No | Default button label for generic OIDC (e.g., "Company SSO") |
 | `ALLOWED_SIGNUP_DOMAIN` | No | Comma-separated allowed email domains for SSO signup |
-| `SSO_FORM_ACTION_ORIGINS` | No | Space-separated extra origins added to the CSP `form-action` directive so Chromium does not block the SSO form-POST redirect (see [Troubleshooting](#sso-login-blocked-on-chromium-family-browsers-csp-form-action)) |
+| `SSO_FORM_ACTION_ORIGINS` | No | Space-separated extra origins added to the CSP `form-action` directive. IdP origins are auto-derived — platform providers at boot, tenant (per-domain) SSO issuers per-request — so this override is only for sovereign clouds or split-endpoint OIDC (see [Troubleshooting](#sso-login-blocked-on-chromium-family-browsers-csp-form-action)) |
 
 ### Generic OIDC
 
@@ -615,22 +615,25 @@ If you see `encoded token is not a string`: the CSRF bypass for SSO routes is mi
 
 **Cause:** As of otto 2.5 (shipped in v0.26.0-rc1), the emitted CSP contained `form-action 'self'`. The SSO flow POSTs a form to `/auth/sso/{provider}`, which responds with a redirect to the IdP's authorization endpoint. Chromium enforces `form-action` across the entire redirect chain, so the cross-origin hop to the IdP is blocked. Firefox only checks the initial (same-origin) form target and never trips the policy — which is why the bug reproduces in one browser family and not the other. (#3848)
 
-**Fix (automatic):** The app now derives the origin of each active SSO provider at boot and adds it to the `form-action` directive:
+**Fix (automatic):** IdP origins are derived on two levels (#3848, #4173):
 
-| Provider | Origin added |
-|----------|--------------|
-| Microsoft Entra ID | `https://login.microsoftonline.com` |
-| Google | `https://accounts.google.com` |
-| GitHub | `https://github.com` |
-| Generic OIDC | Origin of `OIDC_ISSUER` |
+- **Platform providers (boot):** the origin of each active env-configured SSO provider is added to the `form-action` directive when the router is built:
 
-No configuration is required for the common case. The resolved set is exposed as `Onetime.auth_config.sso_form_action_origins`.
+  | Provider | Origin added |
+  |----------|--------------|
+  | Microsoft Entra ID | `https://login.microsoftonline.com` |
+  | Google | `https://accounts.google.com` |
+  | GitHub | `https://github.com` |
+  | Generic OIDC | Origin of `OIDC_ISSUER` |
+
+- **Tenant (per-domain) SSO (per-request):** on a custom domain whose per-domain SSO config is enabled and permitted, the domain's IdP origin (the SSO config's issuer origin for OIDC, `https://login.microsoftonline.com` for Entra ID) is added to `form-action` for that request only — on that domain and nowhere else. No env var is involved; the origin follows the domain's stored SSO config automatically.
+
+No configuration is required for the common case. The boot-time set is exposed as `Onetime.auth_config.sso_form_action_origins`; the per-request widening is `Onetime::Middleware::TenantCspExtras`.
 
 **When to use the override:** Set `SSO_FORM_ACTION_ORIGINS` (space-separated origins) when the auto-derived origin is wrong or incomplete:
 
-- **Sovereign / national clouds** — e.g. Entra on `https://login.microsoftonline.us` (US Government) or another regional Microsoft endpoint instead of the global `https://login.microsoftonline.com`.
-- **OIDC issuer ≠ authorization endpoint** — when the discovery document's `authorization_endpoint` lives on a different origin than `OIDC_ISSUER`. The form POSTs to the authorization endpoint's origin, which is what CSP checks.
-- **Org-level SSO with placeholder providers** — when providers are configured per-organization and the boot-time environment has no concrete issuer to derive an origin from.
+- **Sovereign / national clouds** — e.g. Entra on `https://login.microsoftonline.us` (US Government) or another regional Microsoft endpoint instead of the global `https://login.microsoftonline.com`. (Tenant Entra configs are pinned to the commercial cloud, so sovereign clouds need the override on both surfaces.)
+- **OIDC issuer ≠ authorization endpoint** — when the discovery document's `authorization_endpoint` lives on a different origin than the issuer (`OIDC_ISSUER`, or a tenant SSO config's issuer). The form POSTs to the authorization endpoint's origin, which is what CSP checks.
 
 ```bash
 SSO_FORM_ACTION_ORIGINS="https://login.microsoftonline.us https://auth.example.gov"
