@@ -36,6 +36,8 @@ guides first; this one only covers the v0.26.4 → v0.26.5 step.
 | Boolean parsing | `BILLING_ENABLED`, `STRIPE_AUTOMATIC_TAX`, `RABBITMQ_VERIFY_PEER` accept the full `1/true/yes/on/y/t` vocabulary and **raise at boot** on anything unrecognized | **Yes**, if any of the three is set to something other than `true`/`false` |
 | Geo | `GEO_HEADER` is honoured only in `TRUSTED_PROXY_MODE=filter`; depth-mode and direct-connect installs need `GEO_DB_PATH` | Only to keep session country resolving |
 | Passkey flag names | `WEBAUTHN_VERIFY_ACCOUNT` / `WEBAUTHN_AUTOFILL` renamed to `AUTH_WEBAUTHN_*` | Rename when convenient — the old names log a warning and are ignored |
+| Tenant SSO `allowed_domains` | The per-tenant SSO email-domain allowlist is now enforced on the callback. It was never called at runtime before, so every allowlist was inert | **Yes**, if any tenant has one configured — a stale list now locks its users out |
+| Org-scope receipts | `GET /receipt/recent?scope=org` now requires the `audit_logs` entitlement | **Yes** on billing-enabled installs — the shipped catalog grants it in no plan |
 | SSO-provisioned admins | Customers created just-in-time through SSO were written unverified, which blocks their role. New signups are fixed; existing records need a one-time repair | **Yes**, if you use SSO — see After Upgrading |
 | V1 API anonymous TTL | Anonymous secret creation through the V1 API is capped at the configured anonymous ceiling (default 7 days) instead of falling through to the 30-day global one | Only if anonymous V1 clients request longer expiries |
 | Custom-domain `HttpOrigin` | 403s on custom domains are fixed; middleware is assembled from a registry with per-app profiles and `MIDDLEWARE_AUTH_*` toggles | Remove any workaround you added for those 403s |
@@ -114,7 +116,38 @@ open self-service registration keeps a working `create-account` route.
 SSO is deliberately not gated by these flags, so tenant SSO sign-in is
 unaffected.
 
-### 5. Normalize the three strict-parsed booleans
+### 5. Only if you use tenant SSO or org-scope receipts: check the two newly enforced controls
+
+Both closed High findings from the 2026-08-14 security review (#4196), and both fail
+closed — an install that was quietly relying on the gap sees the change immediately.
+
+**Tenant SSO `allowed_domains`.** The allowlist existed in the model, the UI, the API
+and the docs, but nothing called it at runtime, so no tenant's list was ever applied.
+It is enforced on the OmniAuth callback now.
+
+> **Caution.** If a tenant's allowlist is stale, incomplete or was configured
+> aspirationally while it was inert, **their users stop being able to sign in on
+> upgrade.** Review each tenant SSO allowlist first.
+
+An empty allowlist remains the documented allow-all state. An unreadable one denies
+rather than degrading to allow-all. Denials surface as
+`auth_error=domain_not_allowed` and emit `:omniauth_tenant_domain_rejected`, distinct
+from the signup-domain denial, so you can tell the two apart in the audit trail.
+
+**Org-scope receipts.** `GET /receipt/recent?scope=org` returns receipts created by
+*other* org members, so it is now gated at the same `audit_logs` entitlement as the
+sibling org-wide audit surface.
+
+| Your install | Result |
+|---|---|
+| Standalone / billing disabled | Unaffected — `STANDALONE_ENTITLEMENTS` already includes `audit_logs` |
+| Billing enabled | **403 for every role, owners included**, until a plan grants `audit_logs` |
+
+On a billing-enabled install, entitlements come from the plan catalog, and the shipped
+example catalog defines `audit_logs` without granting it in any plan. Grant it on the
+plans that should have org-wide visibility.
+
+### 6. Normalize the three strict-parsed booleans
 
 ```bash
 BILLING_ENABLED=true          # was: only the literal 'true' counted
@@ -152,7 +185,7 @@ fix the certificate.
 > the literal `false` and nothing else — so `API_ENABLED=no` leaves the API
 > **on**. Use `true` and `false` everywhere and none of this can bite you.
 
-### 6. Only if you rely on geo: point it at the right source
+### 7. Only if you rely on geo: point it at the right source
 
 | Deployment | Setting |
 |---|---|
@@ -166,7 +199,7 @@ Organization Secret Activity country is **off by default**
 (`SECRET_ACTIVITY_GEO_COUNTRY_ENABLED`), pending the legal review tracked in
 ADR-021. Do not enable it without that review.
 
-### 7. Rename the passkey variables
+### 8. Rename the passkey variables
 
 ```bash
 AUTH_WEBAUTHN_VERIFY_ACCOUNT=true     # was WEBAUTHN_VERIFY_ACCOUNT
@@ -241,7 +274,13 @@ Run these in order — each one isolates a different gate that answers `404`.
    `/signin` and complete one sign-in. A `404` means the domain has not opted in;
    a `503` means the per-domain policy could not be read (a datastore problem,
    not a policy decision).
-5. **Boot log clean.** No `CONFIG DEPRECATION`, no `Invalid CIDR`, no
+5. **Tenant SSO sign-in.** If any tenant has an `allowed_domains` allowlist, sign
+   in once through that tenant's IdP. A denial shows `auth_error=domain_not_allowed`
+   and logs `:omniauth_tenant_domain_rejected` — the allowlist is now enforced where
+   it previously was not.
+6. **Org-scope receipts.** On a billing-enabled install, `GET /receipt/recent?scope=org`
+   as an org owner. A 403 means no plan grants `audit_logs` yet.
+7. **Boot log clean.** No `CONFIG DEPRECATION`, no `Invalid CIDR`, no
    `INACTIVE: no routable hostname` you did not intend.
 
 ## Config Mapping Reference
@@ -287,6 +326,18 @@ whichever gate is active.
 
 The domain has no enabled sign-in opt-in. Enable it in the domain's settings.
 This is the ADR-024 default-OFF rule now reaching full mode.
+
+### Tenant SSO users suddenly cannot sign in
+
+That tenant's `allowed_domains` allowlist is now enforced and does not list the
+domain the IdP asserted. Look for `:omniauth_tenant_domain_rejected` in the audit
+trail. Fix the allowlist, or clear it — an empty allowlist is allow-all.
+
+### `/receipt/recent?scope=org` returns 403
+
+The `audit_logs` entitlement is now required for org-scope receipts and no plan in
+your catalog grants it. Grant it on the plans that should have org-wide visibility.
+Standalone installs do not hit this.
 
 ### Sign-in returns 503
 

@@ -6,6 +6,10 @@
 `v0.26.5-rc1` is three days behind the commit this assessment covers. Everything
 below describes `58df007ee`, not the RC.
 
+**Updated 2026-08-18.** `main` has since moved to `03277fa36`, which carries #4196 —
+the three High authorization findings are now closed. The risk register below
+reflects that; the volume figures still describe the `58df007ee` window.
+
 **`v0.26.5-rc1` has been running in production for several days.** That is the
 most valuable single input to this assessment, and it moves the picture — but it
 covers the RC's tree, not this one. The section below draws the line.
@@ -30,10 +34,12 @@ tests rather than tested afterward. The heaviest single change in the release �
 otto 2.8.0 under the proxy and host-detection rewrite — now has days of
 production behind it.
 
-Two conditions remain. The three unfixed High authorization findings carried from
-the 2026-08-14 review (tracked separately, and note that production is currently
-exposed to them). And the rc1 → HEAD delta, which is where the remaining unknown
-now sits.
+One condition remains. The three High authorization findings carried from the
+2026-08-14 review are **closed** — #4196 landed H-1, H-2 and H-3, and each was
+verified in the merged code. What remains is the rc1 → HEAD delta, which is where
+the unknown now sits. Note that two of the three fixes fail closed in ways an
+operator will notice on day one; they are covered in the upgrade guide and the
+deployment notes rather than left to be discovered.
 
 ## What production has soaked, and what it hasn't
 
@@ -86,7 +92,7 @@ builds that automation.
 
 | Risk | Severity | Why it matters for this release |
 |---|---|---|
-| Three unfixed High authorization findings ship (H-1 org-member secret bearer-token harvest, H-2 non-owner reaches the org's Stripe portal, H-3 tenant SSO `allowed_domains` never enforced) | **High** | Verified still present at `58df007ee`: `customer_portal_redirect` is routed `auth=sessionauth` with no ownership check, and `SsoConfig#valid_email_domain?` has no runtime caller outside specs. H-3 is the worst kind — a control that exists in the UI, the API and the docs but not at runtime, so operators believe they have domain restriction and do not. Being fixed on a separate branch; the tag should wait for them or the release notes must say the controls are not in force. |
+| ~~Three unfixed High authorization findings ship~~ **Closed by #4196** | ~~High~~ **Low** | H-1, H-2 and H-3 all landed in `main` after this assessment was first written, and each was verified in the merged code: `ListReceipts` gates `scope=org` on the `audit_logs` entitlement and redacts non-owned capability tokens; `customer_portal_redirect` gates on ownership (with the reasoning that `default_org_id` is not proof of ownership — `JoinDomainOrganization` repoints it for plain members); and `enforce_tenant_email_domain!` now actually calls `valid_email_domain?` on the OmniAuth callback. **Two of the three carry operator impact and are documented in the upgrade guide (step 5) and the deployment notes:** an enforced tenant SSO allowlist can lock out users of a tenant whose list is stale, and org-scope receipts return 403 on billing-enabled installs until a plan grants `audit_logs`. |
 | ~~otto 2.6.0 → 2.8.0 under a trusted-proxy / host-detection rewrite~~ **Retired** | ~~High~~ **Low** | Both the bump and the proxy rewrite are in `v0.26.5-rc1`, which has run in production for several days behind a real proxy. The soak this row asked for has happened. Retained struck through so a reader of the earlier version knows the assessment changed rather than wondering if they misremembered. |
 | Middleware registry rewrite is unsoaked | **High** | 515 lines across the application-boot and middleware layers of every app, landed after the RC. It changes how the middleware stack is assembled and how security middleware is selected per app profile — the request path itself, on the one part of the release production has *not* exercised. Remedy: this is the change to put in front of real traffic before tagging, or the reason to cut the tag at rc1's tree instead. |
 | New full-mode auth gates are unsoaked | **High** | 1,307 lines of new fail-closed gating on live sign-in, sign-up and account-creation routes, all after the RC. The failure mode is a paying customer who cannot sign in, it is config-dependent, and a synthetic check against the canonical host will not surface it — operator hosts are exactly the case the gates leave alone. Remedy: sign in once on each custom domain that serves passwords, per the upgrade guide's Verify step 4. |
@@ -118,9 +124,9 @@ builds that automation.
 
 ## Recommended before tagging
 
-1. Land or explicitly accept H-1, H-2 and H-3. If accepted, the release notes
-   should say the tenant SSO domain allowlist is not enforced — operators
-   currently believe it is.
+1. ~~Land or explicitly accept H-1, H-2 and H-3.~~ **Done** — #4196. Both
+   operator-visible consequences (an enforced tenant SSO allowlist, and
+   `audit_logs` now required for org-scope receipts) are documented.
 2. Decide what to do about the unsoaked delta. Either put the middleware registry
    rewrite and the new full-mode auth gates in front of real traffic, or cut the
    stable tag at rc1's tree and ship the delta as v0.26.6. Production has soaked

@@ -13,8 +13,9 @@ detail lives in [`docs/operations/upgrading-v0-26-5.md`](../operations/upgrading
 > reader and the passkey renames all shipped in the RC. What is new since the RC is:
 > the full-mode per-domain sign-in/sign-up enforcement (the third checklist item),
 > the SSO admin repair and the role-index tool under **After upgrading**, the V1
-> anonymous TTL cap, and the `HttpOrigin` fix with the middleware registry. Those are
-> the only items worth re-reading.
+> anonymous TTL cap, the `HttpOrigin` fix with the middleware registry, and the two
+> authorization controls from #4196 in the box below. Those are the only items worth
+> re-reading.
 
 > [!IMPORTANT]
 > **Three gates now fail closed, and all three answer the same `404`.** The admin
@@ -43,6 +44,27 @@ detail lives in [`docs/operations/upgrading-v0-26-5.md`](../operations/upgrading
 > Confirm your value is `true` or `false`. If you were unknowingly relying on the
 > old behaviour to reach a node with an untrusted certificate, that connection will
 > now fail — set `RABBITMQ_VERIFY_PEER=false` explicitly and fix the certificate.
+
+> [!WARNING]
+> **Two authorization controls start being enforced (#4196).** Both were closed as
+> High findings from the 2026-08-14 security review, and both fail closed, so the
+> tightening is visible on day one.
+> - **Tenant SSO `allowed_domains` is now actually applied.** The method existed in
+>   the model, the UI, the API and the docs, but nothing called it at runtime — every
+>   tenant allowlist was inert. It is enforced on the OmniAuth callback now. **If any
+>   tenant's allowlist is stale or wrong, their users stop being able to sign in.**
+>   Review each tenant SSO allowlist before upgrading. An empty allowlist is still the
+>   documented allow-all state; an unreadable one denies rather than degrading to
+>   allow-all. Rejections carry `auth_error=domain_not_allowed` and the distinct audit
+>   event `:omniauth_tenant_domain_rejected`.
+> - **Organization-scope receipts now require `audit_logs`.** `GET /receipt/recent?scope=org`
+>   returns other members' receipts, so it is gated at the same entitlement as the
+>   sibling org-wide audit surface. Standalone and billing-disabled installs are
+>   unaffected — `STANDALONE_ENTITLEMENTS` already includes `audit_logs`. **On
+>   billing-enabled installs it is an operator action:** entitlements come from the
+>   plan catalog, and the shipped example catalog defines `audit_logs` without granting
+>   it in any plan, so `scope=org` returns 403 for every role — owners included — until
+>   you grant it on the plans that should have org-wide visibility.
 
 > [!NOTE]
 > **`BILLING_ENABLED=1` now does what it says.** Billing remains **disabled by
