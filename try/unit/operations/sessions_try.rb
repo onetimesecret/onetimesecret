@@ -141,6 +141,42 @@ subset = @list.sessions.select { |s| [@sid_a, @sid_b].include?(s[:session_id]) }
 subset
 #=> ["#{@sid_b}", "#{@sid_a}"]
 
+# ---- List: geo_country decoration (ONE batched sidecar read) -----------
+
+## the page is decorated from the metadata sidecar via a single pipelined
+## load_multi: a sidecar with a code decorates its row; a legacy sidecar that
+## stored Otto's '**' sentinel decorates as nil (SessionMetadata#geo_country
+## is the normalization chokepoint); a session with NO sidecar still lists,
+## with nil — absence never prunes and never raises
+Onetime::SessionMetadata.new(session_id: @sid_a, geo_country: 'US').save
+DB.hset(Onetime::SessionMetadata.dbkey(@sid_b), 'geo_country', '"**"')
+@sid_c = "trysess_c_#{@nonce}"
+DB.set("session:#{@sid_c}", JSON.generate(
+  @data_a.merge('external_id' => "ext_c2_#{@nonce}", 'email' => "cyn+#{@nonce}@example.com"),
+))
+@geo_map = Onetime::Operations::Sessions::List.new(page: 1, per_page: 50).call
+  .sessions.to_h { |s| [s[:session_id], s[:geo_country]] }
+[@geo_map[@sid_a], @geo_map[@sid_b], @geo_map.key?(@sid_c), @geo_map[@sid_c]]
+#=> ["US", nil, true, nil]
+
+## a batch-level sidecar read failure (load_multi raising) degrades to the
+## legacy per-row loads — decoration is identical, the listing never dies
+Onetime::SessionMetadata.singleton_class.alias_method(:__list_real_load_multi, :load_multi)
+Onetime::SessionMetadata.define_singleton_method(:load_multi) do |*_args|
+  raise IOError, 'pipeline blew up'
+end
+begin
+  @fb_map = Onetime::Operations::Sessions::List.new(page: 1, per_page: 50).call
+    .sessions.to_h { |s| [s[:session_id], s[:geo_country]] }
+ensure
+  Onetime::SessionMetadata.singleton_class.remove_method(:load_multi)
+  Onetime::SessionMetadata.singleton_class.alias_method(:load_multi, :__list_real_load_multi)
+  Onetime::SessionMetadata.singleton_class.remove_method(:__list_real_load_multi)
+end
+DB.del("session:#{@sid_c}")
+[@fb_map[@sid_a], @fb_map[@sid_b], @fb_map[@sid_c]]
+#=> ["US", nil, nil]
+
 # ---- List: search filter ----------------------------------------------
 
 ## a search term matches only the session whose identity contains it
@@ -290,6 +326,11 @@ DB.set("sidecar:#{@hex_sid}:domain_context", 'y')
 # Cleanup
 DB.del(@key_a)
 DB.del(@key_b)
+# Sidecar fixtures: delete by key, not load+destroy! — the @sid_b sidecar was
+# planted via raw HSET with only a geo_country field, so a loaded instance has
+# no identifier and destroy! would raise.
+DB.del(Onetime::SessionMetadata.dbkey(@sid_a))
+DB.del(Onetime::SessionMetadata.dbkey(@sid_b))
 DB.del(@set_key)
 DB.del(@sidecar_key)
 DB.del(@hex_key)
