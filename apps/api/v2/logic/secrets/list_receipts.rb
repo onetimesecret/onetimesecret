@@ -17,19 +17,8 @@ module V2::Logic
     class ListReceipts < V2::Logic::Base
       SCHEMAS = { response: 'receiptList' }.freeze
 
-      # Scopes EXEMPT from the capability-token redaction in safe_dump_for.
-      # Only the default (customer) scope qualifies: it reads the caller's own
-      # index (cust.receipts), so every record in it is already the caller's,
-      # nothing needs redacting, and the personal dashboard response stays
-      # byte-identical.
-      #
-      # Deliberately an exemption list rather than a list of cross-member
-      # scopes. An allowlist of scopes-that-redact fails OPEN: the first scope
-      # added to the #process case statement and not to the list would emit
-      # full capability tokens again and silently reopen appsec finding H-1.
-      # Inverted, an unlisted scope fails CLOSED — it withholds tokens for
-      # records the caller does not own until someone proves the scope reads an
-      # owner-only index and adds it here.
+      # Only the personal scope skips capability-token redaction. Unlisted
+      # scopes fail closed until they are proven to return owner-only records.
       OWN_INDEX_SCOPES = [nil].freeze
       private_constant :OWN_INDEX_SCOPES
 
@@ -60,21 +49,11 @@ module V2::Logic
       end
 
       def raise_concerns
-        # Receipts require an authenticated customer
         raise_not_found('Not found') unless cust
 
-        # API access entitlement required for metadata listing.
-        # Applies to every scope, including the default (own receipts) one.
         require_entitlement!('api_access')
 
-        # A self-hosted operator can disable organization activity and receipt
-        # visibility with ORGS_AUDIT_LOGS_ENABLED=false. Only an explicit false
-        # disables; a missing key in an older config remains enabled. Compare the
-        # string form so a hand-edited 'false' is also honored.
-        #
-        # Applies to scope=org AND scope=domain: both return other members'
-        # receipts. Gates exposure only — receipt collection is unaffected, as
-        # is the caller's own (default-scope) list.
+        # The activity flag gates cross-member receipt visibility only.
         if AUDIT_SURFACE_SCOPES.include?(scope) &&
            OT.conf.dig('features', 'organizations', 'audit_logs_enabled').to_s == 'false'
           # Keyword args reach OT.info's **payload and are emitted as
@@ -85,29 +64,7 @@ module V2::Logic
           raise_form_error('Secret activity is not enabled on this instance', error_type: :forbidden)
         end
 
-        # Organization scope returns receipts created by other members, so it
-        # requires the organization-wide audit entitlement. Domain scope applies
-        # that entitlement to the domain's owning organization after resolution.
-        #
-        # Effective entitlements are the org plan ∩ ROLE_ENTITLEMENTS[role],
-        # and audit_logs is an ADMIN_ENTITLEMENTS member
-        # (lib/onetime/models/organization_membership.rb), so this admits
-        # admins and owners of orgs whose plan includes audit logs.
-        #
-        # ⚠️ OPERATOR ACTION on billing-enabled deployments. Standalone /
-        # billing-disabled installs are unaffected — STANDALONE_ENTITLEMENTS
-        # (organization/features/with_plan_entitlements.rb) already includes
-        # audit_logs. But when billing is ON, entitlements come from the plan
-        # catalog, and the shipped example catalog
-        # (etc/examples/billing.example.yaml) defines audit_logs without
-        # granting it in ANY plan — so scope=org and scope=domain return 403
-        # for every role, owners included, until the catalog grants it. This
-        # fails closed. Grant audit_logs on the plans that should have org-wide
-        # visibility, or drop
-        # this line and its twin in query_domain_receipts to keep the endpoint
-        # at member level — the capability-token redaction in safe_dump_for
-        # below is independent of these gates and closes the confidentiality
-        # break on its own.
+        # Cross-member scopes require the organization-wide audit entitlement.
         require_entitlement!('audit_logs') if scope == :org
 
         # Validate domain access if domain scope requested
@@ -123,7 +80,6 @@ module V2::Logic
       end
 
       def process
-        # Debug logging for receipt list investigation (only in debug mode)
         OT.ld '[DEBUG:ListReceipts] Starting query',
           {
             cust_id: cust&.custid,
@@ -134,7 +90,6 @@ module V2::Logic
             now: @now,
           }
 
-        # Query based on scope
         @query_results = case scope
                          when :org
                            query_organization_receipts
@@ -150,9 +105,7 @@ module V2::Logic
             first_3_results: query_results.first(3),
           }
 
-        # Get the safe fields for each record using optimized bulk loading.
-        # Every scope but the default one withholds capability tokens on
-        # records the caller does not own — see safe_dump_for.
+        # Every non-personal scope withholds capability tokens from non-owners.
         receipt_objects = Onetime::Receipt.load_multi(query_results).compact
         @records        = receipt_objects.map { |receipt| safe_dump_for(receipt) }
 
@@ -184,39 +137,11 @@ module V2::Logic
 
       private
 
-      # Serialize one receipt, withholding capability tokens when the caller is
-      # not its owner.
-      #
-      # In this product an identifier IS the capability. `secret_identifier` is
-      # sufficient to reveal the secret — the reveal path performs no ownership
-      # check by design, the identifier is the authorization — and the receipt
-      # `identifier`/`key` authorize managing it, including burn. The org- and
-      # domain-scoped listings return other members' receipts, so emitting
-      # those fields handed every caller a live capability for every
-      # colleague's unread secret.
-      #
-      # Redaction is the DEFAULT, not an opt-in for named scopes: only the
-      # scopes on OWN_INDEX_SCOPES skip it, and any scope added to #process
-      # later inherits the withholding rather than the leak.
-      #
-      # identifier/key collapse to the receipt shortid, which is already
-      # emitted unconditionally in its own `shortid` field (so this adds no
-      # exposure) and cannot be used to reveal or burn anything;
-      # secret_identifier is nulled.
-      #
-      # Why shortid rather than nil or '': the V3 contract types identifier and
-      # key as required, non-nullable strings (src/schemas/contracts/receipt.ts)
-      # inside a strict array, so a null would fail that record and blank the
-      # entire response; '' would parse but defeats the `??` fallbacks on the
-      # client and is identical across rows. secret_identifier is nullish in the
-      # same contract, so null is the correct withheld value there.
+      # Withhold capabilities from receipts the caller does not own. Shortids
+      # preserve the required identifier/key shape without granting access.
       def safe_dump_for(receipt)
         record = receipt.safe_dump
-        # Narrow exemption (see OWN_INDEX_SCOPES): the default scope reads the
-        # caller's own index, so this returns the dump untouched — and without
-        # a per-record owner? call — keeping the personal dashboard response
-        # byte-identical. Every other scope falls through to the ownership
-        # test below.
+        # The personal scope contains only the caller's own receipts.
         return record if OWN_INDEX_SCOPES.include?(scope)
         return record if receipt.owner?(cust)
 
@@ -228,13 +153,11 @@ module V2::Logic
         )
       end
 
-      # Default scope: receipts owned by the current customer
       def query_customer_receipts
-        @scope_label = nil # No label needed for default
+        @scope_label = nil
         cust.receipts.rangebyscore(since, @now)
       end
 
-      # Organization scope: all receipts created by org members
       def query_organization_receipts
         unless auth_org
           raise_form_error(
@@ -250,22 +173,7 @@ module V2::Logic
         auth_org.receipts.rangebyscore(since, @now)
       end
 
-      # Domain scope: receipts created with a specific custom domain.
-      #
-      # Two gates, both required. Membership in the domain's organization
-      # (accessible_by?) says the caller may see this domain at all; the
-      # audit_logs entitlement says they may read OTHER members' receipts
-      # through it. Without the second, a `member` correctly refused scope=org
-      # simply re-runs the query as
-      # scope=domain&domain_extid=<one of the org's domains> and receives every
-      # colleague's domain-bound receipt metadata — the entitlement boundary
-      # bypass in the appsec review (M-6).
-      #
-      # The entitlement is evaluated in the DOMAIN's organization
-      # (require_entitlement_in!) rather than the caller's auth_org
-      # (require_entitlement!): the two diverge for a caller who belongs to
-      # several organizations, and the records being read belong to the
-      # domain's org, so that is the org whose plan ∩ role must grant it.
+      # Domain access and audit authorization are both required.
       def query_domain_receipts
         domain = Onetime::CustomDomain.find_by_extid(domain_extid)
         unless domain
@@ -289,10 +197,6 @@ module V2::Logic
           )
         end
 
-        # primary_organization resolves the domain's org_id to the record.
-        # It cannot be nil past accessible_by?, which returns false when
-        # org_id is blank or the organization no longer loads; and
-        # require_entitlement_in! fails closed (Problem) on nil regardless.
         require_entitlement_in!(domain.primary_organization, 'audit_logs')
 
         @scope_label = domain.display_domain
