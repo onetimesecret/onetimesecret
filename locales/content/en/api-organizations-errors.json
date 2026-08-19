@@ -172,5 +172,25 @@
     "text": "You do not have permission to remove members",
     "context": "Returned when an actor without admin/owner role attempts to remove a member",
     "content_hash": "b0ac7287"
+  },
+  "api.organizations.errors.delete_has_domains": {
+    "text": "Remove this organization's custom domains before deleting it: %{domains}",
+    "context": "Returned when an organization delete is refused because domains are still attached",
+    "content_hash": "040a401e"
+  },
+  "api.organizations.errors.delete_is_default": {
+    "text": "Your default workspace cannot be deleted. Contact support if you need it removed.",
+    "context": "Returned when an organization delete is refused because the org is the customer's default workspace",
+    "content_hash": "bc2eaed5"
+  },
+  "api.organizations.errors.delete_active_subscription": {
+    "text": "Cancel this organization's subscription before deleting it.",
+    "context": "Returned when an organization delete is refused because the subscription is active or trialing",
+    "content_hash": "f0c54eca"
+  },
+  "api.organizations.errors.delete_last_org": {
+    "text": "This is your only organization. Create another one before deleting this one.",
+    "context": "Returned when an organization delete is refused because it is the owner's only organization",
+    "content_hash": "7608a1d6"
   }
 }
