@@ -153,4 +153,111 @@ RSpec.describe Billing::CheckoutTargetResolver, :billing do
       expect(org_a.stripe_subscription_id).to eq(stripe_subscription_id)
     end
   end
+
+  # =======================================================================
+  # Archived organizations.
+  #
+  # An org can be archived BETWEEN checkout-session creation and payment
+  # completion (a tenant SSO sign-in archives the personal workspace via
+  # JoinDomainOrganization#adopt_domain_default_org). The two steps that can
+  # return an archived org disagree on purpose — step 1 rejects, step 2 does
+  # not — and these examples pin both halves of that asymmetry.
+  # =======================================================================
+  describe 'archived organizations' do
+    # A second live org the customer owns, so step 3 has something to find.
+    # Created without a contact_email: the archived fixture still holds the
+    # customer's email in the contact_email index.
+    def create_live_owned_org
+      org = Onetime::Organization.create!('Live Workspace', customer, nil)
+      created_organizations << org
+      org
+    end
+
+    context 'when the metadata orgid points at an archived org (step 1)' do
+      let(:metadata) do
+        { 'customer_extid' => customer.extid, 'orgid' => archived_org.objid }
+      end
+
+      it 'does not resolve to it' do
+        expect(resolve_for('[CheckoutCompleted]')).to be_nil
+      end
+
+      it 'warns so an operator can see the checkout lost its explicit target' do
+        resolve_for('[CheckoutCompleted]')
+
+        expect(logger).to have_received(:warn).with(
+          a_string_including('orgid in metadata is archived'),
+          hash_including(orgid: archived_org.objid, extid: archived_org.extid),
+        )
+      end
+
+      it 'falls through to the live org the customer owns (step 3)' do
+        live_org = create_live_owned_org
+
+        expect(resolve_for('[CheckoutCompleted]')&.objid).to eq(live_org.objid)
+      end
+
+      it 'falls through to the create path when nothing else resolves (step 4)' do
+        expect(resolve_for('[CheckoutCompleted]')).to be_nil
+
+        org = create_for('[CheckoutCompleted]')
+
+        expect(org.objid).not_to eq(archived_org.objid)
+        expect(org.owner?(customer)).to be(true)
+        expect(org).not_to be_archived
+      end
+
+      it 'applies the subscription to the live org, never the archived one' do
+        target = resolve_for('[CheckoutCompleted]') || create_for('[CheckoutCompleted]')
+        target.update_from_stripe_subscription(subscription)
+
+        archived_org.refresh!
+        expect(archived_org.stripe_subscription_id).to be_nil
+        expect(target.objid).not_to eq(archived_org.objid)
+        expect(target.stripe_subscription_id).to eq(stripe_subscription_id)
+      end
+    end
+
+    # =====================================================================
+    # Step 2 deliberately returns an archived org. stripe_customer_id is a
+    # unique index and the archived org still holds the claim, so rejecting
+    # here would fall through to a create that takes the SAME claim, loses
+    # it, and adopts its way straight back to the archived org — a loud
+    # failure (or a duplicate workspace) in place of a recoverable state.
+    #
+    # If a future change flips this, the second example below fails first
+    # and shows why.
+    # =====================================================================
+    context 'when an archived org holds the checkout stripe_customer_id (step 2)' do
+      let(:metadata) do
+        { 'customer_extid' => customer.extid, 'orgid' => archived_org.objid }
+      end
+
+      before do
+        archived_org.stripe_customer_id = stripe_customer_id
+        archived_org.save
+      end
+
+      it 'resolves to it anyway — the prior binding is the target' do
+        expect(resolve_for('[CheckoutCompleted]')&.objid).to eq(archived_org.objid)
+      end
+
+      it 'warns: an archived org holding a live Stripe binding is an anomaly' do
+        resolve_for('[CheckoutCompleted]')
+
+        expect(logger).to have_received(:warn).with(
+          a_string_including('bound to an archived org'),
+          hash_including(
+            stripe_customer_id: stripe_customer_id,
+            orgid: archived_org.objid,
+            extid: archived_org.extid,
+          ),
+        )
+      end
+
+      it 'is why rejecting here would not help: the create path bounces back to it' do
+        expect(create_for('[CheckoutCompleted]').objid).to eq(archived_org.objid)
+      end
+    end
+  end
 end

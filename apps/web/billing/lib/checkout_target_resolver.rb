@@ -33,7 +33,33 @@ module Billing
     # Step 3 IS an ownership question, and the only one. It infers a target
     # from memberships, which can include organizations the customer does not
     # own. Without the filter, a legacy checkout can overwrite another
-    # organization's Stripe customer. Archived organizations are not live
+    # organization's Stripe customer.
+    #
+    # ARCHIVED STATUS is a separate axis from authorization, and the two
+    # steps that consult it disagree on purpose:
+    #
+    # Step 1 REJECTS archived. Archiving can happen between checkout-session
+    # creation and payment completion (a tenant SSO event archives the
+    # personal workspace), so the explicit target may no longer be a live
+    # billing target by the time we get here. This does not weaken the
+    # rationale above: the caller who started checkout WAS authorized then,
+    # and we still do not re-derive their authority — an archived
+    # organization simply is not somewhere a paid subscription can land.
+    # Falling through to step 2 / step 3 / the caller's create gives the
+    # customer a usable workspace instead of a dead one.
+    #
+    # Step 2 does NOT reject archived, deliberately. It recovers a PRIOR
+    # BINDING rather than inferring a target, and stripe_customer_id is a
+    # unique index: an archived organization still holds its claim. Returning
+    # nil there would fall through to a create that takes the same claim,
+    # which raises Familia::RecordExistsError and lands back on the very same
+    # archived organization via {.adopt_claimed_workspace} — a loud failure
+    # or a loop, plus a risk of duplicate workspaces, in place of a
+    # recoverable state. It is logged at warn instead: an archived
+    # organization holding a live Stripe binding is an operator-visible
+    # anomaly, not something this resolver can fix.
+    #
+    # Step 3 also rejects archived: archived organizations are not live
     # billing targets.
     #
     # @param customer [Onetime::Customer] customer named by the subscription
@@ -127,27 +153,42 @@ module Billing
 
     private
 
+    # Step 1. The explicit target, rejected when it is no longer live — the
+    # org can be archived between checkout-session creation and completion.
     def from_metadata(metadata, logger, label)
       orgid = metadata['orgid']
       return nil unless orgid
 
       org = Onetime::Organization.load(orgid)
-      if org
-        logger.info "#{label} Found org from subscription metadata",
-          { orgid: orgid, extid: org.extid }
-        return org
+      unless org
+        logger.warn "#{label} orgid in metadata not found", { orgid: orgid }
+        return nil
       end
 
-      logger.warn "#{label} orgid in metadata not found", { orgid: orgid }
-      nil
+      if org.archived?
+        logger.warn "#{label} orgid in metadata is archived, not a billing target",
+          { orgid: orgid, extid: org.extid }
+        return nil
+      end
+
+      logger.info "#{label} Found org from subscription metadata",
+        { orgid: orgid, extid: org.extid }
+      org
     end
 
+    # Step 2. The prior binding. Archived orgs are returned here on purpose
+    # (see the ARCHIVED STATUS note above) and logged as the anomaly they are.
     def from_stripe_customer(stripe_customer_id, logger, label)
       return nil unless stripe_customer_id.is_a?(String)
       return nil unless stripe_customer_id.start_with?('cus_')
 
       org = Onetime::Organization.find_by_stripe_customer_id(stripe_customer_id)
       return nil unless org
+
+      if org.archived?
+        logger.warn "#{label} stripe_customer_id is bound to an archived org (still the target)",
+          { stripe_customer_id: stripe_customer_id, orgid: org.objid, extid: org.extid }
+      end
 
       logger.info "#{label} Found org by stripe_customer_id",
         { stripe_customer_id: stripe_customer_id, extid: org.extid }

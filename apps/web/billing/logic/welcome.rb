@@ -331,7 +331,8 @@ module Billing
         # Billing::CheckoutTargetResolver, shared with the
         # checkout.session.completed webhook handler, which processes the same
         # checkout and must not disagree about its target. That shared module
-        # also documents why ownership is required at step 3 and nowhere else.
+        # also documents why ownership is required at step 3 and nowhere else,
+        # and why archived status is rejected at step 1 but not at step 2.
         # Step 4 — what to create when nothing resolves — stays here because
         # the two handlers genuinely differ (see below).
         #

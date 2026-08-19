@@ -241,6 +241,76 @@ RSpec.describe 'Billing::Logic::Welcome::ProcessCheckoutSession', :billing do
           expect(target.stripe_subscription_id).to eq(stripe_subscription_id)
         end
       end
+
+      # =====================================================================
+      # Regression: step 1 must reject an ARCHIVED metadata orgid.
+      #
+      # The org named in subscription metadata can be archived between
+      # checkout-session creation and payment completion (a tenant SSO
+      # sign-in archives the personal workspace). Applying the subscription
+      # there leaves the customer with no live workspace and a paid
+      # subscription only an operator can move.
+      #
+      # Twin of the CheckoutCompleted coverage in
+      # spec/operations/process_webhook_event/checkout_completed_spec.rb.
+      # =====================================================================
+      context 'when the metadata orgid points at an org archived after checkout started' do
+        let!(:archived_org) do
+          org = create_test_organization(customer: customer, default: true)
+          org.archive!('spec fixture: archived between checkout creation and completion')
+          org
+        end
+
+        # The customer's remaining live workspace — created without a
+        # contact_email because the archived org still holds that reservation.
+        let!(:live_org) do
+          org = Onetime::Organization.create!('Live Workspace', customer, nil)
+          created_organizations << org
+          org
+        end
+
+        let(:subscription) do
+          build_stripe_subscription(
+            id: stripe_subscription_id,
+            customer: stripe_customer_id,
+            status: 'active',
+            metadata: {
+              'customer_extid' => customer.extid,
+              'orgid' => archived_org.objid,
+              Billing::Metadata::FIELD_PLAN_ID => 'identity_plus_v1',
+            },
+          )
+        end
+
+        it 'does not apply the subscription to the archived org' do
+          logic  = Billing::Logic::Welcome::ProcessCheckoutSession.new(strategy_result, params, locale)
+          logic.raise_concerns
+          result = logic.process
+
+          archived_org.refresh!
+          expect(archived_org.stripe_subscription_id).to be_nil
+          expect(archived_org.stripe_customer_id).to be_nil
+          expect(result[:org_extid]).not_to eq(archived_org.extid)
+        end
+
+        it 'applies it to the customer live owned org instead' do
+          logic  = Billing::Logic::Welcome::ProcessCheckoutSession.new(strategy_result, params, locale)
+          logic.raise_concerns
+          result = logic.process
+
+          live_org.refresh!
+          expect(result[:org_extid]).to eq(live_org.extid)
+          expect(live_org.stripe_subscription_id).to eq(stripe_subscription_id)
+          expect(live_org.subscription_status).to eq('active')
+        end
+
+        it 'does not mint an extra workspace' do
+          logic = Billing::Logic::Welcome::ProcessCheckoutSession.new(strategy_result, params, locale)
+          logic.raise_concerns
+
+          expect { logic.process }.not_to(change { customer.organization_instances.to_a.length })
+        end
+      end
     end
 
     context 'with one-time payment (no subscription)' do

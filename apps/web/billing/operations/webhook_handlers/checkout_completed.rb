@@ -335,7 +335,8 @@ module Billing
         # Billing::Logic::Welcome::ProcessCheckoutSession, which processes the
         # same checkout and must not disagree about its target. That shared
         # module also documents why ownership is required at step 3 and nowhere
-        # else. Step 4 — what to create when nothing resolves — stays here
+        # else, and why archived status is rejected at step 1 but not at step
+        # 2. Step 4 — what to create when nothing resolves — stays here
         # because the two handlers genuinely differ.
         #
         # FEDERATION GAP (report, not a fix): this path tries
