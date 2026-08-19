@@ -372,3 +372,85 @@ export type ColonelTransferOrganizationOwnershipRecord = z.infer<
 export type ColonelTransferOrganizationOwnershipResponse = z.infer<
   typeof colonelTransferOrganizationOwnershipResponseSchema
 >;
+
+/**
+ * One member of an organization that is about to be (or has just been) deleted.
+ * PUBLIC extid + address, snapshotted server-side BEFORE the teardown — after
+ * `destroy!` the membership records are gone and this list is unrecoverable.
+ */
+export const colonelDeleteOrganizationMemberSchema = z.object({
+  extid: z.string(),
+  email: z.string(),
+});
+
+/**
+ * The delete plan / receipt: everything the operator confirms against, echoed
+ * from `Onetime::Operations::Org::Delete::Result`.
+ *
+ * `dry_run` is the field that decides whether this is a PREVIEW or a RECEIPT —
+ * the endpoint DEFAULTS `dry_run` to true, so an apply must send
+ * `dry_run=false` explicitly and the caller must check this echo (plus
+ * `record.deleted`) before reporting a deletion.
+ *
+ * `is_default` / `active_subscription` are the guardrail inputs, echoed so the
+ * screen can explain WHY a delete is blocked and which override
+ * (`force_default` / `force_subscription`) unlocks that one guard.
+ * `default_org_cleared` names the customers whose `default_org_id` pointed at
+ * this org and was (or would be) cleared — the repair a hand-run console
+ * `destroy!` skips.
+ */
+export const colonelDeleteOrganizationDetailsSchema = z.object({
+  dry_run: z.boolean(),
+  planid: z.string(),
+  members: z.array(colonelDeleteOrganizationMemberSchema),
+  members_notified: z.number(),
+  pending_invitations: z.number(),
+  /**
+   * The org's raw domain count — the guard's input. Deliberately not
+   * `domains.length`: `destroy!` refuses on the count, while the name list
+   * compacts away collection entries whose domain record is gone. Trust this
+   * for "is it blocked", and the names for "which ones".
+   */
+  domain_count: z.number(),
+  domains: z.array(z.string()),
+  is_default: z.boolean(),
+  active_subscription: z.boolean(),
+  owner_id: z.string().nullable(),
+  owner_org_count: z.number(),
+  default_org_cleared: z.array(z.string()),
+});
+
+/**
+ * `DELETE /api/colonel/organizations/:org_id` → `{ record, details }` (#4204 —
+ * console peer of `bin/ots org delete`). MUTATING when `dry_run=false`.
+ *
+ * `status` is the op's vocabulary verbatim: `planned` | `success` |
+ * `has_domains` | `is_default` | `active_subscription` | `last_org`. A DRY RUN
+ * answers 200 on ANY of them — the preview is the plan, and a 4xx would throw
+ * away the payload the confirmation screen is built from. An APPLY answers 200
+ * only on `success`; a refused apply is a 4xx form error naming the guard.
+ *
+ * `deleted` is therefore the one boolean to trust before reporting a deletion.
+ * It is `z.boolean()` and not derived: it is true only on an applied
+ * `success`.
+ */
+export const colonelDeleteOrganizationRecordSchema = z.object({
+  deleted: z.boolean(),
+  org_id: z.string(),
+  display_name: z.string(),
+  status: z.string(),
+});
+
+export const colonelDeleteOrganizationResponseSchema = createApiResponseSchema(
+  colonelDeleteOrganizationRecordSchema,
+  colonelDeleteOrganizationDetailsSchema
+);
+
+export type ColonelDeleteOrganizationMember = z.infer<typeof colonelDeleteOrganizationMemberSchema>;
+export type ColonelDeleteOrganizationDetails = z.infer<
+  typeof colonelDeleteOrganizationDetailsSchema
+>;
+export type ColonelDeleteOrganizationRecord = z.infer<typeof colonelDeleteOrganizationRecordSchema>;
+export type ColonelDeleteOrganizationResponse = z.infer<
+  typeof colonelDeleteOrganizationResponseSchema
+>;

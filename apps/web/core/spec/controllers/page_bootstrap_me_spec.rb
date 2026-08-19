@@ -9,7 +9,7 @@
 # and after login/MFA completion.
 #
 # Run with:
-#   source .env.test && bundle exec rspec apps/web/core/spec/controllers/page_bootstrap_me_spec.rb
+#   tests/lanes/run unit --only apps/web/core/spec/controllers/page_bootstrap_me_spec.rb
 
 require_relative '../../../../../spec/integration/integration_spec_helper'
 
@@ -196,23 +196,39 @@ RSpec.describe 'GET /bootstrap/me', type: :integration do
     end
   end
 
+  # These requests are unauthenticated (no session is established above), so
+  # they exercise the anonymous branch of SystemSerializer. Version details are
+  # deliberately withheld there: an exact app/Ruby version pairing is the
+  # primary input to fingerprinting an install against known CVEs.
+  #
+  # The keys must still be PRESENT and non-nil — the frontend contract types
+  # them as `z.string()`, so a JSON null would fail Zod validation and reject
+  # the whole bootstrap payload.
   describe 'system information' do
-    it 'returns ot_version' do
+    it 'returns ot_version as a string, withheld while anonymous' do
       get '/bootstrap/me'
       data = JSON.parse(last_response.body)
-      expect(data['ot_version']).not_to be_nil
+      expect(data['ot_version']).to eq('')
     end
 
-    it 'returns ot_version_long' do
+    it 'returns ot_version_long as a string, withheld while anonymous' do
       get '/bootstrap/me'
       data = JSON.parse(last_response.body)
-      expect(data['ot_version_long']).not_to be_nil
+      expect(data['ot_version_long']).to eq('')
     end
 
-    it 'returns ruby_version' do
+    it 'returns ruby_version as a string, withheld while anonymous' do
       get '/bootstrap/me'
       data = JSON.parse(last_response.body)
-      expect(data['ruby_version']).not_to be_nil
+      expect(data['ruby_version']).to eq('')
+    end
+
+    it 'never emits nil for version fields (would break the Zod contract)' do
+      get '/bootstrap/me'
+      data = JSON.parse(last_response.body)
+      %w[ot_version ot_version_long ruby_version].each do |key|
+        expect(data[key]).to be_a(String), "Expected '#{key}' to be a String, got #{data[key].inspect}"
+      end
     end
 
     it 'returns nonce for CSP' do
