@@ -246,7 +246,11 @@ module Billing
 
         LOG_LABEL = '[ProcessCheckoutSession]'
 
-        attr_reader :session_id, :checkout_session, :subscription, :target_organization
+        attr_reader :session_id,
+          :checkout_session,
+          :subscription,
+          :stripe_customer_id,
+          :target_organization
 
         def process_params
           @session_id = params['session_id']
@@ -260,20 +264,45 @@ module Billing
             raise_form_error 'Invalid checkout session ID format'
           end
 
+          # Only the subscription is expanded. Expanding `customer` turned
+          # checkout_session.customer into a Stripe::Customer, and
+          # Billing::CheckoutTargetResolver requires a 'cus_' String — so its
+          # step 2 (prior-binding lookup) and the stripe_claim_fields
+          # unique-index claim silently never applied on this surface.
           @checkout_session = Stripe::Checkout::Session.retrieve(
             {
               id: session_id,
-              expand: %w[subscription customer],
+              expand: %w[subscription],
             },
           )
           raise_form_error 'Invalid checkout session' unless checkout_session
 
           @subscription = checkout_session.subscription
           # NOTE: subscription may be nil for one-time payments
+
+          # Normalize at the retrieve boundary, not at each call site: the
+          # resolver's strict String contract is what caught the expanded-object
+          # bug and stays strict, so exactly one place in this class is allowed
+          # to hold a Stripe-shaped customer.
+          @stripe_customer_id = extract_stripe_customer_id(checkout_session.customer)
         end
 
         def process
           return success_data unless subscription
+
+          # Fail closed HERE, not in raise_concerns: raise_concerns runs before
+          # we know the session's mode, and one-time payments legitimately have
+          # no billing workspace to bind (they return above). Past this line the
+          # subscription branch is taken, and every path below it either
+          # resolves or CREATES an organization — so an unidentifiable Stripe
+          # customer must stop the request rather than mint a workspace with no
+          # claim on it, which is what silently disables replay resolution and
+          # the concurrent-creation election.
+          unless stripe_customer_id&.start_with?('cus_')
+            billing_logger.error "#{LOG_LABEL} Checkout session has no valid Stripe customer",
+              session_id: session_id
+            raise_form_error 'Checkout session has no valid Stripe customer'
+          end
 
           metadata        = subscription.metadata
           customer_extid  = metadata['customer_extid']
@@ -343,7 +372,7 @@ module Billing
           org = ::Billing::CheckoutTargetResolver.resolve(
             customer: customer,
             metadata: metadata,
-            stripe_customer_id: checkout_session&.customer,
+            stripe_customer_id: stripe_customer_id,
             logger: billing_logger,
             label: LOG_LABEL,
           )
@@ -364,8 +393,33 @@ module Billing
             customer,
             logger: billing_logger,
             label: LOG_LABEL,
-            stripe_customer_id: checkout_session&.customer,
+            stripe_customer_id: stripe_customer_id,
           )
+        end
+
+        # The checkout's Stripe customer as a plain id.
+        #
+        # Stripe hands this field back in two shapes depending on the request:
+        # a 'cus_' String, or a Stripe::Customer when the caller expands it.
+        # Nothing here expands it any more, but fixtures, an API-version change
+        # or a future caller can reintroduce the object, so both are accepted.
+        #
+        # Anything else returns nil on purpose. to_s-ing an unknown object
+        # manufactures a claim string that is not a Stripe customer id, which
+        # would take the unique index under a bogus value instead of failing.
+        #
+        # The webhook twin (WebhookHandlers::CheckoutCompleted) needs no such
+        # extractor: it reads event.data.object.customer from the delivered
+        # payload, which Stripe never expands, so it is always a String there.
+        # Hoisting this to Billing:: would be shared code for one caller.
+        #
+        # @param customer [String, Stripe::Customer, nil]
+        # @return [String, nil]
+        def extract_stripe_customer_id(customer)
+          case customer
+          when String then customer
+          when Stripe::Customer then customer.id
+          end
         end
       end
     end
