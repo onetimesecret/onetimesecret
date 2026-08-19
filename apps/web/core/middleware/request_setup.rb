@@ -112,11 +112,10 @@ module Core
       allow_same_origin_scripts_in_development(headers) if development_mode && result.applied?
     end
 
-    # Otto's development policy permits nonce-bearing entry scripts but omits
-    # 'self' from script-src. Vite resolves its module graph as independent
-    # same-origin requests, so browsers block the imported modules. Do not use
-    # Config#merge_csp_directives here: overriding script-src would discard the
-    # per-request nonce Otto generates.
+    # Some Otto development policies omit 'self' from script-src. Vite resolves
+    # its module graph as independent same-origin requests, so browsers block
+    # imported modules without it. Do not use Config#merge_csp_directives here:
+    # overriding script-src would discard the per-request nonce Otto generates.
     def allow_same_origin_scripts_in_development(headers)
       policy = headers['content-security-policy']
       return if policy.nil? || policy.match?(/(?:\A|;\s*)script-src\s+[^;]*'self'/)

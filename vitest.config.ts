@@ -95,7 +95,13 @@ export default defineConfig({
       reporter: ['text', 'cobertura'],
       reportsDirectory: 'coverage',
       all: true, // include untested source files so they report as 0% covered
-      include: ['src/**'],
+      // Extension-scoped. A bare `src/**` also handed the v8 provider the
+      // non-code files under src/, which it parses as modules: the 13 .md
+      // files each printed a `PARSE_ERROR` stack trace before being dropped
+      // again, and the fonts/images/css/json landed in the report as empty
+      // entries. Rates are unchanged by the narrowing (line-rate 0.6679,
+      // branch-rate 0.5585 either way; lines-valid 22597 -> 22596).
+      include: ['src/**/*.{ts,tsx,mts,cts,js,mjs,cjs,vue}'],
       exclude: [
         'src/tests/**',
         'src/**/*.spec.ts',

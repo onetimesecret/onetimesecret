@@ -156,7 +156,7 @@
     "source_hash": "79fa3361"
   },
   "web.domains.manage_and_configure_your_verified_custom_domains": {
-    "text": "인증된 맞춤 도메인을 관리하고 구성합니다",
+    "text": "인증된 사용자 지정 도메인을 관리하고 구성합니다",
     "source_hash": "4e7f8311"
   },
   "web.domains.domains": {
@@ -224,7 +224,7 @@
     "source_hash": "6b95c91c"
   },
   "web.domains.get_started_by_adding_a_custom_domain": {
-    "text": "맞춤 도메인을 추가하여 시작하세요.",
+    "text": "사용자 지정 도메인을 추가하여 시작하세요.",
     "source_hash": "abdbe9ab"
   },
   "web.domains.no_domains_found": {
@@ -1538,5 +1538,93 @@
   "web.domains.signup.dormant_notice": {
     "text": "가입이 워크스페이스 전체에서 꺼져 있어 모든 도메인에서 사용할 수 없습니다. 여기서 설정한 내용은 유지되며 워크스페이스 가입이 다시 활성화되면 적용됩니다.",
     "source_hash": "49faefe4"
+  },
+  "web.domains.link_domain_no_settings": {
+    "text": "이 도메인에는 설정 페이지가 없습니다",
+    "source_hash": "8a8430fe"
+  },
+  "web.domains.signin.sso_restrict_warning_title": {
+    "text": "SSO로 제한하면 이 도메인에서 로그인이 완전히 차단됩니다",
+    "source_hash": "3476cb5c"
+  },
+  "web.domains.signin.sso_restrict_warning_body": {
+    "text": "이 도메인에서는 SSO를 사용할 수 없으며, 적용할 수 없는 제한은 로그인을 완전히 차단합니다. SSO가 정상 작동하기 전까지는 아무도 여기서 로그인할 수 없습니다. 먼저 SSO를 해결하거나, 그대로 제한한 뒤 설정을 마치세요.",
+    "source_hash": "086e3247"
+  },
+  "web.domains.signin.sso_restrict_warning_confirm": {
+    "text": "그대로 제한",
+    "source_hash": "4674e3cf"
+  },
+  "web.domains.signin.restriction_unavailable_notice": {
+    "text": "이 도메인에서는 로그인을 사용할 수 없습니다. 여기서 실행할 수 없는 {method}(으)로 제한되어 있습니다. 다른 방법을 선택하거나 {method}을(를) 사용할 수 있도록 설정하세요.",
+    "source_hash": "ca1b7f69"
+  },
+  "web.domains.signin.restriction_unavailable_unknown_notice": {
+    "text": "이 도메인에서는 로그인을 사용할 수 없습니다. 여기서 실행할 수 없는 방법으로 제한되어 있습니다. 다른 방법을 선택하거나 이 도메인을 기본값으로 재설정하세요.",
+    "source_hash": "8c2cce6b"
+  },
+  "web.domains.signin.restriction_conflict_notice": {
+    "text": "이 도메인은 워크스페이스 전체 제한({method})과 다른 방법으로 로그인을 제한하고 있어 어느 쪽도 적용될 수 없으며, 여기서는 로그인을 사용할 수 없습니다. 워크스페이스 전체 방법과 일치시키거나 이 도메인을 기본값으로 재설정하세요.",
+    "source_hash": "15398362"
+  },
+  "web.domains.signin.method_webauthn_unavailable": {
+    "text": "패스키는 기본 로그인 도메인에 연결되어 있어 아직 사용자 지정 도메인에서는 사용할 수 없습니다",
+    "source_hash": "88833e0f"
+  },
+  "web.domains.sso.connection_disabled_badge": {
+    "text": "연결 비활성화됨",
+    "source_hash": "99d6092c"
+  },
+  "web.domains.sso.connection_disabled_hint": {
+    "text": "SSO 자격 증명은 저장되어 있지만 연결이 꺼져 있습니다. 자격 증명 편집에서 활성화하세요.",
+    "source_hash": "90180d6c"
+  },
+  "web.domains.sso.status_active_badge": {
+    "text": "활성",
+    "source_hash": "92340695"
+  },
+  "web.domains.sso.status_active_hint": {
+    "text": "멤버는 이 도메인에서 이 SSO 연결로 로그인할 수 있습니다.",
+    "source_hash": "313ec61e"
+  },
+  "web.domains.sso.status_not_configured_badge": {
+    "text": "설정되지 않음",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.sso.status_not_configured_hint": {
+    "text": "이 도메인에 저장된 SSO 자격 증명이 아직 없습니다.",
+    "source_hash": "d817ad9c"
+  },
+  "web.domains.sso.status_not_permitted_badge": {
+    "text": "이 도메인에서 허용되지 않음",
+    "source_hash": "afbd20ba"
+  },
+  "web.domains.sso.status_not_permitted_hint": {
+    "text": "이 도메인에서 SSO가 꺼져 있어 로그인 페이지에 표시되지 않습니다.",
+    "source_hash": "ef092481"
+  },
+  "web.domains.sso.status_auth_disabled_badge": {
+    "text": "로그인 비활성화됨",
+    "source_hash": "bb807607"
+  },
+  "web.domains.sso.status_auth_disabled_hint": {
+    "text": "이 도메인에서 로그인이 꺼져 있어 SSO를 포함한 어떤 방법도 제공되지 않습니다.",
+    "source_hash": "3a98964b"
+  },
+  "web.domains.sso.status_unsupported_provider_badge": {
+    "text": "지원되지 않는 공급자",
+    "source_hash": "1609d5fb"
+  },
+  "web.domains.sso.status_unsupported_provider_hint": {
+    "text": "저장된 공급자는 도메인 SSO에 사용할 수 없습니다. 자격 증명을 편집하여 Microsoft Entra ID 또는 일반 OIDC를 선택하세요.",
+    "source_hash": "72ea0a2e"
+  },
+  "web.domains.sso.status_unavailable_badge": {
+    "text": "사용할 수 없음",
+    "source_hash": "ca184496"
+  },
+  "web.domains.sso.status_unavailable_hint": {
+    "text": "현재 이 도메인에서는 SSO를 제공할 수 없습니다. SSO 자격 증명과 이 도메인의 로그인 설정을 확인하세요.",
+    "source_hash": "b03b14f4"
   }
 }

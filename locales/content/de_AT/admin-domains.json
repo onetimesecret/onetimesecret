@@ -468,7 +468,7 @@
     "source_hash": "6e77e673"
   },
   "web.admin.domains.configs.fields.restrict_to": {
-    "text": "Beschränken auf",
+    "text": "Einschränken auf",
     "source_hash": "a0bdf50a"
   },
   "web.admin.domains.configs.fields.signup_enabled": {

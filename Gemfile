@@ -21,7 +21,11 @@ source 'https://rubygems.org/'
 # 2.8+: depth mode records a forwarded-host trust signal (delano/otto#226),
 # and otto.via_trusted_proxy is tri-state — written only when proxy trust is
 # configured (present => authoritative, absent => legacy heuristics apply).
-gem 'otto', '~> 2.8'
+# 2.8.1+: opt-in ASN (req.asn) and anonymizer (req.anonymizer) enrichment,
+# both off by default and database-only — no behavior change until a
+# *_db_path is configured. Pinned at the patch level so a resolve can't land
+# on 2.8.0, where those readers are absent (delano/otto docs/enrichment.md).
+gem 'otto', '~> 2.8.1'
 gem 'rhales', '~> 0.7.1'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'

@@ -292,9 +292,9 @@
     "source_hash": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "Име на ключ за достъп",
+    "text": "Ключ за достъп",
     "context": "Label for passkey name field",
-    "source_hash": "22eefa67"
+    "source_hash": "904c9aa9"
   },
   "web.auth.passkeys.created": {
     "text": "Създаден",
@@ -929,5 +929,33 @@
   "web.sso_link_confirm.errors.generic": {
     "text": "Не можахме да потвърдим тази връзка. Моля, влезте отново с вашия доставчик.",
     "source_hash": "076fa25a"
+  },
+  "web.auth.mfa.passkey_mode_active": {
+    "text": "Режимът с ключ за достъп е активен",
+    "source_hash": "824dceb6"
+  },
+  "web.auth.mfa.passkey_prompt": {
+    "text": "Потвърдете самоличността си с ключ за достъп. Устройството ви ще поиска пръстов отпечатък, лице или ключ за сигурност.",
+    "source_hash": "c0b0cbbc"
+  },
+  "web.auth.mfa.verify_with_passkey": {
+    "text": "Потвърдете с ключ за достъп",
+    "source_hash": "4f105a30"
+  },
+  "web.auth.mfa.use_passkey": {
+    "text": "Използвайте ключ за достъп вместо това",
+    "source_hash": "bd6430a4"
+  },
+  "web.auth.passkeys.remove_failed": {
+    "text": "Ключът за достъп не може да бъде премахнат",
+    "source_hash": "3e131515"
+  },
+  "web.auth.passkeys.load_failed": {
+    "text": "Ключовете за достъп не могат да бъдат заредени",
+    "source_hash": "8d704e00"
+  },
+  "web.auth.webauthn.emailRequired": {
+    "text": "Въведете вашия имейл адрес, за да влезете с ключ за достъп",
+    "source_hash": "7f07647f"
   }
 }

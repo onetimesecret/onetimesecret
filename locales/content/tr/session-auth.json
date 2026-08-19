@@ -519,5 +519,9 @@
   "web.login.notices.link_verification_sent": {
     "text": "Gelen kutunuzu kontrol edin - hesabınızı bağlamayı onaylamak için size bir bağlantı e-postası gönderdik. Oturum açmayı tamamlamak için açın.",
     "source_hash": "b251c8f3"
+  },
+  "web.login.errors.sso_cancelled": {
+    "text": "Giriş iptal edildi. Hazır olduğunuzda tekrar deneyebilirsiniz.",
+    "source_hash": "b5f3d3ec"
   }
 }

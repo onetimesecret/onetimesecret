@@ -519,5 +519,9 @@
   "web.login.notices.link_verification_sent": {
     "text": "Sprawdź skrzynkę odbiorczą — wysłaliśmy Ci e-mailem link potwierdzający połączenie konta. Otwórz go, aby dokończyć logowanie.",
     "source_hash": "b251c8f3"
+  },
+  "web.login.errors.sso_cancelled": {
+    "text": "Logowanie zostało anulowane. Możesz spróbować ponownie, kiedy tylko zechcesz.",
+    "source_hash": "b5f3d3ec"
   }
 }
