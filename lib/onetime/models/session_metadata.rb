@@ -87,7 +87,49 @@ module Onetime
     # from update_session) and copied verbatim here by TrackMetadata.
     field :active_session_id_hmac
 
-    field :geo_country       # ISO 3166-1 alpha-2 from Otto (env['otto.privacy.geo_country']); '**' unknown; nil when the privacy layer is absent. Country-only, never a raw IP — resolved by Otto before masking, not derived from ip_address.
+    # ISO 3166-1 alpha-2 from Otto (env['otto.privacy.geo_country']); nil when
+    # unresolved or the privacy layer is absent (see the normalized reader
+    # below). Country-only, never a raw IP — resolved by Otto before masking,
+    # not derived from ip_address.
+    field :geo_country
+
+    # Otto's GeoResolver sentinel for "resolver ran but could not resolve a
+    # country" (Otto::Privacy::GeoResolver::UNKNOWN). An internal wire value,
+    # never part of this model's contract.
+    UNKNOWN_COUNTRY = '**'
+
+    # Normalized geo_country reader — THE single chokepoint that keeps Otto's
+    # '**' unknown sentinel out of every emission path (the
+    # Onetime::Security::RequestContext#normalize_country precedent: the
+    # sentinel is treated like a blank value, never surfaced).
+    #
+    # Familia reads fields through their PUBLIC getters everywhere it
+    # serializes: safe_dump's default field lambda calls `send(:geo_country)`
+    # (Horreum defines no `[]`), and to_h / to_h_for_storage do the same. So
+    # overriding the getter covers, structurally:
+    #   * safe_dump rows (ListForCustomer → colonel per-customer view and the
+    #     /auth/active-sessions join map)
+    #   * direct reads (Sessions::List#attach_geo_country)
+    #   * persistence: to_h_for_storage omits nil fields, so '**' is never
+    #     written to storage either (a legacy stored '**' reads back as nil and
+    #     is actively removed on the next refresh via remove_stale_nil_fields).
+    #
+    # Clients can therefore rely on: geo_country is a country code or nil,
+    # NEVER '**' and never blank.
+    #
+    # PREPENDED (not `def geo_country` in the class body) because Familia's
+    # method_added guard raises on in-class redefinition of a field-generated
+    # method; layering via prepend keeps the generated getter reachable as
+    # `super` (the raw stored value).
+    GeoCountryNormalization = Module.new do
+      def geo_country
+        value = super.to_s.strip
+        return nil if value.empty? || value == UNKNOWN_COUNTRY
+
+        value
+      end
+    end
+    prepend GeoCountryNormalization
 
     # POSITIVE allow-list — the security boundary. No token, no payload, no email.
     # active_session_id_hmac is omitted on purpose: it is an internal join key,

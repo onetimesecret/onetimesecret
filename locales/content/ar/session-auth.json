@@ -519,5 +519,9 @@
   "web.login.notices.link_verification_sent": {
     "text": "تحقق من بريدك الوارد — أرسلنا لك رابطاً بالبريد الإلكتروني لتأكيد ربط حسابك. افتحه لإكمال تسجيل الدخول.",
     "source_hash": "b251c8f3"
+  },
+  "web.login.errors.sso_cancelled": {
+    "text": "تم إلغاء تسجيل الدخول. يمكنك المحاولة مرة أخرى في أي وقت.",
+    "source_hash": "b5f3d3ec"
   }
 }

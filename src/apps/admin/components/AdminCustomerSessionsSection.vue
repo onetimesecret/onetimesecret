@@ -64,9 +64,9 @@
     return formatDisplayDateTime(new Date(epoch * 1000));
   }
 
-  /** '**' (Otto unknown sentinel) or null/missing renders as "Unknown". */
+  /** Null/missing country renders as "Unknown". */
   function countryLabel(country: string | null | undefined): string {
-    if (!country || country === '**') return t('web.admin.customers.detail.sessions.unknown');
+    if (!country) return t('web.admin.customers.detail.sessions.unknown');
     return country;
   }
 

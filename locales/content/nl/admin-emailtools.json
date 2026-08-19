@@ -546,5 +546,41 @@
   "web.admin.emailtools.test.success": {
     "text": "Test-e-mail verzonden naar {to}.",
     "source_hash": "daa61a62"
+  },
+  "web.admin.emailtools.providerStatus.cycleNote": {
+    "text": "SMTP2GO rapporteert statistieken voor de huidige facturatiecyclus, niet voor een voortschrijdend venster van 30 dagen. Een percentage dat als “—” wordt weergegeven, wordt niet gerapporteerd door de provider en is niet nul.",
+    "source_hash": "b052009b"
+  },
+  "web.admin.emailtools.providerStatus.cycle.window": {
+    "text": "Facturatiecyclus: {start} → {end}",
+    "source_hash": "a9ea52bb"
+  },
+  "web.admin.emailtools.providerStatus.cycle.used": {
+    "text": "Quotum gebruikt (cyclus)",
+    "source_hash": "95a86428"
+  },
+  "web.admin.emailtools.providerStatus.cycle.remaining": {
+    "text": "Quotum resterend",
+    "source_hash": "b2605e14"
+  },
+  "web.admin.emailtools.providerStatus.stats.sentCycle": {
+    "text": "Verzonden (cyclus)",
+    "source_hash": "e2ed5d2e"
+  },
+  "web.admin.emailtools.providerStatus.stats.softBounced": {
+    "text": "Soft bounce",
+    "source_hash": "58028553"
+  },
+  "web.admin.emailtools.providerStatus.stats.bounceRejects": {
+    "text": "Bounce-weigeringen",
+    "source_hash": "0ca14701"
+  },
+  "web.admin.emailtools.providerStatus.stats.spamRejects": {
+    "text": "Spam-weigeringen",
+    "source_hash": "4d487ce5"
+  },
+  "web.admin.emailtools.providerStatus.stats.unsubscribes": {
+    "text": "Afmeldingen",
+    "source_hash": "8a8c3ef7"
   }
 }

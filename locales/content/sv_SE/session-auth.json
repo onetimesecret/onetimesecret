@@ -519,5 +519,9 @@
   "web.login.notices.link_verification_sent": {
     "text": "Kontrollera din inkorg — vi har skickat dig en länk via e-post för att bekräfta anslutningen av ditt konto. Öppna den för att slutföra inloggningen.",
     "source_hash": "b251c8f3"
+  },
+  "web.login.errors.sso_cancelled": {
+    "text": "Inloggningen avbröts. Du kan försöka igen när du vill.",
+    "source_hash": "b5f3d3ec"
   }
 }

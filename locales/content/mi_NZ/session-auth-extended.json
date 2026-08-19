@@ -292,9 +292,9 @@
     "source_hash": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "Ingoa Kī Urunga",
+    "text": "Kī Urunga",
     "context": "Label for passkey name field",
-    "source_hash": "22eefa67"
+    "source_hash": "904c9aa9"
   },
   "web.auth.passkeys.created": {
     "text": "Kua hangaia",
@@ -317,7 +317,7 @@
     "source_hash": "41afb6ec"
   },
   "web.auth.passkeys.benefit_fast": {
-    "text": "Tere, māmā hoki - whakamahia tō tapumānawa, kanohi, kī haumaru rānei",
+    "text": "Tere, māmā hoki - whakamahia tō tapumati, kanohi, kī haumaru rānei",
     "context": "Passkey benefit",
     "source_hash": "5a0ce96c"
   },
@@ -929,5 +929,33 @@
   "web.sso_link_confirm.errors.generic": {
     "text": "Kāore i taea te whakaū i tēnei hononga. Takiurua mā tō kaiwhakarato anō.",
     "source_hash": "076fa25a"
+  },
+  "web.auth.mfa.passkey_mode_active": {
+    "text": "Kei te hohe te aratau kī urunga",
+    "source_hash": "824dceb6"
+  },
+  "web.auth.mfa.passkey_prompt": {
+    "text": "Manatokohia ko koe tēnei mā te kī urunga. Ka tono tō pūrere i tō tapumati, kanohi, kī haumaru rānei.",
+    "source_hash": "c0b0cbbc"
+  },
+  "web.auth.mfa.verify_with_passkey": {
+    "text": "Manatokohia mā te kī urunga",
+    "source_hash": "4f105a30"
+  },
+  "web.auth.mfa.use_passkey": {
+    "text": "Whakamahia he kī urunga kē",
+    "source_hash": "bd6430a4"
+  },
+  "web.auth.passkeys.remove_failed": {
+    "text": "Kāore i taea te tango i te kī urunga",
+    "source_hash": "3e131515"
+  },
+  "web.auth.passkeys.load_failed": {
+    "text": "Kāore i taea te uta i ngā kī urunga",
+    "source_hash": "8d704e00"
+  },
+  "web.auth.webauthn.emailRequired": {
+    "text": "Whakaurua tō wāhitau īmēra hei takiuru mā te kī urunga",
+    "source_hash": "7f07647f"
   }
 }

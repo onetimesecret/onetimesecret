@@ -22,7 +22,10 @@
 #     reported but not blocking — coverage is gate 1's job, above
 #   - the register lint, when .translation-rules/ and generated/i18n/.resolved/
 #     exist (run locales/scripts/derive-governance.sh); skipped otherwise, and a
-#     skip never fails the run
+#     skip never fails the run. It is preceded by register-coverage.py, which
+#     WARNS (never fails) when the locale's register carries no forbidden_tokens
+#     — that lint scans 0 strings and passes, and the warning is the only thing
+#     distinguishing it from a real clean scan
 # A locale failing those is reported as dirty. Nothing is reverted — the point is
 # to surface the problem while the content is still unstaged.
 #
@@ -55,6 +58,8 @@ I18N="$SCRIPT_DIR/i18n"
 # Register lint (governance-derived; absent unless derive-governance.sh has run).
 RULES_LINT_REL=".translation-rules/lib/resolver/lint_content.py"
 RESOLVED_DIR_REL="generated/i18n/.resolved"
+# In-repo probe that says whether the lint above can enforce anything at all.
+COVERAGE_REL="locales/scripts/register-coverage.py"
 
 DRY_RUN=true
 
@@ -159,16 +164,26 @@ validate_variables() {
 # validate-register CI gate. Needs the derived governance cache; when either half
 # is missing we say so and pass, because "governance not derived" is not a
 # content defect.
+#
+# The coverage probe runs FIRST and unconditionally: a locale whose register
+# carries no forbidden_tokens (de, ar) makes the linter scan 0 strings and exit
+# 0, which is indistinguishable from a real clean pass. The probe prints the
+# WARNING that tells them apart. It never gates (empty is sometimes correct).
 register_lint() {
   local locale="$1" out rc=0
   if [[ ! -f "$ROOT/$RULES_LINT_REL" || ! -f "$ROOT/$RESOLVED_DIR_REL/$locale.json" ]]; then
     echo "[$locale] register lint skipped (no $RESOLVED_DIR_REL/$locale.json; run locales/scripts/derive-governance.sh)"
     return 0
   fi
+  (cd "$ROOT" && python3 "$COVERAGE_REL" --resolved "$RESOLVED_DIR_REL/$locale.json") \
+    2>&1 | sed "s/^/[$locale] /" || true
+  # Glob unquoted: the shell owns expansion (matches the validate-register.yml
+  # call site). No nullglob here, so an unmatched glob passes through literally
+  # and lint exits 3, exactly as before.
   out="$(cd "$ROOT" && python3 "$RULES_LINT_REL" \
     --resolved "$RESOLVED_DIR_REL/$locale.json" \
     --content-root . \
-    "locales/content/$locale/*.json" 2>&1)" || rc=$?
+    "locales/content/$locale"/*.json 2>&1)" || rc=$?
   if [[ $rc -ne 0 ]]; then
     echo "[$locale] register lint FAILED (exit $rc)"
     if [[ -n "$out" ]]; then printf '%s\n' "$out" | indent; fi

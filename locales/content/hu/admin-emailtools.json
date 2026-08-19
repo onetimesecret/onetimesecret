@@ -546,5 +546,41 @@
   "web.admin.emailtools.test.success": {
     "text": "A teszt e-mail elküldve a következő címre: {to}.",
     "source_hash": "daa61a62"
+  },
+  "web.admin.emailtools.providerStatus.cycleNote": {
+    "text": "Az SMTP2GO az aktuális számlázási ciklusra vonatkozó statisztikákat jelenti, nem egy visszatekintő 30 napos időszakét. A „—” formában megjelenő arányt a szolgáltató nem jelenti, ez nem nulla.",
+    "source_hash": "b052009b"
+  },
+  "web.admin.emailtools.providerStatus.cycle.window": {
+    "text": "Számlázási ciklus: {start} → {end}",
+    "source_hash": "a9ea52bb"
+  },
+  "web.admin.emailtools.providerStatus.cycle.used": {
+    "text": "Felhasznált kvóta (ciklus)",
+    "source_hash": "95a86428"
+  },
+  "web.admin.emailtools.providerStatus.cycle.remaining": {
+    "text": "Fennmaradó kvóta",
+    "source_hash": "b2605e14"
+  },
+  "web.admin.emailtools.providerStatus.stats.sentCycle": {
+    "text": "Elküldve (ciklus)",
+    "source_hash": "e2ed5d2e"
+  },
+  "web.admin.emailtools.providerStatus.stats.softBounced": {
+    "text": "Puhán visszapattant",
+    "source_hash": "58028553"
+  },
+  "web.admin.emailtools.providerStatus.stats.bounceRejects": {
+    "text": "Visszapattanás miatti elutasítások",
+    "source_hash": "0ca14701"
+  },
+  "web.admin.emailtools.providerStatus.stats.spamRejects": {
+    "text": "Spam miatti elutasítások",
+    "source_hash": "4d487ce5"
+  },
+  "web.admin.emailtools.providerStatus.stats.unsubscribes": {
+    "text": "Leiratkozások",
+    "source_hash": "8a8c3ef7"
   }
 }

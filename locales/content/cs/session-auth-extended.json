@@ -292,9 +292,9 @@
     "source_hash": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "Název přístupového klíče",
+    "text": "Passkey",
     "context": "Label for passkey name field",
-    "source_hash": "22eefa67"
+    "source_hash": "904c9aa9"
   },
   "web.auth.passkeys.created": {
     "text": "Vytvořen",
@@ -929,5 +929,33 @@
   "web.sso_link_confirm.errors.generic": {
     "text": "Nepodařilo se potvrdit toto připojení. Přihlas se znovu pomocí svého poskytovatele.",
     "source_hash": "076fa25a"
+  },
+  "web.auth.mfa.passkey_mode_active": {
+    "text": "Režim passkey je aktivní",
+    "source_hash": "824dceb6"
+  },
+  "web.auth.mfa.passkey_prompt": {
+    "text": "Ověř svou totožnost pomocí passkey. Tvoje zařízení si vyžádá otisk prstu, obličej nebo bezpečnostní klíč.",
+    "source_hash": "c0b0cbbc"
+  },
+  "web.auth.mfa.verify_with_passkey": {
+    "text": "Ověřit pomocí passkey",
+    "source_hash": "4f105a30"
+  },
+  "web.auth.mfa.use_passkey": {
+    "text": "Použít místo toho passkey",
+    "source_hash": "bd6430a4"
+  },
+  "web.auth.passkeys.remove_failed": {
+    "text": "Passkey se nepodařilo odebrat",
+    "source_hash": "3e131515"
+  },
+  "web.auth.passkeys.load_failed": {
+    "text": "Passkeys se nepodařilo načíst",
+    "source_hash": "8d704e00"
+  },
+  "web.auth.webauthn.emailRequired": {
+    "text": "Pro přihlášení pomocí passkey zadej svou e-mailovou adresu",
+    "source_hash": "7f07647f"
   }
 }

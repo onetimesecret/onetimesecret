@@ -519,5 +519,9 @@
   "web.login.notices.link_verification_sent": {
     "text": "בדוק את תיבת הדואר הנכנס שלך — שלחנו לך קישור בדוא\"ל לאישור חיבור החשבון שלך. פתח אותו כדי לסיים את הכניסה.",
     "source_hash": "b251c8f3"
+  },
+  "web.login.errors.sso_cancelled": {
+    "text": "הכניסה בוטלה. תוכל לנסות שוב מתי שתהיה מוכן.",
+    "source_hash": "b5f3d3ec"
   }
 }

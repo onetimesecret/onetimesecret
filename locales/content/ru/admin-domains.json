@@ -40,7 +40,7 @@
     "source_hash": "79a7245c"
   },
   "web.admin.domains.addDomain.strategy.passthrough": {
-    "text": "Passthrough — вы направляете DNS на прокси этого развёртывания.",
+    "text": "Passthrough — Вы направляете DNS на прокси этого развёртывания.",
     "source_hash": "9702d758"
   },
   "web.admin.domains.addDomain.strategy.external": {
