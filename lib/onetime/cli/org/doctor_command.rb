@@ -448,12 +448,12 @@ module Onetime
       # stale entry — and --repair would then award the value to whichever org
       # the scan happened to reach first.
       #
-      # Nothing is reported or repaired from a partial claim map. A single-org
-      # run knows only about that org and whoever the index names, which cannot
-      # tell a missing entry apart from two orgs contesting an unheld value —
-      # so the moment an org shows drift, the map is completed first
-      # (#ensure_index_claims). A healthy org returns before that, which keeps
-      # the scan off the common path.
+      # Nothing is classified from a partial claim map — not a drift state, and
+      # not the absence of one. A single-org run knows only about that org and
+      # whoever the index names, which can tell neither a missing entry from
+      # two orgs contesting an unheld value, nor a healthy holder from one
+      # whose value a second live org also carries. So the map is completed
+      # first, once per run (#ensure_index_claims).
       #
       # For the Stripe indexes, Stripe is the source of truth about who owns
       # the customer; the doctor's job is to say so, not to choose.
@@ -482,12 +482,18 @@ module Onetime
         holder_objid = index_value(raw_holder)
         mine         = org.objid.to_s
 
-        # The only path that costs nothing extra, and the common one: this org
-        # holds its own entry and nothing already known contests it. Every line
-        # below is about to report or repair, and neither may be decided from a
-        # partial claim map.
-        return if holder_objid == mine && live_rivals(org, spec, value, holder_objid).empty?
-
+        # A rival can only be ruled out against a COMPLETE claim map, so the
+        # map is completed before anything is classified — including the
+        # healthy-looking case. An org holding its own entry is not locked out,
+        # but another live org carrying the same value IS, and that pair is a
+        # CRITICAL finding rather than a healthy org. Deciding "no rivals" from
+        # a partial map would report the holder healthy and leave the pair
+        # invisible to whoever doctored it — the exact shape of the defect this
+        # check exists to catch.
+        #
+        # --all has the map before the first check, so this costs nothing there
+        # and a healthy org still triggers no org loads. A single-org run pays
+        # for one scan, once per run, shared across all five indexes.
         ensure_index_claims
         rivals = live_rivals(org, spec, value, holder_objid)
 

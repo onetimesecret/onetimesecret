@@ -709,6 +709,21 @@ stripe_index.remove(@dup_cus)
 [stripe_index[@dup_cus] == @dup_org_b.objid, @report20r[:repaired]]
 #=> [true, []]
 
+## The HOLDER's side reports it too, with no pre-pass. B holds the entry and
+## can save perfectly well, so nothing about B's own state is wrong — but A is
+## locked out by it, and calling B healthy would leave the pair invisible to
+## anyone who happened to doctor B first
+@issues20h = []
+@report20h = { checked: 0, healthy: 0, issues: [], repaired: [] }
+@cmd20h    = Onetime::CLI::OrgDoctorCommand.new
+@cmd20h.send(:check_unique_index, @dup_org_b, stripe_spec, @issues20h, @report20h, repair: true)
+[@issues20h.first[:state], @issues20h.first[:holds_index], @report20h[:repaired]]
+#=> [:duplicate, true, []]
+
+## ...and it names the org it is locking out
+@issues20h.first[:rivals].map { |r| r[:extid] }
+#=> [@dup_org_a.extid]
+
 # -------------------------------------------------------------------
 # Scenario 21: CHECK 6 — duplicate whose index entry points at NEITHER org
 # -------------------------------------------------------------------

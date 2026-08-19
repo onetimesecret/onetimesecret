@@ -41,11 +41,13 @@ Added
   write would erase that valid claim and re-open the lockout the check exists
   to close. An entry that moved is left as found and reported instead.
 
-- Check 6 completes its map of which organizations carry which value before
-  reporting or repairing anything, so a single-org run cannot mistake two
-  organizations contesting an unclaimed value for a plain missing entry and
-  quietly award it. The scan is lazy: an organization whose index entries are
-  already correct never triggers it.
+- Check 6 completes its map of which organizations carry which value before it
+  classifies anything, including the cases that look healthy. A single-org run
+  can then neither mistake two organizations contesting an unclaimed value for
+  a plain missing entry and quietly award it, nor call an organization healthy
+  while a second one carrying the same value is locked out by it. ``--all``
+  builds the map once up front; a single-org run pays for one scan, shared
+  across all five indexes.
 
 Fixed
 -----
