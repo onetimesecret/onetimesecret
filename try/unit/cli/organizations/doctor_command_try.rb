@@ -94,6 +94,16 @@ def stripe_index
   Onetime::Organization.stripe_customer_id_index
 end
 
+# Helper: check 6's spec for one indexed field, from the command's own list —
+# every scenario below drives the generalized check through one of these.
+def index_spec(field)
+  Onetime::CLI::OrgDoctorCommand::UNIQUE_INDEXES.find { |spec| spec[:field] == field }
+end
+
+def stripe_spec
+  index_spec(:stripe_customer_id)
+end
+
 # Helper: Delete a customer from Redis (simulate deleted customer)
 def delete_customer_raw(customer)
   # Delete the customer object
@@ -547,13 +557,13 @@ stripe_index[@healthy_cus]
 ## Check 6 reports nothing when the org holds its own entry
 @issues16 = []
 @report16 = { checked: 0, healthy: 0, issues: [], repaired: [] }
-@cmd.send(:check_stripe_customer_id_index, @stripe_healthy_org, @issues16, @report16, repair: false)
+@cmd.send(:check_unique_index, @stripe_healthy_org, stripe_spec, @issues16, @report16, repair: false)
 @issues16
 #=> []
 
 ## An org with no stripe_customer_id is skipped entirely
 @issues16b = []
-@cmd.send(:check_stripe_customer_id_index, @healthy_org, @issues16b, @report16, repair: false)
+@cmd.send(:check_unique_index, @healthy_org, stripe_spec, @issues16b, @report16, repair: false)
 @issues16b
 #=> []
 
@@ -573,7 +583,7 @@ stripe_index[@missing_cus].to_s
 @issues17 = []
 @report17 = { checked: 0, healthy: 0, issues: [], repaired: [] }
 @cmd17    = Onetime::CLI::OrgDoctorCommand.new
-@cmd17.send(:check_stripe_customer_id_index, @stripe_missing_org, @issues17, @report17, repair: false)
+@cmd17.send(:check_unique_index, @stripe_missing_org, stripe_spec, @issues17, @report17, repair: false)
 [@issues17.size, @issues17.first[:check], @issues17.first[:state], @issues17.first[:severity]]
 #=> [1, :stripe_customer_id_index, :missing_entry, :medium]
 
@@ -589,13 +599,13 @@ stripe_index[@missing_cus].to_s
 @issues17r = []
 @report17r = { checked: 0, healthy: 0, issues: [], repaired: [] }
 @cmd17r    = Onetime::CLI::OrgDoctorCommand.new
-@cmd17r.send(:check_stripe_customer_id_index, @stripe_missing_org, @issues17r, @report17r, repair: true)
+@cmd17r.send(:check_unique_index, @stripe_missing_org, stripe_spec, @issues17r, @report17r, repair: true)
 stripe_index[@missing_cus]
 #=> @stripe_missing_org.objid
 
 ## The repair is recorded as a claim
-[@report17r[:repaired].size, @report17r[:repaired].first[:action], @report17r[:repaired].first[:stripe_customer_id]]
-#=> [1, :stripe_index_claimed, @missing_cus]
+[@report17r[:repaired].size, @report17r[:repaired].first[:action], @report17r[:repaired].first[:value]]
+#=> [1, :index_claimed, @missing_cus]
 
 # -------------------------------------------------------------------
 # Scenario 18: CHECK 6 — STALE index entry (holder org deleted)
@@ -613,7 +623,7 @@ Onetime::Organization.load(@gone_objid).nil?
 @issues18 = []
 @report18 = { checked: 0, healthy: 0, issues: [], repaired: [] }
 @cmd18    = Onetime::CLI::OrgDoctorCommand.new
-@cmd18.send(:check_stripe_customer_id_index, @stripe_stale_org, @issues18, @report18, repair: false)
+@cmd18.send(:check_unique_index, @stripe_stale_org, stripe_spec, @issues18, @report18, repair: false)
 [@issues18.size, @issues18.first[:state], @issues18.first[:severity], @issues18.first[:repairable]]
 #=> [1, :stale_entry, :high, true]
 
@@ -625,14 +635,14 @@ Onetime::Organization.load(@gone_objid).nil?
 @issues18r = []
 @report18r = { checked: 0, healthy: 0, issues: [], repaired: [] }
 @cmd18r    = Onetime::CLI::OrgDoctorCommand.new
-@cmd18r.send(:check_stripe_customer_id_index, @stripe_stale_org, @issues18r, @report18r, repair: true)
+@cmd18r.send(:check_unique_index, @stripe_stale_org, stripe_spec, @issues18r, @report18r, repair: true)
 stripe_index[@stale_cus]
 #=> @stripe_stale_org.objid
 
 ## The repair records what it displaced
 @repair18 = @report18r[:repaired].first
 [@repair18[:action], @repair18[:previous_objid]]
-#=> [:stripe_index_repointed, @gone_objid]
+#=> [:index_repointed, @gone_objid]
 
 # -------------------------------------------------------------------
 # Scenario 19: CHECK 6 — STALE index entry (holder moved to another customer)
@@ -647,7 +657,7 @@ stripe_index[@moved_cus_a] = @moved_org_b.objid
 @issues19 = []
 @report19 = { checked: 0, healthy: 0, issues: [], repaired: [] }
 @cmd19    = Onetime::CLI::OrgDoctorCommand.new
-@cmd19.send(:check_stripe_customer_id_index, @moved_org_a, @issues19, @report19, repair: false)
+@cmd19.send(:check_unique_index, @moved_org_a, stripe_spec, @issues19, @report19, repair: false)
 [@issues19.size, @issues19.first[:state], @issues19.first[:repairable]]
 #=> [1, :stale_entry, true]
 
@@ -673,7 +683,7 @@ stripe_index.remove(@dup_cus)
 @issues20 = []
 @report20 = { checked: 0, healthy: 0, issues: [], repaired: [] }
 @cmd20    = Onetime::CLI::OrgDoctorCommand.new
-@cmd20.send(:check_stripe_customer_id_index, @dup_org_a, @issues20, @report20, repair: false)
+@cmd20.send(:check_unique_index, @dup_org_a, stripe_spec, @issues20, @report20, repair: false)
 [@issues20.size, @issues20.first[:state], @issues20.first[:severity]]
 #=> [1, :duplicate, :critical]
 
@@ -695,7 +705,7 @@ stripe_index.remove(@dup_cus)
 @issues20r = []
 @report20r = { checked: 0, healthy: 0, issues: [], repaired: [] }
 @cmd20r    = Onetime::CLI::OrgDoctorCommand.new
-@cmd20r.send(:check_stripe_customer_id_index, @dup_org_a, @issues20r, @report20r, repair: true)
+@cmd20r.send(:check_unique_index, @dup_org_a, stripe_spec, @issues20r, @report20r, repair: true)
 [stripe_index[@dup_cus] == @dup_org_b.objid, @report20r[:repaired]]
 #=> [true, []]
 
@@ -713,10 +723,10 @@ stripe_index.remove(@dup2_cus)
 @dup2_org_b = create_billed_org('StripeDup2B', @stripe_owner, @dup2_cus, @test_suffix)
 stripe_index[@dup2_cus] = "gone_third_#{@test_suffix}"
 @cmd21 = Onetime::CLI::OrgDoctorCommand.new
-@cmd21.send(:index_stripe_customer_claims, [@dup2_org_a, @dup2_org_b])
+@cmd21.send(:index_unique_index_claims, [@dup2_org_a, @dup2_org_b])
 @issues21 = []
 @report21 = { checked: 0, healthy: 0, issues: [], repaired: [] }
-@cmd21.send(:check_stripe_customer_id_index, @dup2_org_a, @issues21, @report21, repair: true)
+@cmd21.send(:check_unique_index, @dup2_org_a, stripe_spec, @issues21, @report21, repair: true)
 [@issues21.first[:state], @issues21.first[:repairable], @report21[:repaired]]
 #=> [:duplicate, false, []]
 
@@ -730,7 +740,7 @@ stripe_index[@dup2_cus] = "gone_third_#{@test_suffix}"
 @issues21b = []
 @report21b = { checked: 0, healthy: 0, issues: [], repaired: [] }
 @cmd21b    = Onetime::CLI::OrgDoctorCommand.new
-@cmd21b.send(:check_stripe_customer_id_index, @dup2_org_a, @issues21b, @report21b, repair: true)
+@cmd21b.send(:check_unique_index, @dup2_org_a, stripe_spec, @issues21b, @report21b, repair: true)
 [@issues21b.first[:state], @issues21b.first[:repairable], @report21b[:repaired]]
 #=> [:duplicate, false, []]
 
@@ -747,26 +757,26 @@ stripe_index[@dup2_cus].to_s == "gone_third_#{@test_suffix}"
 @orphan_cus = "cus_orphan_#{@test_suffix}"
 stripe_index[@orphan_cus] = "gone_orphan_#{@test_suffix}"
 @cmd22 = Onetime::CLI::OrgDoctorCommand.new
-@cmd22.send(:index_stripe_customer_claims, @cmd22.send(:scan_all_orgs))
-@orphans22 = @cmd22.send(:collect_orphan_index_entries, stripe_index)
-@orphans22.map { |e| e[:stripe_customer_id] }.include?(@orphan_cus)
+@cmd22.send(:index_unique_index_claims, @cmd22.send(:scan_all_orgs))
+@orphans22 = @cmd22.send(:collect_orphan_index_entries, stripe_spec, stripe_index)
+@orphans22.map { |e| e[:value] }.include?(@orphan_cus)
 #=> true
 
 ## A healthy org's entry is never an orphan
-@orphans22.map { |e| e[:stripe_customer_id] }.include?(@healthy_cus)
+@orphans22.map { |e| e[:value] }.include?(@healthy_cus)
 #=> false
 
 ## An id two LIVE orgs contest is check 6's finding, not the sweep's — the
 ## sweep must not report it, and above all must not delete it
-@orphans22.map { |e| e[:stripe_customer_id] }.include?(@dup2_cus)
+@orphans22.map { |e| e[:value] }.include?(@dup2_cus)
 #=> false
 
 ## The sweep reports orphans as a class-level issue group
 @report22 = { checked: 0, healthy: 0, issues: [], repaired: [] }
-@cmd22.send(:sweep_stripe_customer_id_index, @report22, repair: false)
-@sweep_group = @report22[:issues].find { |g| g[:type] == :stripe_customer_id_index }
-[@sweep_group[:label], @sweep_group[:issues].first[:check], @sweep_group[:issues].first[:severity]]
-#=> ['organization:stripe_customer_id_index', :stripe_customer_id_index_orphans, :medium]
+@cmd22.send(:sweep_unique_indexes, @report22, repair: false)
+@sweep_group = @report22[:issues].find { |g| g[:label] == 'organization:stripe_customer_id_index' }
+[@sweep_group[:type], @sweep_group[:issues].first[:check], @sweep_group[:issues].first[:severity]]
+#=> [:unique_index, :stripe_customer_id_index_orphans, :medium]
 
 ## Audit mode leaves the orphan in place
 stripe_index[@orphan_cus].to_s.empty?
@@ -775,8 +785,8 @@ stripe_index[@orphan_cus].to_s.empty?
 ## --repair removes the orphan and frees the Stripe customer id
 @report22r = { checked: 0, healthy: 0, issues: [], repaired: [] }
 @cmd22r    = Onetime::CLI::OrgDoctorCommand.new
-@cmd22r.send(:index_stripe_customer_claims, @cmd22r.send(:scan_all_orgs))
-@cmd22r.send(:sweep_stripe_customer_id_index, @report22r, repair: true)
+@cmd22r.send(:index_unique_index_claims, @cmd22r.send(:scan_all_orgs))
+@cmd22r.send(:sweep_unique_indexes, @report22r, repair: true)
 stripe_index[@orphan_cus].to_s
 #=> ""
 
@@ -785,7 +795,7 @@ stripe_index[@dup2_cus].to_s.empty?
 #=> false
 
 ## The sweep repair is recorded
-@sweep_repair = @report22r[:repaired].find { |r| r[:action] == :stripe_index_orphans_removed }
+@sweep_repair = @report22r[:repaired].find { |r| r[:action] == :index_orphans_removed }
 @sweep_repair[:count].positive?
 #=> true
 
@@ -803,7 +813,7 @@ stripe_index[@json_cus] = "gone_json_#{@test_suffix}"
 @report23[:issues].first[:issues].map { |i| i[:check] }.include?(:stripe_customer_id_index)
 #=> true
 
-## --json renders the new check, its state and its Stripe customer id
+## --json renders the new check, its state and the indexed value
 @json_out = StringIO.new
 @prev_stdout = $stdout
 $stdout = @json_out
@@ -811,8 +821,8 @@ $stdout = @json_out
 $stdout = @prev_stdout
 @json23 = JSON.parse(@json_out.string)
 @json23_issue = @json23['issues'].first['issues'].find { |i| i['check'] == 'stripe_customer_id_index' }
-[@json23_issue['state'], @json23_issue['severity'], @json23_issue['stripe_customer_id']]
-#=> ['stale_entry', 'high', @json_cus]
+[@json23_issue['state'], @json23_issue['severity'], @json23_issue['field'], @json23_issue['value']]
+#=> ['stale_entry', 'high', 'stripe_customer_id', @json_cus]
 
 ## Text output renders the class-level sweep group without an org label
 @text_out = StringIO.new
@@ -910,8 +920,8 @@ stripe_index[@cas_free].to_s
 @race_cus = "cus_race_#{@test_suffix}"
 stripe_index[@race_cus] = "gone_race_#{@test_suffix}"
 @cmd26     = Onetime::CLI::OrgDoctorCommand.new
-@orphans26 = @cmd26.send(:collect_orphan_index_entries, stripe_index)
-@orphans26 = @orphans26.select { |e| e[:stripe_customer_id] == @race_cus }
+@orphans26 = @cmd26.send(:collect_orphan_index_entries, stripe_spec, stripe_index)
+@orphans26 = @orphans26.select { |e| e[:value] == @race_cus }
 stripe_index[@race_cus] = 'on1_claimed_meanwhile'
 @cmd26.send(:remove_orphan_index_entries, stripe_index, @orphans26)
 #=> 0
@@ -922,14 +932,89 @@ stripe_index[@race_cus].to_s
 
 ## The same orphan, unraced, is removed
 @cmd26b     = Onetime::CLI::OrgDoctorCommand.new
-@orphans26b = @cmd26b.send(:collect_orphan_index_entries, stripe_index)
-@orphans26b = @orphans26b.select { |e| e[:stripe_customer_id] == @race_cus }
+@orphans26b = @cmd26b.send(:collect_orphan_index_entries, stripe_spec, stripe_index)
+@orphans26b = @orphans26b.select { |e| e[:value] == @race_cus }
 @cmd26b.send(:remove_orphan_index_entries, stripe_index, @orphans26b)
 #=> 1
 
 ## ...and the Stripe customer id is free again
 stripe_index[@race_cus].to_s
 #=> ""
+
+# -------------------------------------------------------------------
+# Scenario 27: check 6 covers every class-level unique index Organization has
+# -------------------------------------------------------------------
+
+## UNIQUE_INDEXES is a fixed list, so an index declared on Organization without
+## a line there would go unchecked — silently, and exactly the way #4205 went
+## unnoticed. Everything the model exposes as a class-level *_index accessor,
+## less the DSL methods that declare them and the multi_index (one value to
+## many objids by design, so none of check 6's states are drift for it).
+@index_dsl_methods = %w[unique_index multi_index]
+@multi_indexes     = %w[email_hash_index]
+@declared_indexes  = Onetime::Organization.methods.grep(/_index\z/).map(&:to_s).sort -
+                     @index_dsl_methods - @multi_indexes
+@covered_indexes = Onetime::CLI::OrgDoctorCommand::UNIQUE_INDEXES.map { |spec| spec[:index].to_s }.sort
+@declared_indexes - @covered_indexes
+#=> []
+
+## ...and every covered index really exists on the model
+@covered_indexes - @declared_indexes
+#=> []
+
+## Each spec names a field the model carries, and the email flag is set on
+## exactly the address-valued ones
+Onetime::CLI::OrgDoctorCommand::UNIQUE_INDEXES.select { |spec| spec[:email] }.map { |spec| spec[:field] }.sort
+#=> [:billing_email, :contact_email, :stripe_checkout_email]
+
+# -------------------------------------------------------------------
+# Scenario 28: check 6 on a NON-Stripe index, with the address obscured
+# -------------------------------------------------------------------
+
+## contact_email, billing_email and stripe_checkout_email are claimed on the
+## same full save as stripe_customer_id, so a bad entry in any of them locks
+## the org out identically. Nothing about #4205 was specific to Stripe.
+@billing_email = "billing_#{@test_suffix}@acme.com"
+@billing_org   = create_org('StripeBilling', @stripe_owner, "stripebilling_#{@test_suffix}@acme.com")
+@billing_org.billing_email = @billing_email
+@billing_org.save
+Onetime::Organization.billing_email_index[@billing_email].to_s == @billing_org.objid
+#=> true
+
+## Point it at a dead objid: check 6 flags a stale entry for THAT index
+Onetime::Organization.billing_email_index[@billing_email] = "gone_billing_#{@test_suffix}"
+@issues28 = []
+@report28 = { checked: 0, healthy: 0, issues: [], repaired: [] }
+@cmd28    = Onetime::CLI::OrgDoctorCommand.new
+@cmd28.send(:check_unique_index, @billing_org, index_spec(:billing_email), @issues28, @report28, repair: false)
+[@issues28.size, @issues28.first[:check], @issues28.first[:state], @issues28.first[:field]]
+#=> [1, :billing_email_index, :stale_entry, :billing_email]
+
+## The address never reaches the report in the clear
+[@issues28.first[:value] == @billing_email,
+ @issues28.first[:value] == OT::Utils.obscure_email(@billing_email)]
+#=> [false, true]
+
+## check_org runs the whole set, so the same org reports it without being told
+## which index to look at
+@report28b = { checked: 0, healthy: 0, issues: [], repaired: [] }
+@cmd28b    = Onetime::CLI::OrgDoctorCommand.new
+@cmd28b.send(:check_org, @billing_org, @report28b, repair: false)
+@report28b[:issues].first[:issues].map { |i| i[:check] }.include?(:billing_email_index)
+#=> true
+
+## --repair repoints it and records which index it touched
+@issues28r = []
+@report28r = { checked: 0, healthy: 0, issues: [], repaired: [] }
+@cmd28r    = Onetime::CLI::OrgDoctorCommand.new
+@cmd28r.send(:check_unique_index, @billing_org, index_spec(:billing_email), @issues28r, @report28r, repair: true)
+[Onetime::Organization.billing_email_index[@billing_email].to_s == @billing_org.objid,
+ @report28r[:repaired].first[:index], @report28r[:repaired].first[:field]]
+#=> [true, :billing_email_index, :billing_email]
+
+## The repair record carries the obscured address too
+@report28r[:repaired].first[:value] == OT::Utils.obscure_email(@billing_email)
+#=> true
 
 # -------------------------------------------------------------------
 # Teardown
@@ -940,7 +1025,7 @@ stripe_index[@race_cus].to_s
  @empty_org, @promote_org, @cleanup_org, @repair_org, @scan_org1, @scan_org2,
  @multi_org, @ensure_org, @stripe_healthy_org, @stripe_missing_org,
  @stripe_stale_org, @moved_org_a, @moved_org_b, @dup_org_a, @dup_org_b,
- @dup2_org_a, @dup2_org_b, @json_org].compact.each do |org|
+ @dup2_org_a, @dup2_org_b, @json_org, @billing_org].compact.each do |org|
   org.destroy! if org.respond_to?(:destroy!) && org.exists?
 rescue StandardError
   nil
@@ -960,6 +1045,13 @@ end
  @dup2_cus, @orphan_cus, @json_cus, @cas_cus, @cas_free,
  @race_cus].compact.each do |customer_id|
   Onetime::Organization.stripe_customer_id_index.remove(customer_id)
+rescue StandardError
+  nil
+end
+
+# Scenario 28 used a different index.
+begin
+  Onetime::Organization.billing_email_index.remove(@billing_email) if @billing_email
 rescue StandardError
   nil
 end

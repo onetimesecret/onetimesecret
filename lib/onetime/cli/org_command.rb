@@ -45,7 +45,7 @@ module Onetime
         '  3. All members have backing customer objects (MEDIUM)',
         '  4. Membership role:owner matches owner_id (WARNING)',
         '  5. Organization has at least one member (WARNING)',
-        '  6. stripe_customer_id unique-index entry (CRITICAL/HIGH/MEDIUM)',
+        '  6. class-level unique-index entries (CRITICAL/HIGH/MEDIUM)',
       ].freeze
 
       def call(**)
