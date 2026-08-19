@@ -31,6 +31,8 @@
 // invocation `pnpm test:playwright e2e/all/`. Local sandbox runs point Chromium
 // at a pre-installed binary via A11Y_CHROME_PATH (wired in playwright.config).
 
+import { randomBytes } from 'node:crypto';
+
 import { test, expect, type Page } from '@playwright/test';
 import {
   scanPage,
@@ -107,7 +109,7 @@ const SCENARIOS: Scenario[] = [
       // the form renders its role="alert" error banner. Non-destructive: no
       // account is created and the page stays on /signin. Randomized so a
       // rerun never trips rate-limiting on a fixed identity.
-      const nonce = Math.random().toString(36).slice(2, 10);
+      const nonce = randomBytes(6).toString('hex');
       const email = `nobody-${nonce}@example.com`;
       const password = `wrong-${nonce}`;
 
