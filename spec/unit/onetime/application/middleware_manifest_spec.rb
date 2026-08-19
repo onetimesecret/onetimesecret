@@ -170,8 +170,12 @@ RSpec.describe 'Middleware manifest (characterization)' do
     EXPECTED_CLASS_LEVEL_MIDDLEWARE = {
       # Onetime.development? block (ViteProxy, SessionDebugger,
       # SchemaValidator) absent under test.
+      # TenantCspExtras sits INSIDE RequestSetup by design (#4173): it writes
+      # env['otto.csp.extra_directives'] on the way out, strictly before
+      # RequestSetup's finalize_response emits the CSP header.
       'Core::Application' => [
         'Core::Middleware::RequestSetup',
+        'Onetime::Middleware::TenantCspExtras',
         'Core::Middleware::ErrorHandling',
         'Onetime::Middleware::StaticFiles',
       ],
