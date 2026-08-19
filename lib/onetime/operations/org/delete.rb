@@ -181,7 +181,12 @@ module Onetime
           :org_id,
           :display_name,
           :planid,
-          :members,
+          # Deliberate shadow of Data#members: every surface of this feature —
+          # the JSON payloads, the Zod schema, the admin UI — calls the org's
+          # member snapshot `members`, and Data reflection is not part of this
+          # Result's contract (adapters read fields by name, nothing enumerates
+          # them).
+          :members, # rubocop:disable Lint/DataDefineOverride
           :members_notified,
           :pending_invitations,
           :domain_count,
@@ -233,9 +238,9 @@ module Onetime
           # list_members is empty after destroy!, so everything the plan prints
           # and every recipient the notification needs is captured here, on both
           # the dry-run and the applied path.
-          members     = @org.list_members
-          @recipients = build_recipients(members)
-          @members    = members.map { |member| { extid: member.extid, email: member.email } }
+          members       = @org.list_members
+          @recipients   = build_recipients(members)
+          @members      = members.map { |member| { extid: member.extid, email: member.email } }
           # Count and names are BOTH needed and are not interchangeable — see the
           # domain_count attribute doc.
           @domain_count = @org.domain_count.to_i
@@ -249,7 +254,7 @@ module Onetime
           @is_default          = @org.is_default.to_s == 'true'
           @active_subscription = @org.active_subscription?
 
-          @owner = resolve_owner
+          @owner                 = resolve_owner
           # The guard asks what the owner is left WITH, not how many rows they
           # have: an org they own but are not a member of (`org doctor` check 2)
           # would otherwise make a healthy two-org account look like a one-org
@@ -284,8 +289,10 @@ module Onetime
           return :has_domains if @domain_count.positive?
           return :is_default if @is_default && !@force_default
           return :active_subscription if @active_subscription && !@force_subscription
-          # Unresolvable owner (`org doctor` check 1): the guard cannot speak —
-          # an orphaned org has no one to strand.
+          # Orphaned org (`org doctor` check 1): no owner_id and no owner
+          # membership means no one to strand, so the guard has nothing to say.
+          # A lookup that RAISED never reaches here — resolve_owner fails the
+          # delete closed rather than reading an error as an orphan.
           return :last_org if @owner && @owner_other_org_count.zero?
 
           nil
@@ -337,7 +344,13 @@ module Onetime
         # check 1 reads, so try it first and fall back rather than disagreeing
         # with the doctor about who the owner is.
         #
-        # @return [Onetime::Customer, nil] nil on an orphaned org.
+        # @return [Onetime::Customer, nil] nil on an orphaned org — no owner_id
+        #   AND no owner membership. A lookup that RAISES is not an orphaned
+        #   org: swallowing it to nil would read a transient datastore error as
+        #   "nobody to strand" and wave the delete past the `:last_org` guard.
+        #   A guard input that cannot be resolved fails the delete closed; the
+        #   raise lands before any mutation and records one failure audit
+        #   (audit_failures wraps #call).
         def resolve_owner
           owner_id = @org.owner_id.to_s
           owner    = owner_id.empty? ? nil : Onetime::Customer.load(owner_id)
@@ -346,10 +359,8 @@ module Onetime
           membership = Onetime::OrganizationMembership.active_for_org(@org).find(&:owner?)
           membership&.customer
         rescue StandardError => ex
-          # A guard that cannot resolve its input must not take the delete down;
-          # it declines to speak instead (see first_guardrail_trip).
           OT.le "[Org::Delete] owner resolution failed for #{@extid}: #{ex.class}: #{ex.message}"
-          nil
+          raise
         end
 
         # `{ email:, locale: }` per member with a usable address, snapshotted

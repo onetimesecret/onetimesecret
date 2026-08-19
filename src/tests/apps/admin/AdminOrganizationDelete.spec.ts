@@ -86,7 +86,6 @@ vi.mock('@headlessui/vue', () => ({
   TransitionChild: { name: 'TransitionChild', template: '<div><slot /></div>', props: ['as'] },
 }));
 
-import AdminCheckoutLinkModal from '@/apps/admin/components/AdminCheckoutLinkModal.vue';
 import AdminOrganizationDetail from '@/apps/admin/views/AdminOrganizationDetail.vue';
 import { createTestI18n } from '@tests/setup';
 
@@ -341,6 +340,40 @@ describe('AdminOrganizationDetail — permanent delete', () => {
     expect(mockApi.delete.mock.calls[1][0]).toContain('dry_run=true');
     // The next guard is now the visible one, with its own override.
     expect(wrapper.find('[data-testid="org-delete-force-subscription"]').exists()).toBe(true);
+  });
+
+  // Previews are unversioned requests; toggling an override re-plans while the
+  // previous preview can still be in flight. The dangerous ordering is a STALE
+  // response with a clear verdict landing after a fresh blocked one — the
+  // operator would confirm against override state that is no longer selected.
+  it('discards an out-of-order preview — a stale response never clears a live guard', async () => {
+    await openPlan(deleteAck({ status: 'is_default', is_default: true }));
+
+    // The next two previews go out back-to-back; the FIRST resolves LAST.
+    const resolvers: Array<(value: { data: unknown }) => void> = [];
+    mockApi.delete.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolvers.push(resolve);
+        })
+    );
+
+    const toggle = wrapper.find('[data-testid="org-delete-force-default"] input');
+    await toggle.setValue(true); // preview A: force_default=true → would come back clear
+    await toggle.setValue(false); // preview B: force_default=false → still blocked
+    await flushPromises();
+    expect(resolvers).toHaveLength(2);
+
+    // B (the newest, matching the current overrides) answers first: blocked.
+    resolvers[1]({ data: deleteAck({ status: 'is_default', is_default: true }) });
+    await flushPromises();
+    expect(wrapper.find('[data-testid="org-delete-blocked"]').exists()).toBe(true);
+
+    // A limps in late with a CLEAR verdict for overrides nobody has selected
+    // any more. It must be discarded, not confirmed against.
+    resolvers[0]({ data: deleteAck({ status: 'planned' }) });
+    await flushPromises();
+    expect(wrapper.find('[data-testid="org-delete-blocked"]').exists()).toBe(true);
   });
 
   it('never opens the dialog on a plan it cannot read', async () => {

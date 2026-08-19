@@ -172,7 +172,9 @@ RSpec.describe ColonelAPI::Logic::Colonel::DeleteOrganization do
         domain_count: 1, domains: ['a.example.com'])
       logic.raise_concerns
 
-      expect { logic.process }.to raise_error(Onetime::FormError, /a\.example\.com/)
+      expect { logic.process }.to raise_error(Onetime::FormError) do |err|
+        expect(err.message).to include('a.example.com')
+      end
     end
 
     it 'raises a form error on an APPLY refused for a default workspace' do

@@ -343,6 +343,24 @@ RSpec.describe Onetime::Operations::Org::Delete do
         expect(result.owner_org_count).to eq(0)
       end
 
+      # An orphaned org resolves to nil; a RAISING lookup is not an orphaned
+      # org. Swallowing the raise would read a transient datastore error as
+      # "nobody to strand" and wave the delete past the guard — fail closed
+      # instead, before any mutation, with the one failure audit the
+      # audit_failures wrapper writes.
+      it 'fails CLOSED when the owner lookup raises, deleting nothing' do
+        allow(Onetime::Customer).to receive(:load)
+          .and_raise(Familia::Problem, 'datastore hiccup')
+
+        expect { build(dry_run: false).call }.to raise_error(Familia::Problem)
+
+        expect(org).not_to have_received(:destroy!)
+        expect(instances).not_to have_received(:remove)
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+          hash_including(result: :failure)
+        )
+      end
+
       it 'audits NOTHING on a refusal (a customer can drive this path at will)' do
         allow(org).to receive(:is_default).and_return('true')
 

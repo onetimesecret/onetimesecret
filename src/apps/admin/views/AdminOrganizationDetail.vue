@@ -534,12 +534,32 @@
     return `${orgUrl()}?${params.toString()}`;
   }
 
+  /**
+   * Monotonic issue number for previews. Toggling an override re-plans while
+   * the previous preview can still be in flight, and the requests carry no
+   * version: without this, an earlier response arriving late would overwrite
+   * the plan and verdict with answers for override state it never saw. Only
+   * the newest issue may write state or surface an error.
+   */
+  let deletePreviewIssue = 0;
+
   const {
     loading: deletePreviewLoading,
     error: deletePreviewError,
     run: runDeletePreview,
   } = useAdminMutation(async () => {
-    const response = await $api.delete(deleteUrl(true));
+    const issue = ++deletePreviewIssue;
+    let response;
+    try {
+      response = await $api.delete(deleteUrl(true));
+    } catch (err) {
+      // A superseded preview's failure is moot — the newest one answers for
+      // the current overrides, and its error (if any) is the one to show.
+      if (issue !== deletePreviewIssue) return;
+      throw err;
+    }
+    if (issue !== deletePreviewIssue) return; // superseded — the newest owns the state
+
     const parsed = gracefulParse(
       colonelDeleteOrganizationResponseSchema,
       response.data,
@@ -624,12 +644,17 @@
     forceSubscription.value = false;
 
     if (!(await runDeletePreview())) return; // preview failure renders inline
+    // A superseded preview (double-click, race with a re-plan) resolves "ok"
+    // without writing anything; never open the dialog on an empty plan.
+    if (!deletePlan.value) return;
     deleteDialogOpen.value = true;
   }
 
   // Re-plan whenever an override is toggled: clearing one guard can reveal the
   // next one (a default workspace that is also the owner's only org), and the
-  // dialog must never show a stale verdict.
+  // dialog must never show a stale verdict. Deliberately not awaited — the
+  // preview's issue guard makes the newest request the only writer, so rapid
+  // toggles cannot land out of order.
   watch([forceDefault, forceSubscription], () => {
     if (!deleteDialogOpen.value) return;
     resetDelete();
