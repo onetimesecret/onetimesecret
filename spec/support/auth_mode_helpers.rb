@@ -273,29 +273,18 @@ module AuthModeHelpers
       ENV.fetch('SSO_FORM_ACTION_ORIGINS', '').to_s.split.uniq
     end
 
-    # Mirrors Onetime::AuthConfig#tenant_idp_origin (#4173) so boot/router
-    # specs that mount Onetime::Middleware::TenantCspExtras don't
-    # NoMethodError. Minimal on purpose: entra_id returns the registry's
-    # static commercial-cloud origin; oidc does a naive scheme://host[:port]
-    # extraction (the production origin_from_url validation is deliberately
-    # not replicated here — specs exercising hostile issuers must use the
-    # real AuthConfig); anything else is nil.
+    # Onetime::AuthConfig#tenant_idp_origin (#4173), delegated to the REAL
+    # pure function so specs that mount Onetime::Middleware::TenantCspExtras
+    # don't NoMethodError — and so the mock can never drift from production's
+    # origin_from_url hardening (a hand-rolled URI extraction here diverged
+    # on exactly the hostile inputs the funnel exists to reject, e.g. a
+    # `;`-bearing host). tenant_idp_origin and its private helpers never
+    # touch loaded config, so an allocated (uninitialized) AuthConfig gives
+    # the production behavior without booting the auth config singleton —
+    # the same allocate technique tenant_csp_extras_spec uses.
     def tenant_idp_origin(sso_config)
-      case sso_config&.provider_type
-      when 'entra_id'
-        'https://login.microsoftonline.com'
-      when 'oidc'
-        uri = begin
-          URI.parse(sso_config.issuer.to_s)
-        rescue URI::Error
-          nil
-        end
-        return nil unless uri&.host && %w[http https].include?(uri.scheme.to_s)
-
-        origin  = "#{uri.scheme}://#{uri.host}"
-        origin += ":#{uri.port}" if uri.port && uri.port != uri.default_port
-        origin
-      end
+      @tenant_origin_delegate ||= Onetime::AuthConfig.allocate
+      @tenant_origin_delegate.tenant_idp_origin(sso_config)
     end
   end
 
