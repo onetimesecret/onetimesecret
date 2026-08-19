@@ -62,9 +62,16 @@ RSpec.describe Onetime::Middleware::TenantCspExtras do
     allow(Onetime).to receive(:auth_config).and_return(auth_config)
   end
 
+  # The shared ladder (Onetime::TenantSsoResolution) resolves the domain
+  # through load_by_display_domain — the DISPLAY-half read the serializers
+  # use, which normalizes case itself and answers the #4157 tri-state.
+  def stub_domain(identifier = domain_id)
+    domain = identifier && instance_double(Onetime::CustomDomain, identifier: identifier)
+    allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
+  end
+
   def stub_tenant(config, available: true)
-    allow(Onetime::CustomDomain).to receive(:resolve_domain_id)
-      .with(display_domain).and_return(domain_id)
+    stub_domain
     allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
       .with(domain_id).and_return(config)
     allow(Onetime::CustomDomain::SsoConfig).to receive(:tenant_sso_available_for?)
@@ -76,7 +83,7 @@ RSpec.describe Onetime::Middleware::TenantCspExtras do
       allow(OT).to receive(:conf).and_return(
         'site' => { 'security' => { 'csp' => { 'enabled' => false } } },
       )
-      expect(Onetime::CustomDomain).not_to receive(:resolve_domain_id)
+      expect(Onetime::CustomDomain).not_to receive(:load_by_display_domain)
       env = build_env
 
       expect(middleware.call(env)).to eq(downstream_response)
@@ -85,7 +92,7 @@ RSpec.describe Onetime::Middleware::TenantCspExtras do
 
     it 'never reads the datastore for a non-HTML response (JSON)' do
       response_headers['content-type'] = 'application/json'
-      expect(Onetime::CustomDomain).not_to receive(:resolve_domain_id)
+      expect(Onetime::CustomDomain).not_to receive(:load_by_display_domain)
       env = build_env
 
       expect(middleware.call(env)).to eq(downstream_response)
@@ -95,7 +102,7 @@ RSpec.describe Onetime::Middleware::TenantCspExtras do
     it 'reads a canonically-cased Content-Type (case-insensitive, like otto and RequestSetup)' do
       response_headers.delete('content-type')
       response_headers['Content-Type'] = 'application/json'
-      expect(Onetime::CustomDomain).not_to receive(:resolve_domain_id)
+      expect(Onetime::CustomDomain).not_to receive(:load_by_display_domain)
       env = build_env
 
       middleware.call(env)
@@ -116,7 +123,7 @@ RSpec.describe Onetime::Middleware::TenantCspExtras do
     end
 
     it 'never reads the datastore when no display_domain was published' do
-      expect(Onetime::CustomDomain).not_to receive(:resolve_domain_id)
+      expect(Onetime::CustomDomain).not_to receive(:load_by_display_domain)
       env = build_env(display: nil)
 
       middleware.call(env)
@@ -140,8 +147,7 @@ RSpec.describe Onetime::Middleware::TenantCspExtras do
     end
 
     it 'writes no extras for a canonical-host display_domain (index resolves no domain_id)' do
-      allow(Onetime::CustomDomain).to receive(:resolve_domain_id)
-        .with(display_domain).and_return(nil)
+      stub_domain(nil)
       env = build_env(extra: { 'onetime.domain_strategy' => :canonical })
 
       middleware.call(env)
@@ -150,21 +156,72 @@ RSpec.describe Onetime::Middleware::TenantCspExtras do
   end
 
   describe 'domain resolution' do
-    it 'resolves via the index-only read, downcased (resolve_domain_id does not normalize)' do
+    it 'resolves the published display_domain as-is (load_by_display_domain normalizes case)' do
       config = sso_config_double(provider_type: 'oidc', issuer: 'https://idp.tenant.example')
       stub_tenant(config)
       env = build_env(display: 'Tenant.Example.NET')
 
       middleware.call(env)
-      expect(Onetime::CustomDomain).to have_received(:resolve_domain_id).with('tenant.example.net')
+      expect(Onetime::CustomDomain).to have_received(:load_by_display_domain).with('Tenant.Example.NET')
       expect(env[extras_key]).to eq('form-action' => ['https://idp.tenant.example'])
+    end
+  end
+
+  # The point of the shared resolution (#4173): the record that widens
+  # form-action IS the record the page rendered its SSO button from. The app
+  # resolves first (inside), the middleware reads on the way out.
+  describe 'request-scoped resolution sharing' do
+    let(:config) { sso_config_double(provider_type: 'oidc', issuer: 'https://idp.tenant.example') }
+
+    it 'reuses the resolution the app already made, with no second datastore read' do
+      stub_tenant(config)
+      seeded = nil
+      app    = lambda do |env|
+        # Stands in for the serializers: resolving during the render installs
+        # the shared object on the env.
+        seeded = Onetime::TenantSsoResolution.for(env)
+        seeded.sso_config
+        downstream_response
+      end
+      env = build_env
+
+      described_class.new(app).call(env)
+
+      expect(env[extras_key]).to eq('form-action' => ['https://idp.tenant.example'])
+      expect(Onetime::CustomDomain).to have_received(:load_by_display_domain).once
+      expect(Onetime::CustomDomain::SsoConfig).to have_received(:find_by_domain_id).once
+      expect(Onetime::TenantSsoResolution.for(env)).to equal(seeded)
+    end
+
+    it 'cannot widen from a different record than the app resolved' do
+      # An operator disabling the SsoConfig mid-request no longer produces a
+      # page whose button and whose CSP disagree: both sides read the one
+      # memoized verdict.
+      stub_tenant(config)
+      app = lambda do |env|
+        Onetime::TenantSsoResolution.for(env).sso_config
+        allow(Onetime::CustomDomain::SsoConfig).to receive(:tenant_sso_available_for?).and_return(false)
+        downstream_response
+      end
+      env = build_env
+
+      described_class.new(app).call(env)
+      expect(env[extras_key]).to eq('form-action' => ['https://idp.tenant.example'])
+    end
+
+    it 'resolves for itself when no serializer ran (static HTML error page)' do
+      stub_tenant(config)
+      env = build_env
+
+      middleware.call(env)
+      expect(env[extras_key]).to eq('form-action' => ['https://idp.tenant.example'])
+      expect(env).to have_key(Onetime::TenantSsoResolution::ENV_KEY)
     end
   end
 
   describe 'custom domain without an available tenant SSO config' do
     it 'writes no extras when the domain has no SsoConfig record' do
-      allow(Onetime::CustomDomain).to receive(:resolve_domain_id)
-        .with(display_domain).and_return(domain_id)
+      stub_domain
       allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
         .with(domain_id).and_return(nil)
       env = build_env
@@ -313,8 +370,7 @@ RSpec.describe Onetime::Middleware::TenantCspExtras do
     end
 
     it 'stays silent when the domain has no SsoConfig record' do
-      allow(Onetime::CustomDomain).to receive(:resolve_domain_id)
-        .with(display_domain).and_return(domain_id)
+      stub_domain
       allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
         .with(domain_id).and_return(nil)
       expect(OT).not_to receive(:lw)
@@ -362,12 +418,11 @@ RSpec.describe Onetime::Middleware::TenantCspExtras do
   end
 
   describe 'datastore failure' do
-    # The domain-index read (resolve_domain_id) swallows datastore errors
-    # internally and returns nil, so the middleware's rescue is reachable
-    # only from the SsoConfig/availability reads and origin derivation.
+    # The shared resolution's domain read answers nil-or-sentinel rather than
+    # raising, so the middleware's rescue is reachable only from the
+    # SsoConfig/availability reads and origin derivation.
     it 'warns and proceeds without extras when the SsoConfig read raises' do
-      allow(Onetime::CustomDomain).to receive(:resolve_domain_id)
-        .with(display_domain).and_return(domain_id)
+      stub_domain
       allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
         .and_raise(StandardError, 'valkey blip')
       expect(OT).to receive(:lw).with(/TenantCspExtras.*tenant\.example\.net.*valkey blip/)

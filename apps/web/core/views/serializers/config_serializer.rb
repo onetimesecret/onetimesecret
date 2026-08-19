@@ -5,6 +5,7 @@
 require 'onetime/models/custom_domain/signin_config'
 require 'onetime/models/custom_domain/sso_config'
 require 'onetime/models/custom_domain'
+require 'onetime/tenant_sso_resolution'
 
 module Core
   module Views
@@ -25,8 +26,9 @@ module Core
     module ConfigSerializer
       # Sentinel returned by resolve_domain_id when a datastore read fails.
       # Callers must check for this and render the narrowest surface rather
-      # than treating it as "no tenant config" (#4157).
-      DOMAIN_READ_FAILED = :domain_read_failed
+      # than treating it as "no tenant config" (#4157). Owned by
+      # Onetime::TenantSsoResolution, which performs the read.
+      DOMAIN_READ_FAILED = Onetime::TenantSsoResolution::DOMAIN_READ_FAILED
 
       # Serializes configuration data from view variables
       #
@@ -571,20 +573,30 @@ module Core
         # disabling or deleting the SsoConfig between the two reads passes the
         # check but returns nil — and build_sso_config would then silently
         # fall through to platform fallback for a domain that had tenant SSO
-        # a moment earlier.
+        # a moment earlier. The ladder (and that contract) now lives in
+        # Onetime::TenantSsoResolution, resolved ONCE per request and shared
+        # with AuthenticationSerializer#tenant_sso_enforced? and with
+        # Onetime::Middleware::TenantCspExtras, which widens CSP form-action
+        # with this same record's IdP origin (#4173) — the button and the
+        # policy that lets its POST leave can no longer disagree. Tri-state
+        # (#4157) is handled inside: a failed read yields nil here, the
+        # narrowest surface.
         #
         # @param view_vars [Hash] View variables
         # @return [Onetime::CustomDomain::SsoConfig, nil] Config if found and enabled
         def resolve_tenant_sso_config(view_vars)
-          domain_id = resolve_domain_id(view_vars)
-          # Tri-state handling (#4157): failed read → no SSO (narrowest surface).
-          return nil if domain_id.nil? || domain_id == DOMAIN_READ_FAILED
+          tenant_sso_resolution(view_vars).sso_config
+        end
 
-          config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain_id)
-          return nil unless config
-          return nil unless Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(domain_id, sso_config: config)
-
-          config
+        # The request-scoped tenant SSO resolution carried by view_vars
+        # (installed by Core::Views::InitializeViewVars from the rack env), or
+        # a fresh unshared one when view_vars was built without an env — same
+        # answers, sharing is all that is lost.
+        #
+        # @param view_vars [Hash] View variables
+        # @return [Onetime::TenantSsoResolution]
+        def tenant_sso_resolution(view_vars)
+          Onetime::TenantSsoResolution.from_view_vars(view_vars)
         end
 
         # Resolve domain identifier from view variables
@@ -597,17 +609,15 @@ module Core
         # surface (omit sign-in affordances) rather than treating a failed
         # read as "no tenant config" (#4157).
         #
+        # Resolved once per request and memoized (Onetime::TenantSsoResolution),
+        # so the four callers below — restrict_to, signin, email_auth and the
+        # tenant SSO selection — all key on the SAME domain identity instead
+        # of racing four independent reads.
+        #
         # @param view_vars [Hash] View variables
         # @return [String, nil, :domain_read_failed]
         def resolve_domain_id(view_vars)
-          display_domain = view_vars['display_domain']
-          return nil if display_domain.to_s.empty?
-
-          custom_domain = Onetime::CustomDomain.load_by_display_domain(display_domain)
-          custom_domain&.identifier
-        rescue Redis::BaseError => ex
-          OT.le "[ConfigSerializer] Redis error resolving domain_id for domain=#{display_domain}: #{ex.class}"
-          DOMAIN_READ_FAILED
+          tenant_sso_resolution(view_vars).domain_id
         end
         # ASYMMETRIC WITH THE GATES ON PURPOSE (#4139). The runtime gates raise
         # Onetime::SigninPolicyUnavailable when this same read fails, because a

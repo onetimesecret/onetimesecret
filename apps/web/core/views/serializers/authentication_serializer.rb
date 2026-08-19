@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/utils'
+require 'onetime/tenant_sso_resolution'
 
 module Core
   module Views
@@ -160,17 +161,17 @@ module Core
         #
         # @param view_vars [Hash] View variables with request context
         # @return [Boolean] true if this request's domain enforces SSO-only
+        # Resolution is the request-scoped Onetime::TenantSsoResolution — the
+        # SAME object ConfigSerializer#resolve_tenant_sso_config answers from,
+        # so the password affordance and the SSO button cannot be computed
+        # from two different reads of the tenant's SsoConfig.
         def tenant_sso_enforced?(view_vars)
-          display_domain = view_vars['display_domain']
-          return false if display_domain.to_s.empty?
+          resolution = Onetime::TenantSsoResolution.from_view_vars(view_vars)
+          # Tri-state handling (#4157): failed domain read → enforce (below).
+          return true if resolution.domain_read_failed?
 
-          custom_domain = Onetime::CustomDomain.load_by_display_domain(display_domain)
-          domain_id     = custom_domain&.identifier
-          return false unless domain_id
-
-          config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain_id)
+          config = resolution.sso_config
           return false unless config
-          return false unless Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(domain_id, sso_config: config)
 
           config.enforce_sso_only?
         rescue Redis::BaseError

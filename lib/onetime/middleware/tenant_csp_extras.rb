@@ -4,6 +4,8 @@
 
 require 'otto/env_keys'
 
+require_relative '../tenant_sso_resolution'
+
 # Fail fast on an otto without the request-scoped CSP extras channel
 # (delano/otto#243, targeting otto 2.9). Released otto 2.8.1 ships
 # otto/env_keys WITHOUT the CSP submodule and Writer.apply without env:, so if
@@ -65,9 +67,17 @@ module Onetime
     # blips while display_domain survives — a strategy gate here would then
     # render the button but skip the widening, recreating the exact #4173
     # symptom. Keying both surfaces on display_domain alone keeps the CSP in
-    # lockstep with the affordance. Cost: canonical-host HTML renders now pay
-    # one domain-index GET (which resolves no domain_id and stops there) —
-    # acceptable.
+    # lockstep with the affordance.
+    #
+    # Lockstep is now structural, not parallel: the tenant SSO answer comes
+    # from Onetime::TenantSsoResolution.for(env) — the SAME request-scoped
+    # object the page's serializers resolved through while rendering. On a
+    # normal page render this middleware therefore performs NO datastore work
+    # at all (the resolution is already memoized on the env), and the record
+    # whose issuer widens form-action is by construction the record that
+    # decided whether the button renders. Only an HTML response produced
+    # without the serializers (a static error page) pays the lookup here, and
+    # then a canonical host stops at the domain-index miss.
     #
     # Failure direction: any datastore error degrades to "no widening". This
     # is deliberately the OPPOSITE choice from the #4157 signin gates, which
@@ -107,18 +117,19 @@ module Onetime
         display_domain = env['onetime.display_domain'].to_s
         return if display_domain.empty?
 
-        origin = resolve_tenant_idp_origin(display_domain)
+        origin = resolve_tenant_idp_origin(env, display_domain)
         return if origin.nil?
 
         merge_form_action_extra(env, origin)
       rescue StandardError => ex
-        # Narrow by construction: the domain-index read (resolve_domain_id)
-        # swallows datastore errors internally and returns nil (the #4157
-        # convention notes in Core::Controllers::Base cover this family), so
-        # this rescue only catches failures from the SsoConfig/availability
-        # reads and the origin derivation. A swallowed domain-read failure
-        # degrades silently to no-widening — the accepted fail-closed
-        # direction for a header widening.
+        # Narrow by construction: the resolution's domain read answers
+        # nil-or-sentinel rather than raising (TenantSsoResolution swallows
+        # the datastore error the way CustomDomain.load_by_display_domain
+        # does, per the #4157 convention notes in Core::Controllers::Base),
+        # so this rescue only catches failures from the SsoConfig/
+        # availability reads and the origin derivation. Either way a failed
+        # domain read degrades silently to no-widening — the accepted
+        # fail-closed direction for a header widening.
         OT.lw '[TenantCspExtras] skipping CSP widening for ' \
               "#{env['onetime.display_domain'].inspect}: #{ex.class}: #{ex.message}"
       end
@@ -139,26 +150,19 @@ module Onetime
       end
 
       # The tenant's IdP origin, or nil when the domain has no available
-      # tenant SSO. The domain-index read is resolve_domain_id — index-only
-      # (one GET), no record hydration, nil on miss or error; it does not
-      # downcase its input (unlike load_by_display_domain), hence the
-      # explicit .downcase. Availability is SsoConfig.tenant_sso_available_for?
-      # — the SAME ladder ConfigSerializer#resolve_tenant_sso_config uses to
-      # decide whether the page renders the SSO button. The already-loaded
-      # record is handed to the predicate via its sso_config: pass-through
-      # (single-read contract: the verdict and the record whose issuer we
-      # emit are the same object). Platform provider state (sso_enabled?, env
-      # credentials) is deliberately NOT consulted: tenant SSO stands on its
-      # own.
-      def resolve_tenant_idp_origin(display_domain)
-        domain_id = Onetime::CustomDomain.resolve_domain_id(display_domain.downcase)
-        return nil if domain_id.nil?
-
-        config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain_id)
+      # tenant SSO.
+      #
+      # The ladder itself (domain lookup → SsoConfig → the
+      # SsoConfig.tenant_sso_available_for? availability check, with the
+      # loaded record handed to the predicate) lives in
+      # Onetime::TenantSsoResolution, shared with the serializers that decide
+      # whether the page renders the SSO button — so this cannot answer for a
+      # different record than the button was rendered from. Platform provider
+      # state (sso_enabled?, env credentials) is deliberately NOT consulted:
+      # tenant SSO stands on its own.
+      def resolve_tenant_idp_origin(env, display_domain)
+        config = Onetime::TenantSsoResolution.for(env).sso_config
         return nil if config.nil?
-        return nil unless Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(
-          domain_id, sso_config: config
-        )
 
         # Mandatory funnel: origin_from_url inside — strips path, http(s)
         # only, rejects CSP-hostile hosts, nil on garbage (issuer is
