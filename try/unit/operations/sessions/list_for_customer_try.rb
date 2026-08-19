@@ -80,6 +80,15 @@ track(@cust, @sid_new, @extid, @ts + 100)
 [@row[:user_id], @row.key?(:email), @row.key?(:token)]
 #=> ["#{@extid}", false, false]
 
+## geo_country is never Otto's '**' sentinel: a legacy sidecar that stored it
+## verbatim emits nil through safe_dump (the SessionMetadata reader is the
+## normalization chokepoint), while a real code passes through untouched
+DB.hset(SM.dbkey(@sid_new), 'geo_country', '"**"')
+DB.hset(SM.dbkey(@sid_old), 'geo_country', '"NZ"')
+@geo_rows = LFC.new(custid: @extid).call.sessions.to_h { |s| [s[:session_id], s[:geo_country]] }
+[@geo_rows[@sid_new], @geo_rows[@sid_old]]
+#=> [nil, "NZ"]
+
 ## internal join keys accompany safe rows without a second sidecar read
 @res.entries.to_h { |e| [e.session[:session_id], e.active_session_id_hmac] }
 #=> {"#{@sid_new}" => "hmac_#{@sid_new}", "#{@sid_old}" => "hmac_#{@sid_old}"}
@@ -98,9 +107,37 @@ track(@cust, @sid_new, @extid, @ts + 100)
 #=> [2, false, true]
 
 # ---- degraded sidecar read: other sessions remain available -----------
+#
+# The sidecars are read in ONE pipelined load_multi batch. A batch-level
+# failure (connection error, or one corrupt record raising during
+# instantiation — load_multi materializes every row in one call) falls back
+# to the legacy per-row loads, where each row's own failure degrades only
+# that row and leaves its index member intact (a failed READ must never be
+# mistaken for absence, which would self-heal-prune a live member).
 
-## an unreadable sidecar skips only that row and leaves its index member intact
+## a batch failure alone degrades to per-row loads with NO visible difference:
+## every readable row still lists, newest-first
+SM.singleton_class.alias_method(:__lfc_real_load_multi, :load_multi)
+SM.define_singleton_method(:load_multi) do |*_args|
+  raise IOError, 'pipeline blew up'
+end
+begin
+  @batch_fallback = LFC.new(custid: @extid).call
+ensure
+  SM.singleton_class.remove_method(:load_multi)
+  SM.singleton_class.alias_method(:load_multi, :__lfc_real_load_multi)
+  SM.singleton_class.remove_method(:__lfc_real_load_multi)
+end
+@batch_fallback.sessions.map { |s| s[:session_id] }
+#=> ["#{@sid_new}", "#{@sid_old}"]
+
+## an unreadable sidecar (batch fails, then that row's fallback load fails too)
+## skips only that row and leaves its index member intact
 failing_sid = @sid_old
+SM.singleton_class.alias_method(:__lfc_real_load_multi, :load_multi)
+SM.define_singleton_method(:load_multi) do |*_args|
+  raise IOError, 'pipeline blew up'
+end
 SM.singleton_class.alias_method(:__list_for_customer_real_load, :load)
 SM.define_singleton_method(:load) do |sid|
   raise IOError, 'transient Valkey failure' if sid == failing_sid
@@ -110,6 +147,9 @@ end
 begin
   @degraded = LFC.new(custid: @extid).call
 ensure
+  SM.singleton_class.remove_method(:load_multi)
+  SM.singleton_class.alias_method(:load_multi, :__lfc_real_load_multi)
+  SM.singleton_class.remove_method(:__lfc_real_load_multi)
   SM.singleton_class.remove_method(:load)
   SM.singleton_class.alias_method(:load, :__list_for_customer_real_load)
   SM.singleton_class.remove_method(:__list_for_customer_real_load)
