@@ -99,6 +99,24 @@ module Onetime
             # Filter to only those without stripe_customer_id (not owners)
             all_matching.select { |org| org.stripe_customer_id.to_s.empty? }
           end
+
+          # Create-time attributes that claim a Stripe customer for a new org.
+          #
+          # Setting stripe_customer_id at create! time makes the org's save
+          # take the unique index's server-side CAS, which is what elects a
+          # single creator when two checkout-completion surfaces race (see
+          # Billing::CheckoutTargetResolver.adopt_claimed_workspace). Returns
+          # an EMPTY hash for a blank or non-Stripe value so the field is never
+          # written as a literal null.
+          #
+          # @param stripe_customer_id [String, nil]
+          # @return [Hash] {} or { stripe_customer_id: 'cus_...' }
+          def stripe_claim_fields(stripe_customer_id)
+            return {} unless stripe_customer_id.is_a?(String)
+            return {} unless stripe_customer_id.start_with?('cus_')
+
+            { stripe_customer_id: stripe_customer_id }
+          end
         end
 
         module InstanceMethods

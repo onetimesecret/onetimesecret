@@ -77,16 +77,52 @@ module Billing
     # stripe_customer_id are, and update_from_stripe_subscription sets those
     # moments later.
     #
+    # The workspace is born holding the stripe_customer_id claim so two
+    # surfaces completing the SAME checkout cannot both create one; see
+    # {.adopt_claimed_workspace}.
+    #
     # @param customer [Onetime::Customer]
     # @param logger [#warn] billing logger
     # @param label [String] log prefix identifying the calling surface
+    # @param stripe_customer_id [String, nil] the checkout's Stripe customer
     # @return [Onetime::Organization]
-    def create_billing_workspace(customer, logger:, label:)
-      new_workspace(customer, customer.email)
-    rescue Onetime::OrganizationExists
-      logger.warn "#{label} contact_email already reserved, creating workspace without one",
-        { customer_extid: customer.extid }
-      new_workspace(customer, nil)
+    def create_billing_workspace(customer, logger:, label:, stripe_customer_id: nil)
+      begin
+        new_workspace(customer, customer.email, stripe_customer_id)
+      rescue Onetime::OrganizationExists
+        logger.warn "#{label} contact_email already reserved, creating workspace without one",
+          { customer_extid: customer.extid }
+        new_workspace(customer, nil, stripe_customer_id)
+      end
+    rescue Familia::RecordExistsError => ex
+      adopt_claimed_workspace(ex, logger: logger, label: label)
+    end
+
+    # Adopt the workspace that won the stripe_customer_id claim.
+    #
+    # The checkout's Stripe customer is the only identifier both completion
+    # surfaces hold BEFORE either of them writes, and its unique index claim
+    # is a server-side CAS — so it elects one creator without a lock. Losing
+    # the claim means the other surface already created this checkout's
+    # workspace: adopt it rather than mint a duplicate.
+    #
+    # @param error [Familia::RecordExistsError] raised by the losing create
+    # @param logger [#warn] billing logger
+    # @param label [String] log prefix identifying the calling surface
+    # @return [Onetime::Organization]
+    # @raise [Onetime::Problem] when the winner cannot be loaded — the caller
+    #   must fail loudly (and, on the webhook, be retried) rather than fall
+    #   through to a second create.
+    def adopt_claimed_workspace(error, logger:, label:)
+      winner = error.existing_id && Onetime::Organization.load(error.existing_id)
+      unless winner
+        raise Onetime::Problem,
+          "#{label} lost the stripe_customer_id claim to #{error.existing_id.inspect}, which could not be loaded"
+      end
+
+      logger.warn "#{label} adopting workspace created concurrently for this checkout",
+        { orgid: winner.objid, extid: winner.extid }
+      winner
     end
 
     private
@@ -138,12 +174,13 @@ module Billing
       org
     end
 
-    def new_workspace(customer, contact_email)
+    def new_workspace(customer, contact_email, stripe_customer_id)
       Onetime::Organization.create!(
         "#{customer.email}'s Workspace",
         customer,
         contact_email,
         is_default: true,
+        **Onetime::Organization.stripe_claim_fields(stripe_customer_id),
       )
     end
   end
