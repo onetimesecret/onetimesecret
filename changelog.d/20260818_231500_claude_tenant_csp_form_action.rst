@@ -20,11 +20,12 @@ Changed
 
 - ``SSO_FORM_ACTION_ORIGINS`` is re-scoped. It is no longer the way to admit
   a tenant's IdP on a custom domain — that is now automatic — and is reserved
-  for sovereign-cloud and split-endpoint OIDC topologies where the
-  authorization endpoint lives on an origin the issuer does not name. The
-  boot warning for "override set with no active platform providers" is
-  reworded from a config smell to informational, because that combination is
-  now a legitimate sovereign-cloud configuration.
+  for split-endpoint OIDC topologies where the authorization endpoint lives on
+  an origin the issuer does not name, plus the tenant derivation gap when a
+  domain record cannot be read at response time. The boot warning for
+  "override set with no active platform providers" is reworded from a config
+  smell to informational, because that combination is now a legitimate
+  split-endpoint configuration.
 
 - Development-mode CSP shape follows otto's own policy again. otto 2.8.1+
   leads its development ``script-src`` with ``'self'``, which made the
@@ -36,13 +37,17 @@ Changed
 Documentation
 -------------
 
-- Corrected the sovereign-cloud tenant Entra guidance. The previous advice —
-  add the sovereign login origin to ``SSO_FORM_ACTION_ORIGINS`` — could not
-  work: tenant Entra configurations carry no authority field and always
-  redirect to the commercial cloud, so the override widened the policy on
+- Corrected the sovereign-cloud Entra guidance for both SSO surfaces. The
+  previous advice — add the sovereign login origin to
+  ``SSO_FORM_ACTION_ORIGINS`` — could not work on either: neither the tenant
+  nor the platform Entra strategy passes an authority option, so both always
+  redirect to the commercial cloud and the override widened the policy on
   every page for every tenant while fixing nothing. Sovereign deployments
-  should use provider type ``oidc`` with the sovereign issuer, which the
-  per-request derivation handles on its own.
+  configure provider type ``oidc`` with the sovereign v2.0 issuer, which the
+  boot-time (platform) and per-request (tenant) derivations handle on their
+  own. Documented the sovereign issuer values, the v1-issuer split-endpoint
+  trap, the ``allowed_domains`` access-control posture, and the identity
+  re-link cost of switching an existing configuration from ``entra_id``.
 
 AI Assistance
 -------------

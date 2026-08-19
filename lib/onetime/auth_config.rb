@@ -433,10 +433,14 @@ module Onetime
     # feature enabled AND the provider's required env vars present), so they
     # can never drift from the providers that actually register. The
     # SSO_FORM_ACTION_ORIGINS override is merged in unconditionally — it covers
-    # sovereign clouds and an OIDC issuer that differs from its authorization
-    # endpoint. Tenant (per-domain) SSO issuers are NOT this method's job:
-    # they are unknown at boot and reach the header per-request via
-    # Onetime::Middleware::TenantCspExtras + #tenant_idp_origin (#4173).
+    # an OIDC issuer that differs from its authorization endpoint. It cannot
+    # cover a sovereign cloud: the Entra strategy is pinned to the commercial
+    # authority on BOTH surfaces, so widening form-action there admits an
+    # origin the redirect never reaches (sovereign Entra is configured as OIDC
+    # with its sovereign issuer instead). Tenant (per-domain) SSO issuers are
+    # NOT this method's job: they are unknown at boot and reach the header
+    # per-request via Onetime::Middleware::TenantCspExtras + #tenant_idp_origin
+    # (#4173).
     #
     # Returns a de-duplicated Array of origin strings (scheme://host[:port]),
     # or [] when nothing is configured. Side-effect free and safe to call at
@@ -449,14 +453,14 @@ module Onetime
       # surfacing — but it is not automatically a misconfiguration. Tenant SSO
       # no longer needs the override (tenant IdP origins arrive per-request
       # via Onetime::Middleware::TenantCspExtras, #4173), so this combination
-      # now legitimately means sovereign-cloud or split-endpoint usage
-      # (e.g. login.microsoftonline.us, or an OIDC authorization_endpoint on
-      # a different origin than the issuer). Log it as context, not a smell.
+      # now legitimately means split-endpoint usage (an OIDC
+      # authorization_endpoint on a different origin than the issuer). Log it
+      # as context, not a smell.
       if provider_origins.empty? && !ENV.fetch('SSO_FORM_ACTION_ORIGINS', '').to_s.strip.empty?
         OT.lw '[auth_config] SSO_FORM_ACTION_ORIGINS is widening CSP form-action with ' \
-              'no active platform SSO provider origins — expected only for sovereign-cloud ' \
-              'or split-endpoint IdPs (tenant SSO origins are added per-request and do not ' \
-              'need this override)'
+              'no active platform SSO provider origins — expected only for split-endpoint ' \
+              'IdPs (tenant SSO origins are added per-request and do not need this ' \
+              'override)'
       end
 
       (provider_origins + override_origins).uniq
@@ -514,8 +518,11 @@ module Onetime
     # only http(s), rejects CSP-hostile hosts, omits default ports, and
     # returns nil on garbage — never raises. Entra reuses the registry's
     # static commercial-cloud origin (the tenant strategy pins that cloud:
-    # SsoConfig#build_entra_id_options passes no authority option); sovereign
-    # clouds remain SSO_FORM_ACTION_ORIGINS territory.
+    # SsoConfig#build_entra_id_options passes no authority option). The
+    # PLATFORM Entra strategy_options pin it the same way, so no override
+    # reaches a sovereign cloud on either surface — a sovereign tenant is
+    # configured as provider type oidc with its sovereign v2.0 issuer, which
+    # this method then derives the origin from like any other tenant OIDC.
     #
     # Non-oidc types resolve through SsoConfig::PROVIDER_ROUTE_MAP (the same
     # provider_type -> route mapping the tenant strategy registration uses)
