@@ -261,6 +261,11 @@
     "text": "Remove all custom domains before deleting this organization.",
     "content_hash": "44678715"
   },
+  "web.organizations.delete_organization_cancel_subscription_first": {
+    "text": "Cancel this organization's subscription before deleting it.",
+    "context": "Shown under the delete organization action when the org has an active or trialing subscription, which the server refuses to delete",
+    "content_hash": "f0c54eca"
+  },
   "web.organizations.delete": {
     "text": "Delete",
     "content_hash": "e2d0a549"

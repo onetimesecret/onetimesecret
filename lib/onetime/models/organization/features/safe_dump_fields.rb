@@ -33,6 +33,11 @@ module Onetime::Organization::Features
       base.safe_dump_field :planid
       base.safe_dump_field :member_count, ->(org) { org.member_count }
       base.safe_dump_field :domain_count, ->(org) { org.domain_count }
+      # Mirrors the `:active_subscription` guardrail in
+      # Onetime::Operations::Org::Delete so the workspace UI can pre-disable
+      # its delete button instead of waiting for the server refusal. Reads the
+      # locally-stored subscription_status only — never calls Stripe.
+      base.safe_dump_field :active_subscription, ->(org) { org.active_subscription? }
       base.safe_dump_field :updated
       base.safe_dump_field :created
 

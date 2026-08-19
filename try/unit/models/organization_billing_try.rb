@@ -155,6 +155,32 @@ dump = @org.safe_dump
 [dump[:billing_email], dump[:contact_email]]
 #=> ["dump-billing-#{@test_suffix}@example.com", "dump-contact-#{@test_suffix}@example.com"]
 
+## safe_dump exposes active_subscription true for an active subscription
+## (the workspace UI pre-disables its delete button on this flag; the server
+## guard is Onetime::Operations::Org::Delete's :active_subscription refusal)
+@org.subscription_status = 'active'
+@org.save
+@org.safe_dump[:active_subscription]
+#=> true
+
+## safe_dump exposes active_subscription true while trialing
+@org.subscription_status = 'trialing'
+@org.save
+@org.safe_dump[:active_subscription]
+#=> true
+
+## safe_dump exposes active_subscription false once canceled
+@org.subscription_status = 'canceled'
+@org.save
+@org.safe_dump[:active_subscription]
+#=> false
+
+## safe_dump exposes active_subscription false when never subscribed
+@org.subscription_status = nil
+@org.save
+@org.safe_dump[:active_subscription]
+#=> false
+
 ## ----------------------------------------------------------------
 ## paid? and complimentary? canonical method tests
 ## ----------------------------------------------------------------

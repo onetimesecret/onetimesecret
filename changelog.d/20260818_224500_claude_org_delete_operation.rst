@@ -44,6 +44,14 @@ Changed
   Stripe, so the subscription has to be cancelled first — otherwise it keeps
   billing against a record that no longer exists.
 
+- The workspace Caution Zone pre-disables its delete button for an organization
+  with an active or trialing subscription, alongside the existing custom-domain
+  case, and says which one is blocking. Organizations now carry an
+  ``active_subscription`` flag in their API payload for it — read from the
+  stored subscription status, no Stripe call. The server refuses either case
+  regardless; a payload without the flag leaves the button live rather than
+  locking an owner out.
+
 AI Assistance
 -------------
 

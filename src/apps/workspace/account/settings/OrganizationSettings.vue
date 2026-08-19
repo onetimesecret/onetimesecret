@@ -282,6 +282,17 @@
   const isOwner = computed(() => organization.value?.current_user_role === 'owner');
   const hasDomains = computed(() => (organization.value?.domain_count ?? 0) > 0);
 
+  // Delete guardrails mirrored from Onetime::Operations::Org::Delete. The
+  // server refuses either case regardless; pre-disabling just stops the user
+  // from walking through the confirm dialog only to be turned away.
+  //
+  // `active_subscription` is the org's stored subscription_status ('active' or
+  // 'trialing') — no Stripe call here or on the server. Missing on an older
+  // payload normalizes to false (schema), which leaves the button live and
+  // defers to the server's refusal rather than locking the owner out.
+  const hasActiveSubscription = computed(() => organization.value?.active_subscription === true);
+  const deleteBlocked = computed(() => hasDomains.value || hasActiveSubscription.value);
+
   const currentUserMember = computed(() => membersStore.members.find((m) => m.is_current_user));
 
   const {
@@ -298,6 +309,11 @@
   } = useConfirmDialog();
 
   const handleDeleteOrganization = async () => {
+    // The button is disabled in these states; this guards the programmatic
+    // path so the confirm dialog can never open on a delete the server will
+    // refuse.
+    if (deleteBlocked.value) return;
+
     const { isCanceled } = await revealDelete();
     if (isCanceled) return;
 
@@ -1282,11 +1298,18 @@
                       class="mt-1 text-xs text-red-600 dark:text-red-400">
                       {{ t('web.organizations.delete_organization_remove_domains_first') }}
                     </p>
+                    <p
+                      v-if="hasActiveSubscription"
+                      data-testid="org-delete-active-subscription-notice"
+                      class="mt-1 text-xs text-red-600 dark:text-red-400">
+                      {{ t('web.organizations.delete_organization_cancel_subscription_first') }}
+                    </p>
                   </div>
                 </div>
                 <button
                   type="button"
-                  :disabled="hasDomains"
+                  data-testid="org-delete-button"
+                  :disabled="deleteBlocked"
                   class="shrink-0 rounded-md border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:border-red-600 hover:bg-red-600 hover:text-white focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-700 dark:bg-transparent dark:text-red-400 dark:hover:border-red-600 dark:hover:bg-red-600 dark:hover:text-white dark:focus:ring-offset-gray-900"
                   @click="handleDeleteOrganization">
                   {{ t('web.COMMON.remove') }}
