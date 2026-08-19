@@ -180,7 +180,7 @@
   },
   "api.organizations.errors.delete_drifted_domains": {
     "text": "Some domain records still reference this organization but are no longer listed in it: %{domains}. Please contact support to remove them before deleting this organization.",
-    "context": "Returned when an organization delete is refused because drifted domain records could not be automatically repaired",
+    "context": "Returned when an organization delete is refused because domain records still reference the organization but are missing from its domain list",
     "content_hash": "c66e38cb"
   },
   "api.organizations.errors.delete_is_default": {

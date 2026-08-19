@@ -138,6 +138,7 @@ module ColonelAPI
               pending_invitations: result.pending_invitations,
               domain_count: result.domain_count,
               domains: result.domains,
+              drifted_domains: result.drifted_domains,
               is_default: result.is_default,
               active_subscription: result.active_subscription,
               owner_id: result.owner_id,
@@ -165,8 +166,7 @@ module ColonelAPI
           when :drifted_domains
             raise_form_error(
               "#{result.drifted_domains.size} domain record(s) still reference this org but are " \
-              "missing from its domain list: #{result.drifted_domains.join(', ')}. Automatic repair " \
-              'could not restore them (an orphaned record needs an explicit owner). Run: ' \
+              "missing from its domain list: #{result.drifted_domains.join(', ')}. Run: " \
               'bin/ots domains doctor --repair. There is no override.',
               field: :org_id,
             )

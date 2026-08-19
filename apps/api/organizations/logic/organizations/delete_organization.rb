@@ -136,9 +136,9 @@ module OrganizationAPI::Logic
             error_type: :invalid,
           )
         when :drifted_domains
-          # The self-heal already ran and could not restore these, so they stay
-          # INVISIBLE in the customer's domain list — "remove your domains" would
-          # be pointing at nothing they can see. Name them and route to support.
+          # These stay INVISIBLE in the customer's domain list — "remove your
+          # domains" would be pointing at nothing they can see. Name them and
+          # route to support; the remediation is operator-side.
           raise_form_error(
             error_key: 'api.organizations.errors.delete_drifted_domains',
             args: { domains: result.drifted_domains.join(', ') },

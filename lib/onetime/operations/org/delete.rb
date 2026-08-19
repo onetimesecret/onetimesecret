@@ -11,8 +11,6 @@ require 'onetime/audited_failure'
 # without the app's job wiring loaded (precedent:
 # lib/onetime/logic/credential_change_session_revocation.rb).
 require 'onetime/jobs/publisher'
-# Drift self-heal runs through the single audited repair implementation.
-require 'onetime/operations/domains/repair'
 
 module Onetime
   module Operations
@@ -48,15 +46,13 @@ module Onetime
       #                        below, i.e. mid-teardown.
       #   :drifted_domains     domains that still name this org in
       #                        `CustomDomain.owners` but have fallen out of its
-      #                        domains collection, and that the self-heal could
-      #                        not restore. The applied path first REPAIRS the
-      #                        drift through Operations::Domains::Repair, which
-      #                        normally converts this into a plain
-      #                        `:has_domains` refusal on the re-read count;
-      #                        this status is what is left when repair could
-      #                        not finish the job. Not overridable — `destroy!`
-      #                        raises on drift for the same mid-teardown
-      #                        reason. See #heal_domain_drift!.
+      #                        domains collection. These are invisible in the
+      #                        owner's own domain list, so the remediation is
+      #                        operator-side (`bin/ots domains doctor
+      #                        --repair`), never a side effect of a delete.
+      #                        Not overridable — `destroy!` raises on drift
+      #                        for the same mid-teardown reason. See
+      #                        #detect_domain_drift!.
       #   :is_default          the customer's default workspace. THE SERVER-SIDE
       #                        HALF OF A RULE THAT PREVIOUSLY EXISTED ONLY IN
       #                        VUE (see "The is_default hole" below).
@@ -184,10 +180,10 @@ module Onetime
         #   collection carries drift; never longer.
         # @!attribute drifted_domains [r] Array<String> — display domains that
         #   still reference this org through `CustomDomain.owners` but are
-        #   MISSING from its domains collection, and that the self-heal could
-        #   not put back. Empty on the healthy path. Non-empty means
-        #   `:drifted_domains`: the customer cannot see these in their domain
-        #   list, so the remediation is operator-side.
+        #   MISSING from its domains collection. Empty on the healthy path.
+        #   Non-empty means `:drifted_domains`: the customer cannot see these
+        #   in their domain list, so the remediation is operator-side
+        #   (`bin/ots domains doctor --repair`).
         # @!attribute is_default [r] Boolean — the guard's input, echoed so an
         #   adapter can show WHY a delete was refused (or what force_default
         #   overrode).
@@ -296,7 +292,7 @@ module Onetime
           # runs at all).
           @default_org_holders = members.select { |member| member.default_org_id.to_s == @objid.to_s }
 
-          heal_domain_drift!
+          detect_domain_drift!
 
           refusal = first_guardrail_trip
           return refuse(refusal) if refusal
@@ -311,72 +307,20 @@ module Onetime
         private
 
         # Detect domains that still name this org in `CustomDomain.owners` but
-        # have fallen out of its domains collection, and — on the APPLIED path
-        # only — put them back through the single audited repair op.
+        # have fallen out of its domains collection. Detection ONLY — no path
+        # through this op mutates on a refusal, so a preview and an applied run
+        # report the same `:drifted_domains` for the same org.
         #
-        # Repair, not delete-anyway: a drifted domain genuinely belongs to this
-        # org, so restoring the collection entry makes it VISIBLE again in the
-        # owner's domain list. The `:has_domains` guard then refuses on the
-        # re-read count, which is the whole point — repair-then-refuse, never
-        # repair-then-delete. Without the self-heal a customer hits a dead end,
-        # because the remediation (`bin/ots domains doctor --repair`) is a shell
-        # they do not have.
-        #
-        # A DRY RUN mutates nothing, so it repairs nothing and reports every
-        # drifted domain as `:drifted_domains`. The applied run of the same org
-        # may instead report `:has_domains` once the repair lands the domains
-        # back in the collection. Both are refusals naming the same domains, so
-        # the plan and the receipt still agree on the outcome.
-        def heal_domain_drift!
-          drifted = @org.unlisted_owned_domains
-          if drifted.empty?
-            @unrepaired = []
-            return
-          end
+        # These domains are invisible in the owner's own domain list, so the
+        # remediation is operator-side (`bin/ots domains doctor --repair`);
+        # repairing index state as a side effect of a delete would be a
+        # mutation on a path that promises to write nothing.
+        def detect_domain_drift!
+          @drifted = @org.unlisted_owned_domains
+          return if @drifted.empty?
 
-          OT.info "[Org::Delete] #{@extid} has #{drifted.size} drifted domain(s): " \
-                  "#{drifted.map(&:display_domain).join(', ')} dry_run=#{@dry_run}"
-
-          if @dry_run
-            @unrepaired = drifted
-            return
-          end
-
-          @unrepaired = repair_drifted_domains(drifted)
-
-          # Repaired domains rejoin the collection, so the guard's inputs are
-          # stale — re-read them rather than refusing on a pre-repair count.
-          @domain_count = @org.domain_count.to_i
-          @domains      = @org.list_domains.map(&:display_domain).compact
-        end
-
-        # Each domain is isolated so one failed repair does not abort the rest.
-        #
-        # No `org:` is passed, so the residual ORPHANED shape (the owners entry
-        # names this org but the record's own org_id is blank — legacy data
-        # only, since CustomDomain#save raises on a blank org_id) is deliberately
-        # left to operator intent: Repair returns `:needs_org` and mutates
-        # nothing, which lands the domain in `@unrepaired` and refuses the
-        # delete. Assigning ownership from a stale denormalized index alone, as a
-        # side effect of a delete, would be guessing.
-        #
-        # @param drifted [Array<Onetime::CustomDomain>]
-        # @return [Array<Onetime::CustomDomain>] domains that could NOT be repaired.
-        def repair_drifted_domains(drifted)
-          drifted.reject do |domain|
-            result = Onetime::Operations::Domains::Repair.new(
-              domain: domain,
-              actor: @actor,
-              dry_run: false,
-            ).call
-            OT.info "[Org::Delete] drift repair for #{domain.display_domain} on #{@extid}: " \
-                    "status=#{result.status}"
-            [:repaired, :no_issues].include?(result.status)
-          rescue StandardError => ex
-            OT.le "[Org::Delete] failed to repair drifted domain #{domain.display_domain} " \
-                  "for #{@extid}: #{ex.class}: #{ex.message}"
-            false
-          end
+          OT.info "[Org::Delete] #{@extid} has #{@drifted.size} drifted domain(s): " \
+                  "#{@drifted.map(&:display_domain).join(', ')} dry_run=#{@dry_run}"
         end
 
         # First guard to trip, or nil. Order matters: `:has_domains` is checked
@@ -388,7 +332,7 @@ module Onetime
           # are domains pointing at the org, and `Organization#destroy!` raises
           # on them too — a raise that would otherwise land after the
           # instances-zset removal.
-          return :drifted_domains if @unrepaired.any?
+          return :drifted_domains if @drifted.any?
           return :is_default if @is_default && !@force_default
           return :active_subscription if @active_subscription && !@force_subscription
           # Orphaned org (`org doctor` check 1): no owner_id and no owner
@@ -577,7 +521,7 @@ module Onetime
             pending_invitations: @pending,
             domain_count: @domain_count,
             domains: @domains,
-            drifted_domains: @unrepaired.map(&:display_domain),
+            drifted_domains: @drifted.map(&:display_domain),
             is_default: @is_default,
             active_subscription: @active_subscription,
             owner_id: @owner&.extid,

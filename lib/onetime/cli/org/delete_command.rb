@@ -228,6 +228,7 @@ module Onetime
           pending_invitations: result.pending_invitations,
           domain_count: result.domain_count,
           domains: result.domains,
+          drifted_domains: result.drifted_domains,
           is_default: result.is_default,
           active_subscription: result.active_subscription,
           owner_id: result.owner_id,
@@ -255,7 +256,6 @@ module Onetime
           error_exit(
             "#{result.org_id} still has #{result.drifted_domains.size} domain record(s) pointing at " \
             "it that are missing from its domain list: #{result.drifted_domains.join(', ')}. " \
-            'Automatic repair could not restore them — an orphaned record needs an explicit owner. ' \
             'Run: bin/ots domains doctor --repair, then retry',
             json: false,
           )
