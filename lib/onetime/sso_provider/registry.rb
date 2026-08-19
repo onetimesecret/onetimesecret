@@ -65,8 +65,30 @@
 #                     the SsoConfig record's issuer instead). ENTRA is static
 #                     because the OmniAuth strategy hard-pins the commercial
 #                     cloud (login.microsoftonline.com); there is no
-#                     sovereign-cloud authority env in this app — use
-#                     SSO_FORM_ACTION_ORIGINS for those.
+#                     sovereign-cloud authority env in this app. For a
+#                     PLATFORM provider pointed at a sovereign endpoint,
+#                     SSO_FORM_ACTION_ORIGINS is the override. Do NOT reach
+#                     for it for TENANT entra: a tenant config passes no
+#                     authority option and has no authority field, so it
+#                     always redirects to the commercial cloud — the override
+#                     would widen form-action on every page for every tenant
+#                     while fixing nothing. Sovereign tenants configure
+#                     provider type oidc with the sovereign issuer instead
+#                     (docs/authentication/per-install-sso.md).
+#                     CONSTRAINT on adding a second non-OIDC TENANT provider:
+#                     AuthConfig#tenant_idp_origin picks the definition by the
+#                     SsoConfig::PROVIDER_ROUTE_MAP :default route name and
+#                     never consults that entry's :env_var override, so an
+#                     operator-renamed route resolves the DEFAULT definition,
+#                     silently. Harmless for every provider that exists today:
+#                     the non-OIDC tenant type (entra_id) carries a STATIC
+#                     idp_origin, so which route name the operator chose cannot
+#                     change the answer (and tenant OIDC bypasses the registry
+#                     entirely, deriving from the SsoConfig record's issuer).
+#                     A new provider whose route-name override must also select
+#                     a DIFFERENT definition — e.g. per-cloud definitions keyed
+#                     off the route env — breaks that assumption and has to
+#                     teach #tenant_idp_origin to resolve :env_var first.
 #   placeholder_options: strategy options (minus name:) used when platform
 #                     credentials are absent but org-level SSO is enabled —
 #                     the OmniAuthTenant hook injects real tenant credentials
