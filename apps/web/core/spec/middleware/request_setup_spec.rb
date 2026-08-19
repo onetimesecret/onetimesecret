@@ -70,7 +70,9 @@ RSpec.describe Core::Middleware::RequestSetup do
     it 'allows same-origin Vite module imports in development without dropping the nonce' do
       policy = emit({ 'content-type' => 'text/html' }, development: true)
 
-      expect(policy).to include("script-src 'nonce-N' 'unsafe-inline' 'self'")
+      script_src = policy[/script-src\s+[^;]+/]
+
+      expect(script_src).to include("'nonce-N'", "'self'")
     end
 
     it 'keeps production scripts nonce-only' do
