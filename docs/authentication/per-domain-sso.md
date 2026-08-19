@@ -10,14 +10,6 @@ SSO configuration is bound to individual custom domains, not organizations. This
 
 The SSO tab visibility is controlled by the `manage_sso` entitlement. The following conditions must be met for the tab to appear.
 
-### Billing Disabled (Standalone Mode)
-
-When billing is disabled (`BILLING_ENABLED=false`), all entitlements are granted automatically via `STANDALONE_ENTITLEMENTS`. The SSO tab appears for all organizations without additional configuration.
-
-### Billing Enabled
-
-When billing is enabled, the organization must have the `manage_sso` entitlement. This requires proper configuration across multiple layers.
-
 ## Configuration Layers
 
 ### 1. billing.yaml
@@ -208,6 +200,8 @@ Resolution chain (`apps/web/auth/config/hooks/omniauth_tenant.rb`):
 SSO_FORM_ACTION_ORIGINS="https://auth.example.gov"
 ```
 
+Operational triage — the `TenantCspExtras` log signals, how to read the emitted header, and resolution by cause: [docs/runbooks/tenant-sso-csp-form-action.md](../runbooks/tenant-sso-csp-form-action.md).
+
 ### Custom-Domain POST Returns 403 (`HttpOrigin`)
 
 This is separate from CSP. `HttpOrigin` validates the **source** of `POST /auth/sso/{provider}`; CSP `form-action` validates the IdP **destination** after the redirect.
@@ -264,6 +258,15 @@ The one exception: If the underlying OAuth session machinery required AUTH_SSO_E
   coupling would be necessary. But from the recon, domain SSO has independent provider resolution that doesn't depend on
 install-level providers.
 
+## Billing
+
+### Billing Disabled (Standalone Mode)
+
+When billing is disabled (`BILLING_ENABLED=false`), all entitlements are granted automatically via `STANDALONE_ENTITLEMENTS`. The SSO tab appears for all organizations without additional configuration.
+
+### Billing Enabled
+
+When billing is enabled, the organization must have the `manage_sso` entitlement. This requires proper configuration across multiple layers.
 
 ## See Also
 
