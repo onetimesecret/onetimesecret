@@ -185,7 +185,7 @@ module Onetime
       end
 
       def subscription_suffix(plan)
-        plan.active_subscription ? ' (ACTIVE SUBSCRIPTION — Stripe is NOT cancelled)' : ''
+        plan.active_subscription ? ' (LIVE SUBSCRIPTION — Stripe is NOT cancelled)' : ''
       end
 
       def owner_line(plan)

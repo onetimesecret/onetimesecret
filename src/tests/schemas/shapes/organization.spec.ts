@@ -4,7 +4,12 @@
 //
 // active_subscription mirrors the server's `:active_subscription` refusal in
 // Onetime::Operations::Org::Delete (see the org safe_dump field of the same
-// name). The workspace UI pre-disables its delete button on it, so the
+// name, which is computed from `Organization#billing_live?` — the wire name is
+// narrower than the meaning: past_due/unpaid both send true). The status
+// itself never crosses the wire, only this boolean, so there is nothing to
+// assert here about WHICH statuses are live; that lives in
+// spec/unit/onetime/models/organization/with_organization_billing_spec.rb.
+// The workspace UI pre-disables its delete button on it, so the
 // normalization matters: an absent field must NOT read as "blocked", or an
 // older/partial payload would lock an owner out of a delete the server would
 // have allowed.
@@ -21,7 +26,7 @@ const parse = (overrides: Record<string, unknown> = {}) =>
   organizationSchema.parse({ ...baseOrg(), ...overrides });
 
 describe('organizationSchema — active_subscription', () => {
-  it('keeps a true flag (org is actively billing)', () => {
+  it('keeps a true flag (the org has a subscription that can still bill)', () => {
     expect(parse({ active_subscription: true }).active_subscription).toBe(true);
   });
 

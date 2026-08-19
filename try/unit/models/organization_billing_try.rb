@@ -15,9 +15,16 @@ require_relative '../../../apps/web/billing/lib/test_support/billing_helpers'
 BillingTestHelpers.disable_billing!
 
 ## Ensure feature and billing metadata are loaded
+##
+## ApplySubscriptionToOrg is required EXPLICITLY because the feature file only
+## loads it when billing is enabled, and disable_billing! above turns it off.
+## Without it, clear_billing_fields raises NameError on a targeted run and the
+## testcases below never evaluate — they only passed by borrowing a sibling
+## file's constant in the full `tests/lanes/run unit` batch.
 require 'lib/onetime/models/organization/features/with_organization_billing'
 require 'onetime/models/organization'
 require 'web/billing/metadata'
+require 'billing/operations/apply_subscription_to_org'
 
 ## Create test customer
 @cust = Onetime::Customer.create!(
@@ -94,6 +101,11 @@ require 'web/billing/metadata'
 #=> true
 
 ## Clear billing fields
+# Starts from 'active' on purpose: subscription_status is already 'canceled'
+# after the test above, so asserting 'canceled' from there cannot tell
+# "cleared to canceled" apart from "never touched".
+@reloaded.subscription_status = 'active'
+@reloaded.save
 @reloaded.clear_billing_fields
 @reloaded.subscription_status
 #=> 'canceled'
@@ -156,8 +168,9 @@ dump = @org.safe_dump
 #=> ["dump-billing-#{@test_suffix}@example.com", "dump-contact-#{@test_suffix}@example.com"]
 
 ## safe_dump exposes active_subscription true for an active subscription
-## (the workspace UI pre-disables its delete button on this flag; the server
-## guard is Onetime::Operations::Org::Delete's :active_subscription refusal)
+# The workspace UI pre-disables its delete button on this flag; the server
+# guard is Onetime::Operations::Org::Delete's :active_subscription refusal.
+# (Continuation lines are single-# : a second `##` renames the testcase.)
 @org.subscription_status = 'active'
 @org.save
 @org.safe_dump[:active_subscription]
@@ -168,6 +181,38 @@ dump = @org.safe_dump
 @org.save
 @org.safe_dump[:active_subscription]
 #=> true
+
+## safe_dump exposes active_subscription true while past_due
+# THE REGRESSION this field was fixed for: past_due is delinquent, not gone.
+# The server guard (billing_live?) refuses the delete, so the button must be
+# pre-disabled or the owner walks the confirm dialog and gets a 4xx.
+@org.subscription_status = 'past_due'
+@org.save
+@org.safe_dump[:active_subscription]
+#=> true
+
+## safe_dump exposes active_subscription true while unpaid
+@org.subscription_status = 'unpaid'
+@org.save
+@org.safe_dump[:active_subscription]
+#=> true
+
+## safe_dump exposes active_subscription false while paused
+# 'paused' is EXCLUDED on purpose: it has never billed and never expires, so
+# it needs a payment method attached by hand before anything can charge.
+@org.subscription_status = 'paused'
+@org.save
+@org.safe_dump[:active_subscription]
+#=> false
+
+## safe_dump exposes active_subscription false for an abandoned checkout
+# 'incomplete' is EXCLUDED on purpose: it never billed and Stripe expires it
+# within ~23h, so blocking a delete on it would strand the owner over a
+# checkout they walked away from.
+@org.subscription_status = 'incomplete'
+@org.save
+@org.safe_dump[:active_subscription]
+#=> false
 
 ## safe_dump exposes active_subscription false once canceled
 @org.subscription_status = 'canceled'

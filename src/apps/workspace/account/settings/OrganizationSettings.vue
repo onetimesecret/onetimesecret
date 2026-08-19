@@ -286,10 +286,14 @@
   // server refuses either case regardless; pre-disabling just stops the user
   // from walking through the confirm dialog only to be turned away.
   //
-  // `active_subscription` is the org's stored subscription_status ('active' or
-  // 'trialing') — no Stripe call here or on the server. Missing on an older
-  // payload normalizes to false (schema), which leaves the button live and
-  // defers to the server's refusal rather than locking the owner out.
+  // `active_subscription` is the wire name for the server's LIVENESS answer
+  // (`Organization#billing_live?`), read from the org's stored
+  // subscription_status — no Stripe call here or on the server. It is WIDER
+  // than "actively billing": past_due and unpaid count too, because a
+  // delinquent subscription is still charging the card and the server refuses
+  // the delete on all of them. Missing on an older payload normalizes to false
+  // (schema), which leaves the button live and defers to the server's refusal
+  // rather than locking the owner out.
   const hasActiveSubscription = computed(() => organization.value?.active_subscription === true);
   const deleteBlocked = computed(() => hasDomains.value || hasActiveSubscription.value);
 

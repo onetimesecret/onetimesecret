@@ -37,7 +37,13 @@ module Onetime::Organization::Features
       # Onetime::Operations::Org::Delete so the workspace UI can pre-disable
       # its delete button instead of waiting for the server refusal. Reads the
       # locally-stored subscription_status only — never calls Stripe.
-      base.safe_dump_field :active_subscription, ->(org) { org.active_subscription? }
+      #
+      # Backed by `billing_live?`, NOT `active_subscription?`: the two differ
+      # for past_due/unpaid/paused, and this field must track whatever trips
+      # the server guard or the button lies. The wire name stays
+      # `active_subscription` because the zod schema, the Vue prop and the
+      # `delete_active_subscription` error key are all keyed on it.
+      base.safe_dump_field :active_subscription, ->(org) { org.billing_live? }
       base.safe_dump_field :updated
       base.safe_dump_field :created
 

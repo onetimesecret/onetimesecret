@@ -22,6 +22,37 @@ module Onetime
       module WithOrganizationBilling
         Familia::Base.add_feature self, :with_organization_billing
 
+        # Stripe statuses where the subscription can charge a card again with
+        # NO further human action.
+        #
+        # That is the whole rule, and it is what makes the set consistent:
+        #   in  — 'active'/'trialing' bill now; 'past_due'/'unpaid' are
+        #         delinquent but not gone, and Stripe recovers them to 'active'
+        #         by itself the moment a retry succeeds.
+        #   out — 'canceled' is gone. 'incomplete', 'incomplete_expired' and
+        #         'paused' all still need a person to complete a payment or
+        #         attach a payment method before a cent moves.
+        #
+        # Deliberately WIDER than active_subscription?, which is the
+        # ENTITLEMENT predicate and must stay at active/trialing — a past_due
+        # org is delinquent and should not keep its premium features.
+        #
+        # The excluded three matter because the customer-facing delete has no
+        # force flag (only colonel and `bin/ots org delete` do), so every status
+        # added here is an unappealable lockout for an org owner. 'paused' in
+        # particular has no expiry at all — an org could sit undeletable
+        # forever waiting on support.
+        #
+        # Residual risk, accepted: 'incomplete' can still become 'active' if a
+        # 3DS confirmation lands inside its ~23h window, and subscription_status
+        # is a local cache. A delete in that window produces exactly the orphan
+        # this guard exists to prevent. Judged rarer than the lockout it trades
+        # against, not impossible.
+        #
+        # An unrecognised status PERMITS the delete (allowlist, fails open).
+        # Pinned by spec — widening this set is a product decision.
+        LIVE_SUBSCRIPTION_STATUSES = %w[active trialing past_due unpaid].freeze
+
         def self.included(base)
           OT.ld "[features] #{base}: #{name}"
 
@@ -145,6 +176,27 @@ module Onetime
           # @return [Boolean] True if subscription status is 'canceled'
           def canceled?
             subscription_status.to_s == 'canceled'
+          end
+
+          # Check whether a subscription still exists in Stripe and can bill
+          #
+          # This is the LIVENESS question, not the entitlement question. Use
+          # active_subscription?/paid? to decide what an org may DO; use this
+          # to decide whether tearing the org down would strand a subscription
+          # that keeps charging a card with nothing left to attach it to.
+          #
+          # Reads the locally-stored subscription_status only — never calls
+          # Stripe. A stale status makes this answer stale in both directions.
+          #
+          # @return [Boolean] True if the subscription is live or recoverable
+          #
+          # @example
+          #   org.billing_live?  # => true  (past_due — Stripe is still retrying)
+          #   org.billing_live?  # => false (canceled)
+          #   org.billing_live?  # => false (never subscribed)
+          #
+          def billing_live?
+            WithOrganizationBilling::LIVE_SUBSCRIPTION_STATUSES.include?(subscription_status.to_s)
           end
 
           # Canonical Paid Status

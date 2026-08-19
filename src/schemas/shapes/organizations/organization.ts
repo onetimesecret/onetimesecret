@@ -52,7 +52,9 @@ const timestampOverrides = {
  * - entitlements: Plan entitlements array
  * - limits: Plan limits object
  * - domain_count: Computed custom domain count
- * - active_subscription: Whether the org is actively billing (delete guardrail)
+ * - active_subscription: Whether the org's subscription is still LIVE in
+ *   Stripe (delete guardrail). Wider than "actively billing" — past_due and
+ *   unpaid both read true.
  *
  * @example
  * ```typescript
@@ -92,8 +94,11 @@ export const organizationSchema = organizationCanonical.extend({
   domain_count: z.number().int().min(0).nullish(),
 
   // Mirrors the server's `:active_subscription` delete guardrail
-  // (Onetime::Operations::Org::Delete). Nullish -> false so an older payload
-  // that omits the field leaves the UI permissive; the server still refuses.
+  // (Onetime::Operations::Org::Delete, backed by `Organization#billing_live?`).
+  // The wire name predates the predicate and is kept as a contract; the
+  // MEANING is "a subscription that can still bill", which includes past_due
+  // and unpaid. Nullish -> false so an older payload that omits the
+  // field leaves the UI permissive; the server still refuses.
   active_subscription: z
     .boolean()
     .nullish()

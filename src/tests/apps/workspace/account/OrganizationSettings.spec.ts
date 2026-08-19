@@ -829,6 +829,8 @@ describe('OrganizationSettings', () => {
    * confirm dialog only to be refused:
    *   - :has_domains         -> organization.domain_count > 0
    *   - :active_subscription -> organization.active_subscription
+   *     (the wire flag is `Organization#billing_live?`, so it is true for
+   *     past_due/unpaid too, not just active/trialing)
    * (:is_default is handled a level up — the whole Caution Zone is replaced by
    * the "contact us" notice for a default workspace.)
    *

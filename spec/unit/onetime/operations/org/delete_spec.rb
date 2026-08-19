@@ -90,7 +90,11 @@ RSpec.describe Onetime::Operations::Org::Delete do
       end
       allow(org).to receive(:domain_count).and_return(0)
       allow(org).to receive(:list_domains).and_return([])
-      allow(org).to receive(:active_subscription?).and_return(false)
+      # `billing_live?`, NOT `active_subscription?` — the op asks the LIVENESS
+      # question (see the past_due divergence in the real-datastore layer).
+      # `org` is a verifying instance_double, so a stub of the wrong predicate
+      # does not fall through silently: the op's call raises instead.
+      allow(org).to receive(:billing_live?).and_return(false)
       allow(org).to receive(:destroy!) { calls << :destroy! }
 
       allow(Onetime::Organization).to receive(:instances).and_return(instances)
@@ -302,8 +306,8 @@ RSpec.describe Onetime::Operations::Org::Delete do
         expect(build(dry_run: false).call.status).to eq(:success)
       end
 
-      it 'refuses an actively-billing org and never calls Stripe' do
-        allow(org).to receive(:active_subscription?).and_return(true)
+      it 'refuses an org whose subscription is still live, and never calls Stripe' do
+        allow(org).to receive(:billing_live?).and_return(true)
 
         result = build(dry_run: false).call
 
@@ -373,7 +377,7 @@ RSpec.describe Onetime::Operations::Org::Delete do
     describe 'force flags' do
       it 'unlocks only the guard it names — force_default leaves billing refused' do
         allow(org).to receive(:is_default).and_return('true')
-        allow(org).to receive(:active_subscription?).and_return(true)
+        allow(org).to receive(:billing_live?).and_return(true)
 
         result = build(dry_run: false, force_default: true).call
 
@@ -383,7 +387,7 @@ RSpec.describe Onetime::Operations::Org::Delete do
 
       it 'applies once every tripped guard has its own override' do
         allow(org).to receive(:is_default).and_return('true')
-        allow(org).to receive(:active_subscription?).and_return(true)
+        allow(org).to receive(:billing_live?).and_return(true)
 
         result = build(dry_run: false, force_default: true, force_subscription: true).call
 
@@ -535,6 +539,76 @@ RSpec.describe Onetime::Operations::Org::Delete do
 
       expect(in_instances?(@keeper.objid)).to be(true)
       expect(Onetime::Organization.load(@keeper.objid)).not_to be_nil
+    end
+
+    # The billing guardrail, driven through a REAL Organization so the
+    # predicate itself is under test rather than stubbed. The mocked layer
+    # above can only assert "billing_live? true => refusal"; it cannot say
+    # which statuses are live, which is exactly where the bug lived.
+    describe 'the billing guardrail over real subscription statuses' do
+      def set_status(status)
+        @org.subscription_status = status
+        @org.save
+      end
+
+      # THE REGRESSION. The guard used to read active_subscription?
+      # (active/trialing only), so a delinquent-but-live subscription deleted
+      # cleanly while Stripe kept retrying the card — the support incident the
+      # op's own docstring names. These two examples go red the moment
+      # billing_live? is "simplified" back into active_subscription?.
+      %w[past_due unpaid].each do |status|
+        # Split from the refusal below on purpose: this one names the split
+        # that made the original bug invisible (the entitlement predicate says
+        # "not paying", so the org looks deletable), and the next one proves
+        # the op actually acts on it. Either can rot independently.
+        it "'#{status}' is not an entitlement, but it IS live billing" do
+          set_status(status)
+
+          expect(@org.active_subscription?).to be(false)
+          expect(@org.billing_live?).to be(true)
+        end
+
+        it "refuses a '#{status}' org — delinquent is not gone" do
+          set_status(status)
+
+          result = delete
+
+          expect(result.status).to eq(:active_subscription)
+          expect(result.active_subscription).to be(true)
+          expect(in_instances?(@org.objid)).to be(true)
+          expect(Onetime::Organization.load(@org.objid)).not_to be_nil
+        end
+
+        it "still applies for '#{status}' once --force-subscription is given" do
+          set_status(status)
+
+          expect(delete(force_subscription: true).status).to eq(:success)
+        end
+      end
+
+      it "refuses an 'active' org (the case that already worked)" do
+        set_status('active')
+
+        expect(delete.status).to eq(:active_subscription)
+      end
+
+      # The guard is not simply always-on: these three statuses delete.
+      # 'canceled' is over; 'incomplete'/'incomplete_expired' never billed and
+      # Stripe expires them itself, so tripping a customer-facing delete button
+      # on an abandoned checkout would cost more than the orphan it prevents.
+      # This is a DELIBERATE exclusion — widening LIVE_SUBSCRIPTION_STATUSES to
+      # cover them should fail here first.
+      %w[canceled incomplete incomplete_expired].each do |status|
+        it "deletes a '#{status}' org — nothing is billing" do
+          set_status(status)
+
+          result = delete
+
+          expect(result.status).to eq(:success)
+          expect(result.active_subscription).to be(false)
+          expect(in_instances?(@org.objid)).to be(false)
+        end
+      end
     end
   end
 end

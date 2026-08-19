@@ -48,10 +48,17 @@ module Onetime
       #                        HALF OF A RULE THAT PREVIOUSLY EXISTED ONLY IN
       #                        VUE (see "The is_default hole" below).
       #                        Overridable with force_default.
-      #   :active_subscription active or trialing. NEVER calls Stripe (out of
-      #                        scope, deliberately): deleting the org while its
-      #                        subscription bills on is a support incident, so
-      #                        the op refuses and the operator cancels first.
+      #   :active_subscription the subscription is still LIVE in Stripe —
+      #                        `Organization#billing_live?`, which is wider than
+      #                        `active_subscription?` on purpose: past_due and
+      #                        unpaid orgs are delinquent, not gone, and recover
+      #                        to active the moment a payment lands. NEVER calls
+      #                        Stripe (out of scope, deliberately): deleting the
+      #                        org while its subscription bills on is a support
+      #                        incident, so the op refuses and the operator
+      #                        cancels first. The refusal status keeps the
+      #                        `:active_subscription` name because it is a wire
+      #                        contract (CLI flag, API error key, UI payload).
       #                        Overridable with force_subscription.
       #   :last_org            the org's owner belongs to no other organization.
       #                        Deleting it strands them with no workspace, which
@@ -252,7 +259,7 @@ module Onetime
           # default (precedent: customers/change_email.rb:622). A bare truthiness
           # check would treat the string "false" as a default workspace.
           @is_default          = @org.is_default.to_s == 'true'
-          @active_subscription = @org.active_subscription?
+          @active_subscription = @org.billing_live?
 
           @owner                 = resolve_owner
           # The guard asks what the owner is left WITH, not how many rows they
