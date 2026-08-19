@@ -703,9 +703,10 @@ stripe_index.remove(@dup_cus)
 # Scenario 21: CHECK 6 — duplicate whose index entry points at NEITHER org
 # -------------------------------------------------------------------
 
-## Two live orgs on one id, index entry aimed at a dead third objid. Without the
-## claims pre-pass this is indistinguishable from a plain stale entry, and
-## --repair would award the customer to whichever org the scan reached first.
+## Two live orgs on one id, index entry aimed at a dead third objid. Read from
+## where the index points alone this is indistinguishable from a plain stale
+## entry, and --repair would award the customer to whichever org was scanned
+## first.
 @dup2_cus   = "cus_dup2_#{@test_suffix}"
 @dup2_org_a = create_billed_org('StripeDup2A', @stripe_owner, @dup2_cus, @test_suffix)
 stripe_index.remove(@dup2_cus)
@@ -723,13 +724,19 @@ stripe_index[@dup2_cus] = "gone_third_#{@test_suffix}"
 [@issues21.first[:contender][:holds_index], @issues21.first[:rivals].first[:holds_index]]
 #=> [false, false]
 
-## Without the pre-pass the same state reads as a repairable stale entry —
-## which is exactly why #call builds the claim map before checking anything
+## Driven with NO pre-pass at all — a single-org `doctor EXTID --repair` — the
+## check completes the claim map itself before classifying, so the same state
+## is still a duplicate and still refuses to pick a winner
 @issues21b = []
+@report21b = { checked: 0, healthy: 0, issues: [], repaired: [] }
 @cmd21b    = Onetime::CLI::OrgDoctorCommand.new
-@cmd21b.send(:check_stripe_customer_id_index, @dup2_org_a, @issues21b, @report21, repair: false)
-@issues21b.first[:state]
-#=> :stale_entry
+@cmd21b.send(:check_stripe_customer_id_index, @dup2_org_a, @issues21b, @report21b, repair: true)
+[@issues21b.first[:state], @issues21b.first[:repairable], @report21b[:repaired]]
+#=> [:duplicate, false, []]
+
+## ...and the entry it was aimed at is left exactly as found
+stripe_index[@dup2_cus].to_s == "gone_third_#{@test_suffix}"
+#=> true
 
 # -------------------------------------------------------------------
 # Scenario 22: index sweep — orphaned entries no live org carries
@@ -847,6 +854,84 @@ $stdout = @prev_stdout
 #=> ''
 
 # -------------------------------------------------------------------
+# Scenario 25: repair writes are compare-and-set, never blind
+# -------------------------------------------------------------------
+
+## Diagnosis and repair are separate round trips. A claim that landed in
+## between (a Stripe webhook, an `org reconcile`) must survive: the CAS only
+## writes when the entry still holds the value the decision was made from.
+@cas_cus = "cus_cas_#{@test_suffix}"
+@cmd25   = Onetime::CLI::OrgDoctorCommand.new
+stripe_index[@cas_cus] = "held_by_someone_#{@test_suffix}"
+@cas_held = @cmd25.send(:raw_index_value, stripe_index, @cas_cus)
+@cmd25.send(:claim_index_entry, stripe_index, @cas_cus, 'a_value_read_earlier', 'on1_new_owner')
+#=> false
+
+## The entry is untouched by the refused write
+@cmd25.send(:raw_index_value, stripe_index, @cas_cus) == @cas_held
+#=> true
+
+## Stating the value actually held — the raw read that feeds a real repair —
+## does write
+@cmd25.send(:claim_index_entry, stripe_index, @cas_cus, @cas_held, 'on1_new_owner')
+#=> true
+
+## Claiming an id nobody holds expects the empty string, and Redis reports a
+## missing field rather than an empty one — the claim still lands
+@cas_free = "cus_casfree_#{@test_suffix}"
+@cmd25.send(:claim_index_entry, stripe_index, @cas_free, '', 'on1_first_claimant')
+#=> true
+
+## A second claimant on the same id loses, exactly as a Familia full save would
+@cmd25.send(:claim_index_entry, stripe_index, @cas_free, '', 'on1_second_claimant')
+#=> false
+
+## Deletion is compare-and-delete for the same reason: an orphan is by
+## definition an id nobody holds, so it is precisely the id a webhook is free
+## to claim between the scan and the sweep's HDEL
+@cmd25.send(:release_index_entry, stripe_index, @cas_free, 'on1_stale_snapshot')
+#=> false
+
+## The claim that arrived after the scan survives
+stripe_index[@cas_free].to_s
+#=> 'on1_first_claimant'
+
+## Deleting against the value actually held does remove it
+@cmd25.send(:release_index_entry, stripe_index, @cas_free, 'on1_first_claimant')
+#=> true
+
+# -------------------------------------------------------------------
+# Scenario 26: the sweep leaves entries claimed since it scanned
+# -------------------------------------------------------------------
+
+## Classify an orphan, then let somebody claim the id before the delete runs.
+## A blind HDEL would erase a valid, seconds-old claim and leave the billed org
+## unindexed; compare-and-delete leaves it standing and reports zero removals.
+@race_cus = "cus_race_#{@test_suffix}"
+stripe_index[@race_cus] = "gone_race_#{@test_suffix}"
+@cmd26     = Onetime::CLI::OrgDoctorCommand.new
+@orphans26 = @cmd26.send(:collect_orphan_index_entries, stripe_index)
+@orphans26 = @orphans26.select { |e| e[:stripe_customer_id] == @race_cus }
+stripe_index[@race_cus] = 'on1_claimed_meanwhile'
+@cmd26.send(:remove_orphan_index_entries, stripe_index, @orphans26)
+#=> 0
+
+## The newer claim is intact
+stripe_index[@race_cus].to_s
+#=> 'on1_claimed_meanwhile'
+
+## The same orphan, unraced, is removed
+@cmd26b     = Onetime::CLI::OrgDoctorCommand.new
+@orphans26b = @cmd26b.send(:collect_orphan_index_entries, stripe_index)
+@orphans26b = @orphans26b.select { |e| e[:stripe_customer_id] == @race_cus }
+@cmd26b.send(:remove_orphan_index_entries, stripe_index, @orphans26b)
+#=> 1
+
+## ...and the Stripe customer id is free again
+stripe_index[@race_cus].to_s
+#=> ""
+
+# -------------------------------------------------------------------
 # Teardown
 # -------------------------------------------------------------------
 
@@ -872,7 +957,8 @@ end
 
 # Index entries outlive the orgs when a fixture pointed one at a dead objid.
 [@healthy_cus, @missing_cus, @stale_cus, @moved_cus_a, @moved_cus_b, @dup_cus,
- @dup2_cus, @orphan_cus, @json_cus].compact.each do |customer_id|
+ @dup2_cus, @orphan_cus, @json_cus, @cas_cus, @cas_free,
+ @race_cus].compact.each do |customer_id|
   Onetime::Organization.stripe_customer_id_index.remove(customer_id)
 rescue StandardError
   nil

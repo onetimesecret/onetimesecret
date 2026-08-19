@@ -22,9 +22,11 @@
 # D32).
 #
 # --repair on check 6 handles the two MECHANICAL index states (missing entry,
-# stale entry). Two live orgs carrying one Stripe customer id is a billing
-# decision, not a data repair — it is reported with both sides' context and
-# never auto-fixed (#4205).
+# stale entry), and writes them with a compare-and-set against the value the
+# diagnosis was made from, so a claim that landed in between (a Stripe webhook,
+# an `org reconcile`) is never erased. Two live orgs carrying one Stripe
+# customer id is a billing decision, not a data repair — it is reported with
+# both sides' context and never auto-fixed (#4205).
 #
 # Usage:
 #   bin/ots org doctor on8q30gih2uxu2cw77jzh7caq07     # Check single org
@@ -72,6 +74,44 @@ module Onetime
       # Severity levels for issue reporting
       SEVERITY_ORDER = { critical: 0, high: 1, medium: 2, warning: 3, low: 4 }.freeze
 
+      # Compare-and-set / compare-and-delete on ONE field of a class-level
+      # unique index, run atomically by Redis. Same shape as the index release
+      # in Customers::ChangeEmail (RELEASE_INDEX_CLAIM_SCRIPT) and the
+      # :state_cas feature: eval against index.dbkey through index.dbclient.
+      #
+      # --repair reads the index, classifies, and then writes. Between those
+      # steps a Stripe webhook or an `org reconcile` can complete a full save
+      # and claim the very field being repaired. A blind HSET/HDEL would erase
+      # that valid claim and re-open the lockout this check exists to close, so
+      # every write states the value it was decided against and stands down if
+      # the entry has moved.
+      #
+      # The expected value is the RAW bytes read from Redis, not the stripped
+      # form used for classification: a legacy JSON-encoded entry ("\"on1a…\"")
+      # would otherwise never match, and the repair would report a race that is
+      # not one. Redis yields a Lua false for a missing field, hence the
+      # explicit absent-or-empty test for a claim on an unheld id.
+      #
+      # KEYS[1] index key, ARGV[1] field, ARGV[2] expected value, ARGV[3] the
+      # value to write. Returns 1 to the caller that performs the write.
+      INDEX_CAS_SCRIPT = <<~LUA
+        local current = redis.call('HGET', KEYS[1], ARGV[1])
+        if current == ARGV[2] or (current == false and ARGV[2] == '') then
+          redis.call('HSET', KEYS[1], ARGV[1], ARGV[3])
+          return 1
+        end
+        return 0
+      LUA
+
+      INDEX_CAD_SCRIPT = <<~LUA
+        local current = redis.call('HGET', KEYS[1], ARGV[1])
+        if current == ARGV[2] then
+          redis.call('HDEL', KEYS[1], ARGV[1])
+          return 1
+        end
+        return 0
+      LUA
+
       def call(extid: nil, all: false, repair: false, json: false, **)
         boot_application!
 
@@ -85,7 +125,11 @@ module Onetime
 
         # Before any check: which live orgs carry which Stripe customer id.
         # Check 6 needs the whole picture to refuse to pick a winner (#4205).
+        # --all has it by construction; a single-org run starts with a map of
+        # one and completes it lazily, only where drift turns up (see
+        # #ensure_stripe_customer_claims).
         index_stripe_customer_claims(orgs)
+        @stripe_claims_complete = all
 
         orgs.each do |org|
           next unless org
@@ -368,15 +412,15 @@ module Onetime
       # stale entry — and --repair would then award the customer to whichever
       # org the scan happened to reach first.
       #
-      # A SINGLE-org run sees only that org and whoever the index names, so it
-      # can still read that three-way state as a stale entry and repoint it.
-      # Accepted, not overlooked: the alternative is an O(all orgs) scan on
-      # every `doctor EXTID --repair`, and the mis-call is benign and
-      # self-revealing. Both orgs were already locked out by the dead pointer;
-      # afterwards one can save, no billing field is touched, and the next
-      # check on the other org reports a clean duplicate against a live holder.
+      # Nothing is reported or repaired from a partial claim map. A single-org
+      # run knows only about that org and whoever the index names, which cannot
+      # tell a missing entry apart from two orgs contesting an unheld id — so
+      # the moment an org shows drift, the map is completed first
+      # (#ensure_stripe_customer_claims). A healthy org returns before that,
+      # which keeps the scan off the common path.
+      #
       # Stripe, not this index, is the source of truth about who owns the
-      # customer.
+      # customer; the doctor's job is to say so, not to choose.
       def check_stripe_customer_id_index(org, issues, report, repair:)
         return unless org.respond_to?(:stripe_customer_id)
 
@@ -390,15 +434,27 @@ module Onetime
         index = stripe_customer_id_index
         return if index.nil?
 
-        holder_objid = index_value(index[customer_id])
-        rivals       = live_rivals(org, customer_id, holder_objid)
+        # Kept side by side: the RAW bytes Redis holds, which the repair CAS
+        # has to expect, and the stripped form everything else compares.
+        raw_holder   = raw_index_value(index, customer_id)
+        holder_objid = index_value(raw_holder)
+        mine         = org.objid.to_s
+
+        # The only path that costs nothing extra, and the common one: this org
+        # holds its own entry and nothing already known contests it. Every line
+        # below is about to report or repair, and neither may be decided from a
+        # partial claim map.
+        return if holder_objid == mine && live_rivals(org, customer_id, holder_objid).empty?
+
+        ensure_stripe_customer_claims
+        rivals = live_rivals(org, customer_id, holder_objid)
 
         if rivals.any?
           issues << duplicate_index_issue(org, customer_id, holder_objid, rivals)
           return # never auto-repaired, in either direction
         end
 
-        return if holder_objid == org.objid.to_s # healthy: org holds its own entry
+        return if holder_objid == mine # healthy: org holds its own entry
 
         issue = if holder_objid.empty?
                   missing_index_issue(org, customer_id)
@@ -410,7 +466,25 @@ module Onetime
 
         return unless repair
 
-        index[customer_id] = org.objid
+        repair_index_entry(org, index, issue, report,
+          customer_id: customer_id, raw_holder: raw_holder, holder_objid: holder_objid)
+      end
+
+      # The repair write. Compare-and-set against the value the classification
+      # above was made from (see INDEX_CAS_SCRIPT): if a concurrent full save
+      # settled the entry in the meantime, that claim is left standing.
+      #
+      # Losing the CAS is not a failure to report as one — somebody else's
+      # write has already done the job, or has made a different call this run
+      # is no longer entitled to override. It is recorded on the issue so the
+      # operator can see the entry moved, and the next run reads settled state.
+      def repair_index_entry(org, index, issue, report, customer_id:, raw_holder:, holder_objid:)
+        unless claim_index_entry(index, customer_id, raw_holder, org.objid)
+          issue[:repair_skipped] = 'index entry changed while doctor was running; re-run to see the settled state'
+          OT.info "[org doctor] stripe_customer_id_index[#{customer_id}] moved under repair; left as found"
+          return
+        end
+
         OT.info "[org doctor] stripe_customer_id_index[#{customer_id}] -> #{org.objid} (was #{holder_objid.inspect})"
         report[:repaired] << {
           org: org.extid,
@@ -420,9 +494,47 @@ module Onetime
         }
       end
 
+      # Complete the claim map before check 6 acts on anything.
+      #
+      # A single-org run cannot otherwise distinguish "no org has claimed this
+      # id" from "two orgs carry it and neither holds the entry" — and --repair
+      # would then claim the id for whichever org was named on the command
+      # line, quietly picking the winner of a duplicate that is never supposed
+      # to be auto-repaired.
+      #
+      # Lazy and memoised: --all arrives complete, and a single-org run only
+      # reaches here once its org already shows drift. The O(all orgs) walk is
+      # paid exactly where a wrong answer would be written to Redis.
+      def ensure_stripe_customer_claims
+        return if @stripe_claims_complete
+
+        index_stripe_customer_claims(scan_all_orgs)
+        @stripe_claims_complete = true
+      end
+
+      # Compare-and-set one index field. True iff THIS caller wrote it.
+      def claim_index_entry(index, field, expected_raw, objid)
+        index.dbclient.eval(
+          INDEX_CAS_SCRIPT,
+          keys: [index.dbkey],
+          argv: [field.to_s, expected_raw.to_s, objid.to_s],
+        ).to_i == 1
+      end
+
+      # Compare-and-delete one index field. True iff THIS caller removed it.
+      def release_index_entry(index, field, expected_raw)
+        index.dbclient.eval(
+          INDEX_CAD_SCRIPT,
+          keys: [index.dbkey],
+          argv: [field.to_s, expected_raw.to_s],
+        ).to_i == 1
+      end
+
       # Live organizations OTHER than this one that carry the same Stripe
-      # customer id: the orgs seen in the pre-pass, plus whoever the index
-      # names (which a single-org run has no other way to learn about).
+      # customer id: whoever the claim map knows about, plus whoever the index
+      # names. Only as complete as the map it is called with — which is why
+      # every caller that goes on to report or repair calls
+      # #ensure_stripe_customer_claims first.
       #
       # An org is only a rival if it still carries the id — an index entry
       # pointing at an org that has since moved on is a stale pointer, not a
@@ -534,15 +646,38 @@ module Onetime
 
         return unless repair
 
-        orphans.each do |entry|
-          index.remove(entry[:stripe_customer_id])
-          OT.info "[org doctor] Removed orphaned stripe_customer_id_index[#{entry[:stripe_customer_id]}]"
-        end
+        removed = remove_orphan_index_entries(index, orphans)
+        return if removed.zero?
 
         report[:repaired] << {
           action: :stripe_index_orphans_removed,
-          count: orphans.size,
+          count: removed,
+          skipped: orphans.size - removed,
         }
+      end
+
+      # Delete each orphan by compare-and-delete against the value seen when it
+      # was classified (see INDEX_CAD_SCRIPT), never by field name alone.
+      #
+      # Classification and deletion are separate round trips, and an orphan is
+      # by definition a Stripe customer id nobody holds — precisely the id a
+      # billing webhook or an `org reconcile` is free to claim in between. A
+      # blind HDEL there would delete a valid, seconds-old claim, leaving the
+      # billed org unindexed and its id open for another org to take.
+      #
+      # @return [Integer] entries actually removed.
+      def remove_orphan_index_entries(index, orphans)
+        orphans.count do |entry|
+          field = entry[:stripe_customer_id]
+
+          if release_index_entry(index, field, entry[:raw_value])
+            OT.info "[org doctor] Removed orphaned stripe_customer_id_index[#{field}]"
+            true
+          else
+            OT.info "[org doctor] stripe_customer_id_index[#{field}] was claimed since the scan; left alone"
+            false
+          end
+        end
       end
 
       def collect_orphan_index_entries(index)
@@ -552,7 +687,8 @@ module Onetime
         # semantics (HSCAN may yield a field twice under a concurrent rehash),
         # and this hash is bounded by the organizations that have ever had a
         # Stripe customer — a population --all has already loaded one by one.
-        index.hgetall.each do |customer_id, raw_objid|
+        # Through the raw client, for the reason #raw_index_value gives.
+        index.dbclient.hgetall(index.dbkey).each do |customer_id, raw_objid|
           # A live org carries this id: whatever is wrong with the entry is
           # check 6's finding, reported against that org. Skipping here keeps
           # one defect from being counted twice and — the part that matters —
@@ -562,12 +698,20 @@ module Onetime
           objid  = index_value(raw_objid)
           holder = objid.empty? ? nil : Onetime::Organization.load(objid)
 
+          # raw_value is what the compare-and-delete expects back: the bytes
+          # this classification was made from, legacy encoding and all.
           if holder.nil?
-            orphans << { stripe_customer_id: customer_id, objid: objid, reason: 'organization not found' }
+            orphans << {
+              stripe_customer_id: customer_id,
+              objid: objid,
+              raw_value: raw_objid,
+              reason: 'organization not found',
+            }
           elsif holder.stripe_customer_id.to_s != customer_id
             orphans << {
               stripe_customer_id: customer_id,
               objid: objid,
+              raw_value: raw_objid,
               reason: "org #{holder.extid} carries #{holder.stripe_customer_id.to_s.inspect}",
             }
           end
@@ -593,7 +737,10 @@ module Onetime
           customer_id = org.stripe_customer_id.to_s
           next if customer_id.strip.empty?
 
-          (stripe_customer_claims[customer_id] ||= []) << org.objid.to_s
+          # Idempotent: a single-org run indexes its org up front and may then
+          # re-cover it in the lazy full scan (#ensure_stripe_customer_claims).
+          claims = (stripe_customer_claims[customer_id] ||= [])
+          claims << org.objid.to_s unless claims.include?(org.objid.to_s)
         end
       end
 
@@ -613,13 +760,27 @@ module Onetime
         @stripe_customer_claims ||= {}
       end
 
+      # Read one index field through the raw client, bypassing Familia.
+      #
+      # Familia 2.10.1 strips a legacy JSON-encoded value on the way out, so a
+      # value read through the index object is not what Redis holds. A
+      # compare-and-set has to state the bytes actually stored or it can never
+      # match a legacy entry — so the read that feeds one cannot be the read
+      # that rewrites it. The 20260606_01_unique_index_json_to_raw migration
+      # goes around Familia for the same reason. #index_value strips afterwards,
+      # for classification only.
+      def raw_index_value(index, field)
+        index.dbclient.hget(index.dbkey, field.to_s)
+      end
+
       # Familia 2.9 stored unique-index values JSON-encoded ("\"on1a…\"");
-      # 2.10+ stores them raw and strips the legacy form on read. Comparing an
-      # unstripped value against a bare objid would read as a conflict — and
-      # with --repair would hand a live org's entry to somebody else. Strip it
-      # the same way Familia's read path does before classifying anything.
-      # (Storage is rewritten for good by the
-      # 20260606_01_unique_index_json_to_raw migration.)
+      # 2.10+ stores them raw. Reads here come from the raw client
+      # (#raw_index_value), so the legacy form arrives intact and has to be
+      # stripped before anything is compared: an unstripped value reads as a
+      # conflict, and with --repair would hand a live org's entry to somebody
+      # else. Stripped the same way Familia's read path does. (Storage is
+      # rewritten for good by the 20260606_01_unique_index_json_to_raw
+      # migration.)
       def index_value(raw)
         value = raw.to_s
         return value unless Familia.respond_to?(:legacy_json_encoded?)
@@ -823,6 +984,7 @@ module Onetime
                    "(was #{r[:previous_objid]})"
             when :stripe_index_orphans_removed
               puts "  removed #{r[:count]} orphaned stripe_customer_id_index entr#{r[:count] == 1 ? 'y' : 'ies'}"
+              puts "  left #{r[:skipped]} alone (claimed since the scan)" if r[:skipped].to_i.positive?
             else
               puts "  #{r[:org]}: #{r[:action]}"
             end
@@ -901,6 +1063,8 @@ module Onetime
         end
 
         print_duplicate_detail(issue) if issue[:state] == :duplicate
+
+        puts "    ! #{issue[:repair_skipped]}" if issue[:repair_skipped]
       end
 
       def print_truncation(total, shown)

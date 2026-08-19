@@ -31,11 +31,26 @@ Added
   claim that Stripe customer id next. ``--repair`` removes them; entries a
   live organization still contests are left for the per-org check.
 
+- Every ``--repair`` write to the index is a compare-and-set against the value
+  the diagnosis was read from, and every sweep deletion a compare-and-delete
+  against the value seen when the entry was classified. Diagnosis and repair
+  are separate round trips, and the ids involved are exactly the ones a Stripe
+  webhook or an ``org reconcile`` is free to claim in between; a blind write
+  would erase that valid claim and re-open the lockout the check exists to
+  close. An entry that moved is left as found and reported instead.
+
+- Check 6 completes its map of which organizations carry which Stripe customer
+  id before reporting or repairing anything, so a single-org run cannot mistake
+  two organizations contesting an unclaimed id for a plain missing entry and
+  quietly award it. The scan is lazy: an organization whose index entry is
+  already correct never triggers it.
+
 AI Assistance
 -------------
 
 - Claude implemented the check, the index sweep and their repairs, extended
   the shared ``org_doctor_issues`` spec helper so ops that produce an
   organization assert the new invariant too, and wrote the tryouts covering
-  all three drift states, both repairs, and the legacy JSON-encoded index
-  values that would otherwise read as a conflict.
+  all three drift states, both repairs, the compare-and-set repair path, and
+  the legacy JSON-encoded index values that would otherwise read as a
+  conflict.

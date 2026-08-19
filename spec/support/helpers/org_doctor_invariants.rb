@@ -84,11 +84,27 @@ module OrgDoctorInvariants
     customer_id = org.stripe_customer_id.to_s
     return [] if customer_id.strip.empty?
 
-    holder = Onetime::Organization.stripe_customer_id_index[customer_id].to_s
+    holder = strip_legacy_index_value(
+      Onetime::Organization.stripe_customer_id_index[customer_id].to_s
+    )
     return [] if holder == org.objid.to_s
 
     reason = holder.empty? ? 'no index entry (field written without claiming it)' : "index entry holds '#{holder}'"
     ["check 6 (stripe_customer_id_index): stripe_customer_id '#{customer_id}' #{reason}"]
+  end
+
+  # Familia 2.9 stored unique-index values JSON-encoded ("\"on1a...\""), 2.10+
+  # raw. An unstripped value never equals a bare objid, so on a dataset still
+  # carrying the legacy form this helper would fail every billed org for a
+  # check-6 violation that is not one. Mirrors the doctor's
+  # OrgDoctorCommand#index_value and Familia's own read path; storage is
+  # rewritten by the 20260606_01_unique_index_json_to_raw migration.
+  def strip_legacy_index_value(value)
+    value = value.to_s
+    return value unless Familia.respond_to?(:legacy_json_encoded?)
+    return value unless Familia.legacy_json_encoded?(value)
+
+    value[1..-2].to_s
   end
 
   # The owner's membership record, for assertions the doctor does not make but
