@@ -108,13 +108,37 @@ const SCENARIOS: Scenario[] = [
       // account is created and the page stays on /signin. Randomized so a
       // rerun never trips rate-limiting on a fixed identity.
       const nonce = Math.random().toString(36).slice(2, 10);
-      await page.fill('[data-testid="signin-email-input"]', `nobody-${nonce}@example.com`);
-      await page.fill('[data-testid="signin-password-input"]', `wrong-${nonce}`);
-      await page.click('[data-testid="signin-submit"]');
+      const email = `nobody-${nonce}@example.com`;
+      const password = `wrong-${nonce}`;
 
-      // Wait for the actual error UI. Generous timeout: this is a real
-      // round-trip (token refresh + login), unlike the pure-client states.
-      await expect(page.locator('[data-testid="signin-error-message"]')).toBeVisible({
+      // Two sign-in surfaces exist, and which one renders is a deployment
+      // property, not a test choice (mirrors e2e/global.setup.ts): default
+      // deployments render SignInForm directly, while passwordless-first
+      // deployments (magic links / WebAuthn — what AUTHENTICATION_MODE=full
+      // gives you, i.e. production) render PasswordlessFirstSignIn, where the
+      // password fields sit behind a "Password" tab under different test ids.
+      // Probing for the tab keeps this scenario running on both instead of
+      // timing out on ids that only exist in the simple-mode container.
+      const signinForm = page.getByTestId('signin-form');
+      const passwordTab = page.getByTestId('tab-password');
+      await expect(signinForm.or(passwordTab).first()).toBeVisible();
+
+      if (await passwordTab.isVisible()) {
+        await passwordTab.click();
+        await page.getByTestId('password-email-input').fill(email);
+        await page.getByTestId('password-input').fill(password);
+        await page.getByTestId('password-submit').click();
+      } else {
+        await page.getByTestId('signin-email-input').fill(email);
+        await page.getByTestId('signin-password-input').fill(password);
+        await page.getByTestId('signin-submit').click();
+      }
+
+      // Wait for the actual error UI. Both surfaces tag their generic error
+      // banner with the same test id, so the assertion is variant-agnostic.
+      // Generous timeout: this is a real round-trip (token refresh + login),
+      // unlike the pure-client states.
+      await expect(page.getByTestId('signin-error-message')).toBeVisible({
         timeout: 15_000,
       });
       // Guard against an unexpected successful login navigating away.

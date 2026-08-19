@@ -4,7 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import { useLanguage } from '@/shared/composables/useLanguage';
   import { DEFAULT_LOCALE } from '@/shared/stores/languageStore';
-  import { computed, onMounted, onUnmounted, ref } from 'vue';
+  import { computed, onMounted, onUnmounted, ref, useId } from 'vue';
 
   import OIcon from '@/shared/components/icons/OIcon.vue';
 
@@ -37,7 +37,7 @@
     t('web.layout.current_language_is_currentlocal', [currentLocaleName.value])
   );
   const dropdownMode = computed(() => (props.compact ? 'icon' : 'dropdown'));
-  const dropdownId = `lang-dropdown-${Math.random().toString(36).slice(2, 11)}`;
+  const dropdownId = `lang-dropdown-${useId()}`;
 
   const currentLocaleName = computed(
     () =>
@@ -138,11 +138,7 @@
 </script>
 
 <template>
-  <div
-    class="relative flex items-center"
-    :aria-haspopup="true"
-    :aria-controls="dropdownId"
-    :aria-expanded="isMenuOpen">
+  <div class="relative flex items-center">
     <!-- Button remains the same -->
     <button
       type="button"
@@ -159,6 +155,7 @@
       ]"
       :aria-label="ariaLabel"
       :aria-expanded="isMenuOpen"
+      :aria-controls="dropdownId"
       aria-haspopup="true"
       @click="toggleMenu"
       @keydown.down.prevent="isMenuOpen = true"
