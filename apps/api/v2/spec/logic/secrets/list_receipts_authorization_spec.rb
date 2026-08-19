@@ -22,6 +22,11 @@
 #      audit_logs), rather than the member-level api_access that let the
 #      least-privileged role read the whole organization's receipts.
 #
+# Three follow-up findings from the review of that fix are covered at the
+# bottom of this file: the ORGS_AUDIT_LOGS_ENABLED instance kill-switch (A),
+# scope=domain sidestepping the org gate (B, appsec M-6), and the redaction
+# guard failing open for scopes added later (C).
+#
 # These are doubles-only: the security property under test is a serialization
 # and gating decision, so it is asserted directly rather than through Familia
 # sorted sets. See show_secret_spec.rb for the real-model variant of the
@@ -66,6 +71,9 @@ RSpec.describe V2::Logic::Secrets::ListReceipts do
       objid: 'cust_caller',
       planid: 'anonymous',
       email: 'caller@example.com',
+      # has_system_role?('colonel') — reached by require_entitlement_in! —
+      # short-circuits on the unverified check before touching #role.
+      verified?: false,
     )
   end
 
@@ -108,6 +116,30 @@ RSpec.describe V2::Logic::Secrets::ListReceipts do
 
   def build_logic(params)
     described_class.new(strategy_result, params)
+  end
+
+  # auth_membership is the ADR-012 Stage 3 authority: require_entitlement!
+  # consults auth_membership.can?, not auth_org.can?.
+  def stub_entitlements(logic, granted)
+    org        = double('Organization', planid: 'testplan', extid: 'org_test')
+    membership = double('OrganizationMembership', active?: true, status: 'active')
+    allow(membership).to receive(:can?) { |entitlement| granted.include?(entitlement.to_s) }
+    allow(logic).to receive(:auth_org).and_return(org)
+    allow(logic).to receive(:auth_membership).and_return(membership)
+    logic
+  end
+
+  # Override features.organizations.audit_logs_enabled without disturbing the
+  # rest of the booted config. The production reader compares the STRING form,
+  # so the tests drive it with both false and 'false'.
+  def stub_audit_logs_flag(value)
+    conf                = OT.conf.dup
+    features            = (conf['features'] || {}).dup
+    organizations       = (features['organizations'] || {}).dup
+    organizations['audit_logs_enabled'] = value
+    features['organizations']           = organizations
+    conf['features']                    = features
+    allow(OT).to receive(:conf).and_return(conf)
   end
 
   before(:all) do
@@ -168,17 +200,6 @@ RSpec.describe V2::Logic::Secrets::ListReceipts do
   end
 
   describe 'entitlement gating' do
-    # auth_membership is the ADR-012 Stage 3 authority: require_entitlement!
-    # consults auth_membership.can?, not auth_org.can?.
-    def stub_entitlements(logic, granted)
-      org        = double('Organization', planid: 'testplan', extid: 'org_test')
-      membership = double('OrganizationMembership', active?: true, status: 'active')
-      allow(membership).to receive(:can?) { |entitlement| granted.include?(entitlement.to_s) }
-      allow(logic).to receive(:auth_org).and_return(org)
-      allow(logic).to receive(:auth_membership).and_return(membership)
-      logic
-    end
-
     it 'refuses scope=org for a member holding only api_access' do
       logic = stub_entitlements(build_logic('scope' => 'org'), %w[api_access])
 
@@ -197,6 +218,173 @@ RSpec.describe V2::Logic::Secrets::ListReceipts do
       logic = stub_entitlements(build_logic({}), %w[api_access])
 
       expect { logic.raise_concerns }.not_to raise_error
+    end
+  end
+
+  # ==========================================================================
+  # FINDING A — instance kill-switch parity with the sibling org-wide surface.
+  #
+  # ORGS_AUDIT_LOGS_ENABLED=false removes the org's activity trail from the
+  # product (ListSecretActivity). Before this, receipt/recent?scope=org kept
+  # serving the same org-wide stream to admins/owners, so an operator who
+  # believed the feature was off still had it readable over the API.
+  # ==========================================================================
+  describe 'the audit_logs_enabled instance flag' do
+    # An admin/owner: the flag must darken the surface for the roles that
+    # would otherwise pass the entitlement gate, or it darkens nothing.
+    def privileged(params)
+      stub_entitlements(build_logic(params), %w[api_access audit_logs])
+    end
+
+    it 'darkens scope=org even for a caller holding audit_logs' do
+      stub_audit_logs_flag(false)
+      logic = privileged('scope' => 'org')
+
+      expect { logic.raise_concerns }.to raise_error(OT::FormError) { |error|
+        expect(error.error_type).to eq(:forbidden)
+      }
+    end
+
+    it 'darkens scope=domain too, since it is the same org-wide stream' do
+      stub_audit_logs_flag(false)
+      logic = privileged('scope' => 'domain', 'domain_extid' => 'dom_example')
+
+      expect { logic.raise_concerns }.to raise_error(OT::FormError) { |error|
+        expect(error.error_type).to eq(:forbidden)
+      }
+    end
+
+    it 'honours the string form, matching ConfigSerializer and ListSecretActivity' do
+      # A hand-edited config can yield the string; a strict `== false` here
+      # would leave the API serving the stream while the UI hides the tab.
+      stub_audit_logs_flag('false')
+      logic = privileged('scope' => 'org')
+
+      expect { logic.raise_concerns }.to raise_error(OT::FormError)
+    end
+
+    it 'leaves the default (own receipts) scope alone' do
+      stub_audit_logs_flag(false)
+      logic = stub_entitlements(build_logic({}), %w[api_access])
+
+      expect { logic.raise_concerns }.not_to raise_error
+    end
+
+    it 'defaults to enabled when the key is absent (older config file)' do
+      conf = OT.conf.dup
+      conf['features'] = (conf['features'] || {}).dup.tap { |f| f['organizations'] = {} }
+      allow(OT).to receive(:conf).and_return(conf)
+      logic = privileged('scope' => 'org')
+
+      expect { logic.raise_concerns }.not_to raise_error
+    end
+  end
+
+  # ==========================================================================
+  # FINDING B — scope=domain must clear the same bar as scope=org (appsec M-6).
+  #
+  # A `member` refused scope=org used to re-run the query as
+  # scope=domain&domain_extid=<one of the org's domains> and receive every
+  # colleague's domain-bound receipt metadata. The entitlement is checked in
+  # the DOMAIN's organization, not the caller's auth_org.
+  # ==========================================================================
+  describe 'the domain scope' do
+    let(:domain_org) { double('Organization', objid: 'org_domain_owner', planid: 'domainplan', extid: 'org_dom') }
+
+    let(:domain) do
+      instance_double(
+        Onetime::CustomDomain,
+        display_domain: 'secrets.example.com',
+        primary_organization: domain_org,
+      ).tap do |dom|
+        allow(dom).to receive(:accessible_by?).and_return(true)
+        allow(dom).to receive(:receipts).and_return(double('SortedSet', rangebyscore: %w[receipt_1]))
+      end
+    end
+
+    # The caller's membership in the DOMAIN's organization, which is what
+    # require_entitlement_in! loads (not auth_membership).
+    def stub_domain_membership(granted)
+      membership = double('OrganizationMembership', active?: true, status: 'active')
+      allow(membership).to receive(:can?) { |entitlement| granted.include?(entitlement.to_s) }
+      allow(Onetime::OrganizationMembership).to receive(:find_by_org_customer).and_return(membership)
+      membership
+    end
+
+    def domain_logic(granted_in_auth_org)
+      logic = stub_entitlements(
+        build_logic('scope' => 'domain', 'domain_extid' => 'dom_example'),
+        granted_in_auth_org,
+      )
+      allow(Onetime::CustomDomain).to receive(:find_by_extid).and_return(domain)
+      logic.process_params
+      logic
+    end
+
+    it 'refuses a plain member, who is correctly refused scope=org' do
+      stub_domain_membership(%w[api_access])
+      logic = domain_logic(%w[api_access])
+
+      expect { logic.send(:query_domain_receipts) }.to raise_error(Onetime::EntitlementRequired) { |error|
+        expect(error.entitlement.to_s).to eq('audit_logs')
+      }
+    end
+
+    it 'allows an admin or owner of the domain\'s organization' do
+      stub_domain_membership(%w[api_access audit_logs])
+      logic = domain_logic(%w[api_access])
+
+      expect { logic.send(:query_domain_receipts) }.not_to raise_error
+    end
+
+    it 'evaluates the entitlement in the domain\'s org, not the caller\'s auth_org' do
+      stub_domain_membership(%w[api_access audit_logs])
+      logic = domain_logic(%w[api_access])
+
+      logic.send(:query_domain_receipts)
+
+      # auth_org here is 'org_test' (see stub_entitlements); the lookup must
+      # use the domain's owning org, which is the org the records belong to.
+      expect(Onetime::OrganizationMembership).to have_received(:find_by_org_customer)
+        .with('org_domain_owner', 'cust_caller')
+    end
+
+    it 'refuses a non-member on the membership check, before the entitlement' do
+      # accessible_by? survives as the first gate: the new entitlement is in
+      # addition to it, not a replacement.
+      allow(domain).to receive(:accessible_by?).and_return(false)
+      stub_domain_membership(%w[api_access audit_logs])
+      logic = domain_logic(%w[api_access audit_logs])
+
+      expect { logic.send(:query_domain_receipts) }.to raise_error(OT::FormError, /Access denied to domain/)
+      expect(Onetime::OrganizationMembership).not_to have_received(:find_by_org_customer)
+    end
+  end
+
+  # ==========================================================================
+  # FINDING C — redaction must fail CLOSED for scopes added later.
+  #
+  # The guard is an exemption list (OWN_INDEX_SCOPES), not a list of
+  # cross-member scopes: a new scope inherits the withholding rather than
+  # reopening H-1 silently. This exercises safe_dump_for directly, so it does
+  # not depend on the #process case statement having grown the scope yet.
+  # ==========================================================================
+  describe 'a scope the redaction guard has never heard of' do
+    subject(:logic) { build_logic('scope' => 'some_future_scope') }
+
+    it "withholds another member's capability tokens by default" do
+      record  = logic.send(:safe_dump_for, foreign_receipt)
+      shortid = foreign_receipt.safe_dump[:shortid]
+
+      expect(record[:secret_identifier]).to be_nil
+      expect(record[:identifier]).to eq(shortid)
+      expect(record[:key]).to eq(shortid)
+    end
+
+    it 'still returns the caller\'s own receipt intact' do
+      record = logic.send(:safe_dump_for, own_receipt)
+
+      expect(record).to eq(own_receipt.safe_dump)
     end
   end
 end

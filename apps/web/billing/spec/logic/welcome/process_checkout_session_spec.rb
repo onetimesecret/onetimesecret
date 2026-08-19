@@ -181,6 +181,66 @@ RSpec.describe 'Billing::Logic::Welcome::ProcessCheckoutSession', :billing do
 
         expect(result).to include(session_id: session_id, success: true)
       end
+
+      # =====================================================================
+      # Regression: appsec H-2 residue — step 3 must not select an org the
+      # customer merely BELONGS to.
+      #
+      # Reachable state: the customer's own workspace is archived and their
+      # default_org_id points at a shared tenant org they joined as a member
+      # (JoinDomainOrganization does exactly this on custom-domain SSO
+      # sign-in). A checkout carrying no orgid then resolved through
+      # default_org_id to the tenant org, and update_from_stripe_subscription
+      # overwrote the tenant's stripe_customer_id — detaching it from its own
+      # billing customer.
+      # =====================================================================
+      context 'when the customer only belongs to (does not own) their default org' do
+        let(:tenant_owner) do
+          create_test_customer(email: "tenant-owner-#{SecureRandom.hex(4)}@example.com")
+        end
+
+        let!(:tenant_org) do
+          org                    = create_test_organization(customer: tenant_owner, name: 'Tenant Org', default: false)
+          org.stripe_customer_id = 'cus_tenant_billing_root'
+          org.save
+          org.add_members_instance(customer, through_attrs: { role: 'member', status: 'active' })
+          org
+        end
+
+        before do
+          # The caller's own workspace exists but is archived, so no owned,
+          # live org resolves — and it still holds the contact_email index
+          # reservation, which step 4's creation has to survive.
+          own = create_test_organization(customer: customer, default: true)
+          own.archive!('spec fixture: superseded by tenant org via SSO')
+
+          customer.default_org_id = tenant_org.objid
+          customer.save
+        end
+
+        it 'does not apply the subscription to the tenant organization' do
+          logic  = Billing::Logic::Welcome::ProcessCheckoutSession.new(strategy_result, params, locale)
+          logic.raise_concerns
+          result = logic.process
+
+          tenant_org.refresh!
+          expect(tenant_org.stripe_customer_id).to eq('cus_tenant_billing_root')
+          expect(tenant_org.stripe_subscription_id).to be_nil
+          expect(result[:org_extid]).not_to eq(tenant_org.extid)
+        end
+
+        it 'creates a new organization the customer owns and applies it there' do
+          logic  = Billing::Logic::Welcome::ProcessCheckoutSession.new(strategy_result, params, locale)
+          logic.raise_concerns
+          result = logic.process
+
+          target = Onetime::Organization.find_by_extid(result[:org_extid])
+          created_organizations << target
+          expect(target.owner?(customer)).to be(true)
+          expect(target).not_to be_archived
+          expect(target.stripe_subscription_id).to eq(stripe_subscription_id)
+        end
+      end
     end
 
     context 'with one-time payment (no subscription)' do

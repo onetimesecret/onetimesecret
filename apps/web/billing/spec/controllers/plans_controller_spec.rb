@@ -502,6 +502,118 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
         expect(last_response.location).to match(%r{\Ahttps://checkout\.stripe\.com/})
       end
     end
+
+    # =========================================================================
+    # Regression coverage for the 2026-08-14 appsec review, finding H-2:
+    # the checkout half. The portal half is covered under GET /billing/portal.
+    #
+    # A checkout started on this path is applied to the caller's default org:
+    # it binds that org's Stripe Customer, and on completion the subscription
+    # (and the member's payment instrument) lands on an organization the caller
+    # does not own. The precondition is not exotic — JoinDomainOrganization
+    # repoints a member's default_org_id at the shared tenant organization when
+    # they sign in through that tenant's custom-domain SSO, and archives their
+    # personal workspace, so the org this handler resolves is routinely one the
+    # caller only belongs to.
+    # =========================================================================
+    context 'ownership gate on the redirect path (appsec H-2)' do
+      let(:owner_org) do
+        org            = Onetime::Organization.create!('Tenant Org', customer, customer.email)
+        org.is_default = true
+        org.save
+        created_organizations << org
+        org
+      end
+
+      # stripe_sandbox_api: false overrides the describe-level tag. This example
+      # reaches the authorization gate and returns before any Stripe call, so it
+      # needs neither the sandbox nor a cassette — and billing_spec_helper's
+      # around hook skips every :stripe_sandbox_api example in CI (no real
+      # STRIPE_API_KEY is configured there). Without the override this regression
+      # test would silently never run on the branch it is meant to protect.
+      it 'denies a non-owner member checkout on the organization', :vcr, stripe_sandbox_api: false do
+        member = Onetime::Customer.create!(email: "checkout-member-#{SecureRandom.hex(4)}@example.com")
+        created_customers << member
+        member.save
+
+        # Reproduce the repoint: an active 'member' whose default org is the
+        # organization owned by someone else.
+        owner_org.add_members_instance(member, through_attrs: { role: 'member', status: 'active' })
+        member.default_org_id = owner_org.objid
+        member.save
+
+        # Give the org a Stripe customer but NO subscription: the duplicate-
+        # subscription guard must not be what stops this request, or the test
+        # would stay green with the authorization gate removed.
+        owner_org.stripe_customer_id = 'cus_owner_only_checkout_fixture'
+        owner_org.save
+
+        env 'rack.session', {
+          'authenticated' => true,
+          'external_id' => member.extid,
+        }
+
+        expect(Stripe::Checkout::Session).not_to receive(:create)
+
+        get "/billing/plans/#{product}/#{interval}"
+
+        expect(last_response.status).to eq(302)
+        expect(last_response.location).to include('billing_error=not_authorized')
+        expect(last_response.location).not_to match(%r{\Ahttps://checkout\.stripe\.com/})
+      end
+
+      # Positive control: the gate must not over-block the legitimate owner.
+      # Same fixture shape as the denial (org with a Stripe customer, no
+      # subscription), so the only difference under test is ownership.
+      #
+      # Also pins the orgid stamp. Both completion paths resolve
+      # metadata['orgid'] with Onetime::Organization.load, so the value must be
+      # objid — extid or a nested debug_info key would silently fall through to
+      # the default_org_id inference this stamp exists to replace.
+      it 'still admits the organization owner and pins the target org by objid' do
+        owner_org.stripe_customer_id = 'cus_owner_reuse_checkout_fixture'
+        owner_org.save
+
+        get "/billing/plans/#{product}/#{interval}"
+
+        expect(last_response.status).to eq(302)
+        expect(last_response.location).to match(%r{\Ahttps://checkout\.stripe\.com/})
+        # The owner's session still binds the org's existing Stripe customer.
+        expect(last_checkout_session.customer).to eq('cus_owner_reuse_checkout_fixture')
+
+        metadata = last_checkout_session.subscription_data['metadata']
+        expect(metadata['orgid']).to eq(owner_org.objid)
+        expect(Onetime::Organization.load(metadata['orgid'])&.extid).to eq(owner_org.extid)
+        # Purely additive: the historical keys are untouched.
+        expect(metadata['customer_extid']).to eq(customer.extid)
+        expect(JSON.parse(metadata['debug_info'])).to include('checkout_plan_id')
+      end
+
+      # When no default organization resolves, the key must be ABSENT rather
+      # than empty: step 1 of find_target_organization treats any truthy
+      # metadata['orgid'] as a lookup, and '' is truthy in Ruby, so an empty
+      # stamp would burn a doomed Organization.load and log a spurious
+      # 'orgid in metadata not found' before falling through.
+      #
+      # Reaching that branch takes an archived-only customer. A caller with
+      # zero organizations never gets there: Controllers::Base#initialize runs
+      # ensure_customer_has_workspace, which creates (and makes them owner of)
+      # a workspace before this handler executes. Its `.any?` check counts
+      # archived orgs, so it does not fire here — while
+      # default_organization_for rejects them, yielding nil.
+      it 'omits orgid entirely when no default organization resolves' do
+        archived = Onetime::Organization.create!('Archived Org', customer, customer.email)
+        created_organizations << archived
+        archived.archive!('spec fixture: personal workspace superseded by SSO')
+
+        get "/billing/plans/#{product}/#{interval}"
+
+        expect(last_response.status).to eq(302)
+        metadata = last_checkout_session.subscription_data['metadata'].to_hash
+        expect(metadata.keys.map(&:to_s)).not_to include('orgid')
+        expect(metadata.transform_keys(&:to_s)['customer_extid']).to eq(customer.extid)
+      end
+    end
   end
 
   describe 'GET /billing/welcome' do
