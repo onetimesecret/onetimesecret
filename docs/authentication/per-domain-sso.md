@@ -135,6 +135,54 @@ Resolution chain (`apps/web/auth/config/hooks/omniauth_tenant.rb`):
 
 **Identity linking is platform-only.** The three linking paths documented for platform SSO — the authenticated [Connected Identities panel](per-install-sso.md#connected-identities-authenticated-linking-from-account-settings), the [sign-in interstitial](per-install-sso.md#sign-in-interstitial-password-challenge-linking), and [mailbox-proof linking](per-install-sso.md#mailbox-proof-linking-passwordless-accounts) — are **not** offered on a tenant callback, and the trusted-IdP email-linking flag has no effect here. Each of those paths is gated on `session[:validated_omniauth_domain_id]` being `nil`, which a tenant callback always sets. A tenant admin controls their own IdP's assertions, so a tenant-issuer identity must not be bound to an account located by email (or to whatever account happens to hold the current platform session). Tenant SSO keeps the refusal: an unlinked identity whose email matches an existing account is refused with `account_exists_link_required`. Authenticated tenant-surface linking requires org-membership verification first and is tracked in #3849.
 
+## OIDC for sovereign Microsoft Entra tenants
+
+Per-domain `entra_id` uses the commercial Microsoft authority and cannot be
+pointed at a sovereign cloud. Configure a sovereign tenant as generic OIDC:
+
+| Field | Value |
+|-------|-------|
+| `provider_type` | `oidc` |
+| `issuer` (US Government) | `https://login.microsoftonline.us/{tenant_id}/v2.0` |
+| `issuer` (Microsoft Cloud China / 21Vianet) | `https://login.partner.microsoftonline.cn/{tenant_id}/v2.0` |
+
+Replace `{tenant_id}` with the directory's tenant ID. The issuer must be the
+**v2.0** issuer. Do not use the v1 issuer,
+`https://sts.windows.net/{tenant_id}/`: its issuer origin differs from the
+origin of the authorization endpoint. Per-domain CSP derives an origin from
+the issuer, while Chromium checks the authorization endpoint destination, so
+that split blocks the sign-in redirect. `SSO_FORM_ACTION_ORIGINS` is the
+process-wide fallback for such split-endpoint OIDC configurations, but the v2.0
+issuer avoids the split for Entra sovereign tenants.
+
+The issuer is entered manually; there is no sovereign-cloud preset. It must be
+an HTTPS URL with a public host, and it must serve valid OIDC discovery. Check
+the exact value against the IdP's published metadata and test the connection
+before enabling SSO. A syntactically valid typo can pass URL validation but
+fail discovery; on Chromium-family browsers, a wrong derived origin can also
+appear as an apparent no-op with a `form-action` CSP violation.
+
+### Access control
+
+Generic OIDC is not assumed to enforce Entra application assignments. Set
+`allowed_domains` to the email domains that may use the custom domain. The
+allowlist is enforced on every tenant SSO callback; an empty list allows every
+email domain that the IdP authenticates. This differs from `entra_id`, where
+app assignment is treated as the access-control boundary.
+
+### Switching an existing Entra configuration
+
+Changing a tenant from `entra_id` to `oidc` changes its identity key. Under
+`entra_id`, identities use provider `entra` and uid `tid+oid`; under `oidc`,
+they use the OIDC route name (normally `oidc`) and uid `sub`. Existing users
+are therefore treated as unlinked after the switch unless the stored identity
+records are migrated deliberately.
+
+`bin/ots sso backfill-issuer` does not migrate this change: it only stamps an
+issuer onto legacy identity rows whose issuer is `''`. Sovereign tenants could
+not have worked through `entra_id`, so this is migration debt only for a
+previously configured tenant that was pointed at the wrong cloud.
+
 ## Troubleshooting
 
 ### SSO Tab Not Appearing
