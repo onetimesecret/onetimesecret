@@ -54,15 +54,36 @@ RSpec.describe Core::Middleware::RequestSetup do
     headers['content-security-policy']
   end
 
+  # The emitted form-action directive's source list, as a token array.
+  #
+  # Every form-action assertion below compares token SETS (contain_exactly)
+  # rather than the rendered substring: what these cases test is that our
+  # origins landed in form-action and nothing was dropped, not the order otto
+  # happens to concatenate them in. Otto's additive merge order is a
+  # library-internal detail; pinning it here would turn a valid policy into a
+  # red spec. (request_setup_spec.rb does pin an exact token sequence — but
+  # that is a deliberate drift canary on otto's OWN development script-src
+  # layout, a different question.) Raises rather than returning [] when the
+  # directive is absent, so a missing form-action can never pass vacuously.
+  def form_action_sources(policy)
+    sources = policy.to_s.split(';').filter_map do |directive|
+      name, *tokens = directive.split
+      tokens if name == 'form-action'
+    end.first
+    raise "no form-action directive in policy: #{policy.inspect}" if sources.nil?
+
+    sources
+  end
+
   describe 'SSO form-action widening' do
     it 'includes the injected SSO origin in the emitted form-action directive' do
       policy = emit(security_config(form_action_origins: origin))
-      expect(policy).to include("form-action 'self' #{origin}")
+      expect(form_action_sources(policy)).to contain_exactly("'self'", origin)
     end
 
     it "keeps the default form-action 'self' and injects no origins when none merged" do
       policy = emit(security_config)
-      expect(policy).to include("form-action 'self'")
+      expect(form_action_sources(policy)).to contain_exactly("'self'")
       expect(policy).not_to include(origin)
     end
   end
@@ -80,22 +101,25 @@ RSpec.describe Core::Middleware::RequestSetup do
         security_config,
         env_extra: { 'otto.csp.extra_directives' => { 'form-action' => [tenant_origin] } },
       )
-      expect(policy).to include("form-action 'self' #{tenant_origin}")
+      expect(form_action_sources(policy)).to contain_exactly("'self'", tenant_origin)
     end
 
-    it 'appends the tenant origin after a boot-time SSO override (additive, not replacing)' do
+    it 'keeps both a boot-time SSO override and the tenant origin (additive, not replacing)' do
       policy = emit(
         security_config(form_action_origins: origin),
         env_extra: { 'otto.csp.extra_directives' => { 'form-action' => [tenant_origin] } },
       )
-      expect(policy).to include("form-action 'self' #{origin} #{tenant_origin}")
+      # Additive means BOTH survive: the boot-time origin is not clobbered by
+      # the request-scoped one, and vice versa. Which order otto emits them in
+      # is otto's business.
+      expect(form_action_sources(policy)).to contain_exactly("'self'", origin, tenant_origin)
     end
 
     it 'emits the same policy for an empty extras hash as for no extras key at all' do
       without_key = emit(security_config)
       empty_hash  = emit(security_config, env_extra: { 'otto.csp.extra_directives' => {} })
       expect(empty_hash).to eq(without_key)
-      expect(empty_hash).to include("form-action 'self'")
+      expect(form_action_sources(empty_hash)).to contain_exactly("'self'")
       expect(empty_hash).not_to include(tenant_origin)
     end
 
@@ -108,7 +132,7 @@ RSpec.describe Core::Middleware::RequestSetup do
           },
         },
       )
-      expect(policy).to include("form-action 'self'")
+      expect(form_action_sources(policy)).to contain_exactly("'self'")
       expect(policy).not_to include('evil.example')
       expect(policy).not_to include('javascript:')
     end
