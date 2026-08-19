@@ -67,7 +67,7 @@ Providers load automatically when `AUTH_SSO_ENABLED=true` and their required env
 | `AUTH_SSO_ENABLED` | Yes | `true` to enable SSO |
 | `SSO_DISPLAY_NAME` | No | Default button label for generic OIDC (e.g., "Company SSO") |
 | `ALLOWED_SIGNUP_DOMAIN` | No | Comma-separated allowed email domains for SSO signup |
-| `SSO_FORM_ACTION_ORIGINS` | No | Space-separated extra origins added to the CSP `form-action` directive. IdP origins are auto-derived — platform providers at boot, tenant (per-domain) SSO issuers per-request — so this override is only for sovereign clouds or split-endpoint OIDC (see [Troubleshooting](#sso-login-blocked-on-chromium-family-browsers-csp-form-action)) |
+| `SSO_FORM_ACTION_ORIGINS` | No | Space-separated extra origins added to the CSP `form-action` directive. IdP origins are auto-derived — platform providers at boot, tenant (per-domain) SSO issuers per-request. Use this process-wide override only for split-endpoint OIDC or a tenant discovery-availability fallback (see [Troubleshooting](#sso-login-blocked-on-chromium-family-browsers-csp-form-action)). |
 
 ### Generic OIDC
 
@@ -641,16 +641,15 @@ If you see `encoded token is not a string`: the CSRF bypass for SSO routes is mi
 
 No configuration is required for the common case. The boot-time set is exposed as `Onetime.auth_config.sso_form_action_origins`; the per-request widening is `Onetime::Middleware::TenantCspExtras`.
 
+**Sovereign Microsoft Entra:** The Entra provider is pinned to the commercial cloud on both platform and tenant SSO. Configure a sovereign cloud as generic OIDC with its sovereign v2.0 issuer; its origin is derived automatically. Do not add a sovereign origin through `SSO_FORM_ACTION_ORIGINS`: it widens CSP but does not change the Entra redirect. See [OIDC for sovereign Microsoft Entra tenants](per-domain-sso.md#oidc-for-sovereign-microsoft-entra-tenants) for tenant issuer values, access-control posture, and identity-migration caveats.
+
 **When to use the override:** Set `SSO_FORM_ACTION_ORIGINS` (space-separated origins) when the auto-derived origin is wrong or incomplete:
 
-- **Sovereign / national clouds (platform Entra)** — e.g. env-configured Entra on `https://login.microsoftonline.us` (US Government) or another regional Microsoft endpoint instead of the global `https://login.microsoftonline.com`.
-
-  This applies to the **platform** (env-configured) provider only. Tenant (per-domain) Entra is commercial-cloud only: the tenant strategy passes no authority option and the per-domain SSO config has no authority field, so a tenant Entra config always redirects to `login.microsoftonline.com` — no override changes that. Do **not** set `SSO_FORM_ACTION_ORIGINS` to a sovereign endpoint for a tenant Entra config: it would widen `form-action` on every page, for every tenant and the canonical host, while the redirect still goes to the commercial cloud — a security regression that fixes nothing. For a sovereign-cloud tenant, configure the domain with provider type `oidc` and the sovereign issuer URL instead; the per-request derivation then admits the right origin automatically.
 - **OIDC issuer ≠ authorization endpoint** — when the discovery document's `authorization_endpoint` lives on a different origin than the issuer (`OIDC_ISSUER`, or a tenant SSO config's issuer). The form POSTs to the authorization endpoint's origin, which is what CSP checks.
 - **Per-request derivation gaps** — the tenant widening depends on resolving the display domain's stored SSO config at response time. If the domain record is unreachable (datastore blip), the widening is skipped silently — the only symptom is the browser-console CSP error — and the issuers are effectively unknown per-request. `SSO_FORM_ACTION_ORIGINS` remains the manual fallback when such gaps must not block SSO.
 
 ```bash
-SSO_FORM_ACTION_ORIGINS="https://login.microsoftonline.us https://auth.example.gov"
+SSO_FORM_ACTION_ORIGINS="https://authorize.example.gov"
 ```
 
 **Interim workaround (un-upgraded installs):** If you cannot yet deploy the fix, set `CSP_ENABLED=false` to drop the CSP header entirely. This unblocks SSO at the cost of losing CSP protection, so treat it as temporary and re-enable CSP after upgrading.

@@ -65,16 +65,14 @@
 #                     the SsoConfig record's issuer instead). ENTRA is static
 #                     because the OmniAuth strategy hard-pins the commercial
 #                     cloud (login.microsoftonline.com); there is no
-#                     sovereign-cloud authority env in this app. For a
-#                     PLATFORM provider pointed at a sovereign endpoint,
-#                     SSO_FORM_ACTION_ORIGINS is the override. Do NOT reach
-#                     for it for TENANT entra: a tenant config passes no
-#                     authority option and has no authority field, so it
-#                     always redirects to the commercial cloud — the override
-#                     would widen form-action on every page for every tenant
-#                     while fixing nothing. Sovereign tenants configure
-#                     provider type oidc with the sovereign issuer instead
-#                     (docs/authentication/per-install-sso.md).
+#                     sovereign-cloud authority env in this app. This applies
+#                     to both platform and tenant Entra. Configure sovereign
+#                     Entra as OIDC with its sovereign issuer instead; the
+#                     origin is derived automatically. SSO_FORM_ACTION_ORIGINS
+#                     cannot change the Entra redirect, so it only widens
+#                     form-action. Reserve it for OIDC configurations whose
+#                     authorization endpoint uses a different origin or for a
+#                     tenant derivation gap (docs/authentication/per-install-sso.md).
 #                     CONSTRAINT on adding a second non-OIDC TENANT provider:
 #                     AuthConfig#tenant_idp_origin picks the definition by the
 #                     SsoConfig::PROVIDER_ROUTE_MAP :default route name and
