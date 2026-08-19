@@ -894,12 +894,22 @@ module Onetime
           extid: org.extid,
           objid: org.objid,
           display_name: org.display_name,
-          planid: org.planid,
-          subscription_status: org.subscription_status,
-          stripe_subscription_id: org.stripe_subscription_id,
+          planid: billing_attr(org, :planid),
+          subscription_status: billing_attr(org, :subscription_status),
+          stripe_subscription_id: billing_attr(org, :stripe_subscription_id),
           holds_index: org.objid.to_s == holder_objid,
           owner: owner_context(org),
         }
+      end
+
+      # contact_email is indexed with or WITHOUT the billing feature, so since
+      # check 6 covers every index a duplicate can now be reported on a build
+      # where these three fields do not exist. nil beats a NoMethodError raised
+      # halfway through rendering the finding.
+      def billing_attr(org, field)
+        return nil unless org.respond_to?(field)
+
+        org.public_send(field)
       end
 
       # nil when the owner is missing or unloadable — itself a check 1 finding,
@@ -1179,7 +1189,9 @@ module Onetime
                "stripe_subscription_id=#{context[:stripe_subscription_id].inspect}"
           puts "        owner=#{owner ? "#{owner[:extid]} #{owner[:email]}" : '(unresolved)'}"
         end
-        puts "    - index entry: #{issue[:stripe_customer_id]} -> #{issue[:index_objid] || '(none)'}"
+        # :check is the index name (see the issue builders) — with five indexes
+        # in play, "which one" is half the finding.
+        puts "    - #{issue[:check]} entry: #{issue[:value]} -> #{issue[:index_objid] || '(none)'}"
       end
 
       def severity_tag(severity)

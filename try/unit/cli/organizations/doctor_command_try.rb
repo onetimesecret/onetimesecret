@@ -844,6 +844,12 @@ $stdout = @prev_stdout
 [@dup_text_out.string.include?('[holds index entry]'), @dup_text_out.string.include?('manual fix required')]
 #=> [true, true]
 
+## ...naming the index and the contended value, not just the two orgs — with
+## five indexes in play, an operator cannot act on "there is a duplicate"
+[@dup_text_out.string.include?('stripe_customer_id_index entry'),
+ @dup_text_out.string.include?(@dup_cus)]
+#=> [true, true]
+
 # -------------------------------------------------------------------
 # Scenario 24: legacy JSON-encoded index values are stripped before compare
 # -------------------------------------------------------------------
@@ -947,14 +953,17 @@ stripe_index[@race_cus].to_s
 
 ## UNIQUE_INDEXES is a fixed list, so an index declared on Organization without
 ## a line there would go unchecked — silently, and exactly the way #4205 went
-## unnoticed. Everything the model exposes as a class-level *_index accessor,
-## less the DSL methods that declare them and the multi_index (one value to
-## many objids by design, so none of check 6's states are drift for it).
+## unnoticed. Compare it against what the model really exposes: every
+## class-level *_index accessor, less the DSL methods that declare them,
+## Familia's generated rebuild_*_index helpers, and the multi_index (one value
+## to many objids by design, so none of check 6's states are drift for it).
+## Every class-level unique index on Organization has a line in UNIQUE_INDEXES
+@index_accessors   = Onetime::Organization.methods.grep(/_index\z/).map(&:to_s)
+@index_accessors   = @index_accessors.reject { |name| name.start_with?('rebuild_') }
 @index_dsl_methods = %w[unique_index multi_index]
 @multi_indexes     = %w[email_hash_index]
-@declared_indexes  = Onetime::Organization.methods.grep(/_index\z/).map(&:to_s).sort -
-                     @index_dsl_methods - @multi_indexes
-@covered_indexes = Onetime::CLI::OrgDoctorCommand::UNIQUE_INDEXES.map { |spec| spec[:index].to_s }.sort
+@declared_indexes  = (@index_accessors - @index_dsl_methods - @multi_indexes).sort
+@covered_indexes   = Onetime::CLI::OrgDoctorCommand::UNIQUE_INDEXES.map { |spec| spec[:index].to_s }.sort
 @declared_indexes - @covered_indexes
 #=> []
 
