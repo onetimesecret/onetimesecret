@@ -13,6 +13,7 @@
 #   6. verification_state fields are coherent (WARNING)
 #   7. txt_validation_value format is valid (LOW)
 #   8. domain has no org_id at all — ORPHANED (HIGH, report-only)
+#   9. org_id points to an ARCHIVED organization (HIGH, report-only)
 #
 # Additional checks (opt-in):
 #   --familia-audit   Run Familia's generic CustomDomain.health_check, which
@@ -216,6 +217,9 @@ module Onetime
         # CHECK: org_id points to existing organization
         check_stale_org_reference(domain, issues)
 
+        # CHECK: that organization is still live (report-only)
+        check_archived_org_reference(domain, issues)
+
         # CHECK: domain has an org at all (report-only)
         check_orphaned_domain(domain, issues)
 
@@ -398,6 +402,33 @@ module Onetime
           message: "org_id '#{domain.org_id}' points to deleted organization",
           repairable: false,
           repair_action: 'Manual decision required: reassign to another org or delete domain',
+        }
+      end
+
+      # CHECK: org_id points to an ARCHIVED organization
+      #
+      # Organization#archive! is a soft delete that says nothing about the
+      # org's domains, and Organization.load still returns the record — so
+      # check_stale_org_reference sees a healthy pointer and the domain keeps
+      # serving. Every authorization path that resolves a domain to its org
+      # (see load_organization_for_domain) then evaluates entitlements against
+      # an org the operator believes is gone. REPORT-ONLY: whether to bring the
+      # org back or move the domain is a human decision, the same reasoning
+      # that keeps check #1 and #8 report-only.
+      def check_archived_org_reference(domain, issues)
+        return if domain.org_id.to_s.empty?
+
+        organization = Onetime::Organization.load(domain.org_id)
+        return unless organization # Already flagged by stale_org_reference
+        return unless organization.archived?
+
+        issues << {
+          check: :archived_org_reference,
+          severity: :high,
+          message: "org_id '#{domain.org_id}' points to an archived organization",
+          repairable: false,
+          repair_action: 'Manual decision required: unarchive the organization, ' \
+                         "or move the domain (bin/ots domains transfer #{domain.display_domain} --to-org <ORG>)",
         }
       end
 
