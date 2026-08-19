@@ -617,6 +617,9 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
   end
 
   describe 'GET /billing/welcome' do
+    # identity_plus_v1's monthly price in apps/web/billing/spec/billing.test.yaml
+    let(:catalog_price_id) { 'price_test_monthly' }
+
     it 'redirects to /account when session_id is missing', :vcr do
       get '/billing/welcome'
 
@@ -665,13 +668,31 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       expect(last_response.location).to include('/account')
     end
 
-    it 'creates default organization for new customer', :vcr do
-      # Requires fresh VCR cassettes with Stripe test data
-      skip 'VCR cassette needs re-recording with STRIPE_API_KEY'
-
-      # Load plans from config so materialization can find the plan
-      allow(Billing::Plan).to receive(:load).and_call_original
-      Billing::Plan.load_all_from_config
+    # This and the archived-orgs example below are deliberately NOT
+    # :stripe_sandbox_api. Every Stripe call they make is stubbed by
+    # `with_stubbed_checkout`, so they need no API key and no cassette — and
+    # the group-level tag would otherwise make CI skip them (see
+    # BILLING_VCR_SKIP_IN_CI in spec/support/vcr_setup.rb). They are the only
+    # CI coverage of /billing/welcome actually applying a subscription to an
+    # organization; the sibling 'processes checkout session' example passes a
+    # session with no subscription, so it returns before that code runs.
+    #
+    # This one covers the resolver's step 3: Billing::Controllers::Base
+    # self-heals a 'Default Workspace' for the org-less customer during
+    # initialize, and CheckoutTargetResolver then resolves it from the
+    # customer's owned live orgs.
+    it 'creates default organization for new customer', stripe_sandbox_api: false do
+      # Price from apps/web/billing/spec/billing.test.yaml (identity_plus_v1),
+      # loaded into the plan cache by `with_test_plans`. It must resolve
+      # through the REAL catalog: ApplySubscriptionToOrg derives org.planid
+      # from the price and then materializes entitlements from
+      # Billing::Plan.load(planid). stub_test_plan_catalog! maps every
+      # `price_test_*` id to a plan_id ('test_plan_v1') that `with_test_plans`
+      # does not put in the cache, so leaving that stub in place fails
+      # materialization with PlanCacheMissError (503).
+      allow(Billing::Plan).to receive(:find_by_stripe_price_id)
+        .with(catalog_price_id)
+        .and_call_original
 
       new_customer = Onetime::Customer.create!(email: "new-welcome-#{SecureRandom.hex(4)}@example.com")
       created_customers << new_customer
@@ -687,7 +708,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       stripe_customer = Stripe::Customer.create(email: new_customer.email)
       subscription    = Stripe::Subscription.create(
         customer: stripe_customer.id,
-        items: [{ price: ENV.fetch('STRIPE_TEST_PRICE_ID', 'price_test') }],
+        items: [{ price: catalog_price_id }],
         metadata: {
           customer_extid: new_customer.extid,
           plan_id: 'identity_plus_v1',
@@ -698,7 +719,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
         mode: 'subscription',
         customer: stripe_customer.id,
         subscription: subscription.id,
-        line_items: [{ price: ENV.fetch('STRIPE_TEST_PRICE_ID', 'price_test'), quantity: 1 }],
+        line_items: [{ price: catalog_price_id, quantity: 1 }],
         success_url: 'http://example.com/success',
         cancel_url: 'http://example.com/cancel',
       )
@@ -716,6 +737,68 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       # CreateDefaultWorkspace names new orgs "Default Workspace" (see f5edcf7cc)
       expect(default_org.display_name).to eq('Default Workspace')
       created_organizations.concat(orgs)
+    end
+
+    # Step 4 of ProcessCheckoutSession#find_target_organization: nothing
+    # resolved, so the paid subscription has to land on a workspace this
+    # surface creates itself. Reaching it requires the customer to own only
+    # ARCHIVED organizations: Billing::Controllers::Base#ensure_customer_has_workspace
+    # counts archived orgs in its `.any?` guard so it creates nothing, while
+    # CheckoutTargetResolver rejects them as billing targets. The archived org
+    # also still holds the contact_email reservation, which is why
+    # create_billing_workspace retries without one.
+    it 'creates a billing workspace when only archived orgs remain', stripe_sandbox_api: false do
+      allow(Billing::Plan).to receive(:find_by_stripe_price_id)
+        .with(catalog_price_id)
+        .and_call_original
+
+      new_customer = Onetime::Customer.create!(email: "archived-welcome-#{SecureRandom.hex(4)}@example.com")
+      created_customers << new_customer
+      new_customer.save
+
+      archived = Onetime::Organization.create!('Archived Org', new_customer, new_customer.email)
+      created_organizations << archived
+      archived.archive!('spec fixture: no live billing target')
+
+      env 'rack.session', {
+        'authenticated' => true,
+        'external_id' => new_customer.extid,
+      }
+
+      stripe_customer = Stripe::Customer.create(email: new_customer.email)
+      subscription    = Stripe::Subscription.create(
+        customer: stripe_customer.id,
+        items: [{ price: catalog_price_id }],
+        metadata: {
+          customer_extid: new_customer.extid,
+          plan_id: 'identity_plus_v1',
+        },
+      )
+      checkout_session = Stripe::Checkout::Session.create(
+        mode: 'subscription',
+        customer: stripe_customer.id,
+        subscription: subscription.id,
+        line_items: [{ price: catalog_price_id, quantity: 1 }],
+        success_url: 'http://example.com/success',
+        cancel_url: 'http://example.com/cancel',
+      )
+
+      get "/billing/welcome?session_id=#{checkout_session.id}"
+
+      expect(last_response.status).to eq(302)
+
+      created  = new_customer.organization_instances.to_a.reject(&:archived?)
+      created_organizations.concat(created)
+
+      expect(created.size).to eq(1)
+      workspace = created.first
+      # CheckoutTargetResolver#new_workspace naming, NOT CreateDefaultWorkspace's
+      expect(workspace.display_name).to eq("#{new_customer.email}'s Workspace")
+      expect(workspace.is_default).to be_truthy
+      # The archived org kept the contact_email reservation, so the retry path ran
+      expect(workspace.contact_email.to_s).to be_empty
+      expect(workspace.planid).to eq('identity_plus_v1')
+      expect(last_response.location).to eq("/billing/#{workspace.extid}/overview?upgraded=true")
     end
   end
 
