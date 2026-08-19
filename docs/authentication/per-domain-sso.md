@@ -117,7 +117,7 @@ User visits https://{custom-domain}/signin
 POST /auth/sso/{provider}
     │
     ▼
-Host header → CustomDomain → CustomDomain::SsoConfig
+Public host headers → DetectHost → display domain → CustomDomain::SsoConfig
     │
     ▼
 Inject domain credentials into OmniAuth strategy
@@ -133,8 +133,8 @@ Resolution chain (`apps/web/auth/config/hooks/omniauth_tenant.rb`):
 
 | Step | Lookup | Result |
 |------|--------|--------|
-| 1 | `request.host` | `secrets.acme.com` |
-| 2 | `CustomDomain.load_by_display_domain(host)` | CustomDomain record |
+| 1 | Public host headers, resolved by `DetectHost` | `env['onetime.display_domain'] = secrets.acme.com` |
+| 2 | `CustomDomain.load_by_display_domain(display_domain)` | CustomDomain record |
 | 3 | `custom_domain.identifier` | Domain identifier |
 | 4 | `CustomDomain::SsoConfig.find_by_domain_id(domain_id)` | SSO credentials |
 | 5 | `domain_config.to_omniauth_options` | OmniAuth strategy injection |
@@ -187,6 +187,32 @@ Resolution chain (`apps/web/auth/config/hooks/omniauth_tenant.rb`):
 | Mismatch between YAML key and plan | Root uses `sso`, plan uses `manage_sso` | Use consistent naming (`manage_sso`) |
 | SSO configured but login fails | No custom domain with SSO config | Add custom domain and configure SSO |
 | Platform SSO used instead of domain SSO | Accessing via canonical domain | Use domain's custom URL |
+
+### SSO Login Blocked on Chromium-Family Browsers (CSP `form-action`)
+
+**Symptom:** Clicking the domain SSO button appears to do nothing, and the browser console reports a Content-Security-Policy error for `form-action`. This affects Chrome, Edge, and other Chromium-family browsers; Firefox does not enforce `form-action` across this redirect chain.
+
+**Cause:** The sign-in page posts to `/auth/sso/{provider}`, which redirects to the domain's IdP authorization endpoint. CSP must permit that IdP destination as well as the initial same-origin form target.
+
+**Normal behavior:** The application resolves the domain's enabled SSO configuration per request and adds its IdP origin to `form-action` only for that domain's response. Standard tenant OIDC configurations whose issuer and authorization endpoint share an origin, and commercial-cloud tenant Entra configurations, require no environment configuration.
+
+**Exceptions:**
+
+- **OIDC issuer differs from the authorization endpoint:** The per-request policy derives the issuer origin, but CSP checks the authorization endpoint's origin. Add that endpoint origin to `SSO_FORM_ACTION_ORIGINS`.
+- **Sovereign-cloud Entra:** Per-domain Entra uses the commercial Microsoft endpoint, `https://login.microsoftonline.com`; it cannot be redirected to a sovereign cloud through `SSO_FORM_ACTION_ORIGINS`. Configure the domain as `oidc` with the sovereign issuer instead, so its origin is added per request.
+- **Tenant SSO configuration cannot be read while rendering the sign-in page:** No IdP origin is added for that response. The browser reports the CSP error until the lookup succeeds; `SSO_FORM_ACTION_ORIGINS` is a manual fallback where this availability risk cannot block sign-in.
+
+`SSO_FORM_ACTION_ORIGINS` is process-wide: it widens CSP for every page, tenant, and canonical host. Use it only for a known exception, with the exact additional origin:
+
+```bash
+SSO_FORM_ACTION_ORIGINS="https://auth.example.gov"
+```
+
+### Custom-Domain POST Returns 403 (`HttpOrigin`)
+
+This is separate from CSP. `HttpOrigin` validates the **source** of `POST /auth/sso/{provider}`; CSP `form-action` validates the IdP **destination** after the redirect.
+
+With proxies that rewrite `Host` to the canonical host while forwarding the public custom domain in a trusted header, older installations can reject custom-domain SSO requests with `403` and `attack prevented by Rack::Protection::HttpOrigin`. Upgrade to the release containing #4170. The fix compares `Origin` with the request's resolved `env['onetime.display_domain']`; do not work around this by maintaining a custom-domain origin allowlist in environment configuration.
 
 ## Related Configuration
 
