@@ -15,6 +15,24 @@ require_relative '../../../../../apps/web/billing/lib/plan_validator'
 require_relative '../../../../../apps/web/billing/operations/apply_subscription_to_org'
 
 RSpec.describe 'WithOrganizationBilling', :billing do
+  # The predicate harness: the smallest object the status predicates read.
+  # Shared by #paid?, #complimentary?, #billing_live? and the divergence
+  # block, so there is one definition of "an org, as far as billing status is
+  # concerned" rather than a per-describe copy.
+  let(:billing_test_class) do
+    Class.new do
+      include Onetime::Models::Features::WithOrganizationBilling::InstanceMethods
+
+      attr_accessor :subscription_status, :planid, :complimentary
+
+      def initialize(status: nil, planid: nil, complimentary: nil)
+        @subscription_status = status
+        @planid              = planid
+        @complimentary       = complimentary
+      end
+    end
+  end
+
   # Build a minimal Stripe::Subscription for testing
   def build_subscription(price_id: 'price_test', subscription_metadata: {}, price_metadata: {})
     Stripe::Subscription.construct_from(
@@ -362,20 +380,6 @@ RSpec.describe 'WithOrganizationBilling', :billing do
   # paid? and complimentary? canonical method tests
   # ==========================================================================
   describe '#paid?' do
-    let(:billing_test_class) do
-      Class.new do
-        include Onetime::Models::Features::WithOrganizationBilling::InstanceMethods
-
-        attr_accessor :subscription_status, :planid, :complimentary
-
-        def initialize(status: nil, planid: nil, complimentary: nil)
-          @subscription_status = status
-          @planid              = planid
-          @complimentary       = complimentary
-        end
-      end
-    end
-
     it 'returns true for active subscription with paid plan' do
       org = billing_test_class.new(status: 'active', planid: 'identity_plus_v1')
       expect(org.paid?).to be true
@@ -423,20 +427,6 @@ RSpec.describe 'WithOrganizationBilling', :billing do
   end
 
   describe '#complimentary?' do
-    let(:billing_test_class) do
-      Class.new do
-        include Onetime::Models::Features::WithOrganizationBilling::InstanceMethods
-
-        attr_accessor :subscription_status, :planid, :complimentary
-
-        def initialize(status: nil, planid: nil, complimentary: nil)
-          @subscription_status = status
-          @planid              = planid
-          @complimentary       = complimentary
-        end
-      end
-    end
-
     it 'returns true for active subscription with complimentary marker' do
       org = billing_test_class.new(
         status: 'active',
@@ -481,6 +471,112 @@ RSpec.describe 'WithOrganizationBilling', :billing do
       )
       expect(org.paid?).to be true
       expect(org.complimentary?).to be true
+    end
+  end
+  # ==========================================================================
+  # billing_live? — the delete guardrail's LIVENESS question
+  # ==========================================================================
+  describe '#billing_live?' do
+    # One row per status Stripe can put on a subscription (the same list the
+    # '#update_from_stripe_subscription with different subscription statuses'
+    # context accepts), plus the three "no subscription" shapes. Every status
+    # is classified: an unclassified one is a hole in the delete guardrail.
+    {
+      # Live, or recoverable without anyone touching Stripe.
+      'active'             => true,
+      'trialing'           => true,
+      'past_due'           => true,  # Stripe is still retrying the card
+      'unpaid'             => true,  # retries exhausted, subscription still there
+      # Not live.
+      'canceled'           => false,
+      'incomplete'         => false, # never billed; Stripe expires it in ~23h
+      'incomplete_expired' => false,
+      # Never billed and never expires — needs a payment method attached by
+      # hand, so it fails the "charges again with no human action" rule.
+      'paused'             => false,
+      # An unrecognised status PERMITS the delete. That is the permissive
+      # direction of an allowlist and it is a real decision, not an
+      # accident: if Stripe adds a status the way it added 'paused', the
+      # guard stops covering it silently. Flipping to fail-closed means
+      # "any non-empty status we do not recognise is live" — see
+      # update_from_stripe_subscription, which already logs a warning and
+      # stores the unknown value.
+      'unknown_status'     => false,
+    }.each do |status, expected|
+      it "is #{expected} for '#{status}'" do
+        expect(billing_test_class.new(status: status).billing_live?).to be expected
+      end
+    end
+
+    it 'is false when the org never subscribed (nil status)' do
+      expect(billing_test_class.new(status: nil).billing_live?).to be false
+    end
+
+    it 'is false for a blank status' do
+      expect(billing_test_class.new(status: '').billing_live?).to be false
+    end
+
+    it 'reads the status as a string, so a symbol still classifies' do
+      expect(billing_test_class.new(status: :past_due).billing_live?).to be true
+    end
+
+    # 'incomplete'/'incomplete_expired'/'paused' are excluded ON PURPOSE: all
+    # three need a human to complete or attach a payment before anything can
+    # bill, and the customer-facing delete has no force flag, so each one added
+    # here is an unappealable lockout. Adding to the set should be a decision,
+    # not a drive-by, so pin it.
+    it 'pins the live set — widening it is a product decision, not a cleanup' do
+      expect(Onetime::Models::Features::WithOrganizationBilling::LIVE_SUBSCRIPTION_STATUSES)
+        .to contain_exactly('active', 'trialing', 'past_due', 'unpaid')
+    end
+  end
+
+  # ==========================================================================
+  # The divergence these two predicates exist to express
+  # ==========================================================================
+  #
+  # THE BUG (#4209 follow-up): Onetime::Operations::Org::Delete gated its
+  # :active_subscription refusal on active_subscription?, whose set is
+  # active/trialing only. A past_due org therefore deleted cleanly while
+  # Stripe kept charging the card — the support incident the op's own
+  # docstring names.
+  #
+  # The fix could NOT be "widen active_subscription?": that method is also the
+  # entitlement predicate behind paid? and complimentary?, so widening it
+  # hands premium features to delinquent orgs. Hence two predicates. These
+  # examples are the ones that go red if someone later folds them back
+  # together in either direction.
+  describe 'liveness (billing_live?) vs entitlement (active_subscription?)' do
+    %w[past_due unpaid].each do |status|
+      it "'#{status}' is live for billing but grants NOTHING" do
+        org = billing_test_class.new(
+          status: status,
+          planid: 'identity_plus_v1',
+          complimentary: 'true',
+        )
+
+        expect(org.billing_live?).to be true
+
+        expect(org.active_subscription?).to be false
+        expect(org.paid?).to be false
+        expect(org.complimentary?).to be false
+      end
+    end
+
+    it "'active' answers yes on both axes — the predicates are not inverses" do
+      org = billing_test_class.new(status: 'active', planid: 'identity_plus_v1')
+
+      expect(org.billing_live?).to be true
+      expect(org.active_subscription?).to be true
+      expect(org.paid?).to be true
+    end
+
+    it "'canceled' answers no on both axes" do
+      org = billing_test_class.new(status: 'canceled', planid: 'identity_plus_v1')
+
+      expect(org.billing_live?).to be false
+      expect(org.active_subscription?).to be false
+      expect(org.paid?).to be false
     end
   end
 end

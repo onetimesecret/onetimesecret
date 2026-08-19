@@ -190,7 +190,7 @@
   },
   "api.organizations.errors.delete_active_subscription": {
     "text": "Cancel this organization's subscription before deleting it.",
-    "context": "Returned when an organization delete is refused because the subscription is active or trialing",
+    "context": "Returned when an organization delete is refused because the subscription can still bill (active, trialing, past_due or unpaid)",
     "content_hash": "f0c54eca"
   },
   "api.organizations.errors.delete_last_org": {

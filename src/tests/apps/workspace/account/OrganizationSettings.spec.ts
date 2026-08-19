@@ -161,6 +161,7 @@ const mockOrganization = {
 const mockFetchOrganization = vi.fn();
 const mockUpdateOrganization = vi.fn();
 const mockFetchInvitations = vi.fn();
+const mockDeleteOrganization = vi.fn();
 
 vi.mock('@/shared/stores/organizationStore', () => ({
   useOrganizationStore: () => ({
@@ -168,6 +169,7 @@ vi.mock('@/shared/stores/organizationStore', () => ({
     setCurrentOrganization: vi.fn(),
     fetchOrganization: mockFetchOrganization,
     updateOrganization: mockUpdateOrganization,
+    deleteOrganization: mockDeleteOrganization,
     fetchInvitations: mockFetchInvitations,
     createInvitation: vi.fn(),
     resendInvitation: vi.fn(),
@@ -240,6 +242,7 @@ describe('OrganizationSettings', () => {
     // Default mock implementations
     mockFetchOrganization.mockResolvedValue(mockOrganization);
     mockUpdateOrganization.mockResolvedValue(mockOrganization);
+    mockDeleteOrganization.mockResolvedValue(undefined);
     mockFetchInvitations.mockResolvedValue([]);
     mockEntitlements.value = ['manage_members'];
     mockDomainCount.value = 0;
@@ -585,7 +588,9 @@ describe('OrganizationSettings', () => {
       await switchToSsoTab(wrapper);
 
       // When domains exist, the domain list is shown instead of EmptyState
-      const emptyState = wrapper.find('[data-testid="org-section-sso"] [data-testid="empty-state"]');
+      const emptyState = wrapper.find(
+        '[data-testid="org-section-sso"] [data-testid="empty-state"]'
+      );
       expect(emptyState.exists()).toBe(false);
     });
   });
@@ -640,9 +645,7 @@ describe('OrganizationSettings', () => {
         wrapper = await mountComponent();
         await switchToActivityTab(wrapper);
 
-        expect(findPanel(wrapper).text()).not.toContain(
-          'web.organizations.audit.upgrade_prompt'
-        );
+        expect(findPanel(wrapper).text()).not.toContain('web.organizations.audit.upgrade_prompt');
       });
     });
 
@@ -816,6 +819,125 @@ describe('OrganizationSettings', () => {
         expect(panel.text()).not.toContain('web.organizations.audit.upgrade_prompt');
         expect(findActivityTable(wrapper).exists()).toBe(false);
       });
+    });
+  });
+  /**
+   * Caution Zone — Delete Organization
+   *
+   * The delete button pre-disables on the guardrails the server enforces in
+   * Onetime::Operations::Org::Delete, so the owner is not walked through a
+   * confirm dialog only to be refused:
+   *   - :has_domains         -> organization.domain_count > 0
+   *   - :active_subscription -> organization.active_subscription
+   *     (the wire flag is `Organization#billing_live?`, so it is true for
+   *     past_due/unpaid too, not just active/trialing)
+   * (:is_default is handled a level up — the whole Caution Zone is replaced by
+   * the "contact us" notice for a default workspace.)
+   *
+   * The server refuses either case regardless; this is UI affordance only, so
+   * a payload missing active_subscription leaves the button live rather than
+   * locking the owner out.
+   */
+  describe('Caution Zone — Delete Organization', () => {
+    // The zone renders for owners of non-default orgs only.
+    const ownedOrg = (overrides: Record<string, unknown> = {}) => ({
+      ...mockOrganization,
+      is_default: false,
+      current_user_role: 'owner',
+      domain_count: 0,
+      active_subscription: false,
+      ...overrides,
+    });
+
+    const findDeleteButton = (w: VueWrapper) => w.find('[data-testid="org-delete-button"]');
+    const findSubscriptionNotice = (w: VueWrapper) =>
+      w.find('[data-testid="org-delete-active-subscription-notice"]');
+
+    it('enables the button when no guardrail applies', async () => {
+      mockFetchOrganization.mockResolvedValue(ownedOrg());
+
+      wrapper = await mountComponent();
+      await switchToSettingsTab(wrapper);
+
+      const button = findDeleteButton(wrapper);
+      expect(button.exists()).toBe(true);
+      expect(button.attributes('disabled')).toBeUndefined();
+      expect(findSubscriptionNotice(wrapper).exists()).toBe(false);
+    });
+
+    it('disables the button when the organization has an active subscription', async () => {
+      mockFetchOrganization.mockResolvedValue(ownedOrg({ active_subscription: true }));
+
+      wrapper = await mountComponent();
+      await switchToSettingsTab(wrapper);
+
+      expect(findDeleteButton(wrapper).attributes('disabled')).toBeDefined();
+    });
+
+    it('explains why, naming the subscription as the blocker', async () => {
+      mockFetchOrganization.mockResolvedValue(ownedOrg({ active_subscription: true }));
+
+      wrapper = await mountComponent();
+      await switchToSettingsTab(wrapper);
+
+      const notice = findSubscriptionNotice(wrapper);
+      expect(notice.exists()).toBe(true);
+      expect(notice.text()).toContain(
+        'web.organizations.delete_organization_cancel_subscription_first'
+      );
+    });
+
+    it('never opens the confirm dialog while a guardrail blocks the delete', async () => {
+      mockFetchOrganization.mockResolvedValue(ownedOrg({ active_subscription: true }));
+
+      wrapper = await mountComponent();
+      await switchToSettingsTab(wrapper);
+
+      // Guards the programmatic path, not just the disabled attribute — the
+      // store call is what would reach the server and be refused.
+      await (
+        wrapper.vm as unknown as { handleDeleteOrganization: () => Promise<void> }
+      ).handleDeleteOrganization();
+
+      expect(mockDeleteOrganization).not.toHaveBeenCalled();
+    });
+
+    it('keeps disabling on domains (unchanged guardrail)', async () => {
+      mockFetchOrganization.mockResolvedValue(ownedOrg({ domain_count: 2 }));
+
+      wrapper = await mountComponent();
+      await switchToSettingsTab(wrapper);
+
+      expect(findDeleteButton(wrapper).attributes('disabled')).toBeDefined();
+      expect(wrapper.text()).toContain(
+        'web.organizations.delete_organization_remove_domains_first'
+      );
+    });
+
+    it('leaves the button live when the payload omits active_subscription', async () => {
+      // Older/partial payload: the schema normalizes the absent field to false
+      // and the server stays authoritative. A UI-side lockout here would be
+      // worse than a refused request.
+      const { active_subscription: _omitted, ...withoutFlag } = ownedOrg();
+      mockFetchOrganization.mockResolvedValue(withoutFlag);
+
+      wrapper = await mountComponent();
+      await switchToSettingsTab(wrapper);
+
+      expect(findDeleteButton(wrapper).attributes('disabled')).toBeUndefined();
+      expect(findSubscriptionNotice(wrapper).exists()).toBe(false);
+    });
+
+    it('shows the contact-us notice instead of the zone for a default workspace', async () => {
+      mockFetchOrganization.mockResolvedValue(
+        ownedOrg({ is_default: true, active_subscription: true })
+      );
+
+      wrapper = await mountComponent();
+      await switchToSettingsTab(wrapper);
+
+      expect(wrapper.find('[data-testid="org-default-delete-notice"]').exists()).toBe(true);
+      expect(findDeleteButton(wrapper).exists()).toBe(false);
     });
   });
 });

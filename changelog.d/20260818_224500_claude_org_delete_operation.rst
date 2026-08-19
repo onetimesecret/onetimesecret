@@ -39,10 +39,21 @@ Security
 Changed
 -------
 
-- Deleting an organization with an active or trialing subscription is now
-  refused on the customer-facing endpoint. Nothing in the delete path talks to
+- Deleting an organization whose subscription can still bill is now refused on
+  the customer-facing endpoint. That covers ``active`` and ``trialing`` and
+  also the delinquent states — ``past_due`` and ``unpaid`` — where
+  Stripe is still retrying or can resume. Nothing in the delete path talks to
   Stripe, so the subscription has to be cancelled first — otherwise it keeps
-  billing against a record that no longer exists.
+  billing against a record that no longer exists. An abandoned checkout
+  (``incomplete``) does not block the delete; Stripe expires it on its own.
+
+- The workspace Caution Zone pre-disables its delete button for an organization
+  whose subscription can still bill, alongside the existing custom-domain case,
+  and says which one is blocking. Organizations now carry an
+  ``active_subscription`` flag in their API payload for it — read from the
+  stored subscription status, no Stripe call. The server refuses either case
+  regardless; a payload without the flag leaves the button live rather than
+  locking an owner out.
 
 AI Assistance
 -------------
