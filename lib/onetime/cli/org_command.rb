@@ -37,14 +37,15 @@ module Onetime
         '  bin/ots org transfer-ownership ORG NEW_OWNER  # Hand an org to another member',
       ].freeze
 
-      # The five `org doctor` invariants. Doctor-specific; not an append point
-      # for other verbs.
+      # The `org doctor` invariants. Doctor-specific; not an append point for
+      # other verbs.
       INTEGRITY_CHECKS = [
         '  1. owner_id points to existing customer (CRITICAL)',
         '  2. owner_id customer is in members set (HIGH)',
         '  3. All members have backing customer objects (MEDIUM)',
         '  4. Membership role:owner matches owner_id (WARNING)',
         '  5. Organization has at least one member (WARNING)',
+        '  6. class-level unique-index entries (CRITICAL/HIGH/MEDIUM)',
       ].freeze
 
       def call(**)
