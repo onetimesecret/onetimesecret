@@ -491,9 +491,12 @@ module Onetime
         # invisible to whoever doctored it — the exact shape of the defect this
         # check exists to catch.
         #
-        # --all has the map before the first check, so this costs nothing there
-        # and a healthy org still triggers no org loads. A single-org run pays
-        # for one scan, once per run, shared across all five indexes.
+        # Cost, stated plainly because the shape is easy to misread: under
+        # --all the map is already built, so this is a no-op and a healthy org
+        # loads no other org. A SINGLE-org run pays for one full scan — not
+        # only when it finds drift, but for any org carrying any indexed value,
+        # which in practice is every org. Once per run, shared across all five
+        # indexes. That is the price of the answer being trustworthy either way.
         ensure_index_claims
         rivals = live_rivals(org, spec, value, holder_objid)
 
