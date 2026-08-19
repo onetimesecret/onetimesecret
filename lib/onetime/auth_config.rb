@@ -19,6 +19,11 @@ module Onetime
     # Valid values for full.restrict_to — the single-auth-method override.
     RESTRICT_TO_VALUES = %w[password email_auth webauthn sso].freeze
 
+    # CustomDomain::SsoConfig provider types whose IdP origin comes from the
+    # TENANT's own record (its issuer) rather than from the static provider
+    # registry. See #tenant_origin_source, which is what reads this.
+    ISSUER_DERIVED_PROVIDER_TYPES = %w[oidc].freeze
+
     attr_reader :config, :path, :mode, :environment
 
     def initialize
@@ -534,11 +539,19 @@ module Onetime
       provider_type = sso_config&.provider_type
       return nil if provider_type.nil?
 
-      # OIDC derives from the tenant record's own issuer — the registry's
-      # oidc definition points at the PLATFORM env var, which would be the
-      # wrong tenant's (or no) issuer here.
-      return origin_from_url(sso_config.issuer) if provider_type == 'oidc'
+      # Issuer-derived types read the tenant record's own issuer — the
+      # registry's oidc definition points at the PLATFORM env var, which
+      # would be the wrong tenant's (or no) issuer here. #tenant_origin_source
+      # owns that dispatch so callers who need to reason about the SOURCE
+      # (rather than the derived origin) cannot drift out of step with it.
+      source = tenant_origin_source(sso_config)
+      return origin_from_url(source) unless source.nil?
 
+      # :default only — the entry's :env_var route-name override is NOT
+      # consulted, so a renamed route still resolves the default definition.
+      # Safe while every non-OIDC tenant provider has a STATIC idp_origin
+      # (route-name-independent); see the constraint note in
+      # SsoProvider::Registry's field reference before adding one that isn't.
       route_name = Onetime::CustomDomain::SsoConfig::PROVIDER_ROUTE_MAP
         .dig(provider_type, :default)
       return nil if route_name.nil?
@@ -549,6 +562,28 @@ module Onetime
       return nil if defn.nil?
 
       provider_origin(defn)
+    end
+
+    # The TENANT-SUPPLIED string this provider type's IdP origin is derived
+    # from (stripped), or nil when the origin comes from the static provider
+    # registry instead of the tenant record.
+    #
+    # This is the single source of truth for which provider types read the
+    # tenant's issuer: #tenant_idp_origin dispatches on it, and
+    # Onetime::Middleware::TenantCspExtras uses it to tell an operator
+    # misconfiguration (tenant typed a bad issuer — fixable by editing the
+    # record) apart from route-map/registry drift (a deploy-side bug, where
+    # naming the issuer would name the wrong cause). Adding a second
+    # issuer-reading provider type is one entry here and both stay correct.
+    #
+    # A blank issuer returns '' rather than nil: the type IS issuer-derived,
+    # the tenant just left it empty. Callers distinguish "not issuer-derived"
+    # (nil) from "issuer-derived but unset" (empty) — origin_from_url maps
+    # both to no origin.
+    def tenant_origin_source(sso_config)
+      return nil unless ISSUER_DERIVED_PROVIDER_TYPES.include?(sso_config&.provider_type.to_s)
+
+      sso_config.issuer.to_s.strip
     end
 
     private

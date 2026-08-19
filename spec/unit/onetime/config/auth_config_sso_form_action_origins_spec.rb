@@ -354,4 +354,52 @@ RSpec.describe Onetime::AuthConfig do
       expect(fresh_config.tenant_idp_origin(nil)).to be_nil
     end
   end
+
+  # The dispatch #tenant_idp_origin runs internally, exposed because
+  # Onetime::Middleware::TenantCspExtras needs to tell "the tenant typed a bad
+  # issuer" (operator-fixable, worth a warning) apart from registry drift (a
+  # deploy bug, where naming the issuer would name the wrong cause). Pinned
+  # here so the two callers cannot drift apart silently.
+  describe '#tenant_origin_source' do
+    def tenant_sso_config(provider_type:, issuer: nil)
+      double('CustomDomain::SsoConfig', provider_type: provider_type, issuer: issuer)
+    end
+
+    it 'returns the stripped issuer for an issuer-derived provider type' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: '  https://idp.example.com/x  ')
+      expect(fresh_config.tenant_origin_source(config)).to eq('https://idp.example.com/x')
+    end
+
+    it 'returns the raw hostile issuer unfiltered (validation is the funnel\'s job)' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: 'https://a.example; script-src *')
+      instance = fresh_config
+      expect(instance.tenant_origin_source(config)).to eq('https://a.example; script-src *')
+      expect(instance.tenant_idp_origin(config)).to be_nil
+    end
+
+    it "returns '' for an issuer-derived type whose issuer is unset" do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: nil)
+      expect(fresh_config.tenant_origin_source(config)).to eq('')
+    end
+
+    it 'returns nil for a registry-derived provider type, even with an issuer set' do
+      config = tenant_sso_config(provider_type: 'entra_id', issuer: 'https://stale.example.com')
+      expect(fresh_config.tenant_origin_source(config)).to be_nil
+    end
+
+    it 'returns nil for an unknown provider type and for a nil sso_config' do
+      instance = fresh_config
+      expect(instance.tenant_origin_source(tenant_sso_config(provider_type: 'nope'))).to be_nil
+      expect(instance.tenant_origin_source(nil)).to be_nil
+    end
+
+    it 'covers every issuer-derived type declared in the constant' do
+      # Guards the drift this method exists to prevent: a type added to
+      # ISSUER_DERIVED_PROVIDER_TYPES must actually read the record's issuer.
+      described_class::ISSUER_DERIVED_PROVIDER_TYPES.each do |provider_type|
+        config = tenant_sso_config(provider_type: provider_type, issuer: 'https://idp.example.com')
+        expect(fresh_config.tenant_origin_source(config)).to eq('https://idp.example.com')
+      end
+    end
+  end
 end

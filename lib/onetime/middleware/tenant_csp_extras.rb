@@ -76,6 +76,11 @@ module Onetime
     # consequence of emitting nothing is the pre-#4173 behavior (the SSO
     # redirect stays blocked until the blip passes), which is safe.
     class TenantCspExtras
+      # Upper bound on the tenant-supplied issuer text reproduced in a log
+      # line. Long enough to identify the offending record, short enough that
+      # a hostile value cannot flood the log.
+      ISSUER_LOG_LIMIT = 100
+
       def initialize(app)
         @app = app
       end
@@ -156,7 +161,55 @@ module Onetime
         # Mandatory funnel: origin_from_url inside — strips path, http(s)
         # only, rejects CSP-hostile hosts, nil on garbage (issuer is
         # tenant-supplied and therefore attacker-influenced).
-        Onetime.auth_config.tenant_idp_origin(config)
+        origin = Onetime.auth_config.tenant_idp_origin(config)
+        warn_rejected_origin_source(display_domain, config) if origin.nil?
+
+        origin
+      end
+
+      # One warning for the "configured, believed working, silently doing
+      # nothing" state: the availability ladder said yes (so the page IS
+      # rendering the tenant SSO button) and the tenant supplied a non-blank
+      # origin source, yet the funnel rejected it. Without this line the only
+      # symptom is a blocked redirect in the visitor's browser console — the
+      # exact #4173 failure mode, now with the SSO button on screen. Every
+      # other nil path is a NORMAL state (no custom domain, no SsoConfig,
+      # availability false, blank issuer) and stays silent.
+      #
+      # Purely observational: nil still means "no widening". The fail-closed
+      # direction is deliberate (see the class comment) and a log line must
+      # not move it.
+      #
+      # Scoped by AuthConfig#tenant_origin_source on purpose — the SAME
+      # dispatch #tenant_idp_origin itself runs, so this cannot drift out of
+      # step with which types actually read the tenant issuer. For the other
+      # provider types the origin comes from the static registry definition,
+      # not from tenant data, so a nil there means route-map/registry drift —
+      # a deploy-side bug an operator cannot fix by editing the tenant record.
+      # Reporting it as a bad tenant issuer would name the wrong cause (and
+      # the record's issuer field may be stale-but-unused for those types).
+      #
+      # Stateless by choice — no throttle or dedupe cache. Volume is bounded
+      # by the HTML request rate to the ONE misconfigured domain, and fixing
+      # that domain's record stops it.
+      def warn_rejected_origin_source(display_domain, config)
+        source = Onetime.auth_config.tenant_origin_source(config)
+        return if source.nil? || source.empty?
+
+        OT.lw '[TenantCspExtras] tenant SSO is available but its IdP origin failed ' \
+              "validation for #{display_domain.inspect} " \
+              "(provider_type=#{config.provider_type.to_s.inspect}, " \
+              "issuer=#{truncate_for_log(source).inspect}); form-action not widened"
+      end
+
+      # Bounded, escaped rendering of an attacker-influenced value. The
+      # caller passes the result through #inspect, which escapes newlines and
+      # control characters — that is what prevents a crafted issuer from
+      # forging additional log lines.
+      def truncate_for_log(value)
+        return value if value.length <= ISSUER_LOG_LIMIT
+
+        "#{value[0, ISSUER_LOG_LIMIT]}..."
       end
 
       # Merge (never clobber) the origin into the request-scoped extras hash.

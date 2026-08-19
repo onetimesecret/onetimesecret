@@ -237,9 +237,114 @@ RSpec.describe Onetime::Middleware::TenantCspExtras do
         issuer: 'https://idp.example.com; script-src https://evil.example',
       )
       stub_tenant(config)
+      # The operator-facing warning for this state is pinned in the
+      # misconfiguration-warning group below; silenced here.
+      allow(OT).to receive(:lw)
       env = build_env
 
       expect { middleware.call(env) }.not_to raise_error
+      expect(env).not_to have_key(extras_key)
+    end
+  end
+
+  describe 'misconfiguration warning (available tenant SSO, rejected origin)' do
+    # The nil-return path out of AuthConfig#tenant_idp_origin used to be
+    # completely silent: the availability ladder renders the SSO button, the
+    # widening never happens, and the only symptom is a blocked redirect in
+    # the visitor's browser console. One warning fires for exactly that
+    # combination — available + non-blank tenant-supplied origin source +
+    # rejected origin — and for no other nil path.
+    it 'warns when an available oidc config has a non-blank issuer the funnel rejects' do
+      config = sso_config_double(
+        provider_type: 'oidc',
+        issuer: 'https://idp.example.com; script-src https://evil.example',
+      )
+      stub_tenant(config)
+      expect(OT).to receive(:lw)
+        .with(/TenantCspExtras.*tenant\.example\.net.*provider_type="oidc".*not widened/m)
+      env = build_env
+
+      middleware.call(env)
+      expect(env).not_to have_key(extras_key)
+    end
+
+    it 'truncates and escapes the tenant-supplied issuer in the warning' do
+      # The issuer is attacker-influenced: it must not reach the log verbatim
+      # or unbounded, and control characters must be escaped so a crafted
+      # value cannot forge extra log lines.
+      hostile = "https://idp.example.com\nWARN forged log line #{'a' * 300}"
+      config  = sso_config_double(provider_type: 'oidc', issuer: hostile)
+      stub_tenant(config)
+      messages = []
+      allow(OT).to receive(:lw) { |message| messages << message }
+
+      middleware.call(build_env)
+
+      expect(messages.size).to eq(1)
+      message = messages.first
+      expect(message).to include('https://idp.example.com')
+      expect(message).not_to include(hostile)
+      expect(message).not_to include("\n")
+      expect(message).to include('\n')
+      expect(message).to include('...')
+      expect(message.length).to be < 300
+    end
+
+    it 'stays silent when the issuer validates (widening happens)' do
+      config = sso_config_double(provider_type: 'oidc', issuer: 'https://idp.tenant.example')
+      stub_tenant(config)
+      expect(OT).not_to receive(:lw)
+      env = build_env
+
+      middleware.call(env)
+      expect(env[extras_key]).to eq('form-action' => ['https://idp.tenant.example'])
+    end
+
+    it 'stays silent when the domain has no SsoConfig record' do
+      allow(Onetime::CustomDomain).to receive(:resolve_domain_id)
+        .with(display_domain).and_return(domain_id)
+      allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
+        .with(domain_id).and_return(nil)
+      expect(OT).not_to receive(:lw)
+      env = build_env
+
+      middleware.call(env)
+      expect(env).not_to have_key(extras_key)
+    end
+
+    it 'stays silent when the availability ladder rejects (no button is rendered either)' do
+      config = sso_config_double(
+        provider_type: 'oidc',
+        issuer: 'https://idp.example.com; script-src https://evil.example',
+      )
+      stub_tenant(config, available: false)
+      expect(OT).not_to receive(:lw)
+      env = build_env
+
+      middleware.call(env)
+      expect(env).not_to have_key(extras_key)
+    end
+
+    it 'stays silent for a blank issuer (unconfigured, not misconfigured)' do
+      config = sso_config_double(provider_type: 'oidc', issuer: '   ')
+      stub_tenant(config)
+      expect(OT).not_to receive(:lw)
+      env = build_env
+
+      middleware.call(env)
+      expect(env).not_to have_key(extras_key)
+    end
+
+    it 'stays silent for a non-issuer-derived provider type (registry drift, not tenant data)' do
+      # entra_id's origin comes from the static registry definition, so a nil
+      # there is route-map/registry drift an operator cannot fix by editing
+      # the tenant record — naming the tenant's issuer would mislabel it.
+      config = sso_config_double(provider_type: 'saml_future', issuer: 'https://idp.example.com')
+      stub_tenant(config)
+      expect(OT).not_to receive(:lw)
+      env = build_env
+
+      middleware.call(env)
       expect(env).not_to have_key(extras_key)
     end
   end
