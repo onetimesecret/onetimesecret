@@ -417,7 +417,7 @@
     "source_hash": "6b435c76"
   },
   "web.login.signin_disabled_message": {
-    "text": "Die Anmeldung ist auf diesem Bereich derzeit nicht verfügbar.",
+    "text": "Die Anmeldung ist in diesem Bereich derzeit nicht verfügbar.",
     "source_hash": "b681c35d"
   },
   "web.login.errors.sso_not_configured": {
@@ -519,5 +519,9 @@
   "web.login.notices.link_verification_sent": {
     "text": "Überprüfen Sie Ihren Posteingang — wir haben Ihnen einen Link per E-Mail gesendet, um die Verbindung Ihres Kontos zu bestätigen. Öffnen Sie ihn, um die Anmeldung abzuschließen.",
     "source_hash": "b251c8f3"
+  },
+  "web.login.errors.sso_cancelled": {
+    "text": "Die Anmeldung wurde abgebrochen. Sie können es jederzeit erneut versuchen.",
+    "source_hash": "b5f3d3ec"
   }
 }

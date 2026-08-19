@@ -519,5 +519,9 @@
   "web.login.notices.link_verification_sent": {
     "text": "Sieh in deinem Posteingang nach – wir haben dir einen Link gesendet, um die Verbindung deines Kontos zu bestätigen. Öffne ihn, um die Anmeldung abzuschließen.",
     "source_hash": "b251c8f3"
+  },
+  "web.login.errors.sso_cancelled": {
+    "text": "Die Anmeldung wurde abgebrochen. Du kannst es jederzeit erneut versuchen.",
+    "source_hash": "b5f3d3ec"
   }
 }

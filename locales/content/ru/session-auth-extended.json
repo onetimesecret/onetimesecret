@@ -292,9 +292,9 @@
     "source_hash": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "Название ключа доступа",
+    "text": "Ключ доступа",
     "context": "Label for passkey name field",
-    "source_hash": "22eefa67"
+    "source_hash": "904c9aa9"
   },
   "web.auth.passkeys.created": {
     "text": "Создан",
@@ -929,5 +929,33 @@
   "web.sso_link_confirm.errors.generic": {
     "text": "Не удалось подтвердить это подключение. Пожалуйста, войдите через своего поставщика ещё раз.",
     "source_hash": "076fa25a"
+  },
+  "web.auth.mfa.passkey_mode_active": {
+    "text": "Режим ключа доступа активен",
+    "source_hash": "824dceb6"
+  },
+  "web.auth.mfa.passkey_prompt": {
+    "text": "Подтвердите свою личность с помощью ключа доступа. Ваше устройство запросит отпечаток пальца, лицо или ключ безопасности.",
+    "source_hash": "c0b0cbbc"
+  },
+  "web.auth.mfa.verify_with_passkey": {
+    "text": "Подтвердить с помощью ключа доступа",
+    "source_hash": "4f105a30"
+  },
+  "web.auth.mfa.use_passkey": {
+    "text": "Использовать ключ доступа",
+    "source_hash": "bd6430a4"
+  },
+  "web.auth.passkeys.remove_failed": {
+    "text": "Не удалось удалить ключ доступа",
+    "source_hash": "3e131515"
+  },
+  "web.auth.passkeys.load_failed": {
+    "text": "Не удалось загрузить ключи доступа",
+    "source_hash": "8d704e00"
+  },
+  "web.auth.webauthn.emailRequired": {
+    "text": "Введите Ваш адрес электронной почты, чтобы войти с помощью ключа доступа",
+    "source_hash": "7f07647f"
   }
 }

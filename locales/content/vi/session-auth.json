@@ -519,5 +519,9 @@
   "web.login.notices.link_verification_sent": {
     "text": "Kiểm tra hộp thư đến — chúng tôi đã gửi email cho bạn một liên kết để xác nhận kết nối tài khoản của bạn. Mở nó để hoàn tất đăng nhập.",
     "source_hash": "b251c8f3"
+  },
+  "web.login.errors.sso_cancelled": {
+    "text": "Việc đăng nhập đã bị hủy. Bạn có thể thử lại bất cứ khi nào sẵn sàng.",
+    "source_hash": "b5f3d3ec"
   }
 }
