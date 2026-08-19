@@ -632,8 +632,11 @@ No configuration is required for the common case. The boot-time set is exposed a
 
 **When to use the override:** Set `SSO_FORM_ACTION_ORIGINS` (space-separated origins) when the auto-derived origin is wrong or incomplete:
 
-- **Sovereign / national clouds** — e.g. Entra on `https://login.microsoftonline.us` (US Government) or another regional Microsoft endpoint instead of the global `https://login.microsoftonline.com`. (Tenant Entra configs are pinned to the commercial cloud, so sovereign clouds need the override on both surfaces.)
+- **Sovereign / national clouds (platform Entra)** — e.g. env-configured Entra on `https://login.microsoftonline.us` (US Government) or another regional Microsoft endpoint instead of the global `https://login.microsoftonline.com`.
+
+  This applies to the **platform** (env-configured) provider only. Tenant (per-domain) Entra is commercial-cloud only: the tenant strategy passes no authority option and the per-domain SSO config has no authority field, so a tenant Entra config always redirects to `login.microsoftonline.com` — no override changes that. Do **not** set `SSO_FORM_ACTION_ORIGINS` to a sovereign endpoint for a tenant Entra config: it would widen `form-action` on every page, for every tenant and the canonical host, while the redirect still goes to the commercial cloud — a security regression that fixes nothing. For a sovereign-cloud tenant, configure the domain with provider type `oidc` and the sovereign issuer URL instead; the per-request derivation then admits the right origin automatically.
 - **OIDC issuer ≠ authorization endpoint** — when the discovery document's `authorization_endpoint` lives on a different origin than the issuer (`OIDC_ISSUER`, or a tenant SSO config's issuer). The form POSTs to the authorization endpoint's origin, which is what CSP checks.
+- **Per-request derivation gaps** — the tenant widening depends on resolving the display domain's stored SSO config at response time. If the domain record is unreachable (datastore blip), the widening is skipped silently — the only symptom is the browser-console CSP error — and the issuers are effectively unknown per-request. `SSO_FORM_ACTION_ORIGINS` remains the manual fallback when such gaps must not block SSO.
 
 ```bash
 SSO_FORM_ACTION_ORIGINS="https://login.microsoftonline.us https://auth.example.gov"
