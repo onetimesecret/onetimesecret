@@ -12,14 +12,14 @@
   import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useDomainsStore, useReceiptListStore } from '@/shared/stores';
-  import { useFooterConfig } from '@/shared/composables/useFooterConfig';
+  import { useFooterAnchor } from '@/shared/composables/useFooterConfig';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { isExternalUrl } from '@/utils/url';
   import { storeToRefs } from 'pinia';
   import { computed } from 'vue';
   import { useRoute } from 'vue-router';
 
-  withDefaults(defineProps<LayoutProps>(), {
+  const props = withDefaults(defineProps<LayoutProps>(), {
     displayFooterLinks: true,
     displayVersion: true,
     displayToggles: false,
@@ -30,7 +30,11 @@
   const route = useRoute();
   const bootstrapStore = useBootstrapStore();
   const { ot_version, ot_version_long, domains_enabled, support_host, ui, brand_product_name } = storeToRefs(bootstrapStore);
-  const { showVersionConfig } = useFooterConfig();
+  // Keeps the bottom bar's left cell occupied — see useFooterAnchor.
+  const { showVersion, showPoweredBy, showSeparator, hasAnchor } = useFooterAnchor({
+    displayVersion: () => props.displayVersion,
+    displayPoweredBy: () => props.displayPoweredBy,
+  });
 
   // Store instances for counts
   const receiptListStore = useReceiptListStore();
@@ -227,9 +231,11 @@
         justify-center
         gap-2 text-center
         text-xs text-gray-500 dark:text-gray-400">
-        <div class="flex items-center gap-x-3">
+        <div
+          v-if="hasAnchor"
+          class="flex items-center gap-x-3">
           <span
-            v-if="displayVersion && showVersionConfig"
+            v-if="showVersion"
             :title="`${t('web.homepage.onetime_secret_literal')} ${t('web.COMMON.version')}`">
             <a
               :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${ot_version}`"
@@ -240,13 +246,13 @@
             </a>
           </span>
           <span
-            v-if="displayVersion && showVersionConfig && displayPoweredBy"
+            v-if="showSeparator"
             class="text-gray-400 dark:text-gray-600"
             aria-hidden="true">
             •
           </span>
           <span
-            v-if="displayPoweredBy"
+            v-if="showPoweredBy"
             :title="`${t('web.homepage.onetime_secret_literal', { product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name })} ${t('web.COMMON.version')}`">
             <a
               :href="t('web.COMMON.website_url')"

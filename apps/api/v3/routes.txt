@@ -34,10 +34,15 @@ GET    /guest/receipt/:identifier                 V3::Logic::Secrets::ShowReceip
 POST   /guest/receipt/:identifier/burn            V3::Logic::Secrets::BurnSecret response=json auth=noauth sensitive=true
 POST   /guest/receipts                            V3::Logic::Secrets::ShowMultipleReceipts response=json auth=noauth
 
-# Meta/Public endpoints (static information uses class methods)
+# Meta endpoints (static information uses class methods)
+#
+# /version is authenticated. The exact build version is the primary input to
+# fingerprinting an install and matching it against known CVEs, so it is not
+# handed to anonymous callers. /status and /supported-locales stay public:
+# neither discloses build information.
 GET    /supported-locales                         V3::Logic::Meta.get_supported_locales response=json
 GET    /status                                    V3::Logic::Meta.system_status response=json
-GET    /version                                   V3::Logic::Meta.system_version response=json
+GET    /version                                   V3::Logic::Meta.system_version response=json auth=sessionauth,basicauth
 POST   /feedback                                  V3::Logic::ReceiveFeedback response=json auth=noauth
 
 # NOTE: Incoming secrets have a dedicated API (apps/api/incoming/)
