@@ -546,5 +546,41 @@
   "web.admin.emailtools.test.success": {
     "text": "Test e-postası {to} adresine gönderildi.",
     "source_hash": "daa61a62"
+  },
+  "web.admin.emailtools.providerStatus.cycleNote": {
+    "text": "SMTP2GO, istatistikleri son 30 günlük bir pencere için değil, geçerli faturalandırma döngüsü için raporlar. “—” olarak gösterilen bir oran sıfır değil, sağlayıcı tarafından raporlanmadığı anlamına gelir.",
+    "source_hash": "b052009b"
+  },
+  "web.admin.emailtools.providerStatus.cycle.window": {
+    "text": "Faturalandırma döngüsü: {start} → {end}",
+    "source_hash": "a9ea52bb"
+  },
+  "web.admin.emailtools.providerStatus.cycle.used": {
+    "text": "Kullanılan kota (döngü)",
+    "source_hash": "95a86428"
+  },
+  "web.admin.emailtools.providerStatus.cycle.remaining": {
+    "text": "Kalan kota",
+    "source_hash": "b2605e14"
+  },
+  "web.admin.emailtools.providerStatus.stats.sentCycle": {
+    "text": "Gönderilen (döngü)",
+    "source_hash": "e2ed5d2e"
+  },
+  "web.admin.emailtools.providerStatus.stats.softBounced": {
+    "text": "Geçici geri döndü",
+    "source_hash": "58028553"
+  },
+  "web.admin.emailtools.providerStatus.stats.bounceRejects": {
+    "text": "Geri dönüş nedeniyle reddedildi",
+    "source_hash": "0ca14701"
+  },
+  "web.admin.emailtools.providerStatus.stats.spamRejects": {
+    "text": "Spam nedeniyle reddedildi",
+    "source_hash": "4d487ce5"
+  },
+  "web.admin.emailtools.providerStatus.stats.unsubscribes": {
+    "text": "Abonelikten çıkanlar",
+    "source_hash": "8a8c3ef7"
   }
 }

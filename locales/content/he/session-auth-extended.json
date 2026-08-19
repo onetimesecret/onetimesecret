@@ -292,9 +292,9 @@
     "source_hash": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "שם מפתח גישה",
+    "text": "מפתח גישה",
     "context": "Label for passkey name field",
-    "source_hash": "22eefa67"
+    "source_hash": "904c9aa9"
   },
   "web.auth.passkeys.created": {
     "text": "נוצר",
@@ -929,5 +929,33 @@
   "web.sso_link_confirm.errors.generic": {
     "text": "לא יכולנו לאשר חיבור זה. היכנס שוב עם הספק שלך.",
     "source_hash": "076fa25a"
+  },
+  "web.auth.mfa.passkey_mode_active": {
+    "text": "מצב מפתח גישה פעיל",
+    "source_hash": "824dceb6"
+  },
+  "web.auth.mfa.passkey_prompt": {
+    "text": "אמת שזה אתה באמצעות מפתח גישה. המכשיר שלך יבקש טביעת אצבע, זיהוי פנים או מפתח אבטחה.",
+    "source_hash": "c0b0cbbc"
+  },
+  "web.auth.mfa.verify_with_passkey": {
+    "text": "אמת באמצעות מפתח גישה",
+    "source_hash": "4f105a30"
+  },
+  "web.auth.mfa.use_passkey": {
+    "text": "השתמש במפתח גישה במקום",
+    "source_hash": "bd6430a4"
+  },
+  "web.auth.passkeys.remove_failed": {
+    "text": "לא ניתן להסיר את מפתח הגישה",
+    "source_hash": "3e131515"
+  },
+  "web.auth.passkeys.load_failed": {
+    "text": "לא ניתן לטעון את מפתחות הגישה",
+    "source_hash": "8d704e00"
+  },
+  "web.auth.webauthn.emailRequired": {
+    "text": "הזן את כתובת הדוא״ל שלך כדי להתחבר באמצעות מפתח גישה",
+    "source_hash": "7f07647f"
   }
 }

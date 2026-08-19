@@ -519,5 +519,9 @@
   "web.login.notices.link_verification_sent": {
     "text": "受信トレイを確認してください。アカウントの接続を確認するためのリンクをメールで送信しました。サインインを完了するには、リンクを開いてください。",
     "source_hash": "b251c8f3"
+  },
+  "web.login.errors.sso_cancelled": {
+    "text": "サインインがキャンセルされました。準備ができましたら、いつでももう一度お試しいただけます。",
+    "source_hash": "b5f3d3ec"
   }
 }

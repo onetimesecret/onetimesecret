@@ -519,5 +519,9 @@
   "web.login.notices.link_verification_sent": {
     "text": "Revisa tu bandeja de entrada: te hemos enviado por correo electrónico un enlace para confirmar la conexión de tu cuenta. Ábrelo para terminar de iniciar sesión.",
     "source_hash": "b251c8f3"
+  },
+  "web.login.errors.sso_cancelled": {
+    "text": "Se canceló el inicio de sesión. Puedes intentarlo de nuevo cuando quieras.",
+    "source_hash": "b5f3d3ec"
   }
 }

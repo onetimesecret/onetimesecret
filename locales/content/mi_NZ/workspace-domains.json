@@ -1032,7 +1032,7 @@
     "source_hash": "68c38f94"
   },
   "web.domains.signin.method_webauthn": {
-    "text": "WebAuthn / Ngā Matua Karapa",
+    "text": "WebAuthn / Ngā Kī Urunga",
     "source_hash": "c40224ce"
   },
   "web.domains.signin.method_sso": {
@@ -1538,5 +1538,93 @@
   "web.domains.signup.dormant_notice": {
     "text": "Kua whakawetohia ngā rēhitatanga puta noa i te Wāhi Mahi, nā reira kāore e wātea ana i ia rohe. Ka puritia ō tautuhinga ki konei, ka mana ina whakahohea anō ngā rēhitatanga Wāhi Mahi.",
     "source_hash": "49faefe4"
+  },
+  "web.domains.link_domain_no_settings": {
+    "text": "Kāore he whārangi tautuhinga mō tēnei rohe",
+    "source_hash": "8a8430fe"
+  },
+  "web.domains.signin.sso_restrict_warning_title": {
+    "text": "Ka katia te takiuru i tēnei rohe mā te whakawhāiti ki te SSO",
+    "source_hash": "3476cb5c"
+  },
+  "web.domains.signin.sso_restrict_warning_body": {
+    "text": "Kāore te SSO e wātea ana i tēnei rohe, ā, ka ārai katoa i te takiuru tētahi whakawhāitinga kāore e taea te whakatutuki. Kāore tētahi e āhei ki te takiuru ki konei kia pai rā anō te SSO. Whakatikahia te SSO i te tuatahi, whakawhāitihia tonu rānei kia oti ai te whakaritenga.",
+    "source_hash": "086e3247"
+  },
+  "web.domains.signin.sso_restrict_warning_confirm": {
+    "text": "Whakawhāiti tonu",
+    "source_hash": "4674e3cf"
+  },
+  "web.domains.signin.restriction_unavailable_notice": {
+    "text": "Kāore te takiuru e wātea ana i tēnei rohe: kua whakawhāitihia ki te {method}, kāore nei e taea te rere ki konei. Kōwhiria tētahi atu tikanga, whakawāteahia rānei te {method}.",
+    "source_hash": "ca1b7f69"
+  },
+  "web.domains.signin.restriction_unavailable_unknown_notice": {
+    "text": "Kāore te takiuru e wātea ana i tēnei rohe: kua whakawhāitihia ki tētahi tikanga kāore nei e taea te rere ki konei. Kōwhiria tētahi atu tikanga, tautuhia anō rānei tēnei rohe ki ngā taunoa.",
+    "source_hash": "8c2cce6b"
+  },
+  "web.domains.signin.restriction_conflict_notice": {
+    "text": "Ka whakawhāiti tēnei rohe i te takiuru ki tētahi tikanga rerekē i te whakawhāitinga puta noa i te Wāhi Mahi ({method}), nā reira kāore tētahi o ngā mea e rua e taea te whakamahi, ā, kāore te takiuru e wātea ana ki konei. Whakaōritehia ki te tikanga puta noa i te Wāhi Mahi, tautuhia anō rānei tēnei rohe ki ngā taunoa.",
+    "source_hash": "15398362"
+  },
+  "web.domains.signin.method_webauthn_unavailable": {
+    "text": "Kua herea ngā kī urunga ki te rohe takiuru matua, kāore anō kia wātea i ngā rohe ritenga",
+    "source_hash": "88833e0f"
+  },
+  "web.domains.sso.connection_disabled_badge": {
+    "text": "Kua monokia te hononga",
+    "source_hash": "99d6092c"
+  },
+  "web.domains.sso.connection_disabled_hint": {
+    "text": "Kua tiakina ngā pūnga whaimana SSO engari kua whakawetohia te hononga. Whakahohea i raro i te Whakatika pūnga whaimana.",
+    "source_hash": "90180d6c"
+  },
+  "web.domains.sso.status_active_badge": {
+    "text": "Kei te hohe",
+    "source_hash": "92340695"
+  },
+  "web.domains.sso.status_active_hint": {
+    "text": "Ka taea e ngā mema te takiuru mā tēnei hononga SSO i tēnei rohe.",
+    "source_hash": "313ec61e"
+  },
+  "web.domains.sso.status_not_configured_badge": {
+    "text": "Kāore anō kia whirihorahia",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.sso.status_not_configured_hint": {
+    "text": "Kāore anō he pūnga whaimana SSO kia tiakina mō tēnei rohe.",
+    "source_hash": "d817ad9c"
+  },
+  "web.domains.sso.status_not_permitted_badge": {
+    "text": "Kāore e whakaaetia i tēnei rohe",
+    "source_hash": "afbd20ba"
+  },
+  "web.domains.sso.status_not_permitted_hint": {
+    "text": "Kua whakawetohia te SSO mō tēnei rohe, nā reira kāore te whārangi takiuru e tuku i a ia.",
+    "source_hash": "ef092481"
+  },
+  "web.domains.sso.status_auth_disabled_badge": {
+    "text": "Kua monokia te takiuru",
+    "source_hash": "bb807607"
+  },
+  "web.domains.sso.status_auth_disabled_hint": {
+    "text": "Kua whakawetohia te takiuru i tēnei rohe, nā reira kāore he tikanga e tukua — tae atu ki te SSO.",
+    "source_hash": "3a98964b"
+  },
+  "web.domains.sso.status_unsupported_provider_badge": {
+    "text": "Kaiwhakarato kāore e tautokona",
+    "source_hash": "1609d5fb"
+  },
+  "web.domains.sso.status_unsupported_provider_hint": {
+    "text": "Kāore e taea te whakamahi i te kaiwhakarato kua tiakina mō te SSO Rohe. Whakatikahia ngā pūnga whaimana, ka kōwhiri ai i te Microsoft Entra ID, i te OIDC noa rānei.",
+    "source_hash": "72ea0a2e"
+  },
+  "web.domains.sso.status_unavailable_badge": {
+    "text": "Kāore e wātea ana",
+    "source_hash": "ca184496"
+  },
+  "web.domains.sso.status_unavailable_hint": {
+    "text": "Kāore e taea te tuku SSO i tēnei rohe i tēnei wā. Tirohia ngā pūnga whaimana SSO me ngā tautuhinga takiuru o tēnei rohe.",
+    "source_hash": "b03b14f4"
   }
 }

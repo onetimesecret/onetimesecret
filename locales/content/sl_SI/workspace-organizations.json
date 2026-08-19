@@ -1174,5 +1174,61 @@
   "web.organizations.tabs.activity": {
     "text": "Aktivnost",
     "source_hash": "38da1505"
+  },
+  "web.organizations.invitations.restricted_host_title": {
+    "text": "Tukaj je potrebna druga metoda prijave",
+    "source_hash": "d761ad30"
+  },
+  "web.organizations.invitations.restricted_host_body": {
+    "text": "To spletno mesto dovoljuje prijavo samo z metodo {method}, zato računa tukaj ni mogoče ustvariti z geslom. Metode {method} na tej strani ni mogoče dokončati.",
+    "source_hash": "6ac146d4"
+  },
+  "web.organizations.invitations.restricted_host_unknown_body": {
+    "text": "To spletno mesto dovoljuje samo eno določeno metodo prijave, ki pa je ta stran ne more ponuditi. Računa tukaj ni mogoče ustvariti z geslom.",
+    "source_hash": "e24d59a9"
+  },
+  "web.organizations.invitations.restricted_sso_body": {
+    "text": "To spletno mesto uporablja enotno prijavo (SSO). Za nadaljevanje se prijavite s ponudnikom svoje organizacije — s tem se ustvari vaš račun in prijavljeni ste.",
+    "source_hash": "e942d04b"
+  },
+  "web.organizations.invitations.restricted_sso_cta": {
+    "text": "Nadaljuj na prijavo",
+    "source_hash": "d398cd0a"
+  },
+  "web.organizations.invitations.restricted_use_email_link": {
+    "text": "Namesto tega odprite povezavo v svojem e-poštnem povabilu in ga sprejmite na glavnem spletnem mestu.",
+    "source_hash": "73bf298f"
+  },
+  "web.organizations.invitations.invitation_stays_pending": {
+    "text": "Vaše povabilo je še vedno veljavno — nič ni bilo porabljeno in sprejmete ga lahko, ko se prijavite.",
+    "source_hash": "f4d00be1"
+  },
+  "web.organizations.invitations.signin_unavailable_title": {
+    "text": "Prijava na tem spletnem mestu ni na voljo",
+    "source_hash": "c56bce2b"
+  },
+  "web.organizations.invitations.signin_unavailable_body": {
+    "text": "To spletno mesto je omejeno na metodo {method}, ki tukaj ne deluje, zato prijava trenutno ni mogoča.",
+    "source_hash": "62c01601"
+  },
+  "web.organizations.invitations.signin_unavailable_unknown_body": {
+    "text": "To spletno mesto je omejeno na metodo prijave, ki tukaj ne deluje, zato prijava trenutno ni mogoča.",
+    "source_hash": "1f61e456"
+  },
+  "web.organizations.invitations.signin_unavailable_conflict_body": {
+    "text": "Nastavitve prijave tega spletnega mesta so v nasprotju z omejitvijo za celotno spletno mesto ({method}), zato ne velja nobena in prijava trenutno ni mogoča.",
+    "source_hash": "54cdfd61"
+  },
+  "web.organizations.sso.connection_enabled": {
+    "text": "Povezava aktivna",
+    "source_hash": "b6334b2b"
+  },
+  "web.organizations.sso.connection_enabled_hint": {
+    "text": "Ko je aktivna, se lahko člani prijavijo s tem ponudnikom SSO. SSO mora biti omogočen tudi kot metoda prijave v razdelku „Konfiguracija prijave“ domene.",
+    "source_hash": "871db2f1"
+  },
+  "web.organizations.sso.enable_untested_warning": {
+    "text": "Ta povezava tukaj še ni opravila preizkusa. Preden jo vklopite, zaženite „Preizkusi povezavo“, da pokvarjena nastavitev nikoli ne pride na vašo prijavno stran.",
+    "source_hash": "c1fbdeca"
   }
 }

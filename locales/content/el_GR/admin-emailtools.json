@@ -546,5 +546,41 @@
   "web.admin.emailtools.test.success": {
     "text": "Το δοκιμαστικό email στάλθηκε στο {to}.",
     "source_hash": "daa61a62"
+  },
+  "web.admin.emailtools.providerStatus.cycleNote": {
+    "text": "Το SMTP2GO αναφέρει στατιστικά για τον τρέχοντα κύκλο χρέωσης, όχι για ένα κυλιόμενο παράθυρο 30 ημερών. Ένα ποσοστό που εμφανίζεται ως «—» δεν αναφέρεται από τον πάροχο, δεν είναι μηδέν.",
+    "source_hash": "b052009b"
+  },
+  "web.admin.emailtools.providerStatus.cycle.window": {
+    "text": "Κύκλος χρέωσης: {start} → {end}",
+    "source_hash": "a9ea52bb"
+  },
+  "web.admin.emailtools.providerStatus.cycle.used": {
+    "text": "Όριο σε χρήση (κύκλος)",
+    "source_hash": "95a86428"
+  },
+  "web.admin.emailtools.providerStatus.cycle.remaining": {
+    "text": "Υπόλοιπο ορίου",
+    "source_hash": "b2605e14"
+  },
+  "web.admin.emailtools.providerStatus.stats.sentCycle": {
+    "text": "Στάλθηκαν (κύκλος)",
+    "source_hash": "e2ed5d2e"
+  },
+  "web.admin.emailtools.providerStatus.stats.softBounced": {
+    "text": "Προσωρινές επιστροφές",
+    "source_hash": "58028553"
+  },
+  "web.admin.emailtools.providerStatus.stats.bounceRejects": {
+    "text": "Απορρίψεις λόγω επιστροφών",
+    "source_hash": "0ca14701"
+  },
+  "web.admin.emailtools.providerStatus.stats.spamRejects": {
+    "text": "Απορρίψεις λόγω spam",
+    "source_hash": "4d487ce5"
+  },
+  "web.admin.emailtools.providerStatus.stats.unsubscribes": {
+    "text": "Καταργήσεις εγγραφής",
+    "source_hash": "8a8c3ef7"
   }
 }

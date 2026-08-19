@@ -519,5 +519,9 @@
   "web.login.notices.link_verification_sent": {
     "text": "Preverite svojo mapo s prejeto pošto — poslali smo vam e-pošto s povezavo za potrditev povezave vašega računa. Odprite jo za dokončanje prijave.",
     "source_hash": "b251c8f3"
+  },
+  "web.login.errors.sso_cancelled": {
+    "text": "Prijava je bila preklicana. Poskusite znova, ko boste pripravljeni.",
+    "source_hash": "b5f3d3ec"
   }
 }

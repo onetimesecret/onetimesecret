@@ -281,9 +281,9 @@
     "source_hash": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "اسم مفتاح المرور",
+    "text": "مفتاح المرور",
     "context": "Label for passkey name field",
-    "source_hash": "22eefa67"
+    "source_hash": "904c9aa9"
   },
   "web.auth.passkeys.created": {
     "text": "تاريخ الإنشاء",
@@ -918,5 +918,33 @@
   "web.sso_link_confirm.errors.generic": {
     "text": "تعذر تأكيد هذا الاتصال. يرجى تسجيل الدخول بمزودك مرة أخرى.",
     "source_hash": "076fa25a"
+  },
+  "web.auth.mfa.passkey_mode_active": {
+    "text": "وضع مفتاح المرور نشط",
+    "source_hash": "824dceb6"
+  },
+  "web.auth.mfa.passkey_prompt": {
+    "text": "تحقّق من هويتك باستخدام مفتاح المرور. سيطلب منك جهازك بصمة إصبعك أو وجهك أو مفتاح الأمان.",
+    "source_hash": "c0b0cbbc"
+  },
+  "web.auth.mfa.verify_with_passkey": {
+    "text": "التحقق باستخدام مفتاح المرور",
+    "source_hash": "4f105a30"
+  },
+  "web.auth.mfa.use_passkey": {
+    "text": "استخدام مفتاح المرور بدلاً من ذلك",
+    "source_hash": "bd6430a4"
+  },
+  "web.auth.passkeys.remove_failed": {
+    "text": "تعذّرت إزالة مفتاح المرور",
+    "source_hash": "3e131515"
+  },
+  "web.auth.passkeys.load_failed": {
+    "text": "تعذّر تحميل مفاتيح المرور",
+    "source_hash": "8d704e00"
+  },
+  "web.auth.webauthn.emailRequired": {
+    "text": "أدخل البريد الإلكتروني لتسجيل الدخول باستخدام مفتاح المرور",
+    "source_hash": "7f07647f"
   }
 }

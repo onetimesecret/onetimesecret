@@ -1174,5 +1174,61 @@
   "web.organizations.tabs.activity": {
     "text": "Aktiveco",
     "source_hash": "38da1505"
+  },
+  "web.organizations.invitations.restricted_host_title": {
+    "text": "Alia ensalutmetodo estas necesa ĉi tie",
+    "source_hash": "d761ad30"
+  },
+  "web.organizations.invitations.restricted_host_body": {
+    "text": "Ĉi tiu retejo permesas ensaluti nur per {method}, do konto ne povas esti kreita ĉi tie per pasvorto. {method} ne estas io, kion vi povas plenumi sur ĉi tiu paĝo.",
+    "source_hash": "6ac146d4"
+  },
+  "web.organizations.invitations.restricted_host_unknown_body": {
+    "text": "Ĉi tiu retejo permesas nur unu specifan ensalutmetodon, kaj ĝi ne estas iu, kiun ĉi tiu paĝo povas proponi. Konto ne povas esti kreita ĉi tie per pasvorto.",
+    "source_hash": "e24d59a9"
+  },
+  "web.organizations.invitations.restricted_sso_body": {
+    "text": "Ĉi tiu retejo uzas unuopan ensaluton. Ensalutu per la provizanto de via organizo por daŭrigi — tio kreas vian konton kaj ensalutigas vin.",
+    "source_hash": "e942d04b"
+  },
+  "web.organizations.invitations.restricted_sso_cta": {
+    "text": "Daŭrigi al ensaluto",
+    "source_hash": "d398cd0a"
+  },
+  "web.organizations.invitations.restricted_use_email_link": {
+    "text": "Malfermu la ligilon en via invita retpoŝto por akcepti el la ĉefa retejo anstataŭe.",
+    "source_hash": "73bf298f"
+  },
+  "web.organizations.invitations.invitation_stays_pending": {
+    "text": "Via invito ankoraŭ validas — nenio estis konsumita, kaj vi povas akcepti ĝin post kiam vi ensalutis.",
+    "source_hash": "f4d00be1"
+  },
+  "web.organizations.invitations.signin_unavailable_title": {
+    "text": "Ensaluto ne disponeblas sur ĉi tiu retejo",
+    "source_hash": "c56bce2b"
+  },
+  "web.organizations.invitations.signin_unavailable_body": {
+    "text": "Ĉi tiu retejo estas limigita al {method}, kiu ne funkcias ĉi tie, do ne eblas ensaluti nuntempe.",
+    "source_hash": "62c01601"
+  },
+  "web.organizations.invitations.signin_unavailable_unknown_body": {
+    "text": "Ĉi tiu retejo estas limigita al ensalutmetodo, kiu ne funkcias ĉi tie, do ne eblas ensaluti nuntempe.",
+    "source_hash": "1f61e456"
+  },
+  "web.organizations.invitations.signin_unavailable_conflict_body": {
+    "text": "La ensalutaj agordoj de ĉi tiu retejo konfliktas kun la limigo en la tuta retejo ({method}), do nek unu nek la alia aplikiĝas kaj ne eblas ensaluti nuntempe.",
+    "source_hash": "54cdfd61"
+  },
+  "web.organizations.sso.connection_enabled": {
+    "text": "Konekto aktiva",
+    "source_hash": "b6334b2b"
+  },
+  "web.organizations.sso.connection_enabled_hint": {
+    "text": "Kiam aktiva, membroj povas ensaluti per ĉi tiu SSO-provizanto. SSO devas ankaŭ esti ŝaltita kiel ensalutmetodo en la Agordo de Ensaluto de la domajno.",
+    "source_hash": "871db2f1"
+  },
+  "web.organizations.sso.enable_untested_warning": {
+    "text": "Ĉi tiu konekto ankoraŭ ne trapasis teston ĉi tie. Rulu Testi Konekton antaŭ ol ŝalti ĝin, por ke difektita agordo neniam atingu vian ensalutan paĝon.",
+    "source_hash": "c1fbdeca"
   }
 }

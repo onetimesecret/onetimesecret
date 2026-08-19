@@ -546,5 +546,41 @@
   "web.admin.emailtools.test.success": {
     "text": "Preizkusno e-poštno sporočilo poslano na {to}.",
     "source_hash": "daa61a62"
+  },
+  "web.admin.emailtools.providerStatus.cycleNote": {
+    "text": "SMTP2GO poroča statistiko za trenutni obračunski cikel, ne za drseče 30-dnevno obdobje. Stopnja, prikazana kot „—“, pomeni, da je ponudnik ne poroča, ne da je nič.",
+    "source_hash": "b052009b"
+  },
+  "web.admin.emailtools.providerStatus.cycle.window": {
+    "text": "Obračunski cikel: {start} → {end}",
+    "source_hash": "a9ea52bb"
+  },
+  "web.admin.emailtools.providerStatus.cycle.used": {
+    "text": "Porabljena kvota (cikel)",
+    "source_hash": "95a86428"
+  },
+  "web.admin.emailtools.providerStatus.cycle.remaining": {
+    "text": "Preostala kvota",
+    "source_hash": "b2605e14"
+  },
+  "web.admin.emailtools.providerStatus.stats.sentCycle": {
+    "text": "Poslano (cikel)",
+    "source_hash": "e2ed5d2e"
+  },
+  "web.admin.emailtools.providerStatus.stats.softBounced": {
+    "text": "Mehko zavrnjeno",
+    "source_hash": "58028553"
+  },
+  "web.admin.emailtools.providerStatus.stats.bounceRejects": {
+    "text": "Blokirano zaradi zavrnitev",
+    "source_hash": "0ca14701"
+  },
+  "web.admin.emailtools.providerStatus.stats.spamRejects": {
+    "text": "Blokirano zaradi neželene pošte",
+    "source_hash": "4d487ce5"
+  },
+  "web.admin.emailtools.providerStatus.stats.unsubscribes": {
+    "text": "Odjave",
+    "source_hash": "8a8c3ef7"
   }
 }

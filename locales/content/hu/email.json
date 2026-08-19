@@ -25,7 +25,7 @@
     "source_hash": "496d6960"
   },
   "email.secret_link.link_works_once": {
-    "text": "Ez a link csak egyszer működik. Megtekintés után a titok véglegesen törlődik.",
+    "text": "Ez a hivatkozás csak egyszer működik. Megtekintés után a titok véglegesen törlődik.",
     "renderer": "erb",
     "source_hash": "fecaf0a1"
   },
@@ -45,7 +45,7 @@
     "source_hash": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
-    "text": "Kérjük, erősítse meg e-mail címét az alábbi linkre kattintva:",
+    "text": "Kérjük, erősítse meg e-mail címét az alábbi hivatkozásra kattintva:",
     "renderer": "erb",
     "source_hash": "e373dcee"
   },
@@ -55,7 +55,7 @@
     "source_hash": "d261b9df"
   },
   "email.welcome.copy_link_prompt": {
-    "text": "Vagy másolja és illessze be ezt a linket:",
+    "text": "Vagy másolja és illessze be ezt a hivatkozást:",
     "renderer": "erb",
     "source_hash": "88c72144"
   },
@@ -90,7 +90,7 @@
     "source_hash": "4e70f1fd"
   },
   "email.password_request.copy_link_prompt": {
-    "text": "Vagy másolja és illessze be ezt a linket:",
+    "text": "Vagy másolja és illessze be ezt a hivatkozást:",
     "renderer": "erb",
     "source_hash": "88c72144"
   },
@@ -115,12 +115,12 @@
     "source_hash": "2967293e"
   },
   "email.magic_link.title": {
-    "text": "Bejelentkezés Magic Link-kel",
+    "text": "Bejelentkezés mágikus hivatkozással",
     "renderer": "erb",
     "source_hash": "0b84879b"
   },
   "email.magic_link.request_notice": {
-    "text": "Bejelentkezési linket kért a %{product_name} fiókjához.",
+    "text": "Bejelentkezési hivatkozást kért a %{product_name} fiókjához.",
     "renderer": "erb",
     "source_hash": "3a34aa1f"
   },
@@ -130,17 +130,17 @@
     "source_hash": "bcc0bcc9"
   },
   "email.magic_link.copy_link_prompt": {
-    "text": "Vagy másolja és illessze be ezt a linket:",
+    "text": "Vagy másolja és illessze be ezt a hivatkozást:",
     "renderer": "erb",
     "source_hash": "88c72144"
   },
   "email.magic_link.expiration_notice": {
-    "text": "Ez a link 15 perc múlva lejár.",
+    "text": "Ez a hivatkozás 15 perc múlva lejár.",
     "renderer": "erb",
     "source_hash": "a6967fa7"
   },
   "email.magic_link.ignore_notice": {
-    "text": "Ha nem Ön kérte ezt a linket, nyugodtan hagyja figyelmen kívül ezt az e-mailt.",
+    "text": "Ha nem Ön kérte ezt a hivatkozást, nyugodtan hagyja figyelmen kívül ezt az e-mailt.",
     "renderer": "erb",
     "source_hash": "1863f5be"
   },
@@ -175,7 +175,7 @@
     "source_hash": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
-    "text": "A titok megtekintéséhez kattintson az alábbi linkre:",
+    "text": "A titok megtekintéséhez kattintson az alábbi hivatkozásra:",
     "renderer": "erb",
     "source_hash": "1dcdc014"
   },
@@ -185,7 +185,7 @@
     "source_hash": "496d6960"
   },
   "email.incoming_secret.link_works_once": {
-    "text": "Ez a link csak egyszer működik. Megtekintés után a titok véglegesen törlődik.",
+    "text": "Ez a hivatkozás csak egyszer működik. Megtekintés után a titok véglegesen törlődik.",
     "renderer": "erb",
     "source_hash": "fecaf0a1"
   },
@@ -245,12 +245,12 @@
     "source_hash": "83cbd163"
   },
   "email.expiration_warning.subject": {
-    "text": "Titkos linkje hamarosan lejár",
+    "text": "Titkos hivatkozása hamarosan lejár",
     "renderer": "erb",
     "source_hash": "74813c5f"
   },
   "email.expiration_warning.expires_in": {
-    "text": "Titkos linkje %{time_remaining} múlva lejár",
+    "text": "Titkos hivatkozása %{time_remaining} múlva lejár",
     "renderer": "erb",
     "source_hash": "e7bb47f6"
   },
@@ -340,7 +340,7 @@
     "source_hash": "ce7cfeaf"
   },
   "email.organization_invitation.link_instruction": {
-    "text": "Vagy másolja és illessze be ezt a linket:",
+    "text": "Vagy másolja és illessze be ezt a hivatkozást:",
     "renderer": "erb",
     "source_hash": "88c72144"
   },
@@ -535,7 +535,7 @@
     "source_hash": "c2736949"
   },
   "email.email_change_confirmation.copy_link_prompt": {
-    "text": "Vagy másolja és illessze be ezt a linket:",
+    "text": "Vagy másolja és illessze be ezt a hivatkozást:",
     "renderer": "erb",
     "source_hash": "88c72144"
   },
@@ -790,7 +790,7 @@
     "source_hash": "1cd0194a"
   },
   "email.common.secret_link_label": {
-    "text": "Titokhivatkozás",
+    "text": "Titkos hivatkozás",
     "source_hash": "18ddf44f"
   },
   "email.common.automated_notice": {

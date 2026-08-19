@@ -660,7 +660,7 @@
     "source_hash": "fd49b66b"
   },
   "web.settings.profile.redirecting_to_signin": {
-    "text": "Redirecionando para o login...",
+    "text": "Redirecionando para o início de sessão...",
     "source_hash": "c65f7dcc"
   },
   "web.settings.profile.resend_confirmation": {

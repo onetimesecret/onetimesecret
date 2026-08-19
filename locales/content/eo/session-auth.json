@@ -519,5 +519,9 @@
   "web.login.notices.link_verification_sent": {
     "text": "Kontrolu vian retpoŝtskatolon — ni retpoŝtis al vi ligilon por konfirmi konekti vian konton. Malfermu ĝin por fini ensaluti.",
     "source_hash": "b251c8f3"
+  },
+  "web.login.errors.sso_cancelled": {
+    "text": "La ensaluto estis nuligita. Vi povas reprovi kiam ajn vi pretas.",
+    "source_hash": "b5f3d3ec"
   }
 }

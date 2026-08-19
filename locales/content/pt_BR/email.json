@@ -610,17 +610,17 @@
     "source_hash": "dc75bf9f"
   },
   "email.new_login_alert.subject": {
-    "text": "Novo login em sua conta (%{display_domain})",
+    "text": "Novo início de sessão em sua conta (%{display_domain})",
     "renderer": "erb",
     "source_hash": "a704f0bb"
   },
   "email.new_login_alert.title": {
-    "text": "Novo Login Detectado",
+    "text": "Novo Início de Sessão Detectado",
     "renderer": "erb",
     "source_hash": "61172ee4"
   },
   "email.new_login_alert.body": {
-    "text": "Um novo login em sua conta %{product_name} foi detectado em %{date} às %{time}.",
+    "text": "Um novo início de sessão em sua conta %{product_name} foi detectado em %{date} às %{time}.",
     "renderer": "erb",
     "source_hash": "040f8f48"
   },
