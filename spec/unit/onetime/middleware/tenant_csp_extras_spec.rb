@@ -7,33 +7,40 @@ require 'onetime/middleware/tenant_csp_extras'
 
 # Unit coverage for the per-request tenant CSP form-action widening (#4173).
 #
-# Host resolution follows the http_origin_options_spec conventions: hosts are
-# faked via env['onetime.display_domain'] / env['onetime.domain_strategy']
-# (DetectHost + DomainStrategy's published answers), never Host headers. The
-# model layer (CustomDomain / SsoConfig) is stubbed — no datastore. The origin
-# funnel is the REAL AuthConfig#tenant_idp_origin on an allocated (config-free)
-# instance, so the hostile-issuer cases exercise the production origin_from_url
-# validation rather than a stub's.
+# The middleware resolves on the way OUT: it calls downstream first and only
+# consults the datastore when the response is HTML, CSP is enabled, and a
+# display_domain was published. Host resolution follows the
+# http_origin_options_spec conventions: hosts are faked via
+# env['onetime.display_domain'] (DetectHost + DomainStrategy's published
+# answer), never Host headers — and deliberately NOT via
+# env['onetime.domain_strategy'], which the middleware ignores (see the
+# :invalid-strategy case below). The model layer (CustomDomain / SsoConfig)
+# is stubbed — no datastore. The origin funnel is the REAL
+# AuthConfig#tenant_idp_origin on an allocated (config-free) instance, so the
+# available-SSO cases exercise the production origin_from_url validation
+# rather than a stub's; the full hostile-issuer table lives in
+# auth_config_sso_form_action_origins_spec, which owns the funnel.
 RSpec.describe Onetime::Middleware::TenantCspExtras do
   subject(:middleware) { described_class.new(downstream) }
 
-  let(:downstream_response) { [200, { 'content-type' => 'text/html' }, ['ok']] }
+  let(:response_headers) { { 'content-type' => 'text/html; charset=utf-8' } }
+  let(:downstream_response) { [200, response_headers, ['ok']] }
   let(:downstream) { ->(_env) { downstream_response } }
 
   let(:display_domain) { 'tenant.example.net' }
   let(:domain_id) { 'cd_tenant123' }
-  let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: domain_id) }
 
   # Real funnel, no config file: AuthConfig#tenant_idp_origin and its private
-  # origin_from_url never touch loaded config, so an allocated instance gives
-  # the production validation without booting the auth config singleton.
+  # helpers never touch loaded config, so an allocated instance gives the
+  # production validation without booting the auth config singleton.
   let(:auth_config) { Onetime::AuthConfig.send(:allocate) }
 
   let(:extras_key) { Otto::EnvKeys::CSP::EXTRA_DIRECTIVES }
+  let(:csp_enabled) { true }
 
-  def build_env(strategy: :custom, display: display_domain, extra: {})
+  def build_env(display: display_domain, extra: {})
     {
-      'onetime.domain_strategy' => strategy,
+      'onetime.domain_strategy' => :custom,
       'onetime.display_domain' => display,
     }.merge(extra)
   end
@@ -49,51 +56,115 @@ RSpec.describe Onetime::Middleware::TenantCspExtras do
   end
 
   before do
+    allow(OT).to receive(:conf).and_return(
+      'site' => { 'security' => { 'csp' => { 'enabled' => csp_enabled } } },
+    )
     allow(Onetime).to receive(:auth_config).and_return(auth_config)
   end
 
   def stub_tenant(config, available: true)
-    allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
-      .with(display_domain).and_return(custom_domain)
+    allow(Onetime::CustomDomain).to receive(:resolve_domain_id)
+      .with(display_domain).and_return(domain_id)
     allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
       .with(domain_id).and_return(config)
     allow(Onetime::CustomDomain::SsoConfig).to receive(:tenant_sso_available_for?)
       .with(domain_id, sso_config: config).and_return(available)
   end
 
-  describe 'non-custom domain strategies' do
-    %i[canonical subdomain invalid].each do |strategy|
-      it "leaves the env untouched and never reads the datastore for :#{strategy}" do
-        expect(Onetime::CustomDomain).not_to receive(:load_by_display_domain)
-        env = build_env(strategy: strategy)
+  describe 'pre-read guards (no datastore work unless the response can carry a CSP)' do
+    it 'never reads the datastore when CSP is disabled' do
+      allow(OT).to receive(:conf).and_return(
+        'site' => { 'security' => { 'csp' => { 'enabled' => false } } },
+      )
+      expect(Onetime::CustomDomain).not_to receive(:resolve_domain_id)
+      env = build_env
 
-        expect(middleware.call(env)).to eq(downstream_response)
-        expect(env).not_to have_key(extras_key)
-      end
-    end
-
-    it 'leaves the env untouched when the strategy is absent (nil)' do
-      expect(Onetime::CustomDomain).not_to receive(:load_by_display_domain)
-      env = build_env(strategy: nil)
-
-      middleware.call(env)
+      expect(middleware.call(env)).to eq(downstream_response)
       expect(env).not_to have_key(extras_key)
     end
-  end
 
-  describe 'custom domain without an available tenant SSO config' do
-    it 'writes no extras when the display_domain resolves to no CustomDomain' do
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
-        .with(display_domain).and_return(nil)
+    it 'never reads the datastore for a non-HTML response (JSON)' do
+      response_headers['content-type'] = 'application/json'
+      expect(Onetime::CustomDomain).not_to receive(:resolve_domain_id)
+      env = build_env
+
+      expect(middleware.call(env)).to eq(downstream_response)
+      expect(env).not_to have_key(extras_key)
+    end
+
+    it 'reads a canonically-cased Content-Type (case-insensitive, like otto and RequestSetup)' do
+      response_headers.delete('content-type')
+      response_headers['Content-Type'] = 'application/json'
+      expect(Onetime::CustomDomain).not_to receive(:resolve_domain_id)
       env = build_env
 
       middleware.call(env)
       expect(env).not_to have_key(extras_key)
     end
 
+    it 'treats an ABSENT Content-Type as HTML (RequestSetup defaults it to text/html downstream)' do
+      # RequestSetup#ensure_content_type (the OUTER layer) fills in text/html
+      # after this middleware returns, so a header-less response WILL be
+      # emitted with a CSP — the widening must stay in lockstep with it.
+      response_headers.clear
+      config = sso_config_double(provider_type: 'oidc', issuer: 'https://idp.tenant.example')
+      stub_tenant(config)
+      env = build_env
+
+      middleware.call(env)
+      expect(env[extras_key]).to eq('form-action' => ['https://idp.tenant.example'])
+    end
+
+    it 'never reads the datastore when no display_domain was published' do
+      expect(Onetime::CustomDomain).not_to receive(:resolve_domain_id)
+      env = build_env(display: nil)
+
+      middleware.call(env)
+      expect(env).not_to have_key(extras_key)
+    end
+  end
+
+  describe 'domain strategy independence (#4173 skew fix)' do
+    it 'still widens on an :invalid strategy when the display_domain resolves' do
+      # DomainStrategy answers :invalid when ITS datastore read blips, while
+      # display_domain survives — and the SSO button's serializer
+      # (ConfigSerializer#resolve_tenant_sso_config) keys on display_domain
+      # alone, so the button still renders. A strategy gate here would skip
+      # the widening for exactly that page: the original #4173 symptom.
+      config = sso_config_double(provider_type: 'oidc', issuer: 'https://idp.tenant.example')
+      stub_tenant(config)
+      env = build_env(extra: { 'onetime.domain_strategy' => :invalid })
+
+      middleware.call(env)
+      expect(env[extras_key]).to eq('form-action' => ['https://idp.tenant.example'])
+    end
+
+    it 'writes no extras for a canonical-host display_domain (index resolves no domain_id)' do
+      allow(Onetime::CustomDomain).to receive(:resolve_domain_id)
+        .with(display_domain).and_return(nil)
+      env = build_env(extra: { 'onetime.domain_strategy' => :canonical })
+
+      middleware.call(env)
+      expect(env).not_to have_key(extras_key)
+    end
+  end
+
+  describe 'domain resolution' do
+    it 'resolves via the index-only read, downcased (resolve_domain_id does not normalize)' do
+      config = sso_config_double(provider_type: 'oidc', issuer: 'https://idp.tenant.example')
+      stub_tenant(config)
+      env = build_env(display: 'Tenant.Example.NET')
+
+      middleware.call(env)
+      expect(Onetime::CustomDomain).to have_received(:resolve_domain_id).with('tenant.example.net')
+      expect(env[extras_key]).to eq('form-action' => ['https://idp.tenant.example'])
+    end
+  end
+
+  describe 'custom domain without an available tenant SSO config' do
     it 'writes no extras when the domain has no SsoConfig record' do
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
-        .with(display_domain).and_return(custom_domain)
+      allow(Onetime::CustomDomain).to receive(:resolve_domain_id)
+        .with(display_domain).and_return(domain_id)
       allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
         .with(domain_id).and_return(nil)
       env = build_env
@@ -111,15 +182,15 @@ RSpec.describe Onetime::Middleware::TenantCspExtras do
       expect(env).not_to have_key(extras_key)
     end
 
-    it 'writes no extras for an unsupported provider_type (funnel returns nil)' do
-      # Belt and suspenders: the availability ladder already fails
-      # :unsupported_provider_type closed, but even if it passed, the funnel
-      # answers nil for anything outside oidc/entra_id.
-      config = sso_config_double(provider_type: 'github')
+    it 'writes no extras (and does not raise) for an unknown provider_type' do
+      # Availability is force-passed to prove the funnel independently fails
+      # closed: a provider_type with no PROVIDER_ROUTE_MAP entry answers nil,
+      # never raises — the guard for a future route-map/registry drift.
+      config = sso_config_double(provider_type: 'saml_future')
       stub_tenant(config, available: true)
       env = build_env
 
-      middleware.call(env)
+      expect { middleware.call(env) }.not_to raise_error
       expect(env).not_to have_key(extras_key)
     end
   end
@@ -156,58 +227,33 @@ RSpec.describe Onetime::Middleware::TenantCspExtras do
       middleware.call(env)
       expect(env[extras_key]).to eq('form-action' => ['https://idp.tenant.example'])
     end
-  end
 
-  describe 'hostile or malformed tenant issuers (real funnel)' do
-    # Acceptance intent (c): a hostile issuer is dropped by the funnel and the
-    # env carries NO extras key — not an empty hash — and nothing raises.
-    [
-      ['semicolon injection', 'https://idp.example.com; script-src https://evil.example'],
-      ['javascript scheme', 'javascript:alert(1)'],
-      ['schemeless', 'idp.example.com'],
-      ['blank', ''],
-      ['nil issuer', nil],
-      ['bare scheme', 'https://'],
-    ].each do |label, issuer|
-      it "writes no extras for a #{label} issuer" do
-        config = sso_config_double(provider_type: 'oidc', issuer: issuer)
-        stub_tenant(config)
-        env = build_env
-
-        expect { middleware.call(env) }.not_to raise_error
-        expect(env).not_to have_key(extras_key)
-      end
-    end
-
-    it 'strips the path from an issuer rather than rejecting it' do
-      # otto's extras channel rejects any token with a path (even a bare
-      # trailing slash), so the funnel must emit a clean origin.
-      config = sso_config_double(provider_type: 'oidc', issuer: 'https://idp.example.com/')
+    it 'writes no extras (not an empty hash) when the funnel rejects a hostile issuer' do
+      # ONE representative funnel-rejection case; the full hostile-issuer
+      # table (injection, schemes, blanks, paths) lives in
+      # auth_config_sso_form_action_origins_spec, which owns the funnel.
+      config = sso_config_double(
+        provider_type: 'oidc',
+        issuer: 'https://idp.example.com; script-src https://evil.example',
+      )
       stub_tenant(config)
       env = build_env
 
-      middleware.call(env)
-      expect(env[extras_key]).to eq('form-action' => ['https://idp.example.com'])
+      expect { middleware.call(env) }.not_to raise_error
+      expect(env).not_to have_key(extras_key)
     end
   end
 
   describe 'datastore failure' do
-    it 'warns and proceeds without extras when the domain read raises' do
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
-        .and_raise(StandardError, 'valkey blip')
-      expect(OT).to receive(:lw).with(/TenantCspExtras.*tenant\.example\.net.*valkey blip/)
-      env = build_env
-
-      expect(middleware.call(env)).to eq(downstream_response)
-      expect(env).not_to have_key(extras_key)
-    end
-
+    # The domain-index read (resolve_domain_id) swallows datastore errors
+    # internally and returns nil, so the middleware's rescue is reachable
+    # only from the SsoConfig/availability reads and origin derivation.
     it 'warns and proceeds without extras when the SsoConfig read raises' do
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
-        .with(display_domain).and_return(custom_domain)
+      allow(Onetime::CustomDomain).to receive(:resolve_domain_id)
+        .with(display_domain).and_return(domain_id)
       allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
         .and_raise(StandardError, 'valkey blip')
-      expect(OT).to receive(:lw)
+      expect(OT).to receive(:lw).with(/TenantCspExtras.*tenant\.example\.net.*valkey blip/)
       env = build_env
 
       expect(middleware.call(env)).to eq(downstream_response)
@@ -238,6 +284,48 @@ RSpec.describe Onetime::Middleware::TenantCspExtras do
       middleware.call(env)
       expect(env[extras_key]['form-action']).to eq(
         ['https://other.example', 'https://idp.tenant.example'],
+      )
+    end
+
+    it 'splits a String-form entry before appending (otto reads a String as a token LIST)' do
+      # Array('https://a https://b') would wrap the list as ONE token, which
+      # otto's whitespace FORBIDDEN_CHARS check then drops wholesale —
+      # silently vanishing the other layer's origins.
+      env = build_env(extra: {
+        extras_key => { 'form-action' => 'https://a.example https://b.example' },
+      })
+
+      middleware.call(env)
+      expect(env[extras_key]['form-action']).to eq(
+        ['https://a.example', 'https://b.example', 'https://idp.tenant.example'],
+      )
+    end
+
+    it "normalizes a 'form_action'-spelled key instead of writing a colliding sibling" do
+      # Otto normalizes directive keys (to_s.strip.downcase.tr('_', '-')), so
+      # 'form_action' and 'form-action' collide INSIDE otto where one side
+      # would silently win; normalizing before the merge keeps both.
+      env = build_env(extra: {
+        extras_key => { :form_action => ['https://other.example'] },
+      })
+
+      middleware.call(env)
+      expect(env[extras_key]).to eq(
+        'form-action' => ['https://other.example', 'https://idp.tenant.example'],
+      )
+    end
+
+    it 'concatenates token lists when keys collapse under normalization' do
+      env = build_env(extra: {
+        extras_key => {
+          'Form-Action' => ['https://a.example'],
+          'form_action' => 'https://b.example',
+        },
+      })
+
+      middleware.call(env)
+      expect(env[extras_key]).to eq(
+        'form-action' => ['https://a.example', 'https://b.example', 'https://idp.tenant.example'],
       )
     end
 

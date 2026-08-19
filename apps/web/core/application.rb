@@ -41,9 +41,11 @@ module Core
 
     # Per-request CSP form-action widening for tenant SSO IdPs (#4173).
     # Mounted INSIDE RequestSetup: it writes env['otto.csp.extra_directives']
-    # on the way in, and RequestSetup's finalize_response (which emits the
-    # CSP via Otto's Writer with env in hand) sees the write on the way out.
-    # Core-only: the API/auth apps do not emit this CSP.
+    # on the way OUT (only for CSP-enabled HTML responses), strictly before
+    # RequestSetup's finalize_response — the outer layer — emits the CSP via
+    # Otto's Writer with env in hand. Core-only: the API/auth apps emit their
+    # own CSP (Rack::Protection default-src 'self') but no form-action
+    # directive; the enforcing document for the SSO form is the Core page.
     use Onetime::Middleware::TenantCspExtras
 
     # Simplified error handling for Vue SPA - serves entry points

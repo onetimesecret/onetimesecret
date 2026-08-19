@@ -4,6 +4,22 @@
 
 require 'otto/env_keys'
 
+# Fail fast on an otto without the request-scoped CSP extras channel
+# (delano/otto#243, targeting otto 2.9). Released otto 2.8.1 ships
+# otto/env_keys WITHOUT the CSP submodule and Writer.apply without env:, so if
+# the Gemfile ever resolves it (e.g. a revert to `~> 2.8` after the feature
+# branch is deleted), the failure would otherwise surface as a NameError
+# swallowed per-request by the rescue below (silent feature death) plus an
+# `ArgumentError: unknown keyword: :env` 500ing every HTML response. A boot
+# failure with a named cause beats a silent no-op.
+unless defined?(Otto::EnvKeys::CSP::EXTRA_DIRECTIVES)
+  otto_version = defined?(Otto::VERSION) ? Otto::VERSION : '(unknown)'
+  raise LoadError,
+    'otto >= 2.9 with CSP request extras required; resolved otto ' \
+    "#{otto_version} lacks Otto::EnvKeys::CSP::EXTRA_DIRECTIVES — " \
+    'check the Gemfile otto entry'
+end
+
 module Onetime
   module Middleware
     # Widens the CSP form-action directive with the resolved tenant's SSO IdP
@@ -14,12 +30,26 @@ module Onetime
     # Tenant SSO issuers live in per-domain CustomDomain::SsoConfig records,
     # so on a custom domain the SSO form POST's 302 to the IdP was blocked by
     # `form-action` — silently, in the browser, with no server-side error.
-    # This middleware resolves the tenant's IdP origin on the way IN and
-    # writes it to otto's request-scoped CSP extras channel
+    # This middleware runs on the way OUT: after the downstream app has
+    # produced its response, and only when that response would actually carry
+    # a CSP (CSP enabled, HTML media type), it resolves the tenant's IdP
+    # origin and writes it to otto's request-scoped CSP extras channel
     # (env['otto.csp.extra_directives'], delano/otto#243). Otto sanitizes the
     # tokens (origins-only grammar, additive-only, refused directives dropped)
     # at policy-build time, when Core::Middleware::RequestSetup's
-    # finalize_response hands the env to Otto::Security::CSP::Writer.apply.
+    # finalize_response — the OUTER layer, so it still sees this write —
+    # hands the env to Otto::Security::CSP::Writer.apply. Resolving on the
+    # way out keeps static assets, JSON, 404s, and health checks (and every
+    # request when CSP is disabled) from paying datastore round-trips whose
+    # result otto would discard anyway (Writer skips non-HTML before reading
+    # extras).
+    #
+    # This CSP is emitted only by the Core-rendered pages. The API/auth apps
+    # emit their own CSP (Rack::Protection::ContentSecurityPolicy via the
+    # authenticated_web profile: `default-src 'self'`) but no form-action
+    # directive — and form-action has no default-src fallback — so the
+    # enforcing document for the SSO form is the Core-rendered page this
+    # middleware wraps.
     #
     # Host resolution: the answer comes from env['onetime.display_domain'],
     # never Rack::Request#host. As HttpOriginOptions documents (#4170), a
@@ -28,12 +58,16 @@ module Onetime
     # resolved and validated that, publishing the result as display_domain —
     # reading Host here would widen the wrong host's policy.
     #
-    # Gate: runs only when env['onetime.domain_strategy'] == :custom.
-    # Canonical/subdomain hosts have no tenant SsoConfig; :invalid and nil are
-    # not operator hosts, and :invalid is also DomainStrategy's answer when
-    # its own datastore read raised (ADR-024 caveat — see
-    # Core::Controllers::Base#custom_domain_request?). For a security-header
-    # WIDENING, fail-closed = emit nothing = current behavior.
+    # Deliberately NOT gated on env['onetime.domain_strategy']: the SSO
+    # button's serializer (ConfigSerializer#resolve_tenant_sso_config) keys
+    # purely on display_domain with no strategy check, and DomainStrategy
+    # classifies a real custom domain :invalid when its own datastore read
+    # blips while display_domain survives — a strategy gate here would then
+    # render the button but skip the widening, recreating the exact #4173
+    # symptom. Keying both surfaces on display_domain alone keeps the CSP in
+    # lockstep with the affordance. Cost: canonical-host HTML renders now pay
+    # one domain-index GET (which resolves no domain_id and stops there) —
+    # acceptable.
     #
     # Failure direction: any datastore error degrades to "no widening". This
     # is deliberately the OPPOSITE choice from the #4157 signin gates, which
@@ -47,40 +81,73 @@ module Onetime
       end
 
       def call(env)
-        apply_tenant_extras(env) if env['onetime.domain_strategy'] == :custom
-        @app.call(env)
+        status, headers, body = @app.call(env)
+        apply_tenant_extras(env, headers)
+
+        [status, headers, body]
       end
 
       private
 
-      def apply_tenant_extras(env)
-        origin = resolve_tenant_idp_origin(env)
+      # Guards run cheapest-first, and all of them before any datastore read:
+      # the app-side CSP toggle (the same site.security.csp.enabled gate
+      # RequestSetup#emit_csp_header applies), then the response media type,
+      # then a present display_domain.
+      def apply_tenant_extras(env, headers)
+        return unless OT.conf.dig('site', 'security', 'csp', 'enabled')
+        return unless html_response?(headers)
+
+        display_domain = env['onetime.display_domain'].to_s
+        return if display_domain.empty?
+
+        origin = resolve_tenant_idp_origin(display_domain)
         return if origin.nil?
 
         merge_form_action_extra(env, origin)
       rescue StandardError => ex
+        # Narrow by construction: the domain-index read (resolve_domain_id)
+        # swallows datastore errors internally and returns nil (the #4157
+        # convention notes in Core::Controllers::Base cover this family), so
+        # this rescue only catches failures from the SsoConfig/availability
+        # reads and the origin derivation. A swallowed domain-read failure
+        # degrades silently to no-widening — the accepted fail-closed
+        # direction for a header widening.
         OT.lw '[TenantCspExtras] skipping CSP widening for ' \
               "#{env['onetime.display_domain'].inspect}: #{ex.class}: #{ex.message}"
       end
 
+      # Whether the response's media type is HTML, matching how otto's Writer
+      # decides emission (leading token before ';', case-insensitive,
+      # 'text/html' exactly), with one deliberate difference: an ABSENT
+      # Content-Type counts as HTML here. RequestSetup (the outer layer)
+      # defaults a missing Content-Type to text/html in finalize_response
+      # BEFORE the Writer sees it, so a header-less response will be emitted
+      # as HTML with a CSP — skipping the widening for it would reopen the
+      # lockstep gap this middleware exists to close.
+      def html_response?(headers)
+        content_type = headers.find { |key, _value| key.to_s.casecmp?('content-type') }&.last
+        return true if content_type.nil?
+
+        content_type.to_s.split(';', 2).first.to_s.strip.casecmp?('text/html')
+      end
+
       # The tenant's IdP origin, or nil when the domain has no available
-      # tenant SSO. Availability is SsoConfig.tenant_sso_available_for? — the
-      # SAME ladder ConfigSerializer#resolve_tenant_sso_config uses to decide
-      # whether the page renders the SSO button, so the CSP stays in lockstep
-      # with the affordance. The already-loaded record is handed to the
-      # predicate via its sso_config: pass-through (single-read contract: the
-      # verdict and the record whose issuer we emit are the same object).
-      # Platform provider state (sso_enabled?, env credentials) is
-      # deliberately NOT consulted: tenant SSO stands on its own.
-      def resolve_tenant_idp_origin(env)
-        display_domain = env['onetime.display_domain'].to_s
-        return nil if display_domain.empty?
+      # tenant SSO. The domain-index read is resolve_domain_id — index-only
+      # (one GET), no record hydration, nil on miss or error; it does not
+      # downcase its input (unlike load_by_display_domain), hence the
+      # explicit .downcase. Availability is SsoConfig.tenant_sso_available_for?
+      # — the SAME ladder ConfigSerializer#resolve_tenant_sso_config uses to
+      # decide whether the page renders the SSO button. The already-loaded
+      # record is handed to the predicate via its sso_config: pass-through
+      # (single-read contract: the verdict and the record whose issuer we
+      # emit are the same object). Platform provider state (sso_enabled?, env
+      # credentials) is deliberately NOT consulted: tenant SSO stands on its
+      # own.
+      def resolve_tenant_idp_origin(display_domain)
+        domain_id = Onetime::CustomDomain.resolve_domain_id(display_domain.downcase)
+        return nil if domain_id.nil?
 
-        custom_domain = Onetime::CustomDomain.load_by_display_domain(display_domain)
-        return nil if custom_domain.nil?
-
-        domain_id = custom_domain.identifier
-        config    = Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain_id)
+        config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain_id)
         return nil if config.nil?
         return nil unless Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(
           domain_id, sso_config: config
@@ -93,14 +160,37 @@ module Onetime
       end
 
       # Merge (never clobber) the origin into the request-scoped extras hash.
-      # Otto re-sanitizes everything at policy build, so an existing entry
-      # written by another layer is preserved verbatim.
+      #
+      # Pre-existing entries are first normalized with otto's own rules
+      # (Otto::Security::CSP::RequestExtras): directive keys via
+      # to_s.strip.downcase.tr('_', '-') — otherwise a 'form_action' /
+      # :form_action / 'Form-Action' spelling would only collide with our
+      # 'form-action' inside otto, where plain hash assignment lets one side
+      # silently win — and String values split on whitespace, because otto
+      # reads a String value as a whitespace-separated source list;
+      # Array('https://a https://b') would wrap it as ONE token that otto's
+      # FORBIDDEN_CHARS (whitespace) check then drops wholesale, vanishing
+      # the other layer's origins. Keys that collapse under normalization
+      # have their token lists concatenated. Otto re-sanitizes every
+      # surviving token at policy build.
       def merge_form_action_extra(env, origin)
-        existing = env[Otto::EnvKeys::CSP::EXTRA_DIRECTIVES]
-        extras   = existing.is_a?(Hash) ? existing.dup : {}
+        extras = normalize_extras(env[Otto::EnvKeys::CSP::EXTRA_DIRECTIVES])
 
-        extras['form-action']                     = (Array(extras['form-action']) + [origin]).uniq
+        extras['form-action']                     = (extras.fetch('form-action', []) + [origin]).uniq
         env[Otto::EnvKeys::CSP::EXTRA_DIRECTIVES] = extras
+      end
+
+      # A fresh hash with otto-normalized keys and Array-of-tokens values.
+      # Never aliases the caller's hash or its nested arrays, so the original
+      # extras value is left untouched.
+      def normalize_extras(existing)
+        return {} unless existing.is_a?(Hash)
+
+        existing.each_with_object({}) do |(key, value), acc|
+          name      = key.to_s.strip.downcase.tr('_', '-')
+          tokens    = value.is_a?(String) ? value.split : Array(value)
+          acc[name] = acc.fetch(name, []) + tokens
+        end
       end
     end
   end
