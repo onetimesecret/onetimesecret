@@ -134,6 +134,13 @@ module Core
       # Enable CSP nonce support for enhanced security
       router.enable_csp_with_nonce!(debug: OT.debug?)
 
+      # Opt in to otto's request-scoped CSP extras channel (otto >= 2.9). Without
+      # this, writes to env['otto.csp.extra_directives'] are ignored — the
+      # channel is off by default so that only apps that deliberately widen
+      # directives per-request (TenantCspExtras: tenant SSO IdP origins into
+      # form-action, #4173) expose that surface to the middleware stack.
+      router.security_config.enable_csp_request_extras!
+
       # Widen the CSP form-action directive with the active SSO IdP origins so
       # Chromium permits the SSO form POST that 302-redirects to the provider
       # (form-action is enforced across the redirect chain). No-op when no SSO

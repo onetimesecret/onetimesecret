@@ -29,6 +29,9 @@ RSpec.describe Core::Middleware::RequestSetup do
   def security_config(form_action_origins: nil)
     Otto::Security::Config.new.tap do |config|
       config.enable_csp_with_nonce!
+      # Mirrors the boot wiring in apps/web/core/application.rb: the extras
+      # channel is opt-in (default off) as of otto 2.9.
+      config.enable_csp_request_extras!
       if form_action_origins
         config.merge_csp_directives('form-action' => "'self' #{form_action_origins}")
       end
