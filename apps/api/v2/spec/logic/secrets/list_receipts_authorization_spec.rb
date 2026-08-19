@@ -376,6 +376,110 @@ RSpec.describe V2::Logic::Secrets::ListReceipts do
       expect { logic.send(:query_domain_receipts) }.to raise_error(OT::FormError, /Access denied to domain/)
       expect(Onetime::OrganizationMembership).not_to have_received(:find_by_org_customer)
     end
+
+    # ========================================================================
+    # A domain with damaged ownership metadata: org_id blank, or pointing at an
+    # organization that has since been deleted. primary_organization answers
+    # nil, and that nil used to travel straight into require_entitlement_in!,
+    # which rejects it with a bare Onetime::Problem — an unanswerable 500 on a
+    # data defect the caller cannot act on.
+    #
+    # accessible_by? refuses such a domain today (it resolves the same org and
+    # returns false), so this was not a reachable 500. The guard is asserted
+    # anyway because it makes the invariant local: relaxing accessible_by?
+    # later must not be able to re-open the crash.
+    # ========================================================================
+    describe 'a domain whose organization cannot be resolved' do
+      let(:orphaned_domain) do
+        instance_double(
+          Onetime::CustomDomain,
+          display_domain: 'orphan.example.com',
+          extid: 'dm_orphan',
+          primary_organization: nil,
+        ).tap do |dom|
+          # Deliberately generous: the guard must hold on its own, not because
+          # the membership check happens to refuse first.
+          allow(dom).to receive(:accessible_by?).and_return(true)
+          allow(dom).to receive(:receipts).and_return(double('SortedSet', rangebyscore: %w[receipt_1]))
+        end
+      end
+
+      def orphan_logic
+        logic = stub_entitlements(
+          build_logic('scope' => 'domain', 'domain_extid' => 'dm_orphan'),
+          %w[api_access],
+        )
+        allow(Onetime::CustomDomain).to receive(:find_by_extid).and_return(orphaned_domain)
+        logic.process_params
+        logic
+      end
+
+      def capture_form_error
+        yield
+        raise 'expected a FormError, none was raised'
+      rescue OT::FormError => ex
+        ex
+      end
+
+      it 'answers a handled forbidden error, not a 500' do
+        stub_domain_membership(%w[api_access audit_logs])
+        logic = orphan_logic
+
+        expect { logic.send(:query_domain_receipts) }.to raise_error(OT::FormError) { |error|
+          expect(error.error_type).to eq(:forbidden)
+        }
+      end
+
+      it 'never hands require_entitlement_in! a nil organization' do
+        stub_domain_membership(%w[api_access audit_logs])
+        logic = orphan_logic
+        allow(logic).to receive(:require_entitlement_in!).and_call_original
+
+        expect { logic.send(:query_domain_receipts) }.to raise_error(OT::FormError)
+
+        # Stronger than asserting it was not called WITH nil: the entitlement
+        # decision has no meaning without an organization, so it must not be
+        # attempted at all.
+        expect(logic).not_to have_received(:require_entitlement_in!)
+      end
+
+      it 'answers exactly what a plain access denial answers' do
+        # Two different internal states, one public response. Any divergence —
+        # message, error_type, field, error_key — turns the endpoint into an
+        # oracle for which domains carry broken ownership metadata.
+        stub_domain_membership(%w[api_access audit_logs])
+        orphan_error = capture_form_error { orphan_logic.send(:query_domain_receipts) }
+
+        denied_logic = domain_logic(%w[api_access audit_logs])
+        allow(domain).to receive(:accessible_by?).and_return(false)
+        denied_error = capture_form_error { denied_logic.send(:query_domain_receipts) }
+
+        expect(orphan_error.to_h).to eq(denied_error.to_h)
+        expect(orphan_error.message).to eq(denied_error.message)
+      end
+
+      # Same reasoning as the scope=org denial log above: custid IS the email
+      # address on legacy (pre-v0.22) records, and org_id is an internal objid
+      # that identifies the very organization the request could not reach.
+      it 'logs the orphan against opaque identifiers only' do
+        stub_domain_membership(%w[api_access audit_logs])
+        logic   = orphan_logic
+        emitted = []
+        allow(OT).to receive(:lw) { |*msgs, **payload| emitted << [msgs.join(' '), payload] }
+
+        expect { logic.send(:query_domain_receipts) }.to raise_error(OT::FormError)
+
+        message, payload = emitted.find { |msg, _| msg.include?('[ListReceipts]') }
+        expect(payload).to eq(domain: 'dm_orphan', actor: 'ur_caller')
+        expect(payload).not_to have_key(:org_id)
+        expect(payload).not_to have_key(:custid)
+        # Scans the whole emitted record rather than named keys, so a future
+        # payload addition carrying an address or an objid fails here too.
+        record = [message, payload.values.join(' ')].join(' ')
+        expect(record).not_to include(caller_customer.custid)
+        expect(record).not_to include('@')
+      end
+    end
   end
 
   # ==========================================================================

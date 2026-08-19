@@ -273,8 +273,12 @@ module AccountAPI::Logic
         @resource = Onetime::CustomDomain.find_by_extid(resource_id)
         raise_not_found_error('Domain not found') unless @resource
 
-        @organization = @resource.primary_organization
-        raise_not_found_error('Domain has no associated organization') unless @organization
+        # Damaged ownership metadata answers 'Domain not found', like an unknown
+        # extid: the permissions payload is read before any membership check, so
+        # a distinct message here would be an ownership-integrity oracle.
+        @organization = load_organization_for_domain(@resource) do
+          raise_not_found_error('Domain not found')
+        end
       end
 
       def load_organization_resource!

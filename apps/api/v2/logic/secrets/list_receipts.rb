@@ -187,21 +187,47 @@ module V2::Logic
           )
         end
 
-        has_access = domain.accessible_by?(cust)
-        unless has_access
-          raise_form_error(
-            I18n.t(
-              'web.secrets.errors.access_denied_to_domain',
-              locale: locale,
-              default: 'Access denied to domain',
-            ),
-          )
+        # Resolve the owning organization BEFORE either gate. The entitlement is
+        # evaluated in the DOMAIN's org, so a domain whose org_id is blank or
+        # points at a deleted organization would otherwise reach
+        # require_entitlement_in! as nil, where it becomes a bare
+        # Onetime::Problem (a 500). accessible_by? happens to return false for
+        # such a domain today, so this is not a live 500 — the guard keeps the
+        # invariant local, so relaxing accessible_by? later cannot turn a data
+        # defect into an unhandled error.
+        domain_org = load_organization_for_domain(domain) do
+          # The extid is the only identifier that may appear here: custid holds
+          # the email address on legacy (pre-v0.22) records, and org_id is an
+          # internal objid. Keyword args reach OT.lw's **payload as structured
+          # fields rather than being concatenated into the message.
+          OT.lw '[ListReceipts] Domain has no resolvable organization',
+            domain: domain.extid,
+            actor: cust&.extid
+          deny_domain_access
         end
 
-        require_entitlement_in!(domain.primary_organization, 'audit_logs')
+        deny_domain_access unless domain.accessible_by?(cust)
+
+        require_entitlement_in!(domain_org, 'audit_logs')
 
         @scope_label = domain.display_domain
         domain.receipts.rangebyscore(since, @now)
+      end
+
+      # The damaged-ownership and not-a-member paths answer identically. A
+      # response that distinguished them would let any caller enumerate which
+      # domains carry broken ownership metadata, so both go through here rather
+      # than raising their own error — including the message, which must stay a
+      # single I18n lookup so the two cannot diverge under a non-English locale.
+      def deny_domain_access
+        raise_form_error(
+          I18n.t(
+            'web.secrets.errors.access_denied_to_domain',
+            locale: locale,
+            default: 'Access denied to domain',
+          ),
+          error_type: :forbidden,
+        )
       end
     end
   end
