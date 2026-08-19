@@ -33,11 +33,8 @@ module V2::Logic
       OWN_INDEX_SCOPES = [nil].freeze
       private_constant :OWN_INDEX_SCOPES
 
-      # Scopes that read an organization's receipts, including those created by
-      # OTHER members. Both are the organization's audit surface, so both carry
-      # the org-wide authorization bar (instance flag + audit_logs entitlement)
-      # rather than the member-level one — see raise_concerns for the flag and
-      # query_domain_receipts for the domain-scoped entitlement.
+      # Scopes that read receipts created by other organization members. Both
+      # require the organization-wide audit authorization.
       AUDIT_SURFACE_SCOPES = [:org, :domain].freeze
       private_constant :AUDIT_SURFACE_SCOPES
 
@@ -70,15 +67,10 @@ module V2::Logic
         # Applies to every scope, including the default (own receipts) one.
         require_entitlement!('api_access')
 
-        # Instance-level exclusion, mirroring the sibling org-wide surface:
-        # a self-hosted operator can remove the org's activity/receipt trail
-        # from the product with ORGS_AUDIT_LOGS_ENABLED=false. Default-true
-        # contract — only an explicit false disables; a missing key (older
-        # config file) counts as enabled. Compared on the string form, same as
-        # ConfigSerializer#build_feature_flags and ListSecretActivity, so a
-        # hand-edited config yielding the string 'false' darkens BOTH surfaces
-        # rather than leaving this one serving the stream while the UI hides
-        # the tab.
+        # A self-hosted operator can disable organization activity and receipt
+        # visibility with ORGS_AUDIT_LOGS_ENABLED=false. Only an explicit false
+        # disables; a missing key in an older config remains enabled. Compare the
+        # string form so a hand-edited 'false' is also honored.
         #
         # Applies to scope=org AND scope=domain: both return other members'
         # receipts. Gates exposure only — receipt collection is unaffected, as
@@ -93,15 +85,9 @@ module V2::Logic
           raise_form_error('Secret activity is not enabled on this instance', error_type: :forbidden)
         end
 
-        # Organization scope returns receipts created by OTHER members — an
-        # org-wide audit surface, not a personal one. Gate it at the same
-        # admin/owner entitlement the sibling org-wide surface requires
-        # (OrganizationAPI::Logic::Organizations::ListSecretActivity calls
-        # require_entitlement_in!(org, 'audit_logs')), so the two cannot
-        # disagree about who may read the organization's secret activity.
-        # scope=domain clears the same bar against the domain's OWNING
-        # organization — see query_domain_receipts, which is where the domain
-        # is resolved.
+        # Organization scope returns receipts created by other members, so it
+        # requires the organization-wide audit entitlement. Domain scope applies
+        # that entitlement to the domain's owning organization after resolution.
         #
         # Effective entitlements are the org plan ∩ ROLE_ENTITLEMENTS[role],
         # and audit_logs is an ADMIN_ENTITLEMENTS member
@@ -115,10 +101,9 @@ module V2::Logic
         # catalog, and the shipped example catalog
         # (etc/examples/billing.example.yaml) defines audit_logs without
         # granting it in ANY plan — so scope=org and scope=domain return 403
-        # for every role, owners included, until the catalog grants it. That is
-        # the same precondition the sibling org-wide surface
-        # (ListSecretActivity) already carries, and it fails CLOSED. Grant
-        # audit_logs on the plans that should have org-wide visibility, or drop
+        # for every role, owners included, until the catalog grants it. This
+        # fails closed. Grant audit_logs on the plans that should have org-wide
+        # visibility, or drop
         # this line and its twin in query_domain_receipts to keep the endpoint
         # at member level — the capability-token redaction in safe_dump_for
         # below is independent of these gates and closes the confidentiality
@@ -214,9 +199,6 @@ module V2::Logic
       # scopes on OWN_INDEX_SCOPES skip it, and any scope added to #process
       # later inherits the withholding rather than the leak.
       #
-      # Shortids are this product's established safe form for cross-member
-      # surfaces: ListSecretActivity emits "receipt/secret shortids only —
-      # never full identifiers, which are capability tokens". We follow it.
       # identifier/key collapse to the receipt shortid, which is already
       # emitted unconditionally in its own `shortid` field (so this adds no
       # exposure) and cannot be used to reveal or burn anything;

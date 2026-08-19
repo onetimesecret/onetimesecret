@@ -178,9 +178,7 @@ module Auth
         apply_pending_federation!(org)
 
         org
-      rescue Onetime::Problem => ex
-        raise unless ex.message.include?('Organization exists')
-
+      rescue Onetime::OrganizationExists
         # Org exists in the email index but customer has no membership link
         # (e.g., incomplete prior creation, data inconsistency after SSO).
         # Find the existing org and repair the membership.

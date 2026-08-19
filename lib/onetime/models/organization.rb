@@ -471,7 +471,7 @@ module Onetime
 
           unless reserved
             # Email already in index - another org exists with this email
-            raise Onetime::Problem, 'Organization exists for that email address'
+            raise Onetime::OrganizationExists, 'Organization exists for that email address'
           end
         end
 

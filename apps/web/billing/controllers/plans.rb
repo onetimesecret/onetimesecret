@@ -164,18 +164,10 @@ module Billing
         # other checkout path. Applied after customer handling because
         # customer_update requires a bound :customer id.
         #
-        # Scope note: this path shares the tax block and the pmc pin below
-        # only. Unlike BillingController#create_checkout_session it does not
-        # delegate to build_session_params, so its subscription metadata keeps
-        # this surface's historical shape — the debug_info JSON blob and
-        # customer_extid, rather than the builder's flat plan_id/tier/region
-        # keys. Deliberate: those keys are webhook- and Sigma-visible, and
-        # dropping debug_info needs a survey of external consumers this repo
-        # cannot see. Target resolution no longer depends on that survey: the
-        # metadata block below stamps orgid, the same objid the builder emits,
-        # so both find_target_organization implementations pin the org at
-        # step 1 instead of inferring it. #4017 is now a deduplication of the
-        # param assembly, not a correctness fix.
+        # This path keeps its historical subscription metadata shape — the
+        # debug_info JSON blob and customer_extid rather than flat plan/tier/
+        # region keys. Those keys are webhook- and Sigma-visible, so changing
+        # them requires a consumer audit.
         #
         # Dashboard prerequisites when enabled (Settings → Tax): Stripe Tax
         # active, registrations for applicable jurisdictions, tax codes on
@@ -210,27 +202,9 @@ module Billing
             }.to_json,
             customer_extid: cust.extid,
 
-            # orgid pins the completion target to the organization the
-            # authorization gate above approved. Both completion paths prefer
-            # it at step 1 of find_target_organization
-            # (Billing::Logic::Welcome::ProcessCheckoutSession and
-            # WebhookHandlers::CheckoutCompleted), each resolving it with
-            # Onetime::Organization.load — so the value must be objid
-            # (identifier_field :objid), matching what
-            # CreateCheckoutLink.build_session_params emits. Without it,
-            # resolution falls through to the caller's default_org_id / the
-            # org holding the session's stripe_customer_id, both of which can
-            # change between session creation and completion (a custom-domain
-            # SSO sign-in mid-flight repoints default_org_id and archives the
-            # personal workspace) — so a subscription could land on, and
-            # overwrite the stripe_customer_id of, an org that was never
-            # authorized here.
-            #
-            # Absent when the caller has no organization yet: they create and
-            # own one at completion, so there is nothing to pin. .compact drops
-            # the key rather than sending an empty value, which would make
-            # step 1 attempt a doomed lookup and log a spurious 'orgid in
-            # metadata not found' warning before falling through.
+            # Pin the target approved above with its stable object identifier.
+            # When no organization exists yet, omit the key rather than sending
+            # an empty identifier.
             orgid: default_org&.objid,
           }.compact,
         }
@@ -332,13 +306,9 @@ module Billing
         # instruments, and it can change the payment method and CANCEL the
         # subscription. Membership is not sufficient authority for any of that.
         #
-        # cust.default_org_id is NOT proof of ownership. JoinDomainOrganization
-        # repoints it to the shared tenant organization for a caller who is only
-        # a 'member' (auth/operations/join_domain_organization.rb, and likewise
-        # bulk_sso_migration.rb / add_member_command.rb), so a pre-existing
-        # account holder who signs in through a tenant's custom-domain SSO ends
-        # up defaulting to an org they do not own. Without this gate that member
-        # is handed the tenant's portal.
+        # cust.default_org_id is not proof of ownership: a default organization
+        # can be one the caller merely belongs to. Without this gate, that member
+        # is handed the organization's portal.
         #
         # Gate on ownership rather than the manage_billing entitlement.
         # Effective entitlements are the org plan ∩ ROLE_ENTITLEMENTS[role].
@@ -427,13 +397,8 @@ module Billing
         # organization's behalf or to attach a payment instrument to its
         # billing customer.
         #
-        # cust.default_org_id is NOT proof of ownership. JoinDomainOrganization
-        # repoints it to the shared tenant organization for a caller who is only
-        # a 'member' (auth/operations/join_domain_organization.rb, and likewise
-        # bulk_sso_migration.rb / add_member_command.rb) and archives their
-        # personal workspace, so a pre-existing account holder who signs in
-        # through a tenant's custom-domain SSO resolves here to an org they do
-        # not own.
+        # cust.default_org_id is not proof of ownership: a default organization
+        # can be one the caller merely belongs to.
         #
         # Deny the checkout outright rather than merely withholding the
         # organization's Stripe customer from the session. Withholding would be
@@ -441,10 +406,9 @@ module Billing
         # ApplySubscriptionToOrg then overwrites the organization's
         # stripe_customer_id with it at completion, detaching the org from its
         # own billing customer. Creating no session at all leaves nothing to
-        # resolve and nothing to overwrite. (The orgid stamp in
-        # checkout_redirect's subscription_data pins the target org independently; it makes
-        # resolution deterministic, it does not make an unauthorized purchase
-        # acceptable — that is this gate's job.)
+        # resolve and nothing to overwrite. Pinning a target makes resolution
+        # deterministic; it does not authorize the purchase. That is this
+        # gate's job.
         #
         # Gate on ownership rather than the manage_billing entitlement, as
         # customer_portal_redirect does. Effective entitlements are the org plan

@@ -5,21 +5,11 @@
 module Billing
   # Resolves the organization a completed checkout belongs to.
   #
-  # Two handlers process the SAME completed checkout and must agree on its
-  # target: Billing::Logic::Welcome::ProcessCheckoutSession (the browser
-  # redirect to /billing/welcome) and
-  # Billing::Operations::WebhookHandlers::CheckoutCompleted (the
-  # checkout.session.completed event). They previously carried twin copies of
-  # this logic kept in sync by comment, and had silently drifted: the webhook
-  # copy was missing both the archived-org filter and the default_org_id
-  # priority. That drift was the 2026-08-14 appsec H-2 residue — a member's
-  # checkout resolving to a tenant organization they merely belong to. The
-  # resolution order lives here so it cannot drift again.
+  # The resolution order lives here so every completion path uses the same
+  # target-selection policy.
   #
-  # Creation policy deliberately does NOT live here: the two handlers differ on
-  # what to do when nothing resolves (see each caller's step 4). This module
-  # answers "which existing organization is this checkout for", and returns nil
-  # when the answer is none.
+  # This module answers "which existing organization is this checkout for" and
+  # returns nil when none resolves; callers own their creation policy.
   module CheckoutTargetResolver
     extend self
 
@@ -32,26 +22,19 @@ module Billing
     #
     # AUTHORIZATION, and why it applies at step 3 only:
     #
-    # Step 1 needs no ownership check — orgid is stamped by the checkout
-    # creator (Plans#checkout_redirect, CreateCheckoutLink), each of which
-    # authorizes the caller against that org BEFORE the session exists.
-    # Re-deriving authority here would be weaker, not stronger: this runs after
-    # payment, when roles may have changed.
+    # Step 1 needs no ownership check: it uses the checkout's explicit target.
+    # Re-deriving authority after payment would be weaker, not stronger, because
+    # roles may have changed.
     #
-    # Step 2 is not an ownership question. find_by_stripe_customer_id returns
-    # the org that already holds this Stripe customer — the org whose billing
-    # relationship the session was bound to. Requiring ownership there would
-    # abandon the correct org and mint a duplicate on every replay.
+    # Step 2 is not an ownership question: it recovers the organization already
+    # bound to the session's Stripe customer. Requiring ownership would abandon
+    # that target and mint a duplicate on replay.
     #
-    # Step 3 IS an ownership question, and the only one. It infers the target
-    # from memberships, which include organizations the customer merely BELONGS
-    # to: JoinDomainOrganization adds a custom-domain SSO caller to the shared
-    # tenant org as 'member' and repoints their default_org_id at it. Without
-    # the filter, a legacy (orgid-less) checkout resolves to that tenant org and
-    # ApplySubscriptionToOrg overwrites its stripe_customer_id, detaching the
-    # tenant from its own billing customer. Archived orgs are rejected for the
-    # same reason Plans#default_organization_for rejects them: an archived
-    # workspace is not a live billing target.
+    # Step 3 IS an ownership question, and the only one. It infers a target
+    # from memberships, which can include organizations the customer does not
+    # own. Without the filter, a legacy checkout can overwrite another
+    # organization's Stripe customer. Archived organizations are not live
+    # billing targets.
     #
     # @param customer [Onetime::Customer] customer named by the subscription
     # @param metadata [Stripe::StripeObject, Hash] subscription metadata
@@ -68,30 +51,19 @@ module Billing
 
     # The customer's live organizations that they own, in membership order.
     #
+    # Ownership is the ACTIVE 'owner' membership row (Organization#owner?),
+    # the sole authority per ADR-012; the deprecated owner_id field is
+    # deliberately not consulted. When the two disagree there is no way to
+    # know which is right, so this predicate takes the recoverable branch:
+    # fall through to the caller's create path (a spurious workspace) rather
+    # than resolve to an org the customer may no longer own.
+    #
     # @param customer [Onetime::Customer]
     # @return [Array<Onetime::Organization>]
     def owned_live_orgs(customer)
       customer.organization_instances.to_a
         .reject(&:archived?)
-        .select { |org| owned_by?(org, customer) }
-    end
-
-    # True when this organization belongs to the customer as its owner.
-    #
-    # The membership row is authoritative (Organization#owner? requires an
-    # ACTIVE membership with role 'owner'). owner_id is accepted as a secondary
-    # signal so a drifted or missing membership row does not make us abandon the
-    # customer's own organization and mint a duplicate for a subscription they
-    # just paid for — Controllers::Base#load_organization self-heals that same
-    # drift. Both live in objid space and are written together at create! (and
-    # by Operations::Org::TransferOwnership), and neither can be true for an org
-    # owned by someone else, which is the case this filter exists to exclude.
-    #
-    # @param org [Onetime::Organization]
-    # @param customer [Onetime::Customer]
-    # @return [Boolean]
-    def owned_by?(org, customer)
-      org.owner?(customer) || org.owner_id.to_s == customer.objid.to_s
+        .select { |org| org.owner?(customer) }
     end
 
     # Create the organization a checkout's subscription will land on.
@@ -111,9 +83,7 @@ module Billing
     # @return [Onetime::Organization]
     def create_billing_workspace(customer, logger:, label:)
       new_workspace(customer, customer.email)
-    rescue Onetime::Problem => ex
-      raise unless ex.message.include?('Organization exists')
-
+    rescue Onetime::OrganizationExists
       logger.warn "#{label} contact_email already reserved, creating workspace without one",
         { customer_extid: customer.extid }
       new_workspace(customer, nil)
@@ -148,13 +118,8 @@ module Billing
       org
     end
 
-    # Explicit default_org_id first, then the is_default flag, then any owned
-    # live org — the same priority Plans#default_organization_for applies at
-    # checkout creation, plus the trailing tolerance the webhook handler has
-    # always had. The tolerance is shared deliberately: when one handler
-    # accepted an owned org and the other created a fresh one, the same
-    # subscription was applied to two organizations, and the second write
-    # raised on the unique stripe_customer_id index.
+    # Prefer the explicit default, then the default-marked organization, then
+    # any owned live organization.
     def from_owned_orgs(customer, logger, label)
       owned = owned_live_orgs(customer)
 

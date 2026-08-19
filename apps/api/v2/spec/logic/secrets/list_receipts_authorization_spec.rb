@@ -17,10 +17,9 @@
 #      the caller does not own must come back without it, and without the
 #      receipt identifier/key that authorize burning.
 #
-#   2. ENTITLEMENT. The org-wide listing is gated at the same admin/owner
-#      entitlement as the sibling org-wide surface (ListSecretActivity's
-#      audit_logs), rather than the member-level api_access that let the
-#      least-privileged role read the whole organization's receipts.
+#   2. ENTITLEMENT. The org-wide listing requires audit_logs rather than the
+#      member-level api_access that let the least-privileged role read the whole
+#      organization's receipts.
 #
 # Three follow-up findings from the review of that fix are covered at the
 # bottom of this file: the ORGS_AUDIT_LOGS_ENABLED instance kill-switch (A),
@@ -169,9 +168,7 @@ RSpec.describe V2::Logic::Secrets::ListReceipts do
           record  = logic.send(:safe_dump_for, foreign_receipt)
           shortid = foreign_receipt.safe_dump[:shortid]
 
-          # Shortids are this product's established safe form for cross-member
-          # surfaces (ListSecretActivity emits shortids only). They must stay
-          # Strings: the V3 contract types identifier/key as required,
+          # The V3 contract types identifier/key as required,
           # non-nullable strings inside a strict array, so a nil here would
           # fail the record and blank the entire response.
           expect(record[:identifier]).to eq(shortid)
@@ -222,12 +219,9 @@ RSpec.describe V2::Logic::Secrets::ListReceipts do
   end
 
   # ==========================================================================
-  # FINDING A — instance kill-switch parity with the sibling org-wide surface.
-  #
-  # ORGS_AUDIT_LOGS_ENABLED=false removes the org's activity trail from the
-  # product (ListSecretActivity). Before this, receipt/recent?scope=org kept
-  # serving the same org-wide stream to admins/owners, so an operator who
-  # believed the feature was off still had it readable over the API.
+  # FINDING A — the instance kill-switch must disable organization-wide receipt
+  # visibility. Otherwise an operator who disables the feature still has the
+  # receipt stream readable over the API.
   # ==========================================================================
   describe 'the audit_logs_enabled instance flag' do
     # An admin/owner: the flag must darken the surface for the roles that
@@ -254,9 +248,9 @@ RSpec.describe V2::Logic::Secrets::ListReceipts do
       }
     end
 
-    it 'honours the string form, matching ConfigSerializer and ListSecretActivity' do
-      # A hand-edited config can yield the string; a strict `== false` here
-      # would leave the API serving the stream while the UI hides the tab.
+    it 'honours the string form' do
+      # A hand-edited config can yield the string; a strict `== false` would
+      # leave the API serving the stream after the feature is disabled.
       stub_audit_logs_flag('false')
       logic = privileged('scope' => 'org')
 
