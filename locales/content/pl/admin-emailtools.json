@@ -546,5 +546,41 @@
   "web.admin.emailtools.test.success": {
     "text": "Testowy e-mail wysłany do {to}.",
     "source_hash": "daa61a62"
+  },
+  "web.admin.emailtools.providerStatus.cycleNote": {
+    "text": "SMTP2GO podaje statystyki dla bieżącego cyklu rozliczeniowego, a nie dla ostatnich 30 dni. Współczynnik wyświetlany jako „—” nie jest raportowany przez dostawcę — nie oznacza zera.",
+    "source_hash": "b052009b"
+  },
+  "web.admin.emailtools.providerStatus.cycle.window": {
+    "text": "Cykl rozliczeniowy: {start} → {end}",
+    "source_hash": "a9ea52bb"
+  },
+  "web.admin.emailtools.providerStatus.cycle.used": {
+    "text": "Wykorzystany limit (cykl)",
+    "source_hash": "95a86428"
+  },
+  "web.admin.emailtools.providerStatus.cycle.remaining": {
+    "text": "Pozostały limit",
+    "source_hash": "b2605e14"
+  },
+  "web.admin.emailtools.providerStatus.stats.sentCycle": {
+    "text": "Wysłano (cykl)",
+    "source_hash": "e2ed5d2e"
+  },
+  "web.admin.emailtools.providerStatus.stats.softBounced": {
+    "text": "Miękkie odbicia",
+    "source_hash": "58028553"
+  },
+  "web.admin.emailtools.providerStatus.stats.bounceRejects": {
+    "text": "Odrzucenia z powodu odbić",
+    "source_hash": "0ca14701"
+  },
+  "web.admin.emailtools.providerStatus.stats.spamRejects": {
+    "text": "Odrzucenia jako spam",
+    "source_hash": "4d487ce5"
+  },
+  "web.admin.emailtools.providerStatus.stats.unsubscribes": {
+    "text": "Wypisania",
+    "source_hash": "8a8c3ef7"
   }
 }

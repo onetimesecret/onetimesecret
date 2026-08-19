@@ -152,12 +152,13 @@ describe('AdminCustomerSessionsSection — current-session badge', () => {
 });
 
 describe('adminCustomerSessionSchema — geo_country', () => {
-  it('parses a resolved code, a null, and Otto\'s "**" unknown sentinel', () => {
+  it('parses a resolved code and a null — the only shapes the API emits', () => {
+    // Otto's '**' unknown sentinel is normalized to null server-side and never
+    // crosses the API.
     const result = colonelCustomerSessionsResponseSchema.safeParse(
       sessionsPayload([
         sessionRow({ session_id: 'sid_code', geo_country: 'DE' }),
         sessionRow({ session_id: 'sid_null', geo_country: null }),
-        sessionRow({ session_id: 'sid_sentinel', geo_country: '**' }),
       ])
     );
     expect(result.success).toBe(true);
@@ -165,7 +166,6 @@ describe('adminCustomerSessionSchema — geo_country', () => {
     const rows = result.data.details?.sessions ?? [];
     expect(rows[0].geo_country).toBe('DE');
     expect(rows[1].geo_country).toBeNull();
-    expect(rows[2].geo_country).toBe('**');
   });
 
   it('parses rows that OMIT geo_country entirely — deploy skew must not fail the whole list', () => {
@@ -204,17 +204,6 @@ describe('AdminCustomerSessionsSection — country column', () => {
     expect(countryCell(wrapper, 0)).toBe('DE');
   });
 
-  it('renders the "**" sentinel as Unknown, never as literal "**"', async () => {
-    mockApi.get.mockResolvedValue({
-      data: sessionsPayload([sessionRow({ geo_country: '**' })]),
-    });
-    wrapper = mountSection();
-    await flushPromises();
-
-    expect(countryCell(wrapper, 0)).toBe(UNKNOWN);
-    expect(countryCell(wrapper, 0)).not.toContain('**');
-  });
-
   it('renders a null and an absent geo_country as Unknown', async () => {
     mockApi.get.mockResolvedValue({
       data: sessionsPayload([
@@ -232,7 +221,6 @@ describe('AdminCustomerSessionsSection — country column', () => {
   it('never leaks an IP into the country cell — only a 2-letter code or Unknown', async () => {
     const rows = [
       sessionRow({ session_id: 'sid_code', ip_address: '203.0.113.7', geo_country: 'DE' }),
-      sessionRow({ session_id: 'sid_sentinel', ip_address: '198.51.100.9', geo_country: '**' }),
       sessionRow({ session_id: 'sid_null', ip_address: '192.0.2.44', geo_country: null }),
       sessionRowWithoutCountry({ session_id: 'sid_absent', ip_address: '2001:db8::1' }),
     ];

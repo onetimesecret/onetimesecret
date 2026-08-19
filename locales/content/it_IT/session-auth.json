@@ -519,5 +519,9 @@
   "web.login.notices.link_verification_sent": {
     "text": "Controlla la tua casella di posta: ti abbiamo inviato via email un link per confermare il collegamento del tuo account. Aprilo per completare l'accesso.",
     "source_hash": "b251c8f3"
+  },
+  "web.login.errors.sso_cancelled": {
+    "text": "L'accesso è stato annullato. Puoi riprovare quando vuoi.",
+    "source_hash": "b5f3d3ec"
   }
 }

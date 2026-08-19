@@ -688,7 +688,7 @@
     "source_hash": "bb273516"
   },
   "web.billing.click_this_lightning_bolt_to_upgrade_for_custom_domains": {
-    "text": "맞춤 도메인으로 업그레이드하려면 이 번개 아이콘을 클릭하세요",
+    "text": "사용자 지정 도메인으로 업그레이드하려면 이 번개 아이콘을 클릭하세요",
     "source_hash": "84cb4258"
   },
   "web.billing.maybe_later": {
@@ -740,7 +740,7 @@
     "source_hash": "eaf5e2ef"
   },
   "web.billing.elevate_your_secure_sharing_with_custom_domains_": {
-    "text": "맞춤 도메인, 무제한 용량 및 기업급 기능으로 안전한 공유를 향상시키세요.",
+    "text": "사용자 지정 도메인, 무제한 용량 및 기업급 기능으로 안전한 공유를 향상시키세요.",
     "source_hash": "db458d30"
   },
   "web.billing.payment_frequency": {

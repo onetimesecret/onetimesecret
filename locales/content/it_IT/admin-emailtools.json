@@ -546,5 +546,41 @@
   "web.admin.emailtools.test.success": {
     "text": "Email di prova inviata a {to}.",
     "source_hash": "daa61a62"
+  },
+  "web.admin.emailtools.providerStatus.cycleNote": {
+    "text": "SMTP2GO riporta le statistiche del ciclo di fatturazione corrente, non di una finestra mobile di 30 giorni. Un tasso mostrato come “—” non è riportato dal provider, non è zero.",
+    "source_hash": "b052009b"
+  },
+  "web.admin.emailtools.providerStatus.cycle.window": {
+    "text": "Ciclo di fatturazione: {start} → {end}",
+    "source_hash": "a9ea52bb"
+  },
+  "web.admin.emailtools.providerStatus.cycle.used": {
+    "text": "Quota utilizzata (ciclo)",
+    "source_hash": "95a86428"
+  },
+  "web.admin.emailtools.providerStatus.cycle.remaining": {
+    "text": "Quota rimanente",
+    "source_hash": "b2605e14"
+  },
+  "web.admin.emailtools.providerStatus.stats.sentCycle": {
+    "text": "Inviate (ciclo)",
+    "source_hash": "e2ed5d2e"
+  },
+  "web.admin.emailtools.providerStatus.stats.softBounced": {
+    "text": "Mancati recapiti temporanei",
+    "source_hash": "58028553"
+  },
+  "web.admin.emailtools.providerStatus.stats.bounceRejects": {
+    "text": "Rifiuti per mancato recapito",
+    "source_hash": "0ca14701"
+  },
+  "web.admin.emailtools.providerStatus.stats.spamRejects": {
+    "text": "Rifiuti per spam",
+    "source_hash": "4d487ce5"
+  },
+  "web.admin.emailtools.providerStatus.stats.unsubscribes": {
+    "text": "Disiscrizioni",
+    "source_hash": "8a8c3ef7"
   }
 }

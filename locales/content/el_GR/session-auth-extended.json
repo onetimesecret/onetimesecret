@@ -292,9 +292,9 @@
     "source_hash": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "Όνομα Passkey",
+    "text": "Κλειδί πρόσβασης",
     "context": "Label for passkey name field",
-    "source_hash": "22eefa67"
+    "source_hash": "904c9aa9"
   },
   "web.auth.passkeys.created": {
     "text": "Δημιουργήθηκε",
@@ -929,5 +929,33 @@
   "web.sso_link_confirm.errors.generic": {
     "text": "Δεν μπορέσαμε να επιβεβαιώσουμε αυτή τη σύνδεση. Παρακαλώ συνδεθείτε ξανά με τον πάροχό σας.",
     "source_hash": "076fa25a"
+  },
+  "web.auth.mfa.passkey_mode_active": {
+    "text": "Ενεργή λειτουργία κλειδιού πρόσβασης",
+    "source_hash": "824dceb6"
+  },
+  "web.auth.mfa.passkey_prompt": {
+    "text": "Επαληθεύστε την ταυτότητά σας με ένα κλειδί πρόσβασης. Η συσκευή σας θα ζητήσει το δακτυλικό σας αποτύπωμα, το πρόσωπό σας ή το κλειδί ασφαλείας.",
+    "source_hash": "c0b0cbbc"
+  },
+  "web.auth.mfa.verify_with_passkey": {
+    "text": "Επαλήθευση με κλειδί πρόσβασης",
+    "source_hash": "4f105a30"
+  },
+  "web.auth.mfa.use_passkey": {
+    "text": "Χρήση κλειδιού πρόσβασης αντ' αυτού",
+    "source_hash": "bd6430a4"
+  },
+  "web.auth.passkeys.remove_failed": {
+    "text": "Δεν ήταν δυνατή η αφαίρεση του κλειδιού πρόσβασης",
+    "source_hash": "3e131515"
+  },
+  "web.auth.passkeys.load_failed": {
+    "text": "Δεν ήταν δυνατή η φόρτωση των κλειδιών πρόσβασης",
+    "source_hash": "8d704e00"
+  },
+  "web.auth.webauthn.emailRequired": {
+    "text": "Εισάγετε τη διεύθυνση email σας για να συνδεθείτε με κλειδί πρόσβασης",
+    "source_hash": "7f07647f"
   }
 }

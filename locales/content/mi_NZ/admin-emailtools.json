@@ -546,5 +546,41 @@
   "web.admin.emailtools.test.success": {
     "text": "Kua tukua te īmēra whakamātau ki {to}.",
     "source_hash": "daa61a62"
+  },
+  "web.admin.emailtools.providerStatus.cycleNote": {
+    "text": "Ka pūrongo a SMTP2GO i ngā tatauranga mō te huringa nama o nāianei, ehara i te matapihi 30-rā whai muri. Ko te reeti e whakaatuhia ana hei “—”, kāore i pūrongotia e te kaiwhakarato, ehara i te kore.",
+    "source_hash": "b052009b"
+  },
+  "web.admin.emailtools.providerStatus.cycle.window": {
+    "text": "Huringa nama: {start} → {end}",
+    "source_hash": "a9ea52bb"
+  },
+  "web.admin.emailtools.providerStatus.cycle.used": {
+    "text": "Īnaki kua whakamahia (huringa)",
+    "source_hash": "95a86428"
+  },
+  "web.admin.emailtools.providerStatus.cycle.remaining": {
+    "text": "Īnaki e toe ana",
+    "source_hash": "b2605e14"
+  },
+  "web.admin.emailtools.providerStatus.stats.sentCycle": {
+    "text": "I tukua (huringa)",
+    "source_hash": "e2ed5d2e"
+  },
+  "web.admin.emailtools.providerStatus.stats.softBounced": {
+    "text": "Tuku-hoki ngohe",
+    "source_hash": "58028553"
+  },
+  "web.admin.emailtools.providerStatus.stats.bounceRejects": {
+    "text": "Paopao tuku-hoki",
+    "source_hash": "0ca14701"
+  },
+  "web.admin.emailtools.providerStatus.stats.spamRejects": {
+    "text": "Paopao tāwaru",
+    "source_hash": "4d487ce5"
+  },
+  "web.admin.emailtools.providerStatus.stats.unsubscribes": {
+    "text": "Ngā wetehono",
+    "source_hash": "8a8c3ef7"
   }
 }

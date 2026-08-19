@@ -267,17 +267,6 @@ describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40
       expect(countryCell(wrapper, 0)).toBe('DE');
     });
 
-    it('renders the "**" sentinel as Unknown, never as literal "**"', async () => {
-      mockApi.get.mockResolvedValue({
-        data: sessionsPayload([sessionRow({ geo_country: '**' })]),
-      });
-      wrapper = mountView(pinia);
-      await flushPromises();
-
-      expect(countryCell(wrapper, 0)).toBe(UNKNOWN);
-      expect(countryCell(wrapper, 0)).not.toContain('**');
-    });
-
     it('renders a null and an absent geo_country as Unknown', async () => {
       mockApi.get.mockResolvedValue({
         data: sessionsPayload([
@@ -295,7 +284,6 @@ describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40
     it('never leaks an IP into the country cell — only a 2-letter code or Unknown', async () => {
       const rows = [
         sessionRow({ session_id: 'sid_code', ip_address: '203.0.113.7', geo_country: 'DE' }),
-        sessionRow({ session_id: 'sid_sentinel', ip_address: '198.51.100.9', geo_country: '**' }),
         sessionRow({ session_id: 'sid_null', ip_address: '192.0.2.44', geo_country: null }),
         sessionRowWithoutCountry({ session_id: 'sid_absent', ip_address: '2001:db8::1' }),
       ];

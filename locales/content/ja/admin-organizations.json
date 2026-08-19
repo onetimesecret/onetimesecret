@@ -172,7 +172,7 @@
     "source_hash": "b05aa349"
   },
   "web.admin.organizations.entitlements.section": {
-    "text": "エンタイトルメントのオーバーライド",
+    "text": "エンタイトルメントの上書き設定",
     "source_hash": "48812068"
   },
   "web.admin.organizations.entitlements.description": {
@@ -196,7 +196,7 @@
     "source_hash": "87e6d00b"
   },
   "web.admin.organizations.entitlements.clear": {
-    "text": "すべてのオーバーライドをクリア",
+    "text": "すべての上書き設定をクリア",
     "source_hash": "f0e485c3"
   },
   "web.admin.organizations.entitlements.effective": {
@@ -212,7 +212,7 @@
     "source_hash": "f0e69b17"
   },
   "web.admin.organizations.entitlements.noOverrides": {
-    "text": "この組織の現在のオーバーライド状態を表示するには、アクションを実行してください。",
+    "text": "この組織の現在の上書き状態を表示するには、アクションを実行してください。",
     "source_hash": "98d2e30d"
   },
   "web.admin.organizations.entitlements.confirm.grantTitle": {
@@ -232,11 +232,11 @@
     "source_hash": "a5d2a8a6"
   },
   "web.admin.organizations.entitlements.confirm.clearTitle": {
-    "text": "すべてのエンタイトルメントオーバーライドをクリアしますか？",
+    "text": "すべてのエンタイトルメントの上書き設定をクリアしますか？",
     "source_hash": "e36eb218"
   },
   "web.admin.organizations.entitlements.confirm.clearDescription": {
-    "text": "{org}のすべての付与および取り消しオーバーライドを削除し、プランのエンタイトルメントにリセットします。",
+    "text": "{org}のすべての付与および取り消しの上書き設定を削除し、プランのエンタイトルメントにリセットします。",
     "source_hash": "96bad079"
   },
   "web.admin.organizations.entitlements.success.granted": {
@@ -248,7 +248,7 @@
     "source_hash": "279d425d"
   },
   "web.admin.organizations.entitlements.success.cleared": {
-    "text": "すべてのエンタイトルメントオーバーライドがクリアされました。",
+    "text": "すべてのエンタイトルメントの上書き設定がクリアされました。",
     "source_hash": "a482743b"
   },
   "web.admin.organizations.fields.contactEmail": {
@@ -484,7 +484,7 @@
     "source_hash": "cbde548a"
   },
   "web.admin.organizations.entitlements.matrix.caption": {
-    "text": "エンタイトルメント解決マトリックス: プラン、オーバーライドの付与と取り消し、解決済みセット、具体化されたもの。",
+    "text": "エンタイトルメント解決マトリックス: プラン、上書きによる付与と取り消し、解決済みセット、具体化されたもの。",
     "source_hash": "9eac8999"
   },
   "web.admin.organizations.entitlements.matrix.yes": {
@@ -496,7 +496,7 @@
     "source_hash": "1ea442a1"
   },
   "web.admin.organizations.entitlements.matrix.empty": {
-    "text": "この組織にはプランからのエンタイトルメントもオーバーライドもありません。",
+    "text": "この組織にはプランからのエンタイトルメントも上書き設定もありません。",
     "source_hash": "f6cf2169"
   },
   "web.admin.organizations.entitlements.matrix.columns.entitlement": {
@@ -540,7 +540,7 @@
     "source_hash": "485e44ad"
   },
   "web.admin.organizations.entitlements.matrix.legend.revoked": {
-    "text": "取り消し線の行は管理者オーバーライドにより取り消されており、期待セットから削除されています。",
+    "text": "取り消し線の行は管理者による上書きで取り消されており、期待セットから削除されています。",
     "source_hash": "89a2e9b6"
   },
   "web.admin.organizations.entitlements.matrix.state.plan": {

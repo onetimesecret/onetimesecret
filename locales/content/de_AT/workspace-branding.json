@@ -224,7 +224,7 @@
     "source_hash": "e9e222fc"
   },
   "web.branding.logo_modal_title": {
-    "text": "Bereich-Logo",
+    "text": "Bereichslogo",
     "source_hash": "5260dda5"
   },
   "web.branding.logo_modal_hint": {
@@ -372,7 +372,7 @@
     "source_hash": "937733bd"
   },
   "web.branding.recipient_page_content_hint": {
-    "text": "Sprache und Anweisungen zum Anzeigen, die Empfängern auf diesem Bereich angezeigt werden.",
+    "text": "Sprache und Anweisungen zum Anzeigen, die Empfängern in diesem Bereich angezeigt werden.",
     "source_hash": "04162b70"
   },
   "web.branding.tab_brand": {
@@ -388,7 +388,7 @@
     "source_hash": "a4fe6526"
   },
   "web.branding.delivery_language_hint": {
-    "text": "Standard für Empfängerseiten und E-Mails auf diesem Bereich. Empfänger können die Sprache auf der Seite wechseln.",
+    "text": "Standard für Empfängerseiten und E-Mails in diesem Bereich. Empfänger können die Sprache auf der Seite wechseln.",
     "source_hash": "bfbc5599"
   },
   "web.branding.delivery_reveal_instructions": {

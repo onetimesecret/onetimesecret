@@ -1538,5 +1538,93 @@
   "web.domains.signup.dormant_notice": {
     "text": "Rejestracje są wyłączone w całym obszarze roboczym, więc są niedostępne w każdej domenie. Twoje ustawienia tutaj są zachowywane i zaczną obowiązywać, gdy rejestracje w obszarze roboczym zostaną ponownie włączone.",
     "source_hash": "49faefe4"
+  },
+  "web.domains.link_domain_no_settings": {
+    "text": "Ta domena nie ma strony ustawień",
+    "source_hash": "8a8430fe"
+  },
+  "web.domains.signin.sso_restrict_warning_title": {
+    "text": "Ograniczenie do SSO zamknęłoby logowanie w tej domenie",
+    "source_hash": "3476cb5c"
+  },
+  "web.domains.signin.sso_restrict_warning_body": {
+    "text": "SSO nie jest dostępne w tej domenie, a ograniczenie, którego nie da się zastosować, całkowicie blokuje logowanie. Nikt nie będzie mógł się tutaj zalogować, dopóki SSO nie zacznie działać. Napraw najpierw SSO albo mimo to wprowadź ograniczenie i dokończ konfigurację.",
+    "source_hash": "086e3247"
+  },
+  "web.domains.signin.sso_restrict_warning_confirm": {
+    "text": "Ogranicz mimo to",
+    "source_hash": "4674e3cf"
+  },
+  "web.domains.signin.restriction_unavailable_notice": {
+    "text": "Logowanie jest niedostępne w tej domenie: jest ograniczone do metody {method}, która nie może tu działać. Wybierz inną metodę albo udostępnij metodę {method}.",
+    "source_hash": "ca1b7f69"
+  },
+  "web.domains.signin.restriction_unavailable_unknown_notice": {
+    "text": "Logowanie jest niedostępne w tej domenie: jest ograniczone do metody, która nie może tu działać. Wybierz inną metodę albo przywróć w tej domenie ustawienia domyślne.",
+    "source_hash": "8c2cce6b"
+  },
+  "web.domains.signin.restriction_conflict_notice": {
+    "text": "Ta domena ogranicza logowanie do innej metody niż ograniczenie obowiązujące w całym obszarze roboczym ({method}), więc żadne z nich nie może zostać zastosowane i logowanie jest tutaj niedostępne. Dopasuj metodę obowiązującą w całym obszarze roboczym albo przywróć w tej domenie ustawienia domyślne.",
+    "source_hash": "15398362"
+  },
+  "web.domains.signin.method_webauthn_unavailable": {
+    "text": "Klucze dostępu są powiązane z główną domeną logowania i nie są jeszcze dostępne w domenach niestandardowych",
+    "source_hash": "88833e0f"
+  },
+  "web.domains.sso.connection_disabled_badge": {
+    "text": "Połączenie wyłączone",
+    "source_hash": "99d6092c"
+  },
+  "web.domains.sso.connection_disabled_hint": {
+    "text": "Poświadczenia SSO są zapisane, ale połączenie jest wyłączone. Włącz je w sekcji Edytuj poświadczenia.",
+    "source_hash": "90180d6c"
+  },
+  "web.domains.sso.status_active_badge": {
+    "text": "Aktywne",
+    "source_hash": "92340695"
+  },
+  "web.domains.sso.status_active_hint": {
+    "text": "Członkowie mogą logować się w tej domenie za pomocą tego połączenia SSO.",
+    "source_hash": "313ec61e"
+  },
+  "web.domains.sso.status_not_configured_badge": {
+    "text": "Nieskonfigurowano",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.sso.status_not_configured_hint": {
+    "text": "Dla tej domeny nie zapisano jeszcze żadnych poświadczeń SSO.",
+    "source_hash": "d817ad9c"
+  },
+  "web.domains.sso.status_not_permitted_badge": {
+    "text": "Niedozwolone w tej domenie",
+    "source_hash": "afbd20ba"
+  },
+  "web.domains.sso.status_not_permitted_hint": {
+    "text": "SSO jest wyłączone dla tej domeny, więc strona logowania go nie oferuje.",
+    "source_hash": "ef092481"
+  },
+  "web.domains.sso.status_auth_disabled_badge": {
+    "text": "Logowanie wyłączone",
+    "source_hash": "bb807607"
+  },
+  "web.domains.sso.status_auth_disabled_hint": {
+    "text": "Logowanie jest wyłączone w tej domenie, więc żadna metoda nie jest oferowana — w tym SSO.",
+    "source_hash": "3a98964b"
+  },
+  "web.domains.sso.status_unsupported_provider_badge": {
+    "text": "Nieobsługiwany dostawca",
+    "source_hash": "1609d5fb"
+  },
+  "web.domains.sso.status_unsupported_provider_hint": {
+    "text": "Zapisanego dostawcy nie można użyć do SSO w domenie. Edytuj poświadczenia i wybierz Microsoft Entra ID lub ogólny OIDC.",
+    "source_hash": "72ea0a2e"
+  },
+  "web.domains.sso.status_unavailable_badge": {
+    "text": "Niedostępne",
+    "source_hash": "ca184496"
+  },
+  "web.domains.sso.status_unavailable_hint": {
+    "text": "SSO nie może być obecnie oferowane w tej domenie. Sprawdź poświadczenia SSO i ustawienia logowania tej domeny.",
+    "source_hash": "b03b14f4"
   }
 }

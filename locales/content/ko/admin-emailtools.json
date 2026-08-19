@@ -546,5 +546,41 @@
   "web.admin.emailtools.test.success": {
     "text": "{to}(으)로 테스트 이메일을 보냈습니다.",
     "source_hash": "daa61a62"
+  },
+  "web.admin.emailtools.providerStatus.cycleNote": {
+    "text": "SMTP2GO는 최근 30일 구간이 아니라 현재 청구 주기의 통계를 보고합니다. “—”로 표시된 비율은 제공업체가 보고하지 않은 값이며, 0이 아닙니다.",
+    "source_hash": "b052009b"
+  },
+  "web.admin.emailtools.providerStatus.cycle.window": {
+    "text": "청구 주기: {start} → {end}",
+    "source_hash": "a9ea52bb"
+  },
+  "web.admin.emailtools.providerStatus.cycle.used": {
+    "text": "사용한 할당량 (주기)",
+    "source_hash": "95a86428"
+  },
+  "web.admin.emailtools.providerStatus.cycle.remaining": {
+    "text": "남은 할당량",
+    "source_hash": "b2605e14"
+  },
+  "web.admin.emailtools.providerStatus.stats.sentCycle": {
+    "text": "발송됨 (주기)",
+    "source_hash": "e2ed5d2e"
+  },
+  "web.admin.emailtools.providerStatus.stats.softBounced": {
+    "text": "소프트 반송됨",
+    "source_hash": "58028553"
+  },
+  "web.admin.emailtools.providerStatus.stats.bounceRejects": {
+    "text": "반송 거부",
+    "source_hash": "0ca14701"
+  },
+  "web.admin.emailtools.providerStatus.stats.spamRejects": {
+    "text": "스팸 거부",
+    "source_hash": "4d487ce5"
+  },
+  "web.admin.emailtools.providerStatus.stats.unsubscribes": {
+    "text": "구독 취소",
+    "source_hash": "8a8c3ef7"
   }
 }

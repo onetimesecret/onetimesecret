@@ -519,5 +519,9 @@
   "web.login.notices.link_verification_sent": {
     "text": "Consulta la teva safata d'entrada — t'hem enviat un enllaç per correu electrònic per confirmar la connexió del teu compte. Obre'l per acabar d'iniciar sessió.",
     "source_hash": "b251c8f3"
+  },
+  "web.login.errors.sso_cancelled": {
+    "text": "S'ha cancel·lat l'inici de sessió. Pots tornar-ho a provar quan vulguis.",
+    "source_hash": "b5f3d3ec"
   }
 }

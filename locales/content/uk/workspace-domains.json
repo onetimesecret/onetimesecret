@@ -1538,5 +1538,93 @@
   "web.domains.signup.dormant_notice": {
     "text": "Реєстрацію вимкнено для всієї робочої області, тому вона недоступна на кожному домені. Ваші налаштування тут зберігаються та набувають чинності, коли реєстрацію для робочої області буде знову ввімкнено.",
     "source_hash": "49faefe4"
+  },
+  "web.domains.link_domain_no_settings": {
+    "text": "Цей домен не має сторінки налаштувань",
+    "source_hash": "8a8430fe"
+  },
+  "web.domains.signin.sso_restrict_warning_title": {
+    "text": "Обмеження до SSO закриє вхід на цьому домені",
+    "source_hash": "3476cb5c"
+  },
+  "web.domains.signin.sso_restrict_warning_body": {
+    "text": "SSO недоступний на цьому домені, а обмеження, яке неможливо застосувати, повністю блокує вхід. Ніхто не зможе увійти тут, доки SSO не запрацює. Спочатку виправте SSO або все одно застосуйте обмеження та завершіть налаштування.",
+    "source_hash": "086e3247"
+  },
+  "web.domains.signin.sso_restrict_warning_confirm": {
+    "text": "Все одно обмежити",
+    "source_hash": "4674e3cf"
+  },
+  "web.domains.signin.restriction_unavailable_notice": {
+    "text": "Вхід недоступний на цьому домені: його обмежено методом «{method}», який тут не працює. Виберіть інший метод або зробіть метод «{method}» доступним.",
+    "source_hash": "ca1b7f69"
+  },
+  "web.domains.signin.restriction_unavailable_unknown_notice": {
+    "text": "Вхід недоступний на цьому домені: його обмежено методом, який тут не працює. Виберіть інший метод або скиньте цей домен до значень за замовчуванням.",
+    "source_hash": "8c2cce6b"
+  },
+  "web.domains.signin.restriction_conflict_notice": {
+    "text": "Цей домен обмежує вхід іншим методом, ніж обмеження для всієї робочої області («{method}»), тому жодне з них не може застосуватися, і вхід тут недоступний. Узгодьте метод із тим, який задано для всієї робочої області, або скиньте цей домен до значень за замовчуванням.",
+    "source_hash": "15398362"
+  },
+  "web.domains.signin.method_webauthn_unavailable": {
+    "text": "Ключі доступу прив'язані до основного домену входу та поки що недоступні на власних доменах",
+    "source_hash": "88833e0f"
+  },
+  "web.domains.sso.connection_disabled_badge": {
+    "text": "З'єднання вимкнено",
+    "source_hash": "99d6092c"
+  },
+  "web.domains.sso.connection_disabled_hint": {
+    "text": "Облікові дані SSO збережено, але з'єднання вимкнено. Увімкніть його в розділі «Редагувати облікові дані».",
+    "source_hash": "90180d6c"
+  },
+  "web.domains.sso.status_active_badge": {
+    "text": "Активно",
+    "source_hash": "92340695"
+  },
+  "web.domains.sso.status_active_hint": {
+    "text": "Учасники можуть входити на цьому домені за допомогою цього з'єднання SSO.",
+    "source_hash": "313ec61e"
+  },
+  "web.domains.sso.status_not_configured_badge": {
+    "text": "Не налаштовано",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.sso.status_not_configured_hint": {
+    "text": "Для цього домену ще не збережено облікових даних SSO.",
+    "source_hash": "d817ad9c"
+  },
+  "web.domains.sso.status_not_permitted_badge": {
+    "text": "Не дозволено на цьому домені",
+    "source_hash": "afbd20ba"
+  },
+  "web.domains.sso.status_not_permitted_hint": {
+    "text": "SSO вимкнено для цього домену, тому сторінка входу його не пропонує.",
+    "source_hash": "ef092481"
+  },
+  "web.domains.sso.status_auth_disabled_badge": {
+    "text": "Вхід вимкнено",
+    "source_hash": "bb807607"
+  },
+  "web.domains.sso.status_auth_disabled_hint": {
+    "text": "Вхід вимкнено на цьому домені, тому жоден метод не пропонується — включно з SSO.",
+    "source_hash": "3a98964b"
+  },
+  "web.domains.sso.status_unsupported_provider_badge": {
+    "text": "Непідтримуваний провайдер",
+    "source_hash": "1609d5fb"
+  },
+  "web.domains.sso.status_unsupported_provider_hint": {
+    "text": "Збереженого провайдера не можна використовувати для SSO на домені. Відредагуйте облікові дані та виберіть Microsoft Entra ID або загальний OIDC.",
+    "source_hash": "72ea0a2e"
+  },
+  "web.domains.sso.status_unavailable_badge": {
+    "text": "Недоступно",
+    "source_hash": "ca184496"
+  },
+  "web.domains.sso.status_unavailable_hint": {
+    "text": "Наразі SSO не може бути запропоновано на цьому домені. Перевірте облікові дані SSO та налаштування входу цього домену.",
+    "source_hash": "b03b14f4"
   }
 }
