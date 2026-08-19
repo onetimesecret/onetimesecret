@@ -268,6 +268,18 @@ RSpec.describe Onetime::Middleware::TenantCspExtras do
       expect(env).not_to have_key(extras_key)
     end
 
+    it 'warns once per normalized domain across repeated HTML requests' do
+      config = sso_config_double(
+        provider_type: 'oidc',
+        issuer: 'https://idp.example.com; script-src https://evil.example',
+      )
+      stub_tenant(config)
+      expect(OT).to receive(:lw).once
+
+      middleware.call(build_env)
+      middleware.call(build_env(display: 'Tenant.Example.NET'))
+    end
+
     it 'truncates and escapes the tenant-supplied issuer in the warning' do
       # The issuer is attacker-influenced: it must not reach the log verbatim
       # or unbounded, and control characters must be escaped so a crafted

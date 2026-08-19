@@ -147,9 +147,7 @@ module Core
       # provider is configured (policy stays byte-identical) and inert when CSP
       # is disabled (RequestSetup emits nothing unless site.security.csp.enabled).
       sso_origins = Onetime.auth_config.sso_form_action_origins
-      unless sso_origins.empty?
-        router.security_config.merge_csp_directives('form-action' => "'self' #{sso_origins.join(' ')}")
-      end
+      merge_csp_form_action_origins(router.security_config, sso_origins) unless sso_origins.empty?
 
       # Register authentication strategies for Web Core
       Core::AuthStrategies.register_essential(router)
@@ -160,6 +158,19 @@ module Core
       router.server_error = [500, headers, ['Internal Server Error']]
 
       router
+    end
+
+    private
+
+    # Otto replaces an override when merge_csp_directives receives the same
+    # directive a second time. Core boot-time form-action contributors must use
+    # this helper so their sources are explicitly additive.
+    def merge_csp_form_action_origins(security_config, origins)
+      existing = Array(security_config.csp_directive_overrides['form-action'])
+        .flat_map { |sources| sources.to_s.split }
+      sources  = (existing + ["'self'"] + origins).uniq
+
+      security_config.merge_csp_directives('form-action' => sources.join(' '))
     end
   end
 end

@@ -82,7 +82,9 @@ module Onetime
       ISSUER_LOG_LIMIT = 100
 
       def initialize(app)
-        @app = app
+        @app                            = app
+        @warned_rejected_origin_domains = Set.new
+        @warning_lock                   = Mutex.new
       end
 
       def call(env)
@@ -189,17 +191,25 @@ module Onetime
       # Reporting it as a bad tenant issuer would name the wrong cause (and
       # the record's issuer field may be stale-but-unused for those types).
       #
-      # Stateless by choice — no throttle or dedupe cache. Volume is bounded
-      # by the HTML request rate to the ONE misconfigured domain, and fixing
-      # that domain's record stops it.
+      # Warn once per normalized custom domain for this middleware process.
+      # It retains one entry per encountered custom domain rather than one per
+      # request, and the mutex keeps concurrent HTML requests from logging the
+      # same misconfiguration more than once.
       def warn_rejected_origin_source(display_domain, config)
         source = Onetime.auth_config.tenant_origin_source(config)
         return if source.nil? || source.empty?
+        return unless first_rejected_origin_warning_for?(display_domain)
 
         OT.lw '[TenantCspExtras] tenant SSO is available but its IdP origin failed ' \
               "validation for #{display_domain.inspect} " \
               "(provider_type=#{config.provider_type.to_s.inspect}, " \
               "issuer=#{truncate_for_log(source).inspect}); form-action not widened"
+      end
+
+      def first_rejected_origin_warning_for?(display_domain)
+        @warning_lock.synchronize do
+          @warned_rejected_origin_domains.add?(display_domain.downcase)
+        end
       end
 
       # Bounded, escaped rendering of an attacker-influenced value. The

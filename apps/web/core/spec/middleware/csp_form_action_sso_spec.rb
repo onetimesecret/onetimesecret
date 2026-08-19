@@ -3,9 +3,9 @@
 # frozen_string_literal: true
 
 # Proves the SSO form-action override reaches the EMITTED Content-Security-Policy
-# header. build_router applies the injected origins via
-# router.security_config.merge_csp_directives('form-action' => "'self' <origins>");
-# this drives the real emission path — Core::Middleware::RequestSetup's CSP
+# header. build_router explicitly composes injected origins with any existing
+# boot-time form-action override before applying it to the security config; this
+# drives the real emission path — Core::Middleware::RequestSetup's CSP
 # chokepoint -> Otto::Security::CSP::Writer -> Config#generate_nonce_csp — with a
 # security config carrying that same override, and asserts the origin lands in the
 # form-action directive of the lowercase content-security-policy header.
@@ -17,6 +17,7 @@
 
 require 'spec_helper'
 
+require_relative '../../application'
 require_relative '../../middleware/request_setup'
 
 RSpec.describe Core::Middleware::RequestSetup do
@@ -144,5 +145,26 @@ RSpec.describe Core::Middleware::RequestSetup do
       )
       expect(policy).not_to include(tenant_origin)
     end
+  end
+end
+
+RSpec.describe Core::Application, '#merge_csp_form_action_origins' do
+  subject(:application) { described_class.allocate }
+
+  it 'preserves existing boot-time form-action sources while adding SSO origins' do
+    config = Otto::Security::Config.new
+    config.merge_csp_directives('form-action' => "'self' https://payments.example")
+
+    application.send(
+      :merge_csp_form_action_origins,
+      config,
+      ['https://login.microsoftonline.com'],
+    )
+
+    expect(config.csp_directive_overrides.fetch('form-action').split).to contain_exactly(
+      "'self'",
+      'https://payments.example',
+      'https://login.microsoftonline.com',
+    )
   end
 end
