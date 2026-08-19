@@ -251,6 +251,14 @@ module Onetime
             'Run: bin/ots domains remove DOMAIN for each, then retry',
             json: false,
           )
+        when :drifted_domains
+          error_exit(
+            "#{result.org_id} still has #{result.drifted_domains.size} domain record(s) pointing at " \
+            "it that are missing from its domain list: #{result.drifted_domains.join(', ')}. " \
+            'Automatic repair could not restore them — an orphaned record needs an explicit owner. ' \
+            'Run: bin/ots domains doctor --repair, then retry',
+            json: false,
+          )
         when :is_default
           error_exit(
             "#{result.org_id} is a default (personal) workspace. Deleting it leaves the owner " \

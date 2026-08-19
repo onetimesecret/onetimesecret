@@ -162,6 +162,14 @@ module ColonelAPI
               'Remove them first.',
               field: :org_id,
             )
+          when :drifted_domains
+            raise_form_error(
+              "#{result.drifted_domains.size} domain record(s) still reference this org but are " \
+              "missing from its domain list: #{result.drifted_domains.join(', ')}. Automatic repair " \
+              'could not restore them (an orphaned record needs an explicit owner). Run: ' \
+              'bin/ots domains doctor --repair. There is no override.',
+              field: :org_id,
+            )
           when :is_default
             raise_form_error(
               'This is the owner\'s default (personal) workspace. Re-run with force_default=true to ' \

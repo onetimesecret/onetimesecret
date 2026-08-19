@@ -45,6 +45,7 @@ RSpec.describe 'Org Delete Command', type: :cli do
         pending_invitations: 2,
         domain_count: 0,
         domains: [],
+        drifted_domains: [],
         is_default: false,
         active_subscription: false,
         owner_id: 'ur_a',

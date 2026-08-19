@@ -78,6 +78,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::DeleteOrganization do
         pending_invitations: 0,
         domain_count: 0,
         domains: [],
+        drifted_domains: [],
         is_default: false,
         active_subscription: false,
         owner_id: 'ext-cust-123',
@@ -205,6 +206,19 @@ RSpec.describe OrganizationAPI::Logic::Organizations::DeleteOrganization do
       expect { logic.process }.to raise_error(Onetime::FormError) do |err|
         expect(err.error_key).to eq('api.organizations.errors.delete_has_domains')
         expect(err.args[:domains]).to eq('a.example.com')
+      end
+    end
+
+    it 'refuses unrepairable domain drift with the support message, not "remove your domains"' do
+      # The op already tried the self-heal; these stayed INVISIBLE in the
+      # owner's domain list, so telling them to remove domains points at
+      # nothing they can see.
+      stub_op(status: :drifted_domains, drifted_domains: ['ghost.example.com'])
+      logic.raise_concerns
+
+      expect { logic.process }.to raise_error(Onetime::FormError) do |err|
+        expect(err.error_key).to eq('api.organizations.errors.delete_drifted_domains')
+        expect(err.args[:domains]).to eq('ghost.example.com')
       end
     end
 

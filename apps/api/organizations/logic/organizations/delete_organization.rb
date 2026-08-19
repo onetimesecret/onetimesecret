@@ -75,12 +75,10 @@ module OrganizationAPI::Logic
         # Verify user has manage_org entitlement in this organization
         require_entitlement_in!(@organization, 'manage_org')
 
-        # Refuse before doing anything when domains are attached. The model
-        # guard in Organization#destroy! raises a bare Onetime::Problem, which
-        # has no registered Otto error handler and surfaces as a 500 — this
-        # form error is the request-safe 422 for the common refusal path; the
-        # model guard stays as defense-in-depth.
-        raise_domains_present_error if @organization.domain_count > 0
+        # NO domain pre-check here. The op owns every guardrail, and a duplicate
+        # `domain_count` refusal at this layer would short-circuit its drift
+        # self-heal — the customer would be told to remove domains they cannot
+        # see, instead of having the invisible ones repaired back into view.
       end
 
       def process
@@ -134,6 +132,16 @@ module OrganizationAPI::Logic
             # loads to nothing, so fall back to the count the guard actually
             # refused on rather than interpolating an empty list.
             args: { domains: result.domains.empty? ? result.domain_count.to_s : result.domains.join(', ') },
+            field: :extid,
+            error_type: :invalid,
+          )
+        when :drifted_domains
+          # The self-heal already ran and could not restore these, so they stay
+          # INVISIBLE in the customer's domain list — "remove your domains" would
+          # be pointing at nothing they can see. Name them and route to support.
+          raise_form_error(
+            error_key: 'api.organizations.errors.delete_drifted_domains',
+            args: { domains: result.drifted_domains.join(', ') },
             field: :extid,
             error_type: :invalid,
           )
