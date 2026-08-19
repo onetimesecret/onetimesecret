@@ -90,7 +90,9 @@ module V2::Logic
             has_passphrase: secret.has_passphrase?,
             passphrase_correct: correct_passphrase,
             continue: continue,
-            user_id: cust&.custid,
+            # extid, never custid: custid holds the email address on legacy
+            # (pre-v0.22) records, which would put PII in the payload.
+            user_id: cust&.extid,
           }
 
         owner = secret.load_owner
@@ -167,7 +169,7 @@ module V2::Logic
               secret_logger.error 'Invalid verification - user already logged in',
                 {
                   secret_identifier: secret.shortid,
-                  user_id: cust&.custid,
+                  user_id: cust&.extid,
                   action: 'verification',
                   result: :already_logged_in,
                 }
@@ -216,7 +218,7 @@ module V2::Logic
           secret_logger.warn 'Incorrect passphrase attempt',
             {
               secret_identifier: secret.shortid,
-              user_id: cust&.custid,
+              user_id: cust&.extid,
               session_id: safe_session_id&.public_id,
               action: 'reveal',
               result: :passphrase_failed,

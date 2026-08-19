@@ -35,7 +35,7 @@ RSpec.describe V2::Logic::Secrets::GenerateSecret, type: :integration do
   # Build a GenerateSecret over an anonymous caller. We exercise process_params
   # (constructor-time allocation path), not raise_concerns.
   def build_logic(secret_params)
-    customer = double('Customer', custid: 'anon', anonymous?: true, objid: nil)
+    customer = double('Customer', custid: 'anon', anonymous?: true, objid: nil, extid: nil)
     org      = double('Organization', objid: "org_#{SecureRandom.hex(4)}")
     allow(org).to receive(:can?).and_return(true)
     allow(org).to receive(:limit_for).and_return(0)

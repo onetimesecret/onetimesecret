@@ -68,6 +68,7 @@ RSpec.describe V2::Logic::Secrets::ListReceipts do
       anonymous?: false,
       custid: 'caller@example.com',
       objid: 'cust_caller',
+      extid: 'ur_caller',
       planid: 'anonymous',
       email: 'caller@example.com',
       # has_system_role?('colonel') — reached by require_entitlement_in! —
@@ -262,6 +263,28 @@ RSpec.describe V2::Logic::Secrets::ListReceipts do
       logic = stub_entitlements(build_logic({}), %w[api_access])
 
       expect { logic.raise_concerns }.not_to raise_error
+    end
+
+    # The denial log fires on every refused scope=org/scope=domain request. On
+    # a deployment with legacy (pre-v0.22) customers custid IS the email
+    # address, so an actor: cust.custid payload is a continuous PII feed into
+    # the structured logs. The payload is pinned to the opaque extid here.
+    it 'records the denial against the extid, never the email-bearing custid' do
+      stub_audit_logs_flag(false)
+      logic    = privileged('scope' => 'org')
+      emitted  = []
+      allow(OT).to receive(:info) { |*msgs, **payload| emitted << [msgs.join(' '), payload] }
+
+      expect { logic.raise_concerns }.to raise_error(OT::FormError)
+
+      message, payload = emitted.find { |msg, _| msg.include?('[ListReceipts]') }
+      expect(payload).to eq(scope: 'org', actor: 'ur_caller')
+      expect(payload).not_to have_key(:custid)
+      # Scans the whole emitted record rather than one key, so a future payload
+      # addition carrying an address fails here too.
+      record = [message, payload.values.join(' ')].join(' ')
+      expect(record).not_to include(caller_customer.custid)
+      expect(record).not_to include('@')
     end
 
     it 'defaults to enabled when the key is absent (older config file)' do

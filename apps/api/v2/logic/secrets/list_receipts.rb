@@ -58,9 +58,11 @@ module V2::Logic
            OT.conf.dig('features', 'organizations', 'audit_logs_enabled').to_s == 'false'
           # Keyword args reach OT.info's **payload and are emitted as
           # SemanticLogger structured payload, not concatenated into the message.
+          # The actor is the extid, never custid: custid holds the email address
+          # on legacy (pre-v0.22) records, and this line runs on every denial.
           OT.info '[ListReceipts] Authorization denied: audit_logs_enabled feature flag disabled',
             scope: scope.to_s,
-            actor: cust&.custid
+            actor: cust&.extid
           raise_form_error('Secret activity is not enabled on this instance', error_type: :forbidden)
         end
 
@@ -82,8 +84,7 @@ module V2::Logic
       def process
         OT.ld '[DEBUG:ListReceipts] Starting query',
           {
-            cust_id: cust&.custid,
-            cust_objid: cust&.objid,
+            cust_extid: cust&.extid,
             scope: scope,
             domain_extid: domain_extid,
             since: since,
