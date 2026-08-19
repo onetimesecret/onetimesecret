@@ -359,10 +359,29 @@ module Billing
           )
           return org if org
 
-          # 4. Create via the canonical operation (includes the federation check)
+          # 4. Create.
           billing_logger.warn "#{LOG_LABEL} Creating default org during checkout (unexpected)",
             { customer_extid: customer.extid }
-          result = Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
+          create_target_organization(customer)
+        end
+
+        # Step 4: create the workspace this checkout's subscription lands on.
+        #
+        # Both creation paths pass the checkout's Stripe customer so the new
+        # org is born holding that unique-index claim; a concurrent surface
+        # that loses the claim adopts the winner instead of minting a second
+        # workspace.
+        #
+        # @param customer [Onetime::Customer]
+        # @return [Onetime::Organization]
+        def create_target_organization(customer)
+          stripe_customer_id = @data_object&.customer
+
+          # Canonical operation first (includes the federation check)
+          result = Auth::Operations::CreateDefaultWorkspace.new(
+            customer: customer,
+            stripe_customer_id: stripe_customer_id,
+          ).call
           org    = result&.dig(:organization)
           return org if org
 
@@ -372,7 +391,16 @@ module Billing
           # not-owned), so without this the paid subscription would be dropped
           # on the floor: process() returns :not_found and nothing is applied.
           ::Billing::CheckoutTargetResolver.create_billing_workspace(
-            customer, logger: billing_logger, label: LOG_LABEL
+            customer,
+            logger: billing_logger,
+            label: LOG_LABEL,
+            stripe_customer_id: stripe_customer_id,
+          )
+        rescue Familia::RecordExistsError => ex
+          # Lost the claim inside CreateDefaultWorkspace (create_billing_workspace
+          # adopts on its own).
+          ::Billing::CheckoutTargetResolver.adopt_claimed_workspace(
+            ex, logger: billing_logger, label: LOG_LABEL
           )
         end
       end

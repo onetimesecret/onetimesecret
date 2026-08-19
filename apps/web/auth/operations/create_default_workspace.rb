@@ -60,9 +60,17 @@ module Auth
       #   closing this residual (e.g. an opt-in "require verified claim" flag)
       #   would degrade the feature for those deployments and is a product
       #   decision, not a default.
-      def initialize(customer:, require_verification: false)
+      # @param stripe_customer_id [String, nil] when a checkout completion is
+      #   driving the creation, the checkout's Stripe customer. The new org is
+      #   created already holding that unique-index claim, so two completion
+      #   surfaces racing on the same checkout elect one creator instead of
+      #   both minting a workspace (see
+      #   Billing::CheckoutTargetResolver.adopt_claimed_workspace). Ignored
+      #   when blank, which is every non-billing caller.
+      def initialize(customer:, require_verification: false, stripe_customer_id: nil)
         @customer             = customer
         @require_verification = require_verification
+        @stripe_customer_id   = stripe_customer_id
       end
 
       # Executes the workspace creation operation
@@ -169,6 +177,7 @@ module Auth
           'Default Workspace',  # Not shown to individual plan users
           @customer,
           @customer.email,
+          **Onetime::Organization.stripe_claim_fields(@stripe_customer_id),
         )
 
         # Mark as default workspace (prevents deletion)

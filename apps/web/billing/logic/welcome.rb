@@ -360,7 +360,10 @@ module Billing
           billing_logger.warn "#{LOG_LABEL} Creating default org during checkout (unexpected)",
             extid: customer.extid
           ::Billing::CheckoutTargetResolver.create_billing_workspace(
-            customer, logger: billing_logger, label: LOG_LABEL
+            customer,
+            logger: billing_logger,
+            label: LOG_LABEL,
+            stripe_customer_id: checkout_session&.customer,
           )
         end
       end
