@@ -122,6 +122,10 @@ RSpec.describe Billing::Operations::Catalog::Pull, :billing do
         expect(result.plans_synced).to eq(1)
       end
 
+      it 'reports the catalog as verified' do
+        expect(result.catalog_verified).to be true
+      end
+
       it 'reports config plans loaded' do
         expect(result.config_plans_loaded).to eq(1)
       end
@@ -213,6 +217,13 @@ RSpec.describe Billing::Operations::Catalog::Pull, :billing do
         expect(Billing::Operations::Catalog::ConfigLoader).to receive(:upsert_config_only_plans)
         result
       end
+
+      # Config-only deployments verify nothing against Stripe: their plans
+      # come from ConfigLoader, so callers gating on a fresh Stripe catalog
+      # must not read this as one.
+      it 'does not report the catalog as verified' do
+        expect(result.catalog_verified).to be false
+      end
     end
 
     context 'no products found' do
@@ -226,6 +237,14 @@ RSpec.describe Billing::Operations::Catalog::Pull, :billing do
       it 'returns success with zero plans synced' do
         expect(result.success).to be true
         expect(result.plans_synced).to eq(0)
+      end
+
+      # Regression guard: an empty Stripe catalog returns early, before the
+      # prune/rebuild/timestamp path, leaving the previously cached plans in
+      # Redis. `success` alone would tell a caller the cache is fresh when it
+      # is untouched, so this successful no-op must report itself unverified.
+      it 'does not report the catalog as verified' do
+        expect(result.catalog_verified).to be false
       end
     end
 
@@ -316,12 +335,14 @@ RSpec.describe Billing::Operations::Catalog::Pull, :billing do
     it 'has expected fields' do
       result = described_class::Result.new(success: true)
       expect(result).to respond_to(:success, :plans_synced,
-                                   :config_plans_loaded, :cache_cleared, :errors, :error_type)
+                                   :config_plans_loaded, :cache_cleared, :catalog_verified,
+                                   :errors, :error_type)
     end
 
     it 'has sensible defaults' do
       result = described_class::Result.new(success: true)
       expect(result.plans_synced).to eq(0)
+      expect(result.catalog_verified).to be false
       expect(result.errors).to eq([])
       expect(result.error_type).to be_nil
     end

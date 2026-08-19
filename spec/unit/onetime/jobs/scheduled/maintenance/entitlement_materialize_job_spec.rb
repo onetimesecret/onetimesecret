@@ -21,6 +21,9 @@
 #   3. Fail-Closed Abort Paths (Unit)
 #      - Catalog pull failure aborts without materializing
 #      - Catalog pull raising aborts without materializing
+#      - Catalog pull succeeding but unverified (empty Stripe catalog is a
+#        successful no-op that leaves the old cache in place) aborts without
+#        materializing — the gate is catalog_verified, not success
 #
 #   4. Success Path (Unit)
 #      - Materializes with include_memberships: true
@@ -29,7 +32,7 @@
 #   5. Failure Logging (Unit)
 #      - Per-org failures land in report[:errors] and log at ERROR
 #
-# Run with: bundle exec rspec spec/unit/onetime/jobs/scheduled/maintenance/entitlement_materialize_job_spec.rb
+# Run with: tests/lanes/run unit --only spec/unit/onetime/jobs/scheduled/maintenance/entitlement_materialize_job_spec.rb
 
 require 'billing/spec/support/billing_spec_helper'
 require 'rufus-scheduler'
@@ -43,11 +46,20 @@ RSpec.describe Onetime::Jobs::Scheduled::Maintenance::EntitlementMaterializeJob,
   let(:scheduler) { instance_double(Rufus::Scheduler) }
   let(:logger) { instance_double(SemanticLogger::Logger) }
 
-  # Helper to create Result objects matching Pull::Result signature
-  def make_pull_result(success:, plans_synced: 0, errors: [], error_type: nil)
+  # Helper to create Result objects matching Pull::Result signature.
+  #
+  # catalog_verified defaults to the realistic pairing — a real Pull only
+  # reports a verified catalog when it persisted at least one plan — so
+  # ordinary examples need not spell it out. Pass it explicitly to build the
+  # divergent case the fail-closed gate exists for: success with nothing
+  # verified.
+  def make_pull_result(success:, plans_synced: 0, catalog_verified: nil, errors: [], error_type: nil)
+    catalog_verified = success && plans_synced.positive? if catalog_verified.nil?
+
     Billing::Operations::Catalog::Pull::Result.new(
       success: success,
       plans_synced: plans_synced,
+      catalog_verified: catalog_verified,
       errors: errors,
       error_type: error_type
     )
@@ -219,6 +231,43 @@ RSpec.describe Onetime::Jobs::Scheduled::Maintenance::EntitlementMaterializeJob,
 
           expect(report[:aborted]).to eq('catalog_pull_failed')
           expect(report[:pull_errors]).to eq(['API rate limit exceeded'])
+        end
+      end
+
+      # A pull can succeed while doing nothing: when Stripe returns no
+      # matching products, Pull returns early without pruning, rebuilding, or
+      # stamping the catalog, so the previous Redis plan cache survives
+      # untouched. Treating that `success` as "cache is fresh" would
+      # materialize every org from a stale catalog — the exact incident this
+      # job exists to prevent.
+      describe 'fail-closed abort when catalog pull succeeds but verifies nothing' do
+        it 'aborts without materializing and logs at ERROR' do
+          pull_result = make_pull_result(success: true, plans_synced: 0, catalog_verified: false)
+          allow(Billing::Operations::Catalog::Pull).to receive(:call).and_return(pull_result)
+
+          expect(Billing::Operations::MaterializePlans).not_to receive(:call)
+          expect(logger).to receive(:error).with(match(/verified no plans/))
+
+          described_class.send(:run_materialization, report)
+
+          expect(report[:aborted]).to eq('catalog_pull_unverified')
+          expect(report[:plans_synced]).to eq(0)
+        end
+
+        # Guards the opposite failure: the gate must not refuse a pull that
+        # genuinely refreshed the catalog.
+        it 'proceeds to materialize when the pull reports a verified catalog' do
+          pull_result = make_pull_result(success: true, plans_synced: 2, catalog_verified: true)
+          allow(Billing::Operations::Catalog::Pull).to receive(:call).and_return(pull_result)
+
+          expect(Billing::Operations::MaterializePlans).to receive(:call)
+            .with(include_memberships: true)
+            .and_return(make_materialize_result(scanned: 2, succeeded: 2))
+
+          described_class.send(:run_materialization, report)
+
+          expect(report).not_to have_key(:aborted)
+          expect(report[:plans_synced]).to eq(2)
         end
       end
 

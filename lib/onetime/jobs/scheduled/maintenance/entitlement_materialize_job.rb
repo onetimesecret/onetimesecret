@@ -21,10 +21,14 @@ module Onetime
         #
         # Ordering constraint: the job refreshes the plan cache
         # (Billing::Operations::Catalog::Pull) before materializing, and
-        # aborts if the pull fails. Materializing from a stale cache bakes
-        # the wrong entitlement set fleet-wide — that is the incident this
-        # job exists to prevent, so the failure mode is fail-closed:
-        # no pull, no materialize.
+        # aborts unless that pull reports a verified catalog. Materializing
+        # from a stale cache bakes the wrong entitlement set fleet-wide —
+        # that is the incident this job exists to prevent, so the failure
+        # mode is fail-closed: no verified pull, no materialize. Note that a
+        # pull can succeed without verifying anything (an empty Stripe
+        # catalog is a successful no-op that leaves the old cache in place),
+        # which is why the gate is Pull::Result#catalog_verified rather
+        # than #success.
         #
         # Standalone installs (no Stripe API key) skip gracefully, like
         # PlanCacheRefreshJob.
@@ -93,7 +97,7 @@ module Onetime
               pull = Billing::Operations::Catalog::Pull.call
 
               unless pull.success
-                report[:aborted] = 'catalog_pull_failed'
+                report[:aborted]     = 'catalog_pull_failed'
                 report[:pull_errors] = Array(pull.errors).first(MAX_LOGGED_ERRORS)
                 scheduler_logger.error(
                   '[EntitlementMaterializeJob] Aborting: catalog pull failed, ' \
@@ -102,10 +106,26 @@ module Onetime
                 return false
               end
 
+              # `success` is not a freshness guarantee. A Stripe catalog that
+              # returns no matching products is a successful no-op: Pull
+              # returns early, the prune/rebuild/timestamp path never runs,
+              # and the previously cached plans stay in Redis. Materializing
+              # there is exactly the stale-cache failure this job prevents,
+              # so gate on the catalog_verified signal instead.
+              unless pull.catalog_verified
+                report[:aborted]      = 'catalog_pull_unverified'
+                report[:plans_synced] = pull.plans_synced
+                scheduler_logger.error(
+                  '[EntitlementMaterializeJob] Aborting: catalog pull succeeded but verified no plans ' \
+                  "(plans_synced=#{pull.plans_synced}), refusing to materialize from a stale cache",
+                )
+                return false
+              end
+
               report[:plans_synced] = pull.plans_synced
               true
             rescue StandardError => ex
-              report[:aborted] = 'catalog_pull_raised'
+              report[:aborted]     = 'catalog_pull_raised'
               report[:pull_errors] = ["#{ex.class}: #{ex.message}"]
               scheduler_logger.error(
                 '[EntitlementMaterializeJob] Aborting: catalog pull raised, ' \
