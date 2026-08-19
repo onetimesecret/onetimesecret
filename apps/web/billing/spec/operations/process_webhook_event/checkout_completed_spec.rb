@@ -94,6 +94,132 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
       existing_org.refresh!
       expect(existing_org.stripe_subscription_id).to eq(stripe_subscription_id)
     end
+
+    # ========================================================================
+    # Regression: appsec H-2 residue — step 3 must not select an org the
+    # customer merely BELONGS to, and must not select an archived one.
+    #
+    # This handler's fallback was `orgs.find(&:is_default) || orgs.first` over
+    # every membership, archived included. For a customer whose own workspace
+    # is archived and whose default_org_id points at a shared tenant org they
+    # joined as a member (JoinDomainOrganization does this on custom-domain
+    # SSO sign-in), an orgid-less checkout landed on the tenant org and
+    # update_from_stripe_subscription overwrote its stripe_customer_id.
+    #
+    # Twin of the ProcessCheckoutSession coverage in
+    # spec/logic/welcome/process_checkout_session_spec.rb — both run for the
+    # same completed checkout.
+    # ========================================================================
+    context 'when the customer only belongs to (does not own) their default org' do
+      let(:tenant_owner) do
+        create_test_customer(email: "tenant-owner-#{SecureRandom.hex(4)}@example.com")
+      end
+
+      let!(:tenant_org) do
+        org                    = create_test_organization(customer: tenant_owner, name: 'Tenant Org', default: false)
+        org.stripe_customer_id = 'cus_tenant_billing_root'
+        org.save
+        org.add_members_instance(customer, through_attrs: { role: 'member', status: 'active' })
+        org
+      end
+
+      before do
+        # Archived own workspace: no owned, live org resolves — and it still
+        # holds the contact_email index reservation, which step 4's creation
+        # has to survive (CreateDefaultWorkspace also refuses here, because
+        # the customer does have an organization).
+        own = create_test_organization(customer: customer, default: true)
+        own.archive!('spec fixture: superseded by tenant org via SSO')
+
+        customer.default_org_id = tenant_org.objid
+        customer.save
+      end
+
+      it 'does not apply the subscription to the tenant organization' do
+        expect(operation.call).to eq(:success)
+
+        tenant_org.refresh!
+        expect(tenant_org.stripe_customer_id).to eq('cus_tenant_billing_root')
+        expect(tenant_org.stripe_subscription_id).to be_nil
+      end
+
+      it 'does not resurrect the archived workspace' do
+        operation.call
+
+        archived = customer.organization_instances.to_a.find(&:archived?)
+        expect(archived).not_to be_nil
+        expect(archived.stripe_subscription_id).to be_nil
+      end
+
+      it 'creates a live organization the customer owns and applies it there' do
+        operation.call
+
+        target = customer.organization_instances.to_a
+          .reject(&:archived?)
+          .find { |o| o.owner?(customer) }
+        created_organizations << target if target
+        expect(target).not_to be_nil
+        expect(target.stripe_subscription_id).to eq(stripe_subscription_id)
+      end
+    end
+
+    # ========================================================================
+    # Regression: step 1 must reject an ARCHIVED metadata orgid.
+    #
+    # An org can be archived between checkout-session creation and payment
+    # completion — a tenant SSO sign-in archives the personal workspace. The
+    # orgid stamped in subscription metadata then names an org that is no
+    # longer a live billing target, and applying the subscription there
+    # leaves the customer with no usable workspace and a paid subscription
+    # that only an operator can move.
+    #
+    # Twin of the ProcessCheckoutSession coverage in
+    # spec/logic/welcome/process_checkout_session_spec.rb.
+    # ========================================================================
+    context 'when the metadata orgid points at an org archived after checkout started' do
+      let!(:archived_org) do
+        org = create_test_organization(customer: customer, default: true)
+        org.archive!('spec fixture: archived between checkout creation and completion')
+        org
+      end
+
+      # The customer's remaining live workspace — created without a
+      # contact_email because the archived org still holds that reservation.
+      let!(:live_org) do
+        org = Onetime::Organization.create!('Live Workspace', customer, nil)
+        created_organizations << org
+        org
+      end
+
+      let(:subscription) do
+        build_stripe_subscription(
+          id: stripe_subscription_id,
+          customer: stripe_customer_id,
+          status: 'active',
+          metadata: { 'customer_extid' => customer.extid, 'orgid' => archived_org.objid },
+        )
+      end
+
+      it 'does not apply the subscription to the archived org' do
+        expect(operation.call).to eq(:success)
+
+        archived_org.refresh!
+        expect(archived_org.stripe_subscription_id).to be_nil
+        expect(archived_org.stripe_customer_id).to be_nil
+      end
+
+      it 'applies it to the customer live owned org instead' do
+        operation.call
+
+        live_org.refresh!
+        expect(live_org.stripe_subscription_id).to eq(stripe_subscription_id)
+        expect(live_org.subscription_status).to eq('active')
+      end
+
+      it 'does not mint an extra workspace' do
+        expect { operation.call }.not_to(change { customer.organization_instances.to_a.length })
+      end
+    end
   end
 
   # ============================================================================

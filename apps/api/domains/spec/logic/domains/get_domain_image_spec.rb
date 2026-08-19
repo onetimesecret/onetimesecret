@@ -71,6 +71,10 @@ RSpec.describe DomainsAPI::Logic::Domains::GetDomainImage do
       extid: 'ext-domain123',
       display_domain: 'example.com',
       org_id: 'org123',
+      # load_organization_for_domain resolves the owner through the model
+      # accessor rather than Organization.load(org_id), so that a blank org_id
+      # and a deleted organization collapse to one nil in one place.
+      primary_organization: organization,
     )
   end
 
@@ -189,6 +193,7 @@ RSpec.describe DomainsAPI::Logic::Domains::GetDomainImage do
         before do
           allow(Onetime::CustomDomain).to receive(:find_by_extid).with('abc123').and_return(custom_domain)
           allow(Onetime::Organization).to receive(:load).with('org123').and_return(nil)
+          allow(custom_domain).to receive(:primary_organization).and_return(nil)
         end
 
         it 'raises RecordNotFound' do

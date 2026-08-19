@@ -45,6 +45,7 @@ RSpec.describe 'Org Delete Command', type: :cli do
         pending_invitations: 2,
         domain_count: 0,
         domains: [],
+        drifted_domains: [],
         is_default: false,
         active_subscription: false,
         owner_id: 'ur_a',
@@ -193,6 +194,8 @@ RSpec.describe 'Org Delete Command', type: :cli do
     # override that unlocks THAT guard.
     {
       has_domains: ['bin/ots domains remove', { domain_count: 1, domains: ['a.example.com'] }],
+      drifted_domains: ['bin/ots domains doctor --repair',
+                        { drifted_domains: ['ghost.example.com'] }],
       is_default: ['--force-default', { is_default: true }],
       active_subscription: ['--force-subscription', { active_subscription: true }],
       last_org: ['There is no override', { owner_org_count: 1 }],
@@ -210,6 +213,21 @@ RSpec.describe 'Org Delete Command', type: :cli do
         expect(last_exit_code).to eq(1)
         expect(output[:stdout]).to include(guidance)
       end
+    end
+
+    it 'names the drifted domains so the operator knows what doctor --repair targets' do
+      allow(Onetime::Operations::Org::Delete).to receive(:new).and_return(
+        instance_double(
+          Onetime::Operations::Org::Delete,
+          call: result_with(status: :drifted_domains, dry_run: false,
+            drifted_domains: ['ghost.example.com']),
+        )
+      )
+
+      output = run_cli_command_quietly('org', 'delete', 'on_org_ext', '--yes')
+
+      expect(last_exit_code).to eq(1)
+      expect(output[:stdout]).to include('ghost.example.com')
     end
 
     it 'refuses at the plan pass without ever prompting' do
@@ -243,6 +261,7 @@ RSpec.describe 'Org Delete Command', type: :cli do
       payload = JSON.parse(output[:stdout])
       expect(payload['status']).to eq('has_domains')
       expect(payload['domains']).to eq(['a.example.com'])
+      expect(payload).to have_key('drifted_domains')
     end
   end
 

@@ -74,6 +74,11 @@ module OrganizationAPI::Logic
 
         # Verify user has manage_org entitlement in this organization
         require_entitlement_in!(@organization, 'manage_org')
+
+        # NO domain pre-check here. The op owns every guardrail, and a duplicate
+        # `domain_count` refusal at this layer would short-circuit its drift
+        # self-heal — the customer would be told to remove domains they cannot
+        # see, instead of having the invisible ones repaired back into view.
       end
 
       def process
@@ -127,6 +132,16 @@ module OrganizationAPI::Logic
             # loads to nothing, so fall back to the count the guard actually
             # refused on rather than interpolating an empty list.
             args: { domains: result.domains.empty? ? result.domain_count.to_s : result.domains.join(', ') },
+            field: :extid,
+            error_type: :invalid,
+          )
+        when :drifted_domains
+          # These stay INVISIBLE in the customer's domain list — "remove your
+          # domains" would be pointing at nothing they can see. Name them and
+          # route to support; the remediation is operator-side.
+          raise_form_error(
+            error_key: 'api.organizations.errors.delete_drifted_domains',
+            args: { domains: result.drifted_domains.join(', ') },
             field: :extid,
             error_type: :invalid,
           )

@@ -272,6 +272,37 @@ module Onetime
         organization
       end
 
+      # Resolve a domain's owning organization, raising rather than returning nil
+      #
+      # The single answer to "which organization governs this domain?" for every
+      # authorization site. Callers pass the result straight into
+      # require_entitlement_in!, which raises a bare Onetime::Problem on nil, so
+      # a domain whose org_id is blank or points at a deleted organization must
+      # be turned into a request-safe error HERE — not left to surface as a 500
+      # once some upstream membership check stops shadowing it.
+      #
+      # CustomDomain#primary_organization already absorbs both damaged states
+      # (blank org_id, missing record); this adds the invariant that a caller
+      # never has to think about them.
+      #
+      # Pass a block when the failure must be indistinguishable from an
+      # authorization denial — otherwise a caller can enumerate which domains
+      # carry damaged ownership metadata. The block is expected to raise; if it
+      # returns, the default not-found still fires.
+      #
+      # @param domain [Onetime::CustomDomain] The domain
+      # @yield [domain] Optional caller-supplied refusal
+      # @raise [Onetime::RecordNotFound] If the organization cannot be resolved
+      # @return [Onetime::Organization]
+      def load_organization_for_domain(domain)
+        organization = domain.primary_organization
+        return organization if organization
+
+        yield domain if block_given?
+
+        raise_not_found("Organization not found for domain: #{domain.display_domain}")
+      end
+
       private
 
       # Build user-friendly error message from authorization requirements

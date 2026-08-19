@@ -34,6 +34,6 @@ module ActorAttributionSpecHelpers
 
   # An authenticated caller who owns `owner_objid`'s secret.
   def owner_double(owner_objid)
-    double('Customer', custid: owner_objid, objid: owner_objid, anonymous?: false)
+    double('Customer', custid: owner_objid, objid: owner_objid, extid: "ur#{owner_objid}", anonymous?: false)
   end
 end

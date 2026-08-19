@@ -315,6 +315,7 @@ plans:
   #     - extended_default_expiration
   #     - manage_teams
   #     - manage_members
+  #     - audit_logs
   #
   #   features:
   #     - web.billing.features.team_members_5

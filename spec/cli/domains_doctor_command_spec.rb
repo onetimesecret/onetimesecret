@@ -34,6 +34,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
       domains: org_domains,
       list_domains: [],
       add_domain: true,
+      archived?: false,
     )
   end
 
@@ -212,6 +213,36 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
     end
 
     it 'never repairs an orphan, even with --repair' do
+      allow(Onetime::Operations::Domains::Repair).to receive(:new)
+
+      run_cli_command_quietly('domains', 'doctor', '--all', '--repair')
+
+      expect(Onetime::Operations::Domains::Repair).not_to have_received(:new)
+      expect(org_domains).not_to have_received(:add)
+    end
+  end
+
+  # Archive is a soft delete that says nothing about the org's domains, and
+  # Organization.load still returns the record — so check #1 (stale_org_reference)
+  # sees a healthy pointer while every authorization path that resolves the
+  # domain evaluates entitlements against an org the operator believes is gone.
+  describe 'archived organization reporting' do
+    before do
+      allow(organization).to receive(:archived?).and_return(true)
+      # The domain IS in the collection, so check #4 stays quiet and this
+      # example exercises exactly the archived-org check.
+      allow(org_domains).to receive(:member?).and_return(true)
+    end
+
+    it 'reports the archived owner and points at the manual remedies' do
+      output = run_cli_command_quietly('domains', 'doctor', '--all')
+
+      expect(output[:stdout]).to include("org_id 'org123' points to an archived organization")
+      expect(output[:stdout]).to include('bin/ots domains transfer example.com --to-org <ORG>')
+      expect(last_exit_code).to eq(1)
+    end
+
+    it 'never repairs it, even with --repair' do
       allow(Onetime::Operations::Domains::Repair).to receive(:new)
 
       run_cli_command_quietly('domains', 'doctor', '--all', '--repair')
