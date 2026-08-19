@@ -68,16 +68,17 @@ RSpec.describe Core::Middleware::RequestSetup do
     end
 
     it 'allows same-origin Vite module imports in development without dropping the nonce' do
-      # otto >= 2.8.1 includes 'self' in its development script-src directly
-      # (delano/otto#239 — the same Vite same-origin fix the app-side
-      # allow_same_origin_scripts_in_development helper hand-rolled, which now
-      # no-ops on the already-present 'self'). Assert the invariant — 'self'
-      # AND the nonce both present in script-src — not the directive's exact
-      # byte layout, which belongs to otto.
+      # otto >= 2.8.1 leads its development script-src with 'self' directly
+      # (delano/otto#239), which retired the app-side
+      # allow_same_origin_scripts_in_development shim. The pin to the EXACT
+      # token sequence is deliberate: this is a security header, so any
+      # future otto change to it (2.8.1 itself changed dev script-src from
+      # "'nonce-N' 'unsafe-inline'" to "'self' 'nonce-N' http: https:")
+      # must surface here as a reviewable diff, not slide through a
+      # loosened matcher.
       policy = emit({ 'content-type' => 'text/html' }, development: true)
 
-      expect(policy).to match(/script-src [^;]*'self'/)
-      expect(policy).to match(/script-src [^;]*'nonce-N'/)
+      expect(policy).to include("script-src 'self' 'nonce-N' http: https:")
     end
 
     it 'keeps production scripts nonce-only' do
