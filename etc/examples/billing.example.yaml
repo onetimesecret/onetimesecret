@@ -244,6 +244,15 @@ plans:
 
     entitlements:
       - api_access
+      # Required by the receipt-listing scopes that read a shared index:
+      # GET /api/v3/receipt/recent?scope=org and ?scope=domain (and the
+      # organization secret-activity listing). The domain index holds every
+      # receipt created on a branded link, including anonymous visitors',
+      # so it is gated even though this tier is single-seat — without the
+      # grant the domain owner cannot read activity on their own domains.
+      # Cross-member exposure is not a concern here: the tier caps
+      # total_members_per_org at 1.
+      - audit_logs
       - create_secrets
       - custom_branding
       - custom_domains
@@ -315,6 +324,7 @@ plans:
   #     - extended_default_expiration
   #     - manage_teams
   #     - manage_members
+  #     - audit_logs
   #
   #   features:
   #     - web.billing.features.team_members_5

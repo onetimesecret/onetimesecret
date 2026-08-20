@@ -148,10 +148,6 @@
                 type="hidden"
                 name="tz"
                 :value="userTimezone" />
-              <input
-                type="hidden"
-                name="version"
-                :value="ot_version_long" />
             </div>
 
             <!-- Reply-availability notice: heads-up for anonymous submitters -->
@@ -237,7 +233,11 @@
             </svg>
             {{ t('web.account.timezone') }}: {{ userTimezone }}
           </li>
-          <li class="flex items-center">
+          <!-- Version is stamped server-side; only listed when this client
+               actually knows it (authenticated sessions). -->
+          <li
+            v-if="ot_version_long"
+            class="flex items-center">
             <svg
               class="mr-2 size-4 text-brand-500"
               fill="none"

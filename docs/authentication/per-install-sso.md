@@ -23,18 +23,24 @@ Multiple providers can be active simultaneously. Each provider that has its requ
 
 **Requirements:**
 - `AUTHENTICATION_MODE=full`
-- SQL database with migrations applied
+- A runtime SQL database connection (`AUTH_DATABASE_URL`) with migrations applied
 - At least one provider's credentials configured
 
 ## Quick Start
 
-### 1. Run Migration
+### 1. Configure Database URLs and Run Migration
 
 ```bash
-sequel -m apps/web/auth/migrations $AUTH_DATABASE_URL_MIGRATIONS
+# Required: database used by the running application
+export AUTH_DATABASE_URL=postgres://onetime_app:password@db.example.com/onetime_auth
+
+# Optional: separate, privileged connection used only for migrations
+export AUTH_DATABASE_URL_MIGRATIONS=postgres://onetime_migrator:password@db.example.com/onetime_auth
+
+sequel -m apps/web/auth/migrations "$AUTH_DATABASE_URL"
 ```
 
-Creates `account_identities` table for storing provider/uid links.
+`AUTH_DATABASE_URL` is the runtime connection. `AUTH_DATABASE_URL_MIGRATIONS` is optional, but when it is used it must target the same database; substitute it for `AUTH_DATABASE_URL` in the migration command. The migration creates `account_identities` for provider/issuer/uid identity links.
 
 ### 2. Set Environment Variables
 
@@ -61,7 +67,7 @@ Providers load automatically when `AUTH_SSO_ENABLED=true` and their required env
 | `AUTH_SSO_ENABLED` | Yes | `true` to enable SSO |
 | `SSO_DISPLAY_NAME` | No | Default button label for generic OIDC (e.g., "Company SSO") |
 | `ALLOWED_SIGNUP_DOMAIN` | No | Comma-separated allowed email domains for SSO signup |
-| `SSO_FORM_ACTION_ORIGINS` | No | Space-separated extra origins added to the CSP `form-action` directive so Chromium does not block the SSO form-POST redirect (see [Troubleshooting](#sso-login-blocked-on-chromium-family-browsers-csp-form-action)) |
+| `SSO_FORM_ACTION_ORIGINS` | No | Space-separated extra origins added to the CSP `form-action` directive. IdP origins are auto-derived — platform providers at boot, tenant (per-domain) SSO issuers per-request. Use this process-wide override only for split-endpoint OIDC or a tenant discovery-availability fallback (see [Troubleshooting](#sso-login-blocked-on-chromium-family-browsers-csp-form-action)). |
 
 ### Generic OIDC
 
@@ -134,8 +140,8 @@ IdP redirects to /auth/sso/{provider}/callback
 Token exchange (code → tokens)
     │
     ▼
-Account lookup by (provider, uid), then by email
-    ├─ (provider, uid) already linked → sync session
+Account lookup by (provider, issuer, uid), then by email
+    ├─ (provider, issuer, uid) already linked → sync session
     ├─ Email matches an account, but this identity is not linked
     │     ├─ Trusted-IdP flag ON  → auto-link identity, sync session
     │     └─ Trusted-IdP flag OFF →
@@ -154,11 +160,11 @@ All hooks (`account_from_omniauth`, `before_omniauth_create_account`, etc.) are 
 
 ## Behavior
 
-**Account Matching:** By linked identity first — the `(provider, uid)` pair in `account_identities`. If that identity is already linked, the user is signed into its account. If the identity is *not* linked but the IdP email matches an existing account, the default is to **refuse** auto-linking (email may locate an account, but only a demonstrated credential may bind an identity to it). Three paths relax that refusal without weakening the invariant: a password-holding account is offered a **sign-in interstitial** to prove its existing password (on by default — see [Sign-in interstitial](#sign-in-interstitial-password-challenge-linking)); a **passwordless** account is offered **mailbox-proof linking** — a single-use link emailed to its on-file address (on by default, platform surface — see [Mailbox-proof linking](#mailbox-proof-linking-passwordless-accounts)); and an operator can opt a trusted IdP into email auto-linking (see [Identity Linking and the Trusted-IdP Flag](#identity-linking-and-the-trusted-idp-flag)). A signed-in user can also link an identity deliberately, without any email involvement, from [Connected Identities](#connected-identities-authenticated-linking-from-account-settings) in account settings.
+**Account Matching:** By linked identity first — the `(provider, issuer, uid)` key in `account_identities`. The `issuer` is `''` for OAuth2-only identities; legacy rows start with that sentinel and a platform callback lazily upgrades them to its resolved issuer. If that identity is already linked, the user is signed into its account. If the identity is *not* linked but the IdP email matches an existing account, the default is to **refuse email-only auto-linking** (email may locate an account, but only a demonstrated credential may bind an identity to it). On the platform surface, a password-holding account is offered a **sign-in interstitial** to prove its existing password (on by default — see [Sign-in interstitial](#sign-in-interstitial-password-challenge-linking)), and a **passwordless** account is offered **mailbox-proof linking** — a single-use link emailed to its on-file address (on by default — see [Mailbox-proof linking](#mailbox-proof-linking-passwordless-accounts)). An operator can also opt a trusted IdP into email auto-linking (see [Identity Linking and the Trusted-IdP Flag](#identity-linking-and-the-trusted-idp-flag)). A signed-in user can link an identity deliberately, without any email involvement, from [Connected Identities](#connected-identities-authenticated-linking-from-account-settings) in account settings.
 
 **Account Creation:** Automatic for unrecognized emails. Creates Customer record and default workspace.
 
-**Multi-Provider:** One account can have multiple linked identities (e.g., OIDC + Entra). The `account_identities` table stores `(provider, uid)` pairs per account.
+**Multi-Provider:** One account can have multiple linked identities (e.g., OIDC + Entra). The `account_identities` table stores `(provider, issuer, uid)` keys per account.
 
 **Email Verification:** SSO accounts are auto-verified. The IdP handles verification.
 
@@ -170,7 +176,7 @@ All hooks (`account_from_omniauth`, `before_omniauth_create_account`, etc.) are 
 
 An email claim may **locate** an account; only a **demonstrated credential** may **bind** an identity to it. Email is metadata, not an identity join key.
 
-Concretely: an SSO login is identified by the `(provider, uid)` pair recorded in `account_identities`. When that pair is already linked, the user is signed into the linked account. When it is *not* linked, but the IdP-supplied email happens to match an existing account, the default behavior is to **refuse** — because anyone who controls the IdP can mint a token bearing any victim's email address. Auto-linking on email alone would let such a token take over the matching account. The refusal is logged as `omniauth_link_refused_existing_account` (level `warn`) and the user is redirected to `/signin?auth_error=account_exists_link_required` with a flash telling them to sign in with their existing method.
+Concretely: an SSO login is identified by the `(provider, issuer, uid)` key recorded in `account_identities`; `issuer` is `''` for OAuth2-only rows, while legacy rows begin with that sentinel until a platform callback lazily upgrades them. When that key is already linked, the user is signed into the linked account. When it is *not* linked but the IdP-supplied email happens to match an existing account, the default behavior is to **refuse email-only auto-linking** — because anyone who controls the IdP can mint a token bearing any victim's email address. Auto-linking on email alone would let such a token take over the matching account. On the platform surface, the user can instead prove an existing password or control of the account's on-file mailbox. Tenant callbacks, and platform cases where those proof paths cannot proceed, receive the H-3 refusal: `omniauth_link_refused_existing_account` (level `warn`), a redirect to `/signin?auth_error=account_exists_link_required`, and a flash telling them to sign in with their existing method.
 
 This is the correct default for a multi-tenant platform. It is *not* what a self-hosted single-tenant operator wants when they control both the app and the IdP — for them, email is a trustworthy join key, and the refusal locks legitimate users out. The trusted-IdP flag is the sanctioned, opt-in exception.
 
@@ -275,7 +281,7 @@ This path needs no operator configuration. It is on by default and is the platfo
 
 1. `account_from_omniauth` looks up the located account's password hash directly (it cannot use `has_password?`, which reads the *session* account and there is no session yet on this path).
 2. **Account has a password →** it mints a single-use `Onetime::SsoLinkChallenge` in Redis — a short-lived (5 min) token snapshotting `(provider, resolved_issuer, uid, normalized email, account id)` — logs `omniauth_link_challenge_issued` (level `warn`), and redirects the browser to the SPA interstitial at `/link-sso/{token}`.
-3. **Account has no password (SSO-only) →** unchanged H-3 refusal (`omniauth_link_refused_existing_account`, redirect to `/signin?auth_error=account_exists_link_required`). There is no credential to challenge.
+3. **Account has no password (SSO-only) →** on the platform surface, it continues to [Mailbox-proof linking](#mailbox-proof-linking-passwordless-accounts); tenant callbacks retain the H-3 refusal (`omniauth_link_refused_existing_account`, redirect to `/signin?auth_error=account_exists_link_required`) because there is no local credential to challenge.
 
 **The interstitial endpoints** (`apps/web/auth/routes/link_sso.rb`):
 
@@ -291,7 +297,8 @@ This path needs no operator configuration. It is on by default and is the platfo
 | 400 | `invalid_request` | token or password missing |
 | 401 | `link_expired` | token missing / already consumed / expired, or the located account vanished |
 | 401 | `invalid_password` | the existing password did not verify |
-| 409 | `link_conflict` | the email now resolves to a different account than the one snapshotted at mint |
+| 409 | `link_conflict` | the email resolves to a different account than the one snapshotted at mint, or the identity is already bound to another account |
+| 429 | `link_rate_limited` | too many password-verification attempts; retry later (the token is not consumed) |
 
 **Why the token is single-use (security-load-bearing).** `POST /auth/link-sso` **deletes** the challenge up front — before it even checks the password — so a token is worth exactly **one** attempt. This is deliberate: password verification runs through `Auth::Config.valid_login_and_password?`, a Rodauth *internal request* that does **not** go through the login route and therefore does **not** increment lockout counters. Without one-shot consumption, a token minted by an attacker who completed an SSO round-trip asserting a victim's email would be an unbounded (TTL-window) password-guessing oracle with no lockout. One-shot consumption bounds it to a single guess per full IdP round-trip. The 5-minute TTL bounds abandoned challenges. On a wrong password the user must restart the SSO sign-in — a deliberate trade of a small amount of retry convenience for closing the oracle.
 
@@ -328,6 +335,8 @@ The sign-in interstitial above proves ownership with the account's **existing pa
 | 401 | `link_expired` | token missing / already consumed / expired, or the snapshotted account vanished or is no longer loginable |
 | 409 | `link_conflict` | the account was re-emailed since issuance, or the `(provider, issuer, uid)` is already bound to a different account |
 | 409 | `link_invalidated` | a credential change advanced the account's password watermark since the token was issued |
+| 409 | `link_error` | the credential watermark could not be read; the consumed token cannot be retried |
+| 429 | `confirm_rate_limited` | too many confirmation attempts; retry later (the token is not consumed) |
 
 **Single-use, atomically consumed.** `POST /auth/sso-link-confirm` deletes the token up front (`#delete!` — the atomic single-use gate) before binding, so it is worth exactly one confirmation. Two concurrent confirmations race on the delete count; only the winner proceeds. The 15-minute TTL bounds abandoned tokens.
 
@@ -442,6 +451,7 @@ Get the values:
 - **Application (client) ID** → `ENTRA_CLIENT_ID`
 - **Directory (tenant) ID** → `ENTRA_TENANT_ID`
 - Certificates & secrets → New client secret → copy **Value** (not Secret ID) → `ENTRA_CLIENT_SECRET`
+- Ensure the application issues a usable `email` claim. SSO account lookup and just-in-time creation read the OmniAuth `info.email` value; configure Entra optional claims or user-attribute mapping when the token does not include `email`.
 
 ```bash
 ENTRA_TENANT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
@@ -557,14 +567,15 @@ No CSRF token required -- OAuth's state parameter handles CSRF protection for SS
 CREATE TABLE account_identities (
   id BIGINT PRIMARY KEY,
   account_id BIGINT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-  provider VARCHAR NOT NULL,  -- e.g. 'oidc', 'entra_id', 'google_oauth2', 'github'
-  uid VARCHAR NOT NULL,       -- IdP-specific subject identifier
-  UNIQUE (provider, uid)
+  provider VARCHAR NOT NULL,             -- configured route name
+  issuer VARCHAR NOT NULL DEFAULT '',    -- '' sentinel when no issuer is available
+  uid VARCHAR NOT NULL,                  -- IdP-specific subject identifier
+  UNIQUE (provider, issuer, uid)
 );
 CREATE INDEX ON account_identities (account_id);
 ```
 
-The `provider` column stores the OmniAuth strategy name, which may differ from the route name (e.g., strategy `entra_id` at route `/auth/sso/entra`).
+The identity key is `(provider, issuer, uid)`. `issuer` scopes providers that can authenticate against multiple issuers; OAuth2-only rows use the empty-string (`''`) sentinel rather than `NULL`, and legacy rows start with that value until a platform callback lazily upgrades them. The `provider` value is derived from the configured route name.
 
 ## Error Handling
 
@@ -615,25 +626,30 @@ If you see `encoded token is not a string`: the CSRF bypass for SSO routes is mi
 
 **Cause:** As of otto 2.5 (shipped in v0.26.0-rc1), the emitted CSP contained `form-action 'self'`. The SSO flow POSTs a form to `/auth/sso/{provider}`, which responds with a redirect to the IdP's authorization endpoint. Chromium enforces `form-action` across the entire redirect chain, so the cross-origin hop to the IdP is blocked. Firefox only checks the initial (same-origin) form target and never trips the policy — which is why the bug reproduces in one browser family and not the other. (#3848)
 
-**Fix (automatic):** The app now derives the origin of each active SSO provider at boot and adds it to the `form-action` directive:
+**Fix (automatic):** IdP origins are derived on two levels (#3848, #4173):
 
-| Provider | Origin added |
-|----------|--------------|
-| Microsoft Entra ID | `https://login.microsoftonline.com` |
-| Google | `https://accounts.google.com` |
-| GitHub | `https://github.com` |
-| Generic OIDC | Origin of `OIDC_ISSUER` |
+- **Platform providers (boot):** the origin of each active env-configured SSO provider is added to the `form-action` directive when the router is built:
 
-No configuration is required for the common case. The resolved set is exposed as `Onetime.auth_config.sso_form_action_origins`.
+  | Provider | Origin added |
+  |----------|--------------|
+  | Microsoft Entra ID | `https://login.microsoftonline.com` |
+  | Google | `https://accounts.google.com` |
+  | GitHub | `https://github.com` |
+  | Generic OIDC | Origin of `OIDC_ISSUER` |
+
+- **Tenant (per-domain) SSO (per-request):** on a custom domain whose per-domain SSO config is enabled and permitted, the domain's IdP origin (the SSO config's issuer origin for OIDC, `https://login.microsoftonline.com` for Entra ID) is added to `form-action` for that request only — on that domain and nowhere else. No env var is involved; the origin follows the domain's stored SSO config automatically.
+
+No configuration is required for the common case. The boot-time set is exposed as `Onetime.auth_config.sso_form_action_origins`; the per-request widening is `Onetime::Middleware::TenantCspExtras`.
+
+**Sovereign Microsoft Entra:** The Entra provider is pinned to the commercial cloud on both platform and tenant SSO. Configure a sovereign cloud as generic OIDC with its sovereign v2.0 issuer; its origin is derived automatically. Do not add a sovereign origin through `SSO_FORM_ACTION_ORIGINS`: it widens CSP but does not change the Entra redirect. See [OIDC for sovereign Microsoft Entra tenants](per-domain-sso.md#oidc-for-sovereign-microsoft-entra-tenants) for tenant issuer values, access-control posture, and identity-migration caveats.
 
 **When to use the override:** Set `SSO_FORM_ACTION_ORIGINS` (space-separated origins) when the auto-derived origin is wrong or incomplete:
 
-- **Sovereign / national clouds** — e.g. Entra on `https://login.microsoftonline.us` (US Government) or another regional Microsoft endpoint instead of the global `https://login.microsoftonline.com`.
-- **OIDC issuer ≠ authorization endpoint** — when the discovery document's `authorization_endpoint` lives on a different origin than `OIDC_ISSUER`. The form POSTs to the authorization endpoint's origin, which is what CSP checks.
-- **Org-level SSO with placeholder providers** — when providers are configured per-organization and the boot-time environment has no concrete issuer to derive an origin from.
+- **OIDC issuer ≠ authorization endpoint** — when the discovery document's `authorization_endpoint` lives on a different origin than the issuer (`OIDC_ISSUER`, or a tenant SSO config's issuer). The form POSTs to the authorization endpoint's origin, which is what CSP checks.
+- **Per-request derivation gaps** — the tenant widening depends on resolving the display domain's stored SSO config at response time. If the domain record is unreachable (datastore blip), the widening is skipped silently — the only symptom is the browser-console CSP error — and the issuers are effectively unknown per-request. `SSO_FORM_ACTION_ORIGINS` remains the manual fallback when such gaps must not block SSO.
 
 ```bash
-SSO_FORM_ACTION_ORIGINS="https://login.microsoftonline.us https://auth.example.gov"
+SSO_FORM_ACTION_ORIGINS="https://authorize.example.gov"
 ```
 
 **Interim workaround (un-upgraded installs):** If you cannot yet deploy the fix, set `CSP_ENABLED=false` to drop the CSP header entirely. This unblocks SSO at the cost of losing CSP protection, so treat it as temporary and re-enable CSP after upgrading.
@@ -684,8 +700,8 @@ See [OmniAuth Testing Guide](omniauth-testing.md) for local IdP setup and test p
 
 ```bash
 # Backend
-bundle exec rspec apps/web/auth/spec/unit/omniauth_domain_validation_spec.rb
-bundle exec rspec apps/web/auth/spec/integration/omniauth_csrf_spec.rb
+tests/lanes/run unit --only apps/web/auth/spec/unit/omniauth_domain_validation_spec.rb
+tests/lanes/run full-sqlite --only apps/web/auth/spec/integration/full/omniauth_csrf_spec.rb
 
 # Frontend
 pnpm test src/tests/apps/session/components/SsoButton.spec.ts

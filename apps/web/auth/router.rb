@@ -158,9 +158,16 @@ module Auth
 
       # Root path - Auth app info
       # When mounted at /auth, this handles requests to /auth and /auth/
+      #
+      # No version field: this path is anonymous-reachable (it sits ahead of
+      # r.rodauth), and the build version fingerprints the install for CVE
+      # matching. Callers that need it and are entitled to it use
+      # GET /api/v3/version, which is auth-gated. The version is still
+      # reported by the /auth/health endpoint, which HealthAccessControl
+      # restricts to loopback/RFC1918.
       r.is do
         r.get do
-          { message: 'OneTimeSecret Authentication Service', version: Onetime::VERSION }
+          { message: 'OneTimeSecret Authentication Service' }
         end
       end
 

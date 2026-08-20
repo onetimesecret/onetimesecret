@@ -78,6 +78,15 @@ module Onetime
           end
         end
 
+        # Marks a sidecar whose READ failed (transient store error / corrupt
+        # record), as distinct from nil = "sidecar demonstrably absent". The
+        # distinction is load-bearing: a missing sidecar triggers the self-heal
+        # ZREM below, while a failed read must only skip its row — pruning an
+        # index member because of a transient failure would silently unlist a
+        # live session.
+        SIDECAR_READ_FAILED = Module.new.freeze
+        private_constant :SIDECAR_READ_FAILED
+
         # @param custid [String] route param identifying the target customer;
         #   resolved by extid → email → objid (see #call), matching the colonel
         #   customer-detail resolution (get_user_details.rb).
@@ -99,14 +108,19 @@ module Onetime
           # last-activity first (TrackMetadata scores by last_activity epoch).
           sids = customer.active_sessions.revrange(0, -1)
 
-          entries = sids.filter_map do |sid|
-            begin
-              meta = Onetime::SessionMetadata.load(sid)
-            rescue StandardError
-              # Sidecar data is supplementary. A transient store failure or corrupt
-              # record must not hide otherwise-authoritative session information.
-              next nil
-            end
+          # One pipelined round trip for ALL sidecars (Familia load_multi,
+          # position-aligned, nil for missing) instead of a serial load per sid.
+          metas = load_sidecars(sids)
+
+          entries = sids.each_with_index.filter_map do |sid, idx|
+            meta = metas[idx]
+
+            # Sidecar data is supplementary. A transient store failure or corrupt
+            # record must not hide otherwise-authoritative session information —
+            # and must NOT be mistaken for absence (which would self-heal-prune a
+            # live member below). Skip only this row.
+            next nil if meta.equal?(SIDECAR_READ_FAILED)
+
             begin
               if meta.nil?
                 # Self-heal: the sidecar is gone (TTL-expired or the blob was
@@ -141,6 +155,34 @@ module Onetime
         end
 
         private
+
+        # Batched sidecar read: one pipelined round trip for every sid
+        # ({Familia::Horreum.load_multi}: position-aligned with the input, nil
+        # for keys that don't exist — the same per-position contract the old
+        # serial loads had).
+        #
+        # Failure semantics: load_multi materializes every record in one call,
+        # so ANY failure inside it (connection error, or one corrupt record
+        # raising during instantiation) surfaces as a single batch-level raise.
+        # That must not take out the listing where a single bad row previously
+        # degraded gracefully — so a batch failure falls back to the legacy
+        # per-row loads, where each row's own failure maps to
+        # {SIDECAR_READ_FAILED} (row skipped, index member kept) exactly as the
+        # old per-row rescue did.
+        #
+        # @param sids [Array<String>]
+        # @return [Array<Onetime::SessionMetadata, nil, SIDECAR_READ_FAILED>]
+        def load_sidecars(sids)
+          return [] if sids.empty?
+
+          Onetime::SessionMetadata.load_multi(sids)
+        rescue StandardError
+          sids.map do |sid|
+            Onetime::SessionMetadata.load(sid)
+          rescue StandardError
+            SIDECAR_READ_FAILED
+          end
+        end
 
         # Resolve the target customer the same way the colonel customer-detail
         # path does (get_user_details.rb): extid first (every admin surface routes

@@ -32,10 +32,11 @@ import { z } from 'zod';
  * external id). `created_at` is `authenticated_at` as a Unix-second number.
  *
  * `geo_country` is an ISO-3166-1 alpha-2 code joined from the session metadata
- * sidecar, or `'**'` when Otto could not resolve one — render both that sentinel
- * and a null as "Unknown", never as a country. It is `.optional()` as well as
- * nullable so that mid-deploy, a response from a backend that predates the join
- * still parses instead of dropping the whole session list.
+ * sidecar, or null when no country is known (Otto's `'**'` unknown sentinel is
+ * normalized to null server-side and never crosses the API) — render null as
+ * "Unknown". It is `.optional()` as well as nullable so that mid-deploy, a
+ * response from a backend that predates the join still parses instead of
+ * dropping the whole session list.
  */
 export const colonelSessionSchema = z.object({
   session_id: z.string(),

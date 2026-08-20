@@ -207,7 +207,7 @@ RSpec.describe Onetime::Operations::Org::Create do
     describe 'contact_email race (the real uniqueness guard)' do
       it 'maps the create! reservation failure to :email_taken without raising' do
         allow(Onetime::Organization).to receive(:create!)
-          .and_raise(Onetime::Problem.new('Organization exists for that email address'))
+          .and_raise(Onetime::OrganizationExists.new('Organization exists for that email address'))
 
         result = nil
         expect { result = build(contact_email: 'billing@acme.test').call }.not_to raise_error

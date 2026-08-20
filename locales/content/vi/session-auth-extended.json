@@ -292,9 +292,9 @@
     "source_hash": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "Tên khóa truy cập",
+    "text": "Khóa truy cập",
     "context": "Label for passkey name field",
-    "source_hash": "22eefa67"
+    "source_hash": "904c9aa9"
   },
   "web.auth.passkeys.created": {
     "text": "Đã tạo",
@@ -929,5 +929,33 @@
   "web.sso_link_confirm.errors.generic": {
     "text": "Chúng tôi không thể xác nhận kết nối này. Vui lòng đăng nhập lại bằng nhà cung cấp của bạn.",
     "source_hash": "076fa25a"
+  },
+  "web.auth.mfa.passkey_mode_active": {
+    "text": "Chế độ khóa truy cập đang bật",
+    "source_hash": "824dceb6"
+  },
+  "web.auth.mfa.passkey_prompt": {
+    "text": "Xác minh danh tính của bạn bằng khóa truy cập. Thiết bị sẽ yêu cầu vân tay, khuôn mặt hoặc khóa bảo mật của bạn.",
+    "source_hash": "c0b0cbbc"
+  },
+  "web.auth.mfa.verify_with_passkey": {
+    "text": "Xác minh bằng khóa truy cập",
+    "source_hash": "4f105a30"
+  },
+  "web.auth.mfa.use_passkey": {
+    "text": "Sử dụng khóa truy cập thay thế",
+    "source_hash": "bd6430a4"
+  },
+  "web.auth.passkeys.remove_failed": {
+    "text": "Không thể xóa khóa truy cập",
+    "source_hash": "3e131515"
+  },
+  "web.auth.passkeys.load_failed": {
+    "text": "Không thể tải danh sách khóa truy cập",
+    "source_hash": "8d704e00"
+  },
+  "web.auth.webauthn.emailRequired": {
+    "text": "Nhập địa chỉ email của bạn để đăng nhập bằng khóa truy cập",
+    "source_hash": "7f07647f"
   }
 }

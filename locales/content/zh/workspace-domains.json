@@ -1538,5 +1538,93 @@
   "web.domains.signup.dormant_notice": {
     "text": "注册已在整个工作区范围内关闭，因此在每个域名上都不可用。此处的设置会被保留，并在再次启用工作区注册时生效。",
     "source_hash": "49faefe4"
+  },
+  "web.domains.link_domain_no_settings": {
+    "text": "此域名没有设置页面",
+    "source_hash": "8a8430fe"
+  },
+  "web.domains.signin.sso_restrict_warning_title": {
+    "text": "限制为 SSO 会关闭此域名上的登录",
+    "source_hash": "3476cb5c"
+  },
+  "web.domains.signin.sso_restrict_warning_body": {
+    "text": "此域名上无法使用 SSO，而无法生效的限制会完全阻止登录。在 SSO 正常工作之前，任何人都无法在此登录。请先修复 SSO，或者仍然限制并完成设置。",
+    "source_hash": "086e3247"
+  },
+  "web.domains.signin.sso_restrict_warning_confirm": {
+    "text": "仍然限制",
+    "source_hash": "4674e3cf"
+  },
+  "web.domains.signin.restriction_unavailable_notice": {
+    "text": "此域名上的登录不可用：它被限制为 {method}，而该方式在此无法使用。请选择其他方式，或使 {method} 可用。",
+    "source_hash": "ca1b7f69"
+  },
+  "web.domains.signin.restriction_unavailable_unknown_notice": {
+    "text": "此域名上的登录不可用：它被限制为一种在此无法使用的方式。请选择其他方式，或将此域名重置为默认值。",
+    "source_hash": "8c2cce6b"
+  },
+  "web.domains.signin.restriction_conflict_notice": {
+    "text": "此域名将登录限制为与工作区范围限制（{method}）不同的方式，因此两者都无法生效，此处的登录不可用。请与工作区范围的方式保持一致，或将此域名重置为默认值。",
+    "source_hash": "15398362"
+  },
+  "web.domains.signin.method_webauthn_unavailable": {
+    "text": "通行密钥与主登录域名绑定，目前尚不支持自定义域名",
+    "source_hash": "88833e0f"
+  },
+  "web.domains.sso.connection_disabled_badge": {
+    "text": "连接已禁用",
+    "source_hash": "99d6092c"
+  },
+  "web.domains.sso.connection_disabled_hint": {
+    "text": "SSO 凭据已保存，但连接已关闭。请在「编辑凭据」中启用。",
+    "source_hash": "90180d6c"
+  },
+  "web.domains.sso.status_active_badge": {
+    "text": "已启用",
+    "source_hash": "92340695"
+  },
+  "web.domains.sso.status_active_hint": {
+    "text": "成员可以在此域名上使用此 SSO 连接登录。",
+    "source_hash": "313ec61e"
+  },
+  "web.domains.sso.status_not_configured_badge": {
+    "text": "未配置",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.sso.status_not_configured_hint": {
+    "text": "尚未为此域名保存 SSO 凭据。",
+    "source_hash": "d817ad9c"
+  },
+  "web.domains.sso.status_not_permitted_badge": {
+    "text": "此域名不允许",
+    "source_hash": "afbd20ba"
+  },
+  "web.domains.sso.status_not_permitted_hint": {
+    "text": "此域名已关闭 SSO，因此登录页面不提供此方式。",
+    "source_hash": "ef092481"
+  },
+  "web.domains.sso.status_auth_disabled_badge": {
+    "text": "登录已禁用",
+    "source_hash": "bb807607"
+  },
+  "web.domains.sso.status_auth_disabled_hint": {
+    "text": "此域名已关闭登录，因此不提供任何登录方式 — 包括 SSO。",
+    "source_hash": "3a98964b"
+  },
+  "web.domains.sso.status_unsupported_provider_badge": {
+    "text": "不支持的提供商",
+    "source_hash": "1609d5fb"
+  },
+  "web.domains.sso.status_unsupported_provider_hint": {
+    "text": "保存的提供商无法用于域名 SSO。请编辑凭据并选择 Microsoft Entra ID 或通用 OIDC。",
+    "source_hash": "72ea0a2e"
+  },
+  "web.domains.sso.status_unavailable_badge": {
+    "text": "不可用",
+    "source_hash": "ca184496"
+  },
+  "web.domains.sso.status_unavailable_hint": {
+    "text": "目前无法在此域名上提供 SSO。请检查 SSO 凭据以及此域名的登录设置。",
+    "source_hash": "b03b14f4"
   }
 }

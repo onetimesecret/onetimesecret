@@ -31,8 +31,10 @@ module Onetime
         # before any auth strategy has warmed the cache.
         include Onetime::Application::OrganizationLoader
 
-        # Otto's GeoResolver sentinel for "no country resolved" — stored verbatim
-        # (consumers render it, nil, or absent as "Unknown").
+        # Otto's GeoResolver sentinel for "no country resolved" — normalized to
+        # nil, never stored. Onetime::SessionMetadata#geo_country (the single
+        # read-side chokepoint) maps '**' to nil anyway, so persisting it would
+        # only waste a hash field that every reader ignores.
         UNKNOWN_COUNTRY = '**'
 
         # @param session_id [String] the PLAIN session id (== live blob key name).
@@ -164,19 +166,21 @@ module Onetime
         # session write, so this is a plain env read — NOT an IP lookup, and never
         # derived from the (masked) ip_address. nil when @env is absent (e.g. tests
         # that call TrackMetadata directly with env: nil) or the privacy layer is
-        # disabled; consumers render '**'/nil as "Unknown".
+        # disabled; consumers render nil/absent as "Unknown".
         #
         # Normalized to the canonical alpha-2 form (strip/upcase) so a custom geo
         # header emitting a lowercase or padded value stores consistently across
         # every surface, matching Onetime::Security::RequestContext#normalize_country.
-        # The '**' sentinel is preserved as-is; blank or malformed values store nil.
+        # The '**' sentinel, like blank or malformed values, stores nil — the
+        # sentinel never persists and never reaches a client (the
+        # {Onetime::SessionMetadata#geo_country} reader enforces the same on the
+        # way out, including for legacy records that stored it verbatim).
         def geo_country
           raw = @env&.dig('otto.privacy.geo_country')
           return nil if raw.nil?
 
           normalized = raw.to_s.strip
-          return nil if normalized.empty?
-          return UNKNOWN_COUNTRY if normalized == UNKNOWN_COUNTRY
+          return nil if normalized.empty? || normalized == UNKNOWN_COUNTRY
 
           upcased = normalized.upcase
           upcased.match?(/\A[A-Z]{2}\z/) ? upcased : nil

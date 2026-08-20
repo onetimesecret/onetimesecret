@@ -519,5 +519,9 @@
   "web.login.notices.link_verification_sent": {
     "text": "Ellenőrizze a postaládáját — e-mailt küldtünk egy hivatkozással a fiók csatlakoztatásának megerősítéséhez. Nyissa meg a bejelentkezés befejezéséhez.",
     "source_hash": "b251c8f3"
+  },
+  "web.login.errors.sso_cancelled": {
+    "text": "A bejelentkezés megszakadt. Bármikor újra megpróbálhatja, amikor készen áll.",
+    "source_hash": "b5f3d3ec"
   }
 }

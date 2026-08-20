@@ -21,7 +21,13 @@ source 'https://rubygems.org/'
 # 2.8+: depth mode records a forwarded-host trust signal (delano/otto#226),
 # and otto.via_trusted_proxy is tri-state — written only when proxy trust is
 # configured (present => authoritative, absent => legacy heuristics apply).
-gem 'otto', '~> 2.8'
+# 2.8.1+: opt-in ASN (req.asn) and anonymizer (req.anonymizer) enrichment,
+# both off by default and database-only — no behavior change until a
+# *_db_path is configured (delano/otto docs/enrichment.md).
+# 2.9 floor: request-scoped CSP directive extras via
+# env['otto.csp.extra_directives'] (delano/otto#243), consumed by
+# Onetime::Middleware::TenantCspExtras (#4173).
+gem 'otto', '~> 2.9'
 gem 'rhales', '~> 0.7.1'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'

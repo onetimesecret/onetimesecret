@@ -292,9 +292,9 @@
     "source_hash": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "Ime ključa za dostop",
+    "text": "Ključ za dostop",
     "context": "Label for passkey name field",
-    "source_hash": "22eefa67"
+    "source_hash": "904c9aa9"
   },
   "web.auth.passkeys.created": {
     "text": "Ustvarjeno",
@@ -926,5 +926,33 @@
   "web.sso_link_confirm.errors.generic": {
     "text": "Te povezave nismo mogli potrditi. Prosimo, prijavite se z vašim ponudnikom znova.",
     "source_hash": "076fa25a"
+  },
+  "web.auth.mfa.passkey_mode_active": {
+    "text": "Način ključa za dostop aktiven",
+    "source_hash": "824dceb6"
+  },
+  "web.auth.mfa.passkey_prompt": {
+    "text": "Preverite s ključem za dostop, da ste to res vi. Vaša naprava bo zahtevala vaš prstni odtis, obraz ali varnostni ključ.",
+    "source_hash": "c0b0cbbc"
+  },
+  "web.auth.mfa.verify_with_passkey": {
+    "text": "Preveri s ključem za dostop",
+    "source_hash": "4f105a30"
+  },
+  "web.auth.mfa.use_passkey": {
+    "text": "Namesto tega uporabite ključ za dostop",
+    "source_hash": "bd6430a4"
+  },
+  "web.auth.passkeys.remove_failed": {
+    "text": "Ključa za dostop ni mogoče odstraniti",
+    "source_hash": "3e131515"
+  },
+  "web.auth.passkeys.load_failed": {
+    "text": "Ključev za dostop ni mogoče naložiti",
+    "source_hash": "8d704e00"
+  },
+  "web.auth.webauthn.emailRequired": {
+    "text": "Vnesite svoj e-poštni naslov za prijavo s ključem za dostop",
+    "source_hash": "7f07647f"
   }
 }

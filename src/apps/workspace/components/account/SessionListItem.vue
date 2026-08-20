@@ -94,7 +94,7 @@
             <span>{{ t('web.auth.sessions.ip_address') }}: {{ session.ip_address }}</span>
           </div>
           <div
-            v-if="session.geo_country && session.geo_country !== '**'"
+            v-if="session.geo_country"
             class="flex items-center gap-2">
             <i class="fas fa-map-marker-alt w-4 text-xs"></i>
             <span>{{ t('web.auth.sessions.location') }}: {{ session.geo_country }}</span>

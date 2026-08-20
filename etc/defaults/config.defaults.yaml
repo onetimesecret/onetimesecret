@@ -1420,6 +1420,17 @@ jobs:
       enabled: false
       cron: '0 2 * * *'
 
+    # Nightly entitlement re-materialization (issue #4203)
+    # Converges org entitlement snapshots with their plan definitions by
+    # running Billing::Operations::MaterializePlans (cascading to active
+    # memberships). Pulls the plan catalog from Stripe first and aborts if
+    # the pull fails — never materializes from a stale cache. Skips
+    # gracefully when no Stripe API key is configured (standalone mode).
+    # Requires BOTH jobs.maintenance.enabled and this flag.
+    entitlement_materialize:
+      enabled: false
+      cron: '0 3 * * *'
+
 internationalization:
   enabled: <%= ENV['I18N_ENABLED'] == 'true' || false %>
   default_locale: <%= ENV['I18N_DEFAULT_LOCALE'] || 'en' %>

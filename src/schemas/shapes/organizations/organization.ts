@@ -52,6 +52,9 @@ const timestampOverrides = {
  * - entitlements: Plan entitlements array
  * - limits: Plan limits object
  * - domain_count: Computed custom domain count
+ * - active_subscription: Whether the org's subscription is still LIVE in
+ *   Stripe (delete guardrail). Wider than "actively billing" — past_due and
+ *   unpaid both read true.
  *
  * @example
  * ```typescript
@@ -72,22 +75,35 @@ const timestampOverrides = {
  * console.log(org.created instanceof Date); // true
  * ```
  */
-export const organizationSchema = organizationCanonical
-  .extend({
-    // Timestamp transforms
-    ...timestampOverrides,
+export const organizationSchema = organizationCanonical.extend({
+  // Timestamp transforms
+  ...timestampOverrides,
 
-    // Nullish normalization
-    is_default: z.boolean().nullish().transform((v) => v ?? false),
+  // Nullish normalization
+  is_default: z
+    .boolean()
+    .nullish()
+    .transform((v) => v ?? false),
 
-    // API-response fields (not in canonical model)
-    billing_email: z.string().email().nullish(),
-    member_count: z.number().int().min(0).nullish(),
-    current_user_role: organizationRoleSchema.nullish(),
-    entitlements: z.array(entitlementSchema).nullish(),
-    limits: organizationLimitsSchema.nullish(),
-    domain_count: z.number().int().min(0).nullish(),
-  });
+  // API-response fields (not in canonical model)
+  billing_email: z.string().email().nullish(),
+  member_count: z.number().int().min(0).nullish(),
+  current_user_role: organizationRoleSchema.nullish(),
+  entitlements: z.array(entitlementSchema).nullish(),
+  limits: organizationLimitsSchema.nullish(),
+  domain_count: z.number().int().min(0).nullish(),
+
+  // Mirrors the server's `:active_subscription` delete guardrail
+  // (Onetime::Operations::Org::Delete, backed by `Organization#billing_live?`).
+  // The wire name predates the predicate and is kept as a contract; the
+  // MEANING is "a subscription that can still bill", which includes past_due
+  // and unpaid. Nullish -> false so an older payload that omits the
+  // field leaves the UI permissive; the server still refuses.
+  active_subscription: z
+    .boolean()
+    .nullish()
+    .transform((v) => v ?? false),
+});
 
 export type Organization = z.infer<typeof organizationSchema>;
 

@@ -62,7 +62,7 @@ const jobsSchedulerShape = augment(jobsSchedulerSchema, {
 });
 
 const jobsPlanCacheRefreshShape = augment(jobsPlanCacheRefreshSchema, {
-  enabled: (b) => b.default(false),
+  enabled: (b) => b.default(true),
 });
 
 const jobsCatalogRetryShape = augment(jobsCatalogRetrySchema, {
@@ -125,6 +125,11 @@ const maintenanceHousekeepingTree: AugmentTree = {
   cron: (s) => s.default('0 2 * * *'),
 };
 
+const maintenanceEntitlementMaterializeTree: AugmentTree = {
+  enabled: (b) => b.default(false),
+  cron: (s) => s.default('0 3 * * *'),
+};
+
 const jobsMaintenanceShape = augment(jobsMaintenanceSchema, {
   enabled: (b) => b.default(false),
   phantom_cleanup: maintenancePhantomCleanupTree,
@@ -133,6 +138,7 @@ const jobsMaintenanceShape = augment(jobsMaintenanceSchema, {
   index_rebuild: maintenanceIndexRebuildTree,
   instances_rebuild: maintenanceInstancesRebuildTree,
   housekeeping: maintenanceHousekeepingTree,
+  entitlement_materialize: maintenanceEntitlementMaterializeTree,
 });
 
 const jobsShape = augment(jobsSchema, {
@@ -146,7 +152,7 @@ const jobsShape = augment(jobsSchema, {
     billing: () => workerConfigShape.default({ threads: 2, prefetch: 5 }),
   },
   scheduler: { enabled: (b) => b.default(false) },
-  plan_cache_refresh: () => jobsPlanCacheRefreshShape.default({ enabled: false }),
+  plan_cache_refresh: () => jobsPlanCacheRefreshShape.default({ enabled: true }),
   catalog_retry: () => jobsCatalogRetryShape.default({ enabled: false }),
   dlq_consumer: () => jobsDlqConsumerShape.default({ enabled: true }),
   domain_refresh: {
@@ -170,6 +176,7 @@ const jobsShape = augment(jobsSchema, {
     index_rebuild: maintenanceIndexRebuildTree,
     instances_rebuild: maintenanceInstancesRebuildTree,
     housekeeping: maintenanceHousekeepingTree,
+    entitlement_materialize: maintenanceEntitlementMaterializeTree,
   },
 });
 

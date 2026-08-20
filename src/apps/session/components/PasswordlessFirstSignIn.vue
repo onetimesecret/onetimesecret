@@ -573,7 +573,8 @@ data-testid="passkey-panel">
             class="rounded-md bg-red-50 p-4 dark:bg-red-900/20"
             role="alert"
             aria-live="assertive"
-            aria-atomic="true">
+            aria-atomic="true"
+            data-testid="signin-error-message">
             <p class="text-sm text-red-800 dark:text-red-200">
               {{ currentError }}
             </p>

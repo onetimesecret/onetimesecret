@@ -27,14 +27,20 @@ module V3
       # messages. Keep these in sync.
       MAX_MSG_LENGTH     = 200_000 # Generous upper bound; UI surfaces it to users
       MAX_TZ_LENGTH      = 64
-      MAX_VERSION_LENGTH = 32
 
       attr_reader :msg, :greenlighted, :tz, :version
 
       def process_params
-        @msg     = sanitize_plain_text(params['msg'], max_length: MAX_MSG_LENGTH)
-        @tz      = sanitize_plain_text(params['tz'], max_length: MAX_TZ_LENGTH)
-        @version = sanitize_plain_text(params['version'], max_length: MAX_VERSION_LENGTH)
+        @msg = sanitize_plain_text(params['msg'], max_length: MAX_MSG_LENGTH)
+        @tz  = sanitize_plain_text(params['tz'], max_length: MAX_TZ_LENGTH)
+
+        # Stamped from the running install rather than read from params. The
+        # client-supplied value was always spoofable, and anonymous clients no
+        # longer receive the version at all (SystemSerializer withholds it), so
+        # trusting the param would blank out the version on exactly the reports
+        # where it matters most — anonymous bug reports. A `version` param from
+        # older clients is accepted and ignored.
+        @version = OT::VERSION.details
       end
 
       def raise_concerns

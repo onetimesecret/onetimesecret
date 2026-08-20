@@ -11,9 +11,14 @@
 # - Response bodies contain only the documented fields
 #
 # Endpoints:
-# - GET /api/v3/status           -> { status, locale }
-# - GET /api/v3/version          -> { version, locale }
-# - GET /api/v3/supported-locales -> { locales, default_locale, locale }
+# - GET /api/v3/status           -> { status, locale }  (public)
+# - GET /api/v3/version          -> { version, locale }  (authenticated)
+# - GET /api/v3/supported-locales -> { locales, default_locale, locale }  (public)
+#
+# /version is gated by auth=sessionauth,basicauth: the exact build version
+# fingerprints the install for CVE matching, so it is not disclosed to
+# anonymous callers. The response contract below is exercised over an
+# API-key (basicauth) request.
 
 require 'rack/test'
 require_relative '../../../support/test_helpers'
@@ -35,6 +40,17 @@ end
 def get(*args); @test.get(*args); end
 def last_response; @test.last_response; end
 def clear_cookies; @test.clear_cookies; end
+
+# API-key customer used for the authenticated /version contract checks.
+@cust = Onetime::Customer.create!(email: generate_unique_test_email('v3_meta'))
+@apikey = "meta_contract_#{SecureRandom.hex(8)}"
+@cust.apitoken = @apikey
+@cust.save
+
+@auth_headers = {
+  'HTTP_ACCEPT' => 'application/json',
+  'HTTP_AUTHORIZATION' => "Basic #{Base64.strict_encode64("#{@cust.email}:#{@apikey}")}",
+}
 
 # ---------------------------------------------------------------------------
 # /api/v3/status contract tests
@@ -75,9 +91,27 @@ last_response.status
 # /api/v3/version contract tests
 # ---------------------------------------------------------------------------
 
-## V3 version endpoint returns 200
+## V3 version endpoint rejects anonymous callers
+# Build version disclosure is the fingerprinting input for CVE matching, so
+# /version fails closed for anonymous requests (unlike /status and
+# /supported-locales, which disclose nothing about the build).
 clear_cookies
 get '/api/v3/version', {}, { 'HTTP_ACCEPT' => 'application/json' }
+last_response.status
+#=> 401
+
+## V3 version endpoint rejects an invalid API key
+clear_cookies
+get '/api/v3/version', {}, {
+  'HTTP_ACCEPT' => 'application/json',
+  'HTTP_AUTHORIZATION' => "Basic #{Base64.strict_encode64("#{@cust.email}:wrong_key")}",
+}
+last_response.status
+#=> 401
+
+## V3 version endpoint returns 200 for an authenticated caller
+clear_cookies
+get '/api/v3/version', {}, @auth_headers
 last_response.status
 #=> 200
 
@@ -156,3 +190,6 @@ last_response.status
 ## V3 default_locale is included in locales array
 @locales_response['locales'].include?(@locales_response['default_locale'])
 #=> true
+
+# Teardown
+@cust.destroy!

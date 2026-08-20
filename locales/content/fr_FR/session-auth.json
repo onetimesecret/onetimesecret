@@ -519,5 +519,9 @@
   "web.login.notices.link_verification_sent": {
     "text": "Consultez votre boîte de réception — nous vous avons envoyé par e-mail un lien pour confirmer la connexion de votre compte. Ouvrez-le pour finaliser la connexion.",
     "source_hash": "b251c8f3"
+  },
+  "web.login.errors.sso_cancelled": {
+    "text": "La connexion a été annulée. Vous pouvez réessayer quand vous le souhaitez.",
+    "source_hash": "b5f3d3ec"
   }
 }

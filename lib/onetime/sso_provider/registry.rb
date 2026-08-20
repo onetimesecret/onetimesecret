@@ -55,14 +55,38 @@
 #                     explicit per-provider operator declaration that the IdP
 #                     is inside the trust boundary (see
 #                     AuthConfig#trust_email_for_linking?)
-#   idp_origin / idp_origin_from: feed AuthConfig#sso_form_action_origins — a
-#                     static origin for providers whose IdP host is fixed, or
-#                     the name of an env var whose URL the origin is derived
-#                     from (OIDC's issuer). ENTRA is static because the
-#                     OmniAuth strategy hard-pins the commercial cloud
-#                     (login.microsoftonline.com); there is no sovereign-cloud
-#                     authority env in this app — use SSO_FORM_ACTION_ORIGINS
-#                     for those.
+#   idp_origin / idp_origin_from: feed the CSP form-action derivations — the
+#                     boot-time AuthConfig#sso_form_action_origins (platform
+#                     providers) and, for entra's static origin, the
+#                     per-request AuthConfig#tenant_idp_origin (tenant SSO,
+#                     #4173). Either a static origin for providers whose IdP
+#                     host is fixed, or the name of an env var whose URL the
+#                     origin is derived from (OIDC's issuer; tenant OIDC uses
+#                     the SsoConfig record's issuer instead). ENTRA is static
+#                     because the OmniAuth strategy hard-pins the commercial
+#                     cloud (login.microsoftonline.com); there is no
+#                     sovereign-cloud authority env in this app. This applies
+#                     to both platform and tenant Entra. Configure sovereign
+#                     Entra as OIDC with its sovereign issuer instead; the
+#                     origin is derived automatically. SSO_FORM_ACTION_ORIGINS
+#                     cannot change the Entra redirect, so it only widens
+#                     form-action. Reserve it for OIDC configurations whose
+#                     authorization endpoint uses a different origin or for a
+#                     tenant derivation gap (docs/authentication/per-install-sso.md).
+#                     CONSTRAINT on adding a second non-OIDC TENANT provider:
+#                     AuthConfig#tenant_idp_origin picks the definition by the
+#                     SsoConfig::PROVIDER_ROUTE_MAP :default route name and
+#                     never consults that entry's :env_var override, so an
+#                     operator-renamed route resolves the DEFAULT definition,
+#                     silently. Harmless for every provider that exists today:
+#                     the non-OIDC tenant type (entra_id) carries a STATIC
+#                     idp_origin, so which route name the operator chose cannot
+#                     change the answer (and tenant OIDC bypasses the registry
+#                     entirely, deriving from the SsoConfig record's issuer).
+#                     A new provider whose route-name override must also select
+#                     a DIFFERENT definition — e.g. per-cloud definitions keyed
+#                     off the route env — breaks that assumption and has to
+#                     teach #tenant_idp_origin to resolve :env_var first.
 #   placeholder_options: strategy options (minus name:) used when platform
 #                     credentials are absent but org-level SSO is enabled —
 #                     the OmniAuthTenant hook injects real tenant credentials
@@ -86,10 +110,21 @@ module Onetime
         Github::DEFINITION,
       ].freeze
 
+      # Definition lookup by :key that answers nil on a miss — the per-request
+      # counterpart to .fetch, for callers where a KeyError would be worse
+      # than a skipped provider (AuthConfig#tenant_idp_origin resolves a
+      # PROVIDER_ROUTE_MAP route name here, inside the CSP middleware).
+      def self.find(key)
+        DEFINITIONS.find { |defn| defn[:key] == key }
+      end
+
       # Definition lookup by :key. Raises KeyError on an unknown key so a typo
       # fails loudly at boot rather than silently skipping a provider.
+      #
+      # Delegates to .find so the lookup predicate lives in exactly one place:
+      # reshaping DEFINITIONS cannot leave a stale inlined copy behind.
       def self.fetch(key)
-        DEFINITIONS.find { |defn| defn[:key] == key } ||
+        find(key) ||
           raise(KeyError, "unknown SSO provider definition: #{key.inspect}")
       end
     end

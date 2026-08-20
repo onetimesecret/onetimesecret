@@ -303,15 +303,18 @@ RSpec.configure do |config|
   # groups defined after the rule is registered — and several app spec files
   # never require their tree's helper at all.
   #
-  # The second alternative is deliberately not in this tree.
-  # spec/unit/onetime/jobs/scheduled/plan_cache_refresh_job_spec.rb requires
-  # this helper on purpose and is tagged type: :billing; it runs in the unit
-  # process, where nothing else here is loaded, and must keep the billing setup
-  # it has today.
+  # The second and third alternatives are deliberately not in this tree.
+  # spec/unit/onetime/jobs/scheduled/plan_cache_refresh_job_spec.rb and
+  # spec/unit/onetime/jobs/scheduled/maintenance/entitlement_materialize_job_spec.rb
+  # require this helper on purpose and are tagged type: :billing; they run in
+  # the unit process, where nothing else here is loaded, and must keep the
+  # billing setup they have today.
   billing_spec_files = %r{
     /apps/web/billing/spec/
     |
     /spec/unit/onetime/jobs/scheduled/plan_cache_refresh_job_spec\.rb\z
+    |
+    /spec/unit/onetime/jobs/scheduled/maintenance/entitlement_materialize_job_spec\.rb\z
   }x
 
   # Include BillingSpecHelper for both `type:` metadata and symbol tags
