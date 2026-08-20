@@ -49,21 +49,17 @@ RSpec.describe 'Tenant SSO behind a Host-rewriting proxy', :shared_db_state, typ
   include Rack::Test::Methods
   include_context 'tenant fixtures'
 
-  before(:all) do
-    boot_onetime_app
+  # The tenant domain has to classify :custom for the resolver to be exercised
+  # at all — with the domains axis off DomainStrategy short-circuits, every
+  # request classifies :canonical, and the redirect_uri example fails with
+  # `got: "127.0.0.1"` on the canonical host. This used to be inherited from
+  # the ambient DOMAINS_ENABLED of whatever shell ran the suite.
+  include_context 'domains enabled'
 
-    # DomainStrategy's class-level config is normally populated when the
-    # middleware is first instantiated; the canonical_host let below reads it
-    # before any request has been made.
-    Onetime::Middleware::DomainStrategy.initialize_from_config(
-      OT.conf&.dig('features', 'domains') || {},
-    )
-  end
+  before(:all) { boot_onetime_app }
 
   # The origin target a Host-rewriting proxy puts in `Host:`.
-  let(:origin_host) do
-    Onetime::Middleware::DomainStrategy.canonical_domain || 'localhost:3000'
-  end
+  let(:origin_host) { canonical_host }
 
   before do
     unless Onetime.auth_config.orgs_sso_enabled?

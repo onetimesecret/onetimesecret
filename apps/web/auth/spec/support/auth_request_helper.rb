@@ -40,6 +40,18 @@ module AuthRequestHelper
   # every request in it 404s. Auto-inclusion means no author is forced to think
   # about mounting any more, so the check has to be here — a named harness
   # failure instead of a spec that reads as "the route is broken".
+  #
+  # Registry.rack_url_map, NOT generate_rack_url_map. Rack::Test asks for `app`
+  # once per EXAMPLE, and generate_rack_url_map re-instantiates every
+  # registered application — the whole middleware stack of each, plus warmup.
+  # Beyond the cost, the rebuild reverts class-level middleware state: it fires
+  # lazily on the example's FIRST request, so it lands AFTER the before hooks.
+  # DomainStrategy#initialize re-runs initialize_from_config(OT.conf…) on every
+  # instantiation, which is how a hook's assignment to that class state
+  # vanished between the hook and the assertion (#4221). The cached accessor
+  # invalidates itself on registry mutation and on a config swap, so the files
+  # that re-boot in before(:all) still get a fresh mount — see
+  # lib/onetime/application/registry.rb.
   def app
     if Onetime::Application::Registry.mount_mappings.empty?
       raise 'Application registry has no mounts, so `app` would be an empty ' \
@@ -48,7 +60,7 @@ module AuthRequestHelper
             'Onetime::Application::Registry.prepare_application_registry.'
     end
 
-    Onetime::Application::Registry.generate_rack_url_map
+    Onetime::Application::Registry.rack_url_map
   end
 
   # Drop the sticky body headers Rack::Test carries over from a previous POST.

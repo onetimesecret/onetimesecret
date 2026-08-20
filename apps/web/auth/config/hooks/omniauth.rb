@@ -431,11 +431,11 @@ module Auth::Config::Hooks
               # mail while the token lives out its TTL orphaned.
               link_email = {
                 email_address: on_file_email,
-                confirm_url: "#{request.base_url}/sso-link-confirm/#{verification.token}",
+                confirm_url: "#{base_url}/sso-link-confirm/#{verification.token}",
                 provider: provider,
-                baseuri: request.base_url,
+                baseuri: base_url,
                 product_name: OT.conf.dig('site', 'product_name'),
-                display_domain: request.host,
+                display_domain: public_display_domain,
                 locale: locale,
               }
 

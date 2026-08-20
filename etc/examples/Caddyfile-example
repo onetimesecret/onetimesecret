@@ -230,7 +230,23 @@
 			# Onetime's own code reads env['onetime.display_domain'] instead of
 			# request.host for that reason (#4224); a third-party gem cannot.
 			header_up Host {http.request.host}
-			header_up Apx-Incoming-Host {http.request.header.Apx-Incoming-Host}
+			# Apx-Incoming-Host sits at precedence 2 in Rack::DetectHost -- ABOVE
+			# the X-Original-Host pinned below. Passed through unconditionally, it
+			# is the same spoofing vector as X-Forwarded-Host one precedence slot
+			# down: any client reaching this site block directly can shadow the
+			# detected host with it. Strip it unless Approximated actually fronts
+			# this deployment.
+			#
+			# Behind Approximated? Custom domains NEED this header (it carries the
+			# visitor's hostname while Host holds the origin target), but only
+			# Approximated may assert it. Replace the strip below with a
+			# source-gated strip in the enclosing handle block (request_header
+			# accepts matchers there; header_up does not), using the ingress IPs
+			# from your Approximated dashboard:
+			#
+			#   @not_apx not remote_ip 198.51.100.0/24
+			#   request_header @not_apx -Apx-Incoming-Host
+			header_up -Apx-Incoming-Host
 			header_up CF-ASN {http.request.header.CF-ASN}
 			header_up CF-IPContinent {http.request.header.CF-IPContinent}
 			header_up CloudFront-Viewer-Country {http.request.header.CloudFront-Viewer-Country}
@@ -248,16 +264,22 @@
 			# syntactically valid hostname -- it does not check whether that domain
 			# is one this install knows.
 			#
-			# X-Forwarded-Host must therefore never carry a client-supplied value,
-			# so it is stripped rather than passed through. Nothing is lost:
-			# X-Original-Host below is pinned to Caddy's own view of the request,
-			# giving DetectHost a trustworthy host at precedence 3, and Host is
-			# preserved above so Rack's request.host stays correct as well.
-			# Passing the client's header through instead lets any visitor shadow
-			# the real host: on an Approximated-fronted custom domain an injected
-			# X-Forwarded-Host outranks the Apx-Incoming-Host the ingress set,
-			# DomainStrategy rejects the unknown domain and falls back to the
-			# canonical host, and that tenant's SSO stops resolving.
+			# No host-bearing header may therefore carry a client-supplied value:
+			# X-Forwarded-Host is stripped rather than passed through, as are
+			# Apx-Incoming-Host (above, unless source-gated to Approximated) and
+			# Forwarded (below). The pinned X-Original-Host at precedence 3 only
+			# protects against carriers BELOW it -- anything above it that the
+			# proxy does not overwrite or strip remains a spoofing vector through
+			# trusted infra. Host is preserved above so Rack's request.host stays
+			# correct as well.
+			# Passing the client's X-Forwarded-Host through instead lets any
+			# visitor shadow the real host: on an Approximated-fronted custom
+			# domain an injected X-Forwarded-Host outranks the Apx-Incoming-Host
+			# the ingress set, DomainStrategy rejects the unknown domain and falls
+			# back to the canonical host, and that tenant's SSO stops resolving.
+			# Injecting a DIFFERENT tenant's registered domain is worse: that host
+			# is known, so it is honored end-to-end -- SSO resolution, sign-in
+			# gating, and minted links all keyed to the wrong tenant.
 			#
 			# Do NOT pin it to {http.request.host} either -- that outranks and masks
 			# Apx-Incoming-Host, which is the same failure by a different route.
@@ -265,6 +287,11 @@
 			# and is the sole setter of X-Forwarded-Host; declare that layer in
 			# `trusted_proxies` at the same time.
 			header_up -X-Forwarded-Host
+			# Forwarded (RFC 7239, precedence 4) is currently masked by the pinned
+			# X-Original-Host one slot above it -- but that is an ordering
+			# accident, not a policy. Strip it so host detection never depends on
+			# that invariant holding.
+			header_up -Forwarded
 			header_up X-Forwarded-Proto {http.request.scheme}
 			header_up X-Geo-Country {http.request.header.X-Geo-Country}
 			header_up X-Original-Host {http.request.host}

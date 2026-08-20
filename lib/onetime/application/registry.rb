@@ -20,6 +20,8 @@ module Onetime
       @application_classes   = []
       @mount_mappings        = {}
       @application_instances = {}
+      @rack_url_map          = nil
+      @rack_url_map_conf     = nil
 
       class << self
         attr_reader :application_classes, :mount_mappings, :application_instances
@@ -72,6 +74,54 @@ module Onetime
           Rack::URLMap.new(mappings)
         end
 
+        # The mounted stack, built once and reused until its inputs change.
+        #
+        # For callers that mount the app REPEATEDLY in one process — a
+        # Rack::Test harness asks its `app` once per EXAMPLE (rack-test 2.2
+        # memoizes the Session, methods.rb:29), so a suite mounts the world
+        # hundreds of times per run. generate_rack_url_map re-instantiates
+        # every registered application, rebuilding each app's full middleware
+        # stack and re-running warmup, which costs N apps × a full
+        # construction each time and, worse, reverts state:
+        #
+        #   Middleware that seeds CLASS-level state from config in its
+        #   constructor — Onetime::Middleware::DomainStrategy#initialize
+        #   re-runs initialize_from_config(OT.conf…) — silently puts that
+        #   state back to whatever the config says. The rebuild lands on the
+        #   example's FIRST request, i.e. after its before hooks have run, so
+        #   a spec that set the class state in a hook watches it disappear
+        #   mid-example (#4221).
+        #
+        # Additive: production (config.ru) mounts once at boot via
+        # generate_rack_url_map and is untouched by this accessor.
+        #
+        # Freshness. The cache is dropped wherever the inputs move:
+        # every mount write (`register`, so prepare_application_registry
+        # invalidates), reset!/hard_reset!, and a config swap — a completed
+        # Onetime.boot! assigns a NEW OT.conf object, and the cached instances
+        # captured the old one, so identity is the honest token. In-PLACE
+        # config edits are deliberately NOT a trigger: a caller that mutates
+        # OT.conf and needs the middleware to notice has to re-apply the
+        # middleware's own config hook (which is what a rebuild did for it
+        # only by accident).
+        def rack_url_map
+          conf_token = Onetime.conf.object_id
+
+          if @rack_url_map.nil? || @rack_url_map_conf != conf_token
+            @rack_url_map      = generate_rack_url_map
+            @rack_url_map_conf = conf_token
+          end
+
+          @rack_url_map
+        end
+
+        # Drop the memoized mount from #rack_url_map. Called from every
+        # mutation point of @mount_mappings; harmless to call redundantly.
+        def invalidate_rack_url_map!
+          @rack_url_map      = nil
+          @rack_url_map_conf = nil
+        end
+
         # Check health of all registered applications
         #
         # Aggregates initialization health status from all instantiated
@@ -120,6 +170,7 @@ module Onetime
           @mount_mappings        = {}
           @application_classes   = []
           @application_instances = {}
+          invalidate_rack_url_map!
 
           # Re-register classes that are already loaded in memory
           reregister_loaded_applications
@@ -136,6 +187,7 @@ module Onetime
           @mount_mappings        = {}
           @application_classes   = []
           @application_instances = {}
+          invalidate_rack_url_map!
           # NOTE: Does NOT call reregister_loaded_applications
         end
 
@@ -233,8 +285,13 @@ module Onetime
         end
 
         # Register an application with its mount path
+        #
+        # The single write point for @mount_mappings, and therefore where the
+        # memoized #rack_url_map has to be dropped: prepare_application_registry
+        # reaches the mount table only through here.
         def register(path, app_class)
           @mount_mappings[path] = app_class
+          invalidate_rack_url_map!
         end
       end
     end
