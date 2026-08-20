@@ -222,6 +222,13 @@
 		# Forward all other requests to backend
 		reverse_proxy {
 			# Pass relevant headers to backend
+			# Preserves the visitor's Host end-to-end. If a layer in FRONT of Caddy
+			# rewrites it -- Approximated ingress puts the origin target in Host and
+			# the visitor's hostname in Apx-Incoming-Host -- then Rack's request.host
+			# is the origin target for the whole app, including mounted gems such as
+			# Rodauth, whose base_url then builds links on the wrong host (#4221).
+			# Onetime's own code reads env['onetime.display_domain'] instead of
+			# request.host for that reason (#4224); a third-party gem cannot.
 			header_up Host {http.request.host}
 			header_up Apx-Incoming-Host {http.request.header.Apx-Incoming-Host}
 			header_up CF-ASN {http.request.header.CF-ASN}
@@ -232,7 +239,32 @@
 			header_up O-Geo-Country {http.request.header.O-Geo-Country}
 			header_up Via {http.request.header.Via}
 			header_up X-API-Key {http.request.header.X-API-Key}
-			header_up X-Forwarded-Host {http.request.header.X-Forwarded-Host}
+			# Host detection & X-Forwarded-Host (#4224):
+			# Rack::DetectHost resolves the visitor's public host into
+			# env['onetime.display_domain'], the value every custom-domain surface
+			# keys on (tenant SSO, sign-in gating, restrict_to, CSP form-action).
+			# Its precedence is X-Forwarded-Host > Apx-Incoming-Host >
+			# X-Original-Host > Forwarded > Host, and it takes the FIRST
+			# syntactically valid hostname -- it does not check whether that domain
+			# is one this install knows.
+			#
+			# X-Forwarded-Host must therefore never carry a client-supplied value,
+			# so it is stripped rather than passed through. Nothing is lost:
+			# X-Original-Host below is pinned to Caddy's own view of the request,
+			# giving DetectHost a trustworthy host at precedence 3, and Host is
+			# preserved above so Rack's request.host stays correct as well.
+			# Passing the client's header through instead lets any visitor shadow
+			# the real host: on an Approximated-fronted custom domain an injected
+			# X-Forwarded-Host outranks the Apx-Incoming-Host the ingress set,
+			# DomainStrategy rejects the unknown domain and falls back to the
+			# canonical host, and that tenant's SSO stops resolving.
+			#
+			# Do NOT pin it to {http.request.host} either -- that outranks and masks
+			# Apx-Incoming-Host, which is the same failure by a different route.
+			# Keep a pass-through ONLY when a layer in front of Caddy rewrites Host
+			# and is the sole setter of X-Forwarded-Host; declare that layer in
+			# `trusted_proxies` at the same time.
+			header_up -X-Forwarded-Host
 			header_up X-Forwarded-Proto {http.request.scheme}
 			header_up X-Geo-Country {http.request.header.X-Geo-Country}
 			header_up X-Original-Host {http.request.host}
