@@ -34,7 +34,18 @@
 require_relative '../../spec_helper'
 require_relative '../../support/tenant_test_fixtures'
 
-RSpec.describe 'Tenant SSO behind a Host-rewriting proxy', type: :integration do
+# :shared_db_state opts these examples out of the per-example Valkey flush.
+# The CustomDomain / SsoConfig fixtures come from the 'tenant fixtures' shared
+# context's `let!` hooks, and the flush lives in three helpers (this app's
+# spec_helper, the core integration_spec_helper, and the top-level
+# spec_helper) whose before(:each) ordering relative to a group's `let!` is
+# incidental to file load order. Under the full-glob ordering the core flush
+# lands AFTER `let!` and wipes the freshly-saved domain, so the SSO POST
+# answers `sso_not_configured` for a reason that has nothing to do with host
+# resolution — standalone runs never show it. Skipping the flush is
+# order-proof here: every example builds fixtures under a unique test_run_id
+# and tears them down in `after`. Same fix as domain_sso_join_organization_spec.
+RSpec.describe 'Tenant SSO behind a Host-rewriting proxy', :shared_db_state, type: :integration do
   include Rack::Test::Methods
   include_context 'tenant fixtures'
 

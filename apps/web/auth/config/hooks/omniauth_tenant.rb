@@ -389,12 +389,33 @@ module Auth::Config::Hooks
     # that decide whether to render the SSO button cannot disagree about
     # which tenant a request belongs to.
     #
+    # THREE TIERS, most trustworthy first. `display_domain` is only an answer
+    # about THIS request when DomainStrategy actually classified the host:
+    # the middleware pins it to the canonical host both when the domains
+    # feature is off (it never looks at the request at all) and when a
+    # detected host fails validation, so a canonical-set value carries no
+    # information — reading it as the public host makes every custom-domain
+    # lookup miss and, worse, makes before_omniauth_callback_route skip
+    # tenant validation entirely for operators running `domains.enabled:
+    # false` behind Host forwarding.
+    #
+    # DetectHost's result is the next rung: the same host DomainStrategy
+    # would have classified, already normalized and validated, and honored
+    # from forwarded headers ONLY behind trusted infrastructure. That last
+    # part is why it is the fallback rather than `request.host`, which in
+    # Rack 3.2 prefers `X-Forwarded-Host`/`Forwarded` from ANY client (#4223).
+    # `request.host` remains only for the case the doc-comment fallback was
+    # always for: no middleware in the stack at all.
+    #
     # @param request [Rack::Request] current request
-    # @return [String] display domain, or request.host when the middleware
-    #   did not run (bare-Rack specs, tryouts)
+    # @return [String] public host, or request.host when neither middleware
+    #   ran (bare-Rack specs, tryouts)
     def self.public_host(request)
       display_domain = request.env['onetime.display_domain'].to_s
-      return display_domain unless display_domain.empty?
+      return display_domain unless display_domain.empty? || canonical_domain?(display_domain)
+
+      detected_host = request.env[Rack::DetectHost.result_field_name].to_s
+      return detected_host unless detected_host.empty?
 
       request.host
     end
