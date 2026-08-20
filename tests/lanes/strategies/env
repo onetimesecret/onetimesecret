@@ -16,3 +16,9 @@
 AUTHENTICATION_MODE=full
 AUTH_DATABASE_URL='sqlite::memory:'
 ORGS_SSO_ENABLED=true
+
+# Generated prerequisites, produced by tests/lanes/run before the tasks
+# below (see the codegen phase there). spec/spec_helper.rb refuses to boot
+# with an empty generated/locales, so every lane that runs Ruby specs
+# declares it.
+LANES_CODEGEN='locales'
