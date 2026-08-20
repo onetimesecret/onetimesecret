@@ -67,6 +67,11 @@ STAMP="$(date +%Y%m%d-%H%M%S)"
 TSV="${OUT_DIR}/sweep-${STAMP}.tsv"
 printf 'release\ttopology\tstrategy\tdisplay_domain\tsso\tverdict\n' >"$TSV"
 
+# Empty authfile used to force an anonymous pull when stored registry
+# credentials are stale (see the pull fallback below).
+ANON_AUTH="${OUT_DIR}/anon-auth.json"
+printf '{}\n' >"$ANON_AUTH"
+
 log() { printf '\n=== %s\n' "$*" >&2; }
 
 cleanup_app() { podman rm -f "$APP_CT" >/dev/null 2>&1 || true; }
@@ -95,36 +100,65 @@ podman run -d --name "$VALKEY_CT" --network "$NET" \
 for tag in "${TAGS[@]}"; do
   image="${IMAGE_REPO}:${tag}"
   log "$tag — pulling $image"
-  if ! podman pull "$image" >/dev/null 2>&1; then
+  # Stale registry credentials 403 at the token exchange even for public
+  # packages, so retry anonymously before calling the image unavailable.
+  if ! podman pull "$image" >/dev/null 2>&1 \
+     && ! podman pull --authfile "$ANON_AUTH" "$image" >/dev/null 2>&1; then
     printf '%s\t-\t-\t-\t-\tIMAGE_UNAVAILABLE\n' "$tag" >>"$TSV"
     echo "SKIP $tag: image not pullable" >&2
     continue
   fi
 
-  cleanup_app
-  podman run -d --name "$APP_CT" --network "$NET" \
-    -p "127.0.0.1:${APP_PORT}:3000" \
-    -e RACK_ENV=production \
-    -e HOST="$CANONICAL" \
-    -e SSL=true \
-    -e VALKEY_URL="redis://${VALKEY_CT}:6379/0" \
-    -e REDIS_URL="redis://${VALKEY_CT}:6379/0" \
-    -e AUTH_DATABASE_URL="sqlite://data/auth.db" \
-    -e AUTHENTICATION_MODE=full \
-    -e ORGS_SSO_ENABLED=true \
-    -e SECRET="$SECRET" \
-    -e ACCOUNT_ID_SECRET="$ACCOUNT_ID_SECRET" \
-    -e SESSION_SECRET="$SECRET" \
-    -e AUTH_SECRET="$SECRET" \
-    -e JOBS_ENABLED=false \
-    `# filter mode auto-trusts RFC1918/loopback, which is where the probe` \
-    `# arrives from through podman's bridge. Without this DetectHost` \
-    `# discards every forwarded header and T3-T5 collapse to canonical for` \
-    `# a reason that has nothing to do with the bug under investigation.` \
-    -e TRUSTED_PROXY_ENABLED=true \
-    -e TRUSTED_PROXY_MODE=filter \
-    "$image" >/dev/null 2>&1 \
-    || { printf '%s\t-\t-\t-\t-\tSTART_FAILED\n' "$tag" >>"$TSV"; echo "SKIP $tag: container would not start" >&2; continue; }
+  # Starting is retried because the host port binding of the PREVIOUS app
+  # container is released asynchronously after `podman rm -f` (gvproxy on
+  # macOS): with cached images there is no pull latency between releases and
+  # the immediate re-bind of APP_PORT loses that race.
+  started=0
+  run_err=""
+  for _attempt in 1 2 3; do
+    cleanup_app
+    if run_err="$(podman run -d --name "$APP_CT" --network "$NET" \
+      -p "127.0.0.1:${APP_PORT}:3000" \
+      -e RACK_ENV=production \
+      -e HOST="$CANONICAL" \
+      -e SSL=true \
+      -e VALKEY_URL="redis://${VALKEY_CT}:6379/0" \
+      -e REDIS_URL="redis://${VALKEY_CT}:6379/0" \
+      `# /tmp, not data/: images before v0.26.0 ship no /app/data and /app is` \
+      `# root-owned, so appuser cannot create the sqlite file there and boot` \
+      `# dies in RodauthMigrations. The auth db is per-container and` \
+      `# disposable, so /tmp costs nothing.` \
+      -e AUTH_DATABASE_URL="sqlite:///tmp/auth.db" \
+      -e AUTHENTICATION_MODE=full \
+      -e ORGS_SSO_ENABLED=true \
+      `# The domains feature defaults OFF (config.defaults.yaml). Without it` \
+      `# DomainStrategy classifies every request canonical, the strategy side` \
+      `# of the seam is inert, and the sweep reports "no transitions" no` \
+      `# matter what changed between releases.` \
+      -e DOMAINS_ENABLED=true \
+      -e SECRET="$SECRET" \
+      -e ACCOUNT_ID_SECRET="$ACCOUNT_ID_SECRET" \
+      -e SESSION_SECRET="$SECRET" \
+      -e AUTH_SECRET="$SECRET" \
+      -e JOBS_ENABLED=false \
+      `# filter mode auto-trusts RFC1918/loopback, which is where the probe` \
+      `# arrives from through podman's bridge. Without this DetectHost` \
+      `# discards every forwarded header and T3-T5 collapse to canonical for` \
+      `# a reason that has nothing to do with the bug under investigation.` \
+      -e TRUSTED_PROXY_ENABLED=true \
+      -e TRUSTED_PROXY_MODE=filter \
+      "$image" 2>&1 >/dev/null)"; then
+      started=1
+      break
+    fi
+    sleep 2
+  done
+  if [[ $started -eq 0 ]]; then
+    printf '%s\t-\t-\t-\t-\tSTART_FAILED\n' "$tag" >>"$TSV"
+    echo "SKIP $tag: container would not start — last podman error:" >&2
+    echo "  ${run_err}" >&2
+    continue
+  fi
 
   # --- Readiness --------------------------------------------------------
   ready=0

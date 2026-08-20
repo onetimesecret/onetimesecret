@@ -29,9 +29,12 @@
 #
 # This probe is state-dependent for the SSO column only: it needs a
 # CustomDomain + enabled SsoConfig for --custom-host. Seed it with
-# scripts/host-seam/seed-tenant.rb. Without the fixture the SSO column reports
-# NO_CONFIG everywhere and only the header columns are meaningful (still enough
-# to bisect DetectHost/DomainStrategy changes).
+# scripts/host-seam/seed-tenant.rb. A direct-request control detects the
+# missing fixture (a request with Host: --custom and no forwarded headers has
+# no seam, so NO_CONFIG there means nothing is configured) and reports
+# FIXTURE_MISSING instead of SEAM_SPLIT; only the header columns are
+# meaningful in that state (still enough to bisect DetectHost/DomainStrategy
+# changes).
 #
 # Usage:
 #   scripts/host-seam/topology-probe.sh \
@@ -64,6 +67,8 @@ TENANT_ID="host-seam-tenant"
 EVIL="evil.attacker.example"
 
 usage() { sed -n '2,56p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 2; }
+# NOTE: usage() prints the header comment block; keep its sed range in sync
+# when the block above grows or shrinks.
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -82,6 +87,15 @@ done
 [[ -n "$BASE"      ]] || { echo "FATAL: --base is required" >&2; exit 2; }
 [[ -n "$CANONICAL" ]] || { echo "FATAL: --canonical is required" >&2; exit 2; }
 [[ -n "$CUSTOM"    ]] || { echo "FATAL: --custom is required" >&2; exit 2; }
+
+# Fast preflight so an unreachable base fails once with a clear message,
+# instead of repeating NO_REDIRECT(000) / <absent> across every topology.
+base_probe_code="$(curl -sS -m 5 -o /dev/null -w '%{http_code}' "${BASE}/" 2>/dev/null || true)"
+if [[ "$base_probe_code" == "000" ]]; then
+  echo "FATAL: cannot reach --base ${BASE} (curl status 000)" >&2
+  echo "hint: check app is running, scheme/port are correct, and local networking/proxy/TLS setup" >&2
+  exit 2
+fi
 
 # The authority a Host-rewriting proxy (Approximated) leaves in `Host:` — the
 # "inbound target". In production this is a real platform host such as
@@ -185,8 +199,54 @@ classify_sso() {
   fi
 }
 
-printf 'topology\tstrategy\tdisplay_domain\tsso\tverdict\n' >&2
-printf -- '--------------------------------------------------------------------------\n' >&2
+# --- Fixture control --------------------------------------------------------
+# A DIRECT request to the custom host has no seam: Host and public host are
+# the same string, so the tenant lookup finds the SsoConfig regardless of
+# which side of the seam it reads. If it still answers sso_not_configured
+# here, no enabled SsoConfig exists for --custom and every would-be SEAM_SPLIT
+# in the matrix is fixture absence, not the #4224 split. Report that state as
+# FIXTURE_MISSING so it cannot masquerade as the production finding.
+FIXTURE_MISSING=0
+control_out="$(curl -sS -m 15 -o /dev/null -w '%{http_code}\t%{redirect_url}' \
+  -X POST -H "Host: ${CUSTOM}" "${BASE}/auth/sso/entra" 2>/dev/null)"
+control_sso="$(classify_sso "${control_out%%$'\t'*}" "${control_out#*$'\t'}")"
+if [[ "$control_sso" == "NO_CONFIG" ]]; then
+  FIXTURE_MISSING=1
+  echo "WARN: no enabled SsoConfig answers for ${CUSTOM} on a direct request." >&2
+  echo "      SSO seam verdicts are reported as FIXTURE_MISSING. Seed with:" >&2
+  echo "      HOST_SEAM_DOMAIN=${CUSTOM} bin/ots console < scripts/host-seam/seed-tenant.rb" >&2
+fi
+
+# --- Strategy control --------------------------------------------------------
+# DomainStrategy must classify that same direct request as `custom`. When it
+# does not, every strategy expectation in the matrix grades a side of the seam
+# that cannot answer: either --custom is not a registered CustomDomain, or the
+# domains feature is off in the app under test (DOMAINS_ENABLED defaults to
+# false). The SSO control above disambiguates — a lookup that found tenant
+# credentials proves the domain is registered, leaving only the feature toggle.
+STRATEGY_UNTESTABLE=0
+control_strategy="$(curl -sS -m 15 -o /dev/null -D - -H "Host: ${CUSTOM}" "${BASE}/" 2>/dev/null \
+  | awk -F': ' 'tolower($1)=="o-domain-strategy"{gsub(/\r/,"",$2); print $2}' | tail -1)"
+if [[ "${control_strategy:-<absent>}" != "custom" ]]; then
+  STRATEGY_UNTESTABLE=1
+  echo "WARN: a direct request to ${CUSTOM} resolved strategy '${control_strategy:-<absent>}', not 'custom'." >&2
+  if [[ "$control_sso" == "TENANT_OK" ]]; then
+    echo "      The SSO lookup found tenant credentials for it, so the domain IS registered:" >&2
+    echo "      the domains feature is off in the app under test. Set DOMAINS_ENABLED=true." >&2
+  else
+    echo "      Either ${CUSTOM} is not a registered CustomDomain, or the domains feature" >&2
+    echo "      is off in the app under test (DOMAINS_ENABLED)." >&2
+  fi
+  echo "      Strategy/seam verdicts are reported as UNTESTABLE(strategy_control)." >&2
+fi
+
+ROW_FMT='%-24s %-12s %-12s %-28s %-22s %s\n'
+print_sep() {
+  printf -- '---------------------------------------------------------------------------------------------------------------------\n' >&2
+}
+
+printf "$ROW_FMT" "topology" "strategy" "want" "display_domain" "sso" "verdict" >&2
+print_sep
 
 rc=0
 
@@ -214,7 +274,13 @@ for row in "${TOPOLOGIES[@]}"; do
   # DomainStrategy says `custom`, the SSO lookup says it never heard of the
   # domain. Both readings come from the SAME request.
   verdict="ok"
-  if [[ "$strategy" != "$want_strategy" ]]; then
+  if [[ "$STRATEGY_UNTESTABLE" -eq 1 ]]; then
+    # The control proved DomainStrategy cannot say `custom` for --custom at
+    # all, so grading rows against custom/canonical expectations would report
+    # drift (or vacuous passes) about a switched-off feature.
+    verdict="UNTESTABLE(strategy_control)"
+    rc=1
+  elif [[ "$strategy" != "$want_strategy" ]]; then
     verdict="STRATEGY_DRIFT(want=${want_strategy})"
     rc=1
   fi
@@ -227,8 +293,15 @@ for row in "${TOPOLOGIES[@]}"; do
   #                      `canonical_domain?` branch injects PLATFORM credentials
   #                      and the user reaches an IdP, just the wrong one. Silent
   #                      unless the tenant id is checked.
-  if [[ "$strategy" == "custom" && ( "$sso" == "NO_CONFIG" || "$sso" == "PLATFORM_FALLBACK" ) ]]; then
-    verdict="SEAM_SPLIT(${sso})"
+  if [[ "$STRATEGY_UNTESTABLE" -eq 0 && "$strategy" == "custom" && ( "$sso" == "NO_CONFIG" || "$sso" == "PLATFORM_FALLBACK" ) ]]; then
+    if [[ "$FIXTURE_MISSING" -eq 1 ]]; then
+      # The direct-request control already proved nothing is configured for
+      # --custom, so this row's SSO outcome is uninterpretable — it cannot
+      # distinguish "seam broken" from "nothing seeded".
+      verdict="FIXTURE_MISSING"
+    else
+      verdict="SEAM_SPLIT(${sso})"
+    fi
     rc=1
   fi
   # An untrusted forwarded host must never surface as the display domain.
@@ -237,12 +310,12 @@ for row in "${TOPOLOGIES[@]}"; do
     rc=1
   fi
 
-  printf '%s\t%s\t%s\t%s\t%s\n' "$name" "$strategy" "$display" "$sso" "$verdict" >&2
+  printf "$ROW_FMT" "$name" "$strategy" "$want_strategy" "$display" "$sso" "$verdict" >&2
   [[ "$TSV" -eq 1 ]] && printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
     "$LABEL" "$name" "$strategy" "$display" "$sso" "$verdict"
 done
 
-printf -- '--------------------------------------------------------------------------\n' >&2
+print_sep
 if [[ $rc -eq 0 ]]; then
   printf '%s: all topologies clean\n' "$LABEL" >&2
 else

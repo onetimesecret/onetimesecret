@@ -66,7 +66,20 @@ fixture.
   tenant id is checked.
 - `SPOOF_ACCEPTED` — untrusted forwarded host reached `O-Display-Domain`.
 - `STRATEGY_DRIFT(...)` — DomainStrategy classification differed from expected
-  for that topology.
+  for that topology. On every custom row at once, it usually means `--custom`
+  is not a registered CustomDomain.
+- `FIXTURE_MISSING` — the direct-request control (Host set to `--custom`, no
+  forwarded headers, hence no seam) answered `sso_not_configured`, so no
+  enabled SsoConfig exists for `--custom`. SSO seam verdicts are
+  uninterpretable in this state; seed with `seed-tenant.rb` and rerun. Header
+  columns remain valid.
+- `UNTESTABLE(strategy_control)` — the same direct request did not resolve
+  `O-Domain-Strategy: custom`, so the strategy side of the seam cannot answer
+  at all: either `--custom` is not a registered CustomDomain, or the domains
+  feature is off in the app under test (`DOMAINS_ENABLED` defaults to false).
+  All strategy/seam verdicts are suppressed — including the vacuous `ok` that
+  T9–T11 would otherwise report with `O-Display-Domain` pinned to canonical.
+  The warning above the table says which of the two causes it is.
 
 Special case: T9 (`xfh-shadows-apx`) is expected to resolve `canonical` **by
 design**. `X-Forwarded-Host` can outrank `Apx-Incoming-Host` in carrier
@@ -86,7 +99,17 @@ Run commands from repo root.
 
 ### Release gate (one running version)
 
-Against an already-running app (local server, container, or staging):
+**Seed the fixture first.** The SSO column is only meaningful for a domain
+that has an enabled SsoConfig; `--custom` must be *that* domain and
+`--tenant-id` must match its seeded tenant id (probe default matches the seed
+default). A registered custom domain without an SsoConfig makes the probe
+report `FIXTURE_MISSING` on every custom-strategy row:
+
+```bash
+HOST_SEAM_DOMAIN=local-secrets1.afb.pet bin/ots console < scripts/host-seam/seed-tenant.rb
+```
+
+Then, against an already-running app (local server, container, or staging):
 
 ```bash
 scripts/host-seam/topology-probe.sh \
@@ -97,14 +120,12 @@ scripts/host-seam/topology-probe.sh \
 
 Exit `0` means all topologies matched; non-zero means read `verdict`.
 
-Seed required fixture first:
-
-```bash
-HOST_SEAM_DOMAIN=local-secrets1.afb.pet bin/ots console < scripts/host-seam/seed-tenant.rb
-```
-
 Also required for valid SSO seam checks:
 
+- `DOMAINS_ENABLED=true` — the domains feature defaults OFF. Without it
+  `DomainStrategy` classifies every request canonical, the strategy side of
+  the seam is inert, and the probe reports `UNTESTABLE(strategy_control)`.
+  (`release-sweep.sh` sets this for its containers.)
 - `TRUSTED_PROXY_ENABLED=true` (filter mode trusts loopback/RFC1918). Without
   it, `DetectHost` drops forwarded carriers and T3–T5 collapse to canonical for
   unrelated reasons.
@@ -188,7 +209,8 @@ and `HTTP_X_ORIGINAL_HOST`), which is why the matrix covers
 
 1. You changed host/domain logic and need a fast gate: run `topology-probe.sh`.
 2. Probe shows non-`ok`: verify setup (`ORGS_SSO_ENABLED=true`,
-   `TRUSTED_PROXY_ENABLED=true`, seeded custom domain).
+   `TRUSTED_PROXY_ENABLED=true`, seeded custom domain **with an enabled
+   SsoConfig** — `FIXTURE_MISSING` means the SsoConfig half is absent).
 3. You need "which release introduced this": run `release-sweep.sh` on target
    tags.
 4. Sweep has `IMAGE_UNAVAILABLE` / `START_FAILED` / `NEVER_READY`: do not trust
