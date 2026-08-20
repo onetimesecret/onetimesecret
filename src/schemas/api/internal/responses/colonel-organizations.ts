@@ -236,7 +236,12 @@ export const colonelOrganizationDetailRecordSchema = z.object({
   stripe_customer_id: z.string().nullable(),
   stripe_subscription_id: z.string().nullable(),
   subscription_status: z.string().nullable(),
-  subscription_period_end: z.string().nullable(),
+  // Canonical Colonel responses use strings. Accept numeric legacy values while
+  // a mixed-version deployment or cached response is still possible.
+  subscription_period_end: z
+    .union([z.string(), z.number()])
+    .nullable()
+    .transform((value) => (value === null ? null : String(value))),
   billing_email_present: z.boolean(),
   sync_status: z.string(),
   sync_status_reason: z.string().nullable(),
