@@ -1285,5 +1285,13 @@
   "web.organizations.organizations": {
     "text": "Organizations",
     "content_hash": "2730183d"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "Enable SSO",
+    "content_hash": "d10d0801"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "When enabled, organization members can sign in using this SSO provider",
+    "content_hash": "d7da2fa2"
   }
 }

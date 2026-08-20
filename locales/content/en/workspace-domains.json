@@ -1663,5 +1663,9 @@
     "text": "This domain's homepage currently presents the incoming secrets form. Disabling incoming secrets or removing all recipients will switch the homepage to a private landing page until incoming is ready again.",
     "context": "Warning on the Incoming Secrets config page when the homepage secrets_mode is incoming and a change could un-ready it",
     "content_hash": "cc0d4997"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "To require SSO for all sign-ins on this domain, configure it in the domain's sign-in settings. SSO-only mode restricts the login page to the SSO provider configured here.",
+    "content_hash": "d26627a5"
   }
 }
