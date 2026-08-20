@@ -32,6 +32,8 @@ RSpec.describe Onetime::AuthConfig do
           mfa: <%= ENV['AUTH_MFA_ENABLED'] == 'true' %>
           email_auth: <%= ENV['AUTH_EMAIL_AUTH_ENABLED'] == 'true' %>
           webauthn: <%= ENV['AUTH_WEBAUTHN_ENABLED'] == 'true' %>
+          webauthn_verify_account: <%= ENV['AUTH_WEBAUTHN_VERIFY_ACCOUNT'] == 'true' %>
+          webauthn_autofill: <%= ENV['AUTH_WEBAUTHN_AUTOFILL'] == 'true' %>
           sso: <%= ENV['AUTH_SSO_ENABLED'] == 'true' %>
         <%
           only_flags = [
@@ -45,6 +47,7 @@ RSpec.describe Onetime::AuthConfig do
         restrict_to: <%= restrict_to %>
         sso:
           sso_display_name: ''
+          sso_only: <%= ENV['AUTH_LEGACY_SSO_ONLY'] == 'true' %>
           trust_email_for_linking: <%= ENV['SSO_TRUST_EMAIL_FOR_LINKING'] == 'true' %>
     YAML
   end
@@ -56,9 +59,14 @@ RSpec.describe Onetime::AuthConfig do
       AUTH_LOCKOUT_ENABLED AUTH_PASSWORD_REQUIREMENTS_ENABLED
       AUTH_ACTIVE_SESSIONS_ENABLED AUTH_REMEMBER_ME_ENABLED
       AUTH_MFA_ENABLED AUTH_EMAIL_AUTH_ENABLED AUTH_WEBAUTHN_ENABLED
-      AUTH_SSO_ENABLED AUTH_SSO_ONLY
+      AUTH_WEBAUTHN_VERIFY_ACCOUNT AUTH_WEBAUTHN_AUTOFILL
+      AUTH_SSO_ENABLED AUTH_SSO_ONLY AUTH_LEGACY_SSO_ONLY
       AUTH_PASSWORD_ONLY AUTH_EMAIL_AUTH_ONLY AUTH_WEBAUTHN_ONLY
       OIDC_ISSUER OIDC_CLIENT_ID
+      ENTRA_TENANT_ID ENTRA_CLIENT_ID ENTRA_CLIENT_SECRET
+      GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET
+      GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET
+      SSO_PROVIDER_ORDER
       OIDC_ROUTE_NAME ENTRA_ROUTE_NAME GOOGLE_ROUTE_NAME GITHUB_ROUTE_NAME
       SSO_TRUST_EMAIL_FOR_LINKING
       OIDC_TRUST_EMAIL_FOR_LINKING ENTRA_TRUST_EMAIL_FOR_LINKING
@@ -66,9 +74,9 @@ RSpec.describe Onetime::AuthConfig do
     ]
   end
 
-  before(:each) do
+  before do
     # Save existing env
-    @saved_env = env_vars.map { |k| [k, ENV[k]] }.to_h
+    @saved_env = env_vars.to_h { |k| [k, ENV.fetch(k, nil)] }
 
     # Clear env vars to start with a clean slate (CI may set AUTHENTICATION_MODE=simple)
     env_vars.each { |k| ENV.delete(k) }
@@ -81,7 +89,7 @@ RSpec.describe Onetime::AuthConfig do
       .with('auth').and_return(config_path)
   end
 
-  after(:each) do
+  after do
     # Restore env
     @saved_env.each do |k, v|
       if v.nil?
@@ -157,10 +165,14 @@ RSpec.describe Onetime::AuthConfig do
   end
 
   describe 'feature toggles (default-OFF pattern)' do
-    { 'mfa' => 'AUTH_MFA_ENABLED',
+    {
+      'mfa' => 'AUTH_MFA_ENABLED',
       'email_auth' => 'AUTH_EMAIL_AUTH_ENABLED',
       'webauthn' => 'AUTH_WEBAUTHN_ENABLED',
-      'sso' => 'AUTH_SSO_ENABLED' }.each do |feature, env_key|
+      'webauthn_verify_account' => 'AUTH_WEBAUTHN_VERIFY_ACCOUNT',
+      'webauthn_autofill' => 'AUTH_WEBAUTHN_AUTOFILL',
+      'sso' => 'AUTH_SSO_ENABLED',
+    }.each do |feature, env_key|
       describe "##{feature}_enabled?" do
         it "returns false when #{env_key} is unset (default OFF)" do
           ENV.delete(env_key)
@@ -219,9 +231,168 @@ RSpec.describe Onetime::AuthConfig do
       expect(config.restrict_to).to be_nil
     end
 
+    # AuthConfig is deliberately blind here: the template renders NOTHING when
+    # several AUTH_*_ONLY flags are true, so by the time the config is parsed
+    # the contradiction only exists in the process environment. That silent
+    # fail-open is caught at boot by ValidateAuthConfig#validate_restrict_to_flags!
+    # (ADR-034#conflicting-auth-only-env-flags-are-a-boot-error, #4139) — see
+    # spec/unit/onetime/initializers/validate_auth_config_spec.rb.
     it 'returns nil when multiple ENV vars are set (mutual exclusivity)' do
       config = fresh_config('AUTH_PASSWORD_ONLY' => 'true', 'AUTH_SSO_ONLY' => 'true')
       expect(config.restrict_to).to be_nil
+      expect(config.validate_restrict_to!).to be_nil
+    end
+
+    # ADR-034#degradation-is-fail-closed (#4140): the drop-to-standard
+    # fallback is retired. An unavailable method keeps the restriction in
+    # place so consumers degrade fail-closed; it must never read as
+    # "unrestricted".
+    context 'when the restricted method is unavailable (post-boot degradation)' do
+      it "keeps 'sso' when SSO is disabled" do
+        config = fresh_config('AUTH_SSO_ONLY' => 'true', 'AUTH_SSO_ENABLED' => 'false')
+        expect(config.restrict_to).to eq('sso')
+        expect(config.restrict_to_available?).to be false
+      end
+
+      it "keeps 'sso' when SSO is enabled but no provider is configured" do
+        config = fresh_config('AUTH_SSO_ONLY' => 'true', 'AUTH_SSO_ENABLED' => 'true')
+        expect(config.restrict_to).to eq('sso')
+        expect(config.restrict_to_available?).to be false
+      end
+
+      it "keeps 'email_auth' when email auth is disabled" do
+        config = fresh_config('AUTH_EMAIL_AUTH_ONLY' => 'true', 'AUTH_EMAIL_AUTH_ENABLED' => 'false')
+        expect(config.restrict_to).to eq('email_auth')
+        expect(config.restrict_to_available?).to be false
+      end
+
+      it "keeps 'webauthn' when webauthn is disabled" do
+        config = fresh_config('AUTH_WEBAUTHN_ONLY' => 'true', 'AUTH_WEBAUTHN_ENABLED' => 'false')
+        expect(config.restrict_to).to eq('webauthn')
+        expect(config.restrict_to_available?).to be false
+      end
+    end
+
+    context 'legacy sso.sso_only fallback' do
+      it "resolves to 'sso' when restrict_to is unset" do
+        config = fresh_config(
+          'AUTH_LEGACY_SSO_ONLY' => 'true',
+          'AUTH_SSO_ENABLED' => 'true',
+          'OIDC_ISSUER' => 'https://example.com',
+          'OIDC_CLIENT_ID' => 'test-client',
+        )
+        expect(config.restrict_to).to eq('sso')
+      end
+
+      it 'gets identical fail-closed treatment when SSO is unavailable' do
+        config = fresh_config('AUTH_LEGACY_SSO_ONLY' => 'true', 'AUTH_SSO_ENABLED' => 'false')
+        expect(config.restrict_to).to eq('sso')
+        expect(config.restrict_to_available?).to be false
+      end
+    end
+  end
+
+  # ── #restrict_to_available? ────────────────────────────────────────
+
+  describe '#restrict_to_available?' do
+    it 'returns true when no restriction is configured' do
+      expect(fresh_config.restrict_to_available?).to be true
+    end
+
+    it 'returns true for password (no prerequisite)' do
+      expect(fresh_config('AUTH_PASSWORD_ONLY' => 'true').restrict_to_available?).to be true
+    end
+
+    it 'returns true when the restricted method is available' do
+      config = fresh_config('AUTH_WEBAUTHN_ONLY' => 'true', 'AUTH_WEBAUTHN_ENABLED' => 'true')
+      expect(config.restrict_to_available?).to be true
+    end
+  end
+
+  # ── #validate_restrict_to! (ADR-034#degradation-is-fail-closed fatal boot error, #4140) ────
+
+  describe '#validate_restrict_to!' do
+    it 'returns nil and does not raise when no restriction is configured' do
+      config = fresh_config
+      expect(config.validate_restrict_to!).to be_nil
+    end
+
+    it 'returns nil in simple mode without validating' do
+      config = fresh_config('AUTHENTICATION_MODE' => 'simple', 'AUTH_SSO_ONLY' => 'true')
+      expect(config.validate_restrict_to!).to be_nil
+    end
+
+    context 'with prerequisites met' do
+      it "returns 'password' (password has no prerequisite)" do
+        config = fresh_config('AUTH_PASSWORD_ONLY' => 'true')
+        expect(config.validate_restrict_to!).to eq('password')
+      end
+
+      it "returns 'email_auth' when email auth is enabled" do
+        config = fresh_config('AUTH_EMAIL_AUTH_ONLY' => 'true', 'AUTH_EMAIL_AUTH_ENABLED' => 'true')
+        expect(config.validate_restrict_to!).to eq('email_auth')
+      end
+
+      it "returns 'webauthn' when webauthn is enabled" do
+        config = fresh_config('AUTH_WEBAUTHN_ONLY' => 'true', 'AUTH_WEBAUTHN_ENABLED' => 'true')
+        expect(config.validate_restrict_to!).to eq('webauthn')
+      end
+
+      it "returns 'sso' when SSO is enabled with a provider" do
+        config = fresh_config(
+          'AUTH_SSO_ONLY' => 'true',
+          'AUTH_SSO_ENABLED' => 'true',
+          'OIDC_ISSUER' => 'https://example.com',
+          'OIDC_CLIENT_ID' => 'test-client',
+        )
+        expect(config.validate_restrict_to!).to eq('sso')
+      end
+    end
+
+    context 'with prerequisites unmet' do
+      it 'raises when restrict_to=sso but SSO is disabled' do
+        config = fresh_config('AUTH_SSO_ONLY' => 'true', 'AUTH_SSO_ENABLED' => 'false')
+        expect { config.validate_restrict_to! }
+          .to raise_error(Onetime::ConfigError, /restricted to "sso".*SSO is disabled/m)
+      end
+
+      it 'raises when restrict_to=sso but no provider is configured' do
+        config = fresh_config('AUTH_SSO_ONLY' => 'true', 'AUTH_SSO_ENABLED' => 'true')
+        expect { config.validate_restrict_to! }
+          .to raise_error(Onetime::ConfigError, /no provider is configured/)
+      end
+
+      it 'raises when restrict_to=email_auth but email auth is disabled' do
+        config = fresh_config('AUTH_EMAIL_AUTH_ONLY' => 'true', 'AUTH_EMAIL_AUTH_ENABLED' => 'false')
+        expect { config.validate_restrict_to! }
+          .to raise_error(Onetime::ConfigError, /email auth is disabled/)
+      end
+
+      it 'raises when restrict_to=webauthn but webauthn is disabled' do
+        config = fresh_config('AUTH_WEBAUTHN_ONLY' => 'true', 'AUTH_WEBAUTHN_ENABLED' => 'false')
+        expect { config.validate_restrict_to! }
+          .to raise_error(Onetime::ConfigError, /WebAuthn is disabled/)
+      end
+
+      it 'names the legacy config key when the value came from sso.sso_only' do
+        config = fresh_config('AUTH_LEGACY_SSO_ONLY' => 'true', 'AUTH_SSO_ENABLED' => 'false')
+        expect { config.validate_restrict_to! }
+          .to raise_error(Onetime::ConfigError, /full\.sso\.sso_only \(AUTH_SSO_ONLY\)/)
+      end
+
+      it 'raises on an unrecognised restriction value' do
+        config = fresh_config
+        config.instance_variable_get(:@config)['full']['restrict_to'] = 'carrier_pigeon'
+        expect { config.validate_restrict_to! }
+          .to raise_error(Onetime::ConfigError, /not a valid restriction/)
+      end
+
+      it 'memoizes so a second call does not re-raise' do
+        config = fresh_config('AUTH_PASSWORD_ONLY' => 'true')
+        expect(config.validate_restrict_to!).to eq('password')
+        config.instance_variable_get(:@config)['full']['restrict_to'] = 'carrier_pigeon'
+        expect(config.validate_restrict_to!).to eq('password')
+      end
     end
   end
 
@@ -245,9 +416,13 @@ RSpec.describe Onetime::AuthConfig do
       expect(config.email_auth_only_enabled?).to be true
     end
 
-    it 'returns false when restrict_to is email_auth but email_auth is disabled' do
+    # ADR-034#degradation-is-fail-closed (#4140): the restriction stands
+    # even when the method is unavailable — consumers fail closed rather
+    # than widening to standard mode.
+    it 'stays true when restrict_to is email_auth but email_auth is disabled' do
       config = fresh_config('AUTH_EMAIL_AUTH_ONLY' => 'true', 'AUTH_EMAIL_AUTH_ENABLED' => 'false')
-      expect(config.email_auth_only_enabled?).to be false
+      expect(config.email_auth_only_enabled?).to be true
+      expect(config.restrict_to_available?).to be false
     end
   end
 
@@ -257,9 +432,10 @@ RSpec.describe Onetime::AuthConfig do
       expect(config.webauthn_only_enabled?).to be true
     end
 
-    it 'returns false when restrict_to is webauthn but webauthn is disabled' do
+    it 'stays true when restrict_to is webauthn but webauthn is disabled' do
       config = fresh_config('AUTH_WEBAUTHN_ONLY' => 'true', 'AUTH_WEBAUTHN_ENABLED' => 'false')
-      expect(config.webauthn_only_enabled?).to be false
+      expect(config.webauthn_only_enabled?).to be true
+      expect(config.restrict_to_available?).to be false
     end
   end
 
@@ -274,16 +450,22 @@ RSpec.describe Onetime::AuthConfig do
       expect(config.sso_only_enabled?).to be true
     end
 
-    it 'returns false when restrict_to is sso but SSO disabled' do
+    # ADR-034#degradation-is-fail-closed (#4140): SSO-only stays engaged
+    # when SSO is unavailable — account management stays locked down and
+    # sign-in fails closed. Widening here would re-expose password
+    # management the operator restricted away.
+    it 'stays true when restrict_to is sso but SSO disabled' do
       config = fresh_config('AUTH_SSO_ONLY' => 'true', 'AUTH_SSO_ENABLED' => 'false')
-      expect(config.sso_only_enabled?).to be false
+      expect(config.sso_only_enabled?).to be true
+      expect(config.restrict_to_available?).to be false
     end
 
-    it 'returns false when restrict_to is sso, SSO enabled, but no provider' do
+    it 'stays true when restrict_to is sso, SSO enabled, but no provider' do
       ENV.delete('OIDC_ISSUER')
       ENV.delete('OIDC_CLIENT_ID')
       config = fresh_config('AUTH_SSO_ONLY' => 'true', 'AUTH_SSO_ENABLED' => 'true')
-      expect(config.sso_only_enabled?).to be false
+      expect(config.sso_only_enabled?).to be true
+      expect(config.restrict_to_available?).to be false
     end
   end
 
@@ -320,7 +502,7 @@ RSpec.describe Onetime::AuthConfig do
         end
 
         it "is unaffected by another provider's trust var" do
-          other = (%w[OIDC ENTRA GOOGLE GITHUB] - [trust_var.split('_').first]).first
+          other  = (%w[OIDC ENTRA GOOGLE GITHUB] - [trust_var.split('_').first]).first
           config = fresh_config("#{other}_TRUST_EMAIL_FOR_LINKING" => 'true')
           expect(config.trust_email_for_linking?(route_name)).to be false
         end
@@ -429,10 +611,56 @@ RSpec.describe Onetime::AuthConfig do
 
   # ── RESTRICT_TO_VALUES constant ────────────────────────────────────
 
+  # ── sso_providers: registry delegation and ordering ────────────────
+
+  describe '#sso_providers' do
+    # Enable SSO and give three providers their required env vars.
+    def config_with_three_providers(**extra_env)
+      fresh_config(
+        AUTH_SSO_ENABLED: 'true',
+        GOOGLE_CLIENT_ID: 'gid',
+        GOOGLE_CLIENT_SECRET: 'gs',
+        GITHUB_CLIENT_ID: 'hid',
+        GITHUB_CLIENT_SECRET: 'hs',
+        ENTRA_TENANT_ID: 'tid',
+        ENTRA_CLIENT_ID: 'eid',
+        ENTRA_CLIENT_SECRET: 'es',
+        **extra_env,
+      )
+    end
+
+    it 'lists active providers in registry order by default' do
+      config = config_with_three_providers
+      expect(config.sso_providers.map { |p| p['route_name'] })
+        .to eq(%w[entra google github])
+    end
+
+    it 'honors SSO_PROVIDER_ORDER for listed providers' do
+      config = config_with_three_providers(SSO_PROVIDER_ORDER: 'github, google')
+      expect(config.sso_providers.map { |p| p['route_name'] })
+        .to eq(%w[github google entra])
+    end
+
+    it 'ignores unknown route names in SSO_PROVIDER_ORDER' do
+      config = config_with_three_providers(SSO_PROVIDER_ORDER: 'okta github')
+      expect(config.sso_providers.map { |p| p['route_name'] })
+        .to eq(%w[github entra google])
+    end
+
+    it 'derives definitions from the shared SsoProvider::Registry, plus the local IdP' do
+      config          = fresh_config
+      registry_routes = Onetime::SsoProvider::Registry::DEFINITIONS.map { |d| d[:route_default] }
+      # The development-only local IdP is deliberately NOT a registry entry
+      # (see AuthConfig#provider_definitions), so it trails the registry order.
+      expect(config.send(:provider_definitions).map { |d| d[:route_default] })
+        .to eq(registry_routes + ['local'])
+    end
+  end
+
   describe 'RESTRICT_TO_VALUES' do
     it 'contains the four valid restriction values' do
       expect(described_class::RESTRICT_TO_VALUES).to eq(
-        %w[password email_auth webauthn sso]
+        %w[password email_auth webauthn sso],
       )
     end
 
@@ -444,13 +672,13 @@ RSpec.describe Onetime::AuthConfig do
   # ── Missing config file (graceful degradation) ─────────────────────
 
   describe 'when config file is missing' do
+    subject(:config) { described_class.instance }
+
     before do
       allow(Onetime::Utils::ConfigResolver).to receive(:resolve)
         .with('auth').and_return('/nonexistent/auth.yaml')
       described_class.instance_variable_set(:@singleton__instance__, nil)
     end
-
-    subject(:config) { described_class.instance }
 
     it 'does not raise on instantiation' do
       expect { config }.not_to raise_error

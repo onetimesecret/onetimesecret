@@ -31,6 +31,12 @@ module Onetime
         # before any auth strategy has warmed the cache.
         include Onetime::Application::OrganizationLoader
 
+        # Otto's GeoResolver sentinel for "no country resolved" — normalized to
+        # nil, never stored. Onetime::SessionMetadata#geo_country (the single
+        # read-side chokepoint) maps '**' to nil anyway, so persisting it would
+        # only waste a hash field that every reader ignores.
+        UNKNOWN_COUNTRY = '**'
+
         # @param session_id [String] the PLAIN session id (== live blob key name).
         # @param session_data [Hash] the post-login session hash (string keys) as
         #   seen by write_session. Anonymous/CSRF-only sessions lack
@@ -77,6 +83,16 @@ module Onetime
           meta.org_id           = active_org_id(customer)
           meta.auth_method      = auth_method
           meta.mfa_used         = mfa_used
+          meta.geo_country      = geo_country
+
+          # Internal join key, copied VERBATIM like auth_method: the digest is
+          # computed at auth time by the Rodauth side (compute_hmac needs the
+          # Rodauth instance, which this operation does not have) and stamped into
+          # the session there. Set unconditionally — Rodauth re-mints its token on
+          # every update_session, so a stale digest must be overwritten, and a
+          # session predating the stamp simply writes nil.
+          meta.active_session_id_hmac = @session_data['active_session_id_hmac']
+
           meta.save
 
           # Score by last-activity so the per-customer list reads newest-first.
@@ -142,6 +158,32 @@ module Onetime
         # not invent one — the field exists for a future enrichment path.
         def mfa_used
           nil
+        end
+
+        # geo_country is the country Otto's IPPrivacyMiddleware already resolved
+        # for this request and stamped into the Rack env (otto.privacy.geo_country,
+        # ISO 3166-1 alpha-2 or the '**' unknown sentinel). It runs upstream of the
+        # session write, so this is a plain env read — NOT an IP lookup, and never
+        # derived from the (masked) ip_address. nil when @env is absent (e.g. tests
+        # that call TrackMetadata directly with env: nil) or the privacy layer is
+        # disabled; consumers render nil/absent as "Unknown".
+        #
+        # Normalized to the canonical alpha-2 form (strip/upcase) so a custom geo
+        # header emitting a lowercase or padded value stores consistently across
+        # every surface, matching Onetime::Security::RequestContext#normalize_country.
+        # The '**' sentinel, like blank or malformed values, stores nil — the
+        # sentinel never persists and never reaches a client (the
+        # {Onetime::SessionMetadata#geo_country} reader enforces the same on the
+        # way out, including for legacy records that stored it verbatim).
+        def geo_country
+          raw = @env&.dig('otto.privacy.geo_country')
+          return nil if raw.nil?
+
+          normalized = raw.to_s.strip
+          return nil if normalized.empty? || normalized == UNKNOWN_COUNTRY
+
+          upcased = normalized.upcase
+          upcased.match?(/\A[A-Z]{2}\z/) ? upcased : nil
         end
       end
     end

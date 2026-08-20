@@ -8,6 +8,7 @@
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import IncomingSecretFormBody from '@/apps/secret/components/incoming/IncomingSecretFormBody.vue';
   import LoadingOverlay from '@/shared/components/common/LoadingOverlay.vue';
+  import BrandMark from '@/shared/components/logos/BrandMark.vue';
   import EmptyState from '@/shared/components/ui/EmptyState.vue';
   import { useI18n } from 'vue-i18n';
 
@@ -17,13 +18,11 @@
 
   // Custom-domain brand logo. The top masthead is suppressed on custom domains
   // (see guards.routes.ts), so the page body owns the logo — mirroring
-  // BrandedHomepage. Hidden when no logo is configured or the asset 404s, so
-  // the no-logo page stays title + subtitle + form with no placeholder box.
-  const { logoUri, displayName } = storeToRefs(useProductIdentity());
-  const logoError = ref(false);
-  const handleLogoError = () => {
-    logoError.value = true;
-  };
+  // BrandedHomepage. BrandMark hides it when no logo is configured or the asset
+  // 404s, so the no-logo page stays title + subtitle + form with no placeholder
+  // box, and swaps in the tenant's dark variant (logoDarkSource →
+  // BrandSettings.logo_dark_url) under the site's class-based dark mode.
+  const { logoUri, logoDarkSource, displayName } = storeToRefs(useProductIdentity());
 
   const isLoading = ref(true);
 
@@ -75,13 +74,14 @@
     <template v-else>
       <!-- Header -->
       <div class="mb-10">
-        <!-- Brand logo (custom domains) — hidden if unconfigured or 404s -->
-        <img
-          v-if="logoUri && !logoError"
-          :src="logoUri"
+        <!-- Brand logo (custom domains) — light/dark pair via BrandMark,
+             hidden if unconfigured or 404s -->
+        <BrandMark
+          v-if="logoUri"
+          :logo-uri="logoUri"
+          :logo-dark-uri="logoDarkSource"
           :alt="displayName"
-          class="mb-6 h-16 max-w-[200px] object-contain"
-          @error="handleLogoError" />
+          img-class="mb-6 h-16 max-w-[200px] object-contain" />
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
           {{ t('incoming.page_title') }}
         </h1>

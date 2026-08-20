@@ -838,5 +838,37 @@
   "web.colonel.nav.groups.communications": {
     "text": "Komunikadoj",
     "source_hash": "919a9253"
+  },
+  "web.colonel.organizations.sameAsContact": {
+    "text": "Sama kiel kontakto",
+    "source_hash": "ed18ff43"
+  },
+  "web.colonel.organizations.refresh": {
+    "text": "Refreŝigi",
+    "source_hash": "0e916101"
+  },
+  "web.colonel.organizations.updatedAgo": {
+    "text": "Ĝisdatigita {ago}",
+    "source_hash": "cda30b9c"
+  },
+  "web.colonel.organizations.columns.name": {
+    "text": "Nomo",
+    "source_hash": "dcd1d522"
+  },
+  "web.colonel.organizations.columns.contactEmail": {
+    "text": "Kontakta retpoŝtadreso",
+    "source_hash": "6d7fce11"
+  },
+  "web.colonel.organizations.columns.billingEmail": {
+    "text": "Faktura retpoŝtadreso",
+    "source_hash": "8805b928"
+  },
+  "web.colonel.organizations.columns.planSubscription": {
+    "text": "Plano kaj abono",
+    "source_hash": "b396caac"
+  },
+  "web.colonel.organizations.filters.searchPlaceholder": {
+    "text": "Serĉi laŭ ID, nomo aŭ retpoŝtadreso",
+    "source_hash": "6fe16473"
   }
 }

@@ -353,16 +353,49 @@ Core::Views::ConfigSerializer.send(:resolve_restrict_to, {})
 Core::Views::ConfigSerializer.send(:resolve_restrict_to, @view_vars_no_config)
 #=> Onetime.auth_config.restrict_to
 
-## resolve_restrict_to uses domain SigninConfig restrict_to when enabled
+## resolve_restrict_to uses domain SigninConfig restrict_to when the named
+## method can actually run here: enabled config restricting to 'sso', with the
+## tenant SSO credentials + activation that make 'sso' honorable
 @domain_rt2 = Onetime::CustomDomain.create!("dae-rt2-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
 @config_rt2 = Onetime::CustomDomain::SigninConfig.create!(
   domain_id: @domain_rt2.identifier,
   enabled: true,
   restrict_to: 'sso',
+  sso_enabled: true,
 )
-@view_vars_with_config = { 'display_domain' => @domain_rt2.display_domain }
+@sso_rt2 = Onetime::CustomDomain::SsoConfig.create!(
+  domain_id: @domain_rt2.identifier,
+  provider_type: 'oidc',
+  display_name: 'SSO RT2',
+  enabled: true,
+  issuer: 'https://idp-rt2.example.com',
+  client_id: 'client-rt2',
+)
+@view_vars_with_config = { 'display_domain' => @domain_rt2.display_domain, 'domain_strategy' => :custom }
 Core::Views::ConfigSerializer.send(:resolve_restrict_to, @view_vars_with_config)
 #=> 'sso'
+
+## FAIL CLOSED (#4139, ADR-034#degradation-is-fail-closed): the same enabled
+## restrict_to='sso' on a domain with NO SSO credentials resolves :unavailable —
+## the display value is nil (nothing offered), NOT 'sso' and NOT a widening
+## fallback to global. This case used to expect 'sso'; the expectation predates
+## the availability derivation, and the fixture above is what the case name
+## actually meant.
+@domain_rt2b = Onetime::CustomDomain.create!("dae-rt2b-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
+@config_rt2b = Onetime::CustomDomain::SigninConfig.create!(
+  domain_id: @domain_rt2b.identifier,
+  enabled: true,
+  restrict_to: 'sso',
+)
+@resolution_rt2b = Core::Views::ConfigSerializer.send(
+  :restrict_to_resolution,
+  { 'display_domain' => @domain_rt2b.display_domain, 'domain_strategy' => :custom },
+)
+[@resolution_rt2b.state, @resolution_rt2b.restrict_to, Core::Views::ConfigSerializer.send(
+  :resolve_restrict_to,
+  { 'display_domain' => @domain_rt2b.display_domain, 'domain_strategy' => :custom },
+)]
+#=> [:unavailable, 'sso', nil]
 
 ## resolve_restrict_to falls back to global when SigninConfig master switch off
 @domain_rt3 = Onetime::CustomDomain.create!("dae-rt3-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
@@ -578,26 +611,58 @@ Core::Views::ConfigSerializer.send(:resolve_tenant_sso_config, { 'display_domain
 #   - Custom domain: default OFF (opt-in) for password/email, with an SSO
 #     carve-out so a domain that enabled SSO (SsoConfig) without a
 #     SigninConfig still renders its provider buttons.
+#   - ANYTHING ELSE (:invalid, or a missing classification): tenant-safe,
+#     i.e. default OFF.
+#     ADR-024#operator-defaults-require-positive-classification
+#
 # Global signin comes from site.authentication (AUTH_ENABLED + AUTH_SIGNIN)
-# via view_vars['site']; tenant_domain? keys off view_vars['domain_strategy'].
-
-## Canonical: global on + no domain context => true
-Core::Views::ConfigSerializer.send(:resolve_signin, { 'site' => SITE_SIGNIN_ON })
+# via view_vars['site']. The BRANCH is chosen by operator_domain? — a
+# POSITIVE test on view_vars['domain_strategy'] — not by tenant_domain?, so
+# the "canonical" cases below must SAY :canonical. They used to omit the key
+# and rely on `!= :custom`, which is exactly the fail-open the positive test
+# removed; served requests always carry a classification (the DomainStrategy
+# middleware is mounted unconditionally and falls back to :canonical), so the
+# omission was a fixture artifact, never a real request shape.
+#
+## Canonical: global on, no per-domain context => true
+Core::Views::ConfigSerializer.send(
+  :resolve_signin,
+  { 'site' => SITE_SIGNIN_ON, 'domain_strategy' => :canonical },
+)
 #=> true
 
-## Canonical: global signin off + no domain context => false
-Core::Views::ConfigSerializer.send(:resolve_signin, { 'site' => SITE_SIGNIN_OFF })
+## Canonical: global signin off => false
+Core::Views::ConfigSerializer.send(
+  :resolve_signin,
+  { 'site' => SITE_SIGNIN_OFF, 'domain_strategy' => :canonical },
+)
 #=> false
 
-## Canonical: global auth master off + no domain context => false
-Core::Views::ConfigSerializer.send(:resolve_signin, { 'site' => SITE_AUTH_OFF })
+## Canonical: global auth master off => false
+Core::Views::ConfigSerializer.send(
+  :resolve_signin,
+  { 'site' => SITE_AUTH_OFF, 'domain_strategy' => :canonical },
+)
+#=> false
+
+## A MISSING classification is tenant-safe, not canonical — a request
+## that never passed the middleware must not inherit the operator default
+Core::Views::ConfigSerializer.send(:resolve_signin, { 'site' => SITE_SIGNIN_ON })
+#=> false
+
+## :invalid is tenant-safe too — that is what a failing domain-index
+## read answers for a REAL custom domain, so it must not widen sign-in
+Core::Views::ConfigSerializer.send(
+  :resolve_signin,
+  { 'site' => SITE_SIGNIN_ON, 'domain_strategy' => :invalid },
+)
 #=> false
 
 ## Canonical: domain with no SigninConfig follows global (true)
 @domain_si_a = Onetime::CustomDomain.create!("dae-si-a-#{@ts}-#{SecureRandom.hex(2)}.example.com", @org.objid)
 Core::Views::ConfigSerializer.send(
   :resolve_signin,
-  { 'site' => SITE_SIGNIN_ON, 'display_domain' => @domain_si_a.display_domain },
+  { 'site' => SITE_SIGNIN_ON, 'display_domain' => @domain_si_a.display_domain, 'domain_strategy' => :canonical },
 )
 #=> true
 
@@ -641,7 +706,7 @@ Core::Views::ConfigSerializer.send(
 ## resolve_restrict_to carve-out is custom-domain only: canonical request for the SSO-only domain follows global
 Core::Views::ConfigSerializer.send(
   :resolve_restrict_to,
-  { 'display_domain' => @domain_si_sso.display_domain },
+  { 'display_domain' => @domain_si_sso.display_domain, 'domain_strategy' => :canonical },
 )
 #=> Onetime.auth_config.restrict_to
 
@@ -694,9 +759,18 @@ Core::Views::ConfigSerializer.send(
 ## Canonical: same master-off config falls back to global (true) — operator surface unchanged
 Core::Views::ConfigSerializer.send(
   :resolve_signin,
-  { 'site' => SITE_SIGNIN_ON, 'display_domain' => @domain_si_d.display_domain },
+  { 'site' => SITE_SIGNIN_ON, 'display_domain' => @domain_si_d.display_domain, 'domain_strategy' => :canonical },
 )
 #=> true
+
+## The SAME host and the SAME master-off config, classified :invalid by a
+## datastore blip, does NOT get that operator fallback — the whole point of the
+## positive test
+Core::Views::ConfigSerializer.send(
+  :resolve_signin,
+  { 'site' => SITE_SIGNIN_ON, 'display_domain' => @domain_si_d.display_domain, 'domain_strategy' => :invalid },
+)
+#=> false
 
 ## resolve_signin: missing site config => false (no global capability to narrow)
 Core::Views::ConfigSerializer.send(:resolve_signin, {})

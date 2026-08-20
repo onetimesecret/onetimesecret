@@ -41,8 +41,8 @@ with no address to rate-limit (an orphan looked up by extid or account id).
 1. **Account state** — unverified, closed, locked out, Customer↔auth drift. → diagnose
 2. **Rate limiting** — Valkey limiters block before Rodauth sees the attempt. → diagnose
 3. **Email delivery** — verification/reset email never sent, bounced, suppressed.
-4. **Surface config** — custom domain with signin/signup default-OFF (v0.26.2 regression) or `restrict_to: 'sso'`; wrong region.
-5. **Client-side** — CSP blocking form-action (#3848/#3836), cookie dropped behind TLS proxy (#3837), JS errors.
+4. **Surface config** — custom domain with signin/signup default-OFF (v0.26.2 regression) or `restrict_to: 'sso'`; a `restrict_to` whose method is unavailable on that host, which fails closed to "sign-in unavailable" rather than re-offering the other methods (ADR-034#degradation-is-fail-closed); wrong region.
+5. **Client-side** — CSP blocking form-action (#3848/#3836; custom-domain SSO button dead → [tenant-sso-csp-form-action.md](./tenant-sso-csp-form-action.md)), cookie dropped behind TLS proxy (#3837), JS errors.
 6. **Policy rejection** — password requirements, MFA/webauthn failures.
 
 ## When diagnose is clean

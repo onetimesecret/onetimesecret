@@ -30,9 +30,17 @@ require 'simplecov' if ENV['COVERAGE'] == 'true'
 # ORGS_SSO_ENABLED=true. The OmniAuthTenant hook injects real credentials
 # at request time.
 #
-# AUTHENTICATION_MODE must be 'full' before requiring ../application.
-# Without it, Auth::Database.connection returns nil and Rodauth's post_configure
-# crashes calling db.database_type on nil.
+# PROCESS-WIDE REACH. `||=` only fills a gap the caller left, but the gap it
+# fills belongs to the whole rspec process — not to the auth tree. Invisible
+# while `rake spec:fast` gives each app spec tree its own process; load-bearing
+# the moment the trees share one, where the first tree to load this file
+# decides the authentication mode for all of them.
+#
+# The lanes and CI both pin the mode (tests/lanes/unit/env sets
+# AUTHENTICATION_MODE=simple, .github/workflows/ci.yml does the same for the
+# ruby-unit job), so this default is inert there. A bare local
+# `bundle exec rake spec:fast` is the divergence: nothing pins the mode, so
+# this line flips the process to full mode.
 ENV['AUTHENTICATION_MODE'] ||= 'full'
 
 PLACEHOLDER_OIDC_ISSUER = 'https://placeholder.invalid'
@@ -74,6 +82,32 @@ require 'roda'
 require 'rodauth'
 require 'securerandom'
 require 'rack/test'
+
+# =============================================================================
+# HOOK SCOPE
+# =============================================================================
+#
+# Files the RSpec hooks registered by this helper (and by the support files it
+# loads) own. Every one of those hooks keys on `type: :integration`, which is
+# not auth's key — 17 spec files outside this tree declare it too (apps/api/v2,
+# apps/web/core, apps/api/invite, apps/web/billing). That is harmless while
+# `rake spec:fast` gives each app spec tree its own rspec process, and wrong the
+# moment the trees share one: flush_test_database/clear_auth_database would wipe
+# other trees' before(:all) fixtures out from under them, the Valkey preflight
+# would skip their examples, WebMock.allow_net_connect! would be flipped on
+# after each of them, and Rack::Test::Methods would define get/post/app on
+# groups that never asked for it. RSpec ANDs hook filters, so pairing each key
+# with this path filter keeps every hook on the examples it was written for.
+#
+# Filter on :file_path rather than a define_derived_metadata tag: RSpec sets
+# :file_path on every example from its own source location, so this holds no
+# matter when this helper loads, whereas a derived-metadata rule only reaches
+# groups defined after the rule is registered — and several files in this very
+# tree (config/base_normalize_login_spec.rb, config/hooks/*_spec.rb,
+# unit/hooks/billing_spec.rb) require only 'rspec', never this helper.
+#
+# Defined before the support requires below so those files can use it too.
+AUTH_SPEC_TREE = %r{/apps/web/auth/spec/}
 
 # Load OmniAuth test helper for additional helper methods
 require_relative 'support/omniauth_test_helper'
@@ -560,7 +594,11 @@ module ProductionConfigHelper
   # For PostgreSQL in CI, the application connection (onetime_user) lacks TRUNCATE
   # privileges. Use AUTH_DATABASE_URL_MIGRATIONS (onetime_migrator) when available.
   def clear_auth_database
-    db     = Auth::Database.connection
+    db = Auth::Database.connection
+    # Simple mode has no SQL auth database (connection returns nil), but specs
+    # tagged type: :integration still run in that lane. Nothing to clear.
+    return if db.nil?
+
     # Preserve schema bookkeeping and seed-once reference tables (PRESERVED_TABLES).
     tables = db.tables - AuthTestConstants::PRESERVED_TABLES
     return if tables.empty?
@@ -628,6 +666,8 @@ module ProductionConfigHelper
 end
 
 RSpec.configure do |config|
+  # AUTH_SPEC_TREE (defined above) scopes every hook and include below to this
+  # tree's own spec files. See the HOOK SCOPE block for why.
   config.expect_with :rspec do |expectations|
     # Use default expectations configuration
   end
@@ -640,7 +680,7 @@ RSpec.configure do |config|
   config.order = :random
   Kernel.srand config.seed
 
-  # Helper methods available in all tests
+  # Helper methods available in all auth tests
   config.include(
     Module.new do
         def create_test_database
@@ -655,33 +695,34 @@ RSpec.configure do |config|
           RodauthTestHelper.rodauth_responds_to?(app, method_name)
         end
     end,
+    file_path: AUTH_SPEC_TREE,
   )
 
   # Integration test helpers (for tests requiring full app boot)
-  config.include Rack::Test::Methods, type: :integration
-  config.include ProductionConfigHelper, type: :integration
+  config.include Rack::Test::Methods, type: :integration, file_path: AUTH_SPEC_TREE
+  config.include ProductionConfigHelper, type: :integration, file_path: AUTH_SPEC_TREE
 
   # CSRF-aware request plumbing (csrf_json_post, fetch_csrf_token, json_body,
   # clear_body_headers). Distinct names from ProductionConfigHelper#json_post,
   # which is CSRF-blind and stays for the non-Rodauth routes.
-  config.include AuthRequestHelper, type: :integration
+  config.include AuthRequestHelper, type: :integration, file_path: AUTH_SPEC_TREE
 
   # Subject seeding (seed_existing_account, seed_account_with_password).
-  config.include AccountSeedHelper, type: :integration
+  config.include AccountSeedHelper, type: :integration, file_path: AUTH_SPEC_TREE
 
   # Capture AUTH_* env vars before integration suite to prevent leakage
   # between spec files that set different feature flags.
   # See: apps/web/auth/docs/auth-config-one-shot.md (Pattern 2)
-  config.before(:all, type: :integration) do
+  config.before(:all, type: :integration, file_path: AUTH_SPEC_TREE) do
     @saved_auth_env = Auth::ConfigRecreator.capture_auth_env
   end
 
-  config.after(:all, type: :integration) do
+  config.after(:all, type: :integration, file_path: AUTH_SPEC_TREE) do
     Auth::ConfigRecreator.restore_auth_env(@saved_auth_env) if @saved_auth_env
   end
 
   # Skip integration tests if Valkey not available
-  config.before(:each, type: :integration) do
+  config.before(:each, type: :integration, file_path: AUTH_SPEC_TREE) do
     unless valkey_available?
       skip 'Valkey not available on port 2163 (run: pnpm run test:database:start)'
     end
@@ -692,10 +733,10 @@ RSpec.configure do |config|
   # Respect the same opt-outs as the top-level spec/spec_helper.rb flush:
   # specs that build fixtures in before(:all) and read them across examples
   # set shared_db_state: true; billing specs manage their own state. Without
-  # this guard, requiring this helper in a shared rspec process (apps + core
-  # integration specs run together since 7b9cd9202) flushes those specs'
-  # before(:all) data out from under them.
-  config.before(:each, type: :integration) do |example|
+  # this guard, this hook flushes those specs' before(:all) data out from under
+  # them. The file_path filter keeps it off other trees entirely; these opt-outs
+  # are what remains for auth's own before(:all) specs.
+  config.before(:each, type: :integration, file_path: AUTH_SPEC_TREE) do |example|
     next if example.metadata[:shared_db_state]
     next if example.metadata[:billing]
 
@@ -703,7 +744,7 @@ RSpec.configure do |config|
   end
 
   # Clean database after each integration test (same opt-outs as above).
-  config.after(:each, type: :integration) do |example|
+  config.after(:each, type: :integration, file_path: AUTH_SPEC_TREE) do |example|
     next if example.metadata[:shared_db_state]
     next if example.metadata[:billing]
 
@@ -716,9 +757,12 @@ RSpec.configure do |config|
   # OmniAuth.config is process-global mutable state. Many specs set
   # allowed_request_methods = %i[get post] (to exercise GET callbacks) but
   # never reset it, so :get leaks into subsequent strategy inits and triggers
-  # the CVE-2015-9284 GET-request CSRF warning mid-suite. Unguarded (no
-  # shared_db_state/billing opt-out) so it always runs.
-  config.after do
+  # the CVE-2015-9284 GET-request CSRF warning mid-suite. Unguarded within this
+  # tree (no shared_db_state/billing opt-out) so it always runs — but scoped to
+  # this tree, because the specs that set the global all live here and a
+  # merged-process run would otherwise reset OmniAuth after every example in
+  # every app tree, including ones that never load OmniAuth on purpose.
+  config.after(file_path: AUTH_SPEC_TREE) do
     next unless defined?(OmniAuth)
 
     OmniAuth.config.allowed_request_methods = [:post]

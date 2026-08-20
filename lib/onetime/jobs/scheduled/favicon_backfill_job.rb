@@ -115,7 +115,7 @@ module Onetime
           # Eligible = has NO stored icon AND under the attempt cap AND not a
           # fresh in-flight processing AND its backoff window has elapsed.
           def eligible?(d, now)
-            return false if d.favicon_fetched == true # icon already stored
+            return false if d.favicon_fetched # boolean_field native; icon already stored
 
             # Any domain that already has a stored icon is ineligible. The nightly
             # job enqueues a force:false fetch, and FetchDomainFavicon's

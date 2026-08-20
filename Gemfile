@@ -18,7 +18,16 @@ source 'https://rubygems.org/'
 # Core Application Framework
 # ====================================
 
-gem 'otto', '~> 2.5'
+# 2.8+: depth mode records a forwarded-host trust signal (delano/otto#226),
+# and otto.via_trusted_proxy is tri-state — written only when proxy trust is
+# configured (present => authoritative, absent => legacy heuristics apply).
+# 2.8.1+: opt-in ASN (req.asn) and anonymizer (req.anonymizer) enrichment,
+# both off by default and database-only — no behavior change until a
+# *_db_path is configured (delano/otto docs/enrichment.md).
+# 2.9 floor: request-scoped CSP directive extras via
+# env['otto.csp.extra_directives'] (delano/otto#243), consumed by
+# Onetime::Middleware::TenantCspExtras (#4173).
+gem 'otto', '~> 2.9'
 gem 'rhales', '~> 0.7.1'
 gem 'roda', '~> 3.0'
 gem 'rodauth', '~> 2.0'
@@ -200,7 +209,7 @@ group :test do
   gem 'simplecov', require: false
   gem 'simplecov-cobertura', '~> 3.2', require: false # Cobertura XML output for GitHub Code Quality
   gem 'timecop', '~> 0.9'
-  gem 'tryouts', '~> 3.7.1', require: false
+  gem 'tryouts', '~> 4.0.0.pre1', require: false
   gem 'vcr', '~> 6.0'
   gem 'webmock', '~> 3.0'
 

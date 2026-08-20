@@ -201,7 +201,7 @@ RSpec.describe 'Account-creation rate limiting — full mode (#3948 finding #4)'
     # Assert the source_location, not merely that the method is defined:
     # Rodauth's `before` definer class_evals a `def _before_create_account_route;
     # nil end` stub for every class carrying the :create_account feature
-    # (rodauth-2.44.0/lib/rodauth.rb:257), so `private_method_defined?` is true
+    # (rodauth-2.45.0/lib/rodauth.rb:278), so `private_method_defined?` is true
     # whether or not we registered anything. The file the method actually came
     # from is the part that discriminates.
     expect(Auth::Config.ancestors).to include(Onetime::Security::CreateAccountRateLimiter)

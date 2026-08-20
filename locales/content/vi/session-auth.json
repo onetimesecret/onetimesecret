@@ -483,5 +483,45 @@
   "web.login.verified_notice": {
     "text": "Email của bạn đã được xác minh — bây giờ bạn có thể đăng nhập.",
     "source_hash": "c8d4b5a8"
+  },
+  "web.auth.password_setup_request.title": {
+    "text": "Đặt mật khẩu",
+    "source_hash": "11b6978b"
+  },
+  "web.auth.password_setup_request.description": {
+    "text": "Tài khoản của bạn chưa có mật khẩu. Chúng tôi sẽ gửi email cho bạn một liên kết an toàn để đặt mật khẩu để bạn cũng có thể đăng nhập trực tiếp.",
+    "source_hash": "dc0b561f"
+  },
+  "web.auth.password_setup_request.button": {
+    "text": "Gửi liên kết thiết lập",
+    "source_hash": "22807292"
+  },
+  "web.auth.password_setup_request.emailSent": {
+    "text": "Một email đã được gửi cho bạn với liên kết để đặt mật khẩu cho tài khoản của bạn",
+    "source_hash": "82b686c7"
+  },
+  "web.login.errors.account_exists_link_required": {
+    "text": "Một tài khoản với địa chỉ email này đã tồn tại nhưng chưa được liên kết với phương thức đăng nhập này. Đăng nhập bằng phương thức hiện có của bạn, sau đó liên kết nhà cung cấp này trong Cài đặt bảo mật → Danh tính đã kết nối.",
+    "source_hash": "7fbbb7e7"
+  },
+  "web.login.errors.identity_connect_conflict": {
+    "text": "Không thể kết nối danh tính này. Kết nối có thể đã được bắt đầu trên sai tên miền, hoặc phiên của bạn đã hết hạn. Vui lòng đăng nhập lại, sau đó kết nối nó từ cài đặt tài khoản của bạn.",
+    "source_hash": "4238bbf2"
+  },
+  "web.login.errors.org_join_failed": {
+    "text": "Chúng tôi không thể hoàn tất việc thêm bạn vào tổ chức của bạn. Vui lòng liên hệ quản trị viên của bạn.",
+    "source_hash": "155e71bb"
+  },
+  "web.login.errors.link_sso_failed": {
+    "text": "Chúng tôi không thể liên kết phương thức đăng nhập đó. Đăng nhập bằng mật khẩu hiện có của bạn, sau đó kết nối nhà cung cấp này trong Cài đặt bảo mật → Danh tính đã kết nối.",
+    "source_hash": "49954127"
+  },
+  "web.login.notices.link_verification_sent": {
+    "text": "Kiểm tra hộp thư đến — chúng tôi đã gửi email cho bạn một liên kết để xác nhận kết nối tài khoản của bạn. Mở nó để hoàn tất đăng nhập.",
+    "source_hash": "b251c8f3"
+  },
+  "web.login.errors.sso_cancelled": {
+    "text": "Việc đăng nhập đã bị hủy. Bạn có thể thử lại bất cứ khi nào sẵn sàng.",
+    "source_hash": "b5f3d3ec"
   }
 }

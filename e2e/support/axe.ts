@@ -135,6 +135,44 @@ export async function waitForAppReady(page: Page): Promise<void> {
   await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 }
 
+/**
+ * Wait for in-flight CSS animations/transitions to settle before scanning.
+ *
+ * axe evaluates computed styles at the instant it runs, so an element caught
+ * mid-entry-animation is scanned in its keyframe state, not its settled one.
+ * That produced a phantom `color-contrast` failure on the split-button
+ * dropdown: the panel's `fadeSlideIn` keyframe starts at `opacity: 0`, and
+ * Playwright's visibility check passes as soon as the element has a box — so
+ * axe blended the (fully-opaque) label color against the page behind it and
+ * reported 3.96:1 for text whose settled colors pass.
+ *
+ * Note `reducedMotion: 'reduce'` is NOT a substitute: the app has no global
+ * `prefers-reduced-motion` reset, and the Tailwind arbitrary-animation
+ * utilities (e.g. SplitButton's `animate-[fadeSlideIn_0.2s_ease-out]`) do not
+ * honor the media query. Waiting on the Web Animations API covers every
+ * animation regardless of whether its CSS opts in.
+ *
+ * Infinite animations (spinners, skeleton shimmers) never settle, so they are
+ * filtered out rather than awaited; `timeoutMs` bounds the rest so a stuck
+ * animation degrades to the old behavior instead of hanging the test.
+ */
+export async function settleAnimations(page: Page, timeoutMs = 2000): Promise<void> {
+  await page.evaluate(async (timeout) => {
+    const finite = document.getAnimations().filter((animation) => {
+      const iterations = animation.effect?.getTiming().iterations ?? 1;
+      return Number.isFinite(iterations);
+    });
+    if (finite.length === 0) return;
+
+    // allSettled, not all: `finished` REJECTS when an animation is cancelled
+    // (e.g. the element unmounts mid-flight), which is not a scan failure.
+    await Promise.race([
+      Promise.allSettled(finite.map((animation) => animation.finished)),
+      new Promise((resolve) => setTimeout(resolve, timeout)),
+    ]);
+  }, timeoutMs);
+}
+
 /** A single violating DOM node, flattened to one stable-keyed record. */
 export interface FlatViolation {
   /** `${theme}|${route}|${rule.id}|${node.target.join(' ')}` */
@@ -202,6 +240,8 @@ export async function scanPage(
   testInfo: TestInfo,
   opts: { theme: Theme; route: string }
 ): Promise<FlatViolation[]> {
+  await settleAnimations(page);
+
   const results = await new AxeBuilder({ page })
     .withTags([...AXE_TAGS])
     .analyze();

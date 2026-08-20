@@ -292,9 +292,9 @@
     "source_hash": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "Passkey-Name",
+    "text": "Passkey",
     "context": "Label for passkey name field",
-    "source_hash": "22eefa67"
+    "source_hash": "904c9aa9"
   },
   "web.auth.passkeys.created": {
     "text": "Erstellt",
@@ -730,5 +730,232 @@
   "web.auth.sessions.session_plural": {
     "text": "Sitzungen",
     "source_hash": "1225ae6c"
+  },
+  "web.auth.connections.title": {
+    "text": "Verknüpfte Identitäten",
+    "source_hash": "e132c4d9"
+  },
+  "web.auth.connections.description": {
+    "text": "Verwalten Sie die Single-Sign-On-Anbieter, die mit Ihrem Konto verknüpft sind.",
+    "source_hash": "42c6d148"
+  },
+  "web.auth.connections.section_title": {
+    "text": "Single Sign-On",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.section_subtitle": {
+    "text": "Identitätsanbieter, mit denen Sie sich bei diesem Konto anmelden können",
+    "source_hash": "507254cd"
+  },
+  "web.auth.connections.connect_title": {
+    "text": "Anbieter verbinden",
+    "source_hash": "a002b3f3"
+  },
+  "web.auth.connections.connect_description": {
+    "text": "Verknüpfen Sie einen weiteren Single-Sign-On-Anbieter, mit dem Sie sich bei diesem Konto anmelden können.",
+    "source_hash": "32895a5a"
+  },
+  "web.auth.connections.connect_action": {
+    "text": "{provider} verbinden",
+    "context": "Button label to start linking a specific SSO provider; {provider} is the provider display name",
+    "source_hash": "c77540af"
+  },
+  "web.auth.connections.issuer": {
+    "text": "Aussteller",
+    "source_hash": "39e02c46"
+  },
+  "web.auth.connections.identifier": {
+    "text": "Kennung",
+    "source_hash": "9b10587f"
+  },
+  "web.auth.connections.remove": {
+    "text": "Entfernen",
+    "source_hash": "c3812fc4"
+  },
+  "web.auth.connections.remove_confirm_title": {
+    "text": "Verknüpfte Identität entfernen",
+    "source_hash": "4e8ffe4c"
+  },
+  "web.auth.connections.remove_confirm_message": {
+    "text": "Sind Sie sicher, dass Sie diese verknüpfte Identität entfernen möchten? Sie können sich dann nicht mehr damit anmelden.",
+    "source_hash": "64939c89"
+  },
+  "web.auth.connections.removed_success": {
+    "text": "Verknüpfte Identität entfernt",
+    "source_hash": "cf87daf3"
+  },
+  "web.auth.connections.no_identities": {
+    "text": "Keine verknüpften Identitäten",
+    "source_hash": "5254048e"
+  },
+  "web.auth.connections.no_identities_description": {
+    "text": "Sie haben noch keine Single-Sign-On-Anbieter mit diesem Konto verknüpft.",
+    "source_hash": "0f58d5d0"
+  },
+  "web.auth.connections.overview_status": {
+    "text": "Single Sign-On",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.errors.last_credential": {
+    "text": "Dies ist Ihre einzige Anmeldemöglichkeit. Verbinden Sie zuerst einen anderen Anbieter oder legen Sie ein Passwort unter Einstellungen → Sicherheit fest, damit Sie nicht ausgesperrt werden.",
+    "source_hash": "3de8084d"
+  },
+  "web.auth.connections.errors.last_credential_sso_enforced": {
+    "text": "Dies ist Ihre einzige Anmeldemöglichkeit. Verbinden Sie zuerst einen anderen Anbieter, damit Sie nicht ausgesperrt werden.",
+    "source_hash": "eed7a50e"
+  },
+  "web.auth.connections.errors.not_found": {
+    "text": "Diese verknüpfte Identität konnte nicht gefunden werden. Sie wurde möglicherweise bereits entfernt.",
+    "source_hash": "cf2c7673"
+  },
+  "web.auth.connections.errors.unauthorized": {
+    "text": "Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.",
+    "source_hash": "b529fce2"
+  },
+  "web.auth.connections.errors.generic": {
+    "text": "Diese Aktion konnte nicht abgeschlossen werden. Bitte versuchen Sie es erneut.",
+    "source_hash": "a0d4edc0"
+  },
+  "web.link_sso.title": {
+    "text": "Anmeldemethode verknüpfen",
+    "source_hash": "46339bac"
+  },
+  "web.link_sso.prompt": {
+    "text": "Sie haben sich mit {provider} angemeldet, was dem bestehenden Konto {email} entspricht. Geben Sie das Passwort dieses Kontos ein, um {provider} zu verknüpfen und fortzufahren.",
+    "context": "Instruction on the sign-in interstitial. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/link-sso/:token.",
+    "source_hash": "59da1c08"
+  },
+  "web.link_sso.password_label": {
+    "text": "Passwort",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.link_sso.password_placeholder": {
+    "text": "Ihr bestehendes Passwort",
+    "source_hash": "ad4e56da"
+  },
+  "web.link_sso.submit": {
+    "text": "Verknüpfen und fortfahren",
+    "source_hash": "c969b759"
+  },
+  "web.link_sso.cancel": {
+    "text": "Abbrechen",
+    "source_hash": "19766ed6"
+  },
+  "web.link_sso.unavailable_title": {
+    "text": "Diese Verknüpfungsanfrage ist abgelaufen",
+    "source_hash": "b53c7e55"
+  },
+  "web.link_sso.unavailable_message": {
+    "text": "Zu Ihrer Sicherheit ist die Anfrage zur Verknüpfung dieser Anmeldemethode nicht mehr gültig. Melden Sie sich mit Ihrem bestehenden Passwort an und verbinden Sie diesen Anbieter dann unter Sicherheitseinstellungen → Verknüpfte Identitäten.",
+    "source_hash": "f7e349d1"
+  },
+  "web.link_sso.unavailable_action": {
+    "text": "Weiter zur Anmeldung",
+    "source_hash": "d398cd0a"
+  },
+  "web.link_sso.errors.invalid_password": {
+    "text": "Dieses Passwort stimmt nicht mit diesem Konto überein. Bitte versuchen Sie es erneut.",
+    "source_hash": "3259b4f5"
+  },
+  "web.link_sso.errors.invalid_token": {
+    "text": "Diese Verknüpfungsanfrage ist abgelaufen oder wurde bereits verwendet. Melden Sie sich mit Ihrem bestehenden Passwort an und verbinden Sie diesen Anbieter dann in Ihren Kontoeinstellungen.",
+    "source_hash": "541f9127"
+  },
+  "web.link_sso.errors.link_conflict": {
+    "text": "Diese Anmeldemethode konnte nicht verknüpft werden. Ihr Konto hat sich möglicherweise geändert, oder dieser Anbieter ist bereits mit einem anderen Konto verknüpft. Melden Sie sich mit Ihrem bestehenden Passwort an und verwalten Sie Verbindungen unter Sicherheitseinstellungen → Verknüpfte Identitäten.",
+    "source_hash": "7b0e0d0e"
+  },
+  "web.link_sso.errors.link_rate_limited": {
+    "text": "Zu viele Passwortversuche. Bitte warten Sie einige Minuten und versuchen Sie es erneut.",
+    "source_hash": "a95e78cd"
+  },
+  "web.link_sso.errors.invalid_request": {
+    "text": "Diese Verknüpfungsanfrage konnte nicht verarbeitet werden. Bitte melden Sie sich erneut bei Ihrem SSO-Anbieter an.",
+    "source_hash": "053b9fc6"
+  },
+  "web.link_sso.errors.generic": {
+    "text": "Ihr Konto konnte nicht verknüpft werden. Bitte versuchen Sie es erneut.",
+    "source_hash": "f727c174"
+  },
+  "web.sso_link_confirm.title": {
+    "text": "Verbindung Ihres Kontos bestätigen",
+    "source_hash": "ad80bfe7"
+  },
+  "web.sso_link_confirm.prompt": {
+    "text": "Sie haben sich mit {provider} angemeldet, was Ihrem Konto {email} entspricht. Bestätigen Sie, um {provider} mit diesem Konto zu verbinden und die Anmeldung abzuschließen.",
+    "context": "Consent instruction on the #3840 Phase 4 mailbox-proof SSO linking page. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/sso-link-confirm/:token. No password is asked — clicking the emailed link is the proof.",
+    "source_hash": "6ff0d6cc"
+  },
+  "web.sso_link_confirm.submit": {
+    "text": "Bestätigen und verbinden",
+    "source_hash": "5cf663e6"
+  },
+  "web.sso_link_confirm.cancel": {
+    "text": "Abbrechen",
+    "source_hash": "19766ed6"
+  },
+  "web.sso_link_confirm.unavailable_title": {
+    "text": "Diese Verknüpfungsanfrage kann nicht abgeschlossen werden",
+    "source_hash": "47abb784"
+  },
+  "web.sso_link_confirm.unavailable_message": {
+    "text": "Zu Ihrer Sicherheit ist diese Anfrage zur Verbindung Ihrer Anmeldemethode nicht mehr gültig. Melden Sie sich erneut bei Ihrem Anbieter an und wir senden Ihnen einen neuen Link per E-Mail.",
+    "source_hash": "080e6f9f"
+  },
+  "web.sso_link_confirm.unavailable_action": {
+    "text": "Zurück zur Anmeldung",
+    "source_hash": "8504054f"
+  },
+  "web.sso_link_confirm.errors.link_expired": {
+    "text": "Diese Verknüpfungsanfrage ist abgelaufen oder wurde bereits verwendet. Melden Sie sich erneut bei Ihrem Anbieter an und wir senden Ihnen einen neuen Link per E-Mail.",
+    "source_hash": "a50538df"
+  },
+  "web.sso_link_confirm.errors.link_conflict": {
+    "text": "Diese Anmeldemethode konnte nicht verbunden werden. Ihr Konto hat sich möglicherweise geändert, oder dieser Anbieter ist bereits mit einem anderen Konto verknüpft. Melden Sie sich erneut bei Ihrem Anbieter an, um fortzufahren.",
+    "source_hash": "c954854b"
+  },
+  "web.sso_link_confirm.errors.link_invalidated": {
+    "text": "Ihre Kontoanmeldedaten haben sich nach dem Senden dieses Links geändert, sodass er nicht mehr gültig ist. Melden Sie sich erneut bei Ihrem Anbieter an und wir senden Ihnen einen neuen Link per E-Mail.",
+    "source_hash": "db88cb1d"
+  },
+  "web.sso_link_confirm.errors.link_error": {
+    "text": "Auf unserer Seite ist ein Fehler aufgetreten und wir konnten diesen Link nicht verifizieren. Melden Sie sich erneut bei Ihrem Anbieter an und wir senden Ihnen einen neuen.",
+    "source_hash": "ec24e0a1"
+  },
+  "web.sso_link_confirm.errors.confirm_rate_limited": {
+    "text": "Zu viele Versuche von Ihrem Gerät. Bitte warten Sie einige Minuten, öffnen Sie dann den per E-Mail gesendeten Link erneut oder melden Sie sich bei Ihrem Anbieter für einen neuen an.",
+    "source_hash": "f29af782"
+  },
+  "web.sso_link_confirm.errors.generic": {
+    "text": "Diese Verbindung konnte nicht bestätigt werden. Bitte melden Sie sich erneut bei Ihrem Anbieter an.",
+    "source_hash": "076fa25a"
+  },
+  "web.auth.mfa.passkey_mode_active": {
+    "text": "Passkey-Modus aktiv",
+    "source_hash": "824dceb6"
+  },
+  "web.auth.mfa.passkey_prompt": {
+    "text": "Bestätigen Sie mit einem Passkey, dass Sie es sind. Ihr Gerät fragt nach Ihrem Fingerabdruck, Ihrem Gesicht oder Ihrem Sicherheitsschlüssel.",
+    "source_hash": "c0b0cbbc"
+  },
+  "web.auth.mfa.verify_with_passkey": {
+    "text": "Mit Passkey bestätigen",
+    "source_hash": "4f105a30"
+  },
+  "web.auth.mfa.use_passkey": {
+    "text": "Stattdessen einen Passkey verwenden",
+    "source_hash": "bd6430a4"
+  },
+  "web.auth.passkeys.remove_failed": {
+    "text": "Passkey konnte nicht entfernt werden",
+    "source_hash": "3e131515"
+  },
+  "web.auth.passkeys.load_failed": {
+    "text": "Passkeys konnten nicht geladen werden",
+    "source_hash": "8d704e00"
+  },
+  "web.auth.webauthn.emailRequired": {
+    "text": "Geben Sie Ihre E-Mail-Adresse ein, um sich mit einem Passkey anzumelden",
+    "source_hash": "7f07647f"
   }
 }

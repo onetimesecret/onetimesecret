@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # bin/console
-
-if [ -f .env ]; then
-  set -a; source .env; set +a
-fi
+#
+# Env comes from the shell (direnv via .envrc handles .env/.env.local/.env.test
+# ordering). Sourcing .env here would clobber .env.local overrides.
 
 bundle exec bin/ots console

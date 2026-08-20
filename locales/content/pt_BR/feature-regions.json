@@ -160,31 +160,31 @@
     "source_hash": "5b2238b2"
   },
   "web.regions.jurisdictions.eu.name": {
-    "text": "European Union",
+    "text": "União Europeia",
     "source_hash": "7fe24f2b"
   },
   "web.regions.jurisdictions.us.name": {
-    "text": "United States",
+    "text": "Estados Unidos",
     "source_hash": "49dca65f"
   },
   "web.regions.jurisdictions.ca.name": {
-    "text": "Canada",
+    "text": "Canadá",
     "source_hash": "be55ef3f"
   },
   "web.regions.jurisdictions.uk.name": {
-    "text": "United Kingdom",
+    "text": "Reino Unido",
     "source_hash": "8d23a6e3"
   },
   "web.regions.jurisdictions.nz.name": {
-    "text": "New Zealand",
+    "text": "Nova Zelândia",
     "source_hash": "2898e16d"
   },
   "web.regions.jurisdictions.at.name": {
-    "text": "Austria",
+    "text": "Áustria",
     "source_hash": "c9cab023"
   },
   "web.regions.jurisdictions.apac.name": {
-    "text": "Asia-Pacific",
+    "text": "Ásia-Pacífico",
     "source_hash": "7a757670"
   },
   "web.regions.no_region_configured": {

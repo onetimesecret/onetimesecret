@@ -1539,5 +1539,9 @@
   "web.TITLES.domain_dns": {
     "text": "DNS 설정",
     "source_hash": "6c63df31"
+  },
+  "web.TITLES.connected_identities": {
+    "text": "연결된 계정",
+    "source_hash": "e132c4d9"
   }
 }

@@ -836,5 +836,41 @@
   "email.secret_link.footer_note": {
     "text": "I whiwhi koe i tēnei nā te mea i whakamahi a %{sender_email} i %{product_name} ki te tiri karere huna ki a koe. Ki te kore koe i te tatari ki tēnei, ka taea e koe te waiho noa i tēnei īmēra.",
     "source_hash": "2d544dad"
+  },
+  "email.sso_link_verification.subject": {
+    "text": "Whakaūngia te hono i a %{provider} ki tō pūkete %{product_name}",
+    "source_hash": "65e70296"
+  },
+  "email.sso_link_verification.title": {
+    "text": "Whakaūngia tō takiuru SSO",
+    "source_hash": "35bce6cc"
+  },
+  "email.sso_link_verification.request_notice": {
+    "text": "I takiuru tētahi mā %{provider} mā te īmēra %{email_address}. Hei whakaoti i te hono i a %{provider} ki tō pūkete %{product_name}, whakaūngia i raro nei.",
+    "source_hash": "baeb18c0"
+  },
+  "email.sso_link_verification.confirm_button": {
+    "text": "Whakaū, honoa %{provider}",
+    "source_hash": "9809e210"
+  },
+  "email.sso_link_verification.copy_link_prompt": {
+    "text": "Tāruatia rānei, whakapiri i tēnei hononga:",
+    "source_hash": "88c72144"
+  },
+  "email.sso_link_verification.expiration_notice": {
+    "text": "Ka pau te wā o tēnei hononga i roto i te 15 meneti, kotahi noa te wā e taea ai te whakamahi.",
+    "source_hash": "1a437f42"
+  },
+  "email.sso_link_verification.ignore_notice": {
+    "text": "Mēnā kāore koe i ngana ki te takiuru mā %{provider}, whakakore noa i tēnei īmēra — kāore he mea ka honoa ki tō pūkete.",
+    "source_hash": "d7317d30"
+  },
+  "email.sso_link_verification.signature": {
+    "text": "Te Tīma Tautoko",
+    "source_hash": "dc75bf9f"
+  },
+  "email.sso_link_verification.postscript": {
+    "text": "P.S. I tukuna tēnei īmēra ki %{email_address}.",
+    "source_hash": "8ab1dbea"
   }
 }

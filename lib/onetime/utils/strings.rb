@@ -2,8 +2,14 @@
 #
 # frozen_string_literal: true
 
+require 'digest'
 require 'mail'
 require 'public_suffix'
+
+# strict_bool! raises Onetime::ConfigError. This file loads early in
+# lib/onetime.rb, hundreds of lines before the main errors require, so pull
+# it in here rather than relying on load order (errors.rb is dependency-free).
+require_relative '../errors'
 
 module Onetime
   module Utils
@@ -30,7 +36,26 @@ module Onetime
         # improve readability and reduce user errors when manually entering
         # generated strings.
         VALID_CHARS_SAFE = VALID_CHARS.reject { |char| AMBIGUOUS_CHARS.include?(char) }.freeze
-        TRUTHY_VALUES    = %w[1 true yes on y t].freeze
+      end
+
+      # Definitive list of strings that can represent a boolean value. These
+      # are used by explicit_yes? and explicit_no? to avoid any confusion
+      # around guesses like, "it doesn't meet our definition for a clear
+      # positive signal so we'll assume the negative case" which is
+      # not the same as an explicit false.
+      #
+      # Guarded on their own name, not VALID_CHARS: Onetime::Utils defines its
+      # own VALID_CHARS, so a load path that evaluates this body after utils.rb
+      # would otherwise skip these definitions entirely.
+      unless defined?(TRUTHY_VALUES)
+        TRUTHY_VALUES = %w[1 true yes on y t].freeze
+        FALSEY_VALUES = %w[0 false no off n f].freeze
+
+        # Hex characters of SHA-256 that strict_bool!'s error message carries
+        # as a correlation tag for the rejected value. Long enough that two
+        # different typos do not collide in practice, short enough to stay a
+        # tag rather than a fingerprint of the value itself.
+        BOOL_DIGEST_LENGTH = 8
       end
 
       # Generates a random string of specified length using predefined
@@ -217,12 +242,74 @@ module Onetime
         end
       end
 
-      # Checks if a value represents a truthy boolean value
+      # Checks whether a value is an explicitly recognized truthy token.
+      #
+      # This is a recognizer, not a partition: a false return means "not a
+      # truthy token", NOT "falsey". Unrecognized input (typos, blanks) is
+      # neither yes nor no. Use strict_bool! when unrecognized input must
+      # not silently resolve to a default.
+      #
       # @param value [Object] Value to check
-      # @return [Boolean] true if value one of the TRUTHY_VALUES (case-insensitive)
-      def yes?(value)
-        !value.to_s.empty? && TRUTHY_VALUES.include?(value.to_s.downcase)
+      # @return [Boolean] true if value is one of TRUTHY_VALUES (case-insensitive, whitespace-tolerant)
+      def explicit_yes?(value)
+        TRUTHY_VALUES.include?(value.to_s.strip.downcase)
       end
+      alias yes? explicit_yes?
+
+      # Checks whether a value is an explicitly recognized falsey token.
+      # Complement of explicit_yes?, not its negation: both return false for
+      # unrecognized input.
+      #
+      # @param value [Object] Value to check
+      # @return [Boolean] true if value is one of FALSEY_VALUES (case-insensitive, whitespace-tolerant)
+      def explicit_no?(value)
+        FALSEY_VALUES.include?(value.to_s.strip.downcase)
+      end
+
+      # Resolves an operator-supplied boolean, failing loudly on anything
+      # unrecognized (ADR-033). Blank/nil means unset and takes the caller's
+      # documented default; a typo raises instead of silently landing on
+      # false, which would disable a default-ON control.
+      #
+      # The rejected value is never reproduced in the message. This method is
+      # public, so a future caller can hand it anything an operator put in an
+      # env var — including a value misrouted from a credential — and the
+      # message lands in logs, a boot trace, and Sentry's issue title, where
+      # by-param-name scrubbing cannot reach a string that was interpolated
+      # into the exception itself. Suppression therefore has to happen here,
+      # at the raise. Echoing a truncated head is not a fix: secrets are
+      # usually shorter than any sane cap, so truncation bounds volume, not
+      # sensitivity.
+      #
+      # What the message carries instead: the flag name (the actionable part —
+      # the operator knows where they set it), the character count, and a
+      # truncated SHA-256 of the normalized value. The digest is not
+      # reversible for a high-entropy value, is deterministic so two hosts
+      # with the same typo produce the same tag, and can be recomputed locally
+      # to confirm which value a log line refers to. Honest caveat: 8 hex
+      # characters of a low-entropy value like "ture" is brute-forceable —
+      # which is fine, because low-entropy values are exactly the case that
+      # was never sensitive.
+      #
+      # @param name [String] Flag name, for the error message (e.g. 'RABBITMQ_VERIFY_PEER')
+      # @param raw [Object] Raw value as supplied
+      # @param default [Boolean] Value to use when raw is unset/blank
+      # @return [Boolean]
+      # @raise [Onetime::ConfigError] if raw is present but not a recognized token
+      def strict_bool!(name, raw, default:)
+        # Normalize exactly once so the blank guard and the token tables can
+        # never disagree about what normalization means.
+        value = raw.to_s.strip.downcase
+        return default if value.empty?
+        return true    if TRUTHY_VALUES.include?(value)
+        return false   if FALSEY_VALUES.include?(value)
+
+        raise Onetime::ConfigError,
+          "#{name} is set to an unrecognized boolean " \
+          "(#{value.length} chars, sha256:#{::Digest::SHA256.hexdigest(value)[0, BOOL_DIGEST_LENGTH]}). " \
+          "Use one of #{TRUTHY_VALUES.join('/')} or #{FALSEY_VALUES.join('/')}, or leave unset."
+      end
+      module_function :strict_bool!
 
       private
 

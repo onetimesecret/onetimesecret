@@ -2,7 +2,7 @@
 //
 // Coverage for the secret_options shape — the per-user-type boundaries
 // schema (`secretOptionBoundariesShape`) carries every default and bound
-// (TTL 60s..30d, size up to 10MB) and is composed via
+// (TTL 60s..365d, size up to 10MB) and is composed via
 // `z.record(UserTypeKeys, ...)` to form `secretOptionsShape`.
 
 import { describe, it, expect } from 'vitest';
@@ -43,13 +43,22 @@ describe('secretOptionBoundariesShape — TTL bounds', () => {
     expect(() => secretOptionBoundariesShape.parse({ ttl_options: [30] })).toThrow();
   });
 
-  it('rejects ttl_options entries above 30 days', () => {
-    expect(() => secretOptionBoundariesShape.parse({ ttl_options: [2592001] })).toThrow();
+  it('rejects ttl_options entries above 365 days (MAX_TTL)', () => {
+    expect(() => secretOptionBoundariesShape.parse({ ttl_options: [31536001] })).toThrow();
   });
 
-  it('accepts boundary values 60s and 30 days', () => {
-    const result = secretOptionBoundariesShape.parse({ ttl_options: [60, 2592000] });
-    expect(result.ttl_options).toEqual([60, 2592000]);
+  it('accepts boundary values 60s and 365 days', () => {
+    const result = secretOptionBoundariesShape.parse({ ttl_options: [60, 31536000] });
+    expect(result.ttl_options).toEqual([60, 31536000]);
+  });
+
+  // #4008 regression: the shape used to cap ttl_options at 30 days, which
+  // rejected self-hosted configs offering longer durations before the
+  // backend ever saw them.
+  it('accepts ttl_options entries between 30 and 365 days', () => {
+    const ninetyDays = 90 * 86400;
+    const result = secretOptionBoundariesShape.parse({ ttl_options: [ninetyDays] });
+    expect(result.ttl_options).toEqual([ninetyDays]);
   });
 
   it('rejects non-positive default_ttl', () => {

@@ -1034,5 +1034,209 @@
   "web.organizations.create_workspace": {
     "text": "Çalışma Alanı Oluştur",
     "source_hash": "c63c14cf"
+  },
+  "web.organizations.organization_id": {
+    "text": "Organizasyon Kimliği",
+    "source_hash": "1f466322"
+  },
+  "web.organizations.organization_id_hint": {
+    "text": "Destekle iletişime geçerken veya API isteklerini bu organizasyona yöneltirken bu kimliği kullanın. Oturum açma kimlik bilgisi değildir.",
+    "source_hash": "29549b3a"
+  },
+  "web.organizations.audit.title": {
+    "text": "Gizli Mesaj Aktivitesi",
+    "source_hash": "6d6d41f3"
+  },
+  "web.organizations.audit.description": {
+    "text": "Bu organizasyon için kaydedilen gizli mesaj oluşturma ve erişim olaylarının denetim izi.",
+    "source_hash": "553c564b"
+  },
+  "web.organizations.audit.country_unknown": {
+    "text": "Bilinmiyor",
+    "source_hash": "b764cdc0"
+  },
+  "web.organizations.audit.empty_title": {
+    "text": "Henüz aktivite yok",
+    "source_hash": "0a12b92c"
+  },
+  "web.organizations.audit.empty_description": {
+    "text": "Ekibiniz gizli mesajları paylaştıkça gizli mesaj oluşturma ve erişim olayları burada görünecek.",
+    "source_hash": "62fb14c2"
+  },
+  "web.organizations.audit.capped_notice": {
+    "text": "Yalnızca en yeni {max} olay saklanır; eski aktivite kırpılmıştır.",
+    "source_hash": "da7901e2"
+  },
+  "web.organizations.audit.collection_paused_notice": {
+    "text": "Olay toplama duraklatıldı; yeni gizli mesaj aktivitesi kaydedilmiyor.",
+    "source_hash": "cb09d147"
+  },
+  "web.organizations.audit.load_error": {
+    "text": "Gizli mesaj aktivitesi yüklenemedi.",
+    "source_hash": "52fde814"
+  },
+  "web.organizations.audit.contract_mismatch": {
+    "text": "Sunucu tarafından döndürülen aktivite verileri okunamadı. İz boş değil - sadece şu anda görüntülenemiyor.",
+    "source_hash": "db0d007a"
+  },
+  "web.organizations.audit.retry": {
+    "text": "Tekrar dene",
+    "source_hash": "d8b8392e"
+  },
+  "web.organizations.audit.showing_range": {
+    "text": "{total} içerisinden {from}-{to} gösteriliyor",
+    "source_hash": "c329279d"
+  },
+  "web.organizations.audit.upgrade_prompt": {
+    "text": "Gizli mesaj aktivitesi, denetim günlükleri içeren bir plan gerektirir. Bu organizasyonda gizli mesajları kimin oluşturup görüntülediğini ve ifşa ettiğini görmek için yükseltin.",
+    "source_hash": "453649ce"
+  },
+  "web.organizations.audit.role_required": {
+    "text": "Gizli mesaj aktivitesi organizasyon sahipleri ve yöneticilerine açıktır.",
+    "source_hash": "e066ec63"
+  },
+  "web.organizations.audit.actors.creator": {
+    "text": "Oluşturan",
+    "source_hash": "88447b83"
+  },
+  "web.organizations.audit.actors.authenticated_other": {
+    "text": "Başka bir oturum açmış kullanıcı",
+    "source_hash": "ee45aa5a"
+  },
+  "web.organizations.audit.actors.anonymous": {
+    "text": "Anonim",
+    "source_hash": "e7a8aa2d"
+  },
+  "web.organizations.audit.actors.system": {
+    "text": "Sistem",
+    "source_hash": "6725e7bb"
+  },
+  "web.organizations.audit.actors.unknown": {
+    "text": "Bilinmiyor",
+    "source_hash": "b764cdc0"
+  },
+  "web.organizations.audit.columns.event": {
+    "text": "Olay",
+    "source_hash": "4e1f49a9"
+  },
+  "web.organizations.audit.columns.secret": {
+    "text": "Gizli Mesaj",
+    "source_hash": "7e32a729"
+  },
+  "web.organizations.audit.columns.actor": {
+    "text": "Aktör",
+    "source_hash": "449995c4"
+  },
+  "web.organizations.audit.columns.country": {
+    "text": "Ülke",
+    "source_hash": "701d021d"
+  },
+  "web.organizations.audit.columns.when": {
+    "text": "Zaman",
+    "source_hash": "cf9c7aa2"
+  },
+  "web.organizations.audit.kinds.created": {
+    "text": "Gizli mesaj oluşturuldu",
+    "source_hash": "e4a1e1fd"
+  },
+  "web.organizations.audit.kinds.status_get": {
+    "text": "Bağlantı durumu kontrol edildi",
+    "source_hash": "0753f60e"
+  },
+  "web.organizations.audit.kinds.secret_get": {
+    "text": "Gizli mesaj bağlantısı açıldı",
+    "source_hash": "e271e060"
+  },
+  "web.organizations.audit.kinds.previewed": {
+    "text": "Oluşturan tarafından önizlendi",
+    "source_hash": "639fc1e2"
+  },
+  "web.organizations.audit.kinds.creator_status_get": {
+    "text": "Oluşturan tarafından durum kontrol edildi",
+    "source_hash": "7e4b5de5"
+  },
+  "web.organizations.audit.kinds.receipt_viewed": {
+    "text": "Makbuz görüntülendi",
+    "source_hash": "a417ead4"
+  },
+  "web.organizations.audit.kinds.revealed": {
+    "text": "Gizli mesaj ifşa edildi",
+    "source_hash": "aff2c84d"
+  },
+  "web.organizations.audit.kinds.burned": {
+    "text": "Gizli mesaj yakıldı",
+    "source_hash": "5ac68dc6"
+  },
+  "web.organizations.audit.kinds.expired": {
+    "text": "Gizli mesajın süresi doldu",
+    "source_hash": "c127dab6"
+  },
+  "web.organizations.audit.kinds.orphaned": {
+    "text": "Gizli mesaj yetim kaldı",
+    "source_hash": "23fe1a47"
+  },
+  "web.organizations.audit.kinds.reveal_failed_undecryptable": {
+    "text": "İfşa başarısız (şifre çözülemedi)",
+    "source_hash": "d5616abf"
+  },
+  "web.organizations.tabs.activity": {
+    "text": "Aktivite",
+    "source_hash": "38da1505"
+  },
+  "web.organizations.invitations.restricted_host_title": {
+    "text": "Burada farklı bir giriş yöntemi gerekiyor",
+    "source_hash": "d761ad30"
+  },
+  "web.organizations.invitations.restricted_host_body": {
+    "text": "Bu site yalnızca {method} ile giriş yapmaya izin verir, bu nedenle burada parolayla hesap oluşturulamaz. {method} bu sayfada tamamlayabileceğiniz bir yöntem değil.",
+    "source_hash": "6ac146d4"
+  },
+  "web.organizations.invitations.restricted_host_unknown_body": {
+    "text": "Bu site yalnızca belirli bir giriş yöntemine izin verir ve bu yöntem, bu sayfanın sunabileceği bir yöntem değil. Burada parolayla hesap oluşturulamaz.",
+    "source_hash": "e24d59a9"
+  },
+  "web.organizations.invitations.restricted_sso_body": {
+    "text": "Bu site tek oturum açma (SSO) kullanır. Devam etmek için kuruluşunuzun sağlayıcısıyla giriş yapın — bu işlem hesabınızı oluşturur ve oturumunuzu açar.",
+    "source_hash": "e942d04b"
+  },
+  "web.organizations.invitations.restricted_sso_cta": {
+    "text": "Girişe devam et",
+    "source_hash": "d398cd0a"
+  },
+  "web.organizations.invitations.restricted_use_email_link": {
+    "text": "Bunun yerine ana siteden kabul etmek için davet e-postanızdaki bağlantıyı açın.",
+    "source_hash": "73bf298f"
+  },
+  "web.organizations.invitations.invitation_stays_pending": {
+    "text": "Davetiniz hâlâ geçerli — hiçbir şey tükenmedi ve giriş yaptıktan sonra kabul edebilirsiniz.",
+    "source_hash": "f4d00be1"
+  },
+  "web.organizations.invitations.signin_unavailable_title": {
+    "text": "Bu sitede giriş kullanılamıyor",
+    "source_hash": "c56bce2b"
+  },
+  "web.organizations.invitations.signin_unavailable_body": {
+    "text": "Bu site {method} ile kısıtlanmış ancak bu yöntem burada çalışmıyor, bu nedenle şu anda giriş yapmanın bir yolu yok.",
+    "source_hash": "62c01601"
+  },
+  "web.organizations.invitations.signin_unavailable_unknown_body": {
+    "text": "Bu site, burada çalışmayan bir giriş yöntemiyle kısıtlanmış, bu nedenle şu anda giriş yapmanın bir yolu yok.",
+    "source_hash": "1f61e456"
+  },
+  "web.organizations.invitations.signin_unavailable_conflict_body": {
+    "text": "Bu sitenin giriş ayarları, site genelindeki kısıtlamayla ({method}) çelişiyor; bu nedenle ikisi de uygulanmaz ve şu anda giriş yapmanın bir yolu yok.",
+    "source_hash": "54cdfd61"
+  },
+  "web.organizations.sso.connection_enabled": {
+    "text": "Bağlantı etkin",
+    "source_hash": "b6334b2b"
+  },
+  "web.organizations.sso.connection_enabled_hint": {
+    "text": "Etkin olduğunda üyeler bu SSO sağlayıcısıyla giriş yapabilir. Ayrıca SSO'nun, alan adının Giriş Yapılandırması bölümünde bir giriş yöntemi olarak etkinleştirilmesi gerekir.",
+    "source_hash": "871db2f1"
+  },
+  "web.organizations.sso.enable_untested_warning": {
+    "text": "Bu bağlantı burada henüz bir testi geçmedi. Bozuk bir kurulumun giriş sayfanıza ulaşmaması için, açmadan önce Bağlantıyı Test Et işlemini çalıştırın.",
+    "source_hash": "c1fbdeca"
   }
 }

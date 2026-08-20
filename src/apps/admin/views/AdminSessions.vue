@@ -68,9 +68,20 @@
     { key: 'role', label: t('web.admin.sessions.columns.role') },
     { key: 'external_id', label: t('web.admin.sessions.columns.externalId') },
     { key: 'ip_address', label: t('web.admin.sessions.columns.ipAddress') },
+    { key: 'geo_country', label: t('web.admin.sessions.columns.country') },
     { key: 'created_at', label: t('web.admin.sessions.columns.created') },
     { key: 'actions', label: t('web.admin.sessions.columns.actions'), align: 'right' },
   ]);
+
+  /**
+   * Country cell. A null means no country is known — the session has no
+   * metadata sidecar to join to (it predates the sidecar, or the sidecar's TTL
+   * lapsed while the session lived on), or geo resolution failed server-side.
+   */
+  function countryLabel(country: string | null | undefined): string {
+    if (!country) return t('web.admin.sessions.detail.unknown');
+    return country;
+  }
 
   /** Keyspace summary line under the table (see the store's `scan`). */
   const scanSummary = computed(() => {
@@ -115,6 +126,16 @@
   onBeforeUnmount(() => {
     if (searchTimer) clearTimeout(searchTimer);
   });
+
+  /** Submit search on explicit user action (Enter key or search button). */
+  function onSearchSubmit(): void {
+    // Cancel the pending debounce so it doesn't re-fire for the same term.
+    if (searchTimer) clearTimeout(searchTimer);
+    const trimmed = searchTerm.value.trim();
+    if (trimmed === activeSearch.value) return; // No-op guard
+    activeSearch.value = trimmed;
+    fetchPage(1);
+  }
 
   function onClear(): void {
     searchTerm.value = '';
@@ -330,7 +351,8 @@
         :search-placeholder="t('web.admin.sessions.search.placeholder')"
         :has-active-filters="hasActiveFilters"
         testid="sessions-filterbar"
-        @clear="onClear" />
+        @clear="onClear"
+        @submit="onSearchSubmit" />
     </div>
 
     <!-- Table -->
@@ -368,6 +390,10 @@
 
         <template #cell-ip_address="{ row }">
           <span class="font-mono text-xs text-gray-500 dark:text-gray-400">{{ row.ip_address || '—' }}</span>
+        </template>
+
+        <template #cell-geo_country="{ row }">
+          <span class="text-sm text-gray-700 dark:text-gray-300">{{ countryLabel(row.geo_country) }}</span>
         </template>
 
         <template #cell-created_at="{ row }">

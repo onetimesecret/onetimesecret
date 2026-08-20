@@ -56,12 +56,12 @@
     "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "استخدم هاتفك لمسح رمز QR",
-    "source_hash": "99ecf59f"
+    "text": "مثال: استخدم هاتفك لمسح رمز QR",
+    "source_hash": "9cf0caf8"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "تواصل مع support{'@'}example.com لأي أسئلة",
-    "source_hash": "bee120a7"
+    "text": "مثال: تواصل مع onboarding{'@'}example.com لأي أسئلة",
+    "source_hash": "71749811"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "ستُعرض هذه التعليمات للمستلمين قبل الكشف عن محتوى السر",
@@ -320,8 +320,8 @@
     "source_hash": "bc79cdff"
   },
   "web.branding.paths_carryover_hint": {
-    "text": "هذه معاينة مباشرة — لن تكون تغييراتك مرئية للزوار حتى تحفظها.",
-    "source_hash": "cb4b82de"
+    "text": "هذه معاينة مباشرة — لن تكون تغييراتك مرئية للزوار حتى تنقر على تحديث.",
+    "source_hash": "9a34df71"
   },
   "web.branding.coming_soon_match_blurb": {
     "text": "وجّهنا إلى موقعك وسنقرأ ألوانه وخطوطه، ثم نسدّ الفجوة بنقرة واحدة.",
@@ -406,5 +406,57 @@
   "web.branding.delivery_after_reveal": {
     "text": "بعد الكشف",
     "source_hash": "d5bfe7fd"
+  },
+  "web.branding.favicon": {
+    "text": "أيقونة الموقع",
+    "source_hash": "42955289"
+  },
+  "web.branding.refresh_favicon": {
+    "text": "تحديث أيقونة الموقع من النطاق",
+    "source_hash": "7cc3d5dc"
+  },
+  "web.branding.refresh_favicon_hint": {
+    "text": "جلب أيقونة الموقع من نطاقك مرة أخرى. تظهر الأيقونة الجديدة قريباً.",
+    "source_hash": "ee007e44"
+  },
+  "web.branding.refresh_favicon_queued": {
+    "text": "جارٍ تحديث أيقونة الموقع — ستظهر الأيقونة الجديدة قريباً.",
+    "source_hash": "6bf38e6e"
+  },
+  "web.branding.refresh_favicon_user_upload_hint": {
+    "text": "لقد رفعت أيقونة موقع مخصصة، لذا لن تحل محلها الأيقونة المجلوبة.",
+    "source_hash": "c22e1ed6"
+  },
+  "web.branding.upload_favicon": {
+    "text": "رفع أيقونة الموقع",
+    "source_hash": "ceda39cb"
+  },
+  "web.branding.replace_favicon": {
+    "text": "استبدال",
+    "source_hash": "95e15439"
+  },
+  "web.branding.remove_favicon": {
+    "text": "إزالة أيقونة الموقع",
+    "source_hash": "03693698"
+  },
+  "web.branding.favicon_field_hint": {
+    "text": "ICO أو PNG أو SVG. الرفع يستبدل الأيقونة المجلوبة.",
+    "source_hash": "dfa0bfcb"
+  },
+  "web.branding.favicon_preview_alt": {
+    "text": "أيقونة موقع النطاق",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_title": {
+    "text": "أيقونة موقع النطاق",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_hint": {
+    "text": "ICO أو PNG أو SVG. حتى 256 كيلوبايت. يستبدل الأيقونة المجلوبة تلقائياً.",
+    "source_hash": "c9eafc83"
+  },
+  "web.branding.favicon_modal_save": {
+    "text": "حفظ أيقونة الموقع",
+    "source_hash": "c8a1566c"
   }
 }

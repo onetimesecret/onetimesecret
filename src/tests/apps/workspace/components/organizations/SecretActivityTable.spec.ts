@@ -32,9 +32,12 @@ vi.mock('@/shared/composables/useApi', () => ({ useApi: () => mockApi }));
 // Defaults mirror the wire contract: collect on, cap 10,000.
 const mockCollectEnabled = ref(true);
 const mockMaxEvents = ref(10_000);
+// Country column (#3989): default OFF (opt-in, pending counsel review).
+const mockGeoCountryEnabled = ref(false);
 vi.mock('@/utils/features', () => ({
   isSecretActivityCollectEnabled: () => mockCollectEnabled.value,
   getSecretActivityMaxEvents: () => mockMaxEvents.value,
+  isSecretActivityGeoCountryEnabled: () => mockGeoCountryEnabled.value,
 }));
 
 // Deterministic classifier output so the error banner's detail line is
@@ -156,6 +159,8 @@ describe('SecretActivityTable', () => {
     vi.clearAllMocks();
     mockCollectEnabled.value = true;
     mockMaxEvents.value = 10_000;
+    // Shipped default (#3989): country column opt-in, off until counsel signs off.
+    mockGeoCountryEnabled.value = false;
     // Default: one burned event on page 1.
     respondWith(buildResponse());
   });
@@ -667,6 +672,102 @@ describe('SecretActivityTable', () => {
       wrapper = await mountComponent();
 
       expect(wrapper.find('[data-testid="org-audit-paused"]').exists()).toBe(false);
+    });
+  });
+
+  describe('country column gate (#3989)', () => {
+    // The country field is legally-sensitive org-tier geo data pending counsel
+    // review (ADR-021), so the FRONTEND gates its display: the field may be
+    // present on the wire and still must not render. The gate is read once at
+    // setup, so every case below sets the flag BEFORE mounting.
+    const COUNTRY_HEADER_KEY = 'web.organizations.audit.columns.country';
+    const COUNTRY_UNKNOWN_KEY = 'web.organizations.audit.country_unknown';
+
+    const headerCells = (w: VueWrapper) =>
+      w.findAll('[data-testid="org-audit-table"] thead th');
+    const rowCells = (w: VueWrapper) =>
+      w
+        .findAll('[data-testid="org-audit-row"]')
+        .map((row) => row.findAll('td'));
+
+    it('renders neither the country header nor any country cell when the flag is off', async () => {
+      // net_country present on the wire — the gate, not the payload, decides.
+      respondWith(buildResponse({ records: [buildEvent({ net_country: 'US' })] }));
+
+      wrapper = await mountComponent();
+
+      const headers = headerCells(wrapper);
+      expect(headers.map((th) => th.text())).not.toContain(COUNTRY_HEADER_KEY);
+      const row = wrapper.find('[data-testid="org-audit-row"]');
+      expect(row.exists()).toBe(true);
+      // Neither the value nor the fallback leaks into the rendered row.
+      expect(row.text()).not.toContain('US');
+      expect(row.text()).not.toContain(COUNTRY_UNKNOWN_KEY);
+    });
+
+    it('renders the country header and the row value when the flag is on', async () => {
+      mockGeoCountryEnabled.value = true;
+      respondWith(buildResponse({ records: [buildEvent({ net_country: 'US' })] }));
+
+      wrapper = await mountComponent();
+
+      expect(headerCells(wrapper).map((th) => th.text())).toContain(COUNTRY_HEADER_KEY);
+      // Column 4 (Event, Secret, Actor, Country, When) carries the code itself.
+      expect(rowCells(wrapper)[0][3].text()).toBe('US');
+    });
+
+    it('falls back to the country_unknown label when the row carries no net_country', async () => {
+      mockGeoCountryEnabled.value = true;
+      respondWith(buildResponse({ records: [buildEvent({ net_country: undefined })] }));
+
+      wrapper = await mountComponent();
+
+      const cell = rowCells(wrapper)[0][3];
+      // An audit cell must never render "undefined" or read as blank — the
+      // absence of geo data is itself a stated fact.
+      expect(cell.text()).toBe(COUNTRY_UNKNOWN_KEY);
+      expect(cell.text()).not.toContain('undefined');
+      expect(cell.text()).not.toBe('');
+    });
+
+    /**
+     * The `v-if="showCountry"` is DUPLICATED on the <th> and the <td>. If a
+     * future edit drops one side, the table still renders — every column's
+     * data just silently shifts one cell out of alignment, which on an audit
+     * trail means attributing an event to the wrong timestamp/actor. Header
+     * count and per-row cell count must therefore agree in BOTH flag states.
+     */
+    it('keeps header count and per-row cell count in agreement in both flag states (misaligned columns would silently shift every column by one)', async () => {
+      const countsFor = async (enabled: boolean) => {
+        mockGeoCountryEnabled.value = enabled;
+        respondWith(
+          buildResponse({
+            records: [
+              buildEvent({ nonce: 'nonce-1', net_country: 'US' }),
+              // Second row omits net_country: the fallback must still occupy a
+              // cell, so a missing value can never collapse the row's width.
+              buildEvent({ nonce: 'nonce-2', net_country: undefined }),
+            ],
+          })
+        );
+
+        const localWrapper = await mountComponent();
+        const headers = headerCells(localWrapper).length;
+        const cells = rowCells(localWrapper).map((tds) => tds.length);
+        localWrapper.unmount();
+        return { headers, cells };
+      };
+
+      const off = await countsFor(false);
+      expect(off.headers).toBe(4);
+      expect(off.cells).toEqual([4, 4]);
+
+      const on = await countsFor(true);
+      expect(on.headers).toBe(5);
+      expect(on.cells).toEqual([5, 5]);
+
+      // The gate adds exactly one column, on both sides of the table.
+      expect(on.headers - off.headers).toBe(1);
     });
   });
 

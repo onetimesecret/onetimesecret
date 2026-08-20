@@ -4,11 +4,11 @@ Tests are organized by authentication mode. Each mode runs in a separate process
 
 ## Modes
 
-| Mode | Description |
-|------|-------------|
-| `simple` | Redis-only sessions |
-| `full` | Rodauth with SQLite or PostgreSQL |
-| `disabled` | Public access only |
+| Mode       | Description                       |
+| ---------- | --------------------------------- |
+| `simple`   | Redis-only sessions               |
+| `full`     | Rodauth with SQLite or PostgreSQL |
+| `disabled` | Public access only                |
 
 ## Running Tests
 
@@ -42,7 +42,7 @@ Example:
 
 ```ruby
 # spec/integration/full/my_feature_spec.rb
-RSpec.describe 'My Feature', type: :integration do
+RSpec.describe "My Feature", type: :integration do
   # Runs in full mode because it's in full/
 end
 ```
@@ -62,6 +62,6 @@ RACK_ENV=test AUTHENTICATION_MODE=full AUTH_DATABASE_URL='sqlite::memory:' \
 
 ## References
 
-- `docs/architecture/decision-records/adr-007-test-process-boundaries.md` — why directory-based separation
+- `docs/adr/adr-007-test-process-boundaries.md` — why directory-based separation
 - `lib/tasks/spec.rake` — rake task definitions
 - `spec/support/` — test helpers and shared contexts

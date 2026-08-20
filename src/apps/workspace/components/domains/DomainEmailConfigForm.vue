@@ -156,10 +156,15 @@ const canTestEmail = computed(() =>
 );
 
 const providerDisplayName = computed(() => {
+  // Parity-checked against the Ruby ProviderRegistry
+  // (lib/onetime/mail/provider_registry.rb): keys must equal
+  // provisioning_providers + 'inherit', labels must match descriptor labels.
+  // See spec/unit/onetime/mail/frontend_provider_parity_spec.rb.
   const map: Record<string, string> = {
     ses: 'Amazon SES',
     sendgrid: 'SendGrid',
     lettermint: 'Lettermint',
+    smtp2go: 'SMTP2GO',
     inherit: '',
   };
   return props.provider ? (map[props.provider] ?? '') : '';

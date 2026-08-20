@@ -4,7 +4,7 @@
     "source_hash": "6fa3cbf4"
   },
   "web.admin.sessions.description": {
-    "text": "インシデント対応のため、アクティブなセッションの検査、検索、取り消しを行います。",
+    "text": "インシデント対応のためにアクティブなセッションを検査、検索、取り消します。",
     "source_hash": "784a3a44"
   },
   "web.admin.sessions.anonymous": {
@@ -30,6 +30,10 @@
   "web.admin.sessions.columns.ipAddress": {
     "text": "IPアドレス",
     "source_hash": "3c3de0c9"
+  },
+  "web.admin.sessions.columns.country": {
+    "text": "国",
+    "source_hash": "701d021d"
   },
   "web.admin.sessions.columns.created": {
     "text": "認証日時",
@@ -60,7 +64,7 @@
     "source_hash": "b764cdc0"
   },
   "web.admin.sessions.detail.noExpiry": {
-    "text": "有効期限なし",
+    "text": "期限なし",
     "source_hash": "fe06351d"
   },
   "web.admin.sessions.detail.expired": {
@@ -72,7 +76,7 @@
     "source_hash": "3c9d75ce"
   },
   "web.admin.sessions.drawer.title": {
-    "text": "セッション{id}",
+    "text": "セッション {id}",
     "source_hash": "29dcbd66"
   },
   "web.admin.sessions.drawer.notFound": {
@@ -80,7 +84,7 @@
     "source_hash": "0969eab8"
   },
   "web.admin.sessions.drawer.notFoundDescription": {
-    "text": "このセッションはRedisに存在しません。有効期限が切れたか、すでに取り消された可能性があります。",
+    "text": "このセッションはRedisに存在しません。期限切れまたはすでに取り消された可能性があります。",
     "source_hash": "11e3ef05"
   },
   "web.admin.sessions.drawer.loadError": {
@@ -136,11 +140,11 @@
     "source_hash": "8d6c9b01"
   },
   "web.admin.sessions.fields.authenticatedBy": {
-    "text": "認証した実行者",
+    "text": "認証方法",
     "source_hash": "3ebbabfe"
   },
   "web.admin.sessions.fields.activeSessionId": {
-    "text": "アクティブなセッションID",
+    "text": "アクティブセッションID",
     "source_hash": "f32b1158"
   },
   "web.admin.sessions.fields.userAgent": {
@@ -168,15 +172,15 @@
     "source_hash": "87e6d00b"
   },
   "web.admin.sessions.revoke.confirmTitle": {
-    "text": "このセッションを取り消しますか?",
+    "text": "このセッションを取り消しますか？",
     "source_hash": "0c6605c1"
   },
   "web.admin.sessions.revoke.confirmDescription": {
-    "text": "これにより、セッション{id}が削除され、ユーザーが直ちにログアウトされます。確認のためにセッションIDを入力してください。",
+    "text": "セッション{id}を削除することで、ユーザーを即座にログアウトさせます。確認のため、セッションIDを入力してください。",
     "source_hash": "9e08b1b8"
   },
   "web.admin.sessions.revoke.success": {
-    "text": "セッションを取り消しました",
+    "text": "セッションが取り消されました",
     "source_hash": "0af5e14d"
   },
   "web.admin.sessions.scan.summary": {
@@ -184,7 +188,7 @@
     "source_hash": "34cb67a4"
   },
   "web.admin.sessions.scan.capped": {
-    "text": "スキャンは最初の{scanned}件のキーで打ち切られました。このウィンドウを超える認証済みセッションは一覧に表示されません。特定のセッションにアクセスするには、IDで検査してください。",
+    "text": "スキャンは最初の{scanned}キーに制限されています。この範囲外の認証済みセッションはリストに表示されません。IDで特定のセッションを検査してアクセスしてください。",
     "source_hash": "fa418b4e"
   },
   "web.admin.sessions.search.placeholder": {

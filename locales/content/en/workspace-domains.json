@@ -191,6 +191,10 @@
     "text": "Default domain has no settings page",
     "content_hash": "59b8806e"
   },
+  "web.domains.link_domain_no_settings": {
+    "text": "This domain has no settings page",
+    "content_hash": "8a8430fe"
+  },
   "web.domains.please_enter_a_domain_name": {
     "text": "Please enter a {0} domain name",
     "content_hash": "167f2d19"
@@ -567,10 +571,6 @@
     "text": "Connection test failed",
     "content_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "To require SSO for all sign-ins on this domain, configure it in the domain's sign-in settings. SSO-only mode restricts the login page to the SSO provider configured here.",
-    "content_hash": "d26627a5"
-  },
   "web.domains.sso.configure_sso": {
     "text": "Configure SSO",
     "content_hash": "80d3a144"
@@ -590,6 +590,74 @@
   "web.domains.sso.upgrade_required": {
     "text": "Upgrade to configure",
     "content_hash": "571cfa98"
+  },
+  "web.domains.sso.connection_disabled_badge": {
+    "text": "Connection disabled",
+    "content_hash": "99d6092c"
+  },
+  "web.domains.sso.connection_disabled_hint": {
+    "text": "SSO credentials are saved but the connection is turned off. Enable it under Edit credentials.",
+    "content_hash": "90180d6c"
+  },
+  "web.domains.sso.status_active_badge": {
+    "text": "Active",
+    "context": "Badge on the SSO row of domain Sign-In Configuration when the server reports tenant SSO as available on this domain.",
+    "content_hash": "92340695"
+  },
+  "web.domains.sso.status_active_hint": {
+    "text": "Members can sign in with this SSO connection on this domain.",
+    "context": "Explanatory line beside the Active badge on the SSO row of domain Sign-In Configuration.",
+    "content_hash": "313ec61e"
+  },
+  "web.domains.sso.status_not_configured_badge": {
+    "text": "Not configured",
+    "context": "Badge on the SSO row of domain Sign-In Configuration when no SSO credentials are saved for the domain.",
+    "content_hash": "dd1841d2"
+  },
+  "web.domains.sso.status_not_configured_hint": {
+    "text": "No SSO credentials are saved for this domain yet.",
+    "context": "Explanatory line beside the Not configured badge on the SSO row of domain Sign-In Configuration.",
+    "content_hash": "d817ad9c"
+  },
+  "web.domains.sso.status_not_permitted_badge": {
+    "text": "Not allowed on this domain",
+    "context": "Badge on the SSO row of domain Sign-In Configuration when the domain's own sign-in settings turn SSO off.",
+    "content_hash": "afbd20ba"
+  },
+  "web.domains.sso.status_not_permitted_hint": {
+    "text": "SSO is turned off for this domain, so the sign-in page does not offer it.",
+    "context": "Explanatory line beside the Not allowed badge on the SSO row of domain Sign-In Configuration.",
+    "content_hash": "ef092481"
+  },
+  "web.domains.sso.status_auth_disabled_badge": {
+    "text": "Sign-in disabled",
+    "context": "Badge on the SSO row of domain Sign-In Configuration when sign-in is turned off for the whole domain.",
+    "content_hash": "bb807607"
+  },
+  "web.domains.sso.status_auth_disabled_hint": {
+    "text": "Sign-in is turned off on this domain, so no method is offered — including SSO.",
+    "context": "Explanatory line beside the Sign-in disabled badge on the SSO row of domain Sign-In Configuration.",
+    "content_hash": "3a98964b"
+  },
+  "web.domains.sso.status_unsupported_provider_badge": {
+    "text": "Unsupported provider",
+    "context": "Badge on the SSO row of domain Sign-In Configuration when the saved provider type cannot be used for per-domain SSO.",
+    "content_hash": "1609d5fb"
+  },
+  "web.domains.sso.status_unsupported_provider_hint": {
+    "text": "The saved provider cannot be used for domain SSO. Edit the credentials and choose Microsoft Entra ID or generic OIDC.",
+    "context": "Explanatory line beside the Unsupported provider badge on the SSO row of domain Sign-In Configuration.",
+    "content_hash": "72ea0a2e"
+  },
+  "web.domains.sso.status_unavailable_badge": {
+    "text": "Unavailable",
+    "context": "Fallback badge on the SSO row of domain Sign-In Configuration when the server reports a blocking reason this version does not recognise.",
+    "content_hash": "ca184496"
+  },
+  "web.domains.sso.status_unavailable_hint": {
+    "text": "SSO cannot be offered on this domain right now. Check the SSO credentials and this domain's sign-in settings.",
+    "context": "Fallback explanatory line beside the Unavailable badge on the SSO row of domain Sign-In Configuration.",
+    "content_hash": "b03b14f4"
   },
   "web.domains.signup.title": {
     "text": "Signup Validation",
@@ -1356,6 +1424,36 @@
     "text": "Only methods available on this domain are listed.",
     "content_hash": "c7a56f44"
   },
+  "web.domains.signin.sso_restrict_warning_title": {
+    "text": "Restricting to SSO would close sign-in on this domain",
+    "context": "Heading of the confirmation panel shown when an owner picks SSO as the only sign-in method while the server reports SSO unavailable on that domain.",
+    "content_hash": "3476cb5c"
+  },
+  "web.domains.signin.sso_restrict_warning_body": {
+    "text": "SSO is not available on this domain, and a restriction that cannot be honored blocks sign-in entirely. Nobody will be able to sign in here until SSO works. Fix SSO first, or restrict anyway and finish the setup.",
+    "context": "Body of the confirmation panel warning that restricting to an unavailable SSO takes the domain's sign-in page dark.",
+    "content_hash": "086e3247"
+  },
+  "web.domains.signin.sso_restrict_warning_confirm": {
+    "text": "Restrict anyway",
+    "context": "Button that saves the SSO-only restriction despite the warning that SSO is unavailable on this domain.",
+    "content_hash": "4674e3cf"
+  },
+  "web.domains.signin.restriction_unavailable_notice": {
+    "text": "Sign-in is unavailable on this domain: it is restricted to {method}, which cannot run here. Pick another method, or make {method} available.",
+    "context": "Notice shown when the server resolves this domain's sign-in restriction to a method that cannot run, so no one can sign in. {method} is a method name such as Single Sign-On.",
+    "content_hash": "ca1b7f69"
+  },
+  "web.domains.signin.restriction_unavailable_unknown_notice": {
+    "text": "Sign-in is unavailable on this domain: it is restricted to a method that cannot run here. Pick another method, or reset this domain to defaults.",
+    "context": "Notice shown when the server resolves the domain's sign-in restriction as unavailable but does not name a method this version recognises.",
+    "content_hash": "8c2cce6b"
+  },
+  "web.domains.signin.restriction_conflict_notice": {
+    "text": "This domain restricts sign-in to a different method than the workspace-wide restriction ({method}), so neither can apply and sign-in is unavailable here. Match the workspace-wide method, or reset this domain to defaults.",
+    "context": "Notice shown when the domain and workspace-wide sign-in restrictions name different methods. {method} is the workspace-wide method name.",
+    "content_hash": "15398362"
+  },
   "web.domains.signin.availability_always": {
     "text": "Always available",
     "content_hash": "0fda3772"
@@ -1387,6 +1485,11 @@
   "web.domains.signin.method_webauthn_blurb": {
     "text": "Biometrics and security keys",
     "content_hash": "7d6a7bd5"
+  },
+  "web.domains.signin.method_webauthn_unavailable": {
+    "text": "Passkeys are tied to the main sign-in domain and aren't available on custom domains yet",
+    "context": "Blurb on the locked Passkeys row of the domain sign-in method picker, explaining that host-scoped passkeys cannot restrict a custom domain",
+    "content_hash": "88833e0f"
   },
   "web.domains.signin.method_sso_blurb": {
     "text": "External identity provider",
@@ -1560,5 +1663,9 @@
     "text": "This domain's homepage currently presents the incoming secrets form. Disabling incoming secrets or removing all recipients will switch the homepage to a private landing page until incoming is ready again.",
     "context": "Warning on the Incoming Secrets config page when the homepage secrets_mode is incoming and a change could un-ready it",
     "content_hash": "cc0d4997"
+  },
+  "web.domains.sso.enforce_moved_notice": {
+    "text": "To require SSO for all sign-ins on this domain, configure it in the domain's sign-in settings. SSO-only mode restricts the login page to the SSO provider configured here.",
+    "content_hash": "d26627a5"
   }
 }

@@ -5,3 +5,9 @@
 # red). Gating policy (blocking or not) is CI's decision, not the
 # lane's; the lane just defines the run.
 AUTHENTICATION_MODE=simple
+
+# Generated prerequisites, produced by tests/lanes/run before the tasks
+# below (see the codegen phase there). spec/spec_helper.rb refuses to boot
+# with an empty generated/locales, so every lane that runs Ruby specs
+# declares it.
+LANES_CODEGEN='locales'

@@ -1,0 +1,486 @@
+#!/usr/bin/env bash
+# tests/lanes/run-all — run several lanes in one command.
+#
+# Usage:
+#   tests/lanes/run-all [--parallel] [--dry-run] [<lane>...]
+#
+# Examples:
+#   tests/lanes/run-all
+#   tests/lanes/run-all --parallel
+#   tests/lanes/run-all --parallel unit full-sqlite
+#
+# Composition, not a second runner: every lane is started by
+# tests/lanes/run, so the environment a lane gets, the hermetic scrub, the
+# per-lane datastore isolation and the same-lane collision detection are
+# exactly the ones a direct `tests/lanes/run <lane>` gets. Nothing here
+# reads a lane's tasks file or assembles a lane environment.
+#
+# What a fan-out needs that one lane does not, and all this script adds:
+#   - generation once, up front, so N children are not rewriting the one
+#     repo-root generated/ directory while the others read it;
+#   - one prefixed output stream per lane, so interleaved output stays
+#     attributable to the lane that produced it;
+#   - per-lane result files, so two lanes' rspec JSON cannot land on the
+#     same path;
+#   - a per-lane summary and a non-zero exit naming the lane that failed.
+
+# ── bash major-version floor ─────────────────────────────────────────────
+# Same floor, same pin file, same reason as tests/lanes/run; the long
+# version of this comment lives there. This script expands arrays under
+# `set -u` and uses a nameref, and stock macOS bash 3.2 fails on both in
+# ways that read like a broken wrapper rather than a too-old shell. Sits
+# above `set -euo pipefail` and uses only POSIX test and the `read`
+# builtin, so the shell that has to print the message can parse the block.
+_lanes_floor=''
+read -r _lanes_floor 2>/dev/null < "${BASH_SOURCE[0]%/*}/../../.bash-version" || true
+case "${_lanes_floor}" in
+  ''|*[!0-9]*)
+    echo "error: tests/lanes/run-all cannot read a bash major version from .bash-version" >&2
+    echo "  expected a bare major version (e.g. 5) at the repo root" >&2
+    exit 1
+    ;;
+esac
+if [ "${BASH_VERSINFO:-0}" -lt "${_lanes_floor}" ]; then
+  echo "error: tests/lanes/run-all requires bash ${_lanes_floor}+ (found ${BASH_VERSION:-unknown})" >&2
+  echo "  macOS ships bash 3.2; install a current one: brew install bash" >&2
+  exit 1
+fi
+unset -v _lanes_floor
+
+set -euo pipefail
+
+LANES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${LANES_DIR}/../.." && pwd)"
+RUNNER="${LANES_DIR}/run"
+
+# ── Default lane set ─────────────────────────────────────────────────────
+# The four lanes that cover the auth-mode boundary a local change is most
+# likely to break: unit (no boundary), simple, disabled, full (SQLite).
+# Together they are the T2/T3 core of the CI matrix.
+#
+# Not here on purpose:
+#   - full-pg, full-pg-agnostic, api, migrations-* — real lanes, just
+#     slower and (for the PG ones) dependent on the postgres service. Pass
+#     them by name when you want them.
+#   - smoke — NOT skip-safe and NOT parallel-safe. `pnpm test:smoke` runs
+#     `pnpm test`, which regenerates locales itself (package.json:
+#     test:smoke -> test -> locales:sync) no matter what --skip-codegen
+#     says, and it flushes its datastore at task start. The regeneration is
+#     the disqualifier: those writes land in the one repo-root generated/
+#     directory the other lanes are reading from, non-atomically, while
+#     they read it. Run it alone: `tests/lanes/run smoke`.
+DEFAULT_LANES=(unit simple disabled full-sqlite)
+
+usage() {
+  echo "usage: tests/lanes/run-all [--parallel] [--dry-run] [<lane>...]"
+  echo
+  echo "  --parallel     start every lane at once instead of one after another."
+  echo "                 Opt-in: serial is the default because a failing serial"
+  echo "                 run is the one that is easy to read."
+  echo "  --dry-run      print the plan (lanes, codegen, result files) and exit."
+  echo
+  echo "Default lanes: ${DEFAULT_LANES[*]}"
+  echo
+  echo "Every lane is started as: tests/lanes/run <lane> --skip-codegen"
+  echo "(this script generates the declared prerequisites once, up front)."
+  echo "Per-lane output goes to tmp/lanes/<stamp>/<lane>.log, and each lane"
+  echo "runs with its own RSPEC_OUTPUT_FILE=tmp/lanes/<stamp>/<lane>.json."
+  echo
+  echo "Lanes:"
+  for dir in "${LANES_DIR}"/*/; do
+    if [[ -f "${dir}tasks" && -f "${dir}env" ]]; then
+      basename "${dir}" | sed 's/^/  /'
+    fi
+  done
+}
+
+# ── Argument parsing ─────────────────────────────────────────────────────
+PARALLEL=0
+DRY_RUN=0
+LANES=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --parallel)
+      PARALLEL=1
+      shift
+      ;;
+    --dry-run)
+      DRY_RUN=1
+      shift
+      ;;
+    -h|--help|--list|-l)
+      usage
+      exit 0
+      ;;
+    -*)
+      echo "error: unknown argument '$1'" >&2
+      usage >&2
+      exit 64
+      ;;
+    *)
+      LANES+=("$1")
+      shift
+      ;;
+  esac
+done
+if [[ ${#LANES[@]} -eq 0 ]]; then
+  LANES=("${DEFAULT_LANES[@]}")
+fi
+
+for lane in "${LANES[@]}"; do
+  if [[ ! -f "${LANES_DIR}/${lane}/env" || ! -f "${LANES_DIR}/${lane}/tasks" ]]; then
+    echo "error: unknown lane '${lane}' (see: tests/lanes/run --list)" >&2
+    exit 64
+  fi
+done
+
+# ── One lane, one run ────────────────────────────────────────────────────
+# The same lane twice in one checkout derives the same isolation key, so
+# both runs address the same valkey index and the same PG database: the
+# second run's fixtures land in the first run's datastore and both fail in
+# ways that read like flakes. tests/lanes/run detects that and aborts the
+# second run (exit 69) — but only once it is far enough in to have claimed
+# the liveness token, i.e. after the services are up and the codegen is
+# done. A duplicate in argv is a typo, and here is where it is cheapest to
+# say so. Rejected in serial mode too: two identical lanes run one after
+# another is a second run of the same tests, which nobody asks for on
+# purpose.
+for i in "${!LANES[@]}"; do
+  for j in "${!LANES[@]}"; do
+    if [[ $i -lt $j && "${LANES[$i]}" == "${LANES[$j]}" ]]; then
+      echo "error: lane '${LANES[$i]}' given twice" >&2
+      echo "  the same lane cannot run twice against one checkout: both runs derive" >&2
+      echo "  the same datastore isolation key and would share one valkey index and" >&2
+      echo "  one PG database" >&2
+      exit 64
+    fi
+  done
+done
+
+if [[ ${PARALLEL} -eq 1 ]]; then
+  for lane in "${LANES[@]}"; do
+    if [[ "${lane}" == smoke ]]; then
+      echo "error: the smoke lane cannot run in parallel with anything" >&2
+      echo "  pnpm test:smoke regenerates locales into the shared repo-root" >&2
+      echo "  generated/ directory mid-run, which every other lane is reading" >&2
+      echo "  from; run it on its own: tests/lanes/run smoke" >&2
+      exit 64
+    fi
+  done
+  # CI pins every lane to datastore index 0 with unsuffixed database names
+  # (the `CI` branch in tests/lanes/run, which is deliberately untouched by
+  # the isolation work). Lanes fanned out under that share one valkey DB and
+  # one PG database — the exact cross-contamination --parallel depends on
+  # not having. CI runs one lane per job; there is no case for this.
+  if [[ -n "${CI:-}" ]]; then
+    echo "error: --parallel with CI set" >&2
+    echo "  CI pins every lane to datastore index 0, so parallel lanes would share" >&2
+    echo "  one valkey database and one PG database. Run lanes in separate jobs." >&2
+    exit 64
+  fi
+fi
+
+# ── What the lanes declare ───────────────────────────────────────────────
+# Read from the lane's own env file, the same way tests/lanes/run reads it
+# (`set -a` + base.env + <lane>/env), so there is one source of truth for
+# what a lane needs generated and which services it addresses.
+add_unique() {  # <array name> <value>
+  local -n _arr="$1"
+  local existing
+  for existing in ${_arr[@]+"${_arr[@]}"}; do
+    if [[ "${existing}" == "$2" ]]; then
+      return 0
+    fi
+  done
+  _arr+=("$2")
+}
+
+lane_declares() {  # <lane> — one "codegen <tokens>" line, then "port <n>" lines
+  # This wrapper does not enter the lane runner's hermetic boundary itself, so
+  # load declarations in an empty environment. `unset` is insufficient here:
+  # Bash cannot unset a readonly exported name, letting it survive and override
+  # a lane that intentionally declares no codegen (such as selftest). A fresh
+  # bash process also prevents any future declaration variable from inheriting
+  # ambient state by accident.
+  env -i PATH="${PATH}" HOME="${HOME}" LANG=C.UTF-8 LC_ALL=C.UTF-8 \
+    bash --noprofile --norc -c '
+      set -a
+      # shellcheck source=/dev/null
+      source "$1/base.env"
+      # shellcheck source=/dev/null
+      source "$1/$2/env"
+      set +a
+      printf "codegen %s\\n" "${LANES_CODEGEN:-}"
+      # The three variables tests/lanes/run builds REQUIRED_PORTS from, matched
+      # the same way. A lane that blanks them (selftest) needs no services.
+      for url in "${REDIS_URL:-}" "${RABBITMQ_URL:-}" "${AUTH_DATABASE_URL:-}"; do
+        if [[ "${url}" =~ 127\.0\.0\.1:([0-9]+) ]]; then
+          printf "port %s\\n" "${BASH_REMATCH[1]}"
+        fi
+      done
+      # Local lanes derive a nonzero datastore index and use the RabbitMQ
+      # management API to create their isolated vhost before tasks start.
+      # --parallel disables child autostart, so include that control-plane
+      # dependency in the wrapper readiness check.
+      if [[ -z "${CI:-}" && "${RABBITMQ_URL:-}" =~ 127\.0\.0\.1:2156 ]]; then
+        printf "port 12156\\n"
+      fi
+    ' bash "${LANES_DIR}" "$1"
+}
+
+CODEGEN=()
+PORTS=()
+for lane in "${LANES[@]}"; do
+  while read -r kind value; do
+    case "${kind}" in
+      codegen)
+        for token in ${value}; do add_unique CODEGEN "${token}"; done
+        ;;
+      port)
+        add_unique PORTS "${value}"
+        ;;
+    esac
+  done < <(lane_declares "${lane}")
+done
+
+RESULT_REL="tmp/lanes/$(date +%Y%m%d-%H%M%S)-$$"
+RESULT_DIR="${REPO_ROOT}/${RESULT_REL}"
+
+if [[ ${DRY_RUN} -eq 1 ]]; then
+  echo "[run-all] mode:    $([[ ${PARALLEL} -eq 1 ]] && echo parallel || echo serial)"
+  echo "[run-all] lanes:   ${LANES[*]}"
+  echo "[run-all] codegen: ${CODEGEN[*]:-none}"
+  echo "[run-all] ports:   ${PORTS[*]:-none}"
+  echo "[run-all] results: ${RESULT_REL}/"
+  for lane in "${LANES[@]}"; do
+    echo "[run-all]   tests/lanes/run ${lane} --skip-codegen" \
+         "-> ${RESULT_REL}/${lane}.log, ${RESULT_REL}/${lane}.json"
+  done
+  exit 0
+fi
+
+# ── Service preflight (parallel only) ────────────────────────────────────
+# tests/lanes/run starts compose.test.yml itself when a service it needs is
+# down, and that is the right behavior for one lane. Four of them starting
+# it at the same moment race for the same container names. In serial mode
+# the first child starts the services and the rest find them up; in
+# parallel mode, say so instead and let one command do it.
+port_open() { (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null; }
+
+# Prefer the runtime that owns the live test broker. With both Docker Desktop
+# and Podman installed, Docker cannot recreate a Podman container because the
+# latter already owns the published AMQP port.
+compose_runtime() {
+  local podman_rabbitmq=''
+  if command -v podman >/dev/null 2>&1; then
+    podman_rabbitmq="$(podman ps -q --filter 'name=ots-test-rabbitmq-1' 2>/dev/null || true)"
+    if [[ -n "${podman_rabbitmq}" ]]; then
+      printf '%s' podman
+      return
+    fi
+  fi
+  if command -v docker >/dev/null 2>&1; then
+    printf '%s' docker
+  elif command -v podman >/dev/null 2>&1; then
+    printf '%s' podman
+  else
+    return 1
+  fi
+}
+
+if [[ ${PARALLEL} -eq 1 ]]; then
+  down=()
+  for port in ${PORTS[@]+"${PORTS[@]}"}; do
+    port_open "${port}" || down+=("${port}")
+  done
+  if [[ ${#down[@]} -gt 0 ]]; then
+    echo "error: test services unreachable on 127.0.0.1: ${down[*]}" >&2
+    echo "  --parallel does not autostart them — several runners starting compose" >&2
+    echo "  at once race for the same containers. Start them once, then re-run:" >&2
+    runtime="$(compose_runtime || true)"
+    runtime="${runtime:-docker}"
+    if [[ " ${down[*]} " == *' 12156 '* ]]; then
+      echo "  ${runtime} compose -f compose.test.yml up --wait -d --force-recreate rabbitmq" >&2
+    else
+      echo "  ${runtime} compose -f compose.test.yml up --wait -d" >&2
+    fi
+    exit 69
+  fi
+fi
+
+# ── Codegen, once ────────────────────────────────────────────────────────
+# The whole reason --skip-codegen exists. Compiled locales and generated
+# schemas are prerequisites shared by every lane through one repo-root
+# generated/ directory, written non-atomically; N children generating into
+# it concurrently can hand a sibling a truncated JSON file, not merely a
+# stale one. So: the union of what the requested lanes declare, generated
+# here, before the first child starts — and every child is then started
+# with --skip-codegen.
+#
+# The token -> command mapping below is the same one tests/lanes/run's
+# codegen phase applies (see "── Codegen phase" there), duplicated because
+# the runner has no codegen-only entry point to delegate to; a
+# `--codegen-only` flag there would replace this block with a single
+# invocation. A token the runner learns and this script does not is an
+# immediate exit 64, never a silently skipped prerequisite.
+#
+# `env -i` with PATH/HOME and the locale pin reproduces what a generator
+# sees inside the runner's own phase: PATH and HOME are two of the six
+# names the hermetic scrub keeps (toolchain resolution — python3, pnpm,
+# node), and the runner pins C.UTF-8 before sourcing any lane env, which is
+# what the i18n compiler writes its non-ASCII JSON under. Everything else
+# is cleared for the same reason the runner clears it: a dev shell's
+# I18N_GENERATED_DIR would otherwise send this generation somewhere the
+# lanes will not read from.
+codegen_run() {
+  ( cd "${REPO_ROOT}" && env -i PATH="${PATH}" HOME="${HOME}" \
+      LANG=C.UTF-8 LC_ALL=C.UTF-8 "$@" )
+}
+
+codegen_token() {  # <token>
+  case "$1" in
+    locales)
+      codegen_run pnpm run locales:sync
+      ;;
+    locales-python)
+      # What `pnpm run locales:sync` wraps, called directly — same output,
+      # no Node needed. A lane set that asks for both pays the pass twice;
+      # that they are the same command is a package.json detail this script
+      # is not going to assume.
+      codegen_run python3 locales/scripts/i18n content compile --all
+      ;;
+    schemas)
+      codegen_run pnpm run schemas:json:generate
+      ;;
+    *)
+      echo "error: lane set declares codegen token '$1', which this script does not know" >&2
+      echo "  known tokens: locales locales-python schemas" >&2
+      echo "  add it here and in the codegen phase of tests/lanes/run" >&2
+      exit 64
+      ;;
+  esac
+}
+
+for token in ${CODEGEN[@]+"${CODEGEN[@]}"}; do
+  echo "[run-all] codegen: ${token}"
+  codegen_token "${token}" || {
+    echo "error: codegen '${token}' failed — no lane was started" >&2
+    exit 70
+  }
+done
+
+# ── Running the lanes ────────────────────────────────────────────────────
+mkdir -p "${RESULT_DIR}"
+
+# Longest lane name, so the prefixes line up in a column and interleaved
+# output can be read down the page.
+PREFIX_WIDTH=0
+for lane in "${LANES[@]}"; do
+  [[ ${#lane} -gt ${PREFIX_WIDTH} ]] && PREFIX_WIDTH=${#lane}
+done
+
+prefix_stream() {  # <tag> — tag every line of stdin
+  local tag="$1" line
+  # `read` returns nonzero for a final line without a newline, while still
+  # populating $line. Keep that line in this iteration rather than printing
+  # it after the loop, which would duplicate a normally terminated final line.
+  while IFS= read -r line || [[ -n "${line:-}" ]]; do
+    printf '[%-*s] %s\n' "${PREFIX_WIDTH}" "${tag}" "${line}"
+  done
+}
+
+# In parallel mode the children must not autostart compose either: the
+# preflight above just verified the ports, and N runners racing `compose
+# up` for the same container names is the exact failure it exists to
+# avoid — a service dying between that check and a child's own preflight
+# reopens the race unless the children are told no. Serial keeps the
+# runner's own behavior (whatever the caller set): the first child brings
+# the services up and the rest find them running. LANES_NO_AUTOSTART is
+# one of the six names the runner's scrub keeps, and empty means
+# "autostart allowed" — the runner tests it for non-empty.
+if [[ ${PARALLEL} -eq 1 ]]; then
+  CHILD_NO_AUTOSTART=1
+else
+  CHILD_NO_AUTOSTART="${LANES_NO_AUTOSTART:-}"
+fi
+
+# Result files are per lane and named after it, so nothing a lane writes
+# can land on another lane's path. RSPEC_OUTPUT_FILE is one of the six
+# names the runner's scrub keeps — it is the sanctioned channel for exactly
+# this, and it is what CI uses to name a job's results. Relative, because
+# the runner cd's to the repo root before exec'ing the tasks (the same form
+# .github/actions/run-test-lane passes). rake adds suffixed siblings for a
+# lane that runs rspec more than once: tmp/lanes/<stamp>/<lane>_*.json.
+run_lane() {  # <lane> — streams prefixed output, records status+duration
+  local lane="$1" start end status
+  start=$(date +%s)
+  if RSPEC_OUTPUT_FILE="${RESULT_REL}/${lane}.json" \
+     LANES_NO_AUTOSTART="${CHILD_NO_AUTOSTART}" \
+     "${RUNNER}" "${lane}" --skip-codegen 2>&1 \
+       | prefix_stream "${lane}" \
+       | tee "${RESULT_DIR}/${lane}.log"; then
+    status=0
+  else
+    status=$?
+  fi
+  end=$(date +%s)
+  printf '%s %s\n' "${status}" "$(( end - start ))" > "${RESULT_DIR}/${lane}.status"
+  return "${status}"
+}
+
+echo "[run-all] $([[ ${PARALLEL} -eq 1 ]] && echo parallel || echo serial):" \
+     "${LANES[*]}"
+echo "[run-all] results: ${RESULT_REL}/"
+
+RUN_START=$(date +%s)
+if [[ ${PARALLEL} -eq 1 ]]; then
+  declare -A PIDS=()
+  for lane in "${LANES[@]}"; do
+    run_lane "${lane}" &
+    PIDS["${lane}"]=$!
+  done
+  # Reaped in lane order; `wait <pid>` still reports the status of a child
+  # that finished earlier, so the order here does not change any result.
+  for lane in "${LANES[@]}"; do
+    wait "${PIDS[${lane}]}" || true
+  done
+else
+  for lane in "${LANES[@]}"; do
+    run_lane "${lane}" || true
+  done
+fi
+RUN_END=$(date +%s)
+
+# ── Summary ──────────────────────────────────────────────────────────────
+fmt_duration() { printf '%dm%02ds' "$(( $1 / 60 ))" "$(( $1 % 60 ))"; }
+
+failed=0
+echo
+echo "[run-all] summary:"
+printf '  %-*s  %-6s  %8s\n' "${PREFIX_WIDTH}" 'lane' 'status' 'duration'
+for lane in "${LANES[@]}"; do
+  status=''
+  seconds=0
+  if [[ -r "${RESULT_DIR}/${lane}.status" ]]; then
+    read -r status seconds < "${RESULT_DIR}/${lane}.status" || true
+  fi
+  if [[ -z "${status}" ]]; then
+    # The child died before it could record anything (killed, or the disk
+    # is gone). Unknown is a failure — silence is how a fan-out reports
+    # green when it is not.
+    printf '  %-*s  %-6s  %8s\n' "${PREFIX_WIDTH}" "${lane}" 'UNKNOWN' '?'
+    failed=1
+  elif [[ "${status}" == 0 ]]; then
+    printf '  %-*s  %-6s  %8s\n' "${PREFIX_WIDTH}" "${lane}" 'PASS' "$(fmt_duration "${seconds}")"
+  else
+    printf '  %-*s  %-6s  %8s  (exit %s)\n' \
+      "${PREFIX_WIDTH}" "${lane}" 'FAIL' "$(fmt_duration "${seconds}")" "${status}"
+    failed=1
+  fi
+done
+echo "[run-all] wall clock: $(fmt_duration "$(( RUN_END - RUN_START ))")," \
+     "results in ${RESULT_REL}/ (<lane>.log, <lane>.json)"
+
+if [[ ${failed} -ne 0 ]]; then
+  exit 1
+fi

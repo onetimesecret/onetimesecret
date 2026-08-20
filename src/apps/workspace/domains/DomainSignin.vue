@@ -107,6 +107,11 @@ const {
   globalEnabled,
   effectiveEnabled,
   isWorkspaceDefault,
+  // Server-resolved (ADR-034#settings-api-serializes-effective-restrict-to /
+  // #4111) — passed through to the form, which
+  // renders them verbatim and derives no availability of its own.
+  effectiveRestrictTo,
+  tenantSso,
   initialize: initializeSigninConfig,
   autoSaveFields,
   deleteConfig,
@@ -310,6 +315,8 @@ watch(canFetchSsoConfig, async (allowed) => {
             :is-configured="isConfigured"
             :workspace-default="isWorkspaceDefault"
             :sso-configured="ssoIsConfigured"
+            :tenant-sso="tenantSso"
+            :effective-restrict-to="effectiveRestrictTo"
             :can-manage-sso="canManageSso"
             :global-availability="globalAvailability"
             :saving-field="savingField"

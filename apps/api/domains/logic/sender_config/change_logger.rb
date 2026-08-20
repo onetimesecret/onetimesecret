@@ -47,9 +47,9 @@ module DomainsAPI
         #   Pass explicitly to ensure multiple audit events in one request share
         #   the same timestamp.
         # @return [void]
-        def log_sender_change_event(event:, domain:, org:, actor:, provider: nil, changes: nil, details: nil, timestamp: Time.now.to_i)
+        def log_sender_config_event(event:, domain:, org:, actor:, provider: nil, changes: nil, details: nil, timestamp: Time.now.to_i)
           log_config_change_event(
-            tag: 'DOMAIN_SENDER_CHANGE',
+            tag: 'DOMAIN_SENDER_CONFIG',
             event: event,
             domain: domain,
             org: org,

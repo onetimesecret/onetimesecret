@@ -1006,6 +1006,11 @@ module Billing
 
         json_response(result)
       rescue Stripe::InvalidRequestError => ex
+        # ADR-033: a missing payment_method_configuration must be loud and
+        # operator-actionable, same as the other checkout-creation paths.
+        if ::Billing::PmcResourceMissing.pmc_resource_missing?(ex)
+          billing_logger.error ::Billing::PmcResourceMissing.operator_message(ex)
+        end
         billing_logger.warn 'Currency migration request failed',
           {
             exception: ex,
@@ -1057,7 +1062,13 @@ module Billing
         def plan_page_record(plan, plan_names_by_id, interval, price_data)
           amount          = price_data ? price_data['amount'].to_i : 0
           stripe_price_id = price_data ? price_data['stripe_price_id'] : nil
-          currency        = (price_data ? price_data['currency'] : nil) || plan.currency
+
+          # Never emit a nil currency: fall back price row -> plan family ->
+          # deployment config. A plan cached without a currency (older sync
+          # code, hand-repaired catalog) must not surface `currency: null`
+          # to the frontend formatter.
+          currency = (price_data ? price_data['currency'] : nil) || plan.currency
+          currency = OT.billing_config.currency if currency.to_s.empty?
 
           {
             id: plan.plan_id,

@@ -30,6 +30,9 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
     allow(customer).to receive(:verified?).and_return(!anonymous)
     allow(customer).to receive(:increment_field)
     allow(customer).to receive(:objid).and_return(anonymous ? nil : 'cust_abc123')
+    # The secret logs identify the caller by extid (never custid, which is
+    # the email address on legacy records).
+    allow(customer).to receive(:extid).and_return(anonymous ? nil : 'urabc123')
     customer
   end
 

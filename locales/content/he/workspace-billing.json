@@ -1044,5 +1044,21 @@
   "web.billing.plans.reactivate": {
     "text": "הפעל מחדש",
     "source_hash": "2dc7478f"
+  },
+  "web.billing.currency_migration.refund_failed_warning": {
+    "text": "התוכנית הקודמת שלך בוטלה, אך לא יכולנו להנפיק אוטומטית החזר עבור הזמן שלא נוצל. צור קשר עם התמיכה כדי לקבל את ההחזר. עדיין עליך להשלים את התשלום כדי להפעיל את התוכנית החדשה שלך.",
+    "source_hash": "a390c498"
+  },
+  "web.billing.currency_migration.refund_failed_continue": {
+    "text": "המשך לתשלום",
+    "source_hash": "eccdb8aa"
+  },
+  "web.billing.plans.per_year": {
+    "text": "/שנה",
+    "source_hash": "a2d5f1bc"
+  },
+  "web.billing.plans.billing_interval": {
+    "text": "תדירות חיוב",
+    "source_hash": "3ce28209"
   }
 }

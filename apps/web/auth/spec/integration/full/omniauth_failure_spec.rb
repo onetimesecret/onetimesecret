@@ -28,7 +28,7 @@ RSpec.describe 'OmniAuth Failure Handling' do
   describe 'failure redirect configuration' do
     it 'uses sso_failed as the error code' do
       # The frontend expects specific error codes for i18n lookup
-      error_code = 'sso_failed'
+      error_code  = 'sso_failed'
       valid_codes = %w[sso_failed token_missing token_expired token_invalid]
       expect(valid_codes).to include(error_code)
     end
@@ -94,15 +94,15 @@ RSpec.describe 'OmniAuth Failure Handling' do
 
       it 'uses sso_failed as the error code' do
         # The frontend expects specific error codes for i18n lookup
-        error_code = 'sso_failed'
+        error_code  = 'sso_failed'
         valid_codes = %w[sso_failed token_missing token_expired token_invalid]
         expect(valid_codes).to include(error_code)
       end
 
       it 'redirects to /signin with auth_error on invalid_credentials failure' do
         # Enable OmniAuth test mode and set up failure mock
-        OmniAuth.config.test_mode = true
-        OmniAuth.config.allowed_request_methods = %i[get post]
+        OmniAuth.config.test_mode               = true
+        OmniAuth.config.allowed_request_methods = [:get, :post]
 
         begin
           # Configure mock to return :invalid_credentials failure
@@ -130,9 +130,9 @@ RSpec.describe 'OmniAuth Failure Handling' do
         end
       end
 
-      it 'redirects to /signin with auth_error on access_denied failure' do
-        OmniAuth.config.test_mode = true
-        OmniAuth.config.allowed_request_methods = %i[get post]
+      it 'redirects to /signin with auth_error=sso_cancelled on access_denied failure' do
+        OmniAuth.config.test_mode               = true
+        OmniAuth.config.allowed_request_methods = [:get, :post]
 
         begin
           mock_oidc_failure(:access_denied)
@@ -144,7 +144,10 @@ RSpec.describe 'OmniAuth Failure Handling' do
 
           expect(last_response.status).to eq(302)
           location = last_response.headers['Location']
-          expect(location).to include('auth_error=sso_failed')
+          # A user clicking Cancel/Deny at the IdP is a choice, not a
+          # malfunction — it gets its own code so the frontend renders calm
+          # copy instead of the generic failure message.
+          expect(location).to include('auth_error=sso_cancelled')
         ensure
           OmniAuth.config.test_mode = false
           OmniAuth.config.mock_auth.clear
@@ -152,8 +155,8 @@ RSpec.describe 'OmniAuth Failure Handling' do
       end
 
       it 'redirects to /signin with auth_error on timeout failure' do
-        OmniAuth.config.test_mode = true
-        OmniAuth.config.allowed_request_methods = %i[get post]
+        OmniAuth.config.test_mode               = true
+        OmniAuth.config.allowed_request_methods = [:get, :post]
 
         begin
           mock_oidc_failure(:timeout)
@@ -179,6 +182,7 @@ RSpec.describe 'OmniAuth Failure Handling' do
       let(:error_codes) do
         {
           'sso_failed' => 'web.login.errors.sso_failed',
+          'sso_cancelled' => 'web.login.errors.sso_cancelled',
           'token_missing' => 'web.login.errors.token_missing',
           'token_expired' => 'web.login.errors.token_expired',
           'token_invalid' => 'web.login.errors.token_invalid',

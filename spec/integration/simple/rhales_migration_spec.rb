@@ -60,7 +60,10 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
       # reads brand.product_name only (the legacy header.branding.site_name
       # tier was retired in #3612). Without this the rendered <title> would
       # be empty.
-      'brand' => { 'product_name' => 'One-Time Secret' },
+      # og_image_url mirrors what Config#normalize_brand resolves at boot for a
+      # pack carrying social-preview.png (the tracked default does) — this mock
+      # bypasses normalize_brand, so it has to state the resolved value (#4150).
+      'brand' => { 'product_name' => 'One-Time Secret', 'og_image_url' => '/social-preview.png' },
       'development' => { 'enabled' => false },
       'diagnostics' => {},
       'billing' => { 'enabled' => false }
@@ -265,9 +268,42 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
         expect(doc.css('link[rel="manifest"]')).not_to be_empty
       end
 
+      # A pack carrying social-preview.png emits both tags with an ABSOLUTE URL
+      # (social scrapers will not resolve a relative one) and the large-image
+      # card type. The imageless posture is asserted below (#4150).
       it 'emits og:image and twitter:image' do
         expect(doc.css('meta[property="og:image"]')).not_to be_empty
         expect(doc.css('meta[name="twitter:image"]')).not_to be_empty
+      end
+
+      it 'emits an absolute og:image URL' do
+        expect(doc.css('meta[property="og:image"]').first['content']).to match(%r{\Ahttps?://})
+      end
+
+      it 'emits twitter:card as summary_large_image when a card is present' do
+        expect(doc.css('meta[name="twitter:card"]').first&.[]('content')).to eq('summary_large_image')
+      end
+
+      # The opt-out posture (BRAND_OG_IMAGE_URL=none, or a pack carrying no card)
+      # reaches the view as a nil brand.og_image_url. Proven at the RENDER layer:
+      # the tags must be absent entirely, not emitted empty or pointing at a URL
+      # that 404s, and the card type must degrade so the preview still renders.
+      context 'with no social card' do
+        before do
+          @saved_brand   = OT.conf['brand']
+          OT.conf['brand'] = @saved_brand.merge('og_image_url' => nil)
+        end
+
+        after { OT.conf['brand'] = @saved_brand }
+
+        it 'omits og:image and twitter:image entirely' do
+          expect(doc.css('meta[property="og:image"]')).to be_empty
+          expect(doc.css('meta[name="twitter:image"]')).to be_empty
+        end
+
+        it 'degrades twitter:card to summary' do
+          expect(doc.css('meta[name="twitter:card"]').first&.[]('content')).to eq('summary')
+        end
       end
 
       it 'emits mobile web app metadata' do

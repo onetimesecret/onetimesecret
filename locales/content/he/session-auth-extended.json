@@ -292,9 +292,9 @@
     "source_hash": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "שם מפתח גישה",
+    "text": "מפתח גישה",
     "context": "Label for passkey name field",
-    "source_hash": "22eefa67"
+    "source_hash": "904c9aa9"
   },
   "web.auth.passkeys.created": {
     "text": "נוצר",
@@ -730,5 +730,232 @@
   "web.auth.sessions.session_plural": {
     "text": "הפעלות",
     "source_hash": "1225ae6c"
+  },
+  "web.auth.connections.title": {
+    "text": "זהויות מחוברות",
+    "source_hash": "e132c4d9"
+  },
+  "web.auth.connections.description": {
+    "text": "נהל את ספקי ה-SSO המקושרים לחשבון שלך.",
+    "source_hash": "42c6d148"
+  },
+  "web.auth.connections.section_title": {
+    "text": "כניסה יחידה",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.section_subtitle": {
+    "text": "ספקי זהות שבהם תוכל להשתמש כדי להיכנס לחשבון זה",
+    "source_hash": "507254cd"
+  },
+  "web.auth.connections.connect_title": {
+    "text": "חבר ספק",
+    "source_hash": "a002b3f3"
+  },
+  "web.auth.connections.connect_description": {
+    "text": "קשר ספק כניסה יחידה נוסף שבו תוכל להשתמש כדי להיכנס לחשבון זה.",
+    "source_hash": "32895a5a"
+  },
+  "web.auth.connections.connect_action": {
+    "text": "חבר {provider}",
+    "context": "Button label to start linking a specific SSO provider; {provider} is the provider display name",
+    "source_hash": "c77540af"
+  },
+  "web.auth.connections.issuer": {
+    "text": "מנפיק",
+    "source_hash": "39e02c46"
+  },
+  "web.auth.connections.identifier": {
+    "text": "מזהה",
+    "source_hash": "9b10587f"
+  },
+  "web.auth.connections.remove": {
+    "text": "הסר",
+    "source_hash": "c3812fc4"
+  },
+  "web.auth.connections.remove_confirm_title": {
+    "text": "הסר זהות מחוברת",
+    "source_hash": "4e8ffe4c"
+  },
+  "web.auth.connections.remove_confirm_message": {
+    "text": "האם אתה בטוח שברצונך להסיר זהות מחוברת זו? לא תוכל עוד להיכנס איתה.",
+    "source_hash": "64939c89"
+  },
+  "web.auth.connections.removed_success": {
+    "text": "זהות מחוברת הוסרה",
+    "source_hash": "cf87daf3"
+  },
+  "web.auth.connections.no_identities": {
+    "text": "אין זהויות מחוברות",
+    "source_hash": "5254048e"
+  },
+  "web.auth.connections.no_identities_description": {
+    "text": "עדיין לא קישרת ספקי כניסה יחידה לחשבון זה.",
+    "source_hash": "0f58d5d0"
+  },
+  "web.auth.connections.overview_status": {
+    "text": "כניסה יחידה",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.errors.last_credential": {
+    "text": "זו הדרך היחידה שלך להיכנס. חבר ספק נוסף תחילה, או הגדר סיסמה מהגדרות ← אבטחה, כדי שלא תינעל.",
+    "source_hash": "3de8084d"
+  },
+  "web.auth.connections.errors.last_credential_sso_enforced": {
+    "text": "זו הדרך היחידה שלך להיכנס. חבר ספק נוסף תחילה כדי שלא תינעל.",
+    "source_hash": "eed7a50e"
+  },
+  "web.auth.connections.errors.not_found": {
+    "text": "לא ניתן למצוא את הזהות המחוברת. ייתכן שהיא כבר הוסרה.",
+    "source_hash": "cf2c7673"
+  },
+  "web.auth.connections.errors.unauthorized": {
+    "text": "ההפעלה שלך פגה. היכנס שוב.",
+    "source_hash": "b529fce2"
+  },
+  "web.auth.connections.errors.generic": {
+    "text": "לא יכולנו להשלים פעולה זו. נסה שוב.",
+    "source_hash": "a0d4edc0"
+  },
+  "web.link_sso.title": {
+    "text": "קשר את שיטת הכניסה שלך",
+    "source_hash": "46339bac"
+  },
+  "web.link_sso.prompt": {
+    "text": "נכנסת עם {provider}, שמתאים לחשבון הקיים {email}. הזן את הסיסמה של חשבון זה כדי לקשר את {provider} ולהמשיך.",
+    "context": "Instruction on the sign-in interstitial. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/link-sso/:token.",
+    "source_hash": "59da1c08"
+  },
+  "web.link_sso.password_label": {
+    "text": "סיסמה",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.link_sso.password_placeholder": {
+    "text": "הסיסמה הקיימת שלך",
+    "source_hash": "ad4e56da"
+  },
+  "web.link_sso.submit": {
+    "text": "קשר והמשך",
+    "source_hash": "c969b759"
+  },
+  "web.link_sso.cancel": {
+    "text": "ביטול",
+    "source_hash": "19766ed6"
+  },
+  "web.link_sso.unavailable_title": {
+    "text": "בקשת הקישור פגה תוקף",
+    "source_hash": "b53c7e55"
+  },
+  "web.link_sso.unavailable_message": {
+    "text": "למען אבטחתך, הבקשה לקשר שיטת כניסה זו אינה תקפה עוד. היכנס עם הסיסמה הקיימת שלך, ואז חבר ספק זה תחת הגדרות אבטחה ← זהויות מחוברות.",
+    "source_hash": "f7e349d1"
+  },
+  "web.link_sso.unavailable_action": {
+    "text": "המשך לכניסה",
+    "source_hash": "d398cd0a"
+  },
+  "web.link_sso.errors.invalid_password": {
+    "text": "הסיסמה אינה תואמת לחשבון זה. נסה שוב.",
+    "source_hash": "3259b4f5"
+  },
+  "web.link_sso.errors.invalid_token": {
+    "text": "בקשת הקישור פגה תוקף או כבר נוצלה. היכנס עם הסיסמה הקיימת שלך, ואז חבר ספק זה מהגדרות החשבון שלך.",
+    "source_hash": "541f9127"
+  },
+  "web.link_sso.errors.link_conflict": {
+    "text": "לא יכולנו לקשר שיטת כניסה זו. ייתכן שהחשבון שלך השתנה, או שספק זה כבר מקושר לחשבון אחר. היכנס עם הסיסמה הקיימת שלך, ואז נהל חיבורים תחת הגדרות אבטחה ← זהויות מחוברות.",
+    "source_hash": "7b0e0d0e"
+  },
+  "web.link_sso.errors.link_rate_limited": {
+    "text": "יותר מדי ניסיונות סיסמה. המתן מספר דקות, ואז נסה שוב.",
+    "source_hash": "a95e78cd"
+  },
+  "web.link_sso.errors.invalid_request": {
+    "text": "לא יכולנו לעבד בקשת קישור זו. היכנס שוב עם ספק ה-SSO שלך.",
+    "source_hash": "053b9fc6"
+  },
+  "web.link_sso.errors.generic": {
+    "text": "לא יכולנו לקשר את החשבון שלך. נסה שוב.",
+    "source_hash": "f727c174"
+  },
+  "web.sso_link_confirm.title": {
+    "text": "אשר חיבור החשבון שלך",
+    "source_hash": "ad80bfe7"
+  },
+  "web.sso_link_confirm.prompt": {
+    "text": "נכנסת עם {provider}, שמתאים לחשבון שלך {email}. אשר כדי לחבר את {provider} לחשבון זה ולסיים את הכניסה.",
+    "context": "Consent instruction on the #3840 Phase 4 mailbox-proof SSO linking page. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/sso-link-confirm/:token. No password is asked — clicking the emailed link is the proof.",
+    "source_hash": "6ff0d6cc"
+  },
+  "web.sso_link_confirm.submit": {
+    "text": "אשר וחבר",
+    "source_hash": "5cf663e6"
+  },
+  "web.sso_link_confirm.cancel": {
+    "text": "ביטול",
+    "source_hash": "19766ed6"
+  },
+  "web.sso_link_confirm.unavailable_title": {
+    "text": "לא ניתן להשלים בקשת קישור זו",
+    "source_hash": "47abb784"
+  },
+  "web.sso_link_confirm.unavailable_message": {
+    "text": "למען אבטחתך, בקשה זו לחבר את שיטת הכניסה שלך אינה תקפה עוד. היכנס שוב עם הספק שלך ונשלח לך קישור חדש בדוא\"ל.",
+    "source_hash": "080e6f9f"
+  },
+  "web.sso_link_confirm.unavailable_action": {
+    "text": "חזור לכניסה",
+    "source_hash": "8504054f"
+  },
+  "web.sso_link_confirm.errors.link_expired": {
+    "text": "בקשת הקישור פגה תוקף או כבר נוצלה. היכנס שוב עם הספק שלך ונשלח לך קישור חדש בדוא\"ל.",
+    "source_hash": "a50538df"
+  },
+  "web.sso_link_confirm.errors.link_conflict": {
+    "text": "לא יכולנו לחבר שיטת כניסה זו. ייתכן שהחשבון שלך השתנה, או שספק זה כבר מקושר לחשבון אחר. היכנס שוב עם הספק שלך כדי להמשיך.",
+    "source_hash": "c954854b"
+  },
+  "web.sso_link_confirm.errors.link_invalidated": {
+    "text": "אישורי החשבון שלך השתנו לאחר שליחת קישור זה, לכן הוא אינו תקף עוד. היכנס שוב עם הספק שלך ונשלח לך קישור חדש בדוא\"ל.",
+    "source_hash": "db88cb1d"
+  },
+  "web.sso_link_confirm.errors.link_error": {
+    "text": "משהו השתבש בצד שלנו ולא יכולנו לאמת קישור זה. היכנס שוב עם הספק שלך ונשלח לך קישור חדש.",
+    "source_hash": "ec24e0a1"
+  },
+  "web.sso_link_confirm.errors.confirm_rate_limited": {
+    "text": "יותר מדי ניסיונות מהמכשיר שלך. המתן מספר דקות, ואז פתח שוב את הקישור שנשלח בדוא\"ל או היכנס עם הספק שלך לקישור חדש.",
+    "source_hash": "f29af782"
+  },
+  "web.sso_link_confirm.errors.generic": {
+    "text": "לא יכולנו לאשר חיבור זה. היכנס שוב עם הספק שלך.",
+    "source_hash": "076fa25a"
+  },
+  "web.auth.mfa.passkey_mode_active": {
+    "text": "מצב מפתח גישה פעיל",
+    "source_hash": "824dceb6"
+  },
+  "web.auth.mfa.passkey_prompt": {
+    "text": "אמת שזה אתה באמצעות מפתח גישה. המכשיר שלך יבקש טביעת אצבע, זיהוי פנים או מפתח אבטחה.",
+    "source_hash": "c0b0cbbc"
+  },
+  "web.auth.mfa.verify_with_passkey": {
+    "text": "אמת באמצעות מפתח גישה",
+    "source_hash": "4f105a30"
+  },
+  "web.auth.mfa.use_passkey": {
+    "text": "השתמש במפתח גישה במקום",
+    "source_hash": "bd6430a4"
+  },
+  "web.auth.passkeys.remove_failed": {
+    "text": "לא ניתן להסיר את מפתח הגישה",
+    "source_hash": "3e131515"
+  },
+  "web.auth.passkeys.load_failed": {
+    "text": "לא ניתן לטעון את מפתחות הגישה",
+    "source_hash": "8d704e00"
+  },
+  "web.auth.webauthn.emailRequired": {
+    "text": "הזן את כתובת הדוא״ל שלך כדי להתחבר באמצעות מפתח גישה",
+    "source_hash": "7f07647f"
   }
 }

@@ -98,5 +98,41 @@
   "web.admin.audit.result.failure": {
     "text": "Rahunga",
     "source_hash": "7031edbc"
+  },
+  "web.admin.audit.categories.secret": {
+    "text": "Ngā Karere Huna",
+    "source_hash": "d8707d41"
+  },
+  "web.admin.audit.categories.membership": {
+    "text": "Ngā Mematanga",
+    "source_hash": "b50f1a42"
+  },
+  "web.admin.audit.categories.entitlement_preview": {
+    "text": "Ngā arokite tika",
+    "source_hash": "255c5797"
+  },
+  "web.admin.audit.categories.colonel": {
+    "text": "Ngā takiuru Colonel",
+    "source_hash": "01eeeb38"
+  },
+  "web.admin.audit.filters.actorLabel": {
+    "text": "Kaimahi",
+    "source_hash": "449995c4"
+  },
+  "web.admin.audit.filters.searchButton": {
+    "text": "Rapu",
+    "source_hash": "49c266ba"
+  },
+  "web.admin.audit.filters.searchHint": {
+    "text": "Pātōhia he kaimahi, kātahi pēhia Enter, pēhia rānei Rapu kia whakahaere. Kāore te rārangi e whakahou i a koe e pato ana.",
+    "source_hash": "45eceb12"
+  },
+  "web.admin.audit.filters.pendingSearch": {
+    "text": "Kāore anō kia rapuhia — pēhia Enter, kōwhiria rānei Rapu kia tono i tēnei kaimahi.",
+    "source_hash": "f76095c2"
+  },
+  "web.admin.audit.list.contractError": {
+    "text": "I whakautu te tūmau, engari kāore ngā raraunga arotake i ōrite ki te hōputu e tūmanakohia ana. Kāore e taea te whakaatu i ngā takahanga — he hē pūrongo tēnei, ehara i te rārangi kau.",
+    "source_hash": "7f48137e"
   }
 }

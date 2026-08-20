@@ -3,8 +3,12 @@
 # frozen_string_literal: true
 
 require 'date' # ensure Date/Time constants resolve for permitted_classes
+require 'ipaddr' # check_admin_allowed_cidrs parses ADMIN_ALLOWED_CIDRS at boot
 require 'json' # String#to_json for YAML-safe BRAND_* interpolation (see brand block)
+require 'public_suffix' # validate_link_domains! parses LINK_DOMAINS entries at boot
+require_relative 'utils/admin_host_allowlist' # check_admin_allowed_hosts classifies ADMIN_ALLOWED_HOSTS at boot
 require_relative 'utils/config_resolver'
+require_relative 'utils/domain_parser'
 require_relative 'utils/enumerables'
 
 module Onetime
@@ -114,12 +118,30 @@ module Onetime
             'autoverify' => false,
             'allowed_signup_domains' => [],
           },
-          # Colonel admin surfaces network posture. allowed_cidrs empty (default)
-          # = AdminNetworkIsolation middleware is a no-op; both /colonel and
-          # /api/colonel stay reachable, gated only by the two app-layer auth
-          # layers. Set to private CIDRs on cloud to require an in-network
-          # (VPN/private) origin as defense-in-depth. See
-          # lib/onetime/middleware/admin_network_isolation.rb.
+          # Colonel admin surfaces posture, two independent factors (#4062).
+          #
+          # allowed_hosts unset (default) = the host gate falls back to the
+          # canonical ANCHOR hosts (features.domains.default / site.host) and
+          # their www. variants, so the admin surfaces stop answering on tenant
+          # custom domains and link-pool domains. `*` disables it. The gate
+          # self-disables when no configured entry is a routable hostname (the
+          # stock localhost / bare-IP posture).
+          #
+          # NO 'allowed_hosts' KEY HERE — deliberate, do not "complete" this
+          # block by adding one. deep_merge has an explicit `v2.nil? -> v1`
+          # arm, so a default would resolve unset ADMIN_ALLOWED_HOSTS (the
+          # YAML renders nil) back to that default and make the set-but-blank
+          # case (which must WARN at boot, see check_admin_allowed_hosts)
+          # indistinguishable from unset. Unset must stay nil; every consumer
+          # reads the value through AdminHostAllowlist.classify, which takes
+          # nil. Same rule as features.domains.link_domains below. (#4127)
+          #
+          # allowed_cidrs empty (default) = the network gate is a no-op; both
+          # /colonel and /api/colonel stay reachable from any IP, gated only by
+          # the two app-layer auth layers. Set to private CIDRs on cloud to
+          # require an in-network (VPN/private) origin as defense-in-depth.
+          #
+          # See lib/onetime/middleware/admin_network_isolation.rb.
           'admin' => {
             'allowed_cidrs' => [],
           },
@@ -133,6 +155,12 @@ module Onetime
             # creation is allowed regardless of the domain's verification
             # status. Canonical domains are unaffected.
             'require_verified' => false,
+            # NO 'link_domains' KEY HERE — deliberate, do not "complete" this
+            # block by adding one. deep_merge has an explicit `v2.nil? -> v1`
+            # arm, so a default would resolve unset LINK_DOMAINS back to that
+            # default and make the set-but-empty case (which must raise at
+            # boot, see validate_link_domains!) impossible to detect. Unset
+            # must stay nil. (#4063)
           },
           'incoming' => {
             'enabled' => false,
@@ -282,6 +310,29 @@ module Onetime
             layout knobs moved to site.interface.ui.header.logo (href, show_name,
             prominent — LOGO_LINK, LOGO_SHOW_NAME, LOGO_PROMINENT are unchanged).
             Legacy values are honored as fallbacks for now.
+          MSG
+        },
+        # WebAuthn sub-feature env flags joined the AUTH_ family (and switched
+        # from presence-based to == 'true' semantics). No fallback shim — the
+        # features were never functional under the old names, so the old vars
+        # are simply ignored; severity: :warn points operators at the rename
+        # without refusing boot.
+        {
+          env: 'WEBAUTHN_AUTOFILL',
+          severity: :warn,
+          message: <<~MSG.chomp,
+            WEBAUTHN_AUTOFILL is ignored. Set AUTH_WEBAUTHN_AUTOFILL=true
+            (auth: full.features.webauthn_autofill) to enable passkey autofill;
+            only the literal string 'true' enables it.
+          MSG
+        },
+        {
+          env: 'WEBAUTHN_VERIFY_ACCOUNT',
+          severity: :warn,
+          message: <<~MSG.chomp,
+            WEBAUTHN_VERIFY_ACCOUNT is ignored. Set AUTH_WEBAUTHN_VERIFY_ACCOUNT=true
+            (auth: full.features.webauthn_verify_account) to enable passkey-based
+            account verification; only the literal string 'true' enables it.
           MSG
         },
       ].freeze
@@ -618,6 +669,12 @@ module Onetime
       conf
     end
 
+    # Sentinel values for brand.og_image_url meaning "emit no social card at
+    # all" (#4150). A dedicated sentinel is needed because blank already means
+    # "unset" — see normalize_brand for why deleting the pack file is not on its
+    # own a sufficient opt-out. Compared case-insensitively after stripping.
+    OG_IMAGE_NONE = %w[none off false].freeze
+
     # Maps each brand config key to its backing env var. String fields are
     # trimmed (empty -> nil); button_text_light is coerced to a real boolean.
     BRAND_ENV = {
@@ -833,12 +890,43 @@ module Onetime
       # letting them discover it in a delivered email. Deliberately always
       # logged: this is an operational notice about mail rendering, not a
       # deprecation, so compatibility.deprecated_config_mode does not apply.
+      # rubocop:disable Style/CombinableLoops -- the loop above skips
+      # already-root-relative paths; this one must still inspect them.
       %w[logo_url logo_dark_url].each do |logo_key|
         logo_url = brand[logo_key]
         next unless logo_url && !logo_url.match?(%r{\Ahttps?://}i)
 
         OT.le "CONFIG NOTICE: brand.#{logo_key} '#{logo_url}' is not an absolute http(s) URL; " \
               'it will render in the web UI but is omitted from outbound emails.'
+      end
+      # rubocop:enable Style/CombinableLoops
+
+      # og:image resolves from the ASSET, not a hardcoded path (#4150). When the
+      # resolved pack (or the default pack it falls through to) carries
+      # social-preview.png, that file is the card; when nothing carries it, the
+      # key stays nil and the head emits no image meta tags AT ALL — never an
+      # empty tag, never one pointing at a 404. Serving and linking therefore key
+      # off the same file: StaticFiles existence-filters the URL and this resolves
+      # the tag, so a pack cannot advertise a card at a URL that serves nothing.
+      #
+      # Root-relative on purpose — the view absolutizes it against baseuri, since
+      # og:image must be absolute for social scrapers.
+      #
+      # OG_IMAGE_NONE is the explicit "no card at all" opt-out, and it is the one
+      # an install like onetimesecret.com needs. Deleting social-preview.png from
+      # your own pack is NOT sufficient by itself: a partial pack falls through to
+      # the default pack for the files it omits (that fall-through is the whole
+      # contract for every other asset), and the tracked default pack carries a
+      # card. Blank cannot serve as the opt-out either — the loop above collapses
+      # blanks to nil, which is indistinguishable from unset. So: set
+      # BRAND_OG_IMAGE_URL=none (or og_image_url: "none").
+      #
+      # Custom domains never inherit the install's card regardless of any of this
+      # — see initialize_view_vars. This switch is only the install-wide posture.
+      if OG_IMAGE_NONE.include?(brand['og_image_url'].to_s.strip.downcase)
+        brand['og_image_url'] = nil
+      elsif brand['og_image_url'].nil? && brand_pack_carries?(conf, 'social-preview.png')
+        brand['og_image_url'] = '/social-preview.png'
       end
 
       # button_text_light: light text on brand-colored buttons. Default-on;
@@ -855,6 +943,34 @@ module Onetime
       else
         raw.strip != 'false'
       end
+    end
+
+    # Whether a brand-pack asset file is actually on disk, resolved the SAME way
+    # StaticFiles serves it (#4150): the selected pack first, then the default
+    # pack it falls through to. Pure with respect to OT.conf — it reads the pack
+    # selection out of the conf hash being normalized, so it works at boot before
+    # OT.conf is installed (Onetime.brand_overlay_dir would not).
+    #
+    # Resolution happens ONCE at boot, matching the middleware, which also
+    # resolves overlay existence at boot: adding or removing a pack asset needs a
+    # restart either way, and the two must not disagree about which URLs serve.
+    #
+    # @param conf [Hash] the merged configuration
+    # @param name [String] pack-relative file name, e.g. 'social-preview.png'
+    # @return [Boolean]
+    def brand_pack_carries?(conf, name)
+      selected = Onetime.resolve_brand_pack_dir(
+        brand_assets_dir: conf.dig('site', 'brand_assets_dir'),
+        brand_pack: conf.dig('site', 'brand_pack'),
+      )
+      default  = Onetime.brand_pack_dir(Onetime::DEFAULT_BRAND_PACK)
+
+      [selected, default].compact.uniq.any? { |dir| File.exist?(File.join(dir, name)) }
+    rescue StandardError => ex
+      # Same posture as apply_brand_manifest: an unreadable pack must never abort
+      # boot. Absent means the tag is simply not emitted.
+      OT.le "[brand_pack_carries?] #{name}: #{ex.class}: #{ex.message}" if defined?(OT)
+      false
     end
 
     # Digs a key path out of a config hash, tolerating malformed intermediate
@@ -975,6 +1091,239 @@ module Onetime
       unless conf['mail'].key?('truemail')
         raise OT::ConfigError, 'No TrueMail config found'
       end
+
+      # Fires regardless of features.domains.enabled: the operator explicitly
+      # wrote LINK_DOMAINS, so a blank value is a typo worth failing loud on,
+      # and this is the only placement that runs before any feature gating.
+      validate_link_domains!(conf.dig('features', 'domains', 'link_domains'))
+
+      # Fire regardless of whether the admin surfaces are otherwise reachable:
+      # an allowlist that names unusable entries is a typo the operator has to
+      # hear about at boot rather than on the first admin request. Both WARN;
+      # neither stops the boot — see the methods.
+      check_admin_allowed_hosts(conf.dig('site', 'admin', 'allowed_hosts'))
+      check_admin_allowed_cidrs(conf.dig('site', 'admin', 'allowed_cidrs'))
+    end
+
+    # Rejects a LINK_DOMAINS that was set but yields no usable host.
+    #
+    # Takes the raw config value rather than reading OT.conf so it can be
+    # driven directly by a spec without a booted config.
+    #
+    #   nil                -> return (unset; the link picker offers the
+    #                         canonical domain, the pre-#4063 behavior)
+    #   ['a.com']          -> return
+    #   ['a.com', 'oops']  -> return (partial failure; DomainStrategy drops
+    #                         'oops' and logs it — the pool still has a host)
+    #   []                 -> raise (LINK_DOMAINS="")
+    #   ['']               -> raise (LINK_DOMAINS="  ")
+    #   ['links.internal'] -> raise (nothing parses: no usable pool)
+    #
+    # Both raising cases are the same defect wearing different clothes — the
+    # operator asked for a pool and there is none — and both must fail at boot
+    # rather than resolve to something. There is no safe fallback: offering
+    # the canonical domain contradicts the request (that internal platform
+    # host is exactly what LINK_DOMAINS exists to hide from the picker), and
+    # offering nothing leaves the picker empty. Failing loud, naming the
+    # entries, is the only honest option.
+    #
+    # NOTE: this is deliberately the OPPOSITE polarity from #4062's
+    # site.admin.allowed_hosts, where an empty list means canonical-only.
+    # An empty admin-host allowlist failing closed to canonical is safe. An
+    # empty link pool silently becoming the canonical domain hides the
+    # operator's typo and produces exactly the outcome LINK_DOMAINS exists to
+    # prevent: the internal platform host offered in the customer-facing
+    # picker. Do not "fix" one of these to match the other.
+    #
+    # Parseability is judged exactly as Middleware::DomainStrategy judges it
+    # (DomainParser.extract_hostname, then PublicSuffix with default_rule:
+    # nil), so a host that boots here is a host the middleware will serve. Keep
+    # the two in step.
+    #
+    # @param raw [Array<String>, nil] features.domains.link_domains as loaded
+    # @raise [Onetime::ConfigError] when set but blank, or set with no
+    #   parseable host
+    # @return [void]
+    def validate_link_domains!(raw)
+      return if raw.nil?
+
+      listed = Array(raw).map { |host| host.to_s.strip }.reject(&:empty?)
+      if listed.empty?
+        raise OT::ConfigError,
+          'LINK_DOMAINS (features.domains.link_domains) is set but names no host. ' \
+          'It lists the domains offered in the link picker and cannot be blank. ' \
+          'List at least one host (LINK_DOMAINS=links.example.com), or unset ' \
+          'LINK_DOMAINS entirely to offer the canonical domain.'
+      end
+
+      return if listed.any? { |host| parseable_link_domain?(host) }
+
+      raise OT::ConfigError,
+        "LINK_DOMAINS (features.domains.link_domains) #{listed.inspect} names no parseable " \
+        'domain, so the link picker would have nothing to offer. Check for typos and ' \
+        'private/internal hostnames (a host must have a public suffix, e.g. ' \
+        'links.example.com). Unset LINK_DOMAINS entirely to offer the canonical domain.'
+    end
+
+    # WARNs about a site.admin.allowed_hosts (ADMIN_ALLOWED_HOSTS, #4062) that
+    # was set but names nothing the host gate could ever match.
+    #
+    # Takes the raw config value rather than reading OT.conf so it can be
+    # driven directly by a spec without a booted config.
+    #
+    #   nil                -> silent (unset; the gate falls back to the
+    #                         canonical anchors, and goes inert on a
+    #                         localhost/bare-IP install)
+    #   [] / ['', '  ']    -> WARN (set but blank, #4127: ADMIN_ALLOWED_HOSTS=""
+    #                         or whitespace/commas only. The RUNTIME outcome is
+    #                         identical to unset — the same anchor fallback —
+    #                         but the operator WROTE an allowlist, and on a
+    #                         localhost/bare-IP install that written config
+    #                         quietly yields no host gate at all. Say so at
+    #                         boot. The nil/[] distinction is produced by the
+    #                         config template (unset renders nil) and preserved
+    #                         by DEFAULTS carrying no allowed_hosts key.)
+    #   ['*']              -> silent (the documented escape hatch: host gate
+    #                         off, the middleware WARNs about it)
+    #   ['admin.ex.com']   -> silent (enforceable)
+    #   ['*', 'admin.ex']  -> silent (the `*` turns the gate off; the sibling
+    #                         is ignored and the middleware names it)
+    #   ['127.0.0.1']      -> WARN (and the middleware denies both surfaces)
+    #   ['*.example.com']  -> WARN (ditto)
+    #
+    # WHY THIS WARNS AND validate_link_domains! RAISES — the asymmetry is
+    # deliberate, do not "harmonize" it:
+    #
+    #   LINK_DOMAINS has NO fail-closed runtime backstop. An empty or
+    #     unparseable pool silently becomes the canonical domain, i.e. the
+    #     picker offers the internal platform host LINK_DOMAINS exists to
+    #     hide. Nothing downstream can recover the operator's intent, so boot
+    #     has to stop.
+    #   ADMIN_ALLOWED_HOSTS HAS one. AdminNetworkIsolation#configured_host_gate
+    #     returns [[], true] for exactly this config — an ACTIVE gate with an
+    #     EMPTY allowlist, 404ing both admin surfaces — so the over-exposure
+    #     this check exists to prevent cannot happen whether or not the process
+    #     stops. Raising here would abort the PUBLIC site, the API and the
+    #     health endpoints over an admin-console-only typo (an
+    #     ADMIN_ALLOWED_HOSTS=10.0.0.0/8 mixup with the adjacent
+    #     ADMIN_ALLOWED_CIDRS key takes the whole deployment down). The blast
+    #     radius strictly exceeds the harm prevented.
+    #
+    # The diagnostic still fires at BOOT rather than only on the first admin
+    # request, which is the whole reason this check exists separately from the
+    # middleware: an operator who mistyped the allowlist learns it from the
+    # startup log, not from a 404 three days later.
+    #
+    # @param raw [Array<String>, nil] site.admin.allowed_hosts as loaded
+    # @return [void]
+    def check_admin_allowed_hosts(raw)
+      return if raw.nil?
+
+      classified = Onetime::Utils::AdminHostAllowlist.classify(raw)
+
+      # Set but blank (#4127). Not unenforceable? — nothing was written that
+      # could fail to enforce — and not unset either: the operator explicitly
+      # configured an allowlist and it names nothing, so their written config
+      # produced no host gate of its own. The runtime needs no change (the
+      # anchor fallback is the restrictive default, and the middleware WARNs
+      # at runtime if it goes inert), but only boot can tell the operator
+      # their blank value did not do what writing a value implies.
+      if classified.empty?
+        OT.lw 'ADMIN_ALLOWED_HOSTS (site.admin.allowed_hosts) is set but names nothing, so the admin ' \
+              'host gate falls back to the canonical anchors (features.domains.default / site.host and ' \
+              'their www. variants) exactly as if it were unset — and on a localhost or bare-IP install ' \
+              'that fallback self-disables the host gate entirely. Set it to a routable hostname the ' \
+              'deployment answers on (ADMIN_ALLOWED_HOSTS=admin.example.com), unset it entirely to take ' \
+              'the canonical-anchor fallback on purpose, or set it to * to disable the host gate deliberately.'
+        return
+      end
+
+      return unless classified.unenforceable?
+
+      described = Onetime::Utils::AdminHostAllowlist.describe_rejections(classified.rejected).join('; ')
+
+      OT.lw 'ADMIN_ALLOWED_HOSTS (site.admin.allowed_hosts) names no hostname the admin host gate ' \
+            "could ever match, so /colonel and /api/colonel return 404 to EVERY request: #{described}. " \
+            'Set it to a routable hostname the deployment answers on (ADMIN_ALLOWED_HOSTS=admin.example.com), ' \
+            'unset it entirely to allow the canonical host only (on a localhost or bare-IP install that ' \
+            'self-disables the gate instead), or set it to * to disable the host gate deliberately.'
+    end
+
+    # WARNs about site.admin.allowed_cidrs (ADMIN_ALLOWED_CIDRS) entries that
+    # do not parse as a CIDR range.
+    #
+    # Takes the raw config value rather than reading OT.conf so it can be
+    # driven directly by a spec without a booted config.
+    #
+    #   nil / []                  -> silent (no network gate; the opt-in
+    #                                default)
+    #   ['100.64.0.0/10']         -> silent (enforceable)
+    #   ['garbage', '10.0.0.0/8'] -> WARN (the bad entry is dropped; the
+    #                                survivors enforce)
+    #   ['garbage']               -> WARN (the gate stays ACTIVE with no range:
+    #                                both surfaces 404 on every request)
+    #
+    # WARN, not raise, for the same reason as check_admin_allowed_hosts above:
+    # the runtime is already fail-closed.
+    # AdminNetworkIsolation#unusable_network_gate keeps a configured list whose
+    # every entry is unparseable ACTIVE with an EMPTY range set, so the
+    # over-exposure a raise would prevent cannot happen — while raising would
+    # abort the public site over an admin-only typo. What fail-closed cannot do
+    # is tell the operator: without this check the first symptom is an admin
+    # console dark on every request, including from inside the range they
+    # meant.
+    #
+    # Rescues exactly what the middleware's parse rescues
+    # (IPAddr::InvalidAddressError, which covers bad prefixes too), so this
+    # warns about precisely the entries AdminNetworkIsolation will drop.
+    #
+    # @param raw [Array<String>, nil] site.admin.allowed_cidrs as loaded
+    # @return [void]
+    def check_admin_allowed_cidrs(raw)
+      entries   = Array(raw).map { |cidr| cidr.to_s.strip }.reject(&:empty?)
+      malformed = entries.reject { |entry| parseable_cidr?(entry) }
+      return if malformed.empty?
+
+      described = malformed.join(', ')
+
+      if malformed.size == entries.size
+        OT.lw 'ADMIN_ALLOWED_CIDRS (site.admin.allowed_cidrs) has no entry that parses as a CIDR ' \
+              "range, so /colonel and /api/colonel return 404 to EVERY request: #{described}. " \
+              'Fix the entries (ADMIN_ALLOWED_CIDRS=100.64.0.0/10,10.0.0.0/8), or unset it entirely ' \
+              'to leave the network gate off.'
+      else
+        OT.lw 'ADMIN_ALLOWED_CIDRS (site.admin.allowed_cidrs) has entries that do not parse as a ' \
+              "CIDR range and are ignored: #{described}. Only the remaining entries are enforced. " \
+              'Fix or remove the unparseable ones (ADMIN_ALLOWED_CIDRS=100.64.0.0/10,10.0.0.0/8).'
+      end
+    end
+
+    # Whether one allowlist entry parses as a CIDR range (or single address).
+    # Same parse, same rescue as AdminNetworkIsolation#parse_allowed_cidrs.
+    #
+    # @param entry [String]
+    # @return [Boolean]
+    def parseable_cidr?(entry)
+      IPAddr.new(entry)
+      true
+    rescue IPAddr::InvalidAddressError
+      false
+    end
+
+    # Whether a configured link-pool host survives the same parse the
+    # DomainStrategy middleware applies. Any parse failure is a rejection —
+    # this runs at boot, where a raised exception would be reported as an
+    # unrelated crash rather than the config error it is.
+    #
+    # @param host [String]
+    # @return [Boolean]
+    def parseable_link_domain?(host)
+      hostname = Onetime::Utils::DomainParser.extract_hostname(host)
+      return false if hostname.nil?
+
+      PublicSuffix.valid?(hostname, default_rule: nil)
+    rescue StandardError
+      false
     end
 
     # True when this process can participate in the Vite dev-server workflow:

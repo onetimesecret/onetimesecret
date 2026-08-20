@@ -13,8 +13,10 @@ module ColonelAPI
       # @api Returns the ACTIVE transport provider's live deliverability status:
       #   SES → enforcement tier + rolling 24h quota (no numeric rate on SESv2);
       #   Lettermint → 30-day sent/delivered/bounce/complaint counts + rates
-      #   computed in Ruby. Non-live transports (logger/smtp/sendgrid/disabled)
-      #   return capability=false. Requires colonel role.
+      #   computed in Ruby; SMTP2GO → current-billing-cycle quota + provider-
+      #   reported bounce/spam counts and rates. Non-live transports
+      #   (logger/smtp/sendgrid/disabled) return capability=false. Requires
+      #   colonel role.
       #
       # Read-only: nothing here mutates, so nothing is audited (CONTRACT 4).
       # Fail-soft: the op never raises — a provider timeout degrades the payload

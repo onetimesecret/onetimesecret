@@ -116,6 +116,10 @@ RSpec.describe Core::Views::ConfigSerializer do
       sso_enabled?: false,
       sso_only_enabled?: false,
       restrict_to: nil,
+      # Post-boot availability of the global restriction
+      # (ADR-034#degradation-is-fail-closed): the
+      # serializer now hands it to the resolver instead of ignoring it (#4139).
+      restrict_to_available?: true,
       sso_providers: [],
       allow_platform_fallback_for_tenants?: false
     )
@@ -566,7 +570,7 @@ RSpec.describe Core::Views::ConfigSerializer do
         end
 
         before do
-          allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+          allow(Onetime::CustomDomain).to receive(:from_display_domain)
             .with(custom_display_domain)
             .and_return(custom_domain_obj)
           allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
@@ -618,7 +622,7 @@ RSpec.describe Core::Views::ConfigSerializer do
         end
 
         before do
-          allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+          allow(Onetime::CustomDomain).to receive(:from_display_domain)
             .with(custom_display_domain)
             .and_return(custom_domain_obj)
           allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
@@ -673,7 +677,7 @@ RSpec.describe Core::Views::ConfigSerializer do
         end
 
         before do
-          allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+          allow(Onetime::CustomDomain).to receive(:from_display_domain)
             .with(custom_display_domain)
             .and_return(custom_domain_obj)
           allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
@@ -714,7 +718,7 @@ RSpec.describe Core::Views::ConfigSerializer do
 
       context 'when tenant has no CustomDomain::SsoConfig' do
         before do
-          allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+          allow(Onetime::CustomDomain).to receive(:from_display_domain)
             .with(custom_display_domain)
             .and_return(custom_domain_obj)
           allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
@@ -799,7 +803,7 @@ RSpec.describe Core::Views::ConfigSerializer do
         end
 
         before do
-          allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+          allow(Onetime::CustomDomain).to receive(:from_display_domain)
             .with(custom_display_domain)
             .and_return(custom_domain_obj)
           allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
@@ -818,7 +822,7 @@ RSpec.describe Core::Views::ConfigSerializer do
 
       context 'when CustomDomain lookup fails (Redis error)' do
         before do
-          allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+          allow(Onetime::CustomDomain).to receive(:from_display_domain)
             .and_raise(Redis::ConnectionError.new('Connection refused'))
           allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
           allow(mock_auth_config).to receive(:sso_enabled?).and_return(true)
@@ -851,8 +855,8 @@ RSpec.describe Core::Views::ConfigSerializer do
     end
 
     before do
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(nil)
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+      allow(Onetime::CustomDomain).to receive(:from_display_domain).and_return(nil)
+      allow(Onetime::CustomDomain).to receive(:from_display_domain)
         .with(custom_display_domain)
         .and_return(custom_domain_obj)
       allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
@@ -901,7 +905,7 @@ RSpec.describe Core::Views::ConfigSerializer do
     end
 
     before do
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+      allow(Onetime::CustomDomain).to receive(:from_display_domain)
         .with(custom_display_domain)
         .and_return(custom_domain_obj)
       allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
@@ -949,9 +953,14 @@ RSpec.describe Core::Views::ConfigSerializer do
     end
 
     before do
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+      allow(Onetime::CustomDomain).to receive(:from_display_domain)
         .with(custom_display_domain)
         .and_return(custom_domain_obj)
+      # Canonical requests resolve no domain — stubbed so the canonical
+      # characterization examples below do not depend on datastore state.
+      allow(Onetime::CustomDomain).to receive(:from_display_domain)
+        .with(canonical_domain)
+        .and_return(nil)
       allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
         .with(domain_id)
         .and_return(nil)
@@ -981,6 +990,232 @@ RSpec.describe Core::Views::ConfigSerializer do
       it "does not pin restrict_to to 'sso'" do
         result = described_class.resolve_restrict_to(custom_domain_view_vars)
         expect(result).to be_nil
+      end
+    end
+
+    # An ENABLED domain SigninConfig replaces the global restrict_to — except
+    # for 'webauthn', which can never be honored on a custom domain (passkey
+    # rp_id is host-scoped, so canonical-host credentials cannot assert here;
+    # a passkey-only page would lock every visitor out). Persisted 'webauthn'
+    # resolves to the fail-closed :unavailable state
+    # (ADR-034#degradation-is-fail-closed). The legacy
+    # scalar remains null — NOT the tenant 'sso' pin — while the companion
+    # effective_restrict_to field carries the explicit resolver state.
+    context 'with an enabled domain SigninConfig' do
+      # These examples are about which restriction the serializer REPORTS, so
+      # the host's capabilities are stood up as available: AUTH_SIGNIN on
+      # (the file-level stub carries only the master switch) and the
+      # email-auth feature on. Without them the fail-closed derivation below
+      # (ADR-034#degradation-is-fail-closed) correctly
+      # answers :unavailable for every method and the examples stop testing
+      # what they are named for.
+      before do
+        allow(OT).to receive(:conf).and_return(
+          { 'site' => { 'authentication' => { 'enabled' => true, 'signin' => true } } }
+        )
+        allow(mock_auth_config).to receive(:email_auth_enabled?).and_return(true)
+      end
+
+      # The resolver DERIVES whether the named method can run on this host
+      # (ADR-034#degradation-is-fail-closed domain half), so the double must
+      # answer the capability questions
+      # restriction_available_for_custom_domain? asks: the domain's
+      # own opt-ins, and its identifier for the SSO ladder.
+      def stub_signin_config(restrict_to)
+        config = instance_double(
+          Onetime::CustomDomain::SigninConfig,
+          domain_id: domain_id,
+          enabled?: true,
+          signin_enabled?: true,
+          email_auth_enabled?: true,
+          sso_enabled?: true,
+          restrict_to: restrict_to
+        )
+        allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
+          .with(domain_id)
+          .and_return(config)
+      end
+
+      it "keeps persisted restrict_to='webauthn' null in the legacy scalar projection" do
+        stub_signin_config('webauthn')
+
+        expect(described_class.resolve_restrict_to(custom_domain_view_vars)).to be_nil
+      end
+
+      it 'passes other persisted restrictions through verbatim' do
+        stub_signin_config('password')
+        expect(described_class.resolve_restrict_to(custom_domain_view_vars)).to eq('password')
+
+        stub_signin_config('email_auth')
+        expect(described_class.resolve_restrict_to(custom_domain_view_vars)).to eq('email_auth')
+
+        stub_signin_config('sso')
+        expect(described_class.resolve_restrict_to(custom_domain_view_vars)).to eq('sso')
+      end
+
+      it 'keeps an unrestricted enabled config at nil' do
+        stub_signin_config(nil)
+
+        expect(described_class.resolve_restrict_to(custom_domain_view_vars)).to be_nil
+      end
+
+      # ADR-034#resolution-is-model-owned / #degradation-is-fail-closed: the
+      # legacy scalar is string-or-null, while the explicit resolver wire
+      # object preserves "unavailable" for display consumers.
+      it "reports 'webauthn' as unavailable on the resolution object" do
+        stub_signin_config('webauthn')
+
+        resolution = described_class.restrict_to_resolution(custom_domain_view_vars)
+
+        expect(resolution).to be_unavailable
+        expect(resolution).not_to be_unrestricted
+        expect(resolution.restrict_to).to eq('webauthn')
+        expect(resolution.allows?('password')).to be false
+        expect(resolution.allows?('webauthn')).to be false
+      end
+
+      it 'serializes the unavailable resolution into bootstrap features' do
+        stub_signin_config('webauthn')
+
+        features = described_class.build_feature_flags(custom_domain_view_vars)
+
+        expect(features['restrict_to']).to be_nil
+        expect(features['effective_restrict_to']).to eq(
+          'state' => 'unavailable',
+          'restrict_to' => 'webauthn',
+          'source' => 'domain'
+        )
+      end
+
+      it 'attributes an honored domain restriction to the domain layer' do
+        stub_signin_config('password')
+
+        resolution = described_class.restrict_to_resolution(custom_domain_view_vars)
+
+        expect(resolution).to be_restricted
+        expect(resolution.source).to eq(:domain)
+        expect(resolution.allows?('password')).to be true
+        expect(resolution.allows?('sso')).to be false
+      end
+    end
+
+    # Characterization of the pre-extraction behavior
+    # (ADR-034#resolution-is-model-owned): the
+    # serializer is now a consumer of SigninConfig.resolve_restrict_to, and
+    # these cases pin the wire output it produced before that refactor.
+    context 'on a canonical request' do
+      it 'passes the global restriction through' do
+        allow(mock_auth_config).to receive(:restrict_to).and_return('password')
+
+        expect(described_class.resolve_restrict_to(base_view_vars)).to eq('password')
+      end
+
+      it 'is nil when nothing is restricted globally' do
+        allow(mock_auth_config).to receive(:restrict_to).and_return(nil)
+
+        expect(described_class.resolve_restrict_to(base_view_vars)).to be_nil
+      end
+
+      it 'never applies the tenant SSO pin' do
+        allow(mock_auth_config).to receive(:restrict_to).and_return(nil)
+        allow(described_class).to receive(:sso_available?).and_return(true)
+
+        expect(described_class.resolve_restrict_to(base_view_vars)).to be_nil
+      end
+    end
+
+    context 'with a domain SigninConfig whose master switch is off' do
+      before do
+        config = instance_double(
+          Onetime::CustomDomain::SigninConfig,
+          enabled?: false,
+          restrict_to: 'password'
+        )
+        allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
+          .with(domain_id)
+          .and_return(config)
+      end
+
+      it 'ignores the domain restriction and takes the tenant SSO pin' do
+        expect(described_class.resolve_restrict_to(custom_domain_view_vars)).to eq('sso')
+      end
+
+      # The inherited global restriction still stands (the domain's own
+      # restriction is ignored while its master switch is off), but it names a
+      # method this host cannot run: email-auth defaults OFF on a custom domain
+      # and this config never opted in. So the page reports :unavailable — the
+      # same answer Auth::RestrictTo gives, which 404s those routes (#4139).
+      # The legacy string-or-null scalar cannot express :unavailable and
+      # projects to nil; effective_restrict_to carries the real state.
+      it 'inherits the global restriction and fails it closed for this host' do
+        allow(mock_auth_config).to receive(:sso_enabled?).and_return(false)
+        allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(false)
+        allow(mock_auth_config).to receive(:restrict_to).and_return('email_auth')
+
+        resolution = described_class.restrict_to_resolution(custom_domain_view_vars)
+
+        expect(resolution).to be_unavailable
+        expect(resolution.restrict_to).to eq('email_auth')
+        expect(resolution.source).to eq(:global)
+        expect(described_class.resolve_restrict_to(custom_domain_view_vars)).to be_nil
+      end
+    end
+
+    # The point of ADR-034#resolution-is-model-owned: one owner. If this
+    # delegation is ever inlined again the three gates drift apart, which is
+    # the failure mode that decision exists to prevent.
+    it 'delegates resolution to the model resolver' do
+      allow(mock_auth_config).to receive(:restrict_to).and_return('password')
+
+      expect(Onetime::CustomDomain::SigninConfig).to receive(:resolve_restrict_to)
+        .with('password', nil, available: true)
+        .and_call_original
+
+      expect(described_class.resolve_restrict_to(base_view_vars)).to eq('password')
+    end
+
+    # ADR-034#degradation-is-fail-closed, post-boot half (#4139). Before
+    # this, the serializer was the one consumer that never applied
+    # restrict_to_available? at all: the route
+    # gate had already gone dark while this page still rendered the restricted
+    # method's form. The flag now rides into the resolver, so display and gate
+    # degrade together.
+    context 'when the global restriction became unavailable after boot' do
+      before do
+        allow(mock_auth_config).to receive(:restrict_to).and_return('password')
+        allow(mock_auth_config).to receive(:restrict_to_available?).and_return(false)
+      end
+
+      it 'hands the availability flag to the resolver' do
+        expect(Onetime::CustomDomain::SigninConfig).to receive(:resolve_restrict_to)
+          .with('password', nil, available: false)
+          .and_call_original
+
+        described_class.restrict_to_resolution(base_view_vars)
+      end
+
+      it 'resolves :unavailable rather than the restricted method' do
+        resolution = described_class.restrict_to_resolution(base_view_vars)
+
+        expect(resolution).to be_unavailable
+        expect(resolution.restrict_to).to eq('password')
+        expect(resolution.source).to eq(:global)
+        expect(resolution.allows?('password')).to be false
+      end
+
+      it 'never widens to standard mode when nothing is restricted' do
+        allow(mock_auth_config).to receive(:restrict_to).and_return(nil)
+
+        resolution = described_class.restrict_to_resolution(base_view_vars)
+
+        expect(resolution).to be_unrestricted
+        expect(resolution.allows?('password')).to be true
+      end
+
+      it 'does not apply to the tenant SSO pin, which is a host property' do
+        # The pin is not the operator's configured restriction, so AuthConfig's
+        # availability verdict about that restriction must not reach it.
+        expect(described_class.resolve_restrict_to(custom_domain_view_vars)).to eq('sso')
       end
     end
   end
@@ -1253,7 +1488,43 @@ RSpec.describe Core::Views::ConfigSerializer do
             expect(result['secret_activity']).to eq(
               'collect_enabled' => true,
               'max_events' => 10_000,
+              'geo_country_enabled' => false,
             )
+          end
+        end
+
+        # geo_country_enabled is the DEFAULT-OFF (opt-in) inverse of the flags
+        # above: only an explicit true enables the org Secret Activity country
+        # column, gated pending counsel review (#3989; ADR-021 Decision 4).
+        describe 'geo_country_enabled (default-OFF opt-in contract)' do
+          it 'is false when the key is absent' do
+            result = described_class.build_feature_flags(base_view_vars)
+
+            expect(result['secret_activity']['geo_country_enabled']).to be false
+          end
+
+          it 'is true only when explicitly true' do
+            result = described_class.build_feature_flags(
+              view_vars_with_secret_activity('geo_country_enabled' => true)
+            )
+
+            expect(result['secret_activity']['geo_country_enabled']).to be true
+          end
+
+          it "enables on the string 'true' (ERB-stringified config)" do
+            result = described_class.build_feature_flags(
+              view_vars_with_secret_activity('geo_country_enabled' => 'true')
+            )
+
+            expect(result['secret_activity']['geo_country_enabled']).to be true
+          end
+
+          it 'stays false for explicit false' do
+            result = described_class.build_feature_flags(
+              view_vars_with_secret_activity('geo_country_enabled' => false)
+            )
+
+            expect(result['secret_activity']['geo_country_enabled']).to be false
           end
         end
 
@@ -1358,7 +1629,7 @@ RSpec.describe Core::Views::ConfigSerializer do
       end
 
       before do
-        allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+        allow(Onetime::CustomDomain).to receive(:from_display_domain)
           .with(custom_display_domain)
           .and_return(custom_domain_obj)
       end
@@ -1384,7 +1655,7 @@ RSpec.describe Core::Views::ConfigSerializer do
 
     context 'when CustomDomain not found' do
       before do
-        allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+        allow(Onetime::CustomDomain).to receive(:from_display_domain)
           .and_return(nil)
       end
 
@@ -1395,6 +1666,68 @@ RSpec.describe Core::Views::ConfigSerializer do
         result = described_class.resolve_domain_id(vars)
         expect(result).to be_nil
       end
+    end
+
+    context 'when CustomDomain lookup fails (Redis error)' do
+      before do
+        allow(OT).to receive(:le)
+        allow(Onetime::CustomDomain).to receive(:from_display_domain)
+          .and_raise(Redis::ConnectionError.new('Connection refused'))
+      end
+
+      it 'returns DOMAIN_READ_FAILED sentinel (#4157)' do
+        vars = base_view_vars.merge(
+          'domain_strategy' => :custom,
+          'display_domain' => 'tenant.example.com'
+        )
+        result = described_class.resolve_domain_id(vars)
+        expect(result).to eq(described_class::DOMAIN_READ_FAILED)
+      end
+
+      # DomainStrategy publishes display_domain unconditionally (canonical
+      # fallback), so the canonical render reaches this same read — and must
+      # not be told the tenant policy is unknown, which would strip its own
+      # sign-in affordances during a blip.
+      it 'returns nil, not the sentinel, on an operator host' do
+        vars = base_view_vars.merge(
+          'domain_strategy' => :canonical,
+          'display_domain' => canonical_domain
+        )
+        expect(described_class.resolve_domain_id(vars)).to be_nil
+      end
+    end
+  end
+
+  describe 'tri-state domain resolution (#4157)' do
+    let(:custom_domain_view_vars) do
+      base_view_vars.merge(
+        'domain_strategy' => :custom,
+        'display_domain' => custom_display_domain,
+        'site' => { 'authentication' => { 'enabled' => true, 'signin' => true } },
+      )
+    end
+
+    before do
+      allow(Onetime::CustomDomain).to receive(:from_display_domain)
+        .and_raise(Redis::ConnectionError.new('Connection refused'))
+      allow(mock_auth_config).to receive(:email_auth_enabled?).and_return(true)
+      allow(mock_auth_config).to receive(:restrict_to).and_return(nil)
+    end
+
+    it 'resolve_signin returns false on read failure (narrowest surface)' do
+      result = described_class.resolve_signin(custom_domain_view_vars)
+      expect(result).to be(false)
+    end
+
+    it 'resolve_email_auth returns false on read failure' do
+      result = described_class.resolve_email_auth(custom_domain_view_vars)
+      expect(result).to be(false)
+    end
+
+    it 'restrict_to_resolution returns :unavailable on read failure' do
+      result = described_class.restrict_to_resolution(custom_domain_view_vars)
+      expect(result.unavailable?).to be(true)
+      expect(result.source).to eq(:domain_read_failed)
     end
   end
 

@@ -57,10 +57,18 @@ import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import IncomingForm from '@/apps/secret/conceal/IncomingForm.vue';
 
 const LOGO_URL = 'https://cdn.example.com/imagine/ext123/logo.png';
+const DARK_LOGO_URL = 'https://cdn.example.com/imagine/ext123/logo-dark.png';
 
-async function mountIncoming(domainLogo: string | null) {
+async function mountIncoming(
+  domainLogo: string | null,
+  domainBranding: Record<string, unknown> | null = null
+) {
   const bootstrap = useBootstrapStore();
-  bootstrap.$patch({ domain_strategy: 'custom', domain_logo: domainLogo });
+  bootstrap.$patch({
+    domain_strategy: 'custom',
+    domain_logo: domainLogo,
+    domain_branding: domainBranding,
+  });
   const wrapper = mount(IncomingForm, {
     global: { plugins: [createTestI18n()] },
   });
@@ -99,5 +107,22 @@ describe('IncomingForm custom-domain header', () => {
     expect(wrapper.find('img').exists()).toBe(false);
     // Title still renders — the no-logo page is title + subtitle + form.
     expect(wrapper.findAll('h1')).toHaveLength(1);
+  });
+
+  it('renders the tenant dark logo variant (BrandMark dark swap) when configured', async () => {
+    const wrapper = await mountIncoming(LOGO_URL, { logo_dark_url: DARK_LOGO_URL });
+
+    const dark = wrapper.find('[data-testid="logo-dark"]');
+    expect(dark.exists()).toBe(true);
+    expect(dark.attributes('src')).toBe(DARK_LOGO_URL);
+    // The light logo is swapped out in dark mode via BrandMark.
+    expect(wrapper.findAll('img')[0].classes()).toContain('dark:hidden');
+  });
+
+  it('renders only the light logo when no dark variant is configured', async () => {
+    const wrapper = await mountIncoming(LOGO_URL);
+
+    expect(wrapper.find('[data-testid="logo-dark"]').exists()).toBe(false);
+    expect(wrapper.findAll('img')).toHaveLength(1);
   });
 });

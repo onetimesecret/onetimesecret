@@ -694,5 +694,33 @@
   "web.settings.security.sso_managed_description": {
     "text": "Twoje konto jest uwierzytelniane za pośrednictwem dostawcy jednokrotnego logowania Twojej organizacji. Hasło, uwierzytelnianie wieloskładnikowe oraz kody odzyskiwania są zarządzane przez Twojego dostawcę tożsamości.",
     "source_hash": "cd0cf39f"
+  },
+  "web.settings.api.api_username": {
+    "text": "Nazwa użytkownika API",
+    "source_hash": "0b3e483e"
+  },
+  "web.settings.api.api_username_description": {
+    "text": "Twoja nazwa użytkownika do uwierzytelniania HTTP Basic",
+    "source_hash": "f3e65de3"
+  },
+  "web.settings.api.basic_auth_hint": {
+    "text": "W przypadku uwierzytelniania HTTP Basic użyj adresu e-mail konta lub tego identyfikatora jako nazwy użytkownika, a tokenu API jako hasła.",
+    "source_hash": "cfa3806d"
+  },
+  "web.settings.security.set": {
+    "text": "Ustawione",
+    "source_hash": "b6f6f3ad"
+  },
+  "web.settings.security.not_set": {
+    "text": "Nieustawione",
+    "source_hash": "4895f731"
+  },
+  "web.settings.security.set_password_title": {
+    "text": "Ustaw hasło",
+    "source_hash": "4e411687"
+  },
+  "web.settings.security.set_password_description": {
+    "text": "Dodaj hasło do swojego konta, aby móc logować się także bez dostawcy tożsamości",
+    "source_hash": "a6970402"
   }
 }

@@ -28,6 +28,7 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import type { ScopeSwitcherItem } from '@/shared/components/navigation/scopeSwitcher';
 import ScopeSwitcher from '@/shared/components/navigation/ScopeSwitcher.vue';
 import { useDomainContext } from '@/shared/composables/useDomainContext';
+import { normalizeDomainHost } from '@/shared/utils/domain-host';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { ENTITLEMENTS } from '@/types/organization';
@@ -85,13 +86,14 @@ const isCurrentContext = (domain: string): boolean => domain === currentContext.
 
 /**
  * Check if a domain option should be disabled.
- * Canonical domain is disabled when onDomainSwitch requires navigation
- * (since canonical has no extid and no settings page).
+ * A domain with no extid (the canonical domain, or an operator link-pool
+ * entry from LINK_DOMAINS) is disabled when onDomainSwitch requires
+ * navigation, since there is no :extid to navigate with.
  */
 const isOptionDisabled = (domain: string): boolean => {
   const extid = getExtidByDomain(domain);
   if (!extid && onDomainSwitch.value) {
-    // Canonical domain can't navigate when onDomainSwitch requires :extid
+    // Extid-less domains can't navigate when onDomainSwitch requires :extid
     return onDomainSwitch.value === 'same' || onDomainSwitch.value.includes(':extid');
   }
   return false;
@@ -114,14 +116,55 @@ const canManageDomains = computed(() => {
 });
 
 /**
- * Stable id for a domain row: its extid, or the 'canonical' sentinel for the
- * canonical domain (which never carries an extid).
+ * The canonical link domain, for row copy only (never for identity).
+ * Note it is NOT necessarily selectable: with LINK_DOMAINS (#4063) an operator
+ * can keep the canonical host out of the picker entirely, and on a branded
+ * host it is dropped from the pool outright.
+ *
+ * Normalized through the same helper useDomainContext applies to
+ * `availableDomains`, so a port-bearing `site.host` still matches the row it
+ * names (`localhost:3000` vs `localhost`).
  */
-const idForDomain = (domain: string): string => getExtidByDomain(domain) ?? 'canonical';
+const canonicalDomain = computed<string>(() =>
+  normalizeDomainHost(bootstrapStore.canonical_domain || bootstrapStore.site_host)
+);
 
-/** Resolve a row id back to its domain string. */
+/**
+ * Stable id for a domain row.
+ *
+ * Custom domains identify by extid. Every other row — the canonical domain and
+ * each operator link-pool entry (LINK_DOMAINS, #4063) — has no extid, so it
+ * identifies by its own hostname under a `link:` prefix. The prefix keeps the
+ * two id spaces from ever colliding.
+ *
+ * This used to be a single `'canonical'` sentinel, which was safe only while
+ * at most ONE row lacked an extid. A multi-entry link pool broke that: every
+ * pool row collapsed onto the same id, so `domainForId` always resolved to the
+ * first of them and selecting any later pool domain silently selected the
+ * first (and `isCurrent` / the ScopeSwitcher `:key` went with it).
+ */
+const idForDomain = (domain: string): string => getExtidByDomain(domain) ?? `link:${domain}`;
+
+/**
+ * Resolve a row id back to its domain string.
+ *
+ * Deliberately inverts `idForDomain` by search rather than by parsing the
+ * `link:` prefix, so the two directions can never disagree about which row an
+ * id names — including for a pool domain that is ALSO a registered custom
+ * domain, which appears once, in its custom slot, keyed by its extid.
+ */
 const domainForId = (id: string): string | undefined =>
   availableDomains.value.find((domain) => idForDomain(domain) === id);
+
+/**
+ * Tooltip for a disabled (extid-less) row. Only the canonical domain gets the
+ * "default domain" wording; an operator link-pool entry is not the default
+ * domain and must not claim to be.
+ */
+const disabledReasonForDomain = (domain: string): string =>
+  domain === canonicalDomain.value
+    ? t('web.domains.canonical_no_settings')
+    : t('web.domains.link_domain_no_settings');
 
 /**
  * The normalized rows handed to the engine. The engine never sees a raw domain.
@@ -132,15 +175,16 @@ const domainItems = computed<ScopeSwitcherItem[]>(() =>
     label: getDomainDisplayName(domain),
     isCurrent: isCurrentContext(domain),
     disabled: isOptionDisabled(domain),
-    disabledReason: t('web.domains.canonical_no_settings'),
+    disabledReason: disabledReasonForDomain(domain),
     // Gear shows for owners/admins on custom domains (which carry an extid).
     hasSettings: canManageDomains.value && !!getExtidByDomain(domain),
   }))
 );
 
 /**
- * Number of custom (non-canonical) domains in the current org context.
- * Custom domains always carry an extid; the canonical domain never does.
+ * Number of custom domains in the current org context.
+ * Custom domains always carry an extid; the canonical domain and operator
+ * link-pool entries never do.
  */
 const customDomainCount = computed(
   () => availableDomains.value.filter((domain) => getExtidByDomain(domain)).length
@@ -236,7 +280,8 @@ const onOpenSettings = (id: string): void => {
   if (extid && currentOrgExtid.value) {
     router.push(`/org/${currentOrgExtid.value}/domains/${extid}`);
   }
-  // Canonical domain has no extid and no settings page
+  // Extid-less rows (canonical domain, operator link-pool entries) have no
+  // settings page to open.
 };
 
 /**

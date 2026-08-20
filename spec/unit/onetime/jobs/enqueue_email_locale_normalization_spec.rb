@@ -23,6 +23,7 @@
 
 require 'spec_helper'
 require 'organizations/logic'
+require 'onetime/operations/org/delete'
 require 'auth/operations/disable_mfa'
 # Handlers self-register with ProcessWebhookEvent when their class body loads.
 require 'billing/operations/process_webhook_event'
@@ -39,12 +40,18 @@ RSpec.describe 'Email enqueue locale normalization (#3812)' do
     captured
   end
 
-  describe 'OrganizationAPI::Logic::Organizations::DeleteOrganization#notify_members_deleted' do
+  # #4204 moved this enqueue site OUT of the DeleteOrganization logic class and
+  # into the shared op that every delete adapter (CLI, colonel, customer API)
+  # now runs. The normalization rule travelled with it, and this is still the
+  # only place it is pinned.
+  describe 'Onetime::Operations::Org::Delete#notify_members_deleted' do
     # Recipient locales are captured from member records before deletion, so a
     # blank stored locale arrives here as "" inside the recipients hash.
-    let(:logic) do
-      instance = OrganizationAPI::Logic::Organizations::DeleteOrganization.allocate
-      instance.instance_variable_set(:@cust, double('Customer', email: 'owner@example.com'))
+    let(:operation) do
+      instance = Onetime::Operations::Org::Delete.allocate
+      instance.instance_variable_set(:@display_name, 'Doomed Org')
+      instance.instance_variable_set(:@actor, 'owner@example.com')
+      instance.instance_variable_set(:@deleted_by, nil)
       instance
     end
 
@@ -56,8 +63,9 @@ RSpec.describe 'Email enqueue locale normalization (#3812)' do
         { email: 'missing@example.com', locale: nil },
         { email: 'set@example.com', locale: 'de' },
       ]
+      operation.instance_variable_set(:@recipients, recipients)
 
-      logic.send(:notify_members_deleted, recipients, 'Doomed Org')
+      operation.send(:notify_members_deleted)
 
       expect(captured.map { |payload| payload[:locale] })
         .to eq([OT.default_locale, OT.default_locale, OT.default_locale, 'de'])

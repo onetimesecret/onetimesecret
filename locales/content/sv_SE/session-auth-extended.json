@@ -292,9 +292,9 @@
     "source_hash": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "Nyckelnamn",
+    "text": "Nyckel",
     "context": "Label for passkey name field",
-    "source_hash": "22eefa67"
+    "source_hash": "904c9aa9"
   },
   "web.auth.passkeys.created": {
     "text": "Skapad",
@@ -730,5 +730,232 @@
   "web.auth.sessions.session_plural": {
     "text": "sessioner",
     "source_hash": "1225ae6c"
+  },
+  "web.auth.connections.title": {
+    "text": "Anslutna identiteter",
+    "source_hash": "e132c4d9"
+  },
+  "web.auth.connections.description": {
+    "text": "Hantera de enkel-inloggningsleverantörer som är länkade till ditt konto.",
+    "source_hash": "42c6d148"
+  },
+  "web.auth.connections.section_title": {
+    "text": "Enkel inloggning",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.section_subtitle": {
+    "text": "Identitetsleverantörer du kan använda för att logga in på detta konto",
+    "source_hash": "507254cd"
+  },
+  "web.auth.connections.connect_title": {
+    "text": "Anslut en leverantör",
+    "source_hash": "a002b3f3"
+  },
+  "web.auth.connections.connect_description": {
+    "text": "Länka en annan enkel-inloggningsleverantör du kan använda för att logga in på detta konto.",
+    "source_hash": "32895a5a"
+  },
+  "web.auth.connections.connect_action": {
+    "text": "Anslut {provider}",
+    "context": "Button label to start linking a specific SSO provider; {provider} is the provider display name",
+    "source_hash": "c77540af"
+  },
+  "web.auth.connections.issuer": {
+    "text": "Utfärdare",
+    "source_hash": "39e02c46"
+  },
+  "web.auth.connections.identifier": {
+    "text": "Identifierare",
+    "source_hash": "9b10587f"
+  },
+  "web.auth.connections.remove": {
+    "text": "Ta bort",
+    "source_hash": "c3812fc4"
+  },
+  "web.auth.connections.remove_confirm_title": {
+    "text": "Ta bort ansluten identitet",
+    "source_hash": "4e8ffe4c"
+  },
+  "web.auth.connections.remove_confirm_message": {
+    "text": "Är du säker på att du vill ta bort denna anslutna identitet? Du kommer inte längre att kunna logga in med den.",
+    "source_hash": "64939c89"
+  },
+  "web.auth.connections.removed_success": {
+    "text": "Ansluten identitet borttagen",
+    "source_hash": "cf87daf3"
+  },
+  "web.auth.connections.no_identities": {
+    "text": "Inga anslutna identiteter",
+    "source_hash": "5254048e"
+  },
+  "web.auth.connections.no_identities_description": {
+    "text": "Du har inte länkat några enkel-inloggningsleverantörer till detta konto ännu.",
+    "source_hash": "0f58d5d0"
+  },
+  "web.auth.connections.overview_status": {
+    "text": "Enkel inloggning",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.errors.last_credential": {
+    "text": "Detta är ditt enda sätt att logga in. Anslut en annan leverantör först, eller ställ in ett lösenord från Inställningar → Säkerhet, så att du inte blir utelåst.",
+    "source_hash": "3de8084d"
+  },
+  "web.auth.connections.errors.last_credential_sso_enforced": {
+    "text": "Detta är ditt enda sätt att logga in. Anslut en annan leverantör först så att du inte blir utelåst.",
+    "source_hash": "eed7a50e"
+  },
+  "web.auth.connections.errors.not_found": {
+    "text": "Den anslutna identiteten kunde inte hittas. Den kan redan ha tagits bort.",
+    "source_hash": "cf2c7673"
+  },
+  "web.auth.connections.errors.unauthorized": {
+    "text": "Din session har gått ut. Logga in igen.",
+    "source_hash": "b529fce2"
+  },
+  "web.auth.connections.errors.generic": {
+    "text": "Vi kunde inte slutföra den åtgärden. Försök igen.",
+    "source_hash": "a0d4edc0"
+  },
+  "web.link_sso.title": {
+    "text": "Länka din inloggningsmetod",
+    "source_hash": "46339bac"
+  },
+  "web.link_sso.prompt": {
+    "text": "Du loggade in med {provider}, som matchar det befintliga kontot {email}. Ange det kontots lösenord för att länka {provider} och fortsätta.",
+    "context": "Instruction on the sign-in interstitial. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/link-sso/:token.",
+    "source_hash": "59da1c08"
+  },
+  "web.link_sso.password_label": {
+    "text": "Lösenord",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.link_sso.password_placeholder": {
+    "text": "Ditt befintliga lösenord",
+    "source_hash": "ad4e56da"
+  },
+  "web.link_sso.submit": {
+    "text": "Länka och fortsätt",
+    "source_hash": "c969b759"
+  },
+  "web.link_sso.cancel": {
+    "text": "Avbryt",
+    "source_hash": "19766ed6"
+  },
+  "web.link_sso.unavailable_title": {
+    "text": "Denna länkningsbegäran har gått ut",
+    "source_hash": "b53c7e55"
+  },
+  "web.link_sso.unavailable_message": {
+    "text": "För din säkerhet är begäran att länka denna inloggningsmetod inte längre giltig. Logga in med ditt befintliga lösenord och anslut sedan denna leverantör under Säkerhetsinställningar → Anslutna identiteter.",
+    "source_hash": "f7e349d1"
+  },
+  "web.link_sso.unavailable_action": {
+    "text": "Fortsätt till inloggning",
+    "source_hash": "d398cd0a"
+  },
+  "web.link_sso.errors.invalid_password": {
+    "text": "Det lösenordet matchar inte detta konto. Försök igen.",
+    "source_hash": "3259b4f5"
+  },
+  "web.link_sso.errors.invalid_token": {
+    "text": "Denna länkningsbegäran har gått ut eller har redan använts. Logga in med ditt befintliga lösenord och anslut sedan denna leverantör från dina kontoinställningar.",
+    "source_hash": "541f9127"
+  },
+  "web.link_sso.errors.link_conflict": {
+    "text": "Vi kunde inte länka denna inloggningsmetod. Ditt konto kan ha ändrats, eller så är denna leverantör redan länkad till ett annat konto. Logga in med ditt befintliga lösenord och hantera sedan anslutningar under Säkerhetsinställningar → Anslutna identiteter.",
+    "source_hash": "7b0e0d0e"
+  },
+  "web.link_sso.errors.link_rate_limited": {
+    "text": "För många lösenordsförsök. Vänta några minuter och försök sedan igen.",
+    "source_hash": "a95e78cd"
+  },
+  "web.link_sso.errors.invalid_request": {
+    "text": "Vi kunde inte behandla denna länkningsbegäran. Logga in med din SSO-leverantör igen.",
+    "source_hash": "053b9fc6"
+  },
+  "web.link_sso.errors.generic": {
+    "text": "Vi kunde inte länka ditt konto. Försök igen.",
+    "source_hash": "f727c174"
+  },
+  "web.sso_link_confirm.title": {
+    "text": "Bekräfta anslutning av ditt konto",
+    "source_hash": "ad80bfe7"
+  },
+  "web.sso_link_confirm.prompt": {
+    "text": "Du loggade in med {provider}, som matchar ditt konto {email}. Bekräfta för att ansluta {provider} till detta konto och slutföra inloggningen.",
+    "context": "Consent instruction on the #3840 Phase 4 mailbox-proof SSO linking page. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/sso-link-confirm/:token. No password is asked — clicking the emailed link is the proof.",
+    "source_hash": "6ff0d6cc"
+  },
+  "web.sso_link_confirm.submit": {
+    "text": "Bekräfta och anslut",
+    "source_hash": "5cf663e6"
+  },
+  "web.sso_link_confirm.cancel": {
+    "text": "Avbryt",
+    "source_hash": "19766ed6"
+  },
+  "web.sso_link_confirm.unavailable_title": {
+    "text": "Denna länkningsbegäran kan inte slutföras",
+    "source_hash": "47abb784"
+  },
+  "web.sso_link_confirm.unavailable_message": {
+    "text": "För din säkerhet är denna begäran att ansluta din inloggningsmetod inte längre giltig. Logga in med din leverantör igen så skickar vi dig en ny länk via e-post.",
+    "source_hash": "080e6f9f"
+  },
+  "web.sso_link_confirm.unavailable_action": {
+    "text": "Tillbaka till inloggning",
+    "source_hash": "8504054f"
+  },
+  "web.sso_link_confirm.errors.link_expired": {
+    "text": "Denna länkningsbegäran har gått ut eller har redan använts. Logga in med din leverantör igen så skickar vi dig en ny länk via e-post.",
+    "source_hash": "a50538df"
+  },
+  "web.sso_link_confirm.errors.link_conflict": {
+    "text": "Vi kunde inte ansluta denna inloggningsmetod. Ditt konto kan ha ändrats, eller så är denna leverantör redan länkad till ett annat konto. Logga in med din leverantör igen för att fortsätta.",
+    "source_hash": "c954854b"
+  },
+  "web.sso_link_confirm.errors.link_invalidated": {
+    "text": "Dina kontouppgifter ändrades efter att denna länk skickades, så den är inte längre giltig. Logga in med din leverantör igen så skickar vi dig en ny länk via e-post.",
+    "source_hash": "db88cb1d"
+  },
+  "web.sso_link_confirm.errors.link_error": {
+    "text": "Något gick fel på vår sida och vi kunde inte verifiera denna länk. Logga in med din leverantör igen så skickar vi dig en ny.",
+    "source_hash": "ec24e0a1"
+  },
+  "web.sso_link_confirm.errors.confirm_rate_limited": {
+    "text": "För många försök från din enhet. Vänta några minuter och öppna sedan den e-postade länken igen eller logga in med din leverantör för en ny.",
+    "source_hash": "f29af782"
+  },
+  "web.sso_link_confirm.errors.generic": {
+    "text": "Vi kunde inte bekräfta denna anslutning. Logga in med din leverantör igen.",
+    "source_hash": "076fa25a"
+  },
+  "web.auth.mfa.passkey_mode_active": {
+    "text": "Nyckelläge aktivt",
+    "source_hash": "824dceb6"
+  },
+  "web.auth.mfa.passkey_prompt": {
+    "text": "Verifiera att det är du med en nyckel. Din enhet ber om ditt fingeravtryck, ditt ansikte eller din säkerhetsnyckel.",
+    "source_hash": "c0b0cbbc"
+  },
+  "web.auth.mfa.verify_with_passkey": {
+    "text": "Verifiera med nyckel",
+    "source_hash": "4f105a30"
+  },
+  "web.auth.mfa.use_passkey": {
+    "text": "Använd en nyckel istället",
+    "source_hash": "bd6430a4"
+  },
+  "web.auth.passkeys.remove_failed": {
+    "text": "Det gick inte att ta bort nyckeln",
+    "source_hash": "3e131515"
+  },
+  "web.auth.passkeys.load_failed": {
+    "text": "Det gick inte att läsa in nycklarna",
+    "source_hash": "8d704e00"
+  },
+  "web.auth.webauthn.emailRequired": {
+    "text": "Ange din e-postadress för att logga in med en nyckel",
+    "source_hash": "7f07647f"
   }
 }

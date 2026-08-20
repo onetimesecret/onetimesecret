@@ -317,25 +317,43 @@ module OmniAuthTestHelper
 end
 
 # RSpec configuration for automatic setup/teardown
+#
+# AUTH_SPEC_TREE comes from apps/web/auth/spec/spec_helper.rb, which defines it
+# before requiring this file; see the HOOK SCOPE block there. It keeps the
+# `type: :integration` pair below off the 17 spec files outside this tree that
+# declare the same type — WebMock.allow_net_connect! is process-global, so an
+# unscoped after-hook would re-enable real network access for every subsequent
+# example in a merged rspec process.
 RSpec.configure do |config|
-  config.include OmniAuthTestHelper
+  config.include OmniAuthTestHelper, file_path: AUTH_SPEC_TREE
 
   # Re-stub OIDC discovery for tests tagged with :omniauth_mock
   # Ensures stubs are fresh after any WebMock.reset!
-  config.before(:each, :omniauth_mock) do
+  config.before(:each, :omniauth_mock, file_path: AUTH_SPEC_TREE) do
     stub_oidc_discovery
+
+    # OIDC request-phase traffic now runs through the pinned Net::HTTP adapter
+    # installed by Auth::OidcHttpPinning (OpenIDConnect.http_config), which
+    # resolves the issuer host itself before dialing. That lookup is real DNS
+    # inside the adapter block, below the level WebMock intercepts, so the
+    # placeholder issuer (an unresolvable .invalid host) makes the guard raise
+    # and the request phase redirect to /signin?auth_error=sso_failed.
+    #
+    # Stub the resolver seam, not the guard: validation and pinning still run
+    # for real, and WebMock serves the stubbed discovery response as before.
+    allow(Onetime::Http::Guard).to receive(:resolve_addresses).and_return(['203.0.113.10'])
   end
 
-  config.after(:each, :omniauth_mock) do
+  config.after(:each, :omniauth_mock, file_path: AUTH_SPEC_TREE) do
     reset_omniauth_config
   end
 
   # Ensure WebMock allows localhost for integration tests
-  config.before(:each, type: :integration) do
+  config.before(:each, type: :integration, file_path: AUTH_SPEC_TREE) do
     WebMock.disable_net_connect!(allow_localhost: true)
   end
 
-  config.after(:each, type: :integration) do
+  config.after(:each, type: :integration, file_path: AUTH_SPEC_TREE) do
     WebMock.allow_net_connect!
   end
 end

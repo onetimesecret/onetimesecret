@@ -313,6 +313,17 @@ export const useBootstrapStore = defineStore('bootstrap', {
      * 1. They're set by the server at startup and don't vary by user
      * 2. Resetting them would temporarily show permissive defaults
      * 3. They get re-hydrated on full page reload anyway
+     *
+     * The domain identity fields (canonical_domain, site_host, link_domains,
+     * custom_domains, display_domain) are deliberately NOT preserved. They are
+     * restored to schema defaults by $reset() — '' for the string fields, []
+     * for link_domains (#4063) — which keeps link_domains symmetric with
+     * canonical_domain. That symmetry is load-bearing: useDomainContext treats
+     * an empty link pool as "stale payload" and falls back to
+     * [canonical_domain], so preserving one without the other would produce a
+     * picker offering operator domains with no canonical fallback behind them.
+     * link_domains is a declared schema key precisely so this reset is
+     * explicit rather than a silent strip of an untyped field.
      */
     resetForLogout(): void {
       // Capture current server config values before reset

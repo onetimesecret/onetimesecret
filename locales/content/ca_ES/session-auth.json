@@ -483,5 +483,45 @@
   "web.login.verified_notice": {
     "text": "S'ha verificat el teu correu electrònic — ara ja pots iniciar la sessió.",
     "source_hash": "c8d4b5a8"
+  },
+  "web.auth.password_setup_request.title": {
+    "text": "Estableix una contrasenya",
+    "source_hash": "11b6978b"
+  },
+  "web.auth.password_setup_request.description": {
+    "text": "El teu compte encara no té una contrasenya. T'enviarem un enllaç segur per correu electrònic per establir-ne una perquè també puguis iniciar sessió directament.",
+    "source_hash": "dc0b561f"
+  },
+  "web.auth.password_setup_request.button": {
+    "text": "Envia l'enllaç de configuració",
+    "source_hash": "22807292"
+  },
+  "web.auth.password_setup_request.emailSent": {
+    "text": "S'ha enviat un correu electrònic amb un enllaç per establir una contrasenya per al teu compte",
+    "source_hash": "82b686c7"
+  },
+  "web.login.errors.account_exists_link_required": {
+    "text": "Ja existeix un compte amb aquesta adreça de correu electrònic però no està vinculat a aquest mètode d'inici de sessió. Inicia sessió amb el teu mètode existent, després vincula aquest proveïdor a Configuració de seguretat → Identitats connectades.",
+    "source_hash": "7fbbb7e7"
+  },
+  "web.login.errors.identity_connect_conflict": {
+    "text": "Aquesta identitat no s'ha pogut connectar. La connexió pot haver-se iniciat al domini equivocat, o la teva sessió ha caducat. Torna a iniciar sessió, després connecta-la des de la configuració del teu compte.",
+    "source_hash": "4238bbf2"
+  },
+  "web.login.errors.org_join_failed": {
+    "text": "No hem pogut acabar d'afegir-te a la teva organització. Contacta amb el teu administrador.",
+    "source_hash": "155e71bb"
+  },
+  "web.login.errors.link_sso_failed": {
+    "text": "No hem pogut vincular aquest mètode d'inici de sessió. Inicia sessió amb la teva contrasenya existent, després connecta aquest proveïdor a Configuració de seguretat → Identitats connectades.",
+    "source_hash": "49954127"
+  },
+  "web.login.notices.link_verification_sent": {
+    "text": "Consulta la teva safata d'entrada — t'hem enviat un enllaç per correu electrònic per confirmar la connexió del teu compte. Obre'l per acabar d'iniciar sessió.",
+    "source_hash": "b251c8f3"
+  },
+  "web.login.errors.sso_cancelled": {
+    "text": "S'ha cancel·lat l'inici de sessió. Pots tornar-ho a provar quan vulguis.",
+    "source_hash": "b5f3d3ec"
   }
 }

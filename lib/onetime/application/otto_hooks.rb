@@ -169,6 +169,41 @@ module Onetime
           with_error_correlation(error.to_h, req, error)
         end
 
+        # The restrict_to gate could not read this host's sign-in policy
+        # (ADR-034#restrict-to-is-an-access-control-not-a-display-preference
+        # / #degradation-is-fail-closed, #4139) — the per-domain half lives
+        # in the datastore.
+        # Raised by Core::Controllers::Base#restrict_to_allows? (simple-mode
+        # POST /auth/login and the pre-auth password surfaces) and by
+        # Auth::RestrictTo on the invite API's host-policy paths.
+        #
+        # 503, and deliberately NOT the gate's own 404: that reject shape is
+        # built to be indistinguishable from an undefined route, so wearing it
+        # here would put mystery not-founds on sign-in during a datastore blip.
+        # See Onetime::SigninPolicyUnavailable. The body's retry_after becomes a
+        # Retry-After header one frame up (Middleware::RetryAfterHeader).
+        # log_level :error — an auth surface is down and it must alert.
+        # Mirrored in Auth::ErrorTranslator for the Roda auth router.
+        router.register_error_handler(Onetime::SigninPolicyUnavailable, status: 503, log_level: :error) do |error, req|
+          with_error_correlation(error.to_h, req, error)
+        end
+
+        # The sign-up gate could not read this host's SignupConfig (#4157).
+        # Raised by Onetime::Logic::SignupConfigResolution — so from
+        # Core::Controllers::Base#signup_enabled? (POST /auth/create-account)
+        # and from CreateAccount's autoverify resolution.
+        #
+        # Registered separately from the sign-in handler above because Otto
+        # dispatches on the EXACT class name (Otto::Core::ErrorHandler looks up
+        # error.class.name), so the shared Onetime::AuthPolicyUnavailable
+        # parent buys the shape but not the routing. Identical status, level
+        # and body construction to its sibling: same failure, and the only
+        # thing that should differ between the two responses is the error_type
+        # and the sentence a user reads.
+        router.register_error_handler(Onetime::SignupPolicyUnavailable, status: 503, log_level: :error) do |error, req|
+          with_error_correlation(error.to_h, req, error)
+        end
+
         return unless Onetime.debug?
 
         router.on_request_complete do |req, res, duration|

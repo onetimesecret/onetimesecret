@@ -113,6 +113,11 @@ features:
     enabled: <%= ENV['DOMAINS_ENABLED'] == 'true' || false %>
     require_verified: <%= ENV['DOMAINS_REQUIRE_VERIFIED'] == 'true' || false %>
     default: <%= ENV['DEFAULT_DOMAIN'] || nil %>
+    # Three-way: unset -> nil (picker offers canonical), set -> verbatim,
+    # set-but-empty -> [] which raises at boot. The `&.` keeps unset and
+    # set-but-empty distinct; do not copy `default:`'s `|| nil`. Every
+    # entry also joins the canonical host set. See config.defaults.yaml.
+    link_domains: <%= ENV['LINK_DOMAINS']&.split(',')&.map(&:strip) %>
     validation_strategy: <%= ENV['DOMAINS_VALIDATION_STRATEGY'] || 'passthrough' %>
     approximated:
       api_key: <%= ENV['APPROXIMATED_API_KEY'] || nil %>
@@ -139,7 +144,13 @@ features:
     incoming_secrets_enabled: <%= ENV['ORGS_INCOMING_SECRETS_ENABLED'] == 'true' %>
 
 redis:
-  uri: 'redis://127.0.0.1:2163/0'
+  # Host and port are hardcoded on purpose (#2128): a test boot can only ever
+  # reach the isolated test valkey on 2163, never a dev/prod service, and no
+  # env var can redirect it. Only the DB index varies: tests/lanes/run exports
+  # LANES_DATASTORE_DB (derived per worktree) so concurrent lane runs in a
+  # worktree forest don't share keys (#4168). Non-digit or absent values fall
+  # back to 0, so an interactive `bundle exec rspec` behaves as before.
+  uri: redis://127.0.0.1:2163/<%= ((db = ENV.fetch('LANES_DATASTORE_DB', '')).match?(/\A\d+\z/) && db.to_i <= 65_535) ? db : 0 %>
   dbs:
     session: 0
     custom_domain: 0

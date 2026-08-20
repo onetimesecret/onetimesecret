@@ -11,37 +11,37 @@
  */
 
 import {
-  siteSchema,
-  siteAuthenticationSchema,
-  siteSecretOptionsSchema,
+  cspSchema,
+  middlewareSchema,
   passphraseSchema,
   passwordGenerationSchema,
-  sessionConfigSchema,
-  middlewareSchema,
   securitySchema,
-  cspSchema,
+  sessionConfigSchema,
   siteAdminSchema,
+  siteAuthenticationSchema,
+  siteSchema,
+  siteSecretOptionsSchema,
 } from '@/schemas/contracts/config/section/site';
 import { augment, type AugmentTree } from '@/schemas/utils/augment';
 
 export {
-  siteSchema,
-  siteAuthenticationSchema,
-  siteSecretOptionsSchema,
+  cspSchema,
+  middlewareSchema,
   passphraseSchema,
   passwordGenerationSchema,
-  sessionConfigSchema,
-  middlewareSchema,
   securitySchema,
-  cspSchema,
+  sessionConfigSchema,
   siteAdminSchema,
+  siteAuthenticationSchema,
+  siteSchema,
+  siteSecretOptionsSchema,
 };
 
 export type {
-  SessionConfig,
-  MiddlewareConfig,
   CspConfig,
+  MiddlewareConfig,
   SecurityConfig,
+  SessionConfig,
   SiteAdminConfig,
 } from '@/schemas/contracts/config/section/site';
 
@@ -63,6 +63,18 @@ const sessionTree: AugmentTree = {
   secure: (b) => b.default(true),
   same_site: (e) => e.default('lax'),
   httponly: (b) => b.default(true),
+  // Anonymous probe endpoints that must not mint a persisted session (#3997).
+  // Exact-match against the full external path; never list
+  // /api/v*/secret/*/status here (capability-token data reads, not probes).
+  skip_paths: (a) =>
+    a.default([
+      '/health',
+      '/health/advanced',
+      '/auth/health',
+      '/api/v1/status',
+      '/api/v2/status',
+      '/api/v3/status',
+    ]),
 };
 
 const cspTree: AugmentTree = {
@@ -74,9 +86,19 @@ const securityTree: AugmentTree = {
 };
 
 const adminTree: AugmentTree = {
-  // Empty allowlist by default: the AdminNetworkIsolation middleware is a no-op
-  // and both Colonel surfaces stay reachable (self-hosted single-container
-  // default). Populated with private CIDRs on cloud for network isolation.
+  // Empty defaults mirror config.defaults.yaml, but the two gates read empty
+  // differently. Host gate: an empty list is still ACTIVE — it anchors on the
+  // canonical hosts (DEFAULT_DOMAIN / site.host plus www. siblings) and
+  // self-disables only when neither anchor is a detectable hostname. Network
+  // gate: an empty list is a no-op and both Colonel surfaces stay reachable
+  // (self-hosted single-container default); populated with private CIDRs on
+  // cloud for network isolation.
+  //
+  // `.nullable()` is re-applied here on purpose: augment hands the leaf the
+  // UNWRAPPED field and does not re-wrap, and config.defaults.yaml renders
+  // `allowed_hosts:` as null when ADMIN_ALLOWED_HOSTS is unset (#4127). Drop
+  // it and the generated JSON Schema rejects the shipped defaults file.
+  allowed_hosts: (a) => a.nullable().default([]),
   allowed_cidrs: (a) => a.default([]),
 };
 
@@ -153,14 +175,14 @@ const siteShape = augment(siteSchema, {
 });
 
 export {
-  siteShape,
-  siteAuthenticationShape,
-  siteSecretOptionsShape,
+  cspShape,
+  middlewareShape,
   passphraseShape,
   passwordGenerationShape,
-  sessionConfigShape,
-  middlewareShape,
   securityShape,
-  cspShape,
+  sessionConfigShape,
   siteAdminShape,
+  siteAuthenticationShape,
+  siteSecretOptionsShape,
+  siteShape,
 };

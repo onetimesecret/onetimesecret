@@ -72,11 +72,12 @@ RSpec.describe 'IP privacy / trusted-proxy parity (#3436)' do
     before { stub_trusted_proxy('enabled' => true, 'mode' => 'depth', 'depth' => 1) }
 
     it "resolves the client by hop count into env['otto.client_ip'] and masks to its /24" do
-      # Onetime depth 1 => otto trusted_proxy_depth 2 (chain = XFF + REMOTE_ADDR).
-      # chain = [203.0.113.42, 10.244.10.5, 10.244.10.5] ; client = chain[-(2+1)].
+      # Onetime depth 1 => otto trusted_proxy_depth 1 (direct mapping, no +1).
+      # Honest single-proxy topology: the proxy appends the client to XFF.
+      # chain = [203.0.113.42, 10.244.10.5] ; client = chain[-(1+1)].
       env = {
         'REMOTE_ADDR' => '10.244.10.5',
-        'HTTP_X_FORWARDED_FOR' => '203.0.113.42, 10.244.10.5',
+        'HTTP_X_FORWARDED_FOR' => '203.0.113.42',
       }
 
       build_mount.call(env)
@@ -84,9 +85,28 @@ RSpec.describe 'IP privacy / trusted-proxy parity (#3436)' do
       expect(captured[:env]['otto.client_ip']).to eq('203.0.113.0')
     end
 
-    it 'falls back to the peer (masked) on a short chain (stricter than OTS)' do
-      # Chain shorter than depth+1: otto returns REMOTE_ADDR rather than a
-      # spoofable forwarded entry. Here REMOTE_ADDR is private, masked to /24.
+    it 'never selects a forged leftmost XFF entry (padding-resistant)' do
+      # A client sends its own X-Forwarded-For: 9.9.9.9 before the request
+      # reaches the proxy; the proxy appends the real peer, yielding
+      # XFF = [forged, client]. Positions are counted raw from the RIGHT
+      # (chain = [9.9.9.9, 203.0.113.42, 10.244.10.5], client = chain[-2]),
+      # so padding only pushes the forged entry further left — it is never
+      # selected. Under the former +1 remap this exact shape selected the
+      # forged 9.9.9.9 as the client.
+      env = {
+        'REMOTE_ADDR' => '10.244.10.5',
+        'HTTP_X_FORWARDED_FOR' => '9.9.9.9, 203.0.113.42',
+      }
+
+      build_mount.call(env)
+
+      expect(captured[:env]['otto.client_ip']).to eq('203.0.113.0')
+    end
+
+    it 'falls back to the peer (masked) on a short chain (stricter than OTS legacy)' do
+      # Chain shorter than depth+1 (no XFF at all — a request that bypassed
+      # the proxy tier): otto returns REMOTE_ADDR rather than a spoofable
+      # forwarded entry. Here REMOTE_ADDR is private, masked to /24.
       env = { 'REMOTE_ADDR' => '10.244.10.5' }
 
       build_mount.call(env)
@@ -103,11 +123,11 @@ RSpec.describe 'IP privacy / trusted-proxy parity (#3436)' do
     before { stub_trusted_proxy('enabled' => true, 'mode' => 'depth', 'depth' => 1, 'header' => 'Forwarded') }
 
     it "resolves the client from `Forwarded for=` into env['otto.client_ip'] and masks to its /24" do
-      # Onetime depth 1 => otto depth 2; chain = Forwarded `for=` list + REMOTE_ADDR.
-      # chain = [203.0.113.42, 10.244.10.5, 10.244.10.5] ; client = chain[-(2+1)].
+      # Onetime depth 1 => otto depth 1; chain = Forwarded `for=` list + REMOTE_ADDR.
+      # chain = [203.0.113.42, 10.244.10.5] ; client = chain[-(1+1)].
       env = {
         'REMOTE_ADDR' => '10.244.10.5',
-        'HTTP_FORWARDED' => 'for=203.0.113.42, for=10.244.10.5',
+        'HTTP_FORWARDED' => 'for=203.0.113.42',
         # An X-Forwarded-For present but NOT consulted in Forwarded mode.
         'HTTP_X_FORWARDED_FOR' => '198.51.100.7',
       }
@@ -124,8 +144,9 @@ RSpec.describe 'IP privacy / trusted-proxy parity (#3436)' do
     it 'prefers RFC 7239 Forwarded when it carries a for=' do
       env = {
         'REMOTE_ADDR' => '10.244.10.5',
-        'HTTP_FORWARDED' => 'for=203.0.113.42, for=10.244.10.5',
-        'HTTP_X_FORWARDED_FOR' => '198.51.100.7, 10.244.10.5',
+        'HTTP_FORWARDED' => 'for=203.0.113.42',
+        # Decoy: present but ignored because Forwarded carries a for=.
+        'HTTP_X_FORWARDED_FOR' => '198.51.100.7',
       }
 
       build_mount.call(env)
@@ -136,7 +157,7 @@ RSpec.describe 'IP privacy / trusted-proxy parity (#3436)' do
     it 'falls back to X-Forwarded-For when no Forwarded header is present' do
       env = {
         'REMOTE_ADDR' => '10.244.10.5',
-        'HTTP_X_FORWARDED_FOR' => '198.51.100.7, 10.244.10.5',
+        'HTTP_X_FORWARDED_FOR' => '198.51.100.7',
       }
 
       build_mount.call(env)

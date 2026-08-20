@@ -16,7 +16,7 @@
     "source_hash": "e96db24d"
   },
   "web.dashboard.fetch_error_title": {
-    "text": "データを読み込めません",
+    "text": "データを読み込めませんでした",
     "source_hash": "ba7df1be"
   },
   "web.dashboard.fetch_error_description": {
@@ -28,7 +28,7 @@
     "source_hash": "54693f14"
   },
   "web.teams.create_first_team_description": {
-    "text": "チームを使うと、共有ワークスペースで他のメンバーと共同作業ができます。",
+    "text": "チームを使用すると、共有ワークスペースで他のメンバーと共同作業できます。",
     "source_hash": "d61b86b5"
   },
   "web.teams.create_team": {

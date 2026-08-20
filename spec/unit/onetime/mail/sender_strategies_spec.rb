@@ -14,7 +14,7 @@ RSpec.describe Onetime::Mail::SenderStrategies do
 
   describe '.supported?' do
     it 'is true for every provider with a registered strategy' do
-      %w[ses sendgrid lettermint smtp].each do |provider|
+      %w[ses sendgrid lettermint smtp2go smtp].each do |provider|
         expect(described_class.supported?(provider)).to be(true), "expected '#{provider}' to be supported"
       end
     end
@@ -67,7 +67,7 @@ RSpec.describe Onetime::Mail::SenderStrategies do
 
   describe '.supports_provisioning?' do
     it 'is true for API-provisionable providers' do
-      %w[ses sendgrid lettermint].each do |provider|
+      %w[ses sendgrid lettermint smtp2go].each do |provider|
         expect(described_class.supports_provisioning?(provider)).to be true
       end
     end
@@ -79,7 +79,7 @@ RSpec.describe Onetime::Mail::SenderStrategies do
 
   describe '.supported_providers' do
     it 'lists every provider that has a strategy' do
-      expect(described_class.supported_providers).to contain_exactly('ses', 'sendgrid', 'lettermint', 'smtp')
+      expect(described_class.supported_providers).to contain_exactly('ses', 'sendgrid', 'lettermint', 'smtp2go', 'smtp')
     end
   end
 

@@ -121,9 +121,9 @@ const authResponseSchema = z.union([authSuccessSchema, authErrorSchema]);
  * 3. Plain success - least specific
  */
 export const loginResponseSchema = z.union([
-  authSuccessWithMfaSchema,     // Most specific - has mfa_required
+  authSuccessWithMfaSchema, // Most specific - has mfa_required
   authSuccessWithBillingSchema, // Moderately specific - has billing_redirect
-  authSuccessSchema,            // Least specific - just { success }
+  authSuccessSchema, // Least specific - just { success }
   authErrorSchema,
 ]);
 export type LoginResponse = z.infer<typeof loginResponseSchema>;
@@ -134,7 +134,7 @@ export type LoginResponse = z.infer<typeof loginResponseSchema>;
  */
 export const createAccountResponseSchema = z.union([
   authSuccessWithBillingSchema, // Has billing_redirect
-  authSuccessSchema,            // Just { success }
+  authSuccessSchema, // Just { success }
   authErrorSchema,
 ]);
 export type CreateAccountResponse = z.infer<typeof createAccountResponseSchema>;
@@ -252,6 +252,7 @@ export const sessionSchema = z.object({
   last_activity_at: z.string(),
   ip_address: z.string().nullable(),
   user_agent: z.string().nullable(),
+  geo_country: z.string().nullable(),
   is_current: z.boolean(),
   remember_enabled: z.boolean(),
 });
@@ -453,10 +454,7 @@ export function ssoLinkConfirmRequiresMfa(
   return 'mfa_required' in response && response.mfa_required === true;
 }
 
-export const ssoLinkConfirmResponseSchema = z.union([
-  ssoLinkConfirmSuccessSchema,
-  authErrorSchema,
-]);
+export const ssoLinkConfirmResponseSchema = z.union([ssoLinkConfirmSuccessSchema, authErrorSchema]);
 export type SsoLinkConfirmResponse = z.infer<typeof ssoLinkConfirmResponseSchema>;
 
 // OTP setup response
@@ -513,18 +511,42 @@ export const accountInfoResponseSchema = z.object({
   created_at: z.string(),
   status: z.number(),
   email_verified: z.boolean(),
+  // Whether the account has a local password credential. SSO-only accounts
+  // report false; consumers use this to skip password-confirmation prompts.
+  has_password: z.boolean().optional(),
   mfa_enabled: z.boolean(),
   recovery_codes_count: z.number(),
   passkeys_count: z.number().optional(),
 });
 export type AccountInfoResponse = z.infer<typeof accountInfoResponseSchema>;
 
+// WebAuthn credential item (GET /auth/webauthn-credentials).
+// The table has no name and no created_at column — id + last_used_at is the
+// entire shape. last_used_at is NOT NULL in the DB, but stay nullable-tolerant.
+export const webauthnCredentialSchema = z.object({
+  id: z.string(),
+  last_used_at: z.string().nullable(),
+});
+export type WebAuthnCredential = z.infer<typeof webauthnCredentialSchema>;
+
+// WebAuthn credentials list response, ordered last_used_at desc by the server.
+export const webauthnCredentialsResponseSchema = z.object({
+  credentials: z.array(webauthnCredentialSchema),
+  count: z.number(),
+});
+export type WebAuthnCredentialsResponse = z.infer<typeof webauthnCredentialsResponseSchema>;
+
 // MFA status response
+// `enabled` deliberately still means otp || recovery only — webauthn does NOT
+// flip it. The per-factor booleans below are additive (2026-08); older
+// backends omit them, so consumers must treat undefined as false.
 export const mfaStatusResponseSchema = z.object({
   enabled: z.boolean(),
   last_used_at: z.string().nullable(),
   recovery_codes_remaining: z.number(),
   recovery_codes_limit: z.number(),
+  otp_enabled: z.boolean().optional(),
+  webauthn_enabled: z.boolean().optional(),
 });
 export type MfaStatusResponse = z.infer<typeof mfaStatusResponseSchema>;
 
@@ -537,8 +559,7 @@ export const emailChangeRequestResponseSchema = z.union([
   emailChangeRequestSuccessSchema,
   authErrorSchema,
 ]);
-export type EmailChangeRequestResponse =
-  z.infer<typeof emailChangeRequestResponseSchema>;
+export type EmailChangeRequestResponse = z.infer<typeof emailChangeRequestResponseSchema>;
 
 // Email change confirmation response
 // Backend returns { confirmed: true, redirect: '/signin' } on success
@@ -550,8 +571,7 @@ export const emailChangeConfirmResponseSchema = z.union([
   emailChangeConfirmSuccessSchema,
   authErrorSchema,
 ]);
-export type EmailChangeConfirmResponse =
-  z.infer<typeof emailChangeConfirmResponseSchema>;
+export type EmailChangeConfirmResponse = z.infer<typeof emailChangeConfirmResponseSchema>;
 
 // Email change resend confirmation response
 // Backend returns { sent: true, resend_count: number } on success
@@ -563,8 +583,7 @@ export const emailChangeResendResponseSchema = z.union([
   emailChangeResendSuccessSchema,
   authErrorSchema,
 ]);
-export type EmailChangeResendResponse =
-  z.infer<typeof emailChangeResendResponseSchema>;
+export type EmailChangeResendResponse = z.infer<typeof emailChangeResendResponseSchema>;
 
 // Resend verification email response.
 // ANTI-ENUMERATION: backend returns an identical { sent: true } for every
@@ -576,5 +595,4 @@ export const resendVerificationEmailResponseSchema = z.union([
   resendVerificationEmailSuccessSchema,
   authErrorSchema,
 ]);
-export type ResendVerificationEmailResponse =
-  z.infer<typeof resendVerificationEmailResponseSchema>;
+export type ResendVerificationEmailResponse = z.infer<typeof resendVerificationEmailResponseSchema>;

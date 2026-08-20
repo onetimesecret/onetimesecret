@@ -91,11 +91,14 @@ export interface DisabledHomepageProps {
    */
   logoUri: string | null;
   /**
-   * Dark-theme variant of the install logo (brand.logo_dark_url). Non-null
-   * only while the install logo is the asset being rendered (the store nulls
-   * it when a tenant logo outranks it or no light install logo exists).
-   * Variants swap it in via class-based `dark:` utilities, mirroring
-   * MastHead.
+   * Dark-theme logo on the identity axis (logoDarkSource): the tenant's
+   * BrandSettings.logo_dark_url when the tenant logo is showing, else the
+   * operator's install BRAND_LOGO_DARK_URL when the install logo is showing.
+   * Each rung nulls itself against the other layer's light logo, so the dark
+   * asset always pairs with whichever light logo `logoUri` resolved — never
+   * the operator's dark variant over a tenant logo, or vice versa. Null when
+   * no dark variant applies. Variants swap it in via class-based `dark:`
+   * utilities, mirroring MastHead.
    */
   logoDarkUri: string | null;
   /**
@@ -234,7 +237,7 @@ export function useDisabledConfig(): DisabledHomepageBindings {
     primaryColor,
     logoUri,
     installLogoUri,
-    installLogoDarkUri,
+    logoDarkSource,
     installLogoAlt,
     displayName,
     displayDomain,
@@ -383,8 +386,12 @@ export function useDisabledConfig(): DisabledHomepageBindings {
     get logoUri() {
       return logoUri.value || installLogoUri.value;
     },
+    // Dark variant on the same identity axis (logoDarkSource): tenant dark when
+    // the tenant logo shows, else install dark when the install logo shows —
+    // mirroring MastHead so a tenant's logo_dark_url renders on the disabled
+    // homepage too, not just the operator's install dark logo.
     get logoDarkUri() {
-      return installLogoDarkUri.value;
+      return logoDarkSource.value;
     },
     get logoAlt() {
       return installLogoAlt.value;

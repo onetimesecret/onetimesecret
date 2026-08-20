@@ -64,12 +64,25 @@ locale) before review — same engine as the `validate-register` CI gate. Needs
 the resolved governance above.
 
 ```bash
+# Does this locale enforce anything at all? (WARNING when it does not)
+python3 locales/scripts/register-coverage.py \
+  --resolved generated/i18n/.resolved/<locale>.json
+
 # exit 0 = clean; 1 = lists each hit
 python3 .translation-rules/lib/resolver/lint_content.py \
   --resolved generated/i18n/.resolved/<locale>.json \
   --content-root . \
   "locales/content/<locale>/*.json"
 ```
+
+**A clean lint is not proof of enforcement.** When `register.forbidden_tokens`
+is empty the linter has nothing to search for: it reports `0 string(s) scanned`
+and exits 0, which looks exactly like a full clean pass. Today `de` and `ar`
+are in that state. Run `register-coverage.py` first — it prints the tokens
+enforced, or a WARNING when the answer is "none". An empty list is sometimes
+correct (`ar`'s dialectal markers are substrings of valid MSA words and cannot
+be tokenized); when it is not, the fix belongs upstream in `translation-rules`
+(`rules/locales/<locale>/register.yaml`), never in content.
 
 ## Per-task cycle (one writer per locale, claim-free)
 
@@ -96,22 +109,25 @@ Loop this until the queue is dry:
    file, not inline JSON: apostrophes and quotes (common in fr/es/it) break
    shell single-quoting and HEREDOCs.
 
-4. **Save it back** with validation:
+4. **Save it back** with the write gate:
    ```bash
-   python3 locales/scripts/i18n tasks update <ID> --file /tmp/trans_<LOCALE>.json --validate
+   python3 locales/scripts/i18n tasks update <ID> --file /tmp/trans_<LOCALE>.json --validate --strict
    ```
 
-5. **Read the output.** `--validate` is **advisory**: it warns on missing/extra
-   keys but still saves and still exits 0 — it does **not** block a bad write. On
-   any `Warning:` line (e.g. "Missing keys" / "Extra keys"), rebuild the object
-   with the exact source key set and re-run the update. A completed row's key set
-   must match the source exactly.
+5. **Check the exit status.** `--strict` makes the key-set check a **gate**: on
+   any missing or extra key the command prints the mismatch, writes **nothing**
+   to the DB, and exits 1. A non-zero exit means the task is still pending —
+   rebuild `/tmp/trans_<LOCALE>.json` with the exact source key set and re-run
+   step 4 until it exits 0. Do not move on to the next task on a failed write.
+   (Bare `--validate` without `--strict` only warns and saves anyway; always
+   pass both.)
 
 6. **Loop** back to step 1. Continue until:
    ```bash
    python3 locales/scripts/i18n tasks next <LOCALE> --stats
    ```
-   shows `pending: 0`.
+   shows `pending: 0`. That ends the loop, not the job — go to
+   [Audit stage](#audit-stage-after-a-locale-drains).
 
 ## Translation rules
 
@@ -125,20 +141,49 @@ Loop this until the queue is dry:
 
 ## Audit stage (after a locale drains)
 
-Because `--validate` does not gate writes, the queue showing 0 pending does not
-prove the writes are clean. After a locale drains, audit its completed rows for:
+An empty queue is not a clean locale: `pending: 0` says every row left the
+queue, not that what it wrote is correct. **A drained locale is done only when
+the audit exits 0.** Run it on the completed rows in the DB, before any export:
 
-- **key-set match** — each completed row's keys equal the source keys exactly.
-- **token preservation** — every `{var}`, `{{var}}`, `%{var}`, `%s`, `<tag>`
-  from the source survives in the translation, with the same set and count.
-- **untranslated-English leakage** — values left in English where a translation
-  was expected.
-
-Fix any problem in place by rewriting `/tmp/trans_<LOCALE>.json` with the
-corrected object and re-running:
 ```bash
-python3 locales/scripts/i18n tasks update <ID> --file /tmp/trans_<LOCALE>.json --validate
+python3 locales/scripts/i18n tasks audit <LOCALE> --strict
 ```
+
+`--strict` exits 1 on any **error** finding, and also when zero completed rows
+could be checked — a gate that verified nothing must not read green. Without
+`--strict` the audit is advisory and exits 0. Each finding names the task ID,
+key, severity, and which check failed:
+
+- **status** (error) — no row left in `in_progress`. A claimed-then-abandoned
+  row is counted separately from `pending`, so it makes the locale *look*
+  drained while its keys never export. Release it with
+  `tasks update <ID> --status pending` and translate it.
+- **key-set match** (error) — each completed row's keys equal the source keys
+  exactly, and none of the values is blank. A whitespace "translation" passes a
+  naive key comparison but `tasks export` skips it, so the key would stay
+  English forever.
+- **token preservation** (error) — every `{var}`, `{{var}}`, `%{var}`, `%s`,
+  `<tag>` from the source survives in the translation, with the same set and
+  count. Compared **per plural form**: the number of `|`-separated forms is a
+  property of your language (en 2, ja 1, ru 3) and is never itself a finding.
+- **untranslated-English leakage** (**advisory** — reported, never gates) —
+  values left byte-identical to the English source. Treat it as a review list,
+  not a task list: an identical string is the *correct* answer for many short
+  labels ("Status", "TTL", "Redis", "Amazon SES", "Canada"). Never invent a
+  wrong translation to silence it. Brand names that must stay English (Onetime
+  Secret, Identity Plus, Starlight), empty sources, `skip` keys, and strings
+  with no letters (numbers, punctuation, bare placeholders) are already
+  excluded.
+
+Fix each **error** finding in place: rewrite `/tmp/trans_<LOCALE>.json` with the
+corrected object for that task ID and re-run
+```bash
+python3 locales/scripts/i18n tasks update <ID> --file /tmp/trans_<LOCALE>.json --validate --strict
+```
+then re-run the audit. Loop until it exits 0. `export-all.sh` runs the same
+`--strict` audit as its export gate, so a locale you leave with error findings
+is not exported at all. Advisory findings do not block the export; report the
+ones you believe are genuine leaks alongside your glossary candidates.
 
 ## Glossary candidates (report, don't write)
 
@@ -171,4 +216,5 @@ Do **not** export (`tasks export`), do **not** sync (`pnpm run locales:sync` /
 `content compile`), do **not** commit or create branches, and do **not** write
 the glossary/committable DB tables. Those are human/orchestrator steps
 documented in `TRANSLATION_PROTOCOL.md`. The agent's job ends when the locale
-shows `pending: 0`, the audit is clean, and the glossary candidates are reported.
+shows `pending: 0`, `tasks audit <LOCALE> --strict` exits 0, and the glossary
+candidates are reported.

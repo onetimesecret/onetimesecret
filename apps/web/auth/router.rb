@@ -17,6 +17,7 @@ require_relative 'error_translator'
 require_relative 'routes/account'
 require_relative 'routes/active_sessions'
 require_relative 'routes/identities'
+require_relative 'routes/webauthn_credentials'
 require_relative 'routes/link_sso'
 require_relative 'routes/sso_link_confirm'
 require_relative 'routes/mfa'
@@ -45,6 +46,7 @@ module Auth
     include Auth::Routes::MFA
     include Auth::Routes::ActiveSessions
     include Auth::Routes::Identities
+    include Auth::Routes::WebauthnCredentials
     include Auth::Routes::LinkSso
     include Auth::Routes::SsoLinkConfirm
     include Auth::Routes::Admin
@@ -175,9 +177,16 @@ module Auth
 
       # Root path - Auth app info
       # When mounted at /auth, this handles requests to /auth and /auth/
+      #
+      # No version field: this path is anonymous-reachable (it sits ahead of
+      # r.rodauth), and the build version fingerprints the install for CVE
+      # matching. Callers that need it and are entitled to it use
+      # GET /api/v3/version, which is auth-gated. The version is still
+      # reported by the /auth/health endpoint, which HealthAccessControl
+      # restricts to loopback/RFC1918.
       r.is do
         r.get do
-          { message: 'OneTimeSecret Authentication Service', version: Onetime::VERSION }
+          { message: 'OneTimeSecret Authentication Service' }
         end
       end
 
@@ -196,6 +205,10 @@ module Auth
 
       # Linked SSO identities management routes (#3840 Phase 2)
       handle_identities_routes(r)
+
+      # WebAuthn credential (passkey) listing routes; removal stays with
+      # Rodauth's POST /auth/webauthn-remove
+      handle_webauthn_credentials_routes(r)
 
       # SSO sign-in interstitial: password-challenge linking (#3840 Phase 3)
       handle_link_sso_routes(r)

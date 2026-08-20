@@ -25,9 +25,12 @@ require_relative '../../../support/test_models'
 OT.boot! :test, true
 
 ## Can create Secret
+# The db index is Familia.uri.db, not a literal 0: tests/lanes/run assigns
+# each worktree its own index so concurrent lane runs don't share keys
+# (#4168). What this asserts is "the model uses the configured database".
 s = Onetime::Secret.new :private
 [s.class, s.dbclient.connection[:db], s.receipt_identifier]
-#=> [Onetime::Secret, 0, nil]
+#=> [Onetime::Secret, Familia.uri.db, nil]
 
 ## Keys are always unique for Secrets
 unique_values = Set.new

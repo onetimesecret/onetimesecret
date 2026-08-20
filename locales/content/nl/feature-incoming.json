@@ -1,6 +1,6 @@
 {
   "incoming.page_title": {
-    "text": "Stuur een bericht",
+    "text": "Een bericht versturen",
     "source_hash": "f83b6303"
   },
   "incoming.page_description": {
@@ -28,7 +28,7 @@
     "source_hash": "64cecb8a"
   },
   "incoming.memo_placeholder": {
-    "text": "Korte beschrijving (bijv. Verzoek wachtwoordreset)",
+    "text": "Korte beschrijving (bijv. Wachtwoord-resetverzoek)",
     "source_hash": "16bf83fd"
   },
   "incoming.memo_hint": {
@@ -52,11 +52,11 @@
     "source_hash": "0dfafc45"
   },
   "incoming.no_recipients_available": {
-    "text": "Er zijn geen ontvangers beschikbaar",
+    "text": "Geen ontvangers beschikbaar",
     "source_hash": "62834334"
   },
   "incoming.secret_content_label": {
-    "text": "Beveiligde informatie",
+    "text": "Berichtinformatie",
     "source_hash": "b4f8c120"
   },
   "incoming.secret_content_placeholder": {
@@ -68,11 +68,11 @@
     "source_hash": "f9151d61"
   },
   "incoming.submit_button": {
-    "text": "Bericht verzenden",
+    "text": "Bericht versturen",
     "source_hash": "2a09f5e0"
   },
   "incoming.submit_secret": {
-    "text": "Bericht verzenden",
+    "text": "Bericht versturen",
     "source_hash": "2a09f5e0"
   },
   "incoming.submitting_button": {
@@ -120,11 +120,11 @@
     "source_hash": "099ff0c7"
   },
   "incoming.tagline2": {
-    "text": "Houd wachtwoorden en privégegevens uit e-mail en chatgeschiedenis",
+    "text": "Houd wachtwoorden en privégegevens uit e-mail- en chatlogs",
     "source_hash": "55566199"
   },
   "incoming.end_of_experience_suggestion": {
-    "text": "Bewaar je {receipt} voor je administratie.",
+    "text": "Sla je {receipt} op voor je administratie.",
     "source_hash": "db3d9c98"
   },
   "incoming.receipt_link_text": {
@@ -140,7 +140,7 @@
     "source_hash": "5df7f715"
   },
   "incoming.validation_memo_too_long": {
-    "text": "Memo mag maximaal {max} tekens bevatten",
+    "text": "Memo moet {max} tekens of minder zijn",
     "source_hash": "5727f2d3"
   },
   "incoming.validation_secret_required": {
@@ -152,7 +152,7 @@
     "source_hash": "67bb4666"
   },
   "incoming.validation_feature_disabled": {
-    "text": "Functie voor inkomende berichten is niet ingeschakeld",
+    "text": "Inkomende berichtenfunctie is niet ingeschakeld",
     "source_hash": "0616d3f4"
   },
   "incoming.validation_form_errors": {

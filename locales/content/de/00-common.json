@@ -1389,7 +1389,7 @@
     "source_hash": "0fcfb12d"
   },
   "api.errors.sso_only_action_blocked": {
-    "text": "Diese Aktion ist im reinen SSO-Modus nicht verfügbar",
+    "text": "Diese Aktion ist im Nur-SSO-Modus nicht verfügbar",
     "source_hash": "9bc26394"
   },
   "web.COMMON.configure": {
@@ -1539,5 +1539,9 @@
   "web.TITLES.domain_dns": {
     "text": "DNS-Einrichtung",
     "source_hash": "6c63df31"
+  },
+  "web.TITLES.connected_identities": {
+    "text": "Verbundene Identitäten",
+    "source_hash": "e132c4d9"
   }
 }

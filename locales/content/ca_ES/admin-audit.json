@@ -98,5 +98,41 @@
   "web.admin.audit.result.failure": {
     "text": "Error",
     "source_hash": "7031edbc"
+  },
+  "web.admin.audit.categories.secret": {
+    "text": "Secrets",
+    "source_hash": "d8707d41"
+  },
+  "web.admin.audit.categories.membership": {
+    "text": "Membres",
+    "source_hash": "b50f1a42"
+  },
+  "web.admin.audit.categories.entitlement_preview": {
+    "text": "Previsualitzacions de drets",
+    "source_hash": "255c5797"
+  },
+  "web.admin.audit.categories.colonel": {
+    "text": "Inicis de sessió de Colonel",
+    "source_hash": "01eeeb38"
+  },
+  "web.admin.audit.filters.actorLabel": {
+    "text": "Actor",
+    "source_hash": "449995c4"
+  },
+  "web.admin.audit.filters.searchButton": {
+    "text": "Cerca",
+    "source_hash": "49c266ba"
+  },
+  "web.admin.audit.filters.searchHint": {
+    "text": "Escriu un actor, després prem Retorn o tria Cerca per executar-lo. La llista no s'actualitza mentre escrius.",
+    "source_hash": "45eceb12"
+  },
+  "web.admin.audit.filters.pendingSearch": {
+    "text": "Encara no s'ha cercat — prem Retorn o tria Cerca per aplicar aquest actor.",
+    "source_hash": "f76095c2"
+  },
+  "web.admin.audit.list.contractError": {
+    "text": "El servidor ha respost, però les dades d'auditoria no coincideixen amb el format esperat. No es poden mostrar esdeveniments — és un error de report, no un registre buit.",
+    "source_hash": "7f48137e"
   }
 }

@@ -10,19 +10,19 @@
 # proof-of-life asset probe as a lane (a real Vite build, not a container's
 # baked assets).
 #
-#   fresh runner -> bin/setup -> scripts/test-install/baremetal-boot.sh
+#   fresh runner -> bin/setup -> scripts/install-tests/baremetal-boot.sh
 #     (LANG=C: rake ots:secrets -> pnpm run build -> puma production boot
 #      -> proof-of-life: homepage + /dist/assets/*.js + v1 at-most-once)
 #
-# Same artifact locally and in CI: scripts/test-install/baremetal-boot.sh.
+# Same artifact locally and in CI: scripts/install-tests/baremetal-boot.sh.
 # ==============================================================================
 name: Bare-metal boot lane
 
 on:
   pull_request:
     paths:
-      - 'scripts/test-install/baremetal-boot.sh'
-      - 'scripts/test-install/proof-of-life.sh'
+      - 'scripts/install-tests/baremetal-boot.sh'
+      - 'scripts/install-tests/proof-of-life.sh'
       - 'lib/tasks/init.rake'
       - 'config.ru'
       - 'etc/defaults/**'
@@ -44,7 +44,7 @@ jobs:
     timeout-minutes: 25
     steps:
       - name: Checkout code
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       # The lane starts its own throwaway instance on :2130; the apt-started
       # service on :6379 is harmless (same posture as fresh-clone).
@@ -77,4 +77,4 @@ jobs:
         run: bin/setup
 
       - name: Run bare-metal boot lane
-        run: ./scripts/test-install/baremetal-boot.sh
+        run: ./scripts/install-tests/baremetal-boot.sh

@@ -16,8 +16,11 @@ simple:
 full:
   # Database connection for Full mode
   # Uses in-memory SQLite for tests to avoid file persistence issues
-  database_url: "<%= ENV['AUTH_DATABASE_URL'] || 'sqlite::memory:' %>"
-  database_url_migrations: <%= ENV['AUTH_DATABASE_URL_MIGRATIONS'] || nil %>
+  # An exported-but-empty AUTH_DATABASE_URL is truthy in Ruby; treat it as
+  # unset so a lane/direnv that blanks the var still gets in-memory SQLite
+  # instead of a schemeless URL reaching Sequel.connect.
+  database_url: "<%= ENV['AUTH_DATABASE_URL'].to_s.strip.empty? ? 'sqlite::memory:' : ENV['AUTH_DATABASE_URL'] %>"
+  database_url_migrations: <%= ENV['AUTH_DATABASE_URL_MIGRATIONS'].to_s.strip.empty? ? nil : ENV['AUTH_DATABASE_URL_MIGRATIONS'] %>
 
   # Explicitly nil to prevent defaults layer from injecting ARGON2_SECRET
   # pepper into test hashes. Direct Argon2 verification in tests (e.g.

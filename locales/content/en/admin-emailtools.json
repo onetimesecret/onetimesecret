@@ -379,6 +379,18 @@
     "text": "Max send rate (per sec)",
     "content_hash": "59e76cf8"
   },
+  "web.admin.emailtools.providerStatus.cycle.window": {
+    "text": "Billing cycle: {start} → {end}",
+    "content_hash": "a9ea52bb"
+  },
+  "web.admin.emailtools.providerStatus.cycle.used": {
+    "text": "Quota used (cycle)",
+    "content_hash": "95a86428"
+  },
+  "web.admin.emailtools.providerStatus.cycle.remaining": {
+    "text": "Quota remaining",
+    "content_hash": "b2605e14"
+  },
   "web.admin.emailtools.providerStatus.stats.sent": {
     "text": "Sent ({days}d)",
     "content_hash": "e553b7e1"
@@ -395,6 +407,26 @@
     "text": "Spam complaints",
     "content_hash": "d48953cd"
   },
+  "web.admin.emailtools.providerStatus.stats.sentCycle": {
+    "text": "Sent (cycle)",
+    "content_hash": "e2ed5d2e"
+  },
+  "web.admin.emailtools.providerStatus.stats.softBounced": {
+    "text": "Soft bounced",
+    "content_hash": "58028553"
+  },
+  "web.admin.emailtools.providerStatus.stats.bounceRejects": {
+    "text": "Bounce rejects",
+    "content_hash": "0ca14701"
+  },
+  "web.admin.emailtools.providerStatus.stats.spamRejects": {
+    "text": "Spam rejects",
+    "content_hash": "4d487ce5"
+  },
+  "web.admin.emailtools.providerStatus.stats.unsubscribes": {
+    "text": "Unsubscribes",
+    "content_hash": "8a8c3ef7"
+  },
   "web.admin.emailtools.providerStatus.rate.bounce": {
     "text": "Bounce rate",
     "content_hash": "9eba32f0"
@@ -410,6 +442,10 @@
   "web.admin.emailtools.providerStatus.complaintsUnavailable": {
     "text": "Lettermint does not report complaints in its stats API, so the complaint rate is shown as “—” (not reported), not zero. The bounce rate above is complete.",
     "content_hash": "72aaa845"
+  },
+  "web.admin.emailtools.providerStatus.cycleNote": {
+    "text": "SMTP2GO reports statistics for the current billing cycle, not a trailing 30-day window. A rate shown as “—” is not reported by the provider, not zero.",
+    "content_hash": "b052009b"
   },
   "web.admin.emailtools.providerStatus.unavailable": {
     "text": "Provider status is temporarily unavailable.",

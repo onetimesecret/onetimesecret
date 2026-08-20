@@ -836,5 +836,41 @@
   "email.secret_link.footer_note": {
     "text": "Has rebut això perquè %{sender_email} ha utilitzat %{product_name} per compartir un secret amb tu. Si no l'esperaves, pots ignorar aquest correu electrònic amb tota tranquil·litat.",
     "source_hash": "2d544dad"
+  },
+  "email.sso_link_verification.subject": {
+    "text": "Confirma la vinculació de %{provider} amb el teu compte de %{product_name}",
+    "source_hash": "65e70296"
+  },
+  "email.sso_link_verification.title": {
+    "text": "Confirma el teu inici de sessió SSO",
+    "source_hash": "35bce6cc"
+  },
+  "email.sso_link_verification.request_notice": {
+    "text": "Algú ha iniciat sessió amb %{provider} utilitzant el correu electrònic %{email_address}. Per acabar de connectar %{provider} al teu compte de %{product_name}, confirma a continuació.",
+    "source_hash": "baeb18c0"
+  },
+  "email.sso_link_verification.confirm_button": {
+    "text": "Confirma i vincula %{provider}",
+    "source_hash": "9809e210"
+  },
+  "email.sso_link_verification.copy_link_prompt": {
+    "text": "O copia i enganxa aquest enllaç:",
+    "source_hash": "88c72144"
+  },
+  "email.sso_link_verification.expiration_notice": {
+    "text": "Aquest enllaç caduca en 15 minuts i només es pot utilitzar una vegada.",
+    "source_hash": "1a437f42"
+  },
+  "email.sso_link_verification.ignore_notice": {
+    "text": "Si no has intentat iniciar sessió amb %{provider}, pots ignorar aquest correu electrònic sense problema — no es connectarà res al teu compte.",
+    "source_hash": "d7317d30"
+  },
+  "email.sso_link_verification.signature": {
+    "text": "Equip de suport",
+    "source_hash": "dc75bf9f"
+  },
+  "email.sso_link_verification.postscript": {
+    "text": "P.D. Aquest correu electrònic s'ha enviat a %{email_address}.",
+    "source_hash": "8ab1dbea"
   }
 }

@@ -29,11 +29,16 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
 }));
 
 import AdminCustomerSessionsSection from '@/apps/admin/components/AdminCustomerSessionsSection.vue';
+import { colonelCustomerSessionsResponseSchema } from '@/schemas/api/internal/responses/colonel-customer-sessions';
 import { createTestI18n } from '@tests/setup';
 
 const i18n = createTestI18n();
 
 const USER_ID = 'ur_abc123';
+
+/** Pass-through i18n (ADR-014): keys render verbatim, so assert on the key. */
+const COUNTRY_HEADER = 'web.admin.customers.detail.sessions.columns.country';
+const UNKNOWN = 'web.admin.customers.detail.sessions.unknown';
 
 function sessionRow(overrides: Record<string, unknown> = {}) {
   return {
@@ -46,8 +51,20 @@ function sessionRow(overrides: Record<string, unknown> = {}) {
     user_agent: 'Mozilla/5.0',
     auth_method: 'password',
     mfa_used: null,
+    geo_country: 'DE',
     ...overrides,
   };
+}
+
+/**
+ * A row from a backend that predates the geo join: the key is ABSENT, not null.
+ * `{ geo_country: undefined }` would not exercise the same thing — the property
+ * would still exist — so it is deleted outright.
+ */
+function sessionRowWithoutCountry(overrides: Record<string, unknown> = {}) {
+  const row = sessionRow(overrides) as Record<string, unknown>;
+  delete row.geo_country;
+  return row;
 }
 
 function sessionsPayload(
@@ -74,6 +91,18 @@ const mountSection = () =>
 
 const badge = (w: VueWrapper, sid: string) => w.find(`[data-testid="session-current-${sid}"]`);
 const revoke = (w: VueWrapper, sid: string) => w.find(`[data-testid="session-revoke-${sid}"]`);
+
+/**
+ * Text of the country cell for one body row. DataTable emits cells positionally
+ * (one `<td>` per column, same order), so the column is located by its header
+ * rather than a hard-coded index — the assertion survives a column reshuffle.
+ */
+function countryCell(w: VueWrapper, rowIndex: number): string {
+  const table = w.find('[data-testid="sessions-section-table"]');
+  const columnIndex = table.findAll('thead th').findIndex((th) => th.text() === COUNTRY_HEADER);
+  expect(columnIndex).toBeGreaterThanOrEqual(0);
+  return table.findAll('tbody tr')[rowIndex].findAll('td')[columnIndex].text();
+}
 
 describe('AdminCustomerSessionsSection — current-session badge', () => {
   let wrapper: VueWrapper;
@@ -119,5 +148,91 @@ describe('AdminCustomerSessionsSection — current-session badge', () => {
     expect(wrapper.find('[data-testid^="session-current-"]').exists()).toBe(false);
     expect(revoke(wrapper, 'sid_1').exists()).toBe(true);
     expect(revoke(wrapper, 'sid_2').exists()).toBe(true);
+  });
+});
+
+describe('adminCustomerSessionSchema — geo_country', () => {
+  it('parses a resolved code and a null — the only shapes the API emits', () => {
+    // Otto's '**' unknown sentinel is normalized to null server-side and never
+    // crosses the API.
+    const result = colonelCustomerSessionsResponseSchema.safeParse(
+      sessionsPayload([
+        sessionRow({ session_id: 'sid_code', geo_country: 'DE' }),
+        sessionRow({ session_id: 'sid_null', geo_country: null }),
+      ])
+    );
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    const rows = result.data.details?.sessions ?? [];
+    expect(rows[0].geo_country).toBe('DE');
+    expect(rows[1].geo_country).toBeNull();
+  });
+
+  it('parses rows that OMIT geo_country entirely — deploy skew must not fail the whole list', () => {
+    const payload = sessionsPayload([
+      sessionRowWithoutCountry({ session_id: 'sid_old' }),
+      sessionRow({ session_id: 'sid_new', geo_country: 'FR' }),
+    ]);
+    const result = colonelCustomerSessionsResponseSchema.safeParse(payload);
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    const rows = result.data.details?.sessions ?? [];
+    // The pre-join row survives (key simply absent) alongside the joined one.
+    expect(rows).toHaveLength(2);
+    expect(rows[0].geo_country).toBeUndefined();
+    expect(rows[1].geo_country).toBe('FR');
+  });
+});
+
+describe('AdminCustomerSessionsSection — country column', () => {
+  let wrapper: VueWrapper;
+
+  beforeEach(() => {
+    setActivePinia(createPinia());
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => wrapper?.unmount());
+
+  it('renders a resolved country code verbatim', async () => {
+    mockApi.get.mockResolvedValue({
+      data: sessionsPayload([sessionRow({ geo_country: 'DE' })]),
+    });
+    wrapper = mountSection();
+    await flushPromises();
+
+    expect(countryCell(wrapper, 0)).toBe('DE');
+  });
+
+  it('renders a null and an absent geo_country as Unknown', async () => {
+    mockApi.get.mockResolvedValue({
+      data: sessionsPayload([
+        sessionRow({ session_id: 'sid_null', geo_country: null }),
+        sessionRowWithoutCountry({ session_id: 'sid_absent' }),
+      ]),
+    });
+    wrapper = mountSection();
+    await flushPromises();
+
+    expect(countryCell(wrapper, 0)).toBe(UNKNOWN);
+    expect(countryCell(wrapper, 1)).toBe(UNKNOWN);
+  });
+
+  it('never leaks an IP into the country cell — only a 2-letter code or Unknown', async () => {
+    const rows = [
+      sessionRow({ session_id: 'sid_code', ip_address: '203.0.113.7', geo_country: 'DE' }),
+      sessionRow({ session_id: 'sid_null', ip_address: '192.0.2.44', geo_country: null }),
+      sessionRowWithoutCountry({ session_id: 'sid_absent', ip_address: '2001:db8::1' }),
+    ];
+    mockApi.get.mockResolvedValue({ data: sessionsPayload(rows) });
+    wrapper = mountSection();
+    await flushPromises();
+
+    rows.forEach((row, index) => {
+      const text = countryCell(wrapper, index);
+      // Country is a country: an ISO-3166-1 alpha-2 code, or the Unknown label.
+      expect(text === UNKNOWN || /^[A-Z]{2}$/.test(text)).toBe(true);
+      expect(text).not.toContain(row.ip_address as string);
+    });
   });
 });

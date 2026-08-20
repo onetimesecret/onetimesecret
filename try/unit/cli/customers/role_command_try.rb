@@ -369,6 +369,53 @@ demote_customer(@colonel_email)
 reset_role(@colonel_email, 'colonel')
 #=> "colonel"
 
+# -------------------------------------------------------------------
+# Reconcile: repairs drift between the role field and the index (#3974).
+# In familia 2.12, targeted writers (save_fields, multi_field_update,
+# commit_fields) route multi_index maintenance through the ADD-ONLY
+# add_to_class_role_index -- the previous value's bucket member is
+# retained on a value change, so a role change persisted this way leaves
+# the customer in TWO buckets until reconciled. (The other drift source,
+# TTL-expired customer hashes, is exercised in
+# spec/cli/customers_role_reconcile_command_spec.rb.)
+# -------------------------------------------------------------------
+
+## A role change persisted via a targeted writer (save_fields) lands in the
+## new role's bucket...
+@drifted_email = "drifted_#{@test_suffix}@test.example.com"
+@drifted = Onetime::Customer.create!(email: @drifted_email)
+@drifted.role = 'customer'
+@drifted.save
+@drifted.role = 'colonel'
+@drifted.save_fields(:role)
+Onetime::Customer.role_index_for('colonel').member?(@drifted.objid)
+#=> true
+
+## ...while the previous bucket's member is retained (the add-only path)
+Onetime::Customer.role_index_for('customer').member?(@drifted.objid)
+#=> true
+
+## A dry-run reconcile reports the stale member as a removal
+@dry = Auth::Operations::Customers::ReconcileRoleIndex.new.call
+[@dry.status, @dry.removals.include?({ role: 'customer', objid: @drifted.objid })]
+#=> [:drift, true]
+
+## The dry run wrote nothing: the stale member is still indexed
+Onetime::Customer.role_index_for('customer').member?(@drifted.objid)
+#=> true
+
+## An applied reconcile drops the stale member and keeps the correct one
+@applied = Auth::Operations::Customers::ReconcileRoleIndex.new(apply: true).call
+[@applied.status,
+ Onetime::Customer.role_index_for('customer').member?(@drifted.objid),
+ Onetime::Customer.role_index_for('colonel').member?(@drifted.objid)]
+#=> [:repaired, false, true]
+
+## Clean up the drifted customer
+@drifted.destroy!
+Onetime::Customer.email_exists?(@drifted_email)
+#=> false
+
 # TEARDOWN
 
 [@regular_email, @colonel_email, @admin_email, @staff_email].each do |email|

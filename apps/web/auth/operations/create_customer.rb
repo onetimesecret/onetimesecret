@@ -22,12 +22,27 @@ module Auth
       #   Set on newly-created Customer records. Ignored for existing customers to
       #   preserve original signup context (same "don't rewrite history" rule as
       #   provisioning_origin).
-      def initialize(account_id:, account:, db: nil, provisioning_origin: nil, signup_domain_id: nil)
+      # @param verified [Boolean] Initial verification state for a NEWLY-created
+      #   Customer. Defaults to false — the password-signup shape, where
+      #   Rodauth's after_verify_account flips the flag once the emailed link is
+      #   followed. A caller passes true ONLY when the account is already
+      #   verified at creation time and no later hook will do it (the SSO/JIT
+      #   path: Rodauth opens the account at AccountStatuses::VERIFIED and never
+      #   fires after_verify_account). Ignored when the customer already exists —
+      #   same "don't rewrite history" rule as provisioning_origin, and it keeps
+      #   this operation from silently upgrading an existing unverified record.
+      # @param verified_by [String, nil] Provenance tag stored alongside
+      #   `verified` (see Auth::Operations::Customers::Doctor::VALID_VERIFIED_BY).
+      #   Only meaningful when verified: true.
+      def initialize(account_id:, account:, db: nil, provisioning_origin: nil, signup_domain_id: nil,
+                     verified: false, verified_by: nil)
         @account_id          = account_id
         @account             = account
         @db                  = db || Auth::Database.connection
         @provisioning_origin = provisioning_origin
         @signup_domain_id    = signup_domain_id
+        @verified            = verified ? true : false
+        @verified_by         = @verified ? verified_by : nil
       end
 
       # Executes the customer creation/loading operation
@@ -62,12 +77,19 @@ module Auth
           customer = Onetime::Customer.create!(
             email: email,
             role: 'customer',
-            verified: false, # needs to be updated in after_verify_account
+            # Default false: the password-signup shape, flipped later by
+            # after_verify_account. True only when the caller has already
+            # established verification (see the `verified:` param docs).
+            verified: @verified,
+            verified_by: @verified_by,
             provisioning_origin: @provisioning_origin,
             signup_domain_id: @signup_domain_id,
           )
 
-          auth_logger.info "[create-customer] Created new customer: #{customer.custid} (role: customer, origin: #{@provisioning_origin || 'unknown'}, signup_domain_id: #{@signup_domain_id || 'none'})"
+          auth_logger.info "[create-customer] Created new customer: #{customer.custid} (role: customer, " \
+                           "origin: #{@provisioning_origin || 'unknown'}, " \
+                           "signup_domain_id: #{@signup_domain_id || 'none'}, " \
+                           "verified: #{@verified}, verified_by: #{@verified_by || 'none'})"
         end
 
         customer

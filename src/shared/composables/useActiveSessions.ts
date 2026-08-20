@@ -7,8 +7,8 @@
 
 import {
   activeSessionsResponseSchema,
-  removeSessionResponseSchema,
   isAuthError,
+  removeSessionResponseSchema,
   type ActiveSessionsResponse,
   type RemoveSessionResponse,
 } from '@/schemas/api/auth/responses/auth';
@@ -16,7 +16,7 @@ import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import type { Session } from '@/types/auth';
 import type { AxiosInstance } from 'axios';
-import { ref, inject } from 'vue';
+import { inject, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 /* eslint-disable max-lines-per-function */
@@ -55,6 +55,7 @@ export function useActiveSessions() {
         ...session,
         ip_address: session.ip_address ?? undefined,
         user_agent: session.user_agent ?? undefined,
+        geo_country: session.geo_country ?? undefined,
       }));
 
       sessions.value = mappedSessions;
@@ -118,12 +119,9 @@ export function useActiveSessions() {
     isLoading.value = true;
 
     try {
-      const response = await $api.post<RemoveSessionResponse>(
-        '/auth/remove-all-active-sessions',
-        {
-          shrimp: csrfStore.shrimp,
-        }
-      );
+      const response = await $api.post<RemoveSessionResponse>('/auth/remove-all-active-sessions', {
+        shrimp: csrfStore.shrimp,
+      });
 
       const validated = removeSessionResponseSchema.parse(response.data);
 

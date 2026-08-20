@@ -10,10 +10,12 @@
 #   bin/setup --init      Self-hosting init: secrets, env, install mark.
 #                         Auto-detects an existing environment and reconciles
 #                         instead (never regenerates a live SECRET).
+#                         Operator front door: bin/install (thin wrapper).
 #   bin/setup --doctor    Check the environment: diff(manifest, reality) +
 #                         live connectivity probes. --operator drops the
 #                         contributor-tooling checks; --bundle writes a
 #                         sanitized diagnostic archive for support requests.
+#                         Support front door: bin/doctor (thin wrapper).
 #
 # Idempotent: every lane is safe to re-run at any time. Switching lanes is
 # also how you switch modes — `bin/setup --test` enters test mode (creates
@@ -362,7 +364,8 @@ cmd_dev() {
 # optional direnv lane switching.
 
 # True when something accepts TCP connections on 127.0.0.1:$1.
-# Same construct tests/lanes/run uses; bash 3.2 compatible.
+# /dev/tcp needs no extra tooling and parses under bash 3.2, which this
+# script still targets (DX-15) even though tests/lanes/run now requires 5.
 port_serving() { (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null; }
 
 cmd_test() {
@@ -563,10 +566,10 @@ cmd_reconcile() {
 
   # Verify .env and SECRET exist before attempting derive
   if [[ ! -f .env ]]; then
-    die ".env not found — run 'bin/setup --init' first"
+    die ".env not found — run 'bin/install' first"
   fi
   if ! grep -qE '^SECRET=.+' .env 2>/dev/null; then
-    die "SECRET is empty in .env — run 'bin/setup --init' first to generate secrets"
+    die "SECRET is empty in .env — run 'bin/install' first to generate secrets"
   fi
 
   info "Re-deriving child keys from existing SECRET..."
@@ -625,7 +628,7 @@ cmd_init() {
 
   if [[ "$mode" == "full" ]]; then
     info "Re-applying RabbitMQ policies and queue declarations..."
-    bin/ots queue init --force || warn "queue init failed (is RabbitMQ running?) — re-run 'bin/setup --init' after starting RabbitMQ"
+    bin/ots queue init --force || warn "queue init failed (is RabbitMQ running?) — re-run 'bin/install' after starting RabbitMQ"
   fi
 
   # Check Redis/Valkey availability before attempting install mark
@@ -641,7 +644,7 @@ cmd_init() {
       warn "install mark failed (exit $?) — see errors above"
     fi
   else
-    warn "Redis/Valkey not running — skipping install mark (run 'bin/setup --init' again after starting Valkey)"
+    warn "Redis/Valkey not running — skipping install mark (run 'bin/install' again after starting Valkey)"
   fi
 
   echo ""
@@ -664,8 +667,13 @@ cmd_init() {
   echo ""
   warn "  With a Procfile runner:         foreman start -f Procfile.production"
   warn "  For development with Overmind:  bin/dev"
-  warn "  Check environment health:       bin/setup --doctor --operator"
-  warn "  Support bundle for bug reports: bin/setup --doctor --bundle"
+  warn "  Check environment health:       bin/doctor --operator"
+  # --operator is not optional noise here: cmd_bundle collects whatever
+  # context doctor is given, and the default is dev. An operator who omits
+  # it ships a bundle full of contributor-toolchain failures (pnpm,
+  # node_modules, the bash 5+ floor the test-lane runner needs) that say
+  # nothing about their install. Keep this string in step with SUPPORT.md.
+  warn "  Support bundle for bug reports: bin/doctor --operator --bundle"
 
   echo ""
   cmd_doctor --operator || true
@@ -780,6 +788,57 @@ doctor_toolchain() {
     else
       doc_warn "node_modules missing" "bin/setup"
     fi
+
+    # tests/lanes/run hard-requires a modern bash (mapfile, plus 4.4+
+    # empty-array expansion under set -u). Contributor-context only: this
+    # script and the operator paths stay 3.2-clean on purpose, so an operator
+    # has no reason to install a newer bash. What matters is the bash that
+    # `#!/usr/bin/env bash` will resolve on PATH, not the one interpreting
+    # this script — on macOS those differ, and checking the wrong one reports
+    # success right up until the first lane run fails.
+    #
+    # The floor itself comes from .bash-version, the same pin file the
+    # runner's own guard reads (alongside .ruby-version/.node-version). A
+    # literal here would be a second copy of the number, and the failure mode
+    # of drift is the gap this check exists to close: doctor green-lights a
+    # bash the runner then rejects.
+    local lane_bash lane_bash_major lane_bash_full bash_fix bash_floor
+    bash_floor=""
+    if [[ -f .bash-version ]]; then
+      bash_floor=$(tr -d '[:space:]' < .bash-version)
+    fi
+    if [[ ! "$bash_floor" =~ ^[0-9]+$ ]]; then
+      doc_fail ".bash-version missing or not a bare major version — cannot check the tests/lanes/run bash floor" \
+        "restore .bash-version at the repo root (a single major version, e.g. 5)"
+    else
+      lane_bash=$(command -v bash 2>/dev/null || true)
+      lane_bash_major=""
+      lane_bash_full=""
+      if [[ -n "$lane_bash" ]]; then
+        lane_bash_major=$("$lane_bash" -c 'echo "${BASH_VERSINFO[0]:-}"' 2>/dev/null || true)
+        lane_bash_full=$("$lane_bash" -c 'echo "${BASH_VERSION:-}"' 2>/dev/null || true)
+      fi
+      if [[ "$(uname -s)" == "Darwin" ]]; then
+        bash_fix="brew install bash (Apple's /bin/bash is frozen at 3.2)"
+      else
+        bash_fix="install bash ${bash_floor}+ and put it ahead of any older bash on PATH"
+      fi
+      # The `=~` test gates the arithmetic one, and the order matters: `[[ ]]`
+      # short-circuits, and under `set -euo pipefail` an arithmetic comparison
+      # against a non-numeric string is a fatal "unbound variable" error, not a
+      # false result. Without the gate, a bash on PATH whose probe prints
+      # anything unexpected (a wrapper script's banner, a shell-init warning on
+      # stdout) would abort the whole --doctor run mid-report instead of failing
+      # this one check — and fresh-clone.yml asserts zero doctor failures, so
+      # that takes the job down with no usable report.
+      if [[ -z "$lane_bash_major" ]]; then
+        doc_fail "bash not found on PATH — tests/lanes/run cannot start" "$bash_fix"
+      elif [[ "$lane_bash_major" =~ ^[0-9]+$ && "$lane_bash_major" -ge "$bash_floor" ]]; then
+        doc_ok "bash $lane_bash_full at $lane_bash (>= $bash_floor, required by tests/lanes/run)"
+      else
+        doc_fail "bash $lane_bash_full at $lane_bash — tests/lanes/run requires ${bash_floor}+" "$bash_fix"
+      fi
+    fi
     if [[ -x scripts/check-version-pins.sh ]]; then
       if scripts/check-version-pins.sh &>/dev/null; then
         doc_ok "Version pins in sync (Dockerfiles/devcontainer vs pin files)"
@@ -820,7 +879,7 @@ doctor_files() {
       doc_ok "SECRET set in .env (presence only — value not read)"
     else
       if [[ "$DOCTOR_CONTEXT" == "operator" ]]; then
-        doc_fail "SECRET empty or CHANGEME in .env" "bin/setup --init (generates secrets)"
+        doc_fail "SECRET empty or CHANGEME in .env" "bin/install (generates secrets)"
       else
         doc_warn "SECRET empty or CHANGEME in .env" "bin/setup (generates secrets)"
       fi
@@ -833,7 +892,7 @@ doctor_files() {
       fi
     fi
   else
-    doc_down ".env missing" "bin/setup (contributor) or bin/setup --init (self-hosting)"
+    doc_down ".env missing" "bin/setup (contributor) or bin/install (self-hosting)"
   fi
 
   if [[ -f etc/config.yaml ]]; then
@@ -1060,7 +1119,11 @@ doctor_operator_assets() {
 # existing wins), else the tracked `default` pack. Then it lists the canonical
 # file set present in the winner and any uncommented brand.yaml keys.
 doctor_brand_pack() {
-  local canonical="favicon.ico favicon.svg apple-touch-icon.png icon-192.png icon-512.png safari-pinned-tab.svg social-preview.png site.webmanifest"
+  local canonical="favicon.ico favicon.svg apple-touch-icon.png icon-192.png icon-512.png safari-pinned-tab.svg site.webmanifest"
+  # Optional: a pack that omits social-preview.png emits no og:image/twitter:image
+  # at all (#4150) — that is a supported posture, not a partial pack, so it is
+  # reported separately rather than warned about.
+  local optional_social="social-preview.png"
   local roots="etc/branding public/branding"
   local resolved="" source=""
 
@@ -1105,7 +1168,13 @@ doctor_brand_pack() {
     doc_warn "Resolved pack missing canonical file(s):$missing" \
       "partial packs fall through to the default pack for these"
   else
-    doc_ok "Resolved pack carries the full canonical asset set (8 files)"
+    doc_ok "Resolved pack carries the full canonical asset set (7 files)"
+  fi
+
+  if [[ -f "$resolved/$optional_social" ]]; then
+    doc_ok "Social card present ($optional_social) — og:image/twitter:image emitted"
+  else
+    doc_info "No social card ($optional_social) — og:image/twitter:image omitted, twitter:card=summary"
   fi
 
   if [[ -f "$resolved/brand.yaml" ]]; then
@@ -1308,10 +1377,11 @@ Lanes:
                config smoke test. Then: tests/lanes/run unit / pnpm test
   --init       Self-hosting init: env file, secrets, install mark.
                Auto-reconciles when an environment already exists.
+               (Operator front door: bin/install)
   --reconcile  Re-derive child keys and re-apply RabbitMQ policies.
   --doctor     Check the environment: every check diffs a pin/manifest
                against reality or probes a live service (connectivity,
-               never local-CLI presence).
+               never local-CLI presence). (Support front door: bin/doctor)
                  --operator   operator context: skips contributor tooling
                               (overmind, direnv, ...); a down service is a
                               failure, not a warning. [default: --dev]

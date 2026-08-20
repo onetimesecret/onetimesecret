@@ -148,6 +148,29 @@ module AuthModeHelpers
       @restrict_to
     end
 
+    # Boot-time validation of the global restriction
+    # (ADR-034#degradation-is-fail-closed, #4140).
+    # The ValidateAuthConfig initializer calls this on EVERY boot, so a mock
+    # without it fails the whole full-mode suite at Onetime.boot! with a
+    # NoMethodError that reads as a harness break rather than a config error.
+    #
+    # The mock's @restrict_to is set by the spec that built it, not parsed from
+    # config, so there is nothing to reject: mirror the real method's return
+    # contract (the validated restriction, or nil) and never raise.
+    def validate_restrict_to!
+      restrict_to
+    end
+
+    # Runtime availability of the configured restriction
+    # (ADR-034#degradation-is-fail-closed, runtime half). Consumed by the
+    # restrict_to route gate
+    # (apps/web/auth/config/hooks/restrict_to.rb, #4139) to degrade fail-closed.
+    # A mock restriction is available by construction — a spec that needs the
+    # unavailable path stubs this.
+    def restrict_to_available?
+      true
+    end
+
     def sso_only_enabled?
       return false unless sso_enabled?
 
@@ -259,6 +282,32 @@ module AuthModeHelpers
     # drift from the single source of truth in AuthConfig#origin_from_url.)
     def sso_form_action_origins
       ENV.fetch('SSO_FORM_ACTION_ORIGINS', '').to_s.split.uniq
+    end
+
+    # Onetime::AuthConfig#tenant_idp_origin (#4173), delegated to the REAL
+    # pure function so specs that mount Onetime::Middleware::TenantCspExtras
+    # don't NoMethodError — and so the mock can never drift from production's
+    # origin_from_url hardening (a hand-rolled URI extraction here diverged
+    # on exactly the hostile inputs the funnel exists to reject, e.g. a
+    # `;`-bearing host). tenant_idp_origin and its private helpers never
+    # touch loaded config, so an allocated (uninitialized) AuthConfig gives
+    # the production behavior without booting the auth config singleton —
+    # the same allocate technique tenant_csp_extras_spec uses.
+    def tenant_idp_origin(sso_config)
+      tenant_origin_delegate.tenant_idp_origin(sso_config)
+    end
+
+    # Onetime::AuthConfig#tenant_origin_source (#4173) — the dispatch
+    # tenant_idp_origin itself runs, delegated for the same reason: the
+    # middleware asks which provider types read the tenant issuer, and a
+    # second copy of that answer here would be exactly the drift the shared
+    # method exists to prevent.
+    def tenant_origin_source(sso_config)
+      tenant_origin_delegate.tenant_origin_source(sso_config)
+    end
+
+    def tenant_origin_delegate
+      @tenant_origin_delegate ||= Onetime::AuthConfig.allocate
     end
   end
 

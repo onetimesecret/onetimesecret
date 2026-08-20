@@ -296,9 +296,12 @@ export function isSsoOnlyModeOf(state: { features?: Features }): boolean {
  * When true, password-based auth routes are disabled and the sign-in page
  * shows only SSO provider buttons.
  *
- * The backend only sets restrict_to='sso' when SSO is enabled and at
- * least one provider is configured, so no additional frontend guard is
- * needed.
+ * The scalar only carries 'sso' when the server's resolver could honor it:
+ * an unavailable restriction is nulled and reported through
+ * features.effective_restrict_to as state 'unavailable', never widened back
+ * to standard mode. So no extra frontend availability guard is needed — but
+ * see AuthMethodSelector: display code must fail closed on
+ * effective_restrict_to, not on this scalar.
  */
 export function isSsoOnlyMode(): boolean {
   if (typeof window === 'undefined') return false;
@@ -598,6 +601,29 @@ export function isSecretActivityCollectEnabled(): boolean {
   const features = getBootstrapValue('features');
   const result = features?.secret_activity?.collect_enabled !== false;
   debugLog.features('features.isSecretActivityCollectEnabled', { collect_enabled: features?.secret_activity?.collect_enabled, result });
+  return result;
+}
+
+/**
+ * Checks if the Secret Activity country column is enabled (#3989) — a
+ * legally-sensitive org-tier geo feature pending counsel review. Default is
+ * OFF — only an explicit `true` (SECRET_ACTIVITY_GEO_COUNTRY_ENABLED=true) enables
+ * the column; an absent key (the default, and all older backends) keeps it
+ * hidden. This is the inverse default of the isSecretActivityCollectEnabled
+ * sibling above (`!== false`, default-ON): this is an `=== true` opt-in
+ * check, so anything other than a definitive true stays off.
+ *
+ * SSR/no-window guard returns false, matching the default-off contract.
+ * Reads the bootstrap snapshot directly rather than the memoized
+ * getValidatedFeatures() cache, for the reasons documented on
+ * isSecretActivityCollectEnabled.
+ */
+export function isSecretActivityGeoCountryEnabled(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const features = getBootstrapValue('features');
+  const result = features?.secret_activity?.geo_country_enabled === true;
+  debugLog.features('features.isSecretActivityGeoCountryEnabled', { geo_country_enabled: features?.secret_activity?.geo_country_enabled, result });
   return result;
 }
 

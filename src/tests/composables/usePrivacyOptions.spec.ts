@@ -176,10 +176,37 @@ describe('usePrivacyOptions', () => {
       expect(values()).toEqual([]);
     });
 
-    it('still applies the 30-day global cap', () => {
-      setupStore({ ttl_options: [WEEK, THIRTY_DAYS + 1], ttl_max_anonymous: null });
+    it('still applies the absolute 365-day cap (MAX_TTL)', () => {
+      const ONE_YEAR = 3600 * 24 * 365;
+      setupStore({ ttl_options: [WEEK, ONE_YEAR + 1], ttl_max_anonymous: null });
 
       expect(values()).toEqual([WEEK]);
+    });
+  });
+
+  describe('lifetimeOptions — durations beyond 30 days (#4008)', () => {
+    const NINETY_DAYS = 3600 * 24 * 90;
+
+    // The composable used to hardcode a 30-day cap that silently hid
+    // longer durations a self-hosted operator had configured, even when
+    // the server would have honoured them.
+    it('offers a 90-day option to a guest when the server ceiling allows it', () => {
+      setupStore({
+        ttl_options: [WEEK, THIRTY_DAYS, NINETY_DAYS],
+        ttl_max_anonymous: NINETY_DAYS,
+      });
+
+      expect(values()).toEqual([WEEK, THIRTY_DAYS, NINETY_DAYS]);
+    });
+
+    it('offers a 90-day option to an authenticated caller within their plan limit', () => {
+      setupStore({
+        authenticated: true,
+        ttl_options: [WEEK, THIRTY_DAYS, NINETY_DAYS],
+        secret_lifetime: NINETY_DAYS,
+      });
+
+      expect(values()).toEqual([WEEK, THIRTY_DAYS, NINETY_DAYS]);
     });
   });
 

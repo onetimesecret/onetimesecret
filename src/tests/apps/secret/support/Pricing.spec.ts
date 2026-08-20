@@ -84,6 +84,16 @@ vi.mock('@/types/billing', () => ({
     }).format(amount / 100),
 }));
 
+// PlanCard imports the locale-aware wrapper (#4048); pin en-US so assertions
+// stay deterministic regardless of the active app/browser locale.
+vi.mock('@/utils/format/currency', () => ({
+  formatCurrency: (amount: number, currency: string = 'USD') => new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency,
+    }).format(amount / 100),
+  activeIntlLocale: () => 'en-US',
+}));
+
 // Test fixtures
 // Plan IDs are now family-keyed without interval suffix
 // Backend returns separate plan objects for monthly/yearly with the same id
@@ -212,21 +222,23 @@ describe('Pricing.vue', () => {
       expect(planCards.length).toBe(monthlyPaidPlanIds.length);
     });
 
-    it('calculates monthly equivalent for yearly plans', async () => {
+    it('shows the actual yearly total for yearly plans', async () => {
       mockRouteParamsValue = { interval: 'yearly' };
       await mountComponent();
 
-      // Check that yearly plans show monthly equivalent price
-      // The single_team_yearly has monthly_equivalent_amount: 2417 ($24.17)
-      expect(wrapper.text()).toContain('$24.17');
+      // PRICING DISPLAY POLICY (see PlanCard.vue): yearly plans headline the
+      // charged yearly amount, never a derived monthly-equivalent rate.
+      // single_team_yearly has amount: 29000 ($290.00)
+      expect(wrapper.text()).toContain('$290.00');
+      expect(wrapper.text()).not.toContain('$24.17');
     });
 
-    it('uses API monthly_equivalent_amount when provided', async () => {
+    it('never displays monthly_equivalent_amount even when the API provides it', async () => {
       const planWithEquivalent = createMockPlan({
         id: 'test_yearly',
         interval: 'year',
         amount: 12000, // $120/year
-        monthly_equivalent_amount: 999, // $9.99/month (API override)
+        monthly_equivalent_amount: 999, // $9.99/month (must NOT be shown)
       });
 
       mockListPlans.mockResolvedValueOnce({
@@ -236,8 +248,8 @@ describe('Pricing.vue', () => {
 
       await mountComponent();
 
-      // Should show $9.99 from monthly_equivalent_amount, not $10.00 from calculation
-      expect(wrapper.text()).toContain('$9.99');
+      expect(wrapper.text()).toContain('$120.00');
+      expect(wrapper.text()).not.toContain('$9.99');
     });
 
     it('shows "Most Popular" badge for is_popular plans', async () => {
@@ -545,7 +557,8 @@ describe('Pricing.vue', () => {
 
       const group = wrapper.find('[role="group"]');
       expect(group.exists()).toBe(true);
-      expect(group.attributes('aria-label')).toBe('Billing interval');
+      // t() is mocked to return the key; the label is now translatable
+      expect(group.attributes('aria-label')).toBe('web.billing.plans.billing_interval');
     });
   });
 
@@ -603,11 +616,11 @@ describe('Pricing.vue', () => {
       expect(wrapper.text()).toContain('web.pricing.start_trial');
     });
 
-    it('calculates fallback monthly equivalent when API field missing', async () => {
+    it('shows the yearly total when monthly_equivalent_amount is missing', async () => {
       const yearlyWithoutEquivalent = createMockPlan({
         id: 'test_yearly',
         interval: 'year',
-        amount: 12000, // $120/year -> $10/month
+        amount: 12000, // $120/year
         // monthly_equivalent_amount is undefined
       });
 
@@ -618,8 +631,7 @@ describe('Pricing.vue', () => {
 
       await mountComponent();
 
-      // 12000 / 12 = 1000 cents = $10.00
-      expect(wrapper.text()).toContain('$10.00');
+      expect(wrapper.text()).toContain('$120.00');
     });
   });
 
@@ -863,10 +875,10 @@ describe('Pricing.vue', () => {
 
       expect(wrapper.findAll('[data-testid="plan-card-free_v1"]')).toHaveLength(1);
       // Monthly paid cards are filtered out; yearly ones remain. Asserted via
-      // the yearly-only price ($24.17 from monthly_equivalent_amount: 2417) —
-      // both interval variants share id 'identity_plus_v1', so the card testid
-      // resolves in either view and cannot distinguish them.
-      expect(wrapper.text()).toContain('$24.17');
+      // the yearly-only total ($290.00 from amount: 29000) — both interval
+      // variants share id 'identity_plus_v1', so the card testid resolves in
+      // either view and cannot distinguish them.
+      expect(wrapper.text()).toContain('$290.00');
     });
   });
 });

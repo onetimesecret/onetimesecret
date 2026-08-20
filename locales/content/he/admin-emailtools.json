@@ -546,5 +546,41 @@
   "web.admin.emailtools.test.success": {
     "text": "דוא״ל בדיקה נשלח אל {to}.",
     "source_hash": "daa61a62"
+  },
+  "web.admin.emailtools.providerStatus.cycleNote": {
+    "text": "SMTP2GO מדווח על סטטיסטיקות עבור מחזור החיוב הנוכחי, ולא עבור חלון של 30 הימים האחרונים. שיעור המוצג כ-“—” אינו מדווח על ידי הספק, ואין פירושו אפס.",
+    "source_hash": "b052009b"
+  },
+  "web.admin.emailtools.providerStatus.cycle.window": {
+    "text": "מחזור חיוב: {start} ← {end}",
+    "source_hash": "a9ea52bb"
+  },
+  "web.admin.emailtools.providerStatus.cycle.used": {
+    "text": "מכסה שנוצלה (במחזור)",
+    "source_hash": "95a86428"
+  },
+  "web.admin.emailtools.providerStatus.cycle.remaining": {
+    "text": "מכסה שנותרה",
+    "source_hash": "b2605e14"
+  },
+  "web.admin.emailtools.providerStatus.stats.sentCycle": {
+    "text": "נשלחו (במחזור)",
+    "source_hash": "e2ed5d2e"
+  },
+  "web.admin.emailtools.providerStatus.stats.softBounced": {
+    "text": "החזרות רכות",
+    "source_hash": "58028553"
+  },
+  "web.admin.emailtools.providerStatus.stats.bounceRejects": {
+    "text": "דחיות עקב החזרות",
+    "source_hash": "0ca14701"
+  },
+  "web.admin.emailtools.providerStatus.stats.spamRejects": {
+    "text": "דחיות עקב ספאם",
+    "source_hash": "4d487ce5"
+  },
+  "web.admin.emailtools.providerStatus.stats.unsubscribes": {
+    "text": "הסרות מרשימת תפוצה",
+    "source_hash": "8a8c3ef7"
   }
 }

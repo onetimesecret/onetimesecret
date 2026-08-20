@@ -4,6 +4,8 @@
 
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'auth/account_statuses'
+require 'auth/operations/set_customer_verification'
 
 module Auth
   module Operations
@@ -28,8 +30,11 @@ module Auth
       # ## Email-drift checks (#3731 PR-C1)
       #
       # Three checks exist specifically to make a half-completed email change
-      # visible: `:auth_email_drift` (the ONLY Redis-vs-SQL comparison here — a
-      # `ChangeEmail` op returning `:partial` is invisible without it),
+      # visible: `:auth_email_drift` (one of the two Redis-vs-SQL comparisons
+      # here — a `ChangeEmail` op returning `:partial` is invisible without it;
+      # the other is `:sso_customer_unverified`, and both share one memoized
+      # `auth_account` read so the sweep still costs one SQL round trip per
+      # customer),
       # `:org_email_index_stale` (the org-scoped index, which Familia never
       # auto-populates) and `:org_contact_email_stale` (default workspaces still
       # contacting a dead address). See each method for its scoping rules.
@@ -51,8 +56,27 @@ module Auth
         # Valid customer roles (historical data-shape check — see NOTE above)
         VALID_ROLES = %w[customer anonymous colonel].freeze
 
-        # Valid verified_by values
-        VALID_VERIFIED_BY = %w[email stripe_payment autoverify].freeze
+        # Every verified_by provenance tag the codebase writes, with the
+        # writer for each:
+        #   email          - secret reveal by owner (apps/api/v2/logic/secrets/
+        #                    {show,reveal}_secret.rb) and Rodauth verify_account
+        #                    (apps/web/auth/config/hooks/account.rb)
+        #   stripe_payment - payment-initiated signup (apps/web/billing/logic/welcome.rb)
+        #   autoverify     - autoverify-mode account creation
+        #                    (apps/api/account/logic/account/create_account.rb)
+        #   sso            - OmniAuth JIT provisioning (apps/web/auth/config/hooks/
+        #                    omniauth.rb) and this doctor's :sso_customer_unverified repair
+        #   invite_token   - invitation acceptance (apps/web/auth/operations/
+        #                    accept_invitation.rb, config/hooks/account.rb)
+        #   cli_provision  - CLI customer/apitoken commands (lib/onetime/cli/)
+        #   colonel_admin  - colonel admin verification (apps/api/colonel/logic/
+        #                    colonel/set_user_verification.rb)
+        #   legacy         - backfilled by this doctor's verified_by repair
+        # Keep this list in sync when adding a new provenance writer.
+        VALID_VERIFIED_BY = %w[
+          email stripe_payment autoverify sso
+          invite_token cli_provision colonel_admin legacy
+        ].freeze
 
         # Counter fields to check
         COUNTER_FIELDS = [:secrets_created, :secrets_burned, :secrets_shared, :emails_sent].freeze
@@ -85,6 +109,7 @@ module Auth
           check_org_membership_sync(issues, repaired)
           check_role_validity(issues)
           check_verified_consistency(issues, repaired)
+          check_sso_customer_unverified(issues, repaired)
           check_counter_sanity(issues, repaired)
           check_field_serialization(issues, repaired)
 
@@ -276,8 +301,10 @@ module Auth
 
         # CHECK: the Rodauth accounts row agrees with the Customer record
         #
-        # THE ONLY CROSS-STORE CHECK IN THIS DOCTOR. Every other check compares
-        # Redis against Redis, which means a half-completed cross-store email
+        # ONE OF THE TWO CROSS-STORE CHECKS IN THIS DOCTOR (the other is
+        # check_sso_customer_unverified, which reads the SAME memoized row).
+        # Every other check compares Redis
+        # against Redis, which means a half-completed cross-store email
         # change (Auth::Operations::Customers::ChangeEmail returning `:partial`)
         # was previously UNDETECTABLE: Redis is internally consistent on one
         # address while Postgres holds the other, so the customer signs in with an
@@ -301,11 +328,9 @@ module Auth
           db = auth_db
           return if db.nil?
 
-          extid = @customer.extid.to_s
-          return if extid.empty?
           return if @customer.email.to_s.empty?
 
-          account = db[:accounts].where(external_id: extid).select(:id, :email).first
+          account = auth_account
           return if account.nil?
 
           sql_email = account[:email].to_s
@@ -641,6 +666,98 @@ module Auth
             action: :fields_reserialized,
             fields: bad_fields.map { |f| f[:field] },
           }
+        end
+
+        # The customer's Rodauth accounts row, or nil (simple mode, unreachable
+        # DB, no extid, no row). Memoized because TWO cross-store checks read
+        # it — :auth_email_drift and :sso_customer_unverified — and the class
+        # docs call the one SQL round trip per customer the dominant cost of an
+        # `--all` sweep. One shared read keeps that cost unchanged.
+        #
+        # A repair inside check_auth_email_drift rewrites the row's email; the
+        # memo is deliberately not invalidated because the only later reader
+        # wants :status_id, which no repair here touches.
+        def auth_account
+          return @auth_account if defined?(@auth_account)
+
+          db    = auth_db
+          extid = @customer.extid.to_s
+
+          @auth_account = if db.nil? || extid.empty?
+                            nil
+                          else
+                            db[:accounts].where(external_id: extid).select(:id, :email, :status_id).first
+                          end
+        rescue StandardError
+          @auth_account = nil
+        end
+
+        # CHECK: an SSO-provisioned Customer left unverified (#3973)
+        #
+        # The JIT SSO path used to hard-code `verified: false` on the Customer
+        # while Rodauth opened the accounts row at VERIFIED, and nothing ever
+        # reconciled the two — after_verify_account only fires in the email
+        # verify flow, which an SSO user never traverses. The visible symptom is
+        # an SSO-provisioned colonel who cannot exercise their role, because
+        # has_system_role? tests verified? BEFORE it reads the role.
+        #
+        # The forward fix (config/hooks/omniauth.rb) stops new records drifting.
+        # This check is the ONLY thing that heals records created before it, and
+        # it is deliberately narrow on BOTH sides of the split:
+        #
+        #   * Redis side — provisioning_origin must literally be 'sso_jit'. This
+        #     is set once at creation and never rewritten, so it is real
+        #     provenance, not an inference from current state.
+        #   * SQL side — the accounts row must already be at
+        #     AccountStatuses::VERIFIED. The repair therefore only copies a fact
+        #     the auth store already holds; it never decides that anyone is
+        #     verified, and never touches SQL (rodauth_already_synced: true).
+        #
+        # An existing verified_by is PRESERVED — a customer who was
+        # email-verified or stripe-verified keeps that provenance, and only a
+        # record with no provenance at all is stamped 'sso'.
+        def check_sso_customer_unverified(issues, repaired)
+          return if @customer.verified?
+          return unless @customer.provisioning_origin.to_s == 'sso_jit'
+
+          account = auth_account
+          return if account.nil?
+          return unless account[:status_id] == Auth::AccountStatuses::VERIFIED
+
+          existing_provenance = @customer.verified_by.to_s
+          provenance          = existing_provenance.empty? ? 'sso' : existing_provenance
+
+          issues << {
+            check: :sso_customer_unverified,
+            severity: :high,
+            message: 'SSO-provisioned customer is unverified while its auth account is Verified ' \
+                     '(system roles are gated on verified?)',
+            repairable: true,
+            repair_action: "Mirror the auth account's verified state onto the Customer " \
+                           "(verified_by: '#{provenance}')",
+          }
+
+          return unless @repair
+
+          Auth::Operations::SetCustomerVerification.new(
+            customer: @customer,
+            verified: true,
+            verified_by: provenance,
+            rodauth_already_synced: true,
+          ).call
+
+          OT.info "[customers doctor] Verified SSO-provisioned customer #{@customer.extid} " \
+                  "(verified_by: #{provenance})"
+          repaired << {
+            customer: @customer.extid,
+            action: :sso_customer_verified,
+            value: provenance,
+          }
+        rescue StandardError => ex
+          # Same rule as the other cross-store check: never abort a sweep over
+          # one unreachable DB or one bad record.
+          OT.le "[customers doctor] sso_customer_unverified check failed for #{@customer.extid}: " \
+                "#{ex.class} #{ex.message}"
         end
 
         # Auth database handle, or nil in simple mode / when unreachable.

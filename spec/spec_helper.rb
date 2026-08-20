@@ -34,10 +34,14 @@ require 'simplecov' if ENV['COVERAGE'] == 'true'
 # spec/spec_helper.rb
 # Test harness for Onetime.
 
-# Test database URL: spec/config.test.yaml hardcodes redis://127.0.0.1:2163/0
-# (port 2163 avoids conflicts with development Redis on 6379). It is not
-# overridable via VALKEY_URL/REDIS_URL; see [#2128] which centralized the
-# test Redis URL in config instead of env vars scattered across spec helpers.
+# Test database URL: spec/config.test.yaml hardcodes host/port
+# 127.0.0.1:2163 (avoids conflicts with development Redis on 6379). It is
+# not overridable via VALKEY_URL/REDIS_URL; see [#2128] which centralized
+# the test Redis URL in config instead of env vars scattered across spec
+# helpers. The DB index alone varies: LANES_DATASTORE_DB (exported by
+# tests/lanes/run, derived per worktree) selects which database on 2163 a
+# run uses, so concurrent worktrees don't share keys ([#4168]). Unset — the
+# interactive case — it falls back to /0.
 
 require 'rspec'
 require 'yaml'
@@ -269,6 +273,19 @@ RSpec.configure do |config|
     # Production runs SetupI18n initializer at boot; unit tests skip boot!.
     I18n.available_locales = [:en] unless I18n.available_locales.include?(:en)
     I18n.default_locale = :en
+
+    # AdminNetworkIsolation announces its boot posture — and every WARN about a
+    # gate being off, dark, or unenforceable — through a PROCESS-WIDE ledger, so
+    # the 13 mounted apps built from one config print one line instead of 13.
+    # Production never clears it: a process boots once. A spec process builds a
+    # stack per example, so without this the first example to produce a given
+    # posture is the only one that can ever observe its boot line, and every
+    # later assertion about one sees silence — a green-or-red decided by run
+    # order, with silence as the default. Reset per example so each stack a spec
+    # builds announces itself, exactly as the first one in a real boot does.
+    # Pinned by spec/integration/all/colonel_host_allowlist_spec.rb, which asserts
+    # the same boot WARN in two identical examples.
+    Onetime::Middleware::AdminNetworkIsolation.reset_boot_announcements!
   end
 
   # Clean Redis/Valkey database after each integration test to prevent state leakage.

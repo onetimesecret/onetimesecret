@@ -836,5 +836,41 @@
   "email.secret_link.footer_note": {
     "text": "Tuto zprávu jsi obdržel, protože %{sender_email} s tebou prostřednictvím %{product_name} sdílel tajemství. Pokud jsi ji nečekal, můžeš tento e-mail bez obav ignorovat.",
     "source_hash": "2d544dad"
+  },
+  "email.sso_link_verification.subject": {
+    "text": "Potvrď propojení %{provider} s tvým účtem %{product_name}",
+    "source_hash": "65e70296"
+  },
+  "email.sso_link_verification.title": {
+    "text": "Potvrď své přihlášení SSO",
+    "source_hash": "35bce6cc"
+  },
+  "email.sso_link_verification.request_notice": {
+    "text": "Někdo se přihlásil pomocí %{provider} s e-mailem %{email_address}. Pro dokončení propojení %{provider} s tvým účtem %{product_name} potvrď níže.",
+    "source_hash": "baeb18c0"
+  },
+  "email.sso_link_verification.confirm_button": {
+    "text": "Potvrdit a propojit %{provider}",
+    "source_hash": "9809e210"
+  },
+  "email.sso_link_verification.copy_link_prompt": {
+    "text": "Nebo zkopíruj a vlož tento odkaz:",
+    "source_hash": "88c72144"
+  },
+  "email.sso_link_verification.expiration_notice": {
+    "text": "Platnost tohoto odkazu vyprší za 15 minut a lze ho použít pouze jednou.",
+    "source_hash": "1a437f42"
+  },
+  "email.sso_link_verification.ignore_notice": {
+    "text": "Pokud ses nepokoušel přihlásit pomocí %{provider}, můžeš tento e-mail bezpečně ignorovat — k tvému účtu nebude nic připojeno.",
+    "source_hash": "d7317d30"
+  },
+  "email.sso_link_verification.signature": {
+    "text": "Tým podpory",
+    "source_hash": "dc75bf9f"
+  },
+  "email.sso_link_verification.postscript": {
+    "text": "P. S. Tento e-mail byl odeslán na %{email_address}.",
+    "source_hash": "8ab1dbea"
   }
 }

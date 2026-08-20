@@ -7,7 +7,7 @@
  * Previously defined in Onetime::Plan.load_plans!
  *
  * Per contracts convention, this schema describes field names and types only.
- * Defaults, TTL bounds (min 60s / max 30d), and the secret-size cap live in
+ * Defaults, TTL bounds (min 60s / max 365d), and the secret-size cap live in
  * `shapes/config/section/secret_options.ts`.
  */
 

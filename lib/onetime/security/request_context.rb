@@ -66,9 +66,15 @@ module Onetime
       NET_IP_PARTIAL = 'net_ip_partial'
       NET_UA_PARTIAL = 'net_ua_partial'
       NET_IP_HASH    = 'net_ip_hash'
+      NET_COUNTRY    = 'net_country'
 
       # Trailing octets to zero when masking an IP (1 => last IPv4 octet).
       IP_MASK_OCTETS = 1
+
+      # Otto's GeoResolver sentinel for "no country resolved"
+      # (Otto::Privacy::GeoResolver::UNKNOWN). Treated like a blank value: the
+      # key is omitted, never stored as '**'.
+      UNKNOWN_COUNTRY = '**'
 
       # Upper bound on the stored partial user agent. Well under Otto's own 500
       # so the stored value is unambiguously a truncated partial.
@@ -84,11 +90,15 @@ module Onetime
       # @param ip [String, nil] client IP as seen at the calling layer (already
       #   edge-masked in production; re-masked here defensively).
       # @param user_agent [String, nil] client User-Agent header value.
+      # @param country [String, nil] resolved ISO-3166-1 alpha-2 country code
+      #   (e.g. env['otto.privacy.geo_country']). Country is already the coarsest
+      #   geo signal, so it needs no masking — only a format check; Otto's '**'
+      #   unknown sentinel and any malformed value are omitted, not stored.
       # @param key [String, nil] HMAC key for the correlation hash. Defaults to
       #   the app's server secret; when blank the hash is omitted rather than
       #   computed under a weak key.
       # @return [Hash{String=>String}] masked/partial/hashed attributes only.
-      def capture(ip:, user_agent:, key: default_key)
+      def capture(ip:, user_agent:, country: nil, key: default_key)
         attrs = {}
 
         partial_ip = mask_ip(ip)
@@ -103,6 +113,9 @@ module Onetime
 
         partial_ua            = mask_user_agent(user_agent)
         attrs[NET_UA_PARTIAL] = partial_ua if partial_ua
+
+        country_code          = normalize_country(country)
+        attrs[NET_COUNTRY]    = country_code if country_code
 
         attrs
       end
@@ -182,6 +195,23 @@ module Onetime
           .gsub(/\d+[._]\d+/, '*.*')
 
         reduced.length > UA_MAX_LENGTH ? reduced[0, UA_MAX_LENGTH] : reduced
+      end
+
+      # Validate a resolved country code for storage. Country (ISO-3166-1
+      # alpha-2) is already the coarsest geo granularity, so unlike IP/UA it
+      # needs no masking — only a format check plus the unknown-sentinel/blank
+      # omission that keeps this method's "present only when derivable" contract
+      # uniform across every attribute.
+      #
+      # @param country [String, nil] e.g. env['otto.privacy.geo_country'].
+      # @return [String, nil] the upcased 2-letter code, or nil when blank, the
+      #   '**' unknown sentinel, or not a well-formed alpha-2 code.
+      def normalize_country(country)
+        code = country.to_s.strip.upcase
+        return nil if code.empty? || code == UNKNOWN_COUNTRY
+        return nil unless code.match?(/\A[A-Z]{2}\z/)
+
+        code
       end
     end
   end

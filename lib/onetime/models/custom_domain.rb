@@ -4,6 +4,8 @@
 
 require 'public_suffix'
 
+require_relative '../field_types/boolean_field_type'
+
 module Onetime
   # Custom Domain
   #
@@ -53,6 +55,14 @@ module Onetime
   class CustomDomain < Familia::Horreum
     include Familia::Features::Autoloader
 
+    # Boolean fields are declared with `boolean_field ..., storage: :native`
+    # so every write path (setter, create!, the `field!` fast writer) stores
+    # a real Ruby boolean, and every read coerces legacy spellings ('true',
+    # '1', 'yes') back to one. Read them directly — `if domain.verified` —
+    # never `.to_s == 'true'` or `== true`.
+    # See Onetime::FieldTypes::BooleanFieldType.
+    extend Onetime::FieldTypes::BooleanFieldMacro
+
     SCHEMA = 'models/custom-domain'
 
     unless defined?(MAX_SUBDOMAIN_DEPTH)
@@ -89,8 +99,8 @@ module Onetime
     field :txt_validation_value
     field :status
     field :vhost
-    field :verified # the txt record matches?
-    field :resolving # there's a valid A or CNAME record?
+    boolean_field :verified, storage: :native  # the txt record matches?
+    boolean_field :resolving, storage: :native # there's a valid A or CNAME record?
     field :vhost_fetch_failed_at # epoch seconds; non-nil while last vhost fetch failed
     field :created
     field :updated
@@ -100,7 +110,7 @@ module Onetime
     # worker via save_fields, kept off the icon hashkey so status updates
     # don't race the icon image write.
     field :favicon_fetch_status # JobLifecycle string (PENDING/PROCESSING/COMPLETED/FAILED)
-    field :favicon_fetched # outcome bool: true once an icon was actually stored
+    boolean_field :favicon_fetched, storage: :native # true once an icon was actually stored
     field :favicon_fetch_error # last failure message
     field :favicon_fetch_started_at # epoch seconds a PROCESSING run began (stale-in-flight window)
     field :favicon_fetch_completed_at # epoch seconds of the last terminal outcome
@@ -656,8 +666,8 @@ module Onetime
     def verification_state
       return :unverified unless txt_validation_value
 
-      if resolving.to_s == 'true'
-        verified.to_s == 'true' ? :verified : :resolving
+      if resolving
+        verified ? :verified : :resolving
       else
         :pending
       end
@@ -819,7 +829,7 @@ module Onetime
 
           # Add to other global indexes (instances sorted set, owners hash)
           instances.add obj.to_s
-          owners.put obj.to_s, obj.org_id
+          record_owner(obj, obj.org_id)
 
           # Maintain the per-domain config invariant: every CustomDomain has
           # matching HomepageConfig/ApiConfig records. find_or_create_for_domain
@@ -943,7 +953,7 @@ module Onetime
               existing.add_to_organization_domains(org) if org
 
               # Update owners hash (Location E) to reflect new org ownership
-              owners.put existing.to_s, org_id
+              record_owner(existing, org_id)
             end
           end
         end
@@ -1052,24 +1062,61 @@ module Onetime
         PublicSuffix.valid?(input, default_rule: nil)
       end
 
-      # Whether the input is exactly the configured site host. Narrower
-      # than overlaps_canonical_domain? by design: callers (e.g.
-      # share_domain filtering) ask "is this THE site host?", not "does
-      # this collide with any canonical host or subdomain thereof?".
+      # Whether the input is exactly one of the link-ANCHOR hosts
+      # (site.host or features.domains.default). Narrower than
+      # overlaps_canonical_domain? by design: exact match only, no
+      # base-domain overlap. Callers (e.g. share_domain filtering) ask
+      # "is this THE default domain?", not "does this collide with any
+      # canonical host or subdomain thereof?". Covers both anchor
+      # hosts so a split deployment (site.host=api.example.com,
+      # domains.default=secrets.example.com) filters the default link
+      # domain the same way the DomainStrategy middleware classifies it.
+      #
+      # DELIBERATELY reads the ANCHOR set, not the full canonical set
+      # (#4063). Do NOT "fix" this to canonical_hosts/normalized_hosts for
+      # consistency with overlaps_canonical_domain? -- the two questions
+      # diverged when features.domains.link_domains joined the canonical
+      # set. process_share_domain (apps/api/v{1,2}/logic/secrets/
+      # base_secret_action.rb) returns early WITHOUT setting @share_domain
+      # when this returns true, so an operator link-pool host answering
+      # true here silently discards every picker selection and re-anchors
+      # the generated link on the canonical host the operator configured
+      # LINK_DOMAINS to hide. No exception, no log line: every link is
+      # simply wrong. Link-pool hosts are hosts we SERVE, not hosts we
+      # ANCHOR on.
       def default_domain?(input)
         display_domain = Onetime::CustomDomain.display_domain(input)
-        site_host      = OT.conf.dig('site', 'host')
-        OT.ld "[CustomDomain.default_domain?] #{display_domain} == #{site_host}"
-        display_domain.eql?(site_host)
-      rescue PublicSuffix::Error => ex
-        OT.le "[CustomDomain.default_domain?] #{ex.message} for `#{input}"
+        hosts          = anchor_hosts
+        OT.ld "[CustomDomain.default_domain?] #{display_domain} in #{hosts.inspect}"
+        hosts.include?(display_domain)
+      rescue PublicSuffix::Error, Onetime::Problem => ex
+        OT.le "[CustomDomain.default_domain?] #{ex.message} for `#{input}`"
         false
       end
 
       # Whether the input domain overlaps with a canonical site domain.
-      # Checks both exact match and base-domain match so that subdomains
-      # of a canonical host are also blocked (e.g. secrets.example.com
-      # when the site host is eu.example.com — both resolve to example.com).
+      # Two arms with deliberately different reach (#4063):
+      #
+      #   exact match      - the FULL canonical set, including the operator
+      #                      link pool (features.domains.link_domains). A
+      #                      customer may never register a host the
+      #                      deployment already serves as canonical.
+      #   base-domain match - ANCHOR hosts only (site.host and
+      #                      features.domains.default), so subdomain
+      #                      siblings of an anchor are blocked too (e.g.
+      #                      secrets.example.com when the site host is
+      #                      eu.example.com — both resolve to example.com).
+      #
+      # The tradeoff, decided for #4063 and recorded here so it survives
+      # review: running the base-domain sweep over link-pool members would
+      # forbid customers from registering ANY sibling under that base
+      # domain — LINK_DOMAINS=short.example.com would block every
+      # *.example.com registration forever, which for an operator link
+      # domain on a shared public suffix is far worse than the loosening
+      # it replaces. The accepted consequence is that a customer MAY
+      # register a sibling of an operator link domain (other.example.com
+      # while short.example.com is in the pool). Exact-match protection of
+      # the pool member itself is retained.
       #
       # Covers both site.host and features.domains.default: the
       # DomainStrategy middleware treats `domains.default || site.host`
@@ -1083,11 +1130,8 @@ module Onetime
       # Placed before entitlement checks in AddDomain so it is absolute
       # (no colonel bypass) — this is a system-integrity invariant.
       def overlaps_canonical_domain?(input)
-        canonical_hosts = [
-          OT.conf&.dig('site', 'host'),
-          OT.conf&.dig('features', 'domains', 'default'),
-        ].map(&:to_s).reject(&:empty?)
-        return false if canonical_hosts.empty?
+        hosts = canonical_hosts
+        return false if hosts.empty?
 
         # Control characters are invalid in domain names (RFC 952/1123).
         # Treat as overlap to block registration -- a domain that cannot
@@ -1102,12 +1146,12 @@ module Onetime
         input_display = display_domain(input)
         input_base    = base_domain(input)
 
-        canonical_hosts.any? do |host|
-          # Strip port for PublicSuffix compatibility (e.g. localhost:3000)
-          bare_host = host.split(':').first.to_s.downcase
-          next true if input_display.eql?(bare_host)
+        # Exact match against every canonical host, link pool included.
+        return true if hosts.include?(input_display)
 
-          canonical_base = base_domain(bare_host)
+        # Base-domain sweep, anchors only. See the tradeoff note above.
+        anchor_hosts.any? do |host|
+          canonical_base = base_domain(host)
 
           # Skip base-domain comparison when this canonical host can't be
           # resolved (e.g. localhost in development)
@@ -1119,6 +1163,35 @@ module Onetime
         OT.le "[CustomDomain.overlaps_canonical_domain?] #{ex.message} for `#{input}`"
         true
       end
+
+      # The FULL canonical host set for this deployment, normalized
+      # (lowercased, port-stripped) with the primary host first:
+      # features.domains.default when present, else site.host, followed by
+      # site.host and then every features.domains.link_domains entry
+      # (#4063). These are the hosts the deployment SERVES.
+      #
+      # Derived through Utils::CanonicalHosts — the same derivation point
+      # the DomainStrategy middleware uses — so the registration guard can
+      # never disagree with request classification about which hosts are
+      # canonical.
+      #
+      # Sole consumer: overlaps_canonical_domain? (exact-match arm).
+      def canonical_hosts
+        Onetime::Utils::CanonicalHosts.normalized_hosts
+      end
+      private :canonical_hosts
+
+      # The link-ANCHOR host subset, normalized: features.domains.default
+      # and site.host only, primary first. NEVER contains an operator
+      # link-pool member. These are the hosts generated links anchor on.
+      #
+      # Consumers: default_domain? (whole predicate) and the base-domain
+      # arm of overlaps_canonical_domain?. Both would misbehave against
+      # the full set — see the comments on each.
+      def anchor_hosts
+        Onetime::Utils::CanonicalHosts.normalized_anchor_hosts
+      end
+      private :anchor_hosts
 
       # ASCII control characters (0x00-0x1F, 0x7F) are invalid in domain
       # names per RFC 952/1123. PublicSuffix does not reject them, so we
@@ -1168,7 +1241,40 @@ module Onetime
 
         instances.add fobj.to_s # created time, identifier
         display_domain_index.put fobj.display_domain, fobj.identifier
-        owners.put fobj.to_s, fobj.org_id # domainid => organization id
+        record_owner(fobj, fobj.org_id) # domainid => organization id
+      end
+
+      # SINGLE WRITER for the `owners` class hashkey (domainid => org_id).
+      #
+      # `owners` is a plain class_hashkey, NOT a Familia-managed index: nothing
+      # keeps it in step with the authoritative `CustomDomain#org_id` field.
+      # Organization#unlisted_owned_domains reads it as the second source of
+      # truth for the org-deletion drift guard, so an entry left pointing at a
+      # previous owner makes THAT organization permanently undeletable
+      # (`bin/ots domains transfer` used to do exactly this). Every writer that
+      # changes a domain's owning organization must route through here.
+      #
+      # A blank org_id REMOVES the entry rather than writing an empty string: an
+      # empty value matches no org's objid, but it would still be walked by the
+      # HGETALL scan and reported as drift forever.
+      #
+      # Safe to call inside a MULTI (it only issues writes, never reads).
+      #
+      # NOTE (#4217): this hashkey is slated for replacement by a Familia
+      # `multi_index :org_id`. Keep this helper thin so that swap stays a
+      # single-site change.
+      #
+      # @param fobj [Onetime::CustomDomain, String] domain, or its identifier.
+      # @param org_id [String, nil] the new owning organization's objid.
+      def record_owner(fobj, org_id)
+        domain_id = fobj.to_s
+        return if domain_id.empty?
+
+        if org_id.to_s.empty?
+          owners.remove domain_id
+        else
+          owners.put domain_id, org_id.to_s
+        end
       end
 
       def all
@@ -1187,14 +1293,23 @@ module Onetime
         instances.rangebyscoreraw(spoint, epoint).collect { |identifier| load(identifier) }
       end
 
-      # Load a custom domain by display domain only. Used during requests
-      # after determining the domain strategy is :custom.
+      # Finds a custom domain by its display domain.
       #
-      # @param display_domain [String] The display domain to load
-      # @return [Onetime::CustomDomain, nil] The custom domain record or nil if not found
+      # The lookup normalizes `display_domain` to lowercase to match the index.
+      # Returns `nil` when the domain is blank, absent from the index, or its
+      # indexed record no longer exists. Datastore errors intentionally propagate:
+      # callers use this lookup to resolve tenant policy and must not treat a failed
+      # read as an absent tenant configuration.
+      #
+      # @param display_domain [String, #to_s] Display domain to look up
+      # @return [Onetime::CustomDomain, nil]
+      # @raise [Redis::BaseError] if reading the index or domain record fails
       def from_display_domain(display_domain)
+        normalized = display_domain.to_s.downcase
+        return nil if normalized.empty?
+
         # Get the domain ID from the display_domain_index hash
-        domain_id = display_domain_index.get(display_domain)
+        domain_id = display_domain_index.get(normalized)
         return nil unless domain_id
 
         # Load the record using the domain ID

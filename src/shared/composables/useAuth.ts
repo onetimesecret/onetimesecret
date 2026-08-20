@@ -1,42 +1,40 @@
 // src/shared/composables/useAuth.ts
 
 import {
-  isAuthError,
-  requiresMfa,
-  hasBillingRedirect,
-  type LoginResponse,
-  type CreateAccountResponse,
-  type LogoutResponse,
-  type ResetPasswordRequestResponse,
-  type ResetPasswordResponse,
-  type VerifyAccountResponse,
-  type ChangePasswordResponse,
-  type CloseAccountResponse,
-  type EmailChangeRequestResponse,
-  type EmailChangeConfirmResponse,
-  type EmailChangeResendResponse,
-  type ResendVerificationEmailResponse,
-  type BillingRedirect,
-} from '@/schemas/api/auth/responses/auth';
-import {
-  loginResponseSchema,
+  changePasswordResponseSchema,
+  closeAccountResponseSchema,
   createAccountResponseSchema,
+  emailChangeConfirmResponseSchema,
+  emailChangeRequestResponseSchema,
+  emailChangeResendResponseSchema,
+  hasBillingRedirect,
+  isAuthError,
+  loginResponseSchema,
   logoutResponseSchema,
+  requiresMfa,
+  resendVerificationEmailResponseSchema,
   resetPasswordRequestResponseSchema,
   resetPasswordResponseSchema,
   verifyAccountResponseSchema,
-  changePasswordResponseSchema,
-  closeAccountResponseSchema,
-  emailChangeRequestResponseSchema,
-  emailChangeConfirmResponseSchema,
-  emailChangeResendResponseSchema,
-  resendVerificationEmailResponseSchema,
+  type BillingRedirect,
+  type ChangePasswordResponse,
+  type CloseAccountResponse,
+  type CreateAccountResponse,
+  type EmailChangeConfirmResponse,
+  type EmailChangeRequestResponse,
+  type EmailChangeResendResponse,
+  type LoginResponse,
+  type LogoutResponse,
+  type ResendVerificationEmailResponse,
+  type ResetPasswordRequestResponse,
+  type ResetPasswordResponse,
+  type VerifyAccountResponse,
 } from '@/schemas/api/auth/responses/auth';
 import { loggingService } from '@/services/logging.service';
 import { useApi } from '@/shared/composables/useApi';
 import {
-  useAsyncHandler,
   createError,
+  useAsyncHandler,
   type AsyncHandlerOptions,
 } from '@/shared/composables/useAsyncHandler';
 import { CHECK_EMAIL_STATE_KEY } from '@/shared/constants/checkEmail';
@@ -593,9 +591,11 @@ export function useAuth() {
         });
       }
 
-      // Success - show notification and navigate to signin
-      notificationsStore.show(validated.success, 'success', 'top');
-      await router.push('/signin');
+      // A successful reset revokes every session, including this browser's.
+      // Clear local session state and hard-navigate so stale authenticated
+      // stores cannot issue protected requests during an SPA route change.
+      await authStore.logoutMinimal();
+      window.location.href = '/signin';
       return true;
     });
 
@@ -728,25 +728,18 @@ export function useAuth() {
    * @param password - Current password for confirmation
    * @returns true if request was successful
    */
-  async function requestEmailChange(
-    newEmail: string,
-    password: string
-  ): Promise<boolean> {
+  async function requestEmailChange(newEmail: string, password: string): Promise<boolean> {
     clearErrors();
 
     const result = await wrap(async () => {
-      const response = await $api.post<EmailChangeRequestResponse>(
-        '/api/account/change-email',
-        {
-          new_email: newEmail,
-          password,
-          shrimp: csrfStore.shrimp,
-          locale: locale.value,
-        }
-      );
+      const response = await $api.post<EmailChangeRequestResponse>('/api/account/change-email', {
+        new_email: newEmail,
+        password,
+        shrimp: csrfStore.shrimp,
+        locale: locale.value,
+      });
 
-      const validated =
-        emailChangeRequestResponseSchema.parse(response.data);
+      const validated = emailChangeRequestResponseSchema.parse(response.data);
 
       if (isAuthError(validated)) {
         throw createError(validated.error, 'human', 'error', {
@@ -766,9 +759,7 @@ export function useAuth() {
    * @param token - Verification token from email link
    * @returns true if confirmation was successful
    */
-  async function confirmEmailChange(
-    token: string
-  ): Promise<boolean> {
+  async function confirmEmailChange(token: string): Promise<boolean> {
     clearErrors();
 
     const result = await wrap(async () => {
@@ -777,8 +768,7 @@ export function useAuth() {
         { token, shrimp: csrfStore.shrimp }
       );
 
-      const validated =
-        emailChangeConfirmResponseSchema.parse(response.data);
+      const validated = emailChangeConfirmResponseSchema.parse(response.data);
 
       if (isAuthError(validated)) {
         throw createError(validated.error, 'human', 'error');
@@ -808,8 +798,7 @@ export function useAuth() {
         }
       );
 
-      const validated =
-        emailChangeResendResponseSchema.parse(response.data);
+      const validated = emailChangeResendResponseSchema.parse(response.data);
 
       if (isAuthError(validated)) {
         throw createError(validated.error, 'human', 'error', {
@@ -846,8 +835,7 @@ export function useAuth() {
         }
       );
 
-      const validated =
-        resendVerificationEmailResponseSchema.parse(response.data);
+      const validated = resendVerificationEmailResponseSchema.parse(response.data);
 
       if (isAuthError(validated)) {
         throw createError(validated.error, 'human', 'error', {

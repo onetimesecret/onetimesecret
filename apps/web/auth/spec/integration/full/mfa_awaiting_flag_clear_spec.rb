@@ -7,7 +7,7 @@
 #
 # What is under test
 # ------------------
-# apps/web/auth/config/hooks/mfa.rb, after_two_factor_authentication:
+# apps/web/auth/config/hooks/two_factor.rb, after_two_factor_authentication:
 #
 #     session['awaiting_mfa'] = false
 #
@@ -38,8 +38,8 @@
 # and never completes a real OTP auth. This spec boots the full application
 # (Valkey, Familia, Auth::Operations) and then mounts a Rodauth app configured
 # with the REAL production modules — Auth::Config::Features::MFA and
-# Auth::Config::Hooks::MFA/Login — so the hook body executing here is the
-# production hook body, not a copy of it.
+# Auth::Config::Hooks::Login/MFA/TwoFactor — so the hook body executing here
+# is the production hook body, not a copy of it.
 #
 # REQUIREMENTS: Valkey on port 2163 (pnpm run test:database:start).
 #
@@ -101,10 +101,13 @@ RSpec.describe 'MFA completion clears awaiting_mfa (issue #3884)', type: :integr
         Auth::Config::Features::MFA.configure(self)
 
         # Production hooks. Login.configure owns after_login, whose MFA branch
-        # calls PrepareMfaSession (the writer of awaiting_mfa); MFA.configure
-        # owns after_two_factor_authentication (the clear under test).
+        # calls PrepareMfaSession (the writer of awaiting_mfa); TwoFactor.configure
+        # owns after_two_factor_authentication (the clear under test). Order
+        # mirrors config.rb: TwoFactor registers after the MFA feature so
+        # two_factor_base exists.
         Auth::Config::Hooks::Login.configure(self)
         Auth::Config::Hooks::MFA.configure(self)
+        Auth::Config::Hooks::TwoFactor.configure(self)
       end
 
       route do |r|
@@ -237,10 +240,10 @@ RSpec.describe 'MFA completion clears awaiting_mfa (issue #3884)', type: :integr
     end
   end
 
-  # The reason line 219 of hooks/mfa.rb is kept rather than deleted as
-  # redundant: SyncSession's own clear runs inside safe_execute, so a raising
-  # sync leaves the hook's assignment as the only thing between the user and a
-  # permanent awaiting-MFA lockout.
+  # The reason the hook's `session['awaiting_mfa'] = false` (hooks/two_factor.rb)
+  # is kept rather than deleted as redundant: SyncSession's own clear runs
+  # inside safe_execute, so a raising sync leaves the hook's assignment as the
+  # only thing between the user and a permanent awaiting-MFA lockout.
   describe 'completing MFA when SyncSession raises' do
     it 'still clears awaiting_mfa under the string key' do
       secret = otp_secret # enroll before stubbing: enrollment's login syncs

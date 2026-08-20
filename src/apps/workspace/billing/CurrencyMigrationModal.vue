@@ -28,12 +28,19 @@ const emit = defineEmits<{
 const isMigrating = ref(false);
 const error = ref('');
 const selectedMode = ref<MigrationMode>('graceful');
+// Immediate migration completed but the prorated refund could not be issued.
+// The old subscription is already cancelled, so checkout must stay reachable —
+// but we stop auto-redirecting and surface the failure first.
+const refundFailed = ref(false);
+const pendingCheckoutUrl = ref('');
 
 // Reset state when modal opens
 watch(() => props.open, (isOpen) => {
   if (isOpen) {
     error.value = '';
     selectedMode.value = 'graceful';
+    refundFailed.value = false;
+    pendingCheckoutUrl.value = '';
   }
 });
 
@@ -78,6 +85,12 @@ async function handleConfirm() {
     if (result.success) {
       if (result.migration.mode === 'graceful') {
         emit('graceful-confirmed', result.migration.cancel_at);
+      } else if (result.migration.refund_failed) {
+        // Do not auto-redirect: the customer would land in checkout with no
+        // refund and no indication it failed. Show the warning and require an
+        // explicit action to continue.
+        refundFailed.value = true;
+        pendingCheckoutUrl.value = result.migration.checkout_url;
       } else {
         emit('immediate-redirect', result.migration.checkout_url);
       }
@@ -90,6 +103,12 @@ async function handleConfirm() {
     console.error('[CurrencyMigrationModal] Migration error:', err);
   } finally {
     isMigrating.value = false;
+  }
+}
+
+function handleContinueToCheckout() {
+  if (pendingCheckoutUrl.value) {
+    emit('immediate-redirect', pendingCheckoutUrl.value);
   }
 }
 
@@ -218,8 +237,10 @@ function handleClose() {
                   </div>
                 </div>
 
-                <!-- Migration Mode Selection -->
-                <fieldset class="mt-5">
+                <!-- Migration Mode Selection (hidden once migration has run) -->
+                <fieldset
+                  v-if="!refundFailed"
+                  class="mt-5">
                   <legend class="text-sm font-medium text-gray-900 dark:text-white">
                     {{ t('web.billing.currency_migration.choose_timing') }}
                   </legend>
@@ -277,6 +298,26 @@ function handleClose() {
                 </fieldset>
               </div>
 
+              <!-- Refund Failed Warning: migration completed, refund could not be issued -->
+              <div
+                v-if="refundFailed"
+                class="mt-4 rounded-md bg-amber-50 p-4 dark:bg-amber-900/20"
+                role="alert"
+                aria-live="polite">
+                <div class="flex">
+                  <OIcon
+                    collection="heroicons"
+                    name="exclamation-triangle"
+                    class="size-5 shrink-0 text-amber-400"
+                    aria-hidden="true" />
+                  <div class="ml-3">
+                    <p class="text-sm text-amber-700 dark:text-amber-300">
+                      {{ t('web.billing.currency_migration.refund_failed_warning') }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <!-- Error State -->
               <div
                 v-if="error"
@@ -298,6 +339,14 @@ function handleClose() {
               <!-- Actions -->
               <div class="mt-6 sm:flex sm:flex-row-reverse sm:gap-3">
                 <button
+                  v-if="refundFailed"
+                  type="button"
+                  class="inline-flex w-full justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400 sm:w-auto"
+                  @click="handleContinueToCheckout">
+                  {{ t('web.billing.currency_migration.refund_failed_continue') }}
+                </button>
+                <button
+                  v-else
                   type="button"
                   :disabled="isMigrating || !details"
                   :class="[

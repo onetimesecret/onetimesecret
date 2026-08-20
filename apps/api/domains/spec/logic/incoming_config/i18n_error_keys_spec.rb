@@ -65,6 +65,7 @@ RSpec.describe 'IncomingConfig Logic error_key propagation' do
       extid: domain_extid,
       display_domain: 'incoming.example.com',
       org_id: org_id,
+      primary_organization: organization,
     )
   end
 
@@ -228,12 +229,13 @@ RSpec.describe 'IncomingConfig Logic error_key propagation' do
       end
     end
 
-    context 'when Organization.load returns nil' do
+    context 'when the domain has no resolvable organization' do
       let(:logic) { described_class.new(strategy_result, params) }
 
       before do
-        allow(Onetime::Organization).to receive(:load)
-          .with(org_id).and_return(nil)
+        # Blank org_id and a deleted organization both arrive here as nil,
+        # which is the whole point of resolving through the model accessor.
+        allow(custom_domain).to receive(:primary_organization).and_return(nil)
       end
 
       it 'raises RecordNotFound tagged with organization_not_found and the domain in args' do

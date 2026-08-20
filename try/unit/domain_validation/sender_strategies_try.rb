@@ -109,6 +109,10 @@ DnsWrapper = Struct.new(:value)
 @factory.for_provider('lettermint').class
 #=> Onetime::DomainValidation::SenderStrategies::LettermintValidation
 
+## Factory returns Smtp2goValidation for 'smtp2go'
+@factory.for_provider('smtp2go').class
+#=> Onetime::DomainValidation::SenderStrategies::Smtp2goValidation
+
 ## Factory normalizes provider string (uppercase, whitespace)
 @factory.for_provider('  SES  ').class
 #=> Onetime::DomainValidation::SenderStrategies::SesValidation
@@ -148,6 +152,10 @@ end
 ## Lettermint strategy name is 'lettermint'
 @factory.for_provider('lettermint').strategy_name
 #=> 'lettermint'
+
+## Smtp2go strategy name is 'smtp2go'
+@factory.for_provider('smtp2go').strategy_name
+#=> 'smtp2go'
 
 # --- SES record generation from provisioned data ---
 

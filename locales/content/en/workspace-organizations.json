@@ -261,6 +261,11 @@
     "text": "Remove all custom domains before deleting this organization.",
     "content_hash": "44678715"
   },
+  "web.organizations.delete_organization_cancel_subscription_first": {
+    "text": "Cancel this organization's subscription before deleting it.",
+    "context": "Shown under the delete organization action when the org's subscription can still bill (active, trialing, past_due or unpaid), which the server refuses to delete",
+    "content_hash": "f0c54eca"
+  },
   "web.organizations.delete": {
     "text": "Delete",
     "content_hash": "e2d0a549"
@@ -684,9 +689,17 @@
     "text": "Actor",
     "content_hash": "449995c4"
   },
+  "web.organizations.audit.columns.country": {
+    "text": "Country",
+    "content_hash": "701d021d"
+  },
   "web.organizations.audit.columns.when": {
     "text": "When",
     "content_hash": "cf9c7aa2"
+  },
+  "web.organizations.audit.country_unknown": {
+    "text": "Unknown",
+    "content_hash": "b764cdc0"
   },
   "web.organizations.audit.kinds.created": {
     "text": "Secret created",
@@ -900,13 +913,18 @@
     "text": "Remove {domain}",
     "content_hash": "ae708a1d"
   },
-  "web.organizations.sso.enabled": {
-    "text": "Enable SSO",
-    "content_hash": "d10d0801"
+  "web.organizations.sso.connection_enabled": {
+    "text": "Connection active",
+    "content_hash": "b6334b2b"
   },
-  "web.organizations.sso.enabled_hint": {
-    "text": "When enabled, organization members can sign in using this SSO provider",
-    "content_hash": "d7da2fa2"
+  "web.organizations.sso.connection_enabled_hint": {
+    "text": "When active, members can sign in with this SSO provider. SSO must also be enabled as a sign-in method in the domain's Sign-In Configuration.",
+    "content_hash": "871db2f1"
+  },
+  "web.organizations.sso.enable_untested_warning": {
+    "text": "This connection has not passed a test here yet. Run Test connection before turning it on, so a broken setup never reaches your sign-in page.",
+    "context": "Advisory warning beside the Connection active toggle when it is switched on without a successful connection test in the current editing session. Not a hard block.",
+    "content_hash": "c1fbdeca"
   },
   "web.organizations.sso.enforce_sso_only": {
     "text": "Enforce SSO only",
@@ -1074,6 +1092,61 @@
     "context": "Message shown when invitation was already accepted",
     "content_hash": "f56ad547"
   },
+  "web.organizations.invitations.restricted_host_title": {
+    "text": "A different sign-in method is required here",
+    "context": "Heading on the invitation page when this site restricts sign-in to a single method that is not a password, so the password signup form is not offered.",
+    "content_hash": "d761ad30"
+  },
+  "web.organizations.invitations.restricted_host_body": {
+    "text": "This site only allows signing in with {method}, so an account cannot be created here with a password. {method} is not something you can complete on this page.",
+    "context": "Explanation shown when the site restricts sign-in to a method the invitation page cannot complete. {method} is a method name such as Email authentication or Passkeys.",
+    "content_hash": "6ac146d4"
+  },
+  "web.organizations.invitations.restricted_host_unknown_body": {
+    "text": "This site only allows one specific sign-in method, and it is not one this page can offer. An account cannot be created here with a password.",
+    "context": "Explanation shown when the site restricts sign-in to a method this version of the app does not recognise, so it cannot be named.",
+    "content_hash": "e24d59a9"
+  },
+  "web.organizations.invitations.restricted_sso_body": {
+    "text": "This site uses single sign-on. Sign in with your organization's provider to continue — that creates your account and signs you in.",
+    "context": "Explanation shown on the invitation page when the site restricts sign-in to SSO, before the button that starts the SSO flow.",
+    "content_hash": "e942d04b"
+  },
+  "web.organizations.invitations.restricted_sso_cta": {
+    "text": "Continue to sign in",
+    "context": "Button that sends the invitee to the sign-in page to authenticate with single sign-on, returning to the invitation afterwards.",
+    "content_hash": "d398cd0a"
+  },
+  "web.organizations.invitations.restricted_use_email_link": {
+    "text": "Open the link in your invitation email to accept from the main site instead.",
+    "context": "Fallback guidance pointing the invitee back to the original invitation email link when the current site cannot complete sign-in.",
+    "content_hash": "73bf298f"
+  },
+  "web.organizations.invitations.invitation_stays_pending": {
+    "text": "Your invitation is still valid — nothing has been used up, and you can accept it once you have signed in.",
+    "context": "Reassurance shown alongside a sign-in restriction notice, so the invitee does not think their invitation link has been spent or lost.",
+    "content_hash": "f4d00be1"
+  },
+  "web.organizations.invitations.signin_unavailable_title": {
+    "text": "Sign-in is not available on this site",
+    "context": "Heading on the invitation page when the site's sign-in restriction cannot be honored, so no sign-in method works here.",
+    "content_hash": "c56bce2b"
+  },
+  "web.organizations.invitations.signin_unavailable_body": {
+    "text": "This site is restricted to {method}, which is not working here, so there is no way to sign in at the moment.",
+    "context": "Shown when the site restricts sign-in to a method that cannot run, leaving no way to sign in. {method} is a method name such as Single Sign-On.",
+    "content_hash": "62c01601"
+  },
+  "web.organizations.invitations.signin_unavailable_unknown_body": {
+    "text": "This site is restricted to a sign-in method that is not working here, so there is no way to sign in at the moment.",
+    "context": "Shown when the site's sign-in restriction cannot be honored and the method cannot be named by this version of the app.",
+    "content_hash": "1f61e456"
+  },
+  "web.organizations.invitations.signin_unavailable_conflict_body": {
+    "text": "This site's sign-in settings conflict with the site-wide restriction ({method}), so neither applies and there is no way to sign in at the moment.",
+    "context": "Shown when a domain's sign-in restriction and the site-wide restriction name different methods, so neither can apply. {method} is the site-wide method name.",
+    "content_hash": "54cdfd61"
+  },
   "web.organizations.invitations.join_organization": {
     "text": "Join {orgName}",
     "context": "Dynamic page title for signup flow",
@@ -1212,5 +1285,13 @@
   "web.organizations.organizations": {
     "text": "Organizations",
     "content_hash": "2730183d"
+  },
+  "web.organizations.sso.enabled": {
+    "text": "Enable SSO",
+    "content_hash": "d10d0801"
+  },
+  "web.organizations.sso.enabled_hint": {
+    "text": "When enabled, organization members can sign in using this SSO provider",
+    "content_hash": "d7da2fa2"
   }
 }

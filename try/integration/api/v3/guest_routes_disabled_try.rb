@@ -198,13 +198,16 @@ with_guest_routes_config({ 'enabled' => false }) do
 end
 #=> 200
 
-## Version endpoint works even when guest routes globally disabled
+## Version endpoint stays auth-gated when guest routes globally disabled
+# /version is authenticated regardless of the guest_routes switch: it is gated
+# by auth=sessionauth,basicauth, not by guest route config. Anonymous callers
+# get 401 whether guest routes are on or off.
 with_guest_routes_config({ 'enabled' => false }) do
   clear_cookies
   get '/api/v3/version', {}, { 'HTTP_ACCEPT' => 'application/json' }
   last_response.status
 end
-#=> 200
+#=> 401
 
 ## Supported-locales endpoint works even when guest routes globally disabled
 with_guest_routes_config({ 'enabled' => false }) do

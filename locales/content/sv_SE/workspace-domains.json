@@ -1542,5 +1542,93 @@
   "web.domains.signup.dormant_notice": {
     "text": "Registreringar är avstängda för hela arbetsytan, så de är inte tillgängliga på någon domän. Dina inställningar här behålls och träder i kraft när registreringar för arbetsytan aktiveras igen.",
     "source_hash": "49faefe4"
+  },
+  "web.domains.link_domain_no_settings": {
+    "text": "Denna domän har ingen inställningssida",
+    "source_hash": "8a8430fe"
+  },
+  "web.domains.signin.sso_restrict_warning_title": {
+    "text": "Att begränsa till SSO skulle stänga inloggningen på den här domänen",
+    "source_hash": "3476cb5c"
+  },
+  "web.domains.signin.sso_restrict_warning_body": {
+    "text": "SSO är inte tillgängligt på den här domänen, och en begränsning som inte kan uppfyllas blockerar inloggningen helt. Ingen kommer att kunna logga in här förrän SSO fungerar. Åtgärda SSO först, eller begränsa ändå och slutför konfigurationen.",
+    "source_hash": "086e3247"
+  },
+  "web.domains.signin.sso_restrict_warning_confirm": {
+    "text": "Begränsa ändå",
+    "source_hash": "4674e3cf"
+  },
+  "web.domains.signin.restriction_unavailable_notice": {
+    "text": "Inloggning är inte tillgänglig på den här domänen: den är begränsad till {method}, som inte kan användas här. Välj en annan metod, eller aktivera {method} här.",
+    "source_hash": "ca1b7f69"
+  },
+  "web.domains.signin.restriction_unavailable_unknown_notice": {
+    "text": "Inloggning är inte tillgänglig på den här domänen: den är begränsad till en metod som inte kan användas här. Välj en annan metod, eller återställ den här domänen till standardinställningarna.",
+    "source_hash": "8c2cce6b"
+  },
+  "web.domains.signin.restriction_conflict_notice": {
+    "text": "Den här domänen begränsar inloggning till en annan metod än begränsningen för hela arbetsytan ({method}), så ingen av dem kan tillämpas och inloggning är inte tillgänglig här. Använd samma metod som för hela arbetsytan, eller återställ den här domänen till standardinställningarna.",
+    "source_hash": "15398362"
+  },
+  "web.domains.signin.method_webauthn_unavailable": {
+    "text": "Lösenordsnycklar är knutna till huvuddomänen för inloggning och är ännu inte tillgängliga på anpassade domäner",
+    "source_hash": "88833e0f"
+  },
+  "web.domains.sso.connection_disabled_badge": {
+    "text": "Anslutning inaktiverad",
+    "source_hash": "99d6092c"
+  },
+  "web.domains.sso.connection_disabled_hint": {
+    "text": "SSO-uppgifterna är sparade men anslutningen är avstängd. Aktivera den under Redigera autentiseringsuppgifter.",
+    "source_hash": "90180d6c"
+  },
+  "web.domains.sso.status_active_badge": {
+    "text": "Aktiv",
+    "source_hash": "92340695"
+  },
+  "web.domains.sso.status_active_hint": {
+    "text": "Medlemmar kan logga in med denna SSO-anslutning på denna domän.",
+    "source_hash": "313ec61e"
+  },
+  "web.domains.sso.status_not_configured_badge": {
+    "text": "Ej konfigurerad",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.sso.status_not_configured_hint": {
+    "text": "Inga SSO-uppgifter har sparats för denna domän ännu.",
+    "source_hash": "d817ad9c"
+  },
+  "web.domains.sso.status_not_permitted_badge": {
+    "text": "Inte tillåtet på denna domän",
+    "source_hash": "afbd20ba"
+  },
+  "web.domains.sso.status_not_permitted_hint": {
+    "text": "SSO är avstängt för denna domän, så inloggningssidan erbjuder det inte.",
+    "source_hash": "ef092481"
+  },
+  "web.domains.sso.status_auth_disabled_badge": {
+    "text": "Inloggning inaktiverad",
+    "source_hash": "bb807607"
+  },
+  "web.domains.sso.status_auth_disabled_hint": {
+    "text": "Inloggning är avstängd på denna domän, så ingen metod erbjuds – inte heller SSO.",
+    "source_hash": "3a98964b"
+  },
+  "web.domains.sso.status_unsupported_provider_badge": {
+    "text": "Leverantören stöds inte",
+    "source_hash": "1609d5fb"
+  },
+  "web.domains.sso.status_unsupported_provider_hint": {
+    "text": "Den sparade leverantören kan inte användas för domän-SSO. Redigera autentiseringsuppgifterna och välj Microsoft Entra ID eller generisk OIDC.",
+    "source_hash": "72ea0a2e"
+  },
+  "web.domains.sso.status_unavailable_badge": {
+    "text": "Inte tillgänglig",
+    "source_hash": "ca184496"
+  },
+  "web.domains.sso.status_unavailable_hint": {
+    "text": "SSO kan inte erbjudas på denna domän just nu. Kontrollera SSO-uppgifterna och inloggningsinställningarna för denna domän.",
+    "source_hash": "b03b14f4"
   }
 }

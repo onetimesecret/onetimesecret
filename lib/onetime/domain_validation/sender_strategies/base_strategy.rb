@@ -6,6 +6,7 @@ require 'resolv'
 require 'concurrent'
 require 'json'
 require_relative '../../utils/retry_helper'
+require_relative '../record_matcher'
 
 module Onetime
   module DomainValidation
@@ -55,6 +56,21 @@ module Onetime
 
         # Returns the DNS records the customer must configure for this provider.
         #
+        # Reads provisioned records from mailer_config.dns_records.value
+        # (array of string-keyed hashes stored from the provider API) and
+        # maps them to the validation format with symbol keys. Purpose
+        # classification is delegated to the per-provider
+        # #classify_record_purpose hook.
+        #
+        # Advisory records ('optional' => true, e.g. SMTP2GO tracking, SES
+        # DMARC) are excluded so they never gate verification — the same
+        # discipline as Mail::SenderStrategies::BaseSenderStrategy
+        # #check_dns_records. Display paths read
+        # MailerConfig#required_dns_records, which still includes them.
+        #
+        # Returns an empty array if no provisioned records exist — does
+        # NOT fall back to hardcoded selectors.
+        #
         # @param mailer_config [Onetime::CustomDomain::MailerConfig]
         # @return [Array<Hash>] Each hash contains:
         #   - :type [String] Record type (TXT, CNAME, MX)
@@ -63,7 +79,23 @@ module Onetime
         #   - :purpose [String] Human-readable description (e.g. "DKIM", "SPF")
         #
         def required_dns_records(mailer_config)
-          raise NotImplementedError, "#{self.class} must implement #required_dns_records"
+          provisioned = mailer_config.dns_records&.value
+
+          if provisioned.nil? || provisioned.empty?
+            logger.error "[#{strategy_name}-validation] No provisioned DNS records for #{mailer_config.domain_id}; cannot validate"
+            return []
+          end
+
+          required = provisioned.reject { |r| [true, 'true'].include?(r['optional']) }
+
+          required.map do |record|
+            {
+              type: record['type'].to_s.upcase,
+              host: record['name'].to_s,
+              value: record['value'].to_s,
+              purpose: classify_record_purpose(record),
+            }
+          end
         end
 
         # Queries live DNS and compares against expected records.
@@ -94,6 +126,17 @@ module Onetime
 
         def logger
           @logger ||= Onetime.get_logger('SenderStrategies')
+        end
+
+        # Per-provider hook for #required_dns_records: infer a
+        # human-readable purpose (e.g. "DKIM", "SPF") for a provisioned
+        # record.
+        #
+        # @param record [Hash] String-keyed hash from provisioned dns_records
+        # @return [String]
+        #
+        def classify_record_purpose(record)
+          raise NotImplementedError, "#{self.class} must implement #classify_record_purpose"
         end
 
         # Resolve the sender domain from mailer_config's from_address.
@@ -259,44 +302,12 @@ module Onetime
           dns&.close unless resolver
         end
 
-        # Verify a single DNS record by comparing expected value against live DNS.
-        #
-        # Uses a shared resolver to avoid opening/closing connections per record.
-        #
-        # @param record [Hash] A record hash from required_dns_records
-        # @param resolver [Resolv::DNS] Shared resolver instance
-        # @param bypass_cache [Boolean] Skip cache read/write when true
-        # @return [Hash] Verification result with optional :error_type
-        #
-        def verify_record(record, resolver:, bypass_cache: false)
-          actual, error_type = case record[:type]
-                               when 'TXT'
-                                 lookup_txt_records(record[:host], resolver: resolver, bypass_cache: bypass_cache)
-                               when 'CNAME'
-                                 lookup_cname_records(record[:host], resolver: resolver, bypass_cache: bypass_cache)
-                               when 'MX'
-                                 lookup_mx_records(record[:host], resolver: resolver, bypass_cache: bypass_cache)
-                               else
-                                 [[], nil]
-                               end
-
-          verified = record_matches?(record[:type], record[:value], actual)
-
-          result              = {
-            type: record[:type],
-            host: record[:host],
-            expected: record[:value],
-            actual: actual,
-            verified: verified,
-            purpose: record[:purpose],
-          }
-          result[:error_type] = error_type if error_type
-          result
-        end
-
         # Check whether the expected value appears in the actual DNS results.
         #
-        # Delegates to type-specific matchers for clarity and testability.
+        # The matching discipline lives in RecordMatcher, shared with the
+        # Mail fact-finding pipeline (issue #4047). TXT dispatch goes
+        # through the instance method so per-strategy overrides (and
+        # instrumentation) keep working.
         #
         # @param type [String] Record type
         # @param expected [String] Expected value
@@ -304,62 +315,34 @@ module Onetime
         # @return [Boolean]
         #
         def record_matches?(type, expected, actual_values)
-          normalized_expected = expected.to_s.downcase.chomp('.')
+          return txt_record_matches?(expected.to_s.strip, actual_values) if type == 'TXT'
 
-          case type
-          when 'TXT'
-            txt_record_matches?(normalized_expected, actual_values)
-          when 'CNAME', 'MX'
-            actual_values.any? { |v| v.downcase.chomp('.') == normalized_expected }
-          else
-            false
-          end
+          RecordMatcher.record_matches?(type, expected, actual_values)
         end
 
         # Check whether a TXT record matches expected value.
+        # See RecordMatcher#txt_record_matches? for the dispatch discipline.
+        # SPF dispatch goes through the instance method (see record_matches?).
         #
-        # Handles SPF records specially: customers commonly merge multiple
-        # provider includes into one SPF record (e.g., "v=spf1 include:amazonses.com
-        # include:sendgrid.net ~all"). We extract the include: directive and verify
-        # it appears in any actual TXT record starting with "v=spf1".
-        #
-        # For non-SPF TXT records, full substring match is used.
-        #
-        # @param normalized_expected [String] Downcased expected value
+        # @param expected [String] Expected value, trimmed
         # @param actual_values [Array<String>] DNS results
         # @return [Boolean]
         #
-        def txt_record_matches?(normalized_expected, actual_values)
-          if normalized_expected.start_with?('v=spf1')
-            spf_record_matches?(normalized_expected, actual_values)
-          else
-            actual_values.any? { |v| v.downcase.include?(normalized_expected) }
-          end
+        def txt_record_matches?(expected, actual_values)
+          return spf_record_matches?(expected.downcase, actual_values) if RecordNormalizer.spf?(expected)
+
+          RecordMatcher.txt_record_matches?(expected, actual_values)
         end
 
         # Check whether an SPF record matches expected value.
-        #
-        # Extracts the include: directive from the expected SPF record and
-        # verifies it appears in any actual SPF record, regardless of other
-        # mechanisms present. This allows customers to combine multiple
-        # provider includes in a single record.
+        # See RecordMatcher#spf_record_matches? for the include: semantics.
         #
         # @param normalized_expected [String] Downcased expected SPF value
         # @param actual_values [Array<String>] DNS results
         # @return [Boolean]
         #
         def spf_record_matches?(normalized_expected, actual_values)
-          spf_include = normalized_expected[/include:\S+/]
-
-          if spf_include
-            actual_values.any? do |v|
-              downcased = v.downcase
-              downcased.start_with?('v=spf1') && downcased.include?(spf_include)
-            end
-          else
-            # SPF without include: directive - match the full record
-            actual_values.any? { |v| v.downcase.include?(normalized_expected) }
-          end
+          RecordMatcher.spf_record_matches?(normalized_expected, actual_values)
         end
 
         # Run verification for all required records using per-thread resolvers.
@@ -438,6 +421,9 @@ module Onetime
 
         # Verify a single record, using a pre-fetched cached value if available.
         #
+        # Both branches evaluate the full record set (selection + matching),
+        # so a cache hit can also surface 'ambiguous_record_set'.
+        #
         # @param record [Hash] A record hash from required_dns_records
         # @param resolver [Resolv::DNS] Shared resolver instance
         # @param cached_value [Array<String>, nil] Pre-fetched cache value or nil
@@ -446,9 +432,8 @@ module Onetime
         #
         def verify_record_with_cache(record, resolver:, cached_value:, bypass_cache:)
           if cached_value && !bypass_cache
-            # Use cached value directly - no error_type since cache hit
-            verified = record_matches?(record[:type], record[:value], cached_value)
-            return {
+            verified, match_error = evaluate_record_set(record, cached_value)
+            result                = {
               type: record[:type],
               host: record[:host],
               expected: record[:value],
@@ -457,11 +442,13 @@ module Onetime
               purpose: record[:purpose],
               from_cache: true,
             }
+            result[:error_type]   = match_error if match_error
+            return result
           end
 
           # Perform live DNS lookup
-          actual, error_type = lookup_dns_by_type(record[:type], record[:host], resolver: resolver, bypass_cache: true)
-          verified           = record_matches?(record[:type], record[:value], actual)
+          actual, error_type    = lookup_dns_by_type(record[:type], record[:host], resolver: resolver, bypass_cache: true)
+          verified, match_error = evaluate_record_set(record, actual)
 
           result              = {
             type: record[:type],
@@ -472,8 +459,39 @@ module Onetime
             purpose: record[:purpose],
             from_cache: false,
           }
-          result[:error_type] = error_type if error_type
+          effective_error     = error_type || match_error
+          result[:error_type] = effective_error if effective_error
           result
+        end
+
+        # Select the relevant records from the DNS result set, then match.
+        #
+        # RFC 7489 Section 6.6.3 (DMARC) and RFC 7208 Section 4.5 (SPF) both
+        # require record-set selection before evaluation: filter the TXT set
+        # by discriminator, discard unrelated records, and treat more than
+        # one surviving record as an error — never a pass. A duplicate DMARC
+        # or SPF record fails at receiving MTAs, so reporting it verified
+        # would be a false green (issue #4023).
+        #
+        # @param record [Hash] A record hash from required_dns_records
+        # @param actual_values [Array<String>] Full DNS result set
+        # @return [Array(Boolean, String|nil)] [verified, error_type or nil]
+        #
+        def evaluate_record_set(record, actual_values)
+          candidates, ambiguous = select_txt_record_set(record[:type], record[:value], actual_values)
+          return [false, 'ambiguous_record_set'] if ambiguous
+
+          [record_matches?(record[:type], record[:value], candidates), nil]
+        end
+
+        # Filter a TXT result set down to records relevant to the expected
+        # value. See RecordMatcher#select_txt_record_set for the selection
+        # rules and RFC references.
+        #
+        # @return [Array(Array<String>, Boolean)] [candidates, ambiguous]
+        #
+        def select_txt_record_set(type, expected, actual_values)
+          RecordMatcher.select_txt_record_set(type, expected, actual_values)
         end
 
         # Lookup DNS records by type.

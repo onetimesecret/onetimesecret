@@ -46,7 +46,8 @@ logo_url: "/favicon.svg"
 logo_alt: "LinkDepot logo"
 
 # Other asset URLs (optional) -------------------------------------------------
-# favicon.ico, apple-touch-icon.png, icon-*.png and social-preview.png are
+# favicon.ico, apple-touch-icon.png, icon-*.png and (when the pack carries one)
+# social-preview.png are
 # already served from THIS directory (root-overlaid when the pack is active),
 # so these keys stay unset. Set them only to point at an external CDN / absolute
 # URL.

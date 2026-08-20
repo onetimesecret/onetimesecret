@@ -8,7 +8,7 @@
     "source_hash": "cb7b24c6"
   },
   "web.admin.overview.feedback.total": {
-    "text": "{count} in de laatste 30 dagen",
+    "text": "{count} in de afgelopen 30 dagen",
     "source_hash": "b6b9147c"
   },
   "web.admin.overview.feedback.today": {
@@ -64,11 +64,11 @@
     "source_hash": "5f13cf7a"
   },
   "web.admin.overview.trends.title": {
-    "text": "Laatste 30 dagen",
+    "text": "Afgelopen 30 dagen",
     "source_hash": "f8f03fb4"
   },
   "web.admin.overview.trends.signups": {
-    "text": "Aanmeldingen per dag",
+    "text": "Registraties per dag",
     "source_hash": "8db399dc"
   },
   "web.admin.overview.trends.secretsCreated": {
@@ -80,11 +80,11 @@
     "source_hash": "e0f4f767"
   },
   "web.admin.overview.trends.collectingNote": {
-    "text": "Verzamelen sinds het eerste gegevenspunt — dagen daarvoor tonen nul.",
+    "text": "Verzamelen sinds eerste datapunt — dagen daarvoor tonen nul.",
     "source_hash": "269ee1eb"
   },
   "web.admin.overview.trends.sparklineAria": {
-    "text": "{label}: trend over 30 dagen, {count} vandaag",
+    "text": "{label}: 30-dagentrend, {count} vandaag",
     "source_hash": "eb57a7b2"
   },
   "web.admin.overview.trends.loadError": {

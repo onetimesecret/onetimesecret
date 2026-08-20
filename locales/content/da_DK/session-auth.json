@@ -483,5 +483,45 @@
   "web.login.verified_notice": {
     "text": "Din e-mail er blevet bekræftet — du kan nu logge ind.",
     "source_hash": "c8d4b5a8"
+  },
+  "web.auth.password_setup_request.title": {
+    "text": "Angiv en adgangskode",
+    "source_hash": "11b6978b"
+  },
+  "web.auth.password_setup_request.description": {
+    "text": "Din konto har endnu ikke en adgangskode. Vi sender dig et sikkert link via e-mail til at angive en, så du også kan logge ind direkte.",
+    "source_hash": "dc0b561f"
+  },
+  "web.auth.password_setup_request.button": {
+    "text": "Send opsætningslink",
+    "source_hash": "22807292"
+  },
+  "web.auth.password_setup_request.emailSent": {
+    "text": "En e-mail er blevet sendt til dig med et link til at angive en adgangskode til din konto",
+    "source_hash": "82b686c7"
+  },
+  "web.login.errors.account_exists_link_required": {
+    "text": "En konto med denne e-mailadresse eksisterer allerede, men er ikke linket til denne login-metode. Log ind med din eksisterende metode, og link derefter denne udbyder under Sikkerhedsindstillinger → Forbundne identiteter.",
+    "source_hash": "7fbbb7e7"
+  },
+  "web.login.errors.identity_connect_conflict": {
+    "text": "Denne identitet kunne ikke forbindes. Forbindelsen er muligvis startet på det forkerte domæne, eller din session er udløbet. Log venligst ind igen, og forbind den derefter fra dine kontoindstillinger.",
+    "source_hash": "4238bbf2"
+  },
+  "web.login.errors.org_join_failed": {
+    "text": "Vi kunne ikke færdiggøre tilføjelsen af dig til din organisation. Kontakt venligst din administrator.",
+    "source_hash": "155e71bb"
+  },
+  "web.login.errors.link_sso_failed": {
+    "text": "Vi kunne ikke linke den login-metode. Log ind med din eksisterende adgangskode, og tilslut derefter denne udbyder under Sikkerhedsindstillinger → Forbundne identiteter.",
+    "source_hash": "49954127"
+  },
+  "web.login.notices.link_verification_sent": {
+    "text": "Tjek din indbakke — vi har sendt dig en e-mail med et link til at bekræfte forbindelsen af din konto. Åbn det for at færdiggøre login.",
+    "source_hash": "b251c8f3"
+  },
+  "web.login.errors.sso_cancelled": {
+    "text": "Login blev annulleret. Du kan prøve igen, når du er klar.",
+    "source_hash": "b5f3d3ec"
   }
 }

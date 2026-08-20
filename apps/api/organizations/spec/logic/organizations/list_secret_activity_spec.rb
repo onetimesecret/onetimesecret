@@ -186,7 +186,9 @@ RSpec.describe OrganizationAPI::Logic::Organizations::ListSecretActivity do
 
     # The denial is an operator-visible security event: extid/actor must land
     # in OT.info's **payload (structured, filterable) rather than being
-    # concatenated into the message string.
+    # concatenated into the message string. Values are pinned, not `anything` —
+    # `actor: anything` matches nil, so a regression that dropped the actor
+    # would still pass while leaving the alert unattributable.
     it 'logs the denial with a structured payload' do
       allow(OT).to receive(:conf)
         .and_return(conf_with_audit_logs_flag('audit_logs_enabled' => false))
@@ -196,7 +198,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::ListSecretActivity do
 
       expect(OT).to have_received(:info).with(
         a_string_including('audit_logs_enabled feature flag disabled'),
-        hash_including(extid: anything, actor: anything),
+        hash_including(extid: 'ext-org-123', actor: 'cust-123'),
       )
     end
 

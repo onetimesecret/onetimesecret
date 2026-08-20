@@ -25,9 +25,11 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::SsrfProtection do
   end
 
   # Stub DNS resolution by default so tests are deterministic and fast.
-  # Individual examples override this when testing DNS behavior.
+  # Default to a public address: resolves_to_internal_ip? fails closed on
+  # empty resolution, so a host must resolve to something public to be
+  # accepted. Individual examples override this when testing DNS behavior.
   before do
-    allow(Resolv).to receive(:getaddresses).and_return([])
+    allow(Resolv).to receive(:getaddresses).and_return(['93.184.216.34'])
   end
 
   # ==========================================================================
@@ -303,6 +305,18 @@ RSpec.describe DomainsAPI::Logic::SsoConfig::SsrfProtection do
 
       it 'returns true (fail-closed)' do
         expect(validator.resolves_to_internal_ip?('nonexistent.example.com')).to be true
+      end
+    end
+
+    context 'when the host resolves to no addresses (NXDOMAIN returns [])' do
+      before do
+        allow(Resolv).to receive(:getaddresses)
+          .with('unresolvable.example.com')
+          .and_return([])
+      end
+
+      it 'returns true (fail-closed on empty resolution)' do
+        expect(validator.resolves_to_internal_ip?('unresolvable.example.com')).to be true
       end
     end
 

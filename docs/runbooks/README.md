@@ -24,3 +24,7 @@ happens, and the steps to resolve or verify.
   root SECRET; diagnosing and recovering from a SECRET mismatch.
 - [sentry-retention-policy.md](./sentry-retention-policy.md) — Sentry data
   retention policy and its operational implications.
+- [tenant-sso-csp-form-action.md](./tenant-sso-csp-form-action.md) — Diagnosing a
+  custom-domain SSO button that does nothing because CSP `form-action` blocked
+  the redirect to the tenant's IdP; the `TenantCspExtras` log signals and what
+  each one means.

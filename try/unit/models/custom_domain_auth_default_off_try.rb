@@ -298,6 +298,140 @@ Onetime::CustomDomain::SignupConfig.resolve_signup_enabled_for_custom_domain(fal
 Onetime::CustomDomain::SignupConfig.resolve_signup_enabled_for_custom_domain(true, signup_config(enabled: true, signup_enabled: false))
 #=> false
 
+# --- REQUEST resolvers: which default a classification gets ---
+# ADR-024#operator-defaults-require-positive-classification
+#
+# The two resolvers above have OPPOSITE defaults, so CHOOSING between them is
+# the access-policy decision. Choosing on `== :custom` gave :invalid and nil
+# the operator branch — and :invalid is what DomainStrategy answers when its
+# own datastore read RAISES for a REAL customer domain, so a blip handed that
+# domain the operator's global default. resolve_*_enabled_for_request asks the
+# POSITIVE test (SigninConfig.operator_host?) instead: only :canonical and
+# :subdomain, the two classifications a datastore failure cannot manufacture,
+# inherit operator defaults.
+#
+# The required matrix (docs/specs/domain-resolution/domain-resolution.md) for
+# global ENABLED and no tenant config: canonical/subdomain enabled;
+# custom/invalid/nil disabled.
+
+## SIGN-IN matrix, global on, no config: only the operator's own hosts inherit
+[:canonical, :subdomain, :custom, :invalid, nil].map { |s|
+  Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_request(true, nil, domain_strategy: s)
+}
+#=> [true, true, false, false, false]
+
+## SIGN-UP matrix, same rule — sign-up must not disagree with sign-in about
+## which hosts are the operator's
+[:canonical, :subdomain, :custom, :invalid, nil].map { |s|
+  Onetime::CustomDomain::SignupConfig.resolve_signup_enabled_for_request(true, nil, domain_strategy: s)
+}
+#=> [true, true, false, false, false]
+
+## THE FIX, stated as the security property: a real customer domain
+## misclassified :invalid gets the SAME answer it would get correctly
+## classified :custom, not the operator's
+[
+  Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_request(true, nil, domain_strategy: :invalid),
+  Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_request(true, nil, domain_strategy: :custom),
+  Onetime::CustomDomain::SignupConfig.resolve_signup_enabled_for_request(true, nil, domain_strategy: :invalid),
+  Onetime::CustomDomain::SignupConfig.resolve_signup_enabled_for_request(true, nil, domain_strategy: :custom),
+]
+#=> [false, false, false, false]
+
+## KILL SWITCH: global off stays off for every classification, sign-in
+[:canonical, :subdomain, :custom, :invalid, nil].map { |s|
+  Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_request(false, nil, domain_strategy: s)
+}
+#=> [false, false, false, false, false]
+
+## KILL SWITCH: global off stays off for every classification, sign-up
+[:canonical, :subdomain, :custom, :invalid, nil].map { |s|
+  Onetime::CustomDomain::SignupConfig.resolve_signup_enabled_for_request(false, nil, domain_strategy: s)
+}
+#=> [false, false, false, false, false]
+
+## NARROW ONLY: an enabled config that turns sign-in off narrows every
+## classification, the operator's own hosts included
+[:canonical, :subdomain, :custom, :invalid, nil].map { |s|
+  Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_request(
+    true, signin_config(enabled: true, signin_enabled: false), domain_strategy: s
+  )
+}
+#=> [false, false, false, false, false]
+
+## NARROW ONLY: an enabled config cannot widen past a global kill, sign-up
+[:canonical, :subdomain, :custom, :invalid, nil].map { |s|
+  Onetime::CustomDomain::SignupConfig.resolve_signup_enabled_for_request(
+    false, signup_config(enabled: true, signup_enabled: true), domain_strategy: s
+  )
+}
+#=> [false, false, false, false, false]
+
+## EXPLICIT ENABLEMENT STAYS REACHABLE: the fail-closed default must not make
+## an opted-in tenant unreachable — an :invalid host whose config WAS read
+## successfully follows that tenant's own policy
+[
+  Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_request(
+    true, signin_config(enabled: true, signin_enabled: true), domain_strategy: :invalid
+  ),
+  Onetime::CustomDomain::SignupConfig.resolve_signup_enabled_for_request(
+    true, signup_config(enabled: true, signup_enabled: true), domain_strategy: :invalid
+  ),
+]
+#=> [true, true]
+
+## STRING classifications: StrategyResult metadata is not always a Symbol, and
+## operator_host? normalizes, so the string forms must resolve identically
+[
+  Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_request(true, nil, domain_strategy: 'canonical'),
+  Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_request(true, nil, domain_strategy: 'custom'),
+  Onetime::CustomDomain::SignupConfig.resolve_signup_enabled_for_request(true, nil, domain_strategy: 'subdomain'),
+  Onetime::CustomDomain::SignupConfig.resolve_signup_enabled_for_request(true, nil, domain_strategy: 'invalid'),
+]
+#=> [true, false, true, false]
+
+## SSO CARVE-OUT SURVIVES THE FIX (display surfaces pass domain_id:): an
+## SSO-only tenant reports sign-in available on :custom AND on :invalid —
+## fail-closed must not hide a working /signin page
+[
+  Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_request(
+    true, nil, domain_strategy: :custom, domain_id: @sso_only_domain
+  ),
+  Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_request(
+    true, nil, domain_strategy: :invalid, domain_id: @sso_only_domain
+  ),
+]
+#=> [true, true]
+
+## POST-GATE PARITY: the same SSO-only tenant WITHOUT domain_id stays strictly
+## off on both classifications — SSO never flows through POST /signin
+[
+  Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_request(true, nil, domain_strategy: :custom),
+  Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_request(true, nil, domain_strategy: :invalid),
+]
+#=> [false, false]
+
+## the carve-out never reaches an operator host: :canonical follows the global
+## default with or without domain_id, so a passed domain_id cannot smuggle SSO
+## availability into the operator's own answer
+[
+  Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_request(
+    false, nil, domain_strategy: :canonical, domain_id: @sso_only_domain
+  ),
+  Onetime::CustomDomain::SigninConfig.resolve_signin_enabled_for_request(
+    true, nil, domain_strategy: :canonical, domain_id: @sso_only_domain
+  ),
+]
+#=> [false, true]
+
+## SHARED OWNER: sign-up reuses SigninConfig.operator_host? rather than
+## restating the list, so the two gates cannot drift about which hosts are the
+## operator's
+[:canonical, :subdomain, :custom, :invalid, nil].map { |s|
+  Onetime::CustomDomain::SigninConfig.operator_host?(s)
+}
+#=> [true, true, false, false, false]
+
 # --- Cleanup ---
 
 Familia.dbclient.flushdb

@@ -4,7 +4,7 @@
     "source_hash": "6725e7bb"
   },
   "web.admin.system.description": {
-    "text": "データベース、キュー、インフラのステータス。",
+    "text": "データベース、キュー、インフラストラクチャのステータス。",
     "source_hash": "0115f495"
   },
   "web.admin.system.retry": {
@@ -12,7 +12,7 @@
     "source_hash": "942087cc"
   },
   "web.admin.system.database.title": {
-    "text": "メインデータベース({engine})",
+    "text": "メインデータベース ({engine})",
     "source_hash": "1391230b"
   },
   "web.admin.system.database.loadError": {
@@ -32,7 +32,7 @@
     "source_hash": "61d2afe2"
   },
   "web.admin.system.database.dbSummary": {
-    "text": "{keys}件のキー、うち{expires}件にTTL",
+    "text": "{keys}キー、{expires}にTTLあり",
     "source_hash": "26b9e17c"
   },
   "web.admin.system.database.fields.version": {
@@ -44,19 +44,19 @@
     "source_hash": "5e23ec6a"
   },
   "web.admin.system.database.fields.uptimeDays": {
-    "text": "稼働時間(日)",
+    "text": "稼働時間（日）",
     "source_hash": "7ab314f8"
   },
   "web.admin.system.database.fields.connectedClients": {
-    "text": "接続中のクライアント",
+    "text": "接続クライアント数",
     "source_hash": "434adc3a"
   },
   "web.admin.system.database.fields.opsPerSec": {
-    "text": "1秒あたりの操作数",
+    "text": "Ops/秒",
     "source_hash": "6634251d"
   },
   "web.admin.system.database.fields.totalCommands": {
-    "text": "コマンド総数",
+    "text": "総コマンド数",
     "source_hash": "c5ce5aaf"
   },
   "web.admin.system.database.fields.usedMemory": {
@@ -72,7 +72,7 @@
     "source_hash": "9d44afa6"
   },
   "web.admin.system.database.fields.fragmentation": {
-    "text": "断片化率",
+    "text": "フラグメンテーション率",
     "source_hash": "721494dd"
   },
   "web.admin.system.database.stats.customers": {
@@ -84,11 +84,11 @@
     "source_hash": "d8707d41"
   },
   "web.admin.system.database.stats.receipts": {
-    "text": "受信確認",
+    "text": "受領証",
     "source_hash": "60a627df"
   },
   "web.admin.system.database.stats.totalKeys": {
-    "text": "キー総数",
+    "text": "総キー数",
     "source_hash": "4e0d27f5"
   },
   "web.admin.system.queue.title": {
@@ -108,11 +108,11 @@
     "source_hash": "22965568"
   },
   "web.admin.system.queue.disconnected": {
-    "text": "切断済み",
+    "text": "切断",
     "source_hash": "04dfac36"
   },
   "web.admin.system.queue.activeWorkers": {
-    "text": "{count}件のアクティブなワーカー",
+    "text": "{count}アクティブワーカー",
     "source_hash": "49e6369c"
   },
   "web.admin.system.queue.columns.name": {
@@ -132,7 +132,7 @@
     "source_hash": "7f1e323b"
   },
   "web.admin.system.queue.health.degraded": {
-    "text": "低下",
+    "text": "劣化",
     "source_hash": "a8494c12"
   },
   "web.admin.system.queue.health.unhealthy": {
@@ -154,5 +154,133 @@
   "web.admin.system.redis.captured": {
     "text": "{at}に取得",
     "source_hash": "57b40c0f"
+  },
+  "web.admin.system.brand.title": {
+    "text": "ブランド診断",
+    "source_hash": "1cf9abd5"
+  },
+  "web.admin.system.brand.description": {
+    "text": "実行中のインスタンスがディスク上で解決したブランドパック — リージョンがニュートラルなブランディングを提供する理由を明らかにします。",
+    "source_hash": "be29e282"
+  },
+  "web.admin.system.brand.loadError": {
+    "text": "ブランド診断を読み込めませんでした。",
+    "source_hash": "80607303"
+  },
+  "web.admin.system.brand.none": {
+    "text": "(なし)",
+    "source_hash": "552e4230"
+  },
+  "web.admin.system.brand.resolution": {
+    "text": "解決",
+    "source_hash": "d4055faf"
+  },
+  "web.admin.system.brand.envVsConfig": {
+    "text": "環境 vs 設定",
+    "source_hash": "bee3debb"
+  },
+  "web.admin.system.brand.absorbed": {
+    "text": "吸収されたキー",
+    "source_hash": "9784e110"
+  },
+  "web.admin.system.brand.operatorKeys": {
+    "text": "オペレーターキー",
+    "source_hash": "434e8248"
+  },
+  "web.admin.system.brand.overlayAssets": {
+    "text": "オーバーレイアセット",
+    "source_hash": "c87de1f9"
+  },
+  "web.admin.system.brand.exists.yes": {
+    "text": "あり",
+    "source_hash": "43f9b89c"
+  },
+  "web.admin.system.brand.exists.no": {
+    "text": "なし",
+    "source_hash": "6be36ca4"
+  },
+  "web.admin.system.brand.fields.resolvedDir": {
+    "text": "解決済みディレクトリ",
+    "source_hash": "0623b983"
+  },
+  "web.admin.system.brand.fields.home": {
+    "text": "ホーム",
+    "source_hash": "3a786953"
+  },
+  "web.admin.system.brand.fields.envPack": {
+    "text": "ENV ブランドパック",
+    "source_hash": "940aeb5c"
+  },
+  "web.admin.system.brand.fields.configPack": {
+    "text": "設定ブランドパック",
+    "source_hash": "761b9550"
+  },
+  "web.admin.system.brand.fields.envAssetsDir": {
+    "text": "ENV ブランドアセットディレクトリ",
+    "source_hash": "05854f1f"
+  },
+  "web.admin.system.brand.fields.configAssetsDir": {
+    "text": "設定ブランドアセットディレクトリ",
+    "source_hash": "e91e5c46"
+  },
+  "web.admin.system.brand.flags.fellBack.danger": {
+    "text": "デフォルトパックにフォールバック",
+    "source_hash": "7bf7ba2f"
+  },
+  "web.admin.system.brand.flags.fellBack.ok": {
+    "text": "ブランドパックが解決されました",
+    "source_hash": "1ab3162f"
+  },
+  "web.admin.system.brand.flags.mismatch.danger": {
+    "text": "起動時/ライブの不一致",
+    "source_hash": "0a022192"
+  },
+  "web.admin.system.brand.flags.mismatch.ok": {
+    "text": "起動時とライブが一致",
+    "source_hash": "d4792c09"
+  },
+  "web.admin.system.brand.manifest.title": {
+    "text": "マニフェスト",
+    "source_hash": "3c99f1f3"
+  },
+  "web.admin.system.brand.manifest.path": {
+    "text": "パス",
+    "source_hash": "62fa5a5b"
+  },
+  "web.admin.system.brand.manifest.exists": {
+    "text": "存在",
+    "source_hash": "fefd8ba5"
+  },
+  "web.admin.system.brand.manifest.keysOnDisk": {
+    "text": "ディスク上のキー",
+    "source_hash": "52439c03"
+  },
+  "web.admin.system.brand.roots.title": {
+    "text": "検索ルート",
+    "source_hash": "d8696f2b"
+  },
+  "web.admin.system.brand.roots.empty": {
+    "text": "検索ルートがありません",
+    "source_hash": "867a471c"
+  },
+  "web.admin.system.brand.roots.columns.path": {
+    "text": "パス",
+    "source_hash": "62fa5a5b"
+  },
+  "web.admin.system.brand.roots.columns.exists": {
+    "text": "存在",
+    "source_hash": "fefd8ba5"
+  },
+  "web.admin.system.brand.stats.brandPack": {
+    "text": "ブランドパック",
+    "source_hash": "884437d0"
+  },
+  "web.admin.system.brand.stats.overlayAssets": {
+    "text": "オーバーレイアセット",
+    "source_hash": "c87de1f9"
+  },
+  "web.admin.system.brand.stats.manifestKeys": {
+    "text": "マニフェストキー",
+    "source_hash": "c4267198"
   }
 }
