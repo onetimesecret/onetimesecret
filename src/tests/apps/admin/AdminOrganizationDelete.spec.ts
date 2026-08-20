@@ -187,6 +187,7 @@ function deleteAck(
     is_default?: boolean;
     active_subscription?: boolean;
     domains?: string[];
+    drifted_domains?: string[];
     owner_org_count?: number;
   } = {}
 ) {
@@ -197,6 +198,10 @@ function deleteAck(
     is_default = false,
     active_subscription = false,
     domains = [],
+    // Domains that still reference the org through `CustomDomain.owners` but
+    // have fallen out of its collection: in NEITHER `domains` NOR
+    // `domain_count`, so the plan is the operator's only sight of them.
+    drifted_domains = [],
     owner_org_count = 2,
   } = overrides;
   return {
@@ -210,6 +215,7 @@ function deleteAck(
       pending_invitations: 2,
       domain_count: domains.length,
       domains,
+      drifted_domains,
       is_default,
       active_subscription,
       owner_id: 'cust1',
@@ -374,6 +380,82 @@ describe('AdminOrganizationDetail — permanent delete', () => {
     resolvers[0]({ data: deleteAck({ status: 'planned' }) });
     await flushPromises();
     expect(wrapper.find('[data-testid="org-delete-blocked"]').exists()).toBe(true);
+  });
+
+  // Domain drift (#4211 follow-up): CustomDomain records still name this org
+  // but have fallen out of its collection, so they are in NEITHER `domains`
+  // NOR `domain_count`. The server refuses the apply with no override; the
+  // dialog's only job is to name them and the repair.
+  describe('drifted domains', () => {
+    it('blocks the delete and names the drifted domains', async () => {
+      await openPlan(
+        deleteAck({
+          status: 'drifted_domains',
+          drifted_domains: ['ghost.example.com', 'stale.example.com'],
+        })
+      );
+
+      const blocked = wrapper.find('[data-testid="org-delete-blocked"]');
+      expect(blocked.exists()).toBe(true);
+      // i18n is pass-through in specs (ADR-014): assert the KEY, and read the
+      // names off the plan row that renders them verbatim.
+      expect(blocked.text()).toContain(
+        'web.admin.organizations.detail.delete.blocked.driftedDomains'
+      );
+
+      const drifted = wrapper.find('[data-testid="org-delete-drifted-domains"]');
+      expect(drifted.exists()).toBe(true);
+      expect(drifted.text()).toContain('ghost.example.com');
+      expect(drifted.text()).toContain('stale.example.com');
+      // The remediation is operator-side, so the command has to be on screen.
+      expect(drifted.text()).toContain(
+        'web.admin.organizations.detail.delete.driftedDomainsRepair'
+      );
+    });
+
+    it('offers no override — there is none, and the apply never leaves the client', async () => {
+      await openPlan(
+        deleteAck({ status: 'drifted_domains', drifted_domains: ['ghost.example.com'] })
+      );
+
+      expect(wrapper.find('[data-testid="org-delete-force-default"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="org-delete-force-subscription"]').exists()).toBe(false);
+
+      await dialogInput(wrapper).setValue(PUBLIC_ID);
+      await dialogSubmit(wrapper).trigger('submit');
+      await flushPromises();
+
+      expect(mockApi.delete).toHaveBeenCalledTimes(1); // the preview only
+      expect(pushMock).not.toHaveBeenCalled();
+    });
+
+    it('shows the drift even when another guard is the named verdict', async () => {
+      // `has_domains` trips first server-side, but an org can carry both — and
+      // removing the visible domains would then leave a delete still refused
+      // for reasons nothing on the screen explains.
+      await openPlan(
+        deleteAck({
+          status: 'has_domains',
+          domains: ['secrets.acme.test'],
+          drifted_domains: ['ghost.example.com'],
+        })
+      );
+
+      expect(wrapper.find('[data-testid="org-delete-drifted-domains"]').text()).toContain(
+        'ghost.example.com'
+      );
+    });
+
+    it('still opens the dialog when the ack omits the key entirely', async () => {
+      // A backend predating the field: `.default([])` keeps the plan readable
+      // instead of bricking the confirmation with "plan unreadable".
+      const ack = deleteAck();
+      delete (ack.details as Record<string, unknown>).drifted_domains;
+      await openPlan(ack);
+
+      expect(wrapper.find('[data-testid="org-delete-plan"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="org-delete-drifted-domains"]').exists()).toBe(false);
+    });
   });
 
   it('never opens the dialog on a plan it cannot read', async () => {

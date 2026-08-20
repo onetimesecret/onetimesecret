@@ -6,7 +6,10 @@ import {
   colonelOrganizationsResponseSchema,
   investigateOrganizationResponseSchema,
 } from '@/schemas/api/internal/responses/colonel';
-import { colonelEntitlementOverrideResponseSchema } from '@/schemas/api/internal/responses/colonel-organizations';
+import {
+  colonelDeleteOrganizationDetailsSchema,
+  colonelEntitlementOverrideResponseSchema,
+} from '@/schemas/api/internal/responses/colonel-organizations';
 
 /**
  * Zod tripwire (CONTRACT 3, ticket #32). The organizations screen REUSES the
@@ -214,5 +217,68 @@ describe('colonelEntitlementOverrideResponseSchema (new mutation ack)', () => {
       },
     };
     expect(colonelEntitlementOverrideResponseSchema.safeParse(payload).success).toBe(false);
+  });
+});
+
+/**
+ * The delete plan / receipt (#4204). The refusal an operator cannot act on
+ * without the payload is `drifted_domains`: domains that still reference the
+ * org through `CustomDomain.owners` but have fallen out of its collection, so
+ * they appear in NEITHER `domains` NOR `domain_count`. Shape read from
+ * `Onetime::Operations::Org::Delete#build` (`@drifted.map(&:display_domain)`) —
+ * an always-present array of display-domain strings, empty on the healthy path.
+ */
+describe('colonelDeleteOrganizationDetailsSchema (delete plan)', () => {
+  const details = (overrides: Record<string, unknown> = {}) => ({
+    dry_run: true,
+    planid: 'identity_plus_v1',
+    members: [{ extid: 'mem_1', email: 'alice@example.com' }],
+    members_notified: 1,
+    pending_invitations: 0,
+    domain_count: 0,
+    domains: [],
+    drifted_domains: [],
+    is_default: false,
+    active_subscription: false,
+    owner_id: 'cust1',
+    owner_org_count: 2,
+    default_org_cleared: [],
+    ...overrides,
+  });
+
+  it('keeps the drifted domain names instead of stripping them', () => {
+    const result = colonelDeleteOrganizationDetailsSchema.safeParse(
+      details({ drifted_domains: ['ghost.example.com', 'stale.example.com'] })
+    );
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    // The whole point: a non-strict z.object silently dropped this key, so the
+    // console could name the refusal but not the domains needing repair.
+    expect(result.data.drifted_domains).toEqual(['ghost.example.com', 'stale.example.com']);
+  });
+
+  it('parses the healthy path, where the list is empty', () => {
+    const result = colonelDeleteOrganizationDetailsSchema.safeParse(details());
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    expect(result.data.drifted_domains).toEqual([]);
+  });
+
+  it('degrades to no-drift-reported when the key is absent (backend predates it)', () => {
+    const payload = details();
+    delete (payload as Record<string, unknown>).drifted_domains;
+
+    const result = colonelDeleteOrganizationDetailsSchema.safeParse(payload);
+    // `.default([])` — an older ack must not brick the confirmation dialog.
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    expect(result.data.drifted_domains).toEqual([]);
+  });
+
+  it('rejects a drifted list that is not strings (contract drift)', () => {
+    const result = colonelDeleteOrganizationDetailsSchema.safeParse(
+      details({ drifted_domains: [{ display_domain: 'ghost.example.com' }] })
+    );
+    expect(result.success).toBe(false);
   });
 });

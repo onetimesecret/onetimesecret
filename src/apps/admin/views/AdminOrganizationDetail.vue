@@ -511,6 +511,11 @@
   /** Guardrail statuses the server refuses an APPLY on (the op's vocabulary). */
   const DELETE_BLOCKING_STATUSES: readonly string[] = [
     'has_domains',
+    // Domains that still point at the org but have fallen out of its
+    // collection. Like `last_org` there is NO override — the repair is
+    // operator-side (`bin/ots domains doctor --all --repair`), so the dialog's job is
+    // to name the domains that need it.
+    'drifted_domains',
     'is_default',
     'active_subscription',
     'last_org',
@@ -586,6 +591,25 @@
   });
 
   /**
+   * Domains that still name this org in the domain index but are MISSING from
+   * its own collection, so they appear nowhere else on this screen (not in
+   * `domains`, not in `domain_count`). This list is the operator's only view of
+   * what `bin/ots domains doctor --all --repair` has to fix.
+   */
+  const driftedDomains = computed<string[]>(() => deletePlan.value?.drifted_domains ?? []);
+
+  /**
+   * Names when the server sent them. A `drifted_domains` verdict with an empty
+   * list means the payload predates the field — say the delete is blocked on
+   * drift and send the operator to the doctor rather than printing nothing.
+   */
+  const driftedSummary = computed(() =>
+    driftedDomains.value.length
+      ? driftedDomains.value.join(', ')
+      : t('web.admin.organizations.detail.none')
+  );
+
+  /**
    * The guardrail message, or null when the delete would go through. Rendered
    * in the dialog AND enforced in the apply below, so a blocked delete cannot
    * be confirmed past the client either.
@@ -596,6 +620,11 @@
     if (status === 'has_domains') {
       return t('web.admin.organizations.detail.delete.blocked.hasDomains', {
         domains: domainSummary.value,
+      });
+    }
+    if (status === 'drifted_domains') {
+      return t('web.admin.organizations.detail.delete.blocked.driftedDomains', {
+        domains: driftedSummary.value,
       });
     }
     if (status === 'is_default') {
@@ -1659,6 +1688,27 @@
             <dd class="text-gray-900 dark:text-white">
               {{ domainSummary || t('web.admin.organizations.detail.none') }}
             </dd>
+
+            <!--
+              Drifted domains are in NEITHER row above (that is what "missing
+              from the collection" means), so without this the operator sees a
+              refusal naming domains the screen never shows. Rendered whenever
+              the server reports drift, not only on the `drifted_domains`
+              verdict: `has_domains` trips first, and an org can carry both.
+            -->
+            <template v-if="driftedDomains.length">
+              <dt class="text-gray-500 dark:text-gray-400">
+                {{ t('web.admin.organizations.detail.delete.driftedDomainsLabel') }}
+              </dt>
+              <dd
+                class="text-gray-900 dark:text-white"
+                data-testid="org-delete-drifted-domains">
+                {{ driftedDomains.join(', ') }}
+                <span class="mt-0.5 block font-mono text-[11px] text-gray-500 dark:text-gray-400">
+                  {{ t('web.admin.organizations.detail.delete.driftedDomainsRepair') }}
+                </span>
+              </dd>
+            </template>
 
             <dt class="text-gray-500 dark:text-gray-400">
               {{ t('web.admin.organizations.detail.delete.defaultOrgLabel') }}

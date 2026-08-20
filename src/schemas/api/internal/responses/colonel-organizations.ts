@@ -413,6 +413,21 @@ export const colonelDeleteOrganizationDetailsSchema = z.object({
    */
   domain_count: z.number(),
   domains: z.array(z.string()),
+  /**
+   * Display domains that still reference this org through `CustomDomain.owners`
+   * but are MISSING from its domains collection — the `drifted_domains`
+   * refusal. Disjoint from `domains` (that is what "missing from the
+   * collection" means) and NOT counted in `domain_count`, so the operator can
+   * only learn which ones to repair from this list. Empty on the healthy path.
+   * The remediation is operator-side (`bin/ots domains doctor --all --repair`); there
+   * is no override.
+   *
+   * `.default([])` follows `available_entitlements`: a backend that predates
+   * the field (or a fixture that omits it) degrades to "no drift reported"
+   * instead of failing the whole parse and refusing to open the dialog. The
+   * `status` remains the authoritative verdict either way.
+   */
+  drifted_domains: z.array(z.string()).default([]),
   is_default: z.boolean(),
   active_subscription: z.boolean(),
   owner_id: z.string().nullable(),
@@ -425,7 +440,8 @@ export const colonelDeleteOrganizationDetailsSchema = z.object({
  * console peer of `bin/ots org delete`). MUTATING when `dry_run=false`.
  *
  * `status` is the op's vocabulary verbatim: `planned` | `success` |
- * `has_domains` | `is_default` | `active_subscription` | `last_org`. A DRY RUN
+ * `has_domains` | `drifted_domains` | `is_default` | `active_subscription` |
+ * `last_org`. A DRY RUN
  * answers 200 on ANY of them — the preview is the plan, and a 4xx would throw
  * away the payload the confirmation screen is built from. An APPLY answers 200
  * only on `success`; a refused apply is a 4xx form error naming the guard.
