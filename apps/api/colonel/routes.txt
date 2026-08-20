@@ -37,6 +37,7 @@ POST   /users/:user_id/unsuspend          ColonelAPI::Logic::Colonel::UnsuspendU
 DELETE /users/:user_id                    ColonelAPI::Logic::Colonel::PurgeUser response=json auth=sessionauth role=colonel scope=internal
 
 # System Monitoring
+GET    /system/proxy-headers              ColonelAPI::Logic::Colonel::GetProxyHeadersDebug response=json auth=sessionauth role=colonel scope=internal
 GET    /system/database                   ColonelAPI::Logic::Colonel::GetDatabaseMetrics response=json auth=sessionauth role=colonel scope=internal
 GET    /system/brand                      ColonelAPI::Logic::Colonel::GetBrandDiagnostics response=json auth=sessionauth role=colonel scope=internal
 GET    /system/redis                      ColonelAPI::Logic::Colonel::GetRedisMetrics response=json auth=sessionauth role=colonel scope=internal
