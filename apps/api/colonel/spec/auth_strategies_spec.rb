@@ -18,7 +18,7 @@ RSpec.describe ColonelAPI::AuthStrategies::SessionAuthStrategy do
       'HTTP_X_OTS_PROXY_DEBUG_PEER' => '198.51.100.10',
       'otto.client_ip' => '203.0.113.0',
       'otto.via_trusted_proxy' => true,
-      'rack.detected_host' => 'tenant.example.test',
+      Rack::DetectHost.result_field_name => 'tenant.example.test',
     }
   end
 
@@ -49,6 +49,21 @@ RSpec.describe ColonelAPI::AuthStrategies::SessionAuthStrategy do
           'apx-incoming-host' => 'tenant.example.test',
         },
       )
+    end
+
+    it 'reads detected_host through the configurable result field name' do
+      original = Rack::DetectHost.result_field_name
+      begin
+        Rack::DetectHost.result_field_name = 'custom.detected_host'
+        env.delete(original)
+        env['custom.detected_host'] = 'renamed.example.test'
+
+        metadata = strategy.send(:build_metadata, env)
+
+        expect(metadata[:proxy_header_debug][:rack][:detected_host]).to eq('renamed.example.test')
+      ensure
+        Rack::DetectHost.result_field_name = original
+      end
     end
 
     it 'does not add proxy metadata to other Colonel requests' do

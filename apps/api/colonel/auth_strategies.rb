@@ -46,7 +46,7 @@ module ColonelAPI
               remote_addr: env['REMOTE_ADDR'],
               client_ip: env['otto.client_ip'],
               via_trusted_proxy: env['otto.via_trusted_proxy'],
-              detected_host: env['rack.detected_host'],
+              detected_host: env[Rack::DetectHost.result_field_name],
             },
             request_headers: header_values(env, REQUEST_HEADERS),
           },
