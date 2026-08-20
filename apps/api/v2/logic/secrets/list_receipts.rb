@@ -67,6 +67,21 @@ module V2::Logic
         end
 
         # Cross-member scopes require the organization-wide audit entitlement.
+        # scope=domain clears the same bar against the DOMAIN's owning org —
+        # see query_domain_receipts.
+        #
+        # ⚠️ OPERATOR ACTION on billing-enabled deployments. Entitlements are
+        # the org's plan ∩ ROLE_ENTITLEMENTS[role], so a plan that does not
+        # grant audit_logs 403s BOTH scopes for every role, owners included.
+        # Standalone / billing-disabled installs are unaffected —
+        # STANDALONE_ENTITLEMENTS (organization/features/with_plan_entitlements.rb)
+        # includes audit_logs. Grant audit_logs on every plan that should read
+        # a shared receipt index (etc/examples/billing.example.yaml grants it on
+        # identity_plus_v1; its commented-out team_plus_v1 tier lists it too),
+        # then re-sync the catalog:
+        # `bin/ots billing catalog sync` (push → pull → materialize). Editing
+        # billing.yaml alone changes nothing at runtime — effective
+        # entitlements come from the materialized plan cache.
         require_entitlement!('audit_logs') if scope == :org
 
         # Validate domain access if domain scope requested
@@ -208,6 +223,9 @@ module V2::Logic
 
         deny_domain_access unless domain.accessible_by?(cust)
 
+        # Evaluated in the DOMAIN's org, not the caller's auth_org: the records
+        # belong to that org, so its plan ∩ role is what must grant the read.
+        # Same operator precondition as the scope=org gate — see raise_concerns.
         require_entitlement_in!(domain_org, 'audit_logs')
 
         @scope_label = domain.display_domain

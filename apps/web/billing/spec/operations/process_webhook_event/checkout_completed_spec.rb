@@ -220,6 +220,129 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
         expect { operation.call }.not_to(change { customer.organization_instances.to_a.length })
       end
     end
+
+    # ========================================================================
+    # Regression: the concurrent-creation race is NOT elected by the
+    # stripe_customer_id CAS alone.
+    #
+    # Organization.create! reserves contact_email with HSETNX *before* the save
+    # that takes the Stripe claim, so the surface that loses this race against
+    # ProcessCheckoutSession sees Onetime::OrganizationExists, never
+    # Familia::RecordExistsError — CreateDefaultWorkspace re-raises it once the
+    # reserving org has members. Only RecordExistsError was rescued here, so
+    # the webhook 500'd. Stripe's retry recovered the subscription, making this
+    # noise rather than data loss, but every racing checkout raised an alert.
+    #
+    # The winner is created DURING the create attempt, not before it: created
+    # earlier, CheckoutTargetResolver.resolve would return it at step 2/3 and
+    # this handler would never reach the create path at all.
+    # ========================================================================
+    context 'when a concurrent surface wins the contact_email reservation' do
+      def lose_reservation_to(build_winner)
+        losing_call = instance_double(Auth::Operations::CreateDefaultWorkspace)
+        allow(losing_call).to receive(:call) do
+          build_winner.call
+          raise Onetime::OrganizationExists, 'Organization exists for that email address'
+        end
+        allow(Auth::Operations::CreateDefaultWorkspace).to receive(:new).and_return(losing_call)
+      end
+
+      context 'and the winner holds this checkout stripe_customer_id' do
+        let(:winner) do
+          org = Onetime::Organization.create!(
+            'Concurrently Created Workspace',
+            customer,
+            test_email,
+            **Onetime::Organization.stripe_claim_fields(stripe_customer_id),
+          )
+          created_organizations << org
+          org
+        end
+
+        before { lose_reservation_to(-> { winner }) }
+
+        it 'adopts it instead of raising' do
+          expect(operation.call).to eq(:success)
+        end
+
+        it 'applies the subscription to the winner' do
+          operation.call
+
+          winner.refresh!
+          expect(winner.stripe_subscription_id).to eq(stripe_subscription_id)
+          expect(winner.subscription_status).to eq('active')
+        end
+
+        it 'does not mint a second workspace' do
+          operation.call
+
+          expect(customer.organization_instances.to_a.length).to eq(1)
+        end
+      end
+
+      # A winner with no Stripe customer — a plain signup completing
+      # concurrently. Resolving by stripe_customer_id alone would refuse
+      # forever here, so the contact_email fallback is what terminates it.
+      context 'and the winner carries no Stripe customer' do
+        let(:winner) do
+          org = Onetime::Organization.create!('Signup Workspace', customer, test_email)
+          created_organizations << org
+          org
+        end
+
+        before { lose_reservation_to(-> { winner }) }
+
+        it 'adopts it through the contact_email reservation' do
+          expect(operation.call).to eq(:success)
+
+          winner.refresh!
+          expect(winner.stripe_subscription_id).to eq(stripe_subscription_id)
+        end
+
+        it 'does not mint a second workspace' do
+          operation.call
+
+          expect(customer.organization_instances.to_a.length).to eq(1)
+        end
+      end
+    end
+
+    # The reservation is global, so a hit on it is not proof of ownership:
+    # adopting on the email alone would land a paid subscription on an
+    # unrelated organization. This path runs the REAL CreateDefaultWorkspace,
+    # which refuses the adoption itself (the holder has members) and re-raises.
+    context 'when another customer organization holds the contact_email reservation' do
+      let(:holder) do
+        create_test_customer(email: "holder-#{SecureRandom.hex(4)}@example.com")
+      end
+
+      let!(:foreign_org) do
+        org = Onetime::Organization.create!('Foreign Workspace', holder, test_email)
+        created_organizations << org
+        org
+      end
+
+      it 'creates the customer their own workspace rather than adopting it' do
+        expect(operation.call).to eq(:success)
+
+        target = customer.organization_instances.to_a.find { |org| org.owner?(customer) }
+        created_organizations << target if target
+
+        expect(target).not_to be_nil
+        expect(target.stripe_subscription_id).to eq(stripe_subscription_id)
+      end
+
+      it 'leaves the reservation holder untouched' do
+        expect { operation.call }.not_to raise_error
+
+        target = customer.organization_instances.to_a.find { |org| org.owner?(customer) }
+        created_organizations << target if target
+
+        foreign_org.refresh!
+        expect(foreign_org.stripe_subscription_id).to be_nil
+        expect(foreign_org.stripe_customer_id).to be_nil
+      end
+    end
   end
 
   # ============================================================================

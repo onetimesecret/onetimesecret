@@ -508,4 +508,45 @@ RSpec.describe V2::Logic::Secrets::ListReceipts do
       expect(record).to eq(own_receipt.safe_dump)
     end
   end
+
+  # ==========================================================================
+  # OPERATOR PRECONDITION — the two entitlement gates above are only
+  # satisfiable if a live plan grants audit_logs.
+  #
+  # Effective entitlements are the org's plan ∩ ROLE_ENTITLEMENTS[role], so on
+  # a billing-enabled install whose catalog grants audit_logs nowhere, scope=org
+  # and scope=domain 403 for EVERY caller, owners included. The example catalog
+  # is what an operator starts from, and it previously defined audit_logs
+  # without granting it on any active plan (the only grant sat in the
+  # commented-out team tier), so the gates shipped unsatisfiable.
+  #
+  # Asserted next to the gates rather than in a billing spec: the gate and the
+  # catalog grant that makes it reachable have to move together.
+  # ==========================================================================
+  describe 'the shipped example plan catalog' do
+    let(:example_catalog) do
+      path = File.join(Onetime::HOME, 'etc', 'examples', 'billing.example.yaml')
+      YAML.safe_load(ERB.new(File.read(path)).result, aliases: true)
+    end
+
+    let(:granting_plans) do
+      example_catalog.fetch('plans').select do |_plan_id, plan|
+        Array(plan['entitlements']).include?('audit_logs')
+      end
+    end
+
+    it 'defines audit_logs' do
+      expect(example_catalog.fetch('entitlements')).to have_key('audit_logs')
+    end
+
+    # An ACTIVE plan: commented-out plans are not parsed, so a grant that only
+    # exists inside the commented team tier leaves both scopes unreachable.
+    it 'grants audit_logs on an active paid plan' do
+      expect(granting_plans.keys).to include('identity_plus_v1')
+    end
+
+    it 'withholds it from the free tier' do
+      expect(Array(example_catalog.dig('plans', 'free_v1', 'entitlements'))).not_to include('audit_logs')
+    end
+  end
 end
