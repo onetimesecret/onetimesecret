@@ -188,6 +188,17 @@ RSpec.describe ColonelAPI::Logic::Colonel::ListOrganizations do
       expect(orgs.map { |o| o[:extid] }).to eq(%w[on_org2 on_org1])
     end
 
+    it 'serializes a numeric subscription period end as a string' do
+      allow(org1).to receive(:subscription_period_end).and_return(1_772_940_425)
+
+      logic = logic_for({})
+      logic.raise_concerns
+      data = logic.process
+
+      row = data[:details][:organizations].find { |org| org[:extid] == org1.extid }
+      expect(row[:subscription_period_end]).to eq('1772940425')
+    end
+
     it 'paginates a population larger than per_page without overlap' do
       allow(instances_double).to receive(:size).and_return(3)
       allow(instances_double).to receive(:revrange).with(0, 1).and_return(%w[org3 org2])
