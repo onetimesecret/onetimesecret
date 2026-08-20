@@ -1,7 +1,7 @@
 // src/tests/apps/admin/AdminOrganizationDetail.spec.ts
 
-import { createPinia, setActivePinia } from 'pinia';
 import { flushPromises, mount, RouterLinkStub, VueWrapper } from '@vue/test-utils';
+import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockApi = {
@@ -62,6 +62,7 @@ vi.mock('@headlessui/vue', () => ({
   TransitionChild: { name: 'TransitionChild', template: '<div><slot /></div>', props: ['as'] },
 }));
 
+import AdminCheckoutLinkModal from '@/apps/admin/components/AdminCheckoutLinkModal.vue';
 import AdminOrganizationDetail from '@/apps/admin/views/AdminOrganizationDetail.vue';
 import { createTestI18n } from '@tests/setup';
 
@@ -112,7 +113,11 @@ function detailPayload(overrides: Record<string, unknown> = {}) {
       // The billing catalog the override picker offers (same source as the
       // server's known_entitlement? predicate).
       available_entitlements: [
-        { name: 'api_access', description: 'Can use REST API endpoints', category: 'infrastructure' },
+        {
+          name: 'api_access',
+          description: 'Can use REST API endpoints',
+          category: 'infrastructure',
+        },
         { name: 'create_secrets', description: 'Can create basic secrets', category: 'core' },
         {
           name: 'custom_domains',
@@ -181,7 +186,12 @@ function clearAck() {
 }
 
 function reconcileAck(
-  memberships: { success: number; failed: number; total: number; failed_ids: string[] } | null = null
+  memberships: {
+    success: number;
+    failed: number;
+    total: number;
+    failed_ids: string[];
+  } | null = null
 ) {
   return {
     shrimp: '',
@@ -230,7 +240,9 @@ function investigateAck() {
         match: false,
         verdict: 'mismatch_detected',
         details: 'planid differs',
-        issues: [{ field: 'planid', local: 'free_v1', stripe: 'identity_plus_v1', severity: 'high' }],
+        issues: [
+          { field: 'planid', local: 'free_v1', stripe: 'identity_plus_v1', severity: 'high' },
+        ],
       },
     },
   };
@@ -265,6 +277,10 @@ describe('AdminOrganizationDetail (org detail + entitlements + reconcile)', () =
 
     expect(mockApi.get).toHaveBeenCalledWith(`/api/colonel/organizations/${PUBLIC_ID}`, undefined);
     expect(wrapper.find('[data-testid="detail-content"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="checkout-link-button"]').exists()).toBe(true);
+    expect(wrapper.findComponent(AdminCheckoutLinkModal).props('endpoint')).toBe(
+      `/api/colonel/organizations/${PUBLIC_ID}/checkout-link`
+    );
 
     // Emails obscured by default (RevealEmail).
     const billing = wrapper.find('[data-testid="billing-contactEmail"]');
@@ -274,8 +290,12 @@ describe('AdminOrganizationDetail (org detail + entitlements + reconcile)', () =
     // Entitlement resolution matrix is shown on load: one row per entitlement,
     // each carrying WHY it resolves the way it does.
     expect(wrapper.find('[data-testid="entitlements-matrix"]').exists()).toBe(true);
-    expect(wrapper.find('[data-testid="entitlement-row-create_secrets"]').attributes('data-state')).toBe('plan');
-    expect(wrapper.find('[data-testid="entitlement-row-custom_domains"]').attributes('data-state')).toBe('granted');
+    expect(
+      wrapper.find('[data-testid="entitlement-row-create_secrets"]').attributes('data-state')
+    ).toBe('plan');
+    expect(
+      wrapper.find('[data-testid="entitlement-row-custom_domains"]').attributes('data-state')
+    ).toBe('granted');
     expect(wrapper.find('[data-testid="entitlements-insync"]').exists()).toBe(true);
     // Summary signals stay visible above the matrix.
     expect(wrapper.find('[data-testid="entitlements-summary-materialized"]').exists()).toBe(true);
@@ -323,8 +343,12 @@ describe('AdminOrganizationDetail (org detail + entitlements + reconcile)', () =
     expect(drift.text()).toContain('legacy_flag');
     expect(drift.text()).toContain('custom_domains');
     // And the matrix names the two failure modes per row.
-    expect(wrapper.find('[data-testid="entitlement-row-legacy_flag"]').attributes('data-state')).toBe('orphaned');
-    expect(wrapper.find('[data-testid="entitlement-row-custom_domains"]').attributes('data-state')).toBe('missing');
+    expect(
+      wrapper.find('[data-testid="entitlement-row-legacy_flag"]').attributes('data-state')
+    ).toBe('orphaned');
+    expect(
+      wrapper.find('[data-testid="entitlement-row-custom_domains"]').attributes('data-state')
+    ).toBe('missing');
   });
 
   it('grants an entitlement chosen from the catalog dropdown and refreshes the detail', async () => {

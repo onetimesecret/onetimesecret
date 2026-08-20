@@ -49,6 +49,18 @@ describe('formatCurrency', () => {
     expect(result).toContain('50');
   });
 
+  it('falls back to USD when currency is null instead of throwing', () => {
+    // A plan can reach the UI with a null currency (no Stripe price currency
+    // and no plan currency), which used to crash Intl.NumberFormat.
+    expect(() => formatCurrency(5000, null)).not.toThrow();
+    expect(formatCurrency(5000, null)).toContain('50');
+  });
+
+  it('falls back to USD when currency is an empty string', () => {
+    expect(() => formatCurrency(5000, '')).not.toThrow();
+    expect(formatCurrency(5000, '')).toContain('50');
+  });
+
   it('formats EUR currency', () => {
     const result = formatCurrency(1999, 'EUR');
     expect(result).toContain('19.99');
@@ -62,6 +74,71 @@ describe('formatCurrency', () => {
   it('handles negative amounts (refunds)', () => {
     const result = formatCurrency(-2900, 'USD');
     expect(result).toContain('29');
+  });
+
+  describe('locale parameter (#4048 defect 1)', () => {
+    it('formats with the given locale', () => {
+      // de uses "29,00 €", en-US uses "€29.00"
+      expect(formatCurrency(2900, 'EUR', 'de')).toBe(
+        new Intl.NumberFormat('de', { style: 'currency', currency: 'EUR' }).format(29)
+      );
+      expect(formatCurrency(2900, 'EUR', 'en-US')).toBe(
+        new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR' }).format(29)
+      );
+    });
+
+    it('produces different output for de vs en-US with EUR', () => {
+      expect(formatCurrency(123456, 'EUR', 'de')).not.toBe(formatCurrency(123456, 'EUR', 'en-US'));
+    });
+
+    it('normalizes underscore locales (de_AT, fr_CA) to BCP-47', () => {
+      expect(formatCurrency(2900, 'EUR', 'de_AT')).toBe(
+        new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(29)
+      );
+      expect(formatCurrency(2900, 'CAD', 'fr_CA')).toBe(
+        new Intl.NumberFormat('fr-CA', { style: 'currency', currency: 'CAD' }).format(29)
+      );
+    });
+
+    it('falls back to browser locale when no locale given', () => {
+      expect(formatCurrency(2900, 'USD')).toBe(
+        new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(29)
+      );
+    });
+
+    it('falls back to browser locale on an invalid locale tag', () => {
+      expect(formatCurrency(2900, 'USD', '!!not-a-locale!!')).toBe(
+        new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(29)
+      );
+    });
+  });
+
+  describe('defensive currency handling (#4048 defect 3)', () => {
+    it('coerces null currency to USD instead of throwing', () => {
+      expect(formatCurrency(2900, null)).toContain('29');
+      expect(() => formatCurrency(2900, null)).not.toThrow();
+    });
+
+    it('coerces empty-string currency to USD', () => {
+      expect(formatCurrency(2900, '')).toBe(
+        new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(29)
+      );
+    });
+
+    it('accepts lowercase currency codes', () => {
+      expect(formatCurrency(2900, 'eur')).toBe(
+        new Intl.NumberFormat(undefined, { style: 'currency', currency: 'EUR' }).format(29)
+      );
+    });
+
+    it('degrades to plain rendering for a garbage currency code', () => {
+      expect(formatCurrency(1999, 'NOTREAL')).toBe('19.99 NOTREAL');
+    });
+
+    it('degrades to plain rendering for garbage currency with a locale', () => {
+      // Malformed (non 3-letter) code throws RangeError for every locale
+      expect(formatCurrency(1999, 'X9', 'de')).toBe('19.99 X9');
+    });
   });
 });
 

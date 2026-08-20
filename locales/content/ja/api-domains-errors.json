@@ -12,11 +12,11 @@
     "source_hash": "632afc93"
   },
   "api.domains.errors.incoming_secrets_disabled": {
-    "text": "このインスタンスでは受信シークレットが有効になっていません",
+    "text": "このインスタンスでは受信シークレットは有効になっていません",
     "source_hash": "45c0b5c4"
   },
   "api.domains.errors.incoming_secrets_entitlement_required": {
-    "text": "受信シークレットの管理にはincoming_secretsエンタイトルメントが必要です。プランをアップグレードしてください。",
+    "text": "受信シークレット管理にはincoming_secretsエンタイトルメントが必要です。プランをアップグレードしてください。",
     "source_hash": "1af54ec2"
   },
   "api.domains.errors.incoming_config_not_found": {
@@ -24,19 +24,19 @@
     "source_hash": "491644a8"
   },
   "api.domains.errors.recipients_max_exceeded": {
-    "text": "受信者は最大%{max}名まで指定できます",
+    "text": "受信者は最大%{max}人までです",
     "source_hash": "159842ad"
   },
   "api.domains.errors.recipients_invalid_email": {
-    "text": "無効なメールアドレス: %{email}",
+    "text": "無効なメール: %{email}",
     "source_hash": "e9c729c7"
   },
   "api.domains.errors.recipients_duplicate": {
-    "text": "受信者のメールアドレスを重複して指定することはできません",
+    "text": "重複する受信者メールは許可されていません",
     "source_hash": "6de22182"
   },
   "api.domains.errors.homepage_secrets_mode_invalid": {
-    "text": "無効なsecrets_mode:%{secrets_mode}",
+    "text": "無効なsecrets_mode: %{secrets_mode}",
     "source_hash": "cf093a04"
   },
   "api.domains.errors.homepage_incoming_entitlement_required": {
@@ -44,7 +44,7 @@
     "source_hash": "d68b13d8"
   },
   "api.domains.errors.homepage_incoming_not_ready": {
-    "text": "受信シークレットは、ホームページとして使用する前に、少なくとも1人の受信者を設定して有効にする必要があります。",
+    "text": "受信シークレットをホームページとして使用するには、少なくとも1人の受信者を設定して有効にする必要があります。",
     "source_hash": "556da6e2"
   }
 }

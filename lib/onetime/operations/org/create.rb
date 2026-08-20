@@ -253,12 +253,11 @@ module Onetime
         #   reservation lost the race (rendered as :email_taken).
         def create_org(check)
           Onetime::Organization.create!(check.display_name, @owner, check.contact_email)
-        rescue Onetime::Problem => ex
+        rescue Onetime::OrganizationExists
           # The HSETNX guard inside create! is the authoritative uniqueness
-          # check; #validate's pre-check exists only for the message. Anything
-          # else is a real failure and must not be swallowed into a rejection.
-          raise unless ex.message.to_s.include?('Organization exists')
-
+          # check; #validate's pre-check exists only for the message. Any
+          # other Problem is a real failure and propagates rather than being
+          # swallowed into a rejection.
           nil
         end
 

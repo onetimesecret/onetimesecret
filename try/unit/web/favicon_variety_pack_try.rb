@@ -79,13 +79,20 @@ with_brand_conf({ 'apple_touch_icon_url' => 'https://cdn.acme.test/touch.png' })
 end
 #=> 'https://cdn.acme.test/touch.png'
 
-## brand_og_image_url default is an absolute URL ending in the neutral social card
+## brand_og_image_url is nil when the brand block carries no card at all — the
+## head then emits NO image tags rather than a tag pointing at a 404 (#4150)
 with_brand_conf(nil) do
   vars = @host.initialize_view_vars(Rack::Request.new(build_env))
-  u = vars['brand_og_image_url']
-  [u.start_with?('http://', 'https://'), u.end_with?('/social-preview.png')]
+  vars['brand_og_image_url']
 end
-#=> [true, true]
+#=> nil
+
+## with no card, twitter:card degrades to `summary` (renders correctly imageless)
+with_brand_conf(nil) do
+  vars = @host.initialize_view_vars(Rack::Request.new(build_env))
+  vars['twitter_card_type']
+end
+#=> 'summary'
 
 ## brand_og_image_url reflects BRAND_OG_IMAGE_URL override when set
 with_brand_conf({ 'og_image_url' => 'https://cdn.acme.test/card.png' }) do
@@ -93,6 +100,62 @@ with_brand_conf({ 'og_image_url' => 'https://cdn.acme.test/card.png' }) do
   vars['brand_og_image_url']
 end
 #=> 'https://cdn.acme.test/card.png'
+
+## an explicit card restores summary_large_image
+with_brand_conf({ 'og_image_url' => 'https://cdn.acme.test/card.png' }) do
+  vars = @host.initialize_view_vars(Rack::Request.new(build_env))
+  vars['twitter_card_type']
+end
+#=> 'summary_large_image'
+
+## a root-relative card (the pack-resolved default) is absolutized against baseuri —
+## og:image must be absolute for social scrapers
+with_brand_conf({ 'og_image_url' => '/social-preview.png' }) do
+  vars = @host.initialize_view_vars(Rack::Request.new(build_env))
+  u = vars['brand_og_image_url']
+  [u.start_with?('http://', 'https://'), u.end_with?('/social-preview.png')]
+end
+#=> [true, true]
+
+## a bare-relative card is treated as a root path and absolutized too — pack
+## assets all serve from the root, and a relative og:image is ignored by scrapers
+with_brand_conf({ 'og_image_url' => 'social-preview.png' }) do
+  vars = @host.initialize_view_vars(Rack::Request.new(build_env))
+  u = vars['brand_og_image_url']
+  [u.start_with?('http://', 'https://'), u.end_with?('/social-preview.png')]
+end
+#=> [true, true]
+
+## a protocol-relative card is left alone (already scheme-resolvable, not a path)
+with_brand_conf({ 'og_image_url' => '//cdn.acme.test/card.png' }) do
+  vars = @host.initialize_view_vars(Rack::Request.new(build_env))
+  vars['brand_og_image_url']
+end
+#=> '//cdn.acme.test/card.png'
+
+## a blank og_image_url yields no tag rather than an empty one. NOTE: reaching
+## the view blank means normalize_brand did not run (it collapses blanks to nil
+## and resolves `none` -> nil); the view is defensive here, and Config is where
+## the `none` opt-out is decided — see brand_pack_default_try.rb
+with_brand_conf({ 'og_image_url' => '  ' }) do
+  vars = @host.initialize_view_vars(Rack::Request.new(build_env))
+  [vars['brand_og_image_url'], vars['twitter_card_type']]
+end
+#=> [nil, 'summary']
+
+## [regression guard] a custom domain NEVER inherits the install's social card —
+## brand_config is the install's brand, so emitting it would put the operator's
+## card on a customer's shared link (#4150)
+def build_custom_env
+  env = build_env
+  env['onetime.domain_strategy'] = :custom
+  env
+end
+with_brand_conf({ 'og_image_url' => 'https://cdn.acme.test/card.png' }) do
+  vars = @host.initialize_view_vars(Rack::Request.new(build_custom_env))
+  [vars['brand_og_image_url'], vars['twitter_card_type']]
+end
+#=> [nil, 'summary']
 
 ## both variety-pack keys are exposed by initialize_view_vars
 vars = @host.initialize_view_vars(Rack::Request.new(build_env))
@@ -118,11 +181,6 @@ end
 #=> false
 
 ## [regression guard] a custom domain suppresses the static SVG so its uploaded /favicon.ico is not shadowed
-def build_custom_env
-  env = build_env
-  env['onetime.domain_strategy'] = :custom
-  env
-end
 with_brand_conf(nil) do
   vars = @host.initialize_view_vars(Rack::Request.new(build_custom_env))
   vars['show_default_svg_favicon']
@@ -136,8 +194,12 @@ end
 ## the full variety pack ships in the tracked default pack
 %w[
   favicon.ico favicon.svg apple-touch-icon.png icon-192.png icon-512.png
-  safari-pinned-tab.svg site.webmanifest social-preview.png
+  safari-pinned-tab.svg site.webmanifest
 ].all? { |f| File.exist?(File.join(PUBLIC_WEB, f)) }
+#=> true
+
+## the pack's social card ships too — neutral, like every other asset here
+File.file?(File.join(PUBLIC_WEB, 'social-preview.png'))
 #=> true
 
 ## favicon.svg uses the neutral blue, not the OTS orange (#DC4A22)

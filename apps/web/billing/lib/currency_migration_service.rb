@@ -4,6 +4,7 @@
 
 require 'stripe'
 require_relative 'stripe_client'
+require_relative '../operations/create_checkout_link'
 
 module Billing
   # CurrencyMigrationService - Handles Stripe currency conflict resolution
@@ -141,10 +142,26 @@ module Billing
 
       customer_id = org.stripe_customer_id
 
-      # Build current plan info from active subscription
+      # Single retrieve shared with the coupon check below. Discounts come
+      # back as bare ID strings unless expanded.
+      subscription = nil
       if org.stripe_subscription_id
-        subscription = Stripe::Subscription.retrieve(org.stripe_subscription_id)
-        first_item   = subscription.items.data.first
+        begin
+          subscription = Stripe::Subscription.retrieve(
+            id: org.stripe_subscription_id,
+            expand: ['discounts'],
+          )
+        rescue Stripe::InvalidRequestError => ex
+          # Subscription deleted between mismatch check and retrieve —
+          # assess as if there were none. Any other failure must surface
+          # rather than report a clean can_migrate: true
+          raise unless ex.code == 'resource_missing'
+        end
+      end
+
+      # Build current plan info from active subscription
+      if subscription
+        first_item = subscription.items.data.first
 
         if subscription.status == 'past_due'
           result[:blockers] << 'Subscription is past_due — resolve payment before migrating'
@@ -183,7 +200,7 @@ module Billing
       end
 
       # Warning flags
-      warnings          = check_migration_warnings(customer_id, existing_currency, org.stripe_subscription_id)
+      warnings          = check_migration_warnings(customer_id, existing_currency, subscription)
       result[:warnings] = warnings
 
       result
@@ -253,6 +270,8 @@ module Billing
     def execute_immediate_migration(org, new_price_id, success_url:, cancel_url:)
       customer_id     = org.stripe_customer_id
       prorated_credit = 0
+      credit_note     = nil
+      subscription    = nil
 
       # Pre-flight: clean up
       expire_open_checkout_sessions(customer_id)
@@ -283,7 +302,7 @@ module Billing
 
         # Issue refund for prorated unused time if applicable
         if prorated_credit.positive?
-          issue_prorated_refund(customer_id, prorated_credit)
+          credit_note = issue_prorated_refund(customer_id, subscription.id, prorated_credit)
         end
       end
 
@@ -305,6 +324,14 @@ module Billing
         },
       }
 
+      # Deployment tax policy + payment-method-configuration pin: shared with
+      # every other checkout path (see Plans#checkout_redirect). Applied after
+      # :customer is bound because customer_update requires a customer id.
+      Billing::Operations::CreateCheckoutLink.apply_tax_policy!(session_params)
+
+      pmc                                           = Onetime.billing_config.payment_method_configuration
+      session_params[:payment_method_configuration] = pmc if pmc
+
       checkout_session = stripe_client.create(
         Stripe::Checkout::Session,
         session_params,
@@ -313,13 +340,22 @@ module Billing
       # Clear any pending migration intent (immediate path completes in one step)
       org.clear_currency_migration_intent!
 
+      # Report the credit note's actual amount, not the computed credit —
+      # a nil credit note means no money moved
+      refund_failed = prorated_credit.positive? && credit_note.nil?
+      if refund_failed
+        OT.le "[CurrencyMigrationService] Prorated refund of #{prorated_credit} failed for #{customer_id} — reporting refund_amount 0"
+      end
+      refund_amount = credit_note ? credit_note.amount : 0
+
       {
         success: true,
         migration: {
           mode: 'immediate',
           checkout_url: checkout_session.url,
-          refund_amount: prorated_credit,
-          refund_formatted: format_amount(prorated_credit, subscription&.currency || 'cad'),
+          refund_amount: refund_amount,
+          refund_formatted: format_amount(refund_amount, subscription&.currency || Onetime.billing_config.currency),
+          refund_failed: refund_failed,
         },
       }
     end
@@ -330,9 +366,10 @@ module Billing
     #
     # @param customer_id [String] Stripe customer ID
     # @param existing_currency [String] Current currency
-    # @param subscription_id [String, nil] Current subscription ID
+    # @param subscription [Stripe::Subscription, nil] Current subscription,
+    #   retrieved with expand: ['discounts'] (nil when the org has none)
     # @return [Hash] Warning flags
-    def check_migration_warnings(customer_id, existing_currency, subscription_id)
+    def check_migration_warnings(customer_id, existing_currency, subscription)
       warnings = {
         has_credit_balance: false,
         credit_balance_amount: 0,
@@ -362,15 +399,13 @@ module Billing
       end
 
       # Amount-off coupon check (currency-specific; percentage coupons are fine)
-      if subscription_id
-        begin
-          sub      = Stripe::Subscription.retrieve(subscription_id)
-          discount = sub.discounts&.first
-          if discount&.coupon&.amount_off && discount.coupon.currency == existing_currency
-            warnings[:has_incompatible_coupons] = true
-          end
-        rescue Stripe::InvalidRequestError
-          # Subscription may have been deleted between check and retrieve
+      if subscription
+        discount = subscription.discounts&.first
+        # Unexpanded discounts are bare ID strings — coupon data requires
+        # the subscription retrieved with expand: ['discounts']
+        if discount.respond_to?(:coupon) && discount.coupon&.amount_off &&
+           discount.coupon.currency == existing_currency
+          warnings[:has_incompatible_coupons] = true
         end
       end
 
@@ -458,21 +493,24 @@ module Billing
       first_item = subscription.items.data.first
       return 0 unless first_item
 
+      # Basil (2025-03-31) moved item changes into subscription_details
       invoice = Stripe::Invoice.create_preview(
         customer: subscription.customer,
         subscription: subscription.id,
-        subscription_items: [{
-          id: first_item.id,
-          deleted: true,
-        }],
-        subscription_proration_behavior: 'create_prorations',
-        subscription_proration_date: Time.now.to_i,
+        subscription_details: {
+          items: [{
+            id: first_item.id,
+            deleted: true,
+          }],
+          proration_behavior: 'create_prorations',
+          proration_date: Time.now.to_i,
+        },
       )
 
       # Credit lines have negative amounts
       invoice.lines.data.select { |line| line.amount < 0 }.sum(&:amount).abs
     rescue Stripe::StripeError => ex
-      OT.ld "[CurrencyMigrationService] Invoice preview failed (#{ex.message}), falling back to manual calculation"
+      OT.lw "[CurrencyMigrationService] Invoice preview failed (#{ex.message}), falling back to manual calculation"
       manual_prorated_credit(subscription)
     end
 
@@ -503,37 +541,54 @@ module Billing
 
     # Issue refund for prorated unused time
     #
-    # Finds the latest paid invoice for the customer and creates a partial refund.
-    # Uses Stripe::Refund instead of customer credit balance (credit is currency-specific
-    # and won't transfer to the new currency).
+    # Finds the migrated subscription's latest paid invoice and issues a
+    # credit note with refund_amount against it. A credit note (rather than a
+    # raw Stripe::Refund) adjusts Stripe Tax reporting so collected tax is not
+    # overstated after the partial refund. Customer credit balance is not used
+    # (credit is currency-specific and won't transfer to the new currency).
     #
     # @param customer_id [String] Stripe customer ID
+    # @param subscription_id [String] Stripe subscription ID being migrated
     # @param amount [Integer] Refund amount in smallest currency unit
-    # @param currency [String] Currency code
-    # @return [Stripe::Refund, nil] The refund object or nil if no eligible invoice
-    def issue_prorated_refund(customer_id, amount)
-      # Find the latest paid invoice with a payment intent
+    # The refund is best-effort: any Stripe failure (invalid params, rate
+    # limits, connectivity) returns nil so the migration checkout can still
+    # proceed — the caller reports refund_failed instead of stranding the
+    # customer with a cancelled subscription and no new checkout. Non-Stripe
+    # errors still raise (programming bugs must surface).
+    #
+    # @return [Stripe::CreditNote, nil] The credit note, or nil if there is no
+    #   eligible invoice or any Stripe error occurred
+    def issue_prorated_refund(customer_id, subscription_id, amount)
+      # Scope to the migrated subscription — the customer's latest paid
+      # invoice may be an unrelated one
       invoices = Stripe::Invoice.list(
         customer: customer_id,
+        subscription: subscription_id,
         status: 'paid',
         limit: 1,
       )
 
       invoice = invoices.data.first
-      return nil unless invoice&.payment_intent
+      return nil unless invoice
 
-      Stripe::Refund.create(
+      # amount defines the note total (one of amount/lines/shipping_cost is
+      # required); refund_amount controls how much of it is refunded. Both
+      # must reconcile against the invoice's post-payment amount; Stripe
+      # raises InvalidRequestError otherwise
+      Billing::StripeClient.new.create(
+        Stripe::CreditNote,
         {
-          payment_intent: invoice.payment_intent,
+          invoice: invoice.id,
           amount: amount,
-          reason: 'requested_by_customer',
+          refund_amount: amount,
+          memo: 'Prorated refund for unused time (currency migration)',
           metadata: {
             reason: 'currency_migration_proration',
           },
         },
       )
-    rescue Stripe::InvalidRequestError => ex
-      OT.lw "[CurrencyMigrationService] Could not issue prorated refund: #{ex.message}"
+    rescue Stripe::StripeError => ex
+      OT.lw "[CurrencyMigrationService] Could not issue prorated refund (#{ex.class}): #{ex.message}"
       nil
     end
 

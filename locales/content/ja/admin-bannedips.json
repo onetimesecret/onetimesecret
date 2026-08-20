@@ -1,10 +1,10 @@
 {
   "web.admin.bannedIps.title": {
-    "text": "禁止IP",
+    "text": "禁止されたIP",
     "source_hash": "0ece5643"
   },
   "web.admin.bannedIps.description": {
-    "text": "サイト境界でIPアドレスを禁止または禁止解除します。",
+    "text": "サイトの境界でIPアドレスを禁止または解除します。",
     "source_hash": "69c0c992"
   },
   "web.admin.bannedIps.currentIp": {
@@ -28,7 +28,7 @@
     "source_hash": "512acd7b"
   },
   "web.admin.bannedIps.ban.confirmDescription": {
-    "text": "これにより、サイト境界で{ip}がブロックされます。確認のためにIPを入力してください。",
+    "text": "サイトの境界で{ip}をブロックします。確認のためIPアドレスを入力してください。",
     "source_hash": "d8f6142e"
   },
   "web.admin.bannedIps.ban.button": {
@@ -52,11 +52,11 @@
     "source_hash": "dfbd120e"
   },
   "web.admin.bannedIps.columns.bannedBy": {
-    "text": "禁止した実行者",
+    "text": "実行者",
     "source_hash": "9f47db0e"
   },
   "web.admin.bannedIps.columns.actions": {
-    "text": "アクション",
+    "text": "操作",
     "source_hash": "ff8059dc"
   },
   "web.admin.bannedIps.form.title": {
@@ -68,11 +68,11 @@
     "source_hash": "133d0819"
   },
   "web.admin.bannedIps.form.reasonLabel": {
-    "text": "理由(任意)",
+    "text": "理由 (任意)",
     "source_hash": "0f7d4664"
   },
   "web.admin.bannedIps.form.reasonPlaceholder": {
-    "text": "例:クレデンシャルスタッフィング",
+    "text": "例: クレデンシャルスタッフィング",
     "source_hash": "828a15ae"
   },
   "web.admin.bannedIps.form.submit": {
@@ -80,7 +80,7 @@
     "source_hash": "f91a5285"
   },
   "web.admin.bannedIps.list.loadError": {
-    "text": "禁止IPを読み込めませんでした。",
+    "text": "禁止されたIPを読み込めませんでした。",
     "source_hash": "539f2e34"
   },
   "web.admin.bannedIps.list.retry": {
@@ -88,11 +88,11 @@
     "source_hash": "942087cc"
   },
   "web.admin.bannedIps.list.empty": {
-    "text": "現在禁止されているIPはありません",
+    "text": "現在、禁止されているIPはありません",
     "source_hash": "b72cc9c5"
   },
   "web.admin.bannedIps.stats.total": {
-    "text": "禁止合計",
+    "text": "禁止の合計数",
     "source_hash": "41059c94"
   },
   "web.admin.bannedIps.unban.confirmTitle": {
@@ -100,7 +100,7 @@
     "source_hash": "88473e59"
   },
   "web.admin.bannedIps.unban.confirmDescription": {
-    "text": "これにより、{ip}のブロックが解除されます。確認のためにIPを入力してください。",
+    "text": "{ip}のブロックを解除します。確認のためIPアドレスを入力してください。",
     "source_hash": "6bec3191"
   },
   "web.admin.bannedIps.unban.button": {

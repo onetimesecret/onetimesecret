@@ -108,6 +108,43 @@ RSpec.describe 'API v2 Basic auth anonymous fallthrough (fail closed)', type: :i
   end
 
   # ---------------------------------------------------------------------------
+  # 1b. Valid session + rejected Authorization header -> session outranks it.
+  #     A logged-in browser that also carries a stale cached Basic credential
+  #     (or a reverse proxy forwarding its own htpasswd header) must NOT be
+  #     401'd: the credentialed strategy fails NON-terminally when a valid
+  #     session identity is present, so Otto's chain reaches NoAuthStrategy and
+  #     the session wins. Regression guard for the terminal-AuthFailure move
+  #     (the old env-marker guard refused only when the session was anonymous).
+  # ---------------------------------------------------------------------------
+  describe 'GET /api/v2/secret/:identifier with a valid session AND bad Basic credentials' do
+    let(:session_email) { "fallthrough_session_#{SecureRandom.uuid}@example.com" }
+
+    before do
+      @session_customer = Onetime::Customer.new(email: session_email)
+      @session_customer.save
+    end
+
+    after do
+      @session_customer&.delete!
+    end
+
+    it 'is not 401 — the chain falls through to the session-resolving noauth strategy' do
+      # Inject a valid authenticated session the same way the colonel session
+      # integration tryout does (pre-set env['rack.session']).
+      session = {
+        'authenticated' => true,
+        'external_id' => @session_customer.extid,
+        'email' => session_email,
+      }
+      header 'Accept', 'application/json'
+      header 'Authorization',
+        basic_header("nobody_#{SecureRandom.uuid}@example.com", 'not_a_real_key')
+      get unknown_secret_path, {}, { 'rack.session' => session }
+      expect(last_response.status).not_to eq(401)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # 2. No Authorization header -> anonymous path unchanged
   # ---------------------------------------------------------------------------
   describe 'GET /api/v2/secret/:identifier without an Authorization header' do

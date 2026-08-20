@@ -10,8 +10,9 @@
 module V3
   module Logic
     # @api System metadata endpoints for health checks, version info, and
-    #   supported locale listings. These endpoints do not require
-    #   authentication.
+    #   supported locale listings. `system_status` and
+    #   `get_supported_locales` are public; `system_version` requires
+    #   authentication (see the route table).
     module Meta
       SCHEMAS = {
         system_status: { response: 'systemStatus' },
@@ -46,7 +47,9 @@ module V3
       # System Version
       #
       # @api Returns the current application version as an array of
-      #   version components.
+      #   version components. Requires authentication: the exact build
+      #   version fingerprints the install for CVE matching, so it is not
+      #   disclosed to anonymous callers.
       def self.system_version(_req, _res)
         {
           version: OT::VERSION.to_a,

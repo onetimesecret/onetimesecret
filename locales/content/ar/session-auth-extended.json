@@ -281,9 +281,9 @@
     "source_hash": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "اسم مفتاح المرور",
+    "text": "مفتاح المرور",
     "context": "Label for passkey name field",
-    "source_hash": "22eefa67"
+    "source_hash": "904c9aa9"
   },
   "web.auth.passkeys.created": {
     "text": "تاريخ الإنشاء",
@@ -719,5 +719,232 @@
   "web.auth.sessions.session_plural": {
     "text": "جلسات",
     "source_hash": "1225ae6c"
+  },
+  "web.auth.connections.title": {
+    "text": "الهويات المرتبطة",
+    "source_hash": "e132c4d9"
+  },
+  "web.auth.connections.description": {
+    "text": "إدارة مزودي تسجيل الدخول الموحد المرتبطين بحسابك.",
+    "source_hash": "42c6d148"
+  },
+  "web.auth.connections.section_title": {
+    "text": "تسجيل الدخول الموحد",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.section_subtitle": {
+    "text": "مزودو الهوية الذين يمكنك استخدامهم لتسجيل الدخول إلى هذا الحساب",
+    "source_hash": "507254cd"
+  },
+  "web.auth.connections.connect_title": {
+    "text": "ربط مزود",
+    "source_hash": "a002b3f3"
+  },
+  "web.auth.connections.connect_description": {
+    "text": "اربط مزود تسجيل دخول موحد آخر يمكنك استخدامه لتسجيل الدخول إلى هذا الحساب.",
+    "source_hash": "32895a5a"
+  },
+  "web.auth.connections.connect_action": {
+    "text": "ربط {provider}",
+    "context": "Button label to start linking a specific SSO provider; {provider} is the provider display name",
+    "source_hash": "c77540af"
+  },
+  "web.auth.connections.issuer": {
+    "text": "المُصدر",
+    "source_hash": "39e02c46"
+  },
+  "web.auth.connections.identifier": {
+    "text": "المعرف",
+    "source_hash": "9b10587f"
+  },
+  "web.auth.connections.remove": {
+    "text": "إزالة",
+    "source_hash": "c3812fc4"
+  },
+  "web.auth.connections.remove_confirm_title": {
+    "text": "إزالة الهوية المرتبطة",
+    "source_hash": "4e8ffe4c"
+  },
+  "web.auth.connections.remove_confirm_message": {
+    "text": "هل أنت متأكد من أنك تريد إزالة هذه الهوية المرتبطة؟ لن تتمكن من تسجيل الدخول بها بعد الآن.",
+    "source_hash": "64939c89"
+  },
+  "web.auth.connections.removed_success": {
+    "text": "تمت إزالة الهوية المرتبطة",
+    "source_hash": "cf87daf3"
+  },
+  "web.auth.connections.no_identities": {
+    "text": "لا توجد هويات مرتبطة",
+    "source_hash": "5254048e"
+  },
+  "web.auth.connections.no_identities_description": {
+    "text": "لم تربط أي مزودي تسجيل دخول موحد بهذا الحساب بعد.",
+    "source_hash": "0f58d5d0"
+  },
+  "web.auth.connections.overview_status": {
+    "text": "تسجيل الدخول الموحد",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.errors.last_credential": {
+    "text": "هذه هي طريقتك الوحيدة لتسجيل الدخول. اربط مزوداً آخر أولاً، أو عيّن كلمة مرور من الإعدادات ← الأمان، حتى لا تُحرم من الدخول.",
+    "source_hash": "3de8084d"
+  },
+  "web.auth.connections.errors.last_credential_sso_enforced": {
+    "text": "هذه هي طريقتك الوحيدة لتسجيل الدخول. اربط مزوداً آخر أولاً حتى لا تُحرم من الدخول.",
+    "source_hash": "eed7a50e"
+  },
+  "web.auth.connections.errors.not_found": {
+    "text": "تعذر العثور على تلك الهوية المرتبطة. قد تكون قد أُزيلت بالفعل.",
+    "source_hash": "cf2c7673"
+  },
+  "web.auth.connections.errors.unauthorized": {
+    "text": "انتهت صلاحية جلستك. يرجى تسجيل الدخول مرة أخرى.",
+    "source_hash": "b529fce2"
+  },
+  "web.auth.connections.errors.generic": {
+    "text": "تعذر إكمال هذا الإجراء. يرجى المحاولة مرة أخرى.",
+    "source_hash": "a0d4edc0"
+  },
+  "web.link_sso.title": {
+    "text": "ربط طريقة تسجيل الدخول",
+    "source_hash": "46339bac"
+  },
+  "web.link_sso.prompt": {
+    "text": "سجلت الدخول باستخدام {provider}، والذي يطابق الحساب الموجود {email}. أدخل كلمة مرور هذا الحساب لربط {provider} والمتابعة.",
+    "context": "Instruction on the sign-in interstitial. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/link-sso/:token.",
+    "source_hash": "59da1c08"
+  },
+  "web.link_sso.password_label": {
+    "text": "كلمة المرور",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.link_sso.password_placeholder": {
+    "text": "كلمة المرور الحالية",
+    "source_hash": "ad4e56da"
+  },
+  "web.link_sso.submit": {
+    "text": "ربط ومتابعة",
+    "source_hash": "c969b759"
+  },
+  "web.link_sso.cancel": {
+    "text": "إلغاء",
+    "source_hash": "19766ed6"
+  },
+  "web.link_sso.unavailable_title": {
+    "text": "انتهت صلاحية طلب الربط هذا",
+    "source_hash": "b53c7e55"
+  },
+  "web.link_sso.unavailable_message": {
+    "text": "لأمانك، لم يعد طلب ربط طريقة تسجيل الدخول هذه صالحاً. سجل الدخول بكلمة المرور الحالية، ثم اربط هذا المزود ضمن إعدادات الأمان ← الهويات المرتبطة.",
+    "source_hash": "f7e349d1"
+  },
+  "web.link_sso.unavailable_action": {
+    "text": "متابعة تسجيل الدخول",
+    "source_hash": "d398cd0a"
+  },
+  "web.link_sso.errors.invalid_password": {
+    "text": "كلمة المرور هذه لا تطابق هذا الحساب. يرجى المحاولة مرة أخرى.",
+    "source_hash": "3259b4f5"
+  },
+  "web.link_sso.errors.invalid_token": {
+    "text": "انتهت صلاحية طلب الربط هذا أو تم استخدامه بالفعل. سجل الدخول بكلمة المرور الحالية، ثم اربط هذا المزود من إعدادات حسابك.",
+    "source_hash": "541f9127"
+  },
+  "web.link_sso.errors.link_conflict": {
+    "text": "تعذر ربط طريقة تسجيل الدخول هذه. قد يكون حسابك قد تغير، أو هذا المزود مرتبط بالفعل بحساب آخر. سجل الدخول بكلمة المرور الحالية، ثم أدر الاتصالات ضمن إعدادات الأمان ← الهويات المرتبطة.",
+    "source_hash": "7b0e0d0e"
+  },
+  "web.link_sso.errors.link_rate_limited": {
+    "text": "محاولات كلمة مرور كثيرة جداً. يرجى الانتظار بضع دقائق، ثم المحاولة مرة أخرى.",
+    "source_hash": "a95e78cd"
+  },
+  "web.link_sso.errors.invalid_request": {
+    "text": "تعذرت معالجة طلب الربط هذا. يرجى تسجيل الدخول بمزود SSO مرة أخرى.",
+    "source_hash": "053b9fc6"
+  },
+  "web.link_sso.errors.generic": {
+    "text": "تعذر ربط حسابك. يرجى المحاولة مرة أخرى.",
+    "source_hash": "f727c174"
+  },
+  "web.sso_link_confirm.title": {
+    "text": "تأكيد ربط حسابك",
+    "source_hash": "ad80bfe7"
+  },
+  "web.sso_link_confirm.prompt": {
+    "text": "سجلت الدخول باستخدام {provider}، والذي يطابق حسابك {email}. قم بالتأكيد لربط {provider} بهذا الحساب وإكمال تسجيل الدخول.",
+    "context": "Consent instruction on the #3840 Phase 4 mailbox-proof SSO linking page. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/sso-link-confirm/:token. No password is asked — clicking the emailed link is the proof.",
+    "source_hash": "6ff0d6cc"
+  },
+  "web.sso_link_confirm.submit": {
+    "text": "تأكيد وربط",
+    "source_hash": "5cf663e6"
+  },
+  "web.sso_link_confirm.cancel": {
+    "text": "إلغاء",
+    "source_hash": "19766ed6"
+  },
+  "web.sso_link_confirm.unavailable_title": {
+    "text": "لا يمكن إكمال طلب الربط هذا",
+    "source_hash": "47abb784"
+  },
+  "web.sso_link_confirm.unavailable_message": {
+    "text": "لأمانك، لم يعد هذا الطلب لربط طريقة تسجيل الدخول صالحاً. سجل الدخول بمزودك مرة أخرى وسنرسل لك رابطاً جديداً بالبريد الإلكتروني.",
+    "source_hash": "080e6f9f"
+  },
+  "web.sso_link_confirm.unavailable_action": {
+    "text": "العودة إلى تسجيل الدخول",
+    "source_hash": "8504054f"
+  },
+  "web.sso_link_confirm.errors.link_expired": {
+    "text": "انتهت صلاحية طلب الربط هذا أو تم استخدامه بالفعل. سجل الدخول بمزودك مرة أخرى وسنرسل لك رابطاً جديداً بالبريد الإلكتروني.",
+    "source_hash": "a50538df"
+  },
+  "web.sso_link_confirm.errors.link_conflict": {
+    "text": "تعذر ربط طريقة تسجيل الدخول هذه. قد يكون حسابك قد تغير، أو هذا المزود مرتبط بالفعل بحساب آخر. سجل الدخول بمزودك مرة أخرى للمتابعة.",
+    "source_hash": "c954854b"
+  },
+  "web.sso_link_confirm.errors.link_invalidated": {
+    "text": "تغيرت بيانات اعتماد حسابك بعد إرسال هذا الرابط، لذا لم يعد صالحاً. سجل الدخول بمزودك مرة أخرى وسنرسل لك رابطاً جديداً بالبريد الإلكتروني.",
+    "source_hash": "db88cb1d"
+  },
+  "web.sso_link_confirm.errors.link_error": {
+    "text": "حدث خطأ من جانبنا ولم نتمكن من التحقق من هذا الرابط. سجل الدخول بمزودك مرة أخرى وسنرسل لك رابطاً جديداً بالبريد الإلكتروني.",
+    "source_hash": "ec24e0a1"
+  },
+  "web.sso_link_confirm.errors.confirm_rate_limited": {
+    "text": "محاولات كثيرة جداً من جهازك. يرجى الانتظار بضع دقائق، ثم افتح الرابط المرسل بالبريد الإلكتروني مرة أخرى أو سجل الدخول بمزودك للحصول على رابط جديد.",
+    "source_hash": "f29af782"
+  },
+  "web.sso_link_confirm.errors.generic": {
+    "text": "تعذر تأكيد هذا الاتصال. يرجى تسجيل الدخول بمزودك مرة أخرى.",
+    "source_hash": "076fa25a"
+  },
+  "web.auth.mfa.passkey_mode_active": {
+    "text": "وضع مفتاح المرور نشط",
+    "source_hash": "824dceb6"
+  },
+  "web.auth.mfa.passkey_prompt": {
+    "text": "تحقّق من هويتك باستخدام مفتاح المرور. سيطلب منك جهازك بصمة إصبعك أو وجهك أو مفتاح الأمان.",
+    "source_hash": "c0b0cbbc"
+  },
+  "web.auth.mfa.verify_with_passkey": {
+    "text": "التحقق باستخدام مفتاح المرور",
+    "source_hash": "4f105a30"
+  },
+  "web.auth.mfa.use_passkey": {
+    "text": "استخدام مفتاح المرور بدلاً من ذلك",
+    "source_hash": "bd6430a4"
+  },
+  "web.auth.passkeys.remove_failed": {
+    "text": "تعذّرت إزالة مفتاح المرور",
+    "source_hash": "3e131515"
+  },
+  "web.auth.passkeys.load_failed": {
+    "text": "تعذّر تحميل مفاتيح المرور",
+    "source_hash": "8d704e00"
+  },
+  "web.auth.webauthn.emailRequired": {
+    "text": "أدخل البريد الإلكتروني لتسجيل الدخول باستخدام مفتاح المرور",
+    "source_hash": "7f07647f"
   }
 }

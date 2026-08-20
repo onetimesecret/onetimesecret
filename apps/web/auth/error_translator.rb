@@ -38,6 +38,13 @@ module Auth
       Onetime::GuestRoutesDisabled => 403,
       Onetime::Forbidden => 403,
       Onetime::Unauthorized => 401,
+      # An auth gate could not READ this host's policy (#4139/#4157). 503, not
+      # the gate's usual 404: see Onetime::AuthPolicyUnavailable. Registered on
+      # the FAMILY, not on SigninPolicyUnavailable alone — this table's lookup
+      # walks ancestors, so the sign-up sibling gets the same status without a
+      # second copy to keep in sync (otto_hooks cannot do that: Otto dispatches
+      # on the exact class name and needs one handler per subclass).
+      Onetime::AuthPolicyUnavailable => 503,
     }.freeze
 
     # Per-class log severity for translated exceptions. Mirrors the
@@ -55,6 +62,7 @@ module Auth
       Onetime::GuestRoutesDisabled => :info,
       Onetime::Forbidden => :warn,
       Onetime::Unauthorized => :warn,
+      Onetime::AuthPolicyUnavailable => :error,
     }.freeze
 
     DEFAULT_STATUS     = 500

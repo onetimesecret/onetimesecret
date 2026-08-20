@@ -13,6 +13,8 @@
 #   6. verification_state fields are coherent (WARNING)
 #   7. txt_validation_value format is valid (LOW)
 #   8. domain has no org_id at all — ORPHANED (HIGH, report-only)
+#   9. org_id points to an ARCHIVED organization (HIGH, report-only)
+#  10. CustomDomain.owners agrees with the domain's org_id (MEDIUM)
 #
 # Additional checks (opt-in):
 #   --familia-audit   Run Familia's generic CustomDomain.health_check, which
@@ -28,6 +30,12 @@
 #
 #   bin/ots domains doctor [--all|--org] [--repair]
 #     Broad multi-check scanner including index integrity. Never assigns an org.
+#
+# Check #10 is the org-deletion unblocker: Organization#unlisted_owned_domains
+# reads the `owners` class hashkey as a second source of truth, so an entry left
+# behind by a writer that moved a domain (historically `domains transfer`) makes
+# the org it names undeletable. The refusal message points operators at this
+# command, so this is where that drift has to be both visible and fixable.
 #
 # Exactly one check (#4, org.domains membership) is shared between them, and
 # doctor DELEGATES that repair to Onetime::Operations::Domains::Repair so there
@@ -162,6 +170,8 @@ module Onetime
             6. verification_state is coherent (WARNING)
             7. txt_validation_value format is valid (LOW)
             8. domain has no org_id - ORPHANED (HIGH, report-only)
+            9. org_id points to an ARCHIVED organization (HIGH, report-only)
+           10. CustomDomain.owners matches the domain's org_id (MEDIUM)
             +. Familia.health_check (opt-in via --familia-audit)
 
           Doctor never assigns an organization. To adopt an orphaned domain:
@@ -216,6 +226,9 @@ module Onetime
         # CHECK: org_id points to existing organization
         check_stale_org_reference(domain, issues)
 
+        # CHECK: that organization is still live (report-only)
+        check_archived_org_reference(domain, issues)
+
         # CHECK: domain has an org at all (report-only)
         check_orphaned_domain(domain, issues)
 
@@ -224,6 +237,9 @@ module Onetime
 
         # CHECK: domain is in org.domains if it has org_id
         check_org_domains_membership(domain, issues, report, repair: repair)
+
+        # CHECK: CustomDomain.owners agrees with org_id
+        check_owners_index_drift(domain, issues, report, repair: repair)
 
         # CHECK: verification state coherence
         check_verification_coherence(domain, issues)
@@ -250,6 +266,7 @@ module Onetime
         issues = []
 
         check_display_domain_index_integrity(issues, report, repair: repair)
+        check_owners_index_integrity(issues, report, repair: repair, scope_org: scope_org)
 
         if scope_org
           check_stale_org_domains(scope_org, report, repair: repair)
@@ -401,6 +418,33 @@ module Onetime
         }
       end
 
+      # CHECK: org_id points to an ARCHIVED organization
+      #
+      # Organization#archive! is a soft delete that says nothing about the
+      # org's domains, and Organization.load still returns the record — so
+      # check_stale_org_reference sees a healthy pointer and the domain keeps
+      # serving. Every authorization path that resolves a domain to its org
+      # (see load_organization_for_domain) then evaluates entitlements against
+      # an org the operator believes is gone. REPORT-ONLY: whether to bring the
+      # org back or move the domain is a human decision, the same reasoning
+      # that keeps check #1 and #8 report-only.
+      def check_archived_org_reference(domain, issues)
+        return if domain.org_id.to_s.empty?
+
+        organization = Onetime::Organization.load(domain.org_id)
+        return unless organization # Already flagged by stale_org_reference
+        return unless organization.archived?
+
+        issues << {
+          check: :archived_org_reference,
+          severity: :high,
+          message: "org_id '#{domain.org_id}' points to an archived organization",
+          repairable: false,
+          repair_action: 'Manual decision required: unarchive the organization, ' \
+                         "or move the domain (bin/ots domains transfer #{domain.display_domain} --to-org <ORG>)",
+        }
+      end
+
       # CHECK: domain has no org_id at all (ORPHANED)
       #
       # REPORT-ONLY, deliberately. Both check_stale_org_reference and
@@ -508,9 +552,140 @@ module Onetime
         }
       end
 
+      # CHECK: CustomDomain.owners agrees with this domain's org_id
+      #
+      # `owners` (domainid => org_id) is a plain class_hashkey, not a
+      # Familia-managed index, and Organization#unlisted_owned_domains reads it
+      # as the SECOND source of truth for the org-deletion drift guard. A stale
+      # entry therefore makes the org it names permanently undeletable, and the
+      # refusal message sends the operator here — so doctor has to be able to
+      # both see and fix it.
+      #
+      # An ORPHAN (blank org_id) that still has an owners entry is in scope and
+      # is repaired by REMOVING that entry — org_id is the authoritative field,
+      # so the index follows it down as readily as sideways, and the entry is
+      # precisely what keeps the org it names undeletable. That is not check
+      # #8's "never assign an org" line: nothing is being assigned, and the
+      # previous value is logged and reported before it goes.
+      def check_owners_index_drift(domain, issues, report, repair:)
+        recorded = Onetime::CustomDomain.owners.get(domain.identifier).to_s
+        actual   = domain.org_id.to_s
+        return if recorded == actual
+
+        message = if recorded.empty?
+                    "missing from CustomDomain.owners (org_id is #{actual})"
+                  elsif actual.empty?
+                    "CustomDomain.owners still names #{recorded} but the domain is orphaned (no org_id)"
+                  else
+                    "CustomDomain.owners says #{recorded} but org_id is #{actual}"
+                  end
+
+        adopt  = "bin/ots domains repair #{domain.display_domain} --org-id <ORG>"
+        action = if actual.empty?
+                   "Drop the stale CustomDomain.owners entry, then adopt the domain with: #{adopt}"
+                 else
+                   'Rewrite the CustomDomain.owners entry to match org_id'
+                 end
+
+        issues << {
+          check: :owners_index_drift,
+          severity: :medium,
+          message: message,
+          repairable: true,
+          repair_action: action,
+        }
+
+        return unless repair
+
+        # org_id is the authoritative field; owners is the derived index. A
+        # blank org_id removes the entry (see CustomDomain.record_owner).
+        Onetime::CustomDomain.record_owner(domain, actual)
+        OT.info "[domains doctor] Realigned CustomDomain.owners[#{domain.identifier}] " \
+                "#{recorded.empty? ? '(missing)' : recorded} -> #{actual.empty? ? '(removed)' : actual}"
+
+        report[:repaired] << {
+          domain: domain.display_domain,
+          action: :owners_entry_realigned,
+          org: actual,
+          previous_org: recorded,
+        }
+      end
+
+      # CHECK: CustomDomain.owners entries the per-domain scan cannot reach
+      #
+      # The sibling above only sees domains the scan VISITS: everything in
+      # `instances` for --all, and only `org.domains` members for --org. The
+      # entries that matter most are exactly the ones outside that set — a
+      # domain that moved to another org (`domains transfer`) is no longer in
+      # its previous owner's collection, yet its stale `owners` entry is what
+      # blocks that owner's deletion. This sweep covers those, plus entries
+      # whose domain record is gone entirely.
+      #
+      # Scoped by construction so nothing is reported twice: an entry the
+      # per-domain scan will visit is skipped here.
+      def check_owners_index_integrity(issues, report, repair:, scope_org: nil)
+        drifted = []
+
+        Onetime::CustomDomain.owners.hgetall.each do |domain_id, recorded_org_id|
+          domain        = Onetime::CustomDomain.load(domain_id)
+          actual_org_id = domain&.org_id.to_s
+
+          if scope_org
+            # Only entries that touch THIS org can affect its deletion.
+            next unless [recorded_org_id.to_s, actual_org_id].include?(scope_org.objid)
+            next if scope_org.domains.member?(domain_id)
+          elsif domain && Onetime::CustomDomain.instances.member?(domain_id)
+            next
+          end
+
+          if domain.nil?
+            drifted << {
+              domain_id: domain_id,
+              recorded_org_id: recorded_org_id,
+              actual_org_id: nil,
+              reason: 'domain record not found',
+            }
+          elsif actual_org_id != recorded_org_id.to_s
+            drifted << {
+              domain_id: domain_id,
+              recorded_org_id: recorded_org_id,
+              actual_org_id: actual_org_id,
+              reason: "org_id mismatch (domain has #{actual_org_id.empty? ? '(none)' : actual_org_id})",
+            }
+          end
+        end
+
+        return if drifted.empty?
+
+        issues << {
+          check: :owners_index_stale,
+          severity: :medium,
+          message: "#{drifted.size} CustomDomain.owners entries disagree with the domain's org_id",
+          stale_entries: drifted.first(10),
+          total_stale: drifted.size,
+          repairable: true,
+          repair_action: 'Realign each entry with the domain org_id (removing entries whose domain is gone)',
+        }
+
+        return unless repair
+
+        drifted.each do |entry|
+          # nil actual_org_id (dead record) removes the entry; the single
+          # writer handles both directions.
+          Onetime::CustomDomain.record_owner(entry[:domain_id], entry[:actual_org_id])
+          OT.info "[domains doctor] Realigned CustomDomain.owners[#{entry[:domain_id]}] " \
+                  "#{entry[:recorded_org_id]} -> #{entry[:actual_org_id] || '(removed)'}"
+        end
+
+        report[:repaired] << {
+          action: :owners_index_realigned,
+          count: drifted.size,
+        }
+      end
+
       # CHECK: verification state coherence
       def check_verification_coherence(domain, issues)
-        verified_flag = domain.verified.to_s == 'true'
+        verified_flag = domain.verified
         has_txt_value = !domain.txt_validation_value.to_s.empty?
 
         # If verified but no txt_validation_value, this is suspicious but may be legitimate
@@ -520,7 +695,7 @@ module Onetime
         issues << {
           check: :verification_incoherent,
           severity: :warning,
-          message: "verified='true' but txt_validation_value is empty",
+          message: 'verified is true but txt_validation_value is empty',
           repairable: false,
           repair_action: 'May be legitimate (migrated data or alternate verification)',
         }
@@ -719,6 +894,11 @@ module Onetime
               puts "  #{r[:org]}: removed #{r[:count]} stale org.domains entries"
             when :added_to_org_domains
               puts "  #{r[:domain]}: added to org.domains for #{r[:org]}"
+            when :owners_entry_realigned
+              destination = r[:org].to_s.empty? ? '(removed)' : r[:org]
+              puts "  #{r[:domain]}: CustomDomain.owners #{r[:previous_org]} -> #{destination}"
+            when :owners_index_realigned
+              puts "  Realigned #{r[:count]} stale CustomDomain.owners entries"
             else
               puts "  #{r[:action]}"
             end

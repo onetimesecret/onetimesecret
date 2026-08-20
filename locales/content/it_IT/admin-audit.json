@@ -98,5 +98,41 @@
   "web.admin.audit.result.failure": {
     "text": "Non riuscito",
     "source_hash": "7031edbc"
+  },
+  "web.admin.audit.categories.secret": {
+    "text": "Segreti",
+    "source_hash": "d8707d41"
+  },
+  "web.admin.audit.categories.membership": {
+    "text": "Iscrizioni",
+    "source_hash": "b50f1a42"
+  },
+  "web.admin.audit.categories.entitlement_preview": {
+    "text": "Anteprime dei diritti",
+    "source_hash": "255c5797"
+  },
+  "web.admin.audit.categories.colonel": {
+    "text": "Accessi a Colonel",
+    "source_hash": "01eeeb38"
+  },
+  "web.admin.audit.filters.actorLabel": {
+    "text": "Autore",
+    "source_hash": "449995c4"
+  },
+  "web.admin.audit.filters.searchButton": {
+    "text": "Cerca",
+    "source_hash": "49c266ba"
+  },
+  "web.admin.audit.filters.searchHint": {
+    "text": "Digita un autore, poi premi Invio o scegli Cerca per eseguire la ricerca. L'elenco non si aggiorna mentre digiti.",
+    "source_hash": "45eceb12"
+  },
+  "web.admin.audit.filters.pendingSearch": {
+    "text": "Ricerca non ancora eseguita: premi Invio o scegli Cerca per applicare questo autore.",
+    "source_hash": "f76095c2"
+  },
+  "web.admin.audit.list.contractError": {
+    "text": "Il server ha risposto, ma i dati di audit non corrispondono al formato previsto. Non è possibile mostrare alcun evento: si tratta di un errore di reportistica, non di un registro vuoto.",
+    "source_hash": "7f48137e"
   }
 }

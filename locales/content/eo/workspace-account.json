@@ -694,5 +694,33 @@
   "web.settings.security.sso_managed_description": {
     "text": "Via konto estas aŭtentikigita tra la unuopa ensaluta provizanto de via organizo. Pasvorto, plurfaktora aŭtentikigo kaj restaŭraj kodoj estas administrataj de via identeca provizanto.",
     "source_hash": "cd0cf39f"
+  },
+  "web.settings.api.api_username": {
+    "text": "API-Uzantnomo",
+    "source_hash": "0b3e483e"
+  },
+  "web.settings.api.api_username_description": {
+    "text": "Via uzantnomo por HTTP Basic-aŭtentikigo",
+    "source_hash": "f3e65de3"
+  },
+  "web.settings.api.basic_auth_hint": {
+    "text": "Por HTTP Basic-aŭtentikigo, uzu vian kontan retpoŝtadreson aŭ ĉi tiun ID kiel la uzantnomon kaj vian API-ĵetonon kiel la pasvorton.",
+    "source_hash": "cfa3806d"
+  },
+  "web.settings.security.set": {
+    "text": "Agordita",
+    "source_hash": "b6f6f3ad"
+  },
+  "web.settings.security.not_set": {
+    "text": "Ne agordita",
+    "source_hash": "4895f731"
+  },
+  "web.settings.security.set_password_title": {
+    "text": "Agordi pasvorton",
+    "source_hash": "4e411687"
+  },
+  "web.settings.security.set_password_description": {
+    "text": "Aldonu pasvorton al via konto por ke vi ankaŭ povu ensaluti sen via idento-provizanto",
+    "source_hash": "a6970402"
   }
 }

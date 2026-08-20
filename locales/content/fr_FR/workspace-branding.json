@@ -4,7 +4,7 @@
     "source_hash": "ba42602c"
   },
   "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
-    "text": "Courant {0} : {1}. Cliquez pour faire défiler les options.",
+    "text": "{0} actuel : {1}. Cliquez pour parcourir les options.",
     "source_hash": "84bf49e6"
   },
   "web.branding.use_setting": {
@@ -12,7 +12,7 @@
     "source_hash": "8a18d118"
   },
   "web.branding.font_family": {
-    "text": "Famille de polices",
+    "text": "Police",
     "source_hash": "f81339da"
   },
   "web.branding.corner_style": {
@@ -20,11 +20,11 @@
     "source_hash": "fcb3ecdf"
   },
   "web.branding.brand_color": {
-    "text": "Couleur de marque",
+    "text": "Couleur de la marque",
     "source_hash": "db3183e3"
   },
   "web.branding.preview_of_the_secret_link_page_for_recipients": {
-    "text": "Aperçu de la page du lien secret pour les destinataires",
+    "text": "Aperçu de la vue du destinataire lors de l'accès à votre lien sécurisé",
     "source_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
@@ -32,7 +32,7 @@
     "source_hash": "fc68a28c"
   },
   "web.branding.switch_to_safari_browser_view": {
-    "text": "Passer à la vue navigateur Safari",
+    "text": "Passer à la vue du navigateur Safari",
     "source_hash": "6e0fe791"
   },
   "web.branding.microsoft_edge": {
@@ -48,7 +48,7 @@
     "source_hash": "5cd54386"
   },
   "web.branding.switch_to_edge_browser_view": {
-    "text": "Passer à la vue navigateur Edge",
+    "text": "Passer à la vue du navigateur Edge",
     "source_hash": "a8fcd82d"
   },
   "web.branding.charactercount_500_characters": {
@@ -56,27 +56,27 @@
     "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Utilisez votre téléphone pour scanner le code QR",
-    "source_hash": "99ecf59f"
+    "text": "ex. Utilisez votre téléphone pour scanner le code QR",
+    "source_hash": "9cf0caf8"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Contactez integration{'@'}exemple.com pour toute question",
-    "source_hash": "bee120a7"
+    "text": "ex. Contactez onboarding{'@'}example.com pour toute question",
+    "source_hash": "71749811"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
-    "text": "Ces instructions seront présentées aux destinataires avant la révélation du contenu confidentiel",
+    "text": "Ces instructions seront affichées aux destinataires avant qu'ils ne révèlent le contenu du secret",
     "source_hash": "9d5a6334"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_after": {
-    "text": "Ces instructions seront affichées aux destinataires après qu'ils auront révélé le secret",
+    "text": "Ces instructions seront affichées aux destinataires après qu'ils ont révélé le secret",
     "source_hash": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "Instructions pré-révélation",
+    "text": "Instructions avant révélation",
     "source_hash": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "Instructions post-révélation",
+    "text": "Instructions après révélation",
     "source_hash": "72ecc23a"
   },
   "web.branding.instructions": {
@@ -84,15 +84,15 @@
     "source_hash": "934652dc"
   },
   "web.branding.logo_controls": {
-    "text": "Contrôles du logo",
+    "text": "Commandes du logo",
     "source_hash": "43e9a2d7"
   },
   "web.branding.click_to_upload_a_logo_with_recommendation": {
-    "text": "Cliquez pour gérer votre logo. Taille recommandée : 128x128 pixels. Taille de fichier maximale : 1 Mo. Formats pris en charge : PNG, JPG, SVG",
+    "text": "Cliquez pour gérer votre logo. Taille recommandée : 128x128 pixels. Taille maximale du fichier : 1 Mo. Formats pris en charge : PNG, JPG, SVG",
     "source_hash": "7bb92395"
   },
   "web.branding.upload_logo": {
-    "text": "Télécharger un logo",
+    "text": "Téléverser un logo",
     "source_hash": "c3330082"
   },
   "web.branding.loading_preview": {
@@ -100,7 +100,7 @@
     "source_hash": "c02130fa"
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
-    "text": "Prévisualisez l'affichage des contenus confidentiels en testant le bouton « Consulter le contenu »",
+    "text": "Prévisualisez la façon dont les destinataires verront vos secrets en testant le bouton « Consulter le secret »",
     "source_hash": "3b58a297"
   },
   "web.branding.eye_icon": {
@@ -108,7 +108,7 @@
     "source_hash": "7f605d3c"
   },
   "web.branding.click_the_preview_image_below_to_update_your_logo": {
-    "text": "Cliquez sur l'aperçu ci-dessous pour modifier votre logo (minimum recommandé : 128x128 pixels, maximum : 1 Mo)",
+    "text": "Cliquez sur l'image d'aperçu ci-dessous pour mettre à jour votre logo (minimum 128x128 pixels recommandé, 1 Mo max.)",
     "source_hash": "77a19049"
   },
   "web.branding.image_icon": {
@@ -116,7 +116,7 @@
     "source_hash": "b0d64fcf"
   },
   "web.branding.use_the_controls_above_to_customize_brand_details": {
-    "text": "Utilisez les paramètres ci-dessus pour personnaliser la charte graphique et les instructions destinataires",
+    "text": "Utilisez les commandes ci-dessus pour personnaliser la couleur de la marque, les styles et les instructions destinées aux destinataires",
     "source_hash": "d6287134"
   },
   "web.branding.customization_icon": {
@@ -124,7 +124,7 @@
     "source_hash": "bde04d31"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
-    "text": "Vous avez des modifications non sauvegardées. En êtes-vous sûr ?",
+    "text": "Vous avez des modifications non enregistrées. Voulez-vous continuer ?",
     "source_hash": "184b6a83"
   },
   "web.branding.failed_to_load_brand_settings": {
@@ -132,15 +132,15 @@
     "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "Ceci est un aperçu interactif de la façon dont les destinataires verront vos messages sécurisés. Vous pouvez : - Personnaliser les couleurs et les polices à l'aide des contrôles ci-dessus - Télécharger un logo (minimum 128x128 pixels recommandé, 1 Mo max) - Tester l'aperçu en utilisant le bouton « Voir le secret »",
+    "text": "Ceci est un aperçu interactif de la façon dont les destinataires verront vos messages sécurisés. Vous pouvez : - Personnaliser les couleurs et les polices à l'aide des commandes ci-dessus - Téléverser un logo (minimum 128x128 pixels recommandé, 1 Mo max.) - Tester l'aperçu avec le bouton « Consulter le secret »",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
-    "text": "Il s'agit d'un aperçu interactif de la façon dont les destinataires verront vos secrets. Vous pouvez : - Personnaliser les couleurs et les polices à l'aide des commandes ci-dessus - télécharger un logo (128x128 pixels minimum recommandés, 1MB maximum) - tester l'aperçu à l'aide du bouton \"Voir le secret\"",
+    "text": "Ceci est un aperçu interactif de la façon dont les destinataires verront vos messages sécurisés. Vous pouvez : - Personnaliser les couleurs et les polices à l'aide des commandes ci-dessus - Téléverser un logo (minimum 128x128 pixels recommandé, 1 Mo max.) - Tester l'aperçu avec le bouton « Consulter le secret »",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
-    "text": "Kanji japonais '秘' (himitsu) signifiant 'secret' ou 'confidentiel'",
+    "text": "Kanji japonais « 秘 » (himitsu) signifiant « secret » ou « confidentiel »",
     "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
@@ -176,7 +176,7 @@
     "source_hash": "f24ac447"
   },
   "web.branding.upgrade_to_customize": {
-    "text": "Mettez votre forfait à niveau pour personnaliser l'image de marque de ce domaine.",
+    "text": "Mettez à niveau votre forfait pour personnaliser la marque de ce domaine.",
     "source_hash": "9077bf79"
   },
   "web.branding.saved_successfully": {
@@ -184,7 +184,7 @@
     "source_hash": "9960c252"
   },
   "web.branding.keyhole_logo_icon": {
-    "text": "Icône de trou de serrure représentant un partage sécurisé et privé",
+    "text": "Icône de trou de serrure représentant un partage privé et sécurisé",
     "source_hash": "c868ac60"
   },
   "web.branding.secondary_color": {
@@ -208,7 +208,7 @@
     "source_hash": "6b5d30dc"
   },
   "web.branding.theme_presets": {
-    "text": "Préréglages de thème",
+    "text": "Thèmes prédéfinis",
     "source_hash": "931eeb74"
   },
   "web.branding.logo": {
@@ -220,7 +220,7 @@
     "source_hash": "95e15439"
   },
   "web.branding.logo_field_hint": {
-    "text": "Prévisualisez avant que vos modifications ne soient publiées.",
+    "text": "Prévisualisez avant la mise en ligne de vos modifications.",
     "source_hash": "e9e222fc"
   },
   "web.branding.logo_modal_title": {
@@ -228,7 +228,7 @@
     "source_hash": "5260dda5"
   },
   "web.branding.logo_modal_hint": {
-    "text": "PNG, JPG ou SVG. Recommandé 128x128px, jusqu'à 1 Mo.",
+    "text": "PNG, JPG ou SVG. 128x128 px recommandé, jusqu'à 1 Mo.",
     "source_hash": "75d00802"
   },
   "web.branding.logo_modal_save": {
@@ -244,7 +244,7 @@
     "source_hash": "ceed9fd5"
   },
   "web.branding.image_upload_drag_hint": {
-    "text": "ou glisser-déposer",
+    "text": "ou glissez-déposez",
     "source_hash": "6613b73c"
   },
   "web.branding.image_invalid_type": {
@@ -260,7 +260,7 @@
     "source_hash": "d94fa99a"
   },
   "web.branding.image_upload_failed": {
-    "text": "Une erreur s'est produite. Veuillez réessayer.",
+    "text": "Un problème est survenu. Veuillez réessayer.",
     "source_hash": "3ccd9d65"
   },
   "web.branding.undo": {
@@ -268,7 +268,7 @@
     "source_hash": "a8283ade"
   },
   "web.branding.low_contrast_text_bg_warning": {
-    "text": "Faible contraste texte/arrière-plan",
+    "text": "Contraste texte/arrière-plan faible",
     "source_hash": "1c676370"
   },
   "web.branding.path_simple": {
@@ -276,7 +276,7 @@
     "source_hash": "3fee95da"
   },
   "web.branding.path_match": {
-    "text": "Assortir à mon site",
+    "text": "Reproduire mon site",
     "source_hash": "776679cf"
   },
   "web.branding.path_advanced": {
@@ -288,7 +288,7 @@
     "source_hash": "7c9c0cca"
   },
   "web.branding.path_match_tag": {
-    "text": "Copier les paramètres d'un site existant.",
+    "text": "Copiez les paramètres d'un site existant.",
     "source_hash": "e4b0d1cd"
   },
   "web.branding.path_advanced_tag": {
@@ -320,19 +320,19 @@
     "source_hash": "bc79cdff"
   },
   "web.branding.paths_carryover_hint": {
-    "text": "Ceci est un aperçu en direct — vos modifications ne seront visibles par les visiteurs qu'après enregistrement.",
-    "source_hash": "cb4b82de"
+    "text": "Ceci est un aperçu en direct — vos modifications ne seront visibles par les visiteurs qu'après avoir cliqué sur Mettre à jour.",
+    "source_hash": "9a34df71"
   },
   "web.branding.coming_soon_match_blurb": {
-    "text": "Indiquez-nous votre site web et nous lirons ses couleurs et ses polices, puis comblerons l'écart en un clic.",
+    "text": "Indiquez-nous l'adresse de votre site web et nous en lirons les couleurs et les polices, puis comblerons l'écart en un clic.",
     "source_hash": "42c34cc1"
   },
   "web.branding.coming_soon_advanced_blurb": {
-    "text": "Modifiez directement les tokens {'@'}theme de Tailwind v4, ou collez votre propre feuille de style.",
+    "text": "Modifiez directement les jetons {'@'}theme de Tailwind v4, ou collez votre propre feuille de style.",
     "source_hash": "5a8473f5"
   },
   "web.branding.preview_recipient_page": {
-    "text": "Page destinataire",
+    "text": "Page du destinataire",
     "source_hash": "de8aa19f"
   },
   "web.branding.preview_badge": {
@@ -360,7 +360,7 @@
     "source_hash": "610fd42e"
   },
   "web.branding.tile_delivery_only": {
-    "text": "Livraison de messages sécurisés uniquement",
+    "text": "Distribution de messages sécurisés uniquement",
     "source_hash": "dc24dec2"
   },
   "web.branding.tile_no_create": {
@@ -368,7 +368,7 @@
     "source_hash": "17361d81"
   },
   "web.branding.recipient_page_content": {
-    "text": "Contenu de la page destinataire",
+    "text": "Contenu de la page du destinataire",
     "source_hash": "937733bd"
   },
   "web.branding.recipient_page_content_hint": {
@@ -380,7 +380,7 @@
     "source_hash": "090ed431"
   },
   "web.branding.tab_delivery": {
-    "text": "Livraison",
+    "text": "Distribution",
     "source_hash": "52bfe584"
   },
   "web.branding.delivery_language": {
@@ -396,7 +396,7 @@
     "source_hash": "7e1331f7"
   },
   "web.branding.delivery_reveal_instructions_hint": {
-    "text": "Affichées sur la page destinataire. Laissez vide pour utiliser le texte intégré dans la langue sélectionnée.",
+    "text": "Affichées sur la page du destinataire. Laissez vide pour utiliser le texte intégré dans la langue sélectionnée.",
     "source_hash": "51b9811d"
   },
   "web.branding.delivery_before_reveal": {
@@ -406,5 +406,57 @@
   "web.branding.delivery_after_reveal": {
     "text": "Après la révélation",
     "source_hash": "d5bfe7fd"
+  },
+  "web.branding.favicon": {
+    "text": "Favicon",
+    "source_hash": "42955289"
+  },
+  "web.branding.refresh_favicon": {
+    "text": "Actualiser le favicon depuis le domaine",
+    "source_hash": "7cc3d5dc"
+  },
+  "web.branding.refresh_favicon_hint": {
+    "text": "Récupérez à nouveau le favicon depuis votre domaine. La nouvelle icône apparaîtra sous peu.",
+    "source_hash": "ee007e44"
+  },
+  "web.branding.refresh_favicon_queued": {
+    "text": "Actualisation du favicon — la nouvelle icône apparaîtra sous peu.",
+    "source_hash": "6bf38e6e"
+  },
+  "web.branding.refresh_favicon_user_upload_hint": {
+    "text": "Vous avez téléversé un favicon personnalisé ; une icône récupérée ne le remplacera donc pas.",
+    "source_hash": "c22e1ed6"
+  },
+  "web.branding.upload_favicon": {
+    "text": "Téléverser un favicon",
+    "source_hash": "ceda39cb"
+  },
+  "web.branding.replace_favicon": {
+    "text": "Remplacer",
+    "source_hash": "95e15439"
+  },
+  "web.branding.remove_favicon": {
+    "text": "Supprimer le favicon",
+    "source_hash": "03693698"
+  },
+  "web.branding.favicon_field_hint": {
+    "text": "ICO, PNG ou SVG. Le téléversement remplace l'icône récupérée.",
+    "source_hash": "dfa0bfcb"
+  },
+  "web.branding.favicon_preview_alt": {
+    "text": "Favicon du domaine",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_title": {
+    "text": "Favicon du domaine",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_hint": {
+    "text": "ICO, PNG ou SVG. Jusqu'à 256 Ko. Remplace l'icône récupérée automatiquement.",
+    "source_hash": "c9eafc83"
+  },
+  "web.branding.favicon_modal_save": {
+    "text": "Enregistrer le favicon",
+    "source_hash": "c8a1566c"
   }
 }

@@ -15,7 +15,7 @@
 # this script owns CONTAINER LIVENESS only — it parses /health/advanced's
 # top-level status and never re-implements service checks. The app's
 # /health/advanced endpoint (CLI view: `bin/ots status`) owns the runtime
-# service view; `bin/setup --doctor` owns the environment view (pins,
+# service view; `bin/doctor` owns the environment view (pins,
 # files, connectivity) and likewise delegates to /health/advanced when
 # the app answers.
 #

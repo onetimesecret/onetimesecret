@@ -99,7 +99,7 @@ end
             # Compute changes before updating
             changes = compute_sender_changes(@existing_config, params)
             update_existing_config
-            log_sender_change_event(
+            log_sender_config_event(
               event: :domain_sender_config_updated,
               domain: @custom_domain,
               org: @organization,
@@ -108,7 +108,7 @@ end
             )
           else
             create_new_config
-            log_sender_change_event(
+            log_sender_config_event(
               event: :domain_sender_config_created,
               domain: @custom_domain,
               org: @organization,
@@ -226,14 +226,14 @@ end
 
           # Log when sender config is enabled (new config or was disabled)
           if is_enabled && (was_enabled.nil? || was_enabled == false)
-            log_sender_change_event(
+            log_sender_config_event(
               event: :domain_sender_config_enabled,
               domain: @custom_domain,
               org: @organization,
               actor: cust,
             )
           elsif was_enabled == true && !is_enabled
-            log_sender_change_event(
+            log_sender_config_event(
               event: :domain_sender_config_disabled,
               domain: @custom_domain,
               org: @organization,

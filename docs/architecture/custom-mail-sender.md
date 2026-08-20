@@ -10,7 +10,7 @@ The custom mail sender system lets customers send secret-link emails from their 
 
 ### Delivery Layer
 
-The platform operator configures one global mailer backend (SES, SendGrid, Lettermint, SMTP) via `OT.conf['emailer']`. Every email goes through that single backend. `Mailer.resolve_backend` ignores the `sender_config` argument entirely and returns the global `delivery_backend`. The underscore-prefixed parameter makes this explicit:
+The platform operator configures one global mailer backend (SES, SendGrid, Lettermint, SMTP2GO, SMTP) via `OT.conf['emailer']`. Every email goes through that single backend. `Mailer.resolve_backend` ignores the `sender_config` argument entirely and returns the global `delivery_backend`. The underscore-prefixed parameter makes this explicit:
 
 ```ruby
 # lib/onetime/mail/mailer.rb
@@ -55,16 +55,16 @@ Different deployments can run different global mailers (e.g. one environment use
 
 Every provisioning provider produces the same outcome — DKIM **and** SPF aligned to the customer's domain so DMARC passes via both paths — but each exposes it through different APIs and DNS record shapes. If you already know one provider, this maps it onto the other; if you're starting from scratch, it's the quickest way to see the shape of the problem.
 
-| | AWS SES | Lettermint |
-|---|---|---|
-| Provision API | `CreateEmailIdentity` + `PutEmailIdentityMailFromAttributes` | Team API `POST /domains` |
-| DKIM records | 3 CNAMEs (`<token>._domainkey.<domain>` → `<token>.dkim.amazonses.com`) | CNAME selectors (`<sel>._domainkey.<domain>` → `<sel>.dkim.lettermint.com`) |
-| SPF / envelope sender | custom MAIL FROM on `mail.<domain>`: an **MX + SPF TXT** the customer publishes directly | **one Return-Path CNAME** (`lm-bounces.<domain>`); Lettermint manages the SPF record on its side |
-| Verification status | `GetEmailIdentity` (DKIM + MAIL FROM status) | `GET /domains/:id` (+ `verify` trigger) |
-| Teardown | `DeleteEmailIdentity` | `DELETE /domains/:id` |
-| Strategy class | `SESSenderStrategy` | `LettermintSenderStrategy` |
+| | AWS SES | Lettermint | SMTP2GO |
+|---|---|---|---|
+| Provision API | `CreateEmailIdentity` + `PutEmailIdentityMailFromAttributes` | Team API `POST /domains` | `POST /domain/add` |
+| DKIM records | 3 CNAMEs (`<token>._domainkey.<domain>` → `<token>.dkim.amazonses.com`) | CNAME selectors (`<sel>._domainkey.<domain>` → `<sel>.dkim.lettermint.com`) | one CNAME (`<sel>._domainkey.<domain>` → `dkim.smtp2go.net`) |
+| SPF / envelope sender | custom MAIL FROM on `mail.<domain>`: an **MX + SPF TXT** the customer publishes directly | **one Return-Path CNAME** (`lm-bounces.<domain>`); Lettermint manages the SPF record on its side | **one Return-Path CNAME** (`bounce.<domain>` → `return.smtp2go.net`); SMTP2GO manages SPF on its side, plus a third CNAME (`track.<domain>`) for open/click tracking |
+| Verification status | `GetEmailIdentity` (DKIM + MAIL FROM status) | `GET /domains/:id` (+ `verify` trigger) | `POST /domain/verify` |
+| Teardown | `DeleteEmailIdentity` | `DELETE /domains/:id` | `POST /domain/remove` |
+| Strategy class | `SESSenderStrategy` | `LettermintSenderStrategy` | `Smtp2goSenderStrategy` |
 
-The one mechanism difference worth internalizing: **SES's custom MAIL FROM and Lettermint's Return-Path CNAME are equivalent** — both set the envelope sender to a subdomain of the sender domain so SPF aligns under DMARC's relaxed rules. Lettermint delegates SPF via a single CNAME (it publishes the SPF record itself); SES has no CNAME-delegated SPF, so the customer publishes an MX (to the regional `feedback-smtp.<region>.amazonses.com` endpoint) plus an SPF TXT directly. SendGrid (`automatic_security`) is CNAME-based like Lettermint. See the [SES guide](./custom-mail-sender-ses.md#dmarc-alignment-why-custom-mail-from) for the full DMARC alignment table.
+The one mechanism difference worth internalizing: **SES's custom MAIL FROM and Lettermint's Return-Path CNAME are equivalent** — both set the envelope sender to a subdomain of the sender domain so SPF aligns under DMARC's relaxed rules. Lettermint delegates SPF via a single CNAME (it publishes the SPF record itself); SES has no CNAME-delegated SPF, so the customer publishes an MX (to the regional `feedback-smtp.<region>.amazonses.com` endpoint) plus an SPF TXT directly. SendGrid (`automatic_security`) is CNAME-based like Lettermint. SMTP2GO uses the same delegated model — the customer publishes a `<returnpath_subdomain>.<domain>` CNAME instead of an SPF TXT — but adds a tracking CNAME the others don't require, keys its domain endpoints by domain name rather than a provider-side ID, and authenticates every call with the `X-Smtp2go-Api-Key` header. See the [SES guide](./custom-mail-sender-ses.md#dmarc-alignment-why-custom-mail-from) for the full DMARC alignment table.
 
 Validation is identical across providers: each reads the provisioned `dns_records` and runs live DNS lookups — no provider API call (see `ValidateSenderDomain`). Region is purely a provisioning concern (it selects SES's DKIM region and MAIL FROM endpoint); it plays no part in validation.
 
@@ -75,6 +75,10 @@ Validation is identical across providers: each reads the provisioned `dns_record
 | `lib/onetime/mail/mailer.rb` | Global delivery backend, `resolve_backend`, `provider_credentials` |
 | `lib/onetime/mail/sender_strategies.rb` | Factory for provider-specific sender strategies |
 | `lib/onetime/mail/sender_strategies/base_sender_strategy.rb` | Strategy interface (provision, verify, cleanup) |
+| `lib/onetime/mail/smtp2go_client.rb` | HTTP client for the SMTP2GO v3 API (`X-Smtp2go-Api-Key` auth) |
+| `lib/onetime/mail/delivery/smtp2go.rb` | SMTP2GO delivery backend (`EMAILER_MODE=smtp2go`) |
+| `lib/onetime/mail/sender_strategies/smtp2go_sender_strategy.rb` | SMTP2GO provision/verify/cleanup strategy |
+| `lib/onetime/domain_validation/sender_strategies/smtp2go_validation.rb` | DNS validation for SMTP2GO record shapes |
 | `lib/onetime/operations/provision_sender_domain.rb` | Orchestrates provisioning with platform credentials |
 | `lib/onetime/operations/validate_sender_domain.rb` | DNS verification via provider strategy |
 | `lib/onetime/models/custom_domain/mailer_config.rb` | Per-domain sender config model (from_address, dns_records, verification state) |

@@ -161,6 +161,12 @@ module Onetime
               @domain.org_id  = org.org_id
               @domain.updated = OT.now.to_i
               @domain.save
+              # The `owners` class hashkey is a second ownership index that
+              # nothing maintains automatically; adopting an orphan has to
+              # write it or the org-deletion drift guard
+              # (Organization#unlisted_owned_domains) never learns who owns
+              # this domain. Same reason Domains::Transfer writes it.
+              Onetime::CustomDomain.record_owner(@domain, org.org_id)
               org.add_domain(@domain)
               "Assigned to organization #{org.org_id}"
             end

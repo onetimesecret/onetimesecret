@@ -16,7 +16,10 @@ One correction and one conflict govern everything below:
   doc wants IP/geo/ASN filtering and impossible-travel detection; the performance
   doc's "What not to track" forbids exactly that, and Otto already masks IP
   upstream. This is not reconcilable by implementation — it is a posture decision
-  the operator has to make explicitly. See §5.
+  the operator has to make explicitly. See §5. (**Update 2026-08, #3989:** the
+  *country* half of "geo" has since dropped out of this conflict — it never
+  needed the unmasked address. ASN, device fingerprinting and impossible travel
+  are unaffected and the conflict stands for them. See §5.)
 
 ---
 
@@ -234,7 +237,21 @@ on a privacy product — a larger liability than the problem it solves."
 The codebase has already taken the performance doc's side. Otto masks IP upstream
 before it reaches `session_data` (verdict-only matching, /24–/48 precision
 profiles), and `TrackMetadata` copies `ip_address`/`user_agent` **as-is**
-precisely because masking happened earlier. So:
+precisely because masking happened earlier.
+
+**Update 2026-08 (#3989) — one item has left the third bullet.** I originally
+lumped *geo* in with ASN and device fingerprinting on a single shared rationale:
+you cannot locate a masked prefix. That rationale was right about the prefix and
+wrong about country. otto 2.8's `Otto::Privacy::GeoResolver` never touches the
+stored prefix at all — it resolves an ISO 3166-1 alpha-2 code (or the sentinel
+`'**'`) from a trusted CDN header, or from an MMDB lookup on the already-masked
+address, *before and independently of* what the sidecar ends up storing, and
+publishes it as `env['otto.privacy.geo_country']`. Country is therefore not
+reverse-derived from the /24–/48 prefix and adopting it loosens nothing. I have
+split the bullet rather than rewritten it: everything below the country line is
+unchanged, and **this section still governs the ASN half** — see
+`geo-precision-profile-evaluation.md` and `spec-session-gap-analysis.md` row 1.4,
+both of which cite it for exactly that. So:
 
 - **Adoptable as written:** filter by user, tenant, auth method, created-at,
   last-seen. All backed by existing sidecar fields.
@@ -242,17 +259,33 @@ precisely because masking happened earlier. So:
   (/24–/48), not by address. Fine for correlating a burst; useless for
   identifying a host. State this in the UI rather than implying precision the
   data does not have.
-- **Not adoptable without reversing the privacy posture:** geo/ASN lookup, device
-  fingerprinting, impossible travel, new-device detection. Impossible travel in
-  particular needs precise geolocation of a masked prefix — it cannot be built
-  accurately on the data that exists, and building it inaccurately is worse than
-  omitting it.
+- **Adoptable without touching the posture (#3989):** country-level geo, and
+  country only. Consumers read `env['otto.privacy.geo_country']` — they do not
+  geo-locate anything themselves, and there is no code path from the stored
+  prefix back to a location. `SessionMetadata#geo_country` already carries it.
+  The precision-profile question this raises ("does accurate country need a
+  looser mask?") was evaluated separately and answered *no*: see
+  `geo-precision-profile-evaluation.md`. Note what did **not** move — otto
+  resolves country and nothing else.
+- **Not adoptable without reversing the privacy posture:** ASN lookup, device
+  fingerprinting, impossible travel, new-device detection. ASN is not merely
+  unbuilt but unavailable: otto has no ASN support at all, so there is no posture
+  to reverse for it and nothing to adopt. Impossible travel does not come back
+  with country either — but for the right reason now: country granularity is far
+  too coarse to carry it. A country code cannot distinguish plausible movement
+  from implausible movement inside a country, and across borders it is dominated
+  by VPN egress and roaming. Building it inaccurately is still worse than
+  omitting it. (What *is* newly conceivable at country granularity is the much
+  weaker "new country for this account" signal — a different, noisier feature,
+  and one to evaluate on its own merits, not an impossible-travel detector. See
+  `spec-session-gap-analysis.md` rows 6.1 and 6.2.)
 
-This is a decision for the operator, not a design detail to be split. Recommend
-keeping the current posture: the product is a privacy product, the masking is
-deliberate and documented, and the detection features are the least load-bearing
-part of the expectations list. If the posture is ever reversed, it should be an
-explicit, configurable, self-hosted-operator choice — not a default.
+What is left after that split is still a decision for the operator, not a design
+detail to implement around. Recommend keeping the current posture: the product is
+a privacy product, the masking is deliberate and documented, and the detection
+features are the least load-bearing part of the expectations list. If the posture
+is ever reversed, it should be an explicit, configurable, self-hosted-operator
+choice — not a default.
 
 One expectations item that survives regardless and is worth confirming: **trusted
 proxy configuration**. The doc is right that unparsed `X-Forwarded-For` makes

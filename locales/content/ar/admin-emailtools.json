@@ -546,5 +546,41 @@
   "web.admin.emailtools.test.success": {
     "text": "تم إرسال البريد التجريبي إلى {to}.",
     "source_hash": "daa61a62"
+  },
+  "web.admin.emailtools.providerStatus.cycleNote": {
+    "text": "يُبلّغ SMTP2GO عن الإحصائيات الخاصة بدورة الفوترة الحالية، وليس عن نافذة الثلاثين يوماً السابقة. المعدّل الذي يظهر بالشكل “—” لا يُبلّغ عنه الموفّر، وهو لا يعني صفراً.",
+    "source_hash": "b052009b"
+  },
+  "web.admin.emailtools.providerStatus.cycle.window": {
+    "text": "دورة الفوترة: {start} ← {end}",
+    "source_hash": "a9ea52bb"
+  },
+  "web.admin.emailtools.providerStatus.cycle.used": {
+    "text": "الحصة المستخدمة (الدورة)",
+    "source_hash": "95a86428"
+  },
+  "web.admin.emailtools.providerStatus.cycle.remaining": {
+    "text": "الحصة المتبقية",
+    "source_hash": "b2605e14"
+  },
+  "web.admin.emailtools.providerStatus.stats.sentCycle": {
+    "text": "المُرسَلة (الدورة)",
+    "source_hash": "e2ed5d2e"
+  },
+  "web.admin.emailtools.providerStatus.stats.softBounced": {
+    "text": "ارتداد مؤقت",
+    "source_hash": "58028553"
+  },
+  "web.admin.emailtools.providerStatus.stats.bounceRejects": {
+    "text": "رفض بسبب الارتداد",
+    "source_hash": "0ca14701"
+  },
+  "web.admin.emailtools.providerStatus.stats.spamRejects": {
+    "text": "رفض بسبب البريد العشوائي",
+    "source_hash": "4d487ce5"
+  },
+  "web.admin.emailtools.providerStatus.stats.unsubscribes": {
+    "text": "إلغاءات الاشتراك",
+    "source_hash": "8a8c3ef7"
   }
 }

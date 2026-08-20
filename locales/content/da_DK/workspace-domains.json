@@ -1542,5 +1542,93 @@
   "web.domains.signup.dormant_notice": {
     "text": "Tilmeldinger er slået fra for hele workspacet, så de er utilgængelige på alle domæner. Dine indstillinger her bevares og træder i kraft, når tilmeldinger for workspacet aktiveres igen.",
     "source_hash": "49faefe4"
+  },
+  "web.domains.link_domain_no_settings": {
+    "text": "Dette domæne har ingen indstillingsside",
+    "source_hash": "8a8430fe"
+  },
+  "web.domains.signin.sso_restrict_warning_title": {
+    "text": "Begrænsning til SSO ville lukke login på dette domæne",
+    "source_hash": "3476cb5c"
+  },
+  "web.domains.signin.sso_restrict_warning_body": {
+    "text": "SSO er ikke tilgængeligt på dette domæne, og en begrænsning, der ikke kan opfyldes, blokerer login helt. Ingen vil kunne logge ind her, før SSO virker. Ret SSO først, eller begræns alligevel og færdiggør opsætningen.",
+    "source_hash": "086e3247"
+  },
+  "web.domains.signin.sso_restrict_warning_confirm": {
+    "text": "Begræns alligevel",
+    "source_hash": "4674e3cf"
+  },
+  "web.domains.signin.restriction_unavailable_notice": {
+    "text": "Login er ikke tilgængeligt på dette domæne: det er begrænset til {method}, som ikke kan køre her. Vælg en anden metode, eller gør {method} tilgængelig.",
+    "source_hash": "ca1b7f69"
+  },
+  "web.domains.signin.restriction_unavailable_unknown_notice": {
+    "text": "Login er ikke tilgængeligt på dette domæne: det er begrænset til en metode, som ikke kan køre her. Vælg en anden metode, eller nulstil dette domæne til standardindstillingerne.",
+    "source_hash": "8c2cce6b"
+  },
+  "web.domains.signin.restriction_conflict_notice": {
+    "text": "Dette domæne begrænser login til en anden metode end den workspace-dækkende begrænsning ({method}), så ingen af dem kan anvendes, og login er ikke tilgængeligt her. Match den workspace-dækkende metode, eller nulstil dette domæne til standardindstillingerne.",
+    "source_hash": "15398362"
+  },
+  "web.domains.signin.method_webauthn_unavailable": {
+    "text": "Adgangsnøgler er knyttet til det primære logindomæne og er endnu ikke tilgængelige på brugerdefinerede domæner",
+    "source_hash": "88833e0f"
+  },
+  "web.domains.sso.connection_disabled_badge": {
+    "text": "Forbindelse deaktiveret",
+    "source_hash": "99d6092c"
+  },
+  "web.domains.sso.connection_disabled_hint": {
+    "text": "SSO-legitimationsoplysningerne er gemt, men forbindelsen er slået fra. Aktivér den under Rediger legitimationsoplysninger.",
+    "source_hash": "90180d6c"
+  },
+  "web.domains.sso.status_active_badge": {
+    "text": "Aktiv",
+    "source_hash": "92340695"
+  },
+  "web.domains.sso.status_active_hint": {
+    "text": "Medlemmer kan logge ind med denne SSO-forbindelse på dette domæne.",
+    "source_hash": "313ec61e"
+  },
+  "web.domains.sso.status_not_configured_badge": {
+    "text": "Ikke konfigureret",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.sso.status_not_configured_hint": {
+    "text": "Der er endnu ikke gemt nogen SSO-legitimationsoplysninger for dette domæne.",
+    "source_hash": "d817ad9c"
+  },
+  "web.domains.sso.status_not_permitted_badge": {
+    "text": "Ikke tilladt på dette domæne",
+    "source_hash": "afbd20ba"
+  },
+  "web.domains.sso.status_not_permitted_hint": {
+    "text": "SSO er slået fra for dette domæne, så loginsiden tilbyder det ikke.",
+    "source_hash": "ef092481"
+  },
+  "web.domains.sso.status_auth_disabled_badge": {
+    "text": "Login deaktiveret",
+    "source_hash": "bb807607"
+  },
+  "web.domains.sso.status_auth_disabled_hint": {
+    "text": "Login er slået fra på dette domæne, så ingen metode tilbydes — heller ikke SSO.",
+    "source_hash": "3a98964b"
+  },
+  "web.domains.sso.status_unsupported_provider_badge": {
+    "text": "Ikke-understøttet udbyder",
+    "source_hash": "1609d5fb"
+  },
+  "web.domains.sso.status_unsupported_provider_hint": {
+    "text": "Den gemte udbyder kan ikke bruges til domæne-SSO. Rediger legitimationsoplysningerne, og vælg Microsoft Entra ID eller generisk OIDC.",
+    "source_hash": "72ea0a2e"
+  },
+  "web.domains.sso.status_unavailable_badge": {
+    "text": "Ikke tilgængelig",
+    "source_hash": "ca184496"
+  },
+  "web.domains.sso.status_unavailable_hint": {
+    "text": "SSO kan ikke tilbydes på dette domæne lige nu. Tjek SSO-legitimationsoplysningerne og dette domænes loginindstillinger.",
+    "source_hash": "b03b14f4"
   }
 }

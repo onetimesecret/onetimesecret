@@ -1,7 +1,7 @@
 // src/tests/apps/admin/AdminCustomerDetail.spec.ts
 
-import { AxiosError } from 'axios';
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
+import { AxiosError } from 'axios';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /** Build a real AxiosError so the shared classifier extracts `data.error`. */
@@ -72,55 +72,11 @@ const PUBLIC_ID = 'ur_alice';
 /** Purge is gated on the account EMAIL (suspend still uses the public id). */
 const PURGE_TOKEN = 'alice@example.com';
 
-type BillingOverride = {
-  enabled?: boolean;
-  stripeAvailable?: boolean;
-  stripeReason?: string | null;
-  invoice?: boolean;
-};
-
-function billingPayload(overrides: BillingOverride = {}) {
-  const available = overrides.stripeAvailable ?? false;
-  return {
-    enabled: overrides.enabled ?? false,
-    plan_id: 'basic',
-    organization: {
-      extid: 'og_acme',
-      display_name: 'Acme',
-      planid: 'basic',
-      subscription_status: available ? 'active' : null,
-      subscription_period_end: null,
-    },
-    stripe: {
-      available,
-      reason: available ? null : (overrides.stripeReason ?? 'Billing is not configured'),
-      customer_id: available ? 'cus_123' : null,
-      dashboard_url: available ? 'https://dashboard.stripe.com/customers/cus_123' : null,
-      subscription: available
-        ? { id: 'sub_123', status: 'active', current_period_end: 1700003600 }
-        : null,
-      latest_invoice:
-        available && (overrides.invoice ?? true)
-          ? {
-              id: 'in_1',
-              number: 'INV-0001',
-              status: 'paid',
-              currency: 'usd',
-              total: 3500,
-              created: 1700000000,
-              hosted_invoice_url: 'https://invoice.stripe.com/i/in_1',
-            }
-          : null,
-    },
-  };
-}
-
 function detailPayload(
   overrides: {
     role?: string;
     verified?: boolean;
     suspended?: boolean;
-    billing?: BillingOverride;
   } = {}
 ) {
   return {
@@ -143,6 +99,7 @@ function detailPayload(
     details: {
       secrets: {
         count: 1,
+        truncated: false,
         items: [
           {
             secret_id: 's1',
@@ -155,12 +112,13 @@ function detailPayload(
       },
       receipts: {
         count: 1,
+        truncated: false,
         items: [{ receipt_id: 'r1', shortid: 'rh1', state: 'viewed', created: 1700000050 }],
       },
       organizations: [
         { organization_id: 'o1', extid: 'og_acme', display_name: 'Acme', is_default: true },
       ],
-      billing: billingPayload(overrides.billing),
+
       stats: { secrets_created: 5, secrets_shared: 2, emails_sent: 3 },
     },
   };
@@ -264,6 +222,16 @@ describe('AdminCustomerDetail (ticket #22)', () => {
       await flushPromises();
 
       expect(wrapper.find('[data-testid="detail-error"]').exists()).toBe(true);
+    });
+
+    it('renders an "Open" link for each organization that navigates to AdminOrganizationDetail', async () => {
+      mockApi.get.mockResolvedValue({ data: detailPayload() });
+      wrapper = mountView();
+      await flushPromises();
+
+      // The organization link routes to the detail page (data-testid set by the component)
+      const orgLink = wrapper.find('[data-testid="organization-link"]');
+      expect(orgLink.exists()).toBe(true);
     });
   });
 
@@ -377,85 +345,14 @@ describe('AdminCustomerDetail (ticket #22)', () => {
     });
   });
 
-  // ---- Billing card ----------------------------------------------------------
+  it('does not render billing or plan controls on the customer detail page', async () => {
+    mockApi.get.mockResolvedValue({ data: detailPayload() });
+    wrapper = mountView();
+    await flushPromises();
 
-  describe('billing card', () => {
-    it('renders plan from the model with the not-configured note when billing is disabled', async () => {
-      mockApi.get.mockResolvedValue({ data: detailPayload({ billing: { enabled: false } }) });
-      wrapper = mountView();
-      await flushPromises();
-
-      const section = wrapper.find('[data-testid="billing-section"]');
-      expect(section.exists()).toBe(true);
-      expect(section.find('[data-testid="billing-plan"]').text()).toContain('basic');
-      expect(section.find('[data-testid="billing-disabled"]').exists()).toBe(true);
-      expect(section.find('[data-testid="billing-stripe-link"]').exists()).toBe(false);
-    });
-
-    it('degrades to the unavailable note (still showing plan) when Stripe is unreachable', async () => {
-      mockApi.get.mockResolvedValue({
-        data: detailPayload({
-          billing: {
-            enabled: true,
-            stripeAvailable: false,
-            stripeReason: 'Stripe unavailable: timeout',
-          },
-        }),
-      });
-      wrapper = mountView();
-      await flushPromises();
-
-      const section = wrapper.find('[data-testid="billing-section"]');
-      expect(section.find('[data-testid="billing-plan"]').text()).toContain('basic');
-      expect(section.find('[data-testid="billing-unavailable"]').exists()).toBe(true);
-      expect(section.find('[data-testid="billing-stripe-link"]').exists()).toBe(false);
-      expect(section.find('[data-testid="billing-latestInvoice"]').exists()).toBe(false);
-    });
-
-    it('shows the latest invoice and the Stripe dashboard link when the live read worked', async () => {
-      mockApi.get.mockResolvedValue({
-        data: detailPayload({ billing: { enabled: true, stripeAvailable: true } }),
-      });
-      wrapper = mountView();
-      await flushPromises();
-
-      const section = wrapper.find('[data-testid="billing-section"]');
-      const invoice = section.find('[data-testid="billing-latestInvoice"]');
-      expect(invoice.exists()).toBe(true);
-      // date · amount · status
-      expect(invoice.text()).toContain('35.00 USD');
-      expect(invoice.text()).toContain('paid');
-      expect(section.find('[data-testid="billing-subscriptionStatus"]').text()).toContain('active');
-
-      const link = section.find('[data-testid="billing-stripe-link"]');
-      expect(link.exists()).toBe(true);
-      expect(link.attributes('href')).toBe('https://dashboard.stripe.com/customers/cus_123');
-      expect(link.attributes('target')).toBe('_blank');
-    });
-
-    it('hides the checkout-link button when billing is disabled (endpoint guard rejects it anyway)', async () => {
-      mockApi.get.mockResolvedValue({ data: detailPayload({ billing: { enabled: false } }) });
-      wrapper = mountView();
-      await flushPromises();
-
-      const section = wrapper.find('[data-testid="billing-section"]');
-      expect(section.exists()).toBe(true);
-      expect(section.find('[data-testid="checkout-link-button"]').exists()).toBe(false);
-    });
-
-    it('shows the checkout-link button when billing is enabled', async () => {
-      mockApi.get.mockResolvedValue({
-        data: detailPayload({ billing: { enabled: true, stripeAvailable: true } }),
-      });
-      wrapper = mountView();
-      await flushPromises();
-
-      expect(
-        wrapper
-          .find('[data-testid="billing-section"] [data-testid="checkout-link-button"]')
-          .exists()
-      ).toBe(true);
-    });
+    expect(wrapper.find('[data-testid="billing-section"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="plan-select"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="checkout-link-button"]').exists()).toBe(false);
   });
 
   // ---- Suspend / unsuspend ----------------------------------------------------

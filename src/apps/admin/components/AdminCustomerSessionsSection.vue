@@ -52,6 +52,7 @@
   const columns = computed<DataTableColumn<AdminCustomerSession>[]>(() => [
     { key: 'last_activity_at', label: t('web.admin.customers.detail.sessions.columns.lastActivity') },
     { key: 'ip_address', label: t('web.admin.customers.detail.sessions.columns.ipAddress') },
+    { key: 'geo_country', label: t('web.admin.customers.detail.sessions.columns.country') },
     { key: 'user_agent', label: t('web.admin.customers.detail.sessions.columns.device') },
     { key: 'auth_method', label: t('web.admin.customers.detail.sessions.columns.authMethod') },
     { key: 'actions', label: t('web.admin.customers.detail.sessions.columns.actions'), align: 'right' },
@@ -61,6 +62,12 @@
   function activityLabel(epoch: number | null): string {
     if (!epoch) return t('web.admin.customers.detail.sessions.unknown');
     return formatDisplayDateTime(new Date(epoch * 1000));
+  }
+
+  /** Null/missing country renders as "Unknown". */
+  function countryLabel(country: string | null | undefined): string {
+    if (!country) return t('web.admin.customers.detail.sessions.unknown');
+    return country;
   }
 
   function load(): void {
@@ -225,6 +232,10 @@
 
       <template #cell-ip_address="{ row }">
         <span class="font-mono text-xs text-gray-500 dark:text-gray-400">{{ row.ip_address || '—' }}</span>
+      </template>
+
+      <template #cell-geo_country="{ row }">
+        <span class="text-sm text-gray-700 dark:text-gray-300">{{ countryLabel(row.geo_country) }}</span>
       </template>
 
       <template #cell-user_agent="{ row }">

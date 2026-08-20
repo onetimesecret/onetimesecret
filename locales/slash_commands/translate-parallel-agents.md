@@ -72,15 +72,21 @@ Only launch agents for `ELIGIBLE` locales.
 
 ### 1. Initialize Locales
 
-For each eligible locale, enqueue the keys that still need work with
-`--missing-only`: it queues both **untranslated** keys and **stale** ones
-(translated, but en changed since — the target `source_hash` no longer matches
-en's `content_hash`), and never requeues already-translated, still-current
-reviewed strings. Omit `--missing-only` only to bootstrap a brand-new, empty
-locale:
+For each eligible locale, run `create --apply` (bare `create` only previews): it
+queues both **untranslated** keys and **stale** ones (translated, but en changed
+since — the target `source_hash` no longer matches en's `content_hash`), and
+never requeues already-translated, still-current reviewed strings. A brand-new
+locale needs no extra flag — with no `content/LOCALE` every key is missing, so
+you get the full key set regardless. Catch-up is the only mode; there is no
+target-blind re-queue. Applying reopens completed levels that still have work,
+discarding their translations — silently when the level was already exported,
+and never otherwise: a level holding never-exported translations makes the run
+exit 3 with nothing written. Run `tasks export LOCALE` to keep that work (then
+re-create), or `--reopen` to discard it deliberately. This is what makes
+re-initializing a locale mid-drain safe rather than merely discouraged.
 
 ```bash
-python3 locales/scripts/i18n tasks create LOCALE --missing-only
+python3 locales/scripts/i18n tasks create LOCALE --apply
 ```
 
 The `create` summary breaks the enqueued keys into `missing` vs `stale`; a large

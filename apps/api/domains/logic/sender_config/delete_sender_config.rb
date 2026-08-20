@@ -58,7 +58,7 @@ module DomainsAPI
           deleted = Onetime::CustomDomain::MailerConfig.delete_for_domain!(@custom_domain.identifier)
 
           if deleted
-            log_sender_change_event(
+            log_sender_config_event(
               event: :domain_sender_config_deleted,
               domain: @custom_domain,
               org: @organization,

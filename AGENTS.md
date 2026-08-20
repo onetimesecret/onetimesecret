@@ -35,6 +35,13 @@ Use short responses. Write in plain language.
 
 ## Pull Request Reviews
 
+### Security-posture decisions
+
+- Changes that widen access, including on error paths, require explicit
+  operator approval.
+- Verify a finding’s claimed failure on the current baseline before applying
+  its prescribed fix.
+
 ### Repo conventions (not defects; do not flag in review)
 
 - Session data is stored under string keys, never symbols. Reads and writes
@@ -66,21 +73,32 @@ suggestions.
 
 Run Ruby tests ONLY through the lane runner — never invoke `rspec`,
 `rake spec:*`, `rake try:*`, or `try` directly. Only `tests/lanes/run`
-clears the dev shell's environment (REDIS_URL, AUTH_DATABASE_URL, ...)
-and loads the lane env pointing at the dockerized test services on
-127.0.0.1 21xx ports. A raw invocation inherits ambient env and can
-reach dev data.
+clears the dev shell's entire exported environment except a six-name
+keep-list, then loads the lane env pointing at the dockerized test
+services on 127.0.0.1 21xx ports. A raw invocation inherits ambient env
+and can reach dev data.
 
 ```console
 $ tests/lanes/run --list     # all lanes and overlays
 $ tests/lanes/run unit       # try:unit + spec:fast (most changes)
 $ tests/lanes/run full-pg    # Postgres-backed auth integration
+$ tests/lanes/run simple --only path/to/one_spec.rb[:LINE]
 ```
 
-The runner starts the backing services itself if they aren't up
+Use `--only <path>` (repeatable) while iterating: it runs just that file
+in the lane's environment — seconds instead of minutes — with the same
+env scrub. `*_try.rb` routes to tryouts, everything else to rspec. It
+skips the lane's other tasks, so run the whole lane before pushing.
+
+The runner needs bash 5+ (macOS ships 3.2: `brew install bash`) and
+starts the backing services itself if they aren't up
 (`docker compose -f compose.test.yml up --wait -d`). Vitest, lint, and
 type-check need no services or lane: run them via pnpm directly.
 Details: `tests/lanes/README.md`.
+
+**Dev-environment worktrees**: The `.test-mode` sentinel file marks a
+repo checkout that has loaded the test environment. Do not run tests
+unless `.test-mode` already exists.
 
 ## Replying to review comments
 

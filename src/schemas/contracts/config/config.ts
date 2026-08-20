@@ -31,6 +31,7 @@ import {
 import { storageSchema, redisSchema } from './section/storage';
 import {
   emailerSchema,
+  emailProvidersSchema,
   mailSchema,
   mailConnectionSchema,
   mailValidationSchema,
@@ -382,6 +383,7 @@ export const staticConfigSchema = z.object({
   features: featuresSchema.optional(),
   redis: redisSchema.optional(),
   emailer: emailerSchema.optional(),
+  email_providers: emailProvidersSchema.optional(),
   mail: mailSchema.optional(),
   jobs: jobsSchema.optional(),
   internationalization: i18nSchema.optional(),
@@ -447,6 +449,7 @@ export {
   storageSchema,
   redisSchema,
   emailerSchema,
+  emailProvidersSchema,
   mailSchema,
   mailConnectionSchema,
   mailValidationSchema,

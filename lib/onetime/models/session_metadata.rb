@@ -75,8 +75,65 @@ module Onetime
     field :user_agent       # copied AS-IS from session_data (already masked upstream by Otto)
     field :auth_method       # primary login method stamped at auth time: 'password' | 'email_auth' | 'webauthn' | 'omniauth' | nil (legacy)
     field :mfa_used          # true | false | nil
+    # INTERNAL JOIN KEY — not display data, deliberately absent from the
+    # safe_dump allow-list below. Rodauth's active_sessions feature mints its own
+    # opaque token (`active_session_id`) and stores only HMAC(that token) in
+    # account_active_session_keys; it never sees the Rack sid this record is keyed
+    # by. Without this column the Rodauth rows and these records share no value,
+    # so the auth UI cannot attach ip/ua/country to a Rodauth session row. The
+    # digest — never the raw token, which would be a downgrade in a record that is
+    # not encrypted at rest — is computed where a Rodauth instance exists
+    # (apps/web/auth/config/features/active_sessions.rb stamps it into the session
+    # from update_session) and copied verbatim here by TrackMetadata.
+    field :active_session_id_hmac
+
+    # ISO 3166-1 alpha-2 from Otto (env['otto.privacy.geo_country']); nil when
+    # unresolved or the privacy layer is absent (see the normalized reader
+    # below). Country-only, never a raw IP — resolved by Otto before masking,
+    # not derived from ip_address.
+    field :geo_country
+
+    # Otto's GeoResolver sentinel for "resolver ran but could not resolve a
+    # country" (Otto::Privacy::GeoResolver::UNKNOWN). An internal wire value,
+    # never part of this model's contract.
+    UNKNOWN_COUNTRY = '**'
+
+    # Normalized geo_country reader — THE single chokepoint that keeps Otto's
+    # '**' unknown sentinel out of every emission path (the
+    # Onetime::Security::RequestContext#normalize_country precedent: the
+    # sentinel is treated like a blank value, never surfaced).
+    #
+    # Familia reads fields through their PUBLIC getters everywhere it
+    # serializes: safe_dump's default field lambda calls `send(:geo_country)`
+    # (Horreum defines no `[]`), and to_h / to_h_for_storage do the same. So
+    # overriding the getter covers, structurally:
+    #   * safe_dump rows (ListForCustomer → colonel per-customer view and the
+    #     /auth/active-sessions join map)
+    #   * direct reads (Sessions::List#attach_geo_country)
+    #   * persistence: to_h_for_storage omits nil fields, so '**' is never
+    #     written to storage either (a legacy stored '**' reads back as nil and
+    #     is actively removed on the next refresh via remove_stale_nil_fields).
+    #
+    # Clients can therefore rely on: geo_country is a country code or nil,
+    # NEVER '**' and never blank.
+    #
+    # PREPENDED (not `def geo_country` in the class body) because Familia's
+    # method_added guard raises on in-class redefinition of a field-generated
+    # method; layering via prepend keeps the generated getter reachable as
+    # `super` (the raw stored value).
+    GeoCountryNormalization = Module.new do
+      def geo_country
+        value = super.to_s.strip
+        return nil if value.empty? || value == UNKNOWN_COUNTRY
+
+        value
+      end
+    end
+    prepend GeoCountryNormalization
 
     # POSITIVE allow-list — the security boundary. No token, no payload, no email.
+    # active_session_id_hmac is omitted on purpose: it is an internal join key,
+    # not something the colonel view renders.
     safe_dump_fields(
       :session_id,
       :user_id,
@@ -87,6 +144,7 @@ module Onetime
       :user_agent,
       :auth_method,
       :mfa_used,
+      :geo_country,
     )
   end
 end

@@ -1,0 +1,18 @@
+# Lane tasks: executed top-to-bottom from the repo root by tests/lanes/run
+# (bash -euo pipefail: first failure stops the lane). Keep each line standalone.
+#
+# This lane runs no application code — it prints the environment it was
+# handed, between markers, for spec/unit/lanes/hermetic_boundary_spec.rb
+# to parse. Two sections, because a leaked exported function is visible
+# in both forms and only the second one is the form that does damage:
+#   - `env`        — surviving exported variables. A function that
+#                    escaped the scrub appears here as a
+#                    BASH_FUNC_<name>%% entry spanning several lines.
+#   - `declare -F` — the same functions after bash re-materialized them
+#                    in this process, which is what would shadow `git`,
+#                    `bundle`, `docker`, or `rake` for a real lane.
+echo '--- lane:selftest env ---'
+env
+echo '--- lane:selftest functions ---'
+declare -F
+echo '--- lane:selftest end ---'

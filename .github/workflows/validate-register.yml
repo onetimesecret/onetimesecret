@@ -32,6 +32,16 @@
 #              translation-rules so the engine stops flagging the intended copy,
 #              then fix any genuine remainder.
 #
+# COVERAGE IS NOT THE SAME AS A PASS. A governed locale whose resolved register
+# has an EMPTY forbidden_tokens list makes lint_content.py skip every string and
+# exit 0 — visually identical to a full clean scan. Today de (informal/du, while
+# its sibling de_AT has 10 tokens) and ar are in that state, so neither got any
+# automated register enforcement. Each locale is therefore preceded by
+# locales/scripts/register-coverage.py, which emits a ::warning:: naming the
+# gap. It is advisory: an empty list is sometimes the CORRECT authoring answer
+# (ar's dialect markers are substrings of valid MSA words), so the remedy is
+# upstream in translation-rules, not a red build here.
+#
 # Source of truth is translation-rules, checked out read-only at a pinned ref
 # via the shared derive action (translation-rules ADR-006). Coverage grows
 # automatically: every locale with a register.yaml upstream that also has app
@@ -92,7 +102,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout app repo
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           # Full history so a PR run can diff against its base SHA to find the
           # changed locales (the scope step below).
@@ -229,15 +239,33 @@ jobs:
             fi
             scanned=$((scanned + 1))
             echo "::group::lint ${locale}"
+            # Coverage probe FIRST. A locale whose resolved register carries no
+            # forbidden_tokens (today: de, ar) makes lint_content.py skip every
+            # string and exit 0 — a pass that reads exactly like "scanned the
+            # whole corpus, found nothing". This emits a ::warning:: naming that
+            # gap so an empty ruleset can never be mistaken for enforcement.
+            # It is ADVISORY by design and never sets fail: several empty lists
+            # are correct (ar's dialect markers are substrings of valid MSA
+            # words and cannot be tokenized). Making it blocking is a deliberate
+            # burndown decision — pass --fail-on-empty when that day comes.
+            python3 locales/scripts/register-coverage.py \
+              --resolved "$model" --format github || true
             # lint_content.py is pure stdlib (no pip install): reads the resolved
             # register from <model>, scans rendered content strings, emits GitHub
             # ::error:: annotations, and exits non-zero on any forbidden-token hit
             # (1), config error (2), or empty glob (3) — any of which fails the gate.
+            # The glob is deliberately UNQUOTED so the shell owns the expansion
+            # instead of relying on lint_content.py (a versioned external dep)
+            # to keep expanding glob strings itself. nullglob is on (top of
+            # this block), so a dir with no .json files expands to ZERO args
+            # and lint's argparse (nargs='+') exits 2 — caught by the if !
+            # below, so the gate stays fail-closed on that (near-unreachable)
+            # path.
             if ! python3 "$rules"/lib/resolver/lint_content.py \
                  --resolved "$model" \
                  --content-root . \
                  --format github \
-                 "${content_dir}/*.json"; then
+                 "${content_dir}"/*.json; then
               echo "::error::forbidden register token (or scan error) in ${locale} content"
               fail=1
             fi

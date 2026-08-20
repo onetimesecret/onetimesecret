@@ -5,6 +5,7 @@ import { createTestingPinia } from '@pinia/testing';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ref } from 'vue';
 import WorkspaceSecretForm from '@/apps/workspace/components/forms/WorkspaceSecretForm.vue';
+import SplitButton from '@/shared/components/ui/SplitButton.vue';
 
 vi.mock('@/shared/composables/useDomainContext', () => ({
   useDomainContext: vi.fn(() => ({
@@ -93,6 +94,12 @@ describe('WorkspaceSecretForm - recipient capability gating', () => {
 
   it('shows the recipient field when the capability flag is unset (default enabled)', () => {
     const wrapper = mountForm(undefined);
+    expect(wrapper.find(RECIPIENT_SELECTOR).exists()).toBe(true);
+  });
+
+  it('keeps the recipient field after switching to generate-password mode', async () => {
+    const wrapper = mountForm(undefined);
+    await wrapper.findComponent(SplitButton).vm.$emit('update:action', 'generate-password');
     expect(wrapper.find(RECIPIENT_SELECTOR).exists()).toBe(true);
   });
 });

@@ -40,7 +40,7 @@
 #   --skip-validation    Skip the up-front variable-validation pass (Stage 0)
 #                        that materializes each branch and writes per-locale
 #                        i18n-validate-<locale>.json files. PR bodies then show
-#                        "Variable validation not run" instead of a mismatch count.
+#                        "Variable validation not run" instead of a blocking count.
 #   --update             If an open PR already exists for the branch, refresh its
 #                        body instead of skipping it.
 #   --results-dir DIR    Where to write validation JSON + review artifacts
@@ -199,12 +199,16 @@ if $HAVE_VALIDATION; then
   echo
 fi
 
-# validation_count LOCALE -> echoes an integer mismatch count, or "" if unknown.
+# validation_count LOCALE -> echoes the report's integer blocking count, or "" if unknown.
 validation_count() {
   local locale="$1" file="$RESULTS_DIR/i18n-validate-$1.json"
   $HAVE_VALIDATION || { echo ""; return; }
   [[ -f "$file" ]] || { echo ""; return; }
-  jq --arg l "$locale" '(.summary[$l] // (.summary | to_entries | map(.value) | add) // 0)' \
+  # `.blocking` is the report's own gate count (untranslated keys are reported
+  # but advisory). The per-locale fallbacks keep reports written by a branch
+  # whose CLI predates that field readable.
+  jq --arg l "$locale" \
+    '(.blocking // .summary[$l] // (.summary | to_entries | map(.value) | add) // 0)' \
     "$file" 2>/dev/null || echo ""
 }
 
@@ -310,9 +314,9 @@ process_locale() {
   if [[ -z "$vcount" ]]; then
     vline="ℹ️ Variable validation not run."
   elif [[ "$vcount" == "0" ]]; then
-    vline="✅ \`i18n validate variables\`: no variable mismatches."
+    vline="✅ \`i18n validate variables\`: no blocking findings."
   else
-    vline="⚠️ \`i18n validate variables\` reports **$vcount** variable mismatch(es) for \`$locale\` (empty values that drop source variables, renamed/extra vars, etc.) — see the review below."
+    vline="⚠️ \`i18n validate variables\` reports **$vcount** blocking finding(s) for \`$locale\` (empty values that drop source variables, renamed/extra vars, format defects, etc.) — see the review below."
   fi
 
   # Assemble the review context (validation JSON + diff) once; reused for the

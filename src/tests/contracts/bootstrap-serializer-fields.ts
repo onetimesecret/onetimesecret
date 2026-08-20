@@ -78,6 +78,13 @@ export const DOMAIN_SERIALIZER_FIELDS = [
   'domain_context',
   'domain_strategy',
   'homepage_config',
+  // Resolved operator link pool for the domain-context picker (#4063).
+  // TOP-LEVEL in the payload, sibling of `canonical_domain` — deliberately NOT
+  // under the `domains` config section, because ConfigSerializer omits that
+  // whole subtree when features.domains.enabled is false and the picker still
+  // needs a pool in that mode. Emitted unconditionally by
+  // domain_serializer.rb; Array<String>, never null.
+  'link_domains',
 ] as const;
 
 // ============================================================================

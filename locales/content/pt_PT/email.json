@@ -836,5 +836,41 @@
   "email.secret_link.footer_note": {
     "text": "Recebeste esta mensagem porque %{sender_email} usou %{product_name} para partilhar uma mensagem confidencial contigo. Se não estavas à espera dela, podes ignorar este e-mail com segurança.",
     "source_hash": "2d544dad"
+  },
+  "email.sso_link_verification.subject": {
+    "text": "Confirma a ligação de %{provider} à tua conta %{product_name}",
+    "source_hash": "65e70296"
+  },
+  "email.sso_link_verification.title": {
+    "text": "Confirma o teu início de sessão SSO",
+    "source_hash": "35bce6cc"
+  },
+  "email.sso_link_verification.request_notice": {
+    "text": "Alguém iniciou sessão com %{provider} usando o e-mail %{email_address}. Para concluir a ligação de %{provider} à tua conta %{product_name}, confirma abaixo.",
+    "source_hash": "baeb18c0"
+  },
+  "email.sso_link_verification.confirm_button": {
+    "text": "Confirmar e ligar %{provider}",
+    "source_hash": "9809e210"
+  },
+  "email.sso_link_verification.copy_link_prompt": {
+    "text": "Ou copia e cola este link:",
+    "source_hash": "88c72144"
+  },
+  "email.sso_link_verification.expiration_notice": {
+    "text": "Este link expira em 15 minutos e só pode ser usado uma vez.",
+    "source_hash": "1a437f42"
+  },
+  "email.sso_link_verification.ignore_notice": {
+    "text": "Se não tentaste iniciar sessão com %{provider}, podes ignorar este e-mail com segurança — nada será ligado à tua conta.",
+    "source_hash": "d7317d30"
+  },
+  "email.sso_link_verification.signature": {
+    "text": "Equipa de Suporte",
+    "source_hash": "dc75bf9f"
+  },
+  "email.sso_link_verification.postscript": {
+    "text": "P.S. Este e-mail foi enviado para %{email_address}.",
+    "source_hash": "8ab1dbea"
   }
 }

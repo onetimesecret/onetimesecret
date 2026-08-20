@@ -59,7 +59,7 @@ cd "$REPO_ROOT"
 # version in package.json exactly (browser build numbers are coupled to the
 # npm package) — bump both together or the container's browsers won't match
 # what the host-mounted node_modules expects.
-PLAYWRIGHT_IMAGE="mcr.microsoft.com/playwright:v1.58.2-noble"
+PLAYWRIGHT_IMAGE="mcr.microsoft.com/playwright:v1.62.1-noble"
 
 PORT="${PORT:-7143}"
 CANONICAL_HOST="canonical.example.org"

@@ -1,10 +1,10 @@
 {
   "web.admin.domaintoolbox.title": {
-    "text": "Boîte à outils de domaine",
+    "text": "Boîte à outils des domaines",
     "source_hash": "5a9333db"
   },
   "web.admin.domaintoolbox.description": {
-    "text": "Diagnostiquer et réparer les relations de domaine personnalisé : détecter les orphelins, sonder le DNS/SSL, réparer la propriété et transférer entre organisations.",
+    "text": "Diagnostiquez et réparez les relations des domaines personnalisés : recherchez les orphelins, sondez le DNS/SSL, réparez la propriété et transférez entre organisations.",
     "source_hash": "778537aa"
   },
   "web.admin.domaintoolbox.retry": {
@@ -28,7 +28,7 @@
     "source_hash": "ddcea596"
   },
   "web.admin.domaintoolbox.orphaned.description": {
-    "text": "Domaines personnalisés sans organisation propriétaire. Utilisez « Réparer » pour en réattribuer un.",
+    "text": "Domaines personnalisés sans organisation propriétaire. Utilisez Réparer pour en réattribuer un.",
     "source_hash": "967268f5"
   },
   "web.admin.domaintoolbox.orphaned.empty": {
@@ -56,7 +56,7 @@
     "source_hash": "4f783840"
   },
   "web.admin.domaintoolbox.orphaned.columns.created": {
-    "text": "Créé le",
+    "text": "Créé",
     "source_hash": "d70b9e24"
   },
   "web.admin.domaintoolbox.orphaned.columns.actions": {
@@ -68,7 +68,7 @@
     "source_hash": "ec69a087"
   },
   "web.admin.domaintoolbox.probe.description": {
-    "text": "Effectuer une requête HTTPS en direct pour confirmer que le domaine sert du trafic et inspecter son certificat TLS. Lecture seule.",
+    "text": "Effectuez une requête HTTPS en direct pour confirmer que le domaine sert du trafic et inspecter son certificat TLS. Lecture seule.",
     "source_hash": "1eecfa96"
   },
   "web.admin.domaintoolbox.probe.button": {
@@ -76,7 +76,7 @@
     "source_hash": "3bd51ab9"
   },
   "web.admin.domaintoolbox.probe.healthLabel": {
-    "text": "État de santé",
+    "text": "Santé",
     "source_hash": "55898449"
   },
   "web.admin.domaintoolbox.repair.title": {
@@ -84,7 +84,7 @@
     "source_hash": "0053d07c"
   },
   "web.admin.domaintoolbox.repair.description": {
-    "text": "Corriger les incohérences de relation d'organisation pour un domaine. Prévisualisez d'abord, puis appliquez.",
+    "text": "Corrigez les incohérences de relation avec l'organisation pour un domaine. Prévisualisez d'abord, puis appliquez.",
     "source_hash": "18ca490b"
   },
   "web.admin.domaintoolbox.repair.orgIdLabel": {
@@ -92,11 +92,11 @@
     "source_hash": "f95b010a"
   },
   "web.admin.domaintoolbox.repair.orgIdPlaceholder": {
-    "text": "id d'organisation ou extid",
+    "text": "id ou extid de l'organisation",
     "source_hash": "a87d634e"
   },
   "web.admin.domaintoolbox.repair.statusLabel": {
-    "text": "Statut",
+    "text": "État",
     "source_hash": "920e413c"
   },
   "web.admin.domaintoolbox.repair.noIssues": {
@@ -116,7 +116,7 @@
     "source_hash": "9429998b"
   },
   "web.admin.domaintoolbox.repair.confirmDescription": {
-    "text": "Cela modifiera l'état de propriété/relation pour {domain}. Saisissez à nouveau l'ID externe du domaine pour confirmer.",
+    "text": "Cela modifiera l'état de propriété et de relation pour {domain}. Ressaisissez l'ID externe du domaine pour confirmer.",
     "source_hash": "426d267b"
   },
   "web.admin.domaintoolbox.reverify.button": {
@@ -132,7 +132,7 @@
     "source_hash": "3667f939"
   },
   "web.admin.domaintoolbox.transfer.description": {
-    "text": "Réattribuer un domaine à une autre organisation. Action au plus fort impact — prévisualisez et confirmez avec soin.",
+    "text": "Réattribuez un domaine à une autre organisation. Action au rayon d'impact le plus large — prévisualisez et confirmez avec soin.",
     "source_hash": "d4e26e03"
   },
   "web.admin.domaintoolbox.transfer.toOrgLabel": {
@@ -144,7 +144,7 @@
     "source_hash": "3666815f"
   },
   "web.admin.domaintoolbox.transfer.fromOrgPlaceholder": {
-    "text": "affirmer le propriétaire actuel",
+    "text": "confirmer le propriétaire actuel",
     "source_hash": "cd9e769c"
   },
   "web.admin.domaintoolbox.transfer.from": {
@@ -152,7 +152,7 @@
     "source_hash": "21819769"
   },
   "web.admin.domaintoolbox.transfer.to": {
-    "text": "À",
+    "text": "Vers",
     "source_hash": "f4b06ef6"
   },
   "web.admin.domaintoolbox.transfer.orphaned": {
@@ -172,7 +172,7 @@
     "source_hash": "d306a15a"
   },
   "web.admin.domaintoolbox.transfer.confirmDescription": {
-    "text": "Cela réattribue la propriété de {domain} à une autre organisation. Saisissez à nouveau l'ID externe du domaine pour confirmer.",
+    "text": "Cela réattribue la propriété de {domain} à une autre organisation. Ressaisissez l'ID externe du domaine pour confirmer.",
     "source_hash": "edefd97c"
   }
 }

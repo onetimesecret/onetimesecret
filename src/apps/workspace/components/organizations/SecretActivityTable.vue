@@ -2,7 +2,11 @@
 
 <script setup lang="ts">
 import { SECRET_ACTIVITY_KINDS, type SecretActivityKind } from '@/schemas/api/organizations';
-import { getSecretActivityMaxEvents, isSecretActivityCollectEnabled } from '@/utils/features';
+import {
+  getSecretActivityMaxEvents,
+  isSecretActivityCollectEnabled,
+  isSecretActivityGeoCountryEnabled,
+} from '@/utils/features';
 import TableSkeleton from '@/shared/components/closet/TableSkeleton.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import EmptyState from '@/shared/components/ui/EmptyState.vue';
@@ -48,6 +52,15 @@ const collectionPaused = !isSecretActivityCollectEnabled();
  * same reload-to-change lifetime.
  */
 const maxEventsLabel = getSecretActivityMaxEvents().toLocaleString();
+
+/**
+ * Country column gate (#3989). The country field is legally-sensitive
+ * org-tier geo data pending counsel review, so it is DEFAULT OFF and only
+ * renders (header + cells) when an operator explicitly opts in via
+ * SECRET_ACTIVITY_GEO_COUNTRY_ENABLED=true. Read once at setup, same as the flags
+ * above: the bootstrap flag ships once and cannot change without a reload.
+ */
+const showCountry = isSecretActivityGeoCountryEnabled();
 
 const {
   records,
@@ -134,6 +147,9 @@ const decoratedEvents = computed(() =>
     actorIdentity: event.actor_id
       ? (actors.value[event.actor_id]?.email ?? event.actor_id)
       : null,
+    // Gated column (#3989): computed unconditionally (cheap), rendering is
+    // what's gated by showCountry — see the th/td v-if in the template.
+    countryLabel: event.net_country ?? t('web.organizations.audit.country_unknown'),
   }))
 );
 
@@ -312,6 +328,12 @@ watch(orgExtid, () => {
                 {{ t('web.organizations.audit.columns.actor') }}
               </th>
               <th
+                v-if="showCountry"
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                {{ t('web.organizations.audit.columns.country') }}
+              </th>
+              <th
                 scope="col"
                 class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 {{ t('web.organizations.audit.columns.when') }}
@@ -320,7 +342,7 @@ watch(orgExtid, () => {
           </thead>
           <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800/50">
             <tr
-              v-for="{ event, key, label, icon, absolute, relative, actorLabel: rowActor, actorIdentity } in decoratedEvents"
+              v-for="{ event, key, label, icon, absolute, relative, actorLabel: rowActor, actorIdentity, countryLabel } in decoratedEvents"
               :key="key"
               data-testid="org-audit-row">
               <td class="px-6 py-4 whitespace-nowrap">
@@ -358,6 +380,11 @@ watch(orgExtid, () => {
                   </span>
                 </template>
                 <span v-else class="text-gray-400 dark:text-gray-500">—</span>
+              </td>
+              <td
+                v-if="showCountry"
+                class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                {{ countryLabel }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <time

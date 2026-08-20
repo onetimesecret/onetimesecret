@@ -7,23 +7,24 @@
 // defaults are the load-bearing pieces consumers rely on; the rest is
 // boolean default coverage.
 
-import { describe, it, expect } from 'vitest';
 import {
-  siteSchema,
-  siteAuthenticationSchema,
   sessionConfigSchema,
+  siteAuthenticationSchema,
+  siteSchema,
 } from '@/schemas/contracts/config/section/site';
 import {
-  siteShape,
-  siteAuthenticationShape,
-  siteSecretOptionsShape,
+  cspShape,
+  middlewareShape,
   passphraseShape,
   passwordGenerationShape,
-  sessionConfigShape,
-  middlewareShape,
   securityShape,
-  cspShape,
+  sessionConfigShape,
+  siteAdminShape,
+  siteAuthenticationShape,
+  siteSecretOptionsShape,
+  siteShape,
 } from '@/schemas/shapes/config/section/site';
+import { describe, expect, it } from 'vitest';
 
 describe('siteShape — top-level defaults', () => {
   it('fills host and ssl on empty input', () => {
@@ -201,6 +202,26 @@ describe('siteSecretOptionsShape — bounds (no defaults at this level)', () => 
     const result = siteSecretOptionsShape.parse({ passphrase, password_generation });
     expect(result.passphrase?.minimum_length).toBe(4);
     expect(result.passphrase?.maximum_length).toBe(128);
+  });
+});
+
+describe('siteAdminShape — allowed_hosts null/empty distinction', () => {
+  // config.defaults.yaml renders `allowed_hosts:` as null when
+  // ADMIN_ALLOWED_HOSTS is unset and `[]` when it is set but blank (#4127).
+  // Both shapes must survive the shape (and the JSON Schema generated from
+  // it), or the shipped defaults file fails config validation.
+  it('preserves an explicit null', () => {
+    expect(siteAdminShape.parse({ allowed_hosts: null }).allowed_hosts).toBeNull();
+  });
+
+  it('preserves an explicit empty list', () => {
+    expect(siteAdminShape.parse({ allowed_hosts: [] }).allowed_hosts).toEqual([]);
+  });
+
+  it('defaults both lists to empty when absent', () => {
+    const result = siteAdminShape.parse({});
+    expect(result.allowed_hosts).toEqual([]);
+    expect(result.allowed_cidrs).toEqual([]);
   });
 });
 

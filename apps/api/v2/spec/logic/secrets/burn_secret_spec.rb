@@ -42,7 +42,7 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
   # `build_logic('identifier' => ...)` call sites keep working — a trailing
   # kwarg would otherwise swallow the bare params hash as keywords.
   def build_logic(params, customer = nil)
-    customer ||= double('Customer', custid: 'anon', anonymous?: true, objid: nil)
+    customer ||= double('Customer', custid: 'anon', anonymous?: true, objid: nil, extid: nil)
     org        = double('Organization', objid: "org_#{SecureRandom.hex(4)}")
     allow(org).to receive(:can?).and_return(true)
 
@@ -215,6 +215,79 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
       expect(event['actor']).to eq('anonymous')
       expect(event['actor']).not_to eq('creator')
       expect(event).not_to have_key('actor_id')
+    end
+  end
+
+  # PII pin (#4211 review). The burn logs fire on every burn and on every
+  # wrong passphrase guess, and custid IS the email address on legacy
+  # (pre-v0.22) customer records -- so a custid in these payloads is a
+  # continuous PII feed into the structured logs. Both identifiers must be
+  # extids: owner_id off the secret's owner, user_id off the caller.
+  context 'structured log payloads' do
+    let(:owner) do
+      Onetime::Customer.create!(email: "burn-log-#{SecureRandom.hex(6)}@example.com")
+    end
+    let!(:pair) { Onetime::Receipt.spawn_pair(owner.objid, 3600, 'a secret value') }
+
+    # Legacy-shaped caller: custid is the address, so a revert to custid puts
+    # an '@' in the payload and fails the scan below.
+    let(:caller_customer) do
+      double('Customer',
+        custid: 'burner@example.com',
+        extid: 'urburner',
+        objid: 'objid_burner',
+        anonymous?: false)
+    end
+
+    # secret_logger is an instance method (LoggerMethods), so the whole
+    # SemanticLogger call is capturable: [message, payload] per emission. The
+    # hash is SemanticLogger's payload argument, not part of the message.
+    def capture_secret_logs(logic)
+      captured = []
+      logger   = double('SecretLogger')
+      %i[debug info warn error].each do |level|
+        allow(logger).to receive(level) { |message, payload = {}| captured << [message, payload] }
+      end
+      allow(logic).to receive(:secret_logger).and_return(logger)
+      captured
+    end
+
+    def payload_for(captured, message)
+      entry = captured.find { |logged, _| logged == message }
+      expect(entry).not_to be_nil, "no #{message.inspect} log was emitted"
+      entry.last
+    end
+
+    it 'records a successful burn against extids, never custid' do
+      logic    = build_logic({ 'identifier' => receipt.identifier, 'continue' => 'true' }, caller_customer)
+      captured = capture_secret_logs(logic)
+      logic.process_params
+      logic.process
+
+      expect(logic.greenlighted).to be true
+      payload = payload_for(captured, 'Secret burned successfully')
+      # owner.custid is the objid on modern records, so the equality below is
+      # what catches an owner_id revert; the '@' scan catches the caller's.
+      expect(payload[:owner_id]).to eq(owner.extid)
+      expect(payload[:user_id]).to eq('urburner')
+      expect(payload.values.join(' ')).not_to include('@')
+      expect(payload.values.join(' ')).not_to include(owner.email)
+    end
+
+    it 'records a failed passphrase guess against the extid, never custid' do
+      secret.update_passphrase!('correct horse battery')
+      logic = build_logic(
+        { 'identifier' => receipt.identifier, 'continue' => 'true', 'passphrase' => 'wrong' },
+        caller_customer,
+      )
+      captured = capture_secret_logs(logic)
+      logic.process_params
+
+      expect { logic.process }.to raise_error(OT::FormError)
+
+      payload = payload_for(captured, 'Burn failed - incorrect passphrase')
+      expect(payload[:user_id]).to eq('urburner')
+      expect(payload.values.join(' ')).not_to include('@')
     end
   end
 

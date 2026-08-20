@@ -76,7 +76,9 @@ module V2::Logic
             has_passphrase: potential_secret.has_passphrase?,
             passphrase_correct: correct_passphrase,
             continue: continue,
-            user_id: cust&.custid,
+            # extid, never custid: custid holds the email address on legacy
+            # (pre-v0.22) records, which would put PII in the payload.
+            user_id: cust&.extid,
           }
 
         if greenlighted
@@ -106,8 +108,8 @@ module V2::Logic
               {
                 secret_identifier: secret.shortid,
                 receipt_identifier: receipt.identifier,
-                owner_id: owner&.custid,
-                user_id: cust&.custid,
+                owner_id: owner&.extid,
+                user_id: cust&.extid,
                 action: 'burn',
                 result: :success,
               }
@@ -116,7 +118,7 @@ module V2::Logic
               {
                 secret_identifier: secret.shortid,
                 receipt_identifier: receipt.identifier,
-                user_id: cust&.custid,
+                user_id: cust&.extid,
                 action: 'burn',
                 result: :already_consumed,
               }
@@ -130,7 +132,7 @@ module V2::Logic
             {
               receipt_identifier: receipt.identifier,
               secret_identifier: potential_secret.shortid,
-              user_id: cust&.custid,
+              user_id: cust&.extid,
               action: 'burn',
               result: :passphrase_failed,
               attempt_count: attempt_count,

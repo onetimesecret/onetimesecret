@@ -18,8 +18,10 @@ module DomainsAPI
       # - record: the raw flag pair + overrides, or null when the domain is
       #   unconfigured. Unconfigured is a first-class state (200, not 404) so
       #   the settings UI can render the inherited global state (ADR-024).
-      # - details: global_enabled / effective_enabled / global_restrict_to —
-      #   the resolver's output, which the UI displays instead of re-deriving.
+      # - details: global_enabled / effective_enabled / global_restrict_to /
+      #   effective_restrict_to / tenant_sso — the resolvers' output, which the
+      #   UI displays instead of re-deriving
+      #   (ADR-034#settings-api-serializes-effective-restrict-to, #4111).
       #
       class GetSigninConfig < Base
         attr_reader :signin_config

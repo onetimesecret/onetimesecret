@@ -1,10 +1,10 @@
 {
   "web.footer.api_docs": {
-    "text": "Documentation API",
+    "text": "Documentation de l'API",
     "source_hash": "f4137804"
   },
   "web.footer.branding_guide": {
-    "text": "Guide de marque",
+    "text": "Guide de personnalisation",
     "source_hash": "53f994c5"
   },
   "web.footer.customize": {
@@ -20,7 +20,7 @@
     "source_hash": "8f6fb4eb"
   },
   "web.footer.learn_about_our_security_measures": {
-    "text": "En savoir plus sur nos mesures de sécurité",
+    "text": "Découvrez nos mesures de sécurité",
     "source_hash": "16c8adae"
   },
   "web.footer.view_our_terms_and_conditions": {
@@ -48,7 +48,7 @@
     "source_hash": "0a410c78"
   },
   "web.feedback.when_you_submit_feedback_well_see": {
-    "text": "Lorsque vous envoyez un commentaire, nous verrons :",
+    "text": "Lorsque vous envoyez des commentaires, nous voyons :",
     "source_hash": "fe77172e"
   },
   "web.footer.read_our_privacy_policy": {
@@ -60,7 +60,7 @@
     "source_hash": "1f04937e"
   },
   "web.footer.explore_our_api_documentation": {
-    "text": "Explorer notre documentation API",
+    "text": "Explorer la documentation de notre API",
     "source_hash": "45beb8f8"
   },
   "web.footer.docs": {
@@ -124,19 +124,19 @@
     "source_hash": "4d4a570f"
   },
   "web.meta.were_making_onetime_secret_available_in_multiple": {
-    "text": "Nous rendons {onetime-secret} disponible en plusieurs langues. Cette fonctionnalité étant nouvelle, vous pourriez rencontrer des erreurs de traduction ou des formulations maladroites. Vos retours nous aident à améliorer le service. Si vous repérez des problèmes, veuillez {send-feedback}",
+    "text": "Nous rendons {onetime-secret} disponible en plusieurs langues. Comme il s'agit d'une nouvelle fonctionnalité, vous pourriez rencontrer des erreurs de traduction ou des formulations maladroites. Vos commentaires nous aident à nous améliorer - si vous repérez un problème, veuillez {send-feedback}",
     "source_hash": "3b482d7f"
   },
   "web.meta.translations_are_new_spotted_an_error": {
-    "text": "Les traductions sont nouvelles. Vous avez repéré une erreur ? {send-feedback}",
+    "text": "Les traductions sont récentes. Vous avez repéré une erreur ? {send-feedback}",
     "source_hash": "31eca08d"
   },
   "web.meta.we_recently_added_translations": {
-    "text": "Nous avons récemment ajouté des traductions. Vous avez repéré une erreur ? {send-feedback}",
+    "text": "Nous avons récemment ajouté des traductions. Vous avez repéré une erreur ? {send-feedback}",
     "source_hash": "6e2455c1"
   },
   "web.meta.privacy_and_security_should_be_accessible": {
-    "text": "La confidentialité et la sécurité doivent être accessibles à tous, quelle que soit la langue. Nous ajoutons des traductions pour aider nos utilisateurs et les destinataires de leurs messages à mieux comprendre comment utiliser et accéder en toute sécurité aux messages et liens sécurisés. Cette fonctionnalité étant nouvelle, vous pourriez rencontrer des erreurs de traduction ou des instructions peu claires. Pour nous aider à améliorer la clarté et l'exactitude de nos traductions, en particulier pour le contenu critique lié à la sécurité, veuillez {send-feedback} si vous repérez des problèmes",
+    "text": "La confidentialité et la sécurité doivent être accessibles à tous, quelle que soit la langue. Nous ajoutons des traductions pour aider nos utilisateurs et les destinataires de leurs messages à mieux comprendre comment utiliser et consulter en toute sécurité les messages et liens sécurisés. Comme il s'agit d'une nouvelle fonctionnalité, vous pourriez rencontrer des erreurs de traduction ou des instructions peu claires. Pour nous aider à améliorer la clarté et l'exactitude de nos traductions, en particulier pour les contenus critiques liés à la sécurité, veuillez {send-feedback} si vous repérez un problème",
     "source_hash": "1b8bb38f"
   },
   "web.help.learn_more": {
@@ -144,7 +144,7 @@
     "source_hash": "1445799c"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.title": {
-    "text": "Que suis-je en train de regarder ?",
+    "text": "Qu'est-ce que je consulte ?",
     "source_hash": "b9766df3"
   },
   "web.help.secret_view_faq.what_am_i_looking_at.description": {
@@ -152,15 +152,15 @@
     "source_hash": "7a4e9d16"
   },
   "web.help.secret_view_faq.can_i_view_again.title": {
-    "text": "Puis-je consulter ce secret à nouveau plus tard ?",
+    "text": "Puis-je consulter ce secret à nouveau plus tard ?",
     "source_hash": "c8c2c9da"
   },
   "web.help.secret_view_faq.can_i_view_again.description": {
-    "text": "Non. Pour des raisons de sécurité, ce secret n'est consultable qu'une seule fois. Après avoir fermé cette page, le contenu sera définitivement supprimé et ne pourra être récupéré par personne, y compris nous.",
+    "text": "Non. Pour des raisons de sécurité, ce secret n'est consultable qu'une seule fois. Après la fermeture de cette page, le contenu sera définitivement supprimé et ne pourra être récupéré par personne, pas même par nous.",
     "source_hash": "4bf980a4"
   },
   "web.help.secret_view_faq.how_to_copy.title": {
-    "text": "Comment enregistrer ces informations ?",
+    "text": "Comment puis-je enregistrer ces informations ?",
     "source_hash": "90deddbb"
   },
   "web.help.secret_view_faq.how_to_copy.description": {
@@ -168,19 +168,19 @@
     "source_hash": "440aa828"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.title": {
-    "text": "Ma consultation de ce secret est-elle suivie ?",
+    "text": "Ma consultation de ce secret est-elle suivie ?",
     "source_hash": "90145e28"
   },
   "web.help.secret_view_faq.is_my_viewing_tracked.description": {
-    "text": "L'expéditeur sera informé que son secret a été consulté, mais nous ne suivons pas qui l'a consulté ni depuis quel endroit. Votre vie privée est protégée.",
+    "text": "L'expéditeur sera informé que son secret a été consulté, mais nous n'enregistrons ni qui l'a consulté ni depuis quel endroit. Votre vie privée est protégée.",
     "source_hash": "70737473"
   },
   "web.help.secret_view_faq.one_time_warning": {
-    "text": "Une fois que vous quittez ou actualisez cette page, ce secret sera définitivement supprimé et ne pourra être récupéré par personne.",
+    "text": "Dès que vous quitterez ou actualiserez cette page, ce secret sera définitivement supprimé et ne pourra être récupéré par personne.",
     "source_hash": "47feab6e"
   },
   "web.layout.go_back_to_previous_page": {
-    "text": "Retour à la page précédente",
+    "text": "Revenir à la page précédente",
     "source_hash": "1778f2e7"
   },
   "web.layout.site_footer": {
@@ -188,11 +188,11 @@
     "source_hash": "6ca09429"
   },
   "web.layout.toggle_dark_mode": {
-    "text": "Activer/désactiver le mode sombre",
+    "text": "Basculer le mode sombre",
     "source_hash": "ffe32a00"
   },
   "web.layout.provide_feedback": {
-    "text": "Donner un commentaire",
+    "text": "Envoyer des commentaires",
     "source_hash": "a70766ae"
   },
   "web.layout.company_logo": {
@@ -200,7 +200,7 @@
     "source_hash": "87a86135"
   },
   "web.layout.brand_logo": {
-    "text": "Logo de marque",
+    "text": "Logo de la marque",
     "source_hash": "e458e2b5"
   },
   "web.layout.dashboard_navigation": {
@@ -224,7 +224,7 @@
     "source_hash": "bd4702c1"
   },
   "web.layout.loading_settings_content": {
-    "text": "Chargement du contenu des paramètres...",
+    "text": "Chargement des paramètres...",
     "source_hash": "81a2a30e"
   },
   "web.layout.settings_sections_0": {
@@ -240,7 +240,7 @@
     "source_hash": "e26d51d3"
   },
   "web.layout.customize_your_app_preferences_and_settings": {
-    "text": "Personnaliser les préférences et les paramètres de l'application",
+    "text": "Personnalisez vos préférences et paramètres d'application",
     "source_hash": "00d74c98"
   },
   "web.layout.return_home": {
@@ -248,7 +248,7 @@
     "source_hash": "bbcc935e"
   },
   "web.layout.return_to_home_page": {
-    "text": "Retour à la page d'accueil",
+    "text": "Revenir à la page d'accueil",
     "source_hash": "8d27b81d"
   },
   "web.layout.return_to_home": {
@@ -256,11 +256,11 @@
     "source_hash": "299291b0"
   },
   "web.layout.view_privacy_policy": {
-    "text": "Consulter la politique de confidentialité",
+    "text": "Voir la politique de confidentialité",
     "source_hash": "377733b6"
   },
   "web.layout.view_terms_of_service": {
-    "text": "Consulter les conditions d'utilisation",
+    "text": "Voir les conditions d'utilisation",
     "source_hash": "e2f124cd"
   },
   "web.layout.visit_onetime_secret_homepage": {
@@ -288,7 +288,7 @@
     "source_hash": "7c7afa99"
   },
   "web.layout.material_design_icons": {
-    "text": "Icônes Material Design",
+    "text": "Material Design Icons",
     "source_hash": "0fb27437"
   },
   "web.layout.heroicons": {
@@ -308,15 +308,15 @@
     "source_hash": "75e96614"
   },
   "web.layout.website_version_v_ot_version": {
-    "text": "Version du site : v{0}",
+    "text": "Version du site : v{0}",
     "source_hash": "343f57de"
   },
   "web.layout.current_language_is_currentlocal": {
-    "text": "Changer la langue. Langue actuelle : {0}",
+    "text": "Changer de langue. La langue actuelle est {0}",
     "source_hash": "77f9c322"
   },
   "web.layout.language_changed_to_newlocale": {
-    "text": "Langue modifiée en {0}",
+    "text": "Langue changée pour {0}",
     "source_hash": "1680f4fe"
   },
   "web.layout.reset_to_default_language": {
@@ -344,11 +344,11 @@
     "source_hash": "87bb59ba"
   },
   "web.help.default_content": {
-    "text": "Veuillez contacter le support pour obtenir de l'aide",
+    "text": "Veuillez contacter l'assistance pour obtenir de l'aide",
     "source_hash": "752bca14"
   },
   "web.layout.colonels_only_badge": {
-    "text": "Réservé aux colonels",
+    "text": "Colonels uniquement",
     "source_hash": "3f1e2dbd"
   }
 }

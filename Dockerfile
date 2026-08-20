@@ -327,7 +327,11 @@ RUN set -eux && \
     # self-initializes with uid 1001 ownership (sqlite auth.db in full
     # auth mode — see docker/README.md "Data Persistence"). Without this,
     # Docker creates the mount point root-owned and the app cannot write.
-    install -d -o appuser -g appuser data
+    #
+    # Absolute path on purpose: the PATH set above puts ${APP_DIR}/bin first,
+    # and bin/install (the operator front door for baremetal setup) shadows
+    # coreutils install(1) for every command run in this stage.
+    /usr/bin/install -d -o appuser -g appuser data
 
 EXPOSE 3000
 
@@ -436,7 +440,11 @@ RUN set -eux && \
     # self-initializes with uid 1001 ownership (sqlite auth.db in full
     # auth mode — see docker/README.md "Data Persistence"). Without this,
     # Docker creates the mount point root-owned and the app cannot write.
-    install -d -o appuser -g appuser data
+    #
+    # Absolute path on purpose: the PATH set above puts ${APP_DIR}/bin first,
+    # and bin/install (the operator front door for baremetal setup) shadows
+    # coreutils install(1) for every command run in this stage.
+    /usr/bin/install -d -o appuser -g appuser data
 
 EXPOSE 3000
 

@@ -483,5 +483,45 @@
   "web.login.verified_notice": {
     "text": "Tvůj e-mail byl ověřen — nyní se můžeš přihlásit.",
     "source_hash": "c8d4b5a8"
+  },
+  "web.auth.password_setup_request.title": {
+    "text": "Nastav heslo",
+    "source_hash": "11b6978b"
+  },
+  "web.auth.password_setup_request.description": {
+    "text": "Tvůj účet zatím nemá heslo. Pošleme ti e-mailem bezpečný odkaz pro jeho nastavení, abys ses mohl přihlásit i přímo.",
+    "source_hash": "dc0b561f"
+  },
+  "web.auth.password_setup_request.button": {
+    "text": "Odeslat odkaz pro nastavení",
+    "source_hash": "22807292"
+  },
+  "web.auth.password_setup_request.emailSent": {
+    "text": "Byl ti odeslán e-mail s odkazem pro nastavení hesla k tvému účtu",
+    "source_hash": "82b686c7"
+  },
+  "web.login.errors.account_exists_link_required": {
+    "text": "Účet s touto e-mailovou adresou již existuje, ale není propojen s touto metodou přihlášení. Přihlas se svou existující metodou a pak propoj tohoto poskytovatele v Nastavení zabezpečení → Propojené identity.",
+    "source_hash": "7fbbb7e7"
+  },
+  "web.login.errors.identity_connect_conflict": {
+    "text": "Tuto identitu nelze připojit. Připojení mohlo být zahájeno na nesprávné doméně, nebo vypršela tvoje relace. Přihlas se znovu a pak ji připoj z nastavení účtu.",
+    "source_hash": "4238bbf2"
+  },
+  "web.login.errors.org_join_failed": {
+    "text": "Nepodařilo se dokončit tvé přidání do organizace. Kontaktuj svého administrátora.",
+    "source_hash": "155e71bb"
+  },
+  "web.login.errors.link_sso_failed": {
+    "text": "Nepodařilo se propojit tuto metodu přihlášení. Přihlas se svým existujícím heslem a pak připoj tohoto poskytovatele v Nastavení zabezpečení → Propojené identity.",
+    "source_hash": "49954127"
+  },
+  "web.login.notices.link_verification_sent": {
+    "text": "Zkontroluj si doručenou poštu — poslali jsme ti e-mail s odkazem pro potvrzení připojení tvého účtu. Otevři ho pro dokončení přihlášení.",
+    "source_hash": "b251c8f3"
+  },
+  "web.login.errors.sso_cancelled": {
+    "text": "Přihlášení bylo zrušeno. Můžeš to zkusit znovu, až budeš chtít.",
+    "source_hash": "b5f3d3ec"
   }
 }

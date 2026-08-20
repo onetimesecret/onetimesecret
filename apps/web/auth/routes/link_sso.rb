@@ -5,6 +5,7 @@
 require 'onetime/security/login_rate_limiter'
 
 require_relative 'json_body'
+require_relative '../restrict_to'
 
 #
 # JSON API for the SSO sign-in interstitial (#3840 Phase 3 / #3838 item 1b).
@@ -82,6 +83,25 @@ module Auth
       #                      carries retry_after seconds
       def handle_link_sso_routes(r)
         r.on 'link-sso' do
+          # RESTRICT_TO ENFORCEMENT
+          # (ADR-034#restrict-to-is-an-access-control-not-a-display-preference
+          # / #reject-as-not-found-not-forbidden, #4139).
+          #
+          # These endpoints exist ONLY as a continuation of an SSO sign-in (the
+          # challenge is minted by account_from_omniauth), so they go dark with
+          # the SSO method on hosts that restrict it away. This is an app-owned
+          # Roda route, not a Rodauth one, so the before_rodauth gate in
+          # config/hooks/restrict_to.rb does not cover it.
+          #
+          # Gated on 'sso', not 'password', even though the POST verifies a
+          # password: the password here authorizes a BIND inside an SSO flow, it
+          # is not an offer of password sign-in. On an sso-restricted host this
+          # route must keep working.
+          unless Auth::RestrictTo.allows?(r.env, 'sso')
+            response.status = 404
+            next Auth::ErrorTranslator::NOT_FOUND_BODY
+          end
+
           # GET /auth/link-sso/:token — display context for the interstitial.
           # Returns ONLY the provider name and claimed email; never the account
           # id, uid, or issuer. Missing/consumed/expired token → 404.
@@ -216,7 +236,7 @@ module Auth
               # this local is the last place it exists) and stash it INSIDE the
               # login block below as a short-TTL SessionSidecar key bound to
               # the partial MFA session's sid (#3858), to be consumed by
-              # after_two_factor_authentication (hooks/mfa.rb), which completes
+              # after_two_factor_authentication (hooks/two_factor.rb), which completes
               # the bind once the second factor succeeds.
               deferred_bind = {
                 account_id: account_id,
@@ -284,7 +304,7 @@ module Auth
             # `.defer` and the login proceeds unlinked (fail-closed).
             #
             # VERSION-SENSITIVE: that block position is Rodauth internals (verified
-            # against rodauth 2.44.0, base.rb #login). If an upgrade moves the block
+            # against rodauth 2.45.0, login.rb #login). If an upgrade moves the block
             # relative to login_session/after_login, the stash is keyed to a
             # destroyed sid or written too late — caught by the end-to-end example
             # in spec/integration/full_mfa/ (the deferred bind would never land).
@@ -319,27 +339,40 @@ module Auth
       # Would completing this PASSWORD login leave a second factor pending? Mirrors
       # the after_login hook's MFA decision (hooks/login.rb) for via_omniauth: false
       # — a pure function of the located account's stored factors — evaluated HERE so
-      # the identity bind can be gated on FULL authentication (Item 1). When the OTP
-      # feature is not loaded (MFA disabled — the default), no second factor can be
-      # pending, so this returns false and the bind proceeds. A read error propagates
-      # to the POST handler's rescue (uniform with the unguarded MfaStateChecker call
-      # in after_login) rather than binding without certainty of full auth.
+      # the identity bind can be gated on FULL authentication (Item 1). When no
+      # two-factor feature is loaded (the default), no second factor can be pending,
+      # so this returns false and the bind proceeds. A read error propagates to the
+      # POST handler's rescue (uniform with the unguarded MfaStateChecker call in
+      # after_login) rather than binding without certainty of full auth.
       #
-      # KNOWN TRADEOFF: after_login repeats these two lookups (account_otp_keys,
-      # account_recovery_codes) moments later — a deliberate double-read. This
-      # prediction must happen BEFORE rodauth.login (the bind gate), after_login's
-      # decision is Rodauth's hook boundary, and neither can see the other. The
-      # stale-prediction race between the two reads is self-healed by the no-MFA
-      # branch in hooks/login.rb, so caching the prediction would add coupling to
-      # shave two indexed lookups off an interstitial-only path.
+      # FEATURE GATING mirrors hooks/login.rb exactly: each factor counts only when
+      # its completion route is actually loaded — a factor the user cannot complete
+      # must never gate (or fail to gate) this prediction. WebAuthn participates as
+      # a second factor in its own right: without the has_webauthn input, a
+      # webauthn-only account would be predicted no-MFA and DIRECT-bound while its
+      # second factor is still pending — reopening for webauthn exactly the
+      # MFA-bypassing bind path #3858 closed for OTP.
+      #
+      # KNOWN TRADEOFF: after_login repeats these lookups (account_otp_keys,
+      # account_recovery_codes, account_webauthn_keys) moments later — a deliberate
+      # double-read. This prediction must happen BEFORE rodauth.login (the bind
+      # gate), after_login's decision is Rodauth's hook boundary, and neither can
+      # see the other. The stale-prediction race between the two reads is
+      # self-healed by the no-MFA branch in hooks/login.rb, so caching the
+      # prediction would add coupling to shave indexed lookups off an
+      # interstitial-only path.
       def link_sso_second_factor_pending?(account_id)
-        return false unless rodauth.respond_to?(:otp_auth_route)
+        otp_loaded      = rodauth.respond_to?(:otp_auth_route)
+        recovery_loaded = rodauth.respond_to?(:recovery_auth_route)
+        webauthn_loaded = rodauth.respond_to?(:webauthn_auth_route)
+        return false unless otp_loaded || webauthn_loaded
 
         mfa_state = Auth::Operations::MfaStateChecker.new(rodauth.db).check(account_id)
         Auth::Operations::DetectMfaRequirement.call(
           account_id: account_id,
-          has_otp_secret: mfa_state.has_otp_secret,
-          has_recovery_codes: mfa_state.has_recovery_codes,
+          has_otp_secret: otp_loaded && mfa_state.has_otp_secret,
+          has_recovery_codes: recovery_loaded && mfa_state.has_recovery_codes,
+          has_webauthn: webauthn_loaded && mfa_state.has_webauthn,
           via_omniauth: false,
         ).requires_mfa?
       end

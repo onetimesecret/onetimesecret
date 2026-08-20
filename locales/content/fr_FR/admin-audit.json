@@ -4,7 +4,7 @@
     "source_hash": "47751f88"
   },
   "web.admin.audit.description": {
-    "text": "Chaque action d'administration modifiant des données, la plus récente en premier — qui a fait quoi à qui, et comment cela s'est déroulé.",
+    "text": "Chaque action d'administration modifiante, la plus récente en premier — qui a fait quoi, sur qui, et avec quel résultat.",
     "source_hash": "2326a1a0"
   },
   "web.admin.audit.categories.customer": {
@@ -98,5 +98,41 @@
   "web.admin.audit.result.failure": {
     "text": "Échec",
     "source_hash": "7031edbc"
+  },
+  "web.admin.audit.categories.secret": {
+    "text": "Secrets",
+    "source_hash": "d8707d41"
+  },
+  "web.admin.audit.categories.membership": {
+    "text": "Adhésions",
+    "source_hash": "b50f1a42"
+  },
+  "web.admin.audit.categories.entitlement_preview": {
+    "text": "Aperçus des droits",
+    "source_hash": "255c5797"
+  },
+  "web.admin.audit.categories.colonel": {
+    "text": "Connexions des colonels",
+    "source_hash": "01eeeb38"
+  },
+  "web.admin.audit.filters.actorLabel": {
+    "text": "Acteur",
+    "source_hash": "449995c4"
+  },
+  "web.admin.audit.filters.searchButton": {
+    "text": "Rechercher",
+    "source_hash": "49c266ba"
+  },
+  "web.admin.audit.filters.searchHint": {
+    "text": "Saisissez un acteur, puis appuyez sur Entrée ou choisissez Rechercher pour lancer la recherche. La liste ne se met pas à jour pendant la saisie.",
+    "source_hash": "45eceb12"
+  },
+  "web.admin.audit.filters.pendingSearch": {
+    "text": "Recherche non effectuée — appuyez sur Entrée ou choisissez Rechercher pour appliquer cet acteur.",
+    "source_hash": "f76095c2"
+  },
+  "web.admin.audit.list.contractError": {
+    "text": "Le serveur a répondu, mais les données d'audit ne correspondent pas au format attendu. Aucun événement ne peut être affiché — il s'agit d'une erreur de restitution, et non d'un journal vide.",
+    "source_hash": "7f48137e"
   }
 }

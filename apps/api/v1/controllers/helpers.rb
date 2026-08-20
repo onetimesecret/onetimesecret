@@ -238,13 +238,6 @@ module V1
       end.join(' ')
     end
 
-    def secure?
-      # Uses Rack's unified scheme detection (Rack::Request#ssl?), so this
-      # honors HTTPS, X-Forwarded-Proto/X-Forwarded-Ssl, and the AssumeHttps
-      # middleware's upgrade behind a TLS-terminating proxy (#3837).
-      req.ssl?
-    end
-
     def deny_agents! *_agents
       BADAGENTS.flatten.each do |agent|
         if req.user_agent =~ /#{agent}/i

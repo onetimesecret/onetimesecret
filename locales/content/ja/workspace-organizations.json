@@ -12,7 +12,7 @@
     "source_hash": "2730183d"
   },
   "web.organizations.organizations_description": {
-    "text": "組織を管理",
+    "text": "組織を管理できます",
     "source_hash": "dbaa4f92"
   },
   "web.organizations.my_organizations": {
@@ -28,7 +28,7 @@
     "source_hash": "4876e647"
   },
   "web.organizations.no_organizations": {
-    "text": "ワークスペースはまだありません",
+    "text": "ワークスペースがありません",
     "source_hash": "97d0b117"
   },
   "web.organizations.no_organizations_description": {
@@ -52,7 +52,7 @@
     "source_hash": "98a583b4"
   },
   "web.organizations.create_organization_description": {
-    "text": "新しいワークスペースを作成",
+    "text": "新しいワークスペースを作成できます",
     "source_hash": "6ac2b5fc"
   },
   "web.organizations.create": {
@@ -68,7 +68,7 @@
     "source_hash": "6fa5a5b1"
   },
   "web.organizations.organization_name_placeholder": {
-    "text": "例: 株式会社サンプル",
+    "text": "例:株式会社ACME",
     "source_hash": "ac1c804b"
   },
   "web.organizations.display_name": {
@@ -80,7 +80,7 @@
     "source_hash": "526e0087"
   },
   "web.organizations.description_placeholder": {
-    "text": "この組織の目的は?",
+    "text": "この組織の目的は何ですか?",
     "source_hash": "27d7edae"
   },
   "web.organizations.contact_email": {
@@ -88,7 +88,7 @@
     "source_hash": "513332d3"
   },
   "web.organizations.contact_email_help": {
-    "text": "請求と管理通知の主要連絡先",
+    "text": "請求と管理通知の主要な連絡先",
     "source_hash": "ee81c03d"
   },
   "web.organizations.select_organization": {
@@ -124,7 +124,7 @@
     "source_hash": "d70b9e24"
   },
   "web.organizations.last_updated": {
-    "text": "最終更新",
+    "text": "最終更新日",
     "source_hash": "048c7f2e"
   },
   "web.organizations.organization_settings": {
@@ -132,7 +132,7 @@
     "source_hash": "cc1d9e61"
   },
   "web.organizations.organization_settings_description": {
-    "text": "組織名と説明を更新",
+    "text": "組織名と説明を更新できます",
     "source_hash": "2d8b5b2b"
   },
   "web.organizations.general_settings": {
@@ -164,11 +164,11 @@
     "source_hash": "8a131415"
   },
   "web.organizations.billing_coming_soon": {
-    "text": "請求統合は近日公開",
+    "text": "請求統合は近日公開予定",
     "source_hash": "d3e0ec75"
   },
   "web.organizations.billing_coming_soon_description": {
-    "text": "統合された請求とサブスクリプション管理は、将来のリリースで利用可能になります。",
+    "text": "統合された請求とサブスクリプション管理は、今後のリリースで利用可能になります。",
     "source_hash": "8836108f"
   },
   "web.organizations.about_title": {
@@ -176,7 +176,7 @@
     "source_hash": "2f3e2ad8"
   },
   "web.organizations.about_description": {
-    "text": "組織は、一元管理のための統合された請求と管理を提供します。",
+    "text": "組織は一元管理のための統合された請求と管理を提供します。",
     "source_hash": "910f97a8"
   },
   "web.organizations.single_user_info_title": {
@@ -184,7 +184,7 @@
     "source_hash": "810a6c86"
   },
   "web.organizations.single_user_info_description": {
-    "text": "ここで会社名と組織の詳細を更新します。この情報はアカウントをパーソナライズし、将来のブランディング機能に使用できます。",
+    "text": "会社名と組織の詳細をここで更新できます。この情報はアカウントのパーソナライズに役立ち、将来的にブランディング機能に使用できます。",
     "source_hash": "96b2e4b5"
   },
   "web.organizations.getting_started_title": {
@@ -196,7 +196,7 @@
     "source_hash": "0487f33a"
   },
   "web.organizations.page_description": {
-    "text": "組織とチームメンバーを管理",
+    "text": "組織とチームメンバーを管理できます",
     "source_hash": "2d026be4"
   },
   "web.organizations.tabs.general": {
@@ -204,7 +204,7 @@
     "source_hash": "74a883a0"
   },
   "web.organizations.tabs.company_branding": {
-    "text": "会社ブランディング",
+    "text": "会社のブランディング",
     "source_hash": "7ecc5d35"
   },
   "web.organizations.tabs.members": {
@@ -220,7 +220,7 @@
     "source_hash": "4999c6c6"
   },
   "web.organizations.danger_zone": {
-    "text": "危険ゾーン",
+    "text": "危険な操作",
     "source_hash": "3c1c01b4"
   },
   "web.organizations.delete_organization": {
@@ -228,7 +228,7 @@
     "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_warning": {
-    "text": "これにより組織が完全に削除されます。この操作は取り消せません。",
+    "text": "組織は完全に削除されます。この操作は取り消せません。",
     "source_hash": "ab2d2c05"
   },
   "web.organizations.delete": {
@@ -240,7 +240,7 @@
     "source_hash": "54b2edc7"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "text": "{name}を削除してもよろしいですか? この操作は取り消せません。",
+    "text": "{name}を削除してもよろしいですか?この操作は取り消せません。",
     "source_hash": "db7e1f9d"
   },
   "web.organizations.delete_error": {
@@ -252,7 +252,7 @@
     "source_hash": "1044a4c0"
   },
   "web.organizations.members.description": {
-    "text": "組織のメンバーと役割を管理",
+    "text": "組織のメンバーとそのロールを管理できます",
     "source_hash": "1353774c"
   },
   "web.organizations.members.current_members": {
@@ -280,7 +280,7 @@
     "source_hash": "969ccbd3"
   },
   "web.organizations.members.role": {
-    "text": "役割",
+    "text": "ロール",
     "source_hash": "14736a2e"
   },
   "web.organizations.members.joined": {
@@ -292,7 +292,7 @@
     "source_hash": "ff8059dc"
   },
   "web.organizations.members.no_members": {
-    "text": "メンバーがまだいません。チームメンバーを招待して始めましょう。",
+    "text": "メンバーがいません。チームメンバーを招待して始めましょう。",
     "source_hash": "6cbc5271"
   },
   "web.organizations.members.no_members_description": {
@@ -300,15 +300,15 @@
     "source_hash": "61dd2085"
   },
   "web.organizations.members.role_updated": {
-    "text": "メンバーの役割を更新しました",
+    "text": "メンバーのロールが正常に更新されました",
     "source_hash": "d0d332c6"
   },
   "web.organizations.members.role_update_error": {
-    "text": "メンバーの役割の更新に失敗しました",
+    "text": "メンバーのロールの更新に失敗しました",
     "source_hash": "17d5ca66"
   },
   "web.organizations.members.member_removed": {
-    "text": "メンバーを組織から削除しました",
+    "text": "メンバーが組織から削除されました",
     "source_hash": "210a187b"
   },
   "web.organizations.members.member_remove_error": {
@@ -324,11 +324,11 @@
     "source_hash": "36695d98"
   },
   "web.organizations.members.cannot_change_own_role": {
-    "text": "自分の役割は変更できません",
+    "text": "自分のロールは変更できません",
     "source_hash": "0d874f75"
   },
   "web.organizations.members.cannot_remove_self": {
-    "text": "自分自身を組織から削除することはできません",
+    "text": "組織から自分を削除することはできません",
     "source_hash": "ab358307"
   },
   "web.organizations.members.cannot_remove_owner": {
@@ -352,19 +352,19 @@
     "source_hash": "7c968fb7"
   },
   "web.organizations.members.role_descriptions.owner": {
-    "text": "すべての組織設定とメンバーへのフルアクセス",
+    "text": "すべての組織設定とメンバーへの完全なアクセス権",
     "source_hash": "d49381bf"
   },
   "web.organizations.members.role_descriptions.admin": {
-    "text": "メンバーとほとんどの組織設定を管理可能",
+    "text": "メンバーとほとんどの組織設定を管理できます",
     "source_hash": "3d7ade92"
   },
   "web.organizations.members.role_descriptions.member": {
-    "text": "組織リソースへの基本的なアクセス",
+    "text": "組織リソースへの基本的なアクセス権",
     "source_hash": "0ddca91a"
   },
   "web.organizations.invitations.title": {
-    "text": "組織の招待",
+    "text": "組織への招待",
     "source_hash": "0289d92d"
   },
   "web.organizations.invitations.invite_member": {
@@ -392,7 +392,7 @@
     "source_hash": "7fd425f7"
   },
   "web.organizations.invitations.role": {
-    "text": "役割",
+    "text": "ロール",
     "source_hash": "14736a2e"
   },
   "web.organizations.invitations.send_invite": {
@@ -400,7 +400,7 @@
     "source_hash": "d076aa0f"
   },
   "web.organizations.invitations.invite_sent": {
-    "text": "招待を正常に送信しました",
+    "text": "招待が正常に送信されました",
     "source_hash": "81facbe6"
   },
   "web.organizations.invitations.invite_error": {
@@ -416,7 +416,7 @@
     "source_hash": "87e6d00b"
   },
   "web.organizations.invitations.resend_success": {
-    "text": "招待を再送信しました",
+    "text": "招待が正常に再送信されました",
     "source_hash": "099eb255"
   },
   "web.organizations.invitations.resend_error": {
@@ -424,7 +424,7 @@
     "source_hash": "82750487"
   },
   "web.organizations.invitations.revoke_success": {
-    "text": "招待を取り消しました",
+    "text": "招待が正常に取り消されました",
     "source_hash": "4ce1262c"
   },
   "web.organizations.invitations.revoke_error": {
@@ -492,15 +492,15 @@
     "source_hash": "59936259"
   },
   "web.organizations.invitations.you_are_invited": {
-    "text": "以下の組織に招待されました:",
+    "text": "参加への招待を受けました",
     "source_hash": "60e635c6"
   },
   "web.organizations.invitations.invited_as": {
-    "text": "以下の役割で招待されました:",
+    "text": "以下のロールで招待されました",
     "source_hash": "f9809eae"
   },
   "web.organizations.invitations.accept_success": {
-    "text": "招待を承諾しました",
+    "text": "招待が正常に承諾されました",
     "source_hash": "7eb6b234"
   },
   "web.organizations.invitations.accept_error": {
@@ -520,11 +520,11 @@
     "source_hash": "b72770d7"
   },
   "web.organizations.invitations.invalid_token": {
-    "text": "無効または期限切れの招待",
+    "text": "無効または期限切れの招待です",
     "source_hash": "6c0fc3de"
   },
   "web.organizations.invitations.must_sign_in": {
-    "text": "この招待を承諾するにはログインしてください",
+    "text": "この招待を承諾するにはサインインしてください",
     "source_hash": "469fc705"
   },
   "web.organizations.invitations.loading_invitation": {
@@ -532,11 +532,11 @@
     "source_hash": "58884885"
   },
   "web.organizations.invitations.upgrade_to_invite": {
-    "text": "チームメンバーを招待するにはプランをアップグレード",
+    "text": "チームメンバーを招待するにはプランをアップグレードしてください",
     "source_hash": "5e3f8df8"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "text": "メンバーの招待には有料プランが必要です。組織に共同編集者を追加するには、プランをアップグレードしてください。",
+    "text": "メンバーの招待には有料プランが必要です。アップグレードして組織に共同作業者を追加できます。",
     "source_hash": "47d0eeab"
   },
   "web.organizations.paid_badge": {
@@ -544,15 +544,15 @@
     "source_hash": "957b0b87"
   },
   "web.organizations.early_supporter_badge": {
-    "text": "アーリーサポーター",
+    "text": "早期サポーター",
     "source_hash": "e67d2ef8"
   },
   "web.organizations.member_count": {
-    "text": "{count}人のメンバー",
+    "text": "{count}名のメンバー",
     "source_hash": "f652af0c"
   },
   "web.organizations.domain_count": {
-    "text": "{count}件のドメイン",
+    "text": "{count}ドメイン",
     "source_hash": "09f52efa"
   },
   "web.organizations.tabs.domains": {
@@ -560,11 +560,11 @@
     "source_hash": "ced67718"
   },
   "web.organizations.invitations.email_mismatch_title": {
-    "text": "別のアカウントでログイン中",
+    "text": "別のアカウントでサインインしています",
     "source_hash": "6516362a"
   },
   "web.organizations.invitations.email_mismatch_body": {
-    "text": "この招待は{invitedEmail}宛てです。現在{currentEmail}としてログインしています。",
+    "text": "この招待は{invitedEmail}宛てです。現在{currentEmail}としてサインインしています。",
     "source_hash": "78a6f301"
   },
   "web.organizations.invitations.continue_as_invited_email": {
@@ -584,11 +584,11 @@
     "source_hash": "a5dcfef9"
   },
   "web.organizations.sso.title": {
-    "text": "シングルサインオン（SSO）",
+    "text": "シングルサインオン(SSO)",
     "source_hash": "5db5c812"
   },
   "web.organizations.sso.description": {
-    "text": "組織のIDプロバイダーを使用してメンバーがサインインできるようにSSOを設定します",
+    "text": "組織のIDプロバイダーでメンバーがサインインできるようにSSOを設定できます",
     "source_hash": "464f0a8b"
   },
   "web.organizations.sso.provider_type": {
@@ -604,11 +604,11 @@
     "source_hash": "18d67c99"
   },
   "web.organizations.sso.display_name_hint": {
-    "text": "サインイン時にユーザーに表示されるフレンドリー名",
+    "text": "サインイン時にユーザーに表示されるわかりやすい名前",
     "source_hash": "a83f1fba"
   },
   "web.organizations.sso.display_name_placeholder": {
-    "text": "例: Acme Corp SSO",
+    "text": "例:ACME Corp SSO",
     "source_hash": "43c655c5"
   },
   "web.organizations.sso.client_id": {
@@ -628,7 +628,7 @@
     "source_hash": "14e4a8c8"
   },
   "web.organizations.sso.client_secret_update_hint": {
-    "text": "既存のシークレットを維持する場合は空白のままにしてください",
+    "text": "既存のシークレットを維持するには空白のままにしてください",
     "source_hash": "98bc3b40"
   },
   "web.organizations.sso.tenant_id": {
@@ -640,7 +640,7 @@
     "source_hash": "3c5b707a"
   },
   "web.organizations.sso.tenant_id_placeholder": {
-    "text": "例: 12345678-1234-1234-1234-123456789abc",
+    "text": "例:12345678-1234-1234-1234-123456789abc",
     "source_hash": "1a166316"
   },
   "web.organizations.sso.issuer": {
@@ -648,31 +648,31 @@
     "source_hash": "4d03ba8a"
   },
   "web.organizations.sso.issuer_hint": {
-    "text": "IDプロバイダーのOIDCディスカバリURL",
+    "text": "IDプロバイダーのOIDCディスカバリーURL",
     "source_hash": "6102d81b"
   },
   "web.organizations.sso.issuer_placeholder": {
-    "text": "例: https://login.example.com",
+    "text": "例:https://login.example.com",
     "source_hash": "9a638e9c"
   },
   "web.organizations.sso.allowed_domains": {
-    "text": "許可するメールドメイン",
+    "text": "許可されたメールドメイン",
     "source_hash": "0295ad71"
   },
   "web.organizations.sso.allowed_domains_hint": {
-    "text": "これらのドメインのメールアドレスを持つユーザーのみがサインインできます。すべてのドメインを許可する場合は空白のままにしてください。",
+    "text": "これらのドメインのメールアドレスを持つユーザーのみがサインインできます。すべてのドメインを許可するには空白のままにしてください。",
     "source_hash": "1775e874"
   },
   "web.organizations.sso.domain_placeholder": {
-    "text": "例: acme.com",
+    "text": "例:acme.com",
     "source_hash": "e4420764"
   },
   "web.organizations.sso.invalid_domain": {
-    "text": "有効なドメインを入力してください（例: example.com）",
+    "text": "有効なドメインを入力してください(例:example.com)",
     "source_hash": "16807983"
   },
   "web.organizations.sso.domain_exists": {
-    "text": "このドメインは既にリストに含まれています",
+    "text": "このドメインは既にリストにあります",
     "source_hash": "3fccb721"
   },
   "web.organizations.sso.remove_domain": {
@@ -696,7 +696,7 @@
     "source_hash": "9ac1ac7b"
   },
   "web.organizations.sso.delete_confirm": {
-    "text": "本当に削除しますか?組織のSSOが無効になります。",
+    "text": "よろしいですか?これにより組織のSSOが無効になります。",
     "source_hash": "5b3f5b9d"
   },
   "web.organizations.sso.load_error": {
@@ -724,15 +724,15 @@
     "source_hash": "4a960fe4"
   },
   "web.organizations.sso.test_connection": {
-    "text": "接続をテスト",
+    "text": "接続テスト",
     "source_hash": "c02977b0"
   },
   "web.organizations.sso.test_connection_hint": {
-    "text": "IDプロバイダーに到達可能かどうかを確認します（認証情報の検証は行いません）",
+    "text": "IDプロバイダーに到達可能か確認します(資格情報の検証は行いません)",
     "source_hash": "22a23b68"
   },
   "web.organizations.sso.test_button": {
-    "text": "接続をテスト",
+    "text": "接続テスト",
     "source_hash": "c02977b0"
   },
   "web.organizations.sso.testing": {
@@ -744,11 +744,11 @@
     "source_hash": "c1d1f310"
   },
   "web.organizations.sso.auth_endpoint": {
-    "text": "認証エンドポイント",
+    "text": "認可エンドポイント",
     "source_hash": "b42b956f"
   },
   "web.organizations.sso.missing_fields": {
-    "text": "未入力の項目",
+    "text": "不足しているフィールド",
     "source_hash": "757df777"
   },
   "web.organizations.sso.status_enabled": {
@@ -764,7 +764,7 @@
     "source_hash": "13161464"
   },
   "web.organizations.sso.domain_sso_description": {
-    "text": "検証済みの各ドメインにSSOを設定します",
+    "text": "検証済みの各ドメインのSSOを設定できます",
     "source_hash": "af5b799e"
   },
   "web.organizations.sso.provider_type_locked_hint": {
@@ -780,31 +780,31 @@
     "source_hash": "c8d058eb"
   },
   "api.organizations.errors.owner_required": {
-    "text": "この操作を実行できるのは、組織のオーナーのみです",
+    "text": "この操作は組織のオーナーのみが実行できます",
     "source_hash": "5a729e94"
   },
   "api.organizations.errors.admin_required": {
-    "text": "この操作を実行できるのは、組織のオーナーと管理者のみです",
+    "text": "この操作は組織のオーナーと管理者のみが実行できます",
     "source_hash": "cd9e8c0e"
   },
   "api.organizations.errors.member_required": {
-    "text": "この操作を実行するには、組織のメンバーである必要があります",
+    "text": "この操作を実行するには組織のメンバーである必要があります",
     "source_hash": "f66f4a60"
   },
   "api.organizations.invitations.errors.create_admin_required": {
-    "text": "招待を作成できるのは、組織のオーナーと管理者のみです",
+    "text": "招待を作成できるのは組織のオーナーと管理者のみです",
     "source_hash": "777d150d"
   },
   "api.organizations.invitations.errors.resend_admin_required": {
-    "text": "招待を再送信できるのは、組織のオーナーと管理者のみです",
+    "text": "招待を再送信できるのは組織のオーナーと管理者のみです",
     "source_hash": "6a857d59"
   },
   "api.organizations.invitations.errors.view_admin_required": {
-    "text": "招待を表示できるのは、組織のオーナーと管理者のみです",
+    "text": "招待を確認できるのは組織のオーナーと管理者のみです",
     "source_hash": "42f5878b"
   },
   "api.organizations.invitations.errors.revoke_admin_required": {
-    "text": "招待を取り消せるのは、組織のオーナーと管理者のみです",
+    "text": "招待を取り消しできるのは組織のオーナーと管理者のみです",
     "source_hash": "52f73c8a"
   },
   "api.organizations.invitations.errors.email_required": {
@@ -812,11 +812,11 @@
     "source_hash": "aae92911"
   },
   "api.organizations.invitations.errors.email_invalid": {
-    "text": "メールアドレスの形式が無効です",
+    "text": "無効なメールアドレス形式です",
     "source_hash": "0bcecf66"
   },
   "api.organizations.invitations.errors.role_invalid": {
-    "text": "役割はメンバーまたは管理者のいずれかである必要があります",
+    "text": "ロールはメンバーまたは管理者である必要があります",
     "source_hash": "650ea5f6"
   },
   "api.organizations.invitations.errors.cannot_invite_owner": {
@@ -824,15 +824,15 @@
     "source_hash": "e6581025"
   },
   "api.organizations.invitations.errors.already_member": {
-    "text": "ユーザーはすでにこの組織のメンバーです",
+    "text": "このユーザーは既に組織のメンバーです",
     "source_hash": "8eb45780"
   },
   "api.organizations.invitations.errors.already_pending": {
-    "text": "このメールアドレスへの招待はすでに保留中です",
+    "text": "このメールアドレスへの招待は既に保留中です",
     "source_hash": "7f5e3093"
   },
   "api.organizations.invitations.errors.member_limit_reached": {
-    "text": "メンバー数の上限に達しました。さらにメンバーを招待するには、プランをアップグレードしてください。",
+    "text": "メンバーの上限に達しました。プランをアップグレードしてメンバーを追加してください。",
     "source_hash": "b8f316e8"
   },
   "api.organizations.invitations.errors.not_found": {
@@ -840,23 +840,23 @@
     "source_hash": "775ba9eb"
   },
   "api.organizations.invitations.errors.cannot_resend_non_pending": {
-    "text": "再送信できるのは保留中の招待のみです",
+    "text": "保留中の招待のみ再送信できます",
     "source_hash": "b7578b3e"
   },
   "api.organizations.invitations.errors.cannot_revoke_non_pending": {
-    "text": "取り消せるのは保留中の招待のみです",
+    "text": "保留中の招待のみ取り消しできます",
     "source_hash": "732b78a6"
   },
   "api.organizations.invitations.errors.resend_limit_reached": {
-    "text": "再送信の上限回数 (%{max}) に達しました",
+    "text": "最大再送信回数(%{max}回)に達しました",
     "source_hash": "8dc96729"
   },
   "api.organizations.invitations.errors.accept_token_required": {
-    "text": "トークンは必須です",
+    "text": "トークンが必要です",
     "source_hash": "6c718161"
   },
   "api.organizations.invitations.errors.accept_organization_gone": {
-    "text": "組織はすでに存在しません",
+    "text": "組織は存在しません",
     "source_hash": "a5df7d22"
   },
   "api.organizations.invitations.errors.accept_expired": {
@@ -864,11 +864,11 @@
     "source_hash": "7186297b"
   },
   "api.organizations.invitations.errors.accept_email_mismatch": {
-    "text": "お使いのメールアドレスが招待と一致しません",
+    "text": "メールアドレスが招待と一致しません",
     "source_hash": "11026f46"
   },
   "api.organizations.invitations.errors.accept_already_member": {
-    "text": "あなたはすでにこの組織のメンバーです",
+    "text": "既にこの組織のメンバーです",
     "source_hash": "f56ad547"
   },
   "web.organizations.entitlements_title": {
@@ -876,7 +876,7 @@
     "source_hash": "36054d4f"
   },
   "web.organizations.page_description_short": {
-    "text": "ワークスペースの表示と設定",
+    "text": "ワークスペースを確認・設定できます",
     "source_hash": "524fcb9a"
   },
   "web.organizations.delete_organization_remove_domains_first": {
@@ -884,11 +884,11 @@
     "source_hash": "44678715"
   },
   "web.organizations.default_org_delete_notice_title": {
-    "text": "この組織の削除",
+    "text": "この組織の削除について",
     "source_hash": "9191d915"
   },
   "web.organizations.default_org_delete_notice_before": {
-    "text": "これはデフォルトの組織であり、ダッシュボードから削除することはできません。削除するには、",
+    "text": "これはデフォルトの組織であり、ダッシュボードから削除できません。削除するには、",
     "source_hash": "e203607d"
   },
   "web.organizations.default_org_delete_notice_link": {
@@ -896,11 +896,11 @@
     "source_hash": "94645a9e"
   },
   "web.organizations.default_org_delete_notice_after": {
-    "text": "からご連絡ください。",
+    "text": "からお問い合わせください。",
     "source_hash": "cdb4ee2a"
   },
   "web.organizations.leave_organization": {
-    "text": "この組織から退出",
+    "text": "この組織を離れる",
     "source_hash": "d534cff9"
   },
   "web.organizations.leave_organization_warning": {
@@ -908,19 +908,19 @@
     "source_hash": "e9daab07"
   },
   "web.organizations.leave_organization_confirm_title": {
-    "text": "組織から退出",
+    "text": "組織を離れる",
     "source_hash": "ec8314da"
   },
   "web.organizations.leave_organization_confirm_message": {
-    "text": "{name}から退出してもよろしいですか? 再参加するには新しい招待が必要になります。",
+    "text": "{name}を離れてもよろしいですか?再度参加するには新しい招待が必要です。",
     "source_hash": "e21c5fec"
   },
   "web.organizations.leave_organization_success": {
-    "text": "組織から退出しました。",
+    "text": "組織を離れました。",
     "source_hash": "fc803eb3"
   },
   "web.organizations.leave_error": {
-    "text": "組織からの退出に失敗しました",
+    "text": "組織を離れることに失敗しました",
     "source_hash": "6cb6af43"
   },
   "web.organizations.organizations": {
@@ -928,7 +928,7 @@
     "source_hash": "2730183d"
   },
   "web.organizations.invitations.invited_by_inline": {
-    "text": "{email}より",
+    "text": "{email}による",
     "source_hash": "969a7050"
   },
   "web.organizations.invitations.invited_as_inline": {
@@ -940,27 +940,27 @@
     "source_hash": "76c5505f"
   },
   "web.organizations.invitations.email_locked_hint": {
-    "text": "この招待はこのメールアドレス宛てに送信されました",
+    "text": "この招待はこのメールアドレスに送信されました",
     "source_hash": "2cff7075"
   },
   "web.organizations.invitations.signup_continue": {
-    "text": "続ける",
+    "text": "続行",
     "source_hash": "31fbef16"
   },
   "web.organizations.invitations.signin_continue": {
-    "text": "ログイン",
+    "text": "サインイン",
     "source_hash": "bcc0bcc9"
   },
   "web.organizations.invitations.confirm_join_below": {
-    "text": "あと少しです — 以下で確認して組織に参加してください。",
+    "text": "もう少しです — 以下を確認して組織に参加してください。",
     "source_hash": "2d14f9b0"
   },
   "web.organizations.invitations.go_to_organizations": {
-    "text": "組織へ移動",
+    "text": "組織に移動",
     "source_hash": "2afa38a3"
   },
   "web.organizations.invitations.already_member": {
-    "text": "あなたはすでにこの組織のメンバーです",
+    "text": "既にこの組織のメンバーです",
     "source_hash": "f56ad547"
   },
   "web.organizations.invitations.join_organization": {
@@ -968,7 +968,7 @@
     "source_hash": "1aea9194"
   },
   "web.organizations.invitations.sign_in_to_join": {
-    "text": "ログインして{orgName}に参加",
+    "text": "サインインして{orgName}に参加",
     "source_hash": "f94ed8b4"
   },
   "web.organizations.invitations.decline": {
@@ -976,19 +976,19 @@
     "source_hash": "a2d285b3"
   },
   "web.organizations.members.member_quota": {
-    "text": "{limit}人中{used}人のメンバー",
+    "text": "{limit}名中{used}名のメンバー",
     "source_hash": "51183b79"
   },
   "web.organizations.members.pending_suffix": {
-    "text": "({count}件保留中)",
+    "text": "({count}名保留中)",
     "source_hash": "c13f787f"
   },
   "web.organizations.members.limit_reached_hint": {
-    "text": "メンバー数の上限に達しました。",
+    "text": "メンバーの上限に達しました。",
     "source_hash": "26cdb6b8"
   },
   "web.organizations.sso.view_discovery_document": {
-    "text": "ディスカバリードキュメントを表示",
+    "text": "ディスカバリードキュメントを見る",
     "source_hash": "513bda60"
   },
   "web.organizations.sso.callback_url": {
@@ -1000,19 +1000,19 @@
     "source_hash": "65d55683"
   },
   "web.organizations.sso.enforce_sso_only": {
-    "text": "SSOのみを強制",
+    "text": "SSO専用を強制",
     "source_hash": "b3a3f694"
   },
   "web.organizations.sso.enforce_sso_only_hint": {
-    "text": "このドメインのすべてのログインでSSOを必須にします。有効にすると、パスワードによる認証は無効になります。",
+    "text": "このドメインのすべてのサインインにSSOを必須にします。有効にすると、パスワードベースの認証は無効になります。",
     "source_hash": "19432210"
   },
   "web.organizations.sso.grant_org_scope": {
-    "text": "組織全体へのアクセスを付与",
+    "text": "組織全体のアクセスを付与",
     "source_hash": "2070cef2"
   },
   "web.organizations.sso.grant_org_scope_hint": {
-    "text": "このドメインのSSO経由で参加した新規メンバーには、すべての組織ドメインへのアクセス権が付与されます。既存のメンバーには影響しません。無効にした場合(デフォルト)、新規メンバーはこのドメインにのみアクセスできます。",
+    "text": "このドメインのSSO経由で参加した新しいメンバーは、すべての組織ドメインへのアクセス権が付与されます。既存のメンバーには影響しません。無効(デフォルト)の場合、新しいメンバーはこのドメインのみにアクセスできます。",
     "source_hash": "2ac9f345"
   },
   "web.organizations.sso.no_domains": {
@@ -1034,5 +1034,209 @@
   "web.organizations.create_workspace": {
     "text": "ワークスペースを作成",
     "source_hash": "c63c14cf"
+  },
+  "web.organizations.organization_id": {
+    "text": "組織ID",
+    "source_hash": "1f466322"
+  },
+  "web.organizations.organization_id_hint": {
+    "text": "このIDはサポートへの問い合わせや、この組織へのAPIリクエストのスコープ設定に使用します。サインイン資格情報ではありません。",
+    "source_hash": "29549b3a"
+  },
+  "web.organizations.audit.title": {
+    "text": "シークレットアクティビティ",
+    "source_hash": "6d6d41f3"
+  },
+  "web.organizations.audit.description": {
+    "text": "この組織で記録されたシークレットの作成とアクセスイベントの監査証跡。",
+    "source_hash": "553c564b"
+  },
+  "web.organizations.audit.country_unknown": {
+    "text": "不明",
+    "source_hash": "b764cdc0"
+  },
+  "web.organizations.audit.empty_title": {
+    "text": "アクティビティがありません",
+    "source_hash": "0a12b92c"
+  },
+  "web.organizations.audit.empty_description": {
+    "text": "チームがシークレットを共有すると、シークレットの作成とアクセスイベントがここに表示されます。",
+    "source_hash": "62fb14c2"
+  },
+  "web.organizations.audit.capped_notice": {
+    "text": "最新の{max}件のイベントのみが保持されています。古いアクティビティは削除されました。",
+    "source_hash": "da7901e2"
+  },
+  "web.organizations.audit.collection_paused_notice": {
+    "text": "イベント収集は一時停止中です。新しいシークレットアクティビティは記録されていません。",
+    "source_hash": "cb09d147"
+  },
+  "web.organizations.audit.load_error": {
+    "text": "シークレットアクティビティを読み込めませんでした。",
+    "source_hash": "52fde814"
+  },
+  "web.organizations.audit.contract_mismatch": {
+    "text": "サーバーから返されたアクティビティデータを読み取れませんでした。証跡は空ではありませんが、現在表示できません。",
+    "source_hash": "db0d007a"
+  },
+  "web.organizations.audit.retry": {
+    "text": "再試行",
+    "source_hash": "d8b8392e"
+  },
+  "web.organizations.audit.showing_range": {
+    "text": "{total}件中{from}〜{to}件を表示",
+    "source_hash": "c329279d"
+  },
+  "web.organizations.audit.upgrade_prompt": {
+    "text": "シークレットアクティビティには監査ログ付きのプランが必要です。アップグレードして、この組織で誰がシークレットを作成、閲覧、表示したかを確認できます。",
+    "source_hash": "453649ce"
+  },
+  "web.organizations.audit.role_required": {
+    "text": "シークレットアクティビティは組織のオーナーと管理者が利用できます。",
+    "source_hash": "e066ec63"
+  },
+  "web.organizations.audit.actors.creator": {
+    "text": "作成者",
+    "source_hash": "88447b83"
+  },
+  "web.organizations.audit.actors.authenticated_other": {
+    "text": "別のサインイン済みユーザー",
+    "source_hash": "ee45aa5a"
+  },
+  "web.organizations.audit.actors.anonymous": {
+    "text": "匿名",
+    "source_hash": "e7a8aa2d"
+  },
+  "web.organizations.audit.actors.system": {
+    "text": "システム",
+    "source_hash": "6725e7bb"
+  },
+  "web.organizations.audit.actors.unknown": {
+    "text": "不明",
+    "source_hash": "b764cdc0"
+  },
+  "web.organizations.audit.columns.event": {
+    "text": "イベント",
+    "source_hash": "4e1f49a9"
+  },
+  "web.organizations.audit.columns.secret": {
+    "text": "シークレット",
+    "source_hash": "7e32a729"
+  },
+  "web.organizations.audit.columns.actor": {
+    "text": "アクター",
+    "source_hash": "449995c4"
+  },
+  "web.organizations.audit.columns.country": {
+    "text": "国",
+    "source_hash": "701d021d"
+  },
+  "web.organizations.audit.columns.when": {
+    "text": "日時",
+    "source_hash": "cf9c7aa2"
+  },
+  "web.organizations.audit.kinds.created": {
+    "text": "シークレットが作成されました",
+    "source_hash": "e4a1e1fd"
+  },
+  "web.organizations.audit.kinds.status_get": {
+    "text": "リンクのステータスが確認されました",
+    "source_hash": "0753f60e"
+  },
+  "web.organizations.audit.kinds.secret_get": {
+    "text": "シークレットリンクが開かれました",
+    "source_hash": "e271e060"
+  },
+  "web.organizations.audit.kinds.previewed": {
+    "text": "作成者がプレビューしました",
+    "source_hash": "639fc1e2"
+  },
+  "web.organizations.audit.kinds.creator_status_get": {
+    "text": "作成者がステータスを確認しました",
+    "source_hash": "7e4b5de5"
+  },
+  "web.organizations.audit.kinds.receipt_viewed": {
+    "text": "受領書が閲覧されました",
+    "source_hash": "a417ead4"
+  },
+  "web.organizations.audit.kinds.revealed": {
+    "text": "シークレットが閲覧されました",
+    "source_hash": "aff2c84d"
+  },
+  "web.organizations.audit.kinds.burned": {
+    "text": "シークレットが削除されました",
+    "source_hash": "5ac68dc6"
+  },
+  "web.organizations.audit.kinds.expired": {
+    "text": "シークレットが期限切れになりました",
+    "source_hash": "c127dab6"
+  },
+  "web.organizations.audit.kinds.orphaned": {
+    "text": "シークレットが孤立しました",
+    "source_hash": "23fe1a47"
+  },
+  "web.organizations.audit.kinds.reveal_failed_undecryptable": {
+    "text": "閲覧に失敗しました(復号化不可)",
+    "source_hash": "d5616abf"
+  },
+  "web.organizations.tabs.activity": {
+    "text": "アクティビティ",
+    "source_hash": "38da1505"
+  },
+  "web.organizations.invitations.restricted_host_title": {
+    "text": "このサイトでは別のサインイン方法が必要です",
+    "source_hash": "d761ad30"
+  },
+  "web.organizations.invitations.restricted_host_body": {
+    "text": "このサイトでは{method}によるサインインのみが許可されているため、ここでパスワードを使用してアカウントを作成することはできません。{method}はこのページでは完了できません。",
+    "source_hash": "6ac146d4"
+  },
+  "web.organizations.invitations.restricted_host_unknown_body": {
+    "text": "このサイトでは特定のサインイン方法のみが許可されており、このページではその方法を提供できません。ここでパスワードを使用してアカウントを作成することはできません。",
+    "source_hash": "e24d59a9"
+  },
+  "web.organizations.invitations.restricted_sso_body": {
+    "text": "このサイトではシングルサインオンを使用しています。続行するには組織のプロバイダーでサインインしてください — サインインすると、アカウントが作成され、そのままサインインされます。",
+    "source_hash": "e942d04b"
+  },
+  "web.organizations.invitations.restricted_sso_cta": {
+    "text": "サインインに進む",
+    "source_hash": "d398cd0a"
+  },
+  "web.organizations.invitations.restricted_use_email_link": {
+    "text": "代わりにメインサイトから承諾するには、招待メール内のリンクを開いてください。",
+    "source_hash": "73bf298f"
+  },
+  "web.organizations.invitations.invitation_stays_pending": {
+    "text": "招待は引き続き有効です — 消費されたものはありません。サインイン後に承諾できます。",
+    "source_hash": "f4d00be1"
+  },
+  "web.organizations.invitations.signin_unavailable_title": {
+    "text": "このサイトではサインインを利用できません",
+    "source_hash": "c56bce2b"
+  },
+  "web.organizations.invitations.signin_unavailable_body": {
+    "text": "このサイトは{method}に制限されていますが、この方法はここでは機能しないため、現在サインインする手段がありません。",
+    "source_hash": "62c01601"
+  },
+  "web.organizations.invitations.signin_unavailable_unknown_body": {
+    "text": "このサイトは、ここでは機能しないサインイン方法に制限されているため、現在サインインする手段がありません。",
+    "source_hash": "1f61e456"
+  },
+  "web.organizations.invitations.signin_unavailable_conflict_body": {
+    "text": "このサイトのサインイン設定はサイト全体の制限 ({method}) と競合しているため、どちらも適用されず、現在サインインする手段がありません。",
+    "source_hash": "54cdfd61"
+  },
+  "web.organizations.sso.connection_enabled": {
+    "text": "接続が有効",
+    "source_hash": "b6334b2b"
+  },
+  "web.organizations.sso.connection_enabled_hint": {
+    "text": "有効にすると、メンバーはこのSSOプロバイダーでサインインできます。あわせて、ドメインの「サインイン設定」でSSOをサインイン方法として有効にする必要があります。",
+    "source_hash": "871db2f1"
+  },
+  "web.organizations.sso.enable_untested_warning": {
+    "text": "この接続はまだここでのテストに合格していません。不完全な設定がサインインページに影響しないよう、有効にする前に「接続テスト」を実行してください。",
+    "source_hash": "c1fbdeca"
   }
 }

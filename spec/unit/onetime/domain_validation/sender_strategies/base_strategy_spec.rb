@@ -14,6 +14,7 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
       public :dns_cache_key, :fetch_from_cache, :store_in_cache, :redis
       public :fetch_cache_bulk, :store_cache_bulk
       public :record_matches?, :txt_record_matches?, :spf_record_matches?
+      public :verify_record_with_cache, :evaluate_record_set, :select_txt_record_set
       public :with_retry
 
       def required_dns_records(_mailer_config)
@@ -733,9 +734,27 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
       expect(strategy.spf_record_matches?(expected, actual)).to be false
     end
 
-    it 'falls back to substring match when no include directive in expected' do
+    it 'requires every expected term when no include directive in expected' do
       expected = 'v=spf1 mx ~all'
       actual = ['v=spf1 mx ~all']
+
+      expect(strategy.spf_record_matches?(expected, actual)).to be true
+    end
+
+    # PR #4051 review: String#include? accepted include:amazonses.com.evil
+    # as include:amazonses.com, reporting a misconfigured zone as verified.
+    it 'does not match an include whose domain merely starts with the expected one' do
+      expected = 'v=spf1 include:amazonses.com ~all'
+      actual = ['v=spf1 include:amazonses.com.evil ~all']
+
+      expect(strategy.spf_record_matches?(expected, actual)).to be false
+    end
+
+    # PR #4051 review: whole-record containment permanently false-negatived
+    # a correct zone whenever the provider's SPF carried no include:.
+    it 'tolerates extra mechanisms on the no-include path' do
+      expected = 'v=spf1 mx -all'
+      actual = ['v=spf1 mx include:other.com -all']
 
       expect(strategy.spf_record_matches?(expected, actual)).to be true
     end
@@ -759,18 +778,88 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
       expect(strategy.txt_record_matches?(expected, actual)).to be true
     end
 
-    it 'uses substring match for non-SPF TXT records' do
+    # Issue #4023: opaque provider verification tokens require exact match.
+    # The old substring behavior allowed 'prefix-token-suffix' to satisfy
+    # 'token' — deliberately tightened.
+    it 'requires exact match for opaque tokens, not substring (issue #4023)' do
       expected = 'some-verification-token'
-      actual = ['prefix-some-verification-token-suffix']
 
-      expect(strategy.txt_record_matches?(expected, actual)).to be true
+      expect(strategy.txt_record_matches?(expected, ['some-verification-token'])).to be true
+      expect(strategy.txt_record_matches?(expected, ['prefix-some-verification-token-suffix'])).to be false
     end
 
-    it 'is case insensitive for non-SPF records' do
+    it 'is case sensitive for opaque tokens (issue #4023)' do
       expected = 'verification-token'
-      actual = ['VERIFICATION-TOKEN']
 
-      expect(strategy.txt_record_matches?(expected, actual)).to be true
+      expect(strategy.txt_record_matches?(expected, ['verification-token'])).to be true
+      expect(strategy.txt_record_matches?(expected, ['VERIFICATION-TOKEN'])).to be false
+    end
+
+    it 'trims edge whitespace on the actual value for opaque tokens' do
+      expect(strategy.txt_record_matches?('token-abc', ['  token-abc  '])).to be true
+    end
+
+    context 'with DMARC tag-list records (issue #4023)' do
+      it 'matches semantically equivalent formatting variants' do
+        # Real Lettermint case (eu-direct.metalbaum.dev): published record has
+        # spaces after ";" and a trailing ";" — same tag list per RFC 6376 3.2.
+        expect(strategy.txt_record_matches?('v=DMARC1;p=none', ['v=DMARC1; p=none;'])).to be true
+      end
+
+      it 'is satisfied by a published record with extra customer tags' do
+        expect(
+          strategy.txt_record_matches?('v=DMARC1;p=none', ['v=DMARC1; p=none; rua=mailto:dmarc@example.com']),
+        ).to be true
+      end
+
+      it 'treats a hardened published policy (p=reject) as satisfying p=none' do
+        expect(strategy.txt_record_matches?('v=DMARC1; p=none;', ['v=DMARC1; p=reject'])).to be true
+      end
+
+      it 'compares policy keywords case-insensitively (RFC 5234 ABNF keywords)' do
+        expect(strategy.txt_record_matches?('v=DMARC1;p=none', ['v=DMARC1; p=NONE'])).to be true
+      end
+
+      it 'rejects a weaker published policy (p=none against expected p=quarantine)' do
+        expect(strategy.txt_record_matches?('v=DMARC1;p=quarantine', ['v=DMARC1; p=none'])).to be false
+      end
+
+      it 'rejects a published policy outside the RFC 7489 keywords (p=bogus)' do
+        expect(strategy.txt_record_matches?('v=DMARC1;p=none', ['v=DMARC1; p=bogus'])).to be false
+      end
+
+      it 'rejects an empty published policy value (p=)' do
+        expect(strategy.txt_record_matches?('v=DMARC1;p=none', ['v=DMARC1; p='])).to be false
+      end
+
+      it 'applies the same strength ordering to sp=' do
+        expect(strategy.txt_record_matches?('v=DMARC1;p=none;sp=none', ['v=DMARC1;p=none;sp=reject'])).to be true
+        expect(strategy.txt_record_matches?('v=DMARC1;p=none;sp=reject', ['v=DMARC1;p=none;sp=none'])).to be false
+      end
+
+      it 'does not match when an expected tag is absent' do
+        expect(strategy.txt_record_matches?('v=DMARC1;p=none', ['v=DMARC1'])).to be false
+      end
+
+      it 'never matches a published record invalidated by duplicate tags' do
+        expect(strategy.txt_record_matches?('v=DMARC1;p=none', ['v=DMARC1;p=none;p=reject'])).to be false
+      end
+    end
+
+    context 'with DKIM tag-list records (issue #4023)' do
+      it 'matches by tag subset with case-insensitive k= and wrapped p=' do
+        expected = 'v=DKIM1;k=rsa;p=MIGfMA0GCSqGSIb3'
+        actual = ['v=DKIM1; k=RSA; p=MIGfMA0G CSqG SIb3'] # DNS UI wraps long keys
+
+        expect(strategy.txt_record_matches?(expected, actual)).to be true
+      end
+
+      it 'compares p= base64 key data case-sensitively (RFC 6376 3.2)' do
+        expected = 'v=DKIM1;k=rsa;p=MIGfMA0GCSqGSIb3'
+        actual = ['v=DKIM1; k=rsa; p=migfma0gcsqgsib3']
+
+        expect(strategy.txt_record_matches?(expected, actual)).to be false
+      end
     end
   end
 
@@ -795,6 +884,227 @@ RSpec.describe Onetime::DomainValidation::SenderStrategies::BaseStrategy do
     it 'returns false for unknown record types' do
       result = strategy.record_matches?('AAAA', '::1', ['::1'])
       expect(result).to be false
+    end
+
+    it 'does not downcase TXT expected values before dispatch (issue #4023)' do
+      # Global downcasing would case-fold DKIM base64 p= key data; the
+      # published key must match the expected key byte-for-byte.
+      expect(strategy.record_matches?('TXT', 'v=DKIM1;p=MIGfMA0', ['v=DKIM1; p=MIGfMA0'])).to be true
+      expect(strategy.record_matches?('TXT', 'v=DKIM1;p=MIGfMA0', ['v=DKIM1; p=migfma0'])).to be false
+    end
+  end
+
+  describe '#select_txt_record_set' do
+    it 'passes non-TXT sets through unfiltered' do
+      candidates, ambiguous = strategy.select_txt_record_set(
+        'CNAME', 'target.example.com', ['target.example.com.', 'other.example.com.'],
+      )
+      expect(candidates).to eq(['target.example.com.', 'other.example.com.'])
+      expect(ambiguous).to be false
+    end
+
+    it 'filters DMARC candidates by discriminator, discarding unrelated TXT records' do
+      candidates, ambiguous = strategy.select_txt_record_set(
+        'TXT', 'v=DMARC1;p=none', ['google-site-verification=abc', 'v=DMARC1; p=none;', 'MS=ms123'],
+      )
+      expect(candidates).to eq(['v=DMARC1; p=none;'])
+      expect(ambiguous).to be false
+    end
+
+    it 'flags two surviving DMARC records as ambiguous' do
+      _, ambiguous = strategy.select_txt_record_set(
+        'TXT', 'v=DMARC1;p=none', ['v=DMARC1; p=none;', 'v=DMARC1; p=reject'],
+      )
+      expect(ambiguous).to be true
+    end
+
+    it 'flags two surviving SPF records as ambiguous (RFC 7208 permerror)' do
+      _, ambiguous = strategy.select_txt_record_set(
+        'TXT', 'v=spf1 include:amazonses.com ~all', ['v=spf1 include:amazonses.com ~all', 'v=spf1 -all'],
+      )
+      expect(ambiguous).to be true
+    end
+
+    it 'does not apply uniqueness selection to DKIM expectations' do
+      # Spec scope: record-set selection applies to DMARC and SPF only.
+      candidates, ambiguous = strategy.select_txt_record_set(
+        'TXT', 'v=DKIM1;k=rsa;p=ABC', ['v=DKIM1;k=rsa;p=ABC', 'v=DKIM1;k=rsa;p=DEF'],
+      )
+      expect(candidates).to eq(['v=DKIM1;k=rsa;p=ABC', 'v=DKIM1;k=rsa;p=DEF'])
+      expect(ambiguous).to be false
+    end
+
+    it 'does not apply uniqueness selection to opaque token expectations' do
+      candidates, ambiguous = strategy.select_txt_record_set(
+        'TXT', 'token-abc', ['token-abc', 'token-def'],
+      )
+      expect(candidates).to eq(%w[token-abc token-def])
+      expect(ambiguous).to be false
+    end
+  end
+
+  describe '#verify_record_with_cache' do
+    let(:resolver) { instance_double('Resolv::DNS') }
+    let(:dmarc_record) do
+      {
+        type: 'TXT',
+        host: '_dmarc.example.com',
+        value: 'v=DMARC1;p=none',
+        purpose: 'DMARC',
+      }
+    end
+
+    def txt_resources(values)
+      values.map { |v| double('TXT', strings: [v]) }
+    end
+
+    context 'cache-hit branch' do
+      it 'fails with ambiguous_record_set when the cached set has two DMARC records' do
+        result = strategy.verify_record_with_cache(
+          dmarc_record,
+          resolver: resolver,
+          cached_value: ['v=DMARC1; p=none;', 'v=DMARC1; p=reject'],
+          bypass_cache: false,
+        )
+
+        expect(result[:verified]).to be false
+        expect(result[:error_type]).to eq('ambiguous_record_set')
+        expect(result[:from_cache]).to be true
+      end
+
+      it 'fails duplicate IDENTICAL cached DMARC records too (never a pass)' do
+        result = strategy.verify_record_with_cache(
+          dmarc_record,
+          resolver: resolver,
+          cached_value: ['v=DMARC1;p=none', 'v=DMARC1;p=none'],
+          bypass_cache: false,
+        )
+
+        expect(result[:verified]).to be false
+        expect(result[:error_type]).to eq('ambiguous_record_set')
+      end
+
+      it 'verifies one cached DMARC record among unrelated junk TXT records' do
+        cached = ['google-site-verification=abc', 'v=DMARC1; p=none;', 'MS=ms123']
+        result = strategy.verify_record_with_cache(
+          dmarc_record,
+          resolver: resolver,
+          cached_value: cached,
+          bypass_cache: false,
+        )
+
+        expect(result[:verified]).to be true
+        expect(result).not_to have_key(:error_type)
+        # :actual keeps the full unfiltered set for diagnostics and re-caching
+        expect(result[:actual]).to eq(cached)
+      end
+
+      it 'keeps not-found semantics when zero DMARC records survive' do
+        result = strategy.verify_record_with_cache(
+          dmarc_record,
+          resolver: resolver,
+          cached_value: ['google-site-verification=abc'],
+          bypass_cache: false,
+        )
+
+        expect(result[:verified]).to be false
+        expect(result).not_to have_key(:error_type)
+        expect(result[:from_cache]).to be true
+      end
+    end
+
+    context 'live branch' do
+      it 'fails with ambiguous_record_set when DNS returns two DMARC records' do
+        allow(resolver).to receive(:getresources)
+          .with('_dmarc.example.com', Resolv::DNS::Resource::IN::TXT)
+          .and_return(txt_resources(['v=DMARC1; p=none;', 'v=DMARC1; p=reject']))
+
+        result = strategy.verify_record_with_cache(
+          dmarc_record,
+          resolver: resolver,
+          cached_value: nil,
+          bypass_cache: false,
+        )
+
+        expect(result[:verified]).to be false
+        expect(result[:error_type]).to eq('ambiguous_record_set')
+        expect(result[:from_cache]).to be false
+      end
+
+      it 'fails with ambiguous_record_set when DNS returns two SPF records' do
+        spf_record = {
+          type: 'TXT',
+          host: 'example.com',
+          value: 'v=spf1 include:amazonses.com ~all',
+          purpose: 'SPF',
+        }
+        allow(resolver).to receive(:getresources)
+          .with('example.com', Resolv::DNS::Resource::IN::TXT)
+          .and_return(txt_resources(['v=spf1 include:amazonses.com ~all', 'v=spf1 -all']))
+
+        result = strategy.verify_record_with_cache(
+          spf_record,
+          resolver: resolver,
+          cached_value: nil,
+          bypass_cache: false,
+        )
+
+        expect(result[:verified]).to be false
+        expect(result[:error_type]).to eq('ambiguous_record_set')
+      end
+
+      it 'verifies one live DMARC record among unrelated junk TXT records' do
+        live = ['MS=ms123', 'v=DMARC1; p=none;', 'google-site-verification=abc']
+        allow(resolver).to receive(:getresources)
+          .with('_dmarc.example.com', Resolv::DNS::Resource::IN::TXT)
+          .and_return(txt_resources(live))
+
+        result = strategy.verify_record_with_cache(
+          dmarc_record,
+          resolver: resolver,
+          cached_value: nil,
+          bypass_cache: false,
+        )
+
+        expect(result[:verified]).to be true
+        expect(result).not_to have_key(:error_type)
+        expect(result[:actual]).to eq(live)
+      end
+
+      it 'reports the DNS lookup error_type when the lookup itself fails' do
+        allow(resolver).to receive(:getresources)
+          .and_raise(Resolv::ResolvError, 'NXDOMAIN')
+
+        result = strategy.verify_record_with_cache(
+          dmarc_record,
+          resolver: resolver,
+          cached_value: nil,
+          bypass_cache: false,
+        )
+
+        expect(result[:verified]).to be false
+        expect(result[:error_type]).to eq('not_found')
+        expect(result[:actual]).to eq([])
+      end
+
+      it 'ignores the cached value when bypass_cache is true' do
+        # Stale two-record cache must not produce a false ambiguity once DNS
+        # has been fixed to a single record.
+        allow(resolver).to receive(:getresources)
+          .with('_dmarc.example.com', Resolv::DNS::Resource::IN::TXT)
+          .and_return(txt_resources(['v=DMARC1; p=none;']))
+
+        result = strategy.verify_record_with_cache(
+          dmarc_record,
+          resolver: resolver,
+          cached_value: ['v=DMARC1;p=none', 'v=DMARC1;p=reject'],
+          bypass_cache: true,
+        )
+
+        expect(result[:verified]).to be true
+        expect(result).not_to have_key(:error_type)
+        expect(result[:from_cache]).to be false
+      end
     end
   end
 

@@ -162,6 +162,29 @@ RSpec.describe 'ENV-conditional feature loading' do
     end
   end
 
+  # Helper that mirrors the production chain for the WebAuthn SUB-features:
+  # AUTH_WEBAUTHN_VERIFY_ACCOUNT / AUTH_WEBAUTHN_AUTOFILL are rendered into
+  # full.features by auth.defaults.yaml with == 'true' semantics, read back
+  # via Onetime.auth_config.webauthn_*_enabled?, and consumed by
+  # features/webauthn.rb's conditional `enable` calls. The == 'true' gate is
+  # the property under test — the flags were previously unprefixed AND
+  # presence-based (X=false enabled the feature!).
+  def build_webauthn_subfeatures_app(db)
+    features = [:base, :login, :logout]
+
+    if ENV['AUTH_WEBAUTHN_ENABLED'] == 'true'
+      features += [:webauthn, :webauthn_login]
+      features += [:webauthn_verify_account] if ENV['AUTH_WEBAUTHN_VERIFY_ACCOUNT'] == 'true'
+      features += [:webauthn_autofill] if ENV['AUTH_WEBAUTHN_AUTOFILL'] == 'true'
+    end
+
+    create_rodauth_app(db: db, features: features) do
+      if respond_to?(:webauthn_rp_name)
+        webauthn_rp_name 'OnetimeSecret'
+      end
+    end
+  end
+
   describe 'AUTH_LOCKOUT_ENABLED' do
     context 'when not set (default - enabled)' do
       around do |example|
@@ -435,6 +458,114 @@ RSpec.describe 'ENV-conditional feature loading' do
       it 'enables webauthn_login feature' do
         app = build_webauthn_features_app(db)
         expect(rodauth_responds_to?(app, :webauthn_login_route)).to be true
+      end
+    end
+  end
+
+  describe 'AUTH_WEBAUTHN_AUTOFILL (webauthn sub-feature)' do
+    context 'when not set (default - disabled)' do
+      around do |example|
+        ClimateControl.modify('AUTH_WEBAUTHN_ENABLED' => 'true', 'AUTH_WEBAUTHN_AUTOFILL' => nil) do
+          example.run
+        end
+      end
+
+      it 'does not enable webauthn_autofill even with webauthn on' do
+        app = build_webauthn_subfeatures_app(db)
+        expect(rodauth_responds_to?(app, :webauthn_setup_route)).to be true
+        expect(rodauth_responds_to?(app, :webauthn_autofill?)).to be false
+      end
+    end
+
+    context 'when set to a non-"true" value (regression: was presence-based)' do
+      around do |example|
+        ClimateControl.modify('AUTH_WEBAUTHN_ENABLED' => 'true', 'AUTH_WEBAUTHN_AUTOFILL' => 'false') do
+          example.run
+        end
+      end
+
+      it 'stays disabled — presence alone must not enable' do
+        app = build_webauthn_subfeatures_app(db)
+        expect(rodauth_responds_to?(app, :webauthn_autofill?)).to be false
+      end
+    end
+
+    context 'when set to "true"' do
+      around do |example|
+        ClimateControl.modify('AUTH_WEBAUTHN_ENABLED' => 'true', 'AUTH_WEBAUTHN_AUTOFILL' => 'true') do
+          example.run
+        end
+      end
+
+      it 'enables webauthn_autofill' do
+        app = build_webauthn_subfeatures_app(db)
+        expect(rodauth_responds_to?(app, :webauthn_autofill?)).to be true
+        expect(app.rodauth.features).to include(:webauthn_autofill)
+      end
+
+      it 'composes discoverable-credential keys onto the DEFAULT selection hash' do
+        # webauthn_autofill's webauthn_authenticator_selection is super.merge —
+        # it only works because the base config no longer replaces the default
+        # hash (the old { authenticatorAttachment: nil } override clobbered it).
+        app      = build_webauthn_subfeatures_app(db)
+        env      = {
+          'REQUEST_METHOD' => 'GET',
+          'PATH_INFO' => '/',
+          'rack.input' => StringIO.new,
+          'rack.session' => {},
+        }
+        request  = Roda::RodaRequest.new(app.new(env), env)
+        instance = app.rodauth.new(request.scope)
+
+        expect(instance.webauthn_authenticator_selection).to eq(
+          'requireResidentKey' => true,
+          'residentKey' => 'required',
+          'userVerification' => 'preferred',
+        )
+      end
+    end
+  end
+
+  describe 'AUTH_WEBAUTHN_VERIFY_ACCOUNT (webauthn sub-feature)' do
+    context 'when not set (default - disabled)' do
+      around do |example|
+        ClimateControl.modify('AUTH_WEBAUTHN_ENABLED' => 'true', 'AUTH_WEBAUTHN_VERIFY_ACCOUNT' => nil) do
+          example.run
+        end
+      end
+
+      it 'does not enable webauthn_verify_account even with webauthn on' do
+        app = build_webauthn_subfeatures_app(db)
+        expect(app.rodauth.features).not_to include(:webauthn_verify_account)
+      end
+    end
+
+    context 'when set to a non-"true" value (regression: was presence-based)' do
+      around do |example|
+        ClimateControl.modify('AUTH_WEBAUTHN_ENABLED' => 'true', 'AUTH_WEBAUTHN_VERIFY_ACCOUNT' => '1') do
+          example.run
+        end
+      end
+
+      it 'stays disabled — only the literal string "true" enables' do
+        app = build_webauthn_subfeatures_app(db)
+        expect(app.rodauth.features).not_to include(:webauthn_verify_account)
+      end
+    end
+
+    context 'when set to "true"' do
+      around do |example|
+        ClimateControl.modify('AUTH_WEBAUTHN_ENABLED' => 'true', 'AUTH_WEBAUTHN_VERIFY_ACCOUNT' => 'true') do
+          example.run
+        end
+      end
+
+      it 'enables webauthn_verify_account (and its verify_account dependency)' do
+        app = build_webauthn_subfeatures_app(db)
+        expect(app.rodauth.features).to include(:webauthn_verify_account)
+        # depends :verify_account, :webauthn — Rodauth auto-enables them
+        expect(app.rodauth.features).to include(:verify_account)
+        expect(rodauth_responds_to?(app, :verify_account_route)).to be true
       end
     end
   end

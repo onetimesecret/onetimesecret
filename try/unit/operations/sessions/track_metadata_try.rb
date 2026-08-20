@@ -127,6 +127,41 @@ SM.load(@am_sid)&.destroy!
 @am.auth_method
 #=> "webauthn"
 
+# ---- geo_country: read from the Rack env, never an IP lookup -----------
+
+## a request env carrying a resolved country persists it on the sidecar
+@geo_sid = "trygeo_#{@nonce}"
+SM.load(@geo_sid)&.destroy!
+@geo = TM.new(session_id: @geo_sid, session_data: @auth_session,
+              env: { 'otto.privacy.geo_country' => 'US' }).call
+@geo.geo_country
+#=> "US"
+
+## with no env (env: nil) geo_country is nil — no lookup is invented
+@nogeo_sid = "trynogeo_#{@nonce}"
+SM.load(@nogeo_sid)&.destroy!
+@nogeo = TM.new(session_id: @nogeo_sid, session_data: @auth_session).call
+@nogeo.geo_country.nil?
+#=> true
+
+## a lowercase/whitespace-padded header value is normalized to canonical alpha-2
+@lcgeo_sid = "trylcgeo_#{@nonce}"
+SM.load(@lcgeo_sid)&.destroy!
+@lcgeo = TM.new(session_id: @lcgeo_sid, session_data: @auth_session,
+                env: { 'otto.privacy.geo_country' => ' ca ' }).call
+@lcgeo.geo_country
+#=> "CA"
+
+## the '**' unknown sentinel normalizes to nil — it is never stored and never
+## reaches a client (SessionMetadata#geo_country is the read-side chokepoint;
+## the write path drops it like any other non-country value)
+@unkgeo_sid = "tryunkgeo_#{@nonce}"
+SM.load(@unkgeo_sid)&.destroy!
+@unkgeo = TM.new(session_id: @unkgeo_sid, session_data: @auth_session,
+                 env: { 'otto.privacy.geo_country' => '**' }).call
+[@unkgeo.geo_country, Familia.dbclient.hget(SM.dbkey(@unkgeo_sid), 'geo_country')]
+#=> [nil, nil]
+
 ## org resolution is nil-safe: a customer with no organization writes the sidecar
 ## with org_id = nil, never raising (own rescue). (@cust has no org yet.)
 @no_org_sid = "trynoorg_#{@nonce}"
@@ -147,6 +182,10 @@ SM.load(@org_sid)&.destroy!
 # Cleanup
 SM.load(@sid)&.destroy!
 SM.load(@am_sid)&.destroy!
+SM.load(@geo_sid)&.destroy!
+SM.load(@nogeo_sid)&.destroy!
+SM.load(@lcgeo_sid)&.destroy!
+SM.load(@unkgeo_sid)&.destroy!
 SM.load(@no_org_sid)&.destroy!
 SM.load(@org_sid)&.destroy!
 @org.destroy!

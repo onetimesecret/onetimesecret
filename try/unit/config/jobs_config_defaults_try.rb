@@ -94,3 +94,7 @@ end
 ## maintenance.housekeeping matches inlined defaults
 @jobs['maintenance']['housekeeping']
 #=> {"enabled"=>false, "cron"=>"0 2 * * *"}
+
+## maintenance.entitlement_materialize matches defaults (#4203 nightly convergence)
+@jobs['maintenance']['entitlement_materialize']
+#=> {"enabled"=>false, "cron"=>"0 3 * * *"}

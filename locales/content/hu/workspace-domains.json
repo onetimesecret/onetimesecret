@@ -1368,11 +1368,11 @@
     "source_hash": "3ba71f78"
   },
   "web.domains.add.echo_label": {
-    "text": "A titokhivatkozásai itt lesznek elérhetők:",
+    "text": "A titkos hivatkozásai itt lesznek elérhetők:",
     "source_hash": "ad60b17d"
   },
   "web.domains.add.apex_question": {
-    "text": "Ez az egész doménje — hol legyenek a titokhivatkozások?",
+    "text": "Ez az egész doménje — hol legyenek a titkos hivatkozások?",
     "source_hash": "efacad1b"
   },
   "web.domains.add.apex_help": {
@@ -1480,7 +1480,7 @@
     "source_hash": "6539dfc1"
   },
   "web.domains.homepage.option_create_description": {
-    "text": "A látogatók létrehozhatják saját titokhivatkozásaikat",
+    "text": "A látogatók létrehozhatják saját titkos hivatkozásaikat",
     "source_hash": "884310f4"
   },
   "web.domains.homepage.option_incoming_title": {
@@ -1542,5 +1542,93 @@
   "web.domains.signup.dormant_notice": {
     "text": "A regisztrációk az egész munkaterületen ki vannak kapcsolva, így minden doménen nem érhetők el. Az itteni beállításai megmaradnak, és akkor lépnek életbe, amikor a munkaterületi regisztrációkat újra engedélyezik.",
     "source_hash": "49faefe4"
+  },
+  "web.domains.link_domain_no_settings": {
+    "text": "Ennek a doménnek nincs beállítási oldala",
+    "source_hash": "8a8430fe"
+  },
+  "web.domains.signin.sso_restrict_warning_title": {
+    "text": "Az SSO-ra korlátozás lezárná a bejelentkezést ezen a doménen",
+    "source_hash": "3476cb5c"
+  },
+  "web.domains.signin.sso_restrict_warning_body": {
+    "text": "Az SSO nem érhető el ezen a doménen, és egy nem teljesíthető korlátozás teljesen blokkolja a bejelentkezést. Senki sem tud majd itt bejelentkezni, amíg az SSO nem működik. Először javítsa meg az SSO-t, vagy korlátozza mégis, és fejezze be a beállítást.",
+    "source_hash": "086e3247"
+  },
+  "web.domains.signin.sso_restrict_warning_confirm": {
+    "text": "Korlátozás mégis",
+    "source_hash": "4674e3cf"
+  },
+  "web.domains.signin.restriction_unavailable_notice": {
+    "text": "A bejelentkezés nem érhető el ezen a doménen: a következő módra van korlátozva: {method}, amely itt nem futtatható. Válasszon másik módot, vagy tegye elérhetővé a következőt: {method}.",
+    "source_hash": "ca1b7f69"
+  },
+  "web.domains.signin.restriction_unavailable_unknown_notice": {
+    "text": "A bejelentkezés nem érhető el ezen a doménen: olyan módra van korlátozva, amely itt nem futtatható. Válasszon másik módot, vagy állítsa vissza ezt a domént az alapértelmezésekre.",
+    "source_hash": "8c2cce6b"
+  },
+  "web.domains.signin.restriction_conflict_notice": {
+    "text": "Ez a domén a munkaterületszintű korlátozástól ({method}) eltérő módra korlátozza a bejelentkezést, így egyik sem érvényesülhet, és a bejelentkezés itt nem érhető el. Egyeztesse a munkaterületszintű móddal, vagy állítsa vissza ezt a domént az alapértelmezésekre.",
+    "source_hash": "15398362"
+  },
+  "web.domains.signin.method_webauthn_unavailable": {
+    "text": "A hozzáférési kulcsok a fő bejelentkezési doménhez kötődnek, és egyelőre nem érhetők el egyéni doméneken",
+    "source_hash": "88833e0f"
+  },
+  "web.domains.sso.connection_disabled_badge": {
+    "text": "Kapcsolat letiltva",
+    "source_hash": "99d6092c"
+  },
+  "web.domains.sso.connection_disabled_hint": {
+    "text": "Az SSO-hitelesítő adatok mentve vannak, de a kapcsolat ki van kapcsolva. Engedélyezze a Hitelesítő adatok szerkesztése alatt.",
+    "source_hash": "90180d6c"
+  },
+  "web.domains.sso.status_active_badge": {
+    "text": "Aktív",
+    "source_hash": "92340695"
+  },
+  "web.domains.sso.status_active_hint": {
+    "text": "A tagok bejelentkezhetnek ezzel az SSO-kapcsolattal ezen a doménen.",
+    "source_hash": "313ec61e"
+  },
+  "web.domains.sso.status_not_configured_badge": {
+    "text": "Nincs beállítva",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.sso.status_not_configured_hint": {
+    "text": "Ehhez a doménhez még nincsenek mentve SSO-hitelesítő adatok.",
+    "source_hash": "d817ad9c"
+  },
+  "web.domains.sso.status_not_permitted_badge": {
+    "text": "Nem engedélyezett ezen a doménen",
+    "source_hash": "afbd20ba"
+  },
+  "web.domains.sso.status_not_permitted_hint": {
+    "text": "Az SSO ki van kapcsolva ehhez a doménhez, ezért a bejelentkezési oldal nem kínálja fel.",
+    "source_hash": "ef092481"
+  },
+  "web.domains.sso.status_auth_disabled_badge": {
+    "text": "Bejelentkezés letiltva",
+    "source_hash": "bb807607"
+  },
+  "web.domains.sso.status_auth_disabled_hint": {
+    "text": "A bejelentkezés ki van kapcsolva ezen a doménen, ezért egyetlen mód sem érhető el — az SSO sem.",
+    "source_hash": "3a98964b"
+  },
+  "web.domains.sso.status_unsupported_provider_badge": {
+    "text": "Nem támogatott szolgáltató",
+    "source_hash": "1609d5fb"
+  },
+  "web.domains.sso.status_unsupported_provider_hint": {
+    "text": "A mentett szolgáltató nem használható domén SSO-hoz. Szerkessze a hitelesítő adatokat, és válassza a Microsoft Entra ID vagy az általános OIDC lehetőséget.",
+    "source_hash": "72ea0a2e"
+  },
+  "web.domains.sso.status_unavailable_badge": {
+    "text": "Nem érhető el",
+    "source_hash": "ca184496"
+  },
+  "web.domains.sso.status_unavailable_hint": {
+    "text": "Az SSO jelenleg nem kínálható fel ezen a doménen. Ellenőrizze az SSO-hitelesítő adatokat és ennek a doménnek a bejelentkezési beállításait.",
+    "source_hash": "b03b14f4"
   }
 }

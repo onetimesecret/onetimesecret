@@ -10,6 +10,11 @@ require 'uri'
 require 'singleton'
 require_relative 'utils/config_resolver'
 require_relative 'utils/enumerables'
+require_relative 'sso_provider/registry'
+
+# The origin validator otto applies to the request-scoped CSP extras channel;
+# #origin_from_url funnels through it so the two cannot drift (see there).
+require 'otto/security/csp/request_extras'
 
 module Onetime
   class AuthConfig
@@ -17,6 +22,11 @@ module Onetime
 
     # Valid values for full.restrict_to — the single-auth-method override.
     RESTRICT_TO_VALUES = %w[password email_auth webauthn sso].freeze
+
+    # CustomDomain::SsoConfig provider types whose IdP origin comes from the
+    # TENANT's own record (its issuer) rather than from the static provider
+    # registry. See #tenant_origin_source, which is what reads this.
+    ISSUER_DERIVED_PROVIDER_TYPES = %w[oidc].freeze
 
     attr_reader :config, :path, :mode, :environment
 
@@ -58,14 +68,22 @@ module Onetime
     # Use Onetime.session_config instead of Onetime.auth_config.session
 
     # Full mode database URL (from config only, env vars captured in auth.yaml)
+    #
+    # A BLANK value is treated as unset. The config file renders this key from
+    # ENV (`ENV['AUTH_DATABASE_URL'] || <default>`), and an exported-but-empty
+    # AUTH_DATABASE_URL is truthy in Ruby — so without this normalization the
+    # empty string wins over the default and reaches Sequel.connect(''), where
+    # URI.parse('').scheme is nil and adapter_class raises a bare
+    # `NoMethodError: undefined method 'to_sym' for nil`.
     def database_url
-      full['database_url'] || 'sqlite://data/auth.db'
+      presence(full['database_url']) || 'sqlite://data/auth.db'
     end
 
     # Full mode database URL for migrations (with elevated privileges)
     # Returns nil if not explicitly configured - caller must handle fallback
+    # (blank is treated as unset, same as #database_url)
     def database_url_migrations
-      full['database_url_migrations']
+      presence(full['database_url_migrations'])
     end
 
     # Argon2 secret key (pepper) for password hashing defense-in-depth.
@@ -137,6 +155,25 @@ module Onetime
       feature_enabled?('webauthn', default: false)
     end
 
+    # Whether WebAuthn passwordless signup is enabled: verifying a new account
+    # sets up a passkey instead of a password (Rodauth webauthn_verify_account).
+    # Only consulted when webauthn_enabled? — config.rb loads the WebAuthn
+    # feature module only then. Driven by AUTH_WEBAUTHN_VERIFY_ACCOUNT
+    # (== 'true' semantics, rendered in auth.defaults.yaml).
+    # Default: false
+    def webauthn_verify_account_enabled?
+      feature_enabled?('webauthn_verify_account', default: false)
+    end
+
+    # Whether passkey autofill (browser conditional UI) on the login form is
+    # enabled (Rodauth webauthn_autofill). Only consulted when
+    # webauthn_enabled?. Driven by AUTH_WEBAUTHN_AUTOFILL (== 'true'
+    # semantics, rendered in auth.defaults.yaml).
+    # Default: false
+    def webauthn_autofill_enabled?
+      feature_enabled?('webauthn_autofill', default: false)
+    end
+
     # Whether SSO (external identity providers via OmniAuth) is enabled
     # Default: false
     #
@@ -178,37 +215,82 @@ module Onetime
       OT.conf.dig('features', 'organizations', 'sso_enabled') == true
     end
 
-    # The login-page restriction, if any.
+    # The global sign-in restriction, if any. An access control over which
+    # methods work on this install, not a login-page display preference
+    # (ADR-034#restrict-to-is-an-access-control-not-a-display-preference).
     # Returns one of RESTRICT_TO_VALUES ('password', 'email_auth',
-    # 'webauthn', 'sso') or nil when all enabled methods are shown.
+    # 'webauthn', 'sso'), or nil ONLY when no restriction is configured
+    # (and always nil in simple mode, where restrict_to has no meaning).
     #
-    # Guards:
-    # - Returns nil in simple mode or when the value is unrecognised.
-    # - For 'sso': requires sso_enabled? and at least one provider.
-    # - For 'email_auth': requires email_auth_enabled?.
-    # - For 'webauthn': requires webauthn_enabled?.
-    # - 'password' has no prerequisite (passwords are always available
-    #   in full mode).
+    # It NEVER returns nil to express "the configured restriction could not
+    # be honored" (ADR-034#degradation-is-fail-closed, #4140). That was a silent fail-OPEN: every
+    # caller reads nil as "unrestricted", so an install whose restricted
+    # method was unavailable widened to standard mode and re-exposed exactly
+    # the methods the operator restricted away — with no log line at all.
+    #
+    # Availability is handled in two separate places instead:
+    # - Boot: #validate_restrict_to! raises OT::ConfigError when the named
+    #   method's prerequisites are already known to be unmet. Validate once,
+    #   loudly; this reader never raises, so a request path stays cheap.
+    # - Runtime: unavailability only discoverable AFTER boot keeps the
+    #   restriction in place, so callers degrade fail-CLOSED (sign-in
+    #   unavailable / method-specific notice) instead of widening. See
+    #   #restrict_to_available?.
+    #
+    # An unrecognised value still reads as nil here, but it can only survive
+    # boot when validation did not run (partial boot); #validate_restrict_to!
+    # rejects it.
     def restrict_to
       return nil unless full_enabled?
 
-      value = full['restrict_to'].to_s.strip
-      # Legacy fallback: configs that still use sso.sso_only instead of restrict_to
-      value = 'sso' if value.empty? && legacy_sso_only?
+      value = configured_restrict_to
+      RESTRICT_TO_VALUES.include?(value) ? value : nil
+    end
 
-      return nil unless RESTRICT_TO_VALUES.include?(value)
+    # Whether the configured restriction's backing method is actually usable
+    # right now. Consumers use this to degrade fail-closed: a restriction
+    # whose method is unavailable means sign-in is unavailable, never that
+    # sign-in widens to the other methods (ADR-034#degradation-is-fail-closed).
+    #
+    # Returns true when nothing is restricted (nothing to be unavailable).
+    def restrict_to_available?
+      value = restrict_to
+      return true if value.nil?
 
-      # Ensure the restriction refers to an actually enabled method.
-      case value
-      when 'sso'
-        return nil unless sso_enabled? && sso_providers.any?
-      when 'email_auth'
-        return nil unless email_auth_enabled?
-      when 'webauthn'
-        return nil unless webauthn_enabled?
-      end
+      restrict_to_unmet_prerequisite(value).nil?
+    end
 
-      value
+    # Boot-time validation of the global restriction (ADR-034#degradation-is-fail-closed, #4140).
+    #
+    # Raises OT::ConfigError — a fatal boot error — when full.restrict_to
+    # names a method whose prerequisites the system can already determine are
+    # unmet, or names a value that is not a valid restriction at all. A
+    # refused boot is the loud failure: it reaches the operator holding the
+    # config file at deploy time. (Contrast #4062's set-but-blank admin host
+    # allowlist, which warns because of a lockout trap; that argument was
+    # considered and overruled here — the trap on this path is a silent
+    # runtime widen, not a refused boot.)
+    #
+    # Idempotent: the result is memoized so repeated boot phases (and
+    # #reload! in tests) behave predictably.
+    #
+    # @raise [Onetime::ConfigError] when the configured restriction cannot be honored
+    # @return [String, nil] the validated restriction, or nil when none is configured
+    def validate_restrict_to!
+      return @validate_restrict_to if defined?(@validate_restrict_to)
+
+      @validate_restrict_to = nil
+      return nil unless full_enabled?
+
+      value = configured_restrict_to
+      return nil if value.empty?
+
+      raise Onetime::ConfigError, restrict_to_error_message(value, nil) unless RESTRICT_TO_VALUES.include?(value)
+
+      unmet = restrict_to_unmet_prerequisite(value)
+      raise Onetime::ConfigError, restrict_to_error_message(value, unmet) if unmet
+
+      @validate_restrict_to = value
     end
 
     # Whether SSO-only mode is active.
@@ -342,10 +424,14 @@ module Onetime
     # Returns an array of hashes: [{ 'route_name' => 'oidc', 'display_name' => 'SSO' }, ...]
     # Each entry corresponds to a provider whose required env vars are present.
     # Returns empty array if SSO is disabled or no providers are configured.
+    # Order follows provider_definitions (the registry), unless the operator
+    # sets SSO_PROVIDER_ORDER — a comma/space-separated list of route names.
+    # Listed providers come first in the given order; unlisted ones keep their
+    # registry order after them, so a partial list is safe.
     def sso_providers
       return [] unless sso_enabled?
 
-      provider_definitions.filter_map do |defn|
+      providers = provider_definitions.filter_map do |defn|
         next unless defn[:required_vars].all? { |var| env_present?(var) }
 
         # Optional gate beyond env-var presence (e.g., the local IdP needs
@@ -359,6 +445,8 @@ module Onetime
           'display_name' => display,
         }
       end
+
+      order_sso_providers(providers)
     end
 
     # The SSO identity-provider origins that must be allowed in the CSP
@@ -375,8 +463,14 @@ module Onetime
     # feature enabled AND the provider's required env vars present), so they
     # can never drift from the providers that actually register. The
     # SSO_FORM_ACTION_ORIGINS override is merged in unconditionally — it covers
-    # sovereign clouds, an OIDC issuer that differs from its authorization
-    # endpoint, and org-level SSO whose issuers are unknown at boot.
+    # an OIDC issuer that differs from its authorization endpoint. It cannot
+    # cover a sovereign cloud: the Entra strategy is pinned to the commercial
+    # authority on BOTH surfaces, so widening form-action there admits an
+    # origin the redirect never reaches (sovereign Entra is configured as OIDC
+    # with its sovereign issuer instead). Tenant (per-domain) SSO issuers are
+    # NOT this method's job: they are unknown at boot and reach the header
+    # per-request via Onetime::Middleware::TenantCspExtras + #tenant_idp_origin
+    # (#4173).
     #
     # Returns a de-duplicated Array of origin strings (scheme://host[:port]),
     # or [] when nothing is configured. Side-effect free and safe to call at
@@ -385,12 +479,18 @@ module Onetime
       provider_origins = active_provider_origins
       override_origins = override_form_action_origins
 
-      # An override set with zero auto-derived provider origins (SSO disabled or
-      # no active providers) is a config smell worth surfacing: form-action is
-      # being widened without any provider that actually registers.
+      # An override set with zero auto-derived provider origins is worth
+      # surfacing — but it is not automatically a misconfiguration. Tenant SSO
+      # no longer needs the override (tenant IdP origins arrive per-request
+      # via Onetime::Middleware::TenantCspExtras, #4173), so this combination
+      # now legitimately means split-endpoint usage (an OIDC
+      # authorization_endpoint on a different origin than the issuer). Log it
+      # as context, not a smell.
       if provider_origins.empty? && !ENV.fetch('SSO_FORM_ACTION_ORIGINS', '').to_s.strip.empty?
-        OT.lw '[auth_config] SSO_FORM_ACTION_ORIGINS is widening CSP form-action but ' \
-              'no SSO provider origins are active (SSO disabled or no active providers)'
+        OT.lw '[auth_config] SSO_FORM_ACTION_ORIGINS is widening CSP form-action with ' \
+              'no active platform SSO provider origins — expected only for split-endpoint ' \
+              'IdPs (tenant SSO origins are added per-request and do not need this ' \
+              'override)'
       end
 
       (provider_origins + override_origins).uniq
@@ -404,11 +504,221 @@ module Onetime
     # Reload configuration (useful for testing)
     def reload!
       @path = Onetime::Utils::ConfigResolver.resolve('auth')
+      remove_instance_variable(:@validate_restrict_to) if defined?(@validate_restrict_to)
       load_config
       self
     end
 
+    # Provider definitions for sso_providers, email-linking trust, and CSP
+    # form-action origins. The data lives in Onetime::SsoProvider::Registry —
+    # the SAME registry the auth app's boot-time strategy registration
+    # consumes — so serializer gating, CSP origins, and registered strategies
+    # can never drift apart. Each entry defines the env vars that gate the
+    # provider and where to read its route/display names; see the registry
+    # for the full field reference.
+    #
+    # trust_var / trust_default gate the #3836 email-linking escape hatch:
+    # an explicit, per-provider operator declaration that the IdP is inside
+    # the trust boundary, so an SSO identity may auto-link to an account
+    # LOCATED by email. See #trust_email_for_linking?.
+    #
+    # The one dynamic overlay: OIDC's display default honors the operator's
+    # legacy sso_display_name before falling back to the registry's 'SSO'.
+    #
+    # Public: the auth app's boot registration reads it (via
+    # display_default_for) so its logs share the serializer's view.
+    def provider_definitions
+      registry = SsoProvider::Registry::DEFINITIONS.map do |defn|
+        next defn unless defn[:key] == :oidc
+
+        legacy_display = sso_display_name
+        legacy_display ? defn.merge(display_default: legacy_display) : defn
+      end
+
+      registry + [
+        # Local IdP — see configure_local_idp_provider in features/omniauth.rb.
+        # Deliberately NOT a Registry::Definition: it is the development-only
+        # provider backed by this app's own OAuth2 IdP, so it has neither
+        # platform credentials nor a tenant-SSO placeholder to describe, and no
+        # idp_origin (its issuer is this app, already 'self' in form-action).
+        #
+        # Two-part gate: OAUTH_SP_DEV_CLIENT_SECRET must be set (env-var
+        # presence) AND AUTH_OAUTH_ENABLED=true (so the IdP it talks to is
+        # actually running). Without the second check, the frontend would
+        # render a "Local IdP" button that posts to a non-existent route.
+        {
+          key: :local_idp,
+          required_vars: %w[OAUTH_SP_DEV_CLIENT_SECRET],
+          condition: ->(cfg) { cfg.oauth_enabled? },
+          route_var: 'OAUTH_SP_DEV_ROUTE_NAME',
+          route_default: 'local',
+          display_var: 'OAUTH_SP_DEV_DISPLAY_NAME',
+          display_default: 'Local IdP',
+        },
+      ]
+    end
+
+    # The CSP form-action origin for a TENANT's IdP (#4173) — the per-request
+    # complement to the boot-time #sso_form_action_origins. Tenant SSO issuers
+    # live in per-domain CustomDomain::SsoConfig records, so they cannot be
+    # derived at boot; Onetime::Middleware::TenantCspExtras calls this per
+    # request and feeds the result through otto's request-scoped CSP extras
+    # channel (env['otto.csp.extra_directives'], delano/otto#243).
+    #
+    # The issuer is tenant-supplied and therefore attacker-influenced, so
+    # #origin_from_url is the mandatory funnel: it strips the path, accepts
+    # only http(s), rejects CSP-hostile hosts, omits default ports, and
+    # returns nil on garbage — never raises. Entra reuses the registry's
+    # static commercial-cloud origin (the tenant strategy pins that cloud:
+    # SsoConfig#build_entra_id_options passes no authority option). The
+    # PLATFORM Entra strategy_options pin it the same way, so no override
+    # reaches a sovereign cloud on either surface — a sovereign tenant is
+    # configured as provider type oidc with its sovereign v2.0 issuer, which
+    # this method then derives the origin from like any other tenant OIDC.
+    #
+    # Non-oidc types resolve through SsoConfig::PROVIDER_ROUTE_MAP (the same
+    # provider_type -> route mapping the tenant strategy registration uses)
+    # to a registry definition, then through #provider_origin — so a future
+    # tenant provider type needs a route-map entry plus a registry
+    # definition, not another case arm here. Every miss along that chain
+    # (unmapped provider_type, no matching registry definition, no
+    # resolvable origin) answers nil, never raises: this runs per-request
+    # inside the CSP middleware, where an exception would only be swallowed
+    # into a warning anyway.
+    #
+    # Caveat (same as the platform OIDC derivation): OIDC discovery may place
+    # authorization_endpoint on a DIFFERENT origin than the issuer, so the
+    # issuer origin is best-effort and SSO_FORM_ACTION_ORIGINS stays the
+    # escape hatch for split-endpoint topologies.
+    #
+    # @param sso_config [Onetime::CustomDomain::SsoConfig] the tenant's record
+    # @return [String, nil] scheme://host[:port], or nil when the provider
+    #   type is unknown or the issuer does not resolve to a clean origin
+    def tenant_idp_origin(sso_config)
+      provider_type = sso_config&.provider_type
+      return nil if provider_type.nil?
+
+      # Issuer-derived types read the tenant record's own issuer — the
+      # registry's oidc definition points at the PLATFORM env var, which
+      # would be the wrong tenant's (or no) issuer here. #tenant_origin_source
+      # owns that dispatch so callers who need to reason about the SOURCE
+      # (rather than the derived origin) cannot drift out of step with it.
+      source = tenant_origin_source(sso_config)
+      return origin_from_url(source) unless source.nil?
+
+      # :default only — the entry's :env_var route-name override is NOT
+      # consulted, so a renamed route still resolves the default definition.
+      # Safe while every non-OIDC tenant provider has a STATIC idp_origin
+      # (route-name-independent); see the constraint note in
+      # SsoProvider::Registry's field reference before adding one that isn't.
+      route_name = Onetime::CustomDomain::SsoConfig::PROVIDER_ROUTE_MAP
+        .dig(provider_type, :default)
+      return nil if route_name.nil?
+
+      # Registry.find answers nil on a miss (Registry.fetch raises KeyError,
+      # which is right for boot-time typos but not per-request). Going through
+      # the Registry API rather than scanning DEFINITIONS here is what keeps a
+      # reshape of the registry from leaving this lookup silently returning
+      # nil — the browser-only #4173 symptom, with no warning to point at it.
+      defn = SsoProvider::Registry.find(route_name.to_sym)
+      return nil if defn.nil?
+
+      provider_origin(defn)
+    end
+
+    # The TENANT-SUPPLIED string this provider type's IdP origin is derived
+    # from (stripped), or nil when the origin comes from the static provider
+    # registry instead of the tenant record.
+    #
+    # This is the single source of truth for which provider types read the
+    # tenant's issuer: #tenant_idp_origin dispatches on it, and
+    # Onetime::Middleware::TenantCspExtras uses it to tell an operator
+    # misconfiguration (tenant typed a bad issuer — fixable by editing the
+    # record) apart from route-map/registry drift (a deploy-side bug, where
+    # naming the issuer would name the wrong cause). Adding a second
+    # issuer-reading provider type is one entry here and both stay correct.
+    #
+    # A blank issuer returns '' rather than nil: the type IS issuer-derived,
+    # the tenant just left it empty. Callers distinguish "not issuer-derived"
+    # (nil) from "issuer-derived but unset" (empty) — origin_from_url maps
+    # both to no origin.
+    def tenant_origin_source(sso_config)
+      return nil unless ISSUER_DERIVED_PROVIDER_TYPES.include?(sso_config&.provider_type.to_s)
+
+      sso_config.issuer.to_s.strip
+    end
+
     private
+
+    # The restriction as CONFIGURED, before any validation: the stripped
+    # full.restrict_to value, or 'sso' via the legacy sso.sso_only fallback.
+    # Returns '' when nothing is configured. May be an unrecognised value —
+    # #validate_restrict_to! is what rejects those.
+    def configured_restrict_to
+      value = full['restrict_to'].to_s.strip
+      # Legacy fallback: configs that still use sso.sso_only instead of restrict_to
+      value = 'sso' if value.empty? && legacy_sso_only?
+      value
+    end
+
+    # Which config key the restriction came from, for operator-facing errors.
+    def restrict_to_source
+      full['restrict_to'].to_s.strip.empty? ? 'full.sso.sso_only (AUTH_SSO_ONLY)' : 'full.restrict_to'
+    end
+
+    # The unmet prerequisite for a restriction value, as an operator-facing
+    # phrase, or nil when the method is available.
+    #
+    # 'password' is deliberately absent: password authentication has no
+    # feature flag in full mode — Rodauth's login/password features are
+    # always loaded — so there is no prerequisite that could fail. If a
+    # password-disable switch is ever introduced, it belongs here.
+    def restrict_to_unmet_prerequisite(value)
+      case value
+      when 'sso'
+        return 'SSO is disabled (full.features.sso / AUTH_SSO_ENABLED)' unless sso_enabled?
+        if sso_providers.empty?
+          return 'SSO is enabled but no provider is configured (no provider has its ' \
+                 'required env vars set, e.g. OIDC_ISSUER + OIDC_CLIENT_ID)'
+        end
+      when 'email_auth'
+        return 'email auth is disabled (full.features.email_auth / AUTH_EMAIL_AUTH_ENABLED)' unless email_auth_enabled?
+      when 'webauthn'
+        return 'WebAuthn is disabled (full.features.webauthn / AUTH_WEBAUTHN_ENABLED)' unless webauthn_enabled?
+      end
+
+      nil
+    end
+
+    # Operator-facing fatal message for an unusable restriction. `unmet` is
+    # nil when the value itself is not a valid restriction.
+    def restrict_to_error_message(value, unmet)
+      reason = unmet || "#{value.inspect} is not a valid restriction " \
+                        "(expected one of: #{RESTRICT_TO_VALUES.join(', ')})"
+
+      <<~MSG.strip
+        Authentication is restricted to #{value.inspect} (#{restrict_to_source}) but #{reason}.
+
+        Refusing to boot: continuing would silently show every enabled sign-in
+        method, re-exposing exactly the methods this setting restricts away.
+
+        To fix this issue:
+        1. Enable the prerequisite for #{value.inspect}, or
+        2. Change #{restrict_to_source} to an available method
+           (one of: #{RESTRICT_TO_VALUES.join(', ')}), or
+        3. Clear it to show all enabled authentication methods.
+      MSG
+    end
+
+    # Nil for a nil/blank/whitespace-only value, the value otherwise.
+    # Lets `presence(x) || default` behave the way `x || default` is
+    # usually intended when x originates from an environment variable.
+    def presence(value)
+      return nil if value.nil?
+
+      str = value.to_s.strip
+      str.empty? ? nil : value
+    end
 
     # Whether the legacy sso.sso_only flag is set in config.
     # Used as a fallback by #restrict_to for configs that predate
@@ -449,76 +759,16 @@ module Onetime
       features.fetch(key, default)
     end
 
-    # Provider definitions for sso_providers. Each entry defines the env
-    # vars that gate the provider and where to read its route/display names.
-    #
-    # trust_var / trust_default gate the #3836 email-linking escape hatch:
-    # an explicit, per-provider operator declaration that the IdP is inside
-    # the trust boundary, so an SSO identity may auto-link to an account
-    # LOCATED by email. See #trust_email_for_linking?.
-    #
-    # idp_origin / idp_origin_from feed #sso_form_action_origins: a static
-    # :idp_origin for providers whose IdP host is fixed, or :idp_origin_from
-    # naming an env var whose URL the origin is derived from (OIDC's issuer).
-    # ENTRA is static because the OmniAuth strategy hard-pins the commercial
-    # cloud (login.microsoftonline.com); there is no sovereign-cloud authority
-    # env in this app — use SSO_FORM_ACTION_ORIGINS for those.
-    def provider_definitions
-      [
-        {
-          required_vars: %w[OIDC_ISSUER OIDC_CLIENT_ID],
-          route_var: 'OIDC_ROUTE_NAME',
-          route_default: 'oidc',
-          display_var: 'OIDC_DISPLAY_NAME',
-          display_default: sso_display_name || 'SSO',
-          trust_var: 'OIDC_TRUST_EMAIL_FOR_LINKING',
-          trust_default: false,
-          idp_origin_from: 'OIDC_ISSUER',
-        },
-        {
-          required_vars: %w[ENTRA_TENANT_ID ENTRA_CLIENT_ID ENTRA_CLIENT_SECRET],
-          route_var: 'ENTRA_ROUTE_NAME',
-          route_default: 'entra',
-          display_var: 'ENTRA_DISPLAY_NAME',
-          display_default: 'Microsoft',
-          trust_var: 'ENTRA_TRUST_EMAIL_FOR_LINKING',
-          trust_default: false,
-          idp_origin: 'https://login.microsoftonline.com',
-        },
-        {
-          required_vars: %w[GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET],
-          route_var: 'GOOGLE_ROUTE_NAME',
-          route_default: 'google',
-          display_var: 'GOOGLE_DISPLAY_NAME',
-          display_default: 'Google',
-          trust_var: 'GOOGLE_TRUST_EMAIL_FOR_LINKING',
-          trust_default: false,
-          idp_origin: 'https://accounts.google.com',
-        },
-        {
-          required_vars: %w[GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET],
-          route_var: 'GITHUB_ROUTE_NAME',
-          route_default: 'github',
-          display_var: 'GITHUB_DISPLAY_NAME',
-          display_default: 'GitHub',
-          trust_var: 'GITHUB_TRUST_EMAIL_FOR_LINKING',
-          trust_default: false,
-          idp_origin: 'https://github.com',
-        },
-        # Local IdP — see configure_local_idp_provider in features/omniauth.rb.
-        # Two-part gate: OAUTH_SP_DEV_CLIENT_SECRET must be set (env-var
-        # presence) AND AUTH_OAUTH_ENABLED=true (so the IdP it talks to is
-        # actually running). Without the second check, the frontend would
-        # render a "Local IdP" button that posts to a non-existent route.
-        {
-          required_vars: %w[OAUTH_SP_DEV_CLIENT_SECRET],
-          condition: ->(cfg) { cfg.oauth_enabled? },
-          route_var: 'OAUTH_SP_DEV_ROUTE_NAME',
-          route_default: 'local',
-          display_var: 'OAUTH_SP_DEV_DISPLAY_NAME',
-          display_default: 'Local IdP',
-        },
-      ]
+    # Apply the SSO_PROVIDER_ORDER override (comma/space-separated route
+    # names) to the serializer's provider list. Stable: providers not listed
+    # keep their relative registry order, after the listed ones.
+    def order_sso_providers(providers)
+      order = ENV.fetch('SSO_PROVIDER_ORDER', '').split(/[,\s]+/).reject(&:empty?)
+      return providers if order.empty?
+
+      providers.sort_by.with_index do |provider, index|
+        [order.index(provider['route_name']) || order.length, index]
+      end
     end
 
     # Reverse-map a route/provider name to its provider definition.
@@ -586,7 +836,9 @@ module Onetime
     # otherwise malformed URL — never raises. Note that URI.parse sets #host to
     # an empty string (not nil) for a scheme-present, hostless URL such as
     # "https://" or "https:///path", so an empty/whitespace host is treated the
-    # same as nil to avoid emitting a degenerate "https://" origin.
+    # same as nil to avoid emitting a degenerate "https://" origin. A returned
+    # origin is guaranteed to survive otto's own extras validator (final gate
+    # below), so nothing reaching a caller is dropped later without a warning.
     def origin_from_url(url)
       str = url.to_s.strip
       return nil if str.empty?
@@ -610,7 +862,19 @@ module Onetime
 
       origin  = "#{uri.scheme}://#{host}"
       origin += ":#{uri.port}" if uri.port && uri.port != uri.default_port
-      origin
+
+      # Final gate: otto's OWN validator, the same code that sanitizes the
+      # request-scoped extras at policy-build time (otto 2.9.0
+      # lib/otto/security/csp/request_extras.rb). Validating THROUGH it rather
+      # than mirroring its rules is what stops the two from drifting: anything
+      # otto would drop later (port outside 1..65535, a '%' in the host, a
+      # double-trailing-dot FQDN) must be rejected HERE, where the caller
+      # still knows
+      # the domain and the SsoConfig record and can say so in a warning. Otto
+      # drops it with a generic message naming neither — the silent #4173
+      # blocked redirect. It also normalizes (downcased scheme and host, a
+      # single trailing dot stripped).
+      Otto::Security::CSP::RequestExtras.normalize_origin(origin)
     rescue URI::Error
       nil
     end

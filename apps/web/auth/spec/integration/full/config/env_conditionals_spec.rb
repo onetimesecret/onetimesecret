@@ -171,4 +171,37 @@ RSpec.describe 'Auth::Config ENV Conditional Logic' do
       end
     end
   end
+
+  # The two WebAuthn sub-feature flags joined the AUTH_ family with == 'true'
+  # semantics. Regression context: they were previously unprefixed
+  # (WEBAUTHN_AUTOFILL / WEBAUTHN_VERIFY_ACCOUNT) and PRESENCE-based, so
+  # setting them to 'false' ENABLED the feature. These examples pin the
+  # corrected semantics.
+  %w[AUTH_WEBAUTHN_AUTOFILL AUTH_WEBAUTHN_VERIFY_ACCOUNT].each do |env_key|
+    describe "#{env_key} pattern (== true, disabled by default)" do
+      it 'is disabled by default' do
+        ClimateControl.modify(env_key => nil) do
+          expect(ENV[env_key] == 'true').to be false
+        end
+      end
+
+      it 'is disabled when set to "false" (regression: presence used to enable)' do
+        ClimateControl.modify(env_key => 'false') do
+          expect(ENV[env_key] == 'true').to be false
+        end
+      end
+
+      it 'is disabled when set to "1" (must be exactly "true")' do
+        ClimateControl.modify(env_key => '1') do
+          expect(ENV[env_key] == 'true').to be false
+        end
+      end
+
+      it 'is enabled only when set to exactly "true"' do
+        ClimateControl.modify(env_key => 'true') do
+          expect(ENV[env_key] == 'true').to be true
+        end
+      end
+    end
+  end
 end

@@ -4,7 +4,7 @@
     "source_hash": "0ece5643"
   },
   "web.admin.bannedIps.description": {
-    "text": "Bannir et débannir des adresses IP au périmètre du site.",
+    "text": "Bannissez et débannissez des adresses IP au périmètre du site.",
     "source_hash": "69c0c992"
   },
   "web.admin.bannedIps.currentIp": {
@@ -48,11 +48,11 @@
     "source_hash": "f81ab834"
   },
   "web.admin.bannedIps.columns.bannedAt": {
-    "text": "Banni le",
+    "text": "Bannie le",
     "source_hash": "dfbd120e"
   },
   "web.admin.bannedIps.columns.bannedBy": {
-    "text": "Banni par",
+    "text": "Bannie par",
     "source_hash": "9f47db0e"
   },
   "web.admin.bannedIps.columns.actions": {
@@ -72,7 +72,7 @@
     "source_hash": "0f7d4664"
   },
   "web.admin.bannedIps.form.reasonPlaceholder": {
-    "text": "par ex. credential stuffing",
+    "text": "ex. bourrage d'identifiants",
     "source_hash": "828a15ae"
   },
   "web.admin.bannedIps.form.submit": {

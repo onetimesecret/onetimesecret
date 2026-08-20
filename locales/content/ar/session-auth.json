@@ -483,5 +483,45 @@
   "web.login.verified_notice": {
     "text": "تم التحقق من بريدك الإلكتروني — يمكنك الآن تسجيل الدخول.",
     "source_hash": "c8d4b5a8"
+  },
+  "web.auth.password_setup_request.title": {
+    "text": "تعيين كلمة مرور",
+    "source_hash": "11b6978b"
+  },
+  "web.auth.password_setup_request.description": {
+    "text": "حسابك ليس لديه كلمة مرور بعد. سنرسل لك رابطاً آمناً بالبريد الإلكتروني لتعيين واحدة حتى تتمكن أيضاً من تسجيل الدخول مباشرة.",
+    "source_hash": "dc0b561f"
+  },
+  "web.auth.password_setup_request.button": {
+    "text": "إرسال رابط الإعداد",
+    "source_hash": "22807292"
+  },
+  "web.auth.password_setup_request.emailSent": {
+    "text": "تم إرسال بريد إلكتروني إليك يحتوي على رابط لتعيين كلمة مرور لحسابك",
+    "source_hash": "82b686c7"
+  },
+  "web.login.errors.account_exists_link_required": {
+    "text": "يوجد حساب بهذا العنوان البريدي بالفعل لكنه غير مرتبط بطريقة تسجيل الدخول هذه. سجل الدخول بطريقتك الحالية، ثم اربط هذا المزود ضمن إعدادات الأمان ← الهويات المرتبطة.",
+    "source_hash": "7fbbb7e7"
+  },
+  "web.login.errors.identity_connect_conflict": {
+    "text": "تعذر ربط هذه الهوية. قد يكون الربط قد بدأ على نطاق خاطئ، أو انتهت صلاحية جلستك. يرجى تسجيل الدخول مرة أخرى، ثم ربطها من إعدادات حسابك.",
+    "source_hash": "4238bbf2"
+  },
+  "web.login.errors.org_join_failed": {
+    "text": "تعذر إكمال إضافتك إلى مؤسستك. يرجى الاتصال بالمشرف.",
+    "source_hash": "155e71bb"
+  },
+  "web.login.errors.link_sso_failed": {
+    "text": "تعذر ربط طريقة تسجيل الدخول تلك. سجل الدخول بكلمة المرور الحالية، ثم اربط هذا المزود ضمن إعدادات الأمان ← الهويات المرتبطة.",
+    "source_hash": "49954127"
+  },
+  "web.login.notices.link_verification_sent": {
+    "text": "تحقق من بريدك الوارد — أرسلنا لك رابطاً بالبريد الإلكتروني لتأكيد ربط حسابك. افتحه لإكمال تسجيل الدخول.",
+    "source_hash": "b251c8f3"
+  },
+  "web.login.errors.sso_cancelled": {
+    "text": "تم إلغاء تسجيل الدخول. يمكنك المحاولة مرة أخرى في أي وقت.",
+    "source_hash": "b5f3d3ec"
   }
 }

@@ -290,10 +290,40 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
 
   describe 'TLS configuration' do
     describe '.tls_options' do
+      # RABBITMQ_VERIFY_PEER is a default-ON security control. The ambient
+      # value (direnv may export one) would make these cases non-hermetic, so
+      # every example runs with the var removed and the original restored.
+      around do |example|
+        had_key  = ENV.key?('RABBITMQ_VERIFY_PEER')
+        original = ENV.fetch('RABBITMQ_VERIFY_PEER', nil)
+        ENV.delete('RABBITMQ_VERIFY_PEER')
+        example.run
+      ensure
+        had_key ? ENV['RABBITMQ_VERIFY_PEER'] = original : ENV.delete('RABBITMQ_VERIFY_PEER')
+      end
+
+      # Sets RABBITMQ_VERIFY_PEER for the duration of the block. The outer
+      # `around` owns save/restore, so this only has to clean up after itself.
+      def with_verify_peer(raw)
+        ENV['RABBITMQ_VERIFY_PEER'] = raw
+        yield
+      ensure
+        ENV.delete('RABBITMQ_VERIFY_PEER')
+      end
+
       context 'with amqp:// URL (non-TLS)' do
         it 'returns empty hash' do
           result = Onetime::Jobs::QueueConfig.tls_options('amqp://localhost')
           expect(result).to eq({})
+        end
+
+        # Deliberate: the early return happens before the flag is parsed, so a
+        # bad token on a plain amqp:// URL is never reached and never raises.
+        # No TLS session exists, so there is nothing to fail closed about.
+        it 'does not validate RABBITMQ_VERIFY_PEER at all' do
+          with_verify_peer('bogus') do
+            expect(Onetime::Jobs::QueueConfig.tls_options('amqp://x')).to eq({})
+          end
         end
       end
 
@@ -303,28 +333,57 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
           expect(result[:tls]).to be true
         end
 
-        it 'defaults to verify_peer: true' do
+        it 'defaults to verify_peer: true when unset' do
           result = Onetime::Jobs::QueueConfig.tls_options('amqps://localhost')
           expect(result[:verify_peer]).to be true
         end
 
-        context 'with RABBITMQ_VERIFY_PEER=false' do
-          around do |example|
-            original = ENV['RABBITMQ_VERIFY_PEER']
-            ENV['RABBITMQ_VERIFY_PEER'] = 'false'
-            example.run
-            ENV['RABBITMQ_VERIFY_PEER'] = original
+        # Regression guard for the old `== 'true'` comparison, which failed
+        # OPEN: every spelling below except the plain lowercase one silently
+        # disabled AMQPS certificate verification. AMQP payloads carry secret
+        # retrieval keys, so an unverified session is a real exposure.
+        ['true', 'TRUE', ' True ', '1', 'yes', ''].each do |raw|
+          it "keeps peer verification on for #{raw.inspect}" do
+            with_verify_peer(raw) do
+              result = Onetime::Jobs::QueueConfig.tls_options('amqps://localhost')
+              expect(result[:verify_peer]).to be true
+            end
           end
+        end
 
-          it 'disables peer verification' do
-            result = Onetime::Jobs::QueueConfig.tls_options('amqps://localhost')
-            expect(result[:verify_peer]).to be false
+        # One representative token per falsey spelling; the full vocabulary is
+        # covered by spec/unit/onetime/utils/strings_spec.rb.
+        %w[false no 0].each do |raw|
+          it "disables peer verification for #{raw.inspect}" do
+            with_verify_peer(raw) do
+              result = Onetime::Jobs::QueueConfig.tls_options('amqps://localhost')
+              expect(result[:verify_peer]).to be false
+            end
+          end
+        end
+
+        # The message names the flag but never reproduces the rejected value —
+        # this method reads an env var, so a misrouted credential must not
+        # reach the boot log or Sentry (ADR-037). The value-quoting assertion
+        # this replaced is retired; the non-disclosure contract is pinned in
+        # spec/unit/onetime/utils/strings_spec.rb.
+        it 'raises rather than guessing on an unrecognized token' do
+          with_verify_peer('bogus') do
+            expect { Onetime::Jobs::QueueConfig.tls_options('amqps://localhost') }
+              .to raise_error(Onetime::ConfigError, /RABBITMQ_VERIFY_PEER/)
+          end
+        end
+
+        it 'does not echo the rejected value into the boot log' do
+          with_verify_peer('bogus') do
+            expect { Onetime::Jobs::QueueConfig.tls_options('amqps://localhost') }
+              .to raise_error(Onetime::ConfigError) { |e| expect(e.message).not_to include('bogus') }
           end
         end
 
         context 'with RABBITMQ_CA_CERTIFICATES set' do
           around do |example|
-            original = ENV['RABBITMQ_CA_CERTIFICATES']
+            original                        = ENV.fetch('RABBITMQ_CA_CERTIFICATES', nil)
             ENV['RABBITMQ_CA_CERTIFICATES'] = '/path/to/ca.pem'
             example.run
             ENV['RABBITMQ_CA_CERTIFICATES'] = original

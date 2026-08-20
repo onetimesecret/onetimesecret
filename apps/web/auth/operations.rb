@@ -19,6 +19,7 @@ require_relative 'operations/confirm_sso_link'
 require_relative 'operations/deferred_sso_bind'
 require_relative 'operations/prepare_mfa_session'
 require_relative 'operations/migrate_password_from_redis'
+require_relative 'operations/resolve_login_location'
 
 # Customer admin verbs (colonel API + CLI single implementation, epic #20)
 require_relative 'operations/customers'

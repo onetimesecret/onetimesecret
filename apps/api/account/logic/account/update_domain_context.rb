@@ -11,7 +11,7 @@ module AccountAPI::Logic
     # new tabs, and browser restarts.
     #
     # The domain must be either:
-    # - The canonical domain (e.g., "onetimesecret.com")
+    # - A canonical host (features.domains.default or site.host)
     # - One of the user's custom domains from their organizations
     #
     # Anonymous users can only use the canonical domain.
@@ -85,7 +85,7 @@ module AccountAPI::Logic
         sess['domain_context'] = new_domain_context
       end
 
-      # Validates that the domain is either the canonical domain or
+      # Validates that the domain is either a canonical host or
       # one of the user's custom domains
       #
       # @param domain [String] The domain to validate
@@ -93,9 +93,8 @@ module AccountAPI::Logic
       def valid_domain?(domain)
         return false if domain.nil? || domain.empty?
 
-        # Allow canonical domain
-        canonical = Onetime::Middleware::DomainStrategy.canonical_domain
-        return true if domain == canonical
+        # Allow any canonical host (features.domains.default or site.host)
+        return true if Onetime::Middleware::DomainStrategy.canonical_host?(domain)
 
         # Check if domain is in user's custom domains list
         return false unless domains_enabled

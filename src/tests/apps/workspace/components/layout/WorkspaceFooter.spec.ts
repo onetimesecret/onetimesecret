@@ -136,7 +136,11 @@ describe('WorkspaceFooter footerLinks', () => {
     }
   });
 
-  const mountComponent = (bootstrapState: Record<string, unknown> = {}) => mount(WorkspaceFooter, {
+  const mountComponent = (
+    bootstrapState: Record<string, unknown> = {},
+    props: Record<string, unknown> = {}
+  ) => mount(WorkspaceFooter, {
+      props,
       global: {
         plugins: [
           createTestingPinia({
@@ -148,6 +152,7 @@ describe('WorkspaceFooter footerLinks', () => {
                 ot_version_long: '1.0.0-test',
                 domains_enabled: false,
                 support_host: 'support.onetimesecret.com',
+                authenticated: true,
                 ui: bootstrapState.ui ?? {
                   footer_links: {
                     enabled: true,
@@ -352,7 +357,7 @@ describe('WorkspaceFooter footerLinks', () => {
     });
   });
 
-  describe('version display respects showVersionConfig', () => {
+  describe('version display respects showVersionConfig and authentication', () => {
     it('shows version when displayVersion=true and ui.show_version=true', async () => {
       wrapper = mountComponent({
         ui: {
@@ -401,6 +406,7 @@ describe('WorkspaceFooter footerLinks', () => {
                   ot_version_long: '1.0.0-test',
                   domains_enabled: false,
                   support_host: 'support.onetimesecret.com',
+                  authenticated: true,
                   ui: {
                     show_version: true,
                   },
@@ -439,6 +445,115 @@ describe('WorkspaceFooter footerLinks', () => {
 
       versionLink = wrapper.find('a[href*="github.com/onetimesecret/onetimesecret/releases"]');
       expect(versionLink.exists()).toBe(true);
+    });
+
+    it('hides version for unauthenticated sessions even when show_version=true', async () => {
+      wrapper = mountComponent({
+        authenticated: false,
+        ui: {
+          show_version: true,
+        },
+      });
+
+      const versionLink = wrapper.find('a[href*="github.com/onetimesecret/onetimesecret/releases"]');
+      expect(versionLink.exists()).toBe(false);
+    });
+  });
+
+  // The version/attribution cell is one half of a two-ended bottom bar. With
+  // the version now authenticated-only and `displayPoweredBy` defaulting off
+  // across App.vue and most route metas, that cell rendered empty on nearly
+  // every anonymous surface and the bar went lop-sided. useFooterAnchor falls
+  // the existing attribution back in as a brand anchor so the cell is never
+  // empty — except on custom domains, where the attribution names the INSTALL
+  // (brand_product_name), not the tenant, and must not be forced onto a
+  // white-labelled page.
+  describe('brand anchor keeps the version/attribution cell occupied', () => {
+    // The cell is the wrapping div of the version span; assert on the
+    // attribution link (t() is mocked to echo the key).
+    const attributionLink = (w: VueWrapper) =>
+      w.findAll('a').find((link) => link.text() === 'web.branding.powered_by_onetime_secret');
+
+    // WorkspaceFooter's own withDefaults sets displayPoweredBy: true, but
+    // App.vue merges an explicit `false` into every route's layoutProps, so
+    // `false` is what this component really receives in the app. These cases
+    // pass it explicitly to exercise the real path.
+    it('anchors with the attribution for an anonymous visitor', async () => {
+      wrapper = mountComponent(
+        { authenticated: false, ui: { show_version: true } },
+        { displayPoweredBy: false }
+      );
+
+      expect(
+        wrapper.find('a[href*="github.com/onetimesecret/onetimesecret/releases"]').exists()
+      ).toBe(false);
+      // Left cell is NOT empty: attribution stands in for the hidden version.
+      expect(attributionLink(wrapper)).toBeDefined();
+    });
+
+    it('anchors when the deployment disabled show_version', async () => {
+      wrapper = mountComponent(
+        { authenticated: true, ui: { show_version: false } },
+        { displayPoweredBy: false }
+      );
+
+      expect(attributionLink(wrapper)).toBeDefined();
+    });
+
+    it('drops the fallback attribution once the version occupies the cell', async () => {
+      wrapper = mountComponent(
+        { authenticated: true, ui: { show_version: true } },
+        { displayPoweredBy: false }
+      );
+
+      expect(
+        wrapper.find('a[href*="github.com/onetimesecret/onetimesecret/releases"]').exists()
+      ).toBe(true);
+      // displayPoweredBy is unset here, so the anchor stands down.
+      expect(attributionLink(wrapper)).toBeUndefined();
+    });
+
+    it('withholds the fallback anchor on a custom domain (white-label guard)', async () => {
+      wrapper = mountComponent(
+        { authenticated: false, domain_strategy: 'custom', ui: { show_version: true } },
+        { displayPoweredBy: false }
+      );
+
+      expect(attributionLink(wrapper)).toBeUndefined();
+    });
+
+    it('omits the version/attribution row entirely when nothing occupies it', async () => {
+      // Anonymous + custom domain is the one case with no occupant. Note
+      // WorkspaceFooter's bottom block is already a centered column with no
+      // toggle cluster, so there is no `justify-between` to swap here (unlike
+      // TransactionalFooter / ManagementFooter) — the only observable effect
+      // is that the empty row stops claiming a `gap-2` slot.
+      wrapper = mountComponent(
+        { authenticated: false, domain_strategy: 'custom', ui: { show_version: true } },
+        { displayPoweredBy: false }
+      );
+
+      expect(wrapper.find('.flex.items-center.gap-x-3').exists()).toBe(false);
+    });
+
+    it('renders the version/attribution row whenever it has an occupant', async () => {
+      wrapper = mountComponent(
+        { authenticated: false, ui: { show_version: true } },
+        { displayPoweredBy: false }
+      );
+
+      expect(wrapper.find('.flex.items-center.gap-x-3').exists()).toBe(true);
+    });
+
+    it('still renders the attribution on a custom domain when asked explicitly', async () => {
+      // Custom-domain route overrides (public.routes.ts, receipt.ts) opt in
+      // deliberately; only the unrequested fallback is suppressed.
+      wrapper = mountComponent(
+        { authenticated: false, domain_strategy: 'custom', ui: { show_version: true } },
+        { displayPoweredBy: true }
+      );
+
+      expect(attributionLink(wrapper)).toBeDefined();
     });
   });
 });

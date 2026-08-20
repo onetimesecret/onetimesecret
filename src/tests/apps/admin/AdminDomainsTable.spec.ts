@@ -203,7 +203,12 @@ describe('AdminDomains — table, filters and drawer', () => {
     await stateSelect(wrapper).setValue('verified');
     await flushPromises();
 
-    await wrapper.find('[data-testid="domains-filterbar"] button').trigger('click');
+    // The bar's first button is the search-submit; the clear button is the
+    // trailing one (same lookup convention as AdminDomains.spec.ts).
+    const clearBtn = wrapper
+      .findAll('[data-testid="domains-filterbar"] button')
+      .find((b) => b.text().includes('clearFilters'));
+    await clearBtn!.trigger('click');
     await flushPromises();
 
     expect(mockApi.get).toHaveBeenLastCalledWith('/api/colonel/domains', {

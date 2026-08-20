@@ -229,7 +229,46 @@ module Onetime
         self.allowed_domains_json = normalized.empty? ? nil : JSON.generate(normalized)
       end
 
+      # Whether allowed_domains_json holds something we cannot read as a
+      # domain list.
+      #
+      # allowed_domains (above) swallows JSON::ParserError and returns [], and
+      # valid_email_domain? reads an empty list as "no allowlist configured →
+      # allow all". That pairing is right for display surfaces — a corrupt
+      # value must not 500 the config UI — but on the AUTHENTICATION path it
+      # inverts the operator's intent: a hand-edited or truncated value would
+      # silently disable the very restriction it encodes. Callers that gate
+      # sign-in consult this first and deny when it is true, so a value we
+      # cannot parse fails closed instead of opening the door.
+      #
+      # An absent/empty value is NOT corrupt — that is the legitimate "no
+      # allowlist" state written by allowed_domains= when the list is empty.
+      # A well-formed empty array ("[]") is likewise not corrupt. A
+      # whitespace-only value IS corrupt: no app write path produces one
+      # (allowed_domains= writes nil or valid JSON), and allowed_domains
+      # above — whose blank guard does not strip — would degrade it to
+      # allow-all, the exact silent failure this predicate exists to catch.
+      # JSON.parse tolerates surrounding whitespace, so a padded-but-valid
+      # value still reads as well-formed.
+      #
+      # @return [Boolean] true when a value is present but unreadable as an Array
+      def allowed_domains_corrupt?
+        raw = allowed_domains_json.to_s
+        return false if raw.empty?
+
+        !JSON.parse(raw).is_a?(Array)
+      rescue JSON::ParserError
+        true
+      end
+
       # Validate an email address against the allowed domains list.
+      #
+      # NOTE: returns true when the list is empty — an unconfigured allowlist
+      # means "allow every domain the IdP will authenticate", which is the
+      # intended state for providers that control access themselves (Entra ID,
+      # see PROVIDER_METADATA). Authentication callers must therefore pair this
+      # with allowed_domains_corrupt? so an unreadable list is not mistaken for
+      # an unconfigured one.
       #
       # @param email [String] Email address to validate
       # @return [Boolean] true if email domain is allowed
@@ -444,6 +483,44 @@ module Onetime
         # @return [Boolean] true if tenant SSO can be used to sign in
         def tenant_sso_available_for?(domain_id, auth: nil, sso_config: nil)
           tenant_sso_unavailable_reason(domain_id, auth: auth, sso_config: sso_config).nil?
+        end
+
+        # Whether ANY SSO sign-in path is offered on a CUSTOM DOMAIN host —
+        # the domain's own credentials, or the operator's platform providers
+        # when tenants are allowed to fall back to them.
+        #
+        # Wider than tenant_sso_available_for? by exactly the platform-fallback
+        # arm, and that is the point: it answers the question
+        # ConfigSerializer#build_sso_config answers for the rendered page
+        # ("will this host show SSO buttons?"), so the `restrict_to` SSO pin —
+        # display (ConfigSerializer#effective_global_restrict_to) and runtime
+        # (Auth::RestrictTo.global_restrict_to) — can be computed from ONE
+        # predicate on both sides.
+        #
+        # Why the pin converges HERE rather than on the narrower tenant ladder
+        # (ADR-034#restrict-to-is-an-access-control-not-a-display-preference,
+        # #4139): with allow_platform_fallback_for_tenants? on and
+        # no tenant SsoConfig, the page renders platform SSO buttons and
+        # nothing else — password/email default OFF on custom domains — while
+        # the narrower predicate left the gate unpinned and therefore MORE
+        # permissive than the page, accepting crafted password POSTs on a host
+        # that offers only SSO. Converging on the display's answer is the
+        # narrowing direction and locks out nobody: the methods it restricts
+        # away are ones that host never offered.
+        #
+        # The masthead link gate deliberately keeps the NARROW predicate (a
+        # branded front door advertises what the domain owner opted into, not
+        # an operator fallback) — that asymmetry is unchanged.
+        #
+        # @param domain_id [String, nil] CustomDomain identifier (objid)
+        # @param auth [Hash, nil] site.authentication settings (injectable for tests)
+        # @return [Boolean] true if the host offers some SSO sign-in path
+        def sso_available_for_tenant_host?(domain_id, auth: nil)
+          return true if domain_id && tenant_sso_available_for?(domain_id, auth: auth)
+          return false unless Onetime.auth_config.allow_platform_fallback_for_tenants?
+          return false unless Onetime::CustomDomain::SigninConfig.global_auth_enabled(auth)
+
+          Onetime.auth_config.sso_enabled?
         end
 
         # Check if a domain has SSO configured.

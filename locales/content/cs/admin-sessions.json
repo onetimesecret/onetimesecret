@@ -31,6 +31,10 @@
     "text": "IP adresa",
     "source_hash": "3c3de0c9"
   },
+  "web.admin.sessions.columns.country": {
+    "text": "Země",
+    "source_hash": "701d021d"
+  },
   "web.admin.sessions.columns.created": {
     "text": "Ověřeno dne",
     "source_hash": "8d6c9b01"

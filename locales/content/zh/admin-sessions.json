@@ -31,6 +31,10 @@
     "text": "IP 地址",
     "source_hash": "3c3de0c9"
   },
+  "web.admin.sessions.columns.country": {
+    "text": "国家/地区",
+    "source_hash": "701d021d"
+  },
   "web.admin.sessions.columns.created": {
     "text": "验证时间",
     "source_hash": "8d6c9b01"

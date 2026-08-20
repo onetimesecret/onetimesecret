@@ -90,6 +90,85 @@ module Onetime
     end
   end
 
+  # An authentication gate could not READ the policy for the request host
+  # (ADR-034#restrict-to-is-an-access-control-not-a-display-preference /
+  # #degradation-is-fail-closed,
+  # ADR-024#operator-defaults-require-positive-classification, #4139/#4157): the
+  # per-domain half of that policy lives in the datastore, so a read failure
+  # leaves the gate unable to say what this host permits. Sign-in and sign-up
+  # each get a subclass; the SHAPE lives here exactly once, because the two
+  # must not drift into differently-formed 503s for the identical failure.
+  #
+  # Maps to HTTP 503 at every edge — otto_hooks (Core, invite API) and
+  # Auth::ErrorTranslator (the Roda auth router) — because that is the piece
+  # that makes unconditional fail-closed survivable. A gate's normal reject
+  # shape is a 404 (ADR-034#reject-as-not-found-not-forbidden) whose whole
+  # point is to be indistinguishable from an
+  # undefined route, or a bare redirect home; answering an unreadable policy
+  # the same way would put mystery not-founds on the auth routes of an install
+  # that restricts nothing, indistinguishable from a routing regression. A 503
+  # says what actually happened — a backend read failed, retry — and is
+  # alertable as itself. That 404 exists to hide policy-gated methods; when the
+  # policy is unreadable there is no policy to hide.
+  #
+  # NOT a FormError/Forbidden: nothing about the request is wrong.
+  #
+  # Otto resolves error handlers by EXACT class name (Otto::Core::ErrorHandler
+  # looks up `error.class.name`), so every subclass needs its own
+  # register_error_handler entry in lib/onetime/application/otto_hooks.rb —
+  # inheriting from this class is not enough to inherit the 503.
+  class AuthPolicyUnavailable < Problem
+    # Seconds. Surfaced in the body (Otto error handlers cannot set response
+    # headers) and lifted into a Retry-After header by
+    # Onetime::Middleware::RetryAfterHeader.
+    RETRY_AFTER = 5
+
+    def initialize(message = self.class::DEFAULT_MESSAGE)
+      super
+    end
+
+    # error_type is derived from the class name rather than restated per
+    # subclass: the two surfaces must be separable in alerting (a 503 on
+    # sign-up is a different page being down than a 503 on sign-in) without
+    # anyone having to keep a hand-written string in sync with the class.
+    def to_h
+      {
+        error: message,
+        error_type: self.class.name.split('::').last,
+        retry_after: self.class::RETRY_AFTER,
+      }
+    end
+  end
+
+  # The `restrict_to` / sign-in policy for the REQUEST HOST could not be read.
+  # Raised by Core::Controllers::Base#signin_policy_read_failed! and by
+  # SigninConfig.resolve_lookup_failure.
+  class SigninPolicyUnavailable < AuthPolicyUnavailable
+    DEFAULT_MESSAGE = 'Sign-in is temporarily unavailable. Please try again shortly.'
+  end
+
+  # The sign-up policy for the REQUEST HOST could not be read (#4157). Same
+  # rule and same shape as the sign-in sibling above, deliberately NOT the same
+  # class: the user-visible copy would otherwise say "sign-in" on a failed
+  # POST /auth/create-account, and the error_type is what routes the alert.
+  #
+  # The decision to raise is not restated here or at the call sites — it is
+  # SignupConfig.resolve_lookup_failure, which carves out positively-classified
+  # operator hosts via the same SigninConfig.operator_host? predicate the
+  # sign-in path uses, so the two gates cannot disagree about which hosts
+  # survive a datastore blip.
+  class SignupPolicyUnavailable < AuthPolicyUnavailable
+    DEFAULT_MESSAGE = 'Sign-up is temporarily unavailable. Please try again shortly.'
+  end
+
+  # Raised by Organization.create! when the contact_email unique index already
+  # holds a reservation for that address (the HSETNX check-and-reserve lost).
+  # Rescue this class, never match on the message: the call sites that carry a
+  # fallback (retry without a contact_email, adopt the orphaned org, render
+  # :email_taken) must not be silently disabled by a reworded message.
+  class OrganizationExists < Problem
+  end
+
   class RecordNotFound < Problem
     # i18n shape: error_key + args are resolved at the HTTP edge so logic
     # classes never touch I18n. error_key is the full dotted i18n key (e.g.

@@ -59,14 +59,20 @@ python3 locales/scripts/i18n tasks next fr_CA --stats
 
 ### 1. Create Tasks (if needed)
 
-For each eligible locale that needs tasks generated, enqueue the keys still
-untranslated in `content/LOCALE` **plus** stale ones (translated, but en changed
-since) — already-translated, still-current reviewed strings are never requeued.
-Use `--missing-only` for existing locales; drop it only to bootstrap a
-brand-new, empty locale:
+For each eligible locale that needs tasks generated, run `create --apply`
+(without `--apply` it only previews). It enqueues the keys still untranslated in
+`content/LOCALE` **plus** stale ones (translated, but en changed since) —
+already-translated, still-current reviewed strings are never requeued. A
+brand-new locale needs no extra flag: with no `content/LOCALE` every key is
+missing, so the result is the full key set anyway. Applying reopens any
+completed level that still has work, discarding its translations; that is free
+for already-exported levels and **refused** (exit 3, nothing written) for levels
+whose translations were never exported. If you hit the refusal, run
+`tasks export LOCALE` to keep that work, or re-run with `--reopen` to discard it
+on purpose.
 
 ```bash
-python3 locales/scripts/i18n tasks create LOCALE --missing-only
+python3 locales/scripts/i18n tasks create LOCALE --apply
 ```
 
 ### 2. Track Agents with TodoWrite

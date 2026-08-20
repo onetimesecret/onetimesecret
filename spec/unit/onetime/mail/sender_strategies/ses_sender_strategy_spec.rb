@@ -464,16 +464,30 @@ RSpec.describe Onetime::Mail::SenderStrategies::SESSenderStrategy do
       end
     end
 
+    context 'when the SES API errors (e.g. rotated credentials)' do
+      before do
+        allow(mock_client).to receive(:get_email_identity)
+          .and_raise(Aws::SESV2::Errors::ServiceError.new(nil, 'invalid security token'))
+      end
+
+      it 'returns verified: nil — indeterminate, never an authoritative false' do
+        result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
+
+        expect(result[:verified]).to be_nil
+        expect(result[:status]).to eq('error')
+      end
+    end
+
     context 'when an unexpected error occurs' do
       before do
         allow(mock_client).to receive(:get_email_identity)
           .and_raise(StandardError.new('boom'))
       end
 
-      it 'returns error status' do
+      it 'returns verified: nil — indeterminate, never an authoritative false' do
         result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
 
-        expect(result[:verified]).to be false
+        expect(result[:verified]).to be_nil
         expect(result[:status]).to eq('error')
       end
     end

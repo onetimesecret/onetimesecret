@@ -11,6 +11,19 @@
 
 # IMPORTANT: Set test environment BEFORE loading anything
 # These must be set before OT.boot! reads config files
+#
+# PROCESS-WIDE REACH. Every default below is `||=`, so it only fills a gap the
+# caller left — but the gap it fills belongs to the whole rspec process, not to
+# the billing tree. That is invisible while `rake spec:fast` gives each app
+# spec tree its own process and becomes load-bearing the moment the trees share
+# one: whichever tree loads this file first decides the environment for all of
+# them, and the OT.boot! below then bakes the result into a booted app.
+#
+# The lanes and CI both set these explicitly (tests/lanes/base.env pins
+# REDIS_URL and RACK_ENV; tests/lanes/unit/env pins AUTHENTICATION_MODE=simple),
+# so the `||=` is inert there and this file changes nothing. A bare local
+# `bundle exec rake spec:fast` is the divergence: nothing pins the values, so
+# these defaults win and the process runs in full mode against sqlite::memory:.
 ENV['STRIPE_API_KEY'] ||= 'sk_test_mock'
 ENV['REDIS_URL'] ||= 'redis://127.0.0.1:2163/0'
 ENV['RACK_ENV']   ||= 'test'
@@ -271,23 +284,56 @@ module BillingSpecHelper
 end
 
 RSpec.configure do |config|
+  # Files these includes and hooks own.
+  #
+  # Every filter below keys on a GENERIC metadata key — type: :billing,
+  # :controller, :cli, :integration, and the bare :billing/:integration symbol
+  # tags. Those keys are not billing's: spec/cli/**/*_spec.rb is type: :cli, and
+  # 17 spec files outside this tree declare type: :integration. That is harmless
+  # while `rake spec:fast` gives each app spec tree its own rspec process, and
+  # wrong the moment the trees share one — the VCR around-hook would wrap other
+  # trees' examples in cassettes, mock_sleep! would stub Object#sleep for them,
+  # and the flushdb hooks would run twice per example. RSpec ANDs filters, so
+  # pairing each generic key with a path filter keeps every hook on the examples
+  # it was written for.
+  #
+  # Filter on :file_path rather than a define_derived_metadata tag: RSpec sets
+  # :file_path on every example from its own source location, so this holds no
+  # matter when this file loads, whereas a derived-metadata rule only reaches
+  # groups defined after the rule is registered — and several app spec files
+  # never require their tree's helper at all.
+  #
+  # The second and third alternatives are deliberately not in this tree.
+  # spec/unit/onetime/jobs/scheduled/plan_cache_refresh_job_spec.rb and
+  # spec/unit/onetime/jobs/scheduled/maintenance/entitlement_materialize_job_spec.rb
+  # require this helper on purpose and are tagged type: :billing; they run in
+  # the unit process, where nothing else here is loaded, and must keep the
+  # billing setup they have today.
+  billing_spec_files = %r{
+    /apps/web/billing/spec/
+    |
+    /spec/unit/onetime/jobs/scheduled/plan_cache_refresh_job_spec\.rb\z
+    |
+    /spec/unit/onetime/jobs/scheduled/maintenance/entitlement_materialize_job_spec\.rb\z
+  }x
+
   # Include BillingSpecHelper for both `type:` metadata and symbol tags
   # e.g., `type: :integration` AND `:integration` symbol tag
-  config.include BillingSpecHelper, type: :billing
-  config.include BillingSpecHelper, type: :controller
-  config.include BillingSpecHelper, type: :integration
-  config.include BillingSpecHelper, type: :cli
+  config.include BillingSpecHelper, type: :billing, file_path: billing_spec_files
+  config.include BillingSpecHelper, type: :controller, file_path: billing_spec_files
+  config.include BillingSpecHelper, type: :integration, file_path: billing_spec_files
+  config.include BillingSpecHelper, type: :cli, file_path: billing_spec_files
   # Symbol tag matching (for RSpec.describe 'Name', :integration do)
-  config.include BillingSpecHelper, billing: true
-  config.include BillingSpecHelper, integration: true
-  config.include BillingSpecHelper, billing_cli: true
+  config.include BillingSpecHelper, billing: true, file_path: billing_spec_files
+  config.include BillingSpecHelper, integration: true, file_path: billing_spec_files
+  config.include BillingSpecHelper, billing_cli: true, file_path: billing_spec_files
 
   # Include StripeMockFactory for Stripe API mock objects
-  config.include StripeMockFactory, type: :billing
-  config.include StripeMockFactory, type: :controller
-  config.include StripeMockFactory, type: :integration
-  config.include StripeMockFactory, billing: true
-  config.include StripeMockFactory, integration: true
+  config.include StripeMockFactory, type: :billing, file_path: billing_spec_files
+  config.include StripeMockFactory, type: :controller, file_path: billing_spec_files
+  config.include StripeMockFactory, type: :integration, file_path: billing_spec_files
+  config.include StripeMockFactory, billing: true, file_path: billing_spec_files
+  config.include StripeMockFactory, integration: true, file_path: billing_spec_files
 
   # Build VCR cassette name from example metadata
   # Returns hierarchical path: Class/_method/test_description
@@ -317,7 +363,7 @@ RSpec.configure do |config|
   # IMPORTANT: Skip stripe_sandbox_api tests in CI when STRIPE_API_KEY is not set
   # This must happen BEFORE VCR.use_cassette to avoid replaying stale cassettes
   %i[billing cli controller integration].each do |test_type|
-    config.around(:each, type: test_type) do |example|
+    config.around(:each, type: test_type, file_path: billing_spec_files) do |example|
       if BILLING_VCR_SKIP_IN_CI && example.metadata[:stripe_sandbox_api]
         skip 'Skipping Stripe sandbox test in CI - re-record cassettes with STRIPE_API_KEY'
       else
@@ -329,7 +375,7 @@ RSpec.configure do |config|
   end
 
   # Symbol tag :integration also gets VCR wrapping
-  config.around(:each, :integration) do |example|
+  config.around(:each, :integration, file_path: billing_spec_files) do |example|
     if BILLING_VCR_SKIP_IN_CI && example.metadata[:stripe_sandbox_api]
       skip 'Skipping Stripe sandbox test in CI - re-record cassettes with STRIPE_API_KEY'
     else
@@ -350,17 +396,17 @@ RSpec.configure do |config|
 
   billing_cleanup = ->(_example = nil) { Familia.dbclient.flushdb }
 
-  config.before(:each, type: :billing, &billing_setup)
-  config.before(:each, :billing, &billing_setup)
-  config.after(:each, type: :billing, &billing_cleanup)
-  config.after(:each, :billing, &billing_cleanup)
+  config.before(:each, type: :billing, file_path: billing_spec_files, &billing_setup)
+  config.before(:each, :billing, file_path: billing_spec_files, &billing_setup)
+  config.after(:each, type: :billing, file_path: billing_spec_files, &billing_cleanup)
+  config.after(:each, :billing, file_path: billing_spec_files, &billing_cleanup)
 
-  config.before(:each, type: :cli) do
+  config.before(:each, type: :cli, file_path: billing_spec_files) do
     mock_billing_config!
     mock_sleep!
   end
 
-  config.before(:each, type: :controller) do
+  config.before(:each, type: :controller, file_path: billing_spec_files) do
     @sleep_delays = []
     mock_billing_config!
   end
@@ -375,11 +421,11 @@ RSpec.configure do |config|
     Familia.dbclient.flushdb
   end
 
-  config.before(:each, type: :integration, &integration_setup)
-  config.before(:each, :integration, &integration_setup)
+  config.before(:each, type: :integration, file_path: billing_spec_files, &integration_setup)
+  config.before(:each, :integration, file_path: billing_spec_files, &integration_setup)
 
   # Cleanup for both integration tag patterns
   integration_cleanup = ->(_example = nil) { Familia.dbclient.flushdb }
-  config.after(:each, type: :integration, &integration_cleanup)
-  config.after(:each, :integration, &integration_cleanup)
+  config.after(:each, type: :integration, file_path: billing_spec_files, &integration_cleanup)
+  config.after(:each, :integration, file_path: billing_spec_files, &integration_cleanup)
 end

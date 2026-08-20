@@ -11,9 +11,7 @@ require 'rack'
 require 'rack/protection'
 require 'rack/utf8_sanitizer'
 
-require_relative 'instrumented_authenticity_token'
-require_relative 'permissions_policy'
-require_relative 'xss_header'
+require_relative 'registry'
 
 module Onetime
   module Middleware
@@ -34,25 +32,31 @@ module Onetime
     # Each protection can be individually enabled/disabled via configuration.
     #
     class Security
-      @middleware_components = {}
-
-      # Middleware keys whose protections are security-critical: switching one of
-      # these off silently weakens the app, so a disable is logged at warn level.
-      # Toggles that ship OFF by design (http_origin, cookie_tossing,
-      # ip_spoofing) are intentionally excluded to keep the log quiet.
-      # xss_header, referrer_policy and permissions_policy ship ON since the
-      # 2026-08-02 audit (M-3): they emit X-Content-Type-Options,
-      # Referrer-Policy and Permissions-Policy as real response headers.
-      SECURITY_CRITICAL_KEYS = %w[
-        frame_options
-        path_traversal
-        strict_transport
-        authenticity_token
-        utf8_sanitizer
-        xss_header
-        referrer_policy
-        permissions_policy
+      # The components this wrapper mounts, in mount order. The definitions
+      # themselves live in Onetime::Middleware::Registry, the single component
+      # table; this list selects the Security subset.
+      COMPONENT_NAMES = %w[
+        UTF8Sanitizer
+        AuthenticityToken
+        HttpOrigin
+        XSSHeader
+        ReferrerPolicy
+        PermissionsPolicy
+        FrameOptions
+        PathTraversal
+        CookieTossing
+        IPSpoofing
+        StrictTransport
       ].freeze
+
+      # Middleware keys for which project guidance says a disabled toggle should
+      # be reviewed. Derived from the Registry flags; this is distinct from the
+      # operator configuration that determines whether the component is mounted.
+      WARN_WHEN_DISABLED_KEYS = COMPONENT_NAMES
+        .map { |name| Registry.fetch(name) }
+        .select { |cfg| cfg[:warn_when_disabled] }
+        .map { |cfg| cfg[:key].to_s }
+        .freeze
 
       # The wrapped Rack application
       # @return [#call] The Rack application instance passed to this middleware
@@ -89,8 +93,8 @@ module Onetime
         middleware_settings = Onetime.conf.dig('site', 'middleware') || {}
 
         # Define middleware components with their corresponding settings keys
-        components     = self.class.middleware_components
-        critical_keys  = SECURITY_CRITICAL_KEYS
+        components               = self.class.middleware_components
+        warn_when_disabled_keys  = WARN_WHEN_DISABLED_KEYS
         Rack::Builder.new do
           # Apply each middleware if configured
           components.each do |name, config|
@@ -98,10 +102,9 @@ module Onetime
             # reads a real boolean, not a string.
             middleware_key = config[:key].to_s
             unless middleware_settings[middleware_key]
-              # Loudly flag a security-critical protection that is switched off so
-              # an accidental disable is visible in logs. Deliberately-off toggles
-              # stay quiet (see SECURITY_CRITICAL_KEYS).
-              if critical_keys.include?(middleware_key)
+              # Flag a disabled component when project guidance says the
+              # operator's configuration choice merits review.
+              if warn_when_disabled_keys.include?(middleware_key)
                 OT.lw "[Security] #{name} protection DISABLED (site.middleware.#{middleware_key}=false)"
               end
               next
@@ -119,197 +122,19 @@ module Onetime
       end
 
       class << self
-        attr_accessor :middleware_components
+        # The Registry component table filtered to the components Security
+        # mounts, preserving mount order. Kept as a method (same shape as the
+        # former class-level hash) so existing consumers reading e.g.
+        # middleware_components['AuthenticityToken'][:options][:allow_if]
+        # keep working unchanged.
+        #
+        # @return [Hash] name => {key:, klass:, options:, warn_when_disabled:}
+        def middleware_components
+          @middleware_components ||= COMPONENT_NAMES
+            .to_h { |name| [name, Registry.fetch(name)] }
+            .freeze
+        end
       end
     end
   end
 end
-
-Onetime::Middleware::Security.middleware_components = {
-  # UTF-8 Sanitization: Ensures request parameters use valid UTF-8 encoding.
-  'UTF8Sanitizer' => {
-    key: :utf8_sanitizer,
-    klass: Rack::UTF8Sanitizer,
-    options: { sanitize_null_bytes: true },
-  },
-
-  # CSRF Protection (Token-based): Validates 'shrimp' authenticity tokens.
-  #
-  # This middleware validates CSRF tokens for all state-changing requests (POST, PUT, etc.)
-  # using Rack::Protection::AuthenticityToken. The raw token is stored in session[:csrf],
-  # but forms submit a MASKED version (different each request) to mitigate BREACH attacks.
-  #
-  # Bypass rules:
-  # - SSO routes (/auth/sso/*): Use OAuth 'state' parameter for CSRF protection
-  # - API routes WITHOUT an authenticated session cookie: no ambient credential to
-  #   forge, so no CSRF vector (Basic-Auth API-key clients, anonymous/programmatic
-  #   callers, unauthenticated secret recipients, the /api/incoming/* inbound surface)
-  # - Web/SPA + session-authenticated API routes: Must include X-CSRF-Token header
-  #   (Axios interceptor) or 'shrimp' form param
-  #
-  # Note: API v1 has no session/cookie auth (Basic Auth or anonymous only), so v1
-  # requests never carry an authenticated session and always bypass. API v2/v3
-  # support session auth; a logged-in SPA user hitting those endpoints is required
-  # to present a CSRF token (the allow_if lambda enforces this by checking for an
-  # authenticated session cookie).
-  #
-  # See also: apps/web/auth/config/hooks/omniauth.rb for Rodauth-side bypass
-  'AuthenticityToken' => {
-    key: :authenticity_token,
-    # Subclass of Rack::Protection::AuthenticityToken that stamps
-    # env['onetime.csrf.rejected'] on rejection so CsrfResponseHeader can
-    # distinguish a real CSRF 403 from an unrelated 403. See
-    # InstrumentedAuthenticityToken for why the subclass (not an :instrumenter).
-    klass: Onetime::Middleware::InstrumentedAuthenticityToken,
-    options: {
-      authenticity_param: 'shrimp',
-      allow_if: ->(env) {
-        req = Rack::Request.new(env)
-
-        # SSO routes use OAuth state parameter for CSRF protection
-        return true if req.path.start_with?('/auth/sso/')
-
-        # Magic link routes: The email-auth token itself provides CSRF protection
-        # - Token is cryptographically random, one-time use, and time-limited
-        # - User arrives from external email client without existing session/CSRF token
-        # - Similar to SSO: the authentication token validates the request
-        return true if req.path == '/auth/email-login'
-
-        # API routes: bypass CSRF ONLY when there is no ambient session cookie to
-        # forge against. A CSRF attack rides the victim's session cookie, so the
-        # discriminator MUST be the authenticated session — not merely the presence
-        # of an Authorization header.
-        #   - Basic Auth (API key): a stateless credential sent explicitly per
-        #     request; no ambient cookie => no CSRF vector => bypass.
-        #   - No authenticated session cookie (anonymous/programmatic clients, v1
-        #     which has no session auth, unauthenticated secret recipients, and the
-        #     entire /api/incoming/* inbound surface): nothing to forge => bypass.
-        #   - Session-cookie-authenticated API request (logged-in SPA user): fall
-        #     through and require a valid X-CSRF-Token. The SPA sends it on every
-        #     request (axios interceptor), so this does not break the app; it only
-        #     rejects a forged cross-site request that presents no token.
-        if req.path.start_with?('/api/')
-          return true if env['HTTP_AUTHORIZATION'].to_s.start_with?('Basic ')
-
-          session = env['rack.session']
-          return true unless session && session['authenticated'] == true
-          # else: session-authenticated API request -> fall through, require token
-        end
-
-        # NOTE: Incoming secrets API is now at /api/incoming/* and covered by the /api/ check above.
-        # The frontend page at /incoming uses GET requests which don't require CSRF protection.
-
-        # Webhook endpoints use their own signature-based verification (e.g., Stripe-Signature header)
-        # They're called server-to-server, not from browsers, so CSRF doesn't apply
-        return true if req.path == '/billing/webhook'
-
-        # OAuth/OIDC IdP endpoints that are reached programmatically by SP
-        # clients (not by the resource owner's browser): /token, /userinfo,
-        # /revoke, /jwks, /.well-known/*. PKCE + client_secret + exact-match
-        # redirect_uri + bearer tokens carry the protocol-level guarantees
-        # that CSRF normally provides on a session-cookie POST.
-        #
-        # NOT bypassed: /authorize. That endpoint IS browser-driven — the
-        # resource owner POSTs the consent form — and a CSRF bypass there
-        # would let a malicious page silently issue authorization codes to
-        # an attacker-controlled client. Pure-API SP clients call /authorize
-        # via redirect, not POST, so CSRF is irrelevant for them.
-        #
-        # Gated on oauth_enabled?: these exemptions are only safe because the
-        # IdP owns these exact paths. When AUTH_OAUTH_ENABLED is off the OAuth
-        # routes are not mounted, so the only thing the bypass could do is hand
-        # an unrelated future route at one of these paths a silent CSRF
-        # exemption. Scoping to oauth_enabled? keeps the exemption tracking the
-        # feature that justifies it (#3239 review). The check is cheap —
-        # feature_enabled? short-circuits to false unless auth runs in full mode.
-        if Onetime.auth_config&.oauth_enabled?
-          path = req.path.chomp('/')
-          return true if path == '/auth/token'
-          return true if path == '/auth/userinfo'
-          return true if path == '/auth/revoke'
-          return true if path == '/auth/jwks'
-          return true if req.path.start_with?('/auth/.well-known/')
-        end
-
-        false
-      },
-    },
-  },
-
-  # CSRF Protection (Origin-based): Validates Origin and Referer headers.
-  'HttpOrigin' => {
-    key: :http_origin,
-    klass: Rack::Protection::HttpOrigin,
-  },
-
-  # NOTE: Rack::Protection::EscapedParams is intentionally EXCLUDED.
-  # It escapes all parameters uniformly, which would corrupt sensitive data
-  # like passwords and secrets. OTS uses Onetime::Security::InputSanitizers
-  # for field-aware sanitization instead.
-
-  # XSS Header: Sets X-XSS-Protection: 0 (HTML responses) AND
-  # X-Content-Type-Options: nosniff (all responses). The nosniff header is the
-  # load-bearing half: it stops browsers from MIME-sniffing responses into
-  # executable types. Ships enabled since the 2026-08-02 audit (M-3.1) —
-  # previously nosniff existed only as a meta tag in head-base.rue, which
-  # browsers ignore for non-HTML resources. Uses the Onetime subclass rather
-  # than Rack::Protection::XSSHeader because the latter can only emit
-  # `1; mode=...`, which is an XS-Leaks vector in the legacy browsers that
-  # still ship the XSS auditor (see xss_header.rb).
-  'XSSHeader' => {
-    key: :xss_header,
-    klass: Onetime::Middleware::XSSHeader,
-  },
-
-  # Referrer Policy: Emits Referrer-Policy: no-referrer on every response.
-  # Secret links carry secret identifiers in the URL path, so ANY referrer
-  # leakage — including same-origin navigations that a laxer policy like
-  # strict-origin-when-cross-origin would permit to be recorded — is a
-  # disclosure vector. no-referrer suppresses the Referer header entirely
-  # (2026-08-02 audit, M-3.2). The meta tag in head-base.rue mirrors this
-  # value; keep the two in sync. Uses ||= semantics, so a route that needs a
-  # different policy can set its own header downstream without being clobbered.
-  'ReferrerPolicy' => {
-    key: :referrer_policy,
-    klass: Rack::Protection::ReferrerPolicy,
-    options: { referrer_policy: 'no-referrer' },
-  },
-
-  # Permissions Policy: Emits Permissions-Policy disabling geolocation,
-  # microphone and camera as an HTTP response header (2026-08-02 audit, M-3.3).
-  # Same policy as the head-base.rue meta tag, promoted to a real header.
-  'PermissionsPolicy' => {
-    key: :permissions_policy,
-    klass: Onetime::Middleware::PermissionsPolicy,
-  },
-
-  # Frame Options: Prevents clickjacking by restricting iframe embedding.
-  'FrameOptions' => {
-    key: :frame_options,
-    klass: Rack::Protection::FrameOptions,
-  },
-
-  # Path Traversal: Prevents directory traversal attacks in request paths.
-  'PathTraversal' => {
-    key: :path_traversal,
-    klass: Rack::Protection::PathTraversal,
-  },
-
-  # Cookie Tossing: Blocks session fixation via cookies set on subdomains.
-  'CookieTossing' => {
-    key: :cookie_tossing,
-    klass: Rack::Protection::CookieTossing,
-  },
-
-  # IP Spoofing: Detects and blocks IP spoofing attempts via header validation.
-  'IPSpoofing' => {
-    key: :ip_spoofing,
-    klass: Rack::Protection::IPSpoofing,
-  },
-
-  # HSTS: Forces HTTPS by setting the Strict-Transport-Security header.
-  'StrictTransport' => {
-    key: :strict_transport,
-    klass: Rack::Protection::StrictTransport,
-  },
-}

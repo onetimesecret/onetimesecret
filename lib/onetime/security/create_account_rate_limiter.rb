@@ -357,8 +357,14 @@ module Onetime
       # direct-connect deployment and boot has no evidence a proxy exists, so a
       # boot warning would fire on every default install. A lockout is the first
       # moment the condition is actually demonstrated.
+      #
+      # Read through the shared predicate rather than digging the config here:
+      # the hint's whole claim is about how the IP-privacy mount resolved the
+      # address, so it must ask the same question that mount asked (#4087). No
+      # require_relative — this file is reached via `require 'onetime'`, which
+      # loads the middleware stack, and the constant resolves at call time.
       def collapsed_create_account_ip_hint
-        return '' if OT.conf.dig('site', 'network', 'trusted_proxy', 'enabled') == true
+        return '' if Onetime::Application::MiddlewareStack.trusted_proxy_enabled?
 
         '. NOTE: site.network.trusted_proxy is not enabled, so the client IP is ' \
           'REMOTE_ADDR; if this deployment is behind a reverse proxy every visitor ' \

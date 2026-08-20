@@ -17,6 +17,16 @@ module V2::Logic
     class ListReceipts < V2::Logic::Base
       SCHEMAS = { response: 'receiptList' }.freeze
 
+      # Only the personal scope skips capability-token redaction. Unlisted
+      # scopes fail closed until they are proven to return owner-only records.
+      OWN_INDEX_SCOPES = [nil].freeze
+      private_constant :OWN_INDEX_SCOPES
+
+      # Scopes that read receipts created by other organization members. Both
+      # require the organization-wide audit authorization.
+      AUDIT_SURFACE_SCOPES = [:org, :domain].freeze
+      private_constant :AUDIT_SURFACE_SCOPES
+
       attr_reader :records,
         :since,
         :now,
@@ -39,11 +49,40 @@ module V2::Logic
       end
 
       def raise_concerns
-        # Receipts require an authenticated customer
         raise_not_found('Not found') unless cust
 
-        # API access entitlement required for metadata listing
         require_entitlement!('api_access')
+
+        # The activity flag gates cross-member receipt visibility only.
+        if AUDIT_SURFACE_SCOPES.include?(scope) &&
+           OT.conf.dig('features', 'organizations', 'audit_logs_enabled').to_s == 'false'
+          # Keyword args reach OT.info's **payload and are emitted as
+          # SemanticLogger structured payload, not concatenated into the message.
+          # The actor is the extid, never custid: custid holds the email address
+          # on legacy (pre-v0.22) records, and this line runs on every denial.
+          OT.info '[ListReceipts] Authorization denied: audit_logs_enabled feature flag disabled',
+            scope: scope.to_s,
+            actor: cust&.extid
+          raise_form_error('Secret activity is not enabled on this instance', error_type: :forbidden)
+        end
+
+        # Cross-member scopes require the organization-wide audit entitlement.
+        # scope=domain clears the same bar against the DOMAIN's owning org —
+        # see query_domain_receipts.
+        #
+        # ⚠️ OPERATOR ACTION on billing-enabled deployments. Entitlements are
+        # the org's plan ∩ ROLE_ENTITLEMENTS[role], so a plan that does not
+        # grant audit_logs 403s BOTH scopes for every role, owners included.
+        # Standalone / billing-disabled installs are unaffected —
+        # STANDALONE_ENTITLEMENTS (organization/features/with_plan_entitlements.rb)
+        # includes audit_logs. Grant audit_logs on every plan that should read
+        # a shared receipt index (etc/examples/billing.example.yaml grants it on
+        # identity_plus_v1; its commented-out team_plus_v1 tier lists it too),
+        # then re-sync the catalog:
+        # `bin/ots billing catalog sync` (push → pull → materialize). Editing
+        # billing.yaml alone changes nothing at runtime — effective
+        # entitlements come from the materialized plan cache.
+        require_entitlement!('audit_logs') if scope == :org
 
         # Validate domain access if domain scope requested
         return unless (scope == :domain) && !domain_extid
@@ -58,18 +97,15 @@ module V2::Logic
       end
 
       def process
-        # Debug logging for receipt list investigation (only in debug mode)
         OT.ld '[DEBUG:ListReceipts] Starting query',
           {
-            cust_id: cust&.custid,
-            cust_objid: cust&.objid,
+            cust_extid: cust&.extid,
             scope: scope,
             domain_extid: domain_extid,
             since: since,
             now: @now,
           }
 
-        # Query based on scope
         @query_results = case scope
                          when :org
                            query_organization_receipts
@@ -85,9 +121,9 @@ module V2::Logic
             first_3_results: query_results.first(3),
           }
 
-        # Get the safe fields for each record using optimized bulk loading
+        # Every non-personal scope withholds capability tokens from non-owners.
         receipt_objects = Onetime::Receipt.load_multi(query_results).compact
-        @records        = receipt_objects.map(&:safe_dump)
+        @records        = receipt_objects.map { |receipt| safe_dump_for(receipt) }
 
         @has_items              = records.any?
         records.sort! { |a, b| b[:updated] <=> a[:updated] }
@@ -117,13 +153,27 @@ module V2::Logic
 
       private
 
-      # Default scope: receipts owned by the current customer
+      # Withhold capabilities from receipts the caller does not own. Shortids
+      # preserve the required identifier/key shape without granting access.
+      def safe_dump_for(receipt)
+        record = receipt.safe_dump
+        # The personal scope contains only the caller's own receipts.
+        return record if OWN_INDEX_SCOPES.include?(scope)
+        return record if receipt.owner?(cust)
+
+        shortid = record[:shortid]
+        record.merge(
+          identifier: shortid,
+          key: shortid,
+          secret_identifier: nil,
+        )
+      end
+
       def query_customer_receipts
-        @scope_label = nil # No label needed for default
+        @scope_label = nil
         cust.receipts.rangebyscore(since, @now)
       end
 
-      # Organization scope: all receipts created by org members
       def query_organization_receipts
         unless auth_org
           raise_form_error(
@@ -139,8 +189,7 @@ module V2::Logic
         auth_org.receipts.rangebyscore(since, @now)
       end
 
-      # Domain scope: receipts created with a specific custom domain
-      # Access allowed for any member of the domain's organization
+      # Domain access and audit authorization are both required.
       def query_domain_receipts
         domain = Onetime::CustomDomain.find_by_extid(domain_extid)
         unless domain
@@ -153,19 +202,50 @@ module V2::Logic
           )
         end
 
-        has_access = domain.accessible_by?(cust)
-        unless has_access
-          raise_form_error(
-            I18n.t(
-              'web.secrets.errors.access_denied_to_domain',
-              locale: locale,
-              default: 'Access denied to domain',
-            ),
-          )
+        # Resolve the owning organization BEFORE either gate. The entitlement is
+        # evaluated in the DOMAIN's org, so a domain whose org_id is blank or
+        # points at a deleted organization would otherwise reach
+        # require_entitlement_in! as nil, where it becomes a bare
+        # Onetime::Problem (a 500). accessible_by? happens to return false for
+        # such a domain today, so this is not a live 500 — the guard keeps the
+        # invariant local, so relaxing accessible_by? later cannot turn a data
+        # defect into an unhandled error.
+        domain_org = load_organization_for_domain(domain) do
+          # The extid is the only identifier that may appear here: custid holds
+          # the email address on legacy (pre-v0.22) records, and org_id is an
+          # internal objid. Keyword args reach OT.lw's **payload as structured
+          # fields rather than being concatenated into the message.
+          OT.lw '[ListReceipts] Domain has no resolvable organization',
+            domain: domain.extid,
+            actor: cust&.extid
+          deny_domain_access
         end
+
+        deny_domain_access unless domain.accessible_by?(cust)
+
+        # Evaluated in the DOMAIN's org, not the caller's auth_org: the records
+        # belong to that org, so its plan ∩ role is what must grant the read.
+        # Same operator precondition as the scope=org gate — see raise_concerns.
+        require_entitlement_in!(domain_org, 'audit_logs')
 
         @scope_label = domain.display_domain
         domain.receipts.rangebyscore(since, @now)
+      end
+
+      # The damaged-ownership and not-a-member paths answer identically. A
+      # response that distinguished them would let any caller enumerate which
+      # domains carry broken ownership metadata, so both go through here rather
+      # than raising their own error — including the message, which must stay a
+      # single I18n lookup so the two cannot diverge under a non-English locale.
+      def deny_domain_access
+        raise_form_error(
+          I18n.t(
+            'web.secrets.errors.access_denied_to_domain',
+            locale: locale,
+            default: 'Access denied to domain',
+          ),
+          error_type: :forbidden,
+        )
       end
     end
   end

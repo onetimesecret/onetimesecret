@@ -56,12 +56,12 @@
     "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Χρησιμοποιήστε το τηλέφωνό σας για σάρωση του κωδικού QR",
-    "source_hash": "99ecf59f"
+    "text": "π.χ. Χρησιμοποιήστε το τηλέφωνό σας για να σαρώσετε τον κωδικό QR",
+    "source_hash": "9cf0caf8"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Επικοινωνήστε με onboarding{'@'}example.com για ερωτήσεις",
-    "source_hash": "bee120a7"
+    "text": "π.χ. Επικοινωνήστε με onboarding{'@'}example.com για τυχόν ερωτήσεις",
+    "source_hash": "71749811"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "Αυτές οι οδηγίες θα εμφανίζονται στους παραλήπτες πριν αποκαλύψουν το μυστικό περιεχόμενο",
@@ -320,8 +320,8 @@
     "source_hash": "bc79cdff"
   },
   "web.branding.paths_carryover_hint": {
-    "text": "Αυτή είναι μια ζωντανή προεπισκόπηση — οι αλλαγές σας δεν θα είναι ορατές στους επισκέπτες μέχρι να αποθηκεύσετε.",
-    "source_hash": "cb4b82de"
+    "text": "Αυτή είναι ζωντανή προεπισκόπηση — οι αλλαγές σας δεν θα είναι ορατές στους επισκέπτες μέχρι να κάνετε κλικ στην Ενημέρωση.",
+    "source_hash": "9a34df71"
   },
   "web.branding.coming_soon_match_blurb": {
     "text": "Δείξτε μας τον ιστότοπό σας και θα διαβάσουμε τα χρώματα και τις γραμματοσειρές του, και στη συνέχεια θα καλύψουμε το κενό με ένα κλικ.",
@@ -406,5 +406,57 @@
   "web.branding.delivery_after_reveal": {
     "text": "Μετά την αποκάλυψη",
     "source_hash": "d5bfe7fd"
+  },
+  "web.branding.favicon": {
+    "text": "Εικονίδιο αγαπημένων",
+    "source_hash": "42955289"
+  },
+  "web.branding.refresh_favicon": {
+    "text": "Ανανέωση εικονιδίου αγαπημένων από τον τομέα",
+    "source_hash": "7cc3d5dc"
+  },
+  "web.branding.refresh_favicon_hint": {
+    "text": "Ανακτήστε ξανά το εικονίδιο αγαπημένων από τον τομέα σας. Το νέο εικονίδιο εμφανίζεται σύντομα.",
+    "source_hash": "ee007e44"
+  },
+  "web.branding.refresh_favicon_queued": {
+    "text": "Ανανέωση εικονιδίου αγαπημένων — το νέο εικονίδιο θα εμφανιστεί σύντομα.",
+    "source_hash": "6bf38e6e"
+  },
+  "web.branding.refresh_favicon_user_upload_hint": {
+    "text": "Έχετε ανεβάσει προσαρμοσμένο εικονίδιο αγαπημένων, επομένως ένα ανακτημένο εικονίδιο δεν θα το αντικαταστήσει.",
+    "source_hash": "c22e1ed6"
+  },
+  "web.branding.upload_favicon": {
+    "text": "Μεταφόρτωση εικονιδίου αγαπημένων",
+    "source_hash": "ceda39cb"
+  },
+  "web.branding.replace_favicon": {
+    "text": "Αντικατάσταση",
+    "source_hash": "95e15439"
+  },
+  "web.branding.remove_favicon": {
+    "text": "Αφαίρεση εικονιδίου αγαπημένων",
+    "source_hash": "03693698"
+  },
+  "web.branding.favicon_field_hint": {
+    "text": "ICO, PNG ή SVG. Η μεταφόρτωση αντικαθιστά το ανακτημένο εικονίδιο.",
+    "source_hash": "dfa0bfcb"
+  },
+  "web.branding.favicon_preview_alt": {
+    "text": "Εικονίδιο αγαπημένων τομέα",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_title": {
+    "text": "Εικονίδιο αγαπημένων τομέα",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_hint": {
+    "text": "ICO, PNG ή SVG. Έως 256KB. Αντικαθιστά το αυτόματα ανακτημένο εικονίδιο.",
+    "source_hash": "c9eafc83"
+  },
+  "web.branding.favicon_modal_save": {
+    "text": "Αποθήκευση εικονιδίου αγαπημένων",
+    "source_hash": "c8a1566c"
   }
 }

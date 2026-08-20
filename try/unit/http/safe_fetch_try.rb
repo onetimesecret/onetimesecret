@@ -9,6 +9,12 @@
 # required (requiring 'onetime' through the support helper is enough to define
 # Onetime::Problem, the error base).
 #
+# The IP range checks are delegated to the shared Onetime::Http::Guard
+# (see try/unit/http/guard_try.rb for the blocklist's own coverage); SafeFetch
+# keeps thin resolve_addresses/blocked_ip? seams, so the stubs below are
+# unchanged and the assertions here prove the delegation preserves behavior —
+# plus one deliberate tightening: Teredo (2001::/32) is now blocked.
+#
 # Proves: metadata/loopback/link-local blocked (incl. v4-mapped and via
 # redirect), fail-closed on mixed RRsets and unparseable/encoded addresses,
 # https+443-only, redirect cap, timeout mapping, streamed + declared size caps,
@@ -317,6 +323,11 @@ f = StubFetch.new(dns: {}, responses: [])
 f = StubFetch.new(dns: {}, responses: [])
 [f.send(:blocked_ip?, '::127.0.0.1'), f.send(:blocked_ip?, '64:ff9b:1::7f00:1')]
 #=> [true, true]
+
+## Teredo (2001::/32) is blocked — a tightening from the shared Guard list
+## (SafeFetch's former local BLOCKED_V6 lacked this range)
+StubFetch.new(dns: {}, responses: []).send(:blocked_ip?, '2001:0:5ef5:79fd::1')
+#=> true
 
 ## A public IPv6 (Cloudflare 2606:4700:4700::1111) still passes the guard
 StubFetch.new(dns: {}, responses: []).send(:blocked_ip?, '2606:4700:4700::1111')

@@ -10,12 +10,12 @@
   import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useProductIdentity } from '@/shared/stores/identityStore';
-  import { useFooterConfig } from '@/shared/composables/useFooterConfig';
+  import { useFooterAnchor } from '@/shared/composables/useFooterConfig';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { storeToRefs } from 'pinia';
   import { computed } from 'vue';
 
-  withDefaults(defineProps<LayoutProps>(), {
+  const props = withDefaults(defineProps<LayoutProps>(), {
     displayFeedback: true,
     displayFooterLinks: true,
     displayVersion: true,
@@ -37,7 +37,11 @@
   } = storeToRefs(bootstrapStore);
 
   const { isCustom } = storeToRefs(useProductIdentity());
-  const { showVersionConfig } = useFooterConfig();
+  // Keeps the bottom bar's left cell occupied — see useFooterAnchor.
+  const { showVersion, showPoweredBy, showSeparator, hasAnchor } = useFooterAnchor({
+    displayVersion: () => props.displayVersion,
+    displayPoweredBy: () => props.displayPoweredBy,
+  });
 
   // Hide regions toggle on custom domains (they're tied to a specific deployment)
   const showRegionsToggle = computed(
@@ -64,24 +68,25 @@
         class="
         flex
         flex-col-reverse items-center
-        justify-between
         space-y-6 space-y-reverse md:flex-row
         md:space-y-0"
-        :class="
+        :class="[
+          hasAnchor ? 'justify-between' : 'justify-center',
           displayFooterLinks && ui?.footer_links?.enabled
             ? 'mt-8 border-t border-gray-200 pt-8 dark:border-gray-700'
-            : ''
-        ">
+            : '',
+        ]">
         <!-- Version and Powered By -->
         <!-- prettier-ignore-attribute class -->
         <div
+          v-if="hasAnchor"
           class="
           flex w-full
           flex-wrap items-center justify-center
           text-center
           text-xs text-gray-600 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
           <span
-            v-if="displayVersion && showVersionConfig"
+            v-if="showVersion"
             :title="`${t('web.homepage.onetime_secret_literal')} ${t('web.COMMON.version')}`">
             <a
               :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${ot_version}`"
@@ -90,12 +95,12 @@
             </a>
           </span>
           <span
-            v-if="displayVersion && showVersionConfig && displayPoweredBy"
+            v-if="showSeparator"
             class="flex items-center justify-center px-2">
             -
           </span>
           <span
-            v-if="displayPoweredBy"
+            v-if="showPoweredBy"
             :title="`${t('web.homepage.onetime_secret_literal', { product_name: brand_product_name ?? NEUTRAL_BRAND_DEFAULTS.product_name })} ${t('web.COMMON.version')}`">
             <a
               :href="t('web.COMMON.website_url')"

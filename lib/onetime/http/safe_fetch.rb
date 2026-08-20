@@ -2,13 +2,14 @@
 #
 # frozen_string_literal: true
 
-require 'resolv'
 require 'ipaddr'
 require 'net/http'
 require 'openssl'
 require 'uri'
 require 'stringio'
 require 'fastimage'
+
+require_relative 'guard'
 
 module Onetime
   module Http
@@ -18,7 +19,10 @@ module Onetime
     # The guard is deny-by-default and fail-closed. Every fetch:
     #   1. accepts only https:// on port 443 (no scheme/port downgrade surface),
     #   2. resolves the host's A + AAAA records and rejects the request if ANY
-    #      resolved address is private/link-local/loopback/metadata,
+    #      resolved address is private/link-local/loopback/metadata — the range
+    #      check itself is delegated to the shared Onetime::Http::Guard
+    #      blocklists (Guard::Blocked is translated to BlockedTarget at this
+    #      class's boundary, so callers keep rescuing SafeFetch errors only),
     #   3. pins each TCP connect to one exact validated IP (http.ipaddr=) so no
     #      second DNS resolution happens at connect time — closing the classic
     #      validate-then-reresolve (DNS-rebinding) window. Addresses are dialed
@@ -55,39 +59,18 @@ module Onetime
       SUCCESS_CODES   = (200..299)
 
       # Connect-time failures that justify dialing the next validated address.
-      # Deliberately excludes timeouts (mapped to retriable FetchTimeout — and
-      # falling through would spend a full extra @timeout per address) and all
-      # post-connect errors. These errnos surface from connect(2) in
-      # microseconds, so walking the list adds no meaningful wall-clock.
-      CONNECT_FALLBACK_ERRNOS = [
-        Errno::EHOSTUNREACH,  # no route to host (e.g. AAAA on a v6-broken network)
-        Errno::ENETUNREACH,   # no route to network (v4-only or v6-only client)
-        Errno::EADDRNOTAVAIL, # no usable local address for this family
-        Errno::ECONNREFUSED,  # this endpoint is down; another may serve
-      ].freeze
+      # The list lives on the shared Guard (which also documents the
+      # exclusions: timeouts — mapped here to retriable FetchTimeout — and all
+      # post-connect errors) so every pinned-dial callsite falls back on the
+      # same errno set.
+      CONNECT_FALLBACK_ERRNOS = Guard::CONNECT_FALLBACK_ERRNOS
 
       DEFAULT_HEADERS = { 'user-agent' => 'OnetimeSecret-SafeFetch/1.0' }.freeze
 
-      # Deny-by-default range lists. A resolved IP is blocked unless it belongs
-      # to NONE of these. v4-mapped IPv6 is unwrapped to its v4 form first.
-      # 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24 are the RFC 5737 TEST-NET
-      # documentation ranges — never globally routed, so no legitimate favicon
-      # host resolves into them; blocking them is fail-closed hardening.
-      BLOCKED_V4 = %w[
-        0.0.0.0/8 10.0.0.0/8 100.64.0.0/10 127.0.0.0/8 169.254.0.0/16
-        172.16.0.0/12 192.0.0.0/24 192.0.2.0/24 192.168.0.0/16 198.18.0.0/15
-        198.51.100.0/24 203.0.113.0/24 224.0.0.0/4 240.0.0.0/4
-      ].map { |cidr| IPAddr.new(cidr) }.freeze
-
-      # ::/96 is the deprecated IPv4-compatible block (subsumes ::, ::1, and
-      # e.g. ::127.0.0.1). 2002::/16 (6to4) and the 64:ff9b* NAT64 ranges are
-      # blocked wholesale — no legitimate favicon host lives on a translation
-      # address, so we don't bother decoding the embedded IPv4. ::ffff:0:0/96 is
-      # the separate v4-MAPPED block (unwrapped to v4 in #blocked_ip?).
-      BLOCKED_V6 = %w[
-        ::/96 fc00::/7 fe80::/10 ff00::/8 ::ffff:0:0/96
-        64:ff9b::/96 64:ff9b:1::/48 2002::/16 2001:db8::/32
-      ].map { |cidr| IPAddr.new(cidr) }.freeze
+      # The deny-by-default IP range lists live in the shared SSRF guard
+      # (Onetime::Http::Guard::BLOCKED_V4/BLOCKED_V6) — the single source of
+      # truth for every egress callsite. Note Guard's V6 list also blocks
+      # Teredo (2001::/32), which SafeFetch's former local list lacked.
 
       # Magic-byte sniff family → the MIME we permit and canonicalize to. The
       # HTTP-declared Content-Type is never trusted for the accept decision.
@@ -213,39 +196,41 @@ module Onetime
       # list AAAA ahead of A, and a machine with an IPv6 address but no IPv6
       # route (broken dual-stack) would otherwise dial an unreachable v6 and
       # never try a perfectly good v4.
+      #
+      # Validation is delegated to Guard; resolution goes through this
+      # instance's #resolve_addresses seam (not Guard's own resolver) so the
+      # unit tryout can stub DNS per-instance. Guard::Blocked is translated to
+      # BlockedTarget here so SafeFetch's error contract stays self-contained.
+      # Unlike Guard.resolve_and_validate!, an IP-literal host is NOT accepted:
+      # it resolves to nothing and is rejected as before (a literal would fail
+      # TLS hostname verification anyway).
       def resolve_and_validate!(host)
         addrs = resolve_addresses(host)
-        raise BlockedTarget, "no A/AAAA records for #{host}" if addrs.empty?
+        raise Guard::Blocked, "no A/AAAA records for #{host}" if addrs.empty?
 
         addrs.each do |addr|
-          raise BlockedTarget, "blocked address #{addr} for #{host}" if blocked_ip?(addr)
+          raise Guard::Blocked, "blocked address #{addr} for #{host}" if Guard.blocked_ip?(addr)
         end
 
         # Safe to parse: anything unparseable already failed closed in blocked_ip?.
-        v4, v6 = addrs.partition { |addr| IPAddr.new(addr).ipv4? }
+        v4, v6 = addrs.uniq.partition { |addr| IPAddr.new(addr).ipv4? }
         v4 + v6
+      rescue Guard::Blocked => ex
+        raise BlockedTarget, ex.message
       end
 
-      # Isolated for testability (overridden in the unit tryout to avoid real
-      # DNS). Returns an array of IP strings (both families).
+      # DNS seam, isolated for testability (overridden in the unit tryout to
+      # avoid real DNS). Forwards to Guard's resolver on the real path.
+      # Returns an array of IP strings (both families).
       def resolve_addresses(host)
-        ::Resolv::DNS.open { |dns| dns.getaddresses(host).map(&:to_s) }
+        Guard.resolve_addresses(host)
       end
 
-      # Deny-by-default IP check. Fails closed on anything IPAddr cannot parse —
-      # notably Ruby's IPAddr rejects decimal/octal/hex-encoded forms
-      # (e.g. "2130706433", "0x7f000001") with InvalidAddressError, so such
-      # loopback-smuggling attempts are treated as blocked rather than resolved.
+      # Deny-by-default IP check, delegated to the shared Guard blocklists.
+      # Fails closed on anything IPAddr cannot parse (encoded-loopback
+      # smuggling like "2130706433" / "0x7f000001" is treated as blocked).
       def blocked_ip?(addr)
-        ip = IPAddr.new(addr.to_s)
-        ip = ip.native if ip.ipv6? && ip.ipv4_mapped? # unwrap ::ffff:a.b.c.d → v4
-        # 169.254.0.0/16 and fe80::/10 are already in BLOCKED_V4/BLOCKED_V6; this
-        # is a redundant early-out on IPAddr's own predicate, not extra coverage.
-        return true if ip.link_local?
-
-        (ip.ipv4? ? BLOCKED_V4 : BLOCKED_V6).any? { |net| net.include?(ip) }
-      rescue IPAddr::InvalidAddressError
-        true # fail closed
+        Guard.blocked_ip?(addr)
       end
 
       # Transport seam (overridden in the unit tryout). Opens a connection PINNED
@@ -253,8 +238,12 @@ module Onetime
       # while keeping the Host header and TLS SNI set to the hostname so cert
       # verification still works. Does NOT rescue timeouts: #fetch owns that
       # mapping so the real path is exercised by tests.
+      #
+      # The explicit nil p_addr matters: Net::HTTP.new defaults it to :ENV, and a
+      # proxy from http_proxy would make #connect dial the proxy and CONNECT by
+      # hostname — the proxy re-resolves and the pin is silently inert.
       def with_pinned_response(uri, validated_ip)
-        http              = ::Net::HTTP.new(uri.host, uri.port)
+        http              = ::Net::HTTP.new(uri.host, uri.port, nil)
         http.ipaddr       = validated_ip
         http.use_ssl      = true
         http.verify_mode  = OpenSSL::SSL::VERIFY_PEER

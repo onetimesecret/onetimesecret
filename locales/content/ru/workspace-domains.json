@@ -480,7 +480,7 @@
     "source_hash": "87073c93"
   },
   "web.domains.email.provider_inherit_description": {
-    "text": "Используются настройки отправки email по умолчанию для вашего аккаунта",
+    "text": "Используются настройки отправки email по умолчанию для Вашего аккаунта",
     "source_hash": "3f798263"
   },
   "web.domains.email.dns_records_title": {
@@ -488,7 +488,7 @@
     "source_hash": "34d2c307"
   },
   "web.domains.email.dns_records_description": {
-    "text": "Добавьте следующие DNS-записи для подтверждения вашего домена для отправки email.",
+    "text": "Добавьте следующие DNS-записи для подтверждения Вашего домена для отправки email.",
     "source_hash": "9fa85863"
   },
   "web.domains.email.dns_column_type": {
@@ -564,7 +564,7 @@
     "source_hash": "d134ca02"
   },
   "web.domains.email.access_denied_description": {
-    "text": "У вас нет прав для управления настройками email этого домена. Обратитесь к администратору вашей организации.",
+    "text": "У Вас нет прав для управления настройками email этого домена. Обратитесь к администратору Вашей организации.",
     "source_hash": "32049ff0"
   },
   "web.domains.email.update_success": {
@@ -636,7 +636,7 @@
     "source_hash": "d134ca02"
   },
   "web.domains.incoming.access_denied_description": {
-    "text": "У вас нет прав для управления настройками входящих секретов этого домена. Обратитесь к администратору вашей организации.",
+    "text": "У Вас нет прав для управления настройками входящих секретов этого домена. Обратитесь к администратору Вашей организации.",
     "source_hash": "3e9d8adc"
   },
   "web.domains.incoming.upgrade_to_configure": {
@@ -648,7 +648,7 @@
     "source_hash": "eab52939"
   },
   "web.domains.incoming.not_configured_notice": {
-    "text": "Входящие секреты не настроены для этого домена. Добавьте получателей, чтобы внешние пользователи могли отправлять секреты вашей команде.",
+    "text": "Входящие секреты не настроены для этого домена. Добавьте получателей, чтобы внешние пользователи могли отправлять секреты Вашей команде.",
     "source_hash": "dbc443a6"
   },
   "web.domains.incoming.disabled_notice": {
@@ -692,7 +692,7 @@
     "source_hash": "bc8c2058"
   },
   "web.domains.incoming.empty_state_description": {
-    "text": "Добавьте получателей, чтобы внешние пользователи могли отправлять секреты вашей команде.",
+    "text": "Добавьте получателей, чтобы внешние пользователи могли отправлять секреты Вашей команде.",
     "source_hash": "2a647a40"
   },
   "web.domains.incoming.validation_invalid_email": {
@@ -796,7 +796,7 @@
     "source_hash": "ca598f6d"
   },
   "web.domains.incoming.save_will_replace_confirmation": {
-    "text": "Сохранение заменит всех существующих получателей на ваши текущие изменения. Вы уверены?",
+    "text": "Сохранение заменит всех существующих получателей на Ваши текущие изменения. Вы уверены?",
     "source_hash": "f497862e"
   },
   "web.domains.incoming.delete_all_recipients": {
@@ -820,7 +820,7 @@
     "source_hash": "d134ca02"
   },
   "web.domains.sso.access_denied_description": {
-    "text": "У вас нет прав для управления настройками SSO этого домена. Обратитесь к администратору вашей организации.",
+    "text": "У Вас нет прав для управления настройками SSO этого домена. Обратитесь к администратору Вашей организации.",
     "source_hash": "db7fcfeb"
   },
   "web.domains.sso.upgrade_to_configure": {
@@ -844,7 +844,7 @@
     "source_hash": "80d3a144"
   },
   "web.domains.sso.not_configured_notice": {
-    "text": "SSO ещё не настроен для этого домена. Включите единый вход, чтобы участники команды могли проходить аутентификацию через провайдера идентификации вашей организации.",
+    "text": "SSO ещё не настроен для этого домена. Включите единый вход, чтобы участники команды могли проходить аутентификацию через провайдера идентификации Вашей организации.",
     "source_hash": "c439214b"
   },
   "api.domains.errors.add_admin_required": {
@@ -896,7 +896,7 @@
     "source_hash": "d134ca02"
   },
   "web.domains.add_access_denied_description": {
-    "text": "У вас нет разрешения на добавление доменов в эту организацию. Обратитесь к администратору вашей организации.",
+    "text": "У Вас нет разрешения на добавление доменов в эту организацию. Обратитесь к администратору Вашей организации.",
     "source_hash": "25e035c6"
   },
   "web.domains.dns_widget_load_failed": {
@@ -920,7 +920,7 @@
     "source_hash": "77e07795"
   },
   "web.domains.unsaved_changes_confirmation": {
-    "text": "У вас есть несохранённые изменения. Вы уверены, что хотите выйти?",
+    "text": "У Вас есть несохранённые изменения. Вы уверены, что хотите выйти?",
     "source_hash": "322380c1"
   },
   "web.domains.entitlement_required_owner": {
@@ -928,7 +928,7 @@
     "source_hash": "6de1f752"
   },
   "web.domains.entitlement_required_member": {
-    "text": "Эта функция недоступна на вашем текущем плане. Обратитесь к владельцу вашей организации.",
+    "text": "Эта функция недоступна на Вашем текущем плане. Обратитесь к владельцу Вашей организации.",
     "source_hash": "8f1688b2"
   },
   "web.domains.detail.manage": {
@@ -944,7 +944,7 @@
     "source_hash": "6360f7ec"
   },
   "web.domains.detail.homepage_description": {
-    "text": "Разрешить публичный доступ для создания секретов на домашней странице вашего домена",
+    "text": "Разрешить публичный доступ для создания секретов на домашней странице Вашего домена",
     "source_hash": "209b3ded"
   },
   "web.domains.detail.brand_description": {
@@ -1364,7 +1364,7 @@
     "source_hash": "d7d4c1e4"
   },
   "web.domains.add.field_help": {
-    "text": "Точное имя хоста, которое будет использовать ваша команда, например {example}.",
+    "text": "Точное имя хоста, которое будет использовать Ваша команда, например {example}.",
     "source_hash": "3ba71f78"
   },
   "web.domains.add.echo_label": {
@@ -1372,7 +1372,7 @@
     "source_hash": "ad60b17d"
   },
   "web.domains.add.apex_question": {
-    "text": "Это весь ваш домен — где должны размещаться секретные ссылки?",
+    "text": "Это весь Ваш домен — где должны размещаться секретные ссылки?",
     "source_hash": "efacad1b"
   },
   "web.domains.add.apex_help": {
@@ -1384,7 +1384,7 @@
     "source_hash": "d70604e8"
   },
   "web.domains.add.no_wrong_answer": {
-    "text": "Неправильного выбора нет — выберите тот, который узнает ваша команда.",
+    "text": "Неправильного выбора нет — выберите тот, который узнает Ваша команда.",
     "source_hash": "a04f0086"
   },
   "web.domains.add.subdomains_label": {
@@ -1440,7 +1440,7 @@
     "source_hash": "2fc0c524"
   },
   "web.domains.dns.point_domain_outro": {
-    "text": "на этот сервер, добавив следующую DNS-запись у вашего провайдера.",
+    "text": "на этот сервер, добавив следующую DNS-запись у Вашего провайдера.",
     "source_hash": "8d260c05"
   },
   "web.domains.dns.cname_heading": {
@@ -1452,7 +1452,7 @@
     "source_hash": "41135375"
   },
   "web.domains.dns.apex_notice": {
-    "text": "Апекс-домены (корневые) не могут использовать CNAME-запись. Вместо этого используйте запись ALIAS или ANAME вашего DNS-провайдера либо направьте A-запись на IP-адрес вашего сервера.",
+    "text": "Апекс-домены (корневые) не могут использовать CNAME-запись. Вместо этого используйте запись ALIAS или ANAME Вашего DNS-провайдера либо направьте A-запись на IP-адрес Вашего сервера.",
     "source_hash": "2d1c3298"
   },
   "web.domains.email.from_address_local_placeholder": {
@@ -1464,7 +1464,7 @@
     "source_hash": "9e3391e9"
   },
   "web.domains.homepage.description": {
-    "text": "Что посетители могут делать на главной странице вашего домена",
+    "text": "Что посетители могут делать на главной странице Вашего домена",
     "source_hash": "974d159e"
   },
   "web.domains.homepage.option_private_title": {
@@ -1488,7 +1488,7 @@
     "source_hash": "882997bf"
   },
   "web.domains.homepage.option_incoming_description": {
-    "text": "Посетители могут отправлять секреты вашим настроенным получателям",
+    "text": "Посетители могут отправлять секреты Вашим настроенным получателям",
     "source_hash": "86bdaedb"
   },
   "web.domains.homepage.incoming_requires_recipients": {
@@ -1508,7 +1508,7 @@
     "source_hash": "251cfb95"
   },
   "web.domains.homepage.status_incoming": {
-    "text": "Публичная: посетители отправляют вам секреты",
+    "text": "Публичная: посетители отправляют Вам секреты",
     "source_hash": "baa926b8"
   },
   "web.domains.homepage.status_incoming_unready": {
@@ -1542,5 +1542,93 @@
   "web.domains.signup.dormant_notice": {
     "text": "Регистрации отключены для всего рабочего пространства, поэтому они недоступны на каждом домене. Ваши настройки здесь сохраняются и вступают в силу, когда регистрации в рабочем пространстве снова будут включены.",
     "source_hash": "49faefe4"
+  },
+  "web.domains.link_domain_no_settings": {
+    "text": "Этот домен не имеет страницы настроек",
+    "source_hash": "8a8430fe"
+  },
+  "web.domains.signin.sso_restrict_warning_title": {
+    "text": "Ограничение до SSO закроет вход на этом домене",
+    "source_hash": "3476cb5c"
+  },
+  "web.domains.signin.sso_restrict_warning_body": {
+    "text": "SSO недоступен на этом домене, а ограничение, которое невозможно применить, полностью блокирует вход. Никто не сможет войти здесь, пока SSO не заработает. Сначала настройте SSO или всё равно установите ограничение и завершите настройку.",
+    "source_hash": "086e3247"
+  },
+  "web.domains.signin.sso_restrict_warning_confirm": {
+    "text": "Всё равно ограничить",
+    "source_hash": "4674e3cf"
+  },
+  "web.domains.signin.restriction_unavailable_notice": {
+    "text": "Вход недоступен на этом домене: он ограничен способом «{method}», который здесь не работает. Выберите другой способ или сделайте «{method}» доступным.",
+    "source_hash": "ca1b7f69"
+  },
+  "web.domains.signin.restriction_unavailable_unknown_notice": {
+    "text": "Вход недоступен на этом домене: он ограничен способом, который здесь не работает. Выберите другой способ или сбросьте этот домен к значениям по умолчанию.",
+    "source_hash": "8c2cce6b"
+  },
+  "web.domains.signin.restriction_conflict_notice": {
+    "text": "Этот домен ограничивает вход другим способом, чем ограничение для всего рабочего пространства («{method}»), поэтому ни одно из них не может быть применено и вход здесь недоступен. Укажите тот же способ, что и для всего рабочего пространства, или сбросьте этот домен к значениям по умолчанию.",
+    "source_hash": "15398362"
+  },
+  "web.domains.signin.method_webauthn_unavailable": {
+    "text": "Ключи доступа привязаны к основному домену входа и пока недоступны на пользовательских доменах",
+    "source_hash": "88833e0f"
+  },
+  "web.domains.sso.connection_disabled_badge": {
+    "text": "Подключение отключено",
+    "source_hash": "99d6092c"
+  },
+  "web.domains.sso.connection_disabled_hint": {
+    "text": "Учётные данные SSO сохранены, но подключение отключено. Включите его в разделе «Редактировать учётные данные».",
+    "source_hash": "90180d6c"
+  },
+  "web.domains.sso.status_active_badge": {
+    "text": "Активно",
+    "source_hash": "92340695"
+  },
+  "web.domains.sso.status_active_hint": {
+    "text": "Участники могут входить через это подключение SSO на этом домене.",
+    "source_hash": "313ec61e"
+  },
+  "web.domains.sso.status_not_configured_badge": {
+    "text": "Не настроено",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.sso.status_not_configured_hint": {
+    "text": "Для этого домена ещё не сохранены учётные данные SSO.",
+    "source_hash": "d817ad9c"
+  },
+  "web.domains.sso.status_not_permitted_badge": {
+    "text": "Не разрешено на этом домене",
+    "source_hash": "afbd20ba"
+  },
+  "web.domains.sso.status_not_permitted_hint": {
+    "text": "SSO отключён для этого домена, поэтому страница входа его не предлагает.",
+    "source_hash": "ef092481"
+  },
+  "web.domains.sso.status_auth_disabled_badge": {
+    "text": "Вход отключён",
+    "source_hash": "bb807607"
+  },
+  "web.domains.sso.status_auth_disabled_hint": {
+    "text": "Вход отключён на этом домене, поэтому не предлагается ни один способ — включая SSO.",
+    "source_hash": "3a98964b"
+  },
+  "web.domains.sso.status_unsupported_provider_badge": {
+    "text": "Неподдерживаемый поставщик",
+    "source_hash": "1609d5fb"
+  },
+  "web.domains.sso.status_unsupported_provider_hint": {
+    "text": "Сохранённый поставщик нельзя использовать для SSO домена. Отредактируйте учётные данные и выберите Microsoft Entra ID или универсальный OIDC.",
+    "source_hash": "72ea0a2e"
+  },
+  "web.domains.sso.status_unavailable_badge": {
+    "text": "Недоступно",
+    "source_hash": "ca184496"
+  },
+  "web.domains.sso.status_unavailable_hint": {
+    "text": "SSO сейчас не может быть предложен на этом домене. Проверьте учётные данные SSO и настройки входа этого домена.",
+    "source_hash": "b03b14f4"
   }
 }

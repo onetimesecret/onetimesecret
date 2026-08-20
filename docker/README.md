@@ -6,12 +6,12 @@ repository is archived as of v0.24.
 
 ## Compose Files
 
-| File                                        | Services                                              | Use Case                                       |
-| ------------------------------------------- | ----------------------------------------------------- | ---------------------------------------------- |
-| `docker-compose.yml`                        | Include wrapper                                       | Root entry point — defaults to simple          |
-| `docker/compose/docker-compose.simple.yml`  | App + Valkey                                          | Development, testing, minimal deployments      |
-| `docker/compose/docker-compose.full.yml`    | Caddy + App + Valkey + RabbitMQ + Workers + Scheduler | Full production                                |
-| `docker/compose/docker-compose.mailpit.yml` | Mailpit (SMTP capture)                                | Email testing — include alongside simple       |
+| File                                        | Services                                              | Use Case                                                         |
+| ------------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------- |
+| `docker-compose.yml`                        | Include wrapper                                       | Root entry point — defaults to simple                            |
+| `docker/compose/docker-compose.simple.yml`  | App + Valkey                                          | Development, testing, minimal deployments                        |
+| `docker/compose/docker-compose.full.yml`    | Caddy + App + Valkey + RabbitMQ + Workers + Scheduler | Full production                                                  |
+| `docker/compose/docker-compose.mailpit.yml` | Mailpit (SMTP capture)                                | Email testing — include alongside simple                         |
 | `compose.test.yml` (repo root)              | Valkey/Postgres/RabbitMQ on 21xx host ports           | Test lanes only (`tests/lanes/README.md`) — never for deployment |
 
 Naming convention: deployment compose files are `docker-compose.*.yml` —
@@ -61,20 +61,20 @@ root README.
 
 ## Environment Variables
 
-| Variable                            | Stack        | Required                             | Default                    | Notes                                                                     |
-| ----------------------------------- | ------------ | ------------------------------------ | -------------------------- | ------------------------------------------------------------------------- |
-| `SECRET`                            | both         | yes (compose aborts if empty)        | —                          | Root secret; HKDF input for derived keys. Back it up.                      |
-| `AUTHENTICATION_MODE`               | both         | no                                   | `simple` / `full`          | Set per stack by the compose files.                                        |
-| `AUTH_SECRET`                       | full         | yes for full auth (TOTP, login tokens) | —                        | Independent secret; cannot be re-derived. Back it up.                      |
-| `ACCOUNT_ID_SECRET`                 | full         | yes in production (>= 32 bytes)      | —                          | Obfuscates account IDs in email links and remember-me cookies.             |
-| `ARGON2_SECRET`                     | full         | strongly recommended                 | —                          | Password pepper; changing it invalidates all password hashes.              |
-| `SESSION_SECRET`, `IDENTIFIER_SECRET` | both       | no                                   | derived from `SECRET`      | Only set to override HKDF derivation.                                      |
-| `FEDERATION_SECRET`                 | both         | multi-region only                    | —                          | Must be identical across regions.                                          |
-| `DOMAIN`, `CERTIFICATE_EMAIL`       | full (proxy) | yes for real TLS                     | `localhost` / `admin@example.com` | Let's Encrypt issuance via Caddy.                                    |
-| `RABBITMQ_USER`, `RABBITMQ_PASS`    | full         | yes (full stack)                     | — (no default)             | AMQP credentials; required — `docker compose up` fails fast if unset. Embedded in `RABBITMQ_URL`. |
-| `JOBS_ENABLED`                      | full         | no                                   | `false`                    | See [Background Jobs](#background-jobs-jobs_enabled).                       |
-| `OTS_IMAGE_TAG`                     | both         | no                                   | pinned release             | See [Image Version](#image-version-ots_image_tag).                          |
-| `RACK_ENV`                          | both         | no                                   | `production`               |                                                                             |
+| Variable                              | Stack        | Required                               | Default                           | Notes                                                                                             |
+| ------------------------------------- | ------------ | -------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `SECRET`                              | both         | yes (compose aborts if empty)          | —                                 | Root secret; HKDF input for derived keys. Back it up.                                             |
+| `AUTHENTICATION_MODE`                 | both         | no                                     | `simple` / `full`                 | Set per stack by the compose files.                                                               |
+| `AUTH_SECRET`                         | full         | yes for full auth (TOTP, login tokens) | —                                 | Independent secret; cannot be re-derived. Back it up.                                             |
+| `ACCOUNT_ID_SECRET`                   | full         | yes in production (>= 32 bytes)        | —                                 | Obfuscates account IDs in email links and remember-me cookies.                                    |
+| `ARGON2_SECRET`                       | full         | strongly recommended                   | —                                 | Password pepper; changing it invalidates all password hashes.                                     |
+| `SESSION_SECRET`, `IDENTIFIER_SECRET` | both         | no                                     | derived from `SECRET`             | Only set to override HKDF derivation.                                                             |
+| `FEDERATION_SECRET`                   | both         | multi-region only                      | —                                 | Must be identical across regions.                                                                 |
+| `DOMAIN`, `CERTIFICATE_EMAIL`         | full (proxy) | yes for real TLS                       | `localhost` / `admin@example.com` | Let's Encrypt issuance via Caddy.                                                                 |
+| `RABBITMQ_USER`, `RABBITMQ_PASS`      | full         | yes (full stack)                       | — (no default)                    | AMQP credentials; required — `docker compose up` fails fast if unset. Embedded in `RABBITMQ_URL`. |
+| `JOBS_ENABLED`                        | full         | no                                     | `false`                           | See [Background Jobs](#background-jobs-jobs_enabled).                                             |
+| `OTS_IMAGE_TAG`                       | both         | no                                     | pinned release                    | See [Image Version](#image-version-ots_image_tag).                                                |
+| `RACK_ENV`                            | both         | no                                     | `production`                      |                                                                                                   |
 
 ## Background Jobs (JOBS_ENABLED)
 

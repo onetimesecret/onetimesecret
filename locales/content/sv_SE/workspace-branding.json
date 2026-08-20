@@ -56,12 +56,12 @@
     "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Använd din telefon för att skanna QR-koden",
-    "source_hash": "99ecf59f"
+    "text": "t.ex. Använd din telefon för att skanna QR-koden",
+    "source_hash": "9cf0caf8"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Kontakta onboarding{'@'}example.com vid frågor",
-    "source_hash": "bee120a7"
+    "text": "t.ex. Kontakta onboarding{'@'}example.com med eventuella frågor",
+    "source_hash": "71749811"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "Dessa instruktioner visas för mottagare innan de avslöjar hemlighetens innehåll",
@@ -320,8 +320,8 @@
     "source_hash": "bc79cdff"
   },
   "web.branding.paths_carryover_hint": {
-    "text": "Detta är en live-förhandsgranskning – dina ändringar syns inte för besökare förrän du sparar.",
-    "source_hash": "cb4b82de"
+    "text": "Detta är en liveförhandsgranskning — dina ändringar blir inte synliga för besökare förrän du klickar på Uppdatera.",
+    "source_hash": "9a34df71"
   },
   "web.branding.coming_soon_match_blurb": {
     "text": "Peka oss mot din webbplats så läser vi in dess färger och typsnitt och sluter sedan gapet med ett klick.",
@@ -406,5 +406,57 @@
   "web.branding.delivery_after_reveal": {
     "text": "Efter visning",
     "source_hash": "d5bfe7fd"
+  },
+  "web.branding.favicon": {
+    "text": "Favicon",
+    "source_hash": "42955289"
+  },
+  "web.branding.refresh_favicon": {
+    "text": "Uppdatera favicon från domän",
+    "source_hash": "7cc3d5dc"
+  },
+  "web.branding.refresh_favicon_hint": {
+    "text": "Hämta favicon från din domän igen. Den nya ikonen visas snart.",
+    "source_hash": "ee007e44"
+  },
+  "web.branding.refresh_favicon_queued": {
+    "text": "Uppdaterar favicon — den nya ikonen visas snart.",
+    "source_hash": "6bf38e6e"
+  },
+  "web.branding.refresh_favicon_user_upload_hint": {
+    "text": "Du har laddat upp en anpassad favicon, så en hämtad ikon kommer inte att ersätta den.",
+    "source_hash": "c22e1ed6"
+  },
+  "web.branding.upload_favicon": {
+    "text": "Ladda upp favicon",
+    "source_hash": "ceda39cb"
+  },
+  "web.branding.replace_favicon": {
+    "text": "Ersätt",
+    "source_hash": "95e15439"
+  },
+  "web.branding.remove_favicon": {
+    "text": "Ta bort favicon",
+    "source_hash": "03693698"
+  },
+  "web.branding.favicon_field_hint": {
+    "text": "ICO, PNG eller SVG. Uppladdning ersätter den hämtade ikonen.",
+    "source_hash": "dfa0bfcb"
+  },
+  "web.branding.favicon_preview_alt": {
+    "text": "Domän-favicon",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_title": {
+    "text": "Domän-favicon",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_hint": {
+    "text": "ICO, PNG eller SVG. Upp till 256KB. Ersätter den automatiskt hämtade ikonen.",
+    "source_hash": "c9eafc83"
+  },
+  "web.branding.favicon_modal_save": {
+    "text": "Spara favicon",
+    "source_hash": "c8a1566c"
   }
 }

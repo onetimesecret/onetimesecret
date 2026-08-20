@@ -74,16 +74,12 @@ module DomainsAPI
         domain
       end
 
-      # Load organization from domain's org_id.
-      #
-      # @param domain [Onetime::CustomDomain] The domain
-      # @return [Onetime::Organization] The owning organization
-      # @raise [FormError] if organization not found
-      def load_organization_for_domain(domain)
-        org = Onetime::Organization.load(domain.org_id)
-        raise_not_found("Organization not found for domain: #{domain.display_domain}") if org.nil?
-        org
-      end
+      # NOTE: load_organization_for_domain lives in
+      # Onetime::Application::AuthorizationPolicies (included above), alongside
+      # load_organization. The copy that used to sit here read org_id directly;
+      # the shared one goes through CustomDomain#primary_organization so every
+      # authorization site absorbs a blank org_id and a deleted organization the
+      # same way. Same RecordNotFound contract.
 
       # Verify organization has the required entitlement at the plan level.
       #

@@ -298,7 +298,7 @@ RSpec.describe 'Colonel email deliverability endpoints', type: :integration do
       expect(data[:details][:window_days]).to eq(7)
     end
 
-    it 'reports sync_capability true for a pull-API transport (ses/lettermint)' do
+    it 'reports sync_capability true for a pull-API transport (ses/lettermint/smtp2go)' do
       allow(Onetime::Mail::Mailer).to receive(:determine_provider).and_return('ses')
 
       data = summary

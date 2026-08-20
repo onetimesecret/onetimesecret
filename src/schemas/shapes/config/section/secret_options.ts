@@ -34,13 +34,16 @@ const secretOptionBoundariesShape = augment(secretOptionBoundariesSchema, {
 
   /**
    * Available TTL options for secret creation (in seconds).
+   * The max mirrors the server's absolute bound
+   * (WithEntitlements::MAX_TTL); per-caller ceilings are enforced at
+   * request time, not here (#4008).
    * @min 60 - One minute
-   * @max 2592000 - 30 days
+   * @max 31536000 - 365 days
    * @default [300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]
    */
   ttl_options: () =>
     z
-      .array(z.number().int().positive().min(60).max(2592000))
+      .array(z.number().int().positive().min(60).max(31536000))
       .nullable()
       .default([300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]),
 

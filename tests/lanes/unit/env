@@ -1,3 +1,10 @@
 # Lane: unit — unit + app specs and unit tryouts (no auth-mode boundary).
 # CI job: ruby-unit (T2)
 AUTHENTICATION_MODE=simple
+
+# Generated prerequisites, produced by tests/lanes/run before the tasks
+# below (see the codegen phase there). spec/spec_helper.rb refuses to boot
+# with an empty generated/locales, and spec:fast includes the billing
+# catalog spec, which reads the gitignored
+# generated/schemas/config/billing.schema.json.
+LANES_CODEGEN='locales schemas'

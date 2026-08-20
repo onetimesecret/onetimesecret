@@ -98,5 +98,41 @@
   "web.admin.audit.result.failure": {
     "text": "Neuspeh",
     "source_hash": "7031edbc"
+  },
+  "web.admin.audit.categories.secret": {
+    "text": "Skrivnosti",
+    "source_hash": "d8707d41"
+  },
+  "web.admin.audit.categories.membership": {
+    "text": "Članstva",
+    "source_hash": "b50f1a42"
+  },
+  "web.admin.audit.categories.entitlement_preview": {
+    "text": "Predogledi pravic",
+    "source_hash": "255c5797"
+  },
+  "web.admin.audit.categories.colonel": {
+    "text": "Prijave Colonel",
+    "source_hash": "01eeeb38"
+  },
+  "web.admin.audit.filters.actorLabel": {
+    "text": "Akter",
+    "source_hash": "449995c4"
+  },
+  "web.admin.audit.filters.searchButton": {
+    "text": "Iskanje",
+    "source_hash": "49c266ba"
+  },
+  "web.admin.audit.filters.searchHint": {
+    "text": "Vnesite akterja, nato pritisnite Enter ali izberite Iskanje za zagon. Seznam se ne posodablja med tipkanjem.",
+    "source_hash": "45eceb12"
+  },
+  "web.admin.audit.filters.pendingSearch": {
+    "text": "Iskanje še ni izvedeno — pritisnite Enter ali izberite Iskanje za uporabo tega akterja.",
+    "source_hash": "f76095c2"
+  },
+  "web.admin.audit.list.contractError": {
+    "text": "Strežnik je odgovoril, vendar podatki revizije niso ustrezali pričakovani obliki. Dogodkov ni mogoče prikazati — to je napaka v poročanju, ne prazen dnevnik.",
+    "source_hash": "7f48137e"
   }
 }
