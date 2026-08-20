@@ -185,6 +185,17 @@ reloaded.org_id == @org2.org_id
  @org1.list_domains.map(&:domainid).include?(@tdom.domainid)]
 #=> [true, false]
 
+## the CustomDomain.owners index followed the transfer
+# owners is a second, independently-maintained ownership index that
+# Organization#unlisted_owned_domains reads as the org-deletion drift guard.
+# Left on the source org it made that org PERMANENTLY undeletable.
+Onetime::CustomDomain.owners.get(@tdom.domainid)
+#=> @org2.objid
+
+## the source org is left with NO drifted owned domains
+@org1.unlisted_owned_domains.map(&:display_domain)
+#=> []
+
 ## exactly ONE audit event was recorded for the transfer
 AE.count
 #=> 1
@@ -234,9 +245,44 @@ end
 [AE.count, @bev['verb'], @bev['target'], @bev['result'], @bev['detail']['dry_run']]
 #=> [1, "domain.transfer", @tdom.extid, "failure", false]
 
+## the rollback restored BOTH ownership writes, not just org_id
+# A rollback that put org_id back but left owners on the destination is the
+# same drift by another route: the pair must stay consistent.
+@rb = Onetime::CustomDomain.find_by_identifier(@tdom.domainid)
+[@rb.org_id, Onetime::CustomDomain.owners.get(@tdom.domainid)]
+#=> [@org2.org_id, @org2.objid]
+
+# ---- Transfer round trip: the source org stays DELETABLE ---------------
+#
+# The regression in full: transfer a domain away from org A, then delete org A.
+# Before owners moved with org_id, Organization#destroy! raised
+# 'domain records still reference it' forever, Org::Delete refused with
+# :drifted_domains, and neither the colonel path nor `bin/ots org delete` has a
+# force override. The advertised remediation (`domains doctor --all --repair`) could
+# not help either: doctor check #4 keys off org_id, which is by then correct.
+
+## a source org whose only domain was transferred away has no drift
+@cust3 = Onetime::Customer.create!(email: "dtcust3_#{@test_id}@example.com")
+@org3  = Onetime::Organization.create!("DT Org 3 #{@test_id}", @cust3, "billing+dt3+#{@test_id}@onetimesecret.com")
+@rtdom = Onetime::CustomDomain.create!("dt-roundtrip-#{@test_id}.example.com", @org3.objid)
+@org3.add_domain(@rtdom)
+Onetime::Operations::Domains::Transfer.new(
+  domain: @rtdom, to_org: @org2, actor: @actor, dry_run: false,
+).call.status
+#=> :transferred
+
+## the source org sees neither a listed nor an unlisted domain
+[@org3.domain_count, @org3.unlisted_owned_domains.size]
+#=> [0, 0]
+
+## and it can actually be deleted
+@org3.destroy!
+Onetime::Organization.load(@org3.objid).nil?
+#=> true
+
 # ---- Cleanup ----------------------------------------------------------
 
-[@orphan, @dom, @tdom].compact.each { |d| d.destroy! rescue nil }
-[@org1, @org2].compact.each { |o| o.destroy! rescue nil }
-[@cust1, @cust2].compact.each { |c| c.destroy! rescue nil }
+[@orphan, @dom, @tdom, @rtdom].compact.each { |d| d.destroy! rescue nil }
+[@org1, @org2, @org3].compact.each { |o| o.destroy! rescue nil }
+[@cust1, @cust2, @cust3].compact.each { |c| c.destroy! rescue nil }
 AE.events.clear

@@ -88,20 +88,16 @@ module Billing
           return
         end
 
-        # Duplicate-subscription guard (issue #2605). A returning subscriber whose
-        # default org already owns a genuinely active, non-canceling subscription
-        # must not create a second checkout session (double charge + orphaned
-        # subscription). Redirect them to the plan-change UI instead. The
-        # currency-migration / resubscribe-after-cancel flows are exempt (the old
-        # subscription is winding down) — see org_has_blocking_active_subscription?.
-        guard_org = default_organization_for(cust)
-        if guard_org && org_has_blocking_active_subscription?(guard_org)
-          billing_logger.info 'Redirect checkout blocked: organization already has an active subscription',
-            {
-              extid: guard_org.extid,
-              stripe_subscription_id: guard_org.stripe_subscription_id,
-            }
-          res.redirect "/billing/#{guard_org.extid}/plans"
+        # Resolved once and reused: this org is the authorization subject of the
+        # pre-flight guards below, and the source of the Stripe customer
+        # binding further down.
+        default_org = default_organization_for(cust)
+
+        # Both pre-flight guards on the caller's default organization —
+        # authorization and the duplicate-subscription check — return the path
+        # to redirect to, or nil to proceed. See checkout_guard_redirect.
+        if (guard_path = checkout_guard_redirect(default_org))
+          res.redirect guard_path
           return
         end
 
@@ -152,23 +148,11 @@ module Billing
         unless cust.nil? || cust.anonymous?
           session_params[:client_reference_id] = cust.extid
 
-          # Check for existing Stripe customer on user's default organization
-          #
-          # NOTE: this reuse is deliberately NOT ownership-gated, even though
-          # default_org can be a shared tenant organization the caller only
-          # belongs to (default_org_id is repointed by JoinDomainOrganization —
-          # the same premise behind the portal gate in
-          # customer_portal_redirect). Withholding the reuse here makes things
-          # worse, not better: this checkout path writes no orgid metadata
-          # (see subscription_data below), so completion resolves the target org
-          # through the caller's default_org_id anyway
-          # (Billing::Logic::Welcome::ProcessCheckoutSession), and
-          # ApplySubscriptionToOrg would then overwrite the organization's
-          # stripe_customer_id with the new Customer minted for the member —
-          # detaching the org from its own billing customer and surfacing that
-          # member's payment instrument to the owner. Gating the checkout for
-          # non-owners belongs with the orgid-metadata work in #4017, not here.
-          default_org = default_organization_for(cust)
+          # Reuse the Stripe customer on the caller's default organization
+          # (returning subscriber); otherwise Stripe creates one from the email
+          # prefill. Safe to bind unconditionally here because control only
+          # reaches this point when default_org is nil or the caller owns it —
+          # see the authorization gate above.
           if default_org&.stripe_customer_id.to_s.length.positive?
             session_params[:customer] = default_org.stripe_customer_id
           else
@@ -180,16 +164,10 @@ module Billing
         # other checkout path. Applied after customer handling because
         # customer_update requires a bound :customer id.
         #
-        # Scope note: this path shares the tax block and the pmc pin below
-        # only. Unlike
-        # BillingController#create_checkout_session it does not delegate to
-        # build_session_params, so its subscription metadata keeps this
-        # surface's historical shape (debug_info JSON + customer_extid, no
-        # orgid). Deliberate: changing it would change webhook-visible
-        # metadata. checkout_completed#find_target_organization falls back to
-        # stripe_customer_id and then the customer's default org when orgid is
-        # absent, so this shape resolves correctly today. Migration to
-        # build_session_params is tracked in #4017.
+        # This path keeps its historical subscription metadata shape — the
+        # debug_info JSON blob and customer_extid rather than flat plan/tier/
+        # region keys. Those keys are webhook- and Sigma-visible, so changing
+        # them requires a consumer audit.
         #
         # Dashboard prerequisites when enabled (Settings → Tax): Stripe Tax
         # active, registrations for applicable jurisdictions, tax codes on
@@ -223,7 +201,12 @@ module Billing
               checkout_timestamp: Time.now.iso8601,
             }.to_json,
             customer_extid: cust.extid,
-          },
+
+            # Pin the target approved above with its stable object identifier.
+            # When no organization exists yet, omit the key rather than sending
+            # an empty identifier.
+            orgid: default_org&.objid,
+          }.compact,
         }
 
         # Idempotency key: unique per attempt, NOT deterministic. Duplicate
@@ -323,21 +306,20 @@ module Billing
         # instruments, and it can change the payment method and CANCEL the
         # subscription. Membership is not sufficient authority for any of that.
         #
-        # cust.default_org_id is NOT proof of ownership. JoinDomainOrganization
-        # repoints it to the shared tenant organization for a caller who is only
-        # a 'member' (auth/operations/join_domain_organization.rb, and likewise
-        # bulk_sso_migration.rb / add_member_command.rb), so a pre-existing
-        # account holder who signs in through a tenant's custom-domain SSO ends
-        # up defaulting to an org they do not own. Without this gate that member
-        # is handed the tenant's portal.
+        # cust.default_org_id is not proof of ownership: a default organization
+        # can be one the caller merely belongs to. Without this gate, that member
+        # is handed the organization's portal.
         #
-        # Gate on ownership rather than the manage_billing entitlement:
-        # effective entitlements are the org plan ∩ ROLE_ENTITLEMENTS[role], and
-        # no shipped catalog grants manage_billing (it appears in
-        # etc/examples/billing.example.yaml only as a definition, not in any
-        # plan's entitlements list), so an entitlement gate here would deny
-        # every caller — legitimate owners included. Ownership is the same test
-        # every mutating sibling endpoint already applies via
+        # Gate on ownership rather than the manage_billing entitlement.
+        # Effective entitlements are the org plan ∩ ROLE_ENTITLEMENTS[role].
+        # manage_billing is in OWNER_ENTITLEMENTS only, so the intersection can
+        # never grant it to a member or admin — an entitlement gate could not
+        # widen access past ownership. It can, however, narrow it below the
+        # owner: a deployment whose catalog omits manage_billing from a plan
+        # (free_v1 omits it; etc/examples/billing.example.yaml defines the
+        # entitlement but lists it in no plan) would have that org's own owner
+        # denied their billing portal. Ownership is also the same test every
+        # mutating sibling endpoint already applies via
         # load_organization(..., require_owner: true) (controllers/billing.rb).
         #
         # Redirect rather than raise Onetime::Forbidden: this route is declared
@@ -395,6 +377,80 @@ module Billing
       end
 
       private
+
+      # Pre-flight guards for checkout_redirect, evaluated against the caller's
+      # default organization. Extracted from checkout_redirect to keep that
+      # method under the complexity budget; it carries no behaviour of its own
+      # beyond these two checks.
+      #
+      # @param default_org [Onetime::Organization, nil] the caller's default org
+      # @return [String, nil] path to redirect to, or nil to proceed to Stripe
+      def checkout_guard_redirect(default_org)
+        # No organization: nothing to authorize against and no subscription to
+        # duplicate. The caller creates and owns an org at completion.
+        return nil unless default_org
+
+        # AUTHORIZATION: a checkout started here is applied to default_org — it
+        # binds that organization's Stripe Customer (see the customer handling
+        # in checkout_redirect) and, on completion, writes the subscription onto
+        # that organization. Membership is not sufficient authority to buy on an
+        # organization's behalf or to attach a payment instrument to its
+        # billing customer.
+        #
+        # cust.default_org_id is not proof of ownership: a default organization
+        # can be one the caller merely belongs to.
+        #
+        # Deny the checkout outright rather than merely withholding the
+        # organization's Stripe customer from the session. Withholding would be
+        # strictly worse: it mints a fresh Customer for the member, and
+        # ApplySubscriptionToOrg then overwrites the organization's
+        # stripe_customer_id with it at completion, detaching the org from its
+        # own billing customer. Creating no session at all leaves nothing to
+        # resolve and nothing to overwrite. Pinning a target makes resolution
+        # deterministic; it does not authorize the purchase. That is this
+        # gate's job.
+        #
+        # Gate on ownership rather than the manage_billing entitlement, as
+        # customer_portal_redirect does. Effective entitlements are the org plan
+        # ∩ ROLE_ENTITLEMENTS[role] and manage_billing lives in
+        # OWNER_ENTITLEMENTS only, so it can never widen access beyond owners —
+        # but it can narrow it below them: an org whose plan does not list
+        # manage_billing (free_v1, or any deployment whose catalog omits it)
+        # would have its own owner denied, and an org with no active
+        # subscription is precisely the caller this endpoint exists for.
+        # Ownership is also what the sibling self-serve path already requires —
+        # BillingController#create_checkout_session loads its org with
+        # require_owner: true.
+        #
+        # Redirect rather than raise Onetime::Forbidden: this route is declared
+        # with no response= (routes.txt), so Otto content-negotiates the error
+        # and a browser navigation would render a bare text/plain 403 body.
+        unless default_org.owner?(cust)
+          billing_logger.warn 'Checkout denied: caller does not own organization',
+            {
+              org_extid: default_org.extid,
+              customer_extid: cust.extid,
+            }
+          return '/account?billing_error=not_authorized'
+        end
+
+        # Duplicate-subscription guard (issue #2605). A returning subscriber whose
+        # default org already owns a genuinely active, non-canceling subscription
+        # must not create a second checkout session (double charge + orphaned
+        # subscription). Redirect them to the plan-change UI instead. The
+        # currency-migration / resubscribe-after-cancel flows are exempt (the old
+        # subscription is winding down) — see org_has_blocking_active_subscription?.
+        if org_has_blocking_active_subscription?(default_org)
+          billing_logger.info 'Redirect checkout blocked: organization already has an active subscription',
+            {
+              extid: default_org.extid,
+              stripe_subscription_id: default_org.stripe_subscription_id,
+            }
+          return "/billing/#{default_org.extid}/plans"
+        end
+
+        nil
+      end
 
       # Detect region from request
       #

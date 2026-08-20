@@ -105,6 +105,19 @@ RSpec.describe Onetime::SsoProvider::Registry do
     expect(definitions).to all(be_frozen)
   end
 
+  describe '.find' do
+    it 'returns the definition for a known key' do
+      expect(described_class.find(:entra)[:strategy]).to eq(:entra_id)
+    end
+
+    it 'returns nil for an unknown key instead of raising' do
+      # AuthConfig#tenant_idp_origin resolves a PROVIDER_ROUTE_MAP route name
+      # through here per request, inside the CSP middleware, where a KeyError
+      # would 500 the response.
+      expect(described_class.find(:facebook)).to be_nil
+    end
+  end
+
   describe '.fetch' do
     it 'returns the definition for a known key' do
       expect(described_class.fetch(:oidc)[:strategy]).to eq(:openid_connect)
@@ -112,6 +125,12 @@ RSpec.describe Onetime::SsoProvider::Registry do
 
     it 'raises KeyError for an unknown key' do
       expect { described_class.fetch(:facebook) }.to raise_error(KeyError, /facebook/)
+    end
+
+    it 'delegates the lookup to .find (one predicate, no second copy)' do
+      allow(described_class).to receive(:find).and_call_original
+      described_class.fetch(:oidc)
+      expect(described_class).to have_received(:find).with(:oidc)
     end
   end
 

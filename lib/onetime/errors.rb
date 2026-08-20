@@ -161,6 +161,14 @@ module Onetime
     DEFAULT_MESSAGE = 'Sign-up is temporarily unavailable. Please try again shortly.'
   end
 
+  # Raised by Organization.create! when the contact_email unique index already
+  # holds a reservation for that address (the HSETNX check-and-reserve lost).
+  # Rescue this class, never match on the message: the call sites that carry a
+  # fallback (retry without a contact_email, adopt the orphaned org, render
+  # :email_taken) must not be silently disabled by a reworded message.
+  class OrganizationExists < Problem
+  end
+
   class RecordNotFound < Problem
     # i18n shape: error_key + args are resolved at the HTTP edge so logic
     # classes never touch I18n. error_key is the full dotted i18n key (e.g.

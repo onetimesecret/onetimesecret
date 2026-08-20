@@ -24,6 +24,7 @@ module Onetime
       # comment to the same column.
       USAGE_LINES = [
         '  bin/ots org create NAME --owner ID  # Create an org owned by a customer',
+        '  bin/ots org delete ORG --yes        # Permanently delete an org (guarded)',
         '  bin/ots org doctor EXTID            # Check single org integrity',
         '  bin/ots org doctor --all            # Check all organizations',
         '  bin/ots org doctor --all --repair   # Auto-repair issues',

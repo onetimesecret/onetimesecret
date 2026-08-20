@@ -32,8 +32,12 @@ module DomainsAPI::Logic
 
         # Domain deletion requires admin+ (custom_domains entitlement),
         # consistent with AddDomain (#3033) and GetDomain.
-        domain_org = @custom_domain.primary_organization
-        raise_form_error 'Domain has no associated organization' unless domain_org
+        # Damaged ownership metadata answers 'Domain not found', exactly like
+        # the membership refusal above, and the nil never reaches
+        # require_entitlement_in!.
+        domain_org = load_organization_for_domain(@custom_domain) do
+          raise_form_error 'Domain not found'
+        end
         require_entitlement_in!(domain_org, 'custom_domains')
 
         # Domain-scope enforcement: deny cross-domain deletion (#3384).

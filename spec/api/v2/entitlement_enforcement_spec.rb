@@ -45,6 +45,9 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
     allow(customer).to receive(:anonymous?).and_return(anonymous)
     allow(customer).to receive(:verified?).and_return(true)
     allow(customer).to receive(:increment_field)
+    # The secret logs identify the caller by extid (never custid, which is
+    # the email address on legacy records).
+    allow(customer).to receive(:extid).and_return('urabc123')
     customer
   end
 

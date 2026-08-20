@@ -42,21 +42,21 @@ module DomainsAPI
           domain
         end
 
-        # Load organization from domain's org_id.
+        # Raise this app's i18n-tagged not-found for an unresolvable owner.
+        #
+        # Passed as the block to load_organization_for_domain (see
+        # Onetime::Application::AuthorizationPolicies) so the resolution itself
+        # stays shared and only the error vocabulary is local: these endpoints
+        # answer with error_key + args, which the shared default does not carry.
         #
         # @param domain [Onetime::CustomDomain] The domain
-        # @return [Onetime::Organization] The owning organization
-        # @raise [FormError] if organization not found
-        def load_organization_for_domain(domain)
-          org = Onetime::Organization.load(domain.org_id)
-          if org.nil?
-            raise_not_found(
-              "Organization not found for domain: #{domain.display_domain}",
-              error_key: 'api.domains.errors.organization_not_found',
-              args: { domain: domain.display_domain },
-            )
-          end
-          org
+        # @raise [Onetime::RecordNotFound] always
+        def raise_organization_not_found(domain)
+          raise_not_found(
+            "Organization not found for domain: #{domain.display_domain}",
+            error_key: 'api.domains.errors.organization_not_found',
+            args: { domain: domain.display_domain },
+          )
         end
 
         # Verify organization has incoming_secrets entitlement.
@@ -84,7 +84,9 @@ module DomainsAPI
           # features.incoming.enabled flag (which gates the canonical domain
           # only — see the canonical/custom split in RecipientResolver).
           @custom_domain = load_custom_domain(domain_id)
-          @organization  = load_organization_for_domain(@custom_domain)
+          @organization  = load_organization_for_domain(@custom_domain) do |domain|
+            raise_organization_not_found(domain)
+          end
 
           require_entitlement_in!(@organization, 'manage_org')
           verify_incoming_secrets_entitlement(@organization)

@@ -5,6 +5,7 @@
 require 'onetime/application'
 require 'onetime/application/otto_hooks'
 require 'onetime/middleware'
+require 'onetime/middleware/tenant_csp_extras'
 require 'onetime/logger_methods'
 
 require_relative 'middleware/request_setup'
@@ -37,6 +38,15 @@ module Core
     #
     # Initialize request context (nonce, locale) before other processing
     use Core::Middleware::RequestSetup
+
+    # Per-request CSP form-action widening for tenant SSO IdPs (#4173).
+    # Mounted INSIDE RequestSetup: it writes env['otto.csp.extra_directives']
+    # on the way OUT (only for CSP-enabled HTML responses), strictly before
+    # RequestSetup's finalize_response — the outer layer — emits the CSP via
+    # Otto's Writer with env in hand. Core-only: the API/auth apps emit their
+    # own CSP (Rack::Protection default-src 'self') but no form-action
+    # directive; the enforcing document for the SSO form is the Core page.
+    use Onetime::Middleware::TenantCspExtras
 
     # Simplified error handling for Vue SPA - serves entry points
     # Must come after security but before router to catch all downstream errors
@@ -124,15 +134,20 @@ module Core
       # Enable CSP nonce support for enhanced security
       router.enable_csp_with_nonce!(debug: OT.debug?)
 
+      # Opt in to otto's request-scoped CSP extras channel (otto >= 2.9). Without
+      # this, writes to env['otto.csp.extra_directives'] are ignored — the
+      # channel is off by default so that only apps that deliberately widen
+      # directives per-request (TenantCspExtras: tenant SSO IdP origins into
+      # form-action, #4173) expose that surface to the middleware stack.
+      router.security_config.enable_csp_request_extras!
+
       # Widen the CSP form-action directive with the active SSO IdP origins so
       # Chromium permits the SSO form POST that 302-redirects to the provider
       # (form-action is enforced across the redirect chain). No-op when no SSO
       # provider is configured (policy stays byte-identical) and inert when CSP
       # is disabled (RequestSetup emits nothing unless site.security.csp.enabled).
       sso_origins = Onetime.auth_config.sso_form_action_origins
-      unless sso_origins.empty?
-        router.security_config.merge_csp_directives('form-action' => "'self' #{sso_origins.join(' ')}")
-      end
+      merge_csp_form_action_origins(router.security_config, sso_origins) unless sso_origins.empty?
 
       # Register authentication strategies for Web Core
       Core::AuthStrategies.register_essential(router)
@@ -143,6 +158,29 @@ module Core
       router.server_error = [500, headers, ['Internal Server Error']]
 
       router
+    end
+
+    private
+
+    # Otto replaces an override when merge_csp_directives receives the same
+    # directive a second time. Core boot-time form-action contributors must use
+    # this helper so their sources are explicitly additive.
+    def merge_csp_form_action_origins(security_config, origins)
+      overrides = security_config.csp_directive_overrides
+      existing  = overrides['form-action']
+
+      # Otto stores a nil/false override verbatim (Config#merge_csp_directives
+      # -> Policy.normalize_overrides) and reads it at build time as directive
+      # REMOVAL (Policy.build_directive returns nil for both). Reading it back
+      # as "no override" would resurrect a form-action a boot-time caller
+      # deliberately removed — and Array(false) would ship a literal 'false'
+      # source token. Preserve the removal instead.
+      return if overrides.key?('form-action') && (existing.nil? || existing == false)
+
+      sources = Array(existing).flat_map { |value| value.to_s.split }
+      sources = (sources + ["'self'"] + origins).uniq
+
+      security_config.merge_csp_directives('form-action' => sources.join(' '))
     end
   end
 end
