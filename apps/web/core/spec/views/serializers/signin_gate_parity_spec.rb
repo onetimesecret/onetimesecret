@@ -78,16 +78,14 @@ RSpec.describe 'sign-in/sign-up opt-in: full-mode gate vs simple-mode gate parit
     allow(Onetime).to receive(:auth_config).and_return(mock_auth_config)
     allow(OT).to receive(:conf).and_return({ 'site' => { 'authentication' => auth_settings } })
 
-    # BOTH identity reads. The two gates resolve the host through the
-    # non-swallowing .from_display_domain (#4157); ConfigSerializer, used in the
-    # email-auth section below, still resolves through the fail-open
-    # .load_by_display_domain. They are distinct class methods with no alias
-    # between them, so stubbing only one leaves the other reading a real (empty)
-    # datastore and answering "no tenant config" for every case — which turns
-    # the assertions below into assertions about the unconfigured default.
+    # ONE identity read. The two gates and ConfigSerializer (used in the
+    # email-auth section below, via Onetime::TenantSsoResolution) all resolve
+    # the host through the non-swallowing .from_display_domain (#4157). The
+    # fail-open .load_by_display_domain is deliberately left unstubbed: a
+    # surface that regresses back to it reads a real (empty) datastore and
+    # answers "no tenant config", turning the assertions below red instead of
+    # quietly asserting the unconfigured default.
     allow(Onetime::CustomDomain).to receive(:from_display_domain)
-      .with(display_domain).and_return(custom_domain)
-    allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
       .with(display_domain).and_return(custom_domain)
     allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
       .with(domain_id).and_return(signin_config)

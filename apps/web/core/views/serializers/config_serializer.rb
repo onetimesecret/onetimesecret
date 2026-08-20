@@ -21,7 +21,7 @@ module Core
     #   3. If fallback disallowed -> empty providers array
     #
     # Resolution Flow:
-    #   view_vars['display_domain'] -> CustomDomain.load_by_display_domain -> CustomDomain::SsoConfig
+    #   view_vars['display_domain'] -> CustomDomain.from_display_domain -> CustomDomain::SsoConfig
     #
     module ConfigSerializer
       # Sentinel returned by resolve_domain_id when a datastore read fails.

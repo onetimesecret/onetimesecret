@@ -154,8 +154,14 @@ module Core
         # Fails CLOSED on resolution errors: a custom-domain request whose
         # policy cannot be read reports "enforced", so the affordance is not
         # advertised where it may be forbidden (Greptile review, PR #3938).
-        # Canonical-domain requests return before any fallible lookup, so
-        # consumer accounts are unaffected by a storage blip. Note this flag
+        # Operator hosts are NOT exempt from the lookup — DomainStrategy
+        # publishes display_domain unconditionally (canonical fallback), so a
+        # canonical request walks the same ladder, and a record keyed on the
+        # operator's own host must still narrow (ADR-024). What they are
+        # exempt from is the SENTINEL: TenantSsoResolution answers nil, not
+        # DOMAIN_READ_FAILED, when the read fails on :canonical/:subdomain,
+        # so a storage blip cannot hide the password form from consumer
+        # accounts on the canonical /signin. Note this flag
         # only gates UI affordances — actual sign-in enforcement lives in the
         # signin routes (restrict_to resolution / Base#signin_enabled?).
         #
