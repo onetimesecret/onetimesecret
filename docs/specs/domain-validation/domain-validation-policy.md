@@ -7,6 +7,9 @@ Itemizes known gaps in the multi-strategy domain validation system
 decisions recorded as ADR-015 through ADR-018. This is the substrate
 document — read it for "why"; read the ADRs for "what was decided."
 
+For current implementation status, remaining work, and effort estimates, see
+[Native Domain Validation Readiness](native-domain-validation-readiness.md).
+
 Research method: 6 web-search angles, 23 sources fetched, 94 claims
 extracted, 25 adversarially voted (3-vote refute panel), 20 confirmed / 5
 refuted. Full source list and per-claim vote record kept in the research
