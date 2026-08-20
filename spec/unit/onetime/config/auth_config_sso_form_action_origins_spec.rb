@@ -240,6 +240,50 @@ RSpec.describe Onetime::AuthConfig do
       expect(config.sso_form_action_origins).to eq([])
     end
 
+    # ── parity with otto's own extras validator ──────────────────────
+    # origin_from_url funnels its candidate through
+    # Otto::Security::CSP::RequestExtras.normalize_origin. A token this app
+    # accepts but otto later drops at policy-build time is the silent #4173
+    # failure: the operator gets a generic otto warning naming neither the
+    # source nor the record, and the redirect is blocked in the browser only.
+
+    it 'keeps an override token with a valid explicit port' do
+      config = fresh_config('SSO_FORM_ACTION_ORIGINS' => 'https://idp.example.com:8443')
+      expect(config.sso_form_action_origins).to contain_exactly('https://idp.example.com:8443')
+    end
+
+    it 'drops an override token whose port is 0 (below otto\'s 1..65535 range)' do
+      config = fresh_config('SSO_FORM_ACTION_ORIGINS' => 'https://idp.example.com:0')
+      expect(config.sso_form_action_origins).to eq([])
+    end
+
+    it 'drops an override token whose port is above 65535' do
+      config = fresh_config('SSO_FORM_ACTION_ORIGINS' => 'https://idp.example.com:70000')
+      expect(config.sso_form_action_origins).to eq([])
+    end
+
+    it 'drops an override token whose host contains a percent-encoding' do
+      config = fresh_config('SSO_FORM_ACTION_ORIGINS' => 'https://idp%00.example.com')
+      expect(config.sso_form_action_origins).to eq([])
+    end
+
+    it 'logs a token otto would have dropped, so the misconfiguration is visible' do
+      allow(OT).to receive(:lw)
+      fresh_config('SSO_FORM_ACTION_ORIGINS' => 'https://idp.example.com:70000')
+        .sso_form_action_origins
+      expect(OT).to have_received(:lw).with(/SSO_FORM_ACTION_ORIGINS token/)
+    end
+
+    it 'emits only origins otto would accept unchanged' do
+      origins    = fresh_config(
+        'OIDC_ISSUER' => 'https://idp.example.com:8443/realms/main',
+        'OIDC_CLIENT_ID' => 'id',
+        'SSO_FORM_ACTION_ORIGINS' => 'https://sso.example.org http://internal-idp:8080',
+      ).sso_form_action_origins
+      normalized = origins.map { |o| Otto::Security::CSP::RequestExtras.normalize_origin(o) }
+      expect(normalized).to eq(origins)
+    end
+
     # ── SSO feature disabled ─────────────────────────────────────────
 
     it 'ignores provider env vars when the SSO feature is disabled' do
@@ -315,6 +359,37 @@ RSpec.describe Onetime::AuthConfig do
       instance = fresh_config
       expect { instance.tenant_idp_origin(config) }.not_to raise_error
       expect(instance.tenant_idp_origin(config)).to be_nil
+    end
+
+    # ── issuers otto would drop must be rejected HERE ─────────────────
+    # An issuer that clears this funnel but fails otto's own sanitizer is
+    # dropped at policy-build time with a warning naming neither the domain
+    # nor the SsoConfig record — TenantCspExtras only reaches
+    # warn_rejected_origin_source when the origin comes back nil, so the
+    # rejection must happen here for the operator to hear about it (#4173).
+
+    it 'returns nil for an issuer whose port is 0 (below otto\'s 1..65535 range)' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: 'https://idp.tenant.example:0/realms/x')
+      expect(fresh_config.tenant_idp_origin(config)).to be_nil
+    end
+
+    it 'returns nil for an issuer whose port is above 65535' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: 'https://idp.tenant.example:70000/realms/x')
+      expect(fresh_config.tenant_idp_origin(config)).to be_nil
+    end
+
+    it 'returns nil for an issuer whose host contains a percent-encoding' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: 'https://idp%00.tenant.example/realms/x')
+      expect(fresh_config.tenant_idp_origin(config)).to be_nil
+    end
+
+    # RHS is otto's OWN normalization of the expected origin: if otto would
+    # reject or rewrite this value, the two sides diverge and this fails.
+    it 'returns an origin otto would accept unchanged' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: 'https://IDP.Tenant.Example:8443/realms/x')
+      expect(fresh_config.tenant_idp_origin(config)).to eq(
+        Otto::Security::CSP::RequestExtras.normalize_origin('https://idp.tenant.example:8443'),
+      )
     end
 
     # ── entra_id: static registry origin ─────────────────────────────

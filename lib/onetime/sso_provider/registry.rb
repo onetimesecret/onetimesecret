@@ -110,10 +110,21 @@ module Onetime
         Github::DEFINITION,
       ].freeze
 
+      # Definition lookup by :key that answers nil on a miss — the per-request
+      # counterpart to .fetch, for callers where a KeyError would be worse
+      # than a skipped provider (AuthConfig#tenant_idp_origin resolves a
+      # PROVIDER_ROUTE_MAP route name here, inside the CSP middleware).
+      def self.find(key)
+        DEFINITIONS.find { |defn| defn[:key] == key }
+      end
+
       # Definition lookup by :key. Raises KeyError on an unknown key so a typo
       # fails loudly at boot rather than silently skipping a provider.
+      #
+      # Delegates to .find so the lookup predicate lives in exactly one place:
+      # reshaping DEFINITIONS cannot leave a stale inlined copy behind.
       def self.fetch(key)
-        DEFINITIONS.find { |defn| defn[:key] == key } ||
+        find(key) ||
           raise(KeyError, "unknown SSO provider definition: #{key.inspect}")
       end
     end

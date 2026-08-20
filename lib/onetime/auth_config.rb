@@ -12,6 +12,10 @@ require_relative 'utils/config_resolver'
 require_relative 'utils/enumerables'
 require_relative 'sso_provider/registry'
 
+# The origin validator otto applies to the request-scoped CSP extras channel;
+# #origin_from_url funnels through it so the two cannot drift (see there).
+require 'otto/security/csp/request_extras'
+
 module Onetime
   class AuthConfig
     include Singleton
@@ -563,9 +567,12 @@ module Onetime
         .dig(provider_type, :default)
       return nil if route_name.nil?
 
-      # Registry lookup that answers nil on a miss (Registry.fetch raises
-      # KeyError, which is right for boot-time typos but not per-request).
-      defn = SsoProvider::Registry::DEFINITIONS.find { |d| d[:key] == route_name.to_sym }
+      # Registry.find answers nil on a miss (Registry.fetch raises KeyError,
+      # which is right for boot-time typos but not per-request). Going through
+      # the Registry API rather than scanning DEFINITIONS here is what keeps a
+      # reshape of the registry from leaving this lookup silently returning
+      # nil — the browser-only #4173 symptom, with no warning to point at it.
+      defn = SsoProvider::Registry.find(route_name.to_sym)
       return nil if defn.nil?
 
       provider_origin(defn)
@@ -781,7 +788,9 @@ module Onetime
     # otherwise malformed URL — never raises. Note that URI.parse sets #host to
     # an empty string (not nil) for a scheme-present, hostless URL such as
     # "https://" or "https:///path", so an empty/whitespace host is treated the
-    # same as nil to avoid emitting a degenerate "https://" origin.
+    # same as nil to avoid emitting a degenerate "https://" origin. A returned
+    # origin is guaranteed to survive otto's own extras validator (final gate
+    # below), so nothing reaching a caller is dropped later without a warning.
     def origin_from_url(url)
       str = url.to_s.strip
       return nil if str.empty?
@@ -805,7 +814,19 @@ module Onetime
 
       origin  = "#{uri.scheme}://#{host}"
       origin += ":#{uri.port}" if uri.port && uri.port != uri.default_port
-      origin
+
+      # Final gate: otto's OWN validator, the same code that sanitizes the
+      # request-scoped extras at policy-build time (otto 2.9.0
+      # lib/otto/security/csp/request_extras.rb). Validating THROUGH it rather
+      # than mirroring its rules is what stops the two from drifting: anything
+      # otto would drop later (port outside 1..65535, a '%' in the host, a
+      # double-trailing-dot FQDN) must be rejected HERE, where the caller
+      # still knows
+      # the domain and the SsoConfig record and can say so in a warning. Otto
+      # drops it with a generic message naming neither — the silent #4173
+      # blocked redirect. It also normalizes (downcased scheme and host, a
+      # single trailing dot stripped).
+      Otto::Security::CSP::RequestExtras.normalize_origin(origin)
     rescue URI::Error
       nil
     end
