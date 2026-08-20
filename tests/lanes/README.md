@@ -52,6 +52,7 @@ $ tests/lanes/run unit --only try/logic/sso_config/ssrf_protection_transition_tr
 | `full-pg`           | valkey, rabbitmq, postgres | `spec:integration:full:postgres`                           | ruby-integration-full — PG rows          |
 | `full-pg-agnostic`  | valkey, rabbitmq, postgres | `spec:integration:full:agnostic_on_pg`                     | ruby-integration-full — PG agnostic rows |
 | `disabled`          | valkey, rabbitmq           | `spec:integration:disabled`                                | ruby-integration-disabled (T3)           |
+| `strategies`        | valkey, rabbitmq           | `spec:integration:strategies`                              | ruby-integration-strategies (T3)         |
 | `api`               | valkey, rabbitmq           | `spec:api`                                                 | blocking step, T3 simple job             |
 | `smoke`             | valkey, rabbitmq           | `pnpm test:smoke`                                          | local-only                               |
 | `migrations-sqlite` | valkey, rabbitmq           | `spec:integration:migrations:sqlite`                       | migration-tests.yml — SQLite job         |
@@ -61,6 +62,13 @@ $ tests/lanes/run unit --only try/logic/sso_config/ssrf_protection_transition_tr
 Start every service named for a lane. This includes RabbitMQ for `api` and
 `smoke`, whose lane environment still declares its endpoint. `selftest` is the
 only service-free exception.
+
+`strategies` shares `full-sqlite`'s environment but is its own lane
+because the isolation *is* the point: run in the `full-sqlite` process,
+the `spec/integration/all` RabbitMQ/fork specs corrupt the process-wide
+Familia/Redis connection and every strategy example fails spuriously
+(#3468). One lane = one process boundary, so a second lane is how that
+gets expressed.
 
 Use `--overlay billing` only with full-mode lanes. Billing requires
 `AUTHENTICATION_MODE=full`; other lanes reject the overlay.
