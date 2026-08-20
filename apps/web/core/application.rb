@@ -166,9 +166,19 @@ module Core
     # directive a second time. Core boot-time form-action contributors must use
     # this helper so their sources are explicitly additive.
     def merge_csp_form_action_origins(security_config, origins)
-      existing = Array(security_config.csp_directive_overrides['form-action'])
-        .flat_map { |sources| sources.to_s.split }
-      sources  = (existing + ["'self'"] + origins).uniq
+      overrides = security_config.csp_directive_overrides
+      existing  = overrides['form-action']
+
+      # Otto stores a nil/false override verbatim (Config#merge_csp_directives
+      # -> Policy.normalize_overrides) and reads it at build time as directive
+      # REMOVAL (Policy.build_directive returns nil for both). Reading it back
+      # as "no override" would resurrect a form-action a boot-time caller
+      # deliberately removed — and Array(false) would ship a literal 'false'
+      # source token. Preserve the removal instead.
+      return if overrides.key?('form-action') && (existing.nil? || existing == false)
+
+      sources = Array(existing).flat_map { |value| value.to_s.split }
+      sources = (sources + ["'self'"] + origins).uniq
 
       security_config.merge_csp_directives('form-action' => sources.join(' '))
     end

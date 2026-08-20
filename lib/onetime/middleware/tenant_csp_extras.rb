@@ -34,8 +34,8 @@ module Onetime
     # `form-action` — silently, in the browser, with no server-side error.
     # This middleware runs on the way OUT: after the downstream app has
     # produced its response, and only when that response would actually carry
-    # a CSP (CSP enabled, HTML media type), it resolves the tenant's IdP
-    # origin and writes it to otto's request-scoped CSP extras channel
+    # a CSP (CSP enabled, document status, HTML media type), it resolves the
+    # tenant's IdP origin and writes it to otto's request-scoped CSP extras
     # (env['otto.csp.extra_directives'], delano/otto#243). Otto sanitizes the
     # tokens (origins-only grammar, additive-only, refused directives dropped)
     # at policy-build time, when Core::Middleware::RequestSetup's
@@ -84,12 +84,25 @@ module Onetime
     # prefer raising over misreading a failed policy read as "no config" —
     # there, a misread flips an access-control decision; here, the only
     # consequence of emitting nothing is the pre-#4173 behavior (the SSO
-    # redirect stays blocked until the blip passes), which is safe.
+    # redirect stays blocked until the blip passes), which is safe. That
+    # tolerance covers datastore errors ONLY: any other exception on this
+    # path is a code defect whose sole symptom would be the #4173 symptom
+    # itself, so it is logged at error level (see #apply_tenant_extras).
     class TenantCspExtras
       # Upper bound on the tenant-supplied issuer text reproduced in a log
       # line. Long enough to identify the offending record, short enough that
       # a hostile value cannot flood the log.
       ISSUER_LOG_LIMIT = 100
+
+      # Bodyless 2xx statuses to skip; document_status? also skips 1xx and
+      # every 3xx via range checks. No browser parses any of them as a
+      # document, so no CSP the widening could belong to is ever enforced.
+      # 304 is the volume case — Rack::Files answers [304, {}, []]
+      # for each revalidated asset and StaticFiles is mounted INSIDE this
+      # middleware, so without this guard a custom-domain page reload paid the
+      # tenant resolution ladder once per asset. 4xx/5xx are NOT skipped: an
+      # error page is a rendered document.
+      NON_DOCUMENT_STATUSES = [204, 205].freeze
 
       def initialize(app)
         @app                            = app
@@ -99,7 +112,7 @@ module Onetime
 
       def call(env)
         status, headers, body = @app.call(env)
-        apply_tenant_extras(env, headers)
+        apply_tenant_extras(env, status, headers)
 
         [status, headers, body]
       end
@@ -108,11 +121,12 @@ module Onetime
 
       # Guards run cheapest-first, and all of them before any datastore read:
       # the app-side CSP toggle (the same site.security.csp.enabled gate
-      # RequestSetup#emit_csp_header applies), then the response media type,
-      # then a present display_domain.
-      def apply_tenant_extras(env, headers)
+      # RequestSetup#emit_csp_header applies), then the response status, then
+      # the response media type, then a present display_domain.
+      def apply_tenant_extras(env, status, headers)
         return unless OT.conf.dig('site', 'security', 'csp', 'enabled')
-        return unless html_response?(headers)
+        return unless document_status?(status)
+        return unless html_response?(env, headers)
 
         display_domain = env['onetime.display_domain'].to_s
         return if display_domain.empty?
@@ -121,30 +135,51 @@ module Onetime
         return if origin.nil?
 
         merge_form_action_extra(env, origin)
-      rescue StandardError => ex
-        # Narrow by construction: the resolution's domain read answers
-        # nil-or-sentinel rather than raising (TenantSsoResolution swallows
-        # the datastore error the way CustomDomain.load_by_display_domain
-        # does, per the #4157 convention notes in Core::Controllers::Base),
-        # so this rescue only catches failures from the SsoConfig/
-        # availability reads and the origin derivation. Either way a failed
-        # domain read degrades silently to no-widening — the accepted
-        # fail-closed direction for a header widening.
-        OT.lw '[TenantCspExtras] skipping CSP widening for ' \
+      rescue Redis::BaseError => ex
+        # The one EXPECTED degraded mode: a datastore blip on the SsoConfig/
+        # availability reads (the resolution answers its own domain read as
+        # DOMAIN_READ_FAILED rather than raising). Degrade to no-widening —
+        # the pre-#4173 behavior, safe by the fail-open direction argued in
+        # the class comment — and log at warn, not error.
+        OT.lw '[TenantCspExtras] datastore error, skipping CSP widening for ' \
               "#{env['onetime.display_domain'].inspect}: #{ex.class}: #{ex.message}"
+      rescue StandardError => ex
+        # Anything else is a code defect on this path, and its only other
+        # symptom is the #4173 symptom itself: a redirect the browser blocks,
+        # with no server-side error. The response must still not 500 over a
+        # CSP extra, so it is swallowed — but LOUDLY, at error level with the
+        # exception attached, so it alerts instead of becoming a permanent
+        # unmonitored regression.
+        OT.le '[TenantCspExtras] unexpected error, skipping CSP widening for ' \
+              "#{env['onetime.display_domain'].inspect}: #{ex.class}: #{ex.message}",
+          exception: ex
+      end
+
+      # Whether the status can carry a document a CSP would govern. Keeps the
+      # resolution ladder off revalidation and redirect traffic.
+      def document_status?(status)
+        code = status.to_i
+        return false if code < 200
+        return false if (300..399).cover?(code)
+
+        !NON_DOCUMENT_STATUSES.include?(code)
       end
 
       # Whether the response's media type is HTML, matching how otto's Writer
       # decides emission (leading token before ';', case-insensitive,
-      # 'text/html' exactly), with one deliberate difference: an ABSENT
-      # Content-Type counts as HTML here. RequestSetup (the outer layer)
-      # defaults a missing Content-Type to text/html in finalize_response
-      # BEFORE the Writer sees it, so a header-less response will be emitted
-      # as HTML with a CSP — skipping the widening for it would reopen the
-      # lockstep gap this middleware exists to close.
-      def html_response?(headers)
+      # 'text/html' exactly).
+      #
+      # An ABSENT Content-Type is the ambiguous case. RequestSetup (the outer
+      # layer) defaults a missing Content-Type to text/html in
+      # finalize_response BEFORE the Writer sees it, so a header-less response
+      # CAN still be emitted as HTML with a CSP — but treating every such
+      # response as HTML made bodyless replies pay the full tenant ladder.
+      # Split by cost: when the app already memoized a resolution on the env
+      # (a real render went through the serializers), reusing it is free, so
+      # stay in lockstep; otherwise require an explicit text/html.
+      def html_response?(env, headers)
         content_type = headers.find { |key, _value| key.to_s.casecmp?('content-type') }&.last
-        return true if content_type.nil?
+        return env.key?(Onetime::TenantSsoResolution::ENV_KEY) if content_type.nil?
 
         content_type.to_s.split(';', 2).first.to_s.strip.casecmp?('text/html')
       end
@@ -226,38 +261,28 @@ module Onetime
         "#{value[0, ISSUER_LOG_LIMIT]}..."
       end
 
-      # Merge (never clobber) the origin into the request-scoped extras hash.
+      # Add the origin to the request-scoped extras hash without clobbering
+      # what another layer wrote.
       #
-      # Pre-existing entries are first normalized with otto's own rules
-      # (Otto::Security::CSP::RequestExtras): directive keys via
-      # to_s.strip.downcase.tr('_', '-') — otherwise a 'form_action' /
-      # :form_action / 'Form-Action' spelling would only collide with our
-      # 'form-action' inside otto, where plain hash assignment lets one side
-      # silently win — and String values split on whitespace, because otto
-      # reads a String value as a whitespace-separated source list;
-      # Array('https://a https://b') would wrap it as ONE token that otto's
-      # FORBIDDEN_CHARS (whitespace) check then drops wholesale, vanishing
-      # the other layer's origins. Keys that collapse under normalization
-      # have their token lists concatenated. Otto re-sanitizes every
-      # surviving token at policy build.
+      # Normalization is otto's job, not ours:
+      # Otto::Security::CSP::RequestExtras.from_env normalizes directive keys
+      # (so a 'form_action' / :form_action / 'Form-Action' entry from another
+      # layer is recognized), UNIONS keys that collapse to the same directive
+      # rather than letting one win, and re-sanitizes every token at policy
+      # build. A non-Hash value is dropped there wholesale, so replacing one
+      # here costs nothing. The only step that cannot wait for otto is
+      # splitting a String value of OUR key: otto reads a String as a
+      # whitespace-separated source list but takes an Array element-wise, so
+      # wrapping 'https://a https://b' into one array element would turn it
+      # into a single whitespace-bearing token otto then drops.
       def merge_form_action_extra(env, origin)
-        extras = normalize_extras(env[Otto::EnvKeys::CSP::EXTRA_DIRECTIVES])
+        existing = env[Otto::EnvKeys::CSP::EXTRA_DIRECTIVES]
+        extras   = existing.is_a?(Hash) ? existing.dup : {}
+        current  = extras['form-action']
+        tokens   = current.is_a?(String) ? current.split : Array(current)
 
-        extras['form-action']                     = (extras.fetch('form-action', []) + [origin]).uniq
+        extras['form-action']                     = (tokens + [origin]).uniq
         env[Otto::EnvKeys::CSP::EXTRA_DIRECTIVES] = extras
-      end
-
-      # A fresh hash with otto-normalized keys and Array-of-tokens values.
-      # Never aliases the caller's hash or its nested arrays, so the original
-      # extras value is left untouched.
-      def normalize_extras(existing)
-        return {} unless existing.is_a?(Hash)
-
-        existing.each_with_object({}) do |(key, value), acc|
-          name      = key.to_s.strip.downcase.tr('_', '-')
-          tokens    = value.is_a?(String) ? value.split : Array(value)
-          acc[name] = acc.fetch(name, []) + tokens
-        end
       end
     end
   end

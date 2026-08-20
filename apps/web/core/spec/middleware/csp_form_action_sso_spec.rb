@@ -151,20 +151,62 @@ end
 RSpec.describe Core::Application, '#merge_csp_form_action_origins' do
   subject(:application) { described_class.allocate }
 
+  let(:origins) { ['https://login.microsoftonline.com'] }
+
+  def merge(config)
+    application.send(:merge_csp_form_action_origins, config, origins)
+  end
+
   it 'preserves existing boot-time form-action sources while adding SSO origins' do
     config = Otto::Security::Config.new
     config.merge_csp_directives('form-action' => "'self' https://payments.example")
 
-    application.send(
-      :merge_csp_form_action_origins,
-      config,
-      ['https://login.microsoftonline.com'],
-    )
+    merge(config)
 
     expect(config.csp_directive_overrides.fetch('form-action').split).to contain_exactly(
       "'self'",
       'https://payments.example',
       'https://login.microsoftonline.com',
     )
+  end
+
+  it "adds 'self' plus the origins when no override exists yet" do
+    config = Otto::Security::Config.new
+
+    merge(config)
+
+    expect(config.csp_directive_overrides.fetch('form-action').split).to contain_exactly(
+      "'self'",
+      'https://login.microsoftonline.com',
+    )
+  end
+
+  # Otto stores a nil/false override verbatim and honors it at policy build as
+  # directive REMOVAL (Policy.build_directive returns nil for both), so a
+  # read-back that treated the marker as "no override" would resurrect a
+  # form-action a boot-time caller deliberately removed — and Array(false)
+  # would ship a literal 'false' source token in the emitted header.
+  [nil, false].each do |marker|
+    it "preserves a #{marker.inspect} removal marker instead of resurrecting form-action" do
+      config = Otto::Security::Config.new
+      config.merge_csp_directives('form-action' => marker)
+
+      merge(config)
+
+      expect(config.csp_directive_overrides.fetch('form-action')).to be(marker)
+    end
+
+    it "emits no form-action directive after a #{marker.inspect} marker survives the merge" do
+      config = Otto::Security::Config.new
+      config.enable_csp_with_nonce!
+      config.merge_csp_directives('form-action' => marker)
+
+      merge(config)
+
+      policy = Otto::Security::CSP::Policy.nonce_policy(
+        'N', directive_overrides: config.csp_directive_overrides
+      )
+      expect(policy).not_to include('form-action')
+    end
   end
 end

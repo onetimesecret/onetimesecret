@@ -38,6 +38,16 @@ RSpec.describe Onetime::Middleware::TenantCspExtras do
   let(:extras_key) { Otto::EnvKeys::CSP::EXTRA_DIRECTIVES }
   let(:csp_enabled) { true }
 
+  # The shared ladder (Onetime::TenantSsoResolution) resolves the domain
+  # through a CustomDomain display-half loader that normalizes case itself and
+  # answers the #4157 tri-state. Which loader is the resolution's business,
+  # not this file's: stub both spellings and count the reads, so these cases
+  # pin the MIDDLEWARE's behavior rather than the resolver's choice.
+  let(:domain_loaders) { [:load_by_display_domain, :from_display_domain] }
+
+  # Hosts passed to the domain loader, in call order.
+  let(:domain_reads) { [] }
+
   def build_env(display: display_domain, extra: {})
     {
       'onetime.domain_strategy' => :custom,
@@ -62,12 +72,14 @@ RSpec.describe Onetime::Middleware::TenantCspExtras do
     allow(Onetime).to receive(:auth_config).and_return(auth_config)
   end
 
-  # The shared ladder (Onetime::TenantSsoResolution) resolves the domain
-  # through load_by_display_domain — the DISPLAY-half read the serializers
-  # use, which normalizes case itself and answers the #4157 tri-state.
   def stub_domain(identifier = domain_id)
     domain = identifier && instance_double(Onetime::CustomDomain, identifier: identifier)
-    allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
+    domain_loaders.each do |loader|
+      allow(Onetime::CustomDomain).to receive(loader) do |host|
+        domain_reads << host
+        domain
+      end
+    end
   end
 
   def stub_tenant(config, available: true)
@@ -79,54 +91,114 @@ RSpec.describe Onetime::Middleware::TenantCspExtras do
   end
 
   describe 'pre-read guards (no datastore work unless the response can carry a CSP)' do
+    let(:config) { sso_config_double(provider_type: 'oidc', issuer: 'https://idp.tenant.example') }
+
     it 'never reads the datastore when CSP is disabled' do
       allow(OT).to receive(:conf).and_return(
         'site' => { 'security' => { 'csp' => { 'enabled' => false } } },
       )
-      expect(Onetime::CustomDomain).not_to receive(:load_by_display_domain)
+      stub_tenant(config)
       env = build_env
 
       expect(middleware.call(env)).to eq(downstream_response)
+      expect(domain_reads).to be_empty
       expect(env).not_to have_key(extras_key)
     end
 
     it 'never reads the datastore for a non-HTML response (JSON)' do
       response_headers['content-type'] = 'application/json'
-      expect(Onetime::CustomDomain).not_to receive(:load_by_display_domain)
+      stub_tenant(config)
       env = build_env
 
       expect(middleware.call(env)).to eq(downstream_response)
+      expect(domain_reads).to be_empty
       expect(env).not_to have_key(extras_key)
     end
 
     it 'reads a canonically-cased Content-Type (case-insensitive, like otto and RequestSetup)' do
       response_headers.delete('content-type')
       response_headers['Content-Type'] = 'application/json'
-      expect(Onetime::CustomDomain).not_to receive(:load_by_display_domain)
-      env = build_env
-
-      middleware.call(env)
-      expect(env).not_to have_key(extras_key)
-    end
-
-    it 'treats an ABSENT Content-Type as HTML (RequestSetup defaults it to text/html downstream)' do
-      # RequestSetup#ensure_content_type (the OUTER layer) fills in text/html
-      # after this middleware returns, so a header-less response WILL be
-      # emitted with a CSP — the widening must stay in lockstep with it.
-      response_headers.clear
-      config = sso_config_double(provider_type: 'oidc', issuer: 'https://idp.tenant.example')
       stub_tenant(config)
       env = build_env
 
       middleware.call(env)
-      expect(env[extras_key]).to eq('form-action' => ['https://idp.tenant.example'])
+      expect(domain_reads).to be_empty
+      expect(env).not_to have_key(extras_key)
     end
 
     it 'never reads the datastore when no display_domain was published' do
-      expect(Onetime::CustomDomain).not_to receive(:load_by_display_domain)
+      stub_tenant(config)
       env = build_env(display: nil)
 
       middleware.call(env)
+      expect(domain_reads).to be_empty
+      expect(env).not_to have_key(extras_key)
+    end
+  end
+
+  # Statuses whose body no browser parses as a document carry no CSP the
+  # widening could belong to. 304 is the volume case: StaticFiles is mounted
+  # INSIDE this middleware and Rack::Files answers [304, {}, []], so a
+  # header-less 304 must not walk the tenant ladder once per revalidated
+  # asset.
+  describe 'status guard (no datastore work for bodyless responses)' do
+    let(:config) { sso_config_double(provider_type: 'oidc', issuer: 'https://idp.tenant.example') }
+
+    before { stub_tenant(config) }
+
+    [[304, {}], [204, {}], [302, { 'content-type' => 'text/html; charset=utf-8' }],
+     [205, {}], [100, {}]].each do |status, headers|
+      it "performs zero datastore reads for a #{status} response" do
+        env = build_env
+        app = ->(_env) { [status, headers, []] }
+
+        described_class.new(app).call(env)
+
+        expect(domain_reads).to be_empty
+        expect(env).not_to have_key(extras_key)
+      end
+    end
+
+    it 'still widens an HTML error page (4xx/5xx documents are rendered)' do
+      env = build_env
+      app = ->(_env) { [404, { 'content-type' => 'text/html; charset=utf-8' }, ['nope']] }
+
+      described_class.new(app).call(env)
+
+      expect(env[extras_key]).to eq('form-action' => ['https://idp.tenant.example'])
+    end
+  end
+
+  # An absent Content-Type is ambiguous: RequestSetup#ensure_content_type (the
+  # OUTER layer) may still default it to text/html, but every bodyless reply
+  # also arrives here header-less. The split is by cost — reuse a resolution
+  # the app already made, never open one on a guess.
+  describe 'absent Content-Type' do
+    let(:config) { sso_config_double(provider_type: 'oidc', issuer: 'https://idp.tenant.example') }
+
+    before { response_headers.clear }
+
+    it 'widens when the app already memoized a resolution (free: no new reads)' do
+      stub_tenant(config)
+      app = lambda do |env|
+        Onetime::TenantSsoResolution.for(env).sso_config
+        downstream_response
+      end
+      env = build_env
+
+      described_class.new(app).call(env)
+
+      expect(env[extras_key]).to eq('form-action' => ['https://idp.tenant.example'])
+      expect(domain_reads.size).to eq(1)
+    end
+
+    it 'performs zero datastore reads when no resolution was memoized' do
+      stub_tenant(config)
+      env = build_env
+
+      middleware.call(env)
+
+      expect(domain_reads).to be_empty
       expect(env).not_to have_key(extras_key)
     end
   end
@@ -156,13 +228,13 @@ RSpec.describe Onetime::Middleware::TenantCspExtras do
   end
 
   describe 'domain resolution' do
-    it 'resolves the published display_domain as-is (load_by_display_domain normalizes case)' do
+    it 'resolves the published display_domain as-is (the loader normalizes case)' do
       config = sso_config_double(provider_type: 'oidc', issuer: 'https://idp.tenant.example')
       stub_tenant(config)
       env = build_env(display: 'Tenant.Example.NET')
 
       middleware.call(env)
-      expect(Onetime::CustomDomain).to have_received(:load_by_display_domain).with('Tenant.Example.NET')
+      expect(domain_reads).to eq(['Tenant.Example.NET'])
       expect(env[extras_key]).to eq('form-action' => ['https://idp.tenant.example'])
     end
   end
@@ -188,7 +260,7 @@ RSpec.describe Onetime::Middleware::TenantCspExtras do
       described_class.new(app).call(env)
 
       expect(env[extras_key]).to eq('form-action' => ['https://idp.tenant.example'])
-      expect(Onetime::CustomDomain).to have_received(:load_by_display_domain).once
+      expect(domain_reads.size).to eq(1)
       expect(Onetime::CustomDomain::SsoConfig).to have_received(:find_by_domain_id).once
       expect(Onetime::TenantSsoResolution.for(env)).to equal(seeded)
     end
@@ -417,15 +489,31 @@ RSpec.describe Onetime::Middleware::TenantCspExtras do
     end
   end
 
-  describe 'datastore failure' do
-    # The shared resolution's domain read answers nil-or-sentinel rather than
-    # raising, so the middleware's rescue is reachable only from the
-    # SsoConfig/availability reads and origin derivation.
-    it 'warns and proceeds without extras when the SsoConfig read raises' do
+  describe 'failure handling' do
+    # Two distinct outcomes, never one blanket swallow: a datastore blip is
+    # the known degraded mode (warn, no widening), anything else is a code
+    # defect whose only other symptom is the #4173 symptom itself — a redirect
+    # the browser blocks with no server-side error — so it must be LOUD.
+    # Neither may 500 the response.
+    it 'warns and proceeds without extras when the SsoConfig read hits a datastore error' do
       stub_domain
       allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
-        .and_raise(StandardError, 'valkey blip')
-      expect(OT).to receive(:lw).with(/TenantCspExtras.*tenant\.example\.net.*valkey blip/)
+        .and_raise(Redis::BaseError, 'valkey blip')
+      expect(OT).to receive(:lw).with(/TenantCspExtras.*datastore error.*tenant\.example\.net.*valkey blip/)
+      expect(OT).not_to receive(:le)
+      env = build_env
+
+      expect(middleware.call(env)).to eq(downstream_response)
+      expect(env).not_to have_key(extras_key)
+    end
+
+    it 'logs an unexpected error at error level with the exception attached' do
+      stub_domain
+      boom = ArgumentError.new('unexpected keyword')
+      allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id).and_raise(boom)
+      expect(OT).not_to receive(:lw)
+      expect(OT).to receive(:le)
+        .with(/unexpected error.*tenant\.example\.net.*ArgumentError/, exception: boom)
       env = build_env
 
       expect(middleware.call(env)).to eq(downstream_response)
@@ -473,21 +561,25 @@ RSpec.describe Onetime::Middleware::TenantCspExtras do
       )
     end
 
-    it "normalizes a 'form_action'-spelled key instead of writing a colliding sibling" do
-      # Otto normalizes directive keys (to_s.strip.downcase.tr('_', '-')), so
-      # 'form_action' and 'form-action' collide INSIDE otto where one side
-      # would silently win; normalizing before the merge keeps both.
-      env = build_env(extra: {
-        extras_key => { :form_action => ['https://other.example'] },
-      })
+    # Directive-key normalization is otto's, not ours: RequestExtras.from_env
+    # normalizes each key and UNIONS the ones that collapse to the same
+    # directive, so an alternately-spelled sibling key on the env is not a
+    # collision to pre-empt. These two cases drive the REAL otto sanitizer
+    # over the env the middleware produced.
+    it "leaves an alternately-spelled sibling key for otto to union ('form_action')" do
+      env = build_env(extra: { extras_key => { form_action: ['https://other.example'] } })
 
       middleware.call(env)
       expect(env[extras_key]).to eq(
+        form_action: ['https://other.example'],
+        'form-action' => ['https://idp.tenant.example'],
+      )
+      expect(Otto::Security::CSP::RequestExtras.from_env(env)).to eq(
         'form-action' => ['https://other.example', 'https://idp.tenant.example'],
       )
     end
 
-    it 'concatenates token lists when keys collapse under normalization' do
+    it 'keeps every token when several spellings collapse under otto normalization' do
       env = build_env(extra: {
         extras_key => {
           'Form-Action' => ['https://a.example'],
@@ -496,9 +588,16 @@ RSpec.describe Onetime::Middleware::TenantCspExtras do
       })
 
       middleware.call(env)
-      expect(env[extras_key]).to eq(
+      expect(Otto::Security::CSP::RequestExtras.from_env(env)).to eq(
         'form-action' => ['https://a.example', 'https://b.example', 'https://idp.tenant.example'],
       )
+    end
+
+    it 'replaces a non-Hash extras value (otto drops one wholesale anyway)' do
+      env = build_env(extra: { extras_key => 'form-action https://other.example' })
+
+      middleware.call(env)
+      expect(env[extras_key]).to eq('form-action' => ['https://idp.tenant.example'])
     end
 
     it 'does not mutate the original extras hash in place' do
