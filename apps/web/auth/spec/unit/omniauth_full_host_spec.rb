@@ -49,7 +49,8 @@ RSpec.describe Auth::Config::Features::OmniAuth, '.full_host_for' do
   # @param display_domain [String, nil] env['onetime.display_domain']
   # @param strategy [Symbol, nil] env['onetime.domain_strategy']
   # @param scheme [String] forwarded scheme
-  def env_for(host:, display_domain: nil, strategy: nil, scheme: 'https')
+  # @param detected_host [String, nil] DetectHost's result for this request
+  def env_for(host:, display_domain: nil, strategy: nil, scheme: 'https', detected_host: nil)
     env = Rack::MockRequest.env_for(
       "#{scheme}://#{host}/auth/sso/entra",
       'HTTP_HOST' => host,
@@ -57,6 +58,7 @@ RSpec.describe Auth::Config::Features::OmniAuth, '.full_host_for' do
     env['HTTP_X_FORWARDED_PROTO']   = scheme
     env['onetime.display_domain']   = display_domain unless display_domain.nil?
     env['onetime.domain_strategy']  = strategy unless strategy.nil?
+    env[Rack::DetectHost.result_field_name] = detected_host unless detected_host.nil?
     env
   end
 
@@ -93,6 +95,42 @@ RSpec.describe Auth::Config::Features::OmniAuth, '.full_host_for' do
       )
 
       expect(described_class.full_host_for(env)).to eq('https://secret.asi.nz')
+    end
+  end
+
+  context 'when the domains feature is off' do
+    # DomainStrategy skips host classification wholesale and pins
+    # display_domain to the canonical host, so that value says nothing about
+    # this request -- but DetectHost still ran, and still holds the host the
+    # browser used. This is the CI topology (DOMAINS_ENABLED unset, site.host
+    # 127.0.0.1:3000) and any install running domains.enabled: false behind
+    # Host forwarding; reading the pin there hands the IdP a redirect_uri on
+    # the origin target.
+    it 'builds from the detected host, not the canonical pin' do
+      # Only the hostname is swapped: scheme and port still come from the
+      # request, so the origin's :3000 rides along. That is the documented
+      # composition (see full_host_for) and the forwarded-port question is
+      # tracked separately in #4223.
+      env = env_for(
+        host: '127.0.0.1:3000',
+        display_domain: 'onetimesecret.com',
+        strategy: :canonical,
+        detected_host: 'secret.asi.nz',
+        scheme: 'http',
+      )
+
+      expect(described_class.full_host_for(env)).to eq('http://secret.asi.nz:3000')
+    end
+
+    it 'is a no-op when the detected host is itself canonical' do
+      env = env_for(
+        host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+        strategy: :canonical,
+        detected_host: 'onetimesecret.com',
+      )
+
+      expect(described_class.full_host_for(env)).to eq('https://onetimesecret.com')
     end
   end
 
@@ -212,6 +250,35 @@ RSpec.describe Auth::Config::Features::OmniAuth, '.full_host_for' do
 
     it 'returns nil when the display domain is blank' do
       env = env_for(host: 'nz.onetime.co', display_domain: '', strategy: :custom)
+
+      expect(described_class.public_host_for(env)).to be_nil
+    end
+
+    it 'falls through to the detected host when the display domain is canonical' do
+      env = env_for(
+        host: '127.0.0.1:3000',
+        display_domain: 'onetimesecret.com',
+        detected_host: 'secret.asi.nz',
+      )
+
+      expect(described_class.public_host_for(env)).to eq('secret.asi.nz')
+    end
+
+    it 'prefers a resolved display domain over the detected host' do
+      # request.host and DetectHost can both be poisoned by a client-supplied
+      # X-Forwarded-Host in a topology the edge does not sanitize; a
+      # non-canonical display_domain is DomainStrategy's validated answer.
+      env = env_for(
+        host: 'nz.onetime.co',
+        display_domain: 'secret.asi.nz',
+        detected_host: 'spoofed.example.com',
+      )
+
+      expect(described_class.public_host_for(env)).to eq('secret.asi.nz')
+    end
+
+    it 'returns nil when neither middleware resolved a non-canonical host' do
+      env = env_for(host: 'localhost:3000', display_domain: 'onetimesecret.com', scheme: 'http')
 
       expect(described_class.public_host_for(env)).to be_nil
     end

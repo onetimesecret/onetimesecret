@@ -39,11 +39,17 @@ module Auth::Config::Features
       # ../oidc_http_pinning.rb for the full rationale.
       Auth::OidcHttpPinning.install!
 
-      # Build redirect_uri / callback_url from the PUBLIC host, not the
-      # request authority (#4224). Set before any provider registers.
-      install_public_host_full_host!
-
       auth.enable :omniauth
+
+      # Build redirect_uri / callback_url from the PUBLIC host, not the
+      # request authority (#4224). AFTER `enable :omniauth` — that is what
+      # pulls the omniauth gem into the process (rodauth-omniauth's
+      # omniauth_base feature requires it); nothing else in this file does, so
+      # touching ::OmniAuth.config first is a cold-boot NameError. Specs get
+      # away with it only because their helpers require omniauth first.
+      # OmniAuth.config.full_host is process-global and read per request, so
+      # nothing downstream of here depends on the position.
+      install_public_host_full_host!
 
       # Route prefix for OmniAuth endpoints
       # Routes: POST /auth/sso/:provider, GET /auth/sso/:provider/callback
@@ -139,8 +145,9 @@ module Auth::Config::Features
     # tenant credential RESOLUTION (#4224) without this just moves the failure
     # one hop later.
     #
-    # The scoping rules (why the canonical set is excluded, why this is NOT
-    # gated on `domain_strategy == :custom`) live with the resolver in
+    # The scoping rules — which hosts count as "resolved for this request",
+    # why the canonical set is excluded, why this is NOT gated on
+    # `domain_strategy == :custom` — live with the resolver in
     # Auth::PublicHost, which Rodauth's `base_url` override reads too so a
     # redirect_uri and an email link can never disagree about the host.
     #
@@ -150,10 +157,24 @@ module Auth::Config::Features
       Auth::PublicHost.base_url(env) || Rack::Request.new(env).base_url
     end
 
-    # The display domain when it is one DomainStrategy resolved for this
-    # request rather than the canonical host it falls back to. Same env value
-    # the tenant hook keys credential resolution on — see
-    # Auth::Config::Hooks::OmniAuthTenant.public_host.
+    # The public host when it is one the middleware tier actually resolved for
+    # this request rather than the canonical host DomainStrategy falls back
+    # to. Same sources, same order, as the tenant hook keys credential
+    # resolution on — see Auth::Config::Hooks::OmniAuthTenant.public_host, and
+    # keep the two in step: a redirect_uri built from a different host than
+    # the one whose credentials were injected is a broken flow either way.
+    #
+    # `display_domain` first, then DetectHost's result — because a canonical
+    # display domain is not evidence about this request. DomainStrategy pins
+    # it there whenever the domains feature is off, which is the whole test
+    # topology and any deployment running `domains.enabled: false` behind a
+    # Host-rewriting proxy; DetectHost still ran and still holds the browser's
+    # host, gated on proxy trust.
+    #
+    # nil keeps OmniAuth's own derivation, which is what the canonical set and
+    # local development want: DetectHost rejects `localhost`/`127.0.0.1`
+    # outright, so a dev flow never reaches here with a host to swap in and
+    # cannot be bounced to the canonical domain mid-authentication.
     #
     # @param env [Hash] Rack environment
     # @return [String, nil] public host, or nil to keep OmniAuth's derivation

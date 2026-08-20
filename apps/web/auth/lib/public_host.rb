@@ -21,15 +21,30 @@ module Auth
   # prefers `X-Forwarded-Host`/`Forwarded` from ANY client, ungated by proxy
   # trust. Reading the raw header would reopen reset-password link poisoning.
   #
-  # Scoped to display domains DomainStrategy actually resolved. That
-  # middleware pins `display_domain` to the canonical host on two paths that
-  # say nothing about where the browser is — the domains feature being off,
-  # and a detected host failing validation — and honoring those would rewrite
-  # a local `localhost:3000` (or any unrecognized-host) URL to the canonical
-  # domain. A display domain outside the canonical set cannot have come from
-  # either path: it is DetectHost's answer for this request, already
-  # validated. Canonical-set hosts keep the stock derivation, which for a
-  # genuine canonical request produces the same host anyway.
+  # TWO TIERS, most trustworthy first — the same sources, in the same order,
+  # that Auth::Config::Hooks::OmniAuthTenant.public_host keys tenant
+  # credential resolution on. Keep the two in step: a redirect_uri or an email
+  # link built from a different host than the one whose credentials were
+  # injected is a broken flow either way.
+  #
+  # `display_domain` is only an answer about THIS request when DomainStrategy
+  # actually classified the host. That middleware pins it to the canonical
+  # host on two paths that say nothing about where the browser is — the
+  # domains feature being off, and a detected host failing validation — so a
+  # canonical-set value carries no information.
+  #
+  # DetectHost's result is the next rung: the same host DomainStrategy would
+  # have classified, already normalized, and honored from forwarded headers
+  # ONLY behind trusted infrastructure. It covers the case `display_domain`
+  # cannot — the whole test topology, and any deployment running
+  # `domains.enabled: false` behind a Host-rewriting proxy, where DetectHost
+  # still ran and still holds the browser's host.
+  #
+  # Both tiers are canonical-filtered, and nil keeps the caller's own
+  # derivation — which is what the canonical set and local development want.
+  # DetectHost rejects `localhost`/`127.0.0.1` outright, so a dev flow never
+  # reaches here with a host to swap in and cannot be rewritten to the
+  # canonical domain mid-flight.
   #
   # Deliberately NOT gated on `domain_strategy == :custom`. That
   # classification degrades to `:invalid` whenever `Chooserator` raises — a
@@ -45,17 +60,16 @@ module Auth
   module PublicHost
     # @param env [Hash] Rack environment
     # @return [String, nil] the public host, or nil to keep the caller's own
-    #   derivation (blank display domain, or a canonical-set host)
+    #   derivation (no resolved host, or only canonical-set ones)
     def self.resolve(env)
-      display_domain = env['onetime.display_domain'].to_s
-      return nil if display_domain.empty?
+      candidates = [env['onetime.display_domain'], env[Rack::DetectHost.result_field_name]]
 
-      # Port- and case-insensitive, and covers the whole canonical set
-      # (features.domains.default, site.host, link_domains) — a split
-      # deployment's second canonical host must not read as a custom domain.
-      return nil if Onetime::Middleware::DomainStrategy.canonical_host?(display_domain)
-
-      display_domain
+      candidates.map(&:to_s).find do |host|
+        # Port- and case-insensitive, and covers the whole canonical set
+        # (features.domains.default, site.host, link_domains) — a split
+        # deployment's second canonical host must not read as a custom domain.
+        !host.empty? && !Onetime::Middleware::DomainStrategy.canonical_host?(host)
+      end
     end
 
     # Absolute origin for the public host: `scheme://host[:port]`.

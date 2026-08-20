@@ -152,9 +152,10 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
     # browser's custom domain rides in env['onetime.display_domain'], so a
     # tenant lookup keyed on request.host misses and the SSO POST 302s to
     # auth_error=sso_not_configured.
-    def request_double(host:, display_domain:)
+    def request_double(host:, display_domain:, detected_host: nil)
       env = {}
       env['onetime.display_domain'] = display_domain unless display_domain.nil?
+      env[Rack::DetectHost.result_field_name] = detected_host unless detected_host.nil?
       instance_double(Rack::Request, host: host, env: env)
     end
 
@@ -174,6 +175,49 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
       request = request_double(host: 'example.com', display_domain: '')
 
       expect(helpers.public_host(request)).to eq('example.com')
+    end
+
+    # The second half of the same regression: DomainStrategy pins
+    # display_domain to the CANONICAL host whenever the domains feature is off
+    # (it never classifies the request at all) or a detected host fails
+    # validation. Reading that as the public host makes every custom-domain
+    # lookup miss — and, because the setup hook then exits early, makes
+    # before_omniauth_callback_route skip tenant validation wholesale. Only
+    # DetectHost's result still holds the host the browser used.
+    context 'when DomainStrategy pinned the display domain to the canonical host' do
+      before do
+        allow(Onetime::Middleware::DomainStrategy)
+          .to receive(:canonical_host?) { |host| host.to_s == 'onetimesecret.com' }
+      end
+
+      it 'reads the detected host rather than the canonical pin' do
+        request = request_double(
+          host: 'onetimesecret.com',
+          display_domain: 'onetimesecret.com',
+          detected_host: 'nz.metalbaum.com',
+        )
+
+        expect(helpers.public_host(request)).to eq('nz.metalbaum.com')
+      end
+
+      # Rack 3.2's request.host prefers X-Forwarded-Host/Forwarded from ANY
+      # client; DetectHost honors them only behind trusted infrastructure, so
+      # it is the fallback and request.host is merely the no-middleware floor.
+      it 'still prefers a resolved display domain over the detected host' do
+        request = request_double(
+          host: 'nz.onetime.co',
+          display_domain: 'nz.metalbaum.com',
+          detected_host: 'spoofed.example.com',
+        )
+
+        expect(helpers.public_host(request)).to eq('nz.metalbaum.com')
+      end
+
+      it 'falls back to request.host when DetectHost did not run either' do
+        request = request_double(host: 'example.com', display_domain: 'onetimesecret.com')
+
+        expect(helpers.public_host(request)).to eq('example.com')
+      end
     end
   end
 
