@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'base_handler'
+require_relative 'federation_support'
 
 module Billing
   module Operations
@@ -33,6 +34,8 @@ module Billing
       #   end
       #
       class SubscriptionHandler < BaseHandler
+        include FederationSupport
+
         abstract_handler! # Intermediate base class, not registered
 
         protected
@@ -51,6 +54,16 @@ module Billing
                 subscription_id: @data_object.id,
                 event_type: @event.type,
               }
+
+            # An unmatched subscription event means someone's account is not
+            # in the state they paid for. Emit the greppable, alertable line
+            # alongside the warning above so the drop is visible at webhook
+            # time rather than at support-ticket time.
+            log_federation_no_match(
+              subscription: @data_object,
+              reason: FederationSupport::REASON_NO_SUBSCRIPTION_MATCH,
+            )
+
             return :not_found
           end
 
