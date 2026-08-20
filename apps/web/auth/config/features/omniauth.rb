@@ -35,6 +35,10 @@ module Auth::Config::Features
       # ../oidc_http_pinning.rb for the full rationale.
       Auth::OidcHttpPinning.install!
 
+      # Build redirect_uri / callback_url from the PUBLIC host, not the
+      # request authority (#4224). Set before any provider registers.
+      install_public_host_full_host!
+
       auth.enable :omniauth
 
       # Route prefix for OmniAuth endpoints
@@ -113,6 +117,87 @@ module Auth::Config::Features
     # Sentinel issuer for identities with no known IdP issuer. ALWAYS '' — never
     # nil (a NULL vs '' split breaks the (provider, issuer, uid) unique index).
     ISSUER_SENTINEL = ''
+
+    # Teach OmniAuth to build absolute URLs from the request's PUBLIC host.
+    #
+    # `OmniAuth::Strategy#full_host` normally derives from `request.url` —
+    # Rack's authority — and `callback_url` is `full_host + callback_path`
+    # (omniauth-entra-id defines it exactly that way; every OAuth2-family
+    # strategy inherits the same shape, and the OIDC strategies read an
+    # explicit `client_options.redirect_uri` built from it in
+    # hooks/omniauth_tenant.rb).
+    #
+    # Behind a Host-rewriting proxy the authority is the origin target, so
+    # every one of those URLs names the wrong host: the tenant's IdP is handed
+    # `redirect_uri=https://<origin target>/auth/sso/<provider>/callback`,
+    # which it rejects as unregistered — or, worse, honors, landing the
+    # visitor on a host that is not the one they authenticated from. Fixing
+    # tenant credential RESOLUTION (#4224) without this just moves the failure
+    # one hop later.
+    #
+    # Scoped to display domains DomainStrategy actually resolved. That
+    # middleware pins `display_domain` to the canonical host on two paths that
+    # say nothing about where the browser is — the domains feature being off,
+    # and a detected host failing validation — and honoring those would bounce
+    # a local `localhost:3000` (or any unrecognized-host) flow to the canonical
+    # domain mid-authentication. A display domain outside the canonical set
+    # cannot have come from either path: it is DetectHost's answer for this
+    # request, already validated. Canonical-set hosts keep OmniAuth's own
+    # derivation, which for a genuine canonical request produces the same host
+    # anyway.
+    #
+    # Deliberately NOT gated on `domain_strategy == :custom`. That
+    # classification degrades to `:invalid` whenever `Chooserator` raises —
+    # a datastore blip, or an unparseable canonical host — and it does so
+    # independently of `display_domain`, which stays correct. Gating on it
+    # would drop the redirect_uri back to the origin target exactly when the
+    # tenant lookup still succeeds.
+    #
+    # @param env [Hash] Rack environment
+    # @return [String] scheme://host[:port] for this request
+    def self.full_host_for(env)
+      request = Rack::Request.new(env)
+      host    = public_host_for(env) || request.host
+
+      # Reproduces Rack::Request#base_url with the authority's host swapped:
+      # scheme and port still come from the request (both honor the
+      # proxy's X-Forwarded-* the same way they did before this override),
+      # so only the hostname changes, and only on custom domains.
+      port         = request.port
+      scheme       = request.scheme
+      default_port = scheme == 'https' ? 443 : 80
+      authority    = port && port != default_port ? "#{host}:#{port}" : host
+
+      "#{scheme}://#{authority}"
+    end
+
+    # The display domain when it is one DomainStrategy resolved for this
+    # request rather than the canonical host it falls back to. Same env value
+    # the tenant hook keys credential resolution on — see
+    # Auth::Config::Hooks::OmniAuthTenant.public_host.
+    #
+    # @param env [Hash] Rack environment
+    # @return [String, nil] public host, or nil to keep OmniAuth's derivation
+    def self.public_host_for(env)
+      display_domain = env['onetime.display_domain'].to_s
+      return nil if display_domain.empty?
+      # Port- and case-insensitive, and covers the whole canonical set
+      # (features.domains.default, site.host, link_domains) — a split
+      # deployment's second canonical host must not read as a custom domain.
+      return nil if Onetime::Middleware::DomainStrategy.canonical_host?(display_domain)
+
+      display_domain
+    end
+
+    # Installs .full_host_for as OmniAuth's global full_host resolver.
+    #
+    # OmniAuth.config.full_host accepts a String or a Proc; the Proc form is
+    # called per request with the Rack env, so a process-global assignment
+    # still resolves per request. Idempotent — configure runs once per Rodauth
+    # configuration and the assignment is the same lambda each time.
+    def self.install_public_host_full_host!
+      ::OmniAuth.config.full_host = ->(env) { full_host_for(env) }
+    end
 
     # Resolve the issuer for the current callback.
     # Precedence:

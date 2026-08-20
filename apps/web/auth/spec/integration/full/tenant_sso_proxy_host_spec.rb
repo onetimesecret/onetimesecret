@@ -75,6 +75,26 @@ RSpec.describe 'Tenant SSO behind a Host-rewriting proxy', type: :integration do
     expect(location).to start_with("https://login.microsoftonline.com/#{test_sso_config.tenant_id}/")
   end
 
+  it 'sends the IdP a redirect_uri on the tenant domain, not the origin target' do
+    # Resolving the tenant's credentials is only half the flow. The authorize
+    # URL carries a redirect_uri built from OmniAuth's `full_host`, which
+    # derives from Rack's authority unless overridden — so without the
+    # resolver in features/omniauth.rb this names the origin target, and the
+    # tenant's IdP rejects it as an unregistered redirect (or honors it and
+    # lands the visitor on a host they never authenticated from). Either way
+    # `sso_not_configured` would just become a failure one hop later.
+    header 'Host', origin_host
+    header 'Apx-Incoming-Host', tenant_domain
+    post '/auth/sso/entra'
+
+    location     = last_response.headers['Location'].to_s
+    redirect_uri = CGI.parse(URI.parse(location).query.to_s)['redirect_uri'].first.to_s
+
+    expect(URI.parse(redirect_uri).host).to eq(tenant_domain)
+    expect(redirect_uri).to end_with('/auth/sso/entra/callback')
+    expect(redirect_uri).not_to include(origin_host)
+  end
+
   it 'still resolves the tenant when the proxy preserves the custom domain in Host' do
     header 'Host', tenant_domain
     post '/auth/sso/entra'

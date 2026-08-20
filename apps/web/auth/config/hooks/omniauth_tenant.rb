@@ -107,9 +107,16 @@ module Auth::Config::Hooks
         # authorize request and token exchange. Unlike OAuth2-based strategies,
         # omniauth_openid_connect reads client_options.redirect_uri verbatim
         # (no auto-construction from the request host). We set it here so the
-        # value derives from the current request host — correct for both
-        # install-level (canonical domain) and domain-level (custom domain).
-        # Must be identical across both phases (authorize + callback).
+        # value derives from the request's PUBLIC host — correct for both
+        # install-level (canonical domain) and domain-level (custom domain),
+        # including behind a Host-rewriting proxy, where the raw authority is
+        # the origin target and this URI would otherwise name a host the
+        # tenant's IdP has never seen. `full_host` resolves through the
+        # override installed in features/omniauth.rb (#4224), which is also
+        # what fixes `callback_url` for the OAuth2-family strategies that
+        # build it themselves. Must be identical across both phases
+        # (authorize + callback) — both run this hook, and both read the
+        # same env value, so they agree.
         if strategy&.options&.dig(:discovery) == true
           redirect_uri                                     = strategy.full_host + strategy.callback_path
           strategy.options[:client_options]              ||= {}
