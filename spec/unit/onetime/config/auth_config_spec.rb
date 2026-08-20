@@ -647,11 +647,13 @@ RSpec.describe Onetime::AuthConfig do
         .to eq(%w[github entra google])
     end
 
-    it 'derives definitions from the shared SsoProvider::Registry' do
+    it 'derives definitions from the shared SsoProvider::Registry, plus the local IdP' do
       config          = fresh_config
       registry_routes = Onetime::SsoProvider::Registry::DEFINITIONS.map { |d| d[:route_default] }
+      # The development-only local IdP is deliberately NOT a registry entry
+      # (see AuthConfig#provider_definitions), so it trails the registry order.
       expect(config.send(:provider_definitions).map { |d| d[:route_default] })
-        .to eq(registry_routes)
+        .to eq(registry_routes + ['local'])
     end
   end
 

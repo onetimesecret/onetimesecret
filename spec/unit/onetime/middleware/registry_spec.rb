@@ -7,12 +7,15 @@ require 'onetime/middleware/registry'
 require 'onetime/middleware/security'
 
 RSpec.describe Onetime::Middleware::Registry do
-  # The nine components Security mounts today, in mount order.
-  SECURITY_NINE = %w[
+  # The components Security mounts today, in mount order. ReferrerPolicy and
+  # PermissionsPolicy come from the 2026-08-02 audit (M-3.2, M-3.3).
+  SECURITY_MOUNTED = %w[
     UTF8Sanitizer
     AuthenticityToken
     HttpOrigin
     XSSHeader
+    ReferrerPolicy
+    PermissionsPolicy
     FrameOptions
     PathTraversal
     CookieTossing
@@ -24,8 +27,8 @@ RSpec.describe Onetime::Middleware::Registry do
   NEW_THREE = %w[Deflater ContentSecurityPolicy SessionHijacking].freeze
 
   describe '.components' do
-    it 'contains exactly the 12 known entries, Security nine first in order' do
-      expect(described_class.components.keys).to eq(SECURITY_NINE + NEW_THREE)
+    it 'contains exactly the 14 known entries, Security mounts first in order' do
+      expect(described_class.components.keys).to eq(SECURITY_MOUNTED + NEW_THREE)
     end
 
     it 'is frozen' do
@@ -76,6 +79,7 @@ RSpec.describe Onetime::Middleware::Registry do
     WARN_WHEN_DISABLED = %i[
       frame_options path_traversal strict_transport authenticity_token
       utf8_sanitizer http_origin xss_header cookie_tossing ip_spoofing
+      referrer_policy permissions_policy
     ].freeze
 
     WARN_WHEN_DISABLED.each do |key|
@@ -100,13 +104,13 @@ RSpec.describe Onetime::Middleware::Registry do
   end
 
   describe 'Onetime::Middleware::Security integration' do
-    it 'middleware_components equals the registry filtered to the Security nine, in order' do
-      expected = SECURITY_NINE.to_h { |name| [name, described_class.fetch(name)] }
+    it 'middleware_components equals the registry filtered to the Security mounts, in order' do
+      expected = SECURITY_MOUNTED.to_h { |name| [name, described_class.fetch(name)] }
       expect(Onetime::Middleware::Security.middleware_components).to eq(expected)
     end
 
     it 'exposes entries identical to (not copies of) the registry entries' do
-      SECURITY_NINE.each do |name|
+      SECURITY_MOUNTED.each do |name|
         expect(Onetime::Middleware::Security.middleware_components[name])
           .to equal(described_class.fetch(name))
       end
@@ -117,6 +121,7 @@ RSpec.describe Onetime::Middleware::Registry do
         .to match_array(%w[
           frame_options path_traversal strict_transport authenticity_token
           utf8_sanitizer http_origin xss_header cookie_tossing ip_spoofing
+          referrer_policy permissions_policy
         ])
     end
 
