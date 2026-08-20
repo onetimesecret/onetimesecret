@@ -74,6 +74,11 @@ module OrganizationAPI::Logic
 
         # Verify user has manage_org entitlement in this organization
         require_entitlement_in!(@organization, 'manage_org')
+
+        # NO domain pre-check here. The op owns every guardrail, and a duplicate
+        # `domain_count` refusal at this layer would short-circuit its drift
+        # self-heal — the customer would be told to remove domains they cannot
+        # see, instead of having the invisible ones repaired back into view.
       end
 
       def process
@@ -127,6 +132,22 @@ module OrganizationAPI::Logic
             # loads to nothing, so fall back to the count the guard actually
             # refused on rather than interpolating an empty list.
             args: { domains: result.domains.empty? ? result.domain_count.to_s : result.domains.join(', ') },
+            field: :extid,
+            error_type: :invalid,
+          )
+        when :drifted_domains
+          # These stay INVISIBLE in the customer's domain list — "remove your
+          # domains" would be pointing at nothing they can see. Route to
+          # support; the remediation is operator-side.
+          #
+          # COUNT ONLY, never the names. Drift is most often produced by a
+          # domain being TRANSFERRED AWAY, which leaves the previous owner's
+          # `owners` entry behind — so the display domains here can belong to a
+          # DIFFERENT tenant, and naming them to this customer is a cross-tenant
+          # disclosure. The operator/colonel surface still lists them.
+          raise_form_error(
+            error_key: 'api.organizations.errors.delete_drifted_domains_count',
+            args: { count: result.drifted_domains.size.to_s },
             field: :extid,
             error_type: :invalid,
           )

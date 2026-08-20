@@ -185,7 +185,7 @@ module Onetime
       end
 
       def subscription_suffix(plan)
-        plan.active_subscription ? ' (ACTIVE SUBSCRIPTION — Stripe is NOT cancelled)' : ''
+        plan.active_subscription ? ' (LIVE SUBSCRIPTION — Stripe is NOT cancelled)' : ''
       end
 
       def owner_line(plan)
@@ -228,6 +228,7 @@ module Onetime
           pending_invitations: result.pending_invitations,
           domain_count: result.domain_count,
           domains: result.domains,
+          drifted_domains: result.drifted_domains,
           is_default: result.is_default,
           active_subscription: result.active_subscription,
           owner_id: result.owner_id,
@@ -249,6 +250,13 @@ module Onetime
           error_exit(
             "#{result.org_id} still has #{result.domain_count} domain(s): #{domain_summary(result)}. " \
             'Run: bin/ots domains remove DOMAIN for each, then retry',
+            json: false,
+          )
+        when :drifted_domains
+          error_exit(
+            "#{result.org_id} still has #{result.drifted_domains.size} domain record(s) pointing at " \
+            "it that are missing from its domain list: #{result.drifted_domains.join(', ')}. " \
+            'Run: bin/ots domains doctor --all --repair, then retry',
             json: false,
           )
         when :is_default

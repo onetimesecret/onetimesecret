@@ -90,7 +90,12 @@ RSpec.describe Onetime::Operations::Org::Delete do
       end
       allow(org).to receive(:domain_count).and_return(0)
       allow(org).to receive(:list_domains).and_return([])
-      allow(org).to receive(:active_subscription?).and_return(false)
+      allow(org).to receive(:unlisted_owned_domains).and_return([])
+      # `billing_live?`, NOT `active_subscription?` — the op asks the LIVENESS
+      # question (see the past_due divergence in the real-datastore layer).
+      # `org` is a verifying instance_double, so a stub of the wrong predicate
+      # does not fall through silently: the op's call raises instead.
+      allow(org).to receive(:billing_live?).and_return(false)
       allow(org).to receive(:destroy!) { calls << :destroy! }
 
       allow(Onetime::Organization).to receive(:instances).and_return(instances)
@@ -302,8 +307,8 @@ RSpec.describe Onetime::Operations::Org::Delete do
         expect(build(dry_run: false).call.status).to eq(:success)
       end
 
-      it 'refuses an actively-billing org and never calls Stripe' do
-        allow(org).to receive(:active_subscription?).and_return(true)
+      it 'refuses an org whose subscription is still live, and never calls Stripe' do
+        allow(org).to receive(:billing_live?).and_return(true)
 
         result = build(dry_run: false).call
 
@@ -370,10 +375,45 @@ RSpec.describe Onetime::Operations::Org::Delete do
       end
     end
 
+    describe 'drifted domain membership (owners says ours, collection lost it)' do
+      # `unlisted_owned_domains` returns loaded CustomDomain records; only
+      # #display_domain is used here.
+      def drifted_domain(name)
+        instance_double(Onetime::CustomDomain, display_domain: name)
+      end
+
+      # THE restored invariant (#4196 follow-up): every refusal is read-only,
+      # and a preview and an applied run return the same status for the same
+      # org. Drift is detected, never repaired — the remediation is
+      # operator-side (`bin/ots domains doctor --all --repair`).
+      it 'refuses with :drifted_domains and mutates NOTHING, preview and apply alike' do
+        drifted = drifted_domain('drifted.example.com')
+        allow(org).to receive(:unlisted_owned_domains).and_return([drifted])
+
+        [true, false].each do |dry_run|
+          result = build(dry_run: dry_run).call
+
+          expect(result.status).to eq(:drifted_domains)
+          expect(result.drifted_domains).to eq(['drifted.example.com'])
+        end
+
+        expect(calls).not_to include(:destroy!)
+        expect(calls.none? { |call| call.is_a?(Array) && call.first == :instances_remove }).to be(true)
+      end
+
+      it 'lets :has_domains win — visible domains are the actionable message' do
+        allow(org).to receive(:domain_count).and_return(1)
+        allow(org).to receive(:list_domains).and_return([drifted_domain('listed.example.com')])
+        allow(org).to receive(:unlisted_owned_domains).and_return([drifted_domain('drifted.example.com')])
+
+        expect(build(dry_run: false).call.status).to eq(:has_domains)
+      end
+    end
+
     describe 'force flags' do
       it 'unlocks only the guard it names — force_default leaves billing refused' do
         allow(org).to receive(:is_default).and_return('true')
-        allow(org).to receive(:active_subscription?).and_return(true)
+        allow(org).to receive(:billing_live?).and_return(true)
 
         result = build(dry_run: false, force_default: true).call
 
@@ -383,7 +423,7 @@ RSpec.describe Onetime::Operations::Org::Delete do
 
       it 'applies once every tripped guard has its own override' do
         allow(org).to receive(:is_default).and_return('true')
-        allow(org).to receive(:active_subscription?).and_return(true)
+        allow(org).to receive(:billing_live?).and_return(true)
 
         result = build(dry_run: false, force_default: true, force_subscription: true).call
 
@@ -535,6 +575,139 @@ RSpec.describe Onetime::Operations::Org::Delete do
 
       expect(in_instances?(@keeper.objid)).to be(true)
       expect(Onetime::Organization.load(@keeper.objid)).not_to be_nil
+    end
+
+    # Drift is index state, so it only reproduces against real keys. Each index
+    # is written by hand so the exact shape under test is staged, not inferred.
+    describe 'domain drift' do
+      before do
+        @domains     = []
+        @owners_keys = []
+      end
+
+      after do
+        @owners_keys.each do |key|
+          Onetime::CustomDomain.owners.remove(key)
+        rescue StandardError => ex
+          warn "[org delete spec] owners cleanup failed: #{ex.class}: #{ex.message}"
+        end
+        @domains.each do |domain|
+          domain.destroy! if domain.exists?
+        rescue StandardError => ex
+          warn "[org delete spec] domain cleanup failed: #{ex.class}: #{ex.message}"
+        end
+      end
+
+      # A real CustomDomain pointing at @org via org_id, deliberately absent
+      # from BOTH the domains collection and the owners hashkey — callers opt
+      # into each index to stage the state under test.
+      def create_domain(display_domain)
+        domain = Onetime::CustomDomain.parse(display_domain, @org.objid)
+        domain.save
+        @domains << domain
+        domain
+      end
+
+      def put_owners_entry(key, org_id)
+        Onetime::CustomDomain.owners.put(key, org_id)
+        @owners_keys << key
+      end
+
+      def expect_org_intact
+        expect(@org.exists?).to be(true)
+        expect(in_instances?(@org.objid)).to be(true)
+        expect(@org.member?(@owner)).to be(true)
+      end
+
+      it 'refuses a drifted domain READ-ONLY — preview and apply report the same' do
+        domain = create_domain("drifted-#{suffix}.example.com")
+        put_owners_entry(domain.to_s, @org.objid)
+
+        expect(@org.domain_count).to eq(0) # precondition: the collection drifted
+
+        [true, false].each do |dry_run|
+          result = delete(dry_run: dry_run)
+
+          expect(result.status).to eq(:drifted_domains)
+          expect(result.drifted_domains).to include("drifted-#{suffix}.example.com")
+        end
+
+        # Nothing was repaired or guessed: the domain stays out of the
+        # collection (the remediation is bin/ots domains doctor --all --repair,
+        # operator-side) and the org is untouched.
+        expect(@org.domain?(domain)).to be(false)
+        expect_org_intact
+      end
+    end
+
+    # The billing guardrail, driven through a REAL Organization so the
+    # predicate itself is under test rather than stubbed. The mocked layer
+    # above can only assert "billing_live? true => refusal"; it cannot say
+    # which statuses are live, which is exactly where the bug lived.
+    describe 'the billing guardrail over real subscription statuses' do
+      def set_status(status)
+        @org.subscription_status = status
+        @org.save
+      end
+
+      # THE REGRESSION. The guard used to read active_subscription?
+      # (active/trialing only), so a delinquent-but-live subscription deleted
+      # cleanly while Stripe kept retrying the card — the support incident the
+      # op's own docstring names. These two examples go red the moment
+      # billing_live? is "simplified" back into active_subscription?.
+      %w[past_due unpaid].each do |status|
+        # Split from the refusal below on purpose: this one names the split
+        # that made the original bug invisible (the entitlement predicate says
+        # "not paying", so the org looks deletable), and the next one proves
+        # the op actually acts on it. Either can rot independently.
+        it "'#{status}' is not an entitlement, but it IS live billing" do
+          set_status(status)
+
+          expect(@org.active_subscription?).to be(false)
+          expect(@org.billing_live?).to be(true)
+        end
+
+        it "refuses a '#{status}' org — delinquent is not gone" do
+          set_status(status)
+
+          result = delete
+
+          expect(result.status).to eq(:active_subscription)
+          expect(result.active_subscription).to be(true)
+          expect(in_instances?(@org.objid)).to be(true)
+          expect(Onetime::Organization.load(@org.objid)).not_to be_nil
+        end
+
+        it "still applies for '#{status}' once --force-subscription is given" do
+          set_status(status)
+
+          expect(delete(force_subscription: true).status).to eq(:success)
+        end
+      end
+
+      it "refuses an 'active' org (the case that already worked)" do
+        set_status('active')
+
+        expect(delete.status).to eq(:active_subscription)
+      end
+
+      # The guard is not simply always-on: these three statuses delete.
+      # 'canceled' is over; 'incomplete'/'incomplete_expired' never billed and
+      # Stripe expires them itself, so tripping a customer-facing delete button
+      # on an abandoned checkout would cost more than the orphan it prevents.
+      # This is a DELIBERATE exclusion — widening LIVE_SUBSCRIPTION_STATUSES to
+      # cover them should fail here first.
+      %w[canceled incomplete incomplete_expired].each do |status|
+        it "deletes a '#{status}' org — nothing is billing" do
+          set_status(status)
+
+          result = delete
+
+          expect(result.status).to eq(:success)
+          expect(result.active_subscription).to be(false)
+          expect(in_instances?(@org.objid)).to be(false)
+        end
+      end
     end
   end
 end

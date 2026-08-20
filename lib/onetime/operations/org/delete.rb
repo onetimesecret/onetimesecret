@@ -44,14 +44,30 @@ module Onetime
       #                        `bin/ots domains remove` remediation — and the
       #                        raise would land AFTER the instances-zset removal
       #                        below, i.e. mid-teardown.
+      #   :drifted_domains     domains that still name this org in
+      #                        `CustomDomain.owners` but have fallen out of its
+      #                        domains collection. These are invisible in the
+      #                        owner's own domain list, so the remediation is
+      #                        operator-side (`bin/ots domains doctor --all
+      #                        --repair`), never a side effect of a delete.
+      #                        Not overridable — `destroy!` raises on drift
+      #                        for the same mid-teardown reason. See
+      #                        #detect_domain_drift!.
       #   :is_default          the customer's default workspace. THE SERVER-SIDE
       #                        HALF OF A RULE THAT PREVIOUSLY EXISTED ONLY IN
       #                        VUE (see "The is_default hole" below).
       #                        Overridable with force_default.
-      #   :active_subscription active or trialing. NEVER calls Stripe (out of
-      #                        scope, deliberately): deleting the org while its
-      #                        subscription bills on is a support incident, so
-      #                        the op refuses and the operator cancels first.
+      #   :active_subscription the subscription is still LIVE in Stripe —
+      #                        `Organization#billing_live?`, which is wider than
+      #                        `active_subscription?` on purpose: past_due and
+      #                        unpaid orgs are delinquent, not gone, and recover
+      #                        to active the moment a payment lands. NEVER calls
+      #                        Stripe (out of scope, deliberately): deleting the
+      #                        org while its subscription bills on is a support
+      #                        incident, so the op refuses and the operator
+      #                        cancels first. The refusal status keeps the
+      #                        `:active_subscription` name because it is a wire
+      #                        contract (CLI flag, API error key, UI payload).
       #                        Overridable with force_subscription.
       #   :last_org            the org's owner belongs to no other organization.
       #                        Deleting it strands them with no workspace, which
@@ -125,7 +141,13 @@ module Onetime
 
         # The complement: a delete was asked for and REFUSED by a guardrail.
         # Adapters exit non-zero / raise a form error on these.
-        REFUSAL_STATUSES = [:has_domains, :is_default, :active_subscription, :last_org].freeze
+        REFUSAL_STATUSES = [
+          :has_domains,
+          :drifted_domains,
+          :is_default,
+          :active_subscription,
+          :last_org,
+        ].freeze
 
         # A destructive verb whose teardown is irreversible from step 3 onward: a
         # delete that blows up partway leaves the org half-torn-down (instances
@@ -163,6 +185,12 @@ module Onetime
         # @!attribute domains [r] Array<String> — display domains still attached,
         #   for the remediation hint. SHORTER than `domain_count` when the
         #   collection carries drift; never longer.
+        # @!attribute drifted_domains [r] Array<String> — display domains that
+        #   still reference this org through `CustomDomain.owners` but are
+        #   MISSING from its domains collection. Empty on the healthy path.
+        #   Non-empty means `:drifted_domains`: the customer cannot see these
+        #   in their domain list, so the remediation is operator-side
+        #   (`bin/ots domains doctor --all --repair`).
         # @!attribute is_default [r] Boolean — the guard's input, echoed so an
         #   adapter can show WHY a delete was refused (or what force_default
         #   overrode).
@@ -191,6 +219,7 @@ module Onetime
           :pending_invitations,
           :domain_count,
           :domains,
+          :drifted_domains,
           :is_default,
           :active_subscription,
           :owner_id,
@@ -252,7 +281,7 @@ module Onetime
           # default (precedent: customers/change_email.rb:622). A bare truthiness
           # check would treat the string "false" as a default workspace.
           @is_default          = @org.is_default.to_s == 'true'
-          @active_subscription = @org.active_subscription?
+          @active_subscription = @org.billing_live?
 
           @owner                 = resolve_owner
           # The guard asks what the owner is left WITH, not how many rows they
@@ -270,6 +299,8 @@ module Onetime
           # runs at all).
           @default_org_holders = members.select { |member| member.default_org_id.to_s == @objid.to_s }
 
+          detect_domain_drift!
+
           refusal = first_guardrail_trip
           return refuse(refusal) if refusal
 
@@ -282,11 +313,33 @@ module Onetime
 
         private
 
+        # Detect domains that still name this org in `CustomDomain.owners` but
+        # have fallen out of its domains collection. Detection ONLY — no path
+        # through this op mutates on a refusal, so a preview and an applied run
+        # report the same `:drifted_domains` for the same org.
+        #
+        # These domains are invisible in the owner's own domain list, so the
+        # remediation is operator-side (`bin/ots domains doctor --all --repair`);
+        # repairing index state as a side effect of a delete would be a
+        # mutation on a path that promises to write nothing.
+        def detect_domain_drift!
+          @drifted = @org.unlisted_owned_domains
+          return if @drifted.empty?
+
+          OT.info "[Org::Delete] #{@extid} has #{@drifted.size} drifted domain(s): " \
+                  "#{@drifted.map(&:display_domain).join(', ')} dry_run=#{@dry_run}"
+        end
+
         # First guard to trip, or nil. Order matters: `:has_domains` is checked
         # ahead of everything because destroy! raises on it, and that raise would
         # land after the instances-zset removal.
         def first_guardrail_trip
           return :has_domains if @domain_count.positive?
+          # Checked immediately after `:has_domains` for the same reason: these
+          # are domains pointing at the org, and `Organization#destroy!` raises
+          # on them too — a raise that would otherwise land after the
+          # instances-zset removal.
+          return :drifted_domains if @drifted.any?
           return :is_default if @is_default && !@force_default
           return :active_subscription if @active_subscription && !@force_subscription
           # Orphaned org (`org doctor` check 1): no owner_id and no owner
@@ -475,6 +528,7 @@ module Onetime
             pending_invitations: @pending,
             domain_count: @domain_count,
             domains: @domains,
+            drifted_domains: @drifted.map(&:display_domain),
             is_default: @is_default,
             active_subscription: @active_subscription,
             owner_id: @owner&.extid,

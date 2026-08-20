@@ -59,7 +59,9 @@ module V2::Logic
 
         secret_logger.debug 'Generating secret',
           {
-            user_id: cust&.custid,
+            # extid, never custid: custid holds the email address on legacy
+            # (pre-v0.22) records, which would put PII in the payload.
+            user_id: cust&.extid,
             length: length,
             char_sets: char_sets.keys,
             action: 'generate',

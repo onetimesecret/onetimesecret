@@ -829,7 +829,7 @@ module Onetime
 
           # Add to other global indexes (instances sorted set, owners hash)
           instances.add obj.to_s
-          owners.put obj.to_s, obj.org_id
+          record_owner(obj, obj.org_id)
 
           # Maintain the per-domain config invariant: every CustomDomain has
           # matching HomepageConfig/ApiConfig records. find_or_create_for_domain
@@ -953,7 +953,7 @@ module Onetime
               existing.add_to_organization_domains(org) if org
 
               # Update owners hash (Location E) to reflect new org ownership
-              owners.put existing.to_s, org_id
+              record_owner(existing, org_id)
             end
           end
         end
@@ -1241,7 +1241,40 @@ module Onetime
 
         instances.add fobj.to_s # created time, identifier
         display_domain_index.put fobj.display_domain, fobj.identifier
-        owners.put fobj.to_s, fobj.org_id # domainid => organization id
+        record_owner(fobj, fobj.org_id) # domainid => organization id
+      end
+
+      # SINGLE WRITER for the `owners` class hashkey (domainid => org_id).
+      #
+      # `owners` is a plain class_hashkey, NOT a Familia-managed index: nothing
+      # keeps it in step with the authoritative `CustomDomain#org_id` field.
+      # Organization#unlisted_owned_domains reads it as the second source of
+      # truth for the org-deletion drift guard, so an entry left pointing at a
+      # previous owner makes THAT organization permanently undeletable
+      # (`bin/ots domains transfer` used to do exactly this). Every writer that
+      # changes a domain's owning organization must route through here.
+      #
+      # A blank org_id REMOVES the entry rather than writing an empty string: an
+      # empty value matches no org's objid, but it would still be walked by the
+      # HGETALL scan and reported as drift forever.
+      #
+      # Safe to call inside a MULTI (it only issues writes, never reads).
+      #
+      # NOTE (#4217): this hashkey is slated for replacement by a Familia
+      # `multi_index :org_id`. Keep this helper thin so that swap stays a
+      # single-site change.
+      #
+      # @param fobj [Onetime::CustomDomain, String] domain, or its identifier.
+      # @param org_id [String, nil] the new owning organization's objid.
+      def record_owner(fobj, org_id)
+        domain_id = fobj.to_s
+        return if domain_id.empty?
+
+        if org_id.to_s.empty?
+          owners.remove domain_id
+        else
+          owners.put domain_id, org_id.to_s
+        end
       end
 
       def all

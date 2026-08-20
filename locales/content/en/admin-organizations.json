@@ -687,6 +687,18 @@
     "text": "Blocked: remove the custom domains first ({domains}).",
     "content_hash": "dc3248b2"
   },
+  "web.admin.organizations.detail.delete.driftedDomainsLabel": {
+    "text": "Drifted domains",
+    "content_hash": "fef96f49"
+  },
+  "web.admin.organizations.detail.delete.driftedDomainsRepair": {
+    "text": "Repair with: bin/ots domains doctor --all --repair",
+    "content_hash": "14c9c59f"
+  },
+  "web.admin.organizations.detail.delete.blocked.driftedDomains": {
+    "text": "Blocked: these domain records still reference this organization but are missing from its domain list ({domains}). Run bin/ots domains doctor --all --repair first — there is no override.",
+    "content_hash": "3136496c"
+  },
   "web.admin.organizations.detail.delete.blocked.isDefault": {
     "text": "Blocked: this is the owner's default workspace. Tick the override below to delete it anyway.",
     "content_hash": "09d5baa4"

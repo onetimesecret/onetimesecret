@@ -44,6 +44,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::DeleteOrganization do
         pending_invitations: 2,
         domain_count: 0,
         domains: [],
+        drifted_domains: [],
         is_default: false,
         active_subscription: false,
         owner_id: 'ur_a',
@@ -140,6 +141,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::DeleteOrganization do
       expect(data[:record]).to include(org_id: 'or_target', display_name: 'Target Org',
         status: 'planned')
       expect(data[:details][:members]).to eq([{ extid: 'ur_a', email: 'a@example.com' }])
+      expect(data[:details][:drifted_domains]).to eq([])
       expect(data[:details][:pending_invitations]).to eq(2)
       expect(data[:details][:default_org_cleared]).to eq(['ur_a'])
       expect(data[:details][:owner_org_count]).to eq(2)
@@ -156,7 +158,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::DeleteOrganization do
   describe 'status mapping — asymmetric by design' do
     # A PREVIEW is a report: it must carry the guardrail AND the plan, so the
     # console can explain the block and offer the override that clears it.
-    [:has_domains, :is_default, :active_subscription, :last_org].each do |status|
+    [:has_domains, :drifted_domains, :is_default, :active_subscription, :last_org].each do |status|
       it "answers 200 with status #{status} on a dry run" do
         logic = logic_for({ 'dry_run' => 'true' }, status: status, dry_run: true)
         logic.raise_concerns
@@ -174,6 +176,18 @@ RSpec.describe ColonelAPI::Logic::Colonel::DeleteOrganization do
 
       expect { logic.process }.to raise_error(Onetime::FormError) do |err|
         expect(err.message).to include('a.example.com')
+      end
+    end
+
+    it 'raises a form error on an APPLY refused for drifted domains, naming them' do
+      logic = logic_for({ 'dry_run' => 'false' }, status: :drifted_domains,
+        drifted_domains: ['ghost.example.com'])
+      logic.raise_concerns
+
+      expect { logic.process }.to raise_error(Onetime::FormError) do |err|
+        expect(err.field).to eq(:org_id)
+        expect(err.message).to include('ghost.example.com')
+        expect(err.message).to include('bin/ots domains doctor --all --repair')
       end
     end
 

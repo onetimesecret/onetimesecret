@@ -41,7 +41,7 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
   # branches that depend on who is logged in. Pass params as a braced hash --
   # the customer: kwarg would otherwise swallow a bare trailing hash.
   def build_logic(params, customer: nil)
-    customer ||= double('Customer', custid: 'anon', anonymous?: true, objid: nil)
+    customer ||= double('Customer', custid: 'anon', anonymous?: true, objid: nil, extid: nil)
     org      = double('Organization', objid: "org_#{SecureRandom.hex(4)}")
     allow(org).to receive(:can?).and_return(true)
 
@@ -52,6 +52,25 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
       auth_method: 'basicauth')
 
     described_class.new(strategy_result, params)
+  end
+
+  # secret_logger is an instance method (LoggerMethods), so the whole
+  # SemanticLogger call is capturable: [message, payload] per emission. The
+  # hash is SemanticLogger's payload argument, not part of the message.
+  def capture_secret_logs(logic)
+    captured = []
+    logger   = double('SecretLogger')
+    %i[debug info warn error].each do |level|
+      allow(logger).to receive(level) { |message, payload = {}| captured << [message, payload] }
+    end
+    allow(logic).to receive(:secret_logger).and_return(logger)
+    captured
+  end
+
+  def payload_for(captured, message)
+    entry = captured.find { |logged, _| logged == message }
+    expect(entry).not_to be_nil, "no #{message.inspect} log was emitted"
+    entry.last
   end
 
   # Mark a spawned secret as a verification secret the way production does it
@@ -208,7 +227,8 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
       # Second half of the disjunction that gates the verify branch:
       # cust.custid == owner.custid && !owner.verified?
       it 'verifies the owner and reveals the plaintext' do
-        as_owner = double('Customer', custid: owner.custid, anonymous?: false, objid: owner.objid)
+        as_owner = double('Customer', custid: owner.custid, anonymous?: false, objid: owner.objid,
+          extid: owner.extid)
         logic    = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' }, customer: as_owner)
         logic.process_params
         logic.process
@@ -286,12 +306,22 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
 
     context 'when already logged in as a different user' do
       it 'raises a form error, consumes nothing, and verifies no one' do
-        other = double('Customer', custid: 'cust_other', anonymous?: false, objid: 'objid_other')
+        # Legacy-shaped custid (an email address) so the log assertion below
+        # would catch a revert to custid in the payload.
+        other = double('Customer', custid: 'other@example.com', anonymous?: false, objid: 'objid_other',
+          extid: 'urother')
         logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' }, customer: other)
+        captured = capture_secret_logs(logic)
         logic.process_params
 
         # I18n default 'Cannot verify when logged in' -- pin only the class.
         expect { logic.process }.to raise_error(Onetime::FormError)
+
+        # PII pin (#4211 review): custid IS the email address on legacy
+        # (pre-v0.22) records, so this refusal log carries the extid.
+        payload = payload_for(captured, 'Invalid verification - user already logged in')
+        expect(payload[:user_id]).to eq('urother')
+        expect(payload.values.join(' ')).not_to include('@')
 
         reloaded = Onetime::Secret.load(secret.identifier)
         expect(reloaded.state).to eq('new')
@@ -329,6 +359,35 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
       end
     end
   end
+  # The wrong-guess log is the highest-volume of the reveal logs (one per
+  # brute-force attempt), so it is the worst place to carry an address.
+  context 'when the passphrase is wrong' do
+    let(:caller_customer) do
+      # Legacy-shaped: custid is the address itself.
+      double('Customer',
+        custid: 'revealer@example.com',
+        extid: 'urrevealer',
+        objid: 'objid_revealer',
+        anonymous?: false)
+    end
+
+    it 'records the failed attempt against the extid, never custid' do
+      secret.update_passphrase!('correct horse battery')
+      logic = build_logic(
+        { 'identifier' => secret.identifier, 'continue' => 'true', 'passphrase' => 'wrong' },
+        customer: caller_customer,
+      )
+      captured = capture_secret_logs(logic)
+      logic.process_params
+
+      expect { logic.process }.to raise_error(Onetime::FormError)
+
+      payload = payload_for(captured, 'Incorrect passphrase attempt')
+      expect(payload[:user_id]).to eq('urrevealer')
+      expect(payload.values.join(' ')).not_to include('@')
+    end
+  end
+
   # C10/QS-6: SECRET lifecycle safety.
   #
   # Fast-fail: when the boot-time verifier flagged a key mismatch, a

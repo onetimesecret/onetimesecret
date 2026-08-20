@@ -178,6 +178,11 @@
     "context": "Returned when an organization delete is refused because domains are still attached",
     "content_hash": "040a401e"
   },
+  "api.organizations.errors.delete_drifted_domains_count": {
+    "text": "%{count} domain record(s) still reference this organization but are no longer listed in it. Please contact support to remove them before deleting this organization.",
+    "context": "Returned when an organization delete is refused because domain records still reference the organization but are missing from its domain list. Count only: the drifted records can belong to another tenant after a domain transfer, so they must never be named to this customer",
+    "content_hash": "f6e71a9a"
+  },
   "api.organizations.errors.delete_is_default": {
     "text": "Your default workspace cannot be deleted. Contact support if you need it removed.",
     "context": "Returned when an organization delete is refused because the org is the customer's default workspace",
@@ -185,7 +190,7 @@
   },
   "api.organizations.errors.delete_active_subscription": {
     "text": "Cancel this organization's subscription before deleting it.",
-    "context": "Returned when an organization delete is refused because the subscription is active or trialing",
+    "context": "Returned when an organization delete is refused because the subscription can still bill (active, trialing, past_due or unpaid)",
     "content_hash": "f0c54eca"
   },
   "api.organizations.errors.delete_last_org": {

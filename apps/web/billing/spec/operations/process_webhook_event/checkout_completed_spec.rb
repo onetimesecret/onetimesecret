@@ -94,6 +94,255 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
       existing_org.refresh!
       expect(existing_org.stripe_subscription_id).to eq(stripe_subscription_id)
     end
+
+    # ========================================================================
+    # Regression: appsec H-2 residue — step 3 must not select an org the
+    # customer merely BELONGS to, and must not select an archived one.
+    #
+    # This handler's fallback was `orgs.find(&:is_default) || orgs.first` over
+    # every membership, archived included. For a customer whose own workspace
+    # is archived and whose default_org_id points at a shared tenant org they
+    # joined as a member (JoinDomainOrganization does this on custom-domain
+    # SSO sign-in), an orgid-less checkout landed on the tenant org and
+    # update_from_stripe_subscription overwrote its stripe_customer_id.
+    #
+    # Twin of the ProcessCheckoutSession coverage in
+    # spec/logic/welcome/process_checkout_session_spec.rb — both run for the
+    # same completed checkout.
+    # ========================================================================
+    context 'when the customer only belongs to (does not own) their default org' do
+      let(:tenant_owner) do
+        create_test_customer(email: "tenant-owner-#{SecureRandom.hex(4)}@example.com")
+      end
+
+      let!(:tenant_org) do
+        org                    = create_test_organization(customer: tenant_owner, name: 'Tenant Org', default: false)
+        org.stripe_customer_id = 'cus_tenant_billing_root'
+        org.save
+        org.add_members_instance(customer, through_attrs: { role: 'member', status: 'active' })
+        org
+      end
+
+      before do
+        # Archived own workspace: no owned, live org resolves — and it still
+        # holds the contact_email index reservation, which step 4's creation
+        # has to survive (CreateDefaultWorkspace also refuses here, because
+        # the customer does have an organization).
+        own = create_test_organization(customer: customer, default: true)
+        own.archive!('spec fixture: superseded by tenant org via SSO')
+
+        customer.default_org_id = tenant_org.objid
+        customer.save
+      end
+
+      it 'does not apply the subscription to the tenant organization' do
+        expect(operation.call).to eq(:success)
+
+        tenant_org.refresh!
+        expect(tenant_org.stripe_customer_id).to eq('cus_tenant_billing_root')
+        expect(tenant_org.stripe_subscription_id).to be_nil
+      end
+
+      it 'does not resurrect the archived workspace' do
+        operation.call
+
+        archived = customer.organization_instances.to_a.find(&:archived?)
+        expect(archived).not_to be_nil
+        expect(archived.stripe_subscription_id).to be_nil
+      end
+
+      it 'creates a live organization the customer owns and applies it there' do
+        operation.call
+
+        target = customer.organization_instances.to_a
+          .reject(&:archived?)
+          .find { |o| o.owner?(customer) }
+        created_organizations << target if target
+        expect(target).not_to be_nil
+        expect(target.stripe_subscription_id).to eq(stripe_subscription_id)
+      end
+    end
+
+    # ========================================================================
+    # Regression: step 1 must reject an ARCHIVED metadata orgid.
+    #
+    # An org can be archived between checkout-session creation and payment
+    # completion — a tenant SSO sign-in archives the personal workspace. The
+    # orgid stamped in subscription metadata then names an org that is no
+    # longer a live billing target, and applying the subscription there
+    # leaves the customer with no usable workspace and a paid subscription
+    # that only an operator can move.
+    #
+    # Twin of the ProcessCheckoutSession coverage in
+    # spec/logic/welcome/process_checkout_session_spec.rb.
+    # ========================================================================
+    context 'when the metadata orgid points at an org archived after checkout started' do
+      let!(:archived_org) do
+        org = create_test_organization(customer: customer, default: true)
+        org.archive!('spec fixture: archived between checkout creation and completion')
+        org
+      end
+
+      # The customer's remaining live workspace — created without a
+      # contact_email because the archived org still holds that reservation.
+      let!(:live_org) do
+        org = Onetime::Organization.create!('Live Workspace', customer, nil)
+        created_organizations << org
+        org
+      end
+
+      let(:subscription) do
+        build_stripe_subscription(
+          id: stripe_subscription_id,
+          customer: stripe_customer_id,
+          status: 'active',
+          metadata: { 'customer_extid' => customer.extid, 'orgid' => archived_org.objid },
+        )
+      end
+
+      it 'does not apply the subscription to the archived org' do
+        expect(operation.call).to eq(:success)
+
+        archived_org.refresh!
+        expect(archived_org.stripe_subscription_id).to be_nil
+        expect(archived_org.stripe_customer_id).to be_nil
+      end
+
+      it 'applies it to the customer live owned org instead' do
+        operation.call
+
+        live_org.refresh!
+        expect(live_org.stripe_subscription_id).to eq(stripe_subscription_id)
+        expect(live_org.subscription_status).to eq('active')
+      end
+
+      it 'does not mint an extra workspace' do
+        expect { operation.call }.not_to(change { customer.organization_instances.to_a.length })
+      end
+    end
+
+    # ========================================================================
+    # Regression: the concurrent-creation race is NOT elected by the
+    # stripe_customer_id CAS alone.
+    #
+    # Organization.create! reserves contact_email with HSETNX *before* the save
+    # that takes the Stripe claim, so the surface that loses this race against
+    # ProcessCheckoutSession sees Onetime::OrganizationExists, never
+    # Familia::RecordExistsError — CreateDefaultWorkspace re-raises it once the
+    # reserving org has members. Only RecordExistsError was rescued here, so
+    # the webhook 500'd. Stripe's retry recovered the subscription, making this
+    # noise rather than data loss, but every racing checkout raised an alert.
+    #
+    # The winner is created DURING the create attempt, not before it: created
+    # earlier, CheckoutTargetResolver.resolve would return it at step 2/3 and
+    # this handler would never reach the create path at all.
+    # ========================================================================
+    context 'when a concurrent surface wins the contact_email reservation' do
+      def lose_reservation_to(build_winner)
+        losing_call = instance_double(Auth::Operations::CreateDefaultWorkspace)
+        allow(losing_call).to receive(:call) do
+          build_winner.call
+          raise Onetime::OrganizationExists, 'Organization exists for that email address'
+        end
+        allow(Auth::Operations::CreateDefaultWorkspace).to receive(:new).and_return(losing_call)
+      end
+
+      context 'and the winner holds this checkout stripe_customer_id' do
+        let(:winner) do
+          org = Onetime::Organization.create!(
+            'Concurrently Created Workspace',
+            customer,
+            test_email,
+            **Onetime::Organization.stripe_claim_fields(stripe_customer_id),
+          )
+          created_organizations << org
+          org
+        end
+
+        before { lose_reservation_to(-> { winner }) }
+
+        it 'adopts it instead of raising' do
+          expect(operation.call).to eq(:success)
+        end
+
+        it 'applies the subscription to the winner' do
+          operation.call
+
+          winner.refresh!
+          expect(winner.stripe_subscription_id).to eq(stripe_subscription_id)
+          expect(winner.subscription_status).to eq('active')
+        end
+
+        it 'does not mint a second workspace' do
+          operation.call
+
+          expect(customer.organization_instances.to_a.length).to eq(1)
+        end
+      end
+
+      # A winner with no Stripe customer — a plain signup completing
+      # concurrently. Resolving by stripe_customer_id alone would refuse
+      # forever here, so the contact_email fallback is what terminates it.
+      context 'and the winner carries no Stripe customer' do
+        let(:winner) do
+          org = Onetime::Organization.create!('Signup Workspace', customer, test_email)
+          created_organizations << org
+          org
+        end
+
+        before { lose_reservation_to(-> { winner }) }
+
+        it 'adopts it through the contact_email reservation' do
+          expect(operation.call).to eq(:success)
+
+          winner.refresh!
+          expect(winner.stripe_subscription_id).to eq(stripe_subscription_id)
+        end
+
+        it 'does not mint a second workspace' do
+          operation.call
+
+          expect(customer.organization_instances.to_a.length).to eq(1)
+        end
+      end
+    end
+
+    # The reservation is global, so a hit on it is not proof of ownership:
+    # adopting on the email alone would land a paid subscription on an
+    # unrelated organization. This path runs the REAL CreateDefaultWorkspace,
+    # which refuses the adoption itself (the holder has members) and re-raises.
+    context 'when another customer organization holds the contact_email reservation' do
+      let(:holder) do
+        create_test_customer(email: "holder-#{SecureRandom.hex(4)}@example.com")
+      end
+
+      let!(:foreign_org) do
+        org = Onetime::Organization.create!('Foreign Workspace', holder, test_email)
+        created_organizations << org
+        org
+      end
+
+      it 'creates the customer their own workspace rather than adopting it' do
+        expect(operation.call).to eq(:success)
+
+        target = customer.organization_instances.to_a.find { |org| org.owner?(customer) }
+        created_organizations << target if target
+
+        expect(target).not_to be_nil
+        expect(target.stripe_subscription_id).to eq(stripe_subscription_id)
+      end
+
+      it 'leaves the reservation holder untouched' do
+        expect { operation.call }.not_to raise_error
+
+        target = customer.organization_instances.to_a.find { |org| org.owner?(customer) }
+        created_organizations << target if target
+
+        foreign_org.refresh!
+        expect(foreign_org.stripe_subscription_id).to be_nil
+        expect(foreign_org.stripe_customer_id).to be_nil
+      end
+    end
   end
 
   # ============================================================================
