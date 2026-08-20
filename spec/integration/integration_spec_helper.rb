@@ -52,7 +52,22 @@ RSpec.configure do |config|
   # Clean Valkey database before each integration test
   # Skip if :shared_db_state metadata is set (for specs using before(:all) shared setup)
   # Skip if :billing metadata is set (billing tests manage their own plan data)
-  config.before(:each, type: :integration) do |example|
+  #
+  # prepend_before, NOT before. A config-level `before` normally runs ahead of
+  # every group-level hook, but only for groups that were DEFINED AFTER it was
+  # registered. This file is required by spec/integration/**, which rspec loads
+  # after apps/**, so in a merged run (rake spec:integration:full passes
+  # `apps/web/auth/spec/integration/full spec/integration/full
+  # spec/integration/all` to ONE process) every auth group is already defined
+  # by the time this hook exists — and RSpec then runs it AFTER those groups'
+  # own hooks. That flushed the datastore out from under any auth spec that
+  # builds fixtures in `let!` (tenant_sso_proxy_host_spec.rb,
+  # public_host_email_link_spec.rb), between the fixture write and the request:
+  # the CustomDomain lookup missed, DomainStrategy answered :invalid, and the
+  # examples failed as "tenant not resolved" with the fixture visibly present a
+  # hook earlier. Prepending pins it to the front regardless of load order,
+  # which is what "before each integration test" was always meant to mean.
+  config.prepend_before(:each, type: :integration) do |example|
     next if example.metadata[:shared_db_state]
     next if example.metadata[:billing]
 
