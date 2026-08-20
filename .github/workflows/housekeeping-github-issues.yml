@@ -43,7 +43,7 @@ jobs:
       pull-requests: write
 
     steps:
-      - uses: actions/stale@5bef64f19d7facfb25b37b414482c7164d639639 # v9
+      - uses: actions/stale@4391f3da665fdf50b6810c1a66712fb9ba21aa93 # v11.0.0
         with:
           stale-issue-message: 'Just a heads up -- this issue is being marked stale (open 90 days with no activity). It will close automatically in a few weeks. You can comment or remove the stale label to restart the clock. If you need help or have questions, check our [contribution guide](https://github.com/onetimesecret/onetimesecret/blob/main/CONTRIBUTING.md).'
           close-issue-message: 'This issue is now closed. 🌻 Feel free to reopen if you have new information or want to continue the discussion.'

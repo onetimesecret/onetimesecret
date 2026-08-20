@@ -199,25 +199,25 @@ jobs:
           echo "Extra tags: ${EXTRA_TAGS}"
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
+        uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
         with:
           platforms: arm64
 
       - name: Setup Docker buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
         with:
           platforms: ${{ inputs.platforms || 'linux/amd64,linux/arm64' }}
 
       - name: Login to Docker Hub
         if: github.event_name != 'pull_request' && (inputs.registry_target || 'public') != 'custom'
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Log into GitHub Container Registry
         if: github.event_name != 'pull_request' && (inputs.registry_target || 'public') != 'custom'
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -225,7 +225,7 @@ jobs:
 
       - name: Log into custom registry
         if: github.event_name != 'pull_request' && (inputs.registry_target || 'public') == 'custom'
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ${{ secrets.CUSTOM_REGISTRY_HOST }}
           username: ${{ secrets.CUSTOM_REGISTRY_USERNAME }}
@@ -249,7 +249,7 @@ jobs:
           echo "::endgroup::"
 
       - name: Build and push with Bake
-        uses: docker/bake-action@5be5f02ff8819ecd3092ea6b2e6261c31774f2b4 # v6.10.0
+        uses: docker/bake-action@d3418bd7d0e9324001bca92fa8ba175ea7e6dc9b # v7.3.0
         env:
           VERSION: ${{ steps.version.outputs.version }}
           IMAGE_TAG: ${{ steps.version.outputs.image_tag }}
@@ -259,6 +259,8 @@ jobs:
           REGISTRY_MODE: ${{ inputs.registry_target || 'public' }}
           CUSTOM_REGISTRY: ${{ secrets.CUSTOM_REGISTRY_HOST }}
         with:
+          # v7 merged workdir into source; `.` is the old workdir default.
+          source: .
           files: docker/bake.hcl
           targets: ci
           push: ${{ github.event_name != 'pull_request' }}
