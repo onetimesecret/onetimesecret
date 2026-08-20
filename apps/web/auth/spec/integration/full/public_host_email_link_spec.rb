@@ -56,49 +56,23 @@ require 'rack/test'
 RSpec.describe 'delivered email links use the public host (#4221)', type: :integration do
   include Rack::Test::Methods
 
-  # The canonical host installed for this file (see before(:all)).
-  CANONICAL_HOST = 'canonical.example.org'
+  # The domains axis has to be ON for these examples to mean anything: with it
+  # off DomainStrategy short-circuits, every request classifies :canonical and
+  # env['onetime.display_domain'] IS the canonical host, so Auth::PublicHost
+  # would decline on every example here and all of them would pass vacuously
+  # against the unchanged stock derivation. `canonical_host` below is the
+  # parseable operator host the context installs; the mechanics (and why an IP
+  # site.host cannot serve as one) live in the shared context.
+  include_context 'domains enabled'
 
-  before(:all) do
-    boot_onetime_app
-
-    # The canonical SET (what Auth::PublicHost consults through
-    # canonical_host?) is class-level state on DomainStrategy, normally
-    # populated when the middleware is first instantiated. Two reasons to
-    # rebuild it here rather than read whatever boot left behind:
-    #
-    #   1. `origin_host` below reads it before any request has been made.
-    #   2. The test config's site.host is `127.0.0.1:3000`. An IP literal does
-    #      not parse as a domain, so Chooserator cannot classify a request to
-    #      it :canonical — it degrades to :invalid, Auth::SigninGate fails
-    #      closed, and the canonical-host example 404s before Rodauth composes
-    #      anything. A synthetic `features.domains.default` gives the canonical
-    #      arm a real hostname to match, the same trick bin/visual uses
-    #      (DEFAULT_DOMAIN=canonical.example.org).
-    @original_domains_config = OT.conf&.dig('features', 'domains') || {}
-
-    # The custom-domain feature ships OFF in the test config (DOMAINS_ENABLED),
-    # and with it off DomainStrategy short-circuits: every request classifies
-    # :canonical and env['onetime.display_domain'] IS the canonical host, so
-    # Auth::PublicHost would decline on every example here and all of them
-    # would pass vacuously against the unchanged stock derivation. Flip the
-    # runtime flag rather than the env var — the lane env is shared — exactly
-    # as signin_gate_enforcement_spec.rb does, and restore after.
-    @original_features        = Onetime::Runtime.features
-    Onetime::Runtime.features = @original_features.with(domains_enabled: true)
-  end
-
-  after(:all) do
-    Onetime::Runtime.features = @original_features if @original_features
-    Onetime::Middleware::DomainStrategy.initialize_from_config(@original_domains_config || {})
-  end
+  before(:all) { boot_onetime_app }
 
   let(:run_id) { SecureRandom.hex(6) }
 
   # The origin target a Host-rewriting proxy puts in `Host:`. Also the host
   # every assertion below uses as the NEGATIVE — it is what the defect
   # produced.
-  let(:origin_host) { CANONICAL_HOST }
+  let(:origin_host) { canonical_host }
 
   # tr('_', '-'): an underscore is not legal in a hostname label and
   # DomainStrategy silently falls back to the canonical host for one
@@ -140,19 +114,6 @@ RSpec.describe 'delivered email links use the public host (#4221)', type: :integ
   end
 
   before do
-    # Install the synthetic canonical set, then FREEZE it.
-    #
-    # AuthRequestHelper#app rebuilds the Rack URL map on every call, and every
-    # rebuild re-instantiates DomainStrategy, which re-runs
-    # initialize_from_config against the on-disk config — silently reverting
-    # anything set in before(:all) the moment the first request is made. The
-    # stub is what makes the assignment stick for the duration of an example;
-    # after(:all) restores the real config for the rest of the suite.
-    Onetime::Middleware::DomainStrategy.initialize_from_config(
-      @original_domains_config.merge('enabled' => true, 'default' => CANONICAL_HOST),
-    )
-    allow(Onetime::Middleware::DomainStrategy).to receive(:initialize_from_config)
-
     # The delivery seam. Auth::Config::Email::Delivery's send_email hook hands
     # Rodauth's rendered Mail object to the publisher as a plain hash; capturing
     # it here is the closest observation point to an actual send.
