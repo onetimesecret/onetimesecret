@@ -25,14 +25,70 @@ name: Build and Publish OCI Images
 #   Set in Settings → Secrets and variables → Actions → Variables
 #
 # Sentry Integration (Repository Secrets):
-#   SENTRY_AUTH_TOKEN  API token with project:releases and org:read scopes
-#   SENTRY_ORG         Organization slug (e.g., "onetimesecret")
-#   SENTRY_URL         Sentry instance URL (omit for sentry.io)
-#   SENTRY_PROJECTS    Space-separated project slugs (e.g., "frontend backend workers")
+#   SENTRY_AUTH_TOKEN        API token with project:releases and org:read scopes
+#   SENTRY_ORG               Organization slug (e.g., "onetimesecret")
+#   SENTRY_URL               Sentry instance URL (omit for sentry.io)
+#   SENTRY_PROJECTS          Space-separated project slugs (e.g., "frontend backend workers")
+#   SENTRY_FRONTEND_PROJECT  Project the sourcemap upload targets (default: "frontend").
+#                            Must be one of SENTRY_PROJECTS or the release and its
+#                            artifact bundles land in different projects.
+#
+# Sentry dist contract (NOT a secret, NOT a variable — a literal, on purpose):
+#   `dist` is a JOIN KEY: Sentry resolves an artifact bundle for an event only
+#   when RELEASE AND DIST both match. It therefore has two halves that must be
+#   identical, and they live in two different places:
+#     * SENTRY_DIST on the preflight and upload steps below   — CI's half
+#     * the `dist` passed to Sentry.init in the frontend       — the event's half
+#   Kept as literals because scripts/ci/sentry-sourcemap-preflight.sh reads the
+#   frontend's half out of src/plugins/core/enableDiagnostics.ts and compares it
+#   to SENTRY_DIST; an indirection through a repository variable would hide CI's
+#   half from both the reader and that check. Change both or neither.
+#
+#   AS OF THIS BRANCH ONLY CI'S HALF EXISTS. The frontend does not pass a `dist`
+#   to Sentry.init yet, so events still carry dist=null and these bundles cannot
+#   resolve. That is not a regression — it is the pre-existing state, and it is
+#   half of why symbolication has never worked here. The preflight reports it as
+#   an explicit dist-tag warning on every run rather than staying silent, and it
+#   clears when the companion telemetry-boundary change lands the matching
+#   `dist: 'frontend'` in enableDiagnostics.ts. Neither ordering breaks anything
+#   that currently works; both are required before a frame symbolicates.
+#
+#   .env.reference also carried a `SENTRY_DIST=frontend` line. Nothing in lib/,
+#   apps/ or src/ ever read it and the preflight never checked it, so it
+#   advertised a runtime knob for a build-time literal — one more way for the
+#   join key to drift, offering no way to set it. Deleted rather than folded in.
 #
 #   These enable: release creation, commit association, sourcemap upload,
 #   and deploy notifications. All Sentry steps use continue-on-error so
 #   missing secrets won't fail the build.
+#
+# Sentry observability contract:
+#   continue-on-error makes each step's exit code meaningless as a signal — a
+#   green check says nothing about whether telemetry actually shipped. Every
+#   Sentry step therefore reports through scripts/ci/sentry-status.sh, which
+#   emits a GitHub annotation AND a row rendered into the job summary by the
+#   final "Sentry delivery summary" step. The states are deliberately split:
+#
+#     SKIPPED  no SENTRY_AUTH_TOKEN. Normal on forks and unconfigured clones.
+#              Log line only — no annotation, so it never cries wolf.
+#     BLOCKED  credentials ARE configured but a precondition failed, so nothing
+#              shipped (::warning::).
+#     FAILED   credentials ARE configured and the command errored (::error::).
+#
+#   scripts/ci/sentry-sourcemap-preflight.sh runs the pre-upload assertions
+#   (dist tree present, .map files present, admin bundle present, release
+#   matches __SENTRY_RELEASE__, project/dist match what a frontend event
+#   reports) so an upload of zero artifacts can no longer pass as a success.
+#
+#   scripts/ci/sentry-verify-artifacts.sh then asks the SERVER. Input checks and
+#   exit codes were both satisfiable while the frontend project held zero
+#   artifact bundles — which is what it held for every release ever built here.
+#   Only a post-upload query of the artifact listings can tell a real delivery
+#   from a successful-looking one, so zero-after-upload is reported FAILED.
+#
+#   continue-on-error stays on every Sentry step: telemetry plumbing must never
+#   fail a production image build. That is precisely why the annotations and the
+#   job-summary table above are the signal, and the green check is not.
 #
 
 on:
@@ -249,6 +305,7 @@ jobs:
           echo "::endgroup::"
 
       - name: Build and push with Bake
+        id: bake
         uses: docker/bake-action@d3418bd7d0e9324001bca92fa8ba175ea7e6dc9b # v7.3.0
         env:
           VERSION: ${{ steps.version.outputs.version }}
@@ -268,6 +325,35 @@ jobs:
             *.args.VERSION=${{ steps.version.outputs.version }}
             *.args.COMMIT_HASH=${{ steps.commit.outputs.short_sha }}
 
+      # The frontend is compiled INSIDE the image (Dockerfile stage `build` runs
+      # `pnpm run build`; vite writes ${APP_DIR}/public/web/dist). public/web/dist
+      # is gitignored, so it has never existed on the runner at this point in the
+      # job — which is why `sentry-cli sourcemaps upload ./public/web/dist` has
+      # uploaded exactly zero artifacts on every build since it was added.
+      #
+      # Take the assets out of the image that was just pushed rather than
+      # rebuilding them here: vite emits content-hashed filenames and Sentry
+      # resolves artifacts by URL, so a second, subtly different build would
+      # produce artifacts named for files no browser ever requests — green, and
+      # just as useless.
+      - name: Extract frontend assets from built image
+        id: extract_assets
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          BAKE_METADATA: ${{ steps.bake.outputs.metadata }}
+          DIST_DEST: ./public/web/dist
+          IMAGE_DIST_PATH: /app/public/web/dist
+          VERSION: ${{ steps.version.outputs.version }}
+          IMAGE_TAG: ${{ steps.version.outputs.image_tag }}
+          COMMIT_HASH: ${{ steps.commit.outputs.short_sha }}
+          EXTRA_TAGS: ${{ steps.version.outputs.extra_tags }}
+          PLATFORMS: ${{ inputs.platforms || 'linux/amd64,linux/arm64' }}
+          REGISTRY_MODE: ${{ inputs.registry_target || 'public' }}
+          CUSTOM_REGISTRY: ${{ secrets.CUSTOM_REGISTRY_HOST }}
+        run: bash scripts/ci/extract-frontend-dist.sh
+
       - name: Create Sentry release and associate commits
         if: github.event_name != 'pull_request'
         continue-on-error: true
@@ -278,8 +364,18 @@ jobs:
           SENTRY_PROJECTS: ${{ secrets.SENTRY_PROJECTS }}
           SENTRY_RELEASE: ${{ steps.commit.outputs.short_sha }}
         run: |
-          if [ -z "$SENTRY_AUTH_TOKEN" ] || [ -z "$SENTRY_PROJECTS" ]; then
-            echo "SENTRY_AUTH_TOKEN or SENTRY_PROJECTS not set, skipping Sentry release"
+          # SKIPPED (no token) and FAILED (token present, sentry-cli errored)
+          # used to be indistinguishable: both printed one line and left a green
+          # check. sentry-status.sh keeps them apart and makes the second one
+          # durable. See the "Sentry observability contract" note at the top.
+          if [ -z "$SENTRY_AUTH_TOKEN" ]; then
+            bash scripts/ci/sentry-status.sh record release skipped \
+              "SENTRY_AUTH_TOKEN not configured; no release created"
+            exit 0
+          fi
+          if [ -z "$SENTRY_PROJECTS" ]; then
+            bash scripts/ci/sentry-status.sh record release blocked \
+              "SENTRY_AUTH_TOKEN is set but SENTRY_PROJECTS is empty — no release was created, so any sourcemap bundles uploaded below have nothing to attach to."
             exit 0
           fi
           # Build --project flags from space-separated list
@@ -288,28 +384,137 @@ jobs:
             PROJECT_FLAGS="$PROJECT_FLAGS --project $proj"
           done
           echo "Creating release $SENTRY_RELEASE for projects: $SENTRY_PROJECTS"
-          npx @sentry/cli releases new "$SENTRY_RELEASE" $PROJECT_FLAGS
-          npx @sentry/cli releases set-commits "$SENTRY_RELEASE" --auto $PROJECT_FLAGS
-          npx @sentry/cli releases finalize "$SENTRY_RELEASE" $PROJECT_FLAGS
+
+          # The runner's default shell is `bash -eo pipefail`, under which a
+          # failing `out=$(...)` aborts the step before the reporting line can
+          # run — continue-on-error would then swallow it back into silence.
+          # Own the exit codes explicitly instead.
+          set +e
+
+          # Each of the three calls is reported on its own: `new` succeeding
+          # while `finalize` fails leaves a half-created release, which is
+          # precisely the state that looks fine from the outside.
+          rc=0
+          for phase in new set-commits finalize; do
+            case "$phase" in
+              new)         out=$(npx @sentry/cli releases new "$SENTRY_RELEASE" $PROJECT_FLAGS 2>&1) ;;
+              set-commits) out=$(npx @sentry/cli releases set-commits "$SENTRY_RELEASE" --auto $PROJECT_FLAGS 2>&1) ;;
+              finalize)    out=$(npx @sentry/cli releases finalize "$SENTRY_RELEASE" $PROJECT_FLAGS 2>&1) ;;
+            esac
+            rc=$?
+            printf '%s\n' "$out"
+            if [ "$rc" -ne 0 ]; then
+              bash scripts/ci/sentry-status.sh record release failed \
+                "releases ${phase} exited ${rc} for release ${SENTRY_RELEASE} (projects: ${SENTRY_PROJECTS}): $(printf '%s' "$out" | tail -n 2)"
+              exit 0
+            fi
+          done
+          bash scripts/ci/sentry-status.sh record release ok \
+            "release ${SENTRY_RELEASE} created, commits associated and finalized for: ${SENTRY_PROJECTS}"
+
+      # Pre-upload assertions. `sentry-cli sourcemaps upload` happily "succeeds"
+      # against an empty directory, so without this the only way to learn that
+      # nothing shipped is to go looking in Sentry. The script classifies and
+      # reports; it never fails, it just tells the upload step whether to run.
+      # Gated on the extraction: when that step reports anything other than
+      # `extracted` it has already recorded the loud, specific reason, and
+      # re-reporting "dist tree missing" here would only bury it.
+      - name: Sentry sourcemap preflight
+        id: sentry_preflight
+        if: github.event_name != 'pull_request' && steps.extract_assets.outputs.status == 'extracted'
+        continue-on-error: true
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECTS: ${{ secrets.SENTRY_PROJECTS }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_FRONTEND_PROJECT || 'frontend' }}
+          # See the dist note on the upload step below. Must equal the
+          # `dist:` literal in src/plugins/core/enableDiagnostics.ts.
+          SENTRY_DIST: frontend
+          SENTRY_DIST_DIR: ./public/web/dist
+          SENTRY_RELEASE: ${{ steps.commit.outputs.short_sha }}
+        run: bash scripts/ci/sentry-sourcemap-preflight.sh
 
       - name: Upload frontend sourcemaps to Sentry
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && steps.sentry_preflight.outputs.status == 'ready'
         continue-on-error: true
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_URL: ${{ secrets.SENTRY_URL }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_FRONTEND_PROJECT || 'frontend' }}
+          # dist is a JOIN KEY: Sentry resolves a bundle only when release AND
+          # dist BOTH match the event.
+          #
+          # This upload has always passed --dist=frontend, while every sampled
+          # event in the frontend and backend projects carried dist=null — a
+          # second, independent reason symbolication could not have worked even
+          # if the upload itself had ever shipped a file.
+          #
+          # The frontend half is NOT fixed by this branch; it lands with the
+          # companion telemetry-boundary change as `dist: 'frontend'` in
+          # src/plugins/core/enableDiagnostics.ts. Until then the preflight
+          # emits a dist-tag warning on every run saying exactly that, so the
+          # gap is visible rather than silent. The value is kept here, matching
+          # what the other half will set, rather than dropped: dropping the
+          # dist is also a valid resolution, but only as one change touching
+          # BOTH halves. Changing one is how this bug was born.
+          SENTRY_DIST: frontend
+          SENTRY_DIST_DIR: ./public/web/dist
           SENTRY_RELEASE: ${{ steps.commit.outputs.short_sha }}
         run: |
-          if [ -z "$SENTRY_AUTH_TOKEN" ]; then
-            echo "SENTRY_AUTH_TOKEN not set, skipping sourcemaps upload"
+          # See the note in the release step: default shell is `bash -eo
+          # pipefail`, so capture exit codes deliberately or the reporting
+          # lines below never execute.
+          set +e
+
+          UPLOAD_ARGS=(
+            "$SENTRY_DIST_DIR"
+            --release="$SENTRY_RELEASE"
+            --project="$SENTRY_PROJECT"
+            --url-prefix='~/dist'
+          )
+          if [ -n "$SENTRY_DIST" ]; then
+            UPLOAD_ARGS+=(--dist="$SENTRY_DIST")
+          fi
+
+          out=$(npx @sentry/cli sourcemaps upload "${UPLOAD_ARGS[@]}" 2>&1)
+          rc=$?
+          printf '%s\n' "$out"
+
+          if [ "$rc" -ne 0 ]; then
+            bash scripts/ci/sentry-status.sh record sourcemaps failed \
+              "sentry-cli exited ${rc} uploading ${SENTRY_DIST_DIR} for release ${SENTRY_RELEASE}: $(printf '%s' "$out" | tail -n 2)"
             exit 0
           fi
-          npx @sentry/cli sourcemaps upload ./public/web/dist \
-            --release="$SENTRY_RELEASE" \
-            --project=frontend \
-            --dist=frontend \
-            --url-prefix='~/dist'
+
+          # A zero-exit upload that moved no files is the failure this whole
+          # step exists to surface. The preflight already proved .map files are
+          # on disk, so sentry-cli reporting nothing here means it rejected or
+          # ignored them.
+          if printf '%s' "$out" | grep -qiE 'nothing to upload|no files|0 files'; then
+            bash scripts/ci/sentry-status.sh record sourcemaps warn \
+              "sentry-cli exited 0 but reported no uploaded files for release ${SENTRY_RELEASE} — bundles present on disk were not accepted: $(printf '%s' "$out" | tail -n 2)"
+            exit 0
+          fi
+
+          MAP_COUNT=$(find "$SENTRY_DIST_DIR" -type f -name '*.map' | wc -l | tr -d ' ')
+          bash scripts/ci/sentry-status.sh record sourcemaps ok \
+            "uploaded ${MAP_COUNT} sourcemap(s) to project ${SENTRY_PROJECT} for release ${SENTRY_RELEASE}${SENTRY_DIST:+ (dist=${SENTRY_DIST})}"
+
+      # The check that would have caught the original bug. Everything before
+      # this point verifies inputs and exit codes; both were satisfiable while
+      # the server held zero artifacts. Ask the server.
+      - name: Verify Sentry received the artifacts
+        if: github.event_name != 'pull_request' && steps.sentry_preflight.outputs.status == 'ready'
+        continue-on-error: true
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_URL: ${{ secrets.SENTRY_URL }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_FRONTEND_PROJECT || 'frontend' }}
+          SENTRY_RELEASE: ${{ steps.commit.outputs.short_sha }}
+        run: bash scripts/ci/sentry-verify-artifacts.sh
 
       - name: Create Sentry deploy notification
         if: github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/v')
@@ -321,10 +526,21 @@ jobs:
           SENTRY_RELEASE: ${{ steps.commit.outputs.short_sha }}
         run: |
           if [ -z "$SENTRY_AUTH_TOKEN" ]; then
-            echo "SENTRY_AUTH_TOKEN not set, skipping deploy notification"
+            bash scripts/ci/sentry-status.sh record deploy skipped \
+              "SENTRY_AUTH_TOKEN not configured; no deploy notification sent"
             exit 0
           fi
-          npx @sentry/cli releases deploys "$SENTRY_RELEASE" new -e production
+          set +e  # own the exit code; see the note in the release step
+          out=$(npx @sentry/cli releases deploys "$SENTRY_RELEASE" new -e production 2>&1)
+          rc=$?
+          printf '%s\n' "$out"
+          if [ "$rc" -ne 0 ]; then
+            bash scripts/ci/sentry-status.sh record deploy failed \
+              "deploy notification for release ${SENTRY_RELEASE} exited ${rc}: $(printf '%s' "$out" | tail -n 2)"
+            exit 0
+          fi
+          bash scripts/ci/sentry-status.sh record deploy ok \
+            "production deploy recorded for release ${SENTRY_RELEASE}"
 
       - name: Audit — verify image version
         if: success()
@@ -377,3 +593,10 @@ jobs:
             echo "**Commit:** ${BUILD_COMMIT}"
             echo "**Extra tags:** ${BUILD_EXTRA_TAGS}"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      # always(): the Sentry verdict is most valuable on the runs that went
+      # wrong. Annotations alone scroll away in a long log; this is the copy
+      # that survives on the run page after the check turns green.
+      - name: Sentry delivery summary
+        if: always()
+        run: bash scripts/ci/sentry-status.sh render
