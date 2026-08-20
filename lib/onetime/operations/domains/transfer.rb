@@ -33,8 +33,9 @@ module Onetime
       #
       # `dry_run: true` (the safe default) returns the transfer plan (from/to org
       # names + ids) and mutates/audits NOTHING. `dry_run: false` performs the
-      # transfer (remove from old collection → update org_id → add to new
-      # collection, rolling back org_id if the add fails) and records EXACTLY ONE
+      # transfer (remove from old collection → update org_id + the
+      # CustomDomain.owners index → add to new collection, rolling both
+      # ownership writes back if the add fails) and records EXACTLY ONE
       # {Onetime::ColonelAuditEvent}. A blocked run (`:mismatch`) and a transfer
       # that blows up mid-apply each record one `result: :failure` event: this is
       # the highest-blast-radius domain verb, and a half-applied transfer that
@@ -115,17 +116,30 @@ module Onetime
           # Remove from the old organization's collection, if there is one.
           current_org&.remove_domain(@domain.domainid)
 
-          # Update the domain's owner.
+          # Update the domain's owner — BOTH places it is recorded. The
+          # `owners` class hashkey is a second, independently-maintained index
+          # (domainid => org_id) that Organization#unlisted_owned_domains reads
+          # as the org-deletion drift guard. Leaving it on the source org made
+          # that org permanently undeletable after any transfer, with no
+          # remediation, so it moves with org_id or not at all.
           @domain.org_id  = @to_org.org_id
           @domain.updated = OT.now.to_i
           @domain.save
+          Onetime::CustomDomain.record_owner(@domain, @to_org.org_id)
 
           # Add to the new organization's collection, rolling back org_id on failure.
           begin
             @to_org.add_domain(@domain.domainid)
           rescue StandardError => ex
-            @domain.org_id = original_from_id
-            @domain.save
+            # Roll back both writes. A transfer FROM orphaned cannot restore a
+            # blank org_id (CustomDomain#save requires one), so `owners` is
+            # realigned to whatever org_id actually ends up persisted rather
+            # than being cleared — a consistent pair beats a tidy index.
+            unless original_from_id.to_s.empty?
+              @domain.org_id = original_from_id
+              @domain.save
+            end
+            Onetime::CustomDomain.record_owner(@domain, @domain.org_id)
             raise "Failed to add domain to organization collection: #{ex.message}"
           end
 

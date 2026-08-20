@@ -48,7 +48,7 @@ module Onetime
       #                        `CustomDomain.owners` but have fallen out of its
       #                        domains collection. These are invisible in the
       #                        owner's own domain list, so the remediation is
-      #                        operator-side (`bin/ots domains doctor
+      #                        operator-side (`bin/ots domains doctor --all
       #                        --repair`), never a side effect of a delete.
       #                        Not overridable — `destroy!` raises on drift
       #                        for the same mid-teardown reason. See
@@ -190,7 +190,7 @@ module Onetime
         #   MISSING from its domains collection. Empty on the healthy path.
         #   Non-empty means `:drifted_domains`: the customer cannot see these
         #   in their domain list, so the remediation is operator-side
-        #   (`bin/ots domains doctor --repair`).
+        #   (`bin/ots domains doctor --all --repair`).
         # @!attribute is_default [r] Boolean — the guard's input, echoed so an
         #   adapter can show WHY a delete was refused (or what force_default
         #   overrode).
@@ -319,7 +319,7 @@ module Onetime
         # report the same `:drifted_domains` for the same org.
         #
         # These domains are invisible in the owner's own domain list, so the
-        # remediation is operator-side (`bin/ots domains doctor --repair`);
+        # remediation is operator-side (`bin/ots domains doctor --all --repair`);
         # repairing index state as a side effect of a delete would be a
         # mutation on a path that promises to write nothing.
         def detect_domain_drift!

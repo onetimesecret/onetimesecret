@@ -167,7 +167,7 @@ module ColonelAPI
             raise_form_error(
               "#{result.drifted_domains.size} domain record(s) still reference this org but are " \
               "missing from its domain list: #{result.drifted_domains.join(', ')}. Run: " \
-              'bin/ots domains doctor --repair. There is no override.',
+              'bin/ots domains doctor --all --repair. There is no override.',
               field: :org_id,
             )
           when :is_default

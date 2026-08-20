@@ -178,10 +178,10 @@
     "context": "Returned when an organization delete is refused because domains are still attached",
     "content_hash": "040a401e"
   },
-  "api.organizations.errors.delete_drifted_domains": {
-    "text": "Some domain records still reference this organization but are no longer listed in it: %{domains}. Please contact support to remove them before deleting this organization.",
-    "context": "Returned when an organization delete is refused because domain records still reference the organization but are missing from its domain list",
-    "content_hash": "c66e38cb"
+  "api.organizations.errors.delete_drifted_domains_count": {
+    "text": "%{count} domain record(s) still reference this organization but are no longer listed in it. Please contact support to remove them before deleting this organization.",
+    "context": "Returned when an organization delete is refused because domain records still reference the organization but are missing from its domain list. Count only: the drifted records can belong to another tenant after a domain transfer, so they must never be named to this customer",
+    "content_hash": "f6e71a9a"
   },
   "api.organizations.errors.delete_is_default": {
     "text": "Your default workspace cannot be deleted. Contact support if you need it removed.",

@@ -385,7 +385,7 @@ RSpec.describe Onetime::Operations::Org::Delete do
       # THE restored invariant (#4196 follow-up): every refusal is read-only,
       # and a preview and an applied run return the same status for the same
       # org. Drift is detected, never repaired — the remediation is
-      # operator-side (`bin/ots domains doctor --repair`).
+      # operator-side (`bin/ots domains doctor --all --repair`).
       it 'refuses with :drifted_domains and mutates NOTHING, preview and apply alike' do
         drifted = drifted_domain('drifted.example.com')
         allow(org).to receive(:unlisted_owned_domains).and_return([drifted])
@@ -633,7 +633,7 @@ RSpec.describe Onetime::Operations::Org::Delete do
         end
 
         # Nothing was repaired or guessed: the domain stays out of the
-        # collection (the remediation is bin/ots domains doctor --repair,
+        # collection (the remediation is bin/ots domains doctor --all --repair,
         # operator-side) and the org is untouched.
         expect(@org.domain?(domain)).to be(false)
         expect_org_intact

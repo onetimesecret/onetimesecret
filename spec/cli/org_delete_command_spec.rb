@@ -194,7 +194,7 @@ RSpec.describe 'Org Delete Command', type: :cli do
     # override that unlocks THAT guard.
     {
       has_domains: ['bin/ots domains remove', { domain_count: 1, domains: ['a.example.com'] }],
-      drifted_domains: ['bin/ots domains doctor --repair',
+      drifted_domains: ['bin/ots domains doctor --all --repair',
                         { drifted_domains: ['ghost.example.com'] }],
       is_default: ['--force-default', { is_default: true }],
       active_subscription: ['--force-subscription', { active_subscription: true }],

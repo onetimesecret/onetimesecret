@@ -19,10 +19,12 @@ Fixed
   ``Organization#destroy!`` mid-teardown, after the ``Organization.instances``
   entry had already been removed. The orphaned shape — an owners entry naming
   the organization while the record's own ``org_id`` is blank — is left to
-  operator intent (``bin/ots domains doctor --repair``) rather than having
-  ownership inferred from a stale index during a delete. All three surfaces
-  (CLI, colonel console, customer API) name the affected domains and the
-  remediation.
+  operator intent (``bin/ots domains doctor --all --repair``) rather than having
+  ownership inferred from a stale index during a delete. The operator
+  surfaces (CLI, colonel console) name the affected domains and the
+  remediation; the customer-facing API reports only a count, because a domain
+  that drifted via a transfer now belongs to a different tenant and must not
+  be named to the previous owner.
 
 - ``Organization#archive!`` now warns when it archives an organization that
   still owns domains. Archiving deliberately does not refuse — the domain SSO

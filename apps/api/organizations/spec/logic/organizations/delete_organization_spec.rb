@@ -217,8 +217,20 @@ RSpec.describe OrganizationAPI::Logic::Organizations::DeleteOrganization do
       logic.raise_concerns
 
       expect { logic.process }.to raise_error(Onetime::FormError) do |err|
-        expect(err.error_key).to eq('api.organizations.errors.delete_drifted_domains')
-        expect(err.args[:domains]).to eq('ghost.example.com')
+        expect(err.error_key).to eq('api.organizations.errors.delete_drifted_domains_count')
+        expect(err.args[:count]).to eq('1')
+      end
+    end
+
+    it 'never names a drifted domain to the customer (cross-tenant disclosure)' do
+      # Drift is most often produced by a TRANSFER: the domain now belongs to
+      # another tenant, while the stale owners entry keeps naming this org.
+      stub_op(status: :drifted_domains, drifted_domains: ['other-tenant.example.com'])
+      logic.raise_concerns
+
+      expect { logic.process }.to raise_error(Onetime::FormError) do |err|
+        expect(err.args.values.join(' ')).not_to include('other-tenant.example.com')
+        expect(err.args).not_to have_key(:domains)
       end
     end
 

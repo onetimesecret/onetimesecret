@@ -256,7 +256,7 @@ module Onetime
           error_exit(
             "#{result.org_id} still has #{result.drifted_domains.size} domain record(s) pointing at " \
             "it that are missing from its domain list: #{result.drifted_domains.join(', ')}. " \
-            'Run: bin/ots domains doctor --repair, then retry',
+            'Run: bin/ots domains doctor --all --repair, then retry',
             json: false,
           )
         when :is_default

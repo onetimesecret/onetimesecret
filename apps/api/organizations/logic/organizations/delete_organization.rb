@@ -137,11 +137,17 @@ module OrganizationAPI::Logic
           )
         when :drifted_domains
           # These stay INVISIBLE in the customer's domain list — "remove your
-          # domains" would be pointing at nothing they can see. Name them and
-          # route to support; the remediation is operator-side.
+          # domains" would be pointing at nothing they can see. Route to
+          # support; the remediation is operator-side.
+          #
+          # COUNT ONLY, never the names. Drift is most often produced by a
+          # domain being TRANSFERRED AWAY, which leaves the previous owner's
+          # `owners` entry behind — so the display domains here can belong to a
+          # DIFFERENT tenant, and naming them to this customer is a cross-tenant
+          # disclosure. The operator/colonel surface still lists them.
           raise_form_error(
-            error_key: 'api.organizations.errors.delete_drifted_domains',
-            args: { domains: result.drifted_domains.join(', ') },
+            error_key: 'api.organizations.errors.delete_drifted_domains_count',
+            args: { count: result.drifted_domains.size.to_s },
             field: :extid,
             error_type: :invalid,
           )

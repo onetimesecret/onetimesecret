@@ -451,7 +451,7 @@ module Onetime
         names   = drifted.map(&:display_domain).join(', ')
         message = "Cannot delete organization: domain records still reference it (#{names}). " \
                   'These domains are not visible in the organization domain list. ' \
-                  'Run bin/ots domains doctor --repair or remove the domains, then retry.'
+                  'Run bin/ots domains doctor --all --repair or remove the domains, then retry.'
         raise Onetime::Problem, message
       end
 

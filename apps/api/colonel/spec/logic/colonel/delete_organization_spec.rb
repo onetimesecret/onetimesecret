@@ -187,7 +187,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::DeleteOrganization do
       expect { logic.process }.to raise_error(Onetime::FormError) do |err|
         expect(err.field).to eq(:org_id)
         expect(err.message).to include('ghost.example.com')
-        expect(err.message).to include('bin/ots domains doctor --repair')
+        expect(err.message).to include('bin/ots domains doctor --all --repair')
       end
     end
 
