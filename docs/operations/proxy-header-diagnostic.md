@@ -66,6 +66,21 @@ possible.
 
 ## How to use it
 
+Invoke it with curl using a live session cookie — no CSRF token is needed for
+the GET:
+
+```bash
+curl -s https://admin.example.com/api/colonel/system/proxy-headers \
+  -H 'Cookie: sess=<session-id>' | jq
+```
+
+Take the `sess` value from the browser after signing in as a colonel.
+
+A `404` here is ambiguous by design: a rejected gate and a mistyped path look
+identical to the client. Check the application log for a `NetworkRequirements`
+warning ("Route network requirement not satisfied") to confirm which gate
+refused the request.
+
 1. From a signed-in Colonel session on an allowed admin host/network, send a
    request through the load balancer with a unique marker, for example
    `X-Forwarded-For: 203.0.113.77`.
