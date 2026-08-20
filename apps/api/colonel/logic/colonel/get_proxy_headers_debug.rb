@@ -8,8 +8,8 @@ module ColonelAPI
   module Logic
     module Colonel
       # Returns the selected request metadata captured by Colonel's session
-      # strategy for the diagnostic route. The route is already protected by
-      # Colonel role auth and AdminNetworkIsolation's host/CIDR gates.
+      # strategy for the diagnostic route. In addition to Colonel role auth,
+      # `network=admin` requires explicit admin host and CIDR allowlists.
       class GetProxyHeadersDebug < ColonelAPI::Logic::Base
         def raise_concerns
           verify_one_of_roles!(colonel: true)

@@ -5,15 +5,33 @@ verifying what Caddy receives from an upstream load balancer and what the Rack
 application sees after its proxy/IP middleware has run. Use it when setting up
 or modifying an environment's proxy topology.
 
-The route uses the Colonel API's existing protections:
+The route declares both application and network requirements:
 
 - `auth=sessionauth role=colonel`
-- `ADMIN_ALLOWED_HOSTS` / `site.admin.allowed_hosts`
-- `ADMIN_ALLOWED_CIDRS` / `site.admin.allowed_cidrs`, when configured
+- `network=admin`
+
+For this route, `network=admin` requires explicit, enforceable values for both
+`ADMIN_ALLOWED_HOSTS` (`site.admin.allowed_hosts`) and `ADMIN_ALLOWED_CIDRS`
+(`site.admin.allowed_cidrs`). If either setting is absent, disabled, invalid, or
+does not admit the request, the endpoint returns `404`. The canonical-host
+fallback used by ordinary Colonel routes does not satisfy this requirement.
 
 `AdminNetworkIsolation` evaluates the host and CIDR gates before the Otto route
 and its controller run. The endpoint returns only a fixed allowlist of
 proxy-related fields; it does not dump arbitrary request headers.
+
+## Required application configuration
+
+Configure the admin hostname and the private network from which operators will
+use the diagnostic:
+
+```bash
+ADMIN_ALLOWED_HOSTS=admin.example.com
+ADMIN_ALLOWED_CIDRS=100.64.0.0/10
+```
+
+Use values for the actual deployment. See [Admin surface isolation](admin-network-isolation.md)
+for trusted-proxy requirements, supported host values, and CIDR matching.
 
 ## Caddy configuration
 

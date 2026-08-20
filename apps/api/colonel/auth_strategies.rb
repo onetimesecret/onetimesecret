@@ -33,8 +33,8 @@ module ColonelAPI
       protected
 
       # Capture a fixed, non-sensitive subset only for the diagnostic route.
-      # The route is behind the Colonel role and admin host/CIDR gates; no
-      # request headers are added to ordinary Colonel strategy metadata.
+      # Its `network=admin` requirement makes both admin allowlists mandatory;
+      # no request headers are added to ordinary Colonel strategy metadata.
       def build_metadata(env, additional = {})
         metadata = super
         return metadata unless Otto::Utils.normalize_path(env['PATH_INFO']) == PROXY_HEADERS_DEBUG_PATH
