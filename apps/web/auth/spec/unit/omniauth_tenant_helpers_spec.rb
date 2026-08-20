@@ -142,6 +142,41 @@ RSpec.describe Auth::Config::Hooks::OmniAuthTenant do
   # canonical_domain?
   # ==========================================================================
 
+  # ==========================================================================
+  # public_host
+  # ==========================================================================
+
+  describe '.public_host' do
+    # The regression this method exists for: behind Approximated (and any
+    # Host-rewriting proxy) request.host is the origin target while the
+    # browser's custom domain rides in env['onetime.display_domain'], so a
+    # tenant lookup keyed on request.host misses and the SSO POST 302s to
+    # auth_error=sso_not_configured.
+    def request_double(host:, display_domain:)
+      env = {}
+      env['onetime.display_domain'] = display_domain unless display_domain.nil?
+      instance_double(Rack::Request, host: host, env: env)
+    end
+
+    it 'prefers the display domain over a rewritten Host header' do
+      request = request_double(host: 'nz.onetime.co', display_domain: 'nz.metalbaum.com')
+
+      expect(helpers.public_host(request)).to eq('nz.metalbaum.com')
+    end
+
+    it 'falls back to request.host when the middleware did not run' do
+      request = request_double(host: 'example.com', display_domain: nil)
+
+      expect(helpers.public_host(request)).to eq('example.com')
+    end
+
+    it 'falls back to request.host when the display domain is blank' do
+      request = request_double(host: 'example.com', display_domain: '')
+
+      expect(helpers.public_host(request)).to eq('example.com')
+    end
+  end
+
   describe '.canonical_domain?' do
     it 'returns false for an empty host' do
       expect(helpers.canonical_domain?('')).to be false
