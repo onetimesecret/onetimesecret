@@ -81,18 +81,6 @@ module Billing
           org.subscription_status = 'paused'
           org.save
         end
-
-        # Check if federation is enabled
-        def federation_enabled?
-          # Check environment variable first
-          secret = ENV.fetch('FEDERATION_SECRET', nil)
-
-          # Fall back to config if env var not set and OT.conf is available
-          if secret.to_s.empty? && defined?(OT) && OT.respond_to?(:conf) && OT.conf
-            secret = OT.conf.dig('site', 'federation_secret')
-          end
-          !secret.to_s.empty?
-        end
       end
     end
   end
