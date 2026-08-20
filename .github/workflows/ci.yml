@@ -101,7 +101,7 @@ jobs:
           ./.github/scripts/detect-ci-flags.sh "$DISPATCH_RUN_ALL"
 
       - name: Detect file changes
-        uses: dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590 # v3.0.3
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: filter
         with:
           filters: |
@@ -450,7 +450,7 @@ jobs:
       # Skipped on forked PRs, which cannot write Code Quality data.
       - name: Upload coverage report
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-        uses: actions/upload-code-coverage@v1
+        uses: actions/upload-code-coverage@1c15be36fc3733ba839b1dd643bd9556e4426dc1 # v1.4.1
         with:
           file: coverage/coverage.xml
           language: Ruby
@@ -495,7 +495,7 @@ jobs:
       # Skipped on forked PRs, which cannot write Code Quality data.
       - name: Upload coverage report
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-        uses: actions/upload-code-coverage@v1
+        uses: actions/upload-code-coverage@1c15be36fc3733ba839b1dd643bd9556e4426dc1 # v1.4.1
         with:
           file: coverage/cobertura-coverage.xml
           language: TypeScript
@@ -776,10 +776,10 @@ jobs:
         run: pnpm run build
 
       - name: Setup Docker buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
 
       - name: Build Container image
-        uses: docker/bake-action@5be5f02ff8819ecd3092ea6b2e6261c31774f2b4 # v6.10.0
+        uses: docker/bake-action@d3418bd7d0e9324001bca92fa8ba175ea7e6dc9b # v7.3.0
         with:
           source: . # Use local checkout instead of fetching git URL (avoids PR merge ref issues)
           files: docker/bake.hcl
