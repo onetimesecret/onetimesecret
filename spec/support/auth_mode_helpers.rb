@@ -272,6 +272,32 @@ module AuthModeHelpers
     def sso_form_action_origins
       ENV.fetch('SSO_FORM_ACTION_ORIGINS', '').to_s.split.uniq
     end
+
+    # Onetime::AuthConfig#tenant_idp_origin (#4173), delegated to the REAL
+    # pure function so specs that mount Onetime::Middleware::TenantCspExtras
+    # don't NoMethodError — and so the mock can never drift from production's
+    # origin_from_url hardening (a hand-rolled URI extraction here diverged
+    # on exactly the hostile inputs the funnel exists to reject, e.g. a
+    # `;`-bearing host). tenant_idp_origin and its private helpers never
+    # touch loaded config, so an allocated (uninitialized) AuthConfig gives
+    # the production behavior without booting the auth config singleton —
+    # the same allocate technique tenant_csp_extras_spec uses.
+    def tenant_idp_origin(sso_config)
+      tenant_origin_delegate.tenant_idp_origin(sso_config)
+    end
+
+    # Onetime::AuthConfig#tenant_origin_source (#4173) — the dispatch
+    # tenant_idp_origin itself runs, delegated for the same reason: the
+    # middleware asks which provider types read the tenant issuer, and a
+    # second copy of that answer here would be exactly the drift the shared
+    # method exists to prevent.
+    def tenant_origin_source(sso_config)
+      tenant_origin_delegate.tenant_origin_source(sso_config)
+    end
+
+    def tenant_origin_delegate
+      @tenant_origin_delegate ||= Onetime::AuthConfig.allocate
+    end
   end
 
   # Mutex for thread-safe singleton method modification

@@ -89,24 +89,20 @@ RSpec.describe 'sign-in/sign-up default polarity by host classification' do
     allow(Onetime).to receive(:auth_config).and_return(mock_auth_config)
     allow(OT).to receive(:conf).and_return({ 'site' => { 'authentication' => auth_settings } })
 
-    # BOTH identity reads, because the surfaces in this parity spec do not
-    # share one. The runtime gates (Core::Controllers::Base#custom_domain_id
-    # and Onetime::Logic::SignupConfigResolution#domain_signup_config) resolve
-    # the host through the non-swallowing .from_display_domain (#4157); the
-    # display half (Core::Views::ConfigSerializer#resolve_domain_id) still
-    # resolves it through the fail-open .load_by_display_domain. They are
-    # distinct class methods with no alias between them, so stubbing only one
-    # leaves the other half reading a real (empty) datastore and answering "no
-    # tenant config" for every case — which silently turns its assertions
-    # below into assertions about the unconfigured default rather than the
-    # configured one. If a third lookup ever appears, it belongs here too: the
-    # whole claim of this file is that the two surfaces see an IDENTICAL world.
+    # ONE identity read, stubbed once: the runtime gates
+    # (Core::Controllers::Base#custom_domain_id,
+    # Onetime::Logic::SignupConfigResolution#domain_signup_config) and the
+    # display half (Core::Views::ConfigSerializer#resolve_domain_id, via
+    # Onetime::TenantSsoResolution) now BOTH resolve the host through the
+    # non-swallowing .from_display_domain (#4157). The fail-open
+    # .load_by_display_domain is deliberately NOT stubbed here: a surface that
+    # regresses back to it reads a real (empty) datastore, answers "no tenant
+    # config", and turns these assertions red — which is the point, since a
+    # stub of both finders is exactly what let the swallow hide.
     #
-    # `display_domain` is lowercase, so the single `.with` matcher is exact for
-    # both — since #4157 both finders downcase internally, and a lowercase let
-    # keeps these stubs matching what either would resolve in production.
-    allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
-      .with(display_domain).and_return(custom_domain)
+    # `display_domain` is lowercase, so the `.with` matcher is exact — the
+    # finder downcases internally, and a lowercase let keeps this stub matching
+    # what it would resolve in production.
     allow(Onetime::CustomDomain).to receive(:from_display_domain)
       .with(display_domain).and_return(custom_domain)
     allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
@@ -567,10 +563,7 @@ RSpec.describe 'sign-in/sign-up default polarity by host classification' do
 
     context 'when the CustomDomain identity read fails' do
       before do
-        # Both identity reads fail, for the reason given at the top-level
-        # `before`: one datastore is down, and it is down for both surfaces.
-        allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
-          .with(display_domain).and_raise(redis_down)
+        # The single identity read both surfaces share is down.
         allow(Onetime::CustomDomain).to receive(:from_display_domain)
           .with(display_domain).and_raise(redis_down)
       end

@@ -102,27 +102,14 @@ module Core
       return unless OT.conf.dig('site', 'security', 'csp', 'enabled')
 
       development_mode = OT.conf.dig('development', 'enabled') ? true : false
-      result           = Otto::Security::CSP::Writer.apply(
+      Otto::Security::CSP::Writer.apply(
         headers,
         env['onetime.nonce'],
         config: env['otto.security_config'],
         mode: :backstop,
         development_mode: development_mode,
+        env: env,
       )
-      allow_same_origin_scripts_in_development(headers) if development_mode && result.applied?
-    end
-
-    # Some Otto development policies omit 'self' from script-src. Vite resolves
-    # its module graph as independent same-origin requests, so browsers block
-    # imported modules without it. Do not use Config#merge_csp_directives here:
-    # overriding script-src would discard the per-request nonce Otto generates.
-    def allow_same_origin_scripts_in_development(headers)
-      policy = headers['content-security-policy']
-      return if policy.nil? || policy.match?(/(?:\A|;\s*)script-src\s+[^;]*'self'/)
-
-      headers['content-security-policy'] = policy.sub(
-        /((?:\A|;\s*)script-src\s+)([^;]+)/,
-      ) { "#{Regexp.last_match(1)}#{Regexp.last_match(2)} 'self'" }
     end
     end
   end

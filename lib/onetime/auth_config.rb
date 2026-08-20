@@ -12,12 +12,21 @@ require_relative 'utils/config_resolver'
 require_relative 'utils/enumerables'
 require_relative 'sso_provider/registry'
 
+# The origin validator otto applies to the request-scoped CSP extras channel;
+# #origin_from_url funnels through it so the two cannot drift (see there).
+require 'otto/security/csp/request_extras'
+
 module Onetime
   class AuthConfig
     include Singleton
 
     # Valid values for full.restrict_to — the single-auth-method override.
     RESTRICT_TO_VALUES = %w[password email_auth webauthn sso].freeze
+
+    # CustomDomain::SsoConfig provider types whose IdP origin comes from the
+    # TENANT's own record (its issuer) rather than from the static provider
+    # registry. See #tenant_origin_source, which is what reads this.
+    ISSUER_DERIVED_PROVIDER_TYPES = %w[oidc].freeze
 
     attr_reader :config, :path, :mode, :environment
 
@@ -428,8 +437,14 @@ module Onetime
     # feature enabled AND the provider's required env vars present), so they
     # can never drift from the providers that actually register. The
     # SSO_FORM_ACTION_ORIGINS override is merged in unconditionally — it covers
-    # sovereign clouds, an OIDC issuer that differs from its authorization
-    # endpoint, and org-level SSO whose issuers are unknown at boot.
+    # an OIDC issuer that differs from its authorization endpoint. It cannot
+    # cover a sovereign cloud: the Entra strategy is pinned to the commercial
+    # authority on BOTH surfaces, so widening form-action there admits an
+    # origin the redirect never reaches (sovereign Entra is configured as OIDC
+    # with its sovereign issuer instead). Tenant (per-domain) SSO issuers are
+    # NOT this method's job: they are unknown at boot and reach the header
+    # per-request via Onetime::Middleware::TenantCspExtras + #tenant_idp_origin
+    # (#4173).
     #
     # Returns a de-duplicated Array of origin strings (scheme://host[:port]),
     # or [] when nothing is configured. Side-effect free and safe to call at
@@ -438,12 +453,18 @@ module Onetime
       provider_origins = active_provider_origins
       override_origins = override_form_action_origins
 
-      # An override set with zero auto-derived provider origins (SSO disabled or
-      # no active providers) is a config smell worth surfacing: form-action is
-      # being widened without any provider that actually registers.
+      # An override set with zero auto-derived provider origins is worth
+      # surfacing — but it is not automatically a misconfiguration. Tenant SSO
+      # no longer needs the override (tenant IdP origins arrive per-request
+      # via Onetime::Middleware::TenantCspExtras, #4173), so this combination
+      # now legitimately means split-endpoint usage (an OIDC
+      # authorization_endpoint on a different origin than the issuer). Log it
+      # as context, not a smell.
       if provider_origins.empty? && !ENV.fetch('SSO_FORM_ACTION_ORIGINS', '').to_s.strip.empty?
-        OT.lw '[auth_config] SSO_FORM_ACTION_ORIGINS is widening CSP form-action but ' \
-              'no SSO provider origins are active (SSO disabled or no active providers)'
+        OT.lw '[auth_config] SSO_FORM_ACTION_ORIGINS is widening CSP form-action with ' \
+              'no active platform SSO provider origins — expected only for split-endpoint ' \
+              'IdPs (tenant SSO origins are added per-request and do not need this ' \
+              'override)'
       end
 
       (provider_origins + override_origins).uniq
@@ -487,6 +508,96 @@ module Onetime
         legacy_display = sso_display_name
         legacy_display ? defn.merge(display_default: legacy_display) : defn
       end
+    end
+
+    # The CSP form-action origin for a TENANT's IdP (#4173) — the per-request
+    # complement to the boot-time #sso_form_action_origins. Tenant SSO issuers
+    # live in per-domain CustomDomain::SsoConfig records, so they cannot be
+    # derived at boot; Onetime::Middleware::TenantCspExtras calls this per
+    # request and feeds the result through otto's request-scoped CSP extras
+    # channel (env['otto.csp.extra_directives'], delano/otto#243).
+    #
+    # The issuer is tenant-supplied and therefore attacker-influenced, so
+    # #origin_from_url is the mandatory funnel: it strips the path, accepts
+    # only http(s), rejects CSP-hostile hosts, omits default ports, and
+    # returns nil on garbage — never raises. Entra reuses the registry's
+    # static commercial-cloud origin (the tenant strategy pins that cloud:
+    # SsoConfig#build_entra_id_options passes no authority option). The
+    # PLATFORM Entra strategy_options pin it the same way, so no override
+    # reaches a sovereign cloud on either surface — a sovereign tenant is
+    # configured as provider type oidc with its sovereign v2.0 issuer, which
+    # this method then derives the origin from like any other tenant OIDC.
+    #
+    # Non-oidc types resolve through SsoConfig::PROVIDER_ROUTE_MAP (the same
+    # provider_type -> route mapping the tenant strategy registration uses)
+    # to a registry definition, then through #provider_origin — so a future
+    # tenant provider type needs a route-map entry plus a registry
+    # definition, not another case arm here. Every miss along that chain
+    # (unmapped provider_type, no matching registry definition, no
+    # resolvable origin) answers nil, never raises: this runs per-request
+    # inside the CSP middleware, where an exception would only be swallowed
+    # into a warning anyway.
+    #
+    # Caveat (same as the platform OIDC derivation): OIDC discovery may place
+    # authorization_endpoint on a DIFFERENT origin than the issuer, so the
+    # issuer origin is best-effort and SSO_FORM_ACTION_ORIGINS stays the
+    # escape hatch for split-endpoint topologies.
+    #
+    # @param sso_config [Onetime::CustomDomain::SsoConfig] the tenant's record
+    # @return [String, nil] scheme://host[:port], or nil when the provider
+    #   type is unknown or the issuer does not resolve to a clean origin
+    def tenant_idp_origin(sso_config)
+      provider_type = sso_config&.provider_type
+      return nil if provider_type.nil?
+
+      # Issuer-derived types read the tenant record's own issuer — the
+      # registry's oidc definition points at the PLATFORM env var, which
+      # would be the wrong tenant's (or no) issuer here. #tenant_origin_source
+      # owns that dispatch so callers who need to reason about the SOURCE
+      # (rather than the derived origin) cannot drift out of step with it.
+      source = tenant_origin_source(sso_config)
+      return origin_from_url(source) unless source.nil?
+
+      # :default only — the entry's :env_var route-name override is NOT
+      # consulted, so a renamed route still resolves the default definition.
+      # Safe while every non-OIDC tenant provider has a STATIC idp_origin
+      # (route-name-independent); see the constraint note in
+      # SsoProvider::Registry's field reference before adding one that isn't.
+      route_name = Onetime::CustomDomain::SsoConfig::PROVIDER_ROUTE_MAP
+        .dig(provider_type, :default)
+      return nil if route_name.nil?
+
+      # Registry.find answers nil on a miss (Registry.fetch raises KeyError,
+      # which is right for boot-time typos but not per-request). Going through
+      # the Registry API rather than scanning DEFINITIONS here is what keeps a
+      # reshape of the registry from leaving this lookup silently returning
+      # nil — the browser-only #4173 symptom, with no warning to point at it.
+      defn = SsoProvider::Registry.find(route_name.to_sym)
+      return nil if defn.nil?
+
+      provider_origin(defn)
+    end
+
+    # The TENANT-SUPPLIED string this provider type's IdP origin is derived
+    # from (stripped), or nil when the origin comes from the static provider
+    # registry instead of the tenant record.
+    #
+    # This is the single source of truth for which provider types read the
+    # tenant's issuer: #tenant_idp_origin dispatches on it, and
+    # Onetime::Middleware::TenantCspExtras uses it to tell an operator
+    # misconfiguration (tenant typed a bad issuer — fixable by editing the
+    # record) apart from route-map/registry drift (a deploy-side bug, where
+    # naming the issuer would name the wrong cause). Adding a second
+    # issuer-reading provider type is one entry here and both stay correct.
+    #
+    # A blank issuer returns '' rather than nil: the type IS issuer-derived,
+    # the tenant just left it empty. Callers distinguish "not issuer-derived"
+    # (nil) from "issuer-derived but unset" (empty) — origin_from_url maps
+    # both to no origin.
+    def tenant_origin_source(sso_config)
+      return nil unless ISSUER_DERIVED_PROVIDER_TYPES.include?(sso_config&.provider_type.to_s)
+
+      sso_config.issuer.to_s.strip
     end
 
     private
@@ -677,7 +788,9 @@ module Onetime
     # otherwise malformed URL — never raises. Note that URI.parse sets #host to
     # an empty string (not nil) for a scheme-present, hostless URL such as
     # "https://" or "https:///path", so an empty/whitespace host is treated the
-    # same as nil to avoid emitting a degenerate "https://" origin.
+    # same as nil to avoid emitting a degenerate "https://" origin. A returned
+    # origin is guaranteed to survive otto's own extras validator (final gate
+    # below), so nothing reaching a caller is dropped later without a warning.
     def origin_from_url(url)
       str = url.to_s.strip
       return nil if str.empty?
@@ -701,7 +814,19 @@ module Onetime
 
       origin  = "#{uri.scheme}://#{host}"
       origin += ":#{uri.port}" if uri.port && uri.port != uri.default_port
-      origin
+
+      # Final gate: otto's OWN validator, the same code that sanitizes the
+      # request-scoped extras at policy-build time (otto 2.9.0
+      # lib/otto/security/csp/request_extras.rb). Validating THROUGH it rather
+      # than mirroring its rules is what stops the two from drifting: anything
+      # otto would drop later (port outside 1..65535, a '%' in the host, a
+      # double-trailing-dot FQDN) must be rejected HERE, where the caller
+      # still knows
+      # the domain and the SsoConfig record and can say so in a warning. Otto
+      # drops it with a generic message naming neither — the silent #4173
+      # blocked redirect. It also normalizes (downcased scheme and host, a
+      # single trailing dot stripped).
+      Otto::Security::CSP::RequestExtras.normalize_origin(origin)
     rescue URI::Error
       nil
     end

@@ -570,7 +570,7 @@ RSpec.describe Core::Views::ConfigSerializer do
         end
 
         before do
-          allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+          allow(Onetime::CustomDomain).to receive(:from_display_domain)
             .with(custom_display_domain)
             .and_return(custom_domain_obj)
           allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
@@ -622,7 +622,7 @@ RSpec.describe Core::Views::ConfigSerializer do
         end
 
         before do
-          allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+          allow(Onetime::CustomDomain).to receive(:from_display_domain)
             .with(custom_display_domain)
             .and_return(custom_domain_obj)
           allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
@@ -677,7 +677,7 @@ RSpec.describe Core::Views::ConfigSerializer do
         end
 
         before do
-          allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+          allow(Onetime::CustomDomain).to receive(:from_display_domain)
             .with(custom_display_domain)
             .and_return(custom_domain_obj)
           allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
@@ -718,7 +718,7 @@ RSpec.describe Core::Views::ConfigSerializer do
 
       context 'when tenant has no CustomDomain::SsoConfig' do
         before do
-          allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+          allow(Onetime::CustomDomain).to receive(:from_display_domain)
             .with(custom_display_domain)
             .and_return(custom_domain_obj)
           allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
@@ -803,7 +803,7 @@ RSpec.describe Core::Views::ConfigSerializer do
         end
 
         before do
-          allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+          allow(Onetime::CustomDomain).to receive(:from_display_domain)
             .with(custom_display_domain)
             .and_return(custom_domain_obj)
           allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
@@ -822,7 +822,7 @@ RSpec.describe Core::Views::ConfigSerializer do
 
       context 'when CustomDomain lookup fails (Redis error)' do
         before do
-          allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+          allow(Onetime::CustomDomain).to receive(:from_display_domain)
             .and_raise(Redis::ConnectionError.new('Connection refused'))
           allow(mock_auth_config).to receive(:allow_platform_fallback_for_tenants?).and_return(true)
           allow(mock_auth_config).to receive(:sso_enabled?).and_return(true)
@@ -855,8 +855,8 @@ RSpec.describe Core::Views::ConfigSerializer do
     end
 
     before do
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(nil)
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+      allow(Onetime::CustomDomain).to receive(:from_display_domain).and_return(nil)
+      allow(Onetime::CustomDomain).to receive(:from_display_domain)
         .with(custom_display_domain)
         .and_return(custom_domain_obj)
       allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
@@ -905,7 +905,7 @@ RSpec.describe Core::Views::ConfigSerializer do
     end
 
     before do
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+      allow(Onetime::CustomDomain).to receive(:from_display_domain)
         .with(custom_display_domain)
         .and_return(custom_domain_obj)
       allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
@@ -953,12 +953,12 @@ RSpec.describe Core::Views::ConfigSerializer do
     end
 
     before do
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+      allow(Onetime::CustomDomain).to receive(:from_display_domain)
         .with(custom_display_domain)
         .and_return(custom_domain_obj)
       # Canonical requests resolve no domain — stubbed so the canonical
       # characterization examples below do not depend on datastore state.
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+      allow(Onetime::CustomDomain).to receive(:from_display_domain)
         .with(canonical_domain)
         .and_return(nil)
       allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
@@ -1629,7 +1629,7 @@ RSpec.describe Core::Views::ConfigSerializer do
       end
 
       before do
-        allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+        allow(Onetime::CustomDomain).to receive(:from_display_domain)
           .with(custom_display_domain)
           .and_return(custom_domain_obj)
       end
@@ -1655,7 +1655,7 @@ RSpec.describe Core::Views::ConfigSerializer do
 
     context 'when CustomDomain not found' do
       before do
-        allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+        allow(Onetime::CustomDomain).to receive(:from_display_domain)
           .and_return(nil)
       end
 
@@ -1670,16 +1670,30 @@ RSpec.describe Core::Views::ConfigSerializer do
 
     context 'when CustomDomain lookup fails (Redis error)' do
       before do
-        allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+        allow(OT).to receive(:le)
+        allow(Onetime::CustomDomain).to receive(:from_display_domain)
           .and_raise(Redis::ConnectionError.new('Connection refused'))
       end
 
       it 'returns DOMAIN_READ_FAILED sentinel (#4157)' do
         vars = base_view_vars.merge(
+          'domain_strategy' => :custom,
           'display_domain' => 'tenant.example.com'
         )
         result = described_class.resolve_domain_id(vars)
         expect(result).to eq(described_class::DOMAIN_READ_FAILED)
+      end
+
+      # DomainStrategy publishes display_domain unconditionally (canonical
+      # fallback), so the canonical render reaches this same read — and must
+      # not be told the tenant policy is unknown, which would strip its own
+      # sign-in affordances during a blip.
+      it 'returns nil, not the sentinel, on an operator host' do
+        vars = base_view_vars.merge(
+          'domain_strategy' => :canonical,
+          'display_domain' => canonical_domain
+        )
+        expect(described_class.resolve_domain_id(vars)).to be_nil
       end
     end
   end
@@ -1694,7 +1708,7 @@ RSpec.describe Core::Views::ConfigSerializer do
     end
 
     before do
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+      allow(Onetime::CustomDomain).to receive(:from_display_domain)
         .and_raise(Redis::ConnectionError.new('Connection refused'))
       allow(mock_auth_config).to receive(:email_auth_enabled?).and_return(true)
       allow(mock_auth_config).to receive(:restrict_to).and_return(nil)

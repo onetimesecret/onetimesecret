@@ -105,14 +105,13 @@ RSpec.describe 'restrict_to display/gate parity' do
       { 'site' => { 'authentication' => { 'enabled' => true, 'signin' => true } } }
     )
 
-    # BOTH identity reads: the display half (ConfigSerializer) still uses the
-    # fail-open .load_by_display_domain, while the gate half (Auth::RestrictTo)
-    # reads through the non-swallowing .from_display_domain so a datastore blip
-    # can reach its 503 instead of resolving as "no tenant config" (#4157).
-    # Stubbing only one leaves the other reading a real (empty) datastore, which
-    # turns every assertion here into one about the unconfigured default.
-    allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
-      .with(display_domain).and_return(custom_domain)
+    # ONE identity read for both halves: the gate (Auth::RestrictTo) and the
+    # display half (ConfigSerializer, via Onetime::TenantSsoResolution) each
+    # read through the non-swallowing .from_display_domain, so a datastore blip
+    # reaches the gate's 503 and the display's narrowest surface instead of
+    # resolving as "no tenant config" (#4157). The fail-open
+    # .load_by_display_domain is deliberately left unstubbed so a regression
+    # back to it reads an empty datastore and goes red.
     allow(Onetime::CustomDomain).to receive(:from_display_domain)
       .with(display_domain).and_return(custom_domain)
     allow(Onetime::CustomDomain::SigninConfig).to receive(:find_by_domain_id)
@@ -487,8 +486,6 @@ RSpec.describe 'restrict_to display/gate parity' do
     let(:env) { { 'onetime.display_domain' => 'example.com', 'onetime.domain_strategy' => :canonical } }
 
     before do
-      allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
-        .with('example.com').and_return(nil)
       allow(Onetime::CustomDomain).to receive(:from_display_domain)
         .with('example.com').and_return(nil)
       allow(mock_auth_config).to receive(:restrict_to).and_return('password')

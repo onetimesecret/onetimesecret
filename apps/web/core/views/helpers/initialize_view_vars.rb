@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/logger_methods'
+require 'onetime/tenant_sso_resolution'
 
 module Core
   module Views
@@ -290,6 +291,15 @@ module Core
           'shrimp' => shrimp,
           'site' => safe_site,
           'site_host' => site_host,
+          # The request's tenant SSO answer, resolved lazily and ONCE (#4173).
+          # Every serializer that asks — the SSO button (ConfigSerializer),
+          # the password affordance (AuthenticationSerializer) — shares this
+          # object with Onetime::Middleware::TenantCspExtras, which reads it
+          # off the same rack env on the way out to widen CSP form-action.
+          # Server-side only: serializers select the keys they emit, and none
+          # of them emits this one.
+          Onetime::TenantSsoResolution::VIEW_VAR_KEY =>
+            Onetime::TenantSsoResolution.for(req.env),
           'brand_primary_color' => brand_primary_color,
           'has_brand_color' => has_brand_color,
           'brand_product_name' => brand_product_name,

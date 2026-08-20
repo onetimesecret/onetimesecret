@@ -72,7 +72,7 @@ pnpm test src/tests/apps/session/components/SsoButton.spec.ts
 pnpm test src/tests/apps/session/components/AuthMethodSelector.spec.ts
 
 # Backend (mocks OmniAuth callback)
-bundle exec rspec apps/web/auth/spec/
+tests/lanes/run full-sqlite
 ```
 
 ## Debugging

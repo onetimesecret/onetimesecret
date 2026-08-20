@@ -240,11 +240,241 @@ RSpec.describe Onetime::AuthConfig do
       expect(config.sso_form_action_origins).to eq([])
     end
 
+    # ── parity with otto's own extras validator ──────────────────────
+    # origin_from_url funnels its candidate through
+    # Otto::Security::CSP::RequestExtras.normalize_origin. A token this app
+    # accepts but otto later drops at policy-build time is the silent #4173
+    # failure: the operator gets a generic otto warning naming neither the
+    # source nor the record, and the redirect is blocked in the browser only.
+
+    it 'keeps an override token with a valid explicit port' do
+      config = fresh_config('SSO_FORM_ACTION_ORIGINS' => 'https://idp.example.com:8443')
+      expect(config.sso_form_action_origins).to contain_exactly('https://idp.example.com:8443')
+    end
+
+    it 'drops an override token whose port is 0 (below otto\'s 1..65535 range)' do
+      config = fresh_config('SSO_FORM_ACTION_ORIGINS' => 'https://idp.example.com:0')
+      expect(config.sso_form_action_origins).to eq([])
+    end
+
+    it 'drops an override token whose port is above 65535' do
+      config = fresh_config('SSO_FORM_ACTION_ORIGINS' => 'https://idp.example.com:70000')
+      expect(config.sso_form_action_origins).to eq([])
+    end
+
+    it 'drops an override token whose host contains a percent-encoding' do
+      config = fresh_config('SSO_FORM_ACTION_ORIGINS' => 'https://idp%00.example.com')
+      expect(config.sso_form_action_origins).to eq([])
+    end
+
+    it 'logs a token otto would have dropped, so the misconfiguration is visible' do
+      allow(OT).to receive(:lw)
+      fresh_config('SSO_FORM_ACTION_ORIGINS' => 'https://idp.example.com:70000')
+        .sso_form_action_origins
+      expect(OT).to have_received(:lw).with(/SSO_FORM_ACTION_ORIGINS token/)
+    end
+
+    it 'emits only origins otto would accept unchanged' do
+      origins    = fresh_config(
+        'OIDC_ISSUER' => 'https://idp.example.com:8443/realms/main',
+        'OIDC_CLIENT_ID' => 'id',
+        'SSO_FORM_ACTION_ORIGINS' => 'https://sso.example.org http://internal-idp:8080',
+      ).sso_form_action_origins
+      normalized = origins.map { |o| Otto::Security::CSP::RequestExtras.normalize_origin(o) }
+      expect(normalized).to eq(origins)
+    end
+
     # ── SSO feature disabled ─────────────────────────────────────────
 
     it 'ignores provider env vars when the SSO feature is disabled' do
       config = fresh_config(sso_enabled: false, 'GOOGLE_CLIENT_ID' => 'id', 'GOOGLE_CLIENT_SECRET' => 'secret')
       expect(config.sso_form_action_origins).to eq([])
+    end
+  end
+
+  # The per-request complement (#4173): Onetime::Middleware::TenantCspExtras
+  # feeds a tenant's CustomDomain::SsoConfig through this funnel to widen the
+  # CSP form-action directive for that request only. The issuer is
+  # tenant-supplied (attacker-influenced), so every oidc value must survive
+  # origin_from_url or resolve to nil.
+  describe '#tenant_idp_origin' do
+    def tenant_sso_config(provider_type:, issuer: nil)
+      double('CustomDomain::SsoConfig', provider_type: provider_type, issuer: issuer)
+    end
+
+    # ── oidc: issuer-derived through origin_from_url ─────────────────
+
+    it 'extracts the issuer origin for an oidc config, stripping the path' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: 'https://idp.tenant.example/realms/main')
+      expect(fresh_config.tenant_idp_origin(config)).to eq('https://idp.tenant.example')
+    end
+
+    it 'preserves a non-default port in the oidc issuer origin' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: 'https://idp.tenant.example:8443/x')
+      expect(fresh_config.tenant_idp_origin(config)).to eq('https://idp.tenant.example:8443')
+    end
+
+    it 'omits the default 443 port from the oidc issuer origin' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: 'https://idp.tenant.example:443/x')
+      expect(fresh_config.tenant_idp_origin(config)).to eq('https://idp.tenant.example')
+    end
+
+    it 'strips a bare trailing slash (otto extras reject any path, even "/")' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: 'https://idp.tenant.example/')
+      expect(fresh_config.tenant_idp_origin(config)).to eq('https://idp.tenant.example')
+    end
+
+    # ── oidc: malformed / hostile issuers resolve to nil, never raise ─
+
+    it 'returns nil for a blank issuer' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: '')
+      expect(fresh_config.tenant_idp_origin(config)).to be_nil
+    end
+
+    it 'returns nil for a nil issuer' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: nil)
+      expect(fresh_config.tenant_idp_origin(config)).to be_nil
+    end
+
+    it 'returns nil for a schemeless issuer' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: 'idp.tenant.example')
+      expect(fresh_config.tenant_idp_origin(config)).to be_nil
+    end
+
+    it 'returns nil for a non-http(s) issuer (javascript:)' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: 'javascript:alert(1)')
+      expect(fresh_config.tenant_idp_origin(config)).to be_nil
+    end
+
+    it 'returns nil (never a token with ";") for a semicolon-injection issuer' do
+      config = tenant_sso_config(
+        provider_type: 'oidc',
+        issuer: 'https://idp.tenant.example; script-src https://evil.example',
+      )
+      expect(fresh_config.tenant_idp_origin(config)).to be_nil
+    end
+
+    it 'returns nil (no raise) for an unparseable issuer' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: 'not a valid uri')
+      instance = fresh_config
+      expect { instance.tenant_idp_origin(config) }.not_to raise_error
+      expect(instance.tenant_idp_origin(config)).to be_nil
+    end
+
+    # ── issuers otto would drop must be rejected HERE ─────────────────
+    # An issuer that clears this funnel but fails otto's own sanitizer is
+    # dropped at policy-build time with a warning naming neither the domain
+    # nor the SsoConfig record — TenantCspExtras only reaches
+    # warn_rejected_origin_source when the origin comes back nil, so the
+    # rejection must happen here for the operator to hear about it (#4173).
+
+    it 'returns nil for an issuer whose port is 0 (below otto\'s 1..65535 range)' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: 'https://idp.tenant.example:0/realms/x')
+      expect(fresh_config.tenant_idp_origin(config)).to be_nil
+    end
+
+    it 'returns nil for an issuer whose port is above 65535' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: 'https://idp.tenant.example:70000/realms/x')
+      expect(fresh_config.tenant_idp_origin(config)).to be_nil
+    end
+
+    it 'returns nil for an issuer whose host contains a percent-encoding' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: 'https://idp%00.tenant.example/realms/x')
+      expect(fresh_config.tenant_idp_origin(config)).to be_nil
+    end
+
+    # RHS is otto's OWN normalization of the expected origin: if otto would
+    # reject or rewrite this value, the two sides diverge and this fails.
+    it 'returns an origin otto would accept unchanged' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: 'https://IDP.Tenant.Example:8443/realms/x')
+      expect(fresh_config.tenant_idp_origin(config)).to eq(
+        Otto::Security::CSP::RequestExtras.normalize_origin('https://idp.tenant.example:8443'),
+      )
+    end
+
+    # ── entra_id: static registry origin ─────────────────────────────
+
+    it 'returns the registry commercial-cloud origin for entra_id, ignoring any issuer' do
+      config = tenant_sso_config(provider_type: 'entra_id', issuer: 'https://sts.windows.net/tenant/')
+      expect(fresh_config.tenant_idp_origin(config))
+        .to eq(Onetime::SsoProvider::Entra::DEFINITION[:idp_origin])
+      expect(fresh_config.tenant_idp_origin(config)).to eq('https://login.microsoftonline.com')
+    end
+
+    # ── everything else ──────────────────────────────────────────────
+
+    it 'returns nil for an unknown provider_type' do
+      config = tenant_sso_config(provider_type: 'github', issuer: 'https://github.com')
+      expect(fresh_config.tenant_idp_origin(config)).to be_nil
+    end
+
+    it 'returns nil (no raise) when a mapped provider has no registry definition' do
+      # Guards route-map/registry drift: a PROVIDER_ROUTE_MAP entry whose
+      # route has no SsoProvider::Registry definition must answer nil per
+      # request — Registry.fetch would raise KeyError, which is right for
+      # boot-time typos but would 500 the CSP middleware path.
+      stub_const(
+        'Onetime::CustomDomain::SsoConfig::PROVIDER_ROUTE_MAP',
+        Onetime::CustomDomain::SsoConfig::PROVIDER_ROUTE_MAP.merge(
+          'future_idp' => { env_var: 'FUTURE_ROUTE_NAME', default: 'future' },
+        ),
+      )
+      config = tenant_sso_config(provider_type: 'future_idp')
+      instance = fresh_config
+      expect { instance.tenant_idp_origin(config) }.not_to raise_error
+      expect(instance.tenant_idp_origin(config)).to be_nil
+    end
+
+    it 'returns nil for a nil sso_config' do
+      expect(fresh_config.tenant_idp_origin(nil)).to be_nil
+    end
+  end
+
+  # The dispatch #tenant_idp_origin runs internally, exposed because
+  # Onetime::Middleware::TenantCspExtras needs to tell "the tenant typed a bad
+  # issuer" (operator-fixable, worth a warning) apart from registry drift (a
+  # deploy bug, where naming the issuer would name the wrong cause). Pinned
+  # here so the two callers cannot drift apart silently.
+  describe '#tenant_origin_source' do
+    def tenant_sso_config(provider_type:, issuer: nil)
+      double('CustomDomain::SsoConfig', provider_type: provider_type, issuer: issuer)
+    end
+
+    it 'returns the stripped issuer for an issuer-derived provider type' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: '  https://idp.example.com/x  ')
+      expect(fresh_config.tenant_origin_source(config)).to eq('https://idp.example.com/x')
+    end
+
+    it 'returns the raw hostile issuer unfiltered (validation is the funnel\'s job)' do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: 'https://a.example; script-src *')
+      instance = fresh_config
+      expect(instance.tenant_origin_source(config)).to eq('https://a.example; script-src *')
+      expect(instance.tenant_idp_origin(config)).to be_nil
+    end
+
+    it "returns '' for an issuer-derived type whose issuer is unset" do
+      config = tenant_sso_config(provider_type: 'oidc', issuer: nil)
+      expect(fresh_config.tenant_origin_source(config)).to eq('')
+    end
+
+    it 'returns nil for a registry-derived provider type, even with an issuer set' do
+      config = tenant_sso_config(provider_type: 'entra_id', issuer: 'https://stale.example.com')
+      expect(fresh_config.tenant_origin_source(config)).to be_nil
+    end
+
+    it 'returns nil for an unknown provider type and for a nil sso_config' do
+      instance = fresh_config
+      expect(instance.tenant_origin_source(tenant_sso_config(provider_type: 'nope'))).to be_nil
+      expect(instance.tenant_origin_source(nil)).to be_nil
+    end
+
+    it 'covers every issuer-derived type declared in the constant' do
+      # Guards the drift this method exists to prevent: a type added to
+      # ISSUER_DERIVED_PROVIDER_TYPES must actually read the record's issuer.
+      described_class::ISSUER_DERIVED_PROVIDER_TYPES.each do |provider_type|
+        config = tenant_sso_config(provider_type: provider_type, issuer: 'https://idp.example.com')
+        expect(fresh_config.tenant_origin_source(config)).to eq('https://idp.example.com')
+      end
     end
   end
 end
