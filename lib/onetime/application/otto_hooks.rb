@@ -14,6 +14,7 @@ require_relative 'request_helpers'
 require_relative 'error_resolver'
 require_relative 'error_correlation'
 require_relative 'middleware_stack'
+require_relative 'network_requirements'
 
 module Onetime
   module Application
@@ -37,6 +38,10 @@ module Onetime
       def configure_otto_request_hook(router)
         # Register Onetime-specific request helpers
         router.register_request_helpers(Onetime::Application::RequestHelpers)
+
+        # Enforce declarative route constraints such as `network=admin` after
+        # Otto matches a route and before authentication or controller work.
+        Onetime::Application::NetworkRequirements.register(router)
 
         # Register expected errors with status codes and log levels. Errors
         # carrying an i18n error_key get resolved by ErrorResolver before

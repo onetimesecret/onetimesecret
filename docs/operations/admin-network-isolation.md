@@ -80,6 +80,22 @@ Isolation is a **config posture, not a code fork**: the exact same app-layer
 enforcement runs in every posture. Flipping either allowlist on or off never
 changes the auth behavior beneath it.
 
+### Route-level network requirements
+
+Otto routes can declare `network=admin` when an endpoint must not inherit the
+network gate's opt-in default. Such a route returns `404` unless all of these are
+true:
+
+1. `ADMIN_ALLOWED_HOSTS` explicitly names an enforceable admin hostname.
+2. `ADMIN_ALLOWED_CIDRS` contains at least one parseable range.
+3. The request passes both allowlists.
+
+The canonical-host fallback does not satisfy an explicit route requirement, and
+`ADMIN_ALLOWED_HOSTS=*` disables the host gate, so it does not satisfy one
+either. Routes without `network=admin` retain the general Colonel behavior
+described above. The proxy-header diagnostic is the first route using this
+requirement; see [Proxy header diagnostic](proxy-header-diagnostic.md).
+
 ## Host allowlist (`site.admin.allowed_hosts`)
 
 Without a host gate the admin surfaces answer on **every hostname the app
