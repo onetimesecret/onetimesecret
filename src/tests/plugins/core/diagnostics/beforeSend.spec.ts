@@ -1,4 +1,4 @@
-// src/tests/plugins/core/beforeSend.spec.ts
+// src/tests/plugins/core/diagnostics/beforeSend.spec.ts
 //
 // Tests for the beforeSend handler created by createDiagnostics.
 // Tests exception message scrubbing, URL scrubbing based on route params,

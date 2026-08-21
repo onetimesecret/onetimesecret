@@ -27,31 +27,33 @@
 // server-side. The client cannot prove a value is a keyed digest, so it does
 // the two things it can, and it does BOTH:
 //
-//   1. refuses any block whose KEY SET it does not recognise (`telemetrySchema`
-//      is a strictObject), and
+//   1. refuses any block whose KEY SET it does not recognise
+//      (`diagnosticsActorSchema` is a strictObject), and
 //   2. refuses any `actor_ref` whose CONTENT is not exactly the shape the
 //      server-side derivation produces — 16 lowercase hex chars, matched
 //      against `ACTOR_REF_PATTERN`.
 //
-// Check 2 is not redundant. Without it, `{ actor_ref: "alice@example.com",
-// actor_scope: "deployment" }` is a fully VALID block (two keys, valid enum,
-// non-empty string) and the outbound gate below — which strips email, username
-// and name but KEEPS `id` — would ship that address as `user.id` on every error
-// and every transaction. A strict key set stops an unexpected FIELD; only the
-// content check stops an unexpected VALUE in a permitted field.
+// Check 2 is not redundant. `{ actor_ref: "alice@example.com", actor_scope:
+// "deployment" }` is a fully VALID block by key set alone — two keys, valid
+// enum, non-empty string. The outbound gate keeps exactly one field, `id`, and
+// drops the rest, so with a key-set check only, that address would be shipped
+// as `user.id` on every error and every transaction while `email` was
+// conscientiously deleted beside it. A strict key set stops an unexpected
+// FIELD; only the content check stops an unexpected VALUE in a permitted
+// field, which is why BOTH the inbound parse and `sanitizeEventUser` apply it.
 //
 // `ACTOR_REF_PATTERN` lives in the contract module and is the single source of
-// truth on this side. It mirrors `Onetime::Utils::TelemetryRef::REF_LENGTH`
-// (16 lowercase hex, lib/onetime/utils/telemetry_ref.rb) and must be changed in
-// the same commit as any change to the Ruby derivation — it fails CLOSED, so
+// truth on this side. It mirrors `Onetime::Utils::DiagnosticsRef::REF_LENGTH`
+// (16 lowercase hex, lib/onetime/utils/diagnostics_ref.rb) and must be changed
+// in the same commit as any change to the Ruby derivation — it fails CLOSED, so
 // drift costs actor correlation rather than leaking.
-// See `telemetrySchema` in src/schemas/contracts/bootstrap.ts.
+// See `diagnosticsActorSchema` in src/schemas/contracts/bootstrap.ts.
 //
 // ── Anonymous sessions ────────────────────────────────────────────────────────
 //
-// The server OMITS the `telemetry` block entirely for anonymous sessions. There
-// is no anonymous sentinel, no empty-string actor, and — critically — no
-// generated fallback id. `resolveBootstrapActor()` returns null and
+// The server OMITS the `diagnostics_actor` block entirely for anonymous
+// sessions. There is no anonymous sentinel, no empty-string actor, and —
+// critically — no generated fallback id. `resolveBootstrapActor()` returns null and
 // `applyActorIdentity()` calls `setUser(null)`, leaving the session
 // unidentified. Minting a random/device id here would silently recreate the
 // cross-session tracking identifier this whole design exists to avoid.
@@ -82,8 +84,8 @@
 import {
   ACTOR_REF_PATTERN,
   isActorRef,
-  telemetrySchema,
-  type TelemetryBlock,
+  diagnosticsActorSchema,
+  type DiagnosticsActorBlock,
 } from '@/schemas/contracts/bootstrap';
 import { getBootstrapValue } from '@/services/bootstrap.service';
 import type { Scope } from '@sentry/browser';
@@ -121,7 +123,7 @@ export interface ActorUser {
 }
 
 /**
- * Validates an untrusted `telemetry` block against the strict contract.
+ * Validates an untrusted `diagnostics_actor` block against the strict contract.
  *
  * Fail-CLOSED by construction: any deviation — a missing field, a non-string
  * `actor_ref`, an `actor_scope` outside the closed enum, or ANY extra key
@@ -130,21 +132,21 @@ export interface ActorUser {
  * is an observability regression; forwarding an unexpected server field to a
  * third-party processor is a privacy incident.
  *
- * @param raw - Untrusted value, typically `bootstrap.telemetry`.
+ * @param raw - Untrusted value, typically `bootstrap.diagnostics_actor`.
  * @returns The validated block, or null when absent/anonymous/malformed.
  */
-export function parseTelemetryBlock(raw: unknown): TelemetryBlock | null {
+export function parseDiagnosticsActorBlock(raw: unknown): DiagnosticsActorBlock | null {
   if (raw === null || raw === undefined) {
     // Anonymous session (or an older server that predates the block). Not an
     // error condition — absence IS the anonymous signal.
     return null;
   }
-  const result = telemetrySchema.safeParse(raw);
+  const result = diagnosticsActorSchema.safeParse(raw);
   if (!result.success) {
     // Intentionally does not log the offending value: the whole reason this
     // path exists is that the value may contain something we must not
     // propagate, and console output is itself captured as a breadcrumb.
-    console.debug('[actorIdentity] telemetry block rejected by strict contract');
+    console.debug('[actorIdentity] diagnostics_actor block rejected by strict contract');
     return null;
   }
   return result.data;
@@ -161,8 +163,8 @@ export function parseTelemetryBlock(raw: unknown): TelemetryBlock | null {
  *
  * @returns The validated actor block, or null for anonymous/absent/invalid.
  */
-export function resolveBootstrapActor(): TelemetryBlock | null {
-  return parseTelemetryBlock(getBootstrapValue('telemetry'));
+export function resolveBootstrapActor(): DiagnosticsActorBlock | null {
+  return parseDiagnosticsActorBlock(getBootstrapValue('diagnostics_actor'));
 }
 
 /**
@@ -184,15 +186,15 @@ export function resolveBootstrapActor(): TelemetryBlock | null {
  */
 export function applyActorIdentity(
   scopes: readonly IdentityScope[],
-  actor: TelemetryBlock | null
+  actor: DiagnosticsActorBlock | null
 ): void {
   // Literal construction. NEVER `{ ...actor }` — a spread would forward any
   // field the schema might one day stop rejecting.
   //
   // The ref is re-checked here rather than trusted from the type: callers reach
-  // this function with a `TelemetryBlock`, but a TypeScript type is not a
+  // this function with a `DiagnosticsActorBlock`, but a TypeScript type is not a
   // runtime guarantee (a cast, a hand-built object, or a future caller that
-  // skips `parseTelemetryBlock` all produce one). An unrecognised ref CLEARS
+  // skips `parseDiagnosticsActorBlock` all produce one). An unrecognised ref CLEARS
   // identity — the same fail-closed answer as a malformed block, never a
   // partially applied one.
   const user: ActorUser | null =

@@ -23,7 +23,7 @@ vi.mock('@/services/bootstrap.service', () => ({
 import {
   ACTOR_SCOPE_TAG,
   applyActorIdentity,
-  parseTelemetryBlock,
+  parseDiagnosticsActorBlock,
   resolveBootstrapActor,
   sanitizeEventUser,
   type IdentityScope,
@@ -37,27 +37,27 @@ function createScope() {
 }
 
 // A ref of the exact shape the server derives: 16 lowercase hex chars
-// (Onetime::Utils::TelemetryRef::REF_LENGTH). Fixtures MUST use this shape —
+// (Onetime::Utils::DiagnosticsRef::REF_LENGTH). Fixtures MUST use this shape —
 // the contract now checks content, not just type.
 const REF = 'a1b2c3d4e5f60718';
 const OTHER_REF = '00112233445566ff';
 const VALID = { actor_ref: REF, actor_scope: 'federated' } as const;
 
-describe('parseTelemetryBlock', () => {
+describe('parseDiagnosticsActorBlock', () => {
   it('accepts a well-formed federated block', () => {
-    expect(parseTelemetryBlock(VALID)).toEqual(VALID);
+    expect(parseDiagnosticsActorBlock(VALID)).toEqual(VALID);
   });
 
   it('accepts the deployment scope', () => {
-    expect(parseTelemetryBlock({ actor_ref: OTHER_REF, actor_scope: 'deployment' })).toEqual({
+    expect(parseDiagnosticsActorBlock({ actor_ref: OTHER_REF, actor_scope: 'deployment' })).toEqual({
       actor_ref: OTHER_REF,
       actor_scope: 'deployment',
     });
   });
 
   it('returns null for an absent block (anonymous session)', () => {
-    expect(parseTelemetryBlock(undefined)).toBeNull();
-    expect(parseTelemetryBlock(null)).toBeNull();
+    expect(parseDiagnosticsActorBlock(undefined)).toBeNull();
+    expect(parseDiagnosticsActorBlock(null)).toBeNull();
   });
 
   // Fail-closed: this is the case that matters. A server that starts sending an
@@ -65,18 +65,18 @@ describe('parseTelemetryBlock', () => {
   // stripped field is one refactor away from being forwarded.
   it('REJECTS a block carrying an extra key (strict, not passthrough)', () => {
     expect(
-      parseTelemetryBlock({ ...VALID, email: 'user@example.com' })
+      parseDiagnosticsActorBlock({ ...VALID, email: 'user@example.com' })
     ).toBeNull();
   });
 
   it('rejects an actor_scope outside the closed enum', () => {
-    expect(parseTelemetryBlock({ actor_ref: REF, actor_scope: 'anonymous' })).toBeNull();
-    expect(parseTelemetryBlock({ actor_ref: REF, actor_scope: '' })).toBeNull();
+    expect(parseDiagnosticsActorBlock({ actor_ref: REF, actor_scope: 'anonymous' })).toBeNull();
+    expect(parseDiagnosticsActorBlock({ actor_ref: REF, actor_scope: '' })).toBeNull();
   });
 
   it('rejects an empty or non-string actor_ref', () => {
-    expect(parseTelemetryBlock({ actor_ref: '', actor_scope: 'federated' })).toBeNull();
-    expect(parseTelemetryBlock({ actor_ref: 42, actor_scope: 'federated' })).toBeNull();
+    expect(parseDiagnosticsActorBlock({ actor_ref: '', actor_scope: 'federated' })).toBeNull();
+    expect(parseDiagnosticsActorBlock({ actor_ref: 42, actor_scope: 'federated' })).toBeNull();
   });
 
   // THE LAUNDERING CASE. A shape-only check (non-empty string) passes this
@@ -85,35 +85,35 @@ describe('parseTelemetryBlock', () => {
   // the `email` KEY it was never in.
   it('REJECTS an email in actor_ref — content, not just shape', () => {
     expect(
-      parseTelemetryBlock({ actor_ref: 'alice@example.com', actor_scope: 'deployment' })
+      parseDiagnosticsActorBlock({ actor_ref: 'alice@example.com', actor_scope: 'deployment' })
     ).toBeNull();
   });
 
   it('rejects refs of the wrong width, case, or alphabet', () => {
-    expect(parseTelemetryBlock({ actor_ref: 'ref', actor_scope: 'federated' })).toBeNull();
+    expect(parseDiagnosticsActorBlock({ actor_ref: 'ref', actor_scope: 'federated' })).toBeNull();
     // Too short / too long by one.
-    expect(parseTelemetryBlock({ actor_ref: 'a1b2c3d4e5f6071', actor_scope: 'federated' })).toBeNull();
-    expect(parseTelemetryBlock({ actor_ref: 'a1b2c3d4e5f607180', actor_scope: 'federated' })).toBeNull();
+    expect(parseDiagnosticsActorBlock({ actor_ref: 'a1b2c3d4e5f6071', actor_scope: 'federated' })).toBeNull();
+    expect(parseDiagnosticsActorBlock({ actor_ref: 'a1b2c3d4e5f607180', actor_scope: 'federated' })).toBeNull();
     // Uppercase: Ruby's hexdigest is lowercase, so this is not our value.
-    expect(parseTelemetryBlock({ actor_ref: 'A1B2C3D4E5F60718', actor_scope: 'federated' })).toBeNull();
+    expect(parseDiagnosticsActorBlock({ actor_ref: 'A1B2C3D4E5F60718', actor_scope: 'federated' })).toBeNull();
     // Non-hex, right length.
-    expect(parseTelemetryBlock({ actor_ref: 'zzzzzzzzzzzzzzzz', actor_scope: 'federated' })).toBeNull();
+    expect(parseDiagnosticsActorBlock({ actor_ref: 'zzzzzzzzzzzzzzzz', actor_scope: 'federated' })).toBeNull();
     // A full-width federation email hash (32 hex) is NOT an actor ref.
     expect(
-      parseTelemetryBlock({ actor_ref: 'a1b2c3d4e5f60718a1b2c3d4e5f60718', actor_scope: 'federated' })
+      parseDiagnosticsActorBlock({ actor_ref: 'a1b2c3d4e5f60718a1b2c3d4e5f60718', actor_scope: 'federated' })
     ).toBeNull();
     // Whitespace padding must not be tolerated (anchored pattern).
-    expect(parseTelemetryBlock({ actor_ref: ' a1b2c3d4e5f60718', actor_scope: 'federated' })).toBeNull();
+    expect(parseDiagnosticsActorBlock({ actor_ref: ' a1b2c3d4e5f60718', actor_scope: 'federated' })).toBeNull();
   });
 
   it('rejects a missing field', () => {
-    expect(parseTelemetryBlock({ actor_ref: REF })).toBeNull();
-    expect(parseTelemetryBlock({ actor_scope: 'federated' })).toBeNull();
+    expect(parseDiagnosticsActorBlock({ actor_ref: REF })).toBeNull();
+    expect(parseDiagnosticsActorBlock({ actor_scope: 'federated' })).toBeNull();
   });
 
   it('rejects non-object shapes', () => {
-    expect(parseTelemetryBlock(REF)).toBeNull();
-    expect(parseTelemetryBlock([REF])).toBeNull();
+    expect(parseDiagnosticsActorBlock(REF)).toBeNull();
+    expect(parseDiagnosticsActorBlock([REF])).toBeNull();
   });
 });
 
@@ -122,10 +122,10 @@ describe('resolveBootstrapActor', () => {
     vi.clearAllMocks();
   });
 
-  it('reads the telemetry key from the pre-Pinia bootstrap snapshot', () => {
+  it('reads the diagnostics_actor key from the pre-Pinia bootstrap snapshot', () => {
     mockGetBootstrapValue.mockReturnValue(VALID);
     expect(resolveBootstrapActor()).toEqual(VALID);
-    expect(mockGetBootstrapValue).toHaveBeenCalledWith('telemetry');
+    expect(mockGetBootstrapValue).toHaveBeenCalledWith('diagnostics_actor');
   });
 
   it('returns null when the block is absent', () => {
@@ -164,7 +164,7 @@ describe('applyActorIdentity', () => {
   });
 
   // A TypeScript type is not a runtime guarantee: a cast, a hand-built object,
-  // or a caller that skips parseTelemetryBlock all reach here. An unrecognised
+  // or a caller that skips parseDiagnosticsActorBlock all reach here. An unrecognised
   // ref must clear identity, and must not leave a lone actor_scope tag behind
   // labelling an unidentified session as identified.
   it('refuses an unrecognised ref and clears BOTH user and the scope tag', () => {

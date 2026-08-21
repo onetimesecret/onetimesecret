@@ -1,6 +1,6 @@
-// src/tests/plugins/core/diagnostics/telemetryBoundary.spec.ts
+// src/tests/plugins/core/diagnostics/diagnosticsBoundary.spec.ts
 //
-// ACCEPTANCE SUITE — the telemetry boundary for SCHEMA-VALIDATION events.
+// ACCEPTANCE SUITE — the diagnostics boundary for SCHEMA-VALIDATION events.
 //
 // WHAT THIS FILE GUARDS
 // ---------------------
@@ -132,7 +132,7 @@ const baseConfig = {
   },
 };
 
-/** The opaque, server-derived actor reference (Onetime::Utils::TelemetryRef). */
+/** The opaque, server-derived actor reference (Onetime::Utils::DiagnosticsRef). */
 const ACTOR_REF = 'a1b2c3d4e5f60718';
 const ACTOR = { actor_ref: ACTOR_REF, actor_scope: 'federated' as const };
 
@@ -436,7 +436,7 @@ function colonelPayload(value: unknown = COLONEL_EPOCH) {
 /**
  * THE PSEUDONYMOUS ORGANIZATION REF.
  *
- * Server-derived, opaque, 16 lowercase hex — the `Onetime::Utils::TelemetryRef`
+ * Server-derived, opaque, 16 lowercase hex — the `Onetime::Utils::DiagnosticsRef`
  * shape, the same producer behind `actor_ref`. It is the ONE payload-derived
  * value the boundary forwards verbatim, and only for the enrolled Colonel
  * schema.
@@ -557,7 +557,7 @@ const BOUNDARY_CASES: ReadonlyArray<{
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('telemetry boundary — captured schema-validation events', () => {
+describe('the diagnostics boundary — captured schema-validation events', () => {
   const originalConsoleDebug = console.debug;
 
   beforeEach(() => {

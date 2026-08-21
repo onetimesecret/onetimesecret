@@ -24,7 +24,7 @@ module Core
         MessagesSerializer,
         OrganizationSerializer,
         SystemSerializer,
-        TelemetrySerializer,
+        DiagnosticsSerializer,
       )
 
       def init(*args); end
@@ -49,7 +49,7 @@ module Core
         MessagesSerializer,
         OrganizationSerializer,
         SystemSerializer,
-        TelemetrySerializer,
+        DiagnosticsSerializer,
       )
 
       def init(*args); end
@@ -72,7 +72,7 @@ module Core
         MessagesSerializer,
         OrganizationSerializer,
         SystemSerializer,
-        TelemetrySerializer,
+        DiagnosticsSerializer,
       )
 
       def init(*args); end

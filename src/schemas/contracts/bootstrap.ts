@@ -542,7 +542,7 @@ export type PasswordGeneration = z.infer<typeof passwordGenerationSchema>;
 export type Passphrase = z.infer<typeof passphraseSchema>;
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// TELEMETRY (privacy-preserving actor identity for Sentry)
+// DIAGNOSTICS ACTOR (privacy-preserving actor identity for Sentry)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /**
@@ -550,12 +550,12 @@ export type Passphrase = z.infer<typeof passphraseSchema>;
  *
  * THIS LABEL NAMES WHICH SECRET KEYED THE ACTOR REF. IT SAYS NOTHING ABOUT HOW
  * THE ACTOR AUTHENTICATED. The axis is correlation blast radius, not identity
- * provider — see `Onetime::Utils::TelemetryRef#keying`
- * (lib/onetime/utils/telemetry_ref.rb):
+ * provider — see `Onetime::Utils::DiagnosticsRef#keying`
+ * (lib/onetime/utils/diagnostics_ref.rb):
  *
  * - `federated` — the ref was derived with `FEDERATION_SECRET`, which is shared
  *   across the regional instances of one federation. It is chosen ONLY when a
- *   residency scope also resolves (`TELEMETRY_REF_REGION`, else the configured
+ *   residency scope also resolves (`DIAGNOSTICS_REF_REGION`, else the configured
  *   jurisdiction); with nothing declared the shared key is refused and the
  *   scope narrows to `deployment`.
  *
@@ -579,21 +579,23 @@ export type Passphrase = z.infer<typeof passphraseSchema>;
  * password accounts included; nothing about the label is conditioned on how
  * anyone signed in. Filtering `actor_scope:federated` in Sentry selects events
  * whose actor ref is federation-keyed, NOT events from SSO users. There is
- * deliberately no telemetry field that reports how an actor authenticated; that
- * would be an authentication-posture disclosure with no diagnostic use.
+ * deliberately no field in the diagnostics payload that reports how an actor
+ * authenticated; that would be an authentication-posture disclosure with no
+ * diagnostic use.
  *
  * (EXECUTED, so the example is not read as a shortcut past the precondition:
- * with `FEDERATION_SECRET` set and nothing else — no `TELEMETRY_REF_REGION`, no
- * jurisdiction, no `ACCOUNT_ID_SECRET` — `TelemetryRef.keying` is nil, so no
- * telemetry block is emitted at all and the question of a label does not arise.
+ * with `FEDERATION_SECRET` set and nothing else — no `DIAGNOSTICS_REF_REGION`, no
+ * jurisdiction, no `ACCOUNT_ID_SECRET` — `DiagnosticsRef.keying` is nil, so no
+ * diagnostics actor block is emitted at all and the question of a label does not
+ * arise.
  * Add `ACCOUNT_ID_SECRET` and the label is `deployment`, not `federated`.)
  *
  * Modelled as a closed `z.enum` rather than `z.string()` on purpose: the value
  * becomes a Sentry TAG (`actor_scope`), tags are indexed and searchable, and an
  * unbounded string field on an indexed dimension is exactly how a free-text
- * identifier (an email, a plan name, an org slug) leaks into telemetry one
- * careless server-side commit later. A new scope must be added HERE, in review,
- * before it can reach Sentry.
+ * identifier (an email, a plan name, an org slug) reaches Sentry one careless
+ * server-side commit later. A new scope must be added HERE, in review, before it
+ * can reach Sentry.
  */
 export const ACTOR_SCOPES = ['federated', 'deployment'] as const;
 
@@ -615,7 +617,7 @@ export const ACTOR_SCOPES = ['federated', 'deployment'] as const;
  *
  * ## The contract this mirrors
  *
- * Server side: `Onetime::Utils::TelemetryRef` (lib/onetime/utils/telemetry_ref.rb)
+ * Server side: `Onetime::Utils::DiagnosticsRef` (lib/onetime/utils/diagnostics_ref.rb)
  * emits `OpenSSL::HMAC.hexdigest('SHA256', …)[0, REF_LENGTH]` — LOWERCASE hex,
  * `REF_LENGTH = 16` chars (64 bits), deliberately half the width of a
  * federation email hash so the two are not confusable.
@@ -646,13 +648,13 @@ export function isActorRef(value: unknown): value is string {
 }
 
 /**
- * `telemetry` — the server-provided actor-identity block.
+ * `diagnostics_actor` — the server-provided actor-identity block.
  *
  * ## Wire contract
  *
  * ```json
- * { "telemetry": { "actor_ref": "a1b2c3d4e5f60718",
- *                  "actor_scope": "federated" } }
+ * { "diagnostics_actor": { "actor_ref": "a1b2c3d4e5f60718",
+ *                           "actor_scope": "federated" } }
  * ```
  *
  * The block is **ABSENT for anonymous sessions**. Absence is the signal — there
@@ -689,7 +691,7 @@ export function isActorRef(value: unknown): value is string {
  * refusing an unexpected KEY and refusing an unexpected VALUE; both are
  * required, because `user.id` is the one field the outbound sanitizer keeps.
  */
-export const telemetrySchema = z.strictObject({
+export const diagnosticsActorSchema = z.strictObject({
   /**
    * Opaque, deterministic, server-derived actor reference. Never PII.
    * Content-checked against ACTOR_REF_PATTERN, not merely non-empty.
@@ -699,8 +701,8 @@ export const telemetrySchema = z.strictObject({
   actor_scope: z.enum(ACTOR_SCOPES),
 });
 
-/** Parsed shape of the `telemetry` bootstrap block. */
-export type TelemetryBlock = z.infer<typeof telemetrySchema>;
+/** Parsed shape of the `diagnostics_actor` bootstrap block. */
+export type DiagnosticsActorBlock = z.infer<typeof diagnosticsActorSchema>;
 
 /** One of the two permitted actor scopes. */
 export type ActorScope = (typeof ACTOR_SCOPES)[number];
@@ -891,12 +893,12 @@ export const bootstrapSchema = z.object({
   organization: organizationSchema.optional(),
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // TelemetrySerializer fields
+  // DiagnosticsSerializer fields
   // ─────────────────────────────────────────────────────────────────────────────
   // Privacy-preserving actor identity for Sentry. ABSENT (not empty, not null)
-  // for anonymous sessions — see telemetrySchema above for the full boundary
+  // for anonymous sessions — see diagnosticsActorSchema above for the full boundary
   // rationale and for why the inner object is strict rather than passthrough.
-  telemetry: telemetrySchema.optional(),
+  diagnostics_actor: diagnosticsActorSchema.optional(),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Billing/Stripe fields
