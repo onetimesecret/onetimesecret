@@ -178,9 +178,15 @@
 	# favicon.ico) using a UUID.
 	header @always O-Request-ID "{http.request.uuid}"
 
-	# Serve static files if they exist
-	@exists file
-	handle @exists {
+	# Serve build output from disk. ALLOWLIST, not a file-existence test: an
+	# `@exists file` matcher lets any stale file under $PUBLIC_DIR silently
+	# outrank the app's brand resolution (public/branding/<pack>). In
+	# particular /favicon.ico and /site.webmanifest are route-served by the
+	# app so they can vary per custom domain — a file on disk defeats that.
+	# /dist (Vite build output) is the only tree the app itself treats as
+	# never-overlaid (lib/onetime/middleware/static_files.rb).
+	@dist path /dist/*
+	handle @dist {
 		file_server
 	}
 
