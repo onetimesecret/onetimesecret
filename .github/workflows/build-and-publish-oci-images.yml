@@ -691,11 +691,14 @@ jobs:
           # "missing". Note the polarity — `outcome != 'skipped'` would invert
           # that and fire on every cancellation.
           #
-          #   sourcemaps        extract-frontend-dist.sh writes `status=` only
-          #                     after recording its own row, so `extracted` is
-          #                     proof the preflight's `if:` opened. Anything
-          #                     else already reported itself and a second
-          #                     warning would just bury it.
+          #   sourcemaps        `extracted` proves the preflight's `if:` opened.
+          #                     A non-success extraction outcome means it died
+          #                     before it could report; require the missing
+          #                     sourcemaps row too, so the summary records both
+          #                     parts of the interrupted chain as BLOCKED. A
+          #                     successful `skipped` or `blocked` extraction
+          #                     already filed its own frontend-assets row and
+          #                     deliberately does not owe a duplicate.
           #   sourcemaps-verify the sole confirmation the bundles reached the
           #                     server, so losing it is losing the guarantee —
           #                     but it shares the upload's `if:`. `outcome`, not
@@ -705,7 +708,7 @@ jobs:
           #                     the two must be changed together.
           SENTRY_EXPECTED_COMPONENTS: >-
             ${{ github.event_name != 'pull_request' && 'frontend-assets release' || '' }}
-            ${{ steps.extract_assets.outputs.status == 'extracted' && 'sourcemaps' || '' }}
+            ${{ (steps.extract_assets.outputs.status == 'extracted' || steps.extract_assets.outcome != 'success') && 'sourcemaps' || '' }}
             ${{ steps.sentry_upload.outcome == 'success' && 'sourcemaps-verify' || '' }}
             ${{ github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/v') && 'deploy' || '' }}
         run: |
