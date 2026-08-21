@@ -370,6 +370,30 @@ describe('diagnostics.service', () => {
         expect(clonedScope.setTag).toHaveBeenCalledWith('jurisdiction', 'eu');
       });
 
+      it('promotes apiRoute to a searchable TAG, not an unsearchable extra', async () => {
+        // Route-level aggregation is the entire point of the api-route context:
+        // `event.extra` is not indexed, so an apiRoute living there could be
+        // read one event at a time and never queried.
+        const { initDiagnostics, captureException } = await importFresh();
+        const client = createMockClient();
+        const baseScope = createMockScope();
+
+        initDiagnostics(client as never, baseScope as never);
+
+        captureException(new Error('test'), {
+          apiRoute: '/api/colonel/organizations/:org_id',
+          issueCount: 1,
+        });
+
+        const clonedScope = baseScope.clone.mock.results[0].value;
+        expect(clonedScope.setTag).toHaveBeenCalledWith(
+          'apiRoute',
+          '/api/colonel/organizations/:org_id'
+        );
+        // ...and it must not be duplicated into extras.
+        expect(clonedScope.setExtras).toHaveBeenCalledWith({ issueCount: 1 });
+      });
+
       it('extracts planid as tag with lowercase value', async () => {
         const { initDiagnostics, captureException } = await importFresh();
         const client = createMockClient();
