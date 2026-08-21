@@ -2,6 +2,7 @@
 
 import { PiniaPluginOptions } from '@/plugins/pinia/types';
 import { classifyError, errorGuards } from '@/schemas/errors';
+import { clearDiagnosticsActor } from '@/services/diagnostics.service';
 import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties, storeToRefs } from 'pinia';
@@ -416,8 +417,27 @@ export const useAuthStore = defineStore('auth', () => {
 
     $reset();
 
-    // Reset bootstrapStore user state while preserving server config
+    // Reset bootstrapStore user state while preserving server config.
+    // resetForLogout() also evicts `telemetry` from the pre-Pinia
+    // bootstrap.service snapshot, so no actor reference survives this call in
+    // EITHER of the two places it is held.
     bootstrapStore.resetForLogout();
+
+    // Clear the Sentry actor: setUser(null) plus removal of the `actor_scope`
+    // tag, on BOTH the isolated and current scopes.
+    //
+    // This is the SOFT (SPA) logout path — no page navigation follows, so the
+    // Sentry scopes survive with whatever identity was last written. Without
+    // this call every subsequent error in the now-anonymous session would keep
+    // reporting the previous actor. resetForLogout() above clears the store
+    // field, but the store is not where Sentry reads identity from.
+    //
+    // The HARD logout paths in useAuth (POST /auth/logout followed by
+    // window.location.href) do not need this — the navigation tears down the JS
+    // context and the scopes with it.
+    //
+    // No-ops when diagnostics are disabled, so it is called unconditionally.
+    clearDiagnosticsActor();
 
     deleteCookie('sess');
     deleteCookie('locale');
