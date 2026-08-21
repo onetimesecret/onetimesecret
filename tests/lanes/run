@@ -650,7 +650,7 @@ for p in ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"}; do port_open "$p" || missi
 if [[ $missing -eq 1 && -z "${LANES_NO_AUTOSTART:-}" ]]; then
   echo "[lane:${LANE}] test services not reachable; starting compose.test.yml" >&2
   if ! compose_up --wait -d; then
-    echo "error: no container runtime with a reachable daemon; start test services manually:" >&2
+    echo "error: could not start test services with compose; start test services manually:" >&2
     if command -v podman >/dev/null 2>&1 &&
        ! env ${_lanes_daemon_env[@]+"${_lanes_daemon_env[@]}"} \
            podman info >/dev/null 2>&1; then
