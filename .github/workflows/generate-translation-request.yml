@@ -14,6 +14,10 @@ name: Generate Translation Request Package
 # - GitHub Releases: Versioned, permanent storage for translation packages
 # - GitHub Issues: Per-locale tracking with progress checklist
 # - Actions Artifacts: Intermediate processing (90-day retention)
+#
+# Required GitHub Actions secret:
+#   TRANSLATION_WEBHOOK_SECRET   HMAC key for signing the webhook payload sent
+#                                to the external translation service
 
 on:
   workflow_dispatch:

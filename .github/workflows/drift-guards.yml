@@ -9,6 +9,10 @@
 #                            .ruby-version/.node-version (VER series, C8 note)
 #   check-env-reference.sh   every consumed env var is documented in
 #                            .env.reference or explicitly ignored (QS-11)
+#   check-ci-secrets.sh      every secrets.X a workflow reads is documented
+#                            in that workflow's header comment, or explicitly
+#                            ignored (CI secrets are a separate surface from
+#                            .env.reference — see scripts/check-ci-secrets.sh)
 #
 # No path filter: check-env-reference.sh scans ENV reads across lib/, apps/,
 # etc/ — nearly any code change can introduce a new variable, and the whole
@@ -37,3 +41,6 @@ jobs:
 
       - name: Assert .env.reference documents every consumed env var
         run: bash scripts/check-env-reference.sh
+
+      - name: Assert workflow headers document every consumed CI secret
+        run: bash scripts/check-ci-secrets.sh
