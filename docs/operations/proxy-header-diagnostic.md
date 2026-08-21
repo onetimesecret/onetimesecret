@@ -41,12 +41,11 @@ replaces each diagnostic field supplied by the client with Caddy's own
 observations.
 
 ```caddyfile
-# Caddy-side capture of the forwarding headers as received, for GET
-# /api/colonel/system/proxy-headers.
+# Caddy snippet for GET /api/colonel/system/proxy-headers.
 #
 # Import at the SITE level, next to the reverse_proxy snippet:
 #
-#   uk.onetimesecret.com {
+#   secrets.example.com {
 #     import onetime-proxy-debug
 #     import onetime-proxy
 #   }
