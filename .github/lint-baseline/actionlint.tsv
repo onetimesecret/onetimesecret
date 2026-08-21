@@ -1,0 +1,35 @@
+# .github/lint-baseline/actionlint.tsv
+#
+# Pre-existing actionlint findings, accepted at the time the static-analysis
+# lane was introduced. Regenerate with: scripts/check-shell-lint.sh --update
+#
+# Format: <file><TAB><rule><TAB><count>. Rules prefixed 'shellcheck:' come from
+# actionlint running shellcheck over a 'run:' block.
+#
+# The large SC2086 counts are mostly deliberate: this repo passes
+# space-separated lists (bake tags, sentry project flags, the Sentry expected
+# component list) through unquoted expansions ON PURPOSE, because each element
+# must become its own argument. Quoting them would be a regression, not a fix —
+# scripts/tests/sentry-components-drift-test.sh asserts one of them stays
+# unquoted. They are baselined rather than disabled inline so the count is
+# visible and a NEW unquoted expansion still has to be justified.
+#
+# syntax-check on build-and-publish-oci-images.yml is the empty '' branch of a
+# workflow_dispatch choice input, which is how that input expresses 'not set'.
+.github/workflows/build-and-publish-oci-images.yml	shellcheck:SC2001	2
+.github/workflows/build-and-publish-oci-images.yml	shellcheck:SC2086	7
+.github/workflows/build-and-publish-oci-images.yml	syntax-check	1
+.github/workflows/bump-api-docs.yml	shellcheck:SC2086	1
+.github/workflows/ci.yml	permissions	2
+.github/workflows/ci.yml	shellcheck:SC2086	28
+.github/workflows/ci.yml	shellcheck:SC2129	2
+.github/workflows/e2e.yml	shellcheck:SC2155	2
+.github/workflows/generate-translation-request.yml	shellcheck:SC2011	1
+.github/workflows/generate-translation-request.yml	shellcheck:SC2086	20
+.github/workflows/generate-translation-request.yml	shellcheck:SC2129	3
+.github/workflows/generate-translation-request.yml	shellcheck:SC2162	1
+.github/workflows/migration-tests.yml	shellcheck:SC2034	1
+.github/workflows/migration-tests.yml	shellcheck:SC2086	16
+.github/workflows/migration-tests.yml	shellcheck:SC2129	1
+.github/workflows/visual-archive.yml	runner-label	1
+.github/workflows/visual.yml	runner-label	1
