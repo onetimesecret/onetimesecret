@@ -1,7 +1,7 @@
 // src/tests/plugins/core/diagnostics/opaqueIdentifierPatterns.spec.ts
 //
 // DIRECT tests for the opaque-identifier nets in
-// src/plugins/core/diagnostics/scrubbers.ts.
+// src/utils/diagnostics/scrubbers.ts.
 //
 // Each of these constants is exported and annotated "@internal Exported for
 // testing", and until now none of them had a single reference in src/tests —
@@ -29,7 +29,7 @@ import {
   PREFIXED_ID_PATTERN,
   PREFIXED_SECRET_PATTERN,
   UUID_PATTERN,
-} from '@/plugins/core/diagnostics/scrubbers';
+} from '@/utils/diagnostics/scrubbers';
 
 /**
  * Every pattern here is `g`-flagged, which makes `RegExp.prototype.test`
@@ -104,7 +104,7 @@ describe('opaque-identifier patterns (direct)', () => {
     });
 
     // These are FIELD NAMES from this codebase. Redacting them destroys the
-    // schema-failure diagnostic this whole telemetry boundary exists to deliver
+    // schema-failure diagnostic this whole diagnostics boundary exists to deliver
     // — `subscription_period_end` is literally the bug this branch was opened
     // for.
     it.each([

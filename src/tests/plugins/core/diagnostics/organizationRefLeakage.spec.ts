@@ -3,7 +3,7 @@
 // LEAKAGE SUITE — the privacy boundary for `organization_ref`, attacked from
 // the outside.
 //
-// `telemetryBoundary.spec.ts` proves the boundary emits only approved keys.
+// `diagnosticsBoundary.spec.ts` proves the boundary emits only approved keys.
 // This file asks the complementary question: given an attacker (or a drifted
 // backend) who controls the failing payload, can anything that should stay on
 // the server reach the outbound event? It differs from its siblings in three
@@ -14,7 +14,7 @@
 //      so an enrollment path that stops matching the shipped wire shape fails
 //      here.
 //   2. Its fixture is a complete Colonel organization record carrying every
-//      identifier the privacy rules forbid on the telemetry surface — extid,
+//      identifier the privacy rules forbid on the diagnostics surface — extid,
 //      org id, display name, description, contact/owner/billing addresses,
 //      owner objid, and both `stripe_*` ids — and it asserts each value is
 //      absent from the SERIALIZED event, tags, extras, message, exception
@@ -73,8 +73,8 @@ vi.mock('@/services/logging.service', () => ({
 import { createDiagnostics } from '@/plugins/core/enableDiagnostics';
 import { gracefulParse } from '@/utils/schemaValidation';
 import { colonelOrganizationDetailResponseSchema } from '@/schemas/api/internal/responses/colonel-organizations';
-import { telemetrySchema } from '@/schemas/contracts/bootstrap';
-import { resolveResourceRefs, enrolledResourceRefKeys, resourceRefTagNames, RESOURCE_REF_SHAPE } from '@/utils/telemetry/resourceRefRegistry';
+import { diagnosticsActorSchema } from '@/schemas/contracts/bootstrap';
+import { resolveResourceRefs, enrolledResourceRefKeys, resourceRefTagNames, RESOURCE_REF_SHAPE } from '@/utils/diagnostics/resourceRefRegistry';
 
 const COLONEL = 'ColonelOrganizationDetailResponse';
 const REF = 'b4c2a90f13e5d867';
@@ -296,10 +296,10 @@ describe('ADVERSARIAL: organization_ref privacy boundary', () => {
     for (const tag of resourceRefTagNames()) expect(tagFields).toContain(`'${tag}'`);
   });
 
-  it('ATTACK 7: bootstrap telemetry block is still exactly two keys and strict', () => {
-    expect(Object.keys((telemetrySchema as any).shape).sort()).toEqual(['actor_ref', 'actor_scope']);
-    expect(telemetrySchema.safeParse({ actor_ref: 'a1b2c3d4e5f60718', actor_scope: 'federated' }).success).toBe(true);
-    expect(telemetrySchema.safeParse({ actor_ref: 'a1b2c3d4e5f60718', actor_scope: 'federated', organization_ref: REF }).success).toBe(false);
+  it('ATTACK 7: bootstrap diagnostics block is still exactly two keys and strict', () => {
+    expect(Object.keys((diagnosticsActorSchema as any).shape).sort()).toEqual(['actor_ref', 'actor_scope']);
+    expect(diagnosticsActorSchema.safeParse({ actor_ref: 'a1b2c3d4e5f60718', actor_scope: 'federated' }).success).toBe(true);
+    expect(diagnosticsActorSchema.safeParse({ actor_ref: 'a1b2c3d4e5f60718', actor_scope: 'federated', organization_ref: REF }).success).toBe(false);
   });
 
   it('ATTACK 8: shape regex is anchored against multiline bypass', () => {

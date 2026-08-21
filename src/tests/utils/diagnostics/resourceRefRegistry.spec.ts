@@ -1,8 +1,8 @@
-// src/tests/utils/telemetry/resourceRefRegistry.spec.ts
+// src/tests/utils/diagnostics/resourceRefRegistry.spec.ts
 //
 // THE FAIL-CLOSED PROOFS for pseudonymous resource correlation.
 //
-// `resourceRefRegistry` is the ONE place in the schema-telemetry path that
+// `resourceRefRegistry` is the ONE place in the schema-diagnostics path that
 // forwards a value read out of a failing payload verbatim. Everything that
 // makes that defensible is a claim about refusal — an unenrolled schema
 // refuses, a wrong-shaped value refuses, a hostile payload refuses without
@@ -10,7 +10,7 @@
 // asserted in prose.
 //
 // The end-to-end counterpart (real Sentry scope, real beforeSend, whole event
-// serialized) is `src/tests/plugins/core/diagnostics/telemetryBoundary.spec.ts`.
+// serialized) is `src/tests/plugins/core/diagnostics/diagnosticsBoundary.spec.ts`.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
@@ -28,12 +28,12 @@ import {
   resolveResourceRefs,
   resourceRefTagNames,
   RESOURCE_REF_SHAPE,
-} from '@/utils/telemetry/resourceRefRegistry';
+} from '@/utils/diagnostics/resourceRefRegistry';
 
 /** The enrolled schema name, spelled exactly as `gracefulParse` receives it. */
 const ENROLLED = 'ColonelOrganizationDetailResponse';
 
-/** A well-formed ref: 16 lowercase hex, the `Onetime::Utils::TelemetryRef` shape. */
+/** A well-formed ref: 16 lowercase hex, the `Onetime::Utils::DiagnosticsRef` shape. */
 const ORG_REF = 'b4c2a90f13e5d867';
 
 /** Values an operator must never see on an event, present in every fixture below. */

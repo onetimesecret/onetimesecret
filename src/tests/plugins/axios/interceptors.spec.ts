@@ -46,7 +46,7 @@ vi.mock('@/shared/stores/organizationStore', () => ({
 
 // Mock scrubbing functions with passthrough behavior for most tests
 // Actual scrubbing logic is tested in scrubbers.spec.ts
-vi.mock('@/plugins/core/diagnostics/scrubbers', () => ({
+vi.mock('@/utils/diagnostics/scrubbers', () => ({
   scrubSensitiveStrings: (str: string) => str,
   scrubUrlWithPatterns: (url: string) => url,
 }));
@@ -62,7 +62,7 @@ import {
   createLoggableShrimp,
   resetApiRouteSlotLifecycle,
 } from '@/plugins/axios/interceptors';
-import { resetApiRouteContext, resolveApiRoute } from '@/utils/telemetry/apiRouteContext';
+import { resetApiRouteContext, resolveApiRoute } from '@/utils/diagnostics/apiRouteContext';
 
 // ---------------------------------------------------------------------------
 // Test helpers

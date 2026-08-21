@@ -1,8 +1,15 @@
-// src/utils/telemetry/apiRouteContext.ts
+// src/utils/diagnostics/apiRouteContext.ts
+//
+// LAYER RULE: src/utils/diagnostics/ is pure policy — it must not import from
+// `@sentry/*` nor from `src/plugins/`.
 //
 // ===========================================================================
-// PARAMETERIZED API-ROUTE CONTEXT for schema-validation telemetry.
+// PARAMETERIZED API-ROUTE CONTEXT for schema-validation diagnostics.
 // ===========================================================================
+//
+// This is diagnostics, not analytics. `apiRoute` exists so a defect can be
+// traced back to the endpoint that produced the bad payload; it is not a
+// traffic counter and nothing here is read for reporting or usage measurement.
 //
 // THE PROBLEM
 // -----------
@@ -15,7 +22,7 @@
 //
 // The second is strictly more useful for aggregation (all failures on that
 // endpoint group into one issue) and carries no tenant reference at all. So the
-// rule for every telemetry surface - tags, extras, exception messages,
+// rule for every diagnostics surface - tags, extras, exception messages,
 // breadcrumbs, transaction names - is: PARAMETERIZED ROUTE, never resolved URL.
 // `createDiagnostics` already enforces this for `event.transaction` by stamping
 // `to.matched.at(-1)?.path` from the Vue router; this module is the API-side
@@ -50,10 +57,13 @@
 //
 //  1. GUARANTEED - POSITIONAL. A segment whose PARENT is listed in
 //     {@link PARAM_NAME_BY_COLLECTION} is replaced with that collection's
-//     parameter name, whatever it looks like, unless it is on the closed,
-//     reviewed literal list in {@link COLLECTION_CHILD_LITERALS}. This is
-//     fail-CLOSED: an unrecognized child of a known collection is treated as an
-//     identifier. It is what makes `/api/colonel/users/alice/diagnostics` and
+//     parameter name, whatever it looks like, with exactly two exceptions: it
+//     is on the closed, reviewed literal list in
+//     {@link COLLECTION_CHILD_LITERALS}, or it is ALREADY a route parameter
+//     ({@link PARAM_SEGMENT}, checked first so a caller-supplied `:key` is not
+//     rewritten). This is fail-CLOSED: an unrecognized child of a known
+//     collection is treated as an identifier. It is what makes
+//     `/api/colonel/users/alice/diagnostics` and
 //     `/api/organizations/onabc/members/bobsmith` safe - none of those ids has
 //     the shape the heuristic below looks for, and before the positional rule
 //     existed all three rode out verbatim.
@@ -79,7 +89,7 @@
 // end-user IP one hop from the extras field that `actorIdentity` pins
 // `ip_address: null` to keep clean.
 
-import { scrubSensitiveStrings } from '@/plugins/core/diagnostics/scrubbers';
+import { scrubSensitiveStrings } from '@/utils/diagnostics/scrubbers';
 
 /**
  * Resolves the parameterized route for the API call currently in flight.
@@ -150,7 +160,7 @@ export const PARAM_NAME_BY_COLLECTION: Readonly<Record<string, string>> = {
  * correct set when the route table and this list disagree. Adding, renaming or
  * deleting a route therefore breaks the spec, not production aggregation:
  *
- *     pnpm vitest run src/tests/utils/telemetry/collectionChildLiterals.spec.ts
+ *     pnpm vitest run src/tests/utils/diagnostics/collectionChildLiterals.spec.ts
  *
  * The current derivation, every entry with a route that exists today:
  *   add          `/api/domains/add`
@@ -391,7 +401,7 @@ export function resetApiRouteContext(): void {
 }
 
 /**
- * Returns the parameterized route to attach to a telemetry event, or
+ * Returns the parameterized route to attach to an event sent to Sentry, or
  * `undefined`.
  *
  * Order: an explicitly installed resolver wins; otherwise the axios slot. The

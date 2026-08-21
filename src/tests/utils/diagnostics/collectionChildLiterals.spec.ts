@@ -1,4 +1,4 @@
-// src/tests/utils/telemetry/collectionChildLiterals.spec.ts
+// src/tests/utils/diagnostics/collectionChildLiterals.spec.ts
 //
 // THE REGENERATION STORY for `COLLECTION_CHILD_LITERALS`.
 //
@@ -26,7 +26,7 @@ import {
   COLLECTION_CHILD_LITERALS,
   PARAM_NAME_BY_COLLECTION,
   parameterizeApiPath,
-} from '@/utils/telemetry/apiRouteContext';
+} from '@/utils/diagnostics/apiRouteContext';
 
 /**
  * Mount prefix per API app, mirroring `@uri_prefix` in

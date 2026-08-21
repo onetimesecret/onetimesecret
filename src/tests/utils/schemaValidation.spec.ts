@@ -33,13 +33,13 @@ import { captureException } from '@/services/diagnostics.service';
 import {
   MAX_PROJECTED_ISSUES,
   projectSchemaIssues,
-} from '@/utils/telemetry/schemaIssueProjection';
+} from '@/utils/diagnostics/schemaIssueProjection';
 import {
   parameterizeApiPath,
   resetApiRouteContext,
   setApiRouteResolver,
   setCurrentApiRoute,
-} from '@/utils/telemetry/apiRouteContext';
+} from '@/utils/diagnostics/apiRouteContext';
 
 // Test schemas
 const UserSchema = z.object({
@@ -878,17 +878,17 @@ describe('schemaValidation', () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// TELEMETRY CONTRACT — what gracefulParse is allowed to report, and what it
+// DIAGNOSTICS CONTRACT — what gracefulParse is allowed to report, and what it
 // must still be able to report.
 // ═══════════════════════════════════════════════════════════════════════════
 //
 // The end-to-end leak suite lives in
-// src/tests/plugins/core/diagnostics/telemetryBoundary.spec.ts (event assembly
+// src/tests/plugins/core/diagnostics/diagnosticsBoundary.spec.ts (event assembly
 // through the real beforeSend). This section pins the unit-level contract of
 // the projection itself: the approved fields, the omissions, the bound, the
 // union recursion and the parameterized-route hook.
 
-describe('gracefulParse telemetry contract', () => {
+describe('gracefulParse diagnostics contract', () => {
   /** Reads the context object handed to the mocked captureException. */
   function lastContext(): Record<string, unknown> {
     const mock = vi.mocked(captureException);

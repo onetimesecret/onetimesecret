@@ -16,7 +16,7 @@
 //
 // WHAT THIS FILE OWNS
 //   The TS half of the Sentry scrubber — EMAIL_PATTERN in
-//   src/plugins/core/diagnostics/scrubbers.ts — asserted against
+//   src/utils/diagnostics/scrubbers.ts — asserted against
 //   tests/fixtures/email_redaction_corpus.json, the SAME language-neutral
 //   corpus the Ruby half reads (try/unit/utils/email_redaction_corpus_try.rb).
 //
@@ -54,7 +54,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
-import { EMAIL_PATTERN, scrubSensitiveStrings } from '@/plugins/core/diagnostics/scrubbers';
+import { EMAIL_PATTERN, scrubSensitiveStrings } from '@/utils/diagnostics/scrubbers';
 
 // ---------------------------------------------------------------- the corpus
 

@@ -1,12 +1,19 @@
-// src/plugins/core/diagnostics/scrubbers.ts
+// src/utils/diagnostics/scrubbers.ts
+//
+// LAYER RULE: src/utils/diagnostics/ is pure policy — it must not import from
+// `@sentry/*` nor from `src/plugins/`.
 //
 // Dependency-free utilities for scrubbing sensitive data from strings and URLs.
-// Extracted from enableDiagnostics.ts to avoid pulling in Sentry/Vue dependencies.
+// It lives at this layer BECAUSE it is pure: the Sentry wiring in
+// `src/plugins/core/` consumes it, and three modules under `src/utils/` do too,
+// so the dependency has to point down. It was in the plugin directory before
+// this branch, which made the util layer import upward.
 //
 // Used by:
 // - axios interceptors (breadcrumb scrubbing)
 // - Sentry beforeBreadcrumb handler
 // - Sentry beforeSend handler
+// - the schema-issue projection (`@/utils/diagnostics/schemaIssueProjection`)
 
 import { scrubSensitivePath } from '@/generated/sentry-scrub-patterns';
 
@@ -120,13 +127,13 @@ export const EMAIL_PATTERN = /[\p{L}\p{N}._%+'-]+@[\p{L}\p{N}.\p{Pd}]+\.\p{L}{2,
 // `scrubSensitiveStrings` — over record keys that may have come off the wire.
 //
 // THE DESIGN CONSTRAINT IS SYMMETRIC. Under-scrubbing leaks a tenant, customer
-// or credential reference into an indexed telemetry field. OVER-scrubbing is
-// just as much a defect: these same functions run over stack frames, module
-// paths, version strings and schema field names, and a net that eats those
-// degrades every event on the platform rather than one. So every net below is
-// (a) anchored, (b) restricted to a KNOWN prefix or a KNOWN literal shape, and
-// (c) required to carry evidence of being machine-generated — a digit, an
-// uppercase character, or an exact length — before it fires.
+// or credential reference into an indexed field on an event sent to Sentry.
+// OVER-scrubbing is just as much a defect: these same functions run over stack
+// frames, module paths, version strings and schema field names, and a net that
+// eats those degrades every event on the platform rather than one. So every net
+// below is (a) anchored, (b) restricted to a KNOWN prefix or a KNOWN literal
+// shape, and (c) required to carry evidence of being machine-generated — a
+// digit, an uppercase character, or an exact length — before it fires.
 //
 // Each net gets its OWN sentinel. A reader triaging an event needs to know
 // WHAT was removed, not merely that something was; the projection also

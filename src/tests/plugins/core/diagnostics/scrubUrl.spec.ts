@@ -1,4 +1,4 @@
-// src/tests/plugins/core/scrubUrl.spec.ts
+// src/tests/plugins/core/diagnostics/scrubUrl.spec.ts
 //
 // Unit tests for scrubUrlWithPatterns function.
 // Tests regex-based URL scrubbing for sensitive path patterns and verifiable IDs.

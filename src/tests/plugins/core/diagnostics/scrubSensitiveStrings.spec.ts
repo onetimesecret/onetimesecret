@@ -1,4 +1,4 @@
-// src/tests/plugins/core/scrubSensitiveStrings.spec.ts
+// src/tests/plugins/core/diagnostics/scrubSensitiveStrings.spec.ts
 //
 // Unit tests for scrubSensitiveStrings function.
 // Tests scrubbing of emails, verifiable IDs, and sensitive paths from arbitrary text.
@@ -88,7 +88,7 @@ describe('scrubSensitiveStrings', () => {
 
 describe('scrubSensitiveStrings — opaque identifier nets', () => {
   it('redacts a prefixed opaque id inside a resolved API path', () => {
-    // The exact string that reached telemetry verbatim before this net existed.
+    // The exact string that reached Sentry verbatim before this net existed.
     const result = scrubSensitiveStrings('/api/colonel/organizations/org_9f3a2b1c8d7e6f50');
     expect(result).toBe('/api/colonel/organizations/[ID_REDACTED]');
   });
@@ -144,7 +144,7 @@ describe('scrubSensitiveStrings — opaque identifier nets', () => {
 
   it.each([
     // The schema field whose Integer-vs-string drift this whole branch exists
-    // to diagnose. If this is ever redacted, the telemetry stops being useful.
+    // to diagnose. If this is ever redacted, the event stops being diagnosable.
     'record.subscription_period_end',
     // Real schema field names in this tree that a naive `[a-z]{2,8}_\w{6,}`
     // net eats: colonel-sessions.ts, billing.ts, colonel.ts.
@@ -169,7 +169,7 @@ describe('scrubSensitiveStrings — opaque identifier nets', () => {
     // net, because it is how a frontend event joins its backend transaction.
     'trace_id=4bf92f3577b34da6a3ce929d0e0e4736',
     // Ruby scope operators, which the IPv6 net must not read as an address.
-    'Onetime::Utils::TelemetryRef#keying',
+    'Onetime::Utils::DiagnosticsRef#keying',
     'at Foo::Bar#baz (/app/lib/onetime/logic/base.rb:107)',
     // Clock times: colons, digits, no doubled colon.
     '2026-07-30T12:34:56.789Z',

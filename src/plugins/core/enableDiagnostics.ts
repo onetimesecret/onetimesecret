@@ -1,4 +1,29 @@
 // src/plugins/core/enableDiagnostics.ts
+//
+// ═══════════════════════════════════════════════════════════════════════════════
+// THE DIAGNOSTICS BOUNDARY (Sentry wiring)
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// REFERENCE: docs/architecture/diagnostics-privacy-boundary.md
+//
+// This module constructs the browser Sentry client and installs the three
+// handlers that everything this app reports passes through on the way out:
+// `beforeSend` (errors), `beforeSendTransaction` (performance events) and
+// `beforeBreadcrumb` (capture-time breadcrumbs).
+//
+// THIS SUBSYSTEM IS DIAGNOSTICS, NOT ANALYTICS AND NOT METRICS. It exists so a
+// defect can be traced back to the code and the endpoint that produced it. It
+// does not measure usage, count events for reporting, or profile behaviour, and
+// no field emitted from here is read for any of those purposes. That framing is
+// what settles the recurring trade-off in the comments below: a field earns its
+// place by making a defect diagnosable, and pays for itself only if it carries
+// no personal data — so a byte count stays and a request body does not.
+//
+// LAYER RULE: this directory is SENTRY WIRING. The pure policy it composes —
+// scrubbers, URL scrubbing, the schema-issue projection, the route/ref
+// registries — lives under src/utils/diagnostics/ and knows nothing about
+// Sentry. The two modules that stay here (diagnostics/actorIdentity.ts,
+// diagnostics/breadcrumbPolicy.ts) do so because they speak Sentry's own types.
 
 import { getBootstrapValue } from '@/services/bootstrap.service';
 import { initDiagnostics } from '@/services/diagnostics.service';
@@ -43,7 +68,7 @@ import {
   httpBreadcrumbDurationFromHint,
   pickAllowedData,
 } from './diagnostics/breadcrumbPolicy';
-import { collectValuesToRedact, scrubUrlWithValues } from './diagnostics/urlScrubbing';
+import { collectValuesToRedact, scrubUrlWithValues } from '@/utils/diagnostics/urlScrubbing';
 // Re-export scrubbing utilities from dependency-free module for backward compatibility
 export {
   EMAIL_PATTERN,
@@ -51,7 +76,7 @@ export {
   VERIFIABLE_ID_PATTERN,
   scrubSensitiveStrings,
   scrubUrlWithPatterns,
-} from './diagnostics/scrubbers';
+} from '@/utils/diagnostics/scrubbers';
 
 export const SENTRY_KEY = Symbol('sentry');
 
@@ -60,7 +85,7 @@ import {
   scrubQueryStringValues,
   scrubSensitiveStrings,
   scrubUrlWithPatterns,
-} from './diagnostics/scrubbers';
+} from '@/utils/diagnostics/scrubbers';
 
 /**
  * Two-layer URL scrubbing for a single URL string:
@@ -230,9 +255,12 @@ function scrubRefererHeader(
  *     the outbound path re-asserts both the key set AND the value shape rather
  *     than trusting them. Checking the value is what makes this a filter and
  *     not a launderer: a keys-only gate would delete `email` while faithfully
- *     forwarding `setUser({ id: cust.email })`. This is what guarantees no
- *     email / username / inferred IP leaves the browser regardless of who
- *     populated the scope. See src/plugins/core/diagnostics/actorIdentity.ts.
+ *     forwarding `setUser({ id: cust.email })`. SCOPE THE GUARANTEE EXACTLY: it
+ *     covers the `user` CONTEXT, on every event, regardless of who populated
+ *     the scope — no email, username, or SDK-attached IP survives there. It
+ *     says nothing about other fields; an email interpolated into an exception
+ *     message or a URL is the free-text scrubbers' job, above.
+ *     See src/plugins/core/diagnostics/actorIdentity.ts.
  *
  * Event-kind-specific fields (error breadcrumbs, transaction spans) are handled
  * by the respective callers, not here.
@@ -301,19 +329,25 @@ function scrubNavigationBreadcrumb(router: Router, breadcrumb: Breadcrumb): void
  * Creates a Sentry beforeBreadcrumb handler enforcing the METADATA-ONLY
  * breadcrumb policy.
  *
- * Every breadcrumb leaving this handler has been through two independent
- * controls:
+ * Two controls run here, and they cover DIFFERENT populations — read the split
+ * literally, because it is the difference between what this handler enforces
+ * and what it merely tidies:
  *
- * 1. **Value scrubbing** — category-specific URL scrubbing (below), plus the
- *    universal free-text pass in `applyFreeTextPolicy` (message scrubbing for
- *    every category, `data.arguments` dropped on console breadcrumbs).
- * 2. **Structural allowlisting** — `data` is reduced to a fixed key set per
- *    category. Anything outside that set is dropped whether or not this
- *    codebase knows it exists. See src/plugins/core/diagnostics/breadcrumbPolicy.ts
- *    for the full rationale and the retained/refused sets.
+ * 1. **Value scrubbing — EVERY category.** The universal free-text pass in
+ *    `applyFreeTextPolicy` (message scrubbing for every category,
+ *    `data.arguments` dropped on console breadcrumbs), plus category-specific
+ *    URL scrubbing for the two categories that carry URLs.
+ * 2. **Structural allowlisting — ONLY `navigation`, `xhr` and `fetch`.** For
+ *    those three, `data` is reduced to a fixed key set and anything outside it
+ *    is dropped whether or not this codebase knows the key exists. Every other
+ *    category (console, ui.click, ui.input, history, sentry.*) keeps its `data`
+ *    bag structurally intact — see the "All other categories" note below for
+ *    why, and src/plugins/core/diagnostics/breadcrumbPolicy.ts for the full
+ *    retained/refused sets.
  *
- * The two controls are deliberately independent: scrubbing catches sensitive
- * VALUES in keys we expect, allowlisting catches entire KEYS we did not.
+ * The two controls are deliberately independent where both apply: scrubbing
+ * catches sensitive VALUES in keys we expect, allowlisting catches entire KEYS
+ * we did not.
  *
  * **Navigation breadcrumbs** (`category === 'navigation'`):
  * Uses router.resolve() to get route metadata and params for accurate scrubbing.
@@ -656,16 +690,28 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
     linkedErrorsIntegration(),
     dedupeIntegration(),
     // Attaches request.url (location.href), referrer, and user-agent to every
-    // event. Without this, events arrive with an empty `url` field. The URL
-    // passes through createBeforeSendHandler's scrubbing (route-param values
-    // plus the pattern net), so secret identifiers never reach Sentry.
+    // event. Without this, events arrive with an empty `url` field. The URL is
+    // scrubbed on the way out — by `scrubCommonEventFields`, which both
+    // `beforeSend` and `beforeSendTransaction` call, so errors and transactions
+    // get the same treatment: layer 1 redacts the route's own resolved param
+    // VALUES, layer 2 redacts by SHAPE (sensitive path prefixes, emails,
+    // 62/31-char verifiable ids, prefixed object ids, UUIDs, IP literals, and
+    // sensitive query-param values by name). Between them that covers every
+    // identifier shape this app puts in a URL today. It is not a proof: a
+    // future identifier of an unrecognised shape, sitting on a route that opted
+    // out of param scrubbing, would survive both layers. Adding a shape to
+    // src/utils/diagnostics/scrubbers.ts is how that gets closed.
     //
     // PRIVACY AUDIT (requirement 3): this integration attaches exactly three
     // things — `request.url`, `request.headers.Referer`, and
-    // `request.headers['User-Agent']`. It does NOT attach an IP address, an
-    // email, a cookie, or any other header; there is no client-side source for
-    // the reporter's IP in a browser at all. The Referer is a full URL and is
-    // scrubbed in `scrubCommonEventFields`.
+    // `request.headers['User-Agent']`. Read out of the installed SDK, not
+    // assumed: `getHttpRequestData()` in @sentry/browser's helpers builds
+    // `{ url, headers: { Referer?, 'User-Agent'? } }` and nothing else. It does
+    // NOT attach an IP address, an email, a cookie, or any other header; there
+    // is no client-side source for the reporter's IP in a browser at all. The
+    // Referer is a full URL and is scrubbed in `scrubCommonEventFields`. An SDK
+    // upgrade that widens that function widens this comment's claim with it, so
+    // re-read it when the dependency moves.
     //
     // The remaining IP exposure is SERVER-side: Sentry's ingest sees the TCP
     // source address of the transport request and substitutes it for
@@ -895,7 +941,7 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
     /**
      * `normalizeDepth` is PINNED, after the spread, for the same reason `dist`
      * and `sendDefaultPii` are — and here the thing being protected is the
-     * payload this whole telemetry boundary exists to deliver.
+     * diagnostic payload this whole boundary exists to deliver.
      *
      * Sentry normalizes `event.extra` before transport: primitives survive at
      * any depth, but a still-nested object at the depth limit is replaced by
@@ -955,7 +1001,7 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
   // current scope (integration-captured events). See applyDeploymentTags.
   applyDeploymentTags([scope, getCurrentScope()], host);
 
-  // Actor identity from the server-provided `telemetry` bootstrap block, on
+  // Actor identity from the server-provided `diagnostics_actor` bootstrap block, on
   // the same two scopes and for the same reason.
   //
   // BOOT ORDERING: this runs inside createDiagnostics(), which appInitializer

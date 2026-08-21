@@ -1,8 +1,11 @@
-// src/utils/telemetry/safeFieldRegistry.ts
+// src/utils/diagnostics/safeFieldRegistry.ts
+//
+// LAYER RULE: src/utils/diagnostics/ is pure policy — it must not import from
+// `@sentry/*` nor from `src/plugins/`.
 //
 // ===========================================================================
 // SAFE-FIELD REGISTRY - the ONLY sanctioned escape hatch from "types, never
-// values" in schema-validation telemetry.
+// values" in schema-validation diagnostics.
 // ===========================================================================
 //
 // WHY THIS EXISTS
@@ -63,7 +66,7 @@
 //
 // RELATIONSHIP TO THE ACCEPTANCE SUITE
 // ------------------------------------
-// `src/tests/plugins/core/diagnostics/telemetryBoundary.spec.ts` asserts by
+// `src/tests/plugins/core/diagnostics/diagnosticsBoundary.spec.ts` asserts by
 // allowlist over the emitted key names, using `SecretResponse` fixtures. No
 // `SecretResponse` field is enrolled here, so the default projection is what
 // that suite sees - which is the point: registry descriptors are an explicit,
@@ -261,9 +264,10 @@ export function describeSafeField(
  *
  * It is far past that cap: enumerated from the live schema,
  * `colonelOrganizationDetailRecordSchema` (schemas/api/internal/responses/
- * colonel-organizations.ts) declares 24 fields and `subscription_period_end` is
- * the 21st. An earlier version of this comment said "the 12th key", which was
- * wrong. Both ordinals will drift as the schema grows, which is why the claim
+ * colonel-organizations.ts) declares 25 fields and `subscription_period_end` is
+ * the 21st. Earlier versions of this comment said "the 12th key", and then "24
+ * fields" before `organization_ref` was declared; both were wrong. Both
+ * ordinals will drift as the schema grows, which is why the claim
  * is pinned by execution rather than by prose: `safeFieldRetention.spec.ts`
  * drifts every field of the REAL schema at once and asserts the enrolled row
  * survives. If enrollment ever stops rescuing it, that spec fails - no ordinal

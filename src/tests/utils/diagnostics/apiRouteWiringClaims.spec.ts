@@ -1,4 +1,4 @@
-// src/tests/utils/telemetry/apiRouteWiringClaims.spec.ts
+// src/tests/utils/diagnostics/apiRouteWiringClaims.spec.ts
 //
 // A DOC-DRIFT GUARD, not a behaviour test.
 //
@@ -27,7 +27,7 @@ const INTERCEPTORS = 'src/plugins/axios/interceptors.ts';
 
 /** Files whose comments describe the wiring state. */
 const CLAIM_SITES = [
-  'src/utils/telemetry/apiRouteContext.ts',
+  'src/utils/diagnostics/apiRouteContext.ts',
   'src/utils/schemaValidation.ts',
 ];
 
@@ -48,7 +48,7 @@ describe('api-route wiring claims match the code', () => {
     // The single production caller. If this assertion ever fails, the feature
     // IS inert again and the prose in CLAIM_SITES must say so.
     expect(source(INTERCEPTORS)).toContain('setCurrentApiRoute(');
-    expect(source(INTERCEPTORS)).toContain("from '@/utils/telemetry/apiRouteContext'");
+    expect(source(INTERCEPTORS)).toContain("from '@/utils/diagnostics/apiRouteContext'");
   });
 
   it.each(CLAIM_SITES)('%s no longer describes the feature as unwired', (file) => {

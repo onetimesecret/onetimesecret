@@ -1,4 +1,7 @@
-// src/utils/telemetry/resourceRefRegistry.ts
+// src/utils/diagnostics/resourceRefRegistry.ts
+//
+// LAYER RULE: src/utils/diagnostics/ is pure policy — it must not import from
+// `@sentry/*` nor from `src/plugins/`.
 //
 // ===========================================================================
 // RESOURCE-REF REGISTRY - the exact-match allowlist that lets a schema
@@ -32,9 +35,13 @@
 // CARDINALITY ALONE: N events / 1 distinct ref means one org, N events / N
 // refs means everyone. Nothing about the org is learned either way.
 //
+// Note the counting is a DIAGNOSTIC read of events that already exist because
+// something broke - it is not usage measurement. No ref is emitted on a
+// successful parse, so these tags describe defects and nothing else.
+//
 // This is the "concrete consumer" whose absence got an earlier
 // `organization_ref` deleted from the Ruby side (see the note in
-// apps/web/core/views/serializers/telemetry_serializer.rb): the ref existed
+// apps/web/core/views/serializers/diagnostics_serializer.rb): the ref existed
 // but no event ever carried an org value, so there was nothing to resolve
 // from. This module IS the thing that puts one on an event.
 //
@@ -59,14 +66,14 @@
 // THE PRIVACY BOUNDARY (read before adding an entry)
 // --------------------------------------------------
 //  1. OPAQUE, KEYED, ONE-WAY VALUES ONLY. The enrolled field must hold a
-//     server-derived pseudonym - the Ruby side's `Onetime::Utils::TelemetryRef`
+//     server-derived pseudonym - the Ruby side's `Onetime::Utils::DiagnosticsRef`
 //     shape, 16 lowercase hex. Never an extid, a display name, an email, a
 //     billing identifier, a slug, or anything else with meaning outside the
 //     keying secret. The shape check enforces the FORMAT; only review
 //     enforces that the field is genuinely a pseudonym.
 //  2. TAG, NOT EXTRA. Refs are emitted as tags because aggregating by ref is
 //     the entire point and `event.extra` is not indexed. Neither surface is
-//     scrubbed downstream (see `telemetrySurfaceClaims.spec.ts`), so this is
+//     scrubbed downstream (see `diagnosticsSurfaceClaims.spec.ts`), so this is
 //     an aggregation choice, not a safety one - the value must already be
 //     safe before it reaches either.
 //  3. INTERNAL/ADMIN SCHEMAS ONLY. Enrollment is per (schema, path). A
@@ -91,7 +98,7 @@ const KEY_SEP = '\u0000';
  * The ONLY accepted resource-ref shape: 16 lowercase hex characters, anchored
  * at both ends.
  *
- * This mirrors `Onetime::Utils::TelemetryRef`, the same producer behind the
+ * This mirrors `Onetime::Utils::DiagnosticsRef`, the same producer behind the
  * `actor_ref` the frontend already puts on `user.id`. Lowercase is required
  * rather than normalized: `applyTagsFromContext` in diagnostics.service.ts
  * lowercases every tag VALUE, so accepting uppercase would let a value that

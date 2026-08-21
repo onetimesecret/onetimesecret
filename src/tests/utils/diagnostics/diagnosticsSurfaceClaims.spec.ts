@@ -1,4 +1,4 @@
-// src/tests/utils/telemetry/telemetrySurfaceClaims.spec.ts
+// src/tests/utils/diagnostics/diagnosticsSurfaceClaims.spec.ts
 //
 // EXECUTED SURFACE CLAIMS.
 //
@@ -25,8 +25,8 @@ vi.mock('@/services/logging.service', () => ({
 import type { BrowserClient, Scope } from '@sentry/vue';
 import { initDiagnostics } from '@/services/diagnostics.service';
 import { gracefulParse } from '@/utils/schemaValidation';
-import { projectSchemaIssues } from '@/utils/telemetry/schemaIssueProjection';
-import { resetApiRouteContext, setCurrentApiRoute } from '@/utils/telemetry/apiRouteContext';
+import { projectSchemaIssues } from '@/utils/diagnostics/schemaIssueProjection';
+import { resetApiRouteContext, setCurrentApiRoute } from '@/utils/diagnostics/apiRouteContext';
 
 // ---------------------------------------------------------------------------
 // A Sentry scope that records which surface each key was written to.

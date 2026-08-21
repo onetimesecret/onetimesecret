@@ -5,8 +5,16 @@
 // ═══════════════════════════════════════════════════════════════════════════════
 //
 // A breadcrumb answers "what happened just before the error", not "what was in
-// it". This module enforces that distinction structurally, with per-category
-// key ALLOWLISTS rather than denylists.
+// it". That is the intent for every category. Where this module enforces it
+// STRUCTURALLY is narrower and worth knowing precisely: `xhr`, `fetch` and
+// `navigation` get per-category key ALLOWLISTS (with a per-key type check);
+// every other category gets the free-text pass at the bottom of this file and
+// nothing structural. The refused-set section below says so again, because the
+// gap is the thing a reader is most likely to get wrong.
+//
+// This is a diagnostics control, not an analytics pipeline — a breadcrumb is
+// here to reconstruct the sequence that produced a defect, never to count what
+// a user did.
 //
 // ── Why allowlist and not denylist ────────────────────────────────────────────
 //
@@ -105,15 +113,18 @@
 // can guarantee, and the message (scrubbed) already carries the diagnostic
 // signal.
 //
-// Note on production reach: `dropConsole: true` in the rolldown minifier
-// removes our own `console.*` calls from production bundles, so in prod the
-// console-breadcrumb surface is limited to vendored code. In dev it is wide
-// open. The scrubbing applies in both — dev sessions reach Sentry too whenever
-// a developer runs against a real DSN.
+// Note on production reach, stated no more strongly than it holds:
+// `minify.compress.dropConsole: true` (vite.config.ts) removes the `console.*`
+// calls the minifier can see statically from the production bundle — which is
+// ONE self-contained chunk, so that covers bundled dependencies as well as our
+// own code, not just ours. What survives in prod is whatever the minifier
+// cannot resolve statically. In dev nothing is minified and the surface is wide
+// open. The policy below applies in both, because a dev session pointed at a
+// real DSN reaches Sentry exactly like a production one.
 
 import type { Breadcrumb } from '@sentry/core';
 
-import { scrubSensitiveStrings } from './scrubbers';
+import { scrubSensitiveStrings } from '@/utils/diagnostics/scrubbers';
 
 /**
  * Keys retained on `data` for `xhr` / `fetch` breadcrumbs.

@@ -15,8 +15,8 @@
 // `gracefulParse` ships a bounded, value-free PROJECTION of every issue -- field
 // path, issue code, expected type, received type -- so the next bug of this
 // class names its own cause in Sentry instead of being inferred. See
-// src/utils/telemetry/schemaIssueProjection.ts for the privacy boundary and
-// src/tests/plugins/core/diagnostics/telemetryBoundary.spec.ts for the
+// src/utils/diagnostics/schemaIssueProjection.ts for the privacy boundary and
+// src/tests/plugins/core/diagnostics/diagnosticsBoundary.spec.ts for the
 // end-to-end leak suite.
 //
 // This spec ends the guessing by doing on our side what production hides: it
@@ -59,7 +59,7 @@ vi.mock('@/services/logging.service', () => ({
 import { colonelOrganizationDetailRecordSchema } from '@/schemas/api/internal/responses/colonel-organizations';
 import { captureException } from '@/services/diagnostics.service';
 import { gracefulParse } from '@/utils/schemaValidation';
-import { describeEpochLike, enrolledSafeFieldKeys } from '@/utils/telemetry/safeFieldRegistry';
+import { describeEpochLike, enrolledSafeFieldKeys } from '@/utils/diagnostics/safeFieldRegistry';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -441,9 +441,9 @@ describe('#3424 forensics — summary report', () => {
 // DIAGNOSTIC-POWER FLOOR — Colonel organization detail, subscription_period_end
 // ─────────────────────────────────────────────────────────────────────────────
 //
-// This is the acceptance guard for the bug that motivated the telemetry rework
+// This is the acceptance guard for the bug that motivated the diagnostics rework
 // on this branch, and it is deliberately the mirror image of the leak suite:
-// `telemetryBoundary.spec.ts` proves nothing sensitive gets OUT, this proves
+// `diagnosticsBoundary.spec.ts` proves nothing sensitive gets OUT, this proves
 // enough gets out to be USEFUL. Over-scrubbing is a regression, not a win.
 //
 // The bug: Familia stores an organization's billing period end as an epoch, and
@@ -455,7 +455,8 @@ describe('#3424 forensics — summary report', () => {
 //
 // Commit 5f5a8a5732 coerced all four emit sites with `&.to_s`, and the schema was
 // separately widened to `z.union([z.string(), z.number()])` so a mixed-version
-// deployment survives. Both of those are asserted below, alongside the telemetry.
+// deployment survives. Both of those are asserted below, alongside the diagnostic
+// context the failure sends to Sentry.
 
 /** The schema exactly as it stood when the bug fired: string-only, nullable. */
 const historicalColonelRecordSchema = z.object({

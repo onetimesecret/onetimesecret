@@ -21,7 +21,7 @@ import {
   putDomainIncomingConfigResponseSchema,
 } from '@/schemas/api/domains/responses/incoming-config';
 import type { CustomDomainIncomingConfig } from '@/schemas/shapes/domains/incoming-config';
-import { projectSchemaIssues } from '@/utils/telemetry/schemaIssueProjection';
+import { projectSchemaIssues } from '@/utils/diagnostics/schemaIssueProjection';
 import { gracefulParse, strictParse } from '@/utils/schemaValidation';
 
 const $api = createApi();

@@ -1,4 +1,4 @@
-// src/tests/utils/telemetry/safeFieldRetention.spec.ts
+// src/tests/utils/diagnostics/safeFieldRetention.spec.ts
 //
 // Pins the ONE guarantee `safeFieldRegistry` exists to provide, against the
 // REAL Colonel schema rather than a synthetic one.
@@ -21,8 +21,8 @@ import { colonelOrganizationDetailRecordSchema } from '@/schemas/api/internal/re
 import {
   MAX_PROJECTED_ISSUES,
   projectSchemaIssues,
-} from '@/utils/telemetry/schemaIssueProjection';
-import { enrolledSafeFieldKeys } from '@/utils/telemetry/safeFieldRegistry';
+} from '@/utils/diagnostics/schemaIssueProjection';
+import { enrolledSafeFieldKeys } from '@/utils/diagnostics/safeFieldRegistry';
 
 const SCHEMA_NAME = 'ColonelOrganizationDetailResponse';
 const ENROLLED_PATH = 'record.subscription_period_end';

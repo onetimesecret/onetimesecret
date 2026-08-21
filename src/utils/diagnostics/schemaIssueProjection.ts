@@ -1,8 +1,18 @@
-// src/utils/telemetry/schemaIssueProjection.ts
+// src/utils/diagnostics/schemaIssueProjection.ts
+//
+// REFERENCE: docs/architecture/diagnostics-privacy-boundary.md
+//
+// LAYER RULE: src/utils/diagnostics/ is pure policy — it must not import from
+// `@sentry/*` nor from `src/plugins/`. This module decides WHAT a failure is
+// allowed to say; the plugin layer decides how it is sent.
 //
 // ===========================================================================
 // SCHEMA-ISSUE PROJECTION - the value-free rendering of a ZodError.
 // ===========================================================================
+//
+// This is a DIAGNOSTICS projection, not analytics and not metrics: it runs only
+// when a parse FAILS, and every field it emits exists to make that failure
+// diagnosable. Nothing here measures usage or counts events for reporting.
 //
 // THE TWO PROPERTIES THAT MUST HOLD AT ONCE
 // -----------------------------------------
@@ -73,7 +83,7 @@
 // reason: a joined string is a primitive and can never be normalized into
 // `[Array]`, and it is what an operator actually greps for in Sentry search.
 
-import { scrubSensitiveStrings } from '@/plugins/core/diagnostics/scrubbers';
+import { scrubSensitiveStrings } from '@/utils/diagnostics/scrubbers';
 import type { z } from 'zod';
 
 import { describeSafeField, isSafeFieldEnrolled } from './safeFieldRegistry';
@@ -345,9 +355,19 @@ function joinPath(path: ReadonlyArray<PropertyKey>): string {
 /**
  * Zod issue shape, read structurally rather than through Zod's discriminated
  * union so this module keeps working across Zod point releases that add or
- * rename issue kinds. Only the fields we are ALLOWED to read are declared -
- * `message`, `keys`, `values` and `input` are intentionally absent from this
- * interface so a future edit cannot reach them by accident.
+ * rename issue kinds.
+ *
+ * `input` is intentionally absent: it is the raw failing value, nothing here
+ * may read it, and leaving it undeclared means a future edit has to add it
+ * deliberately rather than reach it by accident. `message` is absent for the
+ * same reason but is NOT unreachable - two call sites read it through an
+ * explicit cast (`collectRedactionSignals`, which keeps only the scrub
+ * sentinels, and `describeCustomIssue`, which keeps only a token-class shape).
+ * Both discard the text; the cast is the reminder that reading it is a
+ * deliberate act.
+ *
+ * `keys` and `values` ARE declared, and are read under the restrictions noted
+ * on each: `keys` for its LENGTH only, `values` only through `safeConstant`.
  */
 interface RawIssueLike {
   code?: string;
@@ -421,7 +441,7 @@ const FORMAT_NAME = /^[a-z0-9_]{1,32}$/i;
  * constants this issue kind carries.
  *
  * WHY ONE FIELD AND NOT FIVE. The end-to-end acceptance suite
- * (telemetryBoundary.spec.ts) asserts by ALLOWLIST over emitted key names, and
+ * (diagnosticsBoundary.spec.ts) asserts by ALLOWLIST over emitted key names, and
  * `expected` is the approved spelling for "what the schema declared". Adding
  * `format`, `minimum`, `maximum`, `origin` and `inclusive` as five new row keys
  * would widen that vocabulary five times over for one concept. Composition
@@ -771,7 +791,7 @@ function buildRow(
  * Truncation used to be `flattened.slice(0, limit)` - first N in Zod
  * DECLARATION order - which silently dropped the field that mattered from BOTH
  * emitted surfaces. Reproduced by drifting every field of the REAL
- * `colonelOrganizationDetailRecordSchema` at once: it declares 24 fields and
+ * `colonelOrganizationDetailRecordSchema` at once: it declares 25 fields and
  * `record.subscription_period_end` is the 21st, so the first ten rows in key
  * order stop at `record.owner_id` and the field was absent from `issues` AND
  * from the `schemaField` tag. A search for "every event where

@@ -1,8 +1,8 @@
 // src/plugins/axios/interceptors.ts
 
-import { scrubSensitiveStrings, scrubUrlWithPatterns } from '@/plugins/core/diagnostics/scrubbers';
+import { scrubSensitiveStrings, scrubUrlWithPatterns } from '@/utils/diagnostics/scrubbers';
 import { useLanguageStore } from '@/shared/stores';
-import { setCurrentApiRoute } from '@/utils/telemetry/apiRouteContext';
+import { setCurrentApiRoute } from '@/utils/diagnostics/apiRouteContext';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { addBreadcrumb } from '@sentry/vue';
@@ -66,11 +66,13 @@ const getDomainContext = (): string | null => {
 // all (the bootstrap payload parsed at startup, a sessionStorage bag re-read on
 // a user action) — was tagged with whatever route happened to go out last.
 //
-// That is not a leak: the value is parameterized (`/api/colonel/orgs/:org_id`)
-// and scrubbed before it is ever emitted. It is a CORRECTNESS defect in a
-// diagnostic, which has its own cost — `apiRoute` is the field an operator uses
-// to decide which endpoint to go read, and a confidently wrong one sends them
-// to code that never ran.
+// Misattribution, not disclosure: the value stored here is parameterized on the
+// way in (`/api/colonel/orgs/:org_id`) and scrubbed again by `sanitizeApiRoute`
+// on the way out, so the stale route was a route either way — see the
+// guaranteed/best-effort split in `apiRouteContext.ts` for how far that goes.
+// It is a CORRECTNESS defect in a diagnostic, which has its own cost:
+// `apiRoute` is the field an operator uses to decide which endpoint to go read,
+// and a confidently wrong one sends them to code that never ran.
 //
 // TWO THINGS MAKE THE RELEASE CORRECT, and both are load-bearing:
 //
