@@ -1,10 +1,8 @@
 // src/plugins/axios/interceptors.ts
 
-import {
-  scrubSensitiveStrings,
-  scrubUrlWithPatterns,
-} from '@/plugins/core/diagnostics/scrubbers';
+import { scrubSensitiveStrings, scrubUrlWithPatterns } from '@/plugins/core/diagnostics/scrubbers';
 import { useLanguageStore } from '@/shared/stores';
+import { setCurrentApiRoute } from '@/utils/telemetry/apiRouteContext';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { addBreadcrumb } from '@sentry/vue';
@@ -56,6 +54,84 @@ const getDomainContext = (): string | null => {
   }
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// API-ROUTE SLOT LIFECYCLE
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// `setCurrentApiRoute` fills a single module-level slot that `resolveApiRoute()`
+// reads whenever a schema validation fails, to tag the event with the endpoint
+// that produced the payload. Stamping it on request and NEVER clearing it made
+// the slot monotonic: after the first API call of the session, every later
+// `gracefulParse` failure — including ones with no axios call behind them at
+// all (the bootstrap payload parsed at startup, a sessionStorage bag re-read on
+// a user action) — was tagged with whatever route happened to go out last.
+//
+// That is not a leak: the value is parameterized (`/api/colonel/orgs/:org_id`)
+// and scrubbed before it is ever emitted. It is a CORRECTNESS defect in a
+// diagnostic, which has its own cost — `apiRoute` is the field an operator uses
+// to decide which endpoint to go read, and a confidently wrong one sends them
+// to code that never ran.
+//
+// TWO THINGS MAKE THE RELEASE CORRECT, and both are load-bearing:
+//
+//  1. IT IS DEFERRED BY A MACROTASK. The consumer of the slot is not this
+//     module — it is the awaiting caller, which runs `gracefulParse` on the
+//     response body in a microtask continuation queued AFTER the response
+//     interceptor returns. Clearing synchronously here would delete the route
+//     just before the one parse that needs it, turning a wrong tag into no tag.
+//     A `setTimeout(…, 0)` callback runs after the entire microtask queue
+//     drains, so the caller's response handling still resolves the route and
+//     anything later does not.
+//
+//  2. IT IS REFERENCE-COUNTED. Requests overlap. The slot is last-writer-wins
+//     by design, but an unconditional clear on settle would let a short request
+//     A wipe the route of a slower in-flight request B. Clearing only when the
+//     count reaches zero means an overlap degrades to the pre-existing
+//     last-writer-wins behaviour rather than to an empty slot.
+//
+// A request whose promise never settles (a page unload mid-flight) leaves the
+// count above zero and the slot stamped — i.e. exactly today's behaviour, which
+// is the right failure direction for a change whose whole purpose is to not
+// lose diagnostics.
+
+let inFlightRequests = 0;
+let pendingSlotClear: ReturnType<typeof setTimeout> | null = null;
+
+/** Stamps the outgoing route and takes a reference on the slot. */
+const noteApiRequestStarted = (url: string | null): void => {
+  inFlightRequests += 1;
+  setCurrentApiRoute(url);
+};
+
+/**
+ * Drops a reference and, once nothing is in flight, clears the slot one
+ * macrotask later. Safe to call more times than `noteApiRequestStarted` — the
+ * count floors at zero rather than going negative.
+ */
+const releaseApiRouteSlot = (): void => {
+  inFlightRequests = Math.max(0, inFlightRequests - 1);
+  if (inFlightRequests > 0 || pendingSlotClear !== null) return;
+  pendingSlotClear = setTimeout(() => {
+    pendingSlotClear = null;
+    // Re-checked: a new request may have started while this was queued.
+    if (inFlightRequests === 0) setCurrentApiRoute(null);
+  }, 0);
+};
+
+/**
+ * Drops the in-flight count and any queued clear. TEST-CLEANUP HELPER, mirroring
+ * `resetApiRouteContext()` in the module that owns the slot itself: a spec that
+ * drives `requestInterceptor` without a matching settle would otherwise carry a
+ * non-zero reference count into the next test and suppress its clear.
+ */
+export const resetApiRouteSlotLifecycle = (): void => {
+  inFlightRequests = 0;
+  if (pendingSlotClear !== null) {
+    clearTimeout(pendingSlotClear);
+    pendingSlotClear = null;
+  }
+};
+
 /**
  * Request interceptor that adds the CSRF token to outgoing requests
  * @param config - Axios request configuration
@@ -63,6 +139,30 @@ const getDomainContext = (): string | null => {
  */
 export const requestInterceptor = (config: InternalAxiosRequestConfig) => {
   config.headers = config.headers || {};
+
+  // Stamp the PARAMETERIZED route of the call now going out, so that a schema
+  // -validation failure on its response can say WHICH ENDPOINT produced the
+  // payload without naming the tenant.
+  //
+  // This is the single production caller of `setCurrentApiRoute`, and the whole
+  // of requirement 6 hangs off it: without this line `resolveApiRoute()` returns
+  // `undefined` forever and the `apiRoute` tag never exists. It lives here
+  // because the request interceptor is the ONE place in the app that holds a
+  // request URL — `gracefulParse`'s ~25 call sites receive a decoded body and
+  // nothing else.
+  //
+  // The URL is parameterized ON THE WAY IN (`setCurrentApiRoute` calls
+  // `parameterizeApiPath` before storing), so the resolved form is never
+  // retained even in memory, and the slot holds at most one short string.
+  //
+  // Stamped BEFORE the store reads below, which sit inside a try/catch that
+  // swallows a pre-Pinia bootstrap failure: the route must be recorded whether
+  // or not the stores are available.
+  //
+  // The slot is RELEASED again when the request settles — see
+  // `releaseApiRouteSlot`. Leaving it stamped forever was a misattribution bug,
+  // not a leak.
+  noteApiRequestStarted(config.url ?? null);
 
   // Access all Pinia stores in a single try/catch block.
   // Pinia throws if called before app.use(pinia) during bootstrap.
@@ -103,6 +203,9 @@ export const requestInterceptor = (config: InternalAxiosRequestConfig) => {
  * @returns The original response after processing
  */
 export const responseInterceptor = (response: AxiosResponse) => {
+  // First, so the reference is dropped even if a store read below throws.
+  releaseApiRouteSlot();
+
   const csrfStore = useCsrfStore();
   // Read CSRF token from response header (industry standard)
   const responseShrimp = response.headers['x-csrf-token'];
@@ -120,6 +223,11 @@ export const responseInterceptor = (response: AxiosResponse) => {
  * @returns Rejected promise with simplified error message
  */
 export const errorInterceptor = (error: AxiosError) => {
+  // First, so the reference is dropped even if a store read below throws. A
+  // failed request settles the same as a successful one; the caller's catch
+  // block still resolves the route for the macrotask that follows.
+  releaseApiRouteSlot();
+
   const csrfStore = useCsrfStore();
   // Read CSRF token from response header even in error cases
   const responseShrimp = error.response?.headers['x-csrf-token'];
