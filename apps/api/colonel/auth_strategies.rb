@@ -16,7 +16,8 @@ module ColonelAPI
       PROXY_DEBUG_HEADERS_PATH = '/system/proxy-headers'
 
       # `X-OTS-Proxy-Debug-*`: what the reverse proxy saw, injected by Caddy's
-      # `(onetime-proxy-debug)` snippet on PROXY_DEBUG_HEADERS_PATH only.
+      # `(onetime-proxy-debug)` snippet (a path-matched `route` of
+      # `request_header` directives) on PROXY_DEBUG_HEADERS_PATH only.
       PROXY_DEBUG_HEADERS = %w[
         HTTP_X_OTS_PROXY_DEBUG_PEER
         HTTP_X_OTS_PROXY_DEBUG_CLIENT_IP

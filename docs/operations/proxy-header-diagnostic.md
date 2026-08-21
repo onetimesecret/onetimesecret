@@ -35,51 +35,75 @@ for trusted-proxy requirements, supported host values, and CIDR matching.
 
 ## Caddy configuration
 
-Add a dedicated handler before the normal dynamic reverse-proxy handler. The
-handler deletes each diagnostic field supplied by the client and replaces it
-with Caddy's own observations.
+Define the snippet below and import it at the site level alongside the normal
+dynamic `reverse_proxy` snippet. It runs only for the diagnostic path and
+replaces each diagnostic field supplied by the client with Caddy's own
+observations.
 
 ```caddyfile
-@proxy_header_debug path /api/colonel/system/proxy-headers
 # Caddy-side snapshot for GET /api/colonel/system/proxy-headers.
 #
-# Imported INSIDE onetime-proxy's reverse_proxy on purpose. A separate handle
-# with its own reverse_proxy carries none of the header_up rules below, so the
-# endpoint's "did Caddy change this?" comparison would describe a handler no
-# production request passes through.
+# Import at the SITE level, next to the reverse_proxy snippet:
+#
+#   uk.onetimesecret.com {
+#     import onetime-proxy-debug
+#     import onetime-proxy
+#   }
+#
+# `route` falls through to the following handlers, so the request still goes
+# through the ordinary reverse_proxy and all of its header_up rules. A separate
+# handle with its own reverse_proxy would carry none of them and the endpoint's
+# "did Caddy change this?" comparison would describe a handler no production
+# request passes through.
+#
+# `request_header` rather than `header_up`: header_up is a reverse_proxy
+# subdirective, unconditional by design, and accepts no matcher (a leading
+# `@matcher` token is silently parsed as a regex-replace on a header named
+# "@matcher"). request_header is the matcher-aware equivalent. It is Set
+# semantics, so a client-supplied value is replaced, and its placeholders read
+# the original request, so the Received-* values are captured before
+# reverse_proxy's header_up rules strip them.
 #
 # NO explicit deletes. Caddy applies Add -> Set -> Delete regardless of source
-# order, so a `header_up -X` next to a `header_up X {val}` deletes the value it
-# just set and the endpoint reports nothing. Two-arg header_up is Set, which
-# already replaces a client-supplied value; an absent source resolves to "",
-# not to the forged value. Verified on caddy v2.10.2.
+# order, so a `-X` next to an `X {val}` deletes the value it just set and the
+# endpoint reports nothing. An absent source resolves to "", not to the forged
+# value. Verified on caddy v2.10.2.
 #
-# Sent on every upstream request. Exposure is gated by the endpoint
-# (auth=sessionauth role=colonel + network=admin), not by Caddy.
+# Only sent upstream for the diagnostic path. On other paths a client-supplied
+# X-Ots-Proxy-Debug-* header passes through unchanged; the application ignores
+# these headers everywhere except the diagnostic route.
 (onetime-proxy-debug) {
-  # These are the values Caddy recieves and makes available to the
-  # application. Peer is the TCP peer after PROXY protocol unwrapping;
-  # client_ip is Caddy's trusted_proxies verdict. They diverge exactly
-  # when the trusted_proxies list has drifted.
-  # TODO: Need to rewrite for multiple scenarios (with/without edge
-  # proxy, with/without PROXY, with/without an LB).
-  header_up X-Ots-Proxy-Debug-Peer      {remote_host}
-  header_up X-Ots-Proxy-Debug-Client-IP {client_ip}
-  header_up X-Ots-Proxy-Debug-Host      {http.request.host}
+  @proxy_header_debug path /api/colonel/system/proxy-headers
+  # Placement in the site block is irrelevant: the Caddyfile adapter sorts
+  # directives into a fixed order (header ... request_header ... route ...
+  # reverse_proxy), not source order, so this runs before reverse_proxy
+  # wherever it is imported. See
+  # https://caddyserver.com/docs/caddyfile/directives#directive-order
+  route @proxy_header_debug {
+    # The values Caddy receives and makes available to the application.
+    # Peer is the TCP peer after PROXY protocol unwrapping; client_ip is
+    # Caddy's trusted_proxies verdict. They diverge exactly when the
+    # trusted_proxies list has drifted.
+    # TODO: Need to rewrite for multiple scenarios (with/without edge
+    # proxy, with/without PROXY, with/without an LB).
+    request_header X-Ots-Proxy-Debug-Peer      {remote_host}
+    request_header X-Ots-Proxy-Debug-Client-IP {client_ip}
+    request_header X-Ots-Proxy-Debug-Host      {http.request.host}
 
-  # These are the values that caddy recieved and removed before
-  # the request reaches the application.
-  header_up X-Ots-Proxy-Debug-Received-X-Forwarded-For   {http.request.header.X-Forwarded-For}
-  header_up X-Ots-Proxy-Debug-Received-X-Forwarded-Host  {http.request.header.X-Forwarded-Host}
-  header_up X-Ots-Proxy-Debug-Received-X-Real-IP         {http.request.header.X-Real-IP}
-  header_up X-Ots-Proxy-Debug-Received-X-Client-IP       {http.request.header.X-Client-IP}
-  header_up X-Ots-Proxy-Debug-Received-Forwarded         {http.request.header.Forwarded}
-  header_up X-Ots-Proxy-Debug-Received-Apx-Incoming-Host {http.request.header.Apx-Incoming-Host}
+    # The values Caddy received and removes before the request reaches
+    # the application.
+    request_header X-Ots-Proxy-Debug-Received-X-Forwarded-For   {http.request.header.X-Forwarded-For}
+    request_header X-Ots-Proxy-Debug-Received-X-Forwarded-Host  {http.request.header.X-Forwarded-Host}
+    request_header X-Ots-Proxy-Debug-Received-X-Real-IP         {http.request.header.X-Real-IP}
+    request_header X-Ots-Proxy-Debug-Received-X-Client-IP       {http.request.header.X-Client-IP}
+    request_header X-Ots-Proxy-Debug-Received-Forwarded         {http.request.header.Forwarded}
+    request_header X-Ots-Proxy-Debug-Received-Apx-Incoming-Host {http.request.header.Apx-Incoming-Host}
+  }
 }
 ```
 
-The exact upstream target should match the deployment's existing dynamic
-`reverse_proxy` target. Restrict the route at the network edge as well when
+The `reverse_proxy` snippet's upstream target should match the deployment's
+existing dynamic target. Restrict the route at the network edge as well when
 possible.
 
 ## How to use it
