@@ -1,5 +1,6 @@
 // src/tests/stores/localReceiptStore.spec.ts
 
+import { loggingService } from '@/services/logging.service';
 import { useLocalReceiptStore } from '@/shared/stores/localReceiptStore';
 import type { LocalReceipt } from '@/types/ui/local-receipt';
 import { createTestingPinia } from '@pinia/testing';
@@ -325,9 +326,9 @@ describe('localReceiptStore', () => {
       store.addReceipt(message);
       await nextTick();
 
-      const setItemCall = vi.mocked(sessionStorage.setItem).mock.calls.find(
-        (call) => call[0] === 'onetimeReceiptCache'
-      );
+      const setItemCall = vi
+        .mocked(sessionStorage.setItem)
+        .mock.calls.find((call) => call[0] === 'onetimeReceiptCache');
 
       expect(setItemCall).toBeDefined();
       const savedData = JSON.parse(setItemCall![1]);
@@ -454,9 +455,9 @@ describe('localReceiptStore', () => {
       store.addReceipt(messageWithExtra);
       await nextTick();
 
-      const setItemCall = vi.mocked(sessionStorage.setItem).mock.calls.find(
-        (call) => call[0] === 'onetimeReceiptCache'
-      );
+      const setItemCall = vi
+        .mocked(sessionStorage.setItem)
+        .mock.calls.find((call) => call[0] === 'onetimeReceiptCache');
 
       expect(setItemCall).toBeDefined();
       const savedJson = setItemCall![1];
@@ -617,6 +618,89 @@ describe('localReceiptStore', () => {
 
       const savedData = JSON.parse(lastCall[1]);
       expect(savedData[0].isRevealed).toBe(true);
+    });
+  });
+
+  // ==========================================================================
+  // Malformed sessionStorage payload -> the telemetry chokepoint
+  //
+  // `loadFromStorage` used to interpolate `result.error.message` — the
+  // JSON-serialized Zod issue list — into `loggingService.warn`, which is
+  // `console.warn`, which @sentry/browser captures as a console BREADCRUMB.
+  // The payload behind it is attacker-writable: anything can be typed into
+  // sessionStorage. `breadcrumbPolicy` scrubs `breadcrumb.message` by SHAPE, so
+  // emails and ids are netted, but that is a net rather than a boundary — text
+  // matching no known shape rides out intact.
+  //
+  // These assertions pin the STRUCTURE, not just the absence of one leaked
+  // string: a literal message plus value-free projected rows. Under the old
+  // interpolation the message argument was the serialized ZodError and there
+  // was no context argument at all, so both fail.
+  // ==========================================================================
+  describe('malformed sessionStorage payload', () => {
+    function loadStoreWith(raw: string) {
+      mockSessionStorage['onetimeReceiptCache'] = raw;
+      const app = createApp({});
+      const pinia = createTestingPinia({ stubActions: false });
+      app.use(pinia);
+      return useLocalReceiptStore(pinia);
+    }
+
+    it('logs the value-free PROJECTION, never the raw ZodError text', () => {
+      const warnSpy = vi.spyOn(loggingService, 'warn').mockImplementation(() => {});
+
+      const fresh = loadStoreWith(
+        JSON.stringify([{ id: 'alice@example.com', ttl: 'not-a-number' }])
+      );
+
+      expect(fresh.localReceipts).toEqual([]);
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+
+      const [message, context] = warnSpy.mock.calls[0];
+      // A literal — no interpolation of anything payload-derived.
+      expect(message).toBe('Invalid local receipts in storage, clearing');
+      expect(message).not.toContain('@');
+
+      // Projected rows: field path and issue metadata, nothing read out of the
+      // payload.
+      const ctx = context as { issueCount: number; issues: Record<string, unknown>[] };
+      expect(typeof ctx.issueCount).toBe('number');
+      expect(ctx.issueCount).toBeGreaterThan(0);
+      expect(Array.isArray(ctx.issues)).toBe(true);
+
+      const ALLOWED_ROW_KEYS = new Set([
+        'path',
+        'code',
+        'expected',
+        'received',
+        'issueCode',
+        'issueCount',
+        'keyCount',
+        'truncated',
+      ]);
+      for (const row of ctx.issues) {
+        for (const [key, value] of Object.entries(row)) {
+          expect(ALLOWED_ROW_KEYS.has(key)).toBe(true);
+          // Flat rows only: Sentry's normalizeDepth collapses nested objects.
+          expect(['string', 'number', 'boolean']).toContain(typeof value);
+        }
+      }
+
+      // The whole call, serialized, carries none of the payload's values.
+      expect(JSON.stringify(warnSpy.mock.calls[0])).not.toContain('alice@example.com');
+      expect(JSON.stringify(warnSpy.mock.calls[0])).not.toContain('not-a-number');
+
+      warnSpy.mockRestore();
+    });
+
+    it('still clears the corrupted entry', () => {
+      const warnSpy = vi.spyOn(loggingService, 'warn').mockImplementation(() => {});
+
+      loadStoreWith(JSON.stringify([{ id: 'only-an-id' }]));
+
+      expect(vi.mocked(sessionStorage.removeItem)).toHaveBeenCalledWith('onetimeReceiptCache');
+
+      warnSpy.mockRestore();
     });
   });
 });
