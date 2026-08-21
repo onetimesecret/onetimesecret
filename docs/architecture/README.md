@@ -35,6 +35,8 @@ Each layer has a distinct responsibility:
 - Explicit handling for async operations
 - Result types for expected failures
 - Clear separation between recoverable and system errors
+- What error reports may and may not carry is specified in
+  [diagnostics-privacy-boundary.md](diagnostics-privacy-boundary.md)
 
 ## Current Challenges
 

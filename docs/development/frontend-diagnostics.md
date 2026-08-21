@@ -49,7 +49,7 @@ diagnostics.service.ts (`errorType`, `schema`, `planid`, `role`, ...).
 ## Scrubbing
 
 Three hooks; all defined in enableDiagnostics.ts, patterns in
-`src/plugins/core/diagnostics/scrubbers.ts`:
+`src/utils/diagnostics/scrubbers.ts`:
 
 - `beforeSend` — exception/message strings, `request.url`, `request.headers.Referer`, `transaction`, breadcrumb URLs. Two layers: route-param value scrubbing (opt out per route with `meta.sentryScrubParams: false` — governs param values only) plus an always-on pattern net (emails, 62-char and legacy 31-char identifiers, sensitive paths, and sensitive query-param value redaction for `key` / `secret` / `token` / `passphrase`).
 - `beforeSendTransaction` — performance events bypass `beforeSend`; scrubs transaction name, `request.url`, span descriptions (free-text scrubber — the URL scrubber would mangle `GET /path` strings), and span `url` / `http.url` / `http.query` / `url.full` data.
@@ -64,6 +64,9 @@ pattern for anything the generated set misses.
 
 `pnpm vitest run src/tests/plugins/core/diagnostics/` plus
 `src/tests/services/diagnostics.service.spec.ts`.
+
+Privacy boundary — what may and may not be sent, and what enforces each
+prohibition: [../architecture/diagnostics-privacy-boundary.md](../architecture/diagnostics-privacy-boundary.md).
 
 Backend counterpart: [backend-diagnostics.md](backend-diagnostics.md).
 Scrub rules intentionally mirror `lib/onetime/initializers/setup_diagnostics.rb`.

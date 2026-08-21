@@ -55,5 +55,8 @@ Failure semantics: fail closed. URL scrub errors redact to
 - `spec/unit/onetime/initializers/setup_diagnostics_spec.rb`
 - Sentry doctor CLI: `lib/onetime/cli/diagnostics/sentry/doctor_command.rb`
 
+Privacy boundary — what may and may not be sent, and what enforces each
+prohibition: [../architecture/diagnostics-privacy-boundary.md](../architecture/diagnostics-privacy-boundary.md).
+
 Frontend counterpart: [frontend-diagnostics.md](frontend-diagnostics.md).
-The scrub rules intentionally mirror `src/plugins/core/diagnostics/scrubbers.ts`.
+The scrub rules intentionally mirror `src/utils/diagnostics/scrubbers.ts`.
