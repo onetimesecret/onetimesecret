@@ -21,8 +21,12 @@ Fixed
 Added
 -----
 
-- A privacy-preserving telemetry boundary for the frontend Sentry client, with
-  five parts, each enforced structurally rather than by convention:
+- A privacy-preserving diagnostics boundary for the frontend Sentry client.
+  Diagnostics here means one thing only: making a defect reproducible by the
+  people who have to fix it. It is not analytics and not metrics — nothing in
+  this subsystem measures usage, counts events for reporting, or profiles
+  behaviour, and no field described below exists to be aggregated. The boundary
+  has five parts, each enforced structurally rather than by convention:
 
   - **Value-free schema diagnostics.** ``ZodError`` rendering goes through one
     projection that emits only schema/context name, field path, issue code,
@@ -33,7 +37,7 @@ Added
     by contract because Sentry's ``normalizeDepth`` silently collapses a
     nested row to the string ``[Object]``.
 
-  - **Pseudonymous actor references.** ``Onetime::Utils::TelemetryRef``
+  - **Pseudonymous actor references.** ``Onetime::Utils::DiagnosticsRef``
     derives an opaque, keyed, one-way ``user.id`` so the same person maps to
     the same identity across events without an email, customer id, extid or IP
     reaching the backend. It is deliberately *not* the federation email hash,
@@ -49,7 +53,7 @@ Added
     "one organization is broken" reads identically to "every organization is
     broken" — the first question the Colonel bug raised. The organization
     detail response now carries ``organization_ref``, an opaque, keyed,
-    one-way 16-hex value from the same ``TelemetryRef`` derivation, and a
+    one-way 16-hex value from the same ``DiagnosticsRef`` derivation, and a
     failing parse attaches it as a Sentry *tag*. It answers that question by
     cardinality alone. The value is recovered from the raw payload, since a
     failed parse leaves no parsed record, and is shape-checked before it is
@@ -57,7 +61,7 @@ Added
     exact-match ``(schema, path)`` allowlist — today just the internal Colonel
     organization detail response — and an unenrolled schema emits nothing. The
     organization's extid, display name, contact/owner/billing addresses and
-    Stripe identifiers are not sent, and the per-session bootstrap telemetry
+    Stripe identifiers are not sent, and the per-session bootstrap diagnostics
     block is unchanged: the reference rides the resource it describes.
 
   - **Metadata-only breadcrumbs.** Per-category key allowlists, so keys that
@@ -70,13 +74,14 @@ Added
 Security
 --------
 
-- Telemetry references — actor and organization alike — are scoped to one
-  data-residency jurisdiction, not one federation. Regional instances share ``FEDERATION_SECRET`` by design and
-  report into one telemetry backend, so a region-independent reference would
-  emit the identical ``user.id`` from the EU and US instances — a ready-made
-  join key proving one data subject is present in both, which is exactly the
-  inference the residency architecture exists to prevent. The residency scope
-  is mixed into the derivation unconditionally, with no opt-out.
+- Diagnostics references — actor and organization alike — are scoped to one
+  data-residency jurisdiction, not one federation. Regional instances share
+  ``FEDERATION_SECRET`` by design and report into one Sentry instance, so a
+  region-independent reference would emit the identical ``user.id`` from the EU
+  and US instances — a ready-made join key proving one data subject is present
+  in both, which is exactly the inference the residency architecture exists to
+  prevent. The residency scope is mixed into the derivation unconditionally,
+  with no opt-out.
 
 - An undeclared residency *withdraws* the shared key rather than widening the
   reference: ``FEDERATION_SECRET`` is refused and the derivation falls back to
@@ -84,7 +89,7 @@ Security
   operator gets for free, and the emitted ``actor_scope`` label narrows with
   it, so an event never claims a reference is comparable further than it is.
 
-- Free text reaching the telemetry surface is scrubbed by shape — emails,
+- Free text reaching the diagnostics surface is scrubbed by shape — emails,
   verifiable identifiers, Onetime external ids, prefixed credentials and
   object ids, UUIDs, and IP addresses — with each net emitting its own
   sentinel so a reader knows *what* was removed. The nets are deliberately
@@ -106,24 +111,24 @@ Documentation
 -------------
 
 - **No operator action required.** With neither ``FEDERATION_SECRET`` nor
-  ``ACCOUNT_ID_SECRET`` configured, no telemetry reference is emitted —
+  ``ACCOUNT_ID_SECRET`` configured, no diagnostics reference is emitted —
   ``organization_ref`` is ``null`` on the Colonel record, which is the default
   in dev and test — and nothing else changes; diagnostics remain off entirely
   unless ``DIAGNOSTICS_ENABLED`` is set.
 
-- **New, optional:** ``TELEMETRY_REF_REGION`` declares the data-residency
-  scope for the telemetry references — actor and organization alike. Set it
+- **New, optional:** ``DIAGNOSTICS_REF_REGION`` declares the data-residency
+  scope for the diagnostics references — actor and organization alike. Set it
   only when several instances share ``FEDERATION_SECRET`` and serve different
   jurisdictions without using the regions feature — otherwise ``JURISDICTION``
   already supplies it. Any short stable label works (``eu``, ``us``,
   ``ca-central``); the value is never transmitted, only mixed into the
-  derivation. Changing it re-keys every telemetry reference on that install,
+  derivation. Changing it re-keys every diagnostics reference on that install,
   and declaring nothing is safe by design.
 
 AI Assistance
 -------------
 
-- Claude built the telemetry boundary and its acceptance suite. Five
+- Claude built the diagnostics boundary and its acceptance suite. Five
   adversarial passes were run against the work, each executing attacks against
   the tree rather than reading it. The recurring defect they caught was
   comments asserting privacy guarantees the code did not deliver — including a
