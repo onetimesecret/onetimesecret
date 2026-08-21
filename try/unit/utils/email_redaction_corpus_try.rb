@@ -76,7 +76,7 @@ module EmailRedactionCorpus
   # Mirror sources, read from disk rather than re-typed, so these assertions
   # test what actually ships.
   RUBY_B_SOURCE_FILE = File.join(Onetime::HOME, 'lib', 'onetime', 'initializers', 'setup_diagnostics.rb')
-  TS_TWIN_SOURCE_FILE = File.join(Onetime::HOME, 'src', 'plugins', 'core', 'diagnostics', 'scrubbers.ts')
+  TS_TWIN_SOURCE_FILE = File.join(Onetime::HOME, 'src', 'utils', 'diagnostics', 'scrubbers.ts')
 
   # The addresses that actually leaked. Pinned by literal so that deleting them
   # from the corpus turns this suite RED instead of quietly green — an eroded
