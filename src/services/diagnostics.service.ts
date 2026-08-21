@@ -3,6 +3,11 @@
 // Module-level diagnostics service for Sentry integration.
 // Decoupled from Vue's provide/inject to allow error capture from anywhere.
 //
+// DIAGNOSTICS, NOT ANALYTICS. Everything captured here exists to make a defect
+// traceable to the code and the endpoint that produced it. Nothing on this
+// surface counts usage, measures behaviour, or feeds reporting — which is the
+// standard a proposed new tag or extra has to meet before it is added below.
+//
 // Usage:
 //   1. Initialize once during app bootstrap: initDiagnostics(client, scope)
 //   2. Call captureException() from any module (utils, stores, error handlers)
@@ -12,7 +17,7 @@
 
 import {
   applyActorIdentity,
-  parseTelemetryBlock,
+  parseDiagnosticsActorBlock,
   type IdentityScope,
 } from '@/plugins/core/diagnostics/actorIdentity';
 import { Scope, getCurrentScope, type BrowserClient } from '@sentry/browser';
@@ -40,10 +45,10 @@ let diagnosticsClient: DiagnosticsClient | null = null;
  * - planid: plan identifier from bootstrap.organization.planid
  * - role: customer, colonel, recipient, user_deleted_self from bootstrap.cust.role
  * - apiRoute: PARAMETERIZED API route the failing payload came from (never the
- *   resolved URL) — see src/utils/telemetry/apiRouteContext.ts
+ *   resolved URL) — see src/utils/diagnostics/apiRouteContext.ts
  * - organization_ref: opaque, server-derived organization pseudonym (16
  *   lowercase hex), emitted ONLY for schemas enrolled in
- *   src/utils/telemetry/resourceRefRegistry.ts and only after that module has
+ *   src/utils/diagnostics/resourceRefRegistry.ts and only after that module has
  *   shape-checked the value. Never an extid, name, email or billing id.
  *
  * ON `organization_ref` BEING A TAG AND NOT AN EXTRA: the ref answers exactly
@@ -64,9 +69,16 @@ let diagnosticsClient: DiagnosticsClient | null = null;
  * searchable, so an `apiRoute` living there could be read one event at a time
  * and never queried — `apiRoute:"/api/colonel/organizations/:org_id"` is the
  * question an operator actually asks when a Colonel response shape drifts.
- * It is safe on an indexed dimension precisely because it is parameterized,
- * scrubbed and length-capped before it ever reaches here (sanitizeApiRoute),
- * so the cardinality is bounded by the ROUTE TABLE, not by the tenant count.
+ * Every route reaching here has been through `sanitizeApiRoute` —
+ * parameterize, then scrub, then length-cap, with no way to opt out. For a
+ * path whose id sits under a collection named in `PARAM_NAME_BY_COLLECTION`
+ * that is a guarantee, and cardinality is bounded by the ROUTE TABLE rather
+ * than by the tenant count. Elsewhere the parameterization is a SHAPE
+ * heuristic: a short, all-lowercase, digit-free segment under an unmapped
+ * parent can still ride out verbatim, with only the scrub nets behind it. See
+ * the "WHAT IS GUARANTEED, AND WHAT IS NOT" section in
+ * src/utils/diagnostics/apiRouteContext.ts; mapping a new id-bearing
+ * collection there is how an endpoint moves from the second case to the first.
  *
  * @see https://github.com/onetimesecret/onetimesecret/issues/2964
  */
@@ -244,33 +256,33 @@ function identityScopes(): IdentityScope[] {
 }
 
 /**
- * Sets (or replaces) the Sentry actor from a server-provided `telemetry` block.
+ * Sets (or replaces) the Sentry actor from a server-provided `diagnostics_actor` block.
  *
  * The input is UNTRUSTED and is validated against the strict contract before
  * anything is forwarded: an unknown key, a bad `actor_scope`, or a missing
  * `actor_ref` all resolve to null and CLEAR identity rather than partially
  * applying it. Passing null clears identity outright.
  *
- * Emits exactly `user = { id: telemetry.actor_ref, ip_address: null }` and the
+ * Emits exactly `user = { id: diagnosticsActor.actor_ref, ip_address: null }` and the
  * `actor_scope` tag. Never an email, name, objid, extid, or IP.
  *
  * Safe to call when diagnostics are disabled — it is a no-op.
  *
- * @param telemetry - The raw bootstrap `telemetry` block, or null/undefined for
+ * @param diagnosticsActor - The raw bootstrap `diagnostics_actor` block, or null/undefined for
  *   an anonymous session.
  *
  * @example
  * ```typescript
  * // bootstrapStore.update(), covering login, MFA completion, and refresh
- * setDiagnosticsActor(data.telemetry);
+ * setDiagnosticsActor(data.diagnostics_actor);
  * ```
  */
-export function setDiagnosticsActor(telemetry: unknown): void {
+export function setDiagnosticsActor(diagnosticsActor: unknown): void {
   const scopes = identityScopes();
   if (scopes.length === 0) {
     return;
   }
-  applyActorIdentity(scopes, parseTelemetryBlock(telemetry));
+  applyActorIdentity(scopes, parseDiagnosticsActorBlock(diagnosticsActor));
 }
 
 /**

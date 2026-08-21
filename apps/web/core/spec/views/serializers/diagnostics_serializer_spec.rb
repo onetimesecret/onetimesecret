@@ -1,24 +1,25 @@
-# apps/web/core/spec/views/serializers/telemetry_serializer_spec.rb
+# apps/web/core/spec/views/serializers/diagnostics_serializer_spec.rb
 #
 # frozen_string_literal: true
 
-# Coverage for TelemetrySerializer's pseudonymous actor identity.
+# Coverage for DiagnosticsSerializer's pseudonymous actor identity.
 #
 # The bootstrap payload is the only channel that hands the browser Sentry SDK
 # an identity, so this file pins the two directions that can go wrong:
 #
 #   OMISSION. Anonymous visitors, awaiting-MFA sessions, and installs with
-#   neither FEDERATION_SECRET nor ACCOUNT_ID_SECRET must produce NO `telemetry`
+#   neither FEDERATION_SECRET nor ACCOUNT_ID_SECRET must produce NO `diagnostics_actor`
 #   key at all. Absence is the contract — not a null, not an empty string —
 #   because an anonymous visitor has no identity to report and an unconfigured
 #   install (the default in dev and test) must render exactly as before.
 #
 #   DISCLOSURE. When the block IS emitted it may carry EXACTLY the opaque ref
 #   and its scope label — never the email, custid, objid or extid, and never a
-#   third key. The frontend contract (telemetrySchema) is a Zod strictObject
+#   third key. The frontend contract (diagnosticsActorSchema — not the unrelated
+#   diagnosticsSchema, which is the Sentry config block) is a Zod strictObject
 #   and is the one schema parsed against live data, so an extra key here makes
 #   the client drop the whole block. A pseudonymous ORGANIZATION ref does exist
-#   (TelemetryRef.organization_ref, on the colonel organization-detail record)
+#   (DiagnosticsRef.organization_ref, on the colonel organization-detail record)
 #   but is per-RESOURCE, not per-session, and must stay off this block.
 #
 #   RENDER SAFETY. This serializer is registered on all three web shells, so it
@@ -26,19 +27,19 @@
 #   must therefore degrade to an omitted block, never to an exception — an
 #   exception here is a 500 page plus a self-inflicted Sentry event.
 #
-# The serializer's declared output_template still lists `telemetry`, because
+# The serializer's declared output_template still lists `diagnostics_actor`, because
 # SerializerRegistry strips any key a serializer did not declare — omission is
 # achieved by not setting the key, not by leaving it undeclared.
 #
 # No Redis or SQL required.
 #
 # Run with:
-#   tests/lanes/run unit --only apps/web/core/spec/views/serializers/telemetry_serializer_spec.rb
+#   tests/lanes/run unit --only apps/web/core/spec/views/serializers/diagnostics_serializer_spec.rb
 
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require_relative '../../../views'
 
-RSpec.describe Core::Views::TelemetrySerializer do
+RSpec.describe Core::Views::DiagnosticsSerializer do
   subject(:output) { described_class.serialize(view_vars) }
 
   let(:email) { 'operator@example.com' }
@@ -77,17 +78,17 @@ RSpec.describe Core::Views::TelemetrySerializer do
   # Force a known keying state per context rather than inheriting whatever the
   # lane happens to export (tests/lanes/base.env sets both secrets).
   #
-  # A federated keying MUST carry a residency: TelemetryRef refuses to derive a
+  # A federated keying MUST carry a residency: DiagnosticsRef refuses to derive a
   # ref from the shared federation secret with no residency resolved, so a stub
   # that omitted one would silently make every federated example emit nothing.
   def stub_keying(scope, residency: 'stub-region')
     if scope.nil?
-      allow(Onetime::Utils::TelemetryRef).to receive(:keying).and_return(nil)
+      allow(Onetime::Utils::DiagnosticsRef).to receive(:keying).and_return(nil)
     else
-      keying = Onetime::Utils::TelemetryRef::Keying.new(
-        secret: 'a-known-telemetry-key', scope: scope, residency: residency
+      keying = Onetime::Utils::DiagnosticsRef::Keying.new(
+        secret: 'a-known-diagnostics-key', scope: scope, residency: residency
       )
-      allow(Onetime::Utils::TelemetryRef).to receive(:keying).and_return(keying)
+      allow(Onetime::Utils::DiagnosticsRef).to receive(:keying).and_return(keying)
     end
   end
 
@@ -96,8 +97,8 @@ RSpec.describe Core::Views::TelemetrySerializer do
 
     before { stub_keying('federated') }
 
-    it 'omits the telemetry key entirely' do
-      expect(output).not_to have_key('telemetry')
+    it 'omits the diagnostics_actor key entirely' do
+      expect(output).not_to have_key('diagnostics_actor')
     end
 
     it 'emits nothing at all rather than a null placeholder' do
@@ -110,16 +111,16 @@ RSpec.describe Core::Views::TelemetrySerializer do
 
     before { stub_keying('federated') }
 
-    it 'omits the telemetry key' do
-      expect(output).not_to have_key('telemetry')
+    it 'omits the diagnostics_actor key' do
+      expect(output).not_to have_key('diagnostics_actor')
     end
   end
 
   context 'when neither secret is configured' do
     before { stub_keying(nil) }
 
-    it 'omits the telemetry key for an authenticated user' do
-      expect(output).not_to have_key('telemetry')
+    it 'omits the diagnostics_actor key for an authenticated user' do
+      expect(output).not_to have_key('diagnostics_actor')
     end
 
     it 'does not raise, so the page still renders' do
@@ -131,13 +132,13 @@ RSpec.describe Core::Views::TelemetrySerializer do
     before { stub_keying('federated') }
 
     it 'emits an opaque ref labelled federated' do
-      expect(output['telemetry']['actor_scope']).to eq('federated')
-      expect(output['telemetry']['actor_ref']).to match(/\A[0-9a-f]{16}\z/)
+      expect(output['diagnostics_actor']['actor_scope']).to eq('federated')
+      expect(output['diagnostics_actor']['actor_ref']).to match(/\A[0-9a-f]{16}\z/)
     end
 
     it 'matches the reference the module derives for that email' do
-      expect(output['telemetry']['actor_ref'])
-        .to eq(Onetime::Utils::TelemetryRef.actor_ref(email))
+      expect(output['diagnostics_actor']['actor_ref'])
+        .to eq(Onetime::Utils::DiagnosticsRef.actor_ref(email))
     end
   end
 
@@ -145,8 +146,8 @@ RSpec.describe Core::Views::TelemetrySerializer do
     before { stub_keying('deployment', residency: nil) }
 
     it 'emits an opaque ref labelled deployment' do
-      expect(output['telemetry']['actor_scope']).to eq('deployment')
-      expect(output['telemetry']['actor_ref']).to match(/\A[0-9a-f]{16}\z/)
+      expect(output['diagnostics_actor']['actor_scope']).to eq('deployment')
+      expect(output['diagnostics_actor']['actor_ref']).to match(/\A[0-9a-f]{16}\z/)
     end
   end
 
@@ -159,27 +160,27 @@ RSpec.describe Core::Views::TelemetrySerializer do
 
     it 'narrows the emitted label to deployment rather than claiming federated' do
       with_env('FEDERATION_SECRET' => 'shared-across-regional-instances',
-               'TELEMETRY_REF_REGION' => nil,
+               'DIAGNOSTICS_REF_REGION' => nil,
                'ACCOUNT_ID_SECRET' => 'per-install-only') do
-        expect(output['telemetry']['actor_scope']).to eq('deployment')
+        expect(output['diagnostics_actor']['actor_scope']).to eq('deployment')
       end
     end
 
     it 'omits the block entirely when there is no per-deployment secret to fall back to' do
       with_env('FEDERATION_SECRET' => 'shared-across-regional-instances',
-               'TELEMETRY_REF_REGION' => nil,
+               'DIAGNOSTICS_REF_REGION' => nil,
                'ACCOUNT_ID_SECRET' => nil) do
-        expect(output).not_to have_key('telemetry')
+        expect(output).not_to have_key('diagnostics_actor')
       end
     end
 
     it 'gives two installs sharing the secret different refs for the same person' do
       shared = 'shared-across-regional-instances'
-      env    = { 'FEDERATION_SECRET' => shared, 'TELEMETRY_REF_REGION' => nil }
+      env    = { 'FEDERATION_SECRET' => shared, 'DIAGNOSTICS_REF_REGION' => nil }
 
-      region_a = with_env(env.merge('ACCOUNT_ID_SECRET' => 'install-a')) { output['telemetry'] }
+      region_a = with_env(env.merge('ACCOUNT_ID_SECRET' => 'install-a')) { output['diagnostics_actor'] }
       region_b = with_env(env.merge('ACCOUNT_ID_SECRET' => 'install-b')) do
-        described_class.serialize(view_vars)['telemetry']
+        described_class.serialize(view_vars)['diagnostics_actor']
       end
 
       expect(region_a['actor_ref']).not_to eq(region_b['actor_ref'])
@@ -187,8 +188,8 @@ RSpec.describe Core::Views::TelemetrySerializer do
 
     it 'restores federated keying once a residency scope is declared' do
       with_env('FEDERATION_SECRET' => 'shared-across-regional-instances',
-               'TELEMETRY_REF_REGION' => 'eu') do
-        expect(output['telemetry']['actor_scope']).to eq('federated')
+               'DIAGNOSTICS_REF_REGION' => 'eu') do
+        expect(output['diagnostics_actor']['actor_scope']).to eq('federated')
       end
     end
   end
@@ -209,14 +210,14 @@ RSpec.describe Core::Views::TelemetrySerializer do
 
     it 'omits the block instead of emitting a second identity for the same person' do
       with_env('FEDERATION_SECRET' => 'shared-across-regional-instances',
-               'TELEMETRY_REF_REGION' => nil,
+               'DIAGNOSTICS_REF_REGION' => nil,
                'ACCOUNT_ID_SECRET' => 'per-install-only') do
-        with_failing_conf { expect(output).not_to have_key('telemetry') }
+        with_failing_conf { expect(output).not_to have_key('diagnostics_actor') }
       end
     end
 
     it 'still renders rather than raising out of the view' do
-      with_env('TELEMETRY_REF_REGION' => nil) do
+      with_env('DIAGNOSTICS_REF_REGION' => nil) do
         with_failing_conf { expect { output }.not_to raise_error }
       end
     end
@@ -233,7 +234,7 @@ RSpec.describe Core::Views::TelemetrySerializer do
 
     let(:env) do
       { 'FEDERATION_SECRET' => shared,
-        'TELEMETRY_REF_REGION' => nil,
+        'DIAGNOSTICS_REF_REGION' => nil,
         'ACCOUNT_ID_SECRET' => 'per-install-only' }
     end
 
@@ -284,17 +285,17 @@ RSpec.describe Core::Views::TelemetrySerializer do
       with_conf(conf) { yield }
     end
 
-    def telemetry
-      described_class.serialize(view_vars)['telemetry']
+    def diagnostics_actor
+      described_class.serialize(view_vars)['diagnostics_actor']
     end
 
     def healthy(jurisdiction)
       conf = { 'features' => { 'regions' => { 'current_jurisdiction' => jurisdiction } } }
-      with_env(env) { with_conf(conf) { telemetry } }
+      with_env(env) { with_conf(conf) { diagnostics_actor } }
     end
 
     def faulted(jurisdiction)
-      with_env(env) { with_conf_falsy_after_first_resolution(jurisdiction) { telemetry } }
+      with_env(env) { with_conf_falsy_after_first_resolution(jurisdiction) { diagnostics_actor } }
     end
 
     it 'emits the same identity during the window as outside it' do
@@ -308,16 +309,16 @@ RSpec.describe Core::Views::TelemetrySerializer do
     it 'does not invert the label downward over a federation-keyed ref' do
       expected = OpenSSL::HMAC.hexdigest(
         'SHA256', shared,
-        [Onetime::Utils::TelemetryRef::ACTOR_INFO, 'eu', email]
-          .join(Onetime::Utils::TelemetryRef::SEPARATOR),
-      )[0, Onetime::Utils::TelemetryRef::REF_LENGTH]
+        [Onetime::Utils::DiagnosticsRef::ACTOR_INFO, 'eu', email]
+          .join(Onetime::Utils::DiagnosticsRef::SEPARATOR),
+      )[0, Onetime::Utils::DiagnosticsRef::REF_LENGTH]
 
       expect(faulted('eu')['actor_ref']).to eq(expected)
       expect(faulted('eu')['actor_scope']).to eq('federated')
     end
 
     it 'keys on the read that chose the secret when the jurisdiction drifts' do
-      drifted = with_env(env) { with_drifting_jurisdiction('eu', 'us') { telemetry } }
+      drifted = with_env(env) { with_drifting_jurisdiction('eu', 'us') { diagnostics_actor } }
 
       expect(drifted).to eq(healthy('eu'))
       expect(drifted['actor_ref']).not_to eq(healthy('us')['actor_ref'])
@@ -339,22 +340,22 @@ RSpec.describe Core::Views::TelemetrySerializer do
     end
 
     it 'carries exactly the two keys the strict frontend schema accepts' do
-      # A third key fails telemetrySchema (z.strictObject) and the client
+      # A third key fails diagnosticsSchema (z.strictObject) and the client
       # discards the whole block — so widening this is a silent regression.
-      expect(output['telemetry'].keys).to contain_exactly('actor_ref', 'actor_scope')
+      expect(output['diagnostics_actor'].keys).to contain_exactly('actor_ref', 'actor_scope')
     end
 
-    # A pseudonymous organization ref DOES exist (TelemetryRef.organization_ref,
+    # A pseudonymous organization ref DOES exist (DiagnosticsRef.organization_ref,
     # published on the colonel organization-detail record). It must not appear
     # here. This block is per-SESSION and the org ref is per-RESOURCE: a session
     # touches many organizations, so any value pinned here would be tagged onto
     # later events about other orgs. And mechanically it is a third key in a
     # strictObject — the client would drop actor_ref and actor_scope with it.
     it 'stays a two-key per-session block even though org refs now exist' do
-      expect(Onetime::Utils::TelemetryRef).to respond_to(:organization_ref)
+      expect(Onetime::Utils::DiagnosticsRef).to respond_to(:organization_ref)
 
-      expect(output['telemetry'].keys).to contain_exactly('actor_ref', 'actor_scope')
-      expect(output['telemetry']).not_to have_key('organization_ref')
+      expect(output['diagnostics_actor'].keys).to contain_exactly('actor_ref', 'actor_scope')
+      expect(output['diagnostics_actor']).not_to have_key('organization_ref')
     end
 
     it 'never emits the ref for the organization in scope on this render' do
@@ -362,7 +363,7 @@ RSpec.describe Core::Views::TelemetrySerializer do
       # to derive one and declines to. Derived here under the SAME stubbed
       # keying to prove the value is genuinely derivable and genuinely absent,
       # rather than absent because the derivation happened to decline.
-      org_ref = Onetime::Utils::TelemetryRef.organization_ref(org.objid)
+      org_ref = Onetime::Utils::DiagnosticsRef.organization_ref(org.objid)
 
       expect(org_ref).to match(/\A[0-9a-f]{16}\z/)
       expect(output.to_json).not_to include(org_ref)
@@ -384,8 +385,8 @@ RSpec.describe Core::Views::TelemetrySerializer do
 
       other_output = described_class.serialize(view_vars.merge('cust' => other))
 
-      expect(other_output['telemetry']['actor_scope']).to eq(output['telemetry']['actor_scope'])
-      expect(other_output['telemetry']['actor_ref']).not_to eq(output['telemetry']['actor_ref'])
+      expect(other_output['diagnostics_actor']['actor_scope']).to eq(output['diagnostics_actor']['actor_scope'])
+      expect(other_output['diagnostics_actor']['actor_ref']).not_to eq(output['diagnostics_actor']['actor_ref'])
     end
   end
 
@@ -400,7 +401,7 @@ RSpec.describe Core::Views::TelemetrySerializer do
 
       it 'omits the block instead of raising out of the render' do
         expect { output }.not_to raise_error
-        expect(output).not_to have_key('telemetry')
+        expect(output).not_to have_key('diagnostics_actor')
       end
     end
 
@@ -409,7 +410,7 @@ RSpec.describe Core::Views::TelemetrySerializer do
 
       it 'omits the block instead of raising out of the render' do
         expect { output }.not_to raise_error
-        expect(output).not_to have_key('telemetry')
+        expect(output).not_to have_key('diagnostics_actor')
       end
     end
 
@@ -417,15 +418,15 @@ RSpec.describe Core::Views::TelemetrySerializer do
       let(:email) { 'operator@example.com'.dup.force_encoding(Encoding::ASCII_8BIT) }
 
       it 'still emits the same ref as the correctly tagged address' do
-        expect(output['telemetry']['actor_ref'])
-          .to eq(Onetime::Utils::TelemetryRef.actor_ref('operator@example.com'))
+        expect(output['diagnostics_actor']['actor_ref'])
+          .to eq(Onetime::Utils::DiagnosticsRef.actor_ref('operator@example.com'))
       end
     end
   end
 
   describe 'output_template' do
-    it 'declares telemetry so SerializerRegistry does not strip it' do
-      expect(described_class.output_template).to have_key('telemetry')
+    it 'declares diagnostics_actor so SerializerRegistry does not strip it' do
+      expect(described_class.output_template).to have_key('diagnostics_actor')
     end
   end
 
@@ -437,7 +438,7 @@ RSpec.describe Core::Views::TelemetrySerializer do
     it 'is wired into every shell that renders the bootstrap payload' do
       [Core::Views::VuePoint, Core::Views::AdminPoint, Core::Views::BootstrapMe].each do |shell|
         expect(shell.serializers).to include(described_class),
-          "Expected #{shell} to include TelemetrySerializer"
+          "Expected #{shell} to include DiagnosticsSerializer"
       end
     end
   end

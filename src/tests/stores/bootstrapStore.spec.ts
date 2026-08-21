@@ -21,7 +21,7 @@ import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
 vi.mock('@/services/bootstrap.service', () => ({
   getBootstrapSnapshot: vi.fn(),
   updateBootstrapSnapshot: vi.fn(),
-  // Used by update() to evict `telemetry` from the snapshot when a full
+  // Used by update() to evict `diagnostics_actor` from the snapshot when a full
   // /bootstrap/me body omits it (anonymous session).
   clearBootstrapSnapshotKey: vi.fn(),
   _resetForTesting: vi.fn(),
@@ -1664,7 +1664,7 @@ describe('bootstrapStore actor identity', () => {
   let mockSetDiagnosticsActor: Mock;
   let mockClearSnapshotKey: Mock;
 
-  // 16 lowercase hex, matching what TelemetryRef derives and what
+  // 16 lowercase hex, matching what DiagnosticsRef derives and what
   // ACTOR_REF_PATTERN admits. setDiagnosticsActor is mocked here, but fixtures
   // stay honest so a copy-paste into an unmocked test still passes the contract.
   const ACTOR = { actor_ref: 'a1b2c3d4e5f60718', actor_scope: 'federated' } as const;
@@ -1682,66 +1682,66 @@ describe('bootstrapStore actor identity', () => {
     vi.clearAllMocks();
   });
 
-  it('drives the Sentry actor when a payload carries telemetry', () => {
-    store.update({ authenticated: true, telemetry: { ...ACTOR } } as Partial<BootstrapPayload>);
+  it('drives the Sentry actor when a payload carries diagnostics_actor', () => {
+    store.update({ authenticated: true, diagnostics_actor: { ...ACTOR } } as Partial<BootstrapPayload>);
 
-    expect(store.telemetry).toEqual(ACTOR);
+    expect(store.diagnostics_actor).toEqual(ACTOR);
     expect(mockSetDiagnosticsActor).toHaveBeenCalledWith(ACTOR);
   });
 
-  it('clears the actor when a full payload OMITS telemetry (anonymous)', () => {
-    store.update({ authenticated: true, telemetry: { ...ACTOR } } as Partial<BootstrapPayload>);
+  it('clears the actor when a full payload OMITS diagnostics_actor (anonymous)', () => {
+    store.update({ authenticated: true, diagnostics_actor: { ...ACTOR } } as Partial<BootstrapPayload>);
     mockSetDiagnosticsActor.mockClear();
 
     // A full /bootstrap/me body reporting an anonymous session: the block is
     // absent, not null. filterDefined() alone would leave the old actor.
     store.update({ authenticated: false } as Partial<BootstrapPayload>);
 
-    expect(store.telemetry).toBeUndefined();
+    expect(store.diagnostics_actor).toBeUndefined();
     expect(mockSetDiagnosticsActor).toHaveBeenCalledWith(null);
-    expect(mockClearSnapshotKey).toHaveBeenCalledWith('telemetry');
+    expect(mockClearSnapshotKey).toHaveBeenCalledWith('diagnostics_actor');
   });
 
   it('replaces the actor on account change', () => {
-    store.update({ authenticated: true, telemetry: { ...ACTOR } } as Partial<BootstrapPayload>);
+    store.update({ authenticated: true, diagnostics_actor: { ...ACTOR } } as Partial<BootstrapPayload>);
 
     const next = { actor_ref: '00112233445566ff', actor_scope: 'deployment' } as const;
-    store.update({ authenticated: true, telemetry: { ...next } } as Partial<BootstrapPayload>);
+    store.update({ authenticated: true, diagnostics_actor: { ...next } } as Partial<BootstrapPayload>);
 
-    expect(store.telemetry).toEqual(next);
+    expect(store.diagnostics_actor).toEqual(next);
     expect(mockSetDiagnosticsActor).toHaveBeenLastCalledWith(next);
   });
 
   it('leaves identity alone for a narrow patch that carries no auth state', () => {
-    store.update({ authenticated: true, telemetry: { ...ACTOR } } as Partial<BootstrapPayload>);
+    store.update({ authenticated: true, diagnostics_actor: { ...ACTOR } } as Partial<BootstrapPayload>);
     mockSetDiagnosticsActor.mockClear();
 
-    // Silence about telemetry here means "unchanged", not "anonymous".
+    // Silence about diagnostics_actor here means "unchanged", not "anonymous".
     store.update({ has_password: true } as Partial<BootstrapPayload>);
 
     expect(mockSetDiagnosticsActor).not.toHaveBeenCalled();
-    expect(store.telemetry).toEqual(ACTOR);
+    expect(store.diagnostics_actor).toEqual(ACTOR);
   });
 
-  it('does not preserve telemetry across resetForLogout (top-level, not under diagnostics)', () => {
-    store.update({ authenticated: true, telemetry: { ...ACTOR } } as Partial<BootstrapPayload>);
+  it('does not preserve diagnostics_actor across resetForLogout — it is top-level, not inside the preserved diagnostics config block', () => {
+    store.update({ authenticated: true, diagnostics_actor: { ...ACTOR } } as Partial<BootstrapPayload>);
 
     store.resetForLogout();
 
-    expect(store.telemetry).toBeUndefined();
+    expect(store.diagnostics_actor).toBeUndefined();
   });
 
   // REGRESSION: the actor lives in TWO places — this store and the pre-Pinia
-  // bootstrap.service snapshot that getBootstrapValue('telemetry') reads.
+  // bootstrap.service snapshot that getBootstrapValue('diagnostics_actor') reads.
   // $reset() clears the first; only clearBootstrapSnapshotKey clears the second,
   // and updateBootstrapSnapshot cannot express a removal (it skips undefined).
   // Without this, a soft/SPA logout left the previous actor ref readable.
-  it('evicts telemetry from the pre-Pinia snapshot on resetForLogout', () => {
-    store.update({ authenticated: true, telemetry: { ...ACTOR } } as Partial<BootstrapPayload>);
+  it('evicts diagnostics_actor from the pre-Pinia snapshot on resetForLogout', () => {
+    store.update({ authenticated: true, diagnostics_actor: { ...ACTOR } } as Partial<BootstrapPayload>);
     mockClearSnapshotKey.mockClear();
 
     store.resetForLogout();
 
-    expect(mockClearSnapshotKey).toHaveBeenCalledWith('telemetry');
+    expect(mockClearSnapshotKey).toHaveBeenCalledWith('diagnostics_actor');
   });
 });

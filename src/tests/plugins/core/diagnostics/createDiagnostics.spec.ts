@@ -1,4 +1,4 @@
-// src/tests/plugins/core/createDiagnostics.spec.ts
+// src/tests/plugins/core/diagnostics/createDiagnostics.spec.ts
 //
 // Integration tests for the createDiagnostics plugin function.
 // Tests jurisdiction tagging and Sentry client initialization.
@@ -208,7 +208,7 @@ describe('createDiagnostics jurisdiction tagging', () => {
 
     // 3 setTag calls: service, site_host, and the actor_scope CLEAR (undefined).
     // The shared getBootstrapValue mock returns the same regions-shaped object
-    // for every key, so the `telemetry` read yields a block that the strict
+    // for every key, so the `diagnostics_actor` read yields a block that the strict
     // contract rejects — identity fails closed and clears rather than partially
     // applying. See src/plugins/core/diagnostics/actorIdentity.ts.
     expect(mockSetTag).toHaveBeenCalledTimes(3);
@@ -229,7 +229,7 @@ describe('createDiagnostics jurisdiction tagging', () => {
 
     // 3 setTag calls: service, site_host, and the actor_scope CLEAR (undefined).
     // The shared getBootstrapValue mock returns the same regions-shaped object
-    // for every key, so the `telemetry` read yields a block that the strict
+    // for every key, so the `diagnostics_actor` read yields a block that the strict
     // contract rejects — identity fails closed and clears rather than partially
     // applying. See src/plugins/core/diagnostics/actorIdentity.ts.
     expect(mockSetTag).toHaveBeenCalledTimes(3);
@@ -250,7 +250,7 @@ describe('createDiagnostics jurisdiction tagging', () => {
 
     // 3 setTag calls: service, site_host, and the actor_scope CLEAR (undefined).
     // The shared getBootstrapValue mock returns the same regions-shaped object
-    // for every key, so the `telemetry` read yields a block that the strict
+    // for every key, so the `diagnostics_actor` read yields a block that the strict
     // contract rejects — identity fails closed and clears rather than partially
     // applying. See src/plugins/core/diagnostics/actorIdentity.ts.
     expect(mockSetTag).toHaveBeenCalledTimes(3);
@@ -271,7 +271,7 @@ describe('createDiagnostics jurisdiction tagging', () => {
 
     // 3 setTag calls: service, site_host, and the actor_scope CLEAR (undefined).
     // The shared getBootstrapValue mock returns the same regions-shaped object
-    // for every key, so the `telemetry` read yields a block that the strict
+    // for every key, so the `diagnostics_actor` read yields a block that the strict
     // contract rejects — identity fails closed and clears rather than partially
     // applying. See src/plugins/core/diagnostics/actorIdentity.ts.
     expect(mockSetTag).toHaveBeenCalledTimes(3);
@@ -292,7 +292,7 @@ describe('createDiagnostics jurisdiction tagging', () => {
 
     // 3 setTag calls: service, site_host, and the actor_scope CLEAR (undefined).
     // The shared getBootstrapValue mock returns the same regions-shaped object
-    // for every key, so the `telemetry` read yields a block that the strict
+    // for every key, so the `diagnostics_actor` read yields a block that the strict
     // contract rejects — identity fails closed and clears rather than partially
     // applying. See src/plugins/core/diagnostics/actorIdentity.ts.
     expect(mockSetTag).toHaveBeenCalledTimes(3);
@@ -451,7 +451,7 @@ describe('createDiagnostics actor identity', () => {
 
   /**
    * Key-aware bootstrap mock. The jurisdiction suite above uses a single
-   * mockReturnValue for every key; identity needs `regions` and `telemetry` to
+   * mockReturnValue for every key; identity needs `regions` and `diagnostics_actor` to
    * differ.
    */
   function mockBootstrap(values: Record<string, unknown>) {
@@ -470,9 +470,9 @@ describe('createDiagnostics actor identity', () => {
   it('applies the server-provided actor to BOTH scopes', () => {
     mockBootstrap({
       regions: null,
-      // 16 lowercase hex — the shape TelemetryRef derives and the contract now
+      // 16 lowercase hex — the shape DiagnosticsRef derives and the contract now
       // enforces by content.
-      telemetry: { actor_ref: 'a1b2c3d4e5f60718', actor_scope: 'federated' },
+      diagnostics_actor: { actor_ref: 'a1b2c3d4e5f60718', actor_scope: 'federated' },
     });
 
     createDiagnostics({ host: TEST_HOST, config: baseConfig, router: createMockRouter() });
@@ -487,7 +487,7 @@ describe('createDiagnostics actor identity', () => {
   it('carries the deployment scope through verbatim', () => {
     mockBootstrap({
       regions: null,
-      telemetry: { actor_ref: '00112233445566ff', actor_scope: 'deployment' },
+      diagnostics_actor: { actor_ref: '00112233445566ff', actor_scope: 'deployment' },
     });
 
     createDiagnostics({ host: TEST_HOST, config: baseConfig, router: createMockRouter() });
@@ -497,7 +497,7 @@ describe('createDiagnostics actor identity', () => {
 
   it('leaves an anonymous session unidentified — no fallback id', () => {
     // The block is ABSENT for anonymous sessions; absence is the signal.
-    mockBootstrap({ regions: null, telemetry: undefined });
+    mockBootstrap({ regions: null, diagnostics_actor: undefined });
 
     createDiagnostics({ host: TEST_HOST, config: baseConfig, router: createMockRouter() });
 
@@ -510,7 +510,7 @@ describe('createDiagnostics actor identity', () => {
   it('fails closed when the block carries an unexpected field', () => {
     mockBootstrap({
       regions: null,
-      telemetry: {
+      diagnostics_actor: {
         actor_ref: 'a1b2c3d4e5f60718',
         actor_scope: 'federated',
         email: 'user@example.com',
@@ -531,7 +531,7 @@ describe('createDiagnostics actor identity', () => {
   it('fails closed when actor_ref is an email rather than an opaque ref', () => {
     mockBootstrap({
       regions: null,
-      telemetry: { actor_ref: 'alice@example.com', actor_scope: 'deployment' },
+      diagnostics_actor: { actor_ref: 'alice@example.com', actor_scope: 'deployment' },
     });
 
     createDiagnostics({ host: TEST_HOST, config: baseConfig, router: createMockRouter() });

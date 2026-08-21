@@ -418,9 +418,10 @@ export const useAuthStore = defineStore('auth', () => {
     $reset();
 
     // Reset bootstrapStore user state while preserving server config.
-    // resetForLogout() also evicts `telemetry` from the pre-Pinia
-    // bootstrap.service snapshot, so no actor reference survives this call in
-    // EITHER of the two places it is held.
+    // resetForLogout() also evicts `diagnostics_actor` from the pre-Pinia
+    // bootstrap.service snapshot, so the actor reference survives in neither of
+    // the two places the bootstrap payload is mirrored. The Sentry scope is a
+    // third holder, and it is cleared just below.
     bootstrapStore.resetForLogout();
 
     // Clear the Sentry actor: setUser(null) plus removal of the `actor_scope`

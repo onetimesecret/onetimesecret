@@ -711,18 +711,18 @@ describe('authStore', () => {
     // also sits in the pre-Pinia bootstrap.service snapshot, which
     // updateBootstrapSnapshot can never remove (it skips undefined by design).
     // A soft logout that left it there keeps the previous actor readable via
-    // getBootstrapValue('telemetry') — the stale identity that any later
+    // getBootstrapValue('diagnostics_actor') — the stale identity that any later
     // re-resolve would pick up and attach to an anonymous session's events.
     it('evicts the actor ref from the pre-Pinia bootstrap snapshot on soft logout', async () => {
       updateBootstrapSnapshot({
-        telemetry: { actor_ref: 'a1b2c3d4e5f60718', actor_scope: 'federated' },
+        diagnostics_actor: { actor_ref: 'a1b2c3d4e5f60718', actor_scope: 'federated' },
       });
-      expect(getBootstrapValue('telemetry')).toBeDefined();
+      expect(getBootstrapValue('diagnostics_actor')).toBeDefined();
 
       store.$patch({ isAuthenticated: true });
       await store.logout();
 
-      expect(getBootstrapValue('telemetry')).toBeUndefined();
+      expect(getBootstrapValue('diagnostics_actor')).toBeUndefined();
     });
 
     it('clears stored auth state when logging out', async () => {

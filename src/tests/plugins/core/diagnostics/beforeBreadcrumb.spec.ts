@@ -1,4 +1,4 @@
-// src/tests/plugins/core/beforeBreadcrumb.spec.ts
+// src/tests/plugins/core/diagnostics/beforeBreadcrumb.spec.ts
 //
 // Tests for the beforeBreadcrumb handler created by createDiagnostics.
 // Tests navigation breadcrumbs, HTTP breadcrumbs (xhr/fetch), and edge cases.
