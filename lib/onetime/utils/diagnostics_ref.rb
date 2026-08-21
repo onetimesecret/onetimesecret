@@ -1,4 +1,4 @@
-# lib/onetime/utils/telemetry_ref.rb
+# lib/onetime/utils/diagnostics_ref.rb
 #
 # frozen_string_literal: true
 
@@ -8,12 +8,18 @@ require_relative 'strings'
 
 module Onetime
   module Utils
-    # TelemetryRef - opaque, stable actor and organization references for
-    # third-party telemetry (Sentry).
+    # DiagnosticsRef - opaque, stable actor and organization references for the
+    # third-party diagnostics backend (Sentry).
     #
     # ---------------------------------------------------------------------------
     # WHY THIS EXISTS
     # ---------------------------------------------------------------------------
+    # This is DIAGNOSTICS, not analytics and not metrics. The refs exist so that
+    # a defect can be diagnosed; they are not there to measure usage, count
+    # events for reporting, or profile anyone's behaviour. Every widening of
+    # what they disclose has to be justified against THAT purpose, and a
+    # justification that reads "it would be interesting to know" is a refusal.
+    #
     # Error reports are far more useful when the same human maps to the same
     # identity across events ("this crash hits one account, not fifty"). Sending
     # an email address, a customer objid, an extid or an IP to an observability
@@ -32,7 +38,7 @@ module Onetime
     #     and
     #   * a field written into Stripe customer metadata.
     #
-    # Shipping it verbatim to Sentry would hand the telemetry surface a live
+    # Shipping it verbatim to Sentry would hand the diagnostics surface a live
     # join key into billing records and our own datastore index. So this module
     # derives a DISTINCT value under an explicit, versioned purpose prefix and a
     # residency element:
@@ -50,7 +56,7 @@ module Onetime
     #   3. organization_ref(x) != actor_ref(x) for the identical input string,
     #      under identical keying and residency — the purpose prefix is what
     #      separates the two namespaces.
-    # The `v1` element lets us re-key telemetry identity later without touching
+    # The `v1` element lets us re-key diagnostics identity later without touching
     # federation identity.
     #
     # Refs are truncated to REF_LENGTH hex chars — deliberately HALF the width of
@@ -77,9 +83,10 @@ module Onetime
     # organization, and the ref cannot be looked up by anyone holding it.
     #
     # This is a per-RESOURCE ref, not a per-session one. It rides the colonel
-    # response record, NOT the bootstrap telemetry block — that block is exactly
-    # {actor_ref, actor_scope} and is parsed by a Zod strictObject, so a third
-    # key there drops the whole block on the floor.
+    # response record, NOT the bootstrap `diagnostics_actor` block — that block
+    # is exactly {actor_ref, actor_scope} and is parsed by a Zod strictObject
+    # (diagnosticsActorSchema), so a third key there drops the whole block on
+    # the floor.
     #
     # Note the constraint that decides the shape: the motivating case is a
     # response that FAILED validation, so at tag time there is no parsed record
@@ -96,7 +103,7 @@ module Onetime
     # The browser SDK tags every event with `jurisdiction`
     # (src/plugins/core/enableDiagnostics.ts) and the Ruby SDK does the same
     # (Onetime::Initializers::SetupDiagnostics). Regional instances share one
-    # FEDERATION_SECRET by design and report into ONE telemetry backend. A
+    # FEDERATION_SECRET by design and report into ONE diagnostics backend. A
     # region-independent ref therefore emits the identical user id from the EU
     # instance and the US instance, distinguished only by that tag — which is a
     # ready-made join key proving that one data subject is present in both. A
@@ -116,7 +123,7 @@ module Onetime
     #
     # The residency scope resolves in this order:
     #
-    #   1. TELEMETRY_REF_REGION — explicit operator pin. Use this when
+    #   1. DIAGNOSTICS_REF_REGION — explicit operator pin. Use this when
     #      residency boundaries do not line up with the regions feature: two
     #      installs that share FEDERATION_SECRET, both with regions disabled,
     #      but serving different jurisdictions. Any short stable label works
@@ -165,7 +172,7 @@ module Onetime
     # enforce: an operator who copies ACCOUNT_ID_SECRET between installs
     # rebuilds cross-install correlation under a 'deployment' label. That secret
     # is generated per install and documented as un-shareable; sharing it is a
-    # configuration error with consequences well beyond telemetry.
+    # configuration error with consequences well beyond diagnostics.
     #
     # ---------------------------------------------------------------------------
     # ONE RESIDENCY RESOLUTION PER DERIVATION
@@ -201,7 +208,7 @@ module Onetime
     # residency mixed into a ref and the scope label emitted beside it come from
     # ONE read of the config, and a 'federated' ref always carries a resolved
     # residency. NOT guaranteed: that two derivations minutes apart agree — an
-    # operator who changes the declared jurisdiction has re-keyed telemetry
+    # operator who changes the declared jurisdiction has re-keyed diagnostics
     # identity, and that splits the actor by design.
     #
     # ---------------------------------------------------------------------------
@@ -231,7 +238,7 @@ module Onetime
     # the account. The label values are a closed enum on the client
     # (ACTOR_SCOPES in src/schemas/contracts/bootstrap.ts) — adding a value here
     # without adding it there makes the strict parse fail and drops the whole
-    # telemetry block.
+    # `diagnostics_actor` block.
     #
     # ---------------------------------------------------------------------------
     # FAILURE TOLERANCE
@@ -241,12 +248,12 @@ module Onetime
     # in production. That is the NORMAL state on a developer box, so an
     # unconfigured deployment must render pages exactly as before.
     #
-    # Every public method therefore returns nil rather than raising, and the
-    # WHOLE derivation — normalization included — is wrapped so a surprise from
-    # OpenSSL, config access, or a badly encoded stored email cannot escape into
-    # a render path. TelemetrySerializer runs on every authenticated render of
+    # No public method therefore propagates a StandardError: each answers nil
+    # instead (false for #available?), and the WHOLE derivation — normalization
+    # included — is wrapped so a surprise from OpenSSL, config access, or a
+    # badly encoded stored email cannot escape into a render path. DiagnosticsSerializer runs on every authenticated render of
     # all three web shells, so an escaping exception means a 500 page AND a
-    # self-inflicted Sentry event; telemetry code taking the site down is the
+    # self-inflicted Sentry event; diagnostics code taking the site down is the
     # one outcome worth engineering against. Encoding is the live hazard there:
     # a stored email tagged ASCII-8BIT, or holding an invalid byte, makes
     # String#unicode_normalize raise Encoding::CompatibilityError or
@@ -257,12 +264,12 @@ module Onetime
     #
     # Fail-soft is NOT the same as fail-open. Where a failure could change WHICH
     # identity a human gets rather than whether they get one, the answer is nil
-    # — a gap in telemetry identity — never a substitute value. See
+    # — a gap in diagnostics identity — never a substitute value. See
     # #resolve_residency for the case that motivated the distinction.
     #
     # @see Onetime::Security::RequestContext (the network-side analogue)
     # @see Onetime::Utils::EmailHash (federation identity — deliberately NOT this)
-    module TelemetryRef
+    module DiagnosticsRef
       extend self
 
       # Canonical email normalization (NFC + case folding + strip), shared with
@@ -299,7 +306,7 @@ module Onetime
       RESIDENCY_UNSCOPED = 'unscoped'
 
       # Explicit operator pin for the residency scope. See the module docstring.
-      RESIDENCY_ENV = 'TELEMETRY_REF_REGION'
+      RESIDENCY_ENV = 'DIAGNOSTICS_REF_REGION'
 
       # Hex chars retained (64 bits). Ample to group events by actor, and half
       # the width of EmailHash::HASH_LENGTH so refs are visibly not email hashes.
@@ -370,8 +377,8 @@ module Onetime
       # Convenience bundle for the bootstrap payload.
       #
       # Returns nil — not a hash of nils — when there is nothing to say, so a
-      # caller can omit the telemetry block entirely for anonymous sessions and
-      # unconfigured deployments alike.
+      # caller can omit the `diagnostics_actor` block entirely for anonymous
+      # sessions and unconfigured deployments alike.
       #
       # ONE keying resolution serves both fields. The ref and the label it is
       # emitted with therefore always describe the same read of the config;
@@ -426,14 +433,14 @@ module Onetime
 
         nil
       rescue StandardError => ex
-        OT.ld "[telemetry-ref] secret lookup failed: #{ex.class}" if defined?(OT)
+        OT.ld "[diagnostics-ref] secret lookup failed: #{ex.class}" if defined?(OT)
         nil
       end
 
       # The data-residency scope this deployment declares, if any.
       #
       # Public because it is a deployment property an operator may reasonably
-      # want to assert on in a boot check; it is never emitted to telemetry.
+      # want to assert on in a boot check; it is never sent to Sentry.
       # The nil answer is load-bearing rather than cosmetic — it is what makes
       # #keying refuse FEDERATION_SECRET and drop to deployment scope.
       #
@@ -446,7 +453,7 @@ module Onetime
       def residency_scope
         resolve_residency
       rescue StandardError => ex
-        OT.ld "[telemetry-ref] residency lookup failed: #{ex.class}" if defined?(OT)
+        OT.ld "[diagnostics-ref] residency lookup failed: #{ex.class}" if defined?(OT)
         nil
       end
 
@@ -463,8 +470,8 @@ module Onetime
       # correlation for the duration of the fault.
       #
       # Failing closed instead: the raise propagates into the rescue in #keying,
-      # which answers nil, so a fault costs a GAP in telemetry identity for as
-      # long as it lasts. A gap is honest and self-healing. A second identity
+      # which answers nil, so a fault costs a GAP in diagnostics identity for
+      # as long as it lasts. A gap is honest and self-healing. A second identity
       # for the same human is neither.
       #
       # Raising is only half the guard, and the missing half was a live defect:
@@ -595,7 +602,7 @@ module Onetime
         OpenSSL::HMAC.hexdigest('SHA256', key.secret, message)[0, REF_LENGTH]
       rescue StandardError => ex
         # Class only: the message could carry the pre-image or the key.
-        OT.ld "[telemetry-ref] derivation failed: #{ex.class}" if defined?(OT)
+        OT.ld "[diagnostics-ref] derivation failed: #{ex.class}" if defined?(OT)
         nil
       end
     end

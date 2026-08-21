@@ -7,7 +7,7 @@ require_relative '../../../../../apps/web/billing/lib/billing_service'
 # Explicit, though billing_service pulls it in transitively via models/plan:
 # `available_entitlements` below is only as good as this constant being loaded.
 require_relative '../../../../../apps/web/billing/config'
-require 'onetime/utils/telemetry_ref'
+require 'onetime/utils/diagnostics_ref'
 
 module ColonelAPI
   module Logic
@@ -198,7 +198,7 @@ module ColonelAPI
             record: {
               org_id: org.objid,
               extid: org.extid,
-              # Opaque, keyed, one-way ref for TELEMETRY correlation only. It
+              # Opaque, keyed, one-way ref for DIAGNOSTIC correlation only. It
               # exists so an operator reading a Sentry event for this endpoint —
               # where the route is parameterized to
               # /api/colonel/organizations/:org_id and the real id is never sent
@@ -213,7 +213,7 @@ module ColonelAPI
               #
               # Stated exactly, because the looser version of this sentence was
               # false. This is the only field on this record whose VALUE is
-              # forwarded to telemetry. It is NOT the only thing about this
+              # forwarded to Sentry. It is NOT the only thing about this
               # record that reaches an event: when a field on this record fails
               # the client schema, its PATH ships as the `schemaField` tag and
               # as an `issues` row (executed: a bad `member_count` puts
@@ -227,7 +227,7 @@ module ColonelAPI
               # nil whenever the deployment has no usable keying secret — the
               # default in dev and test. The key is always present; the value is
               # nullable.
-              organization_ref: Onetime::Utils::TelemetryRef.organization_ref(org.objid),
+              organization_ref: Onetime::Utils::DiagnosticsRef.organization_ref(org.objid),
               display_name: org.display_name,
               description: org.description,
               is_default: org.is_default.to_s == 'true',

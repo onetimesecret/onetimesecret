@@ -11,7 +11,7 @@ require_relative 'utils/email_format'
 require_relative 'utils/enumerables'
 require_relative 'utils/retry_helper'
 require_relative 'utils/strings'
-require_relative 'utils/telemetry_ref'
+require_relative 'utils/diagnostics_ref'
 require_relative 'utils/time_utils'
 
 module Onetime

@@ -1,15 +1,15 @@
-# try/unit/utils/telemetry_ref_try.rb
+# try/unit/utils/diagnostics_ref_try.rb
 #
 # frozen_string_literal: true
 
-# Tests for Onetime::Utils::TelemetryRef - opaque actor and organization
-# references for third-party telemetry (Sentry).
+# Tests for Onetime::Utils::DiagnosticsRef - opaque actor and organization
+# references for the third-party diagnostics backend (Sentry).
 #
 # Companion to try/unit/utils/email_hash_try.rb, and deliberately in the same
 # lane: EmailHash is FEDERATION identity (a queryable Redis index, and a field
-# in Stripe customer metadata), TelemetryRef is TELEMETRY identity. They may be
-# keyed by the same FEDERATION_SECRET but must never produce the same value, or
-# Sentry would hold a live join key into billing and the datastore.
+# in Stripe customer metadata), DiagnosticsRef is DIAGNOSTICS identity. They may
+# be keyed by the same FEDERATION_SECRET but must never produce the same value,
+# or Sentry would hold a live join key into billing and the datastore.
 #
 # Security model:
 # - One-way, keyed: the email pre-image is never recoverable
@@ -32,21 +32,21 @@
 #   come from the same read, so a config that changes mid-derivation cannot
 #   split one actor in two, collide two jurisdictions, or invert the label
 #
-# Run: pnpm run test:tryouts:agent try/unit/utils/telemetry_ref_try.rb
+# Run: pnpm run test:tryouts:agent try/unit/utils/diagnostics_ref_try.rb
 
 require_relative '../../support/test_helpers'
 
-ENV['FEDERATION_SECRET'] ||= 'test-hmac-secret-for-telemetry-ref-32ch'
+ENV['FEDERATION_SECRET'] ||= 'test-hmac-secret-for-diagnostics-ref-32c'
 
 # FEDERATION_SECRET only keys the ref when a residency scope resolves, so the
 # federated cases below need one declared for the file. The cases that pin the
 # undeclared default clear this explicitly.
-ENV['TELEMETRY_REF_REGION'] ||= 'try-region'
+ENV['DIAGNOSTICS_REF_REGION'] ||= 'try-region'
 
-require 'onetime/utils/telemetry_ref'
+require 'onetime/utils/diagnostics_ref'
 require 'onetime/utils/email_hash'
 
-TR = Onetime::Utils::TelemetryRef
+TR = Onetime::Utils::DiagnosticsRef
 
 # Set several env vars for the duration of a block and restore all of them,
 # so case ordering can never matter. Assigning nil deletes.
@@ -131,7 +131,7 @@ REPO_ROOT = File.expand_path('../../..', __dir__)
 @email_upper = 'USER@EXAMPLE.COM'
 @email_whitespace = '  user@example.com  '
 @other_email = 'other@example.com'
-@deployment_key = 'account-id-secret-for-telemetry-ref-try'
+@deployment_key = 'account-id-secret-for-diagnostics-ref-try'
 
 # Two regional installs SHARE this by design - that is what makes a
 # residency-independent ref a cross-region join rather than a convenience.
@@ -141,7 +141,7 @@ REPO_ROOT = File.expand_path('../../..', __dir__)
 # secret, no operator pin (so residency comes from the jurisdiction config the
 # helpers drive), and a per-install fallback secret available.
 @fault_env = { 'FEDERATION_SECRET' => @shared_secret,
-               'TELEMETRY_REF_REGION' => nil,
+               'DIAGNOSTICS_REF_REGION' => nil,
                'ACCOUNT_ID_SECRET' => @deployment_key }
 
 # The value the pre-fix code emitted during the fault window: the shared
@@ -212,11 +212,11 @@ TR.actor_ref(@email) == Onetime::Utils::EmailHash.compute(@email)
 Onetime::Utils::EmailHash.compute(@email)[0, TR::REF_LENGTH] == TR.actor_ref(@email)
 #=> false
 
-## Purpose prefix is versioned, so telemetry identity can be re-keyed alone
+## Purpose prefix is versioned, so diagnostics identity can be re-keyed alone
 [TR::ACTOR_INFO.include?('v1'), TR::ACTOR_INFO.include?('actor')]
 #=> [true, true]
 
-## Telemetry refs are narrower than federation email hashes
+## Diagnostics refs are narrower than federation email hashes
 TR::REF_LENGTH < Onetime::Utils::EmailHash::HASH_LENGTH
 #=> true
 
@@ -259,30 +259,30 @@ federated == deployment
 
 ## RESIDENCY: the same person in two jurisdictions gets DIFFERENT refs even
 ## though both instances share one FEDERATION_SECRET. This is the cross-region
-## re-identification join we refuse to hand the telemetry backend.
-eu = with_env_vars('TELEMETRY_REF_REGION' => 'eu') { TR.actor_ref(@email) }
-us = with_env_vars('TELEMETRY_REF_REGION' => 'us') { TR.actor_ref(@email) }
+## re-identification join we refuse to hand the diagnostics backend.
+eu = with_env_vars('DIAGNOSTICS_REF_REGION' => 'eu') { TR.actor_ref(@email) }
+us = with_env_vars('DIAGNOSTICS_REF_REGION' => 'us') { TR.actor_ref(@email) }
 eu == us
 #=> false
 
 ## RESIDENCY: refs remain deterministic within one jurisdiction
-with_env_vars('TELEMETRY_REF_REGION' => 'eu') { TR.actor_ref(@email) } ==
-  with_env_vars('TELEMETRY_REF_REGION' => 'EU  ') { TR.actor_ref(@email) }
+with_env_vars('DIAGNOSTICS_REF_REGION' => 'eu') { TR.actor_ref(@email) } ==
+  with_env_vars('DIAGNOSTICS_REF_REGION' => 'EU  ') { TR.actor_ref(@email) }
 #=> true
 
 ## RESIDENCY: an undeclared residency is not a wildcard that matches every
 ## declared one - it is not a residency scope at all, and its ref is keyed by
 ## a different (per-deployment) secret entirely
 with_conf({}) do
-  unscoped = with_env_vars('TELEMETRY_REF_REGION' => nil,
+  unscoped = with_env_vars('DIAGNOSTICS_REF_REGION' => nil,
                            'ACCOUNT_ID_SECRET' => @deployment_key) { TR.actor_ref(@email) }
-  unscoped == with_env_vars('TELEMETRY_REF_REGION' => 'eu') { TR.actor_ref(@email) }
+  unscoped == with_env_vars('DIAGNOSTICS_REF_REGION' => 'eu') { TR.actor_ref(@email) }
 end
 #=> false
 
 ## RESIDENCY: the explicit pin wins over a declared jurisdiction, and is never blank
 with_conf({ 'features' => { 'regions' => { 'current_jurisdiction' => 'EU' } } }) do
-  with_env_vars('TELEMETRY_REF_REGION' => 'ca-central') { TR.residency_scope }
+  with_env_vars('DIAGNOSTICS_REF_REGION' => 'ca-central') { TR.residency_scope }
 end
 #=> 'ca-central'
 
@@ -290,18 +290,18 @@ end
 ## scope. nil is load-bearing here: it is what makes keying refuse the shared
 ## FEDERATION_SECRET. The RESIDENCY_UNSCOPED literal is only a pre-image filler
 ## so the element count never varies, and never reaches a federated derivation.
-with_conf({}) { with_env_vars('TELEMETRY_REF_REGION' => '   ') { TR.residency_scope } }
+with_conf({}) { with_env_vars('DIAGNOSTICS_REF_REGION' => '   ') { TR.residency_scope } }
 #=> nil
 
 ## RESIDENCY: with no pin, the scope comes from features.regions.current_jurisdiction
 ## - the same source SetupDiagnostics derives the Sentry `jurisdiction` tag from
 with_conf({ 'features' => { 'regions' => { 'current_jurisdiction' => 'EU' } } }) do
-  with_env_vars('TELEMETRY_REF_REGION' => nil) { TR.residency_scope }
+  with_env_vars('DIAGNOSTICS_REF_REGION' => nil) { TR.residency_scope }
 end
 #=> 'eu'
 
 ## RESIDENCY: the residency label is never part of the emitted bundle
-with_env_vars('TELEMETRY_REF_REGION' => 'eu-central-zzz') { TR.actor(@email).to_json }.include?('eu-central-zzz')
+with_env_vars('DIAGNOSTICS_REF_REGION' => 'eu-central-zzz') { TR.actor(@email).to_json }.include?('eu-central-zzz')
 #=> false
 
 ## ENCODING: an invalid byte in a stored email returns nil instead of raising
@@ -343,7 +343,7 @@ end
 ## secret and the emitted label narrows with it, so an operator is never told
 ## the ref correlates further than it does.
 with_conf({}) do
-  with_env_vars('TELEMETRY_REF_REGION' => nil, 'ACCOUNT_ID_SECRET' => @deployment_key) do
+  with_env_vars('DIAGNOSTICS_REF_REGION' => nil, 'ACCOUNT_ID_SECRET' => @deployment_key) do
     [TR.scope, TR.available?]
   end
 end
@@ -357,12 +357,12 @@ end
 same_secret = 'shared-federation-secret-across-two-regions'
 install_a = with_conf({}) do
   with_env_vars('FEDERATION_SECRET' => same_secret,
-                'TELEMETRY_REF_REGION' => nil,
+                'DIAGNOSTICS_REF_REGION' => nil,
                 'ACCOUNT_ID_SECRET' => 'per-install-secret-region-a') { TR.actor_ref(@email) }
 end
 install_b = with_conf({}) do
   with_env_vars('FEDERATION_SECRET' => same_secret,
-                'TELEMETRY_REF_REGION' => nil,
+                'DIAGNOSTICS_REF_REGION' => nil,
                 'ACCOUNT_ID_SECRET' => 'per-install-secret-region-b') { TR.actor_ref(@email) }
 end
 [install_a.nil?, install_b.nil?, install_a == install_b]
@@ -372,16 +372,16 @@ end
 ## residency and no per-deployment secret to fall back to, there is nothing safe
 ## to key with - so nothing is emitted, rather than reaching for the shared key.
 with_conf({}) do
-  with_env_vars('TELEMETRY_REF_REGION' => nil, 'ACCOUNT_ID_SECRET' => nil) do
+  with_env_vars('DIAGNOSTICS_REF_REGION' => nil, 'ACCOUNT_ID_SECRET' => nil) do
     [TR.scope, TR.available?, TR.actor_ref(@email), TR.actor(@email)]
   end
 end
 #=> [nil, false, nil, nil]
 
 ## DEFECT 1: declaring a residency is what unlocks federated keying, and it is
-## enough on its own - JURISDICTION alone, no telemetry-specific env var.
+## enough on its own - JURISDICTION alone, no diagnostics-specific env var.
 with_conf({ 'features' => { 'regions' => { 'current_jurisdiction' => 'EU' } } }) do
-  with_env_vars('TELEMETRY_REF_REGION' => nil, 'ACCOUNT_ID_SECRET' => @deployment_key) do
+  with_env_vars('DIAGNOSTICS_REF_REGION' => nil, 'ACCOUNT_ID_SECRET' => @deployment_key) do
     [TR.scope, TR.residency_scope]
   end
 end
@@ -390,10 +390,10 @@ end
 ## DEFECT 1: and the residency mechanism still separates jurisdictions once on,
 ## so closing the default did not disable the guarantee it protects.
 eu_scoped = with_conf({ 'features' => { 'regions' => { 'current_jurisdiction' => 'EU' } } }) do
-  with_env_vars('TELEMETRY_REF_REGION' => nil) { TR.actor_ref(@email) }
+  with_env_vars('DIAGNOSTICS_REF_REGION' => nil) { TR.actor_ref(@email) }
 end
 us_scoped = with_conf({ 'features' => { 'regions' => { 'current_jurisdiction' => 'US' } } }) do
-  with_env_vars('TELEMETRY_REF_REGION' => nil) { TR.actor_ref(@email) }
+  with_env_vars('DIAGNOSTICS_REF_REGION' => nil) { TR.actor_ref(@email) }
 end
 [eu_scoped.nil?, eu_scoped == us_scoped]
 #=> [false, false]
@@ -402,7 +402,7 @@ end
 ## hand the same human a SECOND, different ref. It yields no ref at all - a gap,
 ## which is honest and self-healing - and no scope label either.
 with_failing_conf do
-  with_env_vars('TELEMETRY_REF_REGION' => nil) do
+  with_env_vars('DIAGNOSTICS_REF_REGION' => nil) do
     [TR.actor_ref(@email), TR.actor(@email), TR.scope, TR.available?]
   end
 end
@@ -412,10 +412,10 @@ end
 ## derived during the fault is not some other derivable value - it is absent, so
 ## it can never be mistaken for a different data subject.
 healthy = with_conf({ 'features' => { 'regions' => { 'current_jurisdiction' => 'EU' } } }) do
-  with_env_vars('TELEMETRY_REF_REGION' => nil) { TR.actor_ref(@email) }
+  with_env_vars('DIAGNOSTICS_REF_REGION' => nil) { TR.actor_ref(@email) }
 end
 faulted = with_failing_conf do
-  with_env_vars('TELEMETRY_REF_REGION' => nil) { TR.actor_ref(@email) }
+  with_env_vars('DIAGNOSTICS_REF_REGION' => nil) { TR.actor_ref(@email) }
 end
 [healthy.nil?, faulted.nil?]
 #=> [false, true]
@@ -424,7 +424,7 @@ end
 ## every authenticated render, where a raise is a 500 plus a self-inflicted
 ## Sentry event. residency_scope stays raise-free for boot checks too.
 with_failing_conf do
-  with_env_vars('TELEMETRY_REF_REGION' => nil) do
+  with_env_vars('DIAGNOSTICS_REF_REGION' => nil) do
     [TR.residency_scope, TR.actor(@email)]
   rescue StandardError => ex
     ex.class
@@ -432,11 +432,11 @@ with_failing_conf do
 end
 #=> [nil, nil]
 
-## DEFECT 3 (false operator-facing comment): TELEMETRY_REF_REGION is documented
+## DEFECT 3 (false operator-facing comment): DIAGNOSTICS_REF_REGION is documented
 ## in both operator env files, so the knob that decides residency keying is
 ## discoverable without reading the source.
-[File.read(File.join(REPO_ROOT, '.env.example')).include?('TELEMETRY_REF_REGION'),
- File.read(File.join(REPO_ROOT, '.env.reference')).include?('TELEMETRY_REF_REGION')]
+[File.read(File.join(REPO_ROOT, '.env.example')).include?('DIAGNOSTICS_REF_REGION'),
+ File.read(File.join(REPO_ROOT, '.env.reference')).include?('DIAGNOSTICS_REF_REGION')]
 #=> [true, true]
 
 ## DEFECT 3: and .env.example no longer advertises the property the code
@@ -449,7 +449,7 @@ File.read(File.join(REPO_ROOT, '.env.example')).include?('identity per person ac
 ## secret implies, and the residency that SELECTED it, together, as one value -
 ## so nothing downstream can pair a ref with a label from a different read.
 with_conf(jurisdiction_conf('EU')) do
-  with_env_vars('TELEMETRY_REF_REGION' => nil, 'ACCOUNT_ID_SECRET' => @deployment_key) do
+  with_env_vars('DIAGNOSTICS_REF_REGION' => nil, 'ACCOUNT_ID_SECRET' => @deployment_key) do
     key = TR.keying
     [key.is_a?(TR::Keying), key.scope, key.residency]
   end
@@ -605,8 +605,8 @@ TR.organization_ref("  #{@org_objid}  ") == TR.organization_ref(@org_objid)
 ## RESIDENCY: one organization in two jurisdictions gets DIFFERENT refs, even
 ## though both instances share one FEDERATION_SECRET - the same cross-region
 ## join refusal actor refs get
-eu_org = with_env_vars('TELEMETRY_REF_REGION' => 'eu') { TR.organization_ref(@org_objid) }
-us_org = with_env_vars('TELEMETRY_REF_REGION' => 'us') { TR.organization_ref(@org_objid) }
+eu_org = with_env_vars('DIAGNOSTICS_REF_REGION' => 'eu') { TR.organization_ref(@org_objid) }
+us_org = with_env_vars('DIAGNOSTICS_REF_REGION' => 'us') { TR.organization_ref(@org_objid) }
 [eu_org.nil?, eu_org == us_org]
 #=> [false, false]
 
@@ -619,13 +619,13 @@ no_secret = with_env_vars('FEDERATION_SECRET' => nil, 'ACCOUNT_ID_SECRET' => nil
 end
 shared_no_residency = with_conf({}) do
   with_env_vars('FEDERATION_SECRET' => @shared_secret,
-                'TELEMETRY_REF_REGION' => nil,
+                'DIAGNOSTICS_REF_REGION' => nil,
                 'ACCOUNT_ID_SECRET' => nil) do
     [TR.actor_ref(@email).nil?, TR.organization_ref(@org_objid).nil?]
   end
 end
 failing_conf = with_failing_conf do
-  with_env_vars('TELEMETRY_REF_REGION' => nil) do
+  with_env_vars('DIAGNOSTICS_REF_REGION' => nil) do
     [TR.actor_ref(@email).nil?, TR.organization_ref(@org_objid).nil?]
   end
 end
@@ -637,12 +637,12 @@ end
 ## key, exactly as actor refs do.
 org_a = with_conf({}) do
   with_env_vars('FEDERATION_SECRET' => @shared_secret,
-                'TELEMETRY_REF_REGION' => nil,
+                'DIAGNOSTICS_REF_REGION' => nil,
                 'ACCOUNT_ID_SECRET' => 'per-install-secret-region-a') { TR.organization_ref(@org_objid) }
 end
 org_b = with_conf({}) do
   with_env_vars('FEDERATION_SECRET' => @shared_secret,
-                'TELEMETRY_REF_REGION' => nil,
+                'DIAGNOSTICS_REF_REGION' => nil,
                 'ACCOUNT_ID_SECRET' => 'per-install-secret-region-b') { TR.organization_ref(@org_objid) }
 end
 [org_a.nil?, org_b.nil?, org_a == org_b]
@@ -656,7 +656,7 @@ TR.send(:digest_ref, TR::ORGANIZATION_INFO,
 
 ## The org ref is the derivation an operator can reproduce from the objid and
 ## the key, and nothing else - recomputed independently here
-with_env_vars('TELEMETRY_REF_REGION' => 'eu') { TR.organization_ref(@org_objid) } ==
+with_env_vars('DIAGNOSTICS_REF_REGION' => 'eu') { TR.organization_ref(@org_objid) } ==
   OpenSSL::HMAC.hexdigest(
     'SHA256', ENV.fetch('FEDERATION_SECRET'),
     [TR::ORGANIZATION_INFO, 'eu', @org_objid].join(TR::SEPARATOR)

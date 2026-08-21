@@ -14,8 +14,8 @@ require 'colonel/logic'
 #      declares a string, and a bare Integer therefore failed the parse and blanked
 #      the whole record. This is the regression that produced the branch.
 #
-#   2. A pseudonymous telemetry reference IS published: `organization_ref`,
-#      keyed by Onetime::Utils::TelemetryRef. An earlier revision added it,
+#   2. A pseudonymous diagnostics reference IS published: `organization_ref`,
+#      keyed by Onetime::Utils::DiagnosticsRef. An earlier revision added it,
 #      deleted it for having no consumer, and pinned its absence. It is back
 #      WITH the consumer: Sentry parameterizes this route to
 #      /api/colonel/organizations/:org_id and never carries the real id, so an
@@ -100,18 +100,18 @@ RSpec.describe ColonelAPI::Logic::Colonel::GetOrganizationDetail do
     end
   end
 
-  describe 'telemetry references' do
+  describe 'diagnostics references' do
     # Pin a known keying rather than inheriting whatever the lane exports.
-    # TelemetryRef refuses the shared federation secret when no residency
+    # DiagnosticsRef refuses the shared federation secret when no residency
     # resolves, so an unpinned lane could make every example here assert
     # against nil and pass for the wrong reason.
     let(:keying) do
-      Onetime::Utils::TelemetryRef::Keying.new(
-        secret: 'a-known-telemetry-key', scope: 'federated', residency: 'stub-region'
+      Onetime::Utils::DiagnosticsRef::Keying.new(
+        secret: 'a-known-diagnostics-key', scope: 'federated', residency: 'stub-region'
       )
     end
 
-    before { allow(Onetime::Utils::TelemetryRef).to receive(:keying).and_return(keying) }
+    before { allow(Onetime::Utils::DiagnosticsRef).to receive(:keying).and_return(keying) }
 
     it 'publishes an opaque organization ref, 16 lowercase hex chars' do
       expect(record[:organization_ref]).to match(/\A[0-9a-f]{16}\z/)
@@ -119,7 +119,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::GetOrganizationDetail do
 
     it 'derives the ref from the objid without disclosing objid or extid' do
       expect(record[:organization_ref])
-        .to eq(Onetime::Utils::TelemetryRef.organization_ref(objid))
+        .to eq(Onetime::Utils::DiagnosticsRef.organization_ref(objid))
 
       expect(record[:organization_ref]).not_to eq(objid)
       expect(record[:organization_ref]).not_to eq(extid)
@@ -128,7 +128,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::GetOrganizationDetail do
     end
 
     it 'distinguishes one organization from another' do
-      other = Onetime::Utils::TelemetryRef.organization_ref('01JOTHERABCDEFGHJKMNPQRSTVW')
+      other = Onetime::Utils::DiagnosticsRef.organization_ref('01JOTHERABCDEFGHJKMNPQRSTVW')
 
       expect(other).to match(/\A[0-9a-f]{16}\z/)
       expect(record[:organization_ref]).not_to eq(other)
@@ -139,8 +139,8 @@ RSpec.describe ColonelAPI::Logic::Colonel::GetOrganizationDetail do
       # unpadded, NFC — so the only difference left is the purpose prefix.
       probe = 'domain-separation-probe'
 
-      expect(Onetime::Utils::TelemetryRef.organization_ref(probe))
-        .not_to eq(Onetime::Utils::TelemetryRef.actor_ref(probe))
+      expect(Onetime::Utils::DiagnosticsRef.organization_ref(probe))
+        .not_to eq(Onetime::Utils::DiagnosticsRef.actor_ref(probe))
     end
 
     it 'still returns the identifiers an operator actually looks up' do
@@ -148,8 +148,8 @@ RSpec.describe ColonelAPI::Logic::Colonel::GetOrganizationDetail do
       expect(record[:extid]).to eq(extid)
     end
 
-    it 'publishes no OTHER telemetry-restricted identifier as a ref' do
-      # Everything the privacy rules forbid on the telemetry surface stays a
+    it 'publishes no OTHER diagnostics-restricted identifier as a ref' do
+      # Everything the privacy rules forbid on the diagnostics surface stays a
       # plain operator field on this authenticated response and gains no
       # pseudonymous twin.
       %i[extid_ref display_name_ref owner_ref owner_email_ref billing_email_ref
