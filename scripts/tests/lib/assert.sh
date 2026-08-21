@@ -1,6 +1,10 @@
-#!/usr/bin/env bash
-#
 # scripts/tests/lib/assert.sh
+#
+# Sourced, never executed, so it carries no shebang — the
+# check-shebang-scripts-are-executable hook would otherwise demand a +x bit
+# that would be wrong here. The directive below is what tells shellcheck the
+# dialect a shebang would have.
+# shellcheck shell=bash
 #
 # Assertion helpers for the executable shell tests in scripts/tests/*-test.sh.
 #
