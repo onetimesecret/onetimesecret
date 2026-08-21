@@ -54,8 +54,10 @@ RELEASE="${SENTRY_RELEASE:-}"
 
 # Only two places can put a `dist` on a frontend event: the Sentry.init options
 # literal, and the backend-supplied config spread into it (`...config.sentry`).
-# Both are checked, because a --dist on the upload with no dist on the event is
-# unresolvable in exactly the same silent way as a missing upload.
+# Neither can establish that a dist IS present — see section 6, which reads that
+# off the built chunks — but both explain a negative result, which is the
+# difference between "the frontend sets nothing" and "the frontend sets
+# something this script cannot read".
 DIAGNOSTICS_TS="${REPO_ROOT}/src/plugins/core/enableDiagnostics.ts"
 CONFIG_SERIALIZER="${REPO_ROOT}/apps/web/core/views/serializers/config_serializer.rb"
 
@@ -180,20 +182,32 @@ fi
 # upload hardcodes its own project. If the upload's project is not among them,
 # the release and its artifact bundles live in different places and neither
 # half is obviously wrong on its own.
+#
+# The details below carry COUNTS, never slugs. SENTRY_PROJECTS and
+# SENTRY_FRONTEND_PROJECT are repository secrets, and GitHub masks a secret only
+# by exact value: sentry-status.sh truncates an over-long detail at a whitespace
+# boundary, and SENTRY_PROJECTS is a space-separated list, so a long value can be
+# cut BETWEEN slugs and published as an unmasked prefix that no longer matches
+# what was registered. Whether the upload's project is among the configured set
+# is the whole finding; which slugs those are adds nothing an operator with
+# access to the secrets cannot already read.
 if [ -n "${SENTRY_PROJECTS:-}" ]; then
   project_match=0
+  project_count=0
   for proj in $SENTRY_PROJECTS; do
+    project_count=$((project_count + 1))
     [ "$proj" = "$UPLOAD_PROJECT" ] && project_match=1
   done
   if [ "$project_match" -eq 0 ]; then
     warn project-routing warn \
-      "sourcemaps upload targets project '${UPLOAD_PROJECT}' but the release was created for SENTRY_PROJECTS='${SENTRY_PROJECTS}' — the artifact bundles and the release will not be in the same project."
+      "the sourcemaps upload targets a project that is not among the ${project_count} configured project(s) the release was created for — the artifact bundles and the release will not be in the same project. Reconcile SENTRY_FRONTEND_PROJECT against SENTRY_PROJECTS."
   else
-    report project-routing ok "upload project '${UPLOAD_PROJECT}' is present in SENTRY_PROJECTS"
+    report project-routing ok \
+      "the upload's project is among the ${project_count} configured project(s) the release was created for"
   fi
 else
   warn project-routing warn \
-    "SENTRY_PROJECTS is empty, so no Sentry release exists to attach bundles to; the upload will target project '${UPLOAD_PROJECT}' regardless."
+    "SENTRY_PROJECTS is empty, so no Sentry release exists to attach bundles to; the upload will proceed against its configured project regardless."
 fi
 
 # --- 6. dist-tag contract ----------------------------------------------------
@@ -201,31 +215,78 @@ fi
 # A `dist` is a JOIN KEY: Sentry only resolves an artifact bundle for an event
 # when release AND dist both match. Tagging the upload --dist=X while the
 # frontend sets no dist means the bundles can never resolve — the exact failure
-# mode that looks like a successful upload. The two (and only two) places a
-# frontend dist can come from are checked here.
-frontend_dist=""
-if grep -qE '^[[:space:]]*dist:[[:space:]]*' "$DIAGNOSTICS_TS" 2>/dev/null; then
-  frontend_dist="$(sed -nE "s/^[[:space:]]*dist:[[:space:]]*['\"]([^'\"]+)['\"].*/\1/p" \
-    "$DIAGNOSTICS_TS" | head -n1)"
-  [ -n "$frontend_dist" ] || frontend_dist="<non-literal>"
-elif grep -qE "['\"]?dist['\"]?[[:space:]]*[:=]" "$CONFIG_SERIALIZER" 2>/dev/null; then
-  frontend_dist="<from backend config>"
+# mode that looks like a successful upload.
+#
+# The affirmative answer comes from where the release check gets its own: the
+# BUILT chunks. Whatever the frontend hands Sentry.init — a literal, a constant,
+# a vite define — resolves to a quoted string in the emitted bundle, so finding
+# `dist:"X"` there is evidence an event will actually carry X. Source greps
+# cannot produce that evidence and must never be allowed to stand in for it: a
+# dist arriving at runtime through the `...config.sentry` spread is invisible to
+# them, and any grep over source rots the moment the source is refactored.
+#
+# So the only path to `ok` is the built output. Everything else is a warning,
+# including — especially — the cases where this script cannot tell. "We could
+# not determine it" reported as "we verified it matches" is how the join key
+# broke unnoticed in the first place.
+dist_in_bundle=0
+if [ -n "$UPLOAD_DIST" ]; then
+  # Fixed strings, not a regex, so a dist containing regex metacharacters cannot
+  # loosen the match. The build minifies to a single chunk and minifiers do not
+  # quote keys that are valid identifiers, hence the bare `dist:`; the spaced
+  # forms cover an unminified tree.
+  for needle in "dist:\"${UPLOAD_DIST}\"" "dist:'${UPLOAD_DIST}'" \
+                "dist: \"${UPLOAD_DIST}\"" "dist: '${UPLOAD_DIST}'"; do
+    if grep -RIlF -- "$needle" "${DIST_DIR}"/assets/*.js > /dev/null 2>&1; then
+      dist_in_bundle=1
+      break
+    fi
+  done
 fi
 
-if [ -n "$UPLOAD_DIST" ] && [ -z "$frontend_dist" ]; then
+# Source signals. Used only to explain a negative result, never to satisfy one.
+# `diag_sets_dist` without `frontend_dist` means enableDiagnostics.ts sets a
+# dist that is not a readable literal.
+diag_sets_dist=0
+frontend_dist=""
+if grep -qE '^[[:space:]]*dist:[[:space:]]*[^[:space:]]' "$DIAGNOSTICS_TS" 2>/dev/null; then
+  diag_sets_dist=1
+  frontend_dist="$(sed -nE "s/^[[:space:]]*dist:[[:space:]]*['\"]([^'\"]+)['\"].*/\1/p" \
+    "$DIAGNOSTICS_TS" | head -n1)"
+fi
+
+# Anchored at the start of the line so a commented-out key cannot match, and
+# limited to the three ways Ruby writes a hash key.
+backend_sets_dist=0
+if grep -qE "^[[:space:]]*['\"]?dist['\"]?[[:space:]]*(:|=>)" "$CONFIG_SERIALIZER" 2>/dev/null; then
+  backend_sets_dist=1
+fi
+
+if [ -z "$UPLOAD_DIST" ]; then
+  if [ -n "$frontend_dist" ]; then
+    warn dist-tag warn \
+      "frontend events carry dist='${frontend_dist}' but the upload passes no --dist — bundles are filed dist-less and will not resolve. Pass --dist='${frontend_dist}'."
+  elif [ "$diag_sets_dist" -eq 1 ] || [ "$backend_sets_dist" -eq 1 ]; then
+    warn dist-tag warn \
+      "the upload passes no --dist, and a dist is set somewhere this check cannot read back (enableDiagnostics.ts non-literal: ${diag_sets_dist}, backend diagnostics config: ${backend_sets_dist}) — if events carry one, these dist-less bundles will not resolve. Join key UNVERIFIED."
+  else
+    report dist-tag ok "neither the upload nor the frontend sets a dist (consistent)"
+  fi
+elif [ "$dist_in_bundle" -eq 1 ]; then
+  report dist-tag ok \
+    "upload --dist='${UPLOAD_DIST}' found inlined in the built entry chunks — events from this build carry the same dist"
+elif [ -n "$frontend_dist" ] && [ "$frontend_dist" != "$UPLOAD_DIST" ]; then
   warn dist-tag warn \
-    "upload tags bundles with --dist='${UPLOAD_DIST}' but the frontend sets no dist (neither src/plugins/core/enableDiagnostics.ts nor the backend diagnostics config emits one), so events carry dist=undefined and will never resolve these bundles. Drop --dist from the upload, or set a matching dist in Sentry.init."
-elif [ -z "$UPLOAD_DIST" ] && [ -n "$frontend_dist" ]; then
+    "dist mismatch: upload uses --dist='${UPLOAD_DIST}', src/plugins/core/enableDiagnostics.ts sets dist='${frontend_dist}'."
+elif [ -n "$frontend_dist" ]; then
   warn dist-tag warn \
-    "frontend events carry dist='${frontend_dist}' but the upload passes no --dist — bundles are filed dist-less and will not resolve. Pass --dist='${frontend_dist}'."
-elif [ -n "$UPLOAD_DIST" ] && [ "$frontend_dist" != "$UPLOAD_DIST" ] && \
-     [ "$frontend_dist" != "<non-literal>" ] && [ "$frontend_dist" != "<from backend config>" ]; then
+    "src/plugins/core/enableDiagnostics.ts sets dist='${frontend_dist}' matching the upload, but no chunk in ${DIST_DIR}/assets carries it — this tree was built before that change landed, or the value was stripped, so events from THIS build still carry no dist."
+elif [ "$diag_sets_dist" -eq 1 ] || [ "$backend_sets_dist" -eq 1 ]; then
   warn dist-tag warn \
-    "dist mismatch: upload uses --dist='${UPLOAD_DIST}', frontend events report dist='${frontend_dist}'."
-elif [ -n "$UPLOAD_DIST" ]; then
-  report dist-tag ok "upload --dist='${UPLOAD_DIST}' matches the frontend dist"
+    "upload tags bundles with --dist='${UPLOAD_DIST}' and no built chunk carries that dist, but a dist is set somewhere this check cannot read back (enableDiagnostics.ts non-literal: ${diag_sets_dist}, backend diagnostics config: ${backend_sets_dist}) — the join key is UNVERIFIED, not confirmed. Resolve it to a build-time value so the built chunks can be checked."
 else
-  report dist-tag ok "neither the upload nor the frontend sets a dist (consistent)"
+  warn dist-tag warn \
+    "upload tags bundles with --dist='${UPLOAD_DIST}' but no built chunk carries a dist and the frontend sets none (neither src/plugins/core/enableDiagnostics.ts nor the backend diagnostics config emits one), so events carry dist=undefined and will never resolve these bundles. Drop --dist from the upload, or set a matching dist in Sentry.init."
 fi
 
 emit_status ready
