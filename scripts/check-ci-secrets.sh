@@ -30,7 +30,8 @@ IGNORE_FILE="scripts/ci-secrets-ignore.txt"
 [[ -f "$IGNORE_FILE" ]] || { echo "FAIL: $IGNORE_FILE not found" >&2; exit 1; }
 
 tmp_ignored=$(mktemp)
-trap 'rm -f "$tmp_ignored"' EXIT
+tmp_comments=$(mktemp)
+trap 'rm -f "$tmp_ignored" "$tmp_comments"' EXIT
 
 sed -e 's/#.*$//' -e 's/[[:space:]]//g' "$IGNORE_FILE" | grep -E '^[A-Z][A-Z0-9_]+$' | sort -u > "$tmp_ignored"
 
@@ -52,7 +53,9 @@ for wf in "$WORKFLOW_DIR"/*.yml; do
 
     # Documented = named in some comment line in this same file (excluding
     # the `secrets.X` reference lines themselves, which don't explain it).
-    if grep -E '^[[:space:]]*#' "$wf" | grep -q -F "$name"; then
+    # Write comments to a file first: with pipefail, `grep -q` may close a
+    # pipeline early and make the producer report SIGPIPE on GNU grep.
+    if grep -E '^[[:space:]]*#' "$wf" > "$tmp_comments" && grep -q -F "$name" "$tmp_comments"; then
       continue
     fi
 

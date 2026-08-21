@@ -1,7 +1,4 @@
 # .github/workflows/claude-code-review.yml
-#
-# Required GitHub Actions secret:
-#   CLAUDE_CODE_OAUTH_TOKEN   OAuth token for the anthropics/claude-code-action
 
 name: Claude Code Review
 
