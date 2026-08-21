@@ -3,6 +3,17 @@
 Fixed
 -----
 
+- ``subscription_period_end`` is serialized as a string everywhere it reaches a
+  consumer. Six sites emitted the field: four Colonel logic classes, the
+  organization reconcile summary, and the billing overview endpoint. The field
+  is untyped on the model and its writers are inconsistent, so the same wire
+  key carried a JSON string from some paths and a JSON number from others —
+  which is what broke the Colonel organization-detail page against a schema
+  declaring ``z.string()``. The frontend's ``BillingOverviewResponse`` declared
+  ``number`` and was equally wrong; it now declares ``string | null``, and the
+  two consumers parse the value instead of relying on ``'1772940425' * 1000``
+  coercing. A zero epoch no longer renders as 1 Jan 1970.
+
 - A schema-validation failure discarded the one thing needed to diagnose it.
   The Colonel organization-detail bug that opened this branch was found by
   hand because the event said only that validation failed; it now reports

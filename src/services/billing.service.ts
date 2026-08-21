@@ -58,7 +58,25 @@ export interface BillingOverviewResponse {
   subscription: {
     id: string;
     status: string;
-    period_end: number;
+    /**
+     * Unix epoch SECONDS as a decimal string, or null.
+     *
+     * A string because the controller now pins it to one. It did not before,
+     * and the field is untyped on the model, so this endpoint emitted a JSON
+     * *number* whenever the assigned value was an Integer and a string
+     * wherever a writer had applied `.to_s` — one wire field, two types,
+     * which is precisely how the Colonel bug on this branch started. A
+     * regression spec in `billing_controller_spec.rb` assigns an Integer and
+     * asserts the string comes back.
+     *
+     * Parse it with `parseDateValue`; do not do arithmetic on it. The old
+     * consumers relied on `'1772940425' * 1000` coercing, which silently
+     * yields an Invalid Date for anything non-numeric.
+     *
+     * Null when the org has a Stripe subscription id but no recorded period
+     * end (e.g. a subscription cleared by `apply_subscription_to_org`).
+     */
+    period_end: string | null;
     active: boolean;
     past_due: boolean;
     canceled: boolean;

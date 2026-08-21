@@ -239,16 +239,33 @@ describe('BillingOverview', () => {
       expect(billingDateEl.exists()).toBe(true);
       expect(billingDateEl.text()).toContain('web.billing.overview.next_billing_date');
 
-      const expectedDate = new Date(defaultOverviewResponse.subscription!.period_end * 1000);
+      const expectedDate = new Date(Number(defaultOverviewResponse.subscription!.period_end) * 1000);
       // Default date_format is 'locale', so output varies by environment.
       // Verify the formatted date contains the expected year.
       expect(billingDateEl.text()).toContain(String(expectedDate.getFullYear()));
     });
 
-    it('does not display next billing date when subscription has no period_end', async () => {
+    // `period_end` is epoch SECONDS as a decimal string, or null. Each of the
+    // cases below is a value the wire can actually carry; none may render a
+    // date. `'0'` earns its own case because the truthiness check that used to
+    // guard this excluded 0 by accident, and a parse-then-render would put
+    // 1 Jan 1970 on the page.
+    it.each([
+      ['null, the API value for an org with no recorded period end', null],
+      ['an empty string', ''],
+      ["'0', an unset field that survived as a zero epoch", '0'],
+      ['a non-numeric string', 'not-a-timestamp'],
+    ])('does not display next billing date when period_end is %s', async (_label, periodEnd) => {
       const noDateResponse = createMockOverviewResponse({
         organization: { id: 'org_123', external_id: 'on1abc123', display_name: 'Test Org', billing_email: null },
-        subscription: { id: 'sub_123', status: 'active', period_end: 0, active: true, past_due: false, canceled: false },
+        subscription: {
+          id: 'sub_123',
+          status: 'active',
+          period_end: periodEnd,
+          active: true,
+          past_due: false,
+          canceled: false,
+        },
       });
       mockGetOverview.mockResolvedValueOnce(noDateResponse);
       wrapper = await mountComponent();
