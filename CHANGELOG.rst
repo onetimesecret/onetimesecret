@@ -10,10 +10,10 @@ this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.htm
 
    <!--scriv-insert-here-->
 
-.. _changelog-0.0.0-rc0:
+.. _changelog-0.26.6:
 
 0.26.6 — 2026-08-20
-======================
+====================
 
 Added
 -----
