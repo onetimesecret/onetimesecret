@@ -247,9 +247,10 @@ export const colonelOrganizationDetailRecordSchema = z.object({
   sync_status_reason: z.string().nullable(),
   /**
    * Opaque, server-derived organization pseudonym (16 lowercase hex) used ONLY
-   * as a telemetry correlation key. It is not an identifier the UI resolves,
-   * displays, or sends anywhere — `org_id` and `extid` above are what the page
-   * uses, and they are already on this response.
+   * to correlate diagnostic events sent to Sentry. It is not a usage metric and
+   * not an identifier the UI resolves, displays, or sends anywhere — `org_id`
+   * and `extid` above are what the page uses, and they are already on this
+   * response.
    *
    * `.nullable().optional()` because all three of these are normal:
    *   - a 16-hex string, on a deployment with a usable keying secret;
@@ -260,7 +261,7 @@ export const colonelOrganizationDetailRecordSchema = z.object({
    *
    * BE HONEST ABOUT WHAT THIS DECLARATION DOES. It has no consumer today and
    * changes no behaviour the app depends on. The one thing that reads the ref
-   * — `src/utils/telemetry/resourceRefRegistry.ts` — reads it off the RAW
+   * — `src/utils/diagnostics/resourceRefRegistry.ts` — reads it off the RAW
    * payload, because the case it exists for is a parse FAILURE, where no
    * parsed record exists to read. So the failure path does not need this line
    * at all.

@@ -8,7 +8,7 @@ import {
 } from '@/schemas/ui/local-receipt';
 import { loggingService } from '@/services/logging.service';
 import { useApi } from '@/shared/composables/useApi';
-import { projectSchemaIssues } from '@/utils/telemetry/schemaIssueProjection';
+import { projectSchemaIssues } from '@/utils/diagnostics/schemaIssueProjection';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, ref, watch } from 'vue';
 

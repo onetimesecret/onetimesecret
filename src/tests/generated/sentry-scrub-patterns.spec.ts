@@ -15,7 +15,7 @@ import {
 import {
   scrubSensitiveStrings,
   scrubUrlWithPatterns,
-} from '@/plugins/core/diagnostics/scrubbers';
+} from '@/utils/diagnostics/scrubbers';
 import {
   PARAM_VALUE_PATTERN,
   pathToRegexPattern,

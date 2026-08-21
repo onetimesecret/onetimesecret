@@ -489,7 +489,7 @@ module Onetime
           # (issue #3794), this is a semantic alias: both tiers apply the same
           # passes (paths, named params, emails, exact-length identifiers),
           # all gsub-based and safe on arbitrary text. Mirrors
-          # scrubSensitiveStrings in src/plugins/core/diagnostics/scrubbers.ts.
+          # scrubSensitiveStrings in src/utils/diagnostics/scrubbers.ts.
           #
           # @param text [String, nil] The text to scrub
           # @return [String, nil] The scrubbed text
@@ -592,7 +592,7 @@ module Onetime
           #
           # MIRROR — this pattern and its replacement sentinel are duplicated
           # verbatim as EMAIL_PATTERN in
-          # src/plugins/core/diagnostics/scrubbers.ts. The two must change
+          # src/utils/diagnostics/scrubbers.ts. The two must change
           # TOGETHER, in the same commit: a Sentry payload can be assembled by
           # either half, so a widening applied to only one half still leaks.
           # The TS twin carries the /gu flags (JS needs `u` for \p{...} and `g`
@@ -633,7 +633,7 @@ module Onetime
           # (32 hex), commit hashes (40 hex) — survive untouched.
           #
           # Mirrors VERIFIABLE_ID_PATTERN in
-          # src/plugins/core/diagnostics/scrubbers.ts, with ONE intentional
+          # src/utils/diagnostics/scrubbers.ts, with ONE intentional
           # divergence: the backend pattern is case-SENSITIVE ([0-9a-z]
           # only), because the backend controls its own identifier
           # generation (lowercase base-36). The frontend is

@@ -24,7 +24,7 @@
       {
         "id": "diagnostics_scrubber_ts",
         "language": "typescript",
-        "source": "src/plugins/core/diagnostics/scrubbers.ts (EMAIL_PATTERN)",
+        "source": "src/utils/diagnostics/scrubbers.ts (EMAIL_PATTERN)",
         "contract": "Deliberate mirror of diagnostics_scrubber — same pattern, same sentinel. Must leak nothing."
       }
     ],

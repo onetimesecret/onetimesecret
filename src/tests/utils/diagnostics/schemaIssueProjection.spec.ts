@@ -1,4 +1,4 @@
-// src/tests/utils/telemetry/schemaIssueProjection.spec.ts
+// src/tests/utils/diagnostics/schemaIssueProjection.spec.ts
 //
 // PASS-THREE REGRESSION SUITE for the schema-issue projection.
 //
@@ -14,7 +14,7 @@
 //                      fixes, and it is a regression, not a safe default.
 //
 // The end-to-end leak suite is
-// src/tests/plugins/core/diagnostics/telemetryBoundary.spec.ts; this file pins
+// src/tests/plugins/core/diagnostics/diagnosticsBoundary.spec.ts; this file pins
 // the unit-level behaviour that suite depends on.
 
 import { describe, expect, it } from 'vitest';
@@ -27,15 +27,15 @@ import {
   REDACTED_SEGMENT,
   ROOT_PATH,
   typeNameOf,
-} from '@/utils/telemetry/schemaIssueProjection';
+} from '@/utils/diagnostics/schemaIssueProjection';
 import {
   parameterizeApiPath,
   resetApiRouteContext,
   sanitizeApiRoute,
   setCurrentApiRoute,
   resolveApiRoute,
-} from '@/utils/telemetry/apiRouteContext';
-import { enrolledSafeFieldKeys, isSafeFieldEnrolled } from '@/utils/telemetry/safeFieldRegistry';
+} from '@/utils/diagnostics/apiRouteContext';
+import { enrolledSafeFieldKeys, isSafeFieldEnrolled } from '@/utils/diagnostics/safeFieldRegistry';
 
 /** Projects `data` through `schema` and returns the projection. */
 function project(schema: z.ZodType, data: unknown, context?: string, limit?: number) {

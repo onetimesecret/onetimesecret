@@ -16,17 +16,17 @@
 // into ParseResult the store can act on, keeping validation details from
 // leaking to consuming code.
 
-import { scrubSensitiveStrings } from '@/plugins/core/diagnostics/scrubbers';
+import { scrubSensitiveStrings } from '@/utils/diagnostics/scrubbers';
 import { captureException } from '@/services/diagnostics.service';
 import { loggingService } from '@/services/logging.service';
-import { resolveApiRoute, sanitizeApiRoute } from '@/utils/telemetry/apiRouteContext';
-import { resolveResourceRefs } from '@/utils/telemetry/resourceRefRegistry';
+import { resolveApiRoute, sanitizeApiRoute } from '@/utils/diagnostics/apiRouteContext';
+import { resolveResourceRefs } from '@/utils/diagnostics/resourceRefRegistry';
 import {
   MAX_PROJECTED_ISSUES,
   projectSchemaIssues,
   type ProjectedIssue,
   type SchemaIssueProjection,
-} from '@/utils/telemetry/schemaIssueProjection';
+} from '@/utils/diagnostics/schemaIssueProjection';
 import { z } from 'zod';
 
 /**
@@ -47,8 +47,8 @@ export interface GracefulParseOptions {
   /**
    * Parameterized API route to attribute the failure to, e.g.
    * `/api/colonel/organizations/:org_id`. Callers that happen to know it may
-   * pass it; otherwise it is resolved from the telemetry route context (see
-   * `@/utils/telemetry/apiRouteContext`). NEVER pass a resolved URL — it is
+   * pass it; otherwise it is resolved from the diagnostics route context (see
+   * `@/utils/diagnostics/apiRouteContext`). NEVER pass a resolved URL — it is
    * re-parameterized and scrubbed defensively, but the contract is the
    * parameterized form.
    *
@@ -101,9 +101,15 @@ const MAX_TAG_LENGTH = 200;
 //
 // A schema-validation failure is the only error class in this app DERIVED FROM
 // A RESPONSE PAYLOAD, which makes it the most likely carrier of user data into
-// telemetry. Sentry here is self-hosted, so the concern is data minimization
-// inside our own infrastructure — GDPR hygiene, not vendor distrust — but the
-// rule is the same either way.
+// the diagnostics payload. Sentry here is self-hosted, so the concern is data
+// minimization inside our own infrastructure — GDPR hygiene, not vendor
+// distrust — but the rule is the same either way.
+//
+// This is a DIAGNOSTICS boundary, not analytics and not metrics. Nothing here
+// is emitted on a successful parse, nothing counts usage, and no field is read
+// for reporting. Every field below exists so that a specific defect can be
+// found and fixed, which is also the argument for keeping the fields it does
+// keep: an event too scrubbed to diagnose has no other purpose to fall back on.
 //
 // WHAT LEAVES THE BROWSER (the approved set, and nothing else):
 //     schema/context name . field path . issue code . expected TYPE .
@@ -187,12 +193,12 @@ const MAX_TAG_LENGTH = 200;
 //   against the Colonel schema would now assert nothing.
 //
 // SEE ALSO:
-//   src/utils/telemetry/schemaIssueProjection.ts — the projection and why rows
+//   src/utils/diagnostics/schemaIssueProjection.ts — the projection and why rows
 //     are FLAT (Sentry's normalizeDepth budget; nesting degrades to [Object]).
-//   src/utils/telemetry/safeFieldRegistry.ts — the exact-match allowlist that
+//   src/utils/diagnostics/safeFieldRegistry.ts — the exact-match allowlist that
 //     may add SHAPE descriptors for individually reviewed, non-sensitive fields.
-//   src/utils/telemetry/apiRouteContext.ts — parameterized route resolution.
-//   src/tests/plugins/core/diagnostics/telemetryBoundary.spec.ts — the
+//   src/utils/diagnostics/apiRouteContext.ts — parameterized route resolution.
+//   src/tests/plugins/core/diagnostics/diagnosticsBoundary.spec.ts — the
 //     end-to-end acceptance suite that enforces both floors.
 
 /**
@@ -243,7 +249,7 @@ function buildErrorMessage(context: string | undefined, projection: SchemaIssueP
  * - Production: captureException sends the flattened projection to Sentry with
  *   `schema` and `schemaField` promoted to searchable tags.
  *
- * Emitted telemetry:
+ * Emitted diagnostic context:
  * - tag   `schema`      — the `context` argument (lowercased by the service)
  * - tag   `schemaField` — comma-joined failing field paths, segment-scrubbed,
  *                         in retention-priority order so the field that matters
@@ -259,7 +265,7 @@ function buildErrorMessage(context: string | undefined, projection: SchemaIssueP
  *                         response) and shape-checked before it is emitted.
  *                         Absent for every unenrolled schema, and absent when
  *                         the deployment has no keying secret. See
- *                         `@/utils/telemetry/resourceRefRegistry`
+ *                         `@/utils/diagnostics/resourceRefRegistry`
  * - extra `issueCount`  — TRUE total, never the truncated count
  * - extra `issues`      — up to {@link MAX_PROJECTED_ISSUES} flat rows, chosen
  *                         by diagnostic priority rather than declaration order

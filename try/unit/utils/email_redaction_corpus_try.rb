@@ -22,7 +22,7 @@
 #      (`user@example.com` -> `us***@e***.com`). Must stay human-correlatable.
 #   B  Onetime::Initializers::SetupDiagnostics     — lib/onetime/initializers/setup_diagnostics.rb
 #      FULL sentinel replacement for Sentry payloads. Must leak nothing.
-#   TS src/plugins/core/diagnostics/scrubbers.ts   — deliberate mirror of B.
+#   TS src/utils/diagnostics/scrubbers.ts   — deliberate mirror of B.
 #      Its own contract assertions live in
 #      src/tests/plugins/core/diagnostics/emailRedactionCorpus.spec.ts, which
 #      reads THE SAME corpus file. This file asserts the literal parity from
