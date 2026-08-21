@@ -1091,8 +1091,53 @@ if [[ ${SKIP_CODEGEN} -eq 0 && ${#ONLY[@]} -eq 0 && -n "${LANES_CODEGEN:-}" ]]; 
   builtin unset _lanes_gen
 fi
 
+# ── Mid-run service-loss epilogue ────────────────────────────────────────
+# The preflight above proves the services were up when the run STARTED. When
+# one dies mid-run (a container-VM crash takes the test valkey with it), the
+# suite surfaces the loss as dozens of ordinary-looking spec failures — a
+# triage session over a failure set that means nothing. The exec'd process
+# is the last code that can tell the difference, so instead of exec'ing the
+# task command directly, exec a shell that runs it as a child, and on a
+# nonzero exit re-probes the same ports the preflight verified: any port
+# that closed since preflight converts the whole result to one line and the
+# infra exit code (69), matching every other services-unavailable exit here.
+#
+# The epilogue is builtins only — echo, and the /dev/tcp probe port_open
+# uses — so it adds no PATH dependence, defines no functions (nothing for
+# spec/unit/lanes/hermetic_boundary_spec.rb's function-table assertion to
+# see: an unexported function would not reach the task child anyway), and
+# prints nothing on the success path. The task command runs with the exact
+# argv and `env -u`-stripped environment it received before; the only
+# behavioral delta is one shell level between env and the task.
+#
+# Probing only on nonzero exit is deliberate: a service that dies after the
+# last spec passed did not invalidate anything, and a green run must stay
+# byte-identical to what it was.
+_lanes_epilogue='
+  _lane="$1"; shift
+  _ports=()
+  while [[ $# -gt 0 && "$1" != "--" ]]; do _ports+=("$1"); shift; done
+  shift
+  "$@"
+  _rc=$?
+  if [[ ${_rc} -ne 0 ]]; then
+    _lost=""
+    for _p in ${_ports[@]+"${_ports[@]}"}; do
+      (exec 3<>"/dev/tcp/127.0.0.1/${_p}") 2>/dev/null || _lost="${_lost} ${_p}"
+    done
+    if [[ -n "${_lost}" ]]; then
+      echo "[lane:${_lane}] error: test service(s) on 127.0.0.1 port(s)${_lost} lost mid-run" >&2
+      echo "  (up at preflight); results are invalid — exit 69, not a test failure" >&2
+      exit 69
+    fi
+  fi
+  exit "${_rc}"
+'
+
 if [[ ${#ONLY[@]} -eq 0 ]]; then
-  exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash -euo pipefail "${LANE_DIR}/tasks"
+  exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash -c "${_lanes_epilogue}" \
+    lanes-epilogue "${LANE}" ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"} -- \
+    bash -euo pipefail "${LANE_DIR}/tasks"
 fi
 
 # ── --only: single-file run inside the lane's environment ────────────────
@@ -1125,4 +1170,8 @@ else
 fi
 
 echo "[lane:${LANE}] --only: ${_only_cmd[*]}"
-exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} "${_only_cmd[@]}"
+# Same mid-run service-loss epilogue as the tasks exec above: a VM crash
+# does not care whether the run was a full lane or one file.
+exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash -c "${_lanes_epilogue}" \
+  lanes-epilogue "${LANE}" ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"} -- \
+  "${_only_cmd[@]}"
