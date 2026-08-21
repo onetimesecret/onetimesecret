@@ -26,7 +26,24 @@
 # USAGE
 #
 #   sentry-status.sh record <component> <state> <detail...>
-#   sentry-status.sh render
+#   sentry-status.sh render [expected-component ...]
+#
+# The components named on `render` are the ones the caller required for this
+# event. Any of them with no row is reported as BLOCKED. A step that dies
+# before it records — runner OOM mid `docker pull`, cancellation, a step
+# timeout — leaves `continue-on-error` holding an empty output, every
+# downstream `if:` false, and no row at all; without the assertion the recap
+# then claims a clean run for work that never started. With no arguments
+# `render` reports only what it finds, which is what the pull_request path
+# wants.
+#
+# DETAIL STRINGS ARE PUBLISHED. This repository is public, so both the
+# annotation and the job summary are world-readable, and GitHub redacts a
+# secret only when the text matches the registered value exactly. A fragment
+# of one — a prefix left by truncation, a substring left by escaping — is not
+# masked and ships in the clear. Pass detail this repo authored. sentry-cli,
+# docker and Sentry-server output is remote-controlled and belongs in the step
+# log, where it is not summarised into a public artifact.
 #
 # STATES — the SKIPPED-vs-FAILED distinction is the entire point of this file.
 # Before it, "no credentials on a fork" and "credentials present, upload
@@ -55,8 +72,28 @@ STATUS_FILE="${SENTRY_STATUS_FILE:-${RUNNER_TEMP:-/tmp}/sentry-delivery-status.t
 # one must not be able to forge a workflow command or break out onto a new
 # line. Detail strings here can carry sentry-cli output, which is external
 # input. Same reasoning as validate-register.yml:135-143.
+#
+# The length cap cuts on whitespace, never mid-token. A character cut can land
+# inside a URL, a DSN or a project slug that a caller interpolated, and the
+# prefix it leaves no longer matches the value GitHub registered as a secret,
+# so the runner cannot redact it and the fragment publishes. Dropping the
+# straddling token whole keeps every value either fully present — and so
+# maskable — or fully gone. A first token longer than the cap is dropped
+# entirely for the same reason.
 sanitize() {
-  printf '%s' "$*" | tr '\n\r\t' '   ' | sed 's/::/;;/g' | cut -c1-700
+  local text
+  text="$(printf '%s' "$*" | tr '\n\r\t' '   ' | sed 's/::/;;/g')"
+
+  if [ "${#text}" -gt 700 ]; then
+    local head="${text:0:700}"
+    case "$head" in
+      *' '*) head="${head% *}" ;;
+      *) head="" ;;
+    esac
+    text="${head} […truncated]"
+  fi
+
+  printf '%s' "$text"
 }
 
 record() {
@@ -95,8 +132,56 @@ record() {
   printf '%s\t%s\t%s\n' "$component" "$state" "$detail" >> "$STATUS_FILE"
 }
 
+# The step summary is GFM; annotations are plain text and the status file is
+# neither. Markup neutralisation therefore belongs here, at the render seam,
+# next to the pipe escape that already lives here — the same detail stays
+# legible in the log while the public summary gets an inert copy. Without it a
+# remote-controlled detail can plant a live link or a Camo-proxied <img>
+# beacon on this public repository's run page. A code span disarms links,
+# images and the HTML subset in one move; its fence must outrun the longest
+# backtick run it wraps, and content that starts or ends in a backtick needs a
+# pad space (GFM 6.1).
+md_code() {
+  local text="${1:-}"
+  local i ch run=0 longest=0 fence
+
+  if [ -z "$text" ]; then
+    printf '%s' "—"
+    return 0
+  fi
+
+  for ((i = 0; i < ${#text}; i++)); do
+    ch="${text:i:1}"
+    if [ "$ch" = '`' ]; then
+      run=$((run + 1))
+      if [ "$run" -gt "$longest" ]; then longest="$run"; fi
+    else
+      run=0
+    fi
+  done
+
+  printf -v fence '%*s' "$((longest + 1))" ''
+  fence="${fence// /\`}"
+
+  case "$text" in
+    '`'*|*'`') text=" ${text} " ;;
+  esac
+
+  # Pipes stay escaped inside the span: GFM resolves table cell boundaries
+  # before it parses inline spans, so a bare one still splits the row.
+  printf '%s%s%s' "$fence" "${text//|/\\|}" "$fence"
+}
+
 render() {
   local summary="${GITHUB_STEP_SUMMARY:-/dev/stdout}"
+  local component missing=""
+  local unreported="the step never reported a result, so delivery state is unknown and must be treated as not shipped"
+
+  for component in "$@"; do
+    [ -n "$component" ] || continue
+    awk -F'\t' -v c="$component" '$1 == c { found = 1 } END { exit !found }' \
+      "$STATUS_FILE" 2>/dev/null || missing="${missing}${component}"$'\n'
+  done
 
   {
     echo ""
@@ -104,7 +189,10 @@ render() {
     echo ""
   } >> "$summary"
 
-  if [ ! -s "$STATUS_FILE" ]; then
+  # An empty status file is only benign when nothing was expected of it. With
+  # expected components it means every one of them vanished, which the
+  # assertion below has to say out loud rather than reassure about.
+  if [ ! -s "$STATUS_FILE" ] && [ -z "$missing" ]; then
     {
       echo "No Sentry delivery steps ran for this event."
       echo ""
@@ -118,28 +206,40 @@ render() {
   {
     echo "| Component | Result | Detail |"
     echo "| --- | --- | --- |"
-    # Escape pipes so a detail string cannot break the table layout.
-    while IFS=$'\t' read -r component state detail; do
-      [ -n "${component:-}" ] || continue
-      local label
-      case "$state" in
-        ok) label="OK" ;;
-        skipped) label="SKIPPED" ;;
-        warn) label="WARNING" ;;
-        blocked) label="BLOCKED" ;;
-        failed) label="FAILED" ;;
-        *) label="UNKNOWN" ;;
-      esac
-      printf '| %s | **%s** | %s |\n' \
-        "${component//|/\\|}" "$label" "${detail//|/\\|}"
-    done < "$STATUS_FILE"
+    if [ -s "$STATUS_FILE" ]; then
+      while IFS=$'\t' read -r component state detail; do
+        [ -n "${component:-}" ] || continue
+        local label
+        case "$state" in
+          ok) label="OK" ;;
+          skipped) label="SKIPPED" ;;
+          warn) label="WARNING" ;;
+          blocked) label="BLOCKED" ;;
+          failed) label="FAILED" ;;
+          *) label="UNKNOWN" ;;
+        esac
+        printf '| %s | **%s** | %s |\n' \
+          "${component//|/\\|}" "$label" "$(md_code "${detail:-}")"
+      done < "$STATUS_FILE"
+    fi
+    while IFS= read -r component; do
+      [ -n "$component" ] || continue
+      printf '| %s | **BLOCKED** | %s |\n' \
+        "${component//|/\\|}" "$(md_code "$unreported")"
+    done <<< "$missing"
     echo ""
   } >> "$summary"
 
+  while IFS= read -r component; do
+    [ -n "$component" ] || continue
+    echo "::warning::Sentry ${component} did NOT ship — ${unreported}"
+  done <<< "$missing"
+
   # Recap line: one place to look that answers "did telemetry actually ship?".
   local bad
-  bad="$(awk -F'\t' '($2=="failed" || $2=="blocked" || $2=="warn") && !seen[$1]++ {print $1}' \
-    "$STATUS_FILE" | paste -sd',' -)"
+  bad="$( { awk -F'\t' '$2 == "failed" || $2 == "blocked" || $2 == "warn" { print $1 }' \
+      "$STATUS_FILE" 2>/dev/null; printf '%s' "$missing"; } \
+    | awk 'NF && !seen[$0]++ { print }' | paste -sd',' -)"
   if [ -n "$bad" ]; then
     {
       echo "> Sourcemap/release delivery is degraded for: ${bad}."
@@ -159,9 +259,9 @@ main() {
   shift || true
   case "$cmd" in
     record) record "$@" ;;
-    render) render ;;
+    render) render "$@" ;;
     *)
-      echo "usage: $0 {record <component> <state> <detail...>|render}" >&2
+      echo "usage: $0 {record <component> <state> <detail...>|render [expected-component ...]}" >&2
       ;;
   esac
   return 0
