@@ -245,6 +245,34 @@ export const colonelOrganizationDetailRecordSchema = z.object({
   billing_email_present: z.boolean(),
   sync_status: z.string(),
   sync_status_reason: z.string().nullable(),
+  /**
+   * Opaque, server-derived organization pseudonym (16 lowercase hex) used ONLY
+   * as a telemetry correlation key. It is not an identifier the UI resolves,
+   * displays, or sends anywhere — `org_id` and `extid` above are what the page
+   * uses, and they are already on this response.
+   *
+   * `.nullable().optional()` because all three of these are normal:
+   *   - a 16-hex string, on a deployment with a usable keying secret;
+   *   - `null`, when the deployment has no usable keying secret — the DEFAULT
+   *     in dev and test, so the null branch is the one most runs exercise;
+   *   - ABSENT, on a mixed-version deployment whose backend predates the field.
+   * None of the three is an error.
+   *
+   * BE HONEST ABOUT WHAT THIS DECLARATION DOES. It has no consumer today and
+   * changes no behaviour the app depends on. The one thing that reads the ref
+   * — `src/utils/telemetry/resourceRefRegistry.ts` — reads it off the RAW
+   * payload, because the case it exists for is a parse FAILURE, where no
+   * parsed record exists to read. So the failure path does not need this line
+   * at all.
+   *
+   * It is declared anyway for two reasons, neither of which is "the consumer
+   * needs it": the schema is this file's statement of the wire contract, and
+   * a plain `z.object` STRIPS what it does not declare (executed: an
+   * undeclared sibling key is absent from the parsed record), so an
+   * undeclared field would be invisible to any future success-path reader and
+   * to anyone inspecting a parsed record in the console.
+   */
+  organization_ref: z.string().nullable().optional(),
 });
 
 /** The `details` envelope: entitlement breakdown + catalog + members + domains. */

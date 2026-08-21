@@ -7,6 +7,7 @@ require_relative '../../../../../apps/web/billing/lib/billing_service'
 # Explicit, though billing_service pulls it in transitively via models/plan:
 # `available_entitlements` below is only as good as this constant being loaded.
 require_relative '../../../../../apps/web/billing/config'
+require 'onetime/utils/telemetry_ref'
 
 module ColonelAPI
   module Logic
@@ -197,6 +198,36 @@ module ColonelAPI
             record: {
               org_id: org.objid,
               extid: org.extid,
+              # Opaque, keyed, one-way ref for TELEMETRY correlation only. It
+              # exists so an operator reading a Sentry event for this endpoint —
+              # where the route is parameterized to
+              # /api/colonel/organizations/:org_id and the real id is never sent
+              # — can tell "one organization is broken" from "every organization
+              # is broken". The frontend lifts it off the RAW payload (the
+              # motivating failure was a schema parse that produced no parsed
+              # record to read) and attaches it as a Sentry TAG for enrolled
+              # internal/admin schemas only.
+              #
+              # This ADDS to the operator's data, it does not replace any of
+              # it: org_id and extid above stay exactly as they were.
+              #
+              # Stated exactly, because the looser version of this sentence was
+              # false. This is the only field on this record whose VALUE is
+              # forwarded to telemetry. It is NOT the only thing about this
+              # record that reaches an event: when a field on this record fails
+              # the client schema, its PATH ships as the `schemaField` tag and
+              # as an `issues` row (executed: a bad `member_count` puts
+              # `record.member_count` on the event), and
+              # `record.subscription_period_end` additionally ships three shape
+              # DESCRIPTORS because it is enrolled in the frontend's
+              # safeFieldRegistry. Field names and value shapes are the
+              # diagnostic floor #3424 exists to protect; field values are what
+              # is restricted, and this is the single exception to that.
+              #
+              # nil whenever the deployment has no usable keying secret — the
+              # default in dev and test. The key is always present; the value is
+              # nullable.
+              organization_ref: Onetime::Utils::TelemetryRef.organization_ref(org.objid),
               display_name: org.display_name,
               description: org.description,
               is_default: org.is_default.to_s == 'true',
