@@ -594,11 +594,17 @@ fi
 # the workflow owns service lifecycle): LANES_NO_AUTOSTART=1.
 port_open() { (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null; }
 
-# A machine can have both Docker Desktop and Podman installed. Prefer Podman
-# when it owns the live test RabbitMQ container; otherwise Docker would try to
-# bind ports already held by Podman rather than recreate the stale container.
+# A machine can have both Docker Desktop and Podman installed, and an
+# installed CLI says nothing about a reachable daemon: a docker whose active
+# context points at a dead Desktop socket passes `command -v` and then fails
+# the autostart with a connection error while a healthy podman sits unused.
+# So candidates are filtered by daemon liveness (`<runtime> info`, ~1s worst
+# case against a dead local socket), with one override ahead of that: prefer
+# Podman when it owns the live test RabbitMQ container, because Docker would
+# try to bind ports already held by Podman rather than recreate the stale
+# container.
 compose_runtime() {
-  local podman_rabbitmq=''
+  local runtime podman_rabbitmq=''
   if command -v podman >/dev/null 2>&1; then
     podman_rabbitmq="$(env ${_lanes_daemon_env[@]+"${_lanes_daemon_env[@]}"} \
       podman ps -q --filter 'name=ots-test-rabbitmq-1' 2>/dev/null || true)"
@@ -607,13 +613,15 @@ compose_runtime() {
       return
     fi
   fi
-  if command -v docker >/dev/null 2>&1; then
-    printf '%s' docker
-  elif command -v podman >/dev/null 2>&1; then
-    printf '%s' podman
-  else
-    return 1
-  fi
+  for runtime in docker podman; do
+    if command -v "${runtime}" >/dev/null 2>&1 &&
+       env ${_lanes_daemon_env[@]+"${_lanes_daemon_env[@]}"} \
+         "${runtime}" info >/dev/null 2>&1; then
+      printf '%s' "${runtime}"
+      return
+    fi
+  done
+  return 1
 }
 
 compose_up() {  # remaining arguments go to `compose up`
@@ -642,7 +650,12 @@ for p in ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"}; do port_open "$p" || missi
 if [[ $missing -eq 1 && -z "${LANES_NO_AUTOSTART:-}" ]]; then
   echo "[lane:${LANE}] test services not reachable; starting compose.test.yml" >&2
   if ! compose_up --wait -d; then
-    echo "error: docker/podman not found or unavailable; start test services manually:" >&2
+    echo "error: no container runtime with a reachable daemon; start test services manually:" >&2
+    if command -v podman >/dev/null 2>&1 &&
+       ! env ${_lanes_daemon_env[@]+"${_lanes_daemon_env[@]}"} \
+           podman info >/dev/null 2>&1; then
+      echo "  podman machine start   # podman is installed but its daemon is not answering" >&2
+    fi
     echo "  docker compose -f compose.test.yml up --wait -d" >&2
     exit 69
   fi
