@@ -382,7 +382,7 @@ jobs:
         continue-on-error: true
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          BAKE_METADATA: ${{ steps.bake.outputs.metadata }}
+          BAKE_METADATA_FILE: ${{ runner.temp }}/bake-metadata.json
           DIST_DEST: ./public/web/dist
           IMAGE_DIST_PATH: /app/public/web/dist
           VERSION: ${{ steps.version.outputs.version }}
@@ -392,7 +392,20 @@ jobs:
           PLATFORMS: ${{ inputs.platforms || 'linux/amd64,linux/arm64' }}
           REGISTRY_MODE: ${{ inputs.registry_target || 'public' }}
           CUSTOM_REGISTRY: ${{ secrets.CUSTOM_REGISTRY_HOST }}
-        run: bash scripts/ci/extract-frontend-dist.sh
+        # docker/bake-action's `metadata` output carries provenance/attestation
+        # data for every target × platform in group `ci` (3 targets x 2
+        # platforms). For multi-platform, multi-target builds that JSON can run
+        # into the multi-MB range. Passing it through `env:` puts it in the
+        # step process's envp, which shares the OS execve() size limit with
+        # argv — a large enough blob makes the runner fail to even start bash
+        # ("Argument list too long"), skipping this step and, transitively,
+        # sourcemap upload. Writing it to a file sidesteps that limit entirely:
+        # file content has no such cap.
+        run: |
+          cat > "$BAKE_METADATA_FILE" <<'BAKE_METADATA_EOF'
+          ${{ steps.bake.outputs.metadata }}
+          BAKE_METADATA_EOF
+          bash scripts/ci/extract-frontend-dist.sh
 
       - name: Create Sentry release and associate commits
         if: github.event_name != 'pull_request'
