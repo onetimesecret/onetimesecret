@@ -1,0 +1,130 @@
+# .github/workflows/static-analysis.yml
+#
+# Shell-script static analysis and the shell test suite.
+#
+# WHY A SEPARATE WORKFLOW
+#
+# Neither shellcheck nor actionlint ran anywhere in this repository before, and
+# a growing amount of CI behaviour now lives in shell: scripts/ci/*.sh decide
+# whether Sentry telemetry shipped, .github/scripts/*.sh decide which CI jobs
+# run at all. Those files are not covered by any lane — tests/lanes/ boots
+# datastores for Ruby, and ci.yml's tier structure reports per-tier timing
+# metrics that an unrelated lint job would distort. This lane is deliberately
+# outside both: no services, no matrix, ~30 seconds.
+#
+# No path filter, for the same reason drift-guards.yml has none: the job costs
+# seconds, and a path filter would have to enumerate every directory that can
+# hold a .sh file to be correct.
+#
+# THE BASELINE
+#
+# Both tools start with pre-existing findings (8 and 90). They are recorded in
+# .github/lint-baseline/*.tsv and the lane fails only on findings ABOVE that
+# baseline. A lane that lands red trains everyone to ignore it, which is the
+# same cry-wolf failure the Sentry status reporting exists to end. The baseline
+# is a checked-in file rather than a blanket `-e` disable so a reader can see
+# exactly what was accepted, per file and per rule, and `git log` shows when
+# each entry appeared.
+---
+name: Static analysis
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # Both tools change their finding sets between releases, so the baseline is
+  # only meaningful against pinned versions. These must stay in step with the
+  # versions recorded in scripts/check-shell-lint.sh.
+  #
+  # Digests were captured from the release assets at adoption time; neither
+  # project publishes a signed manifest. Re-pin by downloading the asset and
+  # running `shasum -a 256` on it, in the same commit that bumps the version.
+  SHELLCHECK_VERSION: '0.11.0'
+  SHELLCHECK_SHA256: '8c3be12b05d5c177a04c29e3c78ce89ac86f1595681cab149b65b97c4e227198'
+  ACTIONLINT_VERSION: '1.7.12'
+  ACTIONLINT_SHA256: '8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8'
+
+jobs:
+  shell-tests:
+    name: shell tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      # No services, no network, no container runtime: these are pure-text
+      # assertions over scripts/ci/*.sh and the workflows that call them.
+      - name: Run scripts/tests
+        run: bash scripts/tests/run.sh
+
+  lint:
+    name: shellcheck + actionlint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      # Verified before extraction, not after: an unverified archive should
+      # never reach tar. Runners ship a shellcheck of their own, so the install
+      # goes to a directory prepended to PATH rather than relying on ordering.
+      - name: Install pinned shellcheck and actionlint
+        run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/lint-bin"
+
+          curl -fsSL -o "${RUNNER_TEMP}/shellcheck.tar.xz" \
+            "https://github.com/koalaman/shellcheck/releases/download/v${SHELLCHECK_VERSION}/shellcheck-v${SHELLCHECK_VERSION}.linux.x86_64.tar.xz"
+          echo "${SHELLCHECK_SHA256}  ${RUNNER_TEMP}/shellcheck.tar.xz" | sha256sum -c -
+          tar -xJf "${RUNNER_TEMP}/shellcheck.tar.xz" -C "${RUNNER_TEMP}" \
+            "shellcheck-v${SHELLCHECK_VERSION}/shellcheck"
+          install -m 0755 \
+            "${RUNNER_TEMP}/shellcheck-v${SHELLCHECK_VERSION}/shellcheck" \
+            "${RUNNER_TEMP}/lint-bin/shellcheck"
+
+          curl -fsSL -o "${RUNNER_TEMP}/actionlint.tar.gz" \
+            "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          echo "${ACTIONLINT_SHA256}  ${RUNNER_TEMP}/actionlint.tar.gz" | sha256sum -c -
+          tar -xzf "${RUNNER_TEMP}/actionlint.tar.gz" -C "${RUNNER_TEMP}" actionlint
+          install -m 0755 "${RUNNER_TEMP}/actionlint" "${RUNNER_TEMP}/lint-bin/actionlint"
+
+          echo "${RUNNER_TEMP}/lint-bin" >> "$GITHUB_PATH"
+
+      - name: Confirm the pinned versions are the ones on PATH
+        run: |
+          set -euo pipefail
+          shellcheck --version
+          actionlint --version
+          shellcheck --version | grep -qx "version: ${SHELLCHECK_VERSION}"
+          actionlint --version | head -n1 | grep -qx "${ACTIONLINT_VERSION}"
+
+      # The verdict, and the same command a developer runs locally.
+      - name: Assert no findings beyond the recorded baseline
+        id: lint
+        run: |
+          set -uo pipefail
+          bash scripts/check-shell-lint.sh 2>&1 | tee "${RUNNER_TEMP}/lint.log"
+          exit "${PIPESTATUS[0]}"
+
+      # always(): the output is most useful on the run that failed, and the
+      # step log scrolls. Fenced because findings contain characters GFM would
+      # otherwise interpret.
+      - name: Job summary
+        if: always()
+        run: |
+          set -uo pipefail
+          {
+            echo "## Shell static analysis"
+            echo ""
+            echo "shellcheck ${SHELLCHECK_VERSION}, actionlint ${ACTIONLINT_VERSION};"
+            echo "baseline in \`.github/lint-baseline/\`."
+            echo ""
+            echo '```'
+            cat "${RUNNER_TEMP}/lint.log" 2>/dev/null || echo "(no output — the lint step did not run)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
