@@ -37,6 +37,12 @@ module Onetime
     #      rule as the host gate: a list an operator wrote is never silently
     #      disabled.
     #
+    # Routes may additionally declare `network=admin`. Those routes require
+    # BOTH allowlists to be explicitly configured and active; after both gates
+    # admit the request this middleware records that verdict in Rack env for the
+    # Otto route wrapper. This leaves ordinary Colonel routes on the existing
+    # opt-in CIDR posture while sensitive routes can require the stronger one.
+    #
     # A request that fails EITHER active gate gets a 404 on `/colonel` and
     # `/api/colonel` — indistinguishable-from-absent, NOT a 403, so the admin
     # surface does not even advertise its existence to an unauthorized host or
@@ -224,10 +230,18 @@ module Onetime
       </html>
     HTML
 
+    # Host, CIDR, proxy-provenance, and route-verdict logic share one resolved
+    # construction-time posture; splitting them would risk divergent gates.
+    # rubocop:disable Metrics/ClassLength
     class AdminNetworkIsolation
       # The surfaces this middleware guards. Named in every boot log so an
       # operator can grep for what is (and is not) gated.
       SURFACES = %w[/colonel /api/colonel].freeze
+
+      # Internal verdict consumed by Application::NetworkRequirements. It is
+      # written only after the request passes every active admin gate; clients
+      # cannot supply Rack env keys over HTTP.
+      ROUTE_REQUIREMENT_ENV_KEY = 'onetime.admin_network_requirement_met'
 
       # @see Onetime::Middleware::ADMIN_NOT_FOUND_HTML
       NOT_FOUND_HTML = ADMIN_NOT_FOUND_HTML
@@ -307,6 +321,7 @@ module Onetime
         @app                = app
         @logger             = Onetime.get_logger('AdminNetworkIsolation')
         @config_read_errors = {}
+        @host_gate_explicit = false
 
         # Both allowlists are resolved ONCE, here — the process has booted and
         # nothing re-reads config per request. EACH gate carries its own active
@@ -338,6 +353,7 @@ module Onetime
         return not_found_response(full_path) if host_denied?(env, full_path)
         return not_found_response(full_path) if network_denied?(env, full_path)
 
+        env[ROUTE_REQUIREMENT_ENV_KEY] = route_requirement_met?
         @app.call(env)
       end
 
@@ -351,6 +367,14 @@ module Onetime
 
       def network_gate_active?
         @network_gate
+      end
+
+      # A route-level admin requirement is deliberately stronger than the
+      # surface-wide defaults. Canonical host fallback does not count as an
+      # explicit ADMIN_ALLOWED_HOSTS choice, and an inactive CIDR gate does not
+      # count as network isolation.
+      def route_requirement_met?
+        @host_gate_explicit && host_gate_active? && network_gate_active?
       end
 
       # Host gate. Fails closed twice over: an active gate with an unresolvable
@@ -728,7 +752,8 @@ module Onetime
         raw = configured_hosts
         return unreadable_host_gate if unreadable?(raw)
 
-        configured = Onetime::Utils::AdminHostAllowlist.classify(raw)
+        configured          = Onetime::Utils::AdminHostAllowlist.classify(raw)
+        @host_gate_explicit = !configured.empty?
 
         return anchor_host_gate if configured.empty?
 
@@ -1014,5 +1039,6 @@ module Onetime
         end
       end
     end
+    # rubocop:enable Metrics/ClassLength
   end
 end
