@@ -14,7 +14,7 @@
 /* eslint-disable max-classes-per-file */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ErrorEvent, TransactionEvent } from '@sentry/core';
+import type { Breadcrumb, ErrorEvent, TransactionEvent } from '@sentry/core';
 import type { Router, RouteLocationNormalizedLoaded } from 'vue-router';
 import type { RouteMeta } from '@/types/router';
 
@@ -34,6 +34,8 @@ const {
   resetCapturedOptions,
 } = vi.hoisted(() => {
   const mockSetTag = vi.fn();
+  // Actor identity (#privacy boundary) writes setUser on the isolated scope.
+  const mockSetUser = vi.fn();
   const mockSetClient = vi.fn();
   const mockClientInit = vi.fn();
   const mockClientClose = vi.fn().mockResolvedValue(undefined);
@@ -52,6 +54,7 @@ const {
   class MockScope {
     setClient = mockSetClient;
     setTag = mockSetTag;
+    setUser = mockSetUser;
   }
 
   function getCapturedClientOptions() {
@@ -591,6 +594,107 @@ describe('beforeSend handler', () => {
       const result = handler(event) as ErrorEvent;
 
       expect(result.breadcrumbs?.[0].message).toBe('Log message');
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Structural allowlist, RE-APPLIED at send time.
+  //
+  // beforeBreadcrumb applies it at capture time. These cases cover the
+  // breadcrumbs that never went through it — attached by the SDK after it ran,
+  // or by an integration that bypasses it — which is the population the
+  // "whether or not this codebase knows it exists" claim is about.
+  // -------------------------------------------------------------------------
+  describe('breadcrumb allowlist (send-time)', () => {
+    it('drops bodies and headers from an HTTP breadcrumb that bypassed beforeBreadcrumb', () => {
+      setupWithRouter({ params: {}, meta: {} });
+      const handler = getBeforeSend();
+
+      const event: ErrorEvent = {
+        breadcrumbs: [
+          {
+            category: 'fetch',
+            data: {
+              url: 'https://api.example.com/x',
+              status_code: 500,
+              request_body_size: 12,
+              request_body: 'password=hunter2',
+              response_body: '{"secret":"value"}',
+              'request.headers': { authorization: 'Bearer token' },
+              cookies: 'session=abc',
+            },
+          },
+        ],
+      };
+
+      const result = handler(event) as ErrorEvent;
+
+      // Retained by policy: byte counts are not content.
+      expect(result.breadcrumbs?.[0].data).toEqual({
+        url: 'https://api.example.com/x',
+        status_code: 500,
+        request_body_size: 12,
+      });
+    });
+
+    it('reduces a bypassing navigation breadcrumb to from/to', () => {
+      setupWithRouter({ params: {}, meta: {} });
+      const handler = getBeforeSend();
+
+      const event: ErrorEvent = {
+        breadcrumbs: [
+          {
+            category: 'navigation',
+            data: { to: '/home', from: '/login', request_body: 'passphrase=x' },
+          },
+        ],
+      };
+
+      const result = handler(event) as ErrorEvent;
+
+      expect(result.breadcrumbs?.[0].data).toEqual({ to: '/home', from: '/login' });
+    });
+
+    it('leaves non-allowlisted categories structurally intact', () => {
+      setupWithRouter({ params: {}, meta: {} });
+      const handler = getBeforeSend();
+
+      const event: ErrorEvent = {
+        breadcrumbs: [{ category: 'ui.click', data: { target: 'button#save' } }],
+      };
+
+      const result = handler(event) as ErrorEvent;
+
+      expect(result.breadcrumbs?.[0].data).toEqual({ target: 'button#save' });
+    });
+
+    it('is idempotent for a breadcrumb that already passed beforeBreadcrumb', () => {
+      setupWithRouter({ params: {}, meta: {} });
+      const options = getCapturedClientOptions();
+      const beforeBreadcrumb = options?.beforeBreadcrumb as (
+        b: Breadcrumb,
+        hint?: unknown
+      ) => Breadcrumb | null;
+      const handler = getBeforeSend();
+
+      const captured = beforeBreadcrumb(
+        { category: 'fetch', data: { url: 'https://api.example.com/x', status_code: 200 } },
+        { startTimestamp: 100, endTimestamp: 130 }
+      ) as Breadcrumb;
+      // `duration` is folded in from the hint AFTER the capture-time allowlist.
+      expect(captured.data).toEqual({
+        url: 'https://api.example.com/x',
+        status_code: 200,
+        duration: 30,
+      });
+
+      const result = handler({ breadcrumbs: [captured] } as ErrorEvent) as ErrorEvent;
+
+      expect(result.breadcrumbs?.[0].data).toEqual({
+        url: 'https://api.example.com/x',
+        status_code: 200,
+        duration: 30,
+      });
     });
   });
 });
