@@ -41,22 +41,40 @@ with Caddy's own observations.
 
 ```caddyfile
 @proxy_header_debug path /api/colonel/system/proxy-headers
-handle @proxy_header_debug {
-    # A caller must not be able to forge Caddy's snapshots.
-    header_up -X-Ots-Proxy-Debug-Peer
-    header_up -X-Ots-Proxy-Debug-Host
-    header_up -X-Ots-Proxy-Debug-Received-X-Forwarded-For
-    header_up -X-Ots-Proxy-Debug-Received-Forwarded
-    header_up -X-Ots-Proxy-Debug-Received-Apx-Incoming-Host
+# Caddy-side snapshot for GET /api/colonel/system/proxy-headers.
+#
+# Imported INSIDE onetime-proxy's reverse_proxy on purpose. A separate handle
+# with its own reverse_proxy carries none of the header_up rules below, so the
+# endpoint's "did Caddy change this?" comparison would describe a handler no
+# production request passes through.
+#
+# NO explicit deletes. Caddy applies Add -> Set -> Delete regardless of source
+# order, so a `header_up -X` next to a `header_up X {val}` deletes the value it
+# just set and the endpoint reports nothing. Two-arg header_up is Set, which
+# already replaces a client-supplied value; an absent source resolves to "",
+# not to the forged value. Verified on caddy v2.10.2.
+#
+# Sent on every upstream request. Exposure is gated by the endpoint
+# (auth=sessionauth role=colonel + network=admin), not by Caddy.
+(onetime-proxy-debug) {
+  # These are the values Caddy recieves and makes available to the
+  # application. Peer is the TCP peer after PROXY protocol unwrapping;
+  # client_ip is Caddy's trusted_proxies verdict. They diverge exactly
+  # when the trusted_proxies list has drifted.
+  # TODO: Need to rewrite for multiple scenarios (with/without edge
+  # proxy, with/without PROXY, with/without an LB).
+  header_up X-Ots-Proxy-Debug-Peer      {remote_host}
+  header_up X-Ots-Proxy-Debug-Client-IP {client_ip}
+  header_up X-Ots-Proxy-Debug-Host      {http.request.host}
 
-    # Values Caddy observed before it proxies the request.
-    header_up X-Ots-Proxy-Debug-Peer {remote_host}
-    header_up X-Ots-Proxy-Debug-Host {http.request.host}
-    header_up X-Ots-Proxy-Debug-Received-X-Forwarded-For {http.request.header.X-Forwarded-For}
-    header_up X-Ots-Proxy-Debug-Received-Forwarded {http.request.header.Forwarded}
-    header_up X-Ots-Proxy-Debug-Received-Apx-Incoming-Host {http.request.header.Apx-Incoming-Host}
-
-    reverse_proxy 127.0.0.1:7143
+  # These are the values that caddy recieved and removed before
+  # the request reaches the application.
+  header_up X-Ots-Proxy-Debug-Received-X-Forwarded-For   {http.request.header.X-Forwarded-For}
+  header_up X-Ots-Proxy-Debug-Received-X-Forwarded-Host  {http.request.header.X-Forwarded-Host}
+  header_up X-Ots-Proxy-Debug-Received-X-Real-IP         {http.request.header.X-Real-IP}
+  header_up X-Ots-Proxy-Debug-Received-X-Client-IP       {http.request.header.X-Client-IP}
+  header_up X-Ots-Proxy-Debug-Received-Forwarded         {http.request.header.Forwarded}
+  header_up X-Ots-Proxy-Debug-Received-Apx-Incoming-Host {http.request.header.Apx-Incoming-Host}
 }
 ```
 
@@ -70,7 +88,7 @@ Invoke it with curl using a live session cookie — no CSRF token is needed for
 the GET:
 
 ```bash
-curl -s https://admin.example.com/api/colonel/system/proxy-headers \
+curl -s https://uk.onetimesecret.com/api/colonel/system/proxy-headers \
   -H 'Cookie: sess=<session-id>' | jq
 ```
 
