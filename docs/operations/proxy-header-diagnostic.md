@@ -41,7 +41,8 @@ replaces each diagnostic field supplied by the client with Caddy's own
 observations.
 
 ```caddyfile
-# Caddy-side snapshot for GET /api/colonel/system/proxy-headers.
+# Caddy-side capture of the forwarding headers as received, for GET
+# /api/colonel/system/proxy-headers.
 #
 # Import at the SITE level, next to the reverse_proxy snippet:
 #
@@ -127,9 +128,9 @@ refused the request.
    request through the load balancer with a unique marker, for example
    `X-Forwarded-For: 203.0.113.77`.
 2. Compare `caddy_received` with `request_headers`:
-   - If Caddy's received snapshot contains the marker, the load balancer passed
+   - If `caddy_received` contains the marker, the load balancer passed
      the client header to Caddy.
-   - If the request header received by Rack differs from the snapshot, Caddy
+   - If the request header received by Rack differs from `caddy_received`, Caddy
      changed it while proxying.
 3. Compare `caddy_received.x-ots-proxy-debug-peer` with
    `rack.remote_addr`. They may differ because the Rack IP-privacy middleware
