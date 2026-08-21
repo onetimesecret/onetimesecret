@@ -23,8 +23,9 @@ RSpec.describe Onetime::Application::OttoHooks do
     let(:spy_router) do
       captured = registered
       Object.new.tap do |spy|
-        spy.define_singleton_method(:register_request_helpers) { |*| }
-        spy.define_singleton_method(:on_request_complete) { |*, &_blk| }
+        spy.define_singleton_method(:register_request_helpers) { |*| nil }
+        spy.define_singleton_method(:register_handler_wrapper) { |*, &_blk| nil }
+        spy.define_singleton_method(:on_request_complete) { |*, &_blk| nil }
         spy.define_singleton_method(:register_error_handler) do |klass, status:, log_level:, &handler|
           captured[klass] = { status: status, log_level: log_level, handler: handler }
         end

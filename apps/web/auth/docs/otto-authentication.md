@@ -1,3 +1,5 @@
+# apps/web/auth/docs/otto-authentication.md
+---
 # Otto v2.0 Authentication: Definitive Analysis
 
 ## What Otto Is
