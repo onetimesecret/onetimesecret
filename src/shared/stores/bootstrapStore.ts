@@ -9,7 +9,12 @@ import {
   type HeaderConfig,
   type UiCapabilities,
 } from '@/schemas/contracts/bootstrap';
-import { getBootstrapSnapshot, updateBootstrapSnapshot } from '@/services/bootstrap.service';
+import {
+  clearBootstrapSnapshotKey,
+  getBootstrapSnapshot,
+  updateBootstrapSnapshot,
+} from '@/services/bootstrap.service';
+import { setDiagnosticsActor } from '@/services/diagnostics.service';
 import { defineStore } from 'pinia';
 
 /**
@@ -46,6 +51,16 @@ const DEFAULTS: BootstrapPayload = {
   entitlement_preview_planid: undefined,
   entitlement_preview_plan_name: undefined,
   organization: undefined,
+  // Privacy-preserving Sentry actor identity. `.optional()` in the schema
+  // because the server OMITS it for anonymous sessions, so Zod's parse({})
+  // leaves it out of SCHEMA_DEFAULTS and Pinia would not track it. Listed here
+  // so that later update()/resetForLogout() writes are reactive AND so that
+  // $reset() has a defined target to restore it to.
+  //
+  // Deliberately TOP-LEVEL, not nested under `diagnostics`: resetForLogout()
+  // preserves `diagnostics` across logout by design, so an actor reference
+  // parked there would survive sign-out. At top level, $reset() clears it.
+  telemetry: undefined,
   // Brand fields (per-installation defaults from OT.conf['brand'])
   brand_primary_color: undefined,
   brand_product_name: undefined,
@@ -267,6 +282,38 @@ export const useBootstrapStore = defineStore('bootstrap', {
       // settings sidebar) see fresh values after login or other auth mutations.
       updateBootstrapSnapshot(data);
 
+      // ─── Sentry actor identity ────────────────────────────────────────────
+      //
+      // This is the ACCOUNT-CHANGE hook. Every identity transition funnels
+      // through update(): login, MFA completion, and the 15-minute
+      // /bootstrap/me refresh (which can report a different account after a
+      // re-auth in another tab). Logout is handled separately in
+      // authStore.logout(), which does not route through here.
+      //
+      // Absence is the anonymous signal, and the filterDefined() merge above
+      // CANNOT express it: an absent `telemetry` key leaves the previous actor
+      // in state and in the snapshot. So absence is handled explicitly here.
+      //
+      // `data.authenticated !== undefined` identifies a FULL /bootstrap/me
+      // body, where a missing `telemetry` is authoritative ("this session has
+      // no actor"). A narrow partial patch — e.g. a store writing only
+      // `has_password` — carries no auth state, so its silence about telemetry
+      // means "unchanged", not "anonymous", and identity is left alone.
+      const carriesAuthState = data.authenticated !== undefined;
+      if (carriesAuthState || data.telemetry !== undefined) {
+        const nextActor = data.telemetry;
+        if (nextActor === undefined) {
+          this.$patch((state) => {
+            state.telemetry = undefined;
+          });
+          clearBootstrapSnapshotKey('telemetry');
+        }
+        // setDiagnosticsActor validates the block against the strict contract
+        // and clears identity on null/undefined. It no-ops when diagnostics are
+        // disabled, so this call is unconditional by design.
+        setDiagnosticsActor(nextActor ?? null);
+      }
+
       console.debug('[BootstrapStore.update] Updated with:', {
         authenticated: data.authenticated,
         awaiting_mfa: data.awaiting_mfa,
@@ -354,6 +401,24 @@ export const useBootstrapStore = defineStore('bootstrap', {
         state.disabled_homepage = preservedConfig.disabled_homepage;
         state._initialized = true;
       });
+
+      // Evict the actor reference from the PRE-PINIA snapshot as well.
+      //
+      // $reset() above clears `state.telemetry`, but the store is only one of
+      // the two places the block lives: bootstrap.service holds a separate
+      // snapshot that `getBootstrapValue('telemetry')` reads, and
+      // `updateBootstrapSnapshot` cannot express a removal (it skips undefined
+      // by design). Without this call the previous actor stays READABLE there
+      // after a soft/SPA logout — the exact stale-identity condition
+      // `clearBootstrapSnapshotKey` was written to prevent, and the one
+      // update() already guards on the account-change path.
+      //
+      // Today the snapshot is re-read only by `resolveBootstrapActor()` at boot,
+      // so the leak is latent rather than live; it becomes live the moment any
+      // code re-resolves identity without a page load. Clearing it here — in the
+      // store that owns the mirror — covers every caller of resetForLogout
+      // rather than the one in authStore.logout().
+      clearBootstrapSnapshotKey('telemetry');
 
       console.debug('[BootstrapStore.resetForLogout] Reset to defaults (server config preserved)');
     },
