@@ -22,67 +22,41 @@ Added
   (``features.domains.link_domains``). (#4063)
 - Added passkey authentication and credential management behind
   ``AUTH_WEBAUTHN_ENABLED``.
-- Added ``ADMIN_ALLOWED_HOSTS`` (``site.admin.allowed_hosts``) to restrict
-  Colonel access by host. (#4062, #4127)
 - Social cards can now be disabled with ``BRAND_OG_IMAGE_URL=none``. (#4150)
-- Sign-in surfaces now show the country a session came from instead of an IP
-  address: sign-in and MFA alert emails, the Colonel session sidecar, and the
-  global Colonel sessions console. Country comes from a CDN header (honoured
-  only with ``TRUSTED_PROXY_ENABLED=true`` in ``filter`` mode with the CDN's
-  ranges in ``TRUSTED_PROXY_CIDRS``) or from a local MaxMind database at
-  ``GEO_DB_PATH``, looked up on the already-masked address. On the organization
-  Secret Activity trail the attribute is gated behind
-  ``SECRET_ACTIVITY_GEO_COUNTRY_ENABLED`` and defaults to **off** pending legal
-  review (ADR-021). (#3989)
-- Added ``bin/ots customers role reconcile`` to repair drift between the
-  authoritative ``role`` field and the derived ``customer:role_index:*`` sets
-  that ``role list`` and ``colonel_count`` read. Dry-run by default; ``--apply``
-  writes an incremental diff rather than a rebuild. (#3974)
-- Added SMTP2GO as a mail provider (``MAIL_PROVIDER=smtp2go``), covering both
-  API-based sending and sender-domain verification.
-- Added ``MIDDLEWARE_AUTH_*`` toggles for the auth app's middleware profile.
-  (#4170, #4181)
+- Sign-in surfaces can show the country a session came from. Country display on
+  the Secret Activity trail is opt-in through
+  ``SECRET_ACTIVITY_GEO_COUNTRY_ENABLED``. (#3989)
+- Added ``bin/ots customers role reconcile`` to repair customer role-index
+  drift. It runs as a dry-run by default; use ``--apply`` to write repairs.
+  (#3974)
+- Added SMTP2GO as a mail provider (``MAIL_PROVIDER=smtp2go``), including
+  sender-domain verification.
 
 Changed
 -------
 
-- Hardened trusted-proxy and forwarded-host handling. In
-  ``TRUSTED_PROXY_MODE=depth``, depth now expresses the explicit trust-at-edge
-  decision; ensure the origin is reachable only through the proxy tier.
-  (#4024, #4040)
-- Admin surfaces now default to the canonical ``DEFAULT_DOMAIN``/``HOST``.
-  Configure ``ADMIN_ALLOWED_HOSTS`` before upgrading when Colonel uses another
-  host; ``*`` disables this restriction. Behind a proxy, forwarded-host trust
-  additionally requires ``TRUSTED_PROXY_CIDRS``, or the proxy must forward the
-  original ``Host`` header. (#4062, #4127)
-- ``ADMIN_ALLOWED_CIDRS`` (``site.admin.allowed_cidrs``) allowlists with no
-  valid entries now fail closed. (#4062)
-- ``GEO_HEADER`` (``site.network.geo.header``) is now used only with
-  ``TRUSTED_PROXY_MODE=filter`` (``site.network.trusted_proxy.mode``).
-  Depth-mode deployments should use ``GEO_DB_PATH``. (#4024, #4068)
+- ``TRUSTED_PROXY_MODE=depth`` now requires an explicit trust-at-edge decision.
+  Ensure the origin is reachable only through the proxy tier. (#4024, #4040)
+- Colonel now defaults to the canonical ``DEFAULT_DOMAIN``/``HOST``. Configure
+  ``ADMIN_ALLOWED_HOSTS`` before upgrading when Colonel uses another host; ``*``
+  disables this restriction. (#4062, #4127)
+- ``ADMIN_ALLOWED_CIDRS`` allowlists with no valid entries now fail closed.
+  (#4062)
+- ``GEO_HEADER`` is used only with ``TRUSTED_PROXY_MODE=filter``. Depth-mode
+  deployments should use ``GEO_DB_PATH``. (#4024, #4068)
 - Renamed ``WEBAUTHN_VERIFY_ACCOUNT`` and ``WEBAUTHN_AUTOFILL`` to
-  ``AUTH_WEBAUTHN_VERIFY_ACCOUNT`` and ``AUTH_WEBAUTHN_AUTOFILL``. Only the
-  literal ``true`` now enables them; the old names are deprecated.
+  ``AUTH_WEBAUTHN_VERIFY_ACCOUNT`` and ``AUTH_WEBAUTHN_AUTOFILL``. Update these
+  settings before upgrading; the old names are deprecated.
 - Custom domains cannot be restricted to passkey-only sign-in.
-- ``TRUSTED_PROXY_MODE`` is validated at boot; invalid values use safer
-  ``filter`` mode with a warning. (#4087)
-- Sign-in and sign-up availability now require a positively classified operator
-  host. Global defaults apply only to ``:canonical`` and ``:subdomain``
-  requests; anything else — including a request whose classification could not
-  be established — takes the default-OFF custom-domain resolver. This is
-  fail-closed: while the custom-domain datastore is unreachable, a recognized
-  operator **subdomain** can be held to the stricter default. The canonical host
-  is unaffected. Nothing explicitly enabled on a domain is withdrawn. (#4157)
-- Platform SSO providers are withheld from any host that is not positively an
-  operator host when ``allow_platform_fallback_for_tenants`` is off. Installs
-  that permit platform fallback are unaffected. (#4157)
+- Invalid ``TRUSTED_PROXY_MODE`` values now use ``filter`` mode with a warning.
+  (#4087)
+- Session country API values now contain an ISO 3166-1 alpha-2 code or null.
+- Custom-domain sign-in and sign-up are now served only when enabled for that
+  domain. Platform SSO is withheld from non-operator hosts when
+  ``allow_platform_fallback_for_tenants`` is off. (#4157)
 - ``BILLING_ENABLED``, ``STRIPE_AUTOMATIC_TAX`` and ``RABBITMQ_VERIFY_PEER`` now
-  parse through a strict boolean reader accepting ``1/true/yes/on/y/t`` and
-  ``0/false/no/off/n/f`` (case-insensitive); an unrecognized value raises at
-  boot instead of being silently treated as false. Values such as ``1``, ``yes``
-  or ``TRUE`` that these three flags previously ignored now take effect. The
-  remaining ``*_ENABLED`` variables are unchanged and still compare against the
-  literal strings ``true``/``false``.
+  accept ``1/true/yes/on/y/t`` and ``0/false/no/off/n/f`` (case-insensitive).
+  Invalid values prevent boot; other ``*_ENABLED`` variables are unchanged.
 
 Fixed
 -----
@@ -93,40 +67,29 @@ Fixed
 - Fixed forwarded-host parsing and link-domain validation. (#4040, #4063)
 - Social cards now use available brand assets, and custom domains no longer
   inherit the install's social image. (#4150)
-- Fixed custom-domain ``HttpOrigin`` 403s, and consolidated middleware into a
-  registry with per-app profiles. (#4170, #4181)
-- Full mode now enforces a custom domain's per-domain sign-in opt-in on the
-  password and email (magic-link) routes, and the sign-up opt-in on the
-  account-creation routes, using the same resolvers simple mode and the display
-  surfaces already use. A domain that has opted in signs in exactly as before;
-  operator hosts follow the install's global settings unchanged; SSO is not
-  gated by these flags. A rejected route answers ``404``; an unreadable policy
-  answers ``503``. (#4169, #4184)
-- SSO routes no longer 404 when tenant SSO is available but platform SSO
-  prerequisites are unmet. (#4165)
-- An enabled per-domain sign-in config that expresses no opinion no longer
-  erases the SSO host pin, which could leave password and email endpoints
-  accepting POSTs on an SSO-only host. (#4167)
-- Customers provisioned just-in-time through SSO are now marked verified at
-  creation. Previously they were created unverified and nothing flipped the
-  flag, so an SSO-provisioned colonel or admin could not exercise their role.
-  ``bin/ots customers doctor`` reports ``sso_customer_unverified`` for existing
-  records and ``--repair`` heals them. (#3973)
-- The account "active sessions" list now shows IP address, browser and country;
-  it joined on a value Rodauth never stores, so no row ever matched. Sessions
-  that exist at deploy time fill in as users re-authenticate — no migration or
-  backfill is needed. (#3989)
-- An unreadable per-domain sign-up policy answers ``503`` instead of ``500``.
-  (#4157)
+- Fixed custom-domain ``HttpOrigin`` 403s. (#4170, #4181)
+- Fixed full-mode custom-domain sign-in and sign-up routes ignoring per-domain
+  opt-in settings; unavailable policy data now returns ``503``. (#4169, #4184,
+  #4157)
+- Fixed SSO routes returning ``404`` when tenant SSO is available but platform
+  SSO prerequisites are unmet. (#4165)
+- Fixed SSO-only hosts accepting password and email sign-in requests when their
+  per-domain configuration expressed no sign-in preference. (#4167)
+- Customers provisioned through SSO are now verified at creation. Use
+  ``bin/ots customers doctor --repair`` to repair existing unverified records.
+  (#3973)
+- The account active-sessions list now shows IP address, browser, and country.
+  Existing sessions populate as users re-authenticate. (#3989)
+- Fixed custom-domain verification status in workspace and Colonel UIs.
+- Improved session-list loading performance in Colonel and customer views.
 
 Security
 --------
 
-- V1 API secret-creation endpoints now enforce the configured anonymous TTL
-  ceiling (default 7 days), matching the V2 path. (#4172)
-- ``RABBITMQ_VERIFY_PEER`` no longer fails open. It was read as ``== 'true'``,
-  so ``1``, ``yes`` or ``TRUE`` silently disabled TLS peer verification on a
-  default-ON control; those values now enable it, and a typo fails the boot.
+- V1 API secret creation now enforces the configured anonymous TTL ceiling
+  (default 7 days), matching V2. (#4172)
+- ``RABBITMQ_VERIFY_PEER`` no longer fails open for values such as ``1``,
+  ``yes``, or ``TRUE``. Invalid values now prevent boot.
 
 .. _changelog-0.26.4:
 
