@@ -24,6 +24,13 @@ name: Build and Publish OCI Images
 #   ACTIONS_RUNNER_DEBUG=true  Enable runner diagnostic logging
 #   Set in Settings → Secrets and variables → Actions → Variables
 #
+# Registry Push (Repository Secrets):
+#   DOCKERHUB_USERNAME       Docker Hub account for public pushes (default target)
+#   DOCKERHUB_TOKEN          Docker Hub access token
+#   CUSTOM_REGISTRY_HOST     Registry host, used only when registry_target=custom
+#   CUSTOM_REGISTRY_USERNAME Username for the custom registry
+#   CUSTOM_REGISTRY_PASSWORD Password/token for the custom registry
+#
 # Sentry Integration (Repository Secrets):
 #   SENTRY_AUTH_TOKEN        API token with project:releases and org:read scopes
 #   SENTRY_ORG               Organization slug (e.g., "onetimesecret")
