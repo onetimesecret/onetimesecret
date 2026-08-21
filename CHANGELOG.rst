@@ -10,6 +10,131 @@ this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.htm
 
    <!--scriv-insert-here-->
 
+.. _changelog-0.0.0-rc0:
+
+0.26.6 — 2026-08-20
+======================
+
+Added
+-----
+
+- Added an opt-in nightly entitlement re-materialization job. Enable
+  ``jobs.maintenance.enabled`` and
+  ``jobs.maintenance.entitlement_materialize.enabled`` to repair entitlement
+  drift from verified Stripe plan data. See
+  ``docs/runbooks/entitlement-rematerialization.md``. (#4203)
+
+- Added operator organization deletion through ``bin/ots org delete ORG`` and
+  Colonel, with a deletion preview and safeguards for domains, default
+  workspaces, subscriptions, and sole-owner organizations.
+
+- Added organization unique-index diagnostics and safe repairs to
+  ``bin/ots org doctor``. Use ``--repair`` for missing and stale entries;
+  duplicate live values are reported for operator resolution.
+
+- ``SENTRY_FRONTEND_PROJECT`` is an optional repository secret for selecting
+  the Sentry project that receives frontend source maps. Set it when that
+  project is not ``frontend``; its value must also be included in
+  ``SENTRY_PROJECTS``.
+
+- Added the Colonel proxy-header diagnostic at
+  ``/api/colonel/system/proxy-headers``. Configure explicit
+  ``ADMIN_ALLOWED_HOSTS`` and ``ADMIN_ALLOWED_CIDRS`` before use; see
+  ``docs/operations/proxy-header-diagnostic.md``. (#4233)
+
+Changed
+-------
+
+- Customer organization deletion now requires cancellation of subscriptions
+  that can still bill.
+
+- ``SSO_FORM_ACTION_ORIGINS`` is now only needed for split-endpoint OIDC
+  configurations; tenant IdP origins on custom domains are allowed
+  automatically.
+
+- Billing-enabled deployments must grant ``audit_logs`` to plans that need
+  shared receipt listings, then run ``bin/ots billing catalog sync``.
+
+Fixed
+-----
+
+- Organization-doctor output now redacts indexed email addresses.
+
+- Fixed tenant SSO on custom domains being blocked by Content-Security-Policy
+  in Chromium.
+
+- Organization deletion now detects custom-domain drift before teardown and
+  refuses deletion until attached domains are removed. Repair unrecoverable
+  drift with ``bin/ots domains doctor --all --repair``.
+
+- Fixed stale custom-domain ownership after organization transfers. Use
+  ``bin/ots domains doctor --all --repair`` to repair existing drift.
+
+- Fixed domain-scoped receipt listings being unavailable to authorized users.
+
+- Fixed Stripe checkout webhooks failing when they race organization creation.
+
+- Fixed Colonel organization-deletion previews reporting domain drift.
+
+- Fixed tenant SSO on custom domains behind proxies that rewrite ``Host``.
+
+- Magic-link, password-reset, account-verification and SSO link-confirmation
+  emails now point at the domain the recipient signed in from, instead of the
+  canonical host, on deployments behind a proxy that rewrites ``Host``.
+
+- WebAuthn assertions on custom domains are now verified against the domain the
+  browser is on.
+
+- CI now extracts frontend build assets from the published image and uploads
+  their source maps to Sentry, with preflight and post-upload delivery checks.
+
+- Fixed federated deployments where newly created Stripe subscriptions could
+  leave organizations in another region on the free tier until a later
+  subscription event. (#4231)
+
+Security
+--------
+
+- Customer organization deletion now refuses to delete a default workspace.
+
+- The example Caddyfile now strips client-supplied ``X-Forwarded-Host`` before
+  proxying requests.
+
+- ``/api/v2/version`` and ``/api/v3/version`` now require session or Basic Auth.
+  Update unauthenticated version probes; anonymous pages and API responses no
+  longer expose application or Ruby version details. (#4195)
+
+Documentation
+-------------
+
+- Corrected Entra sovereign-cloud SSO guidance. Use an ``oidc`` provider with
+  the sovereign v2.0 issuer.
+
+- Documented host handling for deployments with a Host-rewriting proxy in the
+  example Caddyfile.
+
+AI Assistance
+-------------
+
+- Claude assisted with entitlement re-materialization, configuration, tests,
+  and its operator runbook.
+
+- Claude assisted with organization-deletion tooling and coverage.
+
+- Claude assisted with organization-index diagnostics, repair support, and
+  coverage.
+
+- Claude assisted with tenant SSO CSP handling and coverage.
+
+- Claude assisted with organization-deletion drift handling and coverage.
+
+- Claude assisted with domain-drift and entitlement fixes.
+
+- Claude assisted with tenant SSO host handling and coverage.
+
+- Claude assisted with public-host resolution for Rodauth-generated URLs and
+  regression coverage.
+
 .. _changelog-0.26.5:
 
 0.26.5 — 2026-08-17
