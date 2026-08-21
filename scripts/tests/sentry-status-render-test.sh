@@ -231,6 +231,51 @@ assert_contains "the summary states that the image build is unaffected" \
 assert_contains "degraded annotation points at the job summary" \
   "(see the run's job summary)" "$out"
 
+# --- a state render does not recognise ---------------------------------------
+#
+# `record` normalises any unrecognised state to `warn` before writing, so this
+# row cannot be produced through it. It is written straight to the status file
+# to reach the branch a sixth state would open: the table renders UNKNOWN, and
+# the recap has to score that as degraded rather than leaving the summary
+# claiming everything passed directly beneath it.
+#
+# Nagios settled this shape decades ago — UNKNOWN is a fourth state and it is
+# not OK. The recap is written as "not ok and not skipped" for exactly that
+# reason; scored against a list of bad states, a new state defaults to clean.
+
+printf '\nunrecognised state: UNKNOWN must degrade, not pass\n'
+protects "a state render has no case for must never leave the recap reading clean; scoring against a blocklist means the next state added to record silently passes"
+
+dir="$(new_case)"
+status "$dir" record frontend-assets ok "extracted 12 .js, 12 .map" > /dev/null
+printf 'sourcemaps\tdegraded\tupload reported a partial bundle\n' >> "${dir}/status.tsv"
+out="$(render_unquoted "$dir" 'frontend-assets sourcemaps')"
+summary="$(summary_of "$dir")"
+
+assert_contains "an unrecognised state renders as UNKNOWN" \
+  "| sourcemaps | **UNKNOWN** |" "$summary"
+assert_contains "the unrecognised row degrades the recap" \
+  "delivery is degraded for: sourcemaps." "$summary"
+assert_not_contains "the clean recap must not appear beneath an UNKNOWN row" \
+  "All Sentry delivery checks passed" "$summary"
+assert_contains "the unrecognised row gets a degraded annotation" \
+  "::warning::Sentry delivery degraded for: sourcemaps" "$out"
+assert_not_contains "an unrecognised state is not silently treated as ok" \
+  "| sourcemaps | **OK** |" "$summary"
+
+# The negative control for the assertion above: `ok` and `skipped` are named
+# exemptions, not the result of failing to match a blocklist. Without this, an
+# awk that scored every row as degraded would pass every assertion above.
+dir="$(new_case)"
+status "$dir" record release skipped "SENTRY_AUTH_TOKEN not configured" > /dev/null
+out="$(render_unquoted "$dir" 'release')"
+summary="$(summary_of "$dir")"
+
+assert_contains "skipped still leaves the recap clean" \
+  "> All Sentry delivery checks passed or were cleanly skipped." "$summary"
+assert_not_contains "skipped is not swept up as degraded" \
+  "delivery is degraded" "$summary"
+
 # --- rows with no expectations ----------------------------------------------
 #
 # The preflight reports release-parity, project-routing and dist-tag, none of

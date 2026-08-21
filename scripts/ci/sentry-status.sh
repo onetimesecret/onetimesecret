@@ -216,6 +216,11 @@ render() {
           warn) label="WARNING" ;;
           blocked) label="BLOCKED" ;;
           failed) label="FAILED" ;;
+          # Unreachable while `record` is the only writer — it normalises any
+          # unrecognised state to `warn` before it writes. Kept because the
+          # recap below scores this row as degraded, so a sixth state added to
+          # `record` without a matching change here still reads as a problem
+          # rather than silently as a pass.
           *) label="UNKNOWN" ;;
         esac
         printf '| %s | **%s** | %s |\n' \
@@ -236,8 +241,16 @@ render() {
   done <<< "$missing"
 
   # Recap line: one place to look that answers "did telemetry actually ship?".
+  #
+  # Stated as "not clean" rather than as a list of bad states, so an
+  # unrecognised state degrades by default. The table above already renders one
+  # as UNKNOWN; scored against a blocklist it would also leave the recap
+  # reading "All Sentry delivery checks passed" directly beneath that row,
+  # which is the silent success this file exists to end. Only `ok` and
+  # `skipped` may leave the recap clean, and each has to be named to do it —
+  # the same fail-safe default the missing-row branch above already takes.
   local bad
-  bad="$( { awk -F'\t' '$2 == "failed" || $2 == "blocked" || $2 == "warn" { print $1 }' \
+  bad="$( { awk -F'\t' 'NF && $2 != "ok" && $2 != "skipped" { print $1 }' \
       "$STATUS_FILE" 2>/dev/null; printf '%s' "$missing"; } \
     | awk 'NF && !seen[$0]++ { print }' | paste -sd',' -)"
   if [ -n "$bad" ]; then
