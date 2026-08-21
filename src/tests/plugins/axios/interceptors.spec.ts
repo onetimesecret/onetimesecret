@@ -57,9 +57,12 @@ vi.mock('@/plugins/core/diagnostics/scrubbers', () => ({
 
 import {
   errorInterceptor,
+  requestInterceptor,
   responseInterceptor,
   createLoggableShrimp,
+  resetApiRouteSlotLifecycle,
 } from '@/plugins/axios/interceptors';
+import { resetApiRouteContext, resolveApiRoute } from '@/utils/telemetry/apiRouteContext';
 
 // ---------------------------------------------------------------------------
 // Test helpers
@@ -109,6 +112,146 @@ describe('axios interceptors', () => {
 
   afterEach(() => {
     vi.resetModules();
+  });
+
+  // ==========================================================================
+  // requestInterceptor -> parameterized API-route context (requirement 6)
+  //
+  // `setCurrentApiRoute` has exactly ONE production caller, and it is this
+  // interceptor. Without it `resolveApiRoute()` returns undefined forever and
+  // the whole route-context feature ships inert, which is precisely the state
+  // these tests exist to prevent from recurring.
+  // ==========================================================================
+  describe('requestInterceptor api-route context', () => {
+    beforeEach(() => {
+      resetApiRouteContext();
+    });
+
+    afterEach(() => {
+      resetApiRouteContext();
+    });
+
+    function configFor(url: string | undefined): InternalAxiosRequestConfig {
+      return { url, headers: {} } as InternalAxiosRequestConfig;
+    }
+
+    it('stamps the PARAMETERIZED route, never the resolved URL', () => {
+      requestInterceptor(configFor('/api/colonel/organizations/org_9f3a2b1c8d7e6f50'));
+
+      expect(resolveApiRoute()).toBe('/api/colonel/organizations/:org_id');
+    });
+
+    it('never retains a raw client IP from a resolved admin path', () => {
+      // /api/colonel/banned-ips/:ip is a real request (AdminBannedIps.vue).
+      requestInterceptor(configFor('/api/colonel/banned-ips/203.0.113.5'));
+
+      const route = resolveApiRoute();
+      expect(route).not.toContain('203.0.113.5');
+      expect(route).toBe('/api/colonel/banned-ips/:id');
+    });
+
+    it('drops the query string rather than scrubbing it', () => {
+      requestInterceptor(configFor('/api/v2/secret/conceal?token=abc123'));
+
+      expect(resolveApiRoute()).not.toContain('token');
+    });
+
+    it('clears the slot when a request carries no url', () => {
+      requestInterceptor(configFor('/api/v2/status'));
+      requestInterceptor(configFor(undefined));
+
+      expect(resolveApiRoute()).toBeUndefined();
+    });
+  });
+
+  // ==========================================================================
+  // API-route slot LIFECYCLE
+  //
+  // The slot used to be stamped on request and never cleared, so after the
+  // first API call of a session every later gracefulParse failure — including
+  // ones with no axios call behind them (the bootstrap payload, a
+  // sessionStorage bag) — was tagged with the last route that went out. Not a
+  // leak (the value is parameterized), but a confidently WRONG diagnostic tag
+  // sends an operator to an endpoint that never ran.
+  //
+  // Two properties, both required, and the pair is why the release is deferred
+  // and reference-counted rather than a plain clear-on-settle.
+  // ==========================================================================
+  describe('api-route slot lifecycle', () => {
+    beforeEach(() => {
+      resetApiRouteContext();
+      resetApiRouteSlotLifecycle();
+    });
+
+    afterEach(() => {
+      resetApiRouteContext();
+      resetApiRouteSlotLifecycle();
+    });
+
+    function configFor(url: string): InternalAxiosRequestConfig {
+      return { url, headers: {} } as InternalAxiosRequestConfig;
+    }
+
+    const okResponse = () => ({ headers: {}, data: {}, status: 200 }) as unknown as AxiosResponse;
+
+    /** Lets the whole microtask queue drain, then one macrotask. */
+    const settleTimers = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+    it("SURVIVES the response interceptor and the caller's microtask continuation", async () => {
+      // This is the property a naive clear-on-settle breaks: the consumer of
+      // the slot is the awaiting caller, which parses the response body in a
+      // microtask queued after the interceptor returns.
+      requestInterceptor(configFor('/api/colonel/organizations/org_9f3a2b1c8d7e6f50'));
+      responseInterceptor(okResponse());
+
+      expect(resolveApiRoute()).toBe('/api/colonel/organizations/:org_id');
+      await Promise.resolve();
+      expect(resolveApiRoute()).toBe('/api/colonel/organizations/:org_id');
+    });
+
+    it('is released once the request has fully settled', async () => {
+      requestInterceptor(configFor('/api/colonel/organizations/org_9f3a2b1c8d7e6f50'));
+      responseInterceptor(okResponse());
+      await settleTimers();
+
+      expect(resolveApiRoute()).toBeUndefined();
+    });
+
+    it('is released on a FAILED request too', async () => {
+      requestInterceptor(configFor('/api/v2/secret/conceal'));
+      await errorInterceptor(
+        createAxiosError({ url: '/api/v2/secret/conceal', status: 500 })
+      ).catch(() => undefined);
+      await settleTimers();
+
+      expect(resolveApiRoute()).toBeUndefined();
+    });
+
+    it('does NOT clear while another request is still in flight', async () => {
+      requestInterceptor(configFor('/api/v2/status'));
+      requestInterceptor(configFor('/api/colonel/organizations/org_9f3a2b1c8d7e6f50'));
+      // The first request settles while the second is still open.
+      responseInterceptor(okResponse());
+      await settleTimers();
+
+      // Degrades to the pre-existing last-writer-wins behaviour, never to an
+      // empty slot.
+      expect(resolveApiRoute()).toBe('/api/colonel/organizations/:org_id');
+
+      responseInterceptor(okResponse());
+      await settleTimers();
+      expect(resolveApiRoute()).toBeUndefined();
+    });
+
+    it('does not misattribute a later non-axios parse to the last route', async () => {
+      requestInterceptor(configFor('/api/colonel/organizations/org_9f3a2b1c8d7e6f50'));
+      responseInterceptor(okResponse());
+      await settleTimers();
+
+      // Stand-in for a bootstrap / sessionStorage gracefulParse failure that
+      // happens long after any HTTP call.
+      expect(resolveApiRoute()).toBeUndefined();
+    });
   });
 
   // ==========================================================================
