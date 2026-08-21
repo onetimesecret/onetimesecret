@@ -542,6 +542,170 @@ export type PasswordGeneration = z.infer<typeof passwordGenerationSchema>;
 export type Passphrase = z.infer<typeof passphraseSchema>;
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// TELEMETRY (privacy-preserving actor identity for Sentry)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * The two — and only two — actor scopes the server is permitted to declare.
+ *
+ * THIS LABEL NAMES WHICH SECRET KEYED THE ACTOR REF. IT SAYS NOTHING ABOUT HOW
+ * THE ACTOR AUTHENTICATED. The axis is correlation blast radius, not identity
+ * provider — see `Onetime::Utils::TelemetryRef#keying`
+ * (lib/onetime/utils/telemetry_ref.rb):
+ *
+ * - `federated` — the ref was derived with `FEDERATION_SECRET`, which is shared
+ *   across the regional instances of one federation. It is chosen ONLY when a
+ *   residency scope also resolves (`TELEMETRY_REF_REGION`, else the configured
+ *   jurisdiction); with nothing declared the shared key is refused and the
+ *   scope narrows to `deployment`.
+ *
+ *   THE CORRELATION RADIUS IS ONE JURISDICTION, NOT ONE FEDERATION. The
+ *   residency scope is mixed into the pre-image unconditionally, so the same
+ *   person yields DIFFERENT refs on the EU instance and the US instance of one
+ *   federation — deliberately, because a region-independent ref would be a
+ *   ready-made join key proving one data subject is present in both, which is
+ *   the inference the residency architecture exists to prevent. What
+ *   `federated` buys is correlation across installs that share the secret AND
+ *   resolve to the SAME residency scope; that is still wider than one
+ *   deployment, which is why the label is emitted at all.
+ * - `deployment` — the ref was derived with this deployment's own
+ *   `ACCOUNT_ID_SECRET`. The ref is meaningless anywhere else; correlation
+ *   stops at this instance.
+ *
+ * NOT AN SSO SIGNAL — a real misreading worth naming, because the tag is
+ * indexed and an operator WILL filter on it. A deployment that sets
+ * `FEDERATION_SECRET` AND declares a residency (the precondition stated three
+ * paragraphs up) emits `federated` for EVERY account it identifies, local
+ * password accounts included; nothing about the label is conditioned on how
+ * anyone signed in. Filtering `actor_scope:federated` in Sentry selects events
+ * whose actor ref is federation-keyed, NOT events from SSO users. There is
+ * deliberately no telemetry field that reports how an actor authenticated; that
+ * would be an authentication-posture disclosure with no diagnostic use.
+ *
+ * (EXECUTED, so the example is not read as a shortcut past the precondition:
+ * with `FEDERATION_SECRET` set and nothing else — no `TELEMETRY_REF_REGION`, no
+ * jurisdiction, no `ACCOUNT_ID_SECRET` — `TelemetryRef.keying` is nil, so no
+ * telemetry block is emitted at all and the question of a label does not arise.
+ * Add `ACCOUNT_ID_SECRET` and the label is `deployment`, not `federated`.)
+ *
+ * Modelled as a closed `z.enum` rather than `z.string()` on purpose: the value
+ * becomes a Sentry TAG (`actor_scope`), tags are indexed and searchable, and an
+ * unbounded string field on an indexed dimension is exactly how a free-text
+ * identifier (an email, a plan name, an org slug) leaks into telemetry one
+ * careless server-side commit later. A new scope must be added HERE, in review,
+ * before it can reach Sentry.
+ */
+export const ACTOR_SCOPES = ['federated', 'deployment'] as const;
+
+/**
+ * The EXACT permitted shape of `actor_ref`, and the single source of truth for
+ * it on the TypeScript side.
+ *
+ * ## Why a content check and not just a type check
+ *
+ * `z.string().min(1)` validates the SHAPE of the block but says nothing about
+ * what is inside the string. That gap is a laundering channel: a server bug, an
+ * older build, or a compromised region node emitting
+ * `{ actor_ref: "alice@example.com", actor_scope: "deployment" }` satisfies a
+ * strictObject with two keys and a valid enum, and the value then flows through
+ * `applyActorIdentity` into `user.id` — where the outbound sanitizer, which
+ * strips `email`/`username`/`name`, keeps `id` verbatim on every error and
+ * transaction. Validating the CONTENT closes it: an email cannot pass a
+ * fixed-width hex test.
+ *
+ * ## The contract this mirrors
+ *
+ * Server side: `Onetime::Utils::TelemetryRef` (lib/onetime/utils/telemetry_ref.rb)
+ * emits `OpenSSL::HMAC.hexdigest('SHA256', …)[0, REF_LENGTH]` — LOWERCASE hex,
+ * `REF_LENGTH = 16` chars (64 bits), deliberately half the width of a
+ * federation email hash so the two are not confusable.
+ *
+ * These two constants are ONE contract in two languages. If `REF_LENGTH` or the
+ * derivation changes (a widened digest, a jurisdiction prefix, a `v2` keying),
+ * this pattern must change IN THE SAME COMMIT. It fails CLOSED, so a drifted
+ * pattern does not leak — it silently drops actor correlation everywhere, which
+ * is a real observability regression and the reason the coupling is called out
+ * here rather than left to be discovered in Sentry.
+ *
+ * Anchored with `^`/`$` and non-global (no `g` flag): a `g`-flagged regex would
+ * carry `lastIndex` between `.test()` calls and pass/fail alternately.
+ */
+export const ACTOR_REF_PATTERN = /^[0-9a-f]{16}$/;
+
+/**
+ * Content gate for a candidate actor reference.
+ *
+ * Exported so the outbound final gate (`sanitizeEventUser`) enforces the same
+ * rule as the inbound parse without duplicating the literal. Non-strings and
+ * anything that is not exactly `ACTOR_REF_PATTERN` are refused.
+ *
+ * @param value - Untrusted candidate, typically `event.user.id`.
+ */
+export function isActorRef(value: unknown): value is string {
+  return typeof value === 'string' && ACTOR_REF_PATTERN.test(value);
+}
+
+/**
+ * `telemetry` — the server-provided actor-identity block.
+ *
+ * ## Wire contract
+ *
+ * ```json
+ * { "telemetry": { "actor_ref": "a1b2c3d4e5f60718",
+ *                  "actor_scope": "federated" } }
+ * ```
+ *
+ * The block is **ABSENT for anonymous sessions**. Absence is the signal — there
+ * is no anonymous sentinel value, no empty string, no `null` actor. Hence
+ * `.optional()` on the parent field rather than the `.default()` used by every
+ * always-emitted serializer field elsewhere in this contract.
+ *
+ * ## Why `z.strictObject` and not `z.object`
+ *
+ * This is the one bootstrap sub-schema whose parsed output is handed to a
+ * third-party processor (Sentry `scope.setUser`). Zod v4's plain `z.object`
+ * STRIPS unknown keys silently; `z.strictObject` REJECTS the whole block. For
+ * a privacy boundary, rejecting is the correct failure mode:
+ *
+ *   - Strip-on-unknown means a server that starts emitting
+ *     `{ actor_ref, actor_scope, email }` produces a *valid* parse whose extra
+ *     field merely happens not to be read today — one refactor away from being
+ *     forwarded.
+ *   - Reject-on-unknown means that same payload fails `safeParse`, the actor is
+ *     never set, and the deployment runs unidentified. Losing actor correlation
+ *     is recoverable; leaking an email to a third-party processor is not.
+ *
+ * See `src/plugins/core/diagnostics/actorIdentity.ts`, which is the only place
+ * this schema is actually parsed against live data, for the enforcement.
+ *
+ * ## What this block must never carry
+ *
+ * `actor_ref` is an OPAQUE DETERMINISTIC REFERENCE. It is not an email, a
+ * display name, a customer `objid`, a customer `extid`, an IP address, a
+ * session id, or either of the two secret identifiers. The client cannot prove
+ * that a value is a keyed digest, but it CAN require the exact shape one has —
+ * 16 lowercase hex chars, `ACTOR_REF_PATTERN` — so no human-readable
+ * identifier can occupy the field. That check is the difference between
+ * refusing an unexpected KEY and refusing an unexpected VALUE; both are
+ * required, because `user.id` is the one field the outbound sanitizer keeps.
+ */
+export const telemetrySchema = z.strictObject({
+  /**
+   * Opaque, deterministic, server-derived actor reference. Never PII.
+   * Content-checked against ACTOR_REF_PATTERN, not merely non-empty.
+   */
+  actor_ref: z.string().regex(ACTOR_REF_PATTERN),
+  /** Closed enum; becomes the indexed Sentry `actor_scope` tag. */
+  actor_scope: z.enum(ACTOR_SCOPES),
+});
+
+/** Parsed shape of the `telemetry` bootstrap block. */
+export type TelemetryBlock = z.infer<typeof telemetrySchema>;
+
+/** One of the two permitted actor scopes. */
+export type ActorScope = (typeof ACTOR_SCOPES)[number];
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // BOOTSTRAP PAYLOAD SCHEMA (full payload for Rhales validation)
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -725,6 +889,14 @@ export const bootstrapSchema = z.object({
   // OrganizationSerializer fields
   // ─────────────────────────────────────────────────────────────────────────────
   organization: organizationSchema.optional(),
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // TelemetrySerializer fields
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Privacy-preserving actor identity for Sentry. ABSENT (not empty, not null)
+  // for anonymous sessions — see telemetrySchema above for the full boundary
+  // rationale and for why the inner object is strict rather than passthrough.
+  telemetry: telemetrySchema.optional(),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Billing/Stripe fields
