@@ -1,10 +1,10 @@
-# try/unit/field_types/float_field_type_try.rb
+# try/unit/models/field_types/float_field_type_try.rb
 #
 # frozen_string_literal: true
 
-require_relative '../../support/test_helpers'
+require_relative '../../../support/test_helpers'
 require 'bigdecimal'
-require 'onetime/field_types'
+require 'onetime/models/field_types'
 
 OT.boot! :test, false
 
@@ -29,7 +29,7 @@ class FloatFieldTypeTryToIValue
 end
 
 class FloatFieldTypeTryModel < ::Familia::Horreum
-  extend Onetime::FieldTypes::Macros
+  extend Onetime::Models::FieldTypes::Macros
 
   prefix :try_float_field_type
   identifier_field :probeid

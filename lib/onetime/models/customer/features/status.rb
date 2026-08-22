@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require_relative '../../../field_types'
+require_relative '../../field_types'
 
 module Onetime::Customer::Features
   module Status
@@ -18,7 +18,7 @@ module Onetime::Customer::Features
       # macro: a custom FieldType handles canonicalization at the type
       # level, so callers cannot bypass it via the setter, the fast
       # writer, or by passing the field through Customer.create!.
-      base.extend Onetime::FieldTypes::BooleanFieldMacro
+      base.extend Onetime::Models::FieldTypes::BooleanFieldMacro
 
       base.field :role
       base.field :joined
@@ -44,7 +44,7 @@ module Onetime::Customer::Features
 
     module InstanceMethods
       # Stored form is canonical 'true' / 'false' (see
-      # Onetime::FieldTypes::BooleanFieldType), so the predicate is a
+      # Onetime::Models::FieldTypes::BooleanFieldType), so the predicate is a
       # plain string equality check — no truthy-table, no `to_s.downcase`.
       def verified?
         !anonymous? && verified == 'true'

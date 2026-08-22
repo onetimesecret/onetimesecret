@@ -1,4 +1,4 @@
-# lib/onetime/field_types.rb
+# lib/onetime/models/field_types.rb
 #
 # frozen_string_literal: true
 

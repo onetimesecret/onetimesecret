@@ -4,7 +4,7 @@
 
 require 'public_suffix'
 
-require_relative '../field_types'
+require_relative 'field_types'
 
 module Onetime
   # Custom Domain
@@ -60,8 +60,8 @@ module Onetime
     # a real Ruby boolean, and every read coerces legacy spellings ('true',
     # '1', 'yes') back to one. Read them directly — `if domain.verified` —
     # never `.to_s == 'true'` or `== true`.
-    # See Onetime::FieldTypes::BooleanFieldType.
-    extend Onetime::FieldTypes::BooleanFieldMacro
+    # See Onetime::Models::FieldTypes::BooleanFieldType.
+    extend Onetime::Models::FieldTypes::BooleanFieldMacro
 
     SCHEMA = 'models/custom-domain'
 
