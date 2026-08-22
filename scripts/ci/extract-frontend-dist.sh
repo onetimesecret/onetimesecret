@@ -40,9 +40,16 @@
 #   SENTRY_AUTH_TOKEN  presence separates a quiet SKIP from a loud failure
 #   DIST_DEST          where to place the tree (default ./public/web/dist)
 #   IMAGE_DIST_PATH    path inside the image (default /app/public/web/dist)
-#   BAKE_METADATA      docker/bake-action `metadata` output (JSON). When it
-#                      carries a digest the pull is digest-pinned, which is
-#                      immune to a tag being overwritten between push and pull.
+#   BAKE_METADATA_FILE path to docker/bake-action `metadata` output (JSON),
+#                      written to disk by the calling step rather than passed
+#                      as an env var — group `ci` builds 3 targets x 2
+#                      platforms and buildx attaches provenance/attestation
+#                      data by default, so this JSON can run into the
+#                      multi-MB range: large enough to blow the OS execve()
+#                      argv+envp limit if it rode through `env:` instead (see
+#                      docker/build-push-action#1257). When it carries a
+#                      digest the pull is digest-pinned, which is immune to a
+#                      tag being overwritten between push and pull.
 #   BAKE_FILE          bake definition (default docker/bake.hcl)
 #   BAKE_GROUP         bake group to resolve tags from (default ci)
 #   BAKE_TARGET        target within that group to extract from (default main)
@@ -112,9 +119,9 @@ fi
 # Prefer the digest the push actually produced. Tags are mutable; a digest names
 # the exact image whose bundles this release's events will come from.
 digest=""
-if [ -n "${BAKE_METADATA:-}" ]; then
-  digest="$(printf '%s' "$BAKE_METADATA" \
-    | jq -r --arg t "$BAKE_TARGET" '.[$t]["containerimage.digest"] // empty' 2>/dev/null)"
+if [ -n "${BAKE_METADATA_FILE:-}" ] && [ -s "$BAKE_METADATA_FILE" ]; then
+  digest="$(jq -r --arg t "$BAKE_TARGET" '.[$t]["containerimage.digest"] // empty' \
+    "$BAKE_METADATA_FILE" 2>/dev/null)"
 fi
 
 if [ -n "$digest" ]; then
