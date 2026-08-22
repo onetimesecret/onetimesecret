@@ -18,7 +18,7 @@ module Onetime
       def coerce(value)
         return nil if value.nil? || value == ''
         return value if value.is_a?(Float)
-        return value.to_f if value.is_a?(Integer)
+        return value.to_f if !value.is_a?(String) && value.respond_to?(:to_f)
         return value.to_i.to_f if !value.is_a?(String) && value.respond_to?(:to_i)
         return Float(value) if value.is_a?(String) && NUMERIC_STRING.match?(value)
 
