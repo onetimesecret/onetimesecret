@@ -47,6 +47,11 @@ FLOAT_FIELD_TYPE_COERCION_CASES = [
   [Time.at(FLOAT_FIELD_TYPE_EPOCH + 0.25), Time.at(FLOAT_FIELD_TYPE_EPOCH + 0.25).to_f],
   [Rational(3, 2), 1.5],
   [BigDecimal('1.5'), 1.5],
+  [Float::NAN, nil],
+  [Float::INFINITY, nil],
+  [-Float::INFINITY, nil],
+  [BigDecimal('NaN'), nil],
+  [BigDecimal('Infinity'), nil],
   [FloatFieldTypeTryToFValue.new, 41.5],
   [FloatFieldTypeTryToIValue.new(41), 41.0],
   ['  -17  ', -17.0],
@@ -99,7 +104,7 @@ end
 
 ## macro setter accepts only documented numeric inputs and preserves nil
 FLOAT_FIELD_TYPE_COERCION_CASES.map { |input, expected| [float_field_type_try_coerce(input), expected] }
-#=> [[nil, nil], [nil, nil], [17.0, 17.0], [17.9, 17.9], [1772940425.2499998, 1772940425.2499998], [1.5, 1.5], [1.5, 1.5], [41.5, 41.5], [41.0, 41.0], [-17.0, -17.0], [17.9, 17.9], [nil, nil], [nil, nil], [nil, nil], [nil, nil], [nil, nil], [nil, nil], [nil, nil]]
+#=> [[nil, nil], [nil, nil], [17.0, 17.0], [17.9, 17.9], [1772940425.2499998, 1772940425.2499998], [1.5, 1.5], [1.5, 1.5], [nil, nil], [nil, nil], [nil, nil], [nil, nil], [nil, nil], [41.5, 41.5], [41.0, 41.0], [-17.0, -17.0], [17.9, 17.9], [nil, nil], [nil, nil], [nil, nil], [nil, nil], [nil, nil], [nil, nil], [nil, nil]]
 
 ## assigning nil remains nil after save and reload
 @float_nil_record = float_field_type_try_record

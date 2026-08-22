@@ -16,13 +16,26 @@ module Onetime
           super(name, **)
         end
 
+        # Non-finite floats raise FloatDomainError (a RangeError) from #to_i;
+        # they and any other conversion failure follow the invalid-value
+        # contract (warn, coerce to nil) instead of raising through the setter.
         def coerce(value)
           return nil if value.nil? || value == ''
-          return value if value.is_a?(Integer)
-          return value.to_i if value.is_a?(Float)
-          return value.to_i if !value.is_a?(String) && value.respond_to?(:to_i)
-          return value.to_i if value.is_a?(String) && NUMERIC_STRING.match?(value)
 
+          result =
+            if value.is_a?(Integer)
+              value
+            elsif value.is_a?(String)
+              value.to_i if NUMERIC_STRING.match?(value)
+            elsif value.respond_to?(:to_i)
+              value.to_i
+            end
+
+          return result if result.is_a?(Integer)
+
+          log_coercion_issue(value)
+          nil
+        rescue RangeError, TypeError, ArgumentError
           log_coercion_issue(value)
           nil
         end

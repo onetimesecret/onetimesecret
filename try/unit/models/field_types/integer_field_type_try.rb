@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../../../support/test_helpers'
+require 'bigdecimal'
 require 'onetime/models/field_types'
 
 OT.boot! :test, false
@@ -34,6 +35,11 @@ INTEGER_FIELD_TYPE_COERCION_CASES = [
   [17, 17],
   [17.9, 17],
   [Time.at(INTEGER_FIELD_TYPE_EPOCH), INTEGER_FIELD_TYPE_EPOCH],
+  [Float::NAN, nil],
+  [Float::INFINITY, nil],
+  [-Float::INFINITY, nil],
+  [BigDecimal('NaN'), nil],
+  [BigDecimal('Infinity'), nil],
   [IntegerFieldTypeTryToIValue.new(41), 41],
   ['  -17  ', -17],
   ['  17.9  ', 17],
@@ -85,7 +91,7 @@ end
 
 ## macro setter accepts only documented numeric inputs and preserves nil
 INTEGER_FIELD_TYPE_COERCION_CASES.map { |input, expected| [integer_field_type_try_coerce(input), expected] }
-#=> [[nil, nil], [nil, nil], [17, 17], [17, 17], [1772940425, 1772940425], [41, 41], [-17, -17], [17, 17], [nil, nil], [nil, nil], [nil, nil], [nil, nil], [nil, nil], [nil, nil], [nil, nil]]
+#=> [[nil, nil], [nil, nil], [17, 17], [17, 17], [1772940425, 1772940425], [nil, nil], [nil, nil], [nil, nil], [nil, nil], [nil, nil], [41, 41], [-17, -17], [17, 17], [nil, nil], [nil, nil], [nil, nil], [nil, nil], [nil, nil], [nil, nil], [nil, nil]]
 
 ## assigning nil remains nil after save and reload
 @integer_nil_record = integer_field_type_try_record
