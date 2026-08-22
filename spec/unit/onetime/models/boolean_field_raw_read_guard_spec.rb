@@ -7,7 +7,7 @@
 #            (security audit 2026-07-31, dead-branch finding)
 # =============================================================================
 #
-# `boolean_field` readers (Onetime::FieldTypes::BooleanFieldType) return the
+# `boolean_field` readers (Onetime::Models::FieldTypes::BooleanFieldType) return the
 # canonical STRINGS 'true'/'false' under the default `storage: :string`, so
 # `if cust.verified` type-checks, reads naturally, and is ALWAYS truthy —
 # "false" is truthy in Ruby. (Under `storage: :native` the reader returns a

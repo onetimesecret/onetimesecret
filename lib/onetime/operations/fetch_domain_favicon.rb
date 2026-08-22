@@ -345,7 +345,7 @@ module Onetime
       def record_none_found(custom_domain)
         # None-found is a terminal non-success: advance the backoff so the nightly
         # scan re-probes later (a site may add a favicon), stopping at the cap.
-        attempts                                 = custom_domain.favicon_fetch_attempts.to_i + 1
+        attempts                                 = (custom_domain.favicon_fetch_attempts || 0) + 1
         custom_domain.favicon_fetch_status       = JobLifecycle::COMPLETED
         custom_domain.favicon_fetched            = false
         custom_domain.favicon_fetch_error        = nil
@@ -363,7 +363,7 @@ module Onetime
       end
 
       def record_failure(custom_domain, ex)
-        attempts                                 = custom_domain.favicon_fetch_attempts.to_i + 1
+        attempts                                 = (custom_domain.favicon_fetch_attempts || 0) + 1
         custom_domain.favicon_fetch_status       = JobLifecycle::FAILED
         custom_domain.favicon_fetch_error        = ex.message
         custom_domain.favicon_fetch_completed_at = Familia.now.to_i

@@ -1,4 +1,4 @@
-# spec/unit/onetime/field_types/boolean_field_type_fast_writer_spec.rb
+# spec/unit/onetime/models/field_types/boolean_field_type_fast_writer_spec.rb
 #
 # frozen_string_literal: true
 
@@ -26,12 +26,12 @@
 # =============================================================================
 
 require 'spec_helper'
-require 'onetime/field_types/boolean_field_type'
+require 'onetime/models/field_types'
 
 # Throwaway models rather than Customer/CustomDomain: this is about the field
 # type, and each storage encoding needs its own declaration.
 class BooleanFastWriterNativeModel < Familia::Horreum
-  extend Onetime::FieldTypes::BooleanFieldMacro
+  extend Onetime::Models::FieldTypes::BooleanFieldMacro
 
   prefix :spec_boolean_fast_writer_native
   identifier_field :probeid
@@ -40,7 +40,7 @@ class BooleanFastWriterNativeModel < Familia::Horreum
 end
 
 class BooleanFastWriterStringModel < Familia::Horreum
-  extend Onetime::FieldTypes::BooleanFieldMacro
+  extend Onetime::Models::FieldTypes::BooleanFieldMacro
 
   prefix :spec_boolean_fast_writer_string
   identifier_field :probeid
@@ -48,7 +48,7 @@ class BooleanFastWriterStringModel < Familia::Horreum
   boolean_field :flag, storage: :string
 end
 
-RSpec.describe Onetime::FieldTypes::BooleanFieldType do
+RSpec.describe Onetime::Models::FieldTypes::BooleanFieldType do
   # Familia JSON-encodes on write, so the persisted bytes differ per encoding:
   # native booleans land as the JSON literals, strings land JSON-quoted.
   shared_examples 'a coercing fast writer' do |model:, truthy_bytes:, falsey_bytes:|
