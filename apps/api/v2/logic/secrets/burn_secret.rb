@@ -48,25 +48,32 @@ module V2::Logic
         require_guest_route_enabled!(:burn)
         require_entitlement!('api_access')
         raise OT::MissingSecret if receipt.nil?
-      end
-
-      def process
-        potential_secret = @receipt.load_secret
-
-        return unless potential_secret
 
         # Check passphrase rate limit before allowing passphrase attempts.
         # Burn is the same brute-force oracle as show/reveal: each wrong
         # guess confirms the passphrase is wrong, and a correct guess
-        # destroys the secret.
-        check_passphrase_rate_limit!(potential_secret.identifier, passphrase_client_ip) if potential_secret.has_passphrase?
+        # destroys the secret. The gate belongs here, alongside ShowSecret's
+        # and RevealSecret's, so it cannot be stranded behind a guard clause
+        # that a later edit to #process moves ahead of it.
+        check_passphrase_rate_limit!(potential_secret.identifier, passphrase_client_ip) if potential_secret&.has_passphrase?
+      end
 
-        @correct_passphrase = !potential_secret.has_passphrase? || potential_secret.passphrase?(passphrase)
+      def process
+        return unless potential_secret
+
+        # Verify the passphrase ONLY on a committed burn (continue=true): a
+        # request that is not going through with the burn must never learn
+        # whether a guess was right, and never accrues or clears rate-limit
+        # state -- nothing was checked.
+        #
+        # `continue` is the parsed boolean (true / 'true' only), never the raw
+        # param: the raw value treats any non-empty string as truthy, so a
+        # deliberate `continue=false` would burn the secret anyway. Folding it
+        # into correct_passphrase also keeps the wrong-passphrase branch below
+        # from firing on a request that never committed to the burn.
+        @correct_passphrase = continue && (!potential_secret.has_passphrase? || potential_secret.passphrase?(passphrase))
         viewable            = potential_secret.viewable?
-        # Use the parsed boolean (true / 'true' only), not the raw param: the
-        # raw value treats any non-empty string as truthy, so a deliberate
-        # `continue=false` would burn the secret anyway.
-        @greenlighted       = viewable && correct_passphrase && continue
+        @greenlighted       = viewable && correct_passphrase
 
         secret_logger.debug 'Secret burn initiated',
           {
@@ -74,7 +81,8 @@ module V2::Logic
             secret_identifier: potential_secret.shortid,
             viewable: viewable,
             has_passphrase: potential_secret.has_passphrase?,
-            passphrase_correct: correct_passphrase,
+            # nil when continue=false: the guess was never checked.
+            passphrase_correct: (correct_passphrase if continue),
             continue: continue,
             # extid, never custid: custid holds the email address on legacy
             # (pre-v0.22) records, which would put PII in the payload.
@@ -124,8 +132,11 @@ module V2::Logic
               }
           end
 
-        elsif !correct_passphrase
-          # Record failed attempt for rate limiting
+        elsif continue && !correct_passphrase
+          # Record failed attempt for rate limiting. Only a committed burn
+          # reaches this branch: without the continue guard a probe with a
+          # wrong guess raised while a right one did not, which leaked the
+          # verdict through the HTTP status alone.
           attempt_count = record_failed_passphrase_attempt!(potential_secret.identifier, passphrase_client_ip)
 
           secret_logger.warn 'Burn failed - incorrect passphrase',
@@ -200,6 +211,15 @@ module V2::Logic
       end
 
       private
+
+      # The secret behind the receipt, loaded once and memoized: raise_concerns
+      # needs it for the rate-limit gate and #process needs it again. nil when
+      # the secret is already gone (revealed, burned, or expired).
+      def potential_secret
+        return @potential_secret if defined?(@potential_secret)
+
+        @potential_secret = receipt&.load_secret
+      end
 
       # Client IP for the per-secret+IP passphrase rate-limit tier (M-8). Sourced
       # from strategy_result metadata (set for both anonymous and authenticated

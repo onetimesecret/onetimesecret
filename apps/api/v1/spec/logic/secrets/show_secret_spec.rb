@@ -116,6 +116,36 @@ RSpec.describe V1::Logic::Secrets::ShowSecret do
         expect(subject.correct_passphrase).to be false
       end
     end
+
+    # Passphrase oracle regression: the guess is verified ONLY on a committed
+    # reveal (continue=true). A metadata-only request must learn nothing about
+    # the guess -- no correct_passphrase in the payload and no rate-limit state
+    # touched, because nothing was checked.
+    context 'when continue is false on a passphrase-protected secret' do
+      subject { described_class.new(session, customer, base_params.merge('continue' => 'false')) }
+
+      before do
+        allow(secret).to receive(:viewable?).and_return(true)
+        allow(secret).to receive(:has_passphrase?).and_return(true)
+        allow(secret).to receive(:passphrase?).and_return(false)
+        allow(secret).to receive(:owner?).with(customer).and_return(false)
+        allow(secret).to receive(:safe_dump).and_return({ key: 'secret123' })
+      end
+
+      it 'never checks the passphrase' do
+        expect(secret).not_to receive(:passphrase?)
+
+        subject.process
+      end
+
+      it 'exposes no correct_passphrase in the response details' do
+        subject.process
+
+        expect(subject.show_secret).to be false
+        expect(subject.success_data[:details]).not_to have_key(:correct_passphrase)
+        expect(subject.success_data[:record]).not_to have_key(:secret_value)
+      end
+    end
   end
 
   # v1 show shares the passphrase rate limiter with v2 show/reveal. Wrong
@@ -162,6 +192,17 @@ RSpec.describe V1::Logic::Secrets::ShowSecret do
       expect(Onetime::Secret.dbclient.get("passphrase:attempts:#{secret_identifier}")).to be_nil
     end
 
+    # A continue=false guess is not an attempt: the passphrase was never
+    # checked, so the limiter must neither accrue nor clear anything.
+    it 'does not count a continue=false guess as an attempt' do
+      probe = described_class.new(session, customer, params.merge('continue' => 'false'))
+      expect(rl_secret).not_to receive(:passphrase?)
+
+      probe.process
+
+      expect(Onetime::Secret.dbclient.get("passphrase:attempts:#{secret_identifier}")).to be_nil
+    end
+
     it 'raises LimitExceeded from raise_concerns once locked out' do
       Onetime::Secret.dbclient.setex("passphrase:locked:#{secret_identifier}", 60, '1')
 
@@ -174,7 +215,6 @@ RSpec.describe V1::Logic::Secrets::ShowSecret do
       allow(secret).to receive(:safe_dump).and_return({key: 'secret123'})
       subject.instance_variable_set(:@show_secret, true)
       subject.instance_variable_set(:@is_owner, false)
-      subject.instance_variable_set(:@correct_passphrase, true)
       subject.instance_variable_set(:@display_lines, 5)
       subject.instance_variable_set(:@one_liner, true)
       subject.instance_variable_set(:@secret_value, 'secret_content')
@@ -186,6 +226,9 @@ RSpec.describe V1::Logic::Secrets::ShowSecret do
       expect(result).to include(:record, :details)
       expect(result[:record]).to include(:secret_value)
       expect(result[:details][:show_secret]).to be true
+      # The passphrase verdict is never serialized to the client -- it is an
+      # oracle for anyone probing with continue=false.
+      expect(result[:details]).not_to have_key(:correct_passphrase)
     end
   end
 

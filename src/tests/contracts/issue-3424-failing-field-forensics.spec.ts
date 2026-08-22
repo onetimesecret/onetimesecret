@@ -104,7 +104,6 @@ function secretShowResponse(recordOverrides: Record<string, unknown> = {}) {
       continue: false,
       is_owner: false,
       show_secret: false,
-      correct_passphrase: true,
       display_lines: 4,
       one_liner: null,
     },
