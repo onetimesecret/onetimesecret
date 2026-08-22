@@ -10,7 +10,9 @@ content files.
 from __future__ import annotations
 
 import json
+import os
 import sys
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterator, Optional
@@ -206,9 +208,25 @@ def save_json_file(file_path: Path, data: dict) -> None:
     """
     file_path.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(file_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-        f.write("\n")
+    # Write to a sibling temp file and rename into place so readers never
+    # observe a half-written file (e.g. the Ruby backend booting while
+    # `content compile --all` is mid-write, or a compile killed with Ctrl-C).
+    # The name must be unique per writer: two concurrent compiles of the same
+    # locale sharing one temp name interleave their writes and rename the torn
+    # result into place, which is the failure this function exists to prevent.
+    fd, tmp_name = tempfile.mkstemp(
+        dir=file_path.parent, prefix=f".{file_path.name}.", suffix=".tmp"
+    )
+    tmp_path = Path(tmp_name)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+            f.write("\n")
+        # mkstemp creates 0600; these are generated, world-readable artifacts.
+        os.chmod(tmp_path, 0o644)
+        os.replace(tmp_path, file_path)
+    finally:
+        tmp_path.unlink(missing_ok=True)
 
 
 class KeyPathConflictError(ValueError):

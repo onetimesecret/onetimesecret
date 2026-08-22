@@ -276,7 +276,7 @@ ensure_secrets() {
 # flags a mismatch. A rev-current file is left alone so local
 # customisations survive re-runs.
 
-ENVRC_REV=2
+ENVRC_REV=3
 
 # envrc_rev_of FILE — the rev stamp of an .envrc, empty if unstamped.
 envrc_rev_of() {
@@ -311,7 +311,7 @@ source_up_if_exists
 # Explicit watch list: dotenv_if_exists also watches, but only the files the
 # active branch touches. Watching all of them (existing or not) means edits —
 # including through the .env symlink — and file creation both trigger a reload.
-watch_file .test-mode .env .env.local .env.test
+watch_file .test-mode .env .env.local .env.test .env.test.example
 
 if [ -f .test-mode ]; then
   export OTS_ENV_LOADED=test
@@ -320,6 +320,25 @@ if [ -f .test-mode ]; then
 else
   export OTS_ENV_LOADED=dev
   export RACK_ENV=development
+
+  # source_up_if_exists can inherit a TEST MODE environment from a parent
+  # checkout (worktrees live under the main checkout; if it has .test-mode,
+  # its .env.test is already exported here). Keys that .env does not also
+  # define survive into dev mode — e.g. PGPORT=2154 retargets a port-less
+  # AUTH_DATABASE_URL (...@authdb/...) at the test Postgres, which has no
+  # ots_* roles; ENABLE_*/HMAC_SECRET/STDOUT_SYNC leak the same way. Clear
+  # every key the test env file declares before loading .env. A dev-only
+  # checkout has no .env.test, so fall back to the tracked example.
+  for _ots_env_file in .env.test .env.test.example; do
+    if [ -f "\$_ots_env_file" ]; then
+      for _ots_var in \$(sed -nE 's/^(export[[:space:]]+)?([A-Za-z_][A-Za-z0-9_]*)=.*/\2/p' "\$_ots_env_file"); do
+        unset "\$_ots_var"
+      done
+      break
+    fi
+  done
+  unset _ots_env_file _ots_var
+
   dotenv_if_exists
 
   # .env.local overrides happen last if the file exists. And only in dev mode.
