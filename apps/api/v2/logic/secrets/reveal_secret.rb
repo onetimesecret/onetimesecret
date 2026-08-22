@@ -94,7 +94,8 @@ module V2::Logic
             secret_identifier: secret.shortid,
             viewable: secret.viewable?,
             has_passphrase: secret.has_passphrase?,
-            passphrase_correct: correct_passphrase,
+            # nil when continue=false: the guess was never checked.
+            passphrase_correct: (correct_passphrase if continue),
             continue: continue,
             # extid, never custid: custid holds the email address on legacy
             # (pre-v0.22) records, which would put PII in the payload.
@@ -260,10 +261,8 @@ module V2::Logic
       def success_data
         return nil unless secret
 
-        # correct_passphrase is deliberately NOT serialized: returning the
-        # verdict turned a metadata-only request into a passphrase oracle. The
-        # server-side debug log above still records passphrase_correct -- that
-        # is diagnostics for the operator, not a response field.
+        # correct_passphrase is not serialized: the verdict is a passphrase
+        # oracle. See #process. (The server-side debug log still carries it.)
         ret = {
           record: secret.safe_dump,
           details: {

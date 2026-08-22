@@ -385,6 +385,10 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
       payload = payload_for(captured, 'Incorrect passphrase attempt')
       expect(payload[:user_id]).to eq('urrevealer')
       expect(payload.values.join(' ')).not_to include('@')
+
+      # Positive control for the continue=false context below, which asserts
+      # this key stays nil: a committed wrong guess must write it.
+      expect(Onetime::Secret.dbclient.get("passphrase:attempts:#{secret.identifier}").to_i).to eq(1)
     end
   end
 

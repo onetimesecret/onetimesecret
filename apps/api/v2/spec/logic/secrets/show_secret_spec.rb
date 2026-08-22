@@ -246,6 +246,20 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
       end
     end
 
+    # Positive control for the attempts_key assertions above: a committed
+    # wrong guess must write the key, otherwise the nil checks would pass
+    # vacuously if the key format ever drifted from the limiter's.
+    it 'records the attempt on a committed wrong guess' do
+      logic = build_logic(
+        { 'identifier' => secret.identifier, 'continue' => 'true', 'passphrase' => 'nope' },
+      )
+      logic.process_params
+      logic.process
+
+      expect(logic.show_secret).to be false
+      expect(Onetime::Secret.dbclient.get(attempts_key).to_i).to eq(1)
+    end
+
     it 'omits correct_passphrase from the details on a committed reveal too' do
       logic = build_logic(
         { 'identifier' => secret.identifier, 'continue' => 'true', 'passphrase' => 'correct horse battery' },

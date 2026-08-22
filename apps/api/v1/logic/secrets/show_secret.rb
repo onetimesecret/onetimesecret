@@ -144,9 +144,8 @@ module V1::Logic
 
       def success_data
         return nil unless secret
-        # correct_passphrase is deliberately NOT serialized: returning the
-        # verdict turned a metadata-only request into a passphrase oracle. It
-        # stays available in-process (attr_reader) for the reveal path.
+        # correct_passphrase is not serialized: the verdict is a passphrase
+        # oracle. See #process.
         ret = {
           record: secret.safe_dump,
           details: {

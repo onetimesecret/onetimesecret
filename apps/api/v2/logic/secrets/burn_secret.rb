@@ -81,7 +81,8 @@ module V2::Logic
             secret_identifier: potential_secret.shortid,
             viewable: viewable,
             has_passphrase: potential_secret.has_passphrase?,
-            passphrase_correct: correct_passphrase,
+            # nil when continue=false: the guess was never checked.
+            passphrase_correct: (correct_passphrase if continue),
             continue: continue,
             # extid, never custid: custid holds the email address on legacy
             # (pre-v0.22) records, which would put PII in the payload.
