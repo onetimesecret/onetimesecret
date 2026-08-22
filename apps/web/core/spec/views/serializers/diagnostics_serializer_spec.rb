@@ -116,6 +116,21 @@ RSpec.describe Core::Views::DiagnosticsSerializer do
     end
   end
 
+  # Today `authenticated` is already false during the MFA-pending window, so
+  # this exercises the explicit local guard: even if AuthenticationSerializer
+  # ever reported authenticated=true mid-MFA, the ref must stay omitted.
+  context 'when the session is awaiting MFA' do
+    let(:view_vars) do
+      { 'authenticated' => true, 'awaiting_mfa' => true, 'cust' => cust }
+    end
+
+    before { stub_keying('federated') }
+
+    it 'omits the diagnostics_ref key' do
+      expect(output).not_to have_key('diagnostics_ref')
+    end
+  end
+
   context 'when neither secret is configured' do
     before { stub_keying(nil) }
 

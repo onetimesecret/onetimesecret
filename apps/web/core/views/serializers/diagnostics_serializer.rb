@@ -116,6 +116,11 @@ module Core
         # path too, which is the conservative answer there.
         return omit(output) unless view_vars['authenticated'] && cust
 
+        # Awaiting-MFA sessions are unauthenticated today, so the guard above
+        # already omits them; this check keeps that invariant local instead of
+        # inherited from AuthenticationSerializer's `authenticated` semantics.
+        return omit(output) if view_vars['awaiting_mfa']
+
         # Exactly { 'user_ref' => ..., 'user_scope' => ... }, or nil when no
         # secret is configured / the derivation declined. Passed through
         # verbatim: the module owns the shape, and the client parses it strictly.
