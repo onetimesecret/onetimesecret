@@ -11,7 +11,7 @@
 // ── What Sentry receives ──────────────────────────────────────────────────────
 //
 //   user = { id: <opaque server-derived ref>, ip_address: null }
-//   tags.ref_scope = "federated" | "deployment"
+//   tags.user_scope = "federated" | "deployment"
 //
 // That is the complete set. No `email`, no `username`, no `name`, no
 // `ip_address` other than the explicit null, and no additional user keys. The
@@ -34,7 +34,7 @@
 //      derivation produces — 16 lowercase hex chars, matched against
 //      `DIAGNOSTICS_REF_PATTERN`.
 //
-// Check 2 is not redundant. `{ actor_ref: "alice@example.com", actor_scope:
+// Check 2 is not redundant. `{ user_ref: "alice@example.com", user_scope:
 // "deployment" }` is a fully VALID block by key set alone — two keys, valid
 // enum, non-empty string. The outbound gate keeps exactly one field, `id`, and
 // drops the rest, so with a key-set check only, that address would be shipped
@@ -98,7 +98,7 @@ import type { Scope } from '@sentry/browser';
  * Exported so tests and the diagnostics service refer to one literal rather
  * than three copies of the string.
  */
-export const REF_SCOPE_TAG = 'ref_scope';
+export const USER_SCOPE_TAG = 'user_scope';
 
 /**
  * The subset of `Scope` this module touches.
@@ -177,9 +177,9 @@ export function resolveDiagnosticsRef(): DiagnosticsRefBlock | null {
  * There is deliberately no separate "clear" code path that could drift from
  * the "set" path and leave a tag behind.
  *
- * On clear, `ref_scope` is set to `undefined`, which is how Sentry's Scope
+ * On clear, `user_scope` is set to `undefined`, which is how Sentry's Scope
  * removes a tag (the key is dropped during event serialization). Leaving a
- * stale `ref_scope` after logout would let an anonymous session be filtered
+ * stale `user_scope` after logout would let an anonymous session be filtered
  * as if it were still the previous, identified session.
  *
  * @param scopes - Every scope that must agree. In practice
@@ -200,16 +200,16 @@ export function applyUserContext(
   // unrecognised ref CLEARS the context — the same fail-closed answer as a
   // malformed block, never a partially applied one.
   const user: DiagnosticsUser | null =
-    ref && isDiagnosticsRef(ref.actor_ref) ? { id: ref.actor_ref, ip_address: null } : null;
+    ref && isDiagnosticsRef(ref.user_ref) ? { id: ref.user_ref, ip_address: null } : null;
 
   for (const scope of scopes) {
     scope.setUser(user);
     // Keyed off `user`, not `ref`: when the ref value was refused above there
     // is no user context, so there must be no scope tag either — a lone
-    // `ref_scope` would label an unidentified session as if it were still
+    // `user_scope` would label an unidentified session as if it were still
     // identified. `undefined` clears the tag; Sentry drops undefined tag
     // values when serializing the event.
-    scope.setTag(REF_SCOPE_TAG, user && ref ? ref.actor_scope : undefined);
+    scope.setTag(USER_SCOPE_TAG, user && ref ? ref.user_scope : undefined);
   }
 }
 

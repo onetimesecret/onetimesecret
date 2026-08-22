@@ -1668,7 +1668,7 @@ describe('bootstrapStore user context', () => {
   // DIAGNOSTICS_REF_PATTERN admits. setDiagnosticsUserContext is mocked here,
   // but fixtures stay honest so a copy-paste into an unmocked test still
   // passes the contract.
-  const REF_BLOCK = { actor_ref: 'a1b2c3d4e5f60718', actor_scope: 'federated' } as const;
+  const REF_BLOCK = { user_ref: 'a1b2c3d4e5f60718', user_scope: 'federated' } as const;
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -1715,7 +1715,7 @@ describe('bootstrapStore user context', () => {
       diagnostics_ref: { ...REF_BLOCK },
     } as Partial<BootstrapPayload>);
 
-    const next = { actor_ref: '00112233445566ff', actor_scope: 'deployment' } as const;
+    const next = { user_ref: '00112233445566ff', user_scope: 'deployment' } as const;
     store.update({ authenticated: true, diagnostics_ref: { ...next } } as Partial<BootstrapPayload>);
 
     expect(store.diagnostics_ref).toEqual(next);

@@ -715,7 +715,7 @@ describe('authStore', () => {
     // re-resolve would pick up and attach to an anonymous session's events.
     it('evicts the ref from the pre-Pinia bootstrap snapshot on soft logout', async () => {
       updateBootstrapSnapshot({
-        diagnostics_ref: { actor_ref: 'a1b2c3d4e5f60718', actor_scope: 'federated' },
+        diagnostics_ref: { user_ref: 'a1b2c3d4e5f60718', user_scope: 'federated' },
       });
       expect(getBootstrapValue('diagnostics_ref')).toBeDefined();
 

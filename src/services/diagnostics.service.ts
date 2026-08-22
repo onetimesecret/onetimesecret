@@ -224,7 +224,7 @@ function userContextScopes(): UserContextScope[] {
  * resolve to null and CLEAR the context rather than partially applying it.
  * Passing null clears it outright.
  *
- * Emits exactly `user = { id: <ref>, ip_address: null }` and the `ref_scope`
+ * Emits exactly `user = { id: <ref>, ip_address: null }` and the `user_scope`
  * tag. Never an email, name, objid, extid, or IP.
  *
  * Safe to call when diagnostics are disabled — it is a no-op.
@@ -248,11 +248,11 @@ export function setDiagnosticsUserContext(block: unknown): void {
 
 /**
  * Clears the Sentry user context: `setUser(null)` plus removal of the
- * `ref_scope` tag, on every scope.
+ * `user_scope` tag, on every scope.
  *
  * Call on LOGOUT and on any account change where the new session's ref is not
  * yet known. The tag removal matters as much as the user clear — a stale
- * `ref_scope` would let a now-anonymous session be filtered in Sentry as
+ * `user_scope` would let a now-anonymous session be filtered in Sentry as
  * though it were still the previous, identified session.
  *
  * Only the soft/SPA logout path needs this. Hard logouts navigate with

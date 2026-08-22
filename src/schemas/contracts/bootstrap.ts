@@ -575,7 +575,7 @@ export type Passphrase = z.infer<typeof passphraseSchema>;
 export const DIAGNOSTICS_REF_SCOPES = ['federated', 'deployment'] as const;
 
 /**
- * The EXACT permitted shape of `actor_ref`, and the single source of truth for
+ * The EXACT permitted shape of `user_ref`, and the single source of truth for
  * it on the TypeScript side.
  *
  * ## Why a content check and not just a type check
@@ -583,7 +583,7 @@ export const DIAGNOSTICS_REF_SCOPES = ['federated', 'deployment'] as const;
  * `z.string().min(1)` validates the SHAPE of the block but says nothing about
  * what is inside the string. That gap is a laundering channel: a server bug,
  * an older build, or a compromised region node emitting
- * `{ actor_ref: "alice@example.com", actor_scope: "deployment" }` satisfies a
+ * `{ user_ref: "alice@example.com", user_scope: "deployment" }` satisfies a
  * strictObject with two keys and a valid enum, and the value then flows into
  * `user.id` — where the outbound sanitizer, which strips `email`/`username`/
  * `name`, keeps `id` verbatim on every error and transaction. Validating the
@@ -625,11 +625,11 @@ export function isDiagnosticsRef(value: unknown): value is string {
  * ## Wire contract
  *
  * ```json
- * { "diagnostics_ref": { "actor_ref": "a1b2c3d4e5f60718",
- *                        "actor_scope": "federated" } }
+ * { "diagnostics_ref": { "user_ref": "a1b2c3d4e5f60718",
+ *                        "user_scope": "federated" } }
  * ```
  *
- * The inner key names (`actor_ref`, `actor_scope`) are the serializer's wire
+ * The inner key names (`user_ref`, `user_scope`) are the serializer's wire
  * shape and are consumed as-is. The block is **ABSENT for anonymous
  * sessions**. Absence is the signal — there is no anonymous sentinel value,
  * no empty string, no `null`. Hence `.optional()` on the parent field rather
@@ -641,7 +641,7 @@ export function isDiagnosticsRef(value: unknown): value is string {
  * third-party processor (Sentry `scope.setUser`). Zod's plain `z.object`
  * STRIPS unknown keys silently; `z.strictObject` REJECTS the whole block. For
  * this boundary, rejecting is the correct failure mode: strip-on-unknown
- * means a server that starts emitting `{ actor_ref, actor_scope, email }`
+ * means a server that starts emitting `{ user_ref, user_scope, email }`
  * produces a *valid* parse whose extra field is one refactor away from being
  * forwarded; reject-on-unknown means that payload fails `safeParse` and the
  * session runs unidentified. Losing correlation is recoverable; leaking an
@@ -655,9 +655,9 @@ export const diagnosticsRefSchema = z.strictObject({
    * Opaque, deterministic, server-derived reference. Never PII.
    * Content-checked against DIAGNOSTICS_REF_PATTERN, not merely non-empty.
    */
-  actor_ref: z.string().regex(DIAGNOSTICS_REF_PATTERN),
-  /** Closed enum; becomes the indexed Sentry `ref_scope` tag. */
-  actor_scope: z.enum(DIAGNOSTICS_REF_SCOPES),
+  user_ref: z.string().regex(DIAGNOSTICS_REF_PATTERN),
+  /** Closed enum; becomes the indexed Sentry `user_scope` tag. */
+  user_scope: z.enum(DIAGNOSTICS_REF_SCOPES),
 });
 
 /** Parsed shape of the `diagnostics_ref` bootstrap block. */

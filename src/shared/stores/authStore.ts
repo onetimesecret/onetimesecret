@@ -425,7 +425,7 @@ export const useAuthStore = defineStore('auth', () => {
     bootstrapStore.resetForLogout();
 
     // Clear the Sentry user context: setUser(null) plus removal of the
-    // `ref_scope` tag, on BOTH the isolated and current scopes.
+    // `user_scope` tag, on BOTH the isolated and current scopes.
     //
     // This is the SOFT (SPA) logout path — no page navigation follows, so the
     // Sentry scopes survive with whatever user context was last written.
