@@ -10,6 +10,7 @@ content files.
 from __future__ import annotations
 
 import json
+import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -206,9 +207,17 @@ def save_json_file(file_path: Path, data: dict) -> None:
     """
     file_path.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(file_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-        f.write("\n")
+    # Write to a sibling temp file and rename into place so readers never
+    # observe a half-written file (e.g. the Ruby backend booting while
+    # `content compile --all` is mid-write, or a compile killed with Ctrl-C).
+    tmp_path = file_path.with_name(f".{file_path.name}.tmp")
+    try:
+        with open(tmp_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+            f.write("\n")
+        os.replace(tmp_path, file_path)
+    finally:
+        tmp_path.unlink(missing_ok=True)
 
 
 class KeyPathConflictError(ValueError):
