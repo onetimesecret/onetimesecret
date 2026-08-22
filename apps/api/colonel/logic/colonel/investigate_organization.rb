@@ -73,7 +73,7 @@ module ColonelAPI
             stripe_customer_id: org.stripe_customer_id,
             stripe_subscription_id: org.stripe_subscription_id,
             subscription_status: org.subscription_status,
-            subscription_period_end: org.subscription_period_end&.to_s,
+            subscription_period_end: org.subscription_period_end,
           }
         end
 

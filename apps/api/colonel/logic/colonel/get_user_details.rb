@@ -301,7 +301,7 @@ module ColonelAPI
               display_name: org.display_name,
               planid: org.planid,
               subscription_status: org.subscription_status,
-              subscription_period_end: org.subscription_period_end&.to_s,
+              subscription_period_end: org.subscription_period_end,
             },
             stripe: fetch_stripe_billing(org, enabled),
           }
