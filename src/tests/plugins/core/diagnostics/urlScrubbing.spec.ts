@@ -9,7 +9,7 @@ import { describe, expect, it } from 'vitest';
 import {
   collectValuesToRedact,
   scrubUrlWithValues,
-} from '@/plugins/core/diagnostics/urlScrubbing';
+} from '@/utils/diagnostics/urlScrubbing';
 
 describe('collectValuesToRedact', () => {
   it('collects all params when paramsToScrub is undefined', () => {

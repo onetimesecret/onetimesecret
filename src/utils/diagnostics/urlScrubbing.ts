@@ -1,11 +1,17 @@
-// src/plugins/core/diagnostics/urlScrubbing.ts
+// src/utils/diagnostics/urlScrubbing.ts
 //
-// Internal utilities for URL scrubbing in Sentry diagnostics.
+// LAYER RULE: src/utils/diagnostics/ is pure policy — it must not import from
+// `@sentry/*` nor from `src/plugins/`.
+//
+// Internal helpers for scrubbing route-param values out of a URL before it is
+// sent to Sentry. Pure string work: no Sentry types, no plugin imports.
 //
 // These functions are exported from this file but NOT re-exported from the
-// public barrel (src/plugins/core/index.ts). This pattern allows:
+// public barrel (src/plugins/core/index.ts, which re-exports only
+// appInitializer, enableDiagnostics and globalErrorBoundary). This pattern
+// allows:
 //
-// 1. Direct unit tests: Tests import from '@/plugins/core/diagnostics/urlScrubbing'
+// 1. Direct unit tests: Tests import from '@/utils/diagnostics/urlScrubbing'
 //    to test edge cases (length-descending sort, hostname protection, deduplication)
 //    in isolation without mock infrastructure.
 //
@@ -13,8 +19,9 @@
 //    createDiagnostics() and the public scrubbing utilities. These internal helpers
 //    are implementation details.
 //
-// 3. Production code: enableDiagnostics.ts imports from this internal path directly.
-//    The wiring is still tested via handler tests that go through createDiagnostics().
+// 3. Production code: enableDiagnostics.ts imports from this path directly —
+//    it is the only non-test importer. The wiring is still tested via handler
+//    tests that go through createDiagnostics().
 
 import type { RouteMeta } from '@/types/router';
 

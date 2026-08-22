@@ -22,7 +22,7 @@
 #      (`user@example.com` -> `us***@e***.com`). Must stay human-correlatable.
 #   B  Onetime::Initializers::SetupDiagnostics     — lib/onetime/initializers/setup_diagnostics.rb
 #      FULL sentinel replacement for Sentry payloads. Must leak nothing.
-#   TS src/plugins/core/diagnostics/scrubbers.ts   — deliberate mirror of B.
+#   TS src/utils/diagnostics/scrubbers.ts   — deliberate mirror of B.
 #      Its own contract assertions live in
 #      src/tests/plugins/core/diagnostics/emailRedactionCorpus.spec.ts, which
 #      reads THE SAME corpus file. This file asserts the literal parity from
@@ -76,7 +76,7 @@ module EmailRedactionCorpus
   # Mirror sources, read from disk rather than re-typed, so these assertions
   # test what actually ships.
   RUBY_B_SOURCE_FILE = File.join(Onetime::HOME, 'lib', 'onetime', 'initializers', 'setup_diagnostics.rb')
-  TS_TWIN_SOURCE_FILE = File.join(Onetime::HOME, 'src', 'plugins', 'core', 'diagnostics', 'scrubbers.ts')
+  TS_TWIN_SOURCE_FILE = File.join(Onetime::HOME, 'src', 'utils', 'diagnostics', 'scrubbers.ts')
 
   # The addresses that actually leaked. Pinned by literal so that deleting them
   # from the corpus turns this suite RED instead of quietly green — an eroded

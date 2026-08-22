@@ -156,6 +156,29 @@ export function updateBootstrapSnapshot(data: Partial<BootstrapPayload>): void {
 }
 
 /**
+ * Removes a key from the bootstrap snapshot entirely.
+ *
+ * `updateBootstrapSnapshot` deliberately SKIPS undefined values, so it can
+ * never express "this field went away". That is the right default for the
+ * config fields it was written for, but it is wrong for fields whose ABSENCE is
+ * the signal — `diagnostics_actor` is absent for anonymous sessions, and a
+ * merge that ignores undefined would leave the previous actor reference
+ * readable by `getBootstrapValue('diagnostics_actor')` after logout or an
+ * account change.
+ *
+ * Deleting rather than assigning undefined keeps `key in snapshot` honest for
+ * callers that probe for presence.
+ *
+ * @param key - The BootstrapPayload key to remove from the snapshot.
+ */
+export function clearBootstrapSnapshotKey(key: keyof BootstrapPayload): void {
+  if (!bootstrapSnapshot) {
+    return;
+  }
+  delete (bootstrapSnapshot as Record<string, unknown>)[key as string];
+}
+
+/**
  * Checks if bootstrap data has been consumed.
  * Useful for debugging and conditional initialization logic.
  */
@@ -183,6 +206,7 @@ export const BootstrapService = {
   get: getBootstrapValue,
   getSnapshot: getBootstrapSnapshot,
   updateSnapshot: updateBootstrapSnapshot,
+  clearSnapshotKey: clearBootstrapSnapshotKey,
   isConsumed: isBootstrapConsumed,
   _resetForTesting,
 };

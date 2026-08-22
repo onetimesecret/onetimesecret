@@ -1321,7 +1321,7 @@ module Billing
           {
             id: org.stripe_subscription_id,
             status: org.subscription_status,
-            period_end: org.subscription_period_end,
+            period_end: org.subscription_period_end&.to_s,
             active: org.active_subscription?,
             past_due: org.past_due?,
             canceled: org.canceled?,

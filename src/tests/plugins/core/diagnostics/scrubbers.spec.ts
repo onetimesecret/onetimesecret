@@ -15,7 +15,7 @@ import {
   SENSITIVE_PATH_PATTERN,
   SENSITIVE_QUERY_PARAMS,
   VERIFIABLE_ID_PATTERN,
-} from '@/plugins/core/diagnostics/scrubbers';
+} from '@/utils/diagnostics/scrubbers';
 
 // ---------------------------------------------------------------------------
 // C1 shared identifier test-vector set.

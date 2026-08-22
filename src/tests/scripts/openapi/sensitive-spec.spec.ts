@@ -251,7 +251,7 @@ describe('pathToRegexPattern', () => {
   it('matches a route substring inside a fully-qualified URL', () => {
     // Unanchored: the host prefix in https://example.com/api/v1/secret/<id>
     // is skipped and the pattern finds `/api/v1/secret/<id>` as a substring.
-    // Runtime callers in src/plugins/core/diagnostics/scrubbers.ts still
+    // Runtime callers in src/utils/diagnostics/scrubbers.ts still
     // normalize through `URL` before invoking the patterns so the query
     // string is not pulled into the capture group — the value class
     // ([^/\s]+) deliberately does NOT exclude `?` or `#`.

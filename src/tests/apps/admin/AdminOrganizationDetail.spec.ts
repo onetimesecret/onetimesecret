@@ -319,6 +319,18 @@ describe('AdminOrganizationDetail (org detail + entitlements + reconcile)', () =
     });
   });
 
+  it('renders an organization with a legacy numeric subscription period end', async () => {
+    mockApi.get.mockResolvedValue({
+      data: detailPayload({
+        record: { ...detailPayload().record, subscription_period_end: 1772940425 },
+      }),
+    });
+    wrapper = mountView();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="detail-content"]').exists()).toBe(true);
+  });
+
   it('surfaces the drift + stale warnings when the entitlements are out of sync', async () => {
     mockApi.get.mockResolvedValue({
       data: detailPayload({

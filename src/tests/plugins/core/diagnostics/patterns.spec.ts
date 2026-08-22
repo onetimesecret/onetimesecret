@@ -1,4 +1,4 @@
-// src/tests/plugins/core/patterns.spec.ts
+// src/tests/plugins/core/diagnostics/patterns.spec.ts
 //
 // Unit tests for regex pattern constants exported from enableDiagnostics.
 // Tests SENSITIVE_PATH_PATTERN, VERIFIABLE_ID_PATTERN, and EMAIL_PATTERN.

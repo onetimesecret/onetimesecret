@@ -21,6 +21,7 @@ import {
   putDomainIncomingConfigResponseSchema,
 } from '@/schemas/api/domains/responses/incoming-config';
 import type { CustomDomainIncomingConfig } from '@/schemas/shapes/domains/incoming-config';
+import { projectSchemaIssues } from '@/utils/diagnostics/schemaIssueProjection';
 import { gracefulParse, strictParse } from '@/utils/schemaValidation';
 
 const $api = createApi();
@@ -56,7 +57,31 @@ export const IncomingConfigService = {
       'GetDomainIncomingConfigResponse',
     );
     if (!result.ok) {
-      console.error('Failed to parse incoming-config response:', result.error);
+      // Log the PROJECTION, never the raw ZodError.
+      //
+      // `gracefulParse` returns the unprojected error by contract, and a Zod v4
+      // issue carries `message`, `values`, `keys` and `params` — an audit found
+      // a real `params: { leaked: 'sk_live_…' }`. Dumping `result.error` here
+      // routed the payload straight around the projection chokepoint that every
+      // other telemetry surface goes through. Production is mitigated (the
+      // rolldown minifier's `dropConsole` strips our `console.*`, and
+      // breadcrumbPolicy drops console `data.arguments`), so the live exposure
+      // was a DEV session pointed at a real DSN — which is a normal way to work
+      // here, not a hypothetical.
+      //
+      // `projectSchemaIssues` yields the same value-free rows the Sentry event
+      // carries: field path, issue code, expected/received TYPE, issue count.
+      // That is what a developer reads off the console anyway.
+      // `ParseResult.error` is nullable (a non-Zod failure reports no error at
+      // all), so the null case logs the bare fact and nothing derived.
+      const projection = result.error
+        ? projectSchemaIssues(result.error, response.data, 'GetDomainIncomingConfigResponse')
+        : null;
+      console.error(
+        'Failed to parse incoming-config response:',
+        projection ? `${projection.issueCount} issue(s)` : 'no issue detail available',
+        projection?.rows ?? [],
+      );
       throw new Error('Failed to parse incoming-config response from server');
     }
     return { record: result.data.record };

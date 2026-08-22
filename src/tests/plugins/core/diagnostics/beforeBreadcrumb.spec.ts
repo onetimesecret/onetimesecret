@@ -1,4 +1,4 @@
-// src/tests/plugins/core/beforeBreadcrumb.spec.ts
+// src/tests/plugins/core/diagnostics/beforeBreadcrumb.spec.ts
 //
 // Tests for the beforeBreadcrumb handler created by createDiagnostics.
 // Tests navigation breadcrumbs, HTTP breadcrumbs (xhr/fetch), and edge cases.
@@ -16,6 +16,7 @@ import type { Router } from 'vue-router';
 
 const {
   mockSetTag,
+  mockSetUser,
   mockSetClient,
   mockClientInit,
   mockClientClose,
@@ -26,6 +27,8 @@ const {
   resetCapturedOptions,
 } = vi.hoisted(() => {
   const mockSetTag = vi.fn();
+  // Actor identity (#privacy boundary) writes setUser on the isolated scope.
+  const mockSetUser = vi.fn();
   const mockSetClient = vi.fn();
   const mockClientInit = vi.fn();
   const mockClientClose = vi.fn().mockResolvedValue(undefined);
@@ -44,6 +47,7 @@ const {
   class MockScope {
     setClient = mockSetClient;
     setTag = mockSetTag;
+    setUser = mockSetUser;
   }
 
   function getCapturedClientOptions() {
@@ -56,6 +60,7 @@ const {
 
   return {
     mockSetTag,
+    mockSetUser,
     mockSetClient,
     mockClientInit,
     mockClientClose,
@@ -479,6 +484,249 @@ describe('beforeBreadcrumb handler', () => {
     });
   });
 
+  // ───────────────────────────────────────────────────────────────────────────
+  // METADATA-ONLY POLICY (requirement 8)
+  //
+  // These assert the STRUCTURAL control, which is independent of the value
+  // scrubbers above: `data` is reduced to a fixed allowlist per category, so a
+  // key nobody reviewed cannot ride along.
+  // ───────────────────────────────────────────────────────────────────────────
+  describe('metadata-only breadcrumb policy', () => {
+    it('keeps only metadata keys on fetch breadcrumbs', () => {
+      const handler = getBeforeBreadcrumb();
+      const breadcrumb: Breadcrumb = {
+        category: 'fetch',
+        data: {
+          url: 'https://api.example.com/api/v2/account',
+          method: 'POST',
+          status_code: 200,
+          duration: 42,
+          trace_id: 'abcdef',
+          span_id: '123456',
+          request_id: 'req-9',
+        },
+      };
+
+      const result = handler(breadcrumb);
+
+      expect(result?.data).toEqual({
+        url: 'https://api.example.com/api/v2/account',
+        method: 'POST',
+        status_code: 200,
+        duration: 42,
+        trace_id: 'abcdef',
+        span_id: '123456',
+        request_id: 'req-9',
+      });
+    });
+
+    it('folds timing in from the breadcrumb HINT, where the SDK actually puts it', () => {
+      // @sentry/browser's fetch/xhr instrumentation passes
+      // `{ startTimestamp, endTimestamp }` as the second argument and never
+      // writes `data.duration`, so the allowlist entry for `duration` was inert
+      // until this fold-in existed.
+      const handler = getBeforeBreadcrumb() as (
+        breadcrumb: Breadcrumb,
+        hint?: unknown
+      ) => Breadcrumb | null;
+      const breadcrumb: Breadcrumb = {
+        category: 'fetch',
+        data: { url: 'https://api.example.com/api/v2/account', method: 'GET', status_code: 200 },
+      };
+
+      const result = handler(breadcrumb, { startTimestamp: 1000, endTimestamp: 1042 });
+
+      expect(result?.data?.duration).toBe(42);
+    });
+
+    it('leaves duration absent when the hint carries no usable timing', () => {
+      const handler = getBeforeBreadcrumb() as (
+        breadcrumb: Breadcrumb,
+        hint?: unknown
+      ) => Breadcrumb | null;
+      const breadcrumb: Breadcrumb = {
+        category: 'fetch',
+        data: { url: 'https://api.example.com/api/v2/account', method: 'GET' },
+      };
+
+      const result = handler(breadcrumb, { startTimestamp: 'nope', endTimestamp: undefined });
+
+      expect(result?.data).not.toHaveProperty('duration');
+    });
+
+    it('drops request and response bodies from HTTP breadcrumbs', () => {
+      const handler = getBeforeBreadcrumb();
+      const breadcrumb: Breadcrumb = {
+        category: 'fetch',
+        data: {
+          url: 'https://api.example.com/api/v2/secret/conceal',
+          method: 'POST',
+          status_code: 200,
+          request_body: { secret: 'hunter2', passphrase: 'swordfish' },
+          response_body: '{"record":{"secret_key":"abc"}}',
+          request_body_size: 128,
+          response_body_size: 256,
+        },
+      };
+
+      const result = handler(breadcrumb);
+
+      expect(result?.data).not.toHaveProperty('request_body');
+      expect(result?.data).not.toHaveProperty('response_body');
+      expect(JSON.stringify(result?.data)).not.toContain('hunter2');
+      expect(JSON.stringify(result?.data)).not.toContain('swordfish');
+
+      // DELIBERATE POLICY CHANGE, not a weakened privacy assertion: the two
+      // *_body_size keys are BYTE COUNTS, not content. They were dropped by
+      // proximity to `request_body` / `response_body`, which is the assertion
+      // that is actually doing the work above and still holds. A size cannot be
+      // reversed into a payload and carries no personal data at any value,
+      // while "was the response empty, truncated, or full-size-but-wrong-shape"
+      // is the first question asked on a schema failure — three causes that
+      // share one status code. Removing no data at the cost of that distinction
+      // is pure loss, so the counts are retained on purpose.
+      expect(result?.data?.request_body_size).toBe(128);
+      expect(result?.data?.response_body_size).toBe(256);
+    });
+
+    // The claim above — "a size is a BYTE COUNT, not content" — was a property
+    // of @sentry/browser's typings, not of our code: the allowlist was
+    // key-only, so a producer writing a STRING under a size key shipped it
+    // verbatim. Every allowlisted key now declares a primitive type and a value
+    // of any other type is dropped, which makes the claim structural.
+    it('drops size keys whose value is not a number', () => {
+      const handler = getBeforeBreadcrumb();
+      const breadcrumb: Breadcrumb = {
+        category: 'fetch',
+        data: {
+          url: 'https://api.example.com/api/v2/secret/conceal',
+          method: 'POST',
+          request_body_size: '{"password":"hunter2"}',
+          response_body_size: { nested: 'alice@example.com' },
+        },
+      };
+
+      const result = handler(breadcrumb);
+
+      expect(result?.data).not.toHaveProperty('request_body_size');
+      expect(result?.data).not.toHaveProperty('response_body_size');
+      expect(JSON.stringify(result?.data)).not.toContain('hunter2');
+      expect(JSON.stringify(result?.data)).not.toContain('alice@example.com');
+      // The correctly typed keys on the same bag are untouched.
+      expect(result?.data?.method).toBe('POST');
+    });
+
+    it('drops string-typed keys whose value is an object', () => {
+      const handler = getBeforeBreadcrumb();
+      const breadcrumb: Breadcrumb = {
+        category: 'xhr',
+        data: {
+          url: 'https://api.example.com/api/v2/account',
+          method: 'GET',
+          status_code: 200,
+          trace_id: { leaked: 'bob@example.com' },
+          request_id: ['carol@example.com'],
+        },
+      };
+
+      const result = handler(breadcrumb);
+
+      expect(result?.data).not.toHaveProperty('trace_id');
+      expect(result?.data).not.toHaveProperty('request_id');
+      expect(JSON.stringify(result?.data)).not.toContain('@example.com');
+      expect(result?.data?.status_code).toBe(200);
+    });
+
+    it('drops headers and cookies from HTTP breadcrumbs', () => {
+      const handler = getBeforeBreadcrumb();
+      const breadcrumb: Breadcrumb = {
+        category: 'xhr',
+        data: {
+          url: 'https://api.example.com/api/v2/account',
+          method: 'GET',
+          headers: { Authorization: 'Bearer tok_live_123', Cookie: 'sess=abc' },
+          cookies: 'sess=abc',
+          Authorization: 'Bearer tok_live_123',
+        },
+      };
+
+      const result = handler(breadcrumb);
+
+      expect(result?.data).toEqual({
+        url: 'https://api.example.com/api/v2/account',
+        method: 'GET',
+      });
+      expect(JSON.stringify(result?.data)).not.toContain('Bearer');
+      expect(JSON.stringify(result?.data)).not.toContain('sess=abc');
+    });
+
+    it('applies the allowlist to HTTP breadcrumbs that carry no url', () => {
+      // Regression: the previous handler guarded on `data.url`, so a
+      // body-carrying breadcrumb with no url skipped scrubbing entirely.
+      const handler = getBeforeBreadcrumb();
+      const breadcrumb: Breadcrumb = {
+        category: 'fetch',
+        data: { method: 'POST', response_body: 'raw secret material' },
+      };
+
+      const result = handler(breadcrumb);
+
+      expect(result?.data).toEqual({ method: 'POST' });
+    });
+
+    it('keeps only from/to on navigation breadcrumbs', () => {
+      const handler = getBeforeBreadcrumb();
+      const breadcrumb: Breadcrumb = {
+        category: 'navigation',
+        data: { from: '/one', to: '/two', state: { email: 'user@example.com' } },
+      };
+
+      const result = handler(breadcrumb);
+
+      expect(result?.data).toEqual({ from: '/one', to: '/two' });
+    });
+
+    it('scrubs emails interpolated into console breadcrumb messages', () => {
+      const handler = getBeforeBreadcrumb();
+      const breadcrumb: Breadcrumb = {
+        category: 'console',
+        level: 'warn',
+        message: 'lookup failed for user@example.com',
+      };
+
+      const result = handler(breadcrumb);
+
+      expect(result?.message).not.toContain('user@example.com');
+    });
+
+    it('scrubs verifiable identifiers in ui.click breadcrumb messages', () => {
+      const id62 = 'abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz';
+      const handler = getBeforeBreadcrumb();
+      const breadcrumb: Breadcrumb = {
+        category: 'ui.click',
+        message: `a[href="/secret/${id62}"]`,
+      };
+
+      const result = handler(breadcrumb);
+
+      expect(result?.message).not.toContain(id62);
+    });
+
+    it('drops the raw argument list from console breadcrumbs', () => {
+      const handler = getBeforeBreadcrumb();
+      const breadcrumb: Breadcrumb = {
+        category: 'console',
+        message: 'request failed',
+        data: { arguments: [{ passphrase: 'swordfish' }], logger: 'console' },
+      };
+
+      const result = handler(breadcrumb);
+
+      expect(result?.data).not.toHaveProperty('arguments');
+      expect(result?.data).toEqual({ logger: 'console' });
+    });
+  });
+
   describe('edge cases', () => {
     it('handles navigation with empty string path', () => {
       (mockRouter.resolve as ReturnType<typeof vi.fn>).mockImplementation(() => ({
@@ -500,7 +748,13 @@ describe('beforeBreadcrumb handler', () => {
       expect(result?.data?.from).toBe('');
     });
 
-    it('handles non-string path values gracefully', () => {
+    // Was: "handles non-string path values gracefully", asserting that `null`
+    // and `123` passed THROUGH unchanged. Graceful still means "does not
+    // throw", but pass-through was the hole: `from`/`to` are URLs, the
+    // allowlist was key-only, and a producer writing an object under either key
+    // shipped it whole. They are now type-checked and dropped, which is a
+    // tightening of the same assertion, not a relaxation of it.
+    it('drops non-string path values without throwing', () => {
       const handler = getBeforeBreadcrumb();
       const breadcrumb: Breadcrumb = {
         category: 'navigation',
@@ -512,8 +766,25 @@ describe('beforeBreadcrumb handler', () => {
 
       const result = handler(breadcrumb);
 
-      expect(result?.data?.from).toBe(null);
-      expect(result?.data?.to).toBe(123);
+      expect(result).not.toBeNull();
+      expect(result?.data).toBeUndefined();
+    });
+
+    it('drops an object-valued navigation path', () => {
+      const handler = getBeforeBreadcrumb();
+      const breadcrumb: Breadcrumb = {
+        category: 'navigation',
+        data: {
+          from: { leaked: 'dave@example.com' },
+          to: '/home',
+        },
+      };
+
+      const result = handler(breadcrumb);
+
+      expect(result?.data).not.toHaveProperty('from');
+      expect(JSON.stringify(result?.data)).not.toContain('dave@example.com');
+      expect(result?.data?.to).toBe('/home');
     });
   });
 });

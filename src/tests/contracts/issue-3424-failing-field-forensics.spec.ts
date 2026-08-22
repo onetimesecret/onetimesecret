@@ -7,9 +7,17 @@
 // --------------------
 // Three fixes shipped against #3424 (#3268 → #3434 → #3477) and the bug stayed
 // open, because *nobody ever captured the field that actually fails* — the
-// frontend's `gracefulParse` discards the Zod error in production (see
+// frontend's `gracefulParse` discarded the failing field in production (see
 // docs/specs/recipient-disclosure/unviewable-state-root-cause.md and src/utils/schemaValidation.ts).
 // Every fix so far was an inference.
+//
+// THAT HOLE IS NOW CLOSED, and the last section of this file is the guard on it:
+// `gracefulParse` ships a bounded, value-free PROJECTION of every issue -- field
+// path, issue code, expected type, received type -- so the next bug of this
+// class names its own cause in Sentry instead of being inferred. See
+// src/utils/diagnostics/schemaIssueProjection.ts for the privacy boundary and
+// src/tests/plugins/core/diagnostics/diagnosticsBoundary.spec.ts for the
+// end-to-end leak suite.
 //
 // This spec ends the guessing by doing on our side what production hides: it
 // runs the REAL v3 response schemas (the exact objects `secretStore` validates)
@@ -36,8 +44,22 @@ import {
   receiptResponseSchema,
   receiptListResponseSchema,
 } from '@/schemas/api/v3/responses/receipts';
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
+
+// The reporting path is exercised for real below; only its two sinks are mocked.
+vi.mock('@/services/diagnostics.service', () => ({
+  captureException: vi.fn(),
+  captureMessage: vi.fn(),
+}));
+vi.mock('@/services/logging.service', () => ({
+  loggingService: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn(), banner: vi.fn() },
+}));
+
+import { colonelOrganizationDetailRecordSchema } from '@/schemas/api/internal/responses/colonel-organizations';
+import { captureException } from '@/services/diagnostics.service';
+import { gracefulParse } from '@/utils/schemaValidation';
+import { describeEpochLike, enrolledSafeFieldKeys } from '@/utils/diagnostics/safeFieldRegistry';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -412,5 +434,228 @@ describe('#3424 forensics — summary report', () => {
     console.log('└' + '─'.repeat(74) + '\n');
 
     expect(true).toBe(true);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DIAGNOSTIC-POWER FLOOR — Colonel organization detail, subscription_period_end
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// This is the acceptance guard for the bug that motivated the diagnostics rework
+// on this branch, and it is deliberately the mirror image of the leak suite:
+// `diagnosticsBoundary.spec.ts` proves nothing sensitive gets OUT, this proves
+// enough gets out to be USEFUL. Over-scrubbing is a regression, not a win.
+//
+// The bug: Familia stores an organization's billing period end as an epoch, and
+// the four Colonel emit sites returned the raw Ruby Integer. The frontend schema
+// declared `subscription_period_end: z.string().nullable()`, so the whole detail
+// response failed to parse and the admin page went blank. It was diagnosed from
+// what had already reached Sentry — which is exactly the capability these tests
+// pin down.
+//
+// Commit 5f5a8a5732 coerced all four emit sites with `&.to_s`, and the schema was
+// separately widened to `z.union([z.string(), z.number()])` so a mixed-version
+// deployment survives. Both of those are asserted below, alongside the diagnostic
+// context the failure sends to Sentry.
+
+/** The schema exactly as it stood when the bug fired: string-only, nullable. */
+const historicalColonelRecordSchema = z.object({
+  record: z.object({
+    extid: z.string(),
+    subscription_period_end: z.string().nullable(),
+  }),
+});
+
+/** `context` string the real call sites pass — and the safe-field registry key half. */
+const COLONEL_CONTEXT = 'ColonelOrganizationDetailResponse';
+
+/** Reads the context object handed to captureException on the last capture. */
+function lastCaptureContext(): Record<string, unknown> {
+  const mock = vi.mocked(captureException);
+  expect(mock).toHaveBeenCalled();
+  const call = mock.mock.calls.at(-1);
+  return (call?.[1] ?? {}) as Record<string, unknown>;
+}
+
+type EmittedIssue = Record<string, string | number | undefined>;
+
+function emittedIssues(context: Record<string, unknown>): EmittedIssue[] {
+  return (context.issues ?? []) as EmittedIssue[];
+}
+
+describe('#3424 forensics — Colonel subscription_period_end (diagnostic-power floor)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // gracefulParse only reports to Sentry on the production branch.
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('DEV', false as never);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('THE FLOOR: an Integer epoch where a string was expected is fully diagnosable from the event', () => {
+    gracefulParse(
+      historicalColonelRecordSchema,
+      { record: { extid: 'org_9f3a2b1c8d7e6f50', subscription_period_end: 1772940425 } },
+      COLONEL_CONTEXT
+    );
+
+    const context = lastCaptureContext();
+    const issues = emittedIssues(context);
+
+    // The four facts an operator needs, and the exact four this event carries.
+    expect(issues).toHaveLength(1);
+    expect(issues[0].path).toBe('record.subscription_period_end');
+    expect(issues[0].code).toBe('invalid_type');
+    expect(issues[0].expected).toBe('string');
+    expect(issues[0].received).toBe('number');
+
+    // Searchable, and pointing at the same field.
+    expect(context.schema).toBe(COLONEL_CONTEXT);
+    expect(context.schemaField).toBe('record.subscription_period_end');
+    expect(context.issueCount).toBe(1);
+  });
+
+  it('carries the safe-field descriptors that distinguish the two epoch representations', () => {
+    gracefulParse(
+      historicalColonelRecordSchema,
+      { record: { extid: 'org_9f3a2b1c8d7e6f50', subscription_period_end: 1772940425 } },
+      COLONEL_CONTEXT
+    );
+
+    const issue = emittedIssues(lastCaptureContext())[0];
+
+    expect(issue.received_type).toBe('number');
+    expect(issue.numeric_kind).toBe('integer');
+    expect(issue.timestamp_format).toBe('unix_seconds');
+  });
+
+  it('describes the POST-5f5a8a5732 numeric-string representation differently from the numeric one', () => {
+    // A string epoch satisfies the historical schema, so a sibling field is made
+    // to fail instead — the descriptor still has to classify the epoch correctly.
+    gracefulParse(
+      historicalColonelRecordSchema,
+      { record: { extid: 42, subscription_period_end: '1772940425' } },
+      COLONEL_CONTEXT
+    );
+
+    // Directly, because the registry is what has to handle both shapes.
+    expect(describeEpochLike(1772940425)).toEqual({
+      received_type: 'number',
+      numeric_kind: 'integer',
+      timestamp_format: 'unix_seconds',
+    });
+    expect(describeEpochLike('1772940425')).toEqual({
+      received_type: 'string',
+      numeric_kind: 'digit_string',
+      timestamp_format: 'unix_seconds',
+    });
+    // Millisecond drift is the other representation bug this field can develop.
+    expect(describeEpochLike(1772940425000).timestamp_format).toBe('unix_millis');
+    expect(describeEpochLike('2026-03-05T00:00:00Z').numeric_kind).toBe('iso8601_string');
+    expect(describeEpochLike(null)).toEqual({
+      received_type: 'null',
+      numeric_kind: 'null',
+      timestamp_format: 'not_applicable',
+    });
+  });
+
+  it('the registry is exact-match and enrolls only the reviewed field', () => {
+    expect(enrolledSafeFieldKeys()).toEqual([
+      'ColonelOrganizationDetailResponse|record.subscription_period_end',
+    ]);
+  });
+
+  it('does not attach descriptors to an unenrolled field of the same schema', () => {
+    gracefulParse(
+      historicalColonelRecordSchema,
+      { record: { extid: 42, subscription_period_end: null } },
+      COLONEL_CONTEXT
+    );
+
+    const issue = emittedIssues(lastCaptureContext())[0];
+
+    expect(issue.path).toBe('record.extid');
+    expect(issue.received_type).toBeUndefined();
+    expect(issue.numeric_kind).toBeUndefined();
+  });
+
+  it('does not attach descriptors when the same path appears under a different schema', () => {
+    gracefulParse(
+      historicalColonelRecordSchema,
+      { record: { extid: 'org_9f3a2b1c8d7e6f50', subscription_period_end: 1772940425 } },
+      'SomeOtherResponse'
+    );
+
+    expect(emittedIssues(lastCaptureContext())[0].numeric_kind).toBeUndefined();
+  });
+
+  it('never ships the epoch value itself, in any field of the event', () => {
+    gracefulParse(
+      historicalColonelRecordSchema,
+      { record: { extid: 'org_9f3a2b1c8d7e6f50', subscription_period_end: 1772940425 } },
+      COLONEL_CONTEXT
+    );
+
+    const mock = vi.mocked(captureException);
+    const [error, context] = mock.mock.calls.at(-1) as [Error, Record<string, unknown>];
+    const wire = JSON.stringify({ message: error.message, context });
+
+    expect(wire).not.toContain('1772940425');
+    expect(wire).not.toContain('org_9f3a2b1c8d7e6f50');
+    expect(wire).not.toContain('Invalid input');
+  });
+
+  it('LIVE SCHEMA: the widened union now accepts both wire representations', () => {
+    const base = {
+      org_id: 'org-objid',
+      extid: 'org_9f3a2b1c8d7e6f50',
+      display_name: 'Acme',
+      description: null,
+      is_default: false,
+      archived: false,
+      archived_at: null,
+      archived_comment: null,
+      contact_email: null,
+      owner_id: 'cust-objid',
+      owner_email: 'owner@example.com',
+      billing_email: null,
+      member_count: 1,
+      domain_count: 0,
+      created: 1735142814,
+      updated: 1735142890,
+      planid: 'identity_month',
+      stripe_customer_id: null,
+      stripe_subscription_id: null,
+      subscription_status: 'active',
+      billing_email_present: false,
+      sync_status: 'ok',
+      sync_status_reason: null,
+    };
+
+    // Pre-5f5a8a5732 wire: Ruby Integer.
+    expect(
+      failingFields(colonelOrganizationDetailRecordSchema, {
+        ...base,
+        subscription_period_end: 1772940425,
+      })
+    ).toEqual([]);
+
+    // Post-5f5a8a5732 wire: `&.to_s`.
+    expect(
+      failingFields(colonelOrganizationDetailRecordSchema, {
+        ...base,
+        subscription_period_end: '1772940425',
+      })
+    ).toEqual([]);
+
+    // Both normalize to the string the UI renders.
+    const parsed = colonelOrganizationDetailRecordSchema.parse({
+      ...base,
+      subscription_period_end: 1772940425,
+    });
+    expect(parsed.subscription_period_end).toBe('1772940425');
   });
 });

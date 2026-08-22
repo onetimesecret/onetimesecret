@@ -280,7 +280,7 @@ module ColonelAPI
             stripe_customer_id: org.stripe_customer_id,
             stripe_subscription_id: org.stripe_subscription_id,
             subscription_status: org.subscription_status,
-            subscription_period_end: org.subscription_period_end,
+            subscription_period_end: org.subscription_period_end&.to_s,
             billing_email: org.billing_email,
             # Computed sync health
             sync_status: compute_sync_status(org),

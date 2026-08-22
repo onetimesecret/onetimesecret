@@ -8,6 +8,7 @@ import {
 } from '@/schemas/ui/local-receipt';
 import { loggingService } from '@/services/logging.service';
 import { useApi } from '@/shared/composables/useApi';
+import { projectSchemaIssues } from '@/utils/diagnostics/schemaIssueProjection';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, ref, watch } from 'vue';
 
@@ -62,10 +63,27 @@ function loadFromStorage(): LocalReceipt[] {
       const result = localReceiptsArraySchema.safeParse(parsed);
 
       if (!result.success) {
-        // Data is malformed - clear it and start fresh
-        loggingService.warn(
-          `Invalid local receipts in storage, clearing: ${result.error.message}`
-        );
+        // Data is malformed - clear it and start fresh.
+        //
+        // Log the PROJECTION, never the raw ZodError. `error.message` is the
+        // JSON-serialized issue list, and a Zod v4 issue carries `message`,
+        // `values`, `keys` and `params` — `unrecognized_keys` alone puts
+        // payload-DERIVED key names in there, and this payload is attacker
+        // -writable: anything can be typed into sessionStorage. Interpolating
+        // it routed the text into `console.warn` and out as a Sentry console
+        // breadcrumb, around the projection chokepoint every other telemetry
+        // surface goes through. `breadcrumbPolicy` scrubs `breadcrumb.message`
+        // by SHAPE (emails, ids, IPs), which is a net, not a boundary — text
+        // that matches no shape rides out intact. Same fix as
+        // incomingConfig.service.ts.
+        //
+        // `projectSchemaIssues` yields value-free rows: field path, issue
+        // code, expected/received TYPE, issue count.
+        const projection = projectSchemaIssues(result.error, parsed, 'LocalReceiptsArray');
+        loggingService.warn('Invalid local receipts in storage, clearing', {
+          issueCount: projection.issueCount,
+          issues: projection.rows,
+        });
         sessionStorage.removeItem(STORAGE_KEY);
         return [];
       }
@@ -282,8 +300,20 @@ export const useLocalReceiptStore = defineStore('localReceipt', () => {
       // Validate API response with schema
       const parseResult = guestReceiptsResponseSchema.safeParse(response.data);
       if (!parseResult.success) {
+        // Projection, not the raw ZodError — see loadFromStorage above. This
+        // one is a SERVER payload, which is the population the schema-issue
+        // projection was built for: the failing field and the type it carried
+        // are the whole diagnostic, and the values never are.
+        const projection = projectSchemaIssues(
+          parseResult.error,
+          response.data,
+          'GuestReceiptsResponse'
+        );
         loggingService.error(
-          new Error(`Invalid API response from guest/receipts: ${parseResult.error.message}`)
+          new Error(
+            `Invalid API response from guest/receipts: ${projection.issueCount} issue(s) ` +
+              `[${projection.rows.map((r) => `${r.path}:${r.code}`).join(', ')}]`
+          )
         );
         return false;
       }

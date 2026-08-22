@@ -1,7 +1,7 @@
 // src/tests/plugins/core/diagnostics/emailPatternUnicode.spec.ts
 //
 // Unicode widening of the Sentry email redactor (EMAIL_PATTERN in
-// src/plugins/core/diagnostics/scrubbers.ts).
+// src/utils/diagnostics/scrubbers.ts).
 //
 // WHY THIS SUITE EXISTS
 // The validator (Truemail's REGEX_EMAIL_PATTERN) accepts `\p{L}` on both sides
@@ -29,7 +29,7 @@ import {
   scrubQueryStringValues,
   scrubSensitiveStrings,
   scrubUrlWithPatterns,
-} from '@/plugins/core/diagnostics/scrubbers';
+} from '@/utils/diagnostics/scrubbers';
 
 const SENTINEL = '[EMAIL_REDACTED]';
 
