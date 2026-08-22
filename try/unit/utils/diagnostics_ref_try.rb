@@ -13,7 +13,7 @@
 #
 # Security model:
 # - One-way, keyed: the email pre-image is never recoverable
-# - Domain separated: versioned purpose prefix ("onetime:sentry:v1:user",
+# - Domain separated: versioned purpose prefix ("onetime:sentry:v1:actor",
 #   "onetime:sentry:v1:organization"). The prefix is the ONLY separation
 #   between the two namespaces, so the same string must digest differently in
 #   each - pinned by executing both entry points, not by reading the constants
@@ -213,7 +213,7 @@ Onetime::Utils::EmailHash.compute(@email)[0, TR::REF_LENGTH] == TR.actor_ref(@em
 #=> false
 
 ## Purpose prefix is versioned, so diagnostics reference can be re-keyed alone
-[TR::ACTOR_INFO.include?('v1'), TR::ACTOR_INFO.include?('user')]
+[TR::ACTOR_INFO.include?('v1'), TR::ACTOR_INFO.include?('actor')]
 #=> [true, true]
 
 ## Diagnostics refs are narrower than federation email hashes

@@ -43,7 +43,7 @@ module Onetime
     # derives a DISTINCT value under an explicit, versioned purpose prefix and a
     # residency element:
     #
-    #   actor: HMAC(secret, "onetime:sentry:v1:user" || 0x00
+    #   actor: HMAC(secret, "onetime:sentry:v1:actor" || 0x00
     #                       || residency_scope || 0x00 || normalized_email)
     #   org:   HMAC(secret, "onetime:sentry:v1:organization" || 0x00
     #                       || residency_scope || 0x00 || org_objid)
@@ -279,11 +279,7 @@ module Onetime
       extend Onetime::Utils::Strings
 
       # Versioned purpose prefix. Changing the value re-keys actor refs only.
-      # The v1 literal deliberately keeps its original 'user' element even
-      # though the mechanism is named "actor" in code: the literal is a keyed
-      # pre-image component, so renaming it would silently re-key every
-      # emitted ref. A future v2 may align the wording.
-      ACTOR_INFO = 'onetime:sentry:v1:user'
+      ACTOR_INFO = 'onetime:sentry:v1:actor'
 
       # Versioned purpose prefix for ORGANIZATION refs. Distinct from
       # ACTOR_INFO, which is the whole of the domain separation between the two
