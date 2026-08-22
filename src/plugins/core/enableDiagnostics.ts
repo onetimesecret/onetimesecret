@@ -24,12 +24,14 @@ import {
 import {
   type Breadcrumb,
   type ErrorEvent,
+  type EventHint,
   type Integration,
   type TransactionEvent,
 } from '@sentry/core';
 import * as SentryVue from '@sentry/vue';
 import type { App, Plugin } from 'vue';
 import type { Router, RouteMeta as VueRouteMeta } from 'vue-router';
+import { applyGroupingRules } from './diagnostics/grouping';
 import { collectValuesToRedact, scrubUrlWithValues } from './diagnostics/urlScrubbing';
 import {
   applyUserContext,
@@ -336,7 +338,7 @@ function scrubEventMessages(event: ErrorEvent): ErrorEvent {
  * @internal Exported for testing
  */
 function createBeforeSendHandler(router: Router) {
-  return (event: ErrorEvent): ErrorEvent | null | Promise<ErrorEvent | null> => {
+  return (event: ErrorEvent, hint?: EventHint): ErrorEvent | null | Promise<ErrorEvent | null> => {
     if ('secret' in event && event.secret) {
       delete event.secret;
     }
@@ -377,6 +379,13 @@ function createBeforeSendHandler(router: Router) {
         return breadcrumb;
       });
     }
+
+    // Explicit issue grouping LAST, after every scrubber has run: schema
+    // validation failures group by schema name, API request errors by
+    // method + parameterized path + outcome, so one defect stays one issue
+    // across deploys instead of fragmenting on minified bundle hashes.
+    // Events matching neither rule keep Sentry's default grouping.
+    applyGroupingRules(event, hint);
 
     return event;
   };
