@@ -530,7 +530,19 @@ module Core
               }
           end
 
-          event_id = Sentry.capture_exception(error, level: level, &)
+          # Pseudonymous "users affected" attribution. with_scope (rather than
+          # the ambient current scope) because the caller's block is forwarded
+          # to capture_exception and we still need somewhere to set the user
+          # that expires with this event instead of with the thread.
+          #
+          # Opaque keyed ref only — never the email, custid, session id or IP.
+          # Anonymous requests and unkeyed deployments set no user at all.
+          event_id = nil
+          Sentry.with_scope do |scope|
+            Onetime::ErrorHandler.set_diagnostics_user(scope, safe_cust)
+            event_id = Sentry.capture_exception(error, level: level, &)
+          end
+
           http_logger.debug '[sentry] controller capture_error returned',
             {
               event_id: event_id,
@@ -549,6 +561,18 @@ module Core
               exception: ex,
             }
         end
+      end
+
+      # #cust lazily calls load_current_customer, which hits the datastore and
+      # can itself raise — and capture_error runs precisely when things are
+      # already failing. Resolving it defensively keeps a broken session from
+      # turning a reportable exception into a lost one.
+      #
+      # @return [Onetime::Customer, nil]
+      def safe_cust
+        cust
+      rescue StandardError
+        nil
       end
 
       def capture_message(message, level = :log, &)

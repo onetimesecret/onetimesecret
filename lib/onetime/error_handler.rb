@@ -8,6 +8,8 @@
 # side-effects in authentication hooks. Errors are logged with context but
 # don't interrupt the parent operation.
 #
+require_relative 'utils/diagnostics_ref'
+
 module Onetime
   module ErrorHandler
     extend Onetime::LoggerMethods
@@ -155,6 +157,79 @@ module Onetime
       {}
     end
 
+    # Builds the Sentry `user` hash for whoever this event is about.
+    #
+    # Sentry counts "users affected" off event.user.id and nothing else, so
+    # every backend event we send without one is an issue that reads as zero
+    # affected users no matter how many accounts it actually hit. That is the
+    # gap this closes: an operator needs to tell "one account is broken" from
+    # "every account is broken", which is the same question the frontend's
+    # diagnostics_ref answers for browser events.
+    #
+    # The id is ALWAYS a DiagnosticsRef — an opaque, keyed, one-way digest.
+    # Never the email, never the custid/extid, never the session id, never the
+    # IP. Those are the identifiers this whole boundary exists to keep out of
+    # the diagnostics backend, and Sentry's user object is not an exemption
+    # from it; feeding one in here would also make it a searchable field.
+    #
+    # Returns nil rather than a partial hash in every declining case:
+    #
+    #   - anonymous (no candidate, blank email, or #anonymous? is true) — an
+    #     anonymous request has no user to report, and a placeholder id would
+    #     silently merge every anonymous visitor into one "affected user".
+    #   - unconfigured — DiagnosticsRef declines when no keying secret is
+    #     usable, which is the default in dev and test. No user is strictly
+    #     better than an unkeyed one.
+    #   - any raised error — derivation must never be the reason an exception
+    #     goes unreported, so this swallows and returns nil. Losing the
+    #     attribution is survivable; losing the event is not.
+    #
+    # A nil return means the caller sets NO user at all. It must not fall back
+    # to some other identifier, and it must not set `{ id: nil }` — Sentry
+    # treats a nil id as a distinct anonymous-ish user rather than as absence.
+    #
+    # @param candidate [#email, #anonymous?, String, nil] customer or email
+    # @return [Hash{Symbol=>String}, nil] { id: <16 hex> }, or nil
+    def self.diagnostics_user(candidate)
+      return nil if candidate.nil?
+      return nil if candidate.respond_to?(:anonymous?) && candidate.anonymous?
+
+      email = candidate.respond_to?(:email) ? candidate.email : candidate
+      return nil if email.nil? || email.to_s.strip.empty?
+
+      ref = Onetime::Utils::DiagnosticsRef.user_ref(email)
+      return nil if ref.nil? || ref.to_s.empty?
+
+      { id: ref }
+    rescue StandardError
+      # Deliberately silent and deliberately broad: see above. There is no
+      # logger call here either, because the failure modes that would reach
+      # this rescue take the email with them into the log line.
+      nil
+    end
+
+    # Sets the pseudonymous user on a Sentry scope, if one can be derived.
+    #
+    # Pass an EVENT-SCOPED scope — the block form of Sentry.capture_exception,
+    # or one from Sentry.with_scope. Setting a user on the ambient current
+    # scope would outlive the request that established it and mis-attribute
+    # every later event on the same thread.
+    #
+    # @param scope [Sentry::Scope] event-scoped Sentry scope
+    # @param candidate [#email, #anonymous?, String, nil] customer or email
+    # @return [Boolean] true when a user was set
+    def self.set_diagnostics_user(scope, candidate)
+      return false unless scope.respond_to?(:set_user)
+
+      user = diagnostics_user(candidate)
+      return false if user.nil?
+
+      scope.set_user(user)
+      true
+    rescue StandardError
+      false
+    end
+
     # Lua script for atomic INCR + EXPIRE (prevents race condition
     # where a crash between the two commands leaves a permanent key).
     TRACK_ERROR_LUA = <<~LUA
@@ -198,7 +273,18 @@ module Onetime
 
       # Captures error in Sentry with context
       def capture_error(operation, ex, context)
+        # An `email:`/`cust:` entry is CONSUMED, not forwarded: it becomes the
+        # pseudonymous Sentry user and is removed from the context hash. Every
+        # caller today passes account_id/customer_id instead, so this is
+        # mostly a guard — but the alternative is that the first caller to add
+        # one ships a raw email into an error_handler context.
+        subject = context[:email] || context[:cust] || context[:customer]
+        context = context.except(:email, :cust, :customer)
+
         event_id = Sentry.capture_exception(ex) do |scope|
+          # Event-scoped: capture_exception's block scope is per-event, so
+          # this cannot bleed onto a later event on the same thread.
+          Onetime::ErrorHandler.set_diagnostics_user(scope, subject)
           scope.set_context('error_handler', { operation: operation, **context })
           scope.set_level(:warning)
           scope.set_tags(operation: operation, error_handler: true)
