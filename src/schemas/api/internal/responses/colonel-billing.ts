@@ -141,8 +141,8 @@ export const colonelStripeOrganizationSchema = z.object({
   billing_email: z.string().nullish(),
   planid: z.string().nullish(),
   stripe_subscription_id: z.string().nullish(),
-  /** NOTE: a STRING (or null) on the wire, not a unix number. */
-  subscription_period_end: z.string().nullish(),
+  /** Unix epoch seconds; legacy records may still contain a string. */
+  subscription_period_end: z.union([z.number(), z.string()]).nullish(),
   subscription_status: z.string().nullish(),
   sync_status: z.string().nullish(),
 });

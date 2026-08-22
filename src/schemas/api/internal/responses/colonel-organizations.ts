@@ -236,12 +236,11 @@ export const colonelOrganizationDetailRecordSchema = z.object({
   stripe_customer_id: z.string().nullable(),
   stripe_subscription_id: z.string().nullable(),
   subscription_status: z.string().nullable(),
-  // Canonical Colonel responses use strings. Accept numeric legacy values while
-  // a mixed-version deployment or cached response is still possible.
+  // New records use JSON numbers; accept string-encoded records written by
+  // earlier versions during migration.
   subscription_period_end: z
-    .union([z.string(), z.number()])
-    .nullable()
-    .transform((value) => (value === null ? null : String(value))),
+    .union([z.number(), z.string()])
+    .nullable(),
   billing_email_present: z.boolean(),
   sync_status: z.string(),
   sync_status_reason: z.string().nullable(),
@@ -289,7 +288,9 @@ export type ColonelOrganizationDetailResponse = z.infer<
 export const colonelReconcileSnapshotSchema = z.object({
   planid: z.string().nullable(),
   subscription_status: z.string().nullable(),
-  subscription_period_end: z.string().nullable(),
+  subscription_period_end: z
+    .union([z.number(), z.string()])
+    .nullable(),
   materialized_count: z.number(),
 });
 

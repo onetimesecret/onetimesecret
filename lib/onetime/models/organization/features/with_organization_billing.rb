@@ -65,7 +65,7 @@ module Onetime
           base.field :planid                   # Plan identifier (e.g., 'single_team_monthly')
           base.field :billing_email            # Billing contact email
           base.field :subscription_status      # active, past_due, canceled, etc.
-          base.field :subscription_period_end  # Unix timestamp when current period ends
+          base.field :subscription_period_end  # Unix timestamp as integer epoch seconds
           base.field :stripe_checkout_email    # Not necessarily the same as billing_email
 
           # HMAC email hash for cross-region federation (computed from billing_email)

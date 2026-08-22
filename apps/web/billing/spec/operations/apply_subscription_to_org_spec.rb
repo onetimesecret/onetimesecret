@@ -100,7 +100,7 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
       subscription = build_subscription
 
       expect(org).to receive(:subscription_status=).with('active')
-      expect(org).to receive(:subscription_period_end=).with(period_end.to_s)
+      expect(org).to receive(:subscription_period_end=).with(period_end)
       expect(org).to receive(:planid=).with('identity_plus_v1')
       expect(org).to receive(:stripe_subscription_id=).with('sub_test_123')
       expect(org).to receive(:stripe_customer_id=).with('cus_test_456')

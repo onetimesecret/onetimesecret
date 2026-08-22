@@ -463,7 +463,7 @@ module Onetime
           {
             planid: org.planid,
             subscription_status: org.subscription_status,
-            subscription_period_end: org.subscription_period_end&.to_s,
+            subscription_period_end: org.subscription_period_end,
             materialized_count: org.materialized_entitlements.size,
           }
         end

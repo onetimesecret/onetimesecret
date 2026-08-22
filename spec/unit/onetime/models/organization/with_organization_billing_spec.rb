@@ -181,7 +181,7 @@ RSpec.describe 'WithOrganizationBilling', :billing do
 
       it 'updates subscription_period_end' do
         org.update_from_stripe_subscription(subscription)
-        expect(org.subscription_period_end).to eq(period_end.to_s)
+        expect(org.subscription_period_end).to eq(period_end)
       end
 
       it 'extracts and updates planid from catalog' do

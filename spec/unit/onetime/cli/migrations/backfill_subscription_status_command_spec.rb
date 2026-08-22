@@ -84,7 +84,7 @@ RSpec.describe Onetime::CLI::BackfillSubscriptionStatusCommand do
     end
 
     it 'sets subscription_period_end on the org' do
-      expect(org).to receive(:subscription_period_end=).with(period_end.to_s)
+      expect(org).to receive(:subscription_period_end=).with(period_end)
 
       command.send(:process_org, org, 0, 1, stats, false, false)
     end
