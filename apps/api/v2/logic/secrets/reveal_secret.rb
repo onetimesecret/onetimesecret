@@ -104,11 +104,12 @@ module V2::Logic
 
         # Rate-limit bookkeeping is settled on the passphrase verdict alone,
         # before any reveal claim -- the same ordering as ShowSecret. Clearing
-        # it inside the reveal branch below tied the clear to winning the
-        # burn-after-reading race, so two callers with the same correct
-        # passphrase got different rate-limit state. Gated on continue for the
-        # same reason as the verdict above: a guess that was never checked is
-        # neither an attempt nor grounds for a clear.
+        # it inside the reveal branch below gated the clear on the process-time
+        # show_secret verdict: a concurrent consumer claiming the secret after
+        # raise_concerns but before the viewable? recompute above left a
+        # correct passphrase verification without its clear. Gated on continue
+        # for the same reason as the verdict above: a guess that was never
+        # checked is neither an attempt nor grounds for a clear.
         attempt_count = nil
         if continue && secret.has_passphrase?
           if correct_passphrase

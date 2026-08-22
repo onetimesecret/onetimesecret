@@ -17,7 +17,7 @@ require_relative '../../support/actor_attribution_helpers'
 # Uses real Receipt/Secret objects (spawn_pair) so the atomic claim runs
 # against Redis exactly as it does in production. process is exercised directly
 # (raise_concerns, which handles guest-gating/entitlements/rate-limits, is out
-# of scope here).
+# of scope except where an example needs its viewability check for ordering).
 RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
   include ActorAttributionSpecHelpers
 
@@ -123,11 +123,16 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
       expect(logic.success_data[:record]).not_to have_key(:secret_value)
     end
 
-    # The rate-limit clear is settled on the passphrase verdict, not on winning
-    # the claim: a correct guess earns the clear whether or not this caller got
-    # the plaintext. Regression for the ordering that ran the clear inside the
-    # reveal branch, which made it observable only to the winner and diverged
-    # from ShowSecret, where the clear precedes reveal! entirely.
+    # The rate-limit clear is settled on the passphrase verdict, not on the
+    # process-time show_secret verdict: a correct guess earns the clear whether
+    # or not this caller got the plaintext. Regression for the ordering that
+    # ran the clear inside the reveal branch: a concurrent consumer claiming
+    # the secret after raise_concerns but before process recomputed viewability
+    # left a correct verification without its corresponding clear. This race
+    # window is deliberately EARLIER than the one above -- no viewable? stub,
+    # because with one held true the old code entered the reveal branch and
+    # cleared anyway, which is exactly what made the earlier draft of this
+    # example pass against the code it was meant to catch.
     it 'still clears the passphrase rate limit on a correct guess' do
       secret.update_passphrase!('correct horse battery')
       attempts_key = "passphrase:attempts:#{secret.identifier}"
@@ -144,9 +149,10 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
       )
       logic.process_params
 
-      # Same race recipe as above: a concurrent request takes the claim after
-      # this one passed its viewability check.
-      allow(logic.secret).to receive(:viewable?).and_return(true)
+      # Production ordering: this request passes the raise_concerns viewability
+      # check, THEN a concurrent request takes the atomic claim, so process
+      # recomputes viewable? as false and show_secret never becomes true.
+      logic.raise_concerns
       winner = Onetime::Secret.load(secret.identifier)
       expect(winner.revealed!).to be true
 
