@@ -248,7 +248,7 @@ module ColonelAPI
               stripe_customer_id: org.stripe_customer_id,
               stripe_subscription_id: org.stripe_subscription_id,
               subscription_status: org.subscription_status,
-              subscription_period_end: org.subscription_period_end&.to_s,
+              subscription_period_end: org.subscription_period_end,
               billing_email_present: !org.billing_email.to_s.empty?,
               sync_status: Billing::BillingService.compute_sync_status(org),
               sync_status_reason: Billing::BillingService.compute_sync_status_reason(org),
