@@ -116,7 +116,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::GetOrganizationDetail do
       probe = 'domain-separation-probe'
 
       expect(Onetime::Utils::DiagnosticsRef.organization_ref(probe))
-        .not_to eq(Onetime::Utils::DiagnosticsRef.user_ref(probe))
+        .not_to eq(Onetime::Utils::DiagnosticsRef.actor_ref(probe))
     end
 
     it 'still returns the identifiers an operator actually looks up' do

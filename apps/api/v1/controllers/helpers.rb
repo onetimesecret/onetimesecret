@@ -303,7 +303,7 @@ module V1
         # unkeyed deployments set no user at all. This block scope is
         # per-event, so nothing here leaks into a later request.
         if defined?(cust)
-          Onetime::ErrorHandler.set_diagnostics_user(scope, cust)
+          Onetime::ErrorHandler.set_diagnostics_actor(scope, cust)
         end
 
         # Add searchable tags (guard req to avoid NameError if not defined)

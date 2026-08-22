@@ -533,7 +533,7 @@ module Core
           # Pseudonymous "users affected" attribution. with_scope (rather than
           # the ambient current scope) so the user expires with this event
           # instead of with the thread. The caller's block runs first and
-          # set_diagnostics_user runs last: a block that calls set_user cannot
+          # set_diagnostics_actor runs last: a block that calls set_user cannot
           # replace the opaque ref with raw identifiers.
           #
           # Opaque keyed ref only — never the email, custid, session id or IP.
@@ -541,7 +541,7 @@ module Core
           event_id = nil
           Sentry.with_scope do |scope|
             block&.call(scope)
-            Onetime::ErrorHandler.set_diagnostics_user(scope, safe_cust)
+            Onetime::ErrorHandler.set_diagnostics_actor(scope, safe_cust)
             event_id = Sentry.capture_exception(error, level: level)
           end
 

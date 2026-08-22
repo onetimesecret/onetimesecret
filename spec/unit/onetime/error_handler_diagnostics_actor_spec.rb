@@ -1,4 +1,4 @@
-# spec/unit/onetime/error_handler_diagnostics_user_spec.rb
+# spec/unit/onetime/error_handler_diagnostics_actor_spec.rb
 #
 # frozen_string_literal: true
 
@@ -29,7 +29,7 @@
 #      is the correct trade and it must be executed, not assumed.
 #
 # Run with:
-#   tests/lanes/run unit --only spec/unit/onetime/error_handler_diagnostics_user_spec.rb
+#   tests/lanes/run unit --only spec/unit/onetime/error_handler_diagnostics_actor_spec.rb
 require 'spec_helper'
 require 'sentry-ruby'
 
@@ -46,7 +46,7 @@ RSpec.describe Onetime::ErrorHandler do
     )
   end
 
-  let(:expected_ref) { Onetime::Utils::DiagnosticsRef.user_ref(email) }
+  let(:expected_ref) { Onetime::Utils::DiagnosticsRef.actor_ref(email) }
 
   let(:customer) do
     instance_double(Onetime::Customer, email: email, anonymous?: false)
@@ -56,17 +56,17 @@ RSpec.describe Onetime::ErrorHandler do
     allow(Onetime::Utils::DiagnosticsRef).to receive(:keying).and_return(keying)
   end
 
-  describe '.diagnostics_user' do
+  describe '.diagnostics_actor' do
     it 'returns the DiagnosticsRef as the id, for a customer' do
-      expect(described_class.diagnostics_user(customer)).to eq({ id: expected_ref })
+      expect(described_class.diagnostics_actor(customer)).to eq({ id: expected_ref })
     end
 
     it 'returns the same id for a bare email string' do
-      expect(described_class.diagnostics_user(email)).to eq({ id: expected_ref })
+      expect(described_class.diagnostics_actor(email)).to eq({ id: expected_ref })
     end
 
     it 'emits a 16-char opaque hex id, never the email' do
-      user = described_class.diagnostics_user(customer)
+      user = described_class.diagnostics_actor(customer)
 
       expect(user[:id]).to match(/\A[0-9a-f]{16}\z/)
       expect(user[:id]).not_to eq(email)
@@ -77,21 +77,21 @@ RSpec.describe Onetime::ErrorHandler do
     it 'carries no key other than :id' do
       # An email/username/ip_address key here would be sent verbatim by the
       # SDK. The absence is the contract, so it is asserted, not assumed.
-      expect(described_class.diagnostics_user(customer).keys).to eq([:id])
+      expect(described_class.diagnostics_actor(customer).keys).to eq([:id])
     end
 
     context 'anonymous' do
       it 'returns nil for nil' do
-        expect(described_class.diagnostics_user(nil)).to be_nil
+        expect(described_class.diagnostics_actor(nil)).to be_nil
       end
 
       it 'returns nil for an anonymous customer' do
         anon = instance_double(Onetime::Customer, anonymous?: true)
-        expect(described_class.diagnostics_user(anon)).to be_nil
+        expect(described_class.diagnostics_actor(anon)).to be_nil
       end
 
       it 'returns nil for a blank email' do
-        expect(described_class.diagnostics_user('   ')).to be_nil
+        expect(described_class.diagnostics_actor('   ')).to be_nil
       end
     end
 
@@ -101,40 +101,40 @@ RSpec.describe Onetime::ErrorHandler do
       end
 
       it 'returns nil rather than an unkeyed or partial user' do
-        expect(described_class.diagnostics_user(customer)).to be_nil
+        expect(described_class.diagnostics_actor(customer)).to be_nil
       end
     end
 
     context 'when ref derivation raises' do
       before do
         allow(Onetime::Utils::DiagnosticsRef)
-          .to receive(:user_ref).and_raise(StandardError, 'derivation exploded')
+          .to receive(:actor_ref).and_raise(StandardError, 'derivation exploded')
       end
 
       it 'swallows the failure and returns nil' do
-        expect { described_class.diagnostics_user(customer) }.not_to raise_error
-        expect(described_class.diagnostics_user(customer)).to be_nil
+        expect { described_class.diagnostics_actor(customer) }.not_to raise_error
+        expect(described_class.diagnostics_actor(customer)).to be_nil
       end
     end
   end
 
-  describe '.set_diagnostics_user' do
+  describe '.set_diagnostics_actor' do
     let(:scope) { Sentry::Scope.new }
 
     it 'sets the ref as the Sentry user and reports true' do
-      expect(described_class.set_diagnostics_user(scope, customer)).to be(true)
+      expect(described_class.set_diagnostics_actor(scope, customer)).to be(true)
       expect(scope.user).to eq({ id: expected_ref })
     end
 
     it 'leaves the scope userless for anonymous and reports false' do
-      expect(described_class.set_diagnostics_user(scope, nil)).to be(false)
+      expect(described_class.set_diagnostics_actor(scope, nil)).to be(false)
       expect(scope.user).to be_empty
     end
 
     it 'never writes { id: nil } when derivation declines' do
       allow(Onetime::Utils::DiagnosticsRef).to receive(:keying).and_return(nil)
 
-      described_class.set_diagnostics_user(scope, customer)
+      described_class.set_diagnostics_actor(scope, customer)
 
       expect(scope.user).to be_empty
       expect(scope.user).not_to have_key(:id)
@@ -142,9 +142,9 @@ RSpec.describe Onetime::ErrorHandler do
 
     it 'does not raise when derivation fails' do
       allow(Onetime::Utils::DiagnosticsRef)
-        .to receive(:user_ref).and_raise(StandardError, 'derivation exploded')
+        .to receive(:actor_ref).and_raise(StandardError, 'derivation exploded')
 
-      expect(described_class.set_diagnostics_user(scope, customer)).to be(false)
+      expect(described_class.set_diagnostics_actor(scope, customer)).to be(false)
       expect(scope.user).to be_empty
     end
   end
@@ -159,7 +159,7 @@ RSpec.describe Onetime::ErrorHandler do
 
     def payload_for(candidate)
       scope = Sentry::Scope.new
-      described_class.set_diagnostics_user(scope, candidate)
+      described_class.set_diagnostics_actor(scope, candidate)
       scope.set_context('error_handler', { operation: 'send_password_changed_email' })
 
       event = Sentry::ErrorEvent.new(configuration: configuration)
@@ -232,7 +232,7 @@ RSpec.describe Onetime::ErrorHandler do
 
     it 'still captures the event when ref derivation raises' do
       allow(Onetime::Utils::DiagnosticsRef)
-        .to receive(:user_ref).and_raise(StandardError, 'derivation exploded')
+        .to receive(:actor_ref).and_raise(StandardError, 'derivation exploded')
 
       expect(Sentry).to receive(:capture_exception).and_return('event-id-1')
 

@@ -6,19 +6,19 @@ require 'onetime/utils/diagnostics_ref'
 
 module Core
   module Views
-    # Serializes the pseudonymous user reference for the browser Sentry SDK.
+    # Serializes the pseudonymous actor reference for the browser Sentry SDK.
     #
     # This is DIAGNOSTICS, not analytics: the reference exists so that an
     # operator reading an error event can tell one broken account from fifty.
     # Nothing here counts sessions, measures usage, or profiles behaviour.
     #
-    # The frontend Sentry client needs a STABLE user reference so events group
+    # The frontend Sentry client needs a STABLE actor reference so events group
     # per human instead of per session, but it must not learn who that human is.
     # This serializer emits only what Onetime::Utils::DiagnosticsRef derives: an
     # opaque keyed reference plus the label describing how far that reference
     # correlates.
     #
-    #   diagnostics_ref: { user_ref: "<16 hex>", user_scope: "federated"|"deployment" }
+    #   diagnostics_ref: { actor_ref: "<16 hex>", actor_scope: "federated"|"deployment" }
     #
     # Never emitted, by construction: email, display name, custid, objid, extid,
     # IP address, or either keying secret. The pre-image never leaves the server.
@@ -34,7 +34,7 @@ module Core
     # `diagnosticsSchema`, which is the unrelated Sentry *configuration* block
     # on the same bootstrap payload.
     #
-    # ACCEPTED DISCLOSURE: user_scope is configuration, not user data. The
+    # ACCEPTED DISCLOSURE: actor_scope is configuration, not user data. The
     # label is a property of the KEY, so shipping it to every authenticated
     # browser tells that browser whether this install has FEDERATION_SECRET set
     # AND declares a data-residency scope ('federated'), or does not ('deployment').
@@ -52,8 +52,8 @@ module Core
     #     silently mislead on federated installs.
     #
     # ONE KEYING RESOLUTION. The ref and the label are taken from a single
-    # DiagnosticsRef.user call, which resolves the residency scope once and
-    # threads it through both. Do not decompose that into #user_ref plus
+    # DiagnosticsRef.actor call, which resolves the residency scope once and
+    # threads it through both. Do not decompose that into #actor_ref plus
     # #scope: a config change between the two calls would pair a
     # federation-keyed ref with a 'deployment' label, telling the operator the
     # id correlates LESS far than it does.
@@ -68,8 +68,8 @@ module Core
     #
     #   * MECHANICALLY, it is a third key in a strictObject.
     #     diagnosticsRefSchema rejects the object and the client discards
-    #     user_ref and user_scope along with it, so the cost of widening this
-    #     block is losing the user reference entirely — silently, since a failed
+    #     actor_ref and actor_scope along with it, so the cost of widening this
+    #     block is losing the actor reference entirely — silently, since a failed
     #     parse is not an error.
     #
     #   * SEMANTICALLY, this block is PER-SESSION and the org ref is
@@ -95,7 +95,7 @@ module Core
     #     nothing to key with and omits the block.
     #
     # Absence is unambiguous ("no reference"), whereas a null or empty-string
-    # user_ref would be a value the client has to special-case. The frontend
+    # actor_ref would be a value the client has to special-case. The frontend
     # reads the block as optional and skips Sentry.setUser when it is missing.
     #
     # The derivation raises no StandardError (see DiagnosticsRef), so an unconfigured install
@@ -104,7 +104,7 @@ module Core
     # shells (apps/web/core/views.rb), so it runs on EVERY authenticated render,
     # including for accounts whose stored email is not valid UTF-8.
     module DiagnosticsSerializer
-      # Serializes the pseudonymous user reference from view variables.
+      # Serializes the pseudonymous actor reference from view variables.
       #
       # @param view_vars [Hash] view variables (needs 'authenticated' and 'cust').
       # @return [Hash] { 'diagnostics_ref' => {...} }, or {} to omit the key entirely.
@@ -121,10 +121,10 @@ module Core
         # inherited from AuthenticationSerializer's `authenticated` semantics.
         return omit(output) if view_vars['awaiting_mfa']
 
-        # Exactly { 'user_ref' => ..., 'user_scope' => ... }, or nil when no
+        # Exactly { 'actor_ref' => ..., 'actor_scope' => ... }, or nil when no
         # secret is configured / the derivation declined. Passed through
         # verbatim: the module owns the shape, and the client parses it strictly.
-        diagnostics_ref = Onetime::Utils::DiagnosticsRef.user(cust.email)
+        diagnostics_ref = Onetime::Utils::DiagnosticsRef.actor(cust.email)
         return omit(output) if diagnostics_ref.nil?
 
         output['diagnostics_ref'] = diagnostics_ref
@@ -143,7 +143,7 @@ module Core
           }
         end
 
-        # Drop the key so the payload carries no user reference at all.
+        # Drop the key so the payload carries no actor reference at all.
         #
         # @param output [Hash]
         # @return [Hash]

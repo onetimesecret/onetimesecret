@@ -34,11 +34,11 @@ import type { Router, RouteMeta as VueRouteMeta } from 'vue-router';
 import { applyGroupingRules } from './diagnostics/grouping';
 import { collectValuesToRedact, scrubUrlWithValues } from './diagnostics/urlScrubbing';
 import {
-  applyUserContext,
+  applyActorContext,
   resolveDiagnosticsRef,
   sanitizeEventUser,
-  type UserContextScope,
-} from './diagnostics/userContext';
+  type ActorContextScope,
+} from './diagnostics/actorContext';
 // Re-export scrubbing utilities from dependency-free module for backward compatibility
 export {
   EMAIL_PATTERN,
@@ -211,7 +211,7 @@ function scrubRefererHeader(
  *   - user — final-gate whitelist to `{ id, ip_address: null }`, where `id` is
  *     kept only when it matches DIAGNOSTICS_REF_PATTERN (16 lowercase hex, the
  *     server's derivation shape) and the whole context is dropped otherwise.
- *     `applyUserContext` is the only sanctioned writer of user context, but
+ *     `applyActorContext` is the only sanctioned writer of user context, but
  *     `Sentry.setUser()` is a global API and integrations can write it too, so
  *     the outbound path re-asserts both the key set AND the value shape rather
  *     than trusting them. Checking the value is what makes this a filter and
@@ -219,7 +219,7 @@ function scrubRefererHeader(
  *     forwarding `setUser({ id: cust.email })`. The guarantee covers the
  *     `user` CONTEXT only; an email interpolated into an exception message or
  *     a URL is the free-text scrubbers' job.
- *     See src/plugins/core/diagnostics/userContext.ts.
+ *     See src/plugins/core/diagnostics/actorContext.ts.
  *
  * Event-kind-specific fields (error breadcrumbs, transaction spans) are handled
  * by the respective callers, not here.
@@ -658,10 +658,10 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
   // If the block is absent (anonymous session, error-page render with no
   // serializers, or an older backend that does not emit it), this is a no-op
   // setUser(null) and the session runs unidentified. The context then arrives
-  // lazily through bootstrapStore.update() -> setDiagnosticsUserContext() on
+  // lazily through bootstrapStore.update() -> setDiagnosticsActorContext() on
   // the first /bootstrap/me refresh or on login, without re-initializing
   // Sentry.
-  applyUserContext([scope, getCurrentScope()] as UserContextScope[], resolveDiagnosticsRef());
+  applyActorContext([scope, getCurrentScope()] as ActorContextScope[], resolveDiagnosticsRef());
 
   // Set the event `transaction` field from the matched route record's
   // parameterized path (e.g. /secret/:secretKey), never the resolved URL.

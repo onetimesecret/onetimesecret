@@ -14,7 +14,7 @@ import {
   getBootstrapSnapshot,
   updateBootstrapSnapshot,
 } from '@/services/bootstrap.service';
-import { setDiagnosticsUserContext } from '@/services/diagnostics.service';
+import { setDiagnosticsActorContext } from '@/services/diagnostics.service';
 import { defineStore } from 'pinia';
 
 /**
@@ -52,7 +52,7 @@ const DEFAULTS: BootstrapPayload = {
   entitlement_preview_plan_name: undefined,
   organization: undefined,
   // Pseudonymous reference for the diagnostics boundary — the opaque `user.id`
-  // Sentry groups a person's errors by. It is not an analytics identity:
+  // Sentry groups a person's errors by. It is not an analytics identifier:
   // nothing counts it, and it exists so a defect report can be attributed to
   // one session without an email, customer id or IP.
   //
@@ -290,7 +290,7 @@ export const useBootstrapStore = defineStore('bootstrap', {
 
       // ─── Sentry user context ──────────────────────────────────────────────
       //
-      // This is the ACCOUNT-CHANGE hook. Every identity transition funnels
+      // This is the ACCOUNT-CHANGE hook. Every account transition funnels
       // through update(): login, MFA completion, and the 15-minute
       // /bootstrap/me refresh (which can report a different account after a
       // re-auth in another tab). Logout is handled separately in
@@ -316,10 +316,10 @@ export const useBootstrapStore = defineStore('bootstrap', {
           });
           clearBootstrapSnapshotKey('diagnostics_ref');
         }
-        // setDiagnosticsUserContext validates the block against the strict
+        // setDiagnosticsActorContext validates the block against the strict
         // contract and clears the context on null/undefined. It no-ops when
         // diagnostics are disabled, so this call is unconditional by design.
-        setDiagnosticsUserContext(nextRef ?? null);
+        setDiagnosticsActorContext(nextRef ?? null);
       }
 
       console.debug('[BootstrapStore.update] Updated with:', {
@@ -417,7 +417,7 @@ export const useBootstrapStore = defineStore('bootstrap', {
       // separate snapshot that `getBootstrapValue('diagnostics_ref')` reads,
       // and `updateBootstrapSnapshot` cannot express a removal (it skips
       // undefined by design). Without this call the previous reference stays
-      // READABLE there after a soft/SPA logout — the exact stale-identity
+      // READABLE there after a soft/SPA logout — the exact stale-reference
       // condition `clearBootstrapSnapshotKey` was written to prevent, and the
       // one update() already guards on the account-change path.
       //

@@ -8,7 +8,7 @@ require_relative 'strings'
 
 module Onetime
   module Utils
-    # DiagnosticsRef - opaque, stable user and organization references for the
+    # DiagnosticsRef - opaque, stable actor and organization references for the
     # third-party diagnostics backend (Sentry).
     #
     # ---------------------------------------------------------------------------
@@ -26,7 +26,7 @@ module Onetime
     # backend to get that is not acceptable, so we send a keyed, one-way
     # reference instead: correlation without disclosure. Same posture, same
     # rationale as Onetime::Security::RequestContext (ADR-022) — this is that
-    # idea applied to the user rather than the network.
+    # idea applied to the actor rather than the network.
     #
     # ---------------------------------------------------------------------------
     # WHY NOT REUSE EmailHash.compute
@@ -43,17 +43,17 @@ module Onetime
     # derives a DISTINCT value under an explicit, versioned purpose prefix and a
     # residency element:
     #
-    #   user: HMAC(secret, "onetime:sentry:v1:user" || 0x00
+    #   actor: HMAC(secret, "onetime:sentry:v1:user" || 0x00
     #                       || residency_scope || 0x00 || normalized_email)
     #   org:   HMAC(secret, "onetime:sentry:v1:organization" || 0x00
     #                       || residency_scope || 0x00 || org_objid)
     #
     # The NUL-separated elements are the domain separation. Three consequences
     # that the tests pin:
-    #   1. user_ref(email) != EmailHash.compute(email), even when both are keyed
+    #   1. actor_ref(email) != EmailHash.compute(email), even when both are keyed
     #      with the same FEDERATION_SECRET;
-    #   2. user_ref(x) under residency "eu" != user_ref(x) under "us"; and
-    #   3. organization_ref(x) != user_ref(x) for the identical input string,
+    #   2. actor_ref(x) under residency "eu" != actor_ref(x) under "us"; and
+    #   3. organization_ref(x) != actor_ref(x) for the identical input string,
     #      under identical keying and residency — the purpose prefix is what
     #      separates the two namespaces.
     # The `v1` element lets us re-key diagnostics reference later without touching
@@ -84,7 +84,7 @@ module Onetime
     #
     # This is a per-RESOURCE ref, not a per-session one. It rides the colonel
     # response record, NOT the bootstrap `diagnostics_ref` block — that block
-    # is exactly {user_ref, user_scope} and is parsed by a Zod strictObject
+    # is exactly {actor_ref, actor_scope} and is parsed by a Zod strictObject
     # (diagnosticsRefSchema), so a third key there drops the whole block on
     # the floor.
     #
@@ -96,7 +96,7 @@ module Onetime
     # ---------------------------------------------------------------------------
     # RESIDENCY SCOPE (why refs deliberately do NOT correlate across regions)
     # ---------------------------------------------------------------------------
-    # An earlier revision of this module keyed user refs off FEDERATION_SECRET
+    # An earlier revision of this module keyed actor refs off FEDERATION_SECRET
     # alone and sold "one reference per person across regions" as a feature. That
     # is a defect, not a feature, and it is fixed here.
     #
@@ -158,7 +158,7 @@ module Onetime
     #
     #   * strictly safer — per-install correlation is all error triage needs;
     #   * self-limiting — it can only ever narrow correlation, never widen it;
-    #   * honest — the emitted user_scope label narrows with it, so an operator
+    #   * honest — the emitted actor_scope label narrows with it, so an operator
     #     reading a Sentry event is never told a ref is comparable further than
     #     it actually is.
     #
@@ -179,7 +179,7 @@ module Onetime
     # ---------------------------------------------------------------------------
     # Residency is read ONCE per derivation and then threaded. #keying resolves
     # it and returns it inside a Keying value alongside the secret it selected
-    # and the label that secret implies; #digest_ref and #user consume that one
+    # and the label that secret implies; #digest_ref and #actor consume that one
     # value and never re-resolve.
     #
     # This is not tidiness. An earlier revision resolved residency THREE times
@@ -278,11 +278,15 @@ module Onetime
       # constraint, so it reuses the canonical implementation and cannot drift.
       extend Onetime::Utils::Strings
 
-      # Versioned purpose prefix. Changing the value re-keys user refs only.
-      USER_INFO = 'onetime:sentry:v1:user'
+      # Versioned purpose prefix. Changing the value re-keys actor refs only.
+      # The v1 literal deliberately keeps its original 'user' element even
+      # though the mechanism is named "actor" in code: the literal is a keyed
+      # pre-image component, so renaming it would silently re-key every
+      # emitted ref. A future v2 may align the wording.
+      ACTOR_INFO = 'onetime:sentry:v1:user'
 
       # Versioned purpose prefix for ORGANIZATION refs. Distinct from
-      # USER_INFO, which is the whole of the domain separation between the two
+      # ACTOR_INFO, which is the whole of the domain separation between the two
       # namespaces: the same literal string handed to both entry points must not
       # digest to the same value, or an operator holding one ref could test it
       # against the other surface. Pinned by execution in the tryouts and in
@@ -328,26 +332,26 @@ module Onetime
       #   only ever accompanies SCOPE_DEPLOYMENT.
       Keying = Data.define(:secret, :scope, :residency)
 
-      # Opaque user reference derived from the account's normalized email.
+      # Opaque actor reference derived from the account's normalized email.
       #
       # @param email [String, nil] account email, any casing/whitespace, any
       #   encoding (including a mis-tagged or corrupt one).
       # @return [String, nil] REF_LENGTH hex chars, or nil when the email is
       #   blank or unusable, no secret is configured, or derivation failed.
-      def user_ref(email)
+      def actor_ref(email)
         # The block is evaluated INSIDE digest_ref's rescue. Normalizing out
         # here would put unicode_normalize outside the guard, which is how a
         # non-UTF-8 stored email turns into a 500 on every authenticated render.
-        digest_ref(USER_INFO, keying) { normalized_email(email) }
+        digest_ref(ACTOR_INFO, keying) { normalized_email(email) }
       end
 
       # Opaque organization reference derived from the organization's objid.
       #
       # Same keying, same residency threading and the same fail-closed
-      # conditions as #user_ref — both route through #keying and #digest_ref,
+      # conditions as #actor_ref — both route through #keying and #digest_ref,
       # so there is one place where "is this key usable?" is decided and the two
       # cannot drift apart. It returns nil under exactly the conditions
-      # #user_ref returns nil for a usable email.
+      # #actor_ref returns nil for a usable email.
       #
       # NOT NORMALIZED, unlike an email, and that is deliberate. Emails are
       # normalized because a human types the same address five ways; an objid is
@@ -382,19 +386,19 @@ module Onetime
       #
       # ONE keying resolution serves both fields. The ref and the label it is
       # emitted with therefore always describe the same read of the config;
-      # calling #user_ref and #scope separately would reintroduce the split
+      # calling #actor_ref and #scope separately would reintroduce the split
       # this bundle exists to close.
       #
       # @param email [String, nil] account email.
       # @return [Hash{String=>String}, nil] string-keyed, JSON-ready.
-      def user(email)
+      def actor(email)
         key = keying
         return nil if key.nil?
 
-        ref = digest_ref(USER_INFO, key) { normalized_email(email) }
+        ref = digest_ref(ACTOR_INFO, key) { normalized_email(email) }
         return nil if ref.nil?
 
-        { 'user_ref' => ref, 'user_scope' => key.scope }
+        { 'actor_ref' => ref, 'actor_scope' => key.scope }
       end
 
       # True when a secret is available and refs can be derived.
@@ -414,7 +418,7 @@ module Onetime
         federation = federation_secret
 
         # FEDERATION_SECRET is shared across regional instances BY DESIGN, so
-        # keying an user ref with it while no residency scope is declared is
+        # keying an actor ref with it while no residency scope is declared is
         # precisely the cross-region join this module exists to prevent. An
         # undeclared residency therefore DECLINES the shared key instead of
         # widening the ref, and we fall through to the per-deployment one.
@@ -573,7 +577,7 @@ module Onetime
       # single resolution #keying performed when it chose the secret, so the
       # pre-image element and the emitted label cannot disagree.
       #
-      # @param info [String] versioned purpose prefix (USER_INFO or
+      # @param info [String] versioned purpose prefix (ACTOR_INFO or
       #   ORGANIZATION_INFO). This element is the only thing separating the two
       #   ref namespaces, so it must never be passed a caller-supplied value.
       # @param key [Keying, nil] the caller's single keying resolution.

@@ -3,10 +3,10 @@
 Added
 -----
 
-- Sentry error reports now carry a pseudonymous user reference on both
+- Sentry error reports now carry a pseudonymous actor reference on both
   services, so self-hosted operators can see how many users an issue
   affects without any personal data leaving the application. The backend
-  derives a 16-hex ``user_ref`` from the account email via a keyed,
+  derives a 16-hex ``actor_ref`` from the account email via a keyed,
   region-scoped derivation (``DIAGNOSTICS_REF_REGION``), publishes it to
   the frontend in the bootstrap payload as ``diagnostics_ref``, and
   attaches the same reference to backend error captures. Anonymous

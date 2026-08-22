@@ -1,4 +1,4 @@
-// src/plugins/core/diagnostics/userContext.ts
+// src/plugins/core/diagnostics/actorContext.ts
 //
 // ═══════════════════════════════════════════════════════════════════════════════
 // THE SENTRY USER-CONTEXT BOUNDARY
@@ -11,7 +11,7 @@
 // ── What Sentry receives ──────────────────────────────────────────────────────
 //
 //   user = { id: <opaque server-derived ref>, ip_address: null }
-//   tags.user_scope = "federated" | "deployment"
+//   tags.actor_scope = "federated" | "deployment"
 //
 // That is the complete set. No `email`, no `username`, no `name`, no
 // `ip_address` other than the explicit null, and no additional user keys. The
@@ -34,7 +34,7 @@
 //      derivation produces — 16 lowercase hex chars, matched against
 //      `DIAGNOSTICS_REF_PATTERN`.
 //
-// Check 2 is not redundant. `{ user_ref: "alice@example.com", user_scope:
+// Check 2 is not redundant. `{ actor_ref: "alice@example.com", actor_scope:
 // "deployment" }` is a fully VALID block by key set alone — two keys, valid
 // enum, non-empty string. The outbound gate keeps exactly one field, `id`, and
 // drops the rest, so with a key-set check only, that address would be shipped
@@ -56,7 +56,7 @@
 // The server OMITS the `diagnostics_ref` block entirely for anonymous
 // sessions. There is no anonymous sentinel, no empty-string ref, and —
 // critically — no generated fallback id. `resolveDiagnosticsRef()` returns
-// null and `applyUserContext()` calls `setUser(null)`, leaving the session
+// null and `applyActorContext()` calls `setUser(null)`, leaving the session
 // unidentified. Minting a random/device id here would silently recreate the
 // cross-session tracking identifier this whole design exists to avoid.
 //
@@ -98,22 +98,22 @@ import type { Scope } from '@sentry/browser';
  * Exported so tests and the diagnostics service refer to one literal rather
  * than three copies of the string.
  */
-export const USER_SCOPE_TAG = 'user_scope';
+export const ACTOR_SCOPE_TAG = 'actor_scope';
 
 /**
  * The subset of `Scope` this module touches.
  *
- * Deliberately narrow: it documents at the type level that user context only
+ * Deliberately narrow: it documents at the type level that actor context only
  * ever calls `setUser` and `setTag`, and it lets tests pass plain objects
  * without constructing a real Sentry scope.
  */
-export type UserContextScope = Pick<Scope, 'setUser' | 'setTag'>;
+export type ActorContextScope = Pick<Scope, 'setUser' | 'setTag'>;
 
 /**
  * The exact user object shipped to Sentry. Constructed literally, never
  * spread from server data.
  */
-export interface DiagnosticsUser {
+export interface DiagnosticsActor {
   /** The opaque server-derived reference. Never PII. */
   id: string;
   /**
@@ -148,7 +148,7 @@ export function parseDiagnosticsRefBlock(raw: unknown): DiagnosticsRefBlock | nu
     // Intentionally does not log the offending value: the whole reason this
     // path exists is that the value may contain something we must not
     // propagate, and console output is itself captured as a breadcrumb.
-    console.debug('[userContext] diagnostics_ref block rejected by strict contract');
+    console.debug('[actorContext] diagnostics_ref block rejected by strict contract');
     return null;
   }
   return result.data;
@@ -177,17 +177,17 @@ export function resolveDiagnosticsRef(): DiagnosticsRefBlock | null {
  * There is deliberately no separate "clear" code path that could drift from
  * the "set" path and leave a tag behind.
  *
- * On clear, `user_scope` is set to `undefined`, which is how Sentry's Scope
+ * On clear, `actor_scope` is set to `undefined`, which is how Sentry's Scope
  * removes a tag (the key is dropped during event serialization). Leaving a
- * stale `user_scope` after logout would let an anonymous session be filtered
+ * stale `actor_scope` after logout would let an anonymous session be filtered
  * as if it were still the previous, identified session.
  *
  * @param scopes - Every scope that must agree. In practice
  *   `[isolatedScope, getCurrentScope()]` — see the module header.
  * @param ref - Validated ref block, or null to run unidentified.
  */
-export function applyUserContext(
-  scopes: readonly UserContextScope[],
+export function applyActorContext(
+  scopes: readonly ActorContextScope[],
   ref: DiagnosticsRefBlock | null
 ): void {
   // Literal construction. NEVER `{ ...ref }` — a spread would forward any
@@ -199,24 +199,24 @@ export function applyUserContext(
   // caller that skips `parseDiagnosticsRefBlock` all produce one). An
   // unrecognised ref CLEARS the context — the same fail-closed answer as a
   // malformed block, never a partially applied one.
-  const user: DiagnosticsUser | null =
-    ref && isDiagnosticsRef(ref.user_ref) ? { id: ref.user_ref, ip_address: null } : null;
+  const user: DiagnosticsActor | null =
+    ref && isDiagnosticsRef(ref.actor_ref) ? { id: ref.actor_ref, ip_address: null } : null;
 
   for (const scope of scopes) {
     scope.setUser(user);
     // Keyed off `user`, not `ref`: when the ref value was refused above there
     // is no user context, so there must be no scope tag either — a lone
-    // `user_scope` would label an unidentified session as if it were still
+    // `actor_scope` would label an unidentified session as if it were still
     // identified. `undefined` clears the tag; Sentry drops undefined tag
     // values when serializing the event.
-    scope.setTag(USER_SCOPE_TAG, user && ref ? ref.user_scope : undefined);
+    scope.setTag(ACTOR_SCOPE_TAG, user && ref ? ref.actor_scope : undefined);
   }
 }
 
 /**
  * Final-gate sanitizer for the `user` context on an outbound event.
  *
- * `applyUserContext` is the only sanctioned writer, but it is not the only
+ * `applyActorContext` is the only sanctioned writer, but it is not the only
  * possible one: `Sentry.setUser()` is a global API, `@sentry/vue` helpers and
  * any future integration can write user context, and events can arrive with a
  * `user` object this module never produced. Rather than trusting that no such

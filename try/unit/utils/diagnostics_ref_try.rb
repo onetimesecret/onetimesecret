@@ -150,70 +150,70 @@ REPO_ROOT = File.expand_path('../../..', __dir__)
 # collision the cases below assert never appears.
 @unscoped_collision = OpenSSL::HMAC.hexdigest(
   'SHA256', @shared_secret,
-  [TR::USER_INFO, TR::RESIDENCY_UNSCOPED, @email].join(TR::SEPARATOR)
+  [TR::ACTOR_INFO, TR::RESIDENCY_UNSCOPED, @email].join(TR::SEPARATOR)
 )[0, TR::REF_LENGTH]
 
-## user_ref returns a String
-TR.user_ref(@email).is_a?(String)
+## actor_ref returns a String
+TR.actor_ref(@email).is_a?(String)
 #=> true
 
-## user_ref is REF_LENGTH hex characters
-TR.user_ref(@email).length
+## actor_ref is REF_LENGTH hex characters
+TR.actor_ref(@email).length
 #=> 16
 
-## user_ref contains only lowercase hex
-TR.user_ref(@email) =~ /\A[0-9a-f]{16}\z/
+## actor_ref contains only lowercase hex
+TR.actor_ref(@email) =~ /\A[0-9a-f]{16}\z/
 #=> 0
 
-## user_ref is deterministic
-TR.user_ref(@email) == TR.user_ref(@email)
+## actor_ref is deterministic
+TR.actor_ref(@email) == TR.actor_ref(@email)
 #=> true
 
-## user_ref distinguishes different emails
-TR.user_ref(@email) == TR.user_ref(@other_email)
+## actor_ref distinguishes different emails
+TR.actor_ref(@email) == TR.actor_ref(@other_email)
 #=> false
 
 ## Email normalization: case-insensitive
-TR.user_ref(@email) == TR.user_ref(@email_upper)
+TR.actor_ref(@email) == TR.actor_ref(@email_upper)
 #=> true
 
 ## Email normalization: whitespace trimmed
-TR.user_ref(@email) == TR.user_ref(@email_whitespace)
+TR.actor_ref(@email) == TR.actor_ref(@email_whitespace)
 #=> true
 
 ## Email normalization: NFD and NFC forms of the same address agree
 ## (built rather than typed - an editor would silently normalize a literal)
 composed = "jos\u{e9}@example.com".unicode_normalize(:nfc)
 decomposed = composed.unicode_normalize(:nfd)
-[decomposed.bytes == composed.bytes, TR.user_ref(decomposed) == TR.user_ref(composed)]
+[decomposed.bytes == composed.bytes, TR.actor_ref(decomposed) == TR.actor_ref(composed)]
 #=> [false, true]
 
 ## Email normalization agrees with the canonical OT::Utils normalizer
-TR.user_ref(@email_upper) == TR.user_ref(OT::Utils.normalize_email(@email_upper))
+TR.actor_ref(@email_upper) == TR.actor_ref(OT::Utils.normalize_email(@email_upper))
 #=> true
 
 ## Blank email returns nil
-TR.user_ref('')
+TR.actor_ref('')
 #=> nil
 
 ## Nil email returns nil
-TR.user_ref(nil)
+TR.actor_ref(nil)
 #=> nil
 
 ## Whitespace-only email returns nil
-TR.user_ref('   ')
+TR.actor_ref('   ')
 #=> nil
 
-## Domain separation: user ref is NOT the federation email hash
-TR.user_ref(@email) == Onetime::Utils::EmailHash.compute(@email)
+## Domain separation: actor ref is NOT the federation email hash
+TR.actor_ref(@email) == Onetime::Utils::EmailHash.compute(@email)
 #=> false
 
-## Domain separation: user ref is not a prefix of the federation email hash
-Onetime::Utils::EmailHash.compute(@email)[0, TR::REF_LENGTH] == TR.user_ref(@email)
+## Domain separation: actor ref is not a prefix of the federation email hash
+Onetime::Utils::EmailHash.compute(@email)[0, TR::REF_LENGTH] == TR.actor_ref(@email)
 #=> false
 
 ## Purpose prefix is versioned, so diagnostics reference can be re-keyed alone
-[TR::USER_INFO.include?('v1'), TR::USER_INFO.include?('user')]
+[TR::ACTOR_INFO.include?('v1'), TR::ACTOR_INFO.include?('user')]
 #=> [true, true]
 
 ## Diagnostics refs are narrower than federation email hashes
@@ -225,34 +225,34 @@ TR.scope
 #=> 'federated'
 
 ## user bundle carries exactly the ref and its scope
-TR.user(@email).keys.sort
-#=> ['user_ref', 'user_scope']
+TR.actor(@email).keys.sort
+#=> ['actor_ref', 'actor_scope']
 
 ## user bundle is nil for a blank email
-TR.user('')
+TR.actor('')
 #=> nil
 
 ## Emitted bundle discloses no part of the address
-TR.user(@email).to_json.include?('example.com')
+TR.actor(@email).to_json.include?('example.com')
 #=> false
 
 ## Emitted bundle discloses neither keying secret
 with_env_vars('ACCOUNT_ID_SECRET' => @deployment_key) do
-  serialized = TR.user(@email).to_json
+  serialized = TR.actor(@email).to_json
   [serialized.include?(ENV.fetch('FEDERATION_SECRET')), serialized.include?(@deployment_key)]
 end
 #=> [false, false]
 
 ## ACCOUNT_ID_SECRET alone produces the deployment scope and a well-formed ref
 with_env_vars('FEDERATION_SECRET' => nil, 'ACCOUNT_ID_SECRET' => @deployment_key) do
-  [TR.scope, TR.available?, TR.user_ref(@email) =~ /\A[0-9a-f]{16}\z/]
+  [TR.scope, TR.available?, TR.actor_ref(@email) =~ /\A[0-9a-f]{16}\z/]
 end
 #=> ['deployment', true, 0]
 
 ## FEDERATION_SECRET is preferred over ACCOUNT_ID_SECRET, so the refs differ
-federated = with_env_vars('ACCOUNT_ID_SECRET' => @deployment_key) { TR.user_ref(@email) }
+federated = with_env_vars('ACCOUNT_ID_SECRET' => @deployment_key) { TR.actor_ref(@email) }
 deployment = with_env_vars('FEDERATION_SECRET' => nil, 'ACCOUNT_ID_SECRET' => @deployment_key) do
-  TR.user_ref(@email)
+  TR.actor_ref(@email)
 end
 federated == deployment
 #=> false
@@ -260,14 +260,14 @@ federated == deployment
 ## RESIDENCY: the same person in two jurisdictions gets DIFFERENT refs even
 ## though both instances share one FEDERATION_SECRET. This is the cross-region
 ## re-identification join we refuse to hand the diagnostics backend.
-eu = with_env_vars('DIAGNOSTICS_REF_REGION' => 'eu') { TR.user_ref(@email) }
-us = with_env_vars('DIAGNOSTICS_REF_REGION' => 'us') { TR.user_ref(@email) }
+eu = with_env_vars('DIAGNOSTICS_REF_REGION' => 'eu') { TR.actor_ref(@email) }
+us = with_env_vars('DIAGNOSTICS_REF_REGION' => 'us') { TR.actor_ref(@email) }
 eu == us
 #=> false
 
 ## RESIDENCY: refs remain deterministic within one jurisdiction
-with_env_vars('DIAGNOSTICS_REF_REGION' => 'eu') { TR.user_ref(@email) } ==
-  with_env_vars('DIAGNOSTICS_REF_REGION' => 'EU  ') { TR.user_ref(@email) }
+with_env_vars('DIAGNOSTICS_REF_REGION' => 'eu') { TR.actor_ref(@email) } ==
+  with_env_vars('DIAGNOSTICS_REF_REGION' => 'EU  ') { TR.actor_ref(@email) }
 #=> true
 
 ## RESIDENCY: an undeclared residency is not a wildcard that matches every
@@ -275,8 +275,8 @@ with_env_vars('DIAGNOSTICS_REF_REGION' => 'eu') { TR.user_ref(@email) } ==
 ## a different (per-deployment) secret entirely
 with_conf({}) do
   unscoped = with_env_vars('DIAGNOSTICS_REF_REGION' => nil,
-                           'ACCOUNT_ID_SECRET' => @deployment_key) { TR.user_ref(@email) }
-  unscoped == with_env_vars('DIAGNOSTICS_REF_REGION' => 'eu') { TR.user_ref(@email) }
+                           'ACCOUNT_ID_SECRET' => @deployment_key) { TR.actor_ref(@email) }
+  unscoped == with_env_vars('DIAGNOSTICS_REF_REGION' => 'eu') { TR.actor_ref(@email) }
 end
 #=> false
 
@@ -301,28 +301,28 @@ end
 #=> 'eu'
 
 ## RESIDENCY: the residency label is never part of the emitted bundle
-with_env_vars('DIAGNOSTICS_REF_REGION' => 'eu-central-zzz') { TR.user(@email).to_json }.include?('eu-central-zzz')
+with_env_vars('DIAGNOSTICS_REF_REGION' => 'eu-central-zzz') { TR.actor(@email).to_json }.include?('eu-central-zzz')
 #=> false
 
 ## ENCODING: an invalid byte in a stored email returns nil instead of raising
 ## Encoding::CompatibilityError out of unicode_normalize
-TR.user_ref("a\xFF@b.com")
+TR.actor_ref("a\xFF@b.com")
 #=> nil
 
 ## ENCODING: a truncated multibyte sequence returns nil instead of raising
 ## ArgumentError out of unicode_normalize
-TR.user_ref("\xC3(@b.com")
+TR.actor_ref("\xC3(@b.com")
 #=> nil
 
 ## ENCODING: an email carrying correct UTF-8 bytes under the wrong encoding tag
 ## is recovered, not dropped - it must still correlate with itself
-TR.user_ref('alice@example.com'.dup.force_encoding(Encoding::ASCII_8BIT)) ==
-  TR.user_ref('alice@example.com')
+TR.actor_ref('alice@example.com'.dup.force_encoding(Encoding::ASCII_8BIT)) ==
+  TR.actor_ref('alice@example.com')
 #=> true
 
 ## ENCODING: a non-UTF-8 email never escapes as an exception from the bundle
 ## entry point either
-[TR.user("a\xFF@b.com"), TR.user('alice@example.com'.dup.force_encoding(Encoding::ASCII_8BIT)).nil?]
+[TR.actor("a\xFF@b.com"), TR.actor('alice@example.com'.dup.force_encoding(Encoding::ASCII_8BIT)).nil?]
 #=> [nil, false]
 
 ## Unconfigured deployment: every entry point returns nil instead of raising,
@@ -334,7 +334,7 @@ with_env_vars('FEDERATION_SECRET' => nil, 'ACCOUNT_ID_SECRET' => nil) do
   rescue Onetime::Problem
     true
   end
-  [raised, TR.user_ref(@email), TR.user(@email), TR.scope, TR.available?]
+  [raised, TR.actor_ref(@email), TR.actor(@email), TR.scope, TR.available?]
 end
 #=> [true, nil, nil, nil, false]
 
@@ -358,12 +358,12 @@ same_secret = 'shared-federation-secret-across-two-regions'
 install_a = with_conf({}) do
   with_env_vars('FEDERATION_SECRET' => same_secret,
                 'DIAGNOSTICS_REF_REGION' => nil,
-                'ACCOUNT_ID_SECRET' => 'per-install-secret-region-a') { TR.user_ref(@email) }
+                'ACCOUNT_ID_SECRET' => 'per-install-secret-region-a') { TR.actor_ref(@email) }
 end
 install_b = with_conf({}) do
   with_env_vars('FEDERATION_SECRET' => same_secret,
                 'DIAGNOSTICS_REF_REGION' => nil,
-                'ACCOUNT_ID_SECRET' => 'per-install-secret-region-b') { TR.user_ref(@email) }
+                'ACCOUNT_ID_SECRET' => 'per-install-secret-region-b') { TR.actor_ref(@email) }
 end
 [install_a.nil?, install_b.nil?, install_a == install_b]
 #=> [false, false, false]
@@ -373,7 +373,7 @@ end
 ## to key with - so nothing is emitted, rather than reaching for the shared key.
 with_conf({}) do
   with_env_vars('DIAGNOSTICS_REF_REGION' => nil, 'ACCOUNT_ID_SECRET' => nil) do
-    [TR.scope, TR.available?, TR.user_ref(@email), TR.user(@email)]
+    [TR.scope, TR.available?, TR.actor_ref(@email), TR.actor(@email)]
   end
 end
 #=> [nil, false, nil, nil]
@@ -390,10 +390,10 @@ end
 ## DEFECT 1: and the residency mechanism still separates jurisdictions once on,
 ## so closing the default did not disable the guarantee it protects.
 eu_scoped = with_conf({ 'features' => { 'regions' => { 'current_jurisdiction' => 'EU' } } }) do
-  with_env_vars('DIAGNOSTICS_REF_REGION' => nil) { TR.user_ref(@email) }
+  with_env_vars('DIAGNOSTICS_REF_REGION' => nil) { TR.actor_ref(@email) }
 end
 us_scoped = with_conf({ 'features' => { 'regions' => { 'current_jurisdiction' => 'US' } } }) do
-  with_env_vars('DIAGNOSTICS_REF_REGION' => nil) { TR.user_ref(@email) }
+  with_env_vars('DIAGNOSTICS_REF_REGION' => nil) { TR.actor_ref(@email) }
 end
 [eu_scoped.nil?, eu_scoped == us_scoped]
 #=> [false, false]
@@ -403,7 +403,7 @@ end
 ## which is honest and self-healing - and no scope label either.
 with_failing_conf do
   with_env_vars('DIAGNOSTICS_REF_REGION' => nil) do
-    [TR.user_ref(@email), TR.user(@email), TR.scope, TR.available?]
+    [TR.actor_ref(@email), TR.actor(@email), TR.scope, TR.available?]
   end
 end
 #=> [nil, nil, nil, false]
@@ -412,10 +412,10 @@ end
 ## derived during the fault is not some other derivable value - it is absent, so
 ## it can never be mistaken for a different data subject.
 healthy = with_conf({ 'features' => { 'regions' => { 'current_jurisdiction' => 'EU' } } }) do
-  with_env_vars('DIAGNOSTICS_REF_REGION' => nil) { TR.user_ref(@email) }
+  with_env_vars('DIAGNOSTICS_REF_REGION' => nil) { TR.actor_ref(@email) }
 end
 faulted = with_failing_conf do
-  with_env_vars('DIAGNOSTICS_REF_REGION' => nil) { TR.user_ref(@email) }
+  with_env_vars('DIAGNOSTICS_REF_REGION' => nil) { TR.actor_ref(@email) }
 end
 [healthy.nil?, faulted.nil?]
 #=> [false, true]
@@ -425,7 +425,7 @@ end
 ## Sentry event. residency_scope stays raise-free for boot checks too.
 with_failing_conf do
   with_env_vars('DIAGNOSTICS_REF_REGION' => nil) do
-    [TR.residency_scope, TR.user(@email)]
+    [TR.residency_scope, TR.actor(@email)]
   rescue StandardError => ex
     ex.class
   end
@@ -461,10 +461,10 @@ end
 ## then digest_ref re-resolved into the falsy window, substituted
 ## RESIDENCY_UNSCOPED, and derived a SECOND ref for the same person.
 healthy_eu = with_conf(jurisdiction_conf('eu')) do
-  with_env_vars(@fault_env) { TR.user(@email) }
+  with_env_vars(@fault_env) { TR.actor(@email) }
 end
 faulted_eu = with_conf_falsy_after_first_resolution('eu') do
-  with_env_vars(@fault_env) { TR.user(@email) }
+  with_env_vars(@fault_env) { TR.actor(@email) }
 end
 [faulted_eu.nil?, faulted_eu == healthy_eu]
 #=> [false, true]
@@ -474,10 +474,10 @@ end
 ## during the window. Before the fix both fell back to RESIDENCY_UNSCOPED while
 ## still keyed with the shared secret, which IS the cross-region join.
 faulted_a = with_conf_falsy_after_first_resolution('eu') do
-  with_env_vars(@fault_env) { TR.user_ref(@email) }
+  with_env_vars(@fault_env) { TR.actor_ref(@email) }
 end
 faulted_b = with_conf_falsy_after_first_resolution('us') do
-  with_env_vars(@fault_env) { TR.user_ref(@email) }
+  with_env_vars(@fault_env) { TR.actor_ref(@email) }
 end
 [faulted_a == faulted_b, faulted_a == @unscoped_collision, faulted_b == @unscoped_collision]
 #=> [false, false, false]
@@ -488,12 +488,12 @@ end
 ## the label says 'federated'. Before the fix the ref was federation-keyed while
 ## the label read 'deployment' - told narrower than it actually correlated.
 faulted = with_conf_falsy_after_first_resolution('eu') do
-  with_env_vars(@fault_env) { TR.user(@email) }
+  with_env_vars(@fault_env) { TR.actor(@email) }
 end
 expected = OpenSSL::HMAC.hexdigest(
-  'SHA256', @shared_secret, [TR::USER_INFO, 'eu', @email].join(TR::SEPARATOR)
+  'SHA256', @shared_secret, [TR::ACTOR_INFO, 'eu', @email].join(TR::SEPARATOR)
 )[0, TR::REF_LENGTH]
-[faulted['user_ref'] == expected, faulted['user_scope']]
+[faulted['actor_ref'] == expected, faulted['actor_scope']]
 #=> [true, 'federated']
 
 ## DEFECT 4 (jurisdiction-changed-between-reads variant, no nil involved): a
@@ -501,25 +501,25 @@ expected = OpenSSL::HMAC.hexdigest(
 ## EU is the read that chose the key. It is not the US ref, and it is not some
 ## third value only the fault can produce.
 drifted = with_drifting_jurisdiction('eu', 'us') do
-  with_env_vars(@fault_env) { TR.user(@email) }
+  with_env_vars(@fault_env) { TR.actor(@email) }
 end
 stable_us = with_conf(jurisdiction_conf('us')) do
-  with_env_vars(@fault_env) { TR.user(@email) }
+  with_env_vars(@fault_env) { TR.actor(@email) }
 end
-[drifted == healthy_eu, drifted['user_ref'] == stable_us['user_ref']]
+[drifted == healthy_eu, drifted['actor_ref'] == stable_us['actor_ref']]
 #=> [true, false]
 
 ## DEFECT 4: the honesty invariant is now ENFORCED, not just asserted. Handed
 ## FEDERATION_SECRET keying with no residency - the pairing that would put
 ## RESIDENCY_UNSCOPED under the shared key - digest_ref emits nothing at all.
-TR.send(:digest_ref, TR::USER_INFO,
+TR.send(:digest_ref, TR::ACTOR_INFO,
         TR::Keying.new(secret: @shared_secret, scope: TR::SCOPE_FEDERATED, residency: nil)) { @email }
 #=> nil
 
 ## DEFECT 4: and that refusal is specific to the shared key. A per-deployment
 ## key with no residency still derives normally - RESIDENCY_UNSCOPED there
 ## grants no cross-install correlation, which is the whole reason it survives.
-TR.send(:digest_ref, TR::USER_INFO,
+TR.send(:digest_ref, TR::ACTOR_INFO,
         TR::Keying.new(secret: @deployment_key, scope: TR::SCOPE_DEPLOYMENT, residency: nil)) { @email } =~ /\A[0-9a-f]{16}\z/
 #=> 0
 
@@ -562,12 +562,12 @@ TR.organization_ref(@org_objid) == TR.organization_ref(@other_org_objid)
 ## DOMAIN SEPARATION: the SAME string, the SAME keying and the SAME residency
 ## digest differently in the two namespaces. Executed against both entry points
 ## rather than asserted from the constants.
-TR.organization_ref(@shared_pre_image) == TR.user_ref(@shared_pre_image)
+TR.organization_ref(@shared_pre_image) == TR.actor_ref(@shared_pre_image)
 #=> false
 
 ## DOMAIN SEPARATION: the org purpose prefix is versioned and distinct from the
 ## user one, so either namespace can be re-keyed without touching the other
-[TR::ORGANIZATION_INFO == TR::USER_INFO,
+[TR::ORGANIZATION_INFO == TR::ACTOR_INFO,
  TR::ORGANIZATION_INFO.include?('v1'),
  TR::ORGANIZATION_INFO.include?('organization')]
 #=> [false, true, true]
@@ -579,11 +579,11 @@ TR.organization_ref(@shared_pre_image) == Onetime::Utils::EmailHash.compute(@sha
 
 ## NO NORMALIZATION, by contrast with emails: an objid alphabet is
 ## case-sensitive, so folding it could collapse two distinct organizations onto
-## one ref. user_ref folds by design; organization_ref must not.
+## one ref. actor_ref folds by design; organization_ref must not.
 lower = '01jorgabcdefghjkmnpqrstvwx'
 upper = '01JORGABCDEFGHJKMNPQRSTVWX'
 [TR.organization_ref(lower) == TR.organization_ref(upper),
- TR.user_ref(lower) == TR.user_ref(upper)]
+ TR.actor_ref(lower) == TR.actor_ref(upper)]
 #=> [false, true]
 
 ## Surrounding whitespace is trimmed, so a padded value cannot split one
@@ -604,29 +604,29 @@ TR.organization_ref("  #{@org_objid}  ") == TR.organization_ref(@org_objid)
 
 ## RESIDENCY: one organization in two jurisdictions gets DIFFERENT refs, even
 ## though both instances share one FEDERATION_SECRET - the same cross-region
-## join refusal user refs get
+## join refusal actor refs get
 eu_org = with_env_vars('DIAGNOSTICS_REF_REGION' => 'eu') { TR.organization_ref(@org_objid) }
 us_org = with_env_vars('DIAGNOSTICS_REF_REGION' => 'us') { TR.organization_ref(@org_objid) }
 [eu_org.nil?, eu_org == us_org]
 #=> [false, false]
 
 ## FAIL-CLOSED PARITY: organization_ref returns nil under EXACTLY the keying
-## conditions user_ref does. Executed as a table so the two cannot drift: each
-## row is [user_ref.nil?, organization_ref.nil?] and every row must agree.
-usable = [TR.user_ref(@email).nil?, TR.organization_ref(@org_objid).nil?]
+## conditions actor_ref does. Executed as a table so the two cannot drift: each
+## row is [actor_ref.nil?, organization_ref.nil?] and every row must agree.
+usable = [TR.actor_ref(@email).nil?, TR.organization_ref(@org_objid).nil?]
 no_secret = with_env_vars('FEDERATION_SECRET' => nil, 'ACCOUNT_ID_SECRET' => nil) do
-  [TR.user_ref(@email).nil?, TR.organization_ref(@org_objid).nil?]
+  [TR.actor_ref(@email).nil?, TR.organization_ref(@org_objid).nil?]
 end
 shared_no_residency = with_conf({}) do
   with_env_vars('FEDERATION_SECRET' => @shared_secret,
                 'DIAGNOSTICS_REF_REGION' => nil,
                 'ACCOUNT_ID_SECRET' => nil) do
-    [TR.user_ref(@email).nil?, TR.organization_ref(@org_objid).nil?]
+    [TR.actor_ref(@email).nil?, TR.organization_ref(@org_objid).nil?]
   end
 end
 failing_conf = with_failing_conf do
   with_env_vars('DIAGNOSTICS_REF_REGION' => nil) do
-    [TR.user_ref(@email).nil?, TR.organization_ref(@org_objid).nil?]
+    [TR.actor_ref(@email).nil?, TR.organization_ref(@org_objid).nil?]
   end
 end
 [usable, no_secret, shared_no_residency, failing_conf]
@@ -634,7 +634,7 @@ end
 
 ## FAIL-CLOSED: two installs sharing FEDERATION_SECRET with NO residency
 ## declared must not derive the same org ref. They fall to the per-deployment
-## key, exactly as user refs do.
+## key, exactly as actor refs do.
 org_a = with_conf({}) do
   with_env_vars('FEDERATION_SECRET' => @shared_secret,
                 'DIAGNOSTICS_REF_REGION' => nil,

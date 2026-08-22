@@ -8,15 +8,15 @@ import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setupTestPinia } from '../setup';
 import { mockCustomer as fixtureCustomer } from '@/tests/fixtures/bootstrap.fixture';
-import { clearDiagnosticsUserContext } from '@/services/diagnostics.service';
+import { clearDiagnosticsActorContext } from '@/services/diagnostics.service';
 import { getBootstrapValue, updateBootstrapSnapshot } from '@/services/bootstrap.service';
 
 // The soft (SPA) logout path must clear the Sentry user context. Mocked so the
 // assertion is about the store's contract, not about Sentry internals.
 vi.mock('@/services/diagnostics.service', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/services/diagnostics.service')>()),
-  clearDiagnosticsUserContext: vi.fn(),
-  setDiagnosticsUserContext: vi.fn(),
+  clearDiagnosticsActorContext: vi.fn(),
+  setDiagnosticsActorContext: vi.fn(),
 }));
 
 // Create a mock Customer object that matches the actual Customer type
@@ -704,18 +704,18 @@ describe('authStore', () => {
 
       await store.logout();
 
-      expect(clearDiagnosticsUserContext).toHaveBeenCalledTimes(1);
+      expect(clearDiagnosticsActorContext).toHaveBeenCalledTimes(1);
     });
 
     // REGRESSION: clearing the Sentry scope is only half of it. The ref also
     // sits in the pre-Pinia bootstrap.service snapshot, which
     // updateBootstrapSnapshot can never remove (it skips undefined by design).
     // A soft logout that left it there keeps the previous ref readable via
-    // getBootstrapValue('diagnostics_ref') — the stale identity that any later
+    // getBootstrapValue('diagnostics_ref') — the stale reference that any later
     // re-resolve would pick up and attach to an anonymous session's events.
     it('evicts the ref from the pre-Pinia bootstrap snapshot on soft logout', async () => {
       updateBootstrapSnapshot({
-        diagnostics_ref: { user_ref: 'a1b2c3d4e5f60718', user_scope: 'federated' },
+        diagnostics_ref: { actor_ref: 'a1b2c3d4e5f60718', actor_scope: 'federated' },
       });
       expect(getBootstrapValue('diagnostics_ref')).toBeDefined();
 

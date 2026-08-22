@@ -1,4 +1,4 @@
-// src/tests/plugins/core/diagnostics/userContext.spec.ts
+// src/tests/plugins/core/diagnostics/actorContext.spec.ts
 //
 // Tests for the Sentry user-context boundary.
 //
@@ -7,7 +7,7 @@
 //   2. Anything the strict contract does not recognise CLEARS the context
 //      rather than partially applying it (fail-closed).
 //   3. Anonymous sessions are never given a fallback id.
-//   4. Clearing removes the user_scope tag as well as the user.
+//   4. Clearing removes the actor_scope tag as well as the user.
 //   5. Both scopes always agree.
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -21,19 +21,19 @@ vi.mock('@/services/bootstrap.service', () => ({
 }));
 
 import {
-  USER_SCOPE_TAG,
-  applyUserContext,
+  ACTOR_SCOPE_TAG,
+  applyActorContext,
   parseDiagnosticsRefBlock,
   resolveDiagnosticsRef,
   sanitizeEventUser,
-  type UserContextScope,
-} from '@/plugins/core/diagnostics/userContext';
+  type ActorContextScope,
+} from '@/plugins/core/diagnostics/actorContext';
 
 function createScope() {
   return {
     setUser: vi.fn(),
     setTag: vi.fn(),
-  } as unknown as UserContextScope & {
+  } as unknown as ActorContextScope & {
     setUser: ReturnType<typeof vi.fn>;
     setTag: ReturnType<typeof vi.fn>;
   };
@@ -44,7 +44,7 @@ function createScope() {
 // the contract checks content, not just type.
 const REF = 'a1b2c3d4e5f60718';
 const OTHER_REF = '00112233445566ff';
-const VALID = { user_ref: REF, user_scope: 'federated' } as const;
+const VALID = { actor_ref: REF, actor_scope: 'federated' } as const;
 
 describe('parseDiagnosticsRefBlock', () => {
   it('accepts a well-formed federated block', () => {
@@ -52,9 +52,9 @@ describe('parseDiagnosticsRefBlock', () => {
   });
 
   it('accepts the deployment scope', () => {
-    expect(parseDiagnosticsRefBlock({ user_ref: OTHER_REF, user_scope: 'deployment' })).toEqual({
-      user_ref: OTHER_REF,
-      user_scope: 'deployment',
+    expect(parseDiagnosticsRefBlock({ actor_ref: OTHER_REF, actor_scope: 'deployment' })).toEqual({
+      actor_ref: OTHER_REF,
+      actor_scope: 'deployment',
     });
   });
 
@@ -71,13 +71,13 @@ describe('parseDiagnosticsRefBlock', () => {
   });
 
   it('rejects a scope outside the closed enum', () => {
-    expect(parseDiagnosticsRefBlock({ user_ref: REF, user_scope: 'anonymous' })).toBeNull();
-    expect(parseDiagnosticsRefBlock({ user_ref: REF, user_scope: '' })).toBeNull();
+    expect(parseDiagnosticsRefBlock({ actor_ref: REF, actor_scope: 'anonymous' })).toBeNull();
+    expect(parseDiagnosticsRefBlock({ actor_ref: REF, actor_scope: '' })).toBeNull();
   });
 
   it('rejects an empty or non-string ref', () => {
-    expect(parseDiagnosticsRefBlock({ user_ref: '', user_scope: 'federated' })).toBeNull();
-    expect(parseDiagnosticsRefBlock({ user_ref: 42, user_scope: 'federated' })).toBeNull();
+    expect(parseDiagnosticsRefBlock({ actor_ref: '', actor_scope: 'federated' })).toBeNull();
+    expect(parseDiagnosticsRefBlock({ actor_ref: 42, actor_scope: 'federated' })).toBeNull();
   });
 
   // THE LAUNDERING CASE. A shape-only check (non-empty string) passes this
@@ -86,43 +86,43 @@ describe('parseDiagnosticsRefBlock', () => {
   // the `email` KEY it was never in.
   it('REJECTS an email in the ref field — content, not just shape', () => {
     expect(
-      parseDiagnosticsRefBlock({ user_ref: 'alice@example.com', user_scope: 'deployment' })
+      parseDiagnosticsRefBlock({ actor_ref: 'alice@example.com', actor_scope: 'deployment' })
     ).toBeNull();
   });
 
   it('rejects refs of the wrong width, case, or alphabet', () => {
-    expect(parseDiagnosticsRefBlock({ user_ref: 'ref', user_scope: 'federated' })).toBeNull();
+    expect(parseDiagnosticsRefBlock({ actor_ref: 'ref', actor_scope: 'federated' })).toBeNull();
     // Too short / too long by one.
     expect(
-      parseDiagnosticsRefBlock({ user_ref: 'a1b2c3d4e5f6071', user_scope: 'federated' })
+      parseDiagnosticsRefBlock({ actor_ref: 'a1b2c3d4e5f6071', actor_scope: 'federated' })
     ).toBeNull();
     expect(
-      parseDiagnosticsRefBlock({ user_ref: 'a1b2c3d4e5f607180', user_scope: 'federated' })
+      parseDiagnosticsRefBlock({ actor_ref: 'a1b2c3d4e5f607180', actor_scope: 'federated' })
     ).toBeNull();
     // Uppercase: Ruby's hexdigest is lowercase, so this is not our value.
     expect(
-      parseDiagnosticsRefBlock({ user_ref: 'A1B2C3D4E5F60718', user_scope: 'federated' })
+      parseDiagnosticsRefBlock({ actor_ref: 'A1B2C3D4E5F60718', actor_scope: 'federated' })
     ).toBeNull();
     // Non-hex, right length.
     expect(
-      parseDiagnosticsRefBlock({ user_ref: 'zzzzzzzzzzzzzzzz', user_scope: 'federated' })
+      parseDiagnosticsRefBlock({ actor_ref: 'zzzzzzzzzzzzzzzz', actor_scope: 'federated' })
     ).toBeNull();
     // A full-width federation email hash (32 hex) is NOT a diagnostics ref.
     expect(
       parseDiagnosticsRefBlock({
-        user_ref: 'a1b2c3d4e5f60718a1b2c3d4e5f60718',
-        user_scope: 'federated',
+        actor_ref: 'a1b2c3d4e5f60718a1b2c3d4e5f60718',
+        actor_scope: 'federated',
       })
     ).toBeNull();
     // Whitespace padding must not be tolerated (anchored pattern).
     expect(
-      parseDiagnosticsRefBlock({ user_ref: ' a1b2c3d4e5f60718', user_scope: 'federated' })
+      parseDiagnosticsRefBlock({ actor_ref: ' a1b2c3d4e5f60718', actor_scope: 'federated' })
     ).toBeNull();
   });
 
   it('rejects a missing field', () => {
-    expect(parseDiagnosticsRefBlock({ user_ref: REF })).toBeNull();
-    expect(parseDiagnosticsRefBlock({ user_scope: 'federated' })).toBeNull();
+    expect(parseDiagnosticsRefBlock({ actor_ref: REF })).toBeNull();
+    expect(parseDiagnosticsRefBlock({ actor_scope: 'federated' })).toBeNull();
   });
 
   it('rejects non-object shapes', () => {
@@ -148,11 +148,11 @@ describe('resolveDiagnosticsRef', () => {
   });
 });
 
-describe('applyUserContext', () => {
+describe('applyActorContext', () => {
   it('sets only { id, ip_address: null } — never email, name, or an IP', () => {
     const scope = createScope();
 
-    applyUserContext([scope], VALID);
+    applyActorContext([scope], VALID);
 
     expect(scope.setUser).toHaveBeenCalledTimes(1);
     const user = scope.setUser.mock.calls[0][0];
@@ -164,9 +164,9 @@ describe('applyUserContext', () => {
   it('does not forward extra fields even if they survive into the block', () => {
     const scope = createScope();
 
-    // Bypasses the parser deliberately: proves applyUserContext constructs
+    // Bypasses the parser deliberately: proves applyActorContext constructs
     // the user literally rather than spreading its input.
-    applyUserContext([scope], {
+    applyActorContext([scope], {
       ...VALID,
       email: 'user@example.com',
     } as never);
@@ -180,37 +180,37 @@ describe('applyUserContext', () => {
   // A TypeScript type is not a runtime guarantee: a cast, a hand-built object,
   // or a caller that skips parseDiagnosticsRefBlock all reach here. An
   // unrecognised ref must clear the context, and must not leave a lone
-  // user_scope tag behind labelling an unidentified session as identified.
+  // actor_scope tag behind labelling an unidentified session as identified.
   it('refuses an unrecognised ref and clears BOTH user and the scope tag', () => {
     const scope = createScope();
 
-    applyUserContext([scope], {
-      user_ref: 'alice@example.com',
-      user_scope: 'federated',
+    applyActorContext([scope], {
+      actor_ref: 'alice@example.com',
+      actor_scope: 'federated',
     } as never);
 
     expect(scope.setUser).toHaveBeenCalledWith(null);
-    expect(scope.setTag).toHaveBeenCalledWith(USER_SCOPE_TAG, undefined);
+    expect(scope.setTag).toHaveBeenCalledWith(ACTOR_SCOPE_TAG, undefined);
   });
 
-  it('tags user_scope with the validated enum value', () => {
+  it('tags actor_scope with the validated enum value', () => {
     const scope = createScope();
-    applyUserContext([scope], VALID);
-    expect(scope.setTag).toHaveBeenCalledWith(USER_SCOPE_TAG, 'federated');
+    applyActorContext([scope], VALID);
+    expect(scope.setTag).toHaveBeenCalledWith(ACTOR_SCOPE_TAG, 'federated');
   });
 
-  it('clears user AND user_scope tag when given null (logout / anonymous)', () => {
+  it('clears user AND actor_scope tag when given null (logout / anonymous)', () => {
     const scope = createScope();
 
-    applyUserContext([scope], null);
+    applyActorContext([scope], null);
 
     expect(scope.setUser).toHaveBeenCalledWith(null);
-    expect(scope.setTag).toHaveBeenCalledWith(USER_SCOPE_TAG, undefined);
+    expect(scope.setTag).toHaveBeenCalledWith(ACTOR_SCOPE_TAG, undefined);
   });
 
   it('never mints a fallback id for an anonymous session', () => {
     const scope = createScope();
-    applyUserContext([scope], null);
+    applyActorContext([scope], null);
     expect(scope.setUser).toHaveBeenCalledTimes(1);
     expect(scope.setUser.mock.calls[0][0]).toBeNull();
   });
@@ -219,14 +219,14 @@ describe('applyUserContext', () => {
     const isolated = createScope();
     const current = createScope();
 
-    applyUserContext([isolated, current], VALID);
+    applyActorContext([isolated, current], VALID);
 
     for (const scope of [isolated, current]) {
       expect(scope.setUser).toHaveBeenCalledWith({
         id: REF,
         ip_address: null,
       });
-      expect(scope.setTag).toHaveBeenCalledWith(USER_SCOPE_TAG, 'federated');
+      expect(scope.setTag).toHaveBeenCalledWith(ACTOR_SCOPE_TAG, 'federated');
     }
   });
 
@@ -234,8 +234,8 @@ describe('applyUserContext', () => {
     const isolated = createScope();
     const current = createScope();
 
-    applyUserContext([isolated, current], VALID);
-    applyUserContext([isolated, current], null);
+    applyActorContext([isolated, current], VALID);
+    applyActorContext([isolated, current], null);
 
     expect(isolated.setUser).toHaveBeenLastCalledWith(null);
     expect(current.setUser).toHaveBeenLastCalledWith(null);
@@ -267,7 +267,7 @@ describe('sanitizeEventUser (outbound final gate)', () => {
   });
 
   // The gate is a FILTER, not a launderer. `Sentry.setUser({ id: cust.email })`
-  // is one line away anywhere in the app and never touches userContext.ts;
+  // is one line away anywhere in the app and never touches actorContext.ts;
   // keeping `id` on a type check alone would forward that address on every
   // event while deleting the `email` key beside it.
   it('DROPS the user context when id is an email rather than an opaque ref', () => {

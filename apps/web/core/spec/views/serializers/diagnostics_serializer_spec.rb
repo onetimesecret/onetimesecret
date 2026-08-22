@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-# Coverage for DiagnosticsSerializer's pseudonymous user reference.
+# Coverage for DiagnosticsSerializer's pseudonymous actor reference.
 #
 # The bootstrap payload is the only channel that hands the browser Sentry SDK
 # an reference, so this file pins the two directions that can go wrong:
@@ -147,13 +147,13 @@ RSpec.describe Core::Views::DiagnosticsSerializer do
     before { stub_keying('federated') }
 
     it 'emits an opaque ref labelled federated' do
-      expect(output['diagnostics_ref']['user_scope']).to eq('federated')
-      expect(output['diagnostics_ref']['user_ref']).to match(/\A[0-9a-f]{16}\z/)
+      expect(output['diagnostics_ref']['actor_scope']).to eq('federated')
+      expect(output['diagnostics_ref']['actor_ref']).to match(/\A[0-9a-f]{16}\z/)
     end
 
     it 'matches the reference the module derives for that email' do
-      expect(output['diagnostics_ref']['user_ref'])
-        .to eq(Onetime::Utils::DiagnosticsRef.user_ref(email))
+      expect(output['diagnostics_ref']['actor_ref'])
+        .to eq(Onetime::Utils::DiagnosticsRef.actor_ref(email))
     end
   end
 
@@ -161,8 +161,8 @@ RSpec.describe Core::Views::DiagnosticsSerializer do
     before { stub_keying('deployment', residency: nil) }
 
     it 'emits an opaque ref labelled deployment' do
-      expect(output['diagnostics_ref']['user_scope']).to eq('deployment')
-      expect(output['diagnostics_ref']['user_ref']).to match(/\A[0-9a-f]{16}\z/)
+      expect(output['diagnostics_ref']['actor_scope']).to eq('deployment')
+      expect(output['diagnostics_ref']['actor_ref']).to match(/\A[0-9a-f]{16}\z/)
     end
   end
 
@@ -177,7 +177,7 @@ RSpec.describe Core::Views::DiagnosticsSerializer do
       with_env('FEDERATION_SECRET' => 'shared-across-regional-instances',
                'DIAGNOSTICS_REF_REGION' => nil,
                'ACCOUNT_ID_SECRET' => 'per-install-only') do
-        expect(output['diagnostics_ref']['user_scope']).to eq('deployment')
+        expect(output['diagnostics_ref']['actor_scope']).to eq('deployment')
       end
     end
 
@@ -198,13 +198,13 @@ RSpec.describe Core::Views::DiagnosticsSerializer do
         described_class.serialize(view_vars)['diagnostics_ref']
       end
 
-      expect(region_a['user_ref']).not_to eq(region_b['user_ref'])
+      expect(region_a['actor_ref']).not_to eq(region_b['actor_ref'])
     end
 
     it 'restores federated keying once a residency scope is declared' do
       with_env('FEDERATION_SECRET' => 'shared-across-regional-instances',
                'DIAGNOSTICS_REF_REGION' => 'eu') do
-        expect(output['diagnostics_ref']['user_scope']).to eq('federated')
+        expect(output['diagnostics_ref']['actor_scope']).to eq('federated')
       end
     end
   end
@@ -318,25 +318,25 @@ RSpec.describe Core::Views::DiagnosticsSerializer do
     end
 
     it 'does not collide two jurisdictions onto one ref' do
-      expect(faulted('eu')['user_ref']).not_to eq(faulted('us')['user_ref'])
+      expect(faulted('eu')['actor_ref']).not_to eq(faulted('us')['actor_ref'])
     end
 
     it 'does not invert the label downward over a federation-keyed ref' do
       expected = OpenSSL::HMAC.hexdigest(
         'SHA256', shared,
-        [Onetime::Utils::DiagnosticsRef::USER_INFO, 'eu', email]
+        [Onetime::Utils::DiagnosticsRef::ACTOR_INFO, 'eu', email]
           .join(Onetime::Utils::DiagnosticsRef::SEPARATOR),
       )[0, Onetime::Utils::DiagnosticsRef::REF_LENGTH]
 
-      expect(faulted('eu')['user_ref']).to eq(expected)
-      expect(faulted('eu')['user_scope']).to eq('federated')
+      expect(faulted('eu')['actor_ref']).to eq(expected)
+      expect(faulted('eu')['actor_scope']).to eq('federated')
     end
 
     it 'keys on the read that chose the secret when the jurisdiction drifts' do
       drifted = with_env(env) { with_drifting_jurisdiction('eu', 'us') { diagnostics_ref } }
 
       expect(drifted).to eq(healthy('eu'))
-      expect(drifted['user_ref']).not_to eq(healthy('us')['user_ref'])
+      expect(drifted['actor_ref']).not_to eq(healthy('us')['actor_ref'])
     end
   end
 
@@ -357,7 +357,7 @@ RSpec.describe Core::Views::DiagnosticsSerializer do
     it 'carries exactly the two keys the strict frontend schema accepts' do
       # A third key fails diagnosticsSchema (z.strictObject) and the client
       # discards the whole block — so widening this is a silent regression.
-      expect(output['diagnostics_ref'].keys).to contain_exactly('user_ref', 'user_scope')
+      expect(output['diagnostics_ref'].keys).to contain_exactly('actor_ref', 'actor_scope')
     end
 
     # A pseudonymous organization ref DOES exist (DiagnosticsRef.organization_ref,
@@ -365,11 +365,11 @@ RSpec.describe Core::Views::DiagnosticsSerializer do
     # here. This block is per-SESSION and the org ref is per-RESOURCE: a session
     # touches many organizations, so any value pinned here would be tagged onto
     # later events about other orgs. And mechanically it is a third key in a
-    # strictObject — the client would drop user_ref and user_scope with it.
+    # strictObject — the client would drop actor_ref and actor_scope with it.
     it 'stays a two-key per-session block even though org refs now exist' do
       expect(Onetime::Utils::DiagnosticsRef).to respond_to(:organization_ref)
 
-      expect(output['diagnostics_ref'].keys).to contain_exactly('user_ref', 'user_scope')
+      expect(output['diagnostics_ref'].keys).to contain_exactly('actor_ref', 'actor_scope')
       expect(output['diagnostics_ref']).not_to have_key('organization_ref')
     end
 
@@ -384,7 +384,7 @@ RSpec.describe Core::Views::DiagnosticsSerializer do
       expect(output.to_json).not_to include(org_ref)
     end
 
-    # user_scope is an ACCEPTED disclosure: it tells an authenticated browser
+    # actor_scope is an ACCEPTED disclosure: it tells an authenticated browser
     # how this install is keyed. That is accepted because the frontend uses it
     # as the correlation-blast-radius tag on every Sentry event. It is accepted
     # ONLY while it describes the key — the moment it varies per account it is
@@ -400,8 +400,8 @@ RSpec.describe Core::Views::DiagnosticsSerializer do
 
       other_output = described_class.serialize(view_vars.merge('cust' => other))
 
-      expect(other_output['diagnostics_ref']['user_scope']).to eq(output['diagnostics_ref']['user_scope'])
-      expect(other_output['diagnostics_ref']['user_ref']).not_to eq(output['diagnostics_ref']['user_ref'])
+      expect(other_output['diagnostics_ref']['actor_scope']).to eq(output['diagnostics_ref']['actor_scope'])
+      expect(other_output['diagnostics_ref']['actor_ref']).not_to eq(output['diagnostics_ref']['actor_ref'])
     end
   end
 
@@ -433,8 +433,8 @@ RSpec.describe Core::Views::DiagnosticsSerializer do
       let(:email) { 'operator@example.com'.dup.force_encoding(Encoding::ASCII_8BIT) }
 
       it 'still emits the same ref as the correctly tagged address' do
-        expect(output['diagnostics_ref']['user_ref'])
-          .to eq(Onetime::Utils::DiagnosticsRef.user_ref('operator@example.com'))
+        expect(output['diagnostics_ref']['actor_ref'])
+          .to eq(Onetime::Utils::DiagnosticsRef.actor_ref('operator@example.com'))
       end
     end
   end

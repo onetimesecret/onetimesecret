@@ -190,14 +190,14 @@ module Onetime
     #
     # @param candidate [#email, #anonymous?, String, nil] customer or email
     # @return [Hash{Symbol=>String}, nil] { id: <16 hex> }, or nil
-    def self.diagnostics_user(candidate)
+    def self.diagnostics_actor(candidate)
       return nil if candidate.nil?
       return nil if candidate.respond_to?(:anonymous?) && candidate.anonymous?
 
       email = candidate.respond_to?(:email) ? candidate.email : candidate
       return nil if email.nil? || email.to_s.strip.empty?
 
-      ref = Onetime::Utils::DiagnosticsRef.user_ref(email)
+      ref = Onetime::Utils::DiagnosticsRef.actor_ref(email)
       return nil if ref.nil? || ref.to_s.empty?
 
       { id: ref }
@@ -218,10 +218,10 @@ module Onetime
     # @param scope [Sentry::Scope] event-scoped Sentry scope
     # @param candidate [#email, #anonymous?, String, nil] customer or email
     # @return [Boolean] true when a user was set
-    def self.set_diagnostics_user(scope, candidate)
+    def self.set_diagnostics_actor(scope, candidate)
       return false unless scope.respond_to?(:set_user)
 
-      user = diagnostics_user(candidate)
+      user = diagnostics_actor(candidate)
       return false if user.nil?
 
       scope.set_user(user)
@@ -284,7 +284,7 @@ module Onetime
         event_id = Sentry.capture_exception(ex) do |scope|
           # Event-scoped: capture_exception's block scope is per-event, so
           # this cannot bleed onto a later event on the same thread.
-          Onetime::ErrorHandler.set_diagnostics_user(scope, subject)
+          Onetime::ErrorHandler.set_diagnostics_actor(scope, subject)
           scope.set_context('error_handler', { operation: operation, **context })
           scope.set_level(:warning)
           scope.set_tags(operation: operation, error_handler: true)

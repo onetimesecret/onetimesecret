@@ -11,10 +11,10 @@
 // access to Sentry because they couldn't use Vue's inject() mechanism.
 
 import {
-  applyUserContext,
+  applyActorContext,
   parseDiagnosticsRefBlock,
-  type UserContextScope,
-} from '@/plugins/core/diagnostics/userContext';
+  type ActorContextScope,
+} from '@/plugins/core/diagnostics/actorContext';
 import { Scope, getCurrentScope, type BrowserClient } from '@sentry/browser';
 
 interface DiagnosticsClient {
@@ -208,7 +208,7 @@ export function captureMessage(
  * per capture and never cache the clone, so a later context change is picked
  * up by the next capture. Do not hoist those clones.
  */
-function userContextScopes(): UserContextScope[] {
+function actorContextScopes(): ActorContextScope[] {
   if (!diagnosticsClient) {
     return [];
   }
@@ -224,7 +224,7 @@ function userContextScopes(): UserContextScope[] {
  * resolve to null and CLEAR the context rather than partially applying it.
  * Passing null clears it outright.
  *
- * Emits exactly `user = { id: <ref>, ip_address: null }` and the `user_scope`
+ * Emits exactly `user = { id: <ref>, ip_address: null }` and the `actor_scope`
  * tag. Never an email, name, objid, extid, or IP.
  *
  * Safe to call when diagnostics are disabled — it is a no-op.
@@ -235,24 +235,24 @@ function userContextScopes(): UserContextScope[] {
  * @example
  * ```typescript
  * // bootstrapStore.update(), covering login, MFA completion, and refresh
- * setDiagnosticsUserContext(data.diagnostics_ref);
+ * setDiagnosticsActorContext(data.diagnostics_ref);
  * ```
  */
-export function setDiagnosticsUserContext(block: unknown): void {
-  const scopes = userContextScopes();
+export function setDiagnosticsActorContext(block: unknown): void {
+  const scopes = actorContextScopes();
   if (scopes.length === 0) {
     return;
   }
-  applyUserContext(scopes, parseDiagnosticsRefBlock(block));
+  applyActorContext(scopes, parseDiagnosticsRefBlock(block));
 }
 
 /**
  * Clears the Sentry user context: `setUser(null)` plus removal of the
- * `user_scope` tag, on every scope.
+ * `actor_scope` tag, on every scope.
  *
  * Call on LOGOUT and on any account change where the new session's ref is not
  * yet known. The tag removal matters as much as the user clear — a stale
- * `user_scope` would let a now-anonymous session be filtered in Sentry as
+ * `actor_scope` would let a now-anonymous session be filtered in Sentry as
  * though it were still the previous, identified session.
  *
  * Only the soft/SPA logout path needs this. Hard logouts navigate with
@@ -261,10 +261,10 @@ export function setDiagnosticsUserContext(block: unknown): void {
  *
  * Safe to call when diagnostics are disabled — it is a no-op.
  */
-export function clearDiagnosticsUserContext(): void {
-  const scopes = userContextScopes();
+export function clearDiagnosticsActorContext(): void {
+  const scopes = actorContextScopes();
   if (scopes.length === 0) {
     return;
   }
-  applyUserContext(scopes, null);
+  applyActorContext(scopes, null);
 }

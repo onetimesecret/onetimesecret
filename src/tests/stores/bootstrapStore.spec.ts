@@ -27,11 +27,11 @@ vi.mock('@/services/bootstrap.service', () => ({
   _resetForTesting: vi.fn(),
 }));
 
-// update() calls into the diagnostics facade on every identity transition.
+// update() calls into the diagnostics facade on every account transition.
 // The facade no-ops when Sentry is not initialized, but the store spec should
 // not depend on Sentry internals at all.
 vi.mock('@/services/diagnostics.service', () => ({
-  setDiagnosticsUserContext: vi.fn(),
+  setDiagnosticsActorContext: vi.fn(),
 }));
 
 describe('bootstrapStore', () => {
@@ -1661,18 +1661,18 @@ describe('bootstrapStore', () => {
 
 describe('bootstrapStore user context', () => {
   let store: ReturnType<typeof useBootstrapStore>;
-  let mockSetUserContext: Mock;
+  let mockSetActorContext: Mock;
   let mockClearSnapshotKey: Mock;
 
   // 16 lowercase hex, matching what DiagnosticsRef derives and what
-  // DIAGNOSTICS_REF_PATTERN admits. setDiagnosticsUserContext is mocked here,
+  // DIAGNOSTICS_REF_PATTERN admits. setDiagnosticsActorContext is mocked here,
   // but fixtures stay honest so a copy-paste into an unmocked test still
   // passes the contract.
-  const REF_BLOCK = { user_ref: 'a1b2c3d4e5f60718', user_scope: 'federated' } as const;
+  const REF_BLOCK = { actor_ref: 'a1b2c3d4e5f60718', actor_scope: 'federated' } as const;
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    mockSetUserContext = vi.mocked(diagnosticsService.setDiagnosticsUserContext);
+    mockSetActorContext = vi.mocked(diagnosticsService.setDiagnosticsActorContext);
     mockClearSnapshotKey = vi.mocked(bootstrapService.clearBootstrapSnapshotKey);
     await setupTestPinia();
     store = useBootstrapStore();
@@ -1690,7 +1690,7 @@ describe('bootstrapStore user context', () => {
     } as Partial<BootstrapPayload>);
 
     expect(store.diagnostics_ref).toEqual(REF_BLOCK);
-    expect(mockSetUserContext).toHaveBeenCalledWith(REF_BLOCK);
+    expect(mockSetActorContext).toHaveBeenCalledWith(REF_BLOCK);
   });
 
   it('clears the context when a full payload OMITS diagnostics_ref (anonymous)', () => {
@@ -1698,14 +1698,14 @@ describe('bootstrapStore user context', () => {
       authenticated: true,
       diagnostics_ref: { ...REF_BLOCK },
     } as Partial<BootstrapPayload>);
-    mockSetUserContext.mockClear();
+    mockSetActorContext.mockClear();
 
     // A full /bootstrap/me body reporting an anonymous session: the block is
     // absent, not null. filterDefined() alone would leave the old ref.
     store.update({ authenticated: false } as Partial<BootstrapPayload>);
 
     expect(store.diagnostics_ref).toBeUndefined();
-    expect(mockSetUserContext).toHaveBeenCalledWith(null);
+    expect(mockSetActorContext).toHaveBeenCalledWith(null);
     expect(mockClearSnapshotKey).toHaveBeenCalledWith('diagnostics_ref');
   });
 
@@ -1715,11 +1715,11 @@ describe('bootstrapStore user context', () => {
       diagnostics_ref: { ...REF_BLOCK },
     } as Partial<BootstrapPayload>);
 
-    const next = { user_ref: '00112233445566ff', user_scope: 'deployment' } as const;
+    const next = { actor_ref: '00112233445566ff', actor_scope: 'deployment' } as const;
     store.update({ authenticated: true, diagnostics_ref: { ...next } } as Partial<BootstrapPayload>);
 
     expect(store.diagnostics_ref).toEqual(next);
-    expect(mockSetUserContext).toHaveBeenLastCalledWith(next);
+    expect(mockSetActorContext).toHaveBeenLastCalledWith(next);
   });
 
   it('leaves the context alone for a narrow patch that carries no auth state', () => {
@@ -1727,12 +1727,12 @@ describe('bootstrapStore user context', () => {
       authenticated: true,
       diagnostics_ref: { ...REF_BLOCK },
     } as Partial<BootstrapPayload>);
-    mockSetUserContext.mockClear();
+    mockSetActorContext.mockClear();
 
     // Silence about diagnostics_ref here means "unchanged", not "anonymous".
     store.update({ has_password: true } as Partial<BootstrapPayload>);
 
-    expect(mockSetUserContext).not.toHaveBeenCalled();
+    expect(mockSetActorContext).not.toHaveBeenCalled();
     expect(store.diagnostics_ref).toEqual(REF_BLOCK);
   });
 

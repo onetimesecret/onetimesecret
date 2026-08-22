@@ -4,7 +4,7 @@
 
 # Tests for Core::Controllers::Base#capture_error scope ordering.
 #
-# The pseudonymous user ref must be applied AFTER the caller's block runs on
+# The pseudonymous actor ref must be applied AFTER the caller's block runs on
 # the scope, so a block calling scope.set_user cannot replace the opaque ref
 # with raw identifiers (email, custid). The block is intentionally NOT
 # forwarded into Sentry.capture_exception for the same reason: Sentry runs a
@@ -58,11 +58,11 @@ RSpec.describe Core::Controllers::Base do
 
   it 'runs the caller block on the scope before setting the pseudonymous user' do
     calls = []
-    allow(Onetime::ErrorHandler).to receive(:set_diagnostics_user) { calls << :diagnostics_user }
+    allow(Onetime::ErrorHandler).to receive(:set_diagnostics_actor) { calls << :diagnostics_actor }
 
     controller.send(:capture_error, ex) { |_scope| calls << :caller_block }
 
-    expect(calls).to eq([:caller_block, :diagnostics_user])
+    expect(calls).to eq([:caller_block, :diagnostics_actor])
   end
 
   it 'does not forward the caller block into capture_exception' do
@@ -77,7 +77,7 @@ RSpec.describe Core::Controllers::Base do
   it 'lets the opaque ref win over a block that sets a raw user' do
     users = []
     allow(mock_scope).to receive(:set_user) { |user| users << user }
-    allow(Onetime::ErrorHandler).to receive(:set_diagnostics_user) do |scope, _candidate|
+    allow(Onetime::ErrorHandler).to receive(:set_diagnostics_actor) do |scope, _candidate|
       scope.set_user({ 'id' => 'opaque-ref' })
       true
     end
@@ -90,7 +90,7 @@ RSpec.describe Core::Controllers::Base do
   end
 
   it 'still captures when no block is given' do
-    allow(Onetime::ErrorHandler).to receive(:set_diagnostics_user).and_return(false)
+    allow(Onetime::ErrorHandler).to receive(:set_diagnostics_actor).and_return(false)
 
     controller.send(:capture_error, ex)
 

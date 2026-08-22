@@ -2,7 +2,7 @@
 
 import { PiniaPluginOptions } from '@/plugins/pinia/types';
 import { classifyError, errorGuards } from '@/schemas/errors';
-import { clearDiagnosticsUserContext } from '@/services/diagnostics.service';
+import { clearDiagnosticsActorContext } from '@/services/diagnostics.service';
 import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties, storeToRefs } from 'pinia';
@@ -425,7 +425,7 @@ export const useAuthStore = defineStore('auth', () => {
     bootstrapStore.resetForLogout();
 
     // Clear the Sentry user context: setUser(null) plus removal of the
-    // `user_scope` tag, on BOTH the isolated and current scopes.
+    // `actor_scope` tag, on BOTH the isolated and current scopes.
     //
     // This is the SOFT (SPA) logout path — no page navigation follows, so the
     // Sentry scopes survive with whatever user context was last written.
@@ -439,7 +439,7 @@ export const useAuthStore = defineStore('auth', () => {
     // JS context and the scopes with it.
     //
     // No-ops when diagnostics are disabled, so it is called unconditionally.
-    clearDiagnosticsUserContext();
+    clearDiagnosticsActorContext();
 
     deleteCookie('sess');
     deleteCookie('locale');
