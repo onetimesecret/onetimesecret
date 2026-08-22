@@ -39,12 +39,52 @@ Tree-shaken explicit list: `breadcrumbs`, `globalHandlers`, `linkedErrors`,
 URL), `eventFilters` (noise reduction), `browserApiErrors` (full async stack
 traces), `functionToString`, `browserTracing({ router })`.
 
-## Tags
+## Actor context and tags
+
+For authenticated sessions, the bootstrap payload can include
+`diagnostics_ref` with an opaque `actor_ref` and an `actor_scope`. The client
+sets Sentry `user.id` to `actor_ref` and adds `actor_scope` as an indexed tag.
+It sends no direct identifier such as an email address or customer ID, but the
+stable pseudonymous reference is still potentially personal data.
+
+`actor_scope` describes the correlation boundary, not the authentication
+method:
+
+- `federated` uses `FEDERATION_SECRET` and a resolved residency scope. Instances
+  expected to correlate must share both the effective secret and residency
+  scope; distinct residencies must use distinct scopes.
+- `deployment` uses `ACCOUNT_ID_SECRET` for the current installation. Do not
+  copy this secret between installations.
+
+The server resolves residency from `DIAGNOSTICS_REF_REGION`, then
+`JURISDICTION`. If `FEDERATION_SECRET` has no resolved residency, it is not
+used for diagnostics references; `ACCOUNT_ID_SECRET` is the fallback. If no
+usable secret exists, and for anonymous or malformed bootstrap data, the client
+clears user context. Changing the effective scope or selected secret re-keys
+references and breaks correlation with prior events.
 
 On the base scope: `service: web`, `site_host` (display domain),
 `jurisdiction` (from bootstrap regions). Per-event indexed tags via the
 `context` argument of `captureException` — see `TAG_FIELDS` in
 diagnostics.service.ts (`errorType`, `schema`, `planid`, `role`, ...).
+
+Organization correlation is not active. The current Colonel organization-detail
+schema discards the backend `organization_ref` field, and no frontend code
+attaches an organization tag to Sentry.
+
+## Issue grouping
+
+Schema-validation events whose messages include a schema name receive a
+fingerprint based on that name. Axios-shaped request errors whose original
+exception has `config.url` receive a fingerprint of the request method, the
+path normalized by the existing URL scrubbers, and an outcome. The outcome is
+the HTTP status when available, otherwise a coarse `aborted`, `network`, or
+error-class value.
+
+This does not resolve arbitrary route templates: only paths covered by the
+existing scrubbers are normalized. Errors without `config.url`, schema errors
+without a schema name, and events that already set a fingerprint retain
+Sentry's default or upstream grouping.
 
 ## Scrubbing
 

@@ -85,8 +85,8 @@
 
 import {
   DIAGNOSTICS_REF_PATTERN,
-  isDiagnosticsRef,
   diagnosticsRefSchema,
+  isDiagnosticsRef,
   type DiagnosticsRefBlock,
 } from '@/schemas/contracts/bootstrap';
 import { getBootstrapValue } from '@/services/bootstrap.service';
@@ -114,7 +114,7 @@ export type ActorContextScope = Pick<Scope, 'setUser' | 'setTag'>;
  * spread from server data.
  */
 export interface DiagnosticsActor {
-  /** The opaque server-derived reference. Never PII. */
+  /** Opaque server-derived reference; potentially personal data, not a direct identifier. */
   id: string;
   /**
    * Explicit null — see the `ip_address` note in the module header. `null`

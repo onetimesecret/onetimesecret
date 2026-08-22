@@ -78,8 +78,9 @@ module Core
     #     happened to be current at render time would then be tagged onto every
     #     later event in the session, including events about other orgs.
     #
-    # The org ref rides the response record it describes, and the frontend
-    # attaches it as a tag for enrolled internal/admin schemas only.
+    # The org ref rides the response record it describes. The current frontend
+    # does not parse or attach it to Sentry; organization correlation remains a
+    # deferred feature until that end-to-end path is implemented.
     #
     # OMISSION, NOT NULLS. The `diagnostics_ref` key is absent from the payload
     # whenever there is nothing legitimate to say:

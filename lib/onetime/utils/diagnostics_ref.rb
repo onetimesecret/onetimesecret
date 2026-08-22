@@ -63,35 +63,18 @@ module Onetime
     # a federation email hash, so the two are never confusable by shape either.
     #
     # ---------------------------------------------------------------------------
-    # WHY THERE IS AN ORGANIZATION REF, AND WHAT CONSUMES IT
+    # ORGANIZATION REFERENCE: DEFERRED FRONTEND CONSUMER
     # ---------------------------------------------------------------------------
-    # An earlier revision added #organization_ref, then deleted it, because it
-    # had no consumer: nothing ever put an organization value onto a Sentry
-    # event, so there was nothing to resolve FROM, and the derivation cost
-    # personal-data budget for a lookup an operator already had org_id and extid
-    # for on the same authenticated endpoint. That reasoning was correct about
-    # THAT shape of feature. It is re-added here with the consumer supplied.
+    # #organization_ref is emitted on the Colonel organization-detail response,
+    # but it is not an active Sentry correlation feature. The current frontend
+    # response schema discards the field, and no frontend code attaches it to a
+    # Sentry event. Do not document or rely on organization correlation until a
+    # strict response contract and a narrowly scoped consumer land together.
     #
-    # The consumer is the client-side one. Sentry parameterizes the route to
-    # /api/colonel/organizations/:org_id and the real id is deliberately never
-    # sent, so an operator reading an event today cannot distinguish "one
-    # organization is broken" from "every organization is broken" — which is
-    # precisely the question the motivating defect raised (a schema parse that
-    # blanked the colonel detail page). An opaque ref, attached as a TAG on
-    # events from enrolled internal/admin schemas, answers exactly that question
-    # and nothing else: two events carrying the same ref concern one
-    # organization, and the ref cannot be looked up by anyone holding it.
-    #
-    # This is a per-RESOURCE ref, not a per-session one. It rides the colonel
-    # response record, NOT the bootstrap `diagnostics_ref` block — that block
-    # is exactly {actor_ref, actor_scope} and is parsed by a Zod strictObject
-    # (diagnosticsRefSchema), so a third key there drops the whole block on
-    # the floor.
-    #
-    # Note the constraint that decides the shape: the motivating case is a
-    # response that FAILED validation, so at tag time there is no parsed record
-    # to read a ref out of. It has to be recoverable from the RAW payload and
-    # shape-validated there, for explicitly enrolled schemas only.
+    # This remains a per-resource value, not a per-session value. It must never
+    # be added to the bootstrap `diagnostics_ref` block: that block is exactly
+    # {actor_ref, actor_scope} and the frontend parses it as a Zod strictObject.
+    # A third key would make the client discard the entire actor block.
     #
     # ---------------------------------------------------------------------------
     # RESIDENCY SCOPE (why refs deliberately do NOT correlate across regions)

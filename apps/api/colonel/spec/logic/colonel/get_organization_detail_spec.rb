@@ -9,19 +9,13 @@ require 'colonel/logic'
 # rest of it (entitlement drift, roster, domains) is not exercised here — those
 # builders are stubbed so each example is about one field.
 #
-# A pseudonymous diagnostics reference IS published: `organization_ref`, keyed
-# by Onetime::Utils::DiagnosticsRef. An earlier revision added it, deleted it
-# for having no consumer, and pinned its absence. It is back WITH the consumer:
-# Sentry parameterizes this route to /api/colonel/organizations/:org_id and
-# never carries the real id, so an operator cannot tell "one org is broken"
-# from "every org is broken". The frontend lifts the ref off the RAW payload (a
-# parse failure leaves no parsed record) and attaches it as a tag for enrolled
-# internal/admin schemas only.
+# A pseudonymous diagnostics reference is published as `organization_ref`, keyed
+# by Onetime::Utils::DiagnosticsRef. The current frontend contract discards it,
+# so it is not attached to Sentry and organization correlation is not active.
 #
-# The examples below pin what the privacy posture depends on: the ref is opaque
-# and derived, it is NOT the objid or extid it comes from, and adding it removed
-# none of the identifiers an operator legitimately reads off this authenticated
-# colonel response.
+# The examples below pin the response contract: the ref is opaque and derived,
+# is not the objid or extid it comes from, and leaves the identifiers an operator
+# legitimately reads on this authenticated Colonel response unchanged.
 #
 # Run with:
 #   tests/lanes/run unit --only apps/api/colonel/spec/logic/colonel/get_organization_detail_spec.rb

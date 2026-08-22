@@ -12,6 +12,7 @@ Sentry at catch.onetimesecret.com. Everything lives in
 - `diagnostics.sentry.workers.dsn` — worker/scheduler processes; falls back to backend DSN.
 - `diagnostics.sentry.backend.org_id` — enables `strict_trace_continuation` (rejects foreign-org trace baggage). Must be set explicitly for self-hosted Sentry.
 - Release: `SENTRY_RELEASE` env var, else `.commit_hash.txt` (baked by CI), else git/dev fallback. Matches frontend so both report the same release.
+- Actor references — `FEDERATION_SECRET` produces `federated` references only when a residency scope resolves; otherwise `ACCOUNT_ID_SECRET` produces `deployment` references. The residency scope is `DIAGNOSTICS_REF_REGION`, falling back to `JURISDICTION`. With neither usable secret, no actor reference is emitted. See [the environment reference](../../.env.reference) for fleet coordination and rotation requirements.
 
 Sampling: errors 100%, traces 10%, profiles 10% of sampled traces.
 `send_default_pii` stays at the default (false) — no IP addresses collected.
@@ -23,6 +24,22 @@ Set once at boot via `Sentry.set_tags`:
 - `site_host` — deployment identity
 - `service` — `web` or `worker` (from execution mode)
 - `jurisdiction` — lowercased region code, omitted if unconfigured
+- `actor_scope` — `federated` when `FEDERATION_SECRET` and a residency scope
+  key the actor reference; otherwise `deployment` when `ACCOUNT_ID_SECRET`
+  keys it
+
+Selected request and controller error captures set Sentry `user.id` to the
+same opaque `actor_ref` the frontend receives. This supports issue correlation
+and affected-account counts within the configured scope; it is not product
+analytics, behavioral profiling, or a cross-region identity join. The ref is
+not a direct identifier, but it is potentially personal data. Other capture
+paths can remain unattributed, so a missing `user.id` does not establish that
+an event came from an anonymous session or an unconfigured deployment.
+
+Organization correlation is not active: although the backend may emit an
+`organization_ref` on the Colonel organization-detail response, the current
+frontend response contract discards it and does not attach an organization tag
+to Sentry.
 
 ## Scrubbing
 

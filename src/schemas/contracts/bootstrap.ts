@@ -652,8 +652,9 @@ export function isDiagnosticsRef(value: unknown): value is string {
  */
 export const diagnosticsRefSchema = z.strictObject({
   /**
-   * Opaque, deterministic, server-derived reference. Never PII.
-   * Content-checked against DIAGNOSTICS_REF_PATTERN, not merely non-empty.
+   * Opaque, deterministic, server-derived reference. Not a direct identifier,
+   * but still potentially personal data. Content-checked against
+   * DIAGNOSTICS_REF_PATTERN, not merely non-empty.
    */
   actor_ref: z.string().regex(DIAGNOSTICS_REF_PATTERN),
   /** Closed enum; becomes the indexed Sentry `actor_scope` tag. */
