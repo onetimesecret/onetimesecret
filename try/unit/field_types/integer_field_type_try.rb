@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../../support/test_helpers'
-require 'onetime/field_types/integer_field_type'
+require 'onetime/field_types'
 
 OT.boot! :test, false
 

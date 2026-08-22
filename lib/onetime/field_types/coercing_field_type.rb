@@ -6,6 +6,13 @@ module Onetime
   module FieldTypes
     # Base field type for values which must be normalized before storage.
     #
+    # ## Naming note
+    #
+    # This namespace is `Onetime::FieldTypes`, not `Onetime::Familia`.
+    # Defining the latter shadows the top-level `::Familia` constant throughout
+    # `Onetime`; `class Foo < Familia::Horreum` would then resolve the wrong
+    # constant.
+    #
     # Familia's scalar persistence path calls neither FieldType#serialize nor
     # FieldType#deserialize. It assigns loaded values through the generated
     # setter and persists fast writes through the generated `field!` method,
@@ -18,8 +25,9 @@ module Onetime
     #
     # ## Establishing the pattern
     #
-    # Subclass this type to implement #coerce, require the concrete type before
-    # declaring it, then extend Macros on the model or feature module.
+    # Subclass this type to implement #coerce. Load `onetime/field_types`
+    # before declaring a field, then extend Macros on the model or feature
+    # module. The shared loader requires every concrete type used by Macros.
     class CoercingFieldType < ::Familia::FieldType
       # Coerce a value to this field type's canonical Ruby representation.
       #
@@ -45,9 +53,14 @@ module Onetime
         end
       end
 
-      # Whether Familia will treat this fast-writer call as a write. `field!`,
-      # `field!(nil)`, and Redis::Future values are reads/placeholders; forwarding
-      # them unchanged preserves Familia's API and arity errors.
+      # Whether Familia will treat this fast-writer call as a write. Familia
+      # uses the first argument for this decision, so both `field!` and
+      # `field!(nil)` are reads. Coercing nil here would turn the latter into a
+      # write for types that map nil to a stored value.
+      #
+      # Redis::Future subclasses BasicObject, so calling `value.nil?` can raise.
+      # Use Class#=== to recognize it without dereferencing the placeholder.
+      # Forwarding reads and invalid arities unchanged preserves Familia's API.
       def fast_write?(args)
         return false unless args.size == 1
 

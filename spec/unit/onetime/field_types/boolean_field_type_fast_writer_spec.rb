@@ -26,7 +26,7 @@
 # =============================================================================
 
 require 'spec_helper'
-require 'onetime/field_types/boolean_field_type'
+require 'onetime/field_types'
 
 # Throwaway models rather than Customer/CustomDomain: this is about the field
 # type, and each storage encoding needs its own declaration.

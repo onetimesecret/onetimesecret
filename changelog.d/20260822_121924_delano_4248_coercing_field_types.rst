@@ -1,3 +1,5 @@
+.. A new scriv changelog fragment.
+
 Added
 -----
 
@@ -7,4 +9,3 @@ Changed
 -------
 
 - Custom-domain favicon backoff counters now use native numeric storage. (#4248)
-..

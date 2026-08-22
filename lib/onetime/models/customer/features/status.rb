@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require_relative '../../../field_types/boolean_field_type'
+require_relative '../../../field_types'
 
 module Onetime::Customer::Features
   module Status

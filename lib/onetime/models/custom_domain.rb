@@ -4,8 +4,7 @@
 
 require 'public_suffix'
 
-require_relative '../field_types/boolean_field_type'
-require_relative '../field_types/integer_field_type'
+require_relative '../field_types'
 
 module Onetime
   # Custom Domain
