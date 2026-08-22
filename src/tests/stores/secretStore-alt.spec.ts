@@ -61,7 +61,6 @@ const createTestStore = () => defineStore('secrets', () => {
         details.value = {
           ...details.value,
           show_secret: true,
-          correct_passphrase: true,
         };
         return { record: record.value, details: details.value };
       }
@@ -78,7 +77,6 @@ const createTestStore = () => defineStore('secrets', () => {
         details.value = {
           ...details.value,
           show_secret: true,
-          correct_passphrase: true,
         };
         return { record: record.value, details: details.value };
       }
