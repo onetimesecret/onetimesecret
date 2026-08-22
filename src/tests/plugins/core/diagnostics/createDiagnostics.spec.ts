@@ -15,6 +15,7 @@ import type { Router } from 'vue-router';
 // ---------------------------------------------------------------------------
 const {
   mockSetTag,
+  mockSetUser,
   mockSetClient,
   mockClientInit,
   mockClientClose,
@@ -22,12 +23,15 @@ const {
   mockSetTransactionName,
   mockSetCurrentClient,
   mockCurrentScopeSetTag,
+  mockCurrentScopeSetUser,
   mockGetCurrentScope,
   mockGetBootstrapValue,
   MockBrowserClient,
   MockScope,
 } = vi.hoisted(() => {
   const mockSetTag = vi.fn();
+  // The user-context boundary writes setUser on the isolated scope.
+  const mockSetUser = vi.fn();
   const mockSetClient = vi.fn();
   const mockClientInit = vi.fn();
   const mockClientClose = vi.fn().mockResolvedValue(undefined);
@@ -35,7 +39,11 @@ const {
   const mockSetTransactionName = vi.fn();
   const mockSetCurrentClient = vi.fn();
   const mockCurrentScopeSetTag = vi.fn();
-  const mockGetCurrentScope = vi.fn(() => ({ setTag: mockCurrentScopeSetTag }));
+  const mockCurrentScopeSetUser = vi.fn();
+  const mockGetCurrentScope = vi.fn(() => ({
+    setTag: mockCurrentScopeSetTag,
+    setUser: mockCurrentScopeSetUser,
+  }));
   const mockGetBootstrapValue = vi.fn();
 
   class MockBrowserClient {
@@ -46,11 +54,13 @@ const {
   class MockScope {
     setClient = mockSetClient;
     setTag = mockSetTag;
+    setUser = mockSetUser;
     setTransactionName = mockSetTransactionName;
   }
 
   return {
     mockSetTag,
+    mockSetUser,
     mockSetClient,
     mockClientInit,
     mockClientClose,
@@ -58,6 +68,7 @@ const {
     mockSetTransactionName,
     mockSetCurrentClient,
     mockCurrentScopeSetTag,
+    mockCurrentScopeSetUser,
     mockGetCurrentScope,
     mockGetBootstrapValue,
     MockBrowserClient,
@@ -184,9 +195,16 @@ describe('createDiagnostics jurisdiction tagging', () => {
       router: createMockRouter(),
     });
 
-    expect(mockSetTag).toHaveBeenCalledTimes(2);
+    // 3 setTag calls: service, site_host, and the ref_scope CLEAR (undefined).
+    // The shared getBootstrapValue mock returns the same regions-shaped object
+    // for every key, so the `diagnostics_ref` read yields a block the strict
+    // contract rejects — the user context fails closed and clears rather than
+    // partially applying. See src/plugins/core/diagnostics/userContext.ts.
+    expect(mockSetTag).toHaveBeenCalledTimes(3);
     expect(mockSetTag).toHaveBeenCalledWith('service', 'web');
     expect(mockSetTag).toHaveBeenCalledWith('site_host', TEST_HOST);
+    expect(mockSetTag).toHaveBeenCalledWith('ref_scope', undefined);
+    expect(mockSetUser).toHaveBeenCalledWith(null);
   });
 
   it('does not set jurisdiction tag when current_jurisdiction is null', () => {
@@ -198,9 +216,16 @@ describe('createDiagnostics jurisdiction tagging', () => {
       router: createMockRouter(),
     });
 
-    expect(mockSetTag).toHaveBeenCalledTimes(2);
+    // 3 setTag calls: service, site_host, and the ref_scope CLEAR (undefined).
+    // The shared getBootstrapValue mock returns the same regions-shaped object
+    // for every key, so the `diagnostics_ref` read yields a block the strict
+    // contract rejects — the user context fails closed and clears rather than
+    // partially applying. See src/plugins/core/diagnostics/userContext.ts.
+    expect(mockSetTag).toHaveBeenCalledTimes(3);
     expect(mockSetTag).toHaveBeenCalledWith('service', 'web');
     expect(mockSetTag).toHaveBeenCalledWith('site_host', TEST_HOST);
+    expect(mockSetTag).toHaveBeenCalledWith('ref_scope', undefined);
+    expect(mockSetUser).toHaveBeenCalledWith(null);
   });
 
   it('does not set jurisdiction tag when current_jurisdiction is undefined', () => {
@@ -212,9 +237,16 @@ describe('createDiagnostics jurisdiction tagging', () => {
       router: createMockRouter(),
     });
 
-    expect(mockSetTag).toHaveBeenCalledTimes(2);
+    // 3 setTag calls: service, site_host, and the ref_scope CLEAR (undefined).
+    // The shared getBootstrapValue mock returns the same regions-shaped object
+    // for every key, so the `diagnostics_ref` read yields a block the strict
+    // contract rejects — the user context fails closed and clears rather than
+    // partially applying. See src/plugins/core/diagnostics/userContext.ts.
+    expect(mockSetTag).toHaveBeenCalledTimes(3);
     expect(mockSetTag).toHaveBeenCalledWith('service', 'web');
     expect(mockSetTag).toHaveBeenCalledWith('site_host', TEST_HOST);
+    expect(mockSetTag).toHaveBeenCalledWith('ref_scope', undefined);
+    expect(mockSetUser).toHaveBeenCalledWith(null);
   });
 
   it('does not set jurisdiction tag when regions object is missing', () => {
@@ -226,9 +258,16 @@ describe('createDiagnostics jurisdiction tagging', () => {
       router: createMockRouter(),
     });
 
-    expect(mockSetTag).toHaveBeenCalledTimes(2);
+    // 3 setTag calls: service, site_host, and the ref_scope CLEAR (undefined).
+    // The shared getBootstrapValue mock returns the same regions-shaped object
+    // for every key, so the `diagnostics_ref` read yields a block the strict
+    // contract rejects — the user context fails closed and clears rather than
+    // partially applying. See src/plugins/core/diagnostics/userContext.ts.
+    expect(mockSetTag).toHaveBeenCalledTimes(3);
     expect(mockSetTag).toHaveBeenCalledWith('service', 'web');
     expect(mockSetTag).toHaveBeenCalledWith('site_host', TEST_HOST);
+    expect(mockSetTag).toHaveBeenCalledWith('ref_scope', undefined);
+    expect(mockSetUser).toHaveBeenCalledWith(null);
   });
 
   it('does not set jurisdiction tag when regions object has no current_jurisdiction property', () => {
@@ -240,9 +279,16 @@ describe('createDiagnostics jurisdiction tagging', () => {
       router: createMockRouter(),
     });
 
-    expect(mockSetTag).toHaveBeenCalledTimes(2);
+    // 3 setTag calls: service, site_host, and the ref_scope CLEAR (undefined).
+    // The shared getBootstrapValue mock returns the same regions-shaped object
+    // for every key, so the `diagnostics_ref` read yields a block the strict
+    // contract rejects — the user context fails closed and clears rather than
+    // partially applying. See src/plugins/core/diagnostics/userContext.ts.
+    expect(mockSetTag).toHaveBeenCalledTimes(3);
     expect(mockSetTag).toHaveBeenCalledWith('service', 'web');
     expect(mockSetTag).toHaveBeenCalledWith('site_host', TEST_HOST);
+    expect(mockSetTag).toHaveBeenCalledWith('ref_scope', undefined);
+    expect(mockSetUser).toHaveBeenCalledWith(null);
   });
 
   it('initializes Sentry client and scope', () => {
@@ -378,5 +424,109 @@ describe('createDiagnostics jurisdiction tagging', () => {
     // client.close resolves; the original unmount runs in the .then callback.
     await Promise.resolve();
     expect(originalUnmount).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ───────────────────────────────────────────────────────────────────────────────
+// USER-CONTEXT WIRING
+//
+// The unit-level behaviour lives in userContext.spec.ts. These cover the
+// WIRING: that createDiagnostics reads the block from the pre-Pinia bootstrap
+// snapshot and applies it to both scopes at the right point in boot order.
+// ───────────────────────────────────────────────────────────────────────────────
+
+describe('createDiagnostics user context', () => {
+  const originalConsoleDebug = console.debug;
+
+  /**
+   * Key-aware bootstrap mock. The jurisdiction suite above uses a single
+   * mockReturnValue for every key; user-context wiring needs `regions` and
+   * `diagnostics_ref` to differ.
+   */
+  function mockBootstrap(values: Record<string, unknown>) {
+    mockGetBootstrapValue.mockImplementation((key: string) => values[key]);
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    console.debug = vi.fn();
+  });
+
+  afterEach(() => {
+    console.debug = originalConsoleDebug;
+  });
+
+  it('applies the server-provided ref to BOTH scopes', () => {
+    mockBootstrap({
+      regions: null,
+      // 16 lowercase hex — the shape DiagnosticsRef derives and the contract
+      // enforces by content.
+      diagnostics_ref: { actor_ref: 'a1b2c3d4e5f60718', actor_scope: 'federated' },
+    });
+
+    createDiagnostics({ host: TEST_HOST, config: baseConfig, router: createMockRouter() });
+
+    const expectedUser = { id: 'a1b2c3d4e5f60718', ip_address: null };
+    expect(mockSetUser).toHaveBeenCalledWith(expectedUser);
+    expect(mockCurrentScopeSetUser).toHaveBeenCalledWith(expectedUser);
+    expect(mockSetTag).toHaveBeenCalledWith('ref_scope', 'federated');
+    expect(mockCurrentScopeSetTag).toHaveBeenCalledWith('ref_scope', 'federated');
+  });
+
+  it('carries the deployment scope through verbatim', () => {
+    mockBootstrap({
+      regions: null,
+      diagnostics_ref: { actor_ref: '00112233445566ff', actor_scope: 'deployment' },
+    });
+
+    createDiagnostics({ host: TEST_HOST, config: baseConfig, router: createMockRouter() });
+
+    expect(mockSetTag).toHaveBeenCalledWith('ref_scope', 'deployment');
+  });
+
+  it('leaves an anonymous session unidentified — no fallback id', () => {
+    // The block is ABSENT for anonymous sessions; absence is the signal.
+    mockBootstrap({ regions: null, diagnostics_ref: undefined });
+
+    createDiagnostics({ host: TEST_HOST, config: baseConfig, router: createMockRouter() });
+
+    expect(mockSetUser).toHaveBeenCalledTimes(1);
+    expect(mockSetUser).toHaveBeenCalledWith(null);
+    expect(mockCurrentScopeSetUser).toHaveBeenCalledWith(null);
+    expect(mockSetTag).toHaveBeenCalledWith('ref_scope', undefined);
+  });
+
+  it('fails closed when the block carries an unexpected field', () => {
+    mockBootstrap({
+      regions: null,
+      diagnostics_ref: {
+        actor_ref: 'a1b2c3d4e5f60718',
+        actor_scope: 'federated',
+        email: 'user@example.com',
+      },
+    });
+
+    createDiagnostics({ host: TEST_HOST, config: baseConfig, router: createMockRouter() });
+
+    expect(mockSetUser).toHaveBeenCalledWith(null);
+    expect(mockSetUser).not.toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'a1b2c3d4e5f60718' })
+    );
+  });
+
+  // The block a server bug / older build / compromised region node could emit:
+  // two keys, valid enum, non-empty string. Shape-only validation accepts it
+  // and the address becomes user.id on every event.
+  it('fails closed when the ref is an email rather than an opaque value', () => {
+    mockBootstrap({
+      regions: null,
+      diagnostics_ref: { actor_ref: 'alice@example.com', actor_scope: 'deployment' },
+    });
+
+    createDiagnostics({ host: TEST_HOST, config: baseConfig, router: createMockRouter() });
+
+    expect(mockSetUser).toHaveBeenCalledWith(null);
+    expect(mockCurrentScopeSetUser).toHaveBeenCalledWith(null);
+    expect(mockSetTag).toHaveBeenCalledWith('ref_scope', undefined);
   });
 });

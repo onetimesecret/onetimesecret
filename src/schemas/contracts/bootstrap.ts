@@ -542,6 +542,131 @@ export type PasswordGeneration = z.infer<typeof passwordGenerationSchema>;
 export type Passphrase = z.infer<typeof passphraseSchema>;
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// DIAGNOSTICS REF (pseudonymous Sentry user context)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * The two — and only two — ref scopes the server is permitted to declare.
+ *
+ * THIS LABEL NAMES WHICH SECRET KEYED THE REF. It says nothing about how the
+ * person authenticated. The axis is correlation blast radius, not identity
+ * provider — see `Onetime::Utils::DiagnosticsRef#keying`
+ * (lib/onetime/utils/diagnostics_ref.rb):
+ *
+ * - `federated` — the ref was derived with `FEDERATION_SECRET`, shared across
+ *   the regional instances of one federation, and mixed with a residency scope
+ *   (`DIAGNOSTICS_REF_REGION`, else the configured jurisdiction). The
+ *   correlation radius is one jurisdiction, not one federation: the same
+ *   person yields DIFFERENT refs on the EU and US instances by design.
+ * - `deployment` — the ref was derived with this deployment's own
+ *   `ACCOUNT_ID_SECRET`. Correlation stops at this instance.
+ *
+ * NOT AN SSO SIGNAL. A deployment with `FEDERATION_SECRET` and a resolvable
+ * residency emits `federated` for EVERY account it identifies, local password
+ * accounts included. Filtering the scope tag in Sentry selects events whose
+ * ref is federation-keyed, NOT events from SSO users.
+ *
+ * Modelled as a closed `z.enum` rather than `z.string()` on purpose: the value
+ * becomes an indexed Sentry tag, and an unbounded string on an indexed
+ * dimension is exactly how a free-text identifier (an email, a plan name)
+ * reaches Sentry one careless server-side commit later. A new scope must be
+ * added HERE, in review, before it can reach Sentry.
+ */
+export const DIAGNOSTICS_REF_SCOPES = ['federated', 'deployment'] as const;
+
+/**
+ * The EXACT permitted shape of `actor_ref`, and the single source of truth for
+ * it on the TypeScript side.
+ *
+ * ## Why a content check and not just a type check
+ *
+ * `z.string().min(1)` validates the SHAPE of the block but says nothing about
+ * what is inside the string. That gap is a laundering channel: a server bug,
+ * an older build, or a compromised region node emitting
+ * `{ actor_ref: "alice@example.com", actor_scope: "deployment" }` satisfies a
+ * strictObject with two keys and a valid enum, and the value then flows into
+ * `user.id` — where the outbound sanitizer, which strips `email`/`username`/
+ * `name`, keeps `id` verbatim on every error and transaction. Validating the
+ * CONTENT closes it: an email cannot pass a fixed-width hex test.
+ *
+ * ## The contract this mirrors
+ *
+ * Server side: `Onetime::Utils::DiagnosticsRef`
+ * (lib/onetime/utils/diagnostics_ref.rb) emits
+ * `OpenSSL::HMAC.hexdigest('SHA256', …)[0, REF_LENGTH]` — LOWERCASE hex,
+ * `REF_LENGTH = 16` chars (64 bits). These two constants are ONE contract in
+ * two languages: if `REF_LENGTH` or the derivation changes, this pattern must
+ * change IN THE SAME COMMIT. It fails CLOSED, so a drifted pattern does not
+ * leak — it silently drops user-context correlation everywhere, which is a
+ * real observability regression and the reason the coupling is called out
+ * here.
+ *
+ * Anchored with `^`/`$` and non-global (no `g` flag): a `g`-flagged regex
+ * would carry `lastIndex` between `.test()` calls and pass/fail alternately.
+ */
+export const DIAGNOSTICS_REF_PATTERN = /^[0-9a-f]{16}$/;
+
+/**
+ * Content gate for a candidate diagnostics ref.
+ *
+ * Exported so the outbound final gate (`sanitizeEventUser`) enforces the same
+ * rule as the inbound parse without duplicating the literal. Non-strings and
+ * anything that is not exactly `DIAGNOSTICS_REF_PATTERN` are refused.
+ *
+ * @param value - Untrusted candidate, typically `event.user.id`.
+ */
+export function isDiagnosticsRef(value: unknown): value is string {
+  return typeof value === 'string' && DIAGNOSTICS_REF_PATTERN.test(value);
+}
+
+/**
+ * `diagnostics_ref` — the server-provided pseudonymous reference block.
+ *
+ * ## Wire contract
+ *
+ * ```json
+ * { "diagnostics_ref": { "actor_ref": "a1b2c3d4e5f60718",
+ *                        "actor_scope": "federated" } }
+ * ```
+ *
+ * The inner key names (`actor_ref`, `actor_scope`) are the serializer's wire
+ * shape and are consumed as-is. The block is **ABSENT for anonymous
+ * sessions**. Absence is the signal — there is no anonymous sentinel value,
+ * no empty string, no `null`. Hence `.optional()` on the parent field rather
+ * than the `.default()` used by every always-emitted serializer field.
+ *
+ * ## Why `z.strictObject` and not `z.object`
+ *
+ * This is the one bootstrap sub-schema whose parsed output is handed to a
+ * third-party processor (Sentry `scope.setUser`). Zod's plain `z.object`
+ * STRIPS unknown keys silently; `z.strictObject` REJECTS the whole block. For
+ * this boundary, rejecting is the correct failure mode: strip-on-unknown
+ * means a server that starts emitting `{ actor_ref, actor_scope, email }`
+ * produces a *valid* parse whose extra field is one refactor away from being
+ * forwarded; reject-on-unknown means that payload fails `safeParse` and the
+ * session runs unidentified. Losing correlation is recoverable; leaking an
+ * email to a third-party processor is not.
+ *
+ * See `src/plugins/core/diagnostics/userContext.ts`, the only place this
+ * schema is parsed against live data.
+ */
+export const diagnosticsRefSchema = z.strictObject({
+  /**
+   * Opaque, deterministic, server-derived reference. Never PII.
+   * Content-checked against DIAGNOSTICS_REF_PATTERN, not merely non-empty.
+   */
+  actor_ref: z.string().regex(DIAGNOSTICS_REF_PATTERN),
+  /** Closed enum; becomes the indexed Sentry `ref_scope` tag. */
+  actor_scope: z.enum(DIAGNOSTICS_REF_SCOPES),
+});
+
+/** Parsed shape of the `diagnostics_ref` bootstrap block. */
+export type DiagnosticsRefBlock = z.infer<typeof diagnosticsRefSchema>;
+
+/** One of the two permitted ref scopes. */
+export type DiagnosticsRefScope = (typeof DIAGNOSTICS_REF_SCOPES)[number];
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // BOOTSTRAP PAYLOAD SCHEMA (full payload for Rhales validation)
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -725,6 +850,16 @@ export const bootstrapSchema = z.object({
   // OrganizationSerializer fields
   // ─────────────────────────────────────────────────────────────────────────────
   organization: organizationSchema.optional(),
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DiagnosticsSerializer fields
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Pseudonymous Sentry user context. ABSENT (not empty, not null) for
+  // anonymous sessions — see diagnosticsRefSchema above for the full rationale
+  // and for why the inner object is strict rather than passthrough. Optional
+  // also means an older backend that never emits the block degrades to
+  // setUser(null) rather than failing the whole payload parse.
+  diagnostics_ref: diagnosticsRefSchema.optional(),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Billing/Stripe fields

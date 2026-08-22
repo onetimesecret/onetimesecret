@@ -31,6 +31,12 @@ import * as SentryVue from '@sentry/vue';
 import type { App, Plugin } from 'vue';
 import type { Router, RouteMeta as VueRouteMeta } from 'vue-router';
 import { collectValuesToRedact, scrubUrlWithValues } from './diagnostics/urlScrubbing';
+import {
+  applyUserContext,
+  resolveDiagnosticsRef,
+  sanitizeEventUser,
+  type UserContextScope,
+} from './diagnostics/userContext';
 // Re-export scrubbing utilities from dependency-free module for backward compatibility
 export {
   EMAIL_PATTERN,
@@ -200,6 +206,18 @@ function scrubRefererHeader(
  *     match is scrubbed.
  *   - transaction — parameterized route names (`/secret/:secretKey`) pass
  *     through untouched; raw pageload names get the net.
+ *   - user — final-gate whitelist to `{ id, ip_address: null }`, where `id` is
+ *     kept only when it matches DIAGNOSTICS_REF_PATTERN (16 lowercase hex, the
+ *     server's derivation shape) and the whole context is dropped otherwise.
+ *     `applyUserContext` is the only sanctioned writer of user context, but
+ *     `Sentry.setUser()` is a global API and integrations can write it too, so
+ *     the outbound path re-asserts both the key set AND the value shape rather
+ *     than trusting them. Checking the value is what makes this a filter and
+ *     not a launderer: a keys-only gate would delete `email` while faithfully
+ *     forwarding `setUser({ id: cust.email })`. The guarantee covers the
+ *     `user` CONTEXT only; an email interpolated into an exception message or
+ *     a URL is the free-text scrubbers' job.
+ *     See src/plugins/core/diagnostics/userContext.ts.
  *
  * Event-kind-specific fields (error breadcrumbs, transaction spans) are handled
  * by the respective callers, not here.
@@ -208,6 +226,8 @@ function scrubCommonEventFields(
   event: ErrorEvent | TransactionEvent,
   sortedValues: string[]
 ): void {
+  sanitizeEventUser(event as { user?: Record<string, unknown> | null });
+
   if (event.request?.url) {
     event.request.url = scrubUrlValuesThenPatterns(event.request.url, sortedValues);
   }
@@ -615,6 +635,24 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
   // Deployment tags on both the isolated scope (manual captures) and the
   // current scope (integration-captured events). See applyDeploymentTags.
   applyDeploymentTags([scope, getCurrentScope()], host);
+
+  // User context from the server-provided `diagnostics_ref` bootstrap block,
+  // on the same two scopes and for the same reason.
+  //
+  // BOOT ORDERING: this runs inside createDiagnostics(), which appInitializer
+  // calls AFTER consumeBootstrapData() and BEFORE app.use(pinia). The
+  // bootstrap snapshot is therefore already populated and readable via
+  // getBootstrapValue(), while the Pinia store is not yet constructed — hence
+  // the service read rather than useBootstrapStore(). Sentry init is NOT
+  // moved to accommodate this.
+  //
+  // If the block is absent (anonymous session, error-page render with no
+  // serializers, or an older backend that does not emit it), this is a no-op
+  // setUser(null) and the session runs unidentified. The context then arrives
+  // lazily through bootstrapStore.update() -> setDiagnosticsUserContext() on
+  // the first /bootstrap/me refresh or on login, without re-initializing
+  // Sentry.
+  applyUserContext([scope, getCurrentScope()] as UserContextScope[], resolveDiagnosticsRef());
 
   // Set the event `transaction` field from the matched route record's
   // parameterized path (e.g. /secret/:secretKey), never the resolved URL.

@@ -10,7 +10,12 @@
 // This fixes #2755 where globalErrorBoundary and schemaValidation had no
 // access to Sentry because they couldn't use Vue's inject() mechanism.
 
-import { Scope, type BrowserClient } from '@sentry/browser';
+import {
+  applyUserContext,
+  parseDiagnosticsRefBlock,
+  type UserContextScope,
+} from '@/plugins/core/diagnostics/userContext';
+import { Scope, getCurrentScope, type BrowserClient } from '@sentry/browser';
 
 interface DiagnosticsClient {
   client: BrowserClient;
@@ -161,4 +166,105 @@ export function captureMessage(
       console.warn('[Diagnostics] Context:', context);
     }
   }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// USER CONTEXT — the runtime half of the pseudonymous-reference boundary
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// `createDiagnostics()` sets user context once, at boot, from the bootstrap
+// snapshot. It is not static after that: it changes on login, on MFA
+// completion, on the 15-minute /bootstrap/me refresh (which can report a
+// DIFFERENT account after a re-auth in another tab), and on logout.
+//
+// These two functions are the callable surface for those transitions. They
+// live here rather than in enableDiagnostics.ts for three reasons:
+//
+//   1. This module is already the module-level facade for non-Vue callers
+//      (stores, guards, globalErrorBoundary, schemaValidation).
+//   2. Callers must be able to invoke them UNCONDITIONALLY. Diagnostics are
+//      disabled in most deployments; a store should not have to know that.
+//      Both no-op cleanly when `initDiagnostics` never ran.
+//   3. Exporting the scopes themselves from enableDiagnostics.ts would let any
+//      caller write arbitrary user context, defeating the single-writer
+//      property that makes the boundary auditable.
+
+/**
+ * The scopes user context must be written to.
+ *
+ * BOTH are required, always:
+ *   - `diagnosticsClient.scope` — the isolated scope, cloned per manual
+ *     capture in captureException/captureMessage above.
+ *   - `getCurrentScope()` — where integration-captured events (unhandled
+ *     rejections, browserApiErrors async callbacks, browserTracing
+ *     transactions) resolve their context, because `setCurrentClient` bound
+ *     the client there.
+ *
+ * Writing only one leaves half of all events carrying the PREVIOUS reference
+ * after an account change — a worse outcome than never identifying, because
+ * it mislabels one account's errors as another's.
+ *
+ * NOTE on clone timing: captureException/captureMessage clone the base scope
+ * per capture and never cache the clone, so a later context change is picked
+ * up by the next capture. Do not hoist those clones.
+ */
+function userContextScopes(): UserContextScope[] {
+  if (!diagnosticsClient) {
+    return [];
+  }
+  return [diagnosticsClient.scope, getCurrentScope()];
+}
+
+/**
+ * Sets (or replaces) the Sentry user context from a server-provided
+ * `diagnostics_ref` block.
+ *
+ * The input is UNTRUSTED and is validated against the strict contract before
+ * anything is forwarded: an unknown key, a bad scope, or a missing ref all
+ * resolve to null and CLEAR the context rather than partially applying it.
+ * Passing null clears it outright.
+ *
+ * Emits exactly `user = { id: <ref>, ip_address: null }` and the `ref_scope`
+ * tag. Never an email, name, objid, extid, or IP.
+ *
+ * Safe to call when diagnostics are disabled — it is a no-op.
+ *
+ * @param block - The raw bootstrap `diagnostics_ref` block, or null/undefined
+ *   for an anonymous session.
+ *
+ * @example
+ * ```typescript
+ * // bootstrapStore.update(), covering login, MFA completion, and refresh
+ * setDiagnosticsUserContext(data.diagnostics_ref);
+ * ```
+ */
+export function setDiagnosticsUserContext(block: unknown): void {
+  const scopes = userContextScopes();
+  if (scopes.length === 0) {
+    return;
+  }
+  applyUserContext(scopes, parseDiagnosticsRefBlock(block));
+}
+
+/**
+ * Clears the Sentry user context: `setUser(null)` plus removal of the
+ * `ref_scope` tag, on every scope.
+ *
+ * Call on LOGOUT and on any account change where the new session's ref is not
+ * yet known. The tag removal matters as much as the user clear — a stale
+ * `ref_scope` would let a now-anonymous session be filtered in Sentry as
+ * though it were still the previous, identified session.
+ *
+ * Only the soft/SPA logout path needs this. Hard logouts navigate with
+ * `window.location.href`, which tears down the JS context and the scopes with
+ * it; calling it there is harmless but redundant.
+ *
+ * Safe to call when diagnostics are disabled — it is a no-op.
+ */
+export function clearDiagnosticsUserContext(): void {
+  const scopes = userContextScopes();
+  if (scopes.length === 0) {
+    return;
+  }
+  applyUserContext(scopes, null);
 }

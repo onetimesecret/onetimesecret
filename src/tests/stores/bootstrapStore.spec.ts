@@ -2,6 +2,7 @@
 
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import * as bootstrapService from '@/services/bootstrap.service';
+import * as diagnosticsService from '@/services/diagnostics.service';
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { setupTestPinia } from '../setup';
 import {
@@ -20,7 +21,17 @@ import type { BootstrapPayload } from '@/schemas/contracts/bootstrap';
 vi.mock('@/services/bootstrap.service', () => ({
   getBootstrapSnapshot: vi.fn(),
   updateBootstrapSnapshot: vi.fn(),
+  // Used by update() to evict `diagnostics_ref` from the snapshot when a full
+  // /bootstrap/me body omits it (anonymous session).
+  clearBootstrapSnapshotKey: vi.fn(),
   _resetForTesting: vi.fn(),
+}));
+
+// update() calls into the diagnostics facade on every identity transition.
+// The facade no-ops when Sentry is not initialized, but the store spec should
+// not depend on Sentry internals at all.
+vi.mock('@/services/diagnostics.service', () => ({
+  setDiagnosticsUserContext: vi.fn(),
 }));
 
 describe('bootstrapStore', () => {
@@ -1637,5 +1648,120 @@ describe('bootstrapStore', () => {
 
       consoleSpy.mockRestore();
     });
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SENTRY USER CONTEXT (the account-change hook)
+//
+// update() is the single funnel for login, MFA completion, and the 15-minute
+// /bootstrap/me refresh. Every one of those can change WHO the session is, so
+// every one must re-drive the Sentry user context.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe('bootstrapStore user context', () => {
+  let store: ReturnType<typeof useBootstrapStore>;
+  let mockSetUserContext: Mock;
+  let mockClearSnapshotKey: Mock;
+
+  // 16 lowercase hex, matching what DiagnosticsRef derives and what
+  // DIAGNOSTICS_REF_PATTERN admits. setDiagnosticsUserContext is mocked here,
+  // but fixtures stay honest so a copy-paste into an unmocked test still
+  // passes the contract.
+  const REF_BLOCK = { actor_ref: 'a1b2c3d4e5f60718', actor_scope: 'federated' } as const;
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    mockSetUserContext = vi.mocked(diagnosticsService.setDiagnosticsUserContext);
+    mockClearSnapshotKey = vi.mocked(bootstrapService.clearBootstrapSnapshotKey);
+    await setupTestPinia();
+    store = useBootstrapStore();
+  });
+
+  afterEach(() => {
+    store.$reset();
+    vi.clearAllMocks();
+  });
+
+  it('drives the Sentry user context when a payload carries diagnostics_ref', () => {
+    store.update({
+      authenticated: true,
+      diagnostics_ref: { ...REF_BLOCK },
+    } as Partial<BootstrapPayload>);
+
+    expect(store.diagnostics_ref).toEqual(REF_BLOCK);
+    expect(mockSetUserContext).toHaveBeenCalledWith(REF_BLOCK);
+  });
+
+  it('clears the context when a full payload OMITS diagnostics_ref (anonymous)', () => {
+    store.update({
+      authenticated: true,
+      diagnostics_ref: { ...REF_BLOCK },
+    } as Partial<BootstrapPayload>);
+    mockSetUserContext.mockClear();
+
+    // A full /bootstrap/me body reporting an anonymous session: the block is
+    // absent, not null. filterDefined() alone would leave the old ref.
+    store.update({ authenticated: false } as Partial<BootstrapPayload>);
+
+    expect(store.diagnostics_ref).toBeUndefined();
+    expect(mockSetUserContext).toHaveBeenCalledWith(null);
+    expect(mockClearSnapshotKey).toHaveBeenCalledWith('diagnostics_ref');
+  });
+
+  it('replaces the ref on account change', () => {
+    store.update({
+      authenticated: true,
+      diagnostics_ref: { ...REF_BLOCK },
+    } as Partial<BootstrapPayload>);
+
+    const next = { actor_ref: '00112233445566ff', actor_scope: 'deployment' } as const;
+    store.update({ authenticated: true, diagnostics_ref: { ...next } } as Partial<BootstrapPayload>);
+
+    expect(store.diagnostics_ref).toEqual(next);
+    expect(mockSetUserContext).toHaveBeenLastCalledWith(next);
+  });
+
+  it('leaves the context alone for a narrow patch that carries no auth state', () => {
+    store.update({
+      authenticated: true,
+      diagnostics_ref: { ...REF_BLOCK },
+    } as Partial<BootstrapPayload>);
+    mockSetUserContext.mockClear();
+
+    // Silence about diagnostics_ref here means "unchanged", not "anonymous".
+    store.update({ has_password: true } as Partial<BootstrapPayload>);
+
+    expect(mockSetUserContext).not.toHaveBeenCalled();
+    expect(store.diagnostics_ref).toEqual(REF_BLOCK);
+  });
+
+  it('does not preserve diagnostics_ref across resetForLogout — it is top-level, not inside the preserved diagnostics config block', () => {
+    store.update({
+      authenticated: true,
+      diagnostics_ref: { ...REF_BLOCK },
+    } as Partial<BootstrapPayload>);
+
+    store.resetForLogout();
+
+    expect(store.diagnostics_ref).toBeUndefined();
+  });
+
+  // REGRESSION: the ref lives in TWO places — this store and the pre-Pinia
+  // bootstrap.service snapshot that getBootstrapValue('diagnostics_ref')
+  // reads. $reset() clears the first; only clearBootstrapSnapshotKey clears
+  // the second, and updateBootstrapSnapshot cannot express a removal (it
+  // skips undefined). Without this, a soft/SPA logout left the previous ref
+  // readable.
+  it('evicts diagnostics_ref from the pre-Pinia snapshot on resetForLogout', () => {
+    store.update({
+      authenticated: true,
+      diagnostics_ref: { ...REF_BLOCK },
+    } as Partial<BootstrapPayload>);
+    mockClearSnapshotKey.mockClear();
+
+    store.resetForLogout();
+
+    expect(mockClearSnapshotKey).toHaveBeenCalledWith('diagnostics_ref');
   });
 });

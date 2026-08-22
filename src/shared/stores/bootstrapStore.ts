@@ -9,7 +9,12 @@ import {
   type HeaderConfig,
   type UiCapabilities,
 } from '@/schemas/contracts/bootstrap';
-import { getBootstrapSnapshot, updateBootstrapSnapshot } from '@/services/bootstrap.service';
+import {
+  clearBootstrapSnapshotKey,
+  getBootstrapSnapshot,
+  updateBootstrapSnapshot,
+} from '@/services/bootstrap.service';
+import { setDiagnosticsUserContext } from '@/services/diagnostics.service';
 import { defineStore } from 'pinia';
 
 /**
@@ -46,6 +51,22 @@ const DEFAULTS: BootstrapPayload = {
   entitlement_preview_planid: undefined,
   entitlement_preview_plan_name: undefined,
   organization: undefined,
+  // Pseudonymous reference for the diagnostics boundary — the opaque `user.id`
+  // Sentry groups a person's errors by. It is not an analytics identity:
+  // nothing counts it, and it exists so a defect report can be attributed to
+  // one session without an email, customer id or IP.
+  //
+  // `.optional()` in the schema because the server OMITS it for anonymous
+  // sessions, so Zod's parse({}) leaves it out of SCHEMA_DEFAULTS and Pinia
+  // would not track it. Listed here so that later update()/resetForLogout()
+  // writes are reactive AND so that $reset() has a defined target to restore
+  // it to.
+  //
+  // Deliberately TOP-LEVEL, not nested under the `diagnostics` config block:
+  // resetForLogout() preserves `diagnostics` across logout by design, so a
+  // reference parked there would survive sign-out. At top level, $reset()
+  // clears it.
+  diagnostics_ref: undefined,
   // Brand fields (per-installation defaults from OT.conf['brand'])
   brand_primary_color: undefined,
   brand_product_name: undefined,
@@ -267,6 +288,40 @@ export const useBootstrapStore = defineStore('bootstrap', {
       // settings sidebar) see fresh values after login or other auth mutations.
       updateBootstrapSnapshot(data);
 
+      // ─── Sentry user context ──────────────────────────────────────────────
+      //
+      // This is the ACCOUNT-CHANGE hook. Every identity transition funnels
+      // through update(): login, MFA completion, and the 15-minute
+      // /bootstrap/me refresh (which can report a different account after a
+      // re-auth in another tab). Logout is handled separately in
+      // authStore.logout(), which does not route through here.
+      //
+      // Absence is the anonymous signal, and the filterDefined() merge above
+      // CANNOT express it: an absent `diagnostics_ref` key leaves the previous
+      // reference in state and in the snapshot. So absence is handled
+      // explicitly here.
+      //
+      // `data.authenticated !== undefined` identifies a FULL /bootstrap/me
+      // body, where a missing `diagnostics_ref` is authoritative ("this
+      // session has no ref"). A narrow partial patch — e.g. a store writing
+      // only `has_password` — carries no auth state, so its silence about
+      // `diagnostics_ref` means "unchanged", not "anonymous", and the user
+      // context is left alone.
+      const carriesAuthState = data.authenticated !== undefined;
+      if (carriesAuthState || data.diagnostics_ref !== undefined) {
+        const nextRef = data.diagnostics_ref;
+        if (nextRef === undefined) {
+          this.$patch((state) => {
+            state.diagnostics_ref = undefined;
+          });
+          clearBootstrapSnapshotKey('diagnostics_ref');
+        }
+        // setDiagnosticsUserContext validates the block against the strict
+        // contract and clears the context on null/undefined. It no-ops when
+        // diagnostics are disabled, so this call is unconditional by design.
+        setDiagnosticsUserContext(nextRef ?? null);
+      }
+
       console.debug('[BootstrapStore.update] Updated with:', {
         authenticated: data.authenticated,
         awaiting_mfa: data.awaiting_mfa,
@@ -354,6 +409,24 @@ export const useBootstrapStore = defineStore('bootstrap', {
         state.disabled_homepage = preservedConfig.disabled_homepage;
         state._initialized = true;
       });
+
+      // Evict the reference from the PRE-PINIA snapshot as well.
+      //
+      // $reset() above clears `state.diagnostics_ref`, but the store is only
+      // one of the two places the block lives: bootstrap.service holds a
+      // separate snapshot that `getBootstrapValue('diagnostics_ref')` reads,
+      // and `updateBootstrapSnapshot` cannot express a removal (it skips
+      // undefined by design). Without this call the previous reference stays
+      // READABLE there after a soft/SPA logout — the exact stale-identity
+      // condition `clearBootstrapSnapshotKey` was written to prevent, and the
+      // one update() already guards on the account-change path.
+      //
+      // Today the snapshot is re-read only by `resolveDiagnosticsRef()` at
+      // boot, so the leak is latent rather than live; it becomes live the
+      // moment any code re-resolves the ref without a page load. Clearing it
+      // here — in the store that owns the mirror — covers every caller of
+      // resetForLogout rather than the one in authStore.logout().
+      clearBootstrapSnapshotKey('diagnostics_ref');
 
       console.debug('[BootstrapStore.resetForLogout] Reset to defaults (server config preserved)');
     },

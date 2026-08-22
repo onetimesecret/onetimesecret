@@ -8,6 +8,16 @@ import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setupTestPinia } from '../setup';
 import { mockCustomer as fixtureCustomer } from '@/tests/fixtures/bootstrap.fixture';
+import { clearDiagnosticsUserContext } from '@/services/diagnostics.service';
+import { getBootstrapValue, updateBootstrapSnapshot } from '@/services/bootstrap.service';
+
+// The soft (SPA) logout path must clear the Sentry user context. Mocked so the
+// assertion is about the store's contract, not about Sentry internals.
+vi.mock('@/services/diagnostics.service', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/services/diagnostics.service')>()),
+  clearDiagnosticsUserContext: vi.fn(),
+  setDiagnosticsUserContext: vi.fn(),
+}));
 
 // Create a mock Customer object that matches the actual Customer type
 const mockCustomer: Customer = {
@@ -683,6 +693,36 @@ describe('authStore', () => {
       expect(store.isAuthenticated).toBe(true);
       // Should store auth state for future error recovery
       expect(sessionStorage.getItem('ots_auth_state')).toBe('true');
+    });
+
+    // On logout the Sentry scope must be cleared — scope.setUser(null) on BOTH
+    // scopes — or every subsequent error in the now-anonymous session keeps
+    // reporting the previous session's ref. This is the SOFT logout path; hard
+    // logouts navigate away and discard the scopes.
+    it('clears the Sentry user context on soft logout', async () => {
+      store.$patch({ isAuthenticated: true });
+
+      await store.logout();
+
+      expect(clearDiagnosticsUserContext).toHaveBeenCalledTimes(1);
+    });
+
+    // REGRESSION: clearing the Sentry scope is only half of it. The ref also
+    // sits in the pre-Pinia bootstrap.service snapshot, which
+    // updateBootstrapSnapshot can never remove (it skips undefined by design).
+    // A soft logout that left it there keeps the previous ref readable via
+    // getBootstrapValue('diagnostics_ref') — the stale identity that any later
+    // re-resolve would pick up and attach to an anonymous session's events.
+    it('evicts the ref from the pre-Pinia bootstrap snapshot on soft logout', async () => {
+      updateBootstrapSnapshot({
+        diagnostics_ref: { actor_ref: 'a1b2c3d4e5f60718', actor_scope: 'federated' },
+      });
+      expect(getBootstrapValue('diagnostics_ref')).toBeDefined();
+
+      store.$patch({ isAuthenticated: true });
+      await store.logout();
+
+      expect(getBootstrapValue('diagnostics_ref')).toBeUndefined();
     });
 
     it('clears stored auth state when logging out', async () => {
