@@ -11,21 +11,34 @@ module ColonelAPI
     class SessionAuthStrategy < Onetime::Application::AuthStrategies::SessionAuthStrategy
       @auth_method_name = 'sessionauth'
 
-      PROXY_HEADERS_DEBUG_PATH = '/system/proxy-headers'
+      # Colonel diagnostic endpoint. The only route where build_metadata attaches
+      # proxy headers (see: docs/operations/proxy-header-diagnostic.md).
+      PROXY_DEBUG_HEADERS_PATH = '/system/proxy-headers'
 
-      CADDY_SNAPSHOT_HEADERS = %w[
+      # `X-OTS-Proxy-Debug-*`: what the reverse proxy saw, injected by Caddy's
+      # `(onetime-proxy-debug)` snippet (a path-matched `route` of
+      # `request_header` directives) on PROXY_DEBUG_HEADERS_PATH only.
+      PROXY_DEBUG_HEADERS = %w[
         HTTP_X_OTS_PROXY_DEBUG_PEER
+        HTTP_X_OTS_PROXY_DEBUG_CLIENT_IP
         HTTP_X_OTS_PROXY_DEBUG_HOST
         HTTP_X_OTS_PROXY_DEBUG_RECEIVED_X_FORWARDED_FOR
+        HTTP_X_OTS_PROXY_DEBUG_RECEIVED_X_FORWARDED_HOST
+        HTTP_X_OTS_PROXY_DEBUG_RECEIVED_X_REAL_IP
+        HTTP_X_OTS_PROXY_DEBUG_RECEIVED_X_CLIENT_IP
         HTTP_X_OTS_PROXY_DEBUG_RECEIVED_FORWARDED
         HTTP_X_OTS_PROXY_DEBUG_RECEIVED_APX_INCOMING_HOST
       ].freeze
 
-      REQUEST_HEADERS = %w[
+      # Forwarding headers as Rack received them, for comparison against
+      # PROXY_DEBUG_HEADERS and the resolved env values.
+      FORWARDING_HEADERS = %w[
         HTTP_HOST
         HTTP_X_FORWARDED_FOR
         HTTP_X_FORWARDED_HOST
         HTTP_X_FORWARDED_PROTO
+        HTTP_X_REAL_IP
+        HTTP_X_CLIENT_IP
         HTTP_FORWARDED
         HTTP_APX_INCOMING_HOST
       ].freeze
@@ -37,18 +50,18 @@ module ColonelAPI
       # no request headers are added to ordinary Colonel strategy metadata.
       def build_metadata(env, additional = {})
         metadata = super
-        return metadata unless Otto::Utils.normalize_path(env['PATH_INFO']) == PROXY_HEADERS_DEBUG_PATH
+        return metadata unless Otto::Utils.normalize_path(env['PATH_INFO']) == PROXY_DEBUG_HEADERS_PATH
 
         metadata.merge(
           proxy_header_debug: {
-            caddy_received: header_values(env, CADDY_SNAPSHOT_HEADERS),
+            caddy_received: header_values(env, PROXY_DEBUG_HEADERS),
             rack: {
               remote_addr: env['REMOTE_ADDR'],
               client_ip: env['otto.client_ip'],
               via_trusted_proxy: env['otto.via_trusted_proxy'],
               detected_host: env[Rack::DetectHost.result_field_name],
             },
-            request_headers: header_values(env, REQUEST_HEADERS),
+            request_headers: header_values(env, FORWARDING_HEADERS),
           },
         )
       end

@@ -29,8 +29,12 @@ RSpec.describe ColonelAPI::AuthStrategies::SessionAuthStrategy do
       expect(metadata[:proxy_header_debug]).to eq(
         caddy_received: {
           'x-ots-proxy-debug-peer' => '198.51.100.10',
+          'x-ots-proxy-debug-client-ip' => nil,
           'x-ots-proxy-debug-host' => nil,
           'x-ots-proxy-debug-received-x-forwarded-for' => nil,
+          'x-ots-proxy-debug-received-x-forwarded-host' => nil,
+          'x-ots-proxy-debug-received-x-real-ip' => nil,
+          'x-ots-proxy-debug-received-x-client-ip' => nil,
           'x-ots-proxy-debug-received-forwarded' => nil,
           'x-ots-proxy-debug-received-apx-incoming-host' => nil,
         },
@@ -45,6 +49,8 @@ RSpec.describe ColonelAPI::AuthStrategies::SessionAuthStrategy do
           'x-forwarded-for' => '203.0.113.9',
           'x-forwarded-host' => nil,
           'x-forwarded-proto' => nil,
+          'x-real-ip' => nil,
+          'x-client-ip' => nil,
           'forwarded' => nil,
           'apx-incoming-host' => 'tenant.example.test',
         },
