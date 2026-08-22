@@ -37,15 +37,23 @@ module V1::Logic
       end
 
       def process
-        @correct_passphrase = !secret.has_passphrase? || secret.passphrase?(passphrase)
-        @show_secret = secret.viewable? && correct_passphrase && continue
+        # Verify the passphrase ONLY on a committed reveal (continue=true): a
+        # metadata-only request must never learn whether a guess was right, and
+        # never accrues or clears rate-limit state -- nothing was checked.
+        # Folding continue in here (rather than only into show_secret) is what
+        # closes the oracle: correct_passphrase is false for every
+        # metadata-only request, right guess or wrong.
+        @correct_passphrase = continue && (!secret.has_passphrase? || secret.passphrase?(passphrase))
+        @show_secret = secret.viewable? && correct_passphrase
         @verification = secret.verification.to_s == "true"
         @secret_key = @secret.identifier # Use identifier, not deprecated .key field
 
         # Track passphrase attempts for rate limiting. Only non-empty
-        # submissions count: the initial preview of a passphrase-protected
-        # secret sends an empty passphrase and must not accrue attempts.
-        if secret.has_passphrase? && !passphrase.empty?
+        # submissions on a committed reveal count: the initial preview of a
+        # passphrase-protected secret sends an empty passphrase, and a
+        # continue=false request never had its passphrase checked at all, so
+        # neither must accrue attempts.
+        if continue && secret.has_passphrase? && !passphrase.empty?
           if correct_passphrase
             # Clear rate limit on successful passphrase
             clear_passphrase_rate_limit!(secret.identifier, passphrase_client_ip)
@@ -113,8 +121,6 @@ module V1::Logic
             @secret_value = nil
           end
 
-        elsif continue && secret.has_passphrase? && !correct_passphrase
-
         end
 
         domain = if domains_enabled && !secret.share_domain.to_s.empty?
@@ -138,13 +144,15 @@ module V1::Logic
 
       def success_data
         return nil unless secret
+        # correct_passphrase is deliberately NOT serialized: returning the
+        # verdict turned a metadata-only request into a passphrase oracle. It
+        # stays available in-process (attr_reader) for the reveal path.
         ret = {
           record: secret.safe_dump,
           details: {
             continue: @continue,
             is_owner: @is_owner,
             show_secret: @show_secret,
-            correct_passphrase: @correct_passphrase,
             display_lines: @display_lines,
             one_liner: @one_liner,
           },

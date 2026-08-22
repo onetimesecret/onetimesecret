@@ -388,6 +388,53 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
     end
   end
 
+  # Passphrase oracle regression: the guess is verified ONLY on a committed
+  # reveal (continue=true). Without the gate, continue=false separated a right
+  # guess (200, no reveal) from a wrong one (form error) and burned a
+  # rate-limit attempt on a guess that was never acted on -- a free,
+  # non-destructive brute-force oracle.
+  context 'when continue is false on a passphrase-protected secret' do
+    before { secret.update_passphrase!('correct horse battery') }
+
+    def attempts_key
+      "passphrase:attempts:#{secret.identifier}"
+    end
+
+    # The message expectation must be set on logic.secret: build_logic ->
+    # process_params already loaded this request's own instance from Redis.
+    def probe(guess)
+      logic = build_logic(
+        { 'identifier' => secret.identifier, 'continue' => 'false', 'passphrase' => guess },
+      )
+      logic.process_params
+      expect(logic.secret).not_to receive(:passphrase?)
+      expect { logic.process }.not_to raise_error
+      logic
+    end
+
+    it 'does not raise on a wrong guess, verifies nothing, and records no attempt' do
+      logic = probe('wrong')
+
+      expect(logic.show_secret).to be false
+      expect(logic.secret_value).to be_nil
+      expect(logic.success_data[:details]).not_to have_key(:correct_passphrase)
+      expect(logic.success_data[:record]).not_to have_key(:secret_value)
+      expect(Onetime::Secret.dbclient.get(attempts_key)).to be_nil
+
+      # Nothing was consumed either: the secret is still there to be revealed.
+      expect(Onetime::Secret.load(secret.identifier)&.viewable?).to be true
+    end
+
+    it 'answers a wrong guess identically to a right one' do
+      wrong   = probe('wrong').success_data[:details]
+      correct = probe('correct horse battery').success_data[:details]
+
+      expect(wrong).to eq(correct)
+      expect(Onetime::Secret.dbclient.get(attempts_key)).to be_nil
+      expect(Onetime::Secret.load(secret.identifier)&.viewable?).to be true
+    end
+  end
+
   # C10/QS-6: SECRET lifecycle safety.
   #
   # Fast-fail: when the boot-time verifier flagged a key mismatch, a

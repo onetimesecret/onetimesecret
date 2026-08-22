@@ -77,8 +77,14 @@ module V2::Logic
       end
 
       def process # rubocop:disable Metrics/PerceivedComplexity
-        @correct_passphrase = secret.passphrase?(passphrase)
-        @show_secret        = secret.viewable? && (correct_passphrase || !secret.has_passphrase?) && continue
+        # Verify the passphrase ONLY on a committed reveal (continue=true): a
+        # metadata-only request must never learn whether a guess was right, and
+        # never accrues or clears rate-limit state -- nothing was checked.
+        # Same shape as ShowSecret: continue is folded into correct_passphrase
+        # so the flag is false for every metadata-only request, right guess or
+        # wrong, and the wrong-passphrase branch below cannot fire on one.
+        @correct_passphrase = continue && (!secret.has_passphrase? || secret.passphrase?(passphrase))
+        @show_secret        = secret.viewable? && correct_passphrase
         @verification       = secret.verification.to_s == 'true'
         @secret_identifier  = @secret.identifier
         @secret_shortid     = @secret.shortid
@@ -211,8 +217,11 @@ module V2::Logic
           # already consumed the secret): do not present it as viewable.
           @show_secret = false if @secret_value.nil?
 
-        elsif secret.has_passphrase? && !correct_passphrase
-          # Record failed attempt for rate limiting
+        elsif continue && secret.has_passphrase? && !correct_passphrase
+          # Record failed attempt for rate limiting. Only a committed reveal
+          # reaches this branch: without the continue guard a metadata-only
+          # request with a wrong guess raised while a right one did not, which
+          # leaked the verdict through the HTTP status alone.
           attempt_count = record_failed_passphrase_attempt!(secret.identifier, passphrase_client_ip)
 
           secret_logger.warn 'Incorrect passphrase attempt',
@@ -251,13 +260,16 @@ module V2::Logic
       def success_data
         return nil unless secret
 
+        # correct_passphrase is deliberately NOT serialized: returning the
+        # verdict turned a metadata-only request into a passphrase oracle. The
+        # server-side debug log above still records passphrase_correct -- that
+        # is diagnostics for the operator, not a response field.
         ret = {
           record: secret.safe_dump,
           details: {
             continue: @continue,
             is_owner: @is_owner,
             show_secret: @show_secret,
-            correct_passphrase: @correct_passphrase,
             display_lines: @display_lines,
             one_liner: @one_liner,
           },

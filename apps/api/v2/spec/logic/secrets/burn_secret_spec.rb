@@ -339,5 +339,48 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
       expect(logic.greenlighted).to be true
       expect(Onetime::Secret.dbclient.get("passphrase:attempts:#{secret.identifier}")).to be_nil
     end
+
+    # Passphrase oracle regression: the guess is verified ONLY on a committed
+    # burn (continue=true). Without the gate, continue=false separated a right
+    # guess (200, nothing burned) from a wrong one (form error) and spent a
+    # rate-limit attempt on a guess that was never acted on.
+    context 'when continue is false' do
+      # The secret is loaded inside process via receipt.load_secret, so pin the
+      # instance first: the message expectation has to be on the object process
+      # will actually use.
+      def probe_burn(guess)
+        logic  = build_logic(
+          'identifier' => receipt.identifier,
+          'continue'   => 'false',
+          'passphrase' => guess,
+        )
+        logic.process_params
+        pinned = Onetime::Secret.load(secret.identifier)
+        allow(logic.receipt).to receive(:load_secret).and_return(pinned)
+        expect(pinned).not_to receive(:passphrase?)
+        logic
+      end
+
+      it 'does not raise on a wrong guess, does not burn, and records no attempt' do
+        logic = probe_burn('wrong')
+
+        expect { logic.process }.not_to raise_error
+
+        expect(logic.greenlighted).to be_falsey
+        expect(Onetime::Secret.dbclient.get("passphrase:attempts:#{secret.identifier}")).to be_nil
+        expect(Onetime::Secret.load(secret.identifier)&.viewable?).to be true
+      end
+
+      it 'answers a right guess exactly as it answers a wrong one' do
+        wrong = probe_burn('wrong')
+        wrong.process
+        correct = probe_burn('correct horse battery')
+        correct.process
+
+        expect(correct.success_data[:success]).to eq(wrong.success_data[:success])
+        expect(correct.success_data[:details]).to eq(wrong.success_data[:details])
+        expect(Onetime::Secret.load(secret.identifier)&.viewable?).to be true
+      end
+    end
   end
 end

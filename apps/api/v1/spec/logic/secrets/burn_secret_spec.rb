@@ -178,6 +178,24 @@ RSpec.describe V1::Logic::Secrets::BurnSecret do
         expect(secret).not_to have_received(:burned!)
       end
 
+      # Passphrase oracle regression: the guess is verified ONLY on a committed
+      # burn (continue=true). A continue=false probe must not distinguish a
+      # right guess from a wrong one, and must not spend a rate-limit attempt
+      # on a guess that was never checked.
+      context 'when continue is false' do
+        subject { described_class.new(session, customer, base_params.merge('continue' => 'false')) }
+
+        it 'does not check the guess, does not burn, and records no attempt' do
+          expect(secret).not_to receive(:passphrase?)
+
+          expect { subject.process }.not_to raise_error
+
+          expect(subject.greenlighted).to be_falsey
+          expect(secret).not_to have_received(:burned!)
+          expect(Onetime::Secret.dbclient.get("passphrase:attempts:#{secret_identifier}")).to be_nil
+        end
+      end
+
       it 'rejects further attempts once locked out, before checking the passphrase' do
         Onetime::Secret.dbclient.setex("passphrase:locked:#{secret_identifier}", 60, '1')
 
@@ -199,6 +217,16 @@ RSpec.describe V1::Logic::Secrets::BurnSecret do
 
         before do
           allow(secret).to receive(:burned!).and_return(true)
+        end
+
+        it 'does not burn, or check the guess, when continue is false' do
+          probe = described_class.new(session, customer, base_params.merge('continue' => 'false'))
+          expect(secret).not_to receive(:passphrase?)
+
+          probe.process
+
+          expect(probe.greenlighted).to be_falsey
+          expect(secret).not_to have_received(:burned!)
         end
 
         it 'clears rate limit state and burns' do
