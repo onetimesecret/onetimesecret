@@ -122,6 +122,40 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
       expect(logic.secret_value).to be_nil
       expect(logic.success_data[:record]).not_to have_key(:secret_value)
     end
+
+    # The rate-limit clear is settled on the passphrase verdict, not on winning
+    # the claim: a correct guess earns the clear whether or not this caller got
+    # the plaintext. Regression for the ordering that ran the clear inside the
+    # reveal branch, which made it observable only to the winner and diverged
+    # from ShowSecret, where the clear precedes reveal! entirely.
+    it 'still clears the passphrase rate limit on a correct guess' do
+      secret.update_passphrase!('correct horse battery')
+      attempts_key = "passphrase:attempts:#{secret.identifier}"
+
+      wrong = build_logic(
+        { 'identifier' => secret.identifier, 'continue' => 'true', 'passphrase' => 'nope' },
+      )
+      wrong.process_params
+      expect { wrong.process }.to raise_error(Onetime::FormError)
+      expect(Onetime::Secret.dbclient.get(attempts_key).to_i).to eq(1)
+
+      logic = build_logic(
+        { 'identifier' => secret.identifier, 'continue' => 'true', 'passphrase' => 'correct horse battery' },
+      )
+      logic.process_params
+
+      # Same race recipe as above: a concurrent request takes the claim after
+      # this one passed its viewability check.
+      allow(logic.secret).to receive(:viewable?).and_return(true)
+      winner = Onetime::Secret.load(secret.identifier)
+      expect(winner.revealed!).to be true
+
+      logic.process
+
+      expect(logic.show_secret).to be false
+      expect(logic.secret_value).to be_nil
+      expect(Onetime::Secret.dbclient.get(attempts_key)).to be_nil
+    end
   end
 
   # Actor attribution on reveal (#3639). "Who revealed it" is the first

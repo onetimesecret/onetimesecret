@@ -102,6 +102,22 @@ module V2::Logic
             user_id: cust&.extid,
           }
 
+        # Rate-limit bookkeeping is settled on the passphrase verdict alone,
+        # before any reveal claim -- the same ordering as ShowSecret. Clearing
+        # it inside the reveal branch below tied the clear to winning the
+        # burn-after-reading race, so two callers with the same correct
+        # passphrase got different rate-limit state. Gated on continue for the
+        # same reason as the verdict above: a guess that was never checked is
+        # neither an attempt nor grounds for a clear.
+        attempt_count = nil
+        if continue && secret.has_passphrase?
+          if correct_passphrase
+            clear_passphrase_rate_limit!(secret.identifier, passphrase_client_ip)
+          else
+            attempt_count = record_failed_passphrase_attempt!(secret.identifier, passphrase_client_ip)
+          end
+        end
+
         owner = secret.load_owner
         if show_secret
           # Compute the actor attribution BEFORE reveal! consumes the secret:
@@ -109,9 +125,6 @@ module V2::Logic
           # reveal! path below so the 'revealed' audit event records who acted
           # (#3639). The anonymous guard lives in lifecycle_actor_context.
           actor_context = lifecycle_actor_context(secret)
-
-          # Clear any rate limit state on successful passphrase entry
-          clear_passphrase_rate_limit!(secret.identifier, passphrase_client_ip) if secret.has_passphrase?
 
           # Decryption is deferred to secret.reveal! below: it decrypts ONLY on
           # the caller that wins the atomic reveal claim, so a request that lost
@@ -219,12 +232,11 @@ module V2::Logic
           @show_secret = false if @secret_value.nil?
 
         elsif continue && secret.has_passphrase? && !correct_passphrase
-          # Record failed attempt for rate limiting. Only a committed reveal
-          # reaches this branch: without the continue guard a metadata-only
-          # request with a wrong guess raised while a right one did not, which
-          # leaked the verdict through the HTTP status alone.
-          attempt_count = record_failed_passphrase_attempt!(secret.identifier, passphrase_client_ip)
-
+          # The failed attempt was already recorded above; attempt_count carries
+          # the count. Only a committed reveal reaches this branch: without the
+          # continue guard a metadata-only request with a wrong guess raised
+          # while a right one did not, which leaked the verdict through the HTTP
+          # status alone.
           secret_logger.warn 'Incorrect passphrase attempt',
             {
               secret_identifier: secret.shortid,

@@ -299,6 +299,10 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
       secret.update_passphrase!('correct horse battery')
     end
 
+    # Run the controller's ordered entry points, not process alone: the
+    # rate-limit gate lives in raise_concerns (alongside ShowSecret's and
+    # RevealSecret's), so a helper that skipped it would test a flow no
+    # request ever takes.
     def attempt_burn(guess)
       logic = build_logic(
         'identifier' => receipt.identifier,
@@ -306,6 +310,7 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
         'passphrase' => guess,
       )
       logic.process_params
+      logic.raise_concerns
       logic.process
       logic
     end
@@ -329,6 +334,23 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
       # The lockout rejected the request before the burn could happen.
       reloaded = Onetime::Secret.load(secret.identifier)
       expect(reloaded&.viewable?).to be true
+    end
+
+    it 'enforces the lockout in raise_concerns, before process runs at all' do
+      max = Onetime::Security::PassphraseRateLimiter::MAX_ATTEMPTS
+      max.times { expect { attempt_burn('wrong') }.to raise_error(OT::FormError) }
+
+      locked = build_logic(
+        'identifier' => receipt.identifier,
+        'continue'   => 'true',
+        'passphrase' => 'correct horse battery',
+      )
+      locked.process_params
+
+      # raise_concerns alone must refuse it: the controller never reaches
+      # process, so the secret is still there afterwards.
+      expect { locked.raise_concerns }.to raise_error(Onetime::LimitExceeded)
+      expect(Onetime::Secret.load(secret.identifier)&.viewable?).to be true
     end
 
     it 'clears rate limit state and burns on the correct passphrase' do

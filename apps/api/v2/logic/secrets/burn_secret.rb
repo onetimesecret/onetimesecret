@@ -48,18 +48,18 @@ module V2::Logic
         require_guest_route_enabled!(:burn)
         require_entitlement!('api_access')
         raise OT::MissingSecret if receipt.nil?
-      end
-
-      def process
-        potential_secret = @receipt.load_secret
-
-        return unless potential_secret
 
         # Check passphrase rate limit before allowing passphrase attempts.
         # Burn is the same brute-force oracle as show/reveal: each wrong
         # guess confirms the passphrase is wrong, and a correct guess
-        # destroys the secret.
-        check_passphrase_rate_limit!(potential_secret.identifier, passphrase_client_ip) if potential_secret.has_passphrase?
+        # destroys the secret. The gate belongs here, alongside ShowSecret's
+        # and RevealSecret's, so it cannot be stranded behind a guard clause
+        # that a later edit to #process moves ahead of it.
+        check_passphrase_rate_limit!(potential_secret.identifier, passphrase_client_ip) if potential_secret&.has_passphrase?
+      end
+
+      def process
+        return unless potential_secret
 
         # Verify the passphrase ONLY on a committed burn (continue=true): a
         # request that is not going through with the burn must never learn
@@ -211,6 +211,15 @@ module V2::Logic
       end
 
       private
+
+      # The secret behind the receipt, loaded once and memoized: raise_concerns
+      # needs it for the rate-limit gate and #process needs it again. nil when
+      # the secret is already gone (revealed, burned, or expired).
+      def potential_secret
+        return @potential_secret if defined?(@potential_secret)
+
+        @potential_secret = receipt&.load_secret
+      end
 
       # Client IP for the per-secret+IP passphrase rate-limit tier (M-8). Sourced
       # from strategy_result metadata (set for both anonymous and authenticated
