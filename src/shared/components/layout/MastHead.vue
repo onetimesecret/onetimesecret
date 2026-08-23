@@ -113,9 +113,9 @@
   };
   // Priority:
   //   1. props.logo.showSiteName            (caller-site override)
-  //   2. !identity.showPlatformIdentity     (resolver base guard: a per-tenant
-  //                                          logo or any custom domain suppresses
-  //                                          the platform wordmark — the A3 leak)
+  //   2. !identity.showPlatformIdentity     (resolver base guard: only a
+  //                                          positively classified operator host
+  //                                          may show the platform wordmark)
   //   3. headerConfig.logo.show_name        (LOGO_SHOW_NAME explicit layout knob;
   //                                          unset ships as null so the heuristic
   //                                          below can act)
@@ -125,7 +125,7 @@
   //                                          product name only before sign-in)
   //
   // Rung 2 is a hard stop: LOGO_SHOW_NAME cannot re-expose platform identity
-  // on a custom domain or alongside a tenant logo (#4241).
+  // without a positive operator-host classification or beside a tenant logo (#4241).
   const getShowSiteName = () => {
     if (props.logo?.showSiteName != null) return props.logo.showSiteName;
     if (!showPlatformIdentity.value) return false;

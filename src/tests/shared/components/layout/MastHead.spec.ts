@@ -743,9 +743,9 @@ describe('MastHead', () => {
     /**
      * Priority chain in getShowSiteName():
      *   1. props.logo.showSiteName            (caller-site override)
-     *   2. !identity.showPlatformIdentity     (resolver base guard: any custom
-     *                                          domain OR a per-tenant logo hides
-     *                                          the platform wordmark)
+     *   2. !identity.showPlatformIdentity     (resolver base guard: only a
+     *                                          positively classified operator host
+     *                                          may show the platform wordmark)
      *   3. headerConfig.logo.show_name        (LOGO_SHOW_NAME explicit layout
      *                                          knob; ships null when unset)
      *   4. !isCustomStaticLogo && !isUserPresent
@@ -1004,8 +1004,10 @@ describe('MastHead', () => {
       expect(logo.attributes('data-show-site-name')).toBe('false');
     });
 
-    it('honors LOGO_SHOW_NAME on an unresolved request host (domain_strategy="invalid") (#4241)', async () => {
-      // The identity guard applies only to the `custom` classification.
+    it('hides the wordmark on an unresolved request host even when show_name is true (#4241)', async () => {
+      // `invalid` can be a custom-domain lookup failure. The resolver requires
+      // a positive operator-host classification before LOGO_SHOW_NAME can
+      // render the operator product name.
       wrapper = mountWithIdentity(
         {
           brandLogoUrl: null,
@@ -1022,8 +1024,7 @@ describe('MastHead', () => {
       await nextTick();
       const logo = wrapper.find('.default-logo');
       expect(logo.exists()).toBe(true);
-      expect(logo.attributes('data-show-site-name')).toBe('true');
-      expect(logo.find('.site-name').text()).toBe('Acme Vault');
+      expect(logo.attributes('data-show-site-name')).toBe('false');
     });
 
     it('hides the wordmark when props.logo.showSiteName=false even with BRAND_LOGO_URL and show_name=true', async () => {
