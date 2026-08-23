@@ -342,10 +342,12 @@ module Billing
         # FEDERATION GAP (report, not a fix): this path tries
         # Auth::Operations::CreateDefaultWorkspace first, whose
         # apply_pending_federation! claims a cross-region PendingFederatedSubscription
-        # for the new workspace. The redirect twin has never called it, so a
-        # customer whose completion is handled there alone never gets that
-        # claim. Unifying changes federation behaviour on that surface, so it
-        # is deliberately left alone here.
+        # for the new workspace (@see
+        # apps/web/auth/spec/operations/create_default_workspace_federation_spec.rb).
+        # The redirect twin has never called it, so a customer whose
+        # completion is handled there alone never gets that claim. Unifying
+        # changes federation behaviour on that surface, so it is deliberately
+        # left alone here — tracked in #4212.
         #
         # @param customer [Onetime::Customer] The customer
         # @param metadata [Stripe::StripeObject] Subscription metadata
@@ -382,11 +384,14 @@ module Billing
           org = create_canonical_workspace(customer, stripe_customer_id)
           return org if org
 
-          # CreateDefaultWorkspace returns nil when the customer already has ANY
-          # organization — archived ones included. That is exactly the caller
-          # who arrives here (resolve rejected their orgs as archived or
-          # not-owned), so without this the paid subscription would be dropped
-          # on the floor: process() returns :not_found and nothing is applied.
+          # CreateDefaultWorkspace refuses (returns nil) when the customer
+          # already has ANY organization — archived ones included — so this
+          # fallback is what applies the subscription for the caller who
+          # arrives here (resolve rejected their orgs as archived or
+          # not-owned); without it the paid subscription would be dropped on
+          # the floor. Exercised end-to-end by the archived-default-org
+          # examples in
+          # apps/web/billing/spec/operations/process_webhook_event/checkout_completed_spec.rb.
           ::Billing::CheckoutTargetResolver.create_billing_workspace(
             customer,
             logger: billing_logger,
