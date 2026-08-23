@@ -143,8 +143,8 @@ an install that set `LOGO_URL` and relied on the implicit wordmark should set
 
 On requests classified as `custom`, `show_name=true` cannot re-expose the
 wordmark, with or without a tenant logo. The masthead applies this guard before
-the explicit setting so the install-wide product name stays out of the
-custom-domain rendering path (#4241).
+the explicit setting so the install-wide product name stays out of that request
+path (#4241).
 
 ## CSS palette
 
