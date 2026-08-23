@@ -205,7 +205,7 @@
     "@tsconfig/node24": "^24.0.4",
     "@types/estree": "1.0.9",
     "@types/fs-extra": "11.0.4",
-    "@types/jsdom": "27.0.0",
+    "@types/jsdom": "30.0.0",
     "@types/node": "22.19.19",
     "@types/qrcode": "1.5.6",
     "@typescript-eslint/eslint-plugin": "^8.57.0",
