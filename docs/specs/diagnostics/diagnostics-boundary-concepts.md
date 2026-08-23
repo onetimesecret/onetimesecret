@@ -32,5 +32,5 @@ before starting work.
   mechanism only when it is implemented and supported.
 
 Each item is independently revisit-able. Changes should use the current
-`actor_ref` / `actor_scope` bootstrap contract and current diagnostics guides
+single-key `actor_ref` bootstrap contract and current diagnostics guides
 as their starting point.
