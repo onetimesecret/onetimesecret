@@ -429,13 +429,15 @@ describe('identityStore showPlatformIdentity', () => {
     expect(identity.showPlatformIdentity).toBe(true);
   });
 
-  it("is true on an unresolved request host (domain_strategy 'invalid') — not a tenant, nothing to guard (#4241)", () => {
-    // 'invalid' is an unplaceable/misconfigured request host (e.g. a dev
-    // CANONICAL_DOMAIN mismatch, or a datastore blip mid-classification) — it
-    // is never a registered tenant domain. isCustom tests strictly
-    // `=== 'custom'`, so this must fall through to the same permitted branch
-    // as canonical/subdomain rather than silently inheriting the
-    // custom-domain suppression (which would also silently defeat a
+  it("is true under domain_strategy 'invalid' — identity consumers test `=== 'custom'` (#4241)", () => {
+    // 'invalid' is a failed classification, not a kind of host: it covers an
+    // unplaceable/misconfigured host (e.g. a dev CANONICAL_DOMAIN mismatch)
+    // and equally a real tenant host whose custom-domain lookup raised
+    // (domain_strategy.rb, #4139 case 2). isCustom tests strictly
+    // `=== 'custom'`, matching the pre-existing identity-consumer polarity in
+    // the domain_strategy.rb contract table, so this falls through to the same
+    // permitted branch as canonical/subdomain rather than silently inheriting
+    // the custom-domain suppression (which would also silently defeat a
     // consumer's LOGO_SHOW_NAME override — see MastHead.getShowSiteName()).
     const bootstrap = useBootstrapStore();
     bootstrap.$patch({ domain_strategy: 'invalid', domain_logo: null });

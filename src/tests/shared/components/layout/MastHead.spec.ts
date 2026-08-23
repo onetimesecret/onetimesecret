@@ -760,12 +760,15 @@ describe('MastHead', () => {
      * gone — and the operator logo arrives via brand_logo_url, not
      * header.branding.logo.url.
      *
-     * #4241: step 2 is a hard veto ONLY for domain_strategy === 'custom' (a
-     * registered tenant) — LOGO_SHOW_NAME=true at step 3 can never cross it
-     * there, by design (it would leak the operator's product name onto the
-     * tenant's domain). An unresolved/misconfigured request host
-     * ('invalid') is not a tenant, does not trip step 2, and still honors
-     * LOGO_SHOW_NAME at step 3 — see the two tests below.
+     * #4241: step 2 is a hard veto, not a default — LOGO_SHOW_NAME=true at
+     * step 3 can never cross it, by design (on a tenant domain it would leak
+     * the operator's product name onto that domain). Its strategy arm keys off
+     * `=== 'custom'` specifically (the per-tenant-logo arm vetoes separately,
+     * whatever the strategy), so an 'invalid' classification does not trip
+     * step 2 and still honors LOGO_SHOW_NAME at step 3 — see the two tests
+     * below. That polarity is the pre-existing identity-consumer contract
+     * pinned in domain_strategy.rb, not a claim that 'invalid' can never
+     * involve a tenant host.
      *
      * The tests below all use the canonical strategy with no domain_logo
      * unless stated, so showPlatformIdentity is true and rung 2 falls through.
@@ -1019,11 +1022,13 @@ describe('MastHead', () => {
     });
 
     it('honors LOGO_SHOW_NAME on an unresolved request host (domain_strategy="invalid") (#4241)', async () => {
-      // 'invalid' means the request host didn't resolve to any known
-      // canonical or tenant domain (e.g. a dev CANONICAL_DOMAIN mismatch) —
-      // it is not a registered custom domain, so there is no tenant identity
-      // to protect. LOGO_SHOW_NAME must still reach rung 3 and force the
-      // wordmark on, rather than silently inheriting the custom-domain guard.
+      // 'invalid' is a failed classification (an unplaceable host such as a
+      // dev CANONICAL_DOMAIN mismatch, or a datastore blip while looking up a
+      // real tenant host). Identity consumers deliberately test `=== 'custom'`,
+      // so 'invalid' takes the operator branch — see the domain_strategy.rb
+      // contract table. This test pins that LOGO_SHOW_NAME still reaches rung
+      // 3 there rather than silently inheriting the custom-domain guard; it
+      // does not decide the blip case, which is a backend policy question.
       wrapper = mountWithIdentity(
         {
           brandLogoUrl: null,

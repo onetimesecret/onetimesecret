@@ -129,10 +129,11 @@
   // on a genuine custom (tenant) domain: LOGO_SHOW_NAME is an install-wide
   // operator setting, and honoring it there would leak the operator's own
   // product name onto every tenant's white-labeled domain, logo or not. It is
-  // NOT intentional to lose the override on a request host that merely fails
-  // to resolve (domain_strategy 'invalid' — e.g. a dev CANONICAL_DOMAIN
-  // mismatch): showPlatformIdentity only trips on 'custom' specifically (see
-  // identityStore.ts), so LOGO_SHOW_NAME still reaches rung 3 there.
+  // NOT intentional to lose the override under domain_strategy 'invalid' — an
+  // unresolved/lookup-failure classification, not a tenant classification:
+  // showPlatformIdentity trips on 'custom' specifically (see identityStore.ts,
+  // which documents why 'invalid' takes the operator branch), so
+  // LOGO_SHOW_NAME still reaches rung 3 there.
   const getShowSiteName = () => {
     if (props.logo?.showSiteName != null) return props.logo.showSiteName;
     if (!showPlatformIdentity.value) return false;
