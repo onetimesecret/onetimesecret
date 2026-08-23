@@ -13,17 +13,18 @@ module Core
     # Nothing here counts sessions, measures usage, or profiles behaviour.
     #
     # The frontend Sentry client needs a STABLE actor reference so events group
-    # per human instead of per session, but it must not learn who that human is.
-    # This serializer emits only what Onetime::Utils::DiagnosticsRef derives: an
-    # opaque keyed reference plus the label describing how far that reference
-    # correlates.
+    # per account instead of per session, but it must not learn which account
+    # that is. This serializer emits only what
+    # Onetime::Utils::DiagnosticsRef derives: one opaque keyed reference.
     #
-    #   diagnostics_ref: { actor_ref: "<16 hex>", actor_scope: "federated"|"deployment" }
+    #   diagnostics_ref: { actor_ref: "<16 hex>" }
     #
     # Never emitted, by construction: email, display name, custid, objid, extid,
-    # IP address, or either keying secret. The pre-image never leaves the server.
+    # IP address, or the keying secret. The pre-image — the customer extid — is
+    # hashed here and never leaves the server through this block; the 16-hex
+    # digest is the only thing the browser sees.
     #
-    # EXACTLY TWO KEYS. The frontend contract (diagnosticsRefSchema in
+    # EXACTLY ONE KEY. The frontend contract (diagnosticsRefSchema in
     # src/schemas/contracts/bootstrap.ts) is a Zod strictObject and is the one
     # schema actually parsed against live data — an extra key makes the parse
     # fail and the whole block is dropped rather than forwarded. That strictness
@@ -34,43 +35,23 @@ module Core
     # `diagnosticsSchema`, which is the unrelated Sentry *configuration* block
     # on the same bootstrap payload.
     #
-    # ACCEPTED DISCLOSURE: actor_scope is configuration, not user data. The
-    # label is a property of the KEY, so shipping it to every authenticated
-    # browser tells that browser whether this install has FEDERATION_SECRET set
-    # AND declares a data-residency scope ('federated'), or does not ('deployment').
-    # That is deliberate and accepted, not an oversight:
-    #
-    #   * it is worth almost nothing to an attacker — it discloses no secret, no
-    #     length, no derivation input, and both states are ordinary supported
-    #     configurations, publicly documented in .env.reference;
-    #   * it is only visible to a session that has already authenticated;
-    #   * the frontend genuinely consumes it. It becomes a Sentry tag alongside
-    #     the ref, and it is the ONLY thing that tells an operator reading an
-    #     event how far the id is comparable — whether two matching refs from
-    #     different instances are the same human or a coincidence of scope.
-    #     Collapsing the label would make every ref look install-local and
-    #     silently mislead on federated installs.
-    #
-    # ONE KEYING RESOLUTION. The ref and the label are taken from a single
-    # DiagnosticsRef.actor call, which resolves the residency scope once and
-    # threads it through both. Do not decompose that into #actor_ref plus
-    # #scope: a config change between the two calls would pair a
-    # federation-keyed ref with a 'deployment' label, telling the operator the
-    # id correlates LESS far than it does.
-    #
-    # Re-examine this if the label ever gains a value that encodes something
-    # about the ACCOUNT rather than about the key. It must not.
+    # NO SCOPE LABEL. An earlier revision shipped an `actor_scope` label
+    # describing which secret keyed the ref. There is now exactly one keying
+    # (ACCOUNT_ID_SECRET) and refs are per-install by construction, so the label
+    # had one constant value and was dropped from the wire contract. Do not
+    # reintroduce a second key here to describe the keying; see
+    # docs/specs/diagnostics/actor-ref-preimage-debate-decision.md.
     #
     # NO ORGANIZATION REF HERE. A pseudonymous organization ref DOES exist —
     # Onetime::Utils::DiagnosticsRef.organization_ref, published on the colonel
     # organization-detail record — but it deliberately does not travel through
     # this block, and adding it here would be a regression twice over:
     #
-    #   * MECHANICALLY, it is a third key in a strictObject.
+    #   * MECHANICALLY, it is a second key in a strictObject.
     #     diagnosticsRefSchema rejects the object and the client discards
-    #     actor_ref and actor_scope along with it, so the cost of widening this
-    #     block is losing the actor reference entirely — silently, since a failed
-    #     parse is not an error.
+    #     actor_ref along with it, so the cost of widening this block is losing
+    #     the actor reference entirely — silently, since a failed parse is not
+    #     an error.
     #
     #   * SEMANTICALLY, this block is PER-SESSION and the org ref is
     #     PER-RESOURCE. A session has one user but touches many organizations,
@@ -88,12 +69,10 @@ module Core
     #   * anonymous sessions (no user to identify — an anonymous visitor must
     #     stay unidentified, matching SystemSerializer's withholding posture);
     #   * awaiting-MFA sessions (not yet authenticated);
-    #   * deployments with no usable keying secret, which is the DEFAULT state
-    #     in dev and test. "Usable" is narrower than "set": FEDERATION_SECRET is
-    #     refused unless a data-residency scope is declared (DiagnosticsRef's
-    #     fail-closed default against cross-region correlation), so an install
-    #     with FEDERATION_SECRET, no residency and no ACCOUNT_ID_SECRET has
-    #     nothing to key with and omits the block.
+    #   * deployments with no usable keying secret (ACCOUNT_ID_SECRET), which is
+    #     the DEFAULT state in dev and test;
+    #   * customers with no usable extid — the derivation declines rather than
+    #     substituting some other identifier.
     #
     # Absence is unambiguous ("no reference"), whereas a null or empty-string
     # actor_ref would be a value the client has to special-case. The frontend
@@ -102,8 +81,7 @@ module Core
     # The derivation raises no StandardError (see DiagnosticsRef), so an unconfigured install
     # renders exactly as it did before this serializer existed. That guarantee
     # matters here specifically: this serializer is registered on all three web
-    # shells (apps/web/core/views.rb), so it runs on EVERY authenticated render,
-    # including for accounts whose stored email is not valid UTF-8.
+    # shells (apps/web/core/views.rb), so it runs on EVERY authenticated render.
     module DiagnosticsSerializer
       # Serializes the pseudonymous actor reference from view variables.
       #
@@ -122,10 +100,10 @@ module Core
         # inherited from AuthenticationSerializer's `authenticated` semantics.
         return omit(output) if view_vars['awaiting_mfa']
 
-        # Exactly { 'actor_ref' => ..., 'actor_scope' => ... }, or nil when no
-        # secret is configured / the derivation declined. Passed through
-        # verbatim: the module owns the shape, and the client parses it strictly.
-        diagnostics_ref = Onetime::Utils::DiagnosticsRef.actor(cust.email)
+        # Exactly { 'actor_ref' => ... }, or nil when no secret is configured /
+        # the derivation declined. Passed through verbatim: the module owns the
+        # shape, and the client parses it strictly.
+        diagnostics_ref = Onetime::Utils::DiagnosticsRef.actor(customer_extid(cust))
         return omit(output) if diagnostics_ref.nil?
 
         output['diagnostics_ref'] = diagnostics_ref
@@ -133,6 +111,24 @@ module Core
       end
 
       class << self
+        # The actor pre-image, read defensively.
+        #
+        # DiagnosticsRef swallows everything inside its own derivation, but the
+        # READ happens out here: Familia's extid getter derives lazily and
+        # raises ExternalIdentifierError when the objid is absent or its
+        # provenance is unknown. On a serializer that runs on every
+        # authenticated render, that raise would be a 500 page plus a
+        # self-inflicted Sentry event, so an unreadable extid costs the ref and
+        # nothing more.
+        #
+        # @param cust [Onetime::Customer]
+        # @return [String, nil]
+        def customer_extid(cust)
+          cust.extid if cust.respond_to?(:extid)
+        rescue StandardError
+          nil
+        end
+
         # Declares the output boundary for SerializerRegistry. A key absent
         # here is stripped from the payload, so `diagnostics_ref` must be declared
         # even though it is frequently omitted at runtime.
