@@ -9,18 +9,12 @@
 // These tests pin the resolution order so a partial port or refactor
 // cannot silently drop a rung (the class of bug that produced #3381).
 
-import {
-  describe,
-  it,
-  expect,
-  beforeEach,
-  vi,
-} from 'vitest';
-import { nextTick } from 'vue';
-import { createPinia, setActivePinia } from 'pinia';
 import { DEFAULT_LOGO_COMPONENT, NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
+import { createPinia, setActivePinia } from 'pinia';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { nextTick } from 'vue';
 
 const NEUTRAL_HEX = NEUTRAL_BRAND_DEFAULTS.primary_color;
 const INSTALL_COLOR = '#E11D48';
@@ -298,7 +292,7 @@ describe('identityStore primaryColor resolution', () => {
     it('Ruby BrandSettings::DEFAULTS[:primary_color] matches TS constant', () => {
       const ruby = readFileSync(
         resolve(process.cwd(), 'lib/onetime/models/custom_domain/brand_settings.rb'),
-        'utf-8',
+        'utf-8'
       );
       // Match primary_color inside the DEFAULTS hash, not in comments or examples
       const defaultsBlock = ruby.match(/DEFAULTS\s*=\s*\{([^}]+)\}/s);
@@ -309,20 +303,14 @@ describe('identityStore primaryColor resolution', () => {
     });
 
     it('.env.reference BRAND_PRIMARY_COLOR example matches TS constant', () => {
-      const env = readFileSync(
-        resolve(process.cwd(), '.env.reference'),
-        'utf-8',
-      );
+      const env = readFileSync(resolve(process.cwd(), '.env.reference'), 'utf-8');
       const match = env.match(/BRAND_PRIMARY_COLOR='(#[0-9A-Fa-f]{6})'/);
       expect(match).not.toBeNull();
       expect(match![1].toUpperCase()).toBe(CANONICAL);
     });
 
     it('CSS @theme --color-brand-500 seed matches TS constant', () => {
-      const css = readFileSync(
-        resolve(process.cwd(), 'src/assets/style.css'),
-        'utf-8',
-      );
+      const css = readFileSync(resolve(process.cwd(), 'src/assets/style.css'), 'utf-8');
       const match = css.match(/--color-brand-500:\s*(#[0-9A-Fa-f]{6})/);
       expect(match).not.toBeNull();
       expect(match![1].toUpperCase()).toBe(CANONICAL);
@@ -400,10 +388,9 @@ describe('identityStore productName resolution', () => {
 // ═══════════════════════════════════════════════════════════════════════════
 // showPlatformIdentity — base "may we show the platform wordmark?" guard (A3)
 //
-// False on any custom domain and whenever a per-tenant logo is present, so a
-// consumer can suppress the platform name/wordmark without re-deriving the
-// leak rule. Canonical + subdomain contexts return true (subject to the
-// consumer's own config).
+// True only on positively classified canonical/subdomain hosts with no
+// per-tenant logo. Unknown and failed classifications are false so a datastore
+// lookup failure cannot leak the platform name onto a tenant host.
 // ═══════════════════════════════════════════════════════════════════════════
 
 describe('identityStore showPlatformIdentity', () => {
@@ -427,6 +414,17 @@ describe('identityStore showPlatformIdentity', () => {
     const identity = useProductIdentity();
 
     expect(identity.showPlatformIdentity).toBe(true);
+  });
+
+  it("is false under domain_strategy 'invalid' to prevent tenant-brand leaks (#4241)", () => {
+    // A failed custom-domain lookup is also classified as `invalid`, so only
+    // a positive operator-host classification may render platform identity.
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ domain_strategy: 'invalid', domain_logo: null });
+
+    const identity = useProductIdentity();
+
+    expect(identity.showPlatformIdentity).toBe(false);
   });
 
   it('is false on a custom domain with no uploaded logo (A3 leak guard)', () => {
@@ -530,6 +528,20 @@ describe('identityStore installLogoUri', () => {
     bootstrap.$patch({
       brand_logo_url: '/img/install-brand.svg',
       domain_strategy: 'custom',
+    });
+
+    const identity = useProductIdentity();
+
+    expect(identity.installLogoUri).toBeNull();
+  });
+
+  it("is null under domain_strategy 'invalid' to prevent tenant-brand leaks (#4241)", () => {
+    // A custom-domain lookup failure is classified as `invalid`; retain the
+    // neutral fallback instead of rendering an operator logo on that host.
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({
+      brand_logo_url: '/img/install-brand.svg',
+      domain_strategy: 'invalid',
     });
 
     const identity = useProductIdentity();

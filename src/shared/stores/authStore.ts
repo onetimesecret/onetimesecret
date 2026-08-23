@@ -441,7 +441,6 @@ export const useAuthStore = defineStore('auth', () => {
     // No-ops when diagnostics are disabled, so it is called unconditionally.
     clearDiagnosticsActorContext();
 
-    deleteCookie('sess');
     deleteCookie('locale');
 
     // Clear all session storage;
@@ -461,7 +460,6 @@ export const useAuthStore = defineStore('auth', () => {
   async function logoutMinimal() {
     await $stopAuthCheck();
 
-    deleteCookie('sess');
     deleteCookie('locale');
     sessionStorage.clear();
   }

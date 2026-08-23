@@ -141,6 +141,11 @@ logos usually embed their own wordmark). Previously, unset meant always-on —
 an install that set `LOGO_URL` and relied on the implicit wordmark should set
 `LOGO_SHOW_NAME=true` to keep it.
 
+On requests classified as `custom`, `show_name=true` cannot re-expose the
+wordmark, with or without a tenant logo. The masthead applies this guard before
+the explicit setting so the install-wide product name stays out of that request
+path (#4241).
+
 ## CSS palette
 
 `generateBrandPalette(hex)` (`src/utils/brand-palette.ts`) emits 44 CSS custom

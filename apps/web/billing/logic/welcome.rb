@@ -381,12 +381,12 @@ module Billing
           # 4. Create (self-healing fallback — no owned, live org to apply this
           # paid subscription to).
           #
-          # Divergence from the webhook twin, which tries
-          # Auth::Operations::CreateDefaultWorkspace first for its pending
-          # federated-subscription claim. This path has never called it and
-          # that difference is NOT deliberate — see the FEDERATION GAP note on
-          # CheckoutCompleted#find_target_organization. Unifying it changes
-          # federation behaviour on this surface and is out of scope here.
+          # Divergence from the webhook twin
+          # (CheckoutCompleted#find_target_organization), which tries
+          # CreateDefaultWorkspace first and so claims a pending federated
+          # subscription that this path skips. Not deliberate — see the
+          # FEDERATION GAP note there for the mechanism, and #4212 for the
+          # unification this is waiting on.
           billing_logger.warn "#{LOG_LABEL} Creating default org during checkout (unexpected)",
             extid: customer.extid
           ::Billing::CheckoutTargetResolver.create_billing_workspace(
