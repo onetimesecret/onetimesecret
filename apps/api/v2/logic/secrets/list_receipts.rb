@@ -78,9 +78,9 @@ module V2::Logic
         # includes audit_logs. Grant audit_logs on every plan that should read
         # a shared receipt index, then re-sync the catalog: `bin/ots billing
         # catalog sync` (push → pull → materialize) — editing billing.yaml
-        # alone changes nothing at runtime. Which shipped plans currently
-        # grant it is pinned by the "shipped example plan catalog" examples
-        # below, not restated here — #4209 shipped with none granting it.
+        # alone changes nothing at runtime. The example catalog grants it to
+        # identity_plus_v1; grant it to each plan that should expose this
+        # shared activity.
         require_entitlement!('audit_logs') if scope == :org
 
         # Validate domain access if domain scope requested

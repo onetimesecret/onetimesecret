@@ -22,7 +22,7 @@
 # audit_logs_enabled check (see list_receipts.rb's AUDIT_SURFACE_SCOPES) and
 # already has its own dedicated coverage in list_receipts_authorization_spec.rb.
 #
-# Run: bundle exec rspec apps/api/v2/spec/logic/secrets/receipt_activity_audit_parity_spec.rb
+# Run: tests/lanes/run simple --only apps/api/v2/spec/logic/secrets/receipt_activity_audit_parity_spec.rb
 
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require 'v2/logic'
