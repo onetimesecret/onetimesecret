@@ -992,11 +992,13 @@ describe('MastHead', () => {
 
     it('hides the wordmark on a custom domain with no logo even when show_name is true (#4241 — A3 guard beats LOGO_SHOW_NAME)', async () => {
       // A genuine tenant domain (domain_strategy='custom') must never show the
-      // operator's own product name, logo or not — LOGO_SHOW_NAME is an
-      // install-wide operator setting, and honoring it here would leak the
-      // operator's identity onto the tenant's white-labeled domain. This
-      // complements the domain_logo-set test above with the previously
-      // untested no-logo combination.
+      // operator's own product name — LOGO_SHOW_NAME is an install-wide
+      // operator setting, and honoring it here would leak the operator's
+      // identity onto the tenant's white-labeled domain. This test covers the
+      // no-logo/DefaultLogo-sentinel branch specifically (previously untested);
+      // the domain_logo-set test above ("multi-tenant invariant") already
+      // covers the <img>+wordmark-span branch. Together they establish the
+      // invariant holds whether or not the tenant has uploaded a logo.
       wrapper = mountWithIdentity(
         {
           brandLogoUrl: null,
