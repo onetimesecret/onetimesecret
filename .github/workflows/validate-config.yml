@@ -34,12 +34,17 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          fetch-depth: 0  # config version ratchet needs a merge-base
 
       - name: Assert Docker image tags match version pin files
         run: bash scripts/check-version-pins.sh
 
       - name: Assert .env.reference documents every consumed env var
         run: bash scripts/check-env-reference.sh
+
+      - name: Assert config keys carry immutable "# Since" version markers
+        run: bash scripts/check-config-versions.sh
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0

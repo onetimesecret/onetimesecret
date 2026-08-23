@@ -35,41 +35,46 @@
 # External library debug flags (use library's own flags):
 #   FAMILIA_DEBUG=1                       - Familia's built-in debug flag
 #   FAMILIA_SAMPLE_RATE=0.01              - Familia command sampling (0.0-1.0)
+#
+# Version markers on the settings below:
+#   # Since v0.25.6                       - Release the setting first shipped in
+#   # Since unreleased                    - Ships in the next release
+#   (no marker)                           - Predates v0.24.0
 
 # Global default log level
 # Options: trace, debug, info, warn, error, fatal
-default_level: <%= ENV['DEFAULT_LOG_LEVEL'] || 'warn' %>
+default_level: <%= ENV['DEFAULT_LOG_LEVEL'] || 'warn' %>  # Since v0.24.0
 
 # Output formatter
 # Options: color, json, default
 # - color: Human-readable with ANSI colors, timestamps, PID/thread (recommended)
 # - json: Structured JSON for production log shipping
 # - default: Plain text without colors
-formatter: <%= ENV['LOG_FORMATTER'] || 'color' %>
+formatter: <%= ENV['LOG_FORMATTER'] || 'color' %>  # Since v0.24.0
 
 # Named logger levels
 # Each category can be configured independently. Loggers added here are
 # made available by the setup_loggers initializer.
 loggers:
-  App: warn       # Default application logger
+  App: warn       # Default application logger  # Since v0.24.0
   Auth: info      # Authentication/authorization flows
-  Billing: warn   # Stripe checkout, payment intents, subscription webhooks, invoices, plan catalog sync
-  Boot: warn      # During initialization
-  Bunny: warn     # RabbitMQ client (heartbeats at debug level)
-  Chores: info    # Familia::Horreum models housekeeping chores
-  Ents: info      # Entitlement materialization, grants/revokes, plan→permission application
+  Billing: warn   # Stripe checkout, payment intents, subscription webhooks, invoices, plan catalog sync  # Since v0.24.0
+  Boot: warn      # During initialization  # Since v0.24.0
+  Bunny: warn     # RabbitMQ client (heartbeats at debug level)  # Since v0.24.0
+  Chores: info    # Familia::Horreum models housekeeping chores  # Since v0.25.3
+  Ents: info      # Entitlement materialization, grants/revokes, plan→permission application  # Since v0.25.6
   Jobs: info      # Job publishing (Publisher.enqueue_email, fallbacks)
-  CLI: info       # Command-line interface operations
+  CLI: info       # Command-line interface operations  # Since v0.24.0
   Familia: info   # Redis/Familia main database operations
-  HTTP: info      # HTTP requests and middleware operations
-  Org: info       # Organization + membership lifecycle (create/destroy/activate/cascade)
-  Otto: info      # Otto framework operations
+  HTTP: info      # HTTP requests and middleware operations  # Since v0.24.0
+  Org: info       # Organization + membership lifecycle (create/destroy/activate/cascade)  # Since v0.25.6
+  Otto: info      # Otto framework operations  # Since v0.24.0
   Rhales: error   # Rhales template rendering (suppress unescaped HTML warnings)
-  Scheduler: info # Scheduled/recurring background jobs
+  Scheduler: info # Scheduled/recurring background jobs  # Since v0.24.0
   Secret: info    # Secret lifecycle (create, view, burn)
   Sequel: warn    # Database queries and operations (SQL logged at :trace level)
-  Session: info   # Session lifecycle (create, update, destroy)
-  Workers: info   # RabbitMQ worker message processing and orchestration
+  Session: info   # Session lifecycle (create, update, destroy)  # Since v0.24.0
+  Workers: info   # RabbitMQ worker message processing and orchestration  # Since v0.24.0
 
 # HTTP request logging configuration
 http:
@@ -78,14 +83,14 @@ http:
   # avoid redundant information.
   enabled: <%= ENV['LOG_HTTP_REQUESTS'] != 'false' %>
   # Overrides loggers.HTTP level for requests
-  level: <%= ENV['LOG_HTTP_REQUESTS_LEVEL'] || nil %>
+  level: <%= ENV['LOG_HTTP_REQUESTS_LEVEL'] || nil %>  # Since v0.24.0
 
   # Capture mode determines what data is logged per request
   # Options: minimal, standard, debug
   #   minimal:  method, path, status, duration
   #   standard: + request_id, ip
   #   debug:    + params, headers, session_id
-  capture: <%= ENV['LOG_HTTP_CAPTURE'] || 'minimal' %>
+  capture: <%= ENV['LOG_HTTP_CAPTURE'] || 'minimal' %>  # Since v0.24.0
 
   # Opt-in allowlist of request field names (params or header display names,
   # e.g. "ttl" or "User-Agent") that may appear in request/error logging
@@ -119,13 +124,13 @@ http:
   #
   # Never add names like password, secret, token, passphrase, api_key,
   # access_token, refresh_token, Authorization, or Cookie here.
-  allowed_error_fields: <%= (ENV['LOG_HTTP_ALLOWED_ERROR_FIELDS'] || '').split(',').map(&:strip).reject(&:empty?) %>
+  allowed_error_fields: <%= (ENV['LOG_HTTP_ALLOWED_ERROR_FIELDS'] || '').split(',').map(&:strip).reject(&:empty?) %>  # Since v0.26.0
 
   # Threshold for logging slow requests as warnings (milliseconds)
-  slow_request_ms: <%= ENV['LOG_HTTP_SLOW_REQUEST_MS'] || 1000 %>
+  slow_request_ms: <%= ENV['LOG_HTTP_SLOW_REQUEST_MS'] || 1000 %>  # Since v0.24.0
 
   # Paths to ignore (glob patterns)
-  ignore_paths:
+  ignore_paths:  # Since v0.24.0
     - /api/v1/status
     - /api/v2/status
     - /api/v3/status
