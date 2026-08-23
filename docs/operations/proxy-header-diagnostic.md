@@ -113,10 +113,10 @@ the GET:
 
 ```bash
 curl -s https://uk.onetimesecret.com/api/colonel/system/proxy-headers \
-  -H 'Cookie: sess=<session-id>' | jq
+  -H 'Cookie: onetime.session=<session-id>' | jq
 ```
 
-Take the `sess` value from the browser after signing in as a colonel.
+Take the `onetime.session` value from the browser after signing in as a colonel.
 
 A `404` here is ambiguous by design: a rejected gate and a mistyped path look
 identical to the client. Check the application log for a `NetworkRequirements`

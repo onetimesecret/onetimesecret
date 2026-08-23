@@ -597,8 +597,6 @@ describe('authStore', () => {
     beforeEach(() => {
       // Clear sessionStorage before each test
       sessionStorage.clear();
-      // Clear cookies
-      document.cookie = 'sess=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
       // Reset stores
       store.$reset();
       bootstrapStore.$reset();
@@ -606,7 +604,6 @@ describe('authStore', () => {
 
     afterEach(() => {
       sessionStorage.clear();
-      document.cookie = 'sess=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
       store.$reset();
     });
 

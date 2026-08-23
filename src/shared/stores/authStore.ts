@@ -419,7 +419,6 @@ export const useAuthStore = defineStore('auth', () => {
     // Reset bootstrapStore user state while preserving server config
     bootstrapStore.resetForLogout();
 
-    deleteCookie('sess');
     deleteCookie('locale');
 
     // Clear all session storage;
@@ -439,7 +438,6 @@ export const useAuthStore = defineStore('auth', () => {
   async function logoutMinimal() {
     await $stopAuthCheck();
 
-    deleteCookie('sess');
     deleteCookie('locale');
     sessionStorage.clear();
   }
