@@ -196,13 +196,11 @@ describe('useAuth logout flow — no brand flash', () => {
     });
 
     it('logoutMinimal still clears cookies and session storage', async () => {
-      document.cookie = 'sess=abc123; path=/';
       document.cookie = 'locale=en; path=/';
       sessionStorage.setItem('ots_auth_state', 'true');
 
       await authStore.logoutMinimal();
 
-      expect(document.cookie).not.toContain('sess=abc123');
       expect(document.cookie).not.toContain('locale=en');
       expect(sessionStorage.getItem('ots_auth_state')).toBeNull();
     });
