@@ -199,7 +199,8 @@ if $HAVE_VALIDATION; then
   echo
 fi
 
-# validation_count LOCALE -> echoes the report's integer blocking count, or "" if unknown.
+# validation_count LOCALE -> echoes the report's `.blocking` value verbatim.
+# Emits "" only when validation is unavailable or the report cannot be read.
 validation_count() {
   local file="$RESULTS_DIR/i18n-validate-$1.json"
   $HAVE_VALIDATION || { echo ""; return; }
