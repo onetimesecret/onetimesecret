@@ -11,9 +11,11 @@
 // ── What Sentry receives ──────────────────────────────────────────────────────
 //
 //   user = { id: <opaque server-derived ref>, ip_address: null }
-//   tags.actor_scope = "federated" | "deployment"
 //
-// That is the complete set. No `email`, no `username`, no `name`, no
+// That is the complete set — one field on one context, and no tag beside it.
+// The ref is a keyed one-way digest of the customer's external identifier
+// (extid), minted per install; there is no scope, region, or jurisdiction
+// dimension attached to it. No `email`, no `username`, no `name`, no
 // `ip_address` other than the explicit null, and no additional user keys. The
 // shape is built by literal construction (never by spreading the server
 // block), so a new server-side field cannot ride along even if the schema were
@@ -34,14 +36,14 @@
 //      derivation produces — 16 lowercase hex chars, matched against
 //      `DIAGNOSTICS_REF_PATTERN`.
 //
-// Check 2 is not redundant. `{ actor_ref: "alice@example.com", actor_scope:
-// "deployment" }` is a fully VALID block by key set alone — two keys, valid
-// enum, non-empty string. The outbound gate keeps exactly one field, `id`, and
-// drops the rest, so with a key-set check only, that address would be shipped
-// as `user.id` on every error and every transaction while `email` was
-// conscientiously deleted beside it. A strict key set stops an unexpected
-// FIELD; only the content check stops an unexpected VALUE in a permitted
-// field, which is why BOTH the inbound parse and `sanitizeEventUser` apply it.
+// Check 2 is not redundant. `{ actor_ref: "alice@example.com" }` is a fully
+// VALID block by key set alone — the one permitted key, a non-empty string.
+// The outbound gate keeps exactly one field, `id`, and drops the rest, so with
+// a key-set check only, that address would be shipped as `user.id` on every
+// error and every transaction while `email` was conscientiously deleted
+// beside it. A strict key set stops an unexpected FIELD; only the content
+// check stops an unexpected VALUE in a permitted field, which is why BOTH the
+// inbound parse and `sanitizeEventUser` apply it.
 //
 // `DIAGNOSTICS_REF_PATTERN` lives in the contract module and is the single
 // source of truth on this side. It mirrors
@@ -93,21 +95,13 @@ import { getBootstrapValue } from '@/services/bootstrap.service';
 import type { Scope } from '@sentry/browser';
 
 /**
- * The Sentry tag key carrying the ref scope (which secret keyed the ref).
- *
- * Exported so tests and the diagnostics service refer to one literal rather
- * than three copies of the string.
- */
-export const ACTOR_SCOPE_TAG = 'actor_scope';
-
-/**
  * The subset of `Scope` this module touches.
  *
  * Deliberately narrow: it documents at the type level that actor context only
- * ever calls `setUser` and `setTag`, and it lets tests pass plain objects
- * without constructing a real Sentry scope.
+ * ever calls `setUser` — it sets no tags — and it lets tests pass plain
+ * objects without constructing a real Sentry scope.
  */
-export type ActorContextScope = Pick<Scope, 'setUser' | 'setTag'>;
+export type ActorContextScope = Pick<Scope, 'setUser'>;
 
 /**
  * The exact user object shipped to Sentry. Constructed literally, never
@@ -128,11 +122,11 @@ export interface DiagnosticsActor {
  * Validates an untrusted `diagnostics_ref` block against the strict contract.
  *
  * Fail-CLOSED by construction: any deviation — a missing field, a non-string
- * ref, a scope outside the closed enum, or ANY extra key (`email`, `name`,
- * `objid`, …) — yields `null`, and the session runs unidentified. That is the
- * intended trade: losing correlation in Sentry is an observability
- * regression; forwarding an unexpected server field to a third-party
- * processor is a privacy incident.
+ * ref, a ref of the wrong shape, or ANY extra key (`email`, `name`, `objid`,
+ * the retired `actor_scope`, …) — yields `null`, and the session runs
+ * unidentified. That is the intended trade: losing correlation in Sentry is an
+ * observability regression; forwarding an unexpected server field to a
+ * third-party processor is a privacy incident.
  *
  * @param raw - Untrusted value, typically `bootstrap.diagnostics_ref`.
  * @returns The validated block, or null when absent/anonymous/malformed.
@@ -175,12 +169,12 @@ export function resolveDiagnosticsRef(): DiagnosticsRefBlock | null {
  * Idempotent and total: calling it with `null` fully clears the context, so
  * the same function serves initial configuration, account change, and logout.
  * There is deliberately no separate "clear" code path that could drift from
- * the "set" path and leave a tag behind.
+ * the "set" path and leave a stale reference behind.
  *
- * On clear, `actor_scope` is set to `undefined`, which is how Sentry's Scope
- * removes a tag (the key is dropped during event serialization). Leaving a
- * stale `actor_scope` after logout would let an anonymous session be filtered
- * as if it were still the previous, identified session.
+ * User context is the ONLY thing this function writes. It sets no tags, so
+ * `setUser(null)` on every scope is a complete eviction — there is no second
+ * dimension that could survive logout and label an anonymous session as if it
+ * were still the previous, identified one.
  *
  * @param scopes - Every scope that must agree. In practice
  *   `[isolatedScope, getCurrentScope()]` — see the module header.
@@ -204,12 +198,6 @@ export function applyActorContext(
 
   for (const scope of scopes) {
     scope.setUser(user);
-    // Keyed off `user`, not `ref`: when the ref value was refused above there
-    // is no user context, so there must be no scope tag either — a lone
-    // `actor_scope` would label an unidentified session as if it were still
-    // identified. `undefined` clears the tag; Sentry drops undefined tag
-    // values when serializing the event.
-    scope.setTag(ACTOR_SCOPE_TAG, user && ref ? ref.actor_scope : undefined);
   }
 }
 
