@@ -232,8 +232,20 @@ export const useProductIdentity = defineStore('productIdentity', () => {
    * subdomain contexts are permitted to show it, subject to the consumer's own
    * config (a `subdomain` IS the platform, so its name legitimately shows).
    *
-   * This encodes only the base identity-leak guard; consumers keep their own
-   * override ladder (caller props, operator LOGO_SHOW_NAME, etc.) on top.
+   * `isCustom` tests strictly `domainStrategy === 'custom'`, so an `'invalid'`
+   * classification (an unplaceable/misconfigured request host — e.g. a dev
+   * CANONICAL_DOMAIN mismatch, or a datastore blip) does NOT trip this guard.
+   * That's deliberate, not an oversight: `'invalid'` is never a registered
+   * tenant, so there is no third-party identity to protect, and it must fall
+   * through to the same permitted branch as canonical/subdomain — matching the
+   * `== :custom` identity-predicate polarity documented in domain_strategy.rb.
+   *
+   * This is a HARD veto, not a default: it is the one rung in a consumer's
+   * override ladder (caller props, operator LOGO_SHOW_NAME, etc.) that cannot
+   * be crossed. See MastHead's getShowSiteName(), where LOGO_SHOW_NAME only
+   * runs once this guard already permits showing the platform identity — an
+   * operator's LOGO_SHOW_NAME=true must never re-expose the platform's product
+   * name on a genuine tenant custom domain (#4241).
    */
   const showPlatformIdentity = computed(() => !isCustom.value && !logoUri.value);
 

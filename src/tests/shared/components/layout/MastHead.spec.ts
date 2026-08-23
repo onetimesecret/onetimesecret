@@ -739,7 +739,7 @@ describe('MastHead', () => {
     });
   });
 
-  describe('Site name visibility priority (regression #3160, consolidated #3612)', () => {
+  describe('Site name visibility priority (regression #3160, consolidated #3612, #4241)', () => {
     /**
      * Priority chain in getShowSiteName():
      *   1. props.logo.showSiteName            (caller-site override)
@@ -759,6 +759,13 @@ describe('MastHead', () => {
      * (brand_product_name || 'Secure Links') — header.branding.site_name is
      * gone — and the operator logo arrives via brand_logo_url, not
      * header.branding.logo.url.
+     *
+     * #4241: step 2 is a hard veto ONLY for domain_strategy === 'custom' (a
+     * registered tenant) — LOGO_SHOW_NAME=true at step 3 can never cross it
+     * there, by design (it would leak the operator's product name onto the
+     * tenant's domain). An unresolved/misconfigured request host
+     * ('invalid') is not a tenant, does not trip step 2, and still honors
+     * LOGO_SHOW_NAME at step 3 — see the two tests below.
      *
      * The tests below all use the canonical strategy with no domain_logo
      * unless stated, so showPlatformIdentity is true and rung 2 falls through.
@@ -981,6 +988,58 @@ describe('MastHead', () => {
 
       const siteName = wrapper.find('span.font-brand.text-lg');
       expect(siteName.exists()).toBe(false);
+    });
+
+    it('hides the wordmark on a custom domain with no logo even when show_name is true (#4241 — A3 guard beats LOGO_SHOW_NAME)', async () => {
+      // A genuine tenant domain (domain_strategy='custom') must never show the
+      // operator's own product name, logo or not — LOGO_SHOW_NAME is an
+      // install-wide operator setting, and honoring it here would leak the
+      // operator's identity onto the tenant's white-labeled domain. This
+      // complements the domain_logo-set test above with the previously
+      // untested no-logo combination.
+      wrapper = mountWithIdentity(
+        {
+          brandLogoUrl: null,
+          showName: true,
+          brandProductName: 'Acme Vault',
+        },
+        {
+          authenticated: false,
+          domain_strategy: 'custom',
+          domain_logo: null,
+        }
+      );
+
+      await nextTick();
+      const logo = wrapper.find('.default-logo');
+      expect(logo.exists()).toBe(true);
+      expect(logo.attributes('data-show-site-name')).toBe('false');
+    });
+
+    it('honors LOGO_SHOW_NAME on an unresolved request host (domain_strategy="invalid") (#4241)', async () => {
+      // 'invalid' means the request host didn't resolve to any known
+      // canonical or tenant domain (e.g. a dev CANONICAL_DOMAIN mismatch) —
+      // it is not a registered custom domain, so there is no tenant identity
+      // to protect. LOGO_SHOW_NAME must still reach rung 3 and force the
+      // wordmark on, rather than silently inheriting the custom-domain guard.
+      wrapper = mountWithIdentity(
+        {
+          brandLogoUrl: null,
+          showName: true,
+          brandProductName: 'Acme Vault',
+        },
+        {
+          authenticated: false,
+          domain_strategy: 'invalid',
+          domain_logo: null,
+        }
+      );
+
+      await nextTick();
+      const logo = wrapper.find('.default-logo');
+      expect(logo.exists()).toBe(true);
+      expect(logo.attributes('data-show-site-name')).toBe('true');
+      expect(logo.find('.site-name').text()).toBe('Acme Vault');
     });
 
     it('hides the wordmark when props.logo.showSiteName=false even with BRAND_LOGO_URL and show_name=true', async () => {

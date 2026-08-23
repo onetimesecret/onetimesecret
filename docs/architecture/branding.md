@@ -141,6 +141,15 @@ logos usually embed their own wordmark). Previously, unset meant always-on —
 an install that set `LOGO_URL` and relied on the implicit wordmark should set
 `LOGO_SHOW_NAME=true` to keep it.
 
+`show_name=true` cannot re-expose the wordmark on a genuine custom (tenant)
+domain: `identityStore.showPlatformIdentity` (the A3 leak guard) suppresses it
+unconditionally there, logo or not, and `MastHead.getShowSiteName()` checks
+that guard before it ever reads `show_name` — so the operator's own product
+name can never leak onto a tenant's white-labeled domain. This guard keys off
+`domain_strategy === 'custom'` specifically; an unresolved/misconfigured
+request host (`'invalid'`, e.g. a dev `CANONICAL_DOMAIN` mismatch) is not a
+tenant and is unaffected (#4241).
+
 ## CSS palette
 
 `generateBrandPalette(hex)` (`src/utils/brand-palette.ts`) emits 44 CSS custom

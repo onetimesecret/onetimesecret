@@ -429,6 +429,22 @@ describe('identityStore showPlatformIdentity', () => {
     expect(identity.showPlatformIdentity).toBe(true);
   });
 
+  it("is true on an unresolved request host (domain_strategy 'invalid') — not a tenant, nothing to guard (#4241)", () => {
+    // 'invalid' is an unplaceable/misconfigured request host (e.g. a dev
+    // CANONICAL_DOMAIN mismatch, or a datastore blip mid-classification) — it
+    // is never a registered tenant domain. isCustom tests strictly
+    // `=== 'custom'`, so this must fall through to the same permitted branch
+    // as canonical/subdomain rather than silently inheriting the
+    // custom-domain suppression (which would also silently defeat a
+    // consumer's LOGO_SHOW_NAME override — see MastHead.getShowSiteName()).
+    const bootstrap = useBootstrapStore();
+    bootstrap.$patch({ domain_strategy: 'invalid', domain_logo: null });
+
+    const identity = useProductIdentity();
+
+    expect(identity.showPlatformIdentity).toBe(true);
+  });
+
   it('is false on a custom domain with no uploaded logo (A3 leak guard)', () => {
     const bootstrap = useBootstrapStore();
     bootstrap.$patch({ domain_strategy: 'custom', domain_logo: null });
