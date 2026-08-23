@@ -103,6 +103,12 @@ interface BootstrapState extends BootstrapPayload {
   _initialized: boolean;
 }
 
+interface BootstrapUpdateOptions {
+  // A /bootstrap/me response is complete: absence of diagnostics_ref means the
+  // server reports an anonymous session. Local state patches are not complete.
+  source?: 'bootstrap';
+}
+
 /**
  * Bootstrap Store - Centralized Server State
  *
@@ -252,7 +258,10 @@ export const useBootstrapStore = defineStore('bootstrap', {
         });
       } catch (error) {
         // Fallback to defaults if snapshot parsing or hydration fails
-        console.error('[BootstrapStore.init] Failed to initialize from snapshot, using defaults:', error);
+        console.error(
+          '[BootstrapStore.init] Failed to initialize from snapshot, using defaults:',
+          error
+        );
         this._initialized = true;
       }
 
@@ -260,12 +269,16 @@ export const useBootstrapStore = defineStore('bootstrap', {
     },
 
     /**
-     * Updates the store with new data from /bootstrap/me API response.
-     * Only updates fields that are present in the data object.
+     * Merges a partial state update into the store.
+     *
+     * A `source: 'bootstrap'` update is a complete /bootstrap/me response, so
+     * an omitted diagnostics_ref authoritatively clears actor context. Local
+     * patches are incomplete; omission leaves the existing context unchanged.
      *
      * @param data - Partial BootstrapPayload data to merge
+     * @param options - Whether data came from /bootstrap/me or a local patch
      */
-    update(data: Partial<BootstrapPayload>): void {
+    update(data: Partial<BootstrapPayload>, options: BootstrapUpdateOptions = {}): void {
       // has_password: null means the server couldn't determine it (transient
       // auth-DB failure during serialization). Treat it like an absent field
       // so a blipped refresh never clobbers a known-good true/false. init()
@@ -301,14 +314,13 @@ export const useBootstrapStore = defineStore('bootstrap', {
       // reference in state and in the snapshot. So absence is handled
       // explicitly here.
       //
-      // `data.authenticated !== undefined` identifies a FULL /bootstrap/me
-      // body, where a missing `diagnostics_ref` is authoritative ("this
-      // session has no ref"). A narrow partial patch — e.g. a store writing
-      // only `has_password` — carries no auth state, so its silence about
-      // `diagnostics_ref` means "unchanged", not "anonymous", and the user
-      // context is left alone.
-      const carriesAuthState = data.authenticated !== undefined;
-      if (carriesAuthState || data.diagnostics_ref !== undefined) {
+      // A /bootstrap/me response is complete, so an absent diagnostics_ref is
+      // authoritative ("this session has no ref"). Auth state alone cannot
+      // identify that response: setAuthenticated() also emits a local patch
+      // containing authenticated after its refresh completes. For local
+      // patches, silence about diagnostics_ref means "unchanged".
+      const isBootstrapResponse = options.source === 'bootstrap';
+      if (isBootstrapResponse || data.diagnostics_ref !== undefined) {
         const nextRef = data.diagnostics_ref;
         if (nextRef === undefined) {
           this.$patch((state) => {
@@ -354,7 +366,7 @@ export const useBootstrapStore = defineStore('bootstrap', {
       }
 
       const newState = (await response.json()) as BootstrapPayload;
-      this.update(newState);
+      this.update(newState, { source: 'bootstrap' });
     },
 
     /**

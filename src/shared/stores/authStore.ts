@@ -321,7 +321,7 @@ export const useAuthStore = defineStore('auth', () => {
       // All computed properties derive from bootstrapStore refs, so route guards
       // and components will see updated values immediately.
       if (response.data) {
-        bootstrapStore.update(response.data);
+        bootstrapStore.update(response.data, { source: 'bootstrap' });
       }
 
       // Update local auth state from refreshed window data

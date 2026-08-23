@@ -8,7 +8,7 @@ import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setupTestPinia } from '../setup';
 import { mockCustomer as fixtureCustomer } from '@/tests/fixtures/bootstrap.fixture';
-import { clearDiagnosticsActorContext } from '@/services/diagnostics.service';
+import { clearDiagnosticsActorContext, setDiagnosticsActorContext } from '@/services/diagnostics.service';
 import { getBootstrapValue, updateBootstrapSnapshot } from '@/services/bootstrap.service';
 
 // The soft (SPA) logout path must clear the Sentry user context. Mocked so the
@@ -255,6 +255,24 @@ describe('authStore', () => {
 
       expect(store.isAuthenticated).toBe(true);
       expect(store.lastCheckTime).not.toBeNull();
+    });
+
+    it('preserves the diagnostics actor context returned by /bootstrap/me when completing login', async () => {
+      const diagnosticsRef = { actor_ref: 'a1b2c3d4e5f60718' } as const;
+      axiosMock.onGet(AUTH_CHECK_CONFIG.ENDPOINT).reply(200, {
+        authenticated: true,
+        awaiting_mfa: false,
+        diagnostics_ref: diagnosticsRef,
+      });
+
+      await store.setAuthenticated(true);
+
+      // setAuthenticated() refreshes first, then applies an auth-only optimistic
+      // patch. That patch must not reinterpret its missing ref as an anonymous
+      // /bootstrap/me response.
+      expect(bootstrapStore.diagnostics_ref).toEqual(diagnosticsRef);
+      expect(setDiagnosticsActorContext).toHaveBeenLastCalledWith(diagnosticsRef);
+      expect(setDiagnosticsActorContext).not.toHaveBeenCalledWith(null);
     });
 
     it('tracks failure count accurately', async () => {

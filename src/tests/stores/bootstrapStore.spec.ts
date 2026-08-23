@@ -1195,7 +1195,12 @@ describe('bootstrapStore', () => {
 
     it('preserves all server config fields together through resetForLogout', () => {
       // Set up all server config fields
-      const sentryConfig = { dsn: 'https://test@sentry.io/123', enabled: true, logErrors: true, trackComponents: true };
+      const sentryConfig = {
+        dsn: 'https://test@sentry.io/123',
+        enabled: true,
+        logErrors: true,
+        trackComponents: true,
+      };
       store.update({
         authentication: { enabled: false, signup: false, signin: true },
         ui: { enabled: false, header: { enabled: false } },
@@ -1693,7 +1698,7 @@ describe('bootstrapStore user context', () => {
     expect(mockSetActorContext).toHaveBeenCalledWith(REF_BLOCK);
   });
 
-  it('clears the context when a full payload OMITS diagnostics_ref (anonymous)', () => {
+  it('clears the context when a bootstrap response OMITS diagnostics_ref (anonymous)', () => {
     store.update({
       authenticated: true,
       diagnostics_ref: { ...REF_BLOCK },
@@ -1702,7 +1707,9 @@ describe('bootstrapStore user context', () => {
 
     // A full /bootstrap/me body reporting an anonymous session: the block is
     // absent, not null. filterDefined() alone would leave the old ref.
-    store.update({ authenticated: false } as Partial<BootstrapPayload>);
+    store.update({ authenticated: false } as Partial<BootstrapPayload>, {
+      source: 'bootstrap',
+    });
 
     expect(store.diagnostics_ref).toBeUndefined();
     expect(mockSetActorContext).toHaveBeenCalledWith(null);
