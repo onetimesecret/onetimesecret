@@ -1370,7 +1370,7 @@
     "source_hash": "6615bf1c"
   },
   "api.errors.service_unavailable": {
-    "text": "Servicio temporalmente no disponible. Por favor, inténtalo de nuevo en breve.",
+    "text": "Servicio temporalmente no disponible. Vuelve a intentarlo en breve.",
     "context": "Error message when database connection fails",
     "source_hash": "343ccdcb"
   },
@@ -1389,7 +1389,7 @@
     "source_hash": "0fcfb12d"
   },
   "api.errors.sso_only_action_blocked": {
-    "text": "Esta acción no está disponible en el modo exclusivo de SSO",
+    "text": "Esta acción no está disponible en el modo solo SSO",
     "source_hash": "9bc26394"
   },
   "web.COMMON.configure": {
@@ -1539,5 +1539,9 @@
   "web.TITLES.domain_dns": {
     "text": "Configuración de DNS",
     "source_hash": "6c63df31"
+  },
+  "web.TITLES.connected_identities": {
+    "text": "Identidades conectadas",
+    "source_hash": "e132c4d9"
   }
 }

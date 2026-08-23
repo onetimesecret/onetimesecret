@@ -201,16 +201,22 @@ export const secretWithTimestampsCanonical = secretCanonical.extend({
  * @example
  * ```typescript
  * const details = secretDetailsCanonical.parse(apiResponse.details);
- * if (details.show_secret && details.correct_passphrase) {
+ * if (details.show_secret) {
  *   // Display the secret content
  * }
  * ```
+ *
+ * @remarks
+ * `show_secret` is the only reveal signal. The backend deliberately does not
+ * report whether a supplied passphrase was correct — it only verifies the
+ * passphrase when the caller commits to the reveal (`continue: true`), so a
+ * probe cannot be used as a passphrase oracle. Older backends may still emit
+ * `details.correct_passphrase`; this schema strips it.
  */
 export const secretDetailsCanonical = z.object({
   continue: z.boolean(),
   is_owner: z.boolean(),
   show_secret: z.boolean(),
-  correct_passphrase: z.boolean(),
   display_lines: z.number(),
   one_liner: z.boolean().nullable(),
 });

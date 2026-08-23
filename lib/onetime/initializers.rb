@@ -18,7 +18,7 @@ require_relative 'initializers/load_locales'
 require_relative 'initializers/setup_i18n'        # requires: [:i18n]
 require_relative 'initializers/setup_loggers'
 require_relative 'initializers/set_secrets'
-require_relative 'initializers/configure_domains'
+require_relative 'initializers/configure_secret_activity'
 require_relative 'initializers/configure_truemail'
 require_relative 'initializers/configure_rhales'
 require_relative 'initializers/load_fortunes'
@@ -33,6 +33,7 @@ require_relative 'initializers/setup_rabbitmq'         # depends_on: [:logging]
 require_relative 'initializers/configure_familia'      # depends_on: [:logging]
 require_relative 'initializers/setup_connection_pool'  # depends_on: [:familia_config]
 require_relative 'initializers/check_secret_verifier'  # depends_on: [:familia_config]
+require_relative 'initializers/configure_domains'      # depends_on: [:familia_config]
 require_relative 'initializers/check_global_banner'    # depends_on: [:database]
 require_relative 'initializers/check_unique_index_format' # depends_on: [:database]
 require_relative 'initializers/check_tenant_sso_trust' # depends_on: [:database]

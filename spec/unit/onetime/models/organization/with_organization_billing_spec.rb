@@ -14,26 +14,46 @@ require_relative '../../../../../apps/web/billing/models/plan'
 require_relative '../../../../../apps/web/billing/lib/plan_validator'
 require_relative '../../../../../apps/web/billing/operations/apply_subscription_to_org'
 
-RSpec.describe 'WithOrganizationBilling', billing: true do
+RSpec.describe 'WithOrganizationBilling', :billing do
+  # The predicate harness: the smallest object the status predicates read.
+  # Shared by #paid?, #complimentary?, #billing_live? and the divergence
+  # block, so there is one definition of "an org, as far as billing status is
+  # concerned" rather than a per-describe copy.
+  let(:billing_test_class) do
+    Class.new do
+      include Onetime::Models::Features::WithOrganizationBilling::InstanceMethods
+
+      attr_accessor :subscription_status, :planid, :complimentary
+
+      def initialize(status: nil, planid: nil, complimentary: nil)
+        @subscription_status = status
+        @planid              = planid
+        @complimentary       = complimentary
+      end
+    end
+  end
+
   # Build a minimal Stripe::Subscription for testing
   def build_subscription(price_id: 'price_test', subscription_metadata: {}, price_metadata: {})
-    Stripe::Subscription.construct_from({
-      id: 'sub_test_123',
-      object: 'subscription',
-      customer: 'cus_test',
-      status: 'active',
-      metadata: subscription_metadata,
-      items: {
-        data: [{
-          price: {
-            id: price_id,
-            product: 'prod_test',
-            metadata: price_metadata,
-          },
-          current_period_end: (Time.now + 30 * 24 * 60 * 60).to_i,
-        }],
+    Stripe::Subscription.construct_from(
+      {
+        id: 'sub_test_123',
+        object: 'subscription',
+        customer: 'cus_test',
+        status: 'active',
+        metadata: subscription_metadata,
+        items: {
+          data: [{
+            price: {
+              id: price_id,
+              product: 'prod_test',
+              metadata: price_metadata,
+            },
+            current_period_end: (Time.now + (30 * 24 * 60 * 60)).to_i,
+          }],
+        },
       },
-    })
+    )
   end
 
   # Mock a plan in the catalog for a given price_id
@@ -41,7 +61,7 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
     mock_plan = instance_double(
       Billing::Plan,
       plan_id: plan_id,
-      stripe_price_id: price_id
+      stripe_price_id: price_id,
     )
     allow(Billing::Plan).to receive(:find_by_stripe_price_id)
       .with(price_id)
@@ -58,9 +78,14 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
       Class.new do
         include Onetime::Models::Features::WithOrganizationBilling::InstanceMethods
 
-        attr_accessor :objid, :extid, :stripe_subscription_id, :stripe_customer_id,
-                      :subscription_status, :subscription_period_end, :planid,
-                      :complimentary
+        attr_accessor :objid,
+          :extid,
+          :stripe_subscription_id,
+          :stripe_customer_id,
+          :subscription_status,
+          :subscription_period_end,
+          :planid,
+          :complimentary
 
         def initialize
           @objid = 'test-org-123'
@@ -89,30 +114,36 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
         def materialized_entitlements
           @materialized_entitlements ||= []
         end
+
+        def rematerialize_all_memberships!
+          { success: 0, failed: 0, total: 0, failed_ids: [] }
+        end
       end
     end
 
     let(:org) { saveable_test_class.new }
-    let(:period_end) { (Time.now + 30 * 24 * 60 * 60).to_i }
+    let(:period_end) { (Time.now + (30 * 24 * 60 * 60)).to_i }
 
     def build_valid_subscription(overrides = {})
-      Stripe::Subscription.construct_from({
-        id: 'sub_test_123',
-        object: 'subscription',
-        customer: 'cus_test_456',
-        status: 'active',
-        metadata: { Billing::Metadata::FIELD_PLAN_ID => 'identity_plus_v1' },
-        items: {
-          data: [{
-            price: {
-              id: 'price_test',
-              product: 'prod_test',
-              metadata: {},
-            },
-            current_period_end: period_end,
-          }],
-        },
-      }.merge(overrides))
+      Stripe::Subscription.construct_from(
+        {
+          id: 'sub_test_123',
+          object: 'subscription',
+          customer: 'cus_test_456',
+          status: 'active',
+          metadata: { Billing::Metadata::FIELD_PLAN_ID => 'identity_plus_v1' },
+          items: {
+            data: [{
+              price: {
+                id: 'price_test',
+                product: 'prod_test',
+                metadata: {},
+              },
+              current_period_end: period_end,
+            }],
+          },
+        }.merge(overrides),
+      )
     end
 
     before do
@@ -121,7 +152,7 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
       # Mock catalog to return plan for price_test (catalog-first behavior)
       mock_plan = instance_double(
         Billing::Plan,
-        plan_id: 'identity_plus_v1'
+        plan_id: 'identity_plus_v1',
       )
       allow(Billing::Plan).to receive(:find_by_stripe_price_id)
         .with('price_test')
@@ -181,7 +212,7 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
 
         expect(OT).to receive(:lw).with(
           '[Organization.update_from_stripe_subscription] Unknown subscription status',
-          hash_including(status: 'unknown_status')
+          hash_including(status: 'unknown_status'),
         )
         expect { org.update_from_stripe_subscription(subscription) }.not_to raise_error
       end
@@ -204,34 +235,40 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
       end
 
       it 'raises ArgumentError when subscription id is missing' do
-        subscription = Stripe::Subscription.construct_from({
-          object: 'subscription',
-          customer: 'cus_test',
-          status: 'active',
-          items: { data: [{ price: { id: 'price_test' }, current_period_end: period_end }] },
-        })
+        subscription = Stripe::Subscription.construct_from(
+          {
+            object: 'subscription',
+            customer: 'cus_test',
+            status: 'active',
+            items: { data: [{ price: { id: 'price_test' }, current_period_end: period_end }] },
+          },
+        )
         expect { org.update_from_stripe_subscription(subscription) }
           .to raise_error(ArgumentError, /missing required fields/)
       end
 
       it 'raises ArgumentError when customer is missing' do
-        subscription = Stripe::Subscription.construct_from({
-          id: 'sub_test',
-          object: 'subscription',
-          status: 'active',
-          items: { data: [{ price: { id: 'price_test' }, current_period_end: period_end }] },
-        })
+        subscription = Stripe::Subscription.construct_from(
+          {
+            id: 'sub_test',
+            object: 'subscription',
+            status: 'active',
+            items: { data: [{ price: { id: 'price_test' }, current_period_end: period_end }] },
+          },
+        )
         expect { org.update_from_stripe_subscription(subscription) }
           .to raise_error(ArgumentError, /missing required fields/)
       end
 
       it 'raises ArgumentError when status is missing' do
-        subscription = Stripe::Subscription.construct_from({
-          id: 'sub_test',
-          object: 'subscription',
-          customer: 'cus_test',
-          items: { data: [{ price: { id: 'price_test' }, current_period_end: period_end }] },
-        })
+        subscription = Stripe::Subscription.construct_from(
+          {
+            id: 'sub_test',
+            object: 'subscription',
+            customer: 'cus_test',
+            items: { data: [{ price: { id: 'price_test' }, current_period_end: period_end }] },
+          },
+        )
         expect { org.update_from_stripe_subscription(subscription) }
           .to raise_error(ArgumentError, /missing required fields/)
       end
@@ -273,19 +310,21 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
           .with('price_unknown')
           .and_return(nil)
 
-        subscription = Stripe::Subscription.construct_from({
-          id: 'sub_no_plan',
-          object: 'subscription',
-          customer: 'cus_test',
-          status: 'active',
-          metadata: {},
-          items: {
-            data: [{
-              price: { id: 'price_unknown', product: 'prod_test', metadata: {} },
-              current_period_end: period_end,
-            }],
+        subscription = Stripe::Subscription.construct_from(
+          {
+            id: 'sub_no_plan',
+            object: 'subscription',
+            customer: 'cus_test',
+            status: 'active',
+            metadata: {},
+            items: {
+              data: [{
+                price: { id: 'price_unknown', product: 'prod_test', metadata: {} },
+                current_period_end: period_end,
+              }],
+            },
           },
-        })
+        )
 
         expect { org.update_from_stripe_subscription(subscription) }
           .to raise_error(Billing::CatalogMissError)
@@ -301,26 +340,28 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
 
     context 'complimentary metadata syncing' do
       it 'sets complimentary when subscription metadata has complimentary=true' do
-        subscription = Stripe::Subscription.construct_from({
-          id: 'sub_comp_123',
-          object: 'subscription',
-          customer: 'cus_test_456',
-          status: 'active',
-          metadata: {
-            Billing::Metadata::FIELD_PLAN_ID => 'identity_plus_v1',
-            Billing::Metadata::FIELD_COMPLIMENTARY => 'true',
+        subscription = Stripe::Subscription.construct_from(
+          {
+            id: 'sub_comp_123',
+            object: 'subscription',
+            customer: 'cus_test_456',
+            status: 'active',
+            metadata: {
+              Billing::Metadata::FIELD_PLAN_ID => 'identity_plus_v1',
+              Billing::Metadata::FIELD_COMPLIMENTARY => 'true',
+            },
+            items: {
+              data: [{
+                price: {
+                  id: 'price_test',
+                  product: 'prod_test',
+                  metadata: {},
+                },
+                current_period_end: period_end,
+              }],
+            },
           },
-          items: {
-            data: [{
-              price: {
-                id: 'price_test',
-                product: 'prod_test',
-                metadata: {},
-              },
-              current_period_end: period_end,
-            }],
-          },
-        })
+        )
 
         org.update_from_stripe_subscription(subscription)
         expect(org.complimentary).to eq('true')
@@ -328,7 +369,7 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
 
       it 'clears complimentary when metadata does not have complimentary' do
         org.complimentary = 'true'
-        subscription = build_valid_subscription
+        subscription      = build_valid_subscription
         org.update_from_stripe_subscription(subscription)
         expect(org.complimentary).to be_nil
       end
@@ -339,20 +380,6 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
   # paid? and complimentary? canonical method tests
   # ==========================================================================
   describe '#paid?' do
-    let(:billing_test_class) do
-      Class.new do
-        include Onetime::Models::Features::WithOrganizationBilling::InstanceMethods
-
-        attr_accessor :subscription_status, :planid, :complimentary
-
-        def initialize(status: nil, planid: nil, complimentary: nil)
-          @subscription_status = status
-          @planid = planid
-          @complimentary = complimentary
-        end
-      end
-    end
-
     it 'returns true for active subscription with paid plan' do
       org = billing_test_class.new(status: 'active', planid: 'identity_plus_v1')
       expect(org.paid?).to be true
@@ -400,25 +427,11 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
   end
 
   describe '#complimentary?' do
-    let(:billing_test_class) do
-      Class.new do
-        include Onetime::Models::Features::WithOrganizationBilling::InstanceMethods
-
-        attr_accessor :subscription_status, :planid, :complimentary
-
-        def initialize(status: nil, planid: nil, complimentary: nil)
-          @subscription_status = status
-          @planid = planid
-          @complimentary = complimentary
-        end
-      end
-    end
-
     it 'returns true for active subscription with complimentary marker' do
       org = billing_test_class.new(
         status: 'active',
         planid: 'identity_plus_v1',
-        complimentary: 'true'
+        complimentary: 'true',
       )
       expect(org.complimentary?).to be true
     end
@@ -427,7 +440,7 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
       org = billing_test_class.new(
         status: 'active',
         planid: 'identity_plus_v1',
-        complimentary: nil
+        complimentary: nil,
       )
       expect(org.complimentary?).to be false
     end
@@ -436,7 +449,7 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
       org = billing_test_class.new(
         status: 'canceled',
         planid: 'identity_plus_v1',
-        complimentary: 'true'
+        complimentary: 'true',
       )
       expect(org.complimentary?).to be false
     end
@@ -445,7 +458,7 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
       org = billing_test_class.new(
         status: 'active',
         planid: 'identity_plus_v1',
-        complimentary: ''
+        complimentary: '',
       )
       expect(org.complimentary?).to be false
     end
@@ -454,10 +467,116 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
       org = billing_test_class.new(
         status: 'active',
         planid: 'identity_plus_v1',
-        complimentary: 'true'
+        complimentary: 'true',
       )
       expect(org.paid?).to be true
       expect(org.complimentary?).to be true
+    end
+  end
+  # ==========================================================================
+  # billing_live? — the delete guardrail's LIVENESS question
+  # ==========================================================================
+  describe '#billing_live?' do
+    # One row per status Stripe can put on a subscription (the same list the
+    # '#update_from_stripe_subscription with different subscription statuses'
+    # context accepts), plus the three "no subscription" shapes. Every status
+    # is classified: an unclassified one is a hole in the delete guardrail.
+    {
+      # Live, or recoverable without anyone touching Stripe.
+      'active'             => true,
+      'trialing'           => true,
+      'past_due'           => true,  # Stripe is still retrying the card
+      'unpaid'             => true,  # retries exhausted, subscription still there
+      # Not live.
+      'canceled'           => false,
+      'incomplete'         => false, # never billed; Stripe expires it in ~23h
+      'incomplete_expired' => false,
+      # Never billed and never expires — needs a payment method attached by
+      # hand, so it fails the "charges again with no human action" rule.
+      'paused'             => false,
+      # An unrecognised status PERMITS the delete. That is the permissive
+      # direction of an allowlist and it is a real decision, not an
+      # accident: if Stripe adds a status the way it added 'paused', the
+      # guard stops covering it silently. Flipping to fail-closed means
+      # "any non-empty status we do not recognise is live" — see
+      # update_from_stripe_subscription, which already logs a warning and
+      # stores the unknown value.
+      'unknown_status'     => false,
+    }.each do |status, expected|
+      it "is #{expected} for '#{status}'" do
+        expect(billing_test_class.new(status: status).billing_live?).to be expected
+      end
+    end
+
+    it 'is false when the org never subscribed (nil status)' do
+      expect(billing_test_class.new(status: nil).billing_live?).to be false
+    end
+
+    it 'is false for a blank status' do
+      expect(billing_test_class.new(status: '').billing_live?).to be false
+    end
+
+    it 'reads the status as a string, so a symbol still classifies' do
+      expect(billing_test_class.new(status: :past_due).billing_live?).to be true
+    end
+
+    # 'incomplete'/'incomplete_expired'/'paused' are excluded ON PURPOSE: all
+    # three need a human to complete or attach a payment before anything can
+    # bill, and the customer-facing delete has no force flag, so each one added
+    # here is an unappealable lockout. Adding to the set should be a decision,
+    # not a drive-by, so pin it.
+    it 'pins the live set — widening it is a product decision, not a cleanup' do
+      expect(Onetime::Models::Features::WithOrganizationBilling::LIVE_SUBSCRIPTION_STATUSES)
+        .to contain_exactly('active', 'trialing', 'past_due', 'unpaid')
+    end
+  end
+
+  # ==========================================================================
+  # The divergence these two predicates exist to express
+  # ==========================================================================
+  #
+  # THE BUG (#4209 follow-up): Onetime::Operations::Org::Delete gated its
+  # :active_subscription refusal on active_subscription?, whose set is
+  # active/trialing only. A past_due org therefore deleted cleanly while
+  # Stripe kept charging the card — the support incident the op's own
+  # docstring names.
+  #
+  # The fix could NOT be "widen active_subscription?": that method is also the
+  # entitlement predicate behind paid? and complimentary?, so widening it
+  # hands premium features to delinquent orgs. Hence two predicates. These
+  # examples are the ones that go red if someone later folds them back
+  # together in either direction.
+  describe 'liveness (billing_live?) vs entitlement (active_subscription?)' do
+    %w[past_due unpaid].each do |status|
+      it "'#{status}' is live for billing but grants NOTHING" do
+        org = billing_test_class.new(
+          status: status,
+          planid: 'identity_plus_v1',
+          complimentary: 'true',
+        )
+
+        expect(org.billing_live?).to be true
+
+        expect(org.active_subscription?).to be false
+        expect(org.paid?).to be false
+        expect(org.complimentary?).to be false
+      end
+    end
+
+    it "'active' answers yes on both axes — the predicates are not inverses" do
+      org = billing_test_class.new(status: 'active', planid: 'identity_plus_v1')
+
+      expect(org.billing_live?).to be true
+      expect(org.active_subscription?).to be true
+      expect(org.paid?).to be true
+    end
+
+    it "'canceled' answers no on both axes" do
+      org = billing_test_class.new(status: 'canceled', planid: 'identity_plus_v1')
+
+      expect(org.billing_live?).to be false
+      expect(org.active_subscription?).to be false
+      expect(org.paid?).to be false
     end
   end
 end

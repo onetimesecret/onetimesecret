@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require_relative '../../../field_types/boolean_field_type'
+require_relative '../../field_types'
 
 module Onetime::Customer::Features
   module Status
@@ -18,12 +18,15 @@ module Onetime::Customer::Features
       # macro: a custom FieldType handles canonicalization at the type
       # level, so callers cannot bypass it via the setter, the fast
       # writer, or by passing the field through Customer.create!.
-      base.extend Onetime::FieldTypes::BooleanFieldMacro
+      base.extend Onetime::Models::FieldTypes::BooleanFieldMacro
 
       base.field :role
       base.field :joined
       base.boolean_field :verified
-      base.field :verified_by  # 'email', 'stripe_payment', 'autoverify', nil
+      # Provenance tag for how the account became verified; nil when
+      # unverified. See Auth::Operations::Customers::Doctor::VALID_VERIFIED_BY
+      # for the full list of in-use values and where each is written.
+      base.field :verified_by
 
       # Reversible trust & safety pause (NOT a role, NOT destructive).
       # A suspended customer keeps all of their data but cannot authenticate:
@@ -41,7 +44,7 @@ module Onetime::Customer::Features
 
     module InstanceMethods
       # Stored form is canonical 'true' / 'false' (see
-      # Onetime::FieldTypes::BooleanFieldType), so the predicate is a
+      # Onetime::Models::FieldTypes::BooleanFieldType), so the predicate is a
       # plain string equality check — no truthy-table, no `to_s.downcase`.
       def verified?
         !anonymous? && verified == 'true'

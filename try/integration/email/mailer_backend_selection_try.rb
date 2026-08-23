@@ -173,3 +173,15 @@ config.key?('region')
 config = Onetime::Mail::Mailer.send(:build_provider_config, 'sendgrid')
 config.key?('api_key')
 #=> true
+
+## build_provider_config for smtp2go without an api_key signals no-credentials
+## with an empty hash (subdomain/base_url defaults must not survive, or the
+## DomainValidationWorker/check_essentials! empty-guards can never trigger)
+config = Onetime::Mail::Mailer.send(:build_provider_config, 'smtp2go')
+config
+#=> {}
+
+## build_provider_config for smtp2go contains no symbol keys
+config = Onetime::Mail::Mailer.send(:build_provider_config, 'smtp2go')
+config.keys.none? { |k| k.is_a?(Symbol) }
+#=> true

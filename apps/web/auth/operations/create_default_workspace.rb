@@ -60,9 +60,17 @@ module Auth
       #   closing this residual (e.g. an opt-in "require verified claim" flag)
       #   would degrade the feature for those deployments and is a product
       #   decision, not a default.
-      def initialize(customer:, require_verification: false)
+      # @param stripe_customer_id [String, nil] when a checkout completion is
+      #   driving the creation, the checkout's Stripe customer. The new org is
+      #   created already holding that unique-index claim, so two completion
+      #   surfaces racing on the same checkout elect one creator instead of
+      #   both minting a workspace (see
+      #   Billing::CheckoutTargetResolver.adopt_claimed_workspace). Ignored
+      #   when blank, which is every non-billing caller.
+      def initialize(customer:, require_verification: false, stripe_customer_id: nil)
         @customer             = customer
         @require_verification = require_verification
+        @stripe_customer_id   = stripe_customer_id
       end
 
       # Executes the workspace creation operation
@@ -169,6 +177,7 @@ module Auth
           'Default Workspace',  # Not shown to individual plan users
           @customer,
           @customer.email,
+          **Onetime::Organization.stripe_claim_fields(@stripe_customer_id),
         )
 
         # Mark as default workspace (prevents deletion)
@@ -178,9 +187,7 @@ module Auth
         apply_pending_federation!(org)
 
         org
-      rescue Onetime::Problem => ex
-        raise unless ex.message.include?('Organization exists')
-
+      rescue Onetime::OrganizationExists
         # Org exists in the email index but customer has no membership link
         # (e.g., incomplete prior creation, data inconsistency after SSO).
         # Find the existing org and repair the membership.
@@ -294,6 +301,24 @@ module Auth
         return false unless pending
         return false unless pending.active?
 
+        # A pending record without a resolved planid cannot deliver any
+        # benefit. Claiming it anyway would mark the org federated (showing
+        # the "subscription synced" notification for a sync that applied
+        # nothing) and destroy the only copy of the pending state. Leave the
+        # record intact: now that the org exists with an email_hash, the next
+        # subscription webhook re-syncs it directly through the federated
+        # path, which resolves the plan from subscription metadata.
+        if pending.planid.to_s.strip.empty?
+          auth_logger.error '[create-default-workspace] Pending federated subscription has no planid; leaving unclaimed',
+            {
+              org: org.extid,
+              hash_prefix: org.email_hash[0..7],
+              status: pending.subscription_status,
+              region: pending.region,
+            }
+          return false
+        end
+
         # SECURITY AUDIT (verify-disabled residual): we are about to apply a
         # cross-region subscription benefit. If the customer's email ownership
         # was never proven AND this deployment has no email-verification step at
@@ -316,7 +341,7 @@ module Auth
 
         # Apply subscription benefits
         org.subscription_status     = pending.subscription_status
-        org.planid                  = pending.planid if pending.planid
+        org.planid                  = pending.planid
         org.subscription_period_end = pending.subscription_period_end
         org.mark_subscription_federated!
 

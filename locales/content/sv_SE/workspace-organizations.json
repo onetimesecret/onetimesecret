@@ -903,14 +903,6 @@
     "text": "Ta bort {domain}",
     "source_hash": "ae708a1d"
   },
-  "web.organizations.sso.enabled": {
-    "text": "Aktivera SSO",
-    "source_hash": "d10d0801"
-  },
-  "web.organizations.sso.enabled_hint": {
-    "text": "När detta är aktiverat kan organisationens medlemmar logga in med denna SSO-leverantör",
-    "source_hash": "d7da2fa2"
-  },
   "web.organizations.sso.enforce_sso_only": {
     "text": "Tvinga endast SSO",
     "source_hash": "b3a3f694"
@@ -1034,5 +1026,209 @@
   "web.organizations.create_workspace": {
     "text": "Skapa arbetsyta",
     "source_hash": "c63c14cf"
+  },
+  "web.organizations.organization_id": {
+    "text": "Organisations-ID",
+    "source_hash": "1f466322"
+  },
+  "web.organizations.organization_id_hint": {
+    "text": "Använd detta ID när du kontaktar support eller begränsar API-förfrågningar till denna organisation. Det är inte en inloggningsuppgift.",
+    "source_hash": "29549b3a"
+  },
+  "web.organizations.audit.title": {
+    "text": "Hemlighetsaktivitet",
+    "source_hash": "6d6d41f3"
+  },
+  "web.organizations.audit.description": {
+    "text": "Granskningsspår av hemlighetsskapande och åtkomsthändelser registrerade för denna organisation.",
+    "source_hash": "553c564b"
+  },
+  "web.organizations.audit.country_unknown": {
+    "text": "Okänt",
+    "source_hash": "b764cdc0"
+  },
+  "web.organizations.audit.empty_title": {
+    "text": "Ingen aktivitet ännu",
+    "source_hash": "0a12b92c"
+  },
+  "web.organizations.audit.empty_description": {
+    "text": "Hemlighetsskapande och åtkomsthändelser kommer att visas här när ditt team delar hemligheter.",
+    "source_hash": "62fb14c2"
+  },
+  "web.organizations.audit.capped_notice": {
+    "text": "Endast de {max} nyaste händelserna behålls; äldre aktivitet har trimmats.",
+    "source_hash": "da7901e2"
+  },
+  "web.organizations.audit.collection_paused_notice": {
+    "text": "Händelseinsamling är pausad; ny hemlighetsaktivitet registreras inte.",
+    "source_hash": "cb09d147"
+  },
+  "web.organizations.audit.load_error": {
+    "text": "Kunde inte ladda hemlighetsaktivitet.",
+    "source_hash": "52fde814"
+  },
+  "web.organizations.audit.contract_mismatch": {
+    "text": "Aktivitetsdata som returnerades av servern kunde inte läsas. Spåret är inte tomt — det kan bara inte visas just nu.",
+    "source_hash": "db0d007a"
+  },
+  "web.organizations.audit.retry": {
+    "text": "Försök igen",
+    "source_hash": "d8b8392e"
+  },
+  "web.organizations.audit.showing_range": {
+    "text": "Visar {from}–{to} av {total}",
+    "source_hash": "c329279d"
+  },
+  "web.organizations.audit.upgrade_prompt": {
+    "text": "Hemlighetsaktivitet kräver en plan med granskningsloggar. Uppgradera för att se vem som skapade, visade och avslöjade hemligheter i denna organisation.",
+    "source_hash": "453649ce"
+  },
+  "web.organizations.audit.role_required": {
+    "text": "Hemlighetsaktivitet är tillgänglig för organisationsägare och administratörer.",
+    "source_hash": "e066ec63"
+  },
+  "web.organizations.audit.actors.creator": {
+    "text": "Skapare",
+    "source_hash": "88447b83"
+  },
+  "web.organizations.audit.actors.authenticated_other": {
+    "text": "En annan inloggad användare",
+    "source_hash": "ee45aa5a"
+  },
+  "web.organizations.audit.actors.anonymous": {
+    "text": "Anonym",
+    "source_hash": "e7a8aa2d"
+  },
+  "web.organizations.audit.actors.system": {
+    "text": "System",
+    "source_hash": "6725e7bb"
+  },
+  "web.organizations.audit.actors.unknown": {
+    "text": "Okänd",
+    "source_hash": "b764cdc0"
+  },
+  "web.organizations.audit.columns.event": {
+    "text": "Händelse",
+    "source_hash": "4e1f49a9"
+  },
+  "web.organizations.audit.columns.secret": {
+    "text": "Hemlighet",
+    "source_hash": "7e32a729"
+  },
+  "web.organizations.audit.columns.actor": {
+    "text": "Aktör",
+    "source_hash": "449995c4"
+  },
+  "web.organizations.audit.columns.country": {
+    "text": "Land",
+    "source_hash": "701d021d"
+  },
+  "web.organizations.audit.columns.when": {
+    "text": "När",
+    "source_hash": "cf9c7aa2"
+  },
+  "web.organizations.audit.kinds.created": {
+    "text": "Hemlighet skapad",
+    "source_hash": "e4a1e1fd"
+  },
+  "web.organizations.audit.kinds.status_get": {
+    "text": "Länkstatus kontrollerad",
+    "source_hash": "0753f60e"
+  },
+  "web.organizations.audit.kinds.secret_get": {
+    "text": "Hemlighetslänk öppnad",
+    "source_hash": "e271e060"
+  },
+  "web.organizations.audit.kinds.previewed": {
+    "text": "Förhandsgranskad av skapare",
+    "source_hash": "639fc1e2"
+  },
+  "web.organizations.audit.kinds.creator_status_get": {
+    "text": "Status kontrollerad av skapare",
+    "source_hash": "7e4b5de5"
+  },
+  "web.organizations.audit.kinds.receipt_viewed": {
+    "text": "Kvitto visat",
+    "source_hash": "a417ead4"
+  },
+  "web.organizations.audit.kinds.revealed": {
+    "text": "Hemlighet avslöjad",
+    "source_hash": "aff2c84d"
+  },
+  "web.organizations.audit.kinds.burned": {
+    "text": "Hemlighet raderad permanent",
+    "source_hash": "5ac68dc6"
+  },
+  "web.organizations.audit.kinds.expired": {
+    "text": "Hemlighet utgången",
+    "source_hash": "c127dab6"
+  },
+  "web.organizations.audit.kinds.orphaned": {
+    "text": "Hemlighet föräldralös",
+    "source_hash": "23fe1a47"
+  },
+  "web.organizations.audit.kinds.reveal_failed_undecryptable": {
+    "text": "Avslöjande misslyckades (okrypterbar)",
+    "source_hash": "d5616abf"
+  },
+  "web.organizations.tabs.activity": {
+    "text": "Aktivitet",
+    "source_hash": "38da1505"
+  },
+  "web.organizations.invitations.restricted_host_title": {
+    "text": "En annan inloggningsmetod krävs här",
+    "source_hash": "d761ad30"
+  },
+  "web.organizations.invitations.restricted_host_body": {
+    "text": "Den här webbplatsen tillåter endast inloggning med {method}, så det går inte att skapa ett konto här med lösenord. {method} är inget du kan slutföra på den här sidan.",
+    "source_hash": "6ac146d4"
+  },
+  "web.organizations.invitations.restricted_host_unknown_body": {
+    "text": "Den här webbplatsen tillåter endast en specifik inloggningsmetod, och den kan inte erbjudas på den här sidan. Det går inte att skapa ett konto här med lösenord.",
+    "source_hash": "e24d59a9"
+  },
+  "web.organizations.invitations.restricted_sso_body": {
+    "text": "Den här webbplatsen använder single sign-on. Logga in med din organisations leverantör för att fortsätta – det skapar ditt konto och loggar in dig.",
+    "source_hash": "e942d04b"
+  },
+  "web.organizations.invitations.restricted_sso_cta": {
+    "text": "Fortsätt till inloggning",
+    "source_hash": "d398cd0a"
+  },
+  "web.organizations.invitations.restricted_use_email_link": {
+    "text": "Öppna länken i ditt e-postmeddelande med inbjudan för att acceptera från huvudwebbplatsen i stället.",
+    "source_hash": "73bf298f"
+  },
+  "web.organizations.invitations.invitation_stays_pending": {
+    "text": "Din inbjudan är fortfarande giltig – inget har förbrukats, och du kan acceptera den när du har loggat in.",
+    "source_hash": "f4d00be1"
+  },
+  "web.organizations.invitations.signin_unavailable_title": {
+    "text": "Inloggning är inte tillgänglig på den här webbplatsen",
+    "source_hash": "c56bce2b"
+  },
+  "web.organizations.invitations.signin_unavailable_body": {
+    "text": "Den här webbplatsen är begränsad till {method}, som inte fungerar här, så det finns för närvarande inget sätt att logga in.",
+    "source_hash": "62c01601"
+  },
+  "web.organizations.invitations.signin_unavailable_unknown_body": {
+    "text": "Den här webbplatsen är begränsad till en inloggningsmetod som inte fungerar här, så det finns för närvarande inget sätt att logga in.",
+    "source_hash": "1f61e456"
+  },
+  "web.organizations.invitations.signin_unavailable_conflict_body": {
+    "text": "Den här webbplatsens inloggningsinställningar står i konflikt med begränsningen för hela webbplatsen ({method}), så ingen av dem gäller och det finns för närvarande inget sätt att logga in.",
+    "source_hash": "54cdfd61"
+  },
+  "web.organizations.sso.connection_enabled": {
+    "text": "Anslutning aktiv",
+    "source_hash": "b6334b2b"
+  },
+  "web.organizations.sso.connection_enabled_hint": {
+    "text": "När den är aktiv kan medlemmar logga in med denna SSO-leverantör. SSO måste också vara aktiverat som inloggningsmetod i domänens Inloggningskonfiguration.",
+    "source_hash": "871db2f1"
+  },
+  "web.organizations.sso.enable_untested_warning": {
+    "text": "Den här anslutningen har ännu inte klarat ett test här. Kör Testa anslutning innan du aktiverar den, så att en felaktig konfiguration aldrig når din inloggningssida.",
+    "source_hash": "c1fbdeca"
   }
 }

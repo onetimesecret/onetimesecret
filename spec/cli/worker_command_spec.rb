@@ -8,6 +8,19 @@ require 'onetime/cli/worker_command'
 RSpec.describe Onetime::CLI::WorkerCommand, type: :cli do
   let(:command) { described_class.new }
 
+  around do |example|
+    original_execution_mode       = OT.execution_mode
+    original_skip_rabbitmq_setup = ENV['SKIP_RABBITMQ_SETUP']
+    example.run
+  ensure
+    OT.execution_mode = original_execution_mode
+    if original_skip_rabbitmq_setup.nil?
+      ENV.delete('SKIP_RABBITMQ_SETUP')
+    else
+      ENV['SKIP_RABBITMQ_SETUP'] = original_skip_rabbitmq_setup
+    end
+  end
+
   describe 'exit codes' do
     it 'defines semantic exit codes' do
       expect(described_class::EXIT_SUCCESS).to eq(0)

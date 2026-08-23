@@ -9,7 +9,7 @@
 #
 # Options:
 #   --db N          Clear specific database number (default: current config)
-#   --all           Clear all databases (0-15)
+#   --all           Clear all databases (0-65535)
 #   --pattern GLOB  Only clear keys matching pattern
 #   --dry-run       Show what would be deleted without actually deleting
 #   --force         Skip confirmation prompts
@@ -81,7 +81,7 @@ class DatabaseCleaner
         @options[:db] = db
       end
 
-      opts.on('--all', 'Clear all databases (0-15)') do
+      opts.on('--all', 'Clear all databases (0-65535)') do
         @options[:all] = true
       end
 
@@ -133,7 +133,7 @@ class DatabaseCleaner
   end
 
   def clear_all_databases
-    (0..15).each do |db_num|
+    (0...65_536).each do |db_num|
       clear_single_database(db_num)
     end
   end

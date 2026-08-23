@@ -71,6 +71,21 @@ config = ProviderConfig.for('lettermint')
 config[:api_base_url]
 #=> 'https://api.lettermint.co/v1'
 
+## SMTP2GO default api_base_url is https://api.smtp2go.com/v3
+config = ProviderConfig.for('smtp2go')
+config[:api_base_url]
+#=> 'https://api.smtp2go.com/v3'
+
+## SMTP2GO default returnpath_subdomain is bounce
+config = ProviderConfig.for('smtp2go')
+config[:returnpath_subdomain]
+#=> 'bounce'
+
+## SMTP2GO default tracking_subdomain is track
+config = ProviderConfig.for('smtp2go')
+config[:tracking_subdomain]
+#=> 'track'
+
 # --- Explicit overrides take precedence ---
 
 ## Explicit region override for SES
@@ -123,7 +138,7 @@ config[:region]
 
 ## available_providers includes all default providers
 providers = ProviderConfig.available_providers
-providers.include?('ses') && providers.include?('sendgrid') && providers.include?('lettermint')
+providers.include?('ses') && providers.include?('sendgrid') && providers.include?('lettermint') && providers.include?('smtp2go')
 #=> true
 
 ## available_providers returns sorted array
@@ -213,3 +228,24 @@ end
 config = ProviderConfig.for('lettermint', api_base_url: nil)
 config[:api_base_url]
 #=> 'https://api.lettermint.co/v1'
+
+# --- SMTP2GO config validation ---
+
+## Valid SMTP2GO api_base_url passes validation
+config = ProviderConfig.for('smtp2go', api_base_url: 'https://smtp2go.internal/v3')
+config[:api_base_url]
+#=> 'https://smtp2go.internal/v3'
+
+## Invalid SMTP2GO api_base_url raises ArgumentError
+begin
+  ProviderConfig.for('smtp2go', api_base_url: 'not-a-url')
+  :no_error
+rescue ArgumentError => e
+  e.message.include?('Invalid API base URL')
+end
+#=> true
+
+## Nil SMTP2GO api_base_url is filtered out and default is used
+config = ProviderConfig.for('smtp2go', api_base_url: nil)
+config[:api_base_url]
+#=> 'https://api.smtp2go.com/v3'

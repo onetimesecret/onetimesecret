@@ -42,6 +42,30 @@ Onetime::Utils::DomainParser.extract_hostname('example.com:443')
 Onetime::Utils::DomainParser.extract_hostname('example.com:8080')
 #=> 'example.com'
 
+## Extract hostname unwraps a bracketed IPv6 literal
+Onetime::Utils::DomainParser.extract_hostname('[2001:db8::1]')
+#=> '2001:db8::1'
+
+## Extract hostname unwraps a bracketed IPv6 literal and strips the port
+Onetime::Utils::DomainParser.extract_hostname('[2001:db8::1]:8080')
+#=> '2001:db8::1'
+
+## Extract hostname rejects a malformed bracketed literal instead of mangling it
+Onetime::Utils::DomainParser.extract_hostname('[2001:db8::1')
+#=> nil
+
+## Brackets are IPv6-only: hex-and-dot junk is not a hostname
+Onetime::Utils::DomainParser.extract_hostname('[dead.beef]')
+#=> nil
+
+## Brackets are IPv6-only: bracketed IPv4 is invalid syntax
+Onetime::Utils::DomainParser.extract_hostname('[1.2.3.4]')
+#=> nil
+
+## Extract hostname unwraps brackets in an https URL with IPv6 host
+Onetime::Utils::DomainParser.extract_hostname('https://[2001:db8::1]:8443/path')
+#=> '2001:db8::1'
+
 ## Extract hostname from https URL
 Onetime::Utils::DomainParser.extract_hostname('https://example.com/path')
 #=> 'example.com'

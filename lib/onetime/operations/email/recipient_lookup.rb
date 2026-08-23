@@ -2,9 +2,11 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/mail/provider_registry'
 require 'onetime/models/email_suppression'
 require 'onetime/mail/feedback/ses'
 require 'onetime/mail/feedback/lettermint'
+require 'onetime/mail/feedback/smtp2go'
 require 'onetime/operations/email/error_scrub'
 
 module Onetime
@@ -16,9 +18,9 @@ module Onetime
       # The local store (EmailSuppression) is always readable — it is the
       # authority and is returned even when the provider read fails. The provider
       # read is fail-soft: a timeout/auth error → provider_result nil +
-      # available=false; a provider "not found" (SES NotFoundException, Lettermint
-      # empty) is NOT an error — it is provider_result.suppressed=false,
-      # available=true.
+      # available=false; a provider "not found" (SES NotFoundException,
+      # Lettermint/SMTP2GO empty list) is NOT an error — it is
+      # provider_result.suppressed=false, available=true.
       #
       # Normalization: the address is keyed via EmailSuppression.normalize
       # (strip.downcase) for BOTH the local read and the value handed to the
@@ -28,7 +30,9 @@ module Onetime
       #
       # `fetcher:` is injectable for unit testing without live credentials.
       class RecipientLookup
-        PROVIDERS = %w[ses lettermint].freeze
+        # Feedback-capable providers, derived from Mail::ProviderRegistry
+        # (descriptor.feedback — requires a fetcher under Onetime::Mail::Feedback).
+        PROVIDERS = Onetime::Mail::ProviderRegistry.feedback_providers.freeze
 
         Result = Data.define(
           :address, :provider, :capability, :available, :error, :local, :provider_result
@@ -118,6 +122,7 @@ module Onetime
           case @provider
           when 'ses'        then Onetime::Mail::Feedback::SES.new(creds)
           when 'lettermint' then Onetime::Mail::Feedback::Lettermint.new(creds)
+          when 'smtp2go'    then Onetime::Mail::Feedback::Smtp2go.new(creds)
           end
         end
       end

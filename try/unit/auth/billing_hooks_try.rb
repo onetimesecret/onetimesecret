@@ -7,7 +7,6 @@
 #
 # Run: bundle exec try try/unit/auth/billing_hooks_try.rb
 #
-# frozen_string_literal: true
 
 require_relative '../../support/test_helpers'
 
@@ -23,8 +22,8 @@ class MockRodauthInstance
   attr_reader :session, :json_response, :params
 
   def initialize(params: {}, session: {}, json_response: {})
-    @params = params
-    @session = session
+    @params        = params
+    @session       = session
     @json_response = json_response
   end
 
@@ -37,9 +36,10 @@ class MockRodauthInstance
   # Capture plan selection from params into session
   # Mirrors the logic from Auth::Config::Hooks::Billing.define_capture_method
   def capture_plan_selection
-    product  = param_or_nil('product')
-    interval = param_or_nil('interval')
+    product                    = param_or_nil('product')
+    interval                   = param_or_nil('interval')
     return unless product || interval
+
     session[:billing_product]  = product  if product
     session[:billing_interval] = interval if interval
   end
@@ -53,6 +53,7 @@ class MockRodauthInstance
     unless product && interval
       return { product: product, interval: interval, valid: false, error: 'Missing product or interval' }
     end
+
     result = ::Billing::PlanResolver.resolve(product: product, interval: interval)
     if result.success?
       { product: product, interval: interval, valid: true }
@@ -71,32 +72,32 @@ def setup_test_plans
   BillingTestHelpers.ensure_familia_configured!
 
   # Create test plan with both monthly and yearly prices
-  plan = Billing::Plan.new(
+  plan                = Billing::Plan.new(
     plan_id: 'identity_plus_v1',
     stripe_product_id: 'prod_test_identity',
     name: 'Identity Plus',
     tier: 'identity',
     currency: 'cad',
-    region: 'global'
+    region: 'global',
   )
-  plan.active = 'true'
+  plan.active         = 'true'
+  plan.save
   plan.prices[:month] = {
     stripe_price_id: 'price_test_identity_monthly',
     amount: '1500',
-    interval: 'month'
+    interval: 'month',
   }
-  plan.prices[:year] = {
+  plan.prices[:year]  = {
     stripe_price_id: 'price_test_identity_yearly',
     amount: '15000',
-    interval: 'year'
+    interval: 'year',
   }
-  plan.save
 
   @plans_created = true
 end
 
 def teardown_test_plans
-  plan = Billing::Plan.load('identity_plus_v1')
+  plan           = Billing::Plan.load('identity_plus_v1')
   plan&.destroy! if plan&.exists?
   @plans_created = false
 end
@@ -106,13 +107,16 @@ def billing_enabled_with_config?(config)
   config&.dig('enabled').to_s == 'true'
 end
 
+setup_test_plans
+BillingTestHelpers.restore_billing!(enabled: true)
+
 # ============================================================================
 # capture_plan_selection tests
 # ============================================================================
 
 ## capture_plan_selection stores product in session
 instance = MockRodauthInstance.new(
-  params: { 'product' => 'identity_plus_v1', 'interval' => 'monthly' }
+  params: { 'product' => 'identity_plus_v1', 'interval' => 'monthly' },
 )
 instance.capture_plan_selection
 instance.session[:billing_product]
@@ -120,7 +124,7 @@ instance.session[:billing_product]
 
 ## capture_plan_selection stores interval in session
 instance = MockRodauthInstance.new(
-  params: { 'product' => 'identity_plus_v1', 'interval' => 'monthly' }
+  params: { 'product' => 'identity_plus_v1', 'interval' => 'monthly' },
 )
 instance.capture_plan_selection
 instance.session[:billing_interval]
@@ -128,7 +132,7 @@ instance.session[:billing_interval]
 
 ## capture_plan_selection handles nil params gracefully
 instance = MockRodauthInstance.new(
-  params: { 'product' => nil, 'interval' => nil }
+  params: { 'product' => nil, 'interval' => nil },
 )
 instance.capture_plan_selection
 [instance.session[:billing_product], instance.session[:billing_interval]]
@@ -136,7 +140,7 @@ instance.capture_plan_selection
 
 ## capture_plan_selection handles empty string params
 instance = MockRodauthInstance.new(
-  params: { 'product' => '', 'interval' => '   ' }
+  params: { 'product' => '', 'interval' => '   ' },
 )
 instance.capture_plan_selection
 [instance.session[:billing_product], instance.session[:billing_interval]]
@@ -144,7 +148,7 @@ instance.capture_plan_selection
 
 ## capture_plan_selection stores product only when interval missing
 instance = MockRodauthInstance.new(
-  params: { 'product' => 'identity_plus_v1' }
+  params: { 'product' => 'identity_plus_v1' },
 )
 instance.capture_plan_selection
 [instance.session[:billing_product], instance.session[:billing_interval]]
@@ -154,36 +158,33 @@ instance.capture_plan_selection
 # build_billing_redirect_info tests
 # ============================================================================
 
-setup_test_plans
-BillingTestHelpers.restore_billing!(enabled: true)
-
 ## build_billing_redirect_info returns valid structure for good params
 instance = MockRodauthInstance.new
-info = instance.build_billing_redirect_info('identity_plus_v1', 'monthly', billing_enabled: true)
+info     = instance.build_billing_redirect_info('identity_plus_v1', 'monthly', billing_enabled: true)
 [info[:product], info[:interval], info[:valid]]
 #=> ['identity_plus_v1', 'monthly', true]
 
 ## build_billing_redirect_info returns error for missing product
 instance = MockRodauthInstance.new
-info = instance.build_billing_redirect_info(nil, 'monthly', billing_enabled: true)
+info     = instance.build_billing_redirect_info(nil, 'monthly', billing_enabled: true)
 [info[:valid], info[:error]]
 #=> [false, 'Missing product or interval']
 
 ## build_billing_redirect_info returns error for missing interval
 instance = MockRodauthInstance.new
-info = instance.build_billing_redirect_info('identity_plus_v1', nil, billing_enabled: true)
+info     = instance.build_billing_redirect_info('identity_plus_v1', nil, billing_enabled: true)
 [info[:valid], info[:error]]
 #=> [false, 'Missing product or interval']
 
 ## build_billing_redirect_info validates plan exists via PlanResolver
 instance = MockRodauthInstance.new
-info = instance.build_billing_redirect_info('nonexistent_v1', 'monthly', billing_enabled: true)
+info     = instance.build_billing_redirect_info('nonexistent_v1', 'monthly', billing_enabled: true)
 [info[:valid], info[:error].include?('Plan not found')]
 #=> [false, true]
 
 ## build_billing_redirect_info returns error when billing disabled
 instance = MockRodauthInstance.new
-info = instance.build_billing_redirect_info('identity_plus_v1', 'monthly', billing_enabled: false)
+info     = instance.build_billing_redirect_info('identity_plus_v1', 'monthly', billing_enabled: false)
 [info[:valid], info[:error]]
 #=> [false, 'Billing not enabled']
 

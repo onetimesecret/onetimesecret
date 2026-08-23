@@ -37,10 +37,15 @@ POST   /guest/receipt/:identifier/burn            V2::Logic::Secrets::BurnSecret
 OPTIONS /secret/generate                          V2::Logic::Secrets::GenerateSecret response=json
 OPTIONS /secret/conceal                           V2::Logic::Secrets::ConcealSecret response=json
 
-# Meta/Public endpoints (static information uses class methods)
+# Meta endpoints (static information uses class methods)
+#
+# /version is authenticated. The exact build version is the primary input to
+# fingerprinting an install and matching it against known CVEs, so it is not
+# handed to anonymous callers. /status and /supported-locales stay public:
+# neither discloses build information.
 GET    /supported-locales                         V2::Logic::Meta.get_supported_locales response=json
 GET    /status                                    V2::Logic::Meta.system_status response=json
-GET    /version                                   V2::Logic::Meta.system_version response=json
+GET    /version                                   V2::Logic::Meta.system_version response=json auth=sessionauth,basicauth
 
 # OTTO ADVANCED ROUTES SYNTAX - QUICK REFERENCE
 # ==============================================

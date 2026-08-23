@@ -17,7 +17,7 @@ require_relative '../../support/actor_attribution_helpers'
 # Uses real Receipt/Secret objects (spawn_pair) so the atomic claim runs
 # against Redis exactly as it does in production. process is exercised directly
 # (raise_concerns, which handles guest-gating/entitlements/rate-limits, is out
-# of scope here).
+# of scope except where an example needs its viewability check for ordering).
 RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
   include ActorAttributionSpecHelpers
 
@@ -41,7 +41,7 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
   # branches that depend on who is logged in. Pass params as a braced hash --
   # the customer: kwarg would otherwise swallow a bare trailing hash.
   def build_logic(params, customer: nil)
-    customer ||= double('Customer', custid: 'anon', anonymous?: true, objid: nil)
+    customer ||= double('Customer', custid: 'anon', anonymous?: true, objid: nil, extid: nil)
     org      = double('Organization', objid: "org_#{SecureRandom.hex(4)}")
     allow(org).to receive(:can?).and_return(true)
 
@@ -52,6 +52,25 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
       auth_method: 'basicauth')
 
     described_class.new(strategy_result, params)
+  end
+
+  # secret_logger is an instance method (LoggerMethods), so the whole
+  # SemanticLogger call is capturable: [message, payload] per emission. The
+  # hash is SemanticLogger's payload argument, not part of the message.
+  def capture_secret_logs(logic)
+    captured = []
+    logger   = double('SecretLogger')
+    %i[debug info warn error].each do |level|
+      allow(logger).to receive(level) { |message, payload = {}| captured << [message, payload] }
+    end
+    allow(logic).to receive(:secret_logger).and_return(logger)
+    captured
+  end
+
+  def payload_for(captured, message)
+    entry = captured.find { |logged, _| logged == message }
+    expect(entry).not_to be_nil, "no #{message.inspect} log was emitted"
+    entry.last
   end
 
   # Mark a spawned secret as a verification secret the way production does it
@@ -102,6 +121,46 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
       expect(logic.show_secret).to be false
       expect(logic.secret_value).to be_nil
       expect(logic.success_data[:record]).not_to have_key(:secret_value)
+    end
+
+    # The rate-limit clear is settled on the passphrase verdict, not on the
+    # process-time show_secret verdict: a correct guess earns the clear whether
+    # or not this caller got the plaintext. Regression for the ordering that
+    # ran the clear inside the reveal branch: a concurrent consumer claiming
+    # the secret after raise_concerns but before process recomputed viewability
+    # left a correct verification without its corresponding clear. This race
+    # window is deliberately EARLIER than the one above -- no viewable? stub,
+    # because with one held true the old code entered the reveal branch and
+    # cleared anyway, which is exactly what made the earlier draft of this
+    # example pass against the code it was meant to catch.
+    it 'still clears the passphrase rate limit on a correct guess' do
+      secret.update_passphrase!('correct horse battery')
+      attempts_key = "passphrase:attempts:#{secret.identifier}"
+
+      wrong = build_logic(
+        { 'identifier' => secret.identifier, 'continue' => 'true', 'passphrase' => 'nope' },
+      )
+      wrong.process_params
+      expect { wrong.process }.to raise_error(Onetime::FormError)
+      expect(Onetime::Secret.dbclient.get(attempts_key).to_i).to eq(1)
+
+      logic = build_logic(
+        { 'identifier' => secret.identifier, 'continue' => 'true', 'passphrase' => 'correct horse battery' },
+      )
+      logic.process_params
+
+      # Production ordering: this request passes the raise_concerns viewability
+      # check, THEN a concurrent request takes the atomic claim, so process
+      # recomputes viewable? as false and show_secret never becomes true.
+      logic.raise_concerns
+      winner = Onetime::Secret.load(secret.identifier)
+      expect(winner.revealed!).to be true
+
+      logic.process
+
+      expect(logic.show_secret).to be false
+      expect(logic.secret_value).to be_nil
+      expect(Onetime::Secret.dbclient.get(attempts_key)).to be_nil
     end
   end
 
@@ -208,7 +267,8 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
       # Second half of the disjunction that gates the verify branch:
       # cust.custid == owner.custid && !owner.verified?
       it 'verifies the owner and reveals the plaintext' do
-        as_owner = double('Customer', custid: owner.custid, anonymous?: false, objid: owner.objid)
+        as_owner = double('Customer', custid: owner.custid, anonymous?: false, objid: owner.objid,
+          extid: owner.extid)
         logic    = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' }, customer: as_owner)
         logic.process_params
         logic.process
@@ -286,12 +346,22 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
 
     context 'when already logged in as a different user' do
       it 'raises a form error, consumes nothing, and verifies no one' do
-        other = double('Customer', custid: 'cust_other', anonymous?: false, objid: 'objid_other')
+        # Legacy-shaped custid (an email address) so the log assertion below
+        # would catch a revert to custid in the payload.
+        other = double('Customer', custid: 'other@example.com', anonymous?: false, objid: 'objid_other',
+          extid: 'urother')
         logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' }, customer: other)
+        captured = capture_secret_logs(logic)
         logic.process_params
 
         # I18n default 'Cannot verify when logged in' -- pin only the class.
         expect { logic.process }.to raise_error(Onetime::FormError)
+
+        # PII pin (#4211 review): custid IS the email address on legacy
+        # (pre-v0.22) records, so this refusal log carries the extid.
+        payload = payload_for(captured, 'Invalid verification - user already logged in')
+        expect(payload[:user_id]).to eq('urother')
+        expect(payload.values.join(' ')).not_to include('@')
 
         reloaded = Onetime::Secret.load(secret.identifier)
         expect(reloaded.state).to eq('new')
@@ -329,6 +399,86 @@ RSpec.describe V2::Logic::Secrets::RevealSecret, type: :integration do
       end
     end
   end
+  # The wrong-guess log is the highest-volume of the reveal logs (one per
+  # brute-force attempt), so it is the worst place to carry an address.
+  context 'when the passphrase is wrong' do
+    let(:caller_customer) do
+      # Legacy-shaped: custid is the address itself.
+      double('Customer',
+        custid: 'revealer@example.com',
+        extid: 'urrevealer',
+        objid: 'objid_revealer',
+        anonymous?: false)
+    end
+
+    it 'records the failed attempt against the extid, never custid' do
+      secret.update_passphrase!('correct horse battery')
+      logic = build_logic(
+        { 'identifier' => secret.identifier, 'continue' => 'true', 'passphrase' => 'wrong' },
+        customer: caller_customer,
+      )
+      captured = capture_secret_logs(logic)
+      logic.process_params
+
+      expect { logic.process }.to raise_error(Onetime::FormError)
+
+      payload = payload_for(captured, 'Incorrect passphrase attempt')
+      expect(payload[:user_id]).to eq('urrevealer')
+      expect(payload.values.join(' ')).not_to include('@')
+
+      # Positive control for the continue=false context below, which asserts
+      # this key stays nil: a committed wrong guess must write it.
+      expect(Onetime::Secret.dbclient.get("passphrase:attempts:#{secret.identifier}").to_i).to eq(1)
+    end
+  end
+
+  # Passphrase oracle regression: the guess is verified ONLY on a committed
+  # reveal (continue=true). Without the gate, continue=false separated a right
+  # guess (200, no reveal) from a wrong one (form error) and burned a
+  # rate-limit attempt on a guess that was never acted on -- a free,
+  # non-destructive brute-force oracle.
+  context 'when continue is false on a passphrase-protected secret' do
+    before { secret.update_passphrase!('correct horse battery') }
+
+    def attempts_key
+      "passphrase:attempts:#{secret.identifier}"
+    end
+
+    # The message expectation must be set on logic.secret: build_logic ->
+    # process_params already loaded this request's own instance from Redis.
+    def probe(guess)
+      logic = build_logic(
+        { 'identifier' => secret.identifier, 'continue' => 'false', 'passphrase' => guess },
+      )
+      logic.process_params
+      expect(logic.secret).not_to receive(:passphrase?)
+      expect { logic.process }.not_to raise_error
+      logic
+    end
+
+    it 'does not raise on a wrong guess, verifies nothing, and records no attempt' do
+      logic = probe('wrong')
+
+      expect(logic.show_secret).to be false
+      expect(logic.secret_value).to be_nil
+      expect(logic.success_data[:details]).not_to have_key(:correct_passphrase)
+      expect(logic.success_data[:record]).not_to have_key(:secret_value)
+      expect(Onetime::Secret.dbclient.get(attempts_key)).to be_nil
+
+      # Nothing was consumed either: the secret is still there to be revealed.
+      expect(Onetime::Secret.load(secret.identifier)&.viewable?).to be true
+    end
+
+    it 'answers a wrong guess identically to a right one' do
+      wrong   = probe('wrong').success_data[:details]
+      correct = probe('correct horse battery').success_data[:details]
+
+      expect(wrong).to eq(correct)
+      expect(Onetime::Secret.dbclient.get(attempts_key)).to be_nil
+      expect(Onetime::Secret.load(secret.identifier)&.viewable?).to be true
+    end
+  end
+
   # C10/QS-6: SECRET lifecycle safety.
   #
   # Fast-fail: when the boot-time verifier flagged a key mismatch, a

@@ -1,14 +1,14 @@
 {
   "web.admin.banner.title": {
-    "text": "Uitzendbanner",
+    "text": "Broadcastbanner",
     "source_hash": "0bc449a3"
   },
   "web.admin.banner.description": {
-    "text": "Publiceer een sitebrede aankondiging die aan elke bezoeker wordt getoond, of wis de huidige.",
+    "text": "Publiceer een sitebrede aankondiging voor elke bezoeker, of wis de huidige.",
     "source_hash": "a0f720d7"
   },
   "web.admin.banner.loadError": {
-    "text": "Kon de huidige banner niet laden.",
+    "text": "De huidige banner kon niet worden geladen.",
     "source_hash": "04954e72"
   },
   "web.admin.banner.retry": {
@@ -20,15 +20,15 @@
     "source_hash": "da6b2e5d"
   },
   "web.admin.banner.clear.confirmTitle": {
-    "text": "De uitzendbanner wissen?",
+    "text": "De broadcastbanner wissen?",
     "source_hash": "46d9c35a"
   },
   "web.admin.banner.clear.confirmDescription": {
-    "text": "Dit verwijdert de actieve banner voor elke bezoeker. Typ het bevestigingswoord om door te gaan.",
+    "text": "Hiermee verdwijnt de live banner voor elke bezoeker. Typ het bevestigingswoord om door te gaan.",
     "source_hash": "9a56e4be"
   },
   "web.admin.banner.clear.success": {
-    "text": "Uitzendbanner gewist.",
+    "text": "Broadcastbanner gewist.",
     "source_hash": "b0f52af4"
   },
   "web.admin.banner.current.title": {
@@ -68,7 +68,7 @@
     "source_hash": "3579f3e6"
   },
   "web.admin.banner.current.htmlNote": {
-    "text": "Inhoud is HTML; de site zuivert deze bij weergave tot alleen links.",
+    "text": "De inhoud is HTML; de site schoont die bij weergave op tot alleen links.",
     "source_hash": "e45a7dfe"
   },
   "web.admin.banner.current.edit": {
@@ -88,11 +88,11 @@
     "source_hash": "2f77668a"
   },
   "web.admin.banner.set.contentPlaceholder": {
-    "text": "Gepland onderhoud zo 02:00 UTC",
+    "text": "Gepland onderhoud zo. 02:00 UTC",
     "source_hash": "4ec99d7d"
   },
   "web.admin.banner.set.contentHelp": {
-    "text": "HTML is toegestaan; de site zuivert deze tot alleen links.",
+    "text": "HTML is toegestaan; de site schoont die op tot alleen links.",
     "source_hash": "7253d1cd"
   },
   "web.admin.banner.set.ttlLabel": {
@@ -104,7 +104,7 @@
     "source_hash": "a8fd81e1"
   },
   "web.admin.banner.set.ttlHelp": {
-    "text": "Optioneel. De banner wordt automatisch na dit aantal seconden verwijderd.",
+    "text": "Optioneel. De banner wordt na dit aantal seconden automatisch verwijderd.",
     "source_hash": "ba0237f5"
   },
   "web.admin.banner.set.scopeLabel": {
@@ -112,11 +112,11 @@
     "source_hash": "545c0235"
   },
   "web.admin.banner.set.scopeHelp": {
-    "text": "Welke pagina's de banner tonen. Pagina's met een aangepast domein zien de banner alleen wanneer die is ingesteld op alle pagina's.",
+    "text": "Op welke pagina's de banner wordt getoond. Pagina's op aangepaste domeinen zien de banner alleen bij 'alle pagina's'.",
     "source_hash": "28cc3018"
   },
   "web.admin.banner.set.scopeNoRecipient": {
-    "text": "Alles behalve ontvangerpagina's",
+    "text": "Overal behalve op ontvangerspagina's",
     "source_hash": "8575b3c0"
   },
   "web.admin.banner.set.scopeWorkspace": {
@@ -136,11 +136,11 @@
     "source_hash": "69b6e40e"
   },
   "web.admin.banner.set.confirmTitle": {
-    "text": "Uitzendbanner publiceren?",
+    "text": "Broadcastbanner publiceren?",
     "source_hash": "8b72b5c3"
   },
   "web.admin.banner.set.confirmDescription": {
-    "text": "Deze banner wordt aan elke bezoeker op de site getoond totdat die wordt gewist of verloopt.",
+    "text": "Deze banner wordt op de hele site aan elke bezoeker getoond totdat hij wordt gewist of verloopt.",
     "source_hash": "c61bbec1"
   },
   "web.admin.banner.set.confirmButton": {
@@ -148,7 +148,7 @@
     "source_hash": "859390eb"
   },
   "web.admin.banner.set.success": {
-    "text": "Uitzendbanner gepubliceerd.",
+    "text": "Broadcastbanner gepubliceerd.",
     "source_hash": "55c06cab"
   }
 }

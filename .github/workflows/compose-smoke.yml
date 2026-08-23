@@ -41,10 +41,10 @@ on:
     paths:
       - 'docker-compose.yml'
       - 'docker/compose/**'
-      # Named individually, not globbed: scripts/test-install/ also holds
+      # Named individually, not globbed: scripts/install-tests/ also holds
       # helpers for five other workflows, and this lane is a ~15min build+up.
-      - 'scripts/test-install/proof-of-life.sh'
-      - 'scripts/test-install/seed-compose-env.sh'
+      - 'scripts/install-tests/proof-of-life.sh'
+      - 'scripts/install-tests/seed-compose-env.sh'
       - '.github/workflows/compose-smoke.yml'
       # full-stack-smoke builds from source, so image-definition changes
       # must exercise it too.
@@ -68,7 +68,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout code
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       # Compose interpolates ${SECRET:?...} even for `config`. Interpolation
       # variables come from the shell environment and the project-directory
@@ -126,7 +126,7 @@ jobs:
         env:
           POL_CREATE_ACCOUNT: "1"
           POL_EXEC: docker compose -f docker/compose/docker-compose.simple.yml exec -T app
-        run: ./scripts/test-install/proof-of-life.sh http://127.0.0.1:3000
+        run: ./scripts/install-tests/proof-of-life.sh http://127.0.0.1:3000
 
       - name: Dump logs on failure
         if: failure()
@@ -142,14 +142,14 @@ jobs:
     timeout-minutes: 40
     steps:
       - name: Checkout code
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       # Seed throwaway secrets into $GITHUB_ENV (compose interpolation) and
       # repo-root .env (the `env_file:` target). Shared with app-boot-pinned;
       # see the script header for what each target covers and why full auth
       # mode needs AUTH_SECRET / ACCOUNT_ID_SECRET.
       - name: Seed throwaway secrets (compose interpolation + .env)
-        run: bash scripts/test-install/seed-compose-env.sh
+        run: bash scripts/install-tests/seed-compose-env.sh
 
       # Build the app image FROM SOURCE via the same bake config releases
       # use, tagged so the compose default `onetimesecret/onetimesecret:
@@ -227,7 +227,7 @@ jobs:
         run: |
           docker compose -f docker/compose/docker-compose.full.yml \
             exec -T -e POL_CREATE_ACCOUNT=1 app bash -s -- http://127.0.0.1:3000 \
-            < scripts/test-install/proof-of-life.sh
+            < scripts/install-tests/proof-of-life.sh
 
       # Ingress: Caddy serves {$DOMAIN}:443 (DOMAIN=localhost here) with its
       # internal CA, static-serving only files that exist under PUBLIC_DIR
@@ -261,12 +261,12 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout code
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       # Shared with full-stack-smoke — same $GITHUB_ENV + .env seeding, incl.
       # the full-mode AUTH_SECRET / ACCOUNT_ID_SECRET. See the script header.
       - name: Seed throwaway secrets (compose interpolation + .env)
-        run: bash scripts/test-install/seed-compose-env.sh
+        run: bash scripts/install-tests/seed-compose-env.sh
 
       # No OTS_IMAGE_TAG override and no bake: compose resolves the pinned
       # default and pulls it from the registry (--quiet-pull). Bring up `app`
@@ -289,7 +289,7 @@ jobs:
         run: |
           docker compose -f docker/compose/docker-compose.full.yml \
             exec -T app bash -s -- http://127.0.0.1:3000 \
-            < scripts/test-install/proof-of-life.sh
+            < scripts/install-tests/proof-of-life.sh
 
       - name: Dump logs on failure
         if: failure()
@@ -308,7 +308,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout code
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
       # Read the exact image tag the README documents so this test can never
       # drift from the docs (the whole point — testing the documented path).
@@ -347,7 +347,7 @@ jobs:
             "$OTS_IMAGE"
 
       - name: Proof of life
-        run: ./scripts/test-install/proof-of-life.sh http://127.0.0.1:3000
+        run: ./scripts/install-tests/proof-of-life.sh http://127.0.0.1:3000
 
       - name: Dump container logs on failure
         if: failure()

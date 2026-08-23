@@ -324,5 +324,5 @@ any graduate/kill decision.
 - `src/tests/fixtures/bootstrap.fixture.ts:34` — masking fixture
 - `src/shared/stores/localReceiptStore.ts:23,106-126` — `workspaceMode` precedent
 - `docs/specs/secret-creation-flows/secret-creation-flows.md` — form seams for the v2 host
-- `docs/architecture/decision-records/adr-020-request-scoped-entitlement-preview.md` — chokepoint rule
+- `docs/adr/adr-020-request-scoped-entitlement-preview.md` — chokepoint rule
 - `docs/specs/entitlements-and-capabilities/issue-3491-...md` — axis taxonomy, drift harms, §5.8 composition

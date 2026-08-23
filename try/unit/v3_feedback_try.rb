@@ -75,8 +75,24 @@ formatted = logic.send(:formatted_for_storage, 'Hello world')
 formatted.include?('Hello world') &&
   formatted.include?(@authenticated_customer.extid) &&
   formatted.include?('[TZ: America/New_York]') &&
-  formatted.include?('[v1.0.0]')
+  formatted.include?("[v#{OT::VERSION.details}]")
 #=> true
+
+## version is stamped from the running install, not the client params
+# The client copy is spoofable, and anonymous clients no longer receive the
+# version at all (SystemSerializer withholds it), so a params-supplied value
+# would blank out exactly the anonymous bug reports where it matters most.
+strategy_result = MockStrategyResult.anonymous
+logic = V3::Logic::ReceiveFeedback.new(strategy_result, @params, 'en')
+logic.version
+#=> OT::VERSION.details
+
+## a spoofed version param is ignored
+strategy_result = MockStrategyResult.anonymous
+spoofed = @params.merge('version' => '99.99.99-evil')
+logic = V3::Logic::ReceiveFeedback.new(strategy_result, spoofed, 'en')
+logic.version.include?('99.99.99-evil')
+#=> false
 
 ## send_feedback handles nil sender without crashing
 # send_feedback now takes a recipient email string directly so the

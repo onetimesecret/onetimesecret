@@ -25,7 +25,36 @@ selects another. The neutral set:
 | PWA icons         | `icon-192.png`, `icon-512.png`  | `site.webmanifest`                       |
 | PWA manifest      | `site.webmanifest`              | `<link rel="manifest">`                  |
 | Safari pinned tab | `safari-pinned-tab.svg`         | `<link rel="mask-icon">`                 |
-| Social card       | `social-preview.png` (1200×630) | `og:image` / `twitter:image`             |
+| Social card       | `social-preview.png` (1200×630) — optional | `og:image` / `twitter:image` |
+
+### The social card can be turned off entirely
+
+Unlike the other assets, the card travels **off** the install — into someone
+else's chat window or timeline — so it needs both a real fall-back and a real
+off switch (#4150).
+
+It resolves in this order:
+
+1. `BRAND_OG_IMAGE_URL` (or `brand.og_image_url`), if set to a URL.
+2. `/social-preview.png`, if the resolved pack carries it. The `default` and
+   example packs do, and a partial pack falls through to `default`.
+3. Nothing — the head emits **no** `og:image` / `twitter:image` tags at all (not
+   an empty tag, not one pointing at a 404) and `twitter:card` drops from
+   `summary_large_image` to `summary`, which renders correctly without an image.
+
+Two things worth knowing:
+
+- **To ship no card, set `BRAND_OG_IMAGE_URL=none`** (`off` and `false` also
+  work). Deleting `social-preview.png` from your own pack is *not* sufficient by
+  itself: a partial pack falls through to the default pack's card, which is the
+  same fall-through every other asset relies on. Blank means "unset", not "none".
+  Serving and linking always agree — both key off the same file's existence,
+  resolved at boot, so adding or removing it needs a restart.
+- **Custom domains never get a card.** `og:image` resolves from the *install's*
+  brand config, and there is no per-domain social image, so emitting one would
+  put the operator's card on a customer's shared link. Suppression there is
+  unconditional, the same way the canonical SVG favicon is suppressed so it
+  cannot shadow a domain's own icon.
 
 ## Precedence
 
@@ -53,7 +82,7 @@ Replacing a **file** works for every asset and is the uniform override path. The
 | ---------------------------------------------------------- | -------------------------------------------- | ---- |
 | `favicon.ico`                                              | `BRAND_FAVICON_URL` (per-domain wins)        | ✅   |
 | `apple-touch-icon.png`                                     | `BRAND_APPLE_TOUCH_ICON_URL`                 | ✅   |
-| `social-preview.png`                                       | `BRAND_OG_IMAGE_URL` (absolute URL)          | ✅   |
+| `social-preview.png` (optional; `BRAND_OG_IMAGE_URL=none` for no card) | `BRAND_OG_IMAGE_URL` (absolute URL)  | ✅   |
 | `site.webmanifest` name/theme                              | `BRAND_PRODUCT_NAME` / `BRAND_PRIMARY_COLOR` | ✅   |
 | `favicon.svg`, `safari-pinned-tab.svg`, `icon-192/512.png` | —                                            | ✅   |
 | `brand-logo.svg` / `brand-logo.png` (masthead logo, optional) | `BRAND_LOGO_URL` (absolute CDN, or `/brand-logo.svg` for the pack file) | ✅   |

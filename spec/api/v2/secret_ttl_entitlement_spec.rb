@@ -52,6 +52,9 @@ RSpec.describe 'API V2 Secret TTL Entitlement Gate', type: :integration, billing
     allow(customer).to receive(:verified?).and_return(true)
     allow(customer).to receive(:increment_field)
     allow(customer).to receive(:objid).and_return(anonymous ? nil : 'cust_abc123')
+    # The secret logs identify the caller by extid (never custid, which is
+    # the email address on legacy records).
+    allow(customer).to receive(:extid).and_return(anonymous ? nil : 'urabc123')
     customer
   end
 
@@ -177,7 +180,8 @@ RSpec.describe 'API V2 Secret TTL Entitlement Gate', type: :integration, billing
       it 'silently clamps when ttl exceeds the plan secret_lifetime ceiling' do
         logic = create_logic(logic_class, params: conceal_params(7_776_000), org: org)
         expect { logic.process_params }.not_to raise_error
-        # 30 days global cap applies first (line 130: `@ttl = 30.days if ttl >= 30.days`)
+        # Plan secret_lifetime (30 days here) is the binding ceiling; the
+        # former hardcoded 30-day global clamp is gone (#4008).
         expect(logic.ttl).to eq(2_592_000)
       end
     end
@@ -243,11 +247,99 @@ RSpec.describe 'API V2 Secret TTL Entitlement Gate', type: :integration, billing
     end
   end
 
+  # Regression suite for #4008 — process_ttl carried a hardcoded
+  # `@ttl = 30.days if ttl >= 30.days` clamp that overrode every configured
+  # ceiling, so self-hosted operators could not offer TTLs beyond 30 days
+  # no matter what ttl_options or plan limits said. The clamp is gone; the
+  # only remaining unconditional bound is WithEntitlements::MAX_TTL
+  # (365 days), which exists because an unlimited plan resolves
+  # limit_for('secret_lifetime') to Infinity.
+  shared_examples 'TTLs beyond 30 days (#4008)' do |logic_class_proc|
+    let(:logic_class) { logic_class_proc.call }
+    let(:max_ttl) { Onetime::Models::Features::WithEntitlements::MAX_TTL }
+
+    def conceal_params(ttl)
+      { 'secret' => { 'secret' => 'test value', 'ttl' => ttl.to_s } }
+    end
+
+    context 'when the plan allows more than 30 days' do
+      let(:org) do
+        mock_organization(
+          planid: 'identity_plus_v1',
+          entitlements: %w[create_secrets api_access extended_default_expiration],
+          secret_lifetime: 90 * 24 * 60 * 60,
+        )
+      end
+
+      it 'preserves a 90-day TTL (used to clamp to 30 days)' do
+        ninety_days = 90 * 24 * 60 * 60
+        logic = create_logic(logic_class, params: conceal_params(ninety_days), org: org)
+        expect { logic.process_params }.not_to raise_error
+        expect(logic.ttl).to eq(ninety_days)
+      end
+
+      it 'preserves a TTL of exactly 30 days (old clamp used >=)' do
+        thirty_days = 30 * 24 * 60 * 60
+        logic = create_logic(logic_class, params: conceal_params(thirty_days), org: org)
+        expect { logic.process_params }.not_to raise_error
+        expect(logic.ttl).to eq(thirty_days)
+      end
+
+      it 'still clamps to the plan limit above it' do
+        logic = create_logic(logic_class, params: conceal_params(120 * 24 * 60 * 60), org: org)
+        expect { logic.process_params }.not_to raise_error
+        expect(logic.ttl).to eq(90 * 24 * 60 * 60)
+      end
+    end
+
+    context 'with an unlimited plan (limit_for resolves to Infinity)' do
+      let(:org) do
+        org = mock_organization(
+          planid: 'identity_plus_v1',
+          entitlements: %w[create_secrets api_access extended_default_expiration],
+        )
+        allow(org).to receive(:limit_for) do |resource|
+          resource.to_s == 'secret_lifetime' ? Float::INFINITY : 0
+        end
+        org
+      end
+
+      it 'clamps to the absolute MAX_TTL safety bound (365 days)' do
+        two_years = 2 * 365 * 24 * 60 * 60
+        logic = create_logic(logic_class, params: conceal_params(two_years), org: org)
+        expect { logic.process_params }.not_to raise_error
+        expect(logic.ttl).to eq(max_ttl)
+      end
+
+      it 'preserves a TTL of exactly MAX_TTL' do
+        logic = create_logic(logic_class, params: conceal_params(max_ttl), org: org)
+        expect { logic.process_params }.not_to raise_error
+        expect(logic.ttl).to eq(max_ttl)
+      end
+    end
+
+    context 'for anonymous callers' do
+      it 'keeps the anonymous ceiling: removing the clamp loosened nothing here' do
+        anonymous_ceiling = Onetime::Models::Features::WithEntitlements.configured_anonymous_max_ttl
+        logic = create_logic(logic_class, params: conceal_params(90 * 24 * 60 * 60), org: nil, auth_method: 'noauth')
+        expect { logic.process_params }.not_to raise_error
+        expect(logic.ttl).to eq(anonymous_ceiling)
+      end
+    end
+
+    it 'MAX_TTL resolves to 365 days' do
+      expect(max_ttl).to eq(365 * 24 * 60 * 60)
+      expect(max_ttl).to eq(31_536_000)
+    end
+  end
+
   describe V2::Logic::Secrets::ConcealSecret do
     include_examples 'extended_default_expiration TTL gate', -> { V2::Logic::Secrets::ConcealSecret }
+    include_examples 'TTLs beyond 30 days (#4008)', -> { V2::Logic::Secrets::ConcealSecret }
   end
 
   describe V2::Logic::Secrets::GenerateSecret do
     include_examples 'extended_default_expiration TTL gate', -> { V2::Logic::Secrets::GenerateSecret }
+    include_examples 'TTLs beyond 30 days (#4008)', -> { V2::Logic::Secrets::GenerateSecret }
   end
 end

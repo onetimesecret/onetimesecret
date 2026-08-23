@@ -140,7 +140,7 @@
     "source_hash": "421b1e61"
   },
   "web.domains.control_whether_users_can_create_secret_links": {
-    "text": "Kontrollieren Sie, ob Benutzer geheime Links von der Homepage Ihrer Bereich erstellen können",
+    "text": "Kontrollieren Sie, ob Benutzer geheime Links von der Homepage Ihres Bereichs erstellen können",
     "source_hash": "a25d6fca"
   },
   "web.domains.homepage_access": {
@@ -236,7 +236,7 @@
     "source_hash": "b5549ff7"
   },
   "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
-    "text": "Um Ihre Bereich zu verbinden, benötigen Sie einen CNAME-Eintrag in Ihrem Namensserver-Datensatz, der auf",
+    "text": "Um Ihren Bereich zu verbinden, benötigen Sie einen CNAME-Eintrag in Ihrem Namensserver-Datensatz, der auf",
     "source_hash": "c560710e"
   },
   "web.domains.if_you_already_have_a_cname_record_for_that_addr": {
@@ -336,7 +336,7 @@
     "source_hash": "62766ffd"
   },
   "web.domains.follow_these_steps_to_verify_domain_ownership_an": {
-    "text": "Befolgen Sie diese Schritte, um die Bereichinhaberschaft zu überprüfen und Ihre Online-Präsenz zu verbessern:",
+    "text": "Befolgen Sie diese Schritte, um die Bereichsinhaberschaft zu überprüfen und Ihre Online-Präsenz zu verbessern:",
     "source_hash": "a33f94d3"
   },
   "web.domains.domain_verification_steps": {
@@ -1335,10 +1335,6 @@
     "text": "Verbindungstest fehlgeschlagen",
     "source_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "Um SSO für alle Anmeldungen in diesem Bereich vorzuschreiben, konfigurieren Sie es in den Anmeldeeinstellungen des Bereichs. Der reine SSO-Modus beschränkt die Anmeldeseite auf den hier konfigurierten SSO-Anbieter.",
-    "source_hash": "d26627a5"
-  },
   "web.domains.sso.configure_sso": {
     "text": "SSO konfigurieren",
     "source_hash": "80d3a144"
@@ -1528,19 +1524,107 @@
     "source_hash": "cc0d4997"
   },
   "web.domains.signin.effective_status_label": {
-    "text": "Anmeldung auf diesem Bereich",
+    "text": "Anmeldung in diesem Bereich",
     "source_hash": "d8b884c3"
   },
   "web.domains.signin.dormant_notice": {
-    "text": "Die Anmeldung ist workspace-weit deaktiviert, daher ist sie auf jedem Bereich nicht verfügbar. Ihre Einstellungen hier werden beibehalten und werden wirksam, sobald die Workspace-Anmeldung wieder aktiviert ist.",
+    "text": "Die Anmeldung ist workspace-weit deaktiviert, daher ist sie in keinem Bereich verfügbar. Ihre Einstellungen hier werden beibehalten und werden wirksam, sobald die Workspace-Anmeldung wieder aktiviert ist.",
     "source_hash": "723d35dc"
   },
   "web.domains.signup.effective_status_label": {
-    "text": "Registrierungen auf diesem Bereich",
+    "text": "Registrierungen in diesem Bereich",
     "source_hash": "115ab21b"
   },
   "web.domains.signup.dormant_notice": {
-    "text": "Registrierungen sind workspace-weit deaktiviert, daher sind sie auf jedem Bereich nicht verfügbar. Ihre Einstellungen hier werden beibehalten und werden wirksam, sobald Workspace-Registrierungen wieder aktiviert sind.",
+    "text": "Registrierungen sind workspace-weit deaktiviert, daher sind sie in keinem Bereich verfügbar. Ihre Einstellungen hier werden beibehalten und werden wirksam, sobald Workspace-Registrierungen wieder aktiviert sind.",
     "source_hash": "49faefe4"
+  },
+  "web.domains.link_domain_no_settings": {
+    "text": "Für diesen Bereich gibt es keine Einstellungsseite",
+    "source_hash": "8a8430fe"
+  },
+  "web.domains.signin.sso_restrict_warning_title": {
+    "text": "Eine Einschränkung auf SSO würde die Anmeldung in diesem Bereich schließen",
+    "source_hash": "3476cb5c"
+  },
+  "web.domains.signin.sso_restrict_warning_body": {
+    "text": "SSO ist in diesem Bereich nicht verfügbar, und eine Einschränkung, die nicht erfüllt werden kann, blockiert die Anmeldung vollständig. Niemand kann sich hier anmelden, bis SSO funktioniert. Beheben Sie zuerst SSO oder schränken Sie trotzdem ein und schließen Sie die Einrichtung ab.",
+    "source_hash": "086e3247"
+  },
+  "web.domains.signin.sso_restrict_warning_confirm": {
+    "text": "Trotzdem einschränken",
+    "source_hash": "4674e3cf"
+  },
+  "web.domains.signin.restriction_unavailable_notice": {
+    "text": "Die Anmeldung ist in diesem Bereich nicht verfügbar: Sie ist auf {method} eingeschränkt, was hier nicht ausgeführt werden kann. Wählen Sie eine andere Methode oder machen Sie {method} verfügbar.",
+    "source_hash": "ca1b7f69"
+  },
+  "web.domains.signin.restriction_unavailable_unknown_notice": {
+    "text": "Die Anmeldung ist in diesem Bereich nicht verfügbar: Sie ist auf eine Methode eingeschränkt, die hier nicht ausgeführt werden kann. Wählen Sie eine andere Methode oder setzen Sie diesen Bereich auf die Standardwerte zurück.",
+    "source_hash": "8c2cce6b"
+  },
+  "web.domains.signin.restriction_conflict_notice": {
+    "text": "Dieser Bereich schränkt die Anmeldung auf eine andere Methode ein als die Workspace-weite Einschränkung ({method}), daher kann keine von beiden greifen und die Anmeldung ist hier nicht verfügbar. Gleichen Sie die Methode an die Workspace-weite Einstellung an oder setzen Sie diesen Bereich auf die Standardwerte zurück.",
+    "source_hash": "15398362"
+  },
+  "web.domains.signin.method_webauthn_unavailable": {
+    "text": "Passkeys sind an den Haupt-Anmeldebereich gebunden und in benutzerdefinierten Bereichen noch nicht verfügbar",
+    "source_hash": "88833e0f"
+  },
+  "web.domains.sso.connection_disabled_badge": {
+    "text": "Verbindung deaktiviert",
+    "source_hash": "99d6092c"
+  },
+  "web.domains.sso.connection_disabled_hint": {
+    "text": "Die SSO-Anmeldedaten sind gespeichert, die Verbindung ist jedoch ausgeschaltet. Aktivieren Sie sie unter „Anmeldedaten bearbeiten“.",
+    "source_hash": "90180d6c"
+  },
+  "web.domains.sso.status_active_badge": {
+    "text": "Aktiv",
+    "source_hash": "92340695"
+  },
+  "web.domains.sso.status_active_hint": {
+    "text": "Mitglieder können sich in diesem Bereich mit dieser SSO-Verbindung anmelden.",
+    "source_hash": "313ec61e"
+  },
+  "web.domains.sso.status_not_configured_badge": {
+    "text": "Nicht konfiguriert",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.sso.status_not_configured_hint": {
+    "text": "Für diesen Bereich sind noch keine SSO-Anmeldedaten gespeichert.",
+    "source_hash": "d817ad9c"
+  },
+  "web.domains.sso.status_not_permitted_badge": {
+    "text": "In diesem Bereich nicht zulässig",
+    "source_hash": "afbd20ba"
+  },
+  "web.domains.sso.status_not_permitted_hint": {
+    "text": "SSO ist für diesen Bereich ausgeschaltet, daher wird es auf der Anmeldeseite nicht angeboten.",
+    "source_hash": "ef092481"
+  },
+  "web.domains.sso.status_auth_disabled_badge": {
+    "text": "Anmeldung deaktiviert",
+    "source_hash": "bb807607"
+  },
+  "web.domains.sso.status_auth_disabled_hint": {
+    "text": "Die Anmeldung ist in diesem Bereich ausgeschaltet, daher wird keine Methode angeboten — auch SSO nicht.",
+    "source_hash": "3a98964b"
+  },
+  "web.domains.sso.status_unsupported_provider_badge": {
+    "text": "Nicht unterstützter Anbieter",
+    "source_hash": "1609d5fb"
+  },
+  "web.domains.sso.status_unsupported_provider_hint": {
+    "text": "Der gespeicherte Anbieter kann nicht für Bereichs-SSO verwendet werden. Bearbeiten Sie die Anmeldedaten und wählen Sie Microsoft Entra ID oder generisches OIDC.",
+    "source_hash": "72ea0a2e"
+  },
+  "web.domains.sso.status_unavailable_badge": {
+    "text": "Nicht verfügbar",
+    "source_hash": "ca184496"
+  },
+  "web.domains.sso.status_unavailable_hint": {
+    "text": "SSO kann in diesem Bereich derzeit nicht angeboten werden. Prüfen Sie die SSO-Anmeldedaten und die Anmeldeeinstellungen dieses Bereichs.",
+    "source_hash": "b03b14f4"
   }
 }

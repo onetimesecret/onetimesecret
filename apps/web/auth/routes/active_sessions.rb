@@ -2,6 +2,9 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/models/session_metadata'
+require 'onetime/operations/sessions/list_for_customer'
+
 module Auth
   module Routes
     module ActiveSessions
@@ -36,20 +39,33 @@ module Auth
             # (database stores HMAC-hashed session IDs for security)
             current_session_id_hmac = current_session_id ? rodauth.compute_hmac(current_session_id) : nil
 
-            # Query active sessions from database
-            sessions = rodauth.db[:account_active_session_keys]
+            # Rodauth rows stay authoritative for session MEMBERSHIP and own the
+            # revocation semantics (remove_active_session, the inactivity/lifetime
+            # deadlines); the privacy-filtered SessionMetadata sidecar supplies the
+            # display data. The two are joined on the sidecar's stored
+            # active_session_id_hmac, which is the very value Rodauth persists in
+            # its session_id column. Rodauth's token is its own minted
+            # active_session_id, NOT the Rack sid, so no digest computed here from
+            # a sid could ever match a row.
+            sessions       = rodauth.db[:account_active_session_keys]
               .where(account_id: account_id)
               .order(Sequel.desc(:last_use))
               .all
+            metadata_by_id = active_session_metadata_by_hmac(account_id)
 
-            # Transform to frontend schema
+            # Transform to frontend schema. A Rodauth row with no matching sidecar
+            # (a session older than the sidecar, or older than the join key) falls
+            # back to Rodauth's own timestamps and exposes no browser/network
+            # details, because none were ever stored for it.
             sessions_data = sessions.map do |session|
+              metadata = metadata_by_id[session[:session_id]]
               {
                 id: session[:session_id],
-                created_at: session[:created_at]&.iso8601,
-                last_activity_at: session[:last_use]&.iso8601,
-                ip_address: nil,  # TODO: Store IP in table if needed
-                user_agent: nil,  # TODO: Store user agent if needed
+                created_at: epoch_iso8601(metadata&.dig(:created_at)) || session[:created_at]&.iso8601,
+                last_activity_at: epoch_iso8601(metadata&.dig(:last_activity_at)) || session[:last_use]&.iso8601,
+                ip_address: metadata&.dig(:ip_address),
+                user_agent: metadata&.dig(:user_agent),
+                geo_country: metadata&.dig(:geo_country),
                 is_current: session[:session_id] == current_session_id_hmac,
                 remember_enabled: false,  # TODO: Check remember table if feature enabled
               }
@@ -128,6 +144,42 @@ module Auth
           response.status = 500
           { error: 'Failed to remove sessions' }
         end
+      end
+
+      private
+
+      # Map HMAC(active_session_id) -> safe_dump metadata row, i.e. keyed by the
+      # exact value the Rodauth session_id column holds. The operation returns each
+      # row's internal join key alongside its safe display row, avoiding a second
+      # SessionMetadata load per row.
+      def active_session_metadata_by_hmac(account_id)
+        active_session_metadata(account_id).entries.each_with_object({}) do |entry, map|
+          hmac = entry.active_session_id_hmac
+          next if hmac.to_s.empty?
+
+          map[hmac] = entry.session
+        end
+      end
+
+      def active_session_metadata(account_id)
+        account = rodauth.db[:accounts].where(id: account_id).first
+        return empty_active_session_metadata unless account
+
+        customer = Onetime::Customer.find_by_extid(account[:external_id]) ||
+                   Onetime::Customer.find_by_email(account[:email])
+        return empty_active_session_metadata unless customer
+
+        Onetime::Operations::Sessions::ListForCustomer.new(custid: customer.extid).call
+      end
+
+      def empty_active_session_metadata
+        Onetime::Operations::Sessions::ListForCustomer::Result.new(entries: [])
+      end
+
+      def epoch_iso8601(epoch)
+        return nil if epoch.nil?
+
+        Time.at(epoch.to_i).utc.iso8601
       end
     end
   end

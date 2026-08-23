@@ -18,7 +18,6 @@ import {
   redisSchema,
   emailerSchema,
   featuresIncomingSchema,
-  featuresDomainsAcmeSchema,
   siteSchema,
   passphraseSchema,
 } from '@/schemas/contracts/config';
@@ -33,7 +32,6 @@ import {
   redisDbsShape,
   emailerShape,
   featuresIncomingShape,
-  featuresDomainsAcmeShape,
   siteShape,
   passphraseShape,
 } from '@/schemas/shapes/config';
@@ -139,18 +137,6 @@ describe('contract vs shape: defaults are absent on contracts, applied on shapes
     expect(s.enabled).toBe(false);
     expect(s.memo_max_length).toBe(50);
     expect(s.default_ttl).toBe(604800);
-  });
-
-  it('features.domains.acme', () => {
-    const c = featuresDomainsAcmeSchema.parse({});
-    expect(c.enabled).toBeUndefined();
-    expect(c.listen_address).toBeUndefined();
-    expect(c.port).toBeUndefined();
-
-    const s = featuresDomainsAcmeShape.parse({});
-    expect(s.enabled).toBe(false);
-    expect(s.listen_address).toBe('127.0.0.1');
-    expect(s.port).toBe('12020');
   });
 
   it('site', () => {

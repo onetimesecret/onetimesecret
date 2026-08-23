@@ -98,5 +98,41 @@
   "web.admin.audit.result.failure": {
     "text": "Thất bại",
     "source_hash": "7031edbc"
+  },
+  "web.admin.audit.categories.secret": {
+    "text": "Bí mật",
+    "source_hash": "d8707d41"
+  },
+  "web.admin.audit.categories.membership": {
+    "text": "Thành viên",
+    "source_hash": "b50f1a42"
+  },
+  "web.admin.audit.categories.entitlement_preview": {
+    "text": "Xem trước quyền",
+    "source_hash": "255c5797"
+  },
+  "web.admin.audit.categories.colonel": {
+    "text": "Đăng nhập Colonel",
+    "source_hash": "01eeeb38"
+  },
+  "web.admin.audit.filters.actorLabel": {
+    "text": "Người thực hiện",
+    "source_hash": "449995c4"
+  },
+  "web.admin.audit.filters.searchButton": {
+    "text": "Tìm kiếm",
+    "source_hash": "49c266ba"
+  },
+  "web.admin.audit.filters.searchHint": {
+    "text": "Nhập tên người thực hiện, sau đó nhấn Enter hoặc chọn Tìm kiếm để chạy. Danh sách không cập nhật khi bạn đang nhập.",
+    "source_hash": "45eceb12"
+  },
+  "web.admin.audit.filters.pendingSearch": {
+    "text": "Chưa tìm kiếm — nhấn Enter hoặc chọn Tìm kiếm để áp dụng người thực hiện này.",
+    "source_hash": "f76095c2"
+  },
+  "web.admin.audit.list.contractError": {
+    "text": "Máy chủ đã phản hồi, nhưng dữ liệu kiểm tra không khớp với định dạng mong đợi. Không thể hiển thị sự kiện nào — đây là lỗi báo cáo, không phải nhật ký trống.",
+    "source_hash": "7f48137e"
   }
 }

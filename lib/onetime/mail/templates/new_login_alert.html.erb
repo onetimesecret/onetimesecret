@@ -12,9 +12,9 @@
     <tr>
       <td style="padding: 12px 16px; font-family: Helvetica, Arial, sans-serif; font-size: 14px; color: #333333;">
         <strong><%= t('email.new_login_alert.device_label') %></strong> <%= h(device_info) %><br />
+        <%# Location is the only sign-in origin shown: a country code, a masked
+            IP, or 'Unknown location'. The alert intentionally has no IP row. -%>
         <strong><%= t('email.new_login_alert.location_label') %></strong> <%= h(location) %>
-        <% if ip_address %><br />
-        <strong><%= t('email.new_login_alert.ip_address_label') %></strong> <%= h(ip_address) %><% end %>
       </td>
     </tr>
   </table>

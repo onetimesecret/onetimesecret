@@ -292,9 +292,9 @@
     "source_hash": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "Geçiş Anahtarı Adı",
+    "text": "Geçiş Anahtarı",
     "context": "Label for passkey name field",
-    "source_hash": "22eefa67"
+    "source_hash": "904c9aa9"
   },
   "web.auth.passkeys.created": {
     "text": "Oluşturulma",
@@ -730,5 +730,229 @@
   "web.auth.sessions.session_plural": {
     "text": "oturum",
     "source_hash": "1225ae6c"
+  },
+  "web.auth.connections.title": {
+    "text": "Bağlı Kimlikler",
+    "source_hash": "e132c4d9"
+  },
+  "web.auth.connections.description": {
+    "text": "Hesabınıza bağlı tek oturum açma sağlayıcılarını yönetin.",
+    "source_hash": "42c6d148"
+  },
+  "web.auth.connections.section_title": {
+    "text": "Tek oturum açma",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.section_subtitle": {
+    "text": "Bu hesaba oturum açmak için kullanabileceğiniz kimlik sağlayıcıları",
+    "source_hash": "507254cd"
+  },
+  "web.auth.connections.connect_title": {
+    "text": "Bir sağlayıcı bağla",
+    "source_hash": "a002b3f3"
+  },
+  "web.auth.connections.connect_description": {
+    "text": "Bu hesaba oturum açmak için kullanabileceğiniz başka bir tek oturum açma sağlayıcısı bağlayın.",
+    "source_hash": "32895a5a"
+  },
+  "web.auth.connections.connect_action": {
+    "text": "{provider} bağla",
+    "source_hash": "c77540af"
+  },
+  "web.auth.connections.issuer": {
+    "text": "Veren",
+    "source_hash": "39e02c46"
+  },
+  "web.auth.connections.identifier": {
+    "text": "Tanımlayıcı",
+    "source_hash": "9b10587f"
+  },
+  "web.auth.connections.remove": {
+    "text": "Kaldır",
+    "source_hash": "c3812fc4"
+  },
+  "web.auth.connections.remove_confirm_title": {
+    "text": "Bağlı kimliği kaldır",
+    "source_hash": "4e8ffe4c"
+  },
+  "web.auth.connections.remove_confirm_message": {
+    "text": "Bu bağlı kimliği kaldırmak istediğinizden emin misiniz? Artık onunla oturum açamayacaksınız.",
+    "source_hash": "64939c89"
+  },
+  "web.auth.connections.removed_success": {
+    "text": "Bağlı kimlik kaldırıldı",
+    "source_hash": "cf87daf3"
+  },
+  "web.auth.connections.no_identities": {
+    "text": "Bağlı kimlik yok",
+    "source_hash": "5254048e"
+  },
+  "web.auth.connections.no_identities_description": {
+    "text": "Henüz bu hesaba herhangi bir tek oturum açma sağlayıcısı bağlamamışsınız.",
+    "source_hash": "0f58d5d0"
+  },
+  "web.auth.connections.overview_status": {
+    "text": "Tek oturum açma",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.errors.last_credential": {
+    "text": "Bu oturum açmanın tek yoludur. Kilitlenmemek için önce başka bir sağlayıcı bağlayın veya Ayarlar -> Güvenlik bölümünden bir parola belirleyin.",
+    "source_hash": "3de8084d"
+  },
+  "web.auth.connections.errors.last_credential_sso_enforced": {
+    "text": "Bu oturum açmanın tek yoludur. Kilitlenmemek için önce başka bir sağlayıcı bağlayın.",
+    "source_hash": "eed7a50e"
+  },
+  "web.auth.connections.errors.not_found": {
+    "text": "Bu bağlı kimlik bulunamadı. Zaten kaldırılmış olabilir.",
+    "source_hash": "cf2c7673"
+  },
+  "web.auth.connections.errors.unauthorized": {
+    "text": "Oturumunuzun süresi doldu. Lütfen tekrar oturum açın.",
+    "source_hash": "b529fce2"
+  },
+  "web.auth.connections.errors.generic": {
+    "text": "Bu işlemi tamamlayamadık. Lütfen tekrar deneyin.",
+    "source_hash": "a0d4edc0"
+  },
+  "web.link_sso.title": {
+    "text": "Oturum açma yönteminizi bağlayın",
+    "source_hash": "46339bac"
+  },
+  "web.link_sso.prompt": {
+    "text": "{provider} ile oturum açtınız, bu da mevcut {email} hesabıyla eşleşiyor. {provider} hesabını bağlamak ve devam etmek için o hesabın parolasını girin.",
+    "source_hash": "59da1c08"
+  },
+  "web.link_sso.password_label": {
+    "text": "Parola",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.link_sso.password_placeholder": {
+    "text": "Mevcut parolanız",
+    "source_hash": "ad4e56da"
+  },
+  "web.link_sso.submit": {
+    "text": "Bağla ve devam et",
+    "source_hash": "c969b759"
+  },
+  "web.link_sso.cancel": {
+    "text": "İptal",
+    "source_hash": "19766ed6"
+  },
+  "web.link_sso.unavailable_title": {
+    "text": "Bu bağlama isteğinin süresi doldu",
+    "source_hash": "b53c7e55"
+  },
+  "web.link_sso.unavailable_message": {
+    "text": "Güvenliğiniz için, bu oturum açma yöntemini bağlama isteği artık geçerli değil. Mevcut parolanızla oturum açın, ardından bu sağlayıcıyı Güvenlik ayarları -> Bağlı kimlikler altında bağlayın.",
+    "source_hash": "f7e349d1"
+  },
+  "web.link_sso.unavailable_action": {
+    "text": "Oturum açmaya devam et",
+    "source_hash": "d398cd0a"
+  },
+  "web.link_sso.errors.invalid_password": {
+    "text": "Bu parola bu hesapla eşleşmiyor. Lütfen tekrar deneyin.",
+    "source_hash": "3259b4f5"
+  },
+  "web.link_sso.errors.invalid_token": {
+    "text": "Bu bağlama isteğinin süresi doldu veya zaten kullanıldı. Mevcut parolanızla oturum açın, ardından bu sağlayıcıyı hesap ayarlarınızdan bağlayın.",
+    "source_hash": "541f9127"
+  },
+  "web.link_sso.errors.link_conflict": {
+    "text": "Bu oturum açma yöntemini bağlayamadık. Hesabınız değişmiş olabilir veya bu sağlayıcı zaten başka bir hesaba bağlı. Mevcut parolanızla oturum açın, ardından Güvenlik ayarları -> Bağlı kimlikler altında bağlantıları yönetin.",
+    "source_hash": "7b0e0d0e"
+  },
+  "web.link_sso.errors.link_rate_limited": {
+    "text": "Çok fazla parola denemesi. Lütfen birkaç dakika bekleyin, ardından tekrar deneyin.",
+    "source_hash": "a95e78cd"
+  },
+  "web.link_sso.errors.invalid_request": {
+    "text": "Bu bağlama isteğini işleyemedik. Lütfen SSO sağlayıcınızla tekrar oturum açın.",
+    "source_hash": "053b9fc6"
+  },
+  "web.link_sso.errors.generic": {
+    "text": "Hesabınızı bağlayamadık. Lütfen tekrar deneyin.",
+    "source_hash": "f727c174"
+  },
+  "web.sso_link_confirm.title": {
+    "text": "Hesabınızı bağlamayı onaylayın",
+    "source_hash": "ad80bfe7"
+  },
+  "web.sso_link_confirm.prompt": {
+    "text": "{provider} ile oturum açtınız, bu da {email} hesabınızla eşleşiyor. {provider} hesabını bu hesaba bağlamak ve oturum açmayı tamamlamak için onaylayın.",
+    "source_hash": "6ff0d6cc"
+  },
+  "web.sso_link_confirm.submit": {
+    "text": "Onayla ve bağla",
+    "source_hash": "5cf663e6"
+  },
+  "web.sso_link_confirm.cancel": {
+    "text": "İptal",
+    "source_hash": "19766ed6"
+  },
+  "web.sso_link_confirm.unavailable_title": {
+    "text": "Bu bağlama isteği tamamlanamadı",
+    "source_hash": "47abb784"
+  },
+  "web.sso_link_confirm.unavailable_message": {
+    "text": "Güvenliğiniz için, oturum açma yönteminizi bağlama isteği artık geçerli değil. Sağlayıcınızla tekrar oturum açın, size yeni bir bağlantı e-postası göndereceğiz.",
+    "source_hash": "080e6f9f"
+  },
+  "web.sso_link_confirm.unavailable_action": {
+    "text": "Oturum açmaya dön",
+    "source_hash": "8504054f"
+  },
+  "web.sso_link_confirm.errors.link_expired": {
+    "text": "Bu bağlama isteğinin süresi doldu veya zaten kullanıldı. Sağlayıcınızla tekrar oturum açın, size yeni bir bağlantı e-postası göndereceğiz.",
+    "source_hash": "a50538df"
+  },
+  "web.sso_link_confirm.errors.link_conflict": {
+    "text": "Bu oturum açma yöntemini bağlayamadık. Hesabınız değişmiş olabilir veya bu sağlayıcı zaten başka bir hesaba bağlı. Devam etmek için sağlayıcınızla tekrar oturum açın.",
+    "source_hash": "c954854b"
+  },
+  "web.sso_link_confirm.errors.link_invalidated": {
+    "text": "Bu bağlantı gönderildikten sonra hesap kimlik bilgileriniz değişti, bu nedenle artık geçerli değil. Sağlayıcınızla tekrar oturum açın, size yeni bir bağlantı e-postası göndereceğiz.",
+    "source_hash": "db88cb1d"
+  },
+  "web.sso_link_confirm.errors.link_error": {
+    "text": "Bizim tarafımızda bir sorun oluştu ve bu bağlantıyı doğrulayamadık. Sağlayıcınızla tekrar oturum açın, size yenisini e-postalarız.",
+    "source_hash": "ec24e0a1"
+  },
+  "web.sso_link_confirm.errors.confirm_rate_limited": {
+    "text": "Cihazınızdan çok fazla deneme yapıldı. Lütfen birkaç dakika bekleyin, ardından e-postadaki bağlantıyı tekrar açın veya sağlayıcınızla yenisini almak için oturum açın.",
+    "source_hash": "f29af782"
+  },
+  "web.sso_link_confirm.errors.generic": {
+    "text": "Bu bağlantıyı onaylayamadık. Lütfen sağlayıcınızla tekrar oturum açın.",
+    "source_hash": "076fa25a"
+  },
+  "web.auth.mfa.passkey_mode_active": {
+    "text": "Geçiş anahtarı modu aktif",
+    "source_hash": "824dceb6"
+  },
+  "web.auth.mfa.passkey_prompt": {
+    "text": "Bir geçiş anahtarıyla kimliğinizi doğrulayın. Cihazınız parmak izinizi, yüzünüzü veya güvenlik anahtarınızı isteyecektir.",
+    "source_hash": "c0b0cbbc"
+  },
+  "web.auth.mfa.verify_with_passkey": {
+    "text": "Geçiş Anahtarıyla Doğrula",
+    "source_hash": "4f105a30"
+  },
+  "web.auth.mfa.use_passkey": {
+    "text": "Bunun yerine geçiş anahtarı kullanın",
+    "source_hash": "bd6430a4"
+  },
+  "web.auth.passkeys.remove_failed": {
+    "text": "Geçiş anahtarı kaldırılamadı",
+    "source_hash": "3e131515"
+  },
+  "web.auth.passkeys.load_failed": {
+    "text": "Geçiş anahtarları yüklenemedi",
+    "source_hash": "8d704e00"
+  },
+  "web.auth.webauthn.emailRequired": {
+    "text": "Geçiş anahtarıyla giriş yapmak için e-posta adresinizi girin",
+    "source_hash": "7f07647f"
   }
 }

@@ -12,12 +12,20 @@ module Onetime
       # Required data:
       #   email_address: Account email address
       #   device_info:   Device/browser information
-      #   location:      Geographic location (city, country or IP)
+      #   location:      Privacy-safe sign-in origin from
+      #                  Auth::Operations::ResolveLoginLocation — an ISO 3166-1
+      #                  alpha-2 country code, else the already-masked client IP,
+      #                  else the literal 'Unknown location'. Never a raw IP and
+      #                  never a city; the alert deliberately carries no
+      #                  finer-grained location than a country.
       #   login_at:      ISO8601 timestamp of login
       #
       # Optional data:
-      #   ip_address: IP address of login
-      #   baseuri:    Override site base URI
+      #   baseuri: Override site base URI
+      #
+      # There is deliberately no ip_address field: the sign-in origin travels
+      # only through `location`, which cannot carry a raw IP. Adding one back
+      # would reintroduce an unmasked address into an email at rest.
       #
       class NewLoginAlert < Base
         protected
@@ -49,10 +57,6 @@ module Onetime
 
         def location
           data[:location]
-        end
-
-        def ip_address
-          data[:ip_address]
         end
 
         def login_at
@@ -104,7 +108,6 @@ module Onetime
           computed_data = data.merge(
             device_info: device_info,
             location: location,
-            ip_address: ip_address,
             login_at: login_at,
             login_at_formatted: login_at_formatted,
             login_at_date: login_at_date,

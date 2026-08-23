@@ -24,15 +24,102 @@ name: Build and Publish OCI Images
 #   ACTIONS_RUNNER_DEBUG=true  Enable runner diagnostic logging
 #   Set in Settings → Secrets and variables → Actions → Variables
 #
+# Registry Push (Repository Secrets):
+#   DOCKERHUB_USERNAME       Docker Hub account for public pushes (default target)
+#   DOCKERHUB_TOKEN          Docker Hub access token
+#   CUSTOM_REGISTRY_HOST     Registry host, used only when registry_target=custom
+#   CUSTOM_REGISTRY_USERNAME Username for the custom registry
+#   CUSTOM_REGISTRY_PASSWORD Password/token for the custom registry
+#
 # Sentry Integration (Repository Secrets):
-#   SENTRY_AUTH_TOKEN  API token with project:releases and org:read scopes
-#   SENTRY_ORG         Organization slug (e.g., "onetimesecret")
-#   SENTRY_URL         Sentry instance URL (omit for sentry.io)
-#   SENTRY_PROJECTS    Space-separated project slugs (e.g., "frontend backend workers")
+#   SENTRY_AUTH_TOKEN        API token with project:releases and org:read scopes
+#   SENTRY_ORG               Organization slug (e.g., "onetimesecret")
+#   SENTRY_URL               Sentry instance URL (omit for sentry.io)
+#   SENTRY_PROJECTS          Space-separated project slugs (e.g., "frontend backend workers")
+#   SENTRY_FRONTEND_PROJECT  Project the sourcemap upload targets (default: "frontend").
+#                            Must be one of SENTRY_PROJECTS or the release and its
+#                            artifact bundles land in different projects.
+#
+# Sentry dist contract (NOT a secret, NOT a variable — a literal, on purpose):
+#   `dist` is a JOIN KEY: Sentry resolves an artifact bundle for an event only
+#   when RELEASE AND DIST both match. It therefore has two halves that must be
+#   identical, and they live in two different places:
+#     * SENTRY_DIST on the preflight and upload steps below   — CI's half
+#     * the `dist` passed to Sentry.init in the frontend       — the event's half
+#   Kept as literals because scripts/ci/sentry-sourcemap-preflight.sh checks
+#   SENTRY_DIST against the `dist:"..."` inlined in the BUILT chunks — the same
+#   ground truth the release check reads __SENTRY_RELEASE__ from, and the only
+#   evidence of what an event will actually carry, since a dist arriving through
+#   the backend config spread is invisible to any source grep. An indirection
+#   through a repository variable would hide CI's half from both the reader and
+#   that check. Change both or neither.
+#
+#   AS OF THIS BRANCH ONLY CI'S HALF EXISTS. The frontend does not pass a `dist`
+#   to Sentry.init yet, so events still carry dist=null and these bundles cannot
+#   resolve. That is not a regression — it is the pre-existing state, and it is
+#   half of why symbolication has never worked here. The preflight reports it as
+#   an explicit dist-tag warning on every run rather than staying silent, and it
+#   clears once a build carrying the companion telemetry-boundary change — the
+#   matching `dist: 'frontend'` in enableDiagnostics.ts — emits chunks with that
+#   dist inlined. Neither ordering breaks anything that currently works; both are
+#   required before a frame symbolicates.
+#
+#   .env.reference also carried a `SENTRY_DIST=frontend` line. Nothing in lib/,
+#   apps/ or src/ ever read it and the preflight never checked it, so it
+#   advertised a runtime knob for a build-time literal — one more way for the
+#   join key to drift, offering no way to set it. Deleted rather than folded in.
 #
 #   These enable: release creation, commit association, sourcemap upload,
 #   and deploy notifications. All Sentry steps use continue-on-error so
 #   missing secrets won't fail the build.
+#
+# Sentry observability contract:
+#   continue-on-error makes each step's exit code meaningless as a signal — a
+#   green check says nothing about whether telemetry actually shipped. Every
+#   Sentry step therefore reports through scripts/ci/sentry-status.sh, which
+#   emits a GitHub annotation AND a row rendered into the job summary by the
+#   final "Sentry delivery summary" step. The states are deliberately split:
+#
+#     SKIPPED  no SENTRY_AUTH_TOKEN. Normal on forks and unconfigured clones.
+#              Log line only — no annotation, so it never cries wolf.
+#     BLOCKED  credentials ARE configured but a precondition failed, so nothing
+#              shipped (::warning::).
+#     FAILED   credentials ARE configured and the command errored (::error::).
+#
+#   scripts/ci/sentry-sourcemap-preflight.sh runs the pre-upload assertions
+#   (dist tree present, .map files present, admin bundle present, upload project
+#   among SENTRY_PROJECTS, and both join keys — release and dist — found inlined
+#   in the chunks about to be shipped) so an upload of zero artifacts can no
+#   longer pass as a success. A join key it cannot read back off those chunks is
+#   reported as unverified, never as matching: "could not determine" rendered as
+#   "verified" is how the dist broke unnoticed in the first place.
+#
+#   scripts/ci/sentry-verify-artifacts.sh then asks the SERVER. Input checks and
+#   exit codes were both satisfiable while the frontend project held zero
+#   artifact bundles — which is what it held for every release ever built here.
+#   Only a post-upload query of the artifact listings can tell a real delivery
+#   from a successful-looking one, so zero-after-upload is reported FAILED.
+#
+#   continue-on-error stays on every Sentry step: telemetry plumbing must never
+#   fail a production image build. That is precisely why the annotations and the
+#   job-summary table above are the signal, and the green check is not.
+#
+#   THIS REPOSITORY IS PUBLIC, and both reporting channels — the annotation and
+#   the job-summary row — are world-readable. GitHub masks a secret by EXACT
+#   value match only: one project slug out of a space-separated SENTRY_PROJECTS,
+#   or a sentry-cli line naming the org and a single project, is NOT masked and
+#   publishes in the clear. Every `record` detail therefore carries only counts
+#   and text this workflow authored — never SENTRY_PROJECTS, never the project
+#   slug, never sentry-cli output. Raw command output is printed to the step log
+#   instead, where an exact-value secret is masked and a maintainer reading a
+#   failure still has the untruncated error.
+#
+#   The final "Sentry delivery summary" step passes the components it EXPECTS a
+#   row from. A step killed before it can report (runner OOM mid `docker pull`,
+#   cancellation, step timeout) leaves continue-on-error to swallow the exit and
+#   its `if:`-gated successors skipped, which used to render as a clean summary
+#   with no row at all. Naming the expected components turns that silence into a
+#   BLOCKED row.
 #
 
 on:
@@ -95,9 +182,25 @@ jobs:
     runs-on: ubuntu-24.04
     if: github.repository == 'onetimesecret/onetimesecret'
 
+    # dist is a JOIN KEY: Sentry resolves an artifact bundle for an event only
+    # when release AND dist BOTH match. Defined once at job scope because the
+    # preflight, the upload and the verify all have to read the SAME value.
+    # Three copies means a future edit to one of them silently un-joins the key,
+    # and a verify handed a different dist than the upload passed would confirm
+    # what it was told rather than what shipped.
+    #
+    # Must equal the dist the built chunks carry, sourced from the `dist:` in
+    # src/plugins/core/enableDiagnostics.ts — the preflight checks the build, so
+    # a source-only edit does not satisfy it. See the dist contract at the top:
+    # CI's half exists, the frontend's does not yet, and the value is kept here
+    # rather than dropped because dropping it is valid only as one change
+    # touching BOTH halves. Changing one is how this bug was born.
+    env:
+      SENTRY_DIST: frontend
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: ${{ inputs.source_branch || github.ref }}
           fetch-depth: 0
@@ -199,25 +302,25 @@ jobs:
           echo "Extra tags: ${EXTRA_TAGS}"
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
+        uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
         with:
           platforms: arm64
 
       - name: Setup Docker buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
         with:
           platforms: ${{ inputs.platforms || 'linux/amd64,linux/arm64' }}
 
       - name: Login to Docker Hub
         if: github.event_name != 'pull_request' && (inputs.registry_target || 'public') != 'custom'
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Log into GitHub Container Registry
         if: github.event_name != 'pull_request' && (inputs.registry_target || 'public') != 'custom'
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -225,7 +328,7 @@ jobs:
 
       - name: Log into custom registry
         if: github.event_name != 'pull_request' && (inputs.registry_target || 'public') == 'custom'
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ${{ secrets.CUSTOM_REGISTRY_HOST }}
           username: ${{ secrets.CUSTOM_REGISTRY_USERNAME }}
@@ -249,7 +352,8 @@ jobs:
           echo "::endgroup::"
 
       - name: Build and push with Bake
-        uses: docker/bake-action@5be5f02ff8819ecd3092ea6b2e6261c31774f2b4 # v6.10.0
+        id: bake
+        uses: docker/bake-action@d3418bd7d0e9324001bca92fa8ba175ea7e6dc9b # v7.3.0
         env:
           VERSION: ${{ steps.version.outputs.version }}
           IMAGE_TAG: ${{ steps.version.outputs.image_tag }}
@@ -259,12 +363,56 @@ jobs:
           REGISTRY_MODE: ${{ inputs.registry_target || 'public' }}
           CUSTOM_REGISTRY: ${{ secrets.CUSTOM_REGISTRY_HOST }}
         with:
+          # v7 merged workdir into source; `.` is the old workdir default.
+          source: .
           files: docker/bake.hcl
           targets: ci
           push: ${{ github.event_name != 'pull_request' }}
           set: |
             *.args.VERSION=${{ steps.version.outputs.version }}
             *.args.COMMIT_HASH=${{ steps.commit.outputs.short_sha }}
+
+      # The frontend is compiled INSIDE the image (Dockerfile stage `build` runs
+      # `pnpm run build`; vite writes ${APP_DIR}/public/web/dist). public/web/dist
+      # is gitignored, so it has never existed on the runner at this point in the
+      # job — which is why `sentry-cli sourcemaps upload ./public/web/dist` has
+      # uploaded exactly zero artifacts on every build since it was added.
+      #
+      # Take the assets out of the image that was just pushed rather than
+      # rebuilding them here: vite emits content-hashed filenames and Sentry
+      # resolves artifacts by URL, so a second, subtly different build would
+      # produce artifacts named for files no browser ever requests — green, and
+      # just as useless.
+      - name: Extract frontend assets from built image
+        id: extract_assets
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          BAKE_METADATA_FILE: ${{ runner.temp }}/bake-metadata.json
+          DIST_DEST: ./public/web/dist
+          IMAGE_DIST_PATH: /app/public/web/dist
+          VERSION: ${{ steps.version.outputs.version }}
+          IMAGE_TAG: ${{ steps.version.outputs.image_tag }}
+          COMMIT_HASH: ${{ steps.commit.outputs.short_sha }}
+          EXTRA_TAGS: ${{ steps.version.outputs.extra_tags }}
+          PLATFORMS: ${{ inputs.platforms || 'linux/amd64,linux/arm64' }}
+          REGISTRY_MODE: ${{ inputs.registry_target || 'public' }}
+          CUSTOM_REGISTRY: ${{ secrets.CUSTOM_REGISTRY_HOST }}
+        # docker/bake-action's `metadata` output carries provenance/attestation
+        # data for every target × platform in group `ci` (3 targets x 2
+        # platforms). For multi-platform, multi-target builds that JSON can run
+        # into the multi-MB range. Passing it through `env:` puts it in the
+        # step process's envp, which shares the OS execve() size limit with
+        # argv — a large enough blob makes the runner fail to even start bash
+        # ("Argument list too long"), skipping this step and, transitively,
+        # sourcemap upload. Writing it to a file sidesteps that limit entirely:
+        # file content has no such cap.
+        run: |
+          cat > "$BAKE_METADATA_FILE" <<'BAKE_METADATA_EOF'
+          ${{ steps.bake.outputs.metadata }}
+          BAKE_METADATA_EOF
+          bash scripts/ci/extract-frontend-dist.sh
 
       - name: Create Sentry release and associate commits
         if: github.event_name != 'pull_request'
@@ -276,38 +424,179 @@ jobs:
           SENTRY_PROJECTS: ${{ secrets.SENTRY_PROJECTS }}
           SENTRY_RELEASE: ${{ steps.commit.outputs.short_sha }}
         run: |
-          if [ -z "$SENTRY_AUTH_TOKEN" ] || [ -z "$SENTRY_PROJECTS" ]; then
-            echo "SENTRY_AUTH_TOKEN or SENTRY_PROJECTS not set, skipping Sentry release"
+          # SKIPPED (no token) and FAILED (token present, sentry-cli errored)
+          # used to be indistinguishable: both printed one line and left a green
+          # check. sentry-status.sh keeps them apart and makes the second one
+          # durable. See the "Sentry observability contract" note at the top.
+          if [ -z "$SENTRY_AUTH_TOKEN" ]; then
+            bash scripts/ci/sentry-status.sh record release skipped \
+              "SENTRY_AUTH_TOKEN not configured; no release created"
             exit 0
           fi
-          # Build --project flags from space-separated list
+          if [ -z "$SENTRY_PROJECTS" ]; then
+            bash scripts/ci/sentry-status.sh record release blocked \
+              "SENTRY_AUTH_TOKEN is set but SENTRY_PROJECTS is empty — no release was created, so any sourcemap bundles uploaded below have nothing to attach to."
+            exit 0
+          fi
+          # Build --project flags from space-separated list. PROJECT_COUNT is
+          # what the reported details carry: see the public-repo note in the
+          # observability contract at the top — a single slug out of this list
+          # is a substring of the secret and would not be masked.
           PROJECT_FLAGS=""
+          PROJECT_COUNT=0
           for proj in $SENTRY_PROJECTS; do
             PROJECT_FLAGS="$PROJECT_FLAGS --project $proj"
+            PROJECT_COUNT=$((PROJECT_COUNT + 1))
           done
           echo "Creating release $SENTRY_RELEASE for projects: $SENTRY_PROJECTS"
-          npx @sentry/cli releases new "$SENTRY_RELEASE" $PROJECT_FLAGS
-          npx @sentry/cli releases set-commits "$SENTRY_RELEASE" --auto $PROJECT_FLAGS
-          npx @sentry/cli releases finalize "$SENTRY_RELEASE" $PROJECT_FLAGS
+
+          # The runner's default shell is `bash -eo pipefail`, under which a
+          # failing `out=$(...)` aborts the step before the reporting line can
+          # run — continue-on-error would then swallow it back into silence.
+          # Own the exit codes explicitly instead.
+          set +e
+
+          # A workflow command is only a command when `::` starts the line, and
+          # sentry-cli relays server-returned error bodies verbatim. Printing
+          # that raw would let the Sentry instance forge annotations from this
+          # workflow, or reach ::add-mask::/::stop-commands::. Prefixing every
+          # line denies it the leading position; nothing is dropped, because
+          # this log is now the only place the full output can be read.
+          log_cli_output() {
+            [ -n "${1:-}" ] || return 0
+            printf '%s\n' "$1" | sed 's/^/sentry-cli: /'
+          }
+
+          # Each of the three calls is reported on its own: `new` succeeding
+          # while `finalize` fails leaves a half-created release, which is
+          # precisely the state that looks fine from the outside.
+          rc=0
+          for phase in new set-commits finalize; do
+            case "$phase" in
+              new)         out=$(npx @sentry/cli releases new "$SENTRY_RELEASE" $PROJECT_FLAGS 2>&1) ;;
+              set-commits) out=$(npx @sentry/cli releases set-commits "$SENTRY_RELEASE" --auto $PROJECT_FLAGS 2>&1) ;;
+              finalize)    out=$(npx @sentry/cli releases finalize "$SENTRY_RELEASE" $PROJECT_FLAGS 2>&1) ;;
+            esac
+            rc=$?
+            log_cli_output "$out"
+            if [ "$rc" -ne 0 ]; then
+              bash scripts/ci/sentry-status.sh record release failed \
+                "releases ${phase} exited ${rc} for release ${SENTRY_RELEASE} across ${PROJECT_COUNT} configured project(s); sentry-cli output is in this step's log"
+              exit 0
+            fi
+          done
+          bash scripts/ci/sentry-status.sh record release ok \
+            "release ${SENTRY_RELEASE} created, commits associated and finalized across ${PROJECT_COUNT} configured project(s)"
+
+      # Pre-upload assertions. `sentry-cli sourcemaps upload` happily "succeeds"
+      # against an empty directory, so without this the only way to learn that
+      # nothing shipped is to go looking in Sentry. The script classifies and
+      # reports; it never fails, it just tells the upload step whether to run.
+      # Gated on the extraction: when that step reports anything other than
+      # `extracted` it has already recorded the loud, specific reason, and
+      # re-reporting "dist tree missing" here would only bury it.
+      - name: Sentry sourcemap preflight
+        id: sentry_preflight
+        if: github.event_name != 'pull_request' && steps.extract_assets.outputs.status == 'extracted'
+        continue-on-error: true
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECTS: ${{ secrets.SENTRY_PROJECTS }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_FRONTEND_PROJECT || 'frontend' }}
+          SENTRY_DIST_DIR: ./public/web/dist
+          SENTRY_RELEASE: ${{ steps.commit.outputs.short_sha }}
+        run: bash scripts/ci/sentry-sourcemap-preflight.sh
 
       - name: Upload frontend sourcemaps to Sentry
-        if: github.event_name != 'pull_request'
+        id: sentry_upload
+        if: github.event_name != 'pull_request' && steps.sentry_preflight.outputs.status == 'ready'
         continue-on-error: true
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_URL: ${{ secrets.SENTRY_URL }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_FRONTEND_PROJECT || 'frontend' }}
+          # SENTRY_DIST is the job-level literal; see the note on it above. The
+          # upload is what stamps that dist onto the bundles, so it is the half
+          # of the join key this workflow controls.
+          SENTRY_DIST_DIR: ./public/web/dist
           SENTRY_RELEASE: ${{ steps.commit.outputs.short_sha }}
         run: |
-          if [ -z "$SENTRY_AUTH_TOKEN" ]; then
-            echo "SENTRY_AUTH_TOKEN not set, skipping sourcemaps upload"
+          # See the note in the release step: default shell is `bash -eo
+          # pipefail`, so capture exit codes deliberately or the reporting
+          # lines below never execute.
+          set +e
+
+          # Line-prefix guard; see the release step for why raw sentry-cli
+          # output cannot be printed unprefixed.
+          log_cli_output() {
+            [ -n "${1:-}" ] || return 0
+            printf '%s\n' "$1" | sed 's/^/sentry-cli: /'
+          }
+
+          UPLOAD_ARGS=(
+            "$SENTRY_DIST_DIR"
+            --release="$SENTRY_RELEASE"
+            --project="$SENTRY_PROJECT"
+            --url-prefix='~/dist'
+          )
+          if [ -n "$SENTRY_DIST" ]; then
+            UPLOAD_ARGS+=(--dist="$SENTRY_DIST")
+          fi
+
+          out=$(npx @sentry/cli sourcemaps upload "${UPLOAD_ARGS[@]}" 2>&1)
+          rc=$?
+          log_cli_output "$out"
+
+          if [ "$rc" -ne 0 ]; then
+            bash scripts/ci/sentry-status.sh record sourcemaps failed \
+              "sentry-cli exited ${rc} uploading ${SENTRY_DIST_DIR} for release ${SENTRY_RELEASE}; sentry-cli output is in this step's log"
             exit 0
           fi
-          npx @sentry/cli sourcemaps upload ./public/web/dist \
-            --release="$SENTRY_RELEASE" \
-            --project=frontend \
-            --dist=frontend \
-            --url-prefix='~/dist'
+
+          # A zero-exit upload that moved no files is the failure this whole
+          # step exists to surface. The preflight already proved .map files are
+          # on disk, so sentry-cli reporting nothing here means it rejected or
+          # ignored them.
+          #
+          # The count is anchored: sentry-cli prints "Found 17 files" and
+          # "Bundled 17 files for upload", so an unanchored `0 files` matches
+          # every healthy run whose count happens to end in a zero and warns on
+          # a delivery that worked.
+          if printf '%s' "$out" | grep -qiE 'nothing to upload|no files|(^|[^0-9])0 files'; then
+            bash scripts/ci/sentry-status.sh record sourcemaps warn \
+              "sentry-cli exited 0 but reported no uploaded files for release ${SENTRY_RELEASE} — bundles present on disk were not accepted; see this step's log"
+            exit 0
+          fi
+
+          # Disk count, and said as such. sentry-cli can exit 0 having skipped
+          # or rejected a subset (dedup against an existing bundle, per-file
+          # errors), so this number is what was handed over, not what landed.
+          # The server-side count is the sourcemaps-verify row two steps down.
+          MAP_COUNT=$(find "$SENTRY_DIST_DIR" -type f -name '*.map' | wc -l | tr -d ' ')
+          bash scripts/ci/sentry-status.sh record sourcemaps ok \
+            "sentry-cli exited 0 for release ${SENTRY_RELEASE}; ${MAP_COUNT} sourcemap(s) on disk submitted${SENTRY_DIST:+ (dist=${SENTRY_DIST})} — see sourcemaps-verify for what the server holds"
+
+      # The check that would have caught the original bug. Everything before
+      # this point verifies inputs and exit codes; both were satisfiable while
+      # the server held zero artifacts. Ask the server.
+      #
+      # It queries on release AND dist, the pair Sentry actually joins on, so it
+      # reads the same job-level SENTRY_DIST the upload stamped. Inherited from
+      # job scope rather than restated here on purpose: a dist declared
+      # separately for the verify could drift from the one that shipped, and the
+      # check would then confirm its own input instead of the delivery.
+      - name: Verify Sentry received the artifacts
+        if: github.event_name != 'pull_request' && steps.sentry_preflight.outputs.status == 'ready'
+        continue-on-error: true
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_URL: ${{ secrets.SENTRY_URL }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_FRONTEND_PROJECT || 'frontend' }}
+          SENTRY_RELEASE: ${{ steps.commit.outputs.short_sha }}
+        run: bash scripts/ci/sentry-verify-artifacts.sh
 
       - name: Create Sentry deploy notification
         if: github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/v')
@@ -319,10 +608,29 @@ jobs:
           SENTRY_RELEASE: ${{ steps.commit.outputs.short_sha }}
         run: |
           if [ -z "$SENTRY_AUTH_TOKEN" ]; then
-            echo "SENTRY_AUTH_TOKEN not set, skipping deploy notification"
+            bash scripts/ci/sentry-status.sh record deploy skipped \
+              "SENTRY_AUTH_TOKEN not configured; no deploy notification sent"
             exit 0
           fi
-          npx @sentry/cli releases deploys "$SENTRY_RELEASE" new -e production
+          set +e  # own the exit code; see the note in the release step
+
+          # Line-prefix guard; see the release step for why raw sentry-cli
+          # output cannot be printed unprefixed.
+          log_cli_output() {
+            [ -n "${1:-}" ] || return 0
+            printf '%s\n' "$1" | sed 's/^/sentry-cli: /'
+          }
+
+          out=$(npx @sentry/cli releases deploys "$SENTRY_RELEASE" new -e production 2>&1)
+          rc=$?
+          log_cli_output "$out"
+          if [ "$rc" -ne 0 ]; then
+            bash scripts/ci/sentry-status.sh record deploy failed \
+              "deploy notification for release ${SENTRY_RELEASE} exited ${rc}; sentry-cli output is in this step's log"
+            exit 0
+          fi
+          bash scripts/ci/sentry-status.sh record deploy ok \
+            "production deploy recorded for release ${SENTRY_RELEASE}"
 
       - name: Audit — verify image version
         if: success()
@@ -375,3 +683,55 @@ jobs:
             echo "**Commit:** ${BUILD_COMMIT}"
             echo "**Extra tags:** ${BUILD_EXTRA_TAGS}"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      # always(): the Sentry verdict is most valuable on the runs that went
+      # wrong. Annotations alone scroll away in a long log; this is the copy
+      # that survives on the run page after the check turns green. It must also
+      # run when the delivery chain never started, which is the case this
+      # summary is least able to detect on its own.
+      - name: Sentry delivery summary
+        if: always()
+        env:
+          # Components that owe a row. `render` synthesizes a BLOCKED row for
+          # any name that recorded none, so a step killed before it could report
+          # is a warning rather than an absence. Empty on pull_request, where
+          # the whole chain is gated off by design.
+          #
+          # A component belongs in the unconditional half only if its step both
+          # runs on every non-PR event and reports on every path it can take.
+          # frontend-assets and release qualify: each records a row — including
+          # the quiet `skipped` one — before doing anything else, so the only
+          # way to owe a row and not file one is to be killed.
+          #
+          # The rest are conditioned on evidence that their step was reached,
+          # because demanding a row from a step whose `if:` was false would warn
+          # about the design working. Each condition is a POSITIVE test on a
+          # context that is defined whether or not later steps ran: a cancelled
+          # job leaves these empty, which reads as "not reached" rather than
+          # "missing". Note the polarity — `outcome != 'skipped'` would invert
+          # that and fire on every cancellation.
+          #
+          #   sourcemaps        `extracted` proves the preflight's `if:` opened.
+          #                     A non-success extraction outcome means it died
+          #                     before it could report; require the missing
+          #                     sourcemaps row too, so the summary records both
+          #                     parts of the interrupted chain as BLOCKED. A
+          #                     successful `skipped` or `blocked` extraction
+          #                     already filed its own frontend-assets row and
+          #                     deliberately does not owe a duplicate.
+          #   sourcemaps-verify the sole confirmation the bundles reached the
+          #                     server, so losing it is losing the guarantee —
+          #                     but it shares the upload's `if:`. `outcome`, not
+          #                     `conclusion`: continue-on-error rewrites
+          #                     conclusion to success for a step that failed.
+          #   deploy            mirrors the deploy step's own ref test above;
+          #                     the two must be changed together.
+          SENTRY_EXPECTED_COMPONENTS: >-
+            ${{ github.event_name != 'pull_request' && 'frontend-assets release' || '' }}
+            ${{ (steps.extract_assets.outputs.status == 'extracted' || steps.extract_assets.outcome != 'success') && 'sourcemaps' || '' }}
+            ${{ steps.sentry_upload.outcome == 'success' && 'sourcemaps-verify' || '' }}
+            ${{ github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/v') && 'deploy' || '' }}
+        run: |
+          # Unquoted on purpose: the expected components are one argument each.
+          # shellcheck disable=SC2086
+          bash scripts/ci/sentry-status.sh render $SENTRY_EXPECTED_COMPONENTS

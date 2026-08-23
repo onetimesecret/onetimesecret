@@ -110,7 +110,6 @@ export const secretDetailsSchema = secretDetailsCanonical.extend({
   continue: transforms.fromString.boolean,
   is_owner: transforms.fromString.boolean,
   show_secret: transforms.fromString.boolean,
-  correct_passphrase: transforms.fromString.boolean,
   display_lines: transforms.fromString.number,
   one_liner: transforms.fromString.boolean.nullable(),
 });

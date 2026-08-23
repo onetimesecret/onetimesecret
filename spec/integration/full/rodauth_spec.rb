@@ -57,8 +57,15 @@ RSpec.describe 'Rodauth Integration', type: :integration do
       expect(last_response.headers['Content-Type']).to include('application/json')
     end
 
-    it 'includes version info' do
-      expect(json_response).to include('message', 'version')
+    # This path sits ahead of r.rodauth, so it answers anonymous callers. The
+    # build version fingerprints the install for CVE matching and must not ride
+    # along on a service-identification response; GET /api/v3/version is the
+    # auth-gated way to obtain it.
+    it 'returns the service message without the build version' do
+      expect(json_response).to include('message')
+      expect(json_response['message']).to include('Authentication Service')
+      expect(json_response).not_to have_key('version')
+      expect(last_response.body).not_to include(Onetime::VERSION.to_s)
     end
   end
 

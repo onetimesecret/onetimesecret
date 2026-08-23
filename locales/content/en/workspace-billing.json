@@ -396,6 +396,14 @@
     "text": "/month",
     "content_hash": "eec5d08b"
   },
+  "web.billing.plans.per_year": {
+    "text": "/year",
+    "content_hash": "a2d5f1bc"
+  },
+  "web.billing.plans.billing_interval": {
+    "text": "Billing interval",
+    "content_hash": "3ce28209"
+  },
   "web.billing.plans.save_yearly": {
     "text": "Save {percent}% with yearly billing",
     "content_hash": "88c451f2"
@@ -1028,6 +1036,16 @@
     "text": "Complete Migration",
     "context": "Button to start checkout for the new currency plan",
     "content_hash": "fa794e0c"
+  },
+  "web.billing.currency_migration.refund_failed_warning": {
+    "text": "Your previous plan was cancelled, but we couldn't automatically issue the refund for your unused time. Please contact support to receive your refund. You still need to complete checkout to activate your new plan.",
+    "context": "Warning shown when an immediate currency migration succeeds but the prorated refund could not be issued",
+    "content_hash": "a390c498"
+  },
+  "web.billing.currency_migration.refund_failed_continue": {
+    "text": "Continue to Checkout",
+    "context": "Button to proceed to checkout after acknowledging the refund failure warning",
+    "content_hash": "eccdb8aa"
   },
   "web.billing.checkout_session_failed": {
     "text": "Failed to create checkout session",

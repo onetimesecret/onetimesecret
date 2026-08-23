@@ -457,6 +457,29 @@ RSpec.describe 'Plans API Response', type: :integration do
       # Within a region, all plans should use same currency
       expect(currencies.size).to eq(1)
     end
+
+    # Issue #4048 defect 3: a plan cached without a currency (and price rows
+    # without one) used to surface `currency: null` to the frontend
+    # formatter. The controller now falls back to the deployment config
+    # currency as a last resort.
+    it 'never emits null currency, even when plan and price rows carry none' do
+      plan                    = Billing::Plan.new(plan_id: 'currencyless_v1')
+      plan.name               = 'Currencyless'
+      plan.tier               = 'single_account'
+      plan.show_on_plans_page = 'true'
+      plan.display_order      = '50'
+      plan.region             = 'EU'
+      plan.active             = 'true'
+      plan.save
+      # Price row deliberately omits 'currency'; plan.currency was never set
+      plan.prices['month'] = { 'stripe_price_id' => 'price_nocurrency', 'amount' => '500' }.to_json
+
+      get '/billing/api/plans'
+      record = JSON.parse(last_response.body)['plans'].find { |p| p['id'] == 'currencyless_v1' }
+
+      expect(record).not_to be_nil
+      expect(record['currency']).to eq(OT.billing_config.currency)
+    end
   end
 end
 

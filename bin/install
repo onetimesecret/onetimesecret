@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+# bin/install — self-hosting from a checkout (the operator front door).
+#
+# Idempotent: safe to re-run at any time. Prefer the Docker/Compose path
+# (docker/README.md) unless you specifically want a baremetal install.
+#
+# Thin wrapper: the implementation lives in bin/setup (init/reconcile lanes),
+# which contributors also use — one code path, two front doors.
+#
+# NOTE: this file is named `install`, so any PATH that contains bin/ shadows
+# coreutils install(1) for every command run under it. The Dockerfile does
+# exactly that (PATH=${APP_DIR}/bin:$PATH), which is why its image build
+# calls /usr/bin/install by absolute path — keep it that way, here and in
+# any other script that puts bin/ on PATH.
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+usage() {
+  cat <<'USAGE'
+bin/install — self-hosting from a checkout (the operator front door).
+
+  bin/install               Initialize: env file, secrets, install mark.
+                            Detects an existing environment and reconciles
+                            instead (never regenerates a live SECRET).
+  bin/install --reconcile   Re-derive child keys, re-apply RabbitMQ policies.
+  bin/install --help        This message.
+USAGE
+}
+
+# Every lane below takes no further arguments, and each one has a side effect
+# an operator would not want as a silent consequence of a typo: dispatching on
+# $1 alone would make `bin/install --reconcile --help` perform a live
+# reconcile. Reject trailing arguments instead of dropping them.
+if [[ $# -gt 1 ]]; then
+  echo "error: bin/install takes a single argument (got: $*)" >&2
+  usage >&2
+  exit 64
+fi
+
+case "${1:-}" in
+  ""|--init|init)             exec "$ROOT/bin/setup" --init ;;
+  --reconcile|reconcile)      exec "$ROOT/bin/setup" --reconcile ;;
+  --help|-h|help)             usage; exit 0 ;;
+  *) echo "Unknown option: $1 (expected --reconcile or --help)" >&2; exit 1 ;;
+esac

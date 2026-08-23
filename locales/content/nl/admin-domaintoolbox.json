@@ -4,7 +4,7 @@
     "source_hash": "5a9333db"
   },
   "web.admin.domaintoolbox.description": {
-    "text": "Diagnosticeer en herstel relaties van aangepaste domeinen: scan verweesde records, test DNS/SSL, herstel eigendom en draag over tussen organisaties.",
+    "text": "Diagnose en repareer aangepaste-domeinrelaties: scan wezen, controleer DNS/SSL, repareer eigendom en draag over tussen organisaties.",
     "source_hash": "778537aa"
   },
   "web.admin.domaintoolbox.retry": {
@@ -28,7 +28,7 @@
     "source_hash": "ddcea596"
   },
   "web.admin.domaintoolbox.orphaned.description": {
-    "text": "Aangepaste domeinen zonder eigenaarsorganisatie. Gebruik Herstellen om er een opnieuw toe te wijzen.",
+    "text": "Aangepaste domeinen zonder eigenaar-organisatie. Gebruik Repareren om er een toe te wijzen.",
     "source_hash": "967268f5"
   },
   "web.admin.domaintoolbox.orphaned.empty": {
@@ -40,7 +40,7 @@
     "source_hash": "ca0e33bf"
   },
   "web.admin.domaintoolbox.orphaned.repairAction": {
-    "text": "Herstellen",
+    "text": "Repareren",
     "source_hash": "1196b6c5"
   },
   "web.admin.domaintoolbox.orphaned.columns.domain": {
@@ -68,7 +68,7 @@
     "source_hash": "ec69a087"
   },
   "web.admin.domaintoolbox.probe.description": {
-    "text": "Doe een live HTTPS-verzoek om te bevestigen dat het domein verkeer bedient en om het TLS-certificaat te inspecteren. Alleen-lezen.",
+    "text": "Doe een live HTTPS-verzoek om te bevestigen dat het domein verkeer bedient en inspecteer het TLS-certificaat. Alleen-lezen.",
     "source_hash": "1eecfa96"
   },
   "web.admin.domaintoolbox.probe.button": {
@@ -80,11 +80,11 @@
     "source_hash": "55898449"
   },
   "web.admin.domaintoolbox.repair.title": {
-    "text": "Relatie herstellen",
+    "text": "Relatie repareren",
     "source_hash": "0053d07c"
   },
   "web.admin.domaintoolbox.repair.description": {
-    "text": "Herstel inconsistenties in de organisatierelatie voor een domein. Bekijk eerst een voorbeeld en pas daarna toe.",
+    "text": "Los organisatie-relatie-inconsistenties voor een domein op. Bekijk eerst een voorbeeld, pas daarna toe.",
     "source_hash": "18ca490b"
   },
   "web.admin.domaintoolbox.repair.orgIdLabel": {
@@ -104,15 +104,15 @@
     "source_hash": "e1a4c49d"
   },
   "web.admin.domaintoolbox.repair.applyButton": {
-    "text": "Herstellingen toepassen",
+    "text": "Reparaties toepassen",
     "source_hash": "3f92b29f"
   },
   "web.admin.domaintoolbox.repair.success": {
-    "text": "Herstellingen succesvol toegepast.",
+    "text": "Reparaties succesvol toegepast.",
     "source_hash": "24f25b9b"
   },
   "web.admin.domaintoolbox.repair.confirmTitle": {
-    "text": "Domeinherstellingen toepassen?",
+    "text": "Domeinreparaties toepassen?",
     "source_hash": "9429998b"
   },
   "web.admin.domaintoolbox.repair.confirmDescription": {
@@ -124,7 +124,7 @@
     "source_hash": "0344860a"
   },
   "web.admin.domaintoolbox.reverify.success": {
-    "text": "Herverificatie van domein voltooid.",
+    "text": "Domein-herverificatie voltooid.",
     "source_hash": "497a2348"
   },
   "web.admin.domaintoolbox.transfer.title": {
@@ -132,7 +132,7 @@
     "source_hash": "3667f939"
   },
   "web.admin.domaintoolbox.transfer.description": {
-    "text": "Wijs een domein toe aan een andere organisatie. Actie met de grootste impact — bekijk een voorbeeld en bevestig zorgvuldig.",
+    "text": "Wijs een domein toe aan een andere organisatie. Actie met de grootste impact — bekijk en bevestig zorgvuldig.",
     "source_hash": "d4e26e03"
   },
   "web.admin.domaintoolbox.transfer.toOrgLabel": {
@@ -144,7 +144,7 @@
     "source_hash": "3666815f"
   },
   "web.admin.domaintoolbox.transfer.fromOrgPlaceholder": {
-    "text": "huidige eigenaar bevestigen",
+    "text": "bevestig huidige eigenaar",
     "source_hash": "cd9e769c"
   },
   "web.admin.domaintoolbox.transfer.from": {
@@ -172,7 +172,7 @@
     "source_hash": "d306a15a"
   },
   "web.admin.domaintoolbox.transfer.confirmDescription": {
-    "text": "Dit draagt het eigendom van {domain} over aan een andere organisatie. Typ de externe domein-ID opnieuw om te bevestigen.",
+    "text": "Dit wijst het eigendom van {domain} toe aan een andere organisatie. Typ de externe domein-ID opnieuw om te bevestigen.",
     "source_hash": "edefd97c"
   }
 }

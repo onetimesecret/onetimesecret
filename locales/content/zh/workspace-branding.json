@@ -56,12 +56,12 @@
     "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "使用手机扫描二维码",
-    "source_hash": "99ecf59f"
+    "text": "例如：请使用手机扫描二维码",
+    "source_hash": "9cf0caf8"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "如有任何问题，请联系 onboarding{'@'}example.com",
-    "source_hash": "bee120a7"
+    "text": "例如：如有任何疑问，请联系 onboarding{'@'}example.com",
+    "source_hash": "71749811"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "这些说明将在接收者显示内容之前显示给他们",
@@ -320,8 +320,8 @@
     "source_hash": "bc79cdff"
   },
   "web.branding.paths_carryover_hint": {
-    "text": "这是实时预览——在您保存之前，您的更改对访客不可见。",
-    "source_hash": "cb4b82de"
+    "text": "这是实时预览——在您点击更新之前，访客不会看到您的更改。",
+    "source_hash": "9a34df71"
   },
   "web.branding.coming_soon_match_blurb": {
     "text": "只需告诉我们您的网站地址，我们就会读取其颜色和字体，然后一键消除差异。",
@@ -406,5 +406,57 @@
   "web.branding.delivery_after_reveal": {
     "text": "显示后",
     "source_hash": "d5bfe7fd"
+  },
+  "web.branding.favicon": {
+    "text": "Favicon",
+    "source_hash": "42955289"
+  },
+  "web.branding.refresh_favicon": {
+    "text": "从域名重新获取 favicon",
+    "source_hash": "7cc3d5dc"
+  },
+  "web.branding.refresh_favicon_hint": {
+    "text": "再次从您的域名获取 favicon。新图标稍后即会显示。",
+    "source_hash": "ee007e44"
+  },
+  "web.branding.refresh_favicon_queued": {
+    "text": "正在刷新 favicon——新图标稍后即会显示。",
+    "source_hash": "6bf38e6e"
+  },
+  "web.branding.refresh_favicon_user_upload_hint": {
+    "text": "您已上传自定义 favicon，因此获取到的图标不会将其替换。",
+    "source_hash": "c22e1ed6"
+  },
+  "web.branding.upload_favicon": {
+    "text": "上传 favicon",
+    "source_hash": "ceda39cb"
+  },
+  "web.branding.replace_favicon": {
+    "text": "替换",
+    "source_hash": "95e15439"
+  },
+  "web.branding.remove_favicon": {
+    "text": "移除 favicon",
+    "source_hash": "03693698"
+  },
+  "web.branding.favicon_field_hint": {
+    "text": "支持 ICO、PNG 或 SVG。上传后将替换已获取的图标。",
+    "source_hash": "dfa0bfcb"
+  },
+  "web.branding.favicon_preview_alt": {
+    "text": "域名 favicon",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_title": {
+    "text": "域名 favicon",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_hint": {
+    "text": "支持 ICO、PNG 或 SVG，最大 256KB。将替换自动获取的图标。",
+    "source_hash": "c9eafc83"
+  },
+  "web.branding.favicon_modal_save": {
+    "text": "保存 favicon",
+    "source_hash": "c8a1566c"
   }
 }

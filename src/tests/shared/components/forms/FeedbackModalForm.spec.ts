@@ -245,7 +245,7 @@ describe('FeedbackModalForm', () => {
       expect(shrimpInput.attributes('value')).toBe('test-csrf-token');
     });
 
-    it('includes hidden timezone and version inputs', async () => {
+    it('includes a hidden timezone input', async () => {
       wrapper = mountComponent({
         cust: authenticatedCustomer,
       });
@@ -253,11 +253,22 @@ describe('FeedbackModalForm', () => {
       await nextTick();
 
       const tzInput = wrapper.find('input[name="tz"]');
-      const versionInput = wrapper.find('input[name="version"]');
 
       expect(tzInput.exists()).toBe(true);
-      expect(versionInput.exists()).toBe(true);
-      expect(versionInput.attributes('value')).toBe('0.20.0 (test)');
+    });
+
+    // The version is stamped server-side from the running install
+    // (V3::Logic::ReceiveFeedback). Submitting a client-supplied version was
+    // both spoofable and empty for anonymous users, who no longer receive the
+    // version at all — so the field is gone rather than sending a blank.
+    it('does not submit a client-supplied version', async () => {
+      wrapper = mountComponent({
+        cust: authenticatedCustomer,
+      });
+
+      await nextTick();
+
+      expect(wrapper.find('input[name="version"]').exists()).toBe(false);
     });
   });
 });

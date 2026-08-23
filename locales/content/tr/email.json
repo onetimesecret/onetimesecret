@@ -836,5 +836,41 @@
   "email.secret_link.footer_note": {
     "text": "Bu mesajı, %{sender_email} sizinle bir gizli mesaj paylaşmak için %{product_name} kullandığı için aldınız. Beklemiyorsanız, bu e-postayı güvenle yok sayabilirsiniz.",
     "source_hash": "2d544dad"
+  },
+  "email.sso_link_verification.subject": {
+    "text": "%{provider} hesabını %{product_name} hesabınıza bağlamayı onaylayın",
+    "source_hash": "65e70296"
+  },
+  "email.sso_link_verification.title": {
+    "text": "SSO oturum açmanızı onaylayın",
+    "source_hash": "35bce6cc"
+  },
+  "email.sso_link_verification.request_notice": {
+    "text": "Birisi %{email_address} e-postasını kullanarak %{provider} ile oturum açtı. %{provider} hesabını %{product_name} hesabınıza bağlamayı tamamlamak için aşağıdan onaylayın.",
+    "source_hash": "baeb18c0"
+  },
+  "email.sso_link_verification.confirm_button": {
+    "text": "Onayla ve %{provider} hesabını bağla",
+    "source_hash": "9809e210"
+  },
+  "email.sso_link_verification.copy_link_prompt": {
+    "text": "Veya bu bağlantıya kopyalayıp yapıştırın:",
+    "source_hash": "88c72144"
+  },
+  "email.sso_link_verification.expiration_notice": {
+    "text": "Bu bağlantının süresi 15 dakika içinde dolar ve yalnızca bir kez kullanılabilir.",
+    "source_hash": "1a437f42"
+  },
+  "email.sso_link_verification.ignore_notice": {
+    "text": "%{provider} ile oturum açmayı denemediyseniz, bu e-postayı güvenlice yoksayabilirsiniz - hesabınıza hiçbir şey bağlanmayacaktır.",
+    "source_hash": "d7317d30"
+  },
+  "email.sso_link_verification.signature": {
+    "text": "Destek Ekibi",
+    "source_hash": "dc75bf9f"
+  },
+  "email.sso_link_verification.postscript": {
+    "text": "N.B. Bu e-posta %{email_address} adresine gönderildi.",
+    "source_hash": "8ab1dbea"
   }
 }

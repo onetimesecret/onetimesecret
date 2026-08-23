@@ -6,41 +6,43 @@ require_relative '../../../application'
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require_relative File.join(Onetime::HOME, 'spec', 'support', 'model_test_helper.rb')
 
-
-
 RSpec.xdescribe V1::Logic::Secrets::BaseSecretAction do
   using Familia::Refinements::TimeLiterals
 
   # Create test implementation class
   class TestSecretAction < V1::Logic::Secrets::BaseSecretAction
     def process_secret
-      @kind = :test
-      @secret_value = "test_secret"
+      @kind         = :test
+      @secret_value = 'test_secret'
     end
   end
 
-  let(:customer) {
-    double('Customer',
-    anonymous?: false,
-    custid: 'cust123',
-    planid: 'anonymous')
-  }
-
-  let(:session) {
-    double('Session',
-    anonymous?: false,
-    custid: 'cust123')
-  }
-
-  let(:base_params) {
-    {
-      'ttl'          => '7',
-      'recipient'    => ['test@example.com'],
-      'share_domain' => 'example.com'
-    }
-  }
-
   subject { TestSecretAction.new(session, customer, base_params) }
+
+  let(:customer) do
+    double(
+      'Customer',
+      anonymous?: false,
+      custid: 'cust123',
+      planid: 'anonymous',
+    )
+  end
+
+  let(:session) do
+    double(
+      'Session',
+      anonymous?: false,
+      custid: 'cust123',
+    )
+  end
+
+  let(:base_params) do
+    {
+      'ttl' => '7',
+      'recipient' => ['test@example.com'],
+      'share_domain' => 'example.com',
+    }
+  end
 
   before(:all) do
     OT.boot!(:test)
@@ -60,13 +62,13 @@ RSpec.xdescribe V1::Logic::Secrets::BaseSecretAction do
     end
 
     it 'enforces minimum TTL' do
-      subject.instance_variable_set(:@payload, {ttl: '5'}) # 5 seconds
+      subject.instance_variable_set(:@payload, { ttl: '5' }) # 5 seconds
       subject.send(:process_ttl)
       expect(subject.default_expiration).to eq(30.minutes) # Set in config.test.yaml
     end
 
     it 'sets default TTL when provided as a string' do
-      subject.instance_variable_set(:@payload, {'ttl' => '30'}) # 30 seconds
+      subject.instance_variable_set(:@payload, { 'ttl' => '30' }) # 30 seconds
       subject.send(:process_ttl)
       expect(subject.default_expiration).to eq(7.days) # 7.days
     end
@@ -153,34 +155,38 @@ RSpec.describe 'V1 BaseSecretAction config path bug' do
   # Subclass that implements the required abstract method
   class V1ConfigTestAction < V1::Logic::Secrets::BaseSecretAction
     def process_secret
-      @kind = :test
+      @kind         = :test
       @secret_value = 'test_secret'
     end
   end
 
-  let(:customer) {
-    double('Customer',
+  subject { V1ConfigTestAction.new(session, customer, base_params) }
+
+  let(:customer) do
+    double(
+      'Customer',
       anonymous?: false,
       custid: 'cust123',
       objid: 'obj123',
-      planid: 'anonymous')
-  }
+      planid: 'anonymous',
+    )
+  end
 
-  let(:session) {
-    double('Session',
+  let(:session) do
+    double(
+      'Session',
       anonymous?: false,
-      custid: 'cust123')
-  }
+      custid: 'cust123',
+    )
+  end
 
   # Minimal params — no TTL so we can test defaults
-  let(:base_params) {
+  let(:base_params) do
     {
-      'recipient'    => [],
+      'recipient' => [],
       'share_domain' => '',
     }
-  }
-
-  subject { V1ConfigTestAction.new(session, customer, base_params) }
+  end
 
   before(:all) do
     OT.boot!(:test)
@@ -196,13 +202,13 @@ RSpec.describe 'V1 BaseSecretAction config path bug' do
     it 'reads default_ttl from site.secret_options in config (43200), not the hardcoded fallback (604800)' do
       # Verify the config actually has the value we expect at the correct path
       configured_default_ttl = OT.conf.dig('site', 'secret_options', 'default_ttl')
-      expect(configured_default_ttl).to eq(43200), "Precondition: config.test.yaml should define site.secret_options.default_ttl as 43200"
+      expect(configured_default_ttl).to eq(43_200), 'Precondition: config.test.yaml should define site.secret_options.default_ttl as 43200'
 
       # Now test that process_ttl actually uses that config value when no TTL is provided
       subject.instance_variable_set(:@payload, {})
       subject.send(:process_ttl)
 
-      expect(subject.default_expiration).to eq(43200),
+      expect(subject.default_expiration).to eq(43_200),
         "Expected default_ttl=43200 from config, got #{subject.default_expiration}. " \
         "Bug: process_ttl reads OT.conf.fetch('secret_options') (root level) " \
         "instead of OT.conf.dig('site', 'secret_options')"
@@ -215,8 +221,8 @@ RSpec.describe 'V1 BaseSecretAction config path bug' do
       # The hardcoded V1 fallback is [1800, 7200, 86400, 604800]
       # So the arrays differ in both values and length.
       configured_options = OT.conf.dig('site', 'secret_options', 'ttl_options')
-      expect(configured_options).to be_an(Array), "Precondition: after_load should parse ttl_options string into an array"
-      expect(configured_options).to include(43200), "Precondition: ttl_options should include 43200"
+      expect(configured_options).to be_an(Array), 'Precondition: after_load should parse ttl_options string into an array'
+      expect(configured_options).to include(43_200), 'Precondition: ttl_options should include 43200'
 
       # process_ttl uses ttl_options to determine min_ttl. With the config
       # values [1800, 43200, 604800], min is 1800. With the hardcoded V1
@@ -231,8 +237,8 @@ RSpec.describe 'V1 BaseSecretAction config path bug' do
       # which is the differentiating value. When TTL is nil, it uses default_ttl.
       subject.instance_variable_set(:@payload, {})
       subject.send(:process_ttl)
-      expect(subject.default_expiration).to eq(43200),
-        "Expected default from config ttl_options context (43200), " \
+      expect(subject.default_expiration).to eq(43_200),
+        'Expected default from config ttl_options context (43200), ' \
         "got #{subject.default_expiration}. This confirms the config path bug."
     end
 
@@ -240,18 +246,18 @@ RSpec.describe 'V1 BaseSecretAction config path bug' do
       subject.instance_variable_set(:@payload, { 'ttl' => nil })
       subject.send(:process_ttl)
 
-      expect(subject.default_expiration).to eq(43200),
+      expect(subject.default_expiration).to eq(43_200),
         "Expected nil TTL to default to config's 43200, got #{subject.default_expiration}. " \
-        "Bug: falls through to hardcoded 604800 because it reads from wrong config path."
+        'Bug: falls through to hardcoded 604800 because it reads from wrong config path.'
     end
 
     it 'uses config default_ttl (43200) when TTL key is absent from payload' do
       subject.instance_variable_set(:@payload, {})
       subject.send(:process_ttl)
 
-      expect(subject.default_expiration).to eq(43200),
+      expect(subject.default_expiration).to eq(43_200),
         "Expected absent TTL to default to config's 43200, got #{subject.default_expiration}. " \
-        "Bug: falls through to hardcoded 604800 because it reads from wrong config path."
+        'Bug: falls through to hardcoded 604800 because it reads from wrong config path.'
     end
   end
 end
@@ -259,8 +265,58 @@ end
 # Minimal concrete subclass (process_secret is abstract in the base).
 class V1ShareDomainTestAction < V1::Logic::Secrets::BaseSecretAction
   def process_secret
-    @kind = :test
+    @kind         = :test
     @secret_value = 'test_secret'
+  end
+end
+
+# Puts the process in the state an operator actually gets by setting
+# LINK_DOMAINS, on the LIVE booted config, restoring everything (including a
+# key's absence) afterwards. OT.conf is not deep-frozen under test.
+#
+# Three things, not one, because link_pool_host? answers from
+# Middleware::DomainStrategy's RESOLVED pool rather than re-reading config:
+#
+#   features.domains.enabled  - the middleware gates its pool on this, and the
+#                               shipped test config has domains OFF.
+#   site.host                 - must PARSE, or initialize_from_config lands in
+#                               its DomainInvalid rescue and disables the
+#                               feature. The test config's '127.0.0.1:3000'
+#                               does not parse.
+#   link_domains              - the pool itself.
+#
+# Deliberately NOT a stub of the pool reader: the chain under test is
+# OT.conf -> DomainStrategy.initialize_from_config -> link_pool_host?, and
+# stubbing its far end is what let admission drift away from classification in
+# the first place (a config-only read admitted hosts with the feature off and
+# hosts that never parsed). Keep in step with the V2 helper.
+module V1LinkPoolConfigHelper
+  def with_link_domains(pool, canonical_host: 'onetimesecret.com', enabled: true)
+    domains       = OT.conf['features']['domains']
+    site          = OT.conf['site']
+    had_pool_key  = domains.key?('link_domains')
+    previous_pool = domains['link_domains']
+    previous_on   = domains['enabled']
+    previous_host = site['host']
+
+    domains['link_domains'] = pool
+    domains['enabled']      = enabled
+    site['host']            = canonical_host
+    reload_domain_strategy!
+    yield
+  ensure
+    had_pool_key ? domains['link_domains'] = previous_pool : domains.delete('link_domains')
+    domains['enabled'] = previous_on
+    site['host']       = previous_host
+    reload_domain_strategy!
+  end
+
+  # Re-derives DomainStrategy's class state from the current OT.conf, the way
+  # booting a Rack app would.
+  def reload_domain_strategy!
+    Onetime::Middleware::DomainStrategy.initialize_from_config(
+      OT.conf.dig('features', 'domains') || {},
+    )
   end
 end
 
@@ -286,11 +342,13 @@ RSpec.describe 'V1 BaseSecretAction process_share_domain' do
 
   # V1::Logic::Base takes (session, customer, params).
   def build_v1_ingest_subject(payload_share_domain:, anonymous: false)
-    cust = double('Customer',
+    cust = double(
+      'Customer',
       anonymous?: anonymous,
       custid: anonymous ? nil : 'cust123',
       objid: anonymous ? nil : 'obj123',
-      planid: 'anonymous')
+      planid: 'anonymous',
+    )
     sess = double('Session', anonymous?: anonymous, custid: anonymous ? nil : 'cust123')
     V1ShareDomainTestAction.new(sess, cust, { 'share_domain' => payload_share_domain, 'recipient' => [] })
   end
@@ -336,6 +394,7 @@ end
 # ============================================================================
 RSpec.describe 'V1 BaseSecretAction validate_anonymous_share_domain' do
   using Familia::Refinements::TimeLiterals
+  include V1LinkPoolConfigHelper
 
   before(:all) { OT.boot!(:test) }
 
@@ -348,13 +407,15 @@ RSpec.describe 'V1 BaseSecretAction validate_anonymous_share_domain' do
   # Seed @share_domain (the requested domain), display_domain (Host header) and
   # domain_strategy (custom_domain? reads it), plus anonymity.
   def build_v1_guard_subject(requested:, display_domain:, custom_domain:, anonymous:)
-    cust = double('Customer',
+    cust                   = double(
+      'Customer',
       anonymous?: anonymous,
       custid: anonymous ? nil : 'cust123',
       objid: anonymous ? nil : 'obj123',
-      planid: 'anonymous')
-    sess = double('Session', anonymous?: anonymous, custid: anonymous ? nil : 'cust123')
-    action = V1ShareDomainTestAction.new(sess, cust, { 'share_domain' => '', 'recipient' => [] })
+      planid: 'anonymous',
+    )
+    sess                   = double('Session', anonymous?: anonymous, custid: anonymous ? nil : 'cust123')
+    action                 = V1ShareDomainTestAction.new(sess, cust, { 'share_domain' => '', 'recipient' => [] })
     action.instance_variable_set(:@share_domain, requested)
     action.display_domain  = display_domain
     action.domain_strategy = custom_domain ? 'custom' : nil
@@ -409,6 +470,169 @@ RSpec.describe 'V1 BaseSecretAction validate_anonymous_share_domain' do
       expect { subject.send(:validate_anonymous_share_domain) }.not_to raise_error
     end
   end
+
+  # --------------------------------------------------------------------------
+  # Operator link-pool exemption (#4063) — parity with V2.
+  #
+  # This guard runs BEFORE validate_domain_access, so without the exemption
+  # every anonymous POST naming a pool member 403s and the pool admission in
+  # validate_domain_access is unreachable for guests.
+  # --------------------------------------------------------------------------
+  context 'with an operator link pool configured (#4063)' do
+    around { |example| with_link_domains(%w[short.example.com go.acme.com]) { example.run } }
+
+    # Pins the RESOLVED pool, not the raw config value: admission answers from
+    # DomainStrategy, so a precondition on config alone would stay green while
+    # the middleware resolved something else entirely.
+    it 'is a precondition that the pool really resolved in the middleware' do
+      expect(Onetime::Middleware::DomainStrategy.link_domains)
+        .to eq(%w[short.example.com go.acme.com])
+    end
+
+    it 'allows a guest on the canonical host to name a pool member' do
+      subject = build_v1_guard_subject(requested: 'short.example.com', display_domain: 'onetimesecret.com', custom_domain: false, anonymous: true)
+      expect { subject.send(:validate_anonymous_share_domain) }.not_to raise_error
+    end
+
+    # DECIDED: any pool member is selectable, not just the operator's first.
+    it 'allows the SECOND pool member too' do
+      subject = build_v1_guard_subject(requested: 'go.acme.com', display_domain: 'onetimesecret.com', custom_domain: false, anonymous: true)
+      expect { subject.send(:validate_anonymous_share_domain) }.not_to raise_error
+    end
+
+    it 'normalizes case when testing pool membership' do
+      subject = build_v1_guard_subject(requested: 'Short.Example.COM', display_domain: 'onetimesecret.com', custom_domain: false, anonymous: true)
+      expect { subject.send(:validate_anonymous_share_domain) }.not_to raise_error
+    end
+
+    it 'allows a guest on a branded host to name a pool member (the link still lands on the Host)' do
+      subject = build_v1_guard_subject(requested: 'go.acme.com', display_domain: 'secrets.acme.com', custom_domain: true, anonymous: true)
+      expect { subject.send(:validate_anonymous_share_domain) }.not_to raise_error
+    end
+
+    it 'still rejects a cross-domain smuggle from a branded host (#3311 is not reopened)' do
+      subject = build_v1_guard_subject(requested: 'victim.example.com', display_domain: 'secrets.acme.com', custom_domain: true, anonymous: true)
+      expect { subject.send(:validate_anonymous_share_domain) }
+        .to raise_error(OT::FormError, /permission to use domain/)
+    end
+
+    it 'still rejects a cross-domain smuggle from the canonical host' do
+      subject = build_v1_guard_subject(requested: 'victim.example.com', display_domain: 'onetimesecret.com', custom_domain: false, anonymous: true)
+      expect { subject.send(:validate_anonymous_share_domain) }.to raise_error(OT::FormError)
+    end
+
+    it 'rejects a near-miss subdomain of a pool member (membership is exact)' do
+      subject = build_v1_guard_subject(requested: 'evil.short.example.com', display_domain: 'onetimesecret.com', custom_domain: false, anonymous: true)
+      expect { subject.send(:validate_anonymous_share_domain) }.to raise_error(OT::FormError)
+    end
+
+    it 'rejects a sibling of a pool member' do
+      subject = build_v1_guard_subject(requested: 'other.example.com', display_domain: 'onetimesecret.com', custom_domain: false, anonymous: true)
+      expect { subject.send(:validate_anonymous_share_domain) }.to raise_error(OT::FormError)
+    end
+  end
+
+  context 'with no link pool configured' do
+    around { |example| with_link_domains(nil) { example.run } }
+
+    it 'still rejects a guest naming a tenant domain from the canonical host' do
+      subject = build_v1_guard_subject(requested: 'victim.example.com', display_domain: 'onetimesecret.com', custom_domain: false, anonymous: true)
+      expect { subject.send(:validate_anonymous_share_domain) }.to raise_error(OT::FormError)
+    end
+  end
+end
+
+# ============================================================================
+# validate_domain_access — operator link-pool admission (#4063), V1 half
+#
+# A pool member is blessed by config and has NO CustomDomain row by design, so
+# the from_display_domain lookup below would 422 it with 'Unknown domain' and
+# the picker would offer a domain that cannot be used. Kept textually parallel
+# with the V2 integration block.
+# ============================================================================
+RSpec.describe 'V1 BaseSecretAction link-pool domain access (#4063)' do
+  using Familia::Refinements::TimeLiterals
+  include V1LinkPoolConfigHelper
+
+  before(:all) { OT.boot!(:test) }
+
+  before do
+    allow(Truemail).to receive(:validate).and_return(
+      double('Validator', result: double('Result', valid?: true), as_json: '{}'),
+    )
+    # No CustomDomain row exists for a pool member. Any lookup at all means
+    # the pool admission did not fire.
+    allow(Onetime::CustomDomain).to receive(:from_display_domain).and_return(nil)
+  end
+
+  def build_v1_access_subject(share_domain:, display_domain:, custom_domain:, anonymous:)
+    cust                   = double(
+      'Customer',
+      anonymous?: anonymous,
+      custid: anonymous ? nil : 'cust123',
+      objid: anonymous ? nil : 'obj123',
+      planid: 'anonymous',
+    )
+    sess                   = double('Session', anonymous?: anonymous, custid: anonymous ? nil : 'cust123')
+    action                 = V1ShareDomainTestAction.new(sess, cust, { 'share_domain' => '', 'recipient' => [] })
+    action.instance_variable_set(:@share_domain, share_domain)
+    action.display_domain  = display_domain
+    action.domain_strategy = custom_domain ? 'custom' : nil
+    action
+  end
+
+  context 'with an operator link pool configured' do
+    around { |example| with_link_domains(%w[short.example.com go.acme.com]) { example.run } }
+
+    it 'admits a pool member and anchors the link on it' do
+      subject = build_v1_access_subject(share_domain: 'short.example.com', display_domain: 'onetimesecret.com', custom_domain: false, anonymous: true)
+
+      expect { subject.send(:validate_share_domain) }.not_to raise_error
+      expect(subject.share_domain).to eq('short.example.com')
+      expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
+    end
+
+    it 'admits any pool member, not just the first' do
+      subject = build_v1_access_subject(share_domain: 'go.acme.com', display_domain: 'onetimesecret.com', custom_domain: false, anonymous: true)
+
+      expect { subject.send(:validate_share_domain) }.not_to raise_error
+      expect(subject.share_domain).to eq('go.acme.com')
+    end
+
+    it 'admits a pool member for an authenticated caller without a permission check' do
+      subject = build_v1_access_subject(share_domain: 'short.example.com', display_domain: 'onetimesecret.com', custom_domain: false, anonymous: false)
+
+      expect { subject.send(:validate_share_domain) }.not_to raise_error
+      expect(subject.share_domain).to eq('short.example.com')
+    end
+
+    it "still raises 'Unknown domain' for a host that is neither pooled nor registered" do
+      subject = build_v1_access_subject(share_domain: 'unknown.example.com', display_domain: 'onetimesecret.com', custom_domain: false, anonymous: false)
+
+      expect { subject.send(:validate_share_domain) }
+        .to raise_error(OT::FormError, /Unknown domain/)
+    end
+  end
+
+  # Parity with V2: admission is GATED on the middleware's resolved pool, not
+  # a raw config read. A pool configured while the domains feature is off is
+  # a pool the middleware never serves, so it must not be admitted here — the
+  # config-only read used to admit it, letting a guest anchor secrets on a
+  # host that classifies :invalid on the very next request.
+  context 'with a link pool configured but the domains feature disabled' do
+    around { |example| with_link_domains(%w[short.example.com], enabled: false) { example.run } }
+
+    it 'is a precondition that the middleware admits no pool member' do
+      expect(Onetime::Middleware::DomainStrategy.link_pool_host?('short.example.com')).to be false
+    end
+
+    it "rejects the pool member with 'Unknown domain'" do
+      subject = build_v1_access_subject(share_domain: 'short.example.com', display_domain: 'onetimesecret.com', custom_domain: false, anonymous: false)
+
+      expect { subject.send(:validate_share_domain) }
+        .to raise_error(OT::FormError, /Unknown domain/)
+    end
+  end
 end
 
 # ============================================================================
@@ -437,18 +661,20 @@ RSpec.describe 'V1 BaseSecretAction HomepageConfig read count (issue #3631)' do
   # we can count. accessible_by? is false so the anonymous branch consults the
   # gate; verified 'true' clears validate_domain_verification.
   def build_counting_domain_record(allow_public: true)
-    double('CustomDomain',
+    double(
+      'CustomDomain',
       accessible_by?: false,
       allow_public_secret_creation?: allow_public,
-      verified: 'true')
+      verified: 'true',
+    )
   end
 
   # Anonymous guest on a custom domain, with @share_domain seeded and the domain
   # lookup stubbed to the counting record.
   def build_v1_access_subject(domain_record, share_domain: 'secrets.acme.com')
-    cust = double('Customer', anonymous?: true, custid: nil, objid: nil, planid: 'anonymous')
-    sess = double('Session', anonymous?: true, custid: nil)
-    action = V1ShareDomainTestAction.new(sess, cust, { 'share_domain' => '', 'recipient' => [] })
+    cust                   = double('Customer', anonymous?: true, custid: nil, objid: nil, planid: 'anonymous')
+    sess                   = double('Session', anonymous?: true, custid: nil)
+    action                 = V1ShareDomainTestAction.new(sess, cust, { 'share_domain' => '', 'recipient' => [] })
     action.instance_variable_set(:@share_domain, share_domain)
     action.domain_strategy = 'custom'
     allow(Onetime::CustomDomain).to receive(:from_display_domain)
@@ -458,7 +684,7 @@ RSpec.describe 'V1 BaseSecretAction HomepageConfig read count (issue #3631)' do
 
   it 'reads allow_public_secret_creation? exactly once through validate_domain_access' do
     domain_record = build_counting_domain_record(allow_public: true)
-    subject = build_v1_access_subject(domain_record)
+    subject       = build_v1_access_subject(domain_record)
 
     subject.send(:validate_domain_access, 'secrets.acme.com')
 
@@ -467,7 +693,7 @@ RSpec.describe 'V1 BaseSecretAction HomepageConfig read count (issue #3631)' do
 
   it 'does not re-read the gate inside validate_domain_permissions when the resolved value is threaded in' do
     domain_record = build_counting_domain_record(allow_public: true)
-    subject = build_v1_access_subject(domain_record)
+    subject       = build_v1_access_subject(domain_record)
 
     subject.send(:validate_domain_permissions, domain_record, true)
 
@@ -476,7 +702,7 @@ RSpec.describe 'V1 BaseSecretAction HomepageConfig read count (issue #3631)' do
 
   it 'still resolves the gate on demand for direct callers that omit the argument' do
     domain_record = build_counting_domain_record(allow_public: true)
-    subject = build_v1_access_subject(domain_record)
+    subject       = build_v1_access_subject(domain_record)
 
     subject.send(:validate_domain_permissions, domain_record)
 

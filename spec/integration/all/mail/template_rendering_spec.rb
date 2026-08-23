@@ -902,9 +902,8 @@ RSpec.describe 'Email Template Rendering', type: :integration do
       Onetime::Mail::Templates::NewLoginAlert => {
         email_address: 'recipient@example.com',
         device_info: 'Chrome on macOS',
-        location: 'San Francisco, CA, USA',
+        location: 'US',
         login_at: '2024-01-15T10:30:00Z',
-        ip_address: '192.168.1.1',
       },
       Onetime::Mail::Templates::MfaEnabled => {
         email_address: 'recipient@example.com',
@@ -944,7 +943,7 @@ RSpec.describe 'Email Template Rendering', type: :integration do
       template = Onetime::Mail::Templates::NewLoginAlert.new({
         email_address: test_email,
         device_info: 'Chrome on macOS',
-        location: 'San Francisco, CA, USA',
+        location: 'US',
         login_at: '2024-01-15T10:30:00Z',
       })
       expect(template.login_at_date).to eq('January 15, 2024')
@@ -955,7 +954,7 @@ RSpec.describe 'Email Template Rendering', type: :integration do
       template = Onetime::Mail::Templates::NewLoginAlert.new({
         email_address: test_email,
         device_info: 'Chrome on macOS',
-        location: 'San Francisco, CA, USA',
+        location: 'US',
         login_at: 'not-a-timestamp',
       })
       expect(template.login_at_date).to eq('not-a-timestamp')

@@ -32,12 +32,11 @@ declare module 'vue-router' {
      */
     requiresFeature?: 'signup' | 'signin';
 
-    /**
-     * When true, this route is excluded when SSO-only mode is active.
-     * The route guard redirects authenticated users to '/account'
-     * and unauthenticated users to '/signin'.
-     */
+    /** Route is hidden in SSO-only mode — full doc on RouteMeta in src/types/router.ts. */
     excludeSsoOnly?: boolean;
+
+    /** SSO-flow route — stays reachable in SSO-only mode; full doc in src/types/router.ts. */
+    requiredInSsoOnly?: boolean;
 
     /**
      * Minimum org membership role required to access this route.

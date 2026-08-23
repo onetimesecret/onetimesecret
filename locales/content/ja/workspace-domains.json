@@ -4,7 +4,7 @@
     "source_hash": "c592a5c6"
   },
   "web.domains.view_domain_verification_status": {
-    "text": "ドメイン検証ステータスを表示",
+    "text": "ドメイン検証ステータスを見る",
     "source_hash": "23635e2d"
   },
   "web.domains.domain_already_in_organization": {
@@ -12,23 +12,23 @@
     "source_hash": "6e0d628f"
   },
   "web.domains.domain_in_other_organization": {
-    "text": "このドメインは既に別の組織に登録されています。これが誤りだと思われる場合は、サポートにお問い合わせください。",
+    "text": "このドメインは既に別の組織に登録されています。エラーと思われる場合はサポートにお問い合わせください。",
     "source_hash": "7fae16a9"
   },
   "web.domains.domain_claimed_successfully": {
-    "text": "ドメインが正常に申請され、組織に追加されました",
+    "text": "ドメインが正常に登録され、組織に追加されました",
     "source_hash": "d53e1ac1"
   },
   "web.domains.privacy_defaults_title": {
-    "text": "プライバシーのデフォルト",
+    "text": "プライバシーデフォルト",
     "source_hash": "5bce069d"
   },
   "web.domains.privacy_defaults_description": {
-    "text": "このドメインで作成されるシークレットのデフォルトプライバシーオプションを設定します。これらの設定は、新しいシークレットを作成する際に事前入力されます。",
+    "text": "このドメインで作成されるシークレットのデフォルトプライバシーオプションを設定します。これらの設定は新しいシークレットを作成する際に事前入力されます。",
     "source_hash": "1d98959c"
   },
   "web.domains.privacy_defaults": {
-    "text": "プライバシーのデフォルト",
+    "text": "プライバシーデフォルト",
     "source_hash": "5bce069d"
   },
   "web.domains.privacy_defaults_icon": {
@@ -48,7 +48,7 @@
     "source_hash": "3a448e69"
   },
   "web.domains.passphrase_required_hint": {
-    "text": "このドメインのすべてのシークレットにパスフレーズを必須にする",
+    "text": "このドメインのすべてのシークレットにパスフレーズを必須にします",
     "source_hash": "6ac05bce"
   },
   "web.domains.notify_enabled_label": {
@@ -56,7 +56,7 @@
     "source_hash": "682be64a"
   },
   "web.domains.notify_enabled_hint": {
-    "text": "シークレットが閲覧されたときのメール通知をデフォルトで有効にする",
+    "text": "シークレットが閲覧されたときのメール通知をデフォルトで有効にします",
     "source_hash": "3e16dd5f"
   },
   "web.domains.use_global_default": {
@@ -76,7 +76,7 @@
     "source_hash": "59be7133"
   },
   "web.domains.enabled": {
-    "text": "有効化",
+    "text": "有効",
     "source_hash": "5342e09f"
   },
   "web.domains.disabled": {
@@ -108,7 +108,7 @@
     "source_hash": "c776f846"
   },
   "web.domains.switcher_locked": {
-    "text": "このページではドメイン切り替えは利用できません",
+    "text": "このページではドメイン切り替えはできません",
     "source_hash": "ccd202fe"
   },
   "web.domains.scope_list_label": {
@@ -140,7 +140,7 @@
     "source_hash": "421b1e61"
   },
   "web.domains.control_whether_users_can_create_secret_links": {
-    "text": "ユーザーがあなたのドメインのホームページから秘密リンクを作成できるかどうかを制御します",
+    "text": "ユーザーがドメインのホームページからシークレットリンクを作成できるかどうかを制御します",
     "source_hash": "a25d6fca"
   },
   "web.domains.homepage_access": {
@@ -156,7 +156,7 @@
     "source_hash": "79fa3361"
   },
   "web.domains.manage_and_configure_your_verified_custom_domains": {
-    "text": "確認済みのカスタムドメインを管理および設定する",
+    "text": "検証済みのカスタムドメインを管理・設定できます",
     "source_hash": "4e7f8311"
   },
   "web.domains.domains": {
@@ -164,7 +164,7 @@
     "source_hash": "ced67718"
   },
   "web.domains.last_monitored": {
-    "text": "最終監視日時",
+    "text": "最終監視",
     "source_hash": "8d39d1d0"
   },
   "web.domains.ssl_status": {
@@ -172,7 +172,7 @@
     "source_hash": "bec72630"
   },
   "web.domains.ssl_renews": {
-    "text": "SSL更新日",
+    "text": "SSL更新",
     "source_hash": "c49a8cff"
   },
   "web.domains.dns_record": {
@@ -196,7 +196,7 @@
     "source_hash": "c1683eeb"
   },
   "web.domains.open_domain_in_new_tab": {
-    "text": "新しいタブでドメインを開く",
+    "text": "ドメインを新しいタブで開く",
     "source_hash": "01571f31"
   },
   "web.domains.back_to_domains": {
@@ -204,7 +204,7 @@
     "source_hash": "d1dc32ad"
   },
   "web.domains.return_to_domains_list": {
-    "text": "ドメインリストに戻る",
+    "text": "ドメイン一覧に戻る",
     "source_hash": "c7632413"
   },
   "web.domains.verify_domain": {
@@ -216,7 +216,7 @@
     "source_hash": "b6ec5cd4"
   },
   "web.domains.added_formatdistancetonow_domain_created_addsuffix_true": {
-    "text": "{0}を追加",
+    "text": "{0}に追加",
     "source_hash": "dc9ff9ec"
   },
   "web.domains.add_your_domain": {
@@ -224,7 +224,7 @@
     "source_hash": "6b95c91c"
   },
   "web.domains.get_started_by_adding_a_custom_domain": {
-    "text": "カスタム ドメインを追加して開始します。",
+    "text": "カスタムドメインを追加して始めましょう。",
     "source_hash": "abdbe9ab"
   },
   "web.domains.no_domains_found": {
@@ -236,19 +236,19 @@
     "source_hash": "b5549ff7"
   },
   "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
-    "text": "ドメインを接続するには、DNSにCNAMEレコードが必要です",
+    "text": "ドメインを接続するには、DNSに以下を指すCNAMEレコードが必要です",
     "source_hash": "c560710e"
   },
   "web.domains.if_you_already_have_a_cname_record_for_that_addr": {
-    "text": "そのアドレスのCNAMEレコードがすでにある場合は、向き先を変更してください",
+    "text": "そのアドレスのCNAMEレコードが既にある場合は、以下を指すように変更してください",
     "source_hash": "6f23e6db"
   },
   "web.domains.a_cname_record_is_not_allowed_instead_youll_need": {
-    "text": "）、CNAMEレコードは許可されていません。代わりに、Aレコードを作成する必要があります。これを行う方法の詳細は、ページの下部に記載されています。",
+    "text": ")、CNAMEレコードは使用できません。代わりにAレコードを作成する必要があります。詳細はページの下部に記載されています。",
     "source_hash": "76d5ab5f"
   },
   "web.domains.and_remove_any_other_a_aaaa_or_cname_records_for": {
-    "text": "そして、その正確なアドレスの他のA、AAAA、またはCNAMEレコードを削除してください。",
+    "text": "その正確なアドレスの他のA、AAAA、またはCNAMEレコードを削除してください。",
     "source_hash": "8978f5e7"
   },
   "web.domains.youll_need_to_complete_these_steps": {
@@ -276,15 +276,15 @@
     "source_hash": "e3f97ac1"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
-    "text": "SSL証明書が有効になるまでに数分かかる場合があります。",
+    "text": "SSL証明書が有効になるまで数分かかる場合があります。",
     "source_hash": "2e4f3179"
   },
   "web.domains.dns_changes_can_take_as_little_as_60_seconds_or_": {
-    "text": "DNS変更は最短で60秒、最長で24時間かかることがあります。",
+    "text": "DNS変更が反映されるまで、60秒から最大24時間かかる場合があります。",
     "source_hash": "38774290"
   },
   "web.domains.3_wait_for_propagation": {
-    "text": "3. 伝播を待つ",
+    "text": "3. 反映を待つ",
     "source_hash": "3e6cf4e1"
   },
   "web.domains.value_2": {
@@ -328,7 +328,7 @@
     "source_hash": "7b5aa1fc"
   },
   "web.domains.add_this_hostname_to_your_dns_configuration": {
-    "text": "このホスト名をDNS設定に追加してください：",
+    "text": "このホスト名をDNS設定に追加してください:",
     "source_hash": "4bf09ead"
   },
   "web.domains.1_create_a_txt_record": {
@@ -336,19 +336,19 @@
     "source_hash": "62766ffd"
   },
   "web.domains.follow_these_steps_to_verify_domain_ownership_an": {
-    "text": "ドメインの所有権を確認し、オンラインプレゼンスを向上させるには、以下の手順に従ってください：",
+    "text": "以下の手順に従ってドメイン所有権を検証し、オンラインプレゼンスを向上させましょう:",
     "source_hash": "a33f94d3"
   },
   "web.domains.domain_verification_steps": {
-    "text": "ドメイン検証ステップ",
+    "text": "ドメイン検証手順",
     "source_hash": "16dca977"
   },
   "web.domains.domain_verification_initiated_successfully": {
-    "text": "ドメイン確認が正常に開始されました。",
+    "text": "ドメイン検証が正常に開始されました。",
     "source_hash": "5969b924"
   },
   "web.domains.are_you_sure_you_want_to_remove_this_domain": {
-    "text": "このドメインを削除してもよろしいですか？この操作は元に戻せません。",
+    "text": "このドメインを削除してもよろしいですか?この操作は取り消せません。",
     "source_hash": "403c6d3b"
   },
   "web.domains.remove_domain": {
@@ -396,7 +396,7 @@
     "source_hash": "5932f0cb"
   },
   "web.domains.dns_widget_description": {
-    "text": "以下のツールを使用してDNSプロバイダーを自動検出し、ドメイン設定のステップバイステップの手順を取得できます。",
+    "text": "以下のツールを使用して、DNSプロバイダーを自動検出し、ドメイン設定の手順を取得できます。",
     "source_hash": "91c1af2e"
   },
   "web.domains.email.title": {
@@ -408,7 +408,7 @@
     "source_hash": "6f38aa51"
   },
   "web.domains.email.config_description": {
-    "text": "このドメインのメール送信を設定します",
+    "text": "このドメインのメール送信を設定できます",
     "source_hash": "1c275ff0"
   },
   "web.domains.email.provider_label": {
@@ -424,7 +424,7 @@
     "source_hash": "2f13b589"
   },
   "web.domains.email.from_name_placeholder": {
-    "text": "例: Acme Security",
+    "text": "例:Acme Security",
     "source_hash": "03c0f138"
   },
   "web.domains.email.from_address_label": {
@@ -432,7 +432,7 @@
     "source_hash": "60643eae"
   },
   "web.domains.email.from_address_placeholder": {
-    "text": "例: secrets{'@'}example.com",
+    "text": "例:secrets{'@'}example.com",
     "source_hash": "a09b3928"
   },
   "web.domains.email.reply_to_label": {
@@ -440,7 +440,7 @@
     "source_hash": "4538ea9c"
   },
   "web.domains.email.reply_to_placeholder": {
-    "text": "例: support{'@'}example.com",
+    "text": "例:support{'@'}example.com",
     "source_hash": "fa3e5f0b"
   },
   "web.domains.email.save_changes": {
@@ -468,7 +468,7 @@
     "source_hash": "f6fa84e7"
   },
   "web.domains.email.provider_ses_description": {
-    "text": "DKIMおよびSPFレコードによるドメイン検証が必要です",
+    "text": "DKIMとSPFレコードによるドメイン検証が必要です",
     "source_hash": "4df5aa60"
   },
   "web.domains.email.provider_sendgrid_description": {
@@ -488,7 +488,7 @@
     "source_hash": "34d2c307"
   },
   "web.domains.email.dns_records_description": {
-    "text": "メール送信用にドメインを検証するため、以下のDNSレコードを追加してください。",
+    "text": "以下のDNSレコードを追加して、メール送信用のドメインを検証してください。",
     "source_hash": "9fa85863"
   },
   "web.domains.email.dns_column_type": {
@@ -504,11 +504,11 @@
     "source_hash": "8e37953d"
   },
   "web.domains.email.dns_optional_label": {
-    "text": "Recommended",
+    "text": "推奨",
     "source_hash": "d70604e8"
   },
   "web.domains.email.dns_optional_hint": {
-    "text": "This record is recommended but not required for verification. A DMARC policy at your organizational domain may already cover this subdomain.",
+    "text": "このレコードは推奨されますが、検証には必須ではありません。組織ドメインのDMARCポリシーがこのサブドメインをカバーしている場合があります。",
     "source_hash": "58e1a12b"
   },
   "web.domains.email.copy": {
@@ -548,7 +548,7 @@
     "source_hash": "23a86f5a"
   },
   "web.domains.email.last_validated": {
-    "text": "最終検証日",
+    "text": "最終検証",
     "source_hash": "887dd486"
   },
   "web.domains.email.upgrade_to_configure": {
@@ -560,7 +560,7 @@
     "source_hash": "a48c0d40"
   },
   "web.domains.email.access_denied": {
-    "text": "アクセス拒否",
+    "text": "アクセスが拒否されました",
     "source_hash": "d134ca02"
   },
   "web.domains.email.access_denied_description": {
@@ -580,7 +580,7 @@
     "source_hash": "ffcf39fb"
   },
   "web.domains.email.disabled_notice": {
-    "text": "カスタムメール送信は現在無効です。メールはグローバル送信者から送信されます。カスタム送信者IDを使用するには、以下の機能を有効にしてください。",
+    "text": "カスタムメール送信は現在無効になっています。メールはグローバル送信者から送信されます。カスタム送信者IDを使用するには、以下の機能を有効にしてください。",
     "source_hash": "60a26f5b"
   },
   "web.domains.email.badge_not_configured": {
@@ -604,55 +604,55 @@
     "source_hash": "75081b59"
   },
   "web.domains.email.tooltip_not_configured": {
-    "text": "メール送信者が未設定 — メールはプラットフォームのデフォルト送信者を使用します",
+    "text": "メール送信者が設定されていません — メールはプラットフォームのデフォルト送信者を使用します",
     "source_hash": "360083bb"
   },
   "web.domains.email.tooltip_pending": {
-    "text": "メール送信者の設定が検証待ち — メールはプラットフォームのデフォルト送信者を使用します",
+    "text": "メール送信者の設定は検証待ちです — メールはプラットフォームのデフォルト送信者を使用します",
     "source_hash": "c8c2449c"
   },
   "web.domains.email.tooltip_disabled": {
-    "text": "メール送信者が無効 — メールはプラットフォームのデフォルト送信者を使用します",
+    "text": "メール送信者は無効です — メールはプラットフォームのデフォルト送信者を使用します",
     "source_hash": "64e84955"
   },
   "web.domains.email.tooltip_verified": {
-    "text": "メール送信者が検証済み — このドメインからメールが送信されます",
+    "text": "メール送信者が検証されました — メールはこのドメインから送信されます",
     "source_hash": "0e9a005c"
   },
   "web.domains.incoming.title": {
-    "text": "シークレット受信",
+    "text": "受信シークレット",
     "source_hash": "883dbca9"
   },
   "web.domains.incoming.config_title": {
-    "text": "シークレット受信設定",
+    "text": "受信シークレットの設定",
     "source_hash": "b3fef15b"
   },
   "web.domains.incoming.config_description": {
-    "text": "外部ユーザーがこのドメインの指定された受信者に直接シークレットを送信できるようにします",
+    "text": "外部ユーザーがこのドメインの指定された受信者にシークレットを直接送信できるようにします",
     "source_hash": "452ab4fe"
   },
   "web.domains.incoming.access_denied": {
-    "text": "アクセス拒否",
+    "text": "アクセスが拒否されました",
     "source_hash": "d134ca02"
   },
   "web.domains.incoming.access_denied_description": {
-    "text": "このドメインのシークレット受信設定を管理する権限がありません。組織の管理者にお問い合わせください。",
+    "text": "このドメインの受信シークレット設定を管理する権限がありません。組織の管理者にお問い合わせください。",
     "source_hash": "3e9d8adc"
   },
   "web.domains.incoming.upgrade_to_configure": {
-    "text": "このドメインのシークレット受信を設定するには、プランをアップグレードしてください。",
+    "text": "このドメインの受信シークレットを設定するには、プランをアップグレードしてください。",
     "source_hash": "9dfdfeb5"
   },
   "web.domains.incoming.configure_incoming": {
-    "text": "シークレット受信を設定",
+    "text": "受信シークレットを設定",
     "source_hash": "eab52939"
   },
   "web.domains.incoming.not_configured_notice": {
-    "text": "このドメインではシークレット受信が設定されていません。外部ユーザーがチームにシークレットを送信できるよう、受信者を追加してください。",
+    "text": "このドメインでは受信シークレットが設定されていません。外部ユーザーがチームにシークレットを送信できるように受信者を追加してください。",
     "source_hash": "dbc443a6"
   },
   "web.domains.incoming.disabled_notice": {
-    "text": "シークレット受信は現在無効です。外部ユーザーはこのドメインの受信者にシークレットを送信できません。シークレット受信を許可するには、以下の機能を有効にしてください。",
+    "text": "受信シークレットは現在無効になっています。外部ユーザーはこのドメインの受信者にシークレットを送信できません。受信シークレットを許可するには、以下の機能を有効にしてください。",
     "source_hash": "d1f8dafb"
   },
   "web.domains.incoming.recipients_title": {
@@ -660,7 +660,7 @@
     "source_hash": "1e8568a8"
   },
   "web.domains.incoming.recipients_description": {
-    "text": "このドメインでシークレットを受信できる人を定義します。シークレットが送信されると、受信者にメール通知が届きます。",
+    "text": "このドメインで受信シークレットを受け取れるユーザーを定義します。受信者はシークレットが送信されるとメール通知を受け取ります。",
     "source_hash": "026f9d9d"
   },
   "web.domains.incoming.add_recipient": {
@@ -684,7 +684,7 @@
     "source_hash": "18d67c99"
   },
   "web.domains.incoming.name_placeholder": {
-    "text": "例: セキュリティチーム",
+    "text": "例:セキュリティチーム",
     "source_hash": "0c52400c"
   },
   "web.domains.incoming.empty_state": {
@@ -692,11 +692,11 @@
     "source_hash": "bc8c2058"
   },
   "web.domains.incoming.empty_state_description": {
-    "text": "外部ユーザーがチームにシークレットを送信できるよう、受信者を追加してください。",
+    "text": "外部ユーザーがチームにシークレットを送信できるように受信者を追加してください。",
     "source_hash": "2a647a40"
   },
   "web.domains.incoming.validation_invalid_email": {
-    "text": "メールアドレスが無効です",
+    "text": "無効なメールアドレスです",
     "source_hash": "4eaf1d80"
   },
   "web.domains.incoming.validation_duplicate_email": {
@@ -724,15 +724,15 @@
     "source_hash": "e07e053c"
   },
   "web.domains.incoming.update_success": {
-    "text": "シークレット受信設定が正常に保存されました",
+    "text": "受信シークレットの設定が正常に保存されました",
     "source_hash": "9317e02d"
   },
   "web.domains.incoming.delete_success": {
-    "text": "シークレット受信設定が正常に削除されました",
+    "text": "受信シークレットの設定が正常に削除されました",
     "source_hash": "4c4a33ae"
   },
   "web.domains.incoming.recipient_count": {
-    "text": "受信者{count}名",
+    "text": "{count}名の受信者",
     "source_hash": "0e4f5985"
   },
   "web.domains.incoming.badge_not_configured": {
@@ -748,31 +748,31 @@
     "source_hash": "75081b59"
   },
   "web.domains.incoming.tooltip_not_configured": {
-    "text": "シークレット受信が未設定 - 外部ユーザーはこのドメインにシークレットを送信できません",
+    "text": "受信シークレットが設定されていません - 外部ユーザーはこのドメインにシークレットを送信できません",
     "source_hash": "79786d5c"
   },
   "web.domains.incoming.tooltip_configured": {
-    "text": "シークレット受信が有効（受信者{count}名）",
+    "text": "受信シークレットが有効で{count}名の受信者がいます",
     "source_hash": "c205cc54"
   },
   "web.domains.incoming.tooltip_disabled": {
-    "text": "このドメインではシークレット受信機能が無効です",
+    "text": "このドメインでは受信シークレット機能が無効になっています",
     "source_hash": "0413f96b"
   },
   "web.domains.incoming.enabled_label": {
-    "text": "シークレット受信を有効化",
+    "text": "受信シークレットを有効にする",
     "source_hash": "c0b25980"
   },
   "web.domains.incoming.enabled_hint": {
-    "text": "このドメインの受信者に外部ユーザーがシークレットを送信できるようにします",
+    "text": "外部ユーザーがこのドメインの受信者にシークレットを送信できるようにします",
     "source_hash": "24aadd31"
   },
   "web.domains.incoming.public_url_label": {
-    "text": "公開URL",
+    "text": "パブリックURL",
     "source_hash": "f7b60b04"
   },
   "web.domains.incoming.public_url_description": {
-    "text": "外部ユーザーがシークレットを送信できるよう、このURLを共有してください",
+    "text": "外部ユーザーがシークレットを送信できるようにこのURLを共有してください",
     "source_hash": "df47a894"
   },
   "web.domains.incoming.copy_url": {
@@ -812,11 +812,11 @@
     "source_hash": "afd5751e"
   },
   "web.domains.sso.config_description": {
-    "text": "このドメインのシングルサインオン認証を設定します",
+    "text": "このドメインのシングルサインオン認証を設定できます",
     "source_hash": "f37a0b47"
   },
   "web.domains.sso.access_denied": {
-    "text": "アクセス拒否",
+    "text": "アクセスが拒否されました",
     "source_hash": "d134ca02"
   },
   "web.domains.sso.access_denied_description": {
@@ -844,15 +844,15 @@
     "source_hash": "80d3a144"
   },
   "web.domains.sso.not_configured_notice": {
-    "text": "このドメインではSSOがまだ設定されていません。シングルサインオンを有効にして、チームメンバーが組織のIDプロバイダーを使用して認証できるようにしましょう。",
+    "text": "このドメインではSSOがまだ設定されていません。シングルサインオンを有効にして、チームメンバーが組織のIDプロバイダーを使用して認証できるようにしてください。",
     "source_hash": "c439214b"
   },
   "api.domains.errors.add_admin_required": {
-    "text": "カスタムドメインを追加できるのは、組織のオーナーと管理者のみです",
+    "text": "カスタムドメインを追加できるのは組織のオーナーと管理者のみです",
     "source_hash": "3324aabe"
   },
   "web.domains.public_homepage": {
-    "text": "公開ホームページ",
+    "text": "パブリックホームページ",
     "source_hash": "2ae3ccba"
   },
   "web.domains.status_tooltip_active": {
@@ -864,19 +864,19 @@
     "source_hash": "892cb2cb"
   },
   "web.domains.status_tooltip_not_verified": {
-    "text": "ドメインが未検証です — クリックして検証",
+    "text": "ドメインは未検証です — クリックして検証",
     "source_hash": "a9806710"
   },
   "web.domains.status_tooltip_unverified": {
-    "text": "ドメインの状態が未確認です — クリックして更新",
+    "text": "ドメインのステータスが未検証です — クリックして更新",
     "source_hash": "a45aa76d"
   },
   "web.domains.last_check_failed": {
-    "text": "前回の検証チェックに失敗しました",
+    "text": "最後の検証チェックが失敗しました",
     "source_hash": "88b594b8"
   },
   "web.domains.last_check_failed_ago": {
-    "text": "前回のチェックに失敗しました {0}",
+    "text": "最後のチェックが{0}に失敗しました",
     "source_hash": "ddfb6412"
   },
   "web.domains.verify_now": {
@@ -888,7 +888,7 @@
     "source_hash": "6eae7d9c"
   },
   "web.domains.remove_domain_description": {
-    "text": "このドメインとそのすべての設定を完全に削除します。",
+    "text": "このドメインとすべての設定を完全に削除します。",
     "source_hash": "73946b9e"
   },
   "web.domains.add_access_denied": {
@@ -904,7 +904,7 @@
     "source_hash": "5a1d8ab5"
   },
   "web.domains.dns_widget_not_available": {
-    "text": "DNSウィジェットを利用できません",
+    "text": "DNSウィジェットは利用できません",
     "source_hash": "4eed448b"
   },
   "web.domains.dns_widget_init_failed": {
@@ -920,7 +920,7 @@
     "source_hash": "77e07795"
   },
   "web.domains.unsaved_changes_confirmation": {
-    "text": "保存されていない変更があります。このページから移動してもよろしいですか?",
+    "text": "保存されていない変更があります。このまま離れますか?",
     "source_hash": "322380c1"
   },
   "web.domains.entitlement_required_owner": {
@@ -928,7 +928,7 @@
     "source_hash": "6de1f752"
   },
   "web.domains.entitlement_required_member": {
-    "text": "この機能は現在のプランではご利用いただけません。組織のオーナーにお問い合わせください。",
+    "text": "この機能は現在のプランでは利用できません。組織のオーナーにお問い合わせください。",
     "source_hash": "8f1688b2"
   },
   "web.domains.detail.manage": {
@@ -944,11 +944,11 @@
     "source_hash": "6360f7ec"
   },
   "web.domains.detail.homepage_description": {
-    "text": "ドメインのホームページでのシークレット作成を一般公開で許可します",
+    "text": "ドメインのホームページでシークレットを作成するためのパブリックアクセスを許可します",
     "source_hash": "209b3ded"
   },
   "web.domains.detail.brand_description": {
-    "text": "ロゴ、配色、カスタムブランディング",
+    "text": "ロゴ、色、カスタムブランディング",
     "source_hash": "69f7a9e8"
   },
   "web.domains.detail.sso_description": {
@@ -956,7 +956,7 @@
     "source_hash": "234e6150"
   },
   "web.domains.detail.email_description": {
-    "text": "カスタムメール送信元の設定",
+    "text": "カスタムメール送信者の設定",
     "source_hash": "7fcde01b"
   },
   "web.domains.detail.incoming_description": {
@@ -964,11 +964,11 @@
     "source_hash": "37c1fd6d"
   },
   "web.domains.detail.signup_description": {
-    "text": "ドメインごとの登録検証の方式",
+    "text": "ドメインごとのサインアップ検証戦略",
     "source_hash": "3c5a511f"
   },
   "web.domains.detail.signin_description": {
-    "text": "ドメインごとのログイン方法の設定",
+    "text": "ドメインごとのサインイン方法の設定",
     "source_hash": "73e01e36"
   },
   "web.domains.email.dns_check_label": {
@@ -980,11 +980,11 @@
     "source_hash": "472590ae"
   },
   "web.domains.email.test_email_title": {
-    "text": "メール配信のテスト",
+    "text": "メール配信テスト",
     "source_hash": "c1b3dee2"
   },
   "web.domains.email.test_email_hint": {
-    "text": "保存された設定を使用して、自分宛てにテストメールを送信します。機能がまだ有効になっていない場合でも動作します。",
+    "text": "保存された設定を使用して、自分宛てにテストメールを送信します。機能がまだ有効になっていなくても動作します。",
     "source_hash": "33e876ad"
   },
   "web.domains.email.send_test": {
@@ -1004,7 +1004,7 @@
     "source_hash": "8ceb9588"
   },
   "web.domains.email.delivered_via": {
-    "text": "{provider}経由で配信されました",
+    "text": "{provider}経由で配信",
     "source_hash": "f741959b"
   },
   "web.domains.incoming.feature_disabled": {
@@ -1016,15 +1016,15 @@
     "source_hash": "dce981e0"
   },
   "web.domains.signin.title": {
-    "text": "ログイン設定",
+    "text": "サインイン設定",
     "source_hash": "2da38c03"
   },
   "web.domains.signin.configure_signin": {
-    "text": "ログインを設定",
+    "text": "サインインを設定",
     "source_hash": "f72b58b5"
   },
   "web.domains.signin.config_description": {
-    "text": "このドメインのログイン認証方法を設定します",
+    "text": "このドメインのサインイン認証方法を設定できます",
     "source_hash": "8efce428"
   },
   "web.domains.signin.access_denied": {
@@ -1032,31 +1032,31 @@
     "source_hash": "d134ca02"
   },
   "web.domains.signin.upgrade_to_configure": {
-    "text": "このドメインのログイン方法を設定するには、プランをアップグレードしてください。",
+    "text": "このドメインのサインイン方法を設定するには、プランをアップグレードしてください。",
     "source_hash": "e242bb74"
   },
   "web.domains.signin.not_configured_notice": {
-    "text": "このドメインのログイン設定はまだ行われていません。上書き設定を構成して、このドメインのログインページで利用できる認証方法を制御してください。",
+    "text": "このドメインではサインイン設定がまだ設定されていません。このドメインのサインインページで利用可能な認証方法を制御する上書き設定を行ってください。",
     "source_hash": "cb788a2d"
   },
   "web.domains.signin.signin_enabled_label": {
-    "text": "ログインを有効化",
+    "text": "サインインが有効",
     "source_hash": "cabe4898"
   },
   "web.domains.signin.header_toggle_label": {
-    "text": "ログイン",
+    "text": "サインイン",
     "source_hash": "5bbbe531"
   },
   "web.domains.signin.signin_enabled_hint": {
-    "text": "このドメインでユーザーがログインできるかどうか",
+    "text": "ユーザーがこのドメインでサインインできるかどうか",
     "source_hash": "57a92aee"
   },
   "web.domains.signin.restrict_to_label": {
-    "text": "ログイン方法を制限",
+    "text": "サインイン方法を制限",
     "source_hash": "edbec83f"
   },
   "web.domains.signin.restrict_to_hint": {
-    "text": "このドメインを単一の認証方法に制限します。設定すると、選択した方法のみがログインページに表示されます。",
+    "text": "このドメインを単一の認証方法に制限します。設定すると、選択した方法のみがサインインページに表示されます。",
     "source_hash": "682bc4c5"
   },
   "web.domains.signin.all_methods": {
@@ -1064,7 +1064,7 @@
     "source_hash": "e601c19e"
   },
   "web.domains.signin.all_methods_description": {
-    "text": "有効なすべての認証方法をログインページに表示します",
+    "text": "サインインページにすべての有効な認証方法を表示します",
     "source_hash": "62723340"
   },
   "web.domains.signin.method_password": {
@@ -1092,7 +1092,7 @@
     "source_hash": "394e3878"
   },
   "web.domains.signin.mode_question": {
-    "text": "ユーザーはどのようにログインできますか?",
+    "text": "ユーザーはどのようにサインインできますか?",
     "source_hash": "3694eb23"
   },
   "web.domains.signin.mode_any": {
@@ -1100,7 +1100,7 @@
     "source_hash": "23665425"
   },
   "web.domains.signin.mode_any_hint": {
-    "text": "このドメインで利用可能なすべての方法を表示します。個々の方法は以下で絞り込めます。",
+    "text": "このドメインで利用可能なすべての方法を表示します。以下で個々の方法を絞り込めます。",
     "source_hash": "2f3dcba6"
   },
   "web.domains.signin.mode_one": {
@@ -1108,27 +1108,27 @@
     "source_hash": "601f5768"
   },
   "web.domains.signin.mode_one_hint": {
-    "text": "ログインページを単一の方法に制限します。このドメインで利用可能な方法のみが表示されます。",
+    "text": "サインインページを単一の方法に制限します。このドメインで利用可能な方法のみがリストされます。",
     "source_hash": "58bde6d5"
   },
   "web.domains.signin.mode_disabled": {
-    "text": "ログインを無効化",
+    "text": "サインイン無効",
     "source_hash": "bb807607"
   },
   "web.domains.signin.mode_disabled_hint": {
-    "text": "このドメインではユーザーはログインできません。",
+    "text": "ユーザーはこのドメインでサインインできません。",
     "source_hash": "8938f098"
   },
   "web.domains.signin.mode_disabled_notice": {
-    "text": "このドメインのログインページへの訪問者には、ログインが利用できない旨の通知と、ホームページに戻るリンクが表示されます。以前の方法の設定は保持され、ログインを再度有効にすると復元されます。",
+    "text": "このドメインのサインインページにアクセスすると、サインインが利用できないという通知とホームページへのリンクが表示されます。以前の方法設定は保持され、サインインを再度有効にすると復元されます。",
     "source_hash": "1a04de18"
   },
   "web.domains.signin.methods_list_label": {
-    "text": "ログインページに表示される方法",
+    "text": "サインインページに表示される方法",
     "source_hash": "66fd133b"
   },
   "web.domains.signin.restrict_picker_hint": {
-    "text": "このドメインで利用可能な方法のみが表示されます。",
+    "text": "このドメインで利用可能な方法のみがリストされます。",
     "source_hash": "c7a56f44"
   },
   "web.domains.signin.availability_always": {
@@ -1156,7 +1156,7 @@
     "source_hash": "ed1a02fd"
   },
   "web.domains.signin.method_email_auth_blurb": {
-    "text": "パスワードなしのマジックリンクログイン",
+    "text": "パスワードレスのマジックリンクサインイン",
     "source_hash": "7f776a85"
   },
   "web.domains.signin.method_webauthn_blurb": {
@@ -1172,7 +1172,7 @@
     "source_hash": "68c38f94"
   },
   "web.domains.signin.email_auth_hint": {
-    "text": "このドメインでパスワードなしのメール認証を許可します",
+    "text": "このドメインでパスワードレスのメール認証を許可します",
     "source_hash": "6ad82127"
   },
   "web.domains.signin.sso_enabled_label": {
@@ -1184,11 +1184,11 @@
     "source_hash": "22d78ad5"
   },
   "web.domains.signin.enabled_label": {
-    "text": "ログイン設定を有効化",
+    "text": "サインイン設定を有効にする",
     "source_hash": "dbd8e11c"
   },
   "web.domains.signin.enabled_hint": {
-    "text": "有効にすると、このドメインは上記で構成したログイン設定を使用します",
+    "text": "有効にすると、このドメインは上で設定したサインイン設定を使用します",
     "source_hash": "6259f8a2"
   },
   "web.domains.signin.save_config": {
@@ -1196,7 +1196,7 @@
     "source_hash": "b2b158f2"
   },
   "web.domains.signin.update_success": {
-    "text": "ログイン設定が正常に更新されました",
+    "text": "サインイン設定が正常に更新されました",
     "source_hash": "10ea50d8"
   },
   "web.domains.signin.reset_to_defaults": {
@@ -1204,27 +1204,27 @@
     "source_hash": "e240e635"
   },
   "web.domains.signin.reset_confirm": {
-    "text": "ログインをグローバルのデフォルトにリセットしますか?",
+    "text": "サインインをグローバルデフォルトにリセットしますか?",
     "source_hash": "2c6bbc32"
   },
   "web.domains.signin.reset_keeps_sso": {
-    "text": "SSO認証情報は保持されます。削除する場合は、SSO設定画面で個別に行ってください。",
+    "text": "SSO資格情報は保持されます。SSO設定画面で別途削除してください。",
     "source_hash": "edc0c756"
   },
   "web.domains.signin.reset_action": {
-    "text": "はい、リセットします",
+    "text": "はい、リセット",
     "source_hash": "4bb21d8b"
   },
   "web.domains.signin.reset_success": {
-    "text": "ログイン設定がグローバルのデフォルトにリセットされました",
+    "text": "サインイン設定がグローバルデフォルトにリセットされました",
     "source_hash": "0c364d89"
   },
   "web.domains.signup.title": {
-    "text": "登録検証",
+    "text": "サインアップ検証",
     "source_hash": "2c34ac0a"
   },
   "web.domains.signup.config_description": {
-    "text": "このドメインの登録検証を設定します",
+    "text": "このドメインのサインアップ検証を設定できます",
     "source_hash": "e9c81e8a"
   },
   "web.domains.signup.access_denied": {
@@ -1232,39 +1232,39 @@
     "source_hash": "d134ca02"
   },
   "web.domains.signup.upgrade_to_configure": {
-    "text": "ドメインごとの登録検証を設定するには、プランをアップグレードしてください。",
+    "text": "ドメインごとのサインアップ検証を設定するには、プランをアップグレードしてください。",
     "source_hash": "d87d6614"
   },
   "web.domains.signup.configure_signup": {
-    "text": "登録を設定",
+    "text": "サインアップを設定",
     "source_hash": "e2697662"
   },
   "web.domains.signup.not_configured_notice": {
-    "text": "このドメインの登録検証はまだ設定されていません。方式を構成して、このドメイン経由で登録できるユーザーを制御してください。",
+    "text": "このドメインではサインアップ検証がまだ設定されていません。このドメイン経由でサインアップできるユーザーを制御する戦略を設定してください。",
     "source_hash": "fc6c6eb8"
   },
   "web.domains.signup.site_signups_disabled_warning": {
-    "text": "現在、サイトレベルで登録が無効になっています。このドメインごとのポリシーは構成されていますが、サイトの登録が有効になるまでトラフィックを制御しません。",
+    "text": "サインアップは現在サイトレベルで無効になっています。このドメインごとのポリシーは設定されていますが、サイトのサインアップが有効になるまでトラフィックを制限しません。",
     "source_hash": "c0e59f86"
   },
   "web.domains.signup.strategy_label": {
-    "text": "検証方式",
+    "text": "検証戦略",
     "source_hash": "a2e95531"
   },
   "web.domains.signup.strategy_description": {
-    "text": "このドメインでユーザーが登録する際に、メールアドレスをどのように検証するかを選択します。",
+    "text": "このドメインでユーザーがサインアップする際のメールアドレスの検証方法を選択してください。",
     "source_hash": "8e232b03"
   },
   "web.domains.signup.network_validation_warning": {
-    "text": "この方式は登録時にネットワーク通信を行うため、遅延が発生したり、一部のプロバイダーによってブロックされたりする場合があります。",
+    "text": "この戦略はサインアップ中にネットワーク呼び出しを行うため、遅延が発生したり、一部のプロバイダーによってブロックされる可能性があります。",
     "source_hash": "53d4c266"
   },
   "web.domains.signup.allowed_domains_label": {
-    "text": "登録を許可するドメイン",
+    "text": "許可されたサインアップドメイン",
     "source_hash": "9b5bb5b1"
   },
   "web.domains.signup.allowed_domains_hint": {
-    "text": "これらのメールドメインのみが登録を許可されます。1行につき1つのドメインを追加してください。",
+    "text": "これらのメールドメインのみがサインアップを許可されます。1エントリにつき1ドメインを追加してください。",
     "source_hash": "c082414d"
   },
   "web.domains.signup.domain_placeholder": {
@@ -1272,11 +1272,11 @@
     "source_hash": "a379a6f6"
   },
   "web.domains.signup.invalid_domain": {
-    "text": "有効なドメインを入力してください (例: example.com)",
+    "text": "有効なドメインを入力してください(例:example.com)",
     "source_hash": "16807983"
   },
   "web.domains.signup.domain_exists": {
-    "text": "このドメインはすでにリストに含まれています",
+    "text": "このドメインは既にリストにあります",
     "source_hash": "3fccb721"
   },
   "web.domains.signup.remove_domain": {
@@ -1284,11 +1284,11 @@
     "source_hash": "ae708a1d"
   },
   "web.domains.signup.enabled_label": {
-    "text": "ドメインごとの検証を有効化",
+    "text": "ドメインごとの検証を有効にする",
     "source_hash": "db103925"
   },
   "web.domains.signup.enabled_hint": {
-    "text": "有効にすると、このドメインの登録はグローバルポリシーではなく上記の方式を使用します。",
+    "text": "有効にすると、このドメインでのサインアップはグローバルポリシーの代わりに上の戦略を使用します。",
     "source_hash": "99de2008"
   },
   "web.domains.signup.delete_config": {
@@ -1296,7 +1296,7 @@
     "source_hash": "a9a30c7f"
   },
   "web.domains.signup.delete_confirm": {
-    "text": "登録検証の設定を削除しますか? 登録はグローバルポリシーに戻ります。",
+    "text": "サインアップ検証設定を削除しますか?サインアップはグローバルポリシーにフォールバックします。",
     "source_hash": "a8c9086e"
   },
   "web.domains.signup.save_config": {
@@ -1304,11 +1304,11 @@
     "source_hash": "b2b158f2"
   },
   "web.domains.signup.update_success": {
-    "text": "登録検証が正常に更新されました",
+    "text": "サインアップ検証が正常に更新されました",
     "source_hash": "57a529ac"
   },
   "web.domains.signup.delete_success": {
-    "text": "登録検証の設定が正常に削除されました",
+    "text": "サインアップ検証設定が正常に削除されました",
     "source_hash": "eb6add4d"
   },
   "web.domains.signup.domain_overrides_label": {
@@ -1316,23 +1316,23 @@
     "source_hash": "d25da3cd"
   },
   "web.domains.signup.domain_overrides_hint": {
-    "text": "このドメインのグローバル登録設定を上書きします",
+    "text": "このドメインのグローバルサインアップ設定を上書きします",
     "source_hash": "53101057"
   },
   "web.domains.signup.signup_enabled_label": {
-    "text": "登録を有効化",
+    "text": "サインアップが有効",
     "source_hash": "296ac66d"
   },
   "web.domains.signup.signup_enabled_hint": {
-    "text": "このドメインで登録を有効にするかどうかを上書きします",
+    "text": "このドメインでサインアップが有効かどうかを上書きします",
     "source_hash": "2ee146b6"
   },
   "web.domains.signup.autoverify_label": {
-    "text": "アカウントの自動検証",
+    "text": "アカウントを自動検証",
     "source_hash": "4b103cd5"
   },
   "web.domains.signup.autoverify_hint": {
-    "text": "このドメインで新規アカウントを自動的に検証するかどうかを上書きします",
+    "text": "このドメインで新しいアカウントを自動的に検証するかどうかを上書きします",
     "source_hash": "63866ecd"
   },
   "web.domains.sso.test_success": {
@@ -1343,12 +1343,8 @@
     "text": "接続テストに失敗しました",
     "source_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "このドメインのすべてのログインでSSOを必須にするには、ドメインのログイン設定で構成してください。SSO専用モードでは、ログインページがここで構成したSSOプロバイダーに制限されます。",
-    "source_hash": "d26627a5"
-  },
   "web.domains.sso.edit_credentials": {
-    "text": "認証情報を編集",
+    "text": "資格情報を編集",
     "source_hash": "5a6622b6"
   },
   "web.domains.sso.configure_button": {
@@ -1356,7 +1352,7 @@
     "source_hash": "6defafa2"
   },
   "web.domains.sso.upgrade_required": {
-    "text": "アップグレードして設定",
+    "text": "設定するにはアップグレードが必要です",
     "source_hash": "571cfa98"
   },
   "web.domains.add.field_label": {
@@ -1364,19 +1360,19 @@
     "source_hash": "d7d4c1e4"
   },
   "web.domains.add.field_help": {
-    "text": "チームが使用する正確なホスト名({example}など)。",
+    "text": "{example}のように、チームが使用する正確なホスト名を入力してください。",
     "source_hash": "3ba71f78"
   },
   "web.domains.add.echo_label": {
-    "text": "シークレットリンクの公開先",
+    "text": "シークレットリンクは以下でホストされます",
     "source_hash": "ad60b17d"
   },
   "web.domains.add.apex_question": {
-    "text": "それはドメイン全体です。シークレットリンクはどこに公開しますか?",
+    "text": "これはルートドメインです — シークレットリンクはどこに配置しますか?",
     "source_hash": "efacad1b"
   },
   "web.domains.add.apex_help": {
-    "text": "サブドメインを使えば、{domain}の残りの部分はそのまま維持されます。",
+    "text": "サブドメインを使用すると、{domain}の残りの部分はそのまま維持されます。",
     "source_hash": "0f7e6181"
   },
   "web.domains.add.recommended": {
@@ -1384,7 +1380,7 @@
     "source_hash": "d70604e8"
   },
   "web.domains.add.no_wrong_answer": {
-    "text": "間違った選択肢はありません。チームが認識しやすいものを選んでください。",
+    "text": "どちらを選んでも問題ありません — チームが認識しやすい方を選んでください。",
     "source_hash": "a04f0086"
   },
   "web.domains.add.subdomains_label": {
@@ -1392,7 +1388,7 @@
     "source_hash": "d6ee8eac"
   },
   "web.domains.add.root_group_label": {
-    "text": "またはドメイン全体を使用",
+    "text": "またはルートドメインを使用",
     "source_hash": "5c23c007"
   },
   "web.domains.add.root_domain_label": {
@@ -1400,15 +1396,15 @@
     "source_hash": "9fbbe253"
   },
   "web.domains.add.root_domain_description": {
-    "text": "これは{domain}全体を当社に向けます。そこのサイトは名前解決されなくなり、AまたはALIASレコードが必要です。",
+    "text": "これは{domain}全体を当社に向けます — そこにあるサイトは解決されなくなります — A / ALIASレコードが必要です。",
     "source_hash": "fae93847"
   },
   "web.domains.add.error_unrecognized_suffix": {
-    "text": "「.{0}」は認識されているドメインの末尾ではありません。入力ミスがないか確認してください(例:{1})。",
+    "text": "「.{0}」は認識されているドメイン末尾ではありません — 入力ミスがないか確認してください(例:{1})。",
     "source_hash": "4b90033d"
   },
   "web.domains.add.error_invalid_hostname": {
-    "text": "有効なホスト名を入力してください。使用できるのは英字、数字、単一のドットとダッシュです(例:{0})。",
+    "text": "有効なホスト名を入力してください — 文字、数字、単一のドットとダッシュ(例:{0})。",
     "source_hash": "c4ceabc1"
   },
   "web.domains.add.error_empty": {
@@ -1436,7 +1432,7 @@
     "source_hash": "da78c35d"
   },
   "web.domains.dns.point_domain_intro": {
-    "text": "次のDNSレコードをプロバイダーで追加して、",
+    "text": "以下のDNSレコードをプロバイダーに追加して、",
     "source_hash": "2fc0c524"
   },
   "web.domains.dns.point_domain_outro": {
@@ -1452,7 +1448,7 @@
     "source_hash": "41135375"
   },
   "web.domains.dns.apex_notice": {
-    "text": "Apex(ルート)ドメインはCNAMEレコードを使用できません。DNSプロバイダーのALIASまたはANAMEレコードを使用するか、サーバーのIPアドレスにAレコードを向けてください。",
+    "text": "Apex(ルート)ドメインはCNAMEレコードを使用できません。代わりにDNSプロバイダーのALIASまたはANAMEレコードを使用するか、AレコードをサーバーのIPアドレスに向けてください。",
     "source_hash": "2d1c3298"
   },
   "web.domains.email.from_address_local_placeholder": {
@@ -1480,7 +1476,7 @@
     "source_hash": "6539dfc1"
   },
   "web.domains.homepage.option_create_description": {
-    "text": "訪問者は自分のシークレットリンクを作成できます",
+    "text": "訪問者が独自のシークレットリンクを作成できます",
     "source_hash": "884310f4"
   },
   "web.domains.homepage.option_incoming_title": {
@@ -1488,11 +1484,11 @@
     "source_hash": "882997bf"
   },
   "web.domains.homepage.option_incoming_description": {
-    "text": "訪問者は設定済みの受信者にシークレットを送信できます",
+    "text": "訪問者が設定された受信者にシークレットを送信できます",
     "source_hash": "86bdaedb"
   },
   "web.domains.homepage.incoming_requires_recipients": {
-    "text": "受信シークレットを有効にし、少なくとも1人の受信者を設定する必要があります",
+    "text": "受信シークレットを有効にし、少なくとも1人の受信者が必要です",
     "source_hash": "0462611d"
   },
   "web.domains.homepage.configure_recipients": {
@@ -1504,15 +1500,15 @@
     "source_hash": "dfd5bd1c"
   },
   "web.domains.homepage.status_create": {
-    "text": "公開:訪問者がシークレットを作成",
+    "text": "パブリック:訪問者がシークレットを作成",
     "source_hash": "251cfb95"
   },
   "web.domains.homepage.status_incoming": {
-    "text": "公開:訪問者があなたにシークレットを送信",
+    "text": "パブリック:訪問者がシークレットを送信",
     "source_hash": "baa926b8"
   },
   "web.domains.homepage.status_incoming_unready": {
-    "text": "受信の準備ができていません。プライベートランディングページを表示しています",
+    "text": "受信準備ができていません — プライベートランディングページを表示中",
     "source_hash": "a5cc237c"
   },
   "web.domains.homepage.badge_incoming": {
@@ -1520,19 +1516,19 @@
     "source_hash": "e301820a"
   },
   "web.domains.homepage.update_success": {
-    "text": "ホームページ設定を保存しました",
+    "text": "ホームページ設定が保存されました",
     "source_hash": "4eac9f45"
   },
   "web.domains.homepage.homepage_uses_incoming_warning": {
-    "text": "このドメインのホームページは現在、受信シークレットフォームを表示しています。受信シークレットを無効にするか、すべての受信者を削除すると、受信が再び準備できるまで、ホームページはプライベートランディングページに切り替わります。",
+    "text": "このドメインのホームページは現在、受信シークレットフォームを表示しています。受信シークレットを無効にするか、すべての受信者を削除すると、受信が再び準備できるまでホームページはプライベートランディングページに切り替わります。",
     "source_hash": "cc0d4997"
   },
   "web.domains.signin.effective_status_label": {
-    "text": "このドメインでのログイン",
+    "text": "このドメインでのサインイン",
     "source_hash": "d8b884c3"
   },
   "web.domains.signin.dormant_notice": {
-    "text": "ログインはワークスペース全体で無効になっているため、すべてのドメインで利用できません。ここでの設定は保持され、ワークスペースのログインが再び有効になると適用されます。",
+    "text": "サインインはワークスペース全体でオフになっているため、すべてのドメインで利用できません。ここでの設定は保持され、ワークスペースのサインインが再度有効になると適用されます。",
     "source_hash": "723d35dc"
   },
   "web.domains.signup.effective_status_label": {
@@ -1540,7 +1536,95 @@
     "source_hash": "115ab21b"
   },
   "web.domains.signup.dormant_notice": {
-    "text": "サインアップはワークスペース全体で無効になっているため、すべてのドメインで利用できません。ここでの設定は保持され、ワークスペースのサインアップが再び有効になると適用されます。",
+    "text": "サインアップはワークスペース全体でオフになっているため、すべてのドメインで利用できません。ここでの設定は保持され、ワークスペースのサインアップが再度有効になると適用されます。",
     "source_hash": "49faefe4"
+  },
+  "web.domains.link_domain_no_settings": {
+    "text": "このドメインには設定ページがありません",
+    "source_hash": "8a8430fe"
+  },
+  "web.domains.signin.sso_restrict_warning_title": {
+    "text": "SSOに制限すると、このドメインではサインインできなくなります",
+    "source_hash": "3476cb5c"
+  },
+  "web.domains.signin.sso_restrict_warning_body": {
+    "text": "このドメインではSSOを利用できません。適用できない制限を設定すると、サインインが完全にブロックされます。SSOが機能するようになるまで、このドメインでは誰もサインインできません。先にSSOを修正するか、このまま制限を適用して設定を完了してください。",
+    "source_hash": "086e3247"
+  },
+  "web.domains.signin.sso_restrict_warning_confirm": {
+    "text": "このまま制限する",
+    "source_hash": "4674e3cf"
+  },
+  "web.domains.signin.restriction_unavailable_notice": {
+    "text": "このドメインではサインインを利用できません: {method}に制限されていますが、この方法はここでは使用できません。別の方法を選択するか、{method}を利用可能にしてください。",
+    "source_hash": "ca1b7f69"
+  },
+  "web.domains.signin.restriction_unavailable_unknown_notice": {
+    "text": "このドメインではサインインを利用できません: ここでは使用できない方法に制限されています。別の方法を選択するか、このドメインをデフォルトにリセットしてください。",
+    "source_hash": "8c2cce6b"
+  },
+  "web.domains.signin.restriction_conflict_notice": {
+    "text": "このドメインは、ワークスペース全体の制限 ({method}) とは異なる方法にサインインを制限しているため、どちらも適用できず、ここではサインインを利用できません。ワークスペース全体の方法に合わせるか、このドメインをデフォルトにリセットしてください。",
+    "source_hash": "15398362"
+  },
+  "web.domains.signin.method_webauthn_unavailable": {
+    "text": "パスキーはメインのサインインドメインに紐付いているため、カスタムドメインではまだ利用できません",
+    "source_hash": "88833e0f"
+  },
+  "web.domains.sso.connection_disabled_badge": {
+    "text": "接続が無効",
+    "source_hash": "99d6092c"
+  },
+  "web.domains.sso.connection_disabled_hint": {
+    "text": "SSOの資格情報は保存されていますが、接続が無効になっています。「資格情報を編集」から有効にしてください。",
+    "source_hash": "90180d6c"
+  },
+  "web.domains.sso.status_active_badge": {
+    "text": "有効",
+    "source_hash": "92340695"
+  },
+  "web.domains.sso.status_active_hint": {
+    "text": "メンバーはこのドメインでこのSSO接続を使用してサインインできます。",
+    "source_hash": "313ec61e"
+  },
+  "web.domains.sso.status_not_configured_badge": {
+    "text": "未設定",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.sso.status_not_configured_hint": {
+    "text": "このドメインにはまだSSOの資格情報が保存されていません。",
+    "source_hash": "d817ad9c"
+  },
+  "web.domains.sso.status_not_permitted_badge": {
+    "text": "このドメインでは許可されていません",
+    "source_hash": "afbd20ba"
+  },
+  "web.domains.sso.status_not_permitted_hint": {
+    "text": "このドメインではSSOが無効になっているため、サインインページには表示されません。",
+    "source_hash": "ef092481"
+  },
+  "web.domains.sso.status_auth_disabled_badge": {
+    "text": "サインイン無効",
+    "source_hash": "bb807607"
+  },
+  "web.domains.sso.status_auth_disabled_hint": {
+    "text": "このドメインではサインインが無効になっているため、いずれの認証方法も表示されません — SSOも含みます。",
+    "source_hash": "3a98964b"
+  },
+  "web.domains.sso.status_unsupported_provider_badge": {
+    "text": "未対応のプロバイダー",
+    "source_hash": "1609d5fb"
+  },
+  "web.domains.sso.status_unsupported_provider_hint": {
+    "text": "保存されているプロバイダーはドメインSSOでは使用できません。資格情報を編集して、Microsoft Entra IDまたは汎用OIDCを選択してください。",
+    "source_hash": "72ea0a2e"
+  },
+  "web.domains.sso.status_unavailable_badge": {
+    "text": "利用不可",
+    "source_hash": "ca184496"
+  },
+  "web.domains.sso.status_unavailable_hint": {
+    "text": "現在、このドメインではSSOを利用できません。SSOの資格情報とこのドメインのサインイン設定をご確認ください。",
+    "source_hash": "b03b14f4"
   }
 }

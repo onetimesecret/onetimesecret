@@ -480,9 +480,15 @@ module Onetime
       # the first moment the condition is actually demonstrated. Returns '' in
       # every other case, so a correctly configured deployment's log line is
       # byte-identical to before. Nothing here varies on account existence.
+      #
+      # Read through the shared predicate rather than digging the config here:
+      # the hint's whole claim is about how the IP-privacy mount resolved the
+      # address, so it must ask the same question that mount asked (#4087). No
+      # require_relative — this file is reached via `require 'onetime'`, which
+      # loads the middleware stack, and the constant resolves at call time.
       def collapsed_ip_tier_hint(tier_label)
         return '' unless tier_label == 'ip'
-        return '' if OT.conf.dig('site', 'network', 'trusted_proxy', 'enabled') == true
+        return '' if Onetime::Application::MiddlewareStack.trusted_proxy_enabled?
 
         '. NOTE: site.network.trusted_proxy is not enabled, so the client IP is ' \
           'REMOTE_ADDR; if this deployment is behind a reverse proxy every visitor ' \

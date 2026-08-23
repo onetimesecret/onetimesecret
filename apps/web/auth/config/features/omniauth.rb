@@ -15,15 +15,41 @@
 # See: hooks/omniauth.rb (callback hooks — provider-agnostic)
 #
 
-require 'omniauth_openid_connect'
-require 'omniauth-entra-id'
-require 'omniauth-github'
-require 'omniauth-google-oauth2'
+# Provider wiring (strategy, gem, env vars, placeholder/real options) is
+# data in Onetime::SsoProvider::Registry — the same registry AuthConfig's
+# serializer gating and CSP origins read. The strategy gems themselves are
+# required lazily, per definition, in configure_provider.
+require_relative '../../../../../lib/onetime/sso_provider/registry'
+
+# Runtime OIDC egress pinning (DNS-rebinding guard). Defines
+# Auth::OidcHttpPinning; installed below, first thing in configure.
+require_relative '../oidc_http_pinning'
+
+# Public-host resolution shared with the Rodauth base_url override (#4221).
+# Defines Auth::PublicHost.
+require_relative '../../lib/public_host'
 
 module Auth::Config::Features
   module OmniAuth
     def self.configure(auth)
+      # Pin OIDC egress (discovery/JWKS/token) to save-time-validated IPs
+      # BEFORE any provider registers: OpenIDConnect.http_config is
+      # set-once per process and skips already-configured sub-protocols,
+      # so this must be the first http_config caller. See
+      # ../oidc_http_pinning.rb for the full rationale.
+      Auth::OidcHttpPinning.install!
+
       auth.enable :omniauth
+
+      # Build redirect_uri / callback_url from the PUBLIC host, not the
+      # request authority (#4224). AFTER `enable :omniauth` — that is what
+      # pulls the omniauth gem into the process (rodauth-omniauth's
+      # omniauth_base feature requires it); nothing else in this file does, so
+      # touching ::OmniAuth.config first is a cold-boot NameError. Specs get
+      # away with it only because their helpers require omniauth first.
+      # OmniAuth.config.full_host is process-global and read per request, so
+      # nothing downstream of here depends on the position.
+      install_public_host_full_host!
 
       # Route prefix for OmniAuth endpoints
       # Routes: POST /auth/sso/:provider, GET /auth/sso/:provider/callback
@@ -46,12 +72,13 @@ module Auth::Config::Features
       #
       auth.omniauth_create_account? true
 
-      # Register providers — platform creds when available, placeholder
-      # routes for tenant SSO when orgs_sso_enabled
-      configure_oidc_provider(auth)
-      configure_entra_id_provider(auth)
-      configure_github_provider(auth)
-      configure_google_provider(auth)
+      # Register every provider in the registry — platform creds when
+      # available, placeholder routes for tenant SSO when orgs_sso_enabled.
+      # Adding a provider is a Gemfile line plus a registry entry; see
+      # docs/authentication/adding-sso-providers.md.
+      Onetime::SsoProvider::Registry::DEFINITIONS.each do |defn|
+        configure_provider(auth, defn)
+      end
 
       # Issuer-scoped identity lookup (#3840 Phase 0 / #3838 item 5).
       configure_issuer_scoped_identities(auth)
@@ -100,6 +127,70 @@ module Auth::Config::Features
     # Sentinel issuer for identities with no known IdP issuer. ALWAYS '' — never
     # nil (a NULL vs '' split breaks the (provider, issuer, uid) unique index).
     ISSUER_SENTINEL = ''
+
+    # Teach OmniAuth to build absolute URLs from the request's PUBLIC host.
+    #
+    # `OmniAuth::Strategy#full_host` normally derives from `request.url` —
+    # Rack's authority — and `callback_url` is `full_host + callback_path`
+    # (omniauth-entra-id defines it exactly that way; every OAuth2-family
+    # strategy inherits the same shape, and the OIDC strategies read an
+    # explicit `client_options.redirect_uri` built from it in
+    # hooks/omniauth_tenant.rb).
+    #
+    # Behind a Host-rewriting proxy the authority is the origin target, so
+    # every one of those URLs names the wrong host: the tenant's IdP is handed
+    # `redirect_uri=https://<origin target>/auth/sso/<provider>/callback`,
+    # which it rejects as unregistered — or, worse, honors, landing the
+    # visitor on a host that is not the one they authenticated from. Fixing
+    # tenant credential RESOLUTION (#4224) without this just moves the failure
+    # one hop later.
+    #
+    # The scoping rules — which hosts count as "resolved for this request",
+    # why the canonical set is excluded, why this is NOT gated on
+    # `domain_strategy == :custom` — live with the resolver in
+    # Auth::PublicHost, which Rodauth's `base_url` override reads too so a
+    # redirect_uri and an email link can never disagree about the host.
+    #
+    # @param env [Hash] Rack environment
+    # @return [String] scheme://host[:port] for this request
+    def self.full_host_for(env)
+      Auth::PublicHost.base_url(env) || Rack::Request.new(env).base_url
+    end
+
+    # The public host when it is one the middleware tier actually resolved for
+    # this request rather than the canonical host DomainStrategy falls back
+    # to. Same sources, same order, as the tenant hook keys credential
+    # resolution on — see Auth::Config::Hooks::OmniAuthTenant.public_host, and
+    # keep the two in step: a redirect_uri built from a different host than
+    # the one whose credentials were injected is a broken flow either way.
+    #
+    # `display_domain` first, then DetectHost's result — because a canonical
+    # display domain is not evidence about this request. DomainStrategy pins
+    # it there whenever the domains feature is off, which is the whole test
+    # topology and any deployment running `domains.enabled: false` behind a
+    # Host-rewriting proxy; DetectHost still ran and still holds the browser's
+    # host, gated on proxy trust.
+    #
+    # nil keeps OmniAuth's own derivation, which is what the canonical set and
+    # local development want: DetectHost rejects `localhost`/`127.0.0.1`
+    # outright, so a dev flow never reaches here with a host to swap in and
+    # cannot be bounced to the canonical domain mid-authentication.
+    #
+    # @param env [Hash] Rack environment
+    # @return [String, nil] public host, or nil to keep OmniAuth's derivation
+    def self.public_host_for(env)
+      Auth::PublicHost.resolve(env)
+    end
+
+    # Installs .full_host_for as OmniAuth's global full_host resolver.
+    #
+    # OmniAuth.config.full_host accepts a String or a Proc; the Proc form is
+    # called per request with the Rack env, so a process-global assignment
+    # still resolves per request. Idempotent — configure runs once per Rodauth
+    # configuration and the assignment is the same lambda each time.
+    def self.install_public_host_full_host!
+      ::OmniAuth.config.full_host = ->(env) { full_host_for(env) }
+    end
 
     # Resolve the issuer for the current callback.
     # Precedence:
@@ -317,173 +408,87 @@ module Auth::Config::Features
       end
     end
 
-    def self.configure_oidc_provider(auth)
-      issuer        = ENV.fetch('OIDC_ISSUER', nil)
-      client_id     = ENV.fetch('OIDC_CLIENT_ID', nil)
-      client_secret = ENV.fetch('OIDC_CLIENT_SECRET', '')
-      provider_name = ENV.fetch('OIDC_ROUTE_NAME', 'oidc').to_sym
+    # Register one provider from its Onetime::SsoProvider::Registry definition.
+    #
+    # NOTE: The route name (name: option) controls both the URL route segment
+    # AND the provider value stored in account_identities.provider and
+    # returned in the auth hash. E.g. route name 'entra' means:
+    #   - Route: POST /auth/sso/entra, GET /auth/sso/entra/callback
+    #   - Auth hash: { provider: 'entra', ... }
+    #   - DB: account_identities.provider = 'entra'
+    #
+    # Three outcomes, mirroring the original per-provider methods:
+    #   - required env vars present  -> register with real credentials
+    #   - vars missing, org SSO on   -> register with placeholder credentials
+    #     (the OmniAuthTenant hook injects tenant credentials at request time)
+    #   - vars missing, org SSO off  -> log the missing vars and skip
+    def self.configure_provider(auth, defn)
+      provider_name = ENV.fetch(defn[:route_var], defn[:route_default]).to_sym
+      display_name  = ENV.fetch(defn[:display_var], nil) || display_default_for(defn)
 
-      missing = missing_env_vars(%w[OIDC_ISSUER OIDC_CLIENT_ID])
-      if missing.any?
-        if Onetime.auth_config.orgs_sso_enabled?
-          OT.li "[OmniAuth] Registering OIDC route '#{provider_name}' for tenant SSO (no platform credentials)"
-          auth.omniauth_provider(
-            :openid_connect,
-            name: provider_name,
-            scope: [:openid, :email, :profile],
-            response_type: :code,
-            issuer: 'https://placeholder.invalid',
-            client_options: { identifier: 'placeholder' },
-            discovery: true,
-            pkce: true,
-          )
-        else
-          OT.le "[OmniAuth] Missing OIDC configuration: #{missing.join(', ')}"
-        end
+      missing = missing_env_vars(defn[:required_vars])
+      if missing.any? && !Onetime.auth_config.orgs_sso_enabled?
+        # Skipped entirely — do NOT require the strategy gem, so a registry
+        # entry for an optionally-bundled gem cannot break boot on
+        # deployments that neither configure it nor enable org SSO.
+        OT.le "[OmniAuth] Missing #{defn[:label]} configuration: #{missing.join(', ')}"
         return
       end
 
-      OT.li "[OmniAuth] Configuring OIDC provider '#{provider_name}' with issuer: #{issuer}, client_id: #{client_id[0..8]}..."
+      # Lazy per-definition require: the gem loads only when the provider
+      # actually registers (real credentials or tenant-SSO placeholder), and
+      # the registry itself stays loadable without the omniauth gems.
+      require defn[:gem_require]
 
-      # redirect_uri is omitted here — the omniauth_setup hook injects it
-      # at runtime from the request host (see omniauth_tenant.rb).
-      client_opts          = { identifier: client_id }
-      # Only include secret if provided (PKCE flows may not have one)
-      client_opts[:secret] = client_secret unless client_secret.empty?
+      if missing.any?
+        OT.li "[OmniAuth] Registering #{defn[:label]} route '#{provider_name}' for tenant SSO (no platform credentials)"
+        auth.omniauth_provider(defn[:strategy], name: provider_name, **defn[:placeholder_options])
+        return
+      end
 
-      auth.omniauth_provider(
-        :openid_connect,
-        name: provider_name,
-        scope: [:openid, :email, :profile],
-        response_type: :code,
-        issuer: issuer,
-        client_options: client_opts,
-        discovery: true,
-        pkce: true,
-      )
+      # '(none)' rather than a silent blank when a definition has no
+      # *_CLIENT_ID var (e.g. a future provider keyed on an API key), so a
+      # mis-keyed env var can't masquerade as a truncated credential.
+      client_id         = defn[:required_vars].find { |var| var.end_with?('_CLIENT_ID') }
+        &.then { |var| ENV.fetch(var, '') }
+      client_id_snippet = client_id ? "#{client_id[0..8]}..." : '(none)'
+      OT.li "[OmniAuth] Configuring #{defn[:label]} provider '#{provider_name}' (#{display_name}), client_id: #{client_id_snippet}"
+
+      auth.omniauth_provider(defn[:strategy], name: provider_name, **defn[:strategy_options].call)
+    end
+
+    # Display-name default for boot logs. Consults AuthConfig's overlaid
+    # provider_definitions so the OIDC log honors the operator's legacy
+    # sso_display_name exactly like the serializer does — guarded because
+    # standalone specs stub Onetime.auth_config with a minimal double.
+    def self.display_default_for(defn)
+      auth_config = Onetime.auth_config
+      if auth_config.respond_to?(:provider_definitions)
+        overlaid = auth_config.provider_definitions.find { |d| d[:key] == defn[:key] }
+        return overlaid[:display_default] if overlaid
+      end
+
+      defn[:display_default]
+    end
+
+    # Named per-provider entry points, kept as thin wrappers over the
+    # registry-driven configure_provider (existing specs and callers use
+    # them). New providers do NOT need one — the configure loop registers
+    # every registry definition.
+    def self.configure_oidc_provider(auth)
+      configure_provider(auth, Onetime::SsoProvider::Registry.fetch(:oidc))
     end
 
     def self.configure_entra_id_provider(auth)
-      # NOTE: The name: option controls both the URL route segment AND the
-      # provider value stored in account_identities.provider column and
-      # returned in the auth hash. Default route name 'entra' means:
-      #   - Route: POST /auth/sso/entra, GET /auth/sso/entra/callback
-      #   - Auth hash: { provider: 'entra', ... }
-      #   - DB: account_identities.provider = 'entra'
-      # Without name: override, omniauth-entra-id defaults to 'entra_id'.
-      #
-      # SECURITY — dependency on issuer-scoping (#3840 Phase 0 / #3838 item 5):
-      # By default omniauth-entra-id composes the uid as `tid+oid` (tenant id +
-      # object id), so it is unique across tenants on its own. A deployer who
-      # sets `ignore_tid: true` degrades the uid to `oid` ALONE — the same oid
-      # can then recur across tenants. Cross-tenant safety in that config relies
-      # ENTIRELY on the (provider, issuer, uid) key: resolve_issuer scopes the
-      # row by the validated `iss` claim (see omniauth_token_issuer). If you add
-      # `ignore_tid: true` here, do NOT weaken that issuer resolution.
-      tenant_id     = ENV.fetch('ENTRA_TENANT_ID', nil)
-      client_id     = ENV.fetch('ENTRA_CLIENT_ID', nil)
-      client_secret = ENV.fetch('ENTRA_CLIENT_SECRET', nil)
-      provider_name = ENV.fetch('ENTRA_ROUTE_NAME', 'entra').to_sym
-      display_name  = ENV.fetch('ENTRA_DISPLAY_NAME', 'Microsoft')
-
-      missing = missing_env_vars(%w[ENTRA_TENANT_ID ENTRA_CLIENT_ID ENTRA_CLIENT_SECRET])
-      if missing.any?
-        if Onetime.auth_config.orgs_sso_enabled?
-          OT.li "[OmniAuth] Registering Entra ID route '#{provider_name}' for tenant SSO (no platform credentials)"
-          auth.omniauth_provider(
-            :entra_id,
-            name: provider_name,
-            client_id: 'placeholder',
-            client_secret: 'placeholder',
-            tenant_id: 'placeholder',
-            scope: 'openid profile email',
-          )
-        else
-          OT.le "[OmniAuth] Missing Entra ID configuration: #{missing.join(', ')}"
-        end
-        return
-      end
-
-      OT.li "[OmniAuth] Configuring Entra ID provider '#{provider_name}' (#{display_name}), client_id: #{client_id[0..8]}..."
-
-      opts = {
-        name: provider_name,
-        client_id: client_id,
-        client_secret: client_secret,
-        tenant_id: tenant_id,
-        scope: 'openid profile email',
-      }
-      auth.omniauth_provider(:entra_id, **opts)
+      configure_provider(auth, Onetime::SsoProvider::Registry.fetch(:entra))
     end
 
     def self.configure_github_provider(auth)
-      client_id     = ENV.fetch('GITHUB_CLIENT_ID', nil)
-      client_secret = ENV.fetch('GITHUB_CLIENT_SECRET', nil)
-      provider_name = ENV.fetch('GITHUB_ROUTE_NAME', 'github').to_sym
-      display_name  = ENV.fetch('GITHUB_DISPLAY_NAME', 'GitHub')
-
-      missing = missing_env_vars(%w[GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET])
-      if missing.any?
-        if Onetime.auth_config.orgs_sso_enabled?
-          OT.li "[OmniAuth] Registering GitHub route '#{provider_name}' for tenant SSO (no platform credentials)"
-          auth.omniauth_provider(
-            :github,
-            name: provider_name,
-            client_id: 'placeholder',
-            client_secret: 'placeholder',
-            scope: 'user:email',
-          )
-        else
-          OT.le "[OmniAuth] Missing GitHub configuration: #{missing.join(', ')}"
-        end
-        return
-      end
-
-      OT.li "[OmniAuth] Configuring GitHub provider '#{provider_name}' (#{display_name}), client_id: #{client_id[0..8]}..."
-
-      opts = {
-        name: provider_name,
-        client_id: client_id,
-        client_secret: client_secret,
-        scope: 'user:email',
-      }
-      auth.omniauth_provider(:github, **opts)
+      configure_provider(auth, Onetime::SsoProvider::Registry.fetch(:github))
     end
 
     def self.configure_google_provider(auth)
-      client_id     = ENV.fetch('GOOGLE_CLIENT_ID', nil)
-      client_secret = ENV.fetch('GOOGLE_CLIENT_SECRET', nil)
-      provider_name = ENV.fetch('GOOGLE_ROUTE_NAME', 'google').to_sym
-      display_name  = ENV.fetch('GOOGLE_DISPLAY_NAME', 'Google')
-
-      missing = missing_env_vars(%w[GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET])
-      if missing.any?
-        if Onetime.auth_config.orgs_sso_enabled?
-          OT.li "[OmniAuth] Registering Google route '#{provider_name}' for tenant SSO (no platform credentials)"
-          auth.omniauth_provider(
-            :google_oauth2,
-            name: provider_name,
-            client_id: 'placeholder',
-            client_secret: 'placeholder',
-            scope: 'openid,email,profile',
-            prompt: 'select_account',
-          )
-        else
-          OT.le "[OmniAuth] Missing Google configuration: #{missing.join(', ')}"
-        end
-        return
-      end
-
-      OT.li "[OmniAuth] Configuring Google provider '#{provider_name}' (#{display_name}), client_id: #{client_id[0..8]}..."
-
-      opts = {
-        name: provider_name,
-        client_id: client_id,
-        client_secret: client_secret,
-        scope: 'openid,email,profile',
-        prompt: 'select_account',
-      }
-      auth.omniauth_provider(:google_oauth2, **opts)
+      configure_provider(auth, Onetime::SsoProvider::Registry.fetch(:google))
     end
   end
 end

@@ -1,13 +1,13 @@
 // src/tests/shared/components/layout/MastHead.spec.ts
 
-import { mount, VueWrapper } from '@vue/test-utils';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createTestingPinia } from '@pinia/testing';
 import MastHead from '@/shared/components/layout/MastHead.vue';
-import { nextTick } from 'vue';
-import { useAuthStore } from '@/shared/stores/authStore';
 import { NEUTRAL_BRAND_DEFAULTS } from '@/shared/constants/brand';
+import { useAuthStore } from '@/shared/stores/authStore';
+import { createTestingPinia } from '@pinia/testing';
 import { createTestI18n } from '@tests/setup';
+import { mount, VueWrapper } from '@vue/test-utils';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { nextTick } from 'vue';
 import { createI18n } from 'vue-i18n';
 
 // Mock DefaultLogo component
@@ -748,8 +748,9 @@ describe('MastHead', () => {
      *                                          the platform wordmark)
      *   3. headerConfig.logo.show_name        (LOGO_SHOW_NAME explicit layout
      *                                          knob; ships null when unset)
-     *   4. !isCustomStaticLogo                (heuristic: a custom BRAND_LOGO_URL
-     *                                          usually embeds its own wordmark)
+     *   4. !isCustomStaticLogo && !isUserPresent
+     *                                          (default: a neutral mark is compact
+     *                                          after sign-in)
      *
      * #3160: in v0.25.3 step 4 ran ahead of step 3, so operators setting
      * LOGO_URL + LOGO_SHOW_NAME=true silently lost their wordmark.
@@ -904,9 +905,9 @@ describe('MastHead', () => {
       expect(siteName.exists()).toBe(false);
     });
 
-    it('shows the neutral productName wordmark when show_name is unset and no install logo (default posture)', async () => {
+    it('shows the neutral productName wordmark before sign-in when show_name is unset and no install logo', async () => {
       // Unconfigured install: DefaultLogo renders with the resolver-supplied
-      // neutral product name visible — never "One-Time Secret" (#3612).
+      // neutral product name visible before sign-in — never "One-Time Secret" (#3612).
       wrapper = mountWithIdentity(
         { brandLogoUrl: null, showName: null, brandProductName: null },
         { authenticated: false }
@@ -916,9 +917,20 @@ describe('MastHead', () => {
       const logo = wrapper.find('.default-logo');
       expect(logo.exists()).toBe(true);
       expect(logo.attributes('data-show-site-name')).toBe('true');
-      expect(logo.find('.site-name').text()).toBe(
-        NEUTRAL_BRAND_DEFAULTS.product_name
+      expect(logo.find('.site-name').text()).toBe(NEUTRAL_BRAND_DEFAULTS.product_name);
+    });
+
+    it('hides the default wordmark after sign-in when show_name is unset and no install logo', async () => {
+      wrapper = mountWithIdentity(
+        { brandLogoUrl: null, showName: null, brandProductName: null },
+        { authenticated: true, cust: mockCustomer }
       );
+
+      await nextTick();
+      const logo = wrapper.find('.default-logo');
+      expect(logo.exists()).toBe(true);
+      expect(logo.attributes('data-show-site-name')).toBe('false');
+      expect(logo.find('.site-name').exists()).toBe(false);
     });
 
     it('uses brand_product_name as the wordmark text when configured (no install logo)', async () => {

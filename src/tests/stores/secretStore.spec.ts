@@ -306,7 +306,6 @@ describe('secretStore', () => {
         details: {
           continue: false,
           show_secret: true,
-          correct_passphrase: true,
           display_lines: 1,
           one_liner: true,
           is_owner: false, // Add required field

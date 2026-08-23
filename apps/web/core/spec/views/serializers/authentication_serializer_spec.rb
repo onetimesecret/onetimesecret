@@ -84,7 +84,7 @@ RSpec.describe Core::Views::AuthenticationSerializer do
       end
 
       before do
-        allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+        allow(Onetime::CustomDomain).to receive(:from_display_domain)
           .with(display_domain).and_return(custom_domain)
         allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
           .with(domain_id).and_return(sso_config)
@@ -125,7 +125,7 @@ RSpec.describe Core::Views::AuthenticationSerializer do
       let(:custom_domain) { instance_double(Onetime::CustomDomain, identifier: domain_id) }
 
       before do
-        allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+        allow(Onetime::CustomDomain).to receive(:from_display_domain)
           .with(display_domain).and_return(custom_domain)
         allow(Onetime::CustomDomain::SsoConfig).to receive(:find_by_domain_id)
           .with(domain_id).and_return(nil)
@@ -136,16 +136,41 @@ RSpec.describe Core::Views::AuthenticationSerializer do
       end
     end
 
+    # The resolver reads through the RAISING finder (#4157), so this failure
+    # is the one production actually produces — its fail-open sibling
+    # load_by_display_domain would have swallowed it into "no tenant config"
+    # and quietly advertised the affordance.
     context 'domain resolution raises (e.g. Redis unavailable)' do
-      let(:view_vars) { { 'display_domain' => display_domain } }
+      let(:view_vars) { { 'display_domain' => display_domain, 'domain_strategy' => :custom } }
 
       before do
-        allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
-          .and_raise(StandardError, 'redis down')
+        allow(OT).to receive(:le)
+        allow(Onetime::CustomDomain).to receive(:from_display_domain)
+          .and_raise(Redis::ConnectionError, 'redis down')
       end
 
       it 'fails closed: an unresolvable domain policy does not advertise the affordance' do
         expect(permitted).to be(false)
+      end
+    end
+
+    # DomainStrategy publishes display_domain UNCONDITIONALLY (canonical
+    # fallback), so a canonical request does reach the lookup — but no
+    # per-domain policy can be lost there, and failing it closed would hide
+    # the password form from every consumer account during a blip.
+    context 'canonical host whose lookup fails' do
+      let(:view_vars) do
+        { 'display_domain' => 'example.com', 'domain_strategy' => :canonical }
+      end
+
+      before do
+        allow(OT).to receive(:le)
+        allow(Onetime::CustomDomain).to receive(:from_display_domain)
+          .and_raise(Redis::ConnectionError, 'redis down')
+      end
+
+      it 'stays permissive: an operator host has no tenant policy to fail closed on' do
+        expect(permitted).to be(true)
       end
     end
 
@@ -155,7 +180,7 @@ RSpec.describe Core::Views::AuthenticationSerializer do
       before do
         # Would raise if reached — the empty display_domain early return must
         # keep canonical-domain requests off the fallible lookup path.
-        allow(Onetime::CustomDomain).to receive(:load_by_display_domain)
+        allow(Onetime::CustomDomain).to receive(:from_display_domain)
           .and_raise(StandardError, 'redis down')
       end
 

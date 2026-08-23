@@ -24,6 +24,7 @@ module Onetime
       # comment to the same column.
       USAGE_LINES = [
         '  bin/ots org create NAME --owner ID  # Create an org owned by a customer',
+        '  bin/ots org delete ORG --yes        # Permanently delete an org (guarded)',
         '  bin/ots org doctor EXTID            # Check single org integrity',
         '  bin/ots org doctor --all            # Check all organizations',
         '  bin/ots org doctor --all --repair   # Auto-repair issues',
@@ -37,14 +38,15 @@ module Onetime
         '  bin/ots org transfer-ownership ORG NEW_OWNER  # Hand an org to another member',
       ].freeze
 
-      # The five `org doctor` invariants. Doctor-specific; not an append point
-      # for other verbs.
+      # The `org doctor` invariants. Doctor-specific; not an append point for
+      # other verbs.
       INTEGRITY_CHECKS = [
         '  1. owner_id points to existing customer (CRITICAL)',
         '  2. owner_id customer is in members set (HIGH)',
         '  3. All members have backing customer objects (MEDIUM)',
         '  4. Membership role:owner matches owner_id (WARNING)',
         '  5. Organization has at least one member (WARNING)',
+        '  6. class-level unique-index entries (CRITICAL/HIGH/MEDIUM)',
       ].freeze
 
       def call(**)

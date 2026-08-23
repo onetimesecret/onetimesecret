@@ -836,5 +836,41 @@
   "email.secret_link.footer_note": {
     "text": "لقد تلقيت هذه الرسالة لأن %{sender_email} استخدم %{product_name} لمشاركة سر معك. إذا لم تكن تتوقعها، يمكنك تجاهل هذا البريد الإلكتروني بأمان.",
     "source_hash": "2d544dad"
+  },
+  "email.sso_link_verification.subject": {
+    "text": "تأكيد ربط %{provider} بحسابك في %{product_name}",
+    "source_hash": "65e70296"
+  },
+  "email.sso_link_verification.title": {
+    "text": "تأكيد تسجيل الدخول عبر SSO",
+    "source_hash": "35bce6cc"
+  },
+  "email.sso_link_verification.request_notice": {
+    "text": "قام شخص ما بتسجيل الدخول باستخدام %{provider} بالبريد الإلكتروني %{email_address}. لإكمال ربط %{provider} بحسابك في %{product_name}، قم بالتأكيد أدناه.",
+    "source_hash": "baeb18c0"
+  },
+  "email.sso_link_verification.confirm_button": {
+    "text": "تأكيد وربط %{provider}",
+    "source_hash": "9809e210"
+  },
+  "email.sso_link_verification.copy_link_prompt": {
+    "text": "أو انسخ والصق هذا الرابط:",
+    "source_hash": "88c72144"
+  },
+  "email.sso_link_verification.expiration_notice": {
+    "text": "ينتهي هذا الرابط خلال 15 دقيقة ويمكن استخدامه مرة واحدة فقط.",
+    "source_hash": "1a437f42"
+  },
+  "email.sso_link_verification.ignore_notice": {
+    "text": "إذا لم تحاول تسجيل الدخول باستخدام %{provider}، يمكنك تجاهل هذا البريد الإلكتروني بأمان — لن يتم ربط أي شيء بحسابك.",
+    "source_hash": "d7317d30"
+  },
+  "email.sso_link_verification.signature": {
+    "text": "فريق الدعم",
+    "source_hash": "dc75bf9f"
+  },
+  "email.sso_link_verification.postscript": {
+    "text": "ملاحظة: تم إرسال هذا البريد الإلكتروني إلى %{email_address}.",
+    "source_hash": "8ab1dbea"
   }
 }

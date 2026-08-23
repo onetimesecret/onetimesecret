@@ -24,6 +24,7 @@ OT.boot! :test
 require 'onetime/models/session_metadata'
 
 SM = Onetime::SessionMetadata
+DB = Familia.dbclient
 
 @nonce = Familia.generate_id[0, 12]
 @sid   = "trymeta_#{@nonce}"
@@ -35,7 +36,7 @@ SM.load(@sid)&.destroy!
 # truth for the equality assertion below; sensitive fields are absent BY DESIGN.
 ALLOWED = %i[
   session_id user_id org_id created_at last_activity_at
-  ip_address user_agent auth_method mfa_used
+  ip_address user_agent auth_method mfa_used geo_country
 ].freeze
 
 # ---- persist + reload -------------------------------------------------
@@ -76,6 +77,40 @@ ALLOWED = %i[
 ## SECURITY: even scanning key NAMES case-insensitively finds no secret carrier
 @dump.keys.map(&:to_s).any? { |k| k.match?(/token|email|secret|pass|cookie|payload/i) }
 #=> false
+
+# ---- geo_country normalization (the single '**' chokepoint) -----------
+
+## a real country code passes through the reader and safe_dump untouched
+@geo = SM.load(@sid)
+@geo.geo_country = 'DE'
+@geo.save
+[@geo.geo_country, SM.load(@sid).geo_country, SM.load(@sid).safe_dump[:geo_country]]
+#=> ["DE", "DE", "DE"]
+
+## Otto's '**' unknown sentinel normalizes to nil at the READER — no emission
+## path (safe_dump reads via the getter) can ever leak it to a client
+@unk = SM.load(@sid)
+@unk.geo_country = '**'
+[@unk.geo_country, @unk.safe_dump[:geo_country]]
+#=> [nil, nil]
+
+## '**' never PERSISTS either: to_h_for_storage reads the getter, nil fields
+## are omitted, and the previously stored 'DE' is actively cleared on save
+@unk.save
+DB.hget(SM.dbkey(@sid), 'geo_country')
+#=> nil
+
+## a LEGACY record that stored '**' verbatim (pre-normalization writes) reads
+## back as nil through load — the chokepoint covers old data too
+DB.hset(SM.dbkey(@sid), 'geo_country', '"**"')
+[SM.load(@sid).geo_country, SM.load(@sid).safe_dump[:geo_country]]
+#=> [nil, nil]
+
+## blank / whitespace-only values normalize to nil like the sentinel
+@blank = SM.new(session_id: "tryblank_#{@nonce}")
+@blank.geo_country = '  '
+@blank.geo_country
+#=> nil
 
 # ---- expiration feature present ---------------------------------------
 

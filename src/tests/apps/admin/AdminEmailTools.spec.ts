@@ -136,6 +136,7 @@ function providerStatusPayload(
     error: string | null;
     ses: unknown;
     lettermint: unknown;
+    smtp2go: unknown;
   }> = {}
 ) {
   return {
@@ -148,6 +149,7 @@ function providerStatusPayload(
       error: null,
       ses: null,
       lettermint: null,
+      smtp2go: null,
       ...overrides,
     },
   };
@@ -168,6 +170,30 @@ function sesStatusPayload() {
       rate_bounce: null,
       rate_complaint: null,
       rate_note: 'SESv2 exposes no numeric bounce/complaint rate.',
+    },
+  });
+}
+
+function smtp2goStatusPayload() {
+  return providerStatusPayload({
+    provider: 'smtp2go',
+    capability: true,
+    available: true,
+    smtp2go: {
+      cycle_start: '2026-07-15',
+      cycle_end: '2026-08-15',
+      cycle_used: 420,
+      cycle_remaining: 580,
+      cycle_max: 1000,
+      email_count: 400,
+      bounce_rejects: 3,
+      softbounces: 5,
+      hardbounces: 2,
+      spam_rejects: 1,
+      unsubscribes: 4,
+      rate_bounce: 0.055,
+      rate_complaint: null,
+      rate_note: 'SMTP2GO stats cover the current billing cycle.',
     },
   });
 }
@@ -258,6 +284,37 @@ describe('AdminEmailTools (email tools — ticket #44)', () => {
     expect(wrapper.find('[data-testid="provider-status-max24h"]').text()).toContain('50000');
     // SESv2 has no numeric rate → the degraded-rate note renders (NOT an error).
     expect(wrapper.find('[data-testid="provider-status-rate-note"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="provider-status-error"]').exists()).toBe(false);
+  });
+
+  it('renders the SMTP2GO billing-cycle stats on the OK path', async () => {
+    primeMountGets('smtp2go', smtp2goStatusPayload());
+    wrapper = mountView(pinia);
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="provider-status-smtp2go"]').exists()).toBe(true);
+    // The window is the BILLING CYCLE (cycle_start → cycle_end), not "30 days".
+    expect(wrapper.find('[data-testid="provider-status-cycle-window"]').text()).toContain(
+      'web.admin.emailtools.providerStatus.cycle.window'
+    );
+    expect(wrapper.find('[data-testid="provider-status-cycle-used"]').text()).toContain(
+      '420 / 1000'
+    );
+    expect(wrapper.find('[data-testid="provider-status-cycle-remaining"]').text()).toContain(
+      '580'
+    );
+    expect(wrapper.find('[data-testid="provider-status-email-count"]').text()).toContain('400');
+    // Rates are ratios formatted as percentages; null renders as "—" (not
+    // reported), never a fake 0.
+    expect(wrapper.find('[data-testid="provider-status-rate-bounce"]').text()).toContain(
+      '5.50%'
+    );
+    expect(wrapper.find('[data-testid="provider-status-rate-complaint"]').text()).toContain(
+      '—'
+    );
+    expect(wrapper.find('[data-testid="provider-status-smtp2go-rate-note"]').exists()).toBe(
+      true
+    );
     expect(wrapper.find('[data-testid="provider-status-error"]').exists()).toBe(false);
   });
 

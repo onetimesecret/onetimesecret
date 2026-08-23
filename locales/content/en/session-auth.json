@@ -101,6 +101,11 @@
     "text": "SSO authentication failed. Please try again or use password login.",
     "content_hash": "13a2210a"
   },
+  "web.login.errors.sso_cancelled": {
+    "text": "Sign-in was cancelled. You can try again whenever you're ready.",
+    "context": "Shown on signin page when the user cancels/denies at the identity provider (OAuth2 access_denied). Calm, non-alarming copy - cancelling is a choice, not a failure.",
+    "content_hash": "b5f3d3ec"
+  },
   "web.login.errors.token_missing": {
     "text": "The authentication link is incomplete. Please request a new sign-in link.",
     "content_hash": "f4a10652"

@@ -227,26 +227,15 @@ module Onetime
 
       # Returns any required credential keys that are missing or nil.
       #
+      # Thin wrapper over the authoritative registry — the per-provider
+      # required-key knowledge lives in ProviderRegistry so workers and
+      # operations can never drift.
+      #
       # @param provider [String] Provider name
       # @param credentials [Hash] Credentials hash (string keys per convention)
       # @return [Array<String>] Missing key names (empty if all present)
       def missing_credential_keys(provider, credentials)
-        required = case provider.to_s.downcase
-                   when 'ses'
-                     %w[access_key_id secret_access_key region]
-                   when 'sendgrid'
-                     %w[api_key]
-                   when 'lettermint'
-                     # Team API token for domain provisioning (Bearer auth)
-                     # Different from api_token used for Sending API (x-lettermint-token)
-                     %w[team_token]
-                   when 'smtp'
-                     %w[host]
-                   else
-                     []
-                   end
-
-        required.select { |key| credentials[key].to_s.empty? }
+        Onetime::Mail::ProviderRegistry.missing_required_credentials(provider, credentials)
       end
 
       # Normalize provider-specific DNS records to a consistent display format.

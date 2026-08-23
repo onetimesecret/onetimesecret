@@ -1,6 +1,6 @@
 {
   "email.incomingsupport.subject": {
-    "text": "[Ticket : %s]",
+    "text": "[Ticket : %s]",
     "renderer": "erb",
     "source_hash": "9e2074ae"
   },
@@ -15,12 +15,12 @@
     "source_hash": "3156abde"
   },
   "email.secret_link.sent_you_secret": {
-    "text": "vous a envoyé un secret :",
+    "text": "vous a envoyé un secret :",
     "renderer": "erb",
     "source_hash": "c0571266"
   },
   "email.secret_link.important_label": {
-    "text": "Important :",
+    "text": "Important :",
     "renderer": "erb",
     "source_hash": "496d6960"
   },
@@ -35,17 +35,17 @@
     "source_hash": "d01479b3"
   },
   "email.welcome.subject": {
-    "text": "Bienvenue sur %{product_name} - Veuillez vérifier votre e-mail",
+    "text": "Bienvenue sur %{product_name} - Veuillez vérifier votre adresse e-mail",
     "renderer": "erb",
     "source_hash": "96008c17"
   },
   "email.welcome.title": {
-    "text": "Bienvenue sur %{product_name} !",
+    "text": "Bienvenue sur %{product_name} !",
     "renderer": "erb",
     "source_hash": "77e7dda4"
   },
   "email.welcome.verify_prompt": {
-    "text": "Veuillez vérifier votre adresse e-mail en cliquant sur le lien ci-dessous :",
+    "text": "Veuillez vérifier votre adresse e-mail en cliquant sur le lien ci-dessous :",
     "renderer": "erb",
     "source_hash": "e373dcee"
   },
@@ -55,7 +55,7 @@
     "source_hash": "d261b9df"
   },
   "email.welcome.copy_link_prompt": {
-    "text": "Ou copiez et collez ce lien :",
+    "text": "Ou copiez et collez ce lien :",
     "renderer": "erb",
     "source_hash": "88c72144"
   },
@@ -65,17 +65,17 @@
     "source_hash": "dc75bf9f"
   },
   "email.welcome.postscript": {
-    "text": "P.S. Cet e-mail a été envoyé à %{email_address}. Si vous n'avez pas créé de compte, vous pouvez ignorer ce message en toute sécurité.",
+    "text": "P.-S. Cet e-mail a été envoyé à %{email_address}. Si vous n'avez pas créé de compte, vous pouvez ignorer ce message.",
     "renderer": "erb",
     "source_hash": "05709148"
   },
   "email.password_request.subject": {
-    "text": "Réinitialiser votre mot de passe (%{display_domain})",
+    "text": "Réinitialisez votre mot de passe (%{display_domain})",
     "renderer": "erb",
     "source_hash": "a9882af1"
   },
   "email.password_request.title": {
-    "text": "Réinitialiser votre mot de passe",
+    "text": "Réinitialisez votre mot de passe",
     "renderer": "erb",
     "source_hash": "0568c7b0"
   },
@@ -90,12 +90,12 @@
     "source_hash": "4e70f1fd"
   },
   "email.password_request.copy_link_prompt": {
-    "text": "Ou copiez et collez ce lien :",
+    "text": "Ou copiez et collez ce lien :",
     "renderer": "erb",
     "source_hash": "88c72144"
   },
   "email.password_request.ignore_notice": {
-    "text": "Si vous n'avez pas demandé de réinitialisation de mot de passe, vous pouvez ignorer cet e-mail en toute sécurité.",
+    "text": "Si vous n'avez pas demandé de réinitialisation de mot de passe, vous pouvez ignorer cet e-mail.",
     "renderer": "erb",
     "source_hash": "fbb7eb2d"
   },
@@ -105,17 +105,17 @@
     "source_hash": "dc75bf9f"
   },
   "email.password_request.postscript": {
-    "text": "P.S. Cet e-mail a été envoyé à %{email_address}.",
+    "text": "P.-S. Cet e-mail a été envoyé à %{email_address}.",
     "renderer": "erb",
     "source_hash": "8ab1dbea"
   },
   "email.magic_link.subject": {
-    "text": "Connexion à %{display_domain}",
+    "text": "Connectez-vous à %{display_domain}",
     "renderer": "erb",
     "source_hash": "2967293e"
   },
   "email.magic_link.title": {
-    "text": "Connexion avec lien magique",
+    "text": "Se connecter avec un lien magique",
     "renderer": "erb",
     "source_hash": "0b84879b"
   },
@@ -130,7 +130,7 @@
     "source_hash": "bcc0bcc9"
   },
   "email.magic_link.copy_link_prompt": {
-    "text": "Ou copiez et collez ce lien :",
+    "text": "Ou copiez et collez ce lien :",
     "renderer": "erb",
     "source_hash": "88c72144"
   },
@@ -140,7 +140,7 @@
     "source_hash": "a6967fa7"
   },
   "email.magic_link.ignore_notice": {
-    "text": "Si vous n'avez pas demandé ce lien, vous pouvez ignorer cet e-mail en toute sécurité.",
+    "text": "Si vous n'avez pas demandé ce lien, vous pouvez ignorer cet e-mail.",
     "renderer": "erb",
     "source_hash": "1863f5be"
   },
@@ -150,7 +150,7 @@
     "source_hash": "dc75bf9f"
   },
   "email.magic_link.postscript": {
-    "text": "P.S. Cet e-mail a été envoyé à %{email_address}.",
+    "text": "P.-S. Cet e-mail a été envoyé à %{email_address}.",
     "renderer": "erb",
     "source_hash": "8ab1dbea"
   },
@@ -160,12 +160,12 @@
     "source_hash": "c7c36a80"
   },
   "email.incoming_secret.received_message": {
-    "text": "Vous avez reçu un message sécurisé :",
+    "text": "Vous avez reçu un message sécurisé :",
     "renderer": "erb",
     "source_hash": "7d3cd4cb"
   },
   "email.incoming_secret.memo_label": {
-    "text": "Mémo :",
+    "text": "Mémo :",
     "renderer": "erb",
     "source_hash": "8bab5066"
   },
@@ -175,12 +175,12 @@
     "source_hash": "12ac0a81"
   },
   "email.incoming_secret.view_instructions": {
-    "text": "Pour voir ce secret, cliquez sur le lien ci-dessous :",
+    "text": "Pour consulter ce secret, cliquez sur le lien ci-dessous :",
     "renderer": "erb",
     "source_hash": "1dcdc014"
   },
   "email.incoming_secret.important_label": {
-    "text": "Important :",
+    "text": "Important :",
     "renderer": "erb",
     "source_hash": "496d6960"
   },
@@ -195,7 +195,7 @@
     "source_hash": "1e49826b"
   },
   "email.incoming_secret.passphrase_label": {
-    "text": "Phrase secrète requise :",
+    "text": "Phrase secrète requise :",
     "renderer": "erb",
     "source_hash": "1ab9a20f"
   },
@@ -220,7 +220,7 @@
     "source_hash": "6a3d346c"
   },
   "email.secret_revealed.secret_id_label": {
-    "text": "ID du secret :",
+    "text": "ID du secret :",
     "renderer": "erb",
     "source_hash": "ab567438"
   },
@@ -240,12 +240,12 @@
     "source_hash": "a76d7ce0"
   },
   "email.secret_revealed.manage_preferences_prompt": {
-    "text": "Pour gérer vos préférences de notification :",
+    "text": "Pour gérer vos préférences de notification :",
     "renderer": "erb",
     "source_hash": "83cbd163"
   },
   "email.expiration_warning.subject": {
-    "text": "Votre lien secret va bientôt expirer",
+    "text": "Votre lien secret expirera bientôt",
     "renderer": "erb",
     "source_hash": "74813c5f"
   },
@@ -255,12 +255,12 @@
     "source_hash": "e7bb47f6"
   },
   "email.expiration_warning.view_button": {
-    "text": "Voir votre secret avant qu'il n'expire",
+    "text": "Consultez votre secret avant son expiration",
     "renderer": "erb",
     "source_hash": "9e7d7396"
   },
   "email.expiration_warning.reminder_label": {
-    "text": "Rappel :",
+    "text": "Rappel :",
     "renderer": "erb",
     "source_hash": "e945d640"
   },
@@ -275,7 +275,7 @@
     "source_hash": "d01479b3"
   },
   "email.expiration_warning.view_before_gone": {
-    "text": "Consultez-le avant qu'il ne disparaisse :",
+    "text": "Consultez-le avant qu'il ne disparaisse :",
     "renderer": "erb",
     "source_hash": "30342c04"
   },
@@ -285,32 +285,32 @@
     "source_hash": "bd0a9bee"
   },
   "email.feedback_email.subject": {
-    "text": "Commentaire le %{date} via %{display_domain} (%{strategy})",
+    "text": "Commentaires du %{date} via %{display_domain} (%{strategy})",
     "renderer": "erb",
     "source_hash": "f7498c8b"
   },
   "email.feedback_email.title": {
-    "text": "Commentaire utilisateur",
+    "text": "Commentaires d'un utilisateur",
     "renderer": "erb",
     "source_hash": "47296999"
   },
   "email.feedback_email.from_label": {
-    "text": "De :",
+    "text": "De :",
     "renderer": "erb",
     "source_hash": "dc45d36f"
   },
   "email.feedback_email.domain_label": {
-    "text": "Domaine :",
+    "text": "Domaine :",
     "renderer": "erb",
     "source_hash": "a4c7de06"
   },
   "email.feedback_email.strategy_label": {
-    "text": "Stratégie :",
+    "text": "Stratégie :",
     "renderer": "erb",
     "source_hash": "8132ec6b"
   },
   "email.feedback_email.message_label": {
-    "text": "Message :",
+    "text": "Message :",
     "renderer": "erb",
     "source_hash": "f5394f72"
   },
@@ -325,7 +325,7 @@
     "source_hash": "58591e00"
   },
   "email.organization_invitation.title": {
-    "text": "Vous avez été invité à rejoindre %{organization_name} !",
+    "text": "Vous avez été invité à rejoindre %{organization_name} !",
     "renderer": "erb",
     "source_hash": "19548dfd"
   },
@@ -340,7 +340,7 @@
     "source_hash": "ce7cfeaf"
   },
   "email.organization_invitation.link_instruction": {
-    "text": "Ou copiez et collez ce lien :",
+    "text": "Ou copiez et collez ce lien :",
     "renderer": "erb",
     "source_hash": "88c72144"
   },
@@ -350,7 +350,7 @@
     "source_hash": "dabc54d5"
   },
   "email.organization_invitation.decline_instruction": {
-    "text": "Si vous ne souhaitez pas rejoindre l'organisation, vous pouvez simplement ignorer cet e-mail ou décliner l'invitation.",
+    "text": "Si vous ne souhaitez pas la rejoindre, il vous suffit d'ignorer cet e-mail ou de refuser l'invitation.",
     "renderer": "erb",
     "source_hash": "734882d2"
   },
@@ -360,7 +360,7 @@
     "source_hash": "dc75bf9f"
   },
   "email.organization_invitation.postscript": {
-    "text": "P.S. Cet e-mail a été envoyé à %{invited_email}. Si vous n'attendiez pas cette invitation, vous pouvez ignorer ce message en toute sécurité.",
+    "text": "P.-S. Cet e-mail a été envoyé à %{invited_email}. Si vous n'attendiez pas cette invitation, vous pouvez ignorer ce message.",
     "renderer": "erb",
     "source_hash": "608e2b40"
   },
@@ -390,7 +390,7 @@
     "source_hash": "21f5117c"
   },
   "email.password_changed.security_notice": {
-    "text": "Si vous n'avez pas effectué cette modification, veuillez sécuriser votre compte immédiatement en réinitialisant votre mot de passe et en contactant le support.",
+    "text": "Si vous n'êtes pas à l'origine de cette modification, sécurisez immédiatement votre compte en réinitialisant votre mot de passe et en contactant l'assistance.",
     "renderer": "erb",
     "source_hash": "be92cff3"
   },
@@ -410,7 +410,7 @@
     "source_hash": "db70f965"
   },
   "email.email_changed.security_notice": {
-    "text": "Si vous n'avez pas effectué cette modification, veuillez contacter immédiatement le support car votre compte pourrait être compromis.",
+    "text": "Si vous n'êtes pas à l'origine de cette modification, contactez immédiatement l'assistance, car votre compte pourrait être compromis.",
     "renderer": "erb",
     "source_hash": "f505b562"
   },
@@ -420,27 +420,27 @@
     "source_hash": "7fc0e27c"
   },
   "email.email_changed.new_email_label": {
-    "text": "Nouvel e-mail :",
+    "text": "Nouvelle adresse e-mail :",
     "renderer": "erb",
     "source_hash": "0161371a"
   },
   "email.email_changed.changed_at_label": {
-    "text": "Modifié le :",
+    "text": "Modifiée le :",
     "renderer": "erb",
     "source_hash": "f4a9cdda"
   },
   "email.email_changed.if_you_initiated": {
-    "text": "Si vous avez effectué ce changement, aucune action supplémentaire n'est requise.",
+    "text": "Si vous êtes à l'origine de cette modification, aucune action supplémentaire n'est nécessaire.",
     "renderer": "erb",
     "source_hash": "5cb54887"
   },
   "email.email_changed.not_you_notice": {
-    "text": "Si vous n'avez pas effectué ce changement, votre compte pourrait être compromis.",
+    "text": "Si vous n'êtes pas à l'origine de cette modification, votre compte pourrait être compromis.",
     "renderer": "erb",
     "source_hash": "08f479fb"
   },
   "email.email_changed.contact_support": {
-    "text": "Contacter le support",
+    "text": "Contacter l'assistance",
     "renderer": "erb",
     "source_hash": "f8d47b82"
   },
@@ -450,47 +450,47 @@
     "source_hash": "dc75bf9f"
   },
   "email.email_changed.postscript": {
-    "text": "P.S. Cet e-mail a été envoyé à %{email_address} pour vous informer d'un changement d'adresse e-mail.",
+    "text": "P.-S. Cet e-mail a été envoyé à %{email_address} pour vous informer d'un changement d'adresse e-mail.",
     "renderer": "erb",
     "source_hash": "475cae37"
   },
   "email.email_change_requested.subject": {
-    "text": "Changement d'e-mail demandé (%{display_domain})",
+    "text": "Changement d'adresse e-mail demandé (%{display_domain})",
     "renderer": "erb",
     "source_hash": "be3441d6"
   },
   "email.email_change_requested.title": {
-    "text": "Changement d'e-mail demandé",
+    "text": "Changement d'adresse e-mail demandé",
     "renderer": "erb",
     "source_hash": "704cbdca"
   },
   "email.email_change_requested.change_notice": {
-    "text": "Une demande de changement d'adresse e-mail a été effectuée sur votre compte %{product_name}.",
+    "text": "Une demande a été faite pour modifier l'adresse e-mail de votre compte %{product_name}.",
     "renderer": "erb",
     "source_hash": "d7e39154"
   },
   "email.email_change_requested.new_email_label": {
-    "text": "Nouvel e-mail demandé :",
+    "text": "Nouvelle adresse e-mail demandée :",
     "renderer": "erb",
     "source_hash": "243f3e03"
   },
   "email.email_change_requested.requested_at_label": {
-    "text": "Demandé le :",
+    "text": "Demandé le :",
     "renderer": "erb",
     "source_hash": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "Si vous avez fait cette demande, vérifiez votre nouvelle adresse e-mail pour un lien de confirmation. Aucune modification n'a encore été effectuée.",
+    "text": "Si vous êtes à l'origine de cette demande, consultez votre nouvelle messagerie pour y trouver un lien de confirmation. Aucune modification n'a encore été effectuée.",
     "renderer": "erb",
     "source_hash": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
-    "text": "Si vous n'avez pas fait cette demande, vous pouvez ignorer cet e-mail en toute sécurité. Votre compte n'a pas été modifié.",
+    "text": "Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet e-mail. Votre compte n'a pas été modifié.",
     "renderer": "erb",
     "source_hash": "ff41a7b7"
   },
   "email.email_change_requested.contact_support": {
-    "text": "Contacter le support",
+    "text": "Contacter l'assistance",
     "renderer": "erb",
     "source_hash": "f8d47b82"
   },
@@ -500,7 +500,7 @@
     "source_hash": "dc75bf9f"
   },
   "email.email_change_requested.postscript": {
-    "text": "P.S. Cet e-mail a été envoyé à %{email_address} car un changement d'adresse e-mail a été demandé pour votre compte.",
+    "text": "P.-S. Cet e-mail a été envoyé à %{email_address} car un changement d'adresse e-mail a été demandé pour votre compte.",
     "renderer": "erb",
     "source_hash": "500e085e"
   },
@@ -525,17 +525,17 @@
     "source_hash": "d261b9df"
   },
   "email.email_change_confirmation.request_notice": {
-    "text": "Une demande a été effectuée pour changer l'adresse e-mail de votre compte %{product_name} en %{new_email}.",
+    "text": "Une demande a été faite pour remplacer l'adresse e-mail de votre compte %{product_name} par %{new_email}.",
     "renderer": "erb",
     "source_hash": "33277e1b"
   },
   "email.email_change_confirmation.confirm_button": {
-    "text": "Confirmer le changement d'e-mail",
+    "text": "Confirmer le changement d'adresse e-mail",
     "renderer": "erb",
     "source_hash": "c2736949"
   },
   "email.email_change_confirmation.copy_link_prompt": {
-    "text": "Ou copiez et collez ce lien :",
+    "text": "Ou copiez et collez ce lien :",
     "renderer": "erb",
     "source_hash": "88c72144"
   },
@@ -545,7 +545,7 @@
     "source_hash": "e744f5a7"
   },
   "email.email_change_confirmation.ignore_notice": {
-    "text": "Si vous n'avez pas demandé ce changement, vous pouvez ignorer cet e-mail en toute sécurité. Votre adresse e-mail ne sera pas modifiée.",
+    "text": "Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet e-mail. Votre adresse e-mail ne sera pas modifiée.",
     "renderer": "erb",
     "source_hash": "d4d835fc"
   },
@@ -555,7 +555,7 @@
     "source_hash": "dc75bf9f"
   },
   "email.email_change_confirmation.postscript": {
-    "text": "P.S. Cet e-mail a été envoyé à %{email_address} pour confirmer un changement d'adresse e-mail.",
+    "text": "P.-S. Cet e-mail a été envoyé à %{email_address} pour confirmer un changement d'adresse e-mail.",
     "renderer": "erb",
     "source_hash": "b72f557c"
   },
@@ -575,7 +575,7 @@
     "source_hash": "9f6be43f"
   },
   "email.mfa_enabled.security_notice": {
-    "text": "Votre compte est maintenant plus sécurisé. Vous devrez saisir un code de vérification de votre application d'authentification lors de la connexion.",
+    "text": "Votre compte est désormais mieux sécurisé. Vous devrez saisir un code de vérification issu de votre application d'authentification lors de la connexion.",
     "renderer": "erb",
     "source_hash": "e7c11bb0"
   },
@@ -600,7 +600,7 @@
     "source_hash": "0248389d"
   },
   "email.mfa_disabled.warning_notice": {
-    "text": "Votre compte est maintenant moins sécurisé. Si vous n'avez pas effectué cette modification, veuillez sécuriser votre compte immédiatement.",
+    "text": "Votre compte est désormais moins sécurisé. Si vous n'êtes pas à l'origine de cette modification, sécurisez immédiatement votre compte.",
     "renderer": "erb",
     "source_hash": "97ef0a3e"
   },
@@ -625,17 +625,17 @@
     "source_hash": "040f8f48"
   },
   "email.new_login_alert.device_label": {
-    "text": "Appareil :",
+    "text": "Appareil :",
     "renderer": "erb",
     "source_hash": "9f8d3539"
   },
   "email.new_login_alert.location_label": {
-    "text": "Localisation :",
+    "text": "Emplacement :",
     "renderer": "erb",
     "source_hash": "bbdffe25"
   },
   "email.new_login_alert.ip_address_label": {
-    "text": "Adresse IP :",
+    "text": "Adresse IP :",
     "renderer": "erb",
     "source_hash": "a2cb73e4"
   },
@@ -685,7 +685,7 @@
     "source_hash": "8f892809"
   },
   "email.role_changed.body": {
-    "text": "Votre rôle dans « %{organization_name} » a été modifié de %{old_role} à %{new_role}.",
+    "text": "Votre rôle dans « %{organization_name} » est passé de %{old_role} à %{new_role}.",
     "renderer": "erb",
     "source_hash": "c2280c0c"
   },
@@ -725,7 +725,7 @@
     "source_hash": "36200518"
   },
   "email.trial_expiring.body": {
-    "text": "Votre période d'essai gratuite de %{product_name} expirera dans %{days_remaining} jours. Mettez à niveau maintenant pour conserver l'accès à toutes les fonctionnalités.",
+    "text": "Votre essai gratuit de %{product_name} expirera dans %{days_remaining} jours. Mettez à niveau dès maintenant pour conserver l'accès à toutes les fonctionnalités.",
     "renderer": "erb",
     "source_hash": "17fc32dd"
   },
@@ -750,12 +750,12 @@
     "source_hash": "7523a022"
   },
   "email.subscription_changed.body": {
-    "text": "Votre abonnement %{product_name} a été modifié de %{old_plan} à %{new_plan}.",
+    "text": "Votre abonnement %{product_name} est passé de %{old_plan} à %{new_plan}.",
     "renderer": "erb",
     "source_hash": "72f81a65"
   },
   "email.subscription_changed.effective_date": {
-    "text": "Cette modification est effective à partir du %{date}.",
+    "text": "Cette modification prend effet le %{date}.",
     "renderer": "erb",
     "source_hash": "5a96ae38"
   },
@@ -780,7 +780,7 @@
     "source_hash": "3e92efb7"
   },
   "email.common.view_in_browser": {
-    "text": "Voir dans le navigateur",
+    "text": "Afficher dans le navigateur",
     "renderer": "erb",
     "source_hash": "be843876"
   },
@@ -790,7 +790,7 @@
     "source_hash": "1cd0194a"
   },
   "email.common.secret_link_label": {
-    "text": "Lien du secret",
+    "text": "Lien secret",
     "renderer": "erb",
     "source_hash": "18ddf44f"
   },
@@ -800,7 +800,7 @@
     "source_hash": "8fbabfba"
   },
   "email.common.support_label": {
-    "text": "Support",
+    "text": "Assistance",
     "source_hash": "be91940b"
   },
   "email.expiration_warning.signature": {
@@ -809,7 +809,7 @@
     "source_hash": "dc75bf9f"
   },
   "email.expiration_warning.footer_note": {
-    "text": "Vous avez reçu ce message parce qu'un secret que vous avez créé sur %{product_name} est sur le point d'expirer.",
+    "text": "Vous recevez cet e-mail parce qu'un secret que vous avez créé sur %{product_name} est sur le point d'expirer.",
     "renderer": "erb",
     "source_hash": "920779e4"
   },
@@ -829,7 +829,7 @@
     "source_hash": "4c5726ee"
   },
   "email.incoming_secret.footer_note": {
-    "text": "Vous avez reçu ce message parce que quelqu'un a utilisé %{product_name} pour vous envoyer un secret. Si vous ne l'attendiez pas, vous pouvez ignorer cet e-mail en toute sécurité.",
+    "text": "Vous recevez cet e-mail parce que quelqu'un a utilisé %{product_name} pour vous envoyer un secret. Si vous ne l'attendiez pas, vous pouvez ignorer cet e-mail.",
     "renderer": "erb",
     "source_hash": "91ee6e8d"
   },
@@ -844,8 +844,44 @@
     "source_hash": "1e49826b"
   },
   "email.secret_link.footer_note": {
-    "text": "Vous avez reçu ce message parce que %{sender_email} a utilisé %{product_name} pour partager un secret avec vous. Si vous ne l'attendiez pas, vous pouvez ignorer cet e-mail en toute sécurité.",
+    "text": "Vous recevez cet e-mail parce que %{sender_email} a utilisé %{product_name} pour partager un secret avec vous. Si vous ne l'attendiez pas, vous pouvez ignorer cet e-mail.",
     "renderer": "erb",
     "source_hash": "2d544dad"
+  },
+  "email.sso_link_verification.subject": {
+    "text": "Confirmez la liaison de %{provider} à votre compte %{product_name}",
+    "source_hash": "65e70296"
+  },
+  "email.sso_link_verification.title": {
+    "text": "Confirmez votre connexion SSO",
+    "source_hash": "35bce6cc"
+  },
+  "email.sso_link_verification.request_notice": {
+    "text": "Quelqu'un s'est connecté avec %{provider} en utilisant l'adresse e-mail %{email_address}. Pour finaliser la connexion de %{provider} à votre compte %{product_name}, confirmez ci-dessous.",
+    "source_hash": "baeb18c0"
+  },
+  "email.sso_link_verification.confirm_button": {
+    "text": "Confirmer et lier %{provider}",
+    "source_hash": "9809e210"
+  },
+  "email.sso_link_verification.copy_link_prompt": {
+    "text": "Ou copiez et collez ce lien :",
+    "source_hash": "88c72144"
+  },
+  "email.sso_link_verification.expiration_notice": {
+    "text": "Ce lien expire dans 15 minutes et ne peut être utilisé qu'une seule fois.",
+    "source_hash": "1a437f42"
+  },
+  "email.sso_link_verification.ignore_notice": {
+    "text": "Si vous n'avez pas tenté de vous connecter avec %{provider}, vous pouvez ignorer cet e-mail — rien ne sera lié à votre compte.",
+    "source_hash": "d7317d30"
+  },
+  "email.sso_link_verification.signature": {
+    "text": "L'équipe d'assistance",
+    "source_hash": "dc75bf9f"
+  },
+  "email.sso_link_verification.postscript": {
+    "text": "P.-S. Cet e-mail a été envoyé à %{email_address}.",
+    "source_hash": "8ab1dbea"
   }
 }

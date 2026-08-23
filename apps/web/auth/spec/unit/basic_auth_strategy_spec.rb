@@ -205,25 +205,25 @@ RSpec.describe Onetime::Application::AuthStrategies::BasicAuthStrategy, type: :i
     end
 
     # -----------------------------------------------------------------
-    # Credentialed-failure marker (anonymous fallthrough guard).
+    # Terminal failure on presented credentials (fail-closed guard).
     #
     # Regression for the silent anonymous fallback (docs/security/audits/
     # 2026-07-29-api.md item 1): on auth=basicauth,noauth chains, a request
-    # that PRESENTED credentials which failed must mark the env so
-    # NoAuthStrategy refuses to degrade it to anonymous. A request with NO
-    # Authorization header must NOT mark the env — that is the legitimate
-    # anonymous use of those routes.
+    # that PRESENTED credentials which failed must return a TERMINAL
+    # AuthFailure so Otto's RouteAuthWrapper halts the chain and fails closed
+    # (401) rather than letting NoAuthStrategy degrade it to anonymous. A
+    # request with NO Authorization header must fail NON-terminally — that is
+    # the legitimate anonymous use of those routes.
     # -----------------------------------------------------------------
-    context 'credentialed-failure env marker' do
-      let(:marker_key) { Onetime::Application::AuthStrategies::Helpers::CREDENTIALED_FAILURE_ENV_KEY }
-
-      it 'marks the env on invalid API key (correct user, wrong key)' do
+    context 'terminal failure on presented credentials' do
+      it 'fails terminally on invalid API key (correct user, wrong key)' do
         result = basic_auth_strategy.authenticate(env_basic_auth_invalid, nil)
         expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
-        expect(env_basic_auth_invalid[marker_key]).to include('CREDENTIALS_INVALID')
+        expect(result.terminal?).to be true
+        expect(result.failure_reason).to include('CREDENTIALS_INVALID')
       end
 
-      it 'marks the env on a nonexistent username (e.g. UUIDv7 owner_id used as Basic username)' do
+      it 'fails terminally on a nonexistent username (e.g. UUIDv7 owner_id used as Basic username)' do
         # Real-world trigger: a customer used a UUIDv7 owner_id as the Basic
         # username. Only customer extid / email resolve, so this fails — and
         # previously fell through to a silent anonymous 200.
@@ -238,10 +238,11 @@ RSpec.describe Onetime::Application::AuthStrategies::BasicAuthStrategy, type: :i
 
         result = basic_auth_strategy.authenticate(env, nil)
         expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
-        expect(env[marker_key]).to include('CREDENTIALS_INVALID')
+        expect(result.terminal?).to be true
+        expect(result.failure_reason).to include('CREDENTIALS_INVALID')
       end
 
-      it 'marks the env on an unrecognized Authorization scheme (Bearer)' do
+      it 'fails terminally on an unrecognized Authorization scheme (Bearer)' do
         env = {
           'rack.session' => {},
           'REMOTE_ADDR' => '127.0.0.1',
@@ -251,10 +252,11 @@ RSpec.describe Onetime::Application::AuthStrategies::BasicAuthStrategy, type: :i
 
         result = basic_auth_strategy.authenticate(env, nil)
         expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
-        expect(env[marker_key]).to include('AUTH_TYPE_INVALID')
+        expect(result.terminal?).to be true
+        expect(result.failure_reason).to include('AUTH_TYPE_INVALID')
       end
 
-      it 'marks the env on malformed Basic payload (no colon separator)' do
+      it 'fails terminally on malformed Basic payload (no colon separator)' do
         env = {
           'rack.session' => {},
           'REMOTE_ADDR' => '127.0.0.1',
@@ -264,28 +266,61 @@ RSpec.describe Onetime::Application::AuthStrategies::BasicAuthStrategy, type: :i
 
         result = basic_auth_strategy.authenticate(env, nil)
         expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
-        expect(env[marker_key]).to include('CREDENTIALS_FORMAT_INVALID')
+        expect(result.terminal?).to be true
+        expect(result.failure_reason).to include('CREDENTIALS_FORMAT_INVALID')
       end
 
-      it 'marks the env when a suspended account presents valid credentials' do
+      it 'fails terminally when a suspended account presents valid credentials' do
         test_customer.suspended = 'true'
         test_customer.save
 
         result = basic_auth_strategy.authenticate(env_basic_auth_valid, nil)
         expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
-        expect(env_basic_auth_valid[marker_key]).to include('ACCOUNT_SUSPENDED')
+        expect(result.terminal?).to be true
+        expect(result.failure_reason).to include('ACCOUNT_SUSPENDED')
       end
 
-      it 'does NOT mark the env when the Authorization header is missing' do
+      it 'fails NON-terminally when the Authorization header is missing (anonymous fallthrough preserved)' do
         result = basic_auth_strategy.authenticate(env_basic_auth_missing, nil)
         expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
-        expect(env_basic_auth_missing).not_to have_key(marker_key)
+        expect(result.terminal?).to be false
+        expect(result.failure_reason).to include('AUTH_HEADER_MISSING')
       end
 
-      it 'does NOT mark the env on valid credentials' do
+      # A valid session identity on the SAME request outranks a rejected
+      # Authorization header: the failure must be NON-terminal so Otto's chain
+      # continues to the session-resolving NoAuthStrategy instead of 401ing a
+      # logged-in browser that also carries a stale cached Basic credential or a
+      # reverse proxy's forwarded htpasswd header. This is the carve-out the old
+      # env-marker guard enforced (NoAuthStrategy refused only when cust.nil?);
+      # it must survive the move to terminal AuthFailures.
+      context 'when a valid session accompanies a rejected Authorization header' do
+        let(:env_session_plus_bad_basic) do
+          encoded = Base64.strict_encode64("#{test_customer.email}:wrong_key_entirely")
+          {
+            'rack.session' => {
+              'authenticated' => true,
+              'external_id' => test_customer.extid,
+              'email' => test_customer.email,
+            },
+            'REMOTE_ADDR' => '127.0.0.1',
+            'HTTP_USER_AGENT' => 'Test/1.0',
+            'HTTP_AUTHORIZATION' => "Basic #{encoded}",
+          }
+        end
+
+        it 'fails NON-terminally so the session outranks the rejected header' do
+          result = basic_auth_strategy.authenticate(env_session_plus_bad_basic, nil)
+          expect(result).to be_a(Otto::Security::Authentication::AuthFailure)
+          expect(result.terminal?).to be false
+          expect(result.failure_reason).to include('CREDENTIALS_INVALID')
+        end
+      end
+
+      it 'authenticates on valid credentials (no failure)' do
         result = basic_auth_strategy.authenticate(env_basic_auth_valid, nil)
+        expect(result).not_to be_a(Otto::Security::Authentication::AuthFailure)
         expect(result.authenticated?).to be true
-        expect(env_basic_auth_valid).not_to have_key(marker_key)
       end
     end
 

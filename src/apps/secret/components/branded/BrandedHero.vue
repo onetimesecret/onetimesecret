@@ -20,9 +20,9 @@
    * @prop subtitle - Subline text (already translated); omit for logo-only
    * @prop logoLinkTo - When set, wraps the logo in a router-link to this route
    */
+  import BrandMark from '@/shared/components/logos/BrandMark.vue';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import { storeToRefs } from 'pinia';
-  import { ref } from 'vue';
   import { RouterLink } from 'vue-router';
 
   defineProps<{
@@ -32,22 +32,26 @@
   }>();
 
   const identityStore = useProductIdentity();
-  const { logoUri, displayName, cornerClass, headingFontClass, fontFamilyClass } =
+  const { logoUri, logoDarkSource, displayName, cornerClass, headingFontClass, fontFamilyClass } =
     storeToRefs(identityStore);
-
-  // Handle logo 404 errors gracefully
-  const imageError = ref(false);
-  const handleImageError = () => {
-    imageError.value = true;
-  };
 </script>
 
 <template>
   <div
     :class="fontFamilyClass"
     class="text-center">
-    <!-- Logo with error handling - hides if 404. No placeholder: a broken or
-         absent logo must not render a generic gray icon on a branded page. -->
+    <!-- Logo via BrandMark: renders the light/dark pair and owns 404 handling,
+         so a broken or absent logo leaves the branded page text-only with no
+         generic placeholder (empty fallback slot). The tenant's dark variant
+         (logoDarkSource → BrandSettings.logo_dark_url) swaps in under the
+         site's class-based dark mode, matching MastHead.
+
+         The logo→heading gap (mb-8) rides on the image itself (via imgClass),
+         not this wrapper: the wrapper is gated on logoUri (non-null), which
+         stays true when the asset 404s, so putting the margin here would leave
+         a phantom 2rem gap above the heading once BrandMark falls back to its
+         empty slot. On the image, the spacing collapses with the image — the
+         same reason IncomingForm carries its spacing in imgClass. -->
     <!--
       Sizing: a fixed height with `w-auto max-w-full` lets wide, rectangular
       logos (common when they include the company name) use the full column
@@ -60,20 +64,19 @@
       overflowing.
     -->
     <div
-      v-if="logoUri && !imageError"
-      class="mb-8 flex justify-center">
-      <!-- One <img>, conditionally wrapped: forked link/bare copies of the
+      v-if="logoUri"
+      class="flex justify-center">
+      <!-- One BrandMark, conditionally wrapped: forked link/bare copies of the
            logo markup drift independently (only one branch gets a fix). -->
       <component
         :is="logoLinkTo ? RouterLink : 'span'"
         :to="logoLinkTo">
-        <img
-          :src="logoUri"
-          :class="cornerClass"
-          class="h-16 w-auto max-w-full object-contain sm:h-20"
+        <BrandMark
+          :logo-uri="logoUri"
+          :logo-dark-uri="logoDarkSource"
           :alt="displayName"
-          data-testid="brand-logo"
-          @error="handleImageError" />
+          :img-class="[cornerClass, 'mb-8 h-16 w-auto max-w-full object-contain sm:h-20']"
+          data-testid="brand-logo" />
       </component>
     </div>
     <h1

@@ -7,14 +7,14 @@
 # Docs - File naming conventions and structure
 #
 # docs/
+# ├── adr/                       # ADRs - ESSENTIAL
+# │   ├── 001-choice-of-database.md
+# │   ├── 002-authentication-strategy.md
+# │   └── 003-microservices-vs-monolith.md
 # ├── architecture/
 # │   ├── overview.md
 # │   ├── system-design.md
-# │   ├── data-flow.md
-# │   └── decision-records/       # ADRs - ESSENTIAL
-# │       ├── 001-choice-of-database.md
-# │       ├── 002-authentication-strategy.md
-# │       └── 003-microservices-vs-monolith.md
+# │   └── data-flow.md
 # ├── internal-apis/
 # │   ├── service-a.md
 # │   └── service-b.md

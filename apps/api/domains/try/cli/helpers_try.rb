@@ -143,7 +143,7 @@ filtered.size
 domains = [@test_domain_1, @test_domain_2]
 filtered = @helper.apply_filters(domains, verified: true)
 filtered.first.verified
-#=> "true"
+#=> true
 
 ## Test apply_filters with unverified filter
 domains = [@test_domain_1, @test_domain_2]

@@ -5,6 +5,26 @@
 // Two color palettes exist because NotificationPill uses an inverted scheme
 // (dark bg in light mode) while Card/Banner use a standard scheme (light bg
 // in light mode). Both are exposed here so visuals don't duplicate the tables.
+//
+// The four STATUS severities use fixed semantic hues — success/green,
+// error/red, warning/amber, info/sky — rather than the --color-brand*
+// families. Status is a claim about what happened, so it has to be legible
+// independent of who is looking: a red toast means "this failed" on every
+// domain. Brand tokens can't carry that, because generateBrandPalette derives
+// brand, branddim, brandcomp and brandcompdim from a single per-domain hue
+// (see useBrandTheme) — so brand-tinted severities shift color per customer
+// and collapse toward each other: branddim is brand at reduced chroma and
+// mid-range lightness, and every scale clamps to the same near-black floor at
+// shade 950, where the old error (brand) and warning (branddim) pill
+// backgrounds were literally identical. Before #4012 `info` sat on
+// brandcomp-* — the complement of the domain hue, orange on the default blue
+// palette — which made neutral notices (e.g. Rodauth's "You have been logged
+// in" flash after SSO) read as warnings.
+//
+// `loading` reports progress, not status, so it takes no semantic hue — but
+// it avoids brand tokens too: brandcompdim is the complement of the domain
+// hue, which on branded domains can land next to the amber/sky reserved for
+// warning/info. Neutral gray carries "in progress" on every domain.
 
 export interface SeverityMeta {
   icon: string;
@@ -37,28 +57,28 @@ const INVERTED_COLORS: Record<string, SeverityColors> = {
     ringClasses: 'ring-green-700/50 dark:ring-green-300/50',
   },
   error: {
-    bgClasses: 'bg-brand-950/95 dark:bg-brand-50/95',
-    textClasses: 'text-brand-100 dark:text-brand-700',
-    iconClasses: 'text-brand-300 dark:text-brand-600',
-    ringClasses: 'ring-brand-700/50 dark:ring-brand-300/50',
+    bgClasses: 'bg-red-950/95 dark:bg-red-50/95',
+    textClasses: 'text-red-100 dark:text-red-700',
+    iconClasses: 'text-red-300 dark:text-red-600',
+    ringClasses: 'ring-red-700/50 dark:ring-red-300/50',
   },
   warning: {
-    bgClasses: 'bg-branddim-950/95 dark:bg-branddim-50/95',
-    textClasses: 'text-branddim-100 dark:text-branddim-700',
-    iconClasses: 'text-branddim-300 dark:text-branddim-600',
-    ringClasses: 'ring-branddim-700/50 dark:ring-branddim-300/50',
+    bgClasses: 'bg-amber-950/95 dark:bg-amber-50/95',
+    textClasses: 'text-amber-100 dark:text-amber-700',
+    iconClasses: 'text-amber-300 dark:text-amber-600',
+    ringClasses: 'ring-amber-700/50 dark:ring-amber-300/50',
   },
   info: {
-    bgClasses: 'bg-brandcomp-950/95 dark:bg-brandcomp-50/95',
-    textClasses: 'text-brandcomp-100 dark:text-brandcomp-700',
-    iconClasses: 'text-brandcomp-300 dark:text-brandcomp-600',
-    ringClasses: 'ring-brandcomp-700/50 dark:ring-brandcomp-300/50',
+    bgClasses: 'bg-sky-950/95 dark:bg-sky-50/95',
+    textClasses: 'text-sky-100 dark:text-sky-700',
+    iconClasses: 'text-sky-300 dark:text-sky-600',
+    ringClasses: 'ring-sky-700/50 dark:ring-sky-300/50',
   },
   loading: {
-    bgClasses: 'bg-brandcompdim-950/95 dark:bg-brandcompdim-50/95',
-    textClasses: 'text-brandcompdim-100 dark:text-brandcompdim-700',
-    iconClasses: 'text-brandcompdim-300 dark:text-brandcompdim-600',
-    ringClasses: 'ring-brandcompdim-700/50 dark:ring-brandcompdim-300/50',
+    bgClasses: 'bg-gray-950/95 dark:bg-gray-50/95',
+    textClasses: 'text-gray-100 dark:text-gray-700',
+    iconClasses: 'text-gray-300 dark:text-gray-600',
+    ringClasses: 'ring-gray-700/50 dark:ring-gray-300/50',
   },
 };
 
@@ -72,33 +92,33 @@ const STANDARD_COLORS: Record<string, SeverityColors> = {
     ringClasses: 'ring-green-200/50 dark:ring-green-800/50',
   },
   error: {
-    bgClasses: 'bg-brand-50/95 dark:bg-brand-950/95',
-    textClasses: 'text-brand-700 dark:text-brand-100',
-    iconClasses: 'text-brand-600 dark:text-brand-300',
-    ringClasses: 'ring-brand-200/50 dark:ring-brand-800/50',
+    bgClasses: 'bg-red-50/95 dark:bg-red-950/95',
+    textClasses: 'text-red-700 dark:text-red-100',
+    iconClasses: 'text-red-600 dark:text-red-300',
+    ringClasses: 'ring-red-200/50 dark:ring-red-800/50',
   },
   warning: {
-    bgClasses: 'bg-branddim-50/95 dark:bg-branddim-950/95',
-    textClasses: 'text-branddim-700 dark:text-branddim-100',
-    iconClasses: 'text-branddim-600 dark:text-branddim-300',
-    ringClasses: 'ring-branddim-200/50 dark:ring-branddim-800/50',
+    bgClasses: 'bg-amber-50/95 dark:bg-amber-950/95',
+    textClasses: 'text-amber-700 dark:text-amber-100',
+    iconClasses: 'text-amber-600 dark:text-amber-300',
+    ringClasses: 'ring-amber-200/50 dark:ring-amber-800/50',
   },
   info: {
-    bgClasses: 'bg-brandcomp-50/95 dark:bg-brandcomp-950/95',
-    textClasses: 'text-brandcomp-700 dark:text-brandcomp-100',
-    iconClasses: 'text-brandcomp-600 dark:text-brandcomp-300',
-    ringClasses: 'ring-brandcomp-200/50 dark:ring-brandcomp-800/50',
+    bgClasses: 'bg-sky-50/95 dark:bg-sky-950/95',
+    textClasses: 'text-sky-700 dark:text-sky-100',
+    iconClasses: 'text-sky-600 dark:text-sky-300',
+    ringClasses: 'ring-sky-200/50 dark:ring-sky-800/50',
   },
   loading: {
-    bgClasses: 'bg-brandcompdim-50/95 dark:bg-brandcompdim-950/95',
-    textClasses: 'text-brandcompdim-700 dark:text-brandcompdim-100',
-    iconClasses: 'text-brandcompdim-600 dark:text-brandcompdim-300',
-    ringClasses: 'ring-brandcompdim-200/50 dark:ring-brandcompdim-800/50',
+    bgClasses: 'bg-gray-50/95 dark:bg-gray-950/95',
+    textClasses: 'text-gray-700 dark:text-gray-100',
+    iconClasses: 'text-gray-600 dark:text-gray-300',
+    ringClasses: 'ring-gray-200/50 dark:ring-gray-800/50',
   },
 };
 
-// Banner uses /90 opacity instead of /95 — override at the bg level only.
-// Everything else (text, icon, ring) matches standard.
+// Banner uses /90 opacity instead of /95, and unlike Card renders no ring —
+// entries carry only the fields NotificationBanner consumes.
 //
 // These bg classes are written as explicit literals (not a runtime transform
 // of STANDARD_COLORS) because Tailwind v4 scans source text for class names:
@@ -106,41 +126,44 @@ const STANDARD_COLORS: Record<string, SeverityColors> = {
 // is never generated.
 const BANNER_COLORS: Record<string, SeverityColors> = {
   success: {
-    ...STANDARD_COLORS.success,
     bgClasses: 'bg-green-50/90 dark:bg-green-950/90',
+    textClasses: STANDARD_COLORS.success.textClasses,
+    iconClasses: STANDARD_COLORS.success.iconClasses,
   },
   error: {
-    ...STANDARD_COLORS.error,
-    bgClasses: 'bg-brand-50/90 dark:bg-brand-950/90',
+    bgClasses: 'bg-red-50/90 dark:bg-red-950/90',
+    textClasses: STANDARD_COLORS.error.textClasses,
+    iconClasses: STANDARD_COLORS.error.iconClasses,
   },
   warning: {
-    ...STANDARD_COLORS.warning,
-    bgClasses: 'bg-branddim-50/90 dark:bg-branddim-950/90',
+    bgClasses: 'bg-amber-50/90 dark:bg-amber-950/90',
+    textClasses: STANDARD_COLORS.warning.textClasses,
+    iconClasses: STANDARD_COLORS.warning.iconClasses,
   },
   info: {
-    ...STANDARD_COLORS.info,
-    bgClasses: 'bg-brandcomp-50/90 dark:bg-brandcomp-950/90',
+    bgClasses: 'bg-sky-50/90 dark:bg-sky-950/90',
+    textClasses: STANDARD_COLORS.info.textClasses,
+    iconClasses: STANDARD_COLORS.info.iconClasses,
   },
   loading: {
-    ...STANDARD_COLORS.loading,
-    bgClasses: 'bg-brandcompdim-50/90 dark:bg-brandcompdim-950/90',
+    bgClasses: 'bg-gray-50/90 dark:bg-gray-950/90',
+    textClasses: STANDARD_COLORS.loading.textClasses,
+    iconClasses: STANDARD_COLORS.loading.iconClasses,
   },
 };
-
-const DEFAULT_COLORS: SeverityColors = STANDARD_COLORS.info;
 
 export function getSeverityMeta(severity: string | null): SeverityMeta {
   return SEVERITY_META[severity || 'info'] ?? SEVERITY_META.info;
 }
 
 export function getInvertedColors(severity: string | null): SeverityColors {
-  return INVERTED_COLORS[severity || 'info'] ?? DEFAULT_COLORS;
+  return INVERTED_COLORS[severity || 'info'] ?? INVERTED_COLORS.info;
 }
 
 export function getStandardColors(severity: string | null): SeverityColors {
-  return STANDARD_COLORS[severity || 'info'] ?? DEFAULT_COLORS;
+  return STANDARD_COLORS[severity || 'info'] ?? STANDARD_COLORS.info;
 }
 
 export function getBannerColors(severity: string | null): SeverityColors {
-  return BANNER_COLORS[severity || 'info'] ?? DEFAULT_COLORS;
+  return BANNER_COLORS[severity || 'info'] ?? BANNER_COLORS.info;
 }

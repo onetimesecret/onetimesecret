@@ -1,0 +1,92 @@
+# scripts/host-seam/caddy-approximated-lane.caddy
+#
+# Local Caddy site block that SIMULATES THE APPROXIMATED INGRESS, for the
+# browser-level half of the host-seam matrix.
+#
+# Install into the local ops Caddyfile (~/Projects/ops/environments/local/caddy/)
+# and reload. It reuses the existing dev.metalbaum.dev+7 certificate, so no new
+# certs are needed — local-secrets4/5 are already SANs on it.
+#
+# ---------------------------------------------------------------------------
+# Why this exists
+# ---------------------------------------------------------------------------
+#
+# The current local custom-domain block does a bare `reverse_proxy 127.0.0.1:7143`.
+# Caddy v2 PRESERVES the incoming Host by default, so locally `request.host`
+# and the public host are always the same string, and every consumer that keys
+# on `request.host` looks correct.
+#
+# Production does not work that way. Approximated terminates the customer's
+# custom domain, moves the real hostname into `Apx-Incoming-Host`, and rewrites
+# `Host:` to the origin target. Anything keyed on `request.host` therefore sees
+# the platform host, not the tenant's domain — which is exactly #4224.
+#
+# So local dev is structurally BLIND to this whole class of bug: there is no
+# request you can make through the existing block that distinguishes a consumer
+# reading the public host from one reading the raw Host header. This lane makes
+# the two observable, which is the prerequisite for ever catching the next one.
+#
+# ---------------------------------------------------------------------------
+# The two lanes
+# ---------------------------------------------------------------------------
+#
+#   local-secrets1..3.afb.pet   Host preserved      (the existing block)
+#   local-secrets4..5.afb.pet   Host rewritten      (this block — production)
+#
+# Register the SAME organization's custom domain on a host from each lane and
+# every custom-domain feature can be checked against both topologies. A feature
+# that works on lane 1 and fails on lane 2 is reading the raw Host header.
+#
+# ---------------------------------------------------------------------------
+
+# The authority Approximated leaves in `Host:`. Deliberately NOT a domain the
+# app knows: the app must not key anything on it.
+(apx-origin-target) {
+	origin-target.internal
+}
+
+https://local-secrets4.afb.pet https://local-secrets5.afb.pet {
+	tls /Users/d/Projects/ops/environments/local/caddy/.certs/dev.metalbaum.dev+7.pem /Users/d/Projects/ops/environments/local/caddy/.certs/dev.metalbaum.dev+7-key.pem
+
+	root * /var/www/public/web
+
+	handle {
+		try_files {path} {path}/index.html
+		file_server
+	}
+
+	handle /dist/* {
+		root * /var/www/public/web
+		try_files {path} {path}/
+		file_server
+		@notfound {
+			not file
+			path_regexp ^/dist/.*
+		}
+		reverse_proxy @notfound localhost:5173
+	}
+
+	# Everything dynamic goes through the rewrite. The three header_up lines
+	# ARE the simulation — drop any one of them and the lane stops modelling
+	# production:
+	#
+	#   Host                 rewritten to the origin target, as Approximated does
+	#   Apx-Incoming-Host    carries the real browser host (what DetectHost reads)
+	#   X-Forwarded-Host     deleted, so nothing else can accidentally recover
+	#                        the public host and mask the bug
+	#
+	# The app must be running with TRUSTED_PROXY_ENABLED=true (filter mode
+	# trusts loopback) or DetectHost discards Apx-Incoming-Host and this lane
+	# just looks like a broken canonical request.
+	@non_static {
+		not file
+	}
+	handle @non_static {
+		reverse_proxy 127.0.0.1:7143 {
+			header_up Host origin-target.internal
+			header_up Apx-Incoming-Host {http.request.host}
+			header_up -X-Forwarded-Host
+			header_down Server "Proxied Server Name (apx-sim)"
+		}
+	}
+}

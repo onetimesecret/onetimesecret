@@ -10,10 +10,11 @@ module Auth::Config::Email
       # rubocop:disable Lint/NestedMethodDefinition -- Rodauth's auth_class_eval pattern
       auth.auth_class_eval do
         def determine_account_locale
-          account[:locale] ||
-            session[:locale] ||
-            request.params['locale'] ||
-            I18n.default_locale.to_s
+          [
+            account[:locale],
+            session[:locale],
+            request.params['locale'],
+          ].find { !it.to_s.strip.empty? } || I18n.default_locale.to_s
         end
 
         # Build multipart email (text + HTML) from template

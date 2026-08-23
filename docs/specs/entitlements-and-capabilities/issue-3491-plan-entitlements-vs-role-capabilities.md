@@ -321,7 +321,7 @@ Counts (re-verified against source at preparation; see the count-verification no
 **Action:** remove all `manage_*` from the catalog `entitlements:` and from every plan `entitlements:` array. Move capability definitions to a code-defined `ROLE_CAPABILITIES` (or a separate role-capability manifest). Optionally add `kind: plan_feature|role_capability` if the catalog must retain them for docs.
 
 **H7 — ADR-012 normative ROLE map does not match shipped code, and is still `status: proposed`.**
-`docs/architecture/decision-records/adr-012-membership-level-entitlements.md:17-92` vs `organization_membership.rb:72-106`. ADR puts `manage_teams` in admin (absent in code); several plan features ADR-OWNER vs code-ADMIN; `ip_access_rules`/`workspace_branding` ADR-ADMIN vs code-OWNER; `custom_signin_config` in code, absent from ADR. The governing document cannot be trusted as source of truth.
+`docs/adr/adr-012-membership-level-entitlements.md:17-92` vs `organization_membership.rb:72-106`. ADR puts `manage_teams` in admin (absent in code); several plan features ADR-OWNER vs code-ADMIN; `ip_access_rules`/`workspace_branding` ADR-ADMIN vs code-OWNER; `custom_signin_config` in code, absent from ADR. The governing document cannot be trusted as source of truth.
 **Action:** treat code as ground truth; supersede ADR-012 with a new #3491 Option C ADR that declares two namespaces, two check methods, billing-independent capabilities, and reconciles every token's tier.
 
 ### MEDIUM
@@ -687,7 +687,7 @@ preparation (not only via the reader passes):
 | Permission booleans conflate plan and role axes on the wire | `apps/api/account/logic/account/get_permissions.rb:213,221-241` |
 | Bootstrap ships `planid` + `current_user_role` but **not** entitlements; `org.entitlements` loads from `/billing/api/entitlements/:extid` | `apps/web/core/views/serializers/organization_serializer.rb:55-73`; `src/shared/stores/organizationStore.ts:299-341` |
 | Frontend `can()` reads `org.entitlements` with **no role intersection**; standalone short-circuits `true` for everyone, although `current_user_role` is available | `src/shared/composables/useEntitlements.ts:86-100`; bootstrap org payload |
-| ADR-012 role tiers do not match shipped `ROLE_ENTITLEMENTS` | `docs/architecture/decision-records/adr-012-membership-level-entitlements.md:31-48` vs `organization_membership.rb:72-106` |
+| ADR-012 role tiers do not match shipped `ROLE_ENTITLEMENTS` | `docs/adr/adr-012-membership-level-entitlements.md:31-48` vs `organization_membership.rb:72-106` |
 
 ## Appendix B — Where to start (smallest first PR)
 

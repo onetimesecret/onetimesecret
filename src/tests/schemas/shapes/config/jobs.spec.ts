@@ -1,9 +1,9 @@
 // src/tests/schemas/shapes/config/jobs.spec.ts
 //
 // Coverage for the jobs shape — top-level defaults, worker config bounds,
-// scheduler/domain_refresh/expiration_warnings sub-trees, and the six
+// scheduler/domain_refresh/expiration_warnings sub-trees, and the seven
 // maintenance jobs (phantom_cleanup, data_audit, participation_gc,
-// index_rebuild, instances_rebuild, housekeeping).
+// index_rebuild, instances_rebuild, housekeeping, entitlement_materialize).
 
 import { describe, it, expect } from 'vitest';
 import {
@@ -38,7 +38,9 @@ describe('jobsShape — top-level defaults', () => {
     // domain_refresh (inline tree), which stays undefined when omitted. This
     // preserves the original flat-key semantics (a value on empty parse).
     const result = jobsShape.parse({});
-    expect(result.plan_cache_refresh).toEqual({ enabled: false });
+    // plan_cache_refresh defaults to enabled, matching the Ruby YAML default
+    // (etc/defaults/config.defaults.yaml).
+    expect(result.plan_cache_refresh).toEqual({ enabled: true });
     expect(result.catalog_retry).toEqual({ enabled: false });
     expect(result.dlq_consumer).toEqual({ enabled: true });
   });
@@ -49,7 +51,7 @@ describe('jobsShape — top-level defaults', () => {
       catalog_retry: {},
       dlq_consumer: {},
     });
-    expect(result.plan_cache_refresh?.enabled).toBe(false);
+    expect(result.plan_cache_refresh?.enabled).toBe(true);
     expect(result.catalog_retry?.enabled).toBe(false);
     expect(result.dlq_consumer?.enabled).toBe(true);
   });
@@ -119,8 +121,8 @@ describe('jobsSchedulerShape', () => {
 });
 
 describe('scheduled-job enable toggles', () => {
-  it('plan_cache_refresh.enabled defaults to false', () => {
-    expect(jobsPlanCacheRefreshShape.parse({}).enabled).toBe(false);
+  it('plan_cache_refresh.enabled defaults to true (matches the Ruby YAML default)', () => {
+    expect(jobsPlanCacheRefreshShape.parse({}).enabled).toBe(true);
   });
 
   it('catalog_retry.enabled defaults to false', () => {
@@ -229,6 +231,14 @@ describe('jobsMaintenanceShape — every sub-job tree applies defaults', () => {
     });
   });
 
+  it('entitlement_materialize defaults', () => {
+    const result = jobsMaintenanceShape.parse({ entitlement_materialize: {} });
+    expect(result.entitlement_materialize).toEqual({
+      enabled: false,
+      cron: '0 3 * * *',
+    });
+  });
+
   it('enabled toggle on the top-level maintenance object defaults to false', () => {
     expect(jobsMaintenanceShape.parse({}).enabled).toBe(false);
   });
@@ -243,10 +253,16 @@ describe('jobsMaintenanceShape — every sub-job tree applies defaults', () => {
 describe('jobsShape — composed sub-trees', () => {
   it('applies maintenance subtree defaults when nested objects are empty', () => {
     const result = jobsShape.parse({
-      maintenance: { phantom_cleanup: {}, data_audit: {}, housekeeping: {} },
+      maintenance: {
+        phantom_cleanup: {},
+        data_audit: {},
+        housekeeping: {},
+        entitlement_materialize: {},
+      },
     });
     expect(result.maintenance?.phantom_cleanup?.interval).toBe('1h');
     expect(result.maintenance?.data_audit?.sample_size).toBe(100);
     expect(result.maintenance?.housekeeping?.cron).toBe('0 2 * * *');
+    expect(result.maintenance?.entitlement_materialize?.cron).toBe('0 3 * * *');
   });
 });

@@ -37,6 +37,7 @@ POST   /users/:user_id/unsuspend          ColonelAPI::Logic::Colonel::UnsuspendU
 DELETE /users/:user_id                    ColonelAPI::Logic::Colonel::PurgeUser response=json auth=sessionauth role=colonel scope=internal
 
 # System Monitoring
+GET    /system/proxy-headers              ColonelAPI::Logic::Colonel::GetProxyHeadersDebug response=json auth=sessionauth role=colonel network=admin scope=internal
 GET    /system/database                   ColonelAPI::Logic::Colonel::GetDatabaseMetrics response=json auth=sessionauth role=colonel scope=internal
 GET    /system/brand                      ColonelAPI::Logic::Colonel::GetBrandDiagnostics response=json auth=sessionauth role=colonel scope=internal
 GET    /system/redis                      ColonelAPI::Logic::Colonel::GetRedisMetrics response=json auth=sessionauth role=colonel scope=internal
@@ -55,6 +56,7 @@ GET    /domains/orphaned                 ColonelAPI::Logic::Colonel::ListOrphane
 POST   /domains/:extid/verify             ColonelAPI::Logic::Colonel::VerifyCustomDomain response=json auth=sessionauth role=colonel scope=internal
 GET    /domains/:extid/probe             ColonelAPI::Logic::Colonel::ProbeDomain response=json auth=sessionauth role=colonel scope=internal
 POST   /domains/:extid/repair            ColonelAPI::Logic::Colonel::RepairDomain response=json auth=sessionauth role=colonel scope=internal
+POST   /domains/:extid/override          ColonelAPI::Logic::Colonel::OverrideDomainVerification response=json auth=sessionauth role=colonel scope=internal
 POST   /domains/:extid/transfer          ColonelAPI::Logic::Colonel::TransferDomain response=json auth=sessionauth role=colonel scope=internal
 # Per-domain config records (signin/signup/homepage/api/incoming/sso/mailer): view/upsert/delete + ensure-missing (v0.26.2 outage class)
 GET    /domains/:extid/configs           ColonelAPI::Logic::Colonel::GetDomainConfigs response=json auth=sessionauth role=colonel scope=internal
@@ -68,6 +70,7 @@ DELETE /domains/:extid                   ColonelAPI::Logic::Colonel::RemoveCusto
 # Organizations
 GET    /organizations                     ColonelAPI::Logic::Colonel::ListOrganizations response=json auth=sessionauth role=colonel scope=internal
 GET    /organizations/:org_id             ColonelAPI::Logic::Colonel::GetOrganizationDetail response=json auth=sessionauth role=colonel scope=internal
+POST   /organizations/:org_id/checkout-link ColonelAPI::Logic::Colonel::CreateOrganizationCheckoutLink response=json auth=sessionauth role=colonel scope=internal
 POST   /organizations/:org_id/investigate ColonelAPI::Logic::Colonel::InvestigateOrganization response=json auth=sessionauth role=colonel scope=internal
 POST   /organizations/:org_id/reconcile   ColonelAPI::Logic::Colonel::ReconcileOrganization response=json auth=sessionauth role=colonel scope=internal
 # Ownership transfer (#3907: op-backed, shared with `bin/ots org transfer-ownership`). Applies immediately — dry_run pinned false (D12: no preview flow in the console).
@@ -85,6 +88,14 @@ DELETE /organizations/:org_id/members/:member_id         ColonelAPI::Logic::Colo
 # Membership Entitlement Overrides (#3907: per-membership grant/revoke, shared with `bin/ots memberships entitlement`)
 POST   /organizations/:org_id/members/:member_id/entitlements/:action   ColonelAPI::Logic::Colonel::ManageMembershipEntitlementOverride response=json auth=sessionauth role=colonel scope=internal
 DELETE /organizations/:org_id/members/:member_id/entitlements/overrides ColonelAPI::Logic::Colonel::ManageMembershipEntitlementOverride response=json auth=sessionauth role=colonel scope=internal
+
+# Permanent delete (#4204: op-backed, shared with `bin/ots org delete`). dry_run
+# defaults TRUE — the console previews the plan, then re-issues with
+# dry_run=false; force_default / force_subscription each unlock ONE guardrail.
+# Declared LAST of the /organizations/:org_id DELETEs, after the deeper member
+# and entitlement paths, for the same reason /domains/:extid is: the single
+# segment pattern must not get first refusal on a longer path.
+DELETE /organizations/:org_id                            ColonelAPI::Logic::Colonel::DeleteOrganization response=json auth=sessionauth role=colonel scope=internal
 
 # Usage Export
 GET    /usage/export                      ColonelAPI::Logic::Colonel::ExportUsage response=json auth=sessionauth role=colonel scope=internal

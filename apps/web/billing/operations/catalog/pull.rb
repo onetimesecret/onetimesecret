@@ -25,15 +25,30 @@ module Billing
       #   end
       #
       class Pull
+        # catalog_verified is the freshness signal: true only when this run
+        # persisted at least one plan from the live Stripe catalog and
+        # completed the prune/rebuild/timestamp path. `success` alone is not
+        # a freshness guarantee — a Stripe catalog that returns no matching
+        # products (wrong region filter, unpublished products, no active
+        # recurring prices) is a successful no-op that leaves the previous
+        # Redis plans in place. Callers that must not act on a stale cache
+        # (Onetime::Jobs::Scheduled::Maintenance::EntitlementMaterializeJob)
+        # gate on this, not on `success`.
+        #
+        # Config-only deployments (no Stripe API key) report false: their
+        # plans come from ConfigLoader, and nothing was verified against
+        # Stripe.
         Result = Data.define(
           :success,
           :plans_synced,
           :config_plans_loaded,
           :cache_cleared,
+          :catalog_verified,
           :errors,
           :error_type,
         ) do
-          def initialize(success:, plans_synced: 0, config_plans_loaded: 0, cache_cleared: false, errors: [], error_type: nil)
+          def initialize(success:, plans_synced: 0, config_plans_loaded: 0, cache_cleared: false,
+                         catalog_verified: false, errors: [], error_type: nil)
             super
           end
         end
@@ -56,6 +71,7 @@ module Billing
           cache_cleared       = false
           plans_synced        = 0
           config_plans_loaded = 0
+          catalog_verified    = false
 
           if @clear_cache
             report('Clearing existing plan cache...')
@@ -74,14 +90,17 @@ module Billing
               plans_synced: 0,
               config_plans_loaded: config_plans_loaded,
               cache_cleared: cache_cleared,
+              catalog_verified: false,
             )
           end
 
           report('Pulling from Stripe to Redis cache...')
 
-          plans_synced = StripeRetry.with_retry do
+          sync             = StripeRetry.with_retry do
             sync_from_stripe
           end
+          plans_synced     = sync[:plans_synced]
+          catalog_verified = sync[:catalog_verified]
 
           config_plans_loaded = ConfigLoader.upsert_config_only_plans
 
@@ -90,6 +109,7 @@ module Billing
             plans_synced: plans_synced,
             config_plans_loaded: config_plans_loaded,
             cache_cleared: cache_cleared,
+            catalog_verified: catalog_verified,
           )
         rescue Stripe::StripeError => ex
           Result.new(
@@ -97,6 +117,7 @@ module Billing
             plans_synced: plans_synced,
             config_plans_loaded: config_plans_loaded,
             cache_cleared: cache_cleared,
+            catalog_verified: catalog_verified,
             errors: ["Stripe error: #{ex.message}"],
             error_type: :stripe_api,
           )
@@ -106,6 +127,7 @@ module Billing
             plans_synced: plans_synced,
             config_plans_loaded: config_plans_loaded,
             cache_cleared: cache_cleared,
+            catalog_verified: catalog_verified,
             errors: [ex.message],
             error_type: :validation,
           )
@@ -115,6 +137,7 @@ module Billing
             plans_synced: plans_synced,
             config_plans_loaded: config_plans_loaded,
             cache_cleared: cache_cleared,
+            catalog_verified: catalog_verified,
             errors: ["#{ex.class}: #{ex.message}"],
             error_type: :internal,
           )
@@ -127,7 +150,12 @@ module Billing
         # Stripe API calls are wrapped in circuit breaker to prevent cascade
         # failures during Stripe outages.
         #
-        # @return [Integer] Number of plans synced
+        # A successful call is not the same as a verified catalog: an empty
+        # result returns early, before the prune/rebuild/timestamp path, and
+        # leaves the previously cached plans untouched. Report that as
+        # unverified so callers can refuse to act on a stale cache.
+        #
+        # @return [Hash] :plans_synced [Integer], :catalog_verified [Boolean]
         def sync_from_stripe
           report('Fetching products from Stripe...')
 
@@ -137,8 +165,9 @@ module Billing
           end
 
           if plan_data_list.empty?
-            OT.lw '[Pull] No valid plans collected from Stripe'
-            return 0
+            OT.lw '[Pull] No valid plans collected from Stripe; ' \
+                  'leaving previously cached plans in place (catalog unverified)'
+            return { plans_synced: 0, catalog_verified: false }
           end
 
           report("Upserting #{plan_data_list.size} plans...")
@@ -170,7 +199,11 @@ module Billing
 
           OT.li "[Pull] Synced #{saved_count}/#{upserted_ids.size} plans " \
                 "(#{not_persisted.size} not persisted), pruned #{pruned_count}"
-          saved_count
+
+          # Verified only when at least one plan from the live catalog is
+          # actually readable from the cache. If every upsert failed to
+          # persist, the cache is whatever it was before this run.
+          { plans_synced: saved_count, catalog_verified: saved_count.positive? }
         end
 
         # Fetch products and prices from Stripe, return plan data hashes

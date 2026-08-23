@@ -903,14 +903,6 @@
     "text": "Remover {domain}",
     "source_hash": "ae708a1d"
   },
-  "web.organizations.sso.enabled": {
-    "text": "Ativar SSO",
-    "source_hash": "d10d0801"
-  },
-  "web.organizations.sso.enabled_hint": {
-    "text": "Quando ativado, os membros da organização podem iniciar sessão usando este fornecedor de SSO",
-    "source_hash": "d7da2fa2"
-  },
   "web.organizations.sso.enforce_sso_only": {
     "text": "Impor apenas SSO",
     "source_hash": "b3a3f694"
@@ -1034,5 +1026,209 @@
   "web.organizations.create_workspace": {
     "text": "Criar espaço de trabalho",
     "source_hash": "c63c14cf"
+  },
+  "web.organizations.organization_id": {
+    "text": "ID da Organização",
+    "source_hash": "1f466322"
+  },
+  "web.organizations.organization_id_hint": {
+    "text": "Usa este ID ao contactar o suporte ou ao delimitar pedidos API para esta organização. Não é uma credencial de início de sessão.",
+    "source_hash": "29549b3a"
+  },
+  "web.organizations.audit.title": {
+    "text": "Atividade de Mensagens Confidenciais",
+    "source_hash": "6d6d41f3"
+  },
+  "web.organizations.audit.description": {
+    "text": "Trilho de auditoria de eventos de criação e acesso a mensagens confidenciais registados para esta organização.",
+    "source_hash": "553c564b"
+  },
+  "web.organizations.audit.country_unknown": {
+    "text": "Desconhecido",
+    "source_hash": "b764cdc0"
+  },
+  "web.organizations.audit.empty_title": {
+    "text": "Ainda sem atividade",
+    "source_hash": "0a12b92c"
+  },
+  "web.organizations.audit.empty_description": {
+    "text": "Eventos de criação e acesso a mensagens confidenciais aparecerão aqui à medida que a tua equipa partilha mensagens confidenciais.",
+    "source_hash": "62fb14c2"
+  },
+  "web.organizations.audit.capped_notice": {
+    "text": "Apenas os {max} eventos mais recentes são retidos; atividade mais antiga foi cortada.",
+    "source_hash": "da7901e2"
+  },
+  "web.organizations.audit.collection_paused_notice": {
+    "text": "A recolha de eventos está pausada; nova atividade de mensagens confidenciais não está a ser registada.",
+    "source_hash": "cb09d147"
+  },
+  "web.organizations.audit.load_error": {
+    "text": "Não foi possível carregar a atividade de mensagens confidenciais.",
+    "source_hash": "52fde814"
+  },
+  "web.organizations.audit.contract_mismatch": {
+    "text": "Os dados de atividade devolvidos pelo servidor não puderam ser lidos. O trilho não está vazio — apenas não pode ser apresentado neste momento.",
+    "source_hash": "db0d007a"
+  },
+  "web.organizations.audit.retry": {
+    "text": "Tentar novamente",
+    "source_hash": "d8b8392e"
+  },
+  "web.organizations.audit.showing_range": {
+    "text": "A mostrar {from}–{to} de {total}",
+    "source_hash": "c329279d"
+  },
+  "web.organizations.audit.upgrade_prompt": {
+    "text": "A atividade de mensagens confidenciais requer um plano com registos de auditoria. Atualiza para ver quem criou, visualizou e revelou mensagens confidenciais nesta organização.",
+    "source_hash": "453649ce"
+  },
+  "web.organizations.audit.role_required": {
+    "text": "A atividade de mensagens confidenciais está disponível para proprietários e administradores da organização.",
+    "source_hash": "e066ec63"
+  },
+  "web.organizations.audit.actors.creator": {
+    "text": "Criador",
+    "source_hash": "88447b83"
+  },
+  "web.organizations.audit.actors.authenticated_other": {
+    "text": "Outro utilizador com sessão iniciada",
+    "source_hash": "ee45aa5a"
+  },
+  "web.organizations.audit.actors.anonymous": {
+    "text": "Anónimo",
+    "source_hash": "e7a8aa2d"
+  },
+  "web.organizations.audit.actors.system": {
+    "text": "Sistema",
+    "source_hash": "6725e7bb"
+  },
+  "web.organizations.audit.actors.unknown": {
+    "text": "Desconhecido",
+    "source_hash": "b764cdc0"
+  },
+  "web.organizations.audit.columns.event": {
+    "text": "Evento",
+    "source_hash": "4e1f49a9"
+  },
+  "web.organizations.audit.columns.secret": {
+    "text": "Mensagem confidencial",
+    "source_hash": "7e32a729"
+  },
+  "web.organizations.audit.columns.actor": {
+    "text": "Ator",
+    "source_hash": "449995c4"
+  },
+  "web.organizations.audit.columns.country": {
+    "text": "País",
+    "source_hash": "701d021d"
+  },
+  "web.organizations.audit.columns.when": {
+    "text": "Quando",
+    "source_hash": "cf9c7aa2"
+  },
+  "web.organizations.audit.kinds.created": {
+    "text": "Mensagem confidencial criada",
+    "source_hash": "e4a1e1fd"
+  },
+  "web.organizations.audit.kinds.status_get": {
+    "text": "Estado do link verificado",
+    "source_hash": "0753f60e"
+  },
+  "web.organizations.audit.kinds.secret_get": {
+    "text": "Link da mensagem confidencial aberto",
+    "source_hash": "e271e060"
+  },
+  "web.organizations.audit.kinds.previewed": {
+    "text": "Pré-visualizada pelo criador",
+    "source_hash": "639fc1e2"
+  },
+  "web.organizations.audit.kinds.creator_status_get": {
+    "text": "Estado verificado pelo criador",
+    "source_hash": "7e4b5de5"
+  },
+  "web.organizations.audit.kinds.receipt_viewed": {
+    "text": "Recibo visualizado",
+    "source_hash": "a417ead4"
+  },
+  "web.organizations.audit.kinds.revealed": {
+    "text": "Mensagem confidencial revelada",
+    "source_hash": "aff2c84d"
+  },
+  "web.organizations.audit.kinds.burned": {
+    "text": "Mensagem confidencial queimada",
+    "source_hash": "5ac68dc6"
+  },
+  "web.organizations.audit.kinds.expired": {
+    "text": "Mensagem confidencial expirada",
+    "source_hash": "c127dab6"
+  },
+  "web.organizations.audit.kinds.orphaned": {
+    "text": "Mensagem confidencial órfã",
+    "source_hash": "23fe1a47"
+  },
+  "web.organizations.audit.kinds.reveal_failed_undecryptable": {
+    "text": "Revelação falhou (não desencriptável)",
+    "source_hash": "d5616abf"
+  },
+  "web.organizations.tabs.activity": {
+    "text": "Atividade",
+    "source_hash": "38da1505"
+  },
+  "web.organizations.invitations.restricted_host_title": {
+    "text": "É necessário um método de início de sessão diferente aqui",
+    "source_hash": "d761ad30"
+  },
+  "web.organizations.invitations.restricted_host_body": {
+    "text": "Este site só permite iniciar sessão com {method}, pelo que não podes criar aqui uma conta com palavra-passe. Não é possível concluir {method} nesta página.",
+    "source_hash": "6ac146d4"
+  },
+  "web.organizations.invitations.restricted_host_unknown_body": {
+    "text": "Este site só permite um método de início de sessão específico, e não é um que esta página possa disponibilizar. Não é possível criar aqui uma conta com palavra-passe.",
+    "source_hash": "e24d59a9"
+  },
+  "web.organizations.invitations.restricted_sso_body": {
+    "text": "Este site usa início de sessão único. Inicia sessão com o fornecedor da tua organização para continuar — isso cria a tua conta e inicia a tua sessão.",
+    "source_hash": "e942d04b"
+  },
+  "web.organizations.invitations.restricted_sso_cta": {
+    "text": "Continuar para iniciar sessão",
+    "source_hash": "d398cd0a"
+  },
+  "web.organizations.invitations.restricted_use_email_link": {
+    "text": "Em alternativa, abre o link do e-mail de convite para aceitares a partir do site principal.",
+    "source_hash": "73bf298f"
+  },
+  "web.organizations.invitations.invitation_stays_pending": {
+    "text": "O teu convite continua válido — nada foi consumido e podes aceitá-lo assim que iniciares sessão.",
+    "source_hash": "f4d00be1"
+  },
+  "web.organizations.invitations.signin_unavailable_title": {
+    "text": "O início de sessão não está disponível neste site",
+    "source_hash": "c56bce2b"
+  },
+  "web.organizations.invitations.signin_unavailable_body": {
+    "text": "Este site está restrito a {method}, que não está a funcionar aqui, pelo que de momento não há forma de iniciar sessão.",
+    "source_hash": "62c01601"
+  },
+  "web.organizations.invitations.signin_unavailable_unknown_body": {
+    "text": "Este site está restrito a um método de início de sessão que não está a funcionar aqui, pelo que de momento não há forma de iniciar sessão.",
+    "source_hash": "1f61e456"
+  },
+  "web.organizations.invitations.signin_unavailable_conflict_body": {
+    "text": "As definições de início de sessão deste site entram em conflito com a restrição aplicada a todo o site ({method}), pelo que nenhuma se aplica e de momento não há forma de iniciar sessão.",
+    "source_hash": "54cdfd61"
+  },
+  "web.organizations.sso.connection_enabled": {
+    "text": "Ligação ativa",
+    "source_hash": "b6334b2b"
+  },
+  "web.organizations.sso.connection_enabled_hint": {
+    "text": "Quando ativa, os membros podem iniciar sessão com este fornecedor de SSO. O SSO também tem de estar ativado como método de início de sessão na Configuração de Início de Sessão do domínio.",
+    "source_hash": "871db2f1"
+  },
+  "web.organizations.sso.enable_untested_warning": {
+    "text": "Esta ligação ainda não passou num teste aqui. Executa Testar Ligação antes de a ativares, para que uma configuração incorreta nunca chegue à tua página de início de sessão.",
+    "source_hash": "c1fbdeca"
   }
 }

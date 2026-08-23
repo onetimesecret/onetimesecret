@@ -2,6 +2,11 @@
 
 <script setup lang="ts">
 import { SECRET_ACTIVITY_KINDS, type SecretActivityKind } from '@/schemas/api/organizations';
+import {
+  getSecretActivityMaxEvents,
+  isSecretActivityCollectEnabled,
+  isSecretActivityGeoCountryEnabled,
+} from '@/utils/features';
 import TableSkeleton from '@/shared/components/closet/TableSkeleton.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import EmptyState from '@/shared/components/ui/EmptyState.vue';
@@ -28,6 +33,34 @@ const props = defineProps<{
 const { t } = useI18n();
 
 const orgExtid = toRef(props, 'orgExtid');
+
+/**
+ * Collection paused (#3990): SECRET_ACTIVITY_COLLECT=false stops event
+ * RECORDING instance-wide while historical events keep rendering. The notice
+ * must sit above every state — a live-looking trail (or an innocent-looking
+ * empty state) is a lie of omission when nothing new is being written.
+ * Read once at setup: the instance flag ships in the bootstrap payload and
+ * cannot change without a reload.
+ */
+const collectionPaused = !isSecretActivityCollectEnabled();
+
+/**
+ * Retention cap for the capped notice (#3990). The cap is operator-
+ * configurable, so the notice interpolates it — a hardcoded "10,000" would
+ * state a false retention claim on an instance configured to anything else.
+ * Read once at setup alongside collectionPaused: same bootstrap snapshot,
+ * same reload-to-change lifetime.
+ */
+const maxEventsLabel = getSecretActivityMaxEvents().toLocaleString();
+
+/**
+ * Country column gate (#3989). The country field is legally-sensitive
+ * org-tier geo data pending counsel review, so it is DEFAULT OFF and only
+ * renders (header + cells) when an operator explicitly opts in via
+ * SECRET_ACTIVITY_GEO_COUNTRY_ENABLED=true. Read once at setup, same as the flags
+ * above: the bootstrap flag ships once and cannot change without a reload.
+ */
+const showCountry = isSecretActivityGeoCountryEnabled();
 
 const {
   records,
@@ -114,6 +147,9 @@ const decoratedEvents = computed(() =>
     actorIdentity: event.actor_id
       ? (actors.value[event.actor_id]?.email ?? event.actor_id)
       : null,
+    // Gated column (#3989): computed unconditionally (cheap), rendering is
+    // what's gated by showCountry — see the th/td v-if in the template.
+    countryLabel: event.net_country ?? t('web.organizations.audit.country_unknown'),
   }))
 );
 
@@ -161,6 +197,23 @@ watch(orgExtid, () => {
 
 <template>
   <div>
+    <!--
+      Collection-paused notice (#3990) — warning tone, rendered above every
+      state: historical events still display while nothing new is recorded,
+      so a live-looking trail (or the empty state) must not read as current.
+    -->
+    <div
+      v-if="collectionPaused"
+      data-testid="org-audit-paused"
+      class="mb-4 flex items-center gap-2 rounded-md bg-amber-50 px-4 py-2.5 text-xs text-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
+      <OIcon
+        collection="heroicons"
+        name="pause-circle"
+        class="size-4 shrink-0"
+        aria-hidden="true" />
+      {{ t('web.organizations.audit.collection_paused_notice') }}
+    </div>
+
     <!-- Loading State — initial fetch only; refetches keep their state mounted -->
     <TableSkeleton v-if="showSkeleton" />
 
@@ -226,7 +279,7 @@ watch(orgExtid, () => {
 
     <!-- Event List -->
     <div v-else>
-      <!-- Retention-cap notice — the trail keeps only the newest 10,000 events -->
+      <!-- Retention-cap notice — the trail keeps only the newest max_events -->
       <div
         v-if="isCapped"
         data-testid="org-audit-capped"
@@ -236,7 +289,7 @@ watch(orgExtid, () => {
           name="information-circle"
           class="size-4 shrink-0"
           aria-hidden="true" />
-        {{ t('web.organizations.audit.capped_notice') }}
+        {{ t('web.organizations.audit.capped_notice', { max: maxEventsLabel }) }}
       </div>
 
       <!--
@@ -275,6 +328,12 @@ watch(orgExtid, () => {
                 {{ t('web.organizations.audit.columns.actor') }}
               </th>
               <th
+                v-if="showCountry"
+                scope="col"
+                class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                {{ t('web.organizations.audit.columns.country') }}
+              </th>
+              <th
                 scope="col"
                 class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 {{ t('web.organizations.audit.columns.when') }}
@@ -283,7 +342,7 @@ watch(orgExtid, () => {
           </thead>
           <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800/50">
             <tr
-              v-for="{ event, key, label, icon, absolute, relative, actorLabel: rowActor, actorIdentity } in decoratedEvents"
+              v-for="{ event, key, label, icon, absolute, relative, actorLabel: rowActor, actorIdentity, countryLabel } in decoratedEvents"
               :key="key"
               data-testid="org-audit-row">
               <td class="px-6 py-4 whitespace-nowrap">
@@ -321,6 +380,11 @@ watch(orgExtid, () => {
                   </span>
                 </template>
                 <span v-else class="text-gray-400 dark:text-gray-500">—</span>
+              </td>
+              <td
+                v-if="showCountry"
+                class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                {{ countryLabel }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <time

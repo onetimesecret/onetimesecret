@@ -73,9 +73,10 @@ If not eligible, stop and report — do not translate without the resolved artif
    translations. `tasks create` reads only the English source, and `tasks export`
    creates the per-file target JSON on first write; no seeding is needed.
 
-3. **Build the task queue** so the agent has pending work:
+3. **Build the task queue** so the agent has pending work (`--apply` is
+   required; bare `create` only previews):
    ```bash
-   python3 locales/scripts/i18n tasks create {lang}
+   python3 locales/scripts/i18n tasks create {lang} --apply
    python3 locales/scripts/i18n tasks next {lang} --stats
    ```
 

@@ -90,4 +90,49 @@ RSpec.describe Onetime::Operations::Email::SyncProviderFeedback do
     expect { described_class.new(provider: 'smtp').call }
       .to raise_error(ArgumentError, /no feedback API/i)
   end
+
+  context 'with the smtp2go provider' do
+    let(:smtp2go_records) do
+      [
+        { 'email' => 'a@example.com', 'kind' => 'suppression', 'reason' => 'bounce', 'source' => 'smtp2go' },
+        { 'email' => 'b@example.com', 'kind' => 'suppression', 'reason' => 'complaint', 'source' => 'smtp2go' },
+      ]
+    end
+
+    before do
+      allow(Onetime::Mail::Feedback::Smtp2go).to receive(:new).and_return(fetcher)
+    end
+
+    it 'is a supported feedback provider' do
+      expect(described_class::PROVIDERS).to include('smtp2go')
+    end
+
+    it 'builds the smtp2go fetcher from smtp2go credentials and ingests its list' do
+      allow(fetcher).to receive(:fetch).and_return(smtp2go_records)
+      ingest = instance_double(
+        Onetime::Operations::Email::IngestFeedback,
+        call: Onetime::Operations::Email::IngestFeedback::Result.new(accepted: 2, rejected: 0, errors: []),
+      )
+      expect(Onetime::Operations::Email::IngestFeedback).to receive(:new).with(
+        records: smtp2go_records, actor: described_class::CLI_ACTOR, default_source: 'smtp2go'
+      ).and_return(ingest)
+
+      result = described_class.new(provider: 'smtp2go').call
+
+      expect(Onetime::Mail::Mailer).to have_received(:provider_credentials).with('smtp2go')
+      expect(result.provider).to eq('smtp2go')
+      expect(result.fetched).to eq(2)
+      expect(result.accepted).to eq(2)
+      expect(result.dry_run).to be(false)
+    end
+
+    it 'stamps sync_status under the smtp2go key' do
+      Onetime::EmailSuppression.sync_status.clear
+      allow(fetcher).to receive(:fetch).and_return([])
+
+      described_class.new(provider: 'smtp2go').call
+
+      expect(Onetime::EmailSuppression.sync_status['smtp2go']).to include('imported' => 0, 'result' => 'ok')
+    end
+  end
 end

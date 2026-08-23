@@ -33,6 +33,30 @@ module InviteAPI
 
       protected
 
+      # The two Rack env keys Auth::RestrictTo reads, rebuilt from the logic
+      # layer's domain context (Otto hands logic the StrategyResult, not the
+      # env; Logic::Base#extract_domain_context copies both values verbatim
+      # from 'onetime.domain_strategy' / 'onetime.display_domain', symbol
+      # classification included). Plumbing only — no resolution happens here
+      # (ADR-034#resolution-is-model-owned: resolution is model-owned and re-derived nowhere).
+      #
+      # SHARED ON PURPOSE, and this is the point of it living here. ShowInvite
+      # REPORTS what the host permits (record.effective_restrict_to) and
+      # SignupAndAccept ENFORCES it (the ADR-034#invite-signup-is-gated gate on
+      # POST /:token/signup). The
+      # two must be computed from the SAME host or `GET /:token` describes a
+      # surface the subsequent POST 404s on, with nothing in the response to
+      # predict it. Two byte-identical private copies made that agreement a
+      # convention one edit could break; one method makes it structural.
+      #
+      # @return [Hash] the minimal env Auth::RestrictTo.resolution_for reads
+      def restrict_to_env
+        {
+          'onetime.domain_strategy' => domain_strategy,
+          'onetime.display_domain' => display_domain,
+        }
+      end
+
       # Load invitation by token with validation
       #
       # @param token [String] the invitation token

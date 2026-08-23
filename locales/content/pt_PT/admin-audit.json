@@ -98,5 +98,41 @@
   "web.admin.audit.result.failure": {
     "text": "Falha",
     "source_hash": "7031edbc"
+  },
+  "web.admin.audit.categories.secret": {
+    "text": "Mensagens confidenciais",
+    "source_hash": "d8707d41"
+  },
+  "web.admin.audit.categories.membership": {
+    "text": "Membros",
+    "source_hash": "b50f1a42"
+  },
+  "web.admin.audit.categories.entitlement_preview": {
+    "text": "Pré-visualizações de direitos",
+    "source_hash": "255c5797"
+  },
+  "web.admin.audit.categories.colonel": {
+    "text": "Inícios de sessão Colonel",
+    "source_hash": "01eeeb38"
+  },
+  "web.admin.audit.filters.actorLabel": {
+    "text": "Ator",
+    "source_hash": "449995c4"
+  },
+  "web.admin.audit.filters.searchButton": {
+    "text": "Pesquisar",
+    "source_hash": "49c266ba"
+  },
+  "web.admin.audit.filters.searchHint": {
+    "text": "Escreve um ator e depois prime Enter ou escolhe Pesquisar para executar. A lista não se atualiza enquanto escreves.",
+    "source_hash": "45eceb12"
+  },
+  "web.admin.audit.filters.pendingSearch": {
+    "text": "Ainda não pesquisado — prime Enter ou escolhe Pesquisar para aplicar este ator.",
+    "source_hash": "f76095c2"
+  },
+  "web.admin.audit.list.contractError": {
+    "text": "O servidor respondeu, mas os dados de auditoria não correspondem ao formato esperado. Não é possível mostrar eventos — isto é uma falha de relatório, não um registo vazio.",
+    "source_hash": "7f48137e"
   }
 }

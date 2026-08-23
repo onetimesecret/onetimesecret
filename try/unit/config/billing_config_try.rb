@@ -12,6 +12,11 @@ require 'fileutils'
 # Clear env vars that stripe_key reads before checking config
 @original_stripe_api_key = ENV.delete('STRIPE_API_KEY')
 
+# enabled? short-circuits on BILLING_ENABLED before reading the config file;
+# direnv exports it from .env.test locally, so clear it or the "no config
+# file" expectations below assert against the developer's shell, not the code.
+@original_billing_enabled = ENV.delete('BILLING_ENABLED')
+
 # Stub resolve to return nil for 'billing', forcing empty config
 Onetime::Utils::ConfigResolver.define_singleton_method(:resolve) do |name|
   return nil if name == 'billing'
@@ -145,5 +150,6 @@ end
 ENV.delete('STRIPE_CHECKOUT_HOST')
 ENV['STRIPE_CHECKOUT_HOST'] = @original_checkout_host unless @original_checkout_host.nil?
 
-# Restore env var cleared in setup
+# Restore env vars cleared in setup
 ENV['STRIPE_API_KEY'] = @original_stripe_api_key unless @original_stripe_api_key.nil?
+ENV['BILLING_ENABLED'] = @original_billing_enabled unless @original_billing_enabled.nil?

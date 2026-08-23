@@ -27,6 +27,10 @@
     "text": "IP Address",
     "content_hash": "3c3de0c9"
   },
+  "web.admin.sessions.columns.country": {
+    "text": "Country",
+    "content_hash": "701d021d"
+  },
   "web.admin.sessions.columns.created": {
     "text": "Authenticated At",
     "content_hash": "8d6c9b01"

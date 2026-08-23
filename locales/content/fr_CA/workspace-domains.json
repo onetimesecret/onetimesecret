@@ -1343,10 +1343,6 @@
     "text": "Échec du test de connexion",
     "source_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "Pour exiger l'authentification unique pour toutes les connexions sur ce domaine, configurez-la dans les paramètres de connexion du domaine. Le mode SSO uniquement restreint la page de connexion au fournisseur SSO configuré ici.",
-    "source_hash": "d26627a5"
-  },
   "web.domains.sso.edit_credentials": {
     "text": "Modifier les identifiants",
     "source_hash": "5a6622b6"
@@ -1542,5 +1538,93 @@
   "web.domains.signup.dormant_notice": {
     "text": "Les inscriptions sont désactivées pour l'ensemble de l'espace de travail ; elles sont donc indisponibles sur chaque domaine. Vos paramètres ici sont conservés et prennent effet lorsque les inscriptions à l'espace de travail sont de nouveau activées.",
     "source_hash": "49faefe4"
+  },
+  "web.domains.link_domain_no_settings": {
+    "text": "Ce domaine n'a pas de page de paramètres",
+    "source_hash": "8a8430fe"
+  },
+  "web.domains.signin.sso_restrict_warning_title": {
+    "text": "La restriction à l'authentification unique fermerait la connexion sur ce domaine",
+    "source_hash": "3476cb5c"
+  },
+  "web.domains.signin.sso_restrict_warning_body": {
+    "text": "L'authentification unique n'est pas disponible sur ce domaine, et une restriction qui ne peut pas être respectée bloque complètement la connexion. Personne ne pourra se connecter ici tant que l'authentification unique ne fonctionnera pas. Corrigez d'abord la configuration SSO, ou restreignez quand même et terminez la configuration.",
+    "source_hash": "086e3247"
+  },
+  "web.domains.signin.sso_restrict_warning_confirm": {
+    "text": "Restreindre quand même",
+    "source_hash": "4674e3cf"
+  },
+  "web.domains.signin.restriction_unavailable_notice": {
+    "text": "La connexion est indisponible sur ce domaine : elle est restreinte à {method}, qui ne peut pas fonctionner ici. Choisissez une autre méthode ou rendez {method} disponible.",
+    "source_hash": "ca1b7f69"
+  },
+  "web.domains.signin.restriction_unavailable_unknown_notice": {
+    "text": "La connexion est indisponible sur ce domaine : elle est restreinte à une méthode qui ne peut pas fonctionner ici. Choisissez une autre méthode ou réinitialisez ce domaine aux valeurs par défaut.",
+    "source_hash": "8c2cce6b"
+  },
+  "web.domains.signin.restriction_conflict_notice": {
+    "text": "Ce domaine restreint la connexion à une méthode différente de celle de la restriction appliquée à l'ensemble de l'espace de travail ({method}) ; aucune des deux ne peut donc s'appliquer et la connexion est indisponible ici. Utilisez la même méthode que celle de l'espace de travail ou réinitialisez ce domaine aux valeurs par défaut.",
+    "source_hash": "15398362"
+  },
+  "web.domains.signin.method_webauthn_unavailable": {
+    "text": "Les clés d'accès sont liées au domaine de connexion principal et ne sont pas encore disponibles sur les domaines personnalisés",
+    "source_hash": "88833e0f"
+  },
+  "web.domains.sso.connection_disabled_badge": {
+    "text": "Connexion SSO désactivée",
+    "source_hash": "99d6092c"
+  },
+  "web.domains.sso.connection_disabled_hint": {
+    "text": "Les identifiants SSO sont enregistrés, mais la connexion est désactivée. Activez-la sous « Modifier les identifiants ».",
+    "source_hash": "90180d6c"
+  },
+  "web.domains.sso.status_active_badge": {
+    "text": "Actif",
+    "source_hash": "92340695"
+  },
+  "web.domains.sso.status_active_hint": {
+    "text": "Les membres peuvent se connecter avec cette connexion SSO sur ce domaine.",
+    "source_hash": "313ec61e"
+  },
+  "web.domains.sso.status_not_configured_badge": {
+    "text": "Non configuré",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.sso.status_not_configured_hint": {
+    "text": "Aucun identifiant SSO n'est encore enregistré pour ce domaine.",
+    "source_hash": "d817ad9c"
+  },
+  "web.domains.sso.status_not_permitted_badge": {
+    "text": "Non autorisé sur ce domaine",
+    "source_hash": "afbd20ba"
+  },
+  "web.domains.sso.status_not_permitted_hint": {
+    "text": "L'authentification unique est désactivée pour ce domaine ; la page de connexion ne la propose donc pas.",
+    "source_hash": "ef092481"
+  },
+  "web.domains.sso.status_auth_disabled_badge": {
+    "text": "Connexion désactivée",
+    "source_hash": "bb807607"
+  },
+  "web.domains.sso.status_auth_disabled_hint": {
+    "text": "La connexion est désactivée sur ce domaine ; aucune méthode n'est donc proposée — y compris SSO.",
+    "source_hash": "3a98964b"
+  },
+  "web.domains.sso.status_unsupported_provider_badge": {
+    "text": "Fournisseur non pris en charge",
+    "source_hash": "1609d5fb"
+  },
+  "web.domains.sso.status_unsupported_provider_hint": {
+    "text": "Le fournisseur enregistré ne peut pas être utilisé pour le SSO de domaine. Modifiez les identifiants et choisissez Microsoft Entra ID ou OIDC générique.",
+    "source_hash": "72ea0a2e"
+  },
+  "web.domains.sso.status_unavailable_badge": {
+    "text": "Indisponible",
+    "source_hash": "ca184496"
+  },
+  "web.domains.sso.status_unavailable_hint": {
+    "text": "L'authentification unique ne peut pas être proposée sur ce domaine pour le moment. Vérifiez les identifiants SSO et les paramètres de connexion de ce domaine.",
+    "source_hash": "b03b14f4"
   }
 }

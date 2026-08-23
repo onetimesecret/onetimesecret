@@ -48,16 +48,29 @@ RACK_ENV=production bundle exec puma -C etc/examples/puma.example.rb
 bin/setup --test               # containerized test services (compose.test.yml), .test-mode marker
 tests/lanes/run unit           # Tryouts + RSpec fast suite (see: tests/lanes/run --list)
 pnpm test                      # Vitest (frontend; no services needed)
+scripts/tests/run.sh           # shell tests for the CI scripts (no services needed)
+scripts/check-shell-lint.sh    # shellcheck + actionlint against the recorded baseline
 ```
 
 Ruby tests run through the lane runner, which scrubs ambient dev env vars
-and loads the lane's own environment — the same entrypoint CI uses. See
-[tests/lanes/](../../tests/lanes/) for the full lane matrix (integration,
-PostgreSQL-backed auth, billing, migrations).
+and loads the lane's own environment — the same entrypoint CI uses. It
+needs bash 5+ (macOS ships 3.2 — `brew install bash`); a too-old one is
+flagged by `bin/setup --doctor`. See [tests/lanes/](../../tests/lanes/)
+for the full lane matrix (integration, PostgreSQL-backed auth, billing,
+migrations).
 
 `bin/setup --test` puts the checkout in test mode: with direnv installed,
 every shell in the checkout loads `.env.test` and runs `RACK_ENV=test` until
 you switch back with plain `bin/setup`.
+
+`scripts/tests/run.sh` covers the shell scripts that CI itself runs — the
+Sentry sourcemap delivery reporters in `scripts/ci/`, whose failure mode is
+a green check next to a summary that says nothing shipped. They are outside
+the lane runner on purpose: no datastore, no Ruby, no network. Each test
+scrubs the ambient `SENTRY_*` variables, so a shell configured against the
+self-hosted Sentry does not change the result. `scripts/check-shell-lint.sh`
+runs shellcheck and actionlint over the repo and fails on anything above the
+baseline in `.github/lint-baseline/`; both run in CI as `Static analysis`.
 
 ## Debugging
 

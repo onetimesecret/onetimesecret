@@ -101,12 +101,14 @@ module Core
     def emit_csp_header(headers, env)
       return unless OT.conf.dig('site', 'security', 'csp', 'enabled')
 
+      development_mode = OT.conf.dig('development', 'enabled') ? true : false
       Otto::Security::CSP::Writer.apply(
         headers,
         env['onetime.nonce'],
         config: env['otto.security_config'],
         mode: :backstop,
-        development_mode: OT.conf.dig('development', 'enabled') ? true : false,
+        development_mode: development_mode,
+        env: env,
       )
     end
     end

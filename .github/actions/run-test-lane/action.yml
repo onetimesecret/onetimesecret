@@ -53,7 +53,7 @@ runs:
   using: composite
   steps:
     - name: Setup tmate session
-      uses: mxschmitt/action-tmate@c0afd6f790e3a5564914980036ebf83216678101 # v3
+      uses: mxschmitt/action-tmate@35b54afac29c97fb54faba5b513f8fbd1882f113 # v3.24
       if: inputs.debug-enabled == 'true'
       with:
         detached: true
@@ -81,6 +81,41 @@ runs:
         fi
         "${args[@]}" 2>&1 | tee tmp/lane.log
         exit ${PIPESTATUS[0]}
+
+    # The lane writes RSpec's JSON to tmp/ but nothing collected it, so the
+    # T5 aggregate job had nothing to aggregate (its unified report read
+    # total_examples: 0). Name the artifact rspec-<stem>-results so the
+    # aggregate job can download the RSpec JSONs alone — 'rspec-*-results'
+    # excludes rubocop-results, whose rubocop_results.json also satisfies the
+    # aggregation script's *_results.json find pattern.
+    - name: Name the RSpec results artifact
+      id: results-artifact
+      if: always() && inputs.results-file != ''
+      shell: bash
+      env:
+        RESULTS_FILE: ${{ inputs.results-file }}
+      run: |
+        stem="${RESULTS_FILE%.json}"
+        # Glob, not the bare filename: a lane whose rake task writes one JSON
+        # per rspec invocation suffixes this stem rather than overwriting it.
+        echo "glob=tmp/${stem}*.json" >> "$GITHUB_OUTPUT"
+        # rspec_full_pg_billing_on_results -> full_pg_billing_on; artifact
+        # names may not contain " \ / : < > | * ? or CR/LF.
+        stem="${stem#rspec_}"
+        stem="${stem%_results}"
+        echo "name=rspec-${stem//[^A-Za-z0-9._-]/-}-results" >> "$GITHUB_OUTPUT"
+
+    - name: Upload RSpec results
+      if: always() && steps.results-artifact.outputs.name != ''
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: ${{ steps.results-artifact.outputs.name }}
+        path: ${{ steps.results-artifact.outputs.glob }}
+        # Aggregation happens in the same run; nobody reads these later.
+        retention-days: 3
+        # A lane that dies before RSpec runs has no JSON to upload, and that
+        # is already reported as the lane step's failure.
+        if-no-files-found: ignore
 
     - name: Post failure tail to PR
       # Only on PR events that actually failed. Skips push/manual runs to keep
@@ -148,8 +183,18 @@ runs:
         fi
         echo "" >> $GITHUB_STEP_SUMMARY
 
-        if [ -n "${RESULTS_FILE}" ] && [ -f "tmp/${RESULTS_FILE}" ]; then
-          echo "### RSpec" >> $GITHUB_STEP_SUMMARY
-          echo "- Total: $(jq '.summary.example_count' "tmp/${RESULTS_FILE}")" >> $GITHUB_STEP_SUMMARY
-          echo "- Failures: $(jq '.summary.failure_count' "tmp/${RESULTS_FILE}")" >> $GITHUB_STEP_SUMMARY
+        if [ -n "${RESULTS_FILE}" ]; then
+          results_base="${RESULTS_FILE%.json}"
+          results_files=("tmp/${RESULTS_FILE}" "tmp/${results_base}"_*.json)
+          existing_results=()
+
+          for results_file in "${results_files[@]}"; do
+            [ -f "$results_file" ] && existing_results+=("$results_file")
+          done
+
+          if [ "${#existing_results[@]}" -gt 0 ]; then
+            echo "### RSpec" >> $GITHUB_STEP_SUMMARY
+            echo "- Total: $(jq -s '[.[].summary.example_count] | add' "${existing_results[@]}")" >> $GITHUB_STEP_SUMMARY
+            echo "- Failures: $(jq -s '[.[].summary.failure_count] | add' "${existing_results[@]}")" >> $GITHUB_STEP_SUMMARY
+          fi
         fi

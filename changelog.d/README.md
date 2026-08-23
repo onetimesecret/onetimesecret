@@ -6,7 +6,7 @@ Fragment-based changelog managed by [Scriv](https://scriv.readthedocs.io/), foll
 
 Write a fragment when the change affects behavior, requires migration steps, or would surprise someone upgrading. Internal PRs (refactoring, CI, dependency bumps) don't need one — Release Drafter captures those automatically.
 
-See [ADR-009](../docs/architecture/decision-records/adr-009-release-notes.md) for the rationale behind this two-stream model.
+See [ADR-009](../docs/adr/adr-009-release-notes.md) for the rationale behind this two-stream model.
 
 ## Adding a Changelog Entry
 
@@ -22,7 +22,7 @@ Optionally add a migrating guide in `docs/migrating/` — use existing guides th
 ## Fragment Guidelines
 
 - One fragment per change.
-- Describe the *impact*, not the implementation. ("Fixed password reset for SSO users" not "Refactored `AuthManager`.")
+- Describe the _impact_, not the implementation. ("Fixed password reset for SSO users" not "Refactored `AuthManager`.")
 - Reference issue/PR numbers — scriv auto-links them.
 - AI assistance goes in its own fragment under the `AI Assistance` category.
 

@@ -24,6 +24,7 @@
 
   const { t } = useI18n();
 
+  import { FIELD_ERROR, FIELD_SHELL } from './fieldStyles';
   import SecretContentInputArea from './SecretContentInputArea.vue';
 
   export interface Props {
@@ -331,19 +332,8 @@
                   autocomplete="off"
                   :aria-invalid="!!getError('passphrase')"
                   :aria-errormessage="getError('passphrase') ? passphraseErrorId : undefined"
-                  :class="[
-                    cornerClass,
-                    getError('passphrase')
-                      ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20'
-                      : '',
-                  ]"
-                  class="w-full border border-gray-200/60 bg-white/80 backdrop-blur-sm py-2.5 pl-5 pr-10
-                    text-sm text-gray-900 transition-all duration-300 placeholder:text-gray-400
-                    hover:border-gray-300/80 hover:bg-white/90
-                    focus:border-blue-500/80 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/20
-                    dark:border-gray-700/60 dark:bg-slate-800/80 dark:text-white dark:placeholder:text-gray-500
-                    dark:hover:border-gray-600/80 dark:hover:bg-slate-800/90
-                    dark:focus:border-blue-400/80 dark:focus:bg-slate-800 dark:focus:ring-blue-400/20"
+                  :class="[cornerClass, FIELD_SHELL, getError('passphrase') ? FIELD_ERROR : '']"
+                  class="py-2.5 pl-5 pr-10 text-gray-900 placeholder:text-gray-400 dark:placeholder:text-gray-500"
                   :placeholder="t('web.secrets.enterPassphrase')"
                   @input="(e) => updatePassphrase((e.target as HTMLInputElement).value)"
                   data-testid="secret-passphrase-input" />
@@ -384,19 +374,8 @@
                   name="ttl"
                   :aria-invalid="!!getError('ttl')"
                   :aria-describedby="getError('ttl') ? lifetimeErrorId : undefined"
-                  :class="[
-                    cornerClass,
-                    getError('ttl')
-                      ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20'
-                      : '',
-                  ]"
-                  class="w-full appearance-none border border-gray-200/60
-                    bg-white/80 backdrop-blur-sm py-2.5 pl-5 pr-10 text-sm text-gray-600 transition-all duration-300
-                    hover:border-gray-300/80 hover:bg-white/90
-                    focus:border-blue-500/80 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/20
-                    dark:border-gray-700/60 dark:bg-slate-800/80 dark:text-white
-                    dark:hover:border-gray-600/80 dark:hover:bg-slate-800/90
-                    dark:focus:border-blue-400/80 dark:focus:bg-slate-800 dark:focus:ring-blue-400/20"
+                  :class="[cornerClass, FIELD_SHELL, getError('ttl') ? FIELD_ERROR : '']"
+                  class="appearance-none py-2.5 pl-5 pr-10 text-gray-600"
                   @change="(e) => updateTtl(Number((e.target as HTMLSelectElement).value))"
                   data-testid="secret-ttl-select">
                   <option
@@ -451,20 +430,8 @@
                 :placeholder="t('web.COMMON.email_placeholder')"
                 :aria-invalid="!!getError('recipient')"
                 :aria-errormessage="getError('recipient') ? recipientErrorId : undefined"
-                :class="[
-                  cornerClass,
-                  getError('recipient')
-                    ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20'
-                    : '',
-                ]"
-                class="w-full border border-gray-200/60 bg-white/80 backdrop-blur-sm
-                  py-2.5 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400
-                  transition-colors duration-200
-                  hover:border-gray-300/80 hover:bg-white/90
-                  focus:border-blue-500/80 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/20
-                  dark:border-gray-700/60 dark:bg-slate-800/80 dark:text-white dark:placeholder:text-gray-500
-                  dark:hover:border-gray-600/80 dark:hover:bg-slate-800/90
-                  dark:focus:border-blue-400/80 dark:focus:bg-slate-800 dark:focus:ring-blue-400/20"
+                :class="[cornerClass, FIELD_SHELL, getError('recipient') ? FIELD_ERROR : '']"
+                class="py-2.5 pl-10 pr-4 text-gray-900 placeholder:text-gray-400 dark:placeholder:text-gray-500"
                 @input="(e) => updateRecipient((e.target as HTMLInputElement).value)"
                 data-testid="secret-recipient-input" />
             </div>

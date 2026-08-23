@@ -15,6 +15,10 @@
     "text": "Search...",
     "content_hash": "7f553822"
   },
+  "web.admin.kit.filterBar.searchSubmit": {
+    "text": "Search",
+    "content_hash": "49c266ba"
+  },
   "web.admin.kit.filterBar.clearFilters": {
     "text": "Clear filters",
     "content_hash": "7179ea00"

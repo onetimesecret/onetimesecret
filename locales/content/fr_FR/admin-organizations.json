@@ -12,7 +12,7 @@
     "source_hash": "00c50f7a"
   },
   "web.admin.organizations.detail.notFoundDescription": {
-    "text": "Cette organisation a peut-être été supprimée, ou l'id est incorrect.",
+    "text": "Cette organisation a peut-être été supprimée, ou l'identifiant est incorrect.",
     "source_hash": "e5459ef5"
   },
   "web.admin.organizations.detail.loadError": {
@@ -40,7 +40,7 @@
     "source_hash": "a3b50c47"
   },
   "web.admin.organizations.detail.domains.created": {
-    "text": "Créé le",
+    "text": "Créé",
     "source_hash": "d70b9e24"
   },
   "web.admin.organizations.detail.domains.ready": {
@@ -48,7 +48,7 @@
     "source_hash": "5fa7aac5"
   },
   "web.admin.organizations.detail.domains.resolving": {
-    "text": "Résolution en cours",
+    "text": "Résolution",
     "source_hash": "3287a034"
   },
   "web.admin.organizations.detail.domains.empty": {
@@ -56,7 +56,7 @@
     "source_hash": "1b840c7e"
   },
   "web.admin.organizations.detail.entitlements.description": {
-    "text": "Les droits effectifs correspondent à (forfait ∪ octrois) − révocations. Examinez le détail avant d'effectuer un remplacement.",
+    "text": "Les droits effectifs se résolvent en (forfait ∪ octrois) − révocations. Examinez le détail avant d'appliquer un remplacement.",
     "source_hash": "23080475"
   },
   "web.admin.organizations.detail.entitlements.inSync": {
@@ -72,11 +72,11 @@
     "source_hash": "ffe63800"
   },
   "web.admin.organizations.detail.entitlements.driftWarning": {
-    "text": "Les droits matérialisés ne correspondent pas à l'ensemble attendu. Réconciliez pour rematérialiser.",
+    "text": "Les droits matérialisés ne correspondent pas à l'ensemble attendu. Lancez une réconciliation pour les rematérialiser.",
     "source_hash": "4859983a"
   },
   "web.admin.organizations.detail.entitlements.driftExtra": {
-    "text": "Supplémentaires (matérialisés, non attendus)",
+    "text": "En trop (matérialisés, non attendus)",
     "source_hash": "08d60730"
   },
   "web.admin.organizations.detail.entitlements.driftMissing": {
@@ -100,7 +100,7 @@
     "source_hash": "14736a2e"
   },
   "web.admin.organizations.detail.members.status": {
-    "text": "Statut",
+    "text": "État",
     "source_hash": "920e413c"
   },
   "web.admin.organizations.detail.members.joined": {
@@ -124,7 +124,7 @@
     "source_hash": "fc1a2762"
   },
   "web.admin.organizations.detail.reconcile.confirmDescription": {
-    "text": "Cela récupère à nouveau les données Stripe et réécrit l'état de facturation et les droits pour {org}. Saisissez à nouveau l'id de l'organisation pour confirmer.",
+    "text": "Cela récupère à nouveau les données Stripe et réécrit l'état de facturation et les droits de {org}. Ressaisissez l'identifiant de l'organisation pour confirmer.",
     "source_hash": "b4ef0850"
   },
   "web.admin.organizations.detail.reconcile.success": {
@@ -168,7 +168,7 @@
     "source_hash": "ced67718"
   },
   "web.admin.organizations.detail.sections.investigate": {
-    "text": "Investiguer et réconcilier",
+    "text": "Analyser et réconcilier",
     "source_hash": "b05aa349"
   },
   "web.admin.organizations.entitlements.section": {
@@ -176,7 +176,7 @@
     "source_hash": "48812068"
   },
   "web.admin.organizations.entitlements.description": {
-    "text": "Octroyer ou révoquer des droits indépendamment du forfait. Effectifs = droits du forfait + octrois - révocations.",
+    "text": "Octroyez ou révoquez des droits indépendamment du forfait. Effectifs = droits du forfait + octrois - révocations.",
     "source_hash": "4c38425b"
   },
   "web.admin.organizations.entitlements.inputLabel": {
@@ -184,7 +184,7 @@
     "source_hash": "0d8f0b2d"
   },
   "web.admin.organizations.entitlements.placeholder": {
-    "text": "par ex. custom_domains",
+    "text": "ex. custom_domains",
     "source_hash": "05346c68"
   },
   "web.admin.organizations.entitlements.grant": {
@@ -220,7 +220,7 @@
     "source_hash": "a4b2c57b"
   },
   "web.admin.organizations.entitlements.confirm.grantDescription": {
-    "text": "Octroyer « {entitlement} » à {org}. Cela modifie les droits de facturation de l'organisation.",
+    "text": "Octroyer « {entitlement} » à {org}. Cela modifie les droits de facturation de l'organisation.",
     "source_hash": "542ce26a"
   },
   "web.admin.organizations.entitlements.confirm.revokeTitle": {
@@ -228,7 +228,7 @@
     "source_hash": "c93d520a"
   },
   "web.admin.organizations.entitlements.confirm.revokeDescription": {
-    "text": "Révoquer « {entitlement} » de {org}. Cela modifie les droits de facturation de l'organisation.",
+    "text": "Révoquer « {entitlement} » pour {org}. Cela modifie les droits de facturation de l'organisation.",
     "source_hash": "a5d2a8a6"
   },
   "web.admin.organizations.entitlements.confirm.clearTitle": {
@@ -236,15 +236,15 @@
     "source_hash": "e36eb218"
   },
   "web.admin.organizations.entitlements.confirm.clearDescription": {
-    "text": "Supprimer tous les remplacements d'octroi et de révocation pour {org}, en la réinitialisant aux droits de son forfait.",
+    "text": "Supprimer tous les octrois et révocations pour {org}, la réinitialisant aux droits de son forfait.",
     "source_hash": "96bad079"
   },
   "web.admin.organizations.entitlements.success.granted": {
-    "text": "Droit « {entitlement} » octroyé.",
+    "text": "Droit « {entitlement} » octroyé.",
     "source_hash": "cf52fb0e"
   },
   "web.admin.organizations.entitlements.success.revoked": {
-    "text": "Droit « {entitlement} » révoqué.",
+    "text": "Droit « {entitlement} » révoqué.",
     "source_hash": "279d425d"
   },
   "web.admin.organizations.entitlements.success.cleared": {
@@ -264,7 +264,7 @@
     "source_hash": "fa8ed0bd"
   },
   "web.admin.organizations.fields.subscription": {
-    "text": "Statut de l'abonnement",
+    "text": "État de l'abonnement",
     "source_hash": "f0723c4e"
   },
   "web.admin.organizations.fields.periodEnd": {
@@ -288,27 +288,355 @@
     "source_hash": "1f466322"
   },
   "web.admin.organizations.fields.created": {
-    "text": "Créé le",
+    "text": "Créée",
     "source_hash": "d70b9e24"
   },
   "web.admin.organizations.fields.updated": {
-    "text": "Mis à jour le",
+    "text": "Mise à jour",
     "source_hash": "3a5ecca1"
   },
   "web.admin.organizations.investigate.description": {
-    "text": "Comparer l'état de facturation local à l'abonnement Stripe en direct.",
+    "text": "Comparez l'état de facturation local avec l'abonnement Stripe actif.",
     "source_hash": "d7bbe9ed"
   },
   "web.admin.organizations.investigate.rawPayload": {
-    "text": "Charge utile d'investigation brute",
+    "text": "Charge utile brute de l'analyse",
     "source_hash": "29ca7df2"
   },
   "web.admin.organizations.investigate.parseError": {
-    "text": "La réponse de l'investigation ne correspondait pas au format attendu.",
+    "text": "La réponse de l'analyse ne correspond pas au format attendu.",
     "source_hash": "db59cab1"
   },
   "web.admin.organizations.list.loadError": {
     "text": "Impossible de charger les organisations.",
     "source_hash": "130d5e70"
+  },
+  "web.admin.organizations.addMember.button": {
+    "text": "Ajouter un compte existant",
+    "source_hash": "45a3b757"
+  },
+  "web.admin.organizations.addMember.title": {
+    "text": "Ajouter un compte existant",
+    "source_hash": "2f676a94"
+  },
+  "web.admin.organizations.addMember.description": {
+    "text": "Ajoutez à {org} une personne qui possède déjà un compte. Utilisez cette option lorsqu'une personne s'est inscrite d'elle-même et ne peut pas être invitée parce que le compte existe déjà.",
+    "source_hash": "bb41faa6"
+  },
+  "web.admin.organizations.addMember.searchLabel": {
+    "text": "Adresse e-mail ou identifiant de compte",
+    "source_hash": "82b3040b"
+  },
+  "web.admin.organizations.addMember.searchPlaceholder": {
+    "text": "Rechercher par adresse e-mail",
+    "source_hash": "b75cc66c"
+  },
+  "web.admin.organizations.addMember.searchHint": {
+    "text": "Correspond à une partie d'une adresse e-mail ou à un identifiant de compte exact.",
+    "source_hash": "84547a60"
+  },
+  "web.admin.organizations.addMember.searchError": {
+    "text": "Impossible de rechercher les comptes. Vérifiez la connexion et réessayez.",
+    "source_hash": "4b6caa41"
+  },
+  "web.admin.organizations.addMember.searchParseError": {
+    "text": "La recherche de comptes a renvoyé une réponse inattendue. Les résultats peuvent être incomplets.",
+    "source_hash": "0c814231"
+  },
+  "web.admin.organizations.addMember.idle": {
+    "text": "Saisissez une adresse e-mail pour trouver le compte.",
+    "source_hash": "f6340d35"
+  },
+  "web.admin.organizations.addMember.noResults": {
+    "text": "Aucun compte ne correspond à « {term} ».",
+    "source_hash": "199b662a"
+  },
+  "web.admin.organizations.addMember.noResultsHint": {
+    "text": "Seuls les comptes existants peuvent être ajoutés ici. Si la personne ne s'est jamais inscrite, invitez-la à la place.",
+    "source_hash": "ee90aeeb"
+  },
+  "web.admin.organizations.addMember.select": {
+    "text": "Sélectionner",
+    "source_hash": "2a78025d"
+  },
+  "web.admin.organizations.addMember.selectedEyebrow": {
+    "text": "Compte sélectionné",
+    "source_hash": "8b63d947"
+  },
+  "web.admin.organizations.addMember.change": {
+    "text": "Choisir un autre compte",
+    "source_hash": "d4fe39ab"
+  },
+  "web.admin.organizations.addMember.createdOn": {
+    "text": "Inscrit le {date}",
+    "source_hash": "cfc0e19f"
+  },
+  "web.admin.organizations.addMember.organizationsUnavailable": {
+    "text": "Impossible de charger les organisations actuelles de ce compte.",
+    "source_hash": "a35b6bfc"
+  },
+  "web.admin.organizations.addMember.defaultOrg": {
+    "text": "par défaut",
+    "source_hash": "37a8eec1"
+  },
+  "web.admin.organizations.addMember.roleLabel": {
+    "text": "Rôle dans cette organisation",
+    "source_hash": "817475fa"
+  },
+  "web.admin.organizations.addMember.submit": {
+    "text": "Ajouter à l'organisation",
+    "source_hash": "0e0cb636"
+  },
+  "web.admin.organizations.addMember.success": {
+    "text": "{account} ajouté en tant que {role}.",
+    "source_hash": "533be0dc"
+  },
+  "web.admin.organizations.addMember.badges.verified": {
+    "text": "Vérifié",
+    "source_hash": "4f783840"
+  },
+  "web.admin.organizations.addMember.badges.unverified": {
+    "text": "Non vérifié",
+    "source_hash": "15133907"
+  },
+  "web.admin.organizations.addMember.badges.suspended": {
+    "text": "Suspendu",
+    "source_hash": "e392a389"
+  },
+  "web.admin.organizations.addMember.badges.alreadyMember": {
+    "text": "Déjà membre",
+    "source_hash": "1739ed7c"
+  },
+  "web.admin.organizations.addMember.errors.alreadyMember": {
+    "text": "Ce compte est déjà membre de cette organisation, avec le rôle {role}. L'ajout ne modifie pas un rôle existant — utilisez l'action de définition de rôle pour cela.",
+    "source_hash": "cb6a4774"
+  },
+  "web.admin.organizations.addMember.errors.alreadyMemberUnknownRole": {
+    "text": "Ce compte est déjà membre de cette organisation. L'ajout ne modifie pas un rôle existant.",
+    "source_hash": "035641ec"
+  },
+  "web.admin.organizations.addMember.errors.notFound": {
+    "text": "Ce compte ou cette organisation n'existe plus. Relancez la recherche pour confirmer le compte.",
+    "source_hash": "bd88db18"
+  },
+  "web.admin.organizations.addMember.errors.invalidRole": {
+    "text": "Ce rôle a été refusé. Choisissez l'un des rôles proposés et réessayez.",
+    "source_hash": "eb696a8f"
+  },
+  "web.admin.organizations.addMember.errors.noSelection": {
+    "text": "Aucun compte sélectionné.",
+    "source_hash": "dd15bb5b"
+  },
+  "web.admin.organizations.addMember.fields.created": {
+    "text": "Inscrit le",
+    "source_hash": "486b3fe0"
+  },
+  "web.admin.organizations.addMember.fields.verified": {
+    "text": "Vérification",
+    "source_hash": "7140f4f1"
+  },
+  "web.admin.organizations.addMember.fields.lastLogin": {
+    "text": "Dernière connexion",
+    "source_hash": "0b70af7a"
+  },
+  "web.admin.organizations.addMember.fields.organizations": {
+    "text": "Organisations actuelles",
+    "source_hash": "cbb5b92f"
+  },
+  "web.admin.organizations.addMember.roleHints.member": {
+    "text": "Accès quotidien aux secrets et aux domaines de l'organisation.",
+    "source_hash": "d0c7439e"
+  },
+  "web.admin.organizations.addMember.roleHints.admin": {
+    "text": "Peut gérer les membres, les domaines et les paramètres de l'organisation.",
+    "source_hash": "beaa50d7"
+  },
+  "web.admin.organizations.addMember.roleHints.owner": {
+    "text": "Contrôle total, y compris la facturation. N'accordez ce rôle que sur demande.",
+    "source_hash": "614ace63"
+  },
+  "web.admin.organizations.addMember.roles.member": {
+    "text": "Membre",
+    "source_hash": "7c968fb7"
+  },
+  "web.admin.organizations.addMember.roles.admin": {
+    "text": "Administrateur",
+    "source_hash": "c1c224b0"
+  },
+  "web.admin.organizations.addMember.roles.owner": {
+    "text": "Propriétaire",
+    "source_hash": "4b1b8aa3"
+  },
+  "web.admin.organizations.detail.members.openCustomer": {
+    "text": "Ouvrir la fiche client",
+    "source_hash": "c057ca13"
+  },
+  "web.admin.organizations.detail.reconcile.memberships": {
+    "text": "Adhésions rematérialisées :",
+    "source_hash": "fe7db10c"
+  },
+  "web.admin.organizations.detail.reconcile.membershipsFailed": {
+    "text": "en échec, des droits obsolètes subsistent :",
+    "source_hash": "cc4dae37"
+  },
+  "web.admin.organizations.entitlements.catalogWarning": {
+    "text": "« {entitlement} » ne figure pas dans le catalogue de facturation — vérifiez qu'il n'y a pas de faute de frappe. L'opération se poursuit malgré tout : octroyer un droit livré dans un catalogue ultérieur est pris en charge et volontairement non bloqué.",
+    "source_hash": "cbde548a"
+  },
+  "web.admin.organizations.entitlements.matrix.caption": {
+    "text": "Matrice de résolution des droits : forfait, octrois et révocations de remplacement, ensemble résolu et éléments matérialisés.",
+    "source_hash": "9eac8999"
+  },
+  "web.admin.organizations.entitlements.matrix.yes": {
+    "text": "Oui",
+    "source_hash": "85a39ab3"
+  },
+  "web.admin.organizations.entitlements.matrix.no": {
+    "text": "Non",
+    "source_hash": "1ea442a1"
+  },
+  "web.admin.organizations.entitlements.matrix.empty": {
+    "text": "Cette organisation n'a aucun droit issu de son forfait ni aucun remplacement.",
+    "source_hash": "f6cf2169"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.entitlement": {
+    "text": "Droit",
+    "source_hash": "0d8f0b2d"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.inPlan": {
+    "text": "Dans le forfait",
+    "source_hash": "e2222361"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.granted": {
+    "text": "Octroyé",
+    "source_hash": "62026a42"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.revoked": {
+    "text": "Révoqué",
+    "source_hash": "f6f738d0"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.expected": {
+    "text": "Attendu",
+    "source_hash": "ca99b7f1"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.materialized": {
+    "text": "Matérialisé",
+    "source_hash": "1298eb6e"
+  },
+  "web.admin.organizations.entitlements.matrix.columns.state": {
+    "text": "État",
+    "source_hash": "a3b50c47"
+  },
+  "web.admin.organizations.entitlements.matrix.legend.formula": {
+    "text": "Résolution : attendu = (forfait ∪ octrois) − révocations. Le matérialisé correspond à ce qui est réellement stocké sur l'organisation.",
+    "source_hash": "bc4bff2d"
+  },
+  "web.admin.organizations.entitlements.matrix.legend.orphaned": {
+    "text": "Orphelin — matérialisé mais non attendu, généralement laissé par une révocation jamais rematérialisée. La réconciliation le supprime.",
+    "source_hash": "3a27a9af"
+  },
+  "web.admin.organizations.entitlements.matrix.legend.missing": {
+    "text": "Manquant — attendu mais non matérialisé. C'est l'autorisation qui manque réellement aux membres en ce moment.",
+    "source_hash": "485e44ad"
+  },
+  "web.admin.organizations.entitlements.matrix.legend.revoked": {
+    "text": "Les lignes barrées sont révoquées par un remplacement administrateur, ce qui les retire de l'ensemble attendu.",
+    "source_hash": "89a2e9b6"
+  },
+  "web.admin.organizations.entitlements.matrix.state.plan": {
+    "text": "Issu du forfait",
+    "source_hash": "1d346b26"
+  },
+  "web.admin.organizations.entitlements.matrix.state.granted": {
+    "text": "Octroyé",
+    "source_hash": "62026a42"
+  },
+  "web.admin.organizations.entitlements.matrix.state.revoked": {
+    "text": "Révoqué",
+    "source_hash": "f6f738d0"
+  },
+  "web.admin.organizations.entitlements.matrix.state.orphaned": {
+    "text": "Orphelin",
+    "source_hash": "8d827807"
+  },
+  "web.admin.organizations.entitlements.matrix.state.missing": {
+    "text": "Manquant",
+    "source_hash": "6be36ca4"
+  },
+  "web.admin.organizations.entitlements.picker.selectPlaceholder": {
+    "text": "Sélectionnez un droit…",
+    "source_hash": "53af3be8"
+  },
+  "web.admin.organizations.entitlements.picker.other": {
+    "text": "Autre — absent du catalogue…",
+    "source_hash": "f08bc3a3"
+  },
+  "web.admin.organizations.entitlements.picker.customLabel": {
+    "text": "Nom du droit (absent du catalogue)",
+    "source_hash": "52783229"
+  },
+  "web.admin.organizations.entitlements.picker.backToCatalog": {
+    "text": "Retour au catalogue",
+    "source_hash": "9b727f40"
+  },
+  "web.admin.organizations.entitlements.picker.uncategorized": {
+    "text": "Non catégorisé",
+    "source_hash": "8d40d123"
+  },
+  "web.admin.organizations.entitlements.picker.catalogUnavailable": {
+    "text": "Le catalogue de facturation n'a pas pu être lu ; les noms de droits ne sont donc pas vérifiés ici.",
+    "source_hash": "724869ec"
+  },
+  "web.admin.organizations.entitlements.picker.tags.inPlan": {
+    "text": "dans le forfait",
+    "source_hash": "5f2251bb"
+  },
+  "web.admin.organizations.entitlements.picker.tags.granted": {
+    "text": "octroyé",
+    "source_hash": "dd515d19"
+  },
+  "web.admin.organizations.entitlements.picker.tags.revoked": {
+    "text": "révoqué",
+    "source_hash": "4bb47f18"
+  },
+  "web.admin.organizations.entitlements.summary.sync": {
+    "text": "Synchronisation",
+    "source_hash": "8d261a37"
+  },
+  "web.admin.organizations.entitlements.summary.materialized": {
+    "text": "Matérialisé",
+    "source_hash": "1298eb6e"
+  },
+  "web.admin.organizations.entitlements.summary.materializedAt": {
+    "text": "Dernière matérialisation",
+    "source_hash": "9325dce9"
+  },
+  "web.admin.organizations.entitlements.summary.planDefinition": {
+    "text": "Définition du forfait",
+    "source_hash": "6b531454"
+  },
+  "web.admin.organizations.entitlements.summary.yes": {
+    "text": "Oui",
+    "source_hash": "85a39ab3"
+  },
+  "web.admin.organizations.entitlements.summary.no": {
+    "text": "Non",
+    "source_hash": "1ea442a1"
+  },
+  "web.admin.organizations.entitlements.summary.never": {
+    "text": "Jamais",
+    "source_hash": "6300ef80"
+  },
+  "web.admin.organizations.entitlements.summary.planStale": {
+    "text": "Modifiée depuis la matérialisation",
+    "source_hash": "e682d8a4"
+  },
+  "web.admin.organizations.entitlements.summary.planCurrent": {
+    "text": "À jour",
+    "source_hash": "e0d1b682"
+  },
+  "web.admin.organizations.entitlements.summary.planUnknown": {
+    "text": "Inconnue — comparaison impossible",
+    "source_hash": "b607e540"
   }
 }

@@ -217,7 +217,7 @@ end
 
 ## PROVIDER_TYPES includes all expected providers
 Onetime::CustomDomain::MailerConfig::PROVIDER_TYPES.sort
-#=> %w[lettermint sendgrid ses smtp].sort
+#=> %w[lettermint sendgrid ses smtp smtp2go].sort
 
 ## PROVIDER_TYPES is frozen
 Onetime::CustomDomain::MailerConfig::PROVIDER_TYPES.frozen?
@@ -241,7 +241,7 @@ mc2 = Onetime::CustomDomain::MailerConfig.new
 mc2.domain_id = 'some-id'
 mc2.provider = 'invalid'
 mc2.from_address = 'x@test.com'
-mc2.validation_errors.include?('provider must be one of: smtp, ses, sendgrid, lettermint')
+mc2.validation_errors.include?('provider must be one of: smtp, ses, sendgrid, lettermint, smtp2go')
 #=> true
 
 # --- enabled? and verified? boolean methods ---
@@ -472,6 +472,13 @@ Onetime::Models::Features::WithPlanEntitlements::STANDALONE_ENTITLEMENTS.include
   domain_id: @domain_lm.identifier, provider: 'lettermint', from_address: 'a@lm.com')
 @cfg_lm.provider
 #=> 'lettermint'
+
+## smtp2go provider is accepted
+@domain_s2g = Onetime::CustomDomain.create!("mc-s2g-#{@ts}.example.com", @org.objid)
+@cfg_s2g = Onetime::CustomDomain::MailerConfig.create!(
+  domain_id: @domain_s2g.identifier, provider: 'smtp2go', from_address: 'a@s2g.com')
+@cfg_s2g.provider
+#=> 'smtp2go'
 
 # --- enabled flag via create! ---
 

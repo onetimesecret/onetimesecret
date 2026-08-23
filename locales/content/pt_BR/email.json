@@ -610,17 +610,17 @@
     "source_hash": "dc75bf9f"
   },
   "email.new_login_alert.subject": {
-    "text": "Novo login em sua conta (%{display_domain})",
+    "text": "Novo início de sessão em sua conta (%{display_domain})",
     "renderer": "erb",
     "source_hash": "a704f0bb"
   },
   "email.new_login_alert.title": {
-    "text": "Novo Login Detectado",
+    "text": "Novo Início de Sessão Detectado",
     "renderer": "erb",
     "source_hash": "61172ee4"
   },
   "email.new_login_alert.body": {
-    "text": "Um novo login em sua conta %{product_name} foi detectado em %{date} às %{time}.",
+    "text": "Um novo início de sessão em sua conta %{product_name} foi detectado em %{date} às %{time}.",
     "renderer": "erb",
     "source_hash": "040f8f48"
   },
@@ -836,5 +836,41 @@
   "email.secret_link.footer_note": {
     "text": "Você recebeu este e-mail porque %{sender_email} usou o %{product_name} para compartilhar uma mensagem confidencial com você. Se você não estava esperando por isso, pode ignorar este e-mail com segurança.",
     "source_hash": "2d544dad"
+  },
+  "email.sso_link_verification.subject": {
+    "text": "Confirme a vinculação de %{provider} à sua conta %{product_name}",
+    "source_hash": "65e70296"
+  },
+  "email.sso_link_verification.title": {
+    "text": "Confirme seu início de sessão via SSO",
+    "source_hash": "35bce6cc"
+  },
+  "email.sso_link_verification.request_notice": {
+    "text": "Alguém entrou com %{provider} usando o e-mail %{email_address}. Para concluir a conexão de %{provider} à sua conta %{product_name}, confirme abaixo.",
+    "source_hash": "baeb18c0"
+  },
+  "email.sso_link_verification.confirm_button": {
+    "text": "Confirmar e vincular %{provider}",
+    "source_hash": "9809e210"
+  },
+  "email.sso_link_verification.copy_link_prompt": {
+    "text": "Ou copie e cole este link:",
+    "source_hash": "88c72144"
+  },
+  "email.sso_link_verification.expiration_notice": {
+    "text": "Este link expira em 15 minutos e pode ser usado apenas uma vez.",
+    "source_hash": "1a437f42"
+  },
+  "email.sso_link_verification.ignore_notice": {
+    "text": "Se você não tentou entrar com %{provider}, pode ignorar este e-mail com segurança — nada será conectado à sua conta.",
+    "source_hash": "d7317d30"
+  },
+  "email.sso_link_verification.signature": {
+    "text": "Equipe de Suporte",
+    "source_hash": "dc75bf9f"
+  },
+  "email.sso_link_verification.postscript": {
+    "text": "P.S. Este e-mail foi enviado para %{email_address}.",
+    "source_hash": "8ab1dbea"
   }
 }

@@ -42,6 +42,14 @@ RSpec.describe Onetime::Mail::Mailer do
       end
     end
 
+    context 'when no mode is set and smtp2go_api_key present' do
+      let(:config) { { 'smtp2go_api_key' => 'api-test' } }
+
+      it 'auto-detects SMTP2GO' do
+        expect(subject).to eq('smtp2go')
+      end
+    end
+
     context 'when no mode is set and host present' do
       let(:config) { { 'host' => 'smtp.example.com' } }
 
@@ -309,6 +317,80 @@ RSpec.describe Onetime::Mail::Mailer do
       it 'returns empty hash' do
         result = described_class.provider_credentials('unknown')
         expect(result).to eq({})
+      end
+    end
+
+    # fastaccept controls whether SMTP2GO returns per-recipient accounting,
+    # so it has to survive the trip from config/ENV into the hash that
+    # constructs Delivery::Smtp2go — including the .compact at the end of
+    # smtp2go_provider_config, which would drop a nil.
+    context 'with SMTP2GO fastaccept' do
+      subject(:credentials) { described_class.provider_credentials('smtp2go') }
+
+      let(:config) { { 'smtp2go_api_key' => 'api-key-123' } }
+      let(:provider_section) { {} }
+
+      around do |example|
+        saved = ENV.fetch('CUSTOM_MAIL_SMTP2GO_FASTACCEPT', nil)
+        ENV.delete('CUSTOM_MAIL_SMTP2GO_FASTACCEPT')
+        example.run
+      ensure
+        saved.nil? ? ENV.delete('CUSTOM_MAIL_SMTP2GO_FASTACCEPT') : (ENV['CUSTOM_MAIL_SMTP2GO_FASTACCEPT'] = saved)
+      end
+
+      before do
+        allow(described_class).to receive(:provider_config).with('smtp2go').and_return(provider_section)
+      end
+
+      it 'defaults to false when neither config nor ENV is set' do
+        expect(credentials).to include('fastaccept' => false)
+      end
+
+      context 'when the provider config section sets it' do
+        let(:provider_section) { { 'fastaccept' => true } }
+
+        it 'wins over the ENV fallback' do
+          ENV['CUSTOM_MAIL_SMTP2GO_FASTACCEPT'] = 'false'
+
+          expect(credentials).to include('fastaccept' => true)
+        end
+      end
+
+      context 'when the provider config section sets it to false' do
+        let(:provider_section) { { 'fastaccept' => false } }
+
+        it 'keeps the explicit false through .compact' do
+          expect(credentials).to have_key('fastaccept')
+          expect(credentials['fastaccept']).to be(false)
+        end
+      end
+
+      context 'when the provider config section carries a string' do
+        let(:provider_section) { { 'fastaccept' => 'true' } }
+
+        it 'coerces to a real boolean' do
+          expect(credentials['fastaccept']).to be(true)
+        end
+      end
+
+      context 'when only ENV is set' do
+        it 'falls back to the ENV value' do
+          ENV['CUSTOM_MAIL_SMTP2GO_FASTACCEPT'] = 'true'
+
+          expect(credentials['fastaccept']).to be(true)
+        end
+
+        it 'coerces a falsey token to a real boolean' do
+          ENV['CUSTOM_MAIL_SMTP2GO_FASTACCEPT'] = 'false'
+
+          expect(credentials['fastaccept']).to be(false)
+        end
+
+        it 'raises on an unrecognized token rather than silently defaulting' do
+          ENV['CUSTOM_MAIL_SMTP2GO_FASTACCEPT'] = 'ture'
+
+          expect { credentials }.to raise_error(Onetime::ConfigError, /CUSTOM_MAIL_SMTP2GO_FASTACCEPT/)
+        end
       end
     end
   end

@@ -91,6 +91,16 @@ RSpec.describe 'Active Sessions Management', type: :integration do
         session = json_response['sessions'].first
         expect(session).to include('id', 'created_at', 'last_activity_at')
       end
+
+      # Regression guard: the Rodauth row is joined to the SessionMetadata
+      # sidecar on the sidecar's stored active_session_id_hmac. When that join
+      # breaks, created_at/last_activity_at silently fall back to the Rodauth
+      # row and hide the failure, but ip_address has no fallback and goes nil —
+      # so it is the field that proves the join actually matched.
+      it 'populates ip_address on the current session from the metadata sidecar' do
+        current = json_response['sessions'].find { |s| s['is_current'] }
+        expect(current['ip_address']).not_to be_nil
+      end
     end
 
     describe 'DELETE /auth/active-sessions/:id (current session)' do

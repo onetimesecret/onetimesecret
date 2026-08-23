@@ -187,5 +187,16 @@ RSpec.describe 'Full Mode - AUTH_ENABLED kill switch', type: :integration do
       expect(last_response.status).to eq(200)
       expect(json_response['message']).to include('Authentication Service')
     end
+
+    # This path sits ahead of r.rodauth, so it answers anonymous callers. The
+    # build version fingerprints the install for CVE matching and must not ride
+    # along on a service-identification response; GET /api/v3/version is the
+    # auth-gated way to obtain it.
+    it 'GET /auth does not disclose the build version' do
+      get '/auth', {}, { 'HTTP_ACCEPT' => 'application/json' }
+
+      expect(json_response).not_to have_key('version')
+      expect(last_response.body).not_to include(Onetime::VERSION.to_s)
+    end
   end
 end

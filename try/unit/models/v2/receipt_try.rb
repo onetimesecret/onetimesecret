@@ -27,15 +27,18 @@ OT.boot! :test, true
 @iterations = 1000
 
 ## Can create a Receipt
+# The db index is Familia.uri.db, not a literal 0: tests/lanes/run assigns
+# each worktree its own index so concurrent lane runs don't share keys
+# (#4168). What this asserts is "the model uses the configured database".
 m = Onetime::Receipt.new :private
 [m.class, m.dbclient.connection[:db], m.secret_identifier]
-#=> [Onetime::Receipt, 0, nil]
+#=> [Onetime::Receipt, Familia.uri.db, nil]
 
 ## Can explicitly set the secret key
 m = Onetime::Receipt.new :private
 m.secret_identifier = 'hihi'
 [m.class, m.dbclient.connection[:db], m.secret_identifier]
-#=> [Onetime::Receipt, 0, 'hihi']
+#=> [Onetime::Receipt, Familia.uri.db, 'hihi']
 
 ## Keys are always unique for Receipt
 ## NOTE: Prior to Familia v1.0.0.pre.rc1 upgrade the receipt key

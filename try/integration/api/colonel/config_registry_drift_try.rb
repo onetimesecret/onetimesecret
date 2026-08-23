@@ -314,7 +314,9 @@ Onetime::CustomDomain::SsoConfig.create!(
 #=> [true, true, false, false, false, false]
 
 ## mailer serializer emits api_key presence only; jsonkey diagnostic blobs are
-## excluded; the string-boolean verification fields emit REAL booleans
+## excluded; dns_verified emits a REAL boolean while provider_verified is
+## TRI-STATE: a never-determined outcome serializes as nil (unknown), never
+## as an authoritative false
 @mailer_domain_id = "drift_mailer_#{@timestamp}"
 Onetime::CustomDomain::MailerConfig.create!(
   domain_id: @mailer_domain_id,
@@ -326,7 +328,7 @@ Onetime::CustomDomain::MailerConfig.create!(
 [@mailer_data[:has_api_key].equal?(true),
  @mailer_data.keys & %i[api_key provider_dns_data dns_records dns_check_results],
  @mailer_json.include?('drift-mailer-api-key-value'),
- @mailer_data[:dns_verified].equal?(false), @mailer_data[:provider_verified].equal?(false)]
+ @mailer_data[:dns_verified].equal?(false), @mailer_data[:provider_verified].nil?]
 #=> [true, [], false, true, true]
 
 # ----------------------------------------------------------------

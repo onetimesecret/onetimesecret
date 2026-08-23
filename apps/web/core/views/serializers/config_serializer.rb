@@ -5,6 +5,7 @@
 require 'onetime/models/custom_domain/signin_config'
 require 'onetime/models/custom_domain/sso_config'
 require 'onetime/models/custom_domain'
+require 'onetime/tenant_sso_resolution'
 
 module Core
   module Views
@@ -20,9 +21,15 @@ module Core
     #   3. If fallback disallowed -> empty providers array
     #
     # Resolution Flow:
-    #   view_vars['display_domain'] -> CustomDomain.load_by_display_domain -> CustomDomain::SsoConfig
+    #   view_vars['display_domain'] -> CustomDomain.from_display_domain -> CustomDomain::SsoConfig
     #
     module ConfigSerializer
+      # Sentinel returned by resolve_domain_id when a datastore read fails.
+      # Callers must check for this and render the narrowest surface rather
+      # than treating it as "no tenant config" (#4157). Owned by
+      # Onetime::TenantSsoResolution, which performs the read.
+      DOMAIN_READ_FAILED = Onetime::TenantSsoResolution::DOMAIN_READ_FAILED
+
       # Serializes configuration data from view variables
       #
       # Transforms server configuration including site settings, feature flags,
@@ -57,8 +64,13 @@ module Core
         output['regions_enabled'] = regions.fetch('enabled', false)
         output['regions']         = transform_regions(regions) if output['regions_enabled']
 
+        # Only send the allowlisted domains fields when the feature is enabled.
+        # The raw config subtree also carries the Approximated credentials
+        # (approximated.api_key et al.) and the internal ACME listener — the
+        # DNS proxy targets a domain owner needs are served by the
+        # authenticated domains API via DomainValidation::Features.safe_dump.
         output['domains_enabled'] = domains.fetch('enabled', false)
-        output['domains']         = domains if output['domains_enabled']
+        output['domains']         = transform_domains(domains) if output['domains_enabled']
 
         # Link to the pricing page can be seen regardless of authentication status
         output['billing_enabled'] = OT.billing_config.enabled?
@@ -228,7 +240,8 @@ module Core
         # @param view_vars [Hash] View variables with request context
         # @return [Hash] Feature flags for frontend consumption
         def build_feature_flags(view_vars)
-          features = view_vars['features'] || {}
+          features               = view_vars['features'] || {}
+          restrict_to_resolution = restrict_to_resolution(view_vars)
 
           {
             'signin' => resolve_signin(view_vars),
@@ -240,7 +253,10 @@ module Core
             'email_auth' => resolve_email_auth(view_vars),
             'webauthn' => Onetime.auth_config.webauthn_enabled?,
             'sso' => build_sso_config(view_vars),
-            'restrict_to' => resolve_restrict_to(view_vars),
+            # Keep the scalar for existing consumers, and carry the resolver's
+            # full wire form so :unavailable is not widened to standard mode.
+            'restrict_to' => restrict_to_resolution.unavailable? ? nil : restrict_to_resolution.restrict_to,
+            'effective_restrict_to' => restrict_to_resolution.to_wire.transform_keys(&:to_s),
             'organizations' => {
               'enabled' => features.dig('organizations', 'enabled') || false,
               'sso_enabled' => features.dig('organizations', 'sso_enabled') || false,
@@ -259,33 +275,134 @@ module Core
               # 'false' (quoted/ERB-stringified) still disables the flag.
               'audit_logs_enabled' => features.dig('organizations', 'audit_logs_enabled').to_s != 'false',
             },
+            'secret_activity' => {
+              # Same default-true contract as audit_logs_enabled above: only
+              # an explicit false pauses collection; compare on the string
+              # form for quoted/ERB-stringified 'false'. This is the
+              # data-existence axis — audit_logs_enabled is UI exposure.
+              'collect_enabled' => features.dig('secret_activity', 'collect').to_s != 'false',
+              'max_events' => resolve_secret_activity_max_events(features),
+              # Country column on the org Secret Activity trail. DEFAULT-OFF
+              # (opt-in) — the inverse polarity of the flags above — gated
+              # pending counsel review of org-tier geo exposure (#3989; ADR-021
+              # Decision 4). Only an explicit true enables it.
+              'geo_country_enabled' => features.dig('secret_activity', 'geo_country_enabled').to_s == 'true',
+            },
           }
         end
 
-        # Resolve restrict_to for the current request context.
-        # Domain SigninConfig overrides global when enabled.
+        # The retention cap actually enforced on the org trail: mirrors the
+        # boot-time coercion (ConfigureSecretActivity) and clamp
+        # (SecretActivity.configure!) so the UI never advertises a cap the
+        # backend ignored.
+        def resolve_secret_activity_max_events(features)
+          feature = Onetime::Organization::Features::SecretActivity
+          max     = Integer(features.dig('secret_activity', 'max_events'))
+          [max, feature::MIN_MAX_EVENTS].max
+        rescue ArgumentError, TypeError
+          Onetime::Organization::Features::SecretActivity::DEFAULT_MAX_EVENTS
+        end
+
+        # Wire value of features.restrict_to for the current request context.
         #
-        # SSO carve-out parity with resolve_signin: a custom domain with no
-        # enabled SigninConfig keeps its /signin page ONLY because SSO is
-        # available (resolve_signin returns sso_available?). Without narrowing
-        # restrict_to, AuthMethodSelector would fall into standard mode and
-        # render the password/email form beside the SSO buttons — yet password/
-        # email default OFF on custom domains and their POST route
-        # (Base#signin_enabled?) rejects them, so those forms advertise methods
-        # that always fail. Force restrict_to='sso' on exactly the same
-        # predicate resolve_signin uses (tenant_domain? && sso_available?) so
-        # the page-availability gate and the method restriction stay in
-        # lockstep and the SSO-only page renders SSO buttons alone.
+        # DISPLAY CONSUMER ONLY (ADR-034#resolution-is-model-owned): resolution itself belongs to
+        # SigninConfig.resolve_restrict_to — precedence between global and
+        # domain, and the fail-closed degradation of a domain restriction whose
+        # method cannot be honored, are decided there and re-derived nowhere.
+        # This method's whole job is to gather the two inputs and flatten the
+        # result onto the bootstrap payload.
+        #
+        # features.restrict_to remains the backwards-compatible string-or-null
+        # projection. build_feature_flags also emits effective_restrict_to so
+        # display consumers retain the resolver's explicit :unavailable state.
+        #
+        # @param view_vars [Hash] View variables with request context
+        # @return [String, nil] the single permitted method, or nil for standard mode
         def resolve_restrict_to(view_vars)
+          resolution = restrict_to_resolution(view_vars)
+          return nil if resolution.unavailable?
+
+          resolution.restrict_to
+        end
+
+        # Resolver output for the current request context.
+        #
+        # @param view_vars [Hash] View variables with request context
+        # @return [Onetime::CustomDomain::SigninConfig::RestrictToResolution]
+        def restrict_to_resolution(view_vars)
           domain_id = resolve_domain_id(view_vars)
-          if domain_id
-            signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id)
-            return signin_config.restrict_to if signin_config&.enabled?
+
+          # Tri-state handling (#4157): failed read → unavailable (no auth methods).
+          if domain_id == DOMAIN_READ_FAILED
+            return Onetime::CustomDomain::SigninConfig::RestrictToResolution.new(
+              restrict_to: nil,
+              state: :unavailable,
+              source: :domain_read_failed,
+            )
           end
 
-          return 'sso' if tenant_domain?(view_vars) && sso_available?(view_vars)
+          signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id) if domain_id
+          inherited     = effective_global_restrict_to(view_vars, signin_config, domain_id)
 
-          Onetime.auth_config.restrict_to
+          Onetime::CustomDomain::SigninConfig.resolve_restrict_to(
+            inherited.value,
+            signin_config,
+            # Post-boot availability of the global restriction (ADR-034#degradation-is-fail-closed),
+            # asked through the SHARED gatherer so the page cannot answer it
+            # differently from the route gate. It briefly did: with only
+            # global_restriction_available? here, this page reported
+            # `restricted/password` on a custom host with no enabled
+            # SigninConfig under a global password restriction, while the gate
+            # narrowed through the custom-host capabilities (password defaults
+            # OFF there), resolved :unavailable, and 404'd the very routes this
+            # page's form posts to (#4139).
+            #
+            # #4165: pass pin_established so the availability check trusts the
+            # SSO pin's own proof instead of re-consulting AuthConfig.
+            available: Onetime::CustomDomain::SigninConfig.restriction_available_for_request?(
+              inherited.value,
+              signin_config,
+              domain_id: domain_id,
+              custom_host: tenant_domain?(view_vars),
+              already_established: inherited.pin_established,
+            ),
+          )
+        end
+
+        # The restriction this REQUEST HOST inherits when no enabled per-domain
+        # config speaks — the `global` input to the resolver.
+        #
+        # The pin POLICY is SigninConfig.inherited_restrict_to (see it for why
+        # an SSO-only custom host inherits 'sso' and why the pin may only apply
+        # when no enabled domain config speaks). It is shared with the runtime
+        # gate (Auth::RestrictTo.global_restrict_to) and the settings API
+        # (DomainsAPI signin_config details), so the page cannot inherit a
+        # different restriction from the routes it posts to
+        # (ADR-034#resolution-is-model-owned). All that is left here is the
+        # display side's own request facts: the tenant-host classification and
+        # the #4157 read-failure tri-state.
+        #
+        # @param view_vars [Hash] View variables with request context
+        # @param signin_config [Onetime::CustomDomain::SigninConfig, nil]
+        # @param domain_id [String, nil, :domain_read_failed] already-resolved CustomDomain objid
+        # @return [Onetime::CustomDomain::SigninConfig::InheritedRestriction]
+        def effective_global_restrict_to(view_vars, signin_config = nil, domain_id = nil)
+          # Tri-state handling (#4157): if domain_id is DOMAIN_READ_FAILED, the
+          # caller should have already short-circuited. If we reach here anyway,
+          # don't attempt the SSO pin — fall through to global.
+          custom_host = tenant_domain?(view_vars) && domain_id != DOMAIN_READ_FAILED
+
+          if custom_host && !signin_config&.enabled?
+            domain_id ||= resolve_domain_id(view_vars)
+            # Defensive: if the fallback read also failed, skip the SSO pin.
+            custom_host = domain_id != DOMAIN_READ_FAILED
+          end
+
+          Onetime::CustomDomain::SigninConfig.inherited_restrict_to(
+            signin_config,
+            domain_id: custom_host ? domain_id : nil,
+            custom_host: custom_host,
+          )
         end
 
         # Resolve sign-in availability for the current request context.
@@ -320,12 +437,24 @@ module Core
           auth_settings = (view_vars['site'] || {})['authentication'] || {}
           global        = auth_settings['enabled'] && auth_settings['signin']
 
-          domain_id     = resolve_domain_id(view_vars)
+          domain_id = resolve_domain_id(view_vars)
+
+          # Tri-state handling (#4157): a failed read is not "no tenant config."
+          # Render the narrowest surface (no sign-in) rather than falling back
+          # to operator defaults during a datastore blip.
+          return false if domain_id == DOMAIN_READ_FAILED
+
           signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id) if domain_id
 
-          # Custom domain that has not opted into per-domain sign-in: password/
-          # email defaults OFF; keep the page only when SSO is available.
-          if tenant_domain?(view_vars) && !signin_config&.enabled?
+          # Anything but a positively-classified operator host, with no opted-in
+          # per-domain sign-in: password/email default OFF; keep the page only
+          # when SSO is available.
+          #
+          # The predicate is operator_domain?, NOT tenant_domain? — this is the
+          # display half of the pair, and it must branch on whatever
+          # Base#signin_enabled? branches on.
+          # ADR-024#display-runtime-parity
+          if !operator_domain?(view_vars) && !signin_config&.enabled?
             return sso_available?(view_vars)
           end
 
@@ -355,8 +484,12 @@ module Core
         # @param view_vars [Hash] View variables with request context
         # @return [Boolean] true if email_auth is available
         def resolve_email_auth(view_vars)
-          global        = Onetime.auth_config.email_auth_enabled?
-          domain_id     = resolve_domain_id(view_vars)
+          global    = Onetime.auth_config.email_auth_enabled?
+          domain_id = resolve_domain_id(view_vars)
+
+          # Tri-state handling (#4157): failed read → narrow to off.
+          return false if domain_id == DOMAIN_READ_FAILED
+
           signin_config = Onetime::CustomDomain::SigninConfig.find_by_domain_id(domain_id) if domain_id
 
           Onetime::CustomDomain::SigninConfig.resolve_email_auth_enabled(global, signin_config)
@@ -395,9 +528,21 @@ module Core
             return build_tenant_sso_response(tenant_config)
           end
 
-          # Check if we're on a custom domain that should have tenant config
-          # but doesn't - honor the fallback policy
-          if tenant_domain?(view_vars) && !allow_platform_fallback?
+          # No tenant config resolved. Honor the operator's fallback policy:
+          # when platform fallback is withheld from tenants, a host that is not
+          # positively one of the operator's OWN gets no providers.
+          #
+          # The predicate is operator_domain?, NOT tenant_domain? — "may this
+          # host borrow the platform's SSO providers" is an auth decision, and
+          # the platform omniauth routes are host-independent, so a widen here
+          # hands out a working sign-in method rather than a rendering detail.
+          # ADR-024#operator-defaults-require-positive-classification
+          #
+          # Tenant-vs-platform SELECTION above is untouched and still keys on
+          # domain identity (resolve_tenant_sso_config, via domain_id): a
+          # genuinely unknown host has no tenant config to select, and this
+          # guard is what decides whether it may fall back.
+          if !operator_domain?(view_vars) && !allow_platform_fallback?
             return { 'enabled' => false, 'providers' => [] }
           end
 
@@ -428,35 +573,60 @@ module Core
         # disabling or deleting the SsoConfig between the two reads passes the
         # check but returns nil — and build_sso_config would then silently
         # fall through to platform fallback for a domain that had tenant SSO
-        # a moment earlier.
+        # a moment earlier. The ladder (and that contract) now lives in
+        # Onetime::TenantSsoResolution, resolved ONCE per request and shared
+        # with AuthenticationSerializer#tenant_sso_enforced? and with
+        # Onetime::Middleware::TenantCspExtras, which widens CSP form-action
+        # with this same record's IdP origin (#4173) — the button and the
+        # policy that lets its POST leave can no longer disagree. Tri-state
+        # (#4157) is handled inside: a failed read yields nil here, the
+        # narrowest surface.
         #
         # @param view_vars [Hash] View variables
         # @return [Onetime::CustomDomain::SsoConfig, nil] Config if found and enabled
         def resolve_tenant_sso_config(view_vars)
-          domain_id = resolve_domain_id(view_vars)
-          return nil unless domain_id
+          tenant_sso_resolution(view_vars).sso_config
+        end
 
-          config = Onetime::CustomDomain::SsoConfig.find_by_domain_id(domain_id)
-          return nil unless config
-          return nil unless Onetime::CustomDomain::SsoConfig.tenant_sso_available_for?(domain_id, sso_config: config)
-
-          config
+        # The request-scoped tenant SSO resolution carried by view_vars
+        # (installed by Core::Views::InitializeViewVars from the rack env), or
+        # a fresh unshared one when view_vars was built without an env — same
+        # answers, sharing is all that is lost.
+        #
+        # @param view_vars [Hash] View variables
+        # @return [Onetime::TenantSsoResolution]
+        def tenant_sso_resolution(view_vars)
+          Onetime::TenantSsoResolution.from_view_vars(view_vars)
         end
 
         # Resolve domain identifier from view variables
         #
+        # Returns the CustomDomain identifier when the lookup succeeds,
+        # nil when the display_domain is blank or the domain doesn't exist,
+        # or DOMAIN_READ_FAILED when the datastore read fails.
+        #
+        # Callers MUST check for DOMAIN_READ_FAILED and render the narrowest
+        # surface (omit sign-in affordances) rather than treating a failed
+        # read as "no tenant config" (#4157).
+        #
+        # Resolved once per request and memoized (Onetime::TenantSsoResolution),
+        # so the four callers below — restrict_to, signin, email_auth and the
+        # tenant SSO selection — all key on the SAME domain identity instead
+        # of racing four independent reads.
+        #
         # @param view_vars [Hash] View variables
-        # @return [String, nil] CustomDomain identifier (objid) or nil
+        # @return [String, nil, :domain_read_failed]
         def resolve_domain_id(view_vars)
-          display_domain = view_vars['display_domain']
-          return nil if display_domain.to_s.empty?
-
-          custom_domain = Onetime::CustomDomain.load_by_display_domain(display_domain)
-          custom_domain&.identifier
-        rescue Redis::BaseError => ex
-          OT.le "[ConfigSerializer] Redis error resolving domain_id for domain=#{display_domain}: #{ex.class}"
-          nil
+          tenant_sso_resolution(view_vars).domain_id
         end
+        # ASYMMETRIC WITH THE GATES ON PURPOSE (#4139). The runtime gates raise
+        # Onetime::SigninPolicyUnavailable when this same read fails, because a
+        # gate that cannot read the policy must not decide. This is the DISPLAY
+        # half: we return DOMAIN_READ_FAILED so callers can render the narrowest
+        # surface (no sign-in affordance) rather than falling back to operator
+        # defaults. The gate still catches any form submission with a 503, but
+        # now the display layer agrees: unknown tenant policy means no sign-in
+        # form, not the operator's default (#4157).
 
         # Check if request is from a tenant/custom domain
         #
@@ -465,6 +635,23 @@ module Core
         def tenant_domain?(view_vars)
           strategy = view_vars['domain_strategy']
           strategy == :custom
+        end
+
+        # Whether this request is positively classified as one of the operator's
+        # OWN hosts, and may therefore inherit operator auth defaults.
+        # ADR-024#identity-predicates-are-not-auth-gates
+        #
+        # The complement of tenant_domain? is NOT this: :invalid and nil
+        # are neither operator hosts nor tenant hosts, and must be treated as
+        # tenant-safe for auth while staying non-tenant for branding/routing.
+        #
+        # SigninConfig.operator_host? owns the classification list so this page
+        # and the runtime gates cannot disagree about it.
+        #
+        # @param view_vars [Hash] View variables
+        # @return [Boolean] true on :canonical / :subdomain
+        def operator_domain?(view_vars)
+          Onetime::CustomDomain::SigninConfig.operator_host?(view_vars['domain_strategy'])
         end
 
         # Check if platform fallback is allowed for tenant domains
@@ -491,6 +678,26 @@ module Core
                 'display_name' => config.display_name.to_s,
               },
             ],
+          }
+        end
+
+        # Transform domains config for frontend consumption
+        #
+        # Allowlist, not blocklist: the features.domains subtree includes the
+        # Approximated proxy credentials and the internal ACME endpoint
+        # config, which must never reach the bootstrap payload. The frontend
+        # consumes validation_strategy (src/utils/features.ts) and the
+        # optional require_verified/default fields; everything else stays
+        # server-side.
+        #
+        # @param domains [Hash] Raw domains config from features
+        # @return [Hash] Frontend-safe domains fields
+        def transform_domains(domains)
+          {
+            'enabled' => domains.fetch('enabled', false),
+            'require_verified' => domains.fetch('require_verified', false),
+            'default' => domains['default'],
+            'validation_strategy' => domains.fetch('validation_strategy', 'passthrough'),
           }
         end
 
