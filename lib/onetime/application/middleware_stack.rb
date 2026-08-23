@@ -640,10 +640,13 @@ module Onetime
               {
                 config: diagnostics_conf,
               }
-            # The SDK is loaded lazily by SetupDiagnostics. Diagnostics state can
-            # outlive a test's SDK load, so mount only when its Rack integration
-            # is actually available.
-            builder.use ::Sentry::Rack::CaptureExceptions if defined?(::Sentry::Rack::CaptureExceptions)
+            # Loading the SDK only defines the Rack integration; it does not
+            # configure a client. Mount only after SetupDiagnostics initialized
+            # Sentry, otherwise a prior test that required sentry-ruby changes
+            # the universal stack without enabling diagnostics.
+            if defined?(::Sentry::Rack::CaptureExceptions) && ::Sentry.initialized?
+              builder.use ::Sentry::Rack::CaptureExceptions
+            end
           end
 
           # Retry-After header for throttled (429) responses. Both routing
