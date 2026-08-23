@@ -220,12 +220,12 @@ function actorContextScopes(): ActorContextScope[] {
  * `diagnostics_ref` block.
  *
  * The input is UNTRUSTED and is validated against the strict contract before
- * anything is forwarded: an unknown key, a bad scope, or a missing ref all
+ * anything is forwarded: an unknown key, a malformed ref, or a missing ref all
  * resolve to null and CLEAR the context rather than partially applying it.
  * Passing null clears it outright.
  *
- * Emits exactly `user = { id: <ref>, ip_address: null }` and the `actor_scope`
- * tag. Never an email, name, objid, extid, or IP.
+ * Emits exactly `user = { id: <ref>, ip_address: null }` — no tags. Never an
+ * email, name, objid, extid, or IP.
  *
  * Safe to call when diagnostics are disabled — it is a no-op.
  *
@@ -247,13 +247,12 @@ export function setDiagnosticsActorContext(block: unknown): void {
 }
 
 /**
- * Clears the Sentry user context: `setUser(null)` plus removal of the
- * `actor_scope` tag, on every scope.
+ * Clears the Sentry user context: `setUser(null)` on every scope.
  *
  * Call on LOGOUT and on any account change where the new session's ref is not
- * yet known. The tag removal matters as much as the user clear — a stale
- * `actor_scope` would let a now-anonymous session be filtered in Sentry as
- * though it were still the previous, identified session.
+ * yet known. User context is the only dimension the actor boundary writes, so
+ * this is a complete eviction — without it, a now-anonymous session would keep
+ * reporting under the previous, identified session's ref.
  *
  * Only the soft/SPA logout path needs this. Hard logouts navigate with
  * `window.location.href`, which tears down the JS context and the scopes with

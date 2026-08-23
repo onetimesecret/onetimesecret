@@ -355,7 +355,7 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
       # Step 1: JoinDomainOrganization fails silently (mirrors safe_execute wrapper)
       Onetime::ErrorHandler.safe_execute(
         'join_domain_organization_omniauth',
-        extid: fresh_sso_customer.extid,
+        external_id: fresh_sso_customer.extid,
         domain_id: bogus_domain_id,
       ) do
         Auth::Operations::JoinDomainOrganization.new(

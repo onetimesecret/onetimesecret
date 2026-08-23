@@ -63,7 +63,7 @@ module Auth::Config::Hooks
           Onetime::ErrorHandler.safe_execute(
             'sync_session_after_mfa',
             account_id: account_id,
-            email: account[:email],
+            external_id: account[:external_id],
           ) do
             Auth::Operations::SyncSession.call(
               account: account,

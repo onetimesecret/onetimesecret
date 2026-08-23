@@ -71,15 +71,10 @@ RSpec.describe ColonelAPI::Logic::Colonel::GetOrganizationDetail do
   end
 
   describe 'diagnostics references' do
-    # Pin a known keying rather than inheriting whatever the lane exports.
-    # DiagnosticsRef refuses the shared federation secret when no residency
-    # resolves, so an unpinned lane could make every example here assert
-    # against nil and pass for the wrong reason.
-    let(:keying) do
-      Onetime::Utils::DiagnosticsRef::Keying.new(
-        secret: 'a-known-diagnostics-key', scope: 'federated', residency: 'stub-region'
-      )
-    end
+    # Pin a known keying rather than inheriting whatever the lane exports, so
+    # an unpinned lane cannot make every example here assert against nil and
+    # pass for the wrong reason.
+    let(:keying) { 'a-known-diagnostics-key' }
 
     before { allow(Onetime::Utils::DiagnosticsRef).to receive(:keying).and_return(keying) }
 
@@ -104,10 +99,11 @@ RSpec.describe ColonelAPI::Logic::Colonel::GetOrganizationDetail do
       expect(record[:organization_ref]).not_to eq(other)
     end
 
-    it 'is domain separated from the user namespace' do
-      # A pre-image both entry points treat identically — already lowercase,
-      # unpadded, NFC — so the only difference left is the purpose prefix.
-      probe = 'domain-separation-probe'
+    it 'is domain separated from the actor namespace' do
+      # An extid-shaped pre-image, which is what the actor namespace digests.
+      # Both entry points treat it identically (no normalization on either
+      # side), so the only difference left is the purpose prefix.
+      probe = 'ur00fedcba9876543210zyxwvu'
 
       expect(Onetime::Utils::DiagnosticsRef.organization_ref(probe))
         .not_to eq(Onetime::Utils::DiagnosticsRef.actor_ref(probe))

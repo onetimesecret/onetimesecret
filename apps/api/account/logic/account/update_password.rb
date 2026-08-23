@@ -151,7 +151,7 @@ module AccountAPI::Logic
       # with the full-mode hook). Never let a delivery problem surface as a
       # password-change failure.
       def send_password_changed_notification
-        Onetime::ErrorHandler.safe_execute('password_changed_email', customer_id: cust.extid) do
+        Onetime::ErrorHandler.safe_execute('password_changed_email', external_id: cust.extid) do
           # Customers default locale to "" (matches Redis string load), which
           # is truthy and would slip past a bare `||`. Treat blank as missing.
           locale = cust.locale

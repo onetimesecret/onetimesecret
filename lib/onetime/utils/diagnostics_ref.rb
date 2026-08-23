@@ -4,8 +4,6 @@
 
 require 'openssl'
 
-require_relative 'strings'
-
 module Onetime
   module Utils
     # DiagnosticsRef - opaque, stable actor and organization references for the
@@ -20,13 +18,79 @@ module Onetime
     # what they disclose has to be justified against THAT purpose, and a
     # justification that reads "it would be interesting to know" is a refusal.
     #
-    # Error reports are far more useful when the same human maps to the same
+    # Error reports are far more useful when the same account maps to the same
     # reference across events ("this crash hits one account, not fifty"). Sending
     # an email address, a customer objid, an extid or an IP to an observability
     # backend to get that is not acceptable, so we send a keyed, one-way
     # reference instead: correlation without disclosure. Same posture, same
     # rationale as Onetime::Security::RequestContext (ADR-022) — this is that
     # idea applied to the actor rather than the network.
+    #
+    # ---------------------------------------------------------------------------
+    # THE CORRELATION SUBJECT IS THE RECORD, NOT THE HUMAN
+    # ---------------------------------------------------------------------------
+    # An actor ref derives from the customer EXTID — the server-minted external
+    # identifier — and never from the email. That is not a concession; it is the
+    # more correct subject:
+    #
+    #   * an extid is stable across an email change (change_email mutates the
+    #     email in place and keeps the record), so an email pre-image would SPLIT
+    #     one account into two Sentry users the moment somebody changed address;
+    #   * an email is reassignable, so an email pre-image would CONFLATE two
+    #     different people after an address reassignment or a
+    #     delete-and-recreate. An extid cannot.
+    #
+    # A returning user who deleted and re-signed-up therefore counts as a new
+    # subject. Under "the subject is the record" that is the right answer.
+    #
+    # Two security properties follow, and neither is immunity:
+    #
+    #   * PRE-IMAGE ENTROPY. Under key compromise, an email pre-image is
+    #     re-identifiable offline against cheap public address lists. An extid
+    #     pre-image moves that attack to "leaked key PLUS an auxiliary extid
+    #     dataset". Extids are not secret — they appear in bootstrap payloads,
+    #     API responses and logs, which is their job — but they are
+    #     non-enumerable and not dictionary-shaped.
+    #   * ERASURE. An email ref re-links a data subject across deletion and
+    #     re-signup inside the retention window. An extid ref does not.
+    #
+    # NO RESIDENCY DISCRIMINATOR. Extids are minted per install from per-install
+    # objids, so separately provisioned regional customer records do not
+    # correlate across regions BY DEFAULT — there is nothing to mix in to
+    # achieve it. The residual case (a cloned datastore plus a copied
+    # ACCOUNT_ID_SECRET reporting into one Sentry project) is operator
+    # self-misconfiguration and is accepted, rather than reintroducing a
+    # residency apparatus to defend against it.
+    #
+    # The full argument, the rejected alternatives and the accepted costs are in
+    # docs/specs/diagnostics/actor-ref-preimage-debate-decision.md. Do not
+    # re-litigate the email pre-image here.
+    #
+    # ---------------------------------------------------------------------------
+    # KEYING: ACCOUNT_ID_SECRET, DELIBERATELY COUPLED
+    # ---------------------------------------------------------------------------
+    # One secret keys both namespaces: ACCOUNT_ID_SECRET, read from ENV only.
+    #
+    #   * Read from ENV, never from Rodauth's configured value. When
+    #     ACCOUNT_ID_SECRET is unset outside production Rodauth substitutes a
+    #     fixed placeholder literal, which would make every dev install on earth
+    #     derive identical refs.
+    #   * The raw secret VALUE is consumed as an HMAC key. This is NOT Rodauth's
+    #     account-id obfuscation cipher — that is an Integer<->13-char bijection
+    #     over the accounts PK, which cannot take an extid.
+    #   * Not configured -> nil, and the caller emits nothing.
+    #
+    # The purpose prefix namespaces the two ref families but does not enable
+    # independent rotation: refs are only as strong as ACCOUNT_ID_SECRET, and
+    # rotating that secret ROTATES EVERY REF. That coupling is an accepted
+    # operator decision rather than an oversight — a dedicated
+    # DIAGNOSTICS_REF_SECRET would buy robustness in a compromise scenario whose
+    # marginal exposure is already small, at zero diagnostic gain. Under the
+    # 14-day Sentry retention the post-rotation discontinuity ages out on its
+    # own and is a non-event.
+    #
+    # FEDERATION_SECRET is NOT used here. Onetime::Utils::EmailHash still owns
+    # it for federation; diagnostics deliberately does not touch it.
     #
     # ---------------------------------------------------------------------------
     # WHY NOT REUSE EmailHash.compute
@@ -40,27 +104,31 @@ module Onetime
     #
     # Shipping it verbatim to Sentry would hand the diagnostics surface a live
     # join key into billing records and our own datastore index. So this module
-    # derives a DISTINCT value under an explicit, versioned purpose prefix and a
-    # residency element:
+    # derives DISTINCT values under explicit, versioned purpose prefixes:
     #
-    #   actor: HMAC(secret, "onetime:sentry:v1:actor" || 0x00
-    #                       || residency_scope || 0x00 || normalized_email)
-    #   org:   HMAC(secret, "onetime:sentry:v1:organization" || 0x00
-    #                       || residency_scope || 0x00 || org_objid)
+    #   actor: HMAC(secret, "onetime:sentry:v2:actor"        || 0x00 || extid)
+    #   org:   HMAC(secret, "onetime:sentry:v2:organization" || 0x00 || objid)
     #
-    # The NUL-separated elements are the domain separation. Three consequences
-    # that the tests pin:
-    #   1. actor_ref(email) != EmailHash.compute(email), even when both are keyed
-    #      with the same FEDERATION_SECRET;
-    #   2. actor_ref(x) under residency "eu" != actor_ref(x) under "us"; and
-    #   3. organization_ref(x) != actor_ref(x) for the identical input string,
-    #      under identical keying and residency — the purpose prefix is what
-    #      separates the two namespaces.
-    # The `v1` element lets us re-key diagnostics reference later without touching
-    # federation reference.
+    # The NUL-separated elements are the domain separation. Two consequences the
+    # tests pin by execution, not assertion:
+    #   1. actor_ref(x) != EmailHash.compute(x); and
+    #   2. organization_ref(x) != actor_ref(x) for the identical input string
+    #      under identical keying — the purpose prefix is the whole of the
+    #      separation between the two namespaces.
     #
     # Refs are truncated to REF_LENGTH hex chars — deliberately HALF the width of
     # a federation email hash, so the two are never confusable by shape either.
+    #
+    # ---------------------------------------------------------------------------
+    # BOUNDARY ATTRIBUTION LOSS (bought knowingly)
+    # ---------------------------------------------------------------------------
+    # Some capture sites hold no extid: account creation before the customer
+    # record exists, email-only credential flows, and datastore-outage rescues
+    # that hold only an email. Those events are still captured and still group
+    # by the ordinary grouping rules — what is unanswerable for that class is
+    # actor cardinality ("one account or many?"). That is the price of the
+    # pre-image choice and it was paid on purpose; a true identity need on the
+    # auth surface resolves at support time by asking the user.
     #
     # ---------------------------------------------------------------------------
     # ORGANIZATION REFERENCE: DEFERRED FRONTEND CONSUMER
@@ -73,196 +141,44 @@ module Onetime
     #
     # This remains a per-resource value, not a per-session value. It must never
     # be added to the bootstrap `diagnostics_ref` block: that block is exactly
-    # {actor_ref, actor_scope} and the frontend parses it as a Zod strictObject.
-    # A third key would make the client discard the entire actor block.
-    #
-    # ---------------------------------------------------------------------------
-    # RESIDENCY SCOPE (why refs deliberately do NOT correlate across regions)
-    # ---------------------------------------------------------------------------
-    # An earlier revision of this module keyed actor refs off FEDERATION_SECRET
-    # alone and sold "one reference per person across regions" as a feature. That
-    # is a defect, not a feature, and it is fixed here.
-    #
-    # The browser SDK tags every event with `jurisdiction`
-    # (src/plugins/core/enableDiagnostics.ts) and the Ruby SDK does the same
-    # (Onetime::Initializers::SetupDiagnostics). Regional instances share one
-    # FEDERATION_SECRET by design and report into ONE diagnostics backend. A
-    # region-independent ref therefore emits the identical user id from the EU
-    # instance and the US instance, distinguished only by that tag — which is a
-    # ready-made join key proving that one data subject is present in both. A
-    # keyed pseudonym is still personal data (GDPR Recital 26), so that join is
-    # exactly the inference the jurisdictional-residency architecture exists to
-    # prevent, and no amount of tagging discipline elsewhere undoes it.
-    #
-    # Against that, cross-region correlation buys nothing operationally, and it
-    # is worth stating plainly rather than hedging: there is NO legitimate
-    # operational use for it here. Error triage is per-instance — a stack trace
-    # raised in the EU instance is debugged against the EU instance's code,
-    # config, and datastore. "Is this the same human as the one erroring in the
-    # US?" is a product-analytics question, not a debugging one, and it is not a
-    # question this data is allowed to answer. So the residency scope is mixed
-    # into the derivation UNCONDITIONALLY and there is no opt-out knob — an
-    # opt-out would exist only to reconstruct the hazard.
-    #
-    # The residency scope resolves in this order:
-    #
-    #   1. DIAGNOSTICS_REF_REGION — explicit operator pin. Use this when
-    #      residency boundaries do not line up with the regions feature: two
-    #      installs that share FEDERATION_SECRET, both with regions disabled,
-    #      but serving different jurisdictions. Any short stable label works
-    #      ('eu', 'us', 'ca-central'); it is never emitted, only mixed in.
-    #
-    #   2. features.regions.current_jurisdiction (JURISDICTION) — the same
-    #      value the Sentry `jurisdiction` tag is derived from, so the
-    #      separation lines up with what an operator sees in the UI.
-    #
-    #   3. Nothing declared -> UNRESOLVED (nil), and the shared key is refused.
-    #      See the next section; this is the case that used to fail open.
-    #
-    # ---------------------------------------------------------------------------
-    # AN UNDECLARED RESIDENCY REFUSES THE SHARED SECRET (the default is safe)
-    # ---------------------------------------------------------------------------
-    # An earlier revision of this fix mixed a constant — RESIDENCY_UNSCOPED —
-    # into the pre-image whenever nothing was declared. That defaulted straight
-    # back into the hazard it documented: two installs sharing FEDERATION_SECRET
-    # and declaring no residency derived IDENTICAL refs into one backend, which
-    # is exactly the cross-region join above. The mechanism only ever engaged if
-    # somebody thought to turn it on.
-    #
-    # That gets the population backwards. FEDERATION_SECRET is shared BECAUSE
-    # instances are regional, so "declared nothing" is the population most at
-    # risk, not the one that is safe — and a residency guarantee that has to be
-    # switched on is not a guarantee. The safe state must be the one an operator
-    # gets for free.
-    #
-    # So an unresolved residency does not widen the ref; it withdraws the key.
-    # #keying declines FEDERATION_SECRET and falls through to ACCOUNT_ID_SECRET,
-    # yielding scope 'deployment'. That is:
-    #
-    #   * strictly safer — per-install correlation is all error triage needs;
-    #   * self-limiting — it can only ever narrow correlation, never widen it;
-    #   * honest — the emitted actor_scope label narrows with it, so an operator
-    #     reading a Sentry event is never told a ref is comparable further than
-    #     it actually is.
-    #
-    # An operator who genuinely wants federated correlation within one
-    # jurisdiction gets it by declaring that jurisdiction. There is no path to
-    # cross-install correlation that requires configuring nothing.
-    #
-    # RESIDENCY_UNSCOPED survives only as the literal pre-image element used
-    # under deployment keying, so the element count in the pre-image never
-    # varies. It no longer grants correlation to anyone. One caveat code cannot
-    # enforce: an operator who copies ACCOUNT_ID_SECRET between installs
-    # rebuilds cross-install correlation under a 'deployment' label. That secret
-    # is generated per install and documented as un-shareable; sharing it is a
-    # configuration error with consequences well beyond diagnostics.
-    #
-    # ---------------------------------------------------------------------------
-    # ONE RESIDENCY RESOLUTION PER DERIVATION
-    # ---------------------------------------------------------------------------
-    # Residency is read ONCE per derivation and then threaded. #keying resolves
-    # it and returns it inside a Keying value alongside the secret it selected
-    # and the label that secret implies; #digest_ref and #actor consume that one
-    # value and never re-resolve.
-    #
-    # This is not tidiness. An earlier revision resolved residency THREE times
-    # per emitted bundle — in #keying to choose the secret, again in #digest_ref
-    # to build the pre-image, a third time via #scope to build the label — from
-    # unsynchronized reads of OT.conf. Any change between those reads produced
-    # three defects at once. A jurisdiction edited between reads was enough; so
-    # was an OT.conf that went FALSY rather than raising, which the raise-based
-    # guard below does not catch because nothing raises:
-    #
-    #   * one human in one process derived TWO different refs — the user split
-    #     that fail-closed residency handling exists to prevent;
-    #   * two installs in DIFFERENT jurisdictions sharing FEDERATION_SECRET
-    #     derived the IDENTICAL ref, because both substituted RESIDENCY_UNSCOPED
-    #     into a pre-image still keyed with the shared secret — the cross-region
-    #     join, reconstructed by a race;
-    #   * the label LIED DOWNWARD, reading 'deployment' over a federation-keyed
-    #     ref, inverting the honesty property claimed two sections up.
-    #
-    # Threading one value makes the first two unrepresentable. The third is now
-    # ENFORCED rather than asserted: #digest_ref emits nothing at all when it is
-    # handed FEDERATION_SECRET keying with no residency, so the constant can
-    # never be substituted under the shared key.
-    #
-    # Stated exactly, so the comment does not outrun the code. Guaranteed: the
-    # residency mixed into a ref and the scope label emitted beside it come from
-    # ONE read of the config, and a 'federated' ref always carries a resolved
-    # residency. NOT guaranteed: that two derivations minutes apart agree — an
-    # operator who changes the declared jurisdiction has re-keyed diagnostics
-    # reference, and that splits the user by design.
-    #
-    # ---------------------------------------------------------------------------
-    # SECRET SELECTION ORDER (and what the scope label means)
-    # ---------------------------------------------------------------------------
-    #   1. FEDERATION_SECRET  -> scope 'federated'
-    #      ONLY when a residency scope resolves. Correlation then holds across
-    #      installs that share the secret AND resolve to the SAME residency
-    #      scope. It does NOT hold across jurisdictions; see above. With no
-    #      residency declared this option is skipped entirely.
-    #
-    #   2. ACCOUNT_ID_SECRET  -> scope 'deployment'
-    #      Per-deployment. Correlation holds within this install only.
-    #      NOTE: we consume the raw secret VALUE as an HMAC key here. We do NOT
-    #      use Rodauth's account-id obfuscation cipher — that is an
-    #      Integer<->13-char bijection over the accounts PK, it cannot take an
-    #      email, and the integer PK is not reachable from an Otto request.
-    #      Read from ENV only, never from Rodauth's configured value: when
-    #      ACCOUNT_ID_SECRET is unset outside production Rodauth substitutes a
-    #      fixed placeholder literal, which would make every dev install on
-    #      earth derive identical refs.
-    #
-    #   3. Neither configured -> nil, and the caller emits nothing.
-    #
-    # The scope label travels with the ref so an operator reading a Sentry event
-    # knows how far the id is comparable. It is a property of the KEY, not of
-    # the account. The label values are a closed enum on the client
-    # (REF_SCOPES in src/schemas/contracts/bootstrap.ts) — adding a value here
-    # without adding it there makes the strict parse fail and drops the whole
-    # `diagnostics_ref` block.
+    # {actor_ref} and the frontend parses it as a Zod strictObject. A second key
+    # would make the client discard the entire actor block.
     #
     # ---------------------------------------------------------------------------
     # FAILURE TOLERANCE
     # ---------------------------------------------------------------------------
-    # Neither secret is configured by default: FEDERATION_SECRET is commented out
-    # in .env.example and .env.reference, and ACCOUNT_ID_SECRET is only required
-    # in production. That is the NORMAL state on a developer box, so an
-    # unconfigured deployment must render pages exactly as before.
+    # ACCOUNT_ID_SECRET is only required in production. Unconfigured is the
+    # NORMAL state on a developer box, so an unconfigured deployment must render
+    # pages exactly as before.
     #
     # No public method therefore propagates a StandardError: each answers nil
-    # instead (false for #available?), and the WHOLE derivation — normalization
-    # included — is wrapped so a surprise from OpenSSL, config access, or a
-    # badly encoded stored email cannot escape into a render path. DiagnosticsSerializer runs on every authenticated render of
-    # all three web shells, so an escaping exception means a 500 page AND a
+    # instead (false for #available?), and the WHOLE derivation is wrapped so a
+    # surprise from OpenSSL or from config access cannot escape into a render
+    # path. DiagnosticsSerializer runs on every authenticated render of all
+    # three web shells, so an escaping exception means a 500 page AND a
     # self-inflicted Sentry event; diagnostics code taking the site down is the
-    # one outcome worth engineering against. Encoding is the live hazard there:
-    # a stored email tagged ASCII-8BIT, or holding an invalid byte, makes
-    # String#unicode_normalize raise Encoding::CompatibilityError or
-    # ArgumentError. See #normalized_email.
+    # one outcome worth engineering against.
     #
     # Failures are logged at debug level with the exception CLASS only; never
     # the value, never the key.
     #
     # Fail-soft is NOT the same as fail-open. Where a failure could change WHICH
-    # reference a human gets rather than whether they get one, the answer is nil
-    # — a gap in diagnostics reference — never a substitute value. See
-    # #resolve_residency for the case that motivated the distinction.
+    # reference a subject gets rather than whether it gets one, the answer is
+    # nil — a gap in diagnostics reference — never a substitute value.
     #
     # @see Onetime::Security::RequestContext (the network-side analogue)
     # @see Onetime::Utils::EmailHash (federation reference — deliberately NOT this)
     module DiagnosticsRef
       extend self
 
-      # Canonical email normalization (NFC + case folding + strip), shared with
-      # OT::Utils rather than copied. EmailHash keeps a parallel private copy
-      # because it loads before Utils during boot; this module has no such
-      # constraint, so it reuses the canonical implementation and cannot drift.
-      extend Onetime::Utils::Strings
-
       # Versioned purpose prefix. Changing the value re-keys actor refs only.
-      ACTOR_INFO = 'onetime:sentry:v1:actor'
+      #
+      # v1 mixed in a data-residency element and, for actors, a normalized EMAIL
+      # pre-image. v2 is a two-element message over the server-minted extid
+      # (actor) or objid (organization). The bump makes the accepted re-key
+      # discontinuity legible: refs derived before this change do not match refs
+      # derived after it.
+      ACTOR_INFO = 'onetime:sentry:v2:actor'
 
       # Versioned purpose prefix for ORGANIZATION refs. Distinct from
       # ACTOR_INFO, which is the whole of the domain separation between the two
@@ -270,91 +186,43 @@ module Onetime
       # digest to the same value, or an operator holding one ref could test it
       # against the other surface. Pinned by execution in the tryouts and in
       # spec, not merely asserted here.
-      ORGANIZATION_INFO = 'onetime:sentry:v1:organization'
+      ORGANIZATION_INFO = 'onetime:sentry:v2:organization'
 
       # Separator between derivation elements. A byte that cannot occur in an
-      # email, a jurisdiction id or an objid, so no element can be shifted into
-      # a neighbour's position by a crafted value.
+      # extid or an objid, so no element can be shifted into a neighbour's
+      # position by a crafted value.
       SEPARATOR = "\x00"
 
-      # Pre-image element used when no residency resolves. Literal rather than
-      # empty string so the element count in the pre-image never varies.
-      #
-      # It is NOT a residency scope and grants no correlation. Two independent
-      # mechanisms keep it off the shared key: #keying declines
-      # FEDERATION_SECRET when no residency resolves, and #digest_ref refuses to
-      # emit anything at all if it is nonetheless handed federated keying with
-      # no residency. So this element only ever reaches a pre-image under a
-      # per-deployment key.
-      RESIDENCY_UNSCOPED = 'unscoped'
-
-      # Explicit operator pin for the residency scope. See the module docstring.
-      RESIDENCY_ENV = 'DIAGNOSTICS_REF_REGION'
-
-      # Hex chars retained (64 bits). Ample to group events by user, and half
+      # Hex chars retained (64 bits). Ample to group events by account, and half
       # the width of EmailHash::HASH_LENGTH so refs are visibly not email hashes.
       REF_LENGTH = 16
 
-      # Correlation scope labels — a property of which secret keyed the ref.
-      SCOPE_FEDERATED  = 'federated'
-      SCOPE_DEPLOYMENT = 'deployment'
-
-      # One derivation's keying decision, resolved together and threaded as a
-      # unit: the HMAC key, the label that key implies, and the residency read
-      # that SELECTED that key. Bundling them is the mechanism — a caller cannot
-      # pair a ref with a label sourced from a different read of the config,
-      # because there is only one read to source either from.
+      # Opaque actor reference derived from the customer's external identifier.
       #
-      # @!attribute [r] secret   [String] HMAC key. Never logged, never emitted.
-      # @!attribute [r] scope    [String] SCOPE_FEDERATED or SCOPE_DEPLOYMENT.
-      # @!attribute [r] residency [String, nil] resolved residency label; nil
-      #   only ever accompanies SCOPE_DEPLOYMENT.
-      Keying = Data.define(:secret, :scope, :residency)
-
-      # Opaque actor reference derived from the account's normalized email.
+      # NOT NORMALIZED — no case folding, no unicode normalization. An extid is
+      # a server-minted canonical token that no human types, so there is nothing
+      # to reconcile, and folding case could map two distinct records onto one
+      # ref. See #pre_image for the encoding guard that survives from the email
+      # era.
       #
-      # @param email [String, nil] account email, any casing/whitespace, any
-      #   encoding (including a mis-tagged or corrupt one).
-      # @return [String, nil] REF_LENGTH hex chars, or nil when the email is
+      # @param extid [String, nil] customer extid (e.g. "ur<base36>").
+      # @return [String, nil] REF_LENGTH hex chars, or nil when the extid is
       #   blank or unusable, no secret is configured, or derivation failed.
-      def actor_ref(email)
-        # The block is evaluated INSIDE digest_ref's rescue. Normalizing out
-        # here would put unicode_normalize outside the guard, which is how a
-        # non-UTF-8 stored email turns into a 500 on every authenticated render.
-        digest_ref(ACTOR_INFO, keying) { normalized_email(email) }
+      def actor_ref(extid)
+        digest_ref(ACTOR_INFO, keying) { pre_image(extid) }
       end
 
       # Opaque organization reference derived from the organization's objid.
       #
-      # Same keying, same residency threading and the same fail-closed
-      # conditions as #actor_ref — both route through #keying and #digest_ref,
-      # so there is one place where "is this key usable?" is decided and the two
-      # cannot drift apart. It returns nil under exactly the conditions
-      # #actor_ref returns nil for a usable email.
-      #
-      # NOT NORMALIZED, unlike an email, and that is deliberate. Emails are
-      # normalized because a human types the same address five ways; an objid is
-      # a server-minted canonical token that no human types, so there is nothing
-      # to reconcile. Case folding it would be actively wrong: objid alphabets
-      # are case-sensitive, so folding could map two distinct organizations onto
-      # one ref — the opposite of the property the ref exists to provide.
-      # Surrounding whitespace is trimmed only so a padded value cannot split
-      # one organization into two refs, and the trim is what the blank check
-      # runs against.
+      # Same keying and the same fail-closed conditions as #actor_ref — both
+      # route through #keying and #digest_ref, so there is one place where "is
+      # this key usable?" is decided and the two cannot drift apart.
       #
       # @param identifier [String, nil] organization objid.
       # @return [String, nil] REF_LENGTH hex chars, or nil when the identifier
       #   is blank or unusable, no secret is configured, or derivation failed.
       def organization_ref(identifier)
-        digest_ref(ORGANIZATION_INFO, keying) { organization_pre_image(identifier) }
-      end
-
-      # Which correlation scope the configured secret provides.
-      #
-      # @return [String, nil] SCOPE_FEDERATED, SCOPE_DEPLOYMENT, or nil when
-      #   neither secret is configured.
-      def scope
-        keying&.scope
+        digest_ref(ORGANIZATION_INFO, keying) { pre_image(identifier) }
       end
 
       # Convenience bundle for the bootstrap payload.
@@ -363,21 +231,19 @@ module Onetime
       # caller can omit the `diagnostics_ref` block entirely for anonymous
       # sessions and unconfigured deployments alike.
       #
-      # ONE keying resolution serves both fields. The ref and the label it is
-      # emitted with therefore always describe the same read of the config;
-      # calling #actor_ref and #scope separately would reintroduce the split
-      # this bundle exists to close.
+      # EXACTLY ONE KEY. The frontend parses this as a Zod strictObject; a
+      # second key makes the parse fail and the client drops the whole block.
       #
-      # @param email [String, nil] account email.
+      # @param extid [String, nil] customer extid.
       # @return [Hash{String=>String}, nil] string-keyed, JSON-ready.
-      def actor(email)
-        key = keying
-        return nil if key.nil?
+      def actor(extid)
+        secret = keying
+        return nil if secret.nil?
 
-        ref = digest_ref(ACTOR_INFO, key) { normalized_email(email) }
+        ref = digest_ref(ACTOR_INFO, secret) { pre_image(extid) }
         return nil if ref.nil?
 
-        { 'actor_ref' => ref, 'actor_scope' => key.scope }
+        { 'actor_ref' => ref }
       end
 
       # True when a secret is available and refs can be derived.
@@ -387,159 +253,49 @@ module Onetime
         !keying.nil?
       end
 
-      # The HMAC key, the scope label it implies, and the residency read that
-      # selected it — resolved together, in that one order, and returned as a
-      # unit. This is the ONLY place a derivation resolves residency.
+      # The HMAC key, or nil when none is usable.
       #
-      # @return [Keying, nil] nil when no secret is usable.
+      # ENV only — see the ACCOUNT_ID_SECRET note in the module docstring.
+      # Raise-free: a surprise from the environment read costs a ref, never a
+      # render.
+      #
+      # @return [String, nil] the secret. Never logged, never emitted.
       def keying
-        residency  = resolve_residency
-        federation = federation_secret
+        secret = ENV.fetch('ACCOUNT_ID_SECRET', nil)
+        return nil if secret.to_s.empty?
 
-        # FEDERATION_SECRET is shared across regional instances BY DESIGN, so
-        # keying an actor ref with it while no residency scope is declared is
-        # precisely the cross-region join this module exists to prevent. An
-        # undeclared residency therefore DECLINES the shared key instead of
-        # widening the ref, and we fall through to the per-deployment one.
-        if residency && !federation.to_s.empty?
-          return Keying.new(secret: federation, scope: SCOPE_FEDERATED, residency: residency)
-        end
-
-        # ENV only — see the ACCOUNT_ID_SECRET note in the module docstring.
-        account = ENV.fetch('ACCOUNT_ID_SECRET', nil)
-        unless account.to_s.empty?
-          # residency may be present here too (declared, but no federation
-          # secret configured); it is carried so the pre-image element and the
-          # label still come from the same read.
-          return Keying.new(secret: account, scope: SCOPE_DEPLOYMENT, residency: residency)
-        end
-
-        nil
+        secret
       rescue StandardError => ex
         OT.ld "[diagnostics-ref] secret lookup failed: #{ex.class}" if defined?(OT)
         nil
       end
 
-      # The data-residency scope this deployment declares, if any.
-      #
-      # Public because it is a deployment property an operator may reasonably
-      # want to assert on in a boot check; it is never sent to Sentry.
-      # The nil answer is load-bearing rather than cosmetic — it is what makes
-      # #keying refuse FEDERATION_SECRET and drop to deployment scope.
-      #
-      # Raise-free for introspection. The derivation path deliberately does NOT
-      # come through here: #keying calls the raising #resolve_residency — once —
-      # so a config fault costs a ref rather than handing back a different one.
-      #
-      # @return [String, nil] lowercase label, never blank; nil when the
-      #   deployment declares no residency or the config read failed.
-      def residency_scope
-        resolve_residency
-      rescue StandardError => ex
-        OT.ld "[diagnostics-ref] residency lookup failed: #{ex.class}" if defined?(OT)
-        nil
-      end
-
       private
 
-      # Residency resolution. RAISES on a failed config read — deliberately.
+      # Pre-image for both namespaces, safe for arbitrary stored bytes.
       #
-      # An earlier revision rescued to RESIDENCY_UNSCOPED here and claimed the
-      # fallback "can only ever widen correlation". That was wrong in the way
-      # that matters. A transient OT.conf failure on some renders and not others
-      # made ONE human derive TWO different refs, splitting one Sentry user in
-      # two — which destroys "is this one user or fifty?", the single question a
-      # pseudonymous id exists to answer — while silently re-widening
-      # correlation for the duration of the fault.
+      # Extids and objids are ASCII by construction, so the encoding guard is
+      # defence rather than a live recovery path — but it is kept, because
+      # String#strip RAISES on an invalid byte sequence even in UTF-8:
       #
-      # Failing closed instead: the raise propagates into the rescue in #keying,
-      # which answers nil, so a fault costs a GAP in diagnostics reference for
-      # as long as it lasts. A gap is honest and self-healing. A second reference
-      # for the same human is neither.
+      #   "a\xFFur".strip  ->  Encoding::CompatibilityError
       #
-      # Raising is only half the guard, and the missing half was a live defect:
-      # a falsy OT.conf resolves to nil WITHOUT raising. That is why residency
-      # is resolved exactly once per derivation and threaded (see the Keying
-      # value and #digest_ref) rather than re-read and defaulted.
+      # (executed, not assumed). digest_ref's rescue would swallow that, so the
+      # guard is not what keeps a render alive; what it buys is determinism. An
+      # unusable identifier takes the SAME '' -> nil route as a blank one
+      # instead of depending on a rescue, and ASCII bytes carrying a binary
+      # encoding tag are re-tagged and still correlate with themselves rather
+      # than being dropped.
       #
-      # @return [String, nil] declared label, or nil when nothing is declared.
-      def resolve_residency
-        pinned = ENV.fetch(RESIDENCY_ENV, nil).to_s.strip
-        return pinned.downcase unless pinned.empty?
-
-        declared = current_jurisdiction.to_s.strip
-        declared.empty? ? nil : declared.downcase
-      end
-
-      # The same source SetupDiagnostics derives the Sentry `jurisdiction` tag
-      # from, so the residency boundary matches what operators see on events.
-      #
-      # @return [String, nil]
-      def current_jurisdiction
-        return nil unless defined?(OT) && OT.respond_to?(:conf) && OT.conf
-
-        OT.conf.dig('features', 'regions', 'current_jurisdiction')
-      end
-
-      # FEDERATION_SECRET from the environment, falling back to site config —
-      # the same resolution order EmailHash#fetch_secret uses, minus the raise.
-      #
-      # @return [String, nil]
-      def federation_secret
-        secret = ENV.fetch('FEDERATION_SECRET', nil)
-        return secret unless secret.to_s.empty?
-
-        return nil unless defined?(OT) && OT.respond_to?(:conf) && OT.conf
-
-        OT.conf.dig('site', 'federation_secret')
-      end
-
-      # Normalized email pre-image, safe for arbitrary stored bytes.
-      #
-      # OT::Utils.normalize_email calls String#unicode_normalize, which raises
-      # on any receiver that is not valid UTF-8. Emails reach us from the
-      # datastore, from SSO providers and from legacy rows, so all three of
-      # these are reachable in production:
-      #
-      #   "a\xFF@b.com"                                -> CompatibilityError
-      #   "alice@example.com".force_encoding('BINARY') -> CompatibilityError
-      #   "\xC3(@b.com"                                -> ArgumentError
-      #
-      # The middle case is the common and recoverable one: correct UTF-8 bytes
-      # carrying the wrong encoding tag. Re-tagging recovers it and yields
-      # byte-identical output to the properly tagged string, so a mis-tagged
-      # row still correlates with itself instead of silently losing its ref.
-      # Genuinely invalid bytes yield '', which digest_ref turns into nil.
-      #
-      # @param email [String, nil]
-      # @return [String] normalized address, or '' when unusable.
-      def normalized_email(email)
-        raw = email.to_s
-        raw = raw.dup.force_encoding(Encoding::UTF_8) unless raw.encoding == Encoding::UTF_8
-        return '' unless raw.valid_encoding?
-
-        normalize_email(raw)
-      end
-
-      # Organization pre-image, safe for arbitrary stored bytes.
-      #
-      # No unicode_normalize here — see #organization_ref for why an objid is
-      # not normalized like an email. The encoding guard is kept anyway, because
-      # dropping unicode_normalize does NOT make this path encoding-safe:
-      #
-      #   "a\xFForg".strip  ->  Encoding::CompatibilityError
-      #
-      # (executed, not assumed — String#strip raises on an invalid byte sequence
-      # even in UTF-8). digest_ref's rescue would swallow that, so the guard is
-      # not what keeps a render alive; what it buys is determinism. An unusable
-      # identifier takes the SAME '' -> nil route as a blank one instead of
-      # depending on a rescue, and ASCII bytes carrying a binary encoding tag
-      # are re-tagged and still correlate with themselves rather than being
-      # dropped.
+      # Surrounding whitespace is trimmed only so a padded value cannot split
+      # one record into two refs, and the trim is what the blank check runs
+      # against. Nothing else is normalized: case folding could collapse two
+      # distinct identifiers onto one ref, which is the opposite of the property
+      # these refs exist to provide.
       #
       # @param identifier [String, nil]
       # @return [String] trimmed identifier, or '' when unusable.
-      def organization_pre_image(identifier)
+      def pre_image(identifier)
         raw = identifier.to_s
         raw = raw.dup.force_encoding(Encoding::UTF_8) unless raw.encoding == Encoding::UTF_8
         return '' unless raw.valid_encoding?
@@ -547,42 +303,25 @@ module Onetime
         raw.strip
       end
 
-      # Keyed, purpose- and residency-separated, truncated digest. NEVER raises.
+      # Keyed, purpose-separated, truncated digest. NEVER raises.
       #
-      # The pre-image is produced by the block so that normalization runs inside
-      # this method's rescue rather than at the call site.
-      #
-      # Residency is NOT re-resolved here. It arrives inside `key`, from the
-      # single resolution #keying performed when it chose the secret, so the
-      # pre-image element and the emitted label cannot disagree.
+      # The pre-image is produced by the block so that the encoding guard runs
+      # inside this method's rescue rather than at the call site.
       #
       # @param info [String] versioned purpose prefix (ACTOR_INFO or
       #   ORGANIZATION_INFO). This element is the only thing separating the two
       #   ref namespaces, so it must never be passed a caller-supplied value.
-      # @param key [Keying, nil] the caller's single keying resolution.
+      # @param secret [String, nil] the caller's keying resolution.
       # @yieldreturn [String, nil] the pre-image.
       # @return [String, nil]
-      def digest_ref(info, key)
-        return nil if key.nil? || key.secret.to_s.empty?
-
-        residency = key.residency.to_s
-
-        # The honesty invariant, enforced rather than asserted. Substituting
-        # RESIDENCY_UNSCOPED under FEDERATION_SECRET is exactly the cross-region
-        # join: every install sharing that secret would derive the same ref.
-        # #keying cannot produce this pairing today; the check is here so that a
-        # future edit which makes it producible fails closed instead of silently
-        # widening correlation.
-        return nil if key.scope == SCOPE_FEDERATED && residency.empty?
+      def digest_ref(info, secret)
+        return nil if secret.to_s.empty?
 
         value = yield.to_s
         return nil if value.empty?
 
-        # RESIDENCY_UNSCOPED therefore only ever reaches the pre-image under
-        # deployment keying, where it grants no cross-install correlation.
-        element = residency.empty? ? RESIDENCY_UNSCOPED : residency
-        message = [info, element, value].join(SEPARATOR)
-        OpenSSL::HMAC.hexdigest('SHA256', key.secret, message)[0, REF_LENGTH]
+        message = [info, value].join(SEPARATOR)
+        OpenSSL::HMAC.hexdigest('SHA256', secret, message)[0, REF_LENGTH]
       rescue StandardError => ex
         # Class only: the message could carry the pre-image or the key.
         OT.ld "[diagnostics-ref] derivation failed: #{ex.class}" if defined?(OT)

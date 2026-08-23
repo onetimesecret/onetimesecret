@@ -7,7 +7,8 @@
 //   2. Anything the strict contract does not recognise CLEARS the context
 //      rather than partially applying it (fail-closed).
 //   3. Anonymous sessions are never given a fallback id.
-//   4. Clearing removes the actor_scope tag as well as the user.
+//   4. User context is the ONLY dimension written, so setUser(null) is a
+//      complete eviction — no tag survives a logout.
 //   5. Both scopes always agree.
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -21,7 +22,6 @@ vi.mock('@/services/bootstrap.service', () => ({
 }));
 
 import {
-  ACTOR_SCOPE_TAG,
   applyActorContext,
   parseDiagnosticsRefBlock,
   resolveDiagnosticsRef,
@@ -29,13 +29,14 @@ import {
   type ActorContextScope,
 } from '@/plugins/core/diagnostics/actorContext';
 
+// No `setTag` on the mock, deliberately: the actor boundary writes user context
+// and nothing else, so a re-introduced tag write would be a TypeError here
+// rather than an unasserted extra call.
 function createScope() {
   return {
     setUser: vi.fn(),
-    setTag: vi.fn(),
   } as unknown as ActorContextScope & {
     setUser: ReturnType<typeof vi.fn>;
-    setTag: ReturnType<typeof vi.fn>;
   };
 }
 
@@ -44,17 +45,16 @@ function createScope() {
 // the contract checks content, not just type.
 const REF = 'a1b2c3d4e5f60718';
 const OTHER_REF = '00112233445566ff';
-const VALID = { actor_ref: REF, actor_scope: 'federated' } as const;
+const VALID = { actor_ref: REF } as const;
 
 describe('parseDiagnosticsRefBlock', () => {
-  it('accepts a well-formed federated block', () => {
+  it('accepts a well-formed single-key block', () => {
     expect(parseDiagnosticsRefBlock(VALID)).toEqual(VALID);
   });
 
-  it('accepts the deployment scope', () => {
-    expect(parseDiagnosticsRefBlock({ actor_ref: OTHER_REF, actor_scope: 'deployment' })).toEqual({
+  it('accepts any ref of the derivation shape', () => {
+    expect(parseDiagnosticsRefBlock({ actor_ref: OTHER_REF })).toEqual({
       actor_ref: OTHER_REF,
-      actor_scope: 'deployment',
     });
   });
 
@@ -70,59 +70,51 @@ describe('parseDiagnosticsRefBlock', () => {
     expect(parseDiagnosticsRefBlock({ ...VALID, email: 'user@example.com' })).toBeNull();
   });
 
-  it('rejects a scope outside the closed enum', () => {
-    expect(parseDiagnosticsRefBlock({ actor_ref: REF, actor_scope: 'anonymous' })).toBeNull();
-    expect(parseDiagnosticsRefBlock({ actor_ref: REF, actor_scope: '' })).toBeNull();
+  // Contract NARROWING, pinned. `actor_scope` was a real wire field; the
+  // deployment/federated axis it named is gone. Because the block is a
+  // strictObject, a legacy payload still carrying it is REJECTED outright
+  // rather than quietly stripped — a mixed-version deploy runs unidentified
+  // instead of half-identified.
+  it('REJECTS a legacy block still carrying the retired actor_scope key', () => {
+    expect(parseDiagnosticsRefBlock({ actor_ref: REF, actor_scope: 'deployment' })).toBeNull();
+    expect(parseDiagnosticsRefBlock({ actor_ref: REF, actor_scope: 'federated' })).toBeNull();
   });
 
   it('rejects an empty or non-string ref', () => {
-    expect(parseDiagnosticsRefBlock({ actor_ref: '', actor_scope: 'federated' })).toBeNull();
-    expect(parseDiagnosticsRefBlock({ actor_ref: 42, actor_scope: 'federated' })).toBeNull();
+    expect(parseDiagnosticsRefBlock({ actor_ref: '' })).toBeNull();
+    expect(parseDiagnosticsRefBlock({ actor_ref: 42 })).toBeNull();
   });
 
   // THE LAUNDERING CASE. A shape-only check (non-empty string) passes this
-  // block: two keys, valid enum. It would become `user.id = "alice@example.com"`
-  // on every error and transaction, with the outbound gate dutifully stripping
-  // the `email` KEY it was never in.
+  // block: the one permitted key, a non-empty string. It would become
+  // `user.id = "alice@example.com"` on every error and transaction, with the
+  // outbound gate dutifully stripping the `email` KEY it was never in.
   it('REJECTS an email in the ref field — content, not just shape', () => {
-    expect(
-      parseDiagnosticsRefBlock({ actor_ref: 'alice@example.com', actor_scope: 'deployment' })
-    ).toBeNull();
+    expect(parseDiagnosticsRefBlock({ actor_ref: 'alice@example.com' })).toBeNull();
   });
 
   it('rejects refs of the wrong width, case, or alphabet', () => {
-    expect(parseDiagnosticsRefBlock({ actor_ref: 'ref', actor_scope: 'federated' })).toBeNull();
+    expect(parseDiagnosticsRefBlock({ actor_ref: 'ref' })).toBeNull();
     // Too short / too long by one.
-    expect(
-      parseDiagnosticsRefBlock({ actor_ref: 'a1b2c3d4e5f6071', actor_scope: 'federated' })
-    ).toBeNull();
-    expect(
-      parseDiagnosticsRefBlock({ actor_ref: 'a1b2c3d4e5f607180', actor_scope: 'federated' })
-    ).toBeNull();
+    expect(parseDiagnosticsRefBlock({ actor_ref: 'a1b2c3d4e5f6071' })).toBeNull();
+    expect(parseDiagnosticsRefBlock({ actor_ref: 'a1b2c3d4e5f607180' })).toBeNull();
     // Uppercase: Ruby's hexdigest is lowercase, so this is not our value.
-    expect(
-      parseDiagnosticsRefBlock({ actor_ref: 'A1B2C3D4E5F60718', actor_scope: 'federated' })
-    ).toBeNull();
+    expect(parseDiagnosticsRefBlock({ actor_ref: 'A1B2C3D4E5F60718' })).toBeNull();
     // Non-hex, right length.
-    expect(
-      parseDiagnosticsRefBlock({ actor_ref: 'zzzzzzzzzzzzzzzz', actor_scope: 'federated' })
-    ).toBeNull();
-    // A full-width federation email hash (32 hex) is NOT a diagnostics ref.
+    expect(parseDiagnosticsRefBlock({ actor_ref: 'zzzzzzzzzzzzzzzz' })).toBeNull();
+    // A full-width digest (32 hex) is NOT a diagnostics ref.
     expect(
       parseDiagnosticsRefBlock({
         actor_ref: 'a1b2c3d4e5f60718a1b2c3d4e5f60718',
-        actor_scope: 'federated',
       })
     ).toBeNull();
     // Whitespace padding must not be tolerated (anchored pattern).
-    expect(
-      parseDiagnosticsRefBlock({ actor_ref: ' a1b2c3d4e5f60718', actor_scope: 'federated' })
-    ).toBeNull();
+    expect(parseDiagnosticsRefBlock({ actor_ref: ' a1b2c3d4e5f60718' })).toBeNull();
   });
 
-  it('rejects a missing field', () => {
-    expect(parseDiagnosticsRefBlock({ actor_ref: REF })).toBeNull();
-    expect(parseDiagnosticsRefBlock({ actor_scope: 'federated' })).toBeNull();
+  it('rejects a block missing actor_ref', () => {
+    expect(parseDiagnosticsRefBlock({})).toBeNull();
+    expect(parseDiagnosticsRefBlock({ actor_ref: undefined })).toBeNull();
   });
 
   it('rejects non-object shapes', () => {
@@ -179,33 +171,23 @@ describe('applyActorContext', () => {
 
   // A TypeScript type is not a runtime guarantee: a cast, a hand-built object,
   // or a caller that skips parseDiagnosticsRefBlock all reach here. An
-  // unrecognised ref must clear the context, and must not leave a lone
-  // actor_scope tag behind labelling an unidentified session as identified.
-  it('refuses an unrecognised ref and clears BOTH user and the scope tag', () => {
+  // unrecognised ref must clear the context rather than partially apply it.
+  it('refuses an unrecognised ref and clears the user context', () => {
     const scope = createScope();
 
     applyActorContext([scope], {
       actor_ref: 'alice@example.com',
-      actor_scope: 'federated',
     } as never);
 
     expect(scope.setUser).toHaveBeenCalledWith(null);
-    expect(scope.setTag).toHaveBeenCalledWith(ACTOR_SCOPE_TAG, undefined);
   });
 
-  it('tags actor_scope with the validated enum value', () => {
-    const scope = createScope();
-    applyActorContext([scope], VALID);
-    expect(scope.setTag).toHaveBeenCalledWith(ACTOR_SCOPE_TAG, 'federated');
-  });
-
-  it('clears user AND actor_scope tag when given null (logout / anonymous)', () => {
+  it('clears the user context when given null (logout / anonymous)', () => {
     const scope = createScope();
 
     applyActorContext([scope], null);
 
     expect(scope.setUser).toHaveBeenCalledWith(null);
-    expect(scope.setTag).toHaveBeenCalledWith(ACTOR_SCOPE_TAG, undefined);
   });
 
   it('never mints a fallback id for an anonymous session', () => {
@@ -226,7 +208,6 @@ describe('applyActorContext', () => {
         id: REF,
         ip_address: null,
       });
-      expect(scope.setTag).toHaveBeenCalledWith(ACTOR_SCOPE_TAG, 'federated');
     }
   });
 

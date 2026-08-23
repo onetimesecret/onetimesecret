@@ -51,7 +51,11 @@ module DomainsAPI
             from_domain: from_domain,
             provider: provider,
             org_id: @organization&.extid,
-            user_id: respond_to?(:cust) ? cust&.extid : nil,
+            # Canonical key for a customer extid at the ErrorHandler boundary:
+            # capture_error consumes `external_id:` as the pseudonymous actor
+            # and scrubs it from the forwarded Sentry context. `org_id` above is
+            # NOT that — an org extid is not an actor pre-image.
+            external_id: respond_to?(:cust) ? cust&.extid : nil,
           }
 
           Onetime::ErrorHandler.safe_execute('auto_provision_sender_domain', **context) do
