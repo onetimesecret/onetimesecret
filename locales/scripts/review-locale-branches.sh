@@ -115,12 +115,12 @@ cmd_validate() {
     # alone: a genuine failure (no parseable JSON — missing locale, crash, old
     # CLI) must surface as an ERROR, not read as clean; "blocking findings"
     # (valid JSON, rc!=0) reports the count; a clean run prints nothing.
-    # Prefer the report's own `blocking` count (non-advisory findings only;
-    # untranslated keys are coverage, not placeholder defects). Branches whose
-    # CLI predates that field still report a flat per-locale integer summary, and
-    # this validates other branches' worktrees, so keep the old shape working.
-    count="$(jq '.blocking // (.summary | to_entries | map(.value) | add) // 0' \
-      "$out" 2>/dev/null || true)"
+    # `.blocking` is the report's own gate count — every non-advisory category,
+    # summed (untranslated keys are coverage, not placeholder defects). No
+    # default: a missing/misspelled field prints `null`, which fails the
+    # numeric check below and is treated as unparseable rather than silently
+    # read as zero.
+    count="$(jq '.blocking' "$out" 2>/dev/null || true)"
     if ! [[ "$count" =~ ^[0-9]+$ ]]; then
       echo "$locale: ERROR — validation produced no parseable report (exit ${rc}); see $out" >&2
       continue

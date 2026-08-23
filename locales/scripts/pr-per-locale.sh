@@ -201,15 +201,13 @@ fi
 
 # validation_count LOCALE -> echoes the report's integer blocking count, or "" if unknown.
 validation_count() {
-  local locale="$1" file="$RESULTS_DIR/i18n-validate-$1.json"
+  local file="$RESULTS_DIR/i18n-validate-$1.json"
   $HAVE_VALIDATION || { echo ""; return; }
   [[ -f "$file" ]] || { echo ""; return; }
   # `.blocking` is the report's own gate count (untranslated keys are reported
-  # but advisory). The per-locale fallbacks keep reports written by a branch
-  # whose CLI predates that field readable.
-  jq --arg l "$locale" \
-    '(.blocking // .summary[$l] // (.summary | to_entries | map(.value) | add) // 0)' \
-    "$file" 2>/dev/null || echo ""
+  # but advisory). No default: a missing/misspelled field prints `null` rather
+  # than being silently read as zero.
+  jq '.blocking' "$file" 2>/dev/null || echo ""
 }
 
 # ---------------------------------------------------------------------------
