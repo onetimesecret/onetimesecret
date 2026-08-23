@@ -36,7 +36,7 @@ module Onetime
   #
   # Primary Keys & Identifiers:
   #   - objid - Primary key (UUID), internal
-  #   - extid - External identifier (e.g., cd%<id>s), user-facing
+  #   - extid - External identifier (e.g., cd%{id}), user-facing
   #
   # As a Foreign Key in other models:
   #   - domain_id (w/ underscore) - Foreign key field, stores the objid value
@@ -77,7 +77,7 @@ module Onetime
     feature :safe_dump_fields
     feature :relationships  # Enable Familia v2 features
     feature :object_identifier  # Auto-generates objid
-    feature :external_identifier, format: 'cd%<id>s' # use builtin extid_lookup index
+    feature :external_identifier, format: 'cd%{id}' # use builtin extid_lookup index
     feature :housekeeping
 
     # Migration features - REMOVE after v1→v2 migration complete

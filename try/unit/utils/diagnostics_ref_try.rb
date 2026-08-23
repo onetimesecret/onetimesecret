@@ -60,7 +60,7 @@ ensure
 end
 
 # Shaped like a real Customer extid: Familia's external_identifier feature under
-# `format: 'ur%<id>s'` emits `ur` plus 25 base36 characters.
+# `format: 'ur%{id}'` emits `ur` plus 25 base36 characters.
 @extid = 'ur00fedcba9876543210zyxwvu'
 @other_extid = 'ur00abcdef0123456789vwxyzu'
 @deployment_key = 'account-id-secret-for-diagnostics-ref-try'

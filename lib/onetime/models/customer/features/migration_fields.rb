@@ -9,7 +9,7 @@
 #
 # v1 → v2 CHANGES:
 # - custid: email address → objid (UUID)
-# - New: objid, extid (ur%<id>s format)
+# - New: objid, extid (ur%{id} format)
 # - stripe_customer_id, stripe_subscription_id → Organization (deprecated here)
 #
 # REMOVAL: See lib/onetime/models/features/with_migration_fields.rb

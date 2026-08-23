@@ -53,7 +53,7 @@ RSpec.describe Core::Views::DiagnosticsSerializer do
   let(:custid) { 'cust-1234567890' }
 
   # Shaped like a real Customer extid: Familia's external_identifier feature
-  # under `format: 'ur%<id>s'` emits `ur` plus 25 base36 characters.
+  # under `format: 'ur%{id}'` emits `ur` plus 25 base36 characters.
   let(:cust_extid) { 'ur00fedcba9876543210zyxwvu' }
   let(:cust_objid) { '01JCUSTABCDEFGHJKMNPQRSTVW' }
 

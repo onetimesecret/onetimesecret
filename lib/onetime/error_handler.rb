@@ -158,17 +158,18 @@ module Onetime
     end
 
     # Shape of a customer extid, as minted by Familia's external_identifier
-    # feature under Onetime::Customer's `format: 'ur%<id>s'`: the literal `ur`
-    # prefix followed by a base36 body.
+    # feature under Onetime::Customer's `format: 'ur%{id}'`: the literal `ur`
+    # prefix followed by a lowercase base36 body.
     #
     # This is a STRUCTURAL guard, not an authentication check — its job is to
     # make it impossible for an email (or any other identifier carrying `@`,
     # `.`, `:` or uppercase) to reach the diagnostics derivation as an actor
-    # pre-image. It is deliberately looser on length than
-    # Familia's Customer.extid?, which cannot be used here for two reasons: it
-    # hits the model layer from a rescue path, and it tests
-    # `format.include?('%{id}')` against a format written in sprintf's
-    # `%<id>s` form, so it answers false for every Customer extid.
+    # pre-image. It deliberately does not delegate to Familia's
+    # Customer.extid?: that validator matches case-INSENSITIVELY, while the
+    # ref derivation is case-sensitive — an accepted case-variant would HMAC
+    # to a phantom ref for an account that already has one. Only a string a
+    # customer could actually carry may pass, so the guard is stricter than
+    # the validator, and looser only on length.
     EXTID_FORMAT = /\Aur[0-9a-z]+\z/
 
     # Builds the Sentry `user` hash for whoever this event is about.
