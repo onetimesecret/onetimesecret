@@ -507,7 +507,7 @@ module Core
       #
       # Available levels are :fatal, :error, :warning, :log, :info, and :debug.
       # The Sentry default, if not specified, is :error.
-      def capture_error(error, level = :error, &)
+      def capture_error(error, level = :error, &block)
         http_logger.debug '[sentry] controller capture_error → decision',
           {
             exception_class: error.class.name,
@@ -530,7 +530,21 @@ module Core
               }
           end
 
-          event_id = Sentry.capture_exception(error, level: level, &)
+          # Pseudonymous "users affected" attribution. with_scope (rather than
+          # the ambient current scope) so the user expires with this event
+          # instead of with the thread. The caller's block runs first and
+          # set_diagnostics_actor runs last: a block that calls set_user cannot
+          # replace the opaque ref with raw identifiers.
+          #
+          # Opaque keyed ref only — never the email, custid, session id or IP.
+          # Anonymous requests and unkeyed deployments set no user at all.
+          event_id = nil
+          Sentry.with_scope do |scope|
+            block&.call(scope)
+            Onetime::ErrorHandler.set_diagnostics_actor(scope, safe_cust)
+            event_id = Sentry.capture_exception(error, level: level)
+          end
+
           http_logger.debug '[sentry] controller capture_error returned',
             {
               event_id: event_id,
@@ -549,6 +563,18 @@ module Core
               exception: ex,
             }
         end
+      end
+
+      # #cust lazily calls load_current_customer, which hits the datastore and
+      # can itself raise — and capture_error runs precisely when things are
+      # already failing. Resolving it defensively keeps a broken session from
+      # turning a reportable exception into a lost one.
+      #
+      # @return [Onetime::Customer, nil]
+      def safe_cust
+        cust
+      rescue StandardError
+        nil
       end
 
       def capture_message(message, level = :log, &)

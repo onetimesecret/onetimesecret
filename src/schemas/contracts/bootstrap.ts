@@ -542,6 +542,108 @@ export type PasswordGeneration = z.infer<typeof passwordGenerationSchema>;
 export type Passphrase = z.infer<typeof passphraseSchema>;
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// DIAGNOSTICS REF (pseudonymous Sentry user context)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * The EXACT permitted shape of `actor_ref`, and the single source of truth for
+ * it on the TypeScript side.
+ *
+ * ## Why a content check and not just a type check
+ *
+ * `z.string().min(1)` validates the SHAPE of the block but says nothing about
+ * what is inside the string. That gap is a laundering channel: a server bug,
+ * an older build, or a compromised node emitting
+ * `{ actor_ref: "alice@example.com" }` satisfies a strictObject with the one
+ * permitted key, and the value then flows into `user.id` — where the outbound
+ * sanitizer, which strips `email`/`username`/`name`, keeps `id` verbatim on
+ * every error and transaction. Validating the CONTENT closes it: an email
+ * cannot pass a fixed-width hex test.
+ *
+ * ## The contract this mirrors
+ *
+ * Server side: `Onetime::Utils::DiagnosticsRef`
+ * (lib/onetime/utils/diagnostics_ref.rb) emits
+ * `OpenSSL::HMAC.hexdigest('SHA256', …)[0, REF_LENGTH]` — LOWERCASE hex,
+ * `REF_LENGTH = 16` chars (64 bits). These two constants are ONE contract in
+ * two languages: if `REF_LENGTH` or the derivation changes, this pattern must
+ * change IN THE SAME COMMIT. It fails CLOSED, so a drifted pattern does not
+ * leak — it silently drops user-context correlation everywhere, which is a
+ * real observability regression and the reason the coupling is called out
+ * here.
+ *
+ * Anchored with `^`/`$` and non-global (no `g` flag): a `g`-flagged regex
+ * would carry `lastIndex` between `.test()` calls and pass/fail alternately.
+ */
+export const DIAGNOSTICS_REF_PATTERN = /^[0-9a-f]{16}$/;
+
+/**
+ * Content gate for a candidate diagnostics ref.
+ *
+ * Exported so the outbound final gate (`sanitizeEventUser`) enforces the same
+ * rule as the inbound parse without duplicating the literal. Non-strings and
+ * anything that is not exactly `DIAGNOSTICS_REF_PATTERN` are refused.
+ *
+ * @param value - Untrusted candidate, typically `event.user.id`.
+ */
+export function isDiagnosticsRef(value: unknown): value is string {
+  return typeof value === 'string' && DIAGNOSTICS_REF_PATTERN.test(value);
+}
+
+/**
+ * `diagnostics_ref` — the server-provided pseudonymous reference block.
+ *
+ * ## Wire contract
+ *
+ * ```json
+ * { "diagnostics_ref": { "actor_ref": "a1b2c3d4e5f60718" } }
+ * ```
+ *
+ * ONE key. `actor_ref` is a keyed one-way digest of the customer's EXTERNAL
+ * IDENTIFIER (extid) — never an email, never a raw identifier of any kind.
+ * The digest is minted per install from that install's own secret, so the
+ * same person's separately provisioned records on different installs do not
+ * correlate by default. There is no scope, region, or jurisdiction axis: a
+ * ref means "this customer record, on this install", and nothing else.
+ *
+ * The block is **ABSENT for anonymous sessions**. Absence is the signal —
+ * there is no anonymous sentinel value, no empty string, no `null`. Hence
+ * `.optional()` on the parent field rather than the `.default()` used by every
+ * always-emitted serializer field.
+ *
+ * ## Why `z.strictObject` and not `z.object`
+ *
+ * This is the one bootstrap sub-schema whose parsed output is handed to a
+ * third-party processor (Sentry `scope.setUser`). Zod's plain `z.object`
+ * STRIPS unknown keys silently; `z.strictObject` REJECTS the whole block. For
+ * this boundary, rejecting is the correct failure mode: strip-on-unknown
+ * means a server that starts emitting `{ actor_ref, email }` produces a
+ * *valid* parse whose extra field is one refactor away from being forwarded;
+ * reject-on-unknown means that payload fails `safeParse` and the session runs
+ * unidentified. Losing correlation is recoverable; leaking an email to a
+ * third-party processor is not.
+ *
+ * Strictness is also what NARROWS the contract over time: a legacy payload
+ * carrying the retired `actor_scope` key is now rejected outright rather than
+ * quietly stripped.
+ *
+ * See `src/plugins/core/diagnostics/actorContext.ts`, the only place this
+ * schema is parsed against live data.
+ */
+export const diagnosticsRefSchema = z.strictObject({
+  /**
+   * Opaque, deterministic, server-derived reference — a keyed one-way digest
+   * of the customer extid. Not a direct identifier, but still potentially
+   * personal data. Content-checked against DIAGNOSTICS_REF_PATTERN, not merely
+   * non-empty.
+   */
+  actor_ref: z.string().regex(DIAGNOSTICS_REF_PATTERN),
+});
+
+/** Parsed shape of the `diagnostics_ref` bootstrap block. */
+export type DiagnosticsRefBlock = z.infer<typeof diagnosticsRefSchema>;
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // BOOTSTRAP PAYLOAD SCHEMA (full payload for Rhales validation)
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -725,6 +827,17 @@ export const bootstrapSchema = z.object({
   // OrganizationSerializer fields
   // ─────────────────────────────────────────────────────────────────────────────
   organization: organizationSchema.optional(),
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // DiagnosticsSerializer fields
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Pseudonymous Sentry user context: a single `actor_ref`, the keyed one-way
+  // digest of the customer extid. ABSENT (not empty, not null) for anonymous
+  // sessions — see diagnosticsRefSchema above for the full rationale and for
+  // why the inner object is strict rather than passthrough. Optional also
+  // means an older backend that never emits the block degrades to
+  // setUser(null) rather than failing the whole payload parse.
+  diagnostics_ref: diagnosticsRefSchema.optional(),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Billing/Stripe fields

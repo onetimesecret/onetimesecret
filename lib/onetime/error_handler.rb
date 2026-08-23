@@ -8,6 +8,8 @@
 # side-effects in authentication hooks. Errors are logged with context but
 # don't interrupt the parent operation.
 #
+require_relative 'utils/diagnostics_ref'
+
 module Onetime
   module ErrorHandler
     extend Onetime::LoggerMethods
@@ -155,6 +157,113 @@ module Onetime
       {}
     end
 
+    # Shape of a customer extid, as minted by Familia's external_identifier
+    # feature under Onetime::Customer's `format: 'ur%{id}'`: the literal `ur`
+    # prefix followed by a lowercase base36 body.
+    #
+    # This is a STRUCTURAL guard, not an authentication check — its job is to
+    # make it impossible for an email (or any other identifier carrying `@`,
+    # `.`, `:` or uppercase) to reach the diagnostics derivation as an actor
+    # pre-image. It deliberately does not delegate to Familia's
+    # Customer.extid?: that validator matches case-INSENSITIVELY, while the
+    # ref derivation is case-sensitive — an accepted case-variant would HMAC
+    # to a phantom ref for an account that already has one. Only a string a
+    # customer could actually carry may pass, so the guard is stricter than
+    # the validator, and looser only on length.
+    EXTID_FORMAT = /\Aur[0-9a-z]+\z/
+
+    # Builds the Sentry `user` hash for whoever this event is about.
+    #
+    # Sentry counts "users affected" off event.user.id and nothing else, so
+    # every backend event we send without one is an issue that reads as zero
+    # affected users no matter how many accounts it actually hit. That is the
+    # gap this closes: an operator needs to tell "one account is broken" from
+    # "every account is broken", which is the same question the frontend's
+    # diagnostics_ref answers for browser events.
+    #
+    # The id is ALWAYS a DiagnosticsRef — an opaque, keyed, one-way digest.
+    # Never the email, never the custid/extid, never the session id, never the
+    # IP. Those are the identifiers this whole boundary exists to keep out of
+    # the diagnostics backend, and Sentry's user object is not an exemption
+    # from it; feeding one in here would also make it a searchable field.
+    #
+    # THE PRE-IMAGE IS THE EXTID, NEVER THE EMAIL. DiagnosticsRef.actor_ref
+    # digests whatever string it is handed, so a candidate this method cannot
+    # positively identify as an extid must be REFUSED rather than passed
+    # through — an accepted bare-string fallback is how an `email:` caller ends
+    # up with an email hashed under the diagnostics key. See
+    # docs/specs/diagnostics/actor-ref-preimage-debate-decision.md.
+    #
+    # Accepted candidates:
+    #
+    #   - an object responding to #extid (a Customer). NOT #external_identifier:
+    #     on Onetime::Customer that name is shadowed by the deprecated_fields
+    #     feature, which memoizes a RANDOM id per process
+    #     (lib/onetime/models/customer/features/deprecated_fields.rb) and would
+    #     hand every process a different ref for the same account.
+    #   - a String in extid shape (EXTID_FORMAT). Anything else — an email, a
+    #     custid, a session id, an objid — is nil.
+    #
+    # Returns nil rather than a partial hash in every declining case:
+    #
+    #   - anonymous (no candidate, or #anonymous? is true) — an anonymous
+    #     request has no user to report, and a placeholder id would silently
+    #     merge every anonymous visitor into one "affected user".
+    #   - no extid available, or a string that is not one. Attribution is lost
+    #     for that event; that boundary loss is accepted by the decision above.
+    #   - unconfigured — DiagnosticsRef declines when no keying secret is
+    #     usable, which is the default in dev and test. No user is strictly
+    #     better than an unkeyed one.
+    #   - any raised error — derivation must never be the reason an exception
+    #     goes unreported, so this swallows and returns nil. Losing the
+    #     attribution is survivable; losing the event is not.
+    #
+    # A nil return means the caller sets NO user at all. It must not fall back
+    # to some other identifier, and it must not set `{ id: nil }` — Sentry
+    # treats a nil id as a distinct anonymous-ish user rather than as absence.
+    #
+    # @param candidate [#extid, #anonymous?, String, nil] customer or extid
+    # @return [Hash{Symbol=>String}, nil] { id: <16 hex> }, or nil
+    def self.diagnostics_actor(candidate)
+      return nil if candidate.nil?
+      return nil if candidate.respond_to?(:anonymous?) && candidate.anonymous?
+
+      extid = candidate.respond_to?(:extid) ? candidate.extid : candidate
+      return nil unless extid.is_a?(String) && extid.match?(EXTID_FORMAT)
+
+      ref = Onetime::Utils::DiagnosticsRef.actor_ref(extid)
+      return nil if ref.nil? || ref.to_s.empty?
+
+      { id: ref }
+    rescue StandardError
+      # Deliberately silent and deliberately broad: see above. There is no
+      # logger call here either, because the failure modes that would reach
+      # this rescue take the pre-image with them into the log line.
+      nil
+    end
+
+    # Sets the pseudonymous user on a Sentry scope, if one can be derived.
+    #
+    # Pass an EVENT-SCOPED scope — the block form of Sentry.capture_exception,
+    # or one from Sentry.with_scope. Setting a user on the ambient current
+    # scope would outlive the request that established it and mis-attribute
+    # every later event on the same thread.
+    #
+    # @param scope [Sentry::Scope] event-scoped Sentry scope
+    # @param candidate [#extid, #anonymous?, String, nil] customer or extid
+    # @return [Boolean] true when a user was set
+    def self.set_diagnostics_actor(scope, candidate)
+      return false unless scope.respond_to?(:set_user)
+
+      user = diagnostics_actor(candidate)
+      return false if user.nil?
+
+      scope.set_user(user)
+      true
+    rescue StandardError
+      false
+    end
+
     # Lua script for atomic INCR + EXPIRE (prevents race condition
     # where a crash between the two commands leaves a permanent key).
     TRACK_ERROR_LUA = <<~LUA
@@ -198,7 +307,29 @@ module Onetime
 
       # Captures error in Sentry with context
       def capture_error(operation, ex, context)
+        # Identity entries are CONSUMED, not forwarded: one becomes the
+        # pseudonymous Sentry user and ALL of them are removed from the context
+        # hash before it reaches the scope.
+        #
+        # The extid and its aliases are scrubbed because under the extid
+        # derivation the extid IS the sensitive pre-image — forwarding it into
+        # a Sentry context would hand the diagnostics backend both the ref and
+        # the value it was derived from, which defeats the whole boundary. So
+        # every key hooks use to carry one (`extid:`, `external_id:`, and the
+        # extid-valued `customer_id:`) is consumed here, per
+        # docs/specs/diagnostics/actor-ref-preimage-debate-decision.md.
+        #
+        # `email:` is scrubbed but is deliberately NOT a subject: nothing can
+        # be derived from an email any more, and accepting one as a candidate
+        # is exactly how an email ends up hashed under the diagnostics key.
+        subject = context[:cust] || context[:customer] || context[:extid] ||
+                  context[:external_id] || context[:customer_id]
+        context = context.except(:email, :cust, :customer, :extid, :external_id, :customer_id)
+
         event_id = Sentry.capture_exception(ex) do |scope|
+          # Event-scoped: capture_exception's block scope is per-event, so
+          # this cannot bleed onto a later event on the same thread.
+          Onetime::ErrorHandler.set_diagnostics_actor(scope, subject)
           scope.set_context('error_handler', { operation: operation, **context })
           scope.set_level(:warning)
           scope.set_tags(operation: operation, error_handler: true)

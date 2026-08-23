@@ -12,7 +12,7 @@ module Onetime
   #
   # Primary Keys & Identifiers:
   #   - objid - Primary key (UUID), internal
-  #   - extid - External identifier (e.g., on%<id>s), user-facing
+  #   - extid - External identifier (e.g., on%{id}), user-facing
   #
   # Foreign Keys:
   #   - org_id (underscore) - Foreign key field, stores the objid value
@@ -43,7 +43,7 @@ module Onetime
 
     feature :relationships
     feature :object_identifier
-    feature :external_identifier, format: 'on%<id>s'
+    feature :external_identifier, format: 'on%{id}'
     feature :required_fields
     feature :with_organization_billing
     feature :with_materialized_entitlements

@@ -298,6 +298,14 @@ module V1
 
       # Capture exception with request context for debugging in Sentry
       event_id = Sentry.capture_exception(error, level: level) do |scope|
+        # Pseudonymous "users affected" attribution. Opaque keyed ref only —
+        # never the email, custid, session id or IP. Anonymous requests and
+        # unkeyed deployments set no user at all. This block scope is
+        # per-event, so nothing here leaks into a later request.
+        if defined?(cust)
+          Onetime::ErrorHandler.set_diagnostics_actor(scope, cust)
+        end
+
         # Add searchable tags (guard req to avoid NameError if not defined)
         scope.set_tags(
           service: 'api',
