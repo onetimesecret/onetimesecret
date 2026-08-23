@@ -739,13 +739,13 @@ describe('MastHead', () => {
     });
   });
 
-  describe('Site name visibility priority (regression #3160, consolidated #3612)', () => {
+  describe('Site name visibility priority (regression #3160, consolidated #3612, #4241)', () => {
     /**
      * Priority chain in getShowSiteName():
      *   1. props.logo.showSiteName            (caller-site override)
-     *   2. !identity.showPlatformIdentity     (resolver base guard: any custom
-     *                                          domain OR a per-tenant logo hides
-     *                                          the platform wordmark)
+     *   2. !identity.showPlatformIdentity     (resolver base guard: only a
+     *                                          positively classified operator host
+     *                                          may show the platform wordmark)
      *   3. headerConfig.logo.show_name        (LOGO_SHOW_NAME explicit layout
      *                                          knob; ships null when unset)
      *   4. !isCustomStaticLogo && !isUserPresent
@@ -981,6 +981,50 @@ describe('MastHead', () => {
 
       const siteName = wrapper.find('span.font-brand.text-lg');
       expect(siteName.exists()).toBe(false);
+    });
+
+    it('hides the wordmark on a custom domain with no logo even when show_name is true (#4241 — A3 guard beats LOGO_SHOW_NAME)', async () => {
+      // The custom-domain guard must override the operator setting without a tenant logo.
+      wrapper = mountWithIdentity(
+        {
+          brandLogoUrl: null,
+          showName: true,
+          brandProductName: 'Acme Vault',
+        },
+        {
+          authenticated: false,
+          domain_strategy: 'custom',
+          domain_logo: null,
+        }
+      );
+
+      await nextTick();
+      const logo = wrapper.find('.default-logo');
+      expect(logo.exists()).toBe(true);
+      expect(logo.attributes('data-show-site-name')).toBe('false');
+    });
+
+    it('hides the wordmark on an unresolved request host even when show_name is true (#4241)', async () => {
+      // `invalid` can be a custom-domain lookup failure. The resolver requires
+      // a positive operator-host classification before LOGO_SHOW_NAME can
+      // render the operator product name.
+      wrapper = mountWithIdentity(
+        {
+          brandLogoUrl: null,
+          showName: true,
+          brandProductName: 'Acme Vault',
+        },
+        {
+          authenticated: false,
+          domain_strategy: 'invalid',
+          domain_logo: null,
+        }
+      );
+
+      await nextTick();
+      const logo = wrapper.find('.default-logo');
+      expect(logo.exists()).toBe(true);
+      expect(logo.attributes('data-show-site-name')).toBe('false');
     });
 
     it('hides the wordmark when props.logo.showSiteName=false even with BRAND_LOGO_URL and show_name=true', async () => {
