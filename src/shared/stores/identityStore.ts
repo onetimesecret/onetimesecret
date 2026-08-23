@@ -232,31 +232,8 @@ export const useProductIdentity = defineStore('productIdentity', () => {
    * subdomain contexts are permitted to show it, subject to the consumer's own
    * config (a `subdomain` IS the platform, so its name legitimately shows).
    *
-   * `isCustom` tests strictly `domainStrategy === 'custom'`, so an `'invalid'`
-   * classification does NOT trip this guard. That polarity is deliberate and
-   * pre-existing: identity/presentation consumers test `== :custom`, so
-   * `'invalid'` takes the operator branch, while AUTH decisions use a positive
-   * test against `canonical`/`subdomain` instead. (The backend contract says
-   * the same of a nil strategy; `domainStrategy` here is a non-nullable enum,
-   * so this store never sees that case.) See the "How
-   * downstream reads this" table in `lib/onetime/middleware/domain_strategy.rb`
-   * (pinned by `spec/unit/domain_strategy_classification_contract_spec.rb`).
-   *
-   * `'invalid'` describes a failed classification, not a kind of host: it
-   * covers both a genuinely unplaceable host (e.g. a dev CANONICAL_DOMAIN
-   * mismatch) and a REAL tenant host whose `known_custom_domain?` datastore
-   * read raised (domain_strategy.rb, #4139 case 2). This store cannot tell
-   * those apart — a case-2 `'invalid'` also makes `DomainSerializer` skip
-   * `apply_custom_domain`, so the payload arrives with no tenant branding —
-   * and resolving that ambiguity is a backend policy question, out of scope
-   * for this guard.
-   *
-   * This is a HARD veto, not a default: it is the one rung in a consumer's
-   * override ladder (caller props, operator LOGO_SHOW_NAME, etc.) that cannot
-   * be crossed. See MastHead's getShowSiteName(), where LOGO_SHOW_NAME only
-   * runs once this guard already permits showing the platform identity — an
-   * operator's LOGO_SHOW_NAME=true must never re-expose the platform's product
-   * name on a genuine tenant custom domain (#4241).
+   * The guard keys strictly on the `custom` classification. Consumers apply
+   * their own visibility rules after it.
    */
   const showPlatformIdentity = computed(() => !isCustom.value && !logoUri.value);
 

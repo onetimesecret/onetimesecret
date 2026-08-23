@@ -760,16 +760,6 @@ describe('MastHead', () => {
      * gone — and the operator logo arrives via brand_logo_url, not
      * header.branding.logo.url.
      *
-     * #4241: step 2 is a hard veto, not a default — LOGO_SHOW_NAME=true at
-     * step 3 can never cross it, by design (on a tenant domain it would leak
-     * the operator's product name onto that domain). Its strategy arm keys off
-     * `=== 'custom'` specifically (the per-tenant-logo arm vetoes separately,
-     * whatever the strategy), so an 'invalid' classification does not trip
-     * step 2 and still honors LOGO_SHOW_NAME at step 3 — see the two tests
-     * below. That polarity is the pre-existing identity-consumer contract
-     * pinned in domain_strategy.rb, not a claim that 'invalid' can never
-     * involve a tenant host.
-     *
      * The tests below all use the canonical strategy with no domain_logo
      * unless stated, so showPlatformIdentity is true and rung 2 falls through.
      */
@@ -994,14 +984,7 @@ describe('MastHead', () => {
     });
 
     it('hides the wordmark on a custom domain with no logo even when show_name is true (#4241 — A3 guard beats LOGO_SHOW_NAME)', async () => {
-      // A genuine tenant domain (domain_strategy='custom') must never show the
-      // operator's own product name — LOGO_SHOW_NAME is an install-wide
-      // operator setting, and honoring it here would leak the operator's
-      // identity onto the tenant's white-labeled domain. This test covers the
-      // no-logo/DefaultLogo-sentinel branch specifically (previously untested);
-      // the domain_logo-set test above ("multi-tenant invariant") already
-      // covers the <img>+wordmark-span branch. Together they establish the
-      // invariant holds whether or not the tenant has uploaded a logo.
+      // The custom-domain guard must override the operator setting without a tenant logo.
       wrapper = mountWithIdentity(
         {
           brandLogoUrl: null,
@@ -1022,13 +1005,7 @@ describe('MastHead', () => {
     });
 
     it('honors LOGO_SHOW_NAME on an unresolved request host (domain_strategy="invalid") (#4241)', async () => {
-      // 'invalid' is a failed classification (an unplaceable host such as a
-      // dev CANONICAL_DOMAIN mismatch, or a datastore blip while looking up a
-      // real tenant host). Identity consumers deliberately test `=== 'custom'`,
-      // so 'invalid' takes the operator branch — see the domain_strategy.rb
-      // contract table. This test pins that LOGO_SHOW_NAME still reaches rung
-      // 3 there rather than silently inheriting the custom-domain guard; it
-      // does not decide the blip case, which is a backend policy question.
+      // The identity guard applies only to the `custom` classification.
       wrapper = mountWithIdentity(
         {
           brandLogoUrl: null,
