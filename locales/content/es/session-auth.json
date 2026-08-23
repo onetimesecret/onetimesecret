@@ -483,5 +483,45 @@
   "web.login.verified_notice": {
     "text": "Tu correo electrónico ha sido verificado — ya puedes iniciar sesión.",
     "source_hash": "c8d4b5a8"
+  },
+  "web.auth.password_setup_request.title": {
+    "text": "Establecer una contraseña",
+    "source_hash": "11b6978b"
+  },
+  "web.auth.password_setup_request.description": {
+    "text": "Tu cuenta aún no tiene contraseña. Te enviaremos por correo electrónico un enlace seguro para establecer una y así poder iniciar sesión también directamente.",
+    "source_hash": "dc0b561f"
+  },
+  "web.auth.password_setup_request.button": {
+    "text": "Enviar el enlace de configuración",
+    "source_hash": "22807292"
+  },
+  "web.auth.password_setup_request.emailSent": {
+    "text": "Te hemos enviado un correo electrónico con un enlace para establecer una contraseña para tu cuenta",
+    "source_hash": "82b686c7"
+  },
+  "web.login.errors.account_exists_link_required": {
+    "text": "Ya existe una cuenta con esta dirección de correo electrónico, pero no está vinculada a este método de inicio de sesión. Inicia sesión con tu método existente y luego vincula este proveedor en Configuración de seguridad → Identidades conectadas.",
+    "source_hash": "7fbbb7e7"
+  },
+  "web.login.errors.identity_connect_conflict": {
+    "text": "No se pudo conectar esta identidad. Puede que la conexión se iniciara en el dominio equivocado o que tu sesión caducara. Vuelve a iniciar sesión y luego conéctala desde la configuración de tu cuenta.",
+    "source_hash": "4238bbf2"
+  },
+  "web.login.errors.org_join_failed": {
+    "text": "No pudimos terminar de añadirte a tu organización. Ponte en contacto con tu administrador.",
+    "source_hash": "155e71bb"
+  },
+  "web.login.errors.link_sso_failed": {
+    "text": "No pudimos vincular ese método de inicio de sesión. Inicia sesión con tu contraseña existente y luego conecta este proveedor en Configuración de seguridad → Identidades conectadas.",
+    "source_hash": "49954127"
+  },
+  "web.login.notices.link_verification_sent": {
+    "text": "Revisa tu bandeja de entrada: te hemos enviado por correo electrónico un enlace para confirmar la conexión de tu cuenta. Ábrelo para terminar de iniciar sesión.",
+    "source_hash": "b251c8f3"
+  },
+  "web.login.errors.sso_cancelled": {
+    "text": "Se canceló el inicio de sesión. Puedes intentarlo de nuevo cuando quieras.",
+    "source_hash": "b5f3d3ec"
   }
 }

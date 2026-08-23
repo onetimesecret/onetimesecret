@@ -56,12 +56,12 @@
     "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Használja telefonját a QR-kód beolvasásához",
-    "source_hash": "99ecf59f"
+    "text": "pl. Használja a telefonját a QR-kód beolvasásához",
+    "source_hash": "9cf0caf8"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Kérdésekkel forduljon a onboarding{'@'}example.com címre",
-    "source_hash": "bee120a7"
+    "text": "pl. Kérdéseivel forduljon a bevezetés{'@'}example.com címre",
+    "source_hash": "71749811"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "Ezek az utasítások megjelennek a címzetteknek, mielőtt felfednék a titok tartalmát",
@@ -320,8 +320,8 @@
     "source_hash": "bc79cdff"
   },
   "web.branding.paths_carryover_hint": {
-    "text": "Ez egy élő előnézet — a módosításai csak mentés után válnak láthatóvá a látogatók számára.",
-    "source_hash": "cb4b82de"
+    "text": "Ez egy élő előnézet — a módosítások csak a Frissítés gombra kattintás után lesznek láthatók a látogatók számára.",
+    "source_hash": "9a34df71"
   },
   "web.branding.coming_soon_match_blurb": {
     "text": "Adja meg a webhelye címét, mi pedig beolvassuk a színeit és betűtípusait, majd egyetlen kattintással áthidaljuk a különbséget.",
@@ -356,7 +356,7 @@
     "source_hash": "5384461b"
   },
   "web.branding.tile_create_link": {
-    "text": "Titokhivatkozás létrehozása",
+    "text": "Titkos hivatkozás létrehozása",
     "source_hash": "610fd42e"
   },
   "web.branding.tile_delivery_only": {
@@ -406,5 +406,57 @@
   "web.branding.delivery_after_reveal": {
     "text": "Felfedés után",
     "source_hash": "d5bfe7fd"
+  },
+  "web.branding.favicon": {
+    "text": "Favicon",
+    "source_hash": "42955289"
+  },
+  "web.branding.refresh_favicon": {
+    "text": "Favicon frissítése a domainről",
+    "source_hash": "7cc3d5dc"
+  },
+  "web.branding.refresh_favicon_hint": {
+    "text": "A favicon újbóli lekérése a domainről. Az új ikon hamarosan megjelenik.",
+    "source_hash": "ee007e44"
+  },
+  "web.branding.refresh_favicon_queued": {
+    "text": "Favicon frissítése — az új ikon hamarosan megjelenik.",
+    "source_hash": "6bf38e6e"
+  },
+  "web.branding.refresh_favicon_user_upload_hint": {
+    "text": "Egyéni favicont töltött fel, így a lekért ikon nem cseréli le.",
+    "source_hash": "c22e1ed6"
+  },
+  "web.branding.upload_favicon": {
+    "text": "Favicon feltöltése",
+    "source_hash": "ceda39cb"
+  },
+  "web.branding.replace_favicon": {
+    "text": "Csere",
+    "source_hash": "95e15439"
+  },
+  "web.branding.remove_favicon": {
+    "text": "Favicon eltávolítása",
+    "source_hash": "03693698"
+  },
+  "web.branding.favicon_field_hint": {
+    "text": "ICO, PNG vagy SVG. A feltöltés lecseréli a lekért ikont.",
+    "source_hash": "dfa0bfcb"
+  },
+  "web.branding.favicon_preview_alt": {
+    "text": "Domain favicon",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_title": {
+    "text": "Domain favicon",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_hint": {
+    "text": "ICO, PNG vagy SVG. Maximum 256KB. Lecseréli az automatikusan lekért ikont.",
+    "source_hash": "c9eafc83"
+  },
+  "web.branding.favicon_modal_save": {
+    "text": "Favicon mentése",
+    "source_hash": "c8a1566c"
   }
 }

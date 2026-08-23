@@ -72,6 +72,14 @@ module Onetime
         # Integer-or-nil; `has_credentials` is always a boolean. NO raw
         # user/pass/api_key/token is ever emitted.
         #
+        # Registry-driven (the lettermint-omission bug class is structurally
+        # impossible): every Mail::ProviderRegistry descriptor declares its
+        # config-builder method, its safe-to-emit masked_config_keys, and the
+        # summary_credential_groups that define has_credentials. The raw
+        # emailer config is run through the SAME per-provider builder the
+        # delivery path uses (Mailer's *_provider_config, which applies the
+        # conf/ENV fallback chain), so summary and delivery cannot disagree.
+        #
         # @param provider [String] the resolved transport provider.
         # @param raw [Hash] the raw emailer_config (string keys). Never returned.
         # @return [Hash] { host:, port:, domain:, tls:, region:, has_credentials: }
@@ -80,26 +88,17 @@ module Onetime
             host: nil, port: nil, domain: nil, tls: nil, region: nil, has_credentials: false
           }
 
-          case provider
-          when 'smtp'
-            base.merge(
-              host: raw['host'] || ENV.fetch('SMTP_HOST', nil),
-              port: coerce_port(raw['port'] || ENV.fetch('SMTP_PORT', nil)),
-              domain: raw['domain'] || ENV.fetch('SMTP_DOMAIN', nil),
-              tls: raw['tls'],
-              has_credentials: smtp_credentials?(raw),
-            )
-          when 'ses'
-            base.merge(
-              region: raw['region'] || ENV.fetch('AWS_REGION', nil),
-              has_credentials: ses_credentials?(raw),
-            )
-          when 'sendgrid'
-            base.merge(has_credentials: sendgrid_key?(raw))
-          else
-            # logger / disabled / none: no host/region and no credentials.
-            base
-          end
+          descriptor = Onetime::Mail::ProviderRegistry.descriptor(provider)
+          # logger / disabled / none: no host/region and no credentials.
+          return base unless descriptor
+
+          # send() because the builders are private on Mailer (see build's
+          # visibility note above).
+          creds         = Onetime::Mail::Mailer.send(descriptor.provider_config_method, raw || {})
+          masked        = descriptor.masked_config_keys.to_h { |key| [key.to_sym, creds[key]] }
+          masked[:port] = coerce_port(masked[:port]) if masked.key?(:port)
+
+          base.merge(masked).merge(has_credentials: credentials_present?(descriptor, creds))
         end
 
         # @return [Integer, nil] the port as an Integer, or nil when blank/invalid.
@@ -109,21 +108,13 @@ module Onetime
           Integer(value.to_s.strip, exception: false)
         end
 
-        def smtp_credentials?(conf)
-          user = conf['user'] || ENV.fetch('SMTP_USERNAME', nil)
-          pass = conf['pass'] || ENV.fetch('SMTP_PASSWORD', nil)
-          !(user.nil? || user.empty?) && !(pass.nil? || pass.empty?)
-        end
-
-        def ses_credentials?(conf)
-          key    = conf['user'] || ENV.fetch('AWS_ACCESS_KEY_ID', nil)
-          secret = conf['pass'] || ENV.fetch('AWS_SECRET_ACCESS_KEY', nil)
-          !(key.nil? || key.empty?) && !(secret.nil? || secret.empty?)
-        end
-
-        def sendgrid_key?(conf)
-          key = conf['sendgrid_api_key'] || conf['pass'] || ENV.fetch('SENDGRID_API_KEY', nil)
-          !(key.nil? || key.empty?)
+        # OR across groups, AND within a group (e.g. lettermint: sending
+        # api_token OR provisioning team_token each count; smtp needs
+        # username AND password).
+        def credentials_present?(descriptor, creds)
+          descriptor.summary_credential_groups.any? do |group|
+            group.all? { |key| !creds[key].to_s.empty? }
+          end
         end
       end
     end

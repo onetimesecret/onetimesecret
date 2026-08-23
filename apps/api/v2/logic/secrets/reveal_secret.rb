@@ -77,8 +77,14 @@ module V2::Logic
       end
 
       def process # rubocop:disable Metrics/PerceivedComplexity
-        @correct_passphrase = secret.passphrase?(passphrase)
-        @show_secret        = secret.viewable? && (correct_passphrase || !secret.has_passphrase?) && continue
+        # Verify the passphrase ONLY on a committed reveal (continue=true): a
+        # metadata-only request must never learn whether a guess was right, and
+        # never accrues or clears rate-limit state -- nothing was checked.
+        # Same shape as ShowSecret: continue is folded into correct_passphrase
+        # so the flag is false for every metadata-only request, right guess or
+        # wrong, and the wrong-passphrase branch below cannot fire on one.
+        @correct_passphrase = continue && (!secret.has_passphrase? || secret.passphrase?(passphrase))
+        @show_secret        = secret.viewable? && correct_passphrase
         @verification       = secret.verification.to_s == 'true'
         @secret_identifier  = @secret.identifier
         @secret_shortid     = @secret.shortid
@@ -88,10 +94,30 @@ module V2::Logic
             secret_identifier: secret.shortid,
             viewable: secret.viewable?,
             has_passphrase: secret.has_passphrase?,
-            passphrase_correct: correct_passphrase,
+            # nil when continue=false: the guess was never checked.
+            passphrase_correct: (correct_passphrase if continue),
             continue: continue,
-            user_id: cust&.custid,
+            # extid, never custid: custid holds the email address on legacy
+            # (pre-v0.22) records, which would put PII in the payload.
+            user_id: cust&.extid,
           }
+
+        # Rate-limit bookkeeping is settled on the passphrase verdict alone,
+        # before any reveal claim -- the same ordering as ShowSecret. Clearing
+        # it inside the reveal branch below gated the clear on the process-time
+        # show_secret verdict: a concurrent consumer claiming the secret after
+        # raise_concerns but before the viewable? recompute above left a
+        # correct passphrase verification without its clear. Gated on continue
+        # for the same reason as the verdict above: a guess that was never
+        # checked is neither an attempt nor grounds for a clear.
+        attempt_count = nil
+        if continue && secret.has_passphrase?
+          if correct_passphrase
+            clear_passphrase_rate_limit!(secret.identifier, passphrase_client_ip)
+          else
+            attempt_count = record_failed_passphrase_attempt!(secret.identifier, passphrase_client_ip)
+          end
+        end
 
         owner = secret.load_owner
         if show_secret
@@ -100,9 +126,6 @@ module V2::Logic
           # reveal! path below so the 'revealed' audit event records who acted
           # (#3639). The anonymous guard lives in lifecycle_actor_context.
           actor_context = lifecycle_actor_context(secret)
-
-          # Clear any rate limit state on successful passphrase entry
-          clear_passphrase_rate_limit!(secret.identifier, passphrase_client_ip) if secret.has_passphrase?
 
           # Decryption is deferred to secret.reveal! below: it decrypts ONLY on
           # the caller that wins the atomic reveal claim, so a request that lost
@@ -167,7 +190,7 @@ module V2::Logic
               secret_logger.error 'Invalid verification - user already logged in',
                 {
                   secret_identifier: secret.shortid,
-                  user_id: cust&.custid,
+                  user_id: cust&.extid,
                   action: 'verification',
                   result: :already_logged_in,
                 }
@@ -209,14 +232,16 @@ module V2::Logic
           # already consumed the secret): do not present it as viewable.
           @show_secret = false if @secret_value.nil?
 
-        elsif secret.has_passphrase? && !correct_passphrase
-          # Record failed attempt for rate limiting
-          attempt_count = record_failed_passphrase_attempt!(secret.identifier, passphrase_client_ip)
-
+        elsif continue && secret.has_passphrase? && !correct_passphrase
+          # The failed attempt was already recorded above; attempt_count carries
+          # the count. Only a committed reveal reaches this branch: without the
+          # continue guard a metadata-only request with a wrong guess raised
+          # while a right one did not, which leaked the verdict through the HTTP
+          # status alone.
           secret_logger.warn 'Incorrect passphrase attempt',
             {
               secret_identifier: secret.shortid,
-              user_id: cust&.custid,
+              user_id: cust&.extid,
               session_id: safe_session_id&.public_id,
               action: 'reveal',
               result: :passphrase_failed,
@@ -249,13 +274,14 @@ module V2::Logic
       def success_data
         return nil unless secret
 
+        # correct_passphrase is not serialized: the verdict is a passphrase
+        # oracle. See #process. (The server-side debug log still carries it.)
         ret = {
           record: secret.safe_dump,
           details: {
             continue: @continue,
             is_owner: @is_owner,
             show_secret: @show_secret,
-            correct_passphrase: @correct_passphrase,
             display_lines: @display_lines,
             one_liner: @one_liner,
           },

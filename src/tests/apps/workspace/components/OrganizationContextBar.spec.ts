@@ -212,52 +212,6 @@ describe('OrganizationContextBar', () => {
     });
   });
 
-  describe('Activity link', () => {
-    const ownerOrg = { ...mockOrganization, current_user_role: 'owner' };
-
-    it('deep-links to the org audit trail for owners', async () => {
-      wrapper = mountComponent({
-        organizations: [ownerOrg],
-        currentOrganization: ownerOrg,
-        isListFetched: true,
-      });
-
-      await flushPromises();
-
-      const link = wrapper.find('[data-testid="org-context-activity"]');
-      expect(link.exists()).toBe(true);
-      expect(link.attributes('href')).toBe('/org/org_123/activity');
-    });
-
-    it('is hidden for members (route requires owner/admin)', async () => {
-      const memberOrg = { ...mockOrganization, current_user_role: 'member' };
-
-      wrapper = mountComponent({
-        organizations: [memberOrg],
-        currentOrganization: memberOrg,
-        isListFetched: true,
-      });
-
-      await flushPromises();
-
-      expect(wrapper.find('[data-testid="org-context-activity"]').exists()).toBe(false);
-    });
-
-    it('is hidden when the route hides org scope', async () => {
-      mockVisibility.value = { organization: 'hide', domain: 'show' };
-
-      wrapper = mountComponent({
-        organizations: [ownerOrg],
-        currentOrganization: ownerOrg,
-        isListFetched: true,
-      });
-
-      await flushPromises();
-
-      expect(wrapper.find('[data-testid="org-context-activity"]').exists()).toBe(false);
-    });
-  });
-
   describe('Multiple Organizations', () => {
     it('renders when user has multiple organizations', async () => {
       const multipleOrgs = [

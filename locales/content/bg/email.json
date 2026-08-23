@@ -836,5 +836,41 @@
   "email.secret_link.footer_note": {
     "text": "Получавате това, защото %{sender_email} използва %{product_name}, за да сподели тайна с вас. Ако не сте я очаквали, можете спокойно да пренебрегнете този имейл.",
     "source_hash": "2d544dad"
+  },
+  "email.sso_link_verification.subject": {
+    "text": "Потвърдете свързването на %{provider} с вашия акаунт в %{product_name}",
+    "source_hash": "65e70296"
+  },
+  "email.sso_link_verification.title": {
+    "text": "Потвърдете вашето SSO влизане",
+    "source_hash": "35bce6cc"
+  },
+  "email.sso_link_verification.request_notice": {
+    "text": "Някой влезе с %{provider}, използвайки имейл %{email_address}. За да завършите свързването на %{provider} с вашия акаунт в %{product_name}, потвърдете по-долу.",
+    "source_hash": "baeb18c0"
+  },
+  "email.sso_link_verification.confirm_button": {
+    "text": "Потвърждаване и свързване на %{provider}",
+    "source_hash": "9809e210"
+  },
+  "email.sso_link_verification.copy_link_prompt": {
+    "text": "Или копирайте и поставете тази връзка:",
+    "source_hash": "88c72144"
+  },
+  "email.sso_link_verification.expiration_notice": {
+    "text": "Тази връзка изтича след 15 минути и може да се използва само веднъж.",
+    "source_hash": "1a437f42"
+  },
+  "email.sso_link_verification.ignore_notice": {
+    "text": "Ако не сте се опитали да влезете с %{provider}, можете спокойно да игнорирате този имейл — нищо няма да бъде свързано с вашия акаунт.",
+    "source_hash": "d7317d30"
+  },
+  "email.sso_link_verification.signature": {
+    "text": "Екип за поддръжка",
+    "source_hash": "dc75bf9f"
+  },
+  "email.sso_link_verification.postscript": {
+    "text": "P.S. Този имейл беше изпратен до %{email_address}.",
+    "source_hash": "8ab1dbea"
   }
 }

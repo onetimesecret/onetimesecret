@@ -465,7 +465,7 @@
     "source_hash": "704cbdca"
   },
   "email.email_change_requested.change_notice": {
-    "text": "Был получен запрос на изменение адреса электронной почты в вашем аккаунте %{product_name}.",
+    "text": "Был получен запрос на изменение адреса электронной почты в Вашем аккаунте %{product_name}.",
     "renderer": "erb",
     "source_hash": "d7e39154"
   },
@@ -480,12 +480,12 @@
     "source_hash": "ada23c51"
   },
   "email.email_change_requested.if_you_initiated": {
-    "text": "Если вы сделали этот запрос, проверьте новый email для получения ссылки подтверждения. Изменения ещё не внесены.",
+    "text": "Если Вы сделали этот запрос, проверьте новый email для получения ссылки подтверждения. Изменения ещё не внесены.",
     "renderer": "erb",
     "source_hash": "aa1bf526"
   },
   "email.email_change_requested.not_you_notice": {
-    "text": "Если вы не делали этот запрос, можете просто проигнорировать это письмо. Ваш аккаунт не был изменён.",
+    "text": "Если Вы не делали этот запрос, можете просто проигнорировать это письмо. Ваш аккаунт не был изменён.",
     "renderer": "erb",
     "source_hash": "ff41a7b7"
   },
@@ -500,7 +500,7 @@
     "source_hash": "dc75bf9f"
   },
   "email.email_change_requested.postscript": {
-    "text": "P.S. Это письмо было отправлено на адрес %{email_address}, так как был получен запрос на изменение email вашего аккаунта.",
+    "text": "P.S. Это письмо было отправлено на адрес %{email_address}, так как был получен запрос на изменение email Вашего аккаунта.",
     "renderer": "erb",
     "source_hash": "500e085e"
   },
@@ -836,5 +836,41 @@
   "email.secret_link.footer_note": {
     "text": "Вы получили это письмо, потому что %{sender_email} воспользовался %{product_name}, чтобы поделиться с Вами секретом. Если Вы этого не ожидали, можете спокойно проигнорировать это письмо.",
     "source_hash": "2d544dad"
+  },
+  "email.sso_link_verification.subject": {
+    "text": "Подтвердите привязку %{provider} к Вашему аккаунту %{product_name}",
+    "source_hash": "65e70296"
+  },
+  "email.sso_link_verification.title": {
+    "text": "Подтвердите вход через SSO",
+    "source_hash": "35bce6cc"
+  },
+  "email.sso_link_verification.request_notice": {
+    "text": "Кто-то вошёл через %{provider}, используя адрес электронной почты %{email_address}. Чтобы завершить подключение %{provider} к Вашему аккаунту %{product_name}, подтвердите это ниже.",
+    "source_hash": "baeb18c0"
+  },
+  "email.sso_link_verification.confirm_button": {
+    "text": "Подтвердить и привязать %{provider}",
+    "source_hash": "9809e210"
+  },
+  "email.sso_link_verification.copy_link_prompt": {
+    "text": "Или скопируйте и вставьте эту ссылку:",
+    "source_hash": "88c72144"
+  },
+  "email.sso_link_verification.expiration_notice": {
+    "text": "Эта ссылка действительна 15 минут и может быть использована только один раз.",
+    "source_hash": "1a437f42"
+  },
+  "email.sso_link_verification.ignore_notice": {
+    "text": "Если Вы не пытались войти через %{provider}, можете спокойно проигнорировать это письмо — к Вашему аккаунту ничего не будет подключено.",
+    "source_hash": "d7317d30"
+  },
+  "email.sso_link_verification.signature": {
+    "text": "Команда поддержки",
+    "source_hash": "dc75bf9f"
+  },
+  "email.sso_link_verification.postscript": {
+    "text": "P.S. Это письмо было отправлено на %{email_address}.",
+    "source_hash": "8ab1dbea"
   }
 }

@@ -104,6 +104,24 @@ RSpec.describe Onetime::Mail::Delivery::Base do
     end
   end
 
+  describe '#initialize config stringification' do
+    it 'stringifies top-level symbol keys so BYOK callers may pass api_key:/api_token:' do
+      configured = test_class.new(api_key: 'secret-key', timeout: 45)
+
+      expect(configured.config).to eq('api_key' => 'secret-key', 'timeout' => 45)
+    end
+
+    it 'leaves string keys untouched' do
+      configured = test_class.new('api_key' => 'secret-key')
+
+      expect(configured.config).to eq('api_key' => 'secret-key')
+    end
+
+    it 'tolerates a nil config' do
+      expect(test_class.new(nil).config).to eq({})
+    end
+  end
+
   describe '#perform_delivery' do
     it 'raises NotImplementedError on the base class directly' do
       base = described_class.new

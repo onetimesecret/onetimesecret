@@ -28,7 +28,7 @@
     "source_hash": "942087cc"
   },
   "web.admin.usage.empty": {
-    "text": "Keine Daten für diesen Bereich",
+    "text": "Keine Daten für diesen Zeitraum",
     "source_hash": "5fed1795"
   },
   "web.admin.usage.byState": {

@@ -98,5 +98,41 @@
   "web.admin.audit.result.failure": {
     "text": "Невдача",
     "source_hash": "7031edbc"
+  },
+  "web.admin.audit.categories.secret": {
+    "text": "Таємниці",
+    "source_hash": "d8707d41"
+  },
+  "web.admin.audit.categories.membership": {
+    "text": "Членство",
+    "source_hash": "b50f1a42"
+  },
+  "web.admin.audit.categories.entitlement_preview": {
+    "text": "Попередній перегляд прав доступу",
+    "source_hash": "255c5797"
+  },
+  "web.admin.audit.categories.colonel": {
+    "text": "Входи Colonel",
+    "source_hash": "01eeeb38"
+  },
+  "web.admin.audit.filters.actorLabel": {
+    "text": "Виконавець",
+    "source_hash": "449995c4"
+  },
+  "web.admin.audit.filters.searchButton": {
+    "text": "Пошук",
+    "source_hash": "49c266ba"
+  },
+  "web.admin.audit.filters.searchHint": {
+    "text": "Введіть виконавця, потім натисніть Enter або оберіть Пошук, щоб виконати запит. Список не оновлюється під час введення.",
+    "source_hash": "45eceb12"
+  },
+  "web.admin.audit.filters.pendingSearch": {
+    "text": "Пошук ще не виконано — натисніть Enter або оберіть Пошук, щоб застосувати цього виконавця.",
+    "source_hash": "f76095c2"
+  },
+  "web.admin.audit.list.contractError": {
+    "text": "Сервер відповів, але дані аудиту не відповідають очікуваному формату. Неможливо відобразити події — це помилка звітування, а не порожній журнал.",
+    "source_hash": "7f48137e"
   }
 }

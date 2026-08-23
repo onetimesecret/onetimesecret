@@ -82,15 +82,31 @@ RSpec.describe Onetime::Organization, type: :integration do
     end
 
     it 'evicts only the oldest events past the retention cap' do
-      stub_const('Onetime::Organization::Features::SecretActivity::SECRET_ACTIVITY_MAX_EVENTS', 5)
+      feature = Onetime::Organization::Features::SecretActivity
 
-      base = Familia.now.to_f - 100
-      8.times { |i| org.record_secret_activity_event('secret_get', at: base + i) }
+      # configure! clamps to the MIN_MAX_EVENTS floor, so the smallest
+      # testable cap is the floor itself — pin the clamp while we're here.
+      expect(feature.configure!(5)).to eq(feature::MIN_MAX_EVENTS)
 
-      expect(org.secret_activity_event_count).to eq(5)
-      ats = org.secret_activity_events_page.map { |e| e['at'] }
+      # configure! is boot-time-only: an org whose accessor already ran has
+      # memoized a DataType with the old cap, so use a FRESH org here.
+      capped_org = described_class.new(
+        display_name: 'Capped Trail Org',
+        contact_email: "audit-cap-#{SecureRandom.hex(6)}@example.com",
+      ).tap(&:save)
+
+      cap  = feature::MIN_MAX_EVENTS
+      base = Familia.now.to_f - 200
+      (cap + 3).times { |i| capped_org.record_secret_activity_event('secret_get', at: base + i) }
+
+      expect(capped_org.secret_activity_event_count).to eq(cap)
+      ats = capped_org.secret_activity_events_page(limit: 200).map { |e| e['at'] }
       expect(ats.min).to be_within(0.001).of(base + 3)
-      expect(ats.max).to be_within(0.001).of(base + 7)
+      expect(ats.max).to be_within(0.001).of(base + cap + 2)
+    ensure
+      Onetime::Organization::Features::SecretActivity.configure!(
+        Onetime::Organization::Features::SecretActivity::DEFAULT_MAX_EVENTS,
+      )
     end
 
     it 'clamps pagination inputs and windows correctly' do
@@ -104,6 +120,140 @@ RSpec.describe Onetime::Organization, type: :integration do
 
       expect(org.secret_activity_events_page(offset: -3, limit: 0).size).to eq(1)
       expect(org.secret_activity_events_page(offset: 0, limit: 9_999).size).to eq(5)
+    end
+  end
+
+  # Instance-level collection toggle (SECRET_ACTIVITY_COLLECT, #3990) — the
+  # data-existence axis (GDPR minimization): whether events come to exist at
+  # all. Default-true contract: only an explicit false pauses recording — an
+  # absent key (older config file) must still record. Pausing never touches
+  # reads: existing events stay fully readable (hiding them is the separate
+  # ORGS_AUDIT_LOGS_ENABLED axis).
+  describe 'collection toggle (features.secret_activity.collect)' do
+    def conf_with_collect_flag(secret_activity)
+      base     = OT.conf
+      features = (base['features'] || {}).merge('secret_activity' => secret_activity)
+      base.merge('features' => features)
+    end
+
+    # Parity with ConfigSerializer#build_feature_flags: a hand-edited config
+    # can deliver the string 'false' where the shipped ERB emits a real
+    # boolean. If only the serializer handled it, the UI would show the
+    # paused banner while the backend kept recording.
+    it "pauses recording on the string 'false' while existing events stay readable" do
+      t1 = Familia.now.to_f - 10
+      org.record_secret_activity_event('created', at: t1, 'receipt' => 'abc123')
+
+      allow(OT).to receive(:conf)
+        .and_return(conf_with_collect_flag('collect' => 'false'))
+
+      expect(org.record_secret_activity_event('secret_get')).to be_nil
+      expect(org.secret_activity_event_count).to eq(1)
+
+      events = org.secret_activity_events_page
+      expect(events.size).to eq(1)
+      expect(events.first['kind']).to eq('created')
+      expect(events.first['at']).to be_within(0.001).of(t1)
+    end
+
+    it 'pauses recording on native false (shipped ERB boolean)' do
+      allow(OT).to receive(:conf)
+        .and_return(conf_with_collect_flag('collect' => false))
+
+      expect(org.record_secret_activity_event('secret_get')).to be_nil
+      expect(org.secret_activity_event_count).to eq(0)
+    end
+
+    it "keeps recording on the string 'true'" do
+      allow(OT).to receive(:conf)
+        .and_return(conf_with_collect_flag('collect' => 'true'))
+
+      expect(org.record_secret_activity_event('secret_get')).to be_a(Hash)
+      expect(org.secret_activity_event_count).to eq(1)
+    end
+
+    it 'keeps recording when nil (default-true contract)' do
+      allow(OT).to receive(:conf)
+        .and_return(conf_with_collect_flag('collect' => nil))
+
+      expect(org.record_secret_activity_event('secret_get')).to be_a(Hash)
+      expect(org.secret_activity_event_count).to eq(1)
+    end
+
+    it 'keeps recording when the key is absent (older config file)' do
+      allow(OT).to receive(:conf).and_return(conf_with_collect_flag({}))
+
+      expect(org.record_secret_activity_event('secret_get')).to be_a(Hash)
+      expect(org.secret_activity_event_count).to eq(1)
+    end
+  end
+
+  # Retention-cap configuration (SECRET_ACTIVITY_MAX_EVENTS, #3990). The cap
+  # lives on the stored related-field definition; configure! is the single
+  # boot-time mutation point (ConfigureSecretActivity initializer).
+  describe '.configure! (retention cap)' do
+    let(:feature) { Onetime::Organization::Features::SecretActivity }
+
+    def stored_cap
+      Onetime::Organization.related_fields[:secret_activity_events].opts[:max_length]
+    end
+
+    after do
+      feature.configure!(feature::DEFAULT_MAX_EVENTS)
+    end
+
+    it 'applies and returns a cap above the floor' do
+      expect(feature.configure!(2_500)).to eq(2_500)
+      expect(stored_cap).to eq(2_500)
+    end
+
+    it 'clamps values below the floor to MIN_MAX_EVENTS' do
+      expect(feature.configure!(99)).to eq(feature::MIN_MAX_EVENTS)
+      expect(feature.configure!(1)).to eq(feature::MIN_MAX_EVENTS)
+      expect(feature.configure!(0)).to eq(feature::MIN_MAX_EVENTS)
+      expect(feature.configure!(-10)).to eq(feature::MIN_MAX_EVENTS)
+      expect(stored_cap).to eq(feature::MIN_MAX_EVENTS)
+    end
+
+    it 'accepts the floor itself unclamped' do
+      expect(feature.configure!(feature::MIN_MAX_EVENTS)).to eq(feature::MIN_MAX_EVENTS)
+    end
+
+    it 'coerces an integer-shaped string (ENV/hand-edited YAML deliver one)' do
+      expect(feature.configure!('500')).to eq(500)
+      expect(stored_cap).to eq(500)
+    end
+
+    it 'raises on non-integer input before mutating anything (initializer owns the fallback)' do
+      expect { feature.configure!('unbounded') }.to raise_error(ArgumentError)
+      expect { feature.configure!(nil) }.to raise_error(TypeError)
+      # Integer() raised before the definition was touched: cap unchanged.
+      expect(stored_cap).to eq(feature::DEFAULT_MAX_EVENTS)
+    end
+
+    # BOOT-ORDERING (the memoization trap the initializer doc warns about):
+    # per-org DataType instances snapshot the definition's opts when they
+    # materialize (Familia copies opts into the frozen DataType), so
+    # configure! only reaches trails materialized AFTER it runs. This is why
+    # ConfigureSecretActivity must run at boot, before any org traffic.
+    it 'applies only to trails materialized after it runs (boot-time-only)' do
+      stale_org = described_class.new(
+        display_name: 'Materialized Before Configure',
+        contact_email: "audit-stale-#{SecureRandom.hex(6)}@example.com",
+      ).tap(&:save)
+      # Touch the accessor: the DataType memoizes with the current cap.
+      expect(stale_org.secret_activity_events.max_length).to eq(feature::DEFAULT_MAX_EVENTS)
+
+      feature.configure!(2_500)
+
+      fresh_org = described_class.new(
+        display_name: 'Materialized After Configure',
+        contact_email: "audit-fresh-#{SecureRandom.hex(6)}@example.com",
+      ).tap(&:save)
+
+      expect(fresh_org.secret_activity_events.max_length).to eq(2_500)
+      # The already-materialized trail keeps the cap it was born with.
+      expect(stale_org.secret_activity_events.max_length).to eq(feature::DEFAULT_MAX_EVENTS)
     end
   end
 
@@ -204,6 +354,34 @@ RSpec.describe Onetime::Organization, type: :integration do
             expect(value.to_s).not_to include(full_ua)
           end
         end
+      end
+
+      # Country capture (#3989) rides the same **event_attrs splat as the rest
+      # of the network context, so the trail-facing half of the contract is
+      # that a gated-ON net_country survives receipt -> org unchanged and
+      # lands alongside the shortid context. Whether country is captured AT
+      # ALL is the logic layer's default-OFF decision (ADR-021 Decision 4;
+      # see access_telemetry_spec.rb) -- by the time a context reaches here
+      # that gate has already been applied.
+      it 'carries a resolved net_country into the trail without ever storing the raw IP' do
+        raw_ip  = '203.0.113.42'
+        full_ua = 'Mozilla/5.0 (X11; Linux x86_64) Chrome/119.0.0.0 Safari/537.36'
+
+        real_context = Onetime::Security::RequestContext.capture(
+          ip: raw_ip, user_agent: full_ua, country: 'US',
+        )
+        receipt.record_access_event('secret_get', context: real_context)
+
+        event = org.secret_activity_events_page.first
+        expect(event['net_country']).to eq('US')
+        expect(event['net_ip_partial']).to eq('203.0.113.0')
+        # Alongside the existing shortid context, not instead of it.
+        expect(event['receipt']).to eq(receipt.shortid)
+
+        # Country is the COARSEST geo signal; capturing it must not relax the
+        # IP stance -- the raw dotted-quad still never reaches the trail.
+        expect(event.to_json).not_to include(raw_ip)
+        expect(org.secret_activity_events.membersraw.join).not_to include(raw_ip)
       end
 
       it 'records a stable, keyed correlation hash across two events from the same source' do

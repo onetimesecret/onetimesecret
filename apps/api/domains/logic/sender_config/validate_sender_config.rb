@@ -70,6 +70,12 @@ module DomainsAPI
           if @mailer_config.from_address.to_s.empty?
             raise_form_error('Sender configuration must have from_address before validation', field: :from_address, error_type: :missing)
           end
+
+          # Require provisioned DNS records: without them there is nothing to
+          # check, and enqueueing would clear verification state for nothing.
+          unless @mailer_config.provisioned?
+            raise_form_error('Sender configuration must be provisioned before validation', field: :domain_id, error_type: :invalid)
+          end
         end
 
         def process
@@ -152,7 +158,7 @@ module DomainsAPI
             lock&.release(lock_token) if lock_token
           end
 
-          log_sender_change_event(
+          log_sender_config_event(
             event: :domain_sender_validation_requested,
             domain: @custom_domain,
             org: @organization,

@@ -229,6 +229,42 @@ const handleDelete = () => {
   showDeleteConfirm.value = false;
 };
 
+/**
+ * Weak test-before-enable warning (#4111 part 4).
+ *
+ * Deliberately NOT a gate: the availability ladder still guards runtime, and
+ * blocking the save would strand the #4107 cohort (configs saved with live
+ * intent, flag-stuck since June) with no way to turn their connection back on.
+ * Industry practice (Okta/Auth0/WorkOS) sequences activation after a test, so
+ * we advise the same order and let the operator proceed.
+ *
+ * Scope is this editing session: the record carries no "has ever passed a
+ * test" field, so the only honest claim is about the test run here. Warning on
+ * every already-enabled config would be noise on every open, so it fires only
+ * when the operator flips the toggle ON without a passing test in view; it
+ * clears when they flip it back off, when a test passes, or when a different
+ * domain's config is loaded into this reused instance.
+ */
+const connectionEnabledTouchedOn = ref(false);
+
+const testPassedThisSession = computed(() => props.testResult?.success === true);
+
+const showEnableUntestedWarning = computed(
+  () => connectionEnabledTouchedOn.value && props.formState.enabled && !testPassedThisSession.value
+);
+
+const handleConnectionEnabledChange = (value: boolean) => {
+  connectionEnabledTouchedOn.value = value;
+  updateField('enabled', value);
+};
+
+watch(
+  () => props.domainExtId,
+  () => {
+    connectionEnabledTouchedOn.value = false;
+  }
+);
+
 const handleTestConnection = () => {
   if (!canTestConnection.value || props.isTesting) return;
   emit('test');
@@ -719,6 +755,52 @@ aria-hidden="true">*</span>
         </p>
       </div>
 
+      <!-- Connection Enabled Toggle (#4107) — writes SsoConfig.enabled, the
+           credential record's own operational flag. Deliberately independent of
+           the SigninConfig sso_enabled policy toggle on Sign-in Settings: the
+           availability ladder requires BOTH before the sign-in page offers SSO.
+           This was the field's only UI writer; dropping it (7326689cdc) left
+           every saved config stuck at enabled=false. -->
+      <div
+        class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-900 dark:text-white">
+              {{ t('web.organizations.sso.connection_enabled') }}
+            </p>
+            <p
+              id="domain-connection-enabled-hint"
+              class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              {{ t('web.organizations.sso.connection_enabled_hint') }}
+            </p>
+          </div>
+          <ToggleWithIcon
+            data-testid="sso-connection-enabled-toggle"
+            :enabled="formState.enabled"
+            :disabled="isSaving"
+            @update:enabled="handleConnectionEnabledChange" />
+        </div>
+
+        <!-- Weak test-before-enable warning (#4111): advisory only, never a
+             gate. role="alert" so it is announced when it appears; amber is
+             the fixed warning hue (#4132) and the text carries the meaning on
+             its own (WCAG 1.4.1). -->
+        <div
+          v-if="showEnableUntestedWarning"
+          data-testid="sso-enable-untested-warning"
+          role="alert"
+          class="mt-3 flex items-start gap-2 rounded-md bg-amber-50 px-3 py-2 dark:bg-amber-900/20">
+          <OIcon
+            collection="heroicons"
+            name="exclamation-triangle"
+            class="mt-0.5 size-4 flex-shrink-0 text-amber-600 dark:text-amber-400"
+            aria-hidden="true" />
+          <p class="text-sm text-amber-700 dark:text-amber-300">
+            {{ t('web.organizations.sso.enable_untested_warning') }}
+          </p>
+        </div>
+      </div>
+
       <!-- Grant Org Scope Toggle (withheld pending testing unless already
            granted, so an existing grant stays revocable — see showGrantOrgScope) -->
       <div
@@ -735,6 +817,7 @@ aria-hidden="true">*</span>
           </p>
         </div>
         <ToggleWithIcon
+          data-testid="grant-org-scope-toggle"
           :enabled="formState.grant_org_scope"
           :disabled="isSaving"
           @update:enabled="updateField('grant_org_scope', $event)" />

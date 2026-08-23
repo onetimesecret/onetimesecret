@@ -204,7 +204,6 @@ describe('V2 Secret Round-Trip', () => {
       expect(parsed.continue).toBe(canonical.continue);
       expect(parsed.is_owner).toBe(canonical.is_owner);
       expect(parsed.show_secret).toBe(canonical.show_secret);
-      expect(parsed.correct_passphrase).toBe(canonical.correct_passphrase);
       expect(parsed.display_lines).toBe(canonical.display_lines);
     });
 
@@ -392,7 +391,6 @@ describe('V3 Secret Round-Trip', () => {
       expect(parsed.continue).toBe(canonical.continue);
       expect(parsed.is_owner).toBe(canonical.is_owner);
       expect(parsed.show_secret).toBe(canonical.show_secret);
-      expect(parsed.correct_passphrase).toBe(canonical.correct_passphrase);
       expect(parsed.display_lines).toBe(canonical.display_lines);
     });
 

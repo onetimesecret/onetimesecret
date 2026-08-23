@@ -115,7 +115,7 @@ Without this, a Host→brand resolution failure falls back to canonical branding
 - `reducedMotion: 'reduce'` in config (above) kills transitions.
 - `mask` anything time-relative (TTL countdowns, "expires in X hours").
 - Elements rendering per-run generated identifiers (secret links, receipt IDs) are known-variable — their masks are seeded up front rather than discovered. For everything else, don't pre-engineer the mask list — grow it from real diffs.
-- Generate baselines **only** inside the pinned Playwright Linux container (`mcr.microsoft.com/playwright:v1.58.2-noble` via podman — the tag must match `@playwright/test` in package.json; bump both together). Never commit darwin baselines — font rendering differs and you'll chase phantom diffs. `bin/visual` running that container keeps this honest.
+- Generate baselines **only** inside the pinned Playwright Linux container (`mcr.microsoft.com/playwright:v1.62.1-noble` via podman — the tag must match `@playwright/test` in package.json; bump both together). Never commit darwin baselines — font rendering differs and you'll chase phantom diffs. `bin/visual` running that container keeps this honest.
 - `maxDiffPixels` over `threshold` for full-page shots — it maps directly to "how much changed."
 
 ## 5. Workflow

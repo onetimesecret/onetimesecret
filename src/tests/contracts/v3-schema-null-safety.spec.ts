@@ -231,7 +231,6 @@ describe('V3 schema null-safety audit', () => {
       'continue',
       'is_owner',
       'show_secret',
-      'correct_passphrase',
     ];
 
     it.each(secretDetailsBareFields)(
@@ -426,7 +425,7 @@ describe('V3 schema null-safety audit', () => {
 
   describe('secret details null-safety audit', () => {
     // The secret details schema has these bare z.boolean() fields:
-    // continue, is_owner, show_secret, correct_passphrase
+    // continue, is_owner, show_secret
     //
     // While the backend may always send booleans for these (because they
     // are computed in the controller, not read from a possibly-nil model),
@@ -449,14 +448,13 @@ describe('V3 schema null-safety audit', () => {
         continue: null,
         is_owner: null,
         show_secret: null,
-        correct_passphrase: null,
         display_lines: 1,
         one_liner: null,
       },
       shrimp: 'csrf-token-xyz',
     };
 
-    it('V3 secret response schema REJECTS null for continue, is_owner, show_secret, correct_passphrase', () => {
+    it('V3 secret response schema REJECTS null for continue, is_owner, show_secret', () => {
       const result = secretResponseSchema.safeParse(secretDetailsPayloadWithNulls);
       expect(result.success).toBe(false);
 
@@ -465,7 +463,6 @@ describe('V3 schema null-safety audit', () => {
         expect(issueFields).toContain('details.continue');
         expect(issueFields).toContain('details.is_owner');
         expect(issueFields).toContain('details.show_secret');
-        expect(issueFields).toContain('details.correct_passphrase');
       }
     });
 
@@ -482,7 +479,6 @@ describe('V3 schema null-safety audit', () => {
           continue: true,
           is_owner: false,
           show_secret: true,
-          correct_passphrase: false,
           display_lines: 1,
           one_liner: false,
         },
@@ -513,7 +509,6 @@ describe('V3 schema null-safety audit', () => {
           continue: true,
           is_owner: false,
           show_secret: false,
-          correct_passphrase: false,
           display_lines: 1,
           one_liner: null,
         },
@@ -588,7 +583,6 @@ describe('V3 schema null-safety audit', () => {
           continue: false,
           is_owner: false,
           show_secret: false,
-          correct_passphrase: true,
           display_lines: 1,
           one_liner: null,
         },
@@ -625,7 +619,6 @@ describe('V3 schema null-safety audit', () => {
           continue: false,
           is_owner: false,
           show_secret: false,
-          correct_passphrase: true,
           display_lines: 1,
           one_liner: null,
         },

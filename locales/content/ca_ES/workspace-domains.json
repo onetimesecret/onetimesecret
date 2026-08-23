@@ -1335,10 +1335,6 @@
     "text": "La prova de connexió ha fallat",
     "source_hash": "a45a37dd"
   },
-  "web.domains.sso.enforce_moved_notice": {
-    "text": "Per exigir l'SSO a tots els inicis de sessió d'aquest domini, configura-ho a la configuració d'inici de sessió del domini. El mode només SSO restringeix la pàgina d'inici de sessió al proveïdor d'SSO configurat aquí.",
-    "source_hash": "d26627a5"
-  },
   "web.domains.sso.configure_sso": {
     "text": "Configura l'SSO",
     "source_hash": "80d3a144"
@@ -1542,5 +1538,93 @@
   "web.domains.signup.dormant_notice": {
     "text": "Els registres estan desactivats a tot l'espai de treball, de manera que no estan disponibles en cap domini. La configuració d'aquí es manté i s'aplica quan es tornen a activar els registres de l'espai de treball.",
     "source_hash": "49faefe4"
+  },
+  "web.domains.link_domain_no_settings": {
+    "text": "Aquest domini no té cap pàgina de configuració",
+    "source_hash": "8a8430fe"
+  },
+  "web.domains.signin.sso_restrict_warning_title": {
+    "text": "Restringir a l'SSO tancaria l'inici de sessió en aquest domini",
+    "source_hash": "3476cb5c"
+  },
+  "web.domains.signin.sso_restrict_warning_body": {
+    "text": "L'SSO no està disponible en aquest domini, i una restricció que no es pot aplicar bloqueja completament l'inici de sessió. Ningú no hi podrà iniciar la sessió fins que l'SSO funcioni. Arregla primer l'SSO, o restringeix igualment i acaba la configuració.",
+    "source_hash": "086e3247"
+  },
+  "web.domains.signin.sso_restrict_warning_confirm": {
+    "text": "Restringeix igualment",
+    "source_hash": "4674e3cf"
+  },
+  "web.domains.signin.restriction_unavailable_notice": {
+    "text": "L'inici de sessió no està disponible en aquest domini: està restringit a {method}, que no s'hi pot executar. Tria un altre mètode o fes que {method} hi estigui disponible.",
+    "source_hash": "ca1b7f69"
+  },
+  "web.domains.signin.restriction_unavailable_unknown_notice": {
+    "text": "L'inici de sessió no està disponible en aquest domini: està restringit a un mètode que no s'hi pot executar. Tria un altre mètode o restableix aquest domini als valors per defecte.",
+    "source_hash": "8c2cce6b"
+  },
+  "web.domains.signin.restriction_conflict_notice": {
+    "text": "Aquest domini restringeix l'inici de sessió a un mètode diferent del de la restricció de tot l'espai de treball ({method}), de manera que no se'n pot aplicar cap i l'inici de sessió no està disponible aquí. Fes-lo coincidir amb el mètode de tot l'espai de treball o restableix aquest domini als valors per defecte.",
+    "source_hash": "15398362"
+  },
+  "web.domains.signin.method_webauthn_unavailable": {
+    "text": "Les claus d'accés estan vinculades al domini d'inici de sessió principal i encara no estan disponibles als dominis personalitzats",
+    "source_hash": "88833e0f"
+  },
+  "web.domains.sso.connection_disabled_badge": {
+    "text": "Connexió desactivada",
+    "source_hash": "99d6092c"
+  },
+  "web.domains.sso.connection_disabled_hint": {
+    "text": "Les credencials de l'SSO estan desades, però la connexió està desactivada. Activa-la a «Edita les credencials».",
+    "source_hash": "90180d6c"
+  },
+  "web.domains.sso.status_active_badge": {
+    "text": "Activa",
+    "source_hash": "92340695"
+  },
+  "web.domains.sso.status_active_hint": {
+    "text": "Els membres poden iniciar la sessió amb aquesta connexió SSO en aquest domini.",
+    "source_hash": "313ec61e"
+  },
+  "web.domains.sso.status_not_configured_badge": {
+    "text": "No configurada",
+    "source_hash": "dd1841d2"
+  },
+  "web.domains.sso.status_not_configured_hint": {
+    "text": "Encara no hi ha desada cap credencial de l'SSO per a aquest domini.",
+    "source_hash": "d817ad9c"
+  },
+  "web.domains.sso.status_not_permitted_badge": {
+    "text": "No permesa en aquest domini",
+    "source_hash": "afbd20ba"
+  },
+  "web.domains.sso.status_not_permitted_hint": {
+    "text": "L'SSO està desactivat per a aquest domini, de manera que la pàgina d'inici de sessió no l'ofereix.",
+    "source_hash": "ef092481"
+  },
+  "web.domains.sso.status_auth_disabled_badge": {
+    "text": "Inici de sessió desactivat",
+    "source_hash": "bb807607"
+  },
+  "web.domains.sso.status_auth_disabled_hint": {
+    "text": "L'inici de sessió està desactivat en aquest domini, de manera que no s'ofereix cap mètode — inclòs l'SSO.",
+    "source_hash": "3a98964b"
+  },
+  "web.domains.sso.status_unsupported_provider_badge": {
+    "text": "Proveïdor no compatible",
+    "source_hash": "1609d5fb"
+  },
+  "web.domains.sso.status_unsupported_provider_hint": {
+    "text": "El proveïdor desat no es pot fer servir per a l'SSO de domini. Edita les credencials i tria Microsoft Entra ID o OIDC genèric.",
+    "source_hash": "72ea0a2e"
+  },
+  "web.domains.sso.status_unavailable_badge": {
+    "text": "No disponible",
+    "source_hash": "ca184496"
+  },
+  "web.domains.sso.status_unavailable_hint": {
+    "text": "Ara mateix l'SSO no es pot oferir en aquest domini. Comprova les credencials de l'SSO i la configuració d'inici de sessió d'aquest domini.",
+    "source_hash": "b03b14f4"
   }
 }

@@ -96,7 +96,7 @@ ${tierRows}
 
 - **Tier 1 - Lint & Build**: Ruby Lint, TypeScript Lint, i18n Validation, Build Frontend Assets
 - **Tier 2 - Unit Tests**: Ruby Unit Tests, TypeScript Unit Tests
-- **Tier 3 - Integration Tests**: Ruby Integration (Simple, Full-SQLite, Full-PostgreSQL, Disabled modes)
+- **Tier 3 - Integration Tests**: Ruby Integration (Simple, API contract, Full-SQLite, Full-PostgreSQL, Disabled modes)
 - **Tier 4 - Container Validation**: Docker build and health check
 - **Tier 5 - CI Metrics**: Performance validation and reporting
 

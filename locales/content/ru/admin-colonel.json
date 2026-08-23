@@ -608,7 +608,7 @@
     "source_hash": "cf53f19d"
   },
   "web.colonel.previewModeDescription": {
-    "text": "Просмотрите приложение так, как оно отображается для клиентов на другом плане. Это влияет только на ваш просмотр и не изменяет фактический план какой-либо организации.",
+    "text": "Просмотрите приложение так, как оно отображается для клиентов на другом плане. Это влияет только на Ваш просмотр и не изменяет фактический план какой-либо организации.",
     "source_hash": "6fe23f23"
   },
   "web.colonel.previewModeActive": {
@@ -838,5 +838,37 @@
   "web.colonel.nav.groups.communications": {
     "text": "Коммуникации",
     "source_hash": "919a9253"
+  },
+  "web.colonel.organizations.sameAsContact": {
+    "text": "Совпадает с контактом",
+    "source_hash": "ed18ff43"
+  },
+  "web.colonel.organizations.refresh": {
+    "text": "Обновить",
+    "source_hash": "0e916101"
+  },
+  "web.colonel.organizations.updatedAgo": {
+    "text": "Обновлено {ago}",
+    "source_hash": "cda30b9c"
+  },
+  "web.colonel.organizations.columns.name": {
+    "text": "Название",
+    "source_hash": "dcd1d522"
+  },
+  "web.colonel.organizations.columns.contactEmail": {
+    "text": "Контактный адрес электронной почты",
+    "source_hash": "6d7fce11"
+  },
+  "web.colonel.organizations.columns.billingEmail": {
+    "text": "Адрес электронной почты для оплаты",
+    "source_hash": "8805b928"
+  },
+  "web.colonel.organizations.columns.planSubscription": {
+    "text": "План и подписка",
+    "source_hash": "b396caac"
+  },
+  "web.colonel.organizations.filters.searchPlaceholder": {
+    "text": "Поиск по ID, названию или адресу электронной почты",
+    "source_hash": "6fe16473"
   }
 }

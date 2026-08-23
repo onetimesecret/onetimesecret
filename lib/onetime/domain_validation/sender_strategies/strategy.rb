@@ -15,22 +15,28 @@
 #   results  = strategy.verify_dns_records(mailer_config)
 #
 
+require_relative '../../mail/provider_registry'
+require_relative '../record_normalizer'
 require_relative 'base_strategy'
 require_relative 'provider_config'
 require_relative 'ses_validation'
 require_relative 'sendgrid_validation'
 require_relative 'lettermint_validation'
+require_relative 'smtp2go_validation'
 
 module Onetime
   module DomainValidation
     module SenderStrategies
       # Factory class for creating sender domain validation strategies
       class SenderStrategy
-        PROVIDER_MAP = {
-          'ses' => SesValidation,
-          'sendgrid' => SendgridValidation,
-          'lettermint' => LettermintValidation,
-        }.freeze
+        # Derived from the authoritative Mail::ProviderRegistry: every
+        # provider with a validation strategy (smtp has none — its DNS is
+        # configured manually). The validation files are required above, so
+        # class resolution here is safe.
+        PROVIDER_MAP = Onetime::Mail::ProviderRegistry.descriptors
+          .reject { |descriptor| descriptor.validation_strategy_class_name.nil? }
+          .to_h { |descriptor| [descriptor.name, descriptor.validation_strategy_class] }
+          .freeze
 
         # Factory method to create appropriate strategy based on provider type.
         #

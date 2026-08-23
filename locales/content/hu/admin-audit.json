@@ -98,5 +98,41 @@
   "web.admin.audit.result.failure": {
     "text": "Sikertelen",
     "source_hash": "7031edbc"
+  },
+  "web.admin.audit.categories.secret": {
+    "text": "Titkok",
+    "source_hash": "d8707d41"
+  },
+  "web.admin.audit.categories.membership": {
+    "text": "Tagságok",
+    "source_hash": "b50f1a42"
+  },
+  "web.admin.audit.categories.entitlement_preview": {
+    "text": "Jogosultság előnézetek",
+    "source_hash": "255c5797"
+  },
+  "web.admin.audit.categories.colonel": {
+    "text": "Colonel bejelentkezések",
+    "source_hash": "01eeeb38"
+  },
+  "web.admin.audit.filters.actorLabel": {
+    "text": "Szereplő",
+    "source_hash": "449995c4"
+  },
+  "web.admin.audit.filters.searchButton": {
+    "text": "Keresés",
+    "source_hash": "49c266ba"
+  },
+  "web.admin.audit.filters.searchHint": {
+    "text": "Adjon meg egy szereplőt, majd nyomja meg az Entert, vagy válassza a Keresés gombot a futtatáshoz. A lista nem frissül gépelés közben.",
+    "source_hash": "45eceb12"
+  },
+  "web.admin.audit.filters.pendingSearch": {
+    "text": "Még nincs keresve — nyomja meg az Entert, vagy válassza a Keresés gombot a szereplő alkalmazásához.",
+    "source_hash": "f76095c2"
+  },
+  "web.admin.audit.list.contractError": {
+    "text": "A szerver válaszolt, de az audit adatok nem feleltek meg a várt formátumnak. Nem lehet eseményeket megjeleníteni — ez egy jelentéskészítési hiba, nem üres napló.",
+    "source_hash": "7f48137e"
   }
 }

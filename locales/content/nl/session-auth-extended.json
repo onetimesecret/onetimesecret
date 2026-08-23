@@ -58,7 +58,7 @@
     "source_hash": "3cff3311"
   },
   "web.auth.complete_mfa_verification": {
-    "text": "MFA-verificatie voltooien",
+    "text": "Voltooi MFA-verificatie",
     "source_hash": "0e681134"
   },
   "web.auth.security._guidance": {
@@ -66,7 +66,7 @@
     "context": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
   },
   "web.auth.security.authentication_failed": {
-    "text": "Authenticatie mislukt. Controleer je inloggegevens en probeer het opnieuw.",
+    "text": "Authenticatie mislukt. Controleer je gegevens en probeer het opnieuw.",
     "source_hash": "b0eeece9"
   },
   "web.auth.security.rate_limited": {
@@ -82,7 +82,7 @@
     "source_hash": "f5f1bd09"
   },
   "web.auth.security.recovery_code_used": {
-    "text": "Deze herstelcode is al gebruikt. Elke code kan slechts één keer worden gebruikt.",
+    "text": "Deze herstelcode is al gebruikt. Elke code kan slechts eenmaal worden gebruikt.",
     "source_hash": "b51d6820"
   },
   "web.auth.security.network_error": {
@@ -103,7 +103,7 @@
     "source_hash": "1b6ffed2"
   },
   "web.auth.methods.webauthn": {
-    "text": "Biometrisch",
+    "text": "Biometrie",
     "source_hash": "ab2ba7db"
   },
   "web.auth.magicLink.title": {
@@ -115,11 +115,11 @@
     "source_hash": "5d75aeb0"
   },
   "web.auth.magicLink.emailPlaceholder": {
-    "text": "Voer je e-mail in",
+    "text": "Voer je e-mailadres in",
     "source_hash": "2837f6fa"
   },
   "web.auth.magicLink.sendLink": {
-    "text": "Inloglink verzenden",
+    "text": "Stuur inloglink",
     "source_hash": "f5f52392"
   },
   "web.auth.magicLink.checkEmail": {
@@ -127,7 +127,7 @@
     "source_hash": "77322879"
   },
   "web.auth.magicLink.sentTo": {
-    "text": "We hebben een inloglink verzonden naar {email}",
+    "text": "We hebben een inloglink gestuurd naar {email}",
     "source_hash": "d9193f59"
   },
   "web.auth.magicLink.linkExpiresIn": {
@@ -147,7 +147,7 @@
     "source_hash": "9ff8cfaf"
   },
   "web.auth.magicLink.requestFailed": {
-    "text": "Verzenden van inloglink mislukt. Probeer het opnieuw.",
+    "text": "Inloglink versturen mislukt. Probeer het opnieuw.",
     "source_hash": "4c685e97"
   },
   "web.auth.magicLink.invalidLink": {
@@ -155,7 +155,7 @@
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
-    "text": "Je sessie is verlopen. Vernieuw de pagina en probeer het opnieuw.",
+    "text": "Je sessie is verlopen. Ververs de pagina en probeer het opnieuw.",
     "source_hash": "be9ed96d"
   },
   "web.auth.magicLink.loginFailed": {
@@ -237,7 +237,7 @@
     "source_hash": "a513ed5c"
   },
   "web.auth.passkeys.setup_description": {
-    "text": "Met passkeys log je veilig in zonder wachtwoord",
+    "text": "Met passkeys kun je veilig inloggen zonder wachtwoord",
     "context": "Setup page description",
     "source_hash": "85630bef"
   },
@@ -292,9 +292,9 @@
     "source_hash": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "Passkey naam",
+    "text": "Passkey",
     "context": "Label for passkey name field",
-    "source_hash": "22eefa67"
+    "source_hash": "904c9aa9"
   },
   "web.auth.passkeys.created": {
     "text": "Aangemaakt",
@@ -312,7 +312,7 @@
     "source_hash": "24d3236c"
   },
   "web.auth.passkeys.benefit_secure": {
-    "text": "Veiliger dan wachtwoorden - bestand tegen phishingaanvallen",
+    "text": "Veiliger dan wachtwoorden - bestand tegen phishing-aanvallen",
     "context": "Passkey benefit",
     "source_hash": "41afb6ec"
   },
@@ -322,7 +322,7 @@
     "source_hash": "5a0ce96c"
   },
   "web.auth.passkeys.benefit_synced": {
-    "text": "Gesynchroniseerd tussen je apparaten bij gebruik van platform-authenticators",
+    "text": "Gesynchroniseerd op al je apparaten bij gebruik van platform-authenticators",
     "context": "Passkey benefit",
     "source_hash": "7480c7ae"
   },
@@ -336,7 +336,7 @@
     "source_hash": "151dcb5e"
   },
   "web.auth.lockout.account_locked": {
-    "text": "Account vergrendeld vanwege te veel mislukte inlogpogingen",
+    "text": "Account vergrendeld door te veel mislukte inlogpogingen",
     "source_hash": "5247f389"
   },
   "web.auth.lockout.locked_until": {
@@ -344,11 +344,11 @@
     "source_hash": "1a8f382e"
   },
   "web.auth.lockout.contact_support": {
-    "text": "Neem contact op met de ondersteuning als je directe toegang nodig hebt",
+    "text": "Neem contact op met support als je direct toegang nodig hebt",
     "source_hash": "23d82e46"
   },
   "web.auth.lockout.try_password_reset": {
-    "text": "Je kunt in plaats daarvan je wachtwoord resetten",
+    "text": "Je kunt in plaats daarvan je wachtwoord opnieuw instellen",
     "source_hash": "a98a3f9d"
   },
   "web.auth.sessions._guidance": {
@@ -400,7 +400,7 @@
     "source_hash": "ef12c1ba"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "Dit logt je uit op alle andere apparaten. Weet je het zeker?",
+    "text": "Je wordt uitgelogd op alle andere apparaten. Weet je het zeker?",
     "source_hash": "4a1a73e9"
   },
   "web.auth.sessions.no_sessions": {
@@ -452,7 +452,7 @@
     "source_hash": "efd0134a"
   },
   "web.auth.mfa.step_verify": {
-    "text": "2. Verifieer installatie",
+    "text": "2. Verifieer instelling",
     "source_hash": "59bba5f7"
   },
   "web.auth.mfa.scan_qr": {
@@ -464,7 +464,7 @@
     "source_hash": "3ea15b3e"
   },
   "web.auth.mfa.verify_code": {
-    "text": "Voer de 6-cijferige code van je app in",
+    "text": "Voer de 6-cijferige code uit je app in",
     "source_hash": "38f61733"
   },
   "web.auth.mfa.enter_code": {
@@ -472,11 +472,11 @@
     "source_hash": "186a582a"
   },
   "web.auth.mfa.verify": {
-    "text": "Verifiëren en inschakelen",
+    "text": "Verifieer en schakel in",
     "source_hash": "7c08f68d"
   },
   "web.auth.mfa.verify_login": {
-    "text": "Verifiëren",
+    "text": "Verifieer",
     "source_hash": "eea2745e"
   },
   "web.auth.mfa.code_required": {
@@ -484,7 +484,7 @@
     "source_hash": "217de0fc"
   },
   "web.auth.mfa.invalid_code": {
-    "text": "Ongeldige code. Codes verlopen elke 30 seconden. Probeer de nieuwste code van je authenticator-app.",
+    "text": "Ongeldige code. Codes verlopen elke 30 seconden. Probeer de laatste code uit je authenticator-app.",
     "source_hash": "94b58889"
   },
   "web.auth.mfa.success_enabled": {
@@ -520,7 +520,7 @@
     "source_hash": "23d3441a"
   },
   "web.auth.mfa.use_recovery_code_short": {
-    "text": "Herstelcode gebruiken",
+    "text": "Gebruik herstelcode",
     "source_hash": "50d5790d"
   },
   "web.auth.mfa.back_to_code": {
@@ -528,7 +528,7 @@
     "source_hash": "6fa090b4"
   },
   "web.auth.mfa.cancel": {
-    "text": "Annuleren en terug naar inloggen",
+    "text": "Annuleer en ga terug naar inloggen",
     "source_hash": "83256742"
   },
   "web.auth.mfa.cancel_sign_in": {
@@ -540,15 +540,15 @@
     "source_hash": "01919f0e"
   },
   "web.auth.mfa.protected_description": {
-    "text": "Je account is beschermd met tweefactorauthenticatie",
+    "text": "Je account is beveiligd met tweefactorauthenticatie",
     "source_hash": "02b9d169"
   },
   "web.auth.mfa.enable_description": {
-    "text": "Bescherm je account met een extra beveiligingslaag",
+    "text": "Beveilig je account met een extra beveiligingslaag",
     "source_hash": "06d9123b"
   },
   "web.auth.mfa.benefit_unauthorized": {
-    "text": "Voorkom ongeautoriseerde toegang zelfs als je wachtwoord is gecompromitteerd",
+    "text": "Voorkom ongeautoriseerde toegang, zelfs als je wachtwoord is gecompromitteerd",
     "source_hash": "61d99c71"
   },
   "web.auth.mfa.benefit_apps": {
@@ -584,7 +584,7 @@
     "source_hash": "4da96e87"
   },
   "web.auth.mfa.enter_code_description": {
-    "text": "Voer de 6-cijferige code van je authenticator-app in",
+    "text": "Voer de 6-cijferige code uit je authenticator-app in",
     "source_hash": "a160dee6"
   },
   "web.auth.mfa.enable_and_continue": {
@@ -592,7 +592,7 @@
     "source_hash": "37c8090d"
   },
   "web.auth.mfa.complete_setup": {
-    "text": "Installatie voltooien",
+    "text": "Instelling voltooien",
     "source_hash": "30e87601"
   },
   "web.auth.mfa.enter_recovery_code": {
@@ -616,11 +616,11 @@
     "source_hash": "36a438ba"
   },
   "web.auth.mfa.recovery_code_mode_active": {
-    "text": "Herstelcodemodus actief",
+    "text": "Herstelcode-modus actief",
     "source_hash": "c895f08b"
   },
   "web.auth.mfa.otp_mode_active": {
-    "text": "Authenticatiecodemodus actief",
+    "text": "Authenticatiecode-modus actief",
     "source_hash": "8c44a306"
   },
   "web.auth.mfa.enter_all_digits": {
@@ -636,15 +636,15 @@
     "source_hash": "579c7f4e"
   },
   "web.auth.recovery_codes.description": {
-    "text": "Bewaar deze codes op een veilige plek. Elke code kan één keer worden gebruikt als je geen toegang meer hebt tot je authenticator.",
+    "text": "Bewaar deze codes op een veilige plaats. Elke code kan eenmaal worden gebruikt als je geen toegang meer hebt tot je authenticator.",
     "source_hash": "87aebdfb"
   },
   "web.auth.recovery_codes.warning": {
-    "text": "Deze codes worden slechts één keer getoond",
+    "text": "Deze codes worden slechts eenmaal getoond",
     "source_hash": "d13f2877"
   },
   "web.auth.recovery_codes.save_required": {
-    "text": "Je moet je herstelcodes downloaden of kopiëren voordat je de installatie voltooit.",
+    "text": "Je moet je herstelcodes downloaden of kopiëren voordat je de instelling voltooit.",
     "source_hash": "6b97bc6d"
   },
   "web.auth.recovery_codes.generate_new": {
@@ -680,7 +680,7 @@
     "source_hash": "06ebb466"
   },
   "web.auth.recovery_codes.copy_failed": {
-    "text": "Kopiëren van codes naar klembord mislukt",
+    "text": "Codes kopiëren naar klembord mislukt",
     "source_hash": "e8be6a51"
   },
   "web.auth.recovery_codes.code_used": {
@@ -692,11 +692,11 @@
     "source_hash": "231aedff"
   },
   "web.auth.recovery_codes.remaining": {
-    "text": "{count} van {limit} herstelcodes over",
+    "text": "{count} van {limit} herstelcodes resterend",
     "source_hash": "b5d484e7"
   },
   "web.auth.recovery_codes.usage_hint": {
-    "text": "Elke code kan slechts één keer worden gebruikt. Genereer nieuwe codes als je er weinig over hebt.",
+    "text": "Elke code kan slechts eenmaal worden gebruikt. Genereer nieuwe codes als je bijna door je codes heen bent.",
     "source_hash": "737a7702"
   },
   "web.auth.recovery_codes.none_remaining": {
@@ -730,5 +730,232 @@
   "web.auth.sessions.session_plural": {
     "text": "sessies",
     "source_hash": "1225ae6c"
+  },
+  "web.auth.connections.title": {
+    "text": "Gekoppelde identiteiten",
+    "source_hash": "e132c4d9"
+  },
+  "web.auth.connections.description": {
+    "text": "Beheer de single sign-on providers die aan je account zijn gekoppeld.",
+    "source_hash": "42c6d148"
+  },
+  "web.auth.connections.section_title": {
+    "text": "Single sign-on",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.section_subtitle": {
+    "text": "Identiteitsproviders waarmee je kunt inloggen bij dit account",
+    "source_hash": "507254cd"
+  },
+  "web.auth.connections.connect_title": {
+    "text": "Koppel een provider",
+    "source_hash": "a002b3f3"
+  },
+  "web.auth.connections.connect_description": {
+    "text": "Koppel nog een single sign-on provider waarmee je kunt inloggen bij dit account.",
+    "source_hash": "32895a5a"
+  },
+  "web.auth.connections.connect_action": {
+    "text": "Koppel {provider}",
+    "context": "Button label to start linking a specific SSO provider; {provider} is the provider display name",
+    "source_hash": "c77540af"
+  },
+  "web.auth.connections.issuer": {
+    "text": "Uitgever",
+    "source_hash": "39e02c46"
+  },
+  "web.auth.connections.identifier": {
+    "text": "Identificatie",
+    "source_hash": "9b10587f"
+  },
+  "web.auth.connections.remove": {
+    "text": "Verwijderen",
+    "source_hash": "c3812fc4"
+  },
+  "web.auth.connections.remove_confirm_title": {
+    "text": "Gekoppelde identiteit verwijderen",
+    "source_hash": "4e8ffe4c"
+  },
+  "web.auth.connections.remove_confirm_message": {
+    "text": "Weet je zeker dat je deze gekoppelde identiteit wilt verwijderen? Je kunt er dan niet meer mee inloggen.",
+    "source_hash": "64939c89"
+  },
+  "web.auth.connections.removed_success": {
+    "text": "Gekoppelde identiteit verwijderd",
+    "source_hash": "cf87daf3"
+  },
+  "web.auth.connections.no_identities": {
+    "text": "Geen gekoppelde identiteiten",
+    "source_hash": "5254048e"
+  },
+  "web.auth.connections.no_identities_description": {
+    "text": "Je hebt nog geen single sign-on providers aan dit account gekoppeld.",
+    "source_hash": "0f58d5d0"
+  },
+  "web.auth.connections.overview_status": {
+    "text": "Single sign-on",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.errors.last_credential": {
+    "text": "Dit is je enige manier om in te loggen. Koppel eerst een andere provider, of stel een wachtwoord in via Instellingen → Beveiliging, zodat je geen toegang verliest.",
+    "source_hash": "3de8084d"
+  },
+  "web.auth.connections.errors.last_credential_sso_enforced": {
+    "text": "Dit is je enige manier om in te loggen. Koppel eerst een andere provider zodat je geen toegang verliest.",
+    "source_hash": "eed7a50e"
+  },
+  "web.auth.connections.errors.not_found": {
+    "text": "Die gekoppelde identiteit kon niet worden gevonden. Mogelijk is deze al verwijderd.",
+    "source_hash": "cf2c7673"
+  },
+  "web.auth.connections.errors.unauthorized": {
+    "text": "Je sessie is verlopen. Log opnieuw in.",
+    "source_hash": "b529fce2"
+  },
+  "web.auth.connections.errors.generic": {
+    "text": "We konden die actie niet voltooien. Probeer het opnieuw.",
+    "source_hash": "a0d4edc0"
+  },
+  "web.link_sso.title": {
+    "text": "Koppel je inlogmethode",
+    "source_hash": "46339bac"
+  },
+  "web.link_sso.prompt": {
+    "text": "Je hebt ingelogd met {provider}, die overeenkomt met het bestaande account {email}. Voer het wachtwoord van dat account in om {provider} te koppelen en door te gaan.",
+    "context": "Instruction on the sign-in interstitial. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/link-sso/:token.",
+    "source_hash": "59da1c08"
+  },
+  "web.link_sso.password_label": {
+    "text": "Wachtwoord",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.link_sso.password_placeholder": {
+    "text": "Je bestaande wachtwoord",
+    "source_hash": "ad4e56da"
+  },
+  "web.link_sso.submit": {
+    "text": "Koppelen en doorgaan",
+    "source_hash": "c969b759"
+  },
+  "web.link_sso.cancel": {
+    "text": "Annuleren",
+    "source_hash": "19766ed6"
+  },
+  "web.link_sso.unavailable_title": {
+    "text": "Dit koppelingsverzoek is verlopen",
+    "source_hash": "b53c7e55"
+  },
+  "web.link_sso.unavailable_message": {
+    "text": "Voor je veiligheid is het verzoek om deze inlogmethode te koppelen niet meer geldig. Log in met je bestaande wachtwoord en koppel deze provider via Beveiligingsinstellingen → Gekoppelde identiteiten.",
+    "source_hash": "f7e349d1"
+  },
+  "web.link_sso.unavailable_action": {
+    "text": "Doorgaan naar inloggen",
+    "source_hash": "d398cd0a"
+  },
+  "web.link_sso.errors.invalid_password": {
+    "text": "Dat wachtwoord komt niet overeen met dit account. Probeer het opnieuw.",
+    "source_hash": "3259b4f5"
+  },
+  "web.link_sso.errors.invalid_token": {
+    "text": "Dit koppelingsverzoek is verlopen of al gebruikt. Log in met je bestaande wachtwoord en koppel deze provider via je accountinstellingen.",
+    "source_hash": "541f9127"
+  },
+  "web.link_sso.errors.link_conflict": {
+    "text": "We konden deze inlogmethode niet koppelen. Je account is mogelijk gewijzigd, of deze provider is al gekoppeld aan een ander account. Log in met je bestaande wachtwoord en beheer koppelingen via Beveiligingsinstellingen → Gekoppelde identiteiten.",
+    "source_hash": "7b0e0d0e"
+  },
+  "web.link_sso.errors.link_rate_limited": {
+    "text": "Te veel wachtwoordpogingen. Wacht een paar minuten en probeer het opnieuw.",
+    "source_hash": "a95e78cd"
+  },
+  "web.link_sso.errors.invalid_request": {
+    "text": "We konden dit koppelingsverzoek niet verwerken. Log opnieuw in met je SSO-provider.",
+    "source_hash": "053b9fc6"
+  },
+  "web.link_sso.errors.generic": {
+    "text": "We konden je account niet koppelen. Probeer het opnieuw.",
+    "source_hash": "f727c174"
+  },
+  "web.sso_link_confirm.title": {
+    "text": "Bevestig het koppelen van je account",
+    "source_hash": "ad80bfe7"
+  },
+  "web.sso_link_confirm.prompt": {
+    "text": "Je hebt ingelogd met {provider}, die overeenkomt met je account {email}. Bevestig om {provider} aan dit account te koppelen en het inloggen af te ronden.",
+    "context": "Consent instruction on the #3840 Phase 4 mailbox-proof SSO linking page. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/sso-link-confirm/:token. No password is asked — clicking the emailed link is the proof.",
+    "source_hash": "6ff0d6cc"
+  },
+  "web.sso_link_confirm.submit": {
+    "text": "Bevestigen en koppelen",
+    "source_hash": "5cf663e6"
+  },
+  "web.sso_link_confirm.cancel": {
+    "text": "Annuleren",
+    "source_hash": "19766ed6"
+  },
+  "web.sso_link_confirm.unavailable_title": {
+    "text": "Dit koppelingsverzoek kan niet worden voltooid",
+    "source_hash": "47abb784"
+  },
+  "web.sso_link_confirm.unavailable_message": {
+    "text": "Voor je veiligheid is dit verzoek om je inlogmethode te koppelen niet meer geldig. Log opnieuw in met je provider en we sturen je een nieuwe link per e-mail.",
+    "source_hash": "080e6f9f"
+  },
+  "web.sso_link_confirm.unavailable_action": {
+    "text": "Terug naar inloggen",
+    "source_hash": "8504054f"
+  },
+  "web.sso_link_confirm.errors.link_expired": {
+    "text": "Dit koppelingsverzoek is verlopen of al gebruikt. Log opnieuw in met je provider en we sturen je een nieuwe link per e-mail.",
+    "source_hash": "a50538df"
+  },
+  "web.sso_link_confirm.errors.link_conflict": {
+    "text": "We konden deze inlogmethode niet koppelen. Je account is mogelijk gewijzigd, of deze provider is al gekoppeld aan een ander account. Log opnieuw in met je provider om door te gaan.",
+    "source_hash": "c954854b"
+  },
+  "web.sso_link_confirm.errors.link_invalidated": {
+    "text": "Je accountgegevens zijn gewijzigd nadat deze link is verstuurd, dus deze is niet meer geldig. Log opnieuw in met je provider en we sturen je een nieuwe link per e-mail.",
+    "source_hash": "db88cb1d"
+  },
+  "web.sso_link_confirm.errors.link_error": {
+    "text": "Er ging iets mis aan onze kant en we konden deze link niet verifiëren. Log opnieuw in met je provider en we sturen je een nieuwe.",
+    "source_hash": "ec24e0a1"
+  },
+  "web.sso_link_confirm.errors.confirm_rate_limited": {
+    "text": "Te veel pogingen vanaf je apparaat. Wacht een paar minuten en open de ge-e-mailde link opnieuw of log in met je provider voor een nieuwe.",
+    "source_hash": "f29af782"
+  },
+  "web.sso_link_confirm.errors.generic": {
+    "text": "We konden deze koppeling niet bevestigen. Log opnieuw in met je provider.",
+    "source_hash": "076fa25a"
+  },
+  "web.auth.mfa.passkey_mode_active": {
+    "text": "Passkey-modus actief",
+    "source_hash": "824dceb6"
+  },
+  "web.auth.mfa.passkey_prompt": {
+    "text": "Verifieer met een passkey dat jij het bent. Je apparaat vraagt om je vingerafdruk, gezicht of beveiligingssleutel.",
+    "source_hash": "c0b0cbbc"
+  },
+  "web.auth.mfa.verify_with_passkey": {
+    "text": "Verifiëren met passkey",
+    "source_hash": "4f105a30"
+  },
+  "web.auth.mfa.use_passkey": {
+    "text": "In plaats daarvan een passkey gebruiken",
+    "source_hash": "bd6430a4"
+  },
+  "web.auth.passkeys.remove_failed": {
+    "text": "Passkey kan niet worden verwijderd",
+    "source_hash": "3e131515"
+  },
+  "web.auth.passkeys.load_failed": {
+    "text": "Passkeys kunnen niet worden geladen",
+    "source_hash": "8d704e00"
+  },
+  "web.auth.webauthn.emailRequired": {
+    "text": "Voer je e-mailadres in om in te loggen met een passkey",
+    "source_hash": "7f07647f"
   }
 }

@@ -188,6 +188,40 @@ describe('AdminCustomers (list view — ticket #22)', () => {
     }
   });
 
+  it('fetches immediately when the search button is clicked (debounce cancelled)', async () => {
+    vi.useFakeTimers();
+    try {
+      mockApi.get.mockResolvedValue({ data: usersPayload() });
+      wrapper = mountView();
+      await flushPromises();
+
+      await wrapper
+        .find('[data-testid="customers-filterbar"] input[type="search"]')
+        .setValue('alice');
+      const before = mockApi.get.mock.calls.length;
+
+      const submitBtn = wrapper
+        .findAll('[data-testid="customers-filterbar"] button')
+        .find((b) => b.text().includes('searchSubmit'));
+      await submitBtn!.trigger('click');
+      await flushPromises();
+
+      // Immediate fetch with the term…
+      expect(mockApi.get.mock.calls.length).toBe(before + 1);
+      expect(mockApi.get).toHaveBeenLastCalledWith('/api/colonel/users', {
+        params: { page: 1, per_page: 50, search: 'alice' },
+      });
+
+      // …and the pending debounce was cancelled — no second, late request.
+      vi.advanceTimersByTime(300);
+      await flushPromises();
+      expect(mockApi.get.mock.calls.length).toBe(before + 1);
+    } finally {
+      vi.runOnlyPendingTimers();
+      vi.useRealTimers();
+    }
+  });
+
   it('issues exactly one fetch when clearing filters (no debounce double-fetch)', async () => {
     vi.useFakeTimers();
     try {

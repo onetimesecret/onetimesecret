@@ -15,11 +15,19 @@
 // 9. Delete confirmation two-step
 // 10. Accessibility (radiogroup roles, aria-describedby, role="switch")
 //
-// NOTE: The "One specific method" segment is hidden pending testing
-// (showRestrictMode=false); its button is not rendered and the mode-switch
-// order is now [Sign-in disabled, Any available method]. Mode B's picker logic
-// is still exercised by driving formState.restrict_to directly — the picker
-// renders whenever a restriction is already set.
+// NOTE: The "One specific method" segment is offered again
+// (showRestrictMode=true) now that the sign-in page honors every restrict_to
+// value. DOM order is [Sign-in disabled, Any available method, One specific
+// method]. Mode B is reachable both via the segment and by driving
+// formState.restrict_to directly.
+//
+// NOTE: WebAuthn is NEVER offered in Mode B, even when globally available —
+// passkeys are host-scoped (rp_id = request.host), so a passkey registered on
+// the canonical host can never authenticate on a custom domain, making a
+// webauthn-only restriction a dead end. The row renders (locked) only when
+// restrict_to === 'webauthn' is already persisted (keep-if-selected, like the
+// SSO row) with the host-scope limitation blurb. Mode A's static row is
+// untouched.
 
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
@@ -29,6 +37,10 @@ import { createTestingPinia } from '@pinia/testing';
 import { createI18n } from 'vue-i18n';
 import { ref } from 'vue';
 import DomainSigninConfigForm from '@/apps/workspace/components/domains/DomainSigninConfigForm.vue';
+import type {
+  EffectiveRestrictTo,
+  TenantSsoVerdict,
+} from '@/schemas/api/domains/responses/signin-config';
 import type { SigninConfigFormState } from '@/shared/composables/useSigninConfig';
 
 // ---------------------------------------------------------------------------
@@ -110,6 +122,9 @@ const i18n = createI18n({
 /** Resolve a key against the real bundle. */
 const t = (key: string) => i18n.global.t(key);
 
+/** Resolve a key with named interpolation, as the component does. */
+const tp = (key: string, params: Record<string, string>) => i18n.global.t(key, params);
+
 /**
  * Copy the component renders, sourced from the bundle — never hand-typed here.
  * Assertions reference these so they track the shipped copy automatically.
@@ -128,6 +143,30 @@ const COPY = {
   resetConfirm: t('web.domains.signin.reset_confirm'),
   resetAction: t('web.domains.signin.reset_action'),
   cancel: t('web.COMMON.word_cancel'),
+  connectionDisabledBadge: t('web.domains.sso.connection_disabled_badge'),
+  connectionDisabledHint: t('web.domains.sso.connection_disabled_hint'),
+  // Tenant-SSO status line (#4111)
+  statusActiveBadge: t('web.domains.sso.status_active_badge'),
+  statusActiveHint: t('web.domains.sso.status_active_hint'),
+  statusNotConfiguredBadge: t('web.domains.sso.status_not_configured_badge'),
+  statusNotPermittedBadge: t('web.domains.sso.status_not_permitted_badge'),
+  statusAuthDisabledBadge: t('web.domains.sso.status_auth_disabled_badge'),
+  statusUnsupportedProviderBadge: t('web.domains.sso.status_unsupported_provider_badge'),
+  statusUnavailableBadge: t('web.domains.sso.status_unavailable_badge'),
+  statusUnavailableHint: t('web.domains.sso.status_unavailable_hint'),
+  // SSO-restriction lockout guard (#4111)
+  ssoRestrictWarningTitle: t('web.domains.signin.sso_restrict_warning_title'),
+  ssoRestrictWarningBody: t('web.domains.signin.sso_restrict_warning_body'),
+  // Resolved-restriction notices — interpolated exactly as the component does,
+  // so the {method} placeholder is verified as substituted, not printed.
+  restrictionUnavailableSso: tp('web.domains.signin.restriction_unavailable_notice', {
+    method: t('web.domains.signin.method_sso'),
+  }),
+  restrictionConflictPassword: tp('web.domains.signin.restriction_conflict_notice', {
+    method: t('web.domains.signin.method_password'),
+  }),
+  restrictionUnavailableUnknown: t('web.domains.signin.restriction_unavailable_unknown_notice'),
+  methodWebauthnUnavailable: t('web.domains.signin.method_webauthn_unavailable'),
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -156,6 +195,17 @@ interface MountOptions {
   isConfigured?: boolean;
   workspaceDefault?: boolean;
   ssoConfigured?: boolean;
+  /**
+   * The server's tenant-SSO verdict (#4111, `details.tenant_sso`). Left
+   * undefined ⇒ the prop is omitted, which must render no status line and arm
+   * no guard: the client has no verdict and may not invent one (ADR-024).
+   */
+  tenantSso?: TenantSsoVerdict | null;
+  /**
+   * The server's restriction resolution
+   * (ADR-034#resolution-is-model-owned / #settings-api-serializes-effective-restrict-to).
+   */
+  effectiveRestrictTo?: EffectiveRestrictTo | null;
   canManageSso?: boolean;
   globalAvailability?: { email_auth: boolean; webauthn: boolean };
   /** ORGS_SSO_ENABLED — tenant-SSO availability (bootstrap flag, not a prop). */
@@ -178,6 +228,12 @@ function mountForm(opts: MountOptions = {}): VueWrapper {
       // below flips this on.
       workspaceDefault: opts.workspaceDefault ?? false,
       ssoConfigured: opts.ssoConfigured ?? false,
+      // Omitted (not defaulted) when unset, so the no-verdict case — an older
+      // backend, or details not loaded — stays observable.
+      ...(opts.tenantSso !== undefined ? { tenantSso: opts.tenantSso } : {}),
+      ...(opts.effectiveRestrictTo !== undefined
+        ? { effectiveRestrictTo: opts.effectiveRestrictTo }
+        : {}),
       canManageSso: opts.canManageSso ?? true,
       globalAvailability: opts.globalAvailability ?? allAvailable,
       savingField: opts.savingField ?? null,
@@ -243,64 +299,44 @@ describe('DomainSigninConfigForm', () => {
       expect(wrapper.find('#signin-mode-disabled').attributes('aria-checked')).toBe('false');
     });
 
-    it('renders the restrict picker (Mode B) when restrict_to is set, though its segment is hidden', () => {
+    it('renders the Mode B segment checked and the restrict picker when restrict_to is set', () => {
       wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'sso' } });
-      // The "One specific method" segment is hidden (showRestrictMode=false),
-      // but an existing restriction still drives Mode B: the picker renders and
-      // "Any available method" is not the active mode.
-      expect(wrapper.find('#signin-mode-one').exists()).toBe(false);
+      const one = wrapper.find('#signin-mode-one');
+      expect(one.exists()).toBe(true);
+      expect(one.attributes('aria-checked')).toBe('true');
       expect(wrapper.find('#signin-restrict-sso').exists()).toBe(true);
       expect(wrapper.find('#signin-mode-any').attributes('aria-checked')).toBe('false');
     });
 
-    it('keeps the mode-switch keyboard-reachable in hidden Mode B (a visible segment holds tabindex 0)', () => {
-      // Regression guard: Mode B's segment (index 2) is hidden, so if
-      // checkedModeIndex pointed at it, every visible segment would get
-      // tabindex=-1 and the radiogroup would drop out of the tab order
-      // (WCAG 2.1.1). checkedModeIndex falls back to the first visible segment.
+    it('gives the checked Mode B segment the tab stop (roving tabindex)', () => {
       wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'sso' } });
 
-      const disabled = wrapper.find('#signin-mode-disabled');
-      const any = wrapper.find('#signin-mode-any');
-      // Exactly one visible segment is in the tab order.
-      expect(disabled.attributes('tabindex')).toBe('0');
-      expect(any.attributes('tabindex')).toBe('-1');
-      // aria-checked stays accurate on the visible segments: neither is the
-      // active mode (Mode B is the active mode, represented separately below).
-      expect(disabled.attributes('aria-checked')).toBe('false');
-      expect(any.attributes('aria-checked')).toBe('false');
+      // Exactly one segment is in the tab order — the checked one.
+      expect(wrapper.find('#signin-mode-one').attributes('tabindex')).toBe('0');
+      expect(wrapper.find('#signin-mode-disabled').attributes('tabindex')).toBe('-1');
+      expect(wrapper.find('#signin-mode-any').attributes('tabindex')).toBe('-1');
     });
 
-    it('exposes exactly one checked radio reflecting active Mode B while its segment is hidden', () => {
-      // WCAG 2.1 SC 4.1.2 (Name, Role, Value): the interactive Mode B segment
-      // is withheld (showRestrictMode=false), so if the radiogroup relied on the
-      // visible segments alone it would report NO selection while restrict_to is
-      // set. An sr-only, non-interactive radio carries the true selection so AT
-      // announces the active mode; it stays out of the tab order (tabindex=-1 /
-      // aria-disabled) and cannot switch INTO the withheld mode.
+    it('exposes exactly one checked radio in the mode radiogroup for active Mode B', () => {
       wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'sso' } });
 
       const radiogroup = wrapper.find('[role="radiogroup"]');
       const checked = radiogroup.findAll('[role="radio"]').filter(
         (r) => r.attributes('aria-checked') === 'true'
       );
-      // Exactly one radio in the group is checked, and it is the Mode B stand-in.
       expect(checked).toHaveLength(1);
-      expect(checked[0].attributes('id')).toBe('signin-mode-one-active');
+      expect(checked[0].attributes('id')).toBe('signin-mode-one');
 
-      const active = wrapper.find('#signin-mode-one-active');
-      expect(active.exists()).toBe(true);
-      expect(active.classes()).toContain('sr-only');
-      // Announced but not a tab stop, and not interactive (can't switch into it).
-      expect(active.attributes('tabindex')).toBe('-1');
-      expect(active.attributes('aria-disabled')).toBe('true');
-      // A visible segment still owns the tab stop (keyboard reachability intact).
-      expect(wrapper.find('#signin-mode-disabled').attributes('tabindex')).toBe('0');
+      // The sr-only stand-in (which represented active Mode B while the
+      // segment was withheld) must not render alongside the real segment —
+      // it would double-announce the selection.
+      expect(wrapper.find('#signin-mode-one-active').exists()).toBe(false);
     });
 
     it('does not render the Mode B stand-in radio when Mode B is not active', () => {
       // The sr-only stand-in only exists to represent an otherwise-unrepresentable
-      // active Mode B. In Mode A the "Any" segment carries aria-checked itself.
+      // active Mode B (showRestrictMode=false). In Mode A the "Any" segment
+      // carries aria-checked itself.
       wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: null } });
       expect(wrapper.find('#signin-mode-one-active').exists()).toBe(false);
 
@@ -330,10 +366,28 @@ describe('DomainSigninConfigForm', () => {
       expect(wrapper.emitted('auto-save')).toBeFalsy();
     });
 
-    // NOTE: "clicking the One-specific-method segment reveals the picker" was
-    // removed — the segment is hidden (showRestrictMode=false). Mode B is now
-    // reached only when restrict_to is already set (covered by the picker
-    // tests below, driven via formState).
+    it('clicking "One specific method" reveals the picker without saving (no method picked yet)', async () => {
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: null } });
+      await wrapper.find('#signin-mode-one').trigger('click');
+
+      // The local intent flag switches the view to Mode B; nothing persists
+      // until a method is actually chosen.
+      expect(wrapper.find('#signin-restrict-password').exists()).toBe(true);
+      expect(wrapper.emitted('auto-save')).toBeFalsy();
+    });
+
+    it('picking a method after entering Mode B saves restrict_to with its availability flag', async () => {
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: null } });
+      await wrapper.find('#signin-mode-one').trigger('click');
+      await wrapper.find('#signin-restrict-email_auth').trigger('change');
+
+      const emitted = wrapper.emitted('auto-save');
+      expect(emitted).toBeTruthy();
+      expect(emitted![0]).toEqual([
+        { restrict_to: 'email_auth', email_auth_enabled: true },
+        'restrict_to',
+      ]);
+    });
   });
 
   // -----------------------------------------------------------------------
@@ -435,9 +489,16 @@ describe('DomainSigninConfigForm', () => {
       ]);
     });
 
-    // NOTE: "re-enabling via One specific method" was removed — that segment is
-    // hidden (showRestrictMode=false). Re-enabling via "Any available method" is
-    // covered above.
+    it('re-enabling via "One specific method" persists signin_enabled=true immediately', async () => {
+      // From disabled, entering Mode B must bring sign-in back on even before
+      // a method is picked (a preserved restrict_to restores that method).
+      wrapper = mountForm({ formState: { ...disabledFormState, restrict_to: 'sso' } });
+      await wrapper.find('#signin-mode-one').trigger('click');
+
+      const emitted = wrapper.emitted('auto-save');
+      expect(emitted).toBeTruthy();
+      expect(emitted![0]).toEqual([{ signin_enabled: true }, 'signin_enabled']);
+    });
 
     it('mode switch segments are disabled while saving', () => {
       wrapper = mountForm({ isSaving: true });
@@ -608,12 +669,14 @@ describe('DomainSigninConfigForm', () => {
   // -----------------------------------------------------------------------
 
   describe('mode B: restrict_to picker', () => {
-    it('renders a radio for each globally-available method', () => {
+    it('renders a radio for each offerable method (webauthn excluded by design)', () => {
       wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'password' } });
       expect(wrapper.find('#signin-restrict-password').exists()).toBe(true);
-      expect(wrapper.find('#signin-restrict-webauthn').exists()).toBe(true);
       expect(wrapper.find('#signin-restrict-email_auth').exists()).toBe(true);
       expect(wrapper.find('#signin-restrict-sso').exists()).toBe(true);
+      // Host-scoped passkeys can never work webauthn-only on a custom domain,
+      // so the row is withheld even though webauthn is globally available.
+      expect(wrapper.find('#signin-restrict-webauthn').exists()).toBe(false);
     });
 
     it('pre-selects the active method radio', () => {
@@ -668,23 +731,17 @@ describe('DomainSigninConfigForm', () => {
   });
 
   // -----------------------------------------------------------------------
-  // Invariant 1 — Availability-flag flip on Mode B selection (webauthn gap)
+  // Invariant 1 — Availability-flag flip on Mode B selection
   //
   // The existing "mode B: restrict_to picker" block covers Email (+flag),
-  // SSO (+flag), and Password (no flag). The Passkeys/webauthn branch — the
-  // 4th method, restrict_to only, no per-domain field — was uncovered.
+  // SSO (+flag), and Password (no flag). Passkeys can no longer be PICKED at
+  // all (host-scoped rp_id — see the webauthn lockout block below), so the
+  // former "picking Passkeys auto-saves restrict_to: webauthn" case is
+  // structurally impossible: its radio never renders unless already persisted,
+  // and then only disabled.
   // -----------------------------------------------------------------------
 
   describe('invariant 1: Mode B selection flips availability flag', () => {
-    it('picking Passkeys auto-saves restrict_to: webauthn only (no per-domain flag)', async () => {
-      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'password' } });
-      await wrapper.find('#signin-restrict-webauthn').trigger('change');
-
-      const emitted = wrapper.emitted('auto-save');
-      expect(emitted).toBeTruthy();
-      expect(emitted![0]).toEqual([{ restrict_to: 'webauthn' }, 'restrict_to']);
-    });
-
     it('Email/SSO picks carry ONLY their own flag, not the sibling flag', async () => {
       // Picking Email must not also set sso_enabled, and vice versa: the patch
       // is exactly { restrict_to, <own flag> } — no leakage onto other methods.
@@ -717,15 +774,17 @@ describe('DomainSigninConfigForm', () => {
 
   describe('invariant 2: global availability gating', () => {
     describe('Mode B (one specific method) — radio presence', () => {
-      it('offers all four radios when everything is globally available', () => {
+      it('offers password/email/sso when everything is globally available — never webauthn', () => {
         wrapper = mountForm({
           formState: { ...defaultFormState, restrict_to: 'password' },
           globalAvailability: allAvailable,
         });
         expect(wrapper.find('#signin-restrict-password').exists()).toBe(true);
-        expect(wrapper.find('#signin-restrict-webauthn').exists()).toBe(true);
         expect(wrapper.find('#signin-restrict-email_auth').exists()).toBe(true);
         expect(wrapper.find('#signin-restrict-sso').exists()).toBe(true);
+        // Global availability is irrelevant for webauthn in Mode B: passkeys
+        // are host-scoped, so the row only appears when already persisted.
+        expect(wrapper.find('#signin-restrict-webauthn').exists()).toBe(false);
       });
 
       it('omits the Email radio when email_auth is globally off', () => {
@@ -840,10 +899,9 @@ describe('DomainSigninConfigForm', () => {
       expect(toggles(wrapper)).toHaveLength(0);
     });
 
-    it('Mode B (restrict_to set) shows zero availability switches', async () => {
-      // The "switch into Mode B via the segment" path is gone (segment hidden);
-      // Mode B is reached via an existing restriction instead.
-      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: 'sso' } });
+    it('Mode B entered via the segment (no method picked yet) shows zero availability switches', async () => {
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: null } });
+      await wrapper.find('#signin-mode-one').trigger('click');
       expect(toggles(wrapper)).toHaveLength(0);
     });
   });
@@ -851,11 +909,9 @@ describe('DomainSigninConfigForm', () => {
   // -----------------------------------------------------------------------
   // Invariant 4 — Mode-switch save semantics
   //
-  // The former tests here bounced the "One specific method" segment to prove
-  // the local "intent" flag never leaks a save. That segment is now hidden
-  // (showRestrictMode=false), so those UI paths are unreachable and the tests
-  // were removed. Any-mode save semantics remain covered in the "mode switch"
-  // block above.
+  // The "One specific method" intent flag must never leak a save on its own:
+  // covered in the "mode switch" block above (clicking the segment reveals
+  // the picker without saving; only picking a method persists).
   // -----------------------------------------------------------------------
 
   // -----------------------------------------------------------------------
@@ -884,10 +940,21 @@ describe('DomainSigninConfigForm', () => {
       expect(wrapper.find('#signin-restrict-password').exists()).toBe(false);
     });
 
-    // NOTE: "reverts to Mode A after entering Mode B via the segment" was
-    // removed — the segment (and thus the local oneSelectedIntent path) is
-    // hidden. The external-revert case above still covers the watcher clearing
-    // the picker when restrict_to returns to null.
+    it('reverts to Mode A when restrict_to is cleared after entering Mode B via the segment', async () => {
+      // Enter Mode B with the intent flag (no method picked), let the parent
+      // set and then clear a restriction: the watcher must clear the lingering
+      // intent so the form lands back in Mode A, not a picker with nothing
+      // selected.
+      wrapper = mountForm({ formState: { ...defaultFormState, restrict_to: null } });
+      await wrapper.find('#signin-mode-one').trigger('click');
+      expect(wrapper.find('#signin-restrict-password').exists()).toBe(true);
+
+      await wrapper.setProps({ formState: { ...defaultFormState, restrict_to: 'sso' } });
+      await wrapper.setProps({ formState: { ...defaultFormState, restrict_to: null } });
+
+      expect(wrapper.find('#signin-mode-any').attributes('aria-checked')).toBe('true');
+      expect(wrapper.find('#signin-restrict-password').exists()).toBe(false);
+    });
   });
 
   // -----------------------------------------------------------------------
@@ -943,10 +1010,28 @@ describe('DomainSigninConfigForm', () => {
       expect(wrapper.emitted('auto-save')).toBeFalsy();
     });
 
-    // NOTE: the two "clicking the One segment" materialization tests were
-    // removed — that segment is hidden (showRestrictMode=false). The remaining
-    // ADR-024 tests exercise Mode B's pin behavior via the restrict_to radios
-    // (reached because the picker renders whenever a restriction is set).
+    it('clicking "One" when the inherited state already restricts emits an empty pin patch', async () => {
+      wrapper = mountForm({
+        workspaceDefault: true,
+        formState: { ...defaultFormState, restrict_to: 'sso', signin_enabled: true },
+      });
+      await wrapper.find('#signin-mode-one').trigger('click');
+
+      const emitted = wrapper.emitted('auto-save');
+      expect(emitted).toBeTruthy();
+      expect(emitted![0]).toEqual([{}, 'restrict_to']);
+    });
+
+    it('clicking "One" while following defaults with no inherited restriction does not save', async () => {
+      // With restrict_to null there is nothing to pin yet — the picker opens
+      // and persistence waits for an actual method choice.
+      wrapper = mountForm({
+        workspaceDefault: true,
+        formState: { ...defaultFormState, restrict_to: null, signin_enabled: true },
+      });
+      await wrapper.find('#signin-mode-one').trigger('click');
+      expect(wrapper.emitted('auto-save')).toBeFalsy();
+    });
 
     it('clicking the pre-checked (inherited) method radio re-saves via the click path (radios fire no change when checked)', async () => {
       wrapper = mountForm({
@@ -1062,6 +1147,61 @@ describe('DomainSigninConfigForm', () => {
         orgsSsoEnabled: false,
       });
       expect(wrapper.find('#signin-restrict-password').exists()).toBe(true);
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // WebAuthn lockout — host-scoped passkeys (rp_id = request.host)
+  //
+  // A passkey registered on the canonical sign-in host can never authenticate
+  // on a custom domain, so restrict_to=webauthn is a guaranteed dead end.
+  // Mode B therefore never OFFERS the method; a domain where it is already
+  // persisted gets the keep-if-selected treatment (visible, checked, locked)
+  // so the radiogroup still reports the true configuration — mirroring the
+  // unentitled-SSO row. Mode A's static row is deliberately untouched.
+  // -----------------------------------------------------------------------
+
+  describe('webauthn lockout (host-scoped passkeys)', () => {
+    it('keeps the WebAuthn radio visible-but-locked when it is the CURRENT restriction', () => {
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'webauthn' },
+      });
+      const radio = wrapper.find('#signin-restrict-webauthn');
+      expect(radio.exists()).toBe(true);
+      expect((radio.element as HTMLInputElement).checked).toBe(true);
+      expect(radio.attributes('disabled')).toBeDefined();
+    });
+
+    it('shows the host-scope limitation blurb on the locked row', () => {
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'webauthn' },
+      });
+      expect(wrapper.find('#signin-restrict-webauthn-description').text()).toContain(
+        COPY.methodWebauthnUnavailable
+      );
+    });
+
+    it('cannot re-select WebAuthn from the locked row', async () => {
+      // Belt & suspenders like the SSO case: the disabled attribute blocks the
+      // event AND selectMethod hard-returns on 'webauthn'; this test fails
+      // only if both regress.
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'webauthn' },
+      });
+      await wrapper.find('#signin-restrict-webauthn').trigger('change');
+      expect(wrapper.emitted('auto-save')).toBeFalsy();
+    });
+
+    it('does not materialize a save via onMethodClick (ADR-024) on the locked row', async () => {
+      // While following workspace defaults, clicking a pre-checked radio
+      // routes through selectMethod to pin the inherited config — the
+      // webauthn guard must stop that path too.
+      wrapper = mountForm({
+        workspaceDefault: true,
+        formState: { ...defaultFormState, restrict_to: 'webauthn' },
+      });
+      await wrapper.find('#signin-restrict-webauthn').trigger('click');
+      expect(wrapper.emitted('auto-save')).toBeFalsy();
     });
   });
 
@@ -1189,12 +1329,13 @@ describe('DomainSigninConfigForm', () => {
         expect(wrapper.find('#signin-mode-any').attributes('tabindex')).toBe('-1');
       });
 
-      // Two visible segments, in order [signin-mode-disabled, signin-mode-any].
+      // Three visible segments, in order
+      // [signin-mode-disabled, signin-mode-any, signin-mode-one].
       it('ArrowRight from the last segment wraps to the first without selecting', async () => {
-        wrapper = mountForm(); // defaults to mode Any (the last segment)
-        const any = wrapper.find('#signin-mode-any');
-        (any.element as HTMLElement).focus();
-        await any.trigger('keydown', { key: 'ArrowRight' });
+        wrapper = mountForm(); // defaults to mode Any
+        const one = wrapper.find('#signin-mode-one');
+        (one.element as HTMLElement).focus();
+        await one.trigger('keydown', { key: 'ArrowRight' });
 
         expect(document.activeElement?.id).toBe('signin-mode-disabled');
         // Focus moved, nothing selected or saved.
@@ -1216,9 +1357,9 @@ describe('DomainSigninConfigForm', () => {
         const disabled = wrapper.find('#signin-mode-disabled');
         (disabled.element as HTMLElement).focus();
         await disabled.trigger('keydown', { key: 'End' });
-        expect(document.activeElement?.id).toBe('signin-mode-any');
+        expect(document.activeElement?.id).toBe('signin-mode-one');
 
-        await wrapper.find('#signin-mode-any').trigger('keydown', { key: 'Home' });
+        await wrapper.find('#signin-mode-one').trigger('keydown', { key: 'Home' });
         expect(document.activeElement?.id).toBe('signin-mode-disabled');
       });
 
@@ -1305,6 +1446,391 @@ describe('DomainSigninConfigForm', () => {
         canManageSso: true,
       });
       expect(wrapper.text()).toContain(COPY.editCredentials);
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Tenant-SSO status line (#4111)
+  //
+  // Supersedes the #4107 dormant-credentials indicator. The blocking rung is
+  // computed once by the server (SsoConfig.tenant_sso_unavailable_reason) and
+  // arrives as `details.tenant_sso`; this form maps the reported rung to copy
+  // and derives nothing (ADR-024). The render sites and the
+  // connection-disabled copy carry over — only the condition's source swapped.
+  //
+  // Still gated on ssoConfigurable: the remedial copy points at controls
+  // ("Edit credentials", the SSO toggle) that only render with both write
+  // gates, and without them the row already names the real blocker.
+  // -----------------------------------------------------------------------
+
+  describe('tenant-SSO status line (#4111)', () => {
+    const STATUS = '[data-testid="sso-tenant-status"]';
+    const COMPACT = '[data-testid="sso-tenant-status-compact"]';
+
+    const verdict = (reason: string | null): TenantSsoVerdict => ({
+      available: reason === null,
+      unavailable_reason: reason,
+    });
+
+    it('renders nothing when the response carries no verdict', () => {
+      // Older backend, or details not yet loaded. The client has no verdict
+      // and must not invent one from ssoConfigured / the policy toggle.
+      wrapper = mountForm({ ssoConfigured: true });
+      expect(wrapper.find(STATUS).exists()).toBe(false);
+      expect(wrapper.find(COMPACT).exists()).toBe(false);
+    });
+
+    it('reports Active when the server says tenant SSO is available', () => {
+      wrapper = mountForm({ ssoConfigured: true, tenantSso: verdict(null) });
+      const status = wrapper.find(STATUS);
+      expect(status.exists()).toBe(true);
+      expect(status.text()).toContain(COPY.statusActiveBadge);
+      expect(status.text()).toContain(COPY.statusActiveHint);
+      expect(status.text()).not.toContain('web.domains.sso.status_active');
+    });
+
+    it('reports the connection-disabled rung with the copy carried over from #4107', () => {
+      wrapper = mountForm({
+        ssoConfigured: true,
+        tenantSso: verdict('sso_config_disabled'),
+      });
+      const status = wrapper.find(STATUS);
+      expect(status.text()).toContain(COPY.connectionDisabledBadge);
+      expect(status.text()).toContain(COPY.connectionDisabledHint);
+      expect(status.text()).not.toContain('web.domains.sso.connection_disabled');
+    });
+
+    it('reports "Not configured" for the no_sso_config rung — even with credentials claimed present', () => {
+      // ssoConfigured is a UI convenience for the Configure/Edit button label;
+      // it is NOT the availability source. The verdict wins.
+      wrapper = mountForm({
+        ssoConfigured: true,
+        tenantSso: verdict('no_sso_config'),
+      });
+      expect(wrapper.find(STATUS).text()).toContain(COPY.statusNotConfiguredBadge);
+    });
+
+    it.each([
+      ['sso_not_permitted', 'statusNotPermittedBadge'],
+      ['auth_disabled', 'statusAuthDisabledBadge'],
+      ['unsupported_provider_type', 'statusUnsupportedProviderBadge'],
+    ] as const)('reports the %s rung', (reason, copyKey) => {
+      wrapper = mountForm({ ssoConfigured: true, tenantSso: verdict(reason) });
+      expect(wrapper.find(STATUS).text()).toContain(COPY[copyKey]);
+    });
+
+    it('falls back to generic unavailable copy for a rung this version does not know', () => {
+      // The rung list is a backend enumeration; a newer one must degrade to
+      // "unavailable", never to silence.
+      wrapper = mountForm({
+        ssoConfigured: true,
+        tenantSso: verdict('some_future_rung'),
+      });
+      const status = wrapper.find(STATUS);
+      expect(status.text()).toContain(COPY.statusUnavailableBadge);
+      expect(status.text()).toContain(COPY.statusUnavailableHint);
+    });
+
+    it('falls back to generic unavailable copy when unavailable with no reason given', () => {
+      wrapper = mountForm({
+        ssoConfigured: true,
+        tenantSso: { available: false, unavailable_reason: null },
+      });
+      expect(wrapper.find(STATUS).text()).toContain(COPY.statusUnavailableBadge);
+    });
+
+    it('does not render without the manage-SSO entitlement — the actions it points at are absent', () => {
+      wrapper = mountForm({
+        ssoConfigured: true,
+        tenantSso: verdict('sso_config_disabled'),
+        canManageSso: false,
+      });
+      expect(wrapper.find(STATUS).exists()).toBe(false);
+
+      wrapper.unmount();
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'password' },
+        ssoConfigured: true,
+        tenantSso: verdict('sso_config_disabled'),
+        canManageSso: false,
+      });
+      expect(wrapper.find(COMPACT).exists()).toBe(false);
+    });
+
+    it('does not render when tenant SSO is off install-wide (ORGS_SSO_ENABLED)', () => {
+      wrapper = mountForm({
+        ssoConfigured: true,
+        tenantSso: verdict('sso_config_disabled'),
+        orgsSsoEnabled: false,
+      });
+      expect(wrapper.find(STATUS).exists()).toBe(false);
+    });
+
+    it('renders the compact status on the SSO radio row in Mode B', () => {
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'password' },
+        ssoConfigured: true,
+        tenantSso: verdict('sso_config_disabled'),
+      });
+      const compact = wrapper.find(COMPACT);
+      expect(compact.exists()).toBe(true);
+      // Mode A's row (and its status line) is not in the tree at all.
+      expect(wrapper.find(STATUS).exists()).toBe(false);
+      // The reason is TEXT, not just a tooltip — a title attribute is neither
+      // keyboard- nor screen-reader-reliable.
+      expect(compact.text()).toContain(COPY.connectionDisabledBadge);
+      expect(compact.text()).toContain(COPY.connectionDisabledHint);
+    });
+
+    it('announces the status rather than conveying it by colour alone', () => {
+      wrapper = mountForm({
+        ssoConfigured: true,
+        tenantSso: verdict('sso_config_disabled'),
+      });
+      expect(wrapper.find(STATUS).attributes('role')).toBe('status');
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // SSO-restriction lockout guard (#4111 / ADR-034#resolution-intersects-never-widens)
+  //
+  // A restriction that cannot be honoured fails CLOSED: restricting a domain
+  // to SSO while the server reports tenant SSO unavailable takes the host
+  // dark. The form auto-saves, so the warning has to land BEFORE the PUT —
+  // nothing is emitted until "Restrict anyway".
+  // -----------------------------------------------------------------------
+
+  describe('SSO-restriction lockout guard (#4111)', () => {
+    const WARNING = '[data-testid="sso-restriction-lockout-warning"]';
+    const CONFIRM = '[data-testid="sso-restriction-lockout-confirm"]';
+    const CANCEL = '[data-testid="sso-restriction-lockout-cancel"]';
+
+    /** Mode B with the SSO radio present and pickable. */
+    const modeB = { ...defaultFormState, restrict_to: 'password' as const };
+
+    it('warns instead of saving when tenant SSO is unavailable', async () => {
+      wrapper = mountForm({
+        formState: modeB,
+        ssoConfigured: true,
+        tenantSso: { available: false, unavailable_reason: 'sso_config_disabled' },
+      });
+
+      await wrapper.find('#signin-restrict-sso').trigger('change');
+
+      expect(wrapper.emitted('auto-save')).toBeFalsy();
+      const warning = wrapper.find(WARNING);
+      expect(warning.exists()).toBe(true);
+      expect(warning.attributes('role')).toBe('alert');
+      expect(warning.text()).toContain(COPY.ssoRestrictWarningTitle);
+      expect(warning.text()).toContain(COPY.ssoRestrictWarningBody);
+      // The radio stays unchecked: formState was never touched.
+      expect(
+        (wrapper.find('#signin-restrict-sso').element as HTMLInputElement).checked
+      ).toBe(false);
+    });
+
+    it('does not warn when selecting SSO atomically resolves sso_not_permitted', async () => {
+      wrapper = mountForm({
+        formState: { ...modeB, sso_enabled: false },
+        ssoConfigured: true,
+        tenantSso: { available: false, unavailable_reason: 'sso_not_permitted' },
+      });
+
+      await wrapper.find('#signin-restrict-sso').trigger('change');
+
+      expect(wrapper.find(WARNING).exists()).toBe(false);
+      expect(wrapper.emitted('auto-save')![0]).toEqual([
+        { restrict_to: 'sso', sso_enabled: true },
+        'restrict_to',
+      ]);
+    });
+
+    it('still warns for sso_not_permitted when SSO is already enabled', async () => {
+      wrapper = mountForm({
+        formState: { ...modeB, sso_enabled: true },
+        ssoConfigured: true,
+        tenantSso: { available: false, unavailable_reason: 'sso_not_permitted' },
+      });
+
+      await wrapper.find('#signin-restrict-sso').trigger('change');
+
+      expect(wrapper.emitted('auto-save')).toBeFalsy();
+      expect(wrapper.find(WARNING).exists()).toBe(true);
+    });
+
+    it('does NOT fire when the server reports tenant SSO available', async () => {
+      wrapper = mountForm({
+        formState: modeB,
+        ssoConfigured: true,
+        tenantSso: { available: true, unavailable_reason: null },
+      });
+
+      await wrapper.find('#signin-restrict-sso').trigger('change');
+
+      expect(wrapper.find(WARNING).exists()).toBe(false);
+      expect(wrapper.emitted('auto-save')![0]).toEqual([
+        { restrict_to: 'sso', sso_enabled: true },
+        'restrict_to',
+      ]);
+    });
+
+    it('does NOT fire when no verdict was serialized', async () => {
+      // No claim from the server means no guard — the client may not
+      // manufacture an availability verdict of its own (ADR-024).
+      wrapper = mountForm({ formState: modeB, ssoConfigured: true });
+
+      await wrapper.find('#signin-restrict-sso').trigger('change');
+
+      expect(wrapper.find(WARNING).exists()).toBe(false);
+      expect(wrapper.emitted('auto-save')).toBeTruthy();
+    });
+
+    it('saves the restriction once confirmed', async () => {
+      wrapper = mountForm({
+        formState: modeB,
+        ssoConfigured: true,
+        tenantSso: { available: false, unavailable_reason: 'no_sso_config' },
+      });
+
+      await wrapper.find('#signin-restrict-sso').trigger('change');
+      await wrapper.find(CONFIRM).trigger('click');
+
+      expect(wrapper.emitted('auto-save')![0]).toEqual([
+        { restrict_to: 'sso', sso_enabled: true },
+        'restrict_to',
+      ]);
+      expect(wrapper.find(WARNING).exists()).toBe(false);
+    });
+
+    it('cancelling dismisses the warning and saves nothing', async () => {
+      wrapper = mountForm({
+        formState: modeB,
+        ssoConfigured: true,
+        tenantSso: { available: false, unavailable_reason: 'no_sso_config' },
+      });
+
+      await wrapper.find('#signin-restrict-sso').trigger('change');
+      await wrapper.find(CANCEL).trigger('click');
+
+      expect(wrapper.find(WARNING).exists()).toBe(false);
+      expect(wrapper.emitted('auto-save')).toBeFalsy();
+    });
+
+    it('guards the materialize-on-touch path too (workspace default, SSO pre-selected)', async () => {
+      // Clicking an already-checked radio while following workspace defaults
+      // still persists a pin (ADR-024) — that write is the same lockout.
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'sso' },
+        workspaceDefault: true,
+        ssoConfigured: true,
+        tenantSso: { available: false, unavailable_reason: 'sso_config_disabled' },
+      });
+
+      await wrapper.find('#signin-restrict-sso').trigger('click');
+
+      expect(wrapper.emitted('auto-save')).toBeFalsy();
+      expect(wrapper.find(WARNING).exists()).toBe(true);
+    });
+
+    it('does not guard non-SSO methods', async () => {
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'sso' },
+        ssoConfigured: true,
+        tenantSso: { available: false, unavailable_reason: 'sso_config_disabled' },
+      });
+
+      await wrapper.find('#signin-restrict-password').trigger('change');
+
+      expect(wrapper.find(WARNING).exists()).toBe(false);
+      expect(wrapper.emitted('auto-save')![0]).toEqual([{ restrict_to: 'password' }, 'restrict_to']);
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Resolved-restriction notice
+  // (ADR-034#resolution-is-model-owned / #resolution-intersects-never-widens)
+  //
+  // `unavailable` and `source: 'conflict'` are states a method picker cannot
+  // express: the restriction stands, but nothing satisfies it, so sign-in is
+  // closed. Both are server-resolved and rendered verbatim — the client never
+  // recomputes them from global_restrict_to and the raw flags.
+  // -----------------------------------------------------------------------
+
+  describe('resolved-restriction notice (#4111 / ADR-024)', () => {
+    const NOTICE = '[data-testid="signin-restriction-notice"]';
+
+    const resolution = (r: Partial<EffectiveRestrictTo>): EffectiveRestrictTo => ({
+      state: 'restricted',
+      restrict_to: null,
+      source: 'domain',
+      ...r,
+    });
+
+    it('names the method that cannot run when the restriction is unavailable', () => {
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'sso' },
+        effectiveRestrictTo: resolution({
+          state: 'unavailable',
+          restrict_to: 'sso',
+          source: 'domain',
+        }),
+      });
+      const notice = wrapper.find(NOTICE);
+      expect(notice.exists()).toBe(true);
+      expect(notice.attributes('role')).toBe('status');
+      expect(notice.text()).toContain(COPY.restrictionUnavailableSso);
+      expect(notice.text()).not.toContain('web.domains.signin.restriction_unavailable');
+    });
+
+    it('explains a conflict as a conflict, not as one side winning', () => {
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'sso' },
+        effectiveRestrictTo: resolution({
+          state: 'unavailable',
+          restrict_to: 'password',
+          source: 'conflict',
+        }),
+      });
+      const notice = wrapper.find(NOTICE);
+      // The GLOBAL method (the one still in force) is named, and the copy
+      // says the two sides disagree rather than showing one as the winner.
+      expect(notice.text()).toContain(COPY.restrictionConflictPassword);
+    });
+
+    it('falls back to unnamed copy when the resolved method is unrecognized', () => {
+      // A persisted value this version cannot parse degrades restrict_to to
+      // null while `state` keeps carrying the truth.
+      wrapper = mountForm({
+        effectiveRestrictTo: resolution({
+          state: 'unavailable',
+          restrict_to: null,
+          source: 'domain',
+        }),
+      });
+      expect(wrapper.find(NOTICE).text()).toContain(COPY.restrictionUnavailableUnknown);
+    });
+
+    it('renders nothing for a healthy restriction or an unrestricted domain', () => {
+      wrapper = mountForm({
+        formState: { ...defaultFormState, restrict_to: 'password' },
+        effectiveRestrictTo: resolution({
+          state: 'restricted',
+          restrict_to: 'password',
+          source: 'domain',
+        }),
+      });
+      expect(wrapper.find(NOTICE).exists()).toBe(false);
+
+      wrapper.unmount();
+      wrapper = mountForm({
+        effectiveRestrictTo: resolution({ state: 'unrestricted', source: 'global' }),
+      });
+      expect(wrapper.find(NOTICE).exists()).toBe(false);
+    });
+
+    it('renders nothing when no resolution was serialized', () => {
+      wrapper = mountForm({});
+      expect(wrapper.find(NOTICE).exists()).toBe(false);
     });
   });
 });

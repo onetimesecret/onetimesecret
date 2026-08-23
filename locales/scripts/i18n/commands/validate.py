@@ -30,47 +30,26 @@ from pathlib import Path
 from typing import Any
 
 from ..config import CONTENT_DIR, RESOLVED_DIR, SOURCE_LOCALE, iter_locale_dirs
-from ..io import load_json_file, walk_keys
+from ..io import classify_entry, load_json_file, read_entries, walk_keys
+from ..tokens import (  # noqa: F401  (re-exported: historical public names)
+    ERB_VAR_PATTERN,
+    PRINTF_PATTERN,
+    VUE_VAR_PATTERN,
+    extract_variables,
+)
 
 # ---------------------------------------------------------------------------
-# Shared variable patterns (identical in both legacy scripts)
+# Shared variable patterns
 # ---------------------------------------------------------------------------
-
-# Vue i18n: {variable} - use negative lookbehind to exclude ERB %{variable}
-VUE_VAR_PATTERN = re.compile(r"(?<!%)(?<!\{)\{([a-zA-Z0-9_]+)\}")
-ERB_VAR_PATTERN = re.compile(r"%\{([a-zA-Z0-9_]+)\}")
-PRINTF_PATTERN = re.compile(r"%[sdifuxXoeEgGcp]")
+# The patterns and `extract_variables` moved to :mod:`i18n.tokens` -- ONE
+# definition of "what is a token", shared with ``tasks audit``. Twin
+# normalizers drifting apart has bitten this repo twice (#4023, #4047), so do
+# not re-declare them here. Imported under their historical names, so every
+# call site below (and any outside importer) is unchanged.
 
 # Files that must use Ruby ERB format only (%{var}), not Vue ({var}).
 # Email templates are rendered server-side by Ruby, not by Vue.
 RUBY_ONLY_FILES = {"email.json"}
-
-
-def extract_variables(text: Any) -> dict[str, set[str]]:
-    """Extract all variable patterns from a string.
-
-    Accepts Any type for defensive validation of JSON values.
-    """
-    if not isinstance(text, str):
-        return {"vue": set(), "erb": set(), "printf": set()}
-
-    return {
-        "vue": set(VUE_VAR_PATTERN.findall(text)),
-        "erb": set(ERB_VAR_PATTERN.findall(text)),
-        "printf": set(PRINTF_PATTERN.findall(text)),
-    }
-
-
-def flatten_json(obj: dict[str, Any], prefix: str = "") -> dict[str, str]:
-    """Flatten nested JSON into dot-notation key paths."""
-    result = {}
-    for key, value in obj.items():
-        full_key = f"{prefix}.{key}" if prefix else key
-        if isinstance(value, dict):
-            result.update(flatten_json(value, full_key))
-        elif isinstance(value, str):
-            result[full_key] = value
-    return result
 
 
 # ===========================================================================
@@ -412,12 +391,17 @@ def validate_file(
         )
         return issues
 
-    # Load both files
+    # Load both files. Entry-aware: keys are the real dotted paths, and each
+    # entry's authoring metadata stays metadata. The field-blind flattener this
+    # replaces made every translated file trip the "Extra keys not in English"
+    # structure check on `<key>.source_hash` — a warning, so `passed` stayed
+    # true and nobody noticed. Same root cause as #4080; making that check
+    # blocking without this would have reopened it in the PR gate.
     try:
         with open(en_file, "r", encoding="utf-8") as f:
-            en_data = flatten_json(json.load(f))
+            en_entries = read_entries(json.load(f))
         with open(locale_file, "r", encoding="utf-8") as f:
-            locale_data = flatten_json(json.load(f))
+            locale_entries = read_entries(json.load(f))
     except Exception as e:
         issues.append(
             ValidationIssue(
@@ -434,19 +418,53 @@ def validate_file(
 
     # 5. Key Structure
     validate_key_structure(
-        set(en_data.keys()), set(locale_data.keys()), locale, filename, issues
+        set(en_entries.keys()),
+        set(locale_entries.keys()),
+        locale,
+        filename,
+        issues,
     )
 
+    # 6. Entry schema. `io.METADATA_FIELDS` is the single declaration of what an
+    # entry may carry; anything else is a field nobody taught the readers about,
+    # and a field-blind reader would guess at it. Surface it here rather than
+    # letting the next added field silently become translatable.
+    unknown_fields = sorted(
+        {field for entry in locale_entries.values() for field in entry.extra}
+    )
+    if unknown_fields:
+        issues.append(
+            ValidationIssue(
+                file=filename,
+                locale=locale,
+                key="",
+                severity="warning",
+                category="structure",
+                message=(
+                    "Unrecognized entry field(s): "
+                    f"{', '.join(unknown_fields)} — declare them in "
+                    "i18n.io.METADATA_FIELDS or remove them"
+                ),
+                details={"unknown_fields": unknown_fields},
+            )
+        )
+
     # Validate each key
-    for key, source_text in en_data.items():
+    for key, en_entry in en_entries.items():
         if should_skip_key_pr(key):
             continue
 
-        locale_text = locale_data.get(key, "")
-
-        # Skip if translation doesn't exist
-        if not locale_text or key not in locale_data:
+        source_text = en_entry.text
+        if source_text is None:
             continue
+
+        # Only a live translation can be compared. `skipped` (deliberate
+        # non-translation) and `missing` (absent or empty) are coverage states,
+        # reported by `tasks next`, not placeholder defects.
+        if classify_entry(locale_entries.get(key)) != "current":
+            continue
+
+        locale_text = locale_entries[key].text or ""
 
         # 2. Template Variables
         validate_variables(
@@ -639,12 +657,35 @@ def compare_variables(
     return discrepancies
 
 
-def check_empty_with_vars(source_text: str, locale_text: str) -> bool:
-    """Check if translation is empty but English had variables."""
-    if locale_text.strip() == "" and source_text.strip() != "":
-        en_vars = extract_variables(source_text)
-        return any(vars for vars in en_vars.values())
-    return False
+# Every finding carries a `category`. Splitting them is what lets the shell
+# gate read the report as-is: `untranslated` is a COVERAGE signal (the en key
+# has placeholders and the locale has no translation yet), not a placeholder
+# defect, and export-all.sh already gates coverage upstream on `tasks next
+# --stats` reporting pending: 0. Counting it here made every locale report a
+# permanent, unfixable "34 variable mismatches" after a byte-perfect export —
+# which is exactly why the previous gate post-filtered the report in shell, and
+# why that filter then had to guess at key shapes. A gate consumers must
+# post-filter is a gate that will be mis-filtered.
+ISSUE_CATEGORIES = ("variables", "format", "untranslated", "error")
+ADVISORY_CATEGORIES = frozenset({"untranslated"})
+
+
+def format_var(var_type: str, var: str) -> str:
+    """Render one extracted variable back into its source syntax."""
+    if var_type == "printf":
+        return var
+    if var_type == "erb":
+        return f"%{{{var}}}"
+    return f"{{{var}}}"
+
+
+def format_vars(by_type: dict[str, set[str]]) -> list[str]:
+    """Render a ``{var_type: {var, ...}}`` mapping as a sorted display list."""
+    return [
+        format_var(var_type, var)
+        for var_type in sorted(by_type)
+        for var in sorted(by_type[var_type])
+    ]
 
 
 def check_wrong_format(text: str, filename: str) -> list[str]:
@@ -690,33 +731,49 @@ def audit_locale(
         if not locale_file.exists():
             continue
 
+        # Entry-aware: keys are the real dotted paths, `text` is the only field
+        # compared, and skip/absent/empty stay distinguishable (io.Entry keeps
+        # all three; the text-only view collapses them).
         try:
             with open(en_file, "r", encoding="utf-8") as f:
-                en_data = flatten_json(json.load(f))
+                en_entries = read_entries(json.load(f))
             with open(locale_file, "r", encoding="utf-8") as f:
-                locale_data = flatten_json(json.load(f))
-        except (json.JSONDecodeError, IOError) as e:
+                locale_entries = read_entries(json.load(f))
+        except (OSError, json.JSONDecodeError) as e:
             issues[en_file.name].append(
                 {
                     "key": "_file_error",
+                    "category": "error",
                     "error": str(e),
                 }
             )
             continue
 
-        for key, source_text in en_data.items():
+        for key, en_entry in en_entries.items():
             if should_skip_key_vars(key, filter_prefix, exclude_prefix):
                 continue
 
-            locale_text = locale_data.get(key, "")
+            source_text = en_entry.text
+            if source_text is None:
+                continue
 
-            # Check for wrong variable format in Ruby-only files (e.g., email.json)
-            # English source should use %{var}, not {var}
+            # No en hash is passed: placeholder parity does not care whether a
+            # translation is stale — a stale one still has text to compare — so
+            # the states that matter here are skipped / missing / current.
+            state = classify_entry(locale_entries.get(key))
+            locale_text = (
+                locale_entries[key].text or "" if state == "current" else ""
+            )
+
+            # Wrong variable format in Ruby-only files (e.g. email.json): the
+            # English source should use %{var}, not {var}. A property of the
+            # source, so it is reported whether or not the locale has caught up.
             wrong_format_en = check_wrong_format(source_text, en_file.name)
             if wrong_format_en:
                 issues[en_file.name].append(
                     {
                         "key": key,
+                        "category": "format",
                         "source_text": source_text,
                         "locale_text": locale_text,
                         "wrong_format": wrong_format_en,
@@ -726,108 +783,113 @@ def audit_locale(
                 )
                 # Continue to also check for other issues
 
-            # Check wrong format in translation too
-            if locale_text and key in locale_data:
-                wrong_format_locale = check_wrong_format(
-                    locale_text, en_file.name
-                )
-                if wrong_format_locale:
+            # A skip-marked entry is a deliberate non-translation (keep the
+            # source as-is). It is not an empty translation and not a defect.
+            if state == "skipped":
+                continue
+
+            if state == "missing":
+                all_vars = format_vars(extract_variables(source_text))
+                if all_vars:
                     issues[en_file.name].append(
                         {
                             "key": key,
+                            "category": "untranslated",
                             "source_text": source_text,
-                            "locale_text": locale_text,
-                            "wrong_format": wrong_format_locale,
-                            "wrong_format_source": "locale",
-                            "hint": "Use %{var} instead of {var} for Ruby i18n",
+                            "locale_text": "[EMPTY]",
+                            "missing": all_vars,
+                            "extra": [],
+                            "empty_with_vars": True,
                         }
                     )
+                continue
 
-            # Check for empty translation with variables in English
-            if check_empty_with_vars(source_text, locale_text):
-                en_vars = extract_variables(source_text)
-                all_vars = []
-                for var_type, vars in en_vars.items():
-                    for v in vars:
-                        if var_type == "printf":
-                            all_vars.append(v)
-                        elif var_type == "erb":
-                            all_vars.append(f"%{{{v}}}")
-                        else:
-                            all_vars.append(f"{{{v}}}")
-
+            # Check wrong format in the translation too
+            wrong_format_locale = check_wrong_format(locale_text, en_file.name)
+            if wrong_format_locale:
                 issues[en_file.name].append(
                     {
                         "key": key,
+                        "category": "format",
                         "source_text": source_text,
-                        "locale_text": "[EMPTY]",
-                        "missing": all_vars,
-                        "extra": [],
-                        "empty_with_vars": True,
+                        "locale_text": locale_text,
+                        "wrong_format": wrong_format_locale,
+                        "wrong_format_source": "locale",
+                        "hint": "Use %{var} instead of {var} for Ruby i18n",
                     }
                 )
-                continue
-
-            # Skip if translation doesn't exist
-            if key not in locale_data:
-                continue
 
             # Compare variables
             discrepancies = compare_variables(source_text, locale_text)
 
             if discrepancies:
-                all_missing = []
-                all_extra = []
-
-                for var_type, diffs in discrepancies.items():
-                    for v in diffs["missing"]:
-                        if var_type == "printf":
-                            all_missing.append(v)
-                        elif var_type == "erb":
-                            all_missing.append(f"%{{{v}}}")
-                        else:
-                            all_missing.append(f"{{{v}}}")
-
-                    for v in diffs["extra"]:
-                        if var_type == "printf":
-                            all_extra.append(v)
-                        elif var_type == "erb":
-                            all_extra.append(f"%{{{v}}}")
-                        else:
-                            all_extra.append(f"{{{v}}}")
-
                 issues[en_file.name].append(
                     {
                         "key": key,
+                        "category": "variables",
                         "source_text": source_text,
                         "locale_text": locale_text,
-                        "missing": all_missing,
-                        "extra": all_extra,
+                        "missing": format_vars(
+                            {t: d["missing"] for t, d in discrepancies.items()}
+                        ),
+                        "extra": format_vars(
+                            {t: d["extra"] for t, d in discrepancies.items()}
+                        ),
                     }
                 )
 
     return dict(issues)
 
 
+def count_by_category(files: dict[str, list[dict]]) -> dict[str, int]:
+    """Count one locale's findings per :data:`ISSUE_CATEGORIES`."""
+    counts = dict.fromkeys(ISSUE_CATEGORIES, 0)
+    for file_issues in files.values():
+        for issue in file_issues:
+            category = issue.get("category", "variables")
+            counts[category] = counts.get(category, 0) + 1
+    return counts
+
+
+def blocking_count(counts: dict[str, int]) -> int:
+    """Findings that gate an export: everything not explicitly advisory.
+
+    A deny-list, deliberately: a category added later counts by default rather
+    than slipping past the gate because nobody updated an allow-list.
+    """
+    return sum(n for c, n in counts.items() if c not in ADVISORY_CATEGORIES)
+
+
 def print_summary(results: dict[str, dict[str, list[dict]]]) -> None:
     """Print summary of discrepancies by locale."""
-    totals = []
-    for locale, files in sorted(results.items()):
-        count = sum(len(issues) for issues in files.values())
-        if count > 0:
-            totals.append((locale, count))
+    rows = []
+    for locale, files in results.items():
+        counts = count_by_category(files)
+        if any(counts.values()):
+            rows.append((locale, counts, blocking_count(counts)))
 
-    if not totals:
-        print("0 variable mismatches")
+    if not rows:
+        print("0 blocking, 0 untranslated")
         return
 
-    totals.sort(key=lambda x: -x[1])
+    rows.sort(key=lambda row: (-row[2], -sum(row[1].values()), row[0]))
 
-    for locale, count in totals:
-        print(f"{locale}: {count} variable mismatches")
+    for locale, counts, blocking in rows:
+        print(
+            f"{locale}: {blocking} blocking, "
+            f"{counts['untranslated']} untranslated"
+        )
 
-    grand_total = sum(c for _, c in totals)
-    print(f"TOTAL: {grand_total} variable mismatches")
+    totals = dict.fromkeys(ISSUE_CATEGORIES, 0)
+    for _, counts, _ in rows:
+        for category, n in counts.items():
+            totals[category] = totals.get(category, 0) + n
+
+    print(
+        f"TOTAL: {blocking_count(totals)} blocking "
+        f"({totals['variables']} variable, {totals['format']} format, "
+        f"{totals['error']} error), {totals['untranslated']} untranslated"
+    )
 
 
 def print_detailed(results: dict[str, dict[str, list[dict]]]) -> None:
@@ -858,7 +920,10 @@ def print_detailed(results: dict[str, dict[str, list[dict]]]) -> None:
                 error_index += 1
                 error_id = f"{locale}-{DATE_STAMP}-error-{error_index}"
 
-                print(f"  key:      {issue['key']}")
+                print(
+                    f"  key:      {issue['key']}  "
+                    f"[{issue.get('category', 'variables')}]"
+                )
                 print(f'  en:       "{issue["source_text"]}"')
                 print(f"  {locale}:".ljust(12) + f'"{issue["locale_text"]}"')
                 if issue.get("wrong_format"):
@@ -876,17 +941,26 @@ def print_detailed(results: dict[str, dict[str, list[dict]]]) -> None:
 
 
 def print_json(results: dict[str, dict[str, list[dict]]]) -> None:
-    """Print machine-readable JSON output."""
+    """Print machine-readable JSON output.
+
+    ``summary`` is per-locale, per-category; ``blocking`` is the single number
+    a gate should read (the sum of every non-advisory category across every
+    locale). Consumers that predate this shape summed ``summary`` as integers —
+    ``blocking`` exists so they do not have to re-derive the policy, and so the
+    next category cannot silently change what a gate counts.
+    """
     output = {
         "date": DATE_STAMP,
+        "blocking": 0,
         "summary": {},
         "details": {},
     }
 
     for locale, files in results.items():
-        count = sum(len(issues) for issues in files.values())
-        if count > 0:
-            output["summary"][locale] = count
+        counts = count_by_category(files)
+        if any(counts.values()):
+            output["summary"][locale] = counts
+            output["blocking"] += blocking_count(counts)
 
         if files:
             output["details"][locale] = {}
@@ -961,12 +1035,14 @@ def _variables_handler(args) -> int:
     else:
         print_summary(results)
 
-    # Return issue count as exit code (max 100) for CI
-    total_issues = sum(
-        sum(len(issues) for issues in files.values())
-        for files in results.values()
+    # Exit code is the BLOCKING count (max 100) for CI. Untranslated keys are
+    # reported but not counted here: coverage is `tasks next`'s gate, and an
+    # exit code that mixes the two is one more number consumers have to
+    # post-filter.
+    total_blocking = sum(
+        blocking_count(count_by_category(files)) for files in results.values()
     )
-    return min(total_issues, 100)
+    return min(total_blocking, 100)
 
 
 # ===========================================================================
@@ -1058,10 +1134,9 @@ def audit_glossary_locale(
         if not en_file.exists():
             continue
 
-        # Entry-aware (walk_keys reads only `text`, drops skip/empty/metadata),
-        # so keys are the real dotted paths — not flatten_json's `<key>.text` /
-        # `<key>.source_hash` sub-fields, which would misfire on metadata.
-        # load_json_file uses a context manager (no leaked descriptors).
+        # The translatable-text view is the right reader here: a glossary term
+        # can only diverge in a live translation, and walk_keys drops exactly
+        # the entries (skipped, untranslated) this heuristic must not judge.
         en_data = dict(walk_keys(load_json_file(en_file)))
         locale_data = dict(walk_keys(load_json_file(locale_file)))
 

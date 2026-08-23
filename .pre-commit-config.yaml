@@ -162,6 +162,18 @@ repos:
         files: \.(ts|vue|mjs)$
         exclude: ^src/tests/
 
+  # ADR reference integrity: verify every ADR-NNN#slug reference resolves.
+  # Only runs when docs/adr/*.md files are staged.
+  - repo: local
+    hooks:
+      - id: adr-lint
+        name: ADR reference lint
+        description: Verify ADR-NNN#slug references resolve (see ADR-036#ci-enforces-references)
+        entry: scripts/adr-lint.rb
+        language: system
+        files: ^docs/adr/.*\.md$
+        pass_filenames: false
+
   # Commit metadata tracking
   - repo: local
     hooks:

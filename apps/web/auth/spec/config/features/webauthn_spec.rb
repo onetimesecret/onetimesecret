@@ -26,6 +26,10 @@ RSpec.describe 'Auth::Config::Features::WebAuthn' do
         webauthn_setup_timeout 60_000     # 60 seconds
         webauthn_auth_timeout 60_000      # 60 seconds
         webauthn_user_verification 'preferred'
+        # Passkey login with verified UV counts as both factors (policy:
+        # passkey-first login fully authenticates; the after_login hook covers
+        # the non-UV residual).
+        webauthn_login_user_verification_additional_factor? true
         webauthn_setup_route 'webauthn-setup'
         webauthn_auth_route 'webauthn-auth'
         webauthn_remove_route 'webauthn-remove'
@@ -95,6 +99,10 @@ RSpec.describe 'Auth::Config::Features::WebAuthn' do
         expect(rodauth_instance.webauthn_user_verification).to eq('preferred')
       end
 
+      it 'counts a UV-verified passkey login as an additional factor' do
+        expect(rodauth_instance.webauthn_login_user_verification_additional_factor?).to be true
+      end
+
       it 'sets webauthn_setup_route to webauthn-setup' do
         expect(rodauth_instance.webauthn_setup_route).to eq('webauthn-setup')
       end
@@ -105,6 +113,37 @@ RSpec.describe 'Auth::Config::Features::WebAuthn' do
 
       it 'sets webauthn_remove_route to webauthn-remove' do
         expect(rodauth_instance.webauthn_remove_route).to eq('webauthn-remove')
+      end
+    end
+
+    describe 'authenticator selection (Rodauth default, deliberately not overridden)' do
+      let(:rodauth_instance) do
+        env     = {
+          'REQUEST_METHOD' => 'GET',
+          'PATH_INFO' => '/',
+          'rack.input' => StringIO.new,
+          'rack.session' => {},
+        }
+        request = Roda::RodaRequest.new(app.new(env), env)
+        app.rodauth.new(request.scope)
+      end
+
+      # webauthn.rb previously overrode webauthn_authenticator_selection with
+      # { authenticatorAttachment: nil }, which silently dropped
+      # requireResidentKey and userVerification from credential-creation
+      # options. The override was removed; these examples pin the restored
+      # Rodauth default so it cannot regress unnoticed.
+      it 'uses the Rodauth default keys wired to webauthn_user_verification' do
+        expect(rodauth_instance.webauthn_authenticator_selection).to eq(
+          'requireResidentKey' => false,
+          'userVerification' => 'preferred',
+        )
+      end
+
+      it 'does not restrict authenticatorAttachment (both platform and cross-platform allowed)' do
+        selection = rodauth_instance.webauthn_authenticator_selection
+        expect(selection).not_to have_key('authenticatorAttachment')
+        expect(selection).not_to have_key(:authenticatorAttachment)
       end
     end
   end

@@ -15,6 +15,10 @@
 import SecretActivityTable from '@/apps/workspace/components/organizations/SecretActivityTable.vue';
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { ref } from 'vue';
+import { createI18n } from 'vue-i18n';
 import { createTestI18n } from '@tests/setup';
 
 // ─── HTTP layer ──────────────────────────────────────────────────────────────
@@ -22,6 +26,19 @@ const mockApi = {
   get: vi.fn(),
 };
 vi.mock('@/shared/composables/useApi', () => ({ useApi: () => mockApi }));
+
+// ─── Instance flags (#3990) ──────────────────────────────────────────────────
+// Collection axis + retention cap, both from the bootstrap features payload.
+// Defaults mirror the wire contract: collect on, cap 10,000.
+const mockCollectEnabled = ref(true);
+const mockMaxEvents = ref(10_000);
+// Country column (#3989): default OFF (opt-in, pending counsel review).
+const mockGeoCountryEnabled = ref(false);
+vi.mock('@/utils/features', () => ({
+  isSecretActivityCollectEnabled: () => mockCollectEnabled.value,
+  getSecretActivityMaxEvents: () => mockMaxEvents.value,
+  isSecretActivityGeoCountryEnabled: () => mockGeoCountryEnabled.value,
+}));
 
 // Deterministic classifier output so the error banner's detail line is
 // assertable without pulling the whole error-classification module in.
@@ -140,6 +157,10 @@ describe('SecretActivityTable', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockCollectEnabled.value = true;
+    mockMaxEvents.value = 10_000;
+    // Shipped default (#3989): country column opt-in, off until counsel signs off.
+    mockGeoCountryEnabled.value = false;
     // Default: one burned event on page 1.
     respondWith(buildResponse());
   });
@@ -566,6 +587,187 @@ describe('SecretActivityTable', () => {
       wrapper = await mountComponent();
 
       expect(wrapper.find('[data-testid="org-audit-capped"]').exists()).toBe(false);
+    });
+
+    it('honors a non-default operator-configured cap (#3990)', async () => {
+      mockMaxEvents.value = 500;
+      respondWith(buildResponse({ records: [buildEvent()], total: 500 }));
+
+      wrapper = await mountComponent();
+
+      expect(wrapper.find('[data-testid="org-audit-capped"]').exists()).toBe(true);
+    });
+
+    it('does not treat 10,000 as capped when the configured cap is higher', async () => {
+      mockMaxEvents.value = 50_000;
+      respondWith(buildResponse({ records: [buildEvent()], total: 10_000 }));
+
+      wrapper = await mountComponent();
+
+      expect(wrapper.find('[data-testid="org-audit-capped"]').exists()).toBe(false);
+    });
+
+    /**
+     * The notice states a retention number, so it must state the CONFIGURED
+     * one — the pre-#3990 string hardcoded "10,000" and lied on every instance
+     * running a different cap. Mounted against the REAL generated bundle (not
+     * the pass-through i18n, and not hand-typed copy) so the assertion tests
+     * the wiring: drop the `{ max }` argument and vue-i18n renders a silent
+     * double-space sentence rather than a visible `{max}`, which only the
+     * shipped string can catch.
+     *
+     * The cap is 10,000 rather than a small number so the thousands separator
+     * from toLocaleString() is part of the contract under test.
+     */
+    it('interpolates the configured cap into the capped notice (#3990)', async () => {
+      const realEn = JSON.parse(
+        readFileSync(resolve(process.cwd(), 'generated/locales/en.json'), 'utf-8')
+      );
+      const realI18n = createI18n({ legacy: false, locale: 'en', messages: { en: realEn } });
+
+      mockMaxEvents.value = 10_000;
+      respondWith(buildResponse({ records: [buildEvent()], total: 10_000 }));
+
+      wrapper = mount(SecretActivityTable, {
+        props: { orgExtid: 'on1abc123' },
+        global: { plugins: [realI18n] },
+      });
+      await flushPromises();
+
+      const text = wrapper.find('[data-testid="org-audit-capped"]').text();
+      // Locale-independent: whatever separator the runtime picks, the notice
+      // must carry the formatted cap the helper produced.
+      expect(text).toContain((10_000).toLocaleString());
+      expect(text).not.toContain('{max}');
+    });
+  });
+
+  describe('collection-paused notice (#3990)', () => {
+    it('renders the paused banner above a populated trail when collection is off', async () => {
+      mockCollectEnabled.value = false;
+
+      wrapper = await mountComponent();
+
+      const notice = wrapper.find('[data-testid="org-audit-paused"]');
+      expect(notice.exists()).toBe(true);
+      expect(notice.text()).toContain('web.organizations.audit.collection_paused_notice');
+      // Historical events keep rendering — the banner warns the trail is
+      // frozen, it does not hide it.
+      expect(wrapper.find('[data-testid="org-audit-table"]').exists()).toBe(true);
+    });
+
+    it('renders the paused banner alongside the empty state (frozen ≠ no activity yet)', async () => {
+      mockCollectEnabled.value = false;
+      respondWith(buildResponse({ records: [], total: 0 }));
+
+      wrapper = await mountComponent();
+
+      expect(wrapper.find('[data-testid="org-audit-paused"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="org-audit-empty"]').exists()).toBe(true);
+    });
+
+    it('hides the paused banner when collection is on', async () => {
+      mockCollectEnabled.value = true;
+
+      wrapper = await mountComponent();
+
+      expect(wrapper.find('[data-testid="org-audit-paused"]').exists()).toBe(false);
+    });
+  });
+
+  describe('country column gate (#3989)', () => {
+    // The country field is legally-sensitive org-tier geo data pending counsel
+    // review (ADR-021), so the FRONTEND gates its display: the field may be
+    // present on the wire and still must not render. The gate is read once at
+    // setup, so every case below sets the flag BEFORE mounting.
+    const COUNTRY_HEADER_KEY = 'web.organizations.audit.columns.country';
+    const COUNTRY_UNKNOWN_KEY = 'web.organizations.audit.country_unknown';
+
+    const headerCells = (w: VueWrapper) =>
+      w.findAll('[data-testid="org-audit-table"] thead th');
+    const rowCells = (w: VueWrapper) =>
+      w
+        .findAll('[data-testid="org-audit-row"]')
+        .map((row) => row.findAll('td'));
+
+    it('renders neither the country header nor any country cell when the flag is off', async () => {
+      // net_country present on the wire — the gate, not the payload, decides.
+      respondWith(buildResponse({ records: [buildEvent({ net_country: 'US' })] }));
+
+      wrapper = await mountComponent();
+
+      const headers = headerCells(wrapper);
+      expect(headers.map((th) => th.text())).not.toContain(COUNTRY_HEADER_KEY);
+      const row = wrapper.find('[data-testid="org-audit-row"]');
+      expect(row.exists()).toBe(true);
+      // Neither the value nor the fallback leaks into the rendered row.
+      expect(row.text()).not.toContain('US');
+      expect(row.text()).not.toContain(COUNTRY_UNKNOWN_KEY);
+    });
+
+    it('renders the country header and the row value when the flag is on', async () => {
+      mockGeoCountryEnabled.value = true;
+      respondWith(buildResponse({ records: [buildEvent({ net_country: 'US' })] }));
+
+      wrapper = await mountComponent();
+
+      expect(headerCells(wrapper).map((th) => th.text())).toContain(COUNTRY_HEADER_KEY);
+      // Column 4 (Event, Secret, Actor, Country, When) carries the code itself.
+      expect(rowCells(wrapper)[0][3].text()).toBe('US');
+    });
+
+    it('falls back to the country_unknown label when the row carries no net_country', async () => {
+      mockGeoCountryEnabled.value = true;
+      respondWith(buildResponse({ records: [buildEvent({ net_country: undefined })] }));
+
+      wrapper = await mountComponent();
+
+      const cell = rowCells(wrapper)[0][3];
+      // An audit cell must never render "undefined" or read as blank — the
+      // absence of geo data is itself a stated fact.
+      expect(cell.text()).toBe(COUNTRY_UNKNOWN_KEY);
+      expect(cell.text()).not.toContain('undefined');
+      expect(cell.text()).not.toBe('');
+    });
+
+    /**
+     * The `v-if="showCountry"` is DUPLICATED on the <th> and the <td>. If a
+     * future edit drops one side, the table still renders — every column's
+     * data just silently shifts one cell out of alignment, which on an audit
+     * trail means attributing an event to the wrong timestamp/actor. Header
+     * count and per-row cell count must therefore agree in BOTH flag states.
+     */
+    it('keeps header count and per-row cell count in agreement in both flag states (misaligned columns would silently shift every column by one)', async () => {
+      const countsFor = async (enabled: boolean) => {
+        mockGeoCountryEnabled.value = enabled;
+        respondWith(
+          buildResponse({
+            records: [
+              buildEvent({ nonce: 'nonce-1', net_country: 'US' }),
+              // Second row omits net_country: the fallback must still occupy a
+              // cell, so a missing value can never collapse the row's width.
+              buildEvent({ nonce: 'nonce-2', net_country: undefined }),
+            ],
+          })
+        );
+
+        const localWrapper = await mountComponent();
+        const headers = headerCells(localWrapper).length;
+        const cells = rowCells(localWrapper).map((tds) => tds.length);
+        localWrapper.unmount();
+        return { headers, cells };
+      };
+
+      const off = await countsFor(false);
+      expect(off.headers).toBe(4);
+      expect(off.cells).toEqual([4, 4]);
+
+      const on = await countsFor(true);
+      expect(on.headers).toBe(5);
+      expect(on.cells).toEqual([5, 5]);
+
+      // The gate adds exactly one column, on both sides of the table.
+      expect(on.headers - off.headers).toBe(1);
     });
   });
 

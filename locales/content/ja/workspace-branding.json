@@ -24,7 +24,7 @@
     "source_hash": "db3183e3"
   },
   "web.branding.preview_of_the_secret_link_page_for_recipients": {
-    "text": "セキュアリンクにアクセスする受信者の表示のプレビュー",
+    "text": "受信者が安全なリンクにアクセスしたときの表示プレビュー",
     "source_hash": "199c165f"
   },
   "web.branding.preview_and_customize": {
@@ -32,7 +32,7 @@
     "source_hash": "fc68a28c"
   },
   "web.branding.switch_to_safari_browser_view": {
-    "text": "Safariブラウザビューに切り替え",
+    "text": "Safariブラウザ表示に切り替え",
     "source_hash": "6e0fe791"
   },
   "web.branding.microsoft_edge": {
@@ -48,7 +48,7 @@
     "source_hash": "5cd54386"
   },
   "web.branding.switch_to_edge_browser_view": {
-    "text": "Edgeブラウザビューに切り替え",
+    "text": "Edgeブラウザ表示に切り替え",
     "source_hash": "a8fcd82d"
   },
   "web.branding.charactercount_500_characters": {
@@ -56,31 +56,31 @@
     "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "スマートフォンでQRコードをスキャンしてください",
-    "source_hash": "99ecf59f"
+    "text": "例:スマートフォンでQRコードをスキャンしてください",
+    "source_hash": "9cf0caf8"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "ご質問はonboarding{'@'}example.comまでお問い合わせください",
-    "source_hash": "bee120a7"
+    "text": "例:ご質問はonboarding{'@'}example.comまでお問い合わせください",
+    "source_hash": "71749811"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
-    "text": "これらの指示は、受信者がシークレットの内容を表示する前に表示されます",
+    "text": "これらの手順は、受信者がシークレットの内容を閲覧する前に表示されます",
     "source_hash": "9d5a6334"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_after": {
-    "text": "これらの指示は、受信者がシークレットを表示した後に表示されます",
+    "text": "これらの手順は、受信者がシークレットを閲覧した後に表示されます",
     "source_hash": "9f82bd94"
   },
   "web.branding.pre_reveal_instructions": {
-    "text": "公開前の説明",
+    "text": "閲覧前の手順",
     "source_hash": "a299422e"
   },
   "web.branding.post_reveal_instructions": {
-    "text": "公開後の説明",
+    "text": "閲覧後の手順",
     "source_hash": "72ecc23a"
   },
   "web.branding.instructions": {
-    "text": "説明",
+    "text": "手順",
     "source_hash": "934652dc"
   },
   "web.branding.logo_controls": {
@@ -100,7 +100,7 @@
     "source_hash": "c02130fa"
   },
   "web.branding.preview_how_recipients_will_see_your_secrets": {
-    "text": "「シークレットを表示」ボタンをテストして、受信者がどのようにあなたのシークレットを見るかをプレビューします",
+    "text": "「シークレットを表示」ボタンをテストして、受信者にどのように表示されるかプレビューできます",
     "source_hash": "3b58a297"
   },
   "web.branding.eye_icon": {
@@ -108,7 +108,7 @@
     "source_hash": "7f605d3c"
   },
   "web.branding.click_the_preview_image_below_to_update_your_logo": {
-    "text": "以下のプレビュー画像をクリックして、ロゴを更新します（最小128x128ピクセル推奨、最大1MB）",
+    "text": "下のプレビュー画像をクリックしてロゴを更新できます(推奨:128x128ピクセル以上、最大1MB)",
     "source_hash": "77a19049"
   },
   "web.branding.image_icon": {
@@ -116,7 +116,7 @@
     "source_hash": "b0d64fcf"
   },
   "web.branding.use_the_controls_above_to_customize_brand_details": {
-    "text": "上のコントロールを使用して、ブランドの色、スタイル、受信者への指示をカスタマイズします",
+    "text": "上のコントロールを使用してブランドカラー、スタイル、受信者への手順をカスタマイズできます",
     "source_hash": "d6287134"
   },
   "web.branding.customization_icon": {
@@ -124,7 +124,7 @@
     "source_hash": "bde04d31"
   },
   "web.branding.you_have_unsaved_changes_are_you_sure": {
-    "text": "保存されていない変更があります。よろしいですか？",
+    "text": "保存されていない変更があります。よろしいですか?",
     "source_hash": "184b6a83"
   },
   "web.branding.failed_to_load_brand_settings": {
@@ -132,15 +132,15 @@
     "source_hash": "a7a1575e"
   },
   "web.branding.this_is_an_interactive_preview_o": {
-    "text": "これは、受信者があなたの安全なメッセージをどのように見るかのインタラクティブなプレビューです。次のことができます： - 上部のコントロールを使用して色とフォントをカスタマイズ - ロゴをアップロード（最小128x128ピクセル推奨、最大1MB） - 「秘密を表示」ボタンを使用してプレビューをテスト",
+    "text": "受信者に安全なメッセージがどのように表示されるかのインタラクティブなプレビューです。以下の操作ができます:上のコントロールを使用して色とフォントをカスタマイズ、ロゴをアップロード(推奨:128x128ピクセル以上、最大1MB)、「シークレットを表示」ボタンでプレビューをテスト",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.this_is_an_interactive_preview_of_how_recipients": {
-    "text": "これは、受信者があなたの安全なメッセージをどのように見るかのインタラクティブなプレビューです。次のことができます： - 上部のコントロールを使用して色とフォントをカスタマイズ - ロゴをアップロード（最小128x128ピクセル推奨、最大1MB） - 「秘密を表示」ボタンを使用してプレビューをテスト",
+    "text": "受信者に安全なメッセージがどのように表示されるかのインタラクティブなプレビューです。以下の操作ができます:上のコントロールを使用して色とフォントをカスタマイズ、ロゴをアップロード(推奨:128x128ピクセル以上、最大1MB)、「シークレットを表示」ボタンでプレビューをテスト",
     "source_hash": "3d8b2c0d"
   },
   "web.branding.default_logo_icon": {
-    "text": "日本語の漢字「秘」(ひみつ) - 「秘密」または「機密」を意味する",
+    "text": "「秘」の漢字(機密または秘密を意味する)",
     "source_hash": "1e04ba2e"
   },
   "web.branding.powered_by_onetime_secret": {
@@ -180,7 +180,7 @@
     "source_hash": "9077bf79"
   },
   "web.branding.saved_successfully": {
-    "text": "ブランド設定を保存しました",
+    "text": "ブランド設定が正常に保存されました",
     "source_hash": "9960c252"
   },
   "web.branding.keyhole_logo_icon": {
@@ -196,11 +196,11 @@
     "source_hash": "b48bc969"
   },
   "web.branding.text_color": {
-    "text": "テキストの色",
+    "text": "テキスト色",
     "source_hash": "2ea23234"
   },
   "web.branding.border_radius": {
-    "text": "角の丸み",
+    "text": "角丸",
     "source_hash": "e758d7db"
   },
   "web.branding.heading_font": {
@@ -216,19 +216,19 @@
     "source_hash": "d707dc2f"
   },
   "web.branding.replace_logo": {
-    "text": "置き換え",
+    "text": "置換",
     "source_hash": "95e15439"
   },
   "web.branding.logo_field_hint": {
-    "text": "変更が公開される前にプレビューできます。",
+    "text": "変更を公開する前にプレビューできます。",
     "source_hash": "e9e222fc"
   },
   "web.branding.logo_modal_title": {
-    "text": "ドメインのロゴ",
+    "text": "ドメインロゴ",
     "source_hash": "5260dda5"
   },
   "web.branding.logo_modal_hint": {
-    "text": "PNG、JPG、またはSVG。推奨128x128px、最大1MB。",
+    "text": "PNG、JPG、SVG。推奨128x128px、最大1MB。",
     "source_hash": "75d00802"
   },
   "web.branding.logo_modal_save": {
@@ -248,7 +248,7 @@
     "source_hash": "6613b73c"
   },
   "web.branding.image_invalid_type": {
-    "text": "そのファイル形式はサポートされていません。画像を選択してください。",
+    "text": "このファイル形式はサポートされていません。画像を選択してください。",
     "source_hash": "50e18866"
   },
   "web.branding.image_too_large": {
@@ -260,7 +260,7 @@
     "source_hash": "d94fa99a"
   },
   "web.branding.image_upload_failed": {
-    "text": "問題が発生しました。もう一度お試しください。",
+    "text": "エラーが発生しました。もう一度お試しください。",
     "source_hash": "3ccd9d65"
   },
   "web.branding.undo": {
@@ -276,23 +276,23 @@
     "source_hash": "3fee95da"
   },
   "web.branding.path_match": {
-    "text": "自分のサイトに合わせる",
+    "text": "サイトに合わせる",
     "source_hash": "776679cf"
   },
   "web.branding.path_advanced": {
-    "text": "詳細",
+    "text": "詳細設定",
     "source_hash": "9f088dbe"
   },
   "web.branding.path_simple_tag": {
-    "text": "ブランドの基本要素。",
+    "text": "ブランドの基本設定",
     "source_hash": "7c9c0cca"
   },
   "web.branding.path_match_tag": {
-    "text": "既存のサイトから設定をコピー。",
+    "text": "既存のサイトから設定をコピー",
     "source_hash": "e4b0d1cd"
   },
   "web.branding.path_advanced_tag": {
-    "text": "独自のTailwind v4 CSSを作成。",
+    "text": "独自のTailwind v4 CSSを作成",
     "source_hash": "2405bb6d"
   },
   "web.branding.badge_default": {
@@ -304,11 +304,11 @@
     "source_hash": "4f7d6401"
   },
   "web.branding.your_brand": {
-    "text": "あなたのブランド",
+    "text": "ブランド設定",
     "source_hash": "406265d3"
   },
   "web.branding.your_brand_subtitle": {
-    "text": "いくつかの簡単な選択だけで、あとは私たちが対応します。",
+    "text": "簡単な選択をするだけ — 残りは私たちにお任せください。",
     "source_hash": "dbc8ec33"
   },
   "web.branding.corners": {
@@ -320,15 +320,15 @@
     "source_hash": "bc79cdff"
   },
   "web.branding.paths_carryover_hint": {
-    "text": "これはライブプレビューです。保存するまで、変更は訪問者には表示されません。",
-    "source_hash": "cb4b82de"
+    "text": "これはライブプレビューです — 更新をクリックするまで、訪問者には変更が表示されません。",
+    "source_hash": "9a34df71"
   },
   "web.branding.coming_soon_match_blurb": {
-    "text": "ウェブサイトを指定していただければ、その色とフォントを読み取り、ワンクリックでギャップを埋めます。",
+    "text": "ウェブサイトを指定すると、その色とフォントを読み取り、ワンクリックで調整します。",
     "source_hash": "42c34cc1"
   },
   "web.branding.coming_soon_advanced_blurb": {
-    "text": "Tailwind v4の{'@'}themeトークンを直接編集するか、独自のスタイルシートを貼り付けます。",
+    "text": "Tailwind v4の{'@'}themeトークンを直接編集するか、独自のスタイルシートを貼り付けられます。",
     "source_hash": "5a8473f5"
   },
   "web.branding.preview_recipient_page": {
@@ -368,11 +368,11 @@
     "source_hash": "17361d81"
   },
   "web.branding.recipient_page_content": {
-    "text": "受信者ページの内容",
+    "text": "受信者ページのコンテンツ",
     "source_hash": "937733bd"
   },
   "web.branding.recipient_page_content_hint": {
-    "text": "このドメインで受信者に表示される言語と表示手順。",
+    "text": "このドメインで受信者に表示される言語と閲覧手順。",
     "source_hash": "04162b70"
   },
   "web.branding.tab_brand": {
@@ -388,23 +388,75 @@
     "source_hash": "a4fe6526"
   },
   "web.branding.delivery_language_hint": {
-    "text": "このドメインの受信者ページとメールのデフォルトです。受信者はページで言語を切り替えられます。",
+    "text": "このドメインの受信者ページとメールのデフォルト。受信者はページで言語を切り替えられます。",
     "source_hash": "bfbc5599"
   },
   "web.branding.delivery_reveal_instructions": {
-    "text": "表示手順",
+    "text": "閲覧手順",
     "source_hash": "7e1331f7"
   },
   "web.branding.delivery_reveal_instructions_hint": {
-    "text": "受信者ページに表示されます。空欄の場合、選択した言語の組み込みテキストが使用されます。",
+    "text": "受信者ページに表示されます。空白のままにすると、選択した言語の組み込みコピーが使用されます。",
     "source_hash": "51b9811d"
   },
   "web.branding.delivery_before_reveal": {
-    "text": "表示前",
+    "text": "閲覧前",
     "source_hash": "5ce82b01"
   },
   "web.branding.delivery_after_reveal": {
-    "text": "表示後",
+    "text": "閲覧後",
     "source_hash": "d5bfe7fd"
+  },
+  "web.branding.favicon": {
+    "text": "ファビコン",
+    "source_hash": "42955289"
+  },
+  "web.branding.refresh_favicon": {
+    "text": "ドメインからファビコンを更新",
+    "source_hash": "7cc3d5dc"
+  },
+  "web.branding.refresh_favicon_hint": {
+    "text": "ドメインから再度ファビコンを取得します。新しいアイコンはまもなく表示されます。",
+    "source_hash": "ee007e44"
+  },
+  "web.branding.refresh_favicon_queued": {
+    "text": "ファビコンを更新中 — 新しいアイコンはまもなく表示されます。",
+    "source_hash": "6bf38e6e"
+  },
+  "web.branding.refresh_favicon_user_upload_hint": {
+    "text": "カスタムファビコンをアップロードしているため、取得したアイコンでは置き換えられません。",
+    "source_hash": "c22e1ed6"
+  },
+  "web.branding.upload_favicon": {
+    "text": "ファビコンをアップロード",
+    "source_hash": "ceda39cb"
+  },
+  "web.branding.replace_favicon": {
+    "text": "置換",
+    "source_hash": "95e15439"
+  },
+  "web.branding.remove_favicon": {
+    "text": "ファビコンを削除",
+    "source_hash": "03693698"
+  },
+  "web.branding.favicon_field_hint": {
+    "text": "ICO、PNG、SVG。アップロードすると取得したアイコンが置き換えられます。",
+    "source_hash": "dfa0bfcb"
+  },
+  "web.branding.favicon_preview_alt": {
+    "text": "ドメインファビコン",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_title": {
+    "text": "ドメインファビコン",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_hint": {
+    "text": "ICO、PNG、SVG。最大256KB。自動取得したアイコンを置き換えます。",
+    "source_hash": "c9eafc83"
+  },
+  "web.branding.favicon_modal_save": {
+    "text": "ファビコンを保存",
+    "source_hash": "c8a1566c"
   }
 }

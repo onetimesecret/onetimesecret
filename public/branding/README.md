@@ -2,7 +2,8 @@
 
 This directory holds **brand packs**: complete sets of root-served brand assets
 (`favicon.ico`, `favicon.svg`, `apple-touch-icon.png`, `icon-192/512.png`,
-`safari-pinned-tab.svg`, `social-preview.png`, `site.webmanifest`) plus an
+`safari-pinned-tab.svg`, `site.webmanifest`, plus the optional
+`social-preview.png` social card) plus an
 optional `brand.yaml` identity manifest. A pack is the single unit of branding:
 assets and the identity values that go with them, together. Introduced by the
 runtime brand-asset overlay ([#3739](https://github.com/onetimesecret/onetimesecret/issues/3739))

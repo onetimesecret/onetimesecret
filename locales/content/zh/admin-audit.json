@@ -98,5 +98,41 @@
   "web.admin.audit.result.failure": {
     "text": "失败",
     "source_hash": "7031edbc"
+  },
+  "web.admin.audit.categories.secret": {
+    "text": "内容",
+    "source_hash": "d8707d41"
+  },
+  "web.admin.audit.categories.membership": {
+    "text": "成员关系",
+    "source_hash": "b50f1a42"
+  },
+  "web.admin.audit.categories.entitlement_preview": {
+    "text": "权益预览",
+    "source_hash": "255c5797"
+  },
+  "web.admin.audit.categories.colonel": {
+    "text": "Colonel 登录",
+    "source_hash": "01eeeb38"
+  },
+  "web.admin.audit.filters.actorLabel": {
+    "text": "操作者",
+    "source_hash": "449995c4"
+  },
+  "web.admin.audit.filters.searchButton": {
+    "text": "搜索",
+    "source_hash": "49c266ba"
+  },
+  "web.admin.audit.filters.searchHint": {
+    "text": "输入操作者，然后按 Enter 或点击搜索来执行。输入过程中列表不会更新。",
+    "source_hash": "45eceb12"
+  },
+  "web.admin.audit.filters.pendingSearch": {
+    "text": "尚未搜索——请按 Enter 或点击搜索以应用此操作者。",
+    "source_hash": "f76095c2"
+  },
+  "web.admin.audit.list.contractError": {
+    "text": "服务器已响应，但审计数据与预期格式不匹配。无法显示任何事件——这是报告故障，而非日志为空。",
+    "source_hash": "7f48137e"
   }
 }

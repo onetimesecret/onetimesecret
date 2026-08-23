@@ -292,9 +292,9 @@
     "source_hash": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "Název přístupového klíče",
+    "text": "Passkey",
     "context": "Label for passkey name field",
-    "source_hash": "22eefa67"
+    "source_hash": "904c9aa9"
   },
   "web.auth.passkeys.created": {
     "text": "Vytvořen",
@@ -730,5 +730,232 @@
   "web.auth.sessions.session_plural": {
     "text": "relace",
     "source_hash": "1225ae6c"
+  },
+  "web.auth.connections.title": {
+    "text": "Propojené identity",
+    "source_hash": "e132c4d9"
+  },
+  "web.auth.connections.description": {
+    "text": "Spravuj poskytovatele jednotného přihlášení propojené s tvým účtem.",
+    "source_hash": "42c6d148"
+  },
+  "web.auth.connections.section_title": {
+    "text": "Jednotné přihlášení",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.section_subtitle": {
+    "text": "Poskytovatelé identity, které můžeš použít pro přihlášení k tomuto účtu",
+    "source_hash": "507254cd"
+  },
+  "web.auth.connections.connect_title": {
+    "text": "Připojit poskytovatele",
+    "source_hash": "a002b3f3"
+  },
+  "web.auth.connections.connect_description": {
+    "text": "Propoj dalšího poskytovatele jednotného přihlášení, kterého můžeš použít pro přihlášení k tomuto účtu.",
+    "source_hash": "32895a5a"
+  },
+  "web.auth.connections.connect_action": {
+    "text": "Připojit {provider}",
+    "context": "Button label to start linking a specific SSO provider; {provider} is the provider display name",
+    "source_hash": "c77540af"
+  },
+  "web.auth.connections.issuer": {
+    "text": "Vydavatel",
+    "source_hash": "39e02c46"
+  },
+  "web.auth.connections.identifier": {
+    "text": "Identifikátor",
+    "source_hash": "9b10587f"
+  },
+  "web.auth.connections.remove": {
+    "text": "Odebrat",
+    "source_hash": "c3812fc4"
+  },
+  "web.auth.connections.remove_confirm_title": {
+    "text": "Odebrat propojenou identitu",
+    "source_hash": "4e8ffe4c"
+  },
+  "web.auth.connections.remove_confirm_message": {
+    "text": "Opravdu chceš odebrat tuto propojenou identitu? Už se s ní nebudeš moci přihlásit.",
+    "source_hash": "64939c89"
+  },
+  "web.auth.connections.removed_success": {
+    "text": "Propojená identita odebrána",
+    "source_hash": "cf87daf3"
+  },
+  "web.auth.connections.no_identities": {
+    "text": "Žádné propojené identity",
+    "source_hash": "5254048e"
+  },
+  "web.auth.connections.no_identities_description": {
+    "text": "Zatím jsi nepropojil žádné poskytovatele jednotného přihlášení s tímto účtem.",
+    "source_hash": "0f58d5d0"
+  },
+  "web.auth.connections.overview_status": {
+    "text": "Jednotné přihlášení",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.errors.last_credential": {
+    "text": "Toto je tvůj jediný způsob přihlášení. Nejprve připoj dalšího poskytovatele nebo nastav heslo v Nastavení → Zabezpečení, abys nezůstal bez přístupu.",
+    "source_hash": "3de8084d"
+  },
+  "web.auth.connections.errors.last_credential_sso_enforced": {
+    "text": "Toto je tvůj jediný způsob přihlášení. Nejprve připoj dalšího poskytovatele, abys nezůstal bez přístupu.",
+    "source_hash": "eed7a50e"
+  },
+  "web.auth.connections.errors.not_found": {
+    "text": "Tato propojená identita nebyla nalezena. Možná již byla odebrána.",
+    "source_hash": "cf2c7673"
+  },
+  "web.auth.connections.errors.unauthorized": {
+    "text": "Tvoje relace vypršela. Přihlas se znovu.",
+    "source_hash": "b529fce2"
+  },
+  "web.auth.connections.errors.generic": {
+    "text": "Nepodařilo se dokončit tuto akci. Zkus to znovu.",
+    "source_hash": "a0d4edc0"
+  },
+  "web.link_sso.title": {
+    "text": "Propoj svou metodu přihlášení",
+    "source_hash": "46339bac"
+  },
+  "web.link_sso.prompt": {
+    "text": "Přihlásil ses pomocí {provider}, což odpovídá existujícímu účtu {email}. Zadej heslo tohoto účtu pro propojení {provider} a pokračování.",
+    "context": "Instruction on the sign-in interstitial. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/link-sso/:token.",
+    "source_hash": "59da1c08"
+  },
+  "web.link_sso.password_label": {
+    "text": "Heslo",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.link_sso.password_placeholder": {
+    "text": "Tvoje existující heslo",
+    "source_hash": "ad4e56da"
+  },
+  "web.link_sso.submit": {
+    "text": "Propojit a pokračovat",
+    "source_hash": "c969b759"
+  },
+  "web.link_sso.cancel": {
+    "text": "Zrušit",
+    "source_hash": "19766ed6"
+  },
+  "web.link_sso.unavailable_title": {
+    "text": "Tento požadavek na propojení vypršel",
+    "source_hash": "b53c7e55"
+  },
+  "web.link_sso.unavailable_message": {
+    "text": "Pro tvou bezpečnost již požadavek na propojení této metody přihlášení není platný. Přihlas se svým existujícím heslem a pak připoj tohoto poskytovatele v Nastavení zabezpečení → Propojené identity.",
+    "source_hash": "f7e349d1"
+  },
+  "web.link_sso.unavailable_action": {
+    "text": "Pokračovat k přihlášení",
+    "source_hash": "d398cd0a"
+  },
+  "web.link_sso.errors.invalid_password": {
+    "text": "Toto heslo neodpovídá tomuto účtu. Zkus to znovu.",
+    "source_hash": "3259b4f5"
+  },
+  "web.link_sso.errors.invalid_token": {
+    "text": "Tento požadavek na propojení vypršel nebo již byl použit. Přihlas se svým existujícím heslem a pak připoj tohoto poskytovatele z nastavení účtu.",
+    "source_hash": "541f9127"
+  },
+  "web.link_sso.errors.link_conflict": {
+    "text": "Nepodařilo se propojit tuto metodu přihlášení. Tvůj účet se mohl změnit, nebo je tento poskytovatel již propojen s jiným účtem. Přihlas se svým existujícím heslem a pak spravuj propojení v Nastavení zabezpečení → Propojené identity.",
+    "source_hash": "7b0e0d0e"
+  },
+  "web.link_sso.errors.link_rate_limited": {
+    "text": "Příliš mnoho pokusů o heslo. Počkej několik minut a zkus to znovu.",
+    "source_hash": "a95e78cd"
+  },
+  "web.link_sso.errors.invalid_request": {
+    "text": "Nepodařilo se zpracovat tento požadavek na propojení. Přihlas se znovu pomocí svého poskytovatele SSO.",
+    "source_hash": "053b9fc6"
+  },
+  "web.link_sso.errors.generic": {
+    "text": "Nepodařilo se propojit tvůj účet. Zkus to znovu.",
+    "source_hash": "f727c174"
+  },
+  "web.sso_link_confirm.title": {
+    "text": "Potvrď připojení tvého účtu",
+    "source_hash": "ad80bfe7"
+  },
+  "web.sso_link_confirm.prompt": {
+    "text": "Přihlásil ses pomocí {provider}, což odpovídá tvému účtu {email}. Potvrď pro připojení {provider} k tomuto účtu a dokončení přihlášení.",
+    "context": "Consent instruction on the #3840 Phase 4 mailbox-proof SSO linking page. {provider} is a friendly provider name (e.g. Microsoft Entra); {email} is the claimed account email returned by GET /auth/sso-link-confirm/:token. No password is asked — clicking the emailed link is the proof.",
+    "source_hash": "6ff0d6cc"
+  },
+  "web.sso_link_confirm.submit": {
+    "text": "Potvrdit a připojit",
+    "source_hash": "5cf663e6"
+  },
+  "web.sso_link_confirm.cancel": {
+    "text": "Zrušit",
+    "source_hash": "19766ed6"
+  },
+  "web.sso_link_confirm.unavailable_title": {
+    "text": "Tento požadavek na propojení nelze dokončit",
+    "source_hash": "47abb784"
+  },
+  "web.sso_link_confirm.unavailable_message": {
+    "text": "Pro tvou bezpečnost již tento požadavek na připojení tvé metody přihlášení není platný. Přihlas se znovu pomocí svého poskytovatele a pošleme ti e-mailem nový odkaz.",
+    "source_hash": "080e6f9f"
+  },
+  "web.sso_link_confirm.unavailable_action": {
+    "text": "Zpět k přihlášení",
+    "source_hash": "8504054f"
+  },
+  "web.sso_link_confirm.errors.link_expired": {
+    "text": "Tento požadavek na propojení vypršel nebo již byl použit. Přihlas se znovu pomocí svého poskytovatele a pošleme ti e-mailem nový odkaz.",
+    "source_hash": "a50538df"
+  },
+  "web.sso_link_confirm.errors.link_conflict": {
+    "text": "Nepodařilo se připojit tuto metodu přihlášení. Tvůj účet se mohl změnit, nebo je tento poskytovatel již propojen s jiným účtem. Přihlas se znovu pomocí svého poskytovatele pro pokračování.",
+    "source_hash": "c954854b"
+  },
+  "web.sso_link_confirm.errors.link_invalidated": {
+    "text": "Přihlašovací údaje tvého účtu se změnily po odeslání tohoto odkazu, takže již není platný. Přihlas se znovu pomocí svého poskytovatele a pošleme ti e-mailem nový odkaz.",
+    "source_hash": "db88cb1d"
+  },
+  "web.sso_link_confirm.errors.link_error": {
+    "text": "Na naší straně se něco pokazilo a nepodařilo se ověřit tento odkaz. Přihlas se znovu pomocí svého poskytovatele a pošleme ti e-mailem nový.",
+    "source_hash": "ec24e0a1"
+  },
+  "web.sso_link_confirm.errors.confirm_rate_limited": {
+    "text": "Příliš mnoho pokusů z tvého zařízení. Počkej několik minut, pak znovu otevři zaslaný odkaz nebo se přihlas pomocí svého poskytovatele pro nový.",
+    "source_hash": "f29af782"
+  },
+  "web.sso_link_confirm.errors.generic": {
+    "text": "Nepodařilo se potvrdit toto připojení. Přihlas se znovu pomocí svého poskytovatele.",
+    "source_hash": "076fa25a"
+  },
+  "web.auth.mfa.passkey_mode_active": {
+    "text": "Režim passkey je aktivní",
+    "source_hash": "824dceb6"
+  },
+  "web.auth.mfa.passkey_prompt": {
+    "text": "Ověř svou totožnost pomocí passkey. Tvoje zařízení si vyžádá otisk prstu, obličej nebo bezpečnostní klíč.",
+    "source_hash": "c0b0cbbc"
+  },
+  "web.auth.mfa.verify_with_passkey": {
+    "text": "Ověřit pomocí passkey",
+    "source_hash": "4f105a30"
+  },
+  "web.auth.mfa.use_passkey": {
+    "text": "Použít místo toho passkey",
+    "source_hash": "bd6430a4"
+  },
+  "web.auth.passkeys.remove_failed": {
+    "text": "Passkey se nepodařilo odebrat",
+    "source_hash": "3e131515"
+  },
+  "web.auth.passkeys.load_failed": {
+    "text": "Passkeys se nepodařilo načíst",
+    "source_hash": "8d704e00"
+  },
+  "web.auth.webauthn.emailRequired": {
+    "text": "Pro přihlášení pomocí passkey zadej svou e-mailovou adresu",
+    "source_hash": "7f07647f"
   }
 }

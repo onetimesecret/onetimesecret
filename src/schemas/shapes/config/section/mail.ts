@@ -12,27 +12,71 @@
 
 import {
   emailerSchema,
-  mailSchema,
-  truemailSchema,
+  emailProvidersSchema,
   mailConnectionSchema,
+  mailSchema,
   mailValidationSchema,
+  truemailSchema,
 } from '@/schemas/contracts/config/section/mail';
 import { augment } from '@/schemas/utils/augment';
+import { z } from 'zod';
 
 export {
   emailerSchema,
-  mailSchema,
-  truemailSchema,
+  emailProvidersSchema,
   mailConnectionSchema,
+  mailSchema,
   mailValidationSchema,
+  truemailSchema,
 };
 
+// These are independent TypeScript mirrors of ProviderRegistry. The Ruby
+// frontend-provider parity spec reads the generated schema and requires exact
+// agreement, including the non-provider delivery modes handled by Mailer.
+const emailDeliveryModeSchema = z.enum([
+  'ses',
+  'sendgrid',
+  'lettermint',
+  'smtp2go',
+  'smtp',
+  'logger',
+  'disabled',
+  'none',
+]);
+const emailSenderProviderSchema = z.enum(['ses', 'sendgrid', 'lettermint', 'smtp2go', 'smtp']);
+
 const emailerShape = augment(emailerSchema, {
-  mode: (s) => s.default('smtp'),
+  mode: () => emailDeliveryModeSchema.default('smtp'),
+  sender_provider: () => emailSenderProviderSchema.nullable().optional(),
   from: (s) => s.default('CHANGEME@example.com'),
   from_name: (s) => s.default('Support'),
   host: (s) => s.default('smtp.provider.com'),
   port: (n) => n.int().positive().default(587),
+});
+
+const emailProvidersShape = augment(emailProvidersSchema, {
+  ses: {
+    region: (s) => s.default('us-east-1'),
+    dkim_selector_count: (n) => n.int().positive().default(3),
+    spf_include: (s) => s.default('amazonses.com'),
+  },
+  sendgrid: {
+    subdomain: (s) => s.default('em'),
+    dkim_selectors: (a) => a.default(['s1', 's2']),
+    spf_include: (s) => s.default('sendgrid.net'),
+  },
+  lettermint: {
+    api_base_url: (s) => s.default('https://api.lettermint.co/v1'),
+    dkim_selectors: (a) => a.default(['lm1', 'lm2']),
+    spf_cname_prefix: (s) => s.default('lm-bounces'),
+    spf_cname_target: (s) => s.default('bounces.lmta.net'),
+  },
+  smtp2go: {
+    api_base_url: (s) => s.default('https://api.smtp2go.com/v3'),
+    returnpath_subdomain: (s) => s.default('bounce'),
+    tracking_subdomain: (s) => s.default('track'),
+    fastaccept: (b) => b.default(false),
+  },
 });
 
 const truemailShape = augment(truemailSchema, {
@@ -85,9 +129,12 @@ const mailValidationShape = augment(mailValidationSchema, {
 });
 
 export {
+  emailDeliveryModeSchema,
   emailerShape,
-  mailShape,
-  truemailShape,
+  emailProvidersShape,
+  emailSenderProviderSchema,
   mailConnectionShape,
+  mailShape,
   mailValidationShape,
+  truemailShape,
 };

@@ -39,13 +39,19 @@ module Onetime
     end
 
     # Whether billing is enabled
-    # Returns false if file doesn't exist or enabled is not true.
-    # ENV['BILLING_ENABLED'] overrides config when set ('true'/'false').
+    # Returns false if file doesn't exist or enabled is not set.
+    # ENV['BILLING_ENABLED'] overrides config whenever it is present —
+    # including when it is blank, which resolves to false (billing off)
+    # rather than falling back to the config file. Only an absent variable
+    # reaches the config key. Accepts the shared boolean token vocabulary
+    # (Utils::Strings::TRUTHY_VALUES/FALSEY_VALUES, case-insensitive); any
+    # other set value raises Onetime::ConfigError rather than silently
+    # disabling billing (BILLING_ENABLED=1 used to mean "off").
     def enabled?
       env_val = ENV.fetch('BILLING_ENABLED', nil)
-      return env_val == 'true' unless env_val.nil?
+      return Onetime::Utils::Strings.strict_bool!('BILLING_ENABLED', env_val, default: false) unless env_val.nil?
 
-      config['enabled'].to_s == 'true'
+      Onetime::Utils::Strings.strict_bool!("billing.yaml 'enabled'", config['enabled'], default: false)
     end
 
     # Stripe API key
@@ -142,16 +148,91 @@ module Onetime
     #
     # Deployment-level policy, not a per-checkout choice. Checks
     # ENV['STRIPE_AUTOMATIC_TAX'] first, then the config file key
-    # 'automatic_tax', mirroring checkout_host. 'true' and '1' enable it;
-    # any other value (or unset) is false.
+    # 'automatic_tax', mirroring checkout_host and enabled?. Accepts the
+    # shared boolean token vocabulary (case-insensitive). A blank ENV value
+    # resolves to false rather than falling back to the config file; only an
+    # absent variable reaches the config key. Any
+    # other set value raises Onetime::ConfigError — before this,
+    # STRIPE_AUTOMATIC_TAX=yes silently disabled tax collection on every
+    # checkout, which is a compliance exposure, not a default.
     #
     # Requires Stripe Tax to be configured in the Dashboard (Settings → Tax:
     # tax registrations + product tax codes) before enabling.
     def automatic_tax?
       raw = ENV.fetch('STRIPE_AUTOMATIC_TAX', nil)
-      raw = config['automatic_tax'] if raw.nil?
+      return Onetime::Utils::Strings.strict_bool!('STRIPE_AUTOMATIC_TAX', raw, default: false) unless raw.nil?
 
-      %w[true 1].include?(raw.to_s.strip.downcase)
+      Onetime::Utils::Strings.strict_bool!("billing.yaml 'automatic_tax'", config['automatic_tax'], default: false)
+    end
+
+    # Stripe payment method configuration ID (pmc_...).
+    #
+    # Pins checkout sessions to a specific payment method configuration
+    # rather than the Dashboard default. Checks
+    # ENV['STRIPE_PAYMENT_METHOD_CONFIGURATION'] first, then falls back
+    # to billing.yaml 'payment_method_configuration'.
+    #
+    # Leave unset to use the Dashboard default. Blank or whitespace-only
+    # values are treated as unset and return nil; a blank ENV value counts
+    # as explicitly unset and does not fall back to the billing.yaml key.
+    def payment_method_configuration
+      value = ENV.fetch('STRIPE_PAYMENT_METHOD_CONFIGURATION', nil) || config['payment_method_configuration']
+      value = value.to_s.strip
+      value.empty? ? nil : value
+    end
+
+    # Boot-time validation for the payment method configuration.
+    #
+    # Two deterministic local checks (ADR-033):
+    #
+    # 1. Raise when the resolved value does not look like a Stripe payment
+    #    method configuration ID (pmc_...). A typo or a pasted ID of the
+    #    wrong type (e.g. price_...) would otherwise surface as a Stripe
+    #    error at a customer's first checkout; failing the boot names the
+    #    offending source instead. Only the pmc_ prefix is checked —
+    #    Stripe may evolve the suffix charset. Whether the ID actually
+    #    exists is a remote-API question left to first use.
+    #
+    # 2. Warn (never raise) when the value is blank-but-set. A blank
+    #    ENV['STRIPE_PAYMENT_METHOD_CONFIGURATION'] is truthy through the
+    #    `||` in #payment_method_configuration, so it masks any
+    #    billing.yaml 'payment_method_configuration' value instead of
+    #    falling back to it — the pin is dropped and checkout reverts to
+    #    the Stripe Dashboard default. That is deliberate (blank ENV means
+    #    explicitly unset), but an operator who meant to paste a pmc_...
+    #    ID should hear about it at boot, not when a customer reaches
+    #    checkout. Reads the raw values because the accessor collapses
+    #    every blank case to nil. When the value resolves to a real pin,
+    #    no warning applies — checkout IS pinned, whatever a blank
+    #    lower-precedence source holds.
+    def validate_payment_method_configuration!
+      env_value  = ENV.fetch('STRIPE_PAYMENT_METHOD_CONFIGURATION', nil)
+      yaml_value = config['payment_method_configuration']
+      resolved   = payment_method_configuration
+
+      unless resolved.nil?
+        return if resolved.start_with?('pmc_')
+
+        # A blank ENV value never resolves (it collapses to nil above), so
+        # a non-nil resolved value came from ENV whenever ENV is set at all.
+        source = env_value.nil? ? "billing.yaml 'payment_method_configuration'" : 'STRIPE_PAYMENT_METHOD_CONFIGURATION'
+        raise Onetime::ConfigError,
+          "#{source} is #{resolved.inspect} — not a payment method configuration ID. " \
+          'Use a pmc_... ID (Stripe Dashboard → Settings → Payments → Payment methods), or leave unset.'
+      end
+
+      # Past here the value resolved to nil — the only cases worth a warning.
+      env_blank  = !env_value.nil? && env_value.to_s.strip.empty?
+      yaml_blank = !yaml_value.nil? && yaml_value.to_s.strip.empty?
+
+      if env_blank && !yaml_value.to_s.strip.empty?
+        OT.lw '[BillingConfig] STRIPE_PAYMENT_METHOD_CONFIGURATION is set but blank, masking ' \
+              "billing.yaml payment_method_configuration #{yaml_value.to_s.strip.inspect}; " \
+              'checkout will use the Stripe Dashboard default payment method configuration'
+      elsif env_blank || yaml_blank
+        OT.lw '[BillingConfig] payment_method_configuration is blank and treated as unset; ' \
+              'checkout will use the Stripe Dashboard default payment method configuration'
+      end
     end
 
     # Schema version

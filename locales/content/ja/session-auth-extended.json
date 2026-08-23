@@ -66,15 +66,15 @@
     "context": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md"
   },
   "web.auth.security.authentication_failed": {
-    "text": "認証に失敗しました。認証情報を確認してもう一度お試しください。",
+    "text": "認証に失敗しました。資格情報を確認してもう一度お試しください。",
     "source_hash": "b0eeece9"
   },
   "web.auth.security.rate_limited": {
-    "text": "試行回数が多すぎます。後でもう一度お試しください。",
+    "text": "試行回数が多すぎます。しばらくしてからもう一度お試しください。",
     "source_hash": "282db6f3"
   },
   "web.auth.security.session_expired": {
-    "text": "セッションが期限切れです。再度ログインしてください。",
+    "text": "セッションの有効期限が切れました。もう一度ログインしてください。",
     "source_hash": "f6f51186"
   },
   "web.auth.security.recovery_code_not_found": {
@@ -82,7 +82,7 @@
     "source_hash": "f5f1bd09"
   },
   "web.auth.security.recovery_code_used": {
-    "text": "このリカバリーコードは既に使用されています。各コードは1回のみ使用できます。",
+    "text": "このリカバリーコードはすでに使用されています。各コードは1回のみ使用できます。",
     "source_hash": "b51d6820"
   },
   "web.auth.security.network_error": {
@@ -107,7 +107,7 @@
     "source_hash": "ab2ba7db"
   },
   "web.auth.magicLink.title": {
-    "text": "メールでログイン",
+    "text": "メールでサインイン",
     "source_hash": "79a864df"
   },
   "web.auth.magicLink.description": {
@@ -115,7 +115,7 @@
     "source_hash": "5d75aeb0"
   },
   "web.auth.magicLink.emailPlaceholder": {
-    "text": "メールアドレスを入力",
+    "text": "メールを入力",
     "source_hash": "2837f6fa"
   },
   "web.auth.magicLink.sendLink": {
@@ -127,19 +127,19 @@
     "source_hash": "77322879"
   },
   "web.auth.magicLink.sentTo": {
-    "text": "{email}にログインリンクを送信しました",
+    "text": "ログインリンクを{email}に送信しました",
     "source_hash": "d9193f59"
   },
   "web.auth.magicLink.linkExpiresIn": {
-    "text": "このリンクは15分で期限切れになります",
+    "text": "このリンクは15分後に期限切れになります",
     "source_hash": "91b5f027"
   },
   "web.auth.magicLink.tryDifferentEmail": {
-    "text": "別のメールアドレスを試す",
+    "text": "別のメールを試す",
     "source_hash": "98657c0b"
   },
   "web.auth.magicLink.noPasswordNeeded": {
-    "text": "パスワード不要 - メール内のリンクをクリックするだけ",
+    "text": "パスワードは不要です。メール内のリンクをクリックするだけです",
     "source_hash": "5f539b97"
   },
   "web.auth.magicLink.networkError": {
@@ -151,7 +151,7 @@
     "source_hash": "4c685e97"
   },
   "web.auth.magicLink.invalidLink": {
-    "text": "無効またはログインリンクがありません",
+    "text": "無効または欠落しているログインリンク",
     "source_hash": "d726c0da"
   },
   "web.auth.magicLink.sessionExpired": {
@@ -163,7 +163,7 @@
     "source_hash": "c95b4875"
   },
   "web.auth.magicLink.signingYouIn": {
-    "text": "ログイン中...",
+    "text": "サインイン中...",
     "source_hash": "9d432ef1"
   },
   "web.auth.magicLink.pleaseWait": {
@@ -175,23 +175,23 @@
     "source_hash": "797b4f03"
   },
   "web.auth.magicLink.back_to_signin": {
-    "text": "ログインに戻る",
+    "text": "サインインに戻る",
     "source_hash": "ee9eb75e"
   },
   "web.auth.webauthn.signIn": {
-    "text": "Face ID / Touch IDでログイン",
+    "text": "Face ID / Touch IDでサインイン",
     "source_hash": "46f75469"
   },
   "web.auth.webauthn.setup": {
-    "text": "生体認証ログインを設定",
+    "text": "生体認証ログインをセットアップ",
     "source_hash": "7593dd46"
   },
   "web.auth.webauthn.notSupported": {
-    "text": "このブラウザでは生体認証がサポートされていません",
+    "text": "このブラウザでは生体認証はサポートされていません",
     "source_hash": "fe2a2c2b"
   },
   "web.auth.webauthn.requiresModernBrowser": {
-    "text": "WebAuthnをサポートする最新のブラウザ(Chrome、Safari、Firefox、またはEdge)をご使用ください",
+    "text": "WebAuthnをサポートする最新のブラウザ（Chrome、Safari、Firefox、またはEdge）を使用してください",
     "source_hash": "fd9752eb"
   },
   "web.auth.webauthn.setupSuccess": {
@@ -199,11 +199,11 @@
     "source_hash": "63407e97"
   },
   "web.auth.webauthn.setupFailed": {
-    "text": "生体認証ログインの設定に失敗しました",
+    "text": "生体認証ログインのセットアップに失敗しました",
     "source_hash": "290cca44"
   },
   "web.auth.webauthn.passwordRequired": {
-    "text": "パスキーを設定するにはパスワードが必要です",
+    "text": "パスキーをセットアップするにはパスワードが必要です",
     "source_hash": "085bb238"
   },
   "web.auth.webauthn.authFailed": {
@@ -219,11 +219,11 @@
     "source_hash": "1f6087c2"
   },
   "web.auth.webauthn.description": {
-    "text": "指紋、顔、またはセキュリティキーでログイン",
+    "text": "指紋、顔、またはセキュリティキーを使用してサインイン",
     "source_hash": "f02f0427"
   },
   "web.auth.webauthn.supportedMethods": {
-    "text": "Face ID、Touch ID、Windows Hello、セキュリティキーに対応",
+    "text": "Face ID、Touch ID、Windows Hello、セキュリティキーをサポート",
     "source_hash": "3ea1c1a2"
   },
   "web.auth.passkeys.title": {
@@ -267,7 +267,7 @@
     "source_hash": "67b1d47c"
   },
   "web.auth.passkeys.confirm_remove": {
-    "text": "このパスキーを削除してもよろしいですか?削除すると、このパスキーでサインインできなくなります。",
+    "text": "このパスキーを削除してもよろしいですか？これを使用してサインインできなくなります。",
     "context": "Confirmation message for passkey removal",
     "source_hash": "487ab72c"
   },
@@ -282,22 +282,22 @@
     "source_hash": "fbfb0713"
   },
   "web.auth.passkeys.no_passkeys": {
-    "text": "登録されたパスキーはありません",
+    "text": "パスキーが登録されていません",
     "context": "Empty state when no passkeys exist",
     "source_hash": "1d97fde4"
   },
   "web.auth.passkeys.no_passkeys_description": {
-    "text": "パスキーを追加して、パスワードを入力せずにより安全にサインインしましょう",
+    "text": "パスワードを入力せずにより安全にサインインするためにパスキーを追加してください",
     "context": "Description for empty state",
     "source_hash": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "パスキー名",
+    "text": "パスキー",
     "context": "Label for passkey name field",
-    "source_hash": "22eefa67"
+    "source_hash": "904c9aa9"
   },
   "web.auth.passkeys.created": {
-    "text": "作成日",
+    "text": "作成日時",
     "context": "Label for creation date",
     "source_hash": "d70b9e24"
   },
@@ -312,17 +312,17 @@
     "source_hash": "24d3236c"
   },
   "web.auth.passkeys.benefit_secure": {
-    "text": "パスワードより安全 - フィッシング攻撃に強い",
+    "text": "パスワードより安全 - フィッシング攻撃に耐性あり",
     "context": "Passkey benefit",
     "source_hash": "41afb6ec"
   },
   "web.auth.passkeys.benefit_fast": {
-    "text": "高速で簡単 - 指紋、顔認証、またはセキュリティキーを使用するだけ",
+    "text": "高速で簡単 - 指紋、顔、またはセキュリティキーを使用するだけ",
     "context": "Passkey benefit",
     "source_hash": "5a0ce96c"
   },
   "web.auth.passkeys.benefit_synced": {
-    "text": "プラットフォーム認証を使用すると、デバイス間で同期されます",
+    "text": "プラットフォーム認証機能を使用する場合、デバイス間で同期",
     "context": "Passkey benefit",
     "source_hash": "7480c7ae"
   },
@@ -332,11 +332,11 @@
     "source_hash": "c87ccdb4"
   },
   "web.auth.lockout.attempts_remaining": {
-    "text": "警告: ログイン試行回数が残り{count}回です",
+    "text": "警告: 残りログイン試行回数{count}回",
     "source_hash": "151dcb5e"
   },
   "web.auth.lockout.account_locked": {
-    "text": "ログイン失敗回数が多すぎるためアカウントがロックされました",
+    "text": "ログイン失敗が多すぎるため、アカウントがロックされました",
     "source_hash": "5247f389"
   },
   "web.auth.lockout.locked_until": {
@@ -356,7 +356,7 @@
     "context": "User's logged-in devices/browsers management page"
   },
   "web.auth.sessions.title": {
-    "text": "アクティブセッション",
+    "text": "アクティブなセッション",
     "source_hash": "b58fa4e0"
   },
   "web.auth.sessions.current": {
@@ -364,7 +364,7 @@
     "source_hash": "386c7932"
   },
   "web.auth.sessions.other": {
-    "text": "その他のセッション",
+    "text": "他のセッション",
     "source_hash": "8409f445"
   },
   "web.auth.sessions.device": {
@@ -384,7 +384,7 @@
     "source_hash": "b6dc1b95"
   },
   "web.auth.sessions.created": {
-    "text": "作成日",
+    "text": "作成日時",
     "source_hash": "d70b9e24"
   },
   "web.auth.sessions.remove": {
@@ -392,15 +392,15 @@
     "source_hash": "c3812fc4"
   },
   "web.auth.sessions.remove_all": {
-    "text": "他のすべてのセッションをログアウト",
+    "text": "他のすべてのセッションからログアウト",
     "source_hash": "412bb9e2"
   },
   "web.auth.sessions.confirm_remove": {
-    "text": "このセッションを削除してもよろしいですか?",
+    "text": "このセッションを削除してもよろしいですか？",
     "source_hash": "ef12c1ba"
   },
   "web.auth.sessions.confirm_remove_all": {
-    "text": "他のすべてのデバイスからログアウトします。よろしいですか?",
+    "text": "他のすべてのデバイスからログアウトされます。よろしいですか？",
     "source_hash": "4a1a73e9"
   },
   "web.auth.sessions.no_sessions": {
@@ -408,15 +408,15 @@
     "source_hash": "b83317f2"
   },
   "web.auth.sessions.removed_success": {
-    "text": "セッションを削除しました",
+    "text": "セッションが正常に削除されました",
     "source_hash": "6d27d44a"
   },
   "web.auth.sessions.removed_all_success": {
-    "text": "他のすべてのセッションをログアウトしました",
+    "text": "他のすべてのセッションがログアウトされました",
     "source_hash": "1b49e75c"
   },
   "web.auth.sessions.link_title": {
-    "text": "アクティブセッション",
+    "text": "アクティブなセッション",
     "source_hash": "b58fa4e0"
   },
   "web.auth.mfa.title": {
@@ -432,15 +432,15 @@
     "source_hash": "0af18e50"
   },
   "web.auth.mfa.enable": {
-    "text": "二要素認証を有効化",
+    "text": "二要素認証を有効にする",
     "source_hash": "9b83e658"
   },
   "web.auth.mfa.disable": {
-    "text": "二要素認証を無効化",
+    "text": "二要素認証を無効にする",
     "source_hash": "c9698815"
   },
   "web.auth.mfa.setup_title": {
-    "text": "二要素認証を設定",
+    "text": "二要素認証のセットアップ",
     "source_hash": "04e05601"
   },
   "web.auth.mfa.setup_description": {
@@ -456,15 +456,15 @@
     "source_hash": "59bba5f7"
   },
   "web.auth.mfa.scan_qr": {
-    "text": "認証アプリでこのQRコードをスキャン",
+    "text": "認証アプリでこのQRコードをスキャンしてください",
     "source_hash": "65752db3"
   },
   "web.auth.mfa.manual_entry": {
-    "text": "またはこのコードを手動で入力",
+    "text": "または、このコードを手動で入力してください",
     "source_hash": "3ea15b3e"
   },
   "web.auth.mfa.verify_code": {
-    "text": "アプリからの6桁のコードを入力",
+    "text": "アプリから6桁のコードを入力してください",
     "source_hash": "38f61733"
   },
   "web.auth.mfa.enter_code": {
@@ -472,7 +472,7 @@
     "source_hash": "186a582a"
   },
   "web.auth.mfa.verify": {
-    "text": "確認して有効化",
+    "text": "確認して有効にする",
     "source_hash": "7c08f68d"
   },
   "web.auth.mfa.verify_login": {
@@ -496,7 +496,7 @@
     "source_hash": "4fd6b4b4"
   },
   "web.auth.mfa.require_password": {
-    "text": "2FAを無効化するにはパスワードを入力",
+    "text": "2FAを無効にするにはパスワードを入力してください",
     "source_hash": "c384b93c"
   },
   "web.auth.mfa.password_confirmation": {
@@ -504,7 +504,7 @@
     "source_hash": "e7cf3ef4"
   },
   "web.auth.mfa.password_reason": {
-    "text": "二要素認証設定を変更するには本人確認が必要です",
+    "text": "二要素認証の設定を変更するために本人確認を行います",
     "source_hash": "09a96c07"
   },
   "web.auth.mfa.last_used": {
@@ -528,11 +528,11 @@
     "source_hash": "6fa090b4"
   },
   "web.auth.mfa.cancel": {
-    "text": "キャンセルしてログインに戻る",
+    "text": "キャンセルしてサインインに戻る",
     "source_hash": "83256742"
   },
   "web.auth.mfa.cancel_sign_in": {
-    "text": "ログインをキャンセル",
+    "text": "サインインをキャンセル",
     "source_hash": "1bebad2f"
   },
   "web.auth.mfa.loading_status": {
@@ -556,7 +556,7 @@
     "source_hash": "6ee8ab12"
   },
   "web.auth.mfa.benefit_recovery": {
-    "text": "緊急アクセス用のリカバリーコードをバックアップ",
+    "text": "緊急アクセス用のバックアップリカバリーコード",
     "source_hash": "747917bb"
   },
   "web.auth.mfa.password_placeholder": {
@@ -568,7 +568,7 @@
     "source_hash": "e4080e19"
   },
   "web.auth.mfa.disable_button": {
-    "text": "2FAを無効化",
+    "text": "2FAを無効にする",
     "source_hash": "1c3193f3"
   },
   "web.auth.mfa.generating_qr": {
@@ -580,15 +580,15 @@
     "source_hash": "a8eaef9d"
   },
   "web.auth.mfa.continue_verification": {
-    "text": "確認を続ける",
+    "text": "確認に進む",
     "source_hash": "4da96e87"
   },
   "web.auth.mfa.enter_code_description": {
-    "text": "認証アプリからの6桁のコードを入力",
+    "text": "認証アプリから6桁のコードを入力してください",
     "source_hash": "a160dee6"
   },
   "web.auth.mfa.enable_and_continue": {
-    "text": "MFAを有効化",
+    "text": "MFAを有効にする",
     "source_hash": "37c8090d"
   },
   "web.auth.mfa.complete_setup": {
@@ -596,7 +596,7 @@
     "source_hash": "30e87601"
   },
   "web.auth.mfa.enter_recovery_code": {
-    "text": "リカバリーコードの1つを入力",
+    "text": "リカバリーコードの1つを入力してください",
     "source_hash": "91ab44cf"
   },
   "web.auth.mfa.recovery_code_label": {
@@ -636,11 +636,11 @@
     "source_hash": "579c7f4e"
   },
   "web.auth.recovery_codes.description": {
-    "text": "これらのコードを安全な場所に保存してください。認証アプリにアクセスできなくなった場合、各コードを1回使用できます。",
+    "text": "これらのコードを安全な場所に保存してください。認証アプリにアクセスできなくなった場合、各コードは1回使用できます。",
     "source_hash": "87aebdfb"
   },
   "web.auth.recovery_codes.warning": {
-    "text": "これらのコードは一度だけ表示されます",
+    "text": "これらのコードは1回のみ表示されます",
     "source_hash": "d13f2877"
   },
   "web.auth.recovery_codes.save_required": {
@@ -656,7 +656,7 @@
     "source_hash": "aa652d21"
   },
   "web.auth.recovery_codes.generate_new_warning": {
-    "text": "これにより既存のすべてのリカバリーコードが無効になります",
+    "text": "これにより、既存のすべてのリカバリーコードが無効になります",
     "source_hash": "9795a175"
   },
   "web.auth.recovery_codes.download": {
@@ -664,7 +664,7 @@
     "source_hash": "9c23dbba"
   },
   "web.auth.recovery_codes.downloaded": {
-    "text": "リカバリーコードをダウンロードしました",
+    "text": "リカバリーコードがダウンロードされました",
     "source_hash": "10486340"
   },
   "web.auth.recovery_codes.print": {
@@ -676,11 +676,11 @@
     "source_hash": "ee956b2b"
   },
   "web.auth.recovery_codes.copied": {
-    "text": "コードをクリップボードにコピーしました",
+    "text": "コードがクリップボードにコピーされました",
     "source_hash": "06ebb466"
   },
   "web.auth.recovery_codes.copy_failed": {
-    "text": "コードのコピーに失敗しました",
+    "text": "コードをクリップボードにコピーできませんでした",
     "source_hash": "e8be6a51"
   },
   "web.auth.recovery_codes.code_used": {
@@ -692,7 +692,7 @@
     "source_hash": "231aedff"
   },
   "web.auth.recovery_codes.remaining": {
-    "text": "リカバリーコード: {limit}件中{count}件残り",
+    "text": "リカバリーコード残り{count}/{limit}",
     "source_hash": "b5d484e7"
   },
   "web.auth.recovery_codes.usage_hint": {
@@ -716,11 +716,11 @@
     "source_hash": "ce770667"
   },
   "web.auth.mfa.alternative_auth_options": {
-    "text": "別の認証方法",
+    "text": "代替認証オプション",
     "source_hash": "5ddea736"
   },
   "web.auth.remember.enabled": {
-    "text": "ログイン状態を保持する",
+    "text": "サインイン状態を維持",
     "source_hash": "b0a1ca80"
   },
   "web.auth.sessions.session_singular": {
@@ -730,5 +730,229 @@
   "web.auth.sessions.session_plural": {
     "text": "セッション",
     "source_hash": "1225ae6c"
+  },
+  "web.auth.connections.title": {
+    "text": "接続済みのID",
+    "source_hash": "e132c4d9"
+  },
+  "web.auth.connections.description": {
+    "text": "アカウントにリンクされたシングルサインオンプロバイダーを管理します。",
+    "source_hash": "42c6d148"
+  },
+  "web.auth.connections.section_title": {
+    "text": "シングルサインオン",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.section_subtitle": {
+    "text": "このアカウントへのサインインに使用できるIDプロバイダー",
+    "source_hash": "507254cd"
+  },
+  "web.auth.connections.connect_title": {
+    "text": "プロバイダーを接続",
+    "source_hash": "a002b3f3"
+  },
+  "web.auth.connections.connect_description": {
+    "text": "このアカウントへのサインインに使用できる別のシングルサインオンプロバイダーをリンクします。",
+    "source_hash": "32895a5a"
+  },
+  "web.auth.connections.connect_action": {
+    "text": "{provider}を接続",
+    "source_hash": "c77540af"
+  },
+  "web.auth.connections.issuer": {
+    "text": "発行者",
+    "source_hash": "39e02c46"
+  },
+  "web.auth.connections.identifier": {
+    "text": "識別子",
+    "source_hash": "9b10587f"
+  },
+  "web.auth.connections.remove": {
+    "text": "削除",
+    "source_hash": "c3812fc4"
+  },
+  "web.auth.connections.remove_confirm_title": {
+    "text": "接続済みのIDを削除",
+    "source_hash": "4e8ffe4c"
+  },
+  "web.auth.connections.remove_confirm_message": {
+    "text": "この接続済みのIDを削除してもよろしいですか？これを使用してサインインできなくなります。",
+    "source_hash": "64939c89"
+  },
+  "web.auth.connections.removed_success": {
+    "text": "接続済みのIDが削除されました",
+    "source_hash": "cf87daf3"
+  },
+  "web.auth.connections.no_identities": {
+    "text": "接続済みのIDがありません",
+    "source_hash": "5254048e"
+  },
+  "web.auth.connections.no_identities_description": {
+    "text": "このアカウントにはまだシングルサインオンプロバイダーがリンクされていません。",
+    "source_hash": "0f58d5d0"
+  },
+  "web.auth.connections.overview_status": {
+    "text": "シングルサインオン",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.errors.last_credential": {
+    "text": "これはサインインする唯一の方法です。ロックアウトされないように、まず別のプロバイダーを接続するか、設定→セキュリティからパスワードを設定してください。",
+    "source_hash": "3de8084d"
+  },
+  "web.auth.connections.errors.last_credential_sso_enforced": {
+    "text": "これはサインインする唯一の方法です。ロックアウトされないように、まず別のプロバイダーを接続してください。",
+    "source_hash": "eed7a50e"
+  },
+  "web.auth.connections.errors.not_found": {
+    "text": "その接続済みのIDが見つかりませんでした。すでに削除されている可能性があります。",
+    "source_hash": "cf2c7673"
+  },
+  "web.auth.connections.errors.unauthorized": {
+    "text": "セッションの有効期限が切れました。もう一度サインインしてください。",
+    "source_hash": "b529fce2"
+  },
+  "web.auth.connections.errors.generic": {
+    "text": "そのアクションを完了できませんでした。もう一度お試しください。",
+    "source_hash": "a0d4edc0"
+  },
+  "web.link_sso.title": {
+    "text": "サインイン方法をリンク",
+    "source_hash": "46339bac"
+  },
+  "web.link_sso.prompt": {
+    "text": "{provider}でサインインしました。これは既存のアカウント{email}と一致します。{provider}をリンクして続行するには、そのアカウントのパスワードを入力してください。",
+    "source_hash": "59da1c08"
+  },
+  "web.link_sso.password_label": {
+    "text": "パスワード",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.link_sso.password_placeholder": {
+    "text": "既存のパスワード",
+    "source_hash": "ad4e56da"
+  },
+  "web.link_sso.submit": {
+    "text": "リンクして続行",
+    "source_hash": "c969b759"
+  },
+  "web.link_sso.cancel": {
+    "text": "キャンセル",
+    "source_hash": "19766ed6"
+  },
+  "web.link_sso.unavailable_title": {
+    "text": "このリンクリクエストは期限切れです",
+    "source_hash": "b53c7e55"
+  },
+  "web.link_sso.unavailable_message": {
+    "text": "セキュリティ上の理由から、このサインイン方法をリンクするリクエストは無効になりました。既存のパスワードでサインインしてから、セキュリティ設定→接続済みのIDでこのプロバイダーを接続してください。",
+    "source_hash": "f7e349d1"
+  },
+  "web.link_sso.unavailable_action": {
+    "text": "サインインに進む",
+    "source_hash": "d398cd0a"
+  },
+  "web.link_sso.errors.invalid_password": {
+    "text": "パスワードがこのアカウントと一致しません。もう一度お試しください。",
+    "source_hash": "3259b4f5"
+  },
+  "web.link_sso.errors.invalid_token": {
+    "text": "このリンクリクエストは期限切れか、すでに使用されています。既存のパスワードでサインインしてから、アカウント設定からこのプロバイダーを接続してください。",
+    "source_hash": "541f9127"
+  },
+  "web.link_sso.errors.link_conflict": {
+    "text": "このサインイン方法をリンクできませんでした。アカウントが変更されたか、このプロバイダーがすでに別のアカウントにリンクされている可能性があります。既存のパスワードでサインインしてから、セキュリティ設定→接続済みのIDで接続を管理してください。",
+    "source_hash": "7b0e0d0e"
+  },
+  "web.link_sso.errors.link_rate_limited": {
+    "text": "パスワードの試行回数が多すぎます。数分待ってからもう一度お試しください。",
+    "source_hash": "a95e78cd"
+  },
+  "web.link_sso.errors.invalid_request": {
+    "text": "このリンクリクエストを処理できませんでした。SSOプロバイダーでもう一度サインインしてください。",
+    "source_hash": "053b9fc6"
+  },
+  "web.link_sso.errors.generic": {
+    "text": "アカウントをリンクできませんでした。もう一度お試しください。",
+    "source_hash": "f727c174"
+  },
+  "web.sso_link_confirm.title": {
+    "text": "アカウント接続の確認",
+    "source_hash": "ad80bfe7"
+  },
+  "web.sso_link_confirm.prompt": {
+    "text": "{provider}でサインインしました。これはアカウント{email}と一致します。{provider}をこのアカウントに接続してサインインを完了するには、確認してください。",
+    "source_hash": "6ff0d6cc"
+  },
+  "web.sso_link_confirm.submit": {
+    "text": "確認して接続",
+    "source_hash": "5cf663e6"
+  },
+  "web.sso_link_confirm.cancel": {
+    "text": "キャンセル",
+    "source_hash": "19766ed6"
+  },
+  "web.sso_link_confirm.unavailable_title": {
+    "text": "このリンクリクエストを完了できません",
+    "source_hash": "47abb784"
+  },
+  "web.sso_link_confirm.unavailable_message": {
+    "text": "セキュリティ上の理由から、このサインイン方法を接続するリクエストは無効になりました。プロバイダーで再度サインインすると、新しいリンクをメールで送信します。",
+    "source_hash": "080e6f9f"
+  },
+  "web.sso_link_confirm.unavailable_action": {
+    "text": "サインインに戻る",
+    "source_hash": "8504054f"
+  },
+  "web.sso_link_confirm.errors.link_expired": {
+    "text": "このリンクリクエストは期限切れか、すでに使用されています。プロバイダーで再度サインインすると、新しいリンクをメールで送信します。",
+    "source_hash": "a50538df"
+  },
+  "web.sso_link_confirm.errors.link_conflict": {
+    "text": "このサインイン方法を接続できませんでした。アカウントが変更されたか、このプロバイダーがすでに別のアカウントにリンクされている可能性があります。続行するにはプロバイダーで再度サインインしてください。",
+    "source_hash": "c954854b"
+  },
+  "web.sso_link_confirm.errors.link_invalidated": {
+    "text": "このリンクが送信された後にアカウントの資格情報が変更されたため、リンクは無効になりました。プロバイダーで再度サインインすると、新しいリンクをメールで送信します。",
+    "source_hash": "db88cb1d"
+  },
+  "web.sso_link_confirm.errors.link_error": {
+    "text": "このリンクを確認できませんでした。プロバイダーで再度サインインすると、新しいリンクをメールで送信します。",
+    "source_hash": "ec24e0a1"
+  },
+  "web.sso_link_confirm.errors.confirm_rate_limited": {
+    "text": "デバイスからの試行回数が多すぎます。数分待ってから、メールで送信されたリンクを再度開くか、プロバイダーでサインインして新しいリンクを取得してください。",
+    "source_hash": "f29af782"
+  },
+  "web.sso_link_confirm.errors.generic": {
+    "text": "この接続を確認できませんでした。プロバイダーで再度サインインしてください。",
+    "source_hash": "076fa25a"
+  },
+  "web.auth.mfa.passkey_mode_active": {
+    "text": "パスキーモードがアクティブ",
+    "source_hash": "824dceb6"
+  },
+  "web.auth.mfa.passkey_prompt": {
+    "text": "パスキーで本人確認を行います。お使いのデバイスで指紋、顔認証、またはセキュリティキーの入力を求められます。",
+    "source_hash": "c0b0cbbc"
+  },
+  "web.auth.mfa.verify_with_passkey": {
+    "text": "パスキーで確認",
+    "source_hash": "4f105a30"
+  },
+  "web.auth.mfa.use_passkey": {
+    "text": "代わりにパスキーを使用",
+    "source_hash": "bd6430a4"
+  },
+  "web.auth.passkeys.remove_failed": {
+    "text": "パスキーを削除できませんでした",
+    "source_hash": "3e131515"
+  },
+  "web.auth.passkeys.load_failed": {
+    "text": "パスキーを読み込めませんでした",
+    "source_hash": "8d704e00"
+  },
+  "web.auth.webauthn.emailRequired": {
+    "text": "パスキーでサインインするには、メールアドレスを入力してください",
+    "source_hash": "7f07647f"
   }
 }

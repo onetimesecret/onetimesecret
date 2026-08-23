@@ -4,6 +4,7 @@
 
 require 'onetime/logic/base'
 require_relative '../../auth/operations/create_default_workspace'
+require_relative '../lib/checkout_target_resolver'
 
 module Billing
   module Logic
@@ -243,7 +244,13 @@ module Billing
       class ProcessCheckoutSession < Onetime::Logic::Base
         include Onetime::LoggerMethods
 
-        attr_reader :session_id, :checkout_session, :subscription, :target_organization
+        LOG_LABEL = '[ProcessCheckoutSession]'
+
+        attr_reader :session_id,
+          :checkout_session,
+          :subscription,
+          :stripe_customer_id,
+          :target_organization
 
         def process_params
           @session_id = params['session_id']
@@ -257,20 +264,45 @@ module Billing
             raise_form_error 'Invalid checkout session ID format'
           end
 
+          # Only the subscription is expanded. Expanding `customer` turned
+          # checkout_session.customer into a Stripe::Customer, and
+          # Billing::CheckoutTargetResolver requires a 'cus_' String — so its
+          # step 2 (prior-binding lookup) and the stripe_claim_fields
+          # unique-index claim silently never applied on this surface.
           @checkout_session = Stripe::Checkout::Session.retrieve(
             {
               id: session_id,
-              expand: %w[subscription customer],
+              expand: %w[subscription],
             },
           )
           raise_form_error 'Invalid checkout session' unless checkout_session
 
           @subscription = checkout_session.subscription
           # NOTE: subscription may be nil for one-time payments
+
+          # Normalize at the retrieve boundary, not at each call site: the
+          # resolver's strict String contract is what caught the expanded-object
+          # bug and stays strict, so exactly one place in this class is allowed
+          # to hold a Stripe-shaped customer.
+          @stripe_customer_id = extract_stripe_customer_id(checkout_session.customer)
         end
 
         def process
           return success_data unless subscription
+
+          # Fail closed HERE, not in raise_concerns: raise_concerns runs before
+          # we know the session's mode, and one-time payments legitimately have
+          # no billing workspace to bind (they return above). Past this line the
+          # subscription branch is taken, and every path below it either
+          # resolves or CREATES an organization — so an unidentifiable Stripe
+          # customer must stop the request rather than mint a workspace with no
+          # claim on it, which is what silently disables replay resolution and
+          # the concurrent-creation election.
+          unless stripe_customer_id&.start_with?('cus_')
+            billing_logger.error "#{LOG_LABEL} Checkout session has no valid Stripe customer",
+              session_id: session_id
+            raise_form_error 'Checkout session has no valid Stripe customer'
+          end
 
           metadata        = subscription.metadata
           customer_extid  = metadata['customer_extid']
@@ -324,68 +356,70 @@ module Billing
 
         # Find the target organization for this checkout
         #
-        # Priority:
-        # 1. orgid from subscription metadata (explicit org that initiated checkout)
-        # 2. Org already linked to this Stripe customer (idempotent replay)
-        # 3. Customer's default org (legacy/fallback)
-        # 4. Create new default org (shouldn't happen in normal flow)
+        # Steps 1-3 (resolve an EXISTING org) live in
+        # Billing::CheckoutTargetResolver, shared with the
+        # checkout.session.completed webhook handler, which processes the same
+        # checkout and must not disagree about its target. That shared module
+        # also documents why ownership is required at step 3 and nowhere else,
+        # and why archived status is rejected at step 1 but not at step 2.
+        # Step 4 — what to create when nothing resolves — stays here because
+        # the two handlers genuinely differ (see below).
         #
         # @param customer [Onetime::Customer] The customer
         # @param metadata [Stripe::StripeObject] Subscription metadata
         # @return [Onetime::Organization] The target organization
         def find_target_organization(customer, metadata)
-          # 1. Explicit org from metadata (most reliable - set during checkout creation)
-          orgid = metadata['orgid']
-          if orgid
-            org = Onetime::Organization.load(orgid)
-            if org
-              OT.info '[ProcessCheckoutSession] Found org from subscription metadata',
-                { orgid: orgid, extid: org.extid }
-              return org
-            end
-            billing_logger.warn '[ProcessCheckoutSession] orgid in metadata not found', orgid: orgid
-          end
-
-          # 2. Org already linked to Stripe customer (idempotent replay case)
-          stripe_customer_id = checkout_session&.customer
-          if stripe_customer_id.is_a?(String) && stripe_customer_id.start_with?('cus_')
-            org = Onetime::Organization.find_by_stripe_customer_id(stripe_customer_id)
-            if org
-              OT.info '[ProcessCheckoutSession] Found org by stripe_customer_id',
-                { stripe_customer_id: stripe_customer_id, extid: org.extid }
-              return org
-            end
-          end
-
-          # 3. Customer's default org (fallback for legacy checkouts)
-          orgs = customer.organization_instances.to_a.reject(&:archived?)
-
-          if customer.default_org_id.to_s.length.positive?
-            explicit = orgs.find { |o| o.objid == customer.default_org_id }
-            if explicit
-              OT.info '[ProcessCheckoutSession] Using customer default_org_id (fallback)',
-                { extid: explicit.extid }
-              return explicit
-            end
-          end
-
-          org = orgs.find { |o| o.is_default }
-          if org
-            OT.info '[ProcessCheckoutSession] Using customer default org (fallback)',
-              { extid: org.extid }
-            return org
-          end
-
-          # 4. Create default org (self-healing fallback - shouldn't happen, checkout requires org context)
-          # See: apps/web/auth/operations/create_default_workspace.rb
-          billing_logger.warn '[ProcessCheckoutSession] Creating default org during checkout (unexpected)',
-            extid: customer.extid
-          Onetime::Organization.create!(
-            "#{customer.email}'s Workspace",
-            customer,
-            customer.email,
-            is_default: true,
+          org = ::Billing::CheckoutTargetResolver.resolve(
+            customer: customer,
+            metadata: metadata,
+            stripe_customer_id: stripe_customer_id,
+            logger: billing_logger,
+            label: LOG_LABEL,
           )
+          return org if org
+
+          # 4. Create (self-healing fallback — no owned, live org to apply this
+          # paid subscription to).
+          #
+          # Divergence from the webhook twin, which tries
+          # Auth::Operations::CreateDefaultWorkspace first for its pending
+          # federated-subscription claim. This path has never called it and
+          # that difference is NOT deliberate — see the FEDERATION GAP note on
+          # CheckoutCompleted#find_target_organization. Unifying it changes
+          # federation behaviour on this surface and is out of scope here.
+          billing_logger.warn "#{LOG_LABEL} Creating default org during checkout (unexpected)",
+            extid: customer.extid
+          ::Billing::CheckoutTargetResolver.create_billing_workspace(
+            customer,
+            logger: billing_logger,
+            label: LOG_LABEL,
+            stripe_customer_id: stripe_customer_id,
+          )
+        end
+
+        # The checkout's Stripe customer as a plain id.
+        #
+        # Stripe hands this field back in two shapes depending on the request:
+        # a 'cus_' String, or a Stripe::Customer when the caller expands it.
+        # Nothing here expands it any more, but fixtures, an API-version change
+        # or a future caller can reintroduce the object, so both are accepted.
+        #
+        # Anything else returns nil on purpose. to_s-ing an unknown object
+        # manufactures a claim string that is not a Stripe customer id, which
+        # would take the unique index under a bogus value instead of failing.
+        #
+        # The webhook twin (WebhookHandlers::CheckoutCompleted) needs no such
+        # extractor: it reads event.data.object.customer from the delivered
+        # payload, which Stripe never expands, so it is always a String there.
+        # Hoisting this to Billing:: would be shared code for one caller.
+        #
+        # @param customer [String, Stripe::Customer, nil]
+        # @return [String, nil]
+        def extract_stripe_customer_id(customer)
+          case customer
+          when String then customer
+          when Stripe::Customer then customer.id
+          end
         end
       end
     end

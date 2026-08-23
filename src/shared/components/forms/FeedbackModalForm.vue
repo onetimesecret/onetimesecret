@@ -161,10 +161,6 @@ import { storeToRefs } from 'pinia';
         type="hidden"
         name="tz"
         :value="userTimezone" />
-      <input
-        type="hidden"
-        name="version"
-        :value="ot_version_long" />
       <!-- prettier-ignore-attribute class -->
       <button
         type="submit"
@@ -204,7 +200,9 @@ import { storeToRefs } from 'pinia';
         <li>
           • {{ t('web.account.timezone') }}: {{ userTimezone }}
         </li>
-        <li>
+        <!-- Version is stamped server-side; only listed when this client
+             actually knows it (authenticated sessions). -->
+        <li v-if="ot_version_long">
           • {{ t('web.site.website_version') }}: {{ ot_version_long }}
         </li>
       </ul>

@@ -565,6 +565,55 @@ describe('useSsoConfig', () => {
         })
       );
     });
+
+    // #4107: the Connection active toggle writes formState.enabled, and
+    // saveConfig must carry it to the API — this field had NO UI writer after
+    // 7326689cdc, stranding every saved config at enabled=false. saveConfig
+    // builds ONE payload for both create (PUT) and update (PATCH);
+    // SsoService.saveConfigForDomain picks the verb, so the two tests below
+    // differ only in the initialized record (null vs existing).
+    it('includes enabled: true in the save payload (create path — #4107)', async () => {
+      mockGetConfigForDomain.mockResolvedValue({ record: null });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      composable.formState.value = {
+        ...composable.formState.value,
+        display_name: 'New SSO',
+        client_id: 'client-id',
+        client_secret: 'secret-value',
+        tenant_id: 'tenant-id',
+        enabled: true,
+      };
+
+      await composable.saveConfig();
+
+      expect(mockSaveConfigForDomain).toHaveBeenCalledWith(
+        'dm-ext-123',
+        expect.objectContaining({ enabled: true })
+      );
+    });
+
+    it('sends enabled: false explicitly on update — not dropped as falsy (#4107)', async () => {
+      // Existing config with enabled: true; admin turns the connection off.
+      mockGetConfigForDomain.mockResolvedValue({ record: mockSsoConfigData });
+      const composable = useSsoConfig('dm-ext-123');
+      await composable.initialize();
+
+      composable.formState.value = {
+        ...composable.formState.value,
+        enabled: false,
+      };
+
+      await composable.saveConfig();
+
+      // The literal false must ride along: a truthiness-guarded payload
+      // builder would omit it and the record would stay enabled.
+      expect(mockSaveConfigForDomain).toHaveBeenCalledWith(
+        'dm-ext-123',
+        expect.objectContaining({ enabled: false })
+      );
+    });
   });
 
   // ---------------------------------------------------------------------------

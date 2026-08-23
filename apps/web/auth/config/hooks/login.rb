@@ -4,6 +4,31 @@
 
 module Auth::Config::Hooks
   module Login
+    # Pick the completion ROUTE (no mount prefix) for an MFA-required JSON
+    # response. OTP keeps precedence when configured (established UX; the
+    # otp-auth page also hosts recovery-code entry, which is why the
+    # recovery-codes-only fallthrough lands there too). The webauthn route is
+    # chosen whenever a passkey is available and OTP is not — INCLUDING the
+    # common [:webauthn, :recovery_codes] shape (recovery codes are
+    # auto-minted on passkey registration when AUTH_MFA_ENABLED=true, via
+    # Rodauth's add_webauthn_credential + auto_add_recovery_codes?), where an
+    # OTP URL would point at a factor the account cannot satisfy.
+    #
+    # The after_login caller gates each factor on its feature being loaded, so
+    # the route argument matching the returned branch is always non-nil there.
+    # Module function (not hook-closure logic) so it is unit-testable.
+    #
+    # @param decision [Auth::Operations::DetectMfaRequirement::Decision]
+    # @param otp_route [String, nil] otp_auth_route when the OTP feature is loaded
+    # @param webauthn_route [String, nil] webauthn_auth_route when webauthn is loaded
+    # @return [String] the route segment to append to the auth mount prefix
+    def self.mfa_auth_route(decision, otp_route:, webauthn_route:)
+      return otp_route if decision.has_otp?
+      return webauthn_route if decision.has_webauthn?
+
+      otp_route # recovery-codes-only: entry lives on the OTP verify page
+    end
+
     def self.configure(auth) # rubocop:disable Metrics/PerceivedComplexity
       #
       # Hook: Before Login Attempt
@@ -116,15 +141,61 @@ module Auth::Config::Hooks
           end
         end
 
-        # MFA detection: only run if the OTP feature is actually loaded.
-        # MFA features are conditionally enabled via Onetime.auth_config.mfa_enabled?
-        # in config.rb, so otp_auth_route and related methods may not exist.
+        # MFA detection: run when ANY second-factor feature is loaded. The OTP
+        # methods exist only when AUTH_MFA_ENABLED=true (config.rb); the
+        # webauthn methods only when AUTH_WEBAUTHN_ENABLED=true. WebAuthn is a
+        # second factor in its own right (the webauthn feature transitively
+        # enables two_factor_base), so a webauthn-only deployment must reach
+        # this branch too — everything below stays nil-safe for the
+        # missing-OTP case (otp_auth_route is only called when an OTP-family
+        # method is among the decision's methods).
         mfa_decision = nil
 
-        if respond_to?(:otp_auth_route)
-          # Step 1: Check MFA configuration state from database
-          # This queries the database directly for account_otp_keys and account_recovery_codes
+        otp_loaded      = respond_to?(:otp_auth_route)
+        recovery_loaded = respond_to?(:recovery_auth_route)
+        webauthn_loaded = respond_to?(:webauthn_auth_route)
+
+        # Was the FIRST factor of this login a passkey? POST /auth/webauthn-login
+        # calls login('webauthn'), whose login_session sets authenticated_by to
+        # ['webauthn'] immediately before this hook fires (gem webauthn_login.rb;
+        # with webauthn_login_user_verification_additional_factor? it may already
+        # be ['webauthn', 'webauthn-verification']). Second-factor webauthn
+        # completion appends to authenticated_by via two_factor_authenticate
+        # WITHOUT re-firing after_login, so 'webauthn' here can only mean the
+        # PRIMARY credential of this very login.
+        webauthn_first_factor = !!(respond_to?(:authenticated_by) &&
+                                   authenticated_by&.include?('webauthn'))
+
+        # Align Rodauth's own two-factor state with the policy that a passkey
+        # login is FULLY authenticated. Without this, an account that also has a
+        # password/OTP (possible_authentication_methods >= 2) is left
+        # two_factor_partially_authenticated? after a passkey login, and
+        # Rodauth-internal routes (change-password, webauthn-setup, ...) wall it
+        # behind a second factor it may be unable to complete — webauthn-auth
+        # rejects re-use of the login type. This mirrors what Rodauth itself does
+        # natively when webauthn_login_user_verification_additional_factor? is on
+        # and the authenticator reported user verification (same auth type
+        # string, same session keys); we extend it to the non-UV residual case
+        # deliberately: possession + local gesture is the accepted bar.
+        if webauthn_first_factor && !two_factor_authenticated? && uses_two_factor_authentication?
+          two_factor_update_session('webauthn-verification')
+        end
+
+        if otp_loaded || webauthn_loaded
+          # Step 1: Check MFA configuration state from database.
+          # Queries account_otp_keys, account_recovery_codes, and
+          # account_webauthn_keys directly — the tables exist in the migration
+          # regardless of which features are loaded, so this is always safe.
           mfa_state = Auth::Operations::MfaStateChecker.new(db).check(account_id)
+
+          # Only count factors whose completion route is actually loaded: a
+          # factor the user cannot complete must never gate the login. OTP
+          # rows with AUTH_MFA_ENABLED=false get the same no-MFA outcome as
+          # before (when this branch was skipped entirely); webauthn rows with
+          # AUTH_WEBAUTHN_ENABLED=false likewise do not gate.
+          has_otp      = otp_loaded && mfa_state.has_otp_secret
+          has_recovery = recovery_loaded && mfa_state.has_recovery_codes
+          has_webauthn = webauthn_loaded && mfa_state.has_webauthn
 
           Auth::Logging.log_auth_event(
             :mfa_state_checked,
@@ -132,20 +203,26 @@ module Auth::Config::Hooks
             account_id: account_id,
             has_otp: mfa_state.has_otp_secret,
             has_recovery: mfa_state.has_recovery_codes,
+            has_webauthn: mfa_state.has_webauthn,
             mfa_enabled: mfa_state.mfa_enabled?,
             via_omniauth: via_omniauth,
+            via_webauthn_login: webauthn_first_factor,
             correlation_id: correlation_id,
           )
 
           # Step 2: Make MFA requirement decision (pure function, no side effects)
           # This accepts only primitive data and returns an immutable decision object.
           # SSO logins (via_omniauth: true) bypass MFA — the IdP is trusted to
-          # handle authentication factors.
+          # handle authentication factors. Passkey-first logins
+          # (via_webauthn_login: true) bypass MFA — the credential just used IS
+          # a second factor, and re-demanding it would loop (see the op's doc).
           mfa_decision = Auth::Operations::DetectMfaRequirement.call(
             account_id: account_id,
-            has_otp_secret: mfa_state.has_otp_secret,
-            has_recovery_codes: mfa_state.has_recovery_codes,
+            has_otp_secret: has_otp,
+            has_recovery_codes: has_recovery,
+            has_webauthn: has_webauthn,
             via_omniauth: via_omniauth,
+            via_webauthn_login: webauthn_first_factor,
           )
         end
 
@@ -171,10 +248,23 @@ module Auth::Config::Hooks
             correlation_id: correlation_id,
           )
 
-          # For JSON mode, indicate MFA is required and provide auth URL
+          # For JSON mode, indicate MFA is required and provide auth URL.
+          # Route selection lives in Login.mfa_auth_route (unit-tested): OTP
+          # keeps precedence when configured; webauthn wins otherwise — even
+          # combined with auto-minted recovery codes. The URL is prefixed with
+          # the app's mount point (SCRIPT_NAME, '/auth' via the registry's
+          # Rack::URLMap) so the client receives a request-able path, not a
+          # bare route segment. (The SPA currently routes to /mfa-verify
+          # itself and ignores this field — keep it truthful anyway.)
           if json_request?
+            mfa_route = Auth::Config::Hooks::Login.mfa_auth_route(
+              mfa_decision,
+              otp_route: otp_loaded ? otp_auth_route : nil,
+              webauthn_route: webauthn_loaded ? webauthn_auth_route : nil,
+            )
+
             json_response[:mfa_required] = true
-            json_response[:mfa_auth_url] = "/#{otp_auth_route}"
+            json_response[:mfa_auth_url] = "#{request.script_name}/#{mfa_route}"
             json_response[:mfa_methods]  = mfa_decision.mfa_methods
 
             Auth::Logging.log_auth_event(
@@ -245,8 +335,10 @@ module Auth::Config::Hooks
 
           # Best-effort new-sign-in security alert for password-only logins.
           # MFA logins fire this from after_two_factor_authentication instead,
-          # so each completed login produces exactly one alert. No geo-IP
-          # service is wired, so the request IP is the best available location.
+          # so each completed login produces exactly one alert. Location is the
+          # country Otto's IPPrivacyMiddleware resolved
+          # (env['otto.privacy.geo_country']), falling back to the already-masked
+          # client IP — never the raw request IP (#3989).
           Onetime::ErrorHandler.safe_execute('new_login_alert_email', account_id: account_id) do
             recipient = Onetime::Customer.find_by_email(account[:email])
             # Customers default locale to "" (matches Redis string load), which is
@@ -258,7 +350,10 @@ module Auth::Config::Hooks
               {
                 email_address: account[:email],
                 device_info: request.user_agent || 'Unknown device',
-                location: request.ip,
+                location: Auth::Operations::ResolveLoginLocation.call(
+                  geo_country: request.env['otto.privacy.geo_country'],
+                  masked_ip: request.env['otto.client_ip'],
+                ),
                 login_at: Time.now.utc.iso8601,
                 locale: locale,
               },

@@ -221,6 +221,16 @@ module AccountAPI::Logic
         display_domain
       end
 
+      # Classification hook for SignupConfigResolution's read-failure path
+      # (#4157). Same value the controller gate uses — Logic::Base lifts it
+      # from the strategy result's metadata, which DomainStrategy populated —
+      # so autoverify resolution and the gate carve out the same operator
+      # hosts. Without this the mixin's fail-closed default (nil) would 503
+      # canonical sign-ups on any Redis blip during process_params.
+      def signup_config_domain_strategy
+        domain_strategy
+      end
+
       def signup_config_auth_setting(key)
         site.dig('authentication', key)
       end

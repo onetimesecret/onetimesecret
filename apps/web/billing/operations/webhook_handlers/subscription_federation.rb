@@ -6,6 +6,7 @@ require 'onetime/utils/email_hash'
 require_relative '../../metadata'
 require_relative '../../models/pending_federated_subscription'
 require_relative '../apply_subscription_to_org'
+require_relative 'federation_support'
 
 module Billing
   module Operations
@@ -32,6 +33,7 @@ module Billing
       #
       module SubscriptionFederation
         include Onetime::LoggerMethods
+        include FederationSupport
 
         private
 
@@ -236,7 +238,19 @@ module Billing
 
           unless found_any
             # No account exists yet - store for future matching
-            store_pending_federation(email_hash, subscription, stripe_customer)
+            pending = store_pending_federation(email_hash, subscription, stripe_customer)
+
+            # Storing a pending record is a deferral, not a resolution: nothing
+            # is upgraded until an account shows up in this region (and nothing
+            # ever will if the hash is missing, which is what pending_stored
+            # false records here). Log it so the deferral is greppable.
+            log_federation_no_match(
+              subscription: subscription,
+              reason: FederationSupport::REASON_NO_ORG_MATCH,
+              email_hash: email_hash,
+              pending_stored: !pending.nil?,
+            )
+
             return :pending_stored
           end
 

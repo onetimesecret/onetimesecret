@@ -3,8 +3,10 @@
 # frozen_string_literal: true
 
 require 'date'
+require 'onetime/mail/provider_registry'
 require 'onetime/mail/feedback/ses'
 require 'onetime/mail/feedback/lettermint'
+require 'onetime/mail/feedback/smtp2go'
 require 'onetime/operations/email/error_scrub'
 
 module Onetime
@@ -15,9 +17,9 @@ module Onetime
       # Picks the provider via Mailer.determine_provider (one deployment runs one
       # transport — this is NOT a cross-provider matrix), builds the matching
       # feedback fetcher from Mailer.provider_credentials, and returns a
-      # fail-soft Result. Only `ses` and `lettermint` are live providers (they
-      # have a pull API); every other transport (logger/smtp/sendgrid/disabled)
-      # returns capability=false.
+      # fail-soft Result. Only `ses`, `lettermint` and `smtp2go` are live
+      # providers (they have a pull API); every other transport
+      # (logger/smtp/sendgrid/disabled) returns capability=false.
       #
       # Fail-soft contract: this op MUST NEVER raise. Provider-determination,
       # fetcher construction (lazily memoized — it raises on the FIRST call, not
@@ -31,7 +33,8 @@ module Onetime
       # testable without live credentials.
       class ProviderStatus
         # Providers with a pollable status API. Anything else → capability false.
-        PROVIDERS = %w[ses lettermint].freeze
+        # Derived from Mail::ProviderRegistry (descriptor.feedback).
+        PROVIDERS = Onetime::Mail::ProviderRegistry.feedback_providers.freeze
 
         # Fixed stats window (30 days). A selectable window (?days=) is deferred.
         WINDOW_DAYS = 30
@@ -49,7 +52,14 @@ module Onetime
         LETTERMINT_NO_COMPLAINTS_NOTE =
           'Lettermint /stats does not report complaints; complaint rate is unavailable.'
 
-        Result = Data.define(:provider, :capability, :available, :error, :ses, :lettermint)
+        # Marker set on the SMTP2GO block: /stats/email_summary is provider-
+        # computed over the CURRENT BILLING CYCLE (no date-range parameter),
+        # so its window is the cycle, not the fixed WINDOW_DAYS the
+        # Lettermint block uses.
+        SMTP2GO_CYCLE_NOTE =
+          'SMTP2GO /stats/email_summary reports the current billing cycle, not a fixed 30-day window.'
+
+        Result = Data.define(:provider, :capability, :available, :error, :ses, :lettermint, :smtp2go)
 
         def initialize(provider: nil, fetcher: nil)
           @provider = resolve_provider(provider)
@@ -63,6 +73,7 @@ module Onetime
           case @provider
           when 'ses'        then ses_status
           when 'lettermint' then lettermint_status
+          when 'smtp2go'    then smtp2go_status
           end
         rescue StandardError => ex
           degraded(ErrorScrub.scrub(ex))
@@ -85,6 +96,7 @@ module Onetime
           case @provider
           when 'ses'        then Onetime::Mail::Feedback::SES.new(creds)
           when 'lettermint' then Onetime::Mail::Feedback::Lettermint.new(creds)
+          when 'smtp2go'    then Onetime::Mail::Feedback::Smtp2go.new(creds)
           end
         end
 
@@ -101,6 +113,7 @@ module Onetime
               rate_note: SES_RATE_NOTE,
             ),
             lettermint: nil,
+            smtp2go: nil,
           )
         rescue StandardError => ex
           degraded(ErrorScrub.scrub(ex))
@@ -137,9 +150,50 @@ module Onetime
               # rather than let an operator read it as zero.
               rate_note: (LETTERMINT_NO_COMPLAINTS_NOTE if stats[:spam_complaints].nil?),
             },
+            smtp2go: nil,
           )
         rescue StandardError => ex
           degraded(ErrorScrub.scrub(ex))
+        end
+
+        def smtp2go_status
+          stats = fetcher.stats
+          Result.new(
+            provider: @provider,
+            capability: true,
+            available: true,
+            error: nil,
+            ses: nil,
+            lettermint: nil,
+            smtp2go: {
+              cycle_start: stats[:cycle_start],
+              cycle_end: stats[:cycle_end],
+              cycle_used: stats[:cycle_used],
+              cycle_remaining: stats[:cycle_remaining],
+              cycle_max: stats[:cycle_max],
+              email_count: stats[:email_count],
+              bounce_rejects: stats[:bounce_rejects],
+              softbounces: stats[:softbounces],
+              hardbounces: stats[:hardbounces],
+              spam_rejects: stats[:spam_rejects],
+              unsubscribes: stats[:unsubscribes],
+              # Provider-reported percentages converted to the ratio unit the
+              # other provider blocks carry (5.5% → 0.055); nil (not reported)
+              # passes through so the UI can render "—" honestly.
+              rate_bounce: percent_rate(stats[:bounce_percent]),
+              rate_complaint: percent_rate(stats[:spam_percent]),
+              rate_note: SMTP2GO_CYCLE_NOTE,
+            },
+          )
+        rescue StandardError => ex
+          degraded(ErrorScrub.scrub(ex))
+        end
+
+        # A provider-reported percentage as a 0..1 ratio; nil passes through.
+        def percent_rate(percent)
+          return nil if percent.nil?
+
+          percent.to_f / 100.0
         end
 
         def rate(numerator, denominator)
@@ -165,6 +219,7 @@ module Onetime
             error: nil,
             ses: nil,
             lettermint: nil,
+            smtp2go: nil,
           )
         end
 
@@ -176,6 +231,7 @@ module Onetime
             error: message.to_s,
             ses: nil,
             lettermint: nil,
+            smtp2go: nil,
           )
         end
       end

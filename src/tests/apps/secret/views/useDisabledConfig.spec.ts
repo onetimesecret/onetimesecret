@@ -76,6 +76,10 @@ interface SetupOptions {
   /** Tenant-uploaded logo URL (bootstrap.domain_logo — the backend-computed
    *  /imagine URL identityStore surfaces as logoUri). */
   tenantLogo?: string | null;
+  /** Tenant dark-theme logo (BrandSettings.logo_dark_url on the identity
+   *  brand). Pairs with the tenant logo on the identity axis. Requires
+   *  brandDescription so the parsed brand object exists. */
+  tenantLogoDark?: string | null;
   /** Install-wide light logo (brand.logo_url → bootstrap.brand_logo_url). */
   installLogoUrl?: string | null;
   /** Install-wide dark-theme logo (brand.logo_dark_url). */
@@ -187,6 +191,7 @@ function setup(opts: SetupOptions = {}) {
               font_family: opts.fontFamily ?? 'sans',
               heading_font: opts.headingFont ?? null,
               border_radius: opts.borderRadius ?? null,
+              logo_dark_url: opts.tenantLogoDark ?? null,
               instructions_pre_reveal: '',
               instructions_post_reveal: '',
               instructions_reveal: '',
@@ -703,9 +708,25 @@ describe('useDisabledConfig', () => {
         installLogoAlt: 'Acme Corp',
       });
       expect(config.props.logoUri).toBe(tenant);
-      // Install-only companions must not leak onto a tenant logo.
+      // The install dark logo/alt must not leak onto a tenant logo. With no
+      // tenant dark URL set, the identity-axis dark source resolves to null.
       expect(config.props.logoDarkUri).toBeNull();
       expect(config.props.logoAlt).toBeNull();
+    });
+
+    it('renders the tenant dark logo when the tenant logo is showing', () => {
+      const tenantDark = 'https://cdn.example.com/imagine/tenant-dark.png';
+      const { config } = setup({
+        domainStrategy: 'custom',
+        brandDescription: 'Acme Corp',
+        tenantLogo: tenant,
+        tenantLogoDark: tenantDark,
+        // Install dark is also set to prove the tenant rung wins the axis.
+        installLogoUrl: install,
+        installLogoDarkUrl: installDark,
+      });
+      expect(config.props.logoUri).toBe(tenant);
+      expect(config.props.logoDarkUri).toBe(tenantDark);
     });
 
     it('falls back to the install logo on canonical when no tenant logo', () => {

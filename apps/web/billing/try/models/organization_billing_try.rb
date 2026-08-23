@@ -9,8 +9,13 @@ require_relative '../../../../../try/support/test_helpers'
 # Tests billing field management on Organization model.
 
 ## Setup: Ensure feature is loaded
+##
+## ApplySubscriptionToOrg is required EXPLICITLY: the feature file loads it only
+## when billing is enabled, so clear_billing_fields below raises NameError on a
+## targeted run without it (see the twin at try/unit/models/).
 require 'lib/onetime/models/organization/features/with_organization_billing'
 require 'onetime/models/organization'
+require 'billing/operations/apply_subscription_to_org'
 
 ## Create test customer
 @cust = Onetime::Customer.create!(
@@ -82,6 +87,12 @@ require 'onetime/models/organization'
 #=> true
 
 ## Clear billing fields
+# Starts from 'active' on purpose: subscription_status is already 'canceled'
+# after the test above, so asserting 'canceled' from there cannot tell
+# "cleared to canceled" apart from "never touched". Same fix as the twin in
+# try/unit/models/organization_billing_try.rb.
+@reloaded.subscription_status = 'active'
+@reloaded.save
 @reloaded.clear_billing_fields
 @reloaded.subscription_status
 #=> 'canceled'

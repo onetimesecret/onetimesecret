@@ -86,7 +86,7 @@ In CI, run with the same OS/browser as where baselines were generated, because f
     path: test-results/
 ```
 
-If your team uses mixed OSes, generate baselines in Linux and have developers run against those baselines in the pinned Playwright container. Here that means `bin/visual` (podman + `mcr.microsoft.com/playwright:v1.58.2-noble`); bare local runs on macOS will produce darwin diffs by design.
+If your team uses mixed OSes, generate baselines in Linux and have developers run against those baselines in the pinned Playwright container. Here that means `bin/visual` (podman + `mcr.microsoft.com/playwright:v1.62.1-noble`); bare local runs on macOS will produce darwin diffs by design.
 
 ## 6. Recommended scope for customer pages
 

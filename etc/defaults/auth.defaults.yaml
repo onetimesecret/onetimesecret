@@ -2,12 +2,10 @@
 #
 # Authentication Configuration for OneTimeSecret
 # Controls the authentication mode and related settings
-# A trailing "# Since vX.Y.Z" marks the release a setting first shipped in,
-# "# Since unreleased" the next one; no marker means it predates v0.24.0
 ---
 # Authentication mode: 'simple' (Redis-only) or 'full' (requires SQL db)
 # Can be overridden with AUTHENTICATION_MODE environment variable
-mode: <%= ENV['AUTHENTICATION_MODE'] || 'simple' %>  # Since v0.24.0
+mode: <%= ENV['AUTHENTICATION_MODE'] || 'simple' %>
 
 # NOTE: Session configuration has been moved to config.yaml under site.session
 # Session handling is auth-mode agnostic (works with simple or full mode).
@@ -35,7 +33,11 @@ full:
   #     (e.g., /app/data or /data) or all data will be lost on container restart.
   #
   # NOTE: The double quotes prevent YAML issues when parsing `sqlite::memory:`
-  database_url: "<%= ENV['AUTH_DATABASE_URL'] || 'sqlite://data/auth.db' %>"  # Since v0.24.0
+  # NOTE: An exported-but-empty AUTH_DATABASE_URL is truthy in Ruby, so it is
+  #       normalized to unset here rather than rendering "" (which reaches
+  #       Sequel.connect as a schemeless URL). AuthConfig#database_url applies
+  #       the same rule for operator config files that do not.
+  database_url: "<%= ENV['AUTH_DATABASE_URL'].to_s.strip.empty? ? 'sqlite://data/auth.db' : ENV['AUTH_DATABASE_URL'] %>"
 
   # Migrations Connection (PostgreSQL, MySQL, MS SQL Server only)
   #
@@ -50,7 +52,7 @@ full:
   #
   # Not needed for SQLite or other databases that don't support this security model.
   #
-  database_url_migrations: <%= ENV['AUTH_DATABASE_URL_MIGRATIONS'] || nil %>  # Since v0.24.0
+  database_url_migrations: <%= ENV['AUTH_DATABASE_URL_MIGRATIONS'].to_s.strip.empty? ? nil : ENV['AUTH_DATABASE_URL_MIGRATIONS'] %>
 
   # Service URL (used for internal requests)
   #service_url: <%= ENV['AUTH_SERVICE_URL'] || 'http://127.0.0.1:3000/auth' %>
@@ -62,28 +64,39 @@ full:
   #
   features:
     # Brute force lockout protection (default: ON)
-    lockout: <%= ENV['AUTH_LOCKOUT_ENABLED'] != 'false' %>  # Since v0.24.0
+    lockout: <%= ENV['AUTH_LOCKOUT_ENABLED'] != 'false' %>
 
     # Password strength requirements (default: ON)
-    password_requirements: <%= ENV['AUTH_PASSWORD_REQUIREMENTS_ENABLED'] != 'false' %>  # Since v0.24.0
+    password_requirements: <%= ENV['AUTH_PASSWORD_REQUIREMENTS_ENABLED'] != 'false' %>
 
     # Session tracking: view and manage active sessions (default: ON)
-    active_sessions: <%= ENV['AUTH_ACTIVE_SESSIONS_ENABLED'] != 'false' %>  # Since v0.24.0
+    active_sessions: <%= ENV['AUTH_ACTIVE_SESSIONS_ENABLED'] != 'false' %>
 
     # Remember me: persistent login across browser sessions (default: ON)
-    remember_me: <%= ENV['AUTH_REMEMBER_ME_ENABLED'] != 'false' %>  # Since v0.24.0
+    remember_me: <%= ENV['AUTH_REMEMBER_ME_ENABLED'] != 'false' %>
 
     # Email verification: require email verification on signup (default: ON, OFF in test)
     verify_account: <%= ENV['AUTH_VERIFY_ACCOUNT_ENABLED'] != 'false' && ENV['RACK_ENV'] != 'test' %>
 
     # MFA: TOTP codes and recovery codes (default: OFF)
-    mfa: <%= ENV['AUTH_MFA_ENABLED'] == 'true' %>  # Since v0.24.0
+    mfa: <%= ENV['AUTH_MFA_ENABLED'] == 'true' %>
 
     # Email auth: passwordless login via email links, aka magic links (default: OFF)
-    email_auth: <%= ENV['AUTH_EMAIL_AUTH_ENABLED'] == 'true' %>  # Since v0.24.0
+    email_auth: <%= ENV['AUTH_EMAIL_AUTH_ENABLED'] == 'true' %>
 
     # WebAuthn: biometrics and security keys (default: OFF)
-    webauthn: <%= ENV['AUTH_WEBAUTHN_ENABLED'] == 'true' %>  # Since v0.24.0
+    webauthn: <%= ENV['AUTH_WEBAUTHN_ENABLED'] == 'true' %>
+
+    # WebAuthn passwordless signup: verifying a new account sets up a passkey
+    # instead of a password — Rodauth's webauthn_verify_account feature.
+    # Only meaningful when webauthn is enabled; leave verify_account ON.
+    # (default: OFF)
+    webauthn_verify_account: <%= ENV['AUTH_WEBAUTHN_VERIFY_ACCOUNT'] == 'true' %>
+
+    # WebAuthn autofill: passkey autofill (browser conditional UI) on the
+    # login form — Rodauth's webauthn_autofill feature. Only meaningful when
+    # webauthn is enabled. (default: OFF)
+    webauthn_autofill: <%= ENV['AUTH_WEBAUTHN_AUTOFILL'] == 'true' %>
 
     # SSO: external identity providers via OmniAuth (default: OFF)
     # Master switch — individual providers are enabled by their own env vars:
@@ -99,12 +112,26 @@ full:
   # Values: password, email_auth, webauthn, sso
   # Leave blank to show all enabled authentication methods (default).
   #
-  # When set, only the specified method is shown on the login page.
+  # When set, only the specified method works on the sign-in surface — this
+  # is an access control, not a display preference: every other method's
+  # routes 404 (ADR-034#restrict-to-is-an-access-control-not-a-display-preference).
   # For sso: also disables password-based account management (destroy
   # account, change password, change email).
   #
   # The underlying feature must also be enabled (e.g. restrict_to: sso
-  # requires AUTH_SSO_ENABLED=true and at least one provider configured).
+  # requires AUTH_SSO_ENABLED=true and at least one provider configured). If
+  # it is not, boot fails — the restriction is never dropped to re-expose the
+  # methods it was meant to hide. Unavailability that can only be seen after
+  # boot, or on one host, degrades to "sign-in unavailable" instead
+  # (ADR-034#degradation-is-fail-closed).
+  #
+  # Set AT MOST ONE of AUTH_PASSWORD_ONLY / AUTH_EMAIL_AUTH_ONLY /
+  # AUTH_WEBAUTHN_ONLY / AUTH_SSO_ONLY. Setting several renders nothing here
+  # (there is no "restricted to two methods"), which on its own would be a
+  # silent fail-open — so the ValidateAuthConfig initializer reads these four
+  # env vars directly at boot and refuses to start, naming each flag set
+  # (ADR-034#conflicting-auth-only-env-flags-are-a-boot-error, #4139). Do not
+  # "fix" that by making this line pick a winner.
   # ──────────────────────────────────────────────────────────────────────
   restrict_to: <%= [ENV['AUTH_PASSWORD_ONLY'] == 'true' && 'password', ENV['AUTH_EMAIL_AUTH_ONLY'] == 'true' && 'email_auth', ENV['AUTH_WEBAUTHN_ONLY'] == 'true' && 'webauthn', ENV['AUTH_SSO_ONLY'] == 'true' && 'sso'].select { |v| v }.then { |f| f.length == 1 && f.first || nil } %>
 
@@ -131,7 +158,7 @@ full:
     # or SSO will be unavailable on that domain.
     #
     # Default: false (require explicit per-domain SSO configuration)
-    allow_platform_fallback_for_tenants: <%= ENV['SSO_ALLOW_PLATFORM_FALLBACK'] == 'true' %>  # Since v0.25.0
+    allow_platform_fallback_for_tenants: <%= ENV['SSO_ALLOW_PLATFORM_FALLBACK'] == 'true' %>
 
     # Email-based account linking trust (deprecated single-OIDC / global default)
     #
@@ -148,10 +175,10 @@ full:
     #
     # Default: false (refuse email-based auto-linking — require explicit,
     # authenticated linking from account settings)
-    trust_email_for_linking: <%= ENV['SSO_TRUST_EMAIL_FOR_LINKING'] == 'true' %>  # Since v0.26.2
+    trust_email_for_linking: <%= ENV['SSO_TRUST_EMAIL_FOR_LINKING'] == 'true' %>
 
   # Argon2 secret key (pepper) for password hashing defense-in-depth.
   # Folded into password hashes — if the hash database is compromised,
   # passwords remain protected unless this secret is also leaked.
   # Leave unset (nil) to use argon2id without a pepper.
-  argon2_secret: <%= ENV["ARGON2_SECRET"] || nil %>  # Since v0.24.0
+  argon2_secret: <%= ENV["ARGON2_SECRET"] || nil %>

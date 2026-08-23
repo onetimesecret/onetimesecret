@@ -45,6 +45,11 @@ const sessionConfigSchema = z.object({
   secure: z.boolean().optional(),
   same_site: z.enum(['strict', 'lax', 'none']).optional(),
   httponly: z.boolean().optional(),
+  /**
+   * Full external paths (SCRIPT_NAME + PATH_INFO) matched EXACTLY, for which
+   * no session is persisted — anonymous probe endpoints only (#3997).
+   */
+  skip_paths: z.array(z.string()).optional(),
 });
 
 /**
@@ -85,13 +90,21 @@ const middlewareSchema = z.object({
 /**
  * Admin (Colonel) configuration
  *
- * Network-level posture for the Colonel admin surfaces (/colonel + /api/colonel).
- * allowed_cidrs is an optional CIDR allowlist enforced by the
- * AdminNetworkIsolation Rack middleware. Empty/unset = no-op (self-hosted
- * default); populated = requests from outside the allowlist get a 404.
- * Defaults belong in `shapes/config/section/site.ts`.
+ * Host- and network-level posture for the Colonel admin surfaces (/colonel +
+ * /api/colonel), both enforced by the AdminNetworkIsolation Rack middleware;
+ * a request failing either gate gets the same 404. allowed_hosts is the
+ * hostname allowlist (unset = the canonical anchor hosts plus their
+ * www. siblings; a `*` anywhere in the list turns the host gate off).
+ * allowed_cidrs is an opt-in CIDR allowlist (empty/unset = no-op, the
+ * self-hosted default). Defaults belong in `shapes/config/section/site.ts`.
+ *
+ * allowed_hosts is nullable because the YAML renders null when
+ * ADMIN_ALLOWED_HOSTS is unset, and an EMPTY list when it is set but blank —
+ * a distinction the boot check warns on (#4127), so the template must not
+ * collapse null to []. Runtime behavior is identical for both shapes.
  */
 const siteAdminSchema = z.object({
+  allowed_hosts: z.array(z.string()).nullable().optional(),
   allowed_cidrs: z.array(z.string()).optional(),
 });
 

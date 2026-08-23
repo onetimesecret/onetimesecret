@@ -34,6 +34,7 @@ require_relative 'colonel/get_user_details'
 require_relative 'colonel/get_account_diagnostics'
 require_relative 'colonel/update_user_plan'
 require_relative 'colonel/create_checkout_link'
+require_relative 'colonel/create_organization_checkout_link'
 require_relative 'colonel/set_user_role'
 require_relative 'colonel/set_user_verification'
 require_relative 'colonel/set_user_suspension'
@@ -41,6 +42,7 @@ require_relative 'colonel/change_user_email'
 require_relative 'colonel/purge_user'
 
 # System monitoring
+require_relative 'colonel/get_proxy_headers_debug'
 require_relative 'colonel/get_database_metrics'
 require_relative 'colonel/get_brand_diagnostics'
 require_relative 'colonel/get_redis_metrics'
@@ -56,6 +58,7 @@ require_relative 'colonel/verify_custom_domain'
 require_relative 'colonel/create_custom_domain'
 require_relative 'colonel/get_custom_domain'
 require_relative 'colonel/remove_custom_domain'
+require_relative 'colonel/override_domain_verification'
 
 # Organizations
 require_relative 'colonel/list_organizations'
@@ -63,6 +66,7 @@ require_relative 'colonel/get_organization_detail'
 require_relative 'colonel/investigate_organization'
 require_relative 'colonel/reconcile_organization'
 require_relative 'colonel/transfer_organization_ownership'
+require_relative 'colonel/delete_organization'
 require_relative 'colonel/manage_entitlement_override'
 
 # Memberships (#3731: add/remove/set-role — op-backed;

@@ -7,6 +7,7 @@ require 'securerandom'
 require 'onetime/models/colonel_audit_event'
 
 require_relative '../lib/plan_resolver'
+require_relative '../lib/pmc_resource_missing'
 require_relative '../lib/stripe_client'
 require_relative '../lib/subscription_guard'
 require_relative 'grant_probono_entitlements'
@@ -112,7 +113,10 @@ module Billing
       # @param tier [String] resolved tier (webhook metadata)
       # @param price_id [String] Stripe price id
       # @param cancel_url [String] absolute URL for checkout cancellation
-      # @param allow_promotion_codes [Boolean] show the promo-code field
+      # @param allow_promotion_codes [Boolean] show the promo-code field.
+      #   Deliberately per-caller policy: the self-serve controller passes
+      #   true, this admin op defaults to false (Plans#checkout_redirect
+      #   hardcodes true on its own path).
       # @param locale [String, nil] Stripe Checkout locale (request paths only)
       # @return [Hash] Stripe::Checkout::Session create params
       def self.build_session_params(customer:, org:, plan_id:, tier:, price_id:,
@@ -145,6 +149,9 @@ module Billing
           params[:customer] = org.stripe_customer_id
           params.delete(:customer_email)
         end
+
+        pmc                                   = Onetime.billing_config.payment_method_configuration
+        params[:payment_method_configuration] = pmc if pmc
 
         apply_tax_policy!(params)
       end
@@ -230,6 +237,16 @@ module Billing
 
         create_session(plan, resolution, price_id)
       rescue Stripe::StripeError => ex
+        # ADR-033: the configured payment_method_configuration is only
+        # format-checked at boot; existence in the connected Stripe account
+        # is discovered here, at first use — so that discovery must be loud
+        # and operator-actionable. Log-only: the returned failure stays as
+        # generic as any other Stripe error, and no other error is
+        # re-classified.
+        if ::Billing::PmcResourceMissing.pmc_resource_missing?(ex)
+          OT.le "[CreateCheckoutLink] #{::Billing::PmcResourceMissing.operator_message(ex)}"
+        end
+
         failed("Stripe error: #{ex.message}")
       end
 

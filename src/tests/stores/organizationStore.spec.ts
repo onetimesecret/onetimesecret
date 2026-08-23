@@ -37,6 +37,9 @@ describe('Organization Store', () => {
     contact_email: 'admin@test.com',
     planid: 'free_v1',
     is_default: false,
+    // Absent on the wire above; the schema normalizes it to false so a payload
+    // without the flag never reads as "delete blocked" in the UI.
+    active_subscription: false,
     created: new Date('2024-01-01T00:00:00Z'),
     updated: new Date('2024-01-01T00:00:00Z'),
   };

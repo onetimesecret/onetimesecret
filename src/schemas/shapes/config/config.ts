@@ -17,7 +17,13 @@ import { z } from 'zod';
 
 import { siteShape } from './section/site';
 import { storageShape, redisShape } from './section/storage';
-import { emailerShape, mailShape, mailConnectionShape, mailValidationShape } from './section/mail';
+import {
+  emailerShape,
+  emailProvidersShape,
+  mailShape,
+  mailConnectionShape,
+  mailValidationShape,
+} from './section/mail';
 import { diagnosticsShape } from './section/diagnostics';
 import { featuresShape } from './section/features';
 import { capabilitiesSchema } from './section/capabilities';
@@ -35,6 +41,7 @@ export {
   storageShape,
   redisShape,
   emailerShape,
+  emailProvidersShape,
   mailShape,
   mailConnectionShape,
   mailValidationShape,
@@ -122,6 +129,7 @@ const staticConfigShape = z.object({
   features: featuresShape.optional(),
   redis: redisShape.optional(),
   emailer: emailerShape.optional(),
+  email_providers: emailProvidersShape.optional(),
   mail: mailShape.optional(),
   jobs: jobsShape.optional(),
   internationalization: i18nShape.optional(),

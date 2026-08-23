@@ -1,14 +1,21 @@
 <!-- src/apps/session/views/AcceptInvite.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+  import InviteSignInForm from '@/apps/session/components/InviteSignInForm.vue';
+  import InviteSignUpForm from '@/apps/session/components/InviteSignUpForm.vue';
+  import SsoButton from '@/apps/session/components/SsoButton.vue';
+  import {
+    showInviteResponseSchema,
+    type AuthMethod,
+    type ShowInviteResponse,
+  } from '@/schemas/api/invite/responses/show-invite';
+  import type { SigninRestrictTo } from '@/schemas/contracts/custom-domain/signin-config';
+  import { classifyError } from '@/schemas/errors';
+  import Skeleton from '@/shared/components/closet/Skeleton.vue';
   import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import Skeleton from '@/shared/components/closet/Skeleton.vue';
-  import InviteSignUpForm from '@/apps/session/components/InviteSignUpForm.vue';
-  import InviteSignInForm from '@/apps/session/components/InviteSignInForm.vue';
+  import { useApi } from '@/shared/composables/useApi';
   import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
-  import { classifyError } from '@/schemas/errors';
   import { useAuth } from '@/shared/composables/useAuth';
   import { useAuthStore } from '@/shared/stores/authStore';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
@@ -16,12 +23,8 @@
   import { useOrganizationStore } from '@/shared/stores/organizationStore';
   import { formatDisplayDate } from '@/utils/format';
   import { onMounted, ref, computed } from 'vue';
+  import { useI18n } from 'vue-i18n';
   import { useRoute, useRouter } from 'vue-router';
-  import { useApi } from '@/shared/composables/useApi';
-  import {
-    showInviteResponseSchema,
-    type ShowInviteResponse,
-  } from '@/schemas/api/invite/responses/show-invite';
 
   const { t } = useI18n();
   const route = useRoute();
@@ -65,11 +68,20 @@
    * - accepted: User just accepted in this session (terminal, redirect pending)
    * - declined: User just declined in this session (terminal, redirect pending)
    * - invalid: Invitation is expired, declined, revoked, or doesn't exist
+   * - restricted_host: This host restricts sign-in to a method that is not
+   *   password (ADR-034#invite-signup-is-gated), so the signup form here
+   *   would 404. Offers the
+   *   host's actual method instead.
+   * - signin_unavailable: The host's restriction cannot be honoured at all
+   *   (resolution `unavailable`, including `source: conflict`), so no
+   *   sign-in method works here.
    */
   type InviteState =
     | 'loading'
     | 'signup_required'
     | 'signin_required'
+    | 'restricted_host'
+    | 'signin_unavailable'
     | 'direct_accept'
     | 'wrong_email'
     | 'already_accepted'
@@ -103,12 +115,149 @@
 
     // Invitation is actionable (pending, not expired)
     if (!authStore.isAuthenticated) {
+      // ADR-034#invite-signup-is-gated (#4139). Only the UNAUTHENTICATED
+      // branch consults the restriction: it governs which method may MINT a
+      // session on this host, and every state below this line is about doing
+      // exactly that. Once a session exists the restriction is spent — POST
+      // /:token/accept is deliberately ungated (account-scoped,
+      // ADR-034#reject-as-not-found-not-forbidden "Scope, settled") — so an
+      // authenticated visitor must reach direct_accept even on a host that
+      // restricts sign-in. This is what makes the invite-signup-is-gated
+      // flow terminate: SSO signs them in, they come back here
+      // authenticated, and they accept.
+      if (signinUnavailable.value) return 'signin_unavailable';
+      if (restrictedAway.value) return 'restricted_host';
       return signinFallback.value ? 'signin_required' : 'signup_required';
     }
 
     // User is authenticated
     if (emailMismatch.value) return 'wrong_email';
     return 'direct_accept';
+  });
+
+  /**
+   * Server-resolved restriction for the host this page was served from
+   * (ADR-034#resolution-is-model-owned). Read verbatim, never re-derived —
+   * ADR-034#settings-api-serializes-effective-restrict-to deleted the
+   * client-side re-derivation this would otherwise be.
+   *
+   * Absent means a pre-#4139 backend, which is treated as unrestricted so the
+   * page behaves exactly as it did before this change.
+   */
+  const restrictToResolution = computed(() => invitation.value?.effective_restrict_to ?? null);
+
+  /**
+   * The restriction stands but nothing can satisfy it, so this host offers no
+   * way to sign in at all.
+   *
+   * `source: 'conflict'` (global and domain naming different methods, which
+   * has no intersection under ADR-034#resolution-intersects-never-widens)
+   * always resolves `unavailable`, so this one
+   * check covers both; only the COPY branches on source.
+   */
+  const signinUnavailable = computed(() => restrictToResolution.value?.state === 'unavailable');
+
+  /**
+   * This host permits a single method and it is NOT password — i.e. the case
+   * where the signup form below would POST into the
+   * ADR-034#invite-signup-is-gated gate and 404.
+   *
+   * False when unrestricted, when restricted to password (nothing changes),
+   * and when the resolution is unavailable (that is signinUnavailable's
+   * state, and it must not also read as "use this other method").
+   *
+   * TRUE when `state` is `restricted` but `restrict_to` parsed to null: the
+   * schema degrades an unrecognized method to null while `state` keeps
+   * carrying the truth. A method this client version cannot name is still a
+   * method it cannot offer, and treating it as unrestricted would put the
+   * password form back in front of the gate — the exact fail-open this state
+   * exists to close. The copy falls back to an unnamed variant.
+   */
+  const restrictedAway = computed(() => {
+    const resolution = restrictToResolution.value;
+    if (resolution?.state !== 'restricted') return false;
+    return resolution.restrict_to !== 'password';
+  });
+
+  /** Method names, reused from the settings UI so both surfaces say one thing. */
+  const METHOD_LABEL_KEYS: Record<SigninRestrictTo, string> = {
+    password: 'web.domains.signin.method_password',
+    email_auth: 'web.domains.signin.method_email_auth',
+    webauthn: 'web.domains.signin.method_webauthn',
+    sso: 'web.domains.signin.method_sso',
+  };
+
+  /** Human label for the restricted method, or null when it names none. */
+  const restrictedMethodLabel = computed<string | null>(() => {
+    const method = restrictToResolution.value?.restrict_to;
+    return method ? t(METHOD_LABEL_KEYS[method]) : null;
+  });
+
+  type RoutableSsoMethod = Extract<AuthMethod, { type: 'sso' }> & {
+    platform_route_name: string;
+  };
+
+  /** Routable tenant or platform-fallback SSO methods reported for this host. */
+  const ssoMethods = computed(() =>
+    (invitation.value?.auth_methods ?? []).filter(
+      (entry): entry is RoutableSsoMethod =>
+        entry.type === 'sso' && Boolean(entry.platform_route_name)
+    )
+  );
+
+  /**
+   * Whether the host's single permitted method is SSO — the one restricted
+   * case this page can actually complete, by routing the invitee into the
+   * provider (ADR-034#invite-signup-is-gated: SSO signs them in and creates
+   * the account cleanly, then
+   * they return here authenticated and accept).
+   */
+  const ssoRestricted = computed(() => restrictToResolution.value?.restrict_to === 'sso');
+
+  /**
+   * Sign-in page, returning here afterwards. A string rather than a location
+   * object to match the other router-links in this template.
+   */
+  const signinPath = computed(
+    () => `/signin?redirect=${encodeURIComponent(`/invite/${invitationToken.value}`)}`
+  );
+
+  /**
+   * Copy for the restricted-but-usable state.
+   *
+   * Every branch says the same two things: this host does not take the method
+   * the form would have used, and the invitation is untouched. Nothing here
+   * implies the invitation was consumed or lost — under
+   * ADR-034#invite-signup-is-gated the gated signup
+   * creates nothing, so it is still pending.
+   */
+  const restrictedNotice = computed(() => {
+    if (ssoRestricted.value) {
+      return t('web.organizations.invitations.restricted_sso_body');
+    }
+    const method = restrictedMethodLabel.value;
+    return method
+      ? t('web.organizations.invitations.restricted_host_body', { method })
+      : t('web.organizations.invitations.restricted_host_unknown_body');
+  });
+
+  /**
+   * Copy for the dead-end state, mirroring how the domain settings page
+   * renders the same resolution.
+   *
+   * A conflict is named AS a conflict — `restrict_to` carries the global
+   * method, the one still in force, and presenting it as the winner would
+   * misdescribe a state where neither side applies.
+   */
+  const unavailableNotice = computed(() => {
+    const resolution = restrictToResolution.value;
+    const method = restrictedMethodLabel.value;
+    if (resolution?.source === 'conflict' && method) {
+      return t('web.organizations.invitations.signin_unavailable_conflict_body', { method });
+    }
+    return method
+      ? t('web.organizations.invitations.signin_unavailable_body', { method })
+      : t('web.organizations.invitations.signin_unavailable_unknown_body');
   });
 
   /**
@@ -127,7 +276,12 @@
    * Returns the organization's primary brand color, falling back to domain branding
    * or a default brand color.
    */
-  const primaryColor = computed(() => invitation.value?.branding?.primary_color || bootstrapStore.domain_branding?.primary_color || '#d45a2a');
+  const primaryColor = computed(
+    () =>
+      invitation.value?.branding?.primary_color ||
+      bootstrapStore.domain_branding?.primary_color ||
+      '#d45a2a'
+  );
 
   /**
    * Logs out the current user and redirects back to the invite page.
@@ -350,7 +504,8 @@
         </h1>
       </div>
 
-      <div class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+      <div
+        class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
         <div class="flex">
           <OIcon
             collection="heroicons"
@@ -438,14 +593,18 @@
           <p class="text-lg font-semibold text-gray-900 dark:text-white">
             {{ invitation.organization_name }}
           </p>
-          <p v-if="invitation.invited_by" class="mt-1 text-sm text-gray-400 dark:text-gray-500">
+          <p
+            v-if="invitation.invited_by"
+            class="mt-1 text-sm text-gray-400 dark:text-gray-500">
             by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by }}</span>
           </p>
           <p class="text-sm text-gray-400 dark:text-gray-500">
-            as a <span class="text-gray-600 dark:text-gray-300">{{ t(`web.organizations.invitations.roles.${invitation.role}`) }}</span>.
+            as a
+            <span class="text-gray-600 dark:text-gray-300">{{
+              t(`web.organizations.invitations.roles.${invitation.role}`)
+            }}</span>.
           </p>
         </div>
-
       </div>
 
       <!-- Inline Signup Form (handles its own error display) -->
@@ -460,9 +619,13 @@
         @decline="handleDecline"
         @signin-required="onSigninRequired" />
 
-      <p v-if="invitation" class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+      <p
+        v-if="invitation"
+        class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.organizations.invitations.expires_at') }}
-        <span class="font-medium text-gray-900 dark:text-white">{{ formatDate(invitation.expires_at) }}</span>
+        <span class="font-medium text-gray-900 dark:text-white">{{
+          formatDate(invitation.expires_at)
+        }}</span>
       </p>
     </div>
 
@@ -500,14 +663,18 @@
           <p class="text-lg font-semibold text-gray-900 dark:text-white">
             {{ invitation.organization_name }}
           </p>
-          <p v-if="invitation.invited_by" class="mt-1 text-sm text-gray-400 dark:text-gray-500">
+          <p
+            v-if="invitation.invited_by"
+            class="mt-1 text-sm text-gray-400 dark:text-gray-500">
             by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by }}</span>
           </p>
           <p class="text-sm text-gray-400 dark:text-gray-500">
-            as a <span class="text-gray-600 dark:text-gray-300">{{ t(`web.organizations.invitations.roles.${invitation.role}`) }}</span>.
+            as a
+            <span class="text-gray-600 dark:text-gray-300">{{
+              t(`web.organizations.invitations.roles.${invitation.role}`)
+            }}</span>.
           </p>
         </div>
-
       </div>
 
       <!-- Sign-in Notice -->
@@ -542,9 +709,237 @@
           @decline="handleDecline" />
       </div>
 
-      <p v-if="invitation" class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+      <p
+        v-if="invitation"
+        class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.organizations.invitations.expires_at') }}
-        <span class="font-medium text-gray-900 dark:text-white">{{ formatDate(invitation.expires_at) }}</span>
+        <span class="font-medium text-gray-900 dark:text-white">{{
+          formatDate(invitation.expires_at)
+        }}</span>
+      </p>
+    </div>
+
+    <!--
+      Restricted Host State (ADR-034#invite-signup-is-gated, #4139)
+
+      This host restricts sign-in to a single method that is not password, so
+      POST /api/invite/:token/signup 404s and creates nothing. Render the
+      method the host actually offers instead of a form that cannot submit.
+    -->
+    <div
+      v-else-if="inviteState === 'restricted_host'"
+      data-testid="invite-restricted-host"
+      :style="{ '--brand-primary': primaryColor }"
+      class="rounded-lg border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <!-- Header -->
+      <div class="mb-6 text-center">
+        <OIcon
+          collection="heroicons"
+          name="envelope"
+          class="mx-auto size-12 text-brand-600 dark:text-brand-400"
+          aria-hidden="true" />
+        <h1 class="mt-4 text-2xl font-bold text-gray-900 dark:text-white">
+          {{ t('web.organizations.invitations.accept_invitation') }}
+        </h1>
+      </div>
+
+      <!-- Invite Context (org name, role, inviter) -->
+      <div
+        v-if="invitation"
+        data-testid="invitation-context"
+        class="space-y-4">
+        <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
+          <p class="mb-1 text-sm text-gray-600 dark:text-gray-400">
+            {{ t('web.organizations.invitations.you_are_invited') }}
+          </p>
+          <p class="text-lg font-semibold text-gray-900 dark:text-white">
+            {{ invitation.organization_name }}
+          </p>
+          <p
+            v-if="invitation.invited_by"
+            class="mt-1 text-sm text-gray-400 dark:text-gray-500">
+            by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by }}</span>
+          </p>
+          <p class="text-sm text-gray-400 dark:text-gray-500">
+            as a
+            <span class="text-gray-600 dark:text-gray-300">{{
+              t(`web.organizations.invitations.roles.${invitation.role}`)
+            }}</span>.
+          </p>
+        </div>
+      </div>
+
+      <!--
+        Announced, not implied by color: role="status" + aria-live carry this
+        to assistive tech, the heading states the constraint in words, and the
+        icon is decorative. Fixed semantic sky/info hue (#4132) rather than a
+        brand token — this is a status claim and must read the same on every
+        domain.
+      -->
+      <div
+        class="mt-6 rounded-lg border border-sky-200 bg-sky-50 p-4 dark:border-sky-800 dark:bg-sky-950/40"
+        data-testid="restricted-host-notice"
+        role="status"
+        aria-live="polite">
+        <div class="flex">
+          <OIcon
+            collection="heroicons"
+            name="information-circle"
+            class="size-5 shrink-0 text-sky-600 dark:text-sky-300"
+            aria-hidden="true" />
+          <div class="ml-3">
+            <p class="font-medium text-sky-800 dark:text-sky-100">
+              {{ t('web.organizations.invitations.restricted_host_title') }}
+            </p>
+            <p class="mt-1 text-sm text-sky-700 dark:text-sky-200">
+              {{ restrictedNotice }}
+            </p>
+            <!--
+              The invitation is NOT consumed by the gated signup
+              (ADR-034#invite-signup-is-gated creates nothing), so say so plainly
+              rather than leaving the invitee to
+              assume they burned their link.
+            -->
+            <p class="mt-2 text-sm text-sky-700 dark:text-sky-200">
+              {{ t('web.organizations.invitations.invitation_stays_pending') }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SSO: route directly when the API supplied usable provider metadata. -->
+      <div
+        v-if="ssoRestricted && ssoMethods.length > 0"
+        class="mt-6 space-y-3">
+        <SsoButton
+          v-for="method in ssoMethods"
+          :key="method.platform_route_name"
+          :route-name="method.platform_route_name!"
+          :display-name="method.display_name ?? undefined"
+          :redirect="`/invite/${invitationToken}`" />
+      </div>
+
+      <!--
+        Canonical SSO and restricted email-auth/webauthn are completed by the
+        sign-in page. Preserve the invite return path so this handoff cannot
+        loop back to the same unauthenticated static invite state.
+      -->
+      <router-link
+        v-else
+        :to="signinPath"
+        data-testid="restricted-signin-link"
+        class="mt-6 inline-flex w-full justify-center rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
+        {{
+          ssoRestricted
+            ? t('web.organizations.invitations.restricted_sso_cta')
+            : t('web.login.button_sign_in')
+        }}
+      </router-link>
+
+      <p
+        v-if="invitation"
+        class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+        {{ t('web.organizations.invitations.expires_at') }}
+        <span class="font-medium text-gray-900 dark:text-white">{{
+          formatDate(invitation.expires_at)
+        }}</span>
+      </p>
+    </div>
+
+    <!--
+      Sign-in Unavailable State
+      (ADR-034#degradation-is-fail-closed / #resolution-intersects-never-widens, #4139)
+
+      The host's restriction stands but cannot be honoured — its method cannot
+      run here, or global and domain name different methods and neither
+      applies. No sign-in method works, so offer none and say why.
+    -->
+    <div
+      v-else-if="inviteState === 'signin_unavailable'"
+      data-testid="invite-signin-unavailable"
+      :style="{ '--brand-primary': primaryColor }"
+      class="rounded-lg border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <!-- Header -->
+      <div class="mb-6 text-center">
+        <OIcon
+          collection="heroicons"
+          name="envelope"
+          class="mx-auto size-12 text-brand-600 dark:text-brand-400"
+          aria-hidden="true" />
+        <h1 class="mt-4 text-2xl font-bold text-gray-900 dark:text-white">
+          {{ t('web.organizations.invitations.invitation_details') }}
+        </h1>
+      </div>
+
+      <!-- Invite Context (org name, role, inviter) -->
+      <div
+        v-if="invitation"
+        data-testid="invitation-context"
+        class="space-y-4">
+        <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
+          <p class="mb-1 text-sm text-gray-600 dark:text-gray-400">
+            {{ t('web.organizations.invitations.you_are_invited') }}
+          </p>
+          <p class="text-lg font-semibold text-gray-900 dark:text-white">
+            {{ invitation.organization_name }}
+          </p>
+          <p
+            v-if="invitation.invited_by"
+            class="mt-1 text-sm text-gray-400 dark:text-gray-500">
+            by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by }}</span>
+          </p>
+          <p class="text-sm text-gray-400 dark:text-gray-500">
+            as a
+            <span class="text-gray-600 dark:text-gray-300">{{
+              t(`web.organizations.invitations.roles.${invitation.role}`)
+            }}</span>.
+          </p>
+        </div>
+      </div>
+
+      <!--
+        role="alert": a dead end the invitee cannot work around here, so it is
+        announced assertively. Fixed semantic amber/warning hue (#4132). Not
+        red — nothing is broken about the invitation itself, and the wording
+        keeps that distinct from a bad token.
+      -->
+      <div
+        class="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/40"
+        data-testid="signin-unavailable-notice"
+        role="alert">
+        <div class="flex">
+          <OIcon
+            collection="heroicons"
+            name="exclamation-triangle"
+            class="size-5 shrink-0 text-amber-600 dark:text-amber-300"
+            aria-hidden="true" />
+          <div class="ml-3">
+            <p class="font-medium text-amber-800 dark:text-amber-100">
+              {{ t('web.organizations.invitations.signin_unavailable_title') }}
+            </p>
+            <p class="mt-1 text-sm text-amber-700 dark:text-amber-200">
+              {{ unavailableNotice }}
+            </p>
+            <p class="mt-2 text-sm text-amber-700 dark:text-amber-200">
+              {{ t('web.organizations.invitations.invitation_stays_pending') }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <p
+        data-testid="restricted-use-email-link"
+        class="mt-6 text-center text-sm text-gray-600 dark:text-gray-300">
+        {{ t('web.organizations.invitations.restricted_use_email_link') }}
+      </p>
+
+      <p
+        v-if="invitation"
+        class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+        {{ t('web.organizations.invitations.expires_at') }}
+        <span class="font-medium text-gray-900 dark:text-white">{{
+          formatDate(invitation.expires_at)
+        }}</span>
       </p>
     </div>
 
@@ -585,14 +980,18 @@
           <p class="text-lg font-semibold text-gray-900 dark:text-white">
             {{ invitation.organization_name }}
           </p>
-          <p v-if="invitation.invited_by" class="mt-1 text-sm text-gray-400 dark:text-gray-500">
+          <p
+            v-if="invitation.invited_by"
+            class="mt-1 text-sm text-gray-400 dark:text-gray-500">
             by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by }}</span>
           </p>
           <p class="text-sm text-gray-400 dark:text-gray-500">
-            as a <span class="text-gray-600 dark:text-gray-300">{{ t(`web.organizations.invitations.roles.${invitation.role}`) }}</span>.
+            as a
+            <span class="text-gray-600 dark:text-gray-300">{{
+              t(`web.organizations.invitations.roles.${invitation.role}`)
+            }}</span>.
           </p>
         </div>
-
 
         <!-- Action Buttons -->
         <div class="mt-6 flex flex-col gap-3 sm:flex-row-reverse">
@@ -601,7 +1000,7 @@
             @click="handleAccept"
             :disabled="isProcessing"
             data-testid="accept-invitation-btn"
-            class="inline-flex w-full justify-center rounded-md bg-brand-600 px-4 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400 sm:w-auto">
+            class="inline-flex w-full justify-center rounded-md bg-brand-600 px-4 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto dark:bg-brand-500 dark:hover:bg-brand-400">
             <span v-if="!isProcessing">
               {{ t('web.organizations.invitations.accept_invitation') }}
             </span>
@@ -612,14 +1011,16 @@
             @click="handleDecline"
             :disabled="isProcessing"
             data-testid="decline-invitation-btn"
-            class="inline-flex w-full justify-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600 sm:w-auto">
+            class="inline-flex w-full justify-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 ring-inset hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
             {{ t('web.organizations.invitations.decline_invitation') }}
           </button>
         </div>
 
         <p class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
           {{ t('web.organizations.invitations.expires_at') }}
-          <span class="font-medium text-gray-900 dark:text-white">{{ formatDate(invitation.expires_at) }}</span>
+          <span class="font-medium text-gray-900 dark:text-white">{{
+            formatDate(invitation.expires_at)
+          }}</span>
         </p>
       </div>
     </div>
@@ -661,14 +1062,18 @@
           <p class="text-lg font-semibold text-gray-900 dark:text-white">
             {{ invitation.organization_name }}
           </p>
-          <p v-if="invitation.invited_by" class="mt-1 text-sm text-gray-400 dark:text-gray-500">
+          <p
+            v-if="invitation.invited_by"
+            class="mt-1 text-sm text-gray-400 dark:text-gray-500">
             by <span class="text-gray-600 dark:text-gray-300">{{ invitation.invited_by }}</span>
           </p>
           <p class="text-sm text-gray-400 dark:text-gray-500">
-            as a <span class="text-gray-600 dark:text-gray-300">{{ t(`web.organizations.invitations.roles.${invitation.role}`) }}</span>.
+            as a
+            <span class="text-gray-600 dark:text-gray-300">{{
+              t(`web.organizations.invitations.roles.${invitation.role}`)
+            }}</span>.
           </p>
         </div>
-
 
         <!-- Email Mismatch Notice -->
         <div
@@ -685,7 +1090,12 @@
                 {{ t('web.organizations.invitations.email_mismatch_title') }}
               </p>
               <p class="mt-1 text-sm text-amber-700 dark:text-amber-300">
-                {{ t('web.organizations.invitations.email_mismatch_body', { invitedEmail: invitation?.email, currentEmail: bootstrapStore.email }) }}
+                {{
+                  t('web.organizations.invitations.email_mismatch_body', {
+                    invitedEmail: invitation?.email,
+                    currentEmail: bootstrapStore.email,
+                  })
+                }}
               </p>
               <div class="mt-3">
                 <button
@@ -693,8 +1103,12 @@
                   @click="handleContinueAs"
                   :disabled="isProcessing"
                   data-testid="continue-as-btn"
-                  class="inline-flex items-center rounded-md bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-amber-800 dark:text-amber-100 dark:hover:bg-amber-700">
-                  {{ t('web.organizations.invitations.continue_as_invited_email', { email: invitation?.email }) }}
+                  class="inline-flex items-center rounded-md bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-200 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-amber-800 dark:text-amber-100 dark:hover:bg-amber-700">
+                  {{
+                    t('web.organizations.invitations.continue_as_invited_email', {
+                      email: invitation?.email,
+                    })
+                  }}
                 </button>
               </div>
             </div>
@@ -707,15 +1121,16 @@
             @click="handleDecline"
             :disabled="isProcessing"
             data-testid="decline-invitation-btn"
-            class="text-sm font-medium text-gray-500 underline hover:text-gray-700
-                   dark:text-gray-400 dark:hover:text-gray-300">
+            class="text-sm font-medium text-gray-500 underline hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
             {{ t('web.organizations.invitations.decline_invitation') }}
           </button>
         </div>
 
         <p class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
           {{ t('web.organizations.invitations.expires_at') }}
-          <span class="font-medium text-gray-900 dark:text-white">{{ formatDate(invitation.expires_at) }}</span>
+          <span class="font-medium text-gray-900 dark:text-white">{{
+            formatDate(invitation.expires_at)
+          }}</span>
         </p>
       </div>
     </div>

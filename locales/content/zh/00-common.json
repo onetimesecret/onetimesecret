@@ -1539,5 +1539,9 @@
   "web.TITLES.domain_dns": {
     "text": "DNS 设置",
     "source_hash": "6c63df31"
+  },
+  "web.TITLES.connected_identities": {
+    "text": "已关联的身份",
+    "source_hash": "e132c4d9"
   }
 }

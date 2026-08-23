@@ -37,9 +37,9 @@
 
   const alertClasses = computed(() => ({
     'mb-4 p-4 rounded-md': true,
-    'bg-branddim-50 text-branddim-700 dark:bg-branddim-900 dark:text-branddim-100':
+    'bg-red-50 text-red-700 dark:bg-red-900 dark:text-red-100':
       props.submissionStatus?.status === 'error',
-    'bg-brand-50 text-brand-700 dark:bg-brand-900 dark:text-brand-100':
+    'bg-green-50 text-green-700 dark:bg-green-900 dark:text-green-100':
       props.submissionStatus?.status === 'success',
   }));
 

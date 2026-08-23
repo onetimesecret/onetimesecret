@@ -57,6 +57,9 @@ class Onetime::Mail::Mailer
         'lettermint_team_token' => 'lm-team-token',
         'lettermint_base_url' => 'https://api.lettermint.co/v1',
         'lettermint_timeout' => 30,
+        # SMTP2GO
+        'smtp2go_api_key' => 'api-contract-test-key',
+        'smtp2go_timeout' => 30,
       }
     end
 
@@ -190,6 +193,45 @@ end
 @lm_config['api_token']
 #=> 'lm-sending-token'
 
+# --- SMTP2GO: string keys only ---
+
+## SMTP2GO config returns a Hash
+@s2g_config = Onetime::Mail::Mailer.send(:build_provider_config, 'smtp2go')
+@s2g_config.is_a?(Hash)
+#=> true
+
+## SMTP2GO config has string key 'api_key'
+@s2g_config.key?('api_key')
+#=> true
+
+## SMTP2GO config has string key 'returnpath_subdomain'
+@s2g_config.key?('returnpath_subdomain')
+#=> true
+
+## SMTP2GO config has string key 'tracking_subdomain'
+@s2g_config.key?('tracking_subdomain')
+#=> true
+
+## SMTP2GO config has string key 'timeout'
+@s2g_config.key?('timeout')
+#=> true
+
+## SMTP2GO config contains NO symbol keys
+@s2g_config.keys.none? { |k| k.is_a?(Symbol) }
+#=> true
+
+## SMTP2GO api_key value is correct
+@s2g_config['api_key']
+#=> 'api-contract-test-key'
+
+## SMTP2GO returnpath_subdomain defaults to bounce
+@s2g_config['returnpath_subdomain']
+#=> 'bounce'
+
+## SMTP2GO tracking_subdomain defaults to track
+@s2g_config['tracking_subdomain']
+#=> 'track'
+
 # --- Logger: empty hash ---
 
 ## Logger config returns empty hash
@@ -221,6 +263,11 @@ end
 @public_sg.key?('api_key')
 #=> true
 
+## provider_credentials for smtp2go returns string keys
+@public_s2g = Onetime::Mail::Mailer.provider_credentials('smtp2go')
+@public_s2g.key?('api_key') && @public_s2g.key?('returnpath_subdomain')
+#=> true
+
 # --- Contract: strategy consumers can use string key access ---
 
 ## Lettermint credentials team_token accessible via string key (the bug scenario)
@@ -247,6 +294,11 @@ creds['region']
 creds = Onetime::Mail::Mailer.provider_credentials('sendgrid')
 creds['api_key']
 #=> 'SG.test-key'
+
+## SMTP2GO credentials api_key accessible via string key
+creds = Onetime::Mail::Mailer.provider_credentials('smtp2go')
+creds['api_key']
+#=> 'api-contract-test-key'
 
 # --- SES provisioning region is decoupled from EMAILER_REGION ---
 # provider_credentials('ses') sources region from email_providers.ses
@@ -318,3 +370,78 @@ end
 @fallback_creds = Onetime::Mail::Mailer.provider_credentials('ses')
 [@fallback_creds['access_key_id'], @fallback_creds['secret_access_key']]
 #=> ['smtp_user', 'smtp_pass']
+
+# --- SMTP2GO: absent api_key signals no-credentials with an empty hash ---
+# DomainValidationWorker and its boot check_essentials! guard on
+# `creds && !creds.empty?`. The bounce/track subdomain and base_url defaults
+# must NOT survive .compact when the api_key is absent, or the
+# skip-provider-check degraded mode is unreachable and a rotated key silently
+# flips verified domains to failed.
+
+## Without an api_key anywhere (emailer, email_providers, ENV), smtp2go credentials are empty
+class Onetime::Mail::Mailer
+  class << self
+    def emailer_config
+      { 'mode' => 'smtp2go', 'from' => 'test@example.com' }
+    end
+  end
+end
+# Restore ENV inside the same testcase (ensure), so a failure here can't
+# leak a mutated ENV into the rest of the shared tryouts process.
+saved_s2g_env = ENV.delete('SMTP2GO_API_KEY')
+begin
+  Onetime::Mail::Mailer.provider_credentials('smtp2go')
+ensure
+  ENV['SMTP2GO_API_KEY'] = saved_s2g_env if saved_s2g_env
+end
+#=> {}
+
+## An api_key from the email_providers YAML source restores the full config with subdomain defaults
+class Onetime::Mail::Mailer
+  class << self
+    def provider_config(provider)
+      provider.to_s == 'smtp2go' ? { 'api_key' => 'api-from-yaml' } : {}
+    end
+  end
+end
+creds = Onetime::Mail::Mailer.provider_credentials('smtp2go')
+[creds['api_key'], creds['returnpath_subdomain'], creds['tracking_subdomain']]
+#=> ['api-from-yaml', 'bounce', 'track']
+
+## An api_key from ENV alone also restores the full config
+class Onetime::Mail::Mailer
+  class << self
+    def provider_config(_provider)
+      {}
+    end
+  end
+end
+saved_s2g_env = ENV['SMTP2GO_API_KEY']
+begin
+  ENV['SMTP2GO_API_KEY'] = 'api-from-env'
+  creds = Onetime::Mail::Mailer.provider_credentials('smtp2go')
+ensure
+  if saved_s2g_env
+    ENV['SMTP2GO_API_KEY'] = saved_s2g_env
+  else
+    ENV.delete('SMTP2GO_API_KEY')
+  end
+end
+creds['api_key']
+#=> 'api-from-env'
+
+# --- teardown ------------------------------------------------------------
+# Later files in the same tryouts process observe these class-level stubs
+# (mode 'logger' is what delivery_logger_try and email_ratelimit_tools_try
+# expect from determine_provider), so put back the top-of-file state.
+class Onetime::Mail::Mailer
+  class << self
+    def emailer_config
+      { 'mode' => 'logger', 'from' => 'test@example.com' }
+    end
+
+    def provider_config(_provider)
+      {}
+    end
+  end
+end

@@ -262,11 +262,41 @@ RSpec.describe Onetime::Mail::SenderStrategies::SendGridSenderStrategy do
     context 'with missing api_key' do
       let(:credentials) { {} }
 
-      it 'returns error status' do
+      it 'returns verified: nil — the check could not run' do
         result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
 
-        expect(result[:verified]).to be false
+        expect(result[:verified]).to be_nil
         expect(result[:status]).to eq('error')
+      end
+    end
+
+    context 'when the validate request fails (provider API error)' do
+      before do
+        allow(strategy).to receive(:find_domain_id).and_return(123)
+        allow(strategy).to receive(:post_request)
+          .and_return({ success: false, error: 'unauthorized' })
+      end
+
+      it 'returns verified: nil — indeterminate, never an authoritative false' do
+        result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
+
+        expect(result[:verified]).to be_nil
+        expect(result[:status]).to eq('error')
+        expect(result[:message]).to eq('unauthorized')
+      end
+    end
+
+    context 'when an unexpected error occurs (transport failure)' do
+      before do
+        allow(strategy).to receive(:find_domain_id).and_raise(StandardError.new('connection reset'))
+      end
+
+      it 'returns verified: nil — indeterminate, never an authoritative false' do
+        result = strategy.check_provider_verification_status(mailer_config, credentials: credentials)
+
+        expect(result[:verified]).to be_nil
+        expect(result[:status]).to eq('error')
+        expect(result[:message]).to include('connection reset')
       end
     end
   end

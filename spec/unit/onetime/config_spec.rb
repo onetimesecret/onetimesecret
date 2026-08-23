@@ -602,6 +602,63 @@ RSpec.describe Onetime::Config do
       end
     end
 
+    context 'soft deprecations (severity: :warn) for renamed WebAuthn env flags' do
+      # WEBAUTHN_AUTOFILL / WEBAUTHN_VERIFY_ACCOUNT were renamed to the AUTH_
+      # prefixed family (and switched from presence-based to == 'true'
+      # semantics). No fallback shim — the features were never functional under
+      # the old names — so the entries only point operators at the rename and
+      # must never refuse boot.
+      def stub_env(env)
+        base = ENV.to_h.reject do |k, _|
+          %w[WEBAUTHN_AUTOFILL WEBAUTHN_VERIFY_ACCOUNT].include?(k)
+        end
+        stub_const('ENV', base.merge(env))
+      end
+
+      def build_config(mode = nil)
+        conf = {
+          'site' => { 'secret' => 'test-secret' },
+          'mail' => { 'truemail' => {} },
+        }
+        conf['compatibility'] = { 'deprecated_config_mode' => mode } if mode
+        conf
+      end
+
+      it 'logs WEBAUTHN_AUTOFILL under strict mode (default) and boot continues' do
+        # Presence-based history: ANY value (even 'false') used to enable the
+        # feature, so any set value deserves the pointer at the new name.
+        stub_env('WEBAUTHN_AUTOFILL' => 'false')
+
+        expect(OT).to receive(:le)
+          .with(/CONFIG DEPRECATION:.*WEBAUTHN_AUTOFILL is ignored.*AUTH_WEBAUTHN_AUTOFILL/m)
+
+        expect {
+          described_class.after_load(build_config)
+        }.not_to raise_error
+      end
+
+      it 'logs WEBAUTHN_VERIFY_ACCOUNT under strict mode and boot continues' do
+        stub_env('WEBAUTHN_VERIFY_ACCOUNT' => '1')
+
+        expect(OT).to receive(:le)
+          .with(/CONFIG DEPRECATION:.*WEBAUTHN_VERIFY_ACCOUNT is ignored.*AUTH_WEBAUTHN_VERIFY_ACCOUNT/m)
+
+        expect {
+          described_class.after_load(build_config)
+        }.not_to raise_error
+      end
+
+      it 'stays quiet when only the NEW names are set' do
+        stub_env('AUTH_WEBAUTHN_AUTOFILL' => 'true', 'AUTH_WEBAUTHN_VERIFY_ACCOUNT' => 'true')
+
+        expect(OT).not_to receive(:le).with(/WEBAUTHN.*is ignored/)
+
+        expect {
+          described_class.after_load(build_config)
+        }.not_to raise_error
+      end
+    end
+
     context 'site configuration validation' do
       it 'uses default values when site has minimal config' do
         raw_config = {

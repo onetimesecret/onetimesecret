@@ -42,7 +42,9 @@ module V2
       # System Version
       #
       # @api Returns the current application version as an array of
-      #   version components.
+      #   version components. Requires authentication: the exact build
+      #   version fingerprints the install for CVE matching, so it is not
+      #   disclosed to anonymous callers.
       def self.system_version(_req, _res)
         {
           success: true,

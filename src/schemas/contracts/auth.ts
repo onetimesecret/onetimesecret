@@ -19,6 +19,7 @@ export const sessionSchema = z.object({
   last_activity_at: z.string(),
   ip_address: z.string().optional(),
   user_agent: z.string().optional(),
+  geo_country: z.string().nullable().optional(),
   is_current: z.boolean(),
   remember_enabled: z.boolean(),
 });
@@ -87,12 +88,18 @@ export type AccountInfo = z.infer<typeof accountInfoSchema>;
 
 /**
  * MFA status and configuration schema
+ *
+ * `enabled` deliberately still means otp || recovery only — webauthn does NOT
+ * flip it. The per-factor booleans are additive (2026-08); older backends omit
+ * them, so consumers must treat undefined as false.
  */
 export const mfaStatusSchema = z.object({
   enabled: z.boolean(),
   last_used_at: z.string().nullable(),
   recovery_codes_remaining: z.number(),
   recovery_codes_limit: z.number(),
+  otp_enabled: z.boolean().optional(),
+  webauthn_enabled: z.boolean().optional(),
 });
 
 export type MfaStatus = z.infer<typeof mfaStatusSchema>;

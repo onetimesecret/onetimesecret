@@ -12,7 +12,7 @@
     "source_hash": "e1513814"
   },
   "web.account.verify_account": {
-    "text": "アカウントを認証",
+    "text": "アカウントを確認",
     "source_hash": "2f3ea760"
   },
   "web.account.subscription_title": {
@@ -48,7 +48,7 @@
     "source_hash": "c60f014b"
   },
   "web.account.card_ending": {
-    "text": "末尾",
+    "text": "下4桁",
     "source_hash": "0195bccf"
   },
   "web.account.subscriptions_title": {
@@ -100,7 +100,7 @@
     "source_hash": "919bb4cb"
   },
   "web.account.created_windowprops_cust_secrets_created_secrets": {
-    "text": "{1}以降に{0}個のシークレットが作成されました。",
+    "text": "{1}以降に{0}個のシークレットを作成しました。",
     "source_hash": "8cb99810"
   },
   "web.account.delete_account": {
@@ -116,7 +116,7 @@
     "source_hash": "617bfe67"
   },
   "web.account.your_account": {
-    "text": "あなたのアカウント",
+    "text": "アカウント",
     "source_hash": "89e60bfb"
   },
   "web.account.support_details": {
@@ -136,7 +136,7 @@
     "source_hash": "05986d95"
   },
   "web.account.keep_this_token_secure_it_provides_full_access_t": {
-    "text": "このトークンは安全に保管してください。APIを通じてシークレットを作成・管理するために使用できます。",
+    "text": "このトークンを安全に保管してください。APIを介してシークレットを作成および管理するために使用できます。",
     "source_hash": "a63cc8ec"
   },
   "web.account.confirm_with_your_password": {
@@ -148,7 +148,7 @@
     "source_hash": "4fa3e4b8"
   },
   "web.account.confirm_account_deletion": {
-    "text": "アカウント削除を確認",
+    "text": "アカウント削除の確認",
     "source_hash": "bb3fc7e5"
   },
   "web.account.deleting_cust_custid": {
@@ -164,7 +164,7 @@
     "source_hash": "f894e42c"
   },
   "web.account.permanent_and_non_reversible": {
-    "text": "取り消しができません。",
+    "text": "永久的で元に戻せません。",
     "source_hash": "6121225e"
   },
   "web.account.deleting_your_account_is": {
@@ -180,7 +180,7 @@
     "source_hash": "b45e2dd5"
   },
   "web.account.secrets_will_remain_active_until_they_expire": {
-    "text": "シークレットは有効期限が切れるまでアクティブのままです。",
+    "text": "シークレットは期限切れになるまでアクティブのままです。",
     "source_hash": "ddb4e2b5"
   },
   "web.account.please_be_advised": {
@@ -196,7 +196,7 @@
     "source_hash": "fb1e6fa5"
   },
   "web.account.are_you_sure_you_want_to_deactivate_your_account": {
-    "text": "アカウントを無効化してもよろしいですか？すべてのデータは永久にサーバーから削除されます。この操作は元に戻せません。",
+    "text": "アカウントを無効化してもよろしいですか？すべてのデータがサーバーから永久に削除されます。この操作は元に戻せません。",
     "source_hash": "4940e20a"
   },
   "web.account.deactivate_account": {
@@ -208,11 +208,11 @@
     "source_hash": "74a883a0"
   },
   "web.settings.description": {
-    "text": "アカウント設定と環境設定を管理",
+    "text": "アカウントの設定と環境設定を管理できます",
     "source_hash": "2ff0853c"
   },
   "web.settings.manage_your_account_settings_and_preferences": {
-    "text": "アカウント設定と環境設定を管理します",
+    "text": "アカウントの設定と環境設定を管理できます",
     "source_hash": "2ff0853c"
   },
   "web.settings.back_to_dashboard": {
@@ -228,7 +228,7 @@
     "source_hash": "3ac8bbca"
   },
   "web.settings.sections.advanced": {
-    "text": "詳細",
+    "text": "詳細設定",
     "source_hash": "9f088dbe"
   },
   "web.settings.general": {
@@ -248,11 +248,11 @@
     "source_hash": "efb52e71"
   },
   "web.settings.theme.description": {
-    "text": "ライトまたはダークテーマを選択",
+    "text": "ライトまたはダークテーマを選択できます",
     "source_hash": "ff0ae84f"
   },
   "web.settings.theme.choose_light_or_dark_theme": {
-    "text": "ライトまたはダークテーマを選択",
+    "text": "ライトまたはダークテーマを選択できます",
     "source_hash": "ff0ae84f"
   },
   "web.settings.language.title": {
@@ -260,19 +260,19 @@
     "source_hash": "a4fe6526"
   },
   "web.settings.language.description": {
-    "text": "お好みの言語を選択",
+    "text": "ご希望の言語を選択してください",
     "source_hash": "475bba7a"
   },
   "web.settings.language.select_your_preferred_language": {
-    "text": "お好みの言語を選択",
+    "text": "ご希望の言語を選択してください",
     "source_hash": "475bba7a"
   },
   "web.settings.security_settings_description": {
-    "text": "認証とアカウントセキュリティを管理",
+    "text": "認証とアカウントのセキュリティを管理できます",
     "source_hash": "945109d1"
   },
   "web.settings.profile_settings_description": {
-    "text": "アカウント情報を管理",
+    "text": "アカウント情報を管理できます",
     "source_hash": "4a23a29f"
   },
   "web.settings.profile.title": {
@@ -280,11 +280,11 @@
     "source_hash": "d696a35b"
   },
   "web.settings.profile.change_email": {
-    "text": "メールを変更",
+    "text": "メールアドレスを変更",
     "source_hash": "18c3f2d5"
   },
   "web.settings.profile.current_email": {
-    "text": "現在のメール",
+    "text": "現在のメールアドレス",
     "source_hash": "5f1cab64"
   },
   "web.settings.profile.current_password": {
@@ -292,31 +292,31 @@
     "source_hash": "8ac76099"
   },
   "web.settings.profile.new_email": {
-    "text": "新しいメール",
+    "text": "新しいメールアドレス",
     "source_hash": "5bafb4be"
   },
   "web.settings.profile.enter_password_to_confirm": {
-    "text": "現在のパスワードを入力",
+    "text": "現在のパスワードを入力してください",
     "source_hash": "27814c03"
   },
   "web.settings.profile.password_required_for_security": {
-    "text": "セキュリティのためパスワードが必要です",
+    "text": "セキュリティのためにパスワードが必要です",
     "source_hash": "d18f62f2"
   },
   "web.settings.profile.verification_email_notice": {
-    "text": "新しいアドレスに認証メールが送信されます",
+    "text": "新しいアドレスに確認メールが送信されます",
     "source_hash": "575082a1"
   },
   "web.settings.profile.update_email": {
-    "text": "メールを更新",
+    "text": "メールアドレスを更新",
     "source_hash": "6ec61b2e"
   },
   "web.settings.profile.change_email_description": {
-    "text": "アカウントに関連付けられているメールアドレスを更新",
+    "text": "アカウントに関連付けられたメールアドレスを更新できます",
     "source_hash": "636abb16"
   },
   "web.settings.profile.all_fields_required": {
-    "text": "すべての項目が必須です",
+    "text": "すべてのフィールドが必須です",
     "source_hash": "04814271"
   },
   "web.settings.profile.invalid_email": {
@@ -324,7 +324,7 @@
     "source_hash": "b00f7e3a"
   },
   "web.settings.profile.email_same_as_current": {
-    "text": "新しいメールは現在のメールと異なる必要があります",
+    "text": "新しいメールアドレスは現在のものと異なる必要があります",
     "source_hash": "f7cfed6e"
   },
   "web.settings.profile.email_change_success": {
@@ -332,19 +332,19 @@
     "source_hash": "45f0a4b5"
   },
   "web.settings.profile.email_change_error": {
-    "text": "メールの更新に失敗しました。もう一度お試しください。",
+    "text": "メールアドレスの更新に失敗しました。もう一度お試しください。",
     "source_hash": "aeba6591"
   },
   "web.settings.sessions.title": {
-    "text": "アクティブセッション",
+    "text": "アクティブなセッション",
     "source_hash": "b58fa4e0"
   },
   "web.settings.sessions.description": {
-    "text": "アクティブセッションを管理",
+    "text": "アクティブなセッションを管理できます",
     "source_hash": "e5646da4"
   },
   "web.settings.sessions.manage_active_sessions": {
-    "text": "アクティブセッションを管理",
+    "text": "アクティブなセッションを管理できます",
     "source_hash": "e5646da4"
   },
   "web.settings.password.title": {
@@ -352,11 +352,11 @@
     "source_hash": "e7cf3ef4"
   },
   "web.settings.password.description": {
-    "text": "アカウントパスワードを更新",
+    "text": "アカウントのパスワードを更新できます",
     "source_hash": "cb3ae40b"
   },
   "web.settings.password.update_account_password": {
-    "text": "アカウントパスワードを更新",
+    "text": "アカウントのパスワードを更新できます",
     "source_hash": "cb3ae40b"
   },
   "web.settings.delete_account.title": {
@@ -364,11 +364,11 @@
     "source_hash": "c031bf99"
   },
   "web.settings.delete_account.description": {
-    "text": "アカウントとすべてのデータを完全に削除",
+    "text": "アカウントとすべてのデータを完全に削除します",
     "source_hash": "7a3a6da2"
   },
   "web.settings.delete_account.permanently_delete_your_account": {
-    "text": "アカウントとすべてのデータを完全に削除",
+    "text": "アカウントとすべてのデータを完全に削除します",
     "source_hash": "7a3a6da2"
   },
   "web.settings.security.security_score": {
@@ -376,7 +376,7 @@
     "source_hash": "02d2f374"
   },
   "web.settings.security.score_description": {
-    "text": "アカウント全体のセキュリティ状態",
+    "text": "アカウントの全体的なセキュリティ状態",
     "source_hash": "cf20935e"
   },
   "web.settings.security.excellent": {
@@ -396,11 +396,11 @@
     "source_hash": "8d6cea25"
   },
   "web.settings.security.improve_security": {
-    "text": "セキュリティを向上",
+    "text": "セキュリティを向上させる",
     "source_hash": "c38bcbf5"
   },
   "web.settings.security.enable_mfa_recommendation": {
-    "text": "より強力な保護のために二要素認証を有効化",
+    "text": "より強力な保護のために二要素認証を有効にしてください",
     "source_hash": "6beda528"
   },
   "web.settings.security.generate_recovery_codes_recommendation": {
@@ -420,19 +420,19 @@
     "source_hash": "5a234448"
   },
   "web.settings.security.enable": {
-    "text": "有効化",
+    "text": "有効にする",
     "source_hash": "5342e09f"
   },
   "web.settings.security.codes_available": {
-    "text": "{0}件のコードが利用可能",
+    "text": "{0}個のコードが利用可能",
     "source_hash": "76d6236d"
   },
   "web.settings.security.no_codes": {
-    "text": "コード未生成",
+    "text": "コードは生成されていません",
     "source_hash": "3b2eae20"
   },
   "web.settings.security.active_sessions": {
-    "text": "{0}件のアクティブセッション",
+    "text": "{0}個のアクティブなセッション",
     "source_hash": "30737484"
   },
   "web.settings.security.best_practices": {
@@ -440,19 +440,19 @@
     "source_hash": "fd71b2da"
   },
   "web.settings.security.use_strong_unique_password": {
-    "text": "アカウントには強力でユニークなパスワードを使用",
+    "text": "アカウントには強力でユニークなパスワードを使用してください",
     "source_hash": "5fc8cbf4"
   },
   "web.settings.security.enable_mfa_for_protection": {
-    "text": "追加の保護のために二要素認証を有効化",
+    "text": "追加の保護のために二要素認証を有効にしてください",
     "source_hash": "107e4898"
   },
   "web.settings.security.save_recovery_codes_safely": {
-    "text": "リカバリーコードを安全な場所に保存",
+    "text": "リカバリーコードは安全な場所に保存してください",
     "source_hash": "605513fc"
   },
   "web.settings.security.review_sessions_regularly": {
-    "text": "定期的にセッションを確認し、未使用のものを取り消す",
+    "text": "未使用のセッションを定期的に確認し、取り消してください",
     "source_hash": "efe59445"
   },
   "web.settings.security.view_details": {
@@ -460,15 +460,15 @@
     "source_hash": "d1bf045b"
   },
   "web.settings.api.title": {
-    "text": "APIと統合",
+    "text": "APIとインテグレーション",
     "source_hash": "21fc84f3"
   },
   "web.settings.api.description": {
-    "text": "APIキーと統合を管理",
+    "text": "APIキーとインテグレーションを管理できます",
     "source_hash": "70976099"
   },
   "web.settings.api.manage_api_keys": {
-    "text": "APIキーと統合を管理",
+    "text": "APIキーとインテグレーションを管理できます",
     "source_hash": "70976099"
   },
   "web.settings.api.documentation": {
@@ -500,23 +500,23 @@
     "source_hash": "fd71b2da"
   },
   "web.settings.api.never_commit_api_keys": {
-    "text": "APIキーをバージョン管理にコミットしない",
+    "text": "APIキーをバージョン管理にコミットしないでください",
     "source_hash": "cc8c327e"
   },
   "web.settings.api.use_environment_variables": {
-    "text": "APIキーの保存には環境変数を使用",
+    "text": "環境変数を使用してAPIキーを保存してください",
     "source_hash": "c05e8802"
   },
   "web.settings.api.rotate_keys_regularly": {
-    "text": "セキュリティのためAPIキーを定期的にローテーション",
+    "text": "セキュリティのためにAPIキーを定期的にローテーションしてください",
     "source_hash": "eda6a5db"
   },
   "web.settings.api.use_https_only": {
-    "text": "APIリクエストには常にHTTPSを使用",
+    "text": "APIリクエストには必ずHTTPSを使用してください",
     "source_hash": "b3f405ef"
   },
   "web.settings.api.monitor_api_usage": {
-    "text": "API使用状況を監視し、アラートを設定",
+    "text": "API使用状況を監視し、アラートを設定してください",
     "source_hash": "abb08beb"
   },
   "web.settings.api.important_notice": {
@@ -524,7 +524,7 @@
     "source_hash": "03d3ba93"
   },
   "web.settings.api.regenerating_key_warning": {
-    "text": "APIキーを再生成すると、現在のキーが無効になります。古いキーを使用しているすべてのアプリケーションを更新してください。",
+    "text": "APIキーを再生成すると、現在のキーは無効になります。古いキーを使用しているすべてのアプリケーションを更新してください。",
     "source_hash": "ab168f83"
   },
   "web.settings.privacy.title": {
@@ -532,15 +532,15 @@
     "source_hash": "eefad6ba"
   },
   "web.settings.privacy.manage_privacy_settings": {
-    "text": "プライバシー設定を管理",
+    "text": "プライバシー設定を管理できます",
     "source_hash": "add087da"
   },
   "web.settings.privacy.your_privacy": {
-    "text": "あなたのプライバシー",
+    "text": "プライバシーについて",
     "source_hash": "cad972db"
   },
   "web.settings.privacy.non_negotiable": {
-    "text": "交渉の余地なし",
+    "text": "妥協なし",
     "source_hash": "ad090a29"
   },
   "web.settings.privacy.not_a_setting": {
@@ -548,11 +548,11 @@
     "source_hash": "41278ece"
   },
   "web.settings.privacy.no_analytics_statement": {
-    "text": "分析なし。追跡なし。以上。",
+    "text": "アナリティクスなし。トラッキングなし。以上です。",
     "source_hash": "3e154b1c"
   },
   "web.settings.privacy.explanation": {
-    "text": "オン/オフにするものがないため、これは設定ではありません。プライバシーは私たちの運用方法に組み込まれています。",
+    "text": "オンにもオフにもできるものがないため、これは設定ではありません。プライバシーは私たちの運営方針に組み込まれています。",
     "source_hash": "ed943792"
   },
   "web.settings.notifications.title": {
@@ -560,7 +560,7 @@
     "source_hash": "07a063ca"
   },
   "web.settings.notifications.description": {
-    "text": "通知の受け取り方を管理",
+    "text": "通知の受け取り方法を管理できます",
     "source_hash": "148c5ff6"
   },
   "web.settings.notifications.error_updating": {
@@ -572,23 +572,23 @@
     "source_hash": "c0fb2e25"
   },
   "web.settings.notifications.reveal_notifications.description": {
-    "text": "誰かがシークレットを閲覧したときにメールを受信",
+    "text": "誰かがシークレットを閲覧したときにメールを受け取ります",
     "source_hash": "a3a67095"
   },
   "web.settings.notifications.reveal_notifications.help": {
-    "text": "受信者があなたのシークレットを閲覧するたびに通知されます",
+    "text": "受信者がシークレットを閲覧するたびに通知されます",
     "source_hash": "ba93106d"
   },
   "web.settings.notifications.privacy_note": {
-    "text": "通知メールにはタイムスタンプとシークレットIDのみが含まれます。閲覧者情報は含まれません。",
+    "text": "通知メールにはタイムスタンプとシークレットIDのみが含まれます。閲覧者の情報は含まれません。",
     "source_hash": "7aac282f"
   },
   "web.settings.caution.title": {
-    "text": "注意が必要なゾーン",
+    "text": "注意が必要な設定",
     "source_hash": "fe27a3a8"
   },
   "web.settings.caution.description": {
-    "text": "詳細設定とデータ管理",
+    "text": "高度な設定とデータ管理",
     "source_hash": "223ee55d"
   },
   "web.settings.caution.data_export": {
@@ -600,7 +600,7 @@
     "source_hash": "dc5ffcb0"
   },
   "web.settings.caution.export_description": {
-    "text": "機械可読形式でアカウントデータの完全なコピーをリクエスト",
+    "text": "アカウントデータの完全なコピーを機械可読形式でリクエストできます",
     "source_hash": "369c3391"
   },
   "web.settings.caution.request_data_export": {
@@ -620,15 +620,15 @@
     "source_hash": "17a8a676"
   },
   "web.settings.caution.deletion_warning_secrets": {
-    "text": "すべてのシークレットを完全に削除",
+    "text": "すべてのシークレットが完全に削除されます",
     "source_hash": "974ccdb9"
   },
   "web.settings.caution.deletion_warning_metadata": {
-    "text": "すべてのシークレットメタデータと履歴を削除",
+    "text": "すべてのシークレットのメタデータと履歴が削除されます",
     "source_hash": "ec4ee372"
   },
   "web.settings.caution.deletion_warning_api_keys": {
-    "text": "すべてのAPIキーを無効化",
+    "text": "すべてのAPIキーが無効になります",
     "source_hash": "7581333b"
   },
   "web.settings.caution.deletion_warning_irreversible": {
@@ -640,11 +640,11 @@
     "source_hash": "cf02eb0c"
   },
   "web.settings.profile.email_confirmed_success": {
-    "text": "メールアドレスが正常に更新されました。新しいメールアドレスでログインしてください。",
+    "text": "メールアドレスが正常に更新されました。新しいメールアドレスでサインインしてください。",
     "source_hash": "a84efcea"
   },
   "web.settings.profile.email_confirm_verifying": {
-    "text": "新しいメールアドレスを確認中...",
+    "text": "新しいメールアドレスを確認しています...",
     "source_hash": "a6a4745f"
   },
   "web.settings.profile.email_confirm_error_title": {
@@ -652,7 +652,7 @@
     "source_hash": "953f3936"
   },
   "web.settings.profile.email_confirm_invalid": {
-    "text": "この確認リンクは無効または期限切れです。",
+    "text": "この確認リンクは無効か、有効期限が切れています。",
     "source_hash": "f54594c2"
   },
   "web.settings.profile.email_confirm_back_to_settings": {
@@ -660,7 +660,7 @@
     "source_hash": "fd49b66b"
   },
   "web.settings.profile.redirecting_to_signin": {
-    "text": "ログインページにリダイレクト中...",
+    "text": "サインインにリダイレクトしています...",
     "source_hash": "c65f7dcc"
   },
   "web.settings.profile.resend_confirmation": {
@@ -668,7 +668,7 @@
     "source_hash": "c617fff7"
   },
   "web.settings.profile.resend_confirmation_success": {
-    "text": "確認メールが再送信されました。",
+    "text": "確認メールを再送信しました。",
     "source_hash": "2287783b"
   },
   "web.settings.profile.resend_confirmation_sending": {
@@ -676,11 +676,11 @@
     "source_hash": "286a3af7"
   },
   "web.settings.profile.email_change_pending": {
-    "text": "確認メールが送信されました。受信トレイを確認し、確認リンクをクリックしてください。",
+    "text": "確認メールを送信しました。受信トレイを確認し、確認リンクをクリックしてください。",
     "source_hash": "5806c93f"
   },
   "web.settings.profile.didnt_receive_email": {
-    "text": "メールが届きませんか？",
+    "text": "メールが届きませんでしたか?",
     "source_hash": "fe3ac3ad"
   },
   "web.settings.api.api_disabled_notice": {
@@ -688,11 +688,39 @@
     "source_hash": "66d12d6b"
   },
   "web.settings.security.sso_managed_title": {
-    "text": "SSOによって管理されるセキュリティ",
+    "text": "SSOによるセキュリティ管理",
     "source_hash": "1f6c9472"
   },
   "web.settings.security.sso_managed_description": {
-    "text": "お使いのアカウントは、組織のシングルサインオンプロバイダーを通じて認証されます。パスワード、多要素認証、リカバリーコードはIDプロバイダーによって管理されます。",
+    "text": "アカウントは組織のシングルサインオンプロバイダーを通じて認証されています。パスワード、多要素認証、リカバリーコードはIDプロバイダーによって管理されています。",
     "source_hash": "cd0cf39f"
+  },
+  "web.settings.api.api_username": {
+    "text": "APIユーザー名",
+    "source_hash": "0b3e483e"
+  },
+  "web.settings.api.api_username_description": {
+    "text": "HTTP Basic認証用のユーザー名",
+    "source_hash": "f3e65de3"
+  },
+  "web.settings.api.basic_auth_hint": {
+    "text": "HTTP Basic認証では、アカウントのメールアドレスまたはこのIDをユーザー名として、APIトークンをパスワードとして使用してください。",
+    "source_hash": "cfa3806d"
+  },
+  "web.settings.security.set": {
+    "text": "設定",
+    "source_hash": "b6f6f3ad"
+  },
+  "web.settings.security.not_set": {
+    "text": "未設定",
+    "source_hash": "4895f731"
+  },
+  "web.settings.security.set_password_title": {
+    "text": "パスワードを設定",
+    "source_hash": "4e411687"
+  },
+  "web.settings.security.set_password_description": {
+    "text": "IDプロバイダーなしでもサインインできるように、アカウントにパスワードを追加できます",
+    "source_hash": "a6970402"
   }
 }

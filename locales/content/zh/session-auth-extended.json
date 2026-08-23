@@ -292,9 +292,9 @@
     "source_hash": "e5bc07f1"
   },
   "web.auth.passkeys.name": {
-    "text": "通行密钥名称",
+    "text": "通行密钥",
     "context": "Label for passkey name field",
-    "source_hash": "22eefa67"
+    "source_hash": "904c9aa9"
   },
   "web.auth.passkeys.created": {
     "text": "已创建",
@@ -730,5 +730,229 @@
   "web.auth.sessions.session_plural": {
     "text": "会话",
     "source_hash": "1225ae6c"
+  },
+  "web.auth.connections.title": {
+    "text": "已关联的身份",
+    "source_hash": "e132c4d9"
+  },
+  "web.auth.connections.description": {
+    "text": "管理已关联到您账户的单点登录提供商。",
+    "source_hash": "42c6d148"
+  },
+  "web.auth.connections.section_title": {
+    "text": "单点登录",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.section_subtitle": {
+    "text": "可用于登录此账户的身份提供商",
+    "source_hash": "507254cd"
+  },
+  "web.auth.connections.connect_title": {
+    "text": "关联提供商",
+    "source_hash": "a002b3f3"
+  },
+  "web.auth.connections.connect_description": {
+    "text": "关联另一个可用于登录此账户的单点登录提供商。",
+    "source_hash": "32895a5a"
+  },
+  "web.auth.connections.connect_action": {
+    "text": "关联 {provider}",
+    "source_hash": "c77540af"
+  },
+  "web.auth.connections.issuer": {
+    "text": "颁发者",
+    "source_hash": "39e02c46"
+  },
+  "web.auth.connections.identifier": {
+    "text": "标识符",
+    "source_hash": "9b10587f"
+  },
+  "web.auth.connections.remove": {
+    "text": "移除",
+    "source_hash": "c3812fc4"
+  },
+  "web.auth.connections.remove_confirm_title": {
+    "text": "移除已关联的身份",
+    "source_hash": "4e8ffe4c"
+  },
+  "web.auth.connections.remove_confirm_message": {
+    "text": "确定要移除此已关联的身份吗？移除后您将无法再使用它登录。",
+    "source_hash": "64939c89"
+  },
+  "web.auth.connections.removed_success": {
+    "text": "已关联的身份已移除",
+    "source_hash": "cf87daf3"
+  },
+  "web.auth.connections.no_identities": {
+    "text": "没有已关联的身份",
+    "source_hash": "5254048e"
+  },
+  "web.auth.connections.no_identities_description": {
+    "text": "您尚未将任何单点登录提供商关联到此账户。",
+    "source_hash": "0f58d5d0"
+  },
+  "web.auth.connections.overview_status": {
+    "text": "单点登录",
+    "source_hash": "3bc44ac2"
+  },
+  "web.auth.connections.errors.last_credential": {
+    "text": "这是您唯一的登录方式。请先关联另一个提供商，或在「设置 → 安全」中设置密码，以免无法登录。",
+    "source_hash": "3de8084d"
+  },
+  "web.auth.connections.errors.last_credential_sso_enforced": {
+    "text": "这是您唯一的登录方式。请先关联另一个提供商，以免无法登录。",
+    "source_hash": "eed7a50e"
+  },
+  "web.auth.connections.errors.not_found": {
+    "text": "未找到该已关联的身份。它可能已被移除。",
+    "source_hash": "cf2c7673"
+  },
+  "web.auth.connections.errors.unauthorized": {
+    "text": "您的会话已过期。请重新登录。",
+    "source_hash": "b529fce2"
+  },
+  "web.auth.connections.errors.generic": {
+    "text": "我们无法完成该操作。请重试。",
+    "source_hash": "a0d4edc0"
+  },
+  "web.link_sso.title": {
+    "text": "关联您的登录方式",
+    "source_hash": "46339bac"
+  },
+  "web.link_sso.prompt": {
+    "text": "您通过 {provider} 登录，该身份与已有账户 {email} 匹配。请输入该账户的密码以关联 {provider} 并继续。",
+    "source_hash": "59da1c08"
+  },
+  "web.link_sso.password_label": {
+    "text": "密码",
+    "source_hash": "e7cf3ef4"
+  },
+  "web.link_sso.password_placeholder": {
+    "text": "您的现有密码",
+    "source_hash": "ad4e56da"
+  },
+  "web.link_sso.submit": {
+    "text": "关联并继续",
+    "source_hash": "c969b759"
+  },
+  "web.link_sso.cancel": {
+    "text": "取消",
+    "source_hash": "19766ed6"
+  },
+  "web.link_sso.unavailable_title": {
+    "text": "此关联请求已过期",
+    "source_hash": "b53c7e55"
+  },
+  "web.link_sso.unavailable_message": {
+    "text": "出于安全考虑，关联此登录方式的请求已失效。请使用您的现有密码登录，然后在「安全设置 → 已关联的身份」中关联此提供商。",
+    "source_hash": "f7e349d1"
+  },
+  "web.link_sso.unavailable_action": {
+    "text": "继续登录",
+    "source_hash": "d398cd0a"
+  },
+  "web.link_sso.errors.invalid_password": {
+    "text": "该密码与此账户不匹配。请重试。",
+    "source_hash": "3259b4f5"
+  },
+  "web.link_sso.errors.invalid_token": {
+    "text": "此关联请求已过期或已被使用。请使用您的现有密码登录，然后在账户设置中关联此提供商。",
+    "source_hash": "541f9127"
+  },
+  "web.link_sso.errors.link_conflict": {
+    "text": "我们无法关联此登录方式。您的账户可能已发生变更，或此提供商已关联到其他账户。请使用您的现有密码登录，然后在「安全设置 → 已关联的身份」中管理关联。",
+    "source_hash": "7b0e0d0e"
+  },
+  "web.link_sso.errors.link_rate_limited": {
+    "text": "密码尝试次数过多。请稍候几分钟后重试。",
+    "source_hash": "a95e78cd"
+  },
+  "web.link_sso.errors.invalid_request": {
+    "text": "我们无法处理此关联请求。请重新通过您的 SSO 提供商登录。",
+    "source_hash": "053b9fc6"
+  },
+  "web.link_sso.errors.generic": {
+    "text": "我们无法关联您的账户。请重试。",
+    "source_hash": "f727c174"
+  },
+  "web.sso_link_confirm.title": {
+    "text": "确认关联您的账户",
+    "source_hash": "ad80bfe7"
+  },
+  "web.sso_link_confirm.prompt": {
+    "text": "您通过 {provider} 登录，该身份与您的账户 {email} 匹配。请确认以将 {provider} 关联到此账户并完成登录。",
+    "source_hash": "6ff0d6cc"
+  },
+  "web.sso_link_confirm.submit": {
+    "text": "确认并关联",
+    "source_hash": "5cf663e6"
+  },
+  "web.sso_link_confirm.cancel": {
+    "text": "取消",
+    "source_hash": "19766ed6"
+  },
+  "web.sso_link_confirm.unavailable_title": {
+    "text": "此关联请求无法完成",
+    "source_hash": "47abb784"
+  },
+  "web.sso_link_confirm.unavailable_message": {
+    "text": "出于安全考虑，此关联登录方式的请求已失效。请重新通过您的提供商登录，我们会向您发送新的链接。",
+    "source_hash": "080e6f9f"
+  },
+  "web.sso_link_confirm.unavailable_action": {
+    "text": "返回登录",
+    "source_hash": "8504054f"
+  },
+  "web.sso_link_confirm.errors.link_expired": {
+    "text": "此关联请求已过期或已被使用。请重新通过您的提供商登录，我们会向您发送新的链接。",
+    "source_hash": "a50538df"
+  },
+  "web.sso_link_confirm.errors.link_conflict": {
+    "text": "我们无法关联此登录方式。您的账户可能已发生变更，或此提供商已关联到其他账户。请重新通过您的提供商登录以继续。",
+    "source_hash": "c954854b"
+  },
+  "web.sso_link_confirm.errors.link_invalidated": {
+    "text": "此链接发送后您的账户凭据发生了变更，因此该链接已失效。请重新通过您的提供商登录，我们会向您发送新的链接。",
+    "source_hash": "db88cb1d"
+  },
+  "web.sso_link_confirm.errors.link_error": {
+    "text": "我们这边出现了问题，无法验证此链接。请重新通过您的提供商登录，我们会向您发送新的链接。",
+    "source_hash": "ec24e0a1"
+  },
+  "web.sso_link_confirm.errors.confirm_rate_limited": {
+    "text": "来自您设备的尝试次数过多。请稍候几分钟，然后重新打开邮件中的链接，或通过您的提供商登录以获取新链接。",
+    "source_hash": "f29af782"
+  },
+  "web.sso_link_confirm.errors.generic": {
+    "text": "我们无法确认此关联。请重新通过您的提供商登录。",
+    "source_hash": "076fa25a"
+  },
+  "web.auth.mfa.passkey_mode_active": {
+    "text": "通行密钥模式已启用",
+    "source_hash": "824dceb6"
+  },
+  "web.auth.mfa.passkey_prompt": {
+    "text": "使用通行密钥验证您的身份。您的设备将要求您提供指纹、面容或安全密钥。",
+    "source_hash": "c0b0cbbc"
+  },
+  "web.auth.mfa.verify_with_passkey": {
+    "text": "使用通行密钥验证",
+    "source_hash": "4f105a30"
+  },
+  "web.auth.mfa.use_passkey": {
+    "text": "改用通行密钥",
+    "source_hash": "bd6430a4"
+  },
+  "web.auth.passkeys.remove_failed": {
+    "text": "无法移除通行密钥",
+    "source_hash": "3e131515"
+  },
+  "web.auth.passkeys.load_failed": {
+    "text": "无法加载通行密钥",
+    "source_hash": "8d704e00"
+  },
+  "web.auth.webauthn.emailRequired": {
+    "text": "请输入您的邮箱地址以使用通行密钥登录",
+    "source_hash": "7f07647f"
   }
 }

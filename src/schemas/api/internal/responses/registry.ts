@@ -42,6 +42,7 @@ import {
   colonelDomainConfigsEnsureResponseSchema,
 } from './colonel-domain-configs';
 import {
+  colonelDeleteOrganizationResponseSchema,
   colonelEntitlementOverrideResponseSchema,
   colonelMembershipEntitlementOverrideResponseSchema,
   colonelOrganizationDetailResponseSchema,
@@ -181,6 +182,7 @@ export const responseSchemas = {
   investigateOrganization: investigateOrganizationResponseSchema,
   colonelReconcileOrganization: colonelReconcileOrganizationResponseSchema,
   colonelTransferOrganizationOwnership: colonelTransferOrganizationOwnershipResponseSchema,
+  colonelDeleteOrganization: colonelDeleteOrganizationResponseSchema,
   colonelEntitlementOverride: colonelEntitlementOverrideResponseSchema,
   colonelMembershipEntitlementOverride: colonelMembershipEntitlementOverrideResponseSchema,
   databaseMetrics: databaseMetricsResponseSchema,

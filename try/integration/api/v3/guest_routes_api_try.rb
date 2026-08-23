@@ -203,13 +203,16 @@ get '/api/v3/status',
 last_response.status
 #=> 200
 
-## V3 version endpoint is always accessible (public meta endpoint)
+## V3 version endpoint rejects anonymous callers
+# Unlike the other meta endpoints, /version discloses the exact build version,
+# which fingerprints the install for CVE matching. It uses
+# auth=sessionauth,basicauth, so an anonymous request fails closed.
 clear_cookies
 get '/api/v3/version',
   {},
   { 'HTTP_ACCEPT' => 'application/json' }
 last_response.status
-#=> 200
+#=> 401
 
 ## V3 supported-locales endpoint is always accessible (public meta endpoint)
 clear_cookies

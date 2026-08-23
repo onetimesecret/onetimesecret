@@ -74,6 +74,16 @@ RSpec.describe 'OmniAuth sign-in interstitial (#3840 Phase 3)', type: :integrati
     raise "Auth app not mounted post-boot: #{mounts.inspect}" unless mounts.any? { |m| m.include?('/auth') }
   end
 
+  # Registered custom-domain hosts must classify :custom, which only happens
+  # with the domains axis ON and a PARSEABLE canonical host installed. Both
+  # used to be inherited from the ambient DOMAINS_ENABLED of whatever shell
+  # ran the suite; declaring it here makes the file green in either.
+  #
+  # Declared AFTER the forced reboot above on purpose: `boot!(:test, force: true)`
+  # reloads OT.conf and rebuilds Onetime::Runtime.features, which is exactly
+  # what this context overrides.
+  include_context 'domains enabled'
+
   let(:identities) { auth_db[:account_identities] }
 
   # ==========================================================================

@@ -8,12 +8,12 @@
 #
 # Test env resolves determine_provider -> 'logger' (a non-live transport), so
 # this asserts the capability=false envelope shape + the auth gates. The SES /
-# Lettermint data mapping is exercised by the unit tryout with an injected
-# fetcher (test env cannot reach a live provider).
+# Lettermint / SMTP2GO data mapping is exercised by the unit tryout with an
+# injected fetcher (test env cannot reach a live provider).
 #
 # Covers:
 # - 200 for colonel; details carries provider + the two orthogonal flags
-# - logger transport -> capability false, available false, both blocks nil
+# - logger transport -> capability false, available false, all provider blocks nil
 # - 403 for non-colonel, 401 for anonymous
 #
 # Run: try --agent try/integration/api/colonel/get_email_provider_status_try.rb
@@ -90,9 +90,9 @@ last_response.status
 [@d.key?('capability'), @d.key?('available'), @d['provider']]
 #=> [true, true, 'logger']
 
-## logger is a non-live transport: capability false, both provider blocks nil
-[@d['capability'], @d['available'], @d['ses'], @d['lettermint']]
-#=> [false, false, nil, nil]
+## logger is a non-live transport: capability false, all provider blocks nil
+[@d['capability'], @d['available'], @d['ses'], @d['lettermint'], @d['smtp2go']]
+#=> [false, false, nil, nil, nil]
 
 # --- Teardown ------------------------------------------------------------
 @colonel.destroy! rescue nil

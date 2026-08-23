@@ -1,7 +1,10 @@
 # Per-Custom-Domain IP Allowlist (WAF-Style CIDR Filtering)
 
-Status: Draft (proposed) — 2026-07-25
-Depends on: Otto v2.6.0 trusted-proxy features; ADR-024 config-resolution semantics
+Status: Draft (proposed) — 2026-07-25; classification handling revised 2026-08-13
+Depends on: Otto v2.6.0 trusted-proxy features; ADR-024 config-resolution
+semantics, in particular
+ADR-024#operator-defaults-require-positive-classification (operator auth
+defaults require a positive operator classification, #4157)
 
 Tenant-configurable CIDR filtering that restricts which networks can reach a
 custom domain — an additional access-control layer alongside the existing
@@ -83,9 +86,12 @@ resolution behind proxies — but no filtering primitive.
   (`resolve_client_ip_by_depth`, `utils.rb:208`) counts exactly N trusted
   hops from the right with junk positions preserved — not spoofable by XFF
   padding, but assumes origin lockdown.
-- **IP privacy middleware** (`IPPrivacyMiddleware`, auto-mounted innermost):
-  sets `env['otto.client_ip']` and `env['otto.via_trusted_proxy']`; masks
-  IPs, scrubs UA/referer, rewrites forwarded headers.
+- **IP privacy middleware** (`IPPrivacyMiddleware`, auto-mounted innermost
+  in 2.6.0; *since otto#219 it mounts outermost, so all other middleware
+  sees masked values*): sets `env['otto.client_ip']` and
+  `env['otto.via_trusted_proxy']` (*tri-state since otto#228: written only
+  when proxy trust is configured*); masks IPs, scrubs UA/referer, rewrites
+  forwarded headers.
 - **Rejection plumbing**: `raise Otto::ForbiddenError` from anywhere in the
   Otto request chain yields a content-negotiated 403 with security headers
   (`otto-2.6.0/lib/otto/core/error_handler.rb:13`). (Not available to plain
@@ -117,6 +123,11 @@ resolution behind proxies — but no filtering primitive.
    Depth mode is the robust option but permanently disables
    `Request#secure?`'s forwarded-proto trust (modes are mutually
    exclusive, so `otto.via_trusted_proxy` is always false in depth mode).
+   *Since fixed: otto#226 grants depth-mode peer trust
+   (`via_trusted_proxy=true`, forwarded proto honored), otto#228 makes the
+   key tri-state, and the depth `+1` remap off-by-one was dropped
+   (PR #4028, for #4024), so depth resolves the documented client and
+   resists XFF padding.*
 4. **Geo headers are trusted unconditionally** in the released 2.6.0
    (`otto-2.6.0/lib/otto/privacy/geo_resolver.rb:164-197`): `CF-IPCountry`
    et al. are honored with no trusted-proxy gate, and the built-in range
@@ -227,7 +238,8 @@ Gemfile constraint `'~> 2.5'` already admits it.
 ### Threat model and scope contract
 
 - **Scope: host-scoped, every request.** Enforcement applies to any request
-  whose resolved `env['onetime.domain_strategy'] == :custom` and whose
+  whose host is not positively an operator host (see "Classification" below
+  — *not* an `== :custom` test) and whose
   domain has an enabled access config — HTML, all `/api/*` mounts, secret
   reveal links, and the Roda `/auth` mount (all sit behind the universal
   middleware stack; `/auth` bypasses only Otto's *router*, not the Rack
@@ -247,8 +259,11 @@ Gemfile constraint `'~> 2.5'` already admits it.
 - **Fail-closed** when a policy is enforcing and either the capability
   returns false with no resolvable IP, or `otto.ip_match` is absent
   entirely (stack misconfiguration — log loudly; matches
-  `AdminNetworkIsolation` and `LocalhostGuard` posture). Fail-open (no-op)
-  when no config exists, config is disabled, or the entry list is empty.
+  `AdminNetworkIsolation` and `LocalhostGuard` posture), **or the config
+  read itself raises** (see "Classification"). Fail-open (no-op) when no
+  config exists, config is disabled, or the entry list is empty — i.e. the
+  policy was read and says nothing, which is not the same as failing to
+  read it.
 - **Granularity: full precision** — /32 (IPv4) and /128 (IPv6) entries are
   supported via the capability; the former /24–/48 floor (an artifact of
   matching against the masked IP) is lifted. The homepage-mode
@@ -260,9 +275,106 @@ Gemfile constraint `'~> 2.5'` already admits it.
 Sign-in/sign-up configs default **closed** for custom domains (ADR-024,
 `resolve_signin_enabled_for_custom_domain`). The IP allowlist defaults
 **open**: no config, master switch off, or empty entry list → no-op,
-matching `AdminNetworkIsolation`'s empty-allowlist behavior
-(`admin_network_isolation.rb:69`). An access-control feature that defaulted
-closed would brick every existing custom domain on deploy.
+matching `AdminNetworkIsolation`'s empty-`allowed_cidrs` behavior. (Its
+`allowed_hosts` gate, added by #4062, defaults the other way — an empty list
+falls back to the canonical anchor hosts rather than to a no-op.) An
+access-control feature that defaulted closed would brick every existing
+custom domain on deploy.
+
+That default-open polarity is exactly what makes this feature's handling of
+the host classification differ from every other auth gate, and why the
+positive-operator-classification rule cannot simply be copied. Read the next
+section before implementing.
+
+### Classification: which hosts are in scope, and the `:invalid` ambiguity
+
+This supersedes the original "pass through unless `== :custom`" gate. It is
+the one place where this spec deviates from
+ADR-024#operator-defaults-require-positive-classification in *mechanism*,
+though not in intent.
+
+**The hazard.** `env['onetime.domain_strategy']` answers `:invalid` in two
+distinct situations (`DomainStrategy`'s class doc owns the full account):
+the host is genuinely unplaceable, or `known_custom_domain?` — a datastore
+read — *raised* and the blanket rescue in `choose_strategy` turned that into
+`:invalid` for what may be a perfectly real customer domain. A filter gated
+on `== :custom` therefore stops enforcing, entirely, for every protected
+domain for the duration of a datastore blip: a fail-open access-control
+bypass whose trigger is load. That is the shape the positive-classification
+and fail-closed-degradation rules exist to refuse
+(ADR-024#operator-defaults-require-positive-classification,
+ADR-034#degradation-is-fail-closed,
+ADR-034#resolution-intersects-never-widens).
+
+**Why the ADR-024 remedy does not transfer.** It works because sign-in and
+sign-up have *opposite* defaults on the two branches, so picking the branch
+is itself the policy decision. Here both branches default **open**, so a
+positive operator test alone changes nothing — an unreadable host passes
+through either way. And the naive fail-closed reading (503 anything not
+positively an operator host) would deny every malformed or unknown host on
+an install where most custom domains have no access config at all. The
+polarity is inverted, so the mechanism has to move.
+
+**The resolution.** Split the decision in two, and put the fail-closed
+behavior on the *config read* rather than on the classification:
+
+1. **Scope test is positive, not `== :custom`.** Pass through only when
+   `Onetime::CustomDomain::SigninConfig.operator_host?(strategy)` is true
+   (`:canonical`, `:subdomain`). Reuse that predicate — do not restate the
+   list — so this filter cannot drift from the sign-in and sign-up gates
+   about which hosts are the operator's. `:custom`, `:invalid` and a
+   missing classification all fall through to step 2.
+2. **The config read disambiguates the two `:invalid` cases.** Resolve the
+   domain and load its `AccessConfig` *without* rescuing to nil:
+   - **no record** → pass through (default-open preserved: a genuinely
+     unplaceable host has no tenant and no policy);
+   - **read raises** → fail closed (a real tenant whose policy cannot be
+     read right now).
+
+   This works because the middleware is mounted immediately after
+   `DomainStrategy` and performs the same class of read that
+   `DomainStrategy` swallowed. On the healthy path the read is free — it is
+   served from the `env['onetime.custom_domain']` stash described below — so
+   the disambiguation costs a round-trip only when something is already
+   wrong.
+
+**Fail-closed response is 503, not 403.** A 403 block page tells the user
+they are on the wrong network. During a policy-read failure that is a lie,
+and it sends the customer hunting through their CIDR list for a
+misconfiguration that does not exist. Return **503 with `Retry-After`**,
+matching the `AuthPolicyUnavailable` family's posture
+(`SigninPolicyUnavailable` / `SignupPolicyUnavailable`,
+`lib/onetime/errors.rb`) and carrying its own `error_type` for alert
+routing. Note the mechanical difference: those two are *raised* and rendered
+by Otto's error handlers, which dispatch on exact class name — this filter
+sits in the Rack stack outside Otto's router, so it must **return** the 503
+directly. A shared `AccessPolicyUnavailable` class, if added, is for the
+management API's benefit, not the middleware's.
+
+**Monitor mode does not soften this.** `mode: monitor` downgrades a *miss*
+to a log line; it says nothing about an unreadable policy. A domain whose
+config cannot be read has no known mode, so the read failure is handled
+before mode is consulted. In practice a monitor-mode domain will still 503
+during a blip — that is the honest answer, the alternative is guessing at a
+policy, and it is bounded by the same outage already degrading the rest of
+the request path.
+
+**Consequence to accept, stated plainly.** Like the sign-in/sign-up rule,
+this is over-strict
+during an outage and never over-permissive, and it bites `:subdomain` for
+the same reason: the subdomain sweeps run *after* the datastore read, so a
+recognized operator subdomain classifies `:invalid` during a blip and falls
+to step 2 — where it finds no `AccessConfig` and passes through, or 503s if
+the read raises. `:canonical` is read-free and classifies before the read,
+so canonical traffic and the break-glass management path stay up. That
+invariant — a datastore failure can never *manufacture* `:canonical` — is
+what this design rests on; a new read added ahead of the canonical arm in
+`choose_strategy` would break it silently.
+
+**Follow-on rule for this feature's own gates.** Any future access-control
+decision added here (per-path exemptions, step-up, deny-lists) asks
+`operator_host?` for scope and treats an unreadable policy as unavailable.
+Only branding, routing and presentation may test `== :custom`.
 
 ### Enforcement middleware
 
@@ -272,15 +384,26 @@ New `Onetime::Middleware::DomainAccessControl`, mounted in
 `otto.ip_match` (installed by `IPPrivacyMiddleware` at line 296) and
 `onetime.domain_strategy`/`onetime.display_domain` (set at line 379).
 The existing CIDR precedent
-`AdminNetworkIsolation` (line 322) runs *before* host detection and cannot
-be extended for this.
+`AdminNetworkIsolation` now runs *after* `Rack::DetectHost` (moved there by
+#4062, which added a host allowlist to it) but still *before*
+`DomainStrategy`, so it sees the detected host and not the domain strategy —
+it cannot be extended for this.
 
 Flow per request:
 
-1. Pass through unless `env['onetime.domain_strategy'] == :custom`.
-2. Load the domain's `AccessConfig`; pass through unless present, enabled,
-   and non-empty. (Dev note: the domain-context override forces `:custom`
-   for any non-canonical host — the no-record path must pass through.)
+1. Pass through if
+   `SigninConfig.operator_host?(env['onetime.domain_strategy'])` — a
+   positive test for `:canonical`/`:subdomain`, **not** `== :custom`. See
+   "Classification" above; `:invalid` and nil continue to step 2.
+2. Resolve the domain and load its `AccessConfig`, with the read failure
+   handled explicitly rather than rescued to nil:
+   - no record → pass through;
+   - record present but disabled, or entry list empty → pass through;
+   - the read raises → **503** (see "Classification"); log at `error` with
+     the masked IP and the display domain.
+
+   (Dev note: the domain-context override forces `:custom` for any
+   non-canonical host — the no-record path must pass through.)
 3. `allowed = env['otto.ip_match']&.call(compiled_entries)` — pre-parsed
    `IPAddr` entries; the capability handles family awareness and
    `#native` folding. `false` covers both "outside every range" and "no
@@ -290,7 +413,8 @@ Flow per request:
    through.
    Miss + `mode: enforce` → block response.
 
-Blocked response: **403** with a branded human-readable explanation page for
+Blocked response (a **miss** — the policy was read and this client is
+outside it): **403** with a branded human-readable explanation page for
 HTML, JSON error body for `PATH_INFO` starting `/api` — same content
 negotiation as `IPBan` (`lib/onetime/middleware/ip_ban.rb:44-46`). 404-style
 hiding (the `AdminNetworkIsolation` choice) is rejected here: customers
@@ -298,12 +422,17 @@ configuring a corporate allowlist want employees on the wrong network to
 understand why access failed (Atlassian model), and the domain's existence
 is not a secret.
 
-Performance: enforcement adds Redis reads only on custom-domain requests.
-Free win while in there: `DomainStrategy#known_custom_domain?`
+Performance: enforcement adds Redis reads only on non-operator hosts. The
+`env['onetime.custom_domain']` stash is a **prerequisite**, not a
+nice-to-have: `DomainStrategy#known_custom_domain?`
 (`lib/onetime/middleware/domain_strategy.rb:281-286`) already loads the
-`CustomDomain` record and discards it — stash it as
-`env['onetime.custom_domain']` so the filter (and downstream controllers
-that re-resolve) reuse it.
+`CustomDomain` record and discards it, so stashing it lets step 2 resolve
+the domain for free on the healthy path — that is what keeps the `:invalid`
+disambiguation from costing a round-trip per request. Downstream controllers
+that re-resolve reuse it too. The stash must carry the *record*, and its
+absence must stay distinguishable from "no such domain": if the strategy
+read raised, no stash was written, and step 2's own read is what decides
+between pass-through and 503.
 
 ### Storage model
 
@@ -401,6 +530,11 @@ recoverable).
   DoS vector. Sampled audit events at most.
 - Monitor mode reuses the same log line with `mode: monitor` so customers
   can trial a list against real traffic before enforcing.
+- **Policy-read failures** (the 503 path) get their own `error`-level line
+  and their own counter, never folded into the blocked-request counter. A
+  spike in "we could not read the policy" is an outage signal; averaging it
+  into "clients on the wrong network" hides exactly the failure mode this
+  design exists to make visible. Alert on it.
 
 ### Explicit non-goals (v1)
 
@@ -416,12 +550,12 @@ login-only enforcement mode, Terraform provider.
 | # | Work | Anchors |
 |---|---|---|
 | 1 | `AccessConfig` model + validation + schema doc + delegators/cleanup | `signin_config.rb` template; `custom_domain.rb:334-362,453` |
-| 2 | `DomainAccessControl` middleware + mount + env stash of resolved domain | `middleware_stack.rb:379`; `domain_strategy.rb:283`; `ip_ban.rb` response shape |
+| 2 | `DomainAccessControl` middleware + mount + env stash of resolved domain; `operator_host?` scope test and explicit read-failure → 503 path | `middleware_stack.rb:379`; `domain_strategy.rb:283`; `signin_config.rb` `operator_host?`; `ip_ban.rb` response shape |
 | 3 | API quartet + logic + authorization + entitlement key | `apps/api/domains/routes.txt:56-59`; `logic/signin_config/` template |
 | 4 | TS contract + workspace view/form + route | `src/schemas/contracts/custom-domain/`; `dashboard.ts:183-184` |
 | 5 | Colonel read-only block + CLI info line | `AdminDomainDetail.vue`; `cli/info_command.rb:79` |
 | 6 | Audit events + blocked-request logging/counter | `audit_trail.rb:60` |
-| 7 | Tests: middleware spec (strategy gating, monitor/enforce, fail-closed incl. missing `otto.ip_match`, exemptions, dev override, /32 precision), model tryouts (validation matrix), logic specs, contract vitest | `spec/unit/onetime/application/middleware_stack_spec.rb` neighborhood |
+| 7 | Tests: middleware spec (`operator_host?` scope gating incl. both `:invalid` cases — no record passes through, raising read 503s — monitor/enforce, fail-closed incl. missing `otto.ip_match`, exemptions, dev override, /32 precision), model tryouts (validation matrix), logic specs, contract vitest | `spec/unit/onetime/application/middleware_stack_spec.rb` neighborhood |
 | 8 | Docs: scope contract + lockout guidance; locales (`locales:hashes` run) | this file |
 | 9 | Separate fix: `AdminNetworkIsolation` narrow-CIDR latent bug — migrate its matching to `env['otto.ip_match']` once the otto release lands, which makes `/32` admin CIDRs work instead of merely rejecting them | `admin_network_isolation.rb:110-145` |
 | 10 | ~~Upstream Otto~~ **done 2026-07-25** (`ip_in_cidrs?`, privacy profiles, `otto.ip_match`; geo gate pre-existing on main). Remaining: commit/release otto, then bump the gem here | §3; `~/Projects/dev/delano/otto` |

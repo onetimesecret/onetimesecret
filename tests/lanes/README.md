@@ -1,14 +1,10 @@
 # Test Lanes
 
-One lane = one process boundary = one CI job (or matrix row). Each lane
-directory holds the lane's environment (`env`), what it runs (`tasks`),
-and a direnv hook (`.envrc`) for interactive work. `base.env` holds the
-lane-invariant environment; `overlays/` holds env-only toggles.
-
-This tree — together with `compose.test.yml` at the repo root — is the
-single source of truth for "what do tests need". CI and local development
-both enter through `tests/lanes/run`, which is what makes the two
-environments the same environment.
+A lane is the supported contract for running a Ruby test suite: one named
+execution environment, one process boundary, and one CI job or matrix row.
+`tests/lanes/` and the root `compose.test.yml` define the services and
+environment required by those tests. Run tests through `tests/lanes/run` so
+local and CI execution use that contract.
 
 ## Quick start
 
@@ -17,123 +13,182 @@ $ docker compose -f compose.test.yml up --wait -d   # or: podman compose
 $ tests/lanes/run --list
 $ tests/lanes/run unit
 $ tests/lanes/run full-pg --overlay billing
+$ tests/lanes/run-all --parallel
 $ docker compose -f compose.test.yml down
 ```
 
-Prerequisites: `bundle install`, `pnpm install`, `python3` (locale
-compilation). Lanes whose specs read built frontend assets (`unit`,
-`smoke`) need `public/web/dist/` populated — `pnpm run build` locally;
-CI provides it as a build artifact.
+Prerequisites: bash 5+, `bundle install`, `pnpm install`, and `python3`.
+macOS's system bash is 3.2; install a newer version with `brew install bash`.
+`unit` and `smoke` also require built frontend assets in `public/web/dist/`
+(`pnpm run build` locally; CI supplies them).
+
+### Iterating on one file: `--only`
+
+`--only <path>` runs one or more test files in a lane's environment without
+running that lane's `tasks` file:
+
+```console
+$ tests/lanes/run simple --only apps/api/domains/spec/integration/simple/domain_sso_config_spec.rb
+$ tests/lanes/run full-sqlite --only apps/web/auth/spec/integration/full/omniauth_csrf_spec.rb:145
+$ tests/lanes/run unit --only try/logic/sso_config/ssrf_protection_transition_try.rb
+```
+
+- Choose the lane expected by the file. For example, a full-integration spec
+  requires a full lane's authentication configuration.
+- `*_try.rb` files use `try --agent`; other files use `rspec`. Do not mix both
+  kinds in one invocation.
+- `path:LINE` selects an RSpec example.
+- `--only` preserves the lane's isolation and environment guarantees, but skips
+  generated prerequisites and every other task. Run the complete lane before
+  pushing; CI validates lanes, not individual files.
 
 ## Lanes
 
-| Lane                | Services                   | Runs                                                        | CI job                                   |
-| ------------------- | -------------------------- | ----------------------------------------------------------- | ---------------------------------------- |
-| `unit`              | valkey, rabbitmq           | `try:unit`, `spec:fast`                                     | ruby-unit (T2)                           |
-| `simple`            | valkey, rabbitmq           | `try:integration:simple`, `spec:integration:simple`         | ruby-integration-simple (T3)             |
-| `full-sqlite`       | valkey, rabbitmq           | `spec:integration:full`                                     | ruby-integration-full — SQLite rows      |
-| `full-pg`           | valkey, rabbitmq, postgres | `spec:integration:full:postgres`                            | ruby-integration-full — PG rows          |
-| `full-pg-agnostic`  | valkey, rabbitmq, postgres | `spec:integration:full:agnostic_on_pg`                      | ruby-integration-full — PG agnostic rows |
-| `disabled`          | valkey, rabbitmq           | `spec:integration:disabled`                                 | ruby-integration-disabled (T3)           |
-| `api`               | valkey, rabbitmq           | `spec:api`                                                  | blocking step, T3 simple job             |
-| `smoke`             | valkey, rabbitmq           | `pnpm test:smoke`                                           | smoke-test (T3)                          |
-| `migrations-sqlite` | valkey, rabbitmq           | `spec:integration:migrations:sqlite`                        | migration-tests.yml — SQLite job         |
-| `migrations-pg`     | valkey, rabbitmq, postgres | `spec:integration:migrations:postgres` + dual-URL check     | migration-tests.yml — PostgreSQL job     |
+| Lane                | Services                   | Runs                                                       | CI job                                   |
+| ------------------- | -------------------------- | ---------------------------------------------------------- | ---------------------------------------- |
+| `unit`              | valkey, rabbitmq           | `try:unit`, `spec:fast`                                    | ruby-unit (T2)                           |
+| `simple`            | valkey, rabbitmq           | `try:integration:simple`, `spec:integration:simple`        | ruby-integration-simple (T3)             |
+| `full-sqlite`       | valkey, rabbitmq           | `spec:integration:full`                                    | ruby-integration-full — SQLite rows      |
+| `full-pg`           | valkey, rabbitmq, postgres | `spec:integration:full:postgres`                           | ruby-integration-full — PG rows          |
+| `full-pg-agnostic`  | valkey, rabbitmq, postgres | `spec:integration:full:agnostic_on_pg`                     | ruby-integration-full — PG agnostic rows |
+| `disabled`          | valkey, rabbitmq           | `spec:integration:disabled`                                | ruby-integration-disabled (T3)           |
+| `api`               | valkey, rabbitmq           | `spec:api`                                                 | blocking step, T3 simple job             |
+| `smoke`             | valkey, rabbitmq           | `pnpm test:smoke`                                          | local-only                               |
+| `migrations-sqlite` | valkey, rabbitmq           | `spec:integration:migrations:sqlite`                       | migration-tests.yml — SQLite job         |
+| `migrations-pg`     | valkey, rabbitmq, postgres | `spec:integration:migrations:postgres` plus dual-URL check | migration-tests.yml — PostgreSQL job     |
+| `selftest`          | none                       | boundary fixture                                           | none — driven by `spec/unit/lanes/`      |
 
-`api` and `smoke` don't exercise the job queue, but `base.env` carries
-`RABBITMQ_URL` for every lane and the runner's preflight requires every
-endpoint in a lane's env to be reachable — so rabbitmq must be up.
+Start every service named for a lane. This includes RabbitMQ for `api` and
+`smoke`, whose lane environment still declares its endpoint. `selftest` is the
+only service-free exception.
 
-The billing matrix rows are the full-mode lanes with `--overlay billing`.
-Billing requires `AUTHENTICATION_MODE=full`; `run` rejects the overlay on
-any other lane.
+Use `--overlay billing` only with full-mode lanes. Billing requires
+`AUTHENTICATION_MODE=full`; other lanes reject the overlay.
 
-Directories exist for dimensions that change **which specs run** (auth
-mode, database engine — mirroring `spec/integration/{simple,full,disabled}`).
-Overlays exist for dimensions that only change **environment**
-(billing on/off). Adding a full directory per combination would double
-the tree per toggle; don't.
+Create a lane when a change selects a different test suite or a materially
+different runtime (such as authentication mode or database engine). Use an
+overlay for an environment-only toggle. Vitest, lint, and type checking do not
+need lane services or environment, so run them with pnpm directly.
 
-Vitest, lint, and type-check need no services or special env, so they
-have no lanes — run them via pnpm directly.
+## Service safety boundary
 
-## Ports: the 21 rule
+Test services bind only to `127.0.0.1` ports beginning with `21`. Development
+services retain their canonical ports, so lane configuration cannot target a
+development datastore by accident.
 
-Every test service publishes on `127.0.0.1` with a port starting with 21. New services take "21 + last two digits of the canonical port";
-valkey predates the scheme and keeps its established 2163. Dev services
-keep canonical ports. A leaked dev config therefore cannot reach a test
-service, and a test run cannot reach dev data. This plus the hermetic
-runner is the answer to "tests wiped my dev database".
+| Service                 | Test port | Canonical port |
+| ----------------------- | --------- | -------------- |
+| valkey                  | 2163      | 6379           |
+| postgres                | 2154      | 5432           |
+| rabbitmq (AMQP)         | 2156      | 5672           |
+| rabbitmq management API | 12156     | 15672          |
 
-| Service  | Test port | Canonical                 |
-| -------- | --------- | ------------------------- |
-| valkey   | 2163      | 6379 (port grandfathered) |
-| postgres | 2154      | 5432                      |
-| rabbitmq | 2156      | 5672                      |
+Define mappings only in `compose.test.yml`. Lane URLs use `21xx` service
+ports; the runner-only RabbitMQ management endpoint is the loopback-only
+`12156` exception. Any other endpoint is a safety defect.
 
-Port mappings are defined **only** in `compose.test.yml`. The env files
-here carry matching URLs; if a URL in this tree doesn't point at a 21xx
-port, that's a bug.
+## Per-worktree datastore isolation
 
-## Hermetic runs vs. interactive shells
+Outside CI, lanes isolate each checkout—including Git worktrees—from sibling
+checkouts while sharing the local test service instances:
 
-`tests/lanes/run` clears every mode/endpoint variable the lane files own
-before loading `base.env` -> `<lane>/env` -> overlays. A test run behaves
-identically whether launched from a dev shell, a lane directory, or CI.
+- Valkey uses a deterministic index (`1..65535`) derived from the lane,
+  normalized overlay set, and checkout root, exposed as `LANES_DATASTORE_DB`.
+  Its host and port remain the test service.
+- PostgreSQL uses the corresponding `onetime_auth_test_w<index>` database.
+- RabbitMQ uses the corresponding `w<index>` vhost. The runner recreates and
+  grants the vhost through RabbitMQ's loopback-only management API before a
+  lane starts, preventing stale queues/messages from a prior run.
+- CI and direct test commands outside the lane runner use the shared index,
+  database, and vhost (`0` / `onetime_auth_test` / `/`). Do not rely on that
+  mode for concurrent local worktrees.
+- A collision between derived Valkey indexes fails loudly rather than allowing
+  fixture contamination. Pin `LANES_DATASTORE_DB` in a lane `env` file or an
+  overlay if the runner reports a collision; a shell export is intentionally
+  ignored.
+- Worktree PostgreSQL databases persist after the worktree is deleted. To
+  identify stale databases, review this query's output before executing any
+  generated `DROP DATABASE` statements:
 
-For interactive work, `cd` into a lane and `direnv allow` (once): your
-shell — and your atuin history — carries that lane's environment, the
-same directory-per-environment idiom as the infra config system. The
-lane `.envrc` files deliberately do **not** `source_up` past
-`tests/lanes/`, so the dev environment never bleeds in. Optional
-overlays for a shell session: `echo billing > .overlays` (gitignored).
+  ```console
+  $ psql -h 127.0.0.1 -p 2154 -U onetime_migrator -d postgres -tAc \
+      "SELECT 'DROP DATABASE ' || quote_ident(datname) || ';' \
+         FROM pg_database WHERE datname LIKE 'onetime_auth_test\\_w%'"
+  ```
+
+The shared `onetime_auth_test` database does not match this query.
+
+## Hermetic environment boundary
+
+`tests/lanes/run` does not inherit development-shell configuration. It creates
+a test environment from `base.env`, the selected lane's `env`, and requested
+overlays. This protects test behavior and datastores from ambient variables,
+including connection URLs and application feature settings.
+
+Only these caller variables are retained:
+
+```text
+PATH HOME CI LANES_NO_AUTOSTART RSPEC_OUTPUT_FILE COVERAGE
+```
+
+Consequences for callers:
+
+- Put required test configuration in `base.env` (all lanes) or a lane `env`
+  file (one lane). Do not add application configuration to the retained list.
+- Container-client connection settings are used only to start services; they
+  are not exposed to the test process.
+- Exported shell functions are not available inside lanes.
+- `NODE_ENV=test` and `TZ=UTC` are lane invariants. Interactive lane shells
+  receive them too; locale settings are constrained only for runner execution.
+- Set `LANES_DEBUG_ENV=1` to print removed variables and exported functions.
+  A listed variable must be declared in lane configuration, not exempted.
+
+For interactive work, enter a lane directory and run `direnv allow` once. The
+lane shell intentionally excludes the repository's development environment.
+To enable a local, gitignored overlay for that shell, write its name to
+`.overlays`, for example `echo billing > .overlays`.
+
+## Parallel local runs
+
+`tests/lanes/run-all` composes direct lane runs. With no lane names it runs
+`unit simple disabled full-sqlite`; use `--parallel` to fan them out:
+
+```console
+$ docker compose -f compose.test.yml up --wait -d
+$ tests/lanes/run-all --parallel
+$ tests/lanes/run-all --parallel unit full-sqlite
+```
+
+It generates the union of requested `LANES_CODEGEN` prerequisites once before
+starting children, then starts each child with `--skip-codegen`. This prevents
+parallel writes to shared `generated/` files. Logs and RSpec JSON results are
+written below `tmp/lanes/<timestamp>-<pid>/`; use `--dry-run` to inspect the
+plan without generating or running tests.
+
+`--parallel` requires test services to already be running and is rejected when
+`CI` is set. It also rejects a duplicate lane: two copies derive the same
+isolation key and would share a datastore. The `smoke` lane is local-only and
+cannot be used with `--parallel`, because its task regenerates locales itself
+and can race with other lanes. Run it alone (normally
+`tests/lanes/run smoke`).
 
 ## Rules
 
-1. Endpoints in this tree point only at `127.0.0.1` 21xx ports.
-2. No real secrets. `base.env` values are public dummies, committed on
-   purpose (deterministic across contributors and CI). Real environment
-   configuration lives outside this repository, as always.
-3. A lane's `tasks` file owns its generated prerequisites (locales,
-   JSON schemas) so "works in CI, fails locally" can't come from a
-   missing pre-step.
-4. Gating policy (blocking vs. advisory, parallelism, artifacts,
-   reporting) belongs to CI. Lanes define _what runs in which
-   environment_; the workflow decides what it means when a lane fails.
+1. Endpoints in this tree target only loopback test ports: application services
+   use the `21xx` range, with RabbitMQ management as the runner-only `12156`
+   exception.
+2. Commit no real secrets. `base.env` contains public deterministic dummy
+   values; real environment configuration remains outside the repository.
+3. Each lane's `env` file declares generated prerequisites through
+   `LANES_CODEGEN`; direct runs execute them, while `run-all` owns the shared
+   one-time phase before children start.
+4. Lanes define the test environment and workload. CI owns gating,
+   parallelism, artifacts, and reporting policy.
 
-## CI adoption status
+## CI contract
 
-Every workflow that runs Ruby test suites enters through this tree; each
-job starts services with `docker compose -f compose.test.yml up --wait`
-and executes `tests/lanes/run <lane>`:
-
-- `.github/workflows/ci.yml` — all Ruby test jobs, via the
-  `run-test-lane` composite action (which layers on the CI-only
-  concerns: failure-tail PR comments, job summaries,
-  `RSPEC_OUTPUT_FILE`/`COVERAGE` plumbing). The full-mode matrix rows
-  are lane names + overlays.
-- `.github/workflows/migration-tests.yml` — the SQLite and PostgreSQL
-  jobs run the `migrations-*` lanes via the same composite. The
-  concurrent-boot job is deliberately not a lane (it choreographs
-  parallel boot processes, which is CI-side orchestration, rule 4) but
-  still takes services from `compose.test.yml`.
-- `.github/workflows/ruby-4-preview.yml` — runs lanes directly (no
-  composite): the workflow is advisory-only, so failure-tail comments
-  and results plumbing would be noise.
-- `.github/workflows/fresh-clone.yml` — the contributor-path job runs
-  `tests/lanes/run unit` directly: it proves the commands CONTRIBUTING.md
-  documents, and `bin/setup --test` has already started the compose
-  services by the time the lane's preflight runs.
-
-Exceptions:
-
-- `ci.yml`'s container-validation job keeps a `services:` block on
-  purpose (it needs valkey published beyond loopback for
-  `host.docker.internal`).
-- `devcontainer-ci.yml` and `installer.yml` run `rake spec:fast` raw
-  (via `pnpm run test:rspec:fast`): their environments cannot run
-  `compose.test.yml` (the devcontainer can't nest containers; macOS
-  runners have no container runtime), and the runner's preflight
-  requires every endpoint in the lane's env — including rabbitmq — to
-  be reachable. They prove `bin/setup` on constrained environments, not
-  the lane contract. Tracked in #3982.
+Ruby suites in CI use the lane runner and `compose.test.yml`; local lane runs
+therefore exercise the same service and environment contract. The supported CI
+exceptions are constrained environments that cannot run the compose topology:
+`devcontainer-ci.yml` and macOS `installer.yml` run the fast suite directly.
+They validate installation paths, not lane behavior.

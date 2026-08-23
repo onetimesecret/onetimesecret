@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/operations/sessions/store'
+require 'onetime/models/session_metadata'
 
 module Onetime
   module Operations
@@ -22,7 +23,9 @@ module Onetime
       #
       # Stateless, single `#call`, returns an immutable {Result}.
       class List
-        # @!attribute sessions [r] Array<Hash> one page of {Store.summarize} rows
+        # @!attribute sessions [r] Array<Hash> one page of {Store.summarize} rows,
+        #   each decorated with `:geo_country` from the metadata sidecar
+        #   (see {#attach_geo_country}); nil when no sidecar record survives
         # @!attribute total_count [r] Integer identity sessions matched (pre-pagination)
         # @!attribute scanned [r] Integer session keys examined this scan
         # @!attribute anonymous_count [r] Integer scanned keys with no actor identity (filtered out)
@@ -75,7 +78,7 @@ module Onetime
           total_count = identified.size
           total_pages = @per_page.zero? ? 0 : (total_count.to_f / @per_page).ceil
           start_idx   = (@page - 1) * @per_page
-          page_rows   = identified[start_idx, @per_page] || []
+          page_rows   = attach_geo_country(identified[start_idx, @per_page] || [])
 
           Result.new(
             sessions: page_rows,
@@ -102,6 +105,61 @@ module Onetime
             next nil unless data
 
             Store.summarize(Store.extract_id(key), key, data).merge(__data: data)
+          end
+        end
+
+        # Decorate one page of rows with the country recorded on each session's
+        # metadata sidecar.
+        #
+        # Country lives ONLY on the sidecar: Otto resolves it per request into
+        # `env['otto.privacy.geo_country']` and TrackMetadata stamps it onto
+        # {Onetime::SessionMetadata}. It is never written into the encrypted
+        # session blob this listing decrypts, so the global console has to join
+        # to get it — there is nothing to read out of `data`.
+        #
+        # Deliberately applied AFTER pagination, and so NOT folded into
+        # {Store.summarize}: summarize runs once per scanned key (up to
+        # {Store::MAX_SCAN}), while this runs once per row actually returned —
+        # a single pipelined {Familia::Horreum.load_multi} round trip for the
+        # page (at most {MAX_PER_PAGE} HGETALLs in ONE pipeline) instead of up
+        # to ten thousand serial reads.
+        #
+        # Absence is normal and is not pruned. Unlike ListForCustomer — whose
+        # source of truth IS the sidecar index, so a missing sidecar means a
+        # stale member worth removing — here the session blob is the source of
+        # truth and the sidecar is decoration. A session predating the sidecar,
+        # or one whose 30d sidecar TTL lapsed, is still a live session; it just
+        # has no country. A sidecar read must never take down the listing, for
+        # the same reason {Store.load_data} swallows a bad key.
+        #
+        # geo_country is nil or a country code, NEVER Otto's '**' sentinel —
+        # normalization lives on the {Onetime::SessionMetadata#geo_country}
+        # reader itself (the single chokepoint), not here.
+        def attach_geo_country(rows)
+          metas = load_sidecars(rows.map { |row| row[:session_id] })
+          rows.each_with_index do |row, idx|
+            row[:geo_country] = metas[idx]&.geo_country
+          end
+        end
+
+        # One pipelined round trip for the whole page. load_multi is
+        # position-aligned with its input (nil for missing/blank sids), which is
+        # exactly the old per-row nil-tolerance. Because the batch materializes
+        # every record in one call, ANY failure inside it (connection error, or
+        # one corrupt record raising during instantiation) would otherwise cost
+        # the whole page its decoration — so it degrades to the legacy per-row
+        # loads, where each failure degrades only its own row to no-country.
+        def load_sidecars(session_ids)
+          return [] if session_ids.empty?
+
+          Onetime::SessionMetadata.load_multi(session_ids)
+        rescue StandardError => ex
+          OT.le "[session-list] batched sidecar geo lookup failed: #{ex.class}: #{ex.message}"
+          session_ids.map do |sid|
+            Onetime::SessionMetadata.load(sid)
+          rescue StandardError => row_ex
+            OT.le "[session-list] sidecar geo lookup failed: #{row_ex.class}: #{row_ex.message}"
+            nil
           end
         end
 

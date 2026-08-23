@@ -34,6 +34,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
       domains: org_domains,
       list_domains: [],
       add_domain: true,
+      archived?: false,
     )
   end
 
@@ -42,6 +43,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
       'Domain',
       objid: 'obj123',
       domainid: 'obj123',
+      identifier: 'obj123',
       extid: 'cdext123',
       display_domain: 'example.com',
       org_id: 'org123',
@@ -58,6 +60,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
       'OrphanDomain',
       objid: 'obj999',
       domainid: 'obj999',
+      identifier: 'obj999',
       extid: 'cdext999',
       display_domain: 'orphan.com',
       org_id: '',
@@ -81,6 +84,18 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
     )
   end
 
+  let(:default_owners_index) do
+    index = double('OwnersIndex', hgetall: {}, put: true, remove: true)
+    allow(index).to receive(:get) { |domain_id| domain_id == orphan.identifier ? nil : 'org123' }
+    index
+  end
+
+  # Run the command and parse its --json report (the machine-readable shape the
+  # rest of this file asserts on).
+  def json_report(*args)
+    JSON.parse(run_cli_command_quietly(*args)[:stdout])
+  end
+
   # Index-level checks and the all-orgs sweep are out of scope here; stub them
   # to empty so each example exercises exactly one domain-level check.
   before do
@@ -90,6 +105,12 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
     allow(Onetime::CustomDomain).to receive(:instances).and_return([domain.objid])
     allow(Onetime::CustomDomain).to receive(:load).with(domain.objid).and_return(domain)
     allow(Onetime::Organization).to receive(:load).with('org123').and_return(organization)
+    # owners agrees with org_id by default, so check #10 is silent unless an
+    # example says otherwise: 'org123' for the owned doubles, nothing for the
+    # orphan (a blank org_id and no entry is agreement, not drift).
+    # record_owner is the model's single writer for the index.
+    allow(Onetime::CustomDomain).to receive(:owners).and_return(default_owners_index)
+    allow(Onetime::CustomDomain).to receive(:record_owner)
   end
 
   describe 'membership repair delegation' do
@@ -139,6 +160,7 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
         'SecondDomain',
         objid: 'obj456',
         domainid: 'obj456',
+        identifier: 'obj456',
         extid: 'cdext456',
         display_domain: 'second.com',
         org_id: 'org123',
@@ -221,6 +243,36 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
     end
   end
 
+  # Archive is a soft delete that says nothing about the org's domains, and
+  # Organization.load still returns the record — so check #1 (stale_org_reference)
+  # sees a healthy pointer while every authorization path that resolves the
+  # domain evaluates entitlements against an org the operator believes is gone.
+  describe 'archived organization reporting' do
+    before do
+      allow(organization).to receive(:archived?).and_return(true)
+      # The domain IS in the collection, so check #4 stays quiet and this
+      # example exercises exactly the archived-org check.
+      allow(org_domains).to receive(:member?).and_return(true)
+    end
+
+    it 'reports the archived owner and points at the manual remedies' do
+      output = run_cli_command_quietly('domains', 'doctor', '--all')
+
+      expect(output[:stdout]).to include("org_id 'org123' points to an archived organization")
+      expect(output[:stdout]).to include('bin/ots domains transfer example.com --to-org <ORG>')
+      expect(last_exit_code).to eq(1)
+    end
+
+    it 'never repairs it, even with --repair' do
+      allow(Onetime::Operations::Domains::Repair).to receive(:new)
+
+      run_cli_command_quietly('domains', 'doctor', '--all', '--repair')
+
+      expect(Onetime::Operations::Domains::Repair).not_to have_received(:new)
+      expect(org_domains).not_to have_received(:add)
+    end
+  end
+
   # Regression guard for the double-count/double-delete bug: doctor used to run
   # two byte-identical passes over Onetime::CustomDomain.display_domain_index
   # (check_display_domain_index_integrity and
@@ -287,6 +339,163 @@ RSpec.describe 'Domains Doctor Command', type: :cli do
       issues = report['issues'].find { |group| group['type'] == 'indexes' }['issues']
       expect(issues.size).to eq(1)
       expect(issues.first['stale_entries'].first['reason']).to include('FQDN mismatch')
+    end
+  end
+
+  describe 'orphan with a stale owners entry' do
+    before do
+      allow(Onetime::CustomDomain).to receive(:instances).and_return([orphan.objid])
+      allow(Onetime::CustomDomain).to receive(:load).with(orphan.objid).and_return(orphan)
+      allow(default_owners_index).to receive(:get).and_return('org123')
+    end
+
+    # This entry, not the blank org_id, is what blocks org123's deletion.
+    it 'flags the entry that still names an org and offers the adoption verb' do
+      output = json_report('domains', 'doctor', '--all', '--json')
+
+      issue = output['issues'].flat_map { |group| group['issues'] }
+                              .find { |i| i['check'] == 'owners_index_drift' }
+      expect(issue['message']).to include('orphaned (no org_id)')
+      expect(issue['repair_action']).to include('bin/ots domains repair orphan.com --org-id <ORG>')
+    end
+
+    it 'removes the entry with --repair, and still assigns no organization' do
+      allow(Onetime::Operations::Domains::Repair).to receive(:new)
+
+      output = json_report('domains', 'doctor', '--all', '--repair', '--json')
+
+      # A blank target removes the entry; nothing adopts the orphan.
+      expect(Onetime::CustomDomain).to have_received(:record_owner).with(orphan, '').once
+      expect(Onetime::Operations::Domains::Repair).not_to have_received(:new)
+
+      repaired = output['repaired'].find { |r| r['action'] == 'owners_entry_realigned' }
+      expect(repaired['previous_org']).to eq('org123')
+      expect(repaired['org']).to eq('')
+    end
+  end
+
+  # REGRESSION: `bin/ots domains transfer` moved org_id and the org.domains
+  # membership but left the CustomDomain.owners entry on the SOURCE org. That
+  # entry is the second source of truth for Organization#unlisted_owned_domains,
+  # so the source org could never be deleted again — Org::Delete refuses with
+  # :drifted_domains, there is no force override, and the refusal advertises
+  # THIS command. Doctor must therefore see and fix owners/org_id disagreement.
+  describe 'CustomDomain.owners drift' do
+    let(:owners_index) do
+      double(
+        'OwnersIndex',
+        hgetall: { 'obj123' => 'oldorg999' },
+        get: 'oldorg999',
+        put: true,
+        remove: true,
+      )
+    end
+
+    before do
+      allow(Onetime::CustomDomain).to receive(:owners).and_return(owners_index)
+    end
+
+    it 'reports the mismatch once, at medium severity, and mutates nothing' do
+      output = json_report('domains', 'doctor', '--all', '--json')
+
+      issues = output['issues'].flat_map { |group| group['issues'] }
+      drift  = issues.select { |i| %w[owners_index_drift owners_index_stale].include?(i['check']) }
+
+      # Exactly once: the index sweep deliberately skips domains the per-domain
+      # scan visits, so N problems never surface as 2N issues.
+      expect(drift.size).to eq(1)
+      expect(drift.first['check']).to eq('owners_index_drift')
+      expect(drift.first['severity']).to eq('medium')
+      expect(drift.first['message']).to include('oldorg999')
+      expect(drift.first['repairable']).to be(true)
+
+      expect(Onetime::CustomDomain).not_to have_received(:record_owner)
+      expect(output['repaired']).to be_empty
+      expect(last_exit_code).to eq(1)
+    end
+
+    it 'rewrites the entry to match org_id with --repair' do
+      output = json_report('domains', 'doctor', '--all', '--repair', '--json')
+
+      # org_id is authoritative; owners is the derived index that follows it.
+      expect(Onetime::CustomDomain).to have_received(:record_owner).with(domain, 'org123').once
+
+      repaired = output['repaired'].select { |r| r['action'] == 'owners_entry_realigned' }
+      expect(repaired.size).to eq(1)
+      expect(repaired.first['org']).to eq('org123')
+      expect(repaired.first['previous_org']).to eq('oldorg999')
+      expect(last_exit_code).to eq(0)
+    end
+
+    it 'reports a missing owners entry, not just a wrong one' do
+      allow(owners_index).to receive(:get).and_return(nil)
+      allow(owners_index).to receive(:hgetall).and_return({})
+
+      output = json_report('domains', 'doctor', '--all', '--json')
+
+      issue = output['issues'].flat_map { |group| group['issues'] }
+                              .find { |i| i['check'] == 'owners_index_drift' }
+      expect(issue['message']).to include('missing from CustomDomain.owners')
+    end
+
+    # The transfer residue itself: the domain now belongs to ANOTHER org, so it
+    # is gone from the old org's collection and the per-domain scan never visits
+    # it. Only the index sweep can see it, and `doctor --org OLD` is what an
+    # operator runs when Org::Delete refuses.
+    context 'when the domain was transferred away from the scoped org' do
+      let(:moved_domain) do
+        double(
+          'MovedDomain',
+          objid: 'obj777',
+          domainid: 'obj777',
+          identifier: 'obj777',
+          extid: 'cdext777',
+          display_domain: 'moved.example.com',
+          org_id: 'neworg456',
+          save: true,
+        )
+      end
+
+      before do
+        allow(owners_index).to receive(:hgetall).and_return({ 'obj777' => 'org123' })
+        allow(Onetime::CustomDomain).to receive(:load).with('obj777').and_return(moved_domain)
+        allow(Onetime::Organization).to receive(:find_by_extid).with('onext123').and_return(organization)
+      end
+
+      it 'flags the stale entry that blocks the old org deletion' do
+        output = json_report('domains', 'doctor', '--org', 'onext123', '--json')
+
+        issue = output['issues'].find { |group| group['type'] == 'indexes' }['issues']
+                                .find { |i| i['check'] == 'owners_index_stale' }
+        expect(issue['severity']).to eq('medium')
+        expect(issue['total_stale']).to eq(1)
+        expect(issue['stale_entries'].first['domain_id']).to eq('obj777')
+        expect(issue['stale_entries'].first['recorded_org_id']).to eq('org123')
+        expect(issue['stale_entries'].first['actual_org_id']).to eq('neworg456')
+        expect(last_exit_code).to eq(1)
+      end
+
+      it 'realigns it with --repair so the old org becomes deletable' do
+        output = json_report('domains', 'doctor', '--org', 'onext123', '--repair', '--json')
+
+        expect(Onetime::CustomDomain).to have_received(:record_owner)
+          .with('obj777', 'neworg456').once
+
+        repaired = output['repaired'].select { |r| r['action'] == 'owners_index_realigned' }
+        expect(repaired.size).to eq(1)
+        expect(repaired.first['count']).to eq(1)
+      end
+
+      it 'removes the entry outright when the domain record is gone' do
+        allow(Onetime::CustomDomain).to receive(:load).with('obj777').and_return(nil)
+
+        output = json_report('domains', 'doctor', '--org', 'onext123', '--repair', '--json')
+
+        # nil target: the single writer deletes rather than writing an empty
+        # value, which would linger in every future HGETALL scan.
+        expect(Onetime::CustomDomain).to have_received(:record_owner).with('obj777', nil).once
+        expect(output['repaired'].first['action']).to eq('owners_index_realigned')
+      end
     end
   end
 

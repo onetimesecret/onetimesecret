@@ -836,5 +836,41 @@
   "email.secret_link.footer_note": {
     "text": "Du fick det här eftersom %{sender_email} använde %{product_name} för att dela en hemlighet med dig. Om du inte väntade dig det kan du tryggt ignorera det här e-postmeddelandet.",
     "source_hash": "2d544dad"
+  },
+  "email.sso_link_verification.subject": {
+    "text": "Bekräfta länkning av %{provider} till ditt %{product_name}-konto",
+    "source_hash": "65e70296"
+  },
+  "email.sso_link_verification.title": {
+    "text": "Bekräfta din SSO-inloggning",
+    "source_hash": "35bce6cc"
+  },
+  "email.sso_link_verification.request_notice": {
+    "text": "Någon loggade in med %{provider} med e-postadressen %{email_address}. För att slutföra anslutningen av %{provider} till ditt %{product_name}-konto, bekräfta nedan.",
+    "source_hash": "baeb18c0"
+  },
+  "email.sso_link_verification.confirm_button": {
+    "text": "Bekräfta och länka %{provider}",
+    "source_hash": "9809e210"
+  },
+  "email.sso_link_verification.copy_link_prompt": {
+    "text": "Eller kopiera och klistra in denna länk:",
+    "source_hash": "88c72144"
+  },
+  "email.sso_link_verification.expiration_notice": {
+    "text": "Denna länk går ut om 15 minuter och kan endast användas en gång.",
+    "source_hash": "1a437f42"
+  },
+  "email.sso_link_verification.ignore_notice": {
+    "text": "Om du inte försökte logga in med %{provider} kan du ignorera detta e-postmeddelande — inget kommer att anslutas till ditt konto.",
+    "source_hash": "d7317d30"
+  },
+  "email.sso_link_verification.signature": {
+    "text": "Supportteamet",
+    "source_hash": "dc75bf9f"
+  },
+  "email.sso_link_verification.postscript": {
+    "text": "P.S. Detta e-postmeddelande skickades till %{email_address}.",
+    "source_hash": "8ab1dbea"
   }
 }

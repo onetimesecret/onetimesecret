@@ -224,11 +224,11 @@ module Auth::Config::Hooks
       #
       # Rodauth hooks don't chain — each auth.before_X / auth.after_X call
       # overwrites the previous definition. Since billing.rb loads after
-      # login.rb, account.rb, and mfa.rb (see config.rb), any hooks defined
-      # here would silently replace their critical logic (session sync, email
-      # validation, Customer creation, MFA verification).
+      # login.rb, account.rb, and two_factor.rb (see config.rb), any hooks
+      # defined here would silently replace their critical logic (session sync,
+      # email validation, Customer creation, MFA verification).
       #
-      # Instead, login.rb, account.rb, and mfa.rb call billing methods
+      # Instead, login.rb, account.rb, and two_factor.rb call billing methods
       # conditionally:
       # - before_login_attempt: calls capture_plan_selection if defined
       # - after_login: calls add_billing_redirect_to_response if defined
@@ -243,8 +243,9 @@ module Auth::Config::Hooks
       #
       # ========================================================================
 
-      # after_two_factor_authentication also moved to mfa.rb (same pattern).
-      # See the NOTE block above for the full list of relocated hooks.
+      # after_two_factor_authentication also moved out — it lives in
+      # two_factor.rb (same pattern). See the NOTE block above for the full
+      # list of relocated hooks.
     end
   end
 end

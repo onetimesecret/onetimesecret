@@ -40,8 +40,6 @@ export {
   featuresRegionsShape,
   featuresIncomingShape,
   featuresDomainsShape,
-  featuresDomainsProxyShape,
-  featuresDomainsAcmeShape,
 } from './section/features';
 
 export { i18nShape } from './section/i18n';
@@ -67,7 +65,10 @@ export {
 export { limitsShape } from './section/limits';
 
 export {
+  emailDeliveryModeSchema,
+  emailSenderProviderSchema,
   emailerShape,
+  emailProvidersShape,
   mailShape,
   truemailShape,
   mailConnectionShape,

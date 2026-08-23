@@ -4,7 +4,7 @@
     "source_hash": "bfde7e68"
   },
   "web.admin.billing.description": {
-    "text": "設定済みプランとそのエンタイトルメント、およびStripe同期済みの公開カタログとの差分を読み取り専用で表示します。",
+    "text": "設定済みのプランとそのエンタイトルメント、およびStripeと同期された最新カタログとの差異を読み取り専用で表示します。",
     "source_hash": "05d5b332"
   },
   "web.admin.billing.retry": {
@@ -16,7 +16,7 @@
     "source_hash": "c3110f77"
   },
   "web.admin.billing.localConfigWarning": {
-    "text": "Stripe同期済みプランのキャッシュが空のため、公開プランと差分を評価できません。設定済みカタログ(billing.yaml)のみを表示しています。開発環境やStripeが未設定の場合によく見られます。",
+    "text": "Stripeと同期されたプランのキャッシュが空のため、最新のプランと差異を評価できません。設定済みのカタログ (billing.yaml) のみを表示しています — 開発環境やStripeが未設定の場合によくある状態です。",
     "source_hash": "905d95f8"
   },
   "web.admin.billing.inSync": {
@@ -24,11 +24,11 @@
     "source_hash": "5701958c"
   },
   "web.admin.billing.driftCount": {
-    "text": "{count}件の差分",
+    "text": "{count}件の差異",
     "source_hash": "166538f5"
   },
   "web.admin.billing.inSyncDetail": {
-    "text": "設定済みカタログは公開プランと一致しています。差分は検出されませんでした。",
+    "text": "設定済みのカタログは最新のプランと一致しています。差異は検出されませんでした。",
     "source_hash": "57ab60a6"
   },
   "web.admin.billing.columns.planid": {
@@ -36,7 +36,7 @@
     "source_hash": "1f0d4dc6"
   },
   "web.admin.billing.columns.name": {
-    "text": "名前",
+    "text": "名称",
     "source_hash": "dcd1d522"
   },
   "web.admin.billing.columns.tier": {
@@ -48,19 +48,19 @@
     "source_hash": "920e413c"
   },
   "web.admin.billing.diff.title": {
-    "text": "プラン差分:{planid}",
+    "text": "プランの差分: {planid}",
     "source_hash": "bc86e5f7"
   },
   "web.admin.billing.diff.subtitle": {
-    "text": "設定済みカタログ(billing.yaml)と公開中のStripe同期済みプランを並べて比較します。",
+    "text": "設定済みカタログ (billing.yaml) とStripeと同期された最新プランを並べて比較します。",
     "source_hash": "d92e93ae"
   },
   "web.admin.billing.diff.config": {
-    "text": "設定済み(billing.yaml)",
+    "text": "設定済み (billing.yaml)",
     "source_hash": "6bf2ff04"
   },
   "web.admin.billing.diff.live": {
-    "text": "公開中(Stripeキャッシュ)",
+    "text": "最新 (Stripeキャッシュ)",
     "source_hash": "4886945d"
   },
   "web.admin.billing.diff.absentConfig": {
@@ -68,7 +68,7 @@
     "source_hash": "0b594c88"
   },
   "web.admin.billing.diff.absentLive": {
-    "text": "このプランは公開中のStripe同期済みキャッシュに存在しません。",
+    "text": "このプランはStripeと同期された最新キャッシュに存在しません。",
     "source_hash": "c53f31c3"
   },
   "web.admin.billing.plans.title": {
@@ -76,7 +76,7 @@
     "source_hash": "dfe8b2f0"
   },
   "web.admin.billing.plans.empty": {
-    "text": "カタログにプランが見つかりません。",
+    "text": "カタログにプランが見つかりませんでした。",
     "source_hash": "39db3c13"
   },
   "web.admin.billing.plans.viewDiff": {
@@ -92,11 +92,11 @@
     "source_hash": "49de43d2"
   },
   "web.admin.billing.stats.configured": {
-    "text": "設定済みプラン",
+    "text": "設定済みのプラン",
     "source_hash": "4fda4796"
   },
   "web.admin.billing.stats.live": {
-    "text": "公開中のプラン",
+    "text": "稼働中のプラン",
     "source_hash": "faaa88d9"
   },
   "web.admin.billing.stats.source": {
@@ -104,7 +104,7 @@
     "source_hash": "0e570ca6"
   },
   "web.admin.billing.stats.drift": {
-    "text": "差分",
+    "text": "差異",
     "source_hash": "8b4c8240"
   },
   "web.admin.billing.status.in_sync": {
@@ -116,11 +116,91 @@
     "source_hash": "15836cba"
   },
   "web.admin.billing.status.only_live": {
-    "text": "公開中のみ",
+    "text": "稼働中のみ",
     "source_hash": "8f4ed495"
   },
   "web.admin.billing.status.changed": {
     "text": "変更あり",
     "source_hash": "2a6141e4"
+  },
+  "web.admin.billing.diff.backToCatalog": {
+    "text": "請求カタログに戻る",
+    "source_hash": "8532b373"
+  },
+  "web.admin.billing.diff.driftedFields": {
+    "text": "差異のある項目:",
+    "source_hash": "9890c95b"
+  },
+  "web.admin.billing.diff.notFound": {
+    "text": "プランがカタログにありません",
+    "source_hash": "0253898b"
+  },
+  "web.admin.billing.diff.notFoundDescription": {
+    "text": "ID {planid}のプランは、設定済みカタログにもStripeと同期された最新キャッシュにも見つかりませんでした。",
+    "source_hash": "2e69551c"
+  },
+  "web.admin.billing.stripeOrgs.title": {
+    "text": "Stripeの顧客",
+    "source_hash": "0463ae27"
+  },
+  "web.admin.billing.stripeOrgs.description": {
+    "text": "Stripeの顧客レコードに紐付けられている組織です。",
+    "source_hash": "2ab09aec"
+  },
+  "web.admin.billing.stripeOrgs.searchPlaceholder": {
+    "text": "Stripe顧客IDで検索",
+    "source_hash": "d5acf08f"
+  },
+  "web.admin.billing.stripeOrgs.empty": {
+    "text": "Stripe顧客IDを持つ組織はありません。",
+    "source_hash": "2e373537"
+  },
+  "web.admin.billing.stripeOrgs.emptySearch": {
+    "text": "検索条件に一致するStripe顧客IDはありません。",
+    "source_hash": "75011174"
+  },
+  "web.admin.billing.stripeOrgs.loadError": {
+    "text": "Stripeの顧客一覧を読み込めませんでした。",
+    "source_hash": "15e2d9a7"
+  },
+  "web.admin.billing.stripeOrgs.unavailable": {
+    "text": "このサーバーではStripeの顧客一覧をまだ利用できません。",
+    "source_hash": "aab6451a"
+  },
+  "web.admin.billing.stripeOrgs.none": {
+    "text": "なし",
+    "source_hash": "dc937b59"
+  },
+  "web.admin.billing.stripeOrgs.capped": {
+    "text": "インデックスのスキャンが上限に達したため、合計値は下限値です — 残りを表示するには検索条件を絞り込んでください。",
+    "source_hash": "20bcaa38"
+  },
+  "web.admin.billing.stripeOrgs.stale": {
+    "text": "このページの{count}件のインデックスエントリは、読み込めなくなった組織を参照しているためスキップされました。",
+    "source_hash": "51980f83"
+  },
+  "web.admin.billing.stripeOrgs.copyStripeId": {
+    "text": "Stripe顧客IDをコピー",
+    "source_hash": "a77d18b1"
+  },
+  "web.admin.billing.stripeOrgs.columns.organization": {
+    "text": "組織",
+    "source_hash": "d764d425"
+  },
+  "web.admin.billing.stripeOrgs.columns.owner": {
+    "text": "オーナー",
+    "source_hash": "4b1b8aa3"
+  },
+  "web.admin.billing.stripeOrgs.columns.plan": {
+    "text": "プラン",
+    "source_hash": "fa8ed0bd"
+  },
+  "web.admin.billing.stripeOrgs.columns.subscription": {
+    "text": "サブスクリプション",
+    "source_hash": "4999c6c6"
+  },
+  "web.admin.billing.stripeOrgs.columns.stripeCustomer": {
+    "text": "Stripe顧客ID",
+    "source_hash": "7e1d8bbb"
   }
 }

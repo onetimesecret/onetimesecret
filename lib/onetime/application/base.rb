@@ -5,6 +5,7 @@
 require 'rack'
 require 'familia/json_serializer'
 require_relative '../logger_methods'
+require_relative 'middleware_profile'
 
 module Onetime
   module Application
@@ -154,7 +155,6 @@ module Onetime
         # Rack::Builder uses `instance_eval` internally, creating a new context
         # so inside of it `self` refers to the Rack::Builder instance.
         router_instance = router
-        @middleware   ||= []
         base_klass      = self.class
 
         # Create application context for middleware before the builder block
@@ -166,7 +166,12 @@ module Onetime
         Rack::Builder.new do |builder|
           MiddlewareStack.configure(builder, application_context: app_context)
 
-          (base_klass.middleware || []).each do |middleware, args, block|
+          # Declared per-app profile (config-gated registry components), mounted
+          # between the universal stack and the class-level `use` list. See
+          # MiddlewareProfile for profile resolution details.
+          MiddlewareProfile.apply(base_klass.middleware_profile, builder)
+
+          base_klass.resolved_middleware.each do |middleware, args, block|
             builder.use(middleware, *args, &block)
           end
 
@@ -198,6 +203,46 @@ module Onetime
         @middleware = nil
 
         attr_reader :uri_prefix, :middleware
+
+        # Class-level DSL: declare/read this application's middleware profile.
+        #
+        # With an argument, declares the profile (validated eagerly against
+        # MiddlewareProfile::PROFILES — an unknown name raises at class-load
+        # time). Without an argument, returns the declared profile, INHERITING
+        # from the superclass when this class has no declaration of its own;
+        # defaults to :standard at the top of the chain.
+        #
+        # @param name [Symbol, nil] profile name to declare, or nil to read
+        # @return [Symbol] the resolved profile name
+        def middleware_profile(name = nil)
+          if name
+            MiddlewareProfile.fetch(name) # validate at declaration time
+            return @middleware_profile = name.to_sym
+          end
+
+          return @middleware_profile if @middleware_profile
+
+          if superclass.respond_to?(:middleware_profile)
+            superclass.middleware_profile
+          else
+            :standard
+          end
+        end
+
+        # The full class-level middleware list build_rack_app mounts, walking
+        # the ancestor chain (superclass entries first, then own). The plain
+        # `middleware` reader is a per-class ivar and does NOT inherit — which
+        # made middleware registered on an abstract base class (BaseJSONAPI)
+        # silently dead for its subclasses. Resolution now inherits; each
+        # class's own list still reflects only its own `use` calls.
+        #
+        # @return [Array<[Class, Array, Proc]>] middleware registrations
+        def resolved_middleware
+          ancestors
+            .select { |mod| mod.is_a?(Class) && mod <= Onetime::Application::Base }
+            .reverse
+            .flat_map { |cls| cls.instance_variable_get(:@middleware) || [] }
+        end
 
         # Determine if this application should skip loading
         # Override in subclasses to implement conditional loading logic

@@ -838,5 +838,37 @@
   "web.colonel.nav.groups.communications": {
     "text": "通信",
     "source_hash": "919a9253"
+  },
+  "web.colonel.organizations.sameAsContact": {
+    "text": "与联系人相同",
+    "source_hash": "ed18ff43"
+  },
+  "web.colonel.organizations.refresh": {
+    "text": "刷新",
+    "source_hash": "0e916101"
+  },
+  "web.colonel.organizations.updatedAgo": {
+    "text": "更新于 {ago}",
+    "source_hash": "cda30b9c"
+  },
+  "web.colonel.organizations.columns.name": {
+    "text": "名称",
+    "source_hash": "dcd1d522"
+  },
+  "web.colonel.organizations.columns.contactEmail": {
+    "text": "联系邮箱",
+    "source_hash": "6d7fce11"
+  },
+  "web.colonel.organizations.columns.billingEmail": {
+    "text": "账单邮箱",
+    "source_hash": "8805b928"
+  },
+  "web.colonel.organizations.columns.planSubscription": {
+    "text": "方案与订阅",
+    "source_hash": "b396caac"
+  },
+  "web.colonel.organizations.filters.searchPlaceholder": {
+    "text": "按 ID、名称或邮箱搜索",
+    "source_hash": "6fe16473"
   }
 }

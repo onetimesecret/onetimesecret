@@ -11,6 +11,8 @@
 # path) is never exercised. Covers:
 # - Lettermint: counts + rates computed in Ruby (float division, sent==0 guard)
 # - SES: quota passthrough + rate_bounce/complaint null + rate_note present
+# - SMTP2GO: cycle passthrough + percent->ratio conversion (nil preserved) +
+#   cycle rate_note present
 # - degraded path (fetcher raises) -> capability true, available false, error
 # - non-live provider -> capability false
 # - NO-CREDS scan (§9): no secret sentinel value, no secret-named key
@@ -44,6 +46,32 @@ class FakeSesAccount
     {
       enforcement_status: 'HEALTHY', production_access_enabled: true, sending_enabled: true,
       max_24_hour_send: 50_000.0, sent_last_24_hours: 1234.0, max_send_rate: 14.0
+    }
+  end
+end
+
+class FakeSmtp2goStats
+  # The documented /stats/email_summary shape as the fetcher hands it over
+  # (symbol keys, counts as Integers, percents as provider-reported Floats).
+  def stats
+    {
+      cycle_start: '2021-04-01T00:00:00', cycle_end: '2021-05-01T00:00:00',
+      cycle_used: 550, cycle_remaining: 450, cycle_max: 1000, email_count: 550,
+      bounce_rejects: 10, softbounces: 10, hardbounces: 10, spam_rejects: 10,
+      unsubscribes: 10, bounce_percent: 5.5, spam_percent: 1.8
+    }
+  end
+end
+
+class FakeSmtp2goNoPercents
+  # Percents omitted by the provider arrive as nil (not 0.0) — the ratio
+  # conversion must preserve the "not reported" distinction.
+  def stats
+    {
+      cycle_start: nil, cycle_end: nil, cycle_used: 0, cycle_remaining: 1000,
+      cycle_max: 1000, email_count: 0, bounce_rejects: 0, softbounces: 0,
+      hardbounces: 0, spam_rejects: 0, unsubscribes: 0,
+      bounce_percent: nil, spam_percent: nil
     }
   end
 end
@@ -99,6 +127,34 @@ end
 [@r.ses[:rate_bounce], @r.ses[:rate_complaint], @r.ses[:rate_note].nil?]
 #=> [nil, nil, false]
 
+# --- SMTP2GO: cycle passthrough + percent -> ratio -----------------------
+
+## smtp2go status is live; the ses/lettermint blocks stay nil
+@r = PS.new(provider: 'smtp2go', fetcher: FakeSmtp2goStats.new).call
+[@r.capability, @r.available, @r.error, @r.ses, @r.lettermint]
+#=> [true, true, nil, nil, nil]
+
+## cycle quota and counts pass through from /stats/email_summary
+@r = PS.new(provider: 'smtp2go', fetcher: FakeSmtp2goStats.new).call
+[@r.smtp2go[:cycle_used], @r.smtp2go[:cycle_remaining], @r.smtp2go[:cycle_max],
+ @r.smtp2go[:hardbounces], @r.smtp2go[:spam_rejects]]
+#=> [550, 450, 1000, 10, 10]
+
+## provider percentages convert to ratios (5.5% -> 0.055), cycle rate_note present
+@r = PS.new(provider: 'smtp2go', fetcher: FakeSmtp2goStats.new).call
+[@r.smtp2go[:rate_bounce], @r.smtp2go[:rate_complaint].round(6), @r.smtp2go[:rate_note].nil?]
+#=> [0.055, 0.018, false]
+
+## unreported percentages stay nil (not 0.0) through the ratio conversion
+@r = PS.new(provider: 'smtp2go', fetcher: FakeSmtp2goNoPercents.new).call
+[@r.smtp2go[:rate_bounce], @r.smtp2go[:rate_complaint]]
+#=> [nil, nil]
+
+## a raising smtp2go fetcher degrades: capability true, available false, block nil
+@r = PS.new(provider: 'smtp2go', fetcher: FakeBoomFetcher.new).call
+[@r.capability, @r.available, @r.error.include?('timed out'), @r.smtp2go]
+#=> [true, false, true, nil]
+
 # --- fail-soft: fetcher raises ------------------------------------------
 
 ## a raising fetcher degrades: capability true, available false, error captured
@@ -108,10 +164,10 @@ end
 
 # --- non-live provider ---------------------------------------------------
 
-## logger (non-live) -> capability false, available false, both blocks nil
+## logger (non-live) -> capability false, available false, all provider blocks nil
 @r = PS.new(provider: 'logger').call
-[@r.capability, @r.available, @r.ses, @r.lettermint]
-#=> [false, false, nil, nil]
+[@r.capability, @r.available, @r.ses, @r.lettermint, @r.smtp2go]
+#=> [false, false, nil, nil, nil]
 
 # --- NO-CREDS scan (§9) --------------------------------------------------
 

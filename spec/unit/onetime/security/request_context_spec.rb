@@ -150,7 +150,7 @@ RSpec.describe Onetime::Security::RequestContext do
   describe '.capture' do
     subject(:attrs) { described_class.capture(ip: raw_ipv4, user_agent: full_ua, key: key) }
 
-    it 'returns exactly the three privacy-safe, string-keyed attributes' do
+    it 'returns exactly the three privacy-safe, string-keyed attributes (no country supplied)' do
       expect(attrs.keys).to contain_exactly(
         'net_ip_partial', 'net_ua_partial', 'net_ip_hash'
       )
@@ -186,6 +186,30 @@ RSpec.describe Onetime::Security::RequestContext do
       expect(serialized).not_to include(full_ua)
       expect(serialized).not_to include('119.0.0.0')
       attrs.each_value { |v| expect(v).not_to include(raw_ipv4) }
+    end
+
+    context 'with a resolved country (net_country)' do
+      it 'stores a valid ISO 3166-1 alpha-2 code' do
+        out = described_class.capture(ip: raw_ipv4, user_agent: full_ua, country: 'US', key: key)
+        expect(out['net_country']).to eq('US')
+      end
+
+      it 'upcases a lowercase code (country needs no masking, only a format check)' do
+        expect(described_class.capture(ip: nil, user_agent: nil, country: 'de', key: key))
+          .to eq({ 'net_country' => 'DE' })
+      end
+
+      it "omits the key for Otto's '**' unknown sentinel — never stored as a country" do
+        out = described_class.capture(ip: raw_ipv4, user_agent: full_ua, country: '**', key: key)
+        expect(out).not_to have_key('net_country')
+      end
+
+      it 'omits the key for a malformed or blank country value' do
+        expect(described_class.capture(ip: nil, user_agent: nil, country: 'USA', key: key)).to eq({})
+        expect(described_class.capture(ip: nil, user_agent: nil, country: '12', key: key)).to eq({})
+        expect(described_class.capture(ip: nil, user_agent: nil, country: '', key: key)).to eq({})
+        expect(described_class.capture(ip: nil, user_agent: nil, country: nil, key: key)).to eq({})
+      end
     end
 
     it 'reduces even a raw IPv6 address to its masked prefix' do

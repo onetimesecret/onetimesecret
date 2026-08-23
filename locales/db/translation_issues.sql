@@ -1,0 +1,8 @@
+-- Exported from translation_issues table
+-- 2 rows
+-- Generated: 2026-08-10T03:40:00.341278+00:00
+
+DELETE FROM translation_issues;
+
+INSERT INTO translation_issues (id, locale, file, key_path, issue_type, severity, status, source_text, current_text, suggested_text, description, detected_by, detected_at, resolved_at, resolved_by, resolution_notes, created_at, updated_at) VALUES (1, 'bg', 'session-auth-extended.json', 'web.auth.connections.*', 'terminology', 'high', 'resolved', 'Single sign-on', 'Еднократно влизане', 'Единично влизане (SSO)', 'Single sign-on rendered as еднократно влизане (= one-time login) across 5 connections keys. еднократно is a false friend for single here and conflates SSO with the one-time secret product branding.', 'human', '2026-08-10 03:39:51', '2026-08-10 03:39:51', 'agent', 'Replaced with Единично влизане (SSO) in section_title, overview_status, description, connect_description, no_identities_description. Glossary entry added for bg.', '2026-08-10 03:39:51', '2026-08-10 03:39:51');
+INSERT INTO translation_issues (id, locale, file, key_path, issue_type, severity, status, source_text, current_text, suggested_text, description, detected_by, detected_at, resolved_at, resolved_by, resolution_notes, created_at, updated_at) VALUES (2, 'bg', 'admin-organizations.json', 'web.admin.organizations.entitlements.matrix.legend.orphaned', 'other', 'low', 'resolved', NULL, 'ремаериализирана', 'рематериализирана', 'Dropped т in рематериализирана.', 'human', '2026-08-10 03:39:57', '2026-08-10 03:39:57', 'agent', 'Fixed in place. Glossary already binds materialized to материализиран for bg (id 558).', '2026-08-10 03:39:57', '2026-08-10 03:39:57');

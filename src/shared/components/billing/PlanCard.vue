@@ -9,7 +9,7 @@
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import type { Plan as BillingPlan } from '@/services/billing.service';
-  import { formatCurrency } from '@/types/billing';
+  import { formatCurrency } from '@/utils/format/currency';
   import { computed } from 'vue';
 
   const props = defineProps<{
@@ -39,15 +39,21 @@
   const { t } = useI18n();
 
   /**
-   * Get the monthly price for display.
-   * Uses API-provided monthly_equivalent_amount for yearly plans if available.
+   * PRICING DISPLAY POLICY: the headline price is always the amount we
+   * actually charge for the plan's interval — the full yearly total for
+   * yearly plans (e.g. $356/year), never a derived monthly-equivalent rate
+   * (e.g. $29.67/month). The divided rate produces unrounded decimals that
+   * undercut our intentionally round price points and misrepresents what
+   * the customer is billed. Do not reintroduce monthly_equivalent_amount
+   * (or amount / 12) as the prominent price.
    */
-  const pricePerMonth = computed((): number => {
-    if (props.plan.interval === 'year') {
-      return props.plan.monthly_equivalent_amount ?? Math.floor(props.plan.amount / 12);
-    }
-    return props.plan.amount;
-  });
+  const headlineAmount = computed((): number => props.plan.amount);
+
+  const intervalLabelKey = computed((): string =>
+    props.plan.interval === 'year'
+      ? 'web.billing.plans.per_year'
+      : 'web.billing.plans.per_month'
+  );
 
   /**
    * Determine card styling based on state
@@ -137,24 +143,19 @@
         </div>
       </div>
 
-      <!-- Price -->
+      <!-- Price: the actual charged amount for the interval (see PRICING DISPLAY POLICY) -->
       <div class="mb-6">
         <div class="flex items-baseline gap-2">
           <!-- All tiers display formatted currency for consistency -->
           <span class="font-brand text-4xl font-bold text-gray-900 dark:text-white">
-            {{ formatCurrency(pricePerMonth, plan.currency) }}
+            {{ formatCurrency(headlineAmount, plan.currency) }}
           </span>
           <span
             v-if="plan.tier !== 'free'"
             class="text-sm text-gray-500 dark:text-gray-400">
-            {{ t('web.billing.plans.per_month') }}
+            {{ t(intervalLabelKey) }}
           </span>
         </div>
-        <p
-          v-if="plan.interval === 'year' && plan.amount > 0"
-          class="mt-1 text-sm font-medium text-gray-500 dark:text-gray-400">
-          {{ t('web.billing.plans.yearly') }}: {{ formatCurrency(plan.amount, plan.currency) }}
-        </p>
       </div>
 
       <!-- Features -->

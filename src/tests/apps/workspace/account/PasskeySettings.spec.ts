@@ -1,15 +1,17 @@
 // src/tests/apps/workspace/account/PasskeySettings.spec.ts
 
-import { mount, VueWrapper } from '@vue/test-utils';
+import { mount, flushPromises, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createTestingPinia } from '@pinia/testing';
-import { defineComponent, ref } from 'vue';
+import { ref } from 'vue';
 import { createTestI18n } from '@tests/setup';
+import PasskeySettings from '@/apps/workspace/account/PasskeySettings.vue';
 
 // Mock vue-router
 vi.mock('vue-router', () => ({
   useRoute: vi.fn(() => ({ path: '/account/settings/security/passkeys' })),
   useRouter: vi.fn(() => ({ push: vi.fn(), replace: vi.fn() })),
+  isNavigationFailure: () => false,
   RouterLink: {
     name: 'RouterLink',
     template: '<a :href="to"><slot /></a>',
@@ -34,12 +36,55 @@ vi.mock('@/apps/workspace/layouts/SettingsLayout.vue', () => ({
   },
 }));
 
+// Mock ListSkeleton (loading indicator)
+vi.mock('@/shared/components/closet/ListSkeleton.vue', () => ({
+  default: {
+    name: 'ListSkeleton',
+    template: '<div data-testid="list-skeleton"></div>',
+  },
+}));
+
+// Stub PasswordConfirmModal — the real one wraps Headless UI Dialog/transitions.
+// The stub emits confirm with a fixed password so flows can be exercised.
+vi.mock('@/shared/components/modals/PasswordConfirmModal.vue', () => ({
+  default: {
+    name: 'PasswordConfirmModal',
+    props: ['open', 'title', 'description', 'loading', 'error', 'variant'],
+    emits: ['update:open', 'confirm', 'cancel'],
+    template: `
+      <div v-if="open" data-testid="password-confirm-modal">
+        <p data-testid="modal-title">{{ title }}</p>
+        <p data-testid="modal-description">{{ description }}</p>
+        <p v-if="error" data-testid="modal-error">{{ error }}</p>
+        <button data-testid="modal-confirm" type="button" @click="$emit('confirm', 'hunter2')">confirm</button>
+        <button data-testid="modal-cancel" type="button" @click="$emit('cancel')">cancel</button>
+      </div>`,
+  },
+}));
+
+// Stub ConfirmDialog (no-password removal path)
+vi.mock('@/shared/components/modals/ConfirmDialog.vue', () => ({
+  default: {
+    name: 'ConfirmDialog',
+    props: ['title', 'message', 'confirmText', 'cancelText', 'type'],
+    emits: ['confirm', 'cancel'],
+    template: `
+      <div data-testid="confirm-dialog">
+        <p data-testid="confirm-dialog-message">{{ message }}</p>
+        <button data-testid="confirm-dialog-confirm" type="button" @click="$emit('confirm')">confirm</button>
+        <button data-testid="confirm-dialog-cancel" type="button" @click="$emit('cancel')">cancel</button>
+      </div>`,
+  },
+}));
+
 // Mock useWebAuthn composable
 const mockWebAuthnState = {
   supported: ref(true),
   isLoading: ref(false),
   error: ref<string | null>(null),
   registerWebAuthn: vi.fn(),
+  fetchWebAuthnCredentials: vi.fn(),
+  removeWebAuthn: vi.fn(),
   clearError: vi.fn(),
 };
 
@@ -49,248 +94,37 @@ vi.mock('@/shared/composables/useWebAuthn', () => ({
 
 const i18n = createTestI18n();
 
+const sampleCredentials = () => [
+  { id: 'credential-aaa-a1b2c3', last_used_at: '2026-08-01T12:00:00Z' },
+  { id: 'credential-bbb-d4e5f6', last_used_at: null },
+];
+
 /**
  * PasskeySettings Component Tests
  *
- * Tests the passkey management page that:
- * - Detects WebAuthn browser support
- * - Shows unsupported browser warning when needed
- * - Allows adding new passkeys via registerWebAuthn()
- * - Displays success/error messages
- * - Shows loading states during registration
+ * Mounts the REAL component (no inline stub). createTestI18n is pass-through
+ * (ADR-014): t() renders keys as-is, so assertions target i18n keys.
+ *
+ * Covers:
+ * - Passkey list rendering from fetchWebAuthnCredentials (id suffix + last used)
+ * - Empty and loading states
+ * - Register flow via PasswordConfirmModal (has_password: true)
+ * - Register flow skipping the modal (has_password: false, SSO-only)
+ * - Remove flow via PasswordConfirmModal / ConfirmDialog per has_password
+ * - Refresh-after-register and refresh-after-remove
+ * - Error surfaces, browser support, benefits, related settings
  */
 describe('PasskeySettings', () => {
   let wrapper: VueWrapper;
 
-  // PasskeySettings stub representing the component interface
-  const PasskeySettingsStub = defineComponent({
-    name: 'PasskeySettings',
-    setup() {
-      const { supported, isLoading, error, registerWebAuthn, clearError } = mockWebAuthnState;
-
-      const isRegistering = ref(false);
-      const successMessage = ref<string | null>(null);
-      type Passkey = { id: string; name: string; created_at: string; last_used_at: string | null };
-      const passkeys = ref<Array<Passkey>>([]);
-      const isLoadingPasskeys = ref(false);
-
-      const handleRegisterPasskey = async () => {
-        clearError();
-        successMessage.value = null;
-        isRegistering.value = true;
-
-        const success = await registerWebAuthn();
-
-        if (success) {
-          successMessage.value = 'Passkey registered successfully';
-        }
-
-        isRegistering.value = false;
-      };
-
-      const clearMessages = () => {
-        clearError();
-        successMessage.value = null;
-      };
-
-      return {
-        supported,
-        isLoading,
-        error,
-        isRegistering,
-        successMessage,
-        passkeys,
-        isLoadingPasskeys,
-        handleRegisterPasskey,
-        clearMessages,
-      };
-    },
-    template: `
-      <div class="mock-settings-layout">
-        <div>
-          <div class="mb-6">
-            <h1 class="text-3xl font-bold dark:text-white">Passkeys</h1>
-            <p class="mt-2 text-gray-600 dark:text-gray-400">
-              Use biometrics or hardware keys for passwordless sign-in
-            </p>
-          </div>
-
-          <!-- Loading state -->
-          <div v-if="isLoadingPasskeys" class="loading-passkeys flex items-center justify-center py-12">
-            <span class="o-icon animate-spin" data-icon="arrow-path"></span>
-            <span class="text-gray-600 dark:text-gray-400">Loading passkeys...</span>
-          </div>
-
-          <!-- Browser not supported -->
-          <div
-            v-else-if="!supported"
-            class="browser-not-supported rounded-lg bg-yellow-50 p-6 dark:bg-yellow-900/20"
-            role="alert">
-            <div class="flex items-center gap-3">
-              <span class="o-icon" data-icon="exclamation-triangle-solid"></span>
-              <div>
-                <h3 class="font-semibold text-yellow-800 dark:text-yellow-200">
-                  Your browser does not support WebAuthn
-                </h3>
-                <p class="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
-                  Please use a modern browser to enable passkeys
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Main content -->
-          <div v-else class="main-content space-y-6">
-            <!-- Success message -->
-            <div
-              v-if="successMessage"
-              class="success-message rounded-lg bg-green-50 p-4 dark:bg-green-900/20"
-              role="status">
-              <div class="flex items-center gap-3">
-                <span class="o-icon" data-icon="check-circle-solid"></span>
-                <p class="text-sm font-medium text-green-800 dark:text-green-200">
-                  {{ successMessage }}
-                </p>
-                <button
-                  @click="clearMessages"
-                  type="button"
-                  class="dismiss-success ml-auto text-green-600"
-                  aria-label="Dismiss">
-                  <span class="o-icon" data-icon="x-mark"></span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Error message -->
-            <div
-              v-if="error"
-              class="error-message rounded-lg bg-red-50 p-4 dark:bg-red-900/20"
-              role="alert">
-              <div class="flex items-center gap-3">
-                <span class="o-icon" data-icon="exclamation-circle-solid"></span>
-                <p class="text-sm font-medium text-red-800 dark:text-red-200">
-                  {{ error }}
-                </p>
-                <button
-                  @click="clearMessages"
-                  type="button"
-                  class="dismiss-error ml-auto text-red-600"
-                  aria-label="Dismiss">
-                  <span class="o-icon" data-icon="x-mark"></span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Passkeys list section -->
-            <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-              <div class="flex items-start justify-between">
-                <div class="flex items-center gap-3">
-                  <div class="flex size-12 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/30">
-                    <span class="o-icon" data-icon="finger-print-solid"></span>
-                  </div>
-                  <div>
-                    <h2 class="text-xl font-semibold dark:text-white">Passkeys</h2>
-                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                      Face ID, Touch ID, or security keys
-                    </p>
-                  </div>
-                </div>
-
-                <!-- Add passkey button -->
-                <button
-                  @click="handleRegisterPasskey"
-                  type="button"
-                  :disabled="isLoading || isRegistering"
-                  class="add-passkey-button inline-flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
-                  data-testid="add-passkey-button">
-                  <span v-if="isRegistering" class="o-icon animate-spin" data-icon="arrow-path"></span>
-                  <span v-else class="o-icon" data-icon="plus"></span>
-                  <span>Add passkey</span>
-                </button>
-              </div>
-
-              <!-- Empty state -->
-              <div v-if="passkeys.length === 0" class="empty-state mt-8 text-center">
-                <span class="o-icon mx-auto size-12" data-icon="finger-print"></span>
-                <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">
-                  No passkeys registered
-                </h3>
-                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                  Add a passkey to enable passwordless authentication
-                </p>
-              </div>
-
-              <!-- Passkeys list -->
-              <div v-else class="passkeys-list mt-6 divide-y divide-gray-200 dark:divide-gray-700">
-                <div
-                  v-for="passkey in passkeys"
-                  :key="passkey.id"
-                  class="passkey-item flex items-center justify-between py-4">
-                  <div class="flex items-center gap-4">
-                    <span class="o-icon" data-icon="key-solid"></span>
-                    <div>
-                      <p class="font-medium text-gray-900 dark:text-white">{{ passkey.name }}</p>
-                      <p class="text-sm text-gray-500 dark:text-gray-400">Created: {{ passkey.created_at }}</p>
-                    </div>
-                  </div>
-                  <button type="button" class="remove-passkey text-sm font-medium text-red-600">
-                    Remove
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Benefits section -->
-            <div class="benefits-section rounded-lg bg-gray-50 p-6 dark:bg-gray-800">
-              <h3 class="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                Benefits
-              </h3>
-              <ul class="space-y-3 text-sm text-gray-600 dark:text-gray-400">
-                <li class="flex items-start gap-3">
-                  <span class="o-icon" data-icon="shield-check-solid"></span>
-                  <span>More secure than passwords</span>
-                </li>
-                <li class="flex items-start gap-3">
-                  <span class="o-icon" data-icon="bolt-solid"></span>
-                  <span>Fast and convenient</span>
-                </li>
-                <li class="flex items-start gap-3">
-                  <span class="o-icon" data-icon="cloud-solid"></span>
-                  <span>Synced across devices</span>
-                </li>
-              </ul>
-            </div>
-
-            <!-- Related settings -->
-            <div class="related-settings rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
-              <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                Related Settings
-              </h3>
-              <div class="space-y-2">
-                <a href="/account/settings/security/mfa" class="flex items-center gap-3 text-sm">
-                  <span class="o-icon" data-icon="key"></span>
-                  <span>Two-Factor Authentication</span>
-                </a>
-                <a href="/account/settings/security/recovery-codes" class="flex items-center gap-3 text-sm">
-                  <span class="o-icon" data-icon="document-text-solid"></span>
-                  <span>Recovery Codes</span>
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    `,
-  });
-
   beforeEach(() => {
     vi.clearAllMocks();
-    // Reset mock state
     mockWebAuthnState.supported.value = true;
     mockWebAuthnState.isLoading.value = false;
     mockWebAuthnState.error.value = null;
     mockWebAuthnState.registerWebAuthn.mockResolvedValue(true);
-    mockWebAuthnState.clearError.mockClear();
+    mockWebAuthnState.fetchWebAuthnCredentials.mockResolvedValue([]);
+    mockWebAuthnState.removeWebAuthn.mockResolvedValue(true);
   });
 
   afterEach(() => {
@@ -299,336 +133,384 @@ describe('PasskeySettings', () => {
     }
   });
 
-  const mountComponent = () =>
-    mount(PasskeySettingsStub, {
+  // has_password comes from the bootstrap store (synchronously available at
+  // mount) — seed it via Pinia initialState rather than mocking a composable.
+  const mountComponent = (hasPassword = true) =>
+    mount(PasskeySettings, {
       global: {
         plugins: [
           i18n,
           createTestingPinia({
             createSpy: vi.fn,
+            initialState: {
+              bootstrap: { has_password: hasPassword },
+            },
           }),
         ],
-        stubs: {
-          RouterLink: {
-            template: '<a :href="to"><slot /></a>',
-            props: ['to'],
-          },
-        },
       },
     });
 
+  const mountSettled = async (hasPassword = true) => {
+    const w = mountComponent(hasPassword);
+    await flushPromises();
+    return w;
+  };
+
+  const findAddButton = (w: VueWrapper) =>
+    w.findAll('button').find((b) => b.text().includes('web.auth.passkeys.add_passkey'));
+
+  const findRemoveButtons = (w: VueWrapper) =>
+    w.findAll('button').filter((b) => b.text().includes('web.auth.passkeys.remove_passkey'));
+
   describe('Basic Rendering', () => {
-    it('renders within SettingsLayout', () => {
-      wrapper = mountComponent();
+    it('renders within SettingsLayout', async () => {
+      wrapper = await mountSettled();
 
       expect(wrapper.find('.mock-settings-layout').exists()).toBe(true);
     });
 
-    it('renders page title', () => {
-      wrapper = mountComponent();
+    it('renders page title and description', async () => {
+      wrapper = await mountSettled();
 
       const title = wrapper.find('h1');
       expect(title.exists()).toBe(true);
-      expect(title.text()).toBe('Passkeys');
+      expect(title.text()).toBe('web.auth.passkeys.title');
+      expect(wrapper.text()).toContain('web.auth.passkeys.setup_description');
     });
 
-    it('renders page description', () => {
-      wrapper = mountComponent();
+    it('renders add passkey button when supported', async () => {
+      wrapper = await mountSettled();
 
-      expect(wrapper.text()).toContain('Use biometrics or hardware keys for passwordless sign-in');
+      expect(findAddButton(wrapper)).toBeDefined();
     });
 
-    it('renders add passkey button when supported', () => {
-      wrapper = mountComponent();
+    it('fetches the passkey list on mount', async () => {
+      wrapper = await mountSettled();
 
-      const button = wrapper.find('[data-testid="add-passkey-button"]');
-      expect(button.exists()).toBe(true);
-      expect(button.text()).toContain('Add passkey');
+      expect(mockWebAuthnState.fetchWebAuthnCredentials).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('Browser Support Detection', () => {
-    it('shows main content when WebAuthn is supported', () => {
-      mockWebAuthnState.supported.value = true;
-      wrapper = mountComponent();
-
-      expect(wrapper.find('.main-content').exists()).toBe(true);
-      expect(wrapper.find('.browser-not-supported').exists()).toBe(false);
-    });
-
-    it('shows unsupported warning when WebAuthn is not supported', () => {
+    it('shows unsupported warning when WebAuthn is not supported', async () => {
       mockWebAuthnState.supported.value = false;
-      wrapper = mountComponent();
+      wrapper = await mountSettled();
 
-      const warning = wrapper.find('.browser-not-supported');
+      const warning = wrapper.find('[role="alert"]');
       expect(warning.exists()).toBe(true);
-      expect(warning.attributes('role')).toBe('alert');
+      expect(warning.text()).toContain('web.auth.webauthn.notSupported');
+      expect(warning.text()).toContain('web.auth.webauthn.requiresModernBrowser');
     });
 
-    it('displays correct unsupported browser message', () => {
+    it('hides add passkey button when not supported', async () => {
       mockWebAuthnState.supported.value = false;
-      wrapper = mountComponent();
+      wrapper = await mountSettled();
 
-      expect(wrapper.text()).toContain('Your browser does not support WebAuthn');
-      expect(wrapper.text()).toContain('Please use a modern browser to enable passkeys');
-    });
-
-    it('hides add passkey button when not supported', () => {
-      mockWebAuthnState.supported.value = false;
-      wrapper = mountComponent();
-
-      expect(wrapper.find('[data-testid="add-passkey-button"]').exists()).toBe(false);
+      expect(findAddButton(wrapper)).toBeUndefined();
     });
   });
 
-  describe('Add Passkey Functionality', () => {
-    it('calls registerWebAuthn when add passkey button is clicked', async () => {
-      wrapper = mountComponent();
-
-      await wrapper.find('[data-testid="add-passkey-button"]').trigger('click');
-
-      expect(mockWebAuthnState.registerWebAuthn).toHaveBeenCalled();
-    });
-
-    it('clears error before registration attempt', async () => {
-      wrapper = mountComponent();
-
-      await wrapper.find('[data-testid="add-passkey-button"]').trigger('click');
-
-      expect(mockWebAuthnState.clearError).toHaveBeenCalled();
-    });
-
-    it('shows success message on successful registration', async () => {
-      mockWebAuthnState.registerWebAuthn.mockResolvedValue(true);
-      wrapper = mountComponent();
-
-      await wrapper.find('[data-testid="add-passkey-button"]').trigger('click');
-      await wrapper.vm.$nextTick();
-
-      const successMsg = wrapper.find('.success-message');
-      expect(successMsg.exists()).toBe(true);
-      expect(successMsg.text()).toContain('Passkey registered successfully');
-    });
-
-    it('does not show success message on failed registration', async () => {
-      mockWebAuthnState.registerWebAuthn.mockResolvedValue(false);
-      wrapper = mountComponent();
-
-      await wrapper.find('[data-testid="add-passkey-button"]').trigger('click');
-      await wrapper.vm.$nextTick();
-
-      expect(wrapper.find('.success-message').exists()).toBe(false);
-    });
-  });
-
-  describe('Loading States', () => {
-    it('disables add button while registering', async () => {
-      // Make registerWebAuthn hang to simulate loading
-      let resolveRegister: (value: boolean) => void;
-      mockWebAuthnState.registerWebAuthn.mockImplementation(
-        () =>
-          new Promise((resolve) => {
-            resolveRegister = resolve;
-          })
+  describe('Passkey List', () => {
+    it('shows the loading skeleton while credentials are being fetched', async () => {
+      mockWebAuthnState.fetchWebAuthnCredentials.mockImplementation(
+        () => new Promise(() => {}) // never resolves
       );
-
       wrapper = mountComponent();
-      const button = wrapper.find('[data-testid="add-passkey-button"]');
-
-      // Trigger registration
-      await button.trigger('click');
       await wrapper.vm.$nextTick();
 
-      // Button should be disabled
-      expect(button.attributes('disabled')).toBeDefined();
-
-      // Resolve to cleanup
-      resolveRegister!(true);
+      expect(wrapper.find('[data-testid="list-skeleton"]').exists()).toBe(true);
     });
 
-    it('shows spinner icon while registering', async () => {
-      let resolveRegister: (value: boolean) => void;
-      mockWebAuthnState.registerWebAuthn.mockImplementation(
-        () =>
-          new Promise((resolve) => {
-            resolveRegister = resolve;
-          })
+    it('renders one row per credential with a generic name and id suffix', async () => {
+      mockWebAuthnState.fetchWebAuthnCredentials.mockResolvedValue(sampleCredentials());
+      wrapper = await mountSettled();
+
+      expect(wrapper.text()).toContain('web.auth.passkeys.name');
+      expect(wrapper.text()).toContain('#a1b2c3');
+      expect(wrapper.text()).toContain('#d4e5f6');
+      expect(findRemoveButtons(wrapper)).toHaveLength(2);
+      expect(wrapper.text()).not.toContain('web.auth.passkeys.no_passkeys_description');
+    });
+
+    it('shows last-used for used credentials and never-used for null', async () => {
+      mockWebAuthnState.fetchWebAuthnCredentials.mockResolvedValue(sampleCredentials());
+      wrapper = await mountSettled();
+
+      // Pass-through i18n renders the key for the parameterized last_used string
+      expect(wrapper.text()).toContain('web.auth.passkeys.last_used');
+      expect(wrapper.text()).toContain('web.auth.passkeys.never_used');
+    });
+
+    it('does not render a created date (credentials have none)', async () => {
+      mockWebAuthnState.fetchWebAuthnCredentials.mockResolvedValue(sampleCredentials());
+      wrapper = await mountSettled();
+
+      expect(wrapper.text()).not.toContain('web.auth.passkeys.created');
+    });
+
+    it('shows the empty state when no passkeys exist', async () => {
+      wrapper = await mountSettled();
+
+      expect(wrapper.text()).toContain('web.auth.passkeys.no_passkeys');
+      expect(wrapper.text()).toContain('web.auth.passkeys.no_passkeys_description');
+    });
+
+    it('surfaces a fetch error and keeps the empty state', async () => {
+      mockWebAuthnState.fetchWebAuthnCredentials.mockImplementation(async () => {
+        mockWebAuthnState.error.value = 'web.auth.passkeys.load_failed';
+        return null;
+      });
+      wrapper = await mountSettled();
+
+      const alert = wrapper.find('[role="alert"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain('web.auth.passkeys.load_failed');
+      expect(wrapper.text()).toContain('web.auth.passkeys.no_passkeys');
+    });
+  });
+
+  describe('Add Passkey (account with password)', () => {
+    it('opens the password modal instead of registering directly', async () => {
+      wrapper = await mountSettled();
+
+      await findAddButton(wrapper)!.trigger('click');
+
+      const modal = wrapper.find('[data-testid="password-confirm-modal"]');
+      expect(modal.exists()).toBe(true);
+      expect(modal.find('[data-testid="modal-description"]').text()).toBe(
+        'web.COMMON.password_required_for_action'
       );
-
-      wrapper = mountComponent();
-      await wrapper.find('[data-testid="add-passkey-button"]').trigger('click');
-      await wrapper.vm.$nextTick();
-
-      const spinner = wrapper.find('[data-testid="add-passkey-button"] [data-icon="arrow-path"]');
-      expect(spinner.exists()).toBe(true);
-
-      resolveRegister!(true);
+      expect(mockWebAuthnState.registerWebAuthn).not.toHaveBeenCalled();
     });
 
-    it('disables add button when useWebAuthn isLoading is true', () => {
-      mockWebAuthnState.isLoading.value = true;
-      wrapper = mountComponent();
+    it('registers with the confirmed password and refreshes the list', async () => {
+      wrapper = await mountSettled();
 
-      const button = wrapper.find('[data-testid="add-passkey-button"]');
-      expect(button.attributes('disabled')).toBeDefined();
-    });
-  });
+      await findAddButton(wrapper)!.trigger('click');
+      await wrapper.find('[data-testid="modal-confirm"]').trigger('click');
+      await flushPromises();
 
-  describe('Error Display', () => {
-    it('shows error message when error is set', () => {
-      mockWebAuthnState.error.value = 'Registration failed';
-      wrapper = mountComponent();
-
-      const errorDiv = wrapper.find('.error-message');
-      expect(errorDiv.exists()).toBe(true);
-      expect(errorDiv.text()).toContain('Registration failed');
+      expect(mockWebAuthnState.registerWebAuthn).toHaveBeenCalledWith('hunter2');
+      expect(wrapper.text()).toContain('web.auth.passkeys.registered_success');
+      // Mount + refresh after successful registration
+      expect(mockWebAuthnState.fetchWebAuthnCredentials).toHaveBeenCalledTimes(2);
+      expect(wrapper.find('[data-testid="password-confirm-modal"]').exists()).toBe(false);
     });
 
-    it('error container has alert role', () => {
-      mockWebAuthnState.error.value = 'Test error';
-      wrapper = mountComponent();
+    it('keeps the modal open and shows the error on failure', async () => {
+      mockWebAuthnState.registerWebAuthn.mockImplementation(async () => {
+        mockWebAuthnState.error.value = 'Wrong password';
+        return false;
+      });
+      wrapper = await mountSettled();
 
-      const errorDiv = wrapper.find('.error-message');
-      expect(errorDiv.attributes('role')).toBe('alert');
-    });
+      await findAddButton(wrapper)!.trigger('click');
+      await wrapper.find('[data-testid="modal-confirm"]').trigger('click');
+      await flushPromises();
 
-    it('dismisses error when dismiss button is clicked', async () => {
-      mockWebAuthnState.error.value = 'Test error';
-      wrapper = mountComponent();
-
-      await wrapper.find('.dismiss-error').trigger('click');
-
-      expect(mockWebAuthnState.clearError).toHaveBeenCalled();
-    });
-
-    it('dismiss button has accessible label', () => {
-      mockWebAuthnState.error.value = 'Test error';
-      wrapper = mountComponent();
-
-      const dismissButton = wrapper.find('.dismiss-error');
-      expect(dismissButton.attributes('aria-label')).toBe('Dismiss');
+      const modal = wrapper.find('[data-testid="password-confirm-modal"]');
+      expect(modal.exists()).toBe(true);
+      expect(modal.find('[data-testid="modal-error"]').text()).toBe('Wrong password');
+      expect(mockWebAuthnState.fetchWebAuthnCredentials).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe('Success Message Display', () => {
-    it('success message has status role', async () => {
-      mockWebAuthnState.registerWebAuthn.mockResolvedValue(true);
-      wrapper = mountComponent();
+  describe('Add Passkey (SSO-only account, no password)', () => {
+    it('registers directly without opening the password modal', async () => {
+      wrapper = await mountSettled(false);
 
-      await wrapper.find('[data-testid="add-passkey-button"]').trigger('click');
-      await wrapper.vm.$nextTick();
+      await findAddButton(wrapper)!.trigger('click');
+      await flushPromises();
 
-      const successDiv = wrapper.find('.success-message');
-      expect(successDiv.attributes('role')).toBe('status');
+      expect(wrapper.find('[data-testid="password-confirm-modal"]').exists()).toBe(false);
+      expect(mockWebAuthnState.registerWebAuthn).toHaveBeenCalledTimes(1);
+      expect(mockWebAuthnState.registerWebAuthn.mock.calls[0][0]).toBeUndefined();
     });
 
-    it('dismisses success message when dismiss button is clicked', async () => {
-      mockWebAuthnState.registerWebAuthn.mockResolvedValue(true);
-      wrapper = mountComponent();
+    it('shows success and refreshes the list after registering', async () => {
+      wrapper = await mountSettled(false);
 
-      await wrapper.find('[data-testid="add-passkey-button"]').trigger('click');
-      await wrapper.vm.$nextTick();
+      await findAddButton(wrapper)!.trigger('click');
+      await flushPromises();
 
-      await wrapper.find('.dismiss-success').trigger('click');
+      expect(wrapper.text()).toContain('web.auth.passkeys.registered_success');
+      expect(mockWebAuthnState.fetchWebAuthnCredentials).toHaveBeenCalledTimes(2);
+    });
 
-      expect(wrapper.find('.success-message').exists()).toBe(false);
+    it('surfaces a registration error inline (no modal to sync to)', async () => {
+      mockWebAuthnState.registerWebAuthn.mockImplementation(async () => {
+        mockWebAuthnState.error.value = 'web.auth.webauthn.cancelled';
+        return false;
+      });
+      wrapper = await mountSettled(false);
+
+      await findAddButton(wrapper)!.trigger('click');
+      await flushPromises();
+
+      const alert = wrapper.find('[role="alert"]');
+      expect(alert.exists()).toBe(true);
+      expect(alert.text()).toContain('web.auth.webauthn.cancelled');
+      expect(wrapper.text()).not.toContain('web.auth.passkeys.registered_success');
     });
   });
 
-  describe('Empty State', () => {
-    it('shows empty state when no passkeys exist', () => {
-      wrapper = mountComponent();
-
-      const emptyState = wrapper.find('.empty-state');
-      expect(emptyState.exists()).toBe(true);
-      expect(emptyState.text()).toContain('No passkeys registered');
+  describe('Remove Passkey (account with password)', () => {
+    beforeEach(() => {
+      mockWebAuthnState.fetchWebAuthnCredentials.mockResolvedValue(sampleCredentials());
     });
 
-    it('shows description in empty state', () => {
-      wrapper = mountComponent();
+    it('opens the danger password modal with the confirm-remove message', async () => {
+      wrapper = await mountSettled();
 
-      expect(wrapper.text()).toContain('Add a passkey to enable passwordless authentication');
+      await findRemoveButtons(wrapper)[0].trigger('click');
+
+      const modal = wrapper.find('[data-testid="password-confirm-modal"]');
+      expect(modal.exists()).toBe(true);
+      expect(modal.find('[data-testid="modal-title"]').text()).toBe(
+        'web.auth.passkeys.remove_passkey'
+      );
+      expect(modal.find('[data-testid="modal-description"]').text()).toBe(
+        'web.auth.passkeys.confirm_remove'
+      );
+      expect(mockWebAuthnState.removeWebAuthn).not.toHaveBeenCalled();
     });
 
-    it('displays fingerprint icon in empty state', () => {
-      wrapper = mountComponent();
+    it('removes with the confirmed password and refreshes the list', async () => {
+      wrapper = await mountSettled();
 
-      const emptyIcon = wrapper.find('.empty-state [data-icon="finger-print"]');
-      expect(emptyIcon.exists()).toBe(true);
+      await findRemoveButtons(wrapper)[0].trigger('click');
+      await wrapper.find('[data-testid="modal-confirm"]').trigger('click');
+      await flushPromises();
+
+      expect(mockWebAuthnState.removeWebAuthn).toHaveBeenCalledWith(
+        'credential-aaa-a1b2c3',
+        'hunter2'
+      );
+      expect(wrapper.text()).toContain('web.auth.passkeys.removed_success');
+      expect(mockWebAuthnState.fetchWebAuthnCredentials).toHaveBeenCalledTimes(2);
+      expect(wrapper.find('[data-testid="password-confirm-modal"]').exists()).toBe(false);
+    });
+
+    it('keeps the modal open and shows the error on failure', async () => {
+      mockWebAuthnState.removeWebAuthn.mockImplementation(async () => {
+        mockWebAuthnState.error.value = 'invalid password';
+        return false;
+      });
+      wrapper = await mountSettled();
+
+      await findRemoveButtons(wrapper)[0].trigger('click');
+      await wrapper.find('[data-testid="modal-confirm"]').trigger('click');
+      await flushPromises();
+
+      const modal = wrapper.find('[data-testid="password-confirm-modal"]');
+      expect(modal.exists()).toBe(true);
+      expect(modal.find('[data-testid="modal-error"]').text()).toBe('invalid password');
+      expect(mockWebAuthnState.fetchWebAuthnCredentials).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not remove when the modal is cancelled', async () => {
+      wrapper = await mountSettled();
+
+      await findRemoveButtons(wrapper)[0].trigger('click');
+      await wrapper.find('[data-testid="modal-cancel"]').trigger('click');
+      await flushPromises();
+
+      expect(mockWebAuthnState.removeWebAuthn).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Remove Passkey (SSO-only account, no password)', () => {
+    beforeEach(() => {
+      mockWebAuthnState.fetchWebAuthnCredentials.mockResolvedValue(sampleCredentials());
+    });
+
+    it('opens a plain confirm dialog instead of the password modal', async () => {
+      wrapper = await mountSettled(false);
+
+      await findRemoveButtons(wrapper)[0].trigger('click');
+
+      expect(wrapper.find('[data-testid="password-confirm-modal"]').exists()).toBe(false);
+      const dialog = wrapper.find('[data-testid="confirm-dialog"]');
+      expect(dialog.exists()).toBe(true);
+      expect(dialog.find('[data-testid="confirm-dialog-message"]').text()).toBe(
+        'web.auth.passkeys.confirm_remove'
+      );
+    });
+
+    it('removes without a password on confirm and refreshes the list', async () => {
+      wrapper = await mountSettled(false);
+
+      await findRemoveButtons(wrapper)[1].trigger('click');
+      await wrapper.find('[data-testid="confirm-dialog-confirm"]').trigger('click');
+      await flushPromises();
+
+      expect(mockWebAuthnState.removeWebAuthn).toHaveBeenCalledTimes(1);
+      expect(mockWebAuthnState.removeWebAuthn.mock.calls[0][0]).toBe('credential-bbb-d4e5f6');
+      expect(mockWebAuthnState.removeWebAuthn.mock.calls[0][1]).toBeUndefined();
+      expect(wrapper.text()).toContain('web.auth.passkeys.removed_success');
+      expect(mockWebAuthnState.fetchWebAuthnCredentials).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not remove when the dialog is cancelled', async () => {
+      wrapper = await mountSettled(false);
+
+      await findRemoveButtons(wrapper)[0].trigger('click');
+      await wrapper.find('[data-testid="confirm-dialog-cancel"]').trigger('click');
+      await flushPromises();
+
+      expect(mockWebAuthnState.removeWebAuthn).not.toHaveBeenCalled();
+      expect(wrapper.find('[data-testid="confirm-dialog"]').exists()).toBe(false);
     });
   });
 
   describe('Benefits Section', () => {
-    it('renders benefits section', () => {
-      wrapper = mountComponent();
+    it('displays all benefit items', async () => {
+      wrapper = await mountSettled();
 
-      const benefits = wrapper.find('.benefits-section');
-      expect(benefits.exists()).toBe(true);
-    });
-
-    it('displays all benefit items', () => {
-      wrapper = mountComponent();
-
-      expect(wrapper.text()).toContain('More secure than passwords');
-      expect(wrapper.text()).toContain('Fast and convenient');
-      expect(wrapper.text()).toContain('Synced across devices');
-    });
-
-    it('benefits section has correct heading', () => {
-      wrapper = mountComponent();
-
-      const heading = wrapper.find('.benefits-section h3');
-      expect(heading.text()).toBe('Benefits');
+      expect(wrapper.text()).toContain('web.LABELS.benefits');
+      expect(wrapper.text()).toContain('web.auth.passkeys.benefit_secure');
+      expect(wrapper.text()).toContain('web.auth.passkeys.benefit_fast');
+      expect(wrapper.text()).toContain('web.auth.passkeys.benefit_synced');
     });
   });
 
   describe('Related Settings', () => {
-    it('renders related settings section', () => {
-      wrapper = mountComponent();
+    // vue-router-mock (setupRouter.ts) stubs router-link as an empty
+    // <router-link-stub> element that keeps the `to` attribute but renders no
+    // slot content — so only the target route is assertable.
+    it('links to MFA settings', async () => {
+      wrapper = await mountSettled();
 
-      const relatedSettings = wrapper.find('.related-settings');
-      expect(relatedSettings.exists()).toBe(true);
+      expect(
+        wrapper.find('router-link-stub[to="/account/settings/security/mfa"]').exists()
+      ).toBe(true);
     });
 
-    it('links to MFA settings', () => {
-      wrapper = mountComponent();
+    it('links to recovery codes settings', async () => {
+      wrapper = await mountSettled();
 
-      const mfaLink = wrapper.find('a[href="/account/settings/security/mfa"]');
-      expect(mfaLink.exists()).toBe(true);
-      expect(mfaLink.text()).toContain('Two-Factor Authentication');
-    });
-
-    it('links to recovery codes settings', () => {
-      wrapper = mountComponent();
-
-      const recoveryLink = wrapper.find('a[href="/account/settings/security/recovery-codes"]');
-      expect(recoveryLink.exists()).toBe(true);
-      expect(recoveryLink.text()).toContain('Recovery Codes');
+      expect(
+        wrapper
+          .find('router-link-stub[to="/account/settings/security/recovery-codes"]')
+          .exists()
+      ).toBe(true);
     });
   });
 
   describe('Accessibility', () => {
-    it('page title is h1', () => {
-      wrapper = mountComponent();
+    it('page title is h1 and section title is h2', async () => {
+      wrapper = await mountSettled();
 
-      const h1 = wrapper.find('h1');
-      expect(h1.exists()).toBe(true);
-      expect(h1.text()).toBe('Passkeys');
+      expect(wrapper.find('h1').text()).toBe('web.auth.passkeys.title');
+      expect(wrapper.find('h2').text()).toBe('web.auth.passkeys.title');
     });
 
-    it('section title is h2', () => {
-      wrapper = mountComponent();
+    it('message dismiss buttons have accessible labels', async () => {
+      mockWebAuthnState.error.value = 'Some error';
+      wrapper = await mountSettled();
 
-      const h2 = wrapper.find('h2');
-      expect(h2.exists()).toBe(true);
-      expect(h2.text()).toBe('Passkeys');
-    });
-
-    it('add passkey button has descriptive text', () => {
-      wrapper = mountComponent();
-
-      const button = wrapper.find('[data-testid="add-passkey-button"]');
-      expect(button.text()).toContain('Add passkey');
+      const dismiss = wrapper.find('button[aria-label="Dismiss"]');
+      expect(dismiss.exists()).toBe(true);
     });
   });
 });

@@ -110,8 +110,12 @@ export function useSecretConcealer(options?: SecretConcealerOptions) {
         type,
       });
 
-      // Skip validation for generate operations
-      if (type === 'conceal' && !validation.validate()) {
+      // Generate mode skips full-form validation (the schema requires
+      // `secret`, which isn't user-typed there) but recipient is still
+      // user input and still gets mailed, so it's checked on its own.
+      const isValid =
+        type === 'conceal' ? validation.validate() : validation.validateRecipient();
+      if (!isValid) {
         throw createError('Please check the form for errors', 'human');
       }
 

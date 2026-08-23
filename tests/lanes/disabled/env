@@ -2,3 +2,9 @@
 # (auth code paths intentionally absent; see ADR-007).
 # CI job: ruby-integration-disabled (T3)
 AUTHENTICATION_MODE=disabled
+
+# Generated prerequisites, produced by tests/lanes/run before the tasks
+# below (see the codegen phase there). spec/spec_helper.rb refuses to boot
+# with an empty generated/locales, so every lane that runs Ruby specs
+# declares it.
+LANES_CODEGEN='locales'

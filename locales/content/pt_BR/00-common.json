@@ -1370,7 +1370,7 @@
     "source_hash": "6615bf1c"
   },
   "api.errors.service_unavailable": {
-    "text": "Serviço temporariamente indisponível. Por favor, tente novamente em breve.",
+    "text": "Serviço temporariamente indisponível. Tente novamente em breve.",
     "context": "Error message when database connection fails",
     "source_hash": "343ccdcb"
   },
@@ -1539,5 +1539,9 @@
   "web.TITLES.domain_dns": {
     "text": "Configuração de DNS",
     "source_hash": "6c63df31"
+  },
+  "web.TITLES.connected_identities": {
+    "text": "Identidades conectadas",
+    "source_hash": "e132c4d9"
   }
 }

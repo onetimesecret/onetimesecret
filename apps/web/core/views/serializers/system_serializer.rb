@@ -9,6 +9,16 @@ module Core
     # Responsible for transforming application version, runtime information,
     # and security-related values for frontend consumption.
     module SystemSerializer
+      # Emitted in place of version details for anonymous visitors.
+      #
+      # Deliberately an empty string rather than nil: the frontend types these
+      # as `z.string().default('')` (src/schemas/contracts/bootstrap.ts), and
+      # Zod's .default() only fills `undefined` — a JSON null fails validation
+      # and would reject the entire bootstrap payload. An empty string also
+      # keeps the keys present, preserving the serializer field contract that
+      # both the Ruby and TypeScript contract tests assert.
+      WITHHELD = ''
+
       # Serializes system data from view variables
       #
       # @param view_vars [Hash] The view variables containing system information
@@ -16,9 +26,29 @@ module Core
       def self.serialize(view_vars)
         output = output_template
 
-        output['ot_version']      = OT::VERSION.to_s
-        output['ot_version_long'] = OT::VERSION.details
-        output['ruby_version']    = RUBY_VERSION.to_s
+        # Version and runtime details are withheld from anonymous visitors.
+        # The exact app-version/Ruby-version pairing is the primary input to
+        # fingerprinting an install and matching it against known CVEs, and it
+        # was previously emitted to every visitor on every page load. Signed-in
+        # sessions still receive it (footer display, support diagnostics).
+        #
+        # Scope note: this is the passive, every-pageview vector. The two
+        # deliberate ones are gated to match — GET /api/v2/version and
+        # GET /api/v3/version now require auth=sessionauth,basicauth — and
+        # /health is network-gated to loopback/RFC1918 by
+        # Onetime::Middleware::HealthAccessControl. The remaining anonymous
+        # reader is the Sentry `release` field in ConfigSerializer, which the
+        # SDK needs for error grouping and which only ships when the operator
+        # has enabled diagnostics.
+        if view_vars['authenticated']
+          output['ot_version']      = OT::VERSION.to_s
+          output['ot_version_long'] = OT::VERSION.details
+          output['ruby_version']    = RUBY_VERSION.to_s
+        else
+          output['ot_version']      = WITHHELD
+          output['ot_version_long'] = WITHHELD
+          output['ruby_version']    = WITHHELD
+        end
 
         output['shrimp'] = view_vars['shrimp']
         output['nonce']  = view_vars['nonce']

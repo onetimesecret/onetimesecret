@@ -7,9 +7,11 @@
 #            (security audit 2026-07-31, dead-branch finding)
 # =============================================================================
 #
-# `boolean_field` readers return the canonical STRINGS 'true'/'false'
-# (Onetime::FieldTypes::BooleanFieldType), so `if cust.verified` type-checks,
-# reads naturally, and is ALWAYS truthy — "false" is truthy in Ruby. That
+# `boolean_field` readers (Onetime::Models::FieldTypes::BooleanFieldType) return the
+# canonical STRINGS 'true'/'false' under the default `storage: :string`, so
+# `if cust.verified` type-checks, reads naturally, and is ALWAYS truthy —
+# "false" is truthy in Ruby. (Under `storage: :native` the reader returns a
+# real boolean and a bare read is fine; see the marker note below.) That
 # exact bug made the verification-resend branch in
 # apps/api/account/logic/account/create_account.rb unreachable for every
 # persisted customer until 2026-07-31. The correct read is the predicate:
@@ -21,10 +23,10 @@
 # newly declared field is guarded the moment it exists, with no list to
 # maintain here.
 #
-# Scope and known limits: the scan is name-based, so an unrelated method that
-# happens to share a declared field's name would false-positive — acceptable
-# for the current field names (verified, suspended), and the failure message
-# says how to resolve one. Comments are skipped; multi-line conditions are
+# Scope and known limits: the scan is name-based, so native fields that share
+# a name with a string-backed field need an explicit `# boolean_field native`
+# marker at direct-read call sites. That marker documents the representation
+# and is skipped by the guard. Comments are skipped; multi-line conditions are
 # matched per-line.
 #
 # =============================================================================
@@ -88,6 +90,7 @@ RSpec.describe 'boolean_field raw-read guard' do
     offenses = source_files.flat_map do |path|
       File.read(path).each_line.with_index(1).filter_map do |line, lineno|
         next if line.strip.start_with?('#')
+        next if line.include?('# boolean_field native')
         next unless line.match?(pattern)
 
         "#{path.delete_prefix("#{ROOT}/")}:#{lineno}: #{line.strip}"
@@ -95,9 +98,19 @@ RSpec.describe 'boolean_field raw-read guard' do
     end
 
     expect(offenses).to be_empty, <<~MSG
-      Bare truthiness read of a boolean_field. These readers return the STRINGS
-      'true'/'false' (BooleanFieldType), so the condition is always truthy —
-      "false" is truthy in Ruby. Use the predicate (e.g. `verified?`) instead.
+      Bare truthiness read of a boolean_field (BooleanFieldType). What the
+      reader returns depends on the field's declared storage:
+
+        storage: :string  — the STRINGS 'true'/'false', so the condition is
+                            ALWAYS truthy ("false" is truthy in Ruby). This
+                            is a bug. Use the predicate: `verified?`.
+        storage: :native  — a real Ruby true/false/nil, so a bare read is
+                            correct. Mark the line `# boolean_field native`
+                            to say so; the guard skips any line containing
+                            that exact comment.
+
+      The scan is name-based and cannot tell the two apart, so a native read
+      needs the marker even though it is already correct.
       If a hit is an unrelated method that merely shares a declared field name
       (#{fields.join(', ')}), rename one of them or adjust this guard.
 

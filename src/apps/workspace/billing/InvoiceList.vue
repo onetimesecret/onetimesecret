@@ -10,7 +10,7 @@ import BillingLayout from '@/shared/components/layout/BillingLayout.vue';
 import { classifyError } from '@/schemas/errors';
 import { BillingService, type StripeInvoice } from '@/services/billing.service';
 import type { InvoiceStatus } from '@/types/billing';
-import { formatCurrency } from '@/types/billing';
+import { formatCurrency } from '@/utils/format/currency';
 import { formatDisplayDate } from '@/utils/format';
 import { computed, onMounted, ref } from 'vue';
 

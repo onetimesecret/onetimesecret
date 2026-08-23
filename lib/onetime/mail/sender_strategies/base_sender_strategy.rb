@@ -5,6 +5,8 @@
 require 'resolv'
 require 'digest'
 
+require_relative '../../domain_validation/record_matcher'
+
 module Onetime
   module Mail
     module SenderStrategies
@@ -75,10 +77,19 @@ module Onetime
         # distinct from check_dns_records which verifies DNS propagation
         # independently of the provider.
         #
+        # Tri-state :verified contract (all subclasses must honor this):
+        #   true  - the provider confirms the domain is verified
+        #   false - the provider authoritatively says it is NOT verified
+        #           (pending records, or the identity is absent at the provider)
+        #   nil   - the answer could not be determined (missing/blank
+        #           credential, provider API error, transport failure).
+        #           Callers must NOT treat nil as a failed check — a rotated
+        #           API key must never demote a verified domain.
+        #
         # @param mailer_config [CustomDomain::MailerConfig] The mailer configuration
         # @param credentials [Hash] Provider credentials
         # @return [Hash] Verification status:
-        #   - :verified [Boolean] Whether the sender is verified
+        #   - :verified [Boolean, nil] Tri-state, see above
         #   - :status [String] Provider-specific status code
         #   - :message [String] Human-readable status
         #   - :details [Hash, nil] Additional verification details
@@ -117,9 +128,12 @@ module Onetime
         #     - :value [String] Expected value from provisioning
         #     - :dns_exists [Boolean] Whether any DNS records exist for this name+type
         #     - :value_matches [Boolean] Whether provisioned value matches DNS
-        #     - :error [String, nil] Error message on lookup failure
-        #     - :expected_digest [String] SHA256 hex digest of normalized expected value
-        #     - :actual_digest [String, nil] SHA256 hex digest of best-matching actual value
+        #     - :error [String, nil] Error message on lookup failure, or
+        #       'ambiguous_record_set' when duplicate DMARC/SPF records were found
+        #     - :expected_digest [String] SHA256 hex digest of the expected value
+        #       (reporting-only; does not gate matching)
+        #     - :actual_digest [String, nil] SHA256 hex digest of the sorted,
+        #       joined actual values (reporting-only; does not gate matching)
         #   - :checked_at [Time] When the check was performed
         #
         def check_dns_records(mailer_config, credentials: {}) # rubocop:disable Lint/UnusedMethodArgument
@@ -237,6 +251,12 @@ module Onetime
 
         # Check a single DNS record against live DNS.
         #
+        # Matching delegates to DomainValidation::RecordMatcher, the same
+        # dispatch used by the verification pipeline (issues #4023/#4047):
+        # record-set selection first (duplicate DMARC/SPF records are
+        # ambiguous, never a pass), then content-aware comparison. The
+        # digests are reporting-only diagnostics and do not gate matching.
+        #
         # @param record [Hash] Provisioned record with string keys: 'type', 'name', 'value'
         # @param resolver [Resolv::DNS] Shared resolver instance
         # @return [Hash] Check result with :dns_exists, :value_matches, :error, digests
@@ -246,27 +266,18 @@ module Onetime
           rec_name  = record['name'].to_s
           rec_value = record['value'].to_s
 
-          expected_normalized = normalize_dns_value(rec_value)
-          expected_digest     = Digest::SHA256.hexdigest(expected_normalized)
-
           actual_values, error = lookup_dns_record(rec_type, rec_name, resolver)
 
-          dns_exists    = !actual_values.empty?
-          value_matches = false
-          actual_digest = nil
+          dns_exists = !actual_values.empty?
 
-          if dns_exists
-            actual_values.each do |actual|
-              normalized_actual = normalize_dns_value(actual)
-              digest            = Digest::SHA256.hexdigest(normalized_actual)
-              if normalized_actual == expected_normalized || digest == expected_digest
-                value_matches = true
-                actual_digest = digest
-                break
-              end
-              # Track the first actual digest for debugging even if no match
-              actual_digest   ||= digest
-            end
+          matcher               = Onetime::DomainValidation::RecordMatcher
+          candidates, ambiguous = matcher.select_txt_record_set(rec_type, rec_value, actual_values)
+
+          if ambiguous
+            value_matches = false
+            error       ||= 'ambiguous_record_set'
+          else
+            value_matches = matcher.record_matches?(rec_type, rec_value, candidates)
           end
 
           {
@@ -276,8 +287,8 @@ module Onetime
             'dns_exists' => dns_exists,
             'value_matches' => value_matches,
             'error' => error,
-            'expected_digest' => expected_digest,
-            'actual_digest' => actual_digest,
+            'expected_digest' => Digest::SHA256.hexdigest(rec_value),
+            'actual_digest' => dns_exists ? Digest::SHA256.hexdigest(actual_values.sort.join("\n")) : nil,
           }
         end
 
@@ -309,18 +320,6 @@ module Onetime
           [[], 'timeout']
         rescue StandardError => ex
           [[], ex.message]
-        end
-
-        # Normalize a DNS value for comparison.
-        #
-        # Downcases and strips trailing dots to handle variations in DNS
-        # responses (e.g., "bounces.lmta.net." vs "bounces.lmta.net").
-        #
-        # @param value [String] Raw DNS value
-        # @return [String] Normalized value
-        #
-        def normalize_dns_value(value)
-          value.to_s.downcase.chomp('.')
         end
       end
     end

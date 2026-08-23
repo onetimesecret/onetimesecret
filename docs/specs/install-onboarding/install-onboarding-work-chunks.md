@@ -312,7 +312,7 @@ C7's fresh-clone job runs `bin/setup` itself — the Zulip property.
 
 ## C7 — Clean-room harness + CI lanes (testing-strategy §§2–4)
 
-`scripts/test-install/` harness (pinned-image lanes, POSIX-locale lane,
+`scripts/install-tests/` harness (pinned-image lanes, POSIX-locale lane,
 idempotency re-run, `docker diff`, proof-of-life script) + the four CI lanes:
 compose smoke (PR + scheduled-published-tags), installer matrix
 (path-filtered, incl. one macOS runner + bash-3.2 gate), fresh-clone
@@ -326,8 +326,8 @@ so registry/runner rot surfaces as a red scheduled run.
 > `integration/onboarding`: #3711 (2c — fresh-clone contributor lane +
 > docs-command drift guard), #3712 (2a — compose-smoke lane + the CP-11 app
 > healthcheck it needed; see C5's note), #3713 (2b — installer matrix +
-> `scripts/test-install/run.sh` container harness). What exists:
-> `scripts/test-install/{run.sh,proof-of-life.sh,check-docs-commands.sh}`
+> `scripts/install-tests/run.sh` container harness). What exists:
+> `scripts/install-tests/{run.sh,proof-of-life.sh,check-docs-commands.sh}`
 > and four workflows —
 >
 > - `installer.yml`: pinned-image lanes baremetal (`ruby:3.4.9-slim`),
@@ -363,7 +363,7 @@ so registry/runner rot surfaces as a red scheduled run.
 >   note); (4) `pnpm run build` + asset probe as a lane.
 >
 > _(Update 2026-07-11: residuals 1–4 closed.
-> **(1)+(4)** `scripts/test-install/baremetal-boot.sh` +
+> **(1)+(4)** `scripts/install-tests/baremetal-boot.sh` +
 > `baremetal-boot.yml` — the whole lane runs under `LANG=C`: a scratch
 > `ENV_FILE` through `rake ots:secrets`, a real `pnpm run build`, a puma
 > production boot with the `.env` sourced the documented `set -a` way,
@@ -390,7 +390,7 @@ the `/app/data`ownership contract proven on the exact pinned base
 image; the assembled job's first full run is pending CI. Still open
 after this: duration charted/alarmed over time
 (step summary only), and C4's`POL_CREATE_ACCOUNT`wiring into
-compose-smoke.)* *(update 2026-07-11, later same day: both closed —`scripts/test-install/ttfhw-chart.sh`renders the fresh-clone job's
+compose-smoke.)* *(update 2026-07-11, later same day: both closed —`scripts/install-tests/ttfhw-chart.sh`renders the fresh-clone job's
 duration trend into the step summary from the last successful runs
 (via the Actions API,`actions: read`; rename-tolerant job matching so
 the install-test.sh→bin/setup rename keeps its history) and emits a
@@ -524,7 +524,7 @@ rotated SECRET and asserts the secret survives a failed reveal.
 > content-addressed tags shipped too, plus
 > [docs/runbooks/secret-rotation.md](../../runbooks/secret-rotation.md).
 > Proof: 25 new tryout cases + 4 RSpec examples + the
-> `scripts/test-install/secret-rotation.sh` lane (passing end-to-end
+> `scripts/install-tests/secret-rotation.sh` lane (passing end-to-end
 > locally; CI: `.github/workflows/secret-rotation.yml`).
 
 ## Not in any chunk (explicitly deferred)

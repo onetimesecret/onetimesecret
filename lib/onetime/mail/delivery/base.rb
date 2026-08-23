@@ -36,8 +36,12 @@ module Onetime
           OpenSSL::SSL::SSLError,
         ].freeze
 
+        # Top-level config keys are stringified at the boundary so callers
+        # may pass symbol- or string-keyed hashes interchangeably (e.g.
+        # BYOK backends built with api_key:/api_token:); subclasses read
+        # string keys only (config['api_key']).
         def initialize(config = {})
-          @config = config
+          @config = (config || {}).transform_keys(&:to_s)
           validate_config!
         end
 
@@ -256,7 +260,7 @@ module Onetime
         def normalize_recipients(value)
           return value.to_s unless value.is_a?(Array)
 
-          value.map(&:to_s).map(&:strip).reject(&:empty?).first.to_s
+          value.map { |entry| entry.to_s.strip }.reject(&:empty?).first.to_s
         end
 
         # Split a recipient value into individual mailbox addresses for the

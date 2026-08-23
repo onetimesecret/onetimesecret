@@ -2,17 +2,21 @@
 #
 # Cheap (grep/sed-only, seconds) drift guards that must run on every PR
 # (install-onboarding C9). They also run inside validate-config.yml, but that
-# workflow is workflow_dispatch-only — these three checks are the ratchets that
+# workflow is workflow_dispatch-only — these four checks are the ratchets that
 # keep manifests honest, so they get an always-on lane:
 #
-#   check-version-pins.sh     Docker image tags + devcontainer toolchain match
-#                             .ruby-version/.node-version (VER series, C8 note)
-#   check-env-reference.sh    every consumed env var is documented in
-#                             .env.reference or explicitly ignored (QS-11)
-#   check-config-versions.sh  every new key in .env.reference and
-#                             etc/defaults/*.yaml carries a "# Since" marker,
-#                             and markers already on the PR's base branch are
-#                             unchanged
+#   check-version-pins.sh    Docker image tags + devcontainer toolchain match
+#                            .ruby-version/.node-version (VER series, C8 note)
+#   check-env-reference.sh   every consumed env var is documented in
+#                            .env.reference or explicitly ignored (QS-11)
+#   check-ci-secrets.sh      every secrets.X a workflow reads is documented
+#                            in that workflow's header comment, or explicitly
+#                            ignored (CI secrets are a separate surface from
+#                            .env.reference — see scripts/check-ci-secrets.sh)
+#   check-config-versions.sh every new key in .env.reference and
+#                            etc/defaults/*.yaml carries a "# Since" marker,
+#                            and markers already on the PR's base branch are
+#                            unchanged
 #
 # No path filter: check-env-reference.sh scans ENV reads across lib/, apps/,
 # etc/ — nearly any code change can introduce a new variable, and the whole
@@ -29,12 +33,12 @@ permissions:
 
 jobs:
   drift-guards:
-    name: version pins + env reference + config versions
+    name: version pins + env reference + CI secrets + config versions
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
       - name: Checkout repository
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           # check-config-versions.sh compares against the merge-base with the
           # PR's base branch. The default shallow checkout has neither the base
@@ -47,6 +51,9 @@ jobs:
 
       - name: Assert .env.reference documents every consumed env var
         run: bash scripts/check-env-reference.sh
+
+      - name: Assert workflow headers document every consumed CI secret
+        run: bash scripts/check-ci-secrets.sh
 
       - name: Assert config keys carry immutable "# Since" version markers
         env:

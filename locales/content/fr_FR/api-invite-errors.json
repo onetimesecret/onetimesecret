@@ -4,7 +4,7 @@
     "source_hash": "63657979"
   },
   "api.invite.errors.token_required": {
-    "text": "Le jeton est requis",
+    "text": "Un jeton est requis",
     "source_hash": "6c718161"
   },
   "api.invite.errors.organization_no_longer_exists": {

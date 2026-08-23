@@ -12,9 +12,9 @@ module Auth::Config::Email
           {
             email_address: email_to,
             verification_path: verify_account_email_link,
-            baseuri: request.base_url,
+            baseuri: base_url,
             product_name: OT.conf.dig('site', 'product_name'),
-            display_domain: request.host,
+            display_domain: public_display_domain,
           },
           locale: determine_account_locale,
         )

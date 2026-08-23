@@ -20,6 +20,10 @@ import {
   BillingService,
   extractCurrencyConflict,
 } from '@/services/billing.service';
+import {
+  immediateMigrationResponseSchema,
+  migrateCurrencyResponseSchema,
+} from '@/schemas/contracts/billing';
 
 describe('Currency migration service methods', () => {
   beforeEach(() => {
@@ -89,6 +93,41 @@ describe('Currency migration service methods', () => {
           mode: 'graceful',
         })
       ).rejects.toThrow('Subscription is past_due');
+    });
+  });
+
+  describe('immediateMigrationResponseSchema refund_failed', () => {
+    const baseResponse = {
+      success: true as const,
+      migration: {
+        mode: 'immediate' as const,
+        checkout_url: 'https://checkout.stripe.com/c/pay/cs_test_123',
+        refund_amount: 0,
+        refund_formatted: '€0.00',
+      },
+    };
+
+    it('preserves refund_failed: true through parsing (Zod must not strip it)', () => {
+      const parsed = immediateMigrationResponseSchema.parse({
+        ...baseResponse,
+        migration: { ...baseResponse.migration, refund_failed: true },
+      });
+      expect(parsed.migration.refund_failed).toBe(true);
+    });
+
+    it('defaults refund_failed to false when absent (older backend tolerance)', () => {
+      const parsed = immediateMigrationResponseSchema.parse(baseResponse);
+      expect(parsed.migration.refund_failed).toBe(false);
+    });
+
+    it('preserves refund_failed through the migrate-currency union schema', () => {
+      const parsed = migrateCurrencyResponseSchema.parse({
+        ...baseResponse,
+        migration: { ...baseResponse.migration, refund_failed: true },
+      });
+      expect(
+        parsed.migration.mode === 'immediate' && parsed.migration.refund_failed
+      ).toBe(true);
     });
   });
 

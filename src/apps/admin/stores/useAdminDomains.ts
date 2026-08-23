@@ -9,9 +9,11 @@ import type { ColonelCustomDomain } from '@/schemas/api/internal/responses/colon
 import { colonelCustomDomainsResponseSchema } from '@/schemas/api/internal/responses/colonel';
 import {
   colonelDomainDetailResponseSchema,
+  colonelDomainOverrideResponseSchema,
   colonelDomainVerifyResponseSchema,
   type ColonelDomainCluster,
   type ColonelDomainDetailRecord,
+  type ColonelDomainOverrideDetails,
   type ColonelDomainVerifyDetails,
 } from '@/schemas/api/internal/responses/colonel-domains';
 import {
@@ -129,6 +131,12 @@ export interface DomainConfigsEnsureOptions {
   dryRun: boolean;
 }
 
+/** Options for the manual verification override. Both flags optional. */
+export interface DomainOverrideOptions {
+  verified?: boolean;
+  resolving?: boolean;
+}
+
 // ---------------------------------------------------------------------------
 // Per-domain operations.
 //
@@ -176,6 +184,30 @@ async function verifyDomain(
     colonelDomainVerifyResponseSchema,
     response.data,
     'ColonelDomainVerifyResponse'
+  );
+  return parsed.ok ? parsed.data.details ?? null : null;
+}
+
+/**
+ * Manually override the verified/resolving flags. Used for edge cases where
+ * automatic verification fails but the domain is known to be correctly
+ * configured. Only provided options are written; omitted ones leave the
+ * existing value unchanged.
+ */
+async function overrideDomain(
+  $api: AxiosInstance,
+  extid: string,
+  options: DomainOverrideOptions
+): Promise<ColonelDomainOverrideDetails | null> {
+  const body: Record<string, boolean> = {};
+  if (options.verified !== undefined) body.verified = options.verified;
+  if (options.resolving !== undefined) body.resolving = options.resolving;
+
+  const response = await $api.post(`${domainPath(extid)}/override`, body);
+  const parsed = gracefulParse(
+    colonelDomainOverrideResponseSchema,
+    response.data,
+    'ColonelDomainOverrideResponse'
   );
   return parsed.ok ? parsed.data.details ?? null : null;
 }
@@ -366,6 +398,8 @@ function bindOperations($api: AxiosInstance) {
   return {
     fetchDetail: (extid: string) => fetchDomainDetail($api, extid),
     verify: (extid: string) => verifyDomain($api, extid),
+    override: (extid: string, options: DomainOverrideOptions) =>
+      overrideDomain($api, extid, options),
     probe: (extid: string, timeout?: number) => probeDomain($api, extid, timeout),
     repair: (extid: string, options: DomainRepairOptions) =>
       repairDomain($api, extid, options),

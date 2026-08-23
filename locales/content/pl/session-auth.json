@@ -483,5 +483,45 @@
   "web.login.verified_notice": {
     "text": "Twój adres e-mail został zweryfikowany — możesz się teraz zalogować.",
     "source_hash": "c8d4b5a8"
+  },
+  "web.auth.password_setup_request.title": {
+    "text": "Ustaw hasło",
+    "source_hash": "11b6978b"
+  },
+  "web.auth.password_setup_request.description": {
+    "text": "Twoje konto nie ma jeszcze hasła. Wyślemy Ci e-mailem bezpieczny link, aby je ustawić, dzięki czemu będziesz mógł logować się także bezpośrednio.",
+    "source_hash": "dc0b561f"
+  },
+  "web.auth.password_setup_request.button": {
+    "text": "Wyślij link konfiguracyjny",
+    "source_hash": "22807292"
+  },
+  "web.auth.password_setup_request.emailSent": {
+    "text": "Wysłaliśmy do Ciebie e-mail z linkiem do ustawienia hasła dla Twojego konta",
+    "source_hash": "82b686c7"
+  },
+  "web.login.errors.account_exists_link_required": {
+    "text": "Konto z tym adresem e-mail już istnieje, ale nie jest powiązane z tą metodą logowania. Zaloguj się dotychczasową metodą, a następnie powiąż tego dostawcę w Ustawieniach zabezpieczeń → Połączone tożsamości.",
+    "source_hash": "7fbbb7e7"
+  },
+  "web.login.errors.identity_connect_conflict": {
+    "text": "Nie udało się połączyć tej tożsamości. Połączenie mogło zostać rozpoczęte w niewłaściwej domenie lub Twoja sesja wygasła. Zaloguj się ponownie, a następnie połącz ją w ustawieniach konta.",
+    "source_hash": "4238bbf2"
+  },
+  "web.login.errors.org_join_failed": {
+    "text": "Nie udało się dokończyć dodawania Cię do Twojej organizacji. Skontaktuj się ze swoim administratorem.",
+    "source_hash": "155e71bb"
+  },
+  "web.login.errors.link_sso_failed": {
+    "text": "Nie udało się powiązać tej metody logowania. Zaloguj się dotychczasowym hasłem, a następnie połącz tego dostawcę w Ustawieniach zabezpieczeń → Połączone tożsamości.",
+    "source_hash": "49954127"
+  },
+  "web.login.notices.link_verification_sent": {
+    "text": "Sprawdź skrzynkę odbiorczą — wysłaliśmy Ci e-mailem link potwierdzający połączenie konta. Otwórz go, aby dokończyć logowanie.",
+    "source_hash": "b251c8f3"
+  },
+  "web.login.errors.sso_cancelled": {
+    "text": "Logowanie zostało anulowane. Możesz spróbować ponownie, kiedy tylko zechcesz.",
+    "source_hash": "b5f3d3ec"
   }
 }

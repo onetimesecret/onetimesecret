@@ -436,7 +436,6 @@ export function toV2WireSecretDetails(canonical: SecretDetailsCanonical): V2Wire
     continue: booleanToString(canonical.continue),
     is_owner: booleanToString(canonical.is_owner),
     show_secret: booleanToString(canonical.show_secret),
-    correct_passphrase: booleanToString(canonical.correct_passphrase),
     display_lines: numberToString(canonical.display_lines),
     one_liner: canonical.one_liner !== null ? booleanToString(canonical.one_liner) : null,
   } as V2WireSecretDetails;
@@ -499,7 +498,6 @@ export function toV3WireSecretDetails(canonical: SecretDetailsCanonical): V3Wire
     continue: canonical.continue,
     is_owner: canonical.is_owner,
     show_secret: canonical.show_secret,
-    correct_passphrase: canonical.correct_passphrase,
     display_lines: canonical.display_lines,
     one_liner: canonical.one_liner,
   } as V3WireSecretDetails;

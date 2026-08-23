@@ -22,9 +22,17 @@ import { z } from 'zod';
 import { CanonicalPlanIdSchema } from '@/schemas/contracts/config/billing';
 import { featuresDomainsSchema } from '@/schemas/contracts/config/section/features';
 import { regionsConfigSchema } from '@/schemas/contracts/config/section/jurisdiction';
-import { brandSettingsCanonical, cornerStyleValues, fontFamilyValues, homepageConfigCanonical } from '@/schemas/contracts/custom-domain';
-import { disabledHomepageConfigSchema, disabledHomepageVariantSchema } from '@/schemas/contracts/disabled-homepage';
+import {
+  brandSettingsCanonical,
+  cornerStyleValues,
+  fontFamilyValues,
+  homepageConfigCanonical,
+} from '@/schemas/contracts/custom-domain';
 import { customerCanonical } from '@/schemas/contracts/customer';
+import {
+  disabledHomepageConfigSchema,
+  disabledHomepageVariantSchema,
+} from '@/schemas/contracts/disabled-homepage';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // LOCALE SCHEMAS
@@ -289,6 +297,36 @@ const organizationFeaturesInner = z.object({
   audit_logs_enabled: z.boolean().default(true),
 });
 
+// Same cascade-default workaround as organizationFeaturesInner above.
+const secretActivityFeaturesInner = z.object({
+  // Default-ON: collection only stops on an explicit false — set via
+  // SECRET_ACTIVITY_COLLECT=false (GDPR data minimization, #3990). Absent
+  // (older backends without the flag) keeps events being recorded.
+  collect_enabled: z.boolean().default(true),
+  // Operator-configured retention cap (SECRET_ACTIVITY_MAX_EVENTS); the
+  // backend clamps to a floor of 100 at read time, so a positive int is
+  // the whole wire contract here.
+  max_events: z.number().int().positive().default(10000),
+  // Default-OFF (#3989): the country column is a legally-sensitive org-tier
+  // geo feature pending counsel review, so it only appears on an explicit
+  // true — set via SECRET_ACTIVITY_GEO_COUNTRY_ENABLED=true. Absent (the default,
+  // and all older backends) keeps the column hidden. Inverse default of the
+  // collect_enabled sibling above.
+  geo_country_enabled: z.boolean().default(false),
+});
+
+const restrictToSchema = z.enum(['password', 'email_auth', 'webauthn', 'sso']);
+
+/**
+ * Domain-aware resolver output. Unlike the legacy scalar projection below,
+ * this preserves an unavailable restriction so display code can fail closed.
+ */
+export const effectiveRestrictToSchema = z.object({
+  state: z.enum(['unrestricted', 'restricted', 'unavailable']),
+  restrict_to: restrictToSchema.nullable().catch(null),
+  source: z.enum(['domain', 'global', 'conflict']),
+});
+
 export const featuresSchema = z.object({
   markdown: z.boolean().default(false),
   // Sign-in availability for the current domain context (AND of global
@@ -303,10 +341,14 @@ export const featuresSchema = z.object({
   email_auth: z.boolean().optional(),
   webauthn: z.boolean().optional(),
   sso: z.union([z.boolean(), ssoConfigSchema]).optional(),
-  // Single-auth-method restriction: 'password', 'email_auth', 'webauthn', 'sso', or null
-  restrict_to: z.enum(['password', 'email_auth', 'webauthn', 'sso']).nullable().optional(),
+  // Legacy scalar projection retained for existing consumers.
+  restrict_to: restrictToSchema.nullable().optional(),
+  // Explicit resolver state for display/runtime parity. Optional keeps
+  // bootstraps from older backends valid; absence preserves prior behavior.
+  effective_restrict_to: effectiveRestrictToSchema.optional(),
   magic_links: z.boolean().optional(),
   organizations: organizationFeaturesInner.default(organizationFeaturesInner.parse({})),
+  secret_activity: secretActivityFeaturesInner.default(secretActivityFeaturesInner.parse({})),
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -354,8 +396,11 @@ export const passphraseSchema = z.object({
  */
 export const secretOptionsSchema = z.object({
   default_ttl: z.number().int().positive().default(604800),
+  // Max mirrors the server's absolute bound (WithEntitlements::MAX_TTL,
+  // 365 days) so operator-configured options beyond 30 days survive
+  // bootstrap validation (#4008). Per-caller ceilings apply at request time.
   ttl_options: z
-    .array(z.number().int().positive().min(60).max(2592000))
+    .array(z.number().int().positive().min(60).max(31536000))
     .default([300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]),
   /**
    * TTL ceiling the server silently applies to anonymous (guest) secrets, in
@@ -552,9 +597,7 @@ export const bootstrapSchema = z.object({
 
   // Frontend rendering config for the disabled-homepage view. All knobs
   // optional with auto-detection defaults; backend may omit entirely.
-  disabled_homepage: disabledHomepageConfigSchema.default(
-    disabledHomepageConfigSchema.parse({})
-  ),
+  disabled_homepage: disabledHomepageConfigSchema.default(disabledHomepageConfigSchema.parse({})),
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Brand fields (per-installation defaults from OT.conf['brand'])
@@ -607,6 +650,29 @@ export const bootstrapSchema = z.object({
   // ─────────────────────────────────────────────────────────────────────────────
   baseuri: z.string().default(''),
   canonical_domain: z.string().default(''),
+  // Resolved link pool for the domain-context picker (#4063). Contract is
+  // Array<String>, never null and never absent from a booted server: the
+  // serializer's output_template seeds `[]` and DomainStrategy.link_domains
+  // resolves an unset LINK_DOMAINS to [canonical_domain] server-side.
+  //
+  // `.default([])` — NOT `.nullable()`, and NOT `.optional()`:
+  //  - a Zod default fires only for `undefined`, so an explicit `null` from a
+  //    hypothetical nil-valued key would be a parse error, not a default.
+  //    That is deliberate: it makes a Ruby-side regression loud.
+  //  - `.optional()` would leave the key out of `bootstrapSchema.parse({})`,
+  //    which is where the store's state shape comes from (bootstrapStore.ts:30),
+  //    so Pinia would not track it reactively.
+  //
+  // `[]` therefore means exactly one thing to consumers: a stale pre-#4063
+  // server (field absent). useDomainContext maps that back to
+  // [canonicalDomain]. The frontend must never re-derive the unset case
+  // itself — the server already resolved it.
+  //
+  // Values are normalized server-side (lowercased, port-stripped), so they
+  // compare directly against `custom_domains` display_domain strings.
+  // `canonical_domain` is NOT guaranteed to be a member: the canonical host
+  // may be an internal platform address the picker deliberately hides.
+  link_domains: z.array(z.string()).default([]),
   custom_domains: z.array(z.string()).optional().default([]),
   display_domain: z.string().default(''),
   domain_branding: brandSettingsCanonical.nullable().default(null),

@@ -206,6 +206,41 @@ RSpec.describe 'CreateDefaultWorkspace: federated subscription claim gate', type
   end
 
   # ---------------------------------------------------------------------------
+  # Planless pending records must not be claimed (cross-region catalog miss)
+  # ---------------------------------------------------------------------------
+  describe 'pending record without a resolved planid' do
+    # Regression: PendingFederatedSubscription used to resolve the plan via
+    # local catalog lookup, which fails by design for cross-region price IDs,
+    # storing planid=nil. Claiming such a record marked the org federated
+    # (showing the "subscription synced" notification) while applying no
+    # benefit, and destroyed the pending record so nothing could retry.
+    it 'skips the claim, does not mark federated, and preserves the pending record' do
+      email = unique_email('planless')
+      create_pending_for(email, planid: nil)
+      customer = create_customer(email: email, verified: true)
+
+      result = Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
+      org = result[:organization]
+      created_organizations << org
+
+      # Workspace exists, but no phantom federation happened: no synced
+      # notification, no subscription status, planid stays the free default.
+      expect(org.subscription_federated?).to be(false)
+      expect(org.show_federation_notification?).to be(false)
+      expect(org.subscription_status.to_s).to eq('')
+      expect(org.planid.to_s).to eq(Billing::Metadata::FREE_PLAN_ID)
+
+      # The pending record survives for the webhook path to re-sync later.
+      expect(pending_exists?(email)).to be(true)
+
+      # The verify-path entry point also refuses it.
+      applied = Auth::Operations::CreateDefaultWorkspace.claim_pending_federation_for(customer)
+      expect(applied).to be(false)
+      expect(pending_exists?(email)).to be(true)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # Idempotency / safety of the verify-path claim entry point
   # ---------------------------------------------------------------------------
   describe 'claim_pending_federation_for is idempotent and safe' do

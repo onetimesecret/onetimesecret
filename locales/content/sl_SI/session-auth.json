@@ -483,5 +483,45 @@
   "web.login.verified_notice": {
     "text": "Vaša e-pošta je bila preverjena — zdaj se lahko prijavite.",
     "source_hash": "c8d4b5a8"
+  },
+  "web.auth.password_setup_request.title": {
+    "text": "Nastavite geslo",
+    "source_hash": "11b6978b"
+  },
+  "web.auth.password_setup_request.description": {
+    "text": "Vaš račun še nima gesla. Po e-pošti vam bomo poslali varno povezavo za nastavitev, da se boste lahko prijavili tudi neposredno.",
+    "source_hash": "dc0b561f"
+  },
+  "web.auth.password_setup_request.button": {
+    "text": "Pošlji povezavo za nastavitev",
+    "source_hash": "22807292"
+  },
+  "web.auth.password_setup_request.emailSent": {
+    "text": "Poslali smo vam e-pošto s povezavo za nastavitev gesla za vaš račun",
+    "source_hash": "82b686c7"
+  },
+  "web.login.errors.account_exists_link_required": {
+    "text": "Račun s tem e-poštnim naslovom že obstaja, vendar ni povezan s tem načinom prijave. Prijavite se z obstoječim načinom, nato povežite tega ponudnika v Varnostne nastavitve → Povezane identitete.",
+    "source_hash": "7fbbb7e7"
+  },
+  "web.login.errors.identity_connect_conflict": {
+    "text": "Te identitete ni bilo mogoče povezati. Povezava se je morda začela na napačni domeni ali pa je vaša seja potekla. Prosimo, prijavite se znova, nato jo povežite v nastavitvah računa.",
+    "source_hash": "4238bbf2"
+  },
+  "web.login.errors.org_join_failed": {
+    "text": "Vašega dodajanja v organizacijo nismo mogli dokončati. Prosimo, obrnite se na svojega skrbnika.",
+    "source_hash": "155e71bb"
+  },
+  "web.login.errors.link_sso_failed": {
+    "text": "Tega načina prijave nismo mogli povezati. Prijavite se z obstoječim geslom, nato povežite tega ponudnika v Varnostne nastavitve → Povezane identitete.",
+    "source_hash": "49954127"
+  },
+  "web.login.notices.link_verification_sent": {
+    "text": "Preverite svojo mapo s prejeto pošto — poslali smo vam e-pošto s povezavo za potrditev povezave vašega računa. Odprite jo za dokončanje prijave.",
+    "source_hash": "b251c8f3"
+  },
+  "web.login.errors.sso_cancelled": {
+    "text": "Prijava je bila preklicana. Poskusite znova, ko boste pripravljeni.",
+    "source_hash": "b5f3d3ec"
   }
 }

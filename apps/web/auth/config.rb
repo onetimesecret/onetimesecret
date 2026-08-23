@@ -81,6 +81,16 @@ module Auth
       # Hooks for customizing authentication behavior.
       # NOTE: hooks don't chain — this order is a precedence list (last writer
       # wins per hook name); each hook has exactly one owner. See config/hooks.rb.
+      # restrict_to enforcement
+      # (ADR-034#restrict-to-is-an-access-control-not-a-display-preference
+      # / #reject-as-not-found-not-forbidden, #4139). Registered FIRST among
+      # the hooks because before_rodauth fires for every route: a method the
+      # request host restricts away must 404 before any other hook observes the
+      # request. Registration order is otherwise irrelevant (hooks are
+      # last-writer-wins per NAME, and this is the sole owner of
+      # before_rodauth), but reading order should match execution order.
+      Hooks::RestrictTo.configure(self)
+
       Hooks::Account.configure(self)
       Hooks::Login.configure(self)
       Hooks::Logout.configure(self)
@@ -101,6 +111,11 @@ module Auth
       Hooks::CreateAccount.configure(self)
 
       # Method overrides (replace Rodauth methods, not before/after hooks)
+      # Absolute URLs (every *_email_link, the WebAuthn origin) follow the
+      # request's public host rather than the proxy-rewritten authority
+      # (#4221). Also defines public_display_domain, which the email template
+      # blocks above read at request time.
+      Overrides::PublicBaseUrl.configure(self)
       Overrides::PasswordMigration.configure(self)
       Overrides::ErrorHandling.configure(self)
       # Enumeration safety for the reset-password-request path (issue #3857).
@@ -139,12 +154,28 @@ module Auth
       if Onetime.auth_config.email_auth_enabled?
         Features::EmailAuth.configure(self)
         Hooks::EmailAuth.configure(self)
+        # before_email_auth_request only exists once :email_auth is enabled;
+        # closes the multi-phase-login magic-link path on the /login route.
+        Hooks::RestrictTo.configure_email_auth(self)
       end
 
       # WebAuthn: biometrics, security keys (Face ID, Touch ID, YubiKey)
       if Onetime.auth_config.webauthn_enabled?
         Features::WebAuthn.configure(self)
         Hooks::WebAuthn.configure(self)
+      end
+
+      # Two-factor completion: after_two_factor_authentication is provided by
+      # two_factor_base, which BOTH the otp and webauthn features enable
+      # transitively. The app-side completion (SyncSession, awaiting_mfa
+      # clear, deferred SSO bind, sign-in alert) must fire for EITHER factor,
+      # so this registers whenever any two-factor feature is loaded —
+      # including webauthn-only deployments (AUTH_MFA_ENABLED=false), which
+      # would otherwise complete Rodauth's webauthn-auth but never sync the
+      # app session. Must come AFTER the MFA/WebAuthn feature blocks above so
+      # two_factor_base (and therefore the hook method) exists.
+      if Onetime.auth_config.mfa_enabled? || Onetime.auth_config.webauthn_enabled?
+        Hooks::TwoFactor.configure(self)
       end
 
       # OmniAuth: external identity providers (SSO via OIDC)

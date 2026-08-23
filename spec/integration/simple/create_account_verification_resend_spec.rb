@@ -7,9 +7,9 @@
 #            mode (security audit 2026-07-31, dead-branch finding)
 # =============================================================================
 #
-# `verified` is a boolean_field, and Onetime::FieldTypes::BooleanFieldType
+# `verified` is a boolean_field, and Onetime::Models::FieldTypes::BooleanFieldType
 # canonicalizes every stored value to the STRING 'true'/'false'
-# (lib/onetime/field_types/boolean_field_type.rb). "false" is truthy in Ruby,
+# (lib/onetime/models/field_types/boolean_field_type.rb). "false" is truthy in Ruby,
 # so `if @cust.verified` in CreateAccount#process took the silent-success
 # branch for EVERY persisted customer and the resend at
 # apps/api/account/logic/account/create_account.rb:86 was unreachable — a user

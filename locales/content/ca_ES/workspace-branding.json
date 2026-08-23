@@ -56,12 +56,12 @@
     "source_hash": "e36598ef"
   },
   "web.branding.example_pre_reveal_instructions": {
-    "text": "Utilitza el teu telèfon per escanejar el codi QR",
-    "source_hash": "99ecf59f"
+    "text": "p. ex. Utilitza el teu telèfon per escanejar el codi QR",
+    "source_hash": "9cf0caf8"
   },
   "web.branding.example_post_reveal_instructions": {
-    "text": "Contacta amb onboarding{'@'}example.com si tens preguntes",
-    "source_hash": "bee120a7"
+    "text": "p. ex. Contacta amb onboarding{'@'}example.com per a qualsevol pregunta",
+    "source_hash": "71749811"
   },
   "web.branding.these_instructions_will_be_shown_to_recipients_before": {
     "text": "Aquestes instruccions es mostraran als destinataris abans que revelin el contingut secret",
@@ -320,8 +320,8 @@
     "source_hash": "bc79cdff"
   },
   "web.branding.paths_carryover_hint": {
-    "text": "Aquesta és una previsualització en directe — els teus canvis no seran visibles per als visitants fins que desis.",
-    "source_hash": "cb4b82de"
+    "text": "Aquesta és una previsualització en viu — els teus canvis no seran visibles per als visitants fins que facis clic a Actualitza.",
+    "source_hash": "9a34df71"
   },
   "web.branding.coming_soon_match_blurb": {
     "text": "Indica'ns el teu lloc web i en llegirem els colors i els tipus de lletra, i després tancarem la diferència amb un sol clic.",
@@ -406,5 +406,57 @@
   "web.branding.delivery_after_reveal": {
     "text": "Després de mostrar",
     "source_hash": "d5bfe7fd"
+  },
+  "web.branding.favicon": {
+    "text": "Favicon",
+    "source_hash": "42955289"
+  },
+  "web.branding.refresh_favicon": {
+    "text": "Actualitza el favicon des del domini",
+    "source_hash": "7cc3d5dc"
+  },
+  "web.branding.refresh_favicon_hint": {
+    "text": "Torna a obtenir el favicon del teu domini. La nova icona apareixerà aviat.",
+    "source_hash": "ee007e44"
+  },
+  "web.branding.refresh_favicon_queued": {
+    "text": "S'està actualitzant el favicon — la nova icona apareixerà aviat.",
+    "source_hash": "6bf38e6e"
+  },
+  "web.branding.refresh_favicon_user_upload_hint": {
+    "text": "Has pujat un favicon personalitzat, així que una icona obtinguda no el substituirà.",
+    "source_hash": "c22e1ed6"
+  },
+  "web.branding.upload_favicon": {
+    "text": "Puja favicon",
+    "source_hash": "ceda39cb"
+  },
+  "web.branding.replace_favicon": {
+    "text": "Substitueix",
+    "source_hash": "95e15439"
+  },
+  "web.branding.remove_favicon": {
+    "text": "Elimina el favicon",
+    "source_hash": "03693698"
+  },
+  "web.branding.favicon_field_hint": {
+    "text": "ICO, PNG o SVG. Pujar substitueix la icona obtinguda.",
+    "source_hash": "dfa0bfcb"
+  },
+  "web.branding.favicon_preview_alt": {
+    "text": "Favicon del domini",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_title": {
+    "text": "Favicon del domini",
+    "source_hash": "db7dca40"
+  },
+  "web.branding.favicon_modal_hint": {
+    "text": "ICO, PNG o SVG. Fins a 256 KB. Substitueix la icona obtinguda automàticament.",
+    "source_hash": "c9eafc83"
+  },
+  "web.branding.favicon_modal_save": {
+    "text": "Desa el favicon",
+    "source_hash": "c8a1566c"
   }
 }

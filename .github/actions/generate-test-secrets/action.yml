@@ -17,6 +17,12 @@
 #   - IDENTIFIER_SECRET: For verifiable identifier generation
 #   - SECRET: General purpose application secret (root)
 #
+# These reach a job's own steps, not a test lane. tests/lanes/run clears
+# every exported variable except its six-name keep-list, so all six are
+# scrubbed at the lane boundary and re-supplied as the fixed public dummies
+# in tests/lanes/base.env. For lane jobs this action is inert; it still
+# matters for steps that run outside the lane runner.
+#
 # Security Notes:
 #   - Secrets are logged in plaintext (safe for ephemeral test use)
 #   - Validates all three secrets are unique

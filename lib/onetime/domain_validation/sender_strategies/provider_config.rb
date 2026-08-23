@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative '../../mail/provider_registry'
+
 module Onetime
   module DomainValidation
     module SenderStrategies
@@ -25,6 +27,9 @@ module Onetime
       #       dkim_selectors: [lm1, lm2]
       #       spf_cname_prefix: lm-bounces
       #       spf_cname_target: bounces.lmta.net
+      #     smtp2go:
+      #       returnpath_subdomain: bounce
+      #       tracking_subdomain: track
       #
       # Usage:
       #   config = ProviderConfig.for('ses')
@@ -36,25 +41,11 @@ module Onetime
       #
       module ProviderConfig
         # Hardcoded defaults provide backward compatibility when no config is
-        # present. These match the original hardcoded values in each strategy.
-        DEFAULTS = {
-          'ses' => {
-            region: 'us-east-1',
-            dkim_selector_count: 3,
-            spf_include: 'amazonses.com',
-          }.freeze,
-          'sendgrid' => {
-            subdomain: 'em',
-            dkim_selectors: %w[s1 s2].freeze,
-            spf_include: 'sendgrid.net',
-          }.freeze,
-          'lettermint' => {
-            dkim_selectors: %w[lm1 lm2].freeze,
-            spf_cname_prefix: 'lm-bounces',
-            spf_cname_target: 'bounces.lmta.net',
-            api_base_url: 'https://api.lettermint.co/v1',
-          }.freeze,
-        }.freeze
+        # present. The data lives in the authoritative Mail::ProviderRegistry
+        # (descriptor.dns_defaults); this constant is a derivation kept for
+        # existing callers. Providers with no defaults (smtp) are omitted,
+        # matching the original hand-maintained hash.
+        DEFAULTS = Onetime::Mail::ProviderRegistry.dns_defaults_by_provider.freeze
 
         # Returns merged configuration for a provider.
         #
@@ -147,7 +138,7 @@ module Onetime
             unless subdomain.nil? || subdomain.match?(/\A[a-z0-9-]+\z/i)
               raise ArgumentError, "Invalid subdomain: #{subdomain}"
             end
-          when 'lettermint'
+          when 'lettermint', 'smtp2go'
             api_base_url = config[:api_base_url]
             unless api_base_url.nil? || api_base_url.match?(%r{\Ahttps?://[^\s]+\z})
               raise ArgumentError, "Invalid API base URL: #{api_base_url}"

@@ -42,7 +42,7 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
   # `build_logic('identifier' => ...)` call sites keep working — a trailing
   # kwarg would otherwise swallow the bare params hash as keywords.
   def build_logic(params, customer = nil)
-    customer ||= double('Customer', custid: 'anon', anonymous?: true, objid: nil)
+    customer ||= double('Customer', custid: 'anon', anonymous?: true, objid: nil, extid: nil)
     org        = double('Organization', objid: "org_#{SecureRandom.hex(4)}")
     allow(org).to receive(:can?).and_return(true)
 
@@ -218,6 +218,79 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
     end
   end
 
+  # PII pin (#4211 review). The burn logs fire on every burn and on every
+  # wrong passphrase guess, and custid IS the email address on legacy
+  # (pre-v0.22) customer records -- so a custid in these payloads is a
+  # continuous PII feed into the structured logs. Both identifiers must be
+  # extids: owner_id off the secret's owner, user_id off the caller.
+  context 'structured log payloads' do
+    let(:owner) do
+      Onetime::Customer.create!(email: "burn-log-#{SecureRandom.hex(6)}@example.com")
+    end
+    let!(:pair) { Onetime::Receipt.spawn_pair(owner.objid, 3600, 'a secret value') }
+
+    # Legacy-shaped caller: custid is the address, so a revert to custid puts
+    # an '@' in the payload and fails the scan below.
+    let(:caller_customer) do
+      double('Customer',
+        custid: 'burner@example.com',
+        extid: 'urburner',
+        objid: 'objid_burner',
+        anonymous?: false)
+    end
+
+    # secret_logger is an instance method (LoggerMethods), so the whole
+    # SemanticLogger call is capturable: [message, payload] per emission. The
+    # hash is SemanticLogger's payload argument, not part of the message.
+    def capture_secret_logs(logic)
+      captured = []
+      logger   = double('SecretLogger')
+      %i[debug info warn error].each do |level|
+        allow(logger).to receive(level) { |message, payload = {}| captured << [message, payload] }
+      end
+      allow(logic).to receive(:secret_logger).and_return(logger)
+      captured
+    end
+
+    def payload_for(captured, message)
+      entry = captured.find { |logged, _| logged == message }
+      expect(entry).not_to be_nil, "no #{message.inspect} log was emitted"
+      entry.last
+    end
+
+    it 'records a successful burn against extids, never custid' do
+      logic    = build_logic({ 'identifier' => receipt.identifier, 'continue' => 'true' }, caller_customer)
+      captured = capture_secret_logs(logic)
+      logic.process_params
+      logic.process
+
+      expect(logic.greenlighted).to be true
+      payload = payload_for(captured, 'Secret burned successfully')
+      # owner.custid is the objid on modern records, so the equality below is
+      # what catches an owner_id revert; the '@' scan catches the caller's.
+      expect(payload[:owner_id]).to eq(owner.extid)
+      expect(payload[:user_id]).to eq('urburner')
+      expect(payload.values.join(' ')).not_to include('@')
+      expect(payload.values.join(' ')).not_to include(owner.email)
+    end
+
+    it 'records a failed passphrase guess against the extid, never custid' do
+      secret.update_passphrase!('correct horse battery')
+      logic = build_logic(
+        { 'identifier' => receipt.identifier, 'continue' => 'true', 'passphrase' => 'wrong' },
+        caller_customer,
+      )
+      captured = capture_secret_logs(logic)
+      logic.process_params
+
+      expect { logic.process }.to raise_error(OT::FormError)
+
+      payload = payload_for(captured, 'Burn failed - incorrect passphrase')
+      expect(payload[:user_id]).to eq('urburner')
+      expect(payload.values.join(' ')).not_to include('@')
+    end
+  end
+
   # Burn must be subject to the same passphrase rate limiting as show/reveal:
   # without it, each wrong guess is a free brute-force oracle and a correct
   # guess destroys the secret as a side effect.
@@ -226,6 +299,10 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
       secret.update_passphrase!('correct horse battery')
     end
 
+    # Run the controller's ordered entry points, not process alone: the
+    # rate-limit gate lives in raise_concerns (alongside ShowSecret's and
+    # RevealSecret's), so a helper that skipped it would test a flow no
+    # request ever takes.
     def attempt_burn(guess)
       logic = build_logic(
         'identifier' => receipt.identifier,
@@ -233,6 +310,7 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
         'passphrase' => guess,
       )
       logic.process_params
+      logic.raise_concerns
       logic.process
       logic
     end
@@ -258,6 +336,23 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
       expect(reloaded&.viewable?).to be true
     end
 
+    it 'enforces the lockout in raise_concerns, before process runs at all' do
+      max = Onetime::Security::PassphraseRateLimiter::MAX_ATTEMPTS
+      max.times { expect { attempt_burn('wrong') }.to raise_error(OT::FormError) }
+
+      locked = build_logic(
+        'identifier' => receipt.identifier,
+        'continue'   => 'true',
+        'passphrase' => 'correct horse battery',
+      )
+      locked.process_params
+
+      # raise_concerns alone must refuse it: the controller never reaches
+      # process, so the secret is still there afterwards.
+      expect { locked.raise_concerns }.to raise_error(Onetime::LimitExceeded)
+      expect(Onetime::Secret.load(secret.identifier)&.viewable?).to be true
+    end
+
     it 'clears rate limit state and burns on the correct passphrase' do
       expect { attempt_burn('wrong') }.to raise_error(OT::FormError)
 
@@ -265,6 +360,49 @@ RSpec.describe V2::Logic::Secrets::BurnSecret, type: :integration do
 
       expect(logic.greenlighted).to be true
       expect(Onetime::Secret.dbclient.get("passphrase:attempts:#{secret.identifier}")).to be_nil
+    end
+
+    # Passphrase oracle regression: the guess is verified ONLY on a committed
+    # burn (continue=true). Without the gate, continue=false separated a right
+    # guess (200, nothing burned) from a wrong one (form error) and spent a
+    # rate-limit attempt on a guess that was never acted on.
+    context 'when continue is false' do
+      # The secret is loaded inside process via receipt.load_secret, so pin the
+      # instance first: the message expectation has to be on the object process
+      # will actually use.
+      def probe_burn(guess)
+        logic  = build_logic(
+          'identifier' => receipt.identifier,
+          'continue'   => 'false',
+          'passphrase' => guess,
+        )
+        logic.process_params
+        pinned = Onetime::Secret.load(secret.identifier)
+        allow(logic.receipt).to receive(:load_secret).and_return(pinned)
+        expect(pinned).not_to receive(:passphrase?)
+        logic
+      end
+
+      it 'does not raise on a wrong guess, does not burn, and records no attempt' do
+        logic = probe_burn('wrong')
+
+        expect { logic.process }.not_to raise_error
+
+        expect(logic.greenlighted).to be_falsey
+        expect(Onetime::Secret.dbclient.get("passphrase:attempts:#{secret.identifier}")).to be_nil
+        expect(Onetime::Secret.load(secret.identifier)&.viewable?).to be true
+      end
+
+      it 'answers a right guess exactly as it answers a wrong one' do
+        wrong = probe_burn('wrong')
+        wrong.process
+        correct = probe_burn('correct horse battery')
+        correct.process
+
+        expect(correct.success_data[:success]).to eq(wrong.success_data[:success])
+        expect(correct.success_data[:details]).to eq(wrong.success_data[:details])
+        expect(Onetime::Secret.load(secret.identifier)&.viewable?).to be true
+      end
     end
   end
 end

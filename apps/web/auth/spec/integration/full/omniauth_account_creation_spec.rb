@@ -61,15 +61,17 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
 
   # Helper to create a test account in the database.
   #
-  # Status is UNVERIFIED, and that is correct for these examples even though
-  # nothing here reads it: CreateCustomer hard-codes `verified: false` (the
-  # account's own status never reaches it — after_verify_account flips the
-  # Customer later), so an account fresh out of signup is the honest subject.
-  def create_test_account(email:)
+  # Status is UNVERIFIED, and that is correct for these examples: CreateCustomer
+  # never reads the account's status — it takes the caller's `verified:`
+  # argument, which defaults to false (the password-signup shape, where
+  # after_verify_account flips the Customer later). An account fresh out of
+  # signup is the honest subject. The SSO caller that passes `verified: true` is
+  # the omniauth hook, driven end-to-end in omniauth_jit_verified_spec.rb.
+  def create_test_account(email:, status_id: AuthTestConstants::STATUS_UNVERIFIED)
     db = Auth::Database.connection
     account_id = db[:accounts].insert(
       email: email,
-      status_id: AuthTestConstants::STATUS_UNVERIFIED,
+      status_id: status_id,
       created_at: Time.now,
       updated_at: Time.now
     )
@@ -233,6 +235,109 @@ RSpec.describe 'after_omniauth_create_account operations', type: :integration do
       created_customers << customer
 
       expect(customer.verified.to_s).to eq('false')
+    end
+
+    # ======================================================================
+    # verified: / verified_by: parameters (#3973)
+    # ======================================================================
+    #
+    # The operation used to hard-code `verified: false` with no way to say
+    # otherwise, which is why the SSO JIT path could never mark its customers
+    # verified. These examples pin the parameter contract the omniauth hook
+    # depends on; the hook's own decision (when it passes true at all) is
+    # driven end-to-end in omniauth_jit_verified_spec.rb.
+    describe 'verified/verified_by parameters' do
+      it 'threads verified: true and verified_by: through to the new Customer' do
+        email = unique_test_email('verified-threaded')
+        account = create_test_account(email: email, status_id: AuthTestConstants::STATUS_VERIFIED)
+
+        customer = Auth::Operations::CreateCustomer.new(
+          account_id: account[:id],
+          account: account,
+          provisioning_origin: 'sso_jit',
+          verified: true,
+          verified_by: 'sso',
+        ).call
+        created_customers << customer
+
+        expect(customer.verified?).to be true
+        expect(customer.verified_by.to_s).to eq('sso')
+
+        # Persisted, not just set on the in-memory instance.
+        reloaded = Onetime::Customer.load(customer.custid)
+        expect(reloaded.verified?).to be true
+        expect(reloaded.verified_by.to_s).to eq('sso')
+      end
+
+      # The NEGATIVE case, and the reason the default matters: a customer that
+      # is not being provisioned by SSO gets the unchanged behaviour. If the
+      # default ever flips, every password signup silently becomes verified.
+      it 'leaves a customer unverified when no verification is asserted' do
+        email = unique_test_email('verified-default')
+        account = create_test_account(email: email)
+
+        customer = Auth::Operations::CreateCustomer.new(
+          account_id: account[:id],
+          account: account,
+          provisioning_origin: 'canonical_signup',
+        ).call
+        created_customers << customer
+
+        expect(customer.verified?).to be false
+        expect(customer.verified_by.to_s).to eq('')
+
+        reloaded = Onetime::Customer.load(customer.custid)
+        expect(reloaded.verified?).to be false
+        expect(reloaded.verified_by.to_s).to eq('')
+      end
+
+      # verified_by is provenance. Recording one without the verified flag it
+      # describes would produce a record no check in the doctor can reason
+      # about, so the operation drops it.
+      it 'ignores verified_by when verified is false' do
+        email = unique_test_email('verified-by-orphan')
+        account = create_test_account(email: email)
+
+        customer = Auth::Operations::CreateCustomer.new(
+          account_id: account[:id],
+          account: account,
+          verified: false,
+          verified_by: 'sso',
+        ).call
+        created_customers << customer
+
+        expect(customer.verified?).to be false
+        expect(customer.verified_by.to_s).to eq('')
+      end
+
+      # Same "don't rewrite history" rule as provisioning_origin and
+      # signup_domain_id: the existing-customer branch is a no-op, so this
+      # operation can never upgrade an already-unverified record.
+      it 'does not verify an existing customer' do
+        email = unique_test_email('verified-existing')
+        account = create_test_account(email: email)
+
+        customer1 = Auth::Operations::CreateCustomer.new(
+          account_id: account[:id],
+          account: account,
+        ).call
+        created_customers << customer1
+        expect(customer1.verified?).to be false
+
+        customer2 = Auth::Operations::CreateCustomer.new(
+          account_id: account[:id],
+          account: account,
+          verified: true,
+          verified_by: 'sso',
+        ).call
+
+        expect(customer2.custid).to eq(customer1.custid)
+        expect(customer2.verified?).to be false
+
+        reloaded = Onetime::Customer.load(customer1.custid)
+        expect(reloaded.verified?).to be false
+        expect(reloaded.verified_by.to_s).to eq('')
+      end
     end
   end
 

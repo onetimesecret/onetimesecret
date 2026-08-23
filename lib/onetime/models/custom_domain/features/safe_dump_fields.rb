@@ -64,7 +64,10 @@ module Onetime::CustomDomain::Features
       base.safe_dump_field :status
       base.safe_dump_field :vhost, ->(obj) { obj.parse_vhost }
       base.safe_dump_field :vhost_fetch_failed_at, ->(obj) { obj.vhost_fetch_failed_at&.to_i }
-      base.safe_dump_field :verified, ->(obj) { obj.verified.to_s == 'true' }
+      # Native fields are real booleans; `!!` only maps nil (undetermined) to
+      # false for the API's plain-boolean contract.
+      base.safe_dump_field :verified, ->(obj) { !!obj.verified } # boolean_field native
+      base.safe_dump_field :resolving, ->(obj) { !!obj.resolving } # boolean_field native
       base.safe_dump_field :created
       base.safe_dump_field :updated
 
