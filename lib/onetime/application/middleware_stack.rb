@@ -632,18 +632,27 @@ module Onetime
             builder.use Onetime::Application::RequestLogger, http_logging_conf
           end
 
-          # Error Monitoring Integration
-          # Add Sentry exception tracking when available
-          # This block only executes if Sentry was successfully initialized
+          # Error Monitoring Integration — Sentry exception tracking.
+          #
+          # Config intent (Onetime.d9s_enabled, set from diagnostics config in
+          # Config.after_load) is the ONLY mount condition. Stack composition
+          # must stay a pure function of config — the contract
+          # middleware_manifest_spec.rb enforces — so no build-time reads of
+          # SDK runtime state (defined? / Sentry.initialized?): those made the
+          # stack shape depend on whether SetupDiagnostics had run yet, i.e.
+          # on boot order in production and suite order under test. Runtime
+          # uncertainty belongs at request time, and the SDK already handles
+          # it: CaptureExceptions#call passes straight through while
+          # Sentry.initialized? is false, so mounting before (or without)
+          # SetupDiagnostics is harmless. The require is idempotent and fails
+          # loudly here if diagnostics is enabled but the gem is missing.
           Onetime.with_diagnostics do |diagnostics_conf|
             logger.debug 'Sentry enabled',
               {
                 config: diagnostics_conf,
               }
-            # The SDK is loaded lazily by SetupDiagnostics. Diagnostics state can
-            # outlive a test's SDK load, so mount only when its Rack integration
-            # is actually available.
-            builder.use ::Sentry::Rack::CaptureExceptions if defined?(::Sentry::Rack::CaptureExceptions)
+            require 'sentry-ruby'
+            builder.use ::Sentry::Rack::CaptureExceptions
           end
 
           # Retry-After header for throttled (429) responses. Both routing

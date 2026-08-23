@@ -7,6 +7,7 @@ require_relative '../../../../../apps/web/billing/lib/billing_service'
 # Explicit, though billing_service pulls it in transitively via models/plan:
 # `available_entitlements` below is only as good as this constant being loaded.
 require_relative '../../../../../apps/web/billing/config'
+require 'onetime/utils/diagnostics_ref'
 
 module ColonelAPI
   module Logic
@@ -197,6 +198,15 @@ module ColonelAPI
             record: {
               org_id: org.objid,
               extid: org.extid,
+              # Opaque, keyed reference reserved for future organization
+              # diagnostics correlation. The current frontend response contract
+              # discards this field and does not send it to Sentry, so it must
+              # not be treated as an active organization tag.
+              #
+              # `org_id` and `extid` remain unchanged on this authenticated
+              # response. The ref is nil when the deployment has no usable
+              # keying secret; the key is always present and nullable.
+              organization_ref: Onetime::Utils::DiagnosticsRef.organization_ref(org.objid),
               display_name: org.display_name,
               description: org.description,
               is_default: org.is_default.to_s == 'true',

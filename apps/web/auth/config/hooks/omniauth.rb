@@ -782,7 +782,7 @@ module Auth::Config::Hooks
             # Tenant domain SSO → join the domain's organization only
             Onetime::ErrorHandler.safe_execute(
               'join_domain_organization_omniauth',
-              extid: customer.extid,
+              external_id: customer.extid,
               domain_id: domain_id,
             ) do
               Auth::Operations::JoinDomainOrganization.new(
@@ -811,7 +811,7 @@ module Auth::Config::Hooks
             # Canonical domain SSO → create default workspace
             Onetime::ErrorHandler.safe_execute(
               'create_default_workspace_omniauth',
-              extid: customer.extid,
+              external_id: customer.extid,
             ) do
               Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
             end
