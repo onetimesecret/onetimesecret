@@ -148,7 +148,7 @@ RSpec.describe 'Colonel backup status', type: :integration do
       'bytes' => '-1',
     })
     write_status('valkey', suffix: ':last_ok', overrides: { 'event' => 'fail' })
-    write_status('pg', overrides: { 'event' => 'fail', 'error' => long_error })
+    write_status('pg', overrides: { 'event' => 'fail', 'error' => long_error, 'ts' => '9' * 21 })
 
     valkey_job = status[:details][:jobs].find { |entry| entry[:job] == 'valkey' }
     pg_job     = status[:details][:jobs].find { |entry| entry[:job] == 'pg' }
@@ -156,7 +156,7 @@ RSpec.describe 'Colonel backup status', type: :integration do
     expect(valkey_job[:configured]).to be(true)
     expect(valkey_job[:latest]).to include(event: nil, ts: nil, error: nil, scheduled: nil, bytes: nil)
     expect(valkey_job[:last_ok]).to be_nil
-    expect(pg_job[:latest]).to include(error: long_error)
+    expect(pg_job[:latest]).to include(error: long_error, ts: nil)
   end
 
   it 'propagates Valkey read failures instead of reporting a job as not configured' do

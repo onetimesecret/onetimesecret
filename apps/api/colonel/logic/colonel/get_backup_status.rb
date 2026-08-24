@@ -100,7 +100,7 @@ module ColonelAPI
         end
 
         def timestamp_value(value)
-          return unless value.is_a?(String) && value.match?(/\A\d+\z/)
+          return unless value.is_a?(String) && value.length <= 20 && value.match?(/\A\d+\z/)
 
           timestamp = value.to_i
           timestamp if timestamp <= MAX_TIMESTAMP
