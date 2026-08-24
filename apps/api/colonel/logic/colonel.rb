@@ -44,6 +44,7 @@ require_relative 'colonel/purge_user'
 # System monitoring
 require_relative 'colonel/get_proxy_headers_debug'
 require_relative 'colonel/get_database_metrics'
+require_relative 'colonel/get_backup_status'
 require_relative 'colonel/get_brand_diagnostics'
 require_relative 'colonel/get_redis_metrics'
 

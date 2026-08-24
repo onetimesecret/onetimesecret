@@ -156,6 +156,45 @@ export const databaseMetricsDetailsSchema = z.object({
 });
 
 /**
+ * One ots-backup status hash, normalized at the API boundary. Invalid external
+ * values become null; empty strings retain their contract meaning of "not
+ * applicable". Timestamps stay numeric so the System screen can compare them
+ * against the response's server-side `timestamp` without a client clock skew.
+ */
+export const backupStatusRecordSchema = z.object({
+  event: z.enum(['start', 'ok', 'fail']).nullable(),
+  ts: z.number().int().nonnegative().nullable(),
+  host: z.string().nullable(),
+  unit: z.string().nullable(),
+  job: z.enum(['pg', 'valkey', 'prune', 'ship']).nullable(),
+  file: z.string().nullable(),
+  bytes: z.string().nullable(),
+  sha256: z.string().nullable(),
+  mode: z.enum(['report', 'delete', '']).nullable(),
+  removed: z.string().nullable(),
+  candidates: z.string().nullable(),
+  shipped: z.string().nullable(),
+  remote: z.string().nullable(),
+  duration_secs: z.string().nullable(),
+  error: z.string().nullable(),
+  version: z.string().nullable(),
+  scheduled: z.enum(['enabled', 'disabled', 'unknown']).nullable(),
+});
+
+/** GET /api/colonel/system/backups — fixed known jobs, read-only status. */
+export const backupStatusDetailsSchema = z.object({
+  timestamp: z.number().int().nonnegative(),
+  jobs: z.array(
+    z.object({
+      job: z.enum(['pg', 'valkey', 'prune', 'ship']),
+      configured: z.boolean(),
+      latest: backupStatusRecordSchema.nullable(),
+      last_ok: backupStatusRecordSchema.nullable(),
+    })
+  ),
+});
+
+/**
  * Brand-pack diagnostics response details (#3822).
  *
  * Read-only diagnostic for the running instance's brand-pack resolution, so ops
@@ -826,9 +865,7 @@ export const colonelAvailablePlansResponseSchema = z.object({
 });
 
 export type ColonelAvailablePlan = z.infer<typeof colonelAvailablePlanSchema>;
-export type ColonelAvailablePlansResponse = z.infer<
-  typeof colonelAvailablePlansResponseSchema
->;
+export type ColonelAvailablePlansResponse = z.infer<typeof colonelAvailablePlansResponseSchema>;
 
 // ============================================================================
 // Wrapped response envelopes ({ record, details } across the API envelope).
@@ -865,6 +902,10 @@ export const investigateOrganizationResponseSchema = createApiResponseSchema(
 export const databaseMetricsResponseSchema = createApiResponseSchema(
   z.object({}),
   databaseMetricsDetailsSchema
+);
+export const backupStatusResponseSchema = createApiResponseSchema(
+  z.object({}),
+  backupStatusDetailsSchema
 );
 export const brandDiagnosticsResponseSchema = createApiResponseSchema(
   z.object({}),
@@ -914,6 +955,8 @@ export type CustomDomainsResponse = z.infer<typeof colonelCustomDomainsResponseS
 export type ColonelOrganizationsResponse = z.infer<typeof colonelOrganizationsResponseSchema>;
 export type InvestigateOrganizationResponse = z.infer<typeof investigateOrganizationResponseSchema>;
 export type DatabaseMetricsResponse = z.infer<typeof databaseMetricsResponseSchema>;
+export type BackupStatusRecord = z.infer<typeof backupStatusRecordSchema>;
+export type BackupStatusResponse = z.infer<typeof backupStatusResponseSchema>;
 export type BrandDiagnosticsResponse = z.infer<typeof brandDiagnosticsResponseSchema>;
 export type RedisMetricsResponse = z.infer<typeof redisMetricsResponseSchema>;
 export type BannedIPsResponse = z.infer<typeof bannedIPsResponseSchema>;
