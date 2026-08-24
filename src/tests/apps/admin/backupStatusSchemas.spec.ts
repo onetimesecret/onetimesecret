@@ -17,6 +17,8 @@ function record(overrides: Record<string, unknown> = {}) {
     mode: '',
     removed: '',
     candidates: '',
+    shipped: '',
+    remote: '',
     duration_secs: '15',
     error: '',
     version: '0.2.3',
@@ -57,6 +59,48 @@ describe('backup status schema (#4276)', () => {
     malformed.details.jobs[0].last_ok = null;
 
     expect(backupStatusResponseSchema.safeParse(malformed).success).toBe(true);
+  });
+
+  it('accepts a ship record with the v0.3.0 transfer fields, including a legitimate "0"', () => {
+    const withShip = payload();
+    const shipRecord = record({
+      job: 'ship',
+      unit: 'ots-backup-ship.service',
+      file: '',
+      bytes: '',
+      sha256: '',
+      candidates: '12',
+      shipped: '0', // remote already held everything — a real success, not malformed
+      remote: 's3:onetime-eu/backups/',
+    });
+    withShip.details.jobs[3] = {
+      job: 'ship',
+      configured: true,
+      latest: shipRecord,
+      last_ok: shipRecord,
+    };
+
+    const parsed = backupStatusResponseSchema.safeParse(withShip);
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.details?.jobs[3].last_ok?.shipped).toBe('0');
+      expect(parsed.data.details?.jobs[3].last_ok?.remote).toBe('s3:onetime-eu/backups/');
+    }
+  });
+
+  it('accepts malformed ship transfer values normalized by the backend to null', () => {
+    const malformed = payload();
+    malformed.details.jobs[0].latest = record({ shipped: null, remote: null });
+
+    expect(backupStatusResponseSchema.safeParse(malformed).success).toBe(true);
+  });
+
+  it('rejects a pre-v0.3.0 record missing the shipped/remote keys', () => {
+    const legacy = payload();
+    const { shipped: _shipped, remote: _remote, ...rest } = record();
+    legacy.details.jobs[0].latest = rest as ReturnType<typeof record>; // deliberate contract drift
+
+    expect(backupStatusResponseSchema.safeParse(legacy).success).toBe(false);
   });
 
   it('rejects a job row without the configured discovery result', () => {

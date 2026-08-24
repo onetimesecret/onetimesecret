@@ -87,8 +87,13 @@ module ColonelAPI
             mode: enum_or_empty(raw['mode'], PRUNE_MODES),
             removed: decimal_or_empty(raw['removed']),
             candidates: decimal_or_empty(raw['candidates']),
+            shipped: decimal_or_empty(raw['shipped']),
+            remote: text_value(raw['remote']),
             duration_secs: decimal_or_empty(raw['duration_secs']),
-            error: text_value(raw['error'], max_bytes: nil),
+            # The writer bounds `error` at 512 chars, so a conforming record is
+            # never truncated here. The keyspace is writable by the shared
+            # valkey ACL user, so this reader must not relay unbounded text.
+            error: text_value(raw['error']),
             version: text_value(raw['version'], max_bytes: 128),
             scheduled: enum_value(raw['scheduled'], SCHEDULED_STATES),
           }

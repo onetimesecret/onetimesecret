@@ -4,7 +4,8 @@
   import { DataTable, JsonViewer, StatCard } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
-  import type { BackupStatusRecord, QueueMetric } from '@/schemas/api/internal/responses/colonel';
+  import type { QueueMetric } from '@/schemas/api/internal/responses/colonel';
+  import type { BackupStatusResponse } from '@/schemas/api/internal/responses/colonel-system';
   import {
     backupStatusResponseSchema,
     brandDiagnosticsResponseSchema,
@@ -82,12 +83,12 @@
 
   // ---- Backup status (#4276) ------------------------------------------------
 
-  interface BackupJob {
-    job: 'pg' | 'valkey' | 'prune' | 'ship';
-    configured: boolean;
-    latest: BackupStatusRecord | null;
-    last_ok: BackupStatusRecord | null;
-  }
+  /**
+   * One `jobs[]` element, derived from the zod contract (CONTRACT 3) rather
+   * than hand-written so future schema fields cannot silently drift from the
+   * shape this view renders.
+   */
+  type BackupJob = NonNullable<BackupStatusResponse['details']>['jobs'][number];
 
   type BackupFreshness = 'notConfigured' | 'notMonitored' | 'fresh' | 'stale' | 'alarm';
 
@@ -150,6 +151,16 @@
 
   function artifactName(file: string | null): string {
     return file?.split('/').filter(Boolean).pop() ?? '—';
+  }
+
+  /**
+   * Ship's rclone destination for display (contract v0.3.0: "" means not
+   * applicable, null means malformed). Prefer `latest` — on a fail the
+   * operator needs to see where the transfer was headed — falling back to
+   * the last successful run.
+   */
+  function shipRemote(job: BackupJob): string | null {
+    return job.latest?.remote || job.last_ok?.remote || null;
   }
 
   function humanBytes(bytes: string | null): string {
@@ -612,6 +623,30 @@
               <span class="ml-1 text-gray-500 dark:text-gray-400"
                 >({{ humanBytes(job.last_ok.bytes) }})</span
               >
+            </div>
+
+            <div
+              v-if="shipRemote(job)"
+              class="rounded border border-gray-200 px-3 py-2 text-xs dark:border-gray-700"
+              :data-testid="`backup-ship-detail-${job.job}`">
+              <div>
+                <span class="text-gray-500 dark:text-gray-400"
+                  >{{ t('web.admin.system.backups.destination') }}:</span
+                >
+                <span class="ml-1 font-mono break-all text-gray-900 dark:text-white">{{
+                  shipRemote(job)
+                }}</span>
+              </div>
+              <div
+                v-if="job.last_ok?.shipped"
+                class="mt-1 font-mono text-gray-900 dark:text-white">
+                {{
+                  t('web.admin.system.backups.shippedOf', {
+                    shipped: job.last_ok.shipped,
+                    candidates: job.last_ok.candidates || '—',
+                  })
+                }}
+              </div>
             </div>
 
             <span

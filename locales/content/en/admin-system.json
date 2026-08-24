@@ -179,6 +179,14 @@
     "text": "No error detail",
     "content_hash": "b2c696e7"
   },
+  "web.admin.system.backups.destination": {
+    "text": "Destination",
+    "content_hash": "293d404a"
+  },
+  "web.admin.system.backups.shippedOf": {
+    "text": "Shipped {shipped} of {candidates}",
+    "content_hash": "406119a9"
+  },
   "web.admin.system.backups.freshness.notConfigured": {
     "text": "Not configured",
     "content_hash": "dd1841d2"

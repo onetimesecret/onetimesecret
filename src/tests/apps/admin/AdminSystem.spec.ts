@@ -80,6 +80,8 @@ function backupRecord(overrides: Record<string, unknown> = {}) {
     mode: '',
     removed: '',
     candidates: '',
+    shipped: '',
+    remote: '',
     duration_secs: '15',
     error: '',
     version: '0.2.3',
@@ -162,14 +164,33 @@ function brandPayload(overrides: Record<string, unknown> = {}) {
   };
 }
 
+/** A configured ship job row (contract v0.3.0: remote + shipped are ship's fields). */
+function shipRecord(overrides: Record<string, unknown> = {}) {
+  return backupRecord({
+    job: 'ship',
+    unit: 'ots-backup-ship.service',
+    file: '',
+    bytes: '',
+    sha256: '',
+    candidates: '12',
+    shipped: '3',
+    remote: 's3:onetime-eu/backups/',
+    ...overrides,
+  });
+}
+
 /**
  * Route each independent single-GET read-out by URL. `brandOverrides` lets a
- * test flip the brand diagnostic into its mount-race shape without a new mock.
+ * test flip the brand diagnostic into its mount-race shape without a new mock;
+ * `backups` swaps in a bespoke backup payload (e.g. a configured ship job).
  */
-function routeGet(brandOverrides: Record<string, unknown> = {}) {
+function routeGet(
+  brandOverrides: Record<string, unknown> = {},
+  backups: ReturnType<typeof backupPayload> = backupPayload()
+) {
   mockApi.get.mockImplementation((url: string) => {
     if (url === DB_URL) return Promise.resolve({ data: dbPayload() });
-    if (url === BACKUPS_URL) return Promise.resolve({ data: backupPayload() });
+    if (url === BACKUPS_URL) return Promise.resolve({ data: backups });
     if (url === QUEUE_URL) return Promise.resolve({ data: queuePayload() });
     if (url === REDIS_URL) return Promise.resolve({ data: redisPayload() });
     if (url === BRAND_URL) return Promise.resolve({ data: brandPayload(brandOverrides) });
@@ -352,6 +373,55 @@ describe('AdminSystem (read-only status read-out — ticket #33)', () => {
     );
     expect(wrapper.find('[data-testid="backup-freshness-pg"]').text()).toContain(
       'web.admin.system.backups.freshness.alarm'
+    );
+  });
+
+  // Ship publishes no artifact (`file` is always ""), so its card is asserted on
+  // the v0.3.0 destination block instead: remote + shipped-of-candidates.
+  it('renders the ship destination block with the shipped-of-candidates count', async () => {
+    const withShip = backupPayload();
+    withShip.details.jobs[3] = {
+      job: 'ship',
+      configured: true,
+      latest: shipRecord(),
+      last_ok: shipRecord(),
+    };
+    routeGet({}, withShip);
+    wrapper = mountView(pinia);
+    await flushPromises();
+
+    const detail = wrapper.find('[data-testid="backup-ship-detail-ship"]');
+    expect(detail.exists()).toBe(true);
+    expect(detail.text()).toContain('web.admin.system.backups.destination');
+    expect(detail.text()).toContain('s3:onetime-eu/backups/');
+    expect(detail.text()).toContain('web.admin.system.backups.shippedOf');
+
+    // Non-ship jobs carry remote="" (not applicable) — no destination block.
+    expect(wrapper.find('[data-testid="backup-ship-detail-pg"]').exists()).toBe(false);
+  });
+
+  it('keeps the destination visible on a failed ship run so the operator sees the target', async () => {
+    const failedShip = backupPayload();
+    // Per-property assignment: the fixture's inferred union has no
+    // latest-without-last_ok member. last_ok stays null from the fixture.
+    failedShip.details.jobs[3].configured = true;
+    failedShip.details.jobs[3].latest = shipRecord({
+      event: 'fail',
+      ts: 1_699_999_990,
+      error: 'rclone: connection refused',
+      shipped: '',
+    });
+    routeGet({}, failedShip);
+    wrapper = mountView(pinia);
+    await flushPromises();
+
+    const detail = wrapper.find('[data-testid="backup-ship-detail-ship"]');
+    expect(detail.exists()).toBe(true);
+    expect(detail.text()).toContain('s3:onetime-eu/backups/');
+    // No successful run — the shipped-of-candidates line stays hidden.
+    expect(detail.text()).not.toContain('web.admin.system.backups.shippedOf');
+    expect(wrapper.find('[data-testid="backup-failure-ship"]').text()).toContain(
+      'rclone: connection refused'
     );
   });
 

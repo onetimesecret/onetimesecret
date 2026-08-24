@@ -173,6 +173,8 @@ export const backupStatusRecordSchema = z.object({
   mode: z.enum(['report', 'delete', '']).nullable(),
   removed: z.string().nullable(),
   candidates: z.string().nullable(),
+  shipped: z.string().nullable(),
+  remote: z.string().nullable(),
   duration_secs: z.string().nullable(),
   error: z.string().nullable(),
   version: z.string().nullable(),

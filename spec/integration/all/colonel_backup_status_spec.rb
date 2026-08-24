@@ -42,6 +42,8 @@ RSpec.describe 'Colonel backup status', type: :integration do
       'mode' => '',
       'removed' => '',
       'candidates' => '',
+      'shipped' => '',
+      'remote' => '',
       'duration_secs' => '10',
       'error' => '',
       'version' => '0.2.3',
@@ -80,7 +82,60 @@ RSpec.describe 'Colonel backup status', type: :integration do
     expect(jobs.first).to include(configured: true)
     expect(jobs.first[:latest]).to include(event: 'fail', error: 'disk full')
     expect(jobs.first[:last_ok]).to include(event: 'ok', ts: 1_699_999_000, file: '/var/backups/pg.tar.gz')
+    expect(jobs.first[:latest]).to include(shipped: '', remote: '')
+    expect(jobs.first[:last_ok]).to include(shipped: '', remote: '')
     expect(jobs.drop(1)).to all(include(configured: false, latest: nil, last_ok: nil))
+  end
+
+  it 'passes ship-job shipped and remote fields through verbatim' do
+    ship_overrides = {
+      'shipped' => '2',
+      'candidates' => '7',
+      'remote' => 's3:onetime-eu/backups/',
+      'file' => '',
+      'bytes' => '25806368',
+    }
+    write_status('ship', overrides: ship_overrides)
+    write_status('ship', suffix: ':last_ok', overrides: ship_overrides)
+
+    ship_job = status[:details][:jobs].find { |entry| entry[:job] == 'ship' }
+
+    expect(ship_job[:configured]).to be(true)
+    expect(ship_job[:latest]).to include(
+      event: 'ok',
+      shipped: '2',
+      candidates: '7',
+      remote: 's3:onetime-eu/backups/',
+      file: '',
+      bytes: '25806368',
+    )
+    expect(ship_job[:last_ok]).to include(shipped: '2', remote: 's3:onetime-eu/backups/')
+  end
+
+  it 'nulls an error exceeding the 4096-byte text cap while preserving the rest of the record' do
+    oversized_error = 'e' * 4_097
+    write_status('pg', overrides: { 'event' => 'fail', 'error' => oversized_error })
+
+    pg_job = status[:details][:jobs].find { |entry| entry[:job] == 'pg' }
+
+    expect(pg_job[:latest]).to include(
+      event: 'fail',
+      error: nil,
+      ts: 1_700_000_000,
+      host: 'eu-db-01',
+      file: '/var/backups/pg.tar.gz',
+      bytes: '1048576',
+      version: '0.2.3',
+      scheduled: 'enabled',
+    )
+  end
+
+  it 'nulls malformed shipped and remote values' do
+    write_status('ship', overrides: { 'shipped' => '2x', 'remote' => "s3:bucket\nextra" })
+
+    ship_job = status[:details][:jobs].find { |entry| entry[:job] == 'ship' }
+
+    expect(ship_job[:latest]).to include(shipped: nil, remote: nil)
   end
 
   it 'normalizes malformed hash values, preserves long valid errors, and does not trust a malformed last_ok event' do
