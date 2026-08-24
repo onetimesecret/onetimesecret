@@ -39,6 +39,7 @@ DELETE /users/:user_id                    ColonelAPI::Logic::Colonel::PurgeUser 
 # System Monitoring
 GET    /system/proxy-headers              ColonelAPI::Logic::Colonel::GetProxyHeadersDebug response=json auth=sessionauth role=colonel network=admin scope=internal
 GET    /system/database                   ColonelAPI::Logic::Colonel::GetDatabaseMetrics response=json auth=sessionauth role=colonel scope=internal
+GET    /system/backups                    ColonelAPI::Logic::Colonel::GetBackupStatus response=json auth=sessionauth role=colonel scope=internal
 GET    /system/brand                      ColonelAPI::Logic::Colonel::GetBrandDiagnostics response=json auth=sessionauth role=colonel scope=internal
 GET    /system/redis                      ColonelAPI::Logic::Colonel::GetRedisMetrics response=json auth=sessionauth role=colonel scope=internal
 GET    /queue                             ColonelAPI::Logic::Colonel::GetQueueMetrics response=json auth=sessionauth role=colonel scope=internal

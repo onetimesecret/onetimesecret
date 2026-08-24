@@ -10,37 +10,35 @@ import { z } from 'zod';
 
 // Colonel (admin) schemas — internal-only
 import {
-  colonelInfoResponseSchema,
-  colonelStatsResponseSchema,
-  colonelUsersResponseSchema,
-  colonelSecretsResponseSchema,
-  colonelCustomDomainsResponseSchema,
-  colonelOrganizationsResponseSchema,
-  investigateOrganizationResponseSchema,
-  databaseMetricsResponseSchema,
-  brandDiagnosticsResponseSchema,
-  redisMetricsResponseSchema,
+  backupStatusResponseSchema,
   bannedIPsResponseSchema,
-  usageExportResponseSchema,
-  queueMetricsResponseSchema,
-  systemSettingsResponseSchema,
+  brandDiagnosticsResponseSchema,
   colonelCheckoutLinkResponseSchema,
+  colonelCustomDomainsResponseSchema,
+  colonelInfoResponseSchema,
+  colonelOrganizationsResponseSchema,
+  colonelSecretsResponseSchema,
+  colonelStatsResponseSchema,
   colonelUserDetailResponseSchema,
   colonelUserMutationResponseSchema,
+  colonelUsersResponseSchema,
+  databaseMetricsResponseSchema,
+  investigateOrganizationResponseSchema,
+  queueMetricsResponseSchema,
+  redisMetricsResponseSchema,
+  systemSettingsResponseSchema,
+  usageExportResponseSchema,
 } from './colonel';
 
 // Colonel (admin) per-resource ack schemas — Phase-2 screens (tickets #30-33)
+import { colonelBanIpResponseSchema, colonelUnbanIpResponseSchema } from './colonel-bannedips';
 import {
-  colonelSecretReceiptResponseSchema,
-  colonelSecretDeleteResponseSchema,
-} from './colonel-secrets';
-import { colonelDomainVerifyResponseSchema } from './colonel-domains';
-import {
-  colonelDomainConfigsResponseSchema,
-  colonelDomainConfigUpsertResponseSchema,
   colonelDomainConfigDeleteResponseSchema,
   colonelDomainConfigsEnsureResponseSchema,
+  colonelDomainConfigsResponseSchema,
+  colonelDomainConfigUpsertResponseSchema,
 } from './colonel-domain-configs';
+import { colonelDomainVerifyResponseSchema } from './colonel-domains';
 import {
   colonelDeleteOrganizationResponseSchema,
   colonelEntitlementOverrideResponseSchema,
@@ -49,65 +47,68 @@ import {
   colonelReconcileOrganizationResponseSchema,
   colonelTransferOrganizationOwnershipResponseSchema,
 } from './colonel-organizations';
-import { colonelBanIpResponseSchema, colonelUnbanIpResponseSchema } from './colonel-bannedips';
+import {
+  colonelSecretDeleteResponseSchema,
+  colonelSecretReceiptResponseSchema,
+} from './colonel-secrets';
 
 // Colonel (admin) per-resource schemas — Phase-3 screens (tickets #40-45).
 // The DLQ console and the rate-limit inspect/reset UI were removed by design
 // review; their envelopes stay registry-only as the OpenAPI contract for the
 // still-live endpoints (list_dlqs.rb declares `response: 'colonelDlqList'`).
-import {
-  colonelSessionsResponseSchema,
-  colonelSessionDetailResponseSchema,
-  colonelSessionDeleteResponseSchema,
-} from './colonel-sessions';
-import {
-  colonelCustomerSessionsResponseSchema,
-  colonelCustomerSessionRevokeResponseSchema,
-  colonelCustomerSessionRevokeAllResponseSchema,
-} from './colonel-customer-sessions';
 import { colonelAccountDiagnosticsResponseSchema } from './colonel-account-diagnostics';
 import {
+  colonelBannerClearResponseSchema,
   colonelBannerResponseSchema,
   colonelBannerSetResponseSchema,
-  colonelBannerClearResponseSchema,
 } from './colonel-banner';
 import {
-  colonelDlqListResponseSchema,
-  colonelDlqMessagesResponseSchema,
-  colonelDlqReplayResponseSchema,
-  colonelDlqPurgeResponseSchema,
-} from './colonel-queue';
+  colonelBillingCatalogResponseSchema,
+  colonelStripeOrganizationsResponseSchema,
+} from './colonel-billing';
 import {
-  colonelDomainsOrphanedResponseSchema,
+  colonelCustomerSessionRevokeAllResponseSchema,
+  colonelCustomerSessionRevokeResponseSchema,
+  colonelCustomerSessionsResponseSchema,
+} from './colonel-customer-sessions';
+import {
+  colonelEmailDeliverabilityEventsResponseSchema,
+  colonelEmailDeliverabilityIngestResponseSchema,
+  colonelEmailDeliverabilityResponseSchema,
+  colonelEmailDeliverabilitySyncResponseSchema,
+  colonelEmailMessagesResponseSchema,
+  colonelEmailProviderStatusResponseSchema,
+  colonelEmailRecipientLookupResponseSchema,
+  colonelEmailSuppressionAddResponseSchema,
+  colonelEmailSuppressionRemoveResponseSchema,
+  colonelEmailSuppressionsResponseSchema,
+} from './colonel-deliverability';
+import {
   colonelDomainProbeResponseSchema,
   colonelDomainRepairResponseSchema,
+  colonelDomainsOrphanedResponseSchema,
   colonelDomainTransferResponseSchema,
 } from './colonel-domaintoolbox';
 import {
   colonelEmailConfigResponseSchema,
-  colonelEmailTemplatesResponseSchema,
   colonelEmailPreviewResponseSchema,
+  colonelEmailTemplatesResponseSchema,
   colonelEmailTestResponseSchema,
   colonelRateLimitersResponseSchema,
   colonelRateLimitInspectResponseSchema,
   colonelRateLimitResetResponseSchema,
 } from './colonel-emailtools';
 import {
-  colonelEmailDeliverabilityResponseSchema,
-  colonelEmailSuppressionsResponseSchema,
-  colonelEmailSuppressionRemoveResponseSchema,
-  colonelEmailSuppressionAddResponseSchema,
-  colonelEmailDeliverabilityEventsResponseSchema,
-  colonelEmailDeliverabilityIngestResponseSchema,
-  colonelEmailDeliverabilitySyncResponseSchema,
-  colonelEmailProviderStatusResponseSchema,
-  colonelEmailRecipientLookupResponseSchema,
-  colonelEmailMessagesResponseSchema,
-} from './colonel-deliverability';
+  colonelDlqListResponseSchema,
+  colonelDlqMessagesResponseSchema,
+  colonelDlqPurgeResponseSchema,
+  colonelDlqReplayResponseSchema,
+} from './colonel-queue';
 import {
-  colonelBillingCatalogResponseSchema,
-  colonelStripeOrganizationsResponseSchema,
-} from './colonel-billing';
+  colonelSessionDeleteResponseSchema,
+  colonelSessionDetailResponseSchema,
+  colonelSessionsResponseSchema,
+} from './colonel-sessions';
 
 // Colonel (admin) observability — audit trail reader + overview trends
 import { colonelAuditEventsResponseSchema } from './colonel-audit';
@@ -115,12 +116,12 @@ import { colonelTrendsResponseSchema } from './colonel-trends';
 
 // Organization schemas — internal-only
 import {
+  memberDeleteResponseSchema,
+  memberResponseSchema,
+  membersResponseSchema,
   organizationResponseSchema,
   organizationsResponseSchema,
   orgDeleteResponseSchema,
-  membersResponseSchema,
-  memberResponseSchema,
-  memberDeleteResponseSchema,
 } from './organizations';
 
 // Account schemas (shared with V2/V3 public APIs)
@@ -134,16 +135,16 @@ import {
 // Domain schemas (shared with V2/V3 public APIs)
 import {
   brandSettingsResponseSchema,
-  customDomainResponseSchema,
   customDomainListResponseSchema,
+  customDomainResponseSchema,
   imagePropsResponseSchema,
   jurisdictionResponseSchema,
 } from '@/schemas/api/v3/responses/domains';
 
 // Auth schemas (shared with V2/V3)
 import {
-  loginResponseSchema,
   createAccountResponseSchema,
+  loginResponseSchema,
   logoutResponseSchema,
   resetPasswordRequestResponseSchema,
   resetPasswordResponseSchema,
@@ -186,6 +187,7 @@ export const responseSchemas = {
   colonelEntitlementOverride: colonelEntitlementOverrideResponseSchema,
   colonelMembershipEntitlementOverride: colonelMembershipEntitlementOverrideResponseSchema,
   databaseMetrics: databaseMetricsResponseSchema,
+  backupStatus: backupStatusResponseSchema,
   brandDiagnostics: brandDiagnosticsResponseSchema,
   redisMetrics: redisMetricsResponseSchema,
   bannedIPs: bannedIPsResponseSchema,
