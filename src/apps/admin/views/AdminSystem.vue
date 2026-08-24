@@ -1,12 +1,12 @@
 <!-- src/apps/admin/views/AdminSystem.vue -->
 
 <script setup lang="ts">
-
   import { DataTable, JsonViewer, StatCard } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
-  import type { QueueMetric } from '@/schemas/api/internal/responses/colonel';
+  import type { BackupStatusRecord, QueueMetric } from '@/schemas/api/internal/responses/colonel';
   import {
+    backupStatusResponseSchema,
     brandDiagnosticsResponseSchema,
     databaseMetricsResponseSchema,
     queueMetricsResponseSchema,
@@ -23,10 +23,11 @@
    * `ColonelSystemRedis` views rebuilt fresh on the Slice-3 template. It does NOT
    * import `src/apps/colonel/*` or `colonelInfoStore`.
    *
-   * Four independent single-GET read-outs via {@link useResourceFetch} (CONTRACT
+   * Five independent single-GET read-outs via {@link useResourceFetch} (CONTRACT
    * 1 — single screens use useResourceFetch, not a paginated store). All reads
    * REUSE the frozen wrapped schemas (CONTRACT 3):
    *   - GET /api/colonel/system/database → server + memory + db sizes + model counts
+   *   - GET /api/colonel/system/backups  → ots-backup status hashes (#4276)
    *   - GET /api/colonel/queue           → connection + worker health + per-queue
    *   - GET /api/colonel/system/redis    → full Redis/Valkey INFO (JsonViewer)
    *   - GET /api/colonel/system/brand    → brand-pack resolution diagnostic (#3822)
@@ -55,9 +56,7 @@
   // Valkey reports both valkey_version and a Redis-compat redis_version. Prefer
   // Valkey when present so the page reflects the real engine (parity with the
   // legacy MainDB view).
-  const engineName = computed(() =>
-    db.value?.redis_info.valkey_version ? 'Valkey' : 'Redis'
-  );
+  const engineName = computed(() => (db.value?.redis_info.valkey_version ? 'Valkey' : 'Redis'));
   const engineVersion = computed(
     () => db.value?.redis_info.valkey_version ?? db.value?.redis_info.redis_version ?? '—'
   );
@@ -80,6 +79,90 @@
       return { name, keys: null, expires: null, raw: String(info) };
     });
   });
+
+  // ---- Backup status (#4276) ------------------------------------------------
+
+  interface BackupJob {
+    job: 'pg' | 'valkey' | 'prune' | 'ship';
+    configured: boolean;
+    latest: BackupStatusRecord | null;
+    last_ok: BackupStatusRecord | null;
+  }
+
+  type BackupFreshness = 'notConfigured' | 'notMonitored' | 'fresh' | 'stale' | 'alarm';
+
+  const {
+    data: backupData,
+    loading: backupLoading,
+    error: backupError,
+    validationError: backupValidationError,
+    load: loadBackups,
+  } = useResourceFetch({
+    url: '/api/colonel/system/backups',
+    schema: backupStatusResponseSchema,
+    context: 'BackupStatusResponse',
+  });
+
+  const backup = computed(() => backupData.value?.details ?? null);
+  const backupFailed = computed(
+    () => backupError.value !== null || backupValidationError.value !== null
+  );
+
+  function freshnessFor(job: BackupJob): BackupFreshness {
+    if (!job.configured) return 'notConfigured';
+    if (job.latest?.scheduled !== 'enabled') return 'notMonitored';
+
+    const now = backup.value?.timestamp;
+    const lastOkTs = job.last_ok?.ts;
+    const latestTs = job.latest?.ts;
+    if (typeof now !== 'number' || typeof lastOkTs !== 'number') return 'alarm';
+    if (lastOkTs > now + 5 * 60 || (typeof latestTs === 'number' && latestTs > now + 5 * 60)) {
+      return 'alarm';
+    }
+    return now - lastOkTs > 26 * 60 * 60 ? 'stale' : 'fresh';
+  }
+
+  function backupBadgeClass(status: BackupFreshness): string {
+    switch (status) {
+      case 'fresh':
+        return 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200';
+      case 'notConfigured':
+      case 'notMonitored':
+        return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
+      default:
+        return 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200';
+    }
+  }
+
+  function relativeAge(timestamp: number | null): string {
+    if (timestamp === null || !backup.value) return '—';
+    const seconds = backup.value.timestamp - timestamp;
+    const formatter = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+    if (Math.abs(seconds) < 60) return formatter.format(-seconds, 'second');
+    if (Math.abs(seconds) < 3600) return formatter.format(-Math.round(seconds / 60), 'minute');
+    if (Math.abs(seconds) < 86_400) return formatter.format(-Math.round(seconds / 3600), 'hour');
+    return formatter.format(-Math.round(seconds / 86_400), 'day');
+  }
+
+  function utcTimestamp(timestamp: number | null): string | undefined {
+    return timestamp === null ? undefined : new Date(timestamp * 1000).toISOString();
+  }
+
+  function artifactName(file: string | null): string {
+    return file?.split('/').filter(Boolean).pop() ?? '—';
+  }
+
+  function humanBytes(bytes: string | null): string {
+    if (!bytes) return '—';
+    const value = Number(bytes);
+    if (!Number.isSafeInteger(value) || value < 0) return '—';
+
+    const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+    const index =
+      value === 0 ? 0 : Math.min(Math.floor(Math.log(value) / Math.log(1024)), units.length - 1);
+    const scaled = value / 1024 ** index;
+    return `${scaled.toLocaleString(undefined, { maximumFractionDigits: 1 })} ${units[index]}`;
+  }
 
   // ---- Queue metrics --------------------------------------------------------
 
@@ -193,6 +276,7 @@
 
   function loadAll(): void {
     loadDb().catch(() => {});
+    loadBackups().catch(() => {});
     loadQueue().catch(() => {});
     loadRedis().catch(() => {});
     loadBrand().catch(() => {});
@@ -286,7 +370,8 @@
         <!-- Server info -->
         <div
           class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-          <h4 class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+          <h4
+            class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.system.database.server') }}
           </h4>
           <dl class="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3">
@@ -344,7 +429,8 @@
         <!-- Memory -->
         <div
           class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-          <h4 class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+          <h4
+            class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.system.database.memory') }}
           </h4>
           <dl class="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4">
@@ -387,7 +473,8 @@
         <div
           class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"
           data-testid="system-database-sizes">
-          <h4 class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+          <h4
+            class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.system.database.databases') }}
           </h4>
           <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -400,7 +487,12 @@
               </div>
               <div class="mt-1 text-xs text-gray-600 dark:text-gray-400">
                 <template v-if="row.raw === null">
-                  {{ t('web.admin.system.database.dbSummary', { keys: num(row.keys), expires: num(row.expires) }) }}
+                  {{
+                    t('web.admin.system.database.dbSummary', {
+                      keys: num(row.keys),
+                      expires: num(row.expires),
+                    })
+                  }}
                 </template>
                 <template v-else>
                   {{ row.raw }}
@@ -409,6 +501,128 @@
             </div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- ================= Backup status (#4276) ================= -->
+    <section
+      class="mb-8"
+      data-testid="system-backups">
+      <h3 class="mb-1 text-lg font-medium text-gray-900 dark:text-white">
+        {{ t('web.admin.system.backups.title') }}
+      </h3>
+      <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">
+        {{ t('web.admin.system.backups.description') }}
+      </p>
+
+      <div
+        v-if="backupLoading && !backup"
+        class="flex items-center gap-3 rounded-lg border border-gray-200 bg-white px-4 py-8 text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400"
+        data-testid="system-backups-loading">
+        <OIcon
+          collection="heroicons"
+          name="arrow-path"
+          size="5"
+          class="animate-spin motion-reduce:animate-none" />
+        {{ t('web.COMMON.loading') }}
+      </div>
+
+      <div
+        v-else-if="backupFailed"
+        class="flex items-center justify-between gap-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 dark:border-red-900/50 dark:bg-red-900/20"
+        role="alert"
+        data-testid="system-backups-error">
+        <span class="text-sm text-red-800 dark:text-red-200">
+          {{ t('web.admin.system.backups.loadError') }}
+        </span>
+        <button
+          type="button"
+          class="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-100 focus:ring-2 focus:ring-red-500 focus:outline-none dark:border-red-800 dark:text-red-200 dark:hover:bg-red-900/40"
+          @click="loadBackups().catch(() => {})">
+          <OIcon
+            collection="heroicons"
+            name="arrow-path"
+            size="4" />
+          {{ t('web.admin.system.retry') }}
+        </button>
+      </div>
+
+      <div
+        v-else-if="backup"
+        class="grid grid-cols-1 gap-4 sm:grid-cols-2"
+        data-testid="system-backups-loaded">
+        <article
+          v-for="job in backup.jobs"
+          :key="job.job"
+          class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900"
+          :data-testid="`backup-job-${job.job}`">
+          <div class="flex items-center justify-between gap-3">
+            <h4 class="font-mono text-sm font-semibold text-gray-900 uppercase dark:text-white">
+              {{ job.job }}
+            </h4>
+            <span
+              class="inline-flex rounded px-2 py-0.5 text-xs font-medium"
+              :class="backupBadgeClass(freshnessFor(job))"
+              :data-testid="`backup-freshness-${job.job}`">
+              {{ t(`web.admin.system.backups.freshness.${freshnessFor(job)}`) }}
+            </span>
+          </div>
+
+          <p
+            v-if="!job.configured"
+            class="mt-3 text-sm text-gray-500 dark:text-gray-400">
+            {{ t('web.admin.system.backups.notConfigured') }}
+          </p>
+
+          <div
+            v-else
+            class="mt-3 space-y-3 text-sm">
+            <dl class="grid grid-cols-2 gap-x-4 gap-y-2">
+              <div>
+                <dt class="text-xs text-gray-500 dark:text-gray-400">
+                  {{ t('web.admin.system.backups.latest') }}
+                </dt>
+                <dd
+                  class="mt-0.5 font-mono text-gray-900 dark:text-white"
+                  :title="utcTimestamp(job.latest?.ts ?? null)">
+                  {{ job.latest?.event ?? '—' }} · {{ relativeAge(job.latest?.ts ?? null) }}
+                </dd>
+              </div>
+              <div>
+                <dt class="text-xs text-gray-500 dark:text-gray-400">
+                  {{ t('web.admin.system.backups.lastOk') }}
+                </dt>
+                <dd
+                  class="mt-0.5 font-mono text-gray-900 dark:text-white"
+                  :title="utcTimestamp(job.last_ok?.ts ?? null)">
+                  {{ relativeAge(job.last_ok?.ts ?? null) }}
+                </dd>
+              </div>
+            </dl>
+
+            <div
+              v-if="job.last_ok?.file"
+              class="rounded border border-gray-200 px-3 py-2 text-xs dark:border-gray-700">
+              <span class="text-gray-500 dark:text-gray-400"
+                >{{ t('web.admin.system.backups.artifact') }}:</span
+              >
+              <span class="ml-1 font-mono text-gray-900 dark:text-white">{{
+                artifactName(job.last_ok.file)
+              }}</span>
+              <span class="ml-1 text-gray-500 dark:text-gray-400"
+                >({{ humanBytes(job.last_ok.bytes) }})</span
+              >
+            </div>
+
+            <span
+              v-if="job.latest?.event === 'fail'"
+              class="inline-flex max-w-full items-center gap-1 rounded bg-red-100 px-2 py-1 font-mono text-xs break-all text-red-800 dark:bg-red-900/40 dark:text-red-200"
+              :data-testid="`backup-failure-${job.job}`">
+              {{ job.latest.unit ?? t('web.admin.system.backups.unknownUnit') }}:
+              {{ job.latest.error ?? t('web.admin.system.backups.unknownError') }}
+            </span>
+          </div>
+        </article>
       </div>
     </section>
 
@@ -459,17 +673,21 @@
         <div class="flex flex-wrap items-center gap-3">
           <span
             class="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium"
-            :class="queue.connection.connected
-              ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200'
-              : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200'"
+            :class="
+              queue.connection.connected
+                ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200'
+                : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200'
+            "
             data-testid="queue-connection">
             <OIcon
               collection="heroicons"
               :name="queue.connection.connected ? 'check-circle' : 'x-circle'"
               size="3" />
-            {{ queue.connection.connected
-              ? t('web.admin.system.queue.connected')
-              : t('web.admin.system.queue.disconnected') }}
+            {{
+              queue.connection.connected
+                ? t('web.admin.system.queue.connected')
+                : t('web.admin.system.queue.disconnected')
+            }}
           </span>
           <span
             v-if="queue.connection.host"
@@ -480,12 +698,21 @@
             class="inline-flex rounded px-2 py-0.5 text-xs font-medium"
             :class="healthBadgeClass(queue.worker_health.status)"
             data-testid="queue-health">
-            {{ t(`web.admin.system.queue.health.${queue.worker_health.status}`, queue.worker_health.status) }}
+            {{
+              t(
+                `web.admin.system.queue.health.${queue.worker_health.status}`,
+                queue.worker_health.status
+              )
+            }}
           </span>
           <span
             v-if="queue.worker_health.active_workers !== undefined"
             class="text-xs text-gray-500 dark:text-gray-400">
-            {{ t('web.admin.system.queue.activeWorkers', { count: queue.worker_health.active_workers }) }}
+            {{
+              t('web.admin.system.queue.activeWorkers', {
+                count: queue.worker_health.active_workers,
+              })
+            }}
           </span>
         </div>
 
@@ -627,9 +854,11 @@
               collection="heroicons"
               :name="brand.fell_back_to_default ? 'exclamation-triangle' : 'check-circle'"
               size="3" />
-            {{ brand.fell_back_to_default
-              ? t('web.admin.system.brand.flags.fellBack.danger')
-              : t('web.admin.system.brand.flags.fellBack.ok') }}
+            {{
+              brand.fell_back_to_default
+                ? t('web.admin.system.brand.flags.fellBack.danger')
+                : t('web.admin.system.brand.flags.fellBack.ok')
+            }}
           </span>
           <span
             class="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium"
@@ -639,9 +868,11 @@
               collection="heroicons"
               :name="brand.boot_vs_live_mismatch ? 'exclamation-triangle' : 'check-circle'"
               size="3" />
-            {{ brand.boot_vs_live_mismatch
-              ? t('web.admin.system.brand.flags.mismatch.danger')
-              : t('web.admin.system.brand.flags.mismatch.ok') }}
+            {{
+              brand.boot_vs_live_mismatch
+                ? t('web.admin.system.brand.flags.mismatch.danger')
+                : t('web.admin.system.brand.flags.mismatch.ok')
+            }}
           </span>
         </div>
 
@@ -668,7 +899,8 @@
         <div
           class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"
           data-testid="brand-resolution">
-          <h4 class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+          <h4
+            class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.system.brand.resolution') }}
           </h4>
           <dl class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
@@ -695,7 +927,8 @@
         <div
           class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"
           data-testid="brand-env-config">
-          <h4 class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+          <h4
+            class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.system.brand.envVsConfig') }}
           </h4>
           <dl class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
@@ -738,7 +971,8 @@
         <div
           class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900"
           data-testid="brand-roots">
-          <h4 class="border-b border-gray-100 px-5 py-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:border-gray-800 dark:text-gray-400">
+          <h4
+            class="border-b border-gray-100 px-5 py-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:border-gray-800 dark:text-gray-400">
             {{ t('web.admin.system.brand.roots.title') }}
           </h4>
           <DataTable
@@ -758,9 +992,11 @@
                   collection="heroicons"
                   :name="row.exists ? 'check-circle' : 'x-circle'"
                   size="3" />
-                {{ row.exists
-                  ? t('web.admin.system.brand.exists.yes')
-                  : t('web.admin.system.brand.exists.no') }}
+                {{
+                  row.exists
+                    ? t('web.admin.system.brand.exists.yes')
+                    : t('web.admin.system.brand.exists.no')
+                }}
               </span>
             </template>
           </DataTable>
@@ -770,7 +1006,8 @@
         <div
           class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"
           data-testid="brand-manifest">
-          <h4 class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+          <h4
+            class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.system.brand.manifest.title') }}
           </h4>
           <dl class="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
@@ -795,9 +1032,11 @@
                     collection="heroicons"
                     :name="brand.manifest.exists ? 'check-circle' : 'x-circle'"
                     size="3" />
-                  {{ brand.manifest.exists
-                    ? t('web.admin.system.brand.exists.yes')
-                    : t('web.admin.system.brand.exists.no') }}
+                  {{
+                    brand.manifest.exists
+                      ? t('web.admin.system.brand.exists.yes')
+                      : t('web.admin.system.brand.exists.no')
+                  }}
                 </span>
               </dd>
             </div>
@@ -830,7 +1069,8 @@
           <div
             class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"
             data-testid="brand-absorbed">
-            <h4 class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+            <h4
+              class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
               {{ t('web.admin.system.brand.absorbed') }}
             </h4>
             <div
@@ -874,7 +1114,8 @@
           <div
             class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900"
             data-testid="brand-overlay-assets">
-            <h4 class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+            <h4
+              class="mb-3 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
               {{ t('web.admin.system.brand.overlayAssets') }}
             </h4>
             <div

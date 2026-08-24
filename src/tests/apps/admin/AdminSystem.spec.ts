@@ -29,6 +29,7 @@ import { createTestI18n } from '@tests/setup';
 const i18n = createTestI18n();
 
 const DB_URL = '/api/colonel/system/database';
+const BACKUPS_URL = '/api/colonel/system/backups';
 const QUEUE_URL = '/api/colonel/queue';
 const REDIS_URL = '/api/colonel/system/redis';
 const BRAND_URL = '/api/colonel/system/brand';
@@ -62,6 +63,43 @@ function dbPayload() {
         mem_fragmentation_ratio: 1.5,
       },
       model_counts: { customers: 42, secrets: 100, receipts: 50 },
+    },
+  };
+}
+
+function backupRecord(overrides: Record<string, unknown> = {}) {
+  return {
+    event: 'ok',
+    ts: 1_699_999_900,
+    host: 'eu-db-01',
+    unit: 'ots-backup-pg.service',
+    job: 'pg',
+    file: '/var/backups/onetimesecret/pg.sql.gz',
+    bytes: '1048576',
+    sha256: 'a'.repeat(64),
+    mode: '',
+    removed: '',
+    candidates: '',
+    duration_secs: '15',
+    error: '',
+    version: '0.2.3',
+    scheduled: 'enabled',
+    ...overrides,
+  };
+}
+
+function backupPayload() {
+  return {
+    shrimp: '',
+    record: {},
+    details: {
+      timestamp: 1_700_000_000,
+      jobs: [
+        { job: 'pg', configured: true, latest: backupRecord(), last_ok: backupRecord() },
+        { job: 'valkey', configured: false, latest: null, last_ok: null },
+        { job: 'prune', configured: false, latest: null, last_ok: null },
+        { job: 'ship', configured: false, latest: null, last_ok: null },
+      ],
     },
   };
 }
@@ -131,6 +169,7 @@ function brandPayload(overrides: Record<string, unknown> = {}) {
 function routeGet(brandOverrides: Record<string, unknown> = {}) {
   mockApi.get.mockImplementation((url: string) => {
     if (url === DB_URL) return Promise.resolve({ data: dbPayload() });
+    if (url === BACKUPS_URL) return Promise.resolve({ data: backupPayload() });
     if (url === QUEUE_URL) return Promise.resolve({ data: queuePayload() });
     if (url === REDIS_URL) return Promise.resolve({ data: redisPayload() });
     if (url === BRAND_URL) return Promise.resolve({ data: brandPayload(brandOverrides) });
@@ -162,18 +201,19 @@ describe('AdminSystem (read-only status read-out — ticket #33)', () => {
   });
   afterEach(() => wrapper?.unmount());
 
-  it('issues the four independent GETs on mount', async () => {
+  it('issues the five independent GETs on mount', async () => {
     routeGet();
     wrapper = mountView(pinia);
     await flushPromises();
 
     expect(mockApi.get).toHaveBeenCalledWith(DB_URL, undefined);
+    expect(mockApi.get).toHaveBeenCalledWith(BACKUPS_URL, undefined);
     expect(mockApi.get).toHaveBeenCalledWith(QUEUE_URL, undefined);
     expect(mockApi.get).toHaveBeenCalledWith(REDIS_URL, undefined);
     expect(mockApi.get).toHaveBeenCalledWith(BRAND_URL, undefined);
   });
 
-  it('renders the loaded database, queue, redis and brand read-outs', async () => {
+  it('renders the loaded database, backup, queue, redis and brand read-outs', async () => {
     routeGet();
     wrapper = mountView(pinia);
     await flushPromises();
@@ -185,6 +225,19 @@ describe('AdminSystem (read-only status read-out — ticket #33)', () => {
     expect(db.text()).toContain('42'); // customers count
     expect(wrapper.find('[data-testid="server-version"]').text()).toContain('8.0.1');
     expect(wrapper.find('[data-testid="system-database-sizes"]').text()).toContain('db0');
+
+    // Backups: latest event + retained last-success artifact, and absent jobs.
+    const backups = wrapper.find('[data-testid="system-backups"]');
+    expect(backups.exists()).toBe(true);
+    expect(wrapper.find('[data-testid="system-backups-loaded"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="backup-job-pg"]').text()).toContain('pg.sql.gz');
+    expect(wrapper.find('[data-testid="backup-failure-pg"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="backup-job-valkey"]').text()).toContain(
+      'web.admin.system.backups.notConfigured'
+    );
+    expect(wrapper.find('[data-testid="backup-freshness-pg"]').attributes('class')).toContain(
+      'bg-green-100'
+    );
 
     // Queue: connection host + per-queue row render.
     const queue = wrapper.find('[data-testid="system-queue"]');
@@ -215,6 +268,7 @@ describe('AdminSystem (read-only status read-out — ticket #33)', () => {
     await flushPromises();
 
     expect(wrapper.find('[data-testid="system-database-error"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="system-backups-error"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="system-queue-error"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="system-redis-error"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="system-redis-json"]').exists()).toBe(false);
@@ -230,9 +284,75 @@ describe('AdminSystem (read-only status read-out — ticket #33)', () => {
     // reflect it. The GET never resolves, so loading persists.
     await flushPromises();
     expect(wrapper.find('[data-testid="system-database-loading"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="system-backups-loading"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="system-queue-loading"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="system-redis-loading"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="system-brand-loading"]').exists()).toBe(true);
+  });
+
+  it('keeps recent last_ok fresh after a failed latest event, but alarms a stale one', async () => {
+    const longError = 'disk full: '.concat('x'.repeat(2_049));
+    const recentFailure = backupPayload();
+    recentFailure.details.jobs[0].latest = backupRecord({
+      event: 'fail',
+      ts: 1_699_999_990,
+      error: longError,
+    });
+    mockApi.get.mockImplementation((url: string) => {
+      if (url === DB_URL) return Promise.resolve({ data: dbPayload() });
+      if (url === BACKUPS_URL) return Promise.resolve({ data: recentFailure });
+      if (url === QUEUE_URL) return Promise.resolve({ data: queuePayload() });
+      if (url === REDIS_URL) return Promise.resolve({ data: redisPayload() });
+      if (url === BRAND_URL) return Promise.resolve({ data: brandPayload() });
+      return Promise.reject(new Error(`unexpected GET ${url}`));
+    });
+    wrapper = mountView(pinia);
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="backup-freshness-pg"]').attributes('class')).toContain(
+      'bg-green-100'
+    );
+    expect(wrapper.find('[data-testid="backup-failure-pg"]').text()).toContain(longError);
+
+    const staleFailure = backupPayload();
+    staleFailure.details.jobs[0].last_ok = backupRecord({ ts: 1_699_900_000 });
+    mockApi.get.mockImplementation((url: string) => {
+      if (url === DB_URL) return Promise.resolve({ data: dbPayload() });
+      if (url === BACKUPS_URL) return Promise.resolve({ data: staleFailure });
+      if (url === QUEUE_URL) return Promise.resolve({ data: queuePayload() });
+      if (url === REDIS_URL) return Promise.resolve({ data: redisPayload() });
+      if (url === BRAND_URL) return Promise.resolve({ data: brandPayload() });
+      return Promise.reject(new Error(`unexpected GET ${url}`));
+    });
+    wrapper.unmount();
+    wrapper = mountView(pinia);
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="backup-freshness-pg"]').attributes('class')).toContain(
+      'bg-red-100'
+    );
+  });
+
+  it('alarms an enabled job when a status timestamp is more than five minutes ahead', async () => {
+    const futureBackup = backupPayload();
+    futureBackup.details.jobs[0].latest = backupRecord({ ts: 1_700_000_301 });
+    mockApi.get.mockImplementation((url: string) => {
+      if (url === DB_URL) return Promise.resolve({ data: dbPayload() });
+      if (url === BACKUPS_URL) return Promise.resolve({ data: futureBackup });
+      if (url === QUEUE_URL) return Promise.resolve({ data: queuePayload() });
+      if (url === REDIS_URL) return Promise.resolve({ data: redisPayload() });
+      if (url === BRAND_URL) return Promise.resolve({ data: brandPayload() });
+      return Promise.reject(new Error(`unexpected GET ${url}`));
+    });
+    wrapper = mountView(pinia);
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="backup-freshness-pg"]').attributes('class')).toContain(
+      'bg-red-100'
+    );
+    expect(wrapper.find('[data-testid="backup-freshness-pg"]').text()).toContain(
+      'web.admin.system.backups.freshness.alarm'
+    );
   });
 
   // The two danger booleans are the reason #3822 exists — assert they read as
