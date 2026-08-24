@@ -90,9 +90,9 @@ module ColonelAPI
             shipped: decimal_or_empty(raw['shipped']),
             remote: text_value(raw['remote']),
             duration_secs: decimal_or_empty(raw['duration_secs']),
-            # The writer bounds `error` at 512 chars, so a conforming record is
-            # never truncated here. The keyspace is writable by the shared
-            # valkey ACL user, so this reader must not relay unbounded text.
+            # The writer bounds `error` at 512 chars. Oversized text is nulled,
+            # not truncated. The keyspace is writable by the shared valkey ACL
+            # user, so this reader must not relay unbounded text.
             error: text_value(raw['error']),
             version: text_value(raw['version'], max_bytes: 128),
             scheduled: enum_value(raw['scheduled'], SCHEDULED_STATES),
@@ -118,7 +118,7 @@ module ColonelAPI
 
         def decimal_or_empty(value)
           return '' if value == ''
-          return unless value.is_a?(String) && value.match?(/\A\d+\z/) && value.length <= 20
+          return unless value.is_a?(String) && value.length <= 20 && value.match?(/\A\d+\z/)
 
           value
         end
