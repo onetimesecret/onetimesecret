@@ -22,10 +22,15 @@
    * This is a dead-end screen the user lands on once and must act on elsewhere;
    * hiding the instruction behind a hover made them work for the one thing the
    * page exists to say. There is still no primary button competing with the
-   * link already in their inbox, and no brand icon distracting from it. The
-   * address is shown as static text, not an editable field — correcting a typo
-   * is what "start over" is for, and an inline edit would fork the flow and
-   * muddy the resend-vs-signup intent.
+   * link already in their inbox. The address is shown as static text, not an
+   * editable field — correcting a typo is what "start over" is for, and an
+   * inline edit would fork the flow and muddy the resend-vs-signup intent.
+   *
+   * The AuthView brand icon is kept (`omitIcon` left at its default): this is
+   * the one auth screen the user reaches straight from a form they just
+   * submitted, and the icon is what makes it read as still-our-site rather than
+   * a dead end. The full-bleed background icon stays suppressed — it competes
+   * with the envelope.
    *
    * The email arrives via browser History state (not the URL): it is PII, and a
    * query string would leak it through history, the Referer header, access logs
@@ -79,7 +84,6 @@
     heading-id="check-email-heading"
     :with-heading="true"
     :with-subheading="false"
-    :omit-icon="true"
     :hide-background-icon="true">
     <template #form>
       <div
