@@ -84,6 +84,15 @@ RSpec.describe Onetime::SecretLifetimePolicy do
       expect(resolve(strategy: :custom, domain: display_domain)).to eq(config_max)
     end
 
+    [nil, 0, Float::NAN, -Float::INFINITY].each do |invalid_limit|
+      it "falls back to the narrower canonical policy for an invalid plan limit: #{invalid_limit.inspect}" do
+        allow(organization).to receive(:limit_for).with('secret_lifetime').and_return(invalid_limit)
+        allow(OT).to receive(:le)
+
+        expect(resolve(strategy: :custom, domain: display_domain)).to eq(canonical_ceiling)
+      end
+    end
+
     it 'falls back to the narrower canonical policy when the owner is unavailable' do
       allow(Onetime::Organization).to receive(:load).with('org-123').and_return(nil)
       allow(OT).to receive(:le)

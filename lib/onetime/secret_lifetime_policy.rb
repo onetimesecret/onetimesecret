@@ -52,7 +52,8 @@ module Onetime
         return unresolved_custom_domain_ceiling(config_max, display_domain) unless organization
 
         plan_limit = organization.limit_for('secret_lifetime')
-        return config_max unless finite_positive?(plan_limit)
+        return config_max if unlimited?(plan_limit)
+        return unresolved_custom_domain_ceiling(config_max, display_domain) unless finite_positive?(plan_limit)
 
         plan_limit = plan_limit.to_i
         if billing_enabled? &&
@@ -96,6 +97,10 @@ module Onetime
 
       def billing_enabled?
         Onetime::BillingConfig.instance.enabled?
+      end
+
+      def unlimited?(value)
+        value == Float::INFINITY
       end
 
       def finite_positive?(value)
