@@ -5,6 +5,7 @@
 //
 //   - absolute http(s) URL  -> <a target="_blank" rel="noopener noreferrer">
 //   - relative path         -> <router-link> (in-app navigation)
+//   - other URL (protocol-relative, mailto, ftp) -> <a> with native navigation
 //   - unset (null/empty)    -> plain text span: the surrounding sentence
 //                              stays grammatical, with no dead anchor and
 //                              no link styling on unclickable text.
@@ -51,6 +52,51 @@ describe('LegalLink', () => {
       expect(link.exists()).toBe(true);
       expect(link.props('to')).toBe('/terms');
       expect(wrapper.text()).toBe('Terms of Service');
+    });
+  });
+
+  describe('other URL (non-http, non-relative)', () => {
+    it.each([
+      ['//example.com/terms', 'protocol-relative URL'],
+      ['mailto:legal@example.com', 'mailto URL'],
+      ['ftp://example.com/terms', 'ftp URL'],
+    ])('renders a native anchor for %s (%s)', (url) => {
+      const wrapper = mount(LegalLink, {
+        props: { url },
+        slots: { default: 'Terms of Service' },
+        global: { stubs: { RouterLink: RouterLinkStub } },
+      });
+
+      const anchor = wrapper.find('a');
+      expect(anchor.exists()).toBe(true);
+      expect(anchor.attributes('href')).toBe(url);
+      expect(anchor.attributes('rel')).toBeUndefined();
+      expect(wrapper.findComponent(RouterLinkStub).exists()).toBe(false);
+    });
+
+    it('passes fallthrough attrs to the anchor', () => {
+      const wrapper = mountComponent('mailto:legal@example.com');
+
+      const anchor = wrapper.find('a');
+      expect(anchor.classes()).toContain('link-style');
+      expect(anchor.attributes('data-testid')).toBe('legal-link');
+    });
+
+    it.each([
+      'javascript:alert(1)',
+      'javascript:void(0)',
+      'data:text/html,<script>alert(1)</script>',
+      'vbscript:msgbox(1)',
+    ])('renders %s as plain text to prevent XSS', (url) => {
+      const wrapper = mount(LegalLink, {
+        props: { url },
+        slots: { default: 'Terms of Service' },
+        global: { stubs: { RouterLink: RouterLinkStub } },
+      });
+
+      expect(wrapper.find('a').exists()).toBe(false);
+      expect(wrapper.findComponent(RouterLinkStub).exists()).toBe(false);
+      expect(wrapper.find('span').exists()).toBe(true);
     });
   });
 
