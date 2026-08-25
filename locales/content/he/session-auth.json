@@ -437,7 +437,7 @@
     "source_hash": "77322879"
   },
   "web.auth.check_email.sent_to": {
-    "text": "שלחנו קישור אימות אל:",
+    "text": "שלחנו קישור אימות לכתובת:",
     "source_hash": "e795f9b7"
   },
   "web.auth.check_email.sent_to_generic": {

@@ -437,7 +437,7 @@
     "source_hash": "77322879"
   },
   "web.auth.check_email.sent_to": {
-    "text": "Ni sendis konfirmligilon al:",
+    "text": "Ni sendis konfirmligilon al la adreso:",
     "source_hash": "e795f9b7"
   },
   "web.auth.check_email.sent_to_generic": {
