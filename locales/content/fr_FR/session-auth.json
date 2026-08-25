@@ -436,13 +436,17 @@
     "text": "Consultez votre messagerie",
     "source_hash": "77322879"
   },
+  "web.auth.check_email.sent_to": {
+    "text": "Nous avons envoyé un lien de vérification à",
+    "source_hash": "e795f9b7"
+  },
   "web.auth.check_email.sent_to_generic": {
     "text": "Nous avons envoyé un lien de vérification à votre adresse e-mail.",
     "source_hash": "4e5510af"
   },
-  "web.auth.check_email.help": {
-    "text": "Nous avons envoyé un lien de vérification à cette adresse — ouvrez l'e-mail et cliquez sur le lien pour activer votre compte.",
-    "source_hash": "8babedc4"
+  "web.auth.check_email.instructions": {
+    "text": "Cliquez sur le lien dans l'e-mail pour activer votre compte.",
+    "source_hash": "389221ed"
   },
   "web.auth.check_email.spam_hint": {
     "text": "Vous ne le trouvez pas ? Vérifiez votre dossier de courrier indésirable.",

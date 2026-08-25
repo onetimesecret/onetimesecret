@@ -436,13 +436,17 @@
     "text": "Tirohia tō īmēra",
     "source_hash": "77322879"
   },
+  "web.auth.check_email.sent_to": {
+    "text": "Kua tukua he hononga manatoko ki:",
+    "source_hash": "e795f9b7"
+  },
   "web.auth.check_email.sent_to_generic": {
     "text": "Kua tukua e mātou he hononga manatoko ki tō wāhitau īmēra.",
     "source_hash": "4e5510af"
   },
-  "web.auth.check_email.help": {
-    "text": "Kua tukua e mātou he hononga manatoko ki tēnei wāhitau — whakatuwherahia te īmēra, ka pāwhiri i te hononga hei whakahohe i tō pūkete.",
-    "source_hash": "8babedc4"
+  "web.auth.check_email.instructions": {
+    "text": "Pāwhiritia te hononga i roto i te īmēra hei whakahohe i tō pūkete.",
+    "source_hash": "389221ed"
   },
   "web.auth.check_email.spam_hint": {
     "text": "Kāore e kitea? Tirohia tō kōpaki tāwaru.",

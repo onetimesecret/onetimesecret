@@ -436,13 +436,17 @@
     "text": "Zkontroluj svůj e-mail",
     "source_hash": "77322879"
   },
+  "web.auth.check_email.sent_to": {
+    "text": "Ověřovací odkaz jsme odeslali na adresu:",
+    "source_hash": "e795f9b7"
+  },
   "web.auth.check_email.sent_to_generic": {
     "text": "Na tvou e-mailovou adresu jsme odeslali ověřovací odkaz.",
     "source_hash": "4e5510af"
   },
-  "web.auth.check_email.help": {
-    "text": "Na tuto adresu jsme odeslali ověřovací odkaz — otevři e-mail a kliknutím na odkaz aktivuj svůj účet.",
-    "source_hash": "8babedc4"
+  "web.auth.check_email.instructions": {
+    "text": "Kliknutím na odkaz v e-mailu aktivuj svůj účet.",
+    "source_hash": "389221ed"
   },
   "web.auth.check_email.spam_hint": {
     "text": "Nemůžeš jej najít? Zkontroluj složku se spamem.",

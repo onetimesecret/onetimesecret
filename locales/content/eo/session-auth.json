@@ -436,13 +436,17 @@
     "text": "Kontrolu vian retpoŝton",
     "source_hash": "77322879"
   },
+  "web.auth.check_email.sent_to": {
+    "text": "Ni sendis konfirmligilon al:",
+    "source_hash": "e795f9b7"
+  },
   "web.auth.check_email.sent_to_generic": {
     "text": "Ni sendis konfirmligilon al via retpoŝtadreso.",
     "source_hash": "4e5510af"
   },
-  "web.auth.check_email.help": {
-    "text": "Ni sendis konfirmligilon al ĉi tiu adreso — malfermu la retmesaĝon kaj klaku la ligilon por aktivigi vian konton.",
-    "source_hash": "8babedc4"
+  "web.auth.check_email.instructions": {
+    "text": "Klaku la ligilon en la retmesaĝo por aktivigi vian konton.",
+    "source_hash": "389221ed"
   },
   "web.auth.check_email.spam_hint": {
     "text": "Ne trovas ĝin? Kontrolu vian spam-dosierujon.",
