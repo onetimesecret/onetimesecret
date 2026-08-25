@@ -125,6 +125,15 @@ RSpec.describe Onetime::Config do
       it 'tolerates a config without footer link groups' do
         expect { normalized(conf_with_legal({})) }.not_to raise_error
       end
+
+      it 'does not mutate a frozen links array when dropping unset entries' do
+        conf  = conf_with_footer(legal: {}, links: default_links.map(&:dup).freeze)
+        links = conf['site']['interface']['ui']['footer_links']['groups'][0]['links']
+
+        expect { normalized(conf) }.not_to raise_error
+        expect(conf['site']['interface']['ui']['footer_links']['groups'][0]['links']).to be_empty
+        expect(links.length).to eq(default_links.length)
+      end
     end
   end
 end

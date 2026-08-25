@@ -31,9 +31,9 @@
   const external = computed(() => !!props.url && isExternalUrl(props.url));
 
   // The unlinked fallback keeps identifying attrs (data-testid, aria-*) but
-  // not the link styling.
+  // drops link styling and link-only attrs, which have no meaning on a span.
   const textAttrs = computed(() => {
-    const { class: _class, ...rest } = attrs;
+    const { class: _class, target: _target, rel: _rel, ...rest } = attrs;
     return rest;
   });
 </script>

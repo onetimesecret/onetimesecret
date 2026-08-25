@@ -1096,7 +1096,9 @@ module Onetime
           link['url'] = legal[legal_key] if legal_key
         end
 
-        links.reject! { |link| !link.is_a?(Hash) || link['url'].to_s.strip.empty? }
+        # Rebuild rather than reject! so a frozen links array can't blow up a
+        # caller that normalizes an already-frozen config.
+        group['links'] = links.reject { |link| !link.is_a?(Hash) || link['url'].to_s.strip.empty? }
       end
     end
 

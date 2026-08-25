@@ -17,7 +17,7 @@ const mountComponent = (url: string | null | undefined) =>
   mount(LegalLink, {
     props: { url },
     slots: { default: 'Terms of Service' },
-    attrs: { class: 'link-style', 'data-testid': 'legal-link' },
+    attrs: { class: 'link-style', 'data-testid': 'legal-link', target: '_blank' },
     global: { stubs: { RouterLink: RouterLinkStub } },
   });
 
@@ -65,12 +65,14 @@ describe('LegalLink', () => {
       expect(span.text()).toBe('Terms of Service');
     });
 
-    it('keeps identifying attrs but drops link styling on the fallback', () => {
+    it('keeps identifying attrs but drops link styling and link-only attrs on the fallback', () => {
       const wrapper = mountComponent(null);
 
       const span = wrapper.find('span');
       expect(span.attributes('data-testid')).toBe('legal-link');
       expect(span.classes()).not.toContain('link-style');
+      expect(span.attributes('target')).toBeUndefined();
+      expect(span.attributes('rel')).toBeUndefined();
     });
   });
 });
