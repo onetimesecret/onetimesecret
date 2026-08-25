@@ -31,14 +31,14 @@ import {
 import * as SentryVue from '@sentry/vue';
 import type { App, Plugin } from 'vue';
 import type { Router, RouteMeta as VueRouteMeta } from 'vue-router';
-import { applyGroupingRules } from './diagnostics/grouping';
-import { collectValuesToRedact, scrubUrlWithValues } from './diagnostics/urlScrubbing';
 import {
   applyActorContext,
   resolveDiagnosticsRef,
   sanitizeEventUser,
   type ActorContextScope,
 } from './diagnostics/actorContext';
+import { applyGroupingRules } from './diagnostics/grouping';
+import { collectValuesToRedact, scrubUrlWithValues } from './diagnostics/urlScrubbing';
 // Re-export scrubbing utilities from dependency-free module for backward compatibility
 export {
   EMAIL_PATTERN,
@@ -692,13 +692,6 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
     // Only the integrations listed here will be used
     integrations,
 
-    // Third-party noise filtering (#4287), consumed by eventFiltersIntegration.
-    // Secret links are opened from email/chat clients, so extension and
-    // in-app-webview errors are an outsized share of events here.
-    ignoreErrors: THIRD_PARTY_IGNORE_ERRORS,
-    denyUrls: THIRD_PARTY_DENY_URLS,
-    allowUrls: FIRST_PARTY_ALLOW_URLS,
-
     /** Session Replay is disabled. See note above. */
     // replaysSessionSampleRate: 0.1, // Capture 10% of the sessions
     // replaysOnErrorSampleRate: 1.0, // Capture 100% of the errors
@@ -712,6 +705,14 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
     // Scrub sensitive URLs from breadcrumbs at capture time
     beforeBreadcrumb: createBeforeBreadcrumbHandler(router),
     ...config.sentry, // includes dsn, environment, etc.
+
+    // Third-party noise filtering (#4287), consumed by eventFiltersIntegration.
+    // Secret links are opened from email/chat clients, so extension and
+    // in-app-webview errors are an outsized share of events here. Keep these
+    // authoritative if the backend Sentry schema later grows matching fields.
+    ignoreErrors: THIRD_PARTY_IGNORE_ERRORS,
+    denyUrls: THIRD_PARTY_DENY_URLS,
+    allowUrls: FIRST_PARTY_ALLOW_URLS,
 
     // Build-time release takes precedence over backend config.
     // This ensures frontend errors match the sourcemaps uploaded during this build,
