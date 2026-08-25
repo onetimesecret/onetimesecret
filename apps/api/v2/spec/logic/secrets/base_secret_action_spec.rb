@@ -1608,9 +1608,13 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
         expect(subject.share_domain).to eq('secrets.acme.com')
       end
 
-      it 'raises Forbidden through raise_concerns and never resolves a domain' do
+      it 'raises Forbidden without resolving the smuggled domain' do
         expect { subject.raise_concerns }.to raise_error(Onetime::Forbidden)
         expect(Onetime::CustomDomain).not_to have_received(:from_display_domain)
+          .with('secrets.acme.com')
+        # TTL policy legitimately resolves the Host domain's owning boundary.
+        expect(Onetime::CustomDomain).to have_received(:from_display_domain)
+          .with(host_domain)
       end
     end
 
@@ -1712,17 +1716,12 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
   # ============================================================================
   # process_ttl — anonymous TTL ceiling (audit 2026-07-29 #4)
   #
-  # The free-tier entitlement gate is guarded by auth_org, so anonymous callers
-  # skip it entirely and clamp only at config ttl_options.max (30 days stock) —
-  # a policy inversion where anonymous got a LONGER TTL than an authenticated
-  # free-tier user. anonymous_max_ttl now enforces a hard product cap:
-  # WithEntitlements::ANONYMOUS_MAX_TTL (7 days), applied on every deployment
-  # including billing-disabled ones. config ttl_options.max and the free-tier
-  # secret_lifetime limit (TTL_MAX_ANONYMOUS, billing-enabled only) can lower
-  # it further but never raise it. The clamp is silent for non-browser API
-  # callers: the web dropdown now filters over-ceiling durations itself
-  # (usePrivacyOptions.ts ttlCeiling), but curl/SDK callers can still POST an
-  # over-ceiling ttl, and rejecting those loudly is a v3 contract decision.
+  # Authentication state alone is not the policy boundary. Canonical-host
+  # guests use the configured anonymous ceiling (7 days by default). Guests on
+  # a branded custom host use the domain owner organization's plan lifetime
+  # (normally 14/30 days), because the tenant is the accountable storage owner.
+  # Both remain bounded by config ttl_options.max. The clamp is silent for
+  # non-browser API callers; the web dropdown receives the same resolved value.
   # ============================================================================
   describe '#process_ttl anonymous TTL ceiling (audit 2026-07-29 item 4)' do
     let(:anon_session) do
@@ -1740,8 +1739,8 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
         metadata: { organization_context: {} },
       )
     end
-    # The hard product cap for anonymous secrets (7 days). Nothing an operator
-    # configures may raise an anonymous grant above it.
+    # Shipped canonical-host guest ceiling (7 days). Custom-domain guests do
+    # not use this value after tenant ownership resolves.
     let(:anon_cap) { Onetime::Models::Features::WithEntitlements::ANONYMOUS_MAX_TTL }
     # The authenticated free-tier ceiling (14 days): what the loud entitlement
     # gate uses. Only referenced to prove anonymous stays at or below it.
@@ -1920,6 +1919,55 @@ RSpec.describe 'V2 BaseSecretAction config path bug' do
 
         expect(subject).not_to have_received(:require_entitlement!)
         expect(subject.ttl).to eq(43_200)
+      end
+
+      context 'on a branded custom domain' do
+        let(:display_domain) { 'secrets.example.com' }
+        let(:domain) { instance_double(Onetime::CustomDomain, org_id: 'org-custom') }
+        let(:organization) { instance_double(Onetime::Organization) }
+
+        before do
+          stub_config_ttl_max(30 * 86_400)
+          allow(Onetime::CustomDomain).to receive(:from_display_domain)
+            .with(display_domain).and_return(domain)
+          allow(Onetime::Organization).to receive(:load)
+            .with('org-custom').and_return(organization)
+        end
+
+        def build_custom_domain_guest(ttl:)
+          custom_strategy = double(
+            'StrategyResult',
+            session: anon_session,
+            user: nil,
+            auth_method: :noauth,
+            metadata: {
+              organization_context: {},
+              domain_strategy: :custom,
+              display_domain: display_domain,
+            },
+          )
+          V2ConfigTestAction.new(custom_strategy, { 'secret' => { 'ttl' => ttl } })
+        end
+
+        it 'uses the domain owner 14-day lifetime instead of the canonical 7-day ceiling' do
+          allow(organization).to receive(:limit_for)
+            .with('secret_lifetime').and_return(14 * 86_400)
+
+          subject = build_custom_domain_guest(ttl: (30 * 86_400).to_s)
+
+          expect(subject.ttl).to eq(14 * 86_400)
+        end
+
+        it 'uses the domain owner 30-day extended lifetime instead of the canonical ceiling' do
+          allow(organization).to receive(:limit_for)
+            .with('secret_lifetime').and_return(30 * 86_400)
+          allow(organization).to receive(:can?)
+            .with('extended_default_expiration').and_return(true)
+
+          subject = build_custom_domain_guest(ttl: (30 * 86_400).to_s)
+
+          expect(subject.ttl).to eq(30 * 86_400)
+        end
       end
     end
 

@@ -121,8 +121,9 @@ module V1
     # declare these as attr_accessor but don't receive a strategy_result
     # (unlike the main Logic::Base), so we bridge the gap here.
     #
-    # Must be called after construction but before raise_concerns, since
-    # validate_share_domain -> custom_domain? reads domain_strategy.
+    # Creation actions also pass these values into the constructor because TTL
+    # policy is resolved during process_params. This post-construction bridge is
+    # retained for the remaining V1 actions whose domain checks run later.
     def apply_domain_context(logic)
       logic.domain_strategy = req.env['onetime.domain_strategy']
       logic.display_domain  = req.env['onetime.display_domain']
