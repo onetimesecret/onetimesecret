@@ -159,10 +159,13 @@ RABBITMQ_VERIFY_PEER is set to an unrecognized boolean
 
 The release removes a hardcoded 30-day TTL clamp. Checked against M-7's measurements:
 
-- **Anonymous ceiling is unchanged at 7 days** — `site.secret_options.ttl_max_anonymous` defaults to
-  `7.days` (`lib/onetime/config.rb:67`), and a live probe requesting `ttl=99999999999` still clamps
-  to `604800`. M-7's reproduction (~16 KB of 7-day-persistent Redis per unauthenticated request)
-  therefore **stands exactly as measured**.
+- **The canonical-host guest ceiling is unchanged at 7 days** —
+  `site.secret_options.ttl_max_anonymous` defaults to `7.days`
+  (`lib/onetime/config.rb:67`), and the canonical-host live probe requesting
+  `ttl=99999999999` still clamps to `604800`. This measurement does not describe
+  branded custom-domain creation: those guests use the domain owner organization's
+  14/30-day lifetime policy. M-7's canonical-host reproduction (~16 KB of
+  7-day-persistent Redis per unauthenticated request) therefore stands as measured.
 - The global ceiling is now `30.days` (`config.rb:61`) for plan-entitled callers. That raises the
   authenticated per-secret retention 4×, which amplifies the *authenticated* abuse case of the same
   missing limiter — but M-7 is filed on the unauthenticated path, and that number did not move.
