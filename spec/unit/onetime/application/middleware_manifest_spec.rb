@@ -104,6 +104,7 @@ RSpec.describe 'Middleware manifest (characterization)' do
       'Onetime::Middleware::AdminNetworkIsolation',
       'Rack::RequestId',
       'Onetime::Middleware::NormalizeContentType',
+      'Onetime::Middleware::ValidateMultipart',
       'Rack::Parser',
       'Onetime::Session',
       'Onetime::Middleware::SessionSkip',
