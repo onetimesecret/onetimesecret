@@ -398,6 +398,33 @@ function scrubEventMessages(event: ErrorEvent): ErrorEvent {
 }
 
 /**
+ * Scrubs stack-frame locations through the URL pattern net.
+ *
+ * Code injected by extensions/webviews at document scope gets its frames
+ * attributed to the page URL itself — which on a secret link IS the secret
+ * path. Observed live (FRONTEND-155/154/184): events arrived with
+ * `request.url` correctly `[REDACTED]` while the frame filename carried the
+ * raw `/secret/<62-char-key>` verbatim. Our own bundle frames
+ * (/dist/assets/*.js) contain no sensitive segments and pass through
+ * unchanged, so server-side sourcemap resolution is unaffected.
+ *
+ * Runs in beforeSend, i.e. AFTER eventFiltersIntegration's allow/deny
+ * checks — scrubbing here cannot cause a first-party event to be dropped.
+ */
+function scrubStackFrameUrls(event: ErrorEvent): void {
+  for (const exception of event.exception?.values ?? []) {
+    for (const frame of exception.stacktrace?.frames ?? []) {
+      if (frame.filename) {
+        frame.filename = scrubUrlWithPatterns(frame.filename);
+      }
+      if (frame.abs_path) {
+        frame.abs_path = scrubUrlWithPatterns(frame.abs_path);
+      }
+    }
+  }
+}
+
+/**
  * Creates a Sentry beforeSend handler that scrubs sensitive data from events.
  * Handles both URL scrubbing (route-param based) and message scrubbing (regex-based).
  *
@@ -411,6 +438,10 @@ function createBeforeSendHandler(router: Router) {
 
     // Scrub exception messages and standalone messages (regex-based)
     scrubEventMessages(event);
+
+    // Scrub stack-frame filenames/paths (page-URL-attributed frames can carry
+    // the secret path)
+    scrubStackFrameUrls(event);
 
     // Collect route-param values for the current route (opt-out-governed).
     const sortedValues = collectCurrentRouteValues(router);

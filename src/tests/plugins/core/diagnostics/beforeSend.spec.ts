@@ -272,6 +272,79 @@ describe('beforeSend handler', () => {
     });
   });
 
+  describe('stack frame scrubbing', () => {
+    // Code injected at document scope (webviews, extensions, Firefox iOS
+    // reader mode) gets frames attributed to the PAGE URL — on a secret link
+    // that is the secret path itself. Observed live in FRONTEND-155/154/184:
+    // request.url arrived redacted while frame filenames carried the raw key.
+    const id62 = 'abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz';
+
+    it('scrubs secret paths from frame filename and abs_path', () => {
+      setupWithRouter({ params: {}, meta: {} });
+      const handler = getBeforeSend();
+
+      const event: ErrorEvent = {
+        exception: {
+          values: [
+            {
+              value: 'boom',
+              stacktrace: {
+                frames: [
+                  {
+                    filename: `/secret/${id62}`,
+                    abs_path: `https://eu.onetimesecret.com/secret/${id62}`,
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      };
+
+      const result = handler(event) as ErrorEvent;
+
+      const frame = result.exception?.values?.[0].stacktrace?.frames?.[0];
+      expect(frame?.filename).toBe('/secret/[REDACTED]');
+      expect(frame?.abs_path).toBe('https://eu.onetimesecret.com/secret/[REDACTED]');
+    });
+
+    it('leaves first-party bundle frames untouched (sourcemap resolution)', () => {
+      setupWithRouter({ params: {}, meta: {} });
+      const handler = getBeforeSend();
+
+      const bundleUrl = 'https://eu.onetimesecret.com/dist/assets/main.BbCc7LVY.js';
+      const event: ErrorEvent = {
+        exception: {
+          values: [
+            {
+              value: 'boom',
+              stacktrace: {
+                frames: [{ filename: '/dist/assets/main.BbCc7LVY.js', abs_path: bundleUrl }],
+              },
+            },
+          ],
+        },
+      };
+
+      const result = handler(event) as ErrorEvent;
+
+      const frame = result.exception?.values?.[0].stacktrace?.frames?.[0];
+      expect(frame?.filename).toBe('/dist/assets/main.BbCc7LVY.js');
+      expect(frame?.abs_path).toBe(bundleUrl);
+    });
+
+    it('tolerates exceptions without stacktraces', () => {
+      setupWithRouter({ params: {}, meta: {} });
+      const handler = getBeforeSend();
+
+      const event: ErrorEvent = {
+        exception: { values: [{ value: 'no stack' }] },
+      };
+
+      expect(() => handler(event)).not.toThrow();
+    });
+  });
+
   describe('third-party noise filter wiring (#4287)', () => {
     it('passes ignoreErrors, denyUrls and allowUrls to the client options', () => {
       setupWithRouter({ params: {}, meta: {} });
