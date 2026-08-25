@@ -18,6 +18,27 @@ site:
   #   enforce - refuse to boot on mismatch
   #   off     - skip the check (escape hatch for multi-tenant datastores)
   secret_verifier_mode: <%= ENV['SECRET_VERIFIER_MODE'] || 'warn' %>
+  # Legal & policy URLs (first-class config, #4278)
+  #
+  # Single authority for every surface that links a legal document: the
+  # signup consent sentence and the branded reveal footer read terms_url and
+  # privacy_url from the bootstrap payload, and the "legal" footer link group
+  # below resolves all six from here (normalize_legal in lib/onetime/config.rb)
+  # rather than reading these env vars a second time.
+  #
+  # All six default to unset. A URL that is unset or blank renders nothing —
+  # no placeholder, no dead link. Absolute URLs (https://...) open in a new
+  # tab; relative paths (e.g. /terms) resolve in-app. Values are JSON-quoted
+  # so operator URLs with YAML-significant characters survive parsing, and a
+  # blank env assignment (TERMS_URL=) resolves to nil rather than pinning an
+  # explicit empty value.
+  legal:
+    terms_url: <%= (v = ENV['TERMS_URL'].to_s).empty? ? nil : v.to_json %>
+    privacy_url: <%= (v = ENV['PRIVACY_URL'].to_s).empty? ? nil : v.to_json %>
+    dpa_url: <%= (v = ENV['DPA_URL'].to_s).empty? ? nil : v.to_json %>
+    cookie_url: <%= (v = ENV['COOKIE_URL'].to_s).empty? ? nil : v.to_json %>
+    aup_url: <%= (v = ENV['AUP_URL'].to_s).empty? ? nil : v.to_json %>
+    security_url: <%= (v = ENV['SECURITY_URL'].to_s).empty? ? nil : v.to_json %>
   # API and UI Configuration
   interface:
     ui:
@@ -143,17 +164,26 @@ site:
         enabled: <%= ENV['FOOTER_LINKS'] == 'true' %>
         # Organized groups of links
         groups:
+          # The "legal" group is a projection of site.legal above: each link's
+          # URL resolves from there (normalize_legal in lib/onetime/config.rb),
+          # and an entry whose URL is unset is dropped from the payload — no
+          # placeholder, no dead link. Set the URLs via TERMS_URL, PRIVACY_URL,
+          # DPA_URL, COOKIE_URL, AUP_URL, SECURITY_URL (or site.legal directly).
           - name: legal
             i18n_key: web.footer.legals
             links:
               - text: Terms of Service
                 i18n_key: web.layout.terms_of_service
-                # Replace with your own terms URL or use relative path like /terms
-                url: <%= ENV['TERMS_URL']  %>
               - text: Privacy Policy
                 i18n_key: web.layout.privacy_policy
-                # Replace with your own privacy URL or use relative path like /privacy
-                url: <%= ENV['PRIVACY_URL']  %>
+              - text: Data Processing Agreement
+                i18n_key: web.footer.dpa
+              - text: Cookie Policy
+                i18n_key: web.footer.cookie_policy
+              - text: Acceptable Use Policy
+                i18n_key: web.footer.acceptable_use
+              - text: Security
+                i18n_key: web.footer.security
           - name: resources
             i18n_key: web.footer.resources
             links:

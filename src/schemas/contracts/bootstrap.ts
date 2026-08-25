@@ -81,6 +81,25 @@ export const footerLinksConfigSchema = z.object({
 });
 
 /**
+ * Legal & policy URLs from `site.legal` (#4278) — first-class config, one
+ * value per document, shared by every consumer: the signup consent links,
+ * the branded reveal footer, and the footer "legal" link group (which the
+ * backend resolves from the same block).
+ *
+ * Each field is null when not configured. Consumers render no link at all
+ * for a null URL — never a placeholder, never a dead anchor. Absolute URLs
+ * open in a new tab; relative paths resolve in-app via router-link.
+ */
+export const legalLinksSchema = z.object({
+  terms_url: z.string().nullable().default(null),
+  privacy_url: z.string().nullable().default(null),
+  dpa_url: z.string().nullable().default(null),
+  cookie_url: z.string().nullable().default(null),
+  aup_url: z.string().nullable().default(null),
+  security_url: z.string().nullable().default(null),
+});
+
+/**
  * Masthead layout knobs (presentation only). Brand identity — the logo
  * asset, its alt text, and the product name — comes from the flat
  * `brand_*` bootstrap fields (the `brand:` config block), not the header
@@ -511,6 +530,7 @@ export type Message = z.infer<typeof messageSchema>;
 export type FooterLink = z.infer<typeof footerLinkSchema>;
 export type FooterGroup = z.infer<typeof footerGroupSchema>;
 export type FooterLinksConfig = z.infer<typeof footerLinksConfigSchema>;
+export type LegalLinks = z.infer<typeof legalLinksSchema>;
 export type WorkspaceLinksConfig = z.infer<typeof workspaceLinksConfigSchema>;
 export type HeaderLogo = z.infer<typeof headerLogoSchema>;
 export type HeaderNavigation = z.infer<typeof headerNavigationSchema>;
@@ -695,6 +715,10 @@ export const bootstrapSchema = z.object({
   support_host: z.string().default(''),
   checkout_host: z.string().default(''),
   ui: uiInterfaceSchema.default(uiInterfaceSchema.parse({})),
+  // First-class legal/policy URLs (site.legal, #4278). Always emitted by
+  // ConfigSerializer ({} on a bare config), so `.default()` keeps the type
+  // non-optional; the inner parse({}) fills each field's null default.
+  legal: legalLinksSchema.default(legalLinksSchema.parse({})),
   available_jurisdictions: z.array(z.string()).default([]),
 
   // Frontend rendering config for the disabled-homepage view. All knobs

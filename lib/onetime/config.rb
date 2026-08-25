@@ -624,6 +624,10 @@ module Onetime
       normalize_brand(conf)
       normalize_header_layout(conf)
 
+      # Normalize site.legal and resolve the footer "legal" group from it,
+      # before deep_freeze so consumers only ever read final values (#4278).
+      normalize_legal(conf)
+
       # Ensure array jurisdiction entries have display_name_i18n_key
       # (String format already converted to Array above, before check_deprecations)
       jurisdictions = conf.dig('features', 'regions', 'jurisdictions')
@@ -1030,6 +1034,71 @@ module Onetime
         next if legacy_logo[legacy_key].nil? || !logo[new_key].nil?
 
         logo[new_key] = legacy_logo[legacy_key]
+      end
+    end
+
+    # The URL keys of the site.legal block (#4278). Each defaults to unset;
+    # blank and whitespace-only values collapse to nil so consumers can rely
+    # on nil meaning "not configured" (render nothing, never a dead link).
+    LEGAL_URL_KEYS = %w[terms_url privacy_url dpa_url cookie_url aup_url security_url].freeze
+
+    # Maps a legal footer-group link (by its i18n key) to the site.legal key
+    # that backs it. The footer "legal" group is a projection of site.legal:
+    # the entries in config.defaults.yaml carry no URL of their own, and
+    # normalize_legal resolves them here so the group can never disagree with
+    # the first-class config.
+    LEGAL_FOOTER_LINKS = {
+      'web.layout.terms_of_service' => 'terms_url',
+      'web.layout.privacy_policy' => 'privacy_url',
+      'web.footer.dpa' => 'dpa_url',
+      'web.footer.cookie_policy' => 'cookie_url',
+      'web.footer.acceptable_use' => 'aup_url',
+      'web.footer.security' => 'security_url',
+    }.freeze
+
+    # Normalize the site.legal block and resolve the footer "legal" group
+    # from it (#4278). site.legal is the single authority for legal/policy
+    # URLs: the signup consent links and the branded reveal footer read it
+    # from the bootstrap payload, and the footer group resolves from it here
+    # rather than reading the same env vars a second time.
+    #
+    # Within the "legal" footer group, a link that already has a URL keeps it
+    # (operator config wins); a link without one adopts the site.legal value
+    # for its i18n key; links still without a URL are dropped so an
+    # unconfigured policy is absent from the payload rather than rendered as
+    # a dead placeholder.
+    #
+    # @param conf [Hash] the merged configuration (mutated in place)
+    # @return [void]
+    def normalize_legal(conf)
+      site  = (conf['site'] ||= {})
+      legal = (site['legal'] ||= {})
+
+      LEGAL_URL_KEYS.each do |key|
+        value      = legal[key]
+        legal[key] = value.is_a?(String) && !value.strip.empty? ? value.strip : nil
+      end
+
+      groups = site.dig('interface', 'ui', 'footer_links', 'groups')
+      return unless groups.is_a?(Array)
+
+      groups.each do |group|
+        next unless group.is_a?(Hash) && group['name'] == 'legal'
+
+        links = group['links']
+        next unless links.is_a?(Array)
+
+        links.each do |link|
+          next unless link.is_a?(Hash)
+          next if link['url'].is_a?(String) && !link['url'].strip.empty?
+
+          legal_key   = LEGAL_FOOTER_LINKS[link['i18n_key']]
+          link['url'] = legal[legal_key] if legal_key
+        end
+
+        # Rebuild rather than reject! so a frozen links array can't blow up a
+        # caller that normalizes an already-frozen config.
+        group['links'] = links.reject { |link| !link.is_a?(Hash) || link['url'].to_s.strip.empty? }
       end
     end
 

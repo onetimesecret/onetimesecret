@@ -365,6 +365,27 @@ RSpec.describe Core::Views::ConfigSerializer do
       end
     end
 
+    describe 'legal bootstrap exposure (#4278)' do
+      it 'copies site.legal from view_vars to output' do
+        legal     = { 'terms_url' => 'https://example.com/terms', 'privacy_url' => nil }
+        view_vars = base_view_vars.merge('site' => base_view_vars['site'].merge('legal' => legal))
+
+        expect(described_class.serialize(view_vars)['legal']).to eq(legal)
+      end
+
+      it 'defaults to an empty hash when site.legal is absent' do
+        expect(described_class.serialize(base_view_vars)['legal']).to eq({})
+      end
+
+      it 'passes the safe-site whitelist so it reaches serialize at all' do
+        # view_vars['site'] is filtered through safe_site_fields upstream
+        # (InitializeViewVars#build_safe_site_config); a key missing from that
+        # whitelist silently serializes as empty for every real request even
+        # though direct serialize calls (like the ones above) see it.
+        expect(Core::Views::InitializeViewVars.safe_site_fields).to include('legal')
+      end
+    end
+
     describe 'brand_* bootstrap exposure' do
       let(:brand_view_vars) do
         base_view_vars.merge(

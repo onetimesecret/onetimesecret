@@ -33,6 +33,23 @@ const siteSupportSchema = z.object({
 });
 
 /**
+ * Legal & policy URLs (`site.legal`, #4278)
+ *
+ * First-class config for the documents linked from signup consent, the
+ * branded reveal footer, and the footer "legal" link group. Each field is
+ * nullable — unset means the corresponding link is absent everywhere it
+ * would render (no placeholder, no dead anchor).
+ */
+const siteLegalSchema = z.object({
+  terms_url: nullableString,
+  privacy_url: nullableString,
+  dpa_url: nullableString,
+  cookie_url: nullableString,
+  aup_url: nullableString,
+  security_url: nullableString,
+});
+
+/**
  * Session configuration
  *
  * Controls browser cookie and server-side session behavior.
@@ -166,6 +183,7 @@ const siteSchema = z.object({
    */
   secret_verifier_mode: z.enum(['warn', 'enforce', 'off']).optional(),
   interface: z.any().optional(), // Defined in ui.ts for mutable config
+  legal: siteLegalSchema.optional(),
   secret_options: siteSecretOptionsSchema.optional(),
   authentication: siteAuthenticationSchema.optional(),
   support: siteSupportSchema.optional(),
@@ -184,6 +202,7 @@ export type SiteAdminConfig = z.infer<typeof siteAdminSchema>;
 export {
   siteSchema,
   siteAuthenticationSchema,
+  siteLegalSchema,
   siteSecretOptionsSchema,
   passphraseSchema,
   passwordGenerationSchema,

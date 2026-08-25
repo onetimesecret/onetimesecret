@@ -48,6 +48,10 @@ module Core
         diagnostics = view_vars['diagnostics']
 
         output['ui']             = site.dig('interface', 'ui')
+        # First-class legal/policy URLs (site.legal, #4278). Consumed by the
+        # signup consent links and the branded reveal footer; nil fields mean
+        # "not configured" and render no link at all.
+        output['legal']          = site['legal'] || {}
         output['api']            = {
           'enabled' => site.dig('interface', 'api', 'enabled') != false,
           'guest_routes' => site.dig('interface', 'api', 'guest_routes') || {},
@@ -189,6 +193,7 @@ module Core
             'frontend_development' => nil,
             'frontend_host' => nil,
             'homepage_mode' => nil,
+            'legal' => nil,
             'billing_enabled' => nil,
             'checkout_host' => nil,
             'regions' => nil,

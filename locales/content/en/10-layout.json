@@ -47,6 +47,21 @@
     "text": "Legals",
     "content_hash": "0a410c78"
   },
+  "web.footer.dpa": {
+    "text": "Data Processing Agreement",
+    "context": "Footer link to the DPA legal document",
+    "content_hash": "112eae6b"
+  },
+  "web.footer.cookie_policy": {
+    "text": "Cookie Policy",
+    "context": "Footer link to the cookie policy legal document",
+    "content_hash": "ee290b3d"
+  },
+  "web.footer.acceptable_use": {
+    "text": "Acceptable Use Policy",
+    "context": "Footer link to the acceptable use policy legal document",
+    "content_hash": "34aa287a"
+  },
   "web.feedback.when_you_submit_feedback_well_see": {
     "text": "When you submit feedback, we'll see:",
     "content_hash": "fe77172e"
