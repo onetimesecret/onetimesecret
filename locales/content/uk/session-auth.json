@@ -436,13 +436,17 @@
     "text": "Перевірте свою електронну пошту",
     "source_hash": "77322879"
   },
+  "web.auth.check_email.sent_to": {
+    "text": "Ми надіслали посилання для підтвердження на адресу:",
+    "source_hash": "e795f9b7"
+  },
   "web.auth.check_email.sent_to_generic": {
     "text": "Ми надіслали посилання для підтвердження на Вашу email-адресу.",
     "source_hash": "4e5510af"
   },
-  "web.auth.check_email.help": {
-    "text": "Ми надіслали посилання для підтвердження на цю адресу — відкрийте лист і натисніть посилання, щоб активувати Ваш обліковий запис.",
-    "source_hash": "8babedc4"
+  "web.auth.check_email.instructions": {
+    "text": "Натисніть посилання в листі, щоб активувати обліковий запис.",
+    "source_hash": "389221ed"
   },
   "web.auth.check_email.spam_hint": {
     "text": "Не можете його знайти? Перевірте папку зі спамом.",

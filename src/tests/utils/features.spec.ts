@@ -11,6 +11,7 @@ import {
   isPasswordOnlyMode,
   isEmailAuthOnlyMode,
   isWebAuthnOnlyMode,
+  isPasswordSignInOffered,
   getRestrictTo,
   hasPasswordlessMethods,
   getAuthFeatures,
@@ -550,6 +551,31 @@ describe('features utility', () => {
     it('returns false when features is undefined', () => {
       getBootstrapValueMock.mockReturnValue(undefined);
       expect(isWebAuthnOnlyMode()).toBe(false);
+    });
+  });
+
+  describe('isPasswordSignInOffered', () => {
+    it('returns true when no restriction is active', () => {
+      getBootstrapValueMock.mockReturnValue({});
+      expect(isPasswordSignInOffered()).toBe(true);
+    });
+
+    it('returns true when restrict_to is "password"', () => {
+      getBootstrapValueMock.mockReturnValue({ restrict_to: 'password' });
+      expect(isPasswordSignInOffered()).toBe(true);
+    });
+
+    it.each(['email_auth', 'webauthn', 'sso'])(
+      'returns false when restrict_to is "%s"',
+      (restrictTo) => {
+        getBootstrapValueMock.mockReturnValue({ restrict_to: restrictTo });
+        expect(isPasswordSignInOffered()).toBe(false);
+      }
+    );
+
+    it('returns true when features is undefined', () => {
+      getBootstrapValueMock.mockReturnValue(undefined);
+      expect(isPasswordSignInOffered()).toBe(true);
     });
   });
 

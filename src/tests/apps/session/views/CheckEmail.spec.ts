@@ -9,6 +9,8 @@
  *    src/router/README.md),
  *  - sanitizes that address for display and falls back to generic copy when it
  *    is absent, non-string, or implausible (tampered state),
+ *  - frames the address with on-page copy (what was sent above it, what to do
+ *    below it) rather than hiding the explanation behind a help icon,
  *  - prefills the resend form with the known address in compact mode, and
  *  - preserves billing/redirect params on the "start over" link while
  *    deliberately NOT carrying the email back into a URL.
@@ -70,9 +72,7 @@ describe('CheckEmail.vue', () => {
    * does not touch window.history, so the two are seeded independently, and the
    * afterEach hook clears the shared window.history.state between tests.
    */
-  const createWrapper = async (
-    opts: { email?: unknown; query?: Record<string, string> } = {}
-  ) => {
+  const createWrapper = async (opts: { email?: unknown; query?: Record<string, string> } = {}) => {
     router = createRouter({
       history: createMemoryHistory(),
       routes: [
@@ -118,24 +118,30 @@ describe('CheckEmail.vue', () => {
     expect(router.currentRoute.value.fullPath).toBe('/check-email');
   });
 
-  it('shows a help affordance beside the address carrying the details', async () => {
+  it('frames the address with the copy above and below it', async () => {
     wrapper = await createWrapper({ email: 'tom@myspace.com' });
 
-    // The explanatory copy moved onto a help icon (aria-label + custom hover
-    // tooltip, not the native title attribute) so the screen stays a single
-    // instruction: check this inbox.
-    const help = wrapper.find('[data-testid="check-email-help"]');
-    expect(help.exists()).toBe(true);
-    expect(help.attributes('aria-label')).toBe('web.auth.check_email.help');
-    expect(help.attributes('title')).toBeUndefined();
-    expect(wrapper.text()).toContain('web.auth.check_email.help');
+    // The explanation is on the page, not behind a hover: what was sent above
+    // the address, what to do about it below.
+    expect(wrapper.text()).toContain('web.auth.check_email.sent_to');
+    expect(wrapper.text()).toContain('web.auth.check_email.instructions');
 
-    // The trigger is linked to the tooltip for assistive tech: aria-describedby
-    // points at the tooltip element's id, and that element carries role="tooltip".
-    expect(help.attributes('aria-describedby')).toBe('check-email-help-tooltip');
-    const tooltip = wrapper.find('#check-email-help-tooltip');
-    expect(tooltip.exists()).toBe(true);
-    expect(tooltip.attributes('role')).toBe('tooltip');
+    // No help icon competing with it, and no generic fallback copy.
+    expect(wrapper.find('[data-testid="check-email-help"]').exists()).toBe(false);
+    expect(wrapper.text()).not.toContain('web.auth.check_email.sent_to_generic');
+  });
+
+  it('still states the next step when the address is unknown', async () => {
+    wrapper = await createWrapper({});
+
+    // The generic line replaces the address, but the instruction is unchanged —
+    // it is the one thing the page exists to say.
+    expect(wrapper.text()).toContain('web.auth.check_email.sent_to_generic');
+    expect(wrapper.text()).toContain('web.auth.check_email.instructions');
+    // The "sent to <address>" label has no address to introduce, so it is gone
+    // (asserted structurally: its key is a prefix of sent_to_generic's, which
+    // IS rendered here, so a substring check on the text would always pass).
+    expect(wrapper.find('[data-testid="check-email-address"]').exists()).toBe(false);
   });
 
   it('falls back to generic copy when no email is in state (fresh entry: shared link / new tab)', async () => {

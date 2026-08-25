@@ -8,7 +8,7 @@ import { SIGNIN_VERIFIED_STATE_KEY } from '@/shared/constants/signin';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useProductIdentity } from '@/shared/stores/identityStore';
 import { useLanguageStore } from '@/shared/stores/languageStore';
-import { hasPasswordlessMethods } from '@/utils/features';
+import { hasPasswordlessMethods, isPasswordSignInOffered } from '@/utils/features';
 import { storeToRefs } from 'pinia';
 import { ref, computed, onMounted, type ComponentPublicInstance } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -51,7 +51,12 @@ const authNotice = ref<string | null>(null);
 //   - verifiedNotice: drives a persistent success banner (vs. the transient toast)
 //   - initialAuthMode: default to the password tab. Re-entering the password
 //     they just chose is less redundant than another email link and confirms it
-//     was typed correctly the first time.
+//     was typed correctly the first time. Only when a password tab actually
+//     exists: under restrict_to 'email_auth' / 'webauthn' the password form is
+//     withheld, and a 'password' default there would resolve to whichever tab
+//     is first rather than to a deliberate choice. Send no default instead and
+//     let the selector apply its own precedence (saved preference, then first
+//     tab).
 //
 // It is a one-shot flag: we clear it from history state right after reading, so a
 // manual refresh does not re-show the banner. Clearing touches only history
@@ -64,7 +69,7 @@ const verifiedState = (typeof window !== 'undefined' ? window.history.state : nu
   | null;
 const justVerified = verifiedState?.[SIGNIN_VERIFIED_STATE_KEY] === true;
 const verifiedNotice = ref(justVerified);
-const initialAuthMode = justVerified ? 'password' : undefined;
+const initialAuthMode = justVerified && isPasswordSignInOffered() ? 'password' : undefined;
 if (justVerified && typeof window !== 'undefined') {
   // Drop just our one-shot key; spread preserves vue-router's reserved state
   // keys (back / current / forward / replaced / position / scroll).
@@ -165,6 +170,21 @@ const authMethodSelectorRef = ref<ComponentPublicInstance<{ currentMode: AuthMod
 const handleModeChange = (_mode: AuthMode) => {
   // Footer is now consistent across modes, no need to track
 };
+
+// A magic link was just issued: the auth section replaces its whole form with a
+// "check your email" panel, so this page has stopped being "sign in" and become
+// "go to your inbox". Retire both one-shot banners:
+//   - verifiedNotice: a past-tense "you can now sign in" above a present-tense
+//     "check your email" reads as a contradiction.
+//   - authNotice: link_verification_sent is itself a "check your inbox" prompt,
+//     so leaving it stacks two inbox instructions for two different emails.
+// No route change occurs here to remount this view and clear them on its own.
+// Deliberately one-way: "try a different email" returns the form, but both are
+// one-shot notices that have now been superseded, so they do not come back.
+const handleLinkSent = () => {
+  verifiedNotice.value = false;
+  authNotice.value = null;
+};
 </script>
 
 <template>
@@ -247,7 +267,8 @@ const handleModeChange = (_mode: AuthMode) => {
           ref="authMethodSelectorRef"
           :locale="languageStore.currentLocale ?? ''"
           :initial-mode="initialAuthMode"
-          @mode-change="handleModeChange" />
+          @mode-change="handleModeChange"
+          @link-sent="handleLinkSent" />
       </template>
     </template>
     <template #footer>

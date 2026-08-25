@@ -436,13 +436,17 @@
     "text": "Verifica o teu e-mail",
     "source_hash": "77322879"
   },
+  "web.auth.check_email.sent_to": {
+    "text": "Enviámos um link de verificação para",
+    "source_hash": "e795f9b7"
+  },
   "web.auth.check_email.sent_to_generic": {
     "text": "Enviámos um link de verificação para o teu endereço de e-mail.",
     "source_hash": "4e5510af"
   },
-  "web.auth.check_email.help": {
-    "text": "Enviámos um link de verificação para este endereço — abre o e-mail e clica no link para ativar a tua conta.",
-    "source_hash": "8babedc4"
+  "web.auth.check_email.instructions": {
+    "text": "Clica no link do e-mail para ativar a tua conta.",
+    "source_hash": "389221ed"
   },
   "web.auth.check_email.spam_hint": {
     "text": "Não o encontras? Verifica a tua pasta de spam.",

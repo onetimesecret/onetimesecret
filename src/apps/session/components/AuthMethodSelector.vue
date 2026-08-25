@@ -41,6 +41,8 @@
 
   const emit = defineEmits<{
     (e: 'mode-change', mode: AuthMode): void;
+    /** Forwarded from PasswordlessFirstSignIn — see its `link-sent` docs. */
+    (e: 'link-sent'): void;
   }>();
 
   // Custom domains force SSO-only authentication
@@ -202,7 +204,8 @@
         :magic-links-enabled="restrictedMethod === 'email_auth'"
         :webauthn-enabled="restrictedMethod === 'webauthn'"
         :password-enabled="false"
-        @mode-change="handleModeChange" />
+        @mode-change="handleModeChange"
+        @link-sent="emit('link-sent')" />
     </template>
 
     <!-- Standard auth mode: password/passwordless forms with optional SSO -->
@@ -214,7 +217,8 @@
         :initial-mode="initialMode"
         :magic-links-enabled="magicLinksEnabled"
         :webauthn-enabled="webauthnEnabled"
-        @mode-change="handleModeChange" />
+        @mode-change="handleModeChange"
+        @link-sent="emit('link-sent')" />
 
       <!-- Password-only mode when no passwordless methods enabled -->
       <SignInForm

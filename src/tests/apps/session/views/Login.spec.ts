@@ -35,6 +35,9 @@ vi.mock('@/apps/session/components/AuthMethodSelector.vue', () => ({
     name: 'AuthMethodSelector',
     // Expose initialMode so tests can assert the password-tab default is passed.
     props: ['locale', 'initialMode'],
+    // Declared so a test can drive the mode-takeover signal the real component
+    // emits when a magic link is issued.
+    emits: ['mode-change', 'link-sent'],
     template:
       '<div data-testid="auth-method-selector" :data-initial-mode="initialMode">AuthMethodSelector</div>',
   }),
@@ -53,9 +56,15 @@ vi.mock('@/apps/session/components/AuthView.vue', () => ({
   }),
 }));
 
-// Mock feature detection
+// Mock feature detection. isPasswordSignInOffered is a spy so cases can put the
+// page on a restrict_to domain where the password form is withheld.
+const { mockIsPasswordSignInOffered } = vi.hoisted(() => ({
+  mockIsPasswordSignInOffered: vi.fn(() => true),
+}));
+
 vi.mock('@/utils/features', () => ({
   hasPasswordlessMethods: () => false,
+  isPasswordSignInOffered: mockIsPasswordSignInOffered,
 }));
 
 vi.mock('@/shared/components/icons/OIcon.vue', () => ({
@@ -127,6 +136,7 @@ describe('Login.vue auth_error handling', () => {
     // handed-over verified flag AND the address bar (the query-param cleanup
     // cases seed it) so neither bleeds into the next case.
     window.history.replaceState(null, '', '/');
+    mockIsPasswordSignInOffered.mockReturnValue(true);
   });
 
   describe('error code handling', () => {
@@ -417,6 +427,21 @@ describe('Login.vue auth_error handling', () => {
       ).toBeUndefined();
     });
 
+    it('retires the banner once the auth section reports a magic link was sent', async () => {
+      wrapper = await createWrapper({}, {}, verifiedState);
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="signin-verified-notice"]').exists()).toBe(true);
+
+      // The auth section has replaced its form with "check your email": a
+      // past-tense "you can now sign in" above that reads as a contradiction,
+      // and no route change happens here to remount this view and clear it.
+      wrapper.findComponent({ name: 'AuthMethodSelector' }).vm.$emit('link-sent');
+      await nextTick();
+
+      expect(wrapper.find('[data-testid="signin-verified-notice"]').exists()).toBe(false);
+    });
+
     it('does not show the banner or force a mode without the verified flag', async () => {
       wrapper = await createWrapper({});
       await flushPromises();
@@ -425,6 +450,59 @@ describe('Login.vue auth_error handling', () => {
       const selector = wrapper.find('[data-testid="auth-method-selector"]');
       // No contextual override — the selector falls back to its own default.
       expect(selector.attributes('data-initial-mode')).toBeUndefined();
+    });
+
+    it('sends no mode default where the password form is withheld', async () => {
+      // restrict_to 'email_auth' / 'webauthn': there is no password tab to land
+      // on, so a 'password' default would silently resolve to whatever tab is
+      // first. Send nothing and let the selector's own precedence decide.
+      mockIsPasswordSignInOffered.mockReturnValue(false);
+
+      wrapper = await createWrapper({}, {}, verifiedState);
+      await flushPromises();
+
+      // The banner still belongs — only the tab default is context-dependent.
+      expect(wrapper.find('[data-testid="signin-verified-notice"]').exists()).toBe(true);
+      const selector = wrapper.find('[data-testid="auth-method-selector"]');
+      expect(selector.attributes('data-initial-mode')).toBeUndefined();
+    });
+  });
+
+  // ---------------------------------------------------------------------
+  // Informational notices (auth_notice query param)
+  // ---------------------------------------------------------------------
+
+  describe('auth_notice handling', () => {
+    it('shows the notice banner for a known code and strips the param', async () => {
+      wrapper = await createWrapper({ auth_notice: 'link_verification_sent' });
+      await flushPromises();
+
+      const notice = wrapper.find('[data-testid="signin-auth-notice"]');
+      expect(notice.exists()).toBe(true);
+      expect(notice.text()).toContain('web.login.notices.link_verification_sent');
+      expect(window.location.search).not.toContain('auth_notice');
+    });
+
+    it('ignores an unrecognized notice code', async () => {
+      wrapper = await createWrapper({ auth_notice: 'not_a_real_notice' });
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="signin-auth-notice"]').exists()).toBe(false);
+    });
+
+    it('retires the notice once the auth section reports a magic link was sent', async () => {
+      wrapper = await createWrapper({ auth_notice: 'link_verification_sent' });
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="signin-auth-notice"]').exists()).toBe(true);
+
+      // link_verification_sent is itself a "check your inbox" prompt: keeping it
+      // above the magic-link panel stacks two inbox instructions for two
+      // different emails.
+      wrapper.findComponent({ name: 'AuthMethodSelector' }).vm.$emit('link-sent');
+      await nextTick();
+
+      expect(wrapper.find('[data-testid="signin-auth-notice"]').exists()).toBe(false);
     });
   });
 });

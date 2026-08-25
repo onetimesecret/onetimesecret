@@ -48,6 +48,16 @@ type AuthMode = (typeof VALID_AUTH_MODES)[number];
 
 const emit = defineEmits<{
   (e: 'mode-change', mode: AuthMode): void;
+  /**
+   * A magic link was just issued. This is a mode takeover, not a form result:
+   * the sent-state panel below replaces the whole tab group, so the page stops
+   * being "sign in" and becomes "go to your inbox". Ancestors that render
+   * page-level notices alongside this component need that signal — a notice
+   * describing the sign-in page (e.g. Login.vue's post-verification banner)
+   * reads as a contradiction once the takeover happens, and no route change
+   * occurs here to re-evaluate it.
+   */
+  (e: 'link-sent'): void;
 }>();
 
 const SIGNIN_MODE_KEY = 'onetimeSigninMode';
@@ -226,7 +236,11 @@ const handlePasswordSubmit = async () => {
 };
 
 const handleMagicLinkSubmit = async () => {
-  await requestMagicLink(email.value);
+  // A true return is exactly the condition that flips `magicLinkSent` and swaps
+  // the tab group for the sent-state panel.
+  if (await requestMagicLink(email.value)) {
+    emit('link-sent');
+  }
 };
 
 const handleWebAuthnSubmit = async () => {
