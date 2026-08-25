@@ -278,7 +278,7 @@ test.describe('Brand Customization - Console Error Monitoring', () => {
     });
 
     // Navigate through public pages
-    const publicPaths = ['/', '/about', '/info/privacy'];
+    const publicPaths = ['/', '/about'];
 
     for (const path of publicPaths) {
       const response = await page.goto(path);

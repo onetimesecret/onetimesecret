@@ -7,6 +7,7 @@ import {
   type BootstrapPayload,
   type FooterLinksConfig,
   type HeaderConfig,
+  type LegalLinks,
   type UiCapabilities,
 } from '@/schemas/contracts/bootstrap';
 import {
@@ -199,6 +200,13 @@ export const useBootstrapStore = defineStore('bootstrap', {
     footerLinksConfig: (state): FooterLinksConfig | undefined => state.ui.footer_links,
 
     /**
+     * Legal & policy URLs from site.legal (#4278). Sibling to
+     * footerLinksConfig. Each field is null when not configured; consumers
+     * hide the corresponding link entirely rather than render a dead anchor.
+     */
+    legalUrls: (state): LegalLinks => state.legal,
+
+    /**
      * UI capability flags controlling optional form-field visibility.
      * Each flag is undefined when unset; consumers treat undefined as enabled.
      */
@@ -376,7 +384,7 @@ export const useBootstrapStore = defineStore('bootstrap', {
      * server configuration fields that don't change per-user.
      *
      * Note: We intentionally preserve server config fields (authentication,
-     * ui, features, regions, secret_options, diagnostics) because:
+     * ui, legal, features, regions, secret_options, diagnostics) because:
      * 1. They're set by the server at startup and don't vary by user
      * 2. Resetting them would temporarily show permissive defaults
      * 3. They get re-hydrated on full page reload anyway
@@ -398,6 +406,7 @@ export const useBootstrapStore = defineStore('bootstrap', {
         api: this.api,
         authentication: this.authentication,
         ui: this.ui,
+        legal: this.legal,
         features: this.features,
         regions: this.regions,
         secret_options: this.secret_options,
@@ -414,6 +423,7 @@ export const useBootstrapStore = defineStore('bootstrap', {
         state.api = preservedConfig.api;
         state.authentication = preservedConfig.authentication;
         state.ui = preservedConfig.ui;
+        state.legal = preservedConfig.legal;
         state.features = preservedConfig.features;
         state.regions = preservedConfig.regions;
         state.secret_options = preservedConfig.secret_options;

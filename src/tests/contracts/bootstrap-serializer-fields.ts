@@ -53,6 +53,8 @@ export const CONFIG_SERIALIZER_FIELDS = [
   'frontend_development',
   'frontend_host',
   'homepage_mode',
+  // First-class legal/policy URLs from site.legal (#4278)
+  'legal',
   'billing_enabled',
   'regions',
   'regions_enabled',

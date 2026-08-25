@@ -2,11 +2,12 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
+import LegalLink from '@/shared/components/common/LegalLink.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useAuth } from '@/shared/composables/useAuth';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import type { Jurisdiction } from '@/schemas/shapes/config';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
 export interface Props {
@@ -25,6 +26,12 @@ const bootstrapStore = useBootstrapStore();
 const { signup, isLoading, error, fieldError, clearErrors } = useAuth();
 
 const { t } = useI18n();
+
+// Legal URLs from site.legal (#4278). When a URL is unset, LegalLink
+// renders the document name as plain text — the consent sentence still
+// reads correctly, and the agreement still binds.
+const termsUrl = computed(() => bootstrapStore.legalUrls.terms_url);
+const privacyUrl = computed(() => bootstrapStore.legalUrls.privacy_url);
 
 // Prefill email from query param (e.g., from invitation flow)
 const emailFromQuery = typeof route.query.email === 'string' ? route.query.email : '';
@@ -230,21 +237,21 @@ const handleSubmit = async () => {
           for="terms-agreement"
           class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
           {{ t('web.auth.terms.agree_prefix') }}
-          <router-link
-            to="/info/terms"
+          <LegalLink
+            :url="termsUrl"
             class="font-medium text-brand-600 hover:text-brand-500
                      dark:text-brand-400 dark:hover:text-brand-300"
             data-testid="signup-terms-link">
             {{ t('web.layout.terms_of_service') }}
-          </router-link>
-          and
-          <router-link
-            to="/info/privacy"
+          </LegalLink>
+          {{ t('web.COMMON.and') }}
+          <LegalLink
+            :url="privacyUrl"
             class="font-medium text-brand-600 hover:text-brand-500
                      dark:text-brand-400 dark:hover:text-brand-300"
             data-testid="signup-privacy-link">
             {{ t('web.layout.privacy_policy') }}
-          </router-link>
+          </LegalLink>
         </label>
       </div>
     </div>
