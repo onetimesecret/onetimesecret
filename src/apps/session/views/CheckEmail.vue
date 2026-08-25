@@ -82,6 +82,7 @@
   <AuthView
     :heading="t('web.auth.check_email.title')"
     heading-id="check-email-heading"
+    :omit-icon="true"
     :with-heading="true"
     :with-subheading="false"
     :hide-background-icon="true">
