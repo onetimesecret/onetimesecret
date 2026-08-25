@@ -132,14 +132,19 @@ module Billing
 
         # Find the target organization for this checkout
         #
-        # Steps 1-3 (resolve an EXISTING org) live in
-        # Billing::CheckoutTargetResolver, shared with the
-        # checkout.session.completed webhook handler, which processes the same
-        # checkout and must not disagree about its target. That shared module
-        # also documents why ownership is required at step 3 and nowhere else,
-        # and why archived status is rejected at step 1 but not at step 2.
-        # Step 4 — what to create when nothing resolves — stays here because
-        # the two handlers genuinely differ (see below).
+        # All four steps live in Billing::CheckoutTargetResolver, shared with
+        # the checkout.session.completed webhook handler, which processes the
+        # same checkout and must not disagree about its target. That module
+        # documents why ownership is required at step 3 and nowhere else, why
+        # archived status is rejected at step 1 but not at step 2, and why
+        # step 4 creates twice before giving up.
+        #
+        # Step 4 used to diverge: this path went straight to
+        # create_billing_workspace while the webhook twin ran
+        # Auth::Operations::CreateDefaultWorkspace first, so whichever surface
+        # handled a given checkout decided the workspace's name and whether a
+        # cross-region PendingFederatedSubscription got claimed. Both now share
+        # {CheckoutTargetResolver.create_checkout_workspace} (#4212).
         #
         # @param customer [Onetime::Customer] The customer
         # @param metadata [Stripe::StripeObject] Subscription metadata
@@ -156,16 +161,9 @@ module Billing
 
           # 4. Create (self-healing fallback — no owned, live org to apply this
           # paid subscription to).
-          #
-          # Divergence from the webhook twin
-          # (CheckoutCompleted#find_target_organization), which tries
-          # CreateDefaultWorkspace first and so claims a pending federated
-          # subscription that this path skips. Not deliberate — see the
-          # FEDERATION GAP note there for the mechanism, and #4212 for the
-          # unification this is waiting on.
           billing_logger.warn "#{LOG_LABEL} Creating default org during checkout (unexpected)",
             extid: customer.extid
-          ::Billing::CheckoutTargetResolver.create_billing_workspace(
+          ::Billing::CheckoutTargetResolver.create_checkout_workspace(
             customer,
             logger: billing_logger,
             label: LOG_LABEL,

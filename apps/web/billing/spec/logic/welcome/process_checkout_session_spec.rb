@@ -404,9 +404,9 @@ RSpec.describe 'Billing::Logic::Welcome::ProcessCheckoutSession', :billing do
           expect(received).to eq(stripe_customer_id)
         end
 
-        it 'passes create_billing_workspace the same String' do
+        it 'passes the shared step-4 create the same String' do
           received = :never_called
-          allow(::Billing::CheckoutTargetResolver).to receive(:create_billing_workspace)
+          allow(::Billing::CheckoutTargetResolver).to receive(:create_checkout_workspace)
             .and_wrap_original do |original, cust, **kwargs|
               received = kwargs[:stripe_customer_id]
               original.call(cust, **kwargs)

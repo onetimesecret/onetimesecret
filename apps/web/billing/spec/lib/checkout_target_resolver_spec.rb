@@ -88,8 +88,72 @@ RSpec.describe Billing::CheckoutTargetResolver, :billing do
     org
   end
 
+  def create_step4_for(label, cust: customer, stripe_id: stripe_customer_id)
+    org = described_class.create_checkout_workspace(
+      cust,
+      logger: logger,
+      label: label,
+      stripe_customer_id: stripe_id,
+    )
+    created_organizations << org
+    org
+  end
+
   def live_owned_count
     described_class.owned_live_orgs(customer).length
+  end
+
+  # =======================================================================
+  # Step 4, shared.
+  #
+  # It used to be per-surface: the webhook ran CreateDefaultWorkspace first
+  # and the redirect went straight to create_billing_workspace, so the same
+  # checkout produced a different workspace name and a different
+  # federated-subscription outcome depending on which surface handled it
+  # (#4212). These examples pin the single policy both now use.
+  # =======================================================================
+  describe 'shared step 4 (create_checkout_workspace)' do
+    it 'gives both surfaces the same workspace for the same checkout' do
+      redirect = create_step4_for('[ProcessCheckoutSession]')
+      webhook  = create_step4_for('[CheckoutCompleted]')
+
+      expect(webhook.objid).to eq(redirect.objid)
+      expect(live_owned_count).to eq(1)
+    end
+
+    # The canonical create refuses this customer: it counts ANY organization,
+    # archived included. Without the fallback their paid subscription has
+    # nowhere to land and is dropped on the floor.
+    it 'falls back to the billing create when the customer has only archived orgs' do
+      org = create_step4_for('[CheckoutCompleted]')
+
+      expect(org).to be_a(Onetime::Organization)
+      expect(org.archived?).to be false
+      expect(org.stripe_customer_id).to eq(stripe_customer_id)
+    end
+
+    it 'uses the canonical create when the customer has no organizations at all' do
+      fresh = create_test_customer(email: "resolver-fresh-#{SecureRandom.hex(4)}@example.com")
+
+      org = create_step4_for(
+        '[CheckoutCompleted]',
+        cust: fresh,
+        stripe_id: "cus_test_#{SecureRandom.hex(4)}",
+      )
+
+      expect(org.display_name).to eq('Default Workspace')
+      expect(org.is_default).to be true
+    end
+
+    # The claim belongs to the federated webhook path, not to a surface that
+    # is about to apply a paid local subscription to this very workspace.
+    it 'declines the federated-subscription claim' do
+      expect(Auth::Operations::CreateDefaultWorkspace).to receive(:new)
+        .with(hash_including(claim_pending_federation: false))
+        .and_call_original
+
+      create_step4_for('[CheckoutCompleted]')
+    end
   end
 
   describe 'concurrent completion of the same checkout (redirect + webhook)' do
