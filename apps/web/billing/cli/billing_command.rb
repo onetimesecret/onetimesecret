@@ -53,14 +53,9 @@ module Onetime
             bin/ots billing test create-customer  Create test customer with card
             bin/ots billing test trigger-webhook  Trigger test webhook event
 
-          Analytics & Links:
+          Analytics:
             bin/ots billing sigma queries      List Sigma queries
             bin/ots billing sigma run          Execute Sigma query
-            bin/ots billing payment-links      List payment links
-            bin/ots billing payment-links create    Create payment link
-            bin/ots billing payment-links update    Update payment link
-            bin/ots billing payment-links show      Show payment link details
-            bin/ots billing payment-links archive   Archive payment link
 
           Coupons & Promotion Codes:
             bin/ots billing coupons                  List all Stripe coupons
