@@ -271,8 +271,8 @@ export default defineConfig(({ command: _command }) => ({
     manifest: isAdminBuild ? '.vite/manifest-admin.json' : true,
     rolldownOptions: {
       input: isAdminBuild
-        ? { admin: 'src/admin.ts' } // isolated Colonel admin console
-        : { main: 'src/main.ts' }, // customer bundle
+        ? { admin: 'admin.ts' } // isolated Colonel admin console
+        : { main: 'main.ts' }, // customer bundle
       output: {
         // Enforce single chunk output (replaces deprecated inlineDynamicImports)
         codeSplitting: false,
