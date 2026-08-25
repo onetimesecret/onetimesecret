@@ -180,7 +180,7 @@ jobs:
           download-artifacts: 'false'
 
       - name: Setup tmate session
-        uses: mxschmitt/action-tmate@c0afd6f790e3a5564914980036ebf83216678101 # v3
+        uses: mxschmitt/action-tmate@35b54afac29c97fb54faba5b513f8fbd1882f113 # v3.24
         if: inputs.debug_enabled == true
         with:
           detached: true
@@ -359,7 +359,7 @@ jobs:
 
       - name: Post PR comment
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             const body = process.env.SUMMARY_BODY;

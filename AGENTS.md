@@ -96,6 +96,11 @@ starts the backing services itself if they aren't up
 type-check need no services or lane: run them via pnpm directly.
 Details: `tests/lanes/README.md`.
 
+The shell scripts CI runs (`scripts/ci/`, `.github/scripts/`) are tested
+outside the lane runner — they touch no datastore and no Ruby. Run
+`scripts/tests/run.sh` for those, and `scripts/check-shell-lint.sh` for
+shellcheck/actionlint. Both also run in the `Static analysis` workflow.
+
 **Dev-environment worktrees**: The `.test-mode` sentinel file marks a
 repo checkout that has loaded the test environment. Do not run tests
 unless `.test-mode` already exists.

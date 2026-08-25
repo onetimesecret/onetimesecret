@@ -76,12 +76,11 @@ module V2::Logic
         # Standalone / billing-disabled installs are unaffected —
         # STANDALONE_ENTITLEMENTS (organization/features/with_plan_entitlements.rb)
         # includes audit_logs. Grant audit_logs on every plan that should read
-        # a shared receipt index (etc/examples/billing.example.yaml grants it on
-        # identity_plus_v1; its commented-out team_plus_v1 tier lists it too),
-        # then re-sync the catalog:
-        # `bin/ots billing catalog sync` (push → pull → materialize). Editing
-        # billing.yaml alone changes nothing at runtime — effective
-        # entitlements come from the materialized plan cache.
+        # a shared receipt index, then re-sync the catalog: `bin/ots billing
+        # catalog sync` (push → pull → materialize) — editing billing.yaml
+        # alone changes nothing at runtime. The example catalog grants it to
+        # identity_plus_v1; grant it to each plan that should expose this
+        # shared activity.
         require_entitlement!('audit_logs') if scope == :org
 
         # Validate domain access if domain scope requested

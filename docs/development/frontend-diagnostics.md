@@ -39,12 +39,55 @@ Tree-shaken explicit list: `breadcrumbs`, `globalHandlers`, `linkedErrors`,
 URL), `eventFilters` (noise reduction), `browserApiErrors` (full async stack
 traces), `functionToString`, `browserTracing({ router })`.
 
-## Tags
+## Actor context and tags
+
+For authenticated sessions, the bootstrap payload can include
+`diagnostics_ref`. It is a single-key block — `{ "actor_ref": "<16 lowercase
+hex>" }` — and the client sets Sentry `user.id` to `actor_ref`. Nothing else:
+no tag accompanies it. It sends no direct identifier such as an email address
+or customer ID, but the stable pseudonymous reference is still potentially
+personal data.
+
+`actor_ref` is a keyed one-way digest of the customer's external identifier
+(extid), derived server-side with this installation's `ACCOUNT_ID_SECRET`.
+There is no scope, residency, or federation axis: the ref means "this customer
+record, on this install". Separately provisioned regional records therefore do
+not correlate by default — correlation would require the same secret and the
+same customer record, which is what copying `ACCOUNT_ID_SECRET` between
+installations would produce. Do not copy it.
+
+The correlation subject is the customer RECORD, not the person: the ref
+survives an email change and does not re-link an account that was deleted and
+re-created. Rotating `ACCOUNT_ID_SECRET` re-keys every ref and breaks
+correlation with prior events; the discontinuity ages out of Sentry retention.
+
+For anonymous sessions the block is absent, and absence is the signal — the
+client clears user context and mints no fallback id. Malformed bootstrap data
+(unknown key, wrong ref shape, a legacy block still carrying the retired
+`actor_scope`) fails closed the same way.
 
 On the base scope: `service: web`, `site_host` (display domain),
 `jurisdiction` (from bootstrap regions). Per-event indexed tags via the
 `context` argument of `captureException` — see `TAG_FIELDS` in
 diagnostics.service.ts (`errorType`, `schema`, `planid`, `role`, ...).
+
+Organization correlation is not active. The current Colonel organization-detail
+schema discards the backend `organization_ref` field, and no frontend code
+attaches an organization tag to Sentry.
+
+## Issue grouping
+
+Schema-validation events whose messages include a schema name receive a
+fingerprint based on that name. Axios-shaped request errors whose original
+exception has `config.url` receive a fingerprint of the request method, the
+path normalized by the existing URL scrubbers, and an outcome. The outcome is
+the HTTP status when available, otherwise a coarse `aborted`, `network`, or
+error-class value.
+
+This does not resolve arbitrary route templates: only paths covered by the
+existing scrubbers are normalized. Errors without `config.url`, schema errors
+without a schema name, and events that already set a fingerprint retain
+Sentry's default or upstream grouping.
 
 ## Scrubbing
 

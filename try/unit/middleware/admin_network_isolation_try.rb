@@ -87,7 +87,8 @@ require_relative '../../../lib/onetime/middleware/admin_network_isolation'
 # nothing caught it because the default test config leaves the gate inert.
 class TestAdminNetworkIsolation < Onetime::Middleware::AdminNetworkIsolation
   public :admin_surface?, :colonel_shell?, :colonel_api?, :request_path, :allowed?,
-    :host_gate_active?, :network_gate_active?, :host_allowed?, :normalize_host, :detected_host
+    :host_gate_active?, :network_gate_active?, :route_requirement_met?, :host_allowed?,
+    :normalize_host, :detected_host
 
   def allowed_hosts
     @allowed_hosts
@@ -1234,8 +1235,30 @@ Rack::DetectHost.result_field_name == @orig_detected_field
 
 ## both gates active - the middleware says so
 @both = build_mw(hosts: ['admin.example.com'], cidrs: ['10.0.0.0/8'])
-[@both.host_gate_active?, @both.network_gate_active?]
-#=> [true, true]
+[@both.host_gate_active?, @both.network_gate_active?, @both.route_requirement_met?]
+#=> [true, true, true]
+
+## a passing request carries the verdict consumed by network=admin routes
+@route_env = admin_env(script_name: '/api/colonel', path_info: '/system/proxy-headers',
+                       client_ip: '10.0.0.5', detected_host: 'admin.example.com')
+@both.call(@route_env)
+@route_env[Onetime::Middleware::AdminNetworkIsolation::ROUTE_REQUIREMENT_ENV_KEY]
+#=> true
+
+## canonical host fallback does not satisfy an explicit route requirement
+@fallback = build_mw(hosts: [], cidrs: ['10.0.0.0/8'], site_host: 'admin.example.com')
+[@fallback.host_gate_active?, @fallback.network_gate_active?, @fallback.route_requirement_met?]
+#=> [true, true, false]
+
+## an inactive CIDR gate does not satisfy an explicit route requirement
+@host_only = build_mw(hosts: ['admin.example.com'], cidrs: [])
+[@host_only.host_gate_active?, @host_only.network_gate_active?, @host_only.route_requirement_met?]
+#=> [true, false, false]
+
+## an explicit host wildcard disables the host half of the route requirement
+@wildcard = build_mw(hosts: ['*'], cidrs: ['10.0.0.0/8'])
+[@wildcard.host_gate_active?, @wildcard.network_gate_active?, @wildcard.route_requirement_met?]
+#=> [false, true, false]
 
 ## host pass + CIDR pass -> through to the auth layers (200)
 status_for(@both, 'admin.example.com', client_ip: '10.0.0.5')

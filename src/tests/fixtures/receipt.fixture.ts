@@ -579,7 +579,6 @@ export const mockSecretResponse = {
   details: {
     continue: false,
     show_secret: false,
-    correct_passphrase: false,
     display_lines: 1,
     one_liner: true,
     is_owner: false,
@@ -595,7 +594,6 @@ export const mockSecretRevealed = {
   details: {
     ...mockSecretResponse.details,
     show_secret: true,
-    correct_passphrase: true,
     is_owner: false,
   },
 };
@@ -604,7 +602,6 @@ export const mockSecretDetails = {
   continue: false,
   is_owner: false,
   show_secret: false,
-  correct_passphrase: false,
   display_lines: 1,
   one_liner: true,
 };

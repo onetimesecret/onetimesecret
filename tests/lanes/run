@@ -594,11 +594,17 @@ fi
 # the workflow owns service lifecycle): LANES_NO_AUTOSTART=1.
 port_open() { (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null; }
 
-# A machine can have both Docker Desktop and Podman installed. Prefer Podman
-# when it owns the live test RabbitMQ container; otherwise Docker would try to
-# bind ports already held by Podman rather than recreate the stale container.
+# A machine can have both Docker Desktop and Podman installed, and an
+# installed CLI says nothing about a reachable daemon: a docker whose active
+# context points at a dead Desktop socket passes `command -v` and then fails
+# the autostart with a connection error while a healthy podman sits unused.
+# So candidates are filtered by daemon liveness (`<runtime> info`, ~1s worst
+# case against a dead local socket), with one override ahead of that: prefer
+# Podman when it owns the live test RabbitMQ container, because Docker would
+# try to bind ports already held by Podman rather than recreate the stale
+# container.
 compose_runtime() {
-  local podman_rabbitmq=''
+  local runtime podman_rabbitmq=''
   if command -v podman >/dev/null 2>&1; then
     podman_rabbitmq="$(env ${_lanes_daemon_env[@]+"${_lanes_daemon_env[@]}"} \
       podman ps -q --filter 'name=ots-test-rabbitmq-1' 2>/dev/null || true)"
@@ -607,13 +613,15 @@ compose_runtime() {
       return
     fi
   fi
-  if command -v docker >/dev/null 2>&1; then
-    printf '%s' docker
-  elif command -v podman >/dev/null 2>&1; then
-    printf '%s' podman
-  else
-    return 1
-  fi
+  for runtime in docker podman; do
+    if command -v "${runtime}" >/dev/null 2>&1 &&
+       env ${_lanes_daemon_env[@]+"${_lanes_daemon_env[@]}"} \
+         "${runtime}" info >/dev/null 2>&1; then
+      printf '%s' "${runtime}"
+      return
+    fi
+  done
+  return 1
 }
 
 compose_up() {  # remaining arguments go to `compose up`
@@ -642,7 +650,12 @@ for p in ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"}; do port_open "$p" || missi
 if [[ $missing -eq 1 && -z "${LANES_NO_AUTOSTART:-}" ]]; then
   echo "[lane:${LANE}] test services not reachable; starting compose.test.yml" >&2
   if ! compose_up --wait -d; then
-    echo "error: docker/podman not found or unavailable; start test services manually:" >&2
+    echo "error: could not start test services with compose; start test services manually:" >&2
+    if command -v podman >/dev/null 2>&1 &&
+       ! env ${_lanes_daemon_env[@]+"${_lanes_daemon_env[@]}"} \
+           podman info >/dev/null 2>&1; then
+      echo "  podman machine start   # podman is installed but its daemon is not answering" >&2
+    fi
     echo "  docker compose -f compose.test.yml up --wait -d" >&2
     exit 69
   fi
@@ -1078,8 +1091,53 @@ if [[ ${SKIP_CODEGEN} -eq 0 && ${#ONLY[@]} -eq 0 && -n "${LANES_CODEGEN:-}" ]]; 
   builtin unset _lanes_gen
 fi
 
+# ── Mid-run service-loss epilogue ────────────────────────────────────────
+# The preflight above proves the services were up when the run STARTED. When
+# one dies mid-run (a container-VM crash takes the test valkey with it), the
+# suite surfaces the loss as dozens of ordinary-looking spec failures — a
+# triage session over a failure set that means nothing. The exec'd process
+# is the last code that can tell the difference, so instead of exec'ing the
+# task command directly, exec a shell that runs it as a child, and on a
+# nonzero exit re-probes the same ports the preflight verified: any port
+# that closed since preflight converts the whole result to one line and the
+# infra exit code (69), matching every other services-unavailable exit here.
+#
+# The epilogue is builtins only — echo, and the /dev/tcp probe port_open
+# uses — so it adds no PATH dependence, defines no functions (nothing for
+# spec/unit/lanes/hermetic_boundary_spec.rb's function-table assertion to
+# see: an unexported function would not reach the task child anyway), and
+# prints nothing on the success path. The task command runs with the exact
+# argv and `env -u`-stripped environment it received before; the only
+# behavioral delta is one shell level between env and the task.
+#
+# Probing only on nonzero exit is deliberate: a service that dies after the
+# last spec passed did not invalidate anything, and a green run must stay
+# byte-identical to what it was.
+_lanes_epilogue='
+  _lane="$1"; shift
+  _ports=()
+  while [[ $# -gt 0 && "$1" != "--" ]]; do _ports+=("$1"); shift; done
+  shift
+  "$@"
+  _rc=$?
+  if [[ ${_rc} -ne 0 ]]; then
+    _lost=""
+    for _p in ${_ports[@]+"${_ports[@]}"}; do
+      (exec 3<>"/dev/tcp/127.0.0.1/${_p}") 2>/dev/null || _lost="${_lost} ${_p}"
+    done
+    if [[ -n "${_lost}" ]]; then
+      echo "[lane:${_lane}] error: test service(s) on 127.0.0.1 port(s)${_lost} lost mid-run" >&2
+      echo "  (up at preflight); results are invalid — exit 69, not a test failure" >&2
+      exit 69
+    fi
+  fi
+  exit "${_rc}"
+'
+
 if [[ ${#ONLY[@]} -eq 0 ]]; then
-  exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash -euo pipefail "${LANE_DIR}/tasks"
+  exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash -c "${_lanes_epilogue}" \
+    lanes-epilogue "${LANE}" ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"} -- \
+    bash -euo pipefail "${LANE_DIR}/tasks"
 fi
 
 # ── --only: single-file run inside the lane's environment ────────────────
@@ -1112,4 +1170,8 @@ else
 fi
 
 echo "[lane:${LANE}] --only: ${_only_cmd[*]}"
-exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} "${_only_cmd[@]}"
+# Same mid-run service-loss epilogue as the tasks exec above: a VM crash
+# does not care whether the run was a full lane or one file.
+exec env ${_lanes_strip[@]+"${_lanes_strip[@]}"} bash -c "${_lanes_epilogue}" \
+  lanes-epilogue "${LANE}" ${REQUIRED_PORTS[@]+"${REQUIRED_PORTS[@]}"} -- \
+  "${_only_cmd[@]}"

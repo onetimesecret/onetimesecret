@@ -201,6 +201,77 @@ RSpec.describe V2::Logic::Secrets::ShowSecret, type: :integration do
     end
   end
 
+  # Passphrase oracle regression: the guess is verified ONLY on a committed
+  # reveal (continue=true). A metadata-only request must learn nothing about a
+  # guess -- no correct_passphrase in the payload, no difference between a right
+  # and a wrong guess, and no rate-limit state written or cleared, because
+  # nothing was checked. Without the gate, GET ?passphrase=guess&continue=false
+  # is a free, non-destructive brute-force oracle.
+  context 'passphrase-protected secrets and the continue gate' do
+    before { secret.update_passphrase!('correct horse battery') }
+
+    def attempts_key
+      "passphrase:attempts:#{secret.identifier}"
+    end
+
+    # The message expectation must be set on logic.secret: build_logic ->
+    # process_params already loaded this request's own instance from Redis.
+    def probe(guess)
+      logic = build_logic(
+        { 'identifier' => secret.identifier, 'continue' => 'false', 'passphrase' => guess },
+      )
+      logic.process_params
+      expect(logic.secret).not_to receive(:passphrase?)
+      logic.process
+      logic
+    end
+
+    context 'when continue is false on a passphrase-protected secret' do
+      it 'never checks the guess, reveals nothing, and records no attempt' do
+        logic = probe('correct horse battery')
+
+        expect(logic.show_secret).to be false
+        expect(logic.secret_value).to be_nil
+        expect(logic.success_data[:details]).not_to have_key(:correct_passphrase)
+        expect(logic.success_data[:record]).not_to have_key(:secret_value)
+        expect(Onetime::Secret.dbclient.get(attempts_key)).to be_nil
+      end
+
+      it 'answers a wrong guess byte-identically to a right one' do
+        correct = probe('correct horse battery').success_data[:details]
+        wrong   = probe('nope').success_data[:details]
+
+        expect(wrong).to eq(correct)
+        expect(Onetime::Secret.dbclient.get(attempts_key)).to be_nil
+      end
+    end
+
+    # Positive control for the attempts_key assertions above: a committed
+    # wrong guess must write the key, otherwise the nil checks would pass
+    # vacuously if the key format ever drifted from the limiter's.
+    it 'records the attempt on a committed wrong guess' do
+      logic = build_logic(
+        { 'identifier' => secret.identifier, 'continue' => 'true', 'passphrase' => 'nope' },
+      )
+      logic.process_params
+      logic.process
+
+      expect(logic.show_secret).to be false
+      expect(Onetime::Secret.dbclient.get(attempts_key).to_i).to eq(1)
+    end
+
+    it 'omits correct_passphrase from the details on a committed reveal too' do
+      logic = build_logic(
+        { 'identifier' => secret.identifier, 'continue' => 'true', 'passphrase' => 'correct horse battery' },
+      )
+      logic.process_params
+      logic.process
+
+      expect(logic.show_secret).to be true
+      expect(logic.success_data[:details]).not_to have_key(:correct_passphrase)
+    end
+  end
+
   context 'when a concurrent request already won the reveal (this request loses)' do
     it 'does NOT emit the plaintext' do
       logic = build_logic({ 'identifier' => secret.identifier, 'continue' => 'true' })

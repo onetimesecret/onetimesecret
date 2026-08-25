@@ -1,9 +1,6 @@
 // src/shared/stores/identityStore.ts
 
-import {
-  brandSettingsSchema,
-  type BrandSettings,
-} from '@/schemas/shapes/v3/custom-domain';
+import { brandSettingsSchema, type BrandSettings } from '@/schemas/shapes/v3/custom-domain';
 import {
   DEFAULT_LOGO_COMPONENT,
   NEUTRAL_BRAND_DEFAULTS,
@@ -97,14 +94,14 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     const domainParsed = gracefulParse(primaryColorValidator, brandColor, 'PrimaryColor');
     const domainValidated = domainParsed.ok ? domainParsed.data : null;
 
-    const installParsed = gracefulParse(primaryColorValidator, bootstrapStore.brand_primary_color, 'InstallPrimaryColor');
+    const installParsed = gracefulParse(
+      primaryColorValidator,
+      bootstrapStore.brand_primary_color,
+      'InstallPrimaryColor'
+    );
     const installValidated = installParsed.ok ? installParsed.data : null;
 
-    return (
-      domainValidated ??
-      installValidated ??
-      NEUTRAL_BRAND_DEFAULTS.primary_color
-    );
+    return domainValidated ?? installValidated ?? NEUTRAL_BRAND_DEFAULTS.primary_color;
   }
 
   /**
@@ -112,7 +109,11 @@ export const useProductIdentity = defineStore('productIdentity', () => {
    * Handles validation and default values for branding fields
    */
   function getInitialState(): IdentityState {
-    const brandResult = gracefulParse(brandSettingsSchema, domain_branding.value ?? {}, 'BrandSettings');
+    const brandResult = gracefulParse(
+      brandSettingsSchema,
+      domain_branding.value ?? {},
+      'BrandSettings'
+    );
     const brand = brandResult.ok ? brandResult.data : null;
 
     const primaryColor = resolvePrimaryColor(brand?.primary_color);
@@ -172,9 +173,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
    * nested property access through the reactive proxy and survives
    * in-place $patch merges of homepage_config.
    */
-  const homepageSecretsMode = computed(
-    () => homepage_config.value?.secrets_mode ?? 'create'
-  );
+  const homepageSecretsMode = computed(() => homepage_config.value?.secrets_mode ?? 'create');
 
   // Watch for domain config changes (consolidated for reduced reactive overhead)
   watch(
@@ -199,6 +198,9 @@ export const useProductIdentity = defineStore('productIdentity', () => {
   /** Whether serving from subdomain */
   const isSubdomain = computed(() => state.domainStrategy === 'subdomain');
 
+  /** Whether the backend positively classified this as an operator host */
+  const isOperatorHost = computed(() => isCanonical.value || isSubdomain.value);
+
   /** Display name for current domain context */
   const displayName = computed(() => state.brand?.description || state.displayDomain);
 
@@ -215,41 +217,37 @@ export const useProductIdentity = defineStore('productIdentity', () => {
   const productName = computed(() => resolveProductName(brand_product_name?.value));
 
   /** Logo URL for custom domain, pre-computed by backend with correct extid */
-  const logoUri = computed(() =>
-    // Backend provides the correct logo URL using extid (external ID).
-    // Returns null if no logo is uploaded for this custom domain.
-    // Note: Client-side URL generation is not possible since we only have
-    // the internal domainId, not the public extid needed for the /imagine route.
-    domain_logo.value
+  const logoUri = computed(
+    () =>
+      // Backend provides the correct logo URL using extid (external ID).
+      // Returns null if no logo is uploaded for this custom domain.
+      // Note: Client-side URL generation is not possible since we only have
+      // the internal domainId, not the public extid needed for the /imagine route.
+      domain_logo.value
   );
 
   /**
    * Whether a surface may show the platform's own name / wordmark.
    *
-   * False on a custom domain — with or without an uploaded logo — and whenever a
-   * per-tenant logo is present: rendering the install's identity there would
-   * leak it onto another company's domain (the A3 masthead leak). Canonical and
-   * subdomain contexts are permitted to show it, subject to the consumer's own
-   * config (a `subdomain` IS the platform, so its name legitimately shows).
-   *
-   * This encodes only the base identity-leak guard; consumers keep their own
-   * override ladder (caller props, operator LOGO_SHOW_NAME, etc.) on top.
+   * Only a positive canonical or subdomain classification permits platform
+   * identity. `invalid` can be either an unknown host or a registered tenant
+   * whose lookup raised, so showing the operator's name there could leak it
+   * onto a tenant host. A tenant logo is an independent veto.
    */
-  const showPlatformIdentity = computed(() => !isCustom.value && !logoUri.value);
+  const showPlatformIdentity = computed(() => isOperatorHost.value && !logoUri.value);
 
   /**
    * Operator-configured install-wide logo asset (BRAND_LOGO_URL /
    * brand.logo_url, flattened to `brand_logo_url` in the bootstrap payload).
-   * This is the platform's own identity, so it is suppressed on custom
-   * domains for the same reason `showPlatformIdentity` suppresses the
-   * wordmark there: a tenant's domain shows the tenant's logo or the neutral
-   * mark, never the operator's (#3612 closes the logo-asset half of the A3
-   * leak). Null when unconfigured or on a custom domain.
+   * This is platform identity and therefore requires the same positive
+   * canonical/subdomain classification as the wordmark. An unknown or failed
+   * classification falls back to the neutral mark rather than risking a leak
+   * onto a tenant host.
    *
    * `||` (not `??`) so an empty-string config value reads as absent.
    */
   const installLogoUri = computed(() =>
-    isCustom.value ? null : brand_logo_url?.value || null
+    isOperatorHost.value ? brand_logo_url?.value || null : null
   );
 
   /**
@@ -307,8 +305,9 @@ export const useProductIdentity = defineStore('productIdentity', () => {
 
   /**
    * Resolved logo source on the identity axis: the tenant's uploaded logo when
-   * present, then the operator's install-wide logo (custom domains excepted,
-   * see installLogoUri), then the neutral `DEFAULT_LOGO_COMPONENT` sentinel —
+   * present, then the operator's install-wide logo (only on positively
+   * classified operator hosts; see installLogoUri), then the neutral
+   * `DEFAULT_LOGO_COMPONENT` sentinel —
    * the only bundled logo component, on every surface.
    *
    * Never null or empty, so a consumer can render a lockup without its own
@@ -324,10 +323,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
    * is no longer read from `ui.header.branding`.
    */
   const logoSource = computed(
-    () =>
-      logoUri.value ||
-      installLogoUri.value ||
-      DEFAULT_LOGO_COMPONENT
+    () => logoUri.value || installLogoUri.value || DEFAULT_LOGO_COMPONENT
   );
 
   // border_radius (#3646) supersedes corner_style when set: it resolves to the
@@ -339,7 +335,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
       return 'rounded-brand';
     }
     return state.brand?.corner_style
-      ? cornerStyleClasses[state.brand.corner_style] ?? DEFAULT_CORNER_CLASS
+      ? (cornerStyleClasses[state.brand.corner_style] ?? DEFAULT_CORNER_CLASS)
       : DEFAULT_CORNER_CLASS;
   });
 

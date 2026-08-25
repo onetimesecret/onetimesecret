@@ -33,7 +33,7 @@ module Onetime
   #
   # Primary Keys & Identifiers:
   #   - objid - Primary key (UUID), internal
-  #   - extid - External identifier (e.g., ur%<id>s), user-facing
+  #   - extid - External identifier (e.g., ur%{id}), user-facing
   #
   # Foreign Keys:
   #   - user_id (underscore) - Foreign key field, stores the objid value
@@ -76,7 +76,11 @@ module Onetime
     feature :expiration
     feature :relationships
     feature :object_identifier
-    feature :external_identifier, format: 'ur%<id>s' # use builtin extid_lookup index
+    # Familia's Customer.extid? validator only understands the '%{id}'
+    # reference form (it splits the format on that literal); the sprintf
+    # '%<id>s' spelling interpolates identically but leaves extid?
+    # unconditionally false.
+    feature :external_identifier, format: 'ur%{id}' # use builtin extid_lookup index
     feature :required_fields
     feature :increment_field
     feature :counter_fields

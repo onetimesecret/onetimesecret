@@ -310,17 +310,15 @@ module Billing
         # can be one the caller merely belongs to. Without this gate, that member
         # is handed the organization's portal.
         #
-        # Gate on ownership rather than the manage_billing entitlement.
-        # Effective entitlements are the org plan ∩ ROLE_ENTITLEMENTS[role].
-        # manage_billing is in OWNER_ENTITLEMENTS only, so the intersection can
-        # never grant it to a member or admin — an entitlement gate could not
-        # widen access past ownership. It can, however, narrow it below the
-        # owner: a deployment whose catalog omits manage_billing from a plan
-        # (free_v1 omits it; etc/examples/billing.example.yaml defines the
-        # entitlement but lists it in no plan) would have that org's own owner
-        # denied their billing portal. Ownership is also the same test every
-        # mutating sibling endpoint already applies via
-        # load_organization(..., require_owner: true) (controllers/billing.rb).
+        # Gate on ownership rather than the manage_billing entitlement: it is
+        # OWNER_ENTITLEMENTS-only (lib/onetime/models/organization_membership.rb),
+        # so the org-plan ∩ role intersection can never grant it past ownership
+        # — an entitlement gate could not widen access here. It can, however,
+        # narrow it below the owner: a deployment whose catalog omits
+        # manage_billing from every plan would have that org's own owner denied
+        # their billing portal. Ownership is also the same test every mutating
+        # sibling endpoint already applies via load_organization(...,
+        # require_owner: true) (controllers/billing.rb).
         #
         # Redirect rather than raise Onetime::Forbidden: this route is declared
         # with no response= (routes.txt), so Otto content-negotiates the error
@@ -395,7 +393,10 @@ module Billing
         # in checkout_redirect) and, on completion, writes the subscription onto
         # that organization. Membership is not sufficient authority to buy on an
         # organization's behalf or to attach a payment instrument to its
-        # billing customer.
+        # billing customer. Gate on ownership rather than the manage_billing
+        # entitlement for the same reason customer_portal_redirect does — see
+        # that method's AUTHORIZATION note, including why this redirects
+        # rather than raising Onetime::Forbidden.
         #
         # cust.default_org_id is not proof of ownership: a default organization
         # can be one the caller merely belongs to.
@@ -404,27 +405,12 @@ module Billing
         # organization's Stripe customer from the session. Withholding would be
         # strictly worse: it mints a fresh Customer for the member, and
         # ApplySubscriptionToOrg then overwrites the organization's
-        # stripe_customer_id with it at completion, detaching the org from its
-        # own billing customer. Creating no session at all leaves nothing to
-        # resolve and nothing to overwrite. Pinning a target makes resolution
-        # deterministic; it does not authorize the purchase. That is this
-        # gate's job.
-        #
-        # Gate on ownership rather than the manage_billing entitlement, as
-        # customer_portal_redirect does. Effective entitlements are the org plan
-        # ∩ ROLE_ENTITLEMENTS[role] and manage_billing lives in
-        # OWNER_ENTITLEMENTS only, so it can never widen access beyond owners —
-        # but it can narrow it below them: an org whose plan does not list
-        # manage_billing (free_v1, or any deployment whose catalog omits it)
-        # would have its own owner denied, and an org with no active
-        # subscription is precisely the caller this endpoint exists for.
-        # Ownership is also what the sibling self-serve path already requires —
-        # BillingController#create_checkout_session loads its org with
-        # require_owner: true.
-        #
-        # Redirect rather than raise Onetime::Forbidden: this route is declared
-        # with no response= (routes.txt), so Otto content-negotiates the error
-        # and a browser navigation would render a bare text/plain 403 body.
+        # stripe_customer_id with it at completion (@see
+        # apps/web/billing/spec/operations/apply_subscription_to_org_spec.rb),
+        # detaching the org from its own billing customer. Creating no session
+        # at all leaves nothing to resolve and nothing to overwrite. Pinning a
+        # target makes resolution deterministic; it does not authorize the
+        # purchase. That is this gate's job.
         unless default_org.owner?(cust)
           billing_logger.warn 'Checkout denied: caller does not own organization',
             {

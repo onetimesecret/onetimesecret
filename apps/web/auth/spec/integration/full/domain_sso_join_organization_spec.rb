@@ -52,6 +52,12 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
   include TenantTestFixtures
   include DomainSsoTestFixtures
 
+  # Registered custom-domain hosts must classify :custom, which only happens
+  # with the domains axis ON and a PARSEABLE canonical host installed. Both
+  # used to be inherited from the ambient DOMAINS_ENABLED of whatever shell
+  # ran the suite; declaring it here makes the file green in either.
+  include_context 'domains enabled'
+
   before(:all) do
     require 'onetime' unless defined?(Onetime)
     Onetime.boot! :test unless Onetime.ready?
@@ -349,7 +355,7 @@ RSpec.describe 'Tenant-SSO Join Domain Organization (issue #3114)', type: :integ
       # Step 1: JoinDomainOrganization fails silently (mirrors safe_execute wrapper)
       Onetime::ErrorHandler.safe_execute(
         'join_domain_organization_omniauth',
-        extid: fresh_sso_customer.extid,
+        external_id: fresh_sso_customer.extid,
         domain_id: bogus_domain_id,
       ) do
         Auth::Operations::JoinDomainOrganization.new(
