@@ -31,6 +31,7 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
       :complimentary= => nil,
       :stripe_subscription_id= => nil,
       :stripe_customer_id= => nil,
+      :clear_federated_status! => nil,
       planid: 'identity_plus_v1',
       extid: 'on_test_org',
       materialize_entitlements_from_plan: true,
@@ -110,6 +111,18 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
       described_class.call(org, subscription, owner: true)
     end
 
+    # The other half of setting stripe_customer_id: an org that federated a
+    # benefit and later bought its own subscription kept subscription_federated_at
+    # forever, so anything reading the field rather than the predicate was told
+    # the subscription came from another region (#4212).
+    it 'clears the federated marker' do
+      subscription = build_subscription
+
+      expect(org).to receive(:clear_federated_status!)
+
+      described_class.call(org, subscription, owner: true)
+    end
+
     it 'sets complimentary when metadata has complimentary=true' do
       subscription = build_subscription(
         metadata: { Billing::Metadata::FIELD_COMPLIMENTARY => 'true' }
@@ -183,6 +196,8 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
       expect(org).to receive(:planid=).with('identity_plus_v1')
       expect(org).not_to receive(:stripe_subscription_id=)
       expect(org).not_to receive(:stripe_customer_id=)
+      # The federated marker belongs to this path; only the owner path clears it.
+      expect(org).not_to receive(:clear_federated_status!)
       expect(org).to receive(:save)
 
       described_class.call(org, subscription, owner: false)
@@ -531,6 +546,7 @@ RSpec.describe Billing::Operations::ApplySubscriptionToOrg, billing: true do
           :complimentary= => nil,
           :stripe_subscription_id= => nil,
           :stripe_customer_id= => nil,
+          :clear_federated_status! => nil,
           planid: nil,
           extid: 'on_no_plan_org',
           materialized_entitlements: materialized_set,
