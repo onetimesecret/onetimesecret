@@ -67,7 +67,7 @@ ARG RUBY_IMAGE_TAG=3.4-slim-trixie@sha256:d8fd978ffc10f0eddee04aa03eb82e5d247079
 # The "base" context is provided by docker/bake.hcl via:
 #   contexts = { base = "target:base" }
 #
-# It contains: Ruby 3.4, Node 22, build toolchain, yq, pnpm, appuser.
+# It contains: Ruby 3.4, Node 24, build toolchain, yq, pnpm, appuser.
 # See docker/base.dockerfile for details.
 #
 FROM base AS dependencies
