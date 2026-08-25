@@ -403,14 +403,14 @@ export const secretOptionsSchema = z.object({
     .array(z.number().int().positive().min(60).max(31536000))
     .default([300, 1800, 3600, 14400, 43200, 86400, 259200, 604800, 1209600, 2592000]),
   /**
-   * TTL ceiling the server silently applies to anonymous (guest) secrets, in
-   * seconds. A hard product cap (7 days) that holds on every deployment,
-   * billing enabled or not; TTL_MAX_ANONYMOUS can raise or lower it. Absent
-   * only on a payload predating this field — treat that as "no ceiling".
+   * Effective TTL ceiling for a guest creating on the current request host.
+   * Canonical hosts use TTL_MAX_ANONYMOUS (7 days by default); custom hosts use
+   * the domain owner organization's plan lifetime (normally 14 or 30 days).
+   * The legacy field name describes authentication state, not policy scope.
+   * Absent only on a payload predating this field — treat that as "no ceiling".
    *
-   * @sync apps/web/core/views/serializers/config_serializer.rb — anonymous_ttl_ceiling
-   * @sync apps/api/v2/logic/secrets/base_secret_action.rb — anonymous_max_ttl
-   * @sync lib/onetime/models/features/with_entitlements.rb — ANONYMOUS_MAX_TTL
+   * @sync apps/web/core/views/serializers/config_serializer.rb — build_secret_options
+   * @sync lib/onetime/secret_lifetime_policy.rb — SecretLifetimePolicy.guest_ceiling
    */
   ttl_max_anonymous: z.number().int().positive().nullish(),
   passphrase: passphraseSchema.optional(),

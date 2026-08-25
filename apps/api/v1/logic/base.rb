@@ -21,11 +21,26 @@ module V1
 
       attr_accessor :domain_strategy, :display_domain
 
-      def initialize(sess, cust, params = nil, locale = nil)
-        @sess = sess
-        @cust = cust
-        @params = params
-        @locale = locale
+      def initialize(
+        sess,
+        cust,
+        params = nil,
+        locale = nil,
+        domain_strategy: nil,
+        display_domain: nil,
+        **keyword_params
+      )
+        # Ruby 3 treats a final string-keyed Hash as keywords once this
+        # initializer declares domain-context keywords. Preserve V1's legacy
+        # `new(session, customer, 'ttl' => '3600')` call shape.
+        params = keyword_params if params.nil? && !keyword_params.empty?
+
+        @sess            = sess
+        @cust            = cust
+        @params          = params
+        @locale          = locale
+        @domain_strategy = domain_strategy
+        @display_domain  = display_domain
         @processed_params ||= {} # TODO: Remove
         process_settings
 

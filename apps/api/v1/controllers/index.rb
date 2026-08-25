@@ -66,7 +66,14 @@ module V1
         authorized(true) do
           return if check_rate_limit!(:create_secret, V1_RATE_LIMIT_MAX_CREATES) == :limited
 
-          logic = V1::Logic::Secrets::ConcealSecret.new sess, cust, req.params, locale
+          logic = V1::Logic::Secrets::ConcealSecret.new(
+            sess,
+            cust,
+            req.params,
+            locale,
+            domain_strategy: req.env['onetime.domain_strategy'],
+            display_domain: req.env['onetime.display_domain'],
+          )
           apply_domain_context(logic)
           logic.raise_concerns
           logic.process
@@ -86,7 +93,14 @@ module V1
         authorized(true) do
           return if check_rate_limit!(:create_secret, V1_RATE_LIMIT_MAX_CREATES) == :limited
 
-          logic = V1::Logic::Secrets::GenerateSecret.new sess, cust, req.params, locale
+          logic = V1::Logic::Secrets::GenerateSecret.new(
+            sess,
+            cust,
+            req.params,
+            locale,
+            domain_strategy: req.env['onetime.domain_strategy'],
+            display_domain: req.env['onetime.display_domain'],
+          )
           apply_domain_context(logic)
           logic.raise_concerns
           logic.process
@@ -191,7 +205,14 @@ module V1
         authorized(true) do
           return if check_rate_limit!(:create_secret, V1_RATE_LIMIT_MAX_CREATES) == :limited
 
-          logic = V1::Logic::Secrets::ConcealSecret.new sess, cust, req.params, locale
+          logic = V1::Logic::Secrets::ConcealSecret.new(
+            sess,
+            cust,
+            req.params,
+            locale,
+            domain_strategy: req.env['onetime.domain_strategy'],
+            display_domain: req.env['onetime.display_domain'],
+          )
           apply_domain_context(logic)
           logic.raise_concerns
           logic.process

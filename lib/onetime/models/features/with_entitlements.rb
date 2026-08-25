@@ -53,31 +53,29 @@ module Onetime
         # plan. See #3111 for the drift bug this constant previously caused.
         DEFAULT_FREE_TTL = 1_209_600  # 14 days
 
-        # Default ceiling for secrets created by anonymous (unauthenticated)
-        # callers: 7 days. This is the shipped default, NOT an invariant.
+        # Default ceiling for unauthenticated creation on CANONICAL hosts:
+        # 7 days. This is the shipped default, NOT a universal guest invariant.
         #
-        # The 7-day rule exists because of the hosted service's threat model —
-        # unaccountable strangers parking data on someone else's infrastructure.
-        # A self-hosted deployment on a private network does not inherit that
-        # threat model, so operators set their own value via the config key
-        # site.secret_options.ttl_max_anonymous (env TTL_MAX_ANONYMOUS).
-        # Raising it is supported.
+        # The 7-day rule addresses unaccountable strangers parking data on the
+        # platform's own canonical storage boundary. A guest creating through a
+        # custom domain is governed by that domain owner's organization plan
+        # (normally 14/30 days), because the tenant is the accountable storage
+        # owner. SecretLifetimePolicy owns this request-boundary distinction.
         #
-        # The genuine software-safety bound is MAX_TTL (365 days); this constant
-        # is product policy and lives at the operator's discretion. See the
-        # 2026-07-29 API audit, item 4.
+        # Self-hosted operators can raise or lower the canonical-host value via
+        # site.secret_options.ttl_max_anonymous (env TTL_MAX_ANONYMOUS). The
+        # genuine software-safety bound remains MAX_TTL (365 days).
         #
-        # Consumers should call configured_anonymous_max_ttl rather than reading
-        # this constant, so an operator override is honoured.
+        # Consumers should call configured_anonymous_max_ttl for the raw
+        # canonical-host setting, or SecretLifetimePolicy.guest_ceiling for an
+        # effective request ceiling.
         ANONYMOUS_MAX_TTL = 604_800  # 7 days
 
-        # Resolve the configured anonymous TTL ceiling.
+        # Resolve the configured canonical-host guest TTL ceiling.
         #
-        # Single source for both enforcement (V2::Logic::Secrets::
-        # BaseSecretAction#anonymous_max_ttl) and the bootstrap serializer's
-        # secret_options.ttl_max_anonymous key, which drives the UI's duration
-        # filter. Keeping one reader is what stops the two from drifting and
-        # offering a duration the server would silently shorten.
+        # This is one input to SecretLifetimePolicy, not the effective ceiling
+        # for every unauthenticated request. Custom-domain guests use the owning
+        # organization's plan policy instead.
         #
         # Bounded to [1, MAX_TTL]. A non-positive or malformed value falls back
         # to the default rather than making anonymous secrets impossible —

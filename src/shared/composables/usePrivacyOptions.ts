@@ -81,15 +81,15 @@ export function usePrivacyOptions(formOperations?: {
    * configured ttl_options — an org with no plan limit, or a bootstrap payload
    * that predates these fields.
    *
-   * Mirrors the max_ttl ladder in V2 BaseSecretAction#process_ttl:
+   * Mirrors the request-aware server policy:
    *   authenticated + org -> limits.secret_lifetime
-   *   anonymous           -> ttl_max_anonymous
+   *   canonical guest     -> configured anonymous ceiling (7d default)
+   *   custom-domain guest -> domain owner organization's plan lifetime (14/30d)
    *   otherwise           -> config ttl_options max
    *
-   * Note the anonymous ceiling is a hard product rule (7 days,
-   * WithEntitlements::ANONYMOUS_MAX_TTL) that the server applies on every
-   * deployment, so the serializer always sends it. Do not restate the number
-   * here — read what was sent.
+   * The legacy `ttl_max_anonymous` bootstrap key contains the effective guest
+   * ceiling for the current host. Do not infer it from authentication alone or
+   * restate the 7-day canonical default here.
    */
   const ttlCeiling = computed<number | null>(() => {
     const positiveOrNull = (value: number | null | undefined) =>
