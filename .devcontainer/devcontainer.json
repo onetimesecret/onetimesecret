@@ -18,7 +18,7 @@
   // the Node major tracks .node-version. Features can't read pin files, so
   // these are duplicated by necessity — keep them in lockstep with the pins.
   "features": {
-    "ghcr.io/devcontainers/features/node:1": { "version": "22" },
+    "ghcr.io/devcontainers/features/node:1": { "version": "24" },
     "ghcr.io/devcontainers-extra/features/pnpm:2": {},
   },
 

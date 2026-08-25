@@ -6,7 +6,7 @@ The build workflow produces multiple OCI image variants from a single codebase, 
 
 ```
 docker/
-  base.dockerfile          Shared: Ruby 3.4 + Node 22 + build tools + yq + appuser (UID 1001)
+  base.dockerfile          Shared: Ruby 3.4 + Node 24 + build tools + yq + appuser (UID 1001)
   bake.hcl                 Orchestration: targets, tag function, registry routing
   entrypoints/             App-specific startup logic
   s6/services/             S6 process supervision definitions

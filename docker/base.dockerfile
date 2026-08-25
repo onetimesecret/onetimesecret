@@ -10,7 +10,7 @@
 #
 # Contains:
 #   - Ruby 3.4 (slim-trixie) base
-#   - Node.js 22 binaries + npm + pnpm
+#   - Node.js 24 binaries + npm + pnpm
 #   - Build toolchain (build-essential, libssl-dev, etc.)
 #   - yq for YAML config migration
 #   - Non-root appuser (UID 1001)
