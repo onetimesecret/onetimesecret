@@ -9,7 +9,7 @@
  * the prop, the first available tab (Magic Link) is selected.
  */
 
-import { mount, VueWrapper } from '@vue/test-utils';
+import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ref } from 'vue';
 
@@ -33,9 +33,14 @@ vi.mock('@/shared/composables/useAuth', () => ({
   }),
 }));
 
+// Hoisted so tests can steer the request outcome: `link-sent` must be emitted
+// on success only, and the emit is the signal an ancestor uses to retire a
+// page-level notice (see Login.vue's post-verification banner).
+const magicLinkMock = vi.hoisted(() => ({ requestMagicLink: vi.fn() }));
+
 vi.mock('@/shared/composables/useMagicLink', () => ({
   useMagicLink: () => ({
-    requestMagicLink: vi.fn(),
+    requestMagicLink: magicLinkMock.requestMagicLink,
     sent: ref(false),
     isLoading: ref(false),
     error: ref(null),
@@ -165,5 +170,48 @@ describe('PasswordlessFirstSignIn passwordEnabled (single-method restriction)', 
       'true'
     );
     expect(wrapper.find('[data-testid="password-panel"]').exists()).toBe(false);
+  });
+});
+
+/**
+ * `link-sent` — the mode-takeover signal.
+ *
+ * A successful magic link request swaps this component's entire tab group for
+ * the "check your email" panel, so the page it sits on stops being "sign in".
+ * No route change occurs, so an ancestor rendering its own page-level notice
+ * (Login.vue's post-verification banner) has no other way to notice.
+ */
+describe('PasswordlessFirstSignIn link-sent', () => {
+  let wrapper: VueWrapper;
+
+  beforeEach(() => {
+    localStorage.clear();
+    magicLinkMock.requestMagicLink.mockReset();
+  });
+
+  afterEach(() => {
+    wrapper?.unmount();
+  });
+
+  const submitMagicLink = async () => {
+    wrapper = mount(PasswordlessFirstSignIn, {
+      props: { magicLinksEnabled: true, webauthnEnabled: false },
+    });
+    await wrapper.find('[data-testid="magic-link-panel"]').trigger('submit');
+    await flushPromises();
+  };
+
+  it('emits link-sent when the request succeeds', async () => {
+    magicLinkMock.requestMagicLink.mockResolvedValue(true);
+    await submitMagicLink();
+
+    expect(wrapper.emitted('link-sent')).toHaveLength(1);
+  });
+
+  it('does not emit link-sent when the request fails', async () => {
+    magicLinkMock.requestMagicLink.mockResolvedValue(false);
+    await submitMagicLink();
+
+    expect(wrapper.emitted('link-sent')).toBeUndefined();
   });
 });

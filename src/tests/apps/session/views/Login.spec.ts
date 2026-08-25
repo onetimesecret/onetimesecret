@@ -35,6 +35,9 @@ vi.mock('@/apps/session/components/AuthMethodSelector.vue', () => ({
     name: 'AuthMethodSelector',
     // Expose initialMode so tests can assert the password-tab default is passed.
     props: ['locale', 'initialMode'],
+    // Declared so a test can drive the mode-takeover signal the real component
+    // emits when a magic link is issued.
+    emits: ['mode-change', 'link-sent'],
     template:
       '<div data-testid="auth-method-selector" :data-initial-mode="initialMode">AuthMethodSelector</div>',
   }),
@@ -415,6 +418,21 @@ describe('Login.vue auth_error handling', () => {
       expect(
         (window.history.state as Record<string, unknown> | null)?.[SIGNIN_VERIFIED_STATE_KEY]
       ).toBeUndefined();
+    });
+
+    it('retires the banner once the auth section reports a magic link was sent', async () => {
+      wrapper = await createWrapper({}, {}, verifiedState);
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="signin-verified-notice"]').exists()).toBe(true);
+
+      // The auth section has replaced its form with "check your email": a
+      // past-tense "you can now sign in" above that reads as a contradiction,
+      // and no route change happens here to remount this view and clear it.
+      wrapper.findComponent({ name: 'AuthMethodSelector' }).vm.$emit('link-sent');
+      await nextTick();
+
+      expect(wrapper.find('[data-testid="signin-verified-notice"]').exists()).toBe(false);
     });
 
     it('does not show the banner or force a mode without the verified flag', async () => {

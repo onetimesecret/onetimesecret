@@ -165,6 +165,18 @@ const authMethodSelectorRef = ref<ComponentPublicInstance<{ currentMode: AuthMod
 const handleModeChange = (_mode: AuthMode) => {
   // Footer is now consistent across modes, no need to track
 };
+
+// A magic link was just issued: the auth section replaces its whole form with a
+// "check your email" panel, so this page has stopped being "sign in" and become
+// "go to your inbox". Retire the post-verification banner — leaving a past-tense
+// "you can now sign in" above a present-tense "check your email" reads as a
+// contradiction, and no route change occurs here to remount this view and clear
+// it on its own. Deliberately one-way: "try a different email" returns the form,
+// but the banner is a one-shot notice that has now been superseded, so it does
+// not come back.
+const handleLinkSent = () => {
+  verifiedNotice.value = false;
+};
 </script>
 
 <template>
@@ -247,7 +259,8 @@ const handleModeChange = (_mode: AuthMode) => {
           ref="authMethodSelectorRef"
           :locale="languageStore.currentLocale ?? ''"
           :initial-mode="initialAuthMode"
-          @mode-change="handleModeChange" />
+          @mode-change="handleModeChange"
+          @link-sent="handleLinkSent" />
       </template>
     </template>
     <template #footer>
