@@ -128,6 +128,17 @@ RSpec.describe Onetime::Middleware::ValidateMultipart do
       expect(headers['Content-Type']).to eq('application/json')
       expect(JSON.parse(body.join)['message']).to match(/boundary/)
     end
+
+    it 'rejects a duplicated boundary parameter with a 400' do
+      # parse_boundary raises (Rack::BadRequest-tagged) rather than
+      # returning nil for boundary parameters Rack refuses outright.
+      dup_env = env_for(
+        content_type: "multipart/form-data; boundary=#{boundary}; boundary=evil",
+        body: multipart_body,
+      )
+      status, _headers, _body = middleware.call(dup_env)
+      expect(status).to eq(400)
+    end
   end
 
   describe 'multipart request with Content-Length: 0' do

@@ -77,11 +77,13 @@ module Onetime
         # RFC 2046 §5.1: the boundary parameter is mandatory. Without one
         # Rack cannot multipart-parse and would instead read the raw body
         # as urlencoded data, producing garbage params. parse_boundary also
-        # raises for boundary parameters Rack refuses (duplicated, folded
-        # whitespace, over 70 chars) — same verdict either way.
+        # raises for boundary parameters Rack refuses (duplicated, or with
+        # whitespace before the equals sign) — same verdict either way.
+        # Rack tags every client-caused parse error with Rack::BadRequest;
+        # rescuing only that keeps genuine internal errors loud.
         boundary = begin
           Rack::Multipart::Parser.parse_boundary(env['CONTENT_TYPE'])
-        rescue StandardError
+        rescue Rack::BadRequest
           nil
         end
         return reject(env, 'Content-Type is missing a valid multipart boundary') if boundary.nil?
