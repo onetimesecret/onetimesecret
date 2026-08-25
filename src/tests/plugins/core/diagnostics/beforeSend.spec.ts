@@ -272,6 +272,21 @@ describe('beforeSend handler', () => {
     });
   });
 
+  describe('third-party noise filter wiring (#4287)', () => {
+    it('passes ignoreErrors, denyUrls and allowUrls to the client options', () => {
+      setupWithRouter({ params: {}, meta: {} });
+      const options = getCapturedClientOptions();
+
+      expect(options?.ignoreErrors).toEqual(
+        expect.arrayContaining(['Java object is gone', 'zaloJSV2'])
+      );
+      expect(Array.isArray(options?.denyUrls)).toBe(true);
+      expect((options?.denyUrls as RegExp[]).length).toBeGreaterThan(0);
+      expect(Array.isArray(options?.allowUrls)).toBe(true);
+      expect((options?.allowUrls as RegExp[]).length).toBeGreaterThan(0);
+    });
+  });
+
   describe('URL scrubbing based on route params', () => {
     it('scrubs request.url using route params', () => {
       setupWithRouter({
