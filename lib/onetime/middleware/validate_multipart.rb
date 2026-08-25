@@ -90,7 +90,11 @@ module Onetime
         # let alone a form field. Rack short-circuits it to empty params
         # (no raise), which downstream misreads as "no secret provided".
         # Compare via .to_i to mirror Rack::Multipart.parse_multipart, which
-        # also treats a malformed Content-Length value as zero.
+        # also treats a malformed Content-Length value as zero — including
+        # an empty string, which is truthy but spec-invalid (Rack SPEC
+        # requires digits-only when the key is present). A body behind such
+        # a header is unreadable through Rack either way, so a 400 here
+        # beats silently dropping every field.
         content_length = env['CONTENT_LENGTH']
         return reject(env, 'multipart request body is empty') if content_length && content_length.to_i.zero?
 

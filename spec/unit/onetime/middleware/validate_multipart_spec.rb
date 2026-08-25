@@ -151,6 +151,33 @@ RSpec.describe Onetime::Middleware::ValidateMultipart do
     end
   end
 
+  describe 'multipart request with an empty-string Content-Length' do
+    # Spec-invalid (Rack SPEC: digits-only when present), but if a server
+    # ever forwards it, Rack's own parse treats ''.to_i == 0 the same as
+    # an explicit zero and never multipart-parses the body — it falls back
+    # to urlencoded-parsing the raw multipart syntax into garbage params
+    # with no usable fields (the BACKEND-AH shape). Rejecting up front is
+    # the honest answer; passing it through could never succeed.
+    let(:env) do
+      env_for(
+        content_type: "multipart/form-data; boundary=#{boundary}",
+        body: multipart_body,
+        content_length: '',
+      )
+    end
+
+    it 'reproduces: Rack drops every field without raising' do
+      response = downstream.call(env)
+      expect(response[0]).to eq(200)
+      expect(parsed_body(response)).not_to have_key('secret')
+    end
+
+    it 'is rejected with a 400' do
+      status, _headers, _body = middleware.call(env)
+      expect(status).to eq(400)
+    end
+  end
+
   describe 'a well-formed multipart request' do
     let(:env) do
       env_for(
