@@ -153,12 +153,10 @@ RSpec.describe Core::Views::ConfigSerializer do
       expect(result['features']).to have_key('sso')
     end
 
-    # 2026-07-29 API audit, item 4. V2 silently clamps an anonymous secret's
-    # TTL; the web UI's duration dropdown (usePrivacyOptions.ts) filters
-    # against this published value so it stops offering durations the caller
-    # will never get. Must track the same ladder anonymous_max_ttl walks:
-    # configured ceiling (default 7 days), then the free-tier limit when
-    # billing is enabled.
+    # The web UI filters durations against the server-resolved guest ceiling.
+    # Canonical guests use the configured anonymous policy (7 days by default);
+    # custom-domain guests use the domain owner organization's plan policy.
+    # This distinction must match API enforcement.
     describe 'secret_options.ttl_max_anonymous' do
       let(:default_ceiling) { Onetime::Models::Features::WithEntitlements::ANONYMOUS_MAX_TTL }
 
@@ -228,7 +226,8 @@ RSpec.describe Core::Views::ConfigSerializer do
 
           expect(secret_options['ttl_max_anonymous']).to eq(default_ceiling)
           expect(OT).to have_received(:le).with(
-            a_string_matching(/free-tier TTL limit unavailable/)
+            a_string_matching(/Canonical guest TTL resolution failed/),
+            hash_including(:exception, ceiling: default_ceiling),
           )
         end
 
@@ -243,8 +242,8 @@ RSpec.describe Core::Views::ConfigSerializer do
       context 'when billing is disabled (self-hosted)' do
         before { allow(OT.billing_config).to receive(:enabled?).and_return(false) }
 
-        # The ceiling is about anonymous callers, not about whether the
-        # deployment sells plans, so this is emitted rather than omitted.
+        # The canonical guest ceiling is about anonymous callers, not about
+        # whether the deployment sells plans, so it is still emitted.
         it 'still publishes the configured ceiling' do
           expect(secret_options['ttl_max_anonymous']).to eq(default_ceiling)
         end
@@ -260,6 +259,47 @@ RSpec.describe Core::Views::ConfigSerializer do
         # operator's raised ceiling reaches the dropdown unchanged.
         it 'publishes a ceiling the operator raised above the default' do
           stub_configured_ceiling(2_592_000)
+
+          expect(secret_options['ttl_max_anonymous']).to eq(2_592_000)
+        end
+      end
+
+      context 'on a branded custom domain' do
+        let(:domain) do
+          instance_double(
+            Onetime::CustomDomain,
+            org_id: 'org-custom',
+            identifier: domain_id,
+          )
+        end
+        let(:organization) { instance_double(Onetime::Organization) }
+        let(:ttl_view_vars) do
+          super().merge(
+            'domain_strategy' => :custom,
+            'display_domain' => custom_display_domain,
+          )
+        end
+
+        before do
+          allow(OT.billing_config).to receive(:enabled?).and_return(true)
+          allow(Onetime::CustomDomain).to receive(:from_display_domain)
+            .with(custom_display_domain).and_return(domain)
+          allow(Onetime::Organization).to receive(:load)
+            .with('org-custom').and_return(organization)
+        end
+
+        it 'publishes the domain owner free-plan lifetime, not the canonical 7-day ceiling' do
+          allow(organization).to receive(:limit_for)
+            .with('secret_lifetime').and_return(1_209_600)
+
+          expect(secret_options['ttl_max_anonymous']).to eq(1_209_600)
+        end
+
+        it 'publishes the domain owner extended lifetime, not the canonical 7-day ceiling' do
+          allow(organization).to receive(:limit_for)
+            .with('secret_lifetime').and_return(2_592_000)
+          allow(organization).to receive(:can?)
+            .with('extended_default_expiration').and_return(true)
 
           expect(secret_options['ttl_max_anonymous']).to eq(2_592_000)
         end
