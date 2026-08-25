@@ -12,7 +12,7 @@
 
   // Update control and scheduling
   timezone: 'America/Vancouver',
-  schedule: ['before 5am on Thursday'],
+  schedule: ['before 5am on Sunday'],
   minimumReleaseAge: '14 days',
   separateMinorPatch: false,
   separateMultipleMajor: true,
@@ -28,8 +28,12 @@
   },
 
   // PR management
+  dependencyDashboard: true,
+  dependencyDashboardAutoclose: true,
+  dependencyDashboardLabels: ['auto-update', 'dependencies'],
+  prCreation: 'no-pending',
   prConcurrentLimit: 10,
-  prHourlyLimit: 5,
+  prHourlyLimit: 4,
   labels: ['auto-update'],
   assignees: ['delano'],
   reviewers: [],
@@ -94,9 +98,7 @@
   customManagers: [
     {
       customType: 'regex',
-      fileMatch: [
-        '^\\.github/workflows/(resolved-derive-gate|validate-register)\\.yml$',
-      ],
+      fileMatch: ['^\\.github/workflows/(resolved-derive-gate|validate-register)\\.yml$'],
       matchStrings: [
         // Optional quotes tolerated: the workflows emit the bare form
         // (TRANSLATION_RULES_REF: v0.1.1), but a quoted value ('v0.1.1' or
