@@ -3,8 +3,6 @@
 <script setup lang="ts">
   import AuthView from '@/apps/session/components/AuthView.vue';
   import ResendVerificationForm from '@/apps/session/components/ResendVerificationForm.vue';
-  import HoverTooltip from '@/shared/components/common/HoverTooltip.vue';
-  import OIcon from '@/shared/components/icons/OIcon.vue';
   import { CHECK_EMAIL_STATE_KEY } from '@/shared/constants/checkEmail';
   import { sanitizeDisplayEmail } from '@/utils/pii';
   import { computed } from 'vue';
@@ -19,11 +17,15 @@
    * on its way, echo the address it went to (so a typo is obvious), and give
    * exactly two recovery paths — resend, or start over with a different address.
    *
-   * Deliberately minimal: the real next step is the link already in the user's
-   * inbox, so there is no primary button competing with it, and no brand icon
-   * distracting from it. The address is shown as static text, not an editable
-   * field — correcting a typo is what "start over" is for, and an inline edit
-   * would fork the flow and muddy the resend-vs-signup intent.
+   * The explanation is spelled out on the page — what was sent above the
+   * address, what to do about it below — rather than tucked behind a help icon.
+   * This is a dead-end screen the user lands on once and must act on elsewhere;
+   * hiding the instruction behind a hover made them work for the one thing the
+   * page exists to say. There is still no primary button competing with the
+   * link already in their inbox, and no brand icon distracting from it. The
+   * address is shown as static text, not an editable field — correcting a typo
+   * is what "start over" is for, and an inline edit would fork the flow and
+   * muddy the resend-vs-signup intent.
    *
    * The email arrives via browser History state (not the URL): it is PII, and a
    * query string would leak it through history, the Referer header, access logs
@@ -46,9 +48,10 @@
     // fresh entry, its absence). We deliberately avoid router.options.history
     // .state: RouterHistory is an @alpha interface, so window.history.state is
     // the upgrade-proof read. `typeof window` guards a non-browser render.
-    const state = (typeof window !== 'undefined' ? window.history.state : null) as
-      | Record<string, unknown>
-      | null;
+    const state = (typeof window !== 'undefined' ? window.history.state : null) as Record<
+      string,
+      unknown
+    > | null;
     return sanitizeDisplayEmail(state?.[CHECK_EMAIL_STATE_KEY]);
   });
 
@@ -100,47 +103,29 @@
           </div>
         </div>
 
-        <!-- The one thing to do: check this inbox. The address is the message;
-             a help icon carries the details (what was sent, what to do next) so
-             the screen stays a single, clear instruction rather than a wall of
-             text the email itself already repeats. -->
-        <div class="text-center">
-          <div
+        <!-- What was sent, where it went, and what to do with it. The address
+             is the focal line; the copy above and below frames it so the page
+             reads as one sentence the user can act on without hovering
+             anything. -->
+        <div class="space-y-1 text-center">
+          <p
             v-if="email"
-            class="flex items-center justify-center gap-1.5">
-            <span
-              class="text-lg font-semibold break-all text-gray-900 dark:text-white"
-              data-testid="check-email-address">
-              {{ email }}
-            </span>
-            <span class="group relative shrink-0">
-              <HoverTooltip
-                tooltip-id="check-email-help-tooltip"
-                content-class="w-64 max-w-[calc(100vw-2.5rem)] text-left">
-                {{ t('web.auth.check_email.help') }}
-              </HoverTooltip>
-              <button
-                type="button"
-                class="flex items-center justify-center rounded-full text-gray-400
-                       transition-colors hover:text-gray-600 focus:outline-none
-                       focus-visible:ring-2 focus-visible:ring-brand-500
-                       focus-visible:ring-offset-2 dark:text-gray-500
-                       dark:hover:text-gray-300 dark:focus-visible:ring-offset-gray-900"
-                :aria-label="t('web.auth.check_email.help')"
-                aria-describedby="check-email-help-tooltip"
-                data-testid="check-email-help">
-                <OIcon
-                  collection="heroicons"
-                  name="question-mark-circle"
-                  size="5"
-                  aria-hidden="true" />
-              </button>
-            </span>
-          </div>
+            class="text-sm text-gray-600 dark:text-gray-400">
+            {{ t('web.auth.check_email.sent_to') }}
+          </p>
+          <p
+            v-if="email"
+            class="text-lg font-semibold break-all text-gray-900 dark:text-white"
+            data-testid="check-email-address">
+            {{ email }}
+          </p>
           <p
             v-else
             class="text-sm text-gray-600 dark:text-gray-400">
             {{ t('web.auth.check_email.sent_to_generic') }}
+          </p>
+          <p class="pt-1 text-sm text-gray-700 dark:text-gray-300">
+            {{ t('web.auth.check_email.instructions') }}
           </p>
         </div>
 
