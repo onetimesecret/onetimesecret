@@ -124,7 +124,12 @@ module Core
       #
       def welcome
         domain_strategy     = strategy_result.metadata[:domain_strategy]
-        checkout_session_id = req.params['checkout'].to_s.strip
+        # Only a value shaped like a Stripe Checkout Session id is reported.
+        # The param is caller-controlled on an unauthenticated route, so
+        # anything else is treated as absent; param_keys below still records
+        # that a checkout param was present.
+        raw_checkout_id     = req.params['checkout'].to_s.strip
+        checkout_session_id = raw_checkout_id.match?(/\Acs_(test|live)_[A-Za-z0-9]+\z/) ? raw_checkout_id : nil
 
         capture_message('Welcome page accessed after Payment Link retirement', :error) do |scope|
           scope.set_context(
@@ -140,7 +145,7 @@ module Core
               referrer: sanitized_referrer,
               # A Stripe object id, not customer data: the one field support
               # needs to reconcile a payment this endpoint no longer applies.
-              checkout_session_id: checkout_session_id.empty? ? nil : checkout_session_id,
+              checkout_session_id: checkout_session_id,
             },
           )
         end

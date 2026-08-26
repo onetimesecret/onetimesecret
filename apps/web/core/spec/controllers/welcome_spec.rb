@@ -357,5 +357,23 @@ RSpec.describe Core::Controllers::Welcome do
         expect(@redirect_location).to eq('/')
       end
     end
+
+    context 'when checkout param is not shaped like a Stripe session id' do
+      let(:domain_strategy) { :canonical }
+      let(:params) { { 'checkout' => 'victim@example.com' } }
+
+      # The param is caller-controlled on an unauthenticated route: a value
+      # that is not a Checkout Session id must never reach telemetry.
+      it 'reports a nil checkout_session_id and never the raw value' do
+        controller.welcome
+
+        expect(sentry_scope).to have_received(:set_context).with(
+          'request',
+          hash_including(checkout_session_id: nil)
+        ) do |_name, context|
+          expect(context.values.map(&:to_s).join).not_to include('victim@example.com')
+        end
+      end
+    end
   end
 end
