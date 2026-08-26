@@ -5,13 +5,15 @@
 #
 # Runtime SSO credential injection for multi-tenant configurations.
 #
-# This hook resolves tenant-specific SSO credentials from the Host header
+# This hook resolves tenant-specific SSO credentials from the request's
+# PUBLIC host (env['onetime.display_domain'] — see .public_host; NOT the raw
+# Host header, which a Host-rewriting proxy replaces with the origin target)
 # and injects them into the OmniAuth strategy before authentication begins.
 # It enables organizations to configure their own IdP connections without
 # requiring platform environment variables.
 #
 # Flow (domain-based resolution):
-#   1. Host header -> CustomDomain lookup
+#   1. display_domain -> CustomDomain lookup
 #   2. CustomDomain.identifier -> CustomDomain::SsoConfig
 #   3. SSO config -> omniauth strategy.options injection
 #
@@ -61,7 +63,7 @@ module Auth::Config::Hooks
       # This hook overrides those defaults at runtime for tenant-specific flows.
       #
       auth.omniauth_setup do
-        host = request.host
+        host = HELPERS.public_host(request)
 
         # RESTRICT_TO ENFORCEMENT
         # (ADR-034#restrict-to-is-an-access-control-not-a-display-preference
@@ -105,9 +107,16 @@ module Auth::Config::Hooks
         # authorize request and token exchange. Unlike OAuth2-based strategies,
         # omniauth_openid_connect reads client_options.redirect_uri verbatim
         # (no auto-construction from the request host). We set it here so the
-        # value derives from the current request host — correct for both
-        # install-level (canonical domain) and domain-level (custom domain).
-        # Must be identical across both phases (authorize + callback).
+        # value derives from the request's PUBLIC host — correct for both
+        # install-level (canonical domain) and domain-level (custom domain),
+        # including behind a Host-rewriting proxy, where the raw authority is
+        # the origin target and this URI would otherwise name a host the
+        # tenant's IdP has never seen. `full_host` resolves through the
+        # override installed in features/omniauth.rb (#4224), which is also
+        # what fixes `callback_url` for the OAuth2-family strategies that
+        # build it themselves. Must be identical across both phases
+        # (authorize + callback) — both run this hook, and both read the
+        # same env value, so they agree.
         if strategy&.options&.dig(:discovery) == true
           redirect_uri                                     = strategy.full_host + strategy.callback_path
           strategy.options[:client_options]              ||= {}
@@ -239,7 +248,7 @@ module Auth::Config::Hooks
           Auth::Logging.log_auth_event(
             :restrict_to_omniauth_callback_rejected,
             level: :info,
-            host: request.host,
+            host: HELPERS.public_host(request),
             path: request.path,
           )
           request.halt(Auth::RestrictTo.not_found_response)
@@ -262,7 +271,7 @@ module Auth::Config::Hooks
         next unless expected_domain_id
 
         # Resolve current request's tenant context
-        current_domain = HELPERS.resolve_custom_domain(request.host)
+        current_domain = HELPERS.resolve_custom_domain(HELPERS.public_host(request))
 
         # Validate tenant context matches - domain_id must match exactly
         domain_mismatch = current_domain&.identifier != expected_domain_id
@@ -273,7 +282,7 @@ module Auth::Config::Hooks
             level: :warn,
             expected_domain_id: expected_domain_id,
             expected_host: expected_host,
-            actual_host: request.host,
+            actual_host: HELPERS.public_host(request),
             actual_domain_id: current_domain&.identifier,
             ip: request.ip,
             session_id_hash: Digest::SHA256.hexdigest(session.id.to_s)[0, 16],
@@ -343,7 +352,7 @@ module Auth::Config::Hooks
           :omniauth_tenant_callback_validated,
           level: :debug,
           domain_id: expected_domain_id,
-          host: request.host,
+          host: HELPERS.public_host(request),
         )
       end
     end
@@ -355,6 +364,61 @@ module Auth::Config::Hooks
     # These are module methods called via HELPERS constant from Rodauth blocks.
     # They cannot access Rodauth instance methods directly - pass needed objects.
     #
+
+    # The PUBLIC host for this request — the hostname the browser used.
+    #
+    # Tenant SSO is keyed on CustomDomain#display_domain, so the lookup must
+    # use the host the visitor typed, not the authority the origin happens to
+    # see. Behind Approximated (and any Host-rewriting proxy) those differ:
+    # the browser asks for nz.example.com, Approximated forwards it as
+    # `Apx-Incoming-Host` and rewrites `Host:` to the origin target, so
+    # `request.host` reads as the platform host and every custom-domain
+    # lookup misses — the tenant SSO POST 302s to
+    # `/signin?auth_error=sso_not_configured` while the same request's
+    # DomainStrategy classification says `custom`.
+    #
+    # `env['onetime.display_domain']` is that resolution: Rack::DetectHost
+    # picks the forwarded host ONLY from trusted infrastructure and
+    # DomainStrategy validates it (falling back to the canonical host), so it
+    # is also the safer key — Rack 3.2's `request.host` prefers
+    # `X-Forwarded-Host`/`Forwarded` from ANY client, ungated by proxy trust.
+    #
+    # Same source the rest of the custom-domain surface already reads:
+    # HttpOriginOptions (#4170), Auth::SigninGate, Auth::RestrictTo and
+    # TenantSsoResolution — so the runtime gate here and the display gates
+    # that decide whether to render the SSO button cannot disagree about
+    # which tenant a request belongs to.
+    #
+    # THREE TIERS, most trustworthy first. `display_domain` is only an answer
+    # about THIS request when DomainStrategy actually classified the host:
+    # the middleware pins it to the canonical host both when the domains
+    # feature is off (it never looks at the request at all) and when a
+    # detected host fails validation, so a canonical-set value carries no
+    # information — reading it as the public host makes every custom-domain
+    # lookup miss and, worse, makes before_omniauth_callback_route skip
+    # tenant validation entirely for operators running `domains.enabled:
+    # false` behind Host forwarding.
+    #
+    # DetectHost's result is the next rung: the same host DomainStrategy
+    # would have classified, already normalized and validated, and honored
+    # from forwarded headers ONLY behind trusted infrastructure. That last
+    # part is why it is the fallback rather than `request.host`, which in
+    # Rack 3.2 prefers `X-Forwarded-Host`/`Forwarded` from ANY client (#4223).
+    # `request.host` remains only for the case the doc-comment fallback was
+    # always for: no middleware in the stack at all.
+    #
+    # @param request [Rack::Request] current request
+    # @return [String] public host, or request.host when neither middleware
+    #   ran (bare-Rack specs, tryouts)
+    def self.public_host(request)
+      display_domain = request.env['onetime.display_domain'].to_s
+      return display_domain unless display_domain.empty? || canonical_domain?(display_domain)
+
+      detected_host = request.env[Rack::DetectHost.result_field_name].to_s
+      return detected_host unless detected_host.empty?
+
+      request.host
+    end
 
     # Resolve custom domain from hostname.
     # Returns nil if no custom domain mapping exists.
@@ -383,7 +447,7 @@ module Auth::Config::Hooks
     # set-backed predicate so auth and request classification can never
     # disagree about which hosts are canonical (split deployments).
     #
-    # @param host [String] Request hostname (from request.host, excludes port)
+    # @param host [String] Request hostname (from #public_host, excludes port)
     # @return [Boolean] true if host is in the canonical host set
     def self.canonical_domain?(host)
       return false if host.to_s.empty?

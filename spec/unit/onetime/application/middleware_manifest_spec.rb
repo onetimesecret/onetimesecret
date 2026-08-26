@@ -88,6 +88,35 @@ RSpec.describe 'Middleware manifest (characterization)' do
   end
 
   describe 'universal MiddlewareStack (MiddlewareStack.configure)' do
+    # The universal stack with every config-conditional mount OFF, as resolved
+    # under the test config (spec/config.test.yaml + spec/logging.test.yaml):
+    #   - Onetime::Application::RequestLogger: absent (logging http.enabled: false)
+    #   - Sentry::Rack::CaptureExceptions: absent when diagnostics is disabled;
+    #     characterized in its own example below with d9s_enabled pinned true.
+    UNIVERSAL_MIDDLEWARE_BASE = [
+      'Onetime::Middleware::AssumeHttps',
+      'Otto::Security::Middleware::IPPrivacyMiddleware',
+      'Onetime::Middleware::IPBan',
+      'Onetime::Middleware::HealthAccessControl',
+      'Rack::ContentLength',
+      'Onetime::Middleware::StartupReadiness',
+      'Rack::DetectHost',
+      'Onetime::Middleware::AdminNetworkIsolation',
+      'Rack::RequestId',
+      'Onetime::Middleware::NormalizeContentType',
+      'Rack::Parser',
+      'Onetime::Session',
+      'Onetime::Middleware::SessionSkip',
+      'Onetime::Middleware::IdentityResolution',
+      'Onetime::Middleware::EntitlementPreviewContext',
+      'Otto::Locale::Middleware',
+      'Middleware::I18nLocale',
+      'Onetime::Middleware::DomainStrategy',
+      'Onetime::Middleware::RetryAfterHeader',
+      'Onetime::Middleware::CsrfResponseHeader',
+      'Onetime::Middleware::Security',
+    ].freeze
+
     subject(:recorded_names) do
       recorder = MiddlewareRecorder.new
       Onetime::Application::MiddlewareStack.configure(
@@ -97,36 +126,31 @@ RSpec.describe 'Middleware manifest (characterization)' do
       recorder.used.map(&:name)
     end
 
-    it 'mounts exactly the known universal middleware, in order' do
-      # Conditional mounts, as resolved under the test config
-      # (spec/config.test.yaml + spec/logging.test.yaml):
-      #   - Onetime::Application::RequestLogger: absent (logging http.enabled: false)
-      #   - Sentry::Rack::CaptureExceptions: absent (diagnostics not initialized
-      #     in unit tests; Onetime.with_diagnostics yields only after boot
-      #     enables d9s)
-      expect(recorded_names).to eq [
-        'Onetime::Middleware::AssumeHttps',
-        'Otto::Security::Middleware::IPPrivacyMiddleware',
-        'Onetime::Middleware::IPBan',
-        'Onetime::Middleware::HealthAccessControl',
-        'Rack::ContentLength',
-        'Onetime::Middleware::StartupReadiness',
-        'Rack::DetectHost',
-        'Onetime::Middleware::AdminNetworkIsolation',
-        'Rack::RequestId',
-        'Onetime::Middleware::NormalizeContentType',
-        'Rack::Parser',
-        'Onetime::Session',
-        'Onetime::Middleware::SessionSkip',
-        'Onetime::Middleware::IdentityResolution',
-        'Onetime::Middleware::EntitlementPreviewContext',
-        'Otto::Locale::Middleware',
-        'Middleware::I18nLocale',
-        'Onetime::Middleware::DomainStrategy',
-        'Onetime::Middleware::RetryAfterHeader',
-        'Onetime::Middleware::CsrfResponseHeader',
-        'Onetime::Middleware::Security',
-      ]
+    # The Sentry mount is a pure function of Onetime.d9s_enabled, which is
+    # process-global and flipped by any earlier spec that runs
+    # Config.after_load with diagnostics enabled — pin it per example so this
+    # characterization is independent of suite order, and restore whatever
+    # value the wider suite was running with.
+    around do |example|
+      original = Onetime.d9s_enabled
+      example.run
+    ensure
+      Onetime.d9s_enabled = original
+    end
+
+    it 'mounts exactly the known universal middleware, in order (diagnostics disabled)' do
+      Onetime.d9s_enabled = false
+      expect(recorded_names).to eq UNIVERSAL_MIDDLEWARE_BASE
+    end
+
+    it 'adds only Sentry::Rack::CaptureExceptions, before RetryAfterHeader (diagnostics enabled)' do
+      Onetime.d9s_enabled = true
+      expected = UNIVERSAL_MIDDLEWARE_BASE.dup
+      expected.insert(
+        expected.index('Onetime::Middleware::RetryAfterHeader'),
+        'Sentry::Rack::CaptureExceptions',
+      )
+      expect(recorded_names).to eq expected
     end
 
     it 'only records `use` calls (no run/map/warmup at the universal layer)' do

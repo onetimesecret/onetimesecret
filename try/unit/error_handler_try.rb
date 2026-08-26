@@ -307,7 +307,7 @@ result = Onetime::ErrorHandler.http_headers_from(env)
 
 ## http_headers_from redacts HTTP_COOKIE and proxy/api-key variants
 env = {
-  'HTTP_COOKIE'              => 'sess=secret; csrf=abc',
+  'HTTP_COOKIE'              => 'onetime.session=secret; csrf=abc',
   'HTTP_PROXY_AUTHORIZATION' => 'Bearer xyz',
   'HTTP_X_API_KEY'           => 'ak_live_123',
   'HTTP_X_AUTH_TOKEN'        => 'tok_456',

@@ -94,18 +94,17 @@ module Billing
 
     # Create the organization a checkout's subscription will land on.
     #
-    # Organization.create! reserves contact_email in a unique index, and an
-    # ARCHIVED organization still holds its reservation. That is precisely the
-    # caller who gets here (their own orgs are archived, so resolve returned
-    # nil), so passing the customer email would raise 'Organization exists for
-    # that email address' and abandon a paid subscription. Retry without a
-    # contact_email: it is not the billing address of record — billing_email /
-    # stripe_customer_id are, and update_from_stripe_subscription sets those
-    # moments later.
+    # contact_email is a unique index and an archived organization still
+    # holds its reservation — precisely the caller who gets here, since their
+    # own orgs are archived (@see try/unit/models/organization_race_condition_try.rb).
+    # Retry without a contact_email rather than raise: it is not the billing
+    # address of record — billing_email / stripe_customer_id are, and
+    # update_from_stripe_subscription sets those moments later.
     #
     # The workspace is born holding the stripe_customer_id claim so two
     # surfaces completing the SAME checkout cannot both create one; see
-    # {.adopt_claimed_workspace}.
+    # {.adopt_claimed_workspace} and the "concurrent completion" examples in
+    # apps/web/billing/spec/lib/checkout_target_resolver_spec.rb.
     #
     # @param customer [Onetime::Customer]
     # @param logger [#warn] billing logger

@@ -2,6 +2,7 @@
 
 import { PiniaPluginOptions } from '@/plugins/pinia/types';
 import { classifyError, errorGuards } from '@/schemas/errors';
+import { clearDiagnosticsActorContext } from '@/services/diagnostics.service';
 import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties, storeToRefs } from 'pinia';
@@ -320,7 +321,7 @@ export const useAuthStore = defineStore('auth', () => {
       // All computed properties derive from bootstrapStore refs, so route guards
       // and components will see updated values immediately.
       if (response.data) {
-        bootstrapStore.update(response.data);
+        bootstrapStore.update(response.data, { source: 'bootstrap' });
       }
 
       // Update local auth state from refreshed window data
@@ -416,10 +417,30 @@ export const useAuthStore = defineStore('auth', () => {
 
     $reset();
 
-    // Reset bootstrapStore user state while preserving server config
+    // Reset bootstrapStore user state while preserving server config.
+    // resetForLogout() also evicts `diagnostics_ref` from the pre-Pinia
+    // bootstrap.service snapshot, so the reference survives in neither of the
+    // two places the bootstrap payload is mirrored. The Sentry scope is a
+    // third holder, and it is cleared just below.
     bootstrapStore.resetForLogout();
 
-    deleteCookie('sess');
+    // Clear the Sentry user context: setUser(null) on BOTH the isolated and
+    // current scopes.
+    //
+    // This is the SOFT (SPA) logout path — no page navigation follows, so the
+    // Sentry scopes survive with whatever user context was last written.
+    // Without this call every subsequent error in the now-anonymous session
+    // would keep reporting the previous session's ref. resetForLogout() above
+    // clears the store field, but the store is not where Sentry reads the
+    // context from.
+    //
+    // The HARD logout paths in useAuth (POST /auth/logout followed by
+    // window.location.href) do not need this — the navigation tears down the
+    // JS context and the scopes with it.
+    //
+    // No-ops when diagnostics are disabled, so it is called unconditionally.
+    clearDiagnosticsActorContext();
+
     deleteCookie('locale');
 
     // Clear all session storage;
@@ -439,7 +460,6 @@ export const useAuthStore = defineStore('auth', () => {
   async function logoutMinimal() {
     await $stopAuthCheck();
 
-    deleteCookie('sess');
     deleteCookie('locale');
     sessionStorage.clear();
   }

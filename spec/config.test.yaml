@@ -112,7 +112,25 @@ features:
   domains:
     enabled: <%= ENV['DOMAINS_ENABLED'] == 'true' || false %>
     require_verified: <%= ENV['DOMAINS_REQUIRE_VERIFIED'] == 'true' || false %>
-    default: <%= ENV['DEFAULT_DOMAIN'] || nil %>
+    # A PARSEABLE primary canonical host whenever the domains axis is on.
+    #
+    # site.host is `127.0.0.1:3000` and PublicSuffix cannot parse an IP
+    # literal, so with domains enabled and no `default` the canonical set
+    # comes out EMPTY, Chooserator classifies every host :invalid (the
+    # canonical one included), and Auth::SigninEnabled takes the tenant-safe
+    # default-OFF branch — 404ing /auth/login for specs that have nothing to
+    # do with custom domains. `default` becomes the PRIMARY canonical host
+    # (#3841), which demotes the unparseable site.host to a skipped set member
+    # instead of the entry that disables the feature.
+    #
+    # Gated on DOMAINS_ENABLED so it is a strict no-op with domains off: it is
+    # NOT enough that DomainStrategy ignores `default` when disabled
+    # (initialize_from_config), because Onetime::Utils::CanonicalHosts reads
+    # features.domains.default UNGATED and every link-anchoring consumer would
+    # move off site.host. Same value as the 'domains enabled' shared context
+    # (apps/web/auth/spec/support/domains_enabled_context.rb) installs, and the
+    # same one bin/visual passes as DEFAULT_DOMAIN.
+    default: <%= ENV['DEFAULT_DOMAIN'] || (ENV['DOMAINS_ENABLED'] == 'true' ? 'canonical.example.org' : nil) %>
     # Three-way: unset -> nil (picker offers canonical), set -> verbatim,
     # set-but-empty -> [] which raises at boot. The `&.` keeps unset and
     # set-but-empty distinct; do not copy `default:`'s `|| nil`. Every

@@ -112,6 +112,11 @@ module Auth
       Hooks::CreateAccount.configure(self)
 
       # Method overrides (replace Rodauth methods, not before/after hooks)
+      # Absolute URLs (every *_email_link, the WebAuthn origin) follow the
+      # request's public host rather than the proxy-rewritten authority
+      # (#4221). Also defines public_display_domain, which the email template
+      # blocks above read at request time.
+      Overrides::PublicBaseUrl.configure(self)
       Overrides::PasswordMigration.configure(self)
       Overrides::ErrorHandling.configure(self)
       # Enumeration safety for the reset-password-request path (issue #3857).

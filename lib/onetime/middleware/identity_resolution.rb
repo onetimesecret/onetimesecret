@@ -213,8 +213,8 @@ module Onetime
           return auth_header.sub('Bearer ', '')
         end
 
-        # Try session cookie (for web requests)
-        request.cookies['ots_auth_token'] || request.cookies['sess']
+        # Try external auth cookie (for web requests)
+        request.cookies['ots_auth_token']
       end
 
       def load_user_from_session(session)

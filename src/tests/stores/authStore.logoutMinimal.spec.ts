@@ -53,7 +53,6 @@ describe('authStore.logoutMinimal', () => {
     store.init();
 
     // Set a cookie so we can verify deletion
-    document.cookie = 'sess=session123; path=/';
     document.cookie = 'locale=en; path=/';
     sessionStorage.setItem('ots_auth_state', 'true');
     sessionStorage.setItem('some_other_key', 'value');
@@ -65,7 +64,6 @@ describe('authStore.logoutMinimal', () => {
     vi.clearAllMocks();
     vi.restoreAllMocks();
     sessionStorage.clear();
-    document.cookie = 'sess=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     document.cookie = 'locale=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
   });
 
@@ -77,14 +75,6 @@ describe('authStore.logoutMinimal', () => {
 
     expect(sessionStorage.getItem('ots_auth_state')).toBeNull();
     expect(sessionStorage.getItem('some_other_key')).toBeNull();
-  });
-
-  it('deletes the sess cookie', async () => {
-    expect(document.cookie).toContain('sess=session123');
-
-    await store.logoutMinimal();
-
-    expect(document.cookie).not.toContain('sess=session123');
   });
 
   it('deletes the locale cookie', async () => {

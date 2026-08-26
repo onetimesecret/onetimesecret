@@ -112,9 +112,10 @@ RUN caddy version
 # PUBLIC_DIR ships empty: the app container serves its own built assets
 # (ADR-025), and public/web no longer holds tracked static files (they were
 # retired in favor of brand packs, ADR-029). The Caddyfile only static-serves
-# files that exist under PUBLIC_DIR (`@exists file`) and proxies everything
-# else to the app, so an empty dir means "proxy everything". Operators can
-# still mount assets into ${PUBLIC_DIR} at run time to have Caddy serve them.
+# /dist/* from PUBLIC_DIR (an allowlist, not a file-existence test — brand
+# assets must always reach the app) and proxies everything else, so an empty
+# dir means "proxy everything". Operators can still mount a dist/ tree into
+# ${PUBLIC_DIR} at run time to have Caddy serve it.
 RUN mkdir -p /etc/caddy ${PUBLIC_DIR}
 ENV PUBLIC_DIR=${PUBLIC_DIR}
 

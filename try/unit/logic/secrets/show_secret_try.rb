@@ -215,6 +215,28 @@ logic.process
 logic.display_lines
 #=> 9
 
+## A metadata-only request (continue=false) never verifies the passphrase: the
+## response cannot tell a right guess from a wrong one and no rate-limit attempt
+## is spent on a guess that was never checked
+receipt = @create_receipt.call
+secret = receipt.load_secret
+secret.update_passphrase('correct_pass')
+secret.save
+params = {
+  'identifier' => receipt.secret_identifier,
+  'passphrase' => 'wrong_pass',
+  'continue' => 'false'
+}
+logic = Logic::Secrets::ShowSecret.new(@strategy_result, params, 'en')
+logic.process
+[
+  logic.correct_passphrase,
+  logic.show_secret,
+  logic.success_data[:details].key?(:correct_passphrase),
+  Onetime::Secret.dbclient.get("passphrase:attempts:#{secret.identifier}").nil?,
+]
+#=> [false, false, false, true]
+
 # Anonymous User Tests (verify_owner flow with anonymous_user?)
 
 ## anonymous_user? returns true for anonymous strategy result

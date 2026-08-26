@@ -198,7 +198,13 @@ module Auth::Config::Hooks
                                 'canonical_signup'
                               end
 
-        customer = Onetime::ErrorHandler.safe_execute('create_customer', account_id: account_id, extid: account[:extid]) do
+        # No identity key here on purpose. The accounts row has no `extid`
+        # column (it is `external_id`, see auth/migrations/001_initial.rb) and
+        # the Customer this hook is about to create does not exist yet, so
+        # there is no extid to attribute a failure to. Accepted attribution
+        # loss: the event is still captured and grouped, but actor cardinality
+        # is unanswerable for the create-customer class.
+        customer = Onetime::ErrorHandler.safe_execute('create_customer', account_id: account_id) do
           Auth::Operations::CreateCustomer.new(
             account_id: account_id,
             account: account,
@@ -222,7 +228,7 @@ module Auth::Config::Hooks
             # already validated the token and that the signup email matches the
             # invited email, so we can mark the customer verified here without
             # a separate email round-trip.
-            Onetime::ErrorHandler.safe_execute('auto_verify_invite_signup', extid: customer.extid) do
+            Onetime::ErrorHandler.safe_execute('auto_verify_invite_signup', external_id: customer.extid) do
               customer.verified    = true
               customer.verified_by = 'invite_token'
               customer.save
@@ -274,7 +280,7 @@ module Auth::Config::Hooks
             # CreateDefaultWorkspace#apply_pending_federation! and #initialize.
             require_verification = Onetime.auth_config.verify_account_enabled?
 
-            Onetime::ErrorHandler.safe_execute('create_default_workspace', extid: customer.extid) do
+            Onetime::ErrorHandler.safe_execute('create_default_workspace', external_id: customer.extid) do
               Auth::Operations::CreateDefaultWorkspace.new(
                 customer: customer,
                 require_verification: require_verification,
@@ -339,7 +345,7 @@ module Auth::Config::Hooks
             email: account[:email],
           )
 
-          Onetime::ErrorHandler.safe_execute('verify_customer', extid: account[:external_id]) do
+          Onetime::ErrorHandler.safe_execute('verify_customer', external_id: account[:external_id]) do
             next unless account[:external_id]
 
             customer = Onetime::Customer.find_by_extid(account[:external_id])
@@ -359,7 +365,7 @@ module Auth::Config::Hooks
           # here we apply it to the workspace created at signup. Idempotent and a
           # safe no-op when nothing is pending or it was already claimed. Re-fetch
           # the customer so verified? reflects the state just persisted above.
-          Onetime::ErrorHandler.safe_execute('claim_pending_federation', extid: account[:external_id]) do
+          Onetime::ErrorHandler.safe_execute('claim_pending_federation', external_id: account[:external_id]) do
             next unless account[:external_id]
 
             verified_customer = Onetime::Customer.find_by_extid(account[:external_id])
@@ -371,7 +377,7 @@ module Auth::Config::Hooks
           # Surface pending plan intent for checkout redirect (issue #3126)
           # If the user had selected a plan before signup, redirect them to checkout
           # after verification completes.
-          Onetime::ErrorHandler.safe_execute('surface_plan_intent', extid: account[:extid]) do
+          Onetime::ErrorHandler.safe_execute('surface_plan_intent', external_id: account[:external_id]) do
             # account[:external_id] (Rodauth/SQL) == customer.extid (Familia/Redis)
             customer = Onetime::Customer.find_by_extid(account[:external_id])
 
@@ -940,7 +946,7 @@ module Auth::Config::Hooks
           email: account[:email],
         )
 
-        Onetime::ErrorHandler.safe_execute('delete_customer', account_id: account_id, extid: account[:extid]) do
+        Onetime::ErrorHandler.safe_execute('delete_customer', account_id: account_id, external_id: account[:external_id]) do
           Auth::Operations::DeleteCustomer.new(account: account).call
         end
       end

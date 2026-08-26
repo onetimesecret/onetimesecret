@@ -129,7 +129,7 @@ module Onetime
             # refresh path (which bypasses eligible?) may re-fetch over an icon.
             return false unless d.icon['filename'].to_s.empty?
 
-            return false if d.favicon_fetch_attempts.to_i >= max_attempts # permanent stop
+            return false if (d.favicon_fetch_attempts || 0) >= max_attempts # permanent stop
 
             # PROCESSING counts as in-flight ONLY while fresh, measured from the
             # start stamp set in mark_processing. A DLQ'd FetchTimeout leaves
@@ -143,7 +143,7 @@ module Onetime
               return false if fresh
             end
 
-            nxt = d.favicon_fetch_next_at.to_i
+            nxt = d.favicon_fetch_next_at || 0
             nxt.zero? || nxt <= now # never scheduled, or backoff elapsed
           end
         end

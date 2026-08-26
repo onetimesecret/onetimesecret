@@ -61,59 +61,21 @@ RSpec.describe 'per-domain signin_enabled enforcement — full mode (ADR-024 cus
   type: :integration do
   include Rack::Test::Methods
 
-  before(:all) do
-    boot_onetime_app
+  # This gate reads env['onetime.domain_strategy'], so the domains axis has to
+  # be ON or DomainStrategy short-circuits, classifies EVERY request
+  # :canonical, routes the gate down its operator branch and every example
+  # here passes vacuously. The context also installs a parseable operator host
+  # (`canonical_host`), without which the canonical set is empty and even the
+  # operator host classifies :invalid — the tenant-safe default-OFF branch
+  # (ADR-024#operator-defaults-require-positive-classification), i.e. a 404 for
+  # a reason that has nothing to do with what these examples assert.
+  #
+  # `.example.com`, matching the tenant fixture hosts below: those are
+  # registered CustomDomains, so they hit Chooserator's registration arm ahead
+  # of the peer sweep and keep :custom regardless.
+  include_context 'domains enabled', 'operator-signin-gate.example.com'
 
-    # Same reason as restrict_to_enforcement_spec.rb: with DOMAINS_ENABLED off
-    # (the test-config default) Onetime::Middleware::DomainStrategy
-    # short-circuits and classifies EVERY request :canonical, which routes this
-    # gate down its operator branch and makes every example here pass
-    # vacuously. Flip the runtime flag rather than the env var (the lane env is
-    # shared) and restore afterwards.
-    @original_features        = Onetime::Runtime.features
-    Onetime::Runtime.features = @original_features.with(domains_enabled: true)
-
-    # AND give the lane a PARSEABLE canonical host.
-    #
-    # The test config sets site.host to an IP with a port (127.0.0.1:3000),
-    # which PublicSuffix cannot parse, so the canonical SET comes out empty and
-    # Chooserator classifies EVERY non-custom host :invalid — including the
-    # canonical one. That is correct behaviour for a nonsense configuration
-    # (and harmless in real installs, where an IP site.host only ever ships
-    # with domains_enabled OFF, under which DomainStrategy short-circuits to
-    # :canonical), but it makes the operator-branch examples below untestable:
-    # :invalid takes the tenant-safe default-OFF branch by design
-    # (ADR-024#operator-defaults-require-positive-classification), so the
-    # canonical host would 404 for a reason that has nothing to do with what
-    # those examples assert.
-    #
-    # This edits OT.conf and NOT just the class state, which is load-bearing:
-    # DomainStrategy#initialize re-runs initialize_from_config from OT.conf,
-    # and the Rack app is built lazily on the first request — i.e. AFTER this
-    # hook — so a class-state-only override is silently overwritten before the
-    # first example runs. (That overwrite is also what pins the lane at
-    # :invalid: the instance-level domains_enabled? reads Runtime.features,
-    # which we just flipped to true, while the canonical SET was re-derived
-    # with enabled=false and an unparseable site.host, leaving it empty.)
-    # Both are restored in after(:all).
-    @original_domains_config       = OT.conf.dig('features', 'domains') || {}
-    OT.conf['features']['domains'] = @original_domains_config.merge(
-      'enabled' => true,
-      'default' => CANONICAL_HOST,
-    )
-    Onetime::Middleware::DomainStrategy.initialize_from_config(OT.conf['features']['domains'])
-  end
-
-  after(:all) do
-    Onetime::Runtime.features = @original_features if @original_features
-    if @original_domains_config
-      OT.conf['features']['domains'] = @original_domains_config
-      Onetime::Middleware::DomainStrategy.initialize_from_config(@original_domains_config)
-    end
-  end
-
-  # An operator host the classifier can actually parse. See before(:all).
-  CANONICAL_HOST = 'operator-signin-gate.example.com'
+  before(:all) { boot_onetime_app }
 
   let(:run_id)   { SecureRandom.hex(6) }
   let(:password) { 'TestPassword123!' }
@@ -319,8 +281,6 @@ RSpec.describe 'per-domain signin_enabled enforcement — full mode (ADR-024 cus
   end
 
   describe 'canonical / operator hosts' do
-    let(:canonical_host) { CANONICAL_HOST }
-
     it 'classifies as :canonical (guards against a vacuous pass on :invalid)' do
       seen = nil
       allow(Auth::SigninEnabled).to receive(:enabled_for_request?).and_wrap_original do |orig, env|

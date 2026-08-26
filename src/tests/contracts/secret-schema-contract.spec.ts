@@ -3,9 +3,19 @@
 // Contract snapshot tests that verify the frontend Zod schema declares
 // all fields the backend sends. Prevents silent field stripping (issue #2685).
 
-import { secretSchema } from '@/schemas/shapes/v3/secret';
+import { secretResponseSchema as v2SecretResponseSchema } from '@/schemas/api/v2/responses/secrets';
+import { secretDetailsSchema as v2SecretDetailsSchema } from '@/schemas/shapes/v2/secret';
+import {
+  secretSchema,
+  secretDetailsSchema as v3SecretDetailsSchema,
+} from '@/schemas/shapes/v3/secret';
 import { describe, expect, it } from 'vitest';
 
+import {
+  createV2WireSecret,
+  createV2WireSecretDetails,
+  createV3WireSecretDetails,
+} from '../schemas/shapes/fixtures/secret.fixtures';
 import { SECRET_SAFE_DUMP_FIELDS } from './secret-safe-dump-fields';
 
 // Fields intentionally excluded from secretSchema.
@@ -108,5 +118,66 @@ describe('Secret schema contract (safe_dump_fields)', () => {
       }
       expect(result.success).toBe(true);
     });
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Passphrase-oracle removal: details.correct_passphrase is gone
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('secret details no longer carry correct_passphrase', () => {
+  // The backend used to report whether a supplied passphrase was correct even
+  // when the caller had not committed to the reveal (`continue: false`), which
+  // made the endpoint a passphrase oracle. The field is removed from the wire
+  // and from the schemas; `show_secret` is the only reveal signal. These tests
+  // pin both halves of the contract: the new (absent) shape must parse, and an
+  // older backend that still emits the field must not break the client — the
+  // non-strict object silently strips it rather than surfacing it.
+
+  it('the schemas do not declare correct_passphrase', () => {
+    expect(Object.keys(v2SecretDetailsSchema.shape)).not.toContain('correct_passphrase');
+    expect(Object.keys(v3SecretDetailsSchema.shape)).not.toContain('correct_passphrase');
+  });
+
+  it('parses a V2 secret response whose details omit correct_passphrase', () => {
+    const payload = {
+      record: createV2WireSecret(),
+      details: createV2WireSecretDetails(),
+      shrimp: 'csrf-token-xyz',
+    };
+    expect(payload.details).not.toHaveProperty('correct_passphrase');
+
+    const result = v2SecretResponseSchema.safeParse(payload);
+    if (!result.success) {
+      expect(result.error.issues).toEqual([]);
+    }
+    expect(result.success).toBe(true);
+    expect(result.success && result.data.details).not.toHaveProperty('correct_passphrase');
+  });
+
+  it('tolerates an older backend that still sends correct_passphrase, and strips it', () => {
+    const payload = {
+      record: createV2WireSecret(),
+      // V2 encodes booleans as strings, hence "true" rather than true.
+      details: { ...createV2WireSecretDetails(), correct_passphrase: 'true' },
+      shrimp: 'csrf-token-xyz',
+    };
+
+    const result = v2SecretResponseSchema.safeParse(payload);
+    if (!result.success) {
+      expect(result.error.issues).toEqual([]);
+    }
+    expect(result.success).toBe(true);
+    expect(result.success && result.data.details).not.toHaveProperty('correct_passphrase');
+  });
+
+  it('V3 details likewise strip a legacy correct_passphrase', () => {
+    const parsed = v3SecretDetailsSchema.parse({
+      ...createV3WireSecretDetails(),
+      correct_passphrase: true,
+    });
+
+    expect(parsed).not.toHaveProperty('correct_passphrase');
+    expect(parsed.show_secret).toBe(true);
   });
 });

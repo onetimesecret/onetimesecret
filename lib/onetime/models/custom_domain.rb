@@ -4,7 +4,7 @@
 
 require 'public_suffix'
 
-require_relative '../field_types/boolean_field_type'
+require_relative 'field_types'
 
 module Onetime
   # Custom Domain
@@ -36,7 +36,7 @@ module Onetime
   #
   # Primary Keys & Identifiers:
   #   - objid - Primary key (UUID), internal
-  #   - extid - External identifier (e.g., cd%<id>s), user-facing
+  #   - extid - External identifier (e.g., cd%{id}), user-facing
   #
   # As a Foreign Key in other models:
   #   - domain_id (w/ underscore) - Foreign key field, stores the objid value
@@ -60,8 +60,8 @@ module Onetime
     # a real Ruby boolean, and every read coerces legacy spellings ('true',
     # '1', 'yes') back to one. Read them directly — `if domain.verified` —
     # never `.to_s == 'true'` or `== true`.
-    # See Onetime::FieldTypes::BooleanFieldType.
-    extend Onetime::FieldTypes::BooleanFieldMacro
+    # See Onetime::Models::FieldTypes::BooleanFieldType.
+    extend Onetime::Models::FieldTypes::BooleanFieldMacro
 
     SCHEMA = 'models/custom-domain'
 
@@ -77,7 +77,7 @@ module Onetime
     feature :safe_dump_fields
     feature :relationships  # Enable Familia v2 features
     feature :object_identifier  # Auto-generates objid
-    feature :external_identifier, format: 'cd%<id>s' # use builtin extid_lookup index
+    feature :external_identifier, format: 'cd%{id}' # use builtin extid_lookup index
     feature :housekeeping
 
     # Migration features - REMOVE after v1→v2 migration complete
@@ -114,8 +114,8 @@ module Onetime
     field :favicon_fetch_error # last failure message
     field :favicon_fetch_started_at # epoch seconds a PROCESSING run began (stale-in-flight window)
     field :favicon_fetch_completed_at # epoch seconds of the last terminal outcome
-    field :favicon_fetch_attempts # count of terminal non-success attempts (backoff #3780)
-    field :favicon_fetch_next_at # epoch seconds; earliest eligible re-fetch time (backoff #3780)
+    integer_field :favicon_fetch_attempts # count of terminal non-success attempts (backoff #3780)
+    integer_field :favicon_fetch_next_at # epoch seconds; earliest eligible re-fetch time (backoff #3780)
 
     hashkey :brand
     hashkey :logo # image fields need a corresponding v2 route and logic class

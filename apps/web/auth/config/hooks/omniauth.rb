@@ -545,11 +545,11 @@ module Auth::Config::Hooks
               # mail while the token lives out its TTL orphaned.
               link_email = {
                 email_address: on_file_email,
-                confirm_url: "#{request.base_url}/sso-link-confirm/#{verification.token}",
+                confirm_url: "#{base_url}/sso-link-confirm/#{verification.token}",
                 provider: provider,
-                baseuri: request.base_url,
+                baseuri: base_url,
                 product_name: OT.conf.dig('site', 'product_name'),
-                display_domain: request.host,
+                display_domain: public_display_domain,
                 locale: locale,
               }
 
@@ -881,7 +881,7 @@ module Auth::Config::Hooks
             # Tenant domain SSO → join the domain's organization only
             Onetime::ErrorHandler.safe_execute(
               'join_domain_organization_omniauth',
-              extid: customer.extid,
+              external_id: customer.extid,
               domain_id: domain_id,
             ) do
               Auth::Operations::JoinDomainOrganization.new(
@@ -910,7 +910,7 @@ module Auth::Config::Hooks
             # Canonical domain SSO → create default workspace
             Onetime::ErrorHandler.safe_execute(
               'create_default_workspace_omniauth',
-              extid: customer.extid,
+              external_id: customer.extid,
             ) do
               Auth::Operations::CreateDefaultWorkspace.new(customer: customer).call
             end

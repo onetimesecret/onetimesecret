@@ -70,7 +70,6 @@ describe('secretStore', () => {
             continue: false,
             is_owner: false,
             show_secret: false,
-            correct_passphrase: false,
             display_lines: 1,
             one_liner: true,
           },

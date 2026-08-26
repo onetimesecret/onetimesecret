@@ -52,6 +52,8 @@ const {
   class MockScope {
     setClient = mockSetClient;
     setTag = mockSetTag;
+    // The user-context boundary writes setUser on the isolated scope at init.
+    setUser = vi.fn();
   }
 
   function getCapturedClientOptions() {

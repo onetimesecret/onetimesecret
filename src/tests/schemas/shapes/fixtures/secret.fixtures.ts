@@ -104,7 +104,6 @@ export function createCanonicalSecretDetails(
     continue: true,
     is_owner: false,
     show_secret: true,
-    correct_passphrase: true,
     display_lines: 5,
     one_liner: null,
     ...overrides,
@@ -294,14 +293,7 @@ export function compareCanonicalSecretDetails(
 ): { equal: boolean; differences: string[] } {
   const differences: string[] = [];
 
-  const fields = [
-    'continue',
-    'is_owner',
-    'show_secret',
-    'correct_passphrase',
-    'display_lines',
-    'one_liner',
-  ] as const;
+  const fields = ['continue', 'is_owner', 'show_secret', 'display_lines', 'one_liner'] as const;
 
   for (const field of fields) {
     if (a[field] !== b[field]) {

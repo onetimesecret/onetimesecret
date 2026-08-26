@@ -239,7 +239,8 @@ logic.process
 logic.display_lines
 #=> 9
 
-## Correctly handles a secret without a passphrase
+## Correctly handles a secret without a passphrase (correct_passphrase is
+## vacuously true on a committed reveal when there is nothing to check)
 receipt = @create_receipt.call
 secret = receipt.load_secret
 params = {
@@ -249,7 +250,7 @@ params = {
 logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 logic.process
 [logic.secret.has_passphrase?, logic.correct_passphrase, logic.show_secret]
-#=> [false, false, true]
+#=> [false, true, true]
 
 ## Correctly handles a secret with an incorrect passphrase
 receipt = @create_receipt.call
@@ -301,6 +302,29 @@ logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 logic.process
 [logic.secret.has_passphrase?, logic.correct_passphrase, logic.show_secret]
 #=> [true, true, true]
+
+## A metadata-only request (continue=false) with a wrong passphrase neither
+## raises nor records an attempt: the guess is only checked on a committed
+## reveal, so the endpoint is not a free brute-force oracle
+receipt = @create_receipt.call
+secret = receipt.load_secret
+secret.update_passphrase('correct_pass')
+secret.save
+params = {
+  'identifier' => receipt.secret_identifier,
+  'passphrase' => 'wrong_pass',
+  'continue' => false
+}
+logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
+logic.process
+[
+  logic.correct_passphrase,
+  logic.show_secret,
+  logic.success_data[:details].key?(:correct_passphrase),
+  logic.secret_value.nil?,
+  Onetime::Secret.dbclient.get("passphrase:attempts:#{secret.identifier}").nil?,
+]
+#=> [false, false, false, true, true]
 
 # Teardown
 @receipt.destroy!

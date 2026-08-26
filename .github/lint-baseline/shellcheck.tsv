@@ -1,0 +1,22 @@
+# .github/lint-baseline/shellcheck.tsv
+#
+# Pre-existing shellcheck findings, accepted at the time the static-analysis
+# lane was introduced. Regenerate with: scripts/check-shell-lint.sh --update
+#
+# Format: <file><TAB><rule><TAB><count>. A NEW file/rule pair, or a count above
+# the recorded one, fails the lane. A lower count passes and is reported so the
+# baseline can be tightened.
+#
+# Severity floor: warning. scripts/ci and scripts/tests are held to
+# 'style' with no baseline; see scripts/check-shell-lint.sh.
+#
+# These are debt, not exemptions. Nothing here is unfixable — SC2034 is an
+# unused variable, SC2164 is an unchecked cd, SC2155 masks an exit status.
+# Fixing one and re-running --update is always in scope.
+scripts/api-validation/bin/v1-capture.sh	SC2034	1
+scripts/api-validation/bin/v2-capture.sh	SC2034	1
+scripts/corporate-branch-report.sh	SC2034	2
+scripts/corporate-branch-report.sh	SC2155	1
+scripts/corporate-branch-report.sh	SC2207	1
+scripts/host-seam/release-sweep.sh	SC2164	1
+scripts/install-tests/secret-rotation.sh	SC2034	1
