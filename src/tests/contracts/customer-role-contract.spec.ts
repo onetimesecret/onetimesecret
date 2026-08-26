@@ -101,11 +101,14 @@ describe('Customer role contract (SetRole::VALID_ROLES)', () => {
   );
 
   it('frontend-only roles are documented lifecycle values', () => {
-    // Values the frontend knows but the CLI cannot assign. Each is set by a
-    // backend feature rather than the SetRole op. If this list grows,
-    // document where the new value comes from.
+    // Values the frontend knows but the CLI cannot assign. If this list
+    // grows, document where the new value comes from.
     const lifecycleRoles: Record<string, string> = {
-      recipient: 'Read-only secret recipient',
+      // No backend writer exists (checked current tree and legacy tags back
+      // to v0.9.0). Kept for parse compatibility with any stored records;
+      // not to be confused with the per-secret ActorRole in
+      // useSecretContext (RECIPIENT_AUTH/RECIPIENT_ANON).
+      recipient: 'Frontend-only; never written by the backend',
       user_deleted_self: 'right_to_be_forgotten feature (lib/onetime/models/features)',
       anonymous: 'Customer#anonymous? sentinel (lib/onetime/models/customer.rb)',
     };
