@@ -354,8 +354,10 @@ module Billing
         #   {CheckoutTargetResolver.create_checkout_workspace} when the winner
         #   of the stripe_customer_id claim cannot be loaded. Intentionally
         #   unrescued — it escapes process's [:skipped, :not_found, :success]
-        #   return contract so the webhook 500s and Stripe retries, rather
-        #   than this handler minting a duplicate workspace.
+        #   return contract so the event is retried rather than this handler
+        #   minting a duplicate workspace: a 500 to Stripe on the sync
+        #   fallback path, a reject into BillingWorker's retry queue on the
+        #   async path.
         def find_target_organization(customer, metadata)
           stripe_customer_id = @data_object&.customer
 
