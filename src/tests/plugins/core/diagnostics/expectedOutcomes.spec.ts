@@ -2,22 +2,36 @@
 //
 // Tests for the expected-transport-outcome noise filter (#4286): request-
 // shaped errors that represent the product working (an already-consumed
-// secret, a cancelled request, client connectivity) must never reach Sentry,
-// while everything else — including 5xx, which are OUR failures — must keep
-// reporting.
+// secret, a cancelled request, a client that is offline) must never reach
+// Sentry, while everything else — 5xx, timeouts, and 404s from anywhere but
+// an identifier-addressed route — must keep reporting.
+//
+// The negative cases below are the point of the suite. A filter like this
+// fails silently by definition: over-dropping produces no error, no test
+// failure, and no Sentry event to notice the absence of. So each drop rule is
+// pinned from BOTH sides — the case it must drop, and the near-miss case it
+// must not.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ErrorEvent, EventHint } from '@sentry/core';
 import type { Router, RouteLocationNormalizedLoaded } from 'vue-router';
 
-import {
-  EXPECTED_TRANSPORT_OUTCOMES,
-  isExpectedTransportOutcome,
-} from '@/plugins/core/diagnostics/expectedOutcomes';
+import { isExpectedTransportOutcome } from '@/plugins/core/diagnostics/expectedOutcomes';
 
 // ---------------------------------------------------------------------------
-// Unit tests (pure module, no Sentry wiring)
+// Fixtures
 // ---------------------------------------------------------------------------
+
+/**
+ * A 62-char base-36 identifier, the current shape (v0.24+). Realistic width
+ * matters here: the filter recognizes an identifier route BY the identifier's
+ * shape, so a placeholder like `abc123` would exercise a path the app never
+ * produces.
+ */
+const SECRET_ID = `${'x9k2m4p7'.repeat(7)}abcdef`;
+
+/** A 31-char legacy identifier (v0.23), still accepted. */
+const LEGACY_ID = 'q1w2e3r4t5y6u7i8o9p0a1s2d3f4g5h';
 
 /** Builds an axios-shaped request error; structural, not instanceof. */
 function requestError(overrides: {
@@ -50,46 +64,120 @@ function hintFor(overrides: Parameters<typeof requestError>[0]): EventHint {
   return { originalException: requestError(overrides) };
 }
 
-describe('isExpectedTransportOutcome — drops', () => {
-  it('a 404 on the secret-fetch path (already viewed, burned, or expired)', () => {
+/**
+ * Overrides `navigator.onLine`, which jsdom hard-codes to true. Defined as a
+ * configurable own property so `delete` restores the prototype getter.
+ */
+function setOnLine(value: boolean): void {
+  Object.defineProperty(globalThis.navigator, 'onLine', {
+    configurable: true,
+    get: () => value,
+  });
+}
+
+function restoreOnLine(): void {
+  delete (globalThis.navigator as unknown as { onLine?: boolean }).onLine;
+}
+
+// ---------------------------------------------------------------------------
+// Unit tests (pure module, no Sentry wiring)
+// ---------------------------------------------------------------------------
+
+describe('isExpectedTransportOutcome — 404 is scoped to identifier routes', () => {
+  it.each([
+    ['guest secret fetch', `/api/v3/guest/secret/${SECRET_ID}`, 'get'],
+    ['authenticated secret fetch', `/api/v3/secret/${SECRET_ID}`, 'get'],
+    ['secret reveal', `/api/v3/guest/secret/${SECRET_ID}/reveal`, 'post'],
+    ['receipt fetch', `/api/v3/receipt/${SECRET_ID}`, 'get'],
+    ['receipt burn', `/api/v3/receipt/${SECRET_ID}/burn`, 'post'],
+    ['legacy 31-char identifier', `/api/v3/guest/secret/${LEGACY_ID}`, 'get'],
+    ['absolute URL', `https://example.com/api/v3/guest/secret/${SECRET_ID}`, 'get'],
+    ['identifier route with a query string', `/api/v3/guest/secret/${SECRET_ID}?lang=de`, 'get'],
+  ])('drops a 404 on %s (already viewed, burned, or expired)', (_label, url, method) => {
+    expect(isExpectedTransportOutcome(hintFor({ url, method, status: 404 }))).toBe(true);
+  });
+
+  it.each([
+    ['the conceal endpoint', '/api/v3/guest/secret/conceal', 'post'],
+    ['the generate endpoint', '/api/v3/guest/secret/generate', 'post'],
+    ['a mis-versioned path', `/api/v9/guest/secret/${SECRET_ID}/reveal/extra`, 'post'],
+    ['an unknown action on a real identifier', `/api/v3/guest/secret/${SECRET_ID}/shred`, 'post'],
+    ['a non-identifier resource', '/api/v3/organizations/acme', 'get'],
+    ['a bare resource collection', '/api/v3/secret', 'get'],
+    ['an identifier with no resource word before it', `/${SECRET_ID}`, 'get'],
+    ['a too-short identifier', '/api/v3/guest/secret/abc123', 'get'],
+  ])('keeps reporting a 404 on %s — that is a routing defect, not a consumed secret', (
+    _label,
+    url,
+    method
+  ) => {
+    expect(isExpectedTransportOutcome(hintFor({ url, method, status: 404 }))).toBe(false);
+  });
+});
+
+describe('isExpectedTransportOutcome — cancellations', () => {
+  it.each([
+    { code: 'ERR_CANCELED', name: 'CanceledError', message: 'canceled' },
+    { code: 'ECONNABORTED', message: 'Request aborted' },
+    { name: 'AbortError' },
+  ])('drops a cancelled request: %o', (shape) => {
     expect(
       isExpectedTransportOutcome(
-        hintFor({ url: '/api/v3/guest/secret/abc123', method: 'get', status: 404 })
+        hintFor({ url: `/api/v3/guest/secret/${SECRET_ID}`, method: 'get', ...shape })
       )
     ).toBe(true);
   });
 
-  it('a 404 on the reveal path', () => {
+  it('drops a cancellation on any route, not just identifier routes', () => {
     expect(
       isExpectedTransportOutcome(
-        hintFor({ url: '/api/v3/guest/secret/abc123/reveal', method: 'post', status: 404 })
+        hintFor({ url: '/api/v3/guest/secret/conceal', method: 'post', code: 'ERR_CANCELED' })
       )
     ).toBe(true);
   });
 
   it.each([
-    { code: 'ERR_CANCELED', name: 'CanceledError', message: 'canceled' },
-    { code: 'ECONNABORTED', message: 'Request aborted' },
-    { name: 'AbortError' },
-  ])('a cancelled/aborted request: %o', (shape) => {
-    expect(
-      isExpectedTransportOutcome(
-        hintFor({ url: '/api/v3/guest/secret/abc123', method: 'get', ...shape })
-      )
-    ).toBe(true);
+    { label: 'axios (clarifyTimeoutError)', code: 'ETIMEDOUT', message: 'timeout exceeded' },
+    { label: 'fetch AbortSignal.timeout', name: 'TimeoutError' },
+  ])(
+    'keeps reporting a timeout — $label — a slow API is ours, not a cancellation',
+    ({ code, name, message }) => {
+      expect(
+        isExpectedTransportOutcome(
+          hintFor({ url: `/api/v3/guest/secret/${SECRET_ID}`, method: 'get', code, name, message })
+        )
+      ).toBe(false);
+    }
+  );
+});
+
+describe('isExpectedTransportOutcome — network errors follow connectivity', () => {
+  afterEach(restoreOnLine);
+
+  const networkError = {
+    url: `/api/v3/guest/secret/${SECRET_ID}`,
+    method: 'get',
+    code: 'ERR_NETWORK',
+    message: 'Network Error',
+  };
+
+  it('drops a network error while the browser reports itself offline', () => {
+    setOnLine(false);
+    expect(isExpectedTransportOutcome(hintFor(networkError))).toBe(true);
   });
 
-  it('a no-response network error', () => {
-    expect(
-      isExpectedTransportOutcome(
-        hintFor({
-          url: '/api/v3/guest/secret/abc123',
-          method: 'get',
-          code: 'ERR_NETWORK',
-          message: 'Network Error',
-        })
-      )
-    ).toBe(true);
+  it('keeps reporting a network error raised while the client believes it is online — DNS, TLS, CORS, or an unreachable deployment', () => {
+    setOnLine(true);
+    expect(isExpectedTransportOutcome(hintFor(networkError))).toBe(false);
+  });
+
+  it('keeps reporting when connectivity is unknowable', () => {
+    // No navigator.onLine to consult: report rather than guess.
+    Object.defineProperty(globalThis.navigator, 'onLine', {
+      configurable: true,
+      get: () => undefined,
+    });
+    expect(isExpectedTransportOutcome(hintFor(networkError))).toBe(false);
   });
 });
 
@@ -99,7 +187,7 @@ describe('isExpectedTransportOutcome — keeps reporting', () => {
     (status) => {
       expect(
         isExpectedTransportOutcome(
-          hintFor({ url: '/api/v3/guest/secret/abc123', method: 'get', status })
+          hintFor({ url: `/api/v3/guest/secret/${SECRET_ID}`, method: 'get', status })
         )
       ).toBe(false);
     }
@@ -110,11 +198,19 @@ describe('isExpectedTransportOutcome — keeps reporting', () => {
     (status) => {
       expect(
         isExpectedTransportOutcome(
-          hintFor({ url: '/api/v3/secret/conceal', method: 'post', status })
+          hintFor({ url: `/api/v3/guest/secret/${SECRET_ID}`, method: 'get', status })
         )
       ).toBe(false);
     }
   );
+
+  it('an unrecognized failure class', () => {
+    expect(
+      isExpectedTransportOutcome(
+        hintFor({ url: `/api/v3/guest/secret/${SECRET_ID}`, method: 'get', name: 'WeirdError' })
+      )
+    ).toBe(false);
+  });
 
   it('a plain, non-request-shaped error', () => {
     expect(isExpectedTransportOutcome({ originalException: new Error('boom') })).toBe(false);
@@ -129,12 +225,6 @@ describe('isExpectedTransportOutcome — keeps reporting', () => {
 
   it('an undefined hint', () => {
     expect(isExpectedTransportOutcome(undefined)).toBe(false);
-  });
-});
-
-describe('EXPECTED_TRANSPORT_OUTCOMES', () => {
-  it('is exactly aborted, network, and 404 — nothing broader', () => {
-    expect([...EXPECTED_TRANSPORT_OUTCOMES].sort()).toEqual(['404', 'aborted', 'network']);
   });
 });
 
@@ -211,13 +301,15 @@ function createMockRouter(): Router {
   } as unknown as Router;
 }
 
+const TEST_HOST = 'example.com';
+
 describe('beforeSend integration', () => {
   const originalConsoleDebug = console.debug;
 
   function getBeforeSend(): (event: ErrorEvent, hint?: EventHint) => ErrorEvent | null {
     resetCapturedOptions();
     createDiagnostics({
-      host: 'example.com',
+      host: TEST_HOST,
       config: {
         sentry: { dsn: 'https://key@example.com/123', environment: 'test', release: '1.0.0' },
       },
@@ -236,6 +328,7 @@ describe('beforeSend integration', () => {
 
   afterEach(() => {
     console.debug = originalConsoleDebug;
+    restoreOnLine();
   });
 
   it('drops a 404 on the secret-fetch path before scrubbing/grouping run', () => {
@@ -247,7 +340,7 @@ describe('beforeSend integration', () => {
           values: [{ type: 'AxiosError', value: 'Request failed with status code 404' }],
         },
       },
-      hintFor({ url: '/api/v3/guest/secret/abc123', method: 'get', status: 404 })
+      hintFor({ url: `/api/v3/guest/secret/${SECRET_ID}`, method: 'get', status: 404 })
     );
 
     expect(result).toBeNull();
@@ -259,7 +352,7 @@ describe('beforeSend integration', () => {
     const result = handler(
       { exception: { values: [{ type: 'AxiosError', value: 'Request aborted' }] } },
       hintFor({
-        url: '/api/v3/guest/secret/abc123',
+        url: `/api/v3/guest/secret/${SECRET_ID}`,
         method: 'get',
         code: 'ECONNABORTED',
         message: 'Request aborted',
@@ -269,13 +362,14 @@ describe('beforeSend integration', () => {
     expect(result).toBeNull();
   });
 
-  it('drops a network error', () => {
+  it('drops a network error raised while offline', () => {
+    setOnLine(false);
     const handler = getBeforeSend();
 
     const result = handler(
       { exception: { values: [{ type: 'AxiosError', value: 'Network Error' }] } },
       hintFor({
-        url: '/api/v3/guest/secret/abc123',
+        url: `/api/v3/guest/secret/${SECRET_ID}`,
         method: 'get',
         code: 'ERR_NETWORK',
         message: 'Network Error',
@@ -283,6 +377,72 @@ describe('beforeSend integration', () => {
     );
 
     expect(result).toBeNull();
+  });
+
+  it('reports an unreachable API while online, grouped as a network outcome', () => {
+    setOnLine(true);
+    const handler = getBeforeSend();
+
+    const result = handler(
+      { exception: { values: [{ type: 'AxiosError', value: 'Network Error' }] } },
+      hintFor({
+        url: `/api/v3/guest/secret/${SECRET_ID}`,
+        method: 'get',
+        code: 'ERR_NETWORK',
+        message: 'Network Error',
+      })
+    ) as ErrorEvent;
+
+    expect(result).not.toBeNull();
+    expect(result.fingerprint).toEqual([
+      'api-error',
+      'GET',
+      '/api/v3/guest/secret/[REDACTED]',
+      'network',
+    ]);
+  });
+
+  it('reports a 404 from a non-identifier endpoint — a routing defect stays visible', () => {
+    const handler = getBeforeSend();
+
+    const result = handler(
+      {
+        exception: {
+          values: [{ type: 'AxiosError', value: 'Request failed with status code 404' }],
+        },
+      },
+      hintFor({ url: '/api/v3/guest/secret/conceal', method: 'post', status: 404 })
+    ) as ErrorEvent;
+
+    expect(result).not.toBeNull();
+    expect(result.fingerprint).toEqual([
+      'api-error',
+      'POST',
+      '/api/v3/guest/secret/[REDACTED]',
+      '404',
+    ]);
+  });
+
+  it('reports a timeout, grouped separately from an abort', () => {
+    const handler = getBeforeSend();
+
+    const result = handler(
+      { exception: { values: [{ type: 'AxiosError', value: 'timeout exceeded' }] } },
+      hintFor({
+        url: `/api/v3/guest/secret/${SECRET_ID}`,
+        method: 'get',
+        code: 'ETIMEDOUT',
+        message: 'timeout of 5000ms exceeded',
+      })
+    ) as ErrorEvent;
+
+    expect(result).not.toBeNull();
+    expect(result.fingerprint).toEqual([
+      'api-error',
+      'GET',
+      '/api/v3/guest/secret/[REDACTED]',
+      'timeout',
+    ]);
   });
 
   it('still reports a 503 (ours, not the client’s) and groups it separately from a 404', () => {
@@ -294,7 +454,7 @@ describe('beforeSend integration', () => {
           values: [{ type: 'AxiosError', value: 'Request failed with status code 503' }],
         },
       },
-      hintFor({ url: '/api/v3/guest/secret/abc123', method: 'get', status: 503 })
+      hintFor({ url: `/api/v3/guest/secret/${SECRET_ID}`, method: 'get', status: 503 })
     ) as ErrorEvent;
 
     expect(result).not.toBeNull();

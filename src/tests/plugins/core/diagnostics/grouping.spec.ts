@@ -220,17 +220,36 @@ describe('applyGroupingRules — API request errors (Rule B)', () => {
     expect(event.fingerprint).toEqual(['api-error', 'GET', '/api/v2/status', 'network']);
   });
 
+  it.each([
+    { label: 'axios ETIMEDOUT (clarifyTimeoutError)', shape: { code: 'ETIMEDOUT' } },
+    { label: 'fetch AbortSignal.timeout', shape: { name: 'TimeoutError' } },
+  ])(
+    "keys deadline failures as 'timeout', separate from 'aborted' — $label",
+    ({ shape }) => {
+      // A timeout is the API failing to answer; an abort is the user leaving.
+      // They share code ECONNABORTED on the wire unless the client asks
+      // otherwise (src/api/index.ts sets transitional.clarifyTimeoutError),
+      // and only this split lets the noise filter drop one without the other.
+      const event: ErrorEvent = {};
+      applyGroupingRules(event, {
+        originalException: requestError({ url: '/api/v2/status', method: 'get', ...shape }),
+      });
+
+      expect(event.fingerprint).toEqual(['api-error', 'GET', '/api/v2/status', 'timeout']);
+    }
+  );
+
   it('falls back to the error class name when there is no status and no known code', () => {
     const event: ErrorEvent = {};
     applyGroupingRules(event, {
       originalException: requestError({
         url: '/api/v2/status',
         method: 'get',
-        name: 'TimeoutError',
+        name: 'QuotaExceededError',
       }),
     });
 
-    expect(event.fingerprint).toEqual(['api-error', 'GET', '/api/v2/status', 'TimeoutError']);
+    expect(event.fingerprint).toEqual(['api-error', 'GET', '/api/v2/status', 'QuotaExceededError']);
   });
 
   it('defaults the method to GET when the config omits it', () => {

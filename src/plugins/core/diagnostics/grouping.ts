@@ -146,12 +146,18 @@ function normalizeRequestPath(url: string): string {
  *
  * The outcome component is the HTTP status when the server answered, else a
  * coarse failure class:
- *   - 'aborted' — the request was cancelled (unmount, navigation, timeout
- *     abort); axios signals this via ERR_CANCELED/CanceledError, the fetch
- *     path via AbortError.
+ *   - 'timeout' — the request ran past its deadline with no response.
+ *   - 'aborted' — the request was cancelled (unmount, navigation away, tab
+ *     close); axios signals this via ERR_CANCELED/CanceledError/ECONNABORTED,
+ *     the fetch path via AbortError.
  *   - 'network' — no response at all (offline, DNS, CORS, connection reset).
  *   - the error class name as a last resort, so an unrecognized failure mode
  *     still groups by route rather than by stack frame.
+ *
+ * 'timeout' and 'aborted' are deliberately separate classes, not one bucket:
+ * an abort is the user leaving and is dropped as expected noise, while a
+ * timeout is the API failing to answer and must reach Sentry. See
+ * ABORT_MARKERS below and expectedOutcomes.ts.
  *
  * @returns The grouping array, or null when the hint does not carry a
  *   request-shaped error.
@@ -177,7 +183,34 @@ function requestMethod(err: RequestErrorLike): string {
   return typeof method === 'string' && method.length > 0 ? method.toUpperCase() : 'GET';
 }
 
-/** Marker values (axios `code` / error `name`) for a cancelled request. */
+/**
+ * Marker values (axios `code` / error `name`) for a request that ran past its
+ * deadline. Checked BEFORE the abort markers, because the two overlap on the
+ * wire unless the client asks them not to.
+ *
+ * `ETIMEDOUT` is what axios reports for a timeout when
+ * `transitional.clarifyTimeoutError` is set — src/api/index.ts sets it on the
+ * shared client for exactly this reason. `TimeoutError` is the DOMException
+ * name from the fetch path (`AbortSignal.timeout()`).
+ */
+const TIMEOUT_MARKERS = new Set(['ETIMEDOUT', 'TimeoutError']);
+
+/**
+ * Marker values (axios `code` / error `name`) for a CANCELLED request — torn
+ * down before a response arrived, by the caller or by the browser.
+ *
+ * `ECONNABORTED` sits here rather than with the timeouts on purpose, and the
+ * distinction is load-bearing: axios uses that one code for both
+ * `xhr.onabort` (navigation away, tab close) AND, by default, `xhr.ontimeout`.
+ * Left ambiguous, dropping 'aborted' as expected noise would also swallow
+ * every timed-out request during an API slowdown. src/api/index.ts resolves
+ * the ambiguity at the source with `transitional.clarifyTimeoutError`, so a
+ * timeout arrives as ETIMEDOUT and ECONNABORTED means abort and only abort.
+ *
+ * Do not "fix" this by removing ECONNABORTED: on the XHR adapter it is the
+ * ONLY code an actual abort produces, so dropping it would stop the
+ * navigate-away case from ever being recognized.
+ */
 const ABORT_MARKERS = new Set(['ERR_CANCELED', 'ECONNABORTED', 'CanceledError', 'AbortError']);
 
 /** Derives the outcome component: status, else a coarse failure class. */
@@ -185,6 +218,9 @@ export function requestOutcome(err: RequestErrorLike): string {
   const status = err.response?.status;
   if (typeof status === 'number') {
     return String(status);
+  }
+  if (TIMEOUT_MARKERS.has(err.code as string) || TIMEOUT_MARKERS.has(err.name as string)) {
+    return 'timeout';
   }
   if (ABORT_MARKERS.has(err.code as string) || ABORT_MARKERS.has(err.name as string)) {
     return 'aborted';

@@ -106,6 +106,22 @@ const createApi = (config: ApiConfig = {}): AxiosInstance => {
       Accept: 'application/json',
       'Content-Type': 'application/json',
     },
+    transitional: {
+      // Timeouts must be distinguishable from cancellations. By default axios
+      // rejects BOTH `xhr.ontimeout` and `xhr.onabort` with code
+      // ECONNABORTED, so a request that ran past its deadline is
+      // indistinguishable from one the user cancelled by navigating away.
+      // That collision matters here because the diagnostics noise filter
+      // drops cancellations (expected: the user left) while a timeout is OUR
+      // failure and must keep reporting — see requestOutcome() in
+      // src/plugins/core/diagnostics/grouping.ts and expectedOutcomes.ts.
+      //
+      // With this flag, timeouts reject as ETIMEDOUT and ECONNABORTED means
+      // abort and only abort. Set unconditionally, not just when a `timeout`
+      // is configured: no timeout is set on this client today, and the point
+      // is that adding one later must not silently blind Sentry.
+      clarifyTimeoutError: true,
+    },
   });
 
   // Only set locale if specified. Seems obvious and it is, but it
