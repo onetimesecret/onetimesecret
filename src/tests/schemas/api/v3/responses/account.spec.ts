@@ -159,18 +159,26 @@ describe('v3CustomerSchema', () => {
   });
 
   describe('role validation', () => {
-    it.each(['customer', 'colonel', 'recipient', 'user_deleted_self'] as const)(
-      'accepts role "%s"',
-      (role) => {
-        const input = { ...validCustomerBase, role };
-        const result = v3CustomerSchema.parse(input);
-        expect(result.role).toBe(role);
-      }
-    );
+    it.each([
+      'customer',
+      'colonel',
+      'admin',
+      'staff',
+      'recipient',
+      'user_deleted_self',
+      'anonymous',
+    ] as const)('accepts role "%s"', (role) => {
+      const input = { ...validCustomerBase, role };
+      const result = v3CustomerSchema.parse(input);
+      expect(result.role).toBe(role);
+    });
 
-    it('rejects invalid role', () => {
-      const input = { ...validCustomerBase, role: 'admin' };
-      expect(() => v3CustomerSchema.parse(input)).toThrow();
+    it('degrades an unknown role to "customer" instead of rejecting (#4298)', () => {
+      // A role outside the enum must never fail the record parse — that took
+      // down /account/settings/api for CLI-promoted accounts.
+      const input = { ...validCustomerBase, role: 'superuser' };
+      const result = v3CustomerSchema.parse(input);
+      expect(result.role).toBe('customer');
     });
   });
 

@@ -63,7 +63,7 @@ Three role systems apply at different layers. Do not conflate them.
 
 - **Transaction roles** (resolved by `useSecretContext`): `CREATOR`, `RECIPIENT_AUTH`, `RECIPIENT_ANON`. Answers "who are you relative to *this secret*?". `CREATOR` is singular by design; recipient variance is intentional.
 - **Organization roles**: `OWNER`, `ADMIN`, `MEMBER`. Standard RBAC inside Workspace.
-- **Account roles** (`CustomerRole`): `CUSTOMER`, `COLONEL`, `RECIPIENT`, `USER_DELETED_SELF`. Global account type; `COLONEL` grants `/colonel/*` access.
+- **Account roles** (`CustomerRole`): `CUSTOMER`, `COLONEL`, `ADMIN`, `STAFF`, `RECIPIENT`, `USER_DELETED_SELF`, `ANONYMOUS`. Global account type; `COLONEL` grants `/colonel/*` access. Mirrors the backend's assignable roles (`SetRole::VALID_ROLES`) plus lifecycle values; an unknown role on the wire degrades to `CUSTOMER` rather than failing the record parse.
 
 | Concern        | Secret App                  | Workspace App      |
 |----------------|-----------------------------|--------------------|

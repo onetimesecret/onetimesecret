@@ -34,8 +34,19 @@ import { z } from 'zod';
  * Roles determine authorization level and user status:
  * - `customer`: Standard authenticated user
  * - `colonel`: Administrative/privileged user
+ * - `admin`: Administrative user (assignable via `bin/ots customers role`)
+ * - `staff`: Staff user (assignable via `bin/ots customers role`)
  * - `recipient`: Read-only secret recipient
  * - `user_deleted_self`: Self-deleted account (soft delete)
+ * - `anonymous`: Unauthenticated sentinel (`Customer#anonymous?` backend check)
+ *
+ * MUST be a superset of the backend's assignable roles —
+ * `Auth::Operations::Customers::SetRole::VALID_ROLES` in
+ * apps/web/auth/operations/customers/set_role.rb. A backend-writable role
+ * missing here broke /account/settings/api for promoted accounts (#4298,
+ * FRONTEND-19V): the strict enum failed the whole AccountResponse parse.
+ * The sync is enforced by src/tests/contracts/customer-role-contract.spec.ts,
+ * which reads VALID_ROLES from the Ruby source.
  *
  * @category Contracts
  * @example
@@ -52,8 +63,11 @@ import { z } from 'zod';
 export const customerRoleValues = [
   'customer',
   'colonel',
+  'admin',
+  'staff',
   'recipient',
   'user_deleted_self',
+  'anonymous',
 ] as const;
 
 export type CustomerRole = (typeof customerRoleValues)[number];
@@ -89,16 +103,39 @@ export type CustomerRole = (typeof customerRoleValues)[number];
 export const CustomerRole = {
   CUSTOMER: 'customer',
   COLONEL: 'colonel',
+  ADMIN: 'admin',
+  STAFF: 'staff',
   RECIPIENT: 'recipient',
   USER_DELETED_SELF: 'user_deleted_self',
+  ANONYMOUS: 'anonymous',
 } as const;
 
 /**
  * Zod schema for validating customer role values.
  *
+ * Strict — rejects anything outside the enum. Use for inputs the frontend
+ * controls (forms, guards). For parsing backend records, use
+ * {@link customerRoleResilientSchema} instead.
+ *
  * @category Contracts
  */
 export const customerRoleSchema = z.enum(customerRoleValues);
+
+/**
+ * Resilient role schema for parsing backend records.
+ *
+ * `.catch('customer')` over the bare enum: `role` is a display/UX field, and
+ * an unrecognized value must degrade the role badge, never take down a whole
+ * page. Before this, a role outside the enum failed the entire
+ * AccountResponse parse and /account/settings/api rendered the error
+ * boundary (#4298 / FRONTEND-19V — an account promoted to `admin` via the
+ * CLI). The catch also absorbs legacy Redis hashes with a missing/null
+ * `role`. Authorization is enforced server-side, so falling back to
+ * 'customer' can only under-display, never over-grant.
+ *
+ * @category Contracts
+ */
+export const customerRoleResilientSchema = customerRoleSchema.catch('customer');
 
 /**
  * Type guard for runtime customer role validation.
@@ -193,8 +230,10 @@ export const customerCanonical = z.object({
   // Status fields
   // ─────────────────────────────────────────────────────────────────────────
 
-  /** User role determining authorization level. */
-  role: customerRoleSchema,
+  /** User role determining authorization level. Unknown values degrade to
+   * 'customer' rather than failing the record parse — see
+   * customerRoleResilientSchema. */
+  role: customerRoleResilientSchema,
 
   /** Whether email address has been verified. */
   verified: z.boolean(),

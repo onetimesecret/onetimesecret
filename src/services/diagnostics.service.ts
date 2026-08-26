@@ -38,7 +38,7 @@ let diagnosticsClient: DiagnosticsClient | null = null;
  * - service: web, api
  * - jurisdiction: region code from bootstrap.regions.current_jurisdiction
  * - planid: plan identifier from bootstrap.organization.planid
- * - role: customer, colonel, recipient, user_deleted_self from bootstrap.cust.role
+ * - role: a customerRoleValues member (schemas/contracts/customer.ts) from bootstrap.cust.role
  *
  * @see https://github.com/onetimesecret/onetimesecret/issues/2964
  */

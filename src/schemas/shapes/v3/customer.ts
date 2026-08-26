@@ -5,7 +5,7 @@
 
 import {
   customerCanonical,
-  customerRoleSchema,
+  customerRoleResilientSchema,
   featureFlagsSchema,
 } from '@/schemas/contracts';
 import { transforms } from '@/schemas/transforms';
@@ -112,8 +112,9 @@ export const customerSchema = customerCanonical.extend({
   ...v3TimestampOverrides,
   ...v3FeatureFlagsOverride,
 
-  // Role enum (re-declare for explicit wire format)
-  role: customerRoleSchema,
+  // Role enum (re-declare for explicit wire format). Resilient: unknown
+  // values degrade to 'customer' instead of failing the record parse (#4298).
+  role: customerRoleResilientSchema,
 
   // Counter fields with defaults (V3 sends native numbers, coerce for resilience)
   // Uses z.coerce.number() per #2699 to handle edge cases where API sends strings
