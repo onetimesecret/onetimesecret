@@ -219,7 +219,7 @@ describe('beforeSend integration', () => {
     createDiagnostics({
       host: 'example.com',
       config: {
-        sentry: { dsn: 'https://key@sentry.io/123', environment: 'test', release: '1.0.0' },
+        sentry: { dsn: 'https://key@example.com/123', environment: 'test', release: '1.0.0' },
       },
       router: createMockRouter(),
     });

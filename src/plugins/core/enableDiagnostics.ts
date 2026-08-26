@@ -690,11 +690,18 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
     // sendDefaultPii: false, // Default is false
     tracePropagationTargets: [
       /^localhost(:\d+)?$/, // Matches localhost with optional port
-      // Add host domain regex only if host is provided.
-      // Properly anchored: requires host to be at the end of the domain portion,
-      // either at end of string or followed by / or :port
+      // Add host domain regexes only if host is provided. Two patterns, not
+      // one combined via `(/|$)`: each ends in an unambiguous terminal token
+      // (a literal `$` or a literal `/`) so static analysis (CodeQL
+      // js/regex/missing-regexp-anchor) can see the end is anchored, not just
+      // reachable via one branch of a group. Same matching behavior as
+      // before — host with optional port and nothing else, OR host with
+      // optional port followed by a path.
       ...(host
-        ? [new RegExp(`^https?://([a-z0-9-]+\\.)*${host.replaceAll('.', '\\.')}(:\\d+)?(/|$)`, 'i')]
+        ? [
+            new RegExp(`^https?://([a-z0-9-]+\\.)*${host.replaceAll('.', '\\.')}(:\\d+)?$`, 'i'),
+            new RegExp(`^https?://([a-z0-9-]+\\.)*${host.replaceAll('.', '\\.')}(:\\d+)?/`, 'i'),
+          ]
         : []),
     ],
 
