@@ -13,6 +13,7 @@ import { createApp } from 'vue';
 import 'vite/modulepreload-polyfill';
 import App from './App.vue';
 import './assets/style.css';
+import { loadDisplayLocaleMessages } from './i18n';
 import { createAppRouter } from './router';
 import { AppInitializer } from './plugins/core/appInitializer';
 import { loggingService } from './services/logging.service';
@@ -30,7 +31,30 @@ window.addEventListener('vite:preloadError', (event) => {
  */
 const app = createApp(App);
 app.use(AppInitializer, { router: createAppRouter(), debug: false });
-app.mount('#app');
+
+/**
+ * Only English rides in the bundle; every other locale is a standalone JSON
+ * asset fetched at runtime (#4288, see src/i18n.ts). Mount after that fetch
+ * settles so a non-English recipient does not watch the page repaint from
+ * English into their own language.
+ *
+ * The wait is bounded by construction: loadDisplayLocaleMessages resolves for
+ * the bundled locale without a request, and swallows a failed fetch rather
+ * than rejecting. The catch below is belt-and-braces — whatever happens, the
+ * app mounts.
+ */
+loadDisplayLocaleMessages()
+  .catch((error: unknown) => {
+    loggingService.error(
+      error instanceof Error
+        ? error
+        : new Error(`[main] Locale messages unavailable: ${String(error)}`)
+    );
+  })
+  .then(() => {
+    app.mount('#app');
+    signalAppReady();
+  });
 
 /**
  * Deterministic app-readiness signal for E2E tests
@@ -48,17 +72,19 @@ app.mount('#app');
  *   asynchronous, so gate the flag on router.isReady(): "ready" then also
  *   means the first navigation has been resolved and rendered.
  */
-app.config.globalProperties.$router
-  .isReady()
-  .then(() => {
-    document.documentElement.dataset.appReady = 'true';
-  })
-  .catch((error: unknown) => {
-    // Deliberately do NOT set the flag: a failed initial navigation means the
-    // app is not usable, and E2E waits should fail loudly with a trace.
-    loggingService.error(
-      error instanceof Error
-        ? error
-        : new Error(`[main] Initial navigation failed; app-ready flag not set: ${String(error)}`)
-    );
-  });
+function signalAppReady() {
+  app.config.globalProperties.$router
+    .isReady()
+    .then(() => {
+      document.documentElement.dataset.appReady = 'true';
+    })
+    .catch((error: unknown) => {
+      // Deliberately do NOT set the flag: a failed initial navigation means the
+      // app is not usable, and E2E waits should fail loudly with a trace.
+      loggingService.error(
+        error instanceof Error
+          ? error
+          : new Error(`[main] Initial navigation failed; app-ready flag not set: ${String(error)}`)
+      );
+    });
+}

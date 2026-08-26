@@ -130,6 +130,11 @@ module Core
             nonce: view_vars['nonce'],
             development: view_vars['frontend_development'],
             entry: vite_entry,
+            # Same precedence the frontend uses to pick its display locale
+            # (src/i18n.ts): a custom domain's brand locale, else the request's.
+            # Anything else and the preload would be for a file the page's
+            # first fetch never asks for.
+            locale: serialized_data['domain_locale'] || view_vars['locale'],
           ),
         }
 

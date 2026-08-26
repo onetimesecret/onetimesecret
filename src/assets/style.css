@@ -176,7 +176,18 @@
 }
 
 @layer base {
-  /* Zilla Slab font faces */
+  /* Zilla Slab font faces.
+   *
+   * `swap`, and no <link rel=preload> for any of these (#4288). The shell used
+   * to preload every font in the manifest — eight files, ~675 KB, at the
+   * highest fetch priority — on a page that cannot paint a character of its
+   * own content until the JS bundle lands. On a phone that is bandwidth spent
+   * ahead of the bytes the recipient is waiting for. Unpreloaded, the faces are
+   * discovered when this stylesheet parses and load at normal priority; `swap`
+   * (rather than `fallback`, whose 100ms block period only paid for itself when
+   * the preload usually beat it) means text paints immediately in the serif
+   * fallback and restyles when Zilla Slab arrives.
+   */
   @font-face {
     font-family: 'Zilla Slab';
     src:
@@ -184,7 +195,7 @@
       url('./fonts/zs/ZillaSlab-Regular.woff') format('woff');
     font-weight: 400;
     font-style: normal;
-    font-display: fallback;
+    font-display: swap;
   }
 
   @font-face {
@@ -194,7 +205,7 @@
       url('./fonts/zs/ZillaSlab-Bold.woff') format('woff');
     font-weight: 700;
     font-style: normal;
-    font-display: fallback;
+    font-display: swap;
   }
 
   @font-face {
@@ -204,7 +215,7 @@
       url('./fonts/zs/ZillaSlab-Italic.woff') format('woff');
     font-weight: 400;
     font-style: italic;
-    font-display: fallback;
+    font-display: swap;
   }
 
   @font-face {
@@ -214,7 +225,7 @@
       url('./fonts/zs/ZillaSlab-BoldItalic.woff') format('woff');
     font-weight: 700;
     font-style: italic;
-    font-display: fallback;
+    font-display: swap;
   }
 
   /* Base element styles */

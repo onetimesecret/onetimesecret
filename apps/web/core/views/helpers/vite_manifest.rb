@@ -8,15 +8,22 @@ module Core
   module Views
     # ViteManifest handles asset loading for Vite-managed frontend assets.
     #
-    # This module loads JavaScript, CSS, and font assets based on the Vite manifest,
-    # supporting both production and development configurations. It handles the
-    # complexities of CSS bundling and font preloading.
+    # This module loads the JavaScript and CSS assets for a shell from the Vite
+    # manifest, supporting both production and development configurations, and
+    # emits the preload hint for the active locale's messages asset.
     #
     module ViteManifest
       include Onetime::LoggerMethods
 
       # Public directory for web assets
       PUBLIC_DIR = File.join(ENV.fetch('ONETIME_HOME', '.'), 'public', 'web').freeze
+
+      # Locale code format accepted for the locale preload lookup. The value
+      # reaches us from request state (Accept-Language, a custom domain's brand
+      # settings), so it is pattern-checked before it is used to build the
+      # filename matcher below.
+      LOCALE_CODE_RE = /\A[a-zA-Z0-9_-]{2,16}\z/
+
       # Generates HTML tags for all required Vite assets.
       #
       # @param nonce [String, nil] Content Security Policy nonce
@@ -25,8 +32,12 @@ module Core
       #   'main.ts' (the customer bundle); the admin shell passes 'admin.ts'.
       #   The key is the source path relative to the Vite root (src/), which is
       #   why it is the '.ts' filename and not the input object key.
+      # @param locale [String, nil] Locale the shell will render in. When the
+      #   build emitted a standalone JSON asset for it, that asset is preloaded
+      #   so the fetch src/i18n.ts makes overlaps the bundle download instead of
+      #   queueing behind it.
       # @return [String] HTML tags for all required assets
-      def vite_assets(nonce: nil, development: nil, entry: 'main.ts')
+      def vite_assets(nonce: nil, development: nil, entry: 'main.ts', locale: nil)
         nonce     ||= self['nonce'] if respond_to?(:[]) # we allow overriding the nonce for testing
         development = self['frontend_development'] if development.nil? && respond_to?(:[])
 
@@ -36,7 +47,7 @@ module Core
         end
 
         # Production mode: use manifest
-        build_prod_assets(nonce, entry)
+        build_prod_assets(nonce, entry, locale)
       end
 
       private
@@ -58,8 +69,9 @@ module Core
       # @param nonce [String] Content Security Policy nonce
       # @param entry [String] Vite manifest entry key to resolve (e.g. 'main.ts'
       #   or 'admin.ts'). Each entry is its own single chunk (codeSplitting:false).
+      # @param locale [String, nil] Locale to preload the messages asset for
       # @return [String] HTML tags for production assets
-      def build_prod_assets(nonce, entry = 'main.ts')
+      def build_prod_assets(nonce, entry = 'main.ts', locale = nil)
         # Each entry is built in its own single-input Vite pass and writes its
         # own self-contained manifest (chunk + CSS + fonts). Resolve the file
         # for the requested entry: the admin console has manifest-admin.json,
@@ -100,7 +112,7 @@ module Core
           assets << build_css_tag(style_entry['file'], nonce)
         end
 
-        assets.concat(build_font_preloads(manifest, nonce))
+        assets.concat(build_locale_preloads(entry_data, nonce, locale))
         assets.join("\n")
       end
 
@@ -124,18 +136,38 @@ module Core
         %(    <link rel="stylesheet" nonce="#{nonce}" href="/dist/#{file}">)
       end
 
-      # Builds preload link tags for font assets.
+      # Builds a preload link for the active locale's messages asset.
       #
-      # @param manifest [Hash] Vite manifest data
+      # Only English rides inside the JS chunk; every other locale is emitted as
+      # a standalone hashed JSON asset that src/i18n.ts fetches before the app
+      # mounts (#4288). Without this hint that fetch cannot even start until the
+      # chunk has downloaded and parsed, so the preload is what keeps it
+      # overlapping the chunk rather than queueing behind it.
+      #
+      # There is deliberately no bundled-locale constant to keep in sync here:
+      # the build does not emit an asset for the locale it bundles, so a locale
+      # with no matching asset simply gets no preload.
+      #
+      # `crossorigin` (anonymous) is required, not decorative — it is what makes
+      # the hint's credentials mode match the plain `fetch(url)` in src/i18n.ts.
+      # Drop it (or change the fetch to omit credentials) and Chrome discards
+      # the preloaded response and downloads the file a second time.
+      #
+      # @param entry_data [Hash] Manifest entry for the shell's chunk
       # @param nonce [String] Content Security Policy nonce
-      # @return [Array<String>] Array of HTML preload link tags
-      def build_font_preloads(manifest, nonce)
-        manifest.values
-          .select { |entry| entry['file'] =~ /\.(woff2?|ttf|otf|eot)$/ }
-          .map do |font|
-            ext = File.extname(font['file']).delete('.')
-            %(    <link rel="preload" nonce="#{nonce}" href="/dist/#{font['file']}" as="font" type="font/#{ext}" crossorigin>)
-        end
+      # @param locale [String, nil] Locale the shell will render in
+      # @return [Array<String>] Zero or one HTML preload link tag
+      def build_locale_preloads(entry_data, nonce, locale)
+        return [] unless locale.is_a?(String) && locale.match?(LOCALE_CODE_RE)
+
+        # `assets/<locale>.<hash>.json` from the hashed build; the hash is
+        # optional because vite.config.local.ts drops it (`assets/<locale>.json`).
+        # Anchored on both sides so `de` cannot claim `de_AT`'s asset.
+        matcher = %r{\A(?:.*/)?#{Regexp.escape(locale)}(?:\.[^./]+)?\.json\z}
+        file    = Array(entry_data['assets']).find { |asset| asset.match?(matcher) }
+        return [] unless file
+
+        [%(    <link rel="preload" nonce="#{nonce}" href="/dist/#{file}" as="fetch" type="application/json" crossorigin>)]
       end
 
       # Builds an error script tag when asset loading fails.
