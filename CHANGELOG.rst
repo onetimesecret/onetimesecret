@@ -10,6 +10,167 @@ this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.htm
 
    <!--scriv-insert-here-->
 
+.. _changelog-0.26.9:
+
+0.26.9 — 2026-08-26
+====================
+
+Changed
+-------
+
+- Frontend Sentry events now serialize nested extras to depth 6
+  (``normalizeDepth``), so schema-validation failures report their
+  ``issues[]`` payload instead of ``"[Array]"``.
+
+Fixed
+-----
+
+- The API Key settings page no longer breaks for accounts promoted to
+  ``admin`` or ``staff`` via ``bin/ots customers role`` (#4298). The
+  frontend role enum now mirrors the backend's assignable roles (enforced
+  by a contract test against ``SetRole::VALID_ROLES``), and an unknown or
+  missing ``role`` degrades to ``customer`` instead of failing the whole
+  account record parse.
+
+AI Assistance
+-------------
+
+- AI assistance was used to trace the Sentry signatures to the role
+  vocabulary mismatch, sync the enums, and add the drift-guard contract
+  test.
+
+.. _changelog-0.26.8:
+
+0.26.8 — 2026-08-26
+====================
+
+Added
+-----
+
+- Legal document URLs are now first-class ``site.legal`` configuration
+  (#4281). Set ``TERMS_URL`` and ``PRIVACY_URL`` (and optionally ``DPA_URL``,
+  ``COOKIE_URL``, ``AUP_URL``, ``SECURITY_URL``), or configure ``site.legal``
+  directly, to render Terms, Privacy Policy, and related documents as links.
+  All default to unset: when a URL is unset, the signup/invite consent
+  sentence renders the document name as plain text, the branded reveal footer
+  drops the link, and the entry is absent from the public footer's legal
+  group. These settings are independent of ``footer_links`` — existing Terms
+  and Privacy links configured there with explicit ``url:`` values continue to
+  work unchanged, and an operator-supplied footer URL takes precedence over
+  the default footer configuration.
+
+Removed
+-------
+
+- Stripe Payment Link provisioning has been retired. The ``/welcome`` endpoint
+  that handled Payment Link redirects now logs the attempt and redirects to
+  the homepage; the webhook handler skips Payment Link subscriptions (they
+  never carried the ``customer_extid`` metadata the webhook requires). The
+  ``bin/ots billing payment-links`` CLI command has been removed entirely.
+  Existing Payment Link subscriptions continue to bill normally in Stripe;
+  they simply no longer trigger automatic workspace creation. Customers who
+  paid via a legacy Payment Link and were not provisioned should contact
+  support. Use the Stripe Dashboard to audit or archive any remaining Payment
+  Links. (#4212)
+
+Fixed
+-----
+
+- Guest-created secrets on branded custom domains now use the domain owner
+  organization's lifetime limit (normally 14 or 30 days). The 7-day anonymous
+  default remains specific to guest creation on canonical hosts. (#4279)
+
+- Malformed ``multipart/form-data`` requests now receive a ``400 Bad
+  Request`` with an explanatory JSON message instead of failing deep in the
+  middleware stack (#4283). Previously an empty or truncated multipart body
+  raised a 500 from the first middleware that read request params, and a
+  multipart Content-Type without a boundary parameter silently produced no
+  form fields — surfacing on ``POST /share`` as a misleading "You did not
+  provide anything to share". Well-formed multipart requests are unaffected;
+  their body is now parsed once, up front, and memoized for the rest of the
+  request.
+
+- The frontend locale schema now accepts any well-formed BCP 47 language
+  tag (#4284). Previously it capped tags at 5 characters with an
+  ``xx``/``xx-XX`` regex, rejecting legitimate values browsers actually
+  send — ``en-US-POSIX``, ``zh-Hant-TW``, ``es-419`` — and capturing a
+  Sentry error for each. Validation is now delegated to
+  ``Intl.getCanonicalLocales`` with a 35-character bound, and a
+  malformed visitor locale degrades silently to the supported-locale
+  matching and the default locale instead of being reported as an
+  application error.
+
+Documentation
+-------------
+
+- Documented the canonical-host and custom-domain guest TTL boundaries in the
+  API and TTL-policy references.
+
+AI Assistance
+-------------
+
+- AI assistance was used to trace the Sentry error signatures to their root
+  causes (the custom-domain guest TTL regression, the middleware-level
+  multipart parse, and the locale schema length cap), implement the fixes,
+  and add regression coverage.
+
+.. _changelog-0.26.7:
+
+0.26.7 — 2026-08-23
+====================
+
+Added
+-----
+
+- Added integer and float field declarations for Familia models, normalizing
+  numeric inputs and legacy scalar values. (#4248)
+
+- Authenticated browser sessions and selected backend error captures now
+  carry a pseudonymous actor reference, so operators can correlate an
+  issue with the accounts it affects. The backend derives the 16-hex
+  ``actor_ref`` from the customer external identifier (extid), publishes
+  it to the frontend in the ``diagnostics_ref`` bootstrap payload, and
+  attaches it to supported backend captures. No direct identifiers, such
+  as email addresses or customer IDs, are sent; however, the reference
+  must still be handled as potentially personal data. Anonymous sessions
+  and installs without a usable keying secret send no user context, and
+  the frontend clears the reference on logout. Existing actor and
+  organization references re-key on the deploy that ships this change, so
+  a correlation discontinuity of up to the Sentry retention window is
+  expected rather than a defect.
+
+Changed
+-------
+
+- Custom-domain favicon backoff counters now use native numeric storage.
+  (#4248)
+
+Fixed
+-----
+
+- Selected frontend Sentry issues use explicit grouping instead of
+  minified bundle stack frames. Schema validation errors with a schema
+  name group by that name. Axios-shaped request errors with ``config.url``
+  group by method, the path normalized by the existing URL scrubbers, and
+  an HTTP status or coarse ``aborted``/``network`` outcome; other errors
+  retain Sentry's default grouping.
+
+Security
+--------
+
+- Passphrase verification on the v2 secret show, reveal, and burn endpoints
+  now runs only when ``continue=true``. A metadata-only request
+  (``continue`` absent or ``false``) no longer evaluates the supplied
+  passphrase, so it cannot be used to test guesses without consuming the
+  secret, and it no longer records or clears rate-limit state.
+  ``details.correct_passphrase`` has been removed from the v2 secret
+  responses; clients should use ``details.show_secret``, which is true only
+  when the passphrase was correct and the reveal was committed. The v2
+  reveal and burn endpoints now return the same status for a right or wrong
+  passphrase when ``continue=false``. The v1 logic classes carry the same
+  change for parity; the v1 API was not exposed, since its controller
+  always commits (``continue=true``) and never returned the verdict.
+
 .. _changelog-0.26.6:
 
 0.26.6 — 2026-08-20
