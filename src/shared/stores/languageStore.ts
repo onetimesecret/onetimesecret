@@ -6,7 +6,6 @@ import type { PiniaPluginOptions } from '@/plugins/pinia/types';
 import { localeCodeSchema } from '@/schemas/i18n/locale';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { localeCodes } from '@/sources/languages';
-import { gracefulParse } from '@/utils/schemaValidation';
 import { useApi } from '@/shared/composables/useApi';
 import { defineStore, storeToRefs } from 'pinia';
 import { computed, ref, watch } from 'vue';
@@ -225,8 +224,12 @@ export const useLanguageStore = defineStore('language', () => {
    * validateAndNormalizeLocale('de-CH')  // → 'de' if 'de' available, 'de-CH' otherwise
    */
   const validateAndNormalizeLocale = (locale: string): string => {
-    const localeResult = gracefulParse(localeCodeSchema, locale, 'Locale');
-    const validatedLocale = localeResult.ok ? localeResult.data : locale;
+    // A visitor's locale is untrusted input, not an API contract: malformed
+    // values (mangled Accept-Language, stale stored preferences) are expected
+    // and must degrade to the matching below, never be captured to Sentry
+    // (#4284). Hence safeParse here instead of gracefulParse.
+    const localeResult = localeCodeSchema.safeParse(locale);
+    const validatedLocale = localeResult.success ? localeResult.data : locale;
 
     // Normalize separators for comparison (both hyphen and underscore → underscore)
     const normalizeForComparison = (loc: string) => loc.toLowerCase().replace('-', '_');

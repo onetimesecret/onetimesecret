@@ -3,16 +3,42 @@
 import { z } from 'zod';
 
 /**
+ * Upper bound for a locale tag. RFC 5646 recommends sizing buffers for
+ * language tags at 35 characters, which covers every registered tag plus
+ * script/region/variant combinations browsers actually send.
+ */
+const MAX_LOCALE_LENGTH = 35;
+
+/**
+ * Whether the tag is structurally well-formed BCP 47 (#4284).
+ *
+ * Delegates to Intl.getCanonicalLocales instead of a hand-rolled regex so
+ * that real-world tags like en-US-POSIX, zh-Hant-TW, and es-419 validate.
+ * Grammar-valid but unassigned tags also pass; that is fine because every
+ * consumer still gates on the supported-locales list before use.
+ * Case is irrelevant (canonicalization normalizes it), and underscores are
+ * treated as hyphens since server-side locales use the it_IT form.
+ */
+function isWellFormedLocale(tag: string): boolean {
+  try {
+    return Intl.getCanonicalLocales(tag.replace(/_/g, '-')).length > 0;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Validates BCP 47 language tags:
- * - 2-letter language code (en, fr)
- * - Language + region with separator (en_CA, pt-BR, DE-at, eo)
- * Case insensitive.
+ * - language code (en, fr, eo)
+ * - language + region with separator (en_CA, pt-BR, DE-at, es-419)
+ * - language + script and/or variants (zh-Hant-TW, en-US-POSIX)
+ * Case insensitive; accepts both hyphen and underscore separators.
  */
 export const localeCodeSchema = z
   .string()
   .min(2)
-  .max(5)
-  .regex(/^[a-z]{2}(?:[_-][a-z]{2})?$/i, 'Invalid locale format');
+  .max(MAX_LOCALE_LENGTH)
+  .refine(isWellFormedLocale, 'Invalid locale format');
 
 export type Locale = z.infer<typeof localeCodeSchema>;
 

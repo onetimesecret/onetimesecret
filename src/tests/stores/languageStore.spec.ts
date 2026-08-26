@@ -297,6 +297,27 @@ describe('Language Store', () => {
       // 'ja' not in supportedLocales
       await expect(store.updateLanguage('ja')).rejects.toThrow('Unsupported locale: ja');
     });
+
+    // #4284: tags longer than xx-XX are valid BCP 47 and must fall back to
+    // the primary language instead of failing schema validation.
+    it('should fall back to primary language for script subtags (it-Latn-IT -> it_IT)', () => {
+      store.setCurrentLocale('it-Latn-IT');
+      expect(store.currentLocale).toBe('it_IT');
+    });
+
+    it('should fall back to primary language for variant subtags (en-US-POSIX -> en)', () => {
+      store.setCurrentLocale('en-US-POSIX');
+      expect(store.currentLocale).toBe('en');
+    });
+
+    it('should initialize with default locale when deviceLocale is garbage', () => {
+      vi.spyOn(sessionStorage, 'getItem').mockReturnValue(null);
+
+      const freshStore = useLanguageStore();
+      freshStore.$reset();
+      const result = freshStore.init({ deviceLocale: '!!not-a-locale!!' });
+      expect(result).toBe('en');
+    });
   });
 
   describe('Language Headers', () => {
