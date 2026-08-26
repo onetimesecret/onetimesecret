@@ -266,7 +266,8 @@ module Billing
         return reserving
       end
 
-      logger.warn "#{label} contact_email is reserved by an org this customer does not own",
+      logger.warn "#{label} contact_email is reserved by an org this customer does not own; " \
+                  'the billing workspace will be created without a contact_email',
         { customer_extid: customer.extid, orgid: reserving&.objid }
       nil
     end

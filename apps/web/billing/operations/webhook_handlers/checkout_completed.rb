@@ -350,6 +350,12 @@ module Billing
         # @param customer [Onetime::Customer] The customer
         # @param metadata [Stripe::StripeObject] Subscription metadata
         # @return [Onetime::Organization, nil] The target organization
+        # @raise [Onetime::Problem] from
+        #   {CheckoutTargetResolver.create_checkout_workspace} when the winner
+        #   of the stripe_customer_id claim cannot be loaded. Intentionally
+        #   unrescued — it escapes process's [:skipped, :not_found, :success]
+        #   return contract so the webhook 500s and Stripe retries, rather
+        #   than this handler minting a duplicate workspace.
         def find_target_organization(customer, metadata)
           stripe_customer_id = @data_object&.customer
 
