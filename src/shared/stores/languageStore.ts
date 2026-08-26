@@ -231,8 +231,9 @@ export const useLanguageStore = defineStore('language', () => {
     const localeResult = localeCodeSchema.safeParse(locale);
     const validatedLocale = localeResult.success ? localeResult.data : locale;
 
-    // Normalize separators for comparison (both hyphen and underscore → underscore)
-    const normalizeForComparison = (loc: string) => loc.toLowerCase().replace('-', '_');
+    // Normalize separators for comparison (both hyphen and underscore → underscore).
+    // Global replace: BCP 47 tags can carry multiple hyphens (zh-Hant-TW).
+    const normalizeForComparison = (loc: string) => loc.toLowerCase().replaceAll('-', '_');
 
     // Strategy 1: Find exact match (case-insensitive, separator-agnostic)
     // Handles: it-IT → it_IT, IT_IT → it_IT, fr-CA → fr_CA

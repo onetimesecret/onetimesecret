@@ -300,6 +300,13 @@ describe('Language Store', () => {
 
     // #4284: tags longer than xx-XX are valid BCP 47 and must fall back to
     // the primary language instead of failing schema validation.
+    it('should exact-match multi-hyphen tags against supported locales (zh-Hant-TW -> zh_Hant_TW)', () => {
+      // All hyphens must normalize for comparison, not just the first one.
+      store.supportedLocales = ['en', 'zh_Hant_TW'];
+      store.setCurrentLocale('zh-Hant-TW');
+      expect(store.currentLocale).toBe('zh_Hant_TW');
+    });
+
     it('should fall back to primary language for script subtags (it-Latn-IT -> it_IT)', () => {
       store.setCurrentLocale('it-Latn-IT');
       expect(store.currentLocale).toBe('it_IT');
