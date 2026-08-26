@@ -16,6 +16,7 @@ require_relative '../middleware/admin_network_isolation'
 require_relative '../middleware/csrf_response_header'
 require_relative '../middleware/normalize_content_type'
 require_relative '../middleware/retry_after_header'
+require_relative '../middleware/validate_multipart'
 require_relative '../middleware/entitlement_preview_context'
 require_relative '../middleware/session_skip'
 require 'otto'
@@ -575,6 +576,17 @@ module Onetime
           # set text/html before application/x-www-form-urlencoded). See
           # Onetime::Middleware::NormalizeContentType for the rationale.
           builder.use Onetime::Middleware::NormalizeContentType
+
+          # Reject malformed multipart bodies with a 400 before ANYTHING
+          # reads request params (#4283). Downstream, Otto's locale
+          # middleware calls req.params on every request; a broken
+          # multipart body raised from there surfaced as a 500 blamed on
+          # an unrelated in-app frame, and a boundary-less or empty one
+          # quietly produced no params at all. Valid multipart bodies are
+          # parsed and memoized here so no later consumer re-reads the
+          # stream. Must stay after NormalizeContentType (Content-Type
+          # repair) and before Rack::Parser/session/locale.
+          builder.use Onetime::Middleware::ValidateMultipart
           builder.use Rack::Parser, parsers: @parsers
           # Add session middleware early in the stack (before other middleware)
           session_config = Onetime.session_config
