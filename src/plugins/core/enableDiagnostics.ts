@@ -727,6 +727,15 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
     stackParser: defaultStackParser,
     // tracesSampleRate: Keep low default since YAML doesn't define it and traces are high-volume
     tracesSampleRate: config.sentry.tracesSampleRate ?? 0.01,
+    // Sentry's default normalizeDepth of 3 truncates nested extras to
+    // "[Array]"/"[Object]". That has now hidden the payload of a schema
+    // validation failure twice: gracefulParse attaches `issues[].path`/
+    // `.code`/`.message` as extras, and at depth 3 the issue objects were
+    // unreadable, so diagnosing #4298 (and the colonel-org schema failure
+    // before it) meant inferring the rejected field's value instead of
+    // reading it. Depth 6 covers extra → issues[] → issue → path[] with room
+    // to spare. Bounded cost: extras are already small and scrubbed.
+    normalizeDepth: 6,
     // Note: Sentry 10+ requires sendDefaultPii: true for IP address collection
     // sendDefaultPii: false, // Default is false
     tracePropagationTargets: [

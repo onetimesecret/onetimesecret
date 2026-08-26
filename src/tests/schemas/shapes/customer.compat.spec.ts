@@ -521,23 +521,28 @@ describe('Transform Error Handling', () => {
   });
 
   describe('role validation', () => {
-    it('rejects invalid role values', () => {
+    it('degrades invalid role values to "customer" instead of rejecting (#4298)', () => {
       const wire = createV2WireCustomer(createCanonicalCustomer());
       (wire as Record<string, unknown>).role = 'superuser';
 
       const result = v2CustomerSchema.safeParse(wire);
 
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        const roleError = result.error.issues.find((i) =>
-          i.path.includes('role')
-        );
-        expect(roleError).toBeDefined();
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.role).toBe('customer');
       }
     });
 
     it('accepts all valid role values', () => {
-      const roles = ['customer', 'colonel', 'recipient', 'user_deleted_self'];
+      const roles = [
+        'customer',
+        'colonel',
+        'admin',
+        'staff',
+        'recipient',
+        'user_deleted_self',
+        'anonymous',
+      ];
 
       for (const role of roles) {
         const wire = createV2WireCustomer(
