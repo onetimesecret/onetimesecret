@@ -31,14 +31,14 @@ import {
 import * as SentryVue from '@sentry/vue';
 import type { App, Plugin } from 'vue';
 import type { Router, RouteMeta as VueRouteMeta } from 'vue-router';
-import { applyGroupingRules } from './diagnostics/grouping';
-import { collectValuesToRedact, scrubUrlWithValues } from './diagnostics/urlScrubbing';
 import {
   applyActorContext,
   resolveDiagnosticsRef,
   sanitizeEventUser,
   type ActorContextScope,
 } from './diagnostics/actorContext';
+import { applyGroupingRules } from './diagnostics/grouping';
+import { collectValuesToRedact, scrubUrlWithValues } from './diagnostics/urlScrubbing';
 // Re-export scrubbing utilities from dependency-free module for backward compatibility
 export {
   EMAIL_PATTERN,
@@ -49,6 +49,72 @@ export {
 } from './diagnostics/scrubbers';
 
 export const SENTRY_KEY = Symbol('sentry');
+
+/**
+ * Message fingerprints of errors thrown by code that is not ours: browser
+ * extensions, in-app webviews, and email-client link scanners. Secret links
+ * are opened from email and chat clients, so this traffic share is unusually
+ * high here (#4287). Consumed by eventFiltersIntegration via `ignoreErrors`
+ * (matched as substring for strings, test for regexes, against the exception
+ * message). Sentry's own default ignore list stays active alongside these.
+ *
+ * Revisit quarterly — the list will need additions as clients change.
+ *
+ * @internal Exported for testing
+ */
+export const THIRD_PARTY_IGNORE_ERRORS: (string | RegExp)[] = [
+  // Firefox iOS reader-mode script injected at document scope
+  /__firefox__/,
+  // Microsoft Outlook SafeLinks scanning webview; the Id varies per event
+  /Object Not Found Matching Id:\d+/,
+  // Android WebView torn down mid-postMessage (Instagram/Meta in-app browser)
+  'Java object is gone',
+  // Zalo in-app browser injection ("zaloJSV2 is not defined" and
+  // "Can't find variable: zaloJSV2")
+  'zaloJSV2',
+  // iOS webview whose host app never answered the bridge call (DuckDuckGo etc.)
+  'WKWebView API client did not respond to this postMessage',
+  // Chrome extension messaging its unloaded background counterpart
+  'Could not establish connection. Receiving end does not exist',
+  // Extensions redefining built-ins (e.g. Symbol.hasInstance); wording varies
+  // by browser, so match the invariant middle
+  /redefine non-configurable property/,
+];
+
+/**
+ * Frame URLs of third-party code, matched against the topmost stack frame.
+ * Consumed by eventFiltersIntegration via `denyUrls`.
+ *
+ * @internal Exported for testing
+ */
+export const THIRD_PARTY_DENY_URLS: RegExp[] = [
+  /^chrome-extension:\/\//,
+  /^moz-extension:\/\//,
+  /^safari-(web-)?extension:\/\//,
+  // Safari masks extension-injected frame URLs behind this scheme
+  /^webkit-masked-url:\/\//,
+  // Meta in-app browser performance instrumentation
+  /^iabjs:\/\//,
+];
+
+/**
+ * Only report errors whose topmost frame is our own bundle. Every first-party
+ * script is served under /dist/ (production: /dist/assets/*.js via the Vite
+ * manifest, dev: /dist/main.ts — see apps/web/core/views/helpers/
+ * vite_manifest.rb), on canonical and custom domains alike, so this is a
+ * path match rather than an origin match.
+ *
+ * Injected webview/extension code frequently executes at document scope, so
+ * its frames are attributed to the page URL itself (observed: Firefox iOS
+ * reader mode frames at /secret/<key>). Those never match /dist/ and get
+ * dropped. Trade-off, accepted in #4287: errors from the inline theme
+ * bootstrap script in index.rue are attributed to the page URL too and would
+ * be dropped — that script is small and stable. Events with no frame URL at
+ * all (e.g. many unhandled rejections) are NOT dropped by allowUrls.
+ *
+ * @internal Exported for testing
+ */
+export const FIRST_PARTY_ALLOW_URLS: RegExp[] = [/\/dist\//];
 
 // Import functions for local use (patterns are re-exported above for external consumers)
 import {
@@ -332,6 +398,33 @@ function scrubEventMessages(event: ErrorEvent): ErrorEvent {
 }
 
 /**
+ * Scrubs stack-frame locations through the URL pattern net.
+ *
+ * Code injected by extensions/webviews at document scope gets its frames
+ * attributed to the page URL itself — which on a secret link IS the secret
+ * path. Observed live (FRONTEND-155/154/184): events arrived with
+ * `request.url` correctly `[REDACTED]` while the frame filename carried the
+ * raw `/secret/<62-char-key>` verbatim. Our own bundle frames
+ * (/dist/assets/*.js) contain no sensitive segments and pass through
+ * unchanged, so server-side sourcemap resolution is unaffected.
+ *
+ * Runs in beforeSend, i.e. AFTER eventFiltersIntegration's allow/deny
+ * checks — scrubbing here cannot cause a first-party event to be dropped.
+ */
+function scrubStackFrameUrls(event: ErrorEvent): void {
+  for (const exception of event.exception?.values ?? []) {
+    for (const frame of exception.stacktrace?.frames ?? []) {
+      if (frame.filename) {
+        frame.filename = scrubUrlWithPatterns(frame.filename);
+      }
+      if (frame.abs_path) {
+        frame.abs_path = scrubUrlWithPatterns(frame.abs_path);
+      }
+    }
+  }
+}
+
+/**
  * Creates a Sentry beforeSend handler that scrubs sensitive data from events.
  * Handles both URL scrubbing (route-param based) and message scrubbing (regex-based).
  *
@@ -345,6 +438,10 @@ function createBeforeSendHandler(router: Router) {
 
     // Scrub exception messages and standalone messages (regex-based)
     scrubEventMessages(event);
+
+    // Scrub stack-frame filenames/paths (page-URL-attributed frames can carry
+    // the secret path)
+    scrubStackFrameUrls(event);
 
     // Collect route-param values for the current route (opt-out-governed).
     const sortedValues = collectCurrentRouteValues(router);
@@ -608,6 +705,14 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
     // Scrub sensitive URLs from breadcrumbs at capture time
     beforeBreadcrumb: createBeforeBreadcrumbHandler(router),
     ...config.sentry, // includes dsn, environment, etc.
+
+    // Third-party noise filtering (#4287), consumed by eventFiltersIntegration.
+    // Secret links are opened from email/chat clients, so extension and
+    // in-app-webview errors are an outsized share of events here. Keep these
+    // authoritative if the backend Sentry schema later grows matching fields.
+    ignoreErrors: THIRD_PARTY_IGNORE_ERRORS,
+    denyUrls: THIRD_PARTY_DENY_URLS,
+    allowUrls: FIRST_PARTY_ALLOW_URLS,
 
     // Build-time release takes precedence over backend config.
     // This ensures frontend errors match the sourcemaps uploaded during this build,
