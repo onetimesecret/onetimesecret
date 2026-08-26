@@ -156,6 +156,69 @@ RSpec.describe Billing::CheckoutTargetResolver, :billing do
     end
   end
 
+  # =======================================================================
+  # Step 4, the OrganizationExists round (as opposed to the
+  # Familia::RecordExistsError round the concurrent-completion examples
+  # exercise).
+  #
+  # canonical_workspace rescues CreateDefaultWorkspace's OrganizationExists
+  # and tries to adopt the org holding the contact_email reservation. When
+  # that org belongs to someone else, adoption correctly returns nil and the
+  # fall-through is a SECOND create attempt — create_billing_workspace —
+  # which survives the same reservation by creating without a contact_email.
+  # These examples pin that two-round path end to end.
+  # =======================================================================
+  describe 'shared step 4 when a stranger org holds the contact_email reservation' do
+    let(:reserved_email) { "resolver-reserved-#{SecureRandom.hex(4)}@example.com" }
+    let(:fresh_stripe_id) { "cus_test_#{SecureRandom.hex(4)}" }
+
+    let(:fresh_customer) { create_test_customer(email: reserved_email) }
+    let(:interloper) do
+      create_test_customer(email: "resolver-interloper-#{SecureRandom.hex(4)}@example.com")
+    end
+
+    # The reserving org has a member (its owner), so CreateDefaultWorkspace
+    # re-raises OrganizationExists instead of adopting the orphan — and the
+    # checkout customer does not own it, so adopt_email_reserved_workspace
+    # refuses it too.
+    let!(:stranger_org) do
+      org = Onetime::Organization.create!('Stranger Workspace', interloper, reserved_email)
+      created_organizations << org
+      org
+    end
+
+    it 'creates a workspace without a contact_email rather than failing or capturing the stranger org' do
+      org = create_step4_for('[CheckoutCompleted]', cust: fresh_customer, stripe_id: fresh_stripe_id)
+
+      expect(org).to be_a(Onetime::Organization)
+      expect(org.objid).not_to eq(stranger_org.objid)
+      expect(org.owner?(fresh_customer)).to be(true)
+      expect(org.contact_email.to_s).to be_empty
+      expect(org.stripe_customer_id).to eq(fresh_stripe_id)
+    end
+
+    it 'leaves the stranger org untouched' do
+      create_step4_for('[CheckoutCompleted]', cust: fresh_customer, stripe_id: fresh_stripe_id)
+
+      stranger_org.refresh!
+      expect(stranger_org.stripe_customer_id).to be_nil
+      expect(stranger_org.owner?(fresh_customer)).to be(false)
+    end
+
+    it 'warns that the workspace will be created without a contact_email' do
+      create_step4_for('[CheckoutCompleted]', cust: fresh_customer, stripe_id: fresh_stripe_id)
+
+      expect(logger).to have_received(:warn).with(
+        a_string_including('does not own'),
+        hash_including(customer_extid: fresh_customer.extid, orgid: stranger_org.objid),
+      )
+      expect(logger).to have_received(:warn).with(
+        a_string_including('creating workspace without one'),
+        hash_including(customer_extid: fresh_customer.extid),
+      )
+    end
+  end
+
   describe 'concurrent completion of the same checkout (redirect + webhook)' do
     # =====================================================================
     # Control: the SEQUENTIAL ordering is safe. The second surface reads
