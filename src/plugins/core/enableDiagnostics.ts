@@ -592,6 +592,47 @@ function applyDeploymentTags(scopes: Array<Pick<Scope, 'setTag'>>, host: string)
   }
 }
 
+/** Every character with meaning inside a regex, so a literal stays literal. */
+const REGEXP_METACHARACTERS = /[.*+?^${}()|[\]\\]/g;
+
+/**
+ * Escapes a string for safe interpolation into a `RegExp` source.
+ *
+ * Escaping only `.` — as this did previously — is not enough. `host` comes
+ * from `display_domain`, which on a custom-domain deployment originates in a
+ * value the customer registered. Any other metacharacter reaching the pattern
+ * either breaks construction or, worse, widens the match.
+ */
+function escapeRegExp(value: string): string {
+  return value.replace(REGEXP_METACHARACTERS, '\\$&');
+}
+
+/**
+ * Builds the `tracePropagationTargets` pattern for the app's own host:
+ * the host itself or any subdomain of it, over http/https, with an optional
+ * port, and either nothing or a path after it.
+ *
+ * This pattern is a security boundary, not a convenience. Every URL it
+ * matches gets the outbound `sentry-trace` and `baggage` headers attached, so
+ * a pattern that matches more than intended leaks trace context — and the
+ * request correlation it carries — to third-party origins. Two consequences:
+ *
+ *   1. The host is fully escaped (see escapeRegExp), never just dot-escaped.
+ *   2. Both ends are anchored with literal `^` and `$` at the top level of
+ *      the pattern, with the optional path inside `(/.*)?` rather than the
+ *      end anchor being buried in a `(/|$)` alternation. An unanchored tail
+ *      would match `https://evil.test/?x=https://ourhost.example/`, and an
+ *      anchor reachable through only one branch of a group is invisible to
+ *      static analysis (CodeQL js/regex/missing-regexp-anchor) even when it
+ *      does hold.
+ *
+ * The leading `([a-z0-9-]+\.)*` matches subdomain labels only — it cannot
+ * cross a `/`, `@`, or `:`, so it does not admit a userinfo or path prefix.
+ */
+function buildHostPropagationPattern(host: string): RegExp {
+  return new RegExp(`^https?://([a-z0-9-]+\\.)*${escapeRegExp(host)}(:\\d+)?(/.*)?$`, 'i');
+}
+
 interface EnableDiagnosticsOptions {
   // Display domain. This is the domain the user is interacting with, not
   // the Sentry domain. Same meaning as `display_domain`.
@@ -690,19 +731,9 @@ export function createDiagnostics(options: EnableDiagnosticsOptions): Plugin {
     // sendDefaultPii: false, // Default is false
     tracePropagationTargets: [
       /^localhost(:\d+)?$/, // Matches localhost with optional port
-      // Add host domain regexes only if host is provided. Two patterns, not
-      // one combined via `(/|$)`: each ends in an unambiguous terminal token
-      // (a literal `$` or a literal `/`) so static analysis (CodeQL
-      // js/regex/missing-regexp-anchor) can see the end is anchored, not just
-      // reachable via one branch of a group. Same matching behavior as
-      // before — host with optional port and nothing else, OR host with
-      // optional port followed by a path.
-      ...(host
-        ? [
-            new RegExp(`^https?://([a-z0-9-]+\\.)*${host.replaceAll('.', '\\.')}(:\\d+)?$`, 'i'),
-            new RegExp(`^https?://([a-z0-9-]+\\.)*${host.replaceAll('.', '\\.')}(:\\d+)?/`, 'i'),
-          ]
-        : []),
+      // Add the host pattern only if a host is provided. See
+      // buildHostPropagationPattern for why it is shaped the way it is.
+      ...(host ? [buildHostPropagationPattern(host)] : []),
     ],
 
     // Only the integrations listed here will be used
