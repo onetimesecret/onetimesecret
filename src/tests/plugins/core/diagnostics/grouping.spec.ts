@@ -98,7 +98,9 @@ describe('applyGroupingRules — schema validation (Rule A)', () => {
   });
 
   it('reads a standalone message as well as exception values', () => {
-    const event: ErrorEvent = { message: 'Schema validation failed for MembersResponse — 1 issue(s) [(root)]: …' };
+    const event: ErrorEvent = {
+      message: 'Schema validation failed for MembersResponse — 1 issue(s) [(root)]: …',
+    };
 
     applyGroupingRules(event);
 
@@ -110,7 +112,8 @@ describe('applyGroupingRules — schema validation (Rule A)', () => {
       message: 'Schema validation failed for BrandSettings — 1 issue(s) [font_family]: …',
     };
     const threeIssues: ErrorEvent = {
-      message: 'Schema validation failed for BrandSettings — 3 issue(s) [corner_style, primary_color, locale]: …',
+      message:
+        'Schema validation failed for BrandSettings — 3 issue(s) [corner_style, primary_color, locale]: …',
     };
 
     applyGroupingRules(oneIssue);
@@ -166,7 +169,11 @@ describe('applyGroupingRules — API request errors (Rule B)', () => {
   it('parameterizes receipt endpoints the same way', () => {
     const event: ErrorEvent = {};
     applyGroupingRules(event, {
-      originalException: requestError({ url: `/api/v2/receipt/${'c'.repeat(62)}`, method: 'post', status: 404 }),
+      originalException: requestError({
+        url: `/api/v2/receipt/${'c'.repeat(62)}`,
+        method: 'post',
+        status: 404,
+      }),
     });
 
     expect(event.fingerprint).toEqual(['api-error', 'POST', '/api/v2/receipt/[REDACTED]', '404']);
@@ -175,7 +182,11 @@ describe('applyGroupingRules — API request errors (Rule B)', () => {
   it('drops the query string from the grouping path', () => {
     const event: ErrorEvent = {};
     applyGroupingRules(event, {
-      originalException: requestError({ url: '/api/v2/status?cb=1755859200', method: 'get', status: 500 }),
+      originalException: requestError({
+        url: '/api/v2/status?cb=1755859200',
+        method: 'get',
+        status: 500,
+      }),
     });
 
     expect(event.fingerprint).toEqual(['api-error', 'GET', '/api/v2/status', '500']);
@@ -212,7 +223,11 @@ describe('applyGroupingRules — API request errors (Rule B)', () => {
   it('falls back to the error class name when there is no status and no known code', () => {
     const event: ErrorEvent = {};
     applyGroupingRules(event, {
-      originalException: requestError({ url: '/api/v2/status', method: 'get', name: 'TimeoutError' }),
+      originalException: requestError({
+        url: '/api/v2/status',
+        method: 'get',
+        name: 'TimeoutError',
+      }),
     });
 
     expect(event.fingerprint).toEqual(['api-error', 'GET', '/api/v2/status', 'TimeoutError']);
@@ -231,7 +246,11 @@ describe('applyGroupingRules — API request errors (Rule B)', () => {
 describe('applyGroupingRules — pass-through', () => {
   it('leaves events matching neither rule untouched (default grouping preserved)', () => {
     const event: ErrorEvent = {
-      exception: { values: [{ type: 'TypeError', value: "Cannot read properties of undefined (reading 'foo')" }] },
+      exception: {
+        values: [
+          { type: 'TypeError', value: "Cannot read properties of undefined (reading 'foo')" },
+        ],
+      },
     };
 
     applyGroupingRules(event, { originalException: new TypeError('nope') });
@@ -273,35 +292,40 @@ describe('applyGroupingRules — pass-through', () => {
 // the existing scrubbing pipeline.
 // ---------------------------------------------------------------------------
 
-const { mockGetBootstrapValue, MockBrowserClient, MockScope, getCapturedClientOptions, resetCapturedOptions } =
-  vi.hoisted(() => {
-    const mockGetBootstrapValue = vi.fn();
-    let capturedClientOptions: Record<string, unknown> | null = null;
+const {
+  mockGetBootstrapValue,
+  MockBrowserClient,
+  MockScope,
+  getCapturedClientOptions,
+  resetCapturedOptions,
+} = vi.hoisted(() => {
+  const mockGetBootstrapValue = vi.fn();
+  let capturedClientOptions: Record<string, unknown> | null = null;
 
-    class MockBrowserClient {
-      constructor(options: Record<string, unknown>) {
-        capturedClientOptions = options;
-      }
-      init = vi.fn();
-      close = vi.fn().mockResolvedValue(undefined);
+  class MockBrowserClient {
+    constructor(options: Record<string, unknown>) {
+      capturedClientOptions = options;
     }
+    init = vi.fn();
+    close = vi.fn().mockResolvedValue(undefined);
+  }
 
-    class MockScope {
-      setClient = vi.fn();
-      setTag = vi.fn();
-      setUser = vi.fn();
-    }
+  class MockScope {
+    setClient = vi.fn();
+    setTag = vi.fn();
+    setUser = vi.fn();
+  }
 
-    return {
-      mockGetBootstrapValue,
-      MockBrowserClient,
-      MockScope,
-      getCapturedClientOptions: () => capturedClientOptions,
-      resetCapturedOptions: () => {
-        capturedClientOptions = null;
-      },
-    };
-  });
+  return {
+    mockGetBootstrapValue,
+    MockBrowserClient,
+    MockScope,
+    getCapturedClientOptions: () => capturedClientOptions,
+    resetCapturedOptions: () => {
+      capturedClientOptions = null;
+    },
+  };
+});
 
 vi.mock('@/services/bootstrap.service', () => ({
   getBootstrapValue: mockGetBootstrapValue,
@@ -343,7 +367,9 @@ describe('beforeSend integration', () => {
     resetCapturedOptions();
     createDiagnostics({
       host: 'example.com',
-      config: { sentry: { dsn: 'https://key@sentry.io/123', environment: 'test', release: '1.0.0' } },
+      config: {
+        sentry: { dsn: 'https://key@sentry.io/123', environment: 'test', release: '1.0.0' },
+      },
       router: createMockRouter(),
     });
     const options = getCapturedClientOptions();
@@ -364,6 +390,11 @@ describe('beforeSend integration', () => {
   it('applies grouping AND still runs the existing scrubbers', () => {
     const handler = getBeforeSend();
 
+    // Status 500, not 404: a 404 is expected transport noise (#4286) and is
+    // dropped before grouping/scrubbing ever run — see expectedOutcomes.spec.ts.
+    // This test's own concern is that grouping composes with the scrubbing
+    // pipeline for an event that IS reported, so it needs an outcome that
+    // survives the drop filter.
     const event: ErrorEvent = {
       exception: {
         values: [
@@ -371,21 +402,21 @@ describe('beforeSend integration', () => {
             type: 'AxiosError',
             // An email interpolated into the message must still be scrubbed;
             // grouping composes with the pipeline, it does not replace it.
-            value: 'Request failed with status code 404 for user@example.com',
+            value: 'Request failed with status code 500 for user@example.com',
           },
         ],
       },
     };
     const hint: EventHint = {
-      originalException: requestError({ url: '/api/v2/secret/abc123', method: 'get', status: 404 }),
+      originalException: requestError({ url: '/api/v2/secret/abc123', method: 'get', status: 500 }),
     };
 
     const result = handler(event, hint) as ErrorEvent;
 
     expect(result.exception?.values?.[0].value).toBe(
-      'Request failed with status code 404 for [EMAIL_REDACTED]'
+      'Request failed with status code 500 for [EMAIL_REDACTED]'
     );
-    expect(result.fingerprint).toEqual(['api-error', 'GET', '/api/v2/secret/[REDACTED]', '404']);
+    expect(result.fingerprint).toEqual(['api-error', 'GET', '/api/v2/secret/[REDACTED]', '500']);
   });
 
   it('leaves non-matching events with default grouping through beforeSend', () => {

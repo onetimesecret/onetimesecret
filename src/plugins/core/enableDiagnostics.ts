@@ -37,6 +37,7 @@ import {
   sanitizeEventUser,
   type ActorContextScope,
 } from './diagnostics/actorContext';
+import { isExpectedTransportOutcome } from './diagnostics/expectedOutcomes';
 import { applyGroupingRules } from './diagnostics/grouping';
 import { collectValuesToRedact, scrubUrlWithValues } from './diagnostics/urlScrubbing';
 // Re-export scrubbing utilities from dependency-free module for backward compatibility
@@ -432,6 +433,14 @@ function scrubStackFrameUrls(event: ErrorEvent): void {
  */
 function createBeforeSendHandler(router: Router) {
   return (event: ErrorEvent, hint?: EventHint): ErrorEvent | null | Promise<ErrorEvent | null> => {
+    // #4286: expected transport outcomes (already-consumed secrets,
+    // cancelled requests, client connectivity) are the product working, not
+    // a defect. Drop first — no point scrubbing or fingerprinting an event
+    // that is about to be discarded.
+    if (isExpectedTransportOutcome(hint)) {
+      return null;
+    }
+
     if ('secret' in event && event.secret) {
       delete event.secret;
     }

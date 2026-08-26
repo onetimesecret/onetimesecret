@@ -51,13 +51,41 @@ const SCHEMA_VALIDATION_MESSAGE = /^Schema validation failed for ([\w.$-]+)/;
  * (see the interceptors specs), and fetch wrappers produce similar shapes, so
  * detection is by the presence of `config.url` — the one property every
  * axios-family error carries — rather than by class.
+ *
+ * Exported (with `resolveRequestError` and `requestOutcome` below) so the
+ * expected-outcome noise filter (expectedOutcomes.ts, #4286) agrees with
+ * grouping on what counts as a request-shaped error and what its outcome is,
+ * instead of re-deriving both.
  */
-interface RequestErrorLike {
+export interface RequestErrorLike {
   config?: { url?: unknown; method?: unknown };
   response?: { status?: unknown };
   code?: unknown;
   name?: unknown;
   message?: unknown;
+}
+
+/** A request-shaped error together with the URL that proved its shape. */
+export interface ResolvedRequestError {
+  err: RequestErrorLike;
+  url: string;
+}
+
+/**
+ * Narrows a capture hint's original exception to a request-shaped error, or
+ * null when it isn't one (no `config.url` — see `RequestErrorLike`).
+ */
+export function resolveRequestError(hint: EventHint | undefined): ResolvedRequestError | null {
+  const original = hint?.originalException;
+  if (!original || typeof original !== 'object') {
+    return null;
+  }
+  const err = original as RequestErrorLike;
+  const url = err.config?.url;
+  if (typeof url !== 'string' || url.length === 0) {
+    return null;
+  }
+  return { err, url };
 }
 
 /**
@@ -129,18 +157,18 @@ function normalizeRequestPath(url: string): string {
  *   request-shaped error.
  */
 function apiErrorGroup(hint: EventHint | undefined): string[] | null {
-  const original = hint?.originalException;
-  if (!original || typeof original !== 'object') {
-    return null;
-  }
-  const err = original as RequestErrorLike;
-  const url = err.config?.url;
-  if (typeof url !== 'string' || url.length === 0) {
+  const resolved = resolveRequestError(hint);
+  if (!resolved) {
     // Not a request-shaped error — no config.url, no route to group by.
     return null;
   }
 
-  return ['api-error', requestMethod(err), normalizeRequestPath(url), requestOutcome(err)];
+  return [
+    'api-error',
+    requestMethod(resolved.err),
+    normalizeRequestPath(resolved.url),
+    requestOutcome(resolved.err),
+  ];
 }
 
 /** Uppercased HTTP method; axios stores it lowercase and defaults to GET. */
@@ -153,7 +181,7 @@ function requestMethod(err: RequestErrorLike): string {
 const ABORT_MARKERS = new Set(['ERR_CANCELED', 'ECONNABORTED', 'CanceledError', 'AbortError']);
 
 /** Derives the outcome component: status, else a coarse failure class. */
-function requestOutcome(err: RequestErrorLike): string {
+export function requestOutcome(err: RequestErrorLike): string {
   const status = err.response?.status;
   if (typeof status === 'number') {
     return String(status);
