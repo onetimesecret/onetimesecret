@@ -49,7 +49,6 @@ RSpec.describe Core::Controllers::Welcome do
       'otto.strategy_result' => strategy_result,
       'HTTP_ACCEPT' => 'text/html',
       'HTTP_REFERER' => 'https://example.com/pricing',
-      'QUERY_STRING' => '',
     }
   end
 
@@ -58,7 +57,6 @@ RSpec.describe Core::Controllers::Welcome do
     allow(request).to receive(:env).and_return(env)
     allow(request).to receive(:params).and_return(params)
     allow(request).to receive(:path).and_return('/welcome')
-    allow(request).to receive(:query_string).and_return(env['QUERY_STRING'])
     allow(request).to receive(:locale).and_return('en')
     allow(request).to receive(:app_path) { |path| path }
     request
@@ -217,13 +215,12 @@ RSpec.describe Core::Controllers::Welcome do
         end
       end
 
-      context 'with referrer and query string in Sentry context' do
+      context 'with referrer and query params in Sentry context' do
         let(:domain_strategy) { :canonical }
+        let(:params) { { 'utm_source' => 'marketing', 'email' => 'buyer@example.com' } }
 
         before do
           env['HTTP_REFERER'] = 'https://stripe.com/checkout'
-          env['QUERY_STRING'] = 'utm_source=marketing'
-          allow(req).to receive(:query_string).and_return('utm_source=marketing')
         end
 
         it 'includes referrer in Sentry context' do
@@ -235,13 +232,16 @@ RSpec.describe Core::Controllers::Welcome do
           )
         end
 
-        it 'includes query_string in Sentry context' do
+        it 'includes parameter names but never their values' do
           controller.welcome
 
           expect(sentry_scope).to have_received(:set_context).with(
             'request',
-            hash_including(query_string: 'utm_source=marketing')
-          )
+            hash_including(param_keys: %w[email utm_source])
+          ) do |_name, context|
+            expect(context).not_to have_key(:query_string)
+            expect(context.values.map(&:to_s).join).not_to include('buyer@example.com')
+          end
         end
       end
 

@@ -132,7 +132,11 @@ module Core
             {
               domain_strategy: domain_strategy,
               path: req.path,
-              query_string: req.query_string,
+              # Parameter names only, never values: the route is
+              # unauthenticated, so values can carry whatever a caller put in
+              # the URL (emails, tokens). The shape is enough to recognize a
+              # malformed Payment Link redirect.
+              param_keys: req.params.keys.sort,
               referrer: sanitized_referrer,
               # A Stripe object id, not customer data: the one field support
               # needs to reconcile a payment this endpoint no longer applies.
