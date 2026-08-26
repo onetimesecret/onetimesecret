@@ -452,9 +452,21 @@ module Billing
       end
 
       # Fields only set on owner orgs (not federated)
+      #
+      # Clearing the federated marker is the other half of setting
+      # stripe_customer_id, and this is the only place the pair is written.
+      # An org that federated a benefit and LATER bought its own subscription
+      # kept subscription_federated_at forever: the predicates already read
+      # correctly (subscription_federated? is false once subscription_owner?
+      # is true, so no notification was ever mis-shown), but the stored
+      # timestamp still claimed the subscription came from another region.
+      # Anything reading the field rather than the predicate — an export, an
+      # admin view, an audit — was told the wrong story. Clearing it here also
+      # heals the historical rows on their next subscription webhook.
       def apply_owner_fields
         @org.stripe_subscription_id = @subscription.id
         @org.stripe_customer_id     = @subscription.customer
+        @org.clear_federated_status!
       end
 
       # Materialize entitlements from resolved plan to org-local storage

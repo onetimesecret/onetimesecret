@@ -9,8 +9,9 @@
 # Accepts product (e.g., identity_plus_v1) + interval (monthly/yearly)
 GET    /plans/:product/:interval                 Billing::Controllers::Plans#checkout_redirect auth=noauth
 
-# Legacy welcome endpoint (redirects from Stripe Payment Links)
-# Maintained for backward compatibility
+# Post-checkout landing for Stripe Checkout Sessions (?session_id=)
+# This is the CURRENT flow. The retired Stripe Payment Link landing page
+# was GET /welcome on the core app, which no longer provisions (#4212).
 GET    /welcome                                  Billing::Controllers::Plans#welcome auth=noauth
 
 # Stripe webhooks (CSRF exempt, signature verified in controller)

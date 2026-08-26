@@ -14,7 +14,8 @@ module Core
     #
     # Legacy routes handled here redirect to the billing app:
     # - GET /plans/:tier/:billing_cycle -> /billing/plans/:product/:interval
-    # - GET /welcome -> /billing/welcome
+    # - GET /welcome -> reported and redirected home; the Stripe Payment
+    #   Link flow it served was retired (#4212)
     # - GET /account/billing/portal -> /billing/portal
     #
     class Welcome
@@ -99,59 +100,62 @@ module Core
         res.redirect "/billing/plans/#{product}/#{interval}"
       end
 
-      # Handles the redirect from Stripe Payment Links after a successful payment
+      # Reports a hit on the retired Stripe Payment Link landing page
       #
-      # This endpoint associates the Stripe checkout session with the customer's account
-      # and updates their organization's billing details (planid, subscription status, etc.)
-      # after they've completed a purchase through a Stripe Payment Link.
+      # Payment Links were the pre-2026 purchase flow: Stripe redirected the
+      # buyer here with ?checkout={CHECKOUT_SESSION_ID} and this endpoint
+      # provisioned them from the checkout session — including creating an
+      # unverified account when the checkout email had none. The links are no
+      # longer active and nothing issues this URL any more, so the
+      # provisioning was removed along with
+      # Billing::Logic::Welcome::FromStripePaymentLink (#4212).
       #
-      # GET /welcome?checkout={CHECKOUT_SESSION_ID}
+      # GET /welcome
       #
-      # @param [String] checkout The Stripe Checkout Session ID passed as a query parameter
+      # The route stays because a stale link can still sit in a bookmark or an
+      # old receipt email. Every hit is reported rather than served, carrying
+      # the checkout id when one is present, so a Payment Link unexpectedly
+      # still live in the wild is visible immediately: the
+      # checkout.session.completed webhook cannot cover for one, because
+      # Payment Link subscriptions carry no customer_extid metadata and
+      # Billing::Operations::WebhookHandlers::CheckoutCompleted skips them.
       #
-      # @return [HTTP 302] Redirects to the user's account page upon successful processing
-      #
-      # @see Billing::Logic::Welcome::FromStripePaymentLink For the business logic implementation
-      #
-      # @note This endpoint is noauth accessible and sets a secure session cookie
-      #       if the site is configured to use SSL
-      #
-      # e.g. https://staging.onetimesecret.com/welcome?checkout={CHECKOUT_SESSION_ID}
+      # @return [HTTP 302] Redirects to the homepage
       #
       def welcome
-        # Guard: checkout param is required for Stripe Payment Link flow
-        if req.params['checkout'].to_s.strip.empty?
-          domain_strategy = strategy_result.metadata[:domain_strategy]
+        domain_strategy     = strategy_result.metadata[:domain_strategy]
+        # Only a value shaped like a Stripe Checkout Session id is reported.
+        # The param is caller-controlled on an unauthenticated route, so
+        # anything else is treated as absent; param_keys below still records
+        # that a checkout param was present.
+        raw_checkout_id     = req.params['checkout'].to_s.strip
+        checkout_session_id = raw_checkout_id.match?(/\Acs_(test|live)_[A-Za-z0-9]+\z/) ? raw_checkout_id : nil
 
-          capture_message('Welcome page accessed without checkout param', :error) do |scope|
-            scope.set_context(
-              'request',
-              {
-                domain_strategy: domain_strategy,
-                path: req.path,
-                query_string: req.query_string,
-                referrer: sanitized_referrer,
-              },
-            )
-          end
-
-          # Show flash message unless custom domain (would confuse users about which support to contact)
-          unless domain_strategy == :custom
-            session['error_message'] = 'It looks like you were redirected here but something went wrong. Please contact support.'
-          end
-
-          res.redirect req.app_path('/')
-          return
+        capture_message('Welcome page accessed after Payment Link retirement', :error) do |scope|
+          scope.set_context(
+            'request',
+            {
+              domain_strategy: domain_strategy,
+              path: req.path,
+              # Parameter names only, never values: the route is
+              # unauthenticated, so values can carry whatever a caller put in
+              # the URL (emails, tokens). The shape is enough to recognize a
+              # malformed Payment Link redirect.
+              param_keys: req.params.keys.sort,
+              referrer: sanitized_referrer,
+              # A Stripe object id, not customer data: the one field support
+              # needs to reconcile a payment this endpoint no longer applies.
+              checkout_session_id: checkout_session_id,
+            },
+          )
         end
 
-        logic = Billing::Logic::Welcome::FromStripePaymentLink.new(strategy_result, req.params, locale)
-        logic.raise_concerns
-        logic.process
+        # Show flash message unless custom domain (would confuse users about which support to contact)
+        unless domain_strategy == :custom
+          session['error_message'] = 'It looks like you were redirected here but something went wrong. Please contact support.'
+        end
 
-        # NOTE: For new accounts, logic.process raises OT::Redirect to /signin
-        # requiring email verification before login. Only authenticated users
-        # completing checkout reach this redirect.
-        res.redirect '/account'
+        res.redirect req.app_path('/')
       end
 
       # Redirects authenticated users to the Stripe Customer Portal

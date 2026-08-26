@@ -85,7 +85,10 @@ RSpec.describe 'WithOrganizationBilling', :billing do
           :subscription_status,
           :subscription_period_end,
           :planid,
-          :complimentary
+          :complimentary,
+          # Written by the owner path: buying your own subscription clears the
+          # federated marker (ApplySubscriptionToOrg#apply_owner_fields).
+          :subscription_federated_at
 
         def initialize
           @objid = 'test-org-123'

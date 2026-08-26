@@ -4,10 +4,13 @@
 
 # Tests for Core::Controllers::Welcome#welcome endpoint guard
 #
-# The guard handles missing `checkout` param:
-# 1. Missing checkout + custom domain -> Sentry error + silent redirect to /
-# 2. Missing checkout + canonical domain -> Sentry error + flash message + redirect to /
-# 3. Valid checkout -> normal flow (existing logic)
+# The Stripe Payment Link flow this endpoint served is retired (#4212), so
+# EVERY hit is reported and redirected home; nothing is provisioned:
+# 1. Custom domain -> Sentry error + silent redirect to / (no flash: it would
+#    point the visitor at the wrong support desk)
+# 2. Canonical domain -> Sentry error + flash message + redirect to /
+# 3. With a checkout id -> same, plus the id in the Sentry context so support
+#    can reconcile a payment this endpoint no longer applies
 #
 # Run: pnpm run test:rspec apps/web/core/spec/controllers/welcome_spec.rb
 
@@ -16,9 +19,6 @@ require 'sentry-ruby'
 
 # Load the welcome controller
 require_relative '../../controllers/welcome'
-
-# Load billing logic (required for valid checkout tests)
-require_relative '../../../billing/logic/welcome'
 
 RSpec.describe Core::Controllers::Welcome do
   subject(:controller) { described_class.new(req, res) }
@@ -49,7 +49,6 @@ RSpec.describe Core::Controllers::Welcome do
       'otto.strategy_result' => strategy_result,
       'HTTP_ACCEPT' => 'text/html',
       'HTTP_REFERER' => 'https://example.com/pricing',
-      'QUERY_STRING' => '',
     }
   end
 
@@ -58,7 +57,6 @@ RSpec.describe Core::Controllers::Welcome do
     allow(request).to receive(:env).and_return(env)
     allow(request).to receive(:params).and_return(params)
     allow(request).to receive(:path).and_return('/welcome')
-    allow(request).to receive(:query_string).and_return(env['QUERY_STRING'])
     allow(request).to receive(:locale).and_return('en')
     allow(request).to receive(:app_path) { |path| path }
     request
@@ -106,7 +104,7 @@ RSpec.describe Core::Controllers::Welcome do
           controller.welcome
 
           expect(sentry_messages.length).to eq(1)
-          expect(sentry_messages.first[:message]).to eq('Welcome page accessed without checkout param')
+          expect(sentry_messages.first[:message]).to eq('Welcome page accessed after Payment Link retirement')
           expect(sentry_messages.first[:level]).to eq(:error)
         end
 
@@ -141,7 +139,7 @@ RSpec.describe Core::Controllers::Welcome do
           controller.welcome
 
           expect(sentry_messages.length).to eq(1)
-          expect(sentry_messages.first[:message]).to eq('Welcome page accessed without checkout param')
+          expect(sentry_messages.first[:message]).to eq('Welcome page accessed after Payment Link retirement')
           expect(sentry_messages.first[:level]).to eq(:error)
         end
 
@@ -174,7 +172,7 @@ RSpec.describe Core::Controllers::Welcome do
           controller.welcome
 
           expect(sentry_messages.length).to eq(1)
-          expect(sentry_messages.first[:message]).to eq('Welcome page accessed without checkout param')
+          expect(sentry_messages.first[:message]).to eq('Welcome page accessed after Payment Link retirement')
         end
 
         it 'sets flash message (subdomain is still our support)' do
@@ -217,13 +215,12 @@ RSpec.describe Core::Controllers::Welcome do
         end
       end
 
-      context 'with referrer and query string in Sentry context' do
+      context 'with referrer and query params in Sentry context' do
         let(:domain_strategy) { :canonical }
+        let(:params) { { 'utm_source' => 'marketing', 'email' => 'buyer@example.com' } }
 
         before do
           env['HTTP_REFERER'] = 'https://stripe.com/checkout'
-          env['QUERY_STRING'] = 'utm_source=marketing'
-          allow(req).to receive(:query_string).and_return('utm_source=marketing')
         end
 
         it 'includes referrer in Sentry context' do
@@ -235,13 +232,16 @@ RSpec.describe Core::Controllers::Welcome do
           )
         end
 
-        it 'includes query_string in Sentry context' do
+        it 'includes parameter names but never their values' do
           controller.welcome
 
           expect(sentry_scope).to have_received(:set_context).with(
             'request',
-            hash_including(query_string: 'utm_source=marketing')
-          )
+            hash_including(param_keys: %w[email utm_source])
+          ) do |_name, context|
+            expect(context).not_to have_key(:query_string)
+            expect(context.values.map(&:to_s).join).not_to include('buyer@example.com')
+          end
         end
       end
 
@@ -273,67 +273,42 @@ RSpec.describe Core::Controllers::Welcome do
       end
     end
 
+    # The Payment Link flow this endpoint used to serve is retired (#4212).
+    # A checkout id no longer selects a provisioning path — it is reported as
+    # the anomaly it now is, so a link still live in the wild is visible.
     context 'when checkout param is present' do
       let(:domain_strategy) { :canonical }
       let(:checkout_session_id) { 'cs_test_abc123xyz' }
       let(:params) { { 'checkout' => checkout_session_id } }
 
-      let(:mock_checkout_session) do
-        double(
-          'StripeCheckoutSession',
-          id: checkout_session_id,
-          customer: 'cus_test_123',
-          customer_details: double(email: 'test@example.com'),
-          subscription: double(id: 'sub_test_123')
+      it 'captures a Sentry error message' do
+        controller.welcome
+
+        expect(sentry_messages.length).to eq(1)
+        expect(sentry_messages.first[:message]).to eq(
+          'Welcome page accessed after Payment Link retirement'
         )
       end
 
-      let(:mock_logic) do
-        logic = double('FromStripePaymentLink')
-        allow(logic).to receive(:raise_concerns)
-        allow(logic).to receive(:process)
-        logic
-      end
-
-      before do
-        # Stub the billing logic class
-        allow(Billing::Logic::Welcome::FromStripePaymentLink).to receive(:new).and_return(mock_logic)
-      end
-
-      it 'does NOT capture Sentry message' do
-        expect(Sentry).not_to receive(:capture_message)
-
-        controller.welcome
-      end
-
-      it 'does NOT set flash message' do
+      it 'includes the checkout session id in the Sentry context' do
         controller.welcome
 
-        expect(session_data['error_message']).to be_nil
+        expect(sentry_scope).to have_received(:set_context).with(
+          'request',
+          hash_including(checkout_session_id: checkout_session_id)
+        )
       end
 
-      it 'does NOT redirect to root (processes checkout instead)' do
+      it 'sets flash message on canonical domain' do
         controller.welcome
 
-        # With valid checkout, redirect should be to /account, not /
-        expect(@redirect_location).to eq('/account')
+        expect(session_data['error_message']).to include('something went wrong')
       end
 
-      it 'instantiates the billing logic with correct parameters' do
-        expect(Billing::Logic::Welcome::FromStripePaymentLink).to receive(:new).with(
-          strategy_result,
-          params,
-          'en'
-        ).and_return(mock_logic)
-
+      it 'redirects to root path instead of provisioning' do
         controller.welcome
-      end
 
-      it 'calls raise_concerns and process on the logic' do
-        expect(mock_logic).to receive(:raise_concerns).ordered
-        expect(mock_logic).to receive(:process).ordered
-
-        controller.welcome
+        expect(@redirect_location).to eq('/')
       end
     end
 
@@ -341,12 +316,17 @@ RSpec.describe Core::Controllers::Welcome do
       let(:domain_strategy) { :canonical }
       let(:params) { { 'checkout' => '' } }
 
-      # Empty string is treated as missing - guard uses .to_s.strip.empty?
-      it 'captures Sentry error message (treated as missing)' do
+      # An empty id is reported as no id at all, so the Sentry context never
+      # carries a blank string that reads like a truncated session.
+      it 'captures Sentry error message with a nil checkout_session_id' do
         controller.welcome
 
         expect(sentry_messages.length).to eq(1)
-        expect(sentry_messages.first[:message]).to eq('Welcome page accessed without checkout param')
+        expect(sentry_messages.first[:message]).to eq('Welcome page accessed after Payment Link retirement')
+        expect(sentry_scope).to have_received(:set_context).with(
+          'request',
+          hash_including(checkout_session_id: nil)
+        )
       end
 
       it 'sets flash message on canonical domain' do
@@ -366,11 +346,33 @@ RSpec.describe Core::Controllers::Welcome do
       let(:domain_strategy) { :canonical }
       let(:params) { { 'checkout' => '   ' } }
 
-      it 'treats whitespace-only as missing' do
+      it 'treats whitespace-only as no checkout id' do
         controller.welcome
 
         expect(sentry_messages.length).to eq(1)
+        expect(sentry_scope).to have_received(:set_context).with(
+          'request',
+          hash_including(checkout_session_id: nil)
+        )
         expect(@redirect_location).to eq('/')
+      end
+    end
+
+    context 'when checkout param is not shaped like a Stripe session id' do
+      let(:domain_strategy) { :canonical }
+      let(:params) { { 'checkout' => 'victim@example.com' } }
+
+      # The param is caller-controlled on an unauthenticated route: a value
+      # that is not a Checkout Session id must never reach telemetry.
+      it 'reports a nil checkout_session_id and never the raw value' do
+        controller.welcome
+
+        expect(sentry_scope).to have_received(:set_context).with(
+          'request',
+          hash_including(checkout_session_id: nil)
+        ) do |_name, context|
+          expect(context.values.map(&:to_s).join).not_to include('victim@example.com')
+        end
       end
     end
   end

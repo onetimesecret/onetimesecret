@@ -88,8 +88,135 @@ RSpec.describe Billing::CheckoutTargetResolver, :billing do
     org
   end
 
+  def create_step4_for(label, cust: customer, stripe_id: stripe_customer_id)
+    org = described_class.create_checkout_workspace(
+      cust,
+      logger: logger,
+      label: label,
+      stripe_customer_id: stripe_id,
+    )
+    created_organizations << org
+    org
+  end
+
   def live_owned_count
     described_class.owned_live_orgs(customer).length
+  end
+
+  # =======================================================================
+  # Step 4, shared.
+  #
+  # It used to be per-surface: the webhook ran CreateDefaultWorkspace first
+  # and the redirect went straight to create_billing_workspace, so the same
+  # checkout produced a different workspace name and a different
+  # federated-subscription outcome depending on which surface handled it
+  # (#4212). These examples pin the single policy both now use.
+  # =======================================================================
+  describe 'shared step 4 (create_checkout_workspace)' do
+    it 'gives both surfaces the same workspace for the same checkout' do
+      redirect = create_step4_for('[ProcessCheckoutSession]')
+      webhook  = create_step4_for('[CheckoutCompleted]')
+
+      expect(webhook.objid).to eq(redirect.objid)
+      expect(live_owned_count).to eq(1)
+    end
+
+    # The canonical create refuses this customer: it counts ANY organization,
+    # archived included. Without the fallback their paid subscription has
+    # nowhere to land and is dropped on the floor.
+    it 'falls back to the billing create when the customer has only archived orgs' do
+      org = create_step4_for('[CheckoutCompleted]')
+
+      expect(org).to be_a(Onetime::Organization)
+      expect(org.archived?).to be false
+      expect(org.stripe_customer_id).to eq(stripe_customer_id)
+    end
+
+    it 'uses the canonical create when the customer has no organizations at all' do
+      fresh = create_test_customer(email: "resolver-fresh-#{SecureRandom.hex(4)}@example.com")
+
+      org = create_step4_for(
+        '[CheckoutCompleted]',
+        cust: fresh,
+        stripe_id: "cus_test_#{SecureRandom.hex(4)}",
+      )
+
+      expect(org.display_name).to eq('Default Workspace')
+      expect(org.is_default).to be true
+    end
+
+    # The claim belongs to the federated webhook path, not to a surface that
+    # is about to apply a paid local subscription to this very workspace.
+    it 'declines the federated-subscription claim' do
+      expect(Auth::Operations::CreateDefaultWorkspace).to receive(:new)
+        .with(hash_including(claim_pending_federation: false))
+        .and_call_original
+
+      create_step4_for('[CheckoutCompleted]')
+    end
+  end
+
+  # =======================================================================
+  # Step 4, the OrganizationExists round (as opposed to the
+  # Familia::RecordExistsError round the concurrent-completion examples
+  # exercise).
+  #
+  # canonical_workspace rescues CreateDefaultWorkspace's OrganizationExists
+  # and tries to adopt the org holding the contact_email reservation. When
+  # that org belongs to someone else, adoption correctly returns nil and the
+  # fall-through is a SECOND create attempt — create_billing_workspace —
+  # which survives the same reservation by creating without a contact_email.
+  # These examples pin that two-round path end to end.
+  # =======================================================================
+  describe 'shared step 4 when a stranger org holds the contact_email reservation' do
+    let(:reserved_email) { "resolver-reserved-#{SecureRandom.hex(4)}@example.com" }
+    let(:fresh_stripe_id) { "cus_test_#{SecureRandom.hex(4)}" }
+
+    let(:fresh_customer) { create_test_customer(email: reserved_email) }
+    let(:interloper) do
+      create_test_customer(email: "resolver-interloper-#{SecureRandom.hex(4)}@example.com")
+    end
+
+    # The reserving org has a member (its owner), so CreateDefaultWorkspace
+    # re-raises OrganizationExists instead of adopting the orphan — and the
+    # checkout customer does not own it, so adopt_email_reserved_workspace
+    # refuses it too.
+    let!(:stranger_org) do
+      org = Onetime::Organization.create!('Stranger Workspace', interloper, reserved_email)
+      created_organizations << org
+      org
+    end
+
+    it 'creates a workspace without a contact_email rather than failing or capturing the stranger org' do
+      org = create_step4_for('[CheckoutCompleted]', cust: fresh_customer, stripe_id: fresh_stripe_id)
+
+      expect(org).to be_a(Onetime::Organization)
+      expect(org.objid).not_to eq(stranger_org.objid)
+      expect(org.owner?(fresh_customer)).to be(true)
+      expect(org.contact_email.to_s).to be_empty
+      expect(org.stripe_customer_id).to eq(fresh_stripe_id)
+    end
+
+    it 'leaves the stranger org untouched' do
+      create_step4_for('[CheckoutCompleted]', cust: fresh_customer, stripe_id: fresh_stripe_id)
+
+      stranger_org.refresh!
+      expect(stranger_org.stripe_customer_id).to be_nil
+      expect(stranger_org.owner?(fresh_customer)).to be(false)
+    end
+
+    it 'warns that the workspace will be created without a contact_email' do
+      create_step4_for('[CheckoutCompleted]', cust: fresh_customer, stripe_id: fresh_stripe_id)
+
+      expect(logger).to have_received(:warn).with(
+        a_string_including('does not own'),
+        hash_including(customer_extid: fresh_customer.extid, orgid: stranger_org.objid),
+      )
+      expect(logger).to have_received(:warn).with(
+        a_string_including('creating workspace without one'),
+        hash_including(customer_extid: fresh_customer.extid),
+      )
+    end
   end
 
   describe 'concurrent completion of the same checkout (redirect + webhook)' do
