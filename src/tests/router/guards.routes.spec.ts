@@ -278,10 +278,15 @@ describe('Router Guards', () => {
   });
 
   describe('auth-route redirect param validation (L-5, via main guard)', () => {
-    // handleAuthRouteRedirect now validates the ?redirect param with the shared
-    // isValidInternalPath (rejects protocol-relative, embedded '://', and
-    // over-length paths), falling back to Dashboard. Exercised through the main
-    // guard (index 3) for an authenticated user hitting an auth route.
+    // handleAuthRouteRedirect validates the ?redirect param with the shared
+    // isValidInternalPath (rejects protocol-relative, embedded '://',
+    // backslashes, control characters, encoded traversal and over-length
+    // paths), falling back to Dashboard. Exercised through the main guard
+    // (index 3) for an authenticated user hitting an auth route.
+    //
+    // A valid param resolves to the RAW STRING, not { path }: vue-router runs
+    // a `path` through parseURL as a path only, which silently strips ?query
+    // and #hash. See the string/object cases below.
 
     const authRouteWithRedirect = (redirect: string): RouteLocationNormalized => ({
       meta: { isAuthRoute: true },
@@ -305,7 +310,24 @@ describe('Router Guards', () => {
 
     it('honours a valid internal redirect param', async () => {
       const result = await getMainGuard()(authRouteWithRedirect('/dashboard/settings'));
-      expect(result).toEqual({ path: '/dashboard/settings' });
+      expect(result).toBe('/dashboard/settings');
+    });
+
+    it('preserves the query string and hash through the guard', async () => {
+      // The regression: returning { path: redirectParam } handed vue-router a
+      // value it parses as a path ONLY, so '?view=raw' and '#content' were
+      // dropped and the user landed on a bare /secret/abc.
+      const target = '/secret/abc?view=raw#content';
+      const result = await getMainGuard()(authRouteWithRedirect(target));
+
+      expect(result).toBe(target);
+      // Explicitly NOT the object form, which is what loses them.
+      expect(result).not.toEqual({ path: target });
+    });
+
+    it('preserves multiple query params and their ordering', async () => {
+      const target = '/search?q=a%20b&sort=desc&page=2#results';
+      expect(await getMainGuard()(authRouteWithRedirect(target))).toBe(target);
     });
 
     it('rejects a protocol-relative redirect (//evil) and falls back to Dashboard', async () => {
@@ -321,6 +343,21 @@ describe('Router Guards', () => {
     it('rejects an over-length redirect (>2048 chars) and falls back to Dashboard', async () => {
       const overLength = '/' + 'a'.repeat(2048);
       const result = await getMainGuard()(authRouteWithRedirect(overLength));
+      expect(result).toEqual({ name: 'Dashboard' });
+    });
+
+    it('rejects a backslash-disguised authority and falls back to Dashboard', async () => {
+      const result = await getMainGuard()(authRouteWithRedirect('/\\evil.example'));
+      expect(result).toEqual({ name: 'Dashboard' });
+    });
+
+    it('rejects an encoded traversal and falls back to Dashboard', async () => {
+      const result = await getMainGuard()(authRouteWithRedirect('/%2e%2e/admin'));
+      expect(result).toEqual({ name: 'Dashboard' });
+    });
+
+    it('rejects a CRLF-carrying redirect and falls back to Dashboard', async () => {
+      const result = await getMainGuard()(authRouteWithRedirect('/x%0D%0ASet-Cookie:%20a=b'));
       expect(result).toEqual({ name: 'Dashboard' });
     });
   });
