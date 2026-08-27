@@ -76,6 +76,7 @@ RSpec.describe V1::ControllerHelpers do
     allow(scope).to receive(:set_context)
     allow(scope).to receive(:set_tags)
     allow(scope).to receive(:set_tag)
+    allow(scope).to receive(:set_fingerprint)
     scope
   end
 
@@ -98,6 +99,68 @@ RSpec.describe V1::ControllerHelpers do
           true
         end
       end)
+    end
+  end
+
+  # v1 is unauthenticated and bot-hammered. The default grouping key for a
+  # message event IS the message, so every distinct validation string anonymous
+  # input can provoke used to mint its own Sentry issue — a change in HOW
+  # malformed bodies fail read as a brand-new escalating defect (BACKEND-AZ).
+  describe 'FormError capture' do
+    # `handle_form_error` lives on the concrete v1 controller base, not in the
+    # helpers module under test, so the harness supplies it.
+    let(:form_controller_class) do
+      Class.new(controller_class) do
+        attr_reader :handled_error
+
+        def handle_form_error(ex)
+          @handled_error = ex
+          :handled
+        end
+      end
+    end
+
+    let(:form_controller) do
+      form_controller_class.new(request: mock_request).tap do |instance|
+        allow(instance).to receive(:add_response_headers)
+        allow(instance).to receive(:log_customer_activity)
+      end
+    end
+
+    before do
+      allow(OT).to receive(:d9s_enabled).and_return(true)
+      allow(OT).to receive(:ld)
+    end
+
+    it 'groups by endpoint, not by validation message' do
+      expect(Sentry).to receive(:capture_message)
+        .with('You did not provide anything to share', hash_including(level: :warning))
+        .and_yield(mock_scope)
+      expect(mock_scope).to receive(:set_fingerprint)
+        .with(['v1-form-error', '/api/v1/secrets'])
+
+      form_controller.carefully do
+        raise OT::FormError, 'You did not provide anything to share'
+      end
+    end
+
+    it 'keeps the message as the event text, so the backend scrubbers still see it' do
+      captured = nil
+      allow(Sentry).to receive(:capture_message) do |message, **_opts, &block|
+        captured = message
+        block&.call(mock_scope)
+      end
+
+      form_controller.carefully { raise OT::FormError, 'Passphrase must be at least 4 characters long' }
+
+      expect(captured).to eq('Passphrase must be at least 4 characters long')
+    end
+
+    it 'still delegates to handle_form_error' do
+      allow(Sentry).to receive(:capture_message)
+
+      expect(form_controller.carefully { raise OT::FormError, 'nope' }).to eq(:handled)
+      expect(form_controller.handled_error.message).to eq('nope')
     end
   end
 

@@ -49,7 +49,21 @@ module V1
       # not surface any other way. We track as messages though since
       # they are not exceptions in the diagnostic sense. We pass only
       # the message and not fields to limit the amount of data sent.
-      capture_message ex.message, :error
+      #
+      # GROUPED BY ENDPOINT, NOT BY MESSAGE (BACKEND-AZ/AH/AD). v1 is an
+      # unauthenticated surface under constant bot traffic, and the default
+      # grouping key for a message event IS the message — so every distinct
+      # validation string anonymous input can provoke minted its own issue, at
+      # error level. Changing HOW malformed bodies fail (#4283 multipart
+      # rejection) therefore read as a brand-new escalating defect when it was
+      # the same bots failing one step earlier. The message stays the event
+      # text, so the backend's message scrubbers still see it and the issue
+      # title still says what failed; the endpoint alone decides the group.
+      #
+      # Level is :warning, not :error: rejected input is the validator working.
+      capture_message ex.message, :warning do |scope|
+        scope.set_fingerprint(['v1-form-error', req.path])
+      end
 
       handle_form_error ex
 
