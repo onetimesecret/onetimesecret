@@ -38,7 +38,10 @@ name: E2E Full Auth
 on:
   workflow_dispatch:
   pull_request:
-    branches: [develop, main, 'rel/*']
+    # No `branches:` filter, unlike e2e.yml: stacked PRs (base = a feature
+    # branch) must exercise this lane too, or a change lands on the feature
+    # branch untested and the eventual PR to main is the first real run. The
+    # paths filter below is what keeps this lane off unrelated PRs.
     paths:
       # The suite and its harness
       - 'e2e/**'
@@ -58,6 +61,14 @@ on:
       # Backend: the signup logic class, the mail delivery backends, the job
       # publisher and the EmailWorker are all in this tree.
       - 'lib/onetime/**'
+      # This lane boots the app on the runner, so its boot surface is part of
+      # its trigger surface: the seeded config (holding the autoverify, rate-
+      # limit, emailer and jobs knobs this lane sets), the gem lockfile, the
+      # entrypoint and the rack config.
+      - 'etc/defaults/config.defaults.yaml'
+      - 'Gemfile.lock'
+      - 'bin/ots'
+      - 'config.ru'
 
 permissions:
   contents: read
@@ -78,8 +89,11 @@ jobs:
     name: signup → verify email → signin (real SMTP)
     runs-on: ubuntu-24.04
     # Must exceed Playwright's globalTimeout (20 min, e2e/playwright.config.ts)
-    # plus setup, build, boot and artifact upload.
-    timeout-minutes: 30
+    # plus setup, build, boot and artifact upload — a cold bundle install +
+    # pnpm install + frontend build alone can take ~10 min, and if the job
+    # timeout fires before globalTimeout the `if: always()` artifact steps die
+    # with it, which is exactly the run whose traces are needed.
+    timeout-minutes: 45
 
     steps:
       - name: Checkout code
@@ -254,8 +268,11 @@ jobs:
       # worker that died, and both look like "the email never arrived" 30
       # seconds later inside Playwright. Gate on the pair of lines it logs
       # (Workers logger, info) once the worker classes are resolved and
-      # Sneakers is about to run.
-      - name: Wait for the worker to start consuming
+      # Sneakers is about to run. This proves the process reached the pre-fork
+      # point, not that a consumer is bound yet — good enough, because the
+      # --check step above already declared the durable queue, so a message
+      # published in that window waits instead of being dropped.
+      - name: Wait for the worker process to boot
         run: |
           for _ in $(seq 1 45); do
             if grep -Eq 'Starting [0-9]+ worker|Workers: ' "$WORKER_LOG" 2>/dev/null; then
