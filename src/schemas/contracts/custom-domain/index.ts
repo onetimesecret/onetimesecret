@@ -127,8 +127,12 @@ export const vhostCanonical = z
     /** Where DNS currently points. */
     dns_pointed_at: z.string().optional(),
 
-    /** Keep-host header setting. */
-    keep_host: z.string().nullable(),
+    /**
+     * Keep-host header setting. Boolean upstream (Approximated), but older
+     * stored blobs carry it as a string — accept both rather than fail the
+     * whole response on a passthrough field (FRONTEND-18E/197).
+     */
+    keep_host: z.union([z.string(), z.boolean()]).nullable(),
 
     /** Human-readable last monitored time. */
     last_monitored_humanized: z.string().optional(),
