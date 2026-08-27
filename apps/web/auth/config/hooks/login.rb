@@ -76,6 +76,23 @@ module Auth::Config::Hooks
       # 3. Either prepare session for MFA flow OR sync full session
       #
       auth.after_login do
+        # INTERNAL REQUESTS ARE NOT LOGINS. `Auth::Config.valid_login_and_password?`
+        # (account destroy, change email, change password, /auth/link-sso) is a
+        # Rodauth internal request: it runs the real login route to check a
+        # password, then throws the result away. It has no web session — Rodauth
+        # hands the internal instance a bare Hash — and no user-visible sign-in
+        # happened, so every side effect below is wrong for it:
+        #   - `session.id` raises NoMethodError on a Hash (BACKEND-B0/B1/B3/B4,
+        #     one Sentry issue per confirmation endpoint);
+        #   - a password CONFIRMATION was logging `login_success` into the auth
+        #     audit stream and could fire the new-sign-in security alert;
+        #   - SyncSession and the deferred SSO bind would act on a session that
+        #     is discarded microseconds later.
+        # The real logins that need this hook are real requests: /auth/link-sso
+        # verifies with the internal request but establishes the session with its
+        # own `rodauth.login('password')` on the actual route.
+        next if internal_request?
+
         correlation_id = session[:auth_correlation_id]
 
         Auth::Logging.log_auth_event(
