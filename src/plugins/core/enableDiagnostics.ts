@@ -80,6 +80,12 @@ export const THIRD_PARTY_IGNORE_ERRORS: (string | RegExp)[] = [
   // Extensions redefining built-ins (e.g. Symbol.hasInstance); wording varies
   // by browser, so match the invariant middle
   /redefine non-configurable property/,
+  // In-app browsers whose injected bridge object never loaded. Observed on
+  // secret-link views as `xbrowser`/`swbrowser is not defined`; the prefix
+  // identifies the host app, so the list grows one app at a time rather than
+  // matching a bare `browser is not defined` that would also swallow our own.
+  'xbrowser is not defined',
+  'swbrowser is not defined',
 ];
 
 /**
