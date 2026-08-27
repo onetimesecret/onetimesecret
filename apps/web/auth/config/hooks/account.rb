@@ -304,6 +304,49 @@ module Auth::Config::Hooks
               interval: interval,
             )
           end
+
+          # Capture the post-auth return destination for the verification flow
+          # (issue #4305). Same problem and same solution as the plan intent
+          # above: the verification email link is routinely opened in a FRESH
+          # browser session, so a session-carried `redirect` is gone by the
+          # time it matters. Persist it on the Customer (24h TTL) and surface
+          # it from after_verify_account below.
+          #
+          # SECURITY: validated HERE (capture) and again at surface time. This
+          # value round-trips through storage and comes back as a navigation
+          # target, so "it was checked once" is not good enough — a path that
+          # only ever passed the capture-time check would still be trusted by
+          # a later reader that skipped its own check.
+          #
+          # A non-String param (e.g. `?redirect[]=x`, which Rack parses to an
+          # Array) is rejected by safe_internal_path? rather than coerced:
+          # `.to_s` on an Array produces a plausible-looking string that no
+          # user ever typed.
+          raw_redirect = request.params['redirect']
+
+          if raw_redirect.is_a?(String) && !raw_redirect.strip.empty?
+            if OT::Utils.safe_internal_path?(raw_redirect)
+              customer.pending_auth_redirect = raw_redirect
+
+              Auth::Logging.log_auth_event(
+                :auth_redirect_captured,
+                level: :debug,
+                customer_extid: customer.extid,
+                redirect: raw_redirect,
+              )
+            else
+              # Log the LENGTH, not the value: the rejected value is an
+              # attacker-supplied URL (that is why it was rejected) and
+              # echoing it into the log stream just moves the payload.
+              Auth::Logging.log_auth_event(
+                :auth_redirect_rejected,
+                level: :info,
+                customer_extid: customer.extid,
+                reason: 'not_a_safe_internal_path',
+                value_length: raw_redirect.length,
+              )
+            end
+          end
         end
 
         # Billing redirect: add plan selection to JSON response (issue #3275).
@@ -386,12 +429,40 @@ module Auth::Config::Hooks
                 result = ::Billing::PlanResolver.resolve(product: product, interval: interval)
 
                 if result.success?
-                  customer.pending_plan_intent.delete!
+                  # SPA route shape: /billing/plans?product=X&interval=Y.
+                  # PlanSelector.vue reads route.query.product/interval; the
+                  # three-segment /billing/plans/:product/:interval path this
+                  # used to build matches NO route in the router
+                  # (src/apps/workspace/routes/billing.ts declares /billing,
+                  # /billing/plans, /billing/:extid/plans and nothing else), so
+                  # every redirect it produced landed on the SPA's not-found
+                  # handler. It went unnoticed because the JSON path discarded
+                  # the value entirely — see the note below.
+                  checkout_path = "/billing/plans?#{URI.encode_www_form(product: product, interval: interval)}"
 
-                  # Store redirect in session for verify_account_redirect
-                  enc_product                       = URI.encode_www_form_component(product)
-                  enc_interval                      = URI.encode_www_form_component(interval)
-                  session['plan_checkout_redirect'] = "/billing/plans/#{enc_product}/#{enc_interval}"
+                  # Non-JSON clients: verify_account_redirect (see
+                  # features/account_management.rb) reads this session key and
+                  # issues a real 302.
+                  session['plan_checkout_redirect'] = checkout_path
+
+                  # JSON/SPA clients: rodauth's json feature overrides
+                  # `redirect(_)` to discard its argument and return the JSON
+                  # body instead (rodauth-2.45.0 features/json.rb:205-208), so
+                  # verify_account_redirect's return value NEVER reaches the
+                  # SPA. Put the destination in the response body or it is
+                  # lost (issue #4305). Set FIRST so it wins the precedence
+                  # contract: valid plan intent > redirect > SPA default.
+                  json_response[:redirect] = checkout_path if json_request?
+
+                  # DELIBERATELY NOT deleted here (issue #4305). The intent is
+                  # consumed by add_billing_redirect_to_response at after_login
+                  # (hooks/billing.rb — the #3130 fresh-session fallback), which
+                  # is the very next step of the SPA flow: verify -> /signin.
+                  # Deleting it at verification time — as this hook used to —
+                  # destroyed the only surviving copy for JSON clients, since
+                  # the session redirect above never reached them either. The
+                  # 24h TTL bounds the extra lifetime; the intent is a plan
+                  # preference, not an authorization.
 
                   Auth::Logging.log_auth_event(
                     :plan_intent_surfaced,
@@ -399,6 +470,7 @@ module Auth::Config::Hooks
                     customer_extid: customer.extid,
                     product: product,
                     interval: interval,
+                    json_client: json_request?,
                   )
                 else
                   customer.pending_plan_intent.delete!
@@ -425,6 +497,59 @@ module Auth::Config::Hooks
                 customer.pending_plan_intent.delete!
               end
             end
+          end
+
+          # Surface the captured return destination (issue #4305).
+          #
+          # PRECEDENCE: a valid paid-plan intent already claimed
+          # json_response[:redirect] above and is NOT overwritten here —
+          # `redirect` is the fallback navigation target, per the issue's
+          # "valid plan intent > redirect > default" contract.
+          #
+          # CONSUMPTION: single-use. The stored value is deleted on read
+          # whether or not it is used, so a stale target cannot resurface on a
+          # later verification and a value that fails re-validation cannot sit
+          # in Redis being re-evaluated.
+          Onetime::ErrorHandler.safe_execute('surface_auth_redirect', external_id: account[:external_id]) do
+            next unless account[:external_id]
+
+            customer = Onetime::Customer.find_by_extid(account[:external_id])
+            next unless customer
+
+            stored = customer.pending_auth_redirect&.value.to_s
+            next if stored.strip.empty?
+
+            customer.pending_auth_redirect.delete!
+
+            # Re-validate on read. Storage is not a trust boundary crossing we
+            # get to skip: this value re-enters the response as a navigation
+            # target, and the ruleset may have tightened since capture.
+            unless OT::Utils.safe_internal_path?(stored)
+              Auth::Logging.log_auth_event(
+                :auth_redirect_rejected,
+                level: :warn,
+                customer_extid: customer.extid,
+                reason: 'stored_value_failed_revalidation',
+                value_length: stored.length,
+              )
+              next
+            end
+
+            # Non-JSON clients: verify_account_redirect falls back to this
+            # session key when no plan checkout redirect is pending.
+            session['auth_redirect'] ||= stored
+
+            next unless json_request?
+            next if json_response.key?(:redirect)
+
+            json_response[:redirect] = stored
+
+            Auth::Logging.log_auth_event(
+              :auth_redirect_surfaced,
+              level: :info,
+              customer_extid: customer.extid,
+              redirect: stored,
+            )
           end
         end
       end
