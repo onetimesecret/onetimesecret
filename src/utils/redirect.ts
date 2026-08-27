@@ -5,8 +5,37 @@
  * Exported so the parity spec pins the fixture's length-boundary cases against
  * THIS value, the way the Ruby spec reads RedirectPaths::MAX_PATH_LENGTH —
  * the two must stay equal or the shared fixture turns one suite red.
+ *
+ * The cap is measured in Unicode CODE POINTS, not UTF-16 code units. Ruby's
+ * String#length counts code points, so measuring `.length` here would make
+ * the two validators disagree on any astral-plane character (an emoji is one
+ * code point but two UTF-16 units): the server would store a redirect the SPA
+ * refuses, silently breaking the journey. See exceedsCodePointCap.
  */
 export const MAX_REDIRECT_LENGTH = 2048;
+
+/**
+ * True when `value` holds more than MAX_REDIRECT_LENGTH Unicode code points.
+ *
+ * `value.length` counts UTF-16 code units and double-counts astral-plane
+ * characters, so it is only usable as a cheap lower bound: a string within
+ * the cap in UTF-16 units is necessarily within it in code points. Past that,
+ * step through by code point and bail as soon as the cap is crossed rather
+ * than counting an unbounded attacker-supplied string to the end.
+ */
+function exceedsCodePointCap(value: string): boolean {
+  if (value.length <= MAX_REDIRECT_LENGTH) return false;
+
+  let units = 0;
+  let codePoints = 0;
+  while (units < value.length) {
+    // codePointAt never returns undefined for an in-range index.
+    units += (value.codePointAt(units) as number) > 0xffff ? 2 : 1;
+    codePoints += 1;
+    if (codePoints > MAX_REDIRECT_LENGTH) return true;
+  }
+  return false;
+}
 
 /**
  * True when the string contains a C0 control character or DEL.
@@ -66,7 +95,8 @@ function hasForbiddenChars(value: string): boolean {
  * fixture goes with it — otherwise one of those two suites turns red.
  *
  * Rules:
- *  1. non-empty string, at most 2048 characters;
+ *  1. non-empty string, at most 2048 Unicode code points (code points, not
+ *     UTF-16 units — the unit Ruby's String#length measures);
  *  2. starts with `/`, and the second character is neither `/` (protocol-
  *     relative → external host) nor `\` (browsers normalize `\` to `/`);
  *  3. no backslash, no `://`, and no control characters anywhere;
@@ -82,7 +112,7 @@ function hasForbiddenChars(value: string): boolean {
  * @returns true if the path is a safe internal redirect
  */
 export function isValidInternalPath(path: string | undefined | null): path is string {
-  if (typeof path !== 'string' || path.length === 0 || path.length > MAX_REDIRECT_LENGTH) {
+  if (typeof path !== 'string' || path.length === 0 || exceedsCodePointCap(path)) {
     return false;
   }
 

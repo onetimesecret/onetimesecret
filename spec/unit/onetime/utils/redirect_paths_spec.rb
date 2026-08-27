@@ -34,19 +34,30 @@ redirect_fixture_path = File.join(Onetime::HOME, 'tests', 'fixtures', 'redirect_
 redirect_fixture      = JSON.parse(File.read(redirect_fixture_path))
 redirect_cases        = redirect_fixture.fetch('cases')
 
-# Cases whose removal from the fixture must turn this suite RED. Erosion is the
+# Cases whose removal OR alteration must turn this suite RED. Erosion is the
 # one failure mode a fixture-driven suite cannot self-detect: delete every case
-# and it passes vacuously. These are the acceptance criteria named in #4305 plus
-# the two length boundaries.
-pinned_case_ids = %w[
-  nested-path
-  query-and-fragment
-  absolute-https
-  protocol-relative
-  backslash-authority
-  encoded-traversal-lowercase
+# and it passes vacuously — and pinning bare ids is not enough, because editing
+# a pinned case's input (retargeting `protocol-relative` at some harmless path
+# and flipping `expected`) would keep both suites green while removing the
+# rejection from coverage. So the acceptance criteria named in #4305 are pinned
+# as full (id, input, expected) triples.
+pinned_cases = {
+  'nested-path' => ['/account/settings/security', true],
+  'query-and-fragment' => ['/secret/abc?view=raw#content', true],
+  'absolute-https' => ['https://attacker.example', false],
+  'protocol-relative' => ['//evil.example', false],
+  'backslash-authority' => ['/\evil.example', false],
+  'encoded-traversal-lowercase' => ['/%2e%2e/admin', false],
+}.freeze
+
+# The length boundaries are pinned too, but their ~2KB inputs are asserted by
+# construction (exact length against MAX_PATH_LENGTH, plus expected) in the
+# boundary example below rather than pasted here.
+pinned_length_case_ids = %w[
   length-at-cap
   length-over-cap
+  astral-length-at-cap
+  astral-length-over-cap
 ].freeze
 
 RSpec.describe Onetime::Utils::RedirectPaths do
@@ -65,8 +76,17 @@ RSpec.describe Onetime::Utils::RedirectPaths do
       expect(redirect_cases.size).to be > 0
     end
 
-    it 'still carries the pinned #4305 cases' do
-      expect(redirect_cases.map { |c| c['id'] }).to include(*pinned_case_ids)
+    it 'still carries the pinned #4305 cases, unaltered' do
+      by_id = redirect_cases.to_h { |c| [c['id'], c] }
+
+      pinned_cases.each do |id, (input, expected)|
+        kase = by_id[id]
+        expect(kase).not_to be_nil, "pinned case #{id} is missing from the fixture"
+        expect([kase['input'], kase['expected']]).to eq([input, expected]),
+          "pinned case #{id} was altered (its input/expected no longer match #4305)"
+      end
+
+      expect(by_id.keys).to include(*pinned_length_case_ids)
     end
 
     it 'uses unique ids' do
@@ -82,11 +102,24 @@ RSpec.describe Onetime::Utils::RedirectPaths do
     end
 
     it 'pins the length boundaries at MAX_PATH_LENGTH' do
-      at_cap   = redirect_cases.find { |c| c['id'] == 'length-at-cap' }
-      over_cap = redirect_cases.find { |c| c['id'] == 'length-over-cap' }
+      # String#length counts CODE POINTS — the unit the cap is defined in. The
+      # astral cases are the ones where that matters: their UTF-16 length is
+      # nearly double, so a validator measuring UTF-16 units (JS String.length)
+      # disagrees with this one exactly there. The TS suite measures these same
+      # cases in code points via [...input].length.
+      boundaries = {
+        'length-at-cap' => [0, true],
+        'length-over-cap' => [1, false],
+        'astral-length-at-cap' => [0, true],
+        'astral-length-over-cap' => [1, false],
+      }
 
-      expect(at_cap['input'].length).to eq(Onetime::Utils::RedirectPaths::MAX_PATH_LENGTH)
-      expect(over_cap['input'].length).to eq(Onetime::Utils::RedirectPaths::MAX_PATH_LENGTH + 1)
+      boundaries.each do |id, (over_by, expected)|
+        kase = redirect_cases.find { |c| c['id'] == id }
+        expect(kase['input'].length)
+          .to eq(Onetime::Utils::RedirectPaths::MAX_PATH_LENGTH + over_by), "#{id} length drifted"
+        expect(kase['expected']).to be(expected), "#{id} expectation flipped"
+      end
     end
   end
 

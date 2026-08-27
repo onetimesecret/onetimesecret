@@ -41,6 +41,12 @@ module Onetime
         # Mirrors the 2048 cap in src/utils/redirect.ts. Long enough for any
         # real internal path with query + fragment, short enough that a
         # persisted redirect cannot be used as a storage primitive.
+        #
+        # The cap is defined in Unicode CODE POINTS — the unit String#length
+        # already measures here. The TypeScript side must count code points
+        # explicitly (JS String.length counts UTF-16 units and double-counts
+        # astral-plane characters); the fixture's astral-length-* cases pin
+        # that agreement.
         MAX_PATH_LENGTH = 2048
 
         # C0 controls plus DEL. Rejected in BOTH the raw and the decoded form:

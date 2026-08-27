@@ -49,20 +49,33 @@ const REDIRECT_CASES = (
 const GROUPS = [...new Set(REDIRECT_CASES.map((c) => c.group))];
 
 /**
- * Cases whose removal from the fixture must turn this suite RED. Erosion is the
+ * Cases whose removal OR alteration must turn this suite RED. Erosion is the
  * one failure mode a fixture-driven suite cannot self-detect: delete every case
- * and it passes vacuously. These are the acceptance criteria named in #4305
- * plus the two length boundaries.
+ * and it passes vacuously — and pinning bare ids is not enough, because editing
+ * a pinned case's input (retargeting `protocol-relative` at some harmless path
+ * and flipping `expected`) would keep both suites green while removing the
+ * rejection from coverage. So the acceptance criteria named in #4305 are pinned
+ * as full (id, input, expected) triples.
  */
-const PINNED_CASE_IDS = [
-  'nested-path',
-  'query-and-fragment',
-  'absolute-https',
-  'protocol-relative',
-  'backslash-authority',
-  'encoded-traversal-lowercase',
+const PINNED_CASES: Record<string, [string, boolean]> = {
+  'nested-path': ['/account/settings/security', true],
+  'query-and-fragment': ['/secret/abc?view=raw#content', true],
+  'absolute-https': ['https://attacker.example', false],
+  'protocol-relative': ['//evil.example', false],
+  'backslash-authority': ['/\\evil.example', false],
+  'encoded-traversal-lowercase': ['/%2e%2e/admin', false],
+};
+
+/**
+ * The length boundaries are pinned too, but their ~2KB inputs are asserted by
+ * construction (exact code-point length against MAX_REDIRECT_LENGTH, plus
+ * expected) in the boundary test below rather than pasted here.
+ */
+const PINNED_LENGTH_CASE_IDS = [
   'length-at-cap',
   'length-over-cap',
+  'astral-length-at-cap',
+  'astral-length-over-cap',
 ];
 
 describe('the shared parity fixture', () => {
@@ -71,10 +84,20 @@ describe('the shared parity fixture', () => {
     expect(REDIRECT_CASES.length).toBeGreaterThan(0);
   });
 
-  it('still carries the pinned #4305 cases', () => {
-    const ids = REDIRECT_CASES.map((c) => c.id);
-    for (const id of PINNED_CASE_IDS) {
-      expect(ids).toContain(id);
+  it('still carries the pinned #4305 cases, unaltered', () => {
+    const byId = new Map(REDIRECT_CASES.map((c) => [c.id, c]));
+
+    for (const [id, [input, expected]] of Object.entries(PINNED_CASES)) {
+      const kase = byId.get(id);
+      expect(kase, `pinned case ${id} is missing from the fixture`).toBeDefined();
+      expect(
+        [kase?.input, kase?.expected],
+        `pinned case ${id} was altered (its input/expected no longer match #4305)`
+      ).toEqual([input, expected]);
+    }
+
+    for (const id of PINNED_LENGTH_CASE_IDS) {
+      expect(byId.has(id), `pinned case ${id} is missing from the fixture`).toBe(true);
     }
   });
 
@@ -91,10 +114,26 @@ describe('the shared parity fixture', () => {
   });
 
   it('pins the length boundaries at MAX_REDIRECT_LENGTH', () => {
-    const atCap = REDIRECT_CASES.find((c) => c.id === 'length-at-cap');
-    const overCap = REDIRECT_CASES.find((c) => c.id === 'length-over-cap');
-    expect(atCap?.input.length).toBe(MAX_REDIRECT_LENGTH);
-    expect(overCap?.input.length).toBe(MAX_REDIRECT_LENGTH + 1);
+    // The cap is defined in Unicode CODE POINTS — the unit Ruby's
+    // String#length measures natively — so measure the same way here:
+    // [...input] iterates code points, while input.length counts UTF-16 units
+    // and double-counts the astral cases (4095/4097 units). Those cases exist
+    // precisely to pin that distinction: a validator measuring UTF-16 units
+    // rejects at-cap input the server-side validator stores.
+    const boundaries: Record<string, [number, boolean]> = {
+      'length-at-cap': [0, true],
+      'length-over-cap': [1, false],
+      'astral-length-at-cap': [0, true],
+      'astral-length-over-cap': [1, false],
+    };
+
+    for (const [id, [overBy, expected]] of Object.entries(boundaries)) {
+      const kase = REDIRECT_CASES.find((c) => c.id === id);
+      expect([...(kase?.input ?? '')].length, `${id} length drifted`).toBe(
+        MAX_REDIRECT_LENGTH + overBy
+      );
+      expect(kase?.expected, `${id} expectation flipped`).toBe(expected);
+    }
   });
 });
 
