@@ -74,6 +74,13 @@ RSpec.describe Onetime::Utils::RedirectPaths do
       expect(ids.uniq.size).to eq(ids.size)
     end
 
+    it 'gives every case a group' do
+      # The group is what turns the generated examples back into a readable
+      # taxonomy; a case without one would be silently unfiled.
+      ungrouped = redirect_cases.reject { |c| c['group'].is_a?(String) && !c['group'].empty? }
+      expect(ungrouped.map { |c| c['id'] }).to be_empty
+    end
+
     it 'pins the length boundaries at MAX_PATH_LENGTH' do
       at_cap   = redirect_cases.find { |c| c['id'] == 'length-at-cap' }
       over_cap = redirect_cases.find { |c| c['id'] == 'length-over-cap' }
@@ -84,21 +91,25 @@ RSpec.describe Onetime::Utils::RedirectPaths do
   end
 
   describe '#safe_internal_path?' do
-    context 'against tests/fixtures/redirect_path_cases.json' do
-      # One example per case, named by the fixture id, so a failure names the
-      # offending case and the TypeScript half can be checked against the same
-      # name.
-      redirect_cases.each do |kase|
-        verb  = kase['expected'] ? 'accepts' : 'rejects'
-        # The length-boundary inputs are ~2KB; summarize rather than paste.
-        shown = if kase['input'].length > 64
-                  "#{kase['input'].length} characters"
-                else
-                  kase['input'].inspect
-                end
+    # One example per fixture case, named by the case id so a failure names the
+    # offending input and the TypeScript half can be checked against the same
+    # name. Nested under the case's `group` so the output still reads as a
+    # taxonomy of the ruleset — the same reading the hand-written contexts gave,
+    # now sourced from the fixture instead of restated in two languages.
+    redirect_cases.group_by { |kase| kase['group'] }.each do |group, group_cases|
+      context "with #{group}" do
+        group_cases.each do |kase|
+          verb  = kase['expected'] ? 'accepts' : 'rejects'
+          # The length-boundary inputs are ~2KB; summarize rather than paste.
+          shown = if kase['input'].length > 64
+                    "#{kase['input'].length} characters"
+                  else
+                    kase['input'].inspect
+                  end
 
-        it "#{verb} #{kase['id']} (#{shown})" do
-          expect(validator.safe_internal_path?(kase['input'])).to be kase['expected']
+          it "#{verb} #{kase['id']} (#{shown})" do
+            expect(validator.safe_internal_path?(kase['input'])).to be kase['expected']
+          end
         end
       end
     end

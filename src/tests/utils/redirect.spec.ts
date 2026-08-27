@@ -30,6 +30,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 interface RedirectCase {
   id: string;
+  group: string;
   input: string;
   expected: boolean;
   note?: string;
@@ -42,6 +43,9 @@ const FIXTURE_PATH = resolve(process.cwd(), 'tests/fixtures/redirect_path_cases.
 const REDIRECT_CASES = (
   JSON.parse(readFileSync(FIXTURE_PATH, 'utf8')) as { cases: RedirectCase[] }
 ).cases;
+
+/** Fixture groups, in first-seen order — the taxonomy the tests nest under. */
+const GROUPS = [...new Set(REDIRECT_CASES.map((c) => c.group))];
 
 /**
  * Cases whose removal from the fixture must turn this suite RED. Erosion is the
@@ -80,6 +84,13 @@ describe('the shared parity fixture', () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
+  it('gives every case a group', () => {
+    // The group is what turns the generated tests back into a readable
+    // taxonomy; a case without one would be silently unfiled.
+    const ungrouped = REDIRECT_CASES.filter((c) => !c.group);
+    expect(ungrouped.map((c) => c.id)).toEqual([]);
+  });
+
   it('pins the length boundaries at MAX_REDIRECT_LENGTH', () => {
     const atCap = REDIRECT_CASES.find((c) => c.id === 'length-at-cap');
     const overCap = REDIRECT_CASES.find((c) => c.id === 'length-over-cap');
@@ -89,22 +100,27 @@ describe('the shared parity fixture', () => {
 });
 
 describe('isValidInternalPath', () => {
-  describe('against tests/fixtures/redirect_path_cases.json', () => {
-    // One test per case, named by the fixture id, so a failure names the
-    // offending case and the Ruby half can be checked against the same name.
-    for (const kase of REDIRECT_CASES) {
-      const verb = kase.expected ? 'accepts' : 'rejects';
-      // The length-boundary inputs are ~2KB; summarize rather than paste.
-      const shown =
-        kase.input.length > 64
-          ? `${kase.input.length} characters`
-          : JSON.stringify(kase.input);
+  // One test per fixture case, named by the case id so a failure names the
+  // offending input and the Ruby half can be checked against the same name.
+  // Nested under the case's `group` so the output still reads as a taxonomy of
+  // the ruleset — the same reading the hand-written describes gave, now sourced
+  // from the fixture instead of restated in two languages.
+  for (const group of GROUPS) {
+    describe(`with ${group}`, () => {
+      for (const kase of REDIRECT_CASES.filter((c) => c.group === group)) {
+        const verb = kase.expected ? 'accepts' : 'rejects';
+        // The length-boundary inputs are ~2KB; summarize rather than paste.
+        const shown =
+          kase.input.length > 64
+            ? `${kase.input.length} characters`
+            : JSON.stringify(kase.input);
 
-      it(`${verb} ${kase.id} (${shown})`, () => {
-        expect(isValidInternalPath(kase.input)).toBe(kase.expected);
-      });
-    }
-  });
+        it(`${verb} ${kase.id} (${shown})`, () => {
+          expect(isValidInternalPath(kase.input)).toBe(kase.expected);
+        });
+      }
+    });
+  }
 
   // TypeScript-only: not expressible as a JSON string. The Ruby suite carries
   // nil/Integer/Array/Hash on its side.
