@@ -1,7 +1,12 @@
 // src/utils/redirect.ts
 
-/** Longest accepted redirect target; caps DoS surface on the decode below. */
-const MAX_REDIRECT_LENGTH = 2048;
+/**
+ * Longest accepted redirect target; caps DoS surface on the decode below.
+ * Exported so the parity spec pins the fixture's length-boundary cases against
+ * THIS value, the way the Ruby spec reads RedirectPaths::MAX_PATH_LENGTH —
+ * the two must stay equal or the shared fixture turns one suite red.
+ */
+export const MAX_REDIRECT_LENGTH = 2048;
 
 /**
  * True when the string contains a C0 control character or DEL.

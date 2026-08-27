@@ -3,6 +3,7 @@
 import {
   isAllowedCheckoutUrl,
   isValidInternalPath,
+  MAX_REDIRECT_LENGTH,
   setAllowedCheckoutHost,
 } from '@/utils/redirect';
 import { readFileSync } from 'node:fs';
@@ -63,8 +64,6 @@ const PINNED_CASE_IDS = [
   'length-at-cap',
   'length-over-cap',
 ];
-
-const MAX_REDIRECT_LENGTH = 2048;
 
 describe('the shared parity fixture', () => {
   it('carries cases', () => {
