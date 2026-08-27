@@ -54,6 +54,12 @@ function hasForbiddenChars(value: string): boolean {
  * redirect and replays it on verify-account) — the two must stay in parity, so
  * change both or neither.
  *
+ * That parity is ENFORCED, not merely requested here:
+ * `tests/fixtures/redirect_path_cases.json` is a single accept/reject table
+ * read by BOTH src/tests/utils/redirect.spec.ts and
+ * spec/unit/onetime/utils/redirect_paths_spec.rb. Change a rule below and the
+ * fixture goes with it — otherwise one of those two suites turns red.
+ *
  * Rules:
  *  1. non-empty string, at most 2048 characters;
  *  2. starts with `/`, and the second character is neither `/` (protocol-

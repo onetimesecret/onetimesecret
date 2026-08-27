@@ -5,6 +5,8 @@ import {
   isValidInternalPath,
   setAllowedCheckoutHost,
 } from '@/utils/redirect';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 /**
@@ -15,131 +17,107 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
  * and protocol-relative input.
  *
  * The identical ruleset is implemented in Ruby on the backend (signup stores a
- * validated redirect, verify-account replays it). Every case below is a parity
- * case: if one side changes, both specs should.
+ * validated redirect, verify-account replays it). Parity is ENFORCED rather
+ * than requested: tests/fixtures/redirect_path_cases.json is a single
+ * accept/reject table read by this suite AND by
+ * spec/unit/onetime/utils/redirect_paths_spec.rb. A rule relaxed on one side
+ * only turns one of the two suites red.
+ *
+ * What stays hand-written here: the cases JSON cannot express — non-string
+ * input (undefined/null/number/object/array). The Ruby suite carries its own
+ * equivalents (nil/Integer/Array/Hash, plus an invalidly-encoded String).
  */
-describe('isValidInternalPath', () => {
-  describe('accepts', () => {
-    it('plain internal paths', () => {
-      expect(isValidInternalPath('/')).toBe(true);
-      expect(isValidInternalPath('/dashboard')).toBe(true);
-      expect(isValidInternalPath('/users/123/profile')).toBe(true);
-      expect(isValidInternalPath('/path-with-hyphens')).toBe(true);
-      expect(isValidInternalPath('/path_with_underscores')).toBe(true);
-    });
 
-    it('a query string and hash, intact (the whole point of the string form)', () => {
-      expect(isValidInternalPath('/secret/abc?view=raw')).toBe(true);
-      expect(isValidInternalPath('/secret/abc#content')).toBe(true);
-      expect(isValidInternalPath('/secret/abc?view=raw#content')).toBe(true);
-      expect(isValidInternalPath('/search?q=a%20b&sort=desc#results')).toBe(true);
-    });
+interface RedirectCase {
+  id: string;
+  input: string;
+  expected: boolean;
+  note?: string;
+}
 
-    it('percent-encoded characters that decode to something harmless', () => {
-      expect(isValidInternalPath('/path%20with%20spaces')).toBe(true);
-      expect(isValidInternalPath('/caf%C3%A9')).toBe(true);
-    });
+// Vitest's root is the repo root, so the fixture resolves the same way the
+// email-redaction corpus does (src/tests/plugins/core/diagnostics/…). A wrong
+// path throws HERE, naming it, rather than yielding an empty case list.
+const FIXTURE_PATH = resolve(process.cwd(), 'tests/fixtures/redirect_path_cases.json');
+const REDIRECT_CASES = (
+  JSON.parse(readFileSync(FIXTURE_PATH, 'utf8')) as { cases: RedirectCase[] }
+).cases;
 
-    it('a `..` substring that is not its own segment', () => {
-      // Traversal is a SEGMENT, not a substring: these resolve to themselves.
-      expect(isValidInternalPath('/reports/..data')).toBe(true);
-      expect(isValidInternalPath('/a/b..c/d')).toBe(true);
-      expect(isValidInternalPath('/search?q=a..b')).toBe(true);
-      // Not slash-delimited, so it is not a segment on either side.
-      expect(isValidInternalPath('/search?q=..')).toBe(true);
-    });
+/**
+ * Cases whose removal from the fixture must turn this suite RED. Erosion is the
+ * one failure mode a fixture-driven suite cannot self-detect: delete every case
+ * and it passes vacuously. These are the acceptance criteria named in #4305
+ * plus the two length boundaries.
+ */
+const PINNED_CASE_IDS = [
+  'nested-path',
+  'query-and-fragment',
+  'absolute-https',
+  'protocol-relative',
+  'backslash-authority',
+  'encoded-traversal-lowercase',
+  'length-at-cap',
+  'length-over-cap',
+];
 
-    it('a path of exactly the length limit', () => {
-      expect(isValidInternalPath('/' + 'a'.repeat(2047))).toBe(true);
-    });
+const MAX_REDIRECT_LENGTH = 2048;
+
+describe('the shared parity fixture', () => {
+  it('carries cases', () => {
+    expect(Array.isArray(REDIRECT_CASES)).toBe(true);
+    expect(REDIRECT_CASES.length).toBeGreaterThan(0);
   });
 
-  describe('rejects', () => {
-    it('non-strings and empty input', () => {
+  it('still carries the pinned #4305 cases', () => {
+    const ids = REDIRECT_CASES.map((c) => c.id);
+    for (const id of PINNED_CASE_IDS) {
+      expect(ids).toContain(id);
+    }
+  });
+
+  it('uses unique ids', () => {
+    const ids = REDIRECT_CASES.map((c) => c.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it('pins the length boundaries at MAX_REDIRECT_LENGTH', () => {
+    const atCap = REDIRECT_CASES.find((c) => c.id === 'length-at-cap');
+    const overCap = REDIRECT_CASES.find((c) => c.id === 'length-over-cap');
+    expect(atCap?.input.length).toBe(MAX_REDIRECT_LENGTH);
+    expect(overCap?.input.length).toBe(MAX_REDIRECT_LENGTH + 1);
+  });
+});
+
+describe('isValidInternalPath', () => {
+  describe('against tests/fixtures/redirect_path_cases.json', () => {
+    // One test per case, named by the fixture id, so a failure names the
+    // offending case and the Ruby half can be checked against the same name.
+    for (const kase of REDIRECT_CASES) {
+      const verb = kase.expected ? 'accepts' : 'rejects';
+      // The length-boundary inputs are ~2KB; summarize rather than paste.
+      const shown =
+        kase.input.length > 64
+          ? `${kase.input.length} characters`
+          : JSON.stringify(kase.input);
+
+      it(`${verb} ${kase.id} (${shown})`, () => {
+        expect(isValidInternalPath(kase.input)).toBe(kase.expected);
+      });
+    }
+  });
+
+  // TypeScript-only: not expressible as a JSON string. The Ruby suite carries
+  // nil/Integer/Array/Hash on its side.
+  describe('with non-string input (not expressible in the shared fixture)', () => {
+    it('rejects undefined and null', () => {
       expect(isValidInternalPath(undefined)).toBe(false);
       expect(isValidInternalPath(null)).toBe(false);
-      expect(isValidInternalPath('')).toBe(false);
+    });
+
+    it('rejects numbers, objects, and arrays', () => {
       expect(isValidInternalPath(123 as unknown as string)).toBe(false);
       expect(isValidInternalPath({} as unknown as string)).toBe(false);
       expect(isValidInternalPath([] as unknown as string)).toBe(false);
-    });
-
-    it('anything over 2048 characters', () => {
-      expect(isValidInternalPath('/' + 'a'.repeat(2048))).toBe(false);
-    });
-
-    it('paths not anchored at a single leading slash', () => {
-      expect(isValidInternalPath('dashboard')).toBe(false);
-      expect(isValidInternalPath('   /dashboard')).toBe(false);
-      expect(isValidInternalPath('../dashboard')).toBe(false);
-    });
-
-    it('protocol-relative and backslash-disguised authorities', () => {
-      // '//evil.example' and '/\evil.example' both leave the origin — browsers
-      // normalize the backslash to a slash.
-      expect(isValidInternalPath('//evil.example')).toBe(false);
-      expect(isValidInternalPath('//evil.example/path')).toBe(false);
-      expect(isValidInternalPath('/\\evil.example')).toBe(false);
-      expect(isValidInternalPath('/\\/evil.example')).toBe(false);
-    });
-
-    it('a backslash anywhere in the path', () => {
-      expect(isValidInternalPath('/a\\b')).toBe(false);
-      expect(isValidInternalPath('/dashboard?next=\\\\evil.example')).toBe(false);
-    });
-
-    it('absolute URLs and any embedded `://`', () => {
-      expect(isValidInternalPath('https://evil.example/dashboard')).toBe(false);
-      // Same-origin absolute URLs are rejected too: this validator returns
-      // PATHS for router.push, and an origin is not our concern here.
-      expect(isValidInternalPath('https://example.com/dashboard')).toBe(false);
-      expect(isValidInternalPath('javascript://example.com')).toBe(false);
-      expect(isValidInternalPath('/redirect?to=https://evil.example')).toBe(false);
-      expect(isValidInternalPath('/a://b')).toBe(false);
-    });
-
-    it('raw control characters (CR/LF/NUL/DEL) — header and request splitting', () => {
-      expect(isValidInternalPath('/path\nwith\nnewlines')).toBe(false);
-      expect(isValidInternalPath('/path\rwith\rreturns')).toBe(false);
-      expect(isValidInternalPath('/path\x00with\x00nulls')).toBe(false);
-      expect(isValidInternalPath('/path\x1funit-separator')).toBe(false);
-      expect(isValidInternalPath('/path\x7fdel')).toBe(false);
-      expect(isValidInternalPath('/tab\there')).toBe(false);
-    });
-
-    it('control characters smuggled in as percent-encoding', () => {
-      expect(isValidInternalPath('/%0D%0ASet-Cookie:%20x=y')).toBe(false);
-      expect(isValidInternalPath('/%00')).toBe(false);
-      expect(isValidInternalPath('/%7F')).toBe(false);
-    });
-
-    it('an encoded backslash or encoded protocol-relative prefix', () => {
-      expect(isValidInternalPath('/%5Cevil.example')).toBe(false);
-      expect(isValidInternalPath('/%2F%2Fevil.example')).toBe(false);
-      expect(isValidInternalPath('/%2f%2fevil.example')).toBe(false);
-    });
-
-    it('path traversal, raw or encoded', () => {
-      expect(isValidInternalPath('/../../etc/passwd')).toBe(false);
-      expect(isValidInternalPath('/a/../b')).toBe(false);
-      expect(isValidInternalPath('/%2e%2e/config')).toBe(false);
-      expect(isValidInternalPath('/a/%2E%2E/b')).toBe(false);
-      expect(isValidInternalPath('/dashboard/..')).toBe(false);
-    });
-
-    it('a `..` segment reached through the query or fragment (backend parity)', () => {
-      // The whole decoded string is split on '/', query and fragment included,
-      // exactly as RedirectPaths#traversal_segment? does. A bare '?q=..' is
-      // still fine (it is not delimited by slashes) — see the accepts block.
-      expect(isValidInternalPath('/a?next=/../b')).toBe(false);
-      expect(isValidInternalPath('/a#/..')).toBe(false);
-      expect(isValidInternalPath('/a?next=%2F..%2Fb')).toBe(false);
-    });
-
-    it('malformed percent-encoding, rather than guessing at intent', () => {
-      expect(isValidInternalPath('/%')).toBe(false);
-      expect(isValidInternalPath('/%zz')).toBe(false);
-      expect(isValidInternalPath('/%E0%A4%A')).toBe(false);
     });
   });
 });

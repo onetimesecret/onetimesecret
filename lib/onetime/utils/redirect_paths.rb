@@ -20,6 +20,12 @@ module Onetime
     # produces a value the other side silently drops (best case) or an open
     # redirect (worst case).
     #
+    # That lockstep is ENFORCED, not merely requested here:
+    # `tests/fixtures/redirect_path_cases.json` is a single accept/reject table
+    # read by BOTH spec/unit/onetime/utils/redirect_paths_spec.rb and
+    # src/tests/utils/redirect.spec.ts. Change a rule below and the fixture
+    # goes with it — otherwise one of those two suites turns red.
+    #
     # ACCEPTS: absolute-path references only, query string and fragment
     # included and preserved verbatim (`/secret/abc?view=raw#content`).
     #

@@ -10,15 +10,44 @@
 # protocol-relative reference is an open redirect.
 #
 # The ruleset is duplicated in src/utils/redirect.ts (isValidInternalPath).
-# The two MUST stay in lockstep; the "contract parity" block at the bottom
-# pins the exact cases named in issue #4305 so a one-sided relaxation shows up
-# here as a red test rather than in production as a phishing vector.
+# The two are held in lockstep by tests/fixtures/redirect_path_cases.json — a
+# single accept/reject table that THIS suite and src/tests/utils/redirect.spec.ts
+# both read. A rule relaxed on one side only shows up as a red test here or
+# there rather than in production as a phishing vector. Parity is therefore
+# enforced, not merely requested in a comment.
+#
+# What stays hand-written below: the cases that cannot cross the JSON boundary
+# (non-String input, a String with invalid encoding) and the examples that
+# assert more than a boolean (internal_path_or_nil returning the value
+# verbatim, the module's exposure through Onetime::Utils).
 #
 # Run with:
 #   bundle exec rspec spec/unit/onetime/utils/redirect_paths_spec.rb
 
 require 'spec_helper'
+require 'json'
 require 'onetime/utils/redirect_paths'
+
+# Read at file scope so a missing or renamed fixture raises here, naming the
+# path, instead of leaving a suite that quietly runs zero parity examples.
+redirect_fixture_path = File.join(Onetime::HOME, 'tests', 'fixtures', 'redirect_path_cases.json')
+redirect_fixture      = JSON.parse(File.read(redirect_fixture_path))
+redirect_cases        = redirect_fixture.fetch('cases')
+
+# Cases whose removal from the fixture must turn this suite RED. Erosion is the
+# one failure mode a fixture-driven suite cannot self-detect: delete every case
+# and it passes vacuously. These are the acceptance criteria named in #4305 plus
+# the two length boundaries.
+pinned_case_ids = %w[
+  nested-path
+  query-and-fragment
+  absolute-https
+  protocol-relative
+  backslash-authority
+  encoded-traversal-lowercase
+  length-at-cap
+  length-over-cap
+].freeze
 
 RSpec.describe Onetime::Utils::RedirectPaths do
   # Exercise through a bare extender rather than Onetime::Utils so the module
@@ -27,140 +56,59 @@ RSpec.describe Onetime::Utils::RedirectPaths do
     Module.new { extend Onetime::Utils::RedirectPaths }
   end
 
+  describe 'the shared parity fixture' do
+    it 'carries cases' do
+      # Guards against a fixture that loaded from the wrong path, or one that
+      # has been emptied: either would make every parity example below vanish
+      # and the suite pass for the wrong reason.
+      expect(redirect_cases).to be_an(Array)
+      expect(redirect_cases.size).to be > 0
+    end
+
+    it 'still carries the pinned #4305 cases' do
+      expect(redirect_cases.map { |c| c['id'] }).to include(*pinned_case_ids)
+    end
+
+    it 'uses unique ids' do
+      ids = redirect_cases.map { |c| c['id'] }
+      expect(ids.uniq.size).to eq(ids.size)
+    end
+
+    it 'pins the length boundaries at MAX_PATH_LENGTH' do
+      at_cap   = redirect_cases.find { |c| c['id'] == 'length-at-cap' }
+      over_cap = redirect_cases.find { |c| c['id'] == 'length-over-cap' }
+
+      expect(at_cap['input'].length).to eq(Onetime::Utils::RedirectPaths::MAX_PATH_LENGTH)
+      expect(over_cap['input'].length).to eq(Onetime::Utils::RedirectPaths::MAX_PATH_LENGTH + 1)
+    end
+  end
+
   describe '#safe_internal_path?' do
-    context 'with well-formed internal paths' do
-      %w[
-        /
-        /account
-        /account/settings/security
-        /secret/abc123
-        /files/a..b
-        /a%20b
-        /caf%C3%A9
-        /signin?redirect=%2Fdashboard
-      ].each do |path|
-        it "accepts #{path.inspect}" do
-          expect(validator.safe_internal_path?(path)).to be true
-        end
-      end
+    context 'against tests/fixtures/redirect_path_cases.json' do
+      # One example per case, named by the fixture id, so a failure names the
+      # offending case and the TypeScript half can be checked against the same
+      # name.
+      redirect_cases.each do |kase|
+        verb  = kase['expected'] ? 'accepts' : 'rejects'
+        # The length-boundary inputs are ~2KB; summarize rather than paste.
+        shown = if kase['input'].length > 64
+                  "#{kase['input'].length} characters"
+                else
+                  kase['input'].inspect
+                end
 
-      # Acceptance criterion from #4305: "/secret/abc?view=raw#content" must
-      # survive intact. Query and fragment are simply part of the stored
-      # string — there is no parsing/re-serialization step to lose them.
-      it 'preserves query string and fragment' do
-        path = '/secret/abc?view=raw#content'
-        expect(validator.safe_internal_path?(path)).to be true
-        expect(validator.internal_path_or_nil(path)).to eq(path)
-      end
-    end
-
-    context 'with absolute and protocol-relative references' do
-      [
-        'https://attacker.example',
-        'http://attacker.example/path',
-        '//evil.example',
-        '//evil.example/path',
-        'HTTPS://attacker.example',
-        'javascript:alert(1)',
-        'data:text/html,<script>alert(1)</script>',
-      ].each do |path|
-        it "rejects #{path.inspect}" do
-          expect(validator.safe_internal_path?(path)).to be false
+        it "#{verb} #{kase['id']} (#{shown})" do
+          expect(validator.safe_internal_path?(kase['input'])).to be kase['expected']
         end
       end
     end
 
-    context 'with backslash variants' do
-      # Browsers normalize `\` to `/` in URLs, so `/\evil.example` is read as
-      # the protocol-relative `//evil.example`. Rejected at the second
-      # character AND anywhere else in the string.
-      [
-        '/\\evil.example',
-        '/\\\\evil.example',
-        '/account\\..\\etc',
-        '/a\\b',
-      ].each do |path|
-        it "rejects #{path.inspect}" do
-          expect(validator.safe_internal_path?(path)).to be false
-        end
-      end
-    end
-
-    context 'with percent-encoded escapes' do
-      # A single decode layer is applied because the browser will itself
-      # decode once; the decoded form is what it will act on.
-      it 'rejects lowercase encoded traversal (%2e%2e)' do
-        expect(validator.safe_internal_path?('/%2e%2e/admin')).to be false
-      end
-
-      it 'rejects uppercase encoded traversal (%2E%2E%2F)' do
-        expect(validator.safe_internal_path?('/%2E%2E%2Fadmin')).to be false
-      end
-
-      it 'rejects an encoded protocol-relative reference (/%2fevil.example)' do
-        expect(validator.safe_internal_path?('/%2fevil.example')).to be false
-      end
-
-      it 'rejects malformed escapes (decoding failure)' do
-        expect(validator.safe_internal_path?('/x%zz')).to be false
-        expect(validator.safe_internal_path?('/x%')).to be false
-        expect(validator.safe_internal_path?('/x%2')).to be false
-      end
-
-      it 'rejects escapes that decode to invalid UTF-8' do
-        expect(validator.safe_internal_path?('/%FF%FE')).to be false
-      end
-
-      it 'accepts escapes that decode to valid multi-byte UTF-8' do
-        expect(validator.safe_internal_path?('/%E2%9C%93')).to be true
-      end
-    end
-
-    context 'with traversal segments' do
-      it 'rejects a plain .. segment' do
-        expect(validator.safe_internal_path?('/a/../b')).to be false
-      end
-
-      it 'rejects a trailing .. segment' do
-        expect(validator.safe_internal_path?('/a/..')).to be false
-      end
-
-      it 'rejects a bare /.. path' do
-        expect(validator.safe_internal_path?('/..')).to be false
-      end
-
-      it 'accepts .. inside a segment (not a traversal)' do
-        expect(validator.safe_internal_path?('/files/report..v2')).to be true
-      end
-    end
-
-    context 'with control characters' do
-      it 'rejects a raw newline' do
-        expect(validator.safe_internal_path?("/account\nSet-Cookie: a=b")).to be false
-      end
-
-      it 'rejects a raw carriage return' do
-        expect(validator.safe_internal_path?("/account\r\n")).to be false
-      end
-
-      it 'rejects a raw tab' do
-        expect(validator.safe_internal_path?("/acc\tount")).to be false
-      end
-
-      it 'rejects a NUL byte' do
-        expect(validator.safe_internal_path?("/account\x00")).to be false
-      end
-
-      it 'rejects DEL' do
-        expect(validator.safe_internal_path?("/account\x7F")).to be false
-      end
-
-      it 'rejects encoded CRLF (%0d%0a)' do
-        expect(validator.safe_internal_path?('/account%0d%0aSet-Cookie:a=b')).to be false
-      end
-    end
-
-    context 'with structurally invalid input' do
+    # ------------------------------------------------------------------
+    # Ruby-only cases. JSON has no way to express these, so they cannot live
+    # in the shared fixture; the TypeScript suite carries its own equivalents
+    # (undefined/null/number/object/array).
+    # ------------------------------------------------------------------
+    context 'with non-String input (not expressible in the shared fixture)' do
       it 'rejects nil' do
         expect(validator.safe_internal_path?(nil)).to be false
       end
@@ -170,38 +118,22 @@ RSpec.describe Onetime::Utils::RedirectPaths do
         expect(validator.safe_internal_path?(['/account'])).to be false
         expect(validator.safe_internal_path?({ path: '/account' })).to be false
       end
-
-      it 'rejects an empty string' do
-        expect(validator.safe_internal_path?('')).to be false
-      end
-
-      it 'rejects a relative path' do
-        expect(validator.safe_internal_path?('account/settings')).to be false
-      end
-
-      it 'rejects a leading-whitespace path' do
-        expect(validator.safe_internal_path?(' /account')).to be false
-      end
-
-      it 'rejects invalid encoding' do
-        expect(validator.safe_internal_path?((+"/acc\xFFount").force_encoding(Encoding::UTF_8))).to be false
-      end
     end
 
-    context 'with length limits' do
-      it 'accepts a path at the 2048-character cap' do
-        path = "/#{'a' * 2047}"
-        expect(path.length).to eq(2048)
-        expect(validator.safe_internal_path?(path)).to be true
-      end
-
-      it 'rejects a path one character over the cap' do
-        expect(validator.safe_internal_path?("/#{'a' * 2048}")).to be false
+    context 'with an invalidly-encoded String (not expressible in the shared fixture)' do
+      it 'rejects a String tagged UTF-8 that holds an invalid byte' do
+        # Distinct from the fixture's "decodes-to-invalid-utf8" case: there the
+        # bytes arrive percent-encoded, here the String itself is already
+        # broken before any decoding happens.
+        expect(validator.safe_internal_path?((+"/acc\xFFount").force_encoding(Encoding::UTF_8))).to be false
       end
     end
   end
 
   describe '#internal_path_or_nil' do
+    # Acceptance criterion from #4305: "/secret/abc?view=raw#content" must
+    # survive intact. Query and fragment are simply part of the stored string —
+    # there is no parsing/re-serialization step that could lose them.
     it 'returns the value verbatim when valid' do
       expect(validator.internal_path_or_nil('/secret/abc?view=raw#content'))
         .to eq('/secret/abc?view=raw#content')
@@ -224,24 +156,6 @@ RSpec.describe Onetime::Utils::RedirectPaths do
 
     it 'does not leak the decoding helper as a public API' do
       expect(Onetime::Utils).not_to respond_to(:percent_decode_once)
-    end
-  end
-
-  describe 'contract parity with src/utils/redirect.ts (#4305)' do
-    # The exact acceptance-criteria cases from the issue. If one of these
-    # flips, the frontend validator has to flip with it — or the two sides
-    # disagree about what the stored value means.
-    {
-      '/account/settings/security' => true,
-      '/secret/abc?view=raw#content' => true,
-      'https://attacker.example' => false,
-      '//evil.example' => false,
-      '/\\evil.example' => false,
-      '/%2e%2e/admin' => false,
-    }.each do |path, expected|
-      it "#{expected ? 'accepts' : 'rejects'} #{path.inspect}" do
-        expect(validator.safe_internal_path?(path)).to be expected
-      end
     end
   end
 end
