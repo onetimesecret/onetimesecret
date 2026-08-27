@@ -47,6 +47,7 @@ on:
       - 'e2e/**'
       - '.github/workflows/e2e-full-auth.yml'
       - 'compose.test.yml'
+      - 'compose.e2e.yml'
       # What the browser renders
       - 'src/**'
       - 'templates/**'
@@ -99,12 +100,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
 
-      # Services come from compose.test.yml (the single source of truth for
-      # test service images and 21xx host ports). valkey = app datastore,
-      # rabbitmq = the job queue the verification email travels on, mailpit =
-      # the mailbox the spec reads it back out of.
+      # Services come from compose.test.yml plus compose.e2e.yml (same
+      # ots-test project; the e2e file holds services only this lane uses,
+      # kept out of compose.test.yml so bin/setup's port probe and the lanes'
+      # bare `up` never depend on them). valkey = app datastore, rabbitmq =
+      # the job queue the verification email travels on, mailpit = the
+      # mailbox the spec reads it back out of.
       - name: Start test services (valkey, rabbitmq, mailpit)
-        run: docker compose -f compose.test.yml up --wait -d valkey rabbitmq mailpit
+        run: docker compose -f compose.test.yml -f compose.e2e.yml up --wait -d valkey rabbitmq mailpit
 
       - name: Setup Ruby (.ruby-version)
         uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0
@@ -368,7 +371,7 @@ jobs:
         if: failure()
         run: |
           echo "::group::RabbitMQ queues"
-          docker compose -f compose.test.yml exec -T rabbitmq \
+          docker compose -f compose.test.yml -f compose.e2e.yml exec -T rabbitmq \
             rabbitmqctl list_queues name messages consumers || true
           echo "::endgroup::"
 
@@ -408,4 +411,4 @@ jobs:
             [ -f "$pidfile" ] || continue
             kill "$(cat "$pidfile")" 2>/dev/null || true
           done
-          docker compose -f compose.test.yml down --volumes || true
+          docker compose -f compose.test.yml -f compose.e2e.yml down --volumes || true

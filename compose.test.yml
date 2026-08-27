@@ -22,15 +22,9 @@
 #   postgres   2154   (canonical 5432)
 #   rabbitmq   2156   (canonical 5672)
 #   rabbitmq   12156  (canonical 15672; management HTTP API)
-#   mailpit    2125   (canonical 1025; SMTP)
-#   mailpit    12125  (canonical 8025; message HTTP API + web UI)
-#
-# Mailpit's two ports both end in 25, so the plain rule would map them onto
-# the same 2125. The HTTP one takes the runner-only control-plane form the
-# RabbitMQ management API already established — "1" prefixed to the service's
-# primary test port — giving 12125. Same shape, same reasoning: the port a
-# test SENDS to keeps the 21xx form, the port a test READS state from is the
-# 121xx variant.
+#   mailpit    2125/12125 — see compose.e2e.yml (e2e-only; kept out of this
+#              file so bin/setup's port probe and the lanes' bare `up` never
+#              depend on it)
 #
 # Dev services keep canonical ports, so a leaked dev config can never reach
 # a test service and a test run can never reach dev data. If a URL in the
@@ -99,29 +93,3 @@ services:
       interval: 10s
       timeout: 10s
       retries: 5
-
-  mailpit:
-    # SMTP sink for the lanes that must read a REAL delivered email rather
-    # than stub the mail step — account verification, org invitations, magic
-    # links. e2e/support/mailpit.ts polls the HTTP API below; the app is
-    # pointed at the SMTP port via EMAILER_MODE=smtp + SMTP_HOST/SMTP_PORT.
-    #
-    # Distinct from docker/compose/docker-compose.mailpit.yml, which is the
-    # DEV sidecar and deliberately keeps the canonical 1025/8025 ports. Same
-    # separation as every other service here: a leaked dev config can never
-    # reach the test instance, and a test run can never read dev mail.
-    image: axllent/mailpit:v1.29.7@sha256:757f22b56c1da03570afdb3d259effe5091018008a81bbedc8158cee7e16fdbc
-    # No persistence flags: the store is in-memory by default, so every
-    # `up` starts from an empty mailbox and `down` takes it with it.
-    ports:
-      - '127.0.0.1:2125:1025'
-      - '127.0.0.1:12125:8025'
-    healthcheck:
-      # Same probe the image already ships (ENTRYPOINT is /mailpit, which
-      # carries a `readyz` subcommand — there is no shell to write a curl
-      # probe with), restated here on a tighter interval so `up --wait`
-      # returns in seconds instead of the image's 15s cadence.
-      test: ['CMD', '/mailpit', 'readyz']
-      interval: 5s
-      timeout: 5s
-      retries: 10
