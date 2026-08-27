@@ -149,6 +149,10 @@ jobs:
             echo "LANG=en_US.UTF-8"
             echo "SSL=false"
             echo "HOST=localhost:${APP_PORT}"
+            # Plain text, not the default ANSI 'color' formatter: these logs
+            # are read out of an artifact zip and grepped by the readiness
+            # gate below, and escape codes help neither.
+            echo "LOG_FORMATTER=default"
 
             # --- Auth: full mode, verification REQUIRED --------------------
             # AUTH_AUTOVERIFY=false is the config default; stated anyway
@@ -248,14 +252,15 @@ jobs:
 
       # A worker that has not finished booting is indistinguishable from a
       # worker that died, and both look like "the email never arrived" 30
-      # seconds later inside Playwright. Gate on the log line it prints once
-      # the worker classes are resolved and Sneakers is about to run.
+      # seconds later inside Playwright. Gate on the pair of lines it logs
+      # (Workers logger, info) once the worker classes are resolved and
+      # Sneakers is about to run.
       - name: Wait for the worker to start consuming
         run: |
           for _ in $(seq 1 45); do
-            if grep -q 'Starting .* worker' "$WORKER_LOG" 2>/dev/null; then
+            if grep -Eq 'Starting [0-9]+ worker|Workers: ' "$WORKER_LOG" 2>/dev/null; then
               echo "Worker running:"
-              grep 'Workers:' "$WORKER_LOG" || true
+              grep -E 'Starting [0-9]+ worker|Workers: ' "$WORKER_LOG" || true
               exit 0
             fi
             sleep 2
