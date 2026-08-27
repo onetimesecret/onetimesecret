@@ -42,7 +42,17 @@ let diagnosticsClient: DiagnosticsClient | null = null;
  *
  * @see https://github.com/onetimesecret/onetimesecret/issues/2964
  */
-const TAG_FIELDS = ['componentName', 'errorType', 'errorSeverity', 'schema', 'schemaField', 'service', 'jurisdiction', 'planid', 'role'] as const;
+const TAG_FIELDS = [
+  'componentName',
+  'errorType',
+  'errorSeverity',
+  'schema',
+  'schemaField',
+  'service',
+  'jurisdiction',
+  'planid',
+  'role',
+] as const;
 type _TagField = (typeof TAG_FIELDS)[number]; // Used for documentation; lookup via Set<string>
 const TAG_FIELDS_SET = new Set<string>(TAG_FIELDS);
 
@@ -112,10 +122,7 @@ export function isDiagnosticsEnabled(): boolean {
  * });
  * ```
  */
-export function captureException(
-  error: Error,
-  context?: Record<string, unknown>
-): void {
+export function captureException(error: Error, context?: Record<string, unknown>): void {
   if (diagnosticsClient) {
     const { client, scope: baseScope } = diagnosticsClient;
     const eventScope = baseScope.clone();
@@ -127,7 +134,24 @@ export function captureException(
       }
     }
 
-    client.captureException(error, undefined, eventScope);
+    // HINT — hand the client the same hint Sentry's own `Scope.captureException`
+    // builds. `Client.captureException` does NOT build one: it stamps an
+    // `event_id` onto whatever it is given and passes that straight to
+    // `beforeSend`. Calling the client directly (which this facade must, to
+    // capture against an isolated scope) therefore delivered a hint with no
+    // `originalException` — so every beforeSend rule that reads it was inert
+    // for every capture the app itself makes:
+    //   - the expected-transport-outcome drop (#4286) never dropped anything;
+    //   - the api-error grouping (#4287) never fingerprinted anything, leaving
+    //     axios failures to fragment on minified stack frames — one new issue
+    //     per call site per deploy.
+    // The synthetic exception is the other half: it is what gives a non-Error
+    // input a usable stack instead of a bare, unfingerprintable `Error`.
+    client.captureException(
+      error,
+      { originalException: error, syntheticException: new Error('Sentry syntheticException') },
+      eventScope
+    );
   } else {
     // Sentry not available, log to console as fallback
     console.error('[Diagnostics] Exception captured (Sentry unavailable):', error);
@@ -144,10 +168,7 @@ export function captureException(
  * Tag fields (errorType, schema, service, jurisdiction, planid, role) are
  * extracted and set via setTag() for Sentry indexing. Remaining fields use setExtras().
  */
-export function captureMessage(
-  message: string,
-  context?: Record<string, unknown>
-): void {
+export function captureMessage(message: string, context?: Record<string, unknown>): void {
   if (diagnosticsClient) {
     const { client, scope: baseScope } = diagnosticsClient;
     const eventScope = baseScope.clone();
@@ -159,7 +180,16 @@ export function captureMessage(
       }
     }
 
-    client.captureMessage(message, undefined, undefined, eventScope);
+    // Same hint contract as captureException above; see the note there.
+    client.captureMessage(
+      message,
+      undefined,
+      {
+        originalException: message,
+        syntheticException: new Error('Sentry syntheticException'),
+      },
+      eventScope
+    );
   } else {
     console.warn('[Diagnostics] Message captured (Sentry unavailable):', message);
     if (context) {
