@@ -49,7 +49,7 @@ jobs:
 
       - name: Run Claude Code
         id: claude
-        uses: anthropics/claude-code-action@beta
+        uses: anthropics/claude-code-action@28f83620103c48a57093dcc2837eec89e036bb9f # beta (v0.0.63)
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
@@ -57,13 +57,15 @@ jobs:
           additional_permissions: |
             actions: read
 
-          # Primary model: set the CLAUDE_MODEL repo variable to override without
-          # editing this file. Pinning a current id avoids the action's frozen
-          # default (claude-sonnet-4-20250514), which is retired and 404s. Fall
-          # back to Haiku if the primary is unavailable or overloaded. The fallback
-          # default MUST differ from the primary default: the action errors with
-          # "Fallback model cannot be the same as the main model" otherwise.
-          model: "${{ vars.CLAUDE_MODEL || 'claude-sonnet-4-6' }}"
+          # Model selection. The action's own default (claude-sonnet-4-20250514)
+          # is retired and 404s before the run starts, so this must always
+          # resolve to something live. Set the ANTHROPIC_MODEL repo variable to
+          # change models without a PR; the literal is the floor, so an unset or
+          # cleared variable stays harmless (an empty value would hand the action
+          # back its own retired default). Spelled out rather than passed as the
+          # 'opus' alias: this ref bundles Claude Code 1.0.88, which resolves
+          # aliases against its own build-time table, itself naming retired ids.
+          model: "${{ vars.ANTHROPIC_MODEL || 'claude-opus-5' }}"
           fallback_model: "${{ vars.CLAUDE_FALLBACK_MODEL || 'claude-haiku-4-5-20251001' }}"
 
           # Optional: Customize the trigger phrase (default: @claude)
@@ -73,13 +75,11 @@ jobs:
           # assignee_trigger: "claude-bot"
 
           # Optional: Allow Claude to run specific commands
-          # allowed_tools: "Bash(npm install),Bash(npm run build),Bash(npm run test:*),Bash(npm run lint:*)"
+          # allowed_tools: "Bash(pnpm install),Bash(pnpm run test:*),Bash(pnpm run lint:*)"
 
-          # Optional: Add custom instructions for Claude to customize its behavior for your project
+          # Optional: Add custom instructions for Claude
           # custom_instructions: |
           #   Follow our coding standards
-          #   Ensure all new code has tests
-          #   Use TypeScript for new files
 
           # Optional: Custom environment variables for Claude
           # claude_env: |
