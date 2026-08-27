@@ -245,6 +245,11 @@ export function useAuth() {
 
     const result = await wrap(async () => {
       const billingParams = getBillingParams();
+      // The validated ?redirect goes in the POST body so the backend can store
+      // it (pending_auth_redirect) and replay it from the verify-account
+      // response — the verification link is typically opened in a different
+      // browser session, where this page's query string no longer exists.
+      const signupRedirect = getRedirectParam();
       const response = await $api.post<CreateAccountResponse>('/auth/create-account', {
         login: email,
         password: password,
@@ -252,6 +257,7 @@ export function useAuth() {
         shrimp: csrfStore.shrimp,
         locale: locale.value,
         ...billingParams,
+        ...(signupRedirect ? { redirect: signupRedirect } : {}),
       });
 
       const validated = createAccountResponseSchema.parse(response.data);
@@ -279,15 +285,14 @@ export function useAuth() {
       // plain reload preserves state, but a fresh entry (shared link, new tab)
       // does not — so the billing params and redirect path ride in the query,
       // which survives both, keeping the checkout flow intact.
-      const redirectPath = getRedirectParam();
       const query: Record<string, string> = {};
 
       if (billingParams.product && billingParams.interval) {
         query.product = billingParams.product;
         query.interval = billingParams.interval;
       }
-      if (redirectPath) {
-        query.redirect = redirectPath;
+      if (signupRedirect) {
+        query.redirect = signupRedirect;
       }
 
       await router.push({
