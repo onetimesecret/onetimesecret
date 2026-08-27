@@ -2,187 +2,144 @@
 
 import {
   isAllowedCheckoutUrl,
+  isValidInternalPath,
   setAllowedCheckoutHost,
-  validateRedirect,
 } from '@/utils/redirect';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-describe('validateRedirect', () => {
-  beforeEach(() => {
-    // Reset window.location for each test
-    Object.defineProperty(window, 'location', {
-      value: { hostname: 'example.com' },
-      writable: true,
+/**
+ * isValidInternalPath is the ONLY redirect validator now — the former
+ * validateRedirect / validatePathString / validateUrl trio was dead code for
+ * the `?redirect=` param (nothing but this file referenced it) and permitted
+ * things this ruleset must reject: control characters, absolute same-host URLs,
+ * and protocol-relative input.
+ *
+ * The identical ruleset is implemented in Ruby on the backend (signup stores a
+ * validated redirect, verify-account replays it). Every case below is a parity
+ * case: if one side changes, both specs should.
+ */
+describe('isValidInternalPath', () => {
+  describe('accepts', () => {
+    it('plain internal paths', () => {
+      expect(isValidInternalPath('/')).toBe(true);
+      expect(isValidInternalPath('/dashboard')).toBe(true);
+      expect(isValidInternalPath('/users/123/profile')).toBe(true);
+      expect(isValidInternalPath('/path-with-hyphens')).toBe(true);
+      expect(isValidInternalPath('/path_with_underscores')).toBe(true);
+    });
+
+    it('a query string and hash, intact (the whole point of the string form)', () => {
+      expect(isValidInternalPath('/secret/abc?view=raw')).toBe(true);
+      expect(isValidInternalPath('/secret/abc#content')).toBe(true);
+      expect(isValidInternalPath('/secret/abc?view=raw#content')).toBe(true);
+      expect(isValidInternalPath('/search?q=a%20b&sort=desc#results')).toBe(true);
+    });
+
+    it('percent-encoded characters that decode to something harmless', () => {
+      expect(isValidInternalPath('/path%20with%20spaces')).toBe(true);
+      expect(isValidInternalPath('/caf%C3%A9')).toBe(true);
+    });
+
+    it('a `..` substring that is not its own segment', () => {
+      // Traversal is a SEGMENT, not a substring: these resolve to themselves.
+      expect(isValidInternalPath('/reports/..data')).toBe(true);
+      expect(isValidInternalPath('/a/b..c/d')).toBe(true);
+      expect(isValidInternalPath('/search?q=a..b')).toBe(true);
+      // Not slash-delimited, so it is not a segment on either side.
+      expect(isValidInternalPath('/search?q=..')).toBe(true);
+    });
+
+    it('a path of exactly the length limit', () => {
+      expect(isValidInternalPath('/' + 'a'.repeat(2047))).toBe(true);
     });
   });
 
-  // Named routes
-  it('should validate allowed named routes', () => {
-    expect(validateRedirect({ name: 'Home' })).toBe(true);
-    expect(validateRedirect({ name: 'Dashboard' })).toBe(true);
-    expect(validateRedirect({ name: 'Profile' })).toBe(true);
-  });
-
-  it('should reject invalid named routes', () => {
-    expect(validateRedirect({ name: 'Invalid' })).toBe(false);
-    expect(validateRedirect({ name: '' })).toBe(false);
-  });
-
-  // Path-based routes
-  it('should validate valid path-based routes', () => {
-    expect(validateRedirect({ path: '/dashboard' })).toBe(true);
-    expect(validateRedirect({ path: '/users/profile' })).toBe(true);
-  });
-
-  it('should reject invalid path-based routes', () => {
-    expect(validateRedirect({ path: '../dashboard' })).toBe(false);
-    expect(validateRedirect({ path: 'dashboard' })).toBe(false);
-  });
-
-  // String paths
-  it('should validate valid string paths', () => {
-    expect(validateRedirect('/dashboard')).toBe(true);
-    expect(validateRedirect('/users/profile')).toBe(true);
-  });
-
-  it('should reject invalid string paths', () => {
-    expect(validateRedirect('../dashboard')).toBe(false);
-    expect(validateRedirect('dashboard')).toBe(false);
-  });
-
-  // URLs
-  it('should validate URLs with matching hostname', () => {
-    // Mock window.location
-    Object.defineProperty(window, 'location', {
-      value: { hostname: 'example.com' },
-      writable: true,
+  describe('rejects', () => {
+    it('non-strings and empty input', () => {
+      expect(isValidInternalPath(undefined)).toBe(false);
+      expect(isValidInternalPath(null)).toBe(false);
+      expect(isValidInternalPath('')).toBe(false);
+      expect(isValidInternalPath(123 as unknown as string)).toBe(false);
+      expect(isValidInternalPath({} as unknown as string)).toBe(false);
+      expect(isValidInternalPath([] as unknown as string)).toBe(false);
     });
 
-    expect(validateRedirect('https://example.com/dashboard')).toBe(true);
-    expect(validateRedirect('http://example.com/profile')).toBe(true);
-  });
-
-  it('should reject URLs with different hostname', () => {
-    Object.defineProperty(window, 'location', {
-      value: { hostname: 'example.com' },
-      writable: true,
+    it('anything over 2048 characters', () => {
+      expect(isValidInternalPath('/' + 'a'.repeat(2048))).toBe(false);
     });
 
-    expect(validateRedirect('https://malicious.com/dashboard')).toBe(false);
-  });
-
-  // Edge cases
-  it('should handle edge cases', () => {
-    expect(validateRedirect('')).toBe(false);
-    expect(validateRedirect(null as any)).toBe(false);
-    expect(validateRedirect(undefined as any)).toBe(false);
-    expect(validateRedirect({} as any)).toBe(false);
-  });
-
-  // Named Routes
-  describe('named routes', () => {
-    it('should validate allowed named routes', () => {
-      expect(validateRedirect({ name: 'Home' })).toBe(true);
-      expect(validateRedirect({ name: 'Dashboard' })).toBe(true);
-      expect(validateRedirect({ name: 'Profile' })).toBe(true);
+    it('paths not anchored at a single leading slash', () => {
+      expect(isValidInternalPath('dashboard')).toBe(false);
+      expect(isValidInternalPath('   /dashboard')).toBe(false);
+      expect(isValidInternalPath('../dashboard')).toBe(false);
     });
 
-    it('should reject malformed named routes', () => {
-      expect(validateRedirect({ name: '' })).toBe(false);
-      expect(validateRedirect({ name: '   ' })).toBe(false);
-      expect(validateRedirect({ name: '\n' })).toBe(false);
-      expect(validateRedirect({ name: '<script>' })).toBe(false);
-      expect(validateRedirect({ name: 'javascript:alert(1)' })).toBe(false);
-    });
-  });
-
-  // Path-based Routes
-  describe('path-based routes', () => {
-    it('should validate safe paths', () => {
-      expect(validateRedirect({ path: '/dashboard' })).toBe(true);
-      expect(validateRedirect({ path: '/users/123/profile' })).toBe(true);
-      expect(validateRedirect({ path: '/path-with-hyphens' })).toBe(true);
-      expect(validateRedirect({ path: '/path_with_underscores' })).toBe(true);
+    it('protocol-relative and backslash-disguised authorities', () => {
+      // '//evil.example' and '/\evil.example' both leave the origin — browsers
+      // normalize the backslash to a slash.
+      expect(isValidInternalPath('//evil.example')).toBe(false);
+      expect(isValidInternalPath('//evil.example/path')).toBe(false);
+      expect(isValidInternalPath('/\\evil.example')).toBe(false);
+      expect(isValidInternalPath('/\\/evil.example')).toBe(false);
     });
 
-    it('should reject path traversal attempts', () => {
-      expect(validateRedirect({ path: '../api/secrets' })).toBe(false);
-      expect(validateRedirect({ path: '..\\api\\secrets' })).toBe(false);
-      expect(validateRedirect({ path: '/../../etc/passwd' })).toBe(false);
-      expect(validateRedirect({ path: '/%2e%2e/config' })).toBe(false);
+    it('a backslash anywhere in the path', () => {
+      expect(isValidInternalPath('/a\\b')).toBe(false);
+      expect(isValidInternalPath('/dashboard?next=\\\\evil.example')).toBe(false);
     });
 
-    it('should reject paths with suspicious patterns', () => {
-      expect(validateRedirect({ path: '//evil.com' })).toBe(false);
-      expect(validateRedirect({ path: '\\/evil.com' })).toBe(false);
-      expect(validateRedirect({ path: '/javascript:alert(1)' })).toBe(false);
-      expect(validateRedirect({ path: '/data:text/html,<script>' })).toBe(false);
-    });
-  });
-
-  // URL Validation
-  describe('urls', () => {
-    it('should validate same-origin URLs', () => {
-      expect(validateRedirect('https://example.com/dashboard')).toBe(true);
-      expect(validateRedirect('https://example.com:443/profile')).toBe(true);
-      expect(validateRedirect('//example.com/dashboard')).toBe(true);
+    it('absolute URLs and any embedded `://`', () => {
+      expect(isValidInternalPath('https://evil.example/dashboard')).toBe(false);
+      // Same-origin absolute URLs are rejected too: this validator returns
+      // PATHS for router.push, and an origin is not our concern here.
+      expect(isValidInternalPath('https://example.com/dashboard')).toBe(false);
+      expect(isValidInternalPath('javascript://example.com')).toBe(false);
+      expect(isValidInternalPath('/redirect?to=https://evil.example')).toBe(false);
+      expect(isValidInternalPath('/a://b')).toBe(false);
     });
 
-    it('should reject different-origin URLs', () => {
-      expect(validateRedirect('https://evil.com/dashboard')).toBe(false);
-      expect(validateRedirect('http://example.com.attacker.com')).toBe(false);
-      expect(validateRedirect('https://examplecom/profile')).toBe(false);
-      expect(validateRedirect('https://example.com.evil.com')).toBe(false);
+    it('raw control characters (CR/LF/NUL/DEL) — header and request splitting', () => {
+      expect(isValidInternalPath('/path\nwith\nnewlines')).toBe(false);
+      expect(isValidInternalPath('/path\rwith\rreturns')).toBe(false);
+      expect(isValidInternalPath('/path\x00with\x00nulls')).toBe(false);
+      expect(isValidInternalPath('/path\x1funit-separator')).toBe(false);
+      expect(isValidInternalPath('/path\x7fdel')).toBe(false);
+      expect(isValidInternalPath('/tab\there')).toBe(false);
     });
 
-    it('should reject URLs with suspicious protocols', () => {
-      expect(validateRedirect('javascript://example.com')).toBe(false);
-      expect(validateRedirect('data://example.com')).toBe(false);
-      expect(validateRedirect('vbscript://example.com')).toBe(false);
-      expect(validateRedirect('file://example.com')).toBe(false);
-    });
-  });
-
-  // Special Characters and Encoding
-  describe('special characters and encoding', () => {
-    it('should handle URL-encoded characters', () => {
-      expect(validateRedirect('/path%20with%20spaces')).toBe(true);
-      // URL-encoded slashes are valid as they'll be handled by the router
-      expect(validateRedirect('/path%2Fwith%2Fencoded-slashes')).toBe(true);
-      // These are basic path validation tests, character sanitization happens elsewhere
-      expect(validateRedirect('/%0D%0A')).toBe(true);
-      expect(validateRedirect('/%00')).toBe(true);
+    it('control characters smuggled in as percent-encoding', () => {
+      expect(isValidInternalPath('/%0D%0ASet-Cookie:%20x=y')).toBe(false);
+      expect(isValidInternalPath('/%00')).toBe(false);
+      expect(isValidInternalPath('/%7F')).toBe(false);
     });
 
-    it('should validate path structure regardless of special characters', () => {
-      // Focus on path structure rather than character validation
-      expect(validateRedirect('/path\x00with\x00nulls')).toBe(true);
-      expect(validateRedirect('/path\nwith\nnewlines')).toBe(true);
-      expect(validateRedirect('/path\rwith\rreturns')).toBe(true);
-      expect(validateRedirect('/path<with>tags')).toBe(true);
-    });
-  });
-
-  // Edge Cases and Malformed Input
-  describe('edge cases', () => {
-    it('should handle empty or invalid input', () => {
-      expect(validateRedirect('')).toBe(false);
-      expect(validateRedirect('   ')).toBe(false);
-      expect(validateRedirect(null as any)).toBe(false);
-      expect(validateRedirect(undefined as any)).toBe(false);
-      expect(validateRedirect({} as any)).toBe(false);
-      expect(validateRedirect([] as any)).toBe(false);
-      expect(validateRedirect(123 as any)).toBe(false);
+    it('an encoded backslash or encoded protocol-relative prefix', () => {
+      expect(isValidInternalPath('/%5Cevil.example')).toBe(false);
+      expect(isValidInternalPath('/%2F%2Fevil.example')).toBe(false);
+      expect(isValidInternalPath('/%2f%2fevil.example')).toBe(false);
     });
 
-    it('should handle mixed route properties according to vue-router types', () => {
-      // Vue Router allows multiple properties in route objects
-      expect(validateRedirect({ name: 'Home', path: '/dashboard' })).toBe(true);
-      expect(validateRedirect({ name: 'Profile', url: 'https://example.com' })).toBe(
-        true
-      );
-      // Invalid properties should still fail
-      expect(validateRedirect({ path: '/profile', query: '<script>' })).toBe(true);
+    it('path traversal, raw or encoded', () => {
+      expect(isValidInternalPath('/../../etc/passwd')).toBe(false);
+      expect(isValidInternalPath('/a/../b')).toBe(false);
+      expect(isValidInternalPath('/%2e%2e/config')).toBe(false);
+      expect(isValidInternalPath('/a/%2E%2E/b')).toBe(false);
+      expect(isValidInternalPath('/dashboard/..')).toBe(false);
+    });
+
+    it('a `..` segment reached through the query or fragment (backend parity)', () => {
+      // The whole decoded string is split on '/', query and fragment included,
+      // exactly as RedirectPaths#traversal_segment? does. A bare '?q=..' is
+      // still fine (it is not delimited by slashes) — see the accepts block.
+      expect(isValidInternalPath('/a?next=/../b')).toBe(false);
+      expect(isValidInternalPath('/a#/..')).toBe(false);
+      expect(isValidInternalPath('/a?next=%2F..%2Fb')).toBe(false);
+    });
+
+    it('malformed percent-encoding, rather than guessing at intent', () => {
+      expect(isValidInternalPath('/%')).toBe(false);
+      expect(isValidInternalPath('/%zz')).toBe(false);
+      expect(isValidInternalPath('/%E0%A4%A')).toBe(false);
     });
   });
 });
