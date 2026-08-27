@@ -331,9 +331,12 @@ test.describe('Signup redirect preservation (issue #4305)', () => {
   });
 
   /**
-   * Negative cases. Both values are open-redirect attempts and must be
-   * dropped SERVER-SIDE at capture, so the journey ends where a journey with
-   * no redirect at all would: the app's own root.
+   * Negative cases. Both values are open-redirect attempts, rejected by the
+   * SPA before the POST (so the create-account body carries no redirect at
+   * all) AND re-validated server-side at capture and again at verify-time
+   * read. This test pins the end-to-end OUTCOME — the journey ends where a
+   * journey with no redirect at all would, the app's own root — not which
+   * layer catches the value.
    *
    * `//evil.example` is the one a naive `startsWith('/')` check waves
    * through — it is a protocol-relative URL, not a path.
