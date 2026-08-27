@@ -49,7 +49,7 @@ jobs:
 
       - name: Run Claude Code
         id: claude
-        uses: anthropics/claude-code-action@beta
+        uses: anthropics/claude-code-action@70fec183852c4f82f3f1969faed7dd60c5149ca7 # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
@@ -57,14 +57,14 @@ jobs:
           additional_permissions: |
             actions: read
 
-          # Primary model: set the CLAUDE_MODEL repo variable to override without
-          # editing this file. Pinning a current id avoids the action's frozen
-          # default (claude-sonnet-4-20250514), which is retired and 404s. Fall
-          # back to Haiku if the primary is unavailable or overloaded. The fallback
-          # default MUST differ from the primary default: the action errors with
-          # "Fallback model cannot be the same as the main model" otherwise.
-          model: "${{ vars.CLAUDE_MODEL || 'claude-sonnet-4-6' }}"
-          fallback_model: "${{ vars.CLAUDE_FALLBACK_MODEL || 'claude-haiku-4-5-20251001' }}"
+          # Model selection. The action's own default is a retired id that 404s
+          # before the run starts, so this must always resolve to something live.
+          # 'opus' is an alias the pinned CLI resolves at run time, so a model
+          # retirement needs no edit here. Set the ANTHROPIC_MODEL repo variable
+          # to override; the literal is the floor, so an unset or cleared
+          # variable stays harmless (an empty value would hand the action back
+          # its own retired default).
+          claude_args: --model ${{ vars.ANTHROPIC_MODEL || 'opus' }}
 
           # Optional: Customize the trigger phrase (default: @claude)
           # trigger_phrase: "/claude"
@@ -72,15 +72,10 @@ jobs:
           # Optional: Trigger when specific user is assigned to an issue
           # assignee_trigger: "claude-bot"
 
-          # Optional: Allow Claude to run specific commands
-          # allowed_tools: "Bash(npm install),Bash(npm run build),Bash(npm run test:*),Bash(npm run lint:*)"
-
-          # Optional: Add custom instructions for Claude to customize its behavior for your project
-          # custom_instructions: |
-          #   Follow our coding standards
-          #   Ensure all new code has tests
-          #   Use TypeScript for new files
-
-          # Optional: Custom environment variables for Claude
-          # claude_env: |
-          #   NODE_ENV: test
+          # Optional: further CLI flags go on the claude_args line above, e.g.
+          #   claude_args: --model opus --allowed-tools 'Bash(pnpm run test:*)'
+          # See https://code.claude.com/docs/en/cli-reference
+          #
+          # The v0 inputs model/fallback_model/custom_instructions/claude_env
+          # do not exist on v1; the action silently ignores unknown inputs, so
+          # do not reintroduce them.

@@ -75,21 +75,24 @@ jobs:
       # be related. Re-run after comment activity settles.
       - name: Run Claude Code Review
         id: claude-review
-        uses: anthropics/claude-code-action@beta
+        uses: anthropics/claude-code-action@70fec183852c4f82f3f1969faed7dd60c5149ca7 # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
-          # Primary model precedence: the workflow_dispatch "model" input (manual
-          # runs) -> the CLAUDE_MODEL repo variable -> this built-in default. The
-          # action's frozen default (claude-sonnet-4-20250514) is retired and
-          # 404s. Fall back to Haiku on overload. The fallback default MUST differ
-          # from the primary default: the action errors with "Fallback model
-          # cannot be the same as the main model" when they resolve to the same id.
-          model: "${{ inputs.model || vars.CLAUDE_MODEL || 'claude-sonnet-4-6' }}"
-          fallback_model: "${{ vars.CLAUDE_FALLBACK_MODEL || 'claude-haiku-4-5-20251001' }}"
+          # Model selection. The action's own default is a retired id that 404s
+          # before the run starts, so this must always resolve to something live.
+          # 'opus' is an alias the pinned CLI resolves at run time, so a model
+          # retirement needs no edit here. Set the ANTHROPIC_MODEL repo variable
+          # to override; the literal is the floor, so an unset or cleared
+          # variable stays harmless (an empty value would hand the action back
+          # its own retired default). No fallback_model: on v1 the input does not
+          # exist, and a silent downgrade under a sticky comment would replace a
+          # defect review with a weaker one that still reads as green.
+          claude_args: --model ${{ vars.ANTHROPIC_MODEL || 'opus' }}
 
-          # Direct prompt for automated review (no @claude mention needed)
-          direct_prompt: |
+          # Automated review prompt (no @claude mention needed). Supplying
+          # `prompt` on a pull_request event is what puts v1 in automation mode.
+          prompt: |
             Review this PR for defects. Report only findings you can state
             as a concrete failure scenario (specific input or state leading
             to wrong output, data loss, or a security consequence), with
@@ -115,19 +118,13 @@ jobs:
           # Optional: Use sticky comments to make Claude reuse the same comment on subsequent pushes to the same PR
           use_sticky_comment: true
 
-          # Optional: Different prompts for different authors
-          # direct_prompt: |
-          #   ${{ github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR' &&
-          #   'Welcome! Please review this PR from a first-time contributor. Be encouraging and provide detailed explanations for any suggestions.' ||
-          #   'Please provide a thorough code review focusing on our coding standards and best practices.' }}
-
-          # Optional: Add specific tools for running tests or linting
-          # allowed_tools: "Bash(npm run test),Bash(npm run lint),Bash(npm run typecheck)"
-
-          # Optional: Skip review for certain conditions
-          # if: |
-          #   !contains(github.event.pull_request.title, '[skip-review]') &&
-          #   !contains(github.event.pull_request.title, '[WIP]')
+          # Optional: further CLI flags go on the claude_args line above, e.g.
+          #   claude_args: --model opus --allowed-tools 'Bash(pnpm run test:*)'
+          #
+          # The v0 inputs model/fallback_model/direct_prompt do not exist on v1;
+          # the action silently ignores unknown inputs, so do not reintroduce
+          # them. `direct_prompt` in particular becomes a dropped prompt, which
+          # turns the review into an unscoped default one with no visible error.
 
       - name: Remove claude-review label
         # Remove label whether success or failure - prevents getting stuck
