@@ -205,12 +205,20 @@ export function useAuth() {
         // We also explicitly set authenticated: false to ensure consistent state.
         bootstrapStore.update({ awaiting_mfa: true, authenticated: false });
 
-        // Redirect to MFA verification - guard will allow access since awaiting_mfa is set
-        // Preserve redirect param so MFA flow can complete the redirect after verification
+        // Redirect to MFA verification - guard will allow access since awaiting_mfa is set.
+        // Preserve the redirect param AND the plan-intent pair (product/interval)
+        // so MfaChallenge's navigateAfterAuth() keeps the full post-auth
+        // precedence: the backend replays a validated billing_redirect on the
+        // two-factor completion response (#4306), and the forwarded query is
+        // the fallback tier (webauthn factor, page reload, older backends).
         const redirectPath = getRedirectParam();
+        const mfaQuery = {
+          ...billingParams,
+          ...(redirectPath ? { redirect: redirectPath } : {}),
+        };
         await router.push({
           path: '/mfa-verify',
-          query: redirectPath ? { redirect: redirectPath } : undefined,
+          query: Object.keys(mfaQuery).length > 0 ? mfaQuery : undefined,
         });
         return false; // Not fully logged in yet
       }

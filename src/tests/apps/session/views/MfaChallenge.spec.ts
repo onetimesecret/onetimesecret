@@ -7,6 +7,9 @@ import { defineComponent, ref } from 'vue';
 import { createTestI18n } from '@tests/setup';
 import MfaChallenge from '@/apps/session/views/MfaChallenge.vue';
 import { useAuthStore } from '@/shared/stores/authStore';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
+import type { OtpVerifySuccess } from '@/schemas/api/auth/responses/auth';
 import type { MfaStatus } from '@/types/auth';
 
 // ---------------------------------------------------------------------------
@@ -61,6 +64,9 @@ vi.mock('@/apps/session/components/OtpCodeInput.vue', () => ({
 const mockMfaState = {
   isLoading: ref(false),
   error: ref<string | null>(null),
+  // Two-factor completion body (#4306) — the component feeds this into the
+  // REAL usePostAuthRedirect, which is deliberately not mocked here.
+  verifyResponse: ref<OtpVerifySuccess | null>(null),
   fetchMfaStatus: vi.fn(),
   verifyOtp: vi.fn(),
   verifyRecoveryCode: vi.fn(),
@@ -147,6 +153,7 @@ describe('MfaChallenge', () => {
     mockRoute.query = {};
     mockMfaState.isLoading.value = false;
     mockMfaState.error.value = null;
+    mockMfaState.verifyResponse.value = null;
     mockMfaState.fetchMfaStatus.mockResolvedValue(otpOnly());
     mockMfaState.verifyOtp.mockResolvedValue(true);
     mockMfaState.verifyRecoveryCode.mockResolvedValue(true);
@@ -578,6 +585,108 @@ describe('MfaChallenge', () => {
       await byTestId(wrapper, 'mfa-cancel').trigger('click');
 
       expect(mockLogout).toHaveBeenCalledWith('/signin');
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Billing intent on the two-factor completion body (#4306)
+  //
+  // Contract: for MFA-gated logins the backend replays billing_redirect on the
+  // OTP-verification response, NOT the primary-factor login response. The
+  // component hands useMfa's captured verifyResponse to the REAL
+  // usePostAuthRedirect, so an MFA user lands on the same checkout page as a
+  // no-MFA user. bootstrapStore is seeded per-test (app bootstrap is absent in
+  // vitest; billing_enabled defaults to false).
+  // -------------------------------------------------------------------------
+
+  describe('billing intent from the verify response (#4306)', () => {
+    const validIntent = {
+      success: 'ok',
+      billing_redirect: { product: 'identity_plus_v1', interval: 'year', valid: true },
+    };
+
+    const verifyOtpWith = (body: OtpVerifySuccess) => {
+      mockMfaState.verifyOtp.mockImplementation(async () => {
+        mockMfaState.verifyResponse.value = body;
+        return true;
+      });
+    };
+
+    const submitOtp = async (w: VueWrapper) => {
+      await w.findComponent({ name: 'OtpCodeInput' }).vm.$emit('complete', '123456');
+      await flushPromises();
+    };
+
+    it('lands on the org plans page with product and interval preserved', async () => {
+      verifyOtpWith(validIntent);
+      wrapper = await mountChallenge();
+
+      useBootstrapStore().billing_enabled = true;
+      const orgStore = useOrganizationStore();
+      vi.mocked(orgStore.restorePersistedSelection).mockReturnValue({
+        extid: 'org_live1',
+      } as ReturnType<typeof orgStore.restorePersistedSelection>);
+
+      await submitOtp(wrapper);
+
+      const authStore = useAuthStore();
+      expect(authStore.setAuthenticated).toHaveBeenCalledWith(true);
+      expect(routerPushMock).toHaveBeenCalledWith(
+        '/billing/org_live1/plans?product=identity_plus_v1&interval=year'
+      );
+    });
+
+    it('webauthn completion (no verify body) reads the intent from the query tier', async () => {
+      // The WebAuthn second factor completes WITHOUT a verifyResponse body
+      // (useMfa never sees it), so completeChallenge calls
+      // navigateAfterAuth(undefined) and the billing intent must come from
+      // the product/interval pair riding in the /mfa-verify query — the
+      // fallback tier useAuth.login() forwards for exactly this factor.
+      mockMfaState.fetchMfaStatus.mockResolvedValue(webauthnOnly());
+      mockRoute.query = { product: 'identity_plus_v1', interval: 'monthly' };
+      wrapper = await mountChallenge();
+
+      useBootstrapStore().billing_enabled = true;
+      const orgStore = useOrganizationStore();
+      vi.mocked(orgStore.restorePersistedSelection).mockReturnValue({
+        extid: 'org_live1',
+      } as ReturnType<typeof orgStore.restorePersistedSelection>);
+
+      // Real webauthn completion handler: submit → verifyWebAuthnMfa
+      // resolves true → completeChallenge with verifyResponse still null.
+      await byTestId(wrapper, 'mfa-verify-webauthn-submit').trigger('click');
+      await flushPromises();
+
+      expect(mockMfaState.verifyResponse.value).toBeNull();
+      const authStore = useAuthStore();
+      expect(authStore.setAuthenticated).toHaveBeenCalledWith(true);
+      expect(routerPushMock).toHaveBeenCalledWith(
+        '/billing/org_live1/plans?product=identity_plus_v1&interval=monthly'
+      );
+    });
+
+    it('keeps the billing-disabled gate: falls back to the validated ?redirect', async () => {
+      // billing_enabled stays at its default (false) — self-hosted installs.
+      verifyOtpWith(validIntent);
+      mockRoute.query = { redirect: '/dashboard' };
+      wrapper = await mountChallenge();
+
+      await submitOtp(wrapper);
+
+      expect(routerPushMock).toHaveBeenCalledWith('/dashboard');
+    });
+
+    it('ignores a billing_redirect the backend marked invalid and goes to /', async () => {
+      verifyOtpWith({
+        success: 'ok',
+        billing_redirect: { product: 'bogus_plan', interval: 'year', valid: false },
+      });
+      wrapper = await mountChallenge();
+      useBootstrapStore().billing_enabled = true;
+
+      await submitOtp(wrapper);
+
+      expect(routerPushMock).toHaveBeenCalledWith('/');
     });
   });
 });

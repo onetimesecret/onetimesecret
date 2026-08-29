@@ -321,6 +321,50 @@ describe('useMfa', () => {
       expect(result).toBe(true);
     });
 
+    it('captures billing_redirect from the completion response (#4306)', async () => {
+      // Contract: for MFA-gated logins the plan intent rides on the
+      // two-factor completion body, not the primary-factor login response.
+      const successResponse = {
+        success: 'Authentication successful',
+        billing_redirect: { product: 'identity_plus_v1', interval: 'year', valid: true },
+      };
+
+      axiosMock.onPost('/auth/otp-auth').reply(200, successResponse);
+
+      const { verifyOtp, verifyResponse } = useMfa();
+      const result = await verifyOtp('123456');
+
+      expect(result).toBe(true);
+      expect(verifyResponse.value).toEqual(successResponse);
+    });
+
+    it('exposes the plain completion body when no billing_redirect is present', async () => {
+      axiosMock.onPost('/auth/otp-auth').reply(200, { success: 'Authentication successful' });
+
+      const { verifyOtp, verifyResponse } = useMfa();
+      await verifyOtp('123456');
+
+      expect(verifyResponse.value).toEqual({ success: 'Authentication successful' });
+    });
+
+    it('clears a stale completion body on a failed attempt', async () => {
+      const { verifyOtp, verifyResponse } = useMfa();
+
+      axiosMock.onPost('/auth/otp-auth').reply(200, {
+        success: 'ok',
+        billing_redirect: { product: 'identity_plus_v1', interval: 'year', valid: true },
+      });
+      await verifyOtp('123456');
+      expect(verifyResponse.value).not.toBeNull();
+
+      axiosMock.reset();
+      axiosMock.onPost('/auth/otp-auth').reply(200, { error: 'Invalid authentication code' });
+      const result = await verifyOtp('000000');
+
+      expect(result).toBe(false);
+      expect(verifyResponse.value).toBeNull();
+    });
+
     it('handles invalid OTP code with helpful message', async () => {
       const errorResponse = {
         error: 'Invalid authentication code',
@@ -460,6 +504,23 @@ describe('useMfa', () => {
       const result = await verifyRecoveryCode('RECOVERY_CODE');
 
       expect(result).toBe(true);
+    });
+
+    it('captures billing_redirect from the completion response (#4306)', async () => {
+      // Recovery codes complete the second factor exactly like OTP, so the
+      // completion body may carry the plan intent too.
+      const successResponse = {
+        success: 'Recovery code accepted',
+        billing_redirect: { product: 'identity_plus_v1', interval: 'month', valid: true },
+      };
+
+      axiosMock.onPost('/auth/recovery-auth').reply(200, successResponse);
+
+      const { verifyRecoveryCode, verifyResponse } = useMfa();
+      const result = await verifyRecoveryCode('RECOVERY_CODE');
+
+      expect(result).toBe(true);
+      expect(verifyResponse.value).toEqual(successResponse);
     });
 
     it('handles already used recovery code', async () => {

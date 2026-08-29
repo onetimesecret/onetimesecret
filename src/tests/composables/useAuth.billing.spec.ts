@@ -304,13 +304,12 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
   });
 
   describe('handleBillingRedirect - MFA Flow', () => {
-    // TODO: Test for MFA flow integration with billing redirect.
-    // The test documents that when MFA is required, the user should be
-    // redirected to /mfa-verify instead of billing. Billing redirect
-    // should only happen after MFA verification succeeds.
+    // When MFA is required the user goes to /mfa-verify instead of billing —
+    // the billing redirect only happens after the second factor succeeds
+    // (MfaChallenge → navigateAfterAuth). #4306: the plan-intent query pair is
+    // forwarded so the completion path keeps its fallback tier.
 
-    it.todo('should not attempt billing redirect when MFA is required');
-    /* Expected behavior:
+    it('should not attempt billing redirect when MFA is required', async () => {
       setRouteQuery({ product: 'identity', interval: 'month' });
       const { login } = useAuth();
       axiosMock.onPost('/auth/login').reply(200, {
@@ -319,10 +318,43 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
         mfa_auth_url: '/auth/otp-auth',
         mfa_methods: ['totp'],
       });
+
       await login('test@example.com', 'password123');
-      expect(router.push).toHaveBeenCalledWith('/mfa-verify');
+
+      expect(router.push).toHaveBeenCalledWith({
+        path: '/mfa-verify',
+        query: { product: 'identity', interval: 'month' },
+      });
       expect(axiosMock.history.get.filter((r) => r.url === '/api/organizations')).toHaveLength(0);
-    */
+    });
+
+    it('forwards ?redirect alongside the plan intent to /mfa-verify', async () => {
+      setRouteQuery({ product: 'identity', interval: 'month', redirect: '/dashboard' });
+      const { login } = useAuth();
+      axiosMock.onPost('/auth/login').reply(200, {
+        success: 'MFA verification required',
+        mfa_required: true,
+      });
+
+      await login('test@example.com', 'password123');
+
+      expect(router.push).toHaveBeenCalledWith({
+        path: '/mfa-verify',
+        query: { product: 'identity', interval: 'month', redirect: '/dashboard' },
+      });
+    });
+
+    it('pushes a bare /mfa-verify when there is nothing to forward', async () => {
+      const { login } = useAuth();
+      axiosMock.onPost('/auth/login').reply(200, {
+        success: 'MFA verification required',
+        mfa_required: true,
+      });
+
+      await login('test@example.com', 'password123');
+
+      expect(router.push).toHaveBeenCalledWith({ path: '/mfa-verify', query: undefined });
+    });
   });
 
   describe('handleBillingRedirect - Error Handling', () => {

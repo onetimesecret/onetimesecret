@@ -8,28 +8,27 @@
   import { loggingService } from '@/services/logging.service';
   import { useAuth } from '@/shared/composables/useAuth';
   import { useMfa } from '@/shared/composables/useMfa';
+  import { usePostAuthRedirect } from '@/shared/composables/usePostAuthRedirect';
   import { useWebAuthn } from '@/shared/composables/useWebAuthn';
   import { useAuthStore } from '@/shared/stores/authStore';
   import type { MfaStatus } from '@/types/auth';
-  import { isValidInternalPath } from '@/utils/redirect';
   import { ref, onMounted, computed } from 'vue';
-  import { useRoute, useRouter } from 'vue-router';
+  import { useRouter } from 'vue-router';
 
   const { t } = useI18n();
-  const route = useRoute();
   const router = useRouter();
 
-  /**
-   * Gets the redirect path from query params if valid.
-   * Security: Only allows internal paths to prevent open redirect attacks.
-   */
-  const redirectPath = computed(() => {
-    const redirect = route.query.redirect;
-    if (typeof redirect !== 'string') return null;
-    return isValidInternalPath(redirect) ? redirect : null;
-  });
   const authStore = useAuthStore();
-  const { verifyOtp, verifyRecoveryCode, fetchMfaStatus, isLoading, error, clearError } = useMfa();
+  const {
+    verifyOtp,
+    verifyRecoveryCode,
+    fetchMfaStatus,
+    verifyResponse,
+    isLoading,
+    error,
+    clearError,
+  } = useMfa();
+  const { navigateAfterAuth } = usePostAuthRedirect();
   const {
     supported: webauthnSupported,
     isLoading: webauthnLoading,
@@ -135,18 +134,23 @@
   });
 
   /**
-   * Shared success epilogue: complete auth, then honor the validated redirect.
+   * Shared success epilogue: complete auth, then land the user via the SAME
+   * precedence as the no-MFA login path (usePostAuthRedirect): a validated
+   * billing/plan intent first, then the validated ?redirect param, then '/'.
    * All three factors converge here so their post-verify behavior can never
    * drift apart.
+   *
+   * The billing intent rides on the two-factor COMPLETION body (#4306): for
+   * MFA-gated logins the backend replays billing_redirect here, not on the
+   * primary-factor login response. OTP and recovery verifications capture it
+   * in useMfa's verifyResponse; the webauthn factor leaves it null, so that
+   * path falls back to the forwarded product/interval query pair.
    */
   const completeChallenge = async () => {
     loggingService.debug('[MfaChallenge] Setting authenticated=true');
     await authStore.setAuthenticated(true);
     loggingService.debug('[MfaChallenge] After setAuthenticated - auth complete');
-    // Redirect to saved path or dashboard
-    const destination = redirectPath.value || '/';
-    loggingService.debug('[MfaChallenge] Redirecting to', { destination });
-    router.push(destination);
+    await navigateAfterAuth(verifyResponse.value ?? undefined);
   };
 
   // Handle OTP code complete
