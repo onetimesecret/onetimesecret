@@ -263,65 +263,14 @@ test.describe('Signup Submission with Plan Intent', () => {
 });
 
 // =============================================================================
-// POST-VERIFICATION REDIRECT TESTS
+// POST-VERIFICATION REDIRECT
 // =============================================================================
-// These tests require email verification to be disabled or a mail interceptor.
-// Marked as skipped by default - enable when test infrastructure supports it.
-
-// QUARANTINED — E2E remediation plan Phase 2.4 / PR 5 (issue #3421).
-// Needs a mail interceptor (Mailpit/MailHog) to capture the verification link;
-// CI runs with AUTH_AUTOVERIFY=true and cannot exercise the post-verification
-// redirect. Was `test.skip(() => true)` — an unconditional skip that could only
-// pass-or-skip. See e2e/QUARANTINE.md.
-test.describe.fixme('Post-Verification Redirect', () => {
-
-  test.describe('when verification is disabled (test mode)', () => {
-    test('signup with plan params auto-redirects to checkout after verification', async ({ page }) => {
-      // This test requires:
-      // 1. verify_account feature disabled (RACK_ENV=test), OR
-      // 2. Email interceptor (Mailhog) to capture verification link
-      //
-      // When verification is disabled, user is auto-logged-in after signup.
-      // The pending_plan_intent should trigger redirect to checkout.
-
-      const testEmail = generateTestEmail();
-
-      await page.goto('/signup?product=identity_plus_v1&interval=monthly');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      const emailInput = page.getByRole('textbox', { name: /email/i });
-      const passwordInput = page.locator('input[type="password"]').first();
-      const submitButton = page.getByRole('button', { name: /create|sign up|register/i });
-
-      await emailInput.fill(testEmail);
-      await passwordInput.fill('TestPassword123!');
-      await submitButton.click();
-
-      // In test mode without verification, should redirect to checkout
-      await expect(page).toHaveURL(/\/billing\/plans\/identity_plus_v1\/monthly/, {
-        timeout: 10000,
-      });
-    });
-
-    test('signup without plan params redirects to /account', async ({ page }) => {
-      const testEmail = generateTestEmail();
-
-      await page.goto('/signup');
-      await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
-
-      const emailInput = page.getByRole('textbox', { name: /email/i });
-      const passwordInput = page.locator('input[type="password"]').first();
-      const submitButton = page.getByRole('button', { name: /create|sign up|register/i });
-
-      await emailInput.fill(testEmail);
-      await passwordInput.fill('TestPassword123!');
-      await submitButton.click();
-
-      // Without plan params, should redirect to default /account
-      await expect(page).toHaveURL('/account', { timeout: 10000 });
-    });
-  });
-});
+// Covered for real in e2e/auth/pending-plan-intent.spec.ts ("Plan intent
+// journey (issue #4306)"): the whole signup → verification email (Mailpit) →
+// fresh-browser verify → signin → /billing/:extid/plans journey. The fixme
+// block that used to sit here asserted the three-segment
+// /billing/plans/:product/:interval path, which matches no route in
+// src/apps/workspace/routes/billing.ts — it could never have passed.
 
 // =============================================================================
 // CHECKOUT PAGE ACCESS TESTS
