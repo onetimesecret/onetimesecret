@@ -57,8 +57,17 @@ module Auth::Config::Hooks
     SESSION_KEY_PRODUCT  = :billing_product
     SESSION_KEY_INTERVAL = :billing_interval
 
-    # Extracts and clears pending_plan_intent from a customer record.
+    # Reads (PEEKS) pending_plan_intent from a customer record.
     # Returns [product, interval] or [nil, nil] if not found or parse error.
+    #
+    # DELIBERATELY DOES NOT DELETE (issue #4306). Surfacing billing_redirect
+    # on a login/two-factor response is not the handoff — the client may
+    # crash between receiving that response and entering the billing flow
+    # (e.g. its org fetch fails), and a delete-on-read here made that loss
+    # unrecoverable. The intent is consumed by
+    # Onetime::Customer#consume_pending_plan_intent! at the authenticated
+    # plans-flow entry (Billing::Controllers::BillingController
+    # #subscription_status), bounded by the field's 24h TTL until then.
     #
     # This module method is used by both the Rodauth hook and tests.
     #
@@ -72,7 +81,6 @@ module Auth::Config::Hooks
       intent = JSON.parse(customer.pending_plan_intent.value)
       return [nil, nil] unless intent.is_a?(Hash)
 
-      customer.pending_plan_intent.delete!
       [intent['product'], intent['interval']]
     rescue JSON::ParserError => ex
       logger&.call(ex)
@@ -118,9 +126,20 @@ module Auth::Config::Hooks
 
           # Fallback to Redis-backed pending_plan_intent if session keys are empty (issue #3130)
           # This handles the case where user signs up, verifies email, then logs in with fresh session.
-          # Note: New signups won't have MFA enabled (requires verified account + successful auth first).
-          # If flow changes to allow MFA setup before subscribing, both after_login and
-          # after_two_factor_authentication would call this — first clears intent, second is a no-op.
+          # Note: exactly ONE hook calls this per completed login (#4306): after_login
+          # guards on the MFA decision, so an MFA-gated login defers surfacing to
+          # after_two_factor_authentication — the intent survives the OTP hop untouched.
+          #
+          # REPLAY SEMANTICS (#4306): this is a PEEK, not a consume — the intent
+          # used to be deleted right here, at response-build time, which lost it
+          # forever when the client crashed after this response (e.g. its org
+          # fetch failed). Until the authenticated handoff succeeds, repeated
+          # logins MAY re-surface the same billing_redirect: that is intended
+          # (retry-on-failure), harmless because navigateAfterAuth immediately
+          # routes into the flow that consumes it, and bounded by the 24h TTL.
+          # Consumption happens at the plans-flow entry — see
+          # Onetime::Customer#consume_pending_plan_intent! and its caller,
+          # Billing::Controllers::BillingController#subscription_status.
           if product.nil? && interval.nil? && account
             product, interval = extract_pending_plan_intent_from_customer
           end
@@ -231,7 +250,8 @@ module Auth::Config::Hooks
       # Instead, login.rb, account.rb, and two_factor.rb call billing methods
       # conditionally:
       # - before_login_attempt: calls capture_plan_selection if defined
-      # - after_login: calls add_billing_redirect_to_response if defined
+      # - after_login: calls add_billing_redirect_to_response if defined AND no
+      #   second factor is pending (MFA logins defer to the two-factor hook, #4306)
       # - before_create_account: calls capture_plan_selection if defined
       # - after_create_account: calls add_billing_redirect_to_response if defined
       # - after_two_factor_authentication: calls add_billing_redirect_to_response if defined

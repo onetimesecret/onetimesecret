@@ -371,7 +371,15 @@ module Auth::Config::Hooks
         # Billing.configure defines add_billing_redirect_to_response via auth_class_eval,
         # so the method is only available when billing is enabled. Check respond_to?
         # to avoid NoMethodError when billing is disabled (self-hosted).
-        if json_request? && respond_to?(:add_billing_redirect_to_response)
+        #
+        # Only when this login is COMPLETE (no second factor pending) — the same
+        # condition that picked branch 3a/3b above. add_billing_redirect_to_response
+        # consumes the plan intent (deletes the Redis key and session keys), and the
+        # SPA never reads billing_redirect off the mfa_required response, so consuming
+        # here on an MFA-gated login would silently discard the selected plan (#4306).
+        # For MFA logins the intent survives untouched and is consumed by the
+        # after_two_factor_authentication hook instead (two_factor.rb).
+        if json_request? && !mfa_decision&.requires_mfa? && respond_to?(:add_billing_redirect_to_response)
           add_billing_redirect_to_response
         end
       end

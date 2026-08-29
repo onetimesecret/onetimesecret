@@ -378,6 +378,41 @@ module Billing
       def subscription_status
         org = load_organization(req.params['extid'])
 
+        # Deferred consumption of the signup/login plan intent (issue #4306).
+        #
+        # The auth hooks surface billing_redirect on login/two-factor/verify
+        # responses by PEEKING at customer.pending_plan_intent — they no longer
+        # delete it, so an interrupted handoff (client crash after the login
+        # response, failed org fetch, ...) can retry on the next login. This
+        # endpoint is the handoff target: it is called exactly once per
+        # plans-page mount (PlanSelector.vue is its only caller — the SPA
+        # lands on /billing/:extid/plans and fetches subscription state), by
+        # the authenticated customer the intent belongs to. Consuming here —
+        # not at response-build time — is what makes "consumed once the
+        # authenticated handoff succeeds" true.
+        #
+        # Scoped strictly to `cust` (the session-authenticated customer, never
+        # derived from request params) and placed after load_organization so a
+        # 403 probe cannot burn someone else's intent. Idempotent no-op when
+        # absent. Best-effort: a Redis hiccup must not fail the subscription
+        # lookup the plans page depends on.
+        begin
+          if cust && !cust.anonymous? && cust.consume_pending_plan_intent!
+            billing_logger.info 'Consumed pending plan intent at plans-flow entry',
+              {
+                user: cust.extid,
+                extid: org.extid,
+              }
+          end
+        rescue StandardError => ex
+          billing_logger.error 'Failed to consume pending plan intent',
+            {
+              exception: ex,
+              user: cust&.extid,
+              extid: org.extid,
+            }
+        end
+
         unless org.active_subscription?
           data = {
             has_active_subscription: false,

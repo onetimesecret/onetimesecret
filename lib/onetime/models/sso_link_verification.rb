@@ -38,8 +38,8 @@ module Onetime
   # The token id is the Redis key. The record self-expires after DEFAULT_EXPIRATION
   # seconds (== 15 min, criterion 3), and POST /auth/sso-link-confirm DELETES it
   # (#delete!) as the atomic single-use gate BEFORE it binds. Mirrors the shipped
-  # delete-on-consume patterns: SsoLinkChallenge, Customer#pending_plan_intent,
-  # OrganizationMembership#accept!.
+  # delete-on-consume patterns: SsoLinkChallenge,
+  # Customer#consume_pending_plan_intent!, OrganizationMembership#accept!.
   #
   # ## Deltas vs SsoLinkChallenge (Phase 3)
   #

@@ -142,7 +142,11 @@ module Onetime
     # Persists plan selection through email verification flow.
     # JSON structure: {"product": "identity_plus_v1", "interval": "yearly",
     #                  "captured_at": "2026-05-14T10:30:00Z", "source_url": "/billing/plans/..."}
-    # Single-use: cleared after successful verification redirect.
+    # Single-use, but consumed LATE (issue #4306): login/verify hooks only
+    # PEEK at it when they surface billing_redirect; it is deleted once the
+    # authenticated client actually enters the billing plans flow — see
+    # #consume_pending_plan_intent! below. The 24h TTL bounds its lifetime
+    # when the handoff never happens.
     string :pending_plan_intent, default_expiration: 24.hours
 
     # Persists the post-auth return destination through the email verification
@@ -256,6 +260,26 @@ module Onetime
     # @return [Boolean] true if notifications enabled, false otherwise (default)
     def notify_on_reveal?
       notify_on_reveal.to_s == 'true'
+    end
+
+    # Consumes (deletes) the pending plan intent at the authenticated billing
+    # handoff (issue #4306).
+    #
+    # The auth hooks that surface billing_redirect on login/two-factor/verify
+    # responses only PEEK at the intent
+    # (Auth::Config::Hooks::Billing.extract_pending_plan_intent), so a client
+    # that crashes between "login response received" and "landed on the plans
+    # page" can retry on its next login. THIS is the single consumption point,
+    # called when the authenticated customer actually enters the billing plans
+    # flow (Billing::Controllers::BillingController#subscription_status). After
+    # it runs, subsequent logins carry no billing_redirect — the intent cannot
+    # be replayed.
+    #
+    # Idempotent: deleting an absent key is a no-op.
+    #
+    # @return [Boolean] true when a stored intent was deleted
+    def consume_pending_plan_intent!
+      pending_plan_intent.delete!.to_i.positive?
     end
 
     # Allowlist of fields accessible via hash-like [] access.
