@@ -206,6 +206,7 @@ RSpec.describe 'OmniAuth sign-in interstitial (#3840 Phase 3)', type: :integrati
       email      = "ok-#{SecureRandom.hex(6)}@company.example.com"
       uid        = "sub-#{SecureRandom.hex(8)}"
       account_id = seed_account_with_password(email)
+      allow(Auth::Logging).to receive(:log_auth_event).and_call_original
 
       begin
         response = sso_callback(email: email, uid: uid)
@@ -218,6 +219,11 @@ RSpec.describe 'OmniAuth sign-in interstitial (#3840 Phase 3)', type: :integrati
           "Expected a Rodauth login response, got #{result.status}: #{result.body}"
         body = JSON.parse(result.body)
         expect(body).to have_key('success')
+
+        # The password check is a Rodauth internal request; only the actual
+        # login that establishes this session may be recorded as a login.
+        expect(Auth::Logging).to have_received(:log_auth_event)
+          .with(:login_success, hash_including(account_id: account_id)).once
 
         # The bind: exactly one (provider, uid) row, on the proven account.
         rows = identities.where(provider: 'oidc', uid: uid).all

@@ -3,7 +3,8 @@
 // Contract snapshot tests that verify the frontend Zod schema declares
 // all fields the backend sends. Prevents silent field stripping (issue #2685).
 
-import { domainIconMetaCanonical } from '@/schemas/contracts/custom-domain';
+import { domainIconMetaCanonical, vhostCanonical } from '@/schemas/contracts/custom-domain';
+import { vhostSchema } from '@/schemas/shapes/v2/custom-domain/vhost';
 import { customDomainSchema } from '@/schemas/shapes/v3/custom-domain';
 import { describe, expect, it } from 'vitest';
 
@@ -33,20 +34,15 @@ describe('CustomDomain schema contract (safe_dump_fields)', () => {
       (f) => !(f in INTENTIONAL_EXCLUSIONS)
     );
 
-    it.each(backendFields)(
-      'customDomainSchema declares backend field "%s"',
-      (field) => {
-        expect(schemaKeys).toContain(field);
-      }
-    );
+    it.each(backendFields)('customDomainSchema declares backend field "%s"', (field) => {
+      expect(schemaKeys).toContain(field);
+    });
 
     it('all intentional exclusions reference real backend fields', () => {
       // Guard against stale exclusions: every key in INTENTIONAL_EXCLUSIONS
       // must actually exist in the backend field list.
       for (const excluded of Object.keys(INTENTIONAL_EXCLUSIONS)) {
-        expect(
-          CUSTOM_DOMAIN_SAFE_DUMP_FIELDS as readonly string[]
-        ).toContain(excluded);
+        expect(CUSTOM_DOMAIN_SAFE_DUMP_FIELDS as readonly string[]).toContain(excluded);
       }
     });
 
@@ -137,6 +133,15 @@ describe('CustomDomain schema contract (safe_dump_fields)', () => {
         expect(result.error.issues).toEqual([]);
       }
       expect(result.success).toBe(true);
+    });
+  });
+
+  describe('vhost keep_host compatibility', () => {
+    it('accepts the upstream boolean and legacy string encodings', () => {
+      for (const keep_host of [true, false, 'true', 'false']) {
+        expect(vhostCanonical.safeParse({ keep_host }).success).toBe(true);
+        expect(vhostSchema.safeParse({ keep_host }).success).toBe(true);
+      }
     });
   });
 
