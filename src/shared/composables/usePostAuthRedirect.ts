@@ -218,9 +218,14 @@ export function usePostAuthRedirect() {
       await router.push(`/billing/${org.extid}/plans?product=${product}&interval=${interval}`);
       return true;
     } catch (err) {
-      // Graceful degradation - if billing redirect fails, continue to dashboard
+      // Org resolution failed, but the plan intent itself is still valid —
+      // don't drop it. Push the extid-less plans route; its guard
+      // (createBillingRedirect) retries org resolution and forwards the
+      // query, so a transient fetch failure no longer loses the selection.
+      // RAW string on purpose: a `{ path }` object push strips the query.
       loggingService.error(new Error(`Billing redirect failed: ${err}`));
-      return false;
+      await router.push(`/billing/plans?product=${product}&interval=${interval}`);
+      return true;
     }
   }
 
