@@ -92,6 +92,23 @@ describe('createBillingRedirect guard', () => {
     expect(result).toEqual({ path: '/billing/org_abc123/plans' });
   });
 
+  it('preserves plan-selection query params when resolving the current organization', async () => {
+    mockOrganizations.push({ extid: 'org_abc123' });
+    const guards = getGuardsForPath('/billing/plans');
+    const redirect = guards[1] as unknown as (to: { query: object }) => Promise<{
+      path: string;
+      query: object;
+    }>;
+    const result = await redirect({
+      query: { product: 'identity_plus_v1', interval: 'monthly' },
+    });
+
+    expect(result).toEqual({
+      path: '/billing/org_abc123/plans',
+      query: { product: 'identity_plus_v1', interval: 'monthly' },
+    });
+  });
+
   it('fetches organizations when store is empty', async () => {
     mockFetchOrganizations.mockImplementation(() => {
       mockOrganizations.push({ extid: 'org_fetched' });

@@ -157,9 +157,10 @@ export function usePostAuthRedirect() {
         requestedProduct: product,
       }
     );
-    await router.push(
-      `/billing/${orgExtid}/plans?product=${product}&interval=${interval}&change=true`
-    );
+    await router.push({
+      path: `/billing/${orgExtid}/plans`,
+      query: { product, interval, change: 'true' },
+    });
     return true;
   }
 
@@ -215,7 +216,10 @@ export function usePostAuthRedirect() {
         product,
         interval,
       });
-      await router.push(`/billing/${org.extid}/plans?product=${product}&interval=${interval}`);
+      await router.push({
+        path: `/billing/${org.extid}/plans`,
+        query: { product, interval },
+      });
       return true;
     } catch (err) {
       // Graceful degradation - if billing redirect fails, continue to dashboard
