@@ -151,25 +151,30 @@ test.describe('Pending Plan Intent - Signup Flow', () => {
     await page.goto(`/pricing/${PLAN.product}/yearly`);
     await waitForAppReady(page);
 
-    // Find and click the CTA for the highlighted plan
-    const highlightedCard = page.locator('.ring-yellow-500, .ring-yellow-400').first();
-    const cardVisible = await highlightedCard.isVisible().catch(() => false);
+    // The CTA for the deep-linked plan, located by the BEHAVIOUR under test:
+    // Pricing.vue's getSignupUrl puts the plan id in the CTA href
+    // (/signup?product=<id>&interval=…). Located by href rather than by
+    // highlight-ring classes or "the first Get started link" — the highlight
+    // class is styling, and the first CTA on the page can be another tier's
+    // (the free plan's links to /signup with NO product at all), which is
+    // exactly the wrong-CTA flake repeat-runs surfaced here.
+    const planCta = page.locator(`a[href*="product=${PLAN.product}"]`).first();
 
-    if (!cardVisible) {
-      // Fall back to any paid plan CTA
-      const paidPlanCta = page.getByRole('link', { name: /get started/i }).first();
-      const ctaVisible = await paidPlanCta.isVisible().catch(() => false);
-      test.skip(!ctaVisible, 'No plan CTAs available - billing may be disabled');
-      await paidPlanCta.click();
-    } else {
-      const cta = highlightedCard.getByRole('link');
-      await cta.click();
-    }
+    // Plan cards render after the plans fetch, later than app-ready — so
+    // WAIT for the CTA, and only skip if it genuinely never appears
+    // (billing disabled on the target). An isVisible() snapshot here skips
+    // falsely whenever the check races the fetch.
+    const ctaAppeared = await planCta
+      .waitFor({ state: 'visible', timeout: 10_000 })
+      .then(() => true, () => false);
+    test.skip(!ctaAppeared, 'No plan CTAs available - billing may be disabled');
+
+    await planCta.click();
 
     // Verify redirect to signup with query params
     await expect(page).toHaveURL(/\/signup\?/);
     const url = new URL(page.url());
-    expect(url.searchParams.get('product')).toContain('identity_plus');
+    expect(url.searchParams.get('product')).toBe(PLAN.product);
     expect(url.searchParams.get('interval')).toBe('yearly');
   });
 
@@ -413,6 +418,21 @@ test.describe('Plan intent journey (issue #4306)', () => {
           `${PLAN.product}/${PLAN.interval} on the target)`
       ).toBe(EXPECTED_SIGNIN_REDIRECT);
 
+      // Registered BEFORE the navigation settles: this response is the tail
+      // end of the whole feature. The stored intent is no longer consumed at
+      // login-response build — the auth hooks only PEEK — it is consumed by
+      // BillingController#subscription_status when the plans page fetches
+      // subscription state on mount. A test that tears the context down as
+      // soon as the URL looks right aborts that in-flight fetch and the
+      // intent is never consumed at all (observed: entitlements/plans
+      // requests logged as aborted in the trace, zero consumption lines in
+      // the server log). Waiting for the response is what makes this test
+      // cover the deferred-consumption handoff, not just the redirect.
+      const subscriptionSettled = verifyPage.waitForResponse(
+        (r) => /\/billing\/api\/org\/[^/]+\/subscription/.test(r.url()),
+        { timeout: 30_000 }
+      );
+
       await signIn(verifyPage, email, SIGNUP_OPTIONS.password);
 
       // The login response replayed the stored intent as billing_redirect,
@@ -429,9 +449,16 @@ test.describe('Plan intent journey (issue #4306)', () => {
       expect(landed.searchParams.get('interval')).toBe(PLAN.interval);
       await waitForAppReady(verifyPage);
 
+      // The plans-flow entry point answered — the handoff the journey exists
+      // to deliver actually completed, and with it the deferred intent
+      // consumption on the server.
+      expect((await subscriptionSettled).status()).toBe(200);
+
       // Bonus, behaviour-level: PlanSelector consumed the query — the
-      // billing interval toggle preselects Monthly. Generous timeout: the
-      // toggle renders only after the plans catalog loads.
+      // billing interval toggle preselects Monthly. Honest caveat: 'month'
+      // is also the component's default, so on its own this can pass
+      // vacuously; it is asserted AFTER the subscription response above,
+      // i.e. after onMounted's query handling has provably run.
       await expect(
         verifyPage.getByTestId('billing-interval-month'),
         'PlanSelector should preselect the Monthly interval from the query'
