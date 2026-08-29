@@ -3,7 +3,7 @@
 import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import type { RouteRecordRaw } from 'vue-router';
+import type { RouteLocationNormalized, RouteRecordRaw } from 'vue-router';
 
 const standardLayoutProps = {
   displayMasthead: true,
@@ -32,9 +32,15 @@ function checkBillingEnabled() {
 
 /**
  * Creates a guard to redirect to /billing/:extid/:targetPage using the current org.
+ *
+ * The incoming query is forwarded verbatim: returning `{ path }` alone would
+ * silently drop it, and the post-signup plan intent depends on
+ * /billing/plans?product=…&interval=… (and ?change=true) surviving this
+ * rewrite (#4306). vue-router treats `path` as a bare path, so the query must
+ * be carried explicitly.
  */
 function createBillingRedirect(targetPage: string) {
-  return async () => {
+  return async (to: RouteLocationNormalized) => {
     const organizationStore = useOrganizationStore();
 
     if (organizationStore.organizations.length === 0) {
@@ -45,7 +51,7 @@ function createBillingRedirect(targetPage: string) {
     if (!org) {
       return { name: 'Dashboard' };
     }
-    return { path: `/billing/${org.extid}/${targetPage}` };
+    return { path: `/billing/${org.extid}/${targetPage}`, query: to.query };
   };
 }
 
