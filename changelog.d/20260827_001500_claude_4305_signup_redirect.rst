@@ -32,6 +32,12 @@ Security
   percent-encoded traversal, and scheme-smuggling forms rejected at every
   trust boundary.
 
+- The authentication log records only the leading path segment of an
+  accepted redirect, never the full value. Accepted destinations are
+  routinely bearer credentials in their own right (``/invite/<token>``,
+  ``/secret/<key>``), and the log stream has a longer lifetime and a wider
+  audience than the link does.
+
 AI Assistance
 -------------
 
