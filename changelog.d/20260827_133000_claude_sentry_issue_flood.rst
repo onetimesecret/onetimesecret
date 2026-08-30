@@ -13,6 +13,9 @@ Fixed
 - Custom-domain lists accept proxy ``vhost.keep_host`` values provided as
   booleans.
 
+- Diagnostic reports no longer carry secret or receipt identifiers in event
+  grouping keys or in the request-context path.
+
 Changed
 -------
 
