@@ -92,12 +92,13 @@ module Auth::Config::Hooks
         # verifies with the internal request but establishes the session with its
         # own `rodauth.login('password')` on the actual route.
         #
-        # respond_to? takes the include_all argument because internal_request?
-        # is PRIVATE on the Rodauth instance; the one-argument form returns
-        # false for it and the guard would never fire. The feature is enabled
-        # unconditionally today (config/base.rb), so the guard is for a future
-        # conditional enablement — same defensive shape as
-        # hooks/create_account.rb.
+        # The include_all argument is MANDATORY, not stylistic:
+        # internal_request? is private on the Rodauth instance (base.rb
+        # defines it after its `private`, and the internal-request subclass
+        # overrides it the same way), so the one-argument respond_to? returns
+        # false and the guard would silently never fire. The respond_to? is
+        # house style — it is defined on Rodauth::Base, so it is always there
+        # regardless of which features are enabled.
         next if respond_to?(:internal_request?, true) && internal_request?
 
         correlation_id = session[:auth_correlation_id]
