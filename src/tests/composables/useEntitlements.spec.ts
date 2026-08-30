@@ -8,7 +8,7 @@ import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { organizationSchema } from '@/schemas/shapes/organizations/organization';
 import type { Organization } from '@/types/organization';
 import {
-  createMockOrganization as createWireOrganization,
+  createMockOrganization as createMockOrganizationWire,
   mockOrganizations,
   type OrganizationWire,
 } from '../fixtures/billing.fixture';
@@ -25,7 +25,7 @@ vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key: string) => `translated:$
 // for mocking API responses. Parse through the production schema so tests
 // feed the composable the same shape the real store produces.
 const mockOrg = (overrides: Partial<OrganizationWire> = {}): Organization =>
-  organizationSchema.parse(createWireOrganization(overrides));
+  organizationSchema.parse(createMockOrganizationWire(overrides));
 
 const freeOrg = organizationSchema.parse(mockOrganizations.free);
 
