@@ -1,0 +1,57 @@
+# compose.e2e.yml — services needed only by the full-auth E2E lane.
+#
+# Root compose files (CP-13 naming convention): this file holds test services
+# that only .github/workflows/e2e-full-auth.yml consumes. It shares the
+# ots-test project name with compose.test.yml so the two files merge cleanly:
+#
+#   docker compose -f compose.test.yml -f compose.e2e.yml up --wait -d valkey rabbitmq mailpit
+#   docker compose -f compose.test.yml -f compose.e2e.yml down --volumes
+#
+# DELIBERATELY kept out of compose.test.yml: bin/setup --test derives its
+# required-port probe from a text-level grep of that file's 127.0.0.1:PORT:
+# lines, and both bin/setup --test and tests/lanes/run run a bare
+# `up --wait -d` against it — so any service in compose.test.yml becomes a
+# hard dependency of every unit/integration lane, including externally-managed
+# setups with no container runtime at all. A service in THIS file is opt-in
+# per invocation, never a dependency of those lanes. (Compose profiles would
+# not help: the grep cannot see them.)
+#
+# PORT SCHEME: same rules as compose.test.yml. Mailpit's two canonical ports
+# (1025 SMTP, 8025 HTTP) both end in 25, so the plain "21 + last two digits"
+# rule would map them onto the same 2125. The HTTP one takes the runner-only
+# control-plane form the RabbitMQ management API already established — "1"
+# prefixed to the service's primary test port — giving 12125. Same shape, same
+# reasoning: the port a test SENDS to keeps the 21xx form, the port a test
+# READS state from is the 121xx variant.
+#
+#   mailpit    2125   (canonical 1025; SMTP)
+#   mailpit    12125  (canonical 8025; message HTTP API + web UI)
+
+name: ots-test
+
+services:
+  mailpit:
+    # SMTP sink for the lanes that must read a REAL delivered email rather
+    # than stub the mail step — account verification, org invitations, magic
+    # links. e2e/support/mailpit.ts polls the HTTP API below; the app is
+    # pointed at the SMTP port via EMAILER_MODE=smtp + SMTP_HOST/SMTP_PORT.
+    #
+    # Distinct from docker/compose/docker-compose.mailpit.yml, which is the
+    # DEV sidecar and deliberately keeps the canonical 1025/8025 ports. Same
+    # separation as every other test service: a leaked dev config can never
+    # reach the test instance, and a test run can never read dev mail.
+    image: axllent/mailpit:v1.29.7@sha256:757f22b56c1da03570afdb3d259effe5091018008a81bbedc8158cee7e16fdbc
+    # No persistence flags: the store is in-memory by default, so every
+    # `up` starts from an empty mailbox and `down` takes it with it.
+    ports:
+      - '127.0.0.1:2125:1025'
+      - '127.0.0.1:12125:8025'
+    healthcheck:
+      # Same probe the image already ships (ENTRYPOINT is /mailpit, which
+      # carries a `readyz` subcommand — there is no shell to write a curl
+      # probe with), restated here on a tighter interval so `up --wait`
+      # returns in seconds instead of the image's 15s cadence.
+      test: ['CMD', '/mailpit', 'readyz']
+      interval: 5s
+      timeout: 5s
+      retries: 10

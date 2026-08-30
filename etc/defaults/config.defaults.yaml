@@ -405,12 +405,19 @@ site:
     # Cookie name
     key: 'onetime.session'
     # Require HTTPS for cookies (recommended: true in production)
-    # OMIT the key entirely when SSL env is not 'true' so boot.rb's ssl_enabled?
+    # OMIT the key entirely when SSL env is unset so boot.rb's ssl_enabled?
     # fallback can default this to true in production / when site.ssl is on.
     # (Emitting `null` here fails schema validation — the contract is
     # boolean-or-absent, not boolean-or-null; see site.ts `secure`.)
+    # The exact string 'false' emits secure: false — SSL=false declares a
+    # plain-HTTP deployment, and a Secure cookie there is never written at
+    # all (Session refuses it), which silently breaks every session and every
+    # session-backed CSRF check. A TLS-proxied deployment sets SSL=true (it
+    # needs https:// links anyway), so it is unaffected.
     <% if ENV['SSL'] == 'true' %>
     secure: true
+    <% elsif ENV['SSL'] == 'false' %>
+    secure: false
     <% end %>
     # SameSite cookie attribute (strict|lax|none)
     # Required for Stripe/OAuth redirects - 'strict' blocks cookies on cross-site GET navigations

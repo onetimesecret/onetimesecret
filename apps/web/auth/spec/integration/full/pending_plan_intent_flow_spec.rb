@@ -14,7 +14,7 @@
 # 2. after_create_account captures intent to Customer.pending_plan_intent
 # 3. User verifies email (simulated by calling verify_account endpoint)
 # 4. after_verify_account surfaces intent -> sets session redirect
-# 5. verify_account_redirect reads session -> redirects to /billing/plans/X/Y
+# 5. verify_account_redirect reads session -> redirects to /billing/plans?product=X&interval=Y
 #
 # REQUIREMENTS:
 # - Valkey running on port 2163: pnpm run test:database:start
@@ -221,7 +221,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       end
 
       # Set session redirect
-      session['plan_checkout_redirect'] = "/billing/plans/#{product}/#{interval}"
+      session['plan_checkout_redirect'] = "/billing/plans?#{URI.encode_www_form(product: product, interval: interval)}"
 
       { surfaced: true, product: product, interval: interval }
     end
@@ -246,7 +246,7 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
       result = surface_plan_intent(customer: customer, session: session)
 
       expect(result[:surfaced]).to be true
-      expect(session['plan_checkout_redirect']).to eq('/billing/plans/identity_plus_v1/monthly')
+      expect(session['plan_checkout_redirect']).to eq('/billing/plans?product=identity_plus_v1&interval=monthly')
     end
 
     it 'clears intent after surfacing (single-use)' do
@@ -359,11 +359,11 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
     end
 
     it 'returns checkout URL when intent was surfaced' do
-      session = { 'plan_checkout_redirect' => '/billing/plans/identity_plus_v1/monthly' }
+      session = { 'plan_checkout_redirect' => '/billing/plans?product=identity_plus_v1&interval=monthly' }
 
       redirect = verify_account_redirect(session)
 
-      expect(redirect).to eq('/billing/plans/identity_plus_v1/monthly')
+      expect(redirect).to eq('/billing/plans?product=identity_plus_v1&interval=monthly')
       expect(session).not_to have_key('plan_checkout_redirect')
     end
 
@@ -376,12 +376,12 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
     end
 
     it 'clears session key after reading (single-use)' do
-      session = { 'plan_checkout_redirect' => '/billing/plans/team_plus_v1/yearly' }
+      session = { 'plan_checkout_redirect' => '/billing/plans?product=team_plus_v1&interval=yearly' }
 
       first_redirect = verify_account_redirect(session)
       second_redirect = verify_account_redirect(session)
 
-      expect(first_redirect).to eq('/billing/plans/team_plus_v1/yearly')
+      expect(first_redirect).to eq('/billing/plans?product=team_plus_v1&interval=yearly')
       expect(second_redirect).to eq('/account') # Key was deleted
     end
   end
@@ -408,25 +408,25 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
     it 'constructs correct URL for identity_plus monthly' do
       product = 'identity_plus_v1'
       interval = 'monthly'
-      url = "/billing/plans/#{product}/#{interval}"
+      url = "/billing/plans?#{URI.encode_www_form(product: product, interval: interval)}"
 
-      expect(url).to eq('/billing/plans/identity_plus_v1/monthly')
+      expect(url).to eq('/billing/plans?product=identity_plus_v1&interval=monthly')
     end
 
     it 'constructs correct URL for team_plus yearly' do
       product = 'team_plus_v1'
       interval = 'yearly'
-      url = "/billing/plans/#{product}/#{interval}"
+      url = "/billing/plans?#{URI.encode_www_form(product: product, interval: interval)}"
 
-      expect(url).to eq('/billing/plans/team_plus_v1/yearly')
+      expect(url).to eq('/billing/plans?product=team_plus_v1&interval=yearly')
     end
 
     it 'handles special characters in product name' do
       product = 'plan-with-dashes_v1'
       interval = 'monthly'
-      url = "/billing/plans/#{product}/#{interval}"
+      url = "/billing/plans?#{URI.encode_www_form(product: product, interval: interval)}"
 
-      expect(url).to eq('/billing/plans/plan-with-dashes_v1/monthly')
+      expect(url).to eq('/billing/plans?product=plan-with-dashes_v1&interval=monthly')
     end
   end
 
@@ -743,6 +743,104 @@ RSpec.describe 'Pending plan intent flow (issue #3126)', type: :integration do
         response_body = JSON.parse(last_response.body)
         expect(response_body).not_to have_key('billing_redirect')
       end
+    end
+  end
+
+  # ==========================================================================
+  # Pending auth redirect (issue #4305)
+  # ==========================================================================
+  #
+  # Sibling mechanism to pending_plan_intent above, same reason for existing:
+  # the verification email link is routinely opened in a FRESH browser
+  # session, so the `?redirect=` the user started signup with cannot ride
+  # along in the session. It is persisted on the Customer and surfaced from
+  # after_verify_account.
+  #
+  # These exercise the REAL Redis round trip and the REAL validator; the
+  # response-shaping half (json_response[:redirect]) needs a live Rodauth
+  # instance and is covered in
+  # apps/web/auth/spec/config/hooks/pending_auth_redirect_spec.rb.
+
+  describe 'pending_auth_redirect persistence' do
+    def new_customer_for(email)
+      account = create_test_account(email: email)
+      customer = Auth::Operations::CreateCustomer.new(
+        account_id: account[:id],
+        account: account,
+        db: Auth::Database.connection
+      ).call
+      created_customers << customer
+      customer
+    end
+
+    it 'declares the field on the model' do
+      expect(Onetime::Customer.new).to respond_to(:pending_auth_redirect)
+    end
+
+    it 'round-trips an internal path verbatim, query string and fragment included' do
+      customer = new_customer_for(unique_test_email('redirect-roundtrip'))
+      path     = '/secret/abc?view=raw#content'
+
+      customer.pending_auth_redirect = path
+
+      reloaded = Onetime::Customer.find_by_extid(customer.extid)
+      expect(reloaded.pending_auth_redirect.value).to eq(path)
+    end
+
+    it 'survives a completely fresh Customer load (fresh-browser-session case)' do
+      customer = new_customer_for(unique_test_email('redirect-fresh'))
+      customer.pending_auth_redirect = '/account/settings/security'
+
+      # No session, no cookie: the only thing carrying the destination is the
+      # Customer record, which is the entire point of the field.
+      fresh = Onetime::Customer.find_by_extid(customer.extid)
+      expect(fresh.pending_auth_redirect.value).to eq('/account/settings/security')
+    end
+
+    it 'is empty for a signup that carried no redirect' do
+      customer = new_customer_for(unique_test_email('redirect-absent'))
+
+      expect(customer.pending_auth_redirect.value.to_s).to eq('')
+    end
+
+    it 'is single-use: deleted on consume' do
+      customer = new_customer_for(unique_test_email('redirect-single-use'))
+      customer.pending_auth_redirect = '/account'
+
+      stored = customer.pending_auth_redirect.value
+      customer.pending_auth_redirect.delete!
+
+      expect(stored).to eq('/account')
+      expect(customer.pending_auth_redirect.value.to_s).to eq('')
+
+      fresh = Onetime::Customer.find_by_extid(customer.extid)
+      expect(fresh.pending_auth_redirect.value.to_s).to eq('')
+    end
+
+    it 'only ever stores values the production validator accepts' do
+      # The capture branch gates on this exact call, so a hostile value never
+      # reaches Redis in the first place.
+      hostile = ['https://attacker.example', '//evil.example', '/\\evil.example', '/%2e%2e/admin']
+      hostile.each do |value|
+        expect(OT::Utils.safe_internal_path?(value)).to be(false), "expected #{value.inspect} to be rejected"
+      end
+
+      expect(OT::Utils.safe_internal_path?('/secret/abc?view=raw#content')).to be true
+    end
+
+    it 'is independent of pending_plan_intent' do
+      customer = new_customer_for(unique_test_email('redirect-independent'))
+
+      customer.pending_plan_intent   = { product: 'identity_plus_v1', interval: 'monthly' }.to_json
+      customer.pending_auth_redirect = '/account/settings/security'
+
+      # Consuming one must not disturb the other: precedence is resolved in
+      # the hook, not by one field clobbering the other's storage.
+      customer.pending_plan_intent.delete!
+
+      fresh = Onetime::Customer.find_by_extid(customer.extid)
+      expect(fresh.pending_plan_intent.value.to_s).to eq('')
+      expect(fresh.pending_auth_redirect.value).to eq('/account/settings/security')
     end
   end
 end

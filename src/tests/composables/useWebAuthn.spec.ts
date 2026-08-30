@@ -18,12 +18,15 @@ vi.mock('vue-i18n', () => ({
   }),
 }));
 
-// Mock vue-router
+// Mock vue-router. usePostAuthRedirect (reached from authenticateWebAuthn)
+// reads route.query, so useRoute has to be supplied too.
 const mockRouterPush = vi.fn();
+const mockRoute = { query: {} as Record<string, string> };
 vi.mock('vue-router', () => ({
   useRouter: () => ({
     push: mockRouterPush,
   }),
+  useRoute: () => mockRoute,
 }));
 
 describe('useWebAuthn', () => {
@@ -33,6 +36,7 @@ describe('useWebAuthn', () => {
     const setup = await setupTestPinia();
     axiosMock = setup.axiosMock!;
     mockRouterPush.mockClear();
+    mockRoute.query = {};
   });
 
   afterEach(() => {
@@ -172,6 +176,51 @@ describe('useWebAuthn', () => {
       expect(verifyBody).toHaveProperty('shrimp');
       expect(verifyBody).not.toHaveProperty('webauthn_login');
       expect(verifyBody).not.toHaveProperty('webauthn_login_challenge');
+    });
+
+    it('honours a validated ?redirect after passwordless login', async () => {
+      // webauthn-login is the PRIMARY factor, so the session is complete here
+      // and the destination the user arrived with must survive — this path
+      // used to hard-push '/'. Query and hash ride along in the string.
+      mockRoute.query = { redirect: '/secret/abc?view=raw#content' };
+
+      const { startAuthentication } = await import('@simplewebauthn/browser');
+      vi.mocked(startAuthentication).mockResolvedValue({ id: 'credential-id' } as any);
+
+      axiosMock.onPost('/auth/webauthn-login').replyOnce(422, {
+        error: 'There was an error authenticating via WebAuthn',
+        webauthn_auth: { challenge: 'test-challenge' },
+        webauthn_auth_challenge: 'challenge-data',
+        webauthn_auth_challenge_hmac: 'hmac-data',
+      });
+      axiosMock.onPost('/auth/webauthn-login').replyOnce(200, { success: 'Authenticated' });
+      axiosMock.onGet('/bootstrap/me').reply(200, { authenticated: true });
+
+      const { authenticateWebAuthn } = useWebAuthn();
+      expect(await authenticateWebAuthn('user@example.com')).toBe(true);
+
+      expect(mockRouterPush).toHaveBeenCalledWith('/secret/abc?view=raw#content');
+    });
+
+    it('drops an external redirect param and falls back to /', async () => {
+      mockRoute.query = { redirect: 'https://evil.example/phish' };
+
+      const { startAuthentication } = await import('@simplewebauthn/browser');
+      vi.mocked(startAuthentication).mockResolvedValue({ id: 'credential-id' } as any);
+
+      axiosMock.onPost('/auth/webauthn-login').replyOnce(422, {
+        error: 'There was an error authenticating via WebAuthn',
+        webauthn_auth: { challenge: 'test-challenge' },
+        webauthn_auth_challenge: 'challenge-data',
+        webauthn_auth_challenge_hmac: 'hmac-data',
+      });
+      axiosMock.onPost('/auth/webauthn-login').replyOnce(200, { success: 'Authenticated' });
+      axiosMock.onGet('/bootstrap/me').reply(200, { authenticated: true });
+
+      const { authenticateWebAuthn } = useWebAuthn();
+      expect(await authenticateWebAuthn('user@example.com')).toBe(true);
+
+      expect(mockRouterPush).toHaveBeenCalledWith('/');
     });
 
     it('tolerates a 2xx challenge body carrying the same keys', async () => {

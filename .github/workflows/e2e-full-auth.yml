@@ -1,0 +1,414 @@
+# .github/workflows/e2e-full-auth.yml
+---
+# ==============================================================================
+# E2E Full Auth — the browser lane for journeys that need a REAL email
+# ==============================================================================
+# Container E2E (e2e.yml) boots the OCI image with AUTH_AUTOVERIFY=true and
+# EMAILER_MODE=logger: no verification email is ever sent, so the entire
+# "signup → email → verify link → signin" half of the auth surface has no
+# browser coverage there. That is the half issue #4305 lives in, and
+# e2e/auth/signup-redirect-preservation.spec.ts is the guard for it. This lane
+# exists to run it.
+#
+# WHAT MAKES THIS LANE DIFFERENT (each item is load-bearing, see the spec
+# header at e2e/auth/signup-redirect-preservation.spec.ts:34-45):
+#
+#   AUTHENTICATION_MODE=full      Rodauth is mounted; /verify-account exists.
+#   AUTH_AUTOVERIFY=false         accounts are NOT verified on creation, so a
+#                                 verification email is actually generated.
+#   RACK_ENV=production           etc/defaults/auth.defaults.yaml force-disables
+#                                 the verify_account feature whenever
+#                                 RACK_ENV=test. Not a stylistic choice: under
+#                                 `test` this lane would silently test nothing.
+#   EMAILER_MODE=smtp + Mailpit   the email is really sent, over SMTP, and read
+#                                 back over Mailpit's HTTP API by the spec.
+#   JOBS_ENABLED=true + a worker  mail is ENQUEUED by the web process onto
+#                                 RabbitMQ and delivered by EmailWorker. This
+#                                 mirrors production; with jobs off the
+#                                 Publisher's :sync fallback would deliver
+#                                 inline and the queue path would go untested.
+#
+# The lane runs on the runner (bin/setup + pnpm run build + bin/ots server),
+# the same shape as visual.yml — NOT the baked OCI image e2e.yml uses. The
+# authdb is boot-migrated sqlite under tmp/ (apps/web/auth/database.rb
+# ensure_migrations!), so full auth mode needs no Postgres sidecar.
+# ==============================================================================
+name: E2E Full Auth
+
+on:
+  workflow_dispatch:
+  pull_request:
+    # No `branches:` filter, unlike e2e.yml: stacked PRs (base = a feature
+    # branch) must exercise this lane too, or a change lands on the feature
+    # branch untested and the eventual PR to main is the first real run. The
+    # paths filter below is what keeps this lane off unrelated PRs.
+    paths:
+      # The suite and its harness
+      - 'e2e/**'
+      - '.github/workflows/e2e-full-auth.yml'
+      - 'compose.test.yml'
+      - 'compose.e2e.yml'
+      # What the browser renders
+      - 'src/**'
+      - 'templates/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'vite.config.ts'
+      # The auth surface itself: Rodauth config, hooks, the verify/signin
+      # routes, and the redirect plumbing this lane exists to guard.
+      - 'apps/web/auth/**'
+      - 'etc/auth.yaml'
+      - 'etc/defaults/auth.defaults.yaml'
+      # Backend: the signup logic class, the mail delivery backends, the job
+      # publisher and the EmailWorker are all in this tree.
+      - 'lib/onetime/**'
+      # This lane boots the app on the runner, so its boot surface is part of
+      # its trigger surface: the seeded config (holding the autoverify, rate-
+      # limit, emailer and jobs knobs this lane sets), the gem lockfile, the
+      # entrypoint and the rack config.
+      - 'etc/defaults/config.defaults.yaml'
+      - 'Gemfile.lock'
+      - 'bin/ots'
+      - 'config.ru'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  APP_PORT: '7143'
+  APP_URL: http://localhost:7143
+  MAILPIT_URL: http://127.0.0.1:12125
+  SERVER_LOG: tmp/e2e-full-auth-server.log
+  WORKER_LOG: tmp/e2e-full-auth-worker.log
+
+jobs:
+  e2e-full-auth:
+    name: signup → verify email → signin (real SMTP)
+    runs-on: ubuntu-24.04
+    # Must exceed Playwright's globalTimeout (20 min, e2e/playwright.config.ts)
+    # plus setup, build, boot and artifact upload — a cold bundle install +
+    # pnpm install + frontend build alone can take ~10 min, and if the job
+    # timeout fires before globalTimeout the `if: always()` artifact steps die
+    # with it, which is exactly the run whose traces are needed.
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      # Services come from compose.test.yml plus compose.e2e.yml (same
+      # ots-test project; the e2e file holds services only this lane uses,
+      # kept out of compose.test.yml so bin/setup's port probe and the lanes'
+      # bare `up` never depend on them). valkey = app datastore, rabbitmq =
+      # the job queue the verification email travels on, mailpit = the
+      # mailbox the spec reads it back out of.
+      - name: Start test services (valkey, rabbitmq, mailpit)
+        run: docker compose -f compose.test.yml -f compose.e2e.yml up --wait -d valkey rabbitmq mailpit
+
+      - name: Setup Ruby (.ruby-version)
+        uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1.319.0
+        with:
+          bundler-cache: false # bin/setup runs `bundle install` itself
+
+      - name: Setup Node (.node-version)
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: '.node-version'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - name: Setup Python (locales:sync)
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.14'
+
+      # Same preflight contract as visual.yml and the bare-metal boot lane:
+      # gems, node_modules, generated/locales, generated/schemas, seeded etc/.
+      # The seeded etc/config.yaml is a verbatim copy of
+      # etc/defaults/config.defaults.yaml, so every ENV knob this workflow sets
+      # is still live after seeding.
+      - name: Run bin/setup
+        run: bin/setup
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Install Playwright browser
+        run: pnpm exec playwright install chromium --with-deps
+
+      # bin/ots server serves public/web/dist statically; no bundle, no app.
+      - name: Build frontend assets
+        run: pnpm run build
+
+      # SECRET / AUTH_SECRET / SESSION_SECRET / ARGON2_SECRET etc., ephemeral
+      # and job-scoped, into $GITHUB_ENV.
+      - name: Generate ephemeral test secrets
+        uses: ./.github/actions/generate-test-secrets
+
+      # Provision the lane env ONCE into $GITHUB_ENV so the server, the worker
+      # and the Playwright process all agree. Splitting it across three step
+      # `env:` blocks is how a lane ends up with a web process publishing to one
+      # broker and a worker consuming from another.
+      - name: Provision full-auth lane env
+        run: |
+          {
+            echo "RACK_ENV=production"
+            echo "LANG=en_US.UTF-8"
+            echo "SSL=false"
+            echo "HOST=localhost:${APP_PORT}"
+            # Plain text, not the default ANSI 'color' formatter: these logs
+            # are read out of an artifact zip and grepped by the readiness
+            # gate below, and escape codes help neither.
+            echo "LOG_FORMATTER=default"
+
+            # --- Auth: full mode, verification REQUIRED --------------------
+            # AUTH_AUTOVERIFY=false is the config default; stated anyway
+            # because an autoverified account sends no email at all and the
+            # whole lane would pass vacuously.
+            echo "AUTHENTICATION_MODE=full"
+            echo "AUTH_AUTOVERIFY=false"
+            echo "AUTH_VERIFY_ACCOUNT_ENABLED=true"
+            echo "AUTH_SIGNUP=true"
+            echo "AUTH_SIGNIN=true"
+            # Boot-migrated sqlite authdb — the same path compose-smoke and
+            # visual.yml exercise. The engine is irrelevant to this journey.
+            echo "AUTH_DATABASE_URL=sqlite://tmp/e2e-full-auth.db"
+            # Full mode + RACK_ENV=production requires this; it is not one of
+            # the names generate-test-secrets exports.
+            echo "ACCOUNT_ID_SECRET=$(openssl rand -hex 32)"
+
+            # --- Datastore -------------------------------------------------
+            echo "REDIS_URL=redis://127.0.0.1:2163/0"
+
+            # --- Mail: real SMTP into Mailpit ------------------------------
+            # SMTP_TLS=false matters: Delivery::SMTP defaults
+            # enable_starttls_auto to TRUE when the key is unset, and the
+            # Mailpit test service terminates no TLS.
+            echo "EMAILER_MODE=smtp"
+            echo "SMTP_HOST=127.0.0.1"
+            echo "SMTP_PORT=2125"
+            echo "SMTP_TLS=false"
+            echo "FROM_EMAIL=e2e-full-auth@test.onetimesecret.com"
+            echo "FROM_NAME=Onetime Secret E2E"
+
+            # --- Jobs: enqueue on RabbitMQ, deliver from the worker --------
+            # No trailing slash: that addresses the DEFAULT vhost '/', which
+            # is the one a stock broker ships. The same value tests/lanes/
+            # base.env uses. A trailing '/dev' (the config default) names a
+            # vhost nothing creates, and every publish would fail.
+            echo "JOBS_ENABLED=true"
+            echo "RABBITMQ_URL=amqp://guest:guest@127.0.0.1:2156"
+
+            # --- Rate limiting ---------------------------------------------
+            # The signup-redirect spec creates 4 accounts per run against a
+            # default cap of 10 per MASKED client IP per hour with a 1h
+            # lockout — and CI Playwright retries twice, so a bad run can ask
+            # for 12. On a runner every request also resolves to the same
+            # masked network, so the cap is per-RUN in practice. The knob is
+            # the one etc/defaults/config.defaults.yaml already wires
+            # (site.authentication.create_account_rate_limit.enabled); only
+            # the exact string 'false' disables it.
+            echo "CREATE_ACCOUNT_RATE_LIMIT_ENABLED=false"
+
+            # --- Surfaces this lane does not exercise ----------------------
+            echo "BILLING_ENABLED=false"
+            echo "DOMAINS_ENABLED=false"
+            echo "I18N_ENABLED=true"
+            echo "I18N_DEFAULT_LOCALE=en"
+          } >> "$GITHUB_ENV"
+
+          mkdir -p tmp
+
+      # Fail fast, and — the part that is not just speed — DECLARE the queues.
+      # Publisher sends to the default exchange with the queue name as routing
+      # key, so a message published before `email.message.send` exists is
+      # dropped silently by the broker. --check runs the same
+      # QueueDeclarator.declare_all the worker does and then exits 0, which
+      # guarantees the topology is in place before the first signup, whatever
+      # order the processes below happen to warm up in.
+      # Exit 3 = RabbitMQ unreachable, exit 2 = config error.
+      - name: Validate worker config and declare queue topology
+        run: bin/ots worker --check --queues=email.message.send
+
+      - name: Boot the application server
+        run: |
+          bin/ots server --port="$APP_PORT" >"$SERVER_LOG" 2>&1 &
+          echo "$!" > tmp/e2e-full-auth-server.pid
+
+      # __BOOTSTRAP_ME__ rather than a bare 2xx: the marker proves the built
+      # assets are being served and the bootstrap state is being injected, not
+      # merely that something answered on the port.
+      - name: Wait for the server to serve a bootstrapped page
+        run: |
+          for _ in $(seq 1 60); do
+            if curl -fsS "$APP_URL/" 2>/dev/null | grep -q '__BOOTSTRAP_ME__'; then
+              echo "Server ready at $APP_URL"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::Server did not become ready at $APP_URL within 120s"
+          tail -n 200 "$SERVER_LOG" || true
+          exit 1
+
+      - name: Start the email job worker
+        run: |
+          bin/ots worker --queues=email.message.send --concurrency=2 \
+            >"$WORKER_LOG" 2>&1 &
+          echo "$!" > tmp/e2e-full-auth-worker.pid
+
+      # A worker that has not finished booting is indistinguishable from a
+      # worker that died, and both look like "the email never arrived" 30
+      # seconds later inside Playwright. Gate on the pair of lines it logs
+      # (Workers logger, info) once the worker classes are resolved and
+      # Sneakers is about to run. This proves the process reached the pre-fork
+      # point, not that a consumer is bound yet — good enough, because the
+      # --check step above already declared the durable queue, so a message
+      # published in that window waits instead of being dropped.
+      - name: Wait for the worker process to boot
+        run: |
+          for _ in $(seq 1 45); do
+            if grep -Eq 'Starting [0-9]+ worker|Workers: ' "$WORKER_LOG" 2>/dev/null; then
+              echo "Worker running:"
+              grep -E 'Starting [0-9]+ worker|Workers: ' "$WORKER_LOG" || true
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::Job worker did not start within 90s"
+          tail -n 200 "$WORKER_LOG" || true
+          exit 1
+
+      # SCOPED, not `e2e/auth/`. Of the five specs in that directory:
+      #   signup-redirect-preservation  the target of this lane.
+      #   sso-missing-email             CI-friendly by construction — it drives
+      #                                 /signin?auth_error=… directly and needs
+      #                                 no IdP. Its one real-IdP variant is
+      #                                 gated behind SSO_NOEMAIL_E2E.
+      #   sso-csrf, sso-csp-form-action dormant: both skip unless E2E_SSO_UI is
+      #                                 set, which needs a configured OmniAuth
+      #                                 provider. Adding them buys two skips.
+      #   pending-plan-intent           needs BILLING_ENABLED and a populated
+      #                                 plans API. It has never run in CI and
+      #                                 is not validated against this stack;
+      #                                 including it would make an unrelated
+      #                                 red the default outcome of this lane.
+      # Widen this list as specs are proven against this stack, not before.
+      #
+      # Reporters come from e2e/playwright.config.ts (CI branch: list, github,
+      # html, json, blob). Do NOT pass --reporter — a CLI override replaces the
+      # whole array and breaks both the report artifacts and the flaky gate.
+      - name: Run the full-auth E2E specs
+        id: playwright
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ env.APP_URL }}
+          CI: 'true'
+        run: |
+          pnpm test:playwright \
+            e2e/auth/signup-redirect-preservation.spec.ts \
+            e2e/auth/sso-missing-email.spec.ts \
+            --project=chromium
+
+      - name: Fail on flaky tests (passed only on retry)
+        if: ${{ !cancelled() && steps.playwright.outcome != 'skipped' }}
+        run: |
+          REPORT=e2e/test-results/results.json
+
+          if [ ! -f "$REPORT" ]; then
+            echo "❌ Playwright JSON report not found at $REPORT."
+            echo "The reporter pipeline is broken (see e2e/playwright.config.ts)."
+            exit 1
+          fi
+
+          FLAKY=$(jq -r '.stats.flaky // 0' "$REPORT")
+          if [ "$FLAKY" -gt 0 ]; then
+            echo "❌ $FLAKY test(s) passed only on retry (flaky outcome)."
+            echo "Flake is blocking, not silent - fix or quarantine via e2e/QUARANTINE.md."
+            echo ""
+            echo "Flaky tests:"
+            jq -r '.. | objects | select(has("tests")) | select(any(.tests[]?; .status == "flaky"))
+                   | "  - \(.file):\(.line) › \(.title)"' "$REPORT"
+            exit 1
+          fi
+
+          echo "✅ No flaky (retry-only) passes detected."
+
+      # ---- Failure forensics -------------------------------------------------
+      # "The email never arrived" has three very different causes — the web
+      # process never enqueued it, the worker never consumed it, or the worker
+      # consumed it and SMTP delivery failed — and they are distinguishable
+      # only by looking at all three of these together.
+
+      - name: Server and worker logs on failure
+        if: failure()
+        run: |
+          echo "::group::$SERVER_LOG (last 200 lines)"
+          tail -n 200 "$SERVER_LOG" || true
+          echo "::endgroup::"
+          echo "::group::$WORKER_LOG (last 200 lines)"
+          tail -n 200 "$WORKER_LOG" || true
+          echo "::endgroup::"
+
+      - name: Mailpit mailbox on failure
+        if: failure()
+        run: |
+          echo "::group::Mailpit message summaries"
+          curl -fsS "$MAILPIT_URL/api/v1/messages?limit=50" | jq '.' || \
+            echo "Mailpit API unreachable at $MAILPIT_URL"
+          echo "::endgroup::"
+
+      - name: RabbitMQ queue depths on failure
+        if: failure()
+        run: |
+          echo "::group::RabbitMQ queues"
+          docker compose -f compose.test.yml -f compose.e2e.yml exec -T rabbitmq \
+            rabbitmqctl list_queues name messages consumers || true
+          echo "::endgroup::"
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: playwright-report-e2e-full-auth
+          path: e2e/playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload Playwright test artifacts (traces, screenshots, videos)
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: playwright-test-results-e2e-full-auth
+          path: e2e/test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload server and worker logs
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: e2e-full-auth-logs
+          path: |
+            tmp/e2e-full-auth-server.log
+            tmp/e2e-full-auth-worker.log
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Stop background processes
+        if: always()
+        run: |
+          for pidfile in tmp/e2e-full-auth-server.pid tmp/e2e-full-auth-worker.pid; do
+            [ -f "$pidfile" ] || continue
+            kill "$(cat "$pidfile")" 2>/dev/null || true
+          done
+          docker compose -f compose.test.yml -f compose.e2e.yml down --volumes || true

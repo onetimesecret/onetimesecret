@@ -23,12 +23,37 @@ import { scrubSensitivePath } from '@/generated/sentry-scrub-patterns';
  * - /invite/ - invitation tokens
  * - /confirm/ - email confirmation tokens
  *
+ * VALUE CLASS: `[^/?#\s]+`, not `[a-zA-Z0-9]+`. An invitation token is
+ * `SecureRandom.urlsafe_base64(32)` and an email-confirmation token is
+ * likewise base64url, so both routinely contain `-` and `_`. An
+ * alphanumeric-only class stopped at the first one and left the remainder of
+ * the token in the payload -- `/invite/ab-cdef_gh` scrubbed to
+ * `/invite/[REDACTED]-cdef_gh`, which is a partial credential, not a redacted
+ * one. Stopping at `/`, `?`, `#` and whitespace keeps the match inside a
+ * single path segment, so this stays safe to apply to a whole URL (where it
+ * must not swallow the query string) and to free text alike.
+ *
+ * The `(?!:)` guard keeps PARAMETERIZED ROUTE NAMES intact. Sentry transaction
+ * names are route templates, not URLs -- `/secret/:secretKey` is the name of a
+ * group, not an instance of one. The old alphanumeric class excluded `:`
+ * incidentally; a class that stops only at `/?#` and whitespace would swallow
+ * `:secretKey` and collapse every parameterized transaction into
+ * `/secret/[REDACTED]`, destroying the grouping the transaction name exists to
+ * provide. Redacting a template that contains no data is pure signal loss.
+ *
+ * MIRROR -- the `/invite/` arm is duplicated as the `invite` alternative in
+ * AUTH_TOKEN_PATH_PATTERN in lib/onetime/initializers/setup_diagnostics.rb,
+ * whose value class `[^/?#]+` is the same modulo the whitespace exclusion JS
+ * needs for free text. A Sentry payload can be assembled by either half, so
+ * both must cover a shape or neither does;
+ * tests/fixtures/sensitive_path_corpus.json is run through both to prove it.
+ *
  * @see scrubSensitivePath - generated patterns from route metadata
  * @see src/generated/sentry-scrub-patterns.ts - generated output
  * @internal Exported for testing
  */
 export const SENSITIVE_PATH_PATTERN =
-  /\/(secret|private|receipt|incoming|invite|confirm)\/([a-zA-Z0-9]+)/gi;
+  /\/(secret|private|receipt|incoming|invite|confirm)\/(?!:)([^/?#\s]+)/gi;
 
 /**
  * Fallback pattern for verifiable identifiers appearing in unexpected paths

@@ -1,103 +1,137 @@
 // src/utils/redirect.ts
 
-import type {
-  RouteLocationNamedRaw,
-  RouteLocationPathRaw,
-  RouteLocationRaw,
-} from 'vue-router';
-
-// Define allowed route names
-type AllowedRouteNames = 'Home' | 'Dashboard' | 'Profile';
-
-// Type guards
-function isNamedRoute(route: RouteLocationRaw): route is RouteLocationNamedRaw {
-  return typeof route === 'object' && route !== null && 'name' in route;
-}
-
-function isPathRoute(route: RouteLocationRaw): route is RouteLocationPathRaw {
-  return typeof route === 'object' && route !== null && 'path' in route;
-}
-
-export const validateRedirect = (path: string | RouteLocationRaw): boolean => {
-  if (!path) return false;
-
-  try {
-    // Handle route objects
-    if (typeof path === 'object' && path !== null) {
-      // Validate named routes
-      if (isNamedRoute(path)) {
-        const allowedRoutes: AllowedRouteNames[] = ['Home', 'Dashboard', 'Profile'];
-        return allowedRoutes.includes(path.name as AllowedRouteNames);
-      }
-
-      // Validate path-based routes
-      if (isPathRoute(path)) {
-        return typeof path.path === 'string' && validatePathString(path.path);
-      }
-
-      return false;
-    }
-
-    // Handle string paths
-    if (typeof path === 'string') {
-      // Handle absolute URLs and protocol-relative URLs
-      if (path.startsWith('//') || /^https?:\/\//i.test(path)) {
-        return validateUrl(path);
-      }
-      return validatePathString(path);
-    }
-
-    return false;
-  } catch {
-    return false;
-  }
-};
+/**
+ * Longest accepted redirect target; caps DoS surface on the decode below.
+ * Exported so the parity spec pins the fixture's length-boundary cases against
+ * THIS value, the way the Ruby spec reads RedirectPaths::MAX_PATH_LENGTH —
+ * the two must stay equal or the shared fixture turns one suite red.
+ *
+ * The cap is measured in Unicode CODE POINTS, not UTF-16 code units. Ruby's
+ * String#length counts code points, so measuring `.length` here would make
+ * the two validators disagree on any astral-plane character (an emoji is one
+ * code point but two UTF-16 units): the server would store a redirect the SPA
+ * refuses, silently breaking the journey. See exceedsCodePointCap.
+ */
+export const MAX_REDIRECT_LENGTH = 2048;
 
 /**
- * Validates that a path is a safe internal redirect.
- * Security: Prevents open redirect attacks by ensuring path is internal only.
+ * True when `value` holds more than MAX_REDIRECT_LENGTH Unicode code points.
  *
- * @param path - The path to validate
- * @returns true if path is a valid internal redirect
+ * `value.length` counts UTF-16 code units and double-counts astral-plane
+ * characters, so it is only usable as a cheap lower bound: a string within
+ * the cap in UTF-16 units is necessarily within it in code points. Past that,
+ * step through by code point and bail as soon as the cap is crossed rather
+ * than counting an unbounded attacker-supplied string to the end.
  */
-export function isValidInternalPath(path: string | undefined | null): path is string {
-  if (!path || typeof path !== 'string') return false;
-  // Max length to prevent DoS
-  if (path.length > 2048) return false;
-  // Must start with single slash, not double (protocol-relative)
-  if (!path.startsWith('/') || path.startsWith('//')) return false;
-  // Must not contain protocol
-  if (path.includes('://')) return false;
-  return true;
+function exceedsCodePointCap(value: string): boolean {
+  if (value.length <= MAX_REDIRECT_LENGTH) return false;
+
+  let units = 0;
+  let codePoints = 0;
+  while (units < value.length) {
+    // codePointAt never returns undefined for an in-range index.
+    units += (value.codePointAt(units) as number) > 0xffff ? 2 : 1;
+    codePoints += 1;
+    if (codePoints > MAX_REDIRECT_LENGTH) return true;
+  }
+  return false;
 }
 
-function validatePathString(path: string): boolean {
+/**
+ * True when the string contains a C0 control character or DEL.
+ *
+ * Written as a char-code scan rather than a regex on purpose: a literal
+ * /[\x00-\x1F\x7F]/ trips eslint's no-control-regex, and the escape-hatch
+ * comment would then be load-bearing. Control characters matter because a
+ * CR/LF smuggled into a redirect target can split a header or forge a second
+ * request line once the value is echoed back by an intermediary.
+ */
+function hasControlChars(value: string): boolean {
+  for (let i = 0; i < value.length; i += 1) {
+    const code = value.charCodeAt(i);
+    if (code <= 0x1f || code === 0x7f) return true;
+  }
+  return false;
+}
+
+/**
+ * True when the value contains a literal `..` SEGMENT. Segment-wise, not a
+ * substring scan: `/files/a..b` is a legitimate name, `/a/../b` and `/..` are
+ * traversal.
+ *
+ * The whole string is split, query and fragment included — matching
+ * RedirectPaths#traversal_segment? in lib/onetime/utils/redirect_paths.rb,
+ * which splits on '/' without carving off `?`/`#` first. So `/a?next=/../b`
+ * is rejected while a bare `/search?q=..` is not (it is not slash-delimited).
+ * Carving the query off first would accept the former and break parity, and a
+ * value one side stores that the other refuses is a silently broken journey.
+ */
+function hasDotDotSegment(value: string): boolean {
+  return value.split('/').includes('..');
+}
+
+/**
+ * The characters rejected in BOTH the raw and the once-decoded value: any
+ * backslash (browsers normalize `\` to `/`, turning `/\evil.example` into a
+ * protocol-relative URL) and any control character (header injection).
+ */
+function hasForbiddenChars(value: string): boolean {
+  return value.includes('\\') || hasControlChars(value);
+}
+
+/**
+ * Validates that a string is a safe INTERNAL redirect target.
+ *
+ * Security: prevents open-redirect and header-injection via the `?redirect=`
+ * query param, which is user-controlled on every auth surface. The identical
+ * ruleset is implemented server-side in Ruby (signup persists a validated
+ * redirect and replays it on verify-account) — the two must stay in parity, so
+ * change both or neither.
+ *
+ * That parity is ENFORCED, not merely requested here:
+ * `tests/fixtures/redirect_path_cases.json` is a single accept/reject table
+ * read by BOTH src/tests/utils/redirect.spec.ts and
+ * spec/unit/onetime/utils/redirect_paths_spec.rb. Change a rule below and the
+ * fixture goes with it — otherwise one of those two suites turns red.
+ *
+ * Rules:
+ *  1. non-empty string, at most 2048 Unicode code points (code points, not
+ *     UTF-16 units — the unit Ruby's String#length measures);
+ *  2. starts with `/`, and the second character is neither `/` (protocol-
+ *     relative → external host) nor `\` (browsers normalize `\` to `/`);
+ *  3. no backslash, no `://`, and no control characters anywhere;
+ *  4. percent-decoded ONCE, the value must not smuggle in a backslash, a
+ *     control character, a leading `//`, or a `..` segment — encoding is how
+ *     those get past a naive prefix check (`/%2f%2fevil.example`);
+ *  5. query string and hash ride along untouched, so callers can hand the
+ *     whole value to router.push and keep `?view=raw#content`.
+ *
+ * Ruby counterpart: Onetime::Utils::RedirectPaths#safe_internal_path?.
+ *
+ * @param path - candidate redirect target (raw query-param value)
+ * @returns true if the path is a safe internal redirect
+ */
+export function isValidInternalPath(path: string | undefined | null): path is string {
+  if (typeof path !== 'string' || path.length === 0 || exceedsCodePointCap(path)) {
+    return false;
+  }
+
+  // Must start with a single slash: '//evil.example' is a protocol-relative
+  // authority, not a path. ('/\evil.example' is caught by the backslash scan.)
+  if (!path.startsWith('/') || path[1] === '/') return false;
+
+  if (path.includes('://') || hasForbiddenChars(path)) return false;
+
+  // Decode exactly once. A malformed sequence ('%zz', a lone '%') throws —
+  // treat it as invalid rather than guessing at the author's intent.
+  let decoded: string;
   try {
-    // Handle absolute URLs and protocol-relative URLs
-    if (path.startsWith('//') || /^https?:\/\//i.test(path)) {
-      return validateUrl(path);
-    }
-
-    // Decode the path to catch encoded traversal attempts
-    const decodedPath = decodeURIComponent(path);
-
-    // Check for path traversal attempts
-    if (decodedPath.includes('..') || decodedPath.includes('./')) {
-      return false;
-    }
-
-    // Check for suspicious protocols
-    const suspiciousProtocols = [/javascript:/i, /data:/i, /vbscript:/i, /file:/i];
-
-    if (suspiciousProtocols.some((pattern) => pattern.test(decodedPath))) {
-      return false;
-    }
-
-    // Must start with single forward slash
-    return decodedPath.startsWith('/');
+    decoded = decodeURIComponent(path);
   } catch {
     return false;
   }
+
+  return !hasForbiddenChars(decoded) && !decoded.startsWith('//') && !hasDotDotSegment(decoded);
 }
 
 /**
@@ -179,9 +213,9 @@ export function setAllowedCheckoutHost(host: string | undefined | null): void {
  * Security (M-9): `checkout_url` is API-derived and assigned directly to
  * `window.location.href` in the billing plan flow. Restrict navigation to the
  * Stripe Checkout host or the app's own origin so a tampered/unexpected value
- * cannot drive an open redirect. The internal validators in this module
- * (isValidInternalPath, validateRedirect, validateUrl) only permit same-origin
- * internal targets, so an external-host allowlist requires this dedicated helper.
+ * cannot drive an open redirect. isValidInternalPath — this module's other
+ * validator — only permits same-origin internal PATHS, so an external-host
+ * allowlist requires this dedicated helper.
  *
  * The host allowlist is intentionally exact. Accepted origins are:
  *   1. the static baseline: the shared `checkout.stripe.com` host,
@@ -205,26 +239,6 @@ export function isAllowedCheckoutUrl(url: string | undefined | null): url is str
       origin === window.location.origin ||
       (configuredCheckoutOrigin !== null && origin === configuredCheckoutOrigin)
     );
-  } catch {
-    return false;
-  }
-}
-
-function validateUrl(url: string): boolean {
-  try {
-    // For protocol-relative URLs, use current protocol
-    let urlToValidate = url;
-    if (url.startsWith('//')) {
-      // Change from window.location.protocol to explicitly using https:
-      urlToValidate = `https:${url}`;
-    }
-
-    // For relative URLs, use current origin as base
-    const fullUrl = new URL(urlToValidate, window.location.origin);
-
-    // Compare hostnames, ignoring port numbers
-    const currentHostname = window.location.hostname;
-    return fullUrl.hostname === currentHostname;
   } catch {
     return false;
   }
