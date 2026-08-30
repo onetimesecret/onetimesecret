@@ -39,6 +39,10 @@
     "text": "Plan updated.",
     "content_hash": "ebe8d40c"
   },
+  "web.admin.organizations.actions.plan.problem": {
+    "text": "Plan saved, but entitlements were not updated. Run reconcile on this organization.",
+    "content_hash": "2addb095"
+  },
   "web.admin.organizations.actions.plan.localConfigWarning": {
     "text": "Plans loaded from local config — Stripe is not configured or unreachable.",
     "content_hash": "df83e326"

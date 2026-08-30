@@ -215,6 +215,14 @@
   const planDialogOpen = ref(false);
   /** Server-side heads-up (live Stripe subscription may overwrite the change). */
   const planChangeWarning = ref<string | null>(null);
+  /**
+   * Server message when the planid wrote but entitlement re-materialization
+   * did not run (`details.materialization` in MATERIALIZATION_PROBLEMS on the
+   * adapter). The org keeps the OLD plan's entitlements in that state, so it
+   * must surface as an error, never the success toast.
+   */
+  const planChangeProblem = ref<string | null>(null);
+  const MATERIALIZATION_PROBLEMS = ['materialization_failed', 'plan_not_found'];
 
   const {
     loading: planLoading,
@@ -229,8 +237,12 @@
       'ColonelUpdateOrganizationPlanResponse'
     );
     // Ack drift is non-fatal: an unparseable 2xx is still a success, it just
-    // loses the Stripe-overwrite warning.
+    // loses the Stripe-overwrite warning / materialization signal.
     planChangeWarning.value = parsed.ok ? (parsed.data.details?.warning ?? null) : null;
+    planChangeProblem.value =
+      parsed.ok && MATERIALIZATION_PROBLEMS.includes(parsed.data.details?.materialization ?? '')
+        ? (parsed.data.details?.message ?? t('web.admin.organizations.actions.plan.problem'))
+        : null;
   });
 
   function requestChangePlan(): void {
@@ -238,6 +250,7 @@
     if (!pendingPlan.value || pendingPlan.value === record.value?.planid) return;
     resetPlanMutation();
     planChangeWarning.value = null;
+    planChangeProblem.value = null;
     planDialogOpen.value = true;
   }
 
@@ -246,7 +259,13 @@
     if (!ok) return; // Failure message stays in the dialog for retry/cancel.
 
     planDialogOpen.value = false;
-    notifications.show(t('web.admin.organizations.actions.plan.success'), 'success');
+    if (planChangeProblem.value) {
+      // Planid wrote but entitlements did NOT re-materialize: the server's
+      // message says what to do (reconcile / pick a cataloged plan).
+      notifications.show(planChangeProblem.value, 'error');
+    } else {
+      notifications.show(t('web.admin.organizations.actions.plan.success'), 'success');
+    }
     // The server's own warning text (Stripe-linked orgs) — worth a second toast.
     if (planChangeWarning.value) notifications.show(planChangeWarning.value, 'info');
     // Refresh so billing + entitlements reflect the new plan.
@@ -1160,7 +1179,7 @@
               <button
                 type="button"
                 data-testid="plan-apply"
-                :disabled="pendingPlan === record.planid"
+                :disabled="!pendingPlan || pendingPlan === (record.planid ?? '')"
                 class="inline-flex shrink-0 items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
                 @click="requestChangePlan">
                 {{ t('web.admin.organizations.actions.plan.apply') }}

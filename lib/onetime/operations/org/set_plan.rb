@@ -5,8 +5,10 @@
 # Loaded at the call site (colonel logic + any future CLI), which run outside
 # the app autoloaders — require the audit model and the billing engine
 # explicitly. Same cross-app require geometry as reconcile.rb (four levels up
-# from lib/onetime/operations/org/ to the repo root).
-require 'stripe'
+# from lib/onetime/operations/org/ to the repo root), minus reconcile's
+# `require 'stripe'`: this op never calls the Stripe API (the materialize
+# path is purely local), and the gem is deliberately lazy-loaded
+# (Gemfile pins it require: false).
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 require_relative '../../../../apps/web/billing/operations/apply_subscription_to_org'

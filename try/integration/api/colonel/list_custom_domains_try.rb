@@ -123,6 +123,18 @@ list['pagination']['total_count'] == Onetime::CustomDomain.instances.count
 [@details_one['domains'].size, @details_one['pagination']['per_page']]
 #=> [1, 1]
 
+## per_page=0 clamps to the default instead of revrange(0, -1) — the whole
+## set — and a ZeroDivisionError-shaped total_pages
+@details_zero = list('per_page' => 0)
+[last_response.status, @details_zero['pagination']['per_page']]
+#=> [200, 50]
+
+## A negative per_page clamps the same way (revrange(0, -2) would silently
+## return all-but-one of the population)
+@details_neg = list('per_page' => -1)
+[last_response.status, @details_neg['pagination']['per_page']]
+#=> [200, 50]
+
 # ----------------------------------------------------------------
 # Search: bounded HSCAN + exact identifier arms
 # ----------------------------------------------------------------

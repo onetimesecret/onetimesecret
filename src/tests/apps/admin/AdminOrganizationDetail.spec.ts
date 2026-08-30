@@ -231,7 +231,7 @@ function plansPayload() {
   };
 }
 
-function planChangeAck(warning: string | null = null) {
+function planChangeAck(warning: string | null = null, details: Record<string, unknown> = {}) {
   return {
     shrimp: '',
     record: {
@@ -247,6 +247,7 @@ function planChangeAck(warning: string | null = null) {
       materialization: 'materialized',
       message: 'Organization plan updated successfully',
       warning,
+      ...details,
     },
   };
 }
@@ -476,6 +477,38 @@ describe('AdminOrganizationDetail (org detail + entitlements + reconcile)', () =
     expect(showMock).toHaveBeenCalledTimes(2);
     expect(showMock.mock.calls[1][0]).toContain('Stripe');
     expect(showMock.mock.calls[1][1]).toBe('info');
+  });
+
+  it('surfaces a failed entitlement re-materialization as an error, not success', async () => {
+    mockApi.get.mockImplementation((url: string) => {
+      if (url === '/api/colonel/available-plans') {
+        return Promise.resolve({ data: plansPayload() });
+      }
+      return Promise.resolve({ data: detailPayload() });
+    });
+    // Planid wrote, but the entitlement engine did not run: the org keeps the
+    // OLD plan's entitlements. The server's qualified message must render as
+    // an error toast — never the unqualified success toast.
+    mockApi.post.mockResolvedValue({
+      data: planChangeAck(null, {
+        materialization: 'materialization_failed',
+        message:
+          'Organization plan was saved, but entitlement re-materialization failed — ' +
+          'run reconcile on this organization.',
+      }),
+    });
+    wrapper = mountView();
+    await flushPromises();
+
+    await wrapper.find('[data-testid="plan-select"]').setValue('team_plus_v1');
+    await wrapper.find('[data-testid="plan-apply"]').trigger('click');
+    await flushPromises();
+    await dialogSubmit(wrapper).trigger('submit');
+    await flushPromises();
+
+    expect(showMock).toHaveBeenCalledTimes(1);
+    expect(showMock.mock.calls[0][0]).toContain('re-materialization failed');
+    expect(showMock.mock.calls[0][1]).toBe('error');
   });
 
   it('keeps the out-of-catalog path (CLI parity): warns, then still grants', async () => {

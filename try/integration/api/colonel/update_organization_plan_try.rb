@@ -92,6 +92,19 @@ def audit_count_for(org_extid)
   end
 end
 
+# The adapter's message qualification keyed off the op's materialization
+# status, exercised directly (the engine's failure paths can't be triggered
+# through the HTTP stack without breaking the billing engine mid-request).
+def adapter_message_for(materialization)
+  logic = ColonelAPI::Logic::Colonel::UpdateOrganizationPlan.allocate
+  logic.instance_variable_set(:@new_planid, 'team_plus_v1')
+  logic.instance_variable_set(:@result, Onetime::Operations::Org::SetPlan::Result.new(
+    status: :success, org: nil, from: 'free', to: 'team_plus_v1',
+    materialization: materialization, memberships: nil,
+  ))
+  logic.send(:message)
+end
+
 # ----------------------------------------------------------------
 # Happy path (extid)
 # ----------------------------------------------------------------
@@ -118,6 +131,31 @@ audit_count_for(@org.extid)
 ## No Stripe subscription on this org -> no overwrite warning
 @body['details']['warning']
 #=> nil
+
+## The materialization outcome is reported, and with nothing degraded the
+## message is the unqualified success line
+[
+  @body['details']['materialization'].is_a?(String),
+  @body['details']['message'],
+]
+#=> [true, 'Organization plan updated successfully']
+
+## An engine failure mid-materialize yields a QUALIFIED message pointing at
+## reconcile — never the unqualified success line (the planid wrote but the
+## org keeps the previous plan's entitlements)
+@failed_msg = adapter_message_for(:materialization_failed)
+[@failed_msg.include?('re-materialization failed'), @failed_msg.include?('reconcile')]
+#=> [true, true]
+
+## A planid the catalog can't materialize (e.g. 'free' vs the shipped
+## 'free_v1') is likewise qualified: entitlements were NOT updated
+adapter_message_for(:plan_not_found).include?('entitlements were NOT updated')
+#=> true
+
+## The standalone skip is not a problem status: billing-disabled installs
+## legitimately write the field alone
+adapter_message_for(:skipped_standalone)
+#=> 'Organization plan updated successfully'
 
 # ----------------------------------------------------------------
 # Idempotent no-op

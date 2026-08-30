@@ -30,6 +30,15 @@ module ColonelAPI
       # webhook/reconcile re-derives planid from the live subscription and may
       # overwrite it.
       class UpdateOrganizationPlan < ColonelAPI::Logic::Base
+        # Materialization outcomes where the planid wrote but the entitlement
+        # state did NOT update — the org (and every cascaded membership) keeps
+        # the PREVIOUS plan's entitlements until a reconcile succeeds. A
+        # downgrade in this state must not read as an unqualified success:
+        # `details.message` says what actually happened and the admin UI
+        # renders it as an error, not a success toast (the frontend keys off
+        # `details.materialization` matching these strings).
+        MATERIALIZATION_PROBLEMS = [:materialization_failed, :plan_not_found].freeze
+
         attr_reader :org, :new_planid, :old_planid, :result
 
         def process_params
@@ -68,12 +77,6 @@ module ColonelAPI
         end
 
         def success_data
-          message = if result.status == :success
-            'Organization plan updated successfully'
-          else
-            'Organization already on this plan'
-          end
-
           {
             record: {
               org_id: org.objid,
@@ -95,6 +98,30 @@ module ColonelAPI
         end
 
         private
+
+        # @return [String] what actually happened, qualified: a plan change
+        #   whose entitlement re-materialization did not run is NOT an
+        #   unqualified success (a failed downgrade would otherwise leave the
+        #   old plan's premium entitlements active while telling the operator
+        #   everything worked).
+        def message
+          return 'Organization already on this plan' unless result.status == :success
+
+          case result.materialization
+          when :materialization_failed
+            'Organization plan was saved, but entitlement re-materialization ' \
+            'failed — the organization and its members keep the previous ' \
+            "plan's entitlements until a reconcile succeeds. Run reconcile " \
+            'on this organization.'
+          when :plan_not_found
+            "Organization plan was saved, but '#{new_planid}' has no " \
+            'entitlement definition in the billing catalog, so ' \
+            'entitlements were NOT updated — the organization and its ' \
+            "members keep the previous plan's entitlements."
+          else
+            'Organization plan updated successfully'
+          end
+        end
 
         # Resolve by PUBLIC id (extid) first — every admin surface routes by
         # extid — then fall back to objid. Mirrors GetOrganizationDetail.

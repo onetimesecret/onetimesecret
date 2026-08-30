@@ -95,6 +95,11 @@ module ColonelAPI
           @page     = (params['page'] || 1).to_i
           @per_page = (params['per_page'] || 50).to_i
           @per_page = 100 if @per_page > 100 # Max 100 per page
+          # A non-positive per_page would turn the unfiltered ZREVRANGE window
+          # into revrange(0, -1) — the whole set, the exact load-all this
+          # class exists to prevent — and then divide by zero computing
+          # total_pages. Same lower clamp as Auth::Operations::Customers::List.
+          @per_page = 50 if @per_page < 1
           @page     = 1 if @page < 1
 
           @search_term   = sanitize_plain_text(params['search'], max_length: 255).to_s.strip
@@ -269,11 +274,18 @@ module ColonelAPI
         # by) or the internal objid, which is what CustomDomain#org_id stores.
         # An unknown org matches nothing, same as before.
         def org_candidates
-          org = safe_lookup { Onetime::Organization.find_by_extid(org_filter) } ||
-                safe_lookup { Onetime::Organization.load(org_filter) }
+          org = resolve_org(org_filter)
           return [] unless org&.exists?
 
           org.list_domains
+        end
+
+        # Extid-then-objid org resolution, shared by the candidate read and
+        # the residual predicate so the two cannot drift. A malformed
+        # identifier resolves to nil (a no-match filter), never an error.
+        def resolve_org(identifier)
+          safe_lookup { Onetime::Organization.find_by_extid(identifier) } ||
+            safe_lookup { Onetime::Organization.load(identifier) }
         end
 
         # Status-only filter: newest STATUS_SCAN_LIMIT domains off the
@@ -298,8 +310,7 @@ module ColonelAPI
           end
 
           unless org_filter.empty?
-            org     = safe_lookup { Onetime::Organization.find_by_extid(org_filter) }
-            org_ids = [org_filter, org&.objid].compact.map(&:to_s)
+            org_ids = [org_filter, resolve_org(org_filter)&.objid].compact.map(&:to_s)
             result  = result.select { |d| org_ids.include?(d.org_id.to_s) }
           end
 
