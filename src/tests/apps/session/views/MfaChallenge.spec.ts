@@ -82,6 +82,9 @@ const mockWebAuthnState = {
   supported: ref(true),
   isLoading: ref(false),
   error: ref<string | null>(null),
+  // Webauthn's own two-factor completion body (#4306) — the mirror of
+  // useMfa.verifyResponse for the passkey factor.
+  mfaVerifyResponse: ref<OtpVerifySuccess | null>(null),
   verifyWebAuthnMfa: vi.fn(),
   clearError: vi.fn(),
 };
@@ -160,6 +163,7 @@ describe('MfaChallenge', () => {
     mockWebAuthnState.supported.value = true;
     mockWebAuthnState.isLoading.value = false;
     mockWebAuthnState.error.value = null;
+    mockWebAuthnState.mfaVerifyResponse.value = null;
     mockWebAuthnState.verifyWebAuthnMfa.mockResolvedValue(true);
   });
 
@@ -592,11 +596,13 @@ describe('MfaChallenge', () => {
   // Billing intent on the two-factor completion body (#4306)
   //
   // Contract: for MFA-gated logins the backend replays billing_redirect on the
-  // OTP-verification response, NOT the primary-factor login response. The
-  // component hands useMfa's captured verifyResponse to the REAL
-  // usePostAuthRedirect, so an MFA user lands on the same checkout page as a
-  // no-MFA user. bootstrapStore is seeded per-test (app bootstrap is absent in
-  // vitest; billing_enabled defaults to false).
+  // second-factor completion response, NOT the primary-factor login response.
+  // Each factor captures its own completion body — OTP/recovery in useMfa's
+  // verifyResponse, passkeys in useWebAuthn's mfaVerifyResponse — and the
+  // component hands the right one to the REAL usePostAuthRedirect, so an MFA
+  // user lands on the same checkout page as a no-MFA user. bootstrapStore is
+  // seeded per-test (app bootstrap is absent in vitest; billing_enabled
+  // defaults to false).
   // -------------------------------------------------------------------------
 
   describe('billing intent from the verify response (#4306)', () => {
@@ -631,17 +637,47 @@ describe('MfaChallenge', () => {
 
       const authStore = useAuthStore();
       expect(authStore.setAuthenticated).toHaveBeenCalledWith(true);
-      expect(routerPushMock).toHaveBeenCalledWith(
-        '/billing/org_live1/plans?product=identity_plus_v1&interval=year'
-      );
+      expect(routerPushMock).toHaveBeenCalledWith({
+        path: '/billing/org_live1/plans',
+        query: { product: 'identity_plus_v1', interval: 'year' },
+      });
     });
 
-    it('webauthn completion (no verify body) reads the intent from the query tier', async () => {
-      // The WebAuthn second factor completes WITHOUT a verifyResponse body
-      // (useMfa never sees it), so completeChallenge calls
-      // navigateAfterAuth(undefined) and the billing intent must come from
-      // the product/interval pair riding in the /mfa-verify query — the
-      // fallback tier useAuth.login() forwards for exactly this factor.
+    it('webauthn completion carries its OWN verify body into the redirect', async () => {
+      // The passkey factor gets the same replayed billing_redirect on its
+      // /auth/webauthn-auth completion; useWebAuthn keeps it in
+      // mfaVerifyResponse, and the component must feed THAT (not useMfa's,
+      // which stays null for this factor) into navigateAfterAuth. Without it
+      // the intent would depend on the route query surviving the MFA hop.
+      mockMfaState.fetchMfaStatus.mockResolvedValue(webauthnOnly());
+      mockWebAuthnState.verifyWebAuthnMfa.mockImplementation(async () => {
+        mockWebAuthnState.mfaVerifyResponse.value = validIntent;
+        return true;
+      });
+      wrapper = await mountChallenge();
+
+      useBootstrapStore().billing_enabled = true;
+      const orgStore = useOrganizationStore();
+      vi.mocked(orgStore.restorePersistedSelection).mockReturnValue({
+        extid: 'org_live1',
+      } as ReturnType<typeof orgStore.restorePersistedSelection>);
+
+      await byTestId(wrapper, 'mfa-verify-webauthn-submit').trigger('click');
+      await flushPromises();
+
+      // useMfa never sees the passkey completion — this is the point.
+      expect(mockMfaState.verifyResponse.value).toBeNull();
+      const authStore = useAuthStore();
+      expect(authStore.setAuthenticated).toHaveBeenCalledWith(true);
+      expect(routerPushMock).toHaveBeenCalledWith({
+        path: '/billing/org_live1/plans',
+        query: { product: 'identity_plus_v1', interval: 'year' },
+      });
+    });
+
+    it('webauthn completion with no body still falls back to the query tier', async () => {
+      // Older backends emit no billing_redirect on the two-factor completion;
+      // the forwarded product/interval pair remains the safety net.
       mockMfaState.fetchMfaStatus.mockResolvedValue(webauthnOnly());
       mockRoute.query = { product: 'identity_plus_v1', interval: 'monthly' };
       wrapper = await mountChallenge();
@@ -652,17 +688,14 @@ describe('MfaChallenge', () => {
         extid: 'org_live1',
       } as ReturnType<typeof orgStore.restorePersistedSelection>);
 
-      // Real webauthn completion handler: submit → verifyWebAuthnMfa
-      // resolves true → completeChallenge with verifyResponse still null.
       await byTestId(wrapper, 'mfa-verify-webauthn-submit').trigger('click');
       await flushPromises();
 
-      expect(mockMfaState.verifyResponse.value).toBeNull();
-      const authStore = useAuthStore();
-      expect(authStore.setAuthenticated).toHaveBeenCalledWith(true);
-      expect(routerPushMock).toHaveBeenCalledWith(
-        '/billing/org_live1/plans?product=identity_plus_v1&interval=monthly'
-      );
+      expect(mockWebAuthnState.mfaVerifyResponse.value).toBeNull();
+      expect(routerPushMock).toHaveBeenCalledWith({
+        path: '/billing/org_live1/plans',
+        query: { product: 'identity_plus_v1', interval: 'monthly' },
+      });
     });
 
     it('keeps the billing-disabled gate: falls back to the validated ?redirect', async () => {

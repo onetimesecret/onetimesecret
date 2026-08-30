@@ -157,9 +157,11 @@ export function usePostAuthRedirect() {
         requestedProduct: product,
       }
     );
-    await router.push(
-      `/billing/${orgExtid}/plans?product=${product}&interval=${interval}&change=true`
-    );
+    // Object form for the same encoding reason as handleBillingRedirect below.
+    await router.push({
+      path: `/billing/${orgExtid}/plans`,
+      query: { product, interval, change: 'true' },
+    });
     return true;
   }
 
@@ -215,16 +217,23 @@ export function usePostAuthRedirect() {
         product,
         interval,
       });
-      await router.push(`/billing/${org.extid}/plans?product=${product}&interval=${interval}`);
+      // `{ path, query }` on purpose: product/interval can come from the route
+      // query (extractBillingParams' fallback tier), so interpolating them into
+      // a raw URL would let a '&' or '#' inject or truncate the query. The
+      // object form encodes each value. `query` must be given explicitly — a
+      // bare `{ path }` push drops it.
+      await router.push({
+        path: `/billing/${org.extid}/plans`,
+        query: { product, interval },
+      });
       return true;
     } catch (err) {
       // Org resolution failed, but the plan intent itself is still valid —
       // don't drop it. Push the extid-less plans route; its guard
       // (createBillingRedirect) retries org resolution and forwards the
       // query, so a transient fetch failure no longer loses the selection.
-      // RAW string on purpose: a `{ path }` object push strips the query.
       loggingService.error(new Error(`Billing redirect failed: ${err}`));
-      await router.push(`/billing/plans?product=${product}&interval=${interval}`);
+      await router.push({ path: '/billing/plans', query: { product, interval } });
       return true;
     }
   }

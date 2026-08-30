@@ -31,8 +31,9 @@ vi.mock('@/services/logging.service', () => ({
  * Focus: the org-resolution FAILURE path must not drop a valid billing
  * intent. The extid-less /billing/plans route's guard (createBillingRedirect)
  * retries org resolution and preserves the query, so on a transient fetch
- * failure we hand the intent to that route — as a RAW string, because a
- * vue-router `{ path }` push strips the query.
+ * failure we hand the intent to that route — via `{ path, query }`, which
+ * encodes each value (product/interval can originate from the route query,
+ * so a raw interpolated URL would be injectable).
  *
  * Stores are seeded explicitly: app bootstrap is absent in vitest, so
  * billing_enabled defaults to false.
@@ -61,9 +62,10 @@ describe('usePostAuthRedirect', () => {
       await usePostAuthRedirect().navigateAfterAuth(undefined);
 
       expect(orgStore.fetchOrganizations).toHaveBeenCalledTimes(1);
-      expect(routerPushMock).toHaveBeenCalledWith(
-        '/billing/org_q1/plans?product=identity_plus_v1&interval=monthly'
-      );
+      expect(routerPushMock).toHaveBeenCalledWith({
+        path: '/billing/org_q1/plans',
+        query: { product: 'identity_plus_v1', interval: 'monthly' },
+      });
     });
 
     it('requires BOTH product and interval — a lone product falls through to /', async () => {
@@ -78,7 +80,7 @@ describe('usePostAuthRedirect', () => {
   });
 
   describe('org resolution failure with a valid billing intent', () => {
-    it('pushes the extid-less plans route as a raw string (guard retries + keeps query)', async () => {
+    it('pushes the extid-less plans route with the query intact (guard retries)', async () => {
       seedBillingQuery();
       useBootstrapStore().billing_enabled = true;
       const orgStore = useOrganizationStore();
@@ -88,12 +90,33 @@ describe('usePostAuthRedirect', () => {
 
       expect(redirected).toBe(true);
       expect(loggingService.error).toHaveBeenCalledTimes(1);
-      expect(routerPushMock).toHaveBeenCalledWith(
-        '/billing/plans?product=identity_plus_v1&interval=monthly'
-      );
+      expect(routerPushMock).toHaveBeenCalledWith({
+        path: '/billing/plans',
+        query: { product: 'identity_plus_v1', interval: 'monthly' },
+      });
     });
 
-    it('uses the response-supplied intent when present, still via the raw string', async () => {
+    it('keeps a query-tier value with & or # in ONE query param (no injection)', async () => {
+      // product/interval reach here straight off the route query when the
+      // response carries no billing_redirect (the WebAuthn/fallback tier).
+      // String interpolation would have split this into extra params.
+      mockRoute.query = {
+        product: 'identity_plus_v1&admin=1',
+        interval: 'monthly#frag',
+      };
+      useBootstrapStore().billing_enabled = true;
+      const orgStore = useOrganizationStore();
+      vi.mocked(orgStore.fetchOrganizations).mockRejectedValue(new Error('network down'));
+
+      await usePostAuthRedirect().handleBillingRedirect(undefined);
+
+      expect(routerPushMock).toHaveBeenCalledWith({
+        path: '/billing/plans',
+        query: { product: 'identity_plus_v1&admin=1', interval: 'monthly#frag' },
+      });
+    });
+
+    it('uses the response-supplied intent when present', async () => {
       useBootstrapStore().billing_enabled = true;
       const orgStore = useOrganizationStore();
       vi.mocked(orgStore.fetchOrganizations).mockRejectedValue(new Error('500'));
@@ -103,9 +126,10 @@ describe('usePostAuthRedirect', () => {
         billing_redirect: { product: 'identity_plus_v1', interval: 'year', valid: true },
       });
 
-      expect(routerPushMock).toHaveBeenCalledWith(
-        '/billing/plans?product=identity_plus_v1&interval=year'
-      );
+      expect(routerPushMock).toHaveBeenCalledWith({
+        path: '/billing/plans',
+        query: { product: 'identity_plus_v1', interval: 'year' },
+      });
       // The intent won: no fall-through to '/' after the billing push.
       expect(routerPushMock).toHaveBeenCalledTimes(1);
     });

@@ -11,6 +11,7 @@
   import { usePostAuthRedirect } from '@/shared/composables/usePostAuthRedirect';
   import { useWebAuthn } from '@/shared/composables/useWebAuthn';
   import { useAuthStore } from '@/shared/stores/authStore';
+  import type { OtpVerifySuccess } from '@/schemas/api/auth/responses/auth';
   import type { MfaStatus } from '@/types/auth';
   import { ref, onMounted, computed } from 'vue';
   import { useRouter } from 'vue-router';
@@ -34,6 +35,7 @@
     isLoading: webauthnLoading,
     error: webauthnError,
     verifyWebAuthnMfa,
+    mfaVerifyResponse: webauthnVerifyResponse,
     clearError: clearWebAuthnError,
   } = useWebAuthn();
   const { logout } = useAuth();
@@ -142,15 +144,18 @@
    *
    * The billing intent rides on the two-factor COMPLETION body (#4306): for
    * MFA-gated logins the backend replays billing_redirect here, not on the
-   * primary-factor login response. OTP and recovery verifications capture it
-   * in useMfa's verifyResponse; the webauthn factor leaves it null, so that
-   * path falls back to the forwarded product/interval query pair.
+   * primary-factor login response. Every factor captures that body — OTP and
+   * recovery in useMfa's verifyResponse, webauthn in useWebAuthn's
+   * mfaVerifyResponse — and passes it in, because the route query alone is
+   * not a reliable carrier across the MFA hop.
+   *
+   * @param response - the completion body from the factor that just landed
    */
-  const completeChallenge = async () => {
+  const completeChallenge = async (response?: OtpVerifySuccess | null) => {
     loggingService.debug('[MfaChallenge] Setting authenticated=true');
     await authStore.setAuthenticated(true);
     loggingService.debug('[MfaChallenge] After setAuthenticated - auth complete');
-    await navigateAfterAuth(verifyResponse.value ?? undefined);
+    await navigateAfterAuth(response ?? undefined);
   };
 
   // Handle OTP code complete
@@ -169,7 +174,7 @@
     loggingService.debug('[MfaChallenge] OTP verification result:', { success });
 
     if (success) {
-      await completeChallenge();
+      await completeChallenge(verifyResponse.value);
     } else {
       // Clear input on error
       loggingService.debug('[MfaChallenge] OTP failed, clearing input');
@@ -190,7 +195,7 @@
     loggingService.debug('[MfaChallenge] WebAuthn verification result:', { success });
 
     if (success) {
-      await completeChallenge();
+      await completeChallenge(webauthnVerifyResponse.value);
     }
   };
 
@@ -216,7 +221,7 @@
     const success = await verifyRecoveryCode(recoveryCode.value.trim());
 
     if (success) {
-      await completeChallenge();
+      await completeChallenge(verifyResponse.value);
     } else {
       // Clear input on error
       recoveryCode.value = '';
