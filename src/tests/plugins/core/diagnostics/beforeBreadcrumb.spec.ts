@@ -104,6 +104,9 @@ import type { RouteMeta } from '@/types/router';
 const baseConfig = {
   sentry: {
     dsn: 'https://key@sentry.io/123',
+    enabled: true,
+    logErrors: true,
+    trackComponents: true,
     environment: 'test',
     release: '1.0.0',
   },

@@ -12,7 +12,7 @@ import { mount, flushPromises, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createI18n } from 'vue-i18n';
 import { createPinia, setActivePinia } from 'pinia';
-import { ref } from 'vue';
+import { defineComponent, ref } from 'vue';
 import DomainSignup from '@/apps/workspace/domains/DomainSignup.vue';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -50,7 +50,10 @@ vi.mock('@/shared/components/forms/BasicFormAlerts.vue', () => ({
 }));
 
 vi.mock('@/apps/workspace/components/domains/DomainSignupConfigForm.vue', () => ({
-  default: {
+  // defineComponent (rather than a bare object literal) gives `this` inside
+  // `mounted()` the Options API instance typing — including `$emit` — derived
+  // from the declared `emits` list below.
+  default: defineComponent({
     name: 'DomainSignupConfigForm',
     template: '<div class="domain-signup-config-form" data-testid="domain-signup-config-form" :data-domain-ext-id="domainExtId" />',
     props: ['domainExtId'],
@@ -61,7 +64,7 @@ vi.mock('@/apps/workspace/components/domains/DomainSignupConfigForm.vue', () => 
     mounted() {
       this.$emit('can-save', true);
     },
-  },
+  }),
 }));
 
 // Domain composable mock

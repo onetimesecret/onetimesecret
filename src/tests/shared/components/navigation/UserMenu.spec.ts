@@ -2,6 +2,7 @@
 
 import UserMenu from '@/shared/components/navigation/UserMenu.vue';
 import { createTestingPinia } from '@pinia/testing';
+import { mockCustomer } from '@tests/fixtures/bootstrap.fixture';
 import { createTestI18n } from '@tests/setup';
 import { mount, VueWrapper } from '@vue/test-utils';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -166,13 +167,6 @@ const i18n = createTestI18n();
 
 describe('UserMenu', () => {
   let wrapper: VueWrapper;
-
-  const mockCustomer = {
-    custid: '123',
-    email: 'test@example.com',
-    extid: 'ext_123',
-    objid: 'obj_123',
-  };
 
   beforeEach(() => {
     vi.clearAllMocks();

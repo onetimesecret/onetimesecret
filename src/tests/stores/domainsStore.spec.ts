@@ -121,7 +121,7 @@ describe('domainsStore', () => {
         },
       });
 
-      store.domains = [domain];
+      store.records = [domain];
 
       await store.updateDomainBrand(domain.extid, brandUpdate);
     });
@@ -142,7 +142,7 @@ describe('domainsStore', () => {
       const newSettings = {
         primary_color: '#ff0000',
         font_family: 'sans',
-      };
+      } as const;
 
       // Mock the exact response format expected by the brandSettings schema
       axiosMock.onPut(`/api/domains/${domain.extid}/brand`).reply(200, {
@@ -183,9 +183,9 @@ describe('domainsStore', () => {
       const newSettings = {
         primary_color: '#ff0000',
         font_family: 'sans',
-      };
+      } as const;
 
-      store.domains = [domain]; // Set initial state
+      store.records = [domain]; // Set initial state
 
       axiosMock.onPut(`/api/domains/${domain.extid}/brand`).reply(200, {
         record: {
