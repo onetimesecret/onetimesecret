@@ -76,6 +76,7 @@ function usersPayload(
     per_page?: number;
     role?: string | null;
     suspended?: boolean;
+    capped?: boolean;
   } = {}
 ) {
   return {
@@ -103,6 +104,9 @@ function usersPayload(
         per_page: overrides.per_page ?? 50,
         total_count: 1,
         total_pages: 1,
+        // The endpoint always emits the flag (false on the unbounded paths) —
+        // see Colonel::ListUsers#success_data — so the fixture does too.
+        capped: overrides.capped ?? false,
         role_filter: overrides.role ?? null,
       },
     },
@@ -359,6 +363,25 @@ describe('AdminCustomers (list view — ticket #22)', () => {
 
     // KitPagination shows the range summary string.
     expect(wrapper.text()).toContain('web.colonel.pagination.showing');
+  });
+
+  it('renders the capped caveat when the server marks the scan as capped', async () => {
+    mockApi.get.mockResolvedValue({ data: usersPayload({ capped: true }) });
+    wrapper = mountView();
+    await flushPromises();
+
+    const caveat = wrapper.find('[data-testid="customers-capped-caveat"]');
+    expect(caveat.exists()).toBe(true);
+    expect(caveat.attributes('role')).toBe('status');
+    expect(caveat.text()).toContain('web.admin.customers.list.capped');
+  });
+
+  it('does not render the capped caveat on an uncapped response', async () => {
+    mockApi.get.mockResolvedValue({ data: usersPayload({ capped: false }) });
+    wrapper = mountView();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="customers-capped-caveat"]').exists()).toBe(false);
   });
 
   it('shows the error banner + retry on a network failure', async () => {
