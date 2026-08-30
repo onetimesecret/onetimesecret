@@ -162,6 +162,65 @@ RSpec.describe V1::ControllerHelpers do
       expect(form_controller.carefully { raise OT::FormError, 'nope' }).to eq(:handled)
       expect(form_controller.handled_error.message).to eq('nope')
     end
+
+    # The fingerprint is NOT scrubbed by before_send (which only reaches
+    # request.url / contexts.request.url), and a wildcard v1 path carries the
+    # concrete secret key. Grouping on the raw path would therefore both mint
+    # one issue per key and ship the key to Sentry.
+    context 'on a wildcard route' do
+      # 62-char base-36 verifiable identifier, the real shape of a secret key.
+      let(:secret_key) { 'a' * 62 }
+
+      let(:wildcard_request) do
+        double(
+          'Request',
+          url: "https://example.com/api/v1/secret/#{secret_key}",
+          path: "/api/v1/secret/#{secret_key}",
+          request_method: 'POST',
+          ip: '192.168.1.100',
+          path_info: "/api/v1/secret/#{secret_key}",
+          env: env
+        )
+      end
+
+      let(:wildcard_controller) do
+        form_controller_class.new(request: wildcard_request).tap do |instance|
+          allow(instance).to receive(:add_response_headers)
+          allow(instance).to receive(:log_customer_activity)
+        end
+      end
+
+      context 'when Otto recorded the matched route' do
+        # Otto stamps env['otto.route_definition'] during dispatch; #path is
+        # the declared template from routes.txt.
+        let(:env) { { 'otto.route_definition' => double('RouteDefinition', path: '/secret/:key') } }
+
+        it 'fingerprints on the route template, not the concrete key' do
+          expect(Sentry).to receive(:capture_message).and_yield(mock_scope)
+          expect(mock_scope).to receive(:set_fingerprint)
+            .with(['v1-form-error', '/secret/:key'])
+
+          wildcard_controller.carefully { raise OT::FormError, 'Double check that passphrase' }
+        end
+      end
+
+      context 'when no route was recorded (bare harness)' do
+        let(:env) { {} }
+
+        it 'falls back to a scrubbed path and never emits the key' do
+          fingerprint = nil
+          allow(Sentry).to receive(:capture_message) do |_message, **_opts, &block|
+            allow(mock_scope).to receive(:set_fingerprint) { |value| fingerprint = value }
+            block&.call(mock_scope)
+          end
+
+          wildcard_controller.carefully { raise OT::FormError, 'Double check that passphrase' }
+
+          expect(fingerprint).to eq(['v1-form-error', '/api/v1/secret/[REDACTED]'])
+          expect(fingerprint.last).not_to include(secret_key)
+        end
+      end
+    end
   end
 
   describe '#capture_error' do
@@ -199,6 +258,28 @@ RSpec.describe V1::ControllerHelpers do
           )
 
           controller.capture_error(test_error)
+        end
+
+        # Tags are not scrubbed by before_send either, and a per-key tag value
+        # is unbounded cardinality on top of the disclosure.
+        it 'tags the endpoint with the route template when Otto recorded one' do
+          route      = double('RouteDefinition', path: '/secret/:key')
+          keyed_path = "/api/v1/secret/#{'a' * 62}"
+          keyed_req  = double(
+            'Request',
+            url: "https://example.com#{keyed_path}",
+            path: keyed_path,
+            request_method: 'POST',
+            ip: '192.168.1.100',
+            path_info: keyed_path,
+            env: { 'otto.route_definition' => route }
+          )
+
+          expect(mock_scope).to receive(:set_tags).with(
+            hash_including(endpoint: '/secret/:key')
+          )
+
+          controller_class.new(request: keyed_req).capture_error(test_error)
         end
 
         it 'sets request context with path (never the query string), method, and ip' do

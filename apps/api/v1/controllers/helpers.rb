@@ -60,9 +60,14 @@ module V1
       # text, so the backend's message scrubbers still see it and the issue
       # title still says what failed; the endpoint alone decides the group.
       #
+      # The group key is the ROUTE TEMPLATE, not `req.path` — see
+      # #endpoint_template. On the wildcard routes (/secret/:key,
+      # /receipt/:key) the concrete path is one-per-key, which would defeat
+      # the grouping this exists for and put the key itself in Sentry.
+      #
       # Level is :warning, not :error: rejected input is the validator working.
       capture_message ex.message, :warning do |scope|
-        scope.set_fingerprint(['v1-form-error', req.path])
+        scope.set_fingerprint(['v1-form-error', endpoint_template])
       end
 
       handle_form_error ex
@@ -321,9 +326,12 @@ module V1
         end
 
         # Add searchable tags (guard req to avoid NameError if not defined)
+        # Route template, never the concrete path: an `endpoint` tag carrying
+        # a secret key is both unbounded-cardinality and a leak (see
+        # #endpoint_template).
         scope.set_tags(
           service: 'api',
-          endpoint: (defined?(req) && req&.path_info) || 'unknown',
+          endpoint: endpoint_template,
         )
 
         # Add request context: path only (never the query string) plus any
@@ -378,6 +386,60 @@ module V1
       id_str.length <= 8 ? id_str : "#{id_str[0, 8]}..."
     end
     private :truncate_id
+
+    # The endpoint identity used for the Sentry `endpoint` tag and for the
+    # FormError grouping fingerprint.
+    #
+    # NEVER the bare `req.path`. The v1 wildcard routes — /secret/:key,
+    # /receipt/:key, /receipt/:key/burn and the /private/ and /metadata/
+    # aliases — put the concrete secret or receipt key in the path, and both
+    # consumers of this value are the wrong place for it:
+    #   - CARDINALITY: one distinct fingerprint (and one distinct tag value)
+    #     per key, which is precisely the per-message issue explosion the
+    #     fingerprint was added to stop.
+    #   - DISCLOSURE: before_send's scrubbers (SetupDiagnostics.scrub_url)
+    #     reach request.url and contexts.request.url only. Tags and the
+    #     fingerprint are never scrubbed, so a raw path here ships the key to
+    #     Sentry in the clear.
+    #
+    # Otto stamps the matched route onto the env during dispatch
+    # (otto/route.rb -> env['otto.route_definition']). Its #path is the
+    # DECLARED template from routes.txt ('/secret/:key'), so it is the
+    # endpoint identity we want and structurally cannot carry request data.
+    # In the mounted stack it is always present by the time a controller
+    # runs; the fallback is for harnesses that invoke a controller without
+    # Otto's dispatch (unit specs), and it scrubs the raw path rather than
+    # trusting it.
+    #
+    # @return [String] route template, scrubbed path, or 'unknown'
+    def endpoint_template
+      return 'unknown' unless defined?(req) && req
+
+      route    = req.env['otto.route_definition'] if req.respond_to?(:env) && req.env.respond_to?(:[])
+      template = route.path if route.respond_to?(:path)
+      return template if template.is_a?(String) && !template.empty?
+
+      raw = req.path_info if req.respond_to?(:path_info)
+      raw = req.path if (raw.nil? || raw.empty?) && req.respond_to?(:path)
+      return 'unknown' if raw.nil? || raw.empty?
+
+      scrub_endpoint_path(raw)
+    rescue StandardError
+      'unknown'
+    end
+    private :endpoint_template
+
+    # Reuses the diagnostics URL scrubber so the fallback above can never
+    # emit an identifier the before_send pass would have redacted. Fails
+    # closed to 'unknown' when diagnostics are not loaded (bare unit
+    # harnesses) rather than returning the unscrubbed path.
+    def scrub_endpoint_path(raw)
+      return 'unknown' unless defined?(Onetime::Initializers::SetupDiagnostics) &&
+                              Onetime::Initializers::SetupDiagnostics.respond_to?(:scrub_url)
+
+      Onetime::Initializers::SetupDiagnostics.scrub_url(raw) || 'unknown'
+    end
+    private :scrub_endpoint_path
 
     def capture_message(message, level = :log, &)
       return unless OT.d9s_enabled # diagnostics are disabled by default
