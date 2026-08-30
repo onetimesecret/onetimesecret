@@ -9,6 +9,7 @@ require_relative 'utils/canonical_hosts'
 require_relative 'utils/domain_parser'
 require_relative 'utils/email_format'
 require_relative 'utils/enumerables'
+require_relative 'utils/redirect_paths'
 require_relative 'utils/retry_helper'
 require_relative 'utils/strings'
 require_relative 'utils/diagnostics_ref'
@@ -17,6 +18,7 @@ require_relative 'utils/time_utils'
 module Onetime
   module Utils
     extend Enumerables
+    extend RedirectPaths
     extend Strings
     extend TimeUtils
 

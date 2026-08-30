@@ -145,6 +145,18 @@ module Onetime
     # Single-use: cleared after successful verification redirect.
     string :pending_plan_intent, default_expiration: 24.hours
 
+    # Persists the post-auth return destination through the email verification
+    # flow (issue #4305). The verification link is routinely opened in a FRESH
+    # browser session, so the `?redirect=` the user started at /signup with
+    # cannot ride along in the session — it lives here instead, keyed to the
+    # Customer, exactly like pending_plan_intent above.
+    #
+    # Stores a plain internal path (query string and fragment included), never
+    # an absolute URL: it is written only after OT::Utils.safe_internal_path?
+    # accepts it, and re-validated on read. Single-use: cleared when surfaced
+    # after verification.
+    string :pending_auth_redirect, default_expiration: 24.hours
+
     identifier_field :objid
 
     # Global email index
