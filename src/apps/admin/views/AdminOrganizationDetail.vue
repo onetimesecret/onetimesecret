@@ -13,7 +13,10 @@
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
   import type { InvestigateOrganizationResult } from '@/schemas/api/internal/responses/colonel';
-  import { investigateOrganizationResponseSchema } from '@/schemas/api/internal/responses/colonel';
+  import {
+    colonelAvailablePlansResponseSchema,
+    investigateOrganizationResponseSchema,
+  } from '@/schemas/api/internal/responses/colonel';
   import type {
     ColonelDeleteOrganizationDetails,
     ColonelOrganizationDetailDomain,
@@ -25,6 +28,7 @@
     colonelEntitlementOverrideResponseSchema,
     colonelOrganizationDetailResponseSchema,
     colonelReconcileOrganizationResponseSchema,
+    colonelUpdateOrganizationPlanResponseSchema,
   } from '@/schemas/api/internal/responses/colonel-organizations';
   import { classifyError } from '@/schemas/errors';
   import OIcon from '@/shared/components/icons/OIcon.vue';
@@ -158,6 +162,120 @@
       },
     ];
   });
+
+  // ---- Plan change (MUTATING — catalog-validated + audited server-side) ------
+  //
+  // The plan control moved here from the customer detail page: the billing
+  // relationship (Stripe ids, subscription state, the entitlement engine) lives
+  // on the Organization, so the org is what a plan change operates on.
+  // POST /organizations/:org_id/plan writes planid AND re-materializes
+  // entitlements from the new plan server-side.
+
+  // The endpoint returns a BARE { plans, source } body (no record/details
+  // envelope), so the schema is a plain object, not createApiResponseSchema.
+  // Loaded once on mount; the list is site-wide, not per-org.
+  const { data: plansData, load: loadPlans } = useResourceFetch({
+    url: '/api/colonel/available-plans',
+    schema: colonelAvailablePlansResponseSchema,
+    context: 'ColonelAvailablePlansResponse',
+  });
+
+  const availablePlans = computed(() => plansData.value?.plans ?? []);
+  /** True when plans came from billing.yaml (Stripe unconfigured/unreachable). */
+  const plansFromLocalConfig = computed(() => plansData.value?.source === 'local_config');
+
+  /**
+   * Selectable plan ids, sorted by display_order then name. The org's current
+   * planid is always included (prepended) even if the catalog no longer lists
+   * it, so a legacy plan still renders as the selected option.
+   */
+  const planOptions = computed(() => {
+    const options = [...availablePlans.value]
+      .sort(
+        (a, b) => (a.display_order ?? 0) - (b.display_order ?? 0) || a.name.localeCompare(b.name)
+      )
+      .map((p) => ({ planid: p.planid, label: `${p.name} (${p.planid})` }));
+    const current = record.value?.planid;
+    if (current && !options.some((o) => o.planid === current)) {
+      options.unshift({ planid: current, label: current });
+    }
+    return options;
+  });
+
+  /** Plan selector value; synced to the loaded record's planid. */
+  const pendingPlan = ref('');
+  watch(
+    record,
+    (value) => {
+      pendingPlan.value = value?.planid ?? '';
+    },
+    { immediate: true }
+  );
+
+  const planDialogOpen = ref(false);
+  /** Server-side heads-up (live Stripe subscription may overwrite the change). */
+  const planChangeWarning = ref<string | null>(null);
+  /**
+   * Server message when the planid wrote but entitlement state may not match
+   * the new plan (`details.entitlements_ok: false` — failed/absent
+   * materialization, or a partial/unobserved membership cascade). The org or
+   * some members keep the OLD plan's entitlements in that state, so it must
+   * surface as an error, never the success toast.
+   */
+  const planChangeProblem = ref<string | null>(null);
+
+  const {
+    loading: planLoading,
+    error: planError,
+    run: runPlanMutation,
+    reset: resetPlanMutation,
+  } = useAdminMutation(async () => {
+    const response = await $api.post(`${orgUrl()}/plan`, { planid: pendingPlan.value });
+    const parsed = gracefulParse(
+      colonelUpdateOrganizationPlanResponseSchema,
+      response.data,
+      'ColonelUpdateOrganizationPlanResponse'
+    );
+    // Ack drift is non-fatal: an unparseable 2xx is still a success, it just
+    // loses the Stripe-overwrite warning / materialization signal.
+    planChangeWarning.value = parsed.ok ? (parsed.data.details?.warning ?? null) : null;
+    planChangeProblem.value =
+      parsed.ok && parsed.data.details?.entitlements_ok === false
+        ? (parsed.data.details?.message ?? t('web.admin.organizations.actions.plan.problem'))
+        : null;
+  });
+
+  function requestChangePlan(): void {
+    // No-op guard: ignore if the plan is unchanged (nothing to confirm).
+    if (!pendingPlan.value || pendingPlan.value === record.value?.planid) return;
+    resetPlanMutation();
+    planChangeWarning.value = null;
+    planChangeProblem.value = null;
+    planDialogOpen.value = true;
+  }
+
+  async function onPlanConfirm(): Promise<void> {
+    const ok = await runPlanMutation();
+    if (!ok) return; // Failure message stays in the dialog for retry/cancel.
+
+    planDialogOpen.value = false;
+    if (planChangeProblem.value) {
+      // Planid wrote but entitlements did NOT re-materialize: the server's
+      // message says what to do (reconcile / pick a cataloged plan).
+      notifications.show(planChangeProblem.value, 'error');
+    } else {
+      notifications.show(t('web.admin.organizations.actions.plan.success'), 'success');
+    }
+    // The server's own warning text (Stripe-linked orgs) — worth a second toast.
+    if (planChangeWarning.value) notifications.show(planChangeWarning.value, 'info');
+    // Refresh so billing + entitlements reflect the new plan.
+    await refreshOrg().catch(() => {});
+  }
+
+  function onPlanCancel(): void {
+    planDialogOpen.value = false;
+    resetPlanMutation();
+  }
 
   // ---- Entitlement read-out (matrix lives in EntitlementMatrix.vue) ----------
 
@@ -842,6 +960,10 @@
 
   onMounted(() => {
     loadOrg().catch(() => {});
+    // Plans populate the selector; a failure just leaves the current plan as
+    // the only option (the selector degrades, the rest of the page is
+    // unaffected).
+    loadPlans().catch(() => {});
   });
 </script>
 
@@ -1031,7 +1153,46 @@
             </dd>
           </div>
         </dl>
-        <div class="flex justify-end border-t border-gray-200 px-6 py-4 dark:border-gray-800">
+        <div
+          class="flex flex-wrap items-end justify-between gap-4 border-t border-gray-200 px-6 py-4 dark:border-gray-800">
+          <!-- Change plan (catalog-validated server-side; reversible). Moved
+               here from the customer detail page — billing lives on the org. -->
+          <div class="min-w-0 grow sm:max-w-md">
+            <label
+              for="detail-plan-select"
+              class="block text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
+              {{ t('web.admin.organizations.actions.plan.label') }}
+            </label>
+            <div class="mt-2 flex gap-2">
+              <select
+                id="detail-plan-select"
+                v-model="pendingPlan"
+                data-testid="plan-select"
+                class="min-w-0 flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                <option
+                  v-for="plan in planOptions"
+                  :key="plan.planid"
+                  :value="plan.planid">
+                  {{ plan.label }}
+                </option>
+              </select>
+              <button
+                type="button"
+                data-testid="plan-apply"
+                :disabled="!pendingPlan || pendingPlan === (record.planid ?? '')"
+                class="inline-flex shrink-0 items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
+                @click="requestChangePlan">
+                {{ t('web.admin.organizations.actions.plan.apply') }}
+              </button>
+            </div>
+            <!-- Stripe unconfigured/unreachable: plans came from billing.yaml. -->
+            <p
+              v-if="plansFromLocalConfig"
+              class="mt-2 text-xs text-amber-600 dark:text-amber-400"
+              data-testid="plan-local-config-warning">
+              {{ t('web.admin.organizations.actions.plan.localConfigWarning') }}
+            </p>
+          </div>
           <button
             type="button"
             data-testid="checkout-link-button"
@@ -1596,7 +1757,7 @@
       v-model:open="checkoutLinkOpen"
       :endpoint="`${orgUrl()}/checkout-link`"
       :subject="heading"
-      :plans="[]"
+      :plans="planOptions"
       :default-plan="record.planid" />
 
     <!-- Guarded entitlement mutation (typed-confirmation — retype the extid). -->
@@ -1611,6 +1772,22 @@
       :error="entitlementError"
       @confirm="onEntitlementConfirm"
       @cancel="onEntitlementCancel" />
+
+    <!-- Plan change (reversible, so no typed confirmation — confirm/cancel only). -->
+    <AdminConfirmDialog
+      v-model:open="planDialogOpen"
+      :title="t('web.admin.organizations.actions.plan.confirmTitle')"
+      :description="
+        t('web.admin.organizations.actions.plan.confirmDescription', {
+          org: heading,
+          plan: pendingPlan,
+        })
+      "
+      :confirm-text="t('web.admin.organizations.actions.plan.apply')"
+      :loading="planLoading"
+      :error="planError"
+      @confirm="onPlanConfirm"
+      @cancel="onPlanCancel" />
 
     <!-- Guarded reconcile (typed-confirmation — retype the extid). -->
     <AdminConfirmDialog

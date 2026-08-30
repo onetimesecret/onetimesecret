@@ -1,7 +1,7 @@
 // src/tests/composables/usePostAuthRedirect.spec.ts
 
-import { usePostAuthRedirect } from '@/shared/composables/usePostAuthRedirect';
 import { loggingService } from '@/services/logging.service';
+import { usePostAuthRedirect } from '@/shared/composables/usePostAuthRedirect';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { createTestingPinia } from '@pinia/testing';
@@ -34,6 +34,9 @@ vi.mock('@/services/logging.service', () => ({
  * failure we hand the intent to that route — via `{ path, query }`, which
  * encodes each value (product/interval can originate from the route query,
  * so a raw interpolated URL would be injectable).
+ *
+ * Every billing destination is pinned in that object form for the same
+ * reason: a raw `product=x&change=true` must stay ONE query value.
  *
  * Stores are seeded explicitly: app bootstrap is absent in vitest, so
  * billing_enabled defaults to false.
@@ -68,6 +71,21 @@ describe('usePostAuthRedirect', () => {
       });
     });
 
+    it('keeps reserved characters in ONE query param on the checkout destination', async () => {
+      mockRoute.query = { product: 'x&change=true', interval: 'month#frag' };
+      useBootstrapStore().billing_enabled = true;
+      const orgStore = useOrganizationStore();
+      vi.mocked(orgStore.restorePersistedSelection).mockReturnValue(orgOf({ extid: 'org_q1' }));
+
+      await usePostAuthRedirect().handleBillingRedirect(undefined);
+
+      // String interpolation would have split `&change=true` into a second param.
+      expect(routerPushMock).toHaveBeenCalledWith({
+        path: '/billing/org_q1/plans',
+        query: { product: 'x&change=true', interval: 'month#frag' },
+      });
+    });
+
     it('requires BOTH product and interval — a lone product falls through to /', async () => {
       mockRoute.query = { product: 'identity_plus_v1' };
       useBootstrapStore().billing_enabled = true;
@@ -76,6 +94,39 @@ describe('usePostAuthRedirect', () => {
 
       expect(useOrganizationStore().fetchOrganizations).not.toHaveBeenCalled();
       expect(routerPushMock).toHaveBeenCalledWith('/');
+    });
+  });
+
+  describe('existing subscription (plan-change destination)', () => {
+    it('pushes the change flow in object form, reserved characters intact', async () => {
+      mockRoute.query = { product: 'x&change=true', interval: 'year' };
+      useBootstrapStore().billing_enabled = true;
+      const orgStore = useOrganizationStore();
+      vi.mocked(orgStore.restorePersistedSelection).mockReturnValue(
+        orgOf({ extid: 'org_sub1', planid: 'identity_plus_v1' })
+      );
+
+      const redirected = await usePostAuthRedirect().handleBillingRedirect(undefined);
+
+      expect(redirected).toBe(true);
+      expect(routerPushMock).toHaveBeenCalledWith({
+        path: '/billing/org_sub1/plans',
+        query: { product: 'x&change=true', interval: 'year', change: 'true' },
+      });
+    });
+
+    it('sends an already-subscribed user to the billing overview', async () => {
+      mockRoute.query = { product: 'identity_plus_v1', interval: 'year' };
+      useBootstrapStore().billing_enabled = true;
+      const orgStore = useOrganizationStore();
+      vi.mocked(orgStore.restorePersistedSelection).mockReturnValue(
+        orgOf({ extid: 'org_sub1', planid: 'identity_plus_v1' })
+      );
+
+      const redirected = await usePostAuthRedirect().handleBillingRedirect(undefined);
+
+      expect(redirected).toBe(true);
+      expect(routerPushMock).toHaveBeenCalledWith('/billing/org_sub1/overview');
     });
   });
 
@@ -158,9 +209,7 @@ describe('usePostAuthRedirect', () => {
 
       expect(orgStore.fetchOrganizations).not.toHaveBeenCalled();
       expect(routerPushMock).toHaveBeenCalledWith('/');
-      expect(routerPushMock).not.toHaveBeenCalledWith(
-        expect.stringContaining('/billing/plans')
-      );
+      expect(routerPushMock).not.toHaveBeenCalledWith(expect.stringContaining('/billing/plans'));
     });
 
     it('a definitive "no org" (fetch OK, none selected) still abandons the intent', async () => {

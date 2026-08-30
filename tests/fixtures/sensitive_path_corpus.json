@@ -1,0 +1,179 @@
+{
+  "_readme": {
+    "purpose": "Shared, language-neutral specification of the URL shapes whose credential-bearing segment every diagnostics scrubber must remove. Read by both the Ruby suite (spec/unit/onetime/initializers/setup_diagnostics_spec.rb) and vitest (src/tests/plugins/core/diagnostics/sensitivePathCorpus.spec.ts).",
+    "invariant": "A credential that can appear in a URL must be removed by BOTH halves. A Sentry payload can be assembled by either the browser or the server, so a shape covered on only one side still leaks — the covered half just hides which one is broken.",
+    "the_leak_this_corpus_exists_to_catch": "Signup (#4305) threads the post-auth return destination through the browser URL as ?redirect=<path>. An invited user's destination is /invite/<token>, and that token is a bearer credential. '/invite/' was absent from both backend path patterns, and the frontend fallback's [a-zA-Z0-9]+ value class stopped at the first '-' or '_' that urlsafe_base64 emits — so the token reached Sentry whole on the server and in part in the browser.",
+    "scrubbers": [
+      {
+        "id": "diagnostics_scrubber",
+        "language": "ruby",
+        "source": "lib/onetime/initializers/setup_diagnostics.rb",
+        "entry_point": "scrub_url",
+        "passes": "scrub_sensitive_paths (IDENTIFIER_PATH_PATTERN, AUTH_TOKEN_PATH_PATTERN, COLONEL_PATH_PATTERN) -> scrub_sensitive_query_params (SENSITIVE_QUERY_PARAMS) -> EMAIL_PATTERN -> IDENTIFIER_TEXT_PATTERN"
+      },
+      {
+        "id": "diagnostics_scrubber_ts",
+        "language": "typescript",
+        "source": "src/plugins/core/diagnostics/scrubbers.ts",
+        "entry_point": "scrubUrlWithPatterns",
+        "passes": "generated route patterns (pathname only) -> SENSITIVE_PATH_PATTERN -> SENSITIVE_QUERY_PARAMS -> EMAIL_PATTERN -> VERIFIABLE_ID_PATTERN"
+      }
+    ],
+    "no_expected_output_here": "This file is DATA ONLY. It carries no expected output strings. The two halves reach the same CONTRACT through deliberately different pattern sets — the backend discriminates identifier paths by length, the frontend leans on generated route metadata — so asserting one byte-identical output string would pin an implementation detail rather than the security property. Each language derives its expectations from `secret` and `must_survive`.",
+    "how_to_read_an_entry": {
+      "id": "stable slug; used in the test name so a failure names the shape",
+      "input": "the exact URL fed to the scrubber",
+      "kind": "redacted | divergent — see kinds below",
+      "secret": "the substring that MUST NOT appear anywhere in the output. For a partial-leak shape this is deliberately the TAIL of the credential, so a narrowed value class fails on exactly the bytes it would have leaked.",
+      "must_survive": "substrings that MUST still appear in the output. Over-redaction is not free: a scrubber that eats the route name leaves operators with an unreadable breadcrumb.",
+      "probes": "what shape this entry exists to exercise",
+      "scope": "OPTIONAL, defaults to 'both'. 'ruby' marks a shape only the server ever sees, so only the Ruby half asserts it. Use it ONLY with a recorded reason — it is an exemption from the cross-language invariant, and an unjustified one turns this corpus back into two independent test files."
+    },
+    "kinds": {
+      "redacted": "Both halves must remove `secret` and preserve every `must_survive` string.",
+      "divergent": "The two halves deliberately differ on this shape. Recorded so the difference is not mistaken for an untested gap; neither half is asserted.",
+      "preserved": "Contains NO credential. Every `must_survive` fragment must remain and the input must come back UNCHANGED. Guards against over-redaction, which costs operators real signal."
+    },
+    "version": 1
+  },
+  "entries": [
+    {
+      "id": "invite-token-path",
+      "input": "/invite/xK3-9_aBcDeFgHiJkLmNoPqRsTuVwXyZ01234567_ab",
+      "kind": "redacted",
+      "secret": "xK3-9_aBcDeFgHiJkLmNoPqRsTuVwXyZ01234567_ab",
+      "must_survive": [
+        "/invite/"
+      ],
+      "probes": "The plain invitation path. An invite_token is a bearer credential: a valid one is accepted as proof of email ownership, so it must never reach a diagnostics payload."
+    },
+    {
+      "id": "invite-token-in-redirect-query",
+      "input": "/check-email?redirect=/invite/xK3-9_aBcDeFgHiJkLmNoPqRsTuVwXyZ01234567_ab",
+      "kind": "redacted",
+      "secret": "xK3-9_aBcDeFgHiJkLmNoPqRsTuVwXyZ01234567_ab",
+      "must_survive": [
+        "/check-email",
+        "redirect="
+      ],
+      "probes": "THE #4305 LEAK. Signup threads the return destination through the browser URL as ?redirect=<path>, so an invitation path rides inside a query VALUE. Both halves apply their path patterns to the whole URL string and their value classes stop at '?' and '#', which is what makes this reachable at all."
+    },
+    {
+      "id": "invite-token-dash-underscore-head",
+      "input": "/invite/ab-cd_ef-GH_ij-KL_mn-OP_qr-ST_uv-WX_yz",
+      "kind": "redacted",
+      "secret": "cd_ef-GH_ij-KL_mn-OP_qr-ST_uv-WX_yz",
+      "must_survive": [
+        "/invite/"
+      ],
+      "probes": "PINS THE VALUE CLASS. urlsafe_base64 emits '-' and '_'. An alphanumeric-only class stopped at the first one and left the tail of the token in the clear — a partial credential, not a redacted one. `secret` here is deliberately the TAIL, so a narrowed class fails on exactly the bytes it would have leaked."
+    },
+    {
+      "id": "confirm-token-path",
+      "input": "/account/email/confirm/Qv7_tZ-2LmNpQrStUvWxYz0123456789AbCdEfGh",
+      "kind": "redacted",
+      "secret": "Qv7_tZ-2LmNpQrStUvWxYz0123456789AbCdEfGh",
+      "must_survive": [
+        "/account/email/confirm/"
+      ],
+      "probes": "The email-confirmation token, also base64url. The surviving prefix must keep its leading segments so the route stays identifiable in diagnostics."
+    },
+    {
+      "id": "confirm-token-bare-prefix",
+      "input": "/confirm/Qv7_tZ-2LmNpQrStUvWxYz0123456789AbCdEfGh",
+      "kind": "redacted",
+      "secret": "Qv7_tZ-2LmNpQrStUvWxYz0123456789AbCdEfGh",
+      "must_survive": [
+        "/confirm/"
+      ],
+      "probes": "The bare form. The frontend has always matched '/confirm/' under any prefix; the backend was pinned to '/account/email/confirm/', so this shape was scrubbed in the browser and passed through on the server. Mirror asymmetry, not a missing route."
+    },
+    {
+      "id": "confirm-token-in-redirect-query",
+      "input": "/check-email?redirect=/account/email/confirm/Qv7_tZ-2LmNpQrStUvWxYz0123456789AbCdEfGh",
+      "kind": "redacted",
+      "secret": "Qv7_tZ-2LmNpQrStUvWxYz0123456789AbCdEfGh",
+      "must_survive": [
+        "/check-email"
+      ],
+      "probes": "Same query-value reachability as the invite row, for the confirmation token."
+    },
+    {
+      "id": "secret-key-path",
+      "input": "/secret/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "kind": "redacted",
+      "secret": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "must_survive": [
+        "/secret/"
+      ],
+      "probes": "Regression guard for the shape that already worked, so a change aimed at invite/confirm cannot quietly narrow the core secret path."
+    },
+    {
+      "id": "secret-key-in-redirect-query",
+      "input": "/check-email?redirect=/secret/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "kind": "redacted",
+      "secret": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "must_survive": [
+        "/check-email"
+      ],
+      "probes": "The canonical accepted redirect from the #4305 fixture, carried in a query value."
+    },
+    {
+      "id": "forgot-token-path",
+      "input": "/forgot/reset-Tok_en-9876543210abcdefGHIJ",
+      "kind": "redacted",
+      "secret": "reset-Tok_en-9876543210abcdefGHIJ",
+      "must_survive": [
+        "/forgot/"
+      ],
+      "probes": "Password-reset token, variable length, contains '-' and '_'. SCOPE=ruby: there is no /forgot/:token SPA route. src/apps/session/routes.ts:72 mounts /forgot as the request FORM, and the reset link itself is /reset-password?key=<token> (routes.ts:269), whose token is a 'key' query param covered by SENSITIVE_QUERY_PARAMS on both halves. The path arm exists for the server-rendered core flow, which the browser scrubber never sees.",
+      "scope": "ruby"
+    },
+    {
+      "id": "shortcode-path",
+      "input": "/l/Ab3-x_9",
+      "kind": "redacted",
+      "secret": "Ab3-x_9",
+      "must_survive": [
+        "/l/"
+      ],
+      "probes": "Link shortcode. Short and always scrubbed regardless of length. SCOPE=ruby: /l/<code> is a server-side link-domain redirect, not an SPA route, so it never reaches the browser scrubber.",
+      "scope": "ruby"
+    },
+    {
+      "id": "verify-account-key-query",
+      "input": "/verify-account?key=Qv7_tZ-2LmNpQrStUvWxYz0123456789AbCdEfGh",
+      "kind": "redacted",
+      "secret": "Qv7_tZ-2LmNpQrStUvWxYz0123456789AbCdEfGh",
+      "must_survive": [
+        "/verify-account",
+        "key="
+      ],
+      "probes": "Rodauth puts the verification token in a 'key' query param rather than a path segment. Covered by the sensitive-query-param name list on both halves, not by the path patterns."
+    },
+    {
+      "id": "receipt-named-subpath",
+      "input": "/receipt/recent",
+      "kind": "divergent",
+      "probes": "The two halves DELIBERATELY disagree. The backend requires >= MIN_IDENTIFIER_LENGTH (20) base36 characters before redacting an identifier path, so '/receipt/recent' survives and stays readable for operators. The frontend fallback has no length discriminant and redacts it. Recorded so the difference is not mistaken for an untested gap; neither half is asserted on this row."
+    },
+    {
+      "id": "parameterized-route-name-survives",
+      "input": "/secret/:secretKey",
+      "kind": "preserved",
+      "must_survive": [
+        "/secret/:secretKey"
+      ],
+      "probes": "Sentry transaction names are route TEMPLATES, not URLs — '/secret/:secretKey' names a group rather than an instance of one. It carries no data, so redacting it is pure signal loss: every parameterized transaction would collapse into '/secret/[REDACTED]' and the grouping the name exists to provide would be gone. The old alphanumeric-only value class excluded ':' incidentally; widening it to cover base64url tokens made this guard explicit ((?!:) in both halves)."
+    },
+    {
+      "id": "parameterized-invite-route-name-survives",
+      "input": "/invite/:token",
+      "kind": "preserved",
+      "must_survive": [
+        "/invite/:token"
+      ],
+      "probes": "The same guard on the arm this corpus was written for, so a future widening of the invite value class cannot quietly start eating invite route templates."
+    }
+  ]
+}

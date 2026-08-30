@@ -260,8 +260,8 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
       const org = createMockOrganization(); // Default is free plan (no paid subscription)
       axiosMock.onGet('/api/organizations').reply(200, { records: [org], count: 1 });
       await login('test@example.com', 'password123');
-      const expectedPath = `/billing/${org.extid}/plans?product=identity&interval=month`;
-      expect(router.push).toHaveBeenCalledWith(expectedPath);
+      const expected = { path: `/billing/${org.extid}/plans`, query: { product: 'identity', interval: 'month' } };
+      expect(router.push).toHaveBeenCalledWith(expected);
     */
 
     it.todo('should use the default organization for billing redirect');
@@ -272,8 +272,8 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
       const orgs = { records: [otherOrg, defaultOrg], count: 2 };
       axiosMock.onGet('/api/organizations').reply(200, orgs);
       await login('test@example.com', 'password123');
-      const expectedPath = `/billing/on_default/plans?product=unlimited&interval=year`;
-      expect(router.push).toHaveBeenCalledWith(expectedPath);
+      const expected = { path: '/billing/on_default/plans', query: { product: 'unlimited', interval: 'year' } };
+      expect(router.push).toHaveBeenCalledWith(expected);
     */
   });
 
@@ -482,8 +482,8 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
       const result = await login('test@example.com', 'password123');
       expect(result).toBe(true);
       expect(isLoading.value).toBe(false);
-      const expectedPath = `/billing/${org.extid}/plans?product=identity&interval=month`;
-      expect(router.push).toHaveBeenCalledWith(expectedPath);
+      const expected = { path: `/billing/${org.extid}/plans`, query: { product: 'identity', interval: 'month' } };
+      expect(router.push).toHaveBeenCalledWith(expected);
     */
   });
 });
@@ -593,9 +593,10 @@ describe('useAuth - Billing Redirect Valid Flag (Future)', () => {
     await login('test@example.com', 'password123');
 
     // Should redirect to billing plans for checkout
-    expect(router.push).toHaveBeenCalledWith(
-      `/billing/${org.extid}/plans?product=identity&interval=month`
-    );
+    expect(router.push).toHaveBeenCalledWith({
+      path: `/billing/${org.extid}/plans`,
+      query: { product: 'identity', interval: 'month' },
+    });
   });
 });
 
@@ -697,9 +698,10 @@ describe('useAuth - Subscription Status Checks', () => {
     await login('test@example.com', 'password123');
 
     // Should redirect to plan change flow
-    expect(router.push).toHaveBeenCalledWith(
-      `/billing/${org.extid}/plans?product=unlimited&interval=month&change=true`
-    );
+    expect(router.push).toHaveBeenCalledWith({
+      path: `/billing/${org.extid}/plans`,
+      query: { product: 'unlimited', interval: 'month', change: 'true' },
+    });
   });
 
   it.skip('should redirect to plan change flow when on free plan upgrading to paid', async () => {
@@ -724,9 +726,10 @@ describe('useAuth - Subscription Status Checks', () => {
     await login('test@example.com', 'password123');
 
     // Should redirect to plans with change=true (free is treated as existing plan)
-    expect(router.push).toHaveBeenCalledWith(
-      `/billing/${org.extid}/plans?product=identity&interval=month&change=true`
-    );
+    expect(router.push).toHaveBeenCalledWith({
+      path: `/billing/${org.extid}/plans`,
+      query: { product: 'identity', interval: 'month', change: 'true' },
+    });
   });
 });
 

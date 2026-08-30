@@ -32,6 +32,20 @@ Security
   percent-encoded traversal, and scheme-smuggling forms rejected at every
   trust boundary.
 
+- The authentication log records only the leading path segment of an
+  accepted redirect, never the full value. Accepted destinations are
+  routinely bearer credentials in their own right (``/invite/<token>``,
+  ``/secret/<key>``), and the log stream has a longer lifetime and a wider
+  audience than the link does.
+
+- Invitation and email-confirmation tokens are removed from diagnostics
+  payloads, including when they ride inside a query value such as
+  ``?redirect=/invite/<token>``. Previously the server-side scrubber had no
+  rule for these paths at all, and the browser-side rule stopped at the
+  first ``-`` or ``_`` in the token — leaving a partial credential that read
+  as redacted. Both halves are now driven by one shared corpus so a shape
+  covered on only one side fails the build.
+
 AI Assistance
 -------------
 

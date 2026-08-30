@@ -203,6 +203,10 @@
     "text": "No domains match the current filters.",
     "content_hash": "be4d64ec"
   },
+  "web.admin.domains.list.capped": {
+    "text": "Results are capped: the count shown is a floor, not the total. Narrow the search or filter to see everything.",
+    "content_hash": "27537844"
+  },
   "web.admin.domains.columns.domain": {
     "text": "Domain",
     "content_hash": "79fa3361"

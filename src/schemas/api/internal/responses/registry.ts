@@ -46,6 +46,7 @@ import {
   colonelOrganizationDetailResponseSchema,
   colonelReconcileOrganizationResponseSchema,
   colonelTransferOrganizationOwnershipResponseSchema,
+  colonelUpdateOrganizationPlanResponseSchema,
 } from './colonel-organizations';
 import {
   colonelSecretDeleteResponseSchema,
@@ -183,6 +184,7 @@ export const responseSchemas = {
   investigateOrganization: investigateOrganizationResponseSchema,
   colonelReconcileOrganization: colonelReconcileOrganizationResponseSchema,
   colonelTransferOrganizationOwnership: colonelTransferOrganizationOwnershipResponseSchema,
+  colonelUpdateOrganizationPlan: colonelUpdateOrganizationPlanResponseSchema,
   colonelDeleteOrganization: colonelDeleteOrganizationResponseSchema,
   colonelEntitlementOverride: colonelEntitlementOverrideResponseSchema,
   colonelMembershipEntitlementOverride: colonelMembershipEntitlementOverrideResponseSchema,
