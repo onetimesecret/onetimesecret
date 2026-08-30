@@ -1,8 +1,14 @@
 // src/tests/fixtures/receipt.fixture.ts
 
-import { ReceiptState } from '@/schemas/shapes/v2/receipt';
-import { Secret, SecretState } from '@/schemas/shapes/v2/secret';
-import type { Receipt, ReceiptDetails } from '@/schemas/shapes/v2/receipt';
+// Receipt/ReceiptDetails and ReceiptState come from the V3 shape — this is the
+// authoritative shape the production store (src/shared/stores/receiptStore.ts)
+// actually parses responses into and operates on. V2 kept these fields
+// nullish/string-typed for Redis-string backward compatibility, which no
+// longer matches what `useReceiptStore` exposes to consumers.
+import { ReceiptState } from '@/schemas/shapes/v3/receipt';
+import { SecretState } from '@/schemas/shapes/v2/secret';
+import type { Receipt, ReceiptDetails } from '@/schemas/shapes/v3/receipt';
+import type { Secret } from '@/schemas/shapes/v3/secret';
 
 // =============================================================================
 // NEW TERMINOLOGY FIXTURES (previewed/revealed)
@@ -502,7 +508,19 @@ export const mockSecretRecord: Secret = {
 
 export const mockBurnedSecretRecord: Secret | null = null;
 
-export const mockReceivedSecretRecord: Secret = {
+/**
+ * Legacy-state secret mock type.
+ *
+ * Mirrors the canonical V3 `Secret` shape but widens `state` to also accept
+ * the deprecated V2 aliases ('received', 'viewed') — contracts/secret.ts
+ * dropped those from `secretStateValues`, so they no longer satisfy `Secret`
+ * itself. The mocks below are kept exactly as-is (including the deprecated
+ * state strings) for backward-compat fixture consumers that still assert
+ * against them (see receipt.fixture.spec.ts).
+ */
+type LegacySecret = Omit<Secret, 'state'> & { state: Secret['state'] | 'received' | 'viewed' };
+
+export const mockReceivedSecretRecord: LegacySecret = {
   key: 'secret-received-key-123',
   shortid: 'secret-received-abc123',
   state: SecretState.RECEIVED,
@@ -511,12 +529,14 @@ export const mockReceivedSecretRecord: Secret = {
   updated: new Date(1735204014 * 1000),
   has_passphrase: false,
   verification: true,
+  is_previewed: true,
+  is_revealed: true,
   secret_value: 'received test secret',
   secret_ttl: 86400,
   lifespan: 86400,
 };
 
-export const mockOrphanedSecretRecord: Secret = {
+export const mockOrphanedSecretRecord: LegacySecret = {
   key: 'secret-orphaned-key-123',
   shortid: 'secret-orphaned-abc123',
   state: SecretState.VIEWED,
@@ -525,12 +545,14 @@ export const mockOrphanedSecretRecord: Secret = {
   updated: new Date(1735204014 * 1000),
   has_passphrase: false,
   verification: true,
+  is_previewed: true,
+  is_revealed: false,
   secret_value: 'orphaned test secret',
   secret_ttl: 0,
   lifespan: 0,
 };
 
-export const mockReceivedSecretRecord1: Secret = {
+export const mockReceivedSecretRecord1: LegacySecret = {
   key: 'secret-received-1',
   shortid: 'sec-rcv1',
   state: SecretState.RECEIVED,
@@ -539,12 +561,14 @@ export const mockReceivedSecretRecord1: Secret = {
   updated: new Date(1735204014 * 1000),
   has_passphrase: false,
   verification: true,
+  is_previewed: true,
+  is_revealed: true,
   secret_value: 'received-test-secret-1',
   secret_ttl: 3600,
   lifespan: 3600,
 };
 
-export const mockReceivedSecretRecord2: Secret = {
+export const mockReceivedSecretRecord2: LegacySecret = {
   key: 'secret-received-2',
   shortid: 'sec-rcv2',
   state: SecretState.RECEIVED,
@@ -553,6 +577,8 @@ export const mockReceivedSecretRecord2: Secret = {
   updated: new Date(1735204014 * 1000),
   has_passphrase: false,
   verification: true,
+  is_previewed: true,
+  is_revealed: true,
   secret_value: 'received-test-secret-2',
   secret_ttl: 7200,
   lifespan: 7200,
@@ -567,6 +593,8 @@ export const mockNotReceivedSecretRecord1: Secret = {
   updated: new Date(1735204014 * 1000),
   has_passphrase: false,
   verification: true,
+  is_previewed: false,
+  is_revealed: false,
   secret_value: 'not-received-test-secret-1',
   secret_ttl: 1800,
   lifespan: 1800,
