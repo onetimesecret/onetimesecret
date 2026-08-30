@@ -19,6 +19,30 @@
     "text": "Plan",
     "content_hash": "fa8ed0bd"
   },
+  "web.admin.organizations.actions.plan.label": {
+    "text": "Plan",
+    "content_hash": "fa8ed0bd"
+  },
+  "web.admin.organizations.actions.plan.apply": {
+    "text": "Apply",
+    "content_hash": "31e392d1"
+  },
+  "web.admin.organizations.actions.plan.confirmTitle": {
+    "text": "Change plan?",
+    "content_hash": "910a4de9"
+  },
+  "web.admin.organizations.actions.plan.confirmDescription": {
+    "text": "Change {org} to the {plan} plan.",
+    "content_hash": "aecf8277"
+  },
+  "web.admin.organizations.actions.plan.success": {
+    "text": "Plan updated.",
+    "content_hash": "ebe8d40c"
+  },
+  "web.admin.organizations.actions.plan.localConfigWarning": {
+    "text": "Plans loaded from local config — Stripe is not configured or unreachable.",
+    "content_hash": "df83e326"
+  },
   "web.admin.organizations.fields.subscription": {
     "text": "Subscription status",
     "content_hash": "f0723c4e"

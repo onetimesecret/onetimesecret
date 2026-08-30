@@ -342,6 +342,44 @@ export type ColonelReconcileOrganizationResponse = z.infer<
 >;
 
 /**
+ * `POST /api/colonel/organizations/:org_id/plan` → `{ record, details }` ack.
+ * MUTATING: writes the org's planid and re-materializes entitlements from the
+ * new plan (the org-level successor to the removed customer plan control —
+ * billing lives on Organization). `materialization` is the entitlement
+ * engine's status string ('materialized', 'skipped_standalone',
+ * 'materialization_failed', ...), null on an idempotent no-op. `warning` is
+ * non-null when the org has a live Stripe subscription that may overwrite the
+ * manual change on the next webhook/reconcile.
+ */
+export const colonelUpdateOrganizationPlanRecordSchema = z.object({
+  org_id: z.string(),
+  extid: z.string(),
+  display_name: z.string().nullable(),
+  old_planid: z.string().nullable(),
+  new_planid: z.string().nullable(),
+  updated: z.number().nullable(),
+});
+
+export const colonelUpdateOrganizationPlanDetailsSchema = z.object({
+  changed: z.boolean(),
+  materialization: z.string().nullable(),
+  message: z.string(),
+  warning: z.string().nullable(),
+});
+
+export const colonelUpdateOrganizationPlanResponseSchema = createApiResponseSchema(
+  colonelUpdateOrganizationPlanRecordSchema,
+  colonelUpdateOrganizationPlanDetailsSchema
+);
+
+export type ColonelUpdateOrganizationPlanRecord = z.infer<
+  typeof colonelUpdateOrganizationPlanRecordSchema
+>;
+export type ColonelUpdateOrganizationPlanResponse = z.infer<
+  typeof colonelUpdateOrganizationPlanResponseSchema
+>;
+
+/**
  * `POST /api/colonel/organizations/:org_id/transfer-ownership` → `{ record }`
  * ack (#3907 — console peer of `bin/ots org transfer-ownership`). MUTATING:
  * promotes the new owner, pivots the legacy `owner_id` mirror, and demotes
