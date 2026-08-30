@@ -187,6 +187,25 @@ listed_fqdns('org_id' => @org_a.extid, 'per_page' => 100).sort
 listed_fqdns('org_id' => @org_a.objid, 'per_page' => 100).sort
 #=> [@fqdn_a1, @fqdn_a2].sort
 
+## DRIFT: a domain whose org_id points at the org but which is MISSING from
+## the org's domains participation set (create!'s set-add is conditional on
+## the org loading; doctor models the state as repairable) is still listed
+## by the org filter, via the bounded owners-index union
+@domain_a1.remove_from_organization_domains(@org_a)
+listed_fqdns('org_id' => @org_a.extid, 'per_page' => 100).include?(@fqdn_a1)
+#=> true
+
+## ...and the org-only filter agrees with the org+search composition on the
+## drifted domain (the two candidate sources must not disagree on membership)
+listed_fqdns('org_id' => @org_a.extid, 'search' => @fqdn_a1).include?(@fqdn_a1)
+#=> true
+
+## Restore the participation for the remaining cases
+@domain_a1.add_to_organization_domains(@org_a)
+listed_fqdns('org_id' => @org_a.extid, 'per_page' => 100).sort ==
+  [@fqdn_a1, @fqdn_a2].sort
+#=> true
+
 ## org filter composes with search
 listed_fqdns('org_id' => @org_a.extid, 'search' => 'beta-lcd')
 #=> [@fqdn_a2]

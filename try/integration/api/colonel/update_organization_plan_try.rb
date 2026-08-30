@@ -92,17 +92,26 @@ def audit_count_for(org_extid)
   end
 end
 
-# The adapter's message qualification keyed off the op's materialization
-# status, exercised directly (the engine's failure paths can't be triggered
-# through the HTTP stack without breaking the billing engine mid-request).
-def adapter_message_for(materialization)
+# The adapter's message/problem qualification keyed off the op's
+# materialization + cascade outcome, exercised directly (the engine's failure
+# paths can't be triggered through the HTTP stack without breaking the
+# billing engine mid-request).
+def adapter_for(materialization, memberships: nil)
   logic = ColonelAPI::Logic::Colonel::UpdateOrganizationPlan.allocate
   logic.instance_variable_set(:@new_planid, 'team_plus_v1')
   logic.instance_variable_set(:@result, Onetime::Operations::Org::SetPlan::Result.new(
     status: :success, org: nil, from: 'free', to: 'team_plus_v1',
-    materialization: materialization, memberships: nil,
+    materialization: materialization, memberships: memberships,
   ))
-  logic.send(:message)
+  logic
+end
+
+def adapter_message_for(materialization, memberships: nil)
+  adapter_for(materialization, memberships: memberships).send(:message)
+end
+
+def adapter_problem_for(materialization, memberships: nil)
+  adapter_for(materialization, memberships: memberships).send(:entitlement_problem?)
 end
 
 # ----------------------------------------------------------------
@@ -133,12 +142,14 @@ audit_count_for(@org.extid)
 #=> nil
 
 ## The materialization outcome is reported, and with nothing degraded the
-## message is the unqualified success line
+## message is the unqualified success line with entitlements_ok true
 [
   @body['details']['materialization'].is_a?(String),
+  @body['details']['entitlements_ok'],
+  @body['details'].key?('memberships'),
   @body['details']['message'],
 ]
-#=> [true, 'Organization plan updated successfully']
+#=> [true, true, true, 'Organization plan updated successfully']
 
 ## An engine failure mid-materialize yields a QUALIFIED message pointing at
 ## reconcile — never the unqualified success line (the planid wrote but the
@@ -154,8 +165,36 @@ adapter_message_for(:plan_not_found).include?('entitlements were NOT updated')
 
 ## The standalone skip is not a problem status: billing-disabled installs
 ## legitimately write the field alone
-adapter_message_for(:skipped_standalone)
-#=> 'Organization plan updated successfully'
+[adapter_message_for(:skipped_standalone), adapter_problem_for(:skipped_standalone)]
+#=> ['Organization plan updated successfully', false]
+
+## A PARTIAL membership cascade (engine returns :materialized with failed
+## counts) is qualified and flagged: those members keep the previous plan's
+## entitlements
+@partial = { success: 3, failed: 2, total: 5, failed_ids: %w[m1 m2] }
+@partial_msg = adapter_message_for(:materialized, memberships: @partial)
+[
+  @partial_msg.include?('2 of 5'),
+  @partial_msg.include?('reconcile'),
+  adapter_problem_for(:materialized, memberships: @partial),
+]
+#=> [true, true, true]
+
+## A cascade that RAISED (nil memberships on :materialized — the engine's
+## documented unobserved-outcome signal) is likewise qualified and flagged
+[
+  adapter_message_for(:materialized).include?('did not complete'),
+  adapter_problem_for(:materialized),
+]
+#=> [true, true]
+
+## A clean cascade on :materialized is an unqualified success
+@clean = { success: 5, failed: 0, total: 5, failed_ids: [] }
+[
+  adapter_message_for(:materialized, memberships: @clean),
+  adapter_problem_for(:materialized, memberships: @clean),
+]
+#=> ['Organization plan updated successfully', false]
 
 # ----------------------------------------------------------------
 # Idempotent no-op

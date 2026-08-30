@@ -363,6 +363,14 @@ export const colonelUpdateOrganizationPlanRecordSchema = z.object({
 export const colonelUpdateOrganizationPlanDetailsSchema = z.object({
   changed: z.boolean(),
   materialization: z.string().nullable(),
+  // Cascade counts (same shape as reconcile's) — null when the run did not
+  // cascade or the cascade raised server-side.
+  memberships: colonelReconcileMembershipCascadeSchema.nullable(),
+  // The single signal the UI keys off: false whenever the planid wrote but
+  // entitlement state may not fully match the new plan (failed/absent
+  // materialization, partial or unobserved membership cascade). `message`
+  // carries the operator-facing specifics.
+  entitlements_ok: z.boolean(),
   message: z.string(),
   warning: z.string().nullable(),
 });

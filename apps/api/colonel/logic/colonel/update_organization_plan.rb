@@ -33,10 +33,11 @@ module ColonelAPI
         # Materialization outcomes where the planid wrote but the entitlement
         # state did NOT update — the org (and every cascaded membership) keeps
         # the PREVIOUS plan's entitlements until a reconcile succeeds. A
-        # downgrade in this state must not read as an unqualified success:
-        # `details.message` says what actually happened and the admin UI
-        # renders it as an error, not a success toast (the frontend keys off
-        # `details.materialization` matching these strings).
+        # downgrade in this state must not read as an unqualified success.
+        # These are one input to `details.entitlements_ok` (the single wire
+        # signal the admin UI keys off to render an error instead of the
+        # success toast); a degraded membership cascade is the other — see
+        # #entitlement_problem?.
         MATERIALIZATION_PROBLEMS = [:materialization_failed, :plan_not_found].freeze
 
         attr_reader :org, :new_planid, :old_planid, :result
@@ -91,6 +92,16 @@ module ColonelAPI
               # The engine status (:materialized, :skipped_standalone,
               # :materialization_failed, ...) as a string; null on a no-op.
               materialization: result.materialization&.to_s,
+              # Cascade counts from rematerialize_all_memberships! — same
+              # wire shape as the reconcile endpoint. null when the run did
+              # not cascade (no-op, skips, materialization failure) or the
+              # cascade RAISED (on :materialized, nil IS that signal).
+              memberships: result.memberships,
+              # The one flag the UI keys off: false whenever the planid wrote
+              # but entitlement state may not fully match the new plan
+              # (materialization problem, partial cascade, or an unobserved
+              # cascade outcome). details.message carries the specifics.
+              entitlements_ok: !entitlement_problem?,
               message: message,
               warning: stripe_overwrite_warning,
             },
@@ -99,11 +110,27 @@ module ColonelAPI
 
         private
 
+        # True when the planid wrote but the entitlement state may not match
+        # the new plan: the engine failed or had no plan definition
+        # (MATERIALIZATION_PROBLEMS), the membership cascade partially failed
+        # (failed > 0), or the cascade outcome is unobserved (on
+        # :materialized a nil memberships means the cascade RAISED — the
+        # engine's documented contract). Reconcile is the retry for all of
+        # them.
+        def entitlement_problem?
+          return false unless result.status == :success
+          return true if MATERIALIZATION_PROBLEMS.include?(result.materialization)
+          return false unless result.materialization == :materialized
+
+          memberships = result.memberships
+          memberships.nil? || memberships[:failed].to_i.positive?
+        end
+
         # @return [String] what actually happened, qualified: a plan change
-        #   whose entitlement re-materialization did not run is NOT an
-        #   unqualified success (a failed downgrade would otherwise leave the
-        #   old plan's premium entitlements active while telling the operator
-        #   everything worked).
+        #   whose entitlement re-materialization or membership cascade did
+        #   not complete is NOT an unqualified success (a failed downgrade
+        #   would otherwise leave the old plan's premium entitlements active
+        #   while telling the operator everything worked).
         def message
           return 'Organization already on this plan' unless result.status == :success
 
@@ -118,6 +145,26 @@ module ColonelAPI
             'entitlement definition in the billing catalog, so ' \
             'entitlements were NOT updated — the organization and its ' \
             "members keep the previous plan's entitlements."
+          when :materialized
+            cascade_message
+          else
+            'Organization plan updated successfully'
+          end
+        end
+
+        # @return [String] the :materialized-path message, qualified when the
+        #   membership cascade degraded.
+        def cascade_message
+          memberships = result.memberships
+          if memberships.nil?
+            'Organization plan updated and entitlements re-materialized, but ' \
+              'the membership cascade did not complete — members may keep the ' \
+              "previous plan's entitlements. Run reconcile on this organization."
+          elsif memberships[:failed].to_i.positive?
+            "Organization plan updated, but #{memberships[:failed]} of " \
+              "#{memberships[:total]} membership(s) failed to re-materialize " \
+              "and keep the previous plan's entitlements. Run reconcile on " \
+              'this organization.'
           else
             'Organization plan updated successfully'
           end

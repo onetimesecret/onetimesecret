@@ -45,7 +45,13 @@ module ColonelAPI
       #   one request. The glob term is escaped, so user input cannot inject
       #   pattern syntax.
       # - ORG FILTER (without search): the org's own `domains` participation
-      #   set — bounded by that org's domain count, never the global population.
+      #   set — bounded by that org's domain count, never the global
+      #   population — UNIONED with a bounded HSCAN of the `owners` class
+      #   hashkey (domainid -> org_id). The participation set can drift from
+      #   the authoritative org_id field (create!'s set-add is conditional on
+      #   the org loading; `domains doctor` models the state as repairable),
+      #   and the admin list is exactly the surface an operator would use to
+      #   find such a domain, so it must not hide it.
       # - STATUS FILTER alone: there is no per-status index, so this reads the
       #   newest STATUS_SCAN_LIMIT domains from the instances set and filters in
       #   Ruby. Beyond the cap the response sets `pagination.capped` so the UI
@@ -270,14 +276,76 @@ module ColonelAPI
         end
 
         # The org's own domains participation set — bounded by that org's
-        # domain count. Accepts the org extid (what every admin surface routes
-        # by) or the internal objid, which is what CustomDomain#org_id stores.
-        # An unknown org matches nothing, same as before.
+        # domain count — unioned with the org's entries in the `owners` class
+        # hashkey. Accepts the org extid (what every admin surface routes by)
+        # or the internal objid, which is what CustomDomain#org_id stores. An
+        # unknown org matches nothing, same as before.
+        #
+        # The union matters: the participation set can be MISSING a domain
+        # whose org_id points here (create! adds to the set only `if org`
+        # loaded; doctor's check_org_domains_membership models that drift as
+        # expected and repairable). `owners` has a single writer
+        # (record_owner) and is the second source of truth the org-deletion
+        # drift guard already reads — without it the drifted domain would be
+        # invisible to an org-filtered list (while still appearing when
+        # `search` drives the candidate read), hiding it on the one surface
+        # an operator would use to find it.
         def org_candidates
           org = resolve_org(org_filter)
           return [] unless org&.exists?
 
-          org.list_domains
+          candidates = org.list_domains
+          merge_unlisted_owned(candidates, org)
+          candidates
+        end
+
+        # Append domains the `owners` index attributes to the org but the
+        # participation set does not contain. Bounded HSCAN (Organization's
+        # #unlisted_owned_domains does an HGETALL of the whole index, which
+        # is fine on its rare org-deletion path but not on the request path).
+        def merge_unlisted_owned(candidates, org)
+          seen                    = candidates.map(&:identifier)
+          owned_ids, scan_capped  = scan_owners_index(org.objid)
+          @capped               ||= scan_capped
+
+          Onetime::CustomDomain.load_multi(owned_ids - seen).compact.each do |domain|
+            candidates << domain
+          end
+        end
+
+        # Walk the owners hash (domainid -> org objid) collecting this org's
+        # domainids. HSCAN MATCH filters on FIELDS, not values, so the org
+        # filter here is client-side per round — but each round is SCAN_COUNT
+        # entries and the walk is capped exactly like the search scan, so a
+        # request can never read an unbounded index.
+        #
+        # `owners` is a plain Familia class_hashkey, so values on the wire are
+        # JSON-serialized ("\"objid\"", what owners.get would deserialize) —
+        # match both that and the raw form so a hand-written repair entry
+        # still counts.
+        #
+        # @return [Array(Array<String>, Boolean)] this org's domainids and a
+        #   capped flag (true when the walk stopped before exhausting the
+        #   index, so members may be missing).
+        def scan_owners_index(org_objid)
+          dbkey    = Onetime::CustomDomain.owners.dbkey
+          dbclient = Onetime::CustomDomain.dbclient
+          wanted   = [org_objid, org_objid.to_json]
+          owned    = []
+          cursor   = '0'
+          rounds   = 0
+
+          loop do
+            cursor, entries = dbclient.hscan(dbkey, cursor, count: SCAN_COUNT)
+            entries.each { |domain_id, owner| owned << domain_id if wanted.include?(owner) }
+            rounds         += 1
+
+            break if cursor == '0'
+            break if owned.size >= SEARCH_MATCH_LIMIT
+            break if rounds >= SEARCH_SCAN_ROUNDS
+          end
+
+          [owned.first(SEARCH_MATCH_LIMIT), cursor != '0']
         end
 
         # Extid-then-objid org resolution, shared by the candidate read and

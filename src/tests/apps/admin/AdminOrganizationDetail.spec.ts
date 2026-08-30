@@ -245,6 +245,8 @@ function planChangeAck(warning: string | null = null, details: Record<string, un
     details: {
       changed: true,
       materialization: 'materialized',
+      memberships: { success: 3, failed: 0, total: 3, failed_ids: [] },
+      entitlements_ok: true,
       message: 'Organization plan updated successfully',
       warning,
       ...details,
@@ -487,11 +489,14 @@ describe('AdminOrganizationDetail (org detail + entitlements + reconcile)', () =
       return Promise.resolve({ data: detailPayload() });
     });
     // Planid wrote, but the entitlement engine did not run: the org keeps the
-    // OLD plan's entitlements. The server's qualified message must render as
-    // an error toast — never the unqualified success toast.
+    // OLD plan's entitlements. The server flags it via entitlements_ok:false
+    // and its qualified message must render as an error toast — never the
+    // unqualified success toast.
     mockApi.post.mockResolvedValue({
       data: planChangeAck(null, {
         materialization: 'materialization_failed',
+        memberships: null,
+        entitlements_ok: false,
         message:
           'Organization plan was saved, but entitlement re-materialization failed — ' +
           'run reconcile on this organization.',
@@ -508,6 +513,39 @@ describe('AdminOrganizationDetail (org detail + entitlements + reconcile)', () =
 
     expect(showMock).toHaveBeenCalledTimes(1);
     expect(showMock.mock.calls[0][0]).toContain('re-materialization failed');
+    expect(showMock.mock.calls[0][1]).toBe('error');
+  });
+
+  it('surfaces a partial membership cascade as an error, not success', async () => {
+    mockApi.get.mockImplementation((url: string) => {
+      if (url === '/api/colonel/available-plans') {
+        return Promise.resolve({ data: plansPayload() });
+      }
+      return Promise.resolve({ data: detailPayload() });
+    });
+    // Org entitlements materialized but 2 of 5 membership writes failed:
+    // those members keep the previous plan's entitlements, so this is not an
+    // unqualified success either.
+    mockApi.post.mockResolvedValue({
+      data: planChangeAck(null, {
+        memberships: { success: 3, failed: 2, total: 5, failed_ids: ['m1', 'm2'] },
+        entitlements_ok: false,
+        message:
+          'Organization plan updated, but 2 of 5 membership(s) failed to re-materialize ' +
+          "and keep the previous plan's entitlements. Run reconcile on this organization.",
+      }),
+    });
+    wrapper = mountView();
+    await flushPromises();
+
+    await wrapper.find('[data-testid="plan-select"]').setValue('team_plus_v1');
+    await wrapper.find('[data-testid="plan-apply"]').trigger('click');
+    await flushPromises();
+    await dialogSubmit(wrapper).trigger('submit');
+    await flushPromises();
+
+    expect(showMock).toHaveBeenCalledTimes(1);
+    expect(showMock.mock.calls[0][0]).toContain('2 of 5');
     expect(showMock.mock.calls[0][1]).toBe('error');
   });
 

@@ -216,13 +216,13 @@
   /** Server-side heads-up (live Stripe subscription may overwrite the change). */
   const planChangeWarning = ref<string | null>(null);
   /**
-   * Server message when the planid wrote but entitlement re-materialization
-   * did not run (`details.materialization` in MATERIALIZATION_PROBLEMS on the
-   * adapter). The org keeps the OLD plan's entitlements in that state, so it
-   * must surface as an error, never the success toast.
+   * Server message when the planid wrote but entitlement state may not match
+   * the new plan (`details.entitlements_ok: false` — failed/absent
+   * materialization, or a partial/unobserved membership cascade). The org or
+   * some members keep the OLD plan's entitlements in that state, so it must
+   * surface as an error, never the success toast.
    */
   const planChangeProblem = ref<string | null>(null);
-  const MATERIALIZATION_PROBLEMS = ['materialization_failed', 'plan_not_found'];
 
   const {
     loading: planLoading,
@@ -240,7 +240,7 @@
     // loses the Stripe-overwrite warning / materialization signal.
     planChangeWarning.value = parsed.ok ? (parsed.data.details?.warning ?? null) : null;
     planChangeProblem.value =
-      parsed.ok && MATERIALIZATION_PROBLEMS.includes(parsed.data.details?.materialization ?? '')
+      parsed.ok && parsed.data.details?.entitlements_ok === false
         ? (parsed.data.details?.message ?? t('web.admin.organizations.actions.plan.problem'))
         : null;
   });
