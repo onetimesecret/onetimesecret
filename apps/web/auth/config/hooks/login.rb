@@ -373,12 +373,17 @@ module Auth::Config::Hooks
         # to avoid NoMethodError when billing is disabled (self-hosted).
         #
         # Only when this login is COMPLETE (no second factor pending) — the same
-        # condition that picked branch 3a/3b above. add_billing_redirect_to_response
-        # consumes the plan intent (deletes the Redis key and session keys), and the
-        # SPA never reads billing_redirect off the mfa_required response, so consuming
-        # here on an MFA-gated login would silently discard the selected plan (#4306).
-        # For MFA logins the intent survives untouched and is consumed by the
-        # after_two_factor_authentication hook instead (two_factor.rb).
+        # condition that picked branch 3a/3b above. The SPA never reads
+        # billing_redirect off the mfa_required response, so surfacing it there
+        # would be dead weight on a body the client discards; an MFA-gated login
+        # defers to after_two_factor_authentication (two_factor.rb), which emits
+        # it on the completion body the challenge view actually reads (#4306).
+        #
+        # add_billing_redirect_to_response only PEEKS at the intent — nothing is
+        # deleted here or in the two-factor hook. Consumption happens later, at
+        # the authenticated billing handoff (Onetime::Customer#consume_pending_plan_intent!,
+        # called by Billing::Controllers::BillingController#subscription_status),
+        # so a client that never completes the handoff can retry on a later login.
         if json_request? && !mfa_decision&.requires_mfa? && respond_to?(:add_billing_redirect_to_response)
           add_billing_redirect_to_response
         end
