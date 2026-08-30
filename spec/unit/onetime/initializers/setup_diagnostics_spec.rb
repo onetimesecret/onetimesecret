@@ -1335,18 +1335,46 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       # Onetime::ErrorHandler.safe_request_context drops the query string but
       # keeps the bare path, and on /secret/<id> or /receipt/<id> the path IS
       # the bearer credential. Nothing else in the pipeline reads this key.
-      it 'scrubs the query-less path in contexts.request' do
+      #
+      # THE KEY TYPE IS THE POINT. safe_request_context and welcome.rb both
+      # write SYMBOL keys under the string outer key 'request'; a
+      # string-keyed fixture here passes against a reader that matches
+      # nothing in production. The symbol case is the real one.
+      it 'scrubs the symbol-keyed path safe_request_context actually writes' do
         identifier = 'a' * 62
         event = mock_event_class.new(
           request: nil,
-          contexts: { 'request' => { 'path' => "/api/v1/receipt/#{identifier}/burn", 'method' => 'POST' } }
+          contexts: { 'request' => { path: "/api/v1/receipt/#{identifier}/burn", method: 'POST' } }
         )
 
         result = described_class.scrub_event_urls(event)
 
-        expect(result.contexts['request']['path']).to eq('/api/v1/receipt/[REDACTED]/burn')
-        expect(result.contexts['request']['path']).not_to include(identifier)
-        expect(result.contexts['request']['method']).to eq('POST')
+        expect(result.contexts['request'][:path]).to eq('/api/v1/receipt/[REDACTED]/burn')
+        expect(result.contexts['request'][:method]).to eq('POST')
+      end
+
+      it 'scrubs a string-keyed path too' do
+        identifier = 'a' * 62
+        event = mock_event_class.new(
+          request: nil,
+          contexts: { 'request' => { 'path' => "/api/v1/secret/#{identifier}" } }
+        )
+
+        result = described_class.scrub_event_urls(event)
+
+        expect(result.contexts['request']['path']).to eq('/api/v1/secret/[REDACTED]')
+      end
+
+      it 'scrubs a symbol-keyed outer request context' do
+        identifier = 'a' * 62
+        event = mock_event_class.new(
+          request: nil,
+          contexts: { request: { path: "/api/v1/secret/#{identifier}" } }
+        )
+
+        result = described_class.scrub_event_urls(event)
+
+        expect(result.contexts[:request][:path]).to eq('/api/v1/secret/[REDACTED]')
       end
 
       it 'scrubs context URLs when request is nil (non-HTTP events)' do

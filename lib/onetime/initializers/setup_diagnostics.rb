@@ -304,9 +304,10 @@ module Onetime
           # Handles five URL locations:
           # 1. event.request.url - Standard Sentry request data
           # 2. event.contexts['request']['url'] - Custom context set by error middleware
-          # 3. event.contexts['request']['path'] - Same context, query-less path
+          # 3. event.contexts['request'][:path] - Same context, query-less path
           #    (Onetime::ErrorHandler.safe_request_context); on /secret/<id>
-          #    the path alone is the credential
+          #    the path alone is the credential. Symbol- and string-keyed
+          #    producers both exist — see #scrub_request_context
           # 4. event.transaction - Set from raw PATH_INFO by Sentry::Rack::CaptureExceptions
           # 5. event.request.headers['Referer'] - Referer carries the previous URL,
           #    which can embed a secret identifier (e.g. /secret/<id>)
@@ -337,24 +338,8 @@ module Onetime
               end
             end
 
-            # Scrub custom request context URL and path (set via
-            # scope.set_context in error middleware). Onetime::ErrorHandler
-            # .safe_request_context deliberately drops the query string but
-            # keeps the raw path, and on /secret/<key> or /receipt/<key> that
-            # path IS the bearer credential — nothing else in this pipeline
-            # looks at the ['path'] key.
-            if event.contexts.is_a?(Hash) && event.contexts['request'].is_a?(Hash)
-              %w[url path].each do |key|
-                original = event.contexts['request'][key]
-                next unless original
-
-                scrubbed = scrub_url(original)
-                next if scrubbed == original
-
-                event.contexts['request'][key] = scrubbed
-                OT.ld "[sentry] Scrubbed contexts.request.#{key}"
-              end
-            end
+            # Scrub the custom request context set via scope.set_context.
+            scrub_request_context(event.contexts)
 
             # Scrub URL-bearing request headers (Referer). The Referer carries
             # the previous page URL, which on OTS can embed a secret identifier
@@ -378,6 +363,47 @@ module Onetime
             end
             redact_url_bearing_headers(event.request&.headers)
             event
+          end
+
+          # Scrub the 'request' context a caller attached with
+          # scope.set_context('request', ...).
+          #
+          # KEY TYPES ARE NOT NORMALIZED anywhere in this path.
+          # Sentry::Scope#set_context merges the caller's Hash verbatim, and
+          # before_send runs on the live event, so whatever the producer wrote
+          # is what is here. The producers disagree:
+          # Onetime::ErrorHandler.safe_request_context returns SYMBOL keys
+          # (:path, :method, :ip) under the STRING outer key 'request', and
+          # apps/web/core/controllers/welcome.rb hand-builds the same shape.
+          # A string-only reader therefore matched nothing in production. Both
+          # spellings are checked on both levels rather than picking one,
+          # because the producers are free to change independently.
+          #
+          # :path is the one that matters. safe_request_context deliberately
+          # drops the query string and keeps the bare path — and on
+          # /secret/<id> or /receipt/<id> that path IS the bearer credential,
+          # so it is the last unscrubbed copy of it in the payload.
+          #
+          # @param contexts [Hash, nil] event.contexts
+          # @return [void]
+          def scrub_request_context(contexts)
+            return unless contexts.is_a?(Hash)
+
+            request_ctx = contexts['request'] || contexts[:request]
+            return unless request_ctx.is_a?(Hash)
+
+            %w[url path].each do |name|
+              [name, name.to_sym].each do |key|
+                original = request_ctx[key]
+                next unless original.is_a?(String)
+
+                scrubbed = scrub_url(original)
+                next if scrubbed == original
+
+                request_ctx[key] = scrubbed
+                OT.ld "[sentry] Scrubbed contexts.request.#{key}"
+              end
+            end
           end
 
           # Scrub URL-bearing request headers (e.g. Referer) in place through
