@@ -176,8 +176,30 @@ export function isAuthError(
   return 'error' in response;
 }
 
+/**
+ * POST /auth/verify-account success body: the account is now verified but NOT
+ * signed in — the user still has to authenticate. It returns an optional
+ * internal redirect target, the `redirect` the backend VALIDATED and stored at
+ * signup, so the destination survives the signup → email → verify → signin
+ * journey (the verification link is opened from a mail client, frequently in a
+ * different browser, so the original query string is long gone).
+ *
+ * The SPA validates it with isValidInternalPath and falls back to the
+ * ?redirect query param, then a plain /signin — same contract as link-sso
+ * above; a server-supplied path is never trusted blindly.
+ *
+ * The server resolves precedence (plan intent > redirect > default) and sends
+ * ONE destination: a valid plan intent arrives here as the checkout path
+ * (/billing/plans?product=…&interval=…), else the stored signup redirect.
+ * ABSENT when nothing was stored or the stored value failed re-validation.
+ */
+const verifyAccountSuccessSchema = z.object({
+  success: z.string(),
+  redirect: z.string().optional(),
+});
+
 // Verify account response
-export const verifyAccountResponseSchema = authResponseSchema;
+export const verifyAccountResponseSchema = z.union([verifyAccountSuccessSchema, authErrorSchema]);
 export type VerifyAccountResponse = z.infer<typeof verifyAccountResponseSchema>;
 
 // Change password response

@@ -1195,6 +1195,72 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       end
     end
 
+    # CROSS-LANGUAGE CORPUS — the Ruby half.
+    #
+    # tests/fixtures/sensitive_path_corpus.json is a language-neutral list of
+    # URL shapes whose credential-bearing segment must not survive scrubbing.
+    # The SAME file drives the TypeScript half
+    # (src/tests/plugins/core/diagnostics/sensitivePathCorpus.spec.ts).
+    #
+    # WHY A SHARED FILE: a Sentry payload can be assembled by either the
+    # browser or the server. A shape covered on only one side still leaks —
+    # the covered half just hides which one is broken. Adding a row here
+    # automatically binds both languages.
+    #
+    # The corpus carries no expected output strings, deliberately: the two
+    # halves reach the same contract through different pattern sets (the
+    # backend discriminates identifier paths by length, the frontend leans on
+    # generated route metadata), so pinning one output string would pin an
+    # implementation detail instead of the security property.
+    describe 'shared sensitive-path corpus' do
+      corpus_path = File.join(Onetime::HOME, 'tests', 'fixtures', 'sensitive_path_corpus.json')
+      corpus       = JSON.parse(File.read(corpus_path))
+
+      it 'is loaded, non-empty, and has unique ids' do
+        ids = corpus['entries'].map { |entry| entry['id'] }
+
+        expect(ids).not_to be_empty
+        expect(ids.uniq).to eq(ids)
+      end
+
+      corpus['entries'].each do |entry|
+        next unless entry['kind'] == 'preserved'
+
+        it "leaves #{entry['id']} unchanged" do
+          expect(scrub_url(entry['input'])).to eq(entry['input']),
+                                               "#{entry['id']}: over-redacted a template that carries no data"
+        end
+      end
+
+      corpus['entries'].each do |entry|
+        # `scope` is honoured by the TS half (which skips scope=ruby rows).
+        # The Ruby half asserts every redacted row: a shape the browser never
+        # sees still reaches Sentry from the server.
+        next unless entry['kind'] == 'redacted'
+
+        context "#{entry['id']} (#{entry['probes'][0, 60]}...)" do
+          let(:result) { scrub_url(entry['input']) }
+
+          it 'removes the credential' do
+            expect(entry['input']).to include(entry['secret']),
+                                      "corpus row #{entry['id']} is malformed: `secret` is not in `input`"
+
+            expect(result).not_to include(entry['secret']),
+                                  "#{entry['id']}: scrub_url leaked #{entry['secret'].inspect} " \
+                                  "from #{entry['input'].inspect} -> #{result.inspect}"
+          end
+
+          entry['must_survive'].each do |fragment|
+            it "keeps #{fragment.inspect} readable" do
+              expect(result).to include(fragment),
+                                "#{entry['id']}: over-redacted — #{fragment.inspect} " \
+                                "vanished from #{result.inspect}"
+            end
+          end
+        end
+      end
+    end
+
     describe '.scrub_event_urls' do
       # Mock structures that mirror Sentry's event/request objects
       let(:mock_request_class) do

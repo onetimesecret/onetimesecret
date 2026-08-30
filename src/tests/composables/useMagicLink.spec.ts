@@ -11,10 +11,15 @@ vi.mock('vue-i18n', () => ({
   }),
 }));
 
+// usePostAuthRedirect (reached via verifyMagicLink) reads route.query, so the
+// mock has to supply useRoute as well as useRouter.
+const mockRoute = { query: {} as Record<string, string> };
+const mockRouterPush = vi.fn();
 vi.mock('vue-router', () => ({
   useRouter: () => ({
-    push: vi.fn(),
+    push: mockRouterPush,
   }),
+  useRoute: () => mockRoute,
 }));
 
 describe('useMagicLink', () => {
@@ -116,6 +121,44 @@ describe('useMagicLink', () => {
       expect(callCount).toBe(1);
       expect(result).toBe(false);
       expect(error.value).toBe('Internal Server Error');
+    });
+  });
+
+  /**
+   * A magic link is a PRIMARY factor: once it verifies, the session is live and
+   * the user should land where they were headed. This used to hard-push '/'.
+   */
+  describe('verifyMagicLink post-auth destination', () => {
+    beforeEach(() => {
+      mockRoute.query = {};
+      mockRouterPush.mockClear();
+      setup.axiosMock?.onGet('/bootstrap/me').reply(200, { authenticated: true });
+      setup.axiosMock?.onPost('/auth/email-login').reply(200, { success: 'Signed in' });
+    });
+
+    it('honours a validated ?redirect', async () => {
+      mockRoute.query = { redirect: '/secret/abc?view=raw#content' };
+
+      const { verifyMagicLink } = useMagicLink();
+      expect(await verifyMagicLink('key-123')).toBe(true);
+
+      expect(mockRouterPush).toHaveBeenCalledWith('/secret/abc?view=raw#content');
+    });
+
+    it('falls back to / when no redirect param is present', async () => {
+      const { verifyMagicLink } = useMagicLink();
+      expect(await verifyMagicLink('key-123')).toBe(true);
+
+      expect(mockRouterPush).toHaveBeenCalledWith('/');
+    });
+
+    it('drops an external redirect param and falls back to /', async () => {
+      mockRoute.query = { redirect: '//evil.example/phish' };
+
+      const { verifyMagicLink } = useMagicLink();
+      expect(await verifyMagicLink('key-123')).toBe(true);
+
+      expect(mockRouterPush).toHaveBeenCalledWith('/');
     });
   });
 });

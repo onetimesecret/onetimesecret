@@ -4,6 +4,7 @@ import {
   webauthnCredentialsResponseSchema,
   type WebAuthnCredential,
 } from '@/schemas/api/auth/responses/auth';
+import { usePostAuthRedirect } from '@/shared/composables/usePostAuthRedirect';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import type {
@@ -16,7 +17,6 @@ import { startAuthentication, startRegistration } from '@simplewebauthn/browser'
 import type { AxiosInstance } from 'axios';
 import { inject, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
 
 // Response types
 type WebAuthnSuccessResponse = { success: string };
@@ -50,10 +50,10 @@ function isError(response: WebAuthnResponse): response is WebAuthnErrorResponse 
 /* eslint-disable max-lines-per-function */
 export function useWebAuthn() {
   const $api = inject('api') as AxiosInstance;
-  const router = useRouter();
   const { t } = useI18n();
   const authStore = useAuthStore();
   const csrfStore = useCsrfStore();
+  const { navigateAfterAuth } = usePostAuthRedirect();
 
   const isLoading = ref(false);
   const error = ref<string | null>(null);
@@ -260,9 +260,13 @@ export function useWebAuthn() {
         return false;
       }
 
-      // Success - update auth state and navigate
+      // Success - update auth state and navigate. This route is the PASSWORDLESS
+      // first factor (webauthn-login), so the session is complete here; apply
+      // the same destination precedence as a password login (billing intent >
+      // validated ?redirect > '/'). The MFA route below deliberately does not —
+      // MfaChallenge.vue owns the redirect once the second factor lands.
       await authStore.setAuthenticated(true);
-      await router.push('/');
+      await navigateAfterAuth();
       return true;
     } catch (err: unknown) {
       handleWebAuthnError(err, 'web.auth.webauthn.authFailed');

@@ -411,10 +411,18 @@ function handleAuthRouteRedirect(to: RouteLocationNormalized) {
   if (to.path === '/forgot') {
     return { path: '/account/settings/security/reset-password' };
   }
-  // Respect redirect param if valid. isValidInternalPath additionally caps
-  // length at 2048 and rejects embedded '://' that the ad-hoc slash check missed.
-  const redirectParam = to.query.redirect as string | undefined;
-  return isValidInternalPath(redirectParam) ? { path: redirectParam } : { name: 'Dashboard' };
+  // Respect redirect param if valid. isValidInternalPath caps length at 2048,
+  // rejects embedded '://', backslashes, control characters and encoded
+  // traversal, and lets ?query / #hash through as part of the string.
+  //
+  // Return the RAW STRING, not { path }: vue-router runs a `path` through
+  // parseURL, which treats it as a path ONLY — '/secret/abc?view=raw#content'
+  // becomes the literal path '/secret/abc?view=raw#content' with the query and
+  // hash silently discarded from where they belong. The string form is parsed
+  // as a full location, so both survive.
+  const redirectParam = to.query.redirect;
+  const redirectPath = typeof redirectParam === 'string' ? redirectParam : undefined;
+  return isValidInternalPath(redirectPath) ? redirectPath : { name: 'Dashboard' };
 }
 
 function redirectToSignIn(from: RouteLocationNormalized) {

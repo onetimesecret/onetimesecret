@@ -201,6 +201,34 @@ describe('CheckEmail.vue', () => {
     expect(to).toBe('/signup');
   });
 
+  it('carries ?redirect through "start over" so the destination survives a retyped address', async () => {
+    // This page sits mid-journey: the user signed up on the way to somewhere.
+    // Correcting a typo must not silently reset that destination.
+    wrapper = await createWrapper({
+      email: 'tom@myspace.com',
+      query: { redirect: '/secret/abc?view=raw#content' },
+    });
+
+    const to = wrapper.findComponent('[data-testid="check-email-start-over-link"]').props('to');
+    expect(to).toEqual({
+      path: '/signup',
+      query: { redirect: '/secret/abc?view=raw#content' },
+    });
+  });
+
+  it('carries redirect alongside billing params when both are in flight', async () => {
+    wrapper = await createWrapper({
+      email: 'tom@myspace.com',
+      query: { redirect: '/workspace/domains', product: 'identity', interval: 'month' },
+    });
+
+    const to = wrapper.findComponent('[data-testid="check-email-start-over-link"]').props('to');
+    expect(to).toEqual({
+      path: '/signup',
+      query: { redirect: '/workspace/domains', product: 'identity', interval: 'month' },
+    });
+  });
+
   it('does not render a sign-in link (start over is the only recovery path)', async () => {
     wrapper = await createWrapper({ email: 'tom@myspace.com' });
 
