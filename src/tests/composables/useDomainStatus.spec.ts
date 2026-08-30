@@ -24,29 +24,38 @@ describe('useDomainStatus', () => {
   // created/updated and vhost.last_monitored_unix are Date, not epoch numbers.
   const MOCK_DATE = new Date(1700000000000);
 
-  const createMockDomain = (overrides: Partial<CustomDomain> = {}): CustomDomain => ({
-    domainid: 'domain-uuid-123',
-    extid: 'domain-123',
-    custid: 'cust-456',
-    display_domain: 'example.com',
-    base_domain: 'example.com',
-    subdomain: '',
-    trd: '',
-    tld: 'com',
-    sld: 'example',
-    is_apex: true,
-    txt_validation_host: '_onetime-challenge.example.com',
-    txt_validation_value: 'validation-value-abc123',
-    verified: true,
-    brand: null,
-    created: MOCK_DATE,
-    updated: MOCK_DATE,
-    vhost: {
-      status: 'PENDING',
-    },
-    vhost_fetch_failed_at: null,
-    ...overrides,
-  });
+  // Built as a fully-typed base object (no spread) so TS checks it directly
+  // against CustomDomain; merging `overrides` on a separately-typed variable
+  // avoids a spurious TS2719 "unrelated types" error that vue-tsc raises when
+  // an inline object literal spreads Partial<CustomDomain> directly into a
+  // return position typed as CustomDomain.
+  const createMockDomain = (overrides: Partial<CustomDomain> = {}): CustomDomain => {
+    const base: CustomDomain = {
+      domainid: 'domain-uuid-123',
+      extid: 'domain-123',
+      custid: 'cust-456',
+      display_domain: 'example.com',
+      base_domain: 'example.com',
+      subdomain: '',
+      trd: '',
+      tld: 'com',
+      sld: 'example',
+      is_apex: true,
+      txt_validation_host: '_onetime-challenge.example.com',
+      txt_validation_value: 'validation-value-abc123',
+      verified: true,
+      resolving: true,
+      status: 'pending',
+      brand: null,
+      created: MOCK_DATE,
+      updated: MOCK_DATE,
+      vhost: {
+        status: 'PENDING',
+      },
+      vhost_fetch_failed_at: null,
+    };
+    return { ...base, ...overrides };
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();

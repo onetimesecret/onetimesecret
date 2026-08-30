@@ -15,6 +15,7 @@ vi.mock('@/shared/composables/useApi', () => ({
 }));
 
 import { STRIPE_ORGANIZATIONS_URL, useAdminBilling } from '@/apps/admin/stores/useAdminBilling';
+import type { ColonelStripeOrganization } from '@/schemas/api/internal/responses/colonel-billing';
 
 /** Build a real AxiosError so the store can read `response.status`. */
 function axiosError(status: number, data: unknown, message = 'Request failed'): AxiosError {
@@ -23,7 +24,7 @@ function axiosError(status: number, data: unknown, message = 'Request failed'): 
   return err;
 }
 
-function orgRow(overrides: Record<string, unknown> = {}) {
+function orgRow(overrides: Partial<ColonelStripeOrganization> = {}): ColonelStripeOrganization {
   return {
     org_id: 'org1',
     extid: 'og_abc123',
@@ -40,7 +41,10 @@ function orgRow(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function payload(rows = [orgRow()]) {
+// Only `extid` + `stripe_customer_id` are required on the wire (see
+// colonelStripeOrganizationSchema); every other field is nullish, so a row
+// array may legitimately mix full rows with sparse ones.
+function payload(rows: ColonelStripeOrganization[] = [orgRow()]) {
   return {
     shrimp: '',
     record: {},
