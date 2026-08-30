@@ -180,7 +180,14 @@ export function captureMessage(message: string, context?: Record<string, unknown
       }
     }
 
-    // Same hint contract as captureException above; see the note there.
+    // Same hint contract as captureException above; see the note there — with
+    // one caveat. `originalException` is what the beforeSend rules read, and
+    // it is the half that matters here. `syntheticException` is NOT: Sentry's
+    // `eventFromMessage` consults it only when `attachStacktrace` is enabled,
+    // and this app never enables it, so the message path produces no stack
+    // from it today. It is passed anyway so the two capture paths hand the
+    // client the same hint shape and turning `attachStacktrace` on is a
+    // one-line config change rather than a hunt for missing hints.
     client.captureMessage(
       message,
       undefined,
