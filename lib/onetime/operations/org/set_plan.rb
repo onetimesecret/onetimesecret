@@ -150,7 +150,10 @@ module Onetime
         #
         # @return [Array(Symbol, Hash|nil)] [materialization status, cascade counts]
         def materialize_entitlements
-          return [:skipped_standalone, nil] unless billing_enabled?
+          case billing_state
+          when :disabled    then return [:skipped_standalone, nil]
+          when :unavailable then return [:materialization_failed, nil]
+          end
 
           result = ::Billing::Operations::ApplySubscriptionToOrg
             .materialize_entitlements_for_org(@org)
@@ -164,11 +167,24 @@ module Onetime
           [:materialization_failed, nil]
         end
 
-        # WithEntitlements#billing_enabled? already rescues to false, so a
-        # broken BillingConfig degrades to the standalone (field-only) write
-        # rather than raising — the same polarity as reconcile.
-        def billing_enabled?
-          @org.billing_enabled?
+        # Deliberately NOT WithEntitlements#billing_enabled?: that helper
+        # rescues every BillingConfig failure to false, which here would make
+        # a broken billing config on a COMMERCIAL deployment masquerade as a
+        # clean standalone skip — the wire would say entitlements_ok while
+        # the org kept the previous plan's entitlements. A config raise must
+        # land in the :materialization_failed bucket the operator can act on
+        # (reconcile), so distinguish "genuinely disabled" from "unavailable".
+        #
+        # @return [Symbol] :enabled, :disabled, or :unavailable
+        def billing_state
+          Onetime::BillingConfig.instance.enabled? ? :enabled : :disabled
+        rescue StandardError => ex
+          OT.le '[org.set_plan] billing config unavailable',
+            org_extid: @org.extid,
+            planid: @planid,
+            exception: ex,
+            message: ex.message
+          :unavailable
         end
       end
     end

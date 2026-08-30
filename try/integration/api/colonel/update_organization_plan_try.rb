@@ -196,6 +196,24 @@ adapter_message_for(:plan_not_found).include?('entitlements were NOT updated')
 ]
 #=> ['Organization plan updated successfully', false]
 
+## A RAISING BillingConfig on the op lands in :materialization_failed — never
+## the clean standalone skip WithEntitlements#billing_enabled? would rescue
+## it into (which would report entitlements_ok on a commercial deployment
+## whose entitlements silently kept the previous plan)
+@op = Onetime::Operations::Org::SetPlan.new(
+  org: @org, planid: 'free_v1', actor: @colonel.extid,
+)
+@orig_instance = Onetime::BillingConfig.method(:instance)
+Onetime::BillingConfig.define_singleton_method(:instance) { raise StandardError, 'config boom' }
+begin
+  @broken_state = @op.send(:billing_state)
+  @broken_mat   = @op.send(:materialize_entitlements)
+ensure
+  Onetime::BillingConfig.define_singleton_method(:instance, @orig_instance)
+end
+[@broken_state, @broken_mat]
+#=> [:unavailable, [:materialization_failed, nil]]
+
 # ----------------------------------------------------------------
 # Idempotent no-op
 # ----------------------------------------------------------------

@@ -141,6 +141,14 @@ module ColonelAPI
             # though only one page is ever loaded. Entries whose record was
             # deleted out from under the registry load as nil and are dropped
             # from the page (same graceful degradation as before).
+            #
+            # ACCEPTED TRADE-OFF: phantom registry members (tracked by
+            # instances_rebuild_job as phantom_in_instances) inflate this
+            # count by their number and shorten the page(s) they land on —
+            # the price of an index-native read instead of hydrating the
+            # population to count it (the exact load-all this class removes;
+            # the users list makes the same trade). The maintenance rebuild
+            # job is what reconciles the registry, not the request path.
             @total_count      = Onetime::CustomDomain.instances.count
             start_idx         = (@page - 1) * @per_page
             end_idx           = start_idx + @per_page - 1
@@ -345,7 +353,11 @@ module ColonelAPI
             break if rounds >= SEARCH_SCAN_ROUNDS
           end
 
-          [owned.first(SEARCH_MATCH_LIMIT), cursor != '0']
+          # Same overflow OR as the display-domain scan: a walk that finishes
+          # (cursor 0) on the round that pushed past the cap still drops ids
+          # via .first, so it is capped too.
+          capped = cursor != '0' || owned.size > SEARCH_MATCH_LIMIT
+          [owned.first(SEARCH_MATCH_LIMIT), capped]
         end
 
         # Extid-then-objid org resolution, shared by the candidate read and

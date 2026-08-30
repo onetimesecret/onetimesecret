@@ -206,6 +206,17 @@ listed_fqdns('org_id' => @org_a.extid, 'per_page' => 100).sort ==
   [@fqdn_a1, @fqdn_a2].sort
 #=> true
 
+## The owners-index walk caps its matches and REPORTS the cap even when the
+## cursor completes on the overflowing round (the .first drop is a cap too)
+@fake_org_objid = "fakeorg-#{@timestamp}"
+@fake_ids       = (1..1_005).map { |i| "fakedom-#{@timestamp}-#{i}" }
+@fake_ids.each { |id| Onetime::CustomDomain.owners.put(id, @fake_org_objid) }
+@logic = ColonelAPI::Logic::Colonel::ListCustomDomains.allocate
+@scan_ids, @scan_capped = @logic.send(:scan_owners_index, @fake_org_objid)
+@fake_ids.each { |id| Onetime::CustomDomain.owners.remove(id) }
+[@scan_ids.size, @scan_capped]
+#=> [1000, true]
+
 ## org filter composes with search
 listed_fqdns('org_id' => @org_a.extid, 'search' => 'beta-lcd')
 #=> [@fqdn_a2]
