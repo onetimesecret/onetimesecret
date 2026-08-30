@@ -260,8 +260,51 @@ RSpec.describe V1::ControllerHelpers do
           controller.capture_error(test_error)
         end
 
-        # Tags are not scrubbed by before_send either, and a per-key tag value
-        # is unbounded cardinality on top of the disclosure.
+        # Nothing anywhere scrubs event.tags, so the tag is the one sink with
+        # no second line of defence.
+        it 'scrubs the identifier out of the tag when no route was recorded' do
+          keyed_path = "/api/v1/secret/#{'a' * 62}"
+          keyed_req  = double(
+            'Request',
+            url: "https://example.com#{keyed_path}",
+            path: keyed_path,
+            request_method: 'POST',
+            ip: '192.168.1.100',
+            path_info: keyed_path,
+            env: {}
+          )
+
+          expect(mock_scope).to receive(:set_tags).with(
+            hash_including(endpoint: '/api/v1/secret/[REDACTED]')
+          )
+
+          controller_class.new(request: keyed_req).capture_error(test_error)
+        end
+
+        # Fail closed: with no scrubber reachable, emit nothing rather than
+        # the raw path.
+        it 'falls back to unknown when the scrubber is unavailable' do
+          allow(Onetime::Initializers::SetupDiagnostics)
+            .to receive(:respond_to?).with(:scrub_url).and_return(false)
+
+          keyed_path = "/api/v1/secret/#{'a' * 62}"
+          keyed_req  = double(
+            'Request',
+            url: "https://example.com#{keyed_path}",
+            path: keyed_path,
+            request_method: 'POST',
+            ip: '192.168.1.100',
+            path_info: keyed_path,
+            env: {}
+          )
+
+          expect(mock_scope).to receive(:set_tags).with(
+            hash_including(endpoint: 'unknown')
+          )
+
+          controller_class.new(request: keyed_req).capture_error(test_error)
+        end
+
         it 'tags the endpoint with the route template when Otto recorded one' do
           route      = double('RouteDefinition', path: '/secret/:key')
           keyed_path = "/api/v1/secret/#{'a' * 62}"
@@ -606,6 +649,19 @@ RSpec.describe V1::ControllerHelpers do
         expect(OT).to receive(:le).with(/capture_message.*StandardError.*Sentry unavailable/)
 
         controller.capture_message(test_message)
+      end
+    end
+  end
+
+  # Otto maps PUBLIC controller methods to routes, so every helper here has to
+  # stay private or it becomes a reachable endpoint.
+  describe 'helper visibility' do
+    let(:controller_instance) { controller_class.new }
+
+    %i[truncate_id endpoint_template scrub_endpoint_path].each do |helper|
+      it "keeps #{helper} private (not exposed as a controller action)" do
+        expect(controller_instance.public_methods).not_to include(helper)
+        expect(controller_instance.private_methods).to include(helper)
       end
     end
   end
