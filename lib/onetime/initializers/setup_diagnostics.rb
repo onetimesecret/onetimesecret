@@ -576,10 +576,36 @@ module Onetime
 
           # Pattern for auth token and shortcode paths - these have variable-length
           # tokens that should always be scrubbed regardless of length.
+          #
+          # `invite` is here rather than in IDENTIFIER_PATH_PATTERN because an
+          # invitation token is SecureRandom.urlsafe_base64(32) -- 43 mixed-case
+          # characters that may include `-` and `_`, so it matches neither the
+          # lowercase-base36 shape that pattern requires nor the 62/31-char
+          # shapes IDENTIFIER_TEXT_PATTERN catches. It is a bearer credential:
+          # a valid invite_token is accepted as proof of email ownership.
+          #
+          # NOTE this pattern is applied to the WHOLE url string, not just the
+          # path, and `[^/?#]+` stops at `?` and `#`. That is what redacts an
+          # invite token riding inside a query value -- `/check-email?redirect=
+          # /invite/<token>`, which is exactly what the signup flow produces
+          # (#4305) -- and not only one sitting in the path.
+          # `confirm` is matched as a BARE segment, not as the full
+          # `/account/email/confirm/`. The frontend twin has always matched the
+          # bare form, so pinning the backend to one prefix meant a
+          # confirmation token under any other prefix was scrubbed in the
+          # browser and passed through on the server. The bare arm subsumes the
+          # old prefixed one -- `/account/email/confirm/<tok>` still renders as
+          # `/account/email/confirm/[REDACTED]`, because only the matched
+          # `/confirm/` segment is rewritten.
+          #
+          # The (?!:) guard keeps parameterized route names intact:
+          # `/secret/:secretKey` is the NAME of a transaction group, not an
+          # instance of one, and redacting a template that contains no data is
+          # pure signal loss. Mirrors the same guard in
+          # src/plugins/core/diagnostics/scrubbers.ts SENSITIVE_PATH_PATTERN.
           AUTH_TOKEN_PATH_PATTERN = %r{
-            (/(?:forgot|l)/)[^/?#]+                    |  # Password reset, shortcodes
-            (/auth/reset-password/)[^/?#]+            |  # Auth reset password
-            (/account/email/confirm/)[^/?#]+             # Email confirmation token
+            (/(?:confirm|forgot|invite|l)/)(?!:)[^/?#]+ |  # Email confirmation, password reset, invitations, shortcodes
+            (/auth/reset-password/)(?!:)[^/?#]+            # Auth reset password
           }x
 
           # Pattern for colonel admin paths - multi-segment scrubbing
@@ -655,8 +681,7 @@ module Onetime
             # Scrub auth token paths (always scrub regardless of length)
             result = result.gsub(AUTH_TOKEN_PATH_PATTERN) do
               prefix = ::Regexp.last_match(1) ||
-                       ::Regexp.last_match(2) ||
-                       ::Regexp.last_match(3)
+                       ::Regexp.last_match(2)
               "#{prefix}[REDACTED]"
             end
 
