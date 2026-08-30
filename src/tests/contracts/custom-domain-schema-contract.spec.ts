@@ -143,6 +143,18 @@ describe('CustomDomain schema contract (safe_dump_fields)', () => {
         expect(vhostSchema.safeParse({ keep_host }).success).toBe(true);
       }
     });
+
+    // The union is `.nullable()` and not `.optional()`, which reads like a
+    // blob predating the field would be rejected. It is not: both shapes end
+    // in `.partial()`, so an absent key is already accepted. Pinned so a
+    // future de-partial() cannot silently reintroduce the whole-response
+    // failure this change fixed.
+    it('accepts null and an absent key', () => {
+      for (const vhost of [{ keep_host: null }, {}]) {
+        expect(vhostCanonical.safeParse(vhost).success).toBe(true);
+        expect(vhostSchema.safeParse(vhost).success).toBe(true);
+      }
+    });
   });
 
   // #3780: the workspace "Refresh favicon" gate reads
