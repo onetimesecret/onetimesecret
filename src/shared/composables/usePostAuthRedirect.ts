@@ -157,6 +157,8 @@ export function usePostAuthRedirect() {
         requestedProduct: product,
       }
     );
+    // Object form so vue-router encodes the values: product/interval can come
+    // straight from route.query, and raw `&`/`=`/`#` must not become URL syntax.
     await router.push({
       path: `/billing/${orgExtid}/plans`,
       query: { product, interval, change: 'true' },
