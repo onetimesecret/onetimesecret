@@ -91,7 +91,14 @@ module Auth::Config::Hooks
         # The real logins that need this hook are real requests: /auth/link-sso
         # verifies with the internal request but establishes the session with its
         # own `rodauth.login('password')` on the actual route.
-        next if internal_request?
+        #
+        # respond_to? takes the include_all argument because internal_request?
+        # is PRIVATE on the Rodauth instance; the one-argument form returns
+        # false for it and the guard would never fire. The feature is enabled
+        # unconditionally today (config/base.rb), so the guard is for a future
+        # conditional enablement — same defensive shape as
+        # hooks/create_account.rb.
+        next if respond_to?(:internal_request?, true) && internal_request?
 
         correlation_id = session[:auth_correlation_id]
 
