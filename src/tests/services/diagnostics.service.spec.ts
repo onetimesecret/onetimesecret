@@ -140,7 +140,11 @@ describe('diagnostics.service', () => {
       expect(clonedScope.setExtras).toHaveBeenCalledWith(context);
 
       // Client should be called with the cloned scope, not the base scope
-      expect(client.captureException).toHaveBeenCalledWith(error, undefined, clonedScope);
+      expect(client.captureException).toHaveBeenCalledWith(
+        error,
+        expect.objectContaining({ originalException: error }),
+        clonedScope
+      );
     });
 
     it('without context: captures without setting extras', async () => {
@@ -157,7 +161,11 @@ describe('diagnostics.service', () => {
 
       const clonedScope = baseScope.clone.mock.results[0].value;
       expect(clonedScope.setExtras).not.toHaveBeenCalled();
-      expect(client.captureException).toHaveBeenCalledWith(error, undefined, clonedScope);
+      expect(client.captureException).toHaveBeenCalledWith(
+        error,
+        expect.objectContaining({ originalException: error }),
+        clonedScope
+      );
     });
 
     it('without Sentry: falls back to console.error', async () => {
@@ -173,12 +181,67 @@ describe('diagnostics.service', () => {
         '[Diagnostics] Exception captured (Sentry unavailable):',
         error
       );
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '[Diagnostics] Context:',
-        context
-      );
+      expect(consoleSpy).toHaveBeenCalledWith('[Diagnostics] Context:', context);
 
       consoleSpy.mockRestore();
+    });
+  });
+
+  // ========================================================================
+  // CAPTURE HINT — the contract beforeSend depends on
+  // ========================================================================
+  //
+  // `Client.captureException` does not build a hint; it forwards whatever it is
+  // given. Passing `undefined` (as this facade did) meant `beforeSend` received
+  // a hint with no `originalException`, which silently disabled BOTH
+  // beforeSend rules that read it — the expected-transport-outcome drop (#4286)
+  // and the api-error grouping (#4287). Nothing failed loudly; issue volume
+  // just kept climbing. These tests pin the hint so it cannot regress again.
+  describe('capture hint', () => {
+    it('captureException hands beforeSend the original error to inspect', async () => {
+      const { initDiagnostics, captureException } = await importFresh();
+      const client = createMockClient();
+      const baseScope = createMockScope();
+
+      initDiagnostics(client as never, baseScope as never);
+
+      // The shape the grouping/expected-outcome rules narrow on: an axios-like
+      // error is only recognizable through `hint.originalException.config`.
+      const axiosLike = Object.assign(new Error('Network Error'), {
+        config: { url: '/api/v2/dashboard', method: 'get' },
+        code: 'ERR_NETWORK',
+      });
+
+      captureException(axiosLike);
+
+      const [, hint] = client.captureException.mock.calls[0];
+      expect(hint.originalException).toBe(axiosLike);
+      expect((hint.originalException as typeof axiosLike).config.url).toBe('/api/v2/dashboard');
+    });
+
+    it('captureException supplies a synthetic exception for stackless inputs', async () => {
+      const { initDiagnostics, captureException } = await importFresh();
+      const client = createMockClient();
+      const baseScope = createMockScope();
+
+      initDiagnostics(client as never, baseScope as never);
+      captureException(new Error('boom'));
+
+      const [, hint] = client.captureException.mock.calls[0];
+      expect(hint.syntheticException).toBeInstanceOf(Error);
+    });
+
+    it('captureMessage hands beforeSend the same hint shape', async () => {
+      const { initDiagnostics, captureMessage } = await importFresh();
+      const client = createMockClient();
+      const baseScope = createMockScope();
+
+      initDiagnostics(client as never, baseScope as never);
+      captureMessage('hello');
+
+      const [, , hint] = client.captureMessage.mock.calls[0];
+      expect(hint.originalException).toBe('hello');
+      expect(hint.syntheticException).toBeInstanceOf(Error);
     });
   });
 
@@ -201,7 +264,12 @@ describe('diagnostics.service', () => {
 
       const clonedScope = baseScope.clone.mock.results[0].value;
       expect(clonedScope.setExtras).toHaveBeenCalledWith(context);
-      expect(client.captureMessage).toHaveBeenCalledWith('test message', undefined, undefined, clonedScope);
+      expect(client.captureMessage).toHaveBeenCalledWith(
+        'test message',
+        undefined,
+        expect.objectContaining({ originalException: 'test message' }),
+        clonedScope
+      );
     });
 
     it('without context: captures without setting extras', async () => {
@@ -215,7 +283,12 @@ describe('diagnostics.service', () => {
 
       const clonedScope = baseScope.clone.mock.results[0].value;
       expect(clonedScope.setExtras).not.toHaveBeenCalled();
-      expect(client.captureMessage).toHaveBeenCalledWith('bare message', undefined, undefined, clonedScope);
+      expect(client.captureMessage).toHaveBeenCalledWith(
+        'bare message',
+        undefined,
+        expect.objectContaining({ originalException: 'bare message' }),
+        clonedScope
+      );
     });
 
     it('without Sentry: falls back to console.warn', async () => {
@@ -228,10 +301,7 @@ describe('diagnostics.service', () => {
         '[Diagnostics] Message captured (Sentry unavailable):',
         'fallback message'
       );
-      expect(consoleSpy).toHaveBeenCalledWith(
-        '[Diagnostics] Context:',
-        { key: 'val' }
-      );
+      expect(consoleSpy).toHaveBeenCalledWith('[Diagnostics] Context:', { key: 'val' });
 
       consoleSpy.mockRestore();
     });

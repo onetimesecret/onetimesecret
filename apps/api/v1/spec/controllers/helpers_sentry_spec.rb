@@ -76,6 +76,7 @@ RSpec.describe V1::ControllerHelpers do
     allow(scope).to receive(:set_context)
     allow(scope).to receive(:set_tags)
     allow(scope).to receive(:set_tag)
+    allow(scope).to receive(:set_fingerprint)
     scope
   end
 
@@ -98,6 +99,127 @@ RSpec.describe V1::ControllerHelpers do
           true
         end
       end)
+    end
+  end
+
+  # v1 is unauthenticated and bot-hammered. The default grouping key for a
+  # message event IS the message, so every distinct validation string anonymous
+  # input can provoke used to mint its own Sentry issue — a change in HOW
+  # malformed bodies fail read as a brand-new escalating defect (BACKEND-AZ).
+  describe 'FormError capture' do
+    # `handle_form_error` lives on the concrete v1 controller base, not in the
+    # helpers module under test, so the harness supplies it.
+    let(:form_controller_class) do
+      Class.new(controller_class) do
+        attr_reader :handled_error
+
+        def handle_form_error(ex)
+          @handled_error = ex
+          :handled
+        end
+      end
+    end
+
+    let(:form_controller) do
+      form_controller_class.new(request: mock_request).tap do |instance|
+        allow(instance).to receive(:add_response_headers)
+        allow(instance).to receive(:log_customer_activity)
+      end
+    end
+
+    before do
+      allow(OT).to receive(:d9s_enabled).and_return(true)
+      allow(OT).to receive(:ld)
+    end
+
+    it 'groups by endpoint, not by validation message' do
+      expect(Sentry).to receive(:capture_message)
+        .with('You did not provide anything to share', hash_including(level: :warning))
+        .and_yield(mock_scope)
+      expect(mock_scope).to receive(:set_fingerprint)
+        .with(['v1-form-error', '/api/v1/secrets'])
+
+      form_controller.carefully do
+        raise OT::FormError, 'You did not provide anything to share'
+      end
+    end
+
+    it 'keeps the message as the event text, so the backend scrubbers still see it' do
+      captured = nil
+      allow(Sentry).to receive(:capture_message) do |message, **_opts, &block|
+        captured = message
+        block&.call(mock_scope)
+      end
+
+      form_controller.carefully { raise OT::FormError, 'Passphrase must be at least 4 characters long' }
+
+      expect(captured).to eq('Passphrase must be at least 4 characters long')
+    end
+
+    it 'still delegates to handle_form_error' do
+      allow(Sentry).to receive(:capture_message)
+
+      expect(form_controller.carefully { raise OT::FormError, 'nope' }).to eq(:handled)
+      expect(form_controller.handled_error.message).to eq('nope')
+    end
+
+    # The fingerprint is NOT scrubbed by before_send (which only reaches
+    # request.url / contexts.request.url), and a wildcard v1 path carries the
+    # concrete secret key. Grouping on the raw path would therefore both mint
+    # one issue per key and ship the key to Sentry.
+    context 'on a wildcard route' do
+      # 62-char base-36 verifiable identifier, the real shape of a secret key.
+      let(:secret_key) { 'a' * 62 }
+
+      let(:wildcard_request) do
+        double(
+          'Request',
+          url: "https://example.com/api/v1/secret/#{secret_key}",
+          path: "/api/v1/secret/#{secret_key}",
+          request_method: 'POST',
+          ip: '192.168.1.100',
+          path_info: "/api/v1/secret/#{secret_key}",
+          env: env
+        )
+      end
+
+      let(:wildcard_controller) do
+        form_controller_class.new(request: wildcard_request).tap do |instance|
+          allow(instance).to receive(:add_response_headers)
+          allow(instance).to receive(:log_customer_activity)
+        end
+      end
+
+      context 'when Otto recorded the matched route' do
+        # Otto stamps env['otto.route_definition'] during dispatch; #path is
+        # the declared template from routes.txt.
+        let(:env) { { 'otto.route_definition' => double('RouteDefinition', path: '/secret/:key') } }
+
+        it 'fingerprints on the route template, not the concrete key' do
+          expect(Sentry).to receive(:capture_message).and_yield(mock_scope)
+          expect(mock_scope).to receive(:set_fingerprint)
+            .with(['v1-form-error', '/secret/:key'])
+
+          wildcard_controller.carefully { raise OT::FormError, 'Double check that passphrase' }
+        end
+      end
+
+      context 'when no route was recorded (bare harness)' do
+        let(:env) { {} }
+
+        it 'falls back to a scrubbed path and never emits the key' do
+          fingerprint = nil
+          allow(Sentry).to receive(:capture_message) do |_message, **_opts, &block|
+            allow(mock_scope).to receive(:set_fingerprint) { |value| fingerprint = value }
+            block&.call(mock_scope)
+          end
+
+          wildcard_controller.carefully { raise OT::FormError, 'Double check that passphrase' }
+
+          expect(fingerprint).to eq(['v1-form-error', '/api/v1/secret/[REDACTED]'])
+          expect(fingerprint.last).not_to include(secret_key)
+        end
+      end
     end
   end
 
@@ -136,6 +258,71 @@ RSpec.describe V1::ControllerHelpers do
           )
 
           controller.capture_error(test_error)
+        end
+
+        # Nothing anywhere scrubs event.tags, so the tag is the one sink with
+        # no second line of defence.
+        it 'scrubs the identifier out of the tag when no route was recorded' do
+          keyed_path = "/api/v1/secret/#{'a' * 62}"
+          keyed_req  = double(
+            'Request',
+            url: "https://example.com#{keyed_path}",
+            path: keyed_path,
+            request_method: 'POST',
+            ip: '192.168.1.100',
+            path_info: keyed_path,
+            env: {}
+          )
+
+          expect(mock_scope).to receive(:set_tags).with(
+            hash_including(endpoint: '/api/v1/secret/[REDACTED]')
+          )
+
+          controller_class.new(request: keyed_req).capture_error(test_error)
+        end
+
+        # Fail closed: with no scrubber reachable, emit nothing rather than
+        # the raw path.
+        it 'falls back to unknown when the scrubber is unavailable' do
+          allow(Onetime::Initializers::SetupDiagnostics)
+            .to receive(:respond_to?).with(:scrub_url).and_return(false)
+
+          keyed_path = "/api/v1/secret/#{'a' * 62}"
+          keyed_req  = double(
+            'Request',
+            url: "https://example.com#{keyed_path}",
+            path: keyed_path,
+            request_method: 'POST',
+            ip: '192.168.1.100',
+            path_info: keyed_path,
+            env: {}
+          )
+
+          expect(mock_scope).to receive(:set_tags).with(
+            hash_including(endpoint: 'unknown')
+          )
+
+          controller_class.new(request: keyed_req).capture_error(test_error)
+        end
+
+        it 'tags the endpoint with the route template when Otto recorded one' do
+          route      = double('RouteDefinition', path: '/secret/:key')
+          keyed_path = "/api/v1/secret/#{'a' * 62}"
+          keyed_req  = double(
+            'Request',
+            url: "https://example.com#{keyed_path}",
+            path: keyed_path,
+            request_method: 'POST',
+            ip: '192.168.1.100',
+            path_info: keyed_path,
+            env: { 'otto.route_definition' => route }
+          )
+
+          expect(mock_scope).to receive(:set_tags).with(
+            hash_including(endpoint: '/secret/:key')
+          )
+
+          controller_class.new(request: keyed_req).capture_error(test_error)
         end
 
         it 'sets request context with path (never the query string), method, and ip' do
@@ -462,6 +649,19 @@ RSpec.describe V1::ControllerHelpers do
         expect(OT).to receive(:le).with(/capture_message.*StandardError.*Sentry unavailable/)
 
         controller.capture_message(test_message)
+      end
+    end
+  end
+
+  # Otto maps PUBLIC controller methods to routes, so every helper here has to
+  # stay private or it becomes a reachable endpoint.
+  describe 'helper visibility' do
+    let(:controller_instance) { controller_class.new }
+
+    %i[truncate_id endpoint_template scrub_endpoint_path].each do |helper|
+      it "keeps #{helper} private (not exposed as a controller action)" do
+        expect(controller_instance.public_methods).not_to include(helper)
+        expect(controller_instance.private_methods).to include(helper)
       end
     end
   end

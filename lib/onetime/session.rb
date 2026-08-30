@@ -302,7 +302,14 @@ module Onetime
     #
     # This is just format validation - doesn't check if session exists in Redis
     def valid_session_id?(sid)
-      return false if sid.to_s.empty?
+      sid = sid.to_s
+      return false if sid.empty?
+
+      # A cookie value is client-controlled bytes, not a String the app made.
+      # `match?` RAISES ArgumentError on invalid UTF-8 (BACKEND-B5: a request
+      # carrying a binary session cookie 500s here before any handler runs),
+      # and an unmatchable byte sequence is by definition not a valid sid.
+      return false unless sid.valid_encoding?
       return false unless sid.match?(/\A[a-f0-9]{64,}\z/)
 
       # Additional security checks could go here

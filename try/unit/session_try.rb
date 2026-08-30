@@ -115,6 +115,19 @@ invalid_sids.all? do |sid|
 end
 #=> true
 
+## [BACKEND-B5] Reject a cookie whose bytes are not valid UTF-8, rather than
+## raising. The value comes off the wire, so `match?` on it would raise
+## ArgumentError and 500 the request before any handler ran.
+binary_sid = (+"\xC3\x28").force_encoding(Encoding::UTF_8)
+call_private_method(@session, :valid_session_id?, binary_sid)
+#=> false
+
+## [BACKEND-B5] ...including when the invalid bytes are appended to an
+## otherwise well-formed 64-char hex sid
+tainted_sid = (+(SecureRandom.hex(32) + "\xFF")).force_encoding(Encoding::UTF_8)
+call_private_method(@session, :valid_session_id?, tainted_sid)
+#=> false
+
 
 
 ## Derive consistent keys for different purposes

@@ -133,6 +133,13 @@ module Onetime
             # frontend's scrubEventMessages in enableDiagnostics.ts.
             Onetime::Initializers::SetupDiagnostics.scrub_event_messages(event)
 
+            # Scrub the grouping fingerprint. Sentry serializes it verbatim and
+            # no other pass reaches it, so a call site that fingerprints on a
+            # request path (see V1::ControllerHelpers#endpoint_template) would
+            # ship a secret/receipt key in the clear. Belt to that braces: the
+            # call site should never hand us one, and if it does, this catches it.
+            Onetime::Initializers::SetupDiagnostics.scrub_event_fingerprint(event)
+
             # Return the event if it passes validation
             event
           end
@@ -294,11 +301,15 @@ module Onetime
 
           # Scrub sensitive data from URLs in Sentry events
           #
-          # Handles four URL locations:
+          # Handles five URL locations:
           # 1. event.request.url - Standard Sentry request data
           # 2. event.contexts['request']['url'] - Custom context set by error middleware
-          # 3. event.transaction - Set from raw PATH_INFO by Sentry::Rack::CaptureExceptions
-          # 4. event.request.headers['Referer'] - Referer carries the previous URL,
+          # 3. event.contexts['request'][:path] - Same context, query-less path
+          #    (Onetime::ErrorHandler.safe_request_context); on /secret/<id>
+          #    the path alone is the credential. Symbol- and string-keyed
+          #    producers both exist — see #scrub_request_context
+          # 4. event.transaction - Set from raw PATH_INFO by Sentry::Rack::CaptureExceptions
+          # 5. event.request.headers['Referer'] - Referer carries the previous URL,
           #    which can embed a secret identifier (e.g. /secret/<id>)
           #
           # @param event [Sentry::Event] The event to scrub
@@ -327,17 +338,8 @@ module Onetime
               end
             end
 
-            # Scrub custom request context URL (set via scope.set_context in error middleware)
-            if event.contexts.is_a?(Hash) &&
-               event.contexts['request'].is_a?(Hash) &&
-               event.contexts['request']['url']
-              original_url = event.contexts['request']['url']
-              scrubbed_url = scrub_url(original_url)
-              if scrubbed_url != original_url
-                event.contexts['request']['url'] = scrubbed_url
-                OT.ld '[sentry] Scrubbed contexts.request.url'
-              end
-            end
+            # Scrub the custom request context set via scope.set_context.
+            scrub_request_context(event.contexts)
 
             # Scrub URL-bearing request headers (Referer). The Referer carries
             # the previous page URL, which on OTS can embed a secret identifier
@@ -361,6 +363,47 @@ module Onetime
             end
             redact_url_bearing_headers(event.request&.headers)
             event
+          end
+
+          # Scrub the 'request' context a caller attached with
+          # scope.set_context('request', ...).
+          #
+          # KEY TYPES ARE NOT NORMALIZED anywhere in this path.
+          # Sentry::Scope#set_context merges the caller's Hash verbatim, and
+          # before_send runs on the live event, so whatever the producer wrote
+          # is what is here. The producers disagree:
+          # Onetime::ErrorHandler.safe_request_context returns SYMBOL keys
+          # (:path, :method, :ip) under the STRING outer key 'request', and
+          # apps/web/core/controllers/welcome.rb hand-builds the same shape.
+          # A string-only reader therefore matched nothing in production. Both
+          # spellings are checked on both levels rather than picking one,
+          # because the producers are free to change independently.
+          #
+          # :path is the one that matters. safe_request_context deliberately
+          # drops the query string and keeps the bare path — and on
+          # /secret/<id> or /receipt/<id> that path IS the bearer credential,
+          # so it is the last unscrubbed copy of it in the payload.
+          #
+          # @param contexts [Hash, nil] event.contexts
+          # @return [void]
+          def scrub_request_context(contexts)
+            return unless contexts.is_a?(Hash)
+
+            request_ctx = contexts['request'] || contexts[:request]
+            return unless request_ctx.is_a?(Hash)
+
+            %w[url path].each do |name|
+              [name, name.to_sym].each do |key|
+                original = request_ctx[key]
+                next unless original.is_a?(String)
+
+                scrubbed = scrub_url(original)
+                next if scrubbed == original
+
+                request_ctx[key] = scrubbed
+                OT.ld "[sentry] Scrubbed contexts.request.#{key}"
+              end
+            end
           end
 
           # Scrub URL-bearing request headers (e.g. Referer) in place through
@@ -480,6 +523,42 @@ module Onetime
           rescue StandardError
             # Fail-closed: return redacted placeholder to prevent leaking sensitive data
             '[SCRUBBING_FAILED]'
+          end
+
+          # Scrub the grouping fingerprint.
+          #
+          # `event.fingerprint` is an Array of Strings the SDK serializes
+          # verbatim: no other before_send pass touches it, and neither do
+          # tags. A fingerprint component built from a request path therefore
+          # reaches Sentry unredacted — on OTS that path can be the 62-char
+          # bearer identifier that reads a secret or burns a receipt.
+          #
+          # Components are run through scrub_text (paths, named query params,
+          # emails, exact-length identifiers). Static components ('v1-form-
+          # error', an endpoint TEMPLATE like '/secret/:key', Sentry's
+          # '{{ default }}' token) contain none of those patterns and pass
+          # through byte-identical, so grouping is unchanged for every
+          # well-behaved call site.
+          #
+          # @param event [Sentry::Event] The event to scrub
+          # @return [Sentry::Event] The scrubbed event
+          def scrub_event_fingerprint(event)
+            return event unless event.respond_to?(:fingerprint)
+
+            fingerprint = event.fingerprint
+            return event unless fingerprint.is_a?(Array) && !fingerprint.empty?
+
+            scrubbed = fingerprint.map do |component|
+              component.is_a?(String) ? scrub_text(component) : component
+            end
+            return event if scrubbed == fingerprint
+
+            event.fingerprint = scrubbed
+            OT.ld '[sentry] Scrubbed fingerprint'
+            event
+          rescue StandardError => ex
+            OT.ld "[sentry] Fingerprint scrubbing failed: #{ex.class}"
+            event
           end
 
           # Scrub sensitive data from free text (exception messages,

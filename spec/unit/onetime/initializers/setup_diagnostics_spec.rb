@@ -1332,6 +1332,51 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
         expect(result.request.url).to eq('https://example.com/api/v1/status')
       end
 
+      # Onetime::ErrorHandler.safe_request_context drops the query string but
+      # keeps the bare path, and on /secret/<id> or /receipt/<id> the path IS
+      # the bearer credential. Nothing else in the pipeline reads this key.
+      #
+      # THE KEY TYPE IS THE POINT. safe_request_context and welcome.rb both
+      # write SYMBOL keys under the string outer key 'request'; a
+      # string-keyed fixture here passes against a reader that matches
+      # nothing in production. The symbol case is the real one.
+      it 'scrubs the symbol-keyed path safe_request_context actually writes' do
+        identifier = 'a' * 62
+        event = mock_event_class.new(
+          request: nil,
+          contexts: { 'request' => { path: "/api/v1/receipt/#{identifier}/burn", method: 'POST' } }
+        )
+
+        result = described_class.scrub_event_urls(event)
+
+        expect(result.contexts['request'][:path]).to eq('/api/v1/receipt/[REDACTED]/burn')
+        expect(result.contexts['request'][:method]).to eq('POST')
+      end
+
+      it 'scrubs a string-keyed path too' do
+        identifier = 'a' * 62
+        event = mock_event_class.new(
+          request: nil,
+          contexts: { 'request' => { 'path' => "/api/v1/secret/#{identifier}" } }
+        )
+
+        result = described_class.scrub_event_urls(event)
+
+        expect(result.contexts['request']['path']).to eq('/api/v1/secret/[REDACTED]')
+      end
+
+      it 'scrubs a symbol-keyed outer request context' do
+        identifier = 'a' * 62
+        event = mock_event_class.new(
+          request: nil,
+          contexts: { request: { path: "/api/v1/secret/#{identifier}" } }
+        )
+
+        result = described_class.scrub_event_urls(event)
+
+        expect(result.contexts[:request][:path]).to eq('/api/v1/secret/[REDACTED]')
+      end
+
       it 'scrubs context URLs when request is nil (non-HTTP events)' do
         identifier = 'a' * 25
         contexts = { 'request' => { 'url' => "https://example.com/secret/#{identifier}" } }
@@ -1488,6 +1533,69 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
 
           expect(result.request.headers['Referer']).to eq('[SCRUBBING_FAILED]')
         end
+      end
+    end
+
+    # Sentry serializes event.fingerprint verbatim and no other before_send
+    # pass (nor the tag pipeline) touches it, so a call site that fingerprints
+    # on a request path would leak the identifier in that path.
+    describe '.scrub_event_fingerprint' do
+      let(:fingerprint_event_class) do
+        Class.new do
+          attr_accessor :fingerprint
+
+          def initialize(fingerprint = nil)
+            @fingerprint = fingerprint
+          end
+        end
+      end
+
+      it 'redacts an identifier carried in a fingerprint component' do
+        identifier = 'a' * 62
+        event = fingerprint_event_class.new(['v1-form-error', "/api/v1/secret/#{identifier}"])
+
+        described_class.scrub_event_fingerprint(event)
+
+        expect(event.fingerprint).to eq(['v1-form-error', '/api/v1/secret/[REDACTED]'])
+      end
+
+      it 'leaves route templates and static components byte-identical' do
+        original = ['v1-form-error', '/secret/:key']
+        event = fingerprint_event_class.new(original.dup)
+
+        described_class.scrub_event_fingerprint(event)
+
+        expect(event.fingerprint).to eq(original)
+      end
+
+      it "leaves Sentry's {{ default }} token alone" do
+        event = fingerprint_event_class.new(['{{ default }}', 'api-error'])
+
+        described_class.scrub_event_fingerprint(event)
+
+        expect(event.fingerprint).to eq(['{{ default }}', 'api-error'])
+      end
+
+      it 'passes non-string components through untouched' do
+        event = fingerprint_event_class.new(['v1-form-error', 42, nil])
+
+        described_class.scrub_event_fingerprint(event)
+
+        expect(event.fingerprint).to eq(['v1-form-error', 42, nil])
+      end
+
+      it 'is a no-op for an absent or empty fingerprint' do
+        expect { described_class.scrub_event_fingerprint(fingerprint_event_class.new(nil)) }.not_to raise_error
+        expect { described_class.scrub_event_fingerprint(fingerprint_event_class.new([])) }.not_to raise_error
+        expect { described_class.scrub_event_fingerprint(Object.new) }.not_to raise_error
+      end
+
+      it 'returns the event unchanged when scrubbing itself raises' do
+        allow(described_class).to receive(:scrub_text).and_raise(StandardError, 'boom')
+        event = fingerprint_event_class.new(['v1-form-error', '/api/v1/secret/x'])
+
+        expect { described_class.scrub_event_fingerprint(event) }.not_to raise_error
+        expect(event.fingerprint).to eq(['v1-form-error', '/api/v1/secret/x'])
       end
     end
 
