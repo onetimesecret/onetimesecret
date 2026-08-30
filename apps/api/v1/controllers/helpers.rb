@@ -397,10 +397,12 @@ module V1
     #   - CARDINALITY: one distinct fingerprint (and one distinct tag value)
     #     per key, which is precisely the per-message issue explosion the
     #     fingerprint was added to stop.
-    #   - DISCLOSURE: before_send's scrubbers (SetupDiagnostics.scrub_url)
-    #     reach request.url and contexts.request.url only. Tags and the
-    #     fingerprint are never scrubbed, so a raw path here ships the key to
-    #     Sentry in the clear.
+    #   - DISCLOSURE: NOTHING scrubs event.tags — not before_send, not the
+    #     SDK — so the tag half of this is the only thing standing between a
+    #     raw path and Sentry. The fingerprint has a backstop
+    #     (SetupDiagnostics.scrub_event_fingerprint), but a backstop is not a
+    #     licence to hand it a credential: it redacts, which loses the
+    #     endpoint identity this value exists to carry.
     #
     # Otto stamps the matched route onto the env during dispatch
     # (otto/route.rb -> env['otto.route_definition']). Its #path is the
