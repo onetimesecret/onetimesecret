@@ -104,9 +104,9 @@ function usersPayload(
         per_page: overrides.per_page ?? 50,
         total_count: 1,
         total_pages: 1,
-        // The wire signal is optional: only capped responses carry it, so the
-        // uncapped fixture omits it entirely (like the unfiltered endpoint).
-        ...(overrides.capped !== undefined ? { capped: overrides.capped } : {}),
+        // The endpoint always emits the flag (false on the unbounded paths) —
+        // see Colonel::ListUsers#success_data — so the fixture does too.
+        capped: overrides.capped ?? false,
         role_filter: overrides.role ?? null,
       },
     },
@@ -377,8 +377,6 @@ describe('AdminCustomers (list view — ticket #22)', () => {
   });
 
   it('does not render the capped caveat on an uncapped response', async () => {
-    // The endpoint always emits the flag (false on the unbounded paths), so
-    // exercise the real wire shape; fixture omission is covered elsewhere.
     mockApi.get.mockResolvedValue({ data: usersPayload({ capped: false }) });
     wrapper = mountView();
     await flushPromises();
