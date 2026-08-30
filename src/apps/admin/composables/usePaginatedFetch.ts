@@ -20,6 +20,13 @@ export interface PageMeta {
   per_page: number;
   total_count: number;
   total_pages: number;
+  /**
+   * True when a bounded server-side scan/window stopped early, making
+   * total_count a FLOOR rather than the population. Optional — only the
+   * endpoints with bounded filter scans (domains, users, billing) emit it;
+   * views should render a caveat when it is true.
+   */
+  capped?: boolean;
 }
 
 /**
