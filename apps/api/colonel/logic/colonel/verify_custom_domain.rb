@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require_relative 'domain_resolver'
 require 'onetime/operations/admin_verify_domain'
 
 module ColonelAPI
@@ -25,6 +26,8 @@ module ColonelAPI
       # customer-facing DomainsAPI verify endpoint, the colonel resolves ANY domain
       # by its public extid with no organization-ownership check.
       class VerifyCustomDomain < ColonelAPI::Logic::Base
+        include DomainResolver
+
         attr_reader :extid, :custom_domain, :result
 
         def process_params
@@ -38,7 +41,7 @@ module ColonelAPI
           # Resolve globally by PUBLIC id (extid) — the colonel domains list exposes
           # only extid. Colonel access is cross-organization, so (unlike GetDomain)
           # there is no ownership/membership gate here.
-          @custom_domain = Onetime::CustomDomain.find_by_extid(extid)
+          @custom_domain = resolve_custom_domain(extid)
           raise_not_found('Domain not found') unless custom_domain
         end
 

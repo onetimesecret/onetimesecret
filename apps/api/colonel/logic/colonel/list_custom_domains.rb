@@ -14,21 +14,72 @@ module ColonelAPI
       #   logo/icon presence, and the owning organization. Requires
       #   colonel role.
       #
-      # Optional server-side filters (all additive; omitting them reproduces the
-      # previous unfiltered behaviour byte-for-byte):
+      # Optional server-side filters (all additive; omitting them returns the
+      # unfiltered paginated roster):
       #
-      #   search  — case-insensitive substring over display_domain / base_domain,
-      #             or an exact extid / domain_id match.
+      #   search  — case-insensitive substring over display_domain (which
+      #             contains base_domain as its suffix, so base_domain
+      #             substrings match too), or an exact extid / domain_id match.
       #   status  — exact verification_state ('verified', 'pending', ...).
       #   org_id  — exact owning-org match; accepts the org extid or objid.
       #
-      # Scaling note: this endpoint loads every CustomDomain before slicing (the
-      # incumbent behaviour). Filtering happens in the same in-memory pass, so it
-      # does not make the read heavier — but a genuinely index-backed page read
-      # is still the right fix if the domain population grows. Filters are
-      # applied BEFORE pagination, so total_count reflects the filtered set.
+      # ## Index-backed reads, never load-all (epic #20 / #2211)
+      #
+      # The previous implementation loaded EVERY CustomDomain (load_multi of the
+      # whole instances set) on every request — including each debounced
+      # keystroke of the admin search box — and filtered/sliced in Ruby. Each
+      # path now reads only a bounded set:
+      #
+      # - UNFILTERED (the default admin view): one ZREVRANGE page straight off
+      #   `CustomDomain.instances` + a load_multi of just that page. The set is
+      #   scored at creation time (create!/import are the only writers), so the
+      #   most-recent-first order matches the previous created-descending sort.
+      #   total_count is the set cardinality (ZCARD).
+      # - SEARCH: a bounded cursor HSCAN over the `display_domain_index` hash
+      #   (display_domain -> objid, domains stored lowercase) with a server-side
+      #   `*term*` glob — the same scan-with-match mechanism the users list uses
+      #   against its email index — merged with exact extid / domain_id lookups
+      #   (O(1) unique-index gets). Doubly bounded: matches are capped at
+      #   SEARCH_MATCH_LIMIT and the scan stops after SEARCH_SCAN_ROUNDS
+      #   round-trips, so a no-match term can never walk an unbounded index on
+      #   one request. The glob term is escaped, so user input cannot inject
+      #   pattern syntax.
+      # - ORG FILTER (without search): the org's own `domains` participation
+      #   set — bounded by that org's domain count, never the global population.
+      # - STATUS FILTER alone: there is no per-status index, so this reads the
+      #   newest STATUS_SCAN_LIMIT domains from the instances set and filters in
+      #   Ruby. Beyond the cap the response sets `pagination.capped` so the UI
+      #   can say the count understates the population (mirrors the users list's
+      #   role-filter contract).
+      #
+      # Filters compose: search (or the org read, or the status window) produces
+      # the bounded candidate set; the remaining filters apply in Ruby on those
+      # already-loaded rows. Filters are applied BEFORE pagination, so
+      # total_count reflects the filtered set.
       class ListCustomDomains < ColonelAPI::Logic::Base
         SCHEMAS = { response: 'customDomains' }.freeze
+
+        # Per-round-trip COUNT hint for the display_domain_index cursor HSCAN
+        # (mirrors Auth::Operations::Customers::List::SCAN_COUNT).
+        SCAN_COUNT = 100
+
+        # Cap on how many display_domain_index MATCHES one search collects. A
+        # page is at most 100 rows, so 1k matches is already 10 pages — anything
+        # broader is a filter problem, not a pagination problem.
+        SEARCH_MATCH_LIMIT = 1_000
+
+        # Cap on HSCAN round-trips for one search. With SCAN_COUNT=100 this
+        # bounds the index walk at ~100k entries examined even when the term
+        # matches nothing (HSCAN MATCH filters server-side, so a no-match term
+        # would otherwise walk the entire index).
+        SEARCH_SCAN_ROUNDS = 1_000
+
+        # Request-path cap on the newest-first window a status-only filter
+        # reads from the instances set. Domains are a paid feature, so the
+        # population sits far below this on every known deployment; if it ever
+        # grows past the cap the filter degrades to a bounded window with
+        # `pagination.capped` set, never an unbounded load.
+        STATUS_SCAN_LIMIT = 5_000
 
         attr_reader :domains,
           :total_count,
@@ -37,7 +88,8 @@ module ColonelAPI
           :total_pages,
           :search_term,
           :status_filter,
-          :org_filter
+          :org_filter,
+          :capped
 
         def process_params
           @page     = (params['page'] || 1).to_i
@@ -55,23 +107,219 @@ module ColonelAPI
         end
 
         def process
-          # Get all custom domains using efficient loading
-          all_domain_ids = Onetime::CustomDomain.instances.to_a
-          all_domains    = Onetime::CustomDomain.load_multi(all_domain_ids).compact
-          all_domains    = apply_filters(all_domains)
+          @capped = false
 
-          @total_count = all_domains.size
+          if active_filters?
+            matches = filtered_candidates
+            matches = apply_residual_filters(matches)
+
+            @total_count = matches.size
+
+            # Preserve the incumbent within-page ordering for filtered reads
+            # (created descending) — the candidate sources here (HSCAN, the
+            # org's domains set, the status window) carry no single native
+            # order worth exposing.
+            matches.sort_by! { |domain| -(domain.created || 0).to_f }
+
+            start_idx         = (@page - 1) * @per_page
+            paginated_domains = matches[start_idx, @per_page] || []
+          else
+            # Default admin view: page straight off the instances sorted set,
+            # loading only this page. total_count is the set cardinality
+            # (ZCARD), so the envelope reflects the full population even
+            # though only one page is ever loaded. Entries whose record was
+            # deleted out from under the registry load as nil and are dropped
+            # from the page (same graceful degradation as before).
+            @total_count      = Onetime::CustomDomain.instances.count
+            start_idx         = (@page - 1) * @per_page
+            end_idx           = start_idx + @per_page - 1
+            page_ids          = Onetime::CustomDomain.instances.revrange(start_idx, end_idx)
+            paginated_domains = Onetime::CustomDomain.load_multi(page_ids).compact
+          end
+
           @total_pages = (@total_count.to_f / @per_page).ceil
+          @domains     = build_domain_rows(paginated_domains)
 
-          # Sort by created timestamp (most recent first)
-          all_domains.sort_by! { |domain| -(domain.created || 0) }
+          success_data
+        end
 
-          # Paginate
-          start_idx         = (@page - 1) * @per_page
-          end_idx           = start_idx + @per_page - 1
-          paginated_domains = all_domains[start_idx..end_idx] || []
+        def success_data
+          {
+            record: {},
+            details: {
+              domains: domains,
+              pagination: {
+                page: page,
+                per_page: per_page,
+                total_count: total_count,
+                total_pages: total_pages,
+                # true when a bounded scan/window stopped early, so total_count
+                # understates the population (mirrors the users list contract).
+                capped: capped,
+              },
+              # Server echo of the applied filters (additive key; mirrors
+              # ListOrganizations). Never read for state by the frontend.
+              filters: {
+                search: search_term,
+                status: status_filter,
+                org_id: org_filter,
+              },
+            },
+          }
+        end
 
-          # Batch-load sibling configs for the page in two pipelined fetches.
+        private
+
+        def active_filters?
+          !search_term.empty? || !status_filter.empty? || !org_filter.empty?
+        end
+
+        # The bounded candidate set for a filtered request, from the narrowest
+        # available index: search beats the org read beats the status window.
+        # Whatever filters did not drive the read are applied afterwards in
+        # Ruby by #apply_residual_filters — on candidates that are already
+        # bounded, so that pass stays cheap.
+        #
+        # @return [Array<Onetime::CustomDomain>]
+        def filtered_candidates
+          return search_candidates unless search_term.empty?
+          return org_candidates unless org_filter.empty?
+
+          status_window_candidates
+        end
+
+        # Bounded HSCAN of display_domain_index plus exact identifier lookups,
+        # deduped by identifier. Sets @capped when the scan stopped early.
+        def search_candidates
+          objids, scan_capped = scan_display_domain_index(search_term)
+          @capped           ||= scan_capped
+
+          matches = Onetime::CustomDomain.load_multi(objids).compact
+          merge_identifier_matches(matches)
+          matches
+        end
+
+        # Non-blocking cursor HSCAN of the display_domain_index hash
+        # (display_domain -> objid), matching `*term*` server-side against the
+        # lowercased stored domains. Doubly bounded — see the constants above.
+        #
+        # @return [Array(Array<String>, Boolean)] collected objids (capped at
+        #   SEARCH_MATCH_LIMIT) and a capped flag — true when matches may have
+        #   been dropped (the walk stopped before exhausting the index, or a
+        #   completed walk overflowed the match cap).
+        def scan_display_domain_index(term)
+          dbkey    = Onetime::CustomDomain.display_domain_index.dbkey
+          dbclient = Onetime::CustomDomain.dbclient
+          pattern  = "*#{glob_escape(term.downcase)}*"
+          objids   = []
+          cursor   = '0'
+          rounds   = 0
+
+          loop do
+            cursor, entries = dbclient.hscan(dbkey, cursor, match: pattern, count: SCAN_COUNT)
+            entries.each { |_display_domain, objid| objids << objid }
+            rounds         += 1
+
+            break if cursor == '0'
+            break if objids.size >= SEARCH_MATCH_LIMIT
+            break if rounds >= SEARCH_SCAN_ROUNDS
+          end
+
+          capped = cursor != '0' || objids.size > SEARCH_MATCH_LIMIT
+          [objids.first(SEARCH_MATCH_LIMIT), capped]
+        end
+
+        # Append exact extid / domain_id (objid) lookups for the search term,
+        # skipping any domain the scan already found. Both are O(1)
+        # unique-index gets — never a scan — so they cost nothing on a miss. A
+        # malformed term is rescued to a miss rather than failing the search.
+        def merge_identifier_matches(matches)
+          seen = matches.map(&:identifier)
+
+          identifier_lookups(search_term).each do |domain|
+            next if seen.include?(domain.identifier)
+
+            matches << domain
+            seen << domain.identifier
+          end
+        end
+
+        # @return [Array<Onetime::CustomDomain>]
+        def identifier_lookups(term)
+          [
+            safe_lookup { Onetime::CustomDomain.find_by_extid(term) },
+            safe_lookup { Onetime::CustomDomain.load(term) },
+          ].compact.select(&:exists?)
+        end
+
+        def safe_lookup
+          yield
+        rescue StandardError
+          nil
+        end
+
+        # Escape Redis glob metacharacters so a user-supplied term is always a
+        # literal substring match, never pattern syntax.
+        def glob_escape(term)
+          term.gsub(/[*?\[\]\\]/) { |char| "\\#{char}" }
+        end
+
+        # The org's own domains participation set — bounded by that org's
+        # domain count. Accepts the org extid (what every admin surface routes
+        # by) or the internal objid, which is what CustomDomain#org_id stores.
+        # An unknown org matches nothing, same as before.
+        def org_candidates
+          org = safe_lookup { Onetime::Organization.find_by_extid(org_filter) } ||
+                safe_lookup { Onetime::Organization.load(org_filter) }
+          return [] unless org&.exists?
+
+          org.list_domains
+        end
+
+        # Status-only filter: newest STATUS_SCAN_LIMIT domains off the
+        # instances set, filtered in Ruby by #apply_residual_filters. Sets
+        # @capped when the population exceeds the window.
+        def status_window_candidates
+          window_ids = Onetime::CustomDomain.instances.revrange(0, STATUS_SCAN_LIMIT - 1)
+          @capped  ||= Onetime::CustomDomain.instances.count > window_ids.size
+
+          Onetime::CustomDomain.load_multi(window_ids).compact
+        end
+
+        # Apply every active filter to the already-bounded candidates. The
+        # filter that drove the candidate read passes its own predicate
+        # trivially (an HSCAN match still satisfies the search predicate, an
+        # org-set member still satisfies the org predicate), so re-applying all
+        # three keeps this a single composition point rather than tracking
+        # which source skipped which filter.
+        def apply_residual_filters(result)
+          unless status_filter.empty?
+            result = result.select { |d| d.verification_state.to_s == status_filter }
+          end
+
+          unless org_filter.empty?
+            org     = safe_lookup { Onetime::Organization.find_by_extid(org_filter) }
+            org_ids = [org_filter, org&.objid].compact.map(&:to_s)
+            result  = result.select { |d| org_ids.include?(d.org_id.to_s) }
+          end
+
+          return result if search_term.empty?
+
+          needle = search_term.downcase
+          result.select do |d|
+            next true if d.extid.to_s == search_term
+            next true if d.domainid.to_s == search_term
+
+            d.display_domain.to_s.downcase.include?(needle) ||
+              d.base_domain.to_s.downcase.include?(needle)
+          end
+        end
+
+        # Format the page of domains for the wire. Everything here is bounded
+        # by the page size: the sibling HomepageConfig / ApiConfig records come
+        # back in two pipelined load_multi fetches, and the org lookup runs
+        # once per row.
+        def build_domain_rows(paginated_domains)
           # HomepageConfig / ApiConfig use `identifier_field :domain_id`, so the
           # CustomDomain identifiers serve directly as load_multi keys. Missing
           # records come back as nil and are dropped by compact; lookup-misses
@@ -87,13 +335,12 @@ module ColonelAPI
           domain_identifiers = paginated_domains.map(&:identifier)
           homepage_by_id     = Onetime::CustomDomain::HomepageConfig
             .load_multi(domain_identifiers).compact
-            .each_with_object({}) { |cfg, h| h[cfg.domain_id] = cfg }
+            .to_h { |cfg| [cfg.domain_id, cfg] }
           api_by_id          = Onetime::CustomDomain::ApiConfig
             .load_multi(domain_identifiers).compact
-            .each_with_object({}) { |cfg, h| h[cfg.domain_id] = cfg }
+            .to_h { |cfg| [cfg.domain_id, cfg] }
 
-          # Format domain data
-          @domains = paginated_domains.map do |domain|
+          paginated_domains.map do |domain|
             # Get organization details
             org = domain.primary_organization
 
@@ -148,61 +395,6 @@ module ColonelAPI
               logo_url: has_logo ? "/imagine/#{domain.domainid}/logo.png" : nil,
               icon_url: has_icon ? "/imagine/#{domain.domainid}/icon.png" : nil,
             }
-          end
-
-          success_data
-        end
-
-        def success_data
-          {
-            record: {},
-            details: {
-              domains: domains,
-              pagination: {
-                page: page,
-                per_page: per_page,
-                total_count: total_count,
-                total_pages: total_pages,
-              },
-              # Server echo of the applied filters (additive key; mirrors
-              # ListOrganizations). Never read for state by the frontend.
-              filters: {
-                search: search_term,
-                status: status_filter,
-                org_id: org_filter,
-              },
-            },
-          }
-        end
-
-        private
-
-        # All three filters are AND-ed. Empty/absent filters are no-ops, so an
-        # unfiltered request returns exactly the previous result set.
-        def apply_filters(all_domains)
-          result = all_domains
-
-          unless status_filter.empty?
-            result = result.select { |d| d.verification_state.to_s == status_filter }
-          end
-
-          unless org_filter.empty?
-            # Accept the org extid (what every admin surface routes by) or the
-            # internal objid, which is what CustomDomain#org_id actually stores.
-            org     = Onetime::Organization.find_by_extid(org_filter)
-            org_ids = [org_filter, org&.objid].compact.map(&:to_s)
-            result  = result.select { |d| org_ids.include?(d.org_id.to_s) }
-          end
-
-          return result if search_term.empty?
-
-          needle = search_term.downcase
-          result.select do |d|
-            next true if d.extid.to_s == search_term
-            next true if d.domainid.to_s == search_term
-
-            d.display_domain.to_s.downcase.include?(needle) ||
-              d.base_domain.to_s.downcase.include?(needle)
           end
         end
       end

@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require_relative 'domain_resolver'
 require 'onetime/operations/domains/ensure_domain_configs'
 
 module ColonelAPI
@@ -29,6 +30,8 @@ module ColonelAPI
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.
       class EnsureDomainConfigs < ColonelAPI::Logic::Base
+        include DomainResolver
+
         SCHEMAS = { response: 'colonelDomainConfigsEnsure' }.freeze
 
         attr_reader :extid, :dry_run, :custom_domain, :result
@@ -43,7 +46,7 @@ module ColonelAPI
 
           raise_form_error('Domain ID is required', field: :extid) if extid.to_s.empty?
 
-          @custom_domain = Onetime::CustomDomain.find_by_extid(extid)
+          @custom_domain = resolve_custom_domain(extid)
           raise_not_found('Domain not found') unless custom_domain
         end
 

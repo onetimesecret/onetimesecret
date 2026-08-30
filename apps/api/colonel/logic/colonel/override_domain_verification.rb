@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require_relative 'domain_resolver'
 require 'onetime/models/colonel_audit_event'
 
 module ColonelAPI
@@ -23,6 +24,8 @@ module ColonelAPI
       # Both params are optional: the colonel may flip only one flag, leaving the
       # other unchanged. The audit trail records the previous and new values.
       class OverrideDomainVerification < ColonelAPI::Logic::Base
+        include DomainResolver
+
         AUDIT_VERB = 'domain.override_verification'
 
         attr_reader :extid,
@@ -49,7 +52,7 @@ module ColonelAPI
         def raise_concerns
           verify_one_of_roles!(colonel: true)
 
-          @custom_domain = Onetime::CustomDomain.find_by_extid(extid)
+          @custom_domain = resolve_custom_domain(extid)
           raise_not_found('Domain not found') unless custom_domain
         end
 
