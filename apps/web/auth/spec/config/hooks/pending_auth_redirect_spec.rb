@@ -243,18 +243,18 @@ RSpec.describe 'Pending auth redirect hooks (issue #4305)' do
 
     describe 'plan-intent precedence' do
       it 'does not overwrite a checkout redirect already set by the plan intent' do
-        json_response[:redirect] = '/billing/plans/identity_plus_v1/monthly'
+        json_response[:redirect] = '/billing/plans?product=identity_plus_v1&interval=monthly'
         stored                   = { value: '/account/settings/security' }
 
         result = surface_auth_redirect(stored: stored, json_response: json_response, validator: validator)
 
         expect(result[:surfaced]).to be false
         expect(result[:reason]).to eq(:already_claimed)
-        expect(json_response[:redirect]).to eq('/billing/plans/identity_plus_v1/monthly')
+        expect(json_response[:redirect]).to eq('/billing/plans?product=identity_plus_v1&interval=monthly')
       end
 
       it 'still consumes the stored redirect when the plan intent wins' do
-        json_response[:redirect] = '/billing/plans/identity_plus_v1/monthly'
+        json_response[:redirect] = '/billing/plans?product=identity_plus_v1&interval=monthly'
         stored                   = { value: '/account/settings/security' }
 
         surface_auth_redirect(stored: stored, json_response: json_response, validator: validator)
@@ -289,11 +289,11 @@ RSpec.describe 'Pending auth redirect hooks (issue #4305)' do
 
     it 'prefers the plan checkout redirect' do
       session = {
-        'plan_checkout_redirect' => '/billing/plans/identity_plus_v1/monthly',
+        'plan_checkout_redirect' => '/billing/plans?product=identity_plus_v1&interval=monthly',
         'auth_redirect' => '/account/settings/security',
       }
 
-      expect(verify_account_redirect(session)).to eq('/billing/plans/identity_plus_v1/monthly')
+      expect(verify_account_redirect(session)).to eq('/billing/plans?product=identity_plus_v1&interval=monthly')
     end
 
     it 'falls back to the captured auth redirect' do
@@ -308,7 +308,7 @@ RSpec.describe 'Pending auth redirect hooks (issue #4305)' do
 
     it 'consumes both keys (single-use)' do
       session = {
-        'plan_checkout_redirect' => '/billing/plans/identity_plus_v1/monthly',
+        'plan_checkout_redirect' => '/billing/plans?product=identity_plus_v1&interval=monthly',
         'auth_redirect' => '/account/settings/security',
       }
 

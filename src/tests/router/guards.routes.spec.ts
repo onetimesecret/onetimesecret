@@ -313,6 +313,14 @@ describe('Router Guards', () => {
       expect(result).toBe('/dashboard/settings');
     });
 
+    it('rejects repeated redirect params and falls back to Dashboard', async () => {
+      const to = authRouteWithRedirect(
+        ['/dashboard/settings', '/account'] as unknown as string
+      );
+
+      expect(await getMainGuard()(to)).toEqual({ name: 'Dashboard' });
+    });
+
     it('preserves the query string and hash through the guard', async () => {
       // The regression: returning { path: redirectParam } handed vue-router a
       // value it parses as a path ONLY, so '?view=raw' and '#content' were

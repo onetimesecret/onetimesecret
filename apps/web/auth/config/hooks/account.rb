@@ -328,11 +328,16 @@ module Auth::Config::Hooks
             if OT::Utils.safe_internal_path?(raw_redirect)
               customer.pending_auth_redirect = raw_redirect
 
+              # Log the leading path segment, NOT the value. An accepted
+              # redirect is routinely a live bearer credential here
+              # (`/invite/<token>`, `/secret/<key>`), so the accept branch
+              # needs the same discipline as the reject branch below.
               Auth::Logging.log_auth_event(
                 :auth_redirect_captured,
                 level: :debug,
                 customer_extid: customer.extid,
-                redirect: raw_redirect,
+                redirect_prefix: OT::Utils.loggable_path(raw_redirect),
+                value_length: raw_redirect.length,
               )
             else
               # Log the LENGTH, not the value: the rejected value is an
@@ -544,11 +549,15 @@ module Auth::Config::Hooks
 
             json_response[:redirect] = stored
 
+            # Leading path segment only -- see the capture-side note. This
+            # one is logged at :info, so the value would otherwise reach the
+            # default production log stream.
             Auth::Logging.log_auth_event(
               :auth_redirect_surfaced,
               level: :info,
               customer_extid: customer.extid,
-              redirect: stored,
+              redirect_prefix: OT::Utils.loggable_path(stored),
+              value_length: stored.length,
             )
           end
         end

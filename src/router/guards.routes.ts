@@ -420,8 +420,9 @@ function handleAuthRouteRedirect(to: RouteLocationNormalized) {
   // becomes the literal path '/secret/abc?view=raw#content' with the query and
   // hash silently discarded from where they belong. The string form is parsed
   // as a full location, so both survive.
-  const redirectParam = to.query.redirect as string | undefined;
-  return isValidInternalPath(redirectParam) ? redirectParam : { name: 'Dashboard' };
+  const redirectParam = to.query.redirect;
+  const redirectPath = typeof redirectParam === 'string' ? redirectParam : undefined;
+  return isValidInternalPath(redirectPath) ? redirectPath : { name: 'Dashboard' };
 }
 
 function redirectToSignIn(from: RouteLocationNormalized) {

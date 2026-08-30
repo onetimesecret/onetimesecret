@@ -192,10 +192,73 @@ RSpec.describe Onetime::Utils::RedirectPaths do
     end
   end
 
+  describe '#loggable_path' do
+    # SECURITY: this is what keeps live bearer credentials out of the auth
+    # log. `/invite/<token>` and `/secret/<key>` are both ACCEPTED redirect
+    # shapes and both grant access to whoever replays them, so the accept-side
+    # log lines must not carry the value.
+    it 'keeps only the leading path segment of an invite link' do
+      expect(validator.loggable_path('/invite/8f3c1d9e2b7a4056')).to eq('/invite')
+    end
+
+    it 'keeps only the leading path segment of a secret link' do
+      expect(validator.loggable_path('/secret/abc?view=raw#content')).to eq('/secret')
+    end
+
+    it 'drops the query and fragment of a single-segment path' do
+      expect(validator.loggable_path('/account?tab=security#mfa')).to eq('/account')
+    end
+
+    it 'returns the path unchanged when there is nothing to redact' do
+      expect(validator.loggable_path('/dashboard')).to eq('/dashboard')
+    end
+
+    it 'returns the root path unchanged' do
+      expect(validator.loggable_path('/')).to eq('/')
+    end
+
+    it 'returns an empty string for a non-String' do
+      expect(validator.loggable_path(nil)).to eq('')
+      expect(validator.loggable_path(['/invite/tok'])).to eq('')
+    end
+
+    it 'slices on the decoded separator, not the raw one' do
+      # `/secret%2f<key>` is one RAW segment but two real ones. Slicing the
+      # raw string would put the leading characters of the key in the log.
+      key = 'a' * 62
+
+      expect(validator.loggable_path("/secret%2f#{key}")).to eq('/secret')
+      expect(validator.loggable_path("/invite%2Ftok123")).to eq('/invite')
+    end
+
+    it 'returns an empty string when the value does not decode' do
+      expect(validator.loggable_path('/invite/%zz')).to eq('')
+    end
+
+    it 'truncates an over-long first segment' do
+      # No route puts a credential in the first segment today, but if one ever
+      # did, the cap keeps it out of the log. Callers log `value_length`
+      # separately, so nothing diagnostic is lost.
+      token = 'a' * 80
+
+      expect(validator.loggable_path("/#{token}")).to eq("/#{'a' * 31}...")
+    end
+
+    it 'returns an empty string for a value that is not an absolute path' do
+      # Never reached in practice (callers redact only accepted values), but a
+      # regex that anchors on '/' must not silently pass a bare token through.
+      expect(validator.loggable_path('invite/8f3c1d9e2b7a4056')).to eq('')
+    end
+  end
+
   describe 'exposure through Onetime::Utils' do
     it 'is reachable as OT::Utils.safe_internal_path?' do
       expect(Onetime::Utils.safe_internal_path?('/account')).to be true
       expect(Onetime::Utils.safe_internal_path?('//evil.example')).to be false
+    end
+
+    it 'is reachable as OT::Utils.loggable_path' do
+      expect(Onetime::Utils.loggable_path('/invite/8f3c1d9e2b7a4056')).to eq('/invite')
     end
 
     it 'does not leak the decoding helper as a public API' do

@@ -61,6 +61,12 @@ module Onetime
         MALFORMED_ESCAPE = /%(?![0-9A-Fa-f]{2})/
 
         PERCENT_ESCAPE = /%([0-9A-Fa-f]{2})/
+
+        # Cap on the redacted path segment written to logs. Comfortably longer
+        # than any real first segment ('/account/settings/security' -> 8),
+        # short enough that a token appearing where a route name belongs is
+        # truncated instead of logged.
+        MAX_LOGGABLE_SEGMENT = 32
       end
 
       # True when `value` is a safe internal navigation target.
@@ -108,6 +114,43 @@ module Onetime
       # @return [String, nil]
       def internal_path_or_nil(value)
         safe_internal_path?(value) ? value : nil
+      end
+
+      # Redacted form of a redirect, safe to write to a log.
+      #
+      # SECURITY: an ACCEPTED redirect is frequently a live bearer credential
+      # in this app -- `/invite/<token>` and `/secret/<key>` are both
+      # canonical accepted shapes, and both grant access to whoever presents
+      # them. Logging the accepted value verbatim therefore copies a working
+      # credential into the auth log, which has a different (longer) lifetime
+      # and a wider audience than the value itself.
+      #
+      # The first path segment is the part with diagnostic value ("they came
+      # back for an invite", "they came back for a secret") and carries none
+      # of the secret. Log it alongside the length when the full shape
+      # matters.
+      #
+      # The segment is also capped. No route in this app puts a credential in
+      # the FIRST segment today (the only top-level dynamic routes are 404
+      # catch-alls), but the cap means a future one would be truncated rather
+      # than logged whole. Real route segments are far shorter than this; the
+      # full size is carried by the separate `value_length` the callers log.
+      #
+      # @param value [Object]
+      # @return [String] leading path segment, or '' for a non-String
+      def loggable_path(value)
+        return '' unless value.is_a?(String)
+
+        # Slice the DECODED form. `/secret%2f<key>` is a single raw segment
+        # but two real ones, so slicing the raw string would carry the first
+        # chunk of the key into the log. Decoding first makes the separator
+        # visible to the segment regex. A value that fails to decode never
+        # passed safe_internal_path? either, so '' is the right answer.
+        decoded = percent_decode_once(value)
+        return '' if decoded.nil?
+
+        head = decoded[%r{\A/[^/?#]*}] || ''
+        head.length > MAX_LOGGABLE_SEGMENT ? "#{head[0, MAX_LOGGABLE_SEGMENT]}..." : head
       end
 
       private
