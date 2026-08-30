@@ -55,29 +55,24 @@
 // Mailpit reachability is asserted in beforeAll rather than skipped on: a
 // silent skip here would turn "the feature is broken" into a green run.
 
-import { expect, test, type Browser, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 import {
-  MAILPIT_URL,
-  isMailpitReachable,
-  rebaseOnto,
-  uniqueEmailAddress,
-  waitForVerificationUrl,
-} from '../support/mailpit';
+  signIn,
+  submitSignup,
+  verifyInFreshContext,
+  waitForAppReady,
+  waitForPathname,
+} from '../support/auth-journey';
+import { MAILPIT_URL, isMailpitReachable } from '../support/mailpit';
 
 /**
- * Password used for every account this spec creates. Satisfies the strict
- * password_requirements ruleset so the spec behaves identically on a target
- * that leaves AUTH_PASSWORD_REQUIREMENTS_ENABLED at its default (on).
+ * Per-spec signup identity, threaded into the shared journey helpers. The
+ * password satisfies the strict password_requirements ruleset so the spec
+ * behaves identically on a target that leaves
+ * AUTH_PASSWORD_REQUIREMENTS_ENABLED at its default (on).
  */
-const PASSWORD = 'E2eRedirect!4305pw';
-
-/**
- * A truly empty browser context. Spelled out rather than relying on the
- * project's lack of storageState, because the requirement under test is
- * "empty storage" — an implicit default is not an assertion.
- */
-const FRESH_CONTEXT = { storageState: { cookies: [], origins: [] } };
+const SIGNUP_OPTIONS = { emailPrefix: 'redirect-4305', password: 'E2eRedirect!4305pw' };
 
 /** The internal destination for the simple case: exists, and requires auth. */
 const SIMPLE_TARGET = '/account/settings/security';
@@ -104,150 +99,6 @@ test.beforeAll(async () => {
   ).toBe(true);
 });
 
-/**
- * Readiness flag set in src/main.ts after mount + router.isReady().
- *
- * Given a longer budget than the suite's 5s `expect.timeout` on purpose: this
- * is a page-load gate, not a behavioural assertion, and this spec opens a
- * FRESH browser context per journey — each one pays a cold, uncached asset
- * fetch. 30s matches the actionTimeout the chromium project already uses for
- * exactly this reason ("extra time for container responses").
- */
-async function waitForAppReady(page: Page): Promise<void> {
-  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached({
-    timeout: 30_000,
-  });
-}
-
-/**
- * Waits until the browser's PATHNAME is exactly `pathname`.
- *
- * Not a glob and not a regex, deliberately. Both of those match against the
- * whole URL string, and the URL we are travelling FROM is
- * `/signin?redirect=/account/settings/security` — which happily satisfies
- * `**​/account/settings/security` and `/\/account\/settings\/security/` while
- * the browser is still sitting on the sign-in page. A wait that is already
- * satisfied at the moment it is called is not a wait; it silently converts
- * "the redirect never happened" into a confusing assertion failure one line
- * later. Comparing the parsed pathname cannot be fooled by the query.
- */
-async function waitForPathname(page: Page, pathname: string): Promise<void> {
-  await page.waitForURL((url) => url.pathname === pathname);
-}
-
-/**
- * Signs in on a page that is already sitting on /signin.
- *
- * Handles both sign-in surfaces the way e2e/global.setup.ts does: the plain
- * SignInForm, and the tabbed PasswordlessFirstSignIn rendered when magic
- * links or WebAuthn are enabled on the target.
- */
-async function signIn(page: Page, email: string, password: string): Promise<void> {
-  const signinForm = page.getByTestId('signin-form');
-  const passwordTab = page.getByRole('tab', { name: /password/i });
-  await expect(signinForm.or(passwordTab).first()).toBeVisible();
-
-  if (await passwordTab.isVisible()) {
-    await passwordTab.click();
-    await page.getByTestId('password-email-input').fill(email);
-    await page.getByTestId('password-input').fill(password);
-    await page.getByTestId('password-submit').click();
-  } else {
-    await page.getByTestId('signin-email-input').fill(email);
-    await page.getByTestId('signin-password-input').fill(password);
-    await page.getByTestId('signin-submit').click();
-  }
-}
-
-/**
- * Runs signup through the real form and returns the address used, plus the
- * body the SPA actually POSTed to /auth/create-account.
- *
- * The request body is captured because it is where this journey can fail
- * SILENTLY: the backend stores the redirect from `request.params['redirect']`
- * at after_create_account, so if the SPA omits it from the POST, nothing is
- * ever stored and every later step degrades to "no destination" — which looks
- * like a working app, just one that forgot where you were going.
- */
-async function submitSignup(
-  page: Page,
-  signupUrl: string
-): Promise<{ email: string; requestBody: Record<string, unknown> | null }> {
-  const email = uniqueEmailAddress('redirect-4305');
-  let requestBody: Record<string, unknown> | null = null;
-
-  // An observer, NOT a route handler. page.route() would put Playwright in
-  // the path of the request and let this spec REWRITE the body — which is
-  // exactly what it must not do: the point is to record what the product
-  // sends, and a handler that "helpfully" completes the payload turns a real
-  // gap into a green test. Reading off the event stream cannot lie.
-  page.on('request', (request) => {
-    if (request.method() === 'POST' && request.url().includes('/auth/create-account')) {
-      requestBody = request.postDataJSON() ?? null;
-    }
-  });
-
-  await page.goto(signupUrl);
-  await waitForAppReady(page);
-
-  await expect(page.getByTestId('signup-form')).toBeVisible();
-  await page.getByTestId('signup-email-input').fill(email);
-  await page.getByTestId('signup-password-input').fill(PASSWORD);
-  await page.getByTestId('signup-terms-checkbox').check();
-  const [response] = await Promise.all([
-    page.waitForResponse((r) => r.url().includes('/auth/create-account')),
-    page.getByTestId('signup-submit').click(),
-  ]);
-
-  // Name the rate limiter explicitly. Without this the failure is a bare
-  // waitForURL timeout, and the cause (this suite creates 4 accounts per run
-  // against a default cap of 10 signups/hour per MASKED client IP, with a 1h
-  // lockout) is invisible in the trace.
-  expect(
-    response.status(),
-    response.status() === 429
-      ? 'POST /auth/create-account was rate-limited. The suite needs ' +
-          'CREATE_ACCOUNT_RATE_LIMIT_ENABLED=false on the target, or a wait ' +
-          'for the 1h lockout to expire.'
-      : `POST /auth/create-account failed: ${await response.text()}`
-  ).toBe(200);
-
-  // Since 16c9012c42 signup lands on /check-email, NOT /signin: the sign-in
-  // form is unusable until the account is verified.
-  await page.waitForURL(/\/check-email/);
-  await expect(page.getByTestId('check-email-view')).toBeVisible();
-
-  return { email, requestBody };
-}
-
-/**
- * Opens the emailed verification link in a brand-new context and returns the
- * page, parked wherever the verify flow decided to send it.
- *
- * The caller owns closing the context — returning it keeps the failure
- * screenshots/traces attached to a live page instead of a torn-down one.
- */
-async function verifyInFreshContext(
-  browser: Browser,
-  email: string,
-  baseURL: string
-): Promise<Page> {
-  const emailedUrl = await waitForVerificationUrl(email);
-
-  // The link is minted from the app's configured HOST, which need not be the
-  // origin Playwright is driving. Re-base the origin only; the key lives in
-  // the query and must not be touched.
-  const verificationUrl = rebaseOnto(emailedUrl, baseURL);
-
-  const context = await browser.newContext(FRESH_CONTEXT);
-  const page = await context.newPage();
-
-  await page.goto(verificationUrl);
-  await waitForAppReady(page);
-
-  return page;
-}
-
 test.describe('Signup redirect preservation (issue #4305)', () => {
   // Signup + async mail delivery + verify + signin is a long journey; the
   // 60s suite default is not enough headroom for the mail poll.
@@ -260,7 +111,8 @@ test.describe('Signup redirect preservation (issue #4305)', () => {
   }) => {
     const { email, requestBody } = await submitSignup(
       page,
-      `/signup?redirect=${encodeURIComponent(SIMPLE_TARGET)}`
+      `/signup?redirect=${encodeURIComponent(SIMPLE_TARGET)}`,
+      SIGNUP_OPTIONS
     );
 
     // The destination has to reach the SERVER at signup — that is what makes
@@ -284,7 +136,7 @@ test.describe('Signup redirect preservation (issue #4305)', () => {
       await verifyPage.waitForURL(/\/signin\?/);
       expect(new URL(verifyPage.url()).searchParams.get('redirect')).toBe(SIMPLE_TARGET);
 
-      await signIn(verifyPage, email, PASSWORD);
+      await signIn(verifyPage, email, SIGNUP_OPTIONS.password);
 
       await waitForPathname(verifyPage, SIMPLE_TARGET);
       await waitForAppReady(verifyPage);
@@ -300,7 +152,8 @@ test.describe('Signup redirect preservation (issue #4305)', () => {
   }) => {
     const { email, requestBody } = await submitSignup(
       page,
-      `/signup?redirect=${encodeURIComponent(RICH_TARGET)}`
+      `/signup?redirect=${encodeURIComponent(RICH_TARGET)}`,
+      SIGNUP_OPTIONS
     );
 
     expect(
@@ -314,7 +167,7 @@ test.describe('Signup redirect preservation (issue #4305)', () => {
       await verifyPage.waitForURL(/\/signin\?/);
       expect(new URL(verifyPage.url()).searchParams.get('redirect')).toBe(RICH_TARGET);
 
-      await signIn(verifyPage, email, PASSWORD);
+      await signIn(verifyPage, email, SIGNUP_OPTIONS.password);
 
       await waitForPathname(verifyPage, '/account/settings/security/sessions');
 
@@ -349,7 +202,8 @@ test.describe('Signup redirect preservation (issue #4305)', () => {
     }) => {
       const { email } = await submitSignup(
         page,
-        `/signup?redirect=${encodeURIComponent(hostile)}`
+        `/signup?redirect=${encodeURIComponent(hostile)}`,
+        SIGNUP_OPTIONS
       );
 
       const verifyPage = await verifyInFreshContext(browser, email, baseURL!);
@@ -360,7 +214,7 @@ test.describe('Signup redirect preservation (issue #4305)', () => {
         // Nothing hostile may be echoed back into the sign-in URL.
         expect(new URL(verifyPage.url()).searchParams.get('redirect')).toBeNull();
 
-        await signIn(verifyPage, email, PASSWORD);
+        await signIn(verifyPage, email, SIGNUP_OPTIONS.password);
 
         await expect(verifyPage).not.toHaveURL(/\/signin/, { timeout: 30_000 });
         await waitForAppReady(verifyPage);

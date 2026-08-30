@@ -29,7 +29,7 @@ import { createTestingPinia } from '@pinia/testing';
 import { createTestI18n } from '@tests/setup';
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import { defineComponent, ref } from 'vue';
-import { createMemoryHistory, createRouter, Router } from 'vue-router';
+import { createMemoryHistory, createRouter, Router, RouterLink } from 'vue-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import VerifyAccount from '@/apps/session/views/VerifyAccount.vue';
 
@@ -101,7 +101,7 @@ describe('VerifyAccount.vue escape links', () => {
 
   /** The `to` a router-link was given, without depending on its rendered label. */
   const linkTarget = (testid: string) =>
-    wrapper.findComponent(`[data-testid="${testid}"]`).props('to');
+    wrapper.findComponent<typeof RouterLink>(`[data-testid="${testid}"]`).props('to');
 
   beforeEach(() => {
     mockIsLoading.value = false;

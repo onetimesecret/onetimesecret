@@ -157,8 +157,7 @@ export function usePostAuthRedirect() {
         requestedProduct: product,
       }
     );
-    // Object form so vue-router encodes the values: product/interval can come
-    // straight from route.query, and raw `&`/`=`/`#` must not become URL syntax.
+    // Object form for the same encoding reason as handleBillingRedirect below.
     await router.push({
       path: `/billing/${orgExtid}/plans`,
       query: { product, interval, change: 'true' },
@@ -218,15 +217,24 @@ export function usePostAuthRedirect() {
         product,
         interval,
       });
+      // `{ path, query }` on purpose: product/interval can come from the route
+      // query (extractBillingParams' fallback tier), so interpolating them into
+      // a raw URL would let a '&' or '#' inject or truncate the query. The
+      // object form encodes each value. `query` must be given explicitly — a
+      // bare `{ path }` push drops it.
       await router.push({
         path: `/billing/${org.extid}/plans`,
         query: { product, interval },
       });
       return true;
     } catch (err) {
-      // Graceful degradation - if billing redirect fails, continue to dashboard
+      // Org resolution failed, but the plan intent itself is still valid —
+      // don't drop it. Push the extid-less plans route; its guard
+      // (createBillingRedirect) retries org resolution and forwards the
+      // query, so a transient fetch failure no longer loses the selection.
       loggingService.error(new Error(`Billing redirect failed: ${err}`));
-      return false;
+      await router.push({ path: '/billing/plans', query: { product, interval } });
+      return true;
     }
   }
 

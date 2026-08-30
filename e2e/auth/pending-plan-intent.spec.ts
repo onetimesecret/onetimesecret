@@ -1,105 +1,203 @@
 // e2e/auth/pending-plan-intent.spec.ts
 //
-// E2E Tests for Issue #3126: Pending Plan Intent Flow
+// E2E for the pending plan intent flow: a plan chosen BEFORE signup must
+// still be the plan on offer AFTER the user verifies their email and signs
+// in (issues #3126, #4306).
 //
-// Tests the flow where unauthenticated users:
-// 1. Visit a pricing deep link (/billing/plans/identity_plus_v1/yearly)
-// 2. Get redirected to signup with product/interval query params
-// 3. Complete signup (verification email sent)
-// 4. Click verification link
-// 5. Get redirected to the original plan page
+// ─────────────────────────────────────────────────────────────────────────────
+// THE JOURNEY, AND WHY IT NEEDS A BROWSER
+// ─────────────────────────────────────────────────────────────────────────────
 //
-// The backend persists plan intent during signup and restores it after
-// email verification via Customer.pending_plan_intent with 24h TTL.
+//   /signup?product=identity_plus_v1&interval=monthly   (or via a pricing CTA)
+//     → submit → /check-email
+//     → verification email (real SMTP → Mailpit)
+//     → open the link IN A FRESH BROWSER CONTEXT
+//     → /signin?redirect=/billing/plans?product=identity_plus_v1&interval=monthly
+//     → sign in → /billing/:extid/plans?product=identity_plus_v1&interval=monthly
 //
-// Prerequisites:
-// - Application running locally or PLAYWRIGHT_BASE_URL set
-// - Plans API returning valid plan data
-// - Billing feature enabled
+// Server-side, the intent rides as pending_plan_intent on the Customer
+// (24h TTL): captured at create-account, validated and surfaced as
+// json_response[:redirect] at verify-account (apps/web/auth/config/hooks/
+// account.rb), and consumed into `billing_redirect` on the login response
+// (hooks/billing.rb). The fresh browser context is what makes this a real
+// test: verification links get opened from mail clients, so nothing from
+// the signup tab (history state, sessionStorage, session cookie) may be
+// load-bearing.
 //
-// Note: Full verification flow requires email simulation. These tests verify
-// the UI preserves query params through the signup form. RSpec integration
-// tests cover the backend verification-to-redirect flow.
+// This file also keeps the lighter query-preservation tests from #3126 —
+// the SPA-side plumbing (pricing CTA → signup URL, signin link, the POST
+// bodies) that the full journey builds on. They run against any target;
+// the journey tests additionally need the email environment below.
+//
+// ─────────────────────────────────────────────────────────────────────────────
+// PROJECT / ENVIRONMENT (journey tests)
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// Runs in the `chromium` project (e2e/all + e2e/auth): no `setup` dependency
+// and no storageState — every context this spec touches must start
+// unauthenticated, including the first one.
+//
+// On top of the email environment documented in e2e/support/auth-journey.ts
+// (full auth mode, AUTH_AUTOVERIFY=false, SMTP → Mailpit, a running job
+// worker, signup rate limit off), the journey needs:
+//   BILLING_ENABLED=true            and a catalog that resolves
+//                                   identity_plus_v1 (etc/billing.yaml or
+//                                   materialized plans) — otherwise
+//                                   verify-account validates the intent,
+//                                   fails, and correctly drops the redirect
+//
+//   pnpm test:playwright e2e/auth/pending-plan-intent.spec.ts \
+//     --project=chromium
+//   # with PLAYWRIGHT_BASE_URL=https://dev.onetime.dev
+//   #      MAILPIT_URL=https://dev.onetime.dev:8025
+//
+// Mailpit reachability is asserted in the journey describe's beforeAll
+// rather than skipped on: a silent skip would turn "the feature is broken"
+// into a green run.
 
-import { test, expect, Page } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+
+import {
+  signIn,
+  submitSignup,
+  verifyInFreshContext,
+  waitForAppReady,
+  waitForPathname,
+} from '../support/auth-journey';
+import { MAILPIT_URL, isMailpitReachable, uniqueEmailAddress } from '../support/mailpit';
 
 /**
- * Wait for page to stabilize after navigation.
+ * Per-spec signup identity, threaded into the shared journey helpers. The
+ * password satisfies the strict password_requirements ruleset so the spec
+ * behaves identically on a target that leaves
+ * AUTH_PASSWORD_REQUIREMENTS_ENABLED at its default (on).
+ */
+const SIGNUP_OPTIONS = { emailPrefix: 'plan-4306', password: 'E2ePlanIntent!4306pw' };
+
+/** The plan the journey selects. Must exist in the target's billing catalog. */
+const PLAN = { product: 'identity_plus_v1', interval: 'monthly' } as const;
+
+/**
+ * The sign-in destination verify-account must mint for a VALID plan intent:
+ * the SPA's plans route with the selection in the query. (The historical
+ * three-segment /billing/plans/:product/:interval shape matches no route —
+ * see the hook comment in apps/web/auth/config/hooks/account.rb.)
+ */
+const EXPECTED_SIGNIN_REDIRECT = `/billing/plans?product=${PLAN.product}&interval=${PLAN.interval}`;
+
+/**
+ * Starts recording the JSON body of the next POST whose URL contains
+ * `urlFragment`, and returns a getter for it.
  *
- * The readiness flag is set in src/main.ts after consumeBootstrapData +
- * mount + router.isReady() - a stronger, deterministic alternative to
- * networkidle or polling window.__BOOTSTRAP_ME__.
+ * An observer, NOT a page.route() handler: a route handler puts the test in
+ * the request path and lets it rewrite the body, which is exactly what these
+ * tests must not do — the point is to record what the product sends. Reading
+ * off the event stream cannot lie.
  */
-async function waitForPageLoad(page: Page): Promise<void> {
-  await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
+function observePostBody(
+  page: Page,
+  urlFragment: string
+): () => Record<string, unknown> | null {
+  let body: Record<string, unknown> | null = null;
+  page.on('request', (request) => {
+    if (request.method() === 'POST' && request.url().includes(urlFragment)) {
+      body = request.postDataJSON() ?? null;
+    }
+  });
+  return () => body;
 }
 
 /**
- * Generate a unique test email to avoid conflicts
+ * Fills whichever password sign-in surface the target renders (plain
+ * SignInForm vs the tabbed PasswordlessFirstSignIn) WITHOUT submitting.
+ * The request-capture test below wants the form on screen, filled, so it
+ * can observe the login POST — not a completed login.
  */
-function generateTestEmail(): string {
-  const timestamp = Date.now();
-  const random = Math.random().toString(36).substring(7);
-  return `test-${timestamp}-${random}@example.com`;
+async function fillSignInForm(page: Page, email: string, password: string): Promise<void> {
+  const signinForm = page.getByTestId('signin-form');
+  const passwordTab = page.getByRole('tab', { name: /password/i });
+  await expect(signinForm.or(passwordTab).first()).toBeVisible();
+
+  if (await passwordTab.isVisible()) {
+    await passwordTab.click();
+    await page.getByTestId('password-email-input').fill(email);
+    await page.getByTestId('password-input').fill(password);
+  } else {
+    await page.getByTestId('signin-email-input').fill(email);
+    await page.getByTestId('signin-password-input').fill(password);
+  }
 }
+
+/** Submits whichever sign-in surface fillSignInForm just filled. */
+async function submitSignInForm(page: Page): Promise<void> {
+  const passwordSubmit = page.getByTestId('password-submit');
+  const plainSubmit = page.getByTestId('signin-submit');
+  if (await passwordSubmit.isVisible()) {
+    await passwordSubmit.click();
+  } else {
+    await plainSubmit.click();
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Query preservation (#3126): the SPA-side plumbing the journey rides on
+// ─────────────────────────────────────────────────────────────────────────────
 
 test.describe('Pending Plan Intent - Signup Flow', () => {
-  test.beforeEach(async ({ page }) => {
-    page.setDefaultTimeout(15000);
-  });
-
-  test('pricing deep link preserves product and interval in signup redirect', async ({ page }) => {
+  test('pricing deep link preserves product and interval in signup redirect', async ({
+    page,
+  }) => {
     // Visit pricing page with specific plan
-    await page.goto('/pricing/identity_plus_v1/yearly');
-    await waitForPageLoad(page);
+    await page.goto(`/pricing/${PLAN.product}/yearly`);
+    await waitForAppReady(page);
 
-    // Find and click the CTA for the highlighted plan
-    const highlightedCard = page.locator('.ring-yellow-500, .ring-yellow-400').first();
-    const cardVisible = await highlightedCard.isVisible().catch(() => false);
+    // The CTA for the deep-linked plan, located by the BEHAVIOUR under test:
+    // Pricing.vue's getSignupUrl puts the plan id in the CTA href
+    // (/signup?product=<id>&interval=…). Located by href rather than by
+    // highlight-ring classes or "the first Get started link" — the highlight
+    // class is styling, and the first CTA on the page can be another tier's
+    // (the free plan's links to /signup with NO product at all), which is
+    // exactly the wrong-CTA flake repeat-runs surfaced here.
+    const planCta = page.locator(`a[href*="product=${PLAN.product}"]`).first();
 
-    if (!cardVisible) {
-      // Fall back to any paid plan CTA
-      const paidPlanCta = page.getByRole('link', { name: /get started/i }).first();
-      const ctaVisible = await paidPlanCta.isVisible().catch(() => false);
-      test.skip(!ctaVisible, 'No plan CTAs available - billing may be disabled');
-      await paidPlanCta.click();
-    } else {
-      const cta = highlightedCard.getByRole('link');
-      await cta.click();
-    }
+    // Plan cards render after the plans fetch, later than app-ready — so
+    // WAIT for the CTA, and only skip if it genuinely never appears
+    // (billing disabled on the target). An isVisible() snapshot here skips
+    // falsely whenever the check races the fetch.
+    const ctaAppeared = await planCta
+      .waitFor({ state: 'visible', timeout: 10_000 })
+      .then(() => true, () => false);
+    test.skip(!ctaAppeared, 'No plan CTAs available - billing may be disabled');
+
+    await planCta.click();
 
     // Verify redirect to signup with query params
     await expect(page).toHaveURL(/\/signup\?/);
     const url = new URL(page.url());
-    expect(url.searchParams.get('product')).toContain('identity_plus');
+    expect(url.searchParams.get('product')).toBe(PLAN.product);
     expect(url.searchParams.get('interval')).toBe('yearly');
   });
 
   test('signup form displays with preserved query params', async ({ page }) => {
     // Navigate directly to signup with billing params
-    await page.goto('/signup?product=identity_plus_v1&interval=yearly');
-    await waitForPageLoad(page);
+    await page.goto(`/signup?product=${PLAN.product}&interval=yearly`);
+    await waitForAppReady(page);
 
     // Verify signup form is displayed
     const signupForm = page.getByTestId('signup-form');
     await expect(signupForm).toBeVisible();
 
     // Form fields should be accessible
-    const emailInput = page.getByTestId('signup-email-input');
-    const passwordInput = page.getByTestId('signup-password-input');
-    const termsCheckbox = page.getByTestId('signup-terms-checkbox');
-    const submitButton = page.getByTestId('signup-submit');
-
-    await expect(emailInput).toBeVisible();
-    await expect(passwordInput).toBeVisible();
-    await expect(termsCheckbox).toBeVisible();
-    await expect(submitButton).toBeVisible();
+    await expect(page.getByTestId('signup-email-input')).toBeVisible();
+    await expect(page.getByTestId('signup-password-input')).toBeVisible();
+    await expect(page.getByTestId('signup-terms-checkbox')).toBeVisible();
+    await expect(page.getByTestId('signup-submit')).toBeVisible();
   });
 
   test('signin link preserves billing params', async ({ page }) => {
     // Navigate to signup with billing params
-    await page.goto('/signup?product=identity_plus_v1&interval=yearly');
-    await waitForPageLoad(page);
+    await page.goto(`/signup?product=${PLAN.product}&interval=yearly`);
+    await waitForAppReady(page);
 
     // Find the "Sign in" link in the footer
     const signinLink = page.getByRole('link', { name: /sign in|have an account/i });
@@ -110,65 +208,46 @@ test.describe('Pending Plan Intent - Signup Flow', () => {
     await expect(page).toHaveURL(/\/signin\?/);
 
     const url = new URL(page.url());
-    expect(url.searchParams.get('product')).toBe('identity_plus_v1');
+    expect(url.searchParams.get('product')).toBe(PLAN.product);
     expect(url.searchParams.get('interval')).toBe('yearly');
   });
 
   test('signup form submission includes billing params', async ({ page }) => {
-    // Track API request to verify billing params are sent
-    let requestBody: Record<string, string> | null = null;
-    await page.route('**/auth/create-account', async (route) => {
-      const request = route.request();
-      try {
-        requestBody = await request.postDataJSON();
-      } catch {
-        // Request may not have JSON body
-      }
-      // Let the request continue (may fail without valid credentials, that's OK)
-      await route.continue();
-    });
+    const getRequestBody = observePostBody(page, '/auth/create-account');
 
-    await page.goto('/signup?product=identity_plus_v1&interval=yearly');
-    await waitForPageLoad(page);
+    await page.goto(`/signup?product=${PLAN.product}&interval=yearly`);
+    await waitForAppReady(page);
 
-    // Fill form with test data
-    const testEmail = generateTestEmail();
-    await page.getByTestId('signup-email-input').fill(testEmail);
-    await page.getByTestId('signup-password-input').fill('TestPassword123!');
+    // Fill form with test data. A unique address, because this really does
+    // create an account on the target.
+    await page.getByTestId('signup-email-input').fill(uniqueEmailAddress('plan-3126-body'));
+    await page.getByTestId('signup-password-input').fill(SIGNUP_OPTIONS.password);
     await page.getByTestId('signup-terms-checkbox').check();
 
-    // Submit form
-    await page.getByTestId('signup-submit').click();
-
-    // Wait for request (may succeed or fail)
-    await page.waitForResponse(
-      (response) => response.url().includes('/auth/create-account'),
-      { timeout: 10000 }
-    ).catch(() => {
-      // Response timeout is OK - we're checking request body
-    });
+    // Submit and wait for the response (pass or fail — only the request
+    // body is under test here; the full journey test below owns the rest)
+    await Promise.all([
+      page.waitForResponse((response) => response.url().includes('/auth/create-account')),
+      page.getByTestId('signup-submit').click(),
+    ]);
 
     // Verify billing params were included in request
-    expect(requestBody).not.toBeNull();
-    if (requestBody) {
-      expect(requestBody.product).toBe('identity_plus_v1');
-      expect(requestBody.interval).toBe('yearly');
-    }
+    const requestBody = getRequestBody();
+    expect(requestBody, 'the SPA sent no body to /auth/create-account').not.toBeNull();
+    expect(requestBody?.product).toBe(PLAN.product);
+    expect(requestBody?.interval).toBe('yearly');
   });
 });
 
 test.describe('Pending Plan Intent - Query Param Validation', () => {
-  test.beforeEach(async ({ page }) => {
-    page.setDefaultTimeout(15000);
-  });
-
   test('monthly interval is preserved through signup flow', async ({ page }) => {
     await page.goto('/signup?product=team_plus_v1&interval=monthly');
-    await waitForPageLoad(page);
+    await waitForAppReady(page);
 
     // Click signin link to verify param preservation
     const signinLink = page.getByRole('link', { name: /sign in|have an account/i });
     await signinLink.click();
+    await expect(page).toHaveURL(/\/signin\?/);
 
     const url = new URL(page.url());
     expect(url.searchParams.get('product')).toBe('team_plus_v1');
@@ -177,108 +256,86 @@ test.describe('Pending Plan Intent - Query Param Validation', () => {
 
   test('redirect param is preserved alongside billing params', async ({ page }) => {
     // Signup with redirect and billing params
-    await page.goto('/signup?product=identity_plus_v1&interval=yearly&redirect=/dashboard');
-    await waitForPageLoad(page);
+    await page.goto(`/signup?product=${PLAN.product}&interval=yearly&redirect=/dashboard`);
+    await waitForAppReady(page);
 
     // Verify all params are present
     const url = new URL(page.url());
-    expect(url.searchParams.get('product')).toBe('identity_plus_v1');
+    expect(url.searchParams.get('product')).toBe(PLAN.product);
     expect(url.searchParams.get('interval')).toBe('yearly');
     expect(url.searchParams.get('redirect')).toBe('/dashboard');
 
     // Check signin link preserves all params
     const signinLink = page.getByRole('link', { name: /sign in|have an account/i });
     await signinLink.click();
+    await expect(page).toHaveURL(/\/signin\?/);
 
     const signinUrl = new URL(page.url());
-    expect(signinUrl.searchParams.get('product')).toBe('identity_plus_v1');
+    expect(signinUrl.searchParams.get('product')).toBe(PLAN.product);
     expect(signinUrl.searchParams.get('interval')).toBe('yearly');
     expect(signinUrl.searchParams.get('redirect')).toBe('/dashboard');
   });
 
   test('email param is preserved with billing params', async ({ page }) => {
     const testEmail = 'prefill@example.com';
-    await page.goto(`/signup?email=${encodeURIComponent(testEmail)}&product=identity_plus_v1&interval=yearly`);
-    await waitForPageLoad(page);
+    await page.goto(
+      `/signup?email=${encodeURIComponent(testEmail)}&product=${PLAN.product}&interval=yearly`
+    );
+    await waitForAppReady(page);
 
     // Email should be prefilled
-    const emailInput = page.getByTestId('signup-email-input');
-    await expect(emailInput).toHaveValue(testEmail);
+    await expect(page.getByTestId('signup-email-input')).toHaveValue(testEmail);
 
     // URL should have all params
     const url = new URL(page.url());
     expect(url.searchParams.get('email')).toBe(testEmail);
-    expect(url.searchParams.get('product')).toBe('identity_plus_v1');
+    expect(url.searchParams.get('product')).toBe(PLAN.product);
     expect(url.searchParams.get('interval')).toBe('yearly');
   });
 });
 
 test.describe('Pending Plan Intent - Sign In Flow', () => {
-  test.beforeEach(async ({ page }) => {
-    page.setDefaultTimeout(15000);
-  });
-
   test('signin page displays with preserved billing params', async ({ page }) => {
-    await page.goto('/signin?product=identity_plus_v1&interval=yearly');
-    await waitForPageLoad(page);
+    await page.goto(`/signin?product=${PLAN.product}&interval=yearly`);
+    await waitForAppReady(page);
 
-    // Verify signin form is displayed
-    const emailInput = page.locator('input[type="email"], input[name="email"]');
-    const passwordInput = page.locator('input[type="password"], input[name="password"]');
-
-    await expect(emailInput).toBeVisible();
-    await expect(passwordInput).toBeVisible();
+    // Either sign-in surface must be present (plain form, or the tabbed
+    // passwordless-first variant when magic links / WebAuthn are enabled)
+    const signinForm = page.getByTestId('signin-form');
+    const passwordTab = page.getByRole('tab', { name: /password/i });
+    await expect(signinForm.or(passwordTab).first()).toBeVisible();
 
     // URL should still have billing params
     const url = new URL(page.url());
-    expect(url.searchParams.get('product')).toBe('identity_plus_v1');
+    expect(url.searchParams.get('product')).toBe(PLAN.product);
     expect(url.searchParams.get('interval')).toBe('yearly');
   });
 
   test('login request includes billing params', async ({ page }) => {
-    // Track API request
-    let requestBody: Record<string, string> | null = null;
-    await page.route('**/auth/login', async (route) => {
-      const request = route.request();
-      try {
-        requestBody = await request.postDataJSON();
-      } catch {
-        // Request may not have JSON body
-      }
-      await route.continue();
-    });
+    const getRequestBody = observePostBody(page, '/auth/login');
 
-    await page.goto('/signin?product=identity_plus_v1&interval=yearly');
-    await waitForPageLoad(page);
+    await page.goto(`/signin?product=${PLAN.product}&interval=yearly`);
+    await waitForAppReady(page);
 
-    // Fill form (credentials don't need to be valid for request capture)
-    await page.locator('input[type="email"], input[name="email"]').fill('test@example.com');
-    await page.locator('input[type="password"], input[name="password"]').fill('testpass');
-    await page.locator('button[type="submit"]').click();
-
-    // Wait for request
-    await page.waitForResponse(
-      (response) => response.url().includes('/auth/login'),
-      { timeout: 10000 }
-    ).catch(() => {});
+    // Credentials don't need to be valid — only the request body is under test
+    await fillSignInForm(page, 'plan-intent-login-body@test.onetimesecret.com', 'testpass');
+    await Promise.all([
+      page.waitForResponse((response) => response.url().includes('/auth/login')),
+      submitSignInForm(page),
+    ]);
 
     // Verify billing params were included
-    expect(requestBody).not.toBeNull();
-    if (requestBody) {
-      expect(requestBody.product).toBe('identity_plus_v1');
-      expect(requestBody.interval).toBe('yearly');
-    }
+    const requestBody = getRequestBody();
+    expect(requestBody, 'the SPA sent no body to /auth/login').not.toBeNull();
+    expect(requestBody?.product).toBe(PLAN.product);
+    expect(requestBody?.interval).toBe('yearly');
   });
 });
 
 test.describe('Pending Plan Intent - Verify Account Flow', () => {
-  test.beforeEach(async ({ page }) => {
-    page.setDefaultTimeout(15000);
-  });
-
   test('verify account page handles missing key gracefully', async ({ page }) => {
     await page.goto('/verify-account');
-    await waitForPageLoad(page);
+    await waitForAppReady(page);
 
     // Should show missing key message
     const missingKeyMessage = page.locator('text=/missing.*key|verification.*link/i');
@@ -287,7 +344,7 @@ test.describe('Pending Plan Intent - Verify Account Flow', () => {
 
   test('verify account page handles invalid key', async ({ page }) => {
     await page.goto('/verify-account?key=invalid-key-12345');
-    await waitForPageLoad(page);
+    await waitForAppReady(page);
 
     // Should show error message (after API call fails)
     const errorMessage = page.locator('[role="alert"]');
@@ -296,7 +353,7 @@ test.describe('Pending Plan Intent - Verify Account Flow', () => {
 
   test('verify account page shows signin link on error', async ({ page }) => {
     await page.goto('/verify-account?key=invalid-key-12345');
-    await waitForPageLoad(page);
+    await waitForAppReady(page);
 
     // Wait for verification to complete (with error)
     await page.waitForSelector('[role="alert"]', { timeout: 10000 }).catch(() => {});
@@ -307,64 +364,151 @@ test.describe('Pending Plan Intent - Verify Account Flow', () => {
   });
 });
 
-test.describe('Pending Plan Intent - E2E Deep Link Flow', () => {
-  test.beforeEach(async ({ page }) => {
-    page.setDefaultTimeout(15000);
+// ─────────────────────────────────────────────────────────────────────────────
+// The full journey (#4306): signup → real email → fresh browser → plans page
+// ─────────────────────────────────────────────────────────────────────────────
+
+test.describe('Plan intent journey (issue #4306)', () => {
+  // Signup + async mail delivery + verify + signin is a long journey; the
+  // 60s suite default is not enough headroom for the mail poll.
+  test.slow();
+
+  test.beforeAll(async () => {
+    expect(
+      await isMailpitReachable(),
+      `Mailpit is not reachable at ${MAILPIT_URL}. The verification-link steps ` +
+        'cannot run without it. Start it (podman compose -f ' +
+        'docker/compose/docker-compose.mailpit.yml up -d) or point MAILPIT_URL ' +
+        'at a running instance.'
+    ).toBe(true);
   });
 
-  test('full flow: pricing → signup → preserves params for backend', async ({ page }) => {
-    // Step 1: Start at pricing deep link
-    await page.goto('/pricing/identity_plus_v1/yearly');
-    await waitForPageLoad(page);
+  test('a plan chosen before signup survives verification in a fresh browser', async ({
+    browser,
+    baseURL,
+    page,
+  }) => {
+    const { email, requestBody } = await submitSignup(
+      page,
+      `/signup?product=${PLAN.product}&interval=${PLAN.interval}`,
+      SIGNUP_OPTIONS
+    );
 
-    // Step 2: Click CTA to go to signup
-    const paidPlanCta = page.getByRole('link', { name: /get started/i }).first();
-    const ctaVisible = await paidPlanCta.isVisible().catch(() => false);
-    test.skip(!ctaVisible, 'No plan CTAs available - billing may be disabled');
+    // The selection has to reach the SERVER at signup — that is what makes
+    // it survive a browser that never saw this tab. before_create_account
+    // captures request params into the session; after_create_account
+    // persists them as pending_plan_intent on the Customer.
+    expect(requestBody, 'the SPA sent no body to /auth/create-account').not.toBeNull();
+    expect(requestBody?.product).toBe(PLAN.product);
+    expect(requestBody?.interval).toBe(PLAN.interval);
 
-    await paidPlanCta.click();
-    await expect(page).toHaveURL(/\/signup\?/);
+    const verifyPage = await verifyInFreshContext(browser, email, baseURL!);
 
-    // Step 3: Verify signup form has correct params
-    let url = new URL(page.url());
-    expect(url.searchParams.get('product')).toContain('identity_plus');
-    expect(url.searchParams.get('interval')).toBe('yearly');
+    try {
+      // verify-account validated the plan against the catalog and put the
+      // plans destination in its JSON response; the SPA appended it to the
+      // sign-in URL. If this comes back null, look at BILLING_ENABLED and
+      // whether the catalog resolves the plan — an invalid intent is
+      // (correctly) dropped here.
+      await verifyPage.waitForURL(/\/signin\?/);
+      expect(
+        new URL(verifyPage.url()).searchParams.get('redirect'),
+        'verify-account must mint the plans redirect for a valid plan intent ' +
+          '(requires BILLING_ENABLED=true and a catalog that resolves ' +
+          `${PLAN.product}/${PLAN.interval} on the target)`
+      ).toBe(EXPECTED_SIGNIN_REDIRECT);
 
-    // Step 4: Navigate to signin (simulating "already have account")
-    const signinLink = page.getByRole('link', { name: /sign in|have an account/i });
-    await signinLink.click();
+      // Registered BEFORE the navigation settles: this response is the tail
+      // end of the whole feature. The stored intent is no longer consumed at
+      // login-response build — the auth hooks only PEEK — it is consumed by
+      // BillingController#subscription_status when the plans page fetches
+      // subscription state on mount. A test that tears the context down as
+      // soon as the URL looks right aborts that in-flight fetch and the
+      // intent is never consumed at all (observed: entitlements/plans
+      // requests logged as aborted in the trace, zero consumption lines in
+      // the server log). Waiting for the response is what makes this test
+      // cover the deferred-consumption handoff, not just the redirect.
+      const subscriptionSettled = verifyPage.waitForResponse(
+        (r) => /\/billing\/api\/org\/[^/]+\/subscription/.test(r.url()),
+        { timeout: 30_000 }
+      );
 
-    // Step 5: Verify signin preserves params
-    await expect(page).toHaveURL(/\/signin\?/);
-    url = new URL(page.url());
-    expect(url.searchParams.get('product')).toContain('identity_plus');
-    expect(url.searchParams.get('interval')).toBe('yearly');
+      await signIn(verifyPage, email, SIGNUP_OPTIONS.password);
+
+      // The login response replayed the stored intent as billing_redirect,
+      // and the SPA resolved it to the org-scoped plans page. Waited on the
+      // PATHNAME: the /signin URL we are leaving already contains
+      // "/billing/plans" in its query, so a glob or whole-URL regex would be
+      // satisfied before the navigation happens. Three segments, not two —
+      // /billing/plans (the guard route) rewrites to /billing/:extid/plans
+      // and must carry the query with it.
+      await waitForPathname(verifyPage, /^\/billing\/[^/]+\/plans$/);
+
+      const landed = new URL(verifyPage.url());
+      expect(landed.searchParams.get('product')).toBe(PLAN.product);
+      expect(landed.searchParams.get('interval')).toBe(PLAN.interval);
+      await waitForAppReady(verifyPage);
+
+      // The plans-flow entry point answered — the handoff the journey exists
+      // to deliver actually completed, and with it the deferred intent
+      // consumption on the server.
+      expect((await subscriptionSettled).status()).toBe(200);
+
+      // Bonus, behaviour-level: PlanSelector consumed the query — the
+      // billing interval toggle preselects Monthly. Honest caveat: 'month'
+      // is also the component's default, so on its own this can pass
+      // vacuously; it is asserted AFTER the subscription response above,
+      // i.e. after onMounted's query handling has provably run.
+      await expect(
+        verifyPage.getByTestId('billing-interval-month'),
+        'PlanSelector should preselect the Monthly interval from the query'
+      ).toHaveAttribute('aria-pressed', 'true', { timeout: 30_000 });
+    } finally {
+      await verifyPage.context().close();
+    }
+  });
+
+  /**
+   * Negative case: a plan that passes the ID format check but resolves to
+   * nothing in the catalog. Billing::PlanResolver rejects it at verify-time,
+   * the stored intent is deleted, and the journey must degrade to the
+   * default landing — no billing redirect, no error page. This pins the
+   * end-to-end OUTCOME, not which layer rejects the value.
+   */
+  test('an unknown plan degrades to the default landing, not an error', async ({
+    browser,
+    baseURL,
+    page,
+  }) => {
+    const { email, requestBody } = await submitSignup(
+      page,
+      '/signup?product=nonexistent_plan_v9&interval=monthly',
+      SIGNUP_OPTIONS
+    );
+
+    // The SPA forwards the selection as-is; validation is the server's job.
+    expect(requestBody?.product).toBe('nonexistent_plan_v9');
+
+    const verifyPage = await verifyInFreshContext(browser, email, baseURL!);
+
+    try {
+      await verifyPage.waitForURL(/\/signin/);
+
+      // The invalid intent must NOT be echoed into the sign-in URL.
+      expect(new URL(verifyPage.url()).searchParams.get('redirect')).toBeNull();
+
+      await signIn(verifyPage, email, SIGNUP_OPTIONS.password);
+
+      // Signin succeeds and lands where a journey with no plan at all would:
+      // the app's own root, not /billing/* and not an error page.
+      await expect(verifyPage).not.toHaveURL(/\/signin/, { timeout: 30_000 });
+      await waitForAppReady(verifyPage);
+
+      const landed = new URL(verifyPage.url());
+      expect(landed.pathname).toMatch(/^\/(dashboard)?$/);
+      expect(landed.pathname).not.toContain('/billing');
+    } finally {
+      await verifyPage.context().close();
+    }
   });
 });
-
-/**
- * Manual Test Checklist - Pending Plan Intent
- *
- * ## Pricing to Signup Flow
- * - [ ] /pricing/identity_plus_v1/yearly shows highlighted plan
- * - [ ] Clicking CTA navigates to /signup?product=identity_plus_v1&interval=yearly
- * - [ ] Signup form accepts and submits form
- * - [ ] POST /auth/create-account includes product and interval params
- *
- * ## Query Parameter Preservation
- * - [ ] Signin link preserves product, interval, email, redirect params
- * - [ ] Back navigation preserves params
- * - [ ] Page refresh preserves params
- *
- * ## Backend Integration (requires RSpec tests)
- * - [ ] Signup stores pending_plan_intent in Customer record
- * - [ ] Verification email click reads pending_plan_intent
- * - [ ] After verification, redirect includes billing params
- * - [ ] pending_plan_intent has 24h TTL
- * - [ ] pending_plan_intent is cleared after use
- *
- * ## Edge Cases
- * - [ ] Invalid product ID is handled gracefully
- * - [ ] Expired pending_plan_intent redirects to dashboard
- * - [ ] User already subscribed to plan shows appropriate message
- */

@@ -509,9 +509,26 @@ export type OtpEnableResponse = z.infer<typeof otpEnableResponseSchema>;
 export const otpToggleResponseSchema = authResponseSchema;
 export type OtpToggleResponse = z.infer<typeof otpToggleResponseSchema>;
 
-// OTP verification response
-export const otpVerifyResponseSchema = authResponseSchema;
+// OTP verification response (two-factor completion: /auth/otp-auth and
+// /auth/recovery-auth).
+//
+// #4306: for MFA-gated logins the backend replays the signup plan intent on
+// the COMPLETION response, not the primary-factor login response — so this
+// body may carry the same optional billing_redirect shape as login /
+// create-account (authSuccessWithBillingSchema). Union order matters: the
+// billing-capable success variant must precede authErrorSchema so Zod never
+// strips billing_redirect from a success body.
+export const otpVerifyResponseSchema = z.union([
+  authSuccessWithBillingSchema, // { success, billing_redirect? }
+  authErrorSchema,
+]);
 export type OtpVerifyResponse = z.infer<typeof otpVerifyResponseSchema>;
+/**
+ * The success variant of a two-factor completion body. Structurally a member
+ * of the LoginResponse union, so it can be handed straight to
+ * usePostAuthRedirect.navigateAfterAuth().
+ */
+export type OtpVerifySuccess = z.infer<typeof authSuccessWithBillingSchema>;
 
 // Recovery code schema
 export const recoveryCodeSchema = z.object({

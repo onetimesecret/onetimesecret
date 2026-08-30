@@ -46,6 +46,14 @@ function getGuardsForPath(path: string) {
     : [route.beforeEnter];
 }
 
+/** Redirect guard shape: consumes the incoming route, returns the target. */
+type BillingRedirectGuard = (to: {
+  query: Record<string, string>;
+}) => Promise<{ path: string; query: Record<string, string> } | { name: string }>;
+
+/** Minimal stand-in for the `to` route the router passes to beforeEnter. */
+const incoming = (query: Record<string, string> = {}) => ({ query });
+
 describe('checkBillingEnabled guard', () => {
   beforeEach(() => {
     mockBillingEnabled = true;
@@ -79,17 +87,44 @@ describe('createBillingRedirect guard', () => {
   it('redirects to /billing/:extid/overview for /billing route', async () => {
     mockOrganizations.push({ extid: 'org_abc123' });
     const guards = getGuardsForPath('/billing');
-    const redirect = guards[1] as () => Promise<{ path: string }>;
-    const result = await redirect();
-    expect(result).toEqual({ path: '/billing/org_abc123/overview' });
+    const redirect = guards[1] as BillingRedirectGuard;
+    const result = await redirect(incoming());
+    expect(result).toEqual({ path: '/billing/org_abc123/overview', query: {} });
   });
 
   it('redirects to /billing/:extid/plans for /billing/plans route', async () => {
     mockOrganizations.push({ extid: 'org_abc123' });
     const guards = getGuardsForPath('/billing/plans');
-    const redirect = guards[1] as () => Promise<{ path: string }>;
-    const result = await redirect();
-    expect(result).toEqual({ path: '/billing/org_abc123/plans' });
+    const redirect = guards[1] as BillingRedirectGuard;
+    const result = await redirect(incoming());
+    expect(result).toEqual({ path: '/billing/org_abc123/plans', query: {} });
+  });
+
+  // Regression (#4306): returning { path } alone silently drops the incoming
+  // query — the post-signup plan intent (/billing/plans?product=&interval=)
+  // arrived at the org-scoped plans page with no plan selected.
+  it('forwards the plan-intent query params through the rewrite', async () => {
+    mockOrganizations.push({ extid: 'org_abc123' });
+    const guards = getGuardsForPath('/billing/plans');
+    const redirect = guards[1] as BillingRedirectGuard;
+    const result = await redirect(
+      incoming({ product: 'identity_plus_v1', interval: 'year', change: 'true' })
+    );
+    expect(result).toEqual({
+      path: '/billing/org_abc123/plans',
+      query: { product: 'identity_plus_v1', interval: 'year', change: 'true' },
+    });
+  });
+
+  it('forwards the query for the /billing overview rewrite too', async () => {
+    mockOrganizations.push({ extid: 'org_abc123' });
+    const guards = getGuardsForPath('/billing');
+    const redirect = guards[1] as BillingRedirectGuard;
+    const result = await redirect(incoming({ product: 'identity_plus_v1' }));
+    expect(result).toEqual({
+      path: '/billing/org_abc123/overview',
+      query: { product: 'identity_plus_v1' },
+    });
   });
 
   it('preserves plan-selection query params when resolving the current organization', async () => {
@@ -114,16 +149,16 @@ describe('createBillingRedirect guard', () => {
       mockOrganizations.push({ extid: 'org_fetched' });
     });
     const guards = getGuardsForPath('/billing');
-    const redirect = guards[1] as () => Promise<{ path: string }>;
-    await redirect();
+    const redirect = guards[1] as BillingRedirectGuard;
+    await redirect(incoming());
     expect(mockFetchOrganizations).toHaveBeenCalled();
   });
 
   it('does not fetch when organizations already loaded', async () => {
     mockOrganizations.push({ extid: 'org_existing' });
     const guards = getGuardsForPath('/billing');
-    const redirect = guards[1] as () => Promise<{ path: string }>;
-    await redirect();
+    const redirect = guards[1] as BillingRedirectGuard;
+    await redirect(incoming());
     expect(mockFetchOrganizations).not.toHaveBeenCalled();
   });
 
@@ -134,9 +169,9 @@ describe('createBillingRedirect guard', () => {
     );
     mockCurrentOrganization = { extid: 'org_second' };
     const guards = getGuardsForPath('/billing');
-    const redirect = guards[1] as () => Promise<{ path: string }>;
-    const result = await redirect();
-    expect(result).toEqual({ path: '/billing/org_second/overview' });
+    const redirect = guards[1] as BillingRedirectGuard;
+    const result = await redirect(incoming());
+    expect(result).toEqual({ path: '/billing/org_second/overview', query: {} });
   });
 
   it('falls back to first org when no currentOrganization', async () => {
@@ -146,16 +181,16 @@ describe('createBillingRedirect guard', () => {
     );
     mockCurrentOrganization = null;
     const guards = getGuardsForPath('/billing');
-    const redirect = guards[1] as () => Promise<{ path: string }>;
-    const result = await redirect();
-    expect(result).toEqual({ path: '/billing/org_first/overview' });
+    const redirect = guards[1] as BillingRedirectGuard;
+    const result = await redirect(incoming());
+    expect(result).toEqual({ path: '/billing/org_first/overview', query: {} });
   });
 
   it('redirects to Dashboard when no organizations exist', async () => {
     mockFetchOrganizations.mockResolvedValue(undefined);
     const guards = getGuardsForPath('/billing');
-    const redirect = guards[1] as () => Promise<{ name: string }>;
-    const result = await redirect();
+    const redirect = guards[1] as BillingRedirectGuard;
+    const result = await redirect(incoming());
     expect(result).toEqual({ name: 'Dashboard' });
   });
 });

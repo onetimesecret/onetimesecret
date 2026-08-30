@@ -53,6 +53,7 @@ import {
   type OtpEnableResponse,
   type OtpToggleResponse,
   type OtpVerifyResponse,
+  type OtpVerifySuccess,
   type RecoveryCodesResponse,
   type MfaStatusResponse,
 } from '@/schemas/api/auth/responses/auth';
@@ -82,6 +83,15 @@ export function useMfa() {
   const mfaStatus = ref<MfaStatus | null>(null);
   const setupData = ref<OtpSetupData | null>(null);
   const recoveryCodes = ref<string[]>([]);
+  /**
+   * The last successful two-factor completion body (#4306). For MFA-gated
+   * logins the backend replays the plan intent (billing_redirect) here rather
+   * than on the primary-factor login response; MfaChallenge hands this to
+   * usePostAuthRedirect.navigateAfterAuth() so an MFA user lands on the same
+   * checkout page as a no-MFA user. Reset at the start of every verification
+   * attempt so a stale intent can never leak into a later completion.
+   */
+  const verifyResponse = ref<OtpVerifySuccess | null>(null);
 
   // Configure async handler for auth-specific pattern (no auto-notify)
   const { wrap } = useAsyncHandler({
@@ -282,6 +292,7 @@ export function useMfa() {
    */
   async function verifyOtp(otpCode: string): Promise<boolean> {
     clearError();
+    verifyResponse.value = null;
 
     const result = await wrap(async () => {
       const response = await $api.post<OtpVerifyResponse>('/auth/otp-auth', {
@@ -295,6 +306,9 @@ export function useMfa() {
         throw createError(t('web.auth.mfa.invalid_code'), 'human', 'error');
       }
 
+      // Keep the completion body: it may carry billing_redirect (#4306),
+      // which the challenge view feeds into navigateAfterAuth().
+      verifyResponse.value = validated;
       return true;
     });
 
@@ -440,6 +454,7 @@ export function useMfa() {
    */
   async function verifyRecoveryCode(code: string): Promise<boolean> {
     clearError();
+    verifyResponse.value = null;
 
     const result = await wrap(async () => {
       const response = await $api.post<OtpVerifyResponse>('/auth/recovery-auth', {
@@ -474,6 +489,9 @@ export function useMfa() {
         throw error;
       }
 
+      // Recovery codes complete the second factor exactly like OTP, so the
+      // completion body may also carry billing_redirect (#4306).
+      verifyResponse.value = validated;
       return true;
     });
 
@@ -493,6 +511,7 @@ export function useMfa() {
     error,
     mfaStatus,
     setupData,
+    verifyResponse,
     recoveryCodes,
     fetchMfaStatus,
     setupMfa,

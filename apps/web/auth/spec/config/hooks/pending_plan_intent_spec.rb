@@ -15,8 +15,17 @@
 #   2. User clicks "Sign Up" -> redirected to /auth/create-account?product=X&interval=Y
 #   3. after_create_account: Captures intent to Customer.pending_plan_intent (24h TTL)
 #   4. User receives verification email, clicks link
-#   5. after_verify_account: Surfaces intent, sets session redirect to checkout
-#   6. Intent is cleared (single-use) to prevent replay
+#   5. after_verify_account: Surfaces intent (a PEEK), sets session redirect to checkout
+#   6. Intent is consumed once the authenticated handoff succeeds — the client
+#      entering the billing plans flow (Customer#consume_pending_plan_intent!,
+#      called by the billing subscription_status endpoint, #4306). Until then
+#      repeated logins may re-surface it, bounded by the 24h TTL.
+#
+#   NOTE: the lifecycle sims below predate #4306 and model their own
+#   clear-on-surface state machine; they exercise copies, not the production
+#   peek/consume code. The production contract is covered in
+#   integration/full/pending_plan_intent_flow_spec.rb and
+#   integration/full/mfa_billing_redirect_intent_spec.rb.
 #
 # RUN:
 #   source .env.test && pnpm run test:rspec apps/web/auth/spec/config/hooks/pending_plan_intent_spec.rb

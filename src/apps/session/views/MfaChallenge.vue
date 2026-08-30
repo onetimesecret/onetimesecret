@@ -8,33 +8,34 @@
   import { loggingService } from '@/services/logging.service';
   import { useAuth } from '@/shared/composables/useAuth';
   import { useMfa } from '@/shared/composables/useMfa';
+  import { usePostAuthRedirect } from '@/shared/composables/usePostAuthRedirect';
   import { useWebAuthn } from '@/shared/composables/useWebAuthn';
   import { useAuthStore } from '@/shared/stores/authStore';
+  import type { OtpVerifySuccess } from '@/schemas/api/auth/responses/auth';
   import type { MfaStatus } from '@/types/auth';
-  import { isValidInternalPath } from '@/utils/redirect';
   import { ref, onMounted, computed } from 'vue';
-  import { useRoute, useRouter } from 'vue-router';
+  import { useRouter } from 'vue-router';
 
   const { t } = useI18n();
-  const route = useRoute();
   const router = useRouter();
 
-  /**
-   * Gets the redirect path from query params if valid.
-   * Security: Only allows internal paths to prevent open redirect attacks.
-   */
-  const redirectPath = computed(() => {
-    const redirect = route.query.redirect;
-    if (typeof redirect !== 'string') return null;
-    return isValidInternalPath(redirect) ? redirect : null;
-  });
   const authStore = useAuthStore();
-  const { verifyOtp, verifyRecoveryCode, fetchMfaStatus, isLoading, error, clearError } = useMfa();
+  const {
+    verifyOtp,
+    verifyRecoveryCode,
+    fetchMfaStatus,
+    verifyResponse,
+    isLoading,
+    error,
+    clearError,
+  } = useMfa();
+  const { navigateAfterAuth } = usePostAuthRedirect();
   const {
     supported: webauthnSupported,
     isLoading: webauthnLoading,
     error: webauthnError,
     verifyWebAuthnMfa,
+    mfaVerifyResponse: webauthnVerifyResponse,
     clearError: clearWebAuthnError,
   } = useWebAuthn();
   const { logout } = useAuth();
@@ -135,18 +136,26 @@
   });
 
   /**
-   * Shared success epilogue: complete auth, then honor the validated redirect.
+   * Shared success epilogue: complete auth, then land the user via the SAME
+   * precedence as the no-MFA login path (usePostAuthRedirect): a validated
+   * billing/plan intent first, then the validated ?redirect param, then '/'.
    * All three factors converge here so their post-verify behavior can never
    * drift apart.
+   *
+   * The billing intent rides on the two-factor COMPLETION body (#4306): for
+   * MFA-gated logins the backend replays billing_redirect here, not on the
+   * primary-factor login response. Every factor captures that body — OTP and
+   * recovery in useMfa's verifyResponse, webauthn in useWebAuthn's
+   * mfaVerifyResponse — and passes it in, because the route query alone is
+   * not a reliable carrier across the MFA hop.
+   *
+   * @param response - the completion body from the factor that just landed
    */
-  const completeChallenge = async () => {
+  const completeChallenge = async (response?: OtpVerifySuccess | null) => {
     loggingService.debug('[MfaChallenge] Setting authenticated=true');
     await authStore.setAuthenticated(true);
     loggingService.debug('[MfaChallenge] After setAuthenticated - auth complete');
-    // Redirect to saved path or dashboard
-    const destination = redirectPath.value || '/';
-    loggingService.debug('[MfaChallenge] Redirecting to', { destination });
-    router.push(destination);
+    await navigateAfterAuth(response ?? undefined);
   };
 
   // Handle OTP code complete
@@ -165,7 +174,7 @@
     loggingService.debug('[MfaChallenge] OTP verification result:', { success });
 
     if (success) {
-      await completeChallenge();
+      await completeChallenge(verifyResponse.value);
     } else {
       // Clear input on error
       loggingService.debug('[MfaChallenge] OTP failed, clearing input');
@@ -186,7 +195,7 @@
     loggingService.debug('[MfaChallenge] WebAuthn verification result:', { success });
 
     if (success) {
-      await completeChallenge();
+      await completeChallenge(webauthnVerifyResponse.value);
     }
   };
 
@@ -212,7 +221,7 @@
     const success = await verifyRecoveryCode(recoveryCode.value.trim());
 
     if (success) {
-      await completeChallenge();
+      await completeChallenge(verifyResponse.value);
     } else {
       // Clear input on error
       recoveryCode.value = '';

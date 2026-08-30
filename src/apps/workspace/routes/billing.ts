@@ -32,9 +32,15 @@ function checkBillingEnabled() {
 
 /**
  * Creates a guard to redirect to /billing/:extid/:targetPage using the current org.
+ *
+ * The incoming query is forwarded verbatim: returning `{ path }` alone would
+ * silently drop it, and the post-signup plan intent depends on
+ * /billing/plans?product=…&interval=… (and ?change=true) surviving this
+ * rewrite (#4306). vue-router treats `path` as a bare path, so the query must
+ * be carried explicitly.
  */
 function createBillingRedirect(targetPage: string) {
-  return async (to?: RouteLocationNormalized) => {
+  return async (to: RouteLocationNormalized) => {
     const organizationStore = useOrganizationStore();
 
     if (organizationStore.organizations.length === 0) {
@@ -45,9 +51,7 @@ function createBillingRedirect(targetPage: string) {
     if (!org) {
       return { name: 'Dashboard' };
     }
-    const path = `/billing/${org.extid}/${targetPage}`;
-    const query = to?.query ?? {};
-    return Object.keys(query).length > 0 ? { path, query } : { path };
+    return { path: `/billing/${org.extid}/${targetPage}`, query: to.query };
   };
 }
 

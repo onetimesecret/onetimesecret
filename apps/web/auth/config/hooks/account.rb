@@ -459,10 +459,15 @@ module Auth::Config::Hooks
                   # contract: valid plan intent > redirect > SPA default.
                   json_response[:redirect] = checkout_path if json_request?
 
-                  # DELIBERATELY NOT deleted here (issue #4305). The intent is
-                  # consumed by add_billing_redirect_to_response at after_login
-                  # (hooks/billing.rb — the #3130 fresh-session fallback), which
-                  # is the very next step of the SPA flow: verify -> /signin.
+                  # DELIBERATELY NOT deleted here (issues #4305, #4306).
+                  # Surfacing is a PEEK everywhere now: after_login /
+                  # after_two_factor_authentication re-surface the intent as
+                  # billing_redirect (hooks/billing.rb — the #3130
+                  # fresh-session fallback) without deleting it either. The
+                  # intent is consumed only when the authenticated handoff
+                  # succeeds — the client entering the billing plans flow —
+                  # via Onetime::Customer#consume_pending_plan_intent! in
+                  # Billing::Controllers::BillingController#subscription_status.
                   # Deleting it at verification time — as this hook used to —
                   # destroyed the only surviving copy for JSON clients, since
                   # the session redirect above never reached them either. The

@@ -396,7 +396,20 @@ module Auth::Config::Hooks
         # Billing.configure defines add_billing_redirect_to_response via auth_class_eval,
         # so the method is only available when billing is enabled. Check respond_to?
         # to avoid NoMethodError when billing is disabled (self-hosted).
-        if json_request? && respond_to?(:add_billing_redirect_to_response)
+        #
+        # Only when this login is COMPLETE (no second factor pending) — the same
+        # condition that picked branch 3a/3b above. The SPA never reads
+        # billing_redirect off the mfa_required response, so surfacing it there
+        # would be dead weight on a body the client discards; an MFA-gated login
+        # defers to after_two_factor_authentication (two_factor.rb), which emits
+        # it on the completion body the challenge view actually reads (#4306).
+        #
+        # add_billing_redirect_to_response only PEEKS at the intent — nothing is
+        # deleted here or in the two-factor hook. Consumption happens later, at
+        # the authenticated billing handoff (Onetime::Customer#consume_pending_plan_intent!,
+        # called by Billing::Controllers::BillingController#subscription_status),
+        # so a client that never completes the handoff can retry on a later login.
+        if json_request? && !mfa_decision&.requires_mfa? && respond_to?(:add_billing_redirect_to_response)
           add_billing_redirect_to_response
         end
       end
