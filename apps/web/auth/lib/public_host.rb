@@ -109,7 +109,7 @@ module Auth
       return false if Onetime::Middleware::DomainStrategy.canonical_host?(host)
 
       record = Onetime::CustomDomain.from_display_domain(host)
-      !record.nil? && !!record.verified
+      !record.nil? && !!record.verified # boolean_field native
     rescue StandardError
       # Datastore blip (or any unexpected error): fail closed. The auth link
       # falls back to the canonical host rather than an unverifiable one.
