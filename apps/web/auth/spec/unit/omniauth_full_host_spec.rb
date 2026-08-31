@@ -13,7 +13,7 @@
 #
 # Behind a Host-rewriting proxy the authority is the origin target, so those
 # URLs name a host the tenant's IdP has never seen. This resolver swaps in the
-# public host — but ONLY when it names a registered custom domain
+# public host — but ONLY when it names a TXT-verified custom domain
 # (Auth::PublicHost.served_custom_host?) — and leaves every other request on
 # OmniAuth's own derivation.
 #
@@ -38,19 +38,25 @@ RSpec.describe Auth::Config::Features::OmniAuth, '.full_host_for' do
   # The canonical set and the tenant registry are process state loaded from
   # config / the datastore; stub the predicates so each example states its own
   # topology. `from_display_domain` returns a record only for the hosts an
-  # example declares registered — finding G-01 requires that positive evidence
-  # before a host may root an SSO redirect_uri.
+  # example declares registered, carrying its TXT-verification state — finding
+  # G-01 requires a positive, VERIFIED record before a host may root an SSO
+  # redirect_uri.
   before do
     allow(Onetime::Middleware::DomainStrategy)
       .to receive(:canonical_host?) { |host| canonical_hosts.include?(host.to_s) }
 
     allow(Onetime::CustomDomain).to receive(:from_display_domain) do |host|
-      registered_custom_hosts.include?(host.to_s) ? Object.new : nil
+      if verified_custom_hosts.include?(host.to_s)
+        double('CustomDomain', verified: true)
+      elsif unverified_custom_hosts.include?(host.to_s)
+        double('CustomDomain', verified: false)
+      end
     end
   end
 
   let(:canonical_hosts) { ['onetimesecret.com'] }
-  let(:registered_custom_hosts) { ['secret.asi.nz', 'local-secrets4.afb.pet'] }
+  let(:verified_custom_hosts) { ['secret.asi.nz', 'local-secrets4.afb.pet'] }
+  let(:unverified_custom_hosts) { [] }
 
   # A Rack env in the shape DetectHost + DomainStrategy leave behind.
   #
@@ -199,6 +205,19 @@ RSpec.describe Auth::Config::Features::OmniAuth, '.full_host_for' do
       env = env_for(
         host: 'nz.onetime.co',
         display_domain: 'attacker.evil.example',
+        strategy: :custom,
+      )
+
+      expect(described_class.full_host_for(env)).to eq('https://nz.onetime.co')
+    end
+
+    # Registration is not ownership: until the TXT challenge verifies, the
+    # redirect_uri must not be rooted on the record's host.
+    it 'does not honor a registered custom domain that is not TXT-verified' do
+      unverified_custom_hosts << 'pending.tenant.example'
+      env = env_for(
+        host: 'nz.onetime.co',
+        display_domain: 'pending.tenant.example',
         strategy: :custom,
       )
 

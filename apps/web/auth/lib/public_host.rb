@@ -34,12 +34,15 @@ module Auth
   # genuine service email on an attacker origin — one click yields account
   # takeover, cross-tenant on the multi-tenant platform.
   #
-  # So a candidate is accepted ONLY when it names a REGISTERED custom domain:
-  # `Onetime::CustomDomain.from_display_domain(host)` resolves a record. That
-  # is the same positive evidence `DomainStrategy` uses to classify a request
-  # `:custom` (`known_custom_domain?`), so a genuine custom domain — the only
-  # host whose links must be built on itself — is preserved, while every host
-  # with no tenant record fails closed to the canonical host.
+  # So a candidate is accepted ONLY when it names a VERIFIED custom domain:
+  # `Onetime::CustomDomain.from_display_domain(host)` resolves a record AND
+  # that record's ownership is TXT-verified (`verified`). Mere registration is
+  # not enough here — anyone can register a domain record they don't control,
+  # and an auth link is the one artifact that must never point at a host whose
+  # ownership we haven't proven. This is deliberately STRICTER than the
+  # serving-path gates (`DomainStrategy#known_custom_domain?` keys on record
+  # existence): a registered-but-unverified domain still serves pages, but its
+  # auth links build on the canonical host until its TXT record verifies.
   #
   # ## FAIL CLOSED on a datastore blip
   #
@@ -78,7 +81,7 @@ module Auth
     # @param env [Hash] Rack environment
     # @return [String, nil] the public host, or nil to keep the caller's own
     #   (canonical) derivation — no resolved host, only canonical-set ones, or
-    #   no registered tenant record for any candidate
+    #   no verified tenant record for any candidate
     def self.resolve(env)
       candidates = [env['onetime.display_domain'], env[Rack::DetectHost.result_field_name]]
 
@@ -90,10 +93,12 @@ module Auth
     # Positive-evidence host allowlist test (finding G-01).
     #
     # True only when +host+ is non-empty, is NOT one of the canonical hosts,
-    # and names a REGISTERED CustomDomain. Uses the raising loader so a
-    # datastore failure fails CLOSED here (rescue -> false) rather than reading
-    # as an absent tenant — a link then builds on the canonical host, never on
-    # an unverifiable one.
+    # and names a CustomDomain whose ownership is TXT-VERIFIED (`verified`).
+    # Registration alone doesn't prove control of the host, and an auth link
+    # must never point at a host whose ownership is unproven. Uses the raising
+    # loader so a datastore failure fails CLOSED here (rescue -> false) rather
+    # than reading as an absent tenant — a link then builds on the canonical
+    # host, never on an unverifiable one.
     #
     # @param host [String] a candidate host (already coerced to String)
     # @return [Boolean]
@@ -103,7 +108,8 @@ module Auth
       # (features.domains.default, site.host, link_domains).
       return false if Onetime::Middleware::DomainStrategy.canonical_host?(host)
 
-      !Onetime::CustomDomain.from_display_domain(host).nil?
+      record = Onetime::CustomDomain.from_display_domain(host)
+      !record.nil? && !!record.verified
     rescue StandardError
       # Datastore blip (or any unexpected error): fail closed. The auth link
       # falls back to the canonical host rather than an unverifiable one.

@@ -99,6 +99,9 @@ RSpec.describe 'delivered email links use the public host (#4221)', type: :integ
     org = Onetime::Organization.create!("PublicHost Org #{run_id}", owner, 'contact@test.local')
 
     domain = Onetime::CustomDomain.new(display_domain: host, org_id: org.org_id)
+    # TXT-verified: Auth::PublicHost (finding G-01) only builds email links on
+    # a domain whose ownership is proven; unverified stays on the canonical.
+    domain.verified = true
     domain.save
     Onetime::CustomDomain.display_domain_index.put(host, domain.domainid)
 

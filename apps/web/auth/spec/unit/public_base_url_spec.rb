@@ -11,7 +11,7 @@
 # X-Forwarded-Host (Rack 3.2), so the stock value is BOTH wrong for
 # custom-domain users AND poisonable by an attacker. The override swaps in the
 # host DetectHost resolved for the request — but only when that host names a
-# REGISTERED custom domain (Auth::PublicHost.served_custom_host?) — and
+# TXT-VERIFIED custom domain (Auth::PublicHost.served_custom_host?) — and
 # otherwise falls back to the CANONICAL host, never request.host.
 #
 # Two subjects, because the policy and the wiring fail independently:
@@ -47,8 +47,9 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
   # hold.
   #
   #   - canonical_host?      : which hosts are in the canonical set
-  #   - from_display_domain  : which hosts are REGISTERED custom domains
-  #                            (finding G-01 requires a positive record)
+  #   - from_display_domain  : which hosts are registered custom domains, and
+  #                            whether the record is TXT-verified (finding
+  #                            G-01 requires a positive, VERIFIED record)
   #   - canonical_host /      : the request-independent canonical fallback the
   #     canonical_base_url       overrides use when the resolver declines
   before do
@@ -56,7 +57,11 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
       .to receive(:canonical_host?) { |host| canonical_hosts.include?(host.to_s) }
 
     allow(Onetime::CustomDomain).to receive(:from_display_domain) do |host|
-      registered_custom_hosts.include?(host.to_s) ? Object.new : nil
+      if verified_custom_hosts.include?(host.to_s)
+        double('CustomDomain', verified: true)
+      elsif unverified_custom_hosts.include?(host.to_s)
+        double('CustomDomain', verified: false)
+      end
     end
 
     allow(Auth::PublicHost).to receive(:canonical_host).and_return('onetimesecret.com')
@@ -64,7 +69,8 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
   end
 
   let(:canonical_hosts) { ['onetimesecret.com'] }
-  let(:registered_custom_hosts) { ['secret.asi.nz', 'local-secrets4.afb.pet'] }
+  let(:verified_custom_hosts) { ['secret.asi.nz', 'local-secrets4.afb.pet'] }
+  let(:unverified_custom_hosts) { [] }
 
   # A Rack env in the shape DetectHost + DomainStrategy leave behind.
   #
@@ -99,6 +105,15 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
       # honored — otherwise a genuine service email links to an attacker origin.
       it 'declines a non-canonical host with no registered custom domain' do
         env = env_for(host: 'attacker.evil.example', display_domain: 'attacker.evil.example')
+        expect(described_class.resolve(env)).to be_nil
+      end
+
+      # Registration is not ownership: anyone can create a record for a host
+      # they don't control. Until the TXT challenge verifies, auth links must
+      # stay on the canonical host.
+      it 'declines a registered custom domain that is not TXT-verified' do
+        unverified_custom_hosts << 'pending.tenant.example'
+        env = env_for(host: 'nz.onetime.co', display_domain: 'pending.tenant.example')
         expect(described_class.resolve(env)).to be_nil
       end
 
