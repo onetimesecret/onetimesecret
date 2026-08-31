@@ -18,7 +18,7 @@
 
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { createRouter, createMemoryHistory, Router } from 'vue-router';
+import { createRouter, createMemoryHistory, Router, RouterLink } from 'vue-router';
 import { defineComponent } from 'vue';
 import CheckEmail from '@/apps/session/views/CheckEmail.vue';
 import { CHECK_EMAIL_STATE_KEY } from '@/shared/constants/checkEmail';
@@ -185,7 +185,9 @@ describe('CheckEmail.vue', () => {
       query: { product: 'identity', interval: 'month' },
     });
 
-    const to = wrapper.findComponent('[data-testid="check-email-start-over-link"]').props('to');
+    const to = wrapper
+      .findComponent<typeof RouterLink>('[data-testid="check-email-start-over-link"]')
+      .props('to');
     // Billing context is preserved; the email is deliberately dropped so the
     // corrected address is retyped and no PII returns to a URL.
     expect(to).toEqual({
@@ -197,7 +199,9 @@ describe('CheckEmail.vue', () => {
   it('points "start over" to a bare /signup when there are no billing params', async () => {
     wrapper = await createWrapper({ email: 'tom@myspace.com' });
 
-    const to = wrapper.findComponent('[data-testid="check-email-start-over-link"]').props('to');
+    const to = wrapper
+      .findComponent<typeof RouterLink>('[data-testid="check-email-start-over-link"]')
+      .props('to');
     expect(to).toBe('/signup');
   });
 
@@ -209,7 +213,9 @@ describe('CheckEmail.vue', () => {
       query: { redirect: '/secret/abc?view=raw#content' },
     });
 
-    const to = wrapper.findComponent('[data-testid="check-email-start-over-link"]').props('to');
+    const to = wrapper
+      .findComponent<typeof RouterLink>('[data-testid="check-email-start-over-link"]')
+      .props('to');
     expect(to).toEqual({
       path: '/signup',
       query: { redirect: '/secret/abc?view=raw#content' },
@@ -222,7 +228,9 @@ describe('CheckEmail.vue', () => {
       query: { redirect: '/workspace/domains', product: 'identity', interval: 'month' },
     });
 
-    const to = wrapper.findComponent('[data-testid="check-email-start-over-link"]').props('to');
+    const to = wrapper
+      .findComponent<typeof RouterLink>('[data-testid="check-email-start-over-link"]')
+      .props('to');
     expect(to).toEqual({
       path: '/signup',
       query: { redirect: '/workspace/domains', product: 'identity', interval: 'month' },

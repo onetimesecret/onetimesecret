@@ -29,7 +29,10 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
 }));
 
 import AdminCustomerSessionsSection from '@/apps/admin/components/AdminCustomerSessionsSection.vue';
-import { colonelCustomerSessionsResponseSchema } from '@/schemas/api/internal/responses/colonel-customer-sessions';
+import {
+  colonelCustomerSessionsResponseSchema,
+  type AdminCustomerSession,
+} from '@/schemas/api/internal/responses/colonel-customer-sessions';
 import { createTestI18n } from '@tests/setup';
 
 const i18n = createTestI18n();
@@ -40,7 +43,7 @@ const USER_ID = 'ur_abc123';
 const COUNTRY_HEADER = 'web.admin.customers.detail.sessions.columns.country';
 const UNKNOWN = 'web.admin.customers.detail.sessions.unknown';
 
-function sessionRow(overrides: Record<string, unknown> = {}) {
+function sessionRow(overrides: Partial<AdminCustomerSession> = {}): AdminCustomerSession {
   return {
     session_handle: 'sid_1',
     user_id: USER_ID,
@@ -59,16 +62,20 @@ function sessionRow(overrides: Record<string, unknown> = {}) {
 /**
  * A row from a backend that predates the geo join: the key is ABSENT, not null.
  * `{ geo_country: undefined }` would not exercise the same thing — the property
- * would still exist — so it is deleted outright.
+ * would still exist — so it is deleted outright. `geo_country` is declared
+ * `.optional()` on the schema (see adminCustomerSessionSchema), so deleting it
+ * still yields a valid AdminCustomerSession — no cast needed.
  */
-function sessionRowWithoutCountry(overrides: Record<string, unknown> = {}) {
-  const row = sessionRow(overrides) as Record<string, unknown>;
+function sessionRowWithoutCountry(
+  overrides: Partial<AdminCustomerSession> = {}
+): AdminCustomerSession {
+  const row = sessionRow(overrides);
   delete row.geo_country;
   return row;
 }
 
 function sessionsPayload(
-  rows = [sessionRow(), sessionRow({ session_handle: 'sid_2' })],
+  rows: AdminCustomerSession[] = [sessionRow(), sessionRow({ session_handle: 'sid_2' })],
   currentSessionHandle: string | null = null
 ) {
   return {

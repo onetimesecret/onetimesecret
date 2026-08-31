@@ -58,8 +58,6 @@ describe('V2 Wire → V3 Schema (Forward Compatibility)', () => {
       // Even when nullable timestamps are null, V2 still sends booleans/numbers as strings
       const canonical = createCanonicalReceiptBase({
         shared: null,
-        received: null,
-        viewed: null,
         previewed: null,
         revealed: null,
         burned: null,
@@ -91,12 +89,13 @@ describe('V2 Wire → V3 Schema (Forward Compatibility)', () => {
 
     it('FAILS: V3 boolean fields reject V2 string booleans', () => {
       const canonical = createCanonicalReceiptBase({
-        is_viewed: true,
+        is_previewed: true,
         is_burned: true,
       });
       const v2Wire = createV2WireReceiptBase(canonical);
 
-      // V2 sends booleans as strings ("true"/"false")
+      // V2 sends booleans as strings ("true"/"false"), including the
+      // deprecated is_viewed alias mirrored from is_previewed.
       expect(typeof v2Wire.is_viewed).toBe('string');
       expect(typeof v2Wire.is_burned).toBe('string');
 
@@ -106,7 +105,7 @@ describe('V2 Wire → V3 Schema (Forward Compatibility)', () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         const boolError = result.error.issues.find(
-          (i) => i.path.includes('is_viewed') || i.path.includes('is_burned')
+          (i) => i.path.includes('is_previewed') || i.path.includes('is_burned')
         );
         expect(boolError).toBeDefined();
       }
@@ -176,12 +175,13 @@ describe('V3 Wire → V2 Schema (Backward Compatibility)', () => {
     it('SUCCEEDS: V2 transforms.fromString.boolean handles native booleans', () => {
       // V2's parseBoolean function handles both strings AND booleans
       const canonical = createCanonicalReceiptBase({
-        is_viewed: true,
+        is_previewed: true,
         is_burned: false,
       });
       const v3Wire = createV3WireReceiptBase(canonical);
 
-      expect(typeof v3Wire.is_viewed).toBe('boolean');
+      // V3 drops the deprecated is_viewed alias entirely — only is_previewed exists.
+      expect(typeof v3Wire.is_previewed).toBe('boolean');
       expect(typeof v3Wire.is_burned).toBe('boolean');
 
       const result = v2ReceiptBaseSchema.safeParse(v3Wire);
@@ -267,7 +267,7 @@ describe('Edge Case Compatibility', () => {
     it('V2 and V3 both handle null timestamps identically', () => {
       const canonical = createCanonicalReceiptBase({
         shared: null,
-        received: null,
+        revealed: null,
       });
 
       const v2Wire = createV2WireReceiptBase(canonical);
@@ -287,8 +287,11 @@ describe('Edge Case Compatibility', () => {
       const v2Wire = createV2WireReceiptBase(canonical);
       const v3Wire = createV3WireReceiptBase(canonical);
 
+      // V3 drops custid from the wire entirely (2026-07-29 API audit, item 5;
+      // see shapes/v3/receipt.ts v3DroppedFields) — only V2 still carries it.
       expect(v2Wire.custid).toBeUndefined();
-      expect(v3Wire.custid).toBeUndefined();
+      expect(v2Wire.memo).toBeUndefined();
+      expect(v3Wire.memo).toBeUndefined();
     });
   });
 

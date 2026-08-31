@@ -59,6 +59,7 @@ vi.mock('@headlessui/vue', () => ({
 }));
 
 import AdminSessions from '@/apps/admin/views/AdminSessions.vue';
+import type { ColonelSession } from '@/schemas/api/internal/responses/colonel-sessions';
 import { createTestI18n } from '@tests/setup';
 
 const i18n = createTestI18n();
@@ -70,7 +71,7 @@ const SID = 'sid_auth_1';
 const COUNTRY_HEADER = 'web.admin.sessions.columns.country';
 const UNKNOWN = 'web.admin.sessions.detail.unknown';
 
-function sessionsPayload(rows = [sessionRow()]) {
+function sessionsPayload(rows: ColonelSession[] = [sessionRow()]) {
   return {
     shrimp: '',
     record: {},
@@ -82,7 +83,7 @@ function sessionsPayload(rows = [sessionRow()]) {
   };
 }
 
-function sessionRow(overrides: Record<string, unknown> = {}) {
+function sessionRow(overrides: Partial<ColonelSession> = {}): ColonelSession {
   return {
     session_id: SID,
     key: `session:${SID}`,
@@ -101,10 +102,12 @@ function sessionRow(overrides: Record<string, unknown> = {}) {
 /**
  * A row from a backend that predates the geo join: the key is ABSENT, not null.
  * `{ geo_country: undefined }` would not exercise the same thing — the property
- * would still exist — so it is deleted outright.
+ * would still exist — so it is deleted outright. `geo_country` is declared
+ * `.optional()` on the schema (see colonelSessionSchema), so deleting it still
+ * yields a valid ColonelSession — no cast needed.
  */
-function sessionRowWithoutCountry(overrides: Record<string, unknown> = {}) {
-  const row = sessionRow(overrides) as Record<string, unknown>;
+function sessionRowWithoutCountry(overrides: Partial<ColonelSession> = {}): ColonelSession {
+  const row = sessionRow(overrides);
   delete row.geo_country;
   return row;
 }

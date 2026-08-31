@@ -1,6 +1,6 @@
 // src/tests/fixtures/domains.fixture.ts
 
-import type { CustomDomain } from '@/schemas/shapes/v2';
+import type { CustomDomain } from '@/schemas/shapes/v3';
 
 const BASE_DOMAIN = {
   domainid: '',
@@ -11,6 +11,9 @@ const BASE_DOMAIN = {
   is_apex: false,
   verified: false,
   resolving: false,
+  // V3 schema default (customDomainSchema.status) — matches the wire shape
+  // these fixtures otherwise represent (see mockDomainsRaw comment below).
+  status: 'pending',
 } as const;
 
 const BRAND_DOMAIN1 = {
@@ -71,7 +74,17 @@ export const mockDomainsRaw: Record<string, Record<string, unknown>> = {
 };
 
 // Transformed format (after V3 Zod parse) — used for assertions
-export const mockDomains: Record<string, CustomDomain> = {
+//
+// `satisfies` (not `: Record<string, CustomDomain>`) validates every entry
+// against the real V3 shape — catching missing/renamed fields — while
+// keeping the inferred type as narrow literals rather than widening to V3's
+// CustomDomain (whose `brand` fields are nullable). useDomainsManager.spec.ts
+// (src/tests/types.d.ts) still types its store mock against the older V2
+// CustomDomain, whose BrandSettings fields are non-nullable-optional; a
+// direct V3 annotation here would make `brand.primary_color` etc.
+// `string | null | undefined`, which V2's `string | undefined` rejects. The
+// narrow literal inference stays assignable to both.
+export const mockDomains = {
   'domain-1': {
     ...BASE_DOMAIN,
     domainid: 'domain-1',
@@ -105,7 +118,7 @@ export const mockDomains: Record<string, CustomDomain> = {
     brand: { ...BRAND_DOMAIN2 },
     vhost: {},
   },
-};
+} satisfies Record<string, CustomDomain>;
 
 export const newDomainDataRaw = {
   ...BASE_DOMAIN,
@@ -123,7 +136,9 @@ export const newDomainDataRaw = {
   vhost: {},
 };
 
-export const newDomainData: CustomDomain = {
+// See the `mockDomains` comment above re: `satisfies` vs a direct type
+// annotation — same V2/V3 BrandSettings nullability conflict applies here.
+export const newDomainData = {
   ...BASE_DOMAIN,
   domainid: 'domain-3',
   extid: 'dm-ext-3',
@@ -137,4 +152,4 @@ export const newDomainData: CustomDomain = {
   updated: new Date(1704240000 * 1000),
   brand: { ...BRAND_DOMAIN2 },
   vhost: {},
-};
+} satisfies CustomDomain;
