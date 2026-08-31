@@ -25,20 +25,30 @@ module Onetime
     # authority the edge actually received — never a client-supplied one —
     # regardless of the operator's proxy configuration.
     #
-    # ## Ordering — AFTER Rack::DetectHost, before anything reads request.host
+    # ## Ordering — AFTER DetectHost AND AdminNetworkIsolation, before
+    # ## anything reads request.host
     #
-    # DetectHost has its OWN trust logic: it honors a forwarded host ONLY from
-    # trusted infrastructure and publishes the result into
-    # env[Rack::DetectHost.result_field_name] (which DomainStrategy then
-    # classifies). That legitimate resolution — the whole custom-domain-behind-
-    # a-proxy topology — MUST keep working, so this middleware runs immediately
-    # AFTER DetectHost, once it has already consumed the headers. Nothing
-    # between DetectHost and here reads `Rack::Request#host` (Admin isolation,
-    # HttpOrigin and friends read the resolved env keys, not the raw
+    # Two upstream middlewares legitimately consume these headers, so both
+    # must run first:
+    #
+    #   - Rack::DetectHost has its OWN trust logic: it honors a forwarded host
+    #     ONLY from trusted infrastructure and publishes the result into
+    #     env[Rack::DetectHost.result_field_name] (which DomainStrategy then
+    #     classifies). That legitimate resolution — the whole custom-domain-
+    #     behind-a-proxy topology — MUST keep working.
+    #   - Onetime::Middleware::AdminNetworkIsolation's forwarded-host
+    #     PROVENANCE rule (host_provenance_trusted?) keys on the PRESENCE of
+    #     these headers: "no forwarded header present" is its rule (b) for
+    #     accepting a detected host. Stripping before it destroys the evidence
+    #     that a detected host was forwarded by an untrusted peer, and the
+    #     admin gate would admit exactly the spoof it exists to deny.
+    #
+    # Nothing between DetectHost and here reads `Rack::Request#host` (the
+    # middlewares in between read the resolved env keys, not the raw
     # authority), and the mounted apps run later still, so by the time any
     # `request.host` read happens the forwarded headers are gone. DetectHost's
-    # trust logic is left entirely intact — this only deletes what it has
-    # already used.
+    # and the admin gate's logic are left entirely intact — this only deletes
+    # what they have already used.
     class StripForwardedHost
       # The two Rack env keys `Rack::Request#forwarded_authority` consults.
       FORWARDED_HOST_KEYS = %w[HTTP_X_FORWARDED_HOST HTTP_FORWARDED].freeze
