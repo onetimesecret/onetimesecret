@@ -298,7 +298,7 @@ plans:
       - interval: year
         amount: 9000  # $90.00
 
-  # # Team Plan - Uncomment to enable team subscriptions
+  # # Team Plus - Uncomment to enable team subscriptions
   # team_plus_v1:
   #   name: "Team Plus (<%= ENV['JURISDICTION'] || nil %>)"
   #   tier: single_team

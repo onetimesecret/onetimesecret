@@ -186,7 +186,7 @@ test.describe('Domain Context - Consultant Workflow', () => {
     const secretInput = page.locator('textarea[aria-labelledby="secretContentLabel"]');
     await secretInput.fill('Test secret for domain context E2E test');
 
-    const createButton = page.locator('button:has-text("Create Link")');
+    const createButton = page.locator('button:has-text("Create link")');
     await createButton.click();
 
     // Should navigate to receipt page

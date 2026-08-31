@@ -12,28 +12,28 @@
     "content_hash": "a99b7a98"
   },
   "web.billing.upgrade.required": {
-    "text": "Upgrade Required",
-    "content_hash": "16487236"
+    "text": "Upgrade required",
+    "content_hash": "838a00ae"
   },
   "web.billing.upgrade.viewPlans": {
-    "text": "View Plans",
-    "content_hash": "a865d424"
+    "text": "View plans",
+    "content_hash": "a72e2bd3"
   },
   "web.billing.upgrade.needTeams": {
-    "text": "Team management requires Identity Plus or higher",
-    "content_hash": "95bdda65"
+    "text": "Team management requires Team Plus or higher",
+    "content_hash": "b597c3ef"
   },
   "web.billing.upgrade.needCustomDomains": {
-    "text": "Custom domains require Identity Plus or higher",
-    "content_hash": "e8af8484"
+    "text": "Additional custom domains require Identity Plus or higher",
+    "content_hash": "ff5823ad"
   },
   "web.billing.upgrade.needApiAccess": {
-    "text": "API access requires Identity Plus or higher",
-    "content_hash": "ab8be865"
+    "text": "Full API access requires a signed-in account",
+    "content_hash": "dd49d9d5"
   },
   "web.billing.upgrade.needAuditLogs": {
-    "text": "Audit logs require Multi-Team plan or higher",
-    "content_hash": "91df96b0"
+    "text": "Audit logs require Team Plus or higher",
+    "content_hash": "2a00c0a0"
   },
   "web.billing.manage_subscription_and_billing": {
     "text": "Manage your subscription, organizations, and billing settings",
@@ -68,16 +68,16 @@
     "content_hash": "3d1df54e"
   },
   "web.billing.overview.quick_actions": {
-    "text": "Quick Actions",
-    "content_hash": "2cc2b6f7"
+    "text": "Quick actions",
+    "content_hash": "1810407f"
   },
   "web.billing.overview.manage_billing": {
-    "text": "Manage Billing",
-    "content_hash": "6d3a16f5"
+    "text": "Manage billing",
+    "content_hash": "7ea27c63"
   },
   "web.billing.overview.view_invoices": {
-    "text": "View Invoices",
-    "content_hash": "cfc0404e"
+    "text": "View invoices",
+    "content_hash": "ab4af058"
   },
   "web.billing.overview.upgrade_plan": {
     "text": "Upgrade Plan",
@@ -120,24 +120,24 @@
     "content_hash": "40dcb7cf"
   },
   "web.billing.overview.view_plans_action": {
-    "text": "View Plans",
-    "content_hash": "a865d424"
+    "text": "View plans",
+    "content_hash": "a72e2bd3"
   },
   "web.billing.overview.view_plans_description": {
     "text": "Compare and upgrade",
     "content_hash": "40e02bff"
   },
   "web.billing.overview.view_invoices_action": {
-    "text": "View Invoices",
-    "content_hash": "cfc0404e"
+    "text": "View invoices",
+    "content_hash": "ab4af058"
   },
   "web.billing.overview.view_invoices_description": {
     "text": "Download history",
     "content_hash": "b8ff5cac"
   },
   "web.billing.overview.manage_billing_action": {
-    "text": "Manage Billing",
-    "content_hash": "6d3a16f5"
+    "text": "Manage billing",
+    "content_hash": "7ea27c63"
   },
   "web.billing.overview.manage_billing_description": {
     "text": "Update payment info",
@@ -613,8 +613,8 @@
     "content_hash": "7f16be70"
   },
   "web.billing.invoices.view_plans": {
-    "text": "View Plans",
-    "content_hash": "a865d424"
+    "text": "View plans",
+    "content_hash": "a72e2bd3"
   },
   "web.billing.invoices.paid": {
     "text": "Paid",
@@ -880,9 +880,9 @@
     "content_hash": "c94d5527"
   },
   "web.billing.cancel.reactivate_button": {
-    "text": "Reactivate Subscription",
+    "text": "Reactivate subscription",
     "context": "Button in cancellation banner to undo scheduled cancellation",
-    "content_hash": "aa036442"
+    "content_hash": "dccb8ea3"
   },
   "web.billing.cancel.reactivate_success": {
     "text": "Your subscription has been reactivated. You will continue to be billed as normal.",

@@ -12,8 +12,8 @@
     "content_hash": "afd25fdf"
   },
   "web.login.button_sign_in": {
-    "text": "Sign In",
-    "content_hash": "bcc0bcc9"
+    "text": "Sign in",
+    "content_hash": "bfd402b2"
   },
   "web.login.enter_your_credentials": {
     "text": "Enter your credentials",
@@ -269,8 +269,8 @@
     "content_hash": "e0df48bb"
   },
   "web.auth.verify.resend_button": {
-    "text": "Resend Verification Email",
-    "content_hash": "5173cc04"
+    "text": "Resend verification email",
+    "content_hash": "900852de"
   },
   "web.auth.verify.resend_sent": {
     "text": "If an account needs verification, a new email has been sent. Please check your inbox and spam folder.",
@@ -358,8 +358,8 @@
     "content_hash": "0aec03a6"
   },
   "web.auth.close_account.button": {
-    "text": "Permanently Close Account",
-    "content_hash": "0713c012"
+    "text": "Permanently close account",
+    "content_hash": "8c35ac2c"
   },
   "web.auth.close_account.cancel": {
     "text": "Cancel",
@@ -374,8 +374,8 @@
     "content_hash": "31c5f80f"
   },
   "web.auth.password_reset_request.button": {
-    "text": "Send Reset Link",
-    "content_hash": "7d5f16d4"
+    "text": "Send reset link",
+    "content_hash": "708c5d67"
   },
   "web.auth.password_setup_request.title": {
     "text": "Set a Password",
@@ -388,9 +388,9 @@
     "content_hash": "dc0b561f"
   },
   "web.auth.password_setup_request.button": {
-    "text": "Send Setup Link",
+    "text": "Send setup link",
     "context": "Submit button that emails the set-password link to a passwordless account",
-    "content_hash": "22807292"
+    "content_hash": "b8f2d545"
   },
   "web.auth.password_setup_request.emailSent": {
     "text": "An email has been sent to you with a link to set a password for your account",
@@ -474,8 +474,8 @@
     "content_hash": "7de8d92a"
   },
   "web.auth.account.quick_actions": {
-    "text": "Quick Actions",
-    "content_hash": "2cc2b6f7"
+    "text": "Quick actions",
+    "content_hash": "1810407f"
   },
   "web.auth.account.manage_mfa": {
     "text": "Manage Two-Factor Authentication",

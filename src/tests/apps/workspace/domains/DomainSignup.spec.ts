@@ -183,7 +183,7 @@ const i18n = createI18n({
         },
         billing: {
           overview: {
-            view_plans_action: 'View Plans',
+            view_plans_action: 'View plans',
           },
         },
         branding: {

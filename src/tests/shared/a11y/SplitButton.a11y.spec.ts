@@ -27,7 +27,7 @@ vi.mock('vue-i18n', () => ({
   useI18n: vi.fn(() => ({
     t: vi.fn((key: string) => {
       const translations: Record<string, string> = {
-        'web.LABELS.create_link_short': 'Create Link',
+        'web.LABELS.create_link_short': 'Create link',
         'web.COMMON.button_generate_secret_short': 'Generate',
       };
       return translations[key] || key;

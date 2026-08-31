@@ -365,7 +365,7 @@ test.describe('Opaque Identifier Pattern - URL Security', () => {
       await expect(page.locator('html[data-app-ready="true"]')).toBeAttached();
 
       const secretInput = page.locator('textarea[aria-label*="secret content"]');
-      const createButton = page.locator('button:has-text("Create Link")');
+      const createButton = page.locator('button:has-text("Create link")');
 
       if (await secretInput.isVisible()) {
         await secretInput.fill('Test secret for identifier pattern validation');

@@ -23,18 +23,6 @@
     "text": "Chiudi avviso troncamento",
     "source_hash": "79e02fe6"
   },
-  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
-    "text": "Oops! La pagina che stai cercando non esiste o è stata spostata",
-    "source_hash": "78207a09"
-  },
-  "web.errors.404_page_not_found_0": {
-    "text": "404 - Pagina non trovata",
-    "source_hash": "27595daa"
-  },
-  "web.errors.404_page_not_found": {
-    "text": "404 - Pagina non trovata",
-    "source_hash": "27595daa"
-  },
   "web.errors.dismiss_warning": {
     "text": "Chiudi avviso",
     "source_hash": "9f6e4da3"

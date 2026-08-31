@@ -23,18 +23,6 @@
     "text": "Afkapwaarschuwing sluiten",
     "source_hash": "79e02fe6"
   },
-  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
-    "text": "Oeps! De pagina die je zoekt bestaat niet of is verplaatst.",
-    "source_hash": "78207a09"
-  },
-  "web.errors.404_page_not_found_0": {
-    "text": "404 - Pagina niet gevonden",
-    "source_hash": "27595daa"
-  },
-  "web.errors.404_page_not_found": {
-    "text": "404 - Pagina niet gevonden",
-    "source_hash": "27595daa"
-  },
   "web.errors.dismiss_warning": {
     "text": "Waarschuwing sluiten",
     "source_hash": "9f6e4da3"

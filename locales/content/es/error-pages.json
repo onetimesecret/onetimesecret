@@ -23,18 +23,6 @@
     "text": "Descartar advertencia de truncamiento",
     "source_hash": "79e02fe6"
   },
-  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
-    "text": "¡Ups! La página que buscas no existe o ha sido movida.",
-    "source_hash": "78207a09"
-  },
-  "web.errors.404_page_not_found_0": {
-    "text": "404 - Página no encontrada",
-    "source_hash": "27595daa"
-  },
-  "web.errors.404_page_not_found": {
-    "text": "404 - Página no encontrada",
-    "source_hash": "27595daa"
-  },
   "web.errors.dismiss_warning": {
     "text": "Descartar advertencia",
     "source_hash": "9f6e4da3"

@@ -185,7 +185,7 @@ test.describe('E2E Integration - Production Build Validation', () => {
 
     // Look for secret creation form using more specific selectors
     const secretInput = page.locator('textarea[aria-label*="secret content"]');
-    const createButton = page.locator('button:has-text("Create Link")');
+    const createButton = page.locator('button:has-text("Create link")');
 
     if (await secretInput.isVisible()) {
       await secretInput.fill('Test secret for E2E integration');

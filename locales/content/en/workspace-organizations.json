@@ -162,8 +162,8 @@
     "content_hash": "896913f0"
   },
   "web.organizations.save_changes": {
-    "text": "Save Changes",
-    "content_hash": "35322b5b"
+    "text": "Save changes",
+    "content_hash": "dd0ae7a5"
   },
   "web.organizations.update_success": {
     "text": "Organization updated successfully",
@@ -979,16 +979,16 @@
     "content_hash": "4a960fe4"
   },
   "web.organizations.sso.test_connection": {
-    "text": "Test Connection",
-    "content_hash": "c02977b0"
+    "text": "Test connection",
+    "content_hash": "5bcf311b"
   },
   "web.organizations.sso.test_connection_hint": {
     "text": "Verify the identity provider is reachable (does not validate credentials)",
     "content_hash": "22a23b68"
   },
   "web.organizations.sso.test_button": {
-    "text": "Test Connection",
-    "content_hash": "c02977b0"
+    "text": "Test connection",
+    "content_hash": "5bcf311b"
   },
   "web.organizations.sso.testing": {
     "text": "Testing...",

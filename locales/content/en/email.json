@@ -65,9 +65,9 @@
     "content_hash": "e373dcee"
   },
   "email.welcome.verify_button": {
-    "text": "Verify Email Address",
+    "text": "Verify email address",
     "renderer": "erb",
-    "content_hash": "d261b9df"
+    "content_hash": "93d8e8ea"
   },
   "email.welcome.copy_link_prompt": {
     "text": "Or copy and paste this link:",
@@ -100,9 +100,9 @@
     "content_hash": "4ad3b5cd"
   },
   "email.password_request.reset_button": {
-    "text": "Reset Password",
+    "text": "Reset password",
     "renderer": "erb",
-    "content_hash": "4e70f1fd"
+    "content_hash": "e0edfeb3"
   },
   "email.password_request.copy_link_prompt": {
     "text": "Or copy and paste this link:",
@@ -140,9 +140,9 @@
     "content_hash": "3a34aa1f"
   },
   "email.magic_link.login_button": {
-    "text": "Sign In",
+    "text": "Sign in",
     "renderer": "erb",
-    "content_hash": "bcc0bcc9"
+    "content_hash": "bfd402b2"
   },
   "email.magic_link.copy_link_prompt": {
     "text": "Or copy and paste this link:",
@@ -425,9 +425,9 @@
     "content_hash": "e4d3fb65"
   },
   "email.organization_invitation.accept_button": {
-    "text": "Accept Invitation",
+    "text": "Accept invitation",
     "renderer": "erb",
-    "content_hash": "ce7cfeaf"
+    "content_hash": "7e17aadc"
   },
   "email.organization_invitation.link_instruction": {
     "text": "Or copy and paste this link:",
@@ -610,9 +610,9 @@
     "content_hash": "4df742ab"
   },
   "email.email_change_confirmation.verify_button": {
-    "text": "Verify Email Address",
+    "text": "Verify email address",
     "renderer": "erb",
-    "content_hash": "d261b9df"
+    "content_hash": "93d8e8ea"
   },
   "email.email_change_confirmation.request_notice": {
     "text": "A request was made to change the email address on your %{product_name} account to %{new_email}.",
@@ -620,9 +620,9 @@
     "content_hash": "33277e1b"
   },
   "email.email_change_confirmation.confirm_button": {
-    "text": "Confirm Email Change",
+    "text": "Confirm email change",
     "renderer": "erb",
-    "content_hash": "c2736949"
+    "content_hash": "d0adfaf9"
   },
   "email.email_change_confirmation.copy_link_prompt": {
     "text": "Or copy and paste this link:",
@@ -725,9 +725,9 @@
     "content_hash": "bbdffe25"
   },
   "email.new_login_alert.ip_address_label": {
-    "text": "IP Address:",
+    "text": "IP address:",
     "renderer": "erb",
-    "content_hash": "a2cb73e4"
+    "content_hash": "a3c71867"
   },
   "email.new_login_alert.not_you_notice": {
     "text": "If this wasn't you, your account may be compromised.",
@@ -735,9 +735,9 @@
     "content_hash": "e2f819c9"
   },
   "email.new_login_alert.secure_account_button": {
-    "text": "Secure Your Account",
+    "text": "Secure your account",
     "renderer": "erb",
-    "content_hash": "450c54c5"
+    "content_hash": "193a9869"
   },
   "email.new_login_alert.signature": {
     "text": "Support Team",
@@ -820,9 +820,9 @@
     "content_hash": "17fc32dd"
   },
   "email.trial_expiring.upgrade_button": {
-    "text": "Upgrade Now",
+    "text": "Upgrade now",
     "renderer": "erb",
-    "content_hash": "66a1419e"
+    "content_hash": "2c414ee5"
   },
   "email.trial_expiring.signature": {
     "text": "Support Team",
