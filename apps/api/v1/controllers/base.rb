@@ -4,12 +4,14 @@
 
 require 'digest'
 
+require 'onetime/security/conceal_secret_rate_limiter'
 require_relative 'helpers'
 
 module V1
 
   module ControllerBase
     include V1::ControllerHelpers
+    include Onetime::Security::ConcealSecretRateLimiter
 
     attr_reader :req, :res
     attr_reader :cust, :locale, :sess
@@ -191,6 +193,27 @@ module V1
       end
 
       nil
+    end
+
+    # Registry-managed cap on ANONYMOUS secret creation (finding F-02), the
+    # secret-creation counterpart of the legacy per-IP counter above. This one is
+    # the `create_secret` kind in the ratelimit Registry — shared with the V2/V3
+    # logic-layer enforcement and clearable via `bin/ots ratelimit` — and is
+    # keyed on the edge-masked env['otto.client_ip'] so its keyspace matches the
+    # V2 call site exactly. Charged only to guests: an authenticated caller is
+    # accountable and is the legitimate high-volume creator.
+    #
+    # Returns :limited (and renders the error) when the tier is over its cap, nil
+    # otherwise, mirroring #check_rate_limit! so the call sites keep V1's
+    # return-based idiom rather than raising into #carefully's catch-all.
+    def enforce_create_secret_limit!
+      return unless cust.nil? || cust.anonymous?
+
+      enforce_conceal_secret_rate_limit!(req.env['otto.client_ip'])
+      nil
+    rescue Onetime::LimitExceeded => ex
+      error_response ex.message
+      :limited
     end
 
     def secret_not_found_response
