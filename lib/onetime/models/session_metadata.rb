@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'openssl'
+
 module Onetime
   # SessionMetadata — a per-session, non-sensitive sidecar record that backs the
   # colonel's PER-CUSTOMER session view (spec docs/specs/colonel-ui/40-*).
@@ -37,6 +39,14 @@ module Onetime
   # filtering — is the feature's core security guarantee. Adding a field here is a
   # deliberate act of exposing it; do not add anything sensitive.
   #
+  # The raw session_id is a BEARER value — byte-identical to the `onetime.session`
+  # cookie and the `session:<sid>` blob key name (see "Keying" above) — so it is
+  # deliberately kept OUT of the allow-list (finding F-01): emitting it would hand
+  # a privileged operator a replayable session cookie for any user, i.e. silent
+  # impersonation past MFA. The colonel view instead identifies a session by
+  # #session_handle, a non-reversible keyed digest of the sid that round-trips to
+  # revoke but can never be replayed as a credential.
+  #
   # ## Population + lifetime
   #
   # Written best-effort from Onetime::Operations::Sessions::TrackMetadata, called
@@ -66,7 +76,9 @@ module Onetime
     # session's sidecar never expires out from under it.
     default_expiration 2_592_000
 
-    field :session_id       # plain sid; also the identifier and the blob key name
+    field :session_id       # plain sid; also the identifier and the blob key name.
+                            # BEARER value — kept OUT of safe_dump (F-01); the
+                            # colonel view exposes #session_handle instead.
     field :org_id           # active ORGANIZATION objid, resolved per write via OrganizationLoader (see TrackMetadata#active_org_id)
     field :user_id          # customer EXTERNAL id (extid, 'ur...'), matching colonel identity everywhere
     field :created_at       # epoch seconds, set once on first observation
@@ -131,11 +143,55 @@ module Onetime
     end
     prepend GeoCountryNormalization
 
+    # Length (hex chars) of the truncated session handle — 128 bits, matching
+    # Onetime::Utils::EmailHash's precedent for a truncated keyed digest. Ample
+    # collision resistance for identifying one customer's handful of sessions.
+    HANDLE_LENGTH = 32
+
+    # Domain-separation label so this digest can never be confused with any other
+    # keyed digest of the same sid computed elsewhere in the app.
+    HANDLE_DOMAIN = 'session_metadata.handle.v1'
+
+    # Non-reversible, colonel-facing identifier for a session — the value the
+    # per-customer session view renders and the revoke endpoint accepts, in place
+    # of the raw (bearer) session_id (finding F-01).
+    #
+    # It is a truncated HMAC-SHA256 of the plain sid, keyed with the application
+    # global secret (the same root Onetime::Security::RequestContext and the
+    # IncomingConfig recipient hashing key off). Deterministic — the same sid
+    # always yields the same handle — so the revoke path can recover the target
+    # sid by matching this over the OWNING customer's active_sessions set, yet the
+    # sid itself cannot be recovered from the handle and the handle can never be
+    # replayed as a session cookie.
+    #
+    # @param session_id [String, nil]
+    # @return [String, nil] 32-char hex handle, or nil for a blank sid.
+    def self.handle_for(session_id)
+      sid = session_id.to_s
+      return nil if sid.empty?
+
+      digest = OpenSSL::Digest.new('sha256')
+      OpenSSL::HMAC.hexdigest(digest, OT.global_secret.to_s, "#{HANDLE_DOMAIN}:#{sid}")[0, HANDLE_LENGTH]
+    end
+
+    # Instance reader used by the safe_dump allow-list below. A plain derived
+    # method (not a stored field), so Familia's default field lambda resolves it
+    # via `send(:session_handle)` exactly like any getter — emitting the handle,
+    # never the raw sid.
+    #
+    # @return [String, nil]
+    def session_handle
+      self.class.handle_for(session_id)
+    end
+
     # POSITIVE allow-list — the security boundary. No token, no payload, no email.
+    # session_id (the raw bearer sid) is REPLACED by session_handle, a
+    # non-reversible digest (F-01): the colonel view can identify and revoke a
+    # session by the handle without ever receiving a replayable cookie value.
     # active_session_id_hmac is omitted on purpose: it is an internal join key,
     # not something the colonel view renders.
     safe_dump_fields(
-      :session_id,
+      :session_handle,
       :user_id,
       :org_id,
       :created_at,

@@ -33,7 +33,7 @@
   const notifications = useNotificationsStore();
 
   const store = useAdminCustomerSessions();
-  const { sessions, currentSessionId, loading, error, validationError } = storeToRefs(store);
+  const { sessions, currentSessionHandle, loading, error, validationError } = storeToRefs(store);
 
   const loadFailed = computed(
     () => error.value !== null || validationError.value !== null
@@ -45,8 +45,8 @@
    * the row is badged and its per-row revoke is disabled instead of silently
    * doing nothing.
    */
-  function isCurrentSession(sessionId: string): boolean {
-    return currentSessionId.value !== null && sessionId === currentSessionId.value;
+  function isCurrentSession(sessionHandle: string): boolean {
+    return currentSessionHandle.value !== null && sessionHandle === currentSessionHandle.value;
   }
 
   const columns = computed<DataTableColumn<AdminCustomerSession>[]>(() => [
@@ -84,7 +84,7 @@
   // ---- Guarded revoke -------------------------------------------------------
 
   const revokeDialogOpen = ref(false);
-  /** The session id the confirm dialog is gating (request target). */
+  /** The session handle the confirm dialog is gating (request target). */
   const revokeTarget = ref('');
 
   const {
@@ -99,8 +99,8 @@
     await store.revoke(props.userId, revokeTarget.value);
   });
 
-  function requestRevoke(sessionId: string): void {
-    revokeTarget.value = sessionId;
+  function requestRevoke(sessionHandle: string): void {
+    revokeTarget.value = sessionHandle;
     resetRevoke();
     revokeDialogOpen.value = true;
   }
@@ -222,7 +222,7 @@
       v-else
       :columns="columns"
       :rows="sessions"
-      row-key="session_id"
+      row-key="session_handle"
       :loading="loading"
       :empty-text="t('web.admin.customers.detail.sessions.empty')"
       testid="sessions-section-table">
@@ -249,8 +249,8 @@
       <template #cell-actions="{ row }">
         <!-- The colonel's own session: badge it and disable the (no-op) self-revoke. -->
         <span
-          v-if="isCurrentSession(row.session_id)"
-          :data-testid="`session-current-${row.session_id}`"
+          v-if="isCurrentSession(row.session_handle)"
+          :data-testid="`session-current-${row.session_handle}`"
           class="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
           :title="t('web.admin.customers.detail.sessions.current.tooltip')">
           <OIcon
@@ -262,9 +262,9 @@
         <button
           v-else
           type="button"
-          :data-testid="`session-revoke-${row.session_id}`"
+          :data-testid="`session-revoke-${row.session_handle}`"
           class="text-sm font-medium text-red-600 hover:text-red-800 focus:ring-2 focus:ring-red-500 focus:outline-none dark:text-red-400 dark:hover:text-red-300"
-          @click="requestRevoke(row.session_id)">
+          @click="requestRevoke(row.session_handle)">
           {{ t('web.admin.customers.detail.sessions.revoke.button') }}
         </button>
       </template>

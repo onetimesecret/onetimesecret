@@ -19,7 +19,7 @@ const USER_ID = 'ur_abc123';
 
 function sessionRow(overrides: Record<string, unknown> = {}) {
   return {
-    session_id: 'sid_1',
+    session_handle: 'sid_1',
     user_id: USER_ID,
     org_id: null,
     created_at: 1700000000,
@@ -33,20 +33,20 @@ function sessionRow(overrides: Record<string, unknown> = {}) {
 }
 
 function sessionsPayload(
-  rows = [sessionRow(), sessionRow({ session_id: 'sid_2' })],
-  currentSessionId: string | null = null
+  rows = [sessionRow(), sessionRow({ session_handle: 'sid_2' })],
+  currentSessionHandle: string | null = null
 ) {
   return {
     shrimp: '',
     record: {},
-    details: { sessions: rows, count: rows.length, current_session_id: currentSessionId },
+    details: { sessions: rows, count: rows.length, current_session_handle: currentSessionHandle },
   };
 }
 
 function revokePayload(sessionId = 'sid_1') {
   return {
     shrimp: '',
-    record: { session_id: sessionId, revoked: true },
+    record: { session_handle: sessionId, revoked: true },
     details: { message: 'Session revoked.' },
   };
 }
@@ -89,51 +89,51 @@ describe('useAdminCustomerSessions', () => {
     // 404s in prod but passes a naive mock. Assert it.
     expect(mockApi.get).toHaveBeenCalledWith('/api/colonel/users/ur_abc123/sessions');
     expect(store.sessions).toHaveLength(2);
-    expect(store.sessions[0].session_id).toBe('sid_1');
+    expect(store.sessions[0].session_handle).toBe('sid_1');
     expect(store.sessions[0].ip_address).toBe('203.0.113.7');
     expect(store.validationError).toBeNull();
   });
 
-  it('exposes details.current_session_id (the colonel viewing their own detail)', async () => {
+  it('exposes details.current_session_handle (the colonel viewing their own detail)', async () => {
     mockApi.get.mockResolvedValue({ data: sessionsPayload(undefined, 'sid_2') });
     const store = useAdminCustomerSessions();
 
     await store.fetchForCustomer(USER_ID);
 
-    expect(store.currentSessionId).toBe('sid_2');
+    expect(store.currentSessionHandle).toBe('sid_2');
   });
 
-  it('defaults currentSessionId to null when the field is absent', async () => {
+  it('defaults currentSessionHandle to null when the field is absent', async () => {
     // Genuinely omit the key — the schema is `.nullable().optional()`, so
     // "key missing" and "key: null" are distinct inputs. This covers missing.
     const payload = sessionsPayload();
-    delete (payload.details as Record<string, unknown>).current_session_id;
+    delete (payload.details as Record<string, unknown>).current_session_handle;
     mockApi.get.mockResolvedValue({ data: payload });
     const store = useAdminCustomerSessions();
 
     await store.fetchForCustomer(USER_ID);
 
-    expect(store.currentSessionId).toBeNull();
+    expect(store.currentSessionHandle).toBeNull();
   });
 
-  it('keeps currentSessionId null when the field is explicitly null', async () => {
+  it('keeps currentSessionHandle null when the field is explicitly null', async () => {
     mockApi.get.mockResolvedValue({ data: sessionsPayload(undefined, null) });
     const store = useAdminCustomerSessions();
 
     await store.fetchForCustomer(USER_ID);
 
-    expect(store.currentSessionId).toBeNull();
+    expect(store.currentSessionHandle).toBeNull();
   });
 
-  it('clears currentSessionId on a network failure', async () => {
+  it('clears currentSessionHandle on a network failure', async () => {
     mockApi.get.mockResolvedValueOnce({ data: sessionsPayload(undefined, 'sid_2') });
     const store = useAdminCustomerSessions();
     await store.fetchForCustomer(USER_ID);
-    expect(store.currentSessionId).toBe('sid_2');
+    expect(store.currentSessionHandle).toBe('sid_2');
 
     mockApi.get.mockRejectedValueOnce(new Error('Network Error'));
     await expect(store.fetchForCustomer(USER_ID)).rejects.toThrow('Network Error');
-    expect(store.currentSessionId).toBeNull();
+    expect(store.currentSessionHandle).toBeNull();
   });
 
   it('url-encodes the customer id', async () => {
@@ -180,7 +180,7 @@ describe('useAdminCustomerSessions', () => {
       '/api/colonel/users/ur_abc123/sessions/sid_1'
     );
     expect(store.sessions).toHaveLength(1);
-    expect(store.sessions.map((s) => s.session_id)).toEqual(['sid_2']);
+    expect(store.sessions.map((s) => s.session_handle)).toEqual(['sid_2']);
   });
 
   it('keeps the row when revoke rejects', async () => {
