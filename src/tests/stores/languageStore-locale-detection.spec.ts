@@ -18,6 +18,7 @@
 
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { DEFAULT_LOCALE, useLanguageStore } from '@/shared/stores/languageStore';
+import { mockCustomer } from '@/tests/fixtures/bootstrap.fixture';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setupTestPinia } from '../setup';
@@ -196,7 +197,7 @@ describe('Language Store - Browser Locale Detection (#2668)', () => {
     it('user preference takes priority over deviceLocale', () => {
       bootstrapStore.update({
         supported_locales: fullSupportedLocales,
-        cust: { locale: 'ja' },
+        cust: { ...mockCustomer, locale: 'ja' },
       });
 
       const store = useLanguageStore();

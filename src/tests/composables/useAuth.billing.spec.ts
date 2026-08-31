@@ -225,8 +225,11 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
     });
 
     it('should not redirect when billing_enabled is undefined', async () => {
-      // Set billing_enabled to undefined via bootstrapStore
-      bootstrapStore.billing_enabled = undefined;
+      // Set billing_enabled to undefined via bootstrapStore. $patch (not direct
+      // assignment) because the state type's billing_enabled is a non-optional
+      // boolean (schema default(false)) — $patch's _DeepPartial widens it to
+      // accept undefined for this "field absent from response" scenario.
+      bootstrapStore.$patch({ billing_enabled: undefined });
       disableBillingOnRefetch(undefined);
 
       setRouteQuery({ product: 'identity', interval: 'month' });

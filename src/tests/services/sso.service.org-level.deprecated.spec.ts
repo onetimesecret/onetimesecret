@@ -34,6 +34,43 @@ vi.mock('@/api', () => ({
 // Import after mocking
 import { SsoService } from '@/services/sso.service';
 
+/**
+ * The org-level methods this file exercises (getConfig/putConfig/patchConfig/
+ * saveConfig/deleteConfig/testConnection) were removed from SsoService in
+ * #2786 — the real service now exposes only the *ForDomain methods (see
+ * sso.service.ts). This whole suite is `describe.skip`-ped and kept solely as
+ * a historical reference of the old contract (no test here ever executes), so
+ * this cast — not a production change — exists only to let the reference file
+ * still type-check against the CURRENT SsoService shape.
+ */
+interface DeprecatedOrgLevelSsoService {
+  getConfig(orgExtId: string): Promise<Record<string, unknown>>;
+  putConfig(
+    orgExtId: string,
+    payload: Record<string, unknown>
+  ): Promise<Record<string, unknown>>;
+  patchConfig(
+    orgExtId: string,
+    payload: Record<string, unknown>
+  ): Promise<Record<string, unknown>>;
+  saveConfig(
+    orgExtId: string,
+    payload: Record<string, unknown>
+  ): Promise<Record<string, unknown>>;
+  deleteConfig(orgExtId: string): Promise<Record<string, unknown>>;
+  testConnection(
+    orgExtId: string,
+    payload: Record<string, unknown>
+  ): Promise<{
+    success: boolean;
+    provider_type: string;
+    message?: string;
+    details: Record<string, unknown>;
+  }>;
+}
+
+const DeprecatedSsoService = SsoService as unknown as DeprecatedOrgLevelSsoService;
+
 describe.skip('SsoService (DEPRECATED: org-level API removed in #2786)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -59,7 +96,7 @@ describe.skip('SsoService (DEPRECATED: org-level API removed in #2786)', () => {
       };
       mockGet.mockResolvedValueOnce(mockResponse);
 
-      const result = await SsoService.getConfig('org_abc123');
+      const result = await DeprecatedSsoService.getConfig('org_abc123');
 
       expect(mockGet).toHaveBeenCalledWith('/api/organizations/org_abc123/sso');
       expect(result).toEqual(mockResponse.data);
@@ -72,7 +109,7 @@ describe.skip('SsoService (DEPRECATED: org-level API removed in #2786)', () => {
       };
       mockGet.mockRejectedValueOnce(axiosError);
 
-      const result = await SsoService.getConfig('org_no_sso');
+      const result = await DeprecatedSsoService.getConfig('org_no_sso');
 
       expect(mockGet).toHaveBeenCalledWith('/api/organizations/org_no_sso/sso');
       expect(result).toEqual({ record: null });
@@ -86,14 +123,14 @@ describe.skip('SsoService (DEPRECATED: org-level API removed in #2786)', () => {
       };
       mockGet.mockRejectedValueOnce(axiosError);
 
-      await expect(SsoService.getConfig('org_error')).rejects.toEqual(axiosError);
+      await expect(DeprecatedSsoService.getConfig('org_error')).rejects.toEqual(axiosError);
     });
 
     it('propagates network errors without response', async () => {
       const networkError = new Error('Network Error');
       mockGet.mockRejectedValueOnce(networkError);
 
-      await expect(SsoService.getConfig('org_network_error')).rejects.toThrow('Network Error');
+      await expect(DeprecatedSsoService.getConfig('org_network_error')).rejects.toThrow('Network Error');
     });
   });
 
@@ -120,7 +157,7 @@ describe.skip('SsoService (DEPRECATED: org-level API removed in #2786)', () => {
         tenant_id: 'tenant-123',
       };
 
-      const result = await SsoService.putConfig('org_abc', payload);
+      const result = await DeprecatedSsoService.putConfig('org_abc', payload);
 
       expect(mockPut).toHaveBeenCalledWith('/api/organizations/org_abc/sso', payload);
       expect(result).toEqual(mockResponse.data);
@@ -130,7 +167,7 @@ describe.skip('SsoService (DEPRECATED: org-level API removed in #2786)', () => {
       const mockResponse = { data: { record: { id: 'sso_123' } } };
       mockPut.mockResolvedValueOnce(mockResponse);
 
-      await SsoService.putConfig('org_test', {
+      await DeprecatedSsoService.putConfig('org_test', {
         provider_type: 'entra_id' as const,
         client_id: 'entra-client',
         client_secret: 'entra-secret',
@@ -162,7 +199,7 @@ describe.skip('SsoService (DEPRECATED: org-level API removed in #2786)', () => {
         display_name: 'Updated Name',
       };
 
-      const result = await SsoService.patchConfig('org_abc', payload);
+      const result = await DeprecatedSsoService.patchConfig('org_abc', payload);
 
       expect(mockPatch).toHaveBeenCalledWith('/api/organizations/org_abc/sso', payload);
       expect(result).toEqual(mockResponse.data);
@@ -172,7 +209,7 @@ describe.skip('SsoService (DEPRECATED: org-level API removed in #2786)', () => {
       const mockResponse = { data: { record: { id: 'sso_123' } } };
       mockPatch.mockResolvedValueOnce(mockResponse);
 
-      await SsoService.patchConfig('org_test', {
+      await DeprecatedSsoService.patchConfig('org_test', {
         enabled: false,
       });
 
@@ -191,7 +228,7 @@ describe.skip('SsoService (DEPRECATED: org-level API removed in #2786)', () => {
         // No client_secret - preserves existing
       };
 
-      await SsoService.patchConfig('org_abc', payload);
+      await DeprecatedSsoService.patchConfig('org_abc', payload);
 
       expect(mockPatch).toHaveBeenCalledWith('/api/organizations/org_abc/sso', payload);
     });
@@ -210,7 +247,7 @@ describe.skip('SsoService (DEPRECATED: org-level API removed in #2786)', () => {
         tenant_id: 'tenant-123',
       };
 
-      await SsoService.saveConfig('org_abc', payload);
+      await DeprecatedSsoService.saveConfig('org_abc', payload);
 
       expect(mockPut).toHaveBeenCalledWith('/api/organizations/org_abc/sso', payload);
       expect(mockPatch).not.toHaveBeenCalled();
@@ -228,7 +265,7 @@ describe.skip('SsoService (DEPRECATED: org-level API removed in #2786)', () => {
         // No client_secret
       };
 
-      await SsoService.saveConfig('org_abc', payload);
+      await DeprecatedSsoService.saveConfig('org_abc', payload);
 
       expect(mockPatch).toHaveBeenCalledWith('/api/organizations/org_abc/sso', payload);
       expect(mockPut).not.toHaveBeenCalled();
@@ -246,7 +283,7 @@ describe.skip('SsoService (DEPRECATED: org-level API removed in #2786)', () => {
         tenant_id: 'tenant-123',
       };
 
-      await SsoService.saveConfig('org_abc', payload);
+      await DeprecatedSsoService.saveConfig('org_abc', payload);
 
       expect(mockPatch).toHaveBeenCalledWith('/api/organizations/org_abc/sso', payload);
       expect(mockPut).not.toHaveBeenCalled();
@@ -258,7 +295,7 @@ describe.skip('SsoService (DEPRECATED: org-level API removed in #2786)', () => {
       mockPut.mockResolvedValueOnce(putResponse);
       mockPatch.mockResolvedValueOnce(patchResponse);
 
-      const putResult = await SsoService.saveConfig('org_1', {
+      const putResult = await DeprecatedSsoService.saveConfig('org_1', {
         provider_type: 'entra_id' as const,
         client_id: 'id',
         client_secret: 'secret',
@@ -266,7 +303,7 @@ describe.skip('SsoService (DEPRECATED: org-level API removed in #2786)', () => {
         tenant_id: 'tenant-123',
       });
 
-      const patchResult = await SsoService.saveConfig('org_2', {
+      const patchResult = await DeprecatedSsoService.saveConfig('org_2', {
         display_name: 'Updated',
       });
 
@@ -285,7 +322,7 @@ describe.skip('SsoService (DEPRECATED: org-level API removed in #2786)', () => {
       };
       mockDelete.mockResolvedValueOnce(mockResponse);
 
-      const result = await SsoService.deleteConfig('org_abc');
+      const result = await DeprecatedSsoService.deleteConfig('org_abc');
 
       expect(mockDelete).toHaveBeenCalledWith('/api/organizations/org_abc/sso');
       expect(result).toEqual(mockResponse.data);
@@ -294,7 +331,7 @@ describe.skip('SsoService (DEPRECATED: org-level API removed in #2786)', () => {
     it('propagates API errors', async () => {
       mockDelete.mockRejectedValueOnce(new Error('Not found'));
 
-      await expect(SsoService.deleteConfig('org_no_sso')).rejects.toThrow('Not found');
+      await expect(DeprecatedSsoService.deleteConfig('org_no_sso')).rejects.toThrow('Not found');
     });
   });
 
@@ -321,7 +358,7 @@ describe.skip('SsoService (DEPRECATED: org-level API removed in #2786)', () => {
         tenant_id: 'test-tenant-id',
       };
 
-      const result = await SsoService.testConnection('org_abc', payload);
+      const result = await DeprecatedSsoService.testConnection('org_abc', payload);
 
       expect(mockPost).toHaveBeenCalledWith('/api/organizations/org_abc/sso/test', payload);
       expect(result).toEqual(mockResponse.data);
@@ -343,7 +380,7 @@ describe.skip('SsoService (DEPRECATED: org-level API removed in #2786)', () => {
       };
       mockPost.mockResolvedValueOnce(mockResponse);
 
-      const result = await SsoService.testConnection('org_abc', {
+      const result = await DeprecatedSsoService.testConnection('org_abc', {
         provider_type: 'entra_id' as const,
         client_id: 'test-client',
         tenant_id: 'invalid-tenant',
@@ -371,7 +408,7 @@ describe.skip('SsoService (DEPRECATED: org-level API removed in #2786)', () => {
       };
       mockPost.mockResolvedValueOnce(mockResponse);
 
-      const result = await SsoService.testConnection('org_abc', {
+      const result = await DeprecatedSsoService.testConnection('org_abc', {
         provider_type: 'oidc' as const,
         client_id: 'oidc-client-id',
         issuer: 'https://idp.example.com',

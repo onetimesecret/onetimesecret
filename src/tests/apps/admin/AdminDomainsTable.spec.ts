@@ -253,7 +253,9 @@ describe('AdminDomains — table, filters and drawer', () => {
     // The drawer renders from the row already in hand — no second fetch.
     expect(mockApi.get).toHaveBeenCalledTimes(1);
 
-    const fullPage = wrapper.findComponent('[data-testid="domain-open-full-page"]');
+    const fullPage = wrapper.findComponent<typeof RouterLinkStub>(
+      '[data-testid="domain-open-full-page"]'
+    );
     expect(fullPage.exists()).toBe(true);
     expect(fullPage.props('to')).toEqual({
       name: 'AdminDomainDetail',

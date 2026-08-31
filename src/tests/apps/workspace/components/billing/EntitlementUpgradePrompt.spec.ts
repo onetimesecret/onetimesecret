@@ -47,7 +47,6 @@ function createError(overrides: Partial<ApplicationError> = {}): ApplicationErro
   return {
     code: 'entitlement_required',
     message: 'Homepage secrets require Identity Plus plan',
-    status: 403,
     ...overrides,
   } as ApplicationError;
 }
@@ -176,7 +175,6 @@ describe('EntitlementUpgradePrompt', () => {
           code: 'entitlement_required',
           message:
             'Custom homepage secrets require an Identity Plus subscription',
-          status: 403,
         }),
         resourceType: 'homepage_secrets',
       });
@@ -194,7 +192,6 @@ describe('EntitlementUpgradePrompt', () => {
           code: 'entitlement_required',
           message:
             'Custom homepage secrets require an Identity Plus subscription',
-          status: 403,
         }),
         resourceType: 'homepage_secrets',
       });

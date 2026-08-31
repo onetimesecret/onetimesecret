@@ -53,6 +53,7 @@ function requestError(overrides: {
 describe('applyGroupingRules — schema validation (Rule A)', () => {
   it('groups by schema name extracted from the message', () => {
     const event: ErrorEvent = {
+      type: undefined,
       exception: { values: [{ type: 'Error', value: SCHEMA_MESSAGE }] },
     };
 
@@ -65,8 +66,12 @@ describe('applyGroupingRules — schema validation (Rule A)', () => {
     // The deploy-fragmentation case: same defect, two deploys, two bundle
     // hashes. Default grouping keys on the frames and splits them; the
     // explicit rule must not.
+    // `culprit` (a server-side Sentry issue field, not part of the outbound
+    // SDK `ErrorEvent` type) is deliberately omitted here — the differing
+    // minified bundle is represented instead by each frame's own
+    // filename/function, which is what the rule must ignore.
     const eventDeployA: ErrorEvent = {
-      culprit: 'main.Ccws7ZEL',
+      type: undefined,
       exception: {
         values: [
           {
@@ -78,7 +83,7 @@ describe('applyGroupingRules — schema validation (Rule A)', () => {
       },
     };
     const eventDeployB: ErrorEvent = {
-      culprit: 'main.DZXtQ8Fc',
+      type: undefined,
       exception: {
         values: [
           {
@@ -99,6 +104,7 @@ describe('applyGroupingRules — schema validation (Rule A)', () => {
 
   it('reads a standalone message as well as exception values', () => {
     const event: ErrorEvent = {
+      type: undefined,
       message: 'Schema validation failed for MembersResponse — 1 issue(s) [(root)]: …',
     };
 
@@ -109,9 +115,11 @@ describe('applyGroupingRules — schema validation (Rule A)', () => {
 
   it('does not key on issue counts or field paths — only the schema name', () => {
     const oneIssue: ErrorEvent = {
+      type: undefined,
       message: 'Schema validation failed for BrandSettings — 1 issue(s) [font_family]: …',
     };
     const threeIssues: ErrorEvent = {
+      type: undefined,
       message:
         'Schema validation failed for BrandSettings — 3 issue(s) [corner_style, primary_color, locale]: …',
     };
@@ -125,7 +133,10 @@ describe('applyGroupingRules — schema validation (Rule A)', () => {
   it('leaves the context-less message family to default grouping', () => {
     // gracefulParse without a context argument emits no "for <SchemaName>"
     // clause — there is no stable name to key on.
-    const event: ErrorEvent = { message: 'Schema validation failed — 1 issue(s) [(root)]: …' };
+    const event: ErrorEvent = {
+      type: undefined,
+      message: 'Schema validation failed — 1 issue(s) [(root)]: …',
+    };
 
     applyGroupingRules(event);
 
@@ -136,6 +147,7 @@ describe('applyGroupingRules — schema validation (Rule A)', () => {
 describe('applyGroupingRules — API request errors (Rule B)', () => {
   it('groups by method, parameterized path, and HTTP status', () => {
     const event: ErrorEvent = {
+      type: undefined,
       exception: { values: [{ type: 'AxiosError', value: 'Request failed with status code 404' }] },
     };
     const hint: EventHint = {
@@ -153,8 +165,8 @@ describe('applyGroupingRules — API request errors (Rule B)', () => {
     const idA = 'a'.repeat(62);
     const idB = 'b'.repeat(62);
 
-    const eventA: ErrorEvent = {};
-    const eventB: ErrorEvent = {};
+    const eventA: ErrorEvent = { type: undefined };
+    const eventB: ErrorEvent = { type: undefined };
     applyGroupingRules(eventA, {
       originalException: requestError({ url: `/api/v2/secret/${idA}`, method: 'get', status: 404 }),
     });
@@ -167,7 +179,7 @@ describe('applyGroupingRules — API request errors (Rule B)', () => {
   });
 
   it('parameterizes receipt endpoints the same way', () => {
-    const event: ErrorEvent = {};
+    const event: ErrorEvent = { type: undefined };
     applyGroupingRules(event, {
       originalException: requestError({
         url: `/api/v2/receipt/${'c'.repeat(62)}`,
@@ -180,7 +192,7 @@ describe('applyGroupingRules — API request errors (Rule B)', () => {
   });
 
   it('drops the query string from the grouping path', () => {
-    const event: ErrorEvent = {};
+    const event: ErrorEvent = { type: undefined };
     applyGroupingRules(event, {
       originalException: requestError({
         url: '/api/v2/status?cb=1755859200',
@@ -198,7 +210,7 @@ describe('applyGroupingRules — API request errors (Rule B)', () => {
       { code: 'ECONNABORTED' },
       { name: 'AbortError' },
     ]) {
-      const event: ErrorEvent = {};
+      const event: ErrorEvent = { type: undefined };
       applyGroupingRules(event, {
         originalException: requestError({ url: '/api/v2/status', method: 'get', ...shape }),
       });
@@ -207,7 +219,7 @@ describe('applyGroupingRules — API request errors (Rule B)', () => {
   });
 
   it("keys no-response failures as 'network'", () => {
-    const event: ErrorEvent = {};
+    const event: ErrorEvent = { type: undefined };
     applyGroupingRules(event, {
       originalException: requestError({
         url: '/api/v2/status',
@@ -230,7 +242,7 @@ describe('applyGroupingRules — API request errors (Rule B)', () => {
       // They share code ECONNABORTED on the wire unless the client asks
       // otherwise (src/api/index.ts sets transitional.clarifyTimeoutError),
       // and only this split lets the noise filter drop one without the other.
-      const event: ErrorEvent = {};
+      const event: ErrorEvent = { type: undefined };
       applyGroupingRules(event, {
         originalException: requestError({ url: '/api/v2/status', method: 'get', ...shape }),
       });
@@ -240,7 +252,7 @@ describe('applyGroupingRules — API request errors (Rule B)', () => {
   );
 
   it('falls back to the error class name when there is no status and no known code', () => {
-    const event: ErrorEvent = {};
+    const event: ErrorEvent = { type: undefined };
     applyGroupingRules(event, {
       originalException: requestError({
         url: '/api/v2/status',
@@ -253,7 +265,7 @@ describe('applyGroupingRules — API request errors (Rule B)', () => {
   });
 
   it('defaults the method to GET when the config omits it', () => {
-    const event: ErrorEvent = {};
+    const event: ErrorEvent = { type: undefined };
     applyGroupingRules(event, {
       originalException: requestError({ url: '/api/v2/status', status: 404 }),
     });
@@ -265,6 +277,7 @@ describe('applyGroupingRules — API request errors (Rule B)', () => {
 describe('applyGroupingRules — pass-through', () => {
   it('leaves events matching neither rule untouched (default grouping preserved)', () => {
     const event: ErrorEvent = {
+      type: undefined,
       exception: {
         values: [
           { type: 'TypeError', value: "Cannot read properties of undefined (reading 'foo')" },
@@ -278,7 +291,11 @@ describe('applyGroupingRules — pass-through', () => {
   });
 
   it('respects a grouping array already set upstream', () => {
-    const event: ErrorEvent = { message: SCHEMA_MESSAGE, fingerprint: ['custom-upstream-group'] };
+    const event: ErrorEvent = {
+      type: undefined,
+      message: SCHEMA_MESSAGE,
+      fingerprint: ['custom-upstream-group'],
+    };
 
     applyGroupingRules(event);
 
@@ -288,7 +305,7 @@ describe('applyGroupingRules — pass-through', () => {
   it('prefers the schema rule when an event matches both families', () => {
     // A schema failure captured off the back of an API response: the defect
     // is the contract drift, not the transport, so it groups by schema.
-    const event: ErrorEvent = { message: SCHEMA_MESSAGE };
+    const event: ErrorEvent = { type: undefined, message: SCHEMA_MESSAGE };
 
     applyGroupingRules(event, {
       originalException: requestError({ url: '/api/v2/secret/abc', method: 'get', status: 200 }),
@@ -299,7 +316,7 @@ describe('applyGroupingRules — pass-through', () => {
 
   it('ignores hints whose originalException is not request-shaped', () => {
     for (const originalException of [undefined, null, 'a string', new Error('plain')]) {
-      const event: ErrorEvent = {};
+      const event: ErrorEvent = { type: undefined };
       applyGroupingRules(event, { originalException } as EventHint);
       expect(event.fingerprint).toBeUndefined();
     }
@@ -387,7 +404,14 @@ describe('beforeSend integration', () => {
     createDiagnostics({
       host: 'example.com',
       config: {
-        sentry: { dsn: 'https://key@sentry.io/123', environment: 'test', release: '1.0.0' },
+        sentry: {
+          dsn: 'https://key@sentry.io/123',
+          enabled: true,
+          logErrors: true,
+          trackComponents: true,
+          environment: 'test',
+          release: '1.0.0',
+        },
       },
       router: createMockRouter(),
     });
@@ -415,6 +439,7 @@ describe('beforeSend integration', () => {
     // pipeline for an event that IS reported, so it needs an outcome that
     // survives the drop filter.
     const event: ErrorEvent = {
+      type: undefined,
       exception: {
         values: [
           {
@@ -442,7 +467,7 @@ describe('beforeSend integration', () => {
     const handler = getBeforeSend();
 
     const result = handler(
-      { exception: { values: [{ type: 'TypeError', value: 'boom' }] } },
+      { type: undefined, exception: { values: [{ type: 'TypeError', value: 'boom' }] } },
       { originalException: new TypeError('boom') }
     ) as ErrorEvent;
 
