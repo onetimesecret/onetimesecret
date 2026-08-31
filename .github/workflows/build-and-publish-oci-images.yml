@@ -414,6 +414,21 @@ jobs:
           BAKE_METADATA_EOF
           bash scripts/ci/extract-frontend-dist.sh
 
+      # Sentry CLI is resolved from the integrity-pinned devDependency in
+      # pnpm-lock.yaml (@sentry/cli 3.6.2), NOT fetched from the npm registry at
+      # run time. Without a node_modules on the runner, `npx @sentry/cli` would
+      # fetch @latest AND run its install-time lifecycle script here — after the
+      # registry logins above already hold push credentials, and bypassing both
+      # the lockfile pin and the repo's Renovate quarantine. Installing from the
+      # frozen lockfile first, then calling `pnpm exec sentry-cli`, keeps every
+      # Sentry invocation on the pinned version and never touches the registry.
+      # setup-node-env is the same composite action ci.yml uses (Node + pnpm +
+      # `pnpm install --frozen-lockfile`); gated to non-PR runs to match the
+      # Sentry steps that consume it.
+      - name: Setup Node.js environment (pinned sentry-cli)
+        if: github.event_name != 'pull_request'
+        uses: ./.github/actions/setup-node-env
+
       - name: Create Sentry release and associate commits
         if: github.event_name != 'pull_request'
         continue-on-error: true
@@ -473,9 +488,9 @@ jobs:
           rc=0
           for phase in new set-commits finalize; do
             case "$phase" in
-              new)         out=$(npx @sentry/cli releases new "$SENTRY_RELEASE" $PROJECT_FLAGS 2>&1) ;;
-              set-commits) out=$(npx @sentry/cli releases set-commits "$SENTRY_RELEASE" --auto $PROJECT_FLAGS 2>&1) ;;
-              finalize)    out=$(npx @sentry/cli releases finalize "$SENTRY_RELEASE" $PROJECT_FLAGS 2>&1) ;;
+              new)         out=$(pnpm exec sentry-cli releases new "$SENTRY_RELEASE" $PROJECT_FLAGS 2>&1) ;;
+              set-commits) out=$(pnpm exec sentry-cli releases set-commits "$SENTRY_RELEASE" --auto $PROJECT_FLAGS 2>&1) ;;
+              finalize)    out=$(pnpm exec sentry-cli releases finalize "$SENTRY_RELEASE" $PROJECT_FLAGS 2>&1) ;;
             esac
             rc=$?
             log_cli_output "$out"
@@ -545,7 +560,7 @@ jobs:
             UPLOAD_ARGS+=(--dist="$SENTRY_DIST")
           fi
 
-          out=$(npx @sentry/cli sourcemaps upload "${UPLOAD_ARGS[@]}" 2>&1)
+          out=$(pnpm exec sentry-cli sourcemaps upload "${UPLOAD_ARGS[@]}" 2>&1)
           rc=$?
           log_cli_output "$out"
 
@@ -621,7 +636,7 @@ jobs:
             printf '%s\n' "$1" | sed 's/^/sentry-cli: /'
           }
 
-          out=$(npx @sentry/cli releases deploys "$SENTRY_RELEASE" new -e production 2>&1)
+          out=$(pnpm exec sentry-cli releases deploys "$SENTRY_RELEASE" new -e production 2>&1)
           rc=$?
           log_cli_output "$out"
           if [ "$rc" -ne 0 ]; then
