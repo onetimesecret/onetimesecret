@@ -409,14 +409,19 @@ site:
     # fallback can default this to true in production / when site.ssl is on.
     # (Emitting `null` here fails schema validation — the contract is
     # boolean-or-absent, not boolean-or-null; see site.ts `secure`.)
-    # The exact string 'false' emits secure: false — SSL=false declares a
-    # plain-HTTP deployment, and a Secure cookie there is never written at
-    # all (Session refuses it), which silently breaks every session and every
-    # session-backed CSRF check. A TLS-proxied deployment sets SSL=true (it
-    # needs https:// links anyway), so it is unaffected.
+    # SSL=false emits secure: false ONLY outside production. There it declares
+    # a plain-HTTP dev deployment, where writing a Secure cookie (which Session
+    # then refuses over http) would silently break every session and every
+    # session-backed CSRF check. In PRODUCTION, SSL=false must NOT switch off
+    # Secure: the key is left absent so boot.rb's ssl_enabled? fallback forces
+    # secure: true (fail closed). Production deployments that inherit SSL=false
+    # from the quick-start almost always terminate TLS at an edge proxy, so a
+    # non-Secure session cookie there is a downgrade bug, not a valid config.
+    # A TLS-proxied deployment normally sets SSL=true anyway (it needs https://
+    # links), so it is unaffected either way.
     <% if ENV['SSL'] == 'true' %>
     secure: true
-    <% elsif ENV['SSL'] == 'false' %>
+    <% elsif ENV['SSL'] == 'false' && (ENV['RACK_ENV'] || 'production') != 'production' %>
     secure: false
     <% end %>
     # SameSite cookie attribute (strict|lax|none)
