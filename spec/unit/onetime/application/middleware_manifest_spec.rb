@@ -101,6 +101,7 @@ RSpec.describe 'Middleware manifest (characterization)' do
       'Rack::ContentLength',
       'Onetime::Middleware::StartupReadiness',
       'Rack::DetectHost',
+      'Onetime::Middleware::StripForwardedHost',
       'Onetime::Middleware::AdminNetworkIsolation',
       'Rack::RequestId',
       'Onetime::Middleware::NormalizeContentType',

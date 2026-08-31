@@ -10,6 +10,7 @@ require 'rack/utf8_sanitizer'
 
 require_relative '../session'
 require_relative '../middleware/assume_https'
+require_relative '../middleware/strip_forwarded_host'
 require_relative '../middleware/ip_ban'
 require_relative '../middleware/health_access_control'
 require_relative '../middleware/admin_network_isolation'
@@ -539,6 +540,17 @@ module Onetime
 
           # Host detection and identity resolution (common to all apps)
           builder.use Rack::DetectHost, logger: Onetime.http_logger
+
+          # Strip client-settable forwarded-authority headers (finding G-01,
+          # defense in depth). MUST run immediately AFTER Rack::DetectHost: that
+          # middleware has already consumed X-Forwarded-Host / Forwarded under
+          # its own proxy-trust gate and published the resolved host into the
+          # env, so deleting the raw headers here leaves its logic intact while
+          # ensuring every LATER reader of Rack::Request#host (Rodauth's
+          # base_url, the WebAuthn origin, any gem) sees the edge's real Host
+          # authority — never a host the client forged. Nothing between
+          # DetectHost and here reads request.host directly.
+          builder.use Onetime::Middleware::StripForwardedHost
 
           # Admin surface isolation - host allowlist (site.admin.allowed_hosts,
           # active by default, canonical anchors when unset) plus the optional

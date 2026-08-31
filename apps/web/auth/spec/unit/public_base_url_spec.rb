@@ -2,20 +2,24 @@
 #
 # frozen_string_literal: true
 
-# Unit tests for the public-host `base_url` override (#4221).
+# Unit tests for the public-host `base_url` override (#4221) and its host
+# allowlist (finding G-01).
 #
 # Rodauth composes every absolute URL from `base_url` → `domain` →
 # `request.host`. Behind a Host-rewriting proxy that authority is the origin
-# target, so a custom-domain user asking for a magic link receives a link to
-# the canonical host — where Auth::SigninGate 404s :email_auth on any install
-# whose global signin is off. The override swaps in the host DetectHost
-# resolved for the request, and only when it resolved one.
+# target; ungated, `request.host` also honors a client-supplied
+# X-Forwarded-Host (Rack 3.2), so the stock value is BOTH wrong for
+# custom-domain users AND poisonable by an attacker. The override swaps in the
+# host DetectHost resolved for the request — but only when that host names a
+# REGISTERED custom domain (Auth::PublicHost.served_custom_host?) — and
+# otherwise falls back to the CANONICAL host, never request.host.
 #
 # Two subjects, because the policy and the wiring fail independently:
 #   - Auth::PublicHost: which host, and when to decline (shared with the
 #     OmniAuth full_host resolver — see omniauth_full_host_spec.rb).
 #   - The Rodauth override: that `base_url` and `public_display_domain`
-#     actually read that policy, through a real Rodauth configuration.
+#     actually read that policy, through a real Rodauth configuration, and
+#     fall back to the canonical host rather than the request authority.
 #
 # Run:
 #   pnpm run test:rspec apps/web/auth/spec/unit/public_base_url_spec.rb
@@ -37,15 +41,30 @@ Auth::Config.const_set(:Overrides, Module.new) unless Auth::Config.const_defined
 require_relative '../../config/overrides/public_base_url'
 
 RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
-  # The canonical set is process state loaded from config; stub the predicate
-  # so each example states its own topology instead of depending on whatever
-  # the test config's canonical host happens to be.
+  # The canonical set and the tenant registry are process state loaded from
+  # config / the datastore; stub the predicates so each example states its own
+  # topology instead of depending on whatever the test environment happens to
+  # hold.
+  #
+  #   - canonical_host?      : which hosts are in the canonical set
+  #   - from_display_domain  : which hosts are REGISTERED custom domains
+  #                            (finding G-01 requires a positive record)
+  #   - canonical_host /      : the request-independent canonical fallback the
+  #     canonical_base_url       overrides use when the resolver declines
   before do
     allow(Onetime::Middleware::DomainStrategy)
       .to receive(:canonical_host?) { |host| canonical_hosts.include?(host.to_s) }
+
+    allow(Onetime::CustomDomain).to receive(:from_display_domain) do |host|
+      registered_custom_hosts.include?(host.to_s) ? Object.new : nil
+    end
+
+    allow(Auth::PublicHost).to receive(:canonical_host).and_return('onetimesecret.com')
+    allow(Auth::PublicHost).to receive(:canonical_base_url).and_return('https://onetimesecret.com')
   end
 
   let(:canonical_hosts) { ['onetimesecret.com'] }
+  let(:registered_custom_hosts) { ['secret.asi.nz', 'local-secrets4.afb.pet'] }
 
   # A Rack env in the shape DetectHost + DomainStrategy leave behind.
   #
@@ -61,7 +80,7 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
 
   describe Auth::PublicHost do
     describe '.resolve' do
-      it 'returns the display domain on a custom domain' do
+      it 'returns the display domain on a registered custom domain' do
         env = env_for(host: 'nz.onetime.co', display_domain: 'secret.asi.nz')
         expect(described_class.resolve(env)).to eq('secret.asi.nz')
       end
@@ -73,6 +92,22 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
 
       it 'declines when the middleware did not run' do
         expect(described_class.resolve(env_for(host: 'example.com'))).to be_nil
+      end
+
+      # Finding G-01, vector A: display_domain is written for ANY syntactically
+      # valid host, so a non-canonical host with no tenant record must NOT be
+      # honored — otherwise a genuine service email links to an attacker origin.
+      it 'declines a non-canonical host with no registered custom domain' do
+        env = env_for(host: 'attacker.evil.example', display_domain: 'attacker.evil.example')
+        expect(described_class.resolve(env)).to be_nil
+      end
+
+      # Fail CLOSED: a datastore failure must never widen the accepted hosts.
+      it 'declines (fails closed) when the tenant lookup raises' do
+        allow(Onetime::CustomDomain).to receive(:from_display_domain)
+          .and_raise(Redis::BaseError.new('boom'))
+        env = env_for(host: 'nz.onetime.co', display_domain: 'secret.asi.nz')
+        expect(described_class.resolve(env)).to be_nil
       end
     end
 
@@ -101,9 +136,9 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
   end
 
   # Exercises the override the way Rodauth does: a real configuration, a real
-  # request. Guards the `super()` fallback specifically — a bare `super` in a
-  # define_method body raises at call time, not at load, so only calling it
-  # proves the canonical path still works.
+  # request. The canonical fallback (finding G-01) replaces the former
+  # `super()` fallback, so a canonical or unresolved request builds on the
+  # canonical host — never on request.host.
   describe 'wired into a Rodauth configuration' do
     # rodauth's post_configure reads a Sequel connection even for routes that
     # never touch the database; nothing here queries it.
@@ -130,18 +165,33 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
       body.first.split(' ')
     end
 
-    it 'mints links on the public host for a custom-domain request' do
+    it 'mints links on the public host for a registered custom-domain request' do
       expect(probe(host: 'nz.onetime.co', display_domain: 'secret.asi.nz'))
         .to eq(['https://secret.asi.nz', 'secret.asi.nz'])
     end
 
-    it 'falls through to Rodauth on a canonical request' do
+    it 'builds on the canonical host, not request.host, on a canonical request' do
       expect(probe(host: 'onetimesecret.com', display_domain: 'onetimesecret.com'))
         .to eq(['https://onetimesecret.com', 'onetimesecret.com'])
     end
 
-    it 'falls through to Rodauth when the middleware did not run' do
-      expect(probe(host: 'example.com')).to eq(['https://example.com', 'example.com'])
+    it 'builds on the canonical host, not request.host, when the middleware did not run' do
+      expect(probe(host: 'example.com')).to eq(['https://onetimesecret.com', 'onetimesecret.com'])
+    end
+
+    # Finding G-01, vector B: an attacker sets X-Forwarded-Host on a plain
+    # canonical request. The override never reads request.host, so the link
+    # must NOT carry the forged host regardless of any middleware.
+    it 'ignores a forged X-Forwarded-Host and builds on the canonical host' do
+      env = env_for(host: 'onetimesecret.com', display_domain: 'onetimesecret.com',
+                    path: '/probe')
+      env['HTTP_X_FORWARDED_HOST'] = 'attacker.example'
+      _status, _headers, body = app.call(env)
+      base_url, display_domain = body.first.split(' ')
+
+      expect(base_url).to eq('https://onetimesecret.com')
+      expect(display_domain).to eq('onetimesecret.com')
+      expect(base_url).not_to include('attacker.example')
     end
   end
 end
