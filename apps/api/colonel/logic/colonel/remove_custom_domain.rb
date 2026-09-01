@@ -40,6 +40,19 @@ module ColonelAPI
 
           @custom_domain = resolve_custom_domain(extid)
           raise_not_found('Domain not found') unless custom_domain
+
+          # PREVIEW EXEMPTION (#4326): a dry run writes nothing. dry_run
+          # defaults to TRUE here, so only an explicit apply is gated.
+          return if dry_run
+
+          # TIER 1. The URL carries the extid; the confirmation is the hostname.
+          guard_destructive_action!(
+            tier: :destructive,
+            confirm_with: custom_domain.display_domain,
+            confirm_subject: 'the domain name',
+            field: :extid,
+          )
+          charge_destructive_budget!
         end
 
         def process
@@ -75,12 +88,6 @@ module ColonelAPI
               reasserts_survivor: result.reasserts_survivor,
             },
           }
-        end
-
-        private
-
-        def truthy?(value)
-          %w[true 1 yes on].include?(value.to_s.strip.downcase)
         end
       end
     end

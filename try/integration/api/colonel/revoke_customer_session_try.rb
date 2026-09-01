@@ -84,6 +84,14 @@ def colonel_headers
   { 'rack.session' => @colonel_session, 'HTTP_ACCEPT' => 'application/json' }
 end
 
+# Server-side destructive-action confirmation (#4326): revoking sessions is
+# TIER 1, so it requires the account's email — percent-encoded — in
+# X-OTS-Confirm. The URL carries the extid (and, for the single revoke, an
+# opaque handle); the token is deliberately a different identifier.
+def confirming_headers
+  colonel_headers.merge('HTTP_X_OTS_CONFIRM' => Rack::Utils.escape(@target.email))
+end
+
 @sid = "intrcs_#{@nonce}"
 @key = "session:#{@sid}"
 
@@ -130,7 +138,7 @@ delete URL, {}, { 'HTTP_ACCEPT' => 'application/json' }
 
 ## DELETE by the colonel returns 200 with record.revoked=true and the HANDLE echoed
 AE.events.clear
-delete URL, {}, colonel_headers
+delete URL, {}, confirming_headers
 @resp = JSON.parse(last_response.body)
 [last_response.status, @resp['record']['revoked'], @resp['record']['session_handle'], @resp['details']['message']]
 #=> [200, true, "#{@handle}", 'Session revoked successfully']
@@ -160,7 +168,7 @@ AE.recent(1).first['detail']['session_id']
 ## a second DELETE with the now-stale handle 404s — the first revoke ZREM'd the
 ## sid from the active set, so the handle resolves to no session to revoke
 AE.events.clear
-delete URL, {}, colonel_headers
+delete URL, {}, confirming_headers
 last_response.status
 #=> 404
 

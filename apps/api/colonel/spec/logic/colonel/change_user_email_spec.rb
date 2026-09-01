@@ -27,10 +27,15 @@ RSpec.describe ColonelAPI::Logic::Colonel::ChangeUserEmail do
       email: 'old@example.com', exists?: true, anonymous?: false)
   end
 
-  let(:strategy_result) do
+  # The apply path requires the account's CURRENT address in X-OTS-Confirm
+  # (#4326); the preview path requires nothing. `confirm_token` is where the
+  # colonel session auth strategy puts the percent-decoded header — never params.
+  def strategy_result_for(confirm_token = 'old@example.com')
     double('StrategyResult', session: {}, user: colonel,
-      auth_method: 'sessionauth', metadata: {})
+      auth_method: 'sessionauth', metadata: { confirm_token: confirm_token })
   end
+
+  let(:strategy_result) { strategy_result_for }
 
   # Defaults mirror the op's reporting under this adapter's flags
   # (require_verification: true, revoke_sessions: true): the swap-landed
@@ -78,6 +83,40 @@ RSpec.describe ColonelAPI::Logic::Colonel::ChangeUserEmail do
     allow(OT).to receive(:li)
     allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(target)
     allow(Auth::Operations::Customers::ChangeEmail).to receive(:new).and_return(op)
+  end
+
+  # ---- Server-side confirmation (#4326) --------------------------------------
+  #
+  # The token is the account's CURRENT address, not the new one: it names what
+  # the operator is changing away from, and the URL (an extid) never carries it.
+  # The preview is EXEMPT — it writes nothing.
+  describe 'confirmation' do
+    let(:expected_confirm_token) { 'old@example.com' }
+
+    def confirmed_logic_for(confirm_token)
+      allow(op).to receive(:call).and_return(build_result(status: :success))
+      described_class.new(
+        strategy_result_for(confirm_token),
+        { 'user_id' => 'ur_target', 'new_email' => 'new@example.com', 'dry_run' => 'false' },
+      )
+    end
+
+    it_behaves_like 'a confirmed colonel action'
+
+    it 'requires no confirmation for a dry-run preview' do
+      allow(op).to receive(:call).and_return(build_result(status: :planned))
+      logic = described_class.new(
+        strategy_result_for(nil),
+        { 'user_id' => 'ur_target', 'new_email' => 'new@example.com' },
+      )
+
+      expect { logic.raise_concerns }.not_to raise_error
+    end
+
+    it 'does not accept the NEW address as confirmation' do
+      expect { confirmed_logic_for('new@example.com').raise_concerns }
+        .to raise_error(Onetime::ConfirmationRequired)
+    end
   end
 
   describe 'dry_run defaults to preview' do

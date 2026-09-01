@@ -6,6 +6,7 @@
   import { AdminConfirmDialog, JsonViewer } from '@/apps/admin/components/kit';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
+  import { confirmHeaders } from '@/apps/admin/utils/confirmHeader';
   import {
     colonelSecretDeleteResponseSchema,
     colonelSecretReceiptResponseSchema,
@@ -253,8 +254,11 @@
   } = useAdminMutation(async () => {
     const secretId = receiptRecord.value?.secret_id;
     if (!secretId) throw new Error('No secret loaded');
+    // The shortid the operator retyped is also what the server requires in
+    // X-OTS-Confirm (#4326) — the URL carries the objid, not the shortid.
     const response = await $api.delete(
-      `/api/colonel/secrets/${encodeURIComponent(secretId)}`
+      `/api/colonel/secrets/${encodeURIComponent(secretId)}`,
+      { headers: confirmHeaders(deleteToken.value) }
     );
     // A 2xx means the secret was deleted server-side regardless of ack shape; the
     // parse keeps the contract a live tripwire without failing the action.

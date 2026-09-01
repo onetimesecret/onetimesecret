@@ -1,8 +1,10 @@
 // src/apps/admin/stores/useAdminCustomerSessions.ts
 
+import type { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
+import { confirmHeaders } from '@/apps/admin/utils/confirmHeader';
 import { useApi } from '@/shared/composables/useApi';
 import {
   colonelCustomerSessionsResponseSchema,
@@ -25,8 +27,12 @@ import { gracefulParse } from '@/utils/schemaValidation';
  * can appear because none exists on the model.
  *
  *   - fetchForCustomer(userId) → GET    /api/colonel/users/:user_id/sessions
- *   - revoke(userId, sessionHandle) → DELETE /api/colonel/users/:user_id/sessions/:session_handle
- *   - revokeAll(userId) → POST /api/colonel/users/:user_id/sessions/revoke-all
+ *   - revoke(userId, handle, confirm) → DELETE …/sessions/:session_handle
+ *   - revokeAll(userId, confirm) → POST …/sessions/revoke-all
+ *
+ * Both revoke verbs are TIER 1 destructive (#4326): the server refuses them
+ * unless the request carries the account identifier (email, public id when it
+ * has none) in X-OTS-Confirm.
  *
  * Sessions are identified by session_handle, a non-reversible digest of the raw
  * session id (finding F-01) — the raw sid (a live cookie value) never reaches
@@ -59,6 +65,46 @@ function parseSessionsResponse(data: unknown) {
     data,
     'ColonelCustomerSessionsResponse'
   );
+}
+
+/**
+ * DELETE one session. The account identifier rides X-OTS-Confirm (#4326) — the
+ * server refuses this verb without it. The ack is schema-checked as a live
+ * tripwire; drift never fails the action, because a 2xx means it already
+ * happened server-side.
+ */
+async function requestRevoke(
+  $api: AxiosInstance,
+  userId: string,
+  sessionHandle: string,
+  confirm: string
+): Promise<void> {
+  const response = await $api.delete(
+    `${sessionsUrl(userId)}/${encodeURIComponent(sessionHandle)}`,
+    { headers: confirmHeaders(confirm) }
+  );
+  gracefulParse(
+    colonelCustomerSessionRevokeResponseSchema,
+    response.data,
+    'ColonelCustomerSessionRevokeResponse'
+  );
+}
+
+/** POST the bulk revoke; ack drift degrades to the zero-count fallback. */
+async function requestRevokeAll(
+  $api: AxiosInstance,
+  userId: string,
+  confirm: string
+): Promise<ColonelCustomerSessionRevokeAllRecord> {
+  const response = await $api.post(`${sessionsUrl(userId)}/revoke-all`, undefined, {
+    headers: confirmHeaders(confirm),
+  });
+  const result = gracefulParse(
+    colonelCustomerSessionRevokeAllResponseSchema,
+    response.data,
+    'ColonelCustomerSessionRevokeAllResponse'
+  );
+  return result.ok ? result.data.record : EMPTY_REVOKE_ALL;
 }
 
 export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () => {
@@ -119,28 +165,21 @@ export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () 
    * Revoke one of the customer's sessions (logs that user out mid-flight, so the
    * view gates it behind a confirm dialog). Drops the row ONLY after a 2xx — the
    * drop is sequenced after the awaited DELETE, so a failure throws before it and
-   * the row stays. The ack is schema-checked as a live tripwire (never fails the
-   * action on drift). Throws the network/HTTP error for useAdminMutation to catch.
+   * the row stays. Throws the network/HTTP error for useAdminMutation to catch.
    */
-  async function revoke(userId: string, sessionHandle: string): Promise<void> {
-    const response = await $api.delete(
-      `${sessionsUrl(userId)}/${encodeURIComponent(sessionHandle)}`
-    );
-    gracefulParse(
-      colonelCustomerSessionRevokeResponseSchema,
-      response.data,
-      'ColonelCustomerSessionRevokeResponse'
-    );
-    sessions.value = sessions.value.filter((s) => s.session_handle !== sessionHandle);
+  async function revoke(userId: string, handle: string, confirm: string): Promise<void> {
+    await requestRevoke($api, userId, handle, confirm);
+    sessions.value = sessions.value.filter((s) => s.session_handle !== handle);
   }
 
   /** Revoke ALL sessions (offboarding/takeover); clears the list, returns kill counts. */
-  async function revokeAll(userId: string): Promise<ColonelCustomerSessionRevokeAllRecord> {
-    const response = await $api.post(`${sessionsUrl(userId)}/revoke-all`);
-    const schema = colonelCustomerSessionRevokeAllResponseSchema;
-    const result = gracefulParse(schema, response.data, 'ColonelCustomerSessionRevokeAllResponse');
+  async function revokeAll(
+    userId: string,
+    confirm: string
+  ): Promise<ColonelCustomerSessionRevokeAllRecord> {
+    const record = await requestRevokeAll($api, userId, confirm);
     sessions.value = []; // every session is gone regardless of ack shape
-    return result.ok ? result.data.record : EMPTY_REVOKE_ALL;
+    return record;
   }
 
   /** Explicit manual reset — setup stores have no built-in $reset. */

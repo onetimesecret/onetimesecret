@@ -78,4 +78,57 @@ RSpec.describe ColonelAPI::AuthStrategies::SessionAuthStrategy do
       expect(strategy.send(:build_metadata, env)).not_to have_key(:proxy_header_debug)
     end
   end
+
+  # Destructive-action confirmation transport (#4326). This is the ONLY request
+  # header ordinary colonel metadata carries: logic classes never see the Rack
+  # env, so the X-OTS-Confirm value has to arrive through here.
+  describe 'the confirmation header' do
+    def confirm_token_for(raw)
+      request_env = { 'PATH_INFO' => '/users/ur_target' }
+      request_env['HTTP_X_OTS_CONFIRM'] = raw unless raw.nil?
+      strategy.send(:build_metadata, request_env)[:confirm_token]
+    end
+
+    it 'surfaces the header on an ordinary colonel request' do
+      expect(confirm_token_for('victim%40example.com')).to eq('victim@example.com')
+    end
+
+    it 'surfaces it on the diagnostic route too (merged before that branch)' do
+      env['HTTP_X_OTS_CONFIRM'] = 'anything'
+      metadata = strategy.send(:build_metadata, env)
+
+      expect(metadata[:confirm_token]).to eq('anything')
+      expect(metadata).to have_key(:proxy_header_debug)
+    end
+
+    it 'is nil when the header is absent or empty' do
+      expect(confirm_token_for(nil)).to be_nil
+      expect(confirm_token_for('')).to be_nil
+    end
+
+    # HTTP header values are ISO-8859-1 by RFC 7230, so a non-ASCII token (an
+    # org display name) has to be percent-encoded by the client and decoded here.
+    it 'percent-decodes a non-ASCII token back to UTF-8' do
+      token = confirm_token_for('Acme%20Gmbh%20%C3%9Cberwachung')
+
+      expect(token).to eq('Acme Gmbh Überwachung')
+      expect(token.encoding).to eq(Encoding::UTF_8)
+    end
+
+    it 'leaves a plain ASCII token untouched, so curl works as typed' do
+      expect(confirm_token_for('victim@example.com')).to eq('victim@example.com')
+    end
+
+    it 'caps the raw header before decoding so a huge value cannot force a huge allocation' do
+      cap = described_class::MAX_CONFIRM_BYTES
+
+      expect(confirm_token_for('a' * (cap * 4)).bytesize).to eq(cap)
+    end
+
+    it 'treats an undecodable header as no token rather than raising' do
+      allow(Rack::Utils).to receive(:unescape).and_raise(ArgumentError, 'bad encoding')
+
+      expect(confirm_token_for('anything')).to be_nil
+    end
+  end
 end

@@ -45,6 +45,16 @@ module ColonelAPI
 
           @customer = resolve_customer(@member_id)
           raise_not_found('Member not found') unless @customer
+
+          # TIER 1 (#4326): a membership role grants access to that org's data.
+          # The URL carries the member's extid; the confirmation is their EMAIL.
+          guard_destructive_action!(
+            tier: :destructive,
+            confirm_with: account_confirm_token(customer),
+            confirm_subject: "the member's email address",
+            field: :member_id,
+          )
+          charge_destructive_budget!
         end
 
         def process

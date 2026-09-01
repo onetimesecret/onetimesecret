@@ -43,13 +43,27 @@ module ColonelAPI
         HTTP_APX_INCOMING_HOST
       ].freeze
 
+      # Destructive-action confirmation token (#4326). Carried as a REQUEST HEADER,
+      # never a query parameter: the tokens are frequently PII (a target's email,
+      # an org display name) and a query string is logged verbatim by every default
+      # access-log format, lands in browser history, and can leak via Referer.
+      CONFIRM_HEADER = 'HTTP_X_OTS_CONFIRM'
+
+      # Cap applied BEFORE percent-decoding so a huge header cannot force a huge
+      # allocation. The logic layer caps again after decoding (MAX_CONFIRM_LENGTH).
+      MAX_CONFIRM_BYTES = 512
+
       protected
 
       # Capture a fixed, non-sensitive subset only for the diagnostic route.
       # Its `network=admin` requirement makes both admin allowlists mandatory;
       # no request headers are added to ordinary Colonel strategy metadata.
+      #
+      # The confirmation token is the ONE exception: it is merged on EVERY colonel
+      # request, before the diagnostic branch's early exit, because it is how the
+      # logic layer receives it (logic classes never see the Rack env).
       def build_metadata(env, additional = {})
-        metadata = super
+        metadata = super(env, additional.merge(confirm_token: confirm_token_from(env)))
         return metadata unless Otto::Utils.normalize_path(env['PATH_INFO']) == PROXY_DEBUG_HEADERS_PATH
 
         metadata.merge(
@@ -70,6 +84,18 @@ module ColonelAPI
         keys.to_h do |key|
           [key.delete_prefix('HTTP_').tr('_', '-').downcase, env[key]]
         end
+      end
+
+      # Percent-decoded so a non-ASCII token (org display names) survives the
+      # ISO-8859-1 header charset both sides agree on. An absent, empty or
+      # undecodable header is "no token" — never a crash, never a partial match.
+      def confirm_token_from(env)
+        raw = env[CONFIRM_HEADER].to_s
+        return nil if raw.empty?
+
+        Rack::Utils.unescape(raw[0, MAX_CONFIRM_BYTES], Encoding::UTF_8)
+      rescue StandardError
+        nil
       end
     end
 

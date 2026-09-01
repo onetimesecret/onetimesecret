@@ -14,6 +14,7 @@
   import type { DataTableColumn } from '@/apps/admin/components/kit';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
+  import { confirmHeaders } from '@/apps/admin/utils/confirmHeader';
   import { useAdminSessions } from '@/apps/admin/stores/useAdminSessions';
   import type { ColonelSession } from '@/schemas/api/internal/responses/colonel-sessions';
   import {
@@ -294,9 +295,10 @@
   /** Owner hint for the server's two-stage handle resolution (see detailUrl). */
   const revokeOwner = ref('');
   /**
-   * What the operator retypes AND what P2 will send in X-OTS-Confirm: the session
-   * owner's email (its extid when it has none). Never blank — a blank token
-   * silently degrades AdminConfirmDialog to a one-click confirm.
+   * What the operator retypes AND what rides in X-OTS-Confirm (#4326): the
+   * session owner's email (its extid when it has none, the handle for an
+   * anonymous session). Never blank — a blank token silently degrades
+   * AdminConfirmDialog to a one-click confirm, and the server would 403.
    */
   const revokeToken = ref('');
 
@@ -309,8 +311,13 @@
     const handle = revokeTarget.value;
     if (!handle) throw new Error('No session selected');
     const owner = encodeURIComponent(revokeOwner.value);
+    // The owner identifier the operator retyped is also what the server requires
+    // in X-OTS-Confirm (#4326). It rides a HEADER, never the query string: the
+    // token is usually an email address, and `?user_id=` is only an owner HINT
+    // for the handle lookup.
     const response = await $api.delete(
-      `/api/colonel/sessions/${encodeURIComponent(handle)}?user_id=${owner}`
+      `/api/colonel/sessions/${encodeURIComponent(handle)}?user_id=${owner}`,
+      { headers: confirmHeaders(revokeToken.value) }
     );
     // A 2xx means the session was revoked server-side regardless of ack shape;
     // the parse keeps the contract a live tripwire without failing the action.

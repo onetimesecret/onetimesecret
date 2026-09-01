@@ -77,6 +77,11 @@ const i18n = createTestI18n();
 const ORG_EXTID = 'on_abc123';
 const ORG_URL = `/api/colonel/organizations/${ORG_EXTID}`;
 const MEMBERS_URL = `${ORG_URL}/members`;
+/**
+ * Adding a member is privilege-granting, so the server gates it on the
+ * organization's NAME in X-OTS-Confirm (#4326).
+ */
+const CONFIRM_HEADERS = { headers: { 'X-OTS-Confirm': encodeURIComponent('Acme') } };
 const USERS_URL = '/api/colonel/users';
 
 /** Existing owner already on the roster. */
@@ -370,10 +375,11 @@ describe('AdminOrganizationDetail — add an existing account to the organizatio
     await flushPromises();
 
     // Never an email address: the colonel adapter resolves the public id.
-    expect(mockApi.post).toHaveBeenCalledWith(MEMBERS_URL, {
-      customer: CANDIDATE_EXTID,
-      role: 'admin',
-    });
+    expect(mockApi.post).toHaveBeenCalledWith(
+      MEMBERS_URL,
+      { customer: CANDIDATE_EXTID, role: 'admin' },
+      CONFIRM_HEADERS
+    );
     expect(showMock).toHaveBeenCalledTimes(1);
     expect(showMock.mock.calls[0][0]).toBe('web.admin.organizations.addMember.success');
     expect(showMock.mock.calls[0][1]).toBe('success');
@@ -529,10 +535,11 @@ describe('AdminOrganizationDetail — add an existing account to the organizatio
 
     await wrapper.find('[data-testid="add-member-submit"]').trigger('click');
     await flushPromises();
-    expect(mockApi.post).toHaveBeenCalledWith(MEMBERS_URL, {
-      customer: CANDIDATE_EXTID,
-      role: 'member',
-    });
+    expect(mockApi.post).toHaveBeenCalledWith(
+      MEMBERS_URL,
+      { customer: CANDIDATE_EXTID, role: 'member' },
+      CONFIRM_HEADERS
+    );
   });
 
   it('renders a retryable banner when the account search itself fails', async () => {

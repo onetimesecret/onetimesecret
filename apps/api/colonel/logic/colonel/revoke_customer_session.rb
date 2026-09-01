@@ -40,7 +40,7 @@ module ColonelAPI
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.
       class RevokeCustomerSession < ColonelAPI::Logic::Base
-        attr_reader :user_id, :session_handle, :session_id, :result
+        attr_reader :user_id, :session_handle, :session_id, :customer, :result
 
         def process_params
           @user_id        = sanitize_identifier(params['user_id'])
@@ -57,6 +57,17 @@ module ColonelAPI
           # server). 404 when it names none — a stale or unknown handle.
           @session_id = resolve_session_id
           raise_not_found('Session not found') if session_id.nil?
+
+          # TIER 1 (#4326). The URL carries the owner's extid and an opaque
+          # handle; the confirmation is the owner's EMAIL. `customer` is non-nil
+          # here — resolve_session_id returns nil (⇒ 404 above) when it is not.
+          guard_destructive_action!(
+            tier: :destructive,
+            confirm_with: account_confirm_token(customer),
+            confirm_subject: "the session owner's email address",
+            field: :session_handle,
+          )
+          charge_destructive_budget!
         end
 
         def process
@@ -90,8 +101,8 @@ module ColonelAPI
         # the customer is unknown or no member matches. Customer resolution mirrors
         # RevokeForCustomer / ListForCustomer: extid → email → objid.
         def resolve_session_id
-          customer = Onetime::Customer.load_by_extid_or_email(user_id) ||
-                     Onetime::Customer.load(user_id)
+          @customer = Onetime::Customer.load_by_extid_or_email(user_id) ||
+                      Onetime::Customer.load(user_id)
           return nil unless customer&.exists?
 
           customer.active_sessions.revrange(0, -1).find do |sid|

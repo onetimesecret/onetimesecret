@@ -27,6 +27,12 @@
   const props = defineProps<{
     /** The customer's public id (extid, 'ur…'), forwarded from the detail view. */
     userId: string;
+    /**
+     * The account identifier the server gates both revoke verbs on (#4326) —
+     * the customer's email, its public id when it has none. Resolved by the
+     * detail view, which is the only surface here that holds the record.
+     */
+    confirmToken: string;
   }>();
 
   const { t } = useI18n();
@@ -96,7 +102,7 @@
     if (!revokeTarget.value) throw new Error('No session selected');
     // The store optimistically drops the row on a 2xx; a failure throws before
     // the drop, so useAdminMutation captures it and the row stays for retry.
-    await store.revoke(props.userId, revokeTarget.value);
+    await store.revoke(props.userId, revokeTarget.value, props.confirmToken);
   });
 
   function requestRevoke(sessionHandle: string): void {
@@ -134,7 +140,7 @@
     reset: resetRevokeAll,
   } = useAdminMutation(async () => {
     // run() only returns a boolean, so stash the server's counts for the toast.
-    const record = await store.revokeAll(props.userId);
+    const record = await store.revokeAll(props.userId, props.confirmToken);
     lastRevokedCount.value = record.blobs_deleted;
     lastScanCapped.value = record.scan_capped;
   });

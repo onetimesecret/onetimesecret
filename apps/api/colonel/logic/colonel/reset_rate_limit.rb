@@ -40,6 +40,17 @@ module ColonelAPI
           unless Onetime::Operations::RateLimit::Registry.known?(kind)
             raise_not_found("Unknown rate limiter: #{kind}")
           end
+
+          # TIER 2 (#4326): a reset removes an active defence. The composed token
+          # DEPENDS on the two required-field guards above — without them an
+          # empty kind and subject would compose the non-blank string ":" and
+          # slip past the blank-expected tripwire in require_confirmation!.
+          guard_destructive_action!(
+            tier: :sensitive,
+            confirm_with: "#{kind}:#{subject}",
+            confirm_subject: 'the limiter kind and subject joined by a colon',
+            field: :kind,
+          )
         end
 
         def process

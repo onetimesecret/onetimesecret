@@ -30,7 +30,7 @@ module ColonelAPI
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.
       class RevokeAllCustomerSessions < ColonelAPI::Logic::Base
-        attr_reader :user_id, :result
+        attr_reader :user_id, :user, :result
 
         def process_params
           @user_id = sanitize_identifier(params['user_id'])
@@ -39,6 +39,24 @@ module ColonelAPI
 
         def raise_concerns
           verify_one_of_roles!(colonel: true)
+
+          # Resolved for the CONFIRMATION TOKEN only — this is deliberately not a
+          # 404 guard today (the op is idempotent on an unknown custid). P4
+          # (#4328) adds the existence check and the self-target interlock here,
+          # between this resolve and the guard below.
+          @user = Onetime::Customer.load_by_extid_or_email(user_id) ||
+                  Onetime::Customer.load(user_id)
+
+          # TIER 1 (#4326). The URL carries the extid; the confirmation is the
+          # account's EMAIL. An account the console cannot resolve falls back to
+          # the identifier the caller sent, so the expected token is never blank.
+          guard_destructive_action!(
+            tier: :destructive,
+            confirm_with: user&.exists? ? account_confirm_token(user) : user_id,
+            confirm_subject: "the target account's email address (or its external id when it has none)",
+            field: :user_id,
+          )
+          charge_destructive_budget!
         end
 
         def process

@@ -6,6 +6,7 @@ require_relative '../base'
 require_relative 'account_identifier'
 require 'onetime/operations/sessions/store'
 require 'onetime/operations/sessions/delete_session'
+require 'onetime/operations/sessions/inspect_session'
 
 module ColonelAPI
   module Logic
@@ -59,8 +60,19 @@ module ColonelAPI
             Familia.dbclient, session_handle, owner_hint: @owner_hint
           )
           raise_not_found('Session not found') unless session_id
-          # P2 inserts guard_destructive_action! here; P4 inserts the self-target
-          # interlock AFTER it; P5 inserts charge_destructive_budget! last (§0.2).
+
+          # TIER 1 (#4326). The URL carries only the opaque handle, so the
+          # confirmation is the session OWNER — an identifier the operator reads
+          # off the row and the handle cannot be transformed into.
+          # P4 (#4328) inserts the self-target interlock AFTER this call and
+          # BEFORE charge_destructive_budget! (guard order §0.2).
+          guard_destructive_action!(
+            tier: :destructive,
+            confirm_with: owner_token,
+            confirm_subject: owner_subject,
+            field: :session_handle,
+          )
+          charge_destructive_budget!
         end
 
         def process
@@ -85,6 +97,39 @@ module ColonelAPI
               message: 'Session revoked successfully',
             },
           }
+        end
+
+        private
+
+        # The confirmation token: the session owner's email, its external id when
+        # the payload carries no address, and the handle itself for an anonymous
+        # (identity-less) session — which has no owner to name. Never blank, so
+        # the guard's blank-expected tripwire stays a programming-error signal.
+        # Mirrors the console row, which computes the same three-way fallback.
+        def owner_token
+          @owner_token ||= begin
+            data = inspected_payload
+            [data['email'], data['external_id'], data['account_external_id']]
+              .map { |value| value.to_s.strip }
+              .find { |value| !value.empty? } || session_handle
+          end
+        end
+
+        # Names what to retype, honestly: an anonymous session's token is the
+        # handle, and telling the operator to send an email address they cannot
+        # find would be an unanswerable 403.
+        def owner_subject
+          if owner_token == session_handle
+            'the session handle (this session carries no owner identity)'
+          else
+            "the session owner's email address"
+          end
+        end
+
+        # Read-only, and the ONLY reason this mutation loads the payload: the
+        # confirmation token has to name the owner. Reads never audit.
+        def inspected_payload
+          Onetime::Operations::Sessions::Inspect.new(session_id: session_id).call.data || {}
         end
       end
     end

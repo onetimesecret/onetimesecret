@@ -24,13 +24,18 @@ RSpec.describe ColonelAPI::Logic::Colonel::DeleteOrganization do
 
   let(:org) do
     instance_double(Onetime::Organization,
-      objid: 'org_internal', extid: 'or_target', exists?: true)
+      objid: 'org_internal', extid: 'or_target', display_name: 'Target Org', exists?: true)
   end
 
-  let(:strategy_result) do
+  # The apply path requires the org's NAME in X-OTS-Confirm (#4326); the preview
+  # path requires nothing. `confirm_token` is where the colonel session auth
+  # strategy puts the percent-decoded header — never params.
+  def strategy_result_for(confirm_token = 'Target Org')
     double('StrategyResult', session: {}, user: colonel,
-      auth_method: 'sessionauth', metadata: {})
+      auth_method: 'sessionauth', metadata: { confirm_token: confirm_token })
   end
+
+  let(:strategy_result) { strategy_result_for }
 
   def build_result(status:, **overrides)
     result_class.new(
@@ -70,6 +75,37 @@ RSpec.describe ColonelAPI::Logic::Colonel::DeleteOrganization do
     allow(Onetime::Organization).to receive(:find_by_extid).and_return(org)
     allow(Onetime::Operations::Org::Delete).to receive(:new).and_return(op)
     allow(Onetime::ColonelAuditEvent).to receive(:record)
+  end
+
+  # ---- Server-side confirmation (#4326) --------------------------------------
+  #
+  # The preview is EXEMPT: it writes nothing, and it is the payload the operator
+  # confirms against. Only the apply is gated.
+  describe 'confirmation' do
+    let(:expected_confirm_token) { 'Target Org' }
+
+    def confirmed_logic_for(confirm_token)
+      allow(op).to receive(:call).and_return(build_result(status: :success))
+      described_class.new(
+        strategy_result_for(confirm_token),
+        { 'org_id' => 'or_target', 'dry_run' => 'false' },
+      )
+    end
+
+    it_behaves_like 'a confirmed colonel action'
+
+    it 'requires no confirmation for a dry-run preview' do
+      allow(op).to receive(:call).and_return(build_result(status: :planned))
+      logic = described_class.new(strategy_result_for(nil), { 'org_id' => 'or_target' })
+
+      expect { logic.raise_concerns }.not_to raise_error
+      expect(logic.process[:details][:dry_run]).to be true
+    end
+
+    it 'falls back to the org extid when the organization has no display name' do
+      allow(org).to receive(:display_name).and_return('')
+      expect { confirmed_logic_for('or_target').raise_concerns }.not_to raise_error
+    end
   end
 
   describe 'dry-run default (destructive verb, preview posture)' do

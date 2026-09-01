@@ -67,6 +67,17 @@ module ColonelAPI
           if secret.receipt_identifier
             @receipt = Onetime::Receipt.load(secret.receipt_identifier)
           end
+
+          # TIER 1 (#4326). The shortid is an identifier the URL does not carry:
+          # the route is keyed by :secret_id (the objid), so a scraped-URL replay
+          # must additionally know the receipt shortid.
+          guard_destructive_action!(
+            tier: :destructive,
+            confirm_with: @audit_target,
+            confirm_subject: 'the secret shortid',
+            field: :secret_id,
+          )
+          charge_destructive_budget!
         end
 
         def process

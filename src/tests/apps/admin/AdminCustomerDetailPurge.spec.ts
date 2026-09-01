@@ -172,7 +172,11 @@ describe('AdminCustomerDetail — purge gate (typed email) + verification state'
     await wrapper.find('form').trigger('submit');
     await flushPromises();
 
-    expect(mockApi.delete).toHaveBeenCalledWith(`/api/colonel/users/${PUBLIC_ID}`);
+    // The typed email is also what the server is gated on (#4326) — sent as a
+    // HEADER, so the address never enters the URL, a log, or browser history.
+    expect(mockApi.delete).toHaveBeenCalledWith(`/api/colonel/users/${PUBLIC_ID}`, {
+      headers: { 'X-OTS-Confirm': encodeURIComponent(EMAIL) },
+    });
     expect(showMock).toHaveBeenCalledWith('web.admin.customers.actions.purge.success', 'success');
     expect(pushMock).toHaveBeenCalledWith({ name: 'AdminCustomers' });
   });
@@ -193,18 +197,30 @@ describe('AdminCustomerDetail — purge gate (typed email) + verification state'
     expect(showMock).not.toHaveBeenCalled();
   });
 
-  it('leaves SUSPEND on the public-id token (only purge moved to the email)', async () => {
+  // #4326 moved SUSPEND onto the same email token: the server gates all four
+  // danger verbs on the account identifier, and a dialog that asked for the
+  // public id while sending the email would be two gates disagreeing.
+  it('puts SUSPEND on the email token too, not the public id', async () => {
     await mountLoaded();
     mockApi.post.mockResolvedValue({ data: mutationAck() });
 
     await wrapper.find('[data-testid="suspend-button"]').trigger('click');
     await flushPromises();
 
-    await dialogInput(wrapper).setValue(EMAIL);
+    await dialogInput(wrapper).setValue(PUBLIC_ID);
     expect(dialogSubmit(wrapper).attributes('disabled')).toBeDefined();
 
-    await dialogInput(wrapper).setValue(PUBLIC_ID);
+    await dialogInput(wrapper).setValue(EMAIL);
     expect(dialogSubmit(wrapper).attributes('disabled')).toBeUndefined();
+
+    await wrapper.find('form').trigger('submit');
+    await flushPromises();
+
+    expect(mockApi.post).toHaveBeenCalledWith(
+      `/api/colonel/users/${PUBLIC_ID}/suspend`,
+      {},
+      { headers: { 'X-OTS-Confirm': encodeURIComponent(EMAIL) } }
+    );
   });
 
   it('states the verification badge both ways and offers only the matching verb', async () => {
@@ -237,7 +253,12 @@ describe('AdminCustomerDetail — purge gate (typed email) + verification state'
     await wrapper.find('form').trigger('submit');
     await flushPromises();
 
-    expect(mockApi.post).toHaveBeenCalledWith(`/api/colonel/users/${PUBLIC_ID}/verify`, {});
+    // Verify is the restorative arm: un-gated, so no confirmation header.
+    expect(mockApi.post).toHaveBeenCalledWith(
+      `/api/colonel/users/${PUBLIC_ID}/verify`,
+      {},
+      undefined
+    );
     expect(pushMock).not.toHaveBeenCalled();
     expect(wrapper.find('[data-testid="verified-badge"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="unverify-button"]').exists()).toBe(true);

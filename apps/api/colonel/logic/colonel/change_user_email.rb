@@ -75,6 +75,20 @@ module ColonelAPI
           raise_not_found('User not found') unless user&.exists?
 
           raise_form_error('Cannot modify anonymous user', field: :user_id) if user.anonymous?
+
+          # PREVIEW EXEMPTION (#4326): a dry run writes nothing, so only the
+          # apply path is gated. dry_run defaults to TRUE here.
+          return if dry_run
+
+          # TIER 1. The token is the account's CURRENT address — the one the
+          # operator is changing away from, which the URL (an extid) never carries.
+          guard_destructive_action!(
+            tier: :destructive,
+            confirm_with: user.email,
+            confirm_subject: "the account's current email address",
+            field: :user_id,
+          )
+          charge_destructive_budget!
         end
 
         def process
@@ -206,10 +220,6 @@ module ColonelAPI
           when :no_change then 'User already uses that email address'
           else result.status.to_s
           end
-        end
-
-        def truthy?(value)
-          %w[true 1 yes on].include?(value.to_s.strip.downcase)
         end
       end
     end

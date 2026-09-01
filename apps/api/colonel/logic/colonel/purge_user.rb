@@ -41,7 +41,23 @@ module ColonelAPI
           raise_not_found('User not found') unless user&.exists?
 
           raise_form_error('Cannot purge anonymous user', field: :user_id) if user.anonymous?
+
+          # TIER 1 (#4326). The URL carries the extid; the confirmation is the
+          # account's EMAIL (its extid only when it has none), so a scraped-id
+          # replay must also know an identifier the URL never carried.
+          guard_destructive_action!(
+            tier: :destructive,
+            confirm_with: account_confirm_token(user),
+            confirm_subject: 'the account email address (or its external id when it has none)',
+            field: :user_id,
+          )
+
+          # INTERLOCK — after proof (guard order §0.2): a 422 here would
+          # otherwise tell a caller who has proven nothing whether the named
+          # account is their own.
           raise_form_error('Cannot purge your own account', field: :user_id) if user.objid == cust.objid
+
+          charge_destructive_budget!
         end
 
         def process

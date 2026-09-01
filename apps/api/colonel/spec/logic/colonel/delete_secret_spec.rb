@@ -42,14 +42,29 @@ RSpec.describe ColonelAPI::Logic::Colonel::DeleteSecret do
       destroy!: true)
   end
 
-  def strategy_result_for(user)
+  # `confirm_token` is where the colonel session auth strategy puts the
+  # percent-decoded X-OTS-Confirm header (#4326) — never params.
+  def strategy_result_for(user, confirm_token = 'sec12345')
     double('StrategyResult', session: {}, user: user,
-      auth_method: 'sessionauth', metadata: {})
+      auth_method: 'sessionauth', metadata: { confirm_token: confirm_token })
   end
 
   def logic_for(user = colonel)
     described_class.new(strategy_result_for(user), { 'secret_id' => 'sec12345abcdef' })
   end
+
+  # ---- Server-side confirmation (#4326) --------------------------------------
+
+  let(:expected_confirm_token) { 'sec12345' }
+
+  def confirmed_logic_for(confirm_token)
+    described_class.new(
+      strategy_result_for(colonel, confirm_token),
+      { 'secret_id' => 'sec12345abcdef' },
+    )
+  end
+
+  it_behaves_like 'a confirmed colonel action'
 
   before do
     allow(OT).to receive(:info)

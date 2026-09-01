@@ -76,6 +76,20 @@ module Onetime
           with_error_correlation(body, req, error)
         end
 
+        # Server-side destructive-action confirmation (#4326). Same 403 family as
+        # Forbidden; separate registration because Otto resolves handlers by exact
+        # class name (see the note above).
+        router.register_error_handler(Onetime::ConfirmationRequired, status: 403, log_level: :warn) do |error, req|
+          Onetime::Application::ErrorResolver.resolve!(error, req)
+          with_error_correlation(error.to_h, req, error)
+        end
+
+        # Programming error in a destructive guard (#4326). Registered so it is a
+        # deliberate 500 with correlation rather than an unhandled one.
+        router.register_error_handler(Onetime::GuardMisconfigured, status: 500, log_level: :error) do |error, req|
+          with_error_correlation(error.to_h, req, error)
+        end
+
         # Rate limit exceeded errors return 429 with retry info
         router.register_error_handler(Onetime::LimitExceeded, status: 429, log_level: :warn) do |error, req|
           Onetime::Application::ErrorResolver.resolve!(error, req)

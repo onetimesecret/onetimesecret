@@ -43,9 +43,22 @@ RSpec.describe ColonelAPI::Logic::Colonel::DeleteSession do
     instance_double(Onetime::Operations::Sessions::Delete, call: delete_result)
   end
 
-  def strategy_result_for(user)
+  # The confirmation token (#4326) is the session OWNER, read off the inspected
+  # payload — the handle in the URL cannot be transformed into it.
+  let(:owner_email) { 'owner@example.com' }
+
+  let(:inspect_result) do
+    Onetime::Operations::Sessions::Inspect::Result.new(
+      found: true, session_id: session_id, key: "session:#{session_id}", ttl: 3600,
+      data: { 'email' => owner_email, 'external_id' => 'ur_owner' },
+    )
+  end
+
+  # `confirm_token` is where the colonel session auth strategy puts the
+  # percent-decoded X-OTS-Confirm header — never params.
+  def strategy_result_for(user, confirm_token = owner_email)
     double('StrategyResult', session: {}, user: user,
-      auth_method: 'sessionauth', metadata: {})
+      auth_method: 'sessionauth', metadata: { confirm_token: confirm_token })
   end
 
   def logic_for(user = colonel, params = { 'session_handle' => handle })
@@ -64,7 +77,62 @@ RSpec.describe ColonelAPI::Logic::Colonel::DeleteSession do
     allow(OT).to receive(:le)
     allow(Familia).to receive(:dbclient).and_return(double('Redis'))
     allow(Onetime::Operations::Sessions::Delete).to receive(:new).and_return(delete_op)
+    allow(Onetime::Operations::Sessions::Inspect).to receive(:new).and_return(
+      instance_double(Onetime::Operations::Sessions::Inspect, call: inspect_result),
+    )
     allow(Onetime::ColonelAuditEvent).to receive(:record)
+  end
+
+  # ---- Server-side confirmation (#4326) --------------------------------------
+
+  describe 'confirmation' do
+    let(:expected_confirm_token) { owner_email }
+
+    def confirmed_logic_for(confirm_token)
+      described_class.new(
+        strategy_result_for(colonel, confirm_token),
+        { 'session_handle' => handle },
+      )
+    end
+
+    before { stub_resolution }
+
+    it_behaves_like 'a confirmed colonel action'
+
+    it 'falls back to the owner external id when the payload carries no email' do
+      allow(Onetime::Operations::Sessions::Inspect).to receive(:new).and_return(
+        instance_double(
+          Onetime::Operations::Sessions::Inspect,
+          call: Onetime::Operations::Sessions::Inspect::Result.new(
+            found: true, session_id: session_id, key: "session:#{session_id}", ttl: 1,
+            data: { 'external_id' => 'ur_owner' },
+          ),
+        ),
+      )
+
+      expect { confirmed_logic_for('ur_owner').raise_concerns }.not_to raise_error
+    end
+
+    it 'falls back to the handle for an anonymous session, and says so' do
+      allow(Onetime::Operations::Sessions::Inspect).to receive(:new).and_return(
+        instance_double(
+          Onetime::Operations::Sessions::Inspect,
+          call: Onetime::Operations::Sessions::Inspect::Result.new(
+            found: true, session_id: session_id, key: "session:#{session_id}", ttl: 1,
+            data: { 'csrf' => 'tok' },
+          ),
+        ),
+      )
+
+      expect { confirmed_logic_for(handle).raise_concerns }.not_to raise_error
+
+      error = begin
+        confirmed_logic_for(nil).raise_concerns
+      rescue Onetime::ConfirmationRequired => ex
+        ex
+      end
+      expect(error.message).to include('session handle')
+    end
   end
 
   describe 'handle resolution' do

@@ -363,4 +363,46 @@ module Onetime
       }.compact
     end
   end
+
+  # Raised when a destructive colonel verb was invoked without the matching
+  # server-side confirmation token (#4326). A Forbidden subclass deliberately:
+  # AuditedFailure.authorization_rejection? drops the whole Forbidden family, so a
+  # compromised colonel session cannot mint audit events by hammering a destructive
+  # route (the operator trail is count-capped with NO TTL).
+  class ConfirmationRequired < Forbidden
+    ERROR_CODE = 'confirmation_required'
+
+    attr_reader :field
+
+    def initialize(message = 'Confirmation required', field: nil, error_key: nil, args: {})
+      super(message, error_key: error_key, args: args)
+      @field = field
+    end
+
+    def to_h
+      {
+        error: message,
+        error_type: 'ConfirmationRequired',
+        error_code: ERROR_CODE,
+        field: field,
+        error_key: error_key,
+      }.compact
+    end
+  end
+
+  # A destructive-action guard was called with no expected token — a programming
+  # error in the calling logic class, never a caller-triggerable condition. 500,
+  # never a silent admit. Distinct from a bare Onetime::Problem because Otto
+  # resolves error handlers by EXACT class name and Problem is not registered.
+  class GuardMisconfigured < Problem
+    ERROR_CODE = 'guard_misconfigured'
+
+    def to_h
+      {
+        error: 'Internal configuration error',
+        error_type: 'GuardMisconfigured',
+        error_code: ERROR_CODE,
+      }
+    end
+  end
 end

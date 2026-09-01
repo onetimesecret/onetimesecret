@@ -237,7 +237,11 @@ describe('AdminSecrets (lookup-first inspect + guarded delete — ticket #30)', 
       await dialogForm(wrapper).trigger('submit');
       await flushPromises();
 
-      expect(mockApi.delete).toHaveBeenCalledWith(RECEIPT_URL);
+      // The same shortid the operator retyped rides X-OTS-Confirm (#4326); the
+      // URL carries the objid, so the token is an identifier it does not have.
+      expect(mockApi.delete).toHaveBeenCalledWith(RECEIPT_URL, {
+        headers: { 'X-OTS-Confirm': encodeURIComponent(SHORT_ID) },
+      });
       expect(showMock).toHaveBeenCalledWith('web.admin.secrets.actions.delete.success', 'success');
       // The read-out clears back to the lookup prompt (the secret is gone).
       expect(wrapper.find('[data-testid="secret-lookup-result"]').exists()).toBe(false);

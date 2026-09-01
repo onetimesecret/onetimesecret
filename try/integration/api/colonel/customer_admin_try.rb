@@ -65,6 +65,13 @@ AE = Onetime::ColonelAuditEvent
 @colonel_headers = { 'rack.session' => @colonel_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json', 'HTTP_X_CSRF_TOKEN' => tryouts_csrf_token(@colonel_session) }
 @regular_headers = { 'rack.session' => @regular_session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json', 'HTTP_X_CSRF_TOKEN' => tryouts_csrf_token(@regular_session) }
 
+# Server-side destructive-action confirmation (#4326): the gated verbs below
+# (role change, unverify, purge) require the target's email — percent-encoded —
+# in X-OTS-Confirm. Verify is the restorative arm and needs nothing.
+def confirming(customer, headers = @colonel_headers)
+  headers.merge('HTTP_X_OTS_CONFIRM' => Rack::Utils.escape(customer.email))
+end
+
 # ---- Authorization (both-auth-layers) ---------------------------------
 
 ## Non-colonel gets 403 on role change
@@ -99,7 +106,7 @@ last_response.status
 
 ## Role change returns 200 with the expected record shape
 AE.events.clear
-post "/api/colonel/users/#{@role_target.objid}/role", { role: 'admin' }.to_json, @colonel_headers
+post "/api/colonel/users/#{@role_target.objid}/role", { role: 'admin' }.to_json, confirming(@role_target)
 @role_resp = JSON.parse(last_response.body)
 [last_response.status, @role_resp['record']['new_role'], @role_resp['record']['old_role'], @role_resp['details']['changed']]
 #=> [200, "admin", "customer", true]
@@ -121,7 +128,7 @@ post "/api/colonel/users/#{@verify_target.objid}/verify", {}.to_json, @colonel_h
 #=> [200, true, "customer.set_verification"]
 
 ## Unverify returns 200 and marks the user unverified
-post "/api/colonel/users/#{@verify_target.objid}/unverify", {}.to_json, @colonel_headers
+post "/api/colonel/users/#{@verify_target.objid}/unverify", {}.to_json, confirming(@verify_target)
 [last_response.status, Onetime::Customer.load(@verify_target.objid).verified?]
 #=> [200, false]
 
@@ -129,7 +136,7 @@ post "/api/colonel/users/#{@verify_target.objid}/unverify", {}.to_json, @colonel
 
 ## Purge (DELETE) returns 200, destroys the user, audits once
 AE.events.clear
-delete "/api/colonel/users/#{@purge_target.objid}", {}, { 'rack.session' => @colonel_session, 'HTTP_ACCEPT' => 'application/json', 'HTTP_X_CSRF_TOKEN' => tryouts_csrf_token(@colonel_session) }
+delete "/api/colonel/users/#{@purge_target.objid}", {}, confirming(@purge_target, { 'rack.session' => @colonel_session, 'HTTP_ACCEPT' => 'application/json', 'HTTP_X_CSRF_TOKEN' => tryouts_csrf_token(@colonel_session) })
 @purge_resp = JSON.parse(last_response.body)
 [last_response.status, @purge_resp['record']['deleted'], Onetime::Customer.load(@purge_target_objid).nil?, AE.count, AE.recent(1).first['verb']]
 #=> [200, true, true, 1, "customer.purge"]

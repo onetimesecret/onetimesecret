@@ -58,6 +58,16 @@
   const notifications = useNotificationsStore();
   const store = useAdminDomains();
 
+  /**
+   * What the server requires in X-OTS-Confirm for the per-config verbs (#4326):
+   * "<display_domain>:<kind>". The URL carries the extid and the kind, so the
+   * hostname is the half a scraped-URL replay does not have. `ensure` is
+   * un-gated (an idempotent backfill of missing rows) and sends nothing.
+   */
+  function configConfirmToken(kind: DomainConfigKind): string {
+    return `${props.displayDomain}:${kind}`;
+  }
+
   // ---- Fetch (three failure modes kept distinct) -----------------------------
 
   const configs = ref<ColonelDomainConfigsMap | null>(null);
@@ -242,7 +252,11 @@
       }
       case 'delete': {
         if (!deleteKind.value) throw new Error('No config kind selected');
-        const ack = await store.deleteConfig(props.extid, deleteKind.value);
+        const ack = await store.deleteConfig(
+          props.extid,
+          deleteKind.value,
+          configConfirmToken(deleteKind.value)
+        );
         if (!ack) {
           // Null ack = 2xx whose payload failed the Zod contract. The DELETE
           // itself succeeded (a failure would have rejected), so keep the
@@ -313,7 +327,12 @@
     reset: resetUpsert,
   } = useAdminMutation(async (payload: Record<string, unknown>) => {
     if (!editKind.value) throw new Error('No config kind selected');
-    const ack = await store.upsertConfig(props.extid, editKind.value, payload);
+    const ack = await store.upsertConfig(
+      props.extid,
+      editKind.value,
+      payload,
+      configConfirmToken(editKind.value)
+    );
     if (!ack) {
       // Null ack = 2xx whose payload failed the Zod contract. The PUT itself
       // succeeded (a failure would have rejected), so keep the success flow —

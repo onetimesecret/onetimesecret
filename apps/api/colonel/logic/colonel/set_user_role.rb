@@ -41,13 +41,25 @@ module ColonelAPI
 
           raise_form_error('Cannot modify anonymous user', field: :user_id) if user.anonymous?
 
-          return if Auth::Operations::Customers::SetRole::VALID_ROLES.include?(new_role)
+          unless Auth::Operations::Customers::SetRole::VALID_ROLES.include?(new_role)
+            raise_form_error(
+              "Invalid role '#{new_role}'. Valid roles: " \
+              "#{Auth::Operations::Customers::SetRole::VALID_ROLES.join(', ')}",
+              field: :role,
+            )
+          end
 
-          raise_form_error(
-            "Invalid role '#{new_role}'. Valid roles: " \
-            "#{Auth::Operations::Customers::SetRole::VALID_ROLES.join(', ')}",
-            field: :role,
+          # TIER 1 (#4326). The URL carries the extid; the confirmation is the
+          # target's EMAIL, so a scraped-id replay needs a second identifier.
+          # P4 (#4328) inserts the self-demotion / last-colonel interlocks AFTER
+          # this call and BEFORE charge_destructive_budget! (guard order §0.2).
+          guard_destructive_action!(
+            tier: :destructive,
+            confirm_with: account_confirm_token(user),
+            confirm_subject: "the target account's email address",
+            field: :user_id,
           )
+          charge_destructive_budget!
         end
 
         def process

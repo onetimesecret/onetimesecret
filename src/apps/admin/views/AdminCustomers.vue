@@ -14,6 +14,7 @@
   import type { DataTableColumn, FilterConfig } from '@/apps/admin/components/kit';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useAdminCustomers } from '@/apps/admin/stores/useAdminCustomers';
+  import { accountConfirmToken } from '@/apps/admin/utils/confirmHeader';
   import type { ColonelUser } from '@/schemas/api/internal/responses/colonel';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useNotificationsStore } from '@/shared/stores/notificationsStore';
@@ -228,6 +229,16 @@
     return email ? email : null;
   }
 
+  /**
+   * The identifier the SERVER gates a row-scoped verb on (#4326): the email,
+   * its public id when the account has none. `purgeTokenFor` stays stricter —
+   * an emailless account has no purge confirmation an operator can meaningfully
+   * check against a ticket, so purge stays unavailable there.
+   */
+  function confirmTokenFor(row: ColonelUser): string | undefined {
+    return accountConfirmToken({ email: row.email, extid: row.extid });
+  }
+
   /** True when the drawer's row has no token to confirm a purge against. */
   const purgeBlocked = computed(() => purgeTokenFor(selectedCustomer.value) === null);
 
@@ -251,14 +262,22 @@
 
     if (action === 'purge') {
       // Last line of the fail-closed gate: no token, no DELETE — even if the
-      // dialog were somehow reached with a blank one.
-      if (!purgeTokenFor(target)) throw new Error(purgeBlockedReason.value);
-      await store.purge(target.user_id);
+      // dialog were somehow reached with a blank one. The same token the
+      // operator retyped is what rides in X-OTS-Confirm (#4326).
+      const token = purgeTokenFor(target);
+      if (!token) throw new Error(purgeBlockedReason.value);
+      await store.purge(target.user_id, token);
       return;
     }
     // The store patches the row in place on a 2xx; re-point the drawer at the
-    // new object so the verification state flips with no page reload.
-    const updated = await store.setVerification(target.user_id, action === 'verify');
+    // new object so the verification state flips with no page reload. Unverify
+    // is gated server-side and carries the same account identifier; verify is
+    // the restorative arm and carries nothing.
+    const updated = await store.setVerification(
+      target.user_id,
+      action === 'verify',
+      confirmTokenFor(target)
+    );
     if (!updated) return;
     actionTarget.value = updated;
     if (selectedCustomer.value?.user_id === updated.user_id) {

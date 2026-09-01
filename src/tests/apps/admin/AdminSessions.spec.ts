@@ -401,7 +401,13 @@ describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40
       await wrapper.find('form').trigger('submit');
       await flushPromises();
 
-      expect(mockApi.delete).toHaveBeenCalledWith(DETAIL_URL);
+      // The session owner's email rides X-OTS-Confirm (#4326) — a HEADER, so it
+      // never lands in an access log or the operator's history. `?user_id=` is
+      // only the owner hint for the handle lookup.
+      expect(mockApi.delete).toHaveBeenCalledWith(DETAIL_URL, {
+        headers: { 'X-OTS-Confirm': encodeURIComponent(OWNER_EMAIL) },
+      });
+      expect(DETAIL_URL).not.toContain(encodeURIComponent(OWNER_EMAIL));
       expect(showMock).toHaveBeenCalledWith('web.admin.sessions.revoke.success', 'success');
       expect(dialogInput(wrapper).exists()).toBe(false);
       expect(listGetCount()).toBe(before + 1);

@@ -16,10 +16,36 @@
 require 'onetime/logic/base'
 require 'onetime/application/authorization_policies'
 
+require_relative '../destructive_actions'
+require_relative 'destructive_action'
+
 module ColonelAPI
   module Logic
+    # ## The shared seam for the colonel hardening guards (epic #4323)
+    #
+    # {ColonelAPI::Logic::DestructiveAction} is included here, so every colonel
+    # logic class HAS the guards; only the classes named in
+    # {ColonelAPI::DestructiveActions} CALL them. Which classes those are — and
+    # which mutating verbs are deliberately un-gated — is committed data in
+    # `apps/api/colonel/destructive_actions.rb`, not prose.
+    #
+    # GUARD ORDER CONTRACT — inside raise_concerns, always, in this order:
+    #
+    #   1. verify_one_of_roles!(colonel: true)
+    #   2. resolve the target; existing 404 / 422 / enum / allowlist guards
+    #   3. guard_destructive_action!(...)      <- elevation (#4327), then
+    #                                             confirmation (#4326)
+    #   4. per-verb interlocks (self-target, last-colonel, sole-owner) (#4328)
+    #   5. charge_destructive_budget!          <- tier 1 only, ALWAYS LAST (#4329)
+    #
+    # Reordering it re-opens an information oracle (interlock 422s answering
+    # "is this the last colonel?" to a caller who proved nothing) or a
+    # budget-exhaustion DoS (cheap rejected requests burning the real operator's
+    # destructive allowance). Verbs with a `dry_run` preview run steps 3-5 on the
+    # apply path only.
     class Base < Onetime::Logic::Base
       include Onetime::Application::AuthorizationPolicies
+      include ColonelAPI::Logic::DestructiveAction
 
       using Familia::Refinements::TimeLiterals
 

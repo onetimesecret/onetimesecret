@@ -24,7 +24,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::TransferOrganizationOwnership do
 
   let(:org) do
     instance_double(Onetime::Organization,
-      objid: 'org_internal', extid: 'or_target', exists?: true)
+      objid: 'org_internal', extid: 'or_target', display_name: 'Target Org', exists?: true)
   end
 
   let(:new_owner) do
@@ -32,10 +32,15 @@ RSpec.describe ColonelAPI::Logic::Colonel::TransferOrganizationOwnership do
       objid: 'cust_new', extid: 'ur_newowner', anonymous?: false)
   end
 
-  let(:strategy_result) do
+  # dry_run is pinned false on this surface, so EVERY call is an apply and
+  # requires the org's NAME in X-OTS-Confirm (#4326). `confirm_token` is where
+  # the colonel session auth strategy puts the percent-decoded header.
+  def strategy_result_for(confirm_token = 'Target Org')
     double('StrategyResult', session: {}, user: colonel,
-      auth_method: 'sessionauth', metadata: {})
+      auth_method: 'sessionauth', metadata: { confirm_token: confirm_token })
   end
+
+  let(:strategy_result) { strategy_result_for }
 
   def build_result(status:, **overrides)
     result_class.new(
@@ -71,6 +76,22 @@ RSpec.describe ColonelAPI::Logic::Colonel::TransferOrganizationOwnership do
     allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(new_owner)
     allow(Onetime::Operations::Org::TransferOwnership).to receive(:new).and_return(op)
     allow(Onetime::ColonelAuditEvent).to receive(:record)
+  end
+
+  # ---- Server-side confirmation (#4326) --------------------------------------
+
+  describe 'confirmation' do
+    let(:expected_confirm_token) { 'Target Org' }
+
+    def confirmed_logic_for(confirm_token)
+      allow(op).to receive(:call).and_return(build_result(status: :success))
+      described_class.new(
+        strategy_result_for(confirm_token),
+        { 'org_id' => 'or_target', 'new_owner' => 'ur_newowner' },
+      )
+    end
+
+    it_behaves_like 'a confirmed colonel action'
   end
 
   describe 'success path' do

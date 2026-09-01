@@ -52,6 +52,19 @@ module ColonelAPI
           raise_not_found('User not found') unless user&.exists?
 
           raise_form_error('Cannot modify anonymous user', field: :user_id) if user.anonymous?
+
+          # Only the UNVERIFY arm is gated (#4326, TIER 2): has_system_role?
+          # refuses every elevated role to an unverified account, so unverifying
+          # strips colonel eligibility. VerifyUser is the restorative arm and
+          # stays un-gated. P4 (#4328) adds the last-colonel interlock AFTER this.
+          return if verified_target
+
+          guard_destructive_action!(
+            tier: :sensitive,
+            confirm_with: account_confirm_token(user),
+            confirm_subject: "the target account's email address",
+            field: :user_id,
+          )
         end
 
         def process

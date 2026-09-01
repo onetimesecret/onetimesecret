@@ -8,6 +8,7 @@
   import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
+  import { accountConfirmToken, confirmHeaders } from '@/apps/admin/utils/confirmHeader';
   import type {
     ColonelUserDetailReceipt,
     ColonelUserDetailSecret,
@@ -108,10 +109,14 @@
   async function callMutation(
     method: 'post' | 'delete',
     path: string,
-    body?: unknown
+    body?: unknown,
+    headers?: Record<string, string>
   ): Promise<void> {
+    const config = headers ? { headers } : undefined;
     const response =
-      method === 'delete' ? await $api.delete(path) : await $api.post(path, body ?? {});
+      method === 'delete'
+        ? await $api.delete(path, config)
+        : await $api.post(path, body ?? {}, config);
     gracefulParse(colonelUserMutationResponseSchema, response.data, 'ColonelUserMutationResponse');
   }
 
@@ -121,18 +126,25 @@
     run: runMutation,
     reset: resetMutation,
   } = useAdminMutation(async () => {
+    // Every DANGER action is gated server-side (#4326) on the SAME token the
+    // dialog asks the operator to retype. A missing one is a bug, not a
+    // fallback: sending no header is a 403 the operator cannot act on.
+    const confirm = confirmTokenFor(activeAction.value ?? 'verify');
+    const headers = confirm ? confirmHeaders(confirm) : undefined;
+
     switch (activeAction.value) {
       case 'setRole':
-        return callMutation('post', `${userUrl()}/role`, { role: pendingRole.value });
+        return callMutation('post', `${userUrl()}/role`, { role: pendingRole.value }, headers);
       case 'verify':
         return callMutation('post', `${userUrl()}/verify`);
       case 'unverify':
-        return callMutation('post', `${userUrl()}/unverify`);
+        return callMutation('post', `${userUrl()}/unverify`, {}, headers);
       case 'suspend':
         return callMutation(
           'post',
           `${userUrl()}/suspend`,
-          suspendReason.value.trim() ? { reason: suspendReason.value.trim() } : {}
+          suspendReason.value.trim() ? { reason: suspendReason.value.trim() } : {},
+          headers
         );
       case 'unsuspend':
         return callMutation('post', `${userUrl()}/unsuspend`);
@@ -140,7 +152,7 @@
         // Last line of the fail-closed gate: no typed token, no DELETE — even
         // if the dialog were somehow reached with a blank one.
         if (purgeBlocked.value) throw new Error(purgeBlockedReason.value);
-        return callMutation('delete', userUrl());
+        return callMutation('delete', userUrl(), undefined, headers);
       default:
         throw new Error('No active action');
     }
@@ -159,29 +171,48 @@
     purge: 'purge',
   };
 
-  /** Destructive actions gate confirm behind a typed-confirmation token. */
-  const DANGER_ACTIONS: readonly ActionKey[] = ['purge', 'suspend'];
+  /**
+   * Destructive actions gate confirm behind a typed-confirmation token.
+   *
+   * `setRole` and `unverify` joined this list with #4326. Promotion to colonel
+   * is privilege-granting, and unverifying an account STRIPS colonel
+   * eligibility (system roles require a verified email) — neither belongs
+   * behind a one-click confirm.
+   */
+  const DANGER_ACTIONS: readonly ActionKey[] = ['purge', 'suspend', 'setRole', 'unverify'];
 
   /**
-   * The exact string the operator must retype, or undefined for a one-click
-   * confirm. PURGE is irreversible, so it asks for the account's EMAIL — the
-   * identifier the operator can check against the ticket they are working,
-   * rather than an id they just copied off this page. Suspend is reversible and
-   * keeps the public id.
+   * The exact string the operator must retype, AND the token sent in
+   * X-OTS-Confirm — one value, so the gate cannot ask for one thing while
+   * accepting another.
    *
-   * FAILS CLOSED: a record with a blank email yields undefined, and purge is
-   * then UNAVAILABLE (disabled button + a stated reason) rather than silently
-   * dropping AdminConfirmDialog into one-click simple-confirm mode — or asking
-   * for the email while accepting some substitute identifier.
+   * It is the account's EMAIL (its public id only when the account has none),
+   * mirroring the server's `account_confirm_token` for all four danger actions.
+   * That is the identifier an operator can check against the ticket they are
+   * working, rather than an id they just copied off this page — and it is not
+   * the id the URL already carries.
+   *
+   * FAILS CLOSED: an unloaded record yields undefined, and the action is then
+   * UNAVAILABLE rather than silently dropping AdminConfirmDialog into one-click
+   * simple-confirm mode.
    */
   function confirmTokenFor(action: ActionKey): string | undefined {
     if (!DANGER_ACTIONS.includes(action)) return undefined;
-    if (action !== 'purge') return publicId.value;
-    return record.value?.email?.trim() || undefined;
+    return accountConfirmToken(record.value);
   }
 
-  /** True when purge must be unavailable: no email to type as confirmation. */
+  /** True when purge must be unavailable: no token to type as confirmation. */
   const purgeBlocked = computed(() => !confirmTokenFor('purge'));
+
+  /**
+   * The token the session-revoke verbs are gated on (#4326) — the same account
+   * identifier, resolved here because the sessions section only knows the
+   * route's public id. Falls back to that id, which is what the server resolves
+   * an account with no email to.
+   */
+  const sessionsConfirmToken = computed(
+    () => accountConfirmToken(record.value) ?? publicId.value
+  );
 
   /** Why purge is unavailable — rendered beside the disabled button. */
   const purgeBlockedReason = computed(() =>
@@ -839,7 +870,9 @@
 
       <!-- Active sessions (SIDECAR view — SessionMetadata safe_dump, no token/
            payload can appear). Guarded per-row revoke logs the user out. -->
-      <AdminCustomerSessionsSection :user-id="publicId" />
+      <AdminCustomerSessionsSection
+        :user-id="publicId"
+        :confirm-token="sessionsConfirmToken" />
 
       <!-- Account auth diagnostics (READ-ONLY) — why can't this user log in /
            sign up. Same read-out as `bin/ots customers diagnose`. -->
