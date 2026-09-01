@@ -67,6 +67,19 @@ RSpec.describe Onetime::Middleware::ImpersonationContext do
     JSON.parse(body.first)
   end
 
+  # What Rack::Parser (mounted ABOVE this guard) leaves behind for ANY method
+  # whose Content-Type matches: a parsed body in form_hash, which
+  # Rack::Request#POST then returns even on a GET.
+  def with_json_body(env, payload)
+    input = StringIO.new(JSON.generate(payload))
+    env.merge(
+      'CONTENT_TYPE' => 'application/json',
+      'rack.input' => input,
+      'rack.request.form_input' => input,
+      'rack.request.form_hash' => payload,
+    )
+  end
+
   describe 'context publication' do
     it 'publishes the marker plus the principal for the duration of the request' do
       middleware.call(env_for('GET', '', '/dashboard'))
@@ -121,12 +134,24 @@ RSpec.describe Onetime::Middleware::ImpersonationContext do
       expect(status).to eq(200)
     end
 
-    %w[HEAD OPTIONS].each do |verb|
-      it "allows #{verb}" do
-        status, = middleware.call(env_for(verb, '', '/dashboard'))
+    it 'allows HEAD' do
+      status, = middleware.call(env_for('HEAD', '', '/dashboard'))
 
-        expect(status).to eq(200)
-      end
+      expect(status).to eq(200)
+    end
+
+    # Otto dispatches OPTIONS rows to real handlers — `OPTIONS /secret/generate`
+    # runs GenerateSecret and CREATES a secret. A CORS preflight carries no
+    # cookies, so no legitimate impersonated request is an OPTIONS.
+    it 'denies OPTIONS, which Otto routes to real handlers' do
+      status, = middleware.call(env_for('OPTIONS', '/api/v2', '/secret/generate'))
+
+      expect(status).to eq(403)
+      expect(observed[:called]).to be_nil
+    end
+
+    it 'denies OPTIONS even on an ordinary path' do
+      expect(middleware.call(env_for('OPTIONS', '', '/dashboard')).first).to eq(403)
     end
 
     %w[POST PUT PATCH DELETE].each do |verb|
@@ -181,20 +206,116 @@ RSpec.describe Onetime::Middleware::ImpersonationContext do
       expect(observed[:called]).to be true
     end
 
-    # GET /api/v2/secret/:id?continue=true CONSUMES the secret.
-    it 'denies a secret GET carrying reveal intent' do
-      env = env_for('GET', '/api/v2', '/secret/abc123', 'QUERY_STRING' => 'continue=true')
+    # GET /api/v{2,3}/secret/:id CONSUMES the secret when the request carries
+    # continue=true, so the PATH is denied — no param sniffing involved.
+    describe 'consuming secret reads' do
+      %w[/api/v2 /api/v3].each do |mount|
+        it "denies GET #{mount}/secret/:id" do
+          status, _headers, body = middleware.call(env_for('GET', mount, '/secret/abc123'))
 
-      status, _headers, body = middleware.call(env)
+          expect(status).to eq(403)
+          expect(json_error(body)['error_code']).to eq('impersonation_read_only')
+        end
 
-      expect(status).to eq(403)
-      expect(json_error(body)['error_code']).to eq('impersonation_read_only')
+        it "denies the guest twin under #{mount}" do
+          expect(middleware.call(env_for('GET', mount, '/guest/secret/abc123')).first).to eq(403)
+        end
+
+        # #3633 made the status endpoint a pure read; it must stay reachable.
+        it "allows GET #{mount}/secret/:id/status" do
+          expect(middleware.call(env_for('GET', mount, '/secret/abc123/status')).first).to eq(200)
+        end
+
+        it "allows the receipt reads under #{mount}" do
+          expect(middleware.call(env_for('GET', mount, '/receipt/abc123')).first).to eq(200)
+          expect(middleware.call(env_for('GET', mount, '/receipt/recent')).first).to eq(200)
+        end
+      end
+
+      it 'denies HEAD on a consuming secret read too' do
+        expect(middleware.call(env_for('HEAD', '/api/v2', '/secret/abc123')).first).to eq(403)
+      end
+
+      # v1's reveal is a POST, so its GETs are ordinary receipt reads.
+      it 'leaves the v1 receipt reads alone' do
+        expect(middleware.call(env_for('GET', '/api/v1', '/receipt/abc123')).first).to eq(200)
+      end
     end
 
-    it 'allows the same GET without reveal intent' do
-      env = env_for('GET', '/api/v2', '/secret/abc123', 'QUERY_STRING' => 'continue=false')
+    # The bypass this guard shipped with: Rack::Parser publishes a JSON body
+    # as form_hash for ANY method, so `continue` never had to be in the query
+    # string. Path denial closes it; this proves the closure.
+    describe 'reveal intent smuggled in a JSON body on a GET' do
+      it 'denies it on the consuming secret path' do
+        env = with_json_body(env_for('GET', '/api/v3', '/secret/abc123'), 'continue' => true)
 
-      expect(middleware.call(env).first).to eq(200)
+        status, _headers, body = middleware.call(env)
+
+        expect(status).to eq(403)
+        expect(json_error(body)['error_code']).to eq('impersonation_read_only')
+        expect(observed[:called]).to be_nil
+      end
+
+      # Belt-and-braces: a reveal-intent param on a path the deny list does not
+      # know about is still refused, whichever side it arrives on.
+      it 'denies it on an unlisted path via the body' do
+        env = with_json_body(env_for('GET', '', '/some/future/reveal'), 'continue' => true)
+
+        expect(middleware.call(env).first).to eq(403)
+      end
+
+      it 'denies it on an unlisted path via the query string' do
+        env = env_for('GET', '', '/some/future/reveal', 'QUERY_STRING' => 'continue=true')
+
+        expect(middleware.call(env).first).to eq(403)
+      end
+
+      it 'allows an unlisted path whose body does not ask for a reveal' do
+        env = with_json_body(env_for('GET', '', '/some/future/reveal'), 'continue' => false)
+
+        expect(middleware.call(env).first).to eq(200)
+      end
+    end
+
+    describe 'GETs that mint external artifacts' do
+      {
+        'the Stripe customer portal (also creates a default org)' => ['', '/billing/portal'],
+        'the legacy customer-portal redirect' => ['', '/account/billing_portal'],
+        'the post-checkout finalizer' => ['', '/billing/welcome'],
+        'the checkout entry point' => ['', '/billing/plans/identity/monthly'],
+        'the legacy tier redirect' => ['', '/plans/identity'],
+        'the legacy tier+cycle redirect' => ['', '/plans/identity/month'],
+        'the DNS widget token' => ['/api/domains', '/dns-widget/token'],
+        'the plan-intent consumer' => ['/billing', '/api/org/org_abc/subscription'],
+      }.each do |what, (script_name, path_info)|
+        it "denies #{what}" do
+          status, _headers, body = middleware.call(env_for('GET', script_name, path_info))
+
+          expect(status).to eq(403), "#{script_name}#{path_info} was allowed"
+          expect(json_error(body)['error_code']).to eq('impersonation_read_only')
+        end
+      end
+
+      # The pages and reads that sit next to them must stay reachable, or the
+      # operator cannot see what they came to look at.
+      {
+        'the billing plans page itself' => ['/billing', '/plans'],
+        'the billing overview page' => ['/billing', '/overview'],
+        'the org billing overview read' => ['/billing', '/api/org/org_abc'],
+        'the invoices read' => ['/billing', '/api/org/org_abc/invoices'],
+        'the public plan catalogue' => ['/billing', '/api/plans'],
+        'the pricing page' => ['', '/pricing'],
+        'the account page' => ['', '/account'],
+        'the account settings page' => ['', '/account/settings'],
+        'the domains list' => ['/api/domains', '/'],
+        'a single domain read' => ['/api/domains', '/dom_abc'],
+      }.each do |what, (script_name, path_info)|
+        it "allows #{what}" do
+          status, = middleware.call(env_for('GET', script_name, path_info))
+
+          expect(status).to eq(200), "#{script_name}#{path_info} was denied"
+        end
+      end
     end
 
     it 'serves an HTML denial to a page navigation' do
@@ -241,6 +362,38 @@ RSpec.describe Onetime::Middleware::ImpersonationContext do
   # The frontend's error classifier (src/schemas/errors/classifier.ts
   # #extractUserMessage) toasts `details.error` verbatim, so `error` has to be
   # the sentence and the machine token has to live somewhere else.
+  # An earlier version returned '/' from request_path on failure, which is on
+  # no deny list — so an unparseable path was served as an ordinary page read.
+  describe 'unparseable paths fail CLOSED' do
+    before do
+      allow(Otto::Utils).to receive(:normalize_path).and_raise(ArgumentError, 'bad path')
+      allow(OT).to receive(:le)
+    end
+
+    it 'denies a read it cannot name' do
+      status, _headers, body = middleware.call(env_for('GET', '', '/dashboard'))
+
+      expect(status).to eq(403)
+      expect(json_error(body)['error_code']).to eq('impersonation_read_only')
+      expect(observed[:called]).to be_nil
+    end
+
+    it 'answers JSON rather than raising inside the denial' do
+      env = env_for('GET', '', '/dashboard', 'HTTP_ACCEPT' => 'text/html')
+
+      status, headers, = middleware.call(env)
+
+      expect(status).to eq(403)
+      expect(headers['content-type']).to eq('application/json')
+    end
+
+    it 'says so in the log' do
+      middleware.call(env_for('GET', '', '/dashboard'))
+
+      expect(OT).to have_received(:le).with(/path normalization failed/)
+    end
+  end
+
   describe 'the 403 wire contract' do
     subject(:parsed) do
       _status, _headers, body = middleware.call(env_for('POST', '/api/v3', '/secret/conceal'))
