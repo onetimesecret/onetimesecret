@@ -268,6 +268,76 @@ there would be an abort primitive over whatever path emitted the telemetry.
 Refusal records inside otherwise fail-closed ops (`Memberships::Remove`,
 `Memberships::SetRole`) also stay fail-open — a refusal mutated nothing.
 
+### Durability: the sink is the record, Valkey is the cache (#4334)
+
+Every event goes to two places, **in this order**:
+
+1. **The sink** — a structured log line on the dedicated `ColonelAudit`
+   SemanticLogger category, emitted *before* the datastore write. Message
+   `colonel.audit`, payload = the stored event plus `trail`
+   (`events` / `security_events`). This is the durability story: it leaves the
+   process immediately and nothing in the codebase can retract it.
+2. **The cache** — the capped sorted sets. Recent, filterable, bounded; what
+   the console, the export endpoint and the CLI query. Not an archive, and
+   never sized to be one.
+
+The ordering is the guarantee: a Valkey outage, an eviction or a trim cannot
+lose the record. The two are independent in both directions — a sink failure is
+caught and logged and never costs the Redis write or the caller; a datastore
+failure never un-emits the sink line (which is what makes the fail-closed
+posture above survivable: the operator is told the trail is broken, and the
+event is still in the log stream).
+
+By default the sink rides the console appender (stdout in server modes, stderr
+under the CLI). An **optional syslog appender**, filtered to the `ColonelAudit`
+category and **default off**, ships it separately — `audit.syslog` in
+`etc/defaults/logging.defaults.yaml`, `LOG_AUDIT_SYSLOG=true` to enable, with
+`LOG_AUDIT_SYSLOG_URL` / `_LEVEL` / `_FACILITY`. A local `syslog://` URL needs
+no third-party gem; a remote `tcp://` / `udp://` URL needs `syslog_protocol`
+(and `net_tcp_client` for TCP), which are not bundled — the appender is then
+skipped with one boot warning and the stream still reaches stdout.
+
+The sink's level is pinned in code (`SINK_LEVEL`), not read from the logging
+config: the durability story must not go quiet because the application default
+level was raised. Turning it off is a routing decision at the collector.
+
+### Reading and exporting (#4334)
+
+Three readers, one projection — `Onetime::ColonelAuditReader` (`lib/`, so the
+CLI reaches it without an app autoloader) owns the merge of both trails, the
+`actor` / `verb` filter semantics, and the **field allowlist**
+(`id, actor, verb, target, result, detail, created`):
+
+| Surface | Entry point | Body |
+|---|---|---|
+| Console list | `GET /api/colonel/audit` | JSON page + pagination |
+| Console export | `GET /api/colonel/audit/export?format=csv\|ndjson` | `text/csv` / `application/x-ndjson` attachment |
+| Shell | `bin/ots audit list [--limit] [--actor] [--verb] [--format text\|json\|csv\|ndjson]` | terminal table or a serialisation |
+
+The export route is the one colonel route that is not `response=json`: Otto's
+Logic-class handler never sees the Rack response and its JSON handler always
+re-encodes the body, so the download uses the `Klass.method` route form
+(precedent: `GET /ask Internal::ACME::AskHandler.call`). Because the body is not
+JSON it has **no Zod schema** — documented in
+`src/schemas/api/internal/responses/colonel-audit.ts`; the fields it serialises
+are the same allowlist `colonelAuditEventSchema` already types. All three
+surfaces are read-only (CONTRACT 4).
+
+### Retention narrows only via the constants (#4334)
+
+`trim!` and `trim_security!` are public and used to take their arguments at face
+value, so `trim!(0)` was a one-call wipe of the operator trail — a destructive
+primitive on the audit API. Both now **clamp in the widening direction**: a cap
+below `MAX_EVENTS` / `MAX_SECURITY_EVENTS` is raised to it, and a positive
+`max_age` below `SECURITY_EVENT_RETENTION` is raised to it (a non-positive
+`max_age` still disables the age pass, which keeps *more*). Narrowing retention
+is a change to the constants — a code change under review.
+
+Stated honestly: this bounds the audit API, not the Familia collection behind
+it. `ColonelAuditEvent.events.clear` still exists and is what test setup and
+deliberate operator surgery use; no application code calls it, and the sink
+above is untouched by anything done to Valkey.
+
 ## Cross-cutting rules
 
 - **Never fabricate an actor** (ADR-023): where the actor or its relation to

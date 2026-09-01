@@ -286,10 +286,13 @@ RSpec.describe Onetime::ColonelAuditEvent do
   end
 
   describe '.trim!' do
-    it 'keeps only the newest `cap` events, dropping the oldest overflow' do
-      5.times { |i| described_class.record(actor: 'a', verb: "v#{i}", target: 't', result: :success) }
+    it 'keeps only the newest MAX_EVENTS events, dropping the oldest overflow' do
+      stub_const("#{described_class}::MAX_EVENTS", 3)
+      # Written straight into the collection so the write path's own auto-trim
+      # does not do the work this example is about.
+      5.times { |i| described_class.events.add({ 'verb' => "v#{i}" }, Familia.now + i) }
 
-      removed = described_class.trim!(3)
+      removed = described_class.trim!
 
       expect(removed).to eq(2)
       expect(described_class.count).to eq(3)
@@ -299,8 +302,154 @@ RSpec.describe Onetime::ColonelAuditEvent do
     it 'is a no-op when the set is already within the cap' do
       2.times { |i| described_class.record(actor: 'a', verb: "v#{i}", target: 't', result: :success) }
 
-      expect(described_class.trim!(10)).to eq(0)
+      expect(described_class.trim!(described_class::MAX_EVENTS)).to eq(0)
       expect(described_class.count).to eq(2)
+    end
+
+    # #4334 — the tamper-resistance half. `trim!` is public, and before the
+    # clamp its argument was taken at face value: `trim!(0)` emptied the whole
+    # operator trail in one call. Retention may now only widen through this API.
+    it 'clamps a cap below MAX_EVENTS: trim!(0) can no longer wipe the trail' do
+      3.times { |i| described_class.record(actor: 'a', verb: "v#{i}", target: 't', result: :success) }
+
+      expect(described_class.trim!(0)).to eq(0)
+      expect(described_class.trim!(1)).to eq(0)
+      expect(described_class.trim!(-100)).to eq(0)
+      expect(described_class.count).to eq(3)
+    end
+  end
+
+  describe '.trim_security!' do
+    it 'clamps a cap below MAX_SECURITY_EVENTS' do
+      3.times { |i| described_class.record_security(actor: 'anonymous', verb: "s#{i}", target: 't', result: :failure) }
+
+      expect(described_class.trim_security!(0)).to eq(0)
+      expect(described_class.security_count).to eq(3)
+    end
+
+    # The age bound is the second door into the same wipe: without a clamp,
+    # `trim_security!(cap, 1)` drops everything older than one second.
+    it 'clamps a positive max_age below SECURITY_EVENT_RETENTION' do
+      described_class.security_events.add({ 'verb' => 'older' }, Familia.now - 3600)
+      described_class.security_events.add({ 'verb' => 'newer' }, Familia.now)
+
+      expect(described_class.trim_security!(described_class::MAX_SECURITY_EVENTS, 1)).to eq(0)
+      expect(described_class.recent_security(5).map { |e| e['verb'] }).to eq(%w[newer older])
+    end
+
+    it 'still applies the age bound at or above SECURITY_EVENT_RETENTION' do
+      stub_const("#{described_class}::SECURITY_EVENT_RETENTION", 60)
+      described_class.security_events.add({ 'verb' => 'stale' }, Familia.now - 3600)
+      described_class.security_events.add({ 'verb' => 'fresh' }, Familia.now)
+
+      expect(described_class.trim_security!(described_class::MAX_SECURITY_EVENTS, 60)).to eq(1)
+      expect(described_class.recent_security(5).map { |e| e['verb'] }).to eq(%w[fresh])
+    end
+
+    it 'treats a non-positive max_age as "no age bound" (it keeps more, not less)' do
+      described_class.security_events.add({ 'verb' => 'ancient' }, Familia.now - (10 * 365 * 24 * 3600))
+
+      expect(described_class.trim_security!(described_class::MAX_SECURITY_EVENTS, 0)).to eq(0)
+      expect(described_class.security_count).to eq(1)
+    end
+  end
+
+  # #4334 — the sink half: every event is emitted as a structured log line on a
+  # dedicated SemanticLogger category BEFORE the datastore write, so a Valkey
+  # outage cannot lose the record. Message expectations on the logger, not
+  # appender output: the point is what the write path emits, not how a
+  # particular appender renders it.
+  describe 'the external sink' do
+    let(:sink) { instance_spy(SemanticLogger::Logger, described_class::SINK_LOGGER_NAME) }
+
+    before { allow(described_class).to receive(:sink_logger).and_return(sink) }
+
+    it 'emits every operator event, tagged with its trail' do
+      described_class.record(actor: 'ur_col', verb: 'customer.purge', target: 'ur_v', result: :success)
+
+      expect(sink).to have_received(:info).once.with(
+        described_class::SINK_MESSAGE,
+        hash_including(
+          'actor' => 'ur_col',
+          'verb' => 'customer.purge',
+          'target' => 'ur_v',
+          'result' => 'success',
+          'trail' => 'events',
+        ),
+      )
+    end
+
+    it 'emits security-telemetry events too, on the other trail' do
+      described_class.record_security(actor: 'anonymous', verb: 'auth.throttled', target: 'ip', result: :failure)
+
+      expect(sink).to have_received(:info).once.with(
+        described_class::SINK_MESSAGE,
+        hash_including('verb' => 'auth.throttled', 'trail' => 'security_events'),
+      )
+    end
+
+    it 'emits the REDACTED detail, never the caller-supplied original' do
+      described_class.record(
+        actor: 'a', verb: 'v', target: 't', result: :success,
+        detail: { 'passphrase' => 'hunter2', 'note' => 'safe' },
+      )
+
+      expect(sink).to have_received(:info).once.with(
+        described_class::SINK_MESSAGE,
+        hash_including('detail' => { 'passphrase' => described_class::REDACTED, 'note' => 'safe' }),
+      )
+    end
+
+    # The ordering is the durability guarantee: the line is already gone before
+    # anything touches Redis. Simulated by swapping the whole collection —
+    # Familia's live SortedSet instance is frozen, so it cannot be stubbed in
+    # place.
+    def simulate_datastore_outage!
+      broken = instance_double(Familia::SortedSet)
+      allow(broken).to receive(:add).and_raise('valkey is down')
+      allow(broken).to receive(:clear) # the suite's after hook still runs against it
+      allow(described_class).to receive(:events).and_return(broken)
+    end
+
+    it 'emits before the datastore write, so a failed write still leaves a line' do
+      simulate_datastore_outage!
+
+      expect(described_class.record(actor: 'a', verb: 'customer.purge', target: 't', result: :success)).to be_nil
+      expect(sink).to have_received(:info).once
+    end
+
+    it 'raises the fail-closed error only after the sink has the record' do
+      simulate_datastore_outage!
+
+      expect do
+        described_class.record(actor: 'a', verb: 'customer.purge', target: 't', result: :success, fail_closed: true)
+      end.to raise_error(Onetime::AuditWriteFailure)
+      expect(sink).to have_received(:info).once
+    end
+
+    # Independence in the other direction: the sink is a log destination, and a
+    # broken appender must not cost the trail its Redis copy — nor, for a
+    # fail-closed verb, abort the operation.
+    it 'survives a sink failure without losing the datastore write' do
+      allow(sink).to receive(:info).and_raise('appender exploded')
+
+      event = described_class.record(actor: 'a', verb: 'customer.purge', target: 't', result: :success)
+
+      expect(event).to include('verb' => 'customer.purge')
+      expect(described_class.count).to eq(1)
+    end
+  end
+
+  describe '.sink_logger' do
+    it 'is the category the syslog appender filters on' do
+      expect(described_class::SINK_LOGGER_NAME)
+        .to eq(Onetime::Initializers::SetupLoggers::AUDIT_SINK_LOGGER_NAME)
+    end
+
+    # Pinned in code, not read from the logging config: the durability story
+    # must not go quiet because the application default level was raised.
+    it 'pins its level rather than following the application default' do
+      expect(described_class.sink_logger.level).to eq(described_class::SINK_LEVEL)
     end
   end
 end

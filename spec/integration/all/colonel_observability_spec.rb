@@ -3,6 +3,8 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'csv'
+require 'json'
 require 'securerandom'
 
 # Load the ColonelAPI application and its dependencies
@@ -15,6 +17,9 @@ require 'colonel/application'
 #   1. Audit log reader — ListColonelAuditEvents (GET /api/colonel/audit): newest-first
 #      pagination, actor/verb filters, and the CONTRACT 4 invariant that reading
 #      the log never writes an audit event.
+#   1b. Audit export — ExportColonelAuditEvents (GET /api/colonel/audit/export):
+#      the same merged trails and the same field allowlist, serialised as
+#      CSV / NDJSON for download. Also read-only.
 #   2. Trends — GetTrends (GET /api/colonel/trends): 30-day zero-filled series
 #      fed by the DailyMetric chokepoint counters, also read-only.
 RSpec.describe 'Colonel observability endpoints', type: :integration do
@@ -211,6 +216,173 @@ RSpec.describe 'Colonel observability endpoints', type: :integration do
 
       logic = ColonelAPI::Logic::Colonel::ListColonelAuditEvents.new(strategy_result_for(staff), {})
       expect { logic.raise_concerns }.to raise_error(Onetime::Forbidden)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # 1b. Audit export (ExportColonelAuditEvents) — #4334
+  #
+  # Same trails, same merge, same filters and the SAME FIELD ALLOWLIST as the
+  # list endpoint above; only the serialisation differs. These pin that the two
+  # cannot drift, and that the download is still read-only.
+  # ---------------------------------------------------------------------------
+  describe 'ExportColonelAuditEvents' do
+    def export(params = {})
+      logic = ColonelAPI::Logic::Colonel::ExportColonelAuditEvents.new(
+        strategy_result_for(colonel), params,
+      )
+      logic.raise_concerns
+      logic.process
+      logic
+    end
+
+    it 'defaults to CSV with the allowlisted header row' do
+      record_event(verb: 'customer.purge', target: 'ur_victim', detail: { 'reason' => 'gdpr' })
+
+      logic = export
+      rows  = CSV.parse(logic.body)
+
+      expect(logic.content_type).to eq('text/csv; charset=utf-8')
+      expect(logic.filename).to match(/\Acolonel-audit-\d{8}T\d{6}Z\.csv\z/)
+      expect(rows.first).to eq(%w[id actor verb target result detail created])
+      expect(rows[1][2]).to eq('customer.purge')
+      expect(rows[1][3]).to eq('ur_victim')
+      # detail is JSON-encoded into the one cell, so a consumer parses it back
+      # to exactly what the JSON list endpoint returns.
+      expect(JSON.parse(rows[1][5])).to eq('reason' => 'gdpr')
+    end
+
+    it 'emits NDJSON, one allowlisted object per line, newest first' do
+      record_event(verb: 'customer.set_role')
+      record_event(verb: 'banner.set')
+
+      logic = export('format' => 'ndjson')
+      lines = logic.body.lines.map { |line| JSON.parse(line) }
+
+      expect(logic.content_type).to eq('application/x-ndjson; charset=utf-8')
+      expect(lines.map { |e| e['verb'] }).to eq(%w[banner.set customer.set_role])
+      expect(lines.first.keys).to contain_exactly(*%w[id actor verb target result detail created])
+    end
+
+    it 'exports BOTH trails merged, like the list endpoint' do
+      record_event(verb: 'customer.set_role')
+      record_security_event(verb: 'auth.reset_request_throttled')
+
+      lines = export('format' => 'ndjson').body.lines.map { |line| JSON.parse(line) }
+
+      expect(lines.map { |e| e['verb'] })
+        .to contain_exactly('customer.set_role', 'auth.reset_request_throttled')
+    end
+
+    it 'honours the same actor / verb filters as the list endpoint' do
+      record_event(actor: 'ur_alice123', verb: 'customer.purge')
+      record_event(actor: 'ur_bob456', verb: 'session.delete')
+
+      by_verb  = export('format' => 'ndjson', 'verb' => 'customer').body.lines
+      by_actor = export('format' => 'ndjson', 'actor' => 'ALICE').body.lines
+
+      expect(by_verb.map { |l| JSON.parse(l)['verb'] }).to eq(%w[customer.purge])
+      expect(by_actor.map { |l| JSON.parse(l)['actor'] }).to eq(%w[ur_alice123])
+    end
+
+    it 'caps limit at the whole store and takes the newest when narrowed' do
+      3.times { |i| record_event(verb: "v#{i}") }
+
+      expect(export('limit' => '1').events.map { |e| e['verb'] }).to eq(%w[v2])
+      expect(export('limit' => '99999').limit)
+        .to eq(ColonelAPI::Logic::Colonel::ExportColonelAuditEvents::MAX_LIMIT)
+    end
+
+    it 'serialises an empty trail as a header-only CSV, not an error' do
+      expect(export.body).to eq("id,actor,verb,target,result,detail,created\n")
+      expect(export('format' => 'ndjson').body).to eq('')
+    end
+
+    # process_params runs inside Logic::Base#initialize, so this is raised
+    # before the instance exists — an unknown format never reaches a read.
+    it 'rejects an unknown format instead of silently defaulting' do
+      expect do
+        ColonelAPI::Logic::Colonel::ExportColonelAuditEvents.new(
+          strategy_result_for(colonel), { 'format' => 'xlsx' },
+        )
+      end.to raise_error(Onetime::FormError, /Unsupported export format/)
+    end
+
+    it 'exporting the log writes NO audit event (CONTRACT 4)' do
+      record_event
+      before_count = Onetime::ColonelAuditEvent.count
+
+      export
+      export('format' => 'ndjson', 'verb' => 'customer')
+
+      expect(Onetime::ColonelAuditEvent.count).to eq(before_count)
+    end
+
+    it 'rejects non-colonel actors (defense-in-depth below the router role gate)' do
+      staff = create_customer(email: "staff-#{SecureRandom.hex(4)}@example.com", role: 'staff')
+
+      logic = ColonelAPI::Logic::Colonel::ExportColonelAuditEvents.new(strategy_result_for(staff), {})
+      expect { logic.raise_concerns }.to raise_error(Onetime::Forbidden)
+    end
+
+    # The `Klass.method` adapter. Nothing else covers it: the colonel app's
+    # other routes are Logic-class routes whose response Otto builds, and this
+    # one has to write the bytes and the download headers itself.
+    describe '.render (the download adapter)' do
+      def render(query, user: colonel)
+        env                         = Rack::MockRequest.env_for("/api/colonel/audit/export?#{query}")
+        env['otto.strategy_result'] = strategy_result_for(user)
+        res                         = Rack::Response.new
+
+        ColonelAPI::Logic::Colonel::ExportColonelAuditEvents.render(Rack::Request.new(env), res)
+        res
+      end
+
+      def body_of(res)
+        buffer = +''
+        res.body.each { |chunk| buffer << chunk }
+        buffer
+      end
+
+      it 'writes the serialised body with download headers' do
+        record_event(verb: 'customer.purge')
+
+        res = render('format=ndjson')
+
+        expect(res['content-type']).to eq('application/x-ndjson; charset=utf-8')
+        expect(res['content-disposition']).to match(/\Aattachment; filename="colonel-audit-.+\.ndjson"\z/)
+        # A point-in-time snapshot of a mutable, operator-only trail.
+        expect(res['cache-control']).to eq('no-store')
+        expect(JSON.parse(body_of(res).lines.first)['verb']).to eq('customer.purge')
+      end
+
+      it 'passes the query filters through to the read' do
+        record_event(verb: 'customer.purge')
+        record_event(verb: 'session.delete')
+
+        res = render('format=ndjson&verb=customer')
+
+        expect(body_of(res).lines.map { |l| JSON.parse(l)['verb'] }).to eq(%w[customer.purge])
+      end
+
+      it 'runs raise_concerns: a non-colonel never reaches the body' do
+        staff = create_customer(email: "staff-#{SecureRandom.hex(4)}@example.com", role: 'staff')
+
+        expect { render('format=csv', user: staff) }.to raise_error(Onetime::Forbidden)
+      end
+    end
+
+    # The two surfaces must describe the same record. If one grows a field the
+    # other does not, this fails.
+    it 'emits exactly the fields the JSON list endpoint emits' do
+      record_event(verb: 'customer.purge', detail: { 'reason' => 'gdpr' })
+
+      listed   = ColonelAPI::Logic::Colonel::ListColonelAuditEvents.new(strategy_result_for(colonel), {})
+      listed.raise_concerns
+      json_row = listed.process[:details][:events].first
+      csv_row  = CSV.parse(export.body).first
+
+      expect(csv_row.map(&:to_sym)).to eq(json_row.keys)
     end
   end
 

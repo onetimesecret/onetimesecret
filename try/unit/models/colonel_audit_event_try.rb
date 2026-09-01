@@ -180,20 +180,106 @@ long = 'x' * 500
 ColonelAuditEvent.record(actor: 'a', verb: 'v', target: 't', result: :success, detail: { 'blob' => long })['detail']['blob'].length
 #=> 259
 
-## trim! enforces the count cap: keep only the newest N, drop the oldest overflow
+## -- Retention narrows only via the constants (#4334) --------------------
+#
+# trim! is public, and its `cap` argument used to be taken at face value —
+# `trim!(0)` emptied the entire operator trail in one call. It is now clamped
+# UP to MAX_EVENTS, so retention can only ever widen through this API.
+# (Eviction mechanics under a lowered cap are covered in the rspec sibling,
+# which can stub_const MAX_EVENTS; tryouts cannot.)
+
+## trim!(0) no longer wipes the trail
 ColonelAuditEvent.events.clear
 5.times { |i| ColonelAuditEvent.record(actor: 'a', verb: "v#{i}", target: 't', result: :success) }
-removed = ColonelAuditEvent.trim!(3)
-[removed, ColonelAuditEvent.count]
-#=> [2, 3]
+[ColonelAuditEvent.trim!(0), ColonelAuditEvent.count]
+#=> [0, 5]
 
-## trimming keeps the newest events (v2, v3, v4 survive; v0, v1 dropped)
+## any cap below MAX_EVENTS is clamped, negatives included
+[ColonelAuditEvent.trim!(1), ColonelAuditEvent.trim!(-100), ColonelAuditEvent.count]
+#=> [0, 0, 5]
+
+## the trail is intact and still newest-first after the clamped calls
 ColonelAuditEvent.recent(3).map { |e| e['verb'] }
 #=> ["v4", "v3", "v2"]
 
-## trim! is a no-op when the set is already at or under the cap
-ColonelAuditEvent.trim!(10)
+## trim! at the real cap is a no-op when the set is under it
+ColonelAuditEvent.trim!(ColonelAuditEvent::MAX_EVENTS)
 #=> 0
+
+## trim_security! clamps its cap the same way
+ColonelAuditEvent.security_events.clear
+3.times { |i| ColonelAuditEvent.record_security(actor: 'anonymous', verb: "s#{i}", target: 't', result: :failure) }
+[ColonelAuditEvent.trim_security!(0), ColonelAuditEvent.security_count]
+#=> [0, 3]
+
+## trim_security! also clamps the AGE bound: the second door into the same wipe
+ColonelAuditEvent.security_events.clear
+ColonelAuditEvent.security_events.add({ 'verb' => 'older' }, Familia.now - 3600)
+ColonelAuditEvent.security_events.add({ 'verb' => 'newer' }, Familia.now)
+[ColonelAuditEvent.trim_security!(ColonelAuditEvent::MAX_SECURITY_EVENTS, 1), ColonelAuditEvent.security_count]
+#=> [0, 2]
+
+## a non-positive max_age still disables the age pass (it keeps MORE, not less)
+ColonelAuditEvent.security_events.clear
+ColonelAuditEvent.security_events.add({ 'verb' => 'ancient' }, Familia.now - 100_000_000)
+[ColonelAuditEvent.trim_security!(ColonelAuditEvent::MAX_SECURITY_EVENTS, 0), ColonelAuditEvent.security_count]
+#=> [0, 1]
+
+## -- The external sink (#4334) -------------------------------------------
+#
+# Every event is emitted as a structured log line BEFORE the datastore write,
+# on a dedicated SemanticLogger category, so a datastore outage cannot lose the
+# record. The sink is the durability story; the sorted sets are the cache.
+
+## the sink logger is the dedicated ColonelAudit category
+ColonelAuditEvent.sink_logger.name
+#=> "ColonelAudit"
+
+## its level is PINNED in code, not inherited from the app default level
+ColonelAuditEvent.sink_logger.level
+#=> :info
+
+## a record emits exactly one sink line, carrying the trail it landed in
+# Swap the memoized handle for a recorder rather than patching the real logger
+# or reading appender output: what matters is what the write path emits.
+class SinkSpy
+  attr_reader :lines
+
+  def initialize
+    @lines = []
+  end
+
+  def info(message, payload = nil)
+    @lines << [message, payload]
+  end
+end
+ColonelAuditEvent.events.clear
+@spy = SinkSpy.new
+ColonelAuditEvent.instance_variable_set(:@sink_logger, @spy)
+ColonelAuditEvent.record(actor: 'ur_col', verb: 'customer.purge', target: 'ur_v', result: :success)
+[@spy.lines.size, @spy.lines.first[0], @spy.lines.first[1]['verb'], @spy.lines.first[1]['trail']]
+#=> [1, "colonel.audit", "customer.purge", "events"]
+
+## security telemetry is shipped too, tagged with the other trail
+ColonelAuditEvent.record_security(actor: 'anonymous', verb: 'auth.throttled', target: 'ip', result: :failure)
+[@spy.lines.size, @spy.lines.last[1]['trail']]
+#=> [2, "security_events"]
+
+## the sink receives the REDACTED detail, never the caller's original
+ColonelAuditEvent.record(actor: 'a', verb: 'v', target: 't', result: :success, detail: { 'passphrase' => 'hunter2' })
+@spy.lines.last[1]['detail']
+#=> { "passphrase" => "[REDACTED]" }
+
+## a sink failure never costs the trail its datastore copy
+ColonelAuditEvent.events.clear
+def @spy.info(*) = raise('appender exploded')
+@ev2 = ColonelAuditEvent.record(actor: 'a', verb: 'customer.purge', target: 't', result: :success)
+[@ev2['verb'], ColonelAuditEvent.count]
+#=> ["customer.purge", 1]
+
+# Restore the real sink handle for the remaining cases.
+ColonelAuditEvent.remove_instance_variable(:@sink_logger)
+ColonelAuditEvent.events.clear
 
 ## record auto-trims to MAX_EVENTS on every write (count never exceeds the cap)
 ColonelAuditEvent.events.clear
@@ -237,33 +323,33 @@ ColonelAuditEvent.record(actor: 'ur7xexamples', verb: 'customer.purge', target: 
 [ColonelAuditEvent.count, ColonelAuditEvent.security_count]
 #=> [1, 1]
 
-## flooding the security trail past its cap evicts NOTHING from the operator
-## trail — the whole point of the split
+## flooding the security trail evicts NOTHING from the operator trail — the
+## whole point of the split (the caps are separate budgets, not one)
 ColonelAuditEvent.security_events.clear
-ColonelAuditEvent.trim_security!(3)
 5.times { |i| ColonelAuditEvent.record_security(actor: 'anonymous', verb: "s#{i}", target: 't', result: :failure) }
-ColonelAuditEvent.trim_security!(3)
 [ColonelAuditEvent.security_count, ColonelAuditEvent.count]
-#=> [3, 1]
+#=> [5, 1]
 
-## security trimming keeps the newest (oldest overflow dropped)
+## security reads are newest-first, like the operator trail
 ColonelAuditEvent.recent_security(3).map { |e| e['verb'] }
 #=> ["s4", "s3", "s2"]
 
 ## the security trail also has an AGE bound (the operator trail has none):
-## members scored older than max_age are removed by score
+## members older than SECURITY_EVENT_RETENTION are removed by score
 ColonelAuditEvent.security_events.clear
-ColonelAuditEvent.security_events.add({ 'verb' => 'stale' }, Familia.now - 100)
+ColonelAuditEvent.security_events.add({ 'verb' => 'stale' }, Familia.now - ColonelAuditEvent::SECURITY_EVENT_RETENTION - 100)
 ColonelAuditEvent.security_events.add({ 'verb' => 'fresh' }, Familia.now)
-removed = ColonelAuditEvent.trim_security!(ColonelAuditEvent::MAX_SECURITY_EVENTS, 50)
+removed = ColonelAuditEvent.trim_security!(ColonelAuditEvent::MAX_SECURITY_EVENTS, ColonelAuditEvent::SECURITY_EVENT_RETENTION)
 [removed, ColonelAuditEvent.recent_security(5).map { |e| e['verb'] }]
 #=> [1, ["fresh"]]
 
-## a non-positive max_age disables only the age pass; the count cap still holds
+## a max_age LONGER than the retention window is honoured — widening is the
+## one direction the clamp allows
 ColonelAuditEvent.security_events.clear
-3.times { |i| ColonelAuditEvent.security_events.add({ 'verb' => "n#{i}" }, Familia.now - 1000 + i) }
-[ColonelAuditEvent.trim_security!(2, 0), ColonelAuditEvent.security_count]
-#=> [1, 2]
+ColonelAuditEvent.security_events.add({ 'verb' => 'aged' }, Familia.now - ColonelAuditEvent::SECURITY_EVENT_RETENTION - 100)
+[ColonelAuditEvent.trim_security!(ColonelAuditEvent::MAX_SECURITY_EVENTS, ColonelAuditEvent::SECURITY_EVENT_RETENTION * 2),
+ ColonelAuditEvent.security_count]
+#=> [0, 1]
 
 ## recent_security(0) returns an empty array
 ColonelAuditEvent.recent_security(0)

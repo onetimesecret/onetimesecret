@@ -27,6 +27,12 @@
    * - ACTION CATEGORY: applies immediately on change. A `<select>` commits one
    *   deliberate value per interaction, so there is nothing to debounce and no
    *   half-typed intermediate state to fire on.
+   * - EXPORT: two plain links to `GET /api/colonel/audit/export`, which answers
+   *   with a `Content-Disposition: attachment` body (CSV or NDJSON). Links, not
+   *   fetch-then-Blob (the AdminUsage pattern), because the rows are on the
+   *   server: this screen holds one page, and an export that only covered the
+   *   visible page would be a trap. The active filters ride along so the file
+   *   matches what the operator is looking at.
    * - READ-ONLY: viewing the log never writes an audit event (CONTRACT 4), so
    *   there are no mutations — and deliberately no way to edit or delete
    *   entries from the UI.
@@ -175,6 +181,27 @@
     fetchPage(1);
   }
 
+  // ---- Export ----------------------------------------------------------------
+
+  /**
+   * Download hrefs for the whole retained trail under the ACTIVE filters (the
+   * applied actor term, not the half-typed one). Recomputed as the filters
+   * change so the link an operator clicks always matches the table they are
+   * reading.
+   */
+  const exportCsvHref = computed(() =>
+    store.exportUrl('csv', {
+      actor: activeActor.value || undefined,
+      verb: verbCategory.value || undefined,
+    })
+  );
+  const exportNdjsonHref = computed(() =>
+    store.exportUrl('ndjson', {
+      actor: activeActor.value || undefined,
+      verb: verbCategory.value || undefined,
+    })
+  );
+
   // ---- Cell rendering ---------------------------------------------------------
 
   /** Compact single-line rendering of the free-form redacted detail payload. */
@@ -202,14 +229,50 @@
 <template>
   <div class="mx-auto max-w-6xl">
     <!-- Page header -->
-    <header class="mb-6 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
-      <h2 class="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-        {{ t('web.admin.audit.title') }}
-      </h2>
-      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-        {{ t('web.admin.audit.description') }}
-      </p>
+    <header
+      class="mb-6 flex flex-wrap items-start justify-between gap-4 border-b-2 border-gray-900 pb-4 dark:border-gray-100">
+      <div class="min-w-0">
+        <h2 class="font-brand text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+          {{ t('web.admin.audit.title') }}
+        </h2>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          {{ t('web.admin.audit.description') }}
+        </p>
+      </div>
+
+      <!--
+        Plain links: the endpoint replies with Content-Disposition: attachment,
+        so the browser saves the file and never navigates away. The href carries
+        the active filters, and the download is the whole retained trail under
+        them — not the visible page.
+      -->
+      <div class="flex shrink-0 items-center gap-2">
+        <a
+          :href="exportCsvHref"
+          data-testid="audit-export-csv"
+          class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800">
+          <OIcon
+            collection="heroicons"
+            name="arrow-down-tray"
+            size="4" />
+          {{ t('web.admin.audit.export.csv') }}
+        </a>
+        <a
+          :href="exportNdjsonHref"
+          data-testid="audit-export-ndjson"
+          class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800">
+          <OIcon
+            collection="heroicons"
+            name="arrow-down-tray"
+            size="4" />
+          {{ t('web.admin.audit.export.ndjson') }}
+        </a>
+      </div>
     </header>
+
+    <p class="mb-4 text-xs text-gray-500 dark:text-gray-400">
+      {{ t('web.admin.audit.export.hint') }}
+    </p>
 
     <!-- Network/HTTP error banner. Contract mismatches render below instead. -->
     <div

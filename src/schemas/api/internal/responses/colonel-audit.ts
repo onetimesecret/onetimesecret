@@ -68,3 +68,19 @@ export const colonelAuditEventsResponseSchema = createApiResponseSchema(
 );
 
 export type ColonelAuditEventsResponse = z.infer<typeof colonelAuditEventsResponseSchema>;
+
+// GET /api/colonel/audit/export → ExportColonelAuditEvents
+//
+// NO schema here, deliberately. That endpoint answers with `text/csv` or
+// `application/x-ndjson` plus a `Content-Disposition: attachment` header — it is
+// a download, navigated to rather than fetched and parsed, so there is no JSON
+// envelope for Zod to describe and nothing in the frontend ever validates it.
+// Declaring one would register a wire contract that no code path exercises.
+// (Same reasoning as the no-SCHEMA note on the ColonelAuditEvent model itself.)
+//
+// The export is still contract-bound where it matters: it serialises exactly
+// the fields `colonelAuditEventSchema` above types, because both surfaces go
+// through the one server-side allowlist (Onetime::ColonelAuditReader::FIELDS).
+// Change the allowlist and BOTH the JSON list response and the download change
+// together — so this schema stays the single description of an audit event's
+// shape, whichever surface it arrives on.
