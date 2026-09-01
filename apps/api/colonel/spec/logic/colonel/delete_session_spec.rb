@@ -227,6 +227,56 @@ RSpec.describe ColonelAPI::Logic::Colonel::DeleteSession do
     end
   end
 
+  # ---- Self-target interlock (#4328) -----------------------------------------
+  #
+  # Revoking the session you are working in signs YOU out mid-incident. The
+  # comparison is over HANDLES, so the raw bearer sid never meets
+  # attacker-supplied input; and it runs at step 4, after the confirmation gate,
+  # so the 422 is not a free "is this handle mine?" oracle over the listing.
+  describe 'self-target' do
+    # A Rack SessionId: #public_id is the cookie value the handle is digested
+    # from. safe_session_id reads it off `sess`.
+    let(:own_sid) { 'c' * 64 }
+    let(:own_handle) { Onetime::SessionMetadata.handle_for(own_sid) }
+
+    def own_session_logic(handle_param, confirm_token = owner_email)
+      described_class.new(
+        double('StrategyResult',
+          session: double('Session', id: double('SessionId', public_id: own_sid)),
+          user: colonel, auth_method: 'sessionauth',
+          metadata: { confirm_token: confirm_token }),
+        { 'session_handle' => handle_param },
+      )
+    end
+
+    before { stub_resolution }
+
+    it 'refuses revoking your own active session, naming session_handle' do
+      error = begin
+        own_session_logic(own_handle).raise_concerns
+      rescue Onetime::FormError => ex
+        ex
+      end
+
+      expect(error.message).to match(/Cannot revoke your own active session/)
+      expect(Onetime::Operations::Sessions::Delete).not_to have_received(:new)
+    end
+
+    it 'proceeds for any other handle' do
+      expect { own_session_logic(handle).raise_concerns }.not_to raise_error
+    end
+
+    it 'does not raise when the request session has no resolvable id' do
+      expect { logic_for.raise_concerns }.not_to raise_error
+    end
+
+    # M-2 oracle guard: without the confirmation the answer must be the 403.
+    it 'answers 403 (not the interlock 422) when the confirmation is missing' do
+      expect { own_session_logic(own_handle, nil).raise_concerns }
+        .to raise_error(Onetime::ConfirmationRequired)
+    end
+  end
+
   describe 'authorization' do
     it 'refuses a non-colonel, deletes nothing and writes NO audit event' do
       stub_resolution

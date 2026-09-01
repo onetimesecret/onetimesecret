@@ -36,6 +36,9 @@ require_relative 'colonel/delete_secret'
 # Shared identifier handling (email-tolerant account lookup)
 require_relative 'colonel/account_identifier'
 
+# Shared identity of the acting colonel's OWN session (self-target interlocks)
+require_relative 'colonel/current_session'
+
 # User management
 require_relative 'colonel/list_users'
 require_relative 'colonel/get_user_details'

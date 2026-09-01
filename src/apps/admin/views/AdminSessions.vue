@@ -59,7 +59,20 @@
   const notifications = useNotificationsStore();
 
   const store = useAdminSessions();
-  const { sessions, pagination, scan, loading, error } = storeToRefs(store);
+  const { sessions, pagination, scan, currentSessionHandle, loading, error } =
+    storeToRefs(store);
+
+  /**
+   * The acting colonel's OWN row (#4328). Revoking it signs the operator out
+   * mid-incident, so the server refuses it with a 422; disabling the button
+   * here is defence in depth and spares them the round trip. Matched by
+   * HANDLE — the raw session id never reaches this console.
+   */
+  function isCurrentSession(sessionHandle: string): boolean {
+    return (
+      currentSessionHandle.value !== null && sessionHandle === currentSessionHandle.value
+    );
+  }
 
   // ---- List + search --------------------------------------------------------
 
@@ -329,6 +342,9 @@
   });
 
   function requestRevoke(row: ColonelSession): void {
+    // Fail closed: the disabled button is the UI affordance, this is the guard.
+    // The server refuses a self-revoke regardless (#4328).
+    if (isCurrentSession(row.session_handle)) return;
     revokeTarget.value = row.session_handle;
     revokeOwner.value = row.external_id ?? '';
     revokeToken.value = row.email?.trim() || row.external_id?.trim() || row.session_handle;
@@ -460,7 +476,13 @@
           <button
             type="button"
             :data-testid="`revoke-${row.session_handle}`"
-            class="text-sm font-medium text-red-600 hover:text-red-800 focus:ring-2 focus:ring-red-500 focus:outline-none dark:text-red-400 dark:hover:text-red-300"
+            :disabled="isCurrentSession(row.session_handle)"
+            :title="
+              isCurrentSession(row.session_handle)
+                ? t('web.admin.sessions.revoke.ownSession')
+                : undefined
+            "
+            class="text-sm font-medium text-red-600 hover:text-red-800 focus:ring-2 focus:ring-red-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:text-red-300"
             @click.stop="requestRevoke(row)">
             {{ t('web.admin.sessions.revoke.button') }}
           </button>
@@ -621,7 +643,12 @@
         <button
           type="button"
           data-testid="session-revoke-button"
-          :disabled="!selectedSession"
+          :disabled="!selectedSession || isCurrentSession(selectedSession.session_handle)"
+          :title="
+            selectedSession && isCurrentSession(selectedSession.session_handle)
+              ? t('web.admin.sessions.revoke.ownSession')
+              : undefined
+          "
           class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
           @click="selectedSession && requestRevoke(selectedSession)">
           <OIcon

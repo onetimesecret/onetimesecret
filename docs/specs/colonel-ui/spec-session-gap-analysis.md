@@ -140,6 +140,28 @@ Still open here: the raw sid inside `RevokeForCustomer`'s audit **detail** (its
 | 2.15 | CLI revoke path                                    | `bin/ots session` = `inspect` / `list` / `search` / `delete` / `clean`. `delete` is one sid at a time                                                                                                                                                                                                                  | **No per-user revoke-all in the CLI.** The documented break-glass ("when the web UI is unreachable") is per-sid, or `bin/ots customers suspend` as a side effect. Add `bin/ots session revoke-all --user` over the existing op                                                                                                                                                        | P1       |
 | 2.16 | `session clean` does nothing                       | Its only `del` branch is `ttl == 0` (`session_command.rb:381–393`), which Redis never reports — expired keys are already gone                                                                                                                                                                                          | Dead command that reports "Expired sessions removed: 0" and looks like it worked. Delete it or repurpose it to prune orphaned sidecars and stale index members                                                                                                                                                                                                                        | P2       |
 
+**Resolved for the self-revoke case (#4328).** A colonel could revoke their own
+live session from either console with no warning — the same class of mistake
+`PurgeUser`'s self-target guard already covered for accounts. Both
+`DeleteSession` and `RevokeCustomerSession` now refuse it (422, "use sign-out
+instead"), comparing opaque HANDLES so the bearer sid never enters the
+comparison path, and `ListSessions` publishes `details.current_session_handle`
+so the global console can disable that row the way the per-customer panel
+already did.
+
+`POST /users/:id/sessions/revoke-all` against your **own** account is
+deliberately NOT refused: it is the first containment step for a leaked colonel
+cookie, and refusing it would remove the operator's only in-console remedy for
+the compromise they are containing. It routes to
+`RevokeAllForCustomerExceptCurrent` instead, which keeps the session the request
+arrived on. That op now takes an optional `actor:`, so the colonel-driven call
+still writes the one `session.revoke_all` audit event the trail is owed while
+the self-service credential-change callers stay out of the admin trail (they
+pass none). Revoke-all against an unknown identifier is now a 404 rather than a
+success with zero counts.
+
+Still open here: 2.3, 2.4, 2.5, 2.11, 2.14, 2.15, 2.16.
+
 ### 2.5 detail — the remember-me cascade, and why it is latent
 
 `spec-session-path.md` §4 correctly calls this the most important gap and the

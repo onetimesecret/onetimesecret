@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require_relative 'current_session'
 require 'onetime/models/session_metadata'
 require 'onetime/operations/sessions/list_for_customer'
 
@@ -28,6 +29,13 @@ module ColonelAPI
       # boundary: rows carry NO token, NO decrypted payload, NO email/secret
       # material — the frontend physically cannot render one.
       class ListCustomerSessions < ColonelAPI::Logic::Base
+        # The acting colonel's own session identity, as the non-bearer HANDLE the
+        # sidecar rows expose — so the UI can badge the colonel's own row and
+        # disable its self-revoke WITHOUT the response ever carrying a replayable
+        # cookie value, not even the acting colonel's own. Shared with the
+        # self-revoke interlocks so badge and gate cannot disagree (#4328).
+        include CurrentSession
+
         SCHEMAS = { response: 'colonelCustomerSessions' }.freeze
 
         attr_reader :user_id, :result
@@ -60,31 +68,6 @@ module ColonelAPI
               current_session_handle: current_session_handle,
             ),
           }
-        end
-
-        private
-
-        # The acting colonel's OWN request session, as the non-bearer HANDLE the
-        # sidecar rows expose (SessionMetadata#session_handle), so the UI can badge
-        # the colonel's own row and disable its (no-op) self-revoke WITHOUT the
-        # response ever carrying a replayable cookie value — not even the acting
-        # colonel's own. nil when the session can't be identified.
-        def current_session_handle
-          sid = current_session_id
-          return nil if sid.nil?
-
-          Onetime::SessionMetadata.handle_for(sid)
-        end
-
-        # The colonel's own plain sid (safe_session_id yields a Rack SessionId
-        # object; #public_id is the cookie value == SessionMetadata#session_id).
-        # INTERNAL only — never serialized; it is digested into the handle above.
-        # nil when the session can't be identified (e.g. Hash session in JSON auth).
-        def current_session_id
-          sid = safe_session_id
-          return nil if sid.nil?
-
-          sid.respond_to?(:public_id) ? sid.public_id : sid.to_s
         end
       end
     end

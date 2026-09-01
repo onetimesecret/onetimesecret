@@ -126,6 +126,42 @@ describe('colonelSessionsResponseSchema (ListSessions)', () => {
     delete payload.details.sessions[0].authenticated;
     expect(colonelSessionsResponseSchema.safeParse(payload).success).toBe(false);
   });
+
+  // #4328: the acting colonel's own row, so the console can disable its revoke.
+  it('parses current_session_handle as a handle or a null', () => {
+    const payload = listPayload() as unknown as {
+      details: { current_session_handle?: string | null };
+    };
+    payload.details.current_session_handle = HANDLE_B;
+    let result = colonelSessionsResponseSchema.safeParse(payload);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.details?.current_session_handle).toBe(HANDLE_B);
+    }
+
+    payload.details.current_session_handle = null;
+    result = colonelSessionsResponseSchema.safeParse(payload);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.details?.current_session_handle).toBeNull();
+    }
+  });
+
+  it('parses a listing that OMITS current_session_handle (deploy skew)', () => {
+    const payload = listPayload();
+    expect('current_session_handle' in payload.details).toBe(false);
+    expect(colonelSessionsResponseSchema.safeParse(payload).success).toBe(true);
+  });
+
+  it('rejects a raw session id under current_session_handle', () => {
+    // The acting colonel's OWN sid is still a bearer credential: the same
+    // tripwire has to cover it.
+    const payload = listPayload() as unknown as {
+      details: { current_session_handle?: string | null };
+    };
+    payload.details.current_session_handle = RAW_SID;
+    expect(colonelSessionsResponseSchema.safeParse(payload).success).toBe(false);
+  });
 });
 
 describe('colonelSessionDetailResponseSchema (GetSessionDetail)', () => {

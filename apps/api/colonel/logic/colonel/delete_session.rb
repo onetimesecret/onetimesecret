@@ -4,6 +4,7 @@
 
 require_relative '../base'
 require_relative 'account_identifier'
+require_relative 'current_session'
 require 'onetime/operations/sessions/store'
 require 'onetime/operations/sessions/delete_session'
 require 'onetime/operations/sessions/inspect_session'
@@ -32,6 +33,7 @@ module ColonelAPI
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.
       class DeleteSession < ColonelAPI::Logic::Base
         include AccountIdentifier
+        include CurrentSession
 
         attr_reader :session_handle, :session_id, :result
 
@@ -64,14 +66,26 @@ module ColonelAPI
           # TIER 1 (#4326). The URL carries only the opaque handle, so the
           # confirmation is the session OWNER — an identifier the operator reads
           # off the row and the handle cannot be transformed into.
-          # P4 (#4328) inserts the self-target interlock AFTER this call and
-          # BEFORE charge_destructive_budget! (guard order §0.2).
           guard_destructive_action!(
             tier: :destructive,
             confirm_with: owner_token,
             confirm_subject: owner_subject,
             field: :session_handle,
           )
+
+          # INTERLOCK — step 4, after proof (#4328). Revoking the session you
+          # are working in signs YOU out mid-incident; sign-out is the verb for
+          # that. Placed after the guard so the 422 cannot be used as a free
+          # "is this handle mine?" oracle over the whole session list by a
+          # caller holding nothing but the cookie. Compares HANDLES, so the raw
+          # bearer sid never enters the comparison path.
+          if current_session_handle && current_session_handle == session_handle
+            raise_form_error(
+              'Cannot revoke your own active session. Use sign-out instead.',
+              field: :session_handle,
+            )
+          end
+
           charge_destructive_budget!
         end
 

@@ -85,9 +85,9 @@ function sessionsPayload(
   };
 }
 
-const mountSection = () =>
+const mountSection = (extraProps: Record<string, unknown> = {}) =>
   mount(AdminCustomerSessionsSection, {
-    props: { userId: USER_ID },
+    props: { userId: USER_ID, ...extraProps },
     global: {
       plugins: [i18n],
       // The confirm dialogs (HeadlessUI) have their own spec; the badge/revoke
@@ -155,6 +155,38 @@ describe('AdminCustomerSessionsSection — current-session badge', () => {
     expect(wrapper.find('[data-testid^="session-current-"]').exists()).toBe(false);
     expect(revoke(wrapper, 'a15e5510000000000000000000000001').exists()).toBe(true);
     expect(revoke(wrapper, 'a15e5510000000000000000000000002').exists()).toBe(true);
+  });
+
+  // #4328: revoke-all against your OWN account is deliberately NOT refused —
+  // it is the first containment step for a leaked colonel cookie — but the
+  // server keeps the session you are working in, so the copy has to say so
+  // rather than promising a full logout.
+  describe('revoke-all confirm copy', () => {
+    /** The revoke-all dialog is the LAST AdminConfirmDialog in the template. */
+    function revokeAllDescription(w: VueWrapper): unknown {
+      const dialogs = w.findAllComponents({ name: 'AdminConfirmDialog' });
+      return dialogs[dialogs.length - 1].props('description');
+    }
+
+    it('promises a full logout for another account', async () => {
+      mockApi.get.mockResolvedValue({ data: sessionsPayload(undefined, null) });
+      wrapper = mountSection();
+      await flushPromises();
+
+      expect(revokeAllDescription(wrapper)).toBe(
+        'web.admin.customers.detail.sessions.revokeAll.confirmDescription'
+      );
+    });
+
+    it('says the current session is kept on your own account', async () => {
+      mockApi.get.mockResolvedValue({ data: sessionsPayload(undefined, null) });
+      wrapper = mountSection({ isSelf: true });
+      await flushPromises();
+
+      expect(revokeAllDescription(wrapper)).toBe(
+        'web.admin.customers.detail.sessions.revokeAll.selfDescription'
+      );
+    });
   });
 });
 

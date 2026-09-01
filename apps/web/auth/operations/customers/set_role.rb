@@ -4,6 +4,7 @@
 
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/operations/customers/role_support'
 
 module Auth
   module Operations
@@ -18,9 +19,23 @@ module Auth
       #
       # `VALID_ROLES` is the single source of truth for assignable roles; the CLI
       # and colonel adapters both reference it rather than keeping their own copy.
+      #
+      # ## Interlocks (#4328)
+      #
+      # Two refusals live HERE rather than in the colonel adapter, so
+      # `bin/ots customers role demote` is bound by them too:
+      #
+      #   :self_demotion — the acting colonel demoting their own account
+      #   :last_colonel  — demoting the only remaining active colonel
+      #
+      # Both follow {Onetime::Operations::Memberships::Remove}'s shape: a shared
+      # predicate ({RoleSupport}) so the endpoint and the CLI cannot drift into
+      # different definitions of "the last one", and a single `build` exit point
+      # so no early return can skip the refusal audit.
       class SetRole
         include Onetime::LoggerMethods
         include Onetime::AuditedFailure
+        include Onetime::Operations::Customers::RoleSupport
 
         AUDIT_VERB = 'customer.set_role'
 
@@ -39,8 +54,19 @@ module Auth
         # backstop: adapters should validate up front for good UX.
         class InvalidRole < StandardError; end
 
+        # Statuses that MUTATE nothing but each record one `result: :failure`
+        # event. A refused privileged change is a rare, operator-driven attempt
+        # worth tracing — unlike the confirmation/elevation rejections in
+        # #4326/#4327, which any cookie holder can drive on demand and which
+        # therefore write nothing. That distinction only holds because the
+        # adapter runs these interlocks AFTER elevation and confirmation (the
+        # guard-order contract in colonel/logic/destructive_action.rb); do not
+        # reorder the guards without revisiting this choice.
+        REFUSAL_STATUSES = [:last_colonel, :self_demotion].freeze
+
         # @!attribute status [r]
-        #   @return [Symbol] :success (role changed) or :no_change (already at role)
+        #   @return [Symbol] :success (role changed), :no_change (already at
+        #     role), :self_demotion or :last_colonel (refused, nothing mutated)
         Result = Data.define(:status, :customer, :from, :to)
 
         # @param customer [Onetime::Customer] target (caller ensures non-nil,
@@ -48,10 +74,15 @@ module Auth
         # @param role [String, Symbol] target role; must be in VALID_ROLES
         # @param actor [String, #extid, #email] acting admin's PUBLIC identity
         #   (colonel extid/email, or a CLI sentinel). Never an internal objid.
-        def initialize(customer:, role:, actor:)
-          @customer = customer
-          @role     = role.to_s
-          @actor    = actor
+        # @param actor_objid [String, nil] the acting colonel's INTERNAL id, for
+        #   the self-demotion comparison only (purge_user.rb compares the same
+        #   way; the AUDIT actor stays the public id above). nil for the CLI,
+        #   which has no acting customer and nothing to self-demote.
+        def initialize(customer:, role:, actor:, actor_objid: nil)
+          @customer    = customer
+          @role        = role.to_s
+          @actor       = actor
+          @actor_objid = actor_objid
         end
 
         # @return [Result]
@@ -61,8 +92,13 @@ module Auth
             raise InvalidRole, "Invalid role '#{@role}'. Valid roles: #{VALID_ROLES.join(', ')}"
           end
 
-          from = @customer.role.to_s
-          return Result.new(status: :no_change, customer: @customer, from: from, to: @role) if from == @role
+          @from = @customer.role.to_s
+          return build(:no_change) if @from == @role
+
+          # INTERLOCKS (#4328). Self-demotion first: it is the cheaper check and
+          # the more specific answer when both apply.
+          return build(:self_demotion) if self_demotion?
+          return build(:last_colonel) if last_colonel?(@customer, @role)
 
           @customer.role = @role
           @customer.save
@@ -73,17 +109,49 @@ module Auth
             verb: AUDIT_VERB,
             target: @customer.extid,
             result: :success,
-            detail: { from: from, to: @role },
+            detail: { from: @from, to: @role },
           )
 
           # debug level (not info): the audit event is the durable record, and an
           # info-level line here would surface in CLI stderr and break the CLI's
           # bit-for-bit output contract.
-          auth_logger.debug "[customer.set_role] #{@customer.extid} #{from} -> #{@role} by #{actor_label}"
-          Result.new(status: :success, customer: @customer, from: from, to: @role)
+          auth_logger.debug "[customer.set_role] #{@customer.extid} #{@from} -> #{@role} by #{actor_label}"
+          build(:success)
         end
 
         private
+
+        # Only a DEMOTION of one's own account is refused: a colonel raising
+        # their own role is not a lockout risk, and the CLI (actor_objid nil)
+        # never self-refuses.
+        def self_demotion?
+          return false if @actor_objid.to_s.empty?
+          return false if @role == 'colonel'
+
+          @actor_objid == @customer.objid
+        end
+
+        # Single exit point for every status, so the refusal audit cannot be
+        # forgotten at an early return (Memberships::Remove#build).
+        def build(status)
+          record_refusal(status) if REFUSAL_STATUSES.include?(status)
+
+          Result.new(status: status, customer: @customer, from: @from, to: @role)
+        end
+
+        # Same verb/target/actor as the success event. Best-effort: never break
+        # the op.
+        def record_refusal(status)
+          Onetime::ColonelAuditEvent.record(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @customer.extid,
+            result: :failure,
+            detail: { reason: status.to_s, from: @from, to: @role },
+          )
+        rescue StandardError => ex
+          OT.le "[Customers::SetRole] refusal audit failed: #{ex.class}: #{ex.message}"
+        end
 
         # Loggable, non-secret actor label (mirrors the audit actor normalization).
         def actor_label

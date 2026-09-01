@@ -81,7 +81,10 @@ const DETAIL_URL = `${LIST_URL}/${HANDLE}?user_id=${OWNER}`;
 const COUNTRY_HEADER = 'web.admin.sessions.columns.country';
 const UNKNOWN = 'web.admin.sessions.detail.unknown';
 
-function sessionsPayload(rows: ColonelSession[] = [sessionRow()]) {
+function sessionsPayload(
+  rows: ColonelSession[] = [sessionRow()],
+  currentSessionHandle: string | null = null
+) {
   return {
     shrimp: '',
     record: {},
@@ -89,6 +92,9 @@ function sessionsPayload(rows: ColonelSession[] = [sessionRow()]) {
       sessions: rows,
       pagination: { page: 1, per_page: 50, total_count: rows.length, total_pages: 1 },
       scan: { scanned: rows.length, anonymous_count: 0, scan_capped: false },
+      // The acting colonel's OWN row (#4328) — null when the server cannot
+      // identify the request session.
+      current_session_handle: currentSessionHandle,
     },
   };
 }
@@ -437,6 +443,62 @@ describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40
       expect(showMock).not.toHaveBeenCalled();
       expect(dialogInput(wrapper).exists()).toBe(true);
       expect(listGetCount()).toBe(before);
+    });
+  });
+
+  // ---- Self-revoke interlock (#4328) ----------------------------------------
+  //
+  // The server refuses a self-revoke with a 422 regardless; disabling here is
+  // defence in depth (mirroring the per-customer panel's badge) so the operator
+  // is not asked to retype a confirmation token for an action that cannot work.
+  describe('own session', () => {
+    const OTHER_HANDLE = 'fedcba9876543210fedcba9876543210';
+
+    async function mountWithCurrent(current: string | null) {
+      mockApi.get.mockResolvedValue({
+        data: sessionsPayload(
+          [sessionRow(), sessionRow({ session_handle: OTHER_HANDLE, email: 'bob@example.com' })],
+          current
+        ),
+      });
+      wrapper = mountView(pinia);
+      await flushPromises();
+    }
+
+    it('disables the revoke button on the row matching current_session_handle', async () => {
+      await mountWithCurrent(HANDLE);
+
+      expect(
+        wrapper.find(`[data-testid="revoke-${HANDLE}"]`).attributes('disabled')
+      ).toBeDefined();
+      expect(wrapper.find(`[data-testid="revoke-${HANDLE}"]`).attributes('title')).toBe(
+        'web.admin.sessions.revoke.ownSession'
+      );
+    });
+
+    it('leaves every other row revocable', async () => {
+      await mountWithCurrent(HANDLE);
+
+      expect(
+        wrapper.find(`[data-testid="revoke-${OTHER_HANDLE}"]`).attributes('disabled')
+      ).toBeUndefined();
+    });
+
+    it('opens no confirm dialog and issues no DELETE for the own row', async () => {
+      await mountWithCurrent(HANDLE);
+      await wrapper.find(`[data-testid="revoke-${HANDLE}"]`).trigger('click');
+      await flushPromises();
+
+      expect(dialogInput(wrapper).exists()).toBe(false);
+      expect(mockApi.delete).not.toHaveBeenCalled();
+    });
+
+    it('disables nothing when the server sends no current handle', async () => {
+      await mountWithCurrent(null);
+
+      expect(
+        wrapper.find(`[data-testid="revoke-${HANDLE}"]`).attributes('disabled')
+      ).toBeUndefined();
     });
   });
 });

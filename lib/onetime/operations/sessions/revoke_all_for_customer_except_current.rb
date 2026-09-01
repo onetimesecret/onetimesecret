@@ -5,6 +5,7 @@
 require 'onetime/operations/sessions/store'
 require 'onetime/session/sidecar'
 require 'onetime/models/session_metadata'
+require 'onetime/models/colonel_audit_event'
 
 module Onetime
   module Operations
@@ -85,6 +86,12 @@ module Onetime
       # contract: a missing customer degrades to a zero-count revoke rather than
       # raising (callers wrap it in ErrorHandler.safe_execute regardless).
       class RevokeAllForCustomerExceptCurrent
+        # Audit verb for the ADMIN caller only (see +actor:+). Deliberately the
+        # same verb {RevokeAllForCustomer} writes: to an operator reading the
+        # trail this is the same action, distinguished by `except_current` in
+        # the detail rather than by a second verb they would have to know about.
+        AUDIT_VERB = 'session.revoke_all'
+
         # Session-data identity fields matched against the target's extid during the
         # best-effort untracked sweep. Deliberately the same narrow set
         # {RevokeAllForCustomer} uses (extid only) — never account_id/email — so the
@@ -112,9 +119,18 @@ module Onetime
         #   STRICTLY AFTER `Customer#last_password_update` (see class docs). Default
         #   FALSE. The async sweep worker passes TRUE; with a nil/empty/zero
         #   watermark the flag degrades to the unguarded revoke.
+        # @param actor [String, #extid, nil] acting COLONEL's public identity.
+        #   nil (the default) for every self-service caller, and nil is what
+        #   keeps the colonel trail free of self-service noise — the whole
+        #   reason this op does not audit (see class docs). The colonel
+        #   revoke-all endpoint routes its SELF-TARGET case here (#4328), and
+        #   that IS an admin action, so it passes an actor and one
+        #   {Onetime::ColonelAuditEvent} is written — by the op, never by the
+        #   adapter (CONTRACT 4).
         # @param dbclient [Object, nil] Redis-like client; defaults to Familia.dbclient.
         def initialize(custid:, except_session_id: nil, scan_untracked: true,
-                       honor_credential_watermark: false, dbclient: nil)
+                       honor_credential_watermark: false, actor: nil, dbclient: nil)
+          @actor                      = actor
           @custid                     = custid
           # Normalize to a string so the `sid == @except_session_id` guards are
           # type-stable; nil becomes '' which no real sid ever equals → revoke ALL.
@@ -152,6 +168,12 @@ module Onetime
           #     never the watermark-spared ones — those stay fully tracked).
           tidy_sidecars(customer, tracked, spared)
 
+          record_admin_audit(
+            blobs_deleted: tracked_deleted + untracked_deleted,
+            untracked_deleted: untracked_deleted,
+            scan_capped: scan_capped,
+          )
+
           Result.new(
             revoked: true,
             blobs_deleted: tracked_deleted + untracked_deleted,
@@ -161,6 +183,24 @@ module Onetime
         end
 
         private
+
+        # One admin audit event, and ONLY when an admin actor was named — the
+        # self-service callers pass none and stay out of the colonel trail
+        # (class docs). Best-effort: a broken sink must not fail a containment
+        # revoke that has already happened.
+        def record_admin_audit(**detail)
+          return if @actor.nil?
+
+          Onetime::ColonelAuditEvent.record(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @custid,
+            result: :success,
+            detail: detail.merge(except_current: true),
+          )
+        rescue StandardError => ex
+          OT.le "[Sessions::RevokeAllForCustomerExceptCurrent] audit failed: #{ex.class}: #{ex.message}"
+        end
 
         def zero_result
           Result.new(revoked: true, blobs_deleted: 0, untracked_deleted: 0, scan_capped: false)

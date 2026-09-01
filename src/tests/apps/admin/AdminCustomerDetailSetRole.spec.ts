@@ -76,6 +76,7 @@ vi.mock('@headlessui/vue', () => ({
 }));
 
 import AdminCustomerDetail from '@/apps/admin/views/AdminCustomerDetail.vue';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { createTestI18n } from '@tests/setup';
 
 const i18n = createTestI18n();
@@ -135,6 +136,17 @@ const mountView = () =>
 
 const dialogInput = (w: VueWrapper) => w.find('#admin-confirm-input');
 const dialogSubmit = (w: VueWrapper) => w.find('[data-testid="admin-confirm-submit"]');
+
+type BootstrapCust = ReturnType<typeof useBootstrapStore>['cust'];
+
+/**
+ * Who the console thinks is logged in. Only `extid` is read by the #4328
+ * self-target guards, so the rest of the customer shape is irrelevant here.
+ */
+function actAs(extid: string | null): void {
+  const bootstrap = useBootstrapStore();
+  bootstrap.cust = extid ? ({ extid } as unknown as NonNullable<BootstrapCust>) : null;
+}
 
 describe('AdminCustomerDetail — role change gate (#4326)', () => {
   let wrapper: VueWrapper;
@@ -251,5 +263,76 @@ describe('AdminCustomerDetail — role change gate (#4326)', () => {
       'Confirmation required'
     );
     expect(showMock).not.toHaveBeenCalled();
+  });
+
+  // ---- Self-target interlocks (#4328) ---------------------------------------
+  //
+  // The server refuses these with a 422 whatever the browser does; blocking
+  // here is defence in depth (the `purgeBlocked` pattern), so the operator is
+  // never asked to retype a token for an action that cannot succeed.
+  describe('your own account', () => {
+    afterEach(() => actAs(null));
+
+    it('disables the role apply button for a self-DEMOTION and states why', async () => {
+      actAs(PUBLIC_ID);
+      await mountLoaded({ role: 'colonel' });
+      await wrapper.find('[data-testid="role-select"]').setValue('customer');
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="role-apply"]').attributes('disabled')).toBeDefined();
+      expect(wrapper.find('[data-testid="self-demote-reason"]').text()).toBe(
+        'web.admin.customers.actions.role.selfDemote'
+      );
+    });
+
+    it('opens no dialog and POSTs nothing for a self-demotion', async () => {
+      actAs(PUBLIC_ID);
+      await mountLoaded({ role: 'colonel' });
+      await requestRole('customer');
+
+      expect(dialogInput(wrapper).exists()).toBe(false);
+      expect(mockApi.post).not.toHaveBeenCalled();
+    });
+
+    it('still allows RAISING your own role (only demotion is a lockout risk)', async () => {
+      actAs(PUBLIC_ID);
+      await mountLoaded({ role: 'admin' });
+      await wrapper.find('[data-testid="role-select"]').setValue('colonel');
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="role-apply"]').attributes('disabled')).toBeUndefined();
+      expect(wrapper.find('[data-testid="self-demote-reason"]').exists()).toBe(false);
+    });
+
+    it('disables unverify on your own account and states why', async () => {
+      actAs(PUBLIC_ID);
+      await mountLoaded({ role: 'colonel', verified: true });
+
+      expect(wrapper.find('[data-testid="unverify-button"]').attributes('disabled')).toBeDefined();
+      expect(wrapper.find('[data-testid="self-unverify-reason"]').text()).toBe(
+        'web.admin.customers.actions.unverify.selfUnverify'
+      );
+      await wrapper.find('[data-testid="unverify-button"]').trigger('click');
+      await flushPromises();
+      expect(dialogInput(wrapper).exists()).toBe(false);
+    });
+
+    it('leaves SOMEONE ELSE\'S account fully actionable, with a last-colonel warning', async () => {
+      actAs('ur_someone_else');
+      await mountLoaded({ role: 'colonel', verified: true });
+      await wrapper.find('[data-testid="role-select"]').setValue('customer');
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="role-apply"]').attributes('disabled')).toBeUndefined();
+      expect(wrapper.find('[data-testid="unverify-button"]').attributes('disabled')).toBeUndefined();
+      // Advisory, not a gate: the console cannot know the roster (exposing it
+      // would be the oracle #4328 closes), so it warns rather than blocks.
+      expect(wrapper.find('[data-testid="last-colonel-warning"]').text()).toBe(
+        'web.admin.customers.actions.role.lastColonel'
+      );
+      expect(wrapper.find('[data-testid="unverify-last-colonel-warning"]').text()).toBe(
+        'web.admin.customers.actions.unverify.lastColonel'
+      );
+    });
   });
 });

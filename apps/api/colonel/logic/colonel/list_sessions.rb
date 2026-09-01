@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require_relative 'current_session'
 require 'onetime/operations/sessions/list_sessions'
 
 module ColonelAPI
@@ -26,6 +27,11 @@ module ColonelAPI
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.
       class ListSessions < ColonelAPI::Logic::Base
+        # Same mixin the per-customer panel uses, so the global console can badge
+        # and disable the acting colonel's own row against the SAME definition
+        # the DeleteSession interlock refuses on (#4328).
+        include CurrentSession
+
         SCHEMAS = { response: 'colonelSessions' }.freeze
 
         attr_reader :sessions, :pagination_meta
@@ -75,6 +81,11 @@ module ColonelAPI
               sessions: sessions,
               pagination: pagination_meta,
               scan: @scan_meta,
+              # The acting colonel's own row, as a HANDLE (never the sid). The
+              # console disables its revoke button; the server refuses it too
+              # (DeleteSession, #4328) — this only spares the operator the 422.
+              # nil when the session can't be identified.
+              current_session_handle: current_session_handle,
             },
           }
         end

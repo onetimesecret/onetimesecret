@@ -72,11 +72,23 @@ export const colonelSessionScanSchema = z.object({
   scan_capped: z.boolean(),
 });
 
-/** Sessions list response details: rows + pagination + keyspace scan meta. */
+/**
+ * Sessions list response details: rows + pagination + keyspace scan meta, plus
+ * the acting colonel's OWN session handle.
+ *
+ * `current_session_handle` (#4328) lets the console badge and disable the
+ * operator's own row: revoking it would sign them out mid-incident, and the
+ * server refuses it with a 422 regardless — this only spares them the round
+ * trip. It is a HANDLE, never the sid, so the response still carries nothing
+ * replayable. Null when the request session cannot be identified, and
+ * `.optional()` so a response from a backend predating #4328 still parses
+ * instead of dropping the whole session list mid-deploy.
+ */
 export const colonelSessionsDetailsSchema = z.object({
   sessions: z.array(colonelSessionSchema),
   pagination: paginationSchema,
   scan: colonelSessionScanSchema,
+  current_session_handle: sessionHandleSchema.nullable().optional(),
 });
 
 // ============================================================================

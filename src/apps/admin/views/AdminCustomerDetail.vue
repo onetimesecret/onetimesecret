@@ -19,6 +19,7 @@
   } from '@/schemas/api/internal/responses/colonel';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useApi } from '@/shared/composables/useApi';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useNotificationsStore } from '@/shared/stores/notificationsStore';
   import { formatDisplayDateTime } from '@/utils/format';
   import { gracefulParse } from '@/utils/schemaValidation';
@@ -52,6 +53,7 @@
   const router = useRouter();
   const $api = useApi();
   const notifications = useNotificationsStore();
+  const bootstrapStore = useBootstrapStore();
 
   const publicId = computed(() => props.id);
   const userUrl = (): string => `/api/colonel/users/${encodeURIComponent(publicId.value)}`;
@@ -205,6 +207,53 @@
   const purgeBlocked = computed(() => !confirmTokenFor('purge'));
 
   /**
+   * Is the record on screen the acting colonel's own account? (#4328)
+   *
+   * Compared on the PUBLIC id the bootstrap payload already carries. This is
+   * defence in depth, exactly like {@link purgeBlocked} — the server refuses
+   * self-demotion, self-unverify and self-revoke with a 422 whatever the
+   * browser does; disabling here just keeps the operator from typing a
+   * confirmation token for an action that cannot succeed.
+   */
+  const isSelf = computed(
+    () => !!record.value?.extid && record.value.extid === bootstrapStore.cust?.extid
+  );
+
+  /**
+   * A DEMOTION of your own account: the one role change the server refuses.
+   * Raising your own role is not a lockout risk and stays available.
+   */
+  const selfDemoteBlocked = computed(
+    () => isSelf.value && !!pendingRole.value && pendingRole.value !== 'colonel'
+  );
+
+  /** Unverifying yourself strips your own colonel eligibility — also refused. */
+  const selfUnverifyBlocked = computed(() => isSelf.value);
+
+  /** Why the role apply button is disabled, when it is for this reason. */
+  const selfDemoteReason = computed(() =>
+    t('web.admin.customers.actions.role.selfDemote')
+  );
+
+  /**
+   * Advisory (not a gate): demoting or unverifying SOMEONE ELSE'S colonel
+   * account can still be refused server-side when they are the last remaining
+   * one. The console cannot know the roster — that answer is deliberately not
+   * exposed, because it would be an oracle — so this warns rather than blocks.
+   */
+  const demotingAnotherColonel = computed(
+    () =>
+      !isSelf.value &&
+      record.value?.role === 'colonel' &&
+      !!pendingRole.value &&
+      pendingRole.value !== 'colonel'
+  );
+
+  const unverifyingAnotherColonel = computed(
+    () => !isSelf.value && record.value?.role === 'colonel' && !!record.value?.verified
+  );
+
+  /**
    * The token the session-revoke verbs are gated on (#4326) — the same account
    * identifier, resolved here because the sessions section only knows the
    * route's public id. Falls back to that id, which is what the server resolves
@@ -273,6 +322,8 @@
     // Fail closed: never open a danger dialog whose typed token is blank —
     // AdminConfirmDialog runs an empty token as a one-click simple confirm.
     if (DANGER_ACTIONS.includes(key) && !confirmTokenFor(key)) return;
+    // ...nor one the server's self-target interlocks will refuse (#4328).
+    if (key === 'unverify' && selfUnverifyBlocked.value) return;
     activeAction.value = key;
     resetMutation();
     dialogOpen.value = true;
@@ -281,6 +332,8 @@
   function requestSetRole(): void {
     // No-op guard: ignore if the role is unchanged (nothing to confirm).
     if (!pendingRole.value || pendingRole.value === record.value?.role) return;
+    // Fail closed on the interlocks the server enforces (#4328).
+    if (selfDemoteBlocked.value) return;
     requestAction('setRole');
   }
 
@@ -620,12 +673,29 @@
                 <button
                   type="button"
                   data-testid="role-apply"
-                  :disabled="pendingRole === record.role"
+                  :disabled="pendingRole === record.role || selfDemoteBlocked"
+                  :aria-describedby="selfDemoteBlocked ? 'self-demote-reason' : undefined"
                   class="inline-flex shrink-0 items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
                   @click="requestSetRole">
                   {{ t('web.admin.customers.actions.role.apply') }}
                 </button>
               </div>
+              <!-- Client-side mirror of the server interlock (#4328): a colonel
+                   cannot demote their own account. Stated, not just disabled —
+                   a dead button with no explanation reads as a bug. -->
+              <p
+                v-if="selfDemoteBlocked"
+                id="self-demote-reason"
+                class="mt-2 text-xs text-amber-700 dark:text-amber-400"
+                data-testid="self-demote-reason">
+                {{ selfDemoteReason }}
+              </p>
+              <p
+                v-else-if="demotingAnotherColonel"
+                class="mt-2 text-xs text-amber-700 dark:text-amber-400"
+                data-testid="last-colonel-warning">
+                {{ t('web.admin.customers.actions.role.lastColonel') }}
+              </p>
             </div>
 
             <!-- Verify / unverify -->
@@ -641,18 +711,36 @@
                 size="4" />
               {{ t('web.admin.customers.actions.verify.button') }}
             </button>
-            <button
-              v-else
-              type="button"
-              data-testid="unverify-button"
-              class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
-              @click="requestAction('unverify')">
-              <OIcon
-                collection="heroicons"
-                name="x-circle"
-                size="4" />
-              {{ t('web.admin.customers.actions.unverify.button') }}
-            </button>
+            <div v-else>
+              <button
+                type="button"
+                data-testid="unverify-button"
+                :disabled="selfUnverifyBlocked"
+                :aria-describedby="selfUnverifyBlocked ? 'self-unverify-reason' : undefined"
+                class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-brand-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+                @click="requestAction('unverify')">
+                <OIcon
+                  collection="heroicons"
+                  name="x-circle"
+                  size="4" />
+                {{ t('web.admin.customers.actions.unverify.button') }}
+              </button>
+              <!-- Verification is a prerequisite for the colonel role, so
+                   unverifying yourself is a self-demotion (#4328). -->
+              <p
+                v-if="selfUnverifyBlocked"
+                id="self-unverify-reason"
+                class="mt-2 text-xs text-amber-700 dark:text-amber-400"
+                data-testid="self-unverify-reason">
+                {{ t('web.admin.customers.actions.unverify.selfUnverify') }}
+              </p>
+              <p
+                v-else-if="unverifyingAnotherColonel"
+                class="mt-2 text-xs text-amber-700 dark:text-amber-400"
+                data-testid="unverify-last-colonel-warning">
+                {{ t('web.admin.customers.actions.unverify.lastColonel') }}
+              </p>
+            </div>
 
             <!-- Suspend / unsuspend (reversible trust & safety pause).
                  Colonel accounts cannot be suspended (privilege guard); the
@@ -872,7 +960,8 @@
            payload can appear). Guarded per-row revoke logs the user out. -->
       <AdminCustomerSessionsSection
         :user-id="publicId"
-        :confirm-token="sessionsConfirmToken" />
+        :confirm-token="sessionsConfirmToken"
+        :is-self="isSelf" />
 
       <!-- Account auth diagnostics (READ-ONLY) — why can't this user log in /
            sign up. Same read-out as `bin/ots customers diagnose`. -->

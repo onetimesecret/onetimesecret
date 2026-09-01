@@ -33,6 +33,15 @@
      * detail view, which is the only surface here that holds the record.
      */
     confirmToken: string;
+    /**
+     * True when this customer IS the acting colonel (#4328). Revoke-all is then
+     * a CONTAINMENT action rather than an offboarding one: the server routes it
+     * to the except-current op and keeps the session the operator is working
+     * in, so the confirm copy has to say so instead of promising a full logout.
+     * Per-row self-revoke is refused server-side and already disabled here by
+     * `currentSessionHandle`.
+     */
+    isSelf?: boolean;
   }>();
 
   const { t } = useI18n();
@@ -144,6 +153,17 @@
     lastRevokedCount.value = record.blobs_deleted;
     lastScanCapped.value = record.scan_capped;
   });
+
+  /**
+   * Confirm copy for revoke-all. On the acting colonel's OWN account the server
+   * keeps this session (it routes to the except-current op, #4328), so promising
+   * a full logout would be a lie the operator acts on during an incident.
+   */
+  const revokeAllDescription = computed(() =>
+    props.isSelf
+      ? t('web.admin.customers.detail.sessions.revokeAll.selfDescription')
+      : t('web.admin.customers.detail.sessions.revokeAll.confirmDescription')
+  );
 
   function requestRevokeAll(): void {
     resetRevokeAll();
@@ -292,7 +312,7 @@
     <AdminConfirmDialog
       v-model:open="revokeAllDialogOpen"
       :title="t('web.admin.customers.detail.sessions.revokeAll.confirmTitle')"
-      :description="t('web.admin.customers.detail.sessions.revokeAll.confirmDescription')"
+      :description="revokeAllDescription"
       variant="danger"
       :confirm-token="props.userId"
       :confirm-text="t('web.admin.customers.detail.sessions.revokeAll.button')"

@@ -210,5 +210,9 @@
   "web.admin.sessions.errors.scanCapped": {
     "text": "This session was not found in the sampled keyspace. Open it from its row in the list so the owner can be used to look it up.",
     "content_hash": "67b73f7f"
+  },
+  "web.admin.sessions.revoke.ownSession": {
+    "text": "This is your own session. Revoking it would sign you out — use sign-out instead.",
+    "content_hash": "a6762292"
   }
 }

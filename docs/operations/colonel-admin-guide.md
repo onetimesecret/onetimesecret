@@ -48,6 +48,42 @@ Notes:
 - Add `-f`/`--force` to skip the confirmation prompt in automation.
 - To revoke access, `demote` the account; the role is removed immediately.
 
+### Self-target and last-colonel interlocks (#4328)
+
+The console refuses four things outright, with a 422 naming the remediation:
+
+| Action | Why it is refused |
+|---|---|
+| Demoting **your own** colonel account | Nobody else could undo it from the console. |
+| Demoting the **last remaining** colonel | The install would have no administrator. |
+| **Unverifying** your own account | A system role requires `cust.verified?`, so unverifying is a demotion by another name. |
+| Unverifying the **last remaining** colonel | Same, applied to the whole install. |
+
+The last two matter more than they look: unverifying used to be an un-gated
+POST that stripped colonel eligibility straight past any last-colonel check on
+the role endpoint.
+
+**The CLI is the recovery path, and it is interlocked too.** `bin/ots customers
+role demote` and `bin/ots customers unverify` refuse the last remaining verified
+colonel and exit non-zero — the refusal lives in the shared operation, not in
+the HTTP adapter, so there is no way around it short of editing Redis. To
+actually hand over the last colonel account, promote **and verify** the
+replacement first, then demote.
+
+"Last remaining colonel" is computed from the authoritative `role` field on
+every candidate, not from `customer:role_index:colonel`. That index drifts
+UPWARD (see `bin/ots customers role reconcile`), so counting it would make the
+guard fail open and let you demote the only administrator you have.
+
+Two session verbs carry the same self-target rule:
+
+- Revoking **your own** session, from either the global console or the
+  per-customer panel, is refused — sign out instead.
+- Revoking **all** sessions on your own account is **not** refused. It is the
+  first containment step for a leaked colonel cookie, so it runs the
+  except-current variant: every other session dies and the one you are working
+  in survives.
+
 ## 2. What the console can do
 
 Every capability is enforced by the two-layer authorization invariant (router

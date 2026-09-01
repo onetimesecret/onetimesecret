@@ -16,7 +16,8 @@ require 'colonel/logic'
 #
 # The split is `return if verified_target` inside SetUserVerificationBase, which
 # is exactly the asymmetry these examples pin — a refactor that hoists the guard
-# above that line would silently gate the recovery path.
+# above that line would silently gate the recovery path. It now guards the
+# #4328 interlocks too.
 RSpec.describe ColonelAPI::Logic::Colonel::UnverifyUser do
   let(:colonel) do
     instance_double(Onetime::Customer,
@@ -27,8 +28,8 @@ RSpec.describe ColonelAPI::Logic::Colonel::UnverifyUser do
   let(:target) do
     instance_double(Onetime::Customer,
       objid: 'cust_target', extid: 'ur_target', email: 'target@example.com',
-      obscure_email: 't****@example.com', verified?: false, updated: 1_700_000_000,
-      exists?: true, anonymous?: false)
+      obscure_email: 't****@example.com', role: 'customer', verified?: false,
+      updated: 1_700_000_000, exists?: true, anonymous?: false)
   end
 
   let(:op) do
@@ -89,14 +90,103 @@ RSpec.describe ColonelAPI::Logic::Colonel::UnverifyUser do
     end
   end
 
+  # ---- Interlocks (#4328, review B-1) ----------------------------------------
+  #
+  # Unverifying strips colonel eligibility, so an attacker refused a demotion by
+  # RoleSupport.last_colonel? would otherwise just call unverify instead. Both
+  # refusals run at STEP 4 — after the confirmation gate — so their 422s cannot
+  # be used as a "who is the last colonel" oracle by a caller holding only the
+  # cookie.
+  describe 'interlocks' do
+    let(:colonel_target) do
+      instance_double(Onetime::Customer,
+        objid: 'cust_target', extid: 'ur_target', email: 'target@example.com',
+        obscure_email: 't****@example.com', role: 'colonel', verified?: true,
+        updated: 1_700_000_000, exists?: true, anonymous?: false)
+    end
+
+    let(:second_colonel) do
+      instance_double(Onetime::Customer,
+        objid: 'cust_other', role: 'colonel', verified?: true, exists?: true)
+    end
+
+    def stub_roster(*colonels)
+      allow(Onetime::Customer).to receive(:find_all_by_role).with('colonel').and_return(colonels)
+    end
+
+    it 'refuses unverifying your own account, naming user_id' do
+      allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(colonel)
+      allow(Onetime::Customer).to receive(:load).and_return(colonel)
+      allow(colonel).to receive_messages(email: 'target@example.com', exists?: true)
+      stub_roster(colonel)
+
+      expect { logic_for(described_class, 'target@example.com').raise_concerns }
+        .to raise_error(Onetime::FormError, /Cannot unverify your own account/)
+    end
+
+    it 'refuses unverifying the last remaining verified colonel' do
+      allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(colonel_target)
+      allow(Onetime::Customer).to receive(:load).and_return(colonel_target)
+      stub_roster(colonel_target)
+
+      expect { logic_for(described_class, 'target@example.com').raise_concerns }
+        .to raise_error(Onetime::FormError, /last remaining colonel/)
+    end
+
+    it 'allows it once a second active colonel exists' do
+      allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(colonel_target)
+      allow(Onetime::Customer).to receive(:load).and_return(colonel_target)
+      stub_roster(colonel_target, second_colonel)
+
+      expect { logic_for(described_class, 'target@example.com').raise_concerns }.not_to raise_error
+    end
+
+    # M-2 oracle guard: with no confirmation the answer must be the 403, never
+    # the interlock 422 — otherwise the refusal itself discloses the roster.
+    it 'answers 403 (not the interlock 422) when the confirmation is missing' do
+      allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(colonel_target)
+      allow(Onetime::Customer).to receive(:load).and_return(colonel_target)
+      stub_roster(colonel_target)
+
+      expect { logic_for(described_class, nil).raise_concerns }
+        .to raise_error(Onetime::ConfirmationRequired)
+    end
+
+    it 'does not run the roster read on the verify arm' do
+      allow(Onetime::Customer).to receive(:find_all_by_role)
+      logic_for(ColonelAPI::Logic::Colonel::VerifyUser, nil).raise_concerns
+
+      expect(Onetime::Customer).not_to have_received(:find_all_by_role)
+    end
+  end
+
   describe 'the happy path still works' do
-    it 'hands the op verified: false and the acting colonel extid' do
+    it 'hands the op verified: false, the acting colonel extid and its objid' do
       logic = logic_for(described_class, 'target@example.com')
       logic.raise_concerns
       logic.process
 
       expect(Auth::Operations::Customers::SetVerification).to have_received(:new)
-        .with(hash_including(verified: false, actor: 'ur_colonel'))
+        .with(hash_including(verified: false, actor: 'ur_colonel', actor_objid: 'cust_colonel'))
+    end
+
+    # The op is the backstop: if the roster changed between raise_concerns and
+    # the write, its refusal status must become the same 422, never a reported
+    # change that did not happen.
+    it 'maps an op-level refusal status to a 422' do
+      allow(op).to receive(:call).and_return(:last_colonel)
+      logic = logic_for(described_class, 'target@example.com')
+      logic.raise_concerns
+
+      expect { logic.process }.to raise_error(Onetime::FormError, /last remaining colonel/)
+    end
+
+    it 'raises loudly on a status it does not know' do
+      allow(op).to receive(:call).and_return(:something_new)
+      logic = logic_for(described_class, 'target@example.com')
+      logic.raise_concerns
+
+      expect { logic.process }.to raise_error(Onetime::FormError, /did not complete/)
     end
   end
 end

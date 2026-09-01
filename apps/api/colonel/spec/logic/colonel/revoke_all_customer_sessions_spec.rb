@@ -9,10 +9,11 @@ require 'colonel/logic'
 # EVERY device, so TIER 1 (#4326).
 #
 # This adapter is deliberately thin: Onetime::Operations::Sessions::RevokeAllForCustomer
-# owns the purge and the single ColonelAuditEvent (CONTRACT 4). The account is
-# resolved here ONLY to name the confirmation token — it is not (yet) a 404
-# guard, because the op is idempotent on an unknown custid. P4 (#4328) adds the
-# existence check and the self-target interlock between that resolve and the gate.
+# owns the purge and the single ColonelAuditEvent (CONTRACT 4). Since #4328 the
+# account is resolved as a real 404 guard (an unknown identifier used to return
+# zero counts, which reads as "done" for a typo), and a SELF-TARGET request is
+# routed to RevokeAllForCustomerExceptCurrent rather than refused — killing your
+# own other sessions is the first containment step for a leaked colonel cookie.
 RSpec.describe ColonelAPI::Logic::Colonel::RevokeAllCustomerSessions do
   let(:colonel) do
     instance_double(Onetime::Customer,
@@ -83,13 +84,16 @@ RSpec.describe ColonelAPI::Logic::Colonel::RevokeAllCustomerSessions do
       expect(Onetime::Operations::Sessions::RevokeAllForCustomer).not_to have_received(:new)
     end
 
-    # The expected token must never be blank — that is a 500 by design — so an
-    # identifier that resolves to nothing falls back to what the caller sent.
-    it 'falls back to the submitted identifier when the account does not resolve' do
+    # #4328 replaced P2's "fall back to the submitted identifier" with a real
+    # 404: an unresolvable target now stops at guard-order step 2, BEFORE the
+    # confirmation gate, so there is no expected token to name at all.
+    it '404s before the gate when the account does not resolve' do
       allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(nil)
       allow(Onetime::Customer).to receive(:load).and_return(nil)
 
-      expect { logic_for(colonel, 'ur_target').raise_concerns }.not_to raise_error
+      expect { logic_for(colonel, 'ur_target').raise_concerns }
+        .to raise_error(Onetime::RecordNotFound)
+      expect(Onetime::Operations::Sessions::RevokeAllForCustomer).not_to have_received(:new)
     end
   end
 
@@ -111,6 +115,96 @@ RSpec.describe ColonelAPI::Logic::Colonel::RevokeAllCustomerSessions do
     it 'refuses a non-colonel and writes NO audit event' do
       expect { logic_for(customer, nil).raise_concerns }.to raise_error(Onetime::Forbidden)
       expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+    end
+  end
+
+  # ---- Self-target containment (#4328) ---------------------------------------
+  #
+  # Deliberately NOT a refusal (design M-6): "kill all my sessions" is the first
+  # containment step for a leaked colonel cookie, so refusing it would remove
+  # the operator's only in-console remedy for the compromise they are
+  # containing. It routes to the except-current op instead.
+  describe 'self-target' do
+    let(:self_target) do
+      instance_double(Onetime::Customer,
+        objid: 'cust_colonel', extid: 'ur_colonel', email: 'colonel@example.com',
+        exists?: true, anonymous?: false)
+    end
+
+    let(:except_op) do
+      instance_double(
+        Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent,
+        call: Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent::Result.new(
+          revoked: true, blobs_deleted: 3, untracked_deleted: 1, scan_capped: false,
+        ),
+      )
+    end
+
+    # A Rack SessionId: #public_id is the cookie value the ops key on.
+    let(:rack_session_id) { double('SessionId', public_id: 'a' * 64) }
+
+    def self_logic(session_id = rack_session_id)
+      described_class.new(
+        double('StrategyResult',
+          session: double('Session', id: session_id),
+          user: colonel, auth_method: 'sessionauth',
+          metadata: { confirm_token: 'colonel@example.com' }),
+        { 'user_id' => 'ur_colonel' },
+      )
+    end
+
+    before do
+      allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(self_target)
+      allow(Onetime::Customer).to receive(:load).and_return(self_target)
+      allow(Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent)
+        .to receive(:new).and_return(except_op)
+    end
+
+    it 'routes to the except-current op, excluding this request session' do
+      logic = self_logic
+      logic.raise_concerns
+      logic.process
+
+      expect(Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent)
+        .to have_received(:new).with(hash_including(
+          custid: 'ur_colonel', except_session_id: 'a' * 64, actor: 'ur_colonel',
+        ))
+      expect(Onetime::Operations::Sessions::RevokeAllForCustomer).not_to have_received(:new)
+    end
+
+    it 'tells the operator their current session was kept' do
+      logic = self_logic
+      logic.raise_concerns
+
+      expect(logic.process[:details][:message]).to eq(described_class::SELF_TARGET_MESSAGE)
+    end
+
+    it 'reports zero rodauth rows (the except-current op is Redis-only)' do
+      logic = self_logic
+      logic.raise_concerns
+
+      expect(logic.process[:record][:rodauth_rows_deleted]).to eq(0)
+    end
+
+    # Fail safe: with no identifiable current session the except-current op
+    # would spare nothing and sign the operator out of the console.
+    it '422s rather than self-revoking when the current sid cannot be resolved' do
+      logic = self_logic(nil)
+
+      expect { logic.raise_concerns }.to raise_error(Onetime::FormError, /no identifiable session/)
+      expect(Onetime::Operations::Sessions::RevokeAllForCustomerExceptCurrent)
+        .not_to have_received(:new)
+    end
+
+    # M-2 oracle guard: the fail-safe 422 must never be reachable without proof.
+    it 'answers 403 (not the 422) when the confirmation is missing' do
+      logic = described_class.new(
+        double('StrategyResult', session: double('Session', id: nil), user: colonel,
+          auth_method: 'sessionauth', metadata: { confirm_token: nil }),
+        { 'user_id' => 'ur_colonel' },
+      )
+
+      expect { logic.raise_concerns }.to raise_error(Onetime::ConfirmationRequired)
     end
   end
 

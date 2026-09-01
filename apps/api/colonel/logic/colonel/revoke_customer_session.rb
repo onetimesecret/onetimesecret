@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require_relative 'current_session'
 require 'onetime/models/session_metadata'
 require 'onetime/operations/sessions/revoke_for_customer'
 
@@ -40,6 +41,8 @@ module ColonelAPI
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.
       class RevokeCustomerSession < ColonelAPI::Logic::Base
+        include CurrentSession
+
         attr_reader :user_id, :session_handle, :session_id, :customer, :result
 
         def process_params
@@ -67,6 +70,18 @@ module ColonelAPI
             confirm_subject: "the session owner's email address",
             field: :session_handle,
           )
+
+          # INTERLOCK — step 4, after proof (#4328). Identical to the global
+          # DeleteSession guard: a colonel revoking their own session through
+          # the per-customer panel is the same mistake, and the per-customer
+          # list already badges the row. Handles, never sids.
+          if current_session_handle && current_session_handle == session_handle
+            raise_form_error(
+              'Cannot revoke your own active session. Use sign-out instead.',
+              field: :session_handle,
+            )
+          end
+
           charge_destructive_budget!
         end
 
