@@ -127,9 +127,20 @@ const adminRateLimitTree: AugmentTree = {
   handle_resolve: colonelRateLimitBucketTree(60, 300, 300),
 };
 
+// Idle + absolute bounds on the ADMIN API SURFACE only (#4331), mirroring
+// config.defaults.yaml. Both numbers use .min(0) rather than .positive():
+// 0 DISABLES that bound and is a legitimate operator choice, unlike the
+// "typo'd env var collapsed to 0" case the positive() guards elsewhere catch.
+const adminSessionTree: AugmentTree = {
+  enabled: (b) => b.default(true),
+  idle_timeout: (n) => n.int().min(0).default(3600),
+  absolute_timeout: (n) => n.int().min(0).default(43200),
+};
+
 const adminTree: AugmentTree = {
   elevation: adminElevationTree,
   rate_limit: adminRateLimitTree,
+  session: adminSessionTree,
   // Empty defaults mirror config.defaults.yaml, but the two gates read empty
   // differently. Host gate: an empty list is still ACTIVE — it anchors on the
   // canonical hosts (DEFAULT_DOMAIN / site.host plus www. siblings) and

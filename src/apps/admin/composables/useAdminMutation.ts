@@ -4,6 +4,8 @@ import { ref, type Ref } from 'vue';
 
 import { classifyError } from '@/schemas/errors';
 
+import { noteAdminSessionExpiry } from '../utils/adminSessionExpiry';
+
 export interface UseAdminMutation<TArgs extends unknown[]> {
   /** True while the mutation is in flight. Wire to AdminConfirmDialog `:loading`. */
   loading: Ref<boolean>;
@@ -70,6 +72,10 @@ export function useAdminMutation<TArgs extends unknown[]>(
       // kept alongside it so callers can branch on the backend's error_code.
       error.value = classifyError(err).message;
       lastError.value = err;
+      // An expired admin window (#4331) is not a per-action failure: it ends the
+      // console session, so it also raises the shared flag the banner reads. The
+      // dialog still shows the server's message.
+      noteAdminSessionExpiry(err);
       return false;
     } finally {
       loading.value = false;

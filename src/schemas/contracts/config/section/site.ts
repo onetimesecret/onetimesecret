@@ -162,9 +162,25 @@ const siteAdminRateLimitSchema = z.object({
   handle_resolve: colonelRateLimitBucketSchema.optional(),
 });
 
+/**
+ * Idle + absolute bounds on the ADMIN API SURFACE (/api/colonel) only (#4331).
+ * They do not shorten the shared onetime.session cookie and do not gate the
+ * /colonel SPA shell. `0` disables a bound and is a legitimate value here rather
+ * than a typo'd env var, so neither number is `.positive()` in the shape file.
+ * Defaults belong in `shapes/config/section/site.ts`.
+ */
+const siteAdminSessionSchema = z.object({
+  enabled: z.boolean().optional(),
+  /** Seconds of inactivity, read from the best-effort SessionMetadata sidecar. */
+  idle_timeout: z.number().optional(),
+  /** Seconds since sign-in, read from session['authenticated_at']. */
+  absolute_timeout: z.number().optional(),
+});
+
 const siteAdminSchema = z.object({
   elevation: siteAdminElevationSchema.optional(),
   rate_limit: siteAdminRateLimitSchema.optional(),
+  session: siteAdminSessionSchema.optional(),
   allowed_hosts: z.array(z.string()).nullable().optional(),
   allowed_cidrs: z.array(z.string()).optional(),
 });

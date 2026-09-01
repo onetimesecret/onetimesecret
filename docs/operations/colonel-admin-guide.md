@@ -314,6 +314,47 @@ attacker from minting events.
 rather than being admitted unthrottled. That matches every other limiter in the
 codebase.
 
+### Admin session lifetime (#4331)
+
+`/api/colonel*` expires on its own schedule, independently of the session cookie.
+
+| Bound | Default | Source | Env var |
+| --- | --- | --- | --- |
+| Idle | 1 h | `SessionMetadata#last_activity_at` (the per-session sidecar) | `ADMIN_SESSION_IDLE_TIMEOUT` |
+| Absolute | 12 h | `session['authenticated_at']`, stamped at sign-in | `ADMIN_SESSION_ABSOLUTE_TIMEOUT` |
+
+Exceeding either answers **401** with
+`[ADMIN_SESSION_EXPIRED] Admin session <idle|absolute> timeout exceeded; sign in
+again`. Set either to `0` to disable that bound, or
+`ADMIN_SESSION_LIFETIME_ENABLED=false` to restore the pre-#4331 posture.
+
+**What this does NOT do, on purpose.** It does not shorten the `onetime.session`
+cookie: one cookie serves the admin console, the tenant app and the auth app, so
+expiring the object would log a colonel out of the customer app — and on a
+self-hosted install the colonel is frequently the only customer.
+`site.session.expire_after` (24 h rolling) still governs the session itself. It
+also does not gate the `/colonel` SPA shell: the shell loads on a stale session,
+its first API call 401s, and the console renders an expired banner with a
+sign-in link rather than a bare JSON error on an HTML navigation.
+
+**Recovery is sign-in.** There is no refresh endpoint — signing in replaces the
+session, which also drops any step-up window. Nothing else in the console
+changes.
+
+**Two caveats worth understanding before you rely on the idle bound.** The
+sidecar it reads is best-effort: a session that predates the feature or whose
+30-day sidecar TTL lapsed has no record, and a missing record SKIPS the idle
+check rather than failing it (the absolute bound still applies). And that record
+is a **site-wide** activity clock, so a colonel who is browsing the tenant app
+keeps their admin window open too. A request the bound refuses does not stamp
+activity — an expired window stays expired across retries — but per-surface idle
+tracking needs the separate admin session that splitting the cookie would give.
+
+**If you build anything against the console:** the idle bound only bites because
+the admin SPA makes no periodic requests. Any polling added under
+`src/apps/admin/` would refresh `last_activity_at` forever and silently disable
+this control.
+
 ## 3. Restricting the admin surfaces
 
 Two independent factors restrict which requests reach `/colonel*` and

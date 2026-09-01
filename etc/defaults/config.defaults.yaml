@@ -827,6 +827,40 @@ site:
         window: <%= ENV['COLONEL_HANDLE_RESOLVE_RATE_WINDOW'] || 300 %>
         lockout: <%= ENV['COLONEL_HANDLE_RESOLVE_LOCKOUT'] || 300 %>
 
+    # Session bounds for the ADMIN API SURFACE (/api/colonel) only (#4331).
+    #
+    # SCOPE: these do NOT shorten the session cookie, and they do NOT gate the
+    # /colonel SPA shell. One onetime.session serves the admin console, the
+    # tenant app and the auth app, and site.session.expire_after (24h rolling)
+    # still governs the object. These bounds gate admin API ACCESS, so a colonel
+    # who is also a customer keeps their normal session on the rest of the site,
+    # and a stale admin tab loads the shell and shows an expired banner instead
+    # of a bare 401 on an HTML navigation. Splitting the admin surface onto its
+    # own cookie is the fuller fix.
+    #
+    # THREAT: the general session policy is 24h ROLLING with no absolute cap, so
+    # a colonel session left open in a tab is a standing administrative
+    # capability for as long as anything touches it. AdminNetworkIsolation
+    # compensates at the network layer but is a no-op by default on self-hosted
+    # installs.
+    #
+    # idle_timeout: seconds of inactivity before /api/colonel stops
+    #   authenticating. Sourced from the SessionMetadata sidecar, which is
+    #   best-effort: when no sidecar exists the idle bound is SKIPPED, never
+    #   failed. Two caveats worth knowing before you rely on it. (a) It only
+    #   bites because the admin console makes no periodic requests — adding any
+    #   polling to the admin SPA silently disables this bound. (b) The sidecar is
+    #   a SITE-WIDE activity clock, so touching a tenant route also keeps the
+    #   admin window open; absolute_timeout is the bound nothing can slide.
+    # absolute_timeout: seconds since sign-in, regardless of activity. Sourced
+    #   from session['authenticated_at'], which both auth modes stamp and only a
+    #   password change re-stamps.
+    # Set either to 0 to disable that bound. enabled:false disables both.
+    session:
+      enabled: <%= ENV['ADMIN_SESSION_LIFETIME_ENABLED'] != 'false' %>
+      idle_timeout: <%= ENV['ADMIN_SESSION_IDLE_TIMEOUT'] || 3600 %>
+      absolute_timeout: <%= ENV['ADMIN_SESSION_ABSOLUTE_TIMEOUT'] || 43200 %>
+
     # Which HOSTNAMES serve the Colonel admin surfaces (/colonel shell and
     # /api/colonel API). A request whose validated detected host is not on this
     # list receives the same 404 as the CIDR gate below.

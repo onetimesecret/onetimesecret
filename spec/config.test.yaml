@@ -105,6 +105,13 @@ site:
       enabled: false
     rate_limit:
       enabled: false
+    # Disabled under test so a long-running suite cannot cut its own colonel
+    # session off mid-run (the idle bound reads a sidecar the suite rarely
+    # writes, and the absolute bound would bite any fixture that back-dates
+    # authenticated_at); the #4331 lifetime specs enable it in-process. See
+    # lib/onetime/application/auth_strategies/admin_session_lifetime.rb.
+    session:
+      enabled: false
 
 features:
   regions:

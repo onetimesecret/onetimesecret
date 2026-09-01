@@ -291,6 +291,28 @@ describe('siteAdminShape — step-up (sudo) window and colonel rate limits (#432
   });
 });
 
+describe('siteAdminShape — admin-surface session bounds (#4331)', () => {
+  it('ships the bounds ON at 1h idle / 12h absolute', () => {
+    const result = siteAdminShape.parse({ session: {} });
+    expect(result.session?.enabled).toBe(true);
+    expect(result.session?.idle_timeout).toBe(3600);
+    expect(result.session?.absolute_timeout).toBe(43200);
+  });
+
+  // 0 DISABLES a bound and must survive as 0. Unlike the rate-limit caps, this
+  // is not the "typo'd env var collapsed to 0" case — it is how an operator
+  // turns off one bound while keeping the other.
+  it('keeps an explicit 0 on either bound rather than falling back', () => {
+    const result = siteAdminShape.parse({ session: { idle_timeout: 0, absolute_timeout: 0 } });
+    expect(result.session?.idle_timeout).toBe(0);
+    expect(result.session?.absolute_timeout).toBe(0);
+  });
+
+  it('preserves an explicit opt-out of the whole subtree', () => {
+    expect(siteAdminShape.parse({ session: { enabled: false } }).session?.enabled).toBe(false);
+  });
+});
+
 describe('siteShape — composed sub-trees', () => {
   it('applies authentication / session / middleware defaults end-to-end', () => {
     const result = siteShape.parse({

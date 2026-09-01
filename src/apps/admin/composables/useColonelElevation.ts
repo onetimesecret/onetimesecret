@@ -11,6 +11,12 @@ import { classifyError } from '@/schemas/errors';
 import { useApi } from '@/shared/composables/useApi';
 import { gracefulParse } from '@/utils/schemaValidation';
 
+import {
+  adminSessionExpired,
+  clearAdminSessionExpired,
+  noteAdminSessionExpiry,
+} from '../utils/adminSessionExpiry';
+
 const ELEVATION_URL = '/api/colonel/elevation';
 
 /**
@@ -146,6 +152,9 @@ async function refresh(): Promise<void> {
     passwordAvailable.value = details.password_available;
     factors.value = details.factors;
   } catch (err) {
+    // This is the FIRST request the console makes on entry, so it is usually
+    // where an expired admin window (#4331) is discovered.
+    noteAdminSessionExpiry(err);
     error.value = classifyError(err).message;
   } finally {
     loading.value = false;
@@ -244,6 +253,13 @@ export interface UseColonelElevation {
   error: Ref<string | null>;
   /** True when the operator has no factor they can satisfy from the browser. */
   unsatisfiable: ComputedRef<boolean>;
+  /**
+   * The admin API surface has expired this session (#4331). Re-exported here,
+   * not re-implemented: the banner needs ONE object holding every reason the
+   * console is currently unable to act, and an expired window outranks every
+   * elevation state.
+   */
+  adminSessionExpired: Ref<boolean>;
   promptOpen: Ref<boolean>;
   refresh: () => Promise<void>;
   elevate: (factor: string, password?: string) => Promise<boolean>;
@@ -273,6 +289,7 @@ export function useColonelElevation(): UseColonelElevation {
     loading,
     error,
     unsatisfiable,
+    adminSessionExpired,
     promptOpen,
     refresh,
     elevate,
@@ -300,4 +317,5 @@ export function __resetColonelElevationState(): void {
   activeFactor.value = null;
   loading.value = false;
   error.value = null;
+  clearAdminSessionExpired();
 }

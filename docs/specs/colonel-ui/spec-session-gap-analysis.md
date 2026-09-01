@@ -223,6 +223,35 @@ audits the capability rather than binding it to the credential. Binding it to a
 value the cookie does not carry (an elevation nonce echoed as a request header,
 or a sid rotation at grant time) is the follow-up.
 
+**Bounded for the admin API surface (#4331): 3.1, 3.2, 3.13.** `/api/colonel*`
+now additionally requires a colonel session to satisfy a **1h idle** and a **12h
+absolute** bound
+(`lib/onetime/application/auth_strategies/admin_session_lifetime.rb`, checked in
+`BaseSessionAuthStrategy` after the credential watermark and before
+`additional_checks`; 401 `[ADMIN_SESSION_EXPIRED] …`). Both are configurable
+under `site.admin.session.*`, and `0` disables either.
+
+The bound is on the **surface, not the session object**, which is what the detail
+below argues for but stops short of: expiring the blob would shorten both bounds
+for every user of the site and log a colonel out of the tenant app, and on a
+self-hosted install the colonel is often the only customer. The `/colonel` SPA
+shell is deliberately NOT gated either — the expired-session banner lives inside
+the SPA, so the shell loads, its first API call 401s, and the banner explains.
+
+Two properties the idle bound rests on, both worth knowing before scoring it:
+
+- It reads the **best-effort** `SessionMetadata#last_activity_at` and SKIPS
+  itself when no record exists; a lapsed 30-day sidecar must not log anyone out.
+- That field is a **site-wide** activity clock, so tenant traffic keeps the admin
+  window open. A request the bound REFUSES no longer stamps it (the strategy
+  flags the env and `TrackMetadata` honours the flag), so an expired window stays
+  expired; but a per-surface idle clock needs the separate admin session 3.14
+  asks for.
+
+Still open here, and deliberately: **3.14** — the cookie is still shared, with
+`AdminNetworkIsolation` and now these bounds as compensating controls rather than
+a substitute. Also unchanged: 3.4, 3.5, 3.7, 3.8, 3.9, 3.10, 3.12.
+
 ### 3.1/3.2 detail — two policy engines, neither covering the request path
 
 There are two independent session-policy mechanisms with non-overlapping

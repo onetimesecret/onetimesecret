@@ -33,6 +33,7 @@ RSpec.describe 'etc/defaults/config.defaults.yaml — admin defaults' do
     COLONEL_DESTRUCTIVE_RATE_WINDOW COLONEL_DESTRUCTIVE_LOCKOUT
     COLONEL_HANDLE_RESOLVE_RATE_LIMIT_ENABLED COLONEL_HANDLE_RESOLVE_MAX_ATTEMPTS
     COLONEL_HANDLE_RESOLVE_RATE_WINDOW COLONEL_HANDLE_RESOLVE_LOCKOUT
+    ADMIN_SESSION_LIFETIME_ENABLED ADMIN_SESSION_IDLE_TIMEOUT ADMIN_SESSION_ABSOLUTE_TIMEOUT
   ].freeze
 
   let(:admin) do
@@ -106,13 +107,40 @@ RSpec.describe 'etc/defaults/config.defaults.yaml — admin defaults' do
     end
   end
 
+  describe 'admin-surface session bounds (#4331)' do
+    it 'ships ENABLED' do
+      expect(admin.dig('session', 'enabled')).to be true
+    end
+
+    # The numbers are the control. A default quietly raised to 86 400 would
+    # restore the 24h rolling posture #4331 exists to bound, with every example
+    # still green.
+    it 'ships a 1-hour idle bound' do
+      expect(admin.dig('session', 'idle_timeout').to_i).to eq(3_600)
+    end
+
+    it 'ships a 12-hour absolute bound' do
+      expect(admin.dig('session', 'absolute_timeout').to_i).to eq(43_200)
+    end
+
+    # Both bounds must be shorter than the session object's own rolling TTL, or
+    # the admin surface would outlive the cookie and the feature would be inert.
+    it 'ships both bounds shorter than site.session.expire_after' do
+      expire_after = Onetime::Initializers::SESSION_DEFAULTS['expire_after']
+
+      expect(admin.dig('session', 'idle_timeout').to_i).to be < expire_after
+      expect(admin.dig('session', 'absolute_timeout').to_i).to be < expire_after
+    end
+  end
+
   describe 'the test config deliberately differs' do
     # Stated as an assertion so the divergence is visible rather than surprising:
     # if someone "fixes" the test config to match the shipped one, the colonel
     # suites start gating themselves and this spec explains why they must not.
-    it 'disables both in spec/config.test.yaml' do
+    it 'disables all three in spec/config.test.yaml' do
       expect(OT.conf.dig('site', 'admin', 'elevation', 'enabled')).to be false
       expect(OT.conf.dig('site', 'admin', 'rate_limit', 'enabled')).to be false
+      expect(OT.conf.dig('site', 'admin', 'session', 'enabled')).to be false
     end
   end
 end
