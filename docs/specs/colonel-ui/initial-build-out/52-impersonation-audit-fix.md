@@ -245,10 +245,12 @@ colonel rather than migrating it into the target's `active_sessions`.
 
 **3. Capability restriction at the point of use.** The middleware enforces a
 positive list: safe methods on non-blocked paths, plus the stop endpoint;
-everything else is refused with 403. The list is safe methods *minus known
-consuming reads* — a secret fetch carrying `?continue=true` burns the secret
-and is denied whatever its method, and any future GET that mutates has to join
-that deny list explicitly. `/api/auth/*`, `/auth/*`,
+everything else is refused with 403. The rule is safe methods (GET/HEAD only —
+Otto dispatches OPTIONS to real handlers) *minus a path deny list*, because
+some GETs mutate: a secret fetch burns the secret, and the billing portal and
+plan routes mint Stripe sessions that outlive the impersonation. Any future GET
+that mutates or mints an external artifact has to join that deny list
+explicitly. `/api/auth/*`, `/auth/*`,
 `/api/colonel/*`, and `/colonel*` are blocked regardless of method — the
 Rodauth block because `account_id` remains the colonel's, so a credential
 change there would act on the operator's own account. Nothing is relied on
