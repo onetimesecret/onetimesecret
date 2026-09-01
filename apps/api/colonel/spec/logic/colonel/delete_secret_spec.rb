@@ -31,6 +31,9 @@ RSpec.describe ColonelAPI::Logic::Colonel::DeleteSecret do
       state: 'new',
       owner_id: 'cust_owner_internal',
       receipt_identifier: 'rec_internal_objid',
+      # nil, as on real records: the stored field is not populated by spawn_pair,
+      # so the confirmation token falls back to the loaded receipt's shortid.
+      receipt_shortid: nil,
       destroy!: true)
   end
 
@@ -43,8 +46,9 @@ RSpec.describe ColonelAPI::Logic::Colonel::DeleteSecret do
   end
 
   # `confirm_token` is where the colonel session auth strategy puts the
-  # percent-decoded X-OTS-Confirm header (#4326) — never params.
-  def strategy_result_for(user, confirm_token = 'sec12345', session = {})
+  # percent-decoded X-OTS-Confirm header (#4326) — never params. The default is
+  # the RECEIPT shortid: the accepted token is independent of :secret_id (#4326).
+  def strategy_result_for(user, confirm_token = 'rec98765', session = {})
     double('StrategyResult', session: session, user: user,
       auth_method: 'sessionauth', metadata: { confirm_token: confirm_token })
   end
@@ -55,7 +59,10 @@ RSpec.describe ColonelAPI::Logic::Colonel::DeleteSecret do
 
   # ---- Server-side confirmation (#4326) --------------------------------------
 
-  let(:expected_confirm_token) { 'sec12345' }
+  # The receipt shortid, NOT the secret shortid: the route is keyed by
+  # :secret_id and secret.shortid == secret_id[0,8], so a token equal to it
+  # would be derivable from the URL and no second factor at all (design §1.1).
+  let(:expected_confirm_token) { 'rec98765' }
 
   def confirmed_logic_for(confirm_token)
     described_class.new(
@@ -65,6 +72,34 @@ RSpec.describe ColonelAPI::Logic::Colonel::DeleteSecret do
   end
 
   it_behaves_like 'a confirmed colonel action'
+
+  # ---- Confirmation-token independence from the URL (#4326) -------------------
+  #
+  # The whole point of #4326 is that a scraped-URL replay needs a SECOND,
+  # non-URL identifier. The route is keyed by :secret_id, so the accepted token
+  # must have entropy the URL does not carry — it must NOT equal, nor be a
+  # prefix of, the :secret_id path parameter. secret.shortid IS secret_id[0,8]
+  # (a prefix), so it must be rejected; the receipt shortid (its own objid) is
+  # what is accepted.
+  describe 'confirmation-token independence from :secret_id (#4326)' do
+    let(:secret_id_param) { 'sec12345abcdef' }
+
+    it 'requires a token that is neither equal to nor a prefix of :secret_id' do
+      expect(expected_confirm_token).not_to eq(secret_id_param)
+      expect(secret_id_param).not_to start_with(expected_confirm_token)
+      expect(secret_id_param).not_to include(expected_confirm_token)
+    end
+
+    it 'rejects the secret shortid (= :secret_id[0,8]), which the URL carries' do
+      logic = confirmed_logic_for(secret.shortid)
+      expect { logic.raise_concerns }.to raise_error(Onetime::ConfirmationRequired)
+    end
+
+    it 'accepts the receipt shortid, which the URL does not carry' do
+      logic = confirmed_logic_for(receipt.shortid)
+      expect { logic.raise_concerns }.not_to raise_error
+    end
+  end
 
   before do
     allow(OT).to receive(:info)
