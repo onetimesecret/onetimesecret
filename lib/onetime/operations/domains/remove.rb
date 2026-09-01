@@ -157,7 +157,8 @@ module Onetime
           # FAIL-CLOSED (#4333): a close peer of the named destructive verbs —
           # destroy! has committed and the vhost is gone, so an unrecorded
           # removal is indistinguishable from a domain that was never added.
-          # The dry-run path returns above and audits nothing.
+          # The dry-run path returns above, recording only a preview
+          # observation on the access trail (#4337), never this operator event.
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,

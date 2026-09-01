@@ -71,7 +71,8 @@ module Onetime
         # @param actor [String, #extid, #email] acting admin's PUBLIC identity
         #   (colonel extid/email, or a CLI sentinel). Never an internal objid.
         # @param count [Integer, nil] max messages to replay (nil = all available).
-        # @param dry_run [Boolean] preview only — mutate nothing, audit nothing.
+        # @param dry_run [Boolean] preview only — mutates nothing; records one
+        #   preview observation on the access trail (#4337), never the operator trail.
         def initialize(connection:, queue:, actor:, count: nil, dry_run: false)
           @connection = connection
           @queue      = queue

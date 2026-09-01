@@ -28,11 +28,12 @@ module Onetime
       # ## Dry-run + exactly-once audit (CONTRACT 4)
       #
       # `dry_run: true` (the safe default) computes the plan — the issues found and
-      # what would change — and mutates NOTHING and audits NOTHING. `dry_run: false`
+      # what would change — mutates NOTHING, and records one preview observation on
+      # the access trail (#4337), never the operator trail. `dry_run: false`
       # applies the repairs and records EXACTLY ONE {Onetime::ColonelAuditEvent} per
       # successful mutation. A run that finds no issues (`:no_issues`) or is blocked
-      # mutates nothing and records no audit event (the "only audit an actual
-      # change" rule).
+      # mutates nothing and records no operator-trail audit event (the "only audit
+      # an actual change" rule).
       #
       # ## Behavioural parity note (latent CLI bug fixed)
       #
