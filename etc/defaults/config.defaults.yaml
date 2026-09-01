@@ -452,11 +452,20 @@ site:
     # production mode. Unlike SSL=false — which quick-start configs ship by
     # default and which therefore must not silently downgrade the cookie — this
     # variable names exactly what it does and is never set by accident.
+    #
+    # The dev/test check ALLOWLISTS the values Onetime.env normalizes to a
+    # non-production environment (lib/onetime/class_methods.rb) rather than
+    # testing != 'production': the runtime maps 'prod' to production and treats
+    # empty/unknown values as production ("default to production when
+    # uncertain"), so a negative test here would emit secure: false for
+    # RACK_ENV=prod or RACK_ENV='' — deployments the app itself runs as
+    # production. Anything not on the list (including staging, empty, and
+    # typos) leaves the key absent and lets the runtime fallback decide.
     <% if %w[true false].include?(ENV['SESSION_COOKIE_SECURE'].to_s) %>
     secure: <%= ENV['SESSION_COOKIE_SECURE'] %>
     <% elsif ENV['SSL'] == 'true' %>
     secure: true
-    <% elsif ENV['SSL'] == 'false' && (ENV['RACK_ENV'] || 'production') != 'production' %>
+    <% elsif ENV['SSL'] == 'false' && %w[dev development test testing].include?(ENV['RACK_ENV'].to_s.downcase) %>
     secure: false
     <% end %>
     # SameSite cookie attribute (strict|lax|none)
