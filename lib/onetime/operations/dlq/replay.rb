@@ -28,7 +28,7 @@ module Onetime
       # EXACTLY ONE {Onetime::ColonelAuditEvent} — verb `queue.dlq.replay`, target the
       # DLQ name, detail the replayed/failed counts. A replay of an empty queue, or
       # one that processed nothing, mutates nothing and records NO event (the "only
-      # audit an actual change" rule shared with BanIP / Sessions::Delete).
+      # audit an actual change" rule shared with Sessions::Delete).
       #
       # ## Dry run
       #

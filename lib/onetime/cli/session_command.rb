@@ -313,7 +313,7 @@ module Onetime
 
       # Audit actor recorded for CLI-initiated revokes. The shell carries no
       # authenticated colonel identity; a plain, non-secret public sentinel is
-      # used — never an internal objid. Mirrors BannedIpsBanCommand::CLI_ACTOR.
+      # used — never an internal objid.
       CLI_ACTOR = 'cli'
 
       argument :session_id, type: :string, required: false, desc: 'Session ID'

@@ -144,17 +144,6 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    // Banned IPs: bounded list + guarded ban / unban (ticket #33).
-    path: '/colonel/banned-ips',
-    name: 'AdminBannedIps',
-    component: () => import('@/apps/admin/views/AdminBannedIps.vue'),
-    meta: {
-      ...adminDefaultMeta,
-      title: 'web.admin.bannedIps.title',
-      sentryScrubParams: false,
-    },
-  },
-  {
     // Usage export read-out (ticket #33).
     path: '/colonel/usage',
     name: 'AdminUsage',

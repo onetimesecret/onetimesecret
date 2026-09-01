@@ -14,8 +14,8 @@ module Onetime
   module Operations
     module Email
       # Remove one address from the email suppression list — the SINGLE,
-      # audited implementation of the suppression-remove verb (the
-      # {Onetime::Operations::UnbanIP} pattern for the deliverability lane).
+      # audited implementation of the suppression-remove verb for the
+      # deliverability lane.
       #
       # Removing a suppression re-enables outbound mail to an address that
       # previously bounced or complained, so the HTTP adapter

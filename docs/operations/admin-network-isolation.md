@@ -74,7 +74,7 @@ a **404** — not a 403 — on both surfaces, so the admin console is
 *indistinguishable from absent* to an unauthorized host or network and does not
 advertise its existence. Both are enforced by the `AdminNetworkIsolation` Rack
 middleware (`lib/onetime/middleware/admin_network_isolation.rb`), a sibling of
-the existing `IPBan` and `HealthAccessControl` middleware.
+the existing `HealthAccessControl` middleware.
 
 Isolation is a **config posture, not a code fork**: the exact same app-layer
 enforcement runs in every posture. Flipping either allowlist on or off never

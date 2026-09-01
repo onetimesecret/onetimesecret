@@ -111,14 +111,6 @@ export const CONSOLE_SECTIONS: ConsoleSection[] = [
     hide: false,
     to: '/colonel/audit',
   },
-  {
-    key: 'bannedIps',
-    labelKey: 'web.colonel.titles.bannedIps',
-    icon: 'no-symbol',
-    group: 'security',
-    hide: true,
-    to: '/colonel/banned-ips',
-  },
 
   {
     key: 'system',

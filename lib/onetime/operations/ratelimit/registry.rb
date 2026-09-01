@@ -5,7 +5,7 @@
 # Central (cross-cutting) admin operation support — see decision D3. The security
 # rate limiters (lib/onetime/security/*_rate_limiter.rb) are site-wide perimeter
 # infrastructure with no single domain owner, so their admin inspect/reset verbs
-# live in the central operations home alongside {Onetime::Operations::BanIP}.
+# live in the central operations home alongside the other cross-cutting verbs.
 #
 # This file defines ONLY a frozen registry constant + pure key-derivation
 # helpers. It references NO models or Redis at load time — the per-limiter

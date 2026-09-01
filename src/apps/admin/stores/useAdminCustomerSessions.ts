@@ -25,8 +25,12 @@ import { gracefulParse } from '@/utils/schemaValidation';
  * can appear because none exists on the model.
  *
  *   - fetchForCustomer(userId) → GET    /api/colonel/users/:user_id/sessions
- *   - revoke(userId, sessionId) → DELETE /api/colonel/users/:user_id/sessions/:session_id
+ *   - revoke(userId, sessionHandle) → DELETE /api/colonel/users/:user_id/sessions/:session_handle
  *   - revokeAll(userId) → POST /api/colonel/users/:user_id/sessions/revoke-all
+ *
+ * Sessions are identified by session_handle, a non-reversible digest of the raw
+ * session id (finding F-01) — the raw sid (a live cookie value) never reaches
+ * the client.
  *
  * `userId` is the customer EXTERNAL id (extid, 'ur…') — the same value the
  * detail view is keyed by. Not paginated: a single customer's active-session
@@ -61,11 +65,11 @@ export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () 
   /** The customer's active session rows (whole list — never paginated). */
   const sessions = ref<AdminCustomerSession[]>([]);
   /**
-   * The acting colonel's own request session id whenever the API can identify
+   * The acting colonel's own request session HANDLE whenever the API can identify
    * it — independent of whether it appears in `sessions` (the component does
    * the row matching). Null when unidentifiable or before/after a failed fetch.
    */
-  const currentSessionId = ref<string | null>(null);
+  const currentSessionHandle = ref<string | null>(null);
   /** True while a request is in flight. */
   const loading = ref(false);
   /** The last thrown network/HTTP error, or null. */
@@ -88,7 +92,7 @@ export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () 
     loading.value = true;
     error.value = null;
     validationError.value = null;
-    currentSessionId.value = null; // reset up-front; only a 2xx re-populates it
+    currentSessionHandle.value = null; // reset up-front; only a 2xx re-populates it
     try {
       const response = await $api.get(sessionsUrl(userId));
       const result = parseSessionsResponse(response.data);
@@ -99,7 +103,7 @@ export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () 
         return null;
       }
       sessions.value = result.data.details?.sessions ?? [];
-      currentSessionId.value = result.data.details?.current_session_id ?? null;
+      currentSessionHandle.value = result.data.details?.current_session_handle ?? null;
       return sessions.value;
     } catch (err) {
       // Network/HTTP failure: clear stale rows and rethrow for the view to handle.
@@ -118,16 +122,16 @@ export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () 
    * the row stays. The ack is schema-checked as a live tripwire (never fails the
    * action on drift). Throws the network/HTTP error for useAdminMutation to catch.
    */
-  async function revoke(userId: string, sessionId: string): Promise<void> {
+  async function revoke(userId: string, sessionHandle: string): Promise<void> {
     const response = await $api.delete(
-      `${sessionsUrl(userId)}/${encodeURIComponent(sessionId)}`
+      `${sessionsUrl(userId)}/${encodeURIComponent(sessionHandle)}`
     );
     gracefulParse(
       colonelCustomerSessionRevokeResponseSchema,
       response.data,
       'ColonelCustomerSessionRevokeResponse'
     );
-    sessions.value = sessions.value.filter((s) => s.session_id !== sessionId);
+    sessions.value = sessions.value.filter((s) => s.session_handle !== sessionHandle);
   }
 
   /** Revoke ALL sessions (offboarding/takeover); clears the list, returns kill counts. */
@@ -142,7 +146,7 @@ export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () 
   /** Explicit manual reset — setup stores have no built-in $reset. */
   function $reset(): void {
     sessions.value = [];
-    currentSessionId.value = null;
+    currentSessionHandle.value = null;
     loading.value = false;
     error.value = null;
     validationError.value = null;
@@ -151,7 +155,7 @@ export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () 
   return {
     // State
     sessions,
-    currentSessionId,
+    currentSessionHandle,
     loading,
     error,
     validationError,

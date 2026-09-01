@@ -44,11 +44,6 @@ GET    /system/brand                      ColonelAPI::Logic::Colonel::GetBrandDi
 GET    /system/redis                      ColonelAPI::Logic::Colonel::GetRedisMetrics response=json auth=sessionauth role=colonel scope=internal
 GET    /queue                             ColonelAPI::Logic::Colonel::GetQueueMetrics response=json auth=sessionauth role=colonel scope=internal
 
-# IP Banning
-GET    /banned-ips                        ColonelAPI::Logic::Colonel::ListBannedIPs response=json auth=sessionauth role=colonel scope=internal
-POST   /banned-ips                        ColonelAPI::Logic::Colonel::BanIP response=json auth=sessionauth role=colonel scope=internal
-DELETE /banned-ips/:ip                    ColonelAPI::Logic::Colonel::UnbanIP response=json auth=sessionauth role=colonel scope=internal
-
 # Custom Domains
 GET    /domains                           ColonelAPI::Logic::Colonel::ListCustomDomains response=json auth=sessionauth role=colonel scope=internal
 POST   /domains                           ColonelAPI::Logic::Colonel::CreateCustomDomain response=json auth=sessionauth role=colonel scope=internal
@@ -110,7 +105,7 @@ DELETE /sessions/:session_id              ColonelAPI::Logic::Colonel::DeleteSess
 GET    /users/:user_id/sessions           ColonelAPI::Logic::Colonel::ListCustomerSessions response=json auth=sessionauth role=colonel scope=internal
 # Bulk revoke-all (offboarding/takeover). POST+verb (local convention for bulk-destructive) so it can't collide with the single-revoke DELETE below.
 POST   /users/:user_id/sessions/revoke-all ColonelAPI::Logic::Colonel::RevokeAllCustomerSessions response=json auth=sessionauth role=colonel scope=internal
-DELETE /users/:user_id/sessions/:session_id ColonelAPI::Logic::Colonel::RevokeCustomerSession response=json auth=sessionauth role=colonel scope=internal
+DELETE /users/:user_id/sessions/:session_handle ColonelAPI::Logic::Colonel::RevokeCustomerSession response=json auth=sessionauth role=colonel scope=internal
 
 # Broadcast Banner (ticket #41)
 GET    /banner                            ColonelAPI::Logic::Colonel::GetBanner response=json auth=sessionauth role=colonel scope=internal

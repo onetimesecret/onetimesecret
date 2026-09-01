@@ -6,7 +6,7 @@
 # lib/onetime/operations/README.md. Lives alongside the incumbent domain ops in
 # lib/onetime/operations, under the Domains:: namespace. Loaded at the call site
 # (colonel logic + CLI), so require the audit model explicitly, mirroring
-# AdminVerifyDomain / BanIP.
+# AdminVerifyDomain.
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 

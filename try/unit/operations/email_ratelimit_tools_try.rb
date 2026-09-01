@@ -202,7 +202,7 @@ AE.events.clear
 
 ## a no-op reset records NO audit event (nothing mutated, nothing REFUSED)
 # The colonel adapter returns 200 / "No active rate-limit state to reset" for
-# :not_set, so it is not an operator-visible failure — unlike UnbanIP's
+# :not_set, so it is not an operator-visible failure — unlike a
 # :not_found (a 404), which IS recorded as a refusal.
 AE.count
 #=> 0
