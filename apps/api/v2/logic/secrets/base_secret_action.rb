@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/secret_lifetime_policy'
+require 'onetime/security/conceal_secret_rate_limiter'
 
 module V2::Logic
   module Secrets
@@ -10,6 +11,7 @@ module V2::Logic
 
     class BaseSecretAction < V2::Logic::Base
       include Onetime::LoggerMethods
+      include Onetime::Security::ConcealSecretRateLimiter
 
       attr_reader :passphrase,
         :secret_value,
@@ -41,6 +43,17 @@ module V2::Logic
       end
 
       def raise_concerns
+        # Throughput cap on anonymous secret creation (finding F-02). Charged
+        # ONLY to guests — an authenticated caller is accountable through their
+        # Customer record and plan limits and is the legitimate high-volume
+        # creator — and enforced ahead of the Receipt.spawn_pair write in
+        # #process, so a throttled flood reaches no datastore growth. Keyed on
+        # the edge-masked client IP the auth strategy resolved. Raises
+        # Onetime::LimitExceeded, rendered as the ADR-013 429 (otto_hooks.rb).
+        # The V1 controller enforces the same limiter over the same subject; keep
+        # them in lockstep. See Onetime::Security::ConcealSecretRateLimiter.
+        enforce_conceal_secret_rate_limit!(conceal_secret_client_ip) if anonymous_user?
+
         require_entitlement!('api_access')
         raise_form_error 'Unknown type of secret' if kind.nil?
 
@@ -398,6 +411,19 @@ module V2::Logic
       end
 
       private
+
+      # Edge-masked client IP for the creation limiter, read from the same
+      # StrategyResult metadata the passphrase limiter uses in these files
+      # (burn/reveal/show_secret#passphrase_client_ip). Guarded with respond_to?
+      # because a direct/spec construction may build the logic without a
+      # strategy_result; AuthStrategies::Helpers#client_ip sources it from
+      # env['otto.client_ip'], so the key is trusted-proxy-resolved and not
+      # header-spoofable. nil skips the limiter (see conceal_secret_ip_keys).
+      def conceal_secret_client_ip
+        return unless respond_to?(:strategy_result)
+
+        strategy_result&.metadata&.[](:ip)
+      end
 
       def create_secret_pair
         @receipt, @secret = Onetime::Receipt.spawn_pair(
