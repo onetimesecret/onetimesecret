@@ -12,6 +12,7 @@ require 'familia'
 require_relative 'logger_methods'
 require_relative 'session/codec'
 require_relative 'session/sidecar'
+require_relative 'session/impersonation'
 require_relative 'operations/sessions/track_metadata'
 
 module Onetime
