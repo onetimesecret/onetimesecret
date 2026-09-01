@@ -24,6 +24,9 @@
 #   bin/ots domains verify --all --unverified --limit=10
 #   bin/ots domains verify --all --orphaned --dry-run
 #
+# The bulk filters and --limit/--rate-limit are rejected without --all rather
+# than ignored (see reject_bulk_only_options!).
+#
 # DOMAIN accepts the display domain (preferred), the domain extid, or its objid.
 #
 # Lives under lib/onetime/cli (not apps/api/domains/cli) so the require of the
@@ -40,6 +43,27 @@ module Onetime
     class DomainsVerifyCommand < Command
       include Customers::Shared
       include Domains::Shared
+
+      # Options that only mean anything in bulk mode, in declaration order.
+      # `--all` is the mode selector rather than a bulk-only flag, and
+      # `--dry-run` / `--json` apply to both modes, so none of the three
+      # belongs here.
+      BULK_ONLY_OPTIONS = [:rate_limit, :orphaned, :verified, :unverified, :org_id, :limit].freeze
+
+      # Which bulk-only options hold a value other than the declared default.
+      #
+      # Same technique -- and the same limitation -- as
+      # ServerCommand.conflicting_with_config_file: dry-cli merges the declared
+      # defaults into the parsed options before `call` runs
+      # (dry-cli-1.4.1/lib/dry/cli/parser.rb), so true presence is not
+      # recoverable here. A flag explicitly given its own default
+      # (`--rate-limit 0.5`) still reads as omitted and is accepted silently.
+      # That residue is confined to the two options with a meaningful default;
+      # `--limit` and `--org-id` default to nil, so ANY value is caught,
+      # including the `--limit 0` / `--limit -1` the bulk guard rejects.
+      def self.bulk_only_supplied(supplied)
+        BULK_ONLY_OPTIONS.reject { |name| supplied[name].to_s == default_params[name].to_s }
+      end
 
       desc 'Verify domain ownership and SSL status'
 
@@ -90,20 +114,24 @@ module Onetime
                unverified: false, org_id: nil, limit: nil, **)
         boot_application!
 
+        # One bundle for the BULK_ONLY_OPTIONS set: what the bulk path consumes
+        # is exactly what single mode has no use for.
+        bulk_options = {
+          rate_limit: rate_limit,
+          orphaned: orphaned,
+          verified: verified,
+          unverified: unverified,
+          org_id: org_id,
+          limit: limit,
+        }
+
         if all
           error_exit('--limit must be a positive integer', json: json) if limit && limit.to_i < 1
 
-          verify_bulk(
-            dry_run: dry_run,
-            json: json,
-            rate_limit: rate_limit,
-            orphaned: orphaned,
-            verified: verified,
-            unverified: unverified,
-            org_id: org_id,
-            limit: limit,
-          )
+          verify_bulk(dry_run: dry_run, json: json, **bulk_options)
         elsif domain
+          reject_bulk_only_options!(json: json, **bulk_options)
+
           verify_single(domain, dry_run: dry_run, json: json)
         else
           error_exit(
@@ -114,6 +142,22 @@ module Onetime
       end
 
       private
+
+      # Single mode silently ignored every bulk-only flag: `verify example.com
+      # --limit -1 --orphaned` exited 0 having done a plain verify. Accepting a
+      # flag that cannot do anything is the defect -- `--limit -1` merely made
+      # it visible, and fixing --limit alone would have left the other five
+      # inconsistent with it. Rejecting the set matches how the CLI already
+      # handles an option that does not apply to the chosen mode (ServerCommand
+      # with a config file, `customers change-email` with --apply + --dry-run):
+      # name the offending flags and exit non-zero rather than guess intent.
+      def reject_bulk_only_options!(json:, **supplied)
+        offenders = self.class.bulk_only_supplied(supplied)
+        return if offenders.empty?
+
+        flags = offenders.map { |name| "--#{Dry::CLI::Inflector.dasherize(name)}" }.join(', ')
+        error_exit("Bulk-mode options require --all: #{flags}", json: json)
+      end
 
       def verify_single(identifier, dry_run:, json:)
         target = resolve_domain(identifier, json: json)

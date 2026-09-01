@@ -331,6 +331,41 @@ RSpec.describe 'Domains Command', type: :cli do
       expect(JSON.parse(output[:stdout])['error']).to include('--limit')
       expect(last_exit_code).to eq(1)
     end
+
+    it 'rejects --limit in single mode instead of silently ignoring it' do
+      expect(Onetime::Operations::AdminVerifyDomain).not_to receive(:new)
+
+      output = run_cli_command_quietly('domains', 'verify', 'example.com', '--limit', '-1')
+      expect(output[:stdout]).to include('Bulk-mode options require --all: --limit')
+      expect(last_exit_code).to eq(1)
+    end
+
+    it 'rejects the bulk filters in single mode, naming each one' do
+      output = run_cli_command_quietly(
+        'domains', 'verify', 'example.com', '--orphaned', '--org-id', 'org123', '--rate-limit', '2.0'
+      )
+      expect(output[:stdout]).to include('--rate-limit')
+      expect(output[:stdout]).to include('--orphaned')
+      expect(output[:stdout]).to include('--org-id')
+      expect(last_exit_code).to eq(1)
+    end
+
+    it 'reports rejected bulk-mode options as JSON under --json' do
+      output = run_cli_command_quietly('domains', 'verify', 'example.com', '--unverified', '--json')
+      expect(JSON.parse(output[:stdout])['error']).to include('--unverified')
+      expect(last_exit_code).to eq(1)
+    end
+
+    it 'still verifies a single domain when only mode-agnostic flags are given' do
+      allow(Onetime::CustomDomain).to receive(:load_by_display_domain).and_return(domain)
+      allow(domain).to receive_messages(primary_organization: organization, identifier: 'example.com')
+      allow(Onetime::CustomDomain::HomepageConfig).to receive(:find_by_domain_id).and_return(nil)
+      op = double('AdminVerify', call: verify_result)
+      allow(Onetime::Operations::AdminVerifyDomain).to receive(:new).and_return(op)
+
+      run_cli_command_quietly('domains', 'verify', 'example.com', '--dry-run', '--json')
+      expect(last_exit_code).to eq(0)
+    end
   end
 
   describe 'list subcommand' do
