@@ -4,7 +4,7 @@
 
 module Onetime
   module Middleware
-    # StripForwardedHost — remove client-settable forwarded-authority headers
+    # StripForwardedHost — remove client-settable forwarded-AUTHORITY signals
     # from the Rack env so `Rack::Request#host` can never carry a host the
     # client chose (finding G-01, defense in depth).
     #
@@ -20,15 +20,30 @@ module Onetime
     # The primary fix lives in Auth::PublicHost / the base_url override, which
     # allowlist the host to a registered tenant and otherwise fall back to the
     # CANONICAL host, never `request.host`. This middleware is the belt to that
-    # brace: with the forwarded-host headers gone, even a direct
+    # brace: with the forwarded-host signals gone, even a direct
     # `request.host` read (a future consumer, a gem) resolves to the `Host:`
     # authority the edge actually received — never a client-supplied one —
     # regardless of the operator's proxy configuration.
     #
+    # ## Host only — the other RFC 7239 parameters survive
+    #
+    # `X-Forwarded-Host` carries nothing but an authority, so it is deleted
+    # outright. The RFC 7239 `Forwarded` header, however, multiplexes host
+    # alongside `proto`, `for`, and `by` — and Rack reads those too
+    # (`Request#scheme` via `forwarded_scheme`, `#forwarded_for`,
+    # `#forwarded_port`). A deployment whose proxy speaks only `Forwarded`
+    # (no `X-Forwarded-Proto`) would lose its TLS scheme — and every absolute
+    # URL built after this middleware — if the whole header vanished. So for
+    # `Forwarded` we surgically remove the `host=` parameters and keep the
+    # rest; the header is deleted only when nothing else remains. With no
+    # `host=` present, Rack's `forwarded_authority` finds nothing at the
+    # `:forwarded` priority and falls through to `X-Forwarded-Host` — which
+    # this middleware has already deleted.
+    #
     # ## Ordering — AFTER DetectHost AND AdminNetworkIsolation, before
     # ## anything reads request.host
     #
-    # Two upstream middlewares legitimately consume these headers, so both
+    # Two upstream middlewares legitimately consume the raw headers, so both
     # must run first:
     #
     #   - Rack::DetectHost has its OWN trust logic: it honors a forwarded host
@@ -46,20 +61,89 @@ module Onetime
     # Nothing between DetectHost and here reads `Rack::Request#host` (the
     # middlewares in between read the resolved env keys, not the raw
     # authority), and the mounted apps run later still, so by the time any
-    # `request.host` read happens the forwarded headers are gone. DetectHost's
+    # `request.host` read happens the forwarded host is gone. DetectHost's
     # and the admin gate's logic are left entirely intact — this only deletes
     # what they have already used.
     class StripForwardedHost
-      # The two Rack env keys `Rack::Request#forwarded_authority` consults.
-      FORWARDED_HOST_KEYS = %w[HTTP_X_FORWARDED_HOST HTTP_FORWARDED].freeze
+      # Carries only an authority: deleted outright.
+      X_FORWARDED_HOST = 'HTTP_X_FORWARDED_HOST'
+
+      # RFC 7239 — multiplexes host with proto/for/by: host params are
+      # removed, the rest is preserved.
+      FORWARDED = 'HTTP_FORWARDED'
 
       def initialize(app)
         @app = app
       end
 
       def call(env)
-        FORWARDED_HOST_KEYS.each { |key| env.delete(key) }
+        env.delete(X_FORWARDED_HOST)
+
+        if (raw = env[FORWARDED])
+          stripped = self.class.without_host_params(raw)
+          stripped.nil? ? env.delete(FORWARDED) : env[FORWARDED] = stripped
+        end
+
         @app.call(env)
+      end
+
+      # Rebuild an RFC 7239 `Forwarded` value with every `host=` parameter
+      # removed, preserving the element (comma) and parameter (semicolon)
+      # structure — and therefore the per-hop association of the surviving
+      # `proto`/`for`/`by` parameters. Splits are quote-aware: a
+      # quoted-string value (with backslash escapes) may contain `,` or `;`
+      # without ending the element or parameter, matching how
+      # Rack::Utils.forwarded_values tokenizes the header.
+      #
+      # @param raw [String] the incoming Forwarded header value
+      # @return [String, nil] the value without host params, or nil when no
+      #   parameter survives (caller deletes the header)
+      def self.without_host_params(raw)
+        kept_elements = split_unquoted(raw, ',').filter_map do |element|
+          kept = split_unquoted(element, ';').map(&:strip).reject do |pair|
+            pair.empty? || pair.split('=', 2).first.to_s.strip.downcase == 'host'
+          end
+          kept.join(';') unless kept.empty?
+        end
+
+        kept_elements.empty? ? nil : kept_elements.join(', ')
+      end
+
+      # Split +value+ on +separator+, ignoring separators inside RFC 7230
+      # quoted-strings (backslash escapes honored).
+      #
+      # @param value [String]
+      # @param separator [String] a single character
+      # @return [Array<String>]
+      def self.split_unquoted(value, separator)
+        parts     = []
+        current   = +''
+        in_quotes = false
+        escaped   = false
+
+        value.each_char do |char|
+          if in_quotes
+            current << char
+            if escaped
+              escaped = false
+            elsif char == '\\'
+              escaped = true
+            elsif char == '"'
+              in_quotes = false
+            end
+          elsif char == '"'
+            in_quotes = true
+            current << char
+          elsif char == separator
+            parts << current
+            current = +''
+          else
+            current << char
+          end
+        end
+
+        parts << current
+        parts
       end
     end
   end
