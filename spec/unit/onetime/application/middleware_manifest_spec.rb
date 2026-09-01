@@ -100,7 +100,11 @@ RSpec.describe 'Middleware manifest (characterization)' do
       'Rack::ContentLength',
       'Onetime::Middleware::StartupReadiness',
       'Rack::DetectHost',
+      # StripForwardedHost must stay BELOW AdminNetworkIsolation: the admin
+      # gate's forwarded-host provenance rule keys on the PRESENCE of the raw
+      # headers, so stripping earlier would blind it to spoofed hosts.
       'Onetime::Middleware::AdminNetworkIsolation',
+      'Onetime::Middleware::StripForwardedHost',
       'Rack::RequestId',
       'Onetime::Middleware::NormalizeContentType',
       'Onetime::Middleware::ValidateMultipart',

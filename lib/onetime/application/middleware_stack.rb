@@ -10,6 +10,7 @@ require 'rack/utf8_sanitizer'
 
 require_relative '../session'
 require_relative '../middleware/assume_https'
+require_relative '../middleware/strip_forwarded_host'
 require_relative '../middleware/health_access_control'
 require_relative '../middleware/admin_network_isolation'
 require_relative '../middleware/csrf_response_header'
@@ -561,6 +562,21 @@ module Onetime
           # /colonel now returns 503 rather than 404.
           logger.debug 'Setting up Admin Network Isolation middleware'
           builder.use Onetime::Middleware::AdminNetworkIsolation
+
+          # Strip client-settable forwarded-authority headers (finding G-01,
+          # defense in depth). Runs AFTER Rack::DetectHost — which has already
+          # consumed X-Forwarded-Host / Forwarded under its own proxy-trust
+          # gate and published the resolved host into the env — and AFTER
+          # AdminNetworkIsolation, whose forwarded-host PROVENANCE rule keys on
+          # the PRESENCE of these headers (host_provenance_trusted? rule (b)):
+          # deleting them any earlier destroys the evidence that a detected
+          # host was forwarded by an untrusted peer, and the admin gate would
+          # admit exactly the spoof it exists to deny. From here down, every
+          # LATER reader of Rack::Request#host (Rodauth's base_url, the
+          # WebAuthn origin, any gem) sees the edge's real Host authority —
+          # never a host the client forged. Nothing between DetectHost and
+          # here reads request.host directly.
+          builder.use Onetime::Middleware::StripForwardedHost
 
           # Adds env['HTTP_X_REQUEST_ID']
           require 'middleware/request_id'
