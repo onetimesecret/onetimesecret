@@ -753,8 +753,14 @@ site:
     # enabled:false instead. See docs/operations/colonel-admin-guide.md.
     #
     # DISABLING: enabled:false restores pre-#4327 behaviour (confirmation still
-    # applies). An SSO-only fleet must set either reauth_grace > 0 or
-    # enabled:false, or its colonels cannot run tier-1 verbs at all.
+    # applies). An SSO-only (password-less) colonel fleet cannot run tier-1 verbs
+    # at all unless configured, and WHICH knob works depends on the auth mode:
+    #   - SIMPLE mode: set reauth_grace > 0 (recent_auth elevation) OR
+    #     enabled:false.
+    #   - FULL mode: only enabled:false works. recent_auth is never offered in
+    #     full mode (see the reauth_grace note above — the password factor cannot
+    #     be probed there, so every account is treated as password-holding), so
+    #     reauth_grace has NO effect for a full-mode SSO-only fleet.
     elevation:
       enabled: <%= ENV['COLONEL_ELEVATION_ENABLED'] != 'false' %>
       window: <%= ENV['COLONEL_ELEVATION_WINDOW'] || 600 %>

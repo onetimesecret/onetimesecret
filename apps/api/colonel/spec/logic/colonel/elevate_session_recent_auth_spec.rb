@@ -160,5 +160,20 @@ RSpec.describe ColonelAPI::Logic::Colonel::ElevateSession, 'the recent_auth fact
     it 'refuses recent_auth there' do
       expect { elevate(sso_only) }.to raise_error(Onetime::ElevationFailed)
     end
+
+    # #4327 message accuracy: full mode treats every account as password-holding
+    # (fail-closed), but an SSO-only account has NO password — so telling the
+    # operator to re-enter one is misinformation. The full-mode branch names the
+    # real remedy instead.
+    it 'does not tell an SSO-only operator they have a password' do
+      error = begin
+        elevate(sso_only)
+      rescue Onetime::ElevationFailed => ex
+        ex
+      end
+
+      expect(error.message).not_to include('This account has a password')
+      expect(error.message).to include('full authentication mode')
+    end
   end
 end

@@ -113,7 +113,22 @@ module ColonelAPI
           return 'Password verification failed.' if factor == 'password'
 
           if elevation_password_available?
-            'This account has a password; re-enter it to elevate.'
+            # In FULL auth mode the password factor cannot be probed from the
+            # logic layer, so EVERY account is treated as password-holding
+            # (fail-closed) — including SSO-only ones that have no password.
+            # Telling such an operator to "re-enter your password" is
+            # misinformation, so name what actually applies in full mode:
+            # recent_auth is categorically unavailable there, password holders
+            # elevate with their password, and an SSO-only fleet needs elevation
+            # disabled.
+            if Onetime.auth_config.full_enabled?
+              'Password-less (recent_auth) step-up is not available in full ' \
+                'authentication mode. Elevate with your account password, or for ' \
+                'an SSO-only fleet ask an administrator to set ' \
+                'COLONEL_ELEVATION_ENABLED=false.'
+            else
+              'This account has a password; re-enter it to elevate.'
+            end
           elsif elevation_reauth_grace.zero?
             'Password-less step-up is not enabled on this install. ' \
               'Ask an administrator to set COLONEL_ELEVATION_REAUTH_GRACE.'
