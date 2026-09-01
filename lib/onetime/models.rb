@@ -18,7 +18,6 @@ require_relative 'models/email_suppression'
 require_relative 'models/session_metadata'
 require_relative 'models/sso_link_challenge'
 require_relative 'models/sso_link_verification'
-require_relative 'models/impersonation_grant'
 
 # CustomDomain sibling configs — loaded after CustomDomain so the
 # nested-class reopens (`class CustomDomain; class ApiConfig; ...`)

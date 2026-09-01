@@ -2,21 +2,21 @@
 #
 # frozen_string_literal: true
 
-# Unit tests for Auth::Operations::Customers::Impersonate.
+# Unit tests for Auth::Operations::Customers::Impersonate — the START half.
 #
-# Covers: successful grant issuance (+ exactly one audit event that records the
-# NON-SECRET grant_id, never the bearer token), the ADR-023 missing-actor
-# refusal, the missing-reason refusal, the colonel privilege guard, the
-# anonymous-target guard, and TTL clamping passthrough. The grant model is
-# injected as a double so no datastore is touched.
+# Covers: the session marker it writes, the single start audit event, the
+# ADR-023 missing-actor refusal, and the five precondition guards. The session
+# is a plain Hash, so nothing here touches the datastore.
 #
-# Run: pnpm run test:rspec apps/web/auth/spec/operations/customers/impersonate_spec.rb
+# Run: tests/lanes/run unit --only apps/web/auth/spec/operations/customers/impersonate_spec.rb
 
 require 'spec_helper'
 require 'onetime/models/colonel_audit_event'
 require 'auth/operations/customers/impersonate'
 
 RSpec.describe Auth::Operations::Customers::Impersonate do
+  let(:now) { 1_756_700_000 }
+
   let(:customer) do
     double(
       'Customer',
@@ -24,146 +24,142 @@ RSpec.describe Auth::Operations::Customers::Impersonate do
       extid: 'ur_target',
       email: 'alice@example.com',
       anonymous?: false,
+      suspended?: false,
     )
   end
 
-  # Stand-in for Onetime::ImpersonationGrant. Exposes the class-level constants
-  # and methods the op reads (DEFAULT_TTL, clamp_ttl, issue) plus a grant double.
-  let(:grant) do
-    double('ImpersonationGrant', token: 'secret-bearer-token', grant_id: 'grant-uuid-123')
+  let(:session) { { 'external_id' => 'ur_operator', 'role' => 'colonel' } }
+
+  before do
+    allow(Familia).to receive(:now).and_return(now)
+    allow(Onetime::ColonelAuditEvent).to receive(:record)
+    allow(Onetime::EntitlementPreview).to receive(:clear_session!)
   end
 
-  # Stand-in for the Onetime::ImpersonationGrant class. clamp_ttl mirrors the
-  # real semantics (nil / non-positive -> DEFAULT_TTL 120, else clamped 30..600)
-  # so the op's nil-default handling is exercised without the real constant.
-  let(:grant_model) do
-    model = double('ImpersonationGrant class')
-    allow(model).to receive(:clamp_ttl) { |ttl| ttl.to_i <= 0 ? 120 : ttl.to_i.clamp(30, 600) }
-    allow(model).to receive(:issue).and_return(grant)
-    model
+  def op(**overrides)
+    described_class.new(
+      **{ customer: customer, actor: 'ur_operator', reason: 'ticket #123', session: session }
+        .merge(overrides),
+    )
   end
 
-  before { allow(Onetime::ColonelAuditEvent).to receive(:record) }
+  describe 'successful start' do
+    subject(:result) { op.call }
 
-  describe 'successful issuance' do
-    subject(:result) do
-      described_class.new(
-        customer: customer,
-        actor: 'ur_operator',
-        reason: 'ticket #123',
-        ttl: 300,
-        grant_model: grant_model,
-      ).call
+    it 'returns :started with the non-secret correlation id and the expiry' do
+      expect(result.status).to eq(:started)
+      expect(result.impersonation_id).to match(/\Aimp_[0-9a-f]{16}\z/)
+      expect(result.expires_at).to eq(now + Onetime::SessionImpersonation::TTL)
+      expect(result.actor).to eq('ur_operator')
+      expect(result.reason).to eq('ticket #123')
     end
 
-    it 'issues a grant scoped to the target and operator' do
-      result
-      expect(grant_model).to have_received(:issue).with(
-        target_extid: 'ur_target',
-        target_email: 'alice@example.com',
-        actor: 'ur_operator',
-        reason: 'ticket #123',
-        ttl: 300,
+    # There is no bearer token any more — the earlier design's grant is gone.
+    it 'exposes no capability material' do
+      expect(result.members).to contain_exactly(
+        :status, :customer, :actor, :reason, :impersonation_id, :expires_at,
       )
     end
 
-    it 'returns :issued with the bearer token, grant_id, and clamped ttl' do
-      expect(result.status).to eq(:issued)
-      expect(result.token).to eq('secret-bearer-token')
-      expect(result.grant_id).to eq('grant-uuid-123')
-      expect(result.actor).to eq('ur_operator')
-      expect(result.expires_in).to eq(300)
+    it 'writes the overlay marker onto the session' do
+      result
+
+      marker = session[Onetime::SessionImpersonation::SESSION_KEY]
+      expect(marker['target_extid']).to eq('ur_target')
+      expect(marker['target_email']).to eq('alice@example.com')
+      expect(marker['reason']).to eq('ticket #123')
     end
 
-    it 'records exactly one audit event with grant_id and reason, NEVER the token' do
+    # Overlay, not swap: the session still belongs to the operator.
+    it 'leaves external_id pointing at the operator' do
       result
+
+      expect(session['external_id']).to eq('ur_operator')
+    end
+
+    it 'ends any entitlement preview first' do
+      result
+
+      expect(Onetime::EntitlementPreview).to have_received(:clear_session!).with(session)
+    end
+
+    it 'records exactly one start event with the reason and correlation id' do
+      result
+
       expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
         actor: 'ur_operator',
-        verb: 'customer.impersonate',
+        verb: 'customer.impersonate.start',
         target: 'ur_target',
         result: :success,
-        detail: { reason: 'ticket #123', grant_id: 'grant-uuid-123', ttl: 300 },
+        detail: {
+          reason: 'ticket #123',
+          impersonation_id: result.impersonation_id,
+          expires_at: now + Onetime::SessionImpersonation::TTL,
+        },
       )
     end
   end
 
-  describe 'ADR-023 actor requirement' do
-    it 'refuses an empty actor and issues no grant' do
-      expect do
-        described_class.new(
-          customer: customer, actor: '', reason: 'x', grant_model: grant_model,
-        ).call
-      end.to raise_error(described_class::MissingActor)
+  describe 'refusals' do
+    def expect_refusal(error, **overrides)
+      expect { op(**overrides).call }.to raise_error(error)
 
-      expect(grant_model).not_to have_received(:issue)
-      expect(Onetime::ColonelAuditEvent).not_to have_received(:record).with(hash_including(result: :success))
+      expect(session).not_to have_key(Onetime::SessionImpersonation::SESSION_KEY)
+      expect(Onetime::ColonelAuditEvent)
+        .not_to have_received(:record).with(hash_including(result: :success))
+    end
+
+    it 'refuses an empty actor (ADR-023)' do
+      expect_refusal(described_class::MissingActor, actor: '')
     end
 
     it 'refuses a nil actor' do
-      expect do
-        described_class.new(
-          customer: customer, actor: nil, reason: 'x', grant_model: grant_model,
-        ).call
-      end.to raise_error(described_class::MissingActor)
+      expect_refusal(described_class::MissingActor, actor: nil)
     end
-  end
 
-  describe 'reason requirement' do
-    it 'refuses a blank reason and issues no grant' do
-      expect do
-        described_class.new(
-          customer: customer, actor: 'ur_operator', reason: '   ', grant_model: grant_model,
-        ).call
-      end.to raise_error(described_class::MissingReason)
-
-      expect(grant_model).not_to have_received(:issue)
+    it 'refuses a blank reason' do
+      expect_refusal(described_class::MissingReason, reason: '   ')
     end
-  end
 
-  describe 'privilege guard' do
-    it 'refuses to impersonate a colonel-role account (no grant)' do
-      allow(customer).to receive(:role).and_return('colonel')
-
-      expect do
-        described_class.new(
-          customer: customer, actor: 'ur_operator', reason: 'x', grant_model: grant_model,
-        ).call
-      end.to raise_error(described_class::PrivilegedTarget)
-
-      expect(grant_model).not_to have_received(:issue)
+    it 'refuses a session it cannot write to' do
+      expect_refusal(described_class::MissingSession, session: nil)
     end
-  end
 
-  describe 'anonymous guard' do
-    it 'refuses an anonymous target (no grant)' do
+    it 'refuses an anonymous target' do
       allow(customer).to receive(:anonymous?).and_return(true)
+      expect_refusal(described_class::AnonymousTarget)
+    end
 
-      expect do
-        described_class.new(
-          customer: customer, actor: 'ur_operator', reason: 'x', grant_model: grant_model,
-        ).call
-      end.to raise_error(described_class::AnonymousTarget)
+    it 'refuses a colonel-role target' do
+      allow(customer).to receive(:role).and_return('colonel')
+      expect_refusal(described_class::PrivilegedTarget)
+    end
 
-      expect(grant_model).not_to have_received(:issue)
+    it 'refuses a suspended target' do
+      allow(customer).to receive(:suspended?).and_return(true)
+      expect_refusal(described_class::SuspendedTarget)
+    end
+
+    # Silently replacing the marker would leave the first impersonation with no
+    # stop event — a hole in the trail, not just a UX wrinkle.
+    it 'refuses to stack a second impersonation on the same session' do
+      op.call
+
+      expect { op.call }.to raise_error(described_class::AlreadyImpersonating)
     end
   end
 
-  describe 'ttl handling' do
-    it 'clamps an oversized ttl through the model before issuing' do
-      described_class.new(
-        customer: customer, actor: 'ur_operator', reason: 'x', ttl: 99_999,
-        grant_model: grant_model,
-      ).call
+  describe 'actor normalization' do
+    it 'accepts an object carrying a public extid' do
+      actor = double('Customer', extid: 'ur_operator', email: 'ops@example.com')
 
-      expect(grant_model).to have_received(:issue).with(hash_including(ttl: 600))
+      expect(op(actor: actor).call.actor).to eq('ur_operator')
     end
 
-    it 'defaults ttl when none is supplied' do
-      described_class.new(
-        customer: customer, actor: 'ur_operator', reason: 'x', grant_model: grant_model,
-      ).call
+    it 'falls back to email when there is no extid' do
+      actor = double('Customer', extid: '', email: 'ops@example.com')
 
-      expect(grant_model).to have_received(:issue).with(hash_including(ttl: 120))
+      expect(op(actor: actor).call.actor).to eq('ops@example.com')
     end
   end
 end
