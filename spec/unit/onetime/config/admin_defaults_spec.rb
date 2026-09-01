@@ -5,6 +5,7 @@
 require 'spec_helper'
 require 'erb'
 require 'yaml'
+require 'onetime/operations/ratelimit/registry'
 
 # The SHIPPED posture of the colonel hardening switches, read from
 # etc/defaults/config.defaults.yaml itself.
@@ -26,6 +27,12 @@ RSpec.describe 'etc/defaults/config.defaults.yaml — admin defaults' do
     COLONEL_ELEVATION_ENABLED COLONEL_ELEVATION_WINDOW COLONEL_ELEVATION_REAUTH_GRACE
     COLONEL_RATE_LIMIT_ENABLED COLONEL_ELEVATION_RATE_LIMIT_ENABLED
     COLONEL_ELEVATION_MAX_ATTEMPTS COLONEL_ELEVATION_RATE_WINDOW COLONEL_ELEVATION_LOCKOUT
+    COLONEL_MUTATION_RATE_LIMIT_ENABLED COLONEL_MUTATION_MAX_ATTEMPTS
+    COLONEL_MUTATION_RATE_WINDOW COLONEL_MUTATION_LOCKOUT
+    COLONEL_DESTRUCTIVE_RATE_LIMIT_ENABLED COLONEL_DESTRUCTIVE_MAX_ATTEMPTS
+    COLONEL_DESTRUCTIVE_RATE_WINDOW COLONEL_DESTRUCTIVE_LOCKOUT
+    COLONEL_HANDLE_RESOLVE_RATE_LIMIT_ENABLED COLONEL_HANDLE_RESOLVE_MAX_ATTEMPTS
+    COLONEL_HANDLE_RESOLVE_RATE_WINDOW COLONEL_HANDLE_RESOLVE_LOCKOUT
   ].freeze
 
   let(:admin) do
@@ -60,18 +67,42 @@ RSpec.describe 'etc/defaults/config.defaults.yaml — admin defaults' do
     end
   end
 
-  describe 'colonel API rate limits (#4327 elevation bucket; #4329 adds the rest)' do
+  describe 'colonel API rate limits (#4327 elevation bucket; #4329 the other three)' do
     it 'ships ENABLED at the parent flag' do
       expect(admin.dig('rate_limit', 'enabled')).to be true
     end
 
-    it 'ships the elevation bucket enabled with its documented sizing' do
-      bucket = admin.dig('rate_limit', 'elevation')
+    # Sizing, not just the flag: the numbers ARE the control. A default quietly
+    # raised to 10 000 would leave every example green while restoring the
+    # unbounded posture #4329 exists to remove.
+    {
+      'elevation' => { max: 5, window: 900, lockout: 900 },
+      'mutation' => { max: 120, window: 300, lockout: 300 },
+      'destructive' => { max: 10, window: 300, lockout: 900 },
+      'handle_resolve' => { max: 60, window: 300, lockout: 300 },
+    }.each do |name, sizing|
+      it "ships the #{name} bucket enabled with its documented sizing" do
+        bucket = admin.dig('rate_limit', name)
 
-      expect(bucket['enabled']).to be true
-      expect(bucket['max_attempts'].to_i).to eq(5)
-      expect(bucket['window'].to_i).to eq(900)
-      expect(bucket['lockout'].to_i).to eq(900)
+        expect(bucket).to be_a(Hash), "site.admin.rate_limit.#{name} is missing from the shipped defaults"
+        expect(bucket['enabled']).to be true
+        expect(bucket['max_attempts'].to_i).to eq(sizing[:max])
+        expect(bucket['window'].to_i).to eq(sizing[:window])
+        expect(bucket['lockout'].to_i).to eq(sizing[:lockout])
+      end
+    end
+
+    # The registry rows are what make `bin/ots ratelimit`, GET
+    # /ratelimit/inspect and POST /ratelimit/reset able to see these keys, and
+    # POST /ratelimit/reset is the documented recovery for an operator who locks
+    # themselves out of destructive actions. A shipped bucket with no row is a
+    # limiter no operator can clear.
+    it 'has a registry row for every shipped bucket' do
+      kinds = Onetime::Operations::RateLimit::Registry.kinds
+
+      expect(kinds).to include(
+        'colonel_elevation', 'colonel_mutation', 'colonel_destructive', 'colonel_handle_resolve'
+      )
     end
   end
 

@@ -31,14 +31,17 @@ module Onetime
     # a colonel mutation rather than admitting an unthrottled one.
     #
     # CLEARING A STUCK LOCKOUT — the same two paths as every other limiter, over
-    # kind `colonel_elevation`:
+    # kinds `colonel_elevation`, `colonel_mutation`, `colonel_destructive` and
+    # `colonel_handle_resolve`:
     #
-    #   1. `bin/ots ratelimit keys colonel_elevation <extid>` piped to valkey-cli
-    #      (the CLI only PRINTS the commands);
-    #   2. `POST /api/colonel/ratelimit/reset` with kind=colonel_elevation, which
-    #      performs the delete AND records a ColonelAuditEvent. That endpoint is
-    #      TIER 2 — confirmation only, no elevation — so an operator locked out
-    #      of step-up can still clear their own bucket.
+    #   1. `bin/ots ratelimit keys <kind> <extid>` piped to valkey-cli (the CLI
+    #      only PRINTS the commands);
+    #   2. `POST /api/colonel/ratelimit/reset` with that kind, which performs the
+    #      delete AND records a ColonelAuditEvent. That endpoint is TIER 2 —
+    #      confirmation only, no elevation — so an operator locked out of step-up
+    #      or of destructive actions can still clear their own bucket. It is
+    #      itself a mutation, so the one bucket it cannot rescue you from is
+    #      `colonel_mutation`; that is what the valkey-cli path is for.
     #
     # Usage:
     #   include Onetime::Security::ColonelRateLimiter
@@ -56,6 +59,42 @@ module Onetime
       # Namespaced `<resource>.<action>` like every other verb in the trail; the
       # admin console filters on the exact string, so it is a constant.
       ELEVATION_AUDIT_VERB = 'colonel.elevate_throttled'
+
+      # 120 mutating colonel requests per 5 minutes (#4329). Far above any human
+      # operator's rate and above a bulk console session, so this bucket only
+      # trips on scripted abuse. It bounds request VOLUME across all 46 mutating
+      # verbs and is the ONLY bucket charged before the guards run — see
+      # ColonelAPI::Logic::Base#initialize.
+      DEFAULT_MUTATION_MAX     = 120
+      DEFAULT_MUTATION_WINDOW  = 300
+      DEFAULT_MUTATION_LOCKOUT = 300
+      MUTATION_AUDIT_VERB      = 'colonel.mutation_throttled'
+
+      # 10 TIER 1 actions per 5 minutes, then a 15-minute lockout. Permits a real
+      # incident-response burst (revoke a handful of sessions, purge an account)
+      # while capping a scripted purge at 10 before it stalls — which keeps the
+      # audit trail's 10 000-event count cap unreachable inside a lockout window.
+      # That is the whole point of #4329: a purge at wire speed can otherwise
+      # evict the evidence of its own actions.
+      #
+      # These are 10 EXECUTABLE attempts, not 10 requests: the charge is the last
+      # line of raise_concerns, after elevation, confirmation and the interlocks
+      # all pass, so a rejected attempt costs nothing and an attacker holding the
+      # cookie cannot burn the real operator's budget with cheap 403s.
+      DEFAULT_DESTRUCTIVE_MAX     = 10
+      DEFAULT_DESTRUCTIVE_WINDOW  = 300
+      DEFAULT_DESTRUCTIVE_LOCKOUT = 900
+      DESTRUCTIVE_AUDIT_VERB      = 'colonel.destructive_throttled'
+
+      # 60 session-handle lookups per 5 minutes. The two handle-resolving session
+      # reads are the only colonel READS whose cost is not O(1)-ish — each can
+      # fall back to a bounded 10 000-key SCAN plus up to 10 000 HMACs (#4330) —
+      # so they carry a bucket while every other read stays unlimited (the
+      # console fetches those, and a limiter there would break the dashboard).
+      DEFAULT_HANDLE_RESOLVE_MAX     = 60
+      DEFAULT_HANDLE_RESOLVE_WINDOW  = 300
+      DEFAULT_HANDLE_RESOLVE_LOCKOUT = 300
+      HANDLE_RESOLVE_AUDIT_VERB      = 'colonel.handle_resolve_throttled'
 
       # Check the lockout AND record the attempt in one atomic round trip — the
       # same contract as every sibling limiter: Redis serializes script
@@ -103,6 +142,66 @@ module Onetime
           enabled: colonel_elevation_limit_enabled?,
           message: 'Too many step-up attempts. Try again later.',
           audit_verb: ELEVATION_AUDIT_VERB,
+        )
+      end
+
+      # Throttle every mutating colonel request for one colonel account (#4329).
+      # Charged from ColonelAPI::Logic::Base#initialize, so all 46 mutating verbs
+      # are covered without editing 46 files.
+      #
+      # @param subject [String, nil] the acting colonel's extid.
+      # @raise [Onetime::LimitExceeded] 429 once the account is locked out.
+      # @return [void]
+      def enforce_colonel_mutation_limit!(subject)
+        enforce_colonel_bucket!(
+          prefix: 'colonel:mutation',
+          subject: subject,
+          max_attempts: colonel_mutation_max,
+          window: colonel_mutation_window,
+          lockout: colonel_mutation_lockout,
+          enabled: colonel_mutation_limit_enabled?,
+          message: 'Too many admin actions. Please slow down and try again shortly.',
+          audit_verb: MUTATION_AUDIT_VERB,
+        )
+      end
+
+      # Throttle TIER 1 (destructive) colonel actions for one colonel account.
+      # Charged as the LAST line of raise_concerns — see
+      # ColonelAPI::Logic::DestructiveAction#charge_destructive_budget!.
+      #
+      # @param subject [String, nil] the acting colonel's extid.
+      # @raise [Onetime::LimitExceeded] 429 once the account is locked out.
+      # @return [void]
+      def enforce_colonel_destructive_limit!(subject)
+        enforce_colonel_bucket!(
+          prefix: 'colonel:destructive',
+          subject: subject,
+          max_attempts: colonel_destructive_max,
+          window: colonel_destructive_window,
+          lockout: colonel_destructive_lockout,
+          enabled: colonel_destructive_limit_enabled?,
+          message: 'Too many destructive admin actions. This is a safety limit; ' \
+                   'try again shortly or use the CLI for bulk work.',
+          audit_verb: DESTRUCTIVE_AUDIT_VERB,
+        )
+      end
+
+      # Throttle the two session reads that resolve an opaque handle (#4330) and
+      # may fall back to a bounded keyspace scan.
+      #
+      # @param subject [String, nil] the acting colonel's extid.
+      # @raise [Onetime::LimitExceeded] 429 once the account is locked out.
+      # @return [void]
+      def enforce_colonel_handle_resolve_limit!(subject)
+        enforce_colonel_bucket!(
+          prefix: 'colonel:handle_resolve',
+          subject: subject,
+          max_attempts: colonel_handle_resolve_max,
+          window: colonel_handle_resolve_window,
+          lockout: colonel_handle_resolve_lockout,
+          enabled: colonel_handle_resolve_limit_enabled?,
+          message: 'Too many session lookups. Try again shortly.',
+          audit_verb: HANDLE_RESOLVE_AUDIT_VERB,
         )
       end
 
@@ -184,6 +283,18 @@ module Onetime
         colonel_bucket_enabled?('elevation')
       end
 
+      def colonel_mutation_limit_enabled?
+        colonel_bucket_enabled?('mutation')
+      end
+
+      def colonel_destructive_limit_enabled?
+        colonel_bucket_enabled?('destructive')
+      end
+
+      def colonel_handle_resolve_limit_enabled?
+        colonel_bucket_enabled?('handle_resolve')
+      end
+
       def colonel_bucket_enabled?(section)
         return false if colonel_rate_limit_config.fetch('enabled', true) == false
 
@@ -210,6 +321,42 @@ module Onetime
 
       def colonel_elevation_lockout
         positive_colonel_setting('elevation', 'lockout', DEFAULT_ELEVATION_LOCKOUT)
+      end
+
+      def colonel_mutation_max
+        positive_colonel_setting('mutation', 'max_attempts', DEFAULT_MUTATION_MAX)
+      end
+
+      def colonel_mutation_window
+        positive_colonel_setting('mutation', 'window', DEFAULT_MUTATION_WINDOW)
+      end
+
+      def colonel_mutation_lockout
+        positive_colonel_setting('mutation', 'lockout', DEFAULT_MUTATION_LOCKOUT)
+      end
+
+      def colonel_destructive_max
+        positive_colonel_setting('destructive', 'max_attempts', DEFAULT_DESTRUCTIVE_MAX)
+      end
+
+      def colonel_destructive_window
+        positive_colonel_setting('destructive', 'window', DEFAULT_DESTRUCTIVE_WINDOW)
+      end
+
+      def colonel_destructive_lockout
+        positive_colonel_setting('destructive', 'lockout', DEFAULT_DESTRUCTIVE_LOCKOUT)
+      end
+
+      def colonel_handle_resolve_max
+        positive_colonel_setting('handle_resolve', 'max_attempts', DEFAULT_HANDLE_RESOLVE_MAX)
+      end
+
+      def colonel_handle_resolve_window
+        positive_colonel_setting('handle_resolve', 'window', DEFAULT_HANDLE_RESOLVE_WINDOW)
+      end
+
+      def colonel_handle_resolve_lockout
+        positive_colonel_setting('handle_resolve', 'lockout', DEFAULT_HANDLE_RESOLVE_LOCKOUT)
       end
     end
   end

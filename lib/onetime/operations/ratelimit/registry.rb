@@ -96,6 +96,32 @@ module Onetime
             keys: ['colonel:elevation:attempts:%s', 'colonel:elevation:locked:%s'],
             dbclient: -> { Onetime::Customer.dbclient },
           },
+          # The broad colonel-mutation bucket (#4329): every mutating colonel
+          # verb, charged from ColonelAPI::Logic::Base#initialize. Resetting
+          # THIS one over POST /ratelimit/reset is self-defeating (the reset is
+          # itself a mutation) — clear it with the valkey-cli commands
+          # `bin/ots ratelimit keys colonel_mutation <extid>` prints.
+          'colonel_mutation' => {
+            subject: 'colonel external id (extid)',
+            keys: ['colonel:mutation:attempts:%s', 'colonel:mutation:locked:%s'],
+            dbclient: -> { Onetime::Customer.dbclient },
+          },
+          # The tight TIER 1 bucket (#4329). This row MUST exist: the documented
+          # lockout recovery is POST /ratelimit/reset with kind
+          # colonel_destructive, which is a TIER 2 verb and therefore still
+          # reachable while the destructive bucket is exhausted.
+          'colonel_destructive' => {
+            subject: 'colonel external id (extid)',
+            keys: ['colonel:destructive:attempts:%s', 'colonel:destructive:locked:%s'],
+            dbclient: -> { Onetime::Customer.dbclient },
+          },
+          # The two session reads that resolve an opaque handle and may fall
+          # back to a bounded keyspace scan (#4329 / #4330).
+          'colonel_handle_resolve' => {
+            subject: 'colonel external id (extid)',
+            keys: ['colonel:handle_resolve:attempts:%s', 'colonel:handle_resolve:locked:%s'],
+            dbclient: -> { Onetime::Customer.dbclient },
+          },
           'dns' => {
             subject: 'domain identifier (sanitized)',
             keys: ['dns:ratelimit:%s'],

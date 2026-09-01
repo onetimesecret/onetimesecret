@@ -15,6 +15,7 @@
 
 require 'onetime/logic/base'
 require 'onetime/application/authorization_policies'
+require 'onetime/security/colonel_rate_limiter'
 
 require_relative '../destructive_actions'
 require_relative 'colonel/elevation'
@@ -50,8 +51,51 @@ module ColonelAPI
       # this module's window arithmetic (#4327).
       include ColonelAPI::Logic::Colonel::Elevation
       include ColonelAPI::Logic::DestructiveAction
+      # The four colonel rate-limit buckets (#4329): the tight destructive one
+      # step 5 charges through DestructiveAction#charge_destructive_budget!, the
+      # broad mutation one #initialize below charges, the handle-resolve one the
+      # two session reads charge, and the step-up one ElevateSession charges.
+      include Onetime::Security::ColonelRateLimiter
 
       using Familia::Refinements::TimeLiterals
+
+      # HTTP methods that can change state. PUT is here for the one PUT route
+      # (`PUT /domains/:extid/configs/:kind`); PATCH is unused today and listed
+      # so a future route is covered the day it appears.
+      MUTATING_METHODS = %w[POST PUT PATCH DELETE].freeze
+
+      # Charge the broad colonel-mutation bucket once per mutating request
+      # (#4329, 120 / 300 s).
+      #
+      # HERE rather than in raise_concerns because none of the ~86 concrete
+      # colonel classes call `super` in raise_concerns, so a base-class hook
+      # there would be silently skipped; and the router has ALREADY enforced
+      # role=colonel by the time a logic class is constructed, so `cust` is the
+      # authenticated colonel. Self-gated on has_system_role? anyway, so this can
+      # never charge an unauthenticated caller. This is the ONE deliberate
+      # exception to "every authorization guard lives in raise_concerns" — it is
+      # a budget charge, not an authorization decision.
+      #
+      # It is also the ONLY bucket charged before the guards run, and it is
+      # deliberately coarse: it bounds request VOLUME. The tight destructive
+      # bucket is charged LAST, after elevation and confirmation pass (see the
+      # guard-order contract above), so an attacker holding the cookie cannot
+      # burn the real operator's destructive budget with cheap 403s.
+      #
+      # Reads are deliberately NOT limited here: the console fetches several of
+      # them on every screen and a limiter there would break the dashboard. The
+      # two handle-resolving session reads are the one exception and charge
+      # their own bucket explicitly (#4330).
+      #
+      # KNOWN GAP: process_params runs inside `super` and may raise first, so a
+      # malformed-param flood is not charged. Accepted — such a request mutates
+      # nothing.
+      def initialize(strategy_result, params, locale = nil)
+        super
+        return unless mutating_colonel_request?
+
+        enforce_colonel_mutation_limit!(cust.extid)
+      end
 
       # Transform v2 response data to Colonel API format
       #
@@ -79,6 +123,28 @@ module ColonelAPI
         end
 
         colonel_data
+      end
+
+      private
+
+      # Whether this request is a mutating one made by an authenticated colonel.
+      #
+      # The method arrives through StrategyResult#metadata (the colonel session
+      # auth strategy puts it there) because logic classes never receive the Rack
+      # request or env. A metadata hash without it — any caller that did not come
+      # through the colonel router, including every bare `double(...)` in the
+      # spec suites — reads as "not a mutation" and charges nothing, which is the
+      # right answer for a caller the strategy never saw.
+      #
+      # Method first, role second: the method is a Hash lookup while the role
+      # check touches the Customer model, so a read (or a non-HTTP caller) never
+      # pays for it.
+      def mutating_colonel_request?
+        return false unless MUTATING_METHODS.include?(
+          strategy_result&.metadata&.dig(:request_method).to_s.upcase,
+        )
+
+        has_system_role?('colonel')
       end
     end
   end

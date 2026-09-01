@@ -52,9 +52,12 @@ module ColonelAPI
 
         def raise_concerns
           verify_one_of_roles!(colonel: true)
-          # P5 (#4329) inserts enforce_colonel_handle_resolve_limit! here: this is
-          # the one colonel read whose cost is not O(1) — a bounded scan plus up
-          # to MAX_SCAN HMACs when the owner hint misses.
+          # The one exception to "colonel reads are never rate-limited" (#4329):
+          # this is the one colonel read whose cost is not O(1) — a bounded scan
+          # plus up to MAX_SCAN HMACs when the owner hint misses. Charged before
+          # the resolution it bounds, and before the 404, so a scanner cannot
+          # walk the handle space for free.
+          enforce_colonel_handle_resolve_limit!(cust&.extid)
 
           # A malformed handle resolves to nothing and 404s like an unknown one,
           # so a scanner cannot tell "bad shape" from "no such session".

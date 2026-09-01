@@ -255,6 +255,65 @@ Configuration lives under `site.admin.elevation` and `site.admin.rate_limit` in
 `etc/defaults/config.defaults.yaml`; every knob has an env var, listed in
 `.env.reference`.
 
+### Rate limits on `/api/colonel/*` (#4329)
+
+Before this, nothing throttled the colonel API at all: a scripted compromise of a
+colonel session could purge at wire speed and, because the operator audit trail
+trims at a 10 000-event count cap with no TTL, evict the evidence of its own
+actions while doing it. Four buckets now bound it. All four are keyed on the
+**acting colonel's `extid`** — the same public id the audit trail records as
+`actor`, never a session id (that value *is* the bearer cookie) — so a second
+stolen session or a parallel tab shares one budget rather than getting a fresh
+one.
+
+| Kind | Limit | What it covers |
+|---|---|---|
+| `colonel_mutation` | 120 / 5 min, 5 min lockout | every mutating colonel verb (POST/PUT/PATCH/DELETE), charged once per request |
+| `colonel_destructive` | 10 / 5 min, **15 min** lockout | the fifteen tier-1 verbs, charged **only when the request is about to execute** |
+| `colonel_handle_resolve` | 60 / 5 min, 5 min lockout | `GET`/`DELETE /sessions/:session_handle`, the two reads that may fall back to a bounded 10 000-key scan |
+| `colonel_elevation` | 5 / 15 min, 15 min lockout | `POST /elevation` (above) |
+
+Over a cap the API answers **429** with the usual body — `error`, `error_type:
+"LimitExceeded"`, `retry_after`, `max_attempts` — plus a `Retry-After` header.
+The console renders the server's message in the confirm dialog and appends the
+wait and the recovery path.
+
+Three things worth knowing:
+
+- **Ordinary reads are deliberately unlimited.** The console fetches several on
+  every screen; throttling them would break the dashboard. The two
+  handle-resolving session reads are the one exception, because each can cost a
+  bounded scan plus as many HMACs.
+- **A refused destructive attempt costs nothing.** The destructive charge is the
+  last step of the guard sequence — after step-up, confirmation and the per-verb
+  interlocks all pass — so the ten are ten *real* actions, not five plus five
+  wasted pre-elevation retries, and nobody holding your cookie can lock you out
+  of incident response with cheap 403s. Volume is still bounded meanwhile by the
+  broad `colonel_mutation` bucket.
+- **A destructive burst is a bulk-work signal.** Ten actions per five minutes is
+  sized for incident response, not for migrations. Bulk work belongs on
+  `bin/ots`, which these limiters do not touch.
+
+**Clearing a lockout.** `POST /api/colonel/ratelimit/reset` with `kind` set to the
+bucket and `subject` set to the colonel's extid; it is a tier-2 verb, so it needs
+no elevation and stays reachable while the destructive, handle-resolve or
+elevation bucket is exhausted. The one bucket it cannot rescue you from is
+`colonel_mutation` — the reset is itself a mutation — so clear that one with the
+valkey-cli commands `bin/ots ratelimit keys colonel_mutation <extid>` prints
+(the CLI only prints them; it never connects). `bin/ots ratelimit inspect
+<kind> <extid>` shows the current counter and lockout TTL.
+
+**Audit.** Only the **cap-reaching** request writes an event, into the security
+collection (`record_security`: 7-day retention, its own cap), never the operator
+trail: `colonel.mutation_throttled`, `colonel.destructive_throttled`,
+`colonel.handle_resolve_throttled`, `colonel.elevate_throttled`. Every subsequent
+429 inside the lockout window writes nothing, which is what keeps a throttled
+attacker from minting events.
+
+**If Redis is unavailable** the limiters fail **closed**: a colonel mutation 500s
+rather than being admitted unthrottled. That matches every other limiter in the
+codebase.
+
 ## 3. Restricting the admin surfaces
 
 Two independent factors restrict which requests reach `/colonel*` and

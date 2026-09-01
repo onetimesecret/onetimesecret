@@ -100,16 +100,31 @@ const adminElevationTree: AugmentTree = {
   reauth_grace: (n) => n.int().min(0).default(0),
 };
 
-const colonelRateLimitBucketTree: AugmentTree = {
+// One colonel rate-limit bucket. Every bucket has the same four fields but its
+// OWN shipped sizing, so this is a factory rather than a shared constant — a
+// single tree would have to pick one bucket's numbers and silently misreport
+// the other three in the generated JSON Schema. The values must stay in step
+// with config.defaults.yaml and with the DEFAULT_* constants in
+// lib/onetime/security/colonel_rate_limiter.rb.
+const colonelRateLimitBucketTree = (
+  maxAttempts: number,
+  window: number,
+  lockout: number
+): AugmentTree => ({
   enabled: (b) => b.default(true),
-  max_attempts: (n) => n.int().positive().default(5),
-  window: (n) => n.int().positive().default(900),
-  lockout: (n) => n.int().positive().default(900),
-};
+  max_attempts: (n) => n.int().positive().default(maxAttempts),
+  window: (n) => n.int().positive().default(window),
+  lockout: (n) => n.int().positive().default(lockout),
+});
 
 const adminRateLimitTree: AugmentTree = {
   enabled: (b) => b.default(true),
-  elevation: colonelRateLimitBucketTree,
+  // Step-up attempts (#4327); the mutation / destructive / handle-resolve
+  // buckets (#4329). Sizing rationale is in config.defaults.yaml.
+  elevation: colonelRateLimitBucketTree(5, 900, 900),
+  mutation: colonelRateLimitBucketTree(120, 300, 300),
+  destructive: colonelRateLimitBucketTree(10, 300, 900),
+  handle_resolve: colonelRateLimitBucketTree(60, 300, 300),
 };
 
 const adminTree: AugmentTree = {

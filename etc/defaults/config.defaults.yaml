@@ -765,13 +765,45 @@ site:
     # the acting colonel's extid — the same value the audit trail carries as
     # `actor` — never on a session id.
     #
+    # THREAT: nothing covered /api/colonel/* before #4329. A scripted compromise
+    # of a colonel session could purge at wire speed and, because the operator
+    # audit trail trims at a 10 000-event count cap with NO TTL, evict the
+    # evidence of its own actions while doing it. Every bucket below is sized so
+    # that cap stays unreachable inside one lockout window.
+    #
     # The parent `enabled` flag short-circuits every bucket, which is how the
     # test suites (many endpoints, one process, one actor) opt out wholesale.
     #
     # A locked-out operator clears their own bucket with
-    # `POST /api/colonel/ratelimit/reset` (kind=colonel_elevation, a TIER 2 verb
-    # that needs no elevation), or with the valkey-cli commands
-    # `bin/ots ratelimit keys colonel_elevation <extid>` prints.
+    # `POST /api/colonel/ratelimit/reset` (kind=colonel_elevation /
+    # colonel_destructive / colonel_handle_resolve — a TIER 2 verb that needs no
+    # elevation), or with the valkey-cli commands
+    # `bin/ots ratelimit keys <kind> <extid>` prints. The reset is itself a
+    # mutation, so a `colonel_mutation` lockout is the one the CLI path must
+    # clear.
+    #
+    # SIZING — every bucket is per ACCOUNT (extid), not per session: a session
+    # bucket bounds one cookie, and anyone with a second way in gets a fresh
+    # budget.
+    #
+    #   mutation        120 / 300s  every mutating colonel verb, charged from the
+    #                               base logic constructor. Far above any human
+    #                               operator's rate and above a bulk console
+    #                               session, so it only trips on scripted abuse.
+    #   destructive      10 / 300s  TIER 1 verbs (purge, role change, revoke,
+    #                               delete, DLQ purge), 900s lockout. Charged
+    #                               LAST — after elevation, confirmation and the
+    #                               per-verb interlocks all pass — so a rejected
+    #                               attempt costs nothing and an attacker cannot
+    #                               burn the real operator's budget with cheap
+    #                               403s. 10 REAL incident-response actions per
+    #                               five minutes; bulk work belongs on the CLI.
+    #   handle_resolve   60 / 300s  the two session reads that resolve an opaque
+    #                               handle (#4330) and may fall back to a bounded
+    #                               10 000-key SCAN plus as many HMACs. Every
+    #                               OTHER colonel read is deliberately unlimited
+    #                               — the console fetches them, and a limiter
+    #                               there would break the dashboard.
     rate_limit:
       enabled: <%= ENV['COLONEL_RATE_LIMIT_ENABLED'] != 'false' %>
       elevation:
@@ -779,6 +811,21 @@ site:
         max_attempts: <%= ENV['COLONEL_ELEVATION_MAX_ATTEMPTS'] || 5 %>
         window: <%= ENV['COLONEL_ELEVATION_RATE_WINDOW'] || 900 %>
         lockout: <%= ENV['COLONEL_ELEVATION_LOCKOUT'] || 900 %>
+      mutation:
+        enabled: <%= ENV['COLONEL_MUTATION_RATE_LIMIT_ENABLED'] != 'false' %>
+        max_attempts: <%= ENV['COLONEL_MUTATION_MAX_ATTEMPTS'] || 120 %>
+        window: <%= ENV['COLONEL_MUTATION_RATE_WINDOW'] || 300 %>
+        lockout: <%= ENV['COLONEL_MUTATION_LOCKOUT'] || 300 %>
+      destructive:
+        enabled: <%= ENV['COLONEL_DESTRUCTIVE_RATE_LIMIT_ENABLED'] != 'false' %>
+        max_attempts: <%= ENV['COLONEL_DESTRUCTIVE_MAX_ATTEMPTS'] || 10 %>
+        window: <%= ENV['COLONEL_DESTRUCTIVE_RATE_WINDOW'] || 300 %>
+        lockout: <%= ENV['COLONEL_DESTRUCTIVE_LOCKOUT'] || 900 %>
+      handle_resolve:
+        enabled: <%= ENV['COLONEL_HANDLE_RESOLVE_RATE_LIMIT_ENABLED'] != 'false' %>
+        max_attempts: <%= ENV['COLONEL_HANDLE_RESOLVE_MAX_ATTEMPTS'] || 60 %>
+        window: <%= ENV['COLONEL_HANDLE_RESOLVE_RATE_WINDOW'] || 300 %>
+        lockout: <%= ENV['COLONEL_HANDLE_RESOLVE_LOCKOUT'] || 300 %>
 
     # Which HOSTNAMES serve the Colonel admin surfaces (/colonel shell and
     # /api/colonel API). A request whose validated detected host is not on this

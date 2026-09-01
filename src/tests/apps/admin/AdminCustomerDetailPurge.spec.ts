@@ -342,4 +342,68 @@ describe('AdminCustomerDetail — purge gate (typed email) + verification state'
       expect(mockApi.delete).toHaveBeenCalledTimes(1);
     });
   });
+
+  // ---- Rate limiting (#4329) ------------------------------------------------
+  //
+  // The 429 reaches the dialog with no frontend change (the classifier renders
+  // any 4xx `error` string verbatim); what the composable adds is the wait and
+  // the recovery path, neither of which the server message can carry on its own.
+  describe('a 429 from the colonel limiter', () => {
+    async function submitPurge(): Promise<void> {
+      await wrapper.find('[data-testid="purge-button"]').trigger('click');
+      await dialogInput(wrapper).setValue(EMAIL);
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+    }
+
+    const throttled = (retryAfter?: number) =>
+      axiosError(429, {
+        error: 'Too many destructive admin actions. This is a safety limit; try again shortly.',
+        error_type: 'LimitExceeded',
+        max_attempts: 10,
+        ...(retryAfter === undefined ? {} : { retry_after: retryAfter }),
+      });
+
+    it('keeps the server message and adds the wait plus the recovery hint', async () => {
+      await mountLoaded();
+      mockApi.delete.mockRejectedValue(throttled(900));
+
+      await submitPurge();
+
+      const dialog = wrapper.find('[data-testid="admin-confirm-dialog"]').text();
+      expect(dialog).toContain('Too many destructive admin actions');
+      expect(dialog).toContain('web.admin.errors.rateLimited');
+      expect(dialog).toContain('web.admin.errors.rateLimitedRecovery');
+      // Nothing happened but the refusal: no toast, no navigation, no retry.
+      expect(mockApi.delete).toHaveBeenCalledTimes(1);
+      expect(pushMock).not.toHaveBeenCalled();
+      expect(showMock).not.toHaveBeenCalled();
+    });
+
+    it('falls back to the server message alone when there is no retry_after', async () => {
+      await mountLoaded();
+      mockApi.delete.mockRejectedValue(throttled());
+
+      await submitPurge();
+
+      const dialog = wrapper.find('[data-testid="admin-confirm-dialog"]').text();
+      expect(dialog).toContain('Too many destructive admin actions');
+      // …rateLimitedRecovery still appears (the operator can always clear it),
+      // so the negative match has to exclude the wait key specifically.
+      expect(dialog).not.toMatch(/rateLimited(?!Recovery)/);
+    });
+
+    // A 429 is not an authorization failure: prompting for a password would
+    // teach operators to re-authenticate at a throttle, and the retry would be
+    // refused anyway.
+    it('never opens the sudo prompt and never retries', async () => {
+      await mountLoaded();
+      mockApi.delete.mockRejectedValue(throttled(60));
+
+      await submitPurge();
+
+      expect(useColonelElevation().promptOpen.value).toBe(false);
+      expect(mockApi.delete).toHaveBeenCalledTimes(1);
+    });
+  });
 });

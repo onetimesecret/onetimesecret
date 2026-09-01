@@ -149,8 +149,20 @@ module ColonelAPI
       # Two calls rather than one is deliberate: it is greppable, and
       # spec/unit/colonel/destructive_actions_spec.rb asserts both are present in
       # every TIER 1 class.
+      #
+      # Charged LAST — after elevation, confirmation and the per-verb interlocks
+      # — so only requests that are about to EXECUTE consume the budget (#4329).
+      # Charging it earlier would double-charge the console's designed
+      # attempt → 403 → elevate → retry flow, and would hand an attacker holding
+      # the cookie a way to impose a 15-minute destructive lockout on the
+      # operator trying to contain the incident, using nothing but cheap 403s.
+      #
+      # `cust&.extid`, not `cust.extid`: this runs inside raise_concerns, and a
+      # blank subject is skipped rather than sharing one global bucket.
+      #
+      # @raise [Onetime::LimitExceeded] 429
       def charge_destructive_budget!
-        # P5 (#4329) inserts: enforce_colonel_destructive_limit!(cust&.extid)
+        enforce_colonel_destructive_limit!(cust&.extid)
       end
 
       # Human-meaningful, non-URL identifier for an account. The extid fallback

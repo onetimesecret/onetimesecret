@@ -145,13 +145,21 @@ const colonelRateLimitBucketSchema = z.object({
 
 /**
  * Rate limits for the colonel API surface, keyed on the acting colonel's extid
- * (#4327 ships `elevation`; #4329 adds the mutation / destructive /
- * handle-resolve buckets). The parent `enabled` flag short-circuits every
- * bucket.
+ * — never on a session id (#4327 ships `elevation`; #4329 adds the mutation /
+ * destructive / handle-resolve buckets). The parent `enabled` flag
+ * short-circuits every bucket. Every bucket has the same four fields; the
+ * shipped sizing differs per bucket and lives in
+ * `shapes/config/section/site.ts`.
  */
 const siteAdminRateLimitSchema = z.object({
   enabled: z.boolean().optional(),
   elevation: colonelRateLimitBucketSchema.optional(),
+  /** Every mutating colonel verb, charged from the base logic constructor. */
+  mutation: colonelRateLimitBucketSchema.optional(),
+  /** TIER 1 verbs only, charged after step-up, confirmation and interlocks. */
+  destructive: colonelRateLimitBucketSchema.optional(),
+  /** The two session reads that resolve an opaque handle (#4330). */
+  handle_resolve: colonelRateLimitBucketSchema.optional(),
 });
 
 const siteAdminSchema = z.object({

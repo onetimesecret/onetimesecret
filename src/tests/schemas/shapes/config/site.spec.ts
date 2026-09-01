@@ -253,6 +253,34 @@ describe('siteAdminShape — step-up (sudo) window and colonel rate limits (#432
     expect(result.rate_limit?.elevation?.lockout).toBe(900);
   });
 
+  // #4329. Each bucket carries its OWN sizing — a shared tree would report one
+  // bucket's numbers for all four. These must match config.defaults.yaml and
+  // the DEFAULT_* constants in lib/onetime/security/colonel_rate_limiter.rb.
+  it('ships the broad mutation bucket at 120 per 5 minutes', () => {
+    const bucket = siteAdminShape.parse({ rate_limit: { mutation: {} } }).rate_limit?.mutation;
+    expect(bucket?.enabled).toBe(true);
+    expect(bucket?.max_attempts).toBe(120);
+    expect(bucket?.window).toBe(300);
+    expect(bucket?.lockout).toBe(300);
+  });
+
+  it('ships the tight destructive bucket at 10 per 5 minutes with a 15-minute lockout', () => {
+    const bucket = siteAdminShape.parse({ rate_limit: { destructive: {} } }).rate_limit?.destructive;
+    expect(bucket?.enabled).toBe(true);
+    expect(bucket?.max_attempts).toBe(10);
+    expect(bucket?.window).toBe(300);
+    expect(bucket?.lockout).toBe(900);
+  });
+
+  it('ships the handle-resolve bucket at 60 per 5 minutes', () => {
+    const bucket = siteAdminShape.parse({ rate_limit: { handle_resolve: {} } }).rate_limit
+      ?.handle_resolve;
+    expect(bucket?.enabled).toBe(true);
+    expect(bucket?.max_attempts).toBe(60);
+    expect(bucket?.window).toBe(300);
+    expect(bucket?.lockout).toBe(300);
+  });
+
   it('preserves an explicit opt-out of either subtree', () => {
     const result = siteAdminShape.parse({
       elevation: { enabled: false },

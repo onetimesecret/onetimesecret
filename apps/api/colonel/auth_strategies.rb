@@ -59,11 +59,19 @@ module ColonelAPI
       # Its `network=admin` requirement makes both admin allowlists mandatory;
       # no request headers are added to ordinary Colonel strategy metadata.
       #
-      # The confirmation token is the ONE exception: it is merged on EVERY colonel
-      # request, before the diagnostic branch's early exit, because it is how the
-      # logic layer receives it (logic classes never see the Rack env).
+      # The confirmation token and the request method are the TWO exceptions:
+      # both are merged on EVERY colonel request, before the diagnostic branch's
+      # early exit, because they are how the logic layer receives them (logic
+      # classes never see the Rack env). The method is what lets
+      # ColonelAPI::Logic::Base tell a mutation from a read and charge the broad
+      # colonel:mutation bucket accordingly (#4329) — neither value is a request
+      # header echo, and neither is sensitive.
       def build_metadata(env, additional = {})
-        metadata = super(env, additional.merge(confirm_token: confirm_token_from(env)))
+        colonel_context = {
+          confirm_token: confirm_token_from(env),
+          request_method: env['REQUEST_METHOD'],
+        }
+        metadata        = super(env, additional.merge(colonel_context))
         return metadata unless Otto::Utils.normalize_path(env['PATH_INFO']) == PROXY_DEBUG_HEADERS_PATH
 
         metadata.merge(

@@ -49,8 +49,12 @@ module ColonelAPI
 
         def raise_concerns
           verify_one_of_roles!(colonel: true)
-          # P5 (#4329) inserts enforce_colonel_handle_resolve_limit! here: handle
-          # resolution is the one colonel path whose cost is not O(1).
+          # Handle resolution is the one colonel path whose cost is not O(1) — a
+          # bounded scan plus up to MAX_SCAN HMACs when the owner hint misses —
+          # so it carries its own bucket (#4329), charged before the resolution
+          # it bounds. This is NOT the destructive budget: that one is charged as
+          # the last line of this method, only for requests about to execute.
+          enforce_colonel_handle_resolve_limit!(cust&.extid)
 
           # 404 when the handle names no live session (unknown, stale, or
           # malformed — indistinguishable on purpose), so the UI can tell

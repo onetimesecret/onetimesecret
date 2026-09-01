@@ -137,7 +137,7 @@ AE.count
 
 ## the registry knows the canonical limiter kinds, in registry order
 Onetime::Operations::RateLimit::Registry.kinds
-#=> ["feedback", "passphrase", "invite", "login", "reset_request_ip", "reset_request_email", "create_account_ip", "colonel_elevation", "dns", "create_secret"]
+#=> ["feedback", "passphrase", "invite", "login", "reset_request_ip", "reset_request_email", "create_account_ip", "colonel_elevation", "colonel_mutation", "colonel_destructive", "colonel_handle_resolve", "dns", "create_secret"]
 
 ## keys_for expands the templates byte-identically to the CLI's emitted keys
 Onetime::Operations::RateLimit::Registry.keys_for('feedback', '1.2.3.4')
@@ -163,6 +163,39 @@ Onetime::Operations::RateLimit::Registry.keys_for('create_secret', '203.0.113.0'
 ## operator. Byte-identical with ColonelRateLimiter's own key builder.
 Onetime::Operations::RateLimit::Registry.keys_for('colonel_elevation', 'ur_colonel')
 #=> ["colonel:elevation:attempts:ur_colonel", "colonel:elevation:locked:ur_colonel"]
+
+## the three #4329 colonel buckets derive their keys from the same templates
+## ColonelRateLimiter builds. colonel_destructive in particular MUST resolve:
+## POST /ratelimit/reset with that kind is the documented recovery for an
+## operator who has locked themselves out of destructive actions, and it is a
+## TIER 2 verb precisely so it stays reachable while that bucket is exhausted.
+%w[colonel_mutation colonel_destructive colonel_handle_resolve].map do |kind|
+  Onetime::Operations::RateLimit::Registry.keys_for(kind, 'ur_colonel')
+end
+#=> [["colonel:mutation:attempts:ur_colonel", "colonel:mutation:locked:ur_colonel"], ["colonel:destructive:attempts:ur_colonel", "colonel:destructive:locked:ur_colonel"], ["colonel:handle_resolve:attempts:ur_colonel", "colonel:handle_resolve:locked:ur_colonel"]]
+
+## every colonel bucket lives on the Customer shard, matching
+## ColonelRateLimiter#colonel_rate_limit_redis — a row pointing at another shard
+## would inspect and clear keys that do not exist
+%w[colonel_elevation colonel_mutation colonel_destructive colonel_handle_resolve].map do |kind|
+  Onetime::Operations::RateLimit::Registry.dbclient_for(kind).equal?(Onetime::Customer.dbclient)
+end
+#=> [true, true, true, true]
+
+## a real destructive lockout is inspectable and clearable through the operator
+## tooling — the end-to-end shape of the documented recovery
+@dbc = Onetime::Customer.dbclient
+@dbc.setex('colonel:destructive:locked:ur_lockedout', 900, '1')
+@insp_colonel = Onetime::Operations::RateLimit::Inspect.new(
+  kind: 'colonel_destructive', subject: 'ur_lockedout',
+).call
+@reset_colonel = Onetime::Operations::RateLimit::Reset.new(
+  kind: 'colonel_destructive', subject: 'ur_lockedout', actor: @actor,
+).call
+[@insp_colonel.entries.any? { |e| e.key == 'colonel:destructive:locked:ur_lockedout' && e.exists },
+ @reset_colonel.status,
+ @dbc.exists?('colonel:destructive:locked:ur_lockedout'),]
+#=> [true, :success, false]
 
 ## an unknown kind yields nil (the CLI prints its "Unknown" branch)
 Onetime::Operations::RateLimit::Registry.keys_for('nope', 'x')
