@@ -440,6 +440,37 @@ hard failure naming the verb and target rather than a green response over an
 empty trail. Prevention would require recording before mutating; nothing does
 today.
 
+Every fail-closed call site also sits inside an `Onetime::AuditedFailure`
+wrapper, which records a `result: :failure` event for whatever the op raises.
+That wrapper is verb-preserving for every exception class **except this one**.
+An escaping `AuditWriteFailure` is recorded under its own verb,
+`audit.write_failure` (`Onetime::AuditedFailure::AUDIT_WRITE_FAILURE_VERB` —
+one emitter, so the constant lives on the module), at the **original target**,
+with the original verb in the detail as `failed_verb`:
+
+```
+verb: audit.write_failure   target: ur_abc   result: failure
+detail: { failed_verb: 'customer.purge', error: '…', message: '…' }
+```
+
+Recording it under `customer.purge` instead would be actively wrong rather
+than merely unhelpful. The follow-up write is fail-open and runs a moment
+later, so a transient datastore blip typically lets it *succeed* — and the
+only stored event for a purge that really did destroy the account would be an
+affirmative `customer.purge / result: failure`. Anyone reconciling "did this
+account get deleted?" would get a wrong answer instead of a visible gap. Read
+the `audit.write_failure` pair as "the trail is missing an event for X", never
+as "X failed". Same shape for `organization.delete`, `customer.set_role`,
+`customer.suspend`, `session.revoke_all`, `secret.delete`, `queue.dlq.purge`,
+`domain.remove` and `membership.remove`.
+
+`audit` is a new leading category rather than a dotted child of the failing
+verb on purpose: the reader matches a verb exactly or as a dotted prefix, so
+`customer.purge.write_failure` would fold these straight back under the
+`customer.purge` filter. The console needs no change to show them —
+`VERB_CATEGORIES` in `ColonelAuditLog.vue` is a superset-tolerant convenience
+menu, not an allowlist, so an uncategorised verb still lists under "All".
+
 `record_security` is fail-open always and has no opt-out keyword: its writers
 are reachable by unauthenticated callers, and an abort-on-write-failure mode
 there would be an abort primitive over whatever path emitted the telemetry.

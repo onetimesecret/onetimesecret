@@ -105,6 +105,13 @@ module Onetime
   # exactly the event an operator needs to see, and classing it as a rejection
   # would silently suppress the follow-up failure record.
   #
+  # That follow-up record is SPECIAL-CASED on this class:
+  # {Onetime::AuditedFailure} writes it under
+  # {Onetime::AuditedFailure::AUDIT_WRITE_FAILURE_VERB} rather than the failing
+  # op's verb, so it reads as "the trail is missing an event for X" instead of
+  # claiming X failed. The `verb` and `target` below are what it carries over —
+  # they are the identity of the MISSING event, not of this exception.
+  #
   # No `register_error_handler` entry, also deliberately: this is a backend
   # infrastructure failure, not a request-shaped error, so it lands on the
   # generic 500 path with the datastore/network errors it is caused by (Ruby

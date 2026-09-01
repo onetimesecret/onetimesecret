@@ -110,6 +110,19 @@ module Onetime
   # an empty trail. Any op that wants prevention has to record BEFORE it
   # mutates; none does today.
   #
+  # WHAT THE ESCAPING RAISE THEN WRITES. Every fail-closed call site is also
+  # inside an {Onetime::AuditedFailure} wrapper, which records a
+  # `result: :failure` event for anything the op raises. It does NOT record
+  # this one under the op's own verb — that would put a `customer.purge /
+  # result: :failure` event in the trail for a purge that destroyed the
+  # account, and (being fail-open, and landing after the blip that broke the
+  # first write) it would usually SUCCEED, leaving an affirmatively wrong
+  # answer where there should be a gap. The wrapper special-cases this class
+  # and writes {Onetime::AuditedFailure::AUDIT_WRITE_FAILURE_VERB}
+  # ('audit.write_failure') at the same target, with the original verb in the
+  # detail as `failed_verb`. Read the pair as "the trail is missing an event
+  # for X", never as "X failed".
+  #
   # WHETHER THE SINK STILL HAS THE RECORD depends on where the write broke, and
   # there are exactly two cases:
   #
