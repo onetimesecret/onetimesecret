@@ -31,7 +31,10 @@ export type ColonelAuditExportFormat = 'csv' | 'ndjson';
  * NEW `GET /api/colonel/audit` endpoint — the read side of the ColonelAuditEvent
  * flight recorder every mutating admin op writes into. The endpoint supports
  * server-side `actor` / `verb` filters; the view drives them through
- * {@link fetchPage}. Reading the log never writes an audit event (CONTRACT 4).
+ * {@link fetchPage}. Reading the log mutates nothing and never writes to the
+ * OPERATOR trail; since #4335 the server records one observation per read on
+ * the separate, budgeted `access_events` trail (CONTRACT 4). Rows carry a
+ * `trail` discriminator naming which of the three they came from.
  * ZERO import edge into `src/apps/colonel/*` or `colonelInfoStore`.
  */
 export const useColonelAuditLog = defineStore('colonelAuditLog', () => {

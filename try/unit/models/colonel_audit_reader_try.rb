@@ -25,20 +25,22 @@ Reader = Onetime::ColonelAuditReader
 
 ColonelAuditEvent.events.clear
 ColonelAuditEvent.security_events.clear
+ColonelAuditEvent.access_events.clear
 
 # TRYOUTS
 
 ## the allowlist is exactly the fields the wire contract types
 Reader::FIELDS
-#=> [:id, :actor, :verb, :target, :result, :detail, :created]
+#=> [:id, :actor, :verb, :target, :result, :detail, :created, :trail]
 
-## MAX_COMBINED is the whole store: both caps summed, never a traffic function
+## MAX_COMBINED is the whole store: all three caps summed, never a traffic function
 Reader::MAX_COMBINED
-#=> ColonelAuditEvent::MAX_EVENTS + ColonelAuditEvent::MAX_SECURITY_EVENTS
+#=> ColonelAuditEvent::MAX_EVENTS + ColonelAuditEvent::MAX_SECURITY_EVENTS + ColonelAuditEvent::MAX_ACCESS_EVENTS
 
 ## merged() reads BOTH trails, newest-first
 ColonelAuditEvent.events.clear
 ColonelAuditEvent.security_events.clear
+ColonelAuditEvent.access_events.clear
 ColonelAuditEvent.record(actor: 'ur_col', verb: 'customer.purge', target: 'ur_v', result: :success)
 ColonelAuditEvent.record_security(actor: 'anonymous', verb: 'auth.throttled', target: 'ip', result: :failure)
 ColonelAuditEvent.record(actor: 'ur_col', verb: 'banner.set', target: 'banner', result: :success)
@@ -84,7 +86,12 @@ Reader.recent(limit: 1, actor: 'ur_col').map { |e| e['verb'] }
 ## format_event emits the allowlist and nothing else
 @event = Reader.merged(1).first
 Reader.format_event(@event).keys
-#=> [:id, :actor, :verb, :target, :result, :detail, :created]
+#=> [:id, :actor, :verb, :target, :result, :detail, :created, :trail]
+
+## an event formatted OUTSIDE the merge (a raw model read) falls back to the
+## operator trail — where every untagged event came from before #4335
+Reader.format_event(ColonelAuditEvent.recent(1).first)[:trail]
+#=> "events"
 
 ## created stays the stored epoch float — one timestamp representation, not two
 Reader.format_event(@event)[:created].is_a?(Float)
@@ -103,11 +110,15 @@ Reader.serialize([], format: 'ndjson')
 
 ## CSV leads with the allowlist as its header row
 CSV.parse(Reader.serialize(Reader.merged(3), format: 'csv')).first
-#=> ["id", "actor", "verb", "target", "result", "detail", "created"]
+#=> ["id", "actor", "verb", "target", "result", "detail", "created", "trail"]
 
 ## an empty trail still serialises a header-only CSV
 Reader.serialize([], format: 'csv')
-#=> "id,actor,verb,target,result,detail,created\n"
+#=> "id,actor,verb,target,result,detail,created,trail\n"
+
+## `trail` is APPENDED, so every incumbent column keeps its index
+Reader::FIELDS.index(:detail)
+#=> 5
 
 ## a CSV detail cell is JSON, so a consumer parses it back to the JSON surface's value
 ColonelAuditEvent.events.clear
@@ -154,6 +165,45 @@ Reader.normalize_format('xlsx')
 Reader.filename('csv', now: Time.utc(2026, 9, 1, 12, 30, 45))
 #=> "colonel-audit-20260901T123045Z.csv"
 
+## -- The OBSERVATION trail (#4335) -----------------------------------------
+
+## all THREE trails merge into one chronological feed
+ColonelAuditEvent.events.clear
+ColonelAuditEvent.security_events.clear
+ColonelAuditEvent.access_events.clear
+ColonelAuditEvent.record(actor: 'ur_col', verb: 'customer.purge', target: 'ur_v', result: :success)
+ColonelAuditEvent.record_security(actor: 'anonymous', verb: 'auth.throttled', target: 'ip', result: :failure)
+ColonelAuditEvent.record_access(actor: 'ur_col', verb: 'audit.list', target: 'colonel_audit',
+                                result: :success)
+Reader.merged(10).map { |e| e['verb'] }
+#=> ["audit.list", "auth.throttled", "customer.purge"]
+
+## every row is TAGGED with the trail it came from — retention differs per trail,
+## so "nothing older than X" means something different in each
+Reader.merged(10).map { |e| e['trail'] }
+#=> ["access_events", "security_events", "events"]
+
+## tagging is non-destructive: the stored member never grows a `trail` field
+ColonelAuditEvent.recent(1).first.key?('trail')
+#=> false
+
+## observations answer the same verb filters as everything else
+Reader.recent(verb: 'audit').map { |e| e['verb'] }
+#=> ["audit.list"]
+
+## …and the same actor filter, so one operator's whole session reads together
+Reader.recent(actor: 'ur_col').map { |e| e['verb'] }
+#=> ["audit.list", "customer.purge"]
+
+## the trail tag survives serialisation to both export formats
+JSON.parse(Reader.to_ndjson(Reader.merged(1)).lines.first)['trail']
+#=> "access_events"
+
+## and lands in the CSV's last column
+CSV.parse(Reader.serialize(Reader.merged(1), format: 'csv'))[1].last
+#=> "access_events"
+
 # Cleanup
 ColonelAuditEvent.events.clear
 ColonelAuditEvent.security_events.clear
+ColonelAuditEvent.access_events.clear

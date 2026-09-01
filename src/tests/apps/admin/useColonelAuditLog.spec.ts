@@ -29,6 +29,8 @@ function auditPayload() {
           result: 'success',
           detail: { from: 'customer', to: 'admin' },
           created: 1700000000.25,
+          // Stream discriminator (#4335). Required by colonelAuditEventSchema.
+          trail: 'events',
         },
       ],
       pagination: {

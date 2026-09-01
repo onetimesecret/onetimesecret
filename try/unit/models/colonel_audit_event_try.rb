@@ -16,6 +16,8 @@
 # - the separate security-telemetry trail (record_security): its own collection,
 #   its own count cap and age bound, and the invariant that flooding it cannot
 #   evict operator records
+# - the separate OBSERVATION trail (record_access, #4335): the same, one step
+#   further — authenticated but chatty writers get their own budget too
 
 require_relative '../../support/test_models'
 
@@ -265,6 +267,11 @@ ColonelAuditEvent.record_security(actor: 'anonymous', verb: 'auth.throttled', ta
 [@spy.lines.size, @spy.lines.last[1]['trail']]
 #=> [2, "security_events"]
 
+## and so are observations — every trail ships, the split only budgets Redis
+ColonelAuditEvent.record_access(actor: 'ur_col', verb: 'audit.list', target: 'colonel_audit', result: :success)
+[@spy.lines.size, @spy.lines.last[1]['verb'], @spy.lines.last[1]['trail']]
+#=> [3, "audit.list", "access_events"]
+
 ## the sink receives the REDACTED detail, never the caller's original
 ColonelAuditEvent.record(actor: 'a', verb: 'v', target: 't', result: :success, detail: { 'passphrase' => 'hunter2' })
 @spy.lines.last[1]['detail']
@@ -355,6 +362,96 @@ ColonelAuditEvent.security_events.add({ 'verb' => 'aged' }, Familia.now - Colone
 ColonelAuditEvent.recent_security(0)
 #=> []
 
+## -- Observation trail: a THIRD retention domain (#4335) -------------------
+#
+# Same eviction-boundary reasoning as the security trail, applied to a
+# different risk: these writers are authenticated and trusted, but chatty by
+# construction (curated sensitive reads, dry-run previews), so an operator
+# working one incident must not be able to page the mutation trail out of
+# existence just by browsing.
+
+## access_events is a distinct backing set — not the operator trail, not security
+ColonelAuditEvent.access_events.dbkey
+#=> "colonel_audit_event:access_events"
+
+## record_access stores the same event shape as the other two write paths
+ColonelAuditEvent.events.clear
+ColonelAuditEvent.security_events.clear
+ColonelAuditEvent.access_events.clear
+@acc = ColonelAuditEvent.record_access(
+  actor: 'ur_col', verb: 'secret.receipt_view', target: 'sh_abc', result: :success,
+  detail: { 'state' => 'received' },
+)
+[@acc['actor'], @acc['verb'], @acc['result'], @acc['detail']]
+#=> ["ur_col", "secret.receipt_view", "success", { "state" => "received" }]
+
+## an observation NEVER lands in the operator trail — the eviction boundary
+[ColonelAuditEvent.count, ColonelAuditEvent.security_count, ColonelAuditEvent.access_count]
+#=> [0, 0, 1]
+
+## conversely, an operator write never lands in the observation trail
+ColonelAuditEvent.record(actor: 'ur_col', verb: 'customer.purge', target: 'ur_v', result: :success)
+[ColonelAuditEvent.count, ColonelAuditEvent.access_count]
+#=> [1, 1]
+
+## flooding the observation trail evicts NOTHING from the operator trail — the
+## whole point of the third budget
+ColonelAuditEvent.access_events.clear
+5.times { |i| ColonelAuditEvent.record_access(actor: 'ur_col', verb: "read#{i}", target: 't', result: :success) }
+[ColonelAuditEvent.access_count, ColonelAuditEvent.count]
+#=> [5, 1]
+
+## observation reads are newest-first, like the other two trails
+ColonelAuditEvent.recent_access(3).map { |e| e['verb'] }
+#=> ["read4", "read3", "read2"]
+
+## recent_access(0) returns an empty array
+ColonelAuditEvent.recent_access(0)
+#=> []
+
+## the observation budget is its own, and smaller than the operator trail's:
+## "who looked" is supporting context for "who changed"
+[ColonelAuditEvent::MAX_ACCESS_EVENTS < ColonelAuditEvent::MAX_EVENTS,
+ ColonelAuditEvent::ACCESS_EVENT_RETENTION > ColonelAuditEvent::SECURITY_EVENT_RETENTION]
+#=> [true, true]
+
+## record_access has NO fail_closed mode: observing must never break the console
+class BoomAccess
+  def to_s = raise('detail exploded')
+end
+ColonelAuditEvent.record_access(actor: 'ur_col', verb: 'v', target: 't', result: :success,
+                                detail: BoomAccess.new)
+#=> nil
+
+## trim_access! clamps its cap in the widening direction, like the other trails
+ColonelAuditEvent.access_events.clear
+3.times { |i| ColonelAuditEvent.record_access(actor: 'ur_col', verb: "a#{i}", target: 't', result: :success) }
+[ColonelAuditEvent.trim_access!(0), ColonelAuditEvent.access_count]
+#=> [0, 3]
+
+## trim_access! clamps the AGE bound too — the second door into the same wipe
+ColonelAuditEvent.access_events.clear
+ColonelAuditEvent.access_events.add({ 'verb' => 'older' }, Familia.now - 3600)
+ColonelAuditEvent.access_events.add({ 'verb' => 'newer' }, Familia.now)
+[ColonelAuditEvent.trim_access!(ColonelAuditEvent::MAX_ACCESS_EVENTS, 1), ColonelAuditEvent.access_count]
+#=> [0, 2]
+
+## a non-positive max_age disables the age pass entirely, which keeps MORE
+ColonelAuditEvent.access_events.clear
+ColonelAuditEvent.access_events.add({ 'verb' => 'ancient' }, Familia.now - 100_000_000)
+[ColonelAuditEvent.trim_access!(ColonelAuditEvent::MAX_ACCESS_EVENTS, 0), ColonelAuditEvent.access_count]
+#=> [0, 1]
+
+## members older than ACCESS_EVENT_RETENTION are removed by score
+ColonelAuditEvent.access_events.clear
+ColonelAuditEvent.access_events.add({ 'verb' => 'stale' }, Familia.now - ColonelAuditEvent::ACCESS_EVENT_RETENTION - 100)
+ColonelAuditEvent.access_events.add({ 'verb' => 'fresh' }, Familia.now)
+@removed_access = ColonelAuditEvent.trim_access!(ColonelAuditEvent::MAX_ACCESS_EVENTS,
+                                                 ColonelAuditEvent::ACCESS_EVENT_RETENTION)
+[@removed_access, ColonelAuditEvent.recent_access(5).map { |e| e['verb'] }]
+#=> [1, ["fresh"]]
+
 # Cleanup
 ColonelAuditEvent.events.clear
 ColonelAuditEvent.security_events.clear
+ColonelAuditEvent.access_events.clear

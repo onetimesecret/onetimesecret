@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/models/colonel_audit_event'
+
 require_relative '../base'
 require 'onetime/colonel_audit_reader'
 
@@ -11,15 +13,21 @@ module ColonelAPI
       # Export Audit Events
       #
       # @api Serialises the operator audit trail as a DOWNLOAD
-      #   (GET /api/colonel/audit/export). Same two trails, same merge, same
+      #   (GET /api/colonel/audit/export). Same three trails, same merge, same
       #   newest-first order and the SAME FIELD ALLOWLIST as
       #   {ListColonelAuditEvents} — both go through
       #   {Onetime::ColonelAuditReader}, which is the point of that module.
       #   Supports `format=csv` (default) and `format=ndjson`, plus the same
       #   `actor` / `verb` filters and a `limit`. Requires colonel role.
       #
-      # READ-ONLY: exporting the log must never write an audit event
-      # (CONTRACT 4), exactly as listing it must not.
+      # ## Audited as an OBSERVATION (#4335)
+      #
+      # Exporting mutates nothing, so it writes nothing to the OPERATOR trail,
+      # exactly as listing does not. It records one observation on the
+      # `access_events` trail under its OWN verb (`audit.export`, not
+      # `audit.list`): this takes the whole retained trail out of the system as
+      # a file, and an operator looking for exfiltration should not have to
+      # parse `detail` to tell a download from a page view.
       #
       # ## Why this is not a normal `response=json` colonel route
       #
@@ -92,7 +100,29 @@ module ColonelAPI
           @content_type = Reader.content_type(export_format)
           @filename     = Reader.filename(export_format)
 
+          record_access_event
+
           @body
+        end
+
+        # One observation per download, recorded AFTER the serialisation so the
+        # exported file never contains the event describing its own export.
+        # Detail carries the shape of the extraction — format, how many rows
+        # left, under which filters — never the rows themselves.
+        def record_access_event
+          Onetime::ColonelAuditEvent.record_access(
+            actor: cust&.extid,
+            verb: Reader::AUDIT_VERB_EXPORT,
+            target: Reader::AUDIT_TARGET,
+            result: :success,
+            detail: {
+              format: export_format,
+              exported: events.size,
+              limit: limit,
+              actor_filter: actor_filter,
+              verb_filter: verb_filter,
+            },
+          )
         end
 
         # HTTP adapter for the `Klass.method` route form — see the class docs

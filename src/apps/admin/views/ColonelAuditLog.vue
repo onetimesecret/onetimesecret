@@ -18,6 +18,13 @@
    * reads them newest-first over `GET /api/colonel/audit` via the NEW
    * {@link useColonelAuditLog} store (no `src/apps/colonel/*` / `colonelInfoStore`).
    *
+   * The feed merges the model's three trails — operator mutations, anonymous
+   * security telemetry, and (since #4335) authenticated observations: curated
+   * sensitive reads and dry-run previews. Rows carry a `trail` field naming the
+   * source; the table does not render a column for it (an operator filters by
+   * ACTION, which is the question they actually have), but it is in the payload
+   * and in every export.
+   *
    * - LIST: DataTable + KitPagination, timestamp/actor/action/target/result/detail.
    * - ACTOR SEARCH: MANUAL, never as-you-type. The operator submits with Enter
    *   or the Search button; typing alone changes nothing. This is deliberate —

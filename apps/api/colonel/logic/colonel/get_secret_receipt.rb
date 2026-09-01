@@ -2,12 +2,30 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/models/colonel_audit_event'
+
 require_relative '../base'
 
 module ColonelAPI
   module Logic
     module Colonel
+      # Read one secret's receipt and owner (GET /api/colonel/secrets/:secret_id/receipt).
+      #
+      # ## Audited as an OBSERVATION (#4335)
+      #
+      # Mutates nothing, so it writes nothing to the OPERATOR trail. It is on
+      # the curated list for the access trail because of what it discloses: the
+      # response carries the OWNER'S FULL EMAIL ADDRESS alongside the secret's
+      # state and receipt. Looking up who owns a given secret is precisely the
+      # kind of operator action that needs to be attributable afterwards.
+      #
+      # `detail` names the shortid and whether an owner was resolved — never
+      # the owner's address, and never any secret material. The response body
+      # is a colonel-only surface; the audit trail is a longer-lived record and
+      # is held to the tighter standard.
       class GetSecretReceipt < ColonelAPI::Logic::Base
+        AUDIT_VERB = 'secret.receipt_view'
+
         attr_reader :secret_id, :secret, :receipt, :owner
 
         def process_params
@@ -33,7 +51,25 @@ module ColonelAPI
         end
 
         def process
+          record_access_event
+
           success_data
+        end
+
+        # PUBLIC ids only: the secret's shortid, and booleans for what the
+        # read-out exposed. No email, no objid, no ciphertext facts.
+        def record_access_event
+          Onetime::ColonelAuditEvent.record_access(
+            actor: cust&.extid,
+            verb: AUDIT_VERB,
+            target: secret.shortid,
+            result: :success,
+            detail: {
+              state: secret.state.to_s,
+              owner_extid: owner&.extid,
+              receipt_shortid: receipt&.shortid,
+            },
+          )
         end
 
         def success_data

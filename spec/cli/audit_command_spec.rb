@@ -19,11 +19,13 @@ RSpec.describe 'audit CLI commands', type: :cli do
   before do
     Onetime::ColonelAuditEvent.events.clear
     Onetime::ColonelAuditEvent.security_events.clear
+    Onetime::ColonelAuditEvent.access_events.clear
   end
 
   after do
     Onetime::ColonelAuditEvent.events.clear
     Onetime::ColonelAuditEvent.security_events.clear
+    Onetime::ColonelAuditEvent.access_events.clear
   end
 
   def record(actor: 'ur_colonel1', verb: 'customer.purge', target: 'ur_victim', detail: nil)
@@ -42,7 +44,7 @@ RSpec.describe 'audit CLI commands', type: :cli do
       output = run_cli_command_quietly('audit')
 
       expect(output[:stdout]).to include('Operator audit trail')
-      expect(output[:stdout]).to include('1 operator, 1 security telemetry')
+      expect(output[:stdout]).to include('1 operator, 1 security telemetry, 0 observation')
       expect(output[:stdout]).to include('ots audit <subcommand>')
     end
   end
@@ -137,10 +139,10 @@ RSpec.describe 'audit CLI commands', type: :cli do
       expect(last_exit_code).to eq(1)
     end
 
-    # CONTRACT 4: reading the trail must never append to it — including from a
-    # shell, where an accidental self-audit would be invisible until it had
-    # evicted real records.
-    it 'writes NO audit event of its own' do
+    # CONTRACT 4, first half: reading the trail must never append to the
+    # OPERATOR trail — including from a shell, where an accidental self-audit
+    # would be invisible until it had evicted real records.
+    it 'writes NO audit event to the OPERATOR trail' do
       record
       before_count = Onetime::ColonelAuditEvent.count
 
@@ -148,6 +150,50 @@ RSpec.describe 'audit CLI commands', type: :cli do
       run_cli_command_quietly('audit', 'list', '--format', 'csv', '--verb', 'customer')
 
       expect(Onetime::ColonelAuditEvent.count).to eq(before_count)
+    end
+
+    # Second half (#4335). A shell read is exactly the access that would
+    # otherwise be invisible, so it is recorded — on the budgeted access trail,
+    # attributed to the CLI sentinel because a shell carries no colonel
+    # identity (ADR-023: never fabricate an actor).
+    it 'records ONE observation per invocation, attributed to the CLI sentinel' do
+      record
+
+      run_cli_command_quietly('audit', 'list')
+
+      expect(Onetime::ColonelAuditEvent.access_count).to eq(1)
+      event = Onetime::ColonelAuditEvent.recent_access(1).first
+      expect(event['verb']).to eq('audit.list')
+      expect(event['actor']).to eq('cli')
+      expect(event['target']).to eq('colonel_audit')
+      expect(event['detail']).to include('source' => 'cli', 'format' => 'text', 'returned' => 1)
+    end
+
+    # A redirected csv/ndjson run IS the CLI's export path, so it records the
+    # bulk verb the HTTP download uses, not the page-view one.
+    it 'records a csv/ndjson run as audit.export, not audit.list' do
+      record
+
+      run_cli_command_quietly('audit', 'list', '--format', 'ndjson')
+
+      event = Onetime::ColonelAuditEvent.recent_access(1).first
+      expect(event['verb']).to eq('audit.export')
+      expect(event['detail']).to include('format' => 'ndjson')
+    end
+
+    # Recorded after the output, so a redirected export file never contains the
+    # event describing its own creation.
+    it 'never includes its own observation in the output it just produced' do
+      output = run_cli_command_quietly('audit', 'list', '--format', 'ndjson')
+
+      expect(output[:stdout]).to eq('')
+      expect(Onetime::ColonelAuditEvent.access_count).to eq(1)
+    end
+
+    it 'records nothing when the format is rejected: the read never happened' do
+      run_cli_command_quietly('audit', 'list', '--format', 'xlsx')
+
+      expect(Onetime::ColonelAuditEvent.access_count).to eq(0)
     end
   end
 end

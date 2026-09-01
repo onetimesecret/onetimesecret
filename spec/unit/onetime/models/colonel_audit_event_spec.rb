@@ -32,11 +32,13 @@ RSpec.describe Onetime::ColonelAuditEvent do
   before do
     described_class.events.clear
     described_class.security_events.clear
+    described_class.access_events.clear
   end
 
   after do
     described_class.events.clear
     described_class.security_events.clear
+    described_class.access_events.clear
   end
 
   describe '.record' do
@@ -388,6 +390,17 @@ RSpec.describe Onetime::ColonelAuditEvent do
       )
     end
 
+    # Every trail ships. The three-way split exists to budget Redis, and the
+    # sink has no budget to protect.
+    it 'emits observation events too, on the third trail' do
+      described_class.record_access(actor: 'ur_col', verb: 'audit.list', target: 'colonel_audit', result: :success)
+
+      expect(sink).to have_received(:info).once.with(
+        described_class::SINK_MESSAGE,
+        hash_including('verb' => 'audit.list', 'trail' => 'access_events'),
+      )
+    end
+
     it 'emits the REDACTED detail, never the caller-supplied original' do
       described_class.record(
         actor: 'a', verb: 'v', target: 't', result: :success,
@@ -437,6 +450,126 @@ RSpec.describe Onetime::ColonelAuditEvent do
 
       expect(event).to include('verb' => 'customer.purge')
       expect(described_class.count).to eq(1)
+    end
+  end
+
+  # The THIRD retention domain (#4335): authenticated observations — curated
+  # sensitive reads and dry-run previews. Trusted writers, but chatty by
+  # construction, so they get their own budget for the same reason anonymous
+  # telemetry does: nothing that writes often may compete with the mutation
+  # trail for eviction.
+  describe '.record_access' do
+    it 'stores the same event shape as the other two write paths' do
+      event = described_class.record_access(
+        actor: 'ur_col', verb: 'secret.receipt_view', target: 'sh_abc', result: :success,
+        detail: { 'state' => 'received' },
+      )
+
+      expect(event).to include(
+        'actor' => 'ur_col', 'verb' => 'secret.receipt_view',
+        'target' => 'sh_abc', 'result' => 'success',
+      )
+      expect(event['detail']).to eq('state' => 'received')
+      expect(described_class.access_count).to eq(1)
+    end
+
+    it 'records a dry-run preview as its own result value' do
+      described_class.record_access(
+        actor: 'ur_col', verb: 'organization.delete', target: 'on_org1', result: 'preview',
+        detail: { dry_run: true },
+      )
+
+      expect(described_class.recent_access(1).first['result']).to eq('preview')
+    end
+
+    # The eviction boundary, in both directions.
+    it 'never writes into the operator or security trails' do
+      described_class.record_access(actor: 'ur_col', verb: 'audit.list', target: 't', result: :success)
+
+      expect(described_class.count).to eq(0)
+      expect(described_class.security_count).to eq(0)
+      expect(described_class.access_count).to eq(1)
+    end
+
+    it 'cannot evict an operator record no matter how much is written' do
+      stub_const("#{described_class}::MAX_ACCESS_EVENTS", 2)
+      described_class.record(actor: 'ur_col', verb: 'customer.purge', target: 'ur_v', result: :success)
+
+      10.times { |i| described_class.record_access(actor: 'ur_col', verb: "read#{i}", target: 't', result: :success) }
+
+      expect(described_class.access_count).to eq(2)
+      expect(described_class.count).to eq(1)
+      expect(described_class.recent(1).first['verb']).to eq('customer.purge')
+    end
+
+    it 'redacts detail on the way in, like every other write path' do
+      event = described_class.record_access(
+        actor: 'ur_col', verb: 'v', target: 't', result: :success,
+        detail: { 'passphrase' => 'hunter2', 'note' => 'safe' },
+      )
+
+      expect(event['detail']).to eq('passphrase' => described_class::REDACTED, 'note' => 'safe')
+    end
+
+    # Fail-open ALWAYS, with no keyword to opt out: observing mutated nothing,
+    # so there is no destroyed-with-no-trail outcome for failing closed to
+    # surface — only the chance to break the console over a broken audit write.
+    it 'swallows a write failure and returns nil' do
+      result = :unset
+
+      expect { result = described_class.record_access(actor: 'a', verb: 'v', target: 't', result: :success, detail: boom_detail) }
+        .not_to raise_error
+      expect(result).to be_nil
+      expect(described_class.access_count).to eq(0)
+    end
+
+    it 'takes no fail_closed keyword at all' do
+      expect(described_class.method(:record_access).parameters.map(&:last)).not_to include(:fail_closed)
+    end
+
+    it 'auto-trims to MAX_ACCESS_EVENTS on every write' do
+      stub_const("#{described_class}::MAX_ACCESS_EVENTS", 3)
+
+      5.times { |i| described_class.record_access(actor: 'a', verb: "v#{i}", target: 't', result: :success) }
+
+      expect(described_class.access_count).to eq(3)
+      expect(described_class.recent_access(3).map { |e| e['verb'] }).to eq(%w[v4 v3 v2])
+    end
+  end
+
+  describe '.trim_access!' do
+    # Same tamper-resistance contract as trim! / trim_security! (#4334):
+    # retention only ever widens through this API.
+    it 'clamps a smaller cap up to MAX_ACCESS_EVENTS' do
+      3.times { |i| described_class.record_access(actor: 'a', verb: "v#{i}", target: 't', result: :success) }
+
+      expect(described_class.trim_access!(0)).to eq(0)
+      expect(described_class.access_count).to eq(3)
+    end
+
+    it 'clamps a shorter max_age up to ACCESS_EVENT_RETENTION' do
+      described_class.access_events.add({ 'verb' => 'older' }, Familia.now - 3600)
+      described_class.access_events.add({ 'verb' => 'newer' }, Familia.now)
+
+      expect(described_class.trim_access!(described_class::MAX_ACCESS_EVENTS, 1)).to eq(0)
+      expect(described_class.access_count).to eq(2)
+    end
+
+    it 'drops members older than ACCESS_EVENT_RETENTION' do
+      described_class.access_events.add(
+        { 'verb' => 'stale' }, Familia.now - described_class::ACCESS_EVENT_RETENTION - 100,
+      )
+      described_class.access_events.add({ 'verb' => 'fresh' }, Familia.now)
+
+      expect(described_class.trim_access!).to eq(1)
+      expect(described_class.recent_access(5).map { |e| e['verb'] }).to eq(%w[fresh])
+    end
+
+    it 'treats a non-positive max_age as "keep everything", not as a wipe' do
+      described_class.access_events.add({ 'verb' => 'ancient' }, Familia.now - 100_000_000)
+
+      expect(described_class.trim_access!(described_class::MAX_ACCESS_EVENTS, 0)).to eq(0)
+      expect(described_class.access_count).to eq(1)
     end
   end
 

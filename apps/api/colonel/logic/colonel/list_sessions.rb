@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/models/colonel_audit_event'
+
 require_relative '../base'
 require 'onetime/operations/sessions/list_sessions'
 
@@ -15,12 +17,33 @@ module ColonelAPI
       # the HTTP concerns (param coercion + role gate); the op owns the bounded
       # scan, the optional search filter, and pagination.
       #
-      # Read-only: no ColonelAuditEvent (CONTRACT 4 — audit is for mutations).
+      # ## Audited as an OBSERVATION (#4335)
+      #
+      # Mutates nothing, so it writes nothing to the OPERATOR trail. It IS on
+      # the curated list, and the judgment call is worth stating because it
+      # could read as "site-wide metadata": it is not. The op decrypts each
+      # session blob and {Onetime::Operations::Sessions::Store.summarize} puts
+      # `email`, `ip_address` and `user_agent` on EVERY row, while `search` is a
+      # free-text match over customer addresses. In practice that makes this a
+      # searchable directory of who is signed in right now, from where — MORE
+      # customer material than {ListCustomerSessions}, whose safe_dump rows
+      # carry no address at all. Auditing the narrower view and not this one
+      # would have been backwards.
+      #
+      # The SEARCH TERM is the interesting field in `detail` (it is what the
+      # operator went looking for) and it is operator-supplied, so it is
+      # recorded through the same sanitized, length-bounded value the query
+      # used — never raw params.
       #
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.
       class ListSessions < ColonelAPI::Logic::Base
         SCHEMAS = { response: 'colonelSessions' }.freeze
+
+        AUDIT_VERB = 'session.list'
+
+        # Fixed target: a site-wide listing has no single subject.
+        AUDIT_TARGET = 'sessions'
 
         attr_reader :sessions, :pagination_meta
 
@@ -59,7 +82,28 @@ module ColonelAPI
             scan_capped: result.scan_capped,
           }
 
+          record_access_event
+
           success_data
+        end
+
+        # Detail is the shape of the sweep — which page, how wide, what was
+        # searched for, how many rows came back. Never the rows: they carry the
+        # addresses and IPs that put this endpoint on the curated list.
+        def record_access_event
+          Onetime::ColonelAuditEvent.record_access(
+            actor: cust&.extid,
+            verb: AUDIT_VERB,
+            target: AUDIT_TARGET,
+            result: :success,
+            detail: {
+              page: @page,
+              per_page: @per_page,
+              search: @search,
+              returned: sessions.size,
+              total_count: pagination_meta[:total_count],
+            },
+          )
         end
 
         def success_data

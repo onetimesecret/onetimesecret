@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/models/colonel_audit_event'
+
 require_relative '../base'
 require 'onetime/colonel_audit_reader'
 
@@ -15,14 +17,28 @@ module ColonelAPI
       #   substring over the acting colonel's extid/email — the sessions-search
       #   idiom) and `verb` (an exact action like `customer.set_role`, or a
       #   category prefix like `customer` that matches `customer.*`). Requires
-      #   colonel role. Covers BOTH of the model's trails — operator activity
-      #   and unauthenticated security telemetry — merged chronologically; they
-      #   are stored apart only so the latter cannot evict the former.
+      #   colonel role. Covers ALL THREE of the model's trails — operator
+      #   activity, unauthenticated security telemetry and authenticated
+      #   observations — merged chronologically and tagged with the `trail` each
+      #   row came from; they are stored apart only so the chattier ones cannot
+      #   evict the operator record.
       #
       # This is the read side of the flight recorder: every mutating admin op
-      # writes an ColonelAuditEvent; this endpoint plays it back. READ-ONLY —
-      # per CONTRACT 4 (reads never audit), listing the log must never itself
-      # write an audit event.
+      # writes an ColonelAuditEvent; this endpoint plays it back.
+      #
+      # ## Audited as an OBSERVATION (#4335)
+      #
+      # This mutates nothing, so under CONTRACT 4 it writes nothing to the
+      # OPERATOR trail — and it still does not. It does record one observation
+      # per request on the separate `access_events` trail, because "who has been
+      # reading the audit log" is one of the first questions asked after an
+      # incident and was the one question this log could not answer.
+      #
+      # The event is recorded AFTER the read completes, so the page an operator
+      # receives is the trail as it stood before they looked — a listing never
+      # contains the event describing itself. There is no recursion either way:
+      # {Onetime::ColonelAuditReader} never writes, so the read cannot append to
+      # what it is reading.
       class ListColonelAuditEvents < ColonelAPI::Logic::Base
         SCHEMAS = { response: 'colonelAuditEvents' }.freeze
 
@@ -33,10 +49,11 @@ module ColonelAPI
         # only the pagination envelope, which is its own.
         Reader = Onetime::ColonelAuditReader
 
-        # Ceiling on how many events a single read may load into Ruby: the two
-        # trails' caps summed, i.e. the entire store. Both are trimmed on every
-        # write, so this is a fixed bound, not a function of traffic. Aliased
-        # rather than moved: it is referenced by name in this class's own logic.
+        # Ceiling on how many events a single read may load into Ruby: the
+        # three trails' caps summed, i.e. the entire store. All are trimmed on
+        # every write, so this is a fixed bound, not a function of traffic.
+        # Aliased rather than moved: it is referenced by name in this class's
+        # own logic.
         MAX_COMBINED = Reader::MAX_COMBINED
 
         attr_reader :events,
@@ -73,17 +90,43 @@ module ColonelAPI
             @total_count = matching.size
             @events      = matching.slice(offset, per_page) || []
           else
-            @total_count = Onetime::ColonelAuditEvent.count + Onetime::ColonelAuditEvent.security_count
+            # Every trail the merge reads must be counted here, or pagination
+            # under-reports and the last page silently truncates.
+            @total_count = Onetime::ColonelAuditEvent.count +
+                           Onetime::ColonelAuditEvent.security_count +
+                           Onetime::ColonelAuditEvent.access_count
             @events      = merged_events(offset + per_page).slice(offset, per_page) || []
           end
 
           @total_pages = (total_count.to_f / per_page).ceil
           @events      = events.map { |event| format_event(event) }
 
+          record_access_event
+
           success_data
         end
 
         private
+
+        # One observation per request. Detail carries the SHAPE of the read —
+        # which page, how wide, under which filters — never the rows returned:
+        # an audit event about an audit read must not copy the trail into
+        # itself. The filter values are already sanitized operator input.
+        def record_access_event
+          Onetime::ColonelAuditEvent.record_access(
+            actor: cust&.extid,
+            verb: Reader::AUDIT_VERB_LIST,
+            target: Reader::AUDIT_TARGET,
+            result: :success,
+            detail: {
+              page: page,
+              per_page: per_page,
+              returned: events.size,
+              actor_filter: actor_filter,
+              verb_filter: verb_filter,
+            },
+          )
+        end
 
         # Newest-first view over BOTH audit trails.
         #

@@ -10,7 +10,7 @@ operator-facing log exists outside the entitlement entirely.
 |---|---|---|---|---|
 | Secret Activity (#3633/#3635/#3637) | **Secret Activity** | what happened to a secret, and who acted | Valkey/Redis sorted set, capped (10,000 newest per org) | Shipped |
 | Security Events (#2799) | **Security Events** | who did what to the account/org (login, MFA, SSO config) | SQL (`account_authentication_audit_logs`), TTL-based | Backend table live (Rodauth); product surface unstarted |
-| Operator audit log | — (colonel-only) | what operators did in the admin console | `ColonelAuditEvent` (Familia) | Shipped, colonel app only |
+| Operator audit log | — (colonel-only) | what operators did in the admin console, and which sensitive things they looked at | `ColonelAuditEvent` (Familia; three capped sub-streams) | Shipped, colonel app only |
 
 Do not conflate them. Per ADR-021, "audit log" in the strict, actor-attributed
 compliance sense is Security Events; Secret Activity began as access/usage
@@ -244,6 +244,80 @@ operator actions in the admin console and is rendered only by the colonel app
 "what did *our operators* do," not "what happened in a customer's org."
 Mentioned here only to prevent the name collision.
 
+### Three sub-streams, three budgets (#4335)
+
+The operator log is one stream in ADR-021's sense — one prefix, one console,
+one export — stored as **three separately-capped sorted sets**. The split is a
+storage control, not a product distinction, and the read path merges them back
+into one chronological feed tagged with a `trail` field.
+
+| Sub-stream | Written by | Holds | Retention |
+|---|---|---|---|
+| `events` | `record` | operator MUTATIONS | newest 10,000, no TTL |
+| `security_events` | `record_security` | events an **unauthenticated** caller can cause | newest 1,000, 7 days |
+| `access_events` | `record_access` | authenticated **observations** — curated sensitive reads and dry-run previews | newest 5,000, 30 days |
+
+One invariant explains all three (the **write-frequency invariant** on the
+model): a count-capped set with no TTL makes any high-volume writer an
+eviction primitive against everything else in the same set. Rather than argue
+per writer about rate limits, each class of writer gets its own budget, so no
+volume of anonymous telemetry and no amount of console browsing can evict a
+single purge or role change.
+
+`access_events` is the newest and the reason CONTRACT 4 changed — see below.
+Its retention sits deliberately between the other two: longer than anonymous
+telemetry because an observation is an *attributed operator action* and "who
+was looking at this account last week" is a real question; still bounded,
+because an observation leaves no other mark to correlate against and a
+permanent record of everything an operator ever looked at is itself
+surveillance data worth ageing out.
+
+### CONTRACT 4, restated (#4335)
+
+The contract used to read *"audit is for mutations; reads never audit."* It now
+reads:
+
+> **Reads never write the OPERATOR trail. Curated sensitive reads write their
+> own budgeted stream.**
+
+What changed and why: the original phrasing protected `events` from
+read-volume, and that protection is intact — no read has ever written there and
+none does now. But it also meant the console could disclose a customer's email,
+decrypt their live session, or export a year of usage with no record of who
+looked, which is the gap #4335 closed. The two goals were never actually in
+tension; they only looked that way while there was one collection.
+
+**Curation principle** — an observation is recorded when it *exposes customer
+material* or is a *bulk extraction*. Roughly 25 colonel read endpoints stay
+unaudited and should: the site banner, the billing catalog, feature flags,
+config read-outs and system status disclose nothing about a customer. The test
+is the material, not the HTTP verb.
+
+Recorded today:
+
+| Verb | Surface | Why |
+|---|---|---|
+| `secret.receipt_view` | `GetSecretReceipt` | returns the owner's full email |
+| `customer.diagnostics_view` | `GetAccountDiagnostics` | auth-log tail + sessions + lockout state for one person |
+| `session.inspect` | `GetSessionDetail` | decrypts one live session (email, IP, UA, org) |
+| `session.list_for_customer` | `ListCustomerSessions` | where one named person is signed in |
+| `session.list` | `ListSessions` | every row carries email/IP/UA; `search` is a free-text index over addresses |
+| `audit.list` / `audit.export` | list + export endpoints, `ots audit list` | reading the flight recorder is itself an operator action |
+| `usage.export` | `ExportUsage` | up to 365 days, SCANs 10k secrets + every customer record |
+
+Two notes on the edges. `POST /organizations/:org_id/investigate`
+(`organization.investigate`, #4336) records to the **operator** trail rather
+than here: it does not merely read local state, it issues an authenticated
+outbound call to Stripe about a named customer, which is an action with an
+effect outside this system. And a **dry-run preview** (#4337) is an observation
+by the same test — it mutates nothing but enumerates exactly what a destructive
+run would touch — so previews land here with `result: 'preview'`.
+
+`record_access` is fail-open always, with no `fail_closed` keyword. Its writers
+mutated nothing, so there is no destroyed-with-no-trail outcome for failing
+closed to surface; all it could do is take the console down over a broken audit
+write while an operator is trying to read something.
+
 ### Write-failure posture (#4333)
 
 `ColonelAuditEvent.record` is best-effort by default: a failed audit write is
@@ -304,9 +378,9 @@ level was raised. Turning it off is a routing decision at the collector.
 ### Reading and exporting (#4334)
 
 Three readers, one projection — `Onetime::ColonelAuditReader` (`lib/`, so the
-CLI reaches it without an app autoloader) owns the merge of both trails, the
-`actor` / `verb` filter semantics, and the **field allowlist**
-(`id, actor, verb, target, result, detail, created`):
+CLI reaches it without an app autoloader) owns the merge of all three trails,
+the `actor` / `verb` filter semantics, and the **field allowlist**
+(`id, actor, verb, target, result, detail, created, trail`):
 
 | Surface | Entry point | Body |
 |---|---|---|
@@ -321,17 +395,27 @@ re-encodes the body, so the download uses the `Klass.method` route form
 JSON it has **no Zod schema** — documented in
 `src/schemas/api/internal/responses/colonel-audit.ts`; the fields it serialises
 are the same allowlist `colonelAuditEventSchema` already types. All three
-surfaces are read-only (CONTRACT 4).
+surfaces mutate nothing and write nothing to the operator trail; each records
+one observation of its own (CONTRACT 4, above).
+
+`trail` was added to the allowlist by #4335 and is **appended**, so every
+incumbent CSV column keeps its index. It exists because retention now differs
+per sub-stream: without it a reader cannot tell whether a missing old row was
+evicted by a count cap, expired by an age bound, or never written. The value is
+derived at merge time from which collection a row came from — nothing is stored
+on the member and no historical event needs backfilling — and it uses the same
+names the sink has tagged its lines with since #4334, so a line in the log
+stream and a row in the console are finally the same record.
 
 ### Retention narrows only via the constants (#4334)
 
-`trim!` and `trim_security!` are public and used to take their arguments at face
-value, so `trim!(0)` was a one-call wipe of the operator trail — a destructive
-primitive on the audit API. Both now **clamp in the widening direction**: a cap
-below `MAX_EVENTS` / `MAX_SECURITY_EVENTS` is raised to it, and a positive
-`max_age` below `SECURITY_EVENT_RETENTION` is raised to it (a non-positive
-`max_age` still disables the age pass, which keeps *more*). Narrowing retention
-is a change to the constants — a code change under review.
+`trim!`, `trim_security!` and `trim_access!` are public and used to take their
+arguments at face value, so `trim!(0)` was a one-call wipe of the operator
+trail — a destructive primitive on the audit API. All now **clamp in the
+widening direction**: a cap below the trail's `MAX_*` constant is raised to it,
+and a positive `max_age` below the trail's retention constant is raised to it
+(a non-positive `max_age` still disables the age pass, which keeps *more*).
+Narrowing retention is a change to the constants — a code change under review.
 
 Stated honestly: this bounds the audit API, not the Familia collection behind
 it. `ColonelAuditEvent.events.clear` still exists and is what test setup and

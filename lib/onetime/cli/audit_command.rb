@@ -11,8 +11,13 @@
 #   ots audit list --verb customer --format csv     # one category, spreadsheet
 #   ots audit list --actor colonel@example.com
 #
-# READ-ONLY, like the console screen and the export endpoint it shares code
-# with: reading the log never records an audit event (CONTRACT 4).
+# Reading MUTATES NOTHING, like the console screen and the export endpoint this
+# shares code with, so it never touches the OPERATOR trail. Since #4335 it does
+# record one OBSERVATION per invocation on the separate `access_events` trail —
+# including here, and deliberately: an operator reading the flight recorder from
+# a shell is exactly the access that would otherwise be invisible. The CLI
+# carries no colonel session, so the event is attributed to the same `cli`
+# sentinel every other CLI-driven audit event uses.
 #
 # Everything but the terminal table comes from Onetime::ColonelAuditReader —
 # the same merge, the same filters and the same FIELD ALLOWLIST the HTTP
@@ -26,11 +31,19 @@
 require 'json'
 
 require 'onetime/colonel_audit_reader'
+require 'onetime/cli/customers/shared'
 
 module Onetime
   module CLI
     # Namespace for the audit reader subcommands.
     module Audit
+      # Audit actor for CLI-driven reads. The shell carries no colonel
+      # identity, so the observation is attributed to the same sentinel every
+      # other CLI-driven audit event uses
+      # ({Onetime::CLI::Customers::Shared::CLI_ACTOR}) rather than to a
+      # fabricated operator — ADR-023's never-fabricate-an-actor rule.
+      CLI_ACTOR = Onetime::CLI::Customers::Shared::CLI_ACTOR
+
       # Default page size for the human-readable listing. Small on purpose: the
       # terminal view is for "what just happened", and an operator who wants the
       # whole trail is asking for --format csv/ndjson and a redirect.
@@ -81,9 +94,41 @@ module Onetime
           when 'json' then puts JSON.pretty_generate(events.map { |e| Onetime::ColonelAuditReader.format_event(e) })
           else print Onetime::ColonelAuditReader.serialize(events, format: format)
           end
+
+          record_access_event(events, format: format, actor: actor, verb: verb)
         end
 
         private
+
+        # One observation per invocation (#4335), recorded after the output so
+        # a redirected `--format ndjson` file never contains the event
+        # describing its own creation.
+        #
+        # Verb: a csv/ndjson run is a bulk extraction to a file exactly as the
+        # HTTP export is, so it records `audit.export`; `text`/`json` are a
+        # human reading a screen and record `audit.list`. Detail carries the
+        # shape of the read, never the rows.
+        def record_access_event(events, format:, actor:, verb:)
+          audit_verb = if Onetime::ColonelAuditReader::FORMATS.include?(format)
+                         Onetime::ColonelAuditReader::AUDIT_VERB_EXPORT
+                       else
+                         Onetime::ColonelAuditReader::AUDIT_VERB_LIST
+                       end
+
+          Onetime::ColonelAuditEvent.record_access(
+            actor: CLI_ACTOR,
+            verb: audit_verb,
+            target: Onetime::ColonelAuditReader::AUDIT_TARGET,
+            result: :success,
+            detail: {
+              source: 'cli',
+              format: format,
+              returned: events.size,
+              actor_filter: actor,
+              verb_filter: verb,
+            },
+          )
+        end
 
         # Human-readable listing. Deliberately NOT the export format: it drops
         # the event id and truncates detail to fit a terminal, so a caller who
@@ -148,7 +193,8 @@ module Onetime
         puts 'Operator audit trail'
         puts '-' * 70
         puts "Retained events: #{Onetime::ColonelAuditEvent.count} operator, " \
-             "#{Onetime::ColonelAuditEvent.security_count} security telemetry"
+             "#{Onetime::ColonelAuditEvent.security_count} security telemetry, " \
+             "#{Onetime::ColonelAuditEvent.access_count} observation"
         puts
         puts 'Usage: ots audit <subcommand> [options]'
         puts

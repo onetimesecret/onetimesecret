@@ -39,6 +39,9 @@ function auditRow(overrides: Record<string, unknown> = {}) {
     result: 'success',
     detail: { from: 'customer', to: 'admin' },
     created: 1700000000,
+    // Stream discriminator (#4335): which of the model's three capped trails
+    // this row came from. Required by colonelAuditEventSchema.
+    trail: 'events',
     ...overrides,
   };
 }

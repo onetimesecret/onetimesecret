@@ -66,9 +66,9 @@ module Onetime
   #
   # ## No destructive primitive in the audit API (#4334)
   #
-  # {.trim!} and {.trim_security!} CLAMP their arguments: a cap below the
-  # configured constant is raised to it, and a security max_age below
-  # SECURITY_EVENT_RETENTION is raised to it. Retention can therefore only ever
+  # {.trim!}, {.trim_security!} and {.trim_access!} CLAMP their arguments: a cap
+  # below the configured constant is raised to it, and a max_age below the
+  # trail's retention constant is raised to it. Retention can therefore only ever
   # WIDEN through this API — `trim!(0)`, which used to empty the operator trail
   # in one call, is now a no-op. Narrowing retention means editing the
   # constants, which is a code change in review, not a call an attacker or a
@@ -116,6 +116,11 @@ module Onetime
   # security write would hand those callers an abort primitive over the code
   # path that logged them.
   #
+  # {.record_access} is fail-open ALWAYS too, for a different reason: its
+  # writers mutated nothing, so there is no destroyed-with-no-trail outcome for
+  # fail-closed to surface — only the chance to take the console down over a
+  # broken audit write while an operator is trying to read something.
+  #
   # @example Record a successful role change from within an op's #call
   #   ColonelAuditEvent.record(
   #     actor:  colonel.extid,
@@ -158,6 +163,54 @@ module Onetime
     # trimmed independently.
     class_sorted_set :security_events
 
+    # THIRD RETENTION DOMAIN: authenticated NON-MUTATING OBSERVATIONS (#4335).
+    # Same member shape, same score, its own Redis key, its own budget.
+    #
+    # What lands here, and the CURATION PRINCIPLE. Not every colonel GET —
+    # roughly 25 read endpoints stay unaudited, and should. An observation is
+    # recorded when it EXPOSES CUSTOMER MATERIAL or is a BULK EXTRACTION:
+    #
+    #   - a secret's receipt, including the owner's full email
+    #   - an account-diagnostics bundle (auth log tail + sessions)
+    #   - session inspection: one session's decrypted read-out, one customer's
+    #     sessions, and the global session console (whose rows carry email, IP
+    #     and user agent, and whose search is a free-text index over customer
+    #     addresses)
+    #   - the audit trail itself, on all three of its readers — reading the
+    #     flight recorder is itself an operator action worth recording
+    #   - the 365-day usage export
+    #
+    # Reading the site banner, the billing catalog, feature flags or a config
+    # read-out exposes nothing about a customer and stays unaudited. The test is
+    # the material, not the HTTP verb.
+    #
+    # It also holds DRY-RUN PREVIEWS (#4337): an op invoked with dry_run mutates
+    # nothing, so it is an observation — but it is reconnaissance, enumerating
+    # exactly what a destructive run would touch, and several of these default
+    # to dry_run=true from the console. Previews are recorded with
+    # `result: 'preview'`.
+    #
+    # WHY A THIRD COLLECTION rather than more room in `events`: the same
+    # WRITE-FREQUENCY INVARIANT reasoning that split off `security_events`, one
+    # step further. There the writer was untrusted; here it is trusted but
+    # CHATTY BY CONSTRUCTION — an operator working one incident can page the
+    # audit log, inspect a dozen sessions and re-run a preview a dozen times in
+    # an afternoon, all without changing anything. On a count-capped set that is
+    # an eviction pressure on the mutation trail even with nobody acting in bad
+    # faith. Separate budgets remove the question: no volume of observation can
+    # evict a single purge, role change or suppression, because the two sets are
+    # trimmed independently.
+    #
+    # ON THE NAME: ADR-021 Decision 1 reserves "access log" for the
+    # request/resource-focused sense and gives it to Secret Activity, and
+    # Decision 5 reserves the `SecurityEvent` prefix for #2799. Neither is
+    # infringed here for the same reason `security_events` does not infringe the
+    # second: this is a SUB-COLLECTION of the operator stream, which already
+    # owns the `ColonelAudit` prefix (its Redis key is
+    # `colonel_audit_event:access_events`), not a new product surface. It is
+    # never rendered outside the colonel app.
+    class_sorted_set :access_events
+
     # Hard retention cap (by count) for the OPERATOR trail. The primary memory
     # bound: at most MAX_EVENTS events are retained; on each write the oldest
     # overflow is trimmed. Sized for a deep-but-bounded operator trail; older
@@ -188,9 +241,17 @@ module Onetime
     #      LimitExceeded family by inheritance (LimitExceeded < Forbidden).
     #
     # So: a new verb reachable without authentication MUST use {.record_security}.
-    # Both trails are merged newest-first for reading by
-    # ColonelAPI::Logic::Colonel::ListColonelAuditEvents, so the split costs no
-    # queryability.
+    #
+    #   4. A verb that OBSERVES without mutating — a curated sensitive read, or
+    #      a dry-run preview — goes to `access_events` via {.record_access},
+    #      under MAX_ACCESS_EVENTS + ACCESS_EVENT_RETENTION (#4335). Authorized,
+    #      but chatty by construction; see that collection's note.
+    #
+    # All THREE trails are merged newest-first for reading by
+    # {Onetime::ColonelAuditReader}, so the splits cost no queryability. The
+    # projection tags each row with the trail it came from, because retention
+    # differs per trail and "nothing before date X" means different things in
+    # each.
     MAX_EVENTS = 10_000
 
     # Retention cap (by count) for the anonymous security-telemetry trail. Small
@@ -206,6 +267,36 @@ module Onetime
     # so it gets both bounds. Sorted-set members cannot carry a per-member TTL, so
     # this is a ZREMRANGEBYSCORE over the creation score.
     SECURITY_EVENT_RETENTION = 7 * 24 * 60 * 60 # 7 days
+
+    # Retention cap (by count) for the OBSERVATION trail (#4335).
+    #
+    # HALF the operator cap, deliberately. Not a guess at volume — a statement
+    # of relative worth under a fixed memory budget. "Who changed what" is the
+    # accountability record and gets the larger share; "who looked at what" is
+    # supporting context for it. Sized so an operator's own working history
+    # survives a normal review cycle (a busy incident is tens to low hundreds of
+    # observations, so 5k is weeks of real use), while staying small enough that
+    # the two trails together remain a predictable Valkey bound.
+    #
+    # Raising this is cheap and safe in a way that raising MAX_EVENTS is not:
+    # the budgets are independent, so a bigger observation trail cannot cost the
+    # mutation trail a single record.
+    MAX_ACCESS_EVENTS = 5_000
+
+    # Age bound (seconds) for the OBSERVATION trail, trimmed by score on every
+    # access write — the same ZREMRANGEBYSCORE pass {SECURITY_EVENT_RETENTION}
+    # gets, and for the same reason: observations go stale.
+    #
+    # Longer than the security trail's 7 days, shorter than the operator
+    # trail's "no TTL at all", and both gaps are the point. Anonymous telemetry
+    # is detection signal with a short useful life. An observation is an
+    # ATTRIBUTED operator action, so it is reviewable evidence — "who was
+    # looking at this account before it was drained" is a question asked days or
+    # weeks later, which is what 30 days covers. It still expires, because
+    # unlike a mutation an observation left no other mark in the system to
+    # correlate against, and an indefinite record of everything an operator ever
+    # looked at is itself surveillance data worth aging out.
+    ACCESS_EVENT_RETENTION = 30 * 24 * 60 * 60 # 30 days
 
     # Placeholder written in place of any redacted value.
     REDACTED = '[REDACTED]'
@@ -233,13 +324,21 @@ module Onetime
 
     # The one verb constant that lives on the model instead of on its emitter.
     #
-    # Every other verb has exactly one emitter, which owns its own AUDIT_VERB.
+    # Nearly every verb has exactly one emitter, which owns its own AUDIT_VERB.
     # Colonel session establishment has TWO, one per auth mode — full mode syncs
     # the session in Auth::Operations::SyncSession, simple mode never loads the
     # auth app at all and establishes it in
     # Core::Logic::Authentication::AuthenticateSession. Neither can reference the
     # other's constant, and the string must be identical in both (the admin
     # console filters on it), so it is single-sourced here.
+    #
+    # The RULE this illustrates is "a multi-emitter verb is single-sourced on
+    # whatever its emitters already share." For this one that is the model,
+    # because an auth op and a core logic class share nothing else. The
+    # audit-READ verbs (#4335) have three emitters — the list endpoint, the
+    # export endpoint and the CLI — which already share
+    # {Onetime::ColonelAuditReader}, so they are single-sourced there instead.
+    # This model knows nothing about reading surfaces and should not start.
     VERB_COLONEL_SIGNIN = 'colonel.signin'
 
     # Keys whose values must never be persisted verbatim. Matched case-insensitively
@@ -371,6 +470,45 @@ module Onetime
         nil
       end
 
+      # Record one OBSERVATION event: same shape as {.record}, stored in the
+      # separate `access_events` collection with its own count cap and age
+      # bound (#4335).
+      #
+      # Use this — never {.record} — for an authenticated colonel action that
+      # MUTATES NOTHING: a curated sensitive read (see the collection's curation
+      # principle) or a dry-run preview. The separation is the control described
+      # in the WRITE-FREQUENCY INVARIANT: observation is chatty by construction,
+      # so giving it its own budget means a busy afternoon in the console can
+      # never cost the mutation trail a record.
+      #
+      # ALWAYS best-effort, and — like {.record_security} — with NO `fail_closed`
+      # keyword to opt out of it. The reasoning differs from the security trail's
+      # but lands in the same place: OBSERVING MUST NEVER BREAK THE CONSOLE. A
+      # colonel opening a receipt or previewing a delete has changed nothing, so
+      # there is no destroyed-with-no-trail scenario for fail-closed to surface;
+      # all it could do is turn a broken audit write into a broken read-out,
+      # taking the console down at exactly the moment an operator is trying to
+      # understand something. The event is already in the sink either way.
+      #
+      # @param result [String, Symbol] outcome. `:success` for a read that
+      #   answered; `'preview'` for a dry-run (see #4337).
+      # @return [Hash, nil] the stored event (string keys), or nil if it failed.
+      def record_access(actor:, verb:, target:, result:, detail: nil)
+        event = build_event(actor: actor, verb: verb, target: target, result: result, detail: detail)
+
+        # Same sink-then-cache ordering as the other two, on the same logger
+        # under its own `trail` field. The sink has no budget to protect, so
+        # nothing about the split changes what ships.
+        emit_to_sink(event, :access_events)
+
+        access_events.add(event, event['created'])
+        trim_access!
+        event
+      rescue StandardError => ex
+        log_record_failure(ex, verb, target, result)
+        nil
+      end
+
       # The sink handle: a dedicated SemanticLogger instance for
       # {SINK_LOGGER_NAME}, pinned to {SINK_LEVEL}.
       #
@@ -419,6 +557,21 @@ module Onetime
         security_events.revrange(offset, offset + limit - 1)
       end
 
+      # Newest-first slice of the OBSERVATION trail. Same contract as
+      # {.recent}, over the separate collection.
+      #
+      # @param limit [Integer] max events to return (most recent first).
+      # @param offset [Integer] rank offset into the newest-first ordering.
+      # @return [Array<Hash>] events with string keys, newest first.
+      def recent_access(limit = 100, offset = 0)
+        limit  = limit.to_i
+        offset = offset.to_i
+        return [] if limit <= 0
+
+        offset = 0 if offset.negative?
+        access_events.revrange(offset, offset + limit - 1)
+      end
+
       # @return [Integer] number of retained events.
       def count
         events.element_count
@@ -427,6 +580,11 @@ module Onetime
       # @return [Integer] number of retained security-telemetry events.
       def security_count
         security_events.element_count
+      end
+
+      # @return [Integer] number of retained observation events.
+      def access_count
+        access_events.element_count
       end
 
       # Enforce the count cap: keep only the newest `cap` events, dropping the
@@ -487,6 +645,36 @@ module Onetime
         removed + security_events.remrangebyscore(0, Familia.now - max_age).to_i
       end
 
+      # Enforce BOTH bounds on the OBSERVATION trail — count cap and age bound —
+      # exactly as {.trim_security!} does for the security trail, including the
+      # widening-only clamps. Runs on every access write.
+      #
+      # Same tamper-resistance contract (#4334): `cap` is raised to
+      # MAX_ACCESS_EVENTS, a POSITIVE `max_age` below ACCESS_EVENT_RETENTION is
+      # raised to it, and a non-positive `max_age` disables the age pass (which
+      # keeps MORE data, so it is not a way around the invariant). Narrowing
+      # observation retention means editing the constants — a code change under
+      # review, not an argument a caller can pass.
+      #
+      # @param cap [Integer] requested retention; raised to MAX_ACCESS_EVENTS
+      #   when smaller.
+      # @param max_age [Integer] seconds; events older than this are dropped.
+      #   Non-positive disables the age bound; a positive value below
+      #   ACCESS_EVENT_RETENTION is raised to it.
+      # @return [Integer] number of events removed by both passes.
+      def trim_access!(cap = MAX_ACCESS_EVENTS, max_age = ACCESS_EVENT_RETENTION)
+        cap = [cap.to_i, MAX_ACCESS_EVENTS].max
+
+        removed = access_events.remrangebyrank(0, -(cap + 1)).to_i
+
+        max_age = max_age.to_i
+        return removed unless max_age.positive?
+
+        max_age = [max_age, ACCESS_EVENT_RETENTION].max
+
+        removed + access_events.remrangebyscore(0, Familia.now - max_age).to_i
+      end
+
       private
 
       # Build the stored member. Shared by {.record} and {.record_security} so the
@@ -520,7 +708,7 @@ module Onetime
       # through {redact}, so nothing reaches the sink that would not reach Redis.
       #
       # @param event [Hash] the built event (string keys).
-      # @param trail [Symbol] :events or :security_events.
+      # @param trail [Symbol] :events, :security_events or :access_events.
       # @return [Boolean] whether the line was emitted.
       def emit_to_sink(event, trail)
         sink_logger.public_send(SINK_LEVEL, SINK_MESSAGE, event.merge('trail' => trail.to_s))
