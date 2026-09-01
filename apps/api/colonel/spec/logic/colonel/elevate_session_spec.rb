@@ -43,6 +43,31 @@ RSpec.describe ColonelAPI::Logic::Colonel::ElevateSession do
   # mutable, which is the whole point here: grant_elevation! writes into it.
   let(:session) { {} }
 
+  # Stand-in for the full-mode password verifier, declaring the exact signature
+  # Elevation#verify_elevation_password_full_mode calls.
+  #
+  # `class_double('Auth::Config')` (by NAME) cannot be used, and neither can a
+  # `defined?(Auth::Config)` guard. This spec runs in a SIMPLE-mode process where
+  # the constant is normally absent — but `spec:apps_fast` merges every app spec
+  # into one process, and any spec there that loads apps/web/auth/config.rb
+  # leaves `Auth::Config` defined as a bare Rodauth::Auth subclass. The
+  # `valid_login_and_password?` class method is installed by Rodauth's
+  # :internal_request feature, which only runs inside `Auth::Config.configure`
+  # during a full-mode boot, so rspec would verify the stub against a half-built
+  # class and reject it — making these examples pass or fail on the load order of
+  # the whole merged process (seed 35522 reproduces the failure).
+  #
+  # Doubling this stand-in is deterministic in both processes AND stricter than
+  # the unverified double a name-based `class_double` degrades to when the
+  # constant is absent: a call with the wrong keywords fails here.
+  let(:auth_config_class) do
+    Class.new do
+      def self.valid_login_and_password?(login:, password:)
+        raise NotImplementedError, "stand-in only (#{login}/#{password})"
+      end
+    end
+  end
+
   def strategy_result_for(user = colonel, sess = session)
     double('StrategyResult', session: sess, user: user,
       auth_method: 'sessionauth', metadata: {})
@@ -99,8 +124,14 @@ RSpec.describe ColonelAPI::Logic::Colonel::ElevateSession do
     it 'verifies against the Redis passphrase and NEVER names Auth::Config' do
       allow(colonel).to receive(:passphrase?).with('hunter2').and_return(true)
       # If the class reached for Auth::Config here it would NameError in simple
-      # mode, where apps/web/auth is not loaded at all.
-      expect(defined?(Auth::Config) ? Auth::Config : nil).not_to receive(:valid_login_and_password?) if defined?(Auth::Config) # rubocop:disable RSpec/MessageSpies
+      # mode, where apps/web/auth is not loaded at all. Stubbed unconditionally:
+      # the old `if defined?(Auth::Config)` guard SKIPPED this assertion outright
+      # in a standalone colonel run (where the constant is absent — i.e. exactly
+      # the run this file is normally executed in) and blew up in the merged
+      # spec:apps_fast process. The stand-in is present either way.
+      auth_config = class_double(auth_config_class)
+      stub_const('Auth::Config', auth_config)
+      expect(auth_config).not_to receive(:valid_login_and_password?) # rubocop:disable RSpec/MessageSpies
 
       logic = logic_for({ 'password' => 'hunter2' })
       logic.raise_concerns
@@ -209,7 +240,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ElevateSession do
   describe 'the password factor in FULL mode' do
     before do
       allow(Onetime.auth_config).to receive(:full_enabled?).and_return(true)
-      stub_const('Auth::Config', class_double('Auth::Config'))
+      stub_const('Auth::Config', class_double(auth_config_class))
       # Both constants only exist in a full-mode process; this spec runs in a
       # simple-mode one. Naming Rodauth::InternalRequestError in the rescue
       # clause is the in-repo idiom (update_password.rb, destroy_account.rb) and
