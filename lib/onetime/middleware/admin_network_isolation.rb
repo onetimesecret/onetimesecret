@@ -37,11 +37,28 @@ module Onetime
     #      rule as the host gate: a list an operator wrote is never silently
     #      disabled.
     #
-    # Routes may additionally declare `network=admin`. Those routes require
-    # BOTH allowlists to be explicitly configured and active; after both gates
-    # admit the request this middleware records that verdict in Rack env for the
-    # Otto route wrapper. This leaves ordinary Colonel routes on the existing
-    # opt-in CIDR posture while sensitive routes can require the stronger one.
+    # Routes may additionally declare a network requirement, in one of two
+    # strengths (Onetime::Application::NetworkRequirements):
+    #
+    #   `network=admin` — strict. The route requires BOTH allowlists to be
+    #      explicitly configured and active; after both gates admit the request
+    #      this middleware records that verdict in Rack env for the Otto route
+    #      wrapper. Anything less is a 404.
+    #
+    #   `network=admin_if_configured` (#4332) — enforced only where the operator
+    #      actually configured admin isolation, advisory otherwise. This is what
+    #      the 15 tier-1 destructive colonel routes carry: annotating them with
+    #      the strict token would 404 every destructive verb on a stock
+    #      self-hosted install, where neither allowlist is set.
+    #
+    # Those two are told apart by the MODE key beside the verdict key — see
+    # ROUTE_REQUIREMENT_MODE_ENV_KEY. Both keys are written for every
+    # admin-surface request this middleware sees, including one it lets through
+    # with both gates inactive; their ABSENCE means the middleware never ran,
+    # which both strategies treat as a denial.
+    #
+    # This leaves ordinary Colonel routes on the existing opt-in CIDR posture
+    # while sensitive routes can require the stronger one.
     #
     # A request that fails EITHER active gate gets a 404 on `/colonel` and
     # `/api/colonel` — indistinguishable-from-absent, NOT a 403, so the admin
@@ -51,8 +68,9 @@ module Onetime
     # true) in each logic class), which still enforce beneath for any request
     # that does pass.
     #
-    # When BOTH gates are inactive the middleware is a strict NO-OP, exactly as
-    # before #4062.
+    # When BOTH gates are inactive the middleware still serves every request
+    # unchanged, exactly as before #4062; the only thing it does on that path is
+    # stamp the two verdict keys on an admin-surface request (#4332).
     #
     # ## Host resolution
     #
@@ -243,6 +261,15 @@ module Onetime
       # cannot supply Rack env keys over HTTP.
       ROUTE_REQUIREMENT_ENV_KEY = 'onetime.admin_network_requirement_met'
 
+      # Tri-state companion to ROUTE_REQUIREMENT_ENV_KEY (#4332). :enforced when
+      # the operator has fully configured admin isolation (explicit enforceable
+      # hosts AND at least one parseable CIDR); :advisory otherwise.
+      # `network=admin_if_configured` falls through on :advisory so annotating
+      # destructive routes cannot brick a stock self-hosted install. ABSENT
+      # means the middleware never ran for this request — the strategy treats
+      # that as a denial, not as advisory.
+      ROUTE_REQUIREMENT_MODE_ENV_KEY = 'onetime.admin_network_requirement_mode'
+
       # @see Onetime::Middleware::ADMIN_NOT_FOUND_HTML
       NOT_FOUND_HTML = ADMIN_NOT_FOUND_HTML
 
@@ -337,12 +364,23 @@ module Onetime
 
       def call(env)
         # Cheapest discriminator first, and it is this one: with both gates
-        # inactive — the pre-#4062 self-hosted default — the middleware is a
-        # strict NO-OP that allocates nothing, and the two app-layer auth
-        # layers are the sole gate. Reconstructing the path first would put a
-        # String allocation on every request of every mounted app to answer a
-        # question two already-computed booleans settle.
-        return @app.call(env) unless host_gate_active? || network_gate_active?
+        # inactive — the pre-#4062 self-hosted default — this middleware denies
+        # nothing and the two app-layer auth layers are the sole gate.
+        # Reconstructing the path first would put a String allocation on every
+        # request of every mounted app to answer a question two already-computed
+        # booleans settle.
+        #
+        # #4332 added ONE thing to that path: the verdict keys are still needed
+        # on admin paths, so `network=admin_if_configured` can distinguish
+        # "advisory" from "the middleware never ran". It is reached through an
+        # allocation-free prefilter (#maybe_admin_surface? reads two strings Rack
+        # already built), so the exact — allocating — check runs only for the
+        # handful of requests that could be admin ones. Every other request
+        # keeps the original no-op fast path.
+        unless host_gate_active? || network_gate_active?
+          annotate_route_requirement(env) if maybe_admin_surface?(env)
+          return @app.call(env)
+        end
 
         full_path = request_path(env)
         return @app.call(env) unless admin_surface?(full_path)
@@ -353,11 +391,49 @@ module Onetime
         return not_found_response(full_path) if host_denied?(env, full_path)
         return not_found_response(full_path) if network_denied?(env, full_path)
 
-        env[ROUTE_REQUIREMENT_ENV_KEY] = route_requirement_met?
+        annotate_route_requirement(env, full_path)
         @app.call(env)
       end
 
       private
+
+      # Record this request's route-requirement verdict for the Otto wrappers.
+      #
+      # Both keys move together — a reader that saw one without the other could
+      # not tell "advisory" from "middleware absent" — and both are written ONLY
+      # on an admin surface, which is the only place the verdict means anything.
+      #
+      # @param env [Hash] the Rack env, mutated in place
+      # @param full_path [String] the normalized path, when the caller has one
+      # @return [void]
+      def annotate_route_requirement(env, full_path = request_path(env))
+        return unless admin_surface?(full_path)
+
+        env[ROUTE_REQUIREMENT_ENV_KEY]      = route_requirement_met?
+        env[ROUTE_REQUIREMENT_MODE_ENV_KEY] = route_requirement_mode
+      end
+
+      # "Could this request possibly be for an admin surface?" — a deliberately
+      # over-broad prefilter that allocates nothing, so it can sit on the
+      # both-gates-inactive fast path that runs for every request of all ~13
+      # mounted apps. #annotate_route_requirement re-checks exactly (and with
+      # normalization) before writing anything.
+      #
+      # SCRIPT_NAME is the mount prefix for a mounted app and PATH_INFO the
+      # remainder, so both are checked rather than concatenated: the colonel API
+      # arrives as SCRIPT_NAME=/api/colonel + PATH_INFO=/info, and the shell as
+      # SCRIPT_NAME='' + PATH_INFO=/colonel.
+      def maybe_admin_surface?(env)
+        script = env['SCRIPT_NAME']
+        return true if script && (script.start_with?('/colonel', '/api/colonel'))
+
+        # A non-empty SCRIPT_NAME that is not an admin mount cannot become one
+        # by appending PATH_INFO.
+        return false unless script.nil? || script.empty?
+
+        path = env['PATH_INFO']
+        !path.nil? && (path.start_with?('/colonel', '/api/colonel'))
+      end
 
       # --- gates ---------------------------------------------------------
 
@@ -375,6 +451,30 @@ module Onetime
       # count as network isolation.
       def route_requirement_met?
         @host_gate_explicit && host_gate_active? && network_gate_active?
+      end
+
+      # Whether a route-level admin requirement is ENFORCEABLE in this posture
+      # (#4332). Process-constant, like #route_requirement_met? itself: it is
+      # the same construction-time decision, read as a tri-state so a route can
+      # opt into "enforce only where the operator configured this".
+      #
+      # :advisory is not a weaker verdict, it is a different question — "is the
+      # operator running admin isolation at all?" — which is why the strict
+      # `network=admin` token never consults it.
+      def route_requirement_mode
+        route_requirement_met? ? :enforced : :advisory
+      end
+
+      # Half-configured: the operator set one of the two knobs in a way that
+      # cannot enforce, which is the posture most likely to be believed working.
+      # Both halves are read the way #route_requirement_met? reads them —
+      # a wildcard host list is explicit but inactive, and therefore not
+      # configured for this purpose.
+      def admin_isolation_half_configured?
+        host_half    = @host_gate_explicit && host_gate_active?
+        network_half = network_gate_active?
+
+        host_half ^ network_half
       end
 
       # Host gate. Fails closed twice over: an active gate with an unresolvable
@@ -972,6 +1072,38 @@ module Onetime
 
         log_once(:posture, posture) do
           @logger.info 'Admin surface isolation posture', posture
+        end
+
+        log_route_requirement_mode
+      end
+
+      # The one line that tells an operator whether the `network=admin_if_configured`
+      # annotation on the 15 destructive colonel routes is doing anything (#4332).
+      #
+      # Level is the whole point. A stock self-hosted install configured neither
+      # allowlist and is not misconfigured — nagging it at WARN would train
+      # operators to ignore this line. A HALF-configured install is different:
+      # someone set one of the two knobs, so they believe a restriction is in
+      # force, and it is not. Through log_once for the usual reason — this
+      # middleware is constructed once per mounted app.
+      def log_route_requirement_mode
+        return if route_requirement_mode == :enforced
+
+        payload = {
+          mode: :advisory,
+          host_gate_explicit: @host_gate_explicit,
+          host_gate: host_gate_active?,
+          network_gate: network_gate_active?,
+          consequence: 'routes marked network=admin_if_configured are NOT network-gated; ' \
+                       'set BOTH ADMIN_ALLOWED_HOSTS (no wildcard) and ADMIN_ALLOWED_CIDRS to enforce',
+        }
+
+        log_once(:admin_route_requirement_advisory, payload) do
+          if admin_isolation_half_configured?
+            @logger.warn 'Admin route network requirement is ADVISORY: admin isolation is half-configured', payload
+          else
+            @logger.info 'Admin route network requirement is advisory (admin isolation is not configured)', payload
+          end
         end
       end
 

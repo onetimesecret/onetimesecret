@@ -118,6 +118,51 @@ acting colonel, the verb, the target, and the result — whether it originated
 from the console or the CLI (both go through the same shared operations). This is
 the non-negotiable backstop for privileged actions.
 
+### Destructive actions: what the server now requires
+
+**Read this section when a colonel API call starts returning 403.**
+
+Until epic #4323 every safety interlock on a destructive colonel action lived in
+the browser: typed-confirmation dialogs, danger flags and warnings were all
+Vue-side, and the API executed purge / delete / revoke / role-change on a bare
+authenticated request. A leaked colonel session cookie was unbounded,
+un-throttled destructive capability. It is not any more. Every mutating verb is
+now in exactly one of three tiers, and each tier costs a caller something
+different:
+
+| Tier | Count | What the server requires, on top of a colonel session |
+| --- | --- | --- |
+| **1 — destructive** | 15 routes | `X-OTS-Confirm` **and** a live step-up window **and** the tight `colonel_destructive` bucket **and** `network=admin_if_configured` |
+| **2 — sensitive** | 12 routes | `X-OTS-Confirm` only |
+| **3 — reviewed, un-gated** | the rest | nothing beyond the two authorization layers and the broad `colonel_mutation` bucket |
+
+Tier 1 is the irreversible, credential-revoking or privilege-granting set:
+delete a secret, change or purge an account, change a role, transfer or delete a
+domain or a domain config, transfer or delete an organization, change or remove
+a membership, revoke a session or all of an account's sessions, purge a DLQ.
+Tier 2 is reversible but removes a defence, denies service or grants privilege —
+unverify, suspend, domain repair/override, domain-config upsert, entitlement
+overrides, membership add, DLQ replay, rate-limit reset.
+
+Which verb is in which tier is **committed data**, not prose:
+`apps/api/colonel/destructive_actions.rb`, with a spec that fails if a new
+mutating route appears in none of the three lists.
+
+Two more things changed on the wire and are easy to trip over from a script:
+
+- **Sessions are addressed by an opaque handle, not a session id** (#4330).
+  `GET|DELETE /api/colonel/sessions/:session_handle` takes a 32-hex handle (an
+  HMAC of the session id), never the raw id, and the console never renders a
+  live bearer credential again. Both accept an optional `?user_id=` owner hint,
+  which makes the lookup cheap and exact instead of a bounded scan; without it a
+  read can report `details.scan_capped: true`, meaning "not found, but the scan
+  was truncated" rather than "absent". `bin/ots session` is unaffected.
+- **Four new refusals are 422s, not 403s** (#4328): demoting or unverifying
+  yourself or the last remaining colonel, and revoking your own active session.
+  Revoking *all* of your own sessions still works and keeps the current one.
+
+The rest of this section takes each control in turn.
+
 ### Destructive-action confirmation — `X-OTS-Confirm`
 
 Typed-confirmation used to live only in the browser: past the console, purge,
@@ -355,6 +400,36 @@ the admin SPA makes no periodic requests. Any polling added under
 `src/apps/admin/` would refresh `last_activity_at` forever and silently disable
 this control.
 
+### Network gating on the destructive routes (#4332)
+
+The fifteen tier-1 routes declare `network=admin_if_configured`. In the shipped
+posture — neither `ADMIN_ALLOWED_HOSTS` nor `ADMIN_ALLOWED_CIDRS` set — this
+changes nothing you can observe: the requirement is **advisory** and the routes
+behave exactly as before. Set **both** variables and it becomes **enforced**, so
+those fifteen verbs are additionally bound to the admin hostname and the admin
+network. Setting only one gives you neither, and logs a boot WARN saying so.
+
+There is no third state and no per-route opt-out. The reason the token is
+`_if_configured` rather than the strict `network=admin` used by
+`GET /system/proxy-headers` is that the strict token has no fall-through: it
+would `404` all fifteen destructive verbs for an authenticated colonel on
+localhost, on every install that has not configured both allowlists.
+
+Its value in the advisory posture is narrower than it looks, and worth being
+plain about: a request that reaches one of these routes has already passed
+whatever surface-wide gates are active, so this is belt-and-braces. What it
+genuinely buys is that the requirement **fails closed** — if
+`AdminNetworkIsolation` ever leaves the middleware stack, or one of these routes
+moves outside the `/colonel*` prefixes, the route 404s instead of serving.
+
+A denial here is a bare `404` with no reason, indistinguishable from a route
+that does not exist. If a destructive verb starts 404ing after you set the
+allowlists, that is where to look first — the twelve tier-2 verbs are
+deliberately not annotated, so they will keep working and the contrast is the
+diagnosis. Full detail, including the five postures and the exact route list, is
+in
+[admin-network-isolation.md](admin-network-isolation.md#route-level-network-requirements).
+
 ## 3. Restricting the admin surfaces
 
 Two independent factors restrict which requests reach `/colonel*` and
@@ -389,6 +464,14 @@ client IPs may reach the surfaces. Unset (the default) it is a no-op, the right
 posture for a self-hosted single-container install that cannot require a VPN. Do
 not put public CIDRs in the allowlist — the app-layer auth remains the gate for
 anyone already on the trusted network.
+
+**With both unset — the shipped default — the colonel surfaces are reachable
+from any network on any hostname the anchor fallback admits**, and the controls
+in section 2 are the only ones enforcing. That is deliberate, and it is a
+posture to change deliberately rather than a hardened baseline. Setting both is
+also what promotes the fifteen destructive routes from an advisory network
+requirement to an enforced one (see [Network gating on the destructive
+routes](#network-gating-on-the-destructive-routes-4332)).
 
 Both are a config posture, not a code fork — the same app-layer enforcement runs
 underneath regardless. The full setup (upgrade impact, private CIDRs, the
