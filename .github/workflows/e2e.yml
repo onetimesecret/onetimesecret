@@ -149,6 +149,7 @@ jobs:
             -e HOST=localhost:3000 \
             -e SSL=false \
             -e RACK_ENV=production \
+            -e SESSION_COOKIE_SECURE=false \
             -e BRAND_PRIMARY_COLOR='#3B82F6' \
             -e AUTH_AUTOVERIFY=true \
             -e EMAILER_MODE=logger \

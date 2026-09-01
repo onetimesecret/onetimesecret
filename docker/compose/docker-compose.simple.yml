@@ -34,6 +34,15 @@ services:
       - SECRET=${SECRET:?SECRET must be set in .env — add one with 'echo "SECRET=$$(openssl rand -hex 32)" >> .env' (see README)}
       - SESSION_SECRET=${SESSION_SECRET:-}
       - AUTHENTICATION_MODE=${AUTHENTICATION_MODE:-simple}
+      # This stack serves plain HTTP on port 3000 by design (no proxy, no
+      # TLS), so the Secure cookie flag can never be honored here: without
+      # this opt-out the app — which fails closed in production mode — would
+      # refuse to write the session cookie at all and every login would
+      # break. If you put a TLS terminator in front of this stack, set
+      # SSL=true in .env and export SESSION_COOKIE_SECURE=true in the shell
+      # environment (this `environment:` entry takes precedence over .env,
+      # and ${...} interpolation reads the shell, not env_file).
+      - SESSION_COOKIE_SECURE=${SESSION_COOKIE_SECURE:-false}
       - ARGON2_SECRET=${ARGON2_SECRET:-}
       - FEDERATION_SECRET=${FEDERATION_SECRET:-}
       - IDENTIFIER_SECRET=${IDENTIFIER_SECRET:-}

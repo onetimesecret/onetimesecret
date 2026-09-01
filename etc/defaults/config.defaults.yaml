@@ -436,14 +436,36 @@ site:
     # fallback can default this to true in production / when site.ssl is on.
     # (Emitting `null` here fails schema validation — the contract is
     # boolean-or-absent, not boolean-or-null; see site.ts `secure`.)
-    # The exact string 'false' emits secure: false — SSL=false declares a
-    # plain-HTTP deployment, and a Secure cookie there is never written at
-    # all (Session refuses it), which silently breaks every session and every
-    # session-backed CSRF check. A TLS-proxied deployment sets SSL=true (it
-    # needs https:// links anyway), so it is unaffected.
-    <% if ENV['SSL'] == 'true' %>
+    # SSL=false emits secure: false ONLY outside production. There it declares
+    # a plain-HTTP dev deployment, where writing a Secure cookie (which Session
+    # then refuses over http) would silently break every session and every
+    # session-backed CSRF check. In PRODUCTION, SSL=false must NOT switch off
+    # Secure: the key is left absent so boot.rb's ssl_enabled? fallback forces
+    # secure: true (fail closed). Production deployments that inherit SSL=false
+    # from the quick-start almost always terminate TLS at an edge proxy, so a
+    # non-Secure session cookie there is a downgrade bug, not a valid config.
+    # A TLS-proxied deployment normally sets SSL=true anyway (it needs https://
+    # links), so it is unaffected either way.
+    #
+    # SESSION_COOKIE_SECURE is the explicit, always-wins override, for the rare
+    # deployment (and the e2e test harness) that genuinely serves plain HTTP in
+    # production mode. Unlike SSL=false — which quick-start configs ship by
+    # default and which therefore must not silently downgrade the cookie — this
+    # variable names exactly what it does and is never set by accident.
+    #
+    # The dev/test check ALLOWLISTS the values Onetime.env normalizes to a
+    # non-production environment (lib/onetime/class_methods.rb) rather than
+    # testing != 'production': the runtime maps 'prod' to production and treats
+    # empty/unknown values as production ("default to production when
+    # uncertain"), so a negative test here would emit secure: false for
+    # RACK_ENV=prod or RACK_ENV='' — deployments the app itself runs as
+    # production. Anything not on the list (including staging, empty, and
+    # typos) leaves the key absent and lets the runtime fallback decide.
+    <% if %w[true false].include?(ENV['SESSION_COOKIE_SECURE'].to_s) %>
+    secure: <%= ENV['SESSION_COOKIE_SECURE'] %>
+    <% elsif ENV['SSL'] == 'true' %>
     secure: true
-    <% elsif ENV['SSL'] == 'false' %>
+    <% elsif ENV['SSL'] == 'false' && %w[dev development test testing].include?(ENV['RACK_ENV'].to_s.downcase) %>
     secure: false
     <% end %>
     # SameSite cookie attribute (strict|lax|none)
