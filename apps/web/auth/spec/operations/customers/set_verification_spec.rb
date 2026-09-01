@@ -110,7 +110,8 @@ RSpec.describe Auth::Operations::Customers::SetVerification do
   # ---- Unverify interlocks (#4328 / review B-1) ------------------------------
   describe 'unverify interlocks' do
     let(:colonel) do
-      double('Customer', extid: 'ur_col_t', objid: 'cust_col_t', role: 'colonel', verified?: true)
+      double('Customer', extid: 'ur_col_t', objid: 'cust_col_t', role: 'colonel',
+                         verified?: true, verified_by: 'colonel_admin')
     end
 
     let(:second_colonel) do
@@ -213,12 +214,14 @@ RSpec.describe Auth::Operations::Customers::SetVerification do
       it 'rolls the unverify back (re-verifies) and refuses with :last_colonel' do
         expect(unverify(colonel)).to eq(:last_colonel)
 
-        # inner op called twice: the unverify write, then the re-verify rollback
+        # inner op called twice: the unverify write (verified_by nil, the clearing
+        # arm), then the re-verify rollback carrying the ORIGINAL provenance tag
+        # ('colonel_admin') — NOT nil, so the restore does not wipe verified_by (#4328).
         expect(Auth::Operations::SetCustomerVerification).to have_received(:new).with(
           customer: colonel, verified: false, verified_by: nil, db: nil
         )
         expect(Auth::Operations::SetCustomerVerification).to have_received(:new).with(
-          customer: colonel, verified: true, verified_by: nil, db: nil
+          customer: colonel, verified: true, verified_by: 'colonel_admin', db: nil
         )
       end
 

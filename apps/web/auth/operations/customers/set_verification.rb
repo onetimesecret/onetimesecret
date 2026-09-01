@@ -113,6 +113,21 @@ module Auth
           refusal = unverify_refusal
           return build(refusal) if refusal
 
+          # Provenance to restore if the post-write re-validation below rolls this
+          # unverify back. Read BEFORE the write and ONLY on the unverify-of-a-colonel
+          # path #unverify_left_no_colonel? can trip: SetCustomerVerification#update_customer!
+          # assigns verified_by UNCONDITIONALLY, and the unverify arm passes nil
+          # (SetUserVerification#verified_by_tag returns nil when clearing), so the
+          # write blanks it in memory. The rollback must restore this ORIGINAL tag,
+          # not the nil this op was called with — otherwise a concurrent double-unverify
+          # re-verifies the surviving colonel with verified_by wiped, destroying the
+          # 'sso'/'colonel_admin'/'email' provenance (#4328). Guarded so other callers
+          # (verify arm, non-colonel targets, provenance resets) need not expose it.
+          original_verified_by =
+            if !@verified && @enforce_interlocks && @customer.role.to_s == 'colonel'
+              @customer.verified_by
+            end
+
           result = Auth::Operations::SetCustomerVerification.new(
             customer: @customer,
             verified: @verified,
@@ -132,7 +147,7 @@ module Auth
             Auth::Operations::SetCustomerVerification.new(
               customer: @customer,
               verified: true,
-              verified_by: @verified_by,
+              verified_by: original_verified_by,
               db: @db,
             ).call
             return build(:last_colonel)
