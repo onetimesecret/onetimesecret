@@ -55,9 +55,15 @@ module ColonelAPI
       'SetBanner' => 'cosmetic site notice',
       'ClearBanner' => 'cosmetic site notice',
       'SendTestEmail' => 'sends one message to an operator address',
-      'AddEmailSuppression' => 'additive; denies OUR sending, not user access',
+      'AddEmailSuppression' =>
+        'suppresses OUR sending to an address; residual risk: the shipped model has no ' \
+        'per-category scope, so a suppressed address also loses OTS-originated ' \
+        'account-recovery mail (password reset, verification) until RemoveEmailSuppression clears it',
       'RemoveEmailSuppression' => 'restorative arm of the suppression pair',
-      'IngestEmailDeliverabilityEvents' => 'append-only telemetry',
+      'IngestEmailDeliverabilityEvents' =>
+        'suppresses bounced/complained/imported addresses (changes send behavior), but is an ' \
+        'operator cron/CLI batch firehose so per-request gating is impractical; ' \
+        'reversible via RemoveEmailSuppression',
       'SyncEmailDeliverability' => 'convergence to provider state',
     }.freeze
 
