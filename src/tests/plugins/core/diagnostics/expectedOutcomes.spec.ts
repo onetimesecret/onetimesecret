@@ -311,7 +311,14 @@ describe('beforeSend integration', () => {
     createDiagnostics({
       host: TEST_HOST,
       config: {
-        sentry: { dsn: 'https://key@example.com/123', environment: 'test', release: '1.0.0' },
+        sentry: {
+          dsn: 'https://key@example.com/123',
+          enabled: true,
+          logErrors: true,
+          trackComponents: true,
+          environment: 'test',
+          release: '1.0.0',
+        },
       },
       router: createMockRouter(),
     });
@@ -336,6 +343,7 @@ describe('beforeSend integration', () => {
 
     const result = handler(
       {
+        type: undefined,
         exception: {
           values: [{ type: 'AxiosError', value: 'Request failed with status code 404' }],
         },
@@ -350,7 +358,7 @@ describe('beforeSend integration', () => {
     const handler = getBeforeSend();
 
     const result = handler(
-      { exception: { values: [{ type: 'AxiosError', value: 'Request aborted' }] } },
+      { type: undefined, exception: { values: [{ type: 'AxiosError', value: 'Request aborted' }] } },
       hintFor({
         url: `/api/v3/guest/secret/${SECRET_ID}`,
         method: 'get',
@@ -367,7 +375,7 @@ describe('beforeSend integration', () => {
     const handler = getBeforeSend();
 
     const result = handler(
-      { exception: { values: [{ type: 'AxiosError', value: 'Network Error' }] } },
+      { type: undefined, exception: { values: [{ type: 'AxiosError', value: 'Network Error' }] } },
       hintFor({
         url: `/api/v3/guest/secret/${SECRET_ID}`,
         method: 'get',
@@ -384,7 +392,7 @@ describe('beforeSend integration', () => {
     const handler = getBeforeSend();
 
     const result = handler(
-      { exception: { values: [{ type: 'AxiosError', value: 'Network Error' }] } },
+      { type: undefined, exception: { values: [{ type: 'AxiosError', value: 'Network Error' }] } },
       hintFor({
         url: `/api/v3/guest/secret/${SECRET_ID}`,
         method: 'get',
@@ -407,6 +415,7 @@ describe('beforeSend integration', () => {
 
     const result = handler(
       {
+        type: undefined,
         exception: {
           values: [{ type: 'AxiosError', value: 'Request failed with status code 404' }],
         },
@@ -427,7 +436,10 @@ describe('beforeSend integration', () => {
     const handler = getBeforeSend();
 
     const result = handler(
-      { exception: { values: [{ type: 'AxiosError', value: 'timeout exceeded' }] } },
+      {
+        type: undefined,
+        exception: { values: [{ type: 'AxiosError', value: 'timeout exceeded' }] },
+      },
       hintFor({
         url: `/api/v3/guest/secret/${SECRET_ID}`,
         method: 'get',
@@ -450,6 +462,7 @@ describe('beforeSend integration', () => {
 
     const result = handler(
       {
+        type: undefined,
         exception: {
           values: [{ type: 'AxiosError', value: 'Request failed with status code 503' }],
         },
@@ -470,7 +483,7 @@ describe('beforeSend integration', () => {
     const handler = getBeforeSend();
 
     const result = handler(
-      { exception: { values: [{ type: 'TypeError', value: 'boom' }] } },
+      { type: undefined, exception: { values: [{ type: 'TypeError', value: 'boom' }] } },
       { originalException: new TypeError('boom') }
     );
 

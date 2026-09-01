@@ -158,6 +158,8 @@ describe('useDomainContext', () => {
      */
     link_domains?: string[];
     domain_strategy?: 'canonical' | 'subdomain' | 'custom' | 'invalid';
+    /** Server-side preferred domain (sess['domain_context']). Schema default is null. */
+    domain_context?: string | null;
   }) {
     const pinia = createTestingPinia({
       createSpy: vi.fn,
@@ -175,6 +177,7 @@ describe('useDomainContext', () => {
     // Schema default is [] (pre-#4063 payloads omit it) - see the knob doc above
     bootstrapStore.link_domains = config.link_domains ?? [];
     bootstrapStore.domain_strategy = config.domain_strategy ?? 'canonical';
+    bootstrapStore.domain_context = config.domain_context ?? null;
 
     return { pinia, bootstrapStore };
   }

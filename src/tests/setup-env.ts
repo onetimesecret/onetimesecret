@@ -18,13 +18,27 @@ if (typeof process !== 'undefined') {
   });
 }
 
-(window as BootstrapPayload).__BOOTSTRAP_ME__ = {
+// `window.__BOOTSTRAP_ME__` is declared as `BootstrapPayload | undefined` in
+// src/types/declarations/global.d.ts, so no cast is needed to reach the
+// property itself. The value below only seeds the handful of fields tests
+// actually rely on (locale/auth state), not a full BootstrapPayload, so it
+// is asserted through `Pick<...>` first: that keeps every field name/type
+// checked against the real contract, and only the final widening to the
+// (necessarily fuller) BootstrapPayload type is an assertion.
+type MinimalBootstrap = Pick<
+  BootstrapPayload,
+  'supported_locales' | 'fallback_locale' | 'default_locale' | 'locale' | 'authenticated'
+>;
+
+const bootstrapMock: MinimalBootstrap = {
   supported_locales: ['en', 'fr_CA', 'de_AT'],
   fallback_locale: 'en',
   default_locale: 'en',
   locale: 'en',
   authenticated: false,
 };
+
+window.__BOOTSTRAP_ME__ = bootstrapMock as BootstrapPayload;
 
 // Mock __SENTRY_RELEASE__ global that Vite defines at build time
 // This value is replaced by the actual git commit hash during production builds

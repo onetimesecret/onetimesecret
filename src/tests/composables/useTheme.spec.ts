@@ -2,7 +2,7 @@
 
 import { useTheme } from '@/shared/composables/useTheme';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { nextTick } from 'vue';
+import { defineComponent, nextTick } from 'vue';
 import { shallowMount } from '@vue/test-utils';
 
 describe('useTheme', () => {
@@ -72,13 +72,13 @@ describe('useTheme', () => {
   });
 
   it('themeListeners should start empty and be empty after unmount', async () => {
-    const comp = {
+    const comp = defineComponent({
       template: '<div>test comp</div>',
       setup() {
         const theme = useTheme();
         return { theme };
       },
-    };
+    });
     const wrapper = shallowMount(comp);
     // After beforeEach clears listeners, size starts at 0
     expect(wrapper.vm.theme.getThemeListenersSize()).toBe(0);

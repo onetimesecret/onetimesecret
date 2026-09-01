@@ -6,8 +6,16 @@ import { baseBootstrap } from '@/tests/fixtures/bootstrap.fixture';
 
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { Organization } from '@/types/organization';
+import { lenientExtIdSchema, lenientObjIdSchema } from '@/types/identifiers';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+// Branded-ID helpers: OrganizationInvitation.id/invited_by and
+// .organization_id are lenientObjIdSchema/lenientExtIdSchema output
+// (see contracts/organization.ts) — plain strings/toObjId/toExtId are a
+// structurally-identical but nominally distinct brand and won't assign.
+const objId = (raw: string) => lenientObjIdSchema.parse(raw);
+const extId = (raw: string) => lenientExtIdSchema.parse(raw);
 
 describe('Organization Store', () => {
   let axiosMock: AxiosMockAdapter | null;
@@ -406,12 +414,12 @@ describe('Organization Store', () => {
         // Pre-populate with existing invitation
         store.invitations = [
           {
-            id: 'inv-existing',
-            organization_id: 'org-123',
+            id: objId('inv-existing'),
+            organization_id: extId('org-123'),
             email: 'existing@example.com',
             role: 'member',
             status: 'pending',
-            invited_by: 'owner@example.com',
+            invited_by: objId('owner@example.com'),
             invited_at: Date.now() / 1000,
             expires_at: Date.now() / 1000 + 604800,
             resend_count: 0,
@@ -472,12 +480,12 @@ describe('Organization Store', () => {
         // Pre-populate with invitation
         store.invitations = [
           {
-            id: 'inv-123',
-            organization_id: 'org-123',
+            id: objId('inv-123'),
+            organization_id: extId('org-123'),
             email: 'invitee@example.com',
             role: 'member',
             status: 'pending',
-            invited_by: 'owner@example.com',
+            invited_by: objId('owner@example.com'),
             invited_at: Date.now() / 1000,
             expires_at: Date.now() / 1000 + 604800,
             resend_count: 0,
@@ -535,24 +543,24 @@ describe('Organization Store', () => {
         // Pre-populate with invitations
         store.invitations = [
           {
-            id: 'inv-123',
-            organization_id: 'org-123',
+            id: objId('inv-123'),
+            organization_id: extId('org-123'),
             email: 'invitee@example.com',
             role: 'member',
             status: 'pending',
-            invited_by: 'owner@example.com',
+            invited_by: objId('owner@example.com'),
             invited_at: Date.now() / 1000,
             expires_at: Date.now() / 1000 + 604800,
             resend_count: 0,
             token: 'token-to-revoke',
           },
           {
-            id: 'inv-456',
-            organization_id: 'org-123',
+            id: objId('inv-456'),
+            organization_id: extId('org-123'),
             email: 'another@example.com',
             role: 'admin',
             status: 'pending',
-            invited_by: 'owner@example.com',
+            invited_by: objId('owner@example.com'),
             invited_at: Date.now() / 1000,
             expires_at: Date.now() / 1000 + 604800,
             resend_count: 0,
@@ -611,12 +619,12 @@ describe('Organization Store', () => {
       it('clears invitations on store reset', () => {
         store.invitations = [
           {
-            id: 'inv-123',
-            organization_id: 'org-123',
+            id: objId('inv-123'),
+            organization_id: extId('org-123'),
             email: 'test@example.com',
             role: 'member',
             status: 'pending',
-            invited_by: 'owner@example.com',
+            invited_by: objId('owner@example.com'),
             invited_at: Date.now() / 1000,
             expires_at: Date.now() / 1000 + 604800,
             resend_count: 0,

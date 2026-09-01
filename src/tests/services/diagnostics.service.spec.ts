@@ -15,27 +15,40 @@
  *   pnpm test src/tests/services/diagnostics.service.spec.ts
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 
 // ---------------------------------------------------------------------------
 // Mock Scope class that tracks method calls and supports clone()
 // ---------------------------------------------------------------------------
-function createMockScope() {
-  const scope: Record<string, ReturnType<typeof vi.fn>> & {
-    _extras: Record<string, unknown>;
-    _tags: Record<string, string>;
-  } = {
+// An explicit interface (rather than `Record<string, ReturnType<typeof
+// vi.fn>> & {...}`) is required here: that index-signature form made every
+// method's Mock<T> generic parameter widen to `Mock<Procedure | Constructable>`,
+// which the concrete `this: typeof scope`-typed mock implementations below are
+// not assignable to (TS2322). Naming the shape up front avoids the self-
+// referential inference that produced the mismatch.
+interface MockScope {
+  _extras: Record<string, unknown>;
+  _tags: Record<string, string>;
+  setExtras: Mock<(extras: Record<string, unknown>) => MockScope>;
+  setTag: Mock<(key: string, value: string) => MockScope>;
+  clone: Mock<() => MockScope>;
+  captureException: Mock<(...args: unknown[]) => unknown>;
+  captureMessage: Mock<(...args: unknown[]) => unknown>;
+}
+
+function createMockScope(): MockScope {
+  const scope: MockScope = {
     _extras: {},
     _tags: {},
-    setExtras: vi.fn(function (this: typeof scope, extras: Record<string, unknown>) {
+    setExtras: vi.fn(function (this: MockScope, extras: Record<string, unknown>) {
       Object.assign(this._extras, extras);
       return this;
     }),
-    setTag: vi.fn(function (this: typeof scope, key: string, value: string) {
+    setTag: vi.fn(function (this: MockScope, key: string, value: string) {
       this._tags[key] = value;
       return this;
     }),
-    clone: vi.fn(function (this: typeof scope) {
+    clone: vi.fn(function (this: MockScope) {
       const cloned = createMockScope();
       // Simulate copying existing extras and tags from the base scope
       cloned._extras = { ...this._extras };

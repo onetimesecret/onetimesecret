@@ -68,8 +68,6 @@ export function createCanonicalReceiptBase(
     created: BASE_TIMESTAMP,
     updated: BASE_TIMESTAMP,
     shared: null,
-    received: null,
-    viewed: null,
     previewed: null,
     revealed: null,
     burned: null,
@@ -89,8 +87,6 @@ export function createCanonicalReceiptBase(
 
     // Boolean status flags
     has_passphrase: false,
-    is_viewed: false,
-    is_received: false,
     is_previewed: false,
     is_revealed: false,
     is_burned: false,
@@ -183,9 +179,6 @@ export function createPreviewedReceipt(
     shared: ONE_HOUR_LATER,
     previewed: TWO_HOURS_LATER,
     is_previewed: true,
-    // Legacy fields
-    viewed: TWO_HOURS_LATER,
-    is_viewed: true,
     ...overrides,
   });
 }
@@ -203,11 +196,6 @@ export function createRevealedReceipt(
     revealed: TWO_HOURS_LATER,
     is_previewed: true,
     is_revealed: true,
-    // Legacy fields
-    viewed: TWO_HOURS_LATER,
-    received: TWO_HOURS_LATER,
-    is_viewed: true,
-    is_received: true,
     secret_state: 'revealed' as ReceiptState,
     ...overrides,
   });
@@ -359,7 +347,7 @@ export function compareCanonicalReceiptBase(
     'identifier', 'key', 'shortid', 'state', 'custid', 'owner_id',
     'secret_ttl', 'receipt_ttl', 'lifespan', 'secret_shortid',
     'secret_identifier', 'share_domain', 'has_passphrase',
-    'is_viewed', 'is_received', 'is_previewed', 'is_revealed',
+    'is_previewed', 'is_revealed',
     'is_burned', 'is_destroyed', 'is_expired', 'is_orphaned',
     'memo', 'kind',
   ] as const;
@@ -372,7 +360,7 @@ export function compareCanonicalReceiptBase(
 
   // Date fields (compare as timestamps)
   const dateFields = [
-    'created', 'updated', 'shared', 'received', 'viewed',
+    'created', 'updated', 'shared',
     'previewed', 'revealed', 'burned',
   ] as const;
 

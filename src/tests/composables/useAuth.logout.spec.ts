@@ -164,11 +164,11 @@ describe('useAuth logout flow — no brand flash', () => {
     });
 
     it('logoutMinimal does not reset domain_branding', async () => {
-      expect(bootstrapStore.domain_branding.primary_color).toBe('#ff6600');
+      expect(bootstrapStore.domain_branding?.primary_color).toBe('#ff6600');
 
       await authStore.logoutMinimal();
 
-      expect(bootstrapStore.domain_branding.primary_color).toBe('#ff6600');
+      expect(bootstrapStore.domain_branding?.primary_color).toBe('#ff6600');
     });
 
     it('logoutMinimal does not reset display_domain', async () => {

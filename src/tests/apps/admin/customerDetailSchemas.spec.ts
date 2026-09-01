@@ -1,9 +1,12 @@
 // src/tests/apps/admin/customerDetailSchemas.spec.ts
 
 import { describe, expect, it } from 'vitest';
+import { z } from 'zod';
 
 import {
+  colonelUserDetailRecordSchema,
   colonelUserDetailResponseSchema,
+  colonelUserDetailsSchema,
   colonelUserMutationResponseSchema,
 } from '@/schemas/api/internal/responses/colonel';
 import { responseSchemas } from '@/schemas/api/internal/responses/registry';
@@ -17,7 +20,18 @@ import { responseSchemas } from '@/schemas/api/internal/responses/registry';
  */
 
 // GetUserDetails `success_data`, on the wire (numbers for date fields).
-function detailPayload() {
+//
+// Typed against the schema's wire (pre-transform) shape — record/details kept
+// required (unlike the wrapped response schema, which makes `details`
+// optional for endpoints that may omit it) since every fixture below always
+// supplies both. This lets later tests swap `details.billing` between its
+// null and populated variants without TypeScript pinning the field to
+// whichever literal shape appears here first.
+function detailPayload(): {
+  shrimp: string;
+  record: z.input<typeof colonelUserDetailRecordSchema>;
+  details: z.input<typeof colonelUserDetailsSchema>;
+} {
   return {
     shrimp: '',
     record: {

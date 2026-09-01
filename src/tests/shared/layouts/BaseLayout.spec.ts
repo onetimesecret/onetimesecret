@@ -46,8 +46,6 @@ const i18n = createTestI18n();
  * - Provides named slots for header, main, footer, and status areas
  */
 describe('BaseLayout', () => {
-  let wrapper: VueWrapper;
-
   // BaseLayout component stub representing the expected interface
   const BaseLayoutStub = defineComponent({
     name: 'BaseLayout',
@@ -118,6 +116,10 @@ describe('BaseLayout', () => {
         ]);
     },
   });
+
+  // Typed against the stub's own instance (not the bare default VueWrapper,
+  // whose $props resolves to {}) so wrapper.vm.$props.<prop> below type-checks.
+  let wrapper: VueWrapper<InstanceType<typeof BaseLayoutStub>>;
 
   beforeEach(() => {
     vi.clearAllMocks();

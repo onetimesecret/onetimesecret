@@ -90,6 +90,16 @@ module Onetime
             keys: ['dns:ratelimit:%s'],
             dbclient: -> { Onetime::CustomDomain.dbclient },
           },
+          # Single-tier IP limiter on anonymous secret creation (finding F-02).
+          # SUBJECT IS THE STORED FORM: the privacy-masked IP (/24 IPv4, /48
+          # IPv6), not the raw address and not the /16-obscured form the lockout
+          # log line prints. Lives on the Secret shard, matching the limiter's
+          # own `redis` accessor. A raw address reads back `not_set`.
+          'create_secret' => {
+            subject: 'masked client IP (/24 IPv4, /48 IPv6)',
+            keys: ['create_secret:attempts:ip:%s', 'create_secret:locked:ip:%s'],
+            dbclient: -> { Onetime::Secret.dbclient },
+          },
         }.freeze
 
         # Redis glob metacharacters escaped when a subject is interpolated into a

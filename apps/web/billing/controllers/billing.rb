@@ -288,7 +288,7 @@ module Billing
       #
       # @return [Hash] List of invoices
       def list_invoices
-        org = load_organization(req.params['extid'])
+        org = load_organization(req.params['extid'], require_owner: true)
 
         unless org.stripe_customer_id
           return json_response({ invoices: [] })
