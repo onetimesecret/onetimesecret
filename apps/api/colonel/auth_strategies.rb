@@ -3,7 +3,6 @@
 # frozen_string_literal: true
 
 require 'otto/utils'
-require 'uri'
 
 module ColonelAPI
   module AuthStrategies
@@ -52,8 +51,8 @@ module ColonelAPI
 
       # DoS ceiling on the ENCODED header, not a token-length limit: the real cap
       # is MAX_CONFIRM_LENGTH (characters, post-decode) in the logic layer. It is
-      # measured on the encoded bytes, which encodeURIComponent expands up to 12
-      # per 4-byte codepoint, so a max-length (255-char) token can approach 3 KB
+      # measured on the encoded bytes, which percent-encoding expands up to 12 per
+      # 4-byte codepoint, so a max-length (255-char) token can approach 3 KB
       # encoded. An over-long header is REJECTED, never truncated: slicing the
       # encoded bytes would sever a %XX escape or a multibyte character and turn a
       # valid token — e.g. a 100-char CJK org display_name, ~900 bytes encoded —
@@ -106,18 +105,23 @@ module ColonelAPI
       # ISO-8859-1 header charset both sides agree on. An absent, empty, oversized
       # or undecodable header is "no token" — never a crash, never a partial match.
       #
-      # URI.decode_uri_component, NOT Rack::Utils.unescape: it matches the console's
-      # encodeURIComponent exactly and does NOT map '+' to space, so a plus-addressed
-      # email sent raw by a non-browser client (X-OTS-Confirm: ops+admin@example.com)
-      # is not silently mangled into "ops admin@example.com" and 403'd. Oversized
-      # headers are rejected whole (see MAX_CONFIRM_BYTES) rather than sliced, so a
-      # legitimate multibyte token is never severed mid-escape.
+      # FORM decoding (Rack::Utils.unescape), which accepts the widest range of
+      # correct encodings for a token that routinely contains SPACES (org
+      # display_names): the console's encodeURIComponent ('%20'), a raw space, AND
+      # form-encoding ('+') from curl / Rack::Utils.escape / a Ruby client. A
+      # component decoder that kept '+' literal would 403 every form-encoded
+      # space — i.e. most DeleteOrganization / AddMembership / entitlement calls
+      # from a non-browser client. The one cost is that a raw, UNENCODED literal
+      # '+' decodes to a space; clients that mean a literal '+' encode it '%2B'
+      # (encodeURIComponent and every form encoder both do), which round-trips.
+      # Oversized headers are rejected whole (see MAX_CONFIRM_BYTES) rather than
+      # sliced, so a legitimate multibyte token is never severed mid-escape.
       def confirm_token_from(env)
         raw = env[CONFIRM_HEADER].to_s
         return nil if raw.empty?
         return nil if raw.bytesize > MAX_CONFIRM_BYTES
 
-        URI.decode_uri_component(raw, Encoding::UTF_8)
+        Rack::Utils.unescape(raw, Encoding::UTF_8)
       rescue StandardError
         nil
       end

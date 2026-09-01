@@ -107,12 +107,11 @@ end
 # (privilege-granting — it hands an account access to the org's data), so it
 # requires the organization's NAME, percent-encoded, in X-OTS-Confirm.
 #
-# Encode the way the console does (encodeURIComponent === URI.encode_uri_component),
-# NOT Rack::Utils.escape: the server decodes with URI.decode_uri_component, which
-# keeps '+' literal, so a form-escaped space ('+') would never match a display_name
-# that contains spaces (auth_strategies.rb #4326).
+# Rack::Utils.escape (form encoding, space -> '+') is one of the encodings the
+# server's form decoder accepts (auth_strategies.rb #4326); '%20' and a raw space
+# work too.
 def confirming_org_headers(org)
-  colonel_headers.merge('HTTP_X_OTS_CONFIRM' => URI.encode_uri_component(org.display_name))
+  colonel_headers.merge('HTTP_X_OTS_CONFIRM' => Rack::Utils.escape(org.display_name))
 end
 
 # ----------------------------------------------------------------

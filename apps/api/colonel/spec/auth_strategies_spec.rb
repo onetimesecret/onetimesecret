@@ -140,15 +140,18 @@ RSpec.describe ColonelAPI::AuthStrategies::SessionAuthStrategy do
       expect(confirm_token_for(encoded)).to eq(name)
     end
 
-    # #4326: decode the way the console encodes (encodeURIComponent), so '+' is a
-    # literal plus, not a space. Rack::Utils.unescape (form decoding) mangled a
-    # plus-addressed email token sent raw by a non-browser API client.
-    it 'preserves a literal + (plus-addressed email) instead of decoding it to a space' do
-      expect(confirm_token_for('ops+admin@example.com')).to eq('ops+admin@example.com')
+    # #4326: FORM decoding accepts the widest range of correct encodings for a
+    # token that routinely contains SPACES (org display_names): a form-encoded
+    # space ('+') decodes to a space, so it confirms whether the client sent '%20'
+    # or '+'. A literal '+' is sent '%2B' (encodeURIComponent and form encoders
+    # both do), which round-trips to a literal '+'.
+    it 'decodes a form-encoded space (+) to a space, and %2B to a literal +' do
+      expect(confirm_token_for('Acme+Corp')).to eq('Acme Corp')
+      expect(confirm_token_for('ops%2Badmin@example.com')).to eq('ops+admin@example.com')
     end
 
     it 'treats an undecodable header as no token rather than raising' do
-      allow(URI).to receive(:decode_uri_component).and_raise(ArgumentError, 'bad encoding')
+      allow(Rack::Utils).to receive(:unescape).and_raise(ArgumentError, 'bad encoding')
 
       expect(confirm_token_for('anything')).to be_nil
     end
