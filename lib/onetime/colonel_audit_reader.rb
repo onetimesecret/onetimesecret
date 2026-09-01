@@ -96,6 +96,26 @@ module Onetime
       'ndjson' => 'application/x-ndjson; charset=utf-8',
     }.freeze
 
+    # Leading characters that make a spreadsheet treat a CSV cell as a FORMULA
+    # rather than text (Excel, LibreOffice, Google Sheets). `=` and `+` open a
+    # formula outright, `-` opens one as a negation, `@` is Excel's legacy
+    # function-call sigil, and a leading TAB or CR is stripped by the importer
+    # before it looks at the first character — so `\t=cmd|'/c calc'!A1` slips
+    # past a check that only looked for `=`.
+    #
+    # This matters here because the trail now carries OPERATOR FREE TEXT: the
+    # #4338 `reason` and the session-console search term both land in `detail`,
+    # and an unresolved identifier lands in `target`. An export is a file
+    # someone opens in a spreadsheet, so a cell like `=HYPERLINK(...)` is a
+    # payload with a reader, planted by whoever could reach an audited surface.
+    CSV_FORMULA_PREFIXES = ['=', '+', '-', '@', "\t", "\r"].freeze
+
+    # The prefix that neutralises them: a leading apostrophe is the standard
+    # "this cell is text" marker every major spreadsheet honours (and strips
+    # from the displayed value). It is added at SERIALISATION time only —
+    # nothing stored, and nothing on the JSON/NDJSON surfaces, changes.
+    CSV_FORMULA_GUARD = "'"
+
     class << self
       # Newest-first view over ALL THREE audit trails.
       #
@@ -238,6 +258,11 @@ module Onetime
       # exactly what the JSON surfaces return. `created` stays the stored epoch
       # float — the same value {format_event} emits — rather than becoming a second,
       # drift-prone timestamp representation.
+      #
+      # Every cell is then run through the formula guard (see
+      # {CSV_FORMULA_PREFIXES}). CSV ONLY: NDJSON has no formula problem, and
+      # adding a character to a JSON string would corrupt the lossless
+      # serialisation for the tooling that consumes it.
       def to_csv(events)
         CSV.generate do |csv|
           csv << FIELDS
@@ -263,12 +288,31 @@ module Onetime
         events.map { |event| event.merge('trail' => trail) }
       end
 
+      # One CSV cell: the value's text form, guarded against formula injection.
+      #
+      # The guard is applied LAST, to the finished cell string, so it covers the
+      # JSON-encoded `detail` as well as the plain string fields — a caller
+      # cannot slip a payload past it by choosing a different serialisation. The
+      # text form is what CSV would have written anyway (`CSV#<<` calls #to_s on
+      # every field), so numbers and booleans still export unquoted and
+      # unchanged; only a cell that would OPEN A FORMULA gains a character.
       def csv_cell(value)
-        case value
-        when nil then ''
-        when String, Numeric, TrueClass, FalseClass then value
-        else JSON.generate(value)
-        end
+        cell = case value
+               when nil then ''
+               when String, Numeric, TrueClass, FalseClass then value.to_s
+               else JSON.generate(value)
+               end
+
+        guard_csv_formula(cell)
+      end
+
+      # Prefix a cell that a spreadsheet would evaluate rather than display.
+      # See {CSV_FORMULA_PREFIXES} for why each character is on the list.
+      def guard_csv_formula(cell)
+        return cell if cell.empty?
+        return cell unless CSV_FORMULA_PREFIXES.include?(cell[0])
+
+        "#{CSV_FORMULA_GUARD}#{cell}"
       end
     end
   end

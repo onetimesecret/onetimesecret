@@ -218,6 +218,46 @@ RSpec.describe Onetime::ColonelAuditEvent do
 
       expect(described_class.count).to eq(3)
     end
+
+    # The fail-closed region is the BUILD and the ADD, nothing after them. Once
+    # the event has been emitted to the sink and added to the collection it IS
+    # recorded, so a failing retention pass is not a missing trail — it is a
+    # collection sitting one member over its cap until the next write.
+    describe 'when the post-write trim fails' do
+      before do
+        allow(described_class).to receive(:trim!).and_raise('trim exploded')
+        allow(OT).to receive(:le)
+      end
+
+      it 'still returns the stored event and keeps it in the collection' do
+        event = described_class.record(actor: 'a', verb: 'customer.purge', target: 't', result: :success)
+
+        expect(event).to include('verb' => 'customer.purge')
+        expect(described_class.count).to eq(1)
+      end
+
+      it 'does NOT raise under fail_closed — the event exists, so nothing is untraceable' do
+        event = nil
+
+        expect do
+          event = described_class.record(
+            actor: 'a', verb: 'customer.purge', target: 'ur_victim', result: :success, fail_closed: true,
+          )
+        end.not_to raise_error
+
+        expect(event).to include('verb' => 'customer.purge', 'target' => 'ur_victim')
+        expect(described_class.count).to eq(1)
+      end
+
+      it 'logs the trim failure as a trim failure, never as a lost record' do
+        described_class.record(actor: 'a', verb: 'customer.purge', target: 't', result: :success)
+
+        expect(OT).to have_received(:le).with(
+          '[ColonelAuditEvent] trim failed', hash_including(trail: 'events'),
+        )
+        expect(OT).not_to have_received(:le).with('[ColonelAuditEvent] record failed', anything)
+      end
+    end
   end
 
   describe '.recent' do
@@ -284,6 +324,19 @@ RSpec.describe Onetime::ColonelAuditEvent do
 
       expect(described_class.count).to eq(1)
       expect(described_class.recent(5).map { |e| e['verb'] }).to eq(%w[customer.purge])
+    end
+
+    # Fail-open either way here, but a trim failure must still not turn a
+    # STORED event into a nil return — the caller's `nil` means "not recorded".
+    it 'returns the stored event when only the post-write trim fails' do
+      allow(described_class).to receive(:trim_security!).and_raise('trim exploded')
+      allow(OT).to receive(:le)
+
+      event = described_class.record_security(actor: 'anonymous', verb: 'colonel.signin_failed', target: 't',
+                                              result: :failure)
+
+      expect(event).to include('verb' => 'colonel.signin_failed')
+      expect(described_class.security_count).to eq(1)
     end
   end
 
@@ -534,6 +587,17 @@ RSpec.describe Onetime::ColonelAuditEvent do
 
       expect(described_class.access_count).to eq(3)
       expect(described_class.recent_access(3).map { |e| e['verb'] }).to eq(%w[v4 v3 v2])
+    end
+
+    it 'returns the stored event when only the post-write trim fails' do
+      allow(described_class).to receive(:trim_access!).and_raise('trim exploded')
+      allow(OT).to receive(:le)
+
+      event = described_class.record_access(actor: 'a', verb: 'audit.list', target: 'colonel_audit',
+                                            result: :success)
+
+      expect(event).to include('verb' => 'audit.list')
+      expect(described_class.access_count).to eq(1)
     end
   end
 

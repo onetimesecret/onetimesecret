@@ -328,6 +328,40 @@ RSpec.describe 'Colonel observability endpoints', type: :integration do
       expect(JSON.parse(rows[1][5])).to eq('reason' => 'gdpr')
     end
 
+    # CSV INJECTION. The trail now carries operator free text — the #4338
+    # `reason`, the session-console search term, an unresolved identifier — and
+    # an export is a file someone opens in Excel or Sheets, where a cell
+    # beginning `= + - @` (or a tab/CR the importer strips first) is executed
+    # rather than displayed. The download is hardened at serialisation; the
+    # stored event and the NDJSON body keep the value verbatim.
+    it 'neutralises a cell a spreadsheet would evaluate, without touching NDJSON' do
+      payload = '=HYPERLINK("http://evil.test","payroll")'
+      record_event(verb: 'customer.diagnostics_view', target: payload, detail: payload)
+
+      row = CSV.parse(export.body)[1]
+      # Filtered: the CSV export above recorded its own observation, which now
+      # sits at the head of the merged feed.
+      ndjson = JSON.parse(export('format' => 'ndjson', 'verb' => 'customer').body.lines.first)
+
+      # target and a string detail both start with the operator's text, so both
+      # gain the guard; the JSON-encoded hash detail never could (it opens `{`).
+      expect(row[3]).to eq("'#{payload}")
+      expect(row[5]).to eq("'#{payload}")
+      # Same record underneath — the stored event and the lossless
+      # serialisation keep the value verbatim.
+      expect(ndjson['target']).to eq(payload)
+      expect(ndjson['detail']).to eq(payload)
+    end
+
+    it 'leaves an ordinary row unprefixed, so a normal export is unchanged' do
+      record_event(verb: 'customer.purge', target: 'ur_victim', detail: { 'reason' => 'gdpr' })
+
+      row = CSV.parse(export.body)[1]
+
+      expect(row[2..4]).to eq(['customer.purge', 'ur_victim', 'success'])
+      expect(JSON.parse(row[5])).to eq('reason' => 'gdpr')
+    end
+
     it 'emits NDJSON, one allowlisted object per line, newest first' do
       record_event(verb: 'customer.set_role')
       record_event(verb: 'banner.set')

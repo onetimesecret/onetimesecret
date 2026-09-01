@@ -539,6 +539,79 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
           hash_including(verb: 'colonel.signin_failed', target: 'co***@e***.com', result: :failure),
         )
       end
+
+      # ATTRIBUTION. `cust` in #process is strategy_result.user — whoever the
+      # REQUEST'S SESSION already belonged to — which need not be the account
+      # named in the `login` param. Attributing there would let anyone holding
+      # (or forging) a session mint failed-attempt events against an admin
+      # account nobody was trying, i.e. a false brute-force signal, while the
+      # identity actually being worked on went unrecorded. Both branches
+      # attribute to the ATTEMPTED identity, as full mode's hook does.
+      context 'and the session belongs to a different account than the login param' do
+        # The colonel whose session the request carries. Not the account being
+        # tried: the login param below names someone else entirely.
+        let(:session_colonel) do
+          cust = double('SessionColonel')
+          allow(cust).to receive(:passphrase?).and_return(false)
+          allow(cust).to receive_messages(
+            objid: 'cust_session_colonel',
+            email: 'carried@example.com',
+            obscure_email: 'ca***@e***.com',
+            role: 'colonel',
+            anonymous?: false,
+            argon2_hash?: true,
+            passphrase: '$argon2id$...'
+          )
+          cust
+        end
+
+        let(:strategy_result) do
+          result = double('StrategyResult')
+          allow(result).to receive_messages(
+            session: rack_session,
+            user: session_colonel,
+            auth_method: :session,
+            metadata: { ip: '127.0.0.1' },
+            authenticated?: false
+          )
+          result
+        end
+
+        let(:params) { { 'login' => 'someone-else@example.com', 'password' => 'definitely-wrong' } }
+
+        context 'when the attempted identity is an ordinary account' do
+          before { allow(customer).to receive(:role).and_return('customer') }
+
+          it 'records nothing — least of all against the carried colonel' do
+            expect { logic.process }.to raise_error(Onetime::FormError)
+
+            expect(Onetime::ColonelAuditEvent).not_to have_received(:record_security)
+          end
+        end
+
+        context 'when the attempted identity is the colonel' do
+          it 'targets the account that was tried, not the one in the session' do
+            expect { logic.process }.to raise_error(Onetime::FormError)
+
+            expect(Onetime::ColonelAuditEvent).to have_received(:record_security).once.with(
+              hash_including(verb: 'colonel.signin_failed', target: 'co***@e***.com'),
+            )
+            expect(Onetime::ColonelAuditEvent).not_to have_received(:record_security).with(
+              hash_including(target: 'ca***@e***.com'),
+            )
+          end
+        end
+
+        context 'when the attempted address matches no account at all' do
+          before { allow(Onetime::Customer).to receive(:find_by_email).and_return(nil) }
+
+          it 'records nothing, so a carried session cannot mint events' do
+            expect { logic.process }.to raise_error(Onetime::FormError)
+
+            expect(Onetime::ColonelAuditEvent).not_to have_received(:record_security)
+          end
+        end
+      end
     end
   end
 

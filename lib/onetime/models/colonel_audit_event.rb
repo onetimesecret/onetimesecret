@@ -106,10 +106,24 @@ module Onetime
   # roll anything back and does not prevent the destruction. What it does is
   # refuse to report success: the operator gets a hard failure naming the verb
   # and target, which is the signal that this action needs to be reconstructed
-  # from the sink (see above — the line is already emitted when this fires) or
-  # from the acting operator, rather than a green
-  # response and an empty trail. Any op that wants prevention has to record
-  # BEFORE it mutates; none does today.
+  # from the sink or from the acting operator, rather than a green response and
+  # an empty trail. Any op that wants prevention has to record BEFORE it
+  # mutates; none does today.
+  #
+  # WHETHER THE SINK STILL HAS THE RECORD depends on where the write broke, and
+  # there are exactly two cases:
+  #
+  #   - the datastore write failed (Valkey down, key evicted). The sink line
+  #     was already emitted, so the event survives there and the raise is a
+  #     pointer to it.
+  #   - {build_event} itself failed (an unserialisable `detail`, say). That
+  #     runs BEFORE the emit, so NOTHING was written anywhere and the raise —
+  #     which names the verb and target — is the only trace of the action.
+  #
+  # The fail-closed region is the BUILD AND THE ADD, nothing further. The
+  # retention trim that follows a successful add is best-effort on all three
+  # write paths (see {trim_quietly}): once the event is emitted and stored it
+  # IS recorded, and a trim failure is retention pressure, not a missing trail.
   #
   # {.record_security} is fail-open ALWAYS and takes no such keyword. Its
   # writers are reachable by unauthenticated callers, and a fail-closed
@@ -426,8 +440,6 @@ module Onetime
         emit_to_sink(event, :events)
 
         events.add(event, event['created'])
-        trim!
-        event
       rescue StandardError => ex
         # The log line is written on BOTH paths, before the branch: an operator
         # reading logs sees the same record-failed line whether the caller
@@ -463,6 +475,14 @@ module Onetime
         raise AuditWriteFailure.new(verb: verb, target: target) if fail_closed
 
         nil
+      else
+        # PAST THE FAIL-CLOSED REGION. The event is in the sink and in the
+        # collection, so it exists; the trim only decides how much history sits
+        # around it. Inside the rescue above it would have made a stored event
+        # report as lost — and, for a destructive verb, aborted a completed
+        # operation over a cap.
+        trim_quietly(:events) { trim! }
+        event
       end
 
       # Record one SECURITY-TELEMETRY event: same shape as {.record}, stored in
@@ -495,11 +515,14 @@ module Onetime
         emit_to_sink(event, :security_events)
 
         security_events.add(event, event['created'])
-        trim_security!
-        event
       rescue StandardError => ex
         log_record_failure(ex, verb, target, result)
         nil
+      else
+        # Best-effort trim, for the reason given on {.record}: a stored event
+        # must not report as lost because the retention pass after it failed.
+        trim_quietly(:security_events) { trim_security! }
+        event
       end
 
       # Record one OBSERVATION event: same shape as {.record}, stored in the
@@ -512,6 +535,14 @@ module Onetime
       # in the WRITE-FREQUENCY INVARIANT: observation is chatty by construction,
       # so giving it its own budget means a busy afternoon in the console can
       # never cost the mutation trail a record.
+      #
+      # ONE DOCUMENTED EXCEPTION, and it is an exception rather than a crack in
+      # the rule: `organization.investigate` (#4336) mutates nothing locally but
+      # issues an authenticated outbound call to Stripe about a named customer,
+      # which is an act with an effect outside this system, so it records to the
+      # operator trail via {.record}. See the "notes on the edges" in
+      # docs/architecture/audit-logging.md. A new verb does not get to cite it
+      # without that same outward effect.
       #
       # ALWAYS best-effort, and — like {.record_security} — with NO `fail_closed`
       # keyword to opt out of it. The reasoning differs from the security trail's
@@ -534,11 +565,13 @@ module Onetime
         emit_to_sink(event, :access_events)
 
         access_events.add(event, event['created'])
-        trim_access!
-        event
       rescue StandardError => ex
         log_record_failure(ex, verb, target, result)
         nil
+      else
+        # Best-effort trim, as on the other two write paths.
+        trim_quietly(:access_events) { trim_access! }
+        event
       end
 
       # The sink handle: a dedicated SemanticLogger instance for
@@ -754,6 +787,31 @@ module Onetime
           trail: trail.to_s,
         )
         false
+      end
+
+      # Run one post-write retention pass, best-effort on every trail.
+      #
+      # RETENTION IS NOT EXISTENCE. This runs only after the event has been
+      # emitted to the sink AND added to its collection, so the record is
+      # already made; all a failure here costs is that the collection sits over
+      # its cap until the next write trims it. Sharing the write path's rescue
+      # would have inverted that — a trim failure would have logged the event
+      # as unrecorded, returned nil for an event that IS stored, and (with
+      # `fail_closed: true`) raised {AuditWriteFailure} claiming a destructive
+      # action left no trail, which is exactly the case where a false alarm is
+      # most expensive.
+      #
+      # @param trail [Symbol] :events, :security_events or :access_events —
+      #   for the log line; the block owns which collection it trims.
+      # @return [void]
+      def trim_quietly(trail)
+        yield
+      rescue StandardError => ex
+        OT.le(
+          '[ColonelAuditEvent] trim failed',
+          exception: ex,
+          trail: trail.to_s,
+        )
       end
 
       def log_record_failure(ex, verb, target, result)

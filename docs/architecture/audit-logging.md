@@ -511,6 +511,17 @@ on the member and no historical event needs backfilling — and it uses the same
 names the sink has tagged its lines with since #4334, so a line in the log
 stream and a row in the console are finally the same record.
 
+**CSV cells are guarded against formula injection.** The trail carries operator
+free text — the #4338 `reason`, the session-console search term, an identifier
+that resolved to nothing — and a CSV export is a file somebody opens in Excel
+or Sheets, where a cell beginning `=`, `+`, `-`, `@` (or a tab/CR the importer
+strips before looking) is *executed* rather than displayed. `ColonelAuditReader`
+therefore prefixes such a cell with an apostrophe, the standard "this is text"
+marker, as the last step of CSV serialisation. It applies to the finished cell
+string, so the JSON-encoded `detail` is covered too. Nothing stored changes,
+and **NDJSON is untouched**: it has no formula problem, and adding a character
+would corrupt the lossless serialisation its consumers parse.
+
 ### Retention narrows only via the constants (#4334)
 
 `trim!`, `trim_security!` and `trim_access!` are public and used to take their
@@ -549,7 +560,9 @@ rules live, so twelve ops cannot drift:
 
 It rides **inside `detail`**, not as a new top-level field: `ColonelAuditReader`'s
 allowlist, the `colonelAuditEventSchema` Zod shape and the CSV header are one
-linked contract, and `detail` is already rendered and exported verbatim.
+linked contract, and `detail` is already rendered and exported as stored (the
+CSV formula guard above is a spreadsheet-safety prefix on the cell, not an edit
+to the value).
 
 Surfaces: the console's `AdminConfirmDialog` grows an optional textarea
 (`requestReason`) whose value is emitted with `confirm`; every destructive

@@ -147,12 +147,39 @@ RSpec.describe 'colonel sensitive-read auditing' do
     end
 
     # "No customer record" is itself a diagnosis here, not a 404 — so the read
-    # still happened and still gets recorded, against what was typed.
-    it 'records against the typed identifier when nothing resolved' do
+    # still happened and still gets recorded, against what was typed. But this
+    # identifier is email-tolerant by design, so what was typed is usually an
+    # ADDRESS: it is masked with the same helper every other address-handling
+    # emitter uses, because the event ships on the ColonelAudit sink.
+    it 'obscures an unresolved identifier that is an email address' do
       run_read(identifier: 'ghost@example.com', resolved: false)
 
       expect(Onetime::ColonelAuditEvent).to have_received(:record_access).once.with(
+        hash_including(
+          target: OT::Utils.obscure_email('ghost@example.com'),
+          detail: hash_including(resolved: false),
+        ),
+      )
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record_access).with(
         hash_including(target: 'ghost@example.com'),
+      )
+    end
+
+    # The mask is a text-level one, so a handle that carries no address is not
+    # mangled — an operator still sees the extid they typed.
+    it 'passes an unresolved non-address identifier through verbatim' do
+      run_read(identifier: 'ur_typo_not_found', resolved: false)
+
+      expect(Onetime::ColonelAuditEvent).to have_received(:record_access).once.with(
+        hash_including(target: 'ur_typo_not_found', detail: hash_including(resolved: false)),
+      )
+    end
+
+    it 'marks a resolved read as resolved, so a masked target is unambiguous' do
+      run_read
+
+      expect(Onetime::ColonelAuditEvent).to have_received(:record_access).once.with(
+        hash_including(target: 'ur_subject_public', detail: hash_including(resolved: true)),
       )
     end
   end

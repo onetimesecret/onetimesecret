@@ -396,8 +396,11 @@ module Onetime
 
         def purge_queue(dlq_name, force, format, reason = nil)
           with_rabbitmq_connection do |conn|
-            # Dry-run first to get the in-scope count for the confirmation prompt
-            # WITHOUT mutating anything (no audit event is recorded on a dry-run).
+            # Dry-run first to get the in-scope count for the confirmation
+            # prompt WITHOUT mutating anything. It is not silent: since #4337
+            # the dry run records one OBSERVATION (`result: 'preview'`) on the
+            # budgeted access trail — the operator trail still sees nothing
+            # until the live purge below.
             count = Onetime::Operations::Dlq::Purge.new(
               connection: conn, queue: dlq_name, actor: CLI_ACTOR, dry_run: true, reason: reason,
             ).call.count

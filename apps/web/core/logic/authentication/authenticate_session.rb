@@ -127,7 +127,18 @@ module Core::Logic
           # did not match. The two are mutually exclusive per attempt
           # (raise_concerns runs first and raises), which is what keeps the
           # at-most-one-event-per-attempt property.
-          record_colonel_signin_failure(cust)
+          #
+          # THE ATTEMPTED IDENTITY, NOT THE CARRIED ONE — the same
+          # @potential_customer the funnel above uses. `cust` here is
+          # strategy_result.user, i.e. whoever the REQUEST'S SESSION already
+          # belonged to, which need not be the account named in the `login`
+          # param: a request carrying colonel C's session that submits
+          # `login=X` with a bad password would have recorded a failed attempt
+          # against C, a false brute-force signal about an account nobody was
+          # working on. What the event exists to answer is "which admin account
+          # is being tried", so it attributes to the identity that was tried.
+          # nil (unknown address) records nothing, per the helper's contract.
+          record_colonel_signin_failure(@potential_customer)
 
           raise_form_error 'Invalid email or password', field: 'email', error_type: 'invalid'
         end
@@ -296,10 +307,15 @@ module Core::Logic
       # event shape are shared by Onetime::ColonelSigninFailure so the two
       # modes cannot drift.
       #
-      # `customer` is what this class already resolved (nil for an unknown
-      # address), so no `login:` is passed and no second lookup happens. The
-      # helper never raises and never writes for a non-colonel, which is why
-      # there is no rescue and no role check here.
+      # `customer` is ALWAYS @potential_customer — the account
+      # process_params resolved from the submitted `login` param, nil when the
+      # address matched nothing. BOTH rejection branches pass it, so simple
+      # mode attributes to the attempted identity exactly as full mode does
+      # (the Rodauth hook hands the helper the submitted `login:`). Passing
+      # `cust` from #process instead would target whoever the request's session
+      # already belonged to. No `login:` is passed and no second lookup
+      # happens. The helper never raises and never writes for a non-colonel,
+      # which is why there is no rescue and no role check here.
       #
       # No throttle: the event lands in `security_events`, whose budget is
       # trimmed independently of the operator trail. Budget separation IS the

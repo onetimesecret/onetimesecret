@@ -66,7 +66,9 @@ module Onetime
         # @param connection [Object] an already-open Bunny-like connection.
         # @param queue [String] a fully-resolved DLQ name.
         # @param actor [String, #extid, #email] acting admin's PUBLIC identity.
-        # @param dry_run [Boolean] measure only — delete nothing, audit nothing.
+        # @param dry_run [Boolean] measure only — delete nothing, and write
+        #   nothing to the OPERATOR trail; the preview itself is recorded as an
+        #   observation (#4337, see #record_preview_event).
         # @param reason [String, nil] OPTIONAL operator-supplied why (#4338),
         #   recorded in the audit detail of the purge AND of the preview that
         #   preceded it. Blank is treated as absent and both details keep their

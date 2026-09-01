@@ -135,6 +135,40 @@ ColonelAuditEvent.record(actor: 'a', verb: 'v', target: 't', result: :success)
 CSV.parse(Reader.serialize(Reader.merged(1), format: 'csv'))[1][5]
 #=> ""
 
+## a cell a spreadsheet would EVALUATE is prefixed with the text guard
+ColonelAuditEvent.events.clear
+ColonelAuditEvent.record(actor: 'a', verb: 'v', target: '=HYPERLINK("http://evil.test","click")',
+                         result: :success)
+CSV.parse(Reader.serialize(Reader.merged(1), format: 'csv'))[1][3]
+#=> "'=HYPERLINK(\"http://evil.test\",\"click\")"
+
+## every formula opener is covered, including the tab/CR the importer strips first
+ColonelAuditEvent.events.clear
+['=cmd', '+1+1', '-2+3', '@SUM(A1)', "\tcmd", "\rcmd"].each do |payload|
+  ColonelAuditEvent.record(actor: 'a', verb: 'v', target: payload, result: :success)
+end
+CSV.parse(Reader.serialize(Reader.merged(6), format: 'csv'))[1..].map { |row| row[3][0] }
+#=> ["'", "'", "'", "'", "'", "'"]
+
+## the guard reaches the JSON-encoded detail cell too — serialisation is not a way past it
+ColonelAuditEvent.events.clear
+ColonelAuditEvent.record(actor: 'a', verb: 'v', target: 't', result: :success, detail: '=cmd|calc')
+CSV.parse(Reader.serialize(Reader.merged(1), format: 'csv'))[1][5]
+#=> "'=cmd|calc"
+
+## an ordinary cell is untouched — no stray apostrophes in a normal export
+ColonelAuditEvent.events.clear
+ColonelAuditEvent.record(actor: 'ur_col', verb: 'customer.purge', target: 'ur_victim', result: :success)
+@ordinary = CSV.parse(Reader.serialize(Reader.merged(1), format: 'csv'))[1]
+[@ordinary[1], @ordinary[2], @ordinary[3]]
+#=> ["ur_col", "customer.purge", "ur_victim"]
+
+## NDJSON is UNTOUCHED: it has no formula problem and its consumers parse JSON
+ColonelAuditEvent.events.clear
+ColonelAuditEvent.record(actor: 'a', verb: 'v', target: '=cmd', result: :success)
+JSON.parse(Reader.to_ndjson(Reader.merged(1)).lines.first)['target']
+#=> "=cmd"
+
 ## an unsupported format raises rather than guessing
 begin
   Reader.serialize([], format: 'xlsx')

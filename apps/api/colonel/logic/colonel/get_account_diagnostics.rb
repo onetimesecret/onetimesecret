@@ -87,14 +87,34 @@ module ColonelAPI
           Onetime::ColonelAuditEvent.record_access(
             actor: cust&.extid,
             verb: AUDIT_VERB,
-            target: user&.extid || user_id,
+            target: audit_target,
             result: :success,
             detail: {
               found: result.found?,
               findings: result.findings&.size || 0,
+              # Says the target is the typed identifier rather than a resolved
+              # extid, so a masked address in the trail reads as "what was
+              # searched for" instead of an id nobody can look up.
+              resolved: !user.nil?,
               audit_log_limit: audit_log_limit,
             },
           )
+        end
+
+        # The resolved extid, or the OBSCURED identifier when nothing resolved.
+        #
+        # This endpoint's identifier is EMAIL-TOLERANT by design (see
+        # {AccountIdentifier} — plain sanitize_identifier would strip the `@`),
+        # so the unresolved fallback is usually a full address an operator
+        # typed. Storing it verbatim would put a raw address in the trail AND
+        # ship it on the `ColonelAudit` sink, which every other
+        # address-handling emitter avoids (Onetime::ColonelSigninFailure, the
+        # change_email events). OT::Utils.obscure_email is the same helper they
+        # use and it is a text-level mask: an address becomes `us***@e***.com`,
+        # while an extid or objid that simply did not resolve carries no address
+        # to match and passes through verbatim.
+        def audit_target
+          user&.extid || OT::Utils.obscure_email(user_id)
         end
 
         # Overrides success_data WITHOUT super (same as GetBrandDiagnostics):
