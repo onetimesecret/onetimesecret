@@ -19,6 +19,15 @@ POST   /change-email                        AccountAPI::Logic::Account::RequestE
 POST   /confirm-email-change                AccountAPI::Logic::Account::ConfirmEmailChange response=json auth=noauth
 POST   /resend-email-change-confirmation    AccountAPI::Logic::Account::ResendEmailChangeConfirmation response=json auth=sessionauth
 POST   /resend-verification-email           AccountAPI::Logic::Account::ResendVerifyAccount response=json auth=noauth
+
+# Colonel impersonation — the ONE mutating endpoint an impersonated session
+# may call. Deliberately NOT under /api/colonel: that prefix is blocked while
+# impersonating (Middleware::ImpersonationContext) and is subject to
+# AdminNetworkIsolation, and a `role=colonel` option could never pass once the
+# session presents as the target. Authorization runs in the logic, against the
+# session PRINCIPAL. Session auth only — a basicauth token has no marker.
+POST   /impersonation/stop                   AccountAPI::Logic::Account::StopImpersonation response=json auth=sessionauth
+
 GET    /                                    AccountAPI::Logic::Account::GetAccount response=json auth=sessionauth,basicauth
 GET    /entitlements                        AccountAPI::Logic::Account::GetEntitlements response=json auth=sessionauth,basicauth
 GET    /permissions                         AccountAPI::Logic::Account::GetPermissions response=json auth=sessionauth,basicauth
