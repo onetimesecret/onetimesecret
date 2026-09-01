@@ -51,6 +51,33 @@ module ColonelAPI
             confirm_subject: 'the limiter kind and subject joined by a colon',
             field: :kind,
           )
+
+          refuse_self_colonel_reset!
+        end
+
+        # INTERLOCK (#4329 review): a colonel may not clear their OWN colonel_*
+        # limiter over HTTP. Those buckets exist to bound the ACTING colonel:
+        # colonel_elevation is the sole backstop against step-up brute force
+        # (Auth::Config.valid_login_and_password? is an internal request and never
+        # trips Rodauth's own lockout — see colonel_rate_limiter.rb), colonel_destructive
+        # keeps the tier-1 count under the audit cap, and colonel_mutation bounds
+        # the surface. Self-clearing any of them from a cookie turns the bucket into
+        # a no-op — brute-force elevation, reset, repeat — so recovery of one's own
+        # colonel lockout is CLI-only (shell access is the higher bar the registry
+        # already documents). Resetting a PEER colonel's bucket, or any non-colonel
+        # limiter, is unaffected: that is the operator-recovery use case. The
+        # confirmation token here is caller-supplied (kind:subject) and proves
+        # nothing, so this guard — not the token — is what stops the loop.
+        def refuse_self_colonel_reset!
+          return unless kind.start_with?('colonel_')
+          return unless subject == cust&.extid.to_s
+
+          raise_form_error(
+            'Refusing to clear your own colonel rate limiter over the API; a leaked ' \
+            'colonel cookie could otherwise reset its own lockout in a loop. Clear it ' \
+            "from the CLI instead (bin/ots ratelimit keys #{kind} #{subject}).",
+            field: :subject,
+          )
         end
 
         def process

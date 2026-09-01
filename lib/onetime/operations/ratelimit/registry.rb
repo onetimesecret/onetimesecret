@@ -106,10 +106,12 @@ module Onetime
             keys: ['colonel:mutation:attempts:%s', 'colonel:mutation:locked:%s'],
             dbclient: -> { Onetime::Customer.dbclient },
           },
-          # The tight TIER 1 bucket (#4329). This row MUST exist: the documented
-          # lockout recovery is POST /ratelimit/reset with kind
-          # colonel_destructive, which is a TIER 2 verb and therefore still
-          # reachable while the destructive bucket is exhausted.
+          # The tight TIER 1 bucket (#4329). This row MUST exist so the limiter is
+          # resettable at all. Recovery is a PEER colonel calling POST
+          # /ratelimit/reset (a TIER 2 verb, still reachable while the destructive
+          # bucket is exhausted) or the CLI: ResetRateLimit refuses SELF-reset of
+          # any colonel_* bucket over HTTP (#4329 review), since a leaked cookie
+          # could otherwise clear its own destructive/elevation lockout in a loop.
           'colonel_destructive' => {
             subject: 'colonel external id (extid)',
             keys: ['colonel:destructive:attempts:%s', 'colonel:destructive:locked:%s'],

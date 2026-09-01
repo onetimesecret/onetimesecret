@@ -113,6 +113,39 @@ RSpec.describe ColonelAPI::Logic::Colonel::ResetRateLimit do
     end
   end
 
+  # A leaked colonel cookie must not clear its OWN colonel_* lockout in a loop
+  # (#4329 review): colonel_elevation is the sole step-up brute-force backstop,
+  # colonel_destructive bounds the audit-cap window. Self-recovery is CLI-only;
+  # peer and non-colonel resets stay reachable over HTTP for operator recovery.
+  describe 'self-reset of a colonel_* limiter is refused over HTTP (#4329 review)' do
+    def reset_logic(reset_kind, reset_subject)
+      described_class.new(
+        strategy_result_for(colonel, "#{reset_kind}:#{reset_subject}"),
+        { 'kind' => reset_kind, 'subject' => reset_subject },
+      )
+    end
+
+    %w[colonel_elevation colonel_destructive colonel_mutation].each do |colonel_kind|
+      it "refuses resetting #{colonel_kind} for the caller's OWN extid" do
+        expect { reset_logic(colonel_kind, 'ur_colonel').raise_concerns }
+          .to raise_error(Onetime::FormError, /clear your own colonel rate limiter/i)
+        expect(Onetime::Operations::RateLimit::Reset).not_to have_received(:new)
+      end
+
+      it "ALLOWS resetting #{colonel_kind} for a PEER colonel (operator recovery)" do
+        expect { reset_logic(colonel_kind, 'ur_peer').raise_concerns }.not_to raise_error
+      end
+    end
+
+    it 'ALLOWS a colonel to reset a NON-colonel limiter for their own extid' do
+      non_colonel = Onetime::Operations::RateLimit::Registry::LIMITERS.keys
+        .reject { |k| k.start_with?('colonel_') }.first
+      skip 'no non-colonel limiter registered' unless non_colonel
+
+      expect { reset_logic(non_colonel, 'ur_colonel').raise_concerns }.not_to raise_error
+    end
+  end
+
   describe 'the happy path still works' do
     it 'hands the op the kind, subject and the acting colonel extid' do
       logic = logic_for
