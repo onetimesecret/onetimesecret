@@ -107,10 +107,16 @@ ordinary sessions.
 ### A positive list, not a deny list {#positive-list}
 
 While the marker is active the same middleware allows only safe methods
-(GET/HEAD/OPTIONS) on non-blocked paths, plus the stop endpoint. Everything
-else is refused with 403 — JSON `{error: <human sentence>, error_code:
-'impersonation_read_only'}`, or a minimal HTML 403 for page requests. Three
-path classes are blocked outright, regardless of method:
+(GET/HEAD) on paths that are not on a deny list, plus the stop endpoint.
+Everything else is refused with 403 — JSON `{error: <human sentence>,
+error_code: 'impersonation_read_only'}`, or a minimal HTML 403 for page
+requests. OPTIONS is **not** treated as safe: Otto dispatches OPTIONS to the
+same real handlers as any other method, so its safety would be an assumption
+about the router that the router does not make. A path the middleware cannot
+parse is denied rather than passed — fail-closed, since an unparseable path
+cannot be matched against the deny list.
+
+The deny list is method-independent. Four path classes:
 
 - `/api/auth/*` and `/auth/*` — Rodauth authenticates from its own
   `account_id`, which is still the **colonel's** account. A "change password"
@@ -121,15 +127,32 @@ path classes are blocked outright, regardless of method:
   someone else. The effective-customer role check would already 403 these; the
   explicit block makes the rule testable and stops it from depending on a
   role-resolution detail.
+- `/api/v2/secret/:id`, `/api/v3/secret/:id`, and their `/guest/` variants —
+  reads that consume. Fetching a secret burns it, which is irreversible and
+  would destroy a customer's secret during the support session meant to help
+  them.
+- `/billing/portal`, `/billing/plans/*`, `/account/billing_portal` — GETs that
+  mint a Stripe portal or checkout session, and that create a default
+  Organization for the target as a side effect. Both outlive the marker: a
+  portal URL keeps working after the impersonation ends, and the organization
+  stays.
 
-The list is therefore **safe methods minus known consuming reads**, not safe
-methods. Implementation found one read that mutates: `GET /api/v2/secret/:id`
-and `GET /api/v3/secret/:id` with `?continue=true` burn the secret, because
-`V2::Logic::Secrets::ShowSecret#process_params` gates the reveal on the
-parameter rather than on the request method. The guard denies those requests
-regardless of method. Standing obligation: a GET that mutates is invisible to a
-method-based rule, so any future one must be added to the deny list at the same
-time it is written — the rule cannot discover it.
+The rule is therefore **safe methods minus a path deny list**, not safe
+methods. The last two classes are what forced that shape, and both were found
+in security review rather than by reading route tables:
+
+Denying the secret reads *outright* replaced an earlier, narrower guard that
+denied them only when carrying `?continue=true` (the parameter
+`V2::Logic::Secrets::ShowSecret#process_params` actually gates the burn on).
+That guard was bypassable: Otto merges a JSON request body into params for any
+method, including GET, so the reveal intent could arrive in a body the
+query-string check never inspected. The path is denied instead of the
+parameter, because the parameter has more than one way in.
+
+Standing rule: **any GET that mutates, or that mints an artifact valid outside
+the session, must be added to the deny list when it is written.** A
+method-based rule cannot discover such a route — it is the exception the method
+was supposed to encode, so nothing about the request looks wrong.
 
 This is §(c)'s third requirement, and it is the requirement revocation cannot
 substitute for: refusing the write is the only control that works on an
@@ -199,11 +222,25 @@ controls act on it.
 
 An impersonating session can read the customer surface and nothing else. It
 cannot create, reveal, or burn a secret; cannot change account settings,
-credentials, or MFA; cannot make a billing change; cannot use the colonel
-console; cannot start a second impersonation. The two things it can always do
-are stop and log out, and both are audited. Operators reproducing a
+credentials, or MFA; cannot use the colonel console; cannot start a second
+impersonation. It cannot make a billing change or obtain a Stripe portal
+session — but note *why*: not because those are writes, since the portal and
+plan routes are GETs, but because they are named on the deny list. That is the
+maintenance burden this design carries. The two things the session can always
+do are stop and log out, and both are audited. Operators reproducing a
 write-path bug still cannot do so as the customer — that is the deliberate
 limit, and the escalation path remains asking the customer.
+
+Start and stop events are paired only for ends that happen in-process:
+operator stop, expiry, logout, and the resolver's fall-through reasons. A
+session destroyed from outside takes the marker with it and records no stop —
+the colonel's session revoked from the sessions UI, `CloseAccount`, or the
+session blob simply expiring in Redis. The trail then shows a start with no
+end. This is a known limitation, not a silent one: the start event and the
+session's absence together bound the window, so the reader can still say when
+the impersonation began and that it is over. Closing it properly would mean
+every session-destruction path knowing about impersonation, which is the
+coupling the overlay design exists to avoid.
 
 The cookie is host-scoped, so impersonation applies only to the host the
 console was used on. Custom-domain hosts are not covered: an operator who
