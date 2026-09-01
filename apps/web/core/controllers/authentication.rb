@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/session/impersonation'
+
 require_relative 'base'
 
 module Core
@@ -58,6 +60,15 @@ module Core
             session_id: session_id,
             ip: req.ip,
           }
+
+        # Close any impersonation FIRST, so it is stopped and AUDITED rather
+        # than silently discarded with the session. GET /logout is a safe
+        # method and therefore reachable while impersonating; without this the
+        # trail would hold a start with no end.
+        Onetime::SessionImpersonation.stop!(
+          session,
+          ended_by: Onetime::SessionImpersonation::ENDED_BY_LOGOUT,
+        )
 
         # Clear all session data
         session.clear

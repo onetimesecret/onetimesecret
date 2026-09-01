@@ -58,7 +58,7 @@ module Onetime
           # Authorization header fails the chain closed via the credentialed
           # strategy's terminal AuthFailure (Otto's RouteAuthWrapper), so this
           # strategy never needs to refuse anonymous fallthrough itself.
-          cust = load_user_from_session(session)
+          cust = load_user_from_session(session, env)
 
           # Load organization context if user is authenticated
           org_context = if cust
