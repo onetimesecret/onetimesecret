@@ -181,15 +181,36 @@ module Auth
     # port still come from the request (both honor the proxy's X-Forwarded-*
     # the same way they did before), so only the hostname changes.
     #
+    # ## The host may ALREADY carry a port — strip it before appending one
+    #
+    # The port comes from the request, so +host+ must contribute the hostname
+    # and nothing else. A canonical-set candidate routinely arrives with a
+    # port attached: `site.host` is configured as an authority (`localhost:7143`
+    # in the full-auth E2E lane, `secrets.internal:8443` on an on-prem install),
+    # `DomainStrategy#call` copies it verbatim into `display_domain` whenever
+    # domains are disabled, and `canonical_host?` matches it PORT-INSENSITIVELY
+    # — so `canonical_request_host` legitimately hands back `localhost:7143`.
+    # Interpolating that straight into the authority yielded
+    # `http://localhost:7143:7143/verify-account?key=…`: an unparseable URL in
+    # every real verification and reset email the deployment sends.
+    #
+    # Normalizing through `extract_hostname` is what makes the two agree — it
+    # is the same port-stripping normalizer `canonical_host?` admits the
+    # candidate with. IPv6 literals come back bare (`2001:db8::1`), so they are
+    # re-bracketed per RFC 3986 §3.2.2 before a port can be appended.
+    #
     # @param env [Hash] Rack environment
-    # @param host [String] an allowlisted host (verified tenant or canonical)
+    # @param host [String] an allowlisted host (verified tenant or canonical),
+    #   with or without a port
     # @return [String] origin
     def self.origin_for(env, host)
       request      = Rack::Request.new(env)
+      hostname     = Onetime::Utils::DomainParser.extract_hostname(host) || host.to_s
+      hostname     = "[#{hostname}]" if hostname.include?(':') # bare IPv6 literal
       port         = request.port
       scheme       = request.scheme
       default_port = scheme == 'https' ? 443 : 80
-      authority    = port && port != default_port ? "#{host}:#{port}" : host
+      authority    = port && port != default_port ? "#{hostname}:#{port}" : hostname
 
       "#{scheme}://#{authority}"
     end

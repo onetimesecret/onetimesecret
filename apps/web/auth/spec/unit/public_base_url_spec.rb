@@ -144,6 +144,16 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
         expect(described_class.canonical_request_host(env_for(host: 'onetimesecret.com')))
           .to be_nil
       end
+
+      # `canonical_host?` is port-INSENSITIVE, so a `site.host` configured as
+      # an authority is admitted and handed back with its port still attached.
+      # That is the contract `canonical_host` already has (it returns site.host
+      # verbatim); the port is stripped where a URL is built, not here.
+      it 'returns a canonical candidate that carries a port verbatim' do
+        canonical_hosts << 'localhost:7143'
+        env = env_for(host: 'localhost:7143', display_domain: 'localhost:7143', scheme: 'http')
+        expect(described_class.canonical_request_host(env)).to eq('localhost:7143')
+      end
     end
 
     describe '.base_url' do
@@ -166,6 +176,39 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
 
       it 'returns nil rather than a canonical URL when it declines' do
         expect(described_class.base_url(env_for(host: 'example.com'))).to be_nil
+      end
+    end
+
+    # The port in the origin comes from the REQUEST, so a host that already
+    # carries one must contribute its hostname and nothing else. This is not a
+    # hypothetical: `site.host` is configured as an authority
+    # (`localhost:7143` in the full-auth E2E lane, `secrets.internal:8443` on
+    # an on-prem install), `DomainStrategy#call` copies it verbatim into
+    # `display_domain` when domains are disabled, and `canonical_host?` admits
+    # it port-insensitively — so `canonical_request_host` hands back a ported
+    # host on every ordinary request to such a deployment. Interpolating it
+    # straight into the authority produced `http://localhost:7143:7143/…`,
+    # which is not a parseable URL, in every verification and reset email.
+    describe '.canonical_request_base_url' do
+      it 'does not double the port when the canonical host carries one' do
+        canonical_hosts << 'localhost:7143'
+        env = env_for(host: 'localhost:7143', display_domain: 'localhost:7143', scheme: 'http')
+        expect(described_class.canonical_request_base_url(env)).to eq('http://localhost:7143')
+      end
+
+      it 'drops a default port from the canonical host rather than repeating it' do
+        canonical_hosts << 'onetimesecret.com:443'
+        env = env_for(host: 'onetimesecret.com', display_domain: 'onetimesecret.com:443')
+        expect(described_class.canonical_request_base_url(env)).to eq('https://onetimesecret.com')
+      end
+
+      # RFC 3986 §3.2.2: the normalizer returns an IPv6 literal bare, and a
+      # bare one cannot carry a port. Re-bracket before appending.
+      it 'brackets an IPv6 literal so the authority stays parseable' do
+        canonical_hosts << '[2001:db8::1]:7143'
+        env = env_for(host: '[2001:db8::1]:7143', display_domain: '[2001:db8::1]:7143',
+                      scheme: 'http')
+        expect(described_class.canonical_request_base_url(env)).to eq('http://[2001:db8::1]:7143')
       end
     end
   end
@@ -222,6 +265,19 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
 
     it 'builds on the canonical host, not request.host, when the middleware did not run' do
       expect(probe(host: 'example.com')).to eq(['https://onetimesecret.com', 'onetimesecret.com'])
+    end
+
+    # The shape the full-auth E2E lane runs in (HOST=localhost:7143, SSL=false,
+    # DOMAINS_ENABLED=false). Every `*_email_link` is `base_url` + a path, so a
+    # doubled port here ships a dead link in the verification email.
+    it 'mints a parseable link when the canonical host is configured with a port' do
+      canonical_hosts << 'localhost:7143'
+      base_url, display_domain =
+        probe(host: 'localhost:7143', display_domain: 'localhost:7143', scheme: 'http')
+
+      expect(base_url).to eq('http://localhost:7143')
+      expect { URI.parse("#{base_url}/verify-account?key=abc") }.not_to raise_error
+      expect(display_domain).to eq('localhost:7143')
     end
 
     # Finding G-01, vector B: an attacker sets X-Forwarded-Host on a plain
