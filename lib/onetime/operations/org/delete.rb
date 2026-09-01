@@ -7,6 +7,7 @@
 # audit model explicitly.
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/audit_reason'
 # The member notification is enqueued from here, and the CLI reaches this file
 # without the app's job wiring loaded (precedent:
 # lib/onetime/logic/credential_change_session_revocation.rb).
@@ -131,6 +132,7 @@ module Onetime
       # (precedent: memberships/set_role.rb:64).
       class Delete
         include Onetime::AuditedFailure
+        include Onetime::AuditReason
 
         # Full-noun subject, matching the rest of the admin trail
         # (`organization.create`, `organization.reconcile`).
@@ -242,14 +244,25 @@ module Onetime
         #   `organization_deleted` mail. Defaults to the actor's public identity;
         #   the customer-facing adapter passes the acting customer's email so the
         #   notification reads the way it always has.
+        # @param reason [String, nil] OPTIONAL operator-supplied why (#4338),
+        #   recorded in the audit detail of the applied delete AND of the
+        #   preview that preceded it. OPERATOR SURFACES ONLY, like the force
+        #   flags: the customer-facing adapter never passes it (an org owner
+        #   deleting their own workspace is not an operator explaining an
+        #   action on someone else's data), and the reason NEVER reaches the
+        #   `organization_deleted` mail — it is written for the audit trail, not
+        #   for the former members. Blank is treated as absent and both details
+        #   keep their pre-#4338 shape; see {Onetime::AuditReason} for the bound
+        #   and the optional-now / required-later rollout.
         def initialize(org:, actor:, dry_run: true, force_default: false,
-                       force_subscription: false, deleted_by: nil)
+                       force_subscription: false, deleted_by: nil, reason: nil)
           @org                = org
           @actor              = actor
           @dry_run            = dry_run
           @force_default      = force_default
           @force_subscription = force_subscription
           @deleted_by         = deleted_by
+          @reason             = normalize_reason(reason)
 
           # Snapshotted at construction so the AuditedFailure target survives a
           # raise anywhere in #call, including after destroy! has emptied the
@@ -395,7 +408,7 @@ module Onetime
             verb: AUDIT_VERB,
             target: @extid,
             result: :success,
-            detail: {
+            detail: with_reason(
               display_name: @display_name.to_s,
               planid: @planid,
               members: @members.size,
@@ -403,7 +416,7 @@ module Onetime
               pending_invitations: @pending,
               default_org_cleared: @cleared.size,
               forced: forced_guards,
-            },
+            ),
             fail_closed: true,
           )
         end
@@ -546,14 +559,14 @@ module Onetime
             verb: AUDIT_VERB,
             target: @extid,
             result: 'preview',
-            detail: {
+            detail: with_reason(
               dry_run: true,
               display_name: @display_name.to_s,
               planid: @planid,
               members: @members.size,
               pending_invitations: @pending,
               domain_count: @domain_count,
-            },
+            ),
           )
         end
 

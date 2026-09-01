@@ -30,10 +30,13 @@ module ColonelAPI
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.
       class RevokeAllCustomerSessions < ColonelAPI::Logic::Base
-        attr_reader :user_id, :result
+        attr_reader :user_id, :reason, :result
 
         def process_params
           @user_id = sanitize_identifier(params['user_id'])
+          # OPTIONAL operator-supplied why (#4338). See
+          # ColonelAPI::Logic::Base#operator_reason_param.
+          @reason  = operator_reason_param
           raise_form_error('User ID is required', field: :user_id) if user_id.to_s.empty?
         end
 
@@ -46,6 +49,7 @@ module ColonelAPI
           @result = Onetime::Operations::Sessions::RevokeAllForCustomer.new(
             custid: user_id,
             actor: cust.extid,
+            reason: reason,
           ).call
 
           success_data

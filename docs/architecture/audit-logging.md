@@ -466,6 +466,50 @@ it. `ColonelAuditEvent.events.clear` still exists and is what test setup and
 deliberate operator surgery use; no application code calls it, and the sink
 above is untouched by anything done to Valkey.
 
+### The operator's reason — optional now, required later (#4338)
+
+The trail recorded *what* an operator did and to whom, and never *why*.
+"`ur_colonel` purged `ur_alice`" cannot be told apart from a GDPR erasure, a
+mistake, or an insider clearing their tracks without leaving the system to find
+the ticket. Every destructive verb now takes an **optional** `reason:` and puts
+it in its audit `detail`.
+
+`Onetime::AuditReason` (`lib/onetime/audit_reason.rb`) is the one place the
+rules live, so twelve ops cannot drift:
+
+- **Blank is absent.** Stripped; an empty or whitespace-only reason is `nil`,
+  never `""` — an empty string in the trail reads as "they gave a reason" when
+  they did not.
+- **Absent means unchanged.** With no reason the `detail` hash is
+  byte-for-byte its pre-#4338 self; there is no `reason: nil` key. That is what
+  lets this ship without touching a single incumbent expectation.
+- **`MAX_LENGTH` is 255**, one under `MAX_DETAIL_VALUE_LENGTH`, so a reason that
+  passes validation is never silently clipped on the way into storage.
+  `reason` is deliberately *not* matched by `SENSITIVE_KEY_PATTERN`.
+
+It rides **inside `detail`**, not as a new top-level field: `ColonelAuditReader`'s
+allowlist, the `colonelAuditEventSchema` Zod shape and the CSV header are one
+linked contract, and `detail` is already rendered and exported verbatim.
+
+Surfaces: the console's `AdminConfirmDialog` grows an optional textarea
+(`requestReason`) whose value is emitted with `confirm`; every destructive
+colonel adapter reads it through one
+`ColonelAPI::Logic::Base#operator_reason_param` (POST → body, DELETE → query
+string, because DELETE bodies are not reliably parsed across this stack); and
+the CLI peers take `--reason`.
+
+It also rides the **no-change** events (#4337) and the **preview**
+observations — an attempted-but-no-op action and a reconnaissance preview each
+have a why. The one exception is the membership refusal events, whose `detail`
+key `reason` already means the refusal *status* and predates this change: one
+key cannot mean two things, and a refusal mutated nothing, so what a reviewer
+needs there is why the *system* said no.
+
+**Optional is this step, not the destination.** Nothing rejects a call that
+omits a reason yet; the flip to required happens once every surface is
+confirmed to be sending one, and it happens in `AuditReason` plus the adapters'
+validation, not in each op.
+
 ## Cross-cutting rules
 
 - **Never fabricate an actor** (ADR-023): where the actor or its relation to

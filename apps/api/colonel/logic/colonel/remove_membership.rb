@@ -33,6 +33,9 @@ module ColonelAPI
           # Email-tolerant (see AccountIdentifier) — sanitize_identifier strips
           # '@' and '.', which made the resolver's email arm unreachable.
           @member_id = sanitize_account_identifier(params['member_id'])
+          # OPTIONAL operator-supplied why (#4338) — query string, since this is
+          # a DELETE. See ColonelAPI::Logic::Base#operator_reason_param.
+          @reason    = operator_reason_param
         end
 
         def raise_concerns
@@ -53,6 +56,7 @@ module ColonelAPI
             org: org,
             customer: customer,
             actor: cust.extid, # acting colonel's PUBLIC id (never an objid)
+            reason: @reason,
           ).call
 
           handle_result_status

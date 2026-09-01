@@ -5,6 +5,7 @@
 require 'onetime/operations/dlq/store'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/audit_reason'
 
 module Onetime
   module Operations
@@ -41,6 +42,7 @@ module Onetime
       # Stateless, single `#call`, returns an immutable {Result}.
       class Purge
         include Onetime::AuditedFailure
+        include Onetime::AuditReason
 
         # Audit verb recorded for every purge that removes ≥ 1 message.
         AUDIT_VERB = 'queue.dlq.purge'
@@ -65,11 +67,17 @@ module Onetime
         # @param queue [String] a fully-resolved DLQ name.
         # @param actor [String, #extid, #email] acting admin's PUBLIC identity.
         # @param dry_run [Boolean] measure only — delete nothing, audit nothing.
-        def initialize(connection:, queue:, actor:, dry_run: false)
+        # @param reason [String, nil] OPTIONAL operator-supplied why (#4338),
+        #   recorded in the audit detail of the purge AND of the preview that
+        #   preceded it. Blank is treated as absent and both details keep their
+        #   pre-#4338 shape; see {Onetime::AuditReason} for the bound and the
+        #   optional-now / required-later rollout.
+        def initialize(connection:, queue:, actor:, dry_run: false, reason: nil)
           @connection = connection
           @queue      = queue
           @actor      = actor
           @dry_run    = dry_run
+          @reason     = normalize_reason(reason)
         end
 
         # @return [Result]
@@ -104,7 +112,7 @@ module Onetime
             verb: AUDIT_VERB,
             target: @queue,
             result: :success,
-            detail: { purged: count },
+            detail: with_reason(purged: count),
             fail_closed: true,
           )
 
@@ -119,14 +127,16 @@ module Onetime
         # Same verb and target as the applied event, so a preview and the purge
         # that followed it read as one sequence; `result: 'preview'` and
         # `dry_run: true` distinguish them. The count is the whole point of the
-        # preview — it is what the confirm dialog shows.
+        # preview — it is what the confirm dialog shows. The operator's `reason`
+        # (#4338) carries onto the preview too when one was given, so the two
+        # rows still read as one sequence once the console starts sending it.
         def record_preview_event(count)
           Onetime::ColonelAuditEvent.record_access(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @queue,
             result: 'preview',
-            detail: { dry_run: true, count: count },
+            detail: with_reason(dry_run: true, count: count),
           )
         end
       end

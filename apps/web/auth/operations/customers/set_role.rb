@@ -4,6 +4,7 @@
 
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/audit_reason'
 
 module Auth
   module Operations
@@ -24,6 +25,7 @@ module Auth
       class SetRole
         include Onetime::LoggerMethods
         include Onetime::AuditedFailure
+        include Onetime::AuditReason
 
         AUDIT_VERB = 'customer.set_role'
 
@@ -51,10 +53,16 @@ module Auth
         # @param role [String, Symbol] target role; must be in VALID_ROLES
         # @param actor [String, #extid, #email] acting admin's PUBLIC identity
         #   (colonel extid/email, or a CLI sentinel). Never an internal objid.
-        def initialize(customer:, role:, actor:)
+        # @param reason [String, nil] OPTIONAL operator-supplied why (#4338),
+        #   recorded in the audit detail of BOTH the applied event and the
+        #   no-change one. Blank is treated as absent and the detail keeps its
+        #   pre-#4338 shape; see {Onetime::AuditReason}, which also owns the
+        #   255-char bound and the optional-now / required-later rollout.
+        def initialize(customer:, role:, actor:, reason: nil)
           @customer = customer
           @role     = role.to_s
           @actor    = actor
+          @reason   = normalize_reason(reason)
         end
 
         # @return [Result]
@@ -84,7 +92,7 @@ module Auth
             verb: AUDIT_VERB,
             target: @customer.extid,
             result: :success,
-            detail: { from: from, to: @role },
+            detail: with_reason(from: from, to: @role),
             fail_closed: true,
           )
 
@@ -109,13 +117,17 @@ module Auth
         # Same verb and target as the applied event, with `outcome: 'no_change'`
         # marking it. NOT fail-closed: no privilege moved, so there is no
         # untraceable grant for a hard failure to surface.
+        #
+        # The operator's `reason` (#4338) rides here too: an attempted-but-no-op
+        # action still has a why, and a probe at a privileged account is exactly
+        # the row a reviewer wants the operator's own words on.
         def record_no_change_event(from)
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @customer.extid,
             result: :success,
-            detail: { outcome: 'no_change', from: from, to: @role },
+            detail: with_reason(outcome: 'no_change', from: from, to: @role),
           )
         end
 

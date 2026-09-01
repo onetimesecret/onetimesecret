@@ -18,11 +18,14 @@ module ColonelAPI
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.
       class SetUserRole < ColonelAPI::Logic::Base
-        attr_reader :user_id, :user, :new_role, :old_role, :change_status
+        attr_reader :user_id, :user, :new_role, :reason, :old_role, :change_status
 
         def process_params
           @user_id  = sanitize_identifier(params['user_id'])
           @new_role = sanitize_plain_text(params['role'])
+          # OPTIONAL operator-supplied why (#4338). See
+          # ColonelAPI::Logic::Base#operator_reason_param.
+          @reason   = operator_reason_param
 
           raise_form_error('User ID is required', field: :user_id) if user_id.to_s.empty?
           raise_form_error('Role is required', field: :role) if new_role.to_s.empty?
@@ -57,6 +60,7 @@ module ColonelAPI
             customer: user,
             role: new_role,
             actor: cust.extid, # acting colonel's PUBLIC id (never an objid)
+            reason: reason,
           ).call
           @change_status = result.status
 

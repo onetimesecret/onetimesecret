@@ -6,6 +6,7 @@
   import { AdminConfirmDialog, JsonViewer } from '@/apps/admin/components/kit';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
+  import { reasonQueryArgs } from '@/apps/admin/utils/operatorReason';
   import {
     colonelSecretDeleteResponseSchema,
     colonelSecretReceiptResponseSchema,
@@ -250,11 +251,13 @@
     error: deleteError,
     run: runDelete,
     reset: resetDelete,
-  } = useAdminMutation(async () => {
+  } = useAdminMutation(async (reason?: string) => {
     const secretId = receiptRecord.value?.secret_id;
     if (!secretId) throw new Error('No secret loaded');
+    // DELETE -> the reason rides the query string (see operatorReason.ts).
     const response = await $api.delete(
-      `/api/colonel/secrets/${encodeURIComponent(secretId)}`
+      `/api/colonel/secrets/${encodeURIComponent(secretId)}`,
+      ...reasonQueryArgs(reason)
     );
     // A 2xx means the secret was deleted server-side regardless of ack shape; the
     // parse keeps the contract a live tripwire without failing the action.
@@ -273,8 +276,8 @@
     deleteDialogOpen.value = true;
   }
 
-  async function onDeleteConfirm(): Promise<void> {
-    const ok = await runDelete();
+  async function onDeleteConfirm(reason?: string): Promise<void> {
+    const ok = await runDelete(reason);
     if (!ok) return; // Failure message stays in the dialog for retry/cancel.
 
     deleteDialogOpen.value = false;
@@ -574,6 +577,7 @@
       :confirm-token="deleteToken"
       variant="danger"
       :confirm-text="t('web.admin.secrets.actions.delete.button')"
+      request-reason
       :loading="deleteLoading"
       :error="deleteError"
       @confirm="onDeleteConfirm"

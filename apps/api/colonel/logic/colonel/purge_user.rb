@@ -20,13 +20,16 @@ module ColonelAPI
       class PurgeUser < ColonelAPI::Logic::Base
         include AccountIdentifier
 
-        attr_reader :user_id, :user, :purged_extid, :purged_objid, :result
+        attr_reader :user_id, :user, :purged_extid, :purged_objid, :reason, :result
 
         def process_params
           # sanitize_account_identifier (NOT sanitize_identifier) — the latter
           # strips '@' and '.', which silently destroyed the documented email
           # arm below. See AccountIdentifier.
           @user_id = sanitize_account_identifier(params['user_id'])
+          # OPTIONAL operator-supplied why (#4338) — query string, since this is
+          # a DELETE. See ColonelAPI::Logic::Base#operator_reason_param.
+          @reason  = operator_reason_param
           raise_form_error('User ID is required', field: :user_id) if user_id.to_s.empty?
         end
 
@@ -52,6 +55,7 @@ module ColonelAPI
           @result = Auth::Operations::Customers::Purge.new(
             customer: user,
             actor: cust.extid, # acting colonel's PUBLIC id (never an objid)
+            reason: reason,
           ).call
 
           handle_result_status

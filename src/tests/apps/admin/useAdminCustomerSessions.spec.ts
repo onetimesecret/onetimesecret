@@ -183,6 +183,55 @@ describe('useAdminCustomerSessions', () => {
     expect(store.sessions.map((s) => s.session_handle)).toEqual(['a15e5510000000000000000000000002']);
   });
 
+  // #4338 — the operator's WHY, on the two shapes it takes. A revoke DELETEs,
+  // so the reason rides the QUERY STRING; revoke-all POSTs, so it rides the
+  // BODY. Both endpoints read `params['reason']` server-side either way.
+  it('revoke sends the operator reason on the query string', async () => {
+    mockApi.get.mockResolvedValue({ data: sessionsPayload() });
+    mockApi.delete.mockResolvedValue({ data: revokePayload('a15e5510000000000000000000000001') });
+    const store = useAdminCustomerSessions();
+    await store.fetchForCustomer(USER_ID);
+
+    await store.revoke(USER_ID, 'a15e5510000000000000000000000001', 'suspected takeover');
+
+    expect(mockApi.delete).toHaveBeenCalledWith(
+      '/api/colonel/users/ur_abc123/sessions/a15e5510000000000000000000000001',
+      { params: { reason: 'suspected takeover' } }
+    );
+  });
+
+  it('revokeAll sends the operator reason in the POST body', async () => {
+    mockApi.get.mockResolvedValue({ data: sessionsPayload() });
+    mockApi.post.mockResolvedValue({ data: revokeAllPayload() });
+    const store = useAdminCustomerSessions();
+    await store.fetchForCustomer(USER_ID);
+
+    await store.revokeAll(USER_ID, '  offboarding: ticket 4412  ');
+
+    expect(mockApi.post).toHaveBeenCalledWith(
+      '/api/colonel/users/ur_abc123/sessions/revoke-all',
+      { reason: 'offboarding: ticket 4412' }
+    );
+  });
+
+  // OPTIONAL rollout: no reason must leave the request exactly as it was, so an
+  // action taken without one records the same audit detail it always did.
+  it('adds no argument at all when the reason is blank', async () => {
+    mockApi.get.mockResolvedValue({ data: sessionsPayload() });
+    mockApi.delete.mockResolvedValue({ data: revokePayload('a15e5510000000000000000000000001') });
+    mockApi.post.mockResolvedValue({ data: revokeAllPayload() });
+    const store = useAdminCustomerSessions();
+    await store.fetchForCustomer(USER_ID);
+
+    await store.revoke(USER_ID, 'a15e5510000000000000000000000001', '   ');
+    await store.revokeAll(USER_ID, undefined);
+
+    expect(mockApi.delete).toHaveBeenCalledWith(
+      '/api/colonel/users/ur_abc123/sessions/a15e5510000000000000000000000001'
+    );
+    expect(mockApi.post).toHaveBeenCalledWith('/api/colonel/users/ur_abc123/sessions/revoke-all');
+  });
+
   it('keeps the row when revoke rejects', async () => {
     mockApi.get.mockResolvedValue({ data: sessionsPayload() });
     mockApi.delete.mockRejectedValue(new Error('403'));

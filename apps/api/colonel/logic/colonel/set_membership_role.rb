@@ -32,6 +32,9 @@ module ColonelAPI
           # '@' and '.', which made the resolver's email arm unreachable.
           @member_id = sanitize_account_identifier(params['member_id'])
           @new_role  = sanitize_plain_text(params['role']).to_s.downcase
+          # OPTIONAL operator-supplied why (#4338). See
+          # ColonelAPI::Logic::Base#operator_reason_param.
+          @reason    = operator_reason_param
         end
 
         def raise_concerns
@@ -53,6 +56,7 @@ module ColonelAPI
             customer: customer,
             new_role: new_role,
             actor: cust.extid, # acting colonel's PUBLIC id (never an objid)
+            reason: @reason,
           ).call
 
           handle_result_status

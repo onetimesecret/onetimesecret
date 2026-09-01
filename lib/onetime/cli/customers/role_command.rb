@@ -46,6 +46,13 @@ module Onetime
         default: 'colonel',
         desc: 'Target role for promotion or listing (colonel, admin, staff, customer)'
 
+      # OPTIONAL operator-supplied why (#4338), recorded in the audit detail
+      # of the event this command's op writes. Same flag, same wording and same
+      # blank-means-absent handling as every other destructive CLI verb.
+      option :reason,
+        type: :string,
+        default: nil,
+        desc: 'Operator-supplied reason (recorded in the admin audit trail)'
       option :force,
         type: :boolean,
         default: false,
@@ -70,14 +77,14 @@ module Onetime
       # truth lives on the op; the CLI references it rather than forking a copy.
       VALID_ROLES = Auth::Operations::Customers::SetRole::VALID_ROLES
 
-      def call(action:, email: nil, role: 'colonel', force: false, apply: false, json: false, **)
+      def call(action:, email: nil, role: 'colonel', reason: nil, force: false, apply: false, json: false, **)
         boot_application!
 
         case action.downcase
         when 'promote'
-          promote_customer(email, role, force)
+          promote_customer(email, role, force, reason)
         when 'demote'
-          demote_customer(email, force)
+          demote_customer(email, force, reason)
         when 'list'
           list_customers_by_role(role)
         when 'reconcile'
@@ -91,7 +98,7 @@ module Onetime
 
       private
 
-      def promote_customer(email, target_role, force)
+      def promote_customer(email, target_role, force, reason = nil)
         validate_email_provided!(email, 'promote')
         validate_role!(target_role)
 
@@ -117,13 +124,14 @@ module Onetime
           customer: customer,
           role: target_role,
           actor: Customers::Shared::CLI_ACTOR,
+          reason: reason,
         ).call
 
         puts "#{obscured}: #{old_role} -> #{target_role}"
         OT.info "[role-change] #{customer.objid} promoted: #{old_role} -> #{target_role}"
       end
 
-      def demote_customer(email, force)
+      def demote_customer(email, force, reason = nil)
         validate_email_provided!(email, 'demote')
 
         customer = find_customer!(email)
@@ -148,6 +156,7 @@ module Onetime
           customer: customer,
           role: 'customer',
           actor: Customers::Shared::CLI_ACTOR,
+          reason: reason,
         ).call
 
         puts "#{obscured}: #{old_role} -> customer"

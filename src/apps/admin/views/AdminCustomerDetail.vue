@@ -8,6 +8,7 @@
   import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
+  import { reasonBody, reasonQueryArgs } from '@/apps/admin/utils/operatorReason';
   import type {
     ColonelUserDetailReceipt,
     ColonelUserDetailSecret,
@@ -108,10 +109,13 @@
   async function callMutation(
     method: 'post' | 'delete',
     path: string,
-    body?: unknown
+    opts: { body?: unknown; reason?: string } = {}
   ): Promise<void> {
+    // POST -> body, DELETE -> query string (see operatorReason.ts).
     const response =
-      method === 'delete' ? await $api.delete(path) : await $api.post(path, body ?? {});
+      method === 'delete'
+        ? await $api.delete(path, ...reasonQueryArgs(opts.reason))
+        : await $api.post(path, opts.body ?? {});
     gracefulParse(colonelUserMutationResponseSchema, response.data, 'ColonelUserMutationResponse');
   }
 
@@ -120,27 +124,33 @@
     error: mutationError,
     run: runMutation,
     reset: resetMutation,
-  } = useAdminMutation(async () => {
+  } = useAdminMutation(async (reason?: string) => {
     switch (activeAction.value) {
       case 'setRole':
-        return callMutation('post', `${userUrl()}/role`, { role: pendingRole.value });
+        return callMutation('post', `${userUrl()}/role`, {
+          body: { role: pendingRole.value, ...reasonBody(reason) },
+        });
       case 'verify':
         return callMutation('post', `${userUrl()}/verify`);
       case 'unverify':
         return callMutation('post', `${userUrl()}/unverify`);
       case 'suspend':
-        return callMutation(
-          'post',
-          `${userUrl()}/suspend`,
-          suspendReason.value.trim() ? { reason: suspendReason.value.trim() } : {}
-        );
+        // Suspend keeps its own on-page reason field (it predates #4338 and is
+        // also stored on the customer row, not only in the trail), so the
+        // dialog does not ask a second time — see REASON_ACTIONS.
+        return callMutation('post', `${userUrl()}/suspend`, {
+          body: reasonBody(suspendReason.value),
+        });
       case 'unsuspend':
-        return callMutation('post', `${userUrl()}/unsuspend`);
+        // A RELEASE has no on-page field, and unsuspending CLEARS the row's
+        // who/when/why stamps — so the audit event is the only place its why
+        // can live. Hence the dialog asks here.
+        return callMutation('post', `${userUrl()}/unsuspend`, { body: reasonBody(reason) });
       case 'purge':
         // Last line of the fail-closed gate: no typed token, no DELETE — even
         // if the dialog were somehow reached with a blank one.
         if (purgeBlocked.value) throw new Error(purgeBlockedReason.value);
-        return callMutation('delete', userUrl());
+        return callMutation('delete', userUrl(), { reason });
       default:
         throw new Error('No active action');
     }
@@ -161,6 +171,16 @@
 
   /** Destructive actions gate confirm behind a typed-confirmation token. */
   const DANGER_ACTIONS: readonly ActionKey[] = ['purge', 'suspend'];
+
+  /**
+   * Actions whose confirm dialog collects an OPTIONAL operator reason (#4338).
+   *
+   * `suspend` is deliberately ABSENT: it already has its own reason input on
+   * the page (it is stored on the customer row as well as in the trail), and
+   * two reason fields in one flow is worse than one. Verify/unverify are
+   * reversible bookkeeping with nothing to explain.
+   */
+  const REASON_ACTIONS: readonly ActionKey[] = ['purge', 'setRole', 'unsuspend'];
 
   /**
    * The exact string the operator must retype, or undefined for a one-click
@@ -199,6 +219,7 @@
       confirmToken: undefined,
       variant: 'default' as const,
       confirmText: undefined,
+      requestReason: false,
     };
     if (!action) return blank;
 
@@ -215,6 +236,7 @@
       confirmToken: confirmTokenFor(action),
       variant: isDanger ? ('danger' as const) : ('default' as const),
       confirmText: isDanger ? t(`web.admin.customers.actions.${key}.button`) : undefined,
+      requestReason: REASON_ACTIONS.includes(action),
     };
   });
 
@@ -253,11 +275,11 @@
     requestAction('setRole');
   }
 
-  async function onConfirm(): Promise<void> {
+  async function onConfirm(reason?: string): Promise<void> {
     const key = activeAction.value;
     if (!key) return;
 
-    const ok = await runMutation();
+    const ok = await runMutation(reason);
     if (!ok) return; // Failure message stays in the dialog for retry/cancel.
 
     dialogOpen.value = false;
@@ -854,6 +876,7 @@
       :confirm-token="dialogConfig.confirmToken"
       :variant="dialogConfig.variant"
       :confirm-text="dialogConfig.confirmText"
+      :request-reason="dialogConfig.requestReason"
       :loading="mutationLoading"
       :error="mutationError"
       @confirm="onConfirm"

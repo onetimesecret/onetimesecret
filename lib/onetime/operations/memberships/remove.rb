@@ -6,6 +6,7 @@
 # autoloaders — require the audit model and the shared guard explicitly.
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/audit_reason'
 require_relative 'support'
 
 module Onetime
@@ -43,6 +44,7 @@ module Onetime
       class Remove
         include Memberships::Support
         include Onetime::AuditedFailure
+        include Onetime::AuditReason
 
         AUDIT_VERB = 'membership.remove'
 
@@ -63,10 +65,17 @@ module Onetime
         # @param org [Onetime::Organization] target org (caller resolves; required).
         # @param customer [Onetime::Customer] the member to remove.
         # @param actor [String, #extid, #email] acting admin's PUBLIC identity.
-        def initialize(org:, customer:, actor:)
+        # @param reason [String, nil] OPTIONAL operator-supplied why (#4338),
+        #   recorded in the SUCCESS event's detail. Blank is treated as absent
+        #   and the detail keeps its pre-#4338 shape. NOT carried on the
+        #   refusal event, whose `reason` key already means the refusal STATUS
+        #   (see {#record_refusal}). See {Onetime::AuditReason} for the bound
+        #   and the optional-now / required-later rollout.
+        def initialize(org:, customer:, actor:, reason: nil)
           @org      = org
           @customer = customer
           @actor    = actor
+          @reason   = normalize_reason(reason)
         end
 
         # @return [Result]
@@ -94,7 +103,7 @@ module Onetime
             verb: AUDIT_VERB,
             target: @customer.extid,
             result: :success,
-            detail: { org_id: @org.extid },
+            detail: with_reason(org_id: @org.extid),
             fail_closed: true,
           )
 
@@ -118,6 +127,13 @@ module Onetime
 
         # Same verb/target/actor as the success event. Best-effort: never break
         # the op.
+        #
+        # NO operator `reason` here (#4338), deliberately: this detail's
+        # `reason` key already names the REFUSAL STATUS and predates the
+        # operator-reason feature. One key cannot mean two things, and renaming
+        # a shipped audit detail key to make room would break every reader
+        # filtering on it. A refusal mutated nothing, so what a reviewer needs
+        # from it is why the SYSTEM said no, which is what this records.
         def record_refusal(status, role)
           Onetime::ColonelAuditEvent.record(
             actor: @actor,

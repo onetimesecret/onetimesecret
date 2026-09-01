@@ -4,6 +4,7 @@ import {
   usePaginatedFetch,
   type PageMeta,
 } from '@/apps/admin/composables/usePaginatedFetch';
+import { reasonQueryArgs } from '@/apps/admin/utils/operatorReason';
 import { createApiResponseSchema } from '@/schemas/api/base';
 import type { ColonelCustomDomain } from '@/schemas/api/internal/responses/colonel';
 import { colonelCustomDomainsResponseSchema } from '@/schemas/api/internal/responses/colonel';
@@ -289,9 +290,14 @@ async function transferDomain(
 async function removeDomain(
   $api: AxiosInstance,
   extid: string,
-  dryRun: boolean
+  opts: { dryRun: boolean; reason?: string }
 ): Promise<ColonelDomainRemoveDetails | null> {
-  const response = await $api.delete(`${domainPath(extid)}?dry_run=${dryRun}`);
+  // `reason` (#4338) joins dry_run on the query string, for the same reason.
+  // The op carries it onto BOTH the preview observation and the applied event.
+  const response = await $api.delete(
+    `${domainPath(extid)}?dry_run=${opts.dryRun}`,
+    ...reasonQueryArgs(opts.reason)
+  );
   const parsed = gracefulParse(
     colonelDomainRemoveResponseSchema,
     response.data,
@@ -405,7 +411,8 @@ function bindOperations($api: AxiosInstance) {
       repairDomain($api, extid, options),
     transfer: (extid: string, options: DomainTransferOptions) =>
       transferDomain($api, extid, options),
-    remove: (extid: string, dryRun: boolean) => removeDomain($api, extid, dryRun),
+    remove: (extid: string, dryRun: boolean, reason?: string) =>
+      removeDomain($api, extid, { dryRun, reason }),
     fetchConfigs: (extid: string) => fetchDomainConfigs($api, extid),
     upsertConfig: (extid: string, kind: EditableDomainConfigKind, body: Record<string, unknown>) =>
       upsertDomainConfig($api, extid, kind, body),

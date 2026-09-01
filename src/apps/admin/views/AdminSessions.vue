@@ -15,6 +15,7 @@
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
   import { useAdminSessions } from '@/apps/admin/stores/useAdminSessions';
+  import { reasonQueryArgs } from '@/apps/admin/utils/operatorReason';
   import type { ColonelSession } from '@/schemas/api/internal/responses/colonel-sessions';
   import {
     colonelSessionDetailResponseSchema,
@@ -266,11 +267,13 @@
     error: revokeError,
     run: runRevoke,
     reset: resetRevoke,
-  } = useAdminMutation(async () => {
+  } = useAdminMutation(async (reason?: string) => {
     const sessionId = revokeTarget.value;
     if (!sessionId) throw new Error('No session selected');
+    // DELETE -> the reason rides the query string (see operatorReason.ts).
     const response = await $api.delete(
-      `/api/colonel/sessions/${encodeURIComponent(sessionId)}`
+      `/api/colonel/sessions/${encodeURIComponent(sessionId)}`,
+      ...reasonQueryArgs(reason)
     );
     // A 2xx means the session was revoked server-side regardless of ack shape;
     // the parse keeps the contract a live tripwire without failing the action.
@@ -287,9 +290,9 @@
     revokeDialogOpen.value = true;
   }
 
-  async function onRevokeConfirm(): Promise<void> {
+  async function onRevokeConfirm(reason?: string): Promise<void> {
     const revokedId = revokeTarget.value;
-    const ok = await runRevoke();
+    const ok = await runRevoke(reason);
     if (!ok) return; // Failure message stays in the dialog for retry/cancel.
 
     revokeDialogOpen.value = false;
@@ -573,6 +576,7 @@
       :confirm-token="revokeTarget"
       variant="danger"
       :confirm-text="t('web.admin.sessions.revoke.button')"
+      request-reason
       :loading="revokeLoading"
       :error="revokeError"
       @confirm="onRevokeConfirm"

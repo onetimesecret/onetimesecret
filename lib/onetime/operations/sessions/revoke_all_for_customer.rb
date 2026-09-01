@@ -7,6 +7,7 @@ require 'onetime/session/sidecar'
 require 'onetime/models/session_metadata'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/audit_reason'
 
 module Onetime
   module Operations
@@ -64,6 +65,7 @@ module Onetime
       # Stateless, single `#call`, returns an immutable {Result}.
       class RevokeAllForCustomer
         include Onetime::AuditedFailure
+        include Onetime::AuditReason
 
         # Audit verb recorded for every customer-scoped revoke-all.
         AUDIT_VERB = 'session.revoke_all'
@@ -91,10 +93,17 @@ module Onetime
 
         # @param custid [String] the target customer (route param; extid/email/objid).
         # @param actor [String, #extid] acting colonel's PUBLIC identity (extid).
+        # @param reason [String, nil] OPTIONAL operator-supplied why (#4338),
+        #   recorded in the audit detail. Offboarding and account-takeover
+        #   response look identical in the trail without it. Blank is treated as
+        #   absent and the detail keeps its pre-#4338 shape; see
+        #   {Onetime::AuditReason} for the bound and the optional-now /
+        #   required-later rollout.
         # @param dbclient [Object, nil] Redis-like client; defaults to Familia.dbclient.
-        def initialize(custid:, actor:, dbclient: nil)
+        def initialize(custid:, actor:, reason: nil, dbclient: nil)
           @custid   = custid
           @actor    = actor
+          @reason   = normalize_reason(reason)
           @dbclient = dbclient
         end
 
@@ -128,12 +137,12 @@ module Onetime
             verb: AUDIT_VERB,
             target: @custid,
             result: :success,
-            detail: {
+            detail: with_reason(
               blobs_deleted: blobs_deleted,
               untracked_deleted: untracked_deleted,
               rodauth_rows_deleted: rodauth_rows_deleted,
               scan_capped: scan_capped,
-            },
+            ),
             fail_closed: true,
           )
 

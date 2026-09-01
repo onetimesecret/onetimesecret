@@ -8,6 +8,7 @@ import {
   usePaginatedFetch,
   type PageMeta,
 } from '@/apps/admin/composables/usePaginatedFetch';
+import { reasonQueryArgs } from '@/apps/admin/utils/operatorReason';
 import {
   colonelUserMutationResponseSchema,
   colonelUsersResponseSchema,
@@ -158,10 +159,12 @@ export const useAdminCustomers = defineStore('adminCustomers', () => {
    * refetch the page afterwards (totals/pagination move server-side).
    *
    * @param userId the customer's public id (extid, 'ur…').
+   * @param reason OPTIONAL operator-supplied why (#4338) — query string, since
+   *   this is a DELETE. Omitted entirely when blank.
    * @throws the network/HTTP error, for `useAdminMutation` to classify.
    */
-  async function purge(userId: string): Promise<void> {
-    const response = await $api.delete(userUrl(userId));
+  async function purge(userId: string, reason?: string): Promise<void> {
+    const response = await $api.delete(userUrl(userId), ...reasonQueryArgs(reason));
     parseMutationAck(response.data);
     customers.value = customers.value.filter((row) => row.user_id !== userId);
   }

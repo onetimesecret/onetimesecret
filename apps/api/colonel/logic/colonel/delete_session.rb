@@ -22,10 +22,13 @@ module ColonelAPI
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.
       class DeleteSession < ColonelAPI::Logic::Base
-        attr_reader :session_id, :result
+        attr_reader :session_id, :reason, :result
 
         def process_params
           @session_id = sanitize_identifier(params['session_id'])
+          # OPTIONAL operator-supplied why (#4338) — query string, since this is
+          # a DELETE. See ColonelAPI::Logic::Base#operator_reason_param.
+          @reason     = operator_reason_param
           raise_form_error('Session ID is required', field: :session_id) if session_id.to_s.empty?
         end
 
@@ -45,6 +48,7 @@ module ColonelAPI
           @result = Onetime::Operations::Sessions::Delete.new(
             session_id: session_id,
             actor: cust.extid,
+            reason: reason,
           ).call
 
           success_data

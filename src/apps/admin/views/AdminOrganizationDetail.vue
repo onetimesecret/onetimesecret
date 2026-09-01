@@ -12,6 +12,7 @@
   import { colonelAddMembershipResponseSchema } from '@/apps/admin/components/organizations/membershipSchemas';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
+  import { reasonQueryArgs } from '@/apps/admin/utils/operatorReason';
   import type { InvestigateOrganizationResult } from '@/schemas/api/internal/responses/colonel';
   import {
     colonelAvailablePlansResponseSchema,
@@ -761,12 +762,15 @@
     error: deleteError,
     run: runDeleteMutation,
     reset: resetDelete,
-  } = useAdminMutation(async () => {
+  } = useAdminMutation(async (reason?: string) => {
     // The server refuses these on the apply path too (4xx). Checking here means
     // the operator reads the reason instead of a generic request failure.
     if (deleteBlockedReason.value) throw new Error(deleteBlockedReason.value);
 
-    const response = await $api.delete(deleteUrl(false));
+    // The OPTIONAL operator reason (#4338) joins the flags on the query string.
+    // Only the APPLY sends it: the preview above re-runs on every override
+    // toggle, and the dialog collecting the reason is not open yet.
+    const response = await $api.delete(deleteUrl(false), ...reasonQueryArgs(reason));
     const parsed = gracefulParse(
       colonelDeleteOrganizationResponseSchema,
       response.data,
@@ -808,8 +812,8 @@
     runDeletePreview();
   });
 
-  async function onDeleteConfirm(): Promise<void> {
-    const ok = await runDeleteMutation();
+  async function onDeleteConfirm(reason?: string): Promise<void> {
+    const ok = await runDeleteMutation(reason);
     if (!ok) return; // Failure message stays in the dialog for retry/cancel.
 
     deleteDialogOpen.value = false;
@@ -1816,6 +1820,7 @@
       :confirm-token="record?.extid"
       variant="danger"
       :confirm-text="t('web.admin.organizations.detail.delete.button')"
+      request-reason
       :loading="deleteLoading || deletePreviewLoading"
       :error="deleteError || deletePreviewError"
       @confirm="onDeleteConfirm"

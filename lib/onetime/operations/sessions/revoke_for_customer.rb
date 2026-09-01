@@ -7,6 +7,7 @@ require 'onetime/session/sidecar'
 require 'onetime/models/session_metadata'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/audit_reason'
 
 module Onetime
   module Operations
@@ -40,6 +41,7 @@ module Onetime
       # Stateless, single `#call`, returns an immutable {Result}.
       class RevokeForCustomer
         include Onetime::AuditedFailure
+        include Onetime::AuditReason
 
         # Audit verb recorded for every customer-scoped session revoke.
         AUDIT_VERB = 'session.revoke'
@@ -58,11 +60,16 @@ module Onetime
         # @param custid [String] the target customer (route param; extid/email/objid).
         # @param session_id [String] the bare session id to revoke.
         # @param actor [String, #extid] acting colonel's PUBLIC identity (extid).
+        # @param reason [String, nil] OPTIONAL operator-supplied why (#4338),
+        #   recorded in the audit detail. Blank is treated as absent and the
+        #   detail keeps its pre-#4338 shape. See {Onetime::AuditReason} for
+        #   the bound and the optional-now / required-later rollout.
         # @param dbclient [Object, nil] Redis-like client; defaults to Familia.dbclient.
-        def initialize(custid:, session_id:, actor:, dbclient: nil)
+        def initialize(custid:, session_id:, actor:, reason: nil, dbclient: nil)
           @custid      = custid
           @session_id  = session_id
           @actor       = actor
+          @reason      = normalize_reason(reason)
           @dbclient    = dbclient
         end
 
@@ -109,7 +116,7 @@ module Onetime
           # DIFFERENT owner than the route customer we surface `session_user_id` in
           # detail so the revoke is not silently mis-attributed. The true owner's
           # stale index member self-heals via ListForCustomer's blob-liveness prune.
-          detail = { session_id: @session_id, blob_deleted: blob_deleted }
+          detail = with_reason(session_id: @session_id, blob_deleted: blob_deleted)
           if session_user_id && customer && session_user_id != customer.extid
             detail[:session_user_id] = session_user_id
           end

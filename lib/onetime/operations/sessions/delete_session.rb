@@ -6,6 +6,7 @@ require 'onetime/operations/sessions/store'
 require 'onetime/session/sidecar'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
+require 'onetime/audit_reason'
 
 module Onetime
   module Operations
@@ -28,6 +29,7 @@ module Onetime
       # event (nothing mutated) — the "only audit an actual change" rule.
       class Delete
         include Onetime::AuditedFailure
+        include Onetime::AuditReason
 
         # Audit verb recorded for every successful revoke.
         AUDIT_VERB = 'session.delete'
@@ -42,10 +44,16 @@ module Onetime
         # @param session_id [String] the bare session id to revoke.
         # @param actor [String, #extid, #email] acting admin's PUBLIC identity
         #   (colonel extid/email, or a CLI sentinel). Never an internal objid.
+        # @param reason [String, nil] OPTIONAL operator-supplied why (#4338),
+        #   recorded in the audit detail. Blank is treated as absent, and with
+        #   no reason this op records NO detail at all — its pre-#4338 shape.
+        #   See {Onetime::AuditReason} for the bound and the optional-now /
+        #   required-later rollout.
         # @param dbclient [Object, nil] Redis-like client; defaults to Familia.dbclient.
-        def initialize(session_id:, actor:, dbclient: nil)
+        def initialize(session_id:, actor:, reason: nil, dbclient: nil)
           @session_id = session_id
           @actor      = actor
+          @reason     = normalize_reason(reason)
           @dbclient   = dbclient
         end
 
@@ -73,11 +81,15 @@ module Onetime
           #
           # FAIL-CLOSED (#4333): the blob and its sidecars are already deleted,
           # so nothing else survives to say the session was killed or by whom.
+          # `detail` stays nil — the model's own default — unless the operator
+          # supplied a reason (#4338); this verb has no other context worth
+          # recording, since the session id is already the target.
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @session_id,
             result: :success,
+            detail: with_reason,
             fail_closed: true,
           )
 

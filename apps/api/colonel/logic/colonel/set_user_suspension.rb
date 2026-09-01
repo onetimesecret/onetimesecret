@@ -29,7 +29,9 @@ module ColonelAPI
 
         def process_params
           @user_id = sanitize_identifier(params['user_id'])
-          @reason  = sanitize_plain_text(params['reason'], max_length: 255) if params['reason']
+          # Predates #4338; now uses the shared reader so the param name, the
+          # sanitizer and the 255-char bound match every other destructive verb.
+          @reason  = operator_reason_param
           raise_form_error('User ID is required', field: :user_id) if user_id.to_s.empty?
         end
 

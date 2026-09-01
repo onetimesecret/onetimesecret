@@ -18,12 +18,19 @@ module Onetime
 
       argument :domain_name, type: :string, required: true, desc: 'Domain name, extid, or ID'
 
+      # OPTIONAL operator-supplied why (#4338), recorded in the audit detail
+      # of the event this command's op writes. Same flag, same wording and same
+      # blank-means-absent handling as every other destructive CLI verb.
+      option :reason,
+        type: :string,
+        default: nil,
+        desc: 'Operator-supplied reason (recorded in the admin audit trail)'
       option :force,
         type: :boolean,
         default: false,
         desc: 'Skip confirmation prompt'
 
-      def call(domain_name:, force: false, **)
+      def call(domain_name:, reason: nil, force: false, **)
         boot_application!
 
         domain = load_domain(domain_name)
@@ -34,6 +41,7 @@ module Onetime
           domain: domain,
           actor: CLI_ACTOR,
           dry_run: true,
+          reason: reason,
         ).call
 
         # Display removal details from the plan.
@@ -66,6 +74,7 @@ module Onetime
             domain: domain,
             actor: CLI_ACTOR,
             dry_run: false,
+            reason: reason,
           ).call
 
           puts "  Removed #{result.display_domain}"

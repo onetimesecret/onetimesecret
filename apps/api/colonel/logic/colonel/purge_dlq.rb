@@ -31,6 +31,10 @@ module ColonelAPI
           @queue    = sanitize_queue_name(params['queue'])
           @dlq_name = Onetime::Operations::Dlq::Store.resolve(@queue)
           @dry_run  = truthy?(params['dry_run'])
+          # OPTIONAL operator-supplied why (#4338). See
+          # ColonelAPI::Logic::Base#operator_reason_param. Threaded on the
+          # dry-run path too — the op carries it onto the preview observation.
+          @reason   = operator_reason_param
         end
 
         def raise_concerns
@@ -53,6 +57,7 @@ module ColonelAPI
             queue: dlq_name,
             actor: cust.extid,
             dry_run: @dry_run,
+            reason: @reason,
           ).call
 
           success_data

@@ -3,6 +3,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
+import { reasonBodyArgs, reasonQueryArgs } from '@/apps/admin/utils/operatorReason';
 import { useApi } from '@/shared/composables/useApi';
 import {
   colonelCustomerSessionsResponseSchema,
@@ -11,7 +12,7 @@ import {
 } from '@/schemas/api/internal/responses/colonel-customer-sessions';
 import type {
   AdminCustomerSession,
-  ColonelCustomerSessionRevokeAllRecord,
+  ColonelCustomerSessionRevokeAllRecord as RevokeAllRecord,
 } from '@/schemas/api/internal/responses/colonel-customer-sessions';
 import { gracefulParse } from '@/utils/schemaValidation';
 
@@ -39,7 +40,7 @@ import { gracefulParse } from '@/utils/schemaValidation';
  */
 
 /** Zero-count fallback when the revoke-all ack drifts from its schema. */
-const EMPTY_REVOKE_ALL: ColonelCustomerSessionRevokeAllRecord = {
+const EMPTY_REVOKE_ALL: RevokeAllRecord = {
   revoked: true,
   blobs_deleted: 0,
   untracked_deleted: 0,
@@ -122,10 +123,9 @@ export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () 
    * the row stays. The ack is schema-checked as a live tripwire (never fails the
    * action on drift). Throws the network/HTTP error for useAdminMutation to catch.
    */
-  async function revoke(userId: string, sessionHandle: string): Promise<void> {
-    const response = await $api.delete(
-      `${sessionsUrl(userId)}/${encodeURIComponent(sessionHandle)}`
-    );
+  async function revoke(userId: string, sessionHandle: string, reason?: string): Promise<void> {
+    const url = `${sessionsUrl(userId)}/${encodeURIComponent(sessionHandle)}`;
+    const response = await $api.delete(url, ...reasonQueryArgs(reason));
     gracefulParse(
       colonelCustomerSessionRevokeResponseSchema,
       response.data,
@@ -134,9 +134,14 @@ export const useAdminCustomerSessions = defineStore('adminCustomerSessions', () 
     sessions.value = sessions.value.filter((s) => s.session_handle !== sessionHandle);
   }
 
-  /** Revoke ALL sessions (offboarding/takeover); clears the list, returns kill counts. */
-  async function revokeAll(userId: string): Promise<ColonelCustomerSessionRevokeAllRecord> {
-    const response = await $api.post(`${sessionsUrl(userId)}/revoke-all`);
+  /**
+   * Revoke ALL sessions (offboarding/takeover); clears the list, returns kill
+   * counts. `reason` is the OPTIONAL operator why (#4338) — offboarding and
+   * account-takeover response read identically in the trail without it.
+   */
+  async function revokeAll(userId: string, reason?: string): Promise<RevokeAllRecord> {
+    const url = `${sessionsUrl(userId)}/revoke-all`;
+    const response = await $api.post(url, ...reasonBodyArgs(reason));
     const schema = colonelCustomerSessionRevokeAllResponseSchema;
     const result = gracefulParse(schema, response.data, 'ColonelCustomerSessionRevokeAllResponse');
     sessions.value = []; // every session is gone regardless of ack shape
