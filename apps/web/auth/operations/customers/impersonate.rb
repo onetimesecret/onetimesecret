@@ -3,45 +3,61 @@
 # frozen_string_literal: true
 
 require 'onetime/models/colonel_audit_event'
-require 'onetime/models/impersonation_grant'
 require 'onetime/audited_failure'
+require 'onetime/entitlement_preview'
+require 'onetime/session/impersonation'
 
 module Auth
   module Operations
     module Customers
-      # Issue a single-use, short-TTL impersonation grant for a customer.
+      # START a colonel impersonation on the CURRENT session.
       #
-      # The ONE implementation of the impersonate verb. The CLI
-      # `customers impersonate` command is a thin adapter over it; a future
-      # colonel endpoint would be the second. This op does NOT establish a
-      # session — see {Onetime::ImpersonationGrant} for why a session cannot be
-      # safely minted from here (CLI/off-request), and why we mint a grant that
-      # the WEB surface redeems instead.
+      # The ONE implementation of the impersonate verb; the colonel endpoint
+      # (ColonelAPI::Logic::Colonel::ImpersonateUser) is a thin adapter over
+      # it. Writes the session marker, records the audit event, and returns the
+      # non-secret correlation id.
+      #
+      # ## Why this takes a session instead of minting a capability
+      #
+      # An earlier iteration issued a bearer grant that the web surface would
+      # redeem, so a CLI could start an impersonation. But the only redeemer
+      # that yields a VERIFIED actor is an authenticated colonel on the web
+      # surface, and there issuance and redemption happen inside one request —
+      # so the grant crossed no boundary and carried nothing. What it did add
+      # was a redeemable capability with a TTL, sitting in a datastore. The
+      # session marker is strictly less material: it exists only inside the
+      # operator's own already-authenticated session.
       #
       # ## ADR-023 — no fabricated actor
       #
-      # An impersonation MUST record the REAL operator as actor and the target as
-      # subject, un-fakeably. This op refuses to run without a non-empty operator
-      # actor ({MissingActor}) rather than mint an unattributable grant, and it
-      # records the actor from inside #call (not from the CLI wrapper) so no
-      # adapter can bypass it. Because the failure path is also audited
-      # ({audit_failures}), a refused attempt is itself in the trail.
+      # An impersonation MUST record the REAL operator as actor and the target
+      # as subject, un-fakeably. This op refuses to run without a non-empty
+      # operator actor ({MissingActor}) rather than start an unattributable
+      # impersonation, and it records the actor from inside #call (not from the
+      # adapter) so no caller can bypass it. The failure path is audited too
+      # ({audit_failures}), so a refused attempt is itself in the trail.
       #
-      # ## Privilege guard
+      # ## Guards
       #
-      # A colonel-role account cannot be impersonated ({PrivilegedTarget}): a
-      # session as a colonel would let a lower operator inherit colonel powers.
-      # Mirrors SetSuspension's PrivilegedAccount refusal.
+      # A colonel-role target ({PrivilegedTarget}) would let a lower operator
+      # inherit colonel powers — mirrors SetSuspension's PrivilegedAccount
+      # refusal. A suspended target ({SuspendedTarget}) is rejected because
+      # BaseSessionAuthStrategy refuses suspended customers on every request,
+      # so the resulting overlay would be immediately invalid anyway. And an
+      # already-impersonating session ({AlreadyImpersonating}) must be stopped
+      # first: silently replacing the marker would leave the first
+      # impersonation with no stop event.
       class Impersonate
         include Onetime::LoggerMethods
         include Onetime::AuditedFailure
 
-        AUDIT_VERB = 'customer.impersonate'
+        AUDIT_VERB = Onetime::SessionImpersonation::AUDIT_VERB_START
 
-        # The privilege / precondition guards below raise BEFORE the success-path
-        # record, so without this a refused impersonation attempt leaves no
-        # trace. Records one result: :failure event and re-raises. Authorization
-        # rejections are excluded by AuditedFailure by construction.
+        # The privilege / precondition guards below raise BEFORE the
+        # success-path record, so without this a refused impersonation attempt
+        # leaves no trace. Records one result: :failure event and re-raises.
+        # Authorization rejections are excluded by AuditedFailure by
+        # construction.
         audit_failures :call, verb: AUDIT_VERB, target: -> { @customer&.extid }
 
         # Raised when no real operator actor is supplied (ADR-023). Adapters
@@ -52,82 +68,106 @@ module Auth
         # recorded reason is not permitted.
         class MissingReason < StandardError; end
 
+        # Raised when there is no session to place the marker on. Guards
+        # against an adapter (or a future CLI) trying to start an
+        # impersonation off-request, which cannot work by construction.
+        class MissingSession < StandardError; end
+
         # Raised when asked to impersonate a colonel-role account.
         class PrivilegedTarget < StandardError; end
 
         # Raised when the target is the anonymous customer.
         class AnonymousTarget < StandardError; end
 
+        # Raised when the target is suspended.
+        class SuspendedTarget < StandardError; end
+
+        # Raised when this session is already impersonating someone.
+        class AlreadyImpersonating < StandardError; end
+
         # @!attribute status [r]
-        #   @return [Symbol] :issued
-        # @!attribute token [r]
-        #   @return [String] the BEARER capability — the caller delivers it to the
-        #     operator; it must never be logged.
-        Result = Data.define(:status, :customer, :actor, :reason, :token, :grant_id, :expires_in)
+        #   @return [Symbol] :started
+        # @!attribute impersonation_id [r]
+        #   @return [String] NON-SECRET correlation id ("imp_…"), safe to log,
+        #     audit, and return to the client. There is no bearer token.
+        Result = Data.define(:status, :customer, :actor, :reason, :impersonation_id, :expires_at)
 
         # @param customer [Onetime::Customer] target (caller ensures non-nil)
         # @param actor [String, #extid, #email] the REAL operator's PUBLIC
         #   identity. Normalized to a string here; empty/nil is refused.
         # @param reason [String] mandatory justification (recorded in the audit)
-        # @param ttl [Integer, nil] grant lifetime in seconds; clamped by the
-        #   grant model (nil resolves to the model default inside clamp_ttl).
-        # @param grant_model [Class] injection seam for tests; defaults to
-        #   Onetime::ImpersonationGrant.
-        def initialize(customer:, actor:, reason:, ttl: nil, grant_model: Onetime::ImpersonationGrant)
-          @customer    = customer
-          @actor       = normalize_actor(actor)
-          @reason      = reason.to_s.strip
-          @ttl         = ttl
-          @grant_model = grant_model
+        # @param session [#[]=] the operator's live Rack session — the thing
+        #   the marker is written to.
+        def initialize(customer:, actor:, reason:, session:)
+          @customer = customer
+          @actor    = normalize_actor(actor)
+          @reason   = reason.to_s.strip
+          @session  = session
         end
 
         # @return [Result]
-        # @raise [MissingActor, MissingReason, PrivilegedTarget, AnonymousTarget]
+        # @raise [MissingActor, MissingReason, MissingSession, PrivilegedTarget,
+        #   AnonymousTarget, SuspendedTarget, AlreadyImpersonating]
         def call
-          # ADR-023: fail loud rather than mint an unattributable grant.
-          raise MissingActor, 'Impersonation requires a real operator actor (ADR-023)' if @actor.to_s.strip.empty?
-          raise MissingReason, 'Impersonation requires a reason' if @reason.empty?
-          raise AnonymousTarget, 'Cannot impersonate an anonymous customer' if @customer.anonymous?
+          validate!
 
-          if @customer.role.to_s == 'colonel'
-            raise PrivilegedTarget, 'Cannot impersonate a colonel-role account.'
-          end
+          # An entitlement preview would silently distort what the operator
+          # sees "as the customer" — the whole point of impersonating is to see
+          # the customer's real limits and affordances. End it here rather than
+          # letting two overlays stack.
+          Onetime::EntitlementPreview.clear_session!(@session)
 
-          ttl   = @grant_model.clamp_ttl(@ttl)
-          grant = @grant_model.issue(
-            target_extid: @customer.extid,
-            target_email: @customer.email,
-            actor: @actor,
+          marker = Onetime::SessionImpersonation.start!(
+            @session,
+            target: @customer,
             reason: @reason,
-            ttl: ttl,
           )
 
-          # Audit records the NON-SECRET grant_id, never the bearer token (the
-          # trail is colonel-readable; a token there is a redeemable capability).
+          record_start(marker)
+
+          Result.new(
+            status: :started,
+            customer: @customer,
+            actor: @actor,
+            reason: @reason,
+            impersonation_id: marker['id'],
+            expires_at: marker['expires_at'],
+          )
+        end
+
+        private
+
+        def validate!
+          # ADR-023: fail loud rather than start an unattributable session.
+          raise MissingActor, 'Impersonation requires a real operator actor (ADR-023)' if @actor.to_s.strip.empty?
+          raise MissingReason, 'Impersonation requires a reason' if @reason.empty?
+          raise MissingSession, 'Impersonation requires a live session' unless @session.respond_to?(:[]=)
+          raise AnonymousTarget, 'Cannot impersonate an anonymous customer' if @customer.anonymous?
+          raise PrivilegedTarget, 'Cannot impersonate a colonel-role account.' if @customer.role.to_s == 'colonel'
+          raise SuspendedTarget, 'Cannot impersonate a suspended account.' if @customer.suspended?
+
+          return unless Onetime::SessionImpersonation.active(@session)
+
+          raise AlreadyImpersonating, 'This session is already impersonating a customer.'
+        end
+
+        def record_start(marker)
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @customer.extid,
             result: :success,
-            detail: { reason: @reason, grant_id: grant.grant_id, ttl: ttl },
+            detail: {
+              reason: @reason,
+              impersonation_id: marker['id'],
+              expires_at: marker['expires_at'],
+            },
           )
 
-          # debug (not info): the audit event is the durable record and the token
-          # must stay out of logs (see SetRole for the CLI output-contract note).
-          auth_logger.debug "[customer.impersonate] grant issued for #{@customer.extid} by #{@actor} ttl=#{ttl}"
-
-          Result.new(
-            status: :issued,
-            customer: @customer,
-            actor: @actor,
-            reason: @reason,
-            token: grant.token,
-            grant_id: grant.grant_id,
-            expires_in: ttl,
+          auth_logger.info(
+            "[customer.impersonate.start] #{@customer.extid} by #{@actor} id=#{marker['id']}",
           )
         end
-
-        private
 
         # Normalize actor to a PUBLIC identity string (extid/email), never an
         # internal objid. Returns nil for an unusable actor so #call can refuse.
