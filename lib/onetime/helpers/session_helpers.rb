@@ -22,6 +22,8 @@
 #   has_role?(:colonel) # Fast - checks session only
 #   current_customer    # Slow - loads from Redis (use sparingly)
 
+require_relative '../session/impersonation'
+
 module Onetime
   module Helpers
     module SessionHelpers
@@ -68,6 +70,14 @@ module Onetime
 
       def logout!
         session_id = session.id&.private_id if session.respond_to?(:id)
+
+        # Close the impersonation FIRST. session.clear would take the marker
+        # with it and leave the audit trail holding a start with no end.
+        Onetime::SessionImpersonation.stop!(
+          session,
+          ended_by: Onetime::SessionImpersonation::ENDED_BY_LOGOUT,
+        )
+
         session.clear
         OT.info "[logout] Session #{session_id} destroyed" if session_id
       end
@@ -77,14 +87,37 @@ module Onetime
       def load_current_customer
         return nil unless authenticated?
 
-        customer = Onetime::Customer.find_by_extid(session['external_id'])
-        return nil unless customer
+        # The PRINCIPAL — always the session owner, never the impersonation
+        # target. session['external_id'] stays the colonel's extid for the
+        # whole impersonation (overlay, not swap).
+        principal = Onetime::Customer.find_by_extid(session['external_id'])
+        return nil unless principal
 
-        # Update cached session data if it changed
-        session['role']      = customer.role if session['role'] != customer.role
+        customer, impersonating = Onetime::SessionImpersonation.resolve(
+          session, principal, env: rack_env_for_impersonation
+        )
+
+        # Refresh the cached role from the PRINCIPAL only. Writing the target's
+        # role here would stamp a customer role into the colonel's own session
+        # blob, and `has_role?`/`colonel?` read that cache without loading a
+        # Customer — so a single impersonation would silently demote the
+        # operator for the rest of the session, surviving the stop.
+        session['role']      = principal.role if !impersonating && session['role'] != principal.role
         session['last_seen'] = Familia.now.to_i
 
         customer
+      end
+
+      # The Rack env, when this helper is mixed into something that has a
+      # request (controllers do; bare unit harnesses may not). Only used to
+      # share the per-request impersonation target memo — nil just means one
+      # extra Customer load, never a different answer.
+      def rack_env_for_impersonation
+        return nil unless respond_to?(:request) && request.respond_to?(:env)
+
+        request.env
+      rescue StandardError
+        nil
       end
 
       # Should sessions enforce authentication checks?

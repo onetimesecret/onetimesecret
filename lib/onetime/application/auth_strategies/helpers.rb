@@ -5,6 +5,8 @@
 require 'rack/request'
 require 'otto'
 
+require_relative '../../session/impersonation'
+
 #
 # Shared helper methods for authentication strategies.
 #
@@ -61,8 +63,10 @@ module Onetime
         # Loads customer from session if authenticated
         #
         # @param session [Hash] Rack session
+        # @param env [Hash, nil] Rack env, for the per-request impersonation
+        #   target memo (Onetime::SessionImpersonation::TARGET_ENV_KEY)
         # @return [Onetime::Customer, nil] Customer if found, nil otherwise
-        def load_user_from_session(session)
+        def load_user_from_session(session, env = nil)
           return nil unless session
           return nil unless session['authenticated'] == true
 
@@ -77,9 +81,18 @@ module Onetime
           # session degrades to nil/anonymous — never a 401 here; the
           # session-requiring strategies reject with SESSION_STALE_CREDENTIALS
           # in BaseSessionAuthStrategy instead.
+          #
+          # Judged on the PRINCIPAL, before the impersonation overlay: the
+          # watermark belongs to the session owner's credentials, not to the
+          # customer being presented.
           return nil if session_predates_credential_change?(session, cust)
 
-          cust
+          # Colonel impersonation overlay (see Onetime::SessionImpersonation).
+          # Anonymous-capable routes must see the same effective customer as
+          # the session-requiring ones, or a noauth route would render the
+          # operator's own data mid-impersonation.
+          effective, = Onetime::SessionImpersonation.resolve(session, cust, env: env)
+          effective
         rescue StandardError => ex
           OT.le "[auth_strategy] Failed to load customer: #{ex.message}"
           OT.ld ex.backtrace.first(3).join("\n")
@@ -147,7 +160,7 @@ module Onetime
         def valid_session_identity?(env)
           return false unless env.is_a?(Hash)
 
-          !load_user_from_session(env['rack.session']).nil?
+          !load_user_from_session(env['rack.session'], env).nil?
         end
 
         # Resolve the client IP for auth metadata.

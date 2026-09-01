@@ -10,6 +10,7 @@
 #
 # @see Onetime::Application::AuthStrategies
 
+require_relative '../../session/impersonation'
 require_relative 'helpers'
 
 module Onetime
@@ -66,6 +67,18 @@ module Onetime
           if session_predates_credential_change?(session, cust)
             return failure('[SESSION_STALE_CREDENTIALS] Session predates last credential change')
           end
+
+          # Colonel impersonation overlay. THE authoritative resolution: this
+          # strategy_result.user is what Onetime::Logic::Base#cust returns and
+          # what additional_metadata builds user_roles from, so from here down
+          # the request IS the target customer — including the role checks
+          # that make /api/colonel 403 while impersonating.
+          #
+          # Deliberately AFTER the suspension and credential-watermark checks
+          # above: those judge the PRINCIPAL (the operator), and a suspended or
+          # credential-revoked colonel must lose the whole session, not just
+          # the overlay.
+          cust, = Onetime::SessionImpersonation.resolve(session, cust, env: env)
 
           # Perform additional checks (role, permissions, etc.)
           check_result = additional_checks(cust, env)
