@@ -213,6 +213,32 @@ jobs:
       - name: Assert compose image pins match README (drift gate)
         run: bash scripts/check-version-pins.sh
 
+      # Sentry CLI is resolved from the integrity-pinned devDependency in
+      # pnpm-lock.yaml (@sentry/cli 3.6.2), NOT fetched from the npm registry at
+      # execution time. Without a node_modules on the runner, `npx @sentry/cli`
+      # in the Sentry steps below would fetch @latest AND run its install-time
+      # lifecycle script mid-release, bypassing both the lockfile pin and the
+      # repo's Renovate quarantine. Installing from the frozen lockfile up
+      # front, then calling `pnpm exec sentry-cli`, keeps every Sentry
+      # invocation on the pinned version: the registry is still contacted here
+      # (uncached downloads, and the lifecycle scripts pnpm-workspace.yaml
+      # allowlists), but only for integrity-checked, lockfile-named packages.
+      #
+      # Deliberately BEFORE the registry logins below: pnpm lifecycle scripts
+      # run arbitrary package code, and this ordering means none of it executes
+      # on a runner that already holds push credentials.
+      #
+      # continue-on-error matches the Sentry steps this install serves — they
+      # are all best-effort (continue-on-error / explicit exit 0), so a
+      # transient install failure must degrade telemetry, not block the image
+      # release. setup-node-env is the same composite action ci.yml uses
+      # (Node + pnpm + `pnpm install --frozen-lockfile`); gated to non-PR runs
+      # to match the Sentry steps that consume it.
+      - name: Setup Node.js environment (pinned sentry-cli)
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        uses: ./.github/actions/setup-node-env
+
       - name: Generate commit hash
         id: commit
         run: |
@@ -473,9 +499,9 @@ jobs:
           rc=0
           for phase in new set-commits finalize; do
             case "$phase" in
-              new)         out=$(npx @sentry/cli releases new "$SENTRY_RELEASE" $PROJECT_FLAGS 2>&1) ;;
-              set-commits) out=$(npx @sentry/cli releases set-commits "$SENTRY_RELEASE" --auto $PROJECT_FLAGS 2>&1) ;;
-              finalize)    out=$(npx @sentry/cli releases finalize "$SENTRY_RELEASE" $PROJECT_FLAGS 2>&1) ;;
+              new)         out=$(pnpm exec sentry-cli releases new "$SENTRY_RELEASE" $PROJECT_FLAGS 2>&1) ;;
+              set-commits) out=$(pnpm exec sentry-cli releases set-commits "$SENTRY_RELEASE" --auto $PROJECT_FLAGS 2>&1) ;;
+              finalize)    out=$(pnpm exec sentry-cli releases finalize "$SENTRY_RELEASE" $PROJECT_FLAGS 2>&1) ;;
             esac
             rc=$?
             log_cli_output "$out"
@@ -545,7 +571,7 @@ jobs:
             UPLOAD_ARGS+=(--dist="$SENTRY_DIST")
           fi
 
-          out=$(npx @sentry/cli sourcemaps upload "${UPLOAD_ARGS[@]}" 2>&1)
+          out=$(pnpm exec sentry-cli sourcemaps upload "${UPLOAD_ARGS[@]}" 2>&1)
           rc=$?
           log_cli_output "$out"
 
@@ -621,7 +647,7 @@ jobs:
             printf '%s\n' "$1" | sed 's/^/sentry-cli: /'
           }
 
-          out=$(npx @sentry/cli releases deploys "$SENTRY_RELEASE" new -e production 2>&1)
+          out=$(pnpm exec sentry-cli releases deploys "$SENTRY_RELEASE" new -e production 2>&1)
           rc=$?
           log_cli_output "$out"
           if [ "$rc" -ne 0 ]; then
