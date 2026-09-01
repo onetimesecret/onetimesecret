@@ -6,8 +6,9 @@
 #
 # Covers: it reuses (delegates to) the incumbent SetCustomerVerification op,
 # passes through the result symbol + db, audits exactly once on :success,
-# does not audit on :no_change, and records one result: :failure (then
-# re-raises) when the inner op raises one of its documented error classes.
+# audits the ATTEMPT on :no_change too (#4337, marked outcome: no_change), and
+# records one result: :failure (then re-raises) when the inner op raises one of
+# its documented error classes.
 #
 # Run: pnpm run test:rspec apps/web/auth/spec/operations/customers/set_verification_spec.rb
 
@@ -44,7 +45,12 @@ RSpec.describe Auth::Operations::Customers::SetVerification do
     )
   end
 
-  it 'does not audit on :no_change' do
+  # #4337: a :no_change mutated nothing, but it is still a deliberate ADMIN
+  # attempt to verify a named account — and this wrapper exists precisely so
+  # admin verifications are distinguishable from the self-service Rodauth ones.
+  # Dropping the no-op meant the trail could show nothing while an operator
+  # repeatedly poked at an account's verification state.
+  it 'audits the attempt on :no_change, marked outcome: no_change' do
     allow(inner).to receive(:call).and_return(:no_change)
 
     result = described_class.new(
@@ -52,7 +58,25 @@ RSpec.describe Auth::Operations::Customers::SetVerification do
     ).call
 
     expect(result).to eq(:no_change)
-    expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+    expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+      actor: 'x',
+      verb: 'customer.set_verification',
+      target: 'ur_v',
+      result: :success,
+      detail: { outcome: 'no_change', verified: true },
+    )
+  end
+
+  # Verification is reversible and destroys nothing, so neither path fails
+  # closed.
+  it 'does not fail closed on either path' do
+    allow(inner).to receive(:call).and_return(:no_change)
+
+    described_class.new(
+      customer: customer, verified: true, actor: 'x', verified_by: 'colonel_admin'
+    ).call
+
+    expect(Onetime::ColonelAuditEvent).to have_received(:record).with(hash_excluding(:fail_closed))
   end
 
   it 'passes an injected db through to the underlying op' do

@@ -6,8 +6,9 @@
 #
 # Covers: successful suspend (+ exactly one audit event + session sweep),
 # unsuspend (clears fields, no sweep), idempotent no_change (no save, no
-# audit), the colonel privilege guard, and the exact-match session predicate
-# (a substring must NOT revoke a different customer's session).
+# sweep, but STILL one audit event since #4337), the operator reason threaded
+# through it (#4338), the colonel privilege guard, and the exact-match session
+# predicate (a substring must NOT revoke a different customer's session).
 #
 # Run: pnpm run test:rspec apps/web/auth/spec/operations/customers/set_suspension_spec.rb
 
@@ -101,7 +102,11 @@ RSpec.describe Auth::Operations::Customers::SetSuspension do
       expect(result.sessions_revoked).to eq(2)
     end
 
-    it 'is a no_change (no save, no audit, no sweep) when already suspended' do
+    # #4337: idempotent in EFFECT, not in the trail. Nothing is saved and no
+    # session is swept, but an operator deliberately reached for the suspend
+    # button on a named account — that ATTEMPT is what a reviewer needs, and
+    # the outcome being "already there" does not make it uninteresting.
+    it 'is a no_change (no save, no sweep) but still records the attempt when already suspended' do
       allow(customer).to receive(:suspended?).and_return(true)
       db = dbclient_with_sessions('session:aaa' => { 'email' => 'alice@example.com' })
 
@@ -112,7 +117,39 @@ RSpec.describe Auth::Operations::Customers::SetSuspension do
       expect(result.status).to eq(:no_change)
       expect(customer).not_to have_received(:save)
       expect(db).not_to have_received(:del)
-      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        actor: 'ur_col',
+        verb: 'customer.suspend',
+        target: 'ur_test',
+        result: :success,
+        detail: { outcome: 'no_change', suspended: true },
+      )
+    end
+
+    # Nothing was revoked or destroyed, so the no-change write stays fail-open
+    # — the one place it differs from the applied suspend above.
+    it 'does not fail closed on a no_change, unlike the applied suspend' do
+      allow(customer).to receive(:suspended?).and_return(true)
+
+      described_class.new(
+        customer: customer, suspended: true, actor: 'ur_col', dbclient: empty_db,
+      ).call
+
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).with(hash_excluding(:fail_closed))
+    end
+
+    # #4338: the operator reason threads through the no-change path too.
+    it 'carries an operator reason into the no_change detail' do
+      allow(customer).to receive(:suspended?).and_return(true)
+
+      described_class.new(
+        customer: customer, suspended: true, actor: 'ur_col', dbclient: empty_db,
+        reason: 'ticket OPS-42',
+      ).call
+
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        hash_including(detail: { outcome: 'no_change', suspended: true, reason: 'ticket OPS-42' }),
+      )
     end
 
     it 'refuses to suspend a colonel-role account (no save)' do
@@ -205,7 +242,10 @@ RSpec.describe Auth::Operations::Customers::SetSuspension do
       expect(result.status).to eq(:success)
     end
 
-    it 'is a no_change when not suspended' do
+    # The verb still follows the DIRECTION asked for, so a filter on
+    # `customer.unsuspend` finds the releases that were attempted too — not
+    # just the ones that moved.
+    it 'is a no_change when not suspended, recorded under the unsuspend verb' do
       allow(customer).to receive(:suspended?).and_return(false)
 
       result = described_class.new(
@@ -213,7 +253,13 @@ RSpec.describe Auth::Operations::Customers::SetSuspension do
       ).call
 
       expect(result.status).to eq(:no_change)
-      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+        actor: 'ur_col',
+        verb: 'customer.unsuspend',
+        target: 'ur_test',
+        result: :success,
+        detail: { outcome: 'no_change', suspended: false },
+      )
     end
   end
 end
