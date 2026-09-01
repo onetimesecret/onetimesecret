@@ -147,6 +147,16 @@ RSpec.describe 'Domains Command', type: :cli do
       expect(last_exit_code).to eq(1)
     end
 
+    it 'keeps a raised apply failure machine-readable under --json' do
+      op = double('Transfer')
+      allow(op).to receive(:call).and_raise(StandardError, 'datastore unavailable')
+      allow(Onetime::Operations::Domains::Transfer).to receive(:new).and_return(op)
+
+      output = run_cli_command_quietly('domains', 'transfer', 'example.com', '--to-org', 'org456', '--yes', '--json')
+      expect(JSON.parse(output[:stdout])['error']).to include('datastore unavailable')
+      expect(last_exit_code).to eq(1)
+    end
+
     it 'exits 1 on an ownership :mismatch' do
       stub_transfer(transfer_result(status: :mismatch))
 
@@ -226,6 +236,16 @@ RSpec.describe 'Domains Command', type: :cli do
     it 'refuses --json without --apply' do
       output = run_cli_command_quietly('domains', 'remove', 'example.com', '--json')
       expect(JSON.parse(output[:stdout])['error']).to include('--apply')
+      expect(last_exit_code).to eq(1)
+    end
+
+    it 'keeps a raised apply failure machine-readable under --json' do
+      op = double('Remove')
+      allow(op).to receive(:call).and_raise(StandardError, 'datastore unavailable')
+      allow(Onetime::Operations::Domains::Remove).to receive(:new).and_return(op)
+
+      output = run_cli_command_quietly('domains', 'remove', 'example.com', '--apply', '--json')
+      expect(JSON.parse(output[:stdout])['error']).to include('datastore unavailable')
       expect(last_exit_code).to eq(1)
     end
 

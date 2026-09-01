@@ -85,11 +85,11 @@ module Onetime
 
         result =
           if dry_run
-            run_op(target, destination, source, dry_run: true)
+            run_op(target, destination, source, dry_run: true, json: json)
           elsif yes
-            run_op(target, destination, source, dry_run: false)
+            run_op(target, destination, source, dry_run: false, json: json)
           else
-            confirm_and_apply(target, destination, source)
+            confirm_and_apply(target, destination, source, json: json)
           end
 
         return if result.nil? # operator declined at the prompt
@@ -102,7 +102,7 @@ module Onetime
 
       private
 
-      def run_op(target, destination, source, dry_run:)
+      def run_op(target, destination, source, dry_run:, json:)
         Onetime::Operations::Domains::Transfer.new(
           domain: target,
           to_org: destination,
@@ -113,12 +113,12 @@ module Onetime
       rescue StandardError => ex
         # A blown-up APPLY has already been audited (result: :failure) by the op's
         # AuditedFailure hook; surface it and exit non-zero so it is scriptable.
-        error_exit("Transfer failed: #{ex.message}", json: false)
+        error_exit("Transfer failed: #{ex.message}", json: json)
       end
 
       # Two op calls: plan, then apply. Only for the interactive path.
-      def confirm_and_apply(target, destination, source)
-        plan = run_op(target, destination, source, dry_run: true)
+      def confirm_and_apply(target, destination, source, json:)
+        plan = run_op(target, destination, source, dry_run: true, json: json)
 
         # A blocked run (:mismatch) has nothing to confirm; report it verbatim.
         return plan unless plan.status == :planned
@@ -131,7 +131,7 @@ module Onetime
           return nil
         end
 
-        run_op(target, destination, source, dry_run: false)
+        run_op(target, destination, source, dry_run: false, json: json)
       end
 
       def print_plan(plan)

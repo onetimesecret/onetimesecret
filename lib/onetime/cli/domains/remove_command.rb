@@ -78,11 +78,11 @@ module Onetime
 
         result =
           if dry_run
-            run_op(target, dry_run: true)
+            run_op(target, dry_run: true, json: json)
           elsif apply
-            run_op(target, dry_run: false)
+            run_op(target, dry_run: false, json: json)
           else
-            confirm_and_apply(target)
+            confirm_and_apply(target, json: json)
           end
 
         return if result.nil? # operator declined at the prompt
@@ -95,7 +95,7 @@ module Onetime
 
       private
 
-      def run_op(target, dry_run:)
+      def run_op(target, dry_run:, json:)
         Onetime::Operations::Domains::Remove.new(
           domain: target,
           actor: Customers::Shared::CLI_ACTOR,
@@ -104,12 +104,12 @@ module Onetime
       rescue StandardError => ex
         # A blown-up APPLY has already been audited (result: :failure) by the op's
         # AuditedFailure hook; surface it and exit non-zero so it is scriptable.
-        error_exit("Removal failed: #{ex.message}", json: false)
+        error_exit("Removal failed: #{ex.message}", json: json)
       end
 
       # Two op calls: plan, then apply. Only for the interactive path.
-      def confirm_and_apply(target)
-        plan = run_op(target, dry_run: true)
+      def confirm_and_apply(target, json:)
+        plan = run_op(target, dry_run: true, json: json)
 
         print_plan(plan)
         print "Permanently remove #{plan.display_domain}? [y/N] "
@@ -119,7 +119,7 @@ module Onetime
           return nil
         end
 
-        run_op(target, dry_run: false)
+        run_op(target, dry_run: false, json: json)
       end
 
       def print_plan(plan)
