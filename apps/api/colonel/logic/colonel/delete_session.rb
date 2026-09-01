@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require_relative 'account_identifier'
 require 'onetime/operations/sessions/store'
 require 'onetime/operations/sessions/delete_session'
 
@@ -16,27 +17,50 @@ module ColonelAPI
       # This class keeps only the HTTP concerns (param validation + the not-found
       # 404); the op owns the model mutation and the ColonelAuditEvent.
       #
-      # Deleting a session logs that user out mid-flight, so the UI gates this
-      # behind AdminConfirmDialog typed-confirmation (retype the session id).
+      # Deleting a session logs that user out mid-flight, so the UI gates it behind
+      # AdminConfirmDialog typed-confirmation (retype the session owner's email).
+      #
+      # ## Non-bearer identifier (#4330)
+      #
+      # The route takes a {Onetime::SessionMetadata.handle_for} handle — the same
+      # shape the per-customer {RevokeCustomerSession} already accepted — never the
+      # raw sid, which IS the `onetime.session` cookie. The handle is resolved back
+      # server-side; the op receives the sid, the response echoes the handle.
       #
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this
       # logic (verify_one_of_roles!(colonel: true)) enforce the colonel role.
       class DeleteSession < ColonelAPI::Logic::Base
-        attr_reader :session_id, :result
+        include AccountIdentifier
+
+        attr_reader :session_handle, :session_id, :result
 
         def process_params
-          @session_id = sanitize_identifier(params['session_id'])
-          raise_form_error('Session ID is required', field: :session_id) if session_id.to_s.empty?
+          @session_handle = sanitize_identifier(params['session_handle']).to_s.downcase
+          # Optional owner hint (see Store.resolve_handle). NOT authorization — it
+          # only picks a cheaper search space; a wrong hint falls through to the
+          # bounded scan. sanitize_account_identifier, not sanitize_identifier:
+          # the latter strips `@` and `.` out of an email hint.
+          @owner_hint     = sanitize_account_identifier(params['user_id'])
+          raise_form_error('Session handle is required', field: :session_handle) if session_handle.empty?
         end
 
         def raise_concerns
           verify_one_of_roles!(colonel: true)
+          # P5 (#4329) inserts enforce_colonel_handle_resolve_limit! here: handle
+          # resolution is the one colonel path whose cost is not O(1).
 
-          # 404 when there is no live session for this id, so the UI can tell
+          # 404 when the handle names no live session (unknown, stale, or
+          # malformed — indistinguishable on purpose), so the UI can tell
           # "already gone" from a real failure. The op is idempotent regardless.
-          unless Onetime::Operations::Sessions::Store.find_key(Familia.dbclient, session_id)
-            raise_not_found('Session not found')
-          end
+          # resolve_handle answers [sid, scan_capped]; the truncation flag is
+          # surfaced by the detail READ, not by a mutation ack, so only the sid
+          # is kept here.
+          @session_id, = Onetime::Operations::Sessions::Store.resolve_handle(
+            Familia.dbclient, session_handle, owner_hint: @owner_hint
+          )
+          raise_not_found('Session not found') unless session_id
+          # P2 inserts guard_destructive_action! here; P4 inserts the self-target
+          # interlock AFTER it; P5 inserts charge_destructive_budget! last (§0.2).
         end
 
         def process
@@ -53,7 +77,8 @@ module ColonelAPI
         def success_data
           {
             record: {
-              session_id: result.session_id,
+              # Echo the non-bearer handle the caller sent — NEVER the raw sid.
+              session_handle: session_handle,
               deleted: result.status == :deleted,
             },
             details: {

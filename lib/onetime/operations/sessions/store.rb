@@ -5,6 +5,7 @@
 require 'json'
 require 'redis' # for Redis::CommandError in the defensive load_data rescue
 require 'onetime/session/codec' # canonical decryptor injected into load_data
+require 'onetime/models/session_metadata' # handle_for — the non-bearer session id
 
 module Onetime
   module Operations
@@ -44,6 +45,14 @@ module Onetime
 
         # Common prefixes stripped to recover the bare session id from a key.
         KEY_PREFIX_PATTERN = /^(session:|rack:session:)/
+
+        # Shape of Onetime::SessionMetadata.handle_for output (HANDLE_LENGTH = 32).
+        HANDLE_PATTERN = /\A[0-9a-f]{32}\z/
+
+        # Shortest handle prefix {matches_search?} will treat as a handle needle.
+        # Below this a hex-looking term is far more likely to be part of an extid
+        # or an email than a handle the operator copied off a row.
+        HANDLE_SEARCH_PATTERN = /\A[0-9a-f]{4,32}\z/
 
         # The candidate keys a bare session id can live under. Identical to the
         # historic CLI list — order matters (first existing key wins).
@@ -185,12 +194,19 @@ module Onetime
         # shows it anyway); presentation-layer obscuring — e.g. the CLI `list`
         # formatter — stays in the adapter so the op has one canonical shape.
         #
+        # `session_handle` is the ONLY identifier safe to serialize (#4330): the
+        # raw `session_id` is byte-identical to the `onetime.session` cookie and
+        # `key` embeds it, so both are INTERNAL. {List} strips them unless the
+        # caller explicitly opts in (only `bin/ots session` does), and no HTTP
+        # response may carry them.
+        #
         # @param session_id [String]
         # @param key [String]
         # @param data [Hash] parsed session data
         # @return [Hash]
         def summarize(session_id, key, data)
           {
+            session_handle: Onetime::SessionMetadata.handle_for(session_id),
             session_id: session_id,
             key: key,
             authenticated: data['authenticated'] ? true : false,
@@ -204,20 +220,92 @@ module Onetime
         end
 
         # Case-insensitive match of a session against a free-text term across the
-        # identity fields. Identical predicate to the historic CLI `search`.
+        # identity fields, plus the session handle when the caller supplies the
+        # sid it was derived from.
+        #
+        # The console shows operators handles and nothing else (#4330), so a
+        # search box that could not match one would be a regression with no
+        # operator workaround. Handles match on PREFIX because the table renders
+        # a truncated handle — what the operator can copy is the first N chars.
         #
         # @param data [Hash]
         # @param term [String]
+        # @param session_id [String, nil] keyword-optional so the CLI adapter,
+        #   which searches raw rows, keeps working unchanged.
         # @return [Boolean]
-        def matches_search?(data, term)
+        def matches_search?(data, term, session_id: nil)
           needle = term.to_s.downcase
           return false if needle.empty?
+
+          if session_id && needle.match?(HANDLE_SEARCH_PATTERN)
+            handle = Onetime::SessionMetadata.handle_for(session_id)
+            return true if handle&.start_with?(needle)
+          end
 
           [
             data['email'],
             data['external_id'],
             data['account_external_id'],
           ].compact.any? { |field| field.downcase.include?(needle) }
+        end
+
+        # Resolve an opaque session handle back to its raw session id.
+        #
+        # Non-reversible by construction (the handle is a truncated HMAC keyed on
+        # OT.global_secret), so this recomputes handles and compares.
+        #
+        # TWO STAGES, cheap first:
+        #   1. owner hint — when the caller knows which account owns the session
+        #      (the console listing carries external_id on every row), walk only
+        #      that customer's active_sessions ZSET. Single-digit cost, the same
+        #      path RevokeCustomerSession takes.
+        #   2. bounded keyspace SCAN — at most {MAX_SCAN} keys, CONTRACT 6 (never
+        #      a blocking KEYS). Covers untracked/legacy blobs and hint misses.
+        #
+        # @param dbclient [Object]
+        # @param session_handle [String] 32-char lowercase hex
+        # @param owner_hint [String, nil] extid/email/objid of the presumed owner
+        # @return [Array(String, Boolean), Array(nil, Boolean)] `[sid, scan_capped]`.
+        #   scan_capped is true when stage 2 ran AND hit {MAX_SCAN}, i.e. a nil sid
+        #   may mean "not sampled" rather than "does not exist". Callers MUST
+        #   surface it — which is why this returns a pair and not a bare sid.
+        def resolve_handle(dbclient, session_handle, owner_hint: nil)
+          handle = session_handle.to_s.downcase
+          return [nil, false] unless handle.match?(HANDLE_PATTERN)
+
+          if (sid = resolve_handle_via_owner(owner_hint, handle))
+            return [sid, false]
+          end
+
+          keys   = scan_keys(dbclient)
+          capped = keys.size >= MAX_SCAN
+          keys.each do |key|
+            sid = extract_id(key)
+            return [sid, capped] if Onetime::SessionMetadata.handle_for(sid) == handle
+          end
+          [nil, capped]
+        end
+
+        # Stage 1 of {resolve_handle}: match the handle over one customer's own
+        # bounded active_sessions set. The hint is NOT authorization — it only
+        # picks a cheaper search space, and a wrong hint simply misses.
+        #
+        # @param owner_hint [String, nil]
+        # @param handle [String] downcased 32-hex handle
+        # @return [String, nil]
+        def resolve_handle_via_owner(owner_hint, handle)
+          return nil if owner_hint.to_s.empty?
+
+          customer = Onetime::Customer.load_by_extid_or_email(owner_hint) ||
+                     Onetime::Customer.load(owner_hint)
+          return nil unless customer&.exists?
+
+          customer.active_sessions.revrange(0, -1).find do |sid|
+            Onetime::SessionMetadata.handle_for(sid) == handle
+          end
+        rescue StandardError => ex
+          OT.ld "[Sessions::Store] owner-hinted handle resolution failed: #{ex.message}"
+          nil
         end
       end
     end

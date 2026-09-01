@@ -15,6 +15,12 @@ module ColonelAPI
       # the HTTP concerns (param coercion + role gate); the op owns the bounded
       # scan, the optional search filter, and pagination.
       #
+      # Rows identify a session by `session_handle` only: this adapter does NOT
+      # pass `reveal_session_id`, so the op strips the raw sid and its Redis key
+      # before they can reach the wire (#4330). The search term matches identity
+      # fields or a handle prefix, so the console's search box still works over
+      # what it now displays.
+      #
       # Read-only: no ColonelAuditEvent (CONTRACT 4 — audit is for mutations).
       #
       # Security invariant (epic #20): BOTH the router (role=colonel) AND this

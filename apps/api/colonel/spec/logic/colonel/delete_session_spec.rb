@@ -1,0 +1,165 @@
+# apps/api/colonel/spec/logic/colonel/delete_session_spec.rb
+#
+# frozen_string_literal: true
+
+require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
+require 'colonel/logic'
+
+# DELETE /api/colonel/sessions/:session_handle. The route used to take the raw
+# session id — the user's live `onetime.session` cookie value — straight off the
+# console listing (#4330). These examples pin what this adapter owns now:
+#
+#   - the handle resolves to a sid SERVER-SIDE, and the OP is handed that sid;
+#   - the response echoes the handle and nothing else identifying;
+#   - an unresolvable handle 404s before anything is deleted;
+#   - the adapter records NO audit event of its own — Sessions::Delete owns the
+#     trail (CONTRACT 4), and a rejection records nothing at all.
+#
+# The audit target itself (a handle, never the sid) is proven against a real
+# write in try/unit/operations/sessions/delete_session_audit_try.rb.
+RSpec.describe ColonelAPI::Logic::Colonel::DeleteSession do
+  let(:handle) { '0123456789abcdef0123456789abcdef' }
+  let(:session_id) { 'b' * 64 }
+
+  let(:colonel) do
+    instance_double(Onetime::Customer,
+      objid: 'cust_colonel', extid: 'ur_colonel',
+      role: 'colonel', verified?: true, anonymous?: false)
+  end
+
+  let(:customer) do
+    instance_double(Onetime::Customer,
+      objid: 'cust_plain', extid: 'ur_plain',
+      role: 'customer', verified?: true, anonymous?: false)
+  end
+
+  let(:delete_result) do
+    Onetime::Operations::Sessions::Delete::Result.new(
+      status: :deleted, session_id: session_id, key: "session:#{session_id}",
+    )
+  end
+
+  let(:delete_op) do
+    instance_double(Onetime::Operations::Sessions::Delete, call: delete_result)
+  end
+
+  def strategy_result_for(user)
+    double('StrategyResult', session: {}, user: user,
+      auth_method: 'sessionauth', metadata: {})
+  end
+
+  def logic_for(user = colonel, params = { 'session_handle' => handle })
+    described_class.new(strategy_result_for(user), params)
+  end
+
+  def stub_resolution(sid: session_id, scan_capped: false)
+    allow(Onetime::Operations::Sessions::Store).to receive(:resolve_handle)
+      .and_return([sid, scan_capped])
+  end
+
+  before do
+    allow(OT).to receive(:info)
+    allow(OT).to receive(:ld)
+    allow(OT).to receive(:li)
+    allow(OT).to receive(:le)
+    allow(Familia).to receive(:dbclient).and_return(double('Redis'))
+    allow(Onetime::Operations::Sessions::Delete).to receive(:new).and_return(delete_op)
+    allow(Onetime::ColonelAuditEvent).to receive(:record)
+  end
+
+  describe 'handle resolution' do
+    it 'hands the OP the resolved sid, never the submitted handle' do
+      stub_resolution
+      logic = logic_for
+      logic.raise_concerns
+      logic.process
+
+      expect(Onetime::Operations::Sessions::Delete).to have_received(:new)
+        .with(session_id: session_id, actor: 'ur_colonel')
+    end
+
+    it 'passes the optional owner hint through to the resolver' do
+      stub_resolution
+      logic_for(colonel, { 'session_handle' => handle, 'user_id' => 'ur_alice' })
+        .raise_concerns
+
+      expect(Onetime::Operations::Sessions::Store).to have_received(:resolve_handle)
+        .with(anything, handle, owner_hint: 'ur_alice')
+    end
+
+    it '404s and deletes nothing when the handle resolves to no live session' do
+      stub_resolution(sid: nil)
+
+      expect { logic_for.raise_concerns }.to raise_error(Onetime::RecordNotFound)
+      expect(Onetime::Operations::Sessions::Delete).not_to have_received(:new)
+    end
+
+    it '404s on a malformed handle rather than 422 (same answer as unknown)' do
+      allow(Onetime::Operations::Sessions::Store).to receive(:resolve_handle).and_call_original
+
+      expect { logic_for(colonel, { 'session_handle' => 'nope' }).raise_concerns }
+        .to raise_error(Onetime::RecordNotFound)
+    end
+
+    it '422s only when no handle was supplied at all' do
+      expect { logic_for(colonel, { 'session_handle' => '' }) }
+        .to raise_error(Onetime::FormError)
+    end
+  end
+
+  describe 'response shape' do
+    subject(:response) do
+      stub_resolution
+      logic = logic_for
+      logic.raise_concerns
+      logic.process
+    end
+
+    it 'echoes the handle the caller sent' do
+      expect(response[:record][:session_handle]).to eq(handle)
+    end
+
+    it 'reports the delete' do
+      expect(response[:record][:deleted]).to be true
+      expect(response[:details][:message]).to eq('Session revoked successfully')
+    end
+
+    it 'never leaks the raw sid anywhere in the returned hash' do
+      expect(response.to_s).not_to include(session_id)
+      expect(response[:record]).not_to have_key(:session_id)
+    end
+
+    it 'reports deleted:false when the op found nothing left to remove' do
+      stub_resolution
+      allow(delete_op).to receive(:call).and_return(
+        Onetime::Operations::Sessions::Delete::Result.new(
+          status: :not_found, session_id: session_id, key: nil,
+        ),
+      )
+      logic = logic_for
+      logic.raise_concerns
+
+      expect(logic.process[:record][:deleted]).to be false
+    end
+  end
+
+  describe 'authorization' do
+    it 'refuses a non-colonel, deletes nothing and writes NO audit event' do
+      stub_resolution
+      logic = logic_for(customer)
+
+      expect { logic.raise_concerns }.to raise_error(Onetime::Forbidden)
+      expect(Onetime::Operations::Sessions::Delete).not_to have_received(:new)
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+    end
+
+    it 'records no event of its own on success — the op owns the trail' do
+      stub_resolution
+      logic = logic_for
+      logic.raise_concerns
+      logic.process
+
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+    end
+  end
+end

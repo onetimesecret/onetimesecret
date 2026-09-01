@@ -22,19 +22,13 @@
 // and are kept numeric. user_id is the customer EXTERNAL id (extid, 'ur...').
 
 import { createApiResponseSchema } from '@/schemas/api/base';
+import { sessionHandleSchema } from './session-handle';
 import { z } from 'zod';
 
-/**
- * The non-reversible session handle (F-01): the first 32 hex chars of an
- * HMAC-SHA256 over the raw sid (SessionMetadata.handle_for). Validating the
- * exact shape — not just z.string() — makes the schema a security tripwire:
- * a backend regression that leaks the raw 64+-char sid (or anything else)
- * under a *_handle key fails parsing here instead of flowing a replayable
- * bearer value into the admin UI.
- */
-export const sessionHandleSchema = z
-  .string()
-  .regex(/^[0-9a-f]{32}$/, 'session_handle must be a 32-char lowercase hex handle');
+// The handle definition moved to ./session-handle when #4330 gave the GLOBAL
+// console handles too — one regex, one tripwire, two contracts. Re-exported so
+// existing importers of this module are untouched.
+export { sessionHandleSchema };
 
 // ============================================================================
 // ListCustomerSessions — one customer's session rows

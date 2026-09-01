@@ -8,6 +8,11 @@ import {
   colonelSessionDeleteResponseSchema,
 } from '@/schemas/api/internal/responses/colonel-sessions';
 
+const HANDLE = '0123456789abcdef0123456789abcdef';
+const HANDLE_B = 'fedcba9876543210fedcba9876543210';
+/** The raw sid shape the console must never see again (#4330). */
+const RAW_SID = 'a'.repeat(64);
+
 /**
  * Zod tripwire (CONTRACT 3) for the three NEW Sessions-console contracts. These
  * payloads are shaped exactly as the live logic classes emit them — verified
@@ -24,8 +29,7 @@ function listPayload() {
     details: {
       sessions: [
         {
-          session_id: 'sid_auth',
-          key: 'session:sid_auth',
+          session_handle: HANDLE,
           authenticated: true,
           email: 'alice@example.com',
           external_id: 'ext_1',
@@ -35,8 +39,7 @@ function listPayload() {
           created_at: 1700000000,
         },
         {
-          session_id: 'sid_anon',
-          key: 'session:sid_anon',
+          session_handle: HANDLE_B,
           authenticated: false,
           email: null,
           external_id: null,
@@ -94,6 +97,28 @@ describe('colonelSessionsResponseSchema (ListSessions)', () => {
     expect(result.data.details?.sessions[0].geo_country).toBeUndefined();
   });
 
+  it('rejects a raw session id under session_handle — the security tripwire', () => {
+    // A backend regression that put the bearer sid back on the wire must fail
+    // parsing here (the handle regex is 32 lowercase hex), not render in the UI.
+    const payload = listPayload();
+    (payload.details.sessions[0] as unknown as Record<string, unknown>).session_handle = RAW_SID;
+    expect(colonelSessionsResponseSchema.safeParse(payload).success).toBe(false);
+  });
+
+  it('strips session_id / key if a backend still emits them', () => {
+    const payload = listPayload();
+    const row = payload.details.sessions[0] as unknown as Record<string, unknown>;
+    row.session_id = RAW_SID;
+    row.key = `session:${RAW_SID}`;
+
+    const result = colonelSessionsResponseSchema.safeParse(payload);
+    expect(result.success).toBe(true);
+    if (!result.success) return;
+    const parsed = result.data.details?.sessions[0] as unknown as Record<string, unknown>;
+    expect(parsed.session_id).toBeUndefined();
+    expect(parsed.key).toBeUndefined();
+  });
+
   it('rejects a row missing the required authenticated flag (contract drift)', () => {
     const payload = listPayload() as unknown as {
       details: { sessions: Array<{ authenticated?: boolean }> };
@@ -108,8 +133,7 @@ describe('colonelSessionDetailResponseSchema (GetSessionDetail)', () => {
     return {
       shrimp: '',
       record: {
-        session_id: 'sid_auth',
-        key: 'session:sid_auth',
+        session_handle: HANDLE,
         ttl: 3600,
         authenticated: true,
         email: 'alice@example.com',
@@ -125,7 +149,10 @@ describe('colonelSessionDetailResponseSchema (GetSessionDetail)', () => {
         active_session_id: 'as_1',
       },
       details: {
-        data: { authenticated: true, email: 'alice@example.com', csrf: 'abc' },
+        // csrf is stripped SERVER-SIDE now (#4330); the open record still
+        // tolerates whatever session keys remain.
+        data: { authenticated: true, email: 'alice@example.com' },
+        scan_capped: false,
       },
     };
   }
@@ -137,6 +164,18 @@ describe('colonelSessionDetailResponseSchema (GetSessionDetail)', () => {
     expect(result.data.record.ttl).toBe(3600);
     expect(result.data.record.account_id).toBe(42);
     expect(result.data.details?.data.email).toBe('alice@example.com');
+  });
+
+  it('accepts a detail payload that omits scan_capped (older backend)', () => {
+    const payload = detailPayload();
+    delete (payload.details as { scan_capped?: boolean }).scan_capped;
+    expect(colonelSessionDetailResponseSchema.safeParse(payload).success).toBe(true);
+  });
+
+  it('rejects a raw session id under record.session_handle', () => {
+    const payload = detailPayload();
+    payload.record.session_handle = RAW_SID;
+    expect(colonelSessionDetailResponseSchema.safeParse(payload).success).toBe(false);
   });
 
   it('accepts an anonymous session: -1 ttl and null identity fields', () => {
@@ -161,7 +200,7 @@ describe('colonelSessionDeleteResponseSchema (DeleteSession)', () => {
   it('validates the revoke ack', () => {
     const payload = {
       shrimp: '',
-      record: { session_id: 'sid_auth', deleted: true },
+      record: { session_handle: HANDLE, deleted: true },
       details: { message: 'Session revoked successfully' },
     };
     const result = colonelSessionDeleteResponseSchema.safeParse(payload);
@@ -172,7 +211,7 @@ describe('colonelSessionDeleteResponseSchema (DeleteSession)', () => {
 
   it('rejects an ack missing details.message', () => {
     const payload = {
-      record: { session_id: 'sid_auth', deleted: true },
+      record: { session_handle: HANDLE, deleted: true },
       details: {},
     };
     expect(colonelSessionDeleteResponseSchema.safeParse(payload).success).toBe(false);

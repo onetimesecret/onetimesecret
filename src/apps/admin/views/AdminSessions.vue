@@ -39,12 +39,19 @@
    *   a thin adapter over `Onetime::Operations::Sessions::List` (bounded scan,
    *   #2211) and supports a server-side `search` filter (email / external id).
    * - DETAIL DRAWER: a row opens {@link DetailDrawer} loading
-   *   `GET /api/colonel/sessions/:session_id` via {@link useResourceFetch}
+   *   `GET /api/colonel/sessions/:session_handle` via {@link useResourceFetch}
    *   (`Sessions::Inspect`) — typed field read-out + raw JSON inspector.
    * - GUARDED REVOKE (D4): revoking a session logs that user out mid-flight, so it
-   *   is gated by {@link AdminConfirmDialog} typed-confirmation (retype the session
-   *   id) in danger mode and audited SERVER-SIDE by `Sessions::Delete`. It can be
-   *   triggered from the row action or the drawer footer.
+   *   is gated by {@link AdminConfirmDialog} typed-confirmation in danger mode and
+   *   audited SERVER-SIDE by `Sessions::Delete`. It can be triggered from the row
+   *   action or the drawer footer.
+   *
+   * OPAQUE HANDLES (#4330): a row carries `session_handle`, a non-reversible
+   * digest — never the raw session id, which is byte-identical to the user's
+   * `onetime.session` cookie. Routing, the revoke URL and the drawer title all
+   * speak handles, and the value the operator retypes is the session OWNER's
+   * email (P2 sends that same value in `X-OTS-Confirm`), so a screen share or a
+   * log capture of this console yields nothing replayable.
    */
   const { t } = useI18n();
   const $api = useApi();
@@ -63,7 +70,7 @@
   // filters out CSRF-only anonymous ones — so the near-constant `Auth` column is
   // dropped in favour of `Role`, which actually varies and aids triage.
   const columns = computed<DataTableColumn<ColonelSession>[]>(() => [
-    { key: 'session_id', label: t('web.admin.sessions.columns.sessionId') },
+    { key: 'session_handle', label: t('web.admin.sessions.columns.sessionHandle') },
     { key: 'email', label: t('web.admin.sessions.columns.email') },
     { key: 'role', label: t('web.admin.sessions.columns.role') },
     { key: 'external_id', label: t('web.admin.sessions.columns.externalId') },
@@ -158,8 +165,17 @@
   /** The row that opened the drawer — the source of the detail id. */
   const selectedSession = ref<ColonelSession | null>(null);
 
-  const detailUrl = (): string =>
-    `/api/colonel/sessions/${encodeURIComponent(selectedSession.value?.session_id ?? '')}`;
+  /**
+   * The detail endpoint takes the handle, plus the owning account as an OWNER
+   * HINT: it lets the server resolve the handle over that customer's own bounded
+   * active-session set instead of a 10k-key keyspace scan. It is not
+   * authorization — a wrong or absent hint just falls back to the scan.
+   */
+  const detailUrl = (): string => {
+    const handle = encodeURIComponent(selectedSession.value?.session_handle ?? '');
+    const owner = encodeURIComponent(selectedSession.value?.external_id ?? '');
+    return `/api/colonel/sessions/${handle}?user_id=${owner}`;
+  };
 
   const {
     data: detailData,
@@ -175,6 +191,18 @@
   });
 
   const detailRecord = computed(() => detailData.value?.record ?? null);
+
+  /**
+   * Whether this "not found" may really mean "not sampled". The server resolves
+   * a handle over the owner's own sessions when the row names one, and falls
+   * back to a bounded keyspace scan otherwise (`details.scan_capped` reports the
+   * truncation on a successful load; a 404 body carries nothing). So a miss is
+   * only ambiguous when the listing's own scan was capped, or when the row had
+   * no owner to hint with — exactly the two cases surfaced here.
+   */
+  const detailMissMayBeSampling = computed(
+    () => scan.value?.scan_capped === true || !selectedSession.value?.external_id
+  );
 
   /** A non-404 network/HTTP failure, or a Zod contract mismatch. */
   const detailLoadFailed = computed(
@@ -216,8 +244,11 @@
     const r = detailRecord.value;
     if (!r) return [];
     return [
-      { key: 'sessionId', label: t('web.admin.sessions.fields.sessionId'), value: r.session_id },
-      { key: 'key', label: t('web.admin.sessions.fields.key'), value: r.key },
+      {
+        key: 'sessionHandle',
+        label: t('web.admin.sessions.fields.sessionHandle'),
+        value: r.session_handle,
+      },
       { key: 'ttl', label: t('web.admin.sessions.fields.ttl'), value: ttlLabel(r.ttl) },
       {
         key: 'authenticated',
@@ -258,8 +289,16 @@
   // ---- Guarded revoke (D4) --------------------------------------------------
 
   const revokeDialogOpen = ref(false);
-  /** The session id the confirm dialog is gating (retype token + request target). */
+  /** Routes the request. Never rendered in full, never a confirmation token. */
   const revokeTarget = ref('');
+  /** Owner hint for the server's two-stage handle resolution (see detailUrl). */
+  const revokeOwner = ref('');
+  /**
+   * What the operator retypes AND what P2 will send in X-OTS-Confirm: the session
+   * owner's email (its extid when it has none). Never blank — a blank token
+   * silently degrades AdminConfirmDialog to a one-click confirm.
+   */
+  const revokeToken = ref('');
 
   const {
     loading: revokeLoading,
@@ -267,10 +306,11 @@
     run: runRevoke,
     reset: resetRevoke,
   } = useAdminMutation(async () => {
-    const sessionId = revokeTarget.value;
-    if (!sessionId) throw new Error('No session selected');
+    const handle = revokeTarget.value;
+    if (!handle) throw new Error('No session selected');
+    const owner = encodeURIComponent(revokeOwner.value);
     const response = await $api.delete(
-      `/api/colonel/sessions/${encodeURIComponent(sessionId)}`
+      `/api/colonel/sessions/${encodeURIComponent(handle)}?user_id=${owner}`
     );
     // A 2xx means the session was revoked server-side regardless of ack shape;
     // the parse keeps the contract a live tripwire without failing the action.
@@ -281,14 +321,16 @@
     );
   });
 
-  function requestRevoke(sessionId: string): void {
-    revokeTarget.value = sessionId;
+  function requestRevoke(row: ColonelSession): void {
+    revokeTarget.value = row.session_handle;
+    revokeOwner.value = row.external_id ?? '';
+    revokeToken.value = row.email?.trim() || row.external_id?.trim() || row.session_handle;
     resetRevoke();
     revokeDialogOpen.value = true;
   }
 
   async function onRevokeConfirm(): Promise<void> {
-    const revokedId = revokeTarget.value;
+    const revokedHandle = revokeTarget.value;
     const ok = await runRevoke();
     if (!ok) return; // Failure message stays in the dialog for retry/cancel.
 
@@ -296,7 +338,7 @@
     notifications.show(t('web.admin.sessions.revoke.success'), 'success');
 
     // If the revoked session is the one open in the drawer, close it.
-    if (selectedSession.value?.session_id === revokedId) {
+    if (selectedSession.value?.session_handle === revokedHandle) {
       closeDrawer();
     }
     // The revoked row is gone — refresh the current page.
@@ -361,14 +403,21 @@
       <DataTable
         :columns="columns"
         :rows="sessions"
-        row-key="session_id"
+        row-key="session_handle"
         :loading="loading"
         :empty-text="t('web.admin.sessions.list.empty')"
         clickable-rows
         testid="sessions-table"
         @row-click="openDetail">
-        <template #cell-session_id="{ row }">
-          <span class="font-mono text-gray-900 dark:text-white">{{ row.session_id }}</span>
+        <!-- Truncated: the full handle is not a credential, but a short prefix
+             is what an operator can match against a CLI row without a wall of
+             hex; the title attribute carries the whole value. -->
+        <template #cell-session_handle="{ row }">
+          <span
+            class="font-mono text-gray-900 dark:text-white"
+            :title="row.session_handle"
+            >{{ row.session_handle.slice(0, 12) }}…</span
+          >
         </template>
 
         <template #cell-email="{ row }">
@@ -403,9 +452,9 @@
         <template #cell-actions="{ row }">
           <button
             type="button"
-            :data-testid="`revoke-${row.session_id}`"
+            :data-testid="`revoke-${row.session_handle}`"
             class="text-sm font-medium text-red-600 hover:text-red-800 focus:ring-2 focus:ring-red-500 focus:outline-none dark:text-red-400 dark:hover:text-red-300"
-            @click.stop="requestRevoke(row.session_id)">
+            @click.stop="requestRevoke(row)">
             {{ t('web.admin.sessions.revoke.button') }}
           </button>
         </template>
@@ -446,7 +495,11 @@
     <!-- Detail drawer (inspect) -->
     <DetailDrawer
       v-model:open="drawerOpen"
-      :title="selectedSession ? t('web.admin.sessions.drawer.title', { id: selectedSession.session_id }) : ''"
+      :title="
+        selectedSession
+          ? t('web.admin.sessions.drawer.title', { id: selectedSession.session_handle.slice(0, 12) })
+          : ''
+      "
       :subtitle="selectedSession ? emailLabel(selectedSession.email) : undefined"
       width-class="max-w-lg"
       testid="session-drawer"
@@ -479,6 +532,12 @@
         </h3>
         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
           {{ t('web.admin.sessions.drawer.notFoundDescription') }}
+        </p>
+        <p
+          v-if="detailMissMayBeSampling"
+          class="mt-2 text-sm text-amber-700 dark:text-amber-400"
+          data-testid="session-drawer-scan-capped">
+          {{ t('web.admin.sessions.errors.scanCapped') }}
         </p>
       </div>
 
@@ -541,6 +600,8 @@
           <h3 class="mb-2 text-xs font-medium tracking-wider text-gray-500 uppercase dark:text-gray-400">
             {{ t('web.admin.sessions.sections.raw') }}
           </h3>
+          <!-- Credential keys (csrf) are stripped SERVER-SIDE before this
+               payload is serialized (#4330) — nothing to filter here. -->
           <JsonViewer
             :data="detailData?.details?.data"
             :expand-depth="1"
@@ -555,7 +616,7 @@
           data-testid="session-revoke-button"
           :disabled="!selectedSession"
           class="inline-flex w-full items-center justify-center gap-1 rounded-md border border-red-300 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
-          @click="selectedSession && requestRevoke(selectedSession.session_id)">
+          @click="selectedSession && requestRevoke(selectedSession)">
           <OIcon
             collection="heroicons"
             name="trash"
@@ -569,8 +630,13 @@
     <AdminConfirmDialog
       v-model:open="revokeDialogOpen"
       :title="t('web.admin.sessions.revoke.confirmTitle')"
-      :description="t('web.admin.sessions.revoke.confirmDescription', { id: revokeTarget })"
-      :confirm-token="revokeTarget"
+      :description="
+        t('web.admin.sessions.revoke.confirmDescription', {
+          id: revokeTarget.slice(0, 12),
+          token: revokeToken,
+        })
+      "
+      :confirm-token="revokeToken"
       variant="danger"
       :confirm-text="t('web.admin.sessions.revoke.button')"
       :loading="revokeLoading"

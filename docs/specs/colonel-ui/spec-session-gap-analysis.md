@@ -106,6 +106,17 @@ the sidecar; accept the plain sid only as _input_ to revoke. `SessionMetadata`
 already exists as the natural home for a display id. Audit rows should carry the
 hashed form (see 5.7).
 
+**Resolved for the global console (#4330).** `Sessions::List` now emits
+`SessionMetadata.handle_for(sid)` and strips `session_id`/`key` unless the caller
+passes `reveal_session_id: true` (only `bin/ots session` does).
+`GET`/`DELETE /api/colonel/sessions/:session_handle` take the handle and resolve
+it server-side via `Sessions::Store.resolve_handle` — owner-hinted first, bounded
+scan second — and `Sessions::Delete` records the handle as its audit target. The
+console renders a truncated handle and gates revoke on the session owner's email.
+Still open here: the raw sid inside `RevokeForCustomer`'s audit **detail** (its
+`target` is the customer), and the "session_id is a public identifier" comment at
+`revoke_for_customer.rb:103`.
+
 ---
 
 ## 2. Termination

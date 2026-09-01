@@ -7,10 +7,6 @@
     "text": "Inspect, search and revoke active sessions for incident response.",
     "content_hash": "784a3a44"
   },
-  "web.admin.sessions.columns.sessionId": {
-    "text": "Session ID",
-    "content_hash": "cb9ac5c5"
-  },
   "web.admin.sessions.columns.authenticated": {
     "text": "Auth",
     "content_hash": "8eb3ea9b"
@@ -40,8 +36,8 @@
     "content_hash": "ff8059dc"
   },
   "web.admin.sessions.search.placeholder": {
-    "text": "Search by email or external ID",
-    "content_hash": "f2dc5c06"
+    "text": "Search by email, external ID or session handle",
+    "content_hash": "4894dec4"
   },
   "web.admin.sessions.list.loadError": {
     "text": "Could not load sessions.",
@@ -76,8 +72,8 @@
     "content_hash": "0c6605c1"
   },
   "web.admin.sessions.revoke.confirmDescription": {
-    "text": "This logs the user out immediately by deleting session {id}. Type the session ID to confirm.",
-    "content_hash": "9e08b1b8"
+    "text": "This logs the user out immediately by revoking session {id}. Type {token} to confirm.",
+    "content_hash": "80578692"
   },
   "web.admin.sessions.revoke.success": {
     "text": "Session revoked",
@@ -110,14 +106,6 @@
   "web.admin.sessions.sections.raw": {
     "text": "Raw session data",
     "content_hash": "c9f11eb4"
-  },
-  "web.admin.sessions.fields.sessionId": {
-    "text": "Session ID",
-    "content_hash": "cb9ac5c5"
-  },
-  "web.admin.sessions.fields.key": {
-    "text": "Redis Key",
-    "content_hash": "0b196725"
   },
   "web.admin.sessions.fields.ttl": {
     "text": "TTL",
@@ -208,7 +196,19 @@
     "content_hash": "34cb67a4"
   },
   "web.admin.sessions.scan.capped": {
-    "text": "Scan capped at the first {scanned} keys — authenticated sessions beyond this window aren't listed. Inspect a specific session by ID to reach it.",
-    "content_hash": "fa418b4e"
+    "text": "Scan capped at the first {scanned} keys — authenticated sessions beyond this window aren't listed. Narrow the search to reach them.",
+    "content_hash": "7a8d6fd5"
+  },
+  "web.admin.sessions.columns.sessionHandle": {
+    "text": "Session handle",
+    "content_hash": "2f08034d"
+  },
+  "web.admin.sessions.fields.sessionHandle": {
+    "text": "Session handle",
+    "content_hash": "2f08034d"
+  },
+  "web.admin.sessions.errors.scanCapped": {
+    "text": "This session was not found in the sampled keyspace. Open it from its row in the list so the owner can be used to look it up.",
+    "content_hash": "67b73f7f"
   }
 }

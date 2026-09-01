@@ -4,6 +4,7 @@
 
 require 'onetime/operations/sessions/store'
 require 'onetime/session/sidecar'
+require 'onetime/models/session_metadata'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
 
@@ -14,7 +15,8 @@ module Onetime
       # implementation of the session-delete verb (epic #40 / D3 / CONTRACT 4).
       #
       # This is the one mutating session verb. The colonel endpoint
-      # (`DELETE /api/colonel/sessions/:session_id`) and the `bin/ots session delete`
+      # (`DELETE /api/colonel/sessions/:session_handle`, which resolves the handle
+      # back to this sid server-side) and the `bin/ots session delete`
       # CLI are thin adapters over it. The model mutation is IDENTICAL to the prior
       # inline CLI call (`dbclient.del(session_key)`); the op adds exactly one thing
       # the inline call lacked: one {Onetime::ColonelAuditEvent} per successful delete.
@@ -34,7 +36,13 @@ module Onetime
 
         # Destructive verb: record the attempt when the delete raises (the
         # success-path record below is unreachable in that case) and re-raise.
-        audit_failures :call, verb: AUDIT_VERB, target: -> { @session_id }
+        #
+        # target is the non-reversible handle, never the sid: the sid IS the
+        # bearer cookie and the operator trail is count-capped with no TTL, so a
+        # sid recorded here is a replayable credential persisted forever (#4330).
+        audit_failures :call,
+          verb: AUDIT_VERB,
+          target: -> { Onetime::SessionMetadata.handle_for(@session_id) }
 
         # @!attribute status [r] Symbol :deleted (removed) or :not_found (no-op)
         Result = Data.define(:status, :session_id, :key)
@@ -68,12 +76,13 @@ module Onetime
           # (find_key resolves several), which would fail purge's sid guard.
           Onetime::SessionSidecar.purge(Store.extract_id(key), dbclient: db)
 
-          # One audit event per successful mutation. The session id is a public
-          # identifier; never put session contents (tokens, etc.) into detail.
+          # One audit event per successful mutation. Never put session contents
+          # (tokens, etc.) into detail — and never the sid itself (see the
+          # audit_failures note above): the trail carries the handle.
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
-            target: @session_id,
+            target: Onetime::SessionMetadata.handle_for(@session_id),
             result: :success,
           )
 

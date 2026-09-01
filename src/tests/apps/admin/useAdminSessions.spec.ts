@@ -15,6 +15,9 @@ vi.mock('@/shared/composables/useApi', () => ({
 
 import { useAdminSessions } from '@/apps/admin/stores/useAdminSessions';
 
+/** Opaque 32-hex session handle — the only session identifier on the wire (#4330). */
+const HANDLE = '0123456789abcdef0123456789abcdef';
+
 function sessionsPayload() {
   return {
     shrimp: '',
@@ -22,8 +25,7 @@ function sessionsPayload() {
     details: {
       sessions: [
         {
-          session_id: 'sid_1',
-          key: 'session:sid_1',
+          session_handle: HANDLE,
           authenticated: true,
           email: 'alice@example.com',
           external_id: 'ext_1',
@@ -63,7 +65,7 @@ describe('useAdminSessions', () => {
       params: { page: 1, per_page: 50 },
     });
     expect(store.sessions).toHaveLength(1);
-    expect(store.sessions[0].session_id).toBe('sid_1');
+    expect(store.sessions[0].session_handle).toBe(HANDLE);
     expect(store.pagination?.total_count).toBe(1);
   });
 

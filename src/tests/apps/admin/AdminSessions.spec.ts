@@ -65,7 +65,17 @@ import { createTestI18n } from '@tests/setup';
 const i18n = createTestI18n();
 
 const LIST_URL = '/api/colonel/sessions';
-const SID = 'sid_auth_1';
+/**
+ * A 32-hex opaque handle (#4330). The console never receives the raw session id
+ * — that value is the user's `onetime.session` cookie — so every route, testid
+ * and confirmation below is keyed on this instead. RAW_SID exists only to be
+ * asserted ABSENT from the DOM.
+ */
+const HANDLE = '0123456789abcdef0123456789abcdef';
+const RAW_SID = 'a'.repeat(64);
+const OWNER = 'ext_1';
+const OWNER_EMAIL = 'alice@example.com';
+const DETAIL_URL = `${LIST_URL}/${HANDLE}?user_id=${OWNER}`;
 
 /** Pass-through i18n (ADR-014): keys render verbatim, so assert on the key. */
 const COUNTRY_HEADER = 'web.admin.sessions.columns.country';
@@ -85,11 +95,10 @@ function sessionsPayload(rows: ColonelSession[] = [sessionRow()]) {
 
 function sessionRow(overrides: Partial<ColonelSession> = {}): ColonelSession {
   return {
-    session_id: SID,
-    key: `session:${SID}`,
+    session_handle: HANDLE,
     authenticated: true,
-    email: 'alice@example.com',
-    external_id: 'ext_1',
+    email: OWNER_EMAIL,
+    external_id: OWNER,
     role: 'customer',
     ip_address: '203.0.113.7',
     user_agent: 'Mozilla/5.0',
@@ -116,8 +125,7 @@ function detailPayload() {
   return {
     shrimp: '',
     record: {
-      session_id: SID,
-      key: `session:${SID}`,
+      session_handle: HANDLE,
       ttl: 3600,
       authenticated: true,
       email: 'alice@example.com',
@@ -132,14 +140,17 @@ function detailPayload() {
       authenticated_by: ['password'],
       active_session_id: 'as_1',
     },
-    details: { data: { authenticated: true, email: 'alice@example.com' } },
+    details: {
+      data: { authenticated: true, email: 'alice@example.com' },
+      scan_capped: false,
+    },
   };
 }
 
 function revokeAck() {
   return {
     shrimp: '',
-    record: { session_id: SID, deleted: true },
+    record: { session_handle: HANDLE, deleted: true },
     details: { message: 'Session revoked successfully' },
   };
 }
@@ -192,10 +203,30 @@ describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40
     });
     const table = wrapper.find('[data-testid="sessions-table"]');
     expect(table.exists()).toBe(true);
-    expect(table.text()).toContain(SID);
+    // Truncated handle in the cell, full value in the title attribute.
+    expect(table.text()).toContain(HANDLE.slice(0, 12));
     // Email is obscured by default (RevealEmail); full address hidden until reveal.
     expect(table.text()).not.toContain('alice@example.com');
     expect(table.text()).toContain('a•••@e•••.com');
+  });
+
+  it('never renders a raw session id, even when the backend leaks one', async () => {
+    // The schema strips unknown keys, so a leaked sid cannot reach the row —
+    // this is the belt-and-braces DOM assertion for #4330: no 64-hex string
+    // (the raw sid shape) anywhere in the console, list or drawer.
+    const leaky = { ...sessionRow(), session_id: RAW_SID, key: `session:${RAW_SID}` };
+    mockApi.get.mockResolvedValueOnce({
+      data: sessionsPayload([leaky as unknown as ColonelSession]),
+    });
+    wrapper = mountView(pinia);
+    await flushPromises();
+
+    mockApi.get.mockResolvedValueOnce({ data: detailPayload() });
+    await wrapper.find('[data-testid="sessions-table"] tbody tr').trigger('click');
+    await flushPromises();
+
+    expect(wrapper.html()).not.toMatch(/[0-9a-f]{64}/i);
+    expect(wrapper.html()).not.toContain(RAW_SID);
   });
 
   it('debounces the search box into a single filtered fetch', async () => {
@@ -273,8 +304,8 @@ describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40
     it('renders a null and an absent geo_country as Unknown', async () => {
       mockApi.get.mockResolvedValue({
         data: sessionsPayload([
-          sessionRow({ session_id: 'sid_null', geo_country: null }),
-          sessionRowWithoutCountry({ session_id: 'sid_absent' }),
+          sessionRow({ session_handle: 'b'.repeat(32), geo_country: null }),
+          sessionRowWithoutCountry({ session_handle: 'c'.repeat(32) }),
         ]),
       });
       wrapper = mountView(pinia);
@@ -286,9 +317,13 @@ describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40
 
     it('never leaks an IP into the country cell — only a 2-letter code or Unknown', async () => {
       const rows = [
-        sessionRow({ session_id: 'sid_code', ip_address: '203.0.113.7', geo_country: 'DE' }),
-        sessionRow({ session_id: 'sid_null', ip_address: '192.0.2.44', geo_country: null }),
-        sessionRowWithoutCountry({ session_id: 'sid_absent', ip_address: '2001:db8::1' }),
+        sessionRow({
+          session_handle: 'd'.repeat(32),
+          ip_address: '203.0.113.7',
+          geo_country: 'DE',
+        }),
+        sessionRow({ session_handle: 'e'.repeat(32), ip_address: '192.0.2.44', geo_country: null }),
+        sessionRowWithoutCountry({ session_handle: 'f'.repeat(32), ip_address: '2001:db8::1' }),
       ];
       mockApi.get.mockResolvedValue({ data: sessionsPayload(rows) });
       wrapper = mountView(pinia);
@@ -314,7 +349,8 @@ describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40
     await wrapper.find('[data-testid="sessions-table"] tbody tr').trigger('click');
     await flushPromises();
 
-    expect(mockApi.get).toHaveBeenCalledWith(`${LIST_URL}/${SID}`, undefined);
+    // The handle routes, and the row's owner rides along as the resolution hint.
+    expect(mockApi.get).toHaveBeenCalledWith(DETAIL_URL, undefined);
     const content = wrapper.find('[data-testid="session-drawer-content"]');
     expect(content.exists()).toBe(true);
     expect(content.text()).toContain('as_1'); // active_session_id field
@@ -329,17 +365,30 @@ describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40
       await flushPromises();
     });
 
-    it('opens a danger dialog from the row action, gated until the id is retyped', async () => {
-      await wrapper.find(`[data-testid="revoke-${SID}"]`).trigger('click');
+    it('opens a danger dialog gated on the session OWNER, not on the handle', async () => {
+      await wrapper.find(`[data-testid="revoke-${HANDLE}"]`).trigger('click');
       await flushPromises();
 
       expect(dialogInput(wrapper).exists()).toBe(true);
       expect(dialogSubmit(wrapper).attributes('disabled')).toBeDefined();
 
-      await dialogInput(wrapper).setValue('not-the-id');
+      // The handle is what routes the request, so retyping it must NOT unlock
+      // the gate — the token is a second, independent identifier (#4330/#4326).
+      await dialogInput(wrapper).setValue(HANDLE);
       expect(dialogSubmit(wrapper).attributes('disabled')).toBeDefined();
 
-      await dialogInput(wrapper).setValue(SID);
+      await dialogInput(wrapper).setValue(OWNER_EMAIL);
+      expect(dialogSubmit(wrapper).attributes('disabled')).toBeUndefined();
+    });
+
+    it('falls back to the external id as the confirmation token when the row has no email', async () => {
+      wrapper.unmount();
+      mockApi.get.mockResolvedValue({ data: sessionsPayload([sessionRow({ email: null })]) });
+      wrapper = mountView(pinia);
+      await flushPromises();
+
+      await wrapper.find(`[data-testid="revoke-${HANDLE}"]`).trigger('click');
+      await dialogInput(wrapper).setValue(OWNER);
       expect(dialogSubmit(wrapper).attributes('disabled')).toBeUndefined();
     });
 
@@ -347,12 +396,12 @@ describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40
       mockApi.delete.mockResolvedValue({ data: revokeAck() });
       const before = listGetCount();
 
-      await wrapper.find(`[data-testid="revoke-${SID}"]`).trigger('click');
-      await dialogInput(wrapper).setValue(SID);
+      await wrapper.find(`[data-testid="revoke-${HANDLE}"]`).trigger('click');
+      await dialogInput(wrapper).setValue(OWNER_EMAIL);
       await wrapper.find('form').trigger('submit');
       await flushPromises();
 
-      expect(mockApi.delete).toHaveBeenCalledWith(`${LIST_URL}/${SID}`);
+      expect(mockApi.delete).toHaveBeenCalledWith(DETAIL_URL);
       expect(showMock).toHaveBeenCalledWith('web.admin.sessions.revoke.success', 'success');
       expect(dialogInput(wrapper).exists()).toBe(false);
       expect(listGetCount()).toBe(before + 1);
@@ -360,7 +409,7 @@ describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40
 
     it('does NOT DELETE when submitted without a matching token', async () => {
       mockApi.delete.mockResolvedValue({ data: revokeAck() });
-      await wrapper.find(`[data-testid="revoke-${SID}"]`).trigger('click');
+      await wrapper.find(`[data-testid="revoke-${HANDLE}"]`).trigger('click');
       await dialogInput(wrapper).setValue('wrong');
       await wrapper.find('form').trigger('submit');
       await flushPromises();
@@ -373,8 +422,8 @@ describe('AdminSessions (list + search + inspect + guarded revoke — ticket #40
       mockApi.delete.mockRejectedValue(axiosError(404, { error: 'Session not found' }));
       const before = listGetCount();
 
-      await wrapper.find(`[data-testid="revoke-${SID}"]`).trigger('click');
-      await dialogInput(wrapper).setValue(SID);
+      await wrapper.find(`[data-testid="revoke-${HANDLE}"]`).trigger('click');
+      await dialogInput(wrapper).setValue(OWNER_EMAIL);
       await wrapper.find('form').trigger('submit');
       await flushPromises();
 
