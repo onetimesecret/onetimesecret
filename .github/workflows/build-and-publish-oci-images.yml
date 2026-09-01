@@ -213,6 +213,32 @@ jobs:
       - name: Assert compose image pins match README (drift gate)
         run: bash scripts/check-version-pins.sh
 
+      # Sentry CLI is resolved from the integrity-pinned devDependency in
+      # pnpm-lock.yaml (@sentry/cli 3.6.2), NOT fetched from the npm registry at
+      # execution time. Without a node_modules on the runner, `npx @sentry/cli`
+      # in the Sentry steps below would fetch @latest AND run its install-time
+      # lifecycle script mid-release, bypassing both the lockfile pin and the
+      # repo's Renovate quarantine. Installing from the frozen lockfile up
+      # front, then calling `pnpm exec sentry-cli`, keeps every Sentry
+      # invocation on the pinned version: the registry is still contacted here
+      # (uncached downloads, and the lifecycle scripts pnpm-workspace.yaml
+      # allowlists), but only for integrity-checked, lockfile-named packages.
+      #
+      # Deliberately BEFORE the registry logins below: pnpm lifecycle scripts
+      # run arbitrary package code, and this ordering means none of it executes
+      # on a runner that already holds push credentials.
+      #
+      # continue-on-error matches the Sentry steps this install serves — they
+      # are all best-effort (continue-on-error / explicit exit 0), so a
+      # transient install failure must degrade telemetry, not block the image
+      # release. setup-node-env is the same composite action ci.yml uses
+      # (Node + pnpm + `pnpm install --frozen-lockfile`); gated to non-PR runs
+      # to match the Sentry steps that consume it.
+      - name: Setup Node.js environment (pinned sentry-cli)
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        uses: ./.github/actions/setup-node-env
+
       - name: Generate commit hash
         id: commit
         run: |
@@ -413,21 +439,6 @@ jobs:
           ${{ steps.bake.outputs.metadata }}
           BAKE_METADATA_EOF
           bash scripts/ci/extract-frontend-dist.sh
-
-      # Sentry CLI is resolved from the integrity-pinned devDependency in
-      # pnpm-lock.yaml (@sentry/cli 3.6.2), NOT fetched from the npm registry at
-      # run time. Without a node_modules on the runner, `npx @sentry/cli` would
-      # fetch @latest AND run its install-time lifecycle script here — after the
-      # registry logins above already hold push credentials, and bypassing both
-      # the lockfile pin and the repo's Renovate quarantine. Installing from the
-      # frozen lockfile first, then calling `pnpm exec sentry-cli`, keeps every
-      # Sentry invocation on the pinned version and never touches the registry.
-      # setup-node-env is the same composite action ci.yml uses (Node + pnpm +
-      # `pnpm install --frozen-lockfile`); gated to non-PR runs to match the
-      # Sentry steps that consume it.
-      - name: Setup Node.js environment (pinned sentry-cli)
-        if: github.event_name != 'pull_request'
-        uses: ./.github/actions/setup-node-env
 
       - name: Create Sentry release and associate commits
         if: github.event_name != 'pull_request'
