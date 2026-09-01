@@ -88,6 +88,8 @@ module Onetime
                limit: nil, vhost: false, json: false, **)
         boot_application!
 
+        error_exit('--limit must be a positive integer', json: json) if limit && limit.to_i < 1
+
         resolved_org_id = resolve_org_filter(org_id, org_extid, json: json)
 
         # Full population, unpaginated, wire-shaped rows from the shared op.

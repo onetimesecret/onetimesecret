@@ -319,6 +319,18 @@ RSpec.describe 'Domains Command', type: :cli do
       expect(output[:stdout]).to include('Domain not found: notfound.com')
       expect(last_exit_code).to eq(1)
     end
+
+    it 'rejects a non-positive --limit in bulk mode instead of crashing on take(-1)' do
+      output = run_cli_command_quietly('domains', 'verify', '--all', '--limit', '-1')
+      expect(output[:stdout]).to include('--limit must be a positive integer')
+      expect(last_exit_code).to eq(1)
+    end
+
+    it 'reports a rejected --limit as JSON under --json' do
+      output = run_cli_command_quietly('domains', 'verify', '--all', '--limit', '0', '--json')
+      expect(JSON.parse(output[:stdout])['error']).to include('--limit')
+      expect(last_exit_code).to eq(1)
+    end
   end
 
   describe 'list subcommand' do
@@ -370,6 +382,14 @@ RSpec.describe 'Domains Command', type: :cli do
       payload = JSON.parse(output[:stdout])
       expect(payload['count']).to eq(2)
       expect(last_exit_code).to eq(0)
+    end
+
+    it 'rejects a non-positive --limit instead of crashing on first(-1)' do
+      stub_list(rows)
+
+      output = run_cli_command_quietly('domains', 'list', '--limit', '-1')
+      expect(output[:stdout]).to include('--limit must be a positive integer')
+      expect(last_exit_code).to eq(1)
     end
 
     it 'groups duplicate display_domain records (the shadow-record diagnostic)' do

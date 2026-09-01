@@ -91,6 +91,8 @@ module Onetime
         boot_application!
 
         if all
+          error_exit('--limit must be a positive integer', json: json) if limit && limit.to_i < 1
+
           verify_bulk(
             dry_run: dry_run,
             json: json,
