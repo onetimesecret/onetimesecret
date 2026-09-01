@@ -92,7 +92,12 @@ module Onetime
 
           to_replay = @count ? [@count, available].min : available
 
+          # A dry run re-triggers nothing, so it writes nothing to the OPERATOR
+          # trail — but it measures exactly what a replay would re-fire
+          # (emails, webhooks), which is reconnaissance worth recording as an
+          # OBSERVATION (#4337).
           if @dry_run
+            record_preview_event(to_replay, available)
             return Result.new(
               status: :dry_run,
               queue: @queue,
@@ -133,6 +138,21 @@ module Onetime
         end
 
         private
+
+        # One OBSERVATION per dry run (#4337), on the budgeted access trail.
+        # Same verb and target as the applied event so a preview and the replay
+        # that followed read as one sequence; `result: 'preview'` and
+        # `dry_run: true` distinguish them. Never message contents — only the
+        # counts the preview exists to produce.
+        def record_preview_event(would_replay, available)
+          Onetime::ColonelAuditEvent.record_access(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @queue,
+            result: 'preview',
+            detail: { dry_run: true, would_replay: would_replay, available: available },
+          )
+        end
 
         def empty_result
           Result.new(status: :empty, queue: @queue, replayed: 0, failed: 0, errors: [], would_replay: 0)

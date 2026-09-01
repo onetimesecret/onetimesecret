@@ -17,7 +17,9 @@ module Auth
       # This deliberately does NOT re-implement verification — it delegates to the
       # incumbent Auth::Operations::SetCustomerVerification (the cross-store
       # Redis+SQL writer) and adds exactly one ColonelAuditEvent on a successful
-      # change (epic #20 CONTRACT 4 / #21).
+      # change (epic #20 CONTRACT 4 / #21) — and, since #4337, one per
+      # no-change attempt too, under the same verb with
+      # `outcome: 'no_change'`.
       #
       # ## Why a wrapper instead of auditing inside SetCustomerVerification
       #
@@ -76,18 +78,35 @@ module Auth
             db: @db,
           ).call
 
-          # Audit only an actual state change; a :no_change mutated nothing.
-          if result == :success
-            Onetime::ColonelAuditEvent.record(
-              actor: @actor,
-              verb: AUDIT_VERB,
-              target: @customer.extid,
-              result: :success,
-              detail: { verified: @verified },
-            )
-          end
+          record_audit_event(result)
 
           result
+        end
+
+        private
+
+        # ONE event per call, on the OPERATOR trail, whatever the inner op did.
+        #
+        # A `:no_change` mutated nothing, but it is still a deliberate admin
+        # attempt to verify (or unverify) a named account, so it is recorded
+        # under the same verb with `outcome: 'no_change'` (#4337) rather than
+        # dropped — the same reasoning as SetRole and SetSuspension. Without it
+        # the trail could show nothing while an operator repeatedly poked at an
+        # account's verification state.
+        #
+        # NOT fail-closed on either path: verification is reversible and
+        # destroys nothing.
+        def record_audit_event(result)
+          detail = { verified: @verified }
+          detail = { outcome: 'no_change' }.merge(detail) unless result == :success
+
+          Onetime::ColonelAuditEvent.record(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @customer.extid,
+            result: :success,
+            detail: detail,
+          )
         end
       end
     end

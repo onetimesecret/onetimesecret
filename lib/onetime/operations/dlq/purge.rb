@@ -31,8 +31,12 @@ module Onetime
       # ## Dry run
       #
       # `dry_run: true` returns the count that WOULD be purged WITHOUT deleting
-      # anything and WITHOUT recording an audit event — used to render the
-      # count-in-scope in the confirm prompt/dialog before the live purge.
+      # anything — used to render the count-in-scope in the confirm
+      # prompt/dialog before the live purge. It writes nothing to the OPERATOR
+      # trail, but since #4337 it records one OBSERVATION
+      # (`result: 'preview'`) on the budgeted access trail: measuring what a
+      # destructive verb would destroy is reconnaissance, and it is the step an
+      # operator always takes first.
       #
       # Stateless, single `#call`, returns an immutable {Result}.
       class Purge
@@ -74,7 +78,16 @@ module Onetime
           queue   = Store.queue_handle(channel, @queue)
 
           count = queue.message_count
-          return Result.new(status: :dry_run, queue: @queue, count: count, purged: 0) if @dry_run
+
+          # A dry run deletes nothing, so it writes nothing to the OPERATOR
+          # trail — but it IS reconnaissance on the destructive verb (it
+          # measures exactly what a purge would destroy, and it is what the
+          # confirm dialog calls), so it records one OBSERVATION (#4337).
+          if @dry_run
+            record_preview_event(count)
+            return Result.new(status: :dry_run, queue: @queue, count: count, purged: 0)
+          end
+
           return Result.new(status: :empty, queue: @queue, count: 0, purged: 0) if count.zero?
 
           queue.purge
@@ -98,6 +111,23 @@ module Onetime
           Result.new(status: :success, queue: @queue, count: count, purged: count)
         ensure
           channel.close if channel&.open?
+        end
+
+        private
+
+        # One OBSERVATION per dry run (#4337), on the budgeted access trail.
+        # Same verb and target as the applied event, so a preview and the purge
+        # that followed it read as one sequence; `result: 'preview'` and
+        # `dry_run: true` distinguish them. The count is the whole point of the
+        # preview — it is what the confirm dialog shows.
+        def record_preview_event(count)
+          Onetime::ColonelAuditEvent.record_access(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @queue,
+            result: 'preview',
+            detail: { dry_run: true, count: count },
+          )
         end
       end
     end

@@ -130,10 +130,15 @@ AE.events.clear
 [@sr_event['verb'], @sr_event['actor'], @sr_event['target'], @sr_event['detail']]
 #=> ["customer.set_role", "ur_colonel_pub", @role_cust.extid, { "from" => "customer", "to" => "colonel" }]
 
-## SetRole to the same role is a no_change and does NOT audit
+## SetRole to the same role is a no_change but STILL audits the attempt (#4337)
 @sr_noop = Auth::Operations::Customers::SetRole.new(customer: @role_cust, role: 'colonel', actor: 'x').call
 [@sr_noop.status, AE.count]
-#=> [:no_change, 1]
+#=> [:no_change, 2]
+
+## …under the same verb, marked outcome: no_change
+@sr_noop_event = AE.recent(1).first
+[@sr_noop_event['verb'], @sr_noop_event['result'], @sr_noop_event['detail']]
+#=> ["customer.set_role", "success", { "outcome" => "no_change", "from" => "colonel", "to" => "colonel" }]
 
 ## SetRole rejects an invalid role
 begin
@@ -154,12 +159,12 @@ AE.events.clear
 [@sv, Onetime::Customer.load(@ver_cust.objid).verified?, AE.count, AE.recent(1).first['verb'], AE.recent(1).first['detail']]
 #=> [:success, true, 1, "customer.set_verification", { "verified" => true }]
 
-## SetVerification with no state change returns :no_change and does NOT audit
+## SetVerification with no state change returns :no_change but STILL audits (#4337)
 @sv_noop = Auth::Operations::Customers::SetVerification.new(
   customer: @ver_cust, verified: true, actor: 'x', verified_by: 'colonel_admin'
 ).call
-[@sv_noop, AE.count]
-#=> [:no_change, 1]
+[@sv_noop, AE.count, AE.recent(1).first['detail']]
+#=> [:no_change, 2, { "outcome" => "no_change", "verified" => true }]
 
 # ---- Purge (mutation + audit, reuse DeleteCustomer) -------------------
 

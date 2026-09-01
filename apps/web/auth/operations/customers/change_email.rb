@@ -281,8 +281,14 @@ module Auth
           # OLD address) so a dry run and an apply surface the same list.
           preflight_warnings
 
-          # DRY RUN: preview only. Mutate nothing, audit nothing.
-          return terminal(:planned, old_email, orgs: organizations.size) if @dry_run
+          # DRY RUN: preview only. Mutates nothing, so nothing reaches the
+          # OPERATOR trail — but it resolves and reports a customer's current
+          # address and the orgs a change would reindex, so it is recorded as
+          # an OBSERVATION (#4337).
+          if @dry_run
+            record_preview_event(old_email, organizations.size)
+            return terminal(:planned, old_email, orgs: organizations.size)
+          end
 
           # --- 1. SQL FIRST (transactional). On failure Redis is untouched. ---
           begin
@@ -896,6 +902,27 @@ module Auth
         def failure_target
           extid = (@customer.respond_to?(:extid) ? @customer.extid : nil).to_s
           extid.empty? ? Onetime::AuditedFailure::UNKNOWN : extid
+        end
+
+        # One OBSERVATION per preview (#4337), on the budgeted access trail.
+        # Same verb and target as the applied event, and — like every other
+        # event this op writes — OBSCURED addresses only; `result: 'preview'`
+        # and `dry_run: true` distinguish it from the apply that may follow.
+        def record_preview_event(old_email, org_count)
+          Onetime::ColonelAuditEvent.record_access(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: failure_target,
+            result: 'preview',
+            detail: {
+              dry_run: true,
+              from: OT::Utils.obscure_email(old_email.to_s),
+              to: OT::Utils.obscure_email(@new_email.to_s),
+              orgs: org_count,
+            },
+          )
+        rescue StandardError => ex
+          auth_logger.error '[customer.change_email] preview audit failed', exception: ex
         end
 
         # Same verb/target/actor as the success event; obscured addresses only,

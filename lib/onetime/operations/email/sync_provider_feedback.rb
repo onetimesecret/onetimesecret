@@ -69,7 +69,9 @@ module Onetime
       #
       # `dry_run` continues to skip the sync_status write entirely (it makes no
       # claim about the local suppression list) and ingests nothing, so it
-      # writes neither event.
+      # writes neither of those. It records ONE `result: 'preview'` observation
+      # on the budgeted access trail instead (#4337) — a preview still walks a
+      # third party's suppression list on the operator's behalf.
       class SyncProviderFeedback
         # Providers with a pollable feedback API (a fetcher under
         # Onetime::Mail::Feedback). Other transports (SMTP, sendgrid, logger,
@@ -178,15 +180,29 @@ module Onetime
           )
         end
 
-        # One audit event per real run (#4336) — see the class docs. Skipped for
-        # a dry run, which stamps nothing and ingests nothing.
+        # One audit event per run — see the class docs.
+        #
+        # A REAL run stamps sync_status and may add suppressions, so it lands on
+        # the OPERATOR trail (#4336). A DRY RUN mutates nothing but still walks
+        # a third party's suppression list on the operator's behalf, so it
+        # lands on the budgeted observation trail with `result: 'preview'`
+        # (#4337). Same verb and target either way, so a preview and the sync
+        # that followed read as one sequence.
         #
         # NOT fail-closed: a sync destroys nothing (it only ever ADDS
         # suppressions), so per the model's fail-closed contract this stays in
         # the additive family and must not trade a working sync for a hard
-        # failure.
+        # failure. The observation half is fail-open by construction.
         def record_sync_event(result)
-          return if result.dry_run
+          if result.dry_run
+            return Onetime::ColonelAuditEvent.record_access(
+              actor: @actor,
+              verb: AUDIT_VERB,
+              target: AUDIT_TARGET,
+              result: 'preview',
+              detail: sync_detail(result),
+            )
+          end
 
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
@@ -197,10 +213,13 @@ module Onetime
           )
         end
 
-        # The run's tallies. `skipped` is the fetched-but-not-ingested
+        # The run's tallies, shared by the real-run and preview events so the
+        # two are directly comparable. `skipped` is the fetched-but-not-ingested
         # remainder (rejected records plus anything the ingest silently
         # dropped), so fetched == accepted + skipped always holds and a reader
         # never has to reconcile three counters by hand.
+        # `sync_status_stamped` is what separates a run that moved the console
+        # out of its "never synced" state from a preview that did not.
         def sync_detail(result)
           {
             provider: result.provider,

@@ -468,14 +468,26 @@ RSpec.describe 'Colonel customer support features', type: :integration do
       expect { logic.raise_concerns }.to raise_error(Onetime::Forbidden)
     end
 
-    it 'is idempotent: re-suspending audits nothing and reports changed=false' do
+    # #4337: idempotent in EFFECT, not in the trail. Re-suspending mutates
+    # nothing and still reports changed=false, but the operator deliberately
+    # reached for the suspend button on a named account and that attempt is
+    # recorded — under the same verb, marked `outcome: 'no_change'`, so a
+    # reviewer sees every attempt rather than only the ones that moved.
+    it 'is idempotent in effect but still audits the attempt, reporting changed=false' do
       run_logic(ColonelAPI::Logic::Colonel::SuspendUser, { 'user_id' => target.extid })
       audit_before = Onetime::ColonelAuditEvent.count
 
       data = run_logic(ColonelAPI::Logic::Colonel::SuspendUser, { 'user_id' => target.extid })
 
       expect(data[:details][:changed]).to be(false)
-      expect(Onetime::ColonelAuditEvent.count).to eq(audit_before)
+      expect(Onetime::ColonelAuditEvent.count).to eq(audit_before + 1)
+
+      event = Onetime::ColonelAuditEvent.recent(1).first
+      expect(event['verb']).to eq('customer.suspend')
+      expect(event['target']).to eq(target.extid)
+      expect(event['detail']).to include('outcome' => 'no_change')
+      # Nothing was destroyed or revoked, so the no-change write is fail-open.
+      expect(Onetime::Customer.load(target.objid).suspended?).to be(true)
     end
   end
 

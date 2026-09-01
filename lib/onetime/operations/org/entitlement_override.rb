@@ -223,6 +223,10 @@ module Onetime
 
           if @dry_run
             projected_grants, projected_revokes = project(grants, revokes)
+            # Mutates nothing, so nothing reaches the OPERATOR trail — but a
+            # preview shows what an override would do to a paying org's
+            # entitlements, so it is recorded as an OBSERVATION (#4337).
+            record_preview_event
             return build(
               :planned,
               effective: project_effective(projected_grants, projected_revokes),
@@ -263,6 +267,22 @@ module Onetime
         # :invalid_action refusal has no success-path verb to match.
         def audit_verb
           ACTIONS.include?(@action) ? "#{AUDIT_VERB_PREFIX}.#{@action}" : AUDIT_VERB_PREFIX
+        end
+
+        # One OBSERVATION per preview (#4337), on the budgeted access trail.
+        # Same verb and target as the applied event, so a preview and the
+        # override that followed read as one sequence; `result: 'preview'`
+        # tells them apart. The projected entitlement SETS stay out — they are
+        # plan output for the operator, and `clear`'s set is unbounded (the
+        # same reason the applied event's detail is {} for clear).
+        def record_preview_event
+          Onetime::ColonelAuditEvent.record_access(
+            actor: @actor,
+            verb: audit_verb,
+            target: @org.extid,
+            result: 'preview',
+            detail: { dry_run: true, action: @action, entitlement: @entitlement },
+          )
         end
 
         # Same verb/target/actor as the success event. Best-effort: never break

@@ -121,7 +121,15 @@ module Onetime
 
           return blocked if blocked
           return result_for(:no_issues, issues, []) if issues.empty?
-          return result_for(:planned, issues, []) if @dry_run
+
+          # A preview repairs nothing, so nothing reaches the OPERATOR trail —
+          # but it enumerates a customer domain's defects, and `dry_run`
+          # defaults to TRUE here, so this is the path an operator takes first.
+          # Recorded as an OBSERVATION (#4337).
+          if @dry_run
+            record_preview_event(issues)
+            return result_for(:planned, issues, [])
+          end
 
           # Apply every repair, collecting the human-readable result of each.
           repairs_applied = repairs.map(&:call)
@@ -142,6 +150,24 @@ module Onetime
         end
 
         private
+
+        # One OBSERVATION per preview (#4337), on the budgeted access trail.
+        # Same verb, target and `issues` detail as the applied event, so a
+        # preview and the repair that followed read as one sequence;
+        # `result: 'preview'` is what tells them apart.
+        def record_preview_event(issues)
+          Onetime::ColonelAuditEvent.record_access(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @domain.extid,
+            result: 'preview',
+            detail: {
+              dry_run: true,
+              issues: issues,
+              org_id: @domain.org_id.to_s,
+            },
+          )
+        end
 
         # Compute [issues<Array<String>>, repairs<Array<#call>>, blocked<Result|nil>].
         # A repair is a lambda returning its human-readable result string when applied.

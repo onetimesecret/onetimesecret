@@ -318,6 +318,50 @@ mutated nothing, so there is no destroyed-with-no-trail outcome for failing
 closed to surface; all it could do is take the console down over a broken audit
 write while an operator is trying to read something.
 
+### Attempts, not just effects (#4337)
+
+Two families of operator action changed nothing and therefore recorded
+nothing. Both now record — and they go to **different trails**, which is the
+distinction worth holding on to.
+
+**Dry-run previews → the observation trail.** A preview mutates nothing, but it
+enumerates exactly what a destructive run would touch: the message count a
+purge would delete, the members and domains an org delete would take with it,
+the addresses a replay would re-fire. That is reconnaissance, and several of
+these ops default to `dry_run: true`, so the preview is the step an operator
+always takes first — the one that used to leave no trace at all. Each records
+one event with the op's **own verb and target** (so a preview and the apply
+that followed read as one sequence when filtered by verb), `result: 'preview'`,
+and `dry_run: true` in the detail. Volume lands on the budgeted stream by
+design, never on the operator trail.
+
+Covered: `org/reconcile`, `org/delete`, `org/transfer_ownership`,
+`org/entitlement_override`, `memberships/entitlement_override`, `dlq/purge`,
+`dlq/replay`, `domains/remove`, `domains/transfer`, `domains/repair`,
+`domains/ensure_domain_configs`, `email/send_test`,
+`email/sync_provider_feedback`, `customers/change_email`,
+`customers/reconcile_role_index` (the last gated on a known actor, since its
+report-only path is also reachable with `actor: nil` — ADR-023: never
+fabricate an actor).
+
+**No-change attempts → the operator trail.** Suspending an already-suspended
+account, setting a role to the role it already holds, re-applying the current
+plan: these ops used to return `:no_change` and skip the audit write under an
+"only audit an actual change" rule. That rule was reading the trail as a log of
+*effects*; it is a log of *what operators did*. Reaching for `colonel` on an
+account that already holds it is the same reach for the same privilege, and a
+trail that goes quiet for it can show nothing while an operator repeatedly
+probes a privileged account. These record under the op's normal verb with
+`detail: { outcome: 'no_change', ... }` — **not** `fail_closed`, since nothing
+was destroyed or revoked.
+
+Covered: `customers/set_suspension`, `customers/set_role`,
+`customers/set_plan`, `customers/set_verification`, `memberships/set_role`,
+`org/set_plan`.
+
+An op that *refuses* on no-change rather than skipping was already audited (the
+refusal path) and is unchanged.
+
 ### Write-failure posture (#4333)
 
 `ColonelAuditEvent.record` is best-effort by default: a failed audit write is

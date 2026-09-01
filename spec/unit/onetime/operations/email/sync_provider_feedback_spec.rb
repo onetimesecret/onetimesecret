@@ -220,12 +220,24 @@ RSpec.describe Onetime::Operations::Email::SyncProviderFeedback do
       expect(Onetime::ColonelAuditEvent).to have_received(:record).with(hash_excluding(:fail_closed))
     end
 
-    it 'records nothing for a dry run: it stamps nothing and ingests nothing' do
+    # #4337: a dry run stamps nothing and ingests nothing, so it stays off the
+    # OPERATOR trail — but it still walks a third party's suppression list on
+    # the operator's behalf, so it lands on the budgeted observation trail with
+    # the same verb and target the real run uses.
+    it 'records a dry run as a PREVIEW observation, never on the operator trail' do
+      allow(Onetime::ColonelAuditEvent).to receive(:record_access)
       allow(fetcher).to receive(:fetch).and_return(records)
 
       described_class.new(provider: 'ses', dry_run: true).call
 
       expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+      expect(Onetime::ColonelAuditEvent).to have_received(:record_access).once.with(
+        actor: described_class::CLI_ACTOR,
+        verb: described_class::AUDIT_VERB,
+        target: described_class::AUDIT_TARGET,
+        result: 'preview',
+        detail: hash_including(fetched: 2, accepted: 0, sync_status_stamped: false),
+      )
     end
 
     it 'records nothing when the provider has no feedback API (the run never happened)' do

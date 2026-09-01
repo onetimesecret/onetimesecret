@@ -235,8 +235,14 @@ module Onetime
           outcome = dispatch(mode)
 
           # A dry run wrote nothing and attempted nothing: no reload, no
-          # snapshot, no audit event.
-          return build(outcome[:status], org_extid, mode, before, nil, outcome[:reason]) if @dry_run
+          # snapshot, no OPERATOR event. It is recorded as an OBSERVATION
+          # (#4337) — a preview enumerates what an apply would rewrite, and
+          # `dry_run` defaults to TRUE here, so this is the path an operator
+          # normally takes first.
+          if @dry_run
+            record_preview_event(org_extid, mode, outcome[:status], before, outcome[:reason])
+            return build(outcome[:status], org_extid, mode, before, nil, outcome[:reason])
+          end
 
           # A Stripe failure also wrote nothing, so there is no after-snapshot —
           # but the operator DID attempt the mutation and Stripe refused it, so
@@ -484,6 +490,27 @@ module Onetime
             verb: AUDIT_VERB,
             target: org_extid,
             result: OK_STATUSES.include?(status) ? :success : :failure,
+            detail: detail,
+          )
+        end
+
+        # One OBSERVATION per dry run (#4337), on the budgeted access trail —
+        # never the operator trail, which stays a record of things that
+        # actually happened. Same verb and target as the applied event so a
+        # reader can line a preview up against the apply that followed it;
+        # `result: 'preview'` and `dry_run: true` are what tell them apart.
+        #
+        # No after-snapshot: nothing was written, and a projected one would be
+        # a re-derivation that can disagree with an apply (see Result#after).
+        def record_preview_event(org_extid, mode, status, before, reason = nil)
+          detail          = { dry_run: true, mode: mode, status: status.to_s, before: before }
+          detail[:reason] = reason.to_s unless reason.to_s.empty?
+
+          Onetime::ColonelAuditEvent.record_access(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: org_extid,
+            result: 'preview',
             detail: detail,
           )
         end

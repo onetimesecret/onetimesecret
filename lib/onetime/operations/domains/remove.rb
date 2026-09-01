@@ -104,8 +104,15 @@ module Onetime
             reasserts_survivor: reasserts,
           )
 
-          # --- DRY RUN: preview only, mutate nothing, audit nothing ---
-          return plan if @dry_run
+          # --- DRY RUN: preview only, mutate nothing ---
+          # Nothing reaches the OPERATOR trail, but a preview of a destructive
+          # verb is reconnaissance — it names the domain, its org, and whether
+          # removal would hand the index back to a survivor. Recorded as an
+          # OBSERVATION (#4337).
+          if @dry_run
+            record_preview_event(plan, org_id, reasserts)
+            return plan
+          end
 
           # --- APPLY: teardown mirrors RemoveDomain#process (NO org.remove_domain) ---
           delete_vhost(@domain)
@@ -156,6 +163,21 @@ module Onetime
         end
 
         private
+
+        # One OBSERVATION per preview (#4337), on the budgeted access trail —
+        # never the operator trail, which stays a record of domains that were
+        # actually removed. Same verb and target as the applied event so a
+        # preview lines up with the removal that followed it; `result: 'preview'`
+        # is what tells them apart, and the detail mirrors the applied event's.
+        def record_preview_event(plan, org_id, reasserts)
+          Onetime::ColonelAuditEvent.record_access(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: plan.extid,
+            result: 'preview',
+            detail: { dry_run: true, org_id: org_id.to_s, reasserted: reasserts },
+          )
+        end
 
         # Mirrors RemoveDomain#delete_vhost: no-op for non-Approximated strategies,
         # swallows provider/transport errors so removal proceeds regardless.

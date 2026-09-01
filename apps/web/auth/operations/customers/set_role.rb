@@ -13,8 +13,11 @@ module Auth
       # The ONE implementation of the role-change verb. The colonel `SetUserRole`
       # Logic class and the CLI `customers role promote/demote` command are thin
       # adapters over it. This is a MUTATING admin op, so it records exactly one
-      # ColonelAuditEvent per successful change (epic #20 CONTRACT 4 / #21). An
-      # idempotent no-op change mutates nothing and is therefore not audited.
+      # ColonelAuditEvent per successful change (epic #20 CONTRACT 4 / #21).
+      # An idempotent no-op mutates nothing but is STILL audited, under the
+      # same verb with `outcome: 'no_change'` (#4337): reaching for a role on
+      # an account that already holds it is the same reach, and the trail
+      # should not go quiet for it.
       #
       # `VALID_ROLES` is the single source of truth for assignable roles; the CLI
       # and colonel adapters both reference it rather than keeping their own copy.
@@ -62,7 +65,10 @@ module Auth
           end
 
           from = @customer.role.to_s
-          return Result.new(status: :no_change, customer: @customer, from: from, to: @role) if from == @role
+          if from == @role
+            record_no_change_event(from)
+            return Result.new(status: :no_change, customer: @customer, from: from, to: @role)
+          end
 
           @customer.role = @role
           @customer.save
@@ -90,6 +96,28 @@ module Auth
         end
 
         private
+
+        # A no-change attempt (#4337) — the OPERATOR trail, not the observation
+        # trail.
+        #
+        # Role assignment is the highest-value verb in this trail, and an
+        # attempt to set `colonel` on an account that already holds it is not
+        # less interesting than one that changes it — it is the same reach for
+        # the same privilege. Silently dropping it meant the trail could show
+        # nothing while an operator repeatedly probed a privileged account.
+        #
+        # Same verb and target as the applied event, with `outcome: 'no_change'`
+        # marking it. NOT fail-closed: no privilege moved, so there is no
+        # untraceable grant for a hard failure to surface.
+        def record_no_change_event(from)
+          Onetime::ColonelAuditEvent.record(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @customer.extid,
+            result: :success,
+            detail: { outcome: 'no_change', from: from, to: @role },
+          )
+        end
 
         # Loggable, non-secret actor label (mirrors the audit actor normalization).
         def actor_label

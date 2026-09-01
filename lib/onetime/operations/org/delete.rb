@@ -304,7 +304,15 @@ module Onetime
           refusal = first_guardrail_trip
           return refuse(refusal) if refusal
 
-          return build(:planned) if @dry_run
+          # A preview destroys nothing, so it writes nothing to the OPERATOR
+          # trail — but it enumerates exactly what a delete would take with it
+          # (members, invitations, domains, the owner's other orgs), and
+          # `dry_run` defaults to TRUE, so this is the path a console operator
+          # takes first. Recorded as an OBSERVATION (#4337).
+          if @dry_run
+            record_preview_event
+            return build(:planned)
+          end
 
           apply!
 
@@ -525,6 +533,30 @@ module Onetime
         # snapshot. `members_notified` / `default_org_cleared` report the applied
         # counts when there are any and the WOULD-BE counts otherwise, so a plan
         # and its receipt read alike.
+        # One OBSERVATION per preview (#4337), on the budgeted access trail —
+        # never the operator trail, which stays a record of orgs that were
+        # actually deleted. Same verb and target as the applied event so a
+        # preview lines up with the delete that followed it; `result: 'preview'`
+        # is what tells them apart. The counts mirror the applied event's, so
+        # the two read the same way; member emails stay out of both (they are
+        # operator-facing plan output, not audit content).
+        def record_preview_event
+          Onetime::ColonelAuditEvent.record_access(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @extid,
+            result: 'preview',
+            detail: {
+              dry_run: true,
+              display_name: @display_name.to_s,
+              planid: @planid,
+              members: @members.size,
+              pending_invitations: @pending,
+              domain_count: @domain_count,
+            },
+          )
+        end
+
         def build(status)
           Result.new(
             status: status,

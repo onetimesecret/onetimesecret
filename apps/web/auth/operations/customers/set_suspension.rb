@@ -14,9 +14,12 @@ module Auth
       # The ONE implementation of the suspension verb. The colonel
       # `SuspendUser` / `UnsuspendUser` Logic classes are thin adapters over
       # it. This is a MUTATING admin op, so it records exactly one
-      # ColonelAuditEvent per successful change (epic #20 CONTRACT 4 / #21). An
-      # idempotent no-op (already in the target state) mutates nothing and is
-      # therefore not audited.
+      # ColonelAuditEvent per successful change (epic #20 CONTRACT 4 / #21).
+      # An idempotent no-op (already in the target state) mutates nothing but
+      # is STILL audited, under the same verb with `outcome: 'no_change'`
+      # (#4337): the operator deliberately attempted a suspension, and that
+      # attempt is the fact a reviewer needs — whether the account was already
+      # in that state is the outcome, not the question.
       #
       # ## Reversible by design (unlike purge)
       #
@@ -92,6 +95,7 @@ module Auth
           end
 
           if @customer.suspended? == @suspended
+            record_no_change_event
             return Result.new(
               status: :no_change,
               customer: @customer,
@@ -153,6 +157,31 @@ module Auth
           return { sessions_revoked: sessions_revoked } unless @suspended
 
           { reason: @reason, sessions_revoked: sessions_revoked }
+        end
+
+        # A no-change attempt (#4337) — the OPERATOR trail, not the observation
+        # trail.
+        #
+        # Nothing changed, but something was ATTEMPTED: an operator asked to
+        # suspend (or release) a specific account. That is a deliberate
+        # trust & safety action, and "someone tried to suspend this customer
+        # last Tuesday" is exactly the fact a reviewer needs — the outcome
+        # being "already there" does not make the attempt uninteresting. It
+        # also distinguishes a genuine no-op from a suspension whose audit
+        # write failed.
+        #
+        # Same verb and target as the applied event, with `outcome: 'no_change'`
+        # marking it. NOT fail-closed: nothing was destroyed or revoked, so
+        # there is no untraceable-destruction case for it to surface, and
+        # turning an idempotent no-op into a 500 would be a regression.
+        def record_no_change_event
+          Onetime::ColonelAuditEvent.record(
+            actor: @actor,
+            verb: @suspended ? AUDIT_VERB_SUSPEND : AUDIT_VERB_UNSUSPEND,
+            target: @customer.extid,
+            result: :success,
+            detail: { outcome: 'no_change', suspended: @suspended },
+          )
         end
 
         # Delete every readable session belonging to this customer. Bounded by

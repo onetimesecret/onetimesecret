@@ -26,8 +26,13 @@ module Onetime
       #
       # ## Exactly-once audit + no-op semantics
       #
-      # A real change records EXACTLY ONE {Onetime::ColonelAuditEvent}. An idempotent
-      # `:no_change` (already at the target role) mutates and audits NOTHING.
+      # A real change records EXACTLY ONE {Onetime::ColonelAuditEvent}. An
+      # idempotent `:no_change` (already at the target role) mutates nothing but
+      # records one too (#4337), under the same verb with
+      # `outcome: 'no_change'` — the org-scoped twin of
+      # {Auth::Operations::Customers::SetRole}: reaching for `owner` on a
+      # membership that already holds it is the same reach for the same
+      # privilege, and the trail should not go quiet for it.
       #
       # A REFUSED change (`:invalid_role` / `:not_found` / `:last_owner`) records
       # exactly one `result: :failure` event — the operator attempted a privileged
@@ -49,8 +54,8 @@ module Onetime
 
         # Statuses meaning "a privileged mutation was asked for and refused".
         # Each records one `result: :failure` event via {#build}. `:success` and
-        # `:no_change` are excluded (the former audits its own event, the latter
-        # is an idempotent no-op).
+        # `:no_change` are excluded — each audits its own `result: :success`
+        # event instead, the latter marked `outcome: 'no_change'`.
         REFUSAL_STATUSES = [:invalid_role, :not_found, :last_owner].freeze
 
         # change_role! / save can raise (datastore, materialization), and the
@@ -88,7 +93,10 @@ module Onetime
           return build(:not_found, nil, @new_role) unless membership&.active?
 
           from = membership.role.to_s
-          return build(:no_change, from, from) if from == @new_role
+          if from == @new_role
+            record_no_change_event(from)
+            return build(:no_change, from, from)
+          end
 
           # Guardrail: never demote the sole remaining owner (would orphan the org).
           if from == 'owner' && sole_owner?(@org, membership)
@@ -122,6 +130,22 @@ module Onetime
         end
 
         private
+
+        # A no-change attempt (#4337) — the OPERATOR trail, not the observation
+        # trail. Same verb, target and detail keys as the applied event, with
+        # `outcome: 'no_change'` marking it, so a filter on
+        # `membership.set_role` shows every attempt against a membership rather
+        # than only the ones that moved. NOT fail-closed: no privilege moved,
+        # so there is no untraceable grant for a hard failure to surface.
+        def record_no_change_event(from)
+          Onetime::ColonelAuditEvent.record(
+            actor: @actor,
+            verb: AUDIT_VERB,
+            target: @customer.extid,
+            result: :success,
+            detail: { outcome: 'no_change', from: from, to: @new_role, org_id: @org.extid },
+          )
+        end
 
         # Single exit point for every non-success status, so the refusal audit
         # cannot be forgotten at one of the four early returns.
