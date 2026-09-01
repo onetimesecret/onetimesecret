@@ -5,7 +5,7 @@
 # Central (cross-cutting) admin operation — see decision D3 in
 # lib/onetime/operations/README.md. Email delivery diagnostics have no single
 # domain owner (the mailer is site-wide infrastructure), so — like
-# {Onetime::Operations::BanIP} and {Onetime::Operations::Banner} — this lives in
+# {Onetime::Operations::Banner} — this lives in
 # the central operations home. Loaded at the call site (colonel logic + the
 # `bin/ots email test` CLI), so require the audit dependency explicitly.
 require 'socket'

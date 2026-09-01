@@ -515,14 +515,6 @@
     "text": "Se og administrer alle beskeder",
     "source_hash": "48f8052e"
   },
-  "web.colonel.bannedIps.title": {
-    "text": "Blokerede IP-adresser",
-    "source_hash": "0ece5643"
-  },
-  "web.colonel.bannedIps.description": {
-    "text": "Administrer IP-blokeringsliste",
-    "source_hash": "dd0d2614"
-  },
   "web.colonel.usageExport.title": {
     "text": "Forbrugseksport",
     "source_hash": "10a0cb94"
@@ -579,10 +571,6 @@
     "text": "Auth-database",
     "source_hash": "c683c9a6"
   },
-  "web.colonel.titles.bannedIps": {
-    "text": "Blokerede IP-adresser",
-    "source_hash": "0ece5643"
-  },
   "web.colonel.titles.usage": {
     "text": "Forbrugseksport",
     "source_hash": "10a0cb94"
@@ -614,82 +602,6 @@
   "web.colonel.previewModeActive": {
     "text": "Forhåndsvisning aktiv",
     "source_hash": "a558d603"
-  },
-  "web.colonel.bannedIps.empty": {
-    "text": "Ingen bandlyste IP'er",
-    "source_hash": "bd101143"
-  },
-  "web.colonel.bannedIps.currentIp": {
-    "text": "Din nuværende IP-adresse",
-    "source_hash": "72f9fefe"
-  },
-  "web.colonel.bannedIps.confirmUnban": {
-    "text": "Ophæv bandlysning af {ip}?",
-    "source_hash": "ff009b1c"
-  },
-  "web.colonel.bannedIps.actions.ban": {
-    "text": "Bandlys IP",
-    "source_hash": "f91a5285"
-  },
-  "web.colonel.bannedIps.actions.quickBan": {
-    "text": "Hurtig bandlysning",
-    "source_hash": "c32d0943"
-  },
-  "web.colonel.bannedIps.actions.unban": {
-    "text": "Ophæv bandlysning",
-    "source_hash": "25fb5989"
-  },
-  "web.colonel.bannedIps.actions.cancel": {
-    "text": "Annuller",
-    "source_hash": "19766ed6"
-  },
-  "web.colonel.bannedIps.columns.ipAddress": {
-    "text": "IP-adresse",
-    "source_hash": "3c3de0c9"
-  },
-  "web.colonel.bannedIps.columns.reason": {
-    "text": "Årsag",
-    "source_hash": "f81ab834"
-  },
-  "web.colonel.bannedIps.columns.bannedAt": {
-    "text": "Bandlyst den",
-    "source_hash": "dfbd120e"
-  },
-  "web.colonel.bannedIps.columns.bannedBy": {
-    "text": "Bandlyst af",
-    "source_hash": "9f47db0e"
-  },
-  "web.colonel.bannedIps.error.banFailed": {
-    "text": "Kunne ikke bandlyse IP-adressen",
-    "source_hash": "24e94d9b"
-  },
-  "web.colonel.bannedIps.error.unbanFailed": {
-    "text": "Kunne ikke ophæve bandlysningen af IP-adressen",
-    "source_hash": "66bbac9a"
-  },
-  "web.colonel.bannedIps.form.title": {
-    "text": "Bandlys IP-adresse",
-    "source_hash": "3f5b3dfa"
-  },
-  "web.colonel.bannedIps.form.ipLabel": {
-    "text": "IP-adresse",
-    "source_hash": "3c3de0c9"
-  },
-  "web.colonel.bannedIps.form.reasonLabel": {
-    "text": "Årsag",
-    "source_hash": "f81ab834"
-  },
-  "web.colonel.bannedIps.form.reasonPlaceholder": {
-    "text": "Valgfri årsag",
-    "source_hash": "956688a5"
-  },
-  "web.colonel.bannedIps.success.banned": {
-    "text": "IP-adressen {ip} er blevet bandlyst",
-    "source_hash": "b6f861d5"
-  },
-  "web.colonel.bannedIps.success.unbanned": {
-    "text": "Bandlysningen af IP-adressen {ip} er blevet ophævet",
-    "source_hash": "dbe93550"
   },
   "web.colonel.customDomains.empty": {
     "text": "Ingen brugerdefinerede domæner konfigureret",

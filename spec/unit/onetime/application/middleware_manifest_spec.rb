@@ -96,7 +96,6 @@ RSpec.describe 'Middleware manifest (characterization)' do
     UNIVERSAL_MIDDLEWARE_BASE = [
       'Onetime::Middleware::AssumeHttps',
       'Otto::Security::Middleware::IPPrivacyMiddleware',
-      'Onetime::Middleware::IPBan',
       'Onetime::Middleware::HealthAccessControl',
       'Rack::ContentLength',
       'Onetime::Middleware::StartupReadiness',

@@ -603,90 +603,6 @@
     "text": "Viewed",
     "content_hash": "1b28d178"
   },
-  "web.colonel.bannedIps.title": {
-    "text": "Banned IPs",
-    "content_hash": "0ece5643"
-  },
-  "web.colonel.bannedIps.description": {
-    "text": "Manage IP ban list",
-    "content_hash": "dd0d2614"
-  },
-  "web.colonel.bannedIps.columns.ipAddress": {
-    "text": "IP Address",
-    "content_hash": "3c3de0c9"
-  },
-  "web.colonel.bannedIps.columns.reason": {
-    "text": "Reason",
-    "content_hash": "f81ab834"
-  },
-  "web.colonel.bannedIps.columns.bannedAt": {
-    "text": "Banned At",
-    "content_hash": "dfbd120e"
-  },
-  "web.colonel.bannedIps.columns.bannedBy": {
-    "text": "Banned By",
-    "content_hash": "9f47db0e"
-  },
-  "web.colonel.bannedIps.empty": {
-    "text": "No banned IPs",
-    "content_hash": "bd101143"
-  },
-  "web.colonel.bannedIps.form.title": {
-    "text": "Ban IP Address",
-    "content_hash": "3f5b3dfa"
-  },
-  "web.colonel.bannedIps.form.ipLabel": {
-    "text": "IP Address",
-    "content_hash": "3c3de0c9"
-  },
-  "web.colonel.bannedIps.form.reasonLabel": {
-    "text": "Reason",
-    "content_hash": "f81ab834"
-  },
-  "web.colonel.bannedIps.form.reasonPlaceholder": {
-    "text": "Optional reason",
-    "content_hash": "956688a5"
-  },
-  "web.colonel.bannedIps.actions.ban": {
-    "text": "Ban IP",
-    "content_hash": "f91a5285"
-  },
-  "web.colonel.bannedIps.actions.quickBan": {
-    "text": "Quick Ban",
-    "content_hash": "c32d0943"
-  },
-  "web.colonel.bannedIps.actions.unban": {
-    "text": "Unban",
-    "content_hash": "25fb5989"
-  },
-  "web.colonel.bannedIps.actions.cancel": {
-    "text": "Cancel",
-    "content_hash": "19766ed6"
-  },
-  "web.colonel.bannedIps.currentIp": {
-    "text": "Your Current IP Address",
-    "content_hash": "72f9fefe"
-  },
-  "web.colonel.bannedIps.confirmUnban": {
-    "text": "Unban {ip}?",
-    "content_hash": "ff009b1c"
-  },
-  "web.colonel.bannedIps.success.banned": {
-    "text": "IP address {ip} has been banned",
-    "content_hash": "b6f861d5"
-  },
-  "web.colonel.bannedIps.success.unbanned": {
-    "text": "IP address {ip} has been unbanned",
-    "content_hash": "dbe93550"
-  },
-  "web.colonel.bannedIps.error.banFailed": {
-    "text": "Failed to ban IP address",
-    "content_hash": "24e94d9b"
-  },
-  "web.colonel.bannedIps.error.unbanFailed": {
-    "text": "Failed to unban IP address",
-    "content_hash": "66bbac9a"
-  },
   "web.colonel.usageExport.title": {
     "text": "Usage Export",
     "content_hash": "10a0cb94"
@@ -806,10 +722,6 @@
   "web.colonel.titles.authdb": {
     "text": "Auth Database",
     "content_hash": "c683c9a6"
-  },
-  "web.colonel.titles.bannedIps": {
-    "text": "Banned IPs",
-    "content_hash": "0ece5643"
   },
   "web.colonel.titles.usage": {
     "text": "Usage Export",

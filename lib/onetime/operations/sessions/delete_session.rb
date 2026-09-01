@@ -17,8 +17,7 @@ module Onetime
       # (`DELETE /api/colonel/sessions/:session_id`) and the `bin/ots session delete`
       # CLI are thin adapters over it. The model mutation is IDENTICAL to the prior
       # inline CLI call (`dbclient.del(session_key)`); the op adds exactly one thing
-      # the inline call lacked: one {Onetime::ColonelAuditEvent} per successful delete,
-      # mirroring the Slice-4 {Onetime::Operations::BanIP} / `UnbanIP` precedent.
+      # the inline call lacked: one {Onetime::ColonelAuditEvent} per successful delete.
       #
       # Deleting a session logs that user out mid-flight, so the HTTP path gates it
       # behind AdminConfirmDialog typed-confirmation and the CLI behind a y/N prompt

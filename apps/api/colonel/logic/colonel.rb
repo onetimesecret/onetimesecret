@@ -48,11 +48,6 @@ require_relative 'colonel/get_backup_status'
 require_relative 'colonel/get_brand_diagnostics'
 require_relative 'colonel/get_redis_metrics'
 
-# IP banning
-require_relative 'colonel/list_banned_ips'
-require_relative 'colonel/ban_ip'
-require_relative 'colonel/unban_ip'
-
 # Custom domains
 require_relative 'colonel/list_custom_domains'
 require_relative 'colonel/verify_custom_domain'
