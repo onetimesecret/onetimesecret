@@ -212,3 +212,61 @@ reached for, without assuming another user's identity:
 Neither assumes another user's identity, and both leave an honest actor in the
 trail. That combination is what made the impersonation verb unnecessary in the
 first place — it remains the reason.
+
+---
+
+## 2026-09-01 — Addendum: impersonation built
+
+An impersonation feature was built, as a colonel-console operation with an
+authenticated operator — the case section (b) above explicitly left open ("A
+colonel-console adapter does not have this problem... That is a different
+proposal from the one #3731 raised"). The design is recorded in
+[ADR-041](../../../adr/adr-041-colonel-impersonation-session-overlay.md). The
+CLI verb declined in the 2026-07-25 section is still declined, and the inert
+bearer-grant primitive that preceded this work is removed.
+
+The three §(c) requirements are met as follows.
+
+**1. Bounded lifetime.** The session marker carries its own `expires_at`, set
+from a fixed 30-minute constant with no caller-supplied TTL, and the
+per-request impersonation middleware treats an expired marker as ended. The
+session store is untouched: `expire_after` keeps extending ordinary sessions on
+activity, which was always correct — the impersonation window simply does not
+ask it for anything.
+
+**2. A marker that cannot be absent.** Resolved by inverting the direction
+rather than by finding a home where absence is impossible. Impersonation is an
+overlay, not a swap: `session['external_id']` stays the colonel's for the whole
+window and a separate marker names the effective customer. A lost marker
+therefore leaves an ordinary colonel session — absence *is* the safe state — so
+the design satisfies the same rule the sidecar admission rule encodes, in the
+direction the rule requires. It also keeps the session indexed under the
+colonel rather than migrating it into the target's `active_sessions`.
+
+**3. Capability restriction at the point of use.** The middleware enforces a
+positive list: safe methods on non-blocked paths, plus the stop endpoint;
+everything else is refused with 403. The list is safe methods *minus known
+consuming reads* — a secret fetch carrying `?continue=true` burns the secret
+and is denied whatever its method, and any future GET that mutates has to join
+that deny list explicitly. `/api/auth/*`, `/auth/*`,
+`/api/colonel/*`, and `/colonel*` are blocked regardless of method — the
+Rodauth block because `account_id` remains the colonel's, so a credential
+change there would act on the operator's own account. Nothing is relied on
+being undoable afterwards.
+
+### Supersedes "The request-path guard was deliberately not built"
+
+That section is superseded on its own terms. Its objection was to inert
+machinery — a guard in the hot path of every authenticated request, across
+several identity-resolution sites, for a feature that was not shipping — and it
+closed by stating the condition under which the objection lifts: "If an
+impersonation feature is ever genuinely needed, the guard is part of *that*
+project and should be built with a caller, not ahead of one." That is what
+happened. The guard ships in the same change as the console operation that
+creates the marker it recognizes, and the several identity-resolution sites are
+consolidated behind one shared resolver rather than each growing its own copy
+of the check. The reasoning stands; only its premise (no caller) has changed.
+
+Line references in the sections above have drifted with the code: the session
+store's expiry re-application is now `lib/onetime/session.rb:703-708`, and the
+sidecar admission rule is now `lib/onetime/session/sidecar.rb:99`.
