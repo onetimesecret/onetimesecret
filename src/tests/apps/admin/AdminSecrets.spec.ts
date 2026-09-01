@@ -65,6 +65,10 @@ const i18n = createTestI18n();
 
 const SECRET_ID = 's1';
 const SHORT_ID = 'abc123';
+// The #4326 confirm token is the RECEIPT shortid (details.metadata.shortid), NOT
+// the secret shortid — the latter is secret_id[0,8], derivable from the URL, and
+// the server rejects it. Deliberately distinct from SHORT_ID here.
+const RECEIPT_SHORT_ID = 'rh1';
 const RECEIPT_URL = `/api/colonel/secrets/${SECRET_ID}`;
 
 function receiptPayload() {
@@ -87,7 +91,7 @@ function receiptPayload() {
     details: {
       metadata: {
         receipt_id: 'r1',
-        shortid: 'rh1',
+        shortid: RECEIPT_SHORT_ID,
         state: 'viewed',
         secret_ttl: 3600,
         recipients: ['alice@example.com'],
@@ -205,7 +209,7 @@ describe('AdminSecrets (lookup-first inspect + guarded delete — ticket #30)', 
       await lookup(wrapper);
     });
 
-    it('opens a danger dialog whose confirm stays disabled until the short id is retyped', async () => {
+    it('opens a danger dialog whose confirm stays disabled until the RECEIPT short id is retyped', async () => {
       await wrapper.find('[data-testid="secret-delete-button"]').trigger('click');
       await flushPromises();
 
@@ -215,7 +219,12 @@ describe('AdminSecrets (lookup-first inspect + guarded delete — ticket #30)', 
       await dialogInput(wrapper).setValue('not-the-id');
       expect(dialogSubmit(wrapper).attributes('disabled')).toBeDefined();
 
+      // The SECRET shortid (URL-derivable) must NOT unlock the delete (#4326).
       await dialogInput(wrapper).setValue(SHORT_ID);
+      expect(dialogSubmit(wrapper).attributes('disabled')).toBeDefined();
+
+      // Only the RECEIPT shortid does.
+      await dialogInput(wrapper).setValue(RECEIPT_SHORT_ID);
       expect(dialogSubmit(wrapper).attributes('disabled')).toBeUndefined();
     });
 
@@ -233,14 +242,15 @@ describe('AdminSecrets (lookup-first inspect + guarded delete — ticket #30)', 
       });
 
       await wrapper.find('[data-testid="secret-delete-button"]').trigger('click');
-      await dialogInput(wrapper).setValue(SHORT_ID);
+      await dialogInput(wrapper).setValue(RECEIPT_SHORT_ID);
       await dialogForm(wrapper).trigger('submit');
       await flushPromises();
 
-      // The same shortid the operator retyped rides X-OTS-Confirm (#4326); the
-      // URL carries the objid, so the token is an identifier it does not have.
+      // The RECEIPT shortid the operator retyped rides X-OTS-Confirm (#4326): the
+      // route is keyed by the secret objid and secret.shortid is just its first 8
+      // chars, so the token must be an identifier the URL does not carry.
       expect(mockApi.delete).toHaveBeenCalledWith(RECEIPT_URL, {
-        headers: { 'X-OTS-Confirm': encodeURIComponent(SHORT_ID) },
+        headers: { 'X-OTS-Confirm': encodeURIComponent(RECEIPT_SHORT_ID) },
       });
       expect(showMock).toHaveBeenCalledWith('web.admin.secrets.actions.delete.success', 'success');
       // The read-out clears back to the lookup prompt (the secret is gone).
@@ -265,7 +275,7 @@ describe('AdminSecrets (lookup-first inspect + guarded delete — ticket #30)', 
       mockApi.delete.mockRejectedValue(axiosError(422, { error: 'Secret not found' }));
 
       await wrapper.find('[data-testid="secret-delete-button"]').trigger('click');
-      await dialogInput(wrapper).setValue(SHORT_ID);
+      await dialogInput(wrapper).setValue(RECEIPT_SHORT_ID);
       await dialogForm(wrapper).trigger('submit');
       await flushPromises();
 
