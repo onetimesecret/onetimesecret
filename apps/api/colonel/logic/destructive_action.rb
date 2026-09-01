@@ -132,7 +132,14 @@ module ColonelAPI
       # operator sees during routine triage.
       #
       # @param tier [Symbol] :destructive (TIER1) or :sensitive (TIER2)
-      # @param confirm_with [String] the expected confirmation token
+      # @param confirm_with [String, #call] the expected confirmation token, or a
+      #   callable that RETURNS it. Pass a callable when computing the token can
+      #   itself raise (e.g. DeleteSecret#confirmation_token, which fails closed on
+      #   a receiptless secret): a bare argument is evaluated by the CALLER before
+      #   this method runs, so a raise there would pre-empt require_elevation! and
+      #   hand an unelevated caller a 500 where the contract promises a 403 — the
+      #   very confirmation oracle "elevation first" exists to deny. A callable is
+      #   invoked HERE, after elevation, so the ordering holds.
       # @param confirm_subject [String] human phrase for the error message
       # @param field [Symbol]
       def guard_destructive_action!(tier:, confirm_with:, confirm_subject:, field: :confirm)
@@ -142,7 +149,8 @@ module ColonelAPI
         end
 
         require_elevation! if tier == :destructive
-        require_confirmation!(confirm_with, subject: confirm_subject, field: field)
+        expected = confirm_with.respond_to?(:call) ? confirm_with.call : confirm_with
+        require_confirmation!(expected, subject: confirm_subject, field: field)
       end
 
       # Step 5. Separate call, ALWAYS the last line of raise_concerns, tier 1 only.

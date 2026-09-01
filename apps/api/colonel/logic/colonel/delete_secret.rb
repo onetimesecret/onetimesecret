@@ -77,9 +77,13 @@ module ColonelAPI
           # shortid is independent of :secret_id and forces the replay to know a
           # second identifier (design §1.1). `@audit_target` stays secret.shortid
           # for the audit record only — the two are deliberately not conflated.
+          # LAZY token (a lambda, not confirmation_token itself): its receiptless
+          # fail-closed raise must run AFTER require_elevation!, or an unelevated
+          # caller gets a 500 GuardMisconfigured where the guard-order contract
+          # promises 403 ElevationRequired first (no confirmation oracle).
           guard_destructive_action!(
             tier: :destructive,
-            confirm_with: confirmation_token,
+            confirm_with: -> { confirmation_token },
             confirm_subject: 'the receipt shortid',
             field: :secret_id,
           )

@@ -121,6 +121,30 @@ RSpec.describe ColonelAPI::Logic::Colonel::DeleteSecret do
     end
 
     it_behaves_like 'an elevated colonel action'
+
+    # Guard order (§0.2 step 3): elevation precedes token COMPUTATION, not just
+    # token comparison (#4326/#4327 review). A receiptless secret's
+    # confirmation_token fails closed (GuardMisconfigured, 500), but that raise
+    # must not pre-empt require_elevation! — an unelevated caller gets 403
+    # ElevationRequired first, so the 500 is never a confirmation oracle.
+    context 'with a receiptless secret (confirmation_token fails closed)' do
+      before do
+        stub_colonel_elevation(enabled: true, window: 600)
+        allow(secret).to receive(:receipt_identifier).and_return(nil)
+        allow(secret).to receive(:receipt_shortid).and_return(nil)
+      end
+
+      it 'answers ElevationRequired (403), NOT GuardMisconfigured (500), when unelevated' do
+        expect { elevated_logic_for({}).raise_concerns }
+          .to raise_error(Onetime::ElevationRequired)
+      end
+
+      it 'still fails closed with GuardMisconfigured once the caller IS elevated' do
+        session = elevated_session(colonel.extid)
+        expect { elevated_logic_for(session).raise_concerns }
+          .to raise_error(Onetime::GuardMisconfigured)
+      end
+    end
   end
 
   describe 'success path' do
