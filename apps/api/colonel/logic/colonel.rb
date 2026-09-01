@@ -39,6 +39,7 @@ require_relative 'colonel/set_user_role'
 require_relative 'colonel/set_user_verification'
 require_relative 'colonel/set_user_suspension'
 require_relative 'colonel/change_user_email'
+require_relative 'colonel/impersonate_user'
 require_relative 'colonel/purge_user'
 
 # System monitoring
