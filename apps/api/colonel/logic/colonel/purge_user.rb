@@ -5,6 +5,7 @@
 require_relative '../base'
 require_relative 'account_identifier'
 require 'auth/operations/customers/purge'
+require 'onetime/operations/customers/role_support'
 
 module ColonelAPI
   module Logic
@@ -56,6 +57,26 @@ module ColonelAPI
           # otherwise tell a caller who has proven nothing whether the named
           # account is their own.
           raise_form_error('Cannot purge your own account', field: :user_id) if user.objid == cust.objid
+
+          # INTERLOCK (#4328): purging the last active colonel deletes the last
+          # administrator — a HARDER lockout than demote/unverify (the account is
+          # gone, not merely stripped) and, being irreversible, one this op cannot
+          # post-write roll back the way SetRole/SetVerification do. Refuse it at
+          # the pre-check. An UNVERIFIED colonel-role target is not an active
+          # colonel (last_colonel_by_verification? requires verified?), so purging
+          # it cannot empty the roster and is allowed. The residual concurrent
+          # double-purge (two colonels purging each other past this non-atomic
+          # check) cannot be undone here — a purged account cannot be recreated —
+          # and is the one gap purge's irreversibility leaves that the reversible
+          # verbs close with a post-write rollback.
+          if Onetime::Operations::Customers::RoleSupport.last_colonel_by_verification?(user)
+            raise_form_error(
+              'Refusing to purge the last active colonel: it would leave the install ' \
+              'with no administrator (recoverable only from the CLI). Promote and ' \
+              'verify another colonel first.',
+              field: :user_id,
+            )
+          end
 
           charge_destructive_budget!
         end

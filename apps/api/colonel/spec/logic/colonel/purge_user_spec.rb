@@ -35,7 +35,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::PurgeUser do
   let(:target) do
     instance_double(Onetime::Customer,
       objid: 'cust_target', extid: 'ur_target', email: 'victim@example.com',
-      exists?: true, anonymous?: false)
+      role: 'customer', exists?: true, anonymous?: false)
   end
 
   let(:purge_result) do
@@ -137,6 +137,52 @@ RSpec.describe ColonelAPI::Logic::Colonel::PurgeUser do
 
       expect { logic_for.raise_concerns }
         .to raise_error(Onetime::FormError, /Cannot purge your own account/)
+    end
+  end
+
+  # ---- Last active colonel interlock (#4328 follow-up) -----------------------
+  #
+  # Purging the last active colonel deletes the last administrator. Purge is
+  # irreversible, so this is a PRE-CHECK (no post-write rollback like the demote/
+  # unverify verbs). An unverified colonel-role target is not an active colonel,
+  # so purging it is allowed.
+  describe 'last active colonel' do
+    let(:colonel_victim) do
+      instance_double(Onetime::Customer,
+        objid: 'cust_last', extid: 'ur_last', email: 'boss@example.com',
+        role: 'colonel', verified?: true, exists?: true, anonymous?: false)
+    end
+
+    def purge_colonel_logic(victim = colonel_victim, confirm = 'boss@example.com')
+      allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(victim)
+      allow(Onetime::Customer).to receive(:load).and_return(victim)
+      described_class.new(strategy_result_for(colonel, confirm), { 'user_id' => victim.extid })
+    end
+
+    it 'refuses purging the last active colonel and purges nothing' do
+      allow(Onetime::Customer).to receive(:find_all_by_role).with('colonel').and_return([colonel_victim])
+
+      expect { purge_colonel_logic.raise_concerns }
+        .to raise_error(Onetime::FormError, /last active colonel/i)
+      expect(Auth::Operations::Customers::Purge).not_to have_received(:new)
+    end
+
+    it 'allows purging a colonel when a second verified colonel exists' do
+      second = instance_double(Onetime::Customer,
+        objid: 'cust_second', role: 'colonel', verified?: true, exists?: true)
+      allow(Onetime::Customer).to receive(:find_all_by_role).with('colonel')
+        .and_return([colonel_victim, second])
+
+      expect { purge_colonel_logic.raise_concerns }.not_to raise_error
+    end
+
+    it 'allows purging an UNVERIFIED colonel-role account (not an active colonel)' do
+      unverified = instance_double(Onetime::Customer,
+        objid: 'cust_unver', extid: 'ur_unver', email: 'stale@example.com',
+        role: 'colonel', verified?: false, exists?: true, anonymous?: false)
+
+      # verified? == false short-circuits before any roster read.
+      expect { purge_colonel_logic(unverified, 'stale@example.com').raise_concerns }.not_to raise_error
     end
   end
 

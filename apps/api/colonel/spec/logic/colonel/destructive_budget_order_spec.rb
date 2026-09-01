@@ -49,7 +49,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::PurgeUser do
   let(:target) do
     instance_double(Onetime::Customer,
       objid: 'cust_target', extid: 'ur_target', email: 'victim@example.com',
-      exists?: true, anonymous?: false)
+      role: 'customer', exists?: true, anonymous?: false)
   end
 
   let(:purge_result) do
