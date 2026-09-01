@@ -16,6 +16,7 @@ import { createTestingPinia } from '@pinia/testing';
 import { createTestI18n } from '@tests/setup';
 import DomainEmailConfigForm from '@/apps/workspace/components/domains/DomainEmailConfigForm.vue';
 import type { EmailConfigFormState } from '@/shared/composables/useEmailConfig';
+import type { TestEmailConfigResponse } from '@/schemas/api/domains/responses/test-email-config';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mocks
@@ -91,7 +92,7 @@ describe('DomainEmailConfigForm', () => {
     isTesting: boolean;
     hasUnsavedChanges: boolean;
     provider: string;
-    testResult: Record<string, unknown> | null;
+    testResult: TestEmailConfigResponse | null;
     testError: string;
     error: string;
     displayDomain: string;

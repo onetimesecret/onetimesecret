@@ -4,7 +4,7 @@ import { mount } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import SecretForm from '@/apps/secret/components/form/SecretForm.vue';
-import { nextTick } from 'vue';
+import { nextTick, reactive, ref } from 'vue';
 
 // Mock composables
 const mockCurrentContext = {
@@ -346,12 +346,16 @@ describe('SecretForm - Domain Context Integration', () => {
         await import('@/shared/composables/useSecretConcealer')
       ).useSecretConcealer.mockReturnValue({
         form: { secret: '', passphrase: '', ttl: 300, share_domain: '' },
-        validation: { errors: new Map() },
+        validation: {
+          errors: reactive(new Map()),
+          validate: vi.fn(() => true),
+          validateRecipient: vi.fn(() => true),
+        },
         operations: {
           updateField: mockUpdateField,
           reset: vi.fn(),
         },
-        isSubmitting: false,
+        isSubmitting: ref(false),
         submit: vi.fn(),
       });
 
@@ -383,12 +387,16 @@ describe('SecretForm - Domain Context Integration', () => {
         await import('@/shared/composables/useSecretConcealer')
       ).useSecretConcealer.mockReturnValue({
         form: { secret: '', passphrase: '', ttl: 300, share_domain: '' },
-        validation: { errors: new Map() },
+        validation: {
+          errors: reactive(new Map()),
+          validate: vi.fn(() => true),
+          validateRecipient: vi.fn(() => true),
+        },
         operations: {
           updateField: mockUpdateField,
           reset: vi.fn(),
         },
-        isSubmitting: false,
+        isSubmitting: ref(false),
         submit: vi.fn(),
       });
 

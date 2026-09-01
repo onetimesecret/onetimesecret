@@ -287,6 +287,33 @@ site:
     # How long (in seconds) a generated password remains visible on the
     # receipt page after creation. Set to 0 to disable receipt-page display.
     generated_value_display_ttl: <%= ENV['GENERATED_VALUE_DISPLAY_TTL'] || 60 %>
+    # Rate limiting for ANONYMOUS secret creation (finding F-02). The
+    # secret-creation path had no limiter on the modern API surface, leaving
+    # unauthenticated, unthrottled creation: one Receipt + one Secret per request
+    # (each carrying anonymous-lifetime TTL). A single anonymous client sustained
+    # ~113 req/s at ~18 KiB/secret — ~1 GiB of Redis in ~8.6 minutes — and since
+    # Redis also holds sessions that is a full-outage DoS. Throttles per masked
+    # client IP BEFORE the Receipt.spawn_pair write, on every creation entry: the
+    # shared V2::Logic::Secrets::BaseSecretAction#raise_concerns (covers V2/V3
+    # conceal and generate) and the V1 controller (share/generate/create).
+    # Charged only to guests — authenticated callers are accountable and are the
+    # legitimate high-volume creators. Single tier by necessity: an anonymous
+    # conceal holds no account-derived identifier to key on.
+    # Enabled by default (protective); set SECRET_CREATE_RATE_LIMIT_ENABLED=false
+    # to opt out. See lib/onetime/security/conceal_secret_rate_limiter.rb.
+    create_rate_limit:
+      enabled: <%= ENV['SECRET_CREATE_RATE_LIMIT_ENABLED'] != 'false' %>
+      # Anonymous creations permitted per window from a single masked client IP.
+      # The bucket is a whole /24 (office, campus NAT), and behind an
+      # unconfigured reverse proxy it is the entire deployment — so this is
+      # deliberately loose (10x the signup/reset caps) because secret creation is
+      # the core product action. Raise it for dense-NAT populations; a too-tight
+      # value here is an outage of secret creation for a whole neighborhood.
+      max_per_ip: <%= ENV['SECRET_CREATE_RATE_LIMIT_MAX_PER_IP'] || 500 %>
+      # Counting window in seconds (1 hour).
+      window: <%= ENV['SECRET_CREATE_RATE_LIMIT_WINDOW'] || 3600 %>
+      # Lockout duration in seconds once the cap is hit (1 hour).
+      lockout: <%= ENV['SECRET_CREATE_RATE_LIMIT_LOCKOUT'] || 3600 %>
     # Settings for password generation (when users click "Generate Password")
     password_generation:
       # Default length for generated passwords

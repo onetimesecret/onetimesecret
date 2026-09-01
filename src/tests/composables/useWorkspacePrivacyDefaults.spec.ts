@@ -5,7 +5,14 @@ import { ref, computed, nextTick } from 'vue';
 import { createTestingPinia } from '@pinia/testing';
 import { setActivePinia } from 'pinia';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import type { BrandSettingsCanonical as BrandSettings } from '@/schemas/contracts/custom-domain';
+// The composable's UseWorkspacePrivacyDefaultsOptions.brandSettings is typed
+// against the V3 wire shape (brandSettingsSchema), not the base contract:
+// button_text_light/passphrase_required/notify_enabled are non-optional there
+// (the V3 schema overrides them with `.default()`), while the contract's
+// BrandSettingsCanonical leaves every field optional (`.partial()`). Import
+// the type actually used by the composable so overrides here type-check the
+// same way real callers do.
+import type { BrandSettings } from '@/schemas/shapes/v3/custom-domain';
 
 // Mock formatDuration
 const mockFormatDuration = vi.fn((seconds: number) => {
@@ -46,7 +53,14 @@ describe('useWorkspacePrivacyDefaults', () => {
     const bootstrapStore = useBootstrapStore();
     bootstrapStore.secret_options = {
       default_ttl: config.default_ttl ?? 604800,
-      passphrase: { required: config.passphrase_required ?? false },
+      // passphraseSchema fields all carry `.default()`, so the parsed type
+      // requires all four even though the option itself is optional.
+      passphrase: {
+        required: config.passphrase_required ?? false,
+        minimum_length: 4,
+        maximum_length: 128,
+        enforce_complexity: false,
+      },
       ttl_options: [60, 3600, 86400, 604800, 1209600, 2592000],
     };
 
@@ -65,7 +79,10 @@ describe('useWorkspacePrivacyDefaults', () => {
 
   function createOptions(
     overrides: Partial<{
-      brandSettings: BrandSettings;
+      // Partial, not BrandSettings: callers pass a patch merged over
+      // defaultBrandSettings below (which supplies the 3 fields the real
+      // schema requires: button_text_light/passphrase_required/notify_enabled).
+      brandSettings: Partial<BrandSettings>;
       isCanonical: boolean;
       isLoading: boolean;
     }> = {}
@@ -336,6 +353,7 @@ describe('useWorkspacePrivacyDefaults', () => {
   describe('reactivity', () => {
     it('updates when brand settings change', async () => {
       const brandSettings = ref<BrandSettings>({
+        button_text_light: true,
         default_ttl: undefined,
         passphrase_required: false,
         notify_enabled: false,
@@ -362,7 +380,12 @@ describe('useWorkspacePrivacyDefaults', () => {
       const isCanonicalRef = ref(false);
 
       const { privacyDefaults } = useWorkspacePrivacyDefaults({
-        brandSettings: ref({ default_ttl: 3600 }),
+        brandSettings: ref<BrandSettings>({
+          button_text_light: true,
+          default_ttl: 3600,
+          passphrase_required: false,
+          notify_enabled: false,
+        }),
         isCanonical: computed(() => isCanonicalRef.value),
       });
 

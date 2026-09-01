@@ -32,6 +32,11 @@ site:
       maximum_length: 128
       enforce_complexity: false
     generated_value_display_ttl: 60
+    # Disabled under test so the many specs that create secrets are not throttled
+    # (the cap is per masked IP, and the whole suite shares one); the F-02
+    # limiter tests enable it in-process. See conceal_secret_rate_limiter.rb.
+    create_rate_limit:
+      enabled: false
     password_generation:
       default_length: 12
       length_options: [8, 12, 16, 20, 24, 32]

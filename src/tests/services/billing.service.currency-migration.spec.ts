@@ -53,18 +53,22 @@ describe('Currency migration service methods', () => {
       );
       expect(result.success).toBe(true);
       expect(result.migration.mode).toBe('graceful');
+      if (result.migration.mode !== 'graceful') throw new Error('expected graceful mode');
       expect(result.migration.cancel_at).toBe(1704067200);
     });
 
     it('calls correct endpoint with immediate mode', async () => {
+      // Live shape (currency_migration_service.rb): checkout_url/refund_* —
+      // see the migrateCurrency() comment in billing.service.ts.
       const mockResponse = {
         data: {
           success: true,
           migration: {
             mode: 'immediate',
-            checkout_session_url: 'https://checkout.stripe.com/c/pay/cs_test_123',
-            prorated_credit_amount: 1500,
-            prorated_credit_formatted: 'EUR 15.00',
+            checkout_url: 'https://checkout.stripe.com/c/pay/cs_test_123',
+            refund_amount: 1500,
+            refund_formatted: 'EUR 15.00',
+            refund_failed: false,
           },
         },
       };
@@ -81,7 +85,8 @@ describe('Currency migration service methods', () => {
       );
       expect(result.success).toBe(true);
       expect(result.migration.mode).toBe('immediate');
-      expect(result.migration.checkout_session_url).toContain('stripe.com');
+      if (result.migration.mode !== 'immediate') throw new Error('expected immediate mode');
+      expect(result.migration.checkout_url).toContain('stripe.com');
     });
 
     it('propagates API errors', async () => {
@@ -135,19 +140,34 @@ describe('Currency migration service methods', () => {
     it('extracts conflict details from 409 response', () => {
       // Build an error-like object matching what axios produces at runtime.
       // The extractCurrencyConflict function checks 'response' in error,
-      // then data.code === 'currency_conflict'.
+      // then data.code === 'currency_conflict'. Shape verified against the
+      // live billing controller (checkout 409 branch): { error, code,
+      // details: { existing_currency, requested_currency, current_plan,
+      // requested_plan, warnings } } — not a flat payload.
       const conflictData = {
+        error: true,
         code: 'currency_conflict',
-        error: 'currency_conflict',
         message: 'A currency change is required.',
-        current_currency: 'eur',
-        requested_currency: 'cad',
-        current_plan_name: 'Identity Plus',
-        current_period_end: 1704067200,
-        new_plan_name: 'Team Plus',
-        new_plan_amount: 9900,
-        new_plan_interval: 'month',
-        new_price_id: 'price_cad_456',
+        details: {
+          existing_currency: 'eur',
+          requested_currency: 'cad',
+          current_plan: {
+            name: 'Identity Plus',
+            price_formatted: '€9.00',
+            current_period_end: 1704067200,
+          },
+          requested_plan: {
+            name: 'Team Plus',
+            price_formatted: 'CA$99.00',
+            price_id: 'price_cad_456',
+          },
+          warnings: {
+            has_credit_balance: false,
+            credit_balance_amount: 0,
+            has_pending_invoice_items: false,
+            has_incompatible_coupons: false,
+          },
+        },
       };
 
       // Simulate axios-shaped error with response property
@@ -161,9 +181,9 @@ describe('Currency migration service methods', () => {
       const result = extractCurrencyConflict(error);
 
       expect(result).not.toBeNull();
-      expect(result?.current_currency).toBe('eur');
-      expect(result?.requested_currency).toBe('cad');
-      expect(result?.new_price_id).toBe('price_cad_456');
+      expect(result?.details.existing_currency).toBe('eur');
+      expect(result?.details.requested_currency).toBe('cad');
+      expect(result?.details.requested_plan?.price_id).toBe('price_cad_456');
     });
 
     it('returns null for non-409 errors', () => {

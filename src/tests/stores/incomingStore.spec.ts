@@ -433,6 +433,7 @@ describe('incomingStore', () => {
       const payload = {
         secret: 'my secret value',
         recipient: 'abc123hash',
+        memo: '',
       };
 
       const result = await store.createIncomingSecret(payload);
@@ -446,6 +447,7 @@ describe('incomingStore', () => {
       const payload = {
         secret: 'my secret value',
         recipient: 'abc123hash',
+        memo: '',
       };
 
       const result = await store.createIncomingSecret(payload);
@@ -462,6 +464,7 @@ describe('incomingStore', () => {
       const payload = {
         secret: 'my secret value',
         recipient: 'abc123hash',
+        memo: '',
       };
 
       await expect(store.createIncomingSecret(payload)).rejects.toThrow(
@@ -478,6 +481,7 @@ describe('incomingStore', () => {
       const payload = {
         secret: 'my secret value',
         recipient: 'abc123hash',
+        memo: '',
       };
 
       await expect(store.createIncomingSecret(payload)).rejects.toThrow(
@@ -489,6 +493,7 @@ describe('incomingStore', () => {
       const payload = {
         secret: 'my secret value',
         recipient: 'abc123hash',
+        memo: '',
       };
 
       try {
@@ -516,6 +521,7 @@ describe('incomingStore', () => {
       const payload = {
         secret: 'my secret value',
         recipient: 'abc123hash',
+        memo: '',
       };
 
       await expect(store.createIncomingSecret(payload)).rejects.toThrow();
@@ -529,6 +535,7 @@ describe('incomingStore', () => {
       const payload = {
         secret: 'my secret value',
         recipient: 'invalid-hash',
+        memo: '',
       };
 
       await expect(store.createIncomingSecret(payload)).rejects.toThrow();
@@ -542,6 +549,7 @@ describe('incomingStore', () => {
       const payload = {
         secret: 'my secret value',
         recipient: 'abc123hash',
+        memo: '',
       };
 
       await expect(store.createIncomingSecret(payload)).rejects.toThrow();
@@ -556,6 +564,7 @@ describe('incomingStore', () => {
       const payload = {
         secret: 'my secret value',
         recipient: 'abc123hash',
+        memo: '',
       };
 
       // Unlike loadConfig, createIncomingSecret does not capture entitlement errors
@@ -574,6 +583,7 @@ describe('incomingStore', () => {
       const payload = {
         secret: 'my secret value',
         recipient: 'abc123hash',
+        memo: '',
       };
 
       await expect(store.createIncomingSecret(payload)).rejects.toThrow();
@@ -587,6 +597,7 @@ describe('incomingStore', () => {
       const payload = {
         secret: 'my secret value',
         recipient: 'abc123hash',
+        memo: '',
       };
 
       await expect(store.createIncomingSecret(payload)).rejects.toThrow();
@@ -605,6 +616,7 @@ describe('incomingStore', () => {
       const payload = {
         secret: 'my secret value',
         recipient: 'abc123hash',
+        memo: '',
       };
 
       await expect(store.createIncomingSecret(payload)).rejects.toThrow();
@@ -963,6 +975,7 @@ describe('incomingStore', () => {
       const payload = {
         secret: 'my secret value',
         recipient: 'test-hash',
+        memo: '',
       };
 
       await expect(store.createIncomingSecret(payload)).rejects.toThrow(

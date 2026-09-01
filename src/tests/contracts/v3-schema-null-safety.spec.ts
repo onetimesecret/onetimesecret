@@ -542,8 +542,14 @@ describe('V3 schema null-safety audit', () => {
     /** Resolve a `record.<field>` schema from a V3 response schema. */
     function recordFieldSchema(responseSchema: AnySchema, field: string): AnySchema {
       const root = unwrapSchema(responseSchema) as z.ZodObject<z.ZodRawShape>;
-      const record = unwrapSchema(root.shape.record) as z.ZodObject<z.ZodRawShape>;
-      return record.shape[field];
+      // Zod v4: `ZodObject<ZodRawShape>.shape` entries are typed with the core
+      // $ZodType, not the classic ZodType that AnySchema aliases, even though
+      // they're classic schema instances at runtime. Cast through `any` for
+      // these introspection helpers, same as unwrapSchema/isBooleanSchema above.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const record = unwrapSchema(root.shape.record as any) as z.ZodObject<z.ZodRawShape>;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return record.shape[field] as any;
     }
 
     it.each(['secret_ttl', 'lifespan'])(

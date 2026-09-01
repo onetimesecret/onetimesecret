@@ -5,8 +5,13 @@ import { ref, nextTick } from 'vue';
 import { createTestingPinia } from '@pinia/testing';
 import { setActivePinia } from 'pinia';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { organizationSchema } from '@/schemas/shapes/organizations/organization';
 import type { Organization } from '@/types/organization';
-import { createMockOrganization, mockOrganizations } from '../fixtures/billing.fixture';
+import {
+  createMockOrganization as createMockOrganizationWire,
+  mockOrganizations,
+  type OrganizationWire,
+} from '../fixtures/billing.fixture';
 
 const { mockGet } = vi.hoisted(() => ({
   mockGet: vi.fn(),
@@ -14,6 +19,15 @@ const { mockGet } = vi.hoisted(() => ({
 
 vi.mock('@/api', () => ({ createApi: () => ({ get: mockGet }) }));
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key: string) => `translated:${key}` }) }));
+
+// useEntitlements takes the parsed `Organization` shape (Date timestamps),
+// but the billing fixtures return wire format (epoch-second numbers) meant
+// for mocking API responses. Parse through the production schema so tests
+// feed the composable the same shape the real store produces.
+const mockOrg = (overrides: Partial<OrganizationWire> = {}): Organization =>
+  organizationSchema.parse(createMockOrganizationWire(overrides));
+
+const freeOrg = organizationSchema.parse(mockOrganizations.free);
 
 describe('useEntitlements', () => {
   beforeEach(() => {
@@ -62,7 +76,7 @@ describe('useEntitlements', () => {
     it('loads entitlement definitions from API', async () => {
       mockGet.mockResolvedValueOnce(mockApiResponse);
       const useEntitlements = await importFresh();
-      const org = ref<Organization | null>(createMockOrganization());
+      const org = ref<Organization | null>(mockOrg());
       const { initDefinitions, hasDefinitions, isLoadingDefinitions } = useEntitlements(org);
 
       expect(hasDefinitions.value).toBe(false);
@@ -79,7 +93,7 @@ describe('useEntitlements', () => {
       mockGet.mockReturnValueOnce(new Promise((resolve) => { resolveApi = resolve; }));
 
       const useEntitlements = await importFresh();
-      const org = ref<Organization | null>(createMockOrganization());
+      const org = ref<Organization | null>(mockOrg());
       const { initDefinitions, isLoadingDefinitions } = useEntitlements(org);
 
       const initPromise = initDefinitions();
@@ -95,7 +109,7 @@ describe('useEntitlements', () => {
     it('does not fetch again if already initialized', async () => {
       mockGet.mockResolvedValue({ data: { entitlements: [], plans: [] } });
       const useEntitlements = await importFresh();
-      const { initDefinitions } = useEntitlements(ref(createMockOrganization()));
+      const { initDefinitions } = useEntitlements(ref(mockOrg()));
 
       await initDefinitions();
       await initDefinitions();
@@ -107,7 +121,7 @@ describe('useEntitlements', () => {
     it('returns translated i18n key from store when available', async () => {
       mockGet.mockResolvedValueOnce(mockApiResponse);
       const useEntitlements = await importFresh();
-      const { initDefinitions, formatEntitlement } = useEntitlements(ref(createMockOrganization()));
+      const { initDefinitions, formatEntitlement } = useEntitlements(ref(mockOrg()));
 
       await initDefinitions();
       await nextTick();
@@ -116,13 +130,13 @@ describe('useEntitlements', () => {
 
     it('falls back to hardcoded i18n keys when store has no data', async () => {
       const useEntitlements = await importFresh();
-      const { formatEntitlement } = useEntitlements(ref(createMockOrganization()));
+      const { formatEntitlement } = useEntitlements(ref(mockOrg()));
       expect(formatEntitlement('api_access')).toBe('translated:web.billing.overview.entitlements.api_access');
     });
 
     it('returns raw key when no mapping exists', async () => {
       const useEntitlements = await importFresh();
-      const { formatEntitlement } = useEntitlements(ref(createMockOrganization()));
+      const { formatEntitlement } = useEntitlements(ref(mockOrg()));
       expect(formatEntitlement('unknown_entitlement')).toBe('unknown_entitlement');
     });
   });
@@ -143,14 +157,14 @@ describe('useEntitlements', () => {
   describe('entitlements reactivity', () => {
     it('entitlements derived from organization reactively', async () => {
       const useEntitlements = await importFresh();
-      const org = ref<Organization | null>(mockOrganizations.free);
+      const org = ref<Organization | null>(freeOrg);
       const { entitlements, can, planId } = useEntitlements(org);
 
       expect(entitlements.value).toEqual([]);
       expect(can('api_access')).toBe(false);
       expect(planId.value).toBe('free_v1');
 
-      org.value = createMockOrganization({ entitlements: ['api_access'], planid: 'team_plus_v1' });
+      org.value = mockOrg({ entitlements: ['api_access'], planid: 'team_plus_v1' });
       await nextTick();
 
       expect(entitlements.value).toContain('api_access');
@@ -163,7 +177,7 @@ describe('useEntitlements', () => {
     it('captures API failures', async () => {
       mockGet.mockRejectedValueOnce(new Error('Network error'));
       const useEntitlements = await importFresh();
-      const { initDefinitions, definitionsError } = useEntitlements(ref(createMockOrganization()));
+      const { initDefinitions, definitionsError } = useEntitlements(ref(mockOrg()));
 
       await initDefinitions();
       await nextTick();
@@ -173,7 +187,7 @@ describe('useEntitlements', () => {
     it('error is null on successful load', async () => {
       mockGet.mockResolvedValueOnce({ data: { entitlements: [], plans: [] } });
       const useEntitlements = await importFresh();
-      const { initDefinitions, definitionsError } = useEntitlements(ref(createMockOrganization()));
+      const { initDefinitions, definitionsError } = useEntitlements(ref(mockOrg()));
 
       await initDefinitions();
       await nextTick();
@@ -183,7 +197,7 @@ describe('useEntitlements', () => {
     it('falls back gracefully when API fails', async () => {
       mockGet.mockRejectedValueOnce(new Error('API unavailable'));
       const useEntitlements = await importFresh();
-      const org = ref<Organization | null>(createMockOrganization({ entitlements: ['api_access'] }));
+      const org = ref<Organization | null>(mockOrg({ entitlements: ['api_access'] }));
       const { initDefinitions, can, formatEntitlement } = useEntitlements(org);
 
       await initDefinitions();
@@ -198,7 +212,7 @@ describe('useEntitlements', () => {
       vi.resetModules();
       setupBootstrapStore({ billing_enabled: false });
       const { useEntitlements } = await import('@/shared/composables/useEntitlements');
-      const { can, isStandaloneMode } = useEntitlements(ref(mockOrganizations.free));
+      const { can, isStandaloneMode } = useEntitlements(ref(freeOrg));
 
       expect(isStandaloneMode.value).toBe(true);
       expect(can('api_access')).toBe(true);
@@ -209,7 +223,7 @@ describe('useEntitlements', () => {
       vi.resetModules();
       setupBootstrapStore({ billing_enabled: true });
       const { useEntitlements } = await import('@/shared/composables/useEntitlements');
-      const { can, isStandaloneMode } = useEntitlements(ref(mockOrganizations.free));
+      const { can, isStandaloneMode } = useEntitlements(ref(freeOrg));
 
       expect(isStandaloneMode.value).toBe(false);
       expect(can('api_access')).toBe(false);
@@ -219,7 +233,7 @@ describe('useEntitlements', () => {
   describe('upgradePath', () => {
     it('returns null when organization already has entitlement', async () => {
       const useEntitlements = await importFresh();
-      const { upgradePath } = useEntitlements(ref(createMockOrganization({ entitlements: ['api_access'] })));
+      const { upgradePath } = useEntitlements(ref(mockOrg({ entitlements: ['api_access'] })));
       expect(upgradePath('api_access')).toBeNull();
     });
 
@@ -231,7 +245,7 @@ describe('useEntitlements', () => {
         },
       });
       const useEntitlements = await importFresh();
-      const org = ref(createMockOrganization({ entitlements: [] }));
+      const org = ref(mockOrg({ entitlements: [] }));
       const { initDefinitions, upgradePath } = useEntitlements(org);
 
       await initDefinitions();
@@ -241,7 +255,7 @@ describe('useEntitlements', () => {
 
     it('returns null when store not initialized (no fallback)', async () => {
       const useEntitlements = await importFresh();
-      const { upgradePath } = useEntitlements(ref(createMockOrganization({ entitlements: [] })));
+      const { upgradePath } = useEntitlements(ref(mockOrg({ entitlements: [] })));
       // No fallback - callers must ensure initDefinitions() runs first
       expect(upgradePath('audit_logs')).toBeNull();
     });
@@ -250,7 +264,7 @@ describe('useEntitlements', () => {
   describe('hasReachedLimit', () => {
     it('returns true when current equals or exceeds limit', async () => {
       const useEntitlements = await importFresh();
-      const org = ref(createMockOrganization({ limits: { teams: 5 } }));
+      const org = ref(mockOrg({ limits: { teams: 5 } }));
       const { hasReachedLimit } = useEntitlements(org);
 
       expect(hasReachedLimit('teams', 5)).toBe(true);
@@ -259,13 +273,13 @@ describe('useEntitlements', () => {
 
     it('returns false when current is below limit or limit is 0', async () => {
       const useEntitlements = await importFresh();
-      const org = ref(createMockOrganization({ limits: { teams: 5 } }));
+      const org = ref(mockOrg({ limits: { teams: 5 } }));
       const { hasReachedLimit } = useEntitlements(org);
       expect(hasReachedLimit('teams', 3)).toBe(false);
 
       const useEntitlements2 = await importFresh();
       const { hasReachedLimit: hasReachedLimit2 } = useEntitlements2(
-        ref(createMockOrganization({ limits: { teams: 0 } }))
+        ref(mockOrg({ limits: { teams: 0 } }))
       );
       expect(hasReachedLimit2('teams', 100)).toBe(false);
     });

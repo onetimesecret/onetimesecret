@@ -11,17 +11,39 @@
 //   vitest-axe ships an `extend-expect` entry, but in this installed version
 //   `dist/extend-expect.js` is EMPTY (0 bytes), so importing it registers
 //   nothing. We therefore wire the matcher explicitly via `expect.extend`
-//   using the `toHaveNoViolations` export from `vitest-axe/matchers`.
+//   using the `toHaveNoViolations` export from `vitest-axe/dist/matchers`
+//   (see the import comment below for why `dist/matchers` specifically),
+//   and declare it on vitest's `Matchers` interface ourselves for typing.
 //
 
 import { axe } from 'vitest-axe';
-import { toHaveNoViolations } from 'vitest-axe/matchers';
+// Import from the `dist/matchers` entry point rather than the public
+// `vitest-axe/matchers` subpath: in this installed version (0.1.0), the
+// public entry's declaration file re-exports everything as type-only
+// (`export type * from './dist/matchers'`), so under `isolatedModules`
+// `toHaveNoViolations` cannot be used as a value from there (TS1362) even
+// though the runtime export is a real function. `dist/matchers` is the same
+// underlying module (the public entry just re-exports it) with a correct,
+// value-preserving declaration, so this changes nothing at runtime.
+import { toHaveNoViolations } from 'vitest-axe/dist/matchers';
 import { expect } from 'vitest';
 import type { VueWrapper } from '@vue/test-utils';
 
 // Register the custom matcher once for the whole test process. Any spec that
 // imports from this module gets `expect(...).toHaveNoViolations()` wired up.
 expect.extend({ toHaveNoViolations });
+
+// vitest-axe also ships a `vitest-axe/extend-expect` entry that declares this
+// matcher on `Assertion`/`AsymmetricMatchersContaining`, but it augments an
+// old `Vi.Assertion` namespace that no longer exists in the installed vitest
+// (4.x moved these interfaces into the `vitest`/`@vitest/expect` module
+// directly), so importing it would not actually type `expect(...).toHaveNoViolations()`.
+// Augment the current extension point directly instead.
+declare module 'vitest' {
+  interface Matchers<T = any> {
+    toHaveNoViolations(): void;
+  }
+}
 
 /**
  * axe-core rules that cannot be meaningfully evaluated for an isolated

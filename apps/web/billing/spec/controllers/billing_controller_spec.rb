@@ -663,6 +663,31 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       expect(last_response.status).to eq(403)
     end
 
+    it 'requires owner permissions (not just member)' do
+      # Regression (F-03): invoice URLs (invoice_pdf / hosted_invoice_url) are
+      # bearer links to billing documents. A non-owner member must not be able
+      # to fetch them; only owners may, matching the checkout/change-plan/
+      # migrate-currency/cancel/reactivate sibling endpoints.
+      organization.stripe_customer_id = 'cus_test_invoices_owner_only'
+      organization.save
+
+      member_customer = Onetime::Customer.create!(email: deterministic_email('member-invoice'))
+      created_customers << member_customer
+      member_customer.save
+
+      organization.add_members_instance(member_customer)
+
+      env 'rack.session', {
+        'authenticated' => true,
+        'external_id' => member_customer.extid,
+      }
+
+      get "/billing/api/org/#{organization.extid}/invoices"
+
+      expect(last_response.status).to eq(403)
+      expect(last_response.body).to include('Owner access required')
+    end
+
     it 'requires authentication' do
       env 'rack.session', {}
 

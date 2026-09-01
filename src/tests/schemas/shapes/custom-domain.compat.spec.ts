@@ -645,7 +645,11 @@ describe.skip('V3 CustomDomain Default Values', () => {
   });
 
   it('applies pending status default when missing', () => {
-    const wire = createV3WireCustomDomain(createCanonicalCustomDomain());
+    // V3WireCustomDomain doesn't declare `status` (it's not part of the
+    // serializer's wire type), so widen locally to destructure it off —
+    // matches the `as Record<string, unknown>` pattern used above for the
+    // same field.
+    const wire = createV3WireCustomDomain(createCanonicalCustomDomain()) as Record<string, unknown>;
     const { status, ...wireWithoutStatus } = wire;
 
     const parsed = v3CustomDomainSchema.parse(wireWithoutStatus);

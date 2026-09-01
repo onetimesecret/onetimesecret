@@ -2,7 +2,7 @@
 
 import { createTestingPinia } from '@pinia/testing';
 import { setActivePinia } from 'pinia';
-import { afterEach, beforeEach, describe, expect, it, test, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, Mocked, test, vi } from 'vitest';
 import {
   NavigationGuardReturn,
   RouteLocationNormalized,
@@ -681,7 +681,10 @@ describe('Router Guards', () => {
   });
 
   describe('validateAuthentication', () => {
-    let mockValidator: AuthValidator;
+    // Mocked<AuthValidator> (not plain AuthValidator) so checkWindowStatus
+    // keeps its vi.fn() mock methods (e.g. mockResolvedValueOnce) at the type
+    // level, matching what vi.fn() actually returns at runtime.
+    let mockValidator: Mocked<AuthValidator>;
     let protectedRoute: RouteLocationNormalized;
 
     beforeEach(() => {
@@ -690,7 +693,7 @@ describe('Router Guards', () => {
         needsCheck: true,
         isAuthenticated: null,
         checkWindowStatus: vi.fn().mockImplementation(async () => true),
-      } satisfies AuthValidator;
+      } satisfies Mocked<AuthValidator>;
 
       protectedRoute = {
         meta: { requiresAuth: true },
