@@ -63,6 +63,13 @@ RSpec.describe 'Colonel impersonation through the rack stack', type: :integratio
     customer
   end
 
+  # A REAL secret owned by the target, so "the guard stopped the burn" can be
+  # asserted against the datastore rather than against a status code.
+  let!(:target_secret) do
+    _receipt, secret = Onetime::Receipt.spawn_pair(target.objid, 3600, 'sensitive payload')
+    secret
+  end
+
   # Seeded into env['rack.session']; Rack::Session#prepare_session MERGES this
   # into the real (cookie-backed, Redis-persisted) session on every request, so
   # it keeps the operator authenticated without pinning anything the app writes.
@@ -89,6 +96,7 @@ RSpec.describe 'Colonel impersonation through the rack stack', type: :integratio
 
   after do
     Onetime::SessionImpersonation.clear_context
+    target_secret&.destroy! rescue nil
     target&.destroy! rescue nil
     colonel&.destroy! rescue nil
   end
@@ -104,6 +112,14 @@ RSpec.describe 'Colonel impersonation through the rack stack', type: :integratio
 
   def body_json
     JSON.parse(last_response.body)
+  end
+
+  # A GET carrying a JSON body. Rack::Parser (mounted above the guard) parses
+  # it regardless of method, so the handler would see params['continue'].
+  def get_with_json_body(path, payload)
+    get path, nil,
+      'CONTENT_TYPE' => 'application/json',
+      'rack.input' => StringIO.new(JSON.generate(payload))
   end
 
   def bootstrap
@@ -169,10 +185,37 @@ RSpec.describe 'Colonel impersonation through the rack stack', type: :integratio
 
       # --- 5. a GET that is really a burn is refused too ---------------
       # V2::Logic::Secrets::ShowSecret gates burn-after-reading on the
-      # `continue` param, not on the HTTP method.
-      get "/api/v2/secret/#{SecureRandom.hex(8)}?continue=true"
+      # `continue` PARAM, not on the HTTP method, so the path is denied
+      # outright. Aimed at a REAL secret so the assertion can be "it is still
+      # there", not "the status was 403".
+      expect(Onetime::Secret.load(target_secret.identifier)).not_to be_nil
+
+      get "/api/v2/secret/#{target_secret.identifier}?continue=true"
       expect(last_response.status).to eq(403)
       expect(body_json['error_code']).to eq('impersonation_read_only')
+
+      # The bypass: `continue` in a JSON BODY on a GET. Rack::Parser publishes
+      # it as form_hash for any method, so a query-string-only check waved this
+      # through and the secret was gone.
+      get_with_json_body("/api/v3/secret/#{target_secret.identifier}", 'continue' => true)
+      expect(last_response.status).to eq(403)
+      expect(body_json['error_code']).to eq('impersonation_read_only')
+
+      # The whole point: the secret survived both attempts.
+      surviving = Onetime::Secret.load(target_secret.identifier)
+      expect(surviving).not_to be_nil
+      expect(surviving.viewable?).to be true
+
+      # A pure read on the same secret's status endpoint stays reachable.
+      get "/api/v2/secret/#{target_secret.identifier}/status"
+      expect(last_response.status).to eq(200), "status read was blocked: #{last_response.body}"
+
+      # --- 5b. GETs that mint external artifacts are refused -----------
+      %w[/billing/portal /account/billing_portal /billing/plans/identity/monthly].each do |path|
+        get path
+        expect(last_response.status).to eq(403), "#{path} was not denied"
+        expect(body_json['error_code']).to eq('impersonation_read_only')
+      end
 
       # --- 6. no admin powers while presenting as a customer -----------
       get '/api/colonel/info'
@@ -273,10 +316,13 @@ RSpec.describe 'Colonel impersonation through the rack stack', type: :integratio
     end
 
     it 'ends the impersonation, audits it as expired, and stops guarding' do
-      # A LIVE marker would 403 this; an expired one must not.
-      post_json('/api/v3/secret/conceal', secret: 'nope')
+      # /api/colonel/* is the sharpest probe: with a LIVE marker the guard
+      # denies it 403, and with the marker ended the session is a verified
+      # colonel again, so it must be a clean 200. One request proves both that
+      # the guard stood down AND that the identity reverted.
+      get '/api/colonel/info'
 
-      expect(last_response.status).not_to eq(403)
+      expect(last_response.status).to eq(200), last_response.body
       expect(last_response.body).not_to include('impersonation_read_only')
 
       stop_event = audit_events_for_target.find { |e| e['verb'] == 'customer.impersonate.stop' }
