@@ -72,6 +72,10 @@ vi.mock('@headlessui/vue', () => ({
 }));
 
 import AdminCustomerDetail from '@/apps/admin/views/AdminCustomerDetail.vue';
+import {
+  __resetColonelElevationState,
+  useColonelElevation,
+} from '@/apps/admin/composables/useColonelElevation';
 import { createTestI18n } from '@tests/setup';
 
 const i18n = createTestI18n();
@@ -135,7 +139,12 @@ const dialogSubmit = (w: VueWrapper) => w.find('[data-testid="admin-confirm-subm
 describe('AdminCustomerDetail — purge gate (typed email) + verification state', () => {
   let wrapper: VueWrapper;
 
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // The step-up window is module-level singleton state (#4327); reset it so
+    // one example's elevation cannot satisfy the next one's gate.
+    __resetColonelElevationState();
+  });
   afterEach(() => wrapper?.unmount());
 
   async function mountLoaded(overrides: { verified?: boolean } = {}): Promise<void> {
@@ -262,5 +271,75 @@ describe('AdminCustomerDetail — purge gate (typed email) + verification state'
     expect(pushMock).not.toHaveBeenCalled();
     expect(wrapper.find('[data-testid="verified-badge"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="unverify-button"]').exists()).toBe(true);
+  });
+
+  // ---- Step-up (sudo) window (#4327) ---------------------------------------
+  //
+  // The loop is: attempt -> 403 elevation_required -> prompt -> the operator
+  // acts -> retry ONCE. The retry must never fire without that gesture; an
+  // automatic elevate-and-retry would put a colonel session alone back in
+  // charge of a destructive verb, which is what this issue exists to stop.
+  describe('a 403 elevation_required opens the sudo prompt', () => {
+    async function submitPurge(): Promise<void> {
+      await wrapper.find('[data-testid="purge-button"]').trigger('click');
+      await dialogInput(wrapper).setValue(EMAIL);
+      await wrapper.find('form').trigger('submit');
+      await flushPromises();
+    }
+
+    it('opens the prompt and does NOT retry until the operator acts', async () => {
+      await mountLoaded();
+      mockApi.delete.mockRejectedValue(
+        axiosError(403, { error: 'Step-up authentication required', error_code: 'elevation_required' })
+      );
+
+      await submitPurge();
+
+      const elevation = useColonelElevation();
+      expect(elevation.promptOpen.value).toBe(true);
+      // One attempt so far. The retry is still waiting on the operator.
+      expect(mockApi.delete).toHaveBeenCalledTimes(1);
+      expect(pushMock).not.toHaveBeenCalled();
+
+      // The operator elevates; the prompt resolves and the verb is retried once.
+      mockApi.delete.mockResolvedValue({ data: mutationAck() });
+      elevation.resolvePrompt(true);
+      await flushPromises();
+
+      expect(mockApi.delete).toHaveBeenCalledTimes(2);
+      expect(showMock).toHaveBeenCalledWith('web.admin.customers.actions.purge.success', 'success');
+    });
+
+    it('surfaces the original error and retries nothing when the operator cancels', async () => {
+      await mountLoaded();
+      mockApi.delete.mockRejectedValue(
+        axiosError(403, { error: 'Step-up authentication required', error_code: 'elevation_required' })
+      );
+
+      await submitPurge();
+
+      const elevation = useColonelElevation();
+      elevation.resolvePrompt(false);
+      await flushPromises();
+
+      expect(mockApi.delete).toHaveBeenCalledTimes(1);
+      expect(wrapper.find('[data-testid="admin-confirm-dialog"]').text()).toContain(
+        'Step-up authentication required'
+      );
+      expect(pushMock).not.toHaveBeenCalled();
+      expect(showMock).not.toHaveBeenCalled();
+    });
+
+    it('leaves a confirmation_required failure alone — no sudo prompt for that', async () => {
+      await mountLoaded();
+      mockApi.delete.mockRejectedValue(
+        axiosError(403, { error: 'Confirmation required', error_code: 'confirmation_required' })
+      );
+
+      await submitPurge();
+
+      expect(useColonelElevation().promptOpen.value).toBe(false);
+      expect(mockApi.delete).toHaveBeenCalledTimes(1);
+    });
   });
 });

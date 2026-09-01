@@ -87,7 +87,34 @@ const securityTree: AugmentTree = {
   csp: cspTree,
 };
 
+// Step-up (sudo) window for destructive colonel actions (#4327). ON by
+// default, mirroring config.defaults.yaml: a colonel session alone is not
+// sufficient for a tier-1 verb.
+//
+// reauth_grace defaults to 0, and 0 is a MEANINGFUL value here (the grace is
+// off) rather than the "typo'd env var" case every other numeric guards
+// against — hence .min(0) and not .positive().
+const adminElevationTree: AugmentTree = {
+  enabled: (b) => b.default(true),
+  window: (n) => n.int().positive().default(600),
+  reauth_grace: (n) => n.int().min(0).default(0),
+};
+
+const colonelRateLimitBucketTree: AugmentTree = {
+  enabled: (b) => b.default(true),
+  max_attempts: (n) => n.int().positive().default(5),
+  window: (n) => n.int().positive().default(900),
+  lockout: (n) => n.int().positive().default(900),
+};
+
+const adminRateLimitTree: AugmentTree = {
+  enabled: (b) => b.default(true),
+  elevation: colonelRateLimitBucketTree,
+};
+
 const adminTree: AugmentTree = {
+  elevation: adminElevationTree,
+  rate_limit: adminRateLimitTree,
   // Empty defaults mirror config.defaults.yaml, but the two gates read empty
   // differently. Host gate: an empty list is still ACTIVE — it anchors on the
   // canonical hosts (DEFAULT_DOMAIN / site.host plus www. siblings) and

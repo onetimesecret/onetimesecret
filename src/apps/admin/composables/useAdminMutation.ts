@@ -14,6 +14,14 @@ export interface UseAdminMutation<TArgs extends unknown[]> {
    */
   error: Ref<string | null>;
   /**
+   * The raw thrown value from the last failure, or null. `error` is the
+   * user-facing string; this is what a caller needs to BRANCH on — specifically
+   * the backend's `error_code` inside the Axios response body, which is how
+   * {@link useAdminDestructiveMutation} recognises a 403 `elevation_required`
+   * (#4327) and turns it into a sudo prompt rather than a dead-end message.
+   */
+  lastError: Ref<unknown>;
+  /**
    * Run the mutation. Resolves `true` on success and `false` on failure (the
    * message is captured in {@link error}) — it never throws, so the caller can
    * branch on the boolean to close the dialog + refresh only on success.
@@ -47,17 +55,21 @@ export function useAdminMutation<TArgs extends unknown[]>(
 ): UseAdminMutation<TArgs> {
   const loading = ref(false);
   const error = ref<string | null>(null);
+  const lastError = ref<unknown>(null);
 
   async function run(...args: TArgs): Promise<boolean> {
     loading.value = true;
     error.value = null;
+    lastError.value = null;
     try {
       await perform(...args);
       return true;
     } catch (err) {
       // classifyError extracts the backend's user-facing `error` message for
-      // 4xx (form/validation) and a safe generic for the rest.
+      // 4xx (form/validation) and a safe generic for the rest. The raw value is
+      // kept alongside it so callers can branch on the backend's error_code.
       error.value = classifyError(err).message;
+      lastError.value = err;
       return false;
     } finally {
       loading.value = false;
@@ -67,7 +79,8 @@ export function useAdminMutation<TArgs extends unknown[]>(
   function reset(): void {
     loading.value = false;
     error.value = null;
+    lastError.value = null;
   }
 
-  return { loading, error, run, reset };
+  return { loading, error, lastError, run, reset };
 }

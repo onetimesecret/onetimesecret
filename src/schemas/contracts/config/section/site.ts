@@ -120,7 +120,43 @@ const middlewareSchema = z.object({
  * a distinction the boot check warns on (#4127), so the template must not
  * collapse null to []. Runtime behavior is identical for both shapes.
  */
+/**
+ * Step-up (sudo) window for destructive colonel actions (#4327).
+ *
+ * `window` is the elevation lifetime in seconds. `reauth_grace` is the
+ * post-sign-in grace during which a PASSWORD-LESS colonel may elevate with no
+ * credential — 0 (the shipped default) disables it, so it is the one numeric
+ * here where 0 is a legitimate value rather than a typo'd env var.
+ * Defaults belong in `shapes/config/section/site.ts`.
+ */
+const siteAdminElevationSchema = z.object({
+  enabled: z.boolean().optional(),
+  window: z.number().optional(),
+  reauth_grace: z.number().optional(),
+});
+
+/** One colonel rate-limit bucket: cap, counting window, lockout — all seconds. */
+const colonelRateLimitBucketSchema = z.object({
+  enabled: z.boolean().optional(),
+  max_attempts: z.number().optional(),
+  window: z.number().optional(),
+  lockout: z.number().optional(),
+});
+
+/**
+ * Rate limits for the colonel API surface, keyed on the acting colonel's extid
+ * (#4327 ships `elevation`; #4329 adds the mutation / destructive /
+ * handle-resolve buckets). The parent `enabled` flag short-circuits every
+ * bucket.
+ */
+const siteAdminRateLimitSchema = z.object({
+  enabled: z.boolean().optional(),
+  elevation: colonelRateLimitBucketSchema.optional(),
+});
+
 const siteAdminSchema = z.object({
+  elevation: siteAdminElevationSchema.optional(),
+  rate_limit: siteAdminRateLimitSchema.optional(),
   allowed_hosts: z.array(z.string()).nullable().optional(),
   allowed_cidrs: z.array(z.string()).optional(),
 });

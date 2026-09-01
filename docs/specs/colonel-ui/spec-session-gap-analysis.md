@@ -181,6 +181,26 @@ exists. Do not ship the wiring alone.
 | 3.13 | Admin sessions strictly shorter than user sessions               | Same single `onetime.session` cookie, same `expire_after`, for colonel and tenant alike                                                                                                                                               | Absent                                                                                                                                                                                                                                                                                                                                                         | P1       |
 | 3.14 | Admin session must not share a cookie with the tenant-facing app | It does — one cookie name, one store, one TTL                                                                                                                                                                                         | Compensating control exists (`AdminNetworkIsolation` middleware). Not a substitute: a stolen tenant-app session cookie from a colonel's browser is a colonel session                                                                                                                                                                                           | P1       |
 
+**Resolved for the colonel API (#4327): 3.3, and 1.11 with it.** A step-up window
+now exists. `sess['elevated_until']` is a registered session sidecar field holding
+`{extid, exp}` — identity-bound, so a cookie that outlives an identity change
+cannot carry a window across it, and both login paths delete it outright.
+`ColonelAPI::Logic::DestructiveAction#require_elevation!` refuses every TIER 1
+verb outside a live window with 403 `elevation_required`;
+`GET|POST|DELETE /api/colonel/elevation` reads, mints and drops one, and the
+console renders the state (1.11) from that read plus a client-side countdown.
+
+Two factors ship: `password` re-verification (dual-mode), and a `recent_auth`
+grace that is OFF by default and, when enabled, offered only to accounts that
+cannot satisfy the password factor. MFA as a step-up factor is not implemented.
+
+Still open here, and deliberately: **3.11**, session-id rotation ON elevation. The
+window is minted on the existing sid rather than a rotated one, so during a live
+window a stolen cookie is exactly as capable as before — the window bounds and
+audits the capability rather than binding it to the credential. Binding it to a
+value the cookie does not carry (an elevation nonce echoed as a request header,
+or a sid rotation at grant time) is the follow-up.
+
 ### 3.1/3.2 detail — two policy engines, neither covering the request path
 
 There are two independent session-policy mechanisms with non-overlapping

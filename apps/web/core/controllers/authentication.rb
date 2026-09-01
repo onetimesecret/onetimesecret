@@ -115,6 +115,15 @@ module Core
           session['authenticated']    = true
           session['authenticated_at'] = Familia.now.to_i
 
+          # #4327: an identity change must always land UNELEVATED. This path
+          # deliberately does not clear or renew the session (compare
+          # lib/onetime/helpers/session_helpers.rb, the other authenticate path,
+          # which does both), so without this the colonel step-up window minted
+          # by the previous occupant of this cookie would be inherited by the
+          # account signing in. Elevation is also identity-bound on read, so this
+          # is the second of two independent closures.
+          session.delete('elevated_until')
+
           auth_logger.info 'Session synchronized after authentication',
             {
               user_id: cust_after.custid,

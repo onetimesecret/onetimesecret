@@ -101,7 +101,35 @@ module ColonelAPI
         )
       end
 
-      # Step 3 of the guard-order contract. P3 (#4327) fills in require_elevation!.
+      # Refuse unless the session holds a live, identity-matched step-up window
+      # (#4327). No-op when elevation is disabled by config.
+      #
+      # Writes NO audit event: a Forbidden-family rejection is drivable on demand
+      # by whoever holds the cookie, and the operator trail is count-capped with
+      # no TTL. The window arithmetic and the identity binding live in
+      # ColonelAPI::Logic::Colonel::Elevation.
+      #
+      # @raise [Onetime::ElevationRequired] 403
+      def require_elevation!
+        return unless elevation_enabled?
+        return if elevated?
+
+        raise Onetime::ElevationRequired.new(
+          'Step-up authentication required. Re-authenticate to continue ' \
+          "(POST /api/colonel/elevation), then retry within #{elevation_window / 60} minutes.",
+          window: elevation_window,
+        )
+      end
+
+      # Step 3 of the guard-order contract: elevation (tier 1 only), THEN
+      # confirmation.
+      #
+      # Elevation first is deliberate: an unelevated caller must never learn
+      # whether their confirmation-token guess was right (no confirmation
+      # oracle), and the console prompts for sudo before the operator wastes
+      # their typing. TIER 2 is deliberately not elevation-gated — those verbs
+      # are reversible, and gating them would double the sudo prompts an
+      # operator sees during routine triage.
       #
       # @param tier [Symbol] :destructive (TIER1) or :sensitive (TIER2)
       # @param confirm_with [String] the expected confirmation token
@@ -113,7 +141,7 @@ module ColonelAPI
           raise Onetime::GuardMisconfigured, "unknown destructive-action tier #{tier.inspect} (#{self.class.name})"
         end
 
-        # P3 (#4327) inserts: require_elevation! if tier == :destructive
+        require_elevation! if tier == :destructive
         require_confirmation!(confirm_with, subject: confirm_subject, field: field)
       end
 

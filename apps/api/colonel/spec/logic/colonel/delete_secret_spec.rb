@@ -44,8 +44,8 @@ RSpec.describe ColonelAPI::Logic::Colonel::DeleteSecret do
 
   # `confirm_token` is where the colonel session auth strategy puts the
   # percent-decoded X-OTS-Confirm header (#4326) — never params.
-  def strategy_result_for(user, confirm_token = 'sec12345')
-    double('StrategyResult', session: {}, user: user,
+  def strategy_result_for(user, confirm_token = 'sec12345', session = {})
+    double('StrategyResult', session: session, user: user,
       auth_method: 'sessionauth', metadata: { confirm_token: confirm_token })
   end
 
@@ -74,6 +74,18 @@ RSpec.describe ColonelAPI::Logic::Colonel::DeleteSecret do
     allow(Onetime::Secret).to receive(:load).and_return(secret)
     allow(Onetime::Receipt).to receive(:load).and_return(receipt)
     allow(Onetime::ColonelAuditEvent).to receive(:record)
+  end
+
+  # ---- Step-up (sudo) window (#4327) -----------------------------------------
+  describe 'elevation' do
+    def elevated_logic_for(session, confirm_token = expected_confirm_token)
+      described_class.new(
+        strategy_result_for(colonel, confirm_token, session),
+        { 'secret_id' => 'sec12345abcdef' },
+      )
+    end
+
+    it_behaves_like 'an elevated colonel action'
   end
 
   describe 'success path' do

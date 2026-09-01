@@ -7,6 +7,7 @@
   import DomainProbeResult from '@/apps/admin/components/domains/DomainProbeResult.vue';
   import DomainStateBadge from '@/apps/admin/components/domains/DomainStateBadge.vue';
   import { AdminConfirmDialog, StatCard } from '@/apps/admin/components/kit';
+  import { useAdminDestructiveMutation } from '@/apps/admin/composables/useAdminDestructiveMutation';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
   import { useAdminDomains } from '@/apps/admin/stores/useAdminDomains';
@@ -301,7 +302,7 @@
     error: mutationError,
     run: runMutation,
     reset: resetMutation,
-  } = useAdminMutation(async () => {
+  } = useAdminDestructiveMutation(async () => {
     switch (activeAction.value) {
       case 'verify':
         verifyResult.value = await store.verify(publicId.value);

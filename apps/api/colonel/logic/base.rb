@@ -17,6 +17,7 @@ require 'onetime/logic/base'
 require 'onetime/application/authorization_policies'
 
 require_relative '../destructive_actions'
+require_relative 'colonel/elevation'
 require_relative 'destructive_action'
 
 module ColonelAPI
@@ -45,6 +46,9 @@ module ColonelAPI
     # apply path only.
     class Base < Onetime::Logic::Base
       include Onetime::Application::AuthorizationPolicies
+      # Elevation first: DestructiveAction#require_elevation! is written against
+      # this module's window arithmetic (#4327).
+      include ColonelAPI::Logic::Colonel::Elevation
       include ColonelAPI::Logic::DestructiveAction
 
       using Familia::Refinements::TimeLiterals

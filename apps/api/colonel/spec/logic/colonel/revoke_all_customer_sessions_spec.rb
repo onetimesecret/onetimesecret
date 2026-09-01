@@ -44,8 +44,8 @@ RSpec.describe ColonelAPI::Logic::Colonel::RevokeAllCustomerSessions do
 
   # `confirm_token` is where the colonel session auth strategy puts the
   # percent-decoded X-OTS-Confirm header — never params.
-  def strategy_result_for(user, confirm_token = 'victim@example.com')
-    double('StrategyResult', session: {}, user: user,
+  def strategy_result_for(user, confirm_token = 'victim@example.com', session = {})
+    double('StrategyResult', session: session, user: user,
       auth_method: 'sessionauth', metadata: { confirm_token: confirm_token })
   end
 
@@ -91,6 +91,20 @@ RSpec.describe ColonelAPI::Logic::Colonel::RevokeAllCustomerSessions do
 
       expect { logic_for(colonel, 'ur_target').raise_concerns }.not_to raise_error
     end
+  end
+
+  # ---- Step-up (sudo) window (#4327) -----------------------------------------
+  describe 'elevation' do
+    let(:expected_confirm_token) { 'victim@example.com' }
+
+    def elevated_logic_for(session, confirm_token = expected_confirm_token)
+      described_class.new(
+        strategy_result_for(colonel, confirm_token, session),
+        { 'user_id' => 'ur_target' },
+      )
+    end
+
+    it_behaves_like 'an elevated colonel action'
   end
 
   describe 'authorization' do

@@ -30,8 +30,8 @@ RSpec.describe ColonelAPI::Logic::Colonel::DeleteOrganization do
   # The apply path requires the org's NAME in X-OTS-Confirm (#4326); the preview
   # path requires nothing. `confirm_token` is where the colonel session auth
   # strategy puts the percent-decoded header — never params.
-  def strategy_result_for(confirm_token = 'Target Org')
-    double('StrategyResult', session: {}, user: colonel,
+  def strategy_result_for(confirm_token = 'Target Org', session = {})
+    double('StrategyResult', session: session, user: colonel,
       auth_method: 'sessionauth', metadata: { confirm_token: confirm_token })
   end
 
@@ -105,6 +105,30 @@ RSpec.describe ColonelAPI::Logic::Colonel::DeleteOrganization do
     it 'falls back to the org extid when the organization has no display name' do
       allow(org).to receive(:display_name).and_return('')
       expect { confirmed_logic_for('or_target').raise_concerns }.not_to raise_error
+    end
+  end
+
+  # ---- Step-up (sudo) window (#4327) -----------------------------------------
+  describe 'elevation' do
+    let(:expected_confirm_token) { 'Target Org' }
+
+    def elevated_logic_for(session, confirm_token = expected_confirm_token)
+      allow(op).to receive(:call).and_return(build_result(status: :success))
+      described_class.new(
+        strategy_result_for(confirm_token, session),
+        { 'org_id' => 'or_target', 'dry_run' => 'false' },
+      )
+    end
+
+    it_behaves_like 'an elevated colonel action'
+
+    # Same preview exemption as the confirmation gate: a dry run writes nothing.
+    it 'requires no elevation for a dry-run preview' do
+      stub_colonel_elevation(enabled: true)
+      allow(op).to receive(:call).and_return(build_result(status: :planned))
+      logic = described_class.new(strategy_result_for(nil, {}), { 'org_id' => 'or_target' })
+
+      expect { logic.raise_concerns }.not_to raise_error
     end
   end
 

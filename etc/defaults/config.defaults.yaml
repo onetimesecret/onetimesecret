@@ -720,6 +720,66 @@ site:
   # below are INDEPENDENT: a request must pass every gate that is active, and
   # neither replaces the other.
   admin:
+    # Step-up (sudo) re-authentication for destructive colonel actions (#4327).
+    #
+    # THREAT: a leaked colonel session cookie is otherwise unbounded destructive
+    # capability — purge, role change, session revoke, org delete all execute on
+    # a bare authenticated request. A short elevation window means a stolen
+    # cookie alone cannot destroy anything; the attacker also needs the password.
+    #
+    # RESIDUAL RISK, stated plainly: elevation is bound to the SESSION and the
+    # acting identity, not to a value the cookie lacks. While a window is live, a
+    # stolen cookie is exactly as capable as it was before this feature. What the
+    # window buys is that the capability is time-bounded, operator-initiated and
+    # audited, instead of standing. Binding it to a nonce the cookie does not
+    # carry is the follow-up.
+    #
+    # SIZING: window 600s is long enough for a multi-step triage session and
+    # short enough that an idle console is not a standing capability.
+    #
+    # reauth_grace: seconds after sign-in during which a PASSWORD-LESS (SSO-only)
+    # colonel may elevate with factor=recent_auth and no credential. DEFAULT 0 =
+    # OFF. It is available only to accounts that cannot satisfy the password
+    # factor: handing it to password holders would make step-up a no-op for the
+    # first N seconds after every sign-in, which is exactly the condition this
+    # feature exists to remove. Raise it ONLY for an SSO-only operator fleet, and
+    # understand that you are trading step-up for "signed in recently" for those
+    # accounts. MFA as a step-up factor is not implemented yet.
+    #
+    # In FULL auth mode the password factor cannot be probed from the logic layer
+    # (the Rodauth password-hash table is only reachable inside a Rodauth
+    # instance), so every full-mode account is treated as password-holding and
+    # recent_auth is unavailable there. A full-mode SSO-only fleet sets
+    # enabled:false instead. See docs/operations/colonel-admin-guide.md.
+    #
+    # DISABLING: enabled:false restores pre-#4327 behaviour (confirmation still
+    # applies). An SSO-only fleet must set either reauth_grace > 0 or
+    # enabled:false, or its colonels cannot run tier-1 verbs at all.
+    elevation:
+      enabled: <%= ENV['COLONEL_ELEVATION_ENABLED'] != 'false' %>
+      window: <%= ENV['COLONEL_ELEVATION_WINDOW'] || 600 %>
+      reauth_grace: <%= ENV['COLONEL_ELEVATION_REAUTH_GRACE'] || 0 %>
+
+    # Rate limits for the colonel API surface (#4327 ships the elevation bucket;
+    # #4329 adds the mutation / destructive / handle-resolve buckets). Keyed on
+    # the acting colonel's extid — the same value the audit trail carries as
+    # `actor` — never on a session id.
+    #
+    # The parent `enabled` flag short-circuits every bucket, which is how the
+    # test suites (many endpoints, one process, one actor) opt out wholesale.
+    #
+    # A locked-out operator clears their own bucket with
+    # `POST /api/colonel/ratelimit/reset` (kind=colonel_elevation, a TIER 2 verb
+    # that needs no elevation), or with the valkey-cli commands
+    # `bin/ots ratelimit keys colonel_elevation <extid>` prints.
+    rate_limit:
+      enabled: <%= ENV['COLONEL_RATE_LIMIT_ENABLED'] != 'false' %>
+      elevation:
+        enabled: <%= ENV['COLONEL_ELEVATION_RATE_LIMIT_ENABLED'] != 'false' %>
+        max_attempts: <%= ENV['COLONEL_ELEVATION_MAX_ATTEMPTS'] || 5 %>
+        window: <%= ENV['COLONEL_ELEVATION_RATE_WINDOW'] || 900 %>
+        lockout: <%= ENV['COLONEL_ELEVATION_LOCKOUT'] || 900 %>
+
     # Which HOSTNAMES serve the Colonel admin surfaces (/colonel shell and
     # /api/colonel API). A request whose validated detected host is not on this
     # list receives the same 404 as the CIDR gate below.

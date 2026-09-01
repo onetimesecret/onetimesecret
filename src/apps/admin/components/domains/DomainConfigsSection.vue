@@ -9,6 +9,7 @@
     DomainConfigAction,
     DomainConfigStatus,
   } from '@/apps/admin/components/domains/domainConfigTypes';
+  import { useAdminDestructiveMutation } from '@/apps/admin/composables/useAdminDestructiveMutation';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useAdminDomains } from '@/apps/admin/stores/useAdminDomains';
   import {
@@ -232,7 +233,7 @@
     error: mutationError,
     run: runMutation,
     reset: resetMutation,
-  } = useAdminMutation(async () => {
+  } = useAdminDestructiveMutation(async () => {
     switch (activeAction.value) {
       case 'ensure': {
         // The ack is LOAD-BEARING here: it is the only proof the run was

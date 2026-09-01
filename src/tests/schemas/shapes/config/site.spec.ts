@@ -223,6 +223,46 @@ describe('siteAdminShape — allowed_hosts null/empty distinction', () => {
   });
 });
 
+describe('siteAdminShape — step-up (sudo) window and colonel rate limits (#4327)', () => {
+  it('ships elevation ON with a 600s window and NO reauth grace', () => {
+    const result = siteAdminShape.parse({ elevation: {} });
+    expect(result.elevation?.enabled).toBe(true);
+    expect(result.elevation?.window).toBe(600);
+    // 0 = the password-less grace is OFF. This is the shipped posture and the
+    // whole point of B-3: a non-zero default would make step-up a no-op for
+    // the first N seconds after every colonel sign-in.
+    expect(result.elevation?.reauth_grace).toBe(0);
+  });
+
+  it('keeps an explicit reauth_grace of 0 rather than falling back', () => {
+    expect(siteAdminShape.parse({ elevation: { reauth_grace: 0 } }).elevation?.reauth_grace).toBe(0);
+  });
+
+  it('accepts an operator-configured grace', () => {
+    expect(siteAdminShape.parse({ elevation: { reauth_grace: 300 } }).elevation?.reauth_grace).toBe(
+      300
+    );
+  });
+
+  it('ships the colonel rate limits ON with the elevation bucket defaulted', () => {
+    const result = siteAdminShape.parse({ rate_limit: { elevation: {} } });
+    expect(result.rate_limit?.enabled).toBe(true);
+    expect(result.rate_limit?.elevation?.enabled).toBe(true);
+    expect(result.rate_limit?.elevation?.max_attempts).toBe(5);
+    expect(result.rate_limit?.elevation?.window).toBe(900);
+    expect(result.rate_limit?.elevation?.lockout).toBe(900);
+  });
+
+  it('preserves an explicit opt-out of either subtree', () => {
+    const result = siteAdminShape.parse({
+      elevation: { enabled: false },
+      rate_limit: { enabled: false },
+    });
+    expect(result.elevation?.enabled).toBe(false);
+    expect(result.rate_limit?.enabled).toBe(false);
+  });
+});
+
 describe('siteShape — composed sub-trees', () => {
   it('applies authentication / session / middleware defaults end-to-end', () => {
     const result = siteShape.parse({

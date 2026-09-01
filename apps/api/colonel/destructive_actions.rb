@@ -37,6 +37,9 @@ module ColonelAPI
     # Reviewed 2026-09-01 for epic #4323 and deliberately un-gated. One reason
     # each; re-review when a listed class gains new capability.
     TIER3_REVIEWED = {
+      'GetElevationStatus' => 'read-only status of the caller\'s own step-up window',
+      'ElevateSession' => 'step-up itself: carries its own throttle and audit events (#4327)',
+      'DropElevation' => 'strictly de-escalating: ends the caller\'s own window',
       'SetEntitlementPreview' => 'session-scoped preview, no durable write',
       'UpdateUserPlan' => 'billing state, reversible, own reconciliation',
       'CreateCheckoutLink' => 'additive; produces a link, changes nothing',

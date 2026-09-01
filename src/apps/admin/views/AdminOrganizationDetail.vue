@@ -10,6 +10,7 @@
   import EntitlementPicker from '@/apps/admin/components/organizations/EntitlementPicker.vue';
   import type { AddMembershipRequest } from '@/apps/admin/components/organizations/membershipSchemas';
   import { colonelAddMembershipResponseSchema } from '@/apps/admin/components/organizations/membershipSchemas';
+  import { useAdminDestructiveMutation } from '@/apps/admin/composables/useAdminDestructiveMutation';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { confirmHeaders, orgConfirmToken } from '@/apps/admin/utils/confirmHeader';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
@@ -774,7 +775,7 @@
     error: deleteError,
     run: runDeleteMutation,
     reset: resetDelete,
-  } = useAdminMutation(async () => {
+  } = useAdminDestructiveMutation(async () => {
     // The server refuses these on the apply path too (4xx). Checking here means
     // the operator reads the reason instead of a generic request failure.
     if (deleteBlockedReason.value) throw new Error(deleteBlockedReason.value);

@@ -12,7 +12,7 @@
     StatCard,
   } from '@/apps/admin/components/kit';
   import type { DataTableColumn, FilterConfig } from '@/apps/admin/components/kit';
-  import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
+  import { useAdminDestructiveMutation } from '@/apps/admin/composables/useAdminDestructiveMutation';
   import { useAdminCustomers } from '@/apps/admin/stores/useAdminCustomers';
   import { accountConfirmToken } from '@/apps/admin/utils/confirmHeader';
   import type { ColonelUser } from '@/schemas/api/internal/responses/colonel';
@@ -255,7 +255,7 @@
     error: mutationError,
     run: runMutation,
     reset: resetMutation,
-  } = useAdminMutation(async () => {
+  } = useAdminDestructiveMutation(async () => {
     const target = actionTarget.value;
     const action = activeAction.value;
     if (!target || !action) throw new Error('No customer selected');

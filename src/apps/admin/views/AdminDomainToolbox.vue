@@ -9,6 +9,7 @@
     KitPagination,
   } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
+  import { useAdminDestructiveMutation } from '@/apps/admin/composables/useAdminDestructiveMutation';
   import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
   import { useAdminDomainToolbox } from '@/apps/admin/stores/useAdminDomainToolbox';
   import { confirmHeaders } from '@/apps/admin/utils/confirmHeader';
@@ -310,7 +311,7 @@
     error: transferApplyError,
     run: runTransferApply,
     reset: resetTransferApply,
-  } = useAdminMutation(async (extid: string) => {
+  } = useAdminDestructiveMutation(async (extid: string) => {
     const response = await $api.post(
       `/api/colonel/domains/${encodeURIComponent(extid)}/transfer`,
       transferBody(false),

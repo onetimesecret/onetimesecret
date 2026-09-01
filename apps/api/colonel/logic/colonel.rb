@@ -11,6 +11,14 @@ module ColonelAPI
   end
 end
 
+# Step-up (sudo) window for tier-1 verbs (#4327). The shared mixin is already
+# loaded by base.rb (DestructiveAction#require_elevation! is written against
+# it); listed here so the manifest names every colonel-namespaced file.
+require_relative 'colonel/elevation'
+require_relative 'colonel/get_elevation_status'
+require_relative 'colonel/elevate_session'
+require_relative 'colonel/drop_elevation'
+
 # System info and stats
 require_relative 'colonel/get_colonel_info'
 require_relative 'colonel/get_colonel_stats'

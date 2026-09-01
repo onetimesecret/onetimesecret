@@ -12,7 +12,7 @@
     KitPagination,
   } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
-  import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
+  import { useAdminDestructiveMutation } from '@/apps/admin/composables/useAdminDestructiveMutation';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
   import { confirmHeaders } from '@/apps/admin/utils/confirmHeader';
   import { useAdminSessions } from '@/apps/admin/stores/useAdminSessions';
@@ -307,7 +307,7 @@
     error: revokeError,
     run: runRevoke,
     reset: resetRevoke,
-  } = useAdminMutation(async () => {
+  } = useAdminDestructiveMutation(async () => {
     const handle = revokeTarget.value;
     if (!handle) throw new Error('No session selected');
     const owner = encodeURIComponent(revokeOwner.value);

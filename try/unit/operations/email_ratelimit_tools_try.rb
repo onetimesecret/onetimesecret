@@ -137,7 +137,7 @@ AE.count
 
 ## the registry knows the canonical limiter kinds, in registry order
 Onetime::Operations::RateLimit::Registry.kinds
-#=> ["feedback", "passphrase", "invite", "login", "reset_request_ip", "reset_request_email", "create_account_ip", "dns", "create_secret"]
+#=> ["feedback", "passphrase", "invite", "login", "reset_request_ip", "reset_request_email", "create_account_ip", "colonel_elevation", "dns", "create_secret"]
 
 ## keys_for expands the templates byte-identically to the CLI's emitted keys
 Onetime::Operations::RateLimit::Registry.keys_for('feedback', '1.2.3.4')
@@ -156,6 +156,13 @@ Onetime::Operations::RateLimit::Registry.keys_for('reset_request_email', 'user@e
 ## — the stored form the limiter writes, so operator clears actually hit
 Onetime::Operations::RateLimit::Registry.keys_for('create_secret', '203.0.113.0')
 #=> ["create_secret:attempts:ip:203.0.113.0", "create_secret:locked:ip:203.0.113.0"]
+
+## the colonel step-up limiter (#4327) keys on the acting colonel's PUBLIC
+## extid — never an objid and never a session id — so `bin/ots ratelimit keys`,
+## GET /ratelimit/inspect and POST /ratelimit/reset can all clear a locked-out
+## operator. Byte-identical with ColonelRateLimiter's own key builder.
+Onetime::Operations::RateLimit::Registry.keys_for('colonel_elevation', 'ur_colonel')
+#=> ["colonel:elevation:attempts:ur_colonel", "colonel:elevation:locked:ur_colonel"]
 
 ## an unknown kind yields nil (the CLI prints its "Unknown" branch)
 Onetime::Operations::RateLimit::Registry.keys_for('nope', 'x')

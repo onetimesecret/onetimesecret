@@ -142,6 +142,83 @@ Which verbs are gated, and which mutating verbs are deliberately **not**, is
 committed data in `apps/api/colonel/destructive_actions.rb`; a spec fails if a
 new mutating route appears in none of the three lists.
 
+### Step-up (sudo) re-authentication — `POST /api/colonel/elevation`
+
+On top of confirmation, the **tier-1** verbs (the fifteen irreversible,
+credential-revoking or privilege-granting ones — purge, role change, session
+revoke, secret/org/domain/config delete, domain transfer, DLQ purge) also require
+a live **elevation window**. A colonel session alone is no longer sufficient for
+any of them: the operator must have re-proven a credential in the last ten
+minutes. A verb attempted outside a window is refused with **403
+`error_code: elevation_required`**, carrying the window length in seconds.
+
+```
+GET    /api/colonel/elevation   → { record: { elevated, expires_at, seconds_remaining },
+                                    details: { enabled, window, reauth_grace,
+                                               grace_available, password_available, factors } }
+POST   /api/colonel/elevation   → { "factor": "password", "password": "…" }
+DELETE /api/colonel/elevation   → ends the window early
+```
+
+- **The console does this for you.** A 403 opens an in-place sudo prompt, and the
+  refused call is retried **once, after** the operator completes it. It is never
+  retried silently.
+- **The window is per session AND per identity.** A second browser elevates
+  separately, and signing in as a different account in the same browser lands
+  unelevated — the stored value names the account that minted it, and both login
+  paths delete it outright.
+- **Two factors.** `password` re-verifies the account password and is the only
+  factor available by default. `recent_auth` elevates with no credential inside a
+  post-sign-in grace, but ONLY for accounts that cannot satisfy the password
+  factor and ONLY when an operator sets a non-zero
+  `COLONEL_ELEVATION_REAUTH_GRACE` (**default 0 — off**). Giving that grace to
+  password holders would make step-up a no-op for the first N seconds after every
+  colonel sign-in, which is the exact condition this control exists to remove.
+  MFA as a step-up factor is not implemented.
+- **SSO-only fleets must configure one of two things.** A colonel with no password
+  cannot elevate at all otherwise. Either set
+  `COLONEL_ELEVATION_REAUTH_GRACE` to a non-zero number of seconds, or set
+  `COLONEL_ELEVATION_ENABLED=false` (confirmation still applies). In **full auth
+  mode** the password probe is not reachable from the API layer, so every account
+  there counts as password-holding and `recent_auth` is unavailable —
+  a full-mode SSO-only fleet uses `COLONEL_ELEVATION_ENABLED=false`.
+  `GET /api/colonel/elevation` reports `password_available` and `factors` for the
+  calling account, so the console can say which of these applies.
+- **The console does not poll this endpoint**, and must not be made to. Every
+  authenticated request advances the session's `last_activity_at`, so a polling
+  banner would keep an idle admin tab alive forever and disable the admin idle
+  timeout. The countdown you see is computed in the browser from `expires_at`.
+
+**Throttle.** `POST /api/colonel/elevation` is limited to 5 attempts per 15
+minutes per colonel account, then a 15-minute lockout — the password check behind
+it is a Rodauth *internal request*, which does not increment Rodauth's own lockout
+counter, so this limiter is the only backstop against guessing. Clear a stuck
+lockout with `POST /api/colonel/ratelimit/reset` (kind `colonel_elevation`,
+subject the colonel's extid — a tier-2 verb, so it needs no elevation), or with
+the commands `bin/ots ratelimit keys colonel_elevation <extid>` prints.
+
+**Audit.** A successful step-up records `colonel.elevate` on the operator trail
+*carrying the factor used*, so a password-less `recent_auth` window is visible as
+the weaker path. A failed attempt records the same `colonel.elevate` verb with
+`result: failure` into the **security** collection (`record_security`: 7-day
+retention, its own cap), never the operator trail, because a cookie holder can
+drive failures on demand. Reaching the throttle records `colonel.elevate_throttled`
+there too, once per lockout window. Dropping a window records
+`colonel.elevate_drop`. An `ElevationRequired` refusal records **nothing at all**,
+for the same reason as the confirmation gate.
+
+**Residual risk, stated rather than hidden.** Elevation is carried by the session.
+While a window is live, a stolen session cookie is exactly as capable as it was
+before this feature existed. What the window buys is that the capability is
+time-bounded, operator-initiated and audited instead of standing. Binding it to a
+value the cookie does not carry — an elevation nonce echoed as a request header —
+is the follow-up, and is not implemented here. Do not read (or write) release
+notes implying that cookie theft is now bounded by the credential.
+
+Configuration lives under `site.admin.elevation` and `site.admin.rate_limit` in
+`etc/defaults/config.defaults.yaml`; every knob has an env var, listed in
+`.env.reference`.
+
 ## 3. Restricting the admin surfaces
 
 Two independent factors restrict which requests reach `/colonel*` and

@@ -6,7 +6,7 @@
   import { AdminConfirmDialog, DataTable, StatCard } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
   import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
-  import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
+  import { useAdminDestructiveMutation } from '@/apps/admin/composables/useAdminDestructiveMutation';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
   import { accountConfirmToken, confirmHeaders } from '@/apps/admin/utils/confirmHeader';
   import type {
@@ -125,7 +125,7 @@
     error: mutationError,
     run: runMutation,
     reset: resetMutation,
-  } = useAdminMutation(async () => {
+  } = useAdminDestructiveMutation(async () => {
     // Every DANGER action is gated server-side (#4326) on the SAME token the
     // dialog asks the operator to retype. A missing one is a bug, not a
     // fallback: sending no header is a 403 the operator cannot act on.

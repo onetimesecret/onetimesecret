@@ -85,6 +85,17 @@ module Onetime
             keys: ['create_account:attempts:ip:%s', 'create_account:locked:ip:%s'],
             dbclient: -> { Onetime::Customer.dbclient },
           },
+          # Colonel step-up (sudo) attempts (#4327), keyed on the acting
+          # colonel's PUBLIC external id — never an objid, never a session id
+          # (Rack aliases SessionId#to_s to the live bearer cookie). Customer
+          # shard, matching ColonelRateLimiter#colonel_rate_limit_redis. Keep
+          # these templates byte-identical with that module's key builder or the
+          # CLI, Inspect and Reset cannot see the keys.
+          'colonel_elevation' => {
+            subject: 'colonel external id (extid)',
+            keys: ['colonel:elevation:attempts:%s', 'colonel:elevation:locked:%s'],
+            dbclient: -> { Onetime::Customer.dbclient },
+          },
           'dns' => {
             subject: 'domain identifier (sanitized)',
             keys: ['dns:ratelimit:%s'],

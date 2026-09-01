@@ -30,8 +30,8 @@ RSpec.describe ColonelAPI::Logic::Colonel::ChangeUserEmail do
   # The apply path requires the account's CURRENT address in X-OTS-Confirm
   # (#4326); the preview path requires nothing. `confirm_token` is where the
   # colonel session auth strategy puts the percent-decoded header — never params.
-  def strategy_result_for(confirm_token = 'old@example.com')
-    double('StrategyResult', session: {}, user: colonel,
+  def strategy_result_for(confirm_token = 'old@example.com', session = {})
+    double('StrategyResult', session: session, user: colonel,
       auth_method: 'sessionauth', metadata: { confirm_token: confirm_token })
   end
 
@@ -117,6 +117,21 @@ RSpec.describe ColonelAPI::Logic::Colonel::ChangeUserEmail do
       expect { confirmed_logic_for('new@example.com').raise_concerns }
         .to raise_error(Onetime::ConfirmationRequired)
     end
+  end
+
+  # ---- Step-up (sudo) window (#4327) -----------------------------------------
+  describe 'elevation' do
+    let(:expected_confirm_token) { 'old@example.com' }
+
+    def elevated_logic_for(session, confirm_token = expected_confirm_token)
+      allow(op).to receive(:call).and_return(build_result(status: :success))
+      described_class.new(
+        strategy_result_for(confirm_token, session),
+        { 'user_id' => 'ur_target', 'new_email' => 'new@example.com', 'dry_run' => 'false' },
+      )
+    end
+
+    it_behaves_like 'an elevated colonel action'
   end
 
   describe 'dry_run defaults to preview' do

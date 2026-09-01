@@ -4,7 +4,7 @@
 
   import RevealEmail from '@/apps/admin/components/RevealEmail.vue';
   import { AdminConfirmDialog, JsonViewer } from '@/apps/admin/components/kit';
-  import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
+  import { useAdminDestructiveMutation } from '@/apps/admin/composables/useAdminDestructiveMutation';
   import { useResourceFetch } from '@/apps/admin/composables/useResourceFetch';
   import { confirmHeaders } from '@/apps/admin/utils/confirmHeader';
   import {
@@ -251,7 +251,7 @@
     error: deleteError,
     run: runDelete,
     reset: resetDelete,
-  } = useAdminMutation(async () => {
+  } = useAdminDestructiveMutation(async () => {
     const secretId = receiptRecord.value?.secret_id;
     if (!secretId) throw new Error('No secret loaded');
     // The shortid the operator retyped is also what the server requires in

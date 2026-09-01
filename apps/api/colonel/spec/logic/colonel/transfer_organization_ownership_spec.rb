@@ -35,8 +35,8 @@ RSpec.describe ColonelAPI::Logic::Colonel::TransferOrganizationOwnership do
   # dry_run is pinned false on this surface, so EVERY call is an apply and
   # requires the org's NAME in X-OTS-Confirm (#4326). `confirm_token` is where
   # the colonel session auth strategy puts the percent-decoded header.
-  def strategy_result_for(confirm_token = 'Target Org')
-    double('StrategyResult', session: {}, user: colonel,
+  def strategy_result_for(confirm_token = 'Target Org', session = {})
+    double('StrategyResult', session: session, user: colonel,
       auth_method: 'sessionauth', metadata: { confirm_token: confirm_token })
   end
 
@@ -92,6 +92,21 @@ RSpec.describe ColonelAPI::Logic::Colonel::TransferOrganizationOwnership do
     end
 
     it_behaves_like 'a confirmed colonel action'
+  end
+
+  # ---- Step-up (sudo) window (#4327) -----------------------------------------
+  describe 'elevation' do
+    let(:expected_confirm_token) { 'Target Org' }
+
+    def elevated_logic_for(session, confirm_token = expected_confirm_token)
+      allow(op).to receive(:call).and_return(build_result(status: :success))
+      described_class.new(
+        strategy_result_for(confirm_token, session),
+        { 'org_id' => 'or_target', 'new_owner' => 'ur_newowner' },
+      )
+    end
+
+    it_behaves_like 'an elevated colonel action'
   end
 
   describe 'success path' do

@@ -4,7 +4,7 @@
 
   import { AdminConfirmDialog, DataTable } from '@/apps/admin/components/kit';
   import type { DataTableColumn } from '@/apps/admin/components/kit';
-  import { useAdminMutation } from '@/apps/admin/composables/useAdminMutation';
+  import { useAdminDestructiveMutation } from '@/apps/admin/composables/useAdminDestructiveMutation';
   import { useAdminCustomerSessions } from '@/apps/admin/stores/useAdminCustomerSessions';
   import type { AdminCustomerSession } from '@/schemas/api/internal/responses/colonel-customer-sessions';
   import OIcon from '@/shared/components/icons/OIcon.vue';
@@ -98,7 +98,7 @@
     error: revokeError,
     run: runRevoke,
     reset: resetRevoke,
-  } = useAdminMutation(async () => {
+  } = useAdminDestructiveMutation(async () => {
     if (!revokeTarget.value) throw new Error('No session selected');
     // The store optimistically drops the row on a 2xx; a failure throws before
     // the drop, so useAdminMutation captures it and the row stays for retry.
@@ -138,7 +138,7 @@
     error: revokeAllError,
     run: runRevokeAll,
     reset: resetRevokeAll,
-  } = useAdminMutation(async () => {
+  } = useAdminDestructiveMutation(async () => {
     // run() only returns a boolean, so stash the server's counts for the toast.
     const record = await store.revokeAll(props.userId, props.confirmToken);
     lastRevokedCount.value = record.blobs_deleted;

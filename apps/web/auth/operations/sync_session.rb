@@ -296,6 +296,13 @@ module Auth
         # Clear MFA waiting flag - user has completed full authentication
         @session.delete(:awaiting_mfa)
         @session.delete('awaiting_mfa')
+
+        # #4327: an identity change must always land UNELEVATED. Rodauth's
+        # :renew carries the session hash to a new sid (hooks/account.rb after a
+        # password change), so a colonel step-up window could otherwise survive
+        # a rotation — or an identity change — on the same browser. Elevation is
+        # also identity-bound on read; this is the second of two closures.
+        @session.delete('elevated_until')
       end
 
       # Stamps the customer's last_login timestamp on full session sync.

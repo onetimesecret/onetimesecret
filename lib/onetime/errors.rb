@@ -390,6 +390,60 @@ module Onetime
     end
   end
 
+  # Raised when a TIER 1 colonel verb is invoked outside a live step-up window
+  # (#4327). Forbidden subclass for the same audit-exclusion reason as
+  # {ConfirmationRequired}: whoever holds the cookie can drive this rejection on
+  # demand, and the operator trail is count-capped with no TTL.
+  #
+  # `window` is the configured elevation lifetime in seconds, so the console can
+  # tell the operator how long a fresh window will last before they re-enter a
+  # credential.
+  class ElevationRequired < Forbidden
+    ERROR_CODE = 'elevation_required'
+
+    attr_reader :window
+
+    def initialize(message = 'Step-up authentication required', window: nil, error_key: nil, args: {})
+      super(message, error_key: error_key, args: args)
+      @window = window
+    end
+
+    def to_h
+      {
+        error: message,
+        error_type: 'ElevationRequired',
+        error_code: ERROR_CODE,
+        window: window,
+        error_key: error_key,
+      }.compact
+    end
+  end
+
+  # Raised when a step-up ATTEMPT itself fails (#4327) — a wrong password, or a
+  # factor this account cannot satisfy. Distinct from {ElevationRequired}, which
+  # says "you never elevated": this one says "the elevation you just tried did
+  # not work", and the console renders the server's remediation message.
+  class ElevationFailed < Forbidden
+    ERROR_CODE = 'elevation_failed'
+
+    attr_reader :factor
+
+    def initialize(message = 'Step-up authentication failed', factor: nil, error_key: nil, args: {})
+      super(message, error_key: error_key, args: args)
+      @factor = factor
+    end
+
+    def to_h
+      {
+        error: message,
+        error_type: 'ElevationFailed',
+        error_code: ERROR_CODE,
+        factor: factor,
+        error_key: error_key,
+      }.compact
+    end
+  end
+
   # A destructive-action guard was called with no expected token — a programming
   # error in the calling logic class, never a caller-triggerable condition. 500,
   # never a silent admit. Distinct from a bare Onetime::Problem because Otto

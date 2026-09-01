@@ -11,6 +11,14 @@ GET    /info                              ColonelAPI::Logic::Colonel::GetColonel
 GET    /stats                             ColonelAPI::Logic::Colonel::GetColonelStats response=json auth=sessionauth role=colonel scope=internal
 GET    /config                            ColonelAPI::Logic::Colonel::GetSystemSettings response=json auth=sessionauth role=colonel scope=internal
 
+# Step-up (sudo) window for destructive verbs (#4327). GET is a cheap status
+# read the console fetches on mount and after a 403; POST mints a window; DELETE
+# drops one. GET is deliberately NOT polled — see the idle-timeout interaction
+# in docs/operations/colonel-admin-guide.md.
+GET    /elevation                         ColonelAPI::Logic::Colonel::GetElevationStatus response=json auth=sessionauth role=colonel scope=internal
+POST   /elevation                         ColonelAPI::Logic::Colonel::ElevateSession response=json auth=sessionauth role=colonel scope=internal
+DELETE /elevation                         ColonelAPI::Logic::Colonel::DropElevation response=json auth=sessionauth role=colonel scope=internal
+
 # Entitlement Preview Mode
 GET    /available-plans                   ColonelAPI::Logic::Colonel::GetAvailablePlans response=json auth=sessionauth role=colonel scope=internal
 POST   /entitlement-preview                  ColonelAPI::Logic::Colonel::SetEntitlementPreview response=json auth=sessionauth role=colonel scope=internal
