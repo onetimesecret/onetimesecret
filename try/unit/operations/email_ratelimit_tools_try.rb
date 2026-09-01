@@ -137,7 +137,7 @@ AE.count
 
 ## the registry knows the canonical limiter kinds, in registry order
 Onetime::Operations::RateLimit::Registry.kinds
-#=> ["feedback", "passphrase", "invite", "login", "reset_request_ip", "reset_request_email", "create_account_ip", "dns"]
+#=> ["feedback", "passphrase", "invite", "login", "reset_request_ip", "reset_request_email", "create_account_ip", "dns", "create_secret"]
 
 ## keys_for expands the templates byte-identically to the CLI's emitted keys
 Onetime::Operations::RateLimit::Registry.keys_for('feedback', '1.2.3.4')
@@ -151,6 +151,11 @@ Onetime::Operations::RateLimit::Registry.keys_for('reset_request_ip', '203.0.113
 ## the reset-request email backstop derives its own pair from the same subject
 Onetime::Operations::RateLimit::Registry.keys_for('reset_request_email', 'user@example.com')
 #=> ["reset_request:attempts:email:user@example.com", "reset_request:locked:email:user@example.com"]
+
+## the anonymous secret-creation limiter (F-02) keys on the MASKED client IP
+## — the stored form the limiter writes, so operator clears actually hit
+Onetime::Operations::RateLimit::Registry.keys_for('create_secret', '203.0.113.0')
+#=> ["create_secret:attempts:ip:203.0.113.0", "create_secret:locked:ip:203.0.113.0"]
 
 ## an unknown kind yields nil (the CLI prints its "Unknown" branch)
 Onetime::Operations::RateLimit::Registry.keys_for('nope', 'x')
