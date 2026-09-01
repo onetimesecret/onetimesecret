@@ -491,6 +491,34 @@
     "text": "Account unsuspended.",
     "content_hash": "c5b4377f"
   },
+  "web.admin.customers.actions.impersonate.button": {
+    "text": "Impersonate customer",
+    "content_hash": "38a7cfbe"
+  },
+  "web.admin.customers.actions.impersonate.confirmTitle": {
+    "text": "Start impersonation?",
+    "content_hash": "c6e4fa74"
+  },
+  "web.admin.customers.actions.impersonate.confirmDescription": {
+    "text": "Opens a time-boxed, read-only session as {email}. Every page shows a banner until you stop, changes are blocked, and the session is recorded in the audit log with your reason.",
+    "content_hash": "713c01b4"
+  },
+  "web.admin.customers.actions.impersonate.reasonLabel": {
+    "text": "Reason (required)",
+    "content_hash": "d976f5d9"
+  },
+  "web.admin.customers.actions.impersonate.reasonPlaceholder": {
+    "text": "Why is this session needed? Include the ticket reference.",
+    "content_hash": "89a4835d"
+  },
+  "web.admin.customers.actions.impersonate.success": {
+    "text": "Impersonation started.",
+    "content_hash": "b4662bcc"
+  },
+  "web.admin.customers.actions.impersonate.unavailable": {
+    "text": "Impersonation is unavailable for colonel, anonymous, and suspended accounts.",
+    "content_hash": "fb6578b2"
+  },
   "web.admin.customers.actions.purge.button": {
     "text": "Purge customer",
     "content_hash": "ff658f69"
