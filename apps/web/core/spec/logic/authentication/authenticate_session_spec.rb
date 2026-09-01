@@ -186,6 +186,9 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
         allow(cust).to receive_messages(
           objid: 'cust_test123',
           email: test_email,
+          # The failure funnel asks the ATTEMPTED account for its role (#4339);
+          # a real Customer always answers, so the double must too.
+          role: :customer,
           argon2_hash?: true,
           passphrase: '$argon2id$...'
         )
@@ -336,6 +339,9 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
   describe 'colonel.signin audit event' do
     before do
       allow(Onetime::ColonelAuditEvent).to receive(:record)
+      # A wrong-credential example below now reaches the failed-sign-in emitter
+      # (#4339); stub the security trail too so no example here touches Valkey.
+      allow(Onetime::ColonelAuditEvent).to receive(:record_security)
       logic.process_params
     end
 
@@ -360,9 +366,12 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
         )
       end
 
-      # The hard constraint: the audit set is capped by COUNT with no TTL, so an
-      # event a failed login can trigger is a log-eviction primitive.
-      it 'records NOTHING when the credentials are wrong' do
+      # The hard constraint, unchanged by #4339: the OPERATOR trail is capped by
+      # COUNT with no TTL, so an event a failed login can trigger would be a
+      # log-eviction primitive against it. A failure still writes nothing here —
+      # it writes to the separately-budgeted security trail instead (see the
+      # colonel.signin_failed group below).
+      it 'records NOTHING on the operator trail when the credentials are wrong' do
         params['password'] = 'definitely-wrong'
         logic.process_params
 
@@ -384,6 +393,151 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
         logic.process
 
         expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+      end
+    end
+  end
+
+  # Simple auth mode's half of colonel.signin_failed (#4339). Full mode's half
+  # is the Rodauth after_login_failure hook, covered in
+  # apps/web/auth/spec/config/hooks/login_colonel_signin_failure_spec.rb; both
+  # go through Onetime::ColonelSigninFailure, so the shape is pinned twice on
+  # purpose — the two modes must never drift.
+  #
+  # These examples drive raise_concerns, which is the PRODUCTION failure funnel:
+  # an anonymous login POST carries user=nil (PR #2733), so @cust is nil for
+  # both unknown-email and wrong-password and process is never reached.
+  describe 'colonel.signin_failed audit event (#4339)' do
+    # A colonel whose passphrase does NOT match the submitted one.
+    let(:customer) do
+      cust = double('Customer')
+      allow(cust).to receive(:passphrase?).and_return(false)
+      allow(cust).to receive_messages(
+        objid: 'cust_colonel',
+        email: 'colonel@example.com',
+        obscure_email: 'co***@e***.com',
+        role: 'colonel',
+        anonymous?: false,
+        argon2_hash?: true,
+        passphrase: '$argon2id$...'
+      )
+      cust
+    end
+
+    let(:strategy_result) do
+      result = double('StrategyResult')
+      allow(result).to receive_messages(
+        session: rack_session,
+        user: nil,
+        auth_method: :anonymous,
+        metadata: { ip: '127.0.0.1' },
+        authenticated?: false
+      )
+      result
+    end
+
+    before do
+      allow(Onetime::ColonelAuditEvent).to receive(:record)
+      allow(Onetime::ColonelAuditEvent).to receive(:record_security)
+      allow(OT).to receive(:le)
+    end
+
+    it 'records exactly one event, with the OBSCURED email as target' do
+      expect { logic.raise_concerns }.to raise_error(Onetime::FormError)
+
+      # actor is 'anonymous', not 'unknown': the caller is unauthenticated by
+      # construction here, and nobody has proven they are this account, so an
+      # extid would be the wrong identity to stamp as well as a leak.
+      expect(Onetime::ColonelAuditEvent).to have_received(:record_security).once.with(
+        actor: 'anonymous',
+        verb: 'colonel.signin_failed',
+        target: 'co***@e***.com',
+        result: :failure,
+        detail: { auth_mode: 'simple', failure_reason: 'invalid_credentials' },
+      )
+    end
+
+    it 'uses the single-sourced verb constant (both auth modes must agree)' do
+      expect(Onetime::ColonelAuditEvent::VERB_COLONEL_SIGNIN_FAILED).to eq('colonel.signin_failed')
+    end
+
+    # The verb string choice, pinned: ColonelAuditReader matches a verb exactly
+    # or as a DOTTED category prefix, so a `colonel.signin.failed` spelling
+    # would silently widen the existing `colonel.signin` filter to include
+    # failures. Sibling verbs keep "who signed in" and "who tried" separable.
+    it 'is not a dotted child of colonel.signin' do
+      expect(Onetime::ColonelAuditEvent::VERB_COLONEL_SIGNIN_FAILED).not_to start_with(
+        "#{Onetime::ColonelAuditEvent::VERB_COLONEL_SIGNIN}.",
+      )
+    end
+
+    it 'never writes the operator trail (its budget is the whole point)' do
+      expect { logic.raise_concerns }.to raise_error(Onetime::FormError)
+
+      expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+    end
+
+    context 'when the attempted account is not a colonel' do
+      before { allow(customer).to receive(:role).and_return('customer') }
+
+      it 'records nothing (CONTRACT 4: not an admin account)' do
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError)
+
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record_security)
+      end
+    end
+
+    context 'when the attempted account does not exist' do
+      before { allow(Onetime::Customer).to receive(:find_by_email).and_return(nil) }
+
+      it 'records nothing, so arbitrary submitted addresses cannot mint events' do
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError)
+
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record_security)
+      end
+
+      it 'does not re-look-up the address the failure funnel already resolved' do
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError)
+
+        # process_params (which runs in the constructor) did the ONE lookup and
+        # the funnel reuses its result — nil here meaning "already looked, no
+        # such account" — rather than paying a second round trip on the path an
+        # attacker drives.
+        expect(Onetime::Customer).to have_received(:find_by_email).once
+      end
+    end
+
+    it 'still rejects the login when the audit write blows up' do
+      allow(Onetime::ColonelAuditEvent).to receive(:record_security).and_raise(StandardError, 'boom')
+
+      # The failure response is unaffected: the caller sees the same
+      # non-enumerating form error, never the audit exception.
+      expect { logic.raise_concerns }.to raise_error(Onetime::FormError, 'Invalid email or password')
+      expect(OT).to have_received(:le).with('[colonel.signin_failed] audit record failed', hash_including(:exception))
+    end
+
+    # The second credential-rejection branch: reachable only when the request
+    # already carried a customer, so raise_concerns returned and #process
+    # rejected on success?. Mutually exclusive with the funnel above, which is
+    # what bounds this to one event per attempt.
+    context 'when the rejection happens in #process instead' do
+      let(:strategy_result) do
+        result = double('StrategyResult')
+        allow(result).to receive_messages(
+          session: rack_session,
+          user: customer,
+          auth_method: :session,
+          metadata: { ip: '127.0.0.1' },
+          authenticated?: false
+        )
+        result
+      end
+
+      it 'records exactly one event there too' do
+        expect { logic.process }.to raise_error(Onetime::FormError)
+
+        expect(Onetime::ColonelAuditEvent).to have_received(:record_security).once.with(
+          hash_including(verb: 'colonel.signin_failed', target: 'co***@e***.com', result: :failure),
+        )
       end
     end
   end
@@ -488,6 +642,9 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
         allow(cust).to receive_messages(
           objid: 'cust_test123',
           email: test_email,
+          # See the note on the #raise_concerns double: the failure funnel asks
+          # the attempted account for its role (#4339).
+          role: :customer,
           argon2_hash?: true,
           passphrase: '$argon2id$...'
         )

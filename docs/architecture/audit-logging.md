@@ -254,7 +254,7 @@ into one chronological feed tagged with a `trail` field.
 | Sub-stream | Written by | Holds | Retention |
 |---|---|---|---|
 | `events` | `record` | operator MUTATIONS | newest 10,000, no TTL |
-| `security_events` | `record_security` | events an **unauthenticated** caller can cause | newest 1,000, 7 days |
+| `security_events` | `record_security` | events an **unauthenticated** caller can cause — rate-limiter cap-hits, failed colonel sign-ins (#4339) | newest 1,000, 7 days |
 | `access_events` | `record_access` | authenticated **observations** — curated sensitive reads and dry-run previews | newest 5,000, 30 days |
 
 One invariant explains all three (the **write-frequency invariant** on the
@@ -361,6 +361,66 @@ Covered: `customers/set_suspension`, `customers/set_role`,
 
 An op that *refuses* on no-change rather than skipping was already audited (the
 refusal path) and is unchanged.
+
+### What the security-telemetry stream holds (#4339)
+
+`security_events` started as the home for rate-limiter cap-hits — the three
+throttles that an unauthenticated caller can drive
+(`auth.reset_request_throttled` and its `create_account` / `conceal_secret`
+peers). It now also holds **failed colonel sign-ins**.
+
+| Verb | Emitted by | Trail |
+|---|---|---|
+| `colonel.signin` | `SyncSession` (full) / `AuthenticateSession` (simple) | `events` |
+| `colonel.signin_failed` | `after_login_failure` hook (full) / `AuthenticateSession` failure funnel (simple) | `security_events` |
+
+A successful colonel sign-in has been audited since the trail gained a signal
+for operator *presence*. A failed one recorded nothing, and both emitters said
+why: the operator trail is capped by count with no TTL, so an event an
+unauthenticated caller can trigger is a log-eviction primitive against it. That
+argument was correct and is why the success write stays a `record` into
+`events` — but it stopped being an argument for recording *nothing* once the
+store grew a second budget. So the highest-signal security event the trail
+could hold, somebody working through passwords against a real admin account,
+was the one event it did not hold.
+
+Four properties are worth knowing:
+
+- **Only real colonel accounts.** Nothing is recorded unless the attempted
+  identity resolves to a Customer holding the colonel role. An event per
+  submitted address would let anyone mint rows for strings they invented; the
+  curated signal is "an actual admin account is being targeted."
+- **The target is the obscured email**, as with every other event on this
+  stream — never the raw address, never an extid (nobody has proven they are
+  that account) and never an internal objid. Events ship to the external
+  `ColonelAudit` sink at write time, so the payload has to be safe to leave the
+  process. `detail` carries only `auth_mode` (`simple`/`full`) and a coarse
+  `failure_reason` (`invalid_credentials` — Rodauth's login-failure hook cannot
+  tell "no such account" from "wrong password", and the case where simple mode
+  could tell records nothing anyway). No client IP: this event is for
+  *detection*, and the origin is in the auth log line each site already writes.
+- **No throttle of its own.** Budget separation is the control (the
+  write-frequency invariant above): a flood here evicts only other anonymous
+  telemetry, and the login rate limiter already gates the surrounding path.
+  At most one event per failed attempt.
+- **Two verbs, not a parent and a child.** `colonel.signin_failed` is
+  deliberately *not* spelled `colonel.signin.failed`: the reader's verb filter
+  matches exactly or as a dotted category prefix, so the dotted spelling would
+  silently widen the existing `colonel.signin` filter from "who signed in" to
+  "who tried". As siblings each is separately filterable and `colonel` still
+  rolls both up — which matters more than usual here, since the two live in
+  different collections with different retention.
+
+The shared guard lives in `Onetime::ColonelSigninFailure` (the
+`Onetime::AuditReason` shape: one small module under `lib/onetime/` owning one
+cross-cutting audit concern), so the two auth modes cannot drift on the lookup,
+the role gate, the obscured target or the fail-open rescue. It never raises: a
+sign-in failure must fail the same way, at the same speed, whether or not the
+audit write worked.
+
+Out of scope: the Rodauth SQL audit log
+(`account_authentication_audit_logs`) is a separate stream with its own writer
+and is untouched.
 
 ### Write-failure posture (#4333)
 

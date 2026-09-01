@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/logic/base'
+require 'onetime/colonel_signin_failure'
 require 'onetime/models/colonel_audit_event'
 require 'onetime/security/login_rate_limiter'
 
@@ -41,6 +42,14 @@ module Core::Logic
         check_login_rate_limit!(login_rate_limit_email, login_rate_limit_ip)
 
         potential = Onetime::Customer.find_by_email(potential_email_address)
+
+        # Held for the failure funnel in raise_concerns (#4339), which needs to
+        # know whether the ATTEMPTED address belongs to a colonel and cannot
+        # ask @cust — that is deliberately nil on every failure. Reusing the
+        # lookup already made here keeps the failed-sign-in audit check free of
+        # a second round trip on the path an attacker drives. nil is a
+        # MEANINGFUL value: "looked, no such account", which records nothing.
+        @potential_customer = potential
 
         return unless potential
 
@@ -91,6 +100,11 @@ module Core::Logic
         # error.
         record_failed_login_attempt!(login_rate_limit_email, login_rate_limit_ip)
 
+        # #4339: and audit it, when the address that was tried is a real
+        # colonel account. Ordered before the raise for the same reason the
+        # attempt count is — raise_form_error never returns.
+        record_colonel_signin_failure(@potential_customer)
+
         # cust stays nil - error raised before we need it
         raise_form_error 'Invalid email or password', field: 'email', error_type: 'invalid'
       end
@@ -105,6 +119,15 @@ module Core::Logic
               ip: @strategy_result.metadata[:ip],
               reason: :invalid_credentials,
             }
+
+          # The OTHER credential-rejection branch (#4339). raise_concerns is the
+          # production funnel — @cust is nil there for both unknown-email and
+          # wrong-password — so this one is only reached when the request
+          # already carried a customer (strategy_result.user) and its passphrase
+          # did not match. The two are mutually exclusive per attempt
+          # (raise_concerns runs first and raises), which is what keeps the
+          # at-most-one-event-per-attempt property.
+          record_colonel_signin_failure(cust)
 
           raise_form_error 'Invalid email or password', field: 'email', error_type: 'invalid'
         end
@@ -238,10 +261,16 @@ module Core::Logic
       # it — once per login, not once per request (the session is authenticated
       # from here on and never re-enters this class).
       #
-      # Failed logins deliberately record NOTHING: the audit set is capped by
-      # COUNT with no TTL, so an event an unauthenticated caller can trigger is
-      # a log-eviction primitive — enough failed logins would flush the real
-      # destructive-action trail.
+      # Failures are recorded ELSEWHERE, not nowhere (#4339). This comment used
+      # to say a failed login recorded nothing, on the grounds that the audit
+      # set is capped by COUNT with no TTL, so an event an unauthenticated
+      # caller can trigger is a log-eviction primitive — enough failed logins
+      # would flush the real destructive-action trail. That is still true of
+      # THIS write, which is why it stays a `.record` into `events`. It stopped
+      # being a reason to record nothing at all once the store grew a separate
+      # anonymous-telemetry budget: see #record_colonel_signin_failure, which
+      # writes a failed attempt against a colonel account to `security_events`,
+      # where a flood can only ever evict other anonymous telemetry.
       def record_colonel_signin
         return unless cust && cust.role.to_s == 'colonel'
 
@@ -259,6 +288,26 @@ module Core::Logic
         # Best-effort: a login must never fail because its audit event could not
         # be assembled.
         OT.le('[colonel.signin] audit record failed', exception: ex)
+      end
+
+      # Record the SIMPLE-auth-mode half of colonel.signin_failed (#4339). Full
+      # mode's counterpart is the Rodauth after_login_failure hook in
+      # Auth::Config::Hooks::Login; the guard, the obscured target and the
+      # event shape are shared by Onetime::ColonelSigninFailure so the two
+      # modes cannot drift.
+      #
+      # `customer` is what this class already resolved (nil for an unknown
+      # address), so no `login:` is passed and no second lookup happens. The
+      # helper never raises and never writes for a non-colonel, which is why
+      # there is no rescue and no role check here.
+      #
+      # No throttle: the event lands in `security_events`, whose budget is
+      # trimmed independently of the operator trail. Budget separation IS the
+      # control — see the WRITE-FREQUENCY INVARIANT on
+      # Onetime::ColonelAuditEvent — so this needs no bound of its own beyond
+      # the login rate limiter that already gates the surrounding path.
+      def record_colonel_signin_failure(customer)
+        Onetime::ColonelSigninFailure.record(auth_mode: 'simple', customer: customer)
       end
 
       # Rate-limit subject halves passed separately to the two-tier

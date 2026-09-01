@@ -322,7 +322,8 @@ module Onetime
     # without parsing the payload.
     SINK_MESSAGE = 'colonel.audit'
 
-    # The one verb constant that lives on the model instead of on its emitter.
+    # The verb constants that live on the model instead of on an emitter — this
+    # one and its failed counterpart below (#4339).
     #
     # Nearly every verb has exactly one emitter, which owns its own AUDIT_VERB.
     # Colonel session establishment has TWO, one per auth mode — full mode syncs
@@ -340,6 +341,37 @@ module Onetime
     # {Onetime::ColonelAuditReader}, so they are single-sourced there instead.
     # This model knows nothing about reading surfaces and should not start.
     VERB_COLONEL_SIGNIN = 'colonel.signin'
+
+    # The FAILED counterpart (#4339). Same two-emitter shape as the verb above,
+    # so by the same rule it gets the same home: full mode emits from the
+    # Rodauth login-failure hook (Auth::Config::Hooks::Login), simple mode from
+    # the failure funnel in Core::Logic::Authentication::AuthenticateSession,
+    # and neither can reference the other. The two sites also share
+    # {Onetime::ColonelSigninFailure}, which owns the emit-if-colonel guard —
+    # but the CONSTANT stays here, because what has to be identical in both
+    # places is the string the console filters on, and that is this model's
+    # concern rather than a guard helper's.
+    #
+    # AN UNDERSCORE, NOT A THIRD DOT, and the reader's filter is the reason.
+    # {Onetime::ColonelAuditReader} matches a verb EXACTLY or as a DOTTED
+    # CATEGORY PREFIX (`stored.start_with?("#{verb}.")`), so a
+    # `colonel.signin.failed` spelling would make the EXISTING `colonel.signin`
+    # filter start returning failures as well. That filter is how an operator
+    # asks "who signed in", and its answer must not silently widen to "who
+    # tried". Spelled with an underscore the two are siblings:
+    # `colonel.signin` returns sign-ins, `colonel.signin_failed` returns
+    # attempts, and `colonel` still rolls both up when that is what is wanted.
+    # It also matches the house verb style, where a qualifier is an underscore
+    # inside a segment (`customer.set_role`, `session.revoke_all`).
+    #
+    # Keeping them separately filterable matters more here than it would for
+    # most verb pairs, because the two do not even live in the same collection:
+    # a success is authenticated operator activity and goes to `events`, while
+    # a failure is reachable by an unauthenticated caller and goes to
+    # `security_events` via {.record_security}. Their retention differs (no TTL
+    # vs 1k/7 days), so one filter spanning both would return rows whose
+    # ABSENCE means two different things.
+    VERB_COLONEL_SIGNIN_FAILED = 'colonel.signin_failed'
 
     # Keys whose values must never be persisted verbatim. Matched case-insensitively
     # against stringified detail keys at any nesting depth. Defense-in-depth only —
