@@ -90,7 +90,12 @@ def last_response;  @test.last_response;  end
 # them requires the organization's NAME — percent-encoded — in X-OTS-Confirm.
 # The 404-for-unknown-org case below deliberately sends NO header: shape and
 # existence are checked before the gate, so it must still answer 404.
-@confirm_header = { 'HTTP_X_OTS_CONFIRM' => Rack::Utils.escape(@org.display_name) }
+#
+# Encode the way the console does (encodeURIComponent === URI.encode_uri_component),
+# NOT Rack::Utils.escape: the server decodes with URI.decode_uri_component, which
+# treats '+' as a literal plus, so a form-escaped space ('+') would arrive as '+'
+# and never match a display_name that contains spaces (auth_strategies.rb #4326).
+@confirm_header = { 'HTTP_X_OTS_CONFIRM' => URI.encode_uri_component(@org.display_name) }
 @colonel_json_headers = {
   'rack.session' => @colonel_session, 'CONTENT_TYPE' => 'application/json',
   'HTTP_ACCEPT' => 'application/json',

@@ -106,8 +106,13 @@ end
 # Server-side destructive-action confirmation (#4326): AddMembership is TIER 2
 # (privilege-granting — it hands an account access to the org's data), so it
 # requires the organization's NAME, percent-encoded, in X-OTS-Confirm.
+#
+# Encode the way the console does (encodeURIComponent === URI.encode_uri_component),
+# NOT Rack::Utils.escape: the server decodes with URI.decode_uri_component, which
+# keeps '+' literal, so a form-escaped space ('+') would never match a display_name
+# that contains spaces (auth_strategies.rb #4326).
 def confirming_org_headers(org)
-  colonel_headers.merge('HTTP_X_OTS_CONFIRM' => Rack::Utils.escape(org.display_name))
+  colonel_headers.merge('HTTP_X_OTS_CONFIRM' => URI.encode_uri_component(org.display_name))
 end
 
 # ----------------------------------------------------------------
