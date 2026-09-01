@@ -90,6 +90,40 @@ module Onetime
     end
   end
 
+  # A DESTRUCTIVE admin operation could not write its audit event (#4333).
+  #
+  # {Onetime::ColonelAuditEvent.record} is fail-open by default — a broken
+  # audit write must never break the operation that called it. Destructive
+  # verbs (purge, delete, role change, revoke, suspend) opt out of that with
+  # `fail_closed: true`, and this is what they raise: the operator is told the
+  # action has no trail instead of being told it succeeded.
+  #
+  # NOT a Forbidden/Unauthorized subclass, deliberately. Those two families are
+  # what {Onetime::AuditedFailure.authorization_rejection?} drops on the floor
+  # (an authorization rejection must never be able to write into the
+  # count-capped operator trail); an audit-write failure is the opposite — it is
+  # exactly the event an operator needs to see, and classing it as a rejection
+  # would silently suppress the follow-up failure record.
+  #
+  # No `register_error_handler` entry, also deliberately: this is a backend
+  # infrastructure failure, not a request-shaped error, so it lands on the
+  # generic 500 path with the datastore/network errors it is caused by (Ruby
+  # sets `cause` to the underlying exception). The message carries verb/target
+  # — both PUBLIC identifiers by the model's own contract — and never the
+  # event's `detail`, which is the field that can hold operator-supplied text.
+  class AuditWriteFailure < Problem
+    attr_reader :verb, :target
+
+    def initialize(verb:, target:, message: nil)
+      @verb   = verb.to_s
+      @target = target.to_s
+
+      message ||= "Audit write failed for #{@verb} on #{@target}; " \
+                  'the action is not recorded in the operator trail'
+      super(message)
+    end
+  end
+
   # An authentication gate could not READ the policy for the request host
   # (ADR-034#restrict-to-is-an-access-control-not-a-display-preference /
   # #degradation-is-fail-closed,

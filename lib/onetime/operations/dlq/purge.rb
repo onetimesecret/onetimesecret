@@ -81,12 +81,18 @@ module Onetime
 
           # Exactly one audit event per non-empty purge. The queue name is not
           # secret; never put message contents into detail.
+          #
+          # FAIL-CLOSED (#4333): the messages are gone from the broker and were
+          # never mirrored anywhere, so the count in this event is the only
+          # surviving fact about the purge. The dry-run path above returns
+          # before this and stays unaffected.
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @queue,
             result: :success,
             detail: { purged: count },
+            fail_closed: true,
           )
 
           Result.new(status: :success, queue: @queue, count: count, purged: count)

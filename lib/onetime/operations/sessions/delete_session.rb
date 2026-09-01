@@ -70,11 +70,15 @@ module Onetime
 
           # One audit event per successful mutation. The session id is a public
           # identifier; never put session contents (tokens, etc.) into detail.
+          #
+          # FAIL-CLOSED (#4333): the blob and its sidecars are already deleted,
+          # so nothing else survives to say the session was killed or by whom.
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @session_id,
             result: :success,
+            fail_closed: true,
           )
 
           Result.new(status: :deleted, session_id: @session_id, key: key)

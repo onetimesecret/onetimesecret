@@ -92,6 +92,11 @@ module ColonelAPI
           # @deleted_secret: that hash carries internal ids for the response
           # body, and internal ids must not enter the audit trail. Never any
           # secret content — state and shortid only.
+          #
+          # FAIL-CLOSED (#4333): the secret and its receipt are destroyed, so
+          # an operator deleting someone's secret leaves no other trace. An
+          # unwritable event raises Onetime::AuditWriteFailure, which surfaces
+          # as a 500 rather than a 200 for an unrecorded destroy.
           Onetime::ColonelAuditEvent.record(
             actor: cust&.extid,
             verb: AUDIT_VERB,
@@ -101,6 +106,7 @@ module ColonelAPI
               state: @audit_state,
               receipt_shortid: deleted_receipt&.fetch(:shortid, nil),
             },
+            fail_closed: true,
           )
 
           success_data

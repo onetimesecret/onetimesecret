@@ -84,12 +84,18 @@ module Onetime
 
           # One audit event per real removal, emitted from the op (adapters MUST
           # NOT audit). Public ids only; no secret detail.
+          #
+          # FAIL-CLOSED (#4333): a close peer of the named revoke verbs — the
+          # membership row is destroyed, so an unrecorded removal leaves nothing
+          # to say the customer ever had access to this org. #record_refusal
+          # stays fail-open: a refusal mutated nothing.
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @customer.extid,
             result: :success,
             detail: { org_id: @org.extid },
+            fail_closed: true,
           )
 
           build(:success, removed_role)

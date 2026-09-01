@@ -375,6 +375,13 @@ module Onetime
           # --- EXACTLY ONE audit event, applied path only ---
           # PUBLIC ids and counts only: member emails are operator-facing plan
           # output, not audit content.
+          #
+          # FAIL-CLOSED (#4333): the org, its memberships and its invitations
+          # are gone by now, so there is nothing left to reconstruct the action
+          # from. An unwritable event raises Onetime::AuditWriteFailure — the
+          # adapter reports a failed delete instead of :success with no trail.
+          # The teardown is NOT rolled back (see the model's fail-closed note);
+          # the refusal statuses above still return normally and audit nothing.
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
@@ -389,6 +396,7 @@ module Onetime
               default_org_cleared: @cleared.size,
               forced: forced_guards,
             },
+            fail_closed: true,
           )
         end
 

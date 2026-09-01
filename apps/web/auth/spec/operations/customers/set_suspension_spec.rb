@@ -74,6 +74,9 @@ RSpec.describe Auth::Operations::Customers::SetSuspension do
         target: 'ur_test',
         result: :success,
         detail: { reason: 'abuse report', sessions_revoked: 0 },
+        # #4333: suspension revokes access and the customer row keeps only the
+        # current flag, so the write is fail-closed.
+        fail_closed: true,
       )
     end
 
@@ -188,6 +191,7 @@ RSpec.describe Auth::Operations::Customers::SetSuspension do
         target: 'ur_test',
         result: :success,
         detail: { sessions_revoked: 0 },
+        fail_closed: true,
       )
     end
 

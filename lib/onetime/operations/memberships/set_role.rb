@@ -104,12 +104,18 @@ module Onetime
 
           # One audit event per real change, emitted from the op (adapters MUST NOT
           # audit — avoids a double trail). Public ids only; no secret detail.
+          #
+          # FAIL-CLOSED (#4333): the org-scoped twin of customer.set_role — the
+          # membership stores only the role it now holds, so the previous role
+          # and the granting operator exist nowhere else. #record_refusal stays
+          # fail-open: a refusal mutated nothing.
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @customer.extid,
             result: :success,
             detail: { from: from, to: @new_role, org_id: @org.extid },
+            fail_closed: true,
           )
 
           build(:success, from, @new_role)

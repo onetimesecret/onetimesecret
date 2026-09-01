@@ -119,6 +119,10 @@ module Onetime
 
           blobs_deleted = tracked_deleted + untracked_deleted
 
+          # FAIL-CLOSED (#4333): a bulk revoke deletes the very blobs and rows
+          # that would otherwise evidence it, so this event is the whole record
+          # of an offboarding/takeover action. An unwritable event raises
+          # Onetime::AuditWriteFailure instead of returning a clean Result.
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
@@ -130,6 +134,7 @@ module Onetime
               rodauth_rows_deleted: rodauth_rows_deleted,
               scan_capped: scan_capped,
             },
+            fail_closed: true,
           )
 
           Result.new(

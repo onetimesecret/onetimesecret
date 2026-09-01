@@ -59,12 +59,18 @@ module Auth
 
           # One audit event per successful mutation. obscure_email is non-secret;
           # never put secret content / tokens / passphrases into detail.
+          #
+          # FAIL-CLOSED (#4333): the account is already gone by the time this
+          # runs, so an unwritable event cannot be recovered from anywhere else.
+          # Raising Onetime::AuditWriteFailure reports the purge as failed
+          # rather than returning a clean :success for an action with no trail.
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: extid,
             result: :success,
             detail: { email: obscure(@customer) },
+            fail_closed: true,
           )
 
           Result.new(status: :success, extid: extid, custid: custid)

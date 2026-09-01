@@ -68,12 +68,18 @@ module Auth
           @customer.save
 
           # One audit event per successful mutation, emitted from the op layer.
+          #
+          # FAIL-CLOSED (#4333): the customer row records only the role it now
+          # holds, never who granted it or what it was before, so this event is
+          # the only evidence a privilege grant happened. An unwritable event
+          # raises Onetime::AuditWriteFailure rather than reporting :success.
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @customer.extid,
             result: :success,
             detail: { from: from, to: @role },
+            fail_closed: true,
           )
 
           # debug level (not info): the audit event is the durable record, and an

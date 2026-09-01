@@ -7,6 +7,8 @@
 # operation calls. Covers:
 # - record on success and on failure (both persisted)
 # - best-effort semantics (a write error never raises to the caller)
+# - fail-closed semantics for destructive verbs (#4333): the same write error
+#   raises Onetime::AuditWriteFailure when the caller opts in
 # - newest-first read path (recent)
 # - capped sorted-set trimming (count bound enforced)
 # - actor normalization (extid/email, never internal objid)
@@ -89,6 +91,59 @@ ColonelAuditEvent.record(actor: 'a', verb: 'v', target: 't', result: :success, d
 ## a failed write leaves the set untouched
 ColonelAuditEvent.count
 #=> 0
+
+## -- Fail-closed for destructive verbs (#4333) ---------------------------
+#
+# Same simulated write failure as above; the only difference is the caller's
+# opt-in. Destructive verbs must not report success for an action with no
+# trail, so they get an exception instead of a nil.
+
+## fail_closed: true raises Onetime::AuditWriteFailure instead of returning nil
+begin
+  ColonelAuditEvent.record(
+    actor: 'a', verb: 'customer.purge', target: 'ur9ytargets', result: :success,
+    detail: Boom.new, fail_closed: true,
+  )
+  :no_raise
+rescue Onetime::AuditWriteFailure => ex
+  [ex.verb, ex.target]
+end
+#=> ["customer.purge", "ur9ytargets"]
+
+## the raised error names the verb and target, and never the detail contents
+begin
+  ColonelAuditEvent.record(
+    actor: 'a', verb: 'organization.delete', target: 'on_orgext1', result: :success,
+    detail: Boom.new, fail_closed: true,
+  )
+rescue Onetime::AuditWriteFailure => ex
+  [ex.message.include?('organization.delete'), ex.message.include?('on_orgext1'), ex.message.include?('boom')]
+end
+#=> [true, true, false]
+
+## it is NOT an authorization rejection: AuditedFailure must not drop it
+require 'onetime/audited_failure'
+err = Onetime::AuditWriteFailure.new(verb: 'customer.purge', target: 't')
+[err.is_a?(Onetime::Forbidden), err.is_a?(Onetime::Unauthorized),
+ Onetime::AuditedFailure.authorization_rejection?(err)]
+#=> [false, false, false]
+
+## a fail-closed failure still leaves the set untouched (nothing half-written)
+ColonelAuditEvent.count
+#=> 0
+
+## fail_closed: true on a HEALTHY write behaves exactly like the default
+@ok = ColonelAuditEvent.record(
+  actor: 'a', verb: 'customer.purge', target: 't', result: :success, fail_closed: true,
+)
+[@ok['verb'], ColonelAuditEvent.count]
+#=> ["customer.purge", 1]
+
+## record_security has NO fail_closed mode: unauthenticated writers get no
+## abort primitive, so the same failure still returns nil
+ColonelAuditEvent.events.clear
+ColonelAuditEvent.record_security(actor: 'anonymous', verb: 'v', target: 't', result: :failure, detail: Boom.new)
+#=> nil
 
 ## normalize_actor prefers a Customer-like object's extid over its email/objid
 ColonelAuditEvent.events.clear

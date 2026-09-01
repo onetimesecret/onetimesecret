@@ -5,8 +5,11 @@
 # Unit tests for Auth::Operations::Customers::Purge.
 #
 # Covers: it reuses DeleteCustomer, returns :success + audits once on a
-# successful destroy (target = pre-destroy extid), and returns :not_found
-# without auditing when nothing was deleted.
+# successful destroy (target = pre-destroy extid), returns :not_found
+# without auditing when nothing was deleted, and — since #4333 — writes that
+# audit event FAIL-CLOSED: an unwritable event surfaces as a raised
+# Onetime::AuditWriteFailure instead of a clean :success for a purge with no
+# trail.
 #
 # Run: pnpm run test:rspec apps/web/auth/spec/operations/customers/purge_spec.rb
 
@@ -39,6 +42,9 @@ RSpec.describe Auth::Operations::Customers::Purge do
       target: 'ur_p',
       result: :success,
       detail: { email: 'p***@e***.com' },
+      # #4333: the account is destroyed before this line runs, so an
+      # unwritable event cannot be recovered from anywhere else.
+      fail_closed: true,
     )
   end
 
@@ -49,5 +55,36 @@ RSpec.describe Auth::Operations::Customers::Purge do
 
     expect(result.status).to eq(:not_found)
     expect(Onetime::ColonelAuditEvent).not_to have_received(:record)
+  end
+
+  # The point of fail-closed (#4333): the op must NOT convert an unrecorded
+  # purge into a successful-looking Result. Message expectation rather than a
+  # store read — the model swallows its own errors on the fail-open path, so a
+  # store read here could pass or fail for unrelated reasons.
+  it 'propagates Onetime::AuditWriteFailure instead of returning :success' do
+    allow(deleter).to receive(:call).and_return(true)
+    allow(Onetime::ColonelAuditEvent).to receive(:record)
+      .and_raise(Onetime::AuditWriteFailure.new(verb: 'customer.purge', target: 'ur_p'))
+
+    expect { described_class.new(customer: customer, actor: 'ur_col').call }
+      .to raise_error(Onetime::AuditWriteFailure, /customer\.purge/)
+  end
+
+  # AuditedFailure wraps #call, so the raise above is itself audited as a
+  # `result: :failure` — best-effort, on the fail-open path, and it must not
+  # replace the original exception.
+  it 'still re-raises the original error after the failure wrapper runs' do
+    allow(deleter).to receive(:call).and_return(true)
+    write_failure = Onetime::AuditWriteFailure.new(verb: 'customer.purge', target: 'ur_p')
+    allow(Onetime::ColonelAuditEvent).to receive(:record).and_raise(write_failure)
+
+    raised = nil
+    begin
+      described_class.new(customer: customer, actor: 'ur_col').call
+    rescue Onetime::AuditWriteFailure => ex
+      raised = ex
+    end
+
+    expect(raised).to be(write_failure)
   end
 end

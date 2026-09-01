@@ -2,6 +2,12 @@
 #
 # frozen_string_literal: true
 
+# Onetime::AuditWriteFailure is raised by the fail-closed branch of {.record}.
+# Required explicitly because this file is loaded directly by ops and CLI
+# commands that run outside the app autoloaders (same reason those files
+# require this one).
+require_relative '../errors'
+
 module Onetime
   # ColonelAuditEvent — the single write path every mutating admin operation calls.
   #
@@ -39,6 +45,29 @@ module Onetime
   # `actor` is a customer's public identity (extid or email), NEVER an internal
   # objid — internal ids must not leak into the audit trail. A Customer-like object
   # may be passed and its extid/email is extracted automatically.
+  #
+  # ## Write-failure posture: fail-open by default, fail-closed for destruction
+  #
+  # {.record} swallows its own errors and returns nil, because a broken audit
+  # write must not break the operation that called it. That default is wrong for
+  # exactly one class of verb: a purge, delete, role change, revoke or
+  # suspension that completes with NO trail is an untraceable destructive
+  # action. Those call sites pass `fail_closed: true` and get
+  # {Onetime::AuditWriteFailure} instead of a silent nil (#4333).
+  #
+  # Be precise about what that buys, because the ordering does not change:
+  # nearly every call site records AFTER its mutation, so fail-closed does NOT
+  # roll anything back and does not prevent the destruction. What it does is
+  # refuse to report success: the operator gets a hard failure naming the verb
+  # and target, which is the signal that this action needs to be reconstructed
+  # from the sink (see below) or from the acting operator, rather than a green
+  # response and an empty trail. Any op that wants prevention has to record
+  # BEFORE it mutates; none does today.
+  #
+  # {.record_security} is fail-open ALWAYS and takes no such keyword. Its
+  # writers are reachable by unauthenticated callers, and a fail-closed
+  # security write would hand those callers an abort primitive over the code
+  # path that logged them.
   #
   # @example Record a successful role change from within an op's #call
   #   ColonelAuditEvent.record(
@@ -165,9 +194,10 @@ module Onetime
     class << self
       # Record a single audit event. The one write path for mutating admin ops.
       #
-      # Best-effort by design: a failed audit write must never break the operation
-      # that called it, so any error is logged and swallowed (returns nil). See the
-      # fail-closed HOOK below — destructive verbs may later opt into re-raising.
+      # Best-effort by DEFAULT: a failed audit write must never break the
+      # operation that called it, so any error is logged and swallowed (returns
+      # nil). Destructive verbs opt out with `fail_closed: true` — see the
+      # fail-closed contract in the class docs and the rescue below.
       #
       # @param actor [String, #extid, #email] the acting colonel's PUBLIC identity
       #   (extid or email). Never pass an internal objid. A Customer-like object is
@@ -177,21 +207,54 @@ module Onetime
       # @param result [String, Symbol] outcome, e.g. :success / :failure.
       # @param detail [Hash, String, nil] optional minimal context. Redacted before
       #   storage; never include secret content, tokens, or passphrases.
-      # @return [Hash, nil] the stored event (string keys), or nil if the write failed.
-      def record(actor:, verb:, target:, result:, detail: nil)
+      # @param fail_closed [Boolean] when true, a write failure raises
+      #   {Onetime::AuditWriteFailure} instead of returning nil. For DESTRUCTIVE
+      #   verbs only (purge / delete / role / revoke / suspend): it surfaces the
+      #   missing trail to the operator, it does NOT roll the mutation back.
+      # @return [Hash, nil] the stored event (string keys), or nil if the write
+      #   failed and `fail_closed` is false.
+      # @raise [Onetime::AuditWriteFailure] when the write fails and
+      #   `fail_closed` is true.
+      def record(actor:, verb:, target:, result:, detail: nil, fail_closed: false)
         event = build_event(actor: actor, verb: verb, target: target, result: result, detail: detail)
 
         events.add(event, event['created'])
         trim!
         event
       rescue StandardError => ex
-        # Fail-open: never let audit-write failure break the caller.
-        #
-        # HOOK (epic D4): destructive verbs (purge, delete, impersonate) may later
-        # choose fail-closed here — re-raise / abort the op when its audit event
-        # cannot be written, so a destructive action is never taken silently. Today
-        # every verb is fail-open.
+        # The log line is written on BOTH paths, before the branch: an operator
+        # reading logs sees the same record-failed line whether the caller
+        # aborted or carried on, and the raise below carries the original
+        # exception as its `cause`.
         log_record_failure(ex, verb, target, result)
+
+        # FAIL-CLOSED (#4333) — the contract the epic-D4 HOOK deferred.
+        #
+        # Which verbs opt in: the destructive family named by the issue —
+        # customer.purge, organization.delete, customer.set_role,
+        # customer.suspend/unsuspend, session.delete / .revoke / .revoke_all,
+        # secret.delete, queue.dlq.purge — plus the direct peers of those verbs
+        # that destroy or revoke by the same standard (domain.remove,
+        # membership.remove, membership.set_role). What they share is that a
+        # completed action leaves no other durable evidence: reconstructing it
+        # afterwards means asking the operator what they did.
+        #
+        # Which verbs deliberately do NOT: everything additive or corrective
+        # (create, add, repair, reconcile, verify, banner, plan/entitlement
+        # changes, email tooling). Their effects are inspectable in the records
+        # they leave behind, so trading a working operation for a hard failure
+        # buys nothing.
+        #
+        # And REFUSAL records stay fail-open even inside a fail-closed op
+        # (Memberships::Remove#record_refusal, Memberships::SetRole): a refusal
+        # mutated nothing, so aborting it would turn a clean "no" into a 500.
+        #
+        # Honest scope: nearly every caller records AFTER its mutation, so this
+        # aborts the RESPONSE, not the action. It converts "destroyed, reported
+        # success, no trail" into "destroyed, reported failure, named verb and
+        # target" — a signal an operator can act on.
+        raise AuditWriteFailure.new(verb: verb, target: target) if fail_closed
+
         nil
       end
 
@@ -207,7 +270,12 @@ module Onetime
       # rate for signal quality (a per-request event is noise), but that is no
       # longer load-bearing for the integrity of `events`.
       #
-      # Same best-effort contract as {.record}: errors are logged and swallowed.
+      # ALWAYS best-effort — and unlike {.record} there is no `fail_closed`
+      # keyword to opt out of it. Every writer here is reachable by an
+      # unauthenticated caller, so an abort-on-write-failure mode would be an
+      # abort primitive over whatever code path emitted the telemetry: trip the
+      # audit write, take the surrounding request down with it. Errors are
+      # logged and swallowed, unconditionally.
       #
       # @return [Hash, nil] the stored event (string keys), or nil if it failed.
       def record_security(actor:, verb:, target:, result:, detail: nil)

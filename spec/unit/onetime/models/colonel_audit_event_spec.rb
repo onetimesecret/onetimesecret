@@ -3,6 +3,10 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+# Onetime::AuditedFailure is not loaded by the app boot; the fail-closed cases
+# below assert its authorization_rejection? predicate does NOT swallow the new
+# write-failure error.
+require 'onetime/audited_failure'
 
 # Unit tests for Onetime::ColonelAuditEvent — the single write path every mutating
 # admin operation calls (epic #3653 / ticket #21).
@@ -14,6 +18,17 @@ require 'spec_helper'
 # failure, the write path is best-effort, reads are newest-first, and the capped
 # sorted set is trimmed to its bound.
 RSpec.describe Onetime::ColonelAuditEvent do
+  # A detail value whose #to_s raises, forcing an exception inside `record`
+  # before anything is written. The two write-failure postures (fail-open by
+  # default, fail-closed on opt-in) are both exercised through it.
+  let(:boom_detail) do
+    Class.new do
+      def to_s
+        raise 'boom serializing detail'
+      end
+    end.new
+  end
+
   before do
     described_class.events.clear
     described_class.security_events.clear
@@ -66,6 +81,65 @@ RSpec.describe Onetime::ColonelAuditEvent do
         .not_to raise_error
       expect(result).to be_nil
       expect(described_class.count).to eq(0)
+    end
+
+    # #4333 — the fail-closed half. Same simulated write failure as the case
+    # above; the only difference is the destructive caller's opt-in.
+    it 'raises Onetime::AuditWriteFailure when fail_closed and the write fails' do
+      expect do
+        described_class.record(
+          actor: 'a', verb: 'customer.purge', target: 'ur_victim', result: :success,
+          detail: boom_detail, fail_closed: true,
+        )
+      end.to raise_error(Onetime::AuditWriteFailure) do |error|
+        expect(error.verb).to eq('customer.purge')
+        expect(error.target).to eq('ur_victim')
+        # verb + target are PUBLIC identifiers; `detail` is the field that can
+        # carry operator-supplied text and must never reach the message.
+        expect(error.message).to include('customer.purge', 'ur_victim')
+        expect(error.message).not_to include('boom')
+      end
+
+      expect(described_class.count).to eq(0)
+    end
+
+    # AuditedFailure.authorization_rejection? drops the Forbidden/Unauthorized
+    # families outright. If the write-failure error landed in either, the
+    # follow-up `result: :failure` record would be silently suppressed.
+    it 'raises an error outside the Forbidden/Unauthorized families' do
+      error = Onetime::AuditWriteFailure.new(verb: 'customer.purge', target: 't')
+
+      expect(error).not_to be_a(Onetime::Forbidden)
+      expect(error).not_to be_a(Onetime::Unauthorized)
+      expect(Onetime::AuditedFailure.authorization_rejection?(error)).to be(false)
+    end
+
+    it 'keeps the original exception as the cause of the fail-closed error' do
+      expect do
+        described_class.record(
+          actor: 'a', verb: 'customer.purge', target: 't', result: :success,
+          detail: boom_detail, fail_closed: true,
+        )
+      end.to raise_error(Onetime::AuditWriteFailure) { |error| expect(error.cause).to be_a(RuntimeError) }
+    end
+
+    it 'behaves exactly like the default when fail_closed and the write succeeds' do
+      event = described_class.record(
+        actor: 'a', verb: 'customer.purge', target: 't', result: :success, fail_closed: true,
+      )
+
+      expect(event).to include('verb' => 'customer.purge')
+      expect(described_class.count).to eq(1)
+    end
+
+    it 'stays fail-open by default even for a destructive verb' do
+      result = nil
+      expect do
+        result = described_class.record(
+          actor: 'a', verb: 'customer.purge', target: 't', result: :success, detail: boom_detail,
+        )
+      end.not_to raise_error
+      expect(result).to be_nil
     end
 
     it 'stores the actor extid, never an internal objid' do

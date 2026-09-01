@@ -39,6 +39,10 @@ RSpec.describe Auth::Operations::Customers::SetRole do
       target: 'ur_test',
       result: :success,
       detail: { from: 'customer', to: 'colonel' },
+      # #4333: a privilege grant leaves no other durable evidence, so the
+      # write is fail-closed — an unwritable event raises instead of
+      # reporting :success.
+      fail_closed: true,
     )
   end
 

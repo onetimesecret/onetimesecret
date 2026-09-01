@@ -113,12 +113,15 @@ module Onetime
           if session_user_id && customer && session_user_id != customer.extid
             detail[:session_user_id] = session_user_id
           end
+          # FAIL-CLOSED (#4333): the revoked session is deleted, not marked, so
+          # the trail is the only evidence the operator did this.
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: @custid,
             result: :success,
             detail: detail,
+            fail_closed: true,
           )
 
           Result.new(session_id: @session_id, revoked: true, blob_deleted: blob_deleted)

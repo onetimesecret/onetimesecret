@@ -138,12 +138,18 @@ module Onetime
           end
 
           # --- EXACTLY ONE audit event, applied path only ---
+          #
+          # FAIL-CLOSED (#4333): a close peer of the named destructive verbs —
+          # destroy! has committed and the vhost is gone, so an unrecorded
+          # removal is indistinguishable from a domain that was never added.
+          # The dry-run path returns above and audits nothing.
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
             target: plan.extid,
             result: :success,
             detail: { org_id: org_id.to_s, reasserted: reasserts },
+            fail_closed: true,
           )
 
           plan.with(status: :removed)

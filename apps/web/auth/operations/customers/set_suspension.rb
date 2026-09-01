@@ -120,12 +120,18 @@ module Auth
           sessions_revoked = @suspended ? revoke_sessions : 0
 
           # One audit event per successful mutation, emitted from the op layer.
+          #
+          # FAIL-CLOSED (#4333): suspension revokes the customer's sessions and
+          # locks them out of their account; the customer row keeps only the
+          # current flag, so an unrecorded suspend/unsuspend is an access change
+          # nobody can attribute. The :no_change path returns before this.
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: @suspended ? AUDIT_VERB_SUSPEND : AUDIT_VERB_UNSUSPEND,
             target: @customer.extid,
             result: :success,
             detail: audit_detail(sessions_revoked),
+            fail_closed: true,
           )
 
           # debug level (not info): the audit event is the durable record (see

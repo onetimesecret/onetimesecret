@@ -244,6 +244,30 @@ operator actions in the admin console and is rendered only by the colonel app
 "what did *our operators* do," not "what happened in a customer's org."
 Mentioned here only to prevent the name collision.
 
+### Write-failure posture (#4333)
+
+`ColonelAuditEvent.record` is best-effort by default: a failed audit write is
+logged and swallowed, because it must not break the operation that called it.
+DESTRUCTIVE verbs opt out with `fail_closed: true` and raise
+`Onetime::AuditWriteFailure` instead — customer purge, organization delete,
+customer/membership role change, session delete/revoke/revoke-all, account
+suspend/unsuspend, secret delete, DLQ purge, custom-domain remove, membership
+remove. What they share: the action destroys or revokes the very records that
+would otherwise evidence it.
+
+Be precise about the guarantee. Almost every call site records *after* its
+mutation, so failing closed does **not** roll anything back and does not
+prevent the destruction — it refuses to report success. The operator gets a
+hard failure naming the verb and target rather than a green response over an
+empty trail. Prevention would require recording before mutating; nothing does
+today.
+
+`record_security` is fail-open always and has no opt-out keyword: its writers
+are reachable by unauthenticated callers, and an abort-on-write-failure mode
+there would be an abort primitive over whatever path emitted the telemetry.
+Refusal records inside otherwise fail-closed ops (`Memberships::Remove`,
+`Memberships::SetRole`) also stay fail-open — a refusal mutated nothing.
+
 ## Cross-cutting rules
 
 - **Never fabricate an actor** (ADR-023): where the actor or its relation to

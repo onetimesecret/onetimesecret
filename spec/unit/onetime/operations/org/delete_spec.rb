@@ -190,6 +190,10 @@ RSpec.describe Onetime::Operations::Org::Delete do
             default_org_cleared: 1,
             forced: [],
           },
+          # #4333: the teardown is irreversible and the org is gone, so the
+          # write is fail-closed — an unwritable event raises instead of
+          # returning :success with no trail.
+          fail_closed: true,
         )
       end
 

@@ -69,6 +69,9 @@ RSpec.describe Onetime::Operations::Memberships::SetRole do
         target: 'ur_member',
         result: :success,
         detail: { from: 'member', to: 'admin', org_id: 'on_org_ext' },
+        # #4333: a role change is only evidenced by the trail, so the write is
+        # fail-closed — an unwritable event raises instead of reporting success.
+        fail_closed: true,
       )
     end
 
