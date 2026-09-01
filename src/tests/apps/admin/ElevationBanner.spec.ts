@@ -152,7 +152,7 @@ describe('ElevationBanner', () => {
         await flushPromises();
 
         expect(fetchMock).toHaveBeenCalledWith(
-          '/auth/logout',
+          '/logout',
           expect.objectContaining({ method: 'GET' })
         );
         expect(assignMock).toHaveBeenCalledWith('/signin?redirect=/colonel');

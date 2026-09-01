@@ -54,16 +54,20 @@ export const ADMIN_SIGN_IN_PATH = '/signin?redirect=/colonel';
  * (`apps/web/core/controllers/authentication.rb#handle_already_authenticated`),
  * so the admin idle/absolute bound stays tripped and every `/api/colonel` call
  * keeps 401ing. The session must be CLEARED first; only then does the sign-in
- * actually re-authenticate and re-stamp. Full mode re-runs login regardless, but
- * routing both modes through logout is correct and keeps ONE recovery path.
+ * actually re-authenticate and re-stamp (in full mode too: if the session were
+ * left intact the router's isAuthenticated guard would bounce /signin straight
+ * back to /colonel without ever reaching a login form).
  *
- * Best-effort logout (`GET /auth/logout` clears the session and renews the sid
- * server-side), then a HARD navigation to sign-in — deliberately not the SPA
- * router — so the sign-in page loads under the freshly cleared cookie.
+ * Best-effort `GET /logout` — the CORE app's logout, which does session.clear +
+ * sid renew and is served in BOTH modes (`apps/web/core/routes.txt`). NOT
+ * `/auth/logout`: in full mode the Rodauth app owns the `/auth` prefix and its
+ * logout only destroys the session on POST, so a GET there clears nothing. Then
+ * a HARD navigation to sign-in — deliberately not the SPA router — so the
+ * sign-in page loads under the freshly cleared cookie.
  */
 export async function recoverAdminSession(): Promise<void> {
   try {
-    await fetch('/auth/logout', {
+    await fetch('/logout', {
       method: 'GET',
       credentials: 'same-origin',
       headers: { Accept: 'application/json' },
