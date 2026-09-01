@@ -69,9 +69,18 @@ module Auth
   # excluded up front — a split deployment's second canonical host must not
   # read as a custom domain, and a canonical host never has a tenant record
   # anyway. Both tiers are canonical-filtered, and nil keeps the caller's own
-  # derivation, which for the callers below is the CANONICAL host — never the
+  # derivation, which for the callers below is a CANONICAL host — never the
   # request authority. DetectHost rejects `localhost`/`127.0.0.1` outright, so
   # a dev flow never reaches here with a host to swap in.
+  #
+  # A canonical request still keeps ITS OWN canonical host, though:
+  # `canonical_request_host` accepts a trusted candidate exactly when
+  # `DomainStrategy.canonical_host?` proves it is a member of the canonical
+  # set, so a split deployment's second canonical host (eu.example.com in
+  # link_domains) builds its links on itself rather than being rewritten to
+  # site.host. That keeps the allowlist property intact — every host an auth
+  # URL can carry is either a TXT-verified tenant or a canonical-set member,
+  # and the value never comes from `request.host` / a forwarded header.
   #
   # Consumers: Auth::Config::Features::OmniAuth.full_host_for (SSO
   # redirect_uri / callback_url) and Auth::Config::Overrides::PublicBaseUrl
@@ -129,6 +138,53 @@ module Auth
       host = resolve(env)
       return nil if host.nil?
 
+      origin_for(env, host)
+    end
+
+    # The request's own host when it is a MEMBER OF THE CANONICAL SET — the
+    # tier between a verified tenant and the configured site.host fallback.
+    #
+    # Read from the same trusted candidates as #resolve (display_domain /
+    # DetectHost's result — never Rack's forwarded-honoring `request.host`),
+    # and accepted only on `DomainStrategy.canonical_host?`'s say-so, so this
+    # cannot introduce a host the deployment does not already serve as its
+    # own. It exists for split deployments: a request arriving on a secondary
+    # canonical host (link_domains, features.domains.default) keeps its links
+    # on that host instead of being rewritten to site.host.
+    #
+    # @param env [Hash] Rack environment
+    # @return [String, nil] the request's canonical host, or nil when no
+    #   trusted candidate is in the canonical set
+    def self.canonical_request_host(env)
+      candidates = [env['onetime.display_domain'], env[Rack::DetectHost.result_field_name]]
+
+      candidates.map(&:to_s).find do |host|
+        !host.empty? && Onetime::Middleware::DomainStrategy.canonical_host?(host)
+      end
+    end
+
+    # Absolute origin for the request's own canonical host (see
+    # #canonical_request_host). Scheme and port come from the request, the
+    # same way #base_url builds a tenant origin.
+    #
+    # @param env [Hash] Rack environment
+    # @return [String, nil] origin, or nil when #canonical_request_host declines
+    def self.canonical_request_base_url(env)
+      host = canonical_request_host(env)
+      return nil if host.nil?
+
+      origin_for(env, host)
+    end
+
+    # `scheme://host[:port]` for an ALREADY-ALLOWLISTED host. Reproduces
+    # Rack::Request#base_url with the authority's host swapped: scheme and
+    # port still come from the request (both honor the proxy's X-Forwarded-*
+    # the same way they did before), so only the hostname changes.
+    #
+    # @param env [Hash] Rack environment
+    # @param host [String] an allowlisted host (verified tenant or canonical)
+    # @return [String] origin
+    def self.origin_for(env, host)
       request      = Rack::Request.new(env)
       port         = request.port
       scheme       = request.scheme
@@ -137,6 +193,7 @@ module Auth
 
       "#{scheme}://#{authority}"
     end
+    private_class_method :origin_for
 
     # The configured CANONICAL host — the same value the web app builds its
     # baseuri from (Core::Views::InitializeViewVars reads site.host). This is

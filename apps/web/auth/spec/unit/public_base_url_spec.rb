@@ -126,6 +126,26 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
       end
     end
 
+    describe '.canonical_request_host' do
+      it 'returns a trusted candidate that is a member of the canonical set' do
+        env = env_for(host: 'onetimesecret.com', display_domain: 'onetimesecret.com')
+        expect(described_class.canonical_request_host(env)).to eq('onetimesecret.com')
+      end
+
+      it 'declines a non-canonical candidate (no widening past the allowlist)' do
+        env = env_for(host: 'attacker.evil.example', display_domain: 'attacker.evil.example')
+        expect(described_class.canonical_request_host(env)).to be_nil
+      end
+
+      # The raw authority is never a source: without a trusted candidate
+      # (display_domain / DetectHost result) there is nothing to accept, even
+      # when the Host header itself names a canonical host.
+      it 'declines when the middleware left no trusted candidate' do
+        expect(described_class.canonical_request_host(env_for(host: 'onetimesecret.com')))
+          .to be_nil
+      end
+    end
+
     describe '.base_url' do
       it 'builds from the public host, never the rewritten authority' do
         env = env_for(host: 'nz.onetime.co', display_domain: 'secret.asi.nz')
@@ -188,6 +208,16 @@ RSpec.describe Auth::Config::Overrides::PublicBaseUrl do
     it 'builds on the canonical host, not request.host, on a canonical request' do
       expect(probe(host: 'onetimesecret.com', display_domain: 'onetimesecret.com'))
         .to eq(['https://onetimesecret.com', 'onetimesecret.com'])
+    end
+
+    # A split deployment: the request arrives on a SECONDARY canonical host
+    # (link_domains / features.domains.default). Its links build on that host
+    # — not rewritten to site.host — while the value still comes from the
+    # trusted candidate, never request.host.
+    it 'keeps a secondary canonical host on itself instead of rewriting to site.host' do
+      canonical_hosts << 'eu.onetimesecret.com'
+      expect(probe(host: 'eu.onetimesecret.com', display_domain: 'eu.onetimesecret.com'))
+        .to eq(['https://eu.onetimesecret.com', 'eu.onetimesecret.com'])
     end
 
     it 'builds on the canonical host, not request.host, when the middleware did not run' do

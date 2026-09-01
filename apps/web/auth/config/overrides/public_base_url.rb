@@ -34,9 +34,12 @@ module Auth::Config::Overrides
   # ungated by proxy trust. So on an ordinary canonical-host request, where
   # Auth::PublicHost.base_url declines, `super()` would build the link on
   # whatever host the client forged. That is reset-link poisoning → account
-  # takeover. Both overrides below therefore fall back to the request-
-  # independent CANONICAL host (Auth::PublicHost.canonical_base_url /
-  # .canonical_host), so no auth-URL host is ever derived from request.host.
+  # takeover. Both overrides below therefore never derive a host from
+  # request.host: the fallback tiers are the request's OWN canonical host
+  # (Auth::PublicHost.canonical_request_host — a trusted candidate accepted
+  # only when it is a member of the canonical set, so a split deployment's
+  # secondary canonical host keeps its links on itself), then the
+  # request-independent configured host (canonical_base_url / canonical_host).
   # (A Rack middleware, Onetime::Middleware::StripForwardedHost, deletes the
   # forwarded-host headers at the stack edge too — defense in depth.)
   #
@@ -60,6 +63,7 @@ module Auth::Config::Overrides
       # define_method body, where bare zsuper is a RuntimeError.
       auth.base_url do
         Auth::PublicHost.base_url(request.env) ||
+          Auth::PublicHost.canonical_request_base_url(request.env) ||
           Auth::PublicHost.canonical_base_url ||
           super()
       end
@@ -68,13 +72,16 @@ module Auth::Config::Overrides
       auth.auth_class_eval do
         # The host to SHOW in transactional email (branding, "you're signing
         # in to X"). Must be the same host the link in that email points at,
-        # so it reads through the same resolver; falls back to the CANONICAL
-        # host — never the request authority — when there is no resolved
-        # tenant display domain (finding G-01).
+        # so it reads through the same resolver; falls back to a CANONICAL
+        # host — the request's own canonical host first, then the configured
+        # one, never the request authority — when there is no resolved tenant
+        # display domain (finding G-01).
         #
         # @return [String]
         def public_display_domain
-          Auth::PublicHost.resolve(request.env) || Auth::PublicHost.canonical_host
+          Auth::PublicHost.resolve(request.env) ||
+            Auth::PublicHost.canonical_request_host(request.env) ||
+            Auth::PublicHost.canonical_host
         end
       end
       # rubocop:enable Lint/NestedMethodDefinition
