@@ -18,6 +18,7 @@ require_relative '../middleware/normalize_content_type'
 require_relative '../middleware/retry_after_header'
 require_relative '../middleware/validate_multipart'
 require_relative '../middleware/entitlement_preview_context'
+require_relative '../middleware/impersonation_context'
 require_relative '../middleware/session_skip'
 require 'otto'
 
@@ -614,6 +615,14 @@ module Onetime
           # preview keys in a Fiber-local consulted by the entitlement/limit
           # chokepoints (ADR-020)
           builder.use Onetime::Middleware::EntitlementPreviewContext
+
+          # Impersonation context + read-only guard (after session): publishes
+          # the colonel-impersonation marker as a Fiber-local for the bootstrap
+          # serializer, expires it when past its own TTL, and enforces the
+          # read-only positive list for the duration. Mounted next to the
+          # entitlement-preview context because both are session-derived
+          # request-scoped overlays with the same ensure-clear discipline.
+          builder.use Onetime::Middleware::ImpersonationContext
 
           # Locale detection middleware (after session, before domain strategy)
           # Sets env['otto.locale'] based on URL param, session, Accept-Language header.
