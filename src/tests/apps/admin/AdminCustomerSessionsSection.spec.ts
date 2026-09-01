@@ -39,6 +39,15 @@ const i18n = createTestI18n();
 
 const USER_ID = 'ur_abc123';
 
+/**
+ * #4326 made `confirmToken` a REQUIRED prop (the account email, extid fallback):
+ * the detail view is the only surface holding the record, so the section is
+ * handed the token rather than deriving one. Every mount here needs it or
+ * `type-check:tests` fails — Vue only warns at runtime, so vitest alone does
+ * not catch a missing required prop.
+ */
+const CONFIRM_TOKEN = 'colonel-target@example.com';
+
 /** Pass-through i18n (ADR-014): keys render verbatim, so assert on the key. */
 const COUNTRY_HEADER = 'web.admin.customers.detail.sessions.columns.country';
 const UNKNOWN = 'web.admin.customers.detail.sessions.unknown';
@@ -87,7 +96,7 @@ function sessionsPayload(
 
 const mountSection = (extraProps: Record<string, unknown> = {}) =>
   mount(AdminCustomerSessionsSection, {
-    props: { userId: USER_ID, ...extraProps },
+    props: { userId: USER_ID, confirmToken: CONFIRM_TOKEN, ...extraProps },
     global: {
       plugins: [i18n],
       // The confirm dialogs (HeadlessUI) have their own spec; the badge/revoke
