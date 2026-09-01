@@ -197,5 +197,46 @@ RSpec.describe Auth::Operations::Customers::SetVerification do
 
       expect(unverify(colonel, enforce_interlocks: false)).to eq(:success)
     end
+
+    # POST-WRITE re-validation (#4328), mirroring SetRole. The pre-check is not
+    # atomic: two concurrent unverifies of the two distinct last colonels can
+    # both pass it and leave zero verified colonels. Simulate the roster dropping
+    # to zero BETWEEN the pre-check and the post-check (find_all_by_role returns
+    # two colonels first, none second), and assert the unverify is rolled back
+    # (re-verified) and a :last_colonel failure is returned and audited.
+    describe 'the check-then-act race (post-write re-validation)' do
+      before do
+        allow(Onetime::Customer).to receive(:find_all_by_role).with('colonel')
+          .and_return([colonel, second_colonel], [])
+      end
+
+      it 'rolls the unverify back (re-verifies) and refuses with :last_colonel' do
+        expect(unverify(colonel)).to eq(:last_colonel)
+
+        # inner op called twice: the unverify write, then the re-verify rollback
+        expect(Auth::Operations::SetCustomerVerification).to have_received(:new).with(
+          customer: colonel, verified: false, verified_by: nil, db: nil
+        )
+        expect(Auth::Operations::SetCustomerVerification).to have_received(:new).with(
+          customer: colonel, verified: true, verified_by: nil, db: nil
+        )
+      end
+
+      it 'records the :last_colonel failure and no success event' do
+        unverify(colonel)
+
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+          hash_including(
+            verb: 'customer.set_verification',
+            target: 'ur_col_t',
+            result: :failure,
+            detail: hash_including(reason: 'last_colonel'),
+          ),
+        )
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record).with(
+          hash_including(result: :success),
+        )
+      end
+    end
   end
 end

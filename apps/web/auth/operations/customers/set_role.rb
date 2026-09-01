@@ -103,6 +103,21 @@ module Auth
           @customer.role = @role
           @customer.save
 
+          # POST-WRITE re-validation (#4328). last_colonel? above is a
+          # check-then-act: it is NOT atomic, so two concurrent demotions of the
+          # two distinct last colonels can each pass the pre-check (each still
+          # sees the other) and both write, leaving the install with zero
+          # colonels — recoverable only from the CLI, the exact outcome #4328
+          # exists to prevent. Re-run the roster check AFTER the write; if this
+          # demotion emptied it, roll the role back and refuse through the SAME
+          # build exit, so the :last_colonel failure still audits. Over-preserving
+          # on a concurrent double-rollback is the safe direction.
+          if demotion_left_no_colonel?
+            @customer.role = @from
+            @customer.save
+            return build(:last_colonel)
+          end
+
           # One audit event per successful mutation, emitted from the op layer.
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
@@ -129,6 +144,18 @@ module Auth
           return false if @role == 'colonel'
 
           @actor_objid == @customer.objid
+        end
+
+        # Did the just-applied write demote a colonel and leave the roster
+        # empty? (#4328 post-write re-validation.) Only a demotion FROM colonel
+        # can empty the roster — a promotion or an unrelated role change must
+        # never be rolled back merely because the roster happens to be empty for
+        # another reason, so both edges are guarded before the roster read.
+        def demotion_left_no_colonel?
+          return false unless @from == 'colonel'
+          return false if @role == 'colonel'
+
+          active_colonels.empty?
         end
 
         # Single exit point for every status, so the refusal audit cannot be

@@ -120,6 +120,24 @@ module Auth
             db: @db,
           ).call
 
+          # POST-WRITE re-validation (#4328), mirroring SetRole. unverify_refusal
+          # above is a check-then-act and is NOT atomic: two concurrent unverifies
+          # of the two distinct last colonels can each pass the pre-check and both
+          # write, leaving the install with zero verified colonels — recoverable
+          # only from the CLI. Re-run the roster check AFTER the write; if this
+          # unverify emptied it, roll the unverify back (re-verify) and refuse
+          # through the SAME build exit, so the :last_colonel failure still audits.
+          # Over-preserving on a concurrent double-rollback is the safe direction.
+          if result == :success && unverify_left_no_colonel?
+            Auth::Operations::SetCustomerVerification.new(
+              customer: @customer,
+              verified: true,
+              verified_by: @verified_by,
+              db: @db,
+            ).call
+            return build(:last_colonel)
+          end
+
           # Audit only an actual state change; a :no_change mutated nothing.
           if result == :success
             Onetime::ColonelAuditEvent.record(
@@ -145,6 +163,19 @@ module Auth
           return :last_colonel if last_colonel_by_verification?(@customer)
 
           nil
+        end
+
+        # Did the just-applied UNVERIFY remove the last verified colonel? (#4328
+        # post-write re-validation.) Only meaningful for an interlocked unverify
+        # of a colonel — the verify arm and provenance resets can never cause a
+        # lockout, and unverifying a non-colonel cannot empty the roster, so all
+        # three are guarded before the roster read (mirrors the pre-check).
+        def unverify_left_no_colonel?
+          return false if @verified
+          return false unless @enforce_interlocks
+          return false unless @customer.role.to_s == 'colonel'
+
+          active_colonels.empty?
         end
 
         # Single exit point, so the refusal audit cannot be forgotten at an

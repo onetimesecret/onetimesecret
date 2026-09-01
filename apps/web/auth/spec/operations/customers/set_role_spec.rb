@@ -183,5 +183,44 @@ RSpec.describe Auth::Operations::Customers::SetRole do
 
       expect(Onetime::Customer).not_to have_received(:find_all_by_role)
     end
+
+    # POST-WRITE re-validation (#4328). The pre-check is not atomic: two
+    # concurrent demotions of the two distinct last colonels can both pass it
+    # and leave zero colonels. Simulate the roster dropping to zero BETWEEN the
+    # pre-check and the post-check (find_all_by_role returns two colonels the
+    # first time, none the second), and assert the demotion is rolled back and a
+    # :last_colonel failure is returned and audited.
+    describe 'the check-then-act race (post-write re-validation)' do
+      before do
+        allow(Onetime::Customer).to receive(:find_all_by_role).with('colonel')
+          .and_return([colonel_target, second_colonel], [])
+      end
+
+      it 'rolls the role back and refuses with :last_colonel' do
+        result = demote(colonel_target)
+
+        expect(result.status).to eq(:last_colonel)
+        # demoted to the target role, then restored to the prior colonel role
+        expect(colonel_target).to have_received(:role=).with('customer')
+        expect(colonel_target).to have_received(:role=).with('colonel')
+        expect(colonel_target).to have_received(:save).twice
+      end
+
+      it 'records the :last_colonel failure and no success event' do
+        demote(colonel_target)
+
+        expect(Onetime::ColonelAuditEvent).to have_received(:record).once.with(
+          hash_including(
+            verb: 'customer.set_role',
+            target: 'ur_col',
+            result: :failure,
+            detail: hash_including(reason: 'last_colonel'),
+          ),
+        )
+        expect(Onetime::ColonelAuditEvent).not_to have_received(:record).with(
+          hash_including(result: :success),
+        )
+      end
+    end
   end
 end
