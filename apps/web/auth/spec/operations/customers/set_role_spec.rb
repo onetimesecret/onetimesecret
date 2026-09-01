@@ -158,6 +158,22 @@ RSpec.describe Auth::Operations::Customers::SetRole do
       expect(demote(colonel_target).status).to eq(:last_colonel)
     end
 
+    # #4328 review: an UNVERIFIED colonel-role account is not an active colonel, so
+    # demoting it cannot empty the roster — even when NO colonel is verified and
+    # the active roster is already empty. Neither the pre-check (last_colonel?) nor
+    # the post-write check (demotion_left_no_colonel?) may refuse it, or a stale,
+    # never-verified (or provenance-reset via ChangeEmail) colonel role could never
+    # be removed by any surface.
+    it 'allows demoting an unverified colonel even when no colonel is verified' do
+      unverified_colonel = double('Customer', role: 'colonel', extid: 'ur_unver',
+        objid: 'cust_unver', verified?: false, exists?: true, :role= => nil, save: true)
+      # Roster holds only an unverified colonel-role account → active_colonels is empty.
+      stub_roster(unverified_colonel)
+
+      expect(demote(unverified_colonel).status).to eq(:success)
+      expect(unverified_colonel).to have_received(:save)
+    end
+
     # The CLI passes no actor_objid: there is no acting customer in a shell, and
     # nothing to self-demote. It must keep working unchanged.
     it 'never self-refuses when actor_objid is nil (the CLI path)' do

@@ -151,9 +151,18 @@ module Auth
         # can empty the roster — a promotion or an unrelated role change must
         # never be rolled back merely because the roster happens to be empty for
         # another reason, so both edges are guarded before the roster read.
+        #
+        # The target must also have been VERIFIED: active_colonels counts only
+        # verified colonels, so demoting an UNVERIFIED colonel-role account never
+        # removes anyone from the roster. Without this guard the roster is already
+        # empty when no colonel is verified, and the check would roll the demotion
+        # back — making a stale, never-verified (or provenance-reset) colonel role
+        # impossible to remove, the same empty-roster false positive last_colonel?
+        # guards against on the pre-check.
         def demotion_left_no_colonel?
           return false unless @from == 'colonel'
           return false if @role == 'colonel'
+          return false unless @customer.verified?
 
           active_colonels.empty?
         end

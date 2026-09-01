@@ -46,12 +46,24 @@ module Onetime
 
         # Would demoting this customer leave the install with no colonel?
         #
+        # Symmetric with {#last_colonel_by_verification?}: the target must itself
+        # be an ACTIVE colonel (verified), because only active colonels count
+        # toward the roster this guard protects. Without the verified? gate an
+        # UNVERIFIED colonel-role account trips the guard whenever the roster is
+        # empty — sole_active_colonel? returns true for anyone when active_colonels
+        # is [] ([].none? is true) — so a stale, never-verified (or provenance-
+        # reset, see change_email.rb) colonel role could never be removed by
+        # either surface, and the "last remaining verified colonel" message it
+        # printed was false. An unverified target is not an active colonel, so
+        # demoting it cannot empty the roster.
+        #
         # @param customer [Onetime::Customer] the demotion target
         # @param to_role [String, Symbol] the role being assigned
         # @return [Boolean]
         def last_colonel?(customer, to_role)
           return false if to_role.to_s == 'colonel'
           return false unless customer.role.to_s == 'colonel'
+          return false unless customer.verified?
 
           sole_active_colonel?(customer)
         end
