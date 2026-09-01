@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'otto/utils'
+require 'uri'
 
 module ColonelAPI
   module AuthStrategies
@@ -49,9 +50,16 @@ module ColonelAPI
       # access-log format, lands in browser history, and can leak via Referer.
       CONFIRM_HEADER = 'HTTP_X_OTS_CONFIRM'
 
-      # Cap applied BEFORE percent-decoding so a huge header cannot force a huge
-      # allocation. The logic layer caps again after decoding (MAX_CONFIRM_LENGTH).
-      MAX_CONFIRM_BYTES = 512
+      # DoS ceiling on the ENCODED header, not a token-length limit: the real cap
+      # is MAX_CONFIRM_LENGTH (characters, post-decode) in the logic layer. It is
+      # measured on the encoded bytes, which encodeURIComponent expands up to 12
+      # per 4-byte codepoint, so a max-length (255-char) token can approach 3 KB
+      # encoded. An over-long header is REJECTED, never truncated: slicing the
+      # encoded bytes would sever a %XX escape or a multibyte character and turn a
+      # valid token — e.g. a 100-char CJK org display_name, ~900 bytes encoded —
+      # into a permanent 403. 4 KB clears the largest legitimate token with room
+      # to spare while still bounding the decode.
+      MAX_CONFIRM_BYTES = 4096
 
       protected
 
@@ -95,13 +103,21 @@ module ColonelAPI
       end
 
       # Percent-decoded so a non-ASCII token (org display names) survives the
-      # ISO-8859-1 header charset both sides agree on. An absent, empty or
-      # undecodable header is "no token" — never a crash, never a partial match.
+      # ISO-8859-1 header charset both sides agree on. An absent, empty, oversized
+      # or undecodable header is "no token" — never a crash, never a partial match.
+      #
+      # URI.decode_uri_component, NOT Rack::Utils.unescape: it matches the console's
+      # encodeURIComponent exactly and does NOT map '+' to space, so a plus-addressed
+      # email sent raw by a non-browser client (X-OTS-Confirm: ops+admin@example.com)
+      # is not silently mangled into "ops admin@example.com" and 403'd. Oversized
+      # headers are rejected whole (see MAX_CONFIRM_BYTES) rather than sliced, so a
+      # legitimate multibyte token is never severed mid-escape.
       def confirm_token_from(env)
         raw = env[CONFIRM_HEADER].to_s
         return nil if raw.empty?
+        return nil if raw.bytesize > MAX_CONFIRM_BYTES
 
-        Rack::Utils.unescape(raw[0, MAX_CONFIRM_BYTES], Encoding::UTF_8)
+        URI.decode_uri_component(raw, Encoding::UTF_8)
       rescue StandardError
         nil
       end

@@ -119,14 +119,36 @@ RSpec.describe ColonelAPI::AuthStrategies::SessionAuthStrategy do
       expect(confirm_token_for('victim@example.com')).to eq('victim@example.com')
     end
 
-    it 'caps the raw header before decoding so a huge value cannot force a huge allocation' do
+    it 'rejects an over-long header whole rather than truncating it (a sliced token would 403 anyway)' do
       cap = described_class::MAX_CONFIRM_BYTES
 
-      expect(confirm_token_for('a' * (cap * 4)).bytesize).to eq(cap)
+      # Over the ceiling → no token. Truncating instead would sever a %XX escape
+      # or a multibyte char and turn a valid token into a permanent 403.
+      expect(confirm_token_for('a' * (cap + 1))).to be_nil
+      # Exactly at the ceiling still decodes.
+      expect(confirm_token_for('a' * cap)).to eq('a' * cap)
+    end
+
+    # #4326: the cap is on the ENCODED bytes, so a max-length multibyte token —
+    # an org display_name is up to 100 chars, ~900 bytes once encodeURIComponent'd
+    # — must survive. The old 512-byte slice severed it into a 403.
+    it 'decodes a long percent-encoded multibyte token that exceeds the former cap' do
+      name    = '中' * 100
+      encoded = name.chars.map { |ch| ch.bytes.map { |b| format('%%%02X', b) }.join }.join
+
+      expect(encoded.bytesize).to be > 512 # would have been truncated before
+      expect(confirm_token_for(encoded)).to eq(name)
+    end
+
+    # #4326: decode the way the console encodes (encodeURIComponent), so '+' is a
+    # literal plus, not a space. Rack::Utils.unescape (form decoding) mangled a
+    # plus-addressed email token sent raw by a non-browser API client.
+    it 'preserves a literal + (plus-addressed email) instead of decoding it to a space' do
+      expect(confirm_token_for('ops+admin@example.com')).to eq('ops+admin@example.com')
     end
 
     it 'treats an undecodable header as no token rather than raising' do
-      allow(Rack::Utils).to receive(:unescape).and_raise(ArgumentError, 'bad encoding')
+      allow(URI).to receive(:decode_uri_component).and_raise(ArgumentError, 'bad encoding')
 
       expect(confirm_token_for('anything')).to be_nil
     end
