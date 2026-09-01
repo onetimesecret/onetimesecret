@@ -97,7 +97,7 @@ module Onetime
           # The geo join keys on :session_id, so the internal identifiers are
           # stripped only after it — and only when the caller did not opt in.
           page_rows   = attach_geo_country(identified[start_idx, @per_page] || [])
-          page_rows = strip_internal_identifiers(page_rows) unless @reveal_session_id
+          page_rows   = strip_internal_identifiers(page_rows) unless @reveal_session_id
 
           Result.new(
             sessions: page_rows,
