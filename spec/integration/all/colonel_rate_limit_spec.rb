@@ -30,9 +30,11 @@
 # (try/unit/security/colonel_rate_limiter_try.rb).
 #
 # What only THIS file can prove: that the charge survives the whole stack, that
-# the 429 reaches the client in the documented shape, and that the documented
-# lockout recovery — POST /ratelimit/reset, a TIER 2 verb that needs no
-# elevation precisely so it stays reachable — actually clears the bucket.
+# the 429 reaches the client in the documented shape, and that lockout recovery
+# behaves over the wire — POST /ratelimit/reset is a TIER 2 verb that needs no
+# elevation, so it stays reachable while locked out, but a colonel may NOT clear
+# their OWN colonel_* bucket over HTTP (a leaked cookie could loop out of its own
+# lockout); a PEER colonel's reset is what clears it end to end.
 #
 # spec/config.test.yaml ships site.admin.rate_limit.enabled:false so the colonel
 # suites (many endpoints, one process, ONE acting colonel) do not throttle
@@ -252,9 +254,14 @@ RSpec.describe 'Colonel API rate limiting (#4329)', type: :integration do
       expect(revoke_all.status).to eq(429)
     end
 
-    # The documented recovery. POST /ratelimit/reset is TIER 2 — confirmation
-    # but no step-up — precisely so a locked-out operator can still reach it.
-    it 'is cleared by POST /ratelimit/reset for kind colonel_destructive' do
+    # SELF-RESET IS REFUSED (#4329 review). POST /ratelimit/reset is TIER 2 —
+    # confirmation but no step-up — so it stays reachable while locked out, but a
+    # colonel may NOT clear their OWN colonel_* bucket over HTTP: a leaked cookie
+    # could otherwise reset its own lockout in a loop and defeat the bucket. The
+    # confirmation token here (kind:subject) is caller-supplied and proves nothing,
+    # so the interlock — not the token — is what stops the loop. Recovery of one's
+    # own lockout is CLI-only; a peer colonel over HTTP is the other path (below).
+    it 'refuses a colonel clearing their OWN colonel_destructive bucket, and the lockout holds' do
       enable_buckets(destructive: { 'max_attempts' => 2 })
 
       2.times { revoke_all }
@@ -265,9 +272,35 @@ RSpec.describe 'Colonel API rate limiting (#4329)', type: :integration do
         { kind: 'colonel_destructive', subject: colonel.extid },
         confirm: "colonel_destructive:#{colonel.extid}",
       )
-      expect(reset.status).to eq(200), "reset should be reachable while locked out: #{reset.body}"
+      expect(reset.status).to eq(422), "self-reset must be refused: #{reset.body}"
+      expect(error_body['error']).to match(/clear your own colonel rate limiter/i)
+
+      # The lockout is untouched: the operator is still throttled.
+      expect(revoke_all.status).to eq(429),
+        "the refused self-reset must not have cleared the bucket: #{last_response.body}"
+    end
+
+    # PEER RECOVERY, end to end. A SECOND colonel can clear the locked-out
+    # colonel's destructive bucket — the operator-recovery case the self-reset
+    # refusal deliberately leaves open — and the reset does clear the bucket.
+    it 'lets a PEER colonel clear the locked-out colonel destructive bucket' do
+      enable_buckets(destructive: { 'max_attempts' => 2 })
+
+      2.times { revoke_all }
+      expect(revoke_all.status).to eq(429)
+
+      peer = create_customer(role: 'colonel')
+      signed_in_as(peer)
+      reset = colonel_post(
+        '/api/colonel/ratelimit/reset',
+        { kind: 'colonel_destructive', subject: colonel.extid },
+        confirm: "colonel_destructive:#{colonel.extid}",
+      )
+      expect(reset.status).to eq(200), "a peer reset should be reachable: #{reset.body}"
       expect(JSON.parse(reset.body).dig('record', 'cleared')).to be true
 
+      # Back as the freed colonel: the bucket is clear, so the operator can act.
+      signed_in_as(colonel)
       expect(revoke_all.status).to eq(200), "the operator should be able to act again: #{last_response.body}"
     end
   end

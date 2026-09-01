@@ -30,18 +30,20 @@ module Onetime
     # Fail-closed on Redis errors, matching every sibling limiter: an outage 500s
     # a colonel mutation rather than admitting an unthrottled one.
     #
-    # CLEARING A STUCK LOCKOUT — the same two paths as every other limiter, over
-    # kinds `colonel_elevation`, `colonel_mutation`, `colonel_destructive` and
-    # `colonel_handle_resolve`:
+    # CLEARING A STUCK LOCKOUT, over kinds `colonel_elevation`, `colonel_mutation`,
+    # `colonel_destructive` and `colonel_handle_resolve`. A colonel may NOT clear
+    # their OWN colonel_* bucket over HTTP — ResetRateLimit#refuse_self_colonel_reset!
+    # refuses (422) when the subject is the caller's own extid, because a leaked
+    # cookie could otherwise reset its own lockout in a loop and defeat the bucket.
+    # So the two recovery paths are asymmetric:
     #
-    #   1. `bin/ots ratelimit keys <kind> <extid>` piped to valkey-cli (the CLI
-    #      only PRINTS the commands);
-    #   2. `POST /api/colonel/ratelimit/reset` with that kind, which performs the
-    #      delete AND records a ColonelAuditEvent. That endpoint is TIER 2 —
-    #      confirmation only, no elevation — so an operator locked out of step-up
-    #      or of destructive actions can still clear their own bucket. It is
-    #      itself a mutation, so the one bucket it cannot rescue you from is
-    #      `colonel_mutation`; that is what the valkey-cli path is for.
+    #   1. YOUR OWN lockout, any of the four kinds: `bin/ots ratelimit keys <kind>
+    #      <extid>` piped to valkey-cli (the CLI only PRINTS the commands). This is
+    #      the only path that clears your own bucket, and it needs no second operator.
+    #   2. A PEER's lockout: a SECOND colonel calls `POST /api/colonel/ratelimit/reset`
+    #      with that kind and the locked colonel's extid, which performs the delete
+    #      AND records a ColonelAuditEvent. That endpoint is TIER 2 — confirmation
+    #      only, no elevation — so a peer need not elevate to free you.
     #
     # Usage:
     #   include Onetime::Security::ColonelRateLimiter

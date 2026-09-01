@@ -117,6 +117,24 @@ RSpec.describe ColonelAPI::Logic::Colonel::ChangeUserEmail do
       expect { confirmed_logic_for('new@example.com').raise_concerns }
         .to raise_error(Onetime::ConfirmationRequired)
     end
+
+    # An account with no email address has no "current address" to confirm with,
+    # so the token falls back to the extid (account_confirm_token) — the same
+    # fallback PurgeUser uses. A bare `user.email` would blank the token and turn
+    # the confirmation guard into a GuardMisconfigured 500 rather than a refusal.
+    it 'falls back to the extid for an account with no email address' do
+      emailless = instance_double(Onetime::Customer,
+        objid: 'cust_target', extid: 'ur_target', role: 'customer',
+        email: '', exists?: true, anonymous?: false)
+      allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(emailless)
+      allow(op).to receive(:call).and_return(build_result(status: :success))
+      logic = described_class.new(
+        strategy_result_for('ur_target'),
+        { 'user_id' => 'ur_target', 'new_email' => 'new@example.com', 'dry_run' => 'false' },
+      )
+
+      expect { logic.raise_concerns }.not_to raise_error
+    end
   end
 
   # ---- Step-up (sudo) window (#4327) -----------------------------------------

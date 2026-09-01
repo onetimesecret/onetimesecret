@@ -273,10 +273,13 @@ DELETE /api/colonel/elevation   → ends the window early
 **Throttle.** `POST /api/colonel/elevation` is limited to 5 attempts per 15
 minutes per colonel account, then a 15-minute lockout — the password check behind
 it is a Rodauth *internal request*, which does not increment Rodauth's own lockout
-counter, so this limiter is the only backstop against guessing. Clear a stuck
-lockout with `POST /api/colonel/ratelimit/reset` (kind `colonel_elevation`,
-subject the colonel's extid — a tier-2 verb, so it needs no elevation), or with
-the commands `bin/ots ratelimit keys colonel_elevation <extid>` prints.
+counter, so this limiter is the only backstop against guessing. Clear your OWN
+stuck lockout with the commands `bin/ots ratelimit keys colonel_elevation
+<extid>` prints — a colonel cannot clear their own `colonel_*` bucket over the
+API (a leaked cookie could otherwise loop out of its own lockout). A SECOND
+colonel can clear it for you with `POST /api/colonel/ratelimit/reset` (kind
+`colonel_elevation`, subject the locked colonel's extid — a tier-2 verb, so it
+needs no elevation).
 
 **Audit.** A successful step-up records `colonel.elevate` on the operator trail
 *carrying the factor used*, so a password-less `recent_auth` window is visible as
@@ -339,14 +342,24 @@ Three things worth knowing:
   sized for incident response, not for migrations. Bulk work belongs on
   `bin/ots`, which these limiters do not touch.
 
-**Clearing a lockout.** `POST /api/colonel/ratelimit/reset` with `kind` set to the
-bucket and `subject` set to the colonel's extid; it is a tier-2 verb, so it needs
-no elevation and stays reachable while the destructive, handle-resolve or
-elevation bucket is exhausted. The one bucket it cannot rescue you from is
-`colonel_mutation` — the reset is itself a mutation — so clear that one with the
-valkey-cli commands `bin/ots ratelimit keys colonel_mutation <extid>` prints
-(the CLI only prints them; it never connects). `bin/ots ratelimit inspect
-<kind> <extid>` shows the current counter and lockout TTL.
+**Clearing a lockout.** A colonel cannot clear their OWN `colonel_*` bucket over
+the API: `POST /api/colonel/ratelimit/reset` refuses with a 422 when `subject` is
+the caller's own extid, because a leaked cookie could otherwise reset its own
+lockout in a loop and defeat the bucket. Two paths remain:
+
+- **Your own lockout** — the valkey-cli commands `bin/ots ratelimit keys <kind>
+  <extid>` prints (the CLI only prints them; it never connects). This is the only
+  path that clears your own bucket — including `colonel_mutation`, which the reset
+  endpoint could never clear anyway (the reset is itself a mutation) — and it
+  needs no second operator.
+- **A peer clears it for you** — a SECOND colonel calls `POST
+  /api/colonel/ratelimit/reset` with `kind` set to the bucket and `subject` set to
+  the locked colonel's extid; it is a tier-2 verb, so it needs no elevation and
+  stays reachable while that colonel's destructive, handle-resolve or elevation
+  bucket is exhausted.
+
+`bin/ots ratelimit inspect <kind> <extid>` shows the current counter and lockout
+TTL.
 
 **Audit.** Only the **cap-reaching** request writes an event, into the security
 collection (`record_security`: 7-day retention, its own cap), never the operator

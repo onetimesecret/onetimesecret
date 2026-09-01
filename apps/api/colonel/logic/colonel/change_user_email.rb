@@ -83,10 +83,14 @@ module ColonelAPI
 
           # TIER 1. The token is the account's CURRENT address — the one the
           # operator is changing away from, which the URL (an extid) never carries.
+          # account_confirm_token falls back to the extid for an account with no
+          # email (mirroring PurgeUser); a bare `user.email` would blank the token
+          # and turn require_confirmation! into a GuardMisconfigured 500 instead of
+          # a clean refusal.
           guard_destructive_action!(
             tier: :destructive,
-            confirm_with: user.email,
-            confirm_subject: "the account's current email address",
+            confirm_with: account_confirm_token(user),
+            confirm_subject: "the account's current email address (or its external id when it has none)",
             field: :user_id,
           )
 
