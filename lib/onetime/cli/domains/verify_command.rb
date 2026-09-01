@@ -1,81 +1,91 @@
-# apps/api/domains/cli/verify_command.rb
+# lib/onetime/cli/domains/verify_command.rb
 #
 # frozen_string_literal: true
 
-require_relative 'helpers'
-require 'onetime/operations/verify_domain'
+# Verify a custom domain's DNS ownership + SSL status.
+#
+# Single domain is the CLI peer of `POST /api/colonel/domains/:extid/verify`.
+# Both adapters call the SAME admin op (Onetime::Operations::AdminVerifyDomain),
+# which delegates DNS/SSL to the shared Onetime::Operations::VerifyDomain and
+# adds exactly one `domain.verify` ColonelAuditEvent — an operator-run verify is
+# an admin action and must land in the admin audit trail, exactly as the colonel
+# endpoint records it (verify_custom_domain.rb).
+#
+#   bin/ots domains verify example.com
+#   bin/ots domains verify example.com --dry-run   # read-only, still audited as an attempt
+#   bin/ots domains verify example.com --json
+#
+# Bulk mode (--all) is a maintenance SWEEP, not a per-domain operator action, so
+# it stays on the bare VerifyDomain (no admin audit) — the same reason the
+# scheduled domain_refresh_job does not audit. Auditing a bulk sweep would flood
+# the admin trail with thousands of events mislabeled as individual operator
+# activity (see AdminVerifyDomain's rationale).
+#
+#   bin/ots domains verify --all --unverified --limit=10
+#   bin/ots domains verify --all --orphaned --dry-run
+#
+# DOMAIN accepts the display domain (preferred), the domain extid, or its objid.
+#
+# Lives under lib/onetime/cli (not apps/api/domains/cli) so the require of the
+# op is unambiguous at load time; registration is identical either way.
+
 require 'json'
+require 'onetime/operations/verify_domain'
+require 'onetime/operations/admin_verify_domain'
+require_relative '../customers/shared'
+require_relative 'shared'
 
 module Onetime
   module CLI
-    # Unified domain verification command
-    #
-    # Single domain:
-    #   bin/ots domains verify example.com
-    #   bin/ots domains verify example.com --dry-run
-    #   bin/ots domains verify example.com --json
-    #
-    # Bulk mode:
-    #   bin/ots domains verify --all --unverified --limit=10
-    #   bin/ots domains verify --all --orphaned --dry-run
-    #
     class DomainsVerifyCommand < Command
-      include DomainsHelpers
+      include Customers::Shared
+      include Domains::Shared
 
       desc 'Verify domain ownership and SSL status'
 
-      argument :domain_name,
+      argument :domain,
         type: :string,
         required: false,
-        desc: 'Domain name to verify (omit for bulk mode with --all)'
+        desc: 'Domain to verify (display domain, extid, or objid); omit for --all'
 
       option :all,
         type: :boolean,
         default: false,
         desc: 'Bulk mode: verify multiple domains'
-
       option :dry_run,
         type: :boolean,
         default: false,
         desc: 'Perform checks without persisting changes (read-only health check)'
-
       option :json,
         type: :boolean,
         default: false,
         desc: 'Output results as JSON'
-
       option :rate_limit,
         type: :float,
         default: 0.5,
         desc: 'Delay between API calls in bulk mode (seconds)'
-
-      # Filter options for bulk mode
       option :orphaned,
         type: :boolean,
         default: false,
-        desc: 'Filter for orphaned domains only'
-
+        desc: 'Bulk filter: orphaned domains only'
       option :verified,
         type: :boolean,
         default: false,
-        desc: 'Filter for already verified domains'
-
+        desc: 'Bulk filter: already-verified domains'
       option :unverified,
         type: :boolean,
         default: false,
-        desc: 'Filter for unverified domains'
-
+        desc: 'Bulk filter: unverified domains'
       option :org_id,
         type: :string,
         default: nil,
-        desc: 'Filter by organization ID'
-
+        desc: 'Bulk filter: by organization ID'
       option :limit,
         type: :integer,
         default: nil,
-        desc: 'Maximum number of domains to process'
+        desc: 'Bulk mode: maximum number of domains to process'
 
-      def call(domain_name: nil, all: false, dry_run: false, json: false,
+      def call(domain: nil, all: false, dry_run: false, json: false,
                rate_limit: 0.5, orphaned: false, verified: false,
                unverified: false, org_id: nil, limit: nil, **)
         boot_application!
@@ -91,28 +101,32 @@ module Onetime
             org_id: org_id,
             limit: limit,
           )
-        elsif domain_name
-          verify_single(domain_name, dry_run: dry_run, json: json)
+        elsif domain
+          verify_single(domain, dry_run: dry_run, json: json)
         else
-          puts 'Error: Provide a domain name or use --all for bulk mode'
-          puts 'Usage:'
-          puts '  bin/ots domains verify example.com'
-          puts '  bin/ots domains verify example.com --dry-run  # read-only check'
-          puts '  bin/ots domains verify --all --unverified'
-          exit 1
+          error_exit(
+            'Provide a domain name or use --all for bulk mode',
+            json: json,
+          )
         end
       end
 
       private
 
-      def verify_single(domain_name, dry_run:, json:)
-        domain = load_domain_by_name(domain_name)
-        return unless domain
+      def verify_single(identifier, dry_run:, json:)
+        target = resolve_domain(identifier, json: json)
 
-        result = Onetime::Operations::VerifyDomain.new(
-          domain: domain,
+        # Single, operator-initiated verify -> the ADMIN op, which records one
+        # `domain.verify` audit event (attributed to the CLI_ACTOR sentinel) and
+        # returns the underlying VerifyDomain::Result unchanged.
+        result = Onetime::Operations::AdminVerifyDomain.new(
+          domain: target,
+          actor: Customers::Shared::CLI_ACTOR,
           persist: !dry_run,
         ).call
+
+        OT.info "[cli-domains-verify] domain=#{target.display_domain} " \
+                "state=#{result.current_state} dns=#{result.dns_validated} dry_run=#{dry_run}"
 
         if json
           output_json_single(result, dry_run: dry_run)
@@ -138,6 +152,7 @@ module Onetime
 
         puts "Processing #{domains.size} domain(s)..." unless json
 
+        # Bulk sweep -> the bare op (no admin audit; see the file header).
         result = Onetime::Operations::VerifyDomain.new(
           domains: domains,
           persist: !dry_run,
@@ -151,35 +166,39 @@ module Onetime
         end
       end
 
-      # Load all domains using pipelining to avoid N+1 queries
-      #
-      # @return [Array<CustomDomain>] All domain objects
       def load_all_domains
         all_domain_ids = Onetime::CustomDomain.instances.all
         return [] if all_domain_ids.empty?
 
-        # Use Familia's batch loading (pipelined HGETALL internally)
         Onetime::CustomDomain.load_multi(all_domain_ids).compact
       end
 
       def load_filtered_domains(orphaned:, verified:, unverified:, org_id:, limit:)
-        all_domains = load_all_domains
-
         filtered = apply_filters(
-          all_domains,
+          load_all_domains,
           orphaned: orphaned,
           org_id: org_id,
           verified: verified,
           unverified: unverified,
         )
-
-        # Apply limit if specified
         filtered = filtered.take(limit) if limit
-
         filtered
       end
 
-      # Human-readable output for single domain
+      # Inlined from the legacy DomainsHelpers#apply_filters — the new-style
+      # commands do not include that module (see Domains::Shared).
+      def apply_filters(domains, orphaned: false, org_id: nil, verified: false, unverified: false)
+        filtered = domains
+        filtered = filtered.select { |d| d.org_id.to_s.empty? } if orphaned
+        filtered = filtered.select { |d| d.org_id.to_s == org_id.to_s } if org_id
+        if verified
+          filtered = filtered.select { |d| d.verified.to_s == 'true' }
+        elsif unverified
+          filtered = filtered.reject { |d| d.verified.to_s == 'true' }
+        end
+        filtered
+      end
+
       def output_human_single(result, dry_run:)
         domain = result.domain
 
@@ -190,7 +209,7 @@ module Onetime
         puts
 
         if result.success?
-          output_verification_results(result, domain)
+          output_verification_results(result)
           output_state_info(result)
           output_organization_info(domain) if dry_run
           output_feature_toggle_info(domain) if dry_run
@@ -201,7 +220,7 @@ module Onetime
         puts
       end
 
-      def output_verification_results(result, _domain)
+      def output_verification_results(result)
         puts 'Verification Results:'
         puts "  DNS Validated:    #{format_bool(result.dns_validated)}"
         puts "  SSL Ready:        #{format_bool(result.ssl_ready)}"
@@ -236,8 +255,6 @@ module Onetime
         puts
       end
 
-      # Per-domain feature toggles (HomepageConfig / ApiConfig); kept
-      # separate from cosmetic brand fields post-#3026.
       def output_feature_toggle_info(domain)
         puts 'Feature Toggles:'
         puts "  Public Homepage:  #{domain.allow_public_homepage?}"
@@ -249,7 +266,6 @@ module Onetime
         puts 'Manual Verification Commands:'
         puts '-' * 70
 
-        # DNS ownership validation
         txt_host  = domain.txt_validation_host
         txt_value = domain.txt_validation_value
         if txt_host && txt_value
@@ -269,7 +285,6 @@ module Onetime
           puts
         end
 
-        # CNAME/A record resolution
         puts '2. DNS Resolution (CNAME/A record):'
         puts "   Status: #{result.is_resolving ? 'PASS' : 'FAIL'}"
         puts '   Domain should resolve to the proxy server'
@@ -281,7 +296,6 @@ module Onetime
         puts "   dig A #{domain.display_domain} +short"
         puts
 
-        # SSL certificate
         puts '3. SSL Certificate:'
         puts "   Status: #{result.ssl_ready ? 'PASS' : 'PENDING'}"
         puts
@@ -290,7 +304,6 @@ module Onetime
         puts
       end
 
-      # Human-readable output for bulk verification
       def output_human_bulk(result, dry_run:)
         puts
         puts '=' * 70
@@ -304,10 +317,8 @@ module Onetime
         puts format('  Duration:         %.2f seconds', result.duration_seconds)
         puts
 
-        # Show state distribution
         output_state_distribution(result)
 
-        # Show individual results
         if result.results.any?
           puts 'Results:'
           puts format('%-40s %-12s %-12s %-10s', 'Domain', 'DNS', 'Resolving', 'State')
@@ -329,11 +340,8 @@ module Onetime
       end
 
       def output_state_distribution(result)
-        state_counts = Hash.new(0)
-        result.results.each do |r|
-          state                = r.current_state.to_s
-          state_counts[state] += 1
-        end
+        state_counts                                                  = Hash.new(0)
+        result.results.each { |r| state_counts[r.current_state.to_s] += 1 }
 
         total = result.total.to_f
         total = 1.0 if total.zero?
@@ -347,7 +355,6 @@ module Onetime
         puts
       end
 
-      # JSON output for single domain
       def output_json_single(result, dry_run:)
         domain = result.domain
         output = result.to_h.merge(
@@ -355,13 +362,8 @@ module Onetime
           timestamp: Time.now.utc.iso8601,
         )
 
-        # Add extended info for dry-run mode (health check mode)
         if dry_run
           output[:organization]    = build_organization_json(domain)
-          # Per-domain feature toggles emitted as their own blocks to match the
-          # colonel admin list and the public domain serializer (#3026); the
-          # legacy `brand: { allow_public_*: ... }` nesting was removed because
-          # the toggles never lived in BrandSettings.
           homepage_cfg             = Onetime::CustomDomain::HomepageConfig.find_by_domain_id(domain.identifier)
           output[:homepage_config] = {
             enabled: homepage_cfg&.effectively_enabled?(custom_domain: domain) || false,
@@ -373,16 +375,10 @@ module Onetime
         puts JSON.pretty_generate(output)
       end
 
-      # JSON output for bulk verification
       def output_json_bulk(result, dry_run:)
-        # Build state distribution
-        state_counts = Hash.new(0)
-        result.results.each do |r|
-          state                = r.current_state.to_s
-          state_counts[state] += 1
-        end
+        state_counts                                                  = Hash.new(0)
+        result.results.each { |r| state_counts[r.current_state.to_s] += 1 }
 
-        # Build issues summary
         issues = { orphaned: [], org_not_found: [], dns_failed: [], ssl_failed: [] }
         result.results.each do |r|
           domain = r.domain
@@ -411,11 +407,7 @@ module Onetime
         else
           org = domain.primary_organization
           if org
-            {
-              status: 'OK',
-              org_id: org.org_id,
-              display_name: org.display_name || org.org_id,
-            }
+            { status: 'OK', org_id: org.org_id, display_name: org.display_name || org.org_id }
           else
             { status: 'ORG_NOT_FOUND', org_id: domain.org_id, display_name: nil }
           end
@@ -430,7 +422,7 @@ module Onetime
         end
       end
     end
+
+    register 'domains verify', DomainsVerifyCommand
   end
 end
-
-Onetime::CLI.register 'domains verify', Onetime::CLI::DomainsVerifyCommand
