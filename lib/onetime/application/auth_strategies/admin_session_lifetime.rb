@@ -123,13 +123,22 @@ module Onetime
 
         # 0 legitimately DISABLES a bound, so this cannot use the positive_*
         # setting guard's "fall back to the default" behaviour: a configured 0
-        # must stay 0. A negative or unparseable value falls back.
+        # must stay 0. But it must NOT String#to_i an arbitrary value either —
+        # `raw` arrives as whatever YAML parsed from `<%= ENV[...] || N %>`, so a
+        # typo'd env is a String, and `"off".to_i` / `"none".to_i` is 0 (silently
+        # disabling a security bound) while `"12h".to_i` is 12 (a 12-SECOND
+        # lifetime). Accept only a clean non-negative integer — an Integer, or an
+        # all-digits String; anything else (a non-numeric string, a YAML boolean
+        # from `off`/`no`) falls back to the shipped default. Same intent as
+        # colonel_rate_limiter.rb#positive_colonel_setting.
         def admin_timeout_setting(key, default)
           raw = admin_session_config[key]
-          return default if raw.nil?
 
-          value = raw.to_i
-          value.negative? ? default : value
+          case raw
+          when Integer then raw.negative? ? default : raw
+          when String  then raw.match?(/\A\d+\z/) ? raw.to_i : default
+          else default
+          end
         end
 
         def admin_idle_timeout

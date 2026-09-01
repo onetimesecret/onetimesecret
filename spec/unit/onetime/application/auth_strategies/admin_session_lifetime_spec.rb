@@ -224,5 +224,42 @@ RSpec.describe Onetime::Application::AuthStrategies::AdminSessionLifetime do
 
       expect(host.admin_session_expiry_reason(session, colonel, env_for)).to eq(:absolute)
     end
+
+    # #4331 review: raw arrives as whatever YAML parsed from `<%= ENV[...] || N %>`,
+    # and String#to_i silently coerces garbage — "off"/"none" -> 0 (disabling a
+    # security bound) and "12h" -> 12 (a 12-second lifetime). A value that is not a
+    # clean non-negative integer must fall back to the shipped default: never
+    # disable, never drastically shorten.
+    it 'falls back to the default on a non-numeric string (does NOT disable the bound)' do
+      configure_bounds(absolute_timeout: 'off')
+      session = session_with_sid('sid1', 'authenticated_at' => now - 43_201)
+
+      # 'off' must not become 0; the default 12h bound still fires.
+      expect(host.admin_session_expiry_reason(session, colonel, env_for)).to eq(:absolute)
+    end
+
+    it 'falls back to the default on a malformed duration string (not a 12-second lifetime)' do
+      configure_bounds(absolute_timeout: '12h')
+      # 30 minutes old: '12h' must fall back to the 12h default, not "12h".to_i == 12s.
+      session = session_with_sid('sid1', 'authenticated_at' => now - 1_800)
+
+      expect(host.admin_session_expiry_reason(session, colonel, env_for)).to be_nil
+    end
+
+    it 'falls back to the default on a YAML boolean (off/no parsed as false)' do
+      configure_bounds(absolute_timeout: false)
+      session = session_with_sid('sid1', 'authenticated_at' => now - 43_201)
+
+      expect(host.admin_session_expiry_reason(session, colonel, env_for)).to eq(:absolute)
+    end
+
+    it 'still honours an explicit 0 (a disabled bound) as a string' do
+      configure_bounds(absolute_timeout: '0')
+      stub_sidecar(now - 10) # keep the idle bound satisfied
+      session = session_with_sid('sid1', 'authenticated_at' => now - 100_000)
+
+      # "0" is a clean integer: the absolute bound is genuinely disabled.
+      expect(host.admin_session_expiry_reason(session, colonel, env_for)).to be_nil
+    end
   end
 end
