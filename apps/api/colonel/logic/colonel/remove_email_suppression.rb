@@ -14,7 +14,7 @@ module ColonelAPI
       # single, audited implementation of the suppression-remove verb. This
       # class keeps only the HTTP concerns (param validation + the not-found
       # 404); the op owns the model mutation and the ColonelAuditEvent
-      # (CONTRACT 4). The UnbanIP adapter pattern, applied to addresses.
+      # (CONTRACT 4).
       #
       # Removing a suppression re-enables sending to an address that bounced
       # or complained, so the UI gates it behind an AdminConfirmDialog.

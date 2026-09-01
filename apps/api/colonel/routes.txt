@@ -44,11 +44,6 @@ GET    /system/brand                      ColonelAPI::Logic::Colonel::GetBrandDi
 GET    /system/redis                      ColonelAPI::Logic::Colonel::GetRedisMetrics response=json auth=sessionauth role=colonel scope=internal
 GET    /queue                             ColonelAPI::Logic::Colonel::GetQueueMetrics response=json auth=sessionauth role=colonel scope=internal
 
-# IP Banning
-GET    /banned-ips                        ColonelAPI::Logic::Colonel::ListBannedIPs response=json auth=sessionauth role=colonel scope=internal
-POST   /banned-ips                        ColonelAPI::Logic::Colonel::BanIP response=json auth=sessionauth role=colonel scope=internal
-DELETE /banned-ips/:ip                    ColonelAPI::Logic::Colonel::UnbanIP response=json auth=sessionauth role=colonel scope=internal
-
 # Custom Domains
 GET    /domains                           ColonelAPI::Logic::Colonel::ListCustomDomains response=json auth=sessionauth role=colonel scope=internal
 POST   /domains                           ColonelAPI::Logic::Colonel::CreateCustomDomain response=json auth=sessionauth role=colonel scope=internal

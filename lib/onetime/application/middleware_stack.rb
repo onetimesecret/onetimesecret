@@ -10,7 +10,6 @@ require 'rack/utf8_sanitizer'
 
 require_relative '../session'
 require_relative '../middleware/assume_https'
-require_relative '../middleware/ip_ban'
 require_relative '../middleware/health_access_control'
 require_relative '../middleware/admin_network_isolation'
 require_relative '../middleware/csrf_response_header'
@@ -515,7 +514,7 @@ module Onetime
           # The middleware needs a security config that knows which proxies to
           # trust; without one it treats REMOTE_ADDR (the ingress/proxy hop) as
           # the client and overwrites X-Forwarded-For with it, hiding the real
-          # visitor IP from every downstream consumer (ban checks, sessions,
+          # visitor IP from every downstream consumer (sessions,
           # identity resolution, the Colonel "current IP" panel). See
           # ip_privacy_security_config.
           ip_privacy_config = ip_privacy_security_config
@@ -525,10 +524,6 @@ module Onetime
               trusted_proxy: trusted_proxy_enabled?,
             }
           builder.use Otto::Security::Middleware::IPPrivacyMiddleware, ip_privacy_config
-
-          # IP Ban middleware - blocks banned IPs (after IP privacy)
-          logger.debug 'Setting up IP Ban middleware'
-          builder.use Onetime::Middleware::IPBan
 
           # Health endpoint access control - restrict to localhost/private networks
           logger.debug 'Setting up Health Access Control middleware'

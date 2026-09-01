@@ -515,14 +515,6 @@
     "text": "Visa och hantera alla hemligheter",
     "source_hash": "48f8052e"
   },
-  "web.colonel.bannedIps.title": {
-    "text": "Blockerade IP-adresser",
-    "source_hash": "0ece5643"
-  },
-  "web.colonel.bannedIps.description": {
-    "text": "Hantera IP-blockeringslista",
-    "source_hash": "dd0d2614"
-  },
   "web.colonel.usageExport.title": {
     "text": "Användningsexport",
     "source_hash": "10a0cb94"
@@ -579,10 +571,6 @@
     "text": "Autentiseringsdatabas",
     "source_hash": "c683c9a6"
   },
-  "web.colonel.titles.bannedIps": {
-    "text": "Blockerade IP-adresser",
-    "source_hash": "0ece5643"
-  },
   "web.colonel.titles.usage": {
     "text": "Användningsexport",
     "source_hash": "10a0cb94"
@@ -614,82 +602,6 @@
   "web.colonel.previewModeActive": {
     "text": "Förhandsgranskning aktiv",
     "source_hash": "a558d603"
-  },
-  "web.colonel.bannedIps.empty": {
-    "text": "Inga blockerade IP-adresser",
-    "source_hash": "bd101143"
-  },
-  "web.colonel.bannedIps.currentIp": {
-    "text": "Din aktuella IP-adress",
-    "source_hash": "72f9fefe"
-  },
-  "web.colonel.bannedIps.confirmUnban": {
-    "text": "Ta bort blockering av {ip}?",
-    "source_hash": "ff009b1c"
-  },
-  "web.colonel.bannedIps.actions.ban": {
-    "text": "Blockera IP",
-    "source_hash": "f91a5285"
-  },
-  "web.colonel.bannedIps.actions.quickBan": {
-    "text": "Snabblockering",
-    "source_hash": "c32d0943"
-  },
-  "web.colonel.bannedIps.actions.unban": {
-    "text": "Ta bort blockering",
-    "source_hash": "25fb5989"
-  },
-  "web.colonel.bannedIps.actions.cancel": {
-    "text": "Avbryt",
-    "source_hash": "19766ed6"
-  },
-  "web.colonel.bannedIps.columns.ipAddress": {
-    "text": "IP-adress",
-    "source_hash": "3c3de0c9"
-  },
-  "web.colonel.bannedIps.columns.reason": {
-    "text": "Orsak",
-    "source_hash": "f81ab834"
-  },
-  "web.colonel.bannedIps.columns.bannedAt": {
-    "text": "Blockerad den",
-    "source_hash": "dfbd120e"
-  },
-  "web.colonel.bannedIps.columns.bannedBy": {
-    "text": "Blockerad av",
-    "source_hash": "9f47db0e"
-  },
-  "web.colonel.bannedIps.error.banFailed": {
-    "text": "Det gick inte att blockera IP-adressen",
-    "source_hash": "24e94d9b"
-  },
-  "web.colonel.bannedIps.error.unbanFailed": {
-    "text": "Det gick inte att ta bort blockeringen av IP-adressen",
-    "source_hash": "66bbac9a"
-  },
-  "web.colonel.bannedIps.form.title": {
-    "text": "Blockera IP-adress",
-    "source_hash": "3f5b3dfa"
-  },
-  "web.colonel.bannedIps.form.ipLabel": {
-    "text": "IP-adress",
-    "source_hash": "3c3de0c9"
-  },
-  "web.colonel.bannedIps.form.reasonLabel": {
-    "text": "Orsak",
-    "source_hash": "f81ab834"
-  },
-  "web.colonel.bannedIps.form.reasonPlaceholder": {
-    "text": "Valfri orsak",
-    "source_hash": "956688a5"
-  },
-  "web.colonel.bannedIps.success.banned": {
-    "text": "IP-adressen {ip} har blockerats",
-    "source_hash": "b6f861d5"
-  },
-  "web.colonel.bannedIps.success.unbanned": {
-    "text": "Blockeringen av IP-adressen {ip} har tagits bort",
-    "source_hash": "dbe93550"
   },
   "web.colonel.customDomains.empty": {
     "text": "Inga anpassade domäner konfigurerade",

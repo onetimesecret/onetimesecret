@@ -36,7 +36,7 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
   },
 }));
 
-// Render the HeadlessUI dialog markup synchronously (mirrors AdminBannedIps.spec).
+// Render the HeadlessUI dialog markup synchronously.
 vi.mock('@headlessui/vue', () => ({
   Dialog: {
     name: 'Dialog',

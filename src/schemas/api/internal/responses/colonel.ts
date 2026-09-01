@@ -265,26 +265,6 @@ export const redisMetricsDetailsSchema = z.object({
 });
 
 /**
- * Banned IP record
- */
-export const bannedIPSchema = z.object({
-  id: z.string(),
-  ip_address: z.string(),
-  reason: z.string().nullable(),
-  banned_by: z.string().nullable(),
-  banned_at: z.number(),
-});
-
-/**
- * Banned IPs list response details
- */
-export const bannedIPsDetailsSchema = z.object({
-  current_ip: z.string().default('unknown'),
-  banned_ips: z.array(bannedIPSchema),
-  total_count: z.number(),
-});
-
-/**
  * Usage export response details
  */
 export const usageExportDetailsSchema = z.object({
@@ -413,8 +393,6 @@ export type ColonelSecret = z.infer<typeof colonelSecretSchema>;
 export type ColonelSecretsDetails = z.infer<typeof colonelSecretsDetailsSchema>;
 export type DatabaseMetricsDetails = z.infer<typeof databaseMetricsDetailsSchema>;
 export type RedisMetricsDetails = z.infer<typeof redisMetricsDetailsSchema>;
-export type BannedIP = z.infer<typeof bannedIPSchema>;
-export type BannedIPsDetails = z.infer<typeof bannedIPsDetailsSchema>;
 export type UsageExportDetails = z.infer<typeof usageExportDetailsSchema>;
 export type ColonelCustomDomain = z.infer<typeof colonelCustomDomainSchema>;
 export type ColonelCustomDomainsDetails = z.infer<typeof colonelCustomDomainsDetailsSchema>;
@@ -915,10 +893,6 @@ export const redisMetricsResponseSchema = createApiResponseSchema(
   z.object({}),
   redisMetricsDetailsSchema
 );
-export const bannedIPsResponseSchema = createApiResponseSchema(
-  z.object({}),
-  bannedIPsDetailsSchema
-);
 export const usageExportResponseSchema = createApiResponseSchema(
   z.object({}),
   usageExportDetailsSchema
@@ -959,7 +933,6 @@ export type BackupStatusRecord = z.infer<typeof backupStatusRecordSchema>;
 export type BackupStatusResponse = z.infer<typeof backupStatusResponseSchema>;
 export type BrandDiagnosticsResponse = z.infer<typeof brandDiagnosticsResponseSchema>;
 export type RedisMetricsResponse = z.infer<typeof redisMetricsResponseSchema>;
-export type BannedIPsResponse = z.infer<typeof bannedIPsResponseSchema>;
 export type UsageExportResponse = z.infer<typeof usageExportResponseSchema>;
 export type QueueMetricsResponse = z.infer<typeof queueMetricsResponseSchema>;
 export type SystemSettingsResponse = z.infer<typeof systemSettingsResponseSchema>;

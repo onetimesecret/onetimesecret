@@ -402,80 +402,6 @@ RSpec.describe 'Admin Interface', type: :integration do
     end
   end
 
-  describe 'IP Banning' do
-    before { create_session_for(colonel_user) }
-
-    describe 'GET /api/colonel/banned-ips' do
-      it 'returns empty list when no IPs banned' do
-        get '/api/colonel/banned-ips'
-        expect(last_response.status).to eq(200)
-
-        body = JSON.parse(last_response.body)
-        expect(body['details']['banned_ips']).to be_an(Array)
-      end
-    end
-
-    describe 'POST /api/colonel/banned-ips' do
-      it 'bans an IP address' do
-        header 'X-CSRF-Token', admin_csrf_token
-        post '/api/colonel/banned-ips', {
-          ip_address: '192.168.1.100',
-          reason: 'Spam'
-        }
-
-        expect(last_response.status).to eq(200)
-        body = JSON.parse(last_response.body)
-        expect(body['record']['ip_address']).to eq('192.168.1.100')
-      end
-
-      it 'actually bans the IP in database' do
-        header 'X-CSRF-Token', admin_csrf_token
-        post '/api/colonel/banned-ips', {
-          ip_address: '10.0.0.50',
-          reason: 'Abuse'
-        }
-
-        expect(Onetime::BannedIP.banned?('10.0.0.50')).to be true
-      end
-
-      it 'rejects invalid IP addresses' do
-        header 'X-CSRF-Token', admin_csrf_token
-        post '/api/colonel/banned-ips', {
-          ip_address: 'not-an-ip',
-          reason: 'Test'
-        }
-
-        # raise_form_error produces OT::FormError which maps to HTTP 422
-        expect(last_response.status).to eq(422)
-      end
-    end
-
-    describe 'DELETE /api/colonel/banned-ips/:ip' do
-      before do
-        Onetime::BannedIP.ban!('192.168.1.200', reason: 'Test')
-      end
-
-      it 'unbans an IP address' do
-        header 'X-CSRF-Token', admin_csrf_token
-        delete '/api/colonel/banned-ips/192.168.1.200'
-        expect(last_response.status).to eq(200)
-      end
-
-      it 'actually removes the ban from database' do
-        header 'X-CSRF-Token', admin_csrf_token
-        delete '/api/colonel/banned-ips/192.168.1.200'
-
-        expect(Onetime::BannedIP.banned?('192.168.1.200')).to be false
-      end
-
-      it 'returns 404 for non-banned IP' do
-        header 'X-CSRF-Token', admin_csrf_token
-        delete '/api/colonel/banned-ips/1.2.3.4'
-        expect(last_response.status).to eq(404)
-      end
-    end
-  end
-
   describe 'Usage Export' do
     before { create_session_for(colonel_user) }
 
@@ -611,19 +537,6 @@ RSpec.describe 'Admin Interface', type: :integration do
       expect(body['details']['date_range']['start_date']).to eq(start_date)
       expect(body['details']['date_range']['end_date']).to eq(end_date)
       expect(body['details']['date_range']['days']).to eq(7)
-    end
-
-    it 'TEST 5: Ban IP, verify blocking works' do
-      # Ban an IP
-      header 'X-CSRF-Token', admin_csrf_token
-      post '/api/colonel/banned-ips', {
-        ip_address: '1.2.3.4',
-        reason: 'Test ban'
-      }
-      expect(last_response.status).to eq(200)
-
-      # Verify IP is actually banned in database
-      expect(Onetime::BannedIP.banned?('1.2.3.4')).to be true
     end
   end
 end

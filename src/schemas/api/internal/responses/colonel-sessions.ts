@@ -15,7 +15,7 @@
 // (apps/api/colonel/logic/colonel/{list_sessions,get_session_detail,delete_session}.rb),
 // which are thin adapters over Onetime::Operations::Sessions::{List,Inspect,Delete}.
 // Epoch fields (created_at / authenticated_at / ttl) arrive as bare Unix-second
-// numbers and are kept numeric (mirroring the existing `bannedIPSchema.banned_at`).
+// numbers and are kept numeric.
 
 import { createApiResponseSchema } from '@/schemas/api/base';
 import { paginationSchema } from './colonel';

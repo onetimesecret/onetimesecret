@@ -63,7 +63,6 @@ verbs are guarded by typed-confirmation dialogs.
 | Organizations | `/colonel/organizations` | Org list, billing-investigate, entitlement overrides. |
 | Domains | `/colonel/domains` | Custom-domain grid + per-domain verify. |
 | System | `/colonel/system` | Database / Redis / queue metrics read-out. |
-| Banned IPs | `/colonel/banned-ips` | List + guarded ban / unban. |
 | Usage | `/colonel/usage` | Usage-export read-out. |
 | Sessions | `/colonel/sessions` | Inspect / search / revoke sessions. |
 | Banner | `/colonel/banner` | Set / show / clear the broadcast banner. |

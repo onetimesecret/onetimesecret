@@ -5,9 +5,8 @@
 # Central (cross-cutting) admin operations — see decision D3 in
 # lib/onetime/operations/README.md. The global broadcast banner is a site-wide
 # runtime state with no single domain owner (it is read at boot by the
-# CheckGlobalBanner initializer and surfaced by GlobalBroadcast.vue), so — like
-# {Onetime::Operations::BanIP} — it lives in the central operations home rather
-# than an app-scoped one. Loaded at the call site (colonel logic + the `bin/ots
+# CheckGlobalBanner initializer and surfaced by GlobalBroadcast.vue), so it
+# lives in the central operations home rather than an app-scoped one. Loaded at the call site (colonel logic + the `bin/ots
 # banner` CLI), so require the audit dependency explicitly.
 require 'onetime/models/colonel_audit_event'
 require 'onetime/audited_failure'
@@ -300,8 +299,8 @@ module Onetime
     # nothing mutated AND nothing was refused. The discriminator is the adapter:
     # colonel `ClearBanner` deliberately returns 200 with `cleared: false` for
     # this status ("not surfaced as an error", so a benign TTL race is not a
-    # failure), unlike colonel `UnbanIP`, whose `:not_found` is a 404 and IS
-    # therefore recorded as a refusal.
+    # failure), unlike colonel `RemoveEmailSuppression`, whose `:not_found` is a
+    # 404 and IS therefore recorded as a refusal.
     class ClearBanner
       include Onetime::AuditedFailure
 

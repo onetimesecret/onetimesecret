@@ -13,7 +13,7 @@ module Onetime
     # AdminNetworkIsolation - host and network isolation for the Colonel admin
     # surfaces (`/colonel` shell + `/api/colonel` API).
     #
-    # A sibling of IPBan and HealthAccessControl in the universal middleware
+    # A sibling of HealthAccessControl in the universal middleware
     # stack (see Onetime::Application::MiddlewareStack.configure). It gives the
     # deployment a config-selectable posture WITHOUT forking the code, across
     # TWO INDEPENDENT FACTORS. Neither replaces the other, and a request must
@@ -164,7 +164,7 @@ module Onetime
     # /32–/128 precision without the unmasked address ever landing in env, a
     # log, or this middleware; it resolves via the same
     # Otto::Utils.resolve_client_ip the auth strategies use, so the network
-    # gate still agrees with ban checks, sessions, and audit attribution on WHO
+    # gate still agrees with sessions and audit attribution on WHO
     # the client is. A request that never passed the otto mount has no closure;
     # membership then falls back to comparing the resolved IP itself, and that
     # same mount is what writes env['otto.client_ip'], so with it absent
