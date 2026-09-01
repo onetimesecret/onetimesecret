@@ -6,7 +6,7 @@
   import { useI18n } from 'vue-i18n';
 
   import { useColonelElevation } from '../composables/useColonelElevation';
-  import { ADMIN_SIGN_IN_PATH } from '../utils/adminSessionExpiry';
+  import { recoverAdminSession } from '../utils/adminSessionExpiry';
 
   /**
    * A live step-up (sudo) window, shown while one is open (#4327), and the
@@ -78,12 +78,18 @@
       <span class="truncate">{{ t('web.admin.session.expired') }}</span>
     </span>
 
-    <a
-      :href="ADMIN_SIGN_IN_PATH"
+    <!--
+      Recovery CLEARS the session before sign-in (#4331): a bare link to /signin
+      is a no-op in simple mode while the cookie still reads authenticated. See
+      recoverAdminSession.
+    -->
+    <button
+      type="button"
       class="shrink-0 rounded px-2 py-1 font-semibold underline underline-offset-2 hover:bg-black/5 dark:hover:bg-white/10"
-      data-testid="admin-session-signin">
+      data-testid="admin-session-signin"
+      @click="recoverAdminSession">
       {{ t('web.admin.session.signIn') }}
-    </a>
+    </button>
   </div>
 
   <div

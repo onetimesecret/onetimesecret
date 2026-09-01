@@ -1,7 +1,7 @@
 // src/tests/apps/admin/adminSessionExpiry.spec.ts
 
 import { AxiosError } from 'axios';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 /**
  * The single recogniser for the #4331 expired-admin-session 401, and its wiring
@@ -20,6 +20,7 @@ import {
   adminSessionExpired,
   clearAdminSessionExpired,
   noteAdminSessionExpiry,
+  recoverAdminSession,
 } from '@/apps/admin/utils/adminSessionExpiry';
 
 function axiosError(status: number, data: Record<string, unknown>): AxiosError {
@@ -103,5 +104,60 @@ describe('useAdminMutation', () => {
 
     expect(await mutation.run()).toBe(false);
     expect(adminSessionExpired.value).toBe(false);
+  });
+});
+
+// The recovery a bare /signin link cannot do in simple mode (#4331): while the
+// shared cookie still reads authenticated, GET /signin short-circuits to
+// "already logged in" without re-stamping, so the session must be CLEARED first.
+describe('recoverAdminSession', () => {
+  let originalLocation: Location;
+  let assignMock: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    originalLocation = window.location;
+    assignMock = vi.fn();
+    Object.defineProperty(window, 'location', {
+      value: { assign: assignMock },
+      writable: true,
+      configurable: true,
+    });
+  });
+
+  afterEach(() => {
+    Object.defineProperty(window, 'location', {
+      value: originalLocation,
+      writable: true,
+      configurable: true,
+    });
+    vi.unstubAllGlobals();
+  });
+
+  it('logs out to clear the session, THEN navigates to sign-in', async () => {
+    const order: string[] = [];
+    const fetchMock = vi.fn().mockImplementation(async () => {
+      order.push('logout');
+      return { ok: true };
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    assignMock.mockImplementation(() => order.push('navigate'));
+
+    await recoverAdminSession();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/auth/logout',
+      expect.objectContaining({ method: 'GET' })
+    );
+    expect(assignMock).toHaveBeenCalledWith('/signin?redirect=/colonel');
+    // Order is the whole point: clearing the session must precede the sign-in.
+    expect(order).toEqual(['logout', 'navigate']);
+  });
+
+  it('still navigates when logout fails (never worse than the dead-end)', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
+
+    await recoverAdminSession();
+
+    expect(assignMock).toHaveBeenCalledWith('/signin?redirect=/colonel');
   });
 });

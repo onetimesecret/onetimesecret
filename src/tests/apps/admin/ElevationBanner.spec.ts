@@ -121,19 +121,49 @@ describe('ElevationBanner', () => {
   });
 
   describe('the expired state (#4331)', () => {
-    it('renders the notice with a sign-in link once a 401 carries the marker', async () => {
-      await mountWith();
-      expect(wrapper.find('[data-testid="admin-session-expired-banner"]').exists()).toBe(false);
+    it('renders the notice with a session-clearing recovery control once a 401 carries the marker', async () => {
+      const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+      vi.stubGlobal('fetch', fetchMock);
+      const originalLocation = window.location;
+      const assignMock = vi.fn();
+      Object.defineProperty(window, 'location', {
+        value: { assign: assignMock },
+        writable: true,
+        configurable: true,
+      });
 
-      noteAdminSessionExpiry(expiredError('idle'));
-      await flushPromises();
+      try {
+        await mountWith();
+        expect(wrapper.find('[data-testid="admin-session-expired-banner"]').exists()).toBe(false);
 
-      const banner = wrapper.find('[data-testid="admin-session-expired-banner"]');
-      expect(banner.exists()).toBe(true);
-      expect(banner.text()).toContain('web.admin.session.expired');
-      expect(wrapper.find('[data-testid="admin-session-signin"]').attributes('href')).toBe(
-        '/signin?redirect=/colonel'
-      );
+        noteAdminSessionExpiry(expiredError('idle'));
+        await flushPromises();
+
+        const banner = wrapper.find('[data-testid="admin-session-expired-banner"]');
+        expect(banner.exists()).toBe(true);
+        expect(banner.text()).toContain('web.admin.session.expired');
+
+        // The recovery affordance is an ACTION, not a bare link: a /signin link
+        // no-ops in simple mode while the cookie still reads authenticated, so
+        // clicking it clears the session first, then navigates (#4331).
+        const signin = wrapper.find('[data-testid="admin-session-signin"]');
+        expect(signin.exists()).toBe(true);
+        await signin.trigger('click');
+        await flushPromises();
+
+        expect(fetchMock).toHaveBeenCalledWith(
+          '/auth/logout',
+          expect.objectContaining({ method: 'GET' })
+        );
+        expect(assignMock).toHaveBeenCalledWith('/signin?redirect=/colonel');
+      } finally {
+        Object.defineProperty(window, 'location', {
+          value: originalLocation,
+          writable: true,
+          configurable: true,
+        });
+        vi.unstubAllGlobals();
+      }
     });
 
     // Priority, both ways round: an operator with a live sudo window whose admin
