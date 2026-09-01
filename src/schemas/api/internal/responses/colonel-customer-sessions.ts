@@ -24,6 +24,18 @@
 import { createApiResponseSchema } from '@/schemas/api/base';
 import { z } from 'zod';
 
+/**
+ * The non-reversible session handle (F-01): the first 32 hex chars of an
+ * HMAC-SHA256 over the raw sid (SessionMetadata.handle_for). Validating the
+ * exact shape — not just z.string() — makes the schema a security tripwire:
+ * a backend regression that leaks the raw 64+-char sid (or anything else)
+ * under a *_handle key fails parsing here instead of flowing a replayable
+ * bearer value into the admin UI.
+ */
+export const sessionHandleSchema = z
+  .string()
+  .regex(/^[0-9a-f]{32}$/, 'session_handle must be a 32-char lowercase hex handle');
+
 // ============================================================================
 // ListCustomerSessions — one customer's session rows
 // ============================================================================
@@ -46,7 +58,7 @@ import { z } from 'zod';
  * guarantee.
  */
 export const adminCustomerSessionSchema = z.object({
-  session_handle: z.string(),
+  session_handle: sessionHandleSchema,
   user_id: z.string(),
   org_id: z.string().nullable(),
   created_at: z.number().nullable(),
@@ -72,7 +84,7 @@ export const adminCustomerSessionSchema = z.object({
 export const colonelCustomerSessionsDetailsSchema = z.object({
   sessions: z.array(adminCustomerSessionSchema),
   count: z.number(),
-  current_session_handle: z.string().nullable().optional(),
+  current_session_handle: sessionHandleSchema.nullable().optional(),
 });
 
 // ============================================================================
@@ -81,7 +93,7 @@ export const colonelCustomerSessionsDetailsSchema = z.object({
 
 /** RevokeCustomerSession `record`: the revoked session's handle + a revoked flag. */
 export const colonelCustomerSessionRevokeRecordSchema = z.object({
-  session_handle: z.string(),
+  session_handle: sessionHandleSchema,
   revoked: z.boolean(),
 });
 
