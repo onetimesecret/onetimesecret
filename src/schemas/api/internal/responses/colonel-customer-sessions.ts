@@ -9,7 +9,11 @@
 // and the frontend physically cannot render one.
 //
 //   - ListCustomerSessions   → GET    /api/colonel/users/:user_id/sessions
-//   - RevokeCustomerSession  → DELETE /api/colonel/users/:user_id/sessions/:session_id
+//   - RevokeCustomerSession  → DELETE /api/colonel/users/:user_id/sessions/:session_handle
+//
+// Sessions are identified by session_handle, a non-reversible digest of the raw
+// session id (finding F-01). The raw sid is the live session cookie / Redis blob
+// key, so it is never sent to the client; the handle round-trips list → revoke.
 //
 // Shape verified VERBATIM against the SessionMetadata safe_dump_fields allow-list
 // (lib/onetime/models/session_metadata.rb) and the logic adapters
@@ -20,13 +24,27 @@
 import { createApiResponseSchema } from '@/schemas/api/base';
 import { z } from 'zod';
 
+/**
+ * The non-reversible session handle (F-01): the first 32 hex chars of an
+ * HMAC-SHA256 over the raw sid (SessionMetadata.handle_for). Validating the
+ * exact shape — not just z.string() — makes the schema a security tripwire:
+ * a backend regression that leaks the raw 64+-char sid (or anything else)
+ * under a *_handle key fails parsing here instead of flowing a replayable
+ * bearer value into the admin UI.
+ */
+export const sessionHandleSchema = z
+  .string()
+  .regex(/^[0-9a-f]{32}$/, 'session_handle must be a 32-char lowercase hex handle');
+
 // ============================================================================
 // ListCustomerSessions — one customer's session rows
 // ============================================================================
 
 /**
  * A single per-customer session row — the SessionMetadata safe_dump shape
- * verbatim. Every field except session_id/user_id is nullable: org_id is the
+ * verbatim. session_handle is the non-reversible identifier (F-01) the revoke
+ * endpoint accepts; the raw session id never crosses the API. Every field except
+ * session_handle/user_id is nullable: org_id is the
  * active organization objid, resolved per write (null if the customer has no
  * org); ip_address/user_agent are copied as-is from the (already Otto-masked)
  * session data; auth_method is the primary login method stamped at auth time
@@ -40,7 +58,7 @@ import { z } from 'zod';
  * guarantee.
  */
 export const adminCustomerSessionSchema = z.object({
-  session_id: z.string(),
+  session_handle: sessionHandleSchema,
   user_id: z.string(),
   org_id: z.string().nullable(),
   created_at: z.number().nullable(),
@@ -55,27 +73,27 @@ export const adminCustomerSessionSchema = z.object({
 /**
  * ListCustomerSessions `details`: the customer's session rows + a count.
  *
- * `current_session_id` is the acting colonel's OWN request session id whenever
- * it can be identified, regardless of whether it appears among these rows. The
- * UI matches it against the rows: on a match (colonel viewing their own customer
- * detail) it badges that row and disables its per-row revoke, since a
- * self-revoke is a no-op (Rack re-persists the current session's blob at the end
- * of the same request). Null/absent only when the current session can't be
- * identified (e.g. a Hash session under JSON auth).
+ * `current_session_handle` is the handle of the acting colonel's OWN request
+ * session whenever it can be identified, regardless of whether it appears among
+ * these rows. The UI matches it against the rows' session_handle: on a match
+ * (colonel viewing their own customer detail) it badges that row and disables
+ * its per-row revoke, since a self-revoke is a no-op (Rack re-persists the
+ * current session's blob at the end of the same request). Null/absent only when
+ * the current session can't be identified (e.g. a Hash session under JSON auth).
  */
 export const colonelCustomerSessionsDetailsSchema = z.object({
   sessions: z.array(adminCustomerSessionSchema),
   count: z.number(),
-  current_session_id: z.string().nullable().optional(),
+  current_session_handle: sessionHandleSchema.nullable().optional(),
 });
 
 // ============================================================================
 // RevokeCustomerSession — guarded revoke ack
 // ============================================================================
 
-/** RevokeCustomerSession `record`: the revoked session's id + a revoked flag. */
+/** RevokeCustomerSession `record`: the revoked session's handle + a revoked flag. */
 export const colonelCustomerSessionRevokeRecordSchema = z.object({
-  session_id: z.string(),
+  session_handle: sessionHandleSchema,
   revoked: z.boolean(),
 });
 
@@ -131,7 +149,7 @@ export const colonelCustomerSessionsResponseSchema = createApiResponseSchema(
   colonelCustomerSessionsDetailsSchema
 );
 
-// DELETE /api/colonel/users/:user_id/sessions/:session_id → RevokeCustomerSession
+// DELETE /api/colonel/users/:user_id/sessions/:session_handle → RevokeCustomerSession
 export const colonelCustomerSessionRevokeResponseSchema = createApiResponseSchema(
   colonelCustomerSessionRevokeRecordSchema,
   colonelCustomerSessionRevokeDetailsSchema

@@ -45,7 +45,7 @@ const UNKNOWN = 'web.admin.customers.detail.sessions.unknown';
 
 function sessionRow(overrides: Partial<AdminCustomerSession> = {}): AdminCustomerSession {
   return {
-    session_id: 'sid_1',
+    session_handle: 'a15e5510000000000000000000000001',
     user_id: USER_ID,
     org_id: null,
     created_at: 1700000000,
@@ -75,13 +75,13 @@ function sessionRowWithoutCountry(
 }
 
 function sessionsPayload(
-  rows: AdminCustomerSession[] = [sessionRow(), sessionRow({ session_id: 'sid_2' })],
-  currentSessionId: string | null = null
+  rows: AdminCustomerSession[] = [sessionRow(), sessionRow({ session_handle: 'a15e5510000000000000000000000002' })],
+  currentSessionHandle: string | null = null
 ) {
   return {
     shrimp: '',
     record: {},
-    details: { sessions: rows, count: rows.length, current_session_id: currentSessionId },
+    details: { sessions: rows, count: rows.length, current_session_handle: currentSessionHandle },
   };
 }
 
@@ -122,39 +122,39 @@ describe('AdminCustomerSessionsSection — current-session badge', () => {
   afterEach(() => wrapper?.unmount());
 
   it('badges the matching row and withholds its revoke button', async () => {
-    mockApi.get.mockResolvedValue({ data: sessionsPayload(undefined, 'sid_1') });
+    mockApi.get.mockResolvedValue({ data: sessionsPayload(undefined, 'a15e5510000000000000000000000001') });
     wrapper = mountSection();
     await flushPromises();
 
     // The colonel's own row: badge in, per-row revoke out (v-if/v-else).
-    expect(badge(wrapper, 'sid_1').exists()).toBe(true);
-    expect(revoke(wrapper, 'sid_1').exists()).toBe(false);
-    expect(badge(wrapper, 'sid_1').text()).toContain(
+    expect(badge(wrapper, 'a15e5510000000000000000000000001').exists()).toBe(true);
+    expect(revoke(wrapper, 'a15e5510000000000000000000000001').exists()).toBe(false);
+    expect(badge(wrapper, 'a15e5510000000000000000000000001').text()).toContain(
       'web.admin.customers.detail.sessions.current.badge'
     );
-    expect(badge(wrapper, 'sid_1').attributes('title')).toBe(
+    expect(badge(wrapper, 'a15e5510000000000000000000000001').attributes('title')).toBe(
       'web.admin.customers.detail.sessions.current.tooltip'
     );
   });
 
   it('renders the revoke button (and no badge) on non-matching rows', async () => {
-    mockApi.get.mockResolvedValue({ data: sessionsPayload(undefined, 'sid_1') });
+    mockApi.get.mockResolvedValue({ data: sessionsPayload(undefined, 'a15e5510000000000000000000000001') });
     wrapper = mountSection();
     await flushPromises();
 
-    expect(revoke(wrapper, 'sid_2').exists()).toBe(true);
-    expect(badge(wrapper, 'sid_2').exists()).toBe(false);
+    expect(revoke(wrapper, 'a15e5510000000000000000000000002').exists()).toBe(true);
+    expect(badge(wrapper, 'a15e5510000000000000000000000002').exists()).toBe(false);
   });
 
-  it('shows no badge and all revoke buttons when currentSessionId is null', async () => {
+  it('shows no badge and all revoke buttons when currentSessionHandle is null', async () => {
     mockApi.get.mockResolvedValue({ data: sessionsPayload(undefined, null) });
     wrapper = mountSection();
     await flushPromises();
 
     // null must not accidentally match any row (the guard in isCurrentSession).
     expect(wrapper.find('[data-testid^="session-current-"]').exists()).toBe(false);
-    expect(revoke(wrapper, 'sid_1').exists()).toBe(true);
-    expect(revoke(wrapper, 'sid_2').exists()).toBe(true);
+    expect(revoke(wrapper, 'a15e5510000000000000000000000001').exists()).toBe(true);
+    expect(revoke(wrapper, 'a15e5510000000000000000000000002').exists()).toBe(true);
   });
 });
 
@@ -164,8 +164,8 @@ describe('adminCustomerSessionSchema — geo_country', () => {
     // crosses the API.
     const result = colonelCustomerSessionsResponseSchema.safeParse(
       sessionsPayload([
-        sessionRow({ session_id: 'sid_code', geo_country: 'DE' }),
-        sessionRow({ session_id: 'sid_null', geo_country: null }),
+        sessionRow({ session_handle: 'a15e551000000000000000000000c0de', geo_country: 'DE' }),
+        sessionRow({ session_handle: 'a15e55100000000000000000000000aa', geo_country: null }),
       ])
     );
     expect(result.success).toBe(true);
@@ -177,8 +177,8 @@ describe('adminCustomerSessionSchema — geo_country', () => {
 
   it('parses rows that OMIT geo_country entirely — deploy skew must not fail the whole list', () => {
     const payload = sessionsPayload([
-      sessionRowWithoutCountry({ session_id: 'sid_old' }),
-      sessionRow({ session_id: 'sid_new', geo_country: 'FR' }),
+      sessionRowWithoutCountry({ session_handle: 'a15e551000000000000000000000000d' }),
+      sessionRow({ session_handle: 'a15e551000000000000000000000000e', geo_country: 'FR' }),
     ]);
     const result = colonelCustomerSessionsResponseSchema.safeParse(payload);
     expect(result.success).toBe(true);
@@ -214,8 +214,8 @@ describe('AdminCustomerSessionsSection — country column', () => {
   it('renders a null and an absent geo_country as Unknown', async () => {
     mockApi.get.mockResolvedValue({
       data: sessionsPayload([
-        sessionRow({ session_id: 'sid_null', geo_country: null }),
-        sessionRowWithoutCountry({ session_id: 'sid_absent' }),
+        sessionRow({ session_handle: 'a15e55100000000000000000000000aa', geo_country: null }),
+        sessionRowWithoutCountry({ session_handle: 'a15e55100000000000000000000000ab' }),
       ]),
     });
     wrapper = mountSection();
@@ -227,9 +227,9 @@ describe('AdminCustomerSessionsSection — country column', () => {
 
   it('never leaks an IP into the country cell — only a 2-letter code or Unknown', async () => {
     const rows = [
-      sessionRow({ session_id: 'sid_code', ip_address: '203.0.113.7', geo_country: 'DE' }),
-      sessionRow({ session_id: 'sid_null', ip_address: '192.0.2.44', geo_country: null }),
-      sessionRowWithoutCountry({ session_id: 'sid_absent', ip_address: '2001:db8::1' }),
+      sessionRow({ session_handle: 'a15e551000000000000000000000c0de', ip_address: '203.0.113.7', geo_country: 'DE' }),
+      sessionRow({ session_handle: 'a15e55100000000000000000000000aa', ip_address: '192.0.2.44', geo_country: null }),
+      sessionRowWithoutCountry({ session_handle: 'a15e55100000000000000000000000ab', ip_address: '2001:db8::1' }),
     ];
     mockApi.get.mockResolvedValue({ data: sessionsPayload(rows) });
     wrapper = mountSection();

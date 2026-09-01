@@ -110,7 +110,7 @@ DELETE /sessions/:session_id              ColonelAPI::Logic::Colonel::DeleteSess
 GET    /users/:user_id/sessions           ColonelAPI::Logic::Colonel::ListCustomerSessions response=json auth=sessionauth role=colonel scope=internal
 # Bulk revoke-all (offboarding/takeover). POST+verb (local convention for bulk-destructive) so it can't collide with the single-revoke DELETE below.
 POST   /users/:user_id/sessions/revoke-all ColonelAPI::Logic::Colonel::RevokeAllCustomerSessions response=json auth=sessionauth role=colonel scope=internal
-DELETE /users/:user_id/sessions/:session_id ColonelAPI::Logic::Colonel::RevokeCustomerSession response=json auth=sessionauth role=colonel scope=internal
+DELETE /users/:user_id/sessions/:session_handle ColonelAPI::Logic::Colonel::RevokeCustomerSession response=json auth=sessionauth role=colonel scope=internal
 
 # Broadcast Banner (ticket #41)
 GET    /banner                            ColonelAPI::Logic::Colonel::GetBanner response=json auth=sessionauth role=colonel scope=internal
