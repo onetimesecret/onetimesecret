@@ -5,6 +5,7 @@
 require_relative '../base'
 require_relative 'account_identifier'
 require 'auth/operations/customers/change_email'
+require 'onetime/operations/customers/role_support'
 
 module ColonelAPI
   module Logic
@@ -88,7 +89,38 @@ module ColonelAPI
             confirm_subject: "the account's current email address",
             field: :user_id,
           )
+
+          refuse_last_colonel_lockout!
           charge_destructive_budget!
+        end
+
+        # INTERLOCK (#4328 review). ChangeEmail resets verification with
+        # enforce_interlocks:false (the address itself is changing, so refusing the
+        # verification RESET would be strictly worse — it would leave a colonel
+        # verified against an address nobody has proven). But clearing verification
+        # on the LAST active colonel locks the whole install out of /colonel —
+        # has_system_role? refuses every unverified account — recoverable only from
+        # the shell, the exact outcome #4328 exists to prevent, reached through the
+        # one path the roster interlock is switched off for. So gate the EMAIL
+        # CHANGE itself here: refuse when it would strip the last active colonel's
+        # verification. keep_verified is the deliberate escape hatch — it preserves
+        # verification on the new address (accepting an unproven-verified colonel,
+        # the lesser evil) for the operator who cannot promote a second colonel
+        # first. `!keep_verified` mirrors the require_verification: !keep_verified
+        # passed to the op, so this fires exactly when verification will be cleared.
+        def refuse_last_colonel_lockout!
+          return if keep_verified
+          return unless Onetime::Operations::Customers::RoleSupport
+            .last_colonel_by_verification?(user)
+
+          raise_form_error(
+            "Refusing to change the last active colonel's email: it would clear " \
+            'their verification and lock this install out of the admin console ' \
+            '(recoverable only from the CLI). Promote and verify another colonel ' \
+            'first, or re-send with keep_verified=true to keep verification on the ' \
+            'new address.',
+            field: :user_id,
+          )
         end
 
         def process

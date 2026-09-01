@@ -23,7 +23,7 @@ RSpec.describe ColonelAPI::Logic::Colonel::ChangeUserEmail do
 
   let(:target) do
     instance_double(Onetime::Customer,
-      objid: 'cust_target', extid: 'ur_target',
+      objid: 'cust_target', extid: 'ur_target', role: 'customer',
       email: 'old@example.com', exists?: true, anonymous?: false)
   end
 
@@ -187,6 +187,60 @@ RSpec.describe ColonelAPI::Logic::Colonel::ChangeUserEmail do
 
       expect(Auth::Operations::Customers::ChangeEmail).to have_received(:new)
         .with(hash_including(require_verification: false))
+    end
+  end
+
+  # ---- Last active colonel lockout interlock (#4328 review) ------------------
+  #
+  # ChangeEmail clears verification with enforce_interlocks:false, so changing the
+  # last active colonel's email would unverify them, and has_system_role? refuses
+  # every unverified account — locking the install out of /colonel entirely. The
+  # apply path refuses that; keep_verified is the escape hatch.
+  describe 'last active colonel lockout' do
+    let(:colonel_target) do
+      instance_double(Onetime::Customer,
+        objid: 'cust_last', extid: 'ur_last', email: 'boss@example.com',
+        role: 'colonel', verified?: true, exists?: true, anonymous?: false)
+    end
+
+    def change_email_logic(params = {})
+      allow(Onetime::Customer).to receive(:load_by_extid_or_email).and_return(colonel_target)
+      allow(op).to receive(:call).and_return(build_result(status: :success))
+      described_class.new(
+        double('StrategyResult', session: {}, user: colonel,
+          auth_method: 'sessionauth', metadata: { confirm_token: 'boss@example.com' }),
+        { 'user_id' => 'ur_last', 'new_email' => 'new@example.com', 'dry_run' => 'false' }.merge(params),
+      )
+    end
+
+    it 'refuses when the change would clear the last active colonel verification' do
+      allow(Onetime::Customer).to receive(:find_all_by_role).with('colonel').and_return([colonel_target])
+
+      expect { change_email_logic.raise_concerns }
+        .to raise_error(Onetime::FormError, /last active colonel/i)
+      expect(op).not_to have_received(:call)
+    end
+
+    it 'allows it when keep_verified=true preserves verification (the escape hatch)' do
+      allow(Onetime::Customer).to receive(:find_all_by_role).with('colonel').and_return([colonel_target])
+
+      expect { change_email_logic('keep_verified' => 'true').raise_concerns }.not_to raise_error
+    end
+
+    it 'allows it when a second verified colonel exists (roster stays populated)' do
+      second = instance_double(Onetime::Customer,
+        objid: 'cust_second', role: 'colonel', verified?: true, exists?: true)
+      allow(Onetime::Customer).to receive(:find_all_by_role).with('colonel')
+        .and_return([colonel_target, second])
+
+      expect { change_email_logic.raise_concerns }.not_to raise_error
+    end
+
+    it 'does not fire on a plain (non-colonel) target' do
+      # target is role: customer; the default apply-path examples already exercise
+      # this, but pin it: no roster read, no refusal.
+      expect { logic_for({ 'dry_run' => 'false' }, status: :success).raise_concerns }
+        .not_to raise_error
     end
   end
 
