@@ -242,7 +242,35 @@ operator actions in the admin console and is rendered only by the colonel app
 (`ColonelAuditLog.vue`). It sits outside the
 `audit_logs` entitlement and outside ADR-021's two-stream model — it answers
 "what did *our operators* do," not "what happened in a customer's org."
-Mentioned here only to prevent the name collision.
+Mentioned here mostly to prevent the name collision; the one piece of its
+contract this document owns is the target-identity policy below.
+
+### Target identity: session verbs
+
+An event's `target` is the public id of the acted-on resource, and for session
+verbs that id is **never the raw session id**: a live sid is byte-identical to
+the `onetime.session` bearer cookie, and the operator trail is count-capped
+with no TTL, so a recorded sid persists a replayable credential (finding F-01,
+#4330). Concretely:
+
+- **Per-session verbs** — `session.delete`, `session.revoke`, and per-session
+  read verbs such as `session.inspect`: `target` is
+  `SessionMetadata.handle_for(sid)`, the same non-reversible handle the
+  colonel console renders. One session therefore carries ONE identifier across
+  every verb that touches it, so inspect/revoke/delete events correlate with
+  each other and with the UI. When the verb has a customer scope
+  (`session.revoke`), it goes in `detail` (`detail.custid`, the route param as
+  the operator gave it); `detail` must not carry the raw sid either.
+- **Per-customer verbs** — `session.revoke_all`: the verb acts on a customer,
+  not one session, so `target` is the customer's extid (falling back to the
+  raw route param only when it resolves to no customer), with the kill counts
+  in `detail`.
+
+History note: `session.delete` events written before #4330, and
+`session.revoke` / `session.revoke_all` events written before this policy
+landed, carry the old target values (raw sid; raw route custid). They are not
+backfilled — pre-policy and post-policy events for the same session/customer
+do not correlate by target.
 
 ### Three sub-streams, three budgets (#4335)
 

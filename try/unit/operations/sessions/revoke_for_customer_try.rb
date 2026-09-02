@@ -11,9 +11,11 @@
 # it) to make the invalidation genuine, not mocked. Covers:
 # - after revoke: the live `session:<sid>` blob is GONE (Store.find_key -> nil),
 #   the sidecar is destroyed, the sid is ZREM'd from Customer#active_sessions
-# - EXACTLY ONE customer-scoped ColonelAuditEvent per revoke: verb 'session.revoke',
-#   target = the customer id, actor = the acting colonel's PUBLIC id, session_id
-#   in detail, and blob_deleted reflects whether a live blob was present
+# - EXACTLY ONE ColonelAuditEvent per revoke: verb 'session.revoke', target = the
+#   session HANDLE (SessionMetadata.handle_for — never the raw sid, which is the
+#   bearer cookie; docs/architecture/audit-logging.md "Session verbs"), actor =
+#   the acting colonel's PUBLIC id, the route custid in detail, and blob_deleted
+#   reflects whether a live blob was present
 # - IDEMPOTENT: a second revoke still returns revoked:true, still audits (this op
 #   ALWAYS audits — unlike the global Delete, which skips audit on not-found), and
 #   this time reports blob_deleted:false
@@ -147,14 +149,20 @@ DB.exists("sidecar:#{@sid}:awaiting_mfa", "sidecar:#{@sid}:domain_context")
 AE.count
 #=> 1
 
-## the event is the revoke verb, targeting the customer, actored by the PUBLIC id
+## the event is the revoke verb, targeting the session HANDLE (correlating with
+## every other per-session verb on this session), actored by the PUBLIC id
 @ev = AE.recent(1).first
 [@ev['verb'], @ev['target'], @ev['actor']]
-#=> ["session.revoke", "#{@extid}", "#{@actor}"]
+#=> ["session.revoke", SM.handle_for(@sid), "#{@actor}"]
 
-## the audit detail carries the session id + blob_deleted, and no secret material
-@ev['detail']['session_id']
-#=> "#{@sid}"
+## the recorded target is a 32-hex handle and is NOT the raw session id
+[@ev['target'].match?(/\A[0-9a-f]{32}\z/), @ev['target'] == @sid]
+#=> [true, false]
+
+## the audit detail carries the customer scope (route custid) + blob_deleted —
+## and never the raw sid
+[@ev['detail']['custid'], @ev['detail']['blob_deleted'], @ev['detail'].key?('session_id')]
+#=> ["#{@extid}", true, false]
 
 ## the audit actor is never an internal objid
 @ev['actor'].include?('objid')
@@ -190,10 +198,11 @@ AE.events.clear
 [@resm.revoked, @resm.blob_deleted, Store.find_key(DB, @msid)]
 #=> [true, true, nil]
 
-## the audit targets the route customer but records the sidecar's true owner
+## the audit targets the revoked session's handle; the route customer is in
+## detail, and the sidecar's true owner is surfaced alongside it
 @evm = AE.recent(1).first
-[@evm['target'], @evm['detail']['session_user_id']]
-#=> ["#{@extid}", "#{@other_extid}"]
+[@evm['target'], @evm['detail']['custid'], @evm['detail']['session_user_id']]
+#=> [SM.handle_for(@msid), "#{@extid}", "#{@other_extid}"]
 
 ## a matching-owner revoke omits session_user_id (only present on mismatch)
 AE.events.clear
@@ -213,11 +222,12 @@ AE.events.clear
 [@resn.revoked, @resn.blob_deleted, Store.find_key(DB, @nsid), SM.load(@nsid).nil?]
 #=> [true, true, nil, true]
 
-## it still audits, targeting the route custid; session_user_id is omitted
-## because owner attribution needs a resolved customer to compare against
+## it still audits, targeting the session handle with the route custid in
+## detail; session_user_id is omitted because owner attribution needs a
+## resolved customer to compare against
 @evn = AE.recent(1).first
-[AE.count, @evn['target'], @evn['detail'].key?('session_user_id')]
-#=> [1, "#{@nghost}", false]
+[AE.count, @evn['target'], @evn['detail']['custid'], @evn['detail'].key?('session_user_id')]
+#=> [1, SM.handle_for(@nsid), "#{@nghost}", false]
 
 ## the true owner's index member survives (prune skipped) — it self-heals later
 ## via ListForCustomer's blob-liveness prune

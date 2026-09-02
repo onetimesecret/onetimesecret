@@ -56,9 +56,12 @@ module Onetime
       #
       # ## 3. One audit event with counts
       #
-      # Exactly one {Onetime::ColonelAuditEvent} (`verb: session.revoke_all`, target =
-      # the customer), detail carrying the kill counts so the operator (and the
-      # trail) sees how total the revoke actually was. Best-effort throughout: a
+      # Exactly one {Onetime::ColonelAuditEvent} (`verb: session.revoke_all`).
+      # This verb genuinely acts on a CUSTOMER, not one session, so target is the
+      # customer's extid — the route param only when it resolves to no customer
+      # (see docs/architecture/audit-logging.md, "Session verbs") — with detail
+      # carrying the kill counts so the operator (and the trail) sees how total
+      # the revoke actually was. Best-effort throughout: a
       # missing customer or a down auth DB degrades to zero-counts, never a raise
       # that leaves the account half-revoked.
       #
@@ -74,6 +77,11 @@ module Onetime
         # see: some sessions killed, then a raise. Records one `result: :failure`
         # and re-raises. Like {RevokeForCustomer} this op does not delegate to
         # {Delete}, so there is no nested audited frame to dedupe against.
+        #
+        # target here is the RAW route param, not the resolved extid the success
+        # record prefers: this lambda runs mid-raise, where re-resolving the
+        # customer could itself fail (the raise may BE the datastore), and the
+        # unresolved param is still an honest record of what the operator acted on.
         audit_failures :call, verb: AUDIT_VERB, target: -> { @custid }
 
         # Session-data identity fields matched against the target's extid.
@@ -128,6 +136,14 @@ module Onetime
 
           blobs_deleted = tracked_deleted + untracked_deleted
 
+          # Per-customer verb: target is the customer's extid so every audit
+          # event about one customer carries one identifier, however the route
+          # addressed them (extid, email, or objid). Only an unresolvable
+          # customer (this op degrades to a zero-count revoke rather than
+          # raising) falls back to the route param as given.
+          target = customer&.extid.to_s
+          target = @custid if target.empty?
+
           # FAIL-CLOSED (#4333): a bulk revoke deletes the very blobs and rows
           # that would otherwise evidence it, so this event is the whole record
           # of an offboarding/takeover action. An unwritable event raises
@@ -135,7 +151,7 @@ module Onetime
           Onetime::ColonelAuditEvent.record(
             actor: @actor,
             verb: AUDIT_VERB,
-            target: @custid,
+            target: target,
             result: :success,
             detail: with_reason(
               blobs_deleted: blobs_deleted,
