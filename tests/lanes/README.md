@@ -104,9 +104,14 @@ checkouts while sharing the local test service instances:
 - RabbitMQ uses the corresponding `w<index>` vhost. The runner recreates and
   grants the vhost through RabbitMQ's loopback-only management API before a
   lane starts, preventing stale queues/messages from a prior run.
-- CI and direct test commands outside the lane runner use the shared index,
+- CI and direct rspec commands outside the lane runner use the shared index,
   database, and vhost (`0` / `onetime_auth_test` / `/`). Do not rely on that
-  mode for concurrent local worktrees.
+  mode for concurrent local worktrees. Direct TRYOUT commands are the
+  exception on the Valkey axis only: `try/support/test_helpers.rb` derives a
+  per-checkout index of its own (key `try||<root>`, see
+  `try/support/datastore_db.rb`, which `pnpm run test:database:clean` also
+  consults so cleanup reaches that database) — but they still share
+  `onetime_auth_test` and the `/` vhost.
 - A collision between derived Valkey indexes fails loudly rather than allowing
   fixture contamination. Pin `LANES_DATASTORE_DB` in a lane `env` file or an
   overlay if the runner reports a collision; a shell export is intentionally
