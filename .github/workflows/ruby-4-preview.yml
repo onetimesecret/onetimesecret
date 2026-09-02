@@ -17,9 +17,9 @@ name: Ruby 4 Preview
 #   ci.yml and local development — with services from compose.test.yml,
 #   so the only intended variable is the Ruby version. The lanes are
 #   invoked directly (not via the run-test-lane composite): this
-#   workflow is advisory, so the composite's failure-tail PR comments
-#   and results plumbing would be noise (gating and reporting policy is
-#   CI's per-workflow decision; tests/lanes/README.md rule 4).
+#   workflow is advisory, so the composite's result-artifact and summary
+#   reporting would be noise (gating and reporting policy is CI's
+#   per-workflow decision; tests/lanes/README.md rule 4).
 # - Artifacts are scoped per workflow run, so there is no collision with
 #   the main CI workflow's `frontend-build` artifact.
 # - `continue-on-error` is at the step level (not job level) on every
