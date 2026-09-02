@@ -428,17 +428,27 @@ module Onetime
             Onetime.http_logger.debug 'Invalid domain in strategy selection',
               {
                 exception: ex,
-                request_domain: request_domain,
+                request_domain: host_label(request_domain),
               }
             nil
           rescue StandardError => ex
+            # Names, not objects: a PublicSuffix::Domain inspects to its ivars
+            # and reads as noise in the log line.
             Onetime.http_logger.error 'Unhandled error in domain strategy',
               {
                 exception: ex,
-                request_domain: request_domain,
-                canonical_domains: canonical_domains,
+                request_domain: host_label(request_domain),
+                canonical_domains: canonical_domains.map { |host| host_label(host) },
               }
             nil
+          end
+
+          # @param host [PublicSuffix::Domain, String, nil]
+          # @return [String, nil] the bare host name for a log line
+          def host_label(host)
+            return nil if host.nil?
+
+            host.respond_to?(:name) ? host.name : host.to_s
           end
 
           # Parses a host set per-element, skipping unparseable hosts (e.g. an
