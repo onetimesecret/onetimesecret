@@ -2,6 +2,11 @@
 # (bash -euo pipefail). Legs are collected, not chained: every leg runs even
 # when an earlier one fails, then the lane exits non-zero naming the red legs —
 # a red spec leg must not silently skip the dual-URL check (see unit/tasks).
+#
+# Caveat: when the postgres leg is red, verify_dual_url still runs — against
+# whatever schema state that leg left behind, possibly half-migrated. A second
+# red leg here can be derivative of the first rather than an independent
+# failure; read the postgres leg's output first.
 failed=()
 bundle exec rake spec:integration:migrations:postgres || failed+=(spec:integration:migrations:postgres)
 bundle exec rake spec:integration:migrations:verify_dual_url || failed+=(spec:integration:migrations:verify_dual_url)
